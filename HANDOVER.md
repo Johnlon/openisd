@@ -49,6 +49,14 @@ ground/modified/overlay machinery, its notification asymmetry, and the
 they move up a level rather than being rewritten. The gates keep their shape — substitute
 `ManagedProject` for `ManagedDriver` and `OpenISDProject` for `OpenISDDriver`.
 
+**PROJECTS ARE AN ORDERED LIST, NEVER A MAP (human ruling, 2026-08-14).** `project.name` is what
+the left nav shows, and the app deliberately ALLOWS two open projects to share a name. A name is a
+LABEL, not an identity — keying the collection by name would silently merge or overwrite two
+distinct designs the user has open side by side. The workspace holds `ManagedProject`s in an
+ordered array; identity is the entry's own id. `logic/model/workspace.ts` already declares
+`projects: WorkspaceEntry[]` — that is correct and must stay a list. Anything that introduces a
+`Map`/`Record` keyed by project name is a defect.
+
 **COMPONENT vs CONFIGURATION (human ruling, 2026-08-14).** They are modelled differently:
 - **`OpenISDDriver`** and **`OpenISDPassiveRadiator`** are COMPONENTS — selectable, editable,
   PURCHASABLE physical parts with datasheets and catalogue entries. A PR gets the SAME treatment
@@ -146,6 +154,7 @@ disagree — is the thing to keep hunting.
 | R12 | **Diagrams must be readable.** They cannot be enlarged in the viewer, so a 46-box diagram is worthless. | DONE — as-built is now a 10-box shape + tables |
 | R13 | **Arch tests must ENFORCE the architecture**, including deliberately-failing ones that stay red until the violation is deleted. | DONE — see §4 |
 | R14 | **We never force-push.** | Respected |
+| R18 | **Projects are an ORDERED LIST, never a map keyed by name.** Two open projects may share a `project.name`; a name is a label, not an identity. `workspace.ts` already uses `WorkspaceEntry[]` — keep it a list. | Already correct in `workspace.ts`; must be preserved |
 | R16 | **A COMPONENT is not a CONFIGURATION.** `OpenISDDriver` and `OpenISDPassiveRadiator` are components — selectable, editable, purchasable, with datasheets and catalogue entries; a PR gets the SAME modelling as a driver. Ports/vents and the bandpass orders are configurations: modelled, but simply, with no catalogue machinery. | SPECIFIED. `OpenISDPassiveRadiator` does not exist. |
 | R17 | **`OpenISDProject` is a superset of a `.wpr`; it holds the entire UI data; switching box type DELETES NOTHING (dormant, not gone — only the `.wpr` writer trims); it is PRIVATE to `ManagedProject`, as are the driver/PR/vent members. `ManagedProject` is the domain object for one project in the left nav.** | SPECIFIED. Not built. |
 | R15 | **`ManagedDriver` DIES; `ManagedProject` replaces it.** A what-if is entered on the whole project, not on a driver/box/vent/PR in isolation. `OpenISDProject` holds the driver, box, vents, radiators and the rest; `ManagedProject` holds ground/modified/overlay of it. | SPECIFIED. Not built. See §0. |
