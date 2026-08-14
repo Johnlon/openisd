@@ -182,6 +182,91 @@ tail can be exercised in a test with a substitute at the head.
 **The diagram above is the TARGET.** It shows what the system is specified to be. The one below
 shows what it IS.
 
+### TARGET — the data model, and who owns it
+
+The layering diagram above says where code LIVES. This one says what the DATA is and who owns it.
+Kept separate so both stay readable (R12): one picture per question.
+
+```mermaid
+graph TD
+    subgraph STORES["THE APPROVED STATE OWNERS — nothing else holds state"]
+        MP["<b>ManagedProject</b><br/>logic/managedProject.ts<br/><i>one per project in the left nav</i>"]
+        PS["<b>PresentationState</b><br/>logic/presentationState.ts<br/>browser-storage backed<br/><i>panels · cursor · zoom · skin · units</i>"]
+        UAS["<b>UrlAppState</b><br/>logic/urlAppState.ts<br/><i>composes the URL. OWNS NOTHING —<br/>queries the owners, asks them to restore.</i>"]
+    end
+
+    subgraph LAYERS["ManagedProject holds THREE complete projects"]
+        G["ground<br/><i>as loaded</i>"]
+        M["modified<br/><i>committed</i>"]
+        O["overlay<br/><i>edit OR what-if, never both</i>"]
+    end
+
+    PROJ["<b>OpenISDProject</b> — PRIVATE to ManagedProject<br/>superset of a .wpr · holds the ENTIRE UI data<br/><i>dormant data is KEPT, never deleted</i>"]
+
+    subgraph COMPONENTS["COMPONENTS — purchasable parts, full record + provenance + catalogue"]
+        DRV["<b>OpenISDDriver</b><br/>maps openisd.yml"]
+        PR["<b>OpenISDPassiveRadiator</b><br/>maps its own record<br/><i>peer of the driver</i>"]
+    end
+
+    subgraph CONFIGS["CONFIGURATIONS — chosen or sized, never bought"]
+        BOX["<b>Box</b><br/>volume · losses (Ql·Qa·Qp)<br/>alignment selection"]
+        ALIGN["<b>Alignments</b> — all KEPT, one ACTIVE<br/>sealed · vented · bandpass4 · pr<br/><i>flipping type makes the others dormant</i>"]
+        VENT["<b>Vent</b><br/>round or slotted · count<br/>length · end correction"]
+        TGT["<b>Targets</b><br/>target Fb / Fsc / alignment goal<br/><i>what the solver aims at</i>"]
+        FLT["<b>Filters</b><br/>the EQ / filter chain"]
+        ENV["<b>Environment</b><br/>T · p · humidity"]
+        SIG["<b>Signal</b><br/>Pin · Rg · nDrivers · wiring"]
+        META["<b>Project metadata</b><br/>name · creator · dates"]
+    end
+
+    MP --> G
+    MP --> M
+    MP --> O
+    G --> PROJ
+    M --> PROJ
+    O --> PROJ
+    PROJ --> DRV
+    PROJ --> PR
+    PROJ --> BOX
+    PROJ --> VENT
+    PROJ --> TGT
+    PROJ --> FLT
+    PROJ --> ENV
+    PROJ --> SIG
+    PROJ --> META
+    BOX --> ALIGN
+    UAS -.reads · restores.-> MP
+    UAS -.reads · restores.-> PS
+
+    classDef owner fill:#2a2440,stroke:#a78bfa,color:#f2ecff
+    classDef priv fill:#402020,stroke:#f87171,color:#ffecec
+    classDef comp fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
+    classDef cfg fill:#1e3050,stroke:#60a5fa,color:#eaf2ff
+    classDef layer fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
+    class MP,PS,UAS owner
+    class PROJ priv
+    class DRV,PR comp
+    class BOX,ALIGN,VENT,TGT,FLT,ENV,SIG,META cfg
+    class G,M,O layer
+```
+
+**Reading it.** `ManagedProject` is the only thing the app talks to. It holds three complete
+`OpenISDProject`s — ground, modified, and one overlay that is either an edit draft or a what-if,
+never both. `OpenISDProject` is red because it is PRIVATE: nothing outside `ManagedProject` reaches
+it, and nothing outside reaches its members either.
+
+**Green boxes are COMPONENTS** — you buy them, so they carry a full record, per-field provenance
+and a catalogue entry. **Blue boxes are CONFIGURATIONS** — you choose or size them, so they are
+modelled without catalogue machinery.
+
+**`Alignments` is the box-type rule made visible.** All four alignments are held at once; choosing
+one makes it ACTIVE and the rest DORMANT. Their data survives untouched, so flipping a ported box
+to sealed and back returns everything. Only the `.wpr` writer trims dormant data, because the file
+format cannot express it.
+
+**`Targets` is what the solver aims at** — an entered target tuning drives the vent length, rather
+than a length being typed and a tuning falling out. Both directions exist; the entered set decides.
+
 ### AS-BUILT — every module that exists today
 
 This is the same system as the diagram above, drawn from what is actually on disk rather than from

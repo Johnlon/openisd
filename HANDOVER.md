@@ -75,8 +75,16 @@ they move up a level rather than being rewritten. The gates keep their shape —
   one row in that list is one `ManagedProject`
 
 Spec: ARCHITECTURE.md §"A what-if is entered on the PROJECT, never on one part of it".
-Both arch diagrams updated: the target now shows `ManagedProject` → `OpenISDProject` (marked
-PRIVATE), and the as-built marks `managedDriver.ts` as "TO BECOME managedProject.ts".
+**THREE arch diagrams now, one question each** (kept separate so all stay readable):
+1. *Target — layers*: where code lives. Shows `ManagedProject` → `OpenISDProject` (marked PRIVATE).
+2. *Target — the data model*: what the data IS and who owns it. The three approved owners
+   (`ManagedProject`, `PresentationState`, `UrlAppState`), `ManagedProject`'s three complete
+   `OpenISDProject`s, and every member: `OpenISDDriver` and `OpenISDPassiveRadiator` as COMPONENTS
+   (green), and Box/Alignments/Vent/Targets/Filters/Environment/Signal/Metadata as CONFIGURATIONS
+   (blue). `Alignments` makes the box-type rule visible — all four (`sealed`/`vented`/`bandpass4`/
+   `pr`) held at once, one ACTIVE, the rest DORMANT with their data intact.
+3. *As-built*: `managedDriver.ts` marked "TO BECOME managedProject.ts", model marked "no
+   OpenISDProject yet", vent/PR state marked flat in `state.P` with no owner.
 
 ---
 
