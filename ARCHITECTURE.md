@@ -813,6 +813,48 @@ closed-form Thiele/Small physics. Restructuring moves that code behind boundarie
 rewrite the formulas. A clean-room rewrite discards paid-for correctness and re-introduces the same
 class of bugs.
 
+### A what-if is entered on the PROJECT, never on one part of it
+
+**HARD DECISION (human ruling 2026-08-14). `ManagedDriver` DIES. `ManagedProject` replaces it.**
+
+A user does not explore "a what-if driver". They explore a DESIGN: a driver in a box, with vents
+or passive radiators, at a drive level, in an environment. Scrubbing `Vb` and scrubbing `Qts` are
+the same act to the user, so they must be the same act to the app.
+
+```
+ManagedProject
+  ground     : OpenISDProject     the design exactly as loaded
+  modified   : OpenISDProject     the committed design
+  overlay    : OpenISDProject     an edit draft OR a what-if — never both
+
+OpenISDProject
+  driver     : OpenISDDriver      one driver
+  box        : the enclosure and its alignment
+  vents      : the vent group (round / slotted / …)
+  radiators  : the passive-radiator group
+  filters, environment, signal, project metadata
+```
+
+`OpenISDDriver` keeps its job unchanged — it maps `openisd.yml` and owns the driver's fields and
+provenance — but it is now a MEMBER of `OpenISDProject`, not a thing wrapped on its own.
+
+**The evidence this is right, from the code as it stands:** `OgTune.vue` opens what it calls a
+driver what-if, then scrubs `Vb`, which is a BOX value the driver what-if cannot cover. So the
+panel hand-rolls a one-field undo:
+
+```ts
+let vbSnapshot = state.P.Vb;
+function cancel() { managedDriver.cancelWhatIf(); state.P.Vb = vbSnapshot; … }
+```
+
+That snapshot exists only because the overlay was drawn around the wrong object. At project level
+it disappears: cancelling the overlay restores `Vb` because `Vb` is IN the overlay.
+
+**The same move fixes the asymmetry recorded in ledger QO43.** Vents and passive radiators have no
+facade and carry a second, hand-rolled provenance system (`state.P.entered`) unrelated to the
+driver's. Inside `OpenISDProject` each becomes a member with ONE provenance model, and the
+edit/what-if lifecycle covers all of them at once instead of the driver alone.
+
 ### Approved state stores — there are THREE, and no others
 
 **HARD DECISION. Only three places in this system are permitted to hold state. Every other
@@ -822,7 +864,7 @@ of its own. There are NO unapproved exceptions.**
 | The approved store | Holds, and holds exclusively                                                                    | Path                                       |
 | ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | the **store**      | PERSISTENT design state — box, params, project metadata: what a save, a load and a share link carry | `packages/ui/src/logic/store.ts`           |
-| **`ManagedDriver`**| ACTIVE, EDIT and WHAT-IF driver state — ground, modified, and the edit-or-what-if overlay        | `packages/ui/src/logic/managedDriver.ts`   |
+| **`ManagedProject`** | ACTIVE, EDIT and WHAT-IF state for the WHOLE PROJECT — ground, modified, and the edit-or-what-if overlay, each holding a complete `OpenISDProject` | `packages/ui/src/logic/managedProject.ts` |
 | **`PresentationState`** | PRESENTATION state — which panel/dialog is open, cursor and selection, per-chart zoom, skin, unit tokens. **Backed by browser storage** | `packages/ui/src/logic/presentationState.ts` |
 | **`UrlAppState`**  | Composing the URL that ENCAPSULATES the app state — components on display, projects open, chart selected | `packages/ui/src/logic/urlAppState.ts`     |
 

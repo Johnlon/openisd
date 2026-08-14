@@ -4843,7 +4843,7 @@ questions:
   body: ''
 - id: QO43
   title: 'Box/vents/PRs have no facade: flat state.P fields + a parallel ''entered'' provenance system'
-  status: open
+  status: decided
   raised: '2026-08-14'
   body: ''
   notes:
@@ -4890,3 +4890,36 @@ questions:
       the string in the whole source tree. Either it was designed and never built, or
       built and deleted leaving the reference behind. NOT investigated - flagged rather
       than guessed. Establish which before deciding the PR's what-if story.
+  answer:
+    at: '2026-08-14'
+    text: |-
+      RULED (human, 2026-08-14): ManagedDriver DIES. ManagedProject replaces it.
+
+      "the entire project enters a whatif NOT a driver or pr or box or vent config in
+      isolation - we need an OpenIsdProject object that encapsulates the driver pr vents
+      (3 or 4 different kinds) and also handle the what ifs at the project level not
+      driver level - managed driver dies. ManagedProject contains OpenIsdProject (ground,
+      modified, whatif/edit) and the driver + pr and other components and data sit within
+      the project."
+
+        ManagedProject { ground, modified, overlay }  each an OpenISDProject
+        OpenISDProject { driver: OpenISDDriver, box, vents, radiators, filters,
+                         environment, signal, metadata }
+
+      OpenISDDriver's job is unchanged - it maps openisd.yml and owns the driver's fields
+      and provenance - but it becomes a MEMBER of OpenISDProject rather than a thing
+      wrapped alone.
+
+      EVIDENCE THIS IS RIGHT, from the code as it stands: OgTune.vue opens a "driver"
+      what-if then scrubs Vb, a BOX value the driver what-if cannot cover, so it
+      hand-rolls a one-field undo:
+          let vbSnapshot = state.P.Vb;
+          function cancel() { managedDriver.cancelWhatIf(); state.P.Vb = vbSnapshot; ... }
+      That snapshot exists only because the overlay was drawn around the wrong object.
+
+      This also resolves this question's original subject: vents and PRs stop being flat
+      state.P fields with a parallel `entered` provenance system and become members of
+      OpenISDProject under ONE provenance model, with the edit/what-if lifecycle covering
+      all of them at once.
+
+      Recorded in ARCHITECTURE.md as target state, and in HANDOVER.md.
