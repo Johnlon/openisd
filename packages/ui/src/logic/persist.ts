@@ -43,22 +43,16 @@ export function serialize(state: AppState, driver: DriverJSON): SerializedState 
 }
 
 export async function stateToUrl(serialized: SerializedState): Promise<string> {
-  // A share link reproduces the sender's whole VIEW — same active tab and chart — so the
-  // recipient lands on the identical page, not a generic default. It
-  // still drops personal WORKING state that only makes sense mid-edit for the sender: an
-  // open editor/what-if overlay + its uncommitted buffer (share the committed design, not
-  // someone's half-finished edit), and per-field unit-display prefs (a recipient's own
-  // display choice, not part of the design).
-  const { ui, ...rest } = serialized;
-  const shareable: Omit<SerializedState, 'ui'> & { ui?: Partial<UiState> } = rest;
-  if (ui) {
-    const { originalTuneOpen: _t, originalEditorOpen: _e, unitTokens: _u,
-            originalNavW: _nw, originalBottomH: _bh, originalNavCollapsed: _nc,
-            originalBottomCollapsed: _bc, originalChartMax: _cm,
-            username: _n, envDefaults: _v, chartColors: _c, ...shareableUi } = ui;
-    shareable.ui = shareableUi;   // Partial<UiState> — tab/chart KEPT; open-editor state/buffer, unit prefs, device-local layout (panel sizes/collapse/maximise), and Options-dialog app-level prefs (username/env defaults/chart colors) dropped
-  }
-  const encoded = await gzipEncodeBase64Url(JSON.stringify(shareable));
+  // The URL carries the WHOLE state, stripped of nothing (human ruling 2026-08-14). A share
+  // link is a complete description of the session: the recipient lands on exactly what the
+  // sender was looking at, which is what makes a link usable for diagnostics and not just for
+  // handing over a design.
+  //
+  // This deliberately includes the recipient's-preference fields an earlier version removed
+  // (unit tokens, chart colours, environment defaults, username, panel sizes) and the
+  // open-panel flags. Fidelity beats politeness: a link that quietly differs from what the
+  // sender saw cannot be used to diagnose what the sender saw.
+  const encoded = await gzipEncodeBase64Url(JSON.stringify(serialized));
   return location.origin + location.pathname + '#s=' + encoded;
 }
 

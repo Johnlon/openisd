@@ -109,10 +109,32 @@ function sectionFor(record: DriverFields): 'woofer' | 'tweeter' | 'passive_radia
  * predates the record: `BL` is the record's spelling of the engine's `Bl`. It is not an
  * alias on our own field — the record has exactly one name for it, and so does the engine.
  */
-const TO_ENGINE: Partial<Record<SpecField, string>> = { BL: 'Bl' };
+const TO_ENGINE: Partial<Record<SpecField, string>> = {
+  BL: 'Bl',
+  // The record names its dimensions in millimetres and STATES them in millimetres; the engine
+  // works in SI metres throughout. Both are internally consistent, so the conversion belongs
+  // here, at the one join between them — omitting it is not a rounding error, it makes the
+  // field invisible to the engine under a name it never reads.
+  // bugs/BUG_20260814_openisddriver-passes-mm-named-dimension-fields-to-the-engine-untranslated-and-unscaled.md
+  Hc_mm: 'Hc', Hg_mm: 'Hg', voice_coil_dia_mm: 'Vcd',
+  thick_mm: 'Thick', depth_mm: 'Depth', magnet_depth_mm: 'MagDepth',
+  magnet_dia_mm: 'Magnet', basket_dia_mm: 'Basket', outer_dia_mm: 'Outer',
+  driver_volume_l: 'DVol',
+};
 const FROM_ENGINE: Record<string, SpecField> = { Bl: 'BL' };
 
+/** SI value = stated value × this. 1 where the record already states SI, 1e-3 for a field the
+ *  record names and states in millimetres (or, for `driver_volume_l`, in litres). Same pairs
+ *  the serialiser declares in `SPEC_TO_WDR`; this is the model side of the identical join. */
+const TO_ENGINE_SCALE: Partial<Record<SpecField, number>> = {
+  Hc_mm: 1e-3, Hg_mm: 1e-3, voice_coil_dia_mm: 1e-3,
+  thick_mm: 1e-3, depth_mm: 1e-3, magnet_depth_mm: 1e-3,
+  magnet_dia_mm: 1e-3, basket_dia_mm: 1e-3, outer_dia_mm: 1e-3,
+  driver_volume_l: 1e-3,
+};
+
 function engineName(f: SpecField): string { return TO_ENGINE[f] ?? f; }
+function engineScale(f: SpecField): number { return TO_ENGINE_SCALE[f] ?? 1; }
 function specName(e: string): SpecField { return FROM_ENGINE[e] ?? (e as SpecField); }
 
 export class OpenISDDriver {
@@ -205,7 +227,7 @@ export class OpenISDDriver {
       const entry = specs[k];
       if (!entry) continue;
       const v = winningReading(entry).read_value;
-      if (typeof v === 'number' && isFinite(v)) out[engineName(k)] = v;
+      if (typeof v === 'number' && isFinite(v)) out[engineName(k)] = v * engineScale(k);
     }
     return out;
   }
