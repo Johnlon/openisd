@@ -4870,3 +4870,23 @@ questions:
 
       This is the same structural weakness the driver had before ManagedDriver existed:
       one concept, no owner, written from anywhere.
+  - at: '2026-08-14'
+    text: |-
+      THE ASYMMETRY IS ARBITRARY, not designed (human, 2026-08-14). Verified state:
+
+                    facade          provenance              what-if            solver
+        driver      ManagedDriver   SpecEntry/origin/       ManagedDriver      solveConsistencyGroup
+                                    readings, cell().state  (built, gated)
+        vent        NONE            state.P.entered (27x    NONE               solveVentGroup
+                                    in useVentGroup.ts)
+        PR          NONE            state.P.entered (13x    ??? see below      solvePrGroup
+                                    in usePrGroup.ts)
+
+      Three group solvers of the same kind. TWO unrelated provenance mechanisms for one
+      E/C/N concept. One facade out of three.
+
+      UNRESOLVED - PREditModal.vue:14 names "PRWhatIfPanel" in a comment. No such
+      component exists anywhere in packages/ui/src; that comment is the ONLY match for
+      the string in the whole source tree. Either it was designed and never built, or
+      built and deleted leaving the reference behind. NOT investigated - flagged rather
+      than guessed. Establish which before deciding the PR's what-if story.
