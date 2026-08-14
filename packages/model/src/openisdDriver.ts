@@ -1,7 +1,7 @@
 /**
- * `OpenISDDriver` — the stateful driver model the app holds (ARCHITECTURE.md AD-8).
+ * `OpenISDDriver` — the stateful driver model the app holds.
  *
- * This is the app's ONE driver model. It owns an `OpenISDRecord` and answers three
+ * This is the app's ONE driver model. It owns a `DriverFields` record and answers three
  * questions about every field: what is its value, where did that value come from, and
  * what does the engine say is wrong with the driver as a whole.
  *
@@ -26,12 +26,39 @@
 import { deriveOpenISDFields } from './openisdDerive.js';
 import { winningReading } from './openisdRecord.js';
 import type {
-  OpenISDRecord, SpecEntry, SpecSection, SourceRole, Reading,
+  SpecEntry, SpecSection, Specs, SourceRole, Reading,
+  ScrapedField, DerivedField, BookkeepingField, DispositionField, QualityBlock, CurvesBlock,
 } from './openisdRecord.js';
 import { deriveDriver, checkConsistency, RHO, C } from '@openisd/engine';
 import type {
   DriverError, DriverRaw, Driver as EngineDriver, ConsistencyIssue,
 } from '@openisd/engine';
+
+/**
+ * The openisd.yml record shape — `OpenISDDriver`'s own constructor parameter and the
+ * `.owdr` bytes `toRecord()` hands back. Declared here, once, unexported: nothing
+ * outside this file ever names it, so `OpenISDDriver` is the one external form.
+ */
+interface DriverFields {
+  uuid: BookkeepingField<string>;
+  quality: QualityBlock;
+  manufacturer: ScrapedField<string>;
+  brand: ScrapedField<string>;
+  model: ScrapedField<string>;
+  sku: DerivedField<string>;
+  name?: DerivedField<string>;
+  series?: ScrapedField<string>;
+  driver_type: ScrapedField<string>;
+  nominal_size_cm?: ScrapedField<number>;
+  disposition: DispositionField;
+  data_sources: BookkeepingField<Partial<Record<SourceRole, string>>>;
+  authoritative: BookkeepingField<SourceRole>;
+  product_image?: ScrapedField<string>;
+  description?: ScrapedField<string>;
+  surround_material?: ScrapedField<string>;
+  specs: Specs;
+  curves?: CurvesBlock;
+}
 
 /** What `cell()` answers: the number, and where it came from. */
 export type CellState = 'E' | 'C' | 'N';
@@ -69,7 +96,7 @@ export interface MetaCell {
  * passive radiator reads `woofer` — that is the pipeline's own convention, and `full-range`
  * is the common case that proves it.
  */
-function sectionFor(record: OpenISDRecord): 'woofer' | 'tweeter' | 'passive_radiator' {
+function sectionFor(record: DriverFields): 'woofer' | 'tweeter' | 'passive_radiator' {
   const t = record.driver_type?.value;
   if (t === 'tweeter') return 'tweeter';
   if (t === 'passive-radiator' || t === 'passive_radiator') return 'passive_radiator';
@@ -90,7 +117,7 @@ function specName(e: string): SpecField { return FROM_ENGINE[e] ?? (e as SpecFie
 
 export class OpenISDDriver {
   /** The record as it stands, including any manual readings entered since load. */
-  readonly #record: OpenISDRecord;
+  readonly #record: DriverFields;
   /** The section every T/S field of this driver lives in — fixed by driver_type. */
   readonly #section: 'woofer' | 'tweeter' | 'passive_radiator';
   /** The origin that won before a manual reading displaced it, so clear() can restore it. */
@@ -107,17 +134,17 @@ export class OpenISDDriver {
   #autoCalculate = true;
   readonly #listeners = new Set<DriverListener>();
 
-  private constructor(record: OpenISDRecord) {
+  private constructor(record: DriverFields) {
     this.#record = record;
     this.#section = sectionFor(record);
   }
 
-  static fromRecord(record: OpenISDRecord): OpenISDDriver {
+  static fromRecord(record: DriverFields): OpenISDDriver {
     return new OpenISDDriver(record);
   }
 
   /** The record, including every manual reading entered. This is the `.owdr` bytes. */
-  toRecord(): OpenISDRecord { return this.#record; }
+  toRecord(): DriverFields { return this.#record; }
 
   /** The section this driver's T/S fields live in — `specs.woofer` for anything that is
    *  neither a tweeter nor a passive radiator. */

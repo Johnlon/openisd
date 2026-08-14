@@ -1,6 +1,6 @@
 /**
  * WinISD `.wpr` project-file serialisation. File-format concerns live here, not in
- * @openisd/engine (ARCHITECTURE.md AD-6). Pure formatter: it takes already-computed
+ * @openisd/engine. Pure formatter: it takes already-computed
  * primitives (the caller does the physics — chamber tuning, port area) plus the driver's
  * `[Driver]` block (reused verbatim from Driver.toWdr(), which is field-identical to a
  * `.wpr` [Driver] section) and emits the INI text. No engine, store, or Vue imports.

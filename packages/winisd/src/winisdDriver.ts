@@ -26,10 +26,41 @@
  */
 import { parse as parseYaml } from 'yaml';
 import { deriveOpenISDFields, winningReading } from '@openisd/model';
-import type { OpenISDRecord, SpecSection, SpecEntry, ScrapedField, DqMark } from '@openisd/model';
+import type {
+  SpecSection, SpecEntry, ScrapedField, DerivedField, BookkeepingField, DispositionField,
+  QualityBlock, CurvesBlock, SourceRole, Specs, DqMark,
+} from '@openisd/model';
 import type { DriverError, Result } from '@openisd/engine';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from './parstate.js';
 import type { CellState } from './parstate.js';
+
+/**
+ * The openisd.yml record shape — this file works directly against the plain record
+ * (never constructs an `OpenISDDriver`, per this file's own header), so it declares the
+ * same shape `OpenISDDriver`'s constructor does (`@openisd/model`'s `openisdDriver.ts`),
+ * built from the same re-exported envelope types. Private to this file — `OpenISDDriver`
+ * is the one external form; nothing outside `@openisd/model` exports this name.
+ */
+interface DriverFields {
+  uuid: BookkeepingField<string>;
+  quality: QualityBlock;
+  manufacturer: ScrapedField<string>;
+  brand: ScrapedField<string>;
+  model: ScrapedField<string>;
+  sku: DerivedField<string>;
+  name?: DerivedField<string>;
+  series?: ScrapedField<string>;
+  driver_type: ScrapedField<string>;
+  nominal_size_cm?: ScrapedField<number>;
+  disposition: DispositionField;
+  data_sources: BookkeepingField<Partial<Record<SourceRole, string>>>;
+  authoritative: BookkeepingField<SourceRole>;
+  product_image?: ScrapedField<string>;
+  description?: ScrapedField<string>;
+  surround_material?: ScrapedField<string>;
+  specs: Specs;
+  curves?: CurvesBlock;
+}
 
 /** One `.wdr` field: the text that will be written, and its provenance mark. */
 export interface WdrCell {
@@ -112,6 +143,15 @@ const DERIVED_TO_WDR: Readonly<Record<string, string>> = {
   Bl: 'BL', Z: 'Znom', c: 'c', roo: 'roo', loss: 'Gloss',
 };
 
+/** `.wdr` key → the `SpecSection` field it maps to, with the unit conversion back to record
+ *  convention (mm/litres) — the exact inverse of `SPEC_TO_WDR`. A WDR-tracked key with no
+ *  `SpecEntry` home (`Vd`, `Dia`, `no`, `Gloss`, `Mpow`, `Mcost`, `Rme`, …) is simply absent
+ *  from this map — the migration plan's own Step 8 table calls these "WDR-only carried
+ *  pass-through": nothing in `openisd.yml` asserts them, whatever their WDR state. */
+const WDR_TO_SPEC = new Map<string, readonly [keyof SpecSection, number]>(
+  SPEC_TO_WDR.map(([specKey, wdrKey, scale]) => [wdrKey, [specKey, 1 / scale] as const]),
+);
+
 /**
  * WinISD writes plain JS-style numbers: `0`, `1`, `343.684120962152`, `6.45e-05`. Not
  * fixed-decimal, not rounded — the stored double's shortest round-trip form, which is what
@@ -122,7 +162,7 @@ const fmt = (n: number): string => String(n);
 /** Metadata fields that carry a `dq: DqMark[]` array (the `ScrapedField<T>` envelope). Order
  *  here IS record order for DQ-comment purposes — declared once, walked the same way every
  *  time. `driver_type` is included: it is a `ScrapedField`, not a closed enum wrapper. */
-const DQ_META_FIELDS: ReadonlyArray<keyof OpenISDRecord> = [
+const DQ_META_FIELDS: ReadonlyArray<keyof DriverFields> = [
   'manufacturer', 'brand', 'model', 'series', 'driver_type', 'nominal_size_cm',
   'product_image', 'description', 'surround_material',
 ];
@@ -137,7 +177,7 @@ function dqValueText(v: number | string): string {
  *  metadata fields (declared order), then every T/S field of the driver's OWN section
  *  (SpecSection's declared key order). One line per mark; `mark.detail` IS the offence text
  *  (record_registries.py's one registered template rendering — never composed here). */
-function dqLinesOf(record: OpenISDRecord): string[] {
+function dqLinesOf(record: DriverFields): string[] {
   const lines: string[] = [];
   const push = (field: string, value: number | string, marks: readonly DqMark[] | undefined): void => {
     for (const m of marks ?? []) lines.push(`[DQ] ${field}=${dqValueText(value)}: ${m.detail}`);
@@ -161,7 +201,7 @@ function dqLinesOf(record: OpenISDRecord): string[] {
 }
 
 /** Which `specs:` section a record's `driver_type` selects. */
-function sectionFor(record: OpenISDRecord): SpecSection | null {
+function sectionFor(record: DriverFields): SpecSection | null {
   const t = record.driver_type?.value;
   if (t === 'passive_radiator' || t === 'passive-radiator') return record.specs?.passive_radiator ?? null;
   if (t === 'tweeter') return record.specs?.tweeter ?? null;
@@ -210,7 +250,7 @@ export class WinISDDriver {
    * Never throws by itself — the caller (`fromYaml`) is where a malformed source becomes a
    * `Result`. This entry point trusts `record` is already a parsed object.
    */
-  static fromOpenISDRecord(record: OpenISDRecord): Result<WinISDDriver> {
+  static fromOpenISDRecord(record: DriverFields): Result<WinISDDriver> {
     const section = sectionFor(record);
     if (section == null) {
       return {
@@ -324,9 +364,9 @@ export class WinISDDriver {
    * for `openisdYamlToWdr(yamlText)`.
    */
   static fromYaml(yamlText: string): Result<WinISDDriver> {
-    let record: OpenISDRecord;
+    let record: DriverFields;
     try {
-      record = parseYaml(yamlText) as OpenISDRecord;
+      record = parseYaml(yamlText) as DriverFields;
     } catch (e) {
       return { value: null, errors: [err('yaml', `could not parse openisd.yml: ${String(e)}`)] };
     }
@@ -374,6 +414,67 @@ export class WinISDDriver {
     return new WinISDDriver(header, cells, []);
   }
 
+  // ── IMPORT continued — this AS-READ WinISDDriver → DriverFields ─────────────────────
+
+  /**
+   * Project THIS as-read `.wdr` (from `fromWdr`) into a `DriverFields` — the reader half of
+   * Step 8 (ARCHITECTURE.md §3 "Import": "`.wdr` text populates a `WinISDDriver`; those
+   * as-read values are diffed against what `OpenISDDriver` independently derives"). This is a
+   * NEW method; `fromWdr` itself keeps returning raw, undived cells — nothing here changes its
+   * signature or behaviour.
+   *
+   * Provenance mapping, field by field:
+   *  - a cell marked `E` becomes a stated `SpecEntry`. A raw `.wdr` import has no finer source
+   *    than the file itself, and `SourceRole` has no dedicated WDR role — `manual` is the one
+   *    role already meaning exactly that ("no printed literal, no stated precision", ledger
+   *    QO36 ruling B3), so the reading carries `read_value` alone.
+   *  - a cell marked `C` is WinISD's OWN calculated value, never a stated fact — it is left out
+   *    of the record entirely, and `OpenISDDriver` re-derives it fresh once loaded. A mismatch
+   *    between what WinISD stored and what gets re-derived is `diffAgainst`'s job, not this
+   *    method's — call it separately against `WinISDDriver.fromOpenISDRecord(record)`.
+   *  - a cell marked `N` is simply absent; nothing is invented for it.
+   */
+  toOpenISDRecord(): DriverFields {
+    const woofer: SpecSection = {};
+    for (const [wdrKey, cell] of this.#cells) {
+      if (cell.state !== 'E') continue;
+      const mapped = WDR_TO_SPEC.get(wdrKey);
+      if (!mapped) continue;
+      const [specKey, inv] = mapped;
+      const v = Number(cell.value);
+      if (!isFinite(v)) continue;
+      woofer[specKey] = { origin: 'manual', readings: { manual: { read_value: v * inv } }, dq: [] };
+    }
+
+    const h = this.#header;
+    const meta = (value: string | undefined): ScrapedField<string> =>
+      ({ value: value ?? '', origin: 'manual', definition: 'from the .wdr header', dq: [] });
+    const brand = h.brand ?? '';
+    const model = h.model ?? '';
+    const slug = `${brand} ${model}`.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+    return {
+      uuid: { value: '', definition: 'no stable identity — a raw .wdr carries none' },
+      quality: {
+        rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+        parse_errors: [], cross_source_only: [],
+      },
+      manufacturer: meta(h.manufacturer),
+      brand: meta(h.brand),
+      model: meta(h.model),
+      sku: {
+        value: slug,
+        definition: 'slug of the .wdr Brand/Model header text',
+        grounds: [{ origin: 'manual', reading: `${brand} ${model}`.trim(), definition: 'the .wdr Brand/Model header lines' }],
+      },
+      driver_type: { value: 'woofer', origin: 'manual', definition: '.wdr carries no driver-type discriminator', dq: [] },
+      disposition: { value: 'ok', definition: 'imported from a .wdr file', detail: '' },
+      data_sources: { value: {}, definition: '.wdr carries no source URLs' },
+      authoritative: { value: 'manual', definition: 'the .wdr file is its own only source' },
+      specs: { woofer },
+    };
+  }
+
   // ── Serialise ──────────────────────────────────────────────────────────────────────
 
   /** Render as `.wdr` text: the seven header lines, the 48 tracked keys in WinISD's own
@@ -418,15 +519,22 @@ export class WinISDDriver {
   // ── Import diffs, never overwrites (ARCHITECTURE.md §3) ───────────────────────────────
 
   /**
-   * Compare THIS (as-read) instance's stated (`E`) values against `other`'s own value for
-   * the same key — `other` is normally `WinISDDriver.fromOpenISDRecord(record)`, the
-   * independently-derived side. A mismatch beyond the file's own float precision is
-   * reported, never silently overwritten; a key this instance never stated is not compared.
+   * Compare THIS (as-read) instance's `E` (stated) AND `C` (WinISD's own calculated) values
+   * against `other`'s own value for the same key — `other` is normally
+   * `WinISDDriver.fromOpenISDRecord(record)`, the independently-derived side. A mismatch
+   * beyond the file's own float precision is reported, never silently overwritten. A key
+   * this instance marked `N` (never in play) is not compared — there is nothing "as-read" to
+   * check it against. Comparing `C` cells too, not just `E`, is what catches the case
+   * ARCHITECTURE.md §3 names: a value WinISD itself computed and stored, that no longer
+   * agrees with a fresh derivation from the same `E`-marked inputs (stale save, or the two
+   * solvers disagree) — see
+   * `bugs/BUG_20260813_wdr-spl-is-discarded-on-import-and-openisd-substitutes-its-own-computed-sensitivity.md`
+   * for the sibling defect this same principle already guards against on the `E` side.
    */
   diffAgainst(other: WinISDDriver, relTol: number = DIFF_REL_TOL): DriverError[] {
     const out: DriverError[] = [];
     for (const [key, cell] of this.#cells) {
-      if (cell.state !== 'E') continue;
+      if (cell.state === 'N') continue;
       const a = Number(cell.value);
       if (!isFinite(a)) continue;   // text fields (brand/model/…) are not this comparison's job
       const otherCell = other.cell(key);

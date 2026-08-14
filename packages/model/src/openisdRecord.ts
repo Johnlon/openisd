@@ -1,12 +1,17 @@
 /**
- * The `openisd.yml` record shape — TypeScript types matching
- * `winisd_tools/scrapers/scrapers/lib/model_driver.py` and `model_openisd.py`'s
- * `MetaFile` (the actual `driver.yml → openisd.yml` projection) FIELD FOR FIELD.
- * Hand-transcribed against the real pydantic models (no schema-export tooling exists
- * yet on the Python side — ARCHITECTURE.md AD-8 flags this as drift-risk).
+ * The envelope kinds an `OpenISDDriver` field is built from — `OpenISDDriver`
+ * (`openisdDriver.ts`) is the one external form; this file supplies its parts, not a
+ * second record type. OpenISD owns the `openisd.yml` schema outright (ARCHITECTURE.md
+ * "`openisd.yml` is read and written exclusively by JS/TS owned by OpenISD").
+ *
+ * It currently matches `winisd_tools/scrapers/scrapers/lib/model_driver.py` and
+ * `model_openisd.py`'s `MetaFile` field for field because the `driver.yml → openisd.yml`
+ * projection still runs in Python. That projection is moving into this package, called
+ * by `winisd_tools` across the embedded-V8 boundary ARCHITECTURE.md describes; the
+ * Python model is retired once it does, not schema-exported-from.
  *
  * NOT one uniform envelope. Four distinct kinds, matched to what kind of fact a field
- * is (ARCHITECTURE.md AD-8):
+ * is:
  *
  *   SpecEntry        T/S fields, inside `specs` only. NO flat value — `origin` names
  *                    the winning source, a REQUIRED `readings` dict (>= 1 source) holds
@@ -20,16 +25,13 @@
  *   BookkeepingField<T>  a pure pipeline fact with nothing external to point at (uuid).
  *                    Just `value` + `definition`.
  *
- * Package placement is provisional: this is neither `calc` (AD-6, WinISD-free physics)
- * nor `winisd` interop proper (AD-6's own definition) — it sits here only because that
- * is where the class it replaces (`Driver`, AD-8) currently lives, to keep the Step 5/6
- * migration reviewable. May warrant its own package later.
+ * Lives in `@openisd/model`, distinct from `@openisd/engine` (WinISD-free physics) and
+ * `@openisd/winisd` (WinISD serialisation) — ARCHITECTURE.md's module table.
  */
 
 // ── SourceRole — record_registries.py:36 ──────────────────────────────────────────────
 // `manual` is the ONE non-URL role — a hand-entered value, nothing to index. This is the
-// origin a live OpenISDDriver edit gets (ARCHITECTURE.md AD-8, "the lifecycle of origin
-// for a live edit").
+// origin a live OpenISDDriver edit gets.
 export type SourceRole =
   | 'manufacturer_datasheet'
   | 'manufacturer_product_page'
@@ -167,9 +169,9 @@ export interface SpecSection {
   Znom?: SpecEntry; Qts?: SpecEntry; Qes?: SpecEntry; Qms?: SpecEntry; Vas?: SpecEntry;
   Sd?: SpecEntry; BL?: SpecEntry; Mms?: SpecEntry; Cms?: SpecEntry; Rms?: SpecEntry;
   Xmax?: SpecEntry; Xlim?: SpecEntry;
-  /** Printed sensitivity — ARCHITECTURE.md AD-8's named blocking gap: no equivalent
-   *  exists anywhere in today's engine types. Present here because it IS in the real
-   *  canonical allowlist; the gap is on the OpenISDDriver/UI side, not this type. */
+  /** Printed sensitivity — no equivalent exists anywhere in today's engine types.
+   *  Present here because it IS in the real canonical allowlist; the gap is on the
+   *  OpenISDDriver/UI side, not this type. */
   SPL?: SpecEntry;
   Pe?: SpecEntry; Dd?: SpecEntry; EBP?: SpecEntry; numVC?: SpecEntry; VCCon?: SpecEntry;
   // Descriptive/dimensional fields (_SPEC_DESCRIPTIVE_FIELDS)
@@ -194,27 +196,7 @@ export interface CurvesBlock {
   impedance?: CurveEntry;
 }
 
-/**
- * THE openisd.yml record — model_openisd.py:19-49 (`MetaFile`), field for field. This is
- * `OpenISDDriver`'s on-disk shape (ARCHITECTURE.md AD-8: `.owdr` is this, byte-identical).
- */
-export interface OpenISDRecord {
-  uuid: BookkeepingField<string>;
-  quality: QualityBlock;
-  manufacturer: ScrapedField<string>;
-  brand: ScrapedField<string>;
-  model: ScrapedField<string>;
-  sku: DerivedField<string>;
-  name?: DerivedField<string>;
-  series?: ScrapedField<string>;
-  driver_type: ScrapedField<string>;
-  nominal_size_cm?: ScrapedField<number>;
-  disposition: DispositionField;
-  data_sources: BookkeepingField<Partial<Record<SourceRole, string>>>;
-  authoritative: BookkeepingField<SourceRole>;
-  product_image?: ScrapedField<string>;
-  description?: ScrapedField<string>;
-  surround_material?: ScrapedField<string>;
-  specs: Specs;
-  curves?: CurvesBlock;
-}
+// The openisd.yml record shape itself is not declared here — it is
+// `OpenISDDriver`'s own constructor parameter (openisdDriver.ts). There is one
+// external form, `OpenISDDriver`; everything above this line is the set of envelope
+// kinds its fields are built from, not a competing record type.

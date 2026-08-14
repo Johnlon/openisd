@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { state } from '../../logic/store.js';
-import { RHO, C } from '@openisd/engine';
+import { prVasDisplay, prFsDisplay, prQmsDisplay, setPrFsFromWinIsd, setPrQmsFromWinIsd, setPrVasFromWinIsd } from '../../logic/prWinIsdFields.js';
 import type { PRLibEntry } from '../../types.js';
 import NumInput from './NumInput.vue';
 import { useApp } from '../../logic/app.js';
@@ -19,37 +19,13 @@ const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, close);
 
 const P = computed(() => state.P);
-const prVas = computed(() => P.value.prCms * P.value.prSd * P.value.prSd * RHO * C * C * 1000);
-const prFsDisplay = computed(() => {
-  const { prMmd, prCms } = P.value;
-  return prMmd > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(prMmd * prCms)) : 0;
-});
-const prQmsDisplay = computed(() => {
-  const { prMmd, prCms, prRms } = P.value;
-  return prRms > 0 ? Math.sqrt(prMmd / prCms) / prRms : 0;
-});
+const prVas = computed(() => prVasDisplay(P.value));
+const prFsShown = computed(() => prFsDisplay(P.value));
+const prQmsShown = computed(() => prQmsDisplay(P.value));
 
-function setWinIsdFs(newFsHz: number) {
-  if (!(newFsHz > 0)) return;
-  const Qms = prQmsDisplay.value || 5;
-  const newMmd = 1 / ((2 * Math.PI * newFsHz) ** 2 * state.P.prCms);
-  state.P.prMmd = newMmd;
-  state.P.prRms = Math.sqrt(newMmd / state.P.prCms) / Qms;
-}
-function setWinIsdQms(newQms: number) {
-  if (!(newQms > 0)) return;
-  state.P.prRms = Math.sqrt(state.P.prMmd / state.P.prCms) / newQms;
-}
-function setWinIsdVas(newVasL: number) {
-  if (!(newVasL > 0)) return;
-  const Fs_curr = prFsDisplay.value || 30;
-  const Qms_curr = prQmsDisplay.value || 5;
-  const newCms = (newVasL / 1000) / (state.P.prSd * state.P.prSd * RHO * C * C);
-  const newMmd = 1 / ((2 * Math.PI * Fs_curr) ** 2 * newCms);
-  state.P.prCms = newCms;
-  state.P.prMmd = newMmd;
-  state.P.prRms = Math.sqrt(newMmd / newCms) / Qms_curr;
-}
+function setWinIsdFs(newFsHz: number) { setPrFsFromWinIsd(state.P, newFsHz); }
+function setWinIsdQms(newQms: number) { setPrQmsFromWinIsd(state.P, newQms); }
+function setWinIsdVas(newVasL: number) { setPrVasFromWinIsd(state.P, newVasL); }
 
 const prLib = ref(prLibrary.list());
 const showPRLib = ref(false);
@@ -109,12 +85,12 @@ function close() { emit('close'); }
         </div>
         <div class="row" title="PR free-air resonance (no added mass, no box). WinISD: Fs.">
           <label>Fs</label>
-          <NumInput :model-value="prFsDisplay" :scale="1" :precision="4" @update:model-value="v => setWinIsdFs(v ?? 0)" />
+          <NumInput :model-value="prFsShown" :scale="1" :precision="4" @update:model-value="v => setWinIsdFs(v ?? 0)" />
           <span class="u">Hz</span>
         </div>
         <div class="row" title="Mechanical Q of the PR suspension. WinISD: Qms.">
           <label>Qms</label>
-          <NumInput :model-value="prQmsDisplay" :scale="1" :precision="3" @update:model-value="v => setWinIsdQms(v ?? 0)" />
+          <NumInput :model-value="prQmsShown" :scale="1" :precision="3" @update:model-value="v => setWinIsdQms(v ?? 0)" />
           <span class="u"></span>
         </div>
         <div class="row" title="Compliance volume. WinISD: Vas.">

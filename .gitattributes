@@ -1,6 +1,14 @@
-# Git hooks must stay LF and executable. Under core.autocrlf=true, checkout was
-# rewriting these with CRLF, so the shebang became "#!/bin/sh\r" and the kernel
-# could not exec them ("No such file or directory") — silently skipping the gate.
+# Repo-wide LF, regardless of core.autocrlf on the machine that checked it out. Without
+# this, core.autocrlf=true silently reintroduces CRLF into text files on every checkout,
+# stash pop, or reset — found twice in one session: scripts/hooks-local/pre-commit's
+# shebang broke ("#!/bin/sh\r", kernel could not exec it), and
+# packages/ui/test/db/bundle-drivers-disposition.test.ts failed to parse ("SyntaxError:
+# Invalid or unexpected token"). text=auto still lets git skip genuine binaries.
+* text=auto eol=lf
+
+# Git hooks must stay LF and executable — kept explicit as the historical precedent for
+# the rule above; the blanket rule already covers this, but a hook that silently stops
+# being exec'd is expensive enough to fail loudly and specifically.
 scripts/hooks/* text eol=lf
 scripts/hooks-local/* text eol=lf
 scripts/*.sh text eol=lf

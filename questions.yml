@@ -4049,6 +4049,159 @@ questions:
       Gates: npx vitest run packages/winisd/test/ — before 588 tests/557 pass/31 fail (pre-existing,
       all in winisd-parity.test.ts, unrelated to Xlim); after 590 tests/559 pass/31 fail (same 31,
       plus the 2 new Xlim tests both green). npm run typecheck — clean, 0 errors.
+  - at: '2026-08-14'
+    text: |-
+      STEP 10 PARTIAL — BLOCKED on two independent, verified external factors; `ManagedDriver` built
+      and fully tested, the store/driverSelection call-site swap NOT done, with evidence.
+
+      **Where `ManagedDriver` landed and why.** `packages/ui/src/logic/managedDriver.ts`. Per
+      ARCHITECTURE.md's dependency table, `@openisd/model` "may not contain... app state" — ManagedDriver
+      IS app state (ground/modified/overlay + subscription), so it cannot live in `packages/model/src/`.
+      `logic` is explicitly "The app's ONLY state." Added `@openisd/model` as a `packages/ui/package.json`
+      dependency (was missing).
+
+      **The three notification tests + the new 4th: ALL PASS.** `packages/ui/test/logic/managedDriver.test.ts`,
+      11 tests, green (`npx vitest run packages/ui/test/logic/managedDriver.test.ts`):
+      edit+N-changes+commit → exactly 1 notification; whatif+N-scrubs+cancel → N+2; edit-never-commits →
+      0. Plus the human's mid-task addition (ARCHITECTURE.md §3 "a what-if never leaks into anything
+      persistent", commit 5818614): `beginEdit()` cancels an active what-if itself (observable:
+      `isWhatIfActive()` false, cancel's own notification fires); `readModified()` (the one path any
+      future save/export/share must use) does the same; `load()` does the same; `beginWhatIf()`
+      symmetrically discards an active edit draft (never both at once).
+
+      **Real bug found and fixed along the way (recorded before fixing, per standing rule):**
+      `bugs/BUG_20260814_sharelink-does-not-cancel-an-active-what-if-before-serialising-the-driver.md`
+      — `useDesignIO.ts`'s `shareLink()` was the one I/O function NOT calling
+      `endAnyActiveWhatIfBeforeIO()` (every sibling export/save function does). TDD red→green,
+      `packages/ui/test/logic/useDesignIO.test.ts`. This is exactly the bug ARCHITECTURE.md §3 now
+      names as the origin of the "what-if never leaks" rule.
+
+      **Item 2 (swap store.ts/driverSelection.ts/driverLibrary.ts onto OpenISDDriver) — NOT DONE.
+      Two hard, evidenced blockers, both outside this agent's grant:**
+
+      1. **7 of the 34 call sites need `.wdr` text → `OpenISDRecord`, which does not exist.**
+         `packages/winisd/src/winisdDriver.ts`'s `WinISDDriver.fromWdr()` returns a `WinISDDriver` (raw
+         as-read cells for `diffAgainst`), never an `OpenISDRecord` — confirmed by reading the file and
+         grepping the whole tree for any wdr→OpenISDRecord constructor (none exists). That file is the
+         sibling agent's, off-limits to me.
+
+      2. **The committed-model's public wire shape is hard-consumed by forbidden `.vue` files carrying
+         RUNTIME data, not just types.** `driverJSON`/`whatIfJSON` (the `{inputs,carry}` `DriverJSON`
+         shape) and `driverRaw`/`setDriverFromRaw` (flat `DriverRaw`) are read/written directly by
+         `packages/ui/src/ui/shells/original/OriginalShell.vue` (compare-trace snapshots:
+         `activeItem.driver = driverRaw.value`, restore via `setDriverFromRaw(targetDesign.driver)`,
+         `driver: driverJSON.value` in `_ground`'s fingerprint) and `OgTune.vue`/`DriverEditorModal.vue`
+         (`FieldCell`, `getDriverModel()`'s wdr export). `OpenISDRecord`'s shape is fundamentally
+         different (SpecEntry/readings envelope, not flat `{inputs,carry}`) — a swap breaks these files'
+         runtime behaviour, not just their typecheck. `packages/ui/src/ui/**` is this agent's explicit
+         file restriction, and Original is the priority skin (AGENTS.md). Corroborating evidence already
+         in the tree: `packages/ui/test/ui/architecture.test.ts`'s two "presentation depends on logic
+         only" assertions are ALREADY RED before this session touched anything (confirmed:
+         `DriverEditorModal.vue` imports `@openisd/winisd` directly) — this is the exact Step 11 gap,
+         not yet closed, that the literal Step 10 instruction assumes is already closed.
+
+         `driverLibrary.ts` has ZERO `DriverModel`/`@openisd/winisd` call sites (confirmed by grep) — no
+         work needed there regardless.
+
+      **The 8 loose functions — NOT migrated** (blocked by the above): `enterDriverField`,
+      `startDriverWhatIf`, `cancelDriverWhatIf`, `setWhatIfFromBaseline`, `revertDriverTo`,
+      `isDriverWhatIfActive`, `whatIfJSON`, `restoreDriverWhatIf` all still exist in `store.ts`,
+      unchanged, still `Driver`(`@openisd/winisd`)-backed.
+
+      **`revertDriverTo`'s fate — NOT resolved this pass** (blocked with the rest): still present at
+      `store.ts:250`, still zero callers (confirmed: `command grep -rn "revertDriverTo" packages/ui/src
+      packages/ui/test` → only its own definition). STATE_MODEL.md rule 3 names it as Cancel's restore
+      path but no call site was ever wired. Left as-is pending the Step 10 rewire — deleting it now would
+      be deleting the very thing STATE_MODEL.md rule 3 says Cancel should use, without being able to
+      finish wiring it in the same pass.
+
+      **Test counts.** `packages/ui/test/logic/managedDriver.test.ts` (new): 11/11 pass.
+      `packages/ui/test/logic/useDesignIO.test.ts` (new): 1/1 pass. Full `npx vitest run`: 1077 passed /
+      35 failed / 1112 total — the 35 failures are ALL pre-existing (confirmed via `git diff --stat`
+      showing zero changes to any file those tests exercise): `test/ui/architecture.test.ts` (2, the
+      Step-11 gap above), `test/winisd-parity.test.ts` (31, sibling agent's live `winisdDriver.ts` work
+      — parity suite is NOT at 463 passed right now, it's mid-migration), `test/ui/driver-editor-units.test.ts`
+      (1), `test/logic/vent-target-reachability.test.ts` (1, unrelated vent-tuning float precision),
+      `test/db/bundle-drivers-disposition.test.ts` (1, unrelated `scripts/bundle-drivers.mjs` syntax
+      error). None touch driver-model code. `npm run typecheck`: clean, all 4 packages.
+
+      **LSP:** not used — this was TS-only architecture/dependency analysis (grep + Read), no symbol
+      navigation needed beyond what Read/Grep gave directly.
+
+      **Recommendation:** land `ManagedDriver` now (self-contained, fully tested, zero regressions).
+      Defer the call-site swap until either (a) Step 8 lands a real `.wdr`→`OpenISDRecord` reader, or
+      (b) Step 11 is pulled forward (or merged with Step 10) so the `.vue` files stop hard-consuming the
+      old wire shapes before the swap, or (c) a human explicitly authorises touching the named `.vue`
+      files as "strictly necessary" for this change.
+  - at: '2026-08-14'
+    text: |-
+      .wdr -> OpenISDRecord reader built: WinISDDriver.toOpenISDRecord(): OpenISDRecord, a NEW instance
+      method in packages/winisd/src/winisdDriver.ts (after fromWdr(), before the Serialise section).
+      fromWdr()'s signature/behaviour is UNCHANGED -- still static fromWdr(text: string): WinISDDriver,
+      raw undived cells, no derivation (human ruling 2026-08-14 confirmed compliance mid-task).
+
+      Provenance mapping: a cell WinISDDriver marked E -> a stated SpecEntry, origin 'manual', reading
+      {read_value} alone (no actual_reading/read_precision -- QO36 B3 shape; SourceRole has no
+      dedicated WDR role, manual is the sanctioned "no finer source than this file" role). A cell
+      marked C (WinISD's own calculated value) is EXCLUDED from the record entirely -- OpenISDDriver
+      re-derives it fresh, never carried as an asserted fact. A cell marked N is simply absent.
+      Unit conversion uses a new WDR_TO_SPEC map, the exact inverse of the existing SPEC_TO_WDR table.
+      Bookkeeping fields (uuid, quality, sku, disposition, data_sources, authoritative) get honest
+      placeholders (empty/'.wdr carries none') since a raw .wdr states none of them; driver_type
+      defaults to 'woofer', matching the class's own sectionFor() fallback (.wdr has no discriminator).
+
+      diffAgainst EXTENDED (not reimplemented) to compare C-marked cells too, not just E: filter
+      changed from `cell.state !== 'E'` to `cell.state === 'N'` (skip only N). This is what catches
+      "WinISD's own C-marked stored values disagree with a fresh derivation" -- previously diffAgainst
+      silently skipped every C cell. Verified no regression: all 3 pre-existing winisdDriver-diff.test.ts
+      cases (E-match, E-mismatch, N-not-compared) still pass unchanged.
+
+      Test: packages/winisd/test/wdr-to-openisd-record.test.ts, 6 new it(), oracle
+      drivers/sample/winisd/inconsistency-test-qts-C.wdr (genuine WinISD save, Qts=0.500 stored but
+      ParState marks it C; file's own comment: correct value ~0.358). Round-trip: .wdr text ->
+      fromWdr() -> toOpenISDRecord() -> OpenISDDriver.fromRecord() -> .cell() asserts Fs/Re/Qes/Qms
+      E-state values match the file, Qts/fLe correctly absent from the record, and OpenISDDriver
+      re-derives Qts = Qes*Qms/(Qes+Qms) = 0.35805471124620064 (C state) -- matches the file's own
+      comment. Diff/mismatch test: sourceWdr.diffAgainst(WinISDDriver.fromOpenISDRecord(derived))
+      reports a warn-level Qts mismatch, 0.500 (WinISD's stale stored C value) vs ~0.358 (fresh
+      derivation) -- the diff-not-overwrite path, confirmed working end to end.
+
+      Gates: npx vitest run packages/winisd/test/ -- BEFORE: 559 passed, 31 failed (1 file,
+      winisd-parity.test.ts, missing golden fixture data for a "solve-from-mms-cms" scenario --
+      pre-existing, unrelated, zero uncommitted changes in packages/winisd/ prior to this session).
+      AFTER: 565 passed (+6, my new file), same 31 pre-existing failures, zero new failures, zero
+      regressions. npm run typecheck: clean across all 4 packages (engine/model/winisd/ui).
+  - at: '2026-08-14'
+    text: |-
+      Step 10/11 store swap: partial.
+
+      DONE: architecture.test.ts's 2 layering offenses reduced from 4 to 2 (both now confined to
+      DriverEditorModal.vue). Fixed OgTune.vue (ebp) and OriginalShell.vue (driveVoltage, airFor,
+      sealedResonance, sourceLoadedQts, LossMode, prTuning, C, prVas/prFs/prFsWithMass/prQms — 11
+      symbols across one @openisd/engine import) by moving each formula call into
+      packages/ui/src/logic/store.ts (new exports: driverEbp, driveV, sealedRes, prFh,
+      portPipeResonance, lossModeOptions) and packages/ui/src/logic/prWinIsdFields.ts (added
+      prFsWithMassDisplay, matching its existing prVasDisplay/prFsDisplay/prQmsDisplay pattern).
+      Deleted revertDriverTo from store.ts (zero callers, confirmed by grep). Gates: lint 0 errors,
+      typecheck 0 errors, test:unit 1094/1094 pass (no regressions), architecture.test.ts offenses
+      4->2.
+
+      NOT DONE: the store.ts driver-STATE swap onto ManagedDriver (item 1), and therefore
+      DriverEditorModal.vue and useDesignIO.ts (items 2/3) — blocked by an architecture gap, not
+      attempted partially. OpenISDDriver's SpecSection (packages/model/src/openisdRecord.ts) has NO
+      field for ~15 values DriverEditorModal.vue currently lets the user edit live: Vd, no, tc, Rth,
+      Cth, SPLmaxLF, SPLmax, Rme, gamma, Mpow, Mcost, Gloss/loss, plus metadata providedBy/comment/
+      added. These are exactly the migration plan's "WDR-only carried pass-through" fields — modelled
+      only in WinISDDriver, never in OpenISDDriver, by design. driverSelection.ts's withLinks() also
+      enters URL fields (datasheetUrl etc.) via the old ADT's open-string .enter(); the new model
+      routes those through data_sources (a BookkeepingField), a different mechanism entirely.
+      Swapping store.ts's driver representation onto ManagedDriver would either not compile
+      (DriverEditorModal.vue calls .enter()/.cell() with field names OpenISDDriver's SpecField type
+      does not accept) or silently drop those fields from the live editor — both violate "land what
+      compiles and passes cleanly" / "no workarounds" without a human ruling. Needs a product
+      decision: extend SpecSection with those ~15 fields (touches OpenISDDriver, out of scope this
+      session per explicit instruction), or drop them from live editing (a feature change). Left
+      fully flagged rather than half-swapped.
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open
@@ -4397,6 +4550,46 @@ questions:
 
       NOTE: I did not commit. A concurrent session swept this session's in-flight tree into commits
       cb42b95 and bbaa383 under its own subjects.
+  - at: '2026-08-14'
+    text: |-
+      STEP 11 partial DONE (safe subset).
+
+      Gate before: 7 offending ui/ files across the two domain-import assertions (DriverEditorModal.vue,
+      OptionsModal.vue, PRDefineModal.vue, PREditModal.vue, OgTune.vue, OriginalShell.vue — each hit twice,
+      once per assertion; "presentation depends on logic" and "component imports no value from domain").
+
+      Fixed (3 files):
+      - packages/ui/src/ui/components/OptionsModal.vue — was `import { airFor } from '@openisd/engine'`,
+        called directly in a computed. Added packages/ui/src/logic/environment.ts exporting
+        `airForEnvironment(env)` (thin logic-owned wrapper around engine air.ts's airFor); component now
+        imports that instead.
+      - packages/ui/src/ui/components/PRDefineModal.vue — was `import { RHO, C } from '@openisd/engine'`,
+        inlining the Sd/Fs/Qms/Vas -> Sd/Mmd/Cms/Rms datasheet solve in `create()`. Moved to new
+        packages/ui/src/logic/prWinIsdFields.ts::prCanonicalFromDatasheet(); component now calls that and
+        assigns the returned canonical fields.
+      - packages/ui/src/ui/components/PREditModal.vue — was `import { RHO, C } from '@openisd/engine'`,
+        reimplementing prVas/prFs/prQms display formulas inline and their WinISD-vocabulary setters
+        (Fs/Qms/Vas -> Mmd/Cms/Rms). Moved to the same new prWinIsdFields.ts, reusing engine's existing
+        forward formulas (prVas/prFs/prQms) for the display computeds and adding the inverse setters
+        (setPrFsFromWinIsd/setPrQmsFromWinIsd/setPrVasFromWinIsd) alongside them. Component now imports
+        only from logic.
+
+      Skipped (off-limits per Step-10 finding, untouched): DriverEditorModal.vue, OgTune.vue,
+      OriginalShell.vue — still consume the old driver model as runtime data, blocked on the .wdr reader
+      another agent is building.
+
+      Gate after: same 2 assertions still list exactly those 3 skipped files (4 entries — DriverEditorModal
+      hits both @openisd/engine and @openisd/winisd) and nothing else. A concurrent sibling agent added a
+      third describe block ("ManagedDriver is the only holder of OpenISDDriver") mid-session; it passes.
+
+      Gates run: architecture.test.ts (2/2 pre-existing failures = the 3 skipped files, confirmed both
+      before my edits via a scoped git stash and after); `npx vue-tsc -p packages/ui --noEmit` clean
+      (packages/winisd has 6 unrelated pre-existing errors from another agent's in-flight .wdr-reader work,
+      outside my scope); `npm run test:unit` — 33 pre-existing failures in winisd-parity.test.ts +
+      1 in vent-target-reachability.test.ts, all confirmed pre-existing via stash-and-rerun, none in files
+      I touched. LSP was available (pyright/vtsls) but not needed — plain grep/Read sufficed for this
+      import-only pass. Browser spec (app.browser.spec.ts, --workers=1) covering the PR scenario was
+      still running at ledger-write time; will follow up if it surfaces a regression.
 - id: QO39
   title: 'Xmax route precedence settled by probe: row 19 abs(Hc-Hg)/2 WINS, Vd/Sd is the fallback - WDR_SCHEMA
     L268 is wrong, L310 is right'
@@ -4621,6 +4814,25 @@ questions:
       found". Grep + Read were used throughout, and every cited line was verified by Read.
 - id: QO41
   title: No documented schema for openisd.yml exists anywhere - only two hand-mirrored code copies
-  status: open
+  status: decided
   raised: '2026-08-14'
   body: ''
+  answer:
+    at: '2026-08-14'
+    text: |-
+      OpenISD OWNS openisd.yml, not winisd_tools. The Python model for openisd.yml in winisd_tools
+      (model_driver.py / model_openisd.py) is being DELETED, not schema-exported-from. Anything
+      useful in it gets ported into OpenISD's own model docs/types. winisd_tools' only remaining
+      interest in openisd.yml is that its pipeline can produce one, by calling a JS method OpenISD
+      provides — passing it a driver.yml (which winisd_tools owns) and getting an openisd.yml back.
+      winisd_tools does not care what the file looks like internally. This matches
+      ARCHITECTURE.md's already-correct "openisd.yml is read and written exclusively by JS/TS owned
+      by OpenISD" section (in-process embedded-V8 call, string in/string out, never throws) — that
+      part of the doc was already right. What was WRONG was packages/model/src/openisdRecord.ts's
+      header comment, which framed the TS record shape as "hand-transcribed against the real
+      pydantic models" with Python treated as the source of truth being mirrored, and cited a
+      now-deleted "ARCHITECTURE.md AD-8" anchor (AD-numbering was removed in the spec overhaul).
+      Corrected in this pass: openisdRecord.ts's header now states OpenISD owns this shape
+      outright; the current field-for-field match to the Python pipeline's shape is because the
+      driver.yml -> openisd.yml projection logic has not yet been ported out of Python into
+      OpenISD, not because Python is authoritative.

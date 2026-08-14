@@ -24,8 +24,10 @@ import {
   ventAchievedFb, ventTargetUnreachable, ventMaxReachableFb,
 } from '../../src/logic/useVentGroup.js';
 
-/** The L = 0 ceiling for the trial geometry — the highest tuning any vent here can deliver. */
-const CEILING_HZ = 80.79194836403872;
+/** The L = 0 ceiling for the trial geometry — the highest tuning any vent here can deliver.
+ *  bugs/BUG_20260814_vent-ceiling-golden-was-not-rebaselined-after-the-air-constant-fix.md —
+ *  rebaselined against the corrected C/RHO in packages/engine/src/constants.ts. */
+const CEILING_HZ = 80.79291711567242;
 
 /** Vb = 30 L, round 5 cm vent, k = 0.6, tuning entered — WinISD's direction. */
 function trial(targetFb: number): void {

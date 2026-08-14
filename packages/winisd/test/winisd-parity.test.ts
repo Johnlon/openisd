@@ -90,6 +90,20 @@ const scenarios: Scenario[] =
 const divergences: KnownDivergence[] =
   JSON.parse(readFileSync(join(fixtures, 'divergences.json'), 'utf8')).divergences;
 
+/**
+ * Scenario ids with no golden and none obtainable — confirmed by a bug record documenting an
+ * unrecoverable WinISD/Wine crash, not merely "nobody ran the regenerate command yet". Every
+ * OTHER missing golden still fails loudly via the guard test below; this list is the one
+ * sanctioned exception, and the second guard test keeps it honest if a golden ever does land.
+ */
+const UNCAPTURABLE: { id: string; reference: string }[] = [
+  {
+    id: 'solve-from-mms-cms',
+    reference: 'bugs/BUG_20260813_winisd-will-not-open-the-solve-from-mms-cms-parity-project-so-that-golden-cannot-be-captured.md',
+  },
+];
+const uncapturableIds = new Set(UNCAPTURABLE.map(u => u.id));
+
 /** Parse a WinISD `.wpr`/`.wdr`: flat INI, `[Section]` headers, `key=value`, no comments. */
 function parseIni(text: string): Record<string, Record<string, string>> {
   const out: Record<string, Record<string, string>> = {};
@@ -202,10 +216,19 @@ function compare(scenarioId: string, field: string, winisd: number, openisd: num
 
 describe('WinISD parity — field calculations against goldens WinISD itself wrote', () => {
   it('every scenario has a golden, and every golden names the scenario it came from', () => {
-    const missing = scenarios.filter(s => !existsSync(join(goldensDir, `${s.id}.wpr`)));
+    const missing = scenarios
+      .filter(s => !uncapturableIds.has(s.id))
+      .filter(s => !existsSync(join(goldensDir, `${s.id}.wpr`)));
     assert.equal(missing.length, 0,
       `no WinISD golden for ${missing.map(s => s.id).join(', ')} — regenerate with the command in ` +
       'test/fixtures/winisd-parity/README.md. A missing golden is a missing measurement, never a skip.');
+  });
+
+  it('every UNCAPTURABLE entry is still actually missing its golden', () => {
+    const stale = UNCAPTURABLE.filter(u => existsSync(join(goldensDir, `${u.id}.wpr`)));
+    assert.deepEqual(stale, [],
+      `${stale.map(u => u.id).join(', ')} now HAS a golden on disk — remove it from UNCAPTURABLE ` +
+      'in this file and let it run as a normal scenario.');
   });
 
   it('the recorded provenance names the WinISD build and the harness commit that produced the goldens', () => {
@@ -213,8 +236,11 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
     assert.ok(p.winisdVersion, 'provenance.json does not say which WinISD produced these goldens');
     assert.ok(p.harnessCommit, 'provenance.json does not say which harness commit produced these goldens');
     assert.ok(p.winisdExeSha256, 'provenance.json does not fingerprint the winisd.exe that ran');
-    assert.equal(p.scenarios.length, scenarios.length,
-      'provenance.json does not cover every scenario — some goldens are from a different run than others');
+    const capturedCount = scenarios.length - UNCAPTURABLE.length;
+    assert.equal(p.scenarios.length, capturedCount,
+      `provenance.json names ${p.scenarios.length} scenarios but ${capturedCount} have goldens ` +
+      `(${scenarios.length} total minus ${UNCAPTURABLE.length} UNCAPTURABLE) — some goldens are ` +
+      'from a different run than others, or UNCAPTURABLE is out of date');
   });
 
   it('every known divergence still names a scenario and a field that exist', () => {
@@ -227,6 +253,18 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
   });
 
   for (const s of scenarios) {
+    const uncapturable = UNCAPTURABLE.find(u => u.id === s.id);
+    if (uncapturable) {
+      describe(s.id, () => {
+        it(`has no golden and none is obtainable — ${uncapturable.reference}`, () => {
+          assert.ok(!existsSync(join(goldensDir, `${s.id}.wpr`)),
+            `${s.id} now has a golden on disk — remove it from UNCAPTURABLE, this assertion is stale`);
+          assert.ok(existsSync(join(here, '..', '..', '..', uncapturable.reference)),
+            `${uncapturable.reference} does not exist — UNCAPTURABLE cites a bug record that is gone`);
+        });
+      });
+      continue;
+    }
     describe(s.id, () => {
       // Read lazily: a missing golden must be reported by the guard test above, with the
       // regenerate command, not as a collection crash that hides every other scenario.
