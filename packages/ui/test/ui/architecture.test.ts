@@ -321,3 +321,49 @@ describe('one driver model — the classic Driver ADT is not part of the app', (
       'fix or extend the condemned class in place.');
   });
 });
+
+/**
+ * ARCHITECTURE.md §"Approved state stores — there are THREE, and no others".
+ *
+ * The store holds persistent design state; `ManagedDriver` holds active/edit/what-if driver
+ * state; `ViewState` holds presentation state and the visible URL. EVERY other component is a
+ * slave to those three — it reads and writes through them and holds nothing of its own.
+ *
+ * A local copy of state one of the three already holds is a SECOND ANSWER to the same question,
+ * and two answers are free to disagree. That is not a hypothetical: it is how a parallel what-if
+ * implementation grew inside the store while `ManagedDriver` existed beside it.
+ */
+describe('only the three approved stores hold state', () => {
+  const APPROVED = [
+    join(UI_SRC, 'logic', 'store.ts'),
+    join(UI_SRC, 'logic', 'managedDriver.ts'),
+    join(UI_SRC, 'logic', 'viewState.ts'),      // not built yet — see ARCHITECTURE.md
+  ];
+
+  /** A module-level reactive container — `ref()`, `shallowRef()`, `reactive()` — assigned to a
+   *  module-scope binding. Inside a component's `setup`/`<script setup>` these are indented;
+   *  a MODULE-level one (column 0) outlives every component and IS a store by another name. */
+  const MODULE_LEVEL_REACTIVE =
+    /^(?:export\s+)?(?:const|let|var)\s+(\w+)\s*(?::[^=]+)?=\s*(ref|shallowRef|reactive|shallowReactive)\s*[(<]/gm;
+
+  it('no module outside the approved stores holds module-level reactive state', () => {
+    const files = filesUnder(UI_SRC)
+      .filter(f => f.endsWith('.ts'))
+      .filter(f => !APPROVED.includes(f));
+
+    const offences: string[] = [];
+    for (const f of files) {
+      const text = readFileSync(f, 'utf8');
+      for (const m of text.matchAll(MODULE_LEVEL_REACTIVE)) {
+        offences.push(`${rel(f)}: ${m[2]} ${m[1]}`);
+      }
+    }
+
+    assert.deepEqual(offences, [],
+      'Only three places may hold state: the store (persistent design), ManagedDriver ' +
+      '(active/edit/what-if driver), ViewState (presentation + the visible URL). Each binding ' +
+      'above is a fourth store — module-level, outliving every component, reachable by import, ' +
+      'and free to disagree with whichever approved store already answers the same question. ' +
+      'Delete it and call the approved store, every time; never cache a copy for convenience.');
+  });
+});

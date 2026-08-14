@@ -703,6 +703,40 @@ closed-form Thiele/Small physics. Restructuring moves that code behind boundarie
 rewrite the formulas. A clean-room rewrite discards paid-for correctness and re-introduces the same
 class of bugs.
 
+### Approved state stores — there are THREE, and no others
+
+**HARD DECISION. Only three places in this system are permitted to hold state. Every other
+component is a SLAVE to them: it reads through them and writes through them, and holds nothing
+of its own. There are NO unapproved exceptions.**
+
+| The approved store | Holds, and holds exclusively                                                                    | Path                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| the **store**      | PERSISTENT design state — box, params, project metadata: what a save, a load and a share link carry | `packages/ui/src/logic/store.ts`           |
+| **`ManagedDriver`**| ACTIVE, EDIT and WHAT-IF driver state — ground, modified, and the edit-or-what-if overlay        | `packages/ui/src/logic/managedDriver.ts`   |
+| **`ViewState`**    | PRESENTATION state — which panel/dialog is open, which charts are shown, cursor and selection, per-chart zoom, skin and unit tokens — AND keeping the publicly visible URL in step with the design | `packages/ui/src/logic/viewState.ts`       |
+
+**`ViewState` does not exist yet.** Presentation state is currently mixed into the store's one
+`state` object (`state.ui`, `editDriver`, `editDriverInfo`, `browseOpen`, `defineOpen`, `cursorF`,
+`pinnedF`, `cursorLocked`, `dragRange`, `yRanges`, `graphs`) alongside the persistent design state
+it must be separated from. Extracting it is outstanding work, and
+`bugs/BUG_20260814_address-bar-carries-no-design-state-at-all-so-the-url-cannot-share-the-design.md`
+is the defect that belongs to it: the address bar carries no design state at all. `state.ui.originalWhatIf`
+does NOT move into `ViewState` — it is what-if state, so it is deleted and `ManagedDriver` answers for it.
+
+**No local variable may duplicate state any of the three already holds.** Not a `ref`, not a
+`reactive`, not a module-level `let`, not a component-local snapshot, not a "cached copy for
+convenience". Every call goes BACK to the approved store, every time. A second copy is a second
+answer to the same question, and the two are free to disagree — which is exactly how a parallel
+what-if implementation grew inside the store while `ManagedDriver` existed beside it, and how
+`shareLink()` came to serialise state every sibling function had already cancelled.
+
+**What-if is `ManagedDriver`'s and nothing else's.** Nothing outside it may hold a what-if copy,
+a what-if flag, or a what-if lifecycle. A component asks `isWhatIfActive()` to paint itself and
+calls `beginWhatIf()`/`cancelWhatIf()` to drive the session. That is the entire permitted surface.
+
+Gated by [`packages/ui/test/ui/architecture.test.ts`](packages/ui/test/ui/architecture.test.ts):
+"what-if exists ONLY inside ManagedDriver" and "one driver model".
+
 **NO GLOBAL VARIABLES.** This is a whole-system rule, not a service-directory convention. Nothing
 in this system holds state that another part can reach without being handed it. Specifically, and
 without exception:
