@@ -55,7 +55,7 @@ graph LR
     WDR[("WinISD files<br/>.wdr driver · .wpr project")]
     OWDR[("Native files<br/>.owdr driver · .owpr project")]
     DRIVERS[("winisd_drivers repo · db/<br/>driver.yml · openisd.yml · .wdr<br/><i>every file written by winisd_tools</i>")]
-    TOOLS["winisd_tools<br/>Python scraper pipeline"]
+    TOOLS["<b>winisd_tools</b><br/>Python scraper pipeline<br/>scrapes the web, WRITES driver.yml<br/>into winisd_drivers/db<br/><i>owns driver.yml · writes every file</i>"]
 
     USER <--> APP
     PAGES -. "serves" .-> APP
