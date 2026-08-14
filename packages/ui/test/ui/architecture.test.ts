@@ -238,3 +238,86 @@ describe('ManagedDriver is the only holder of OpenISDDriver', () => {
       'exempt. Update both together, never widen the exemption alone.');
   });
 });
+
+/**
+ * ARCHITECTURE.md §3: `ManagedDriver` wraps ground state, modified state, and an
+ * edit-or-what-if overlay, and NOTHING outside it may hold, name, or reason about a
+ * what-if. A component asks `ManagedDriver` whether a what-if is effective; it never
+ * keeps its own flag, its own copy, or its own lifecycle.
+ *
+ * A second what-if implementation is the same defect as a second model version: two
+ * places that can disagree about whether unverified, never-committable values are on
+ * screen. That is exactly how `shareLink()` came to serialise an active what-if while
+ * every sibling I/O function cancelled it first.
+ */
+describe('what-if exists ONLY inside ManagedDriver', () => {
+  const MANAGED_DRIVER_FILE = join(UI_SRC, 'logic', 'managedDriver.ts');
+
+  /** An IDENTIFIER naming what-if — a declaration, a call, a property. Never a comment or a
+   *  string: prose may name the concept freely (that is how it gets discussed and deleted),
+   *  and a gate that fails on a docstring manufactures false positives whose usual "fix" is
+   *  a rename that changes no behaviour. Matched on code with comments stripped. */
+  const WHATIF_IDENTIFIER = /\b\w*[wW]hat[_]?[iI]f\w*\b/g;
+
+  /** Source with line comments, block comments and string/template literals removed, so only
+   *  real identifiers remain. Crude but sufficient: it never has to round-trip, only to stop
+   *  prose from reaching the matcher. */
+  function codeOnly(text: string): string {
+    return text
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/\/\/[^\n]*/g, ' ')
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/'(?:[^'\\]|\\.)*'/g, "''")
+      .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+      .replace(/`(?:[^`\\]|\\.)*`/g, '``');
+  }
+
+  it('no file outside managedDriver.ts declares its own what-if state or lifecycle', () => {
+    const files = filesUnder(UI_SRC).filter(f => f !== MANAGED_DRIVER_FILE);
+    const offences: string[] = [];
+    for (const f of files) {
+      const found = new Set(codeOnly(readFileSync(f, 'utf8')).match(WHATIF_IDENTIFIER) ?? []);
+      // Reading ManagedDriver's OWN published API is the sanctioned way to ask "is a what-if
+      // effective?" — that is what the facade is FOR. Anything else is a second implementation.
+      const SANCTIONED = new Set(['isWhatIfActive', 'beginWhatIf', 'cancelWhatIf']);
+      for (const name of found) {
+        if (!SANCTIONED.has(name)) offences.push(`${rel(f)}: ${name}`);
+      }
+    }
+    assert.deepEqual(offences, [],
+      'What-if is ManagedDriver\'s concept and nothing else may hold it. Every identifier ' +
+      'listed above is a SECOND what-if implementation — its own copy, flag, snapshot, ' +
+      'subscription or lifecycle function — living outside the one facade that is allowed to ' +
+      'know a what-if exists. Delete it and call ManagedDriver: beginWhatIf() / cancelWhatIf() ' +
+      'to drive the session, isWhatIfActive() to paint the UI. Nothing else.');
+  });
+});
+
+/**
+ * ARCHITECTURE.md §3: `OpenISDDriver` is the app's ONE driver model, and `@openisd/winisd`
+ * is "solely a serialisation device". The classic `Driver` ADT (`packages/winisd/src/driver.ts`)
+ * with its `DriverJSON`/`DriverRaw` shapes is the model it replaces — its own header condemns
+ * it and forbids extending it.
+ *
+ * Two live driver models is the "ONE model version" violation in its purest form: two shapes
+ * for one concept, each with its own provenance rules, its own derivation and its own
+ * serialisation, free to disagree about the same driver.
+ */
+describe('one driver model — the classic Driver ADT is not part of the app', () => {
+  it('no application file imports the condemned Driver class or its shapes', () => {
+    const CONDEMNED = ['Driver', 'DriverJSON', 'DriverRaw', 'FieldCell'];
+    const offences = filesUnder(UI_SRC).flatMap(f =>
+      valueImportsOf(f)
+        .filter(vi => /(^|\/)@openisd\/winisd(\/|$)/.test(vi.spec))
+        .flatMap(vi => vi.names.filter(n => CONDEMNED.includes(n))
+          .map(n => `${rel(f)} imports ${n} from ${vi.spec}`)));
+
+    assert.deepEqual(offences, [],
+      'The classic `Driver` ADT (packages/winisd/src/driver.ts) is the model `OpenISDDriver` ' +
+      'REPLACES, and `@openisd/winisd` is a serialisation device only. Every import above is ' +
+      'a second, competing driver model inside the application — with its own provenance, ' +
+      'derivation and JSON shape, free to disagree with OpenISDDriver about the same driver. ' +
+      'Migrate the call site onto ManagedDriver/OpenISDDriver and delete the import; never ' +
+      'fix or extend the condemned class in place.');
+  });
+});
