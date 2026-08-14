@@ -115,7 +115,8 @@ graph TD
 
     subgraph L2["APPLICATION"]
         LOGIC["<b>logic/</b><br/>packages/ui/src/logic/<br/>store · project · workflows<br/>field registry · series"]
-        MANAGED["<b>ManagedDriver</b><br/>logic/managedDriver.ts<br/>ground · modified<br/>edit-or-whatif overlay<br/><i>The ONLY path to a driver.</i>"]
+        MANAGED["<b>ManagedProject</b><br/>logic/managedProject.ts<br/>ground · modified<br/>edit-or-whatif overlay<br/><i>3 x OpenISDProject.<br/>The ONLY path to a project.</i>"]
+        PROJ["<b>OpenISDProject</b> — PRIVATE<br/>driver · box · vents · radiators<br/>filters · environment · signal · meta<br/><i>Reached ONLY via ManagedProject.</i>"]
     end
 
     subgraph L3["SERVICES — arguments in, data out, no app state"]
@@ -128,7 +129,7 @@ graph TD
     end
 
     subgraph L4["DOMAIN — headless, no DOM, no browser"]
-        MODEL["<b>@openisd/model</b><br/>packages/model/src/<br/>OpenISDDriver"]
+        MODEL["<b>@openisd/model</b><br/>packages/model/src/<br/>OpenISDDriver · vent · radiator<br/><i>members of OpenISDProject</i>"]
         ENGINE["<b>@openisd/engine</b><br/>packages/engine/src/<br/>derive · sweep · circuit<br/>alignments · filters"]
         SERIAL["<b>@openisd/winisd</b><br/>packages/winisd/src/<br/>.wdr · .wpr · ParState"]
     end
@@ -146,13 +147,14 @@ graph TD
 
     UI --> LOGIC
     LOGIC --> MANAGED
+    MANAGED --> PROJ
     LOGIC --> DRIVERREPO
     LOGIC --> MYREPO
     LOGIC --> PREFS
     LOGIC --> FILEIO
     LOGIC --> DIAG
     LOGIC --> LOGGING
-    MANAGED --> MODEL
+    PROJ --> MODEL
     DRIVERREPO --> MODEL
     MYREPO --> MODEL
     FILEIO --> SERIAL
@@ -167,7 +169,7 @@ graph TD
     classDef dom fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
     classDef root fill:#402020,stroke:#f87171,color:#ffecec
     class UI pres
-    class LOGIC,MANAGED app
+    class LOGIC,MANAGED,PROJ app
     class DRIVERREPO,MYREPO,PREFS,FILEIO,DIAG,LOGGING svc
     class MODEL,ENGINE,SERIAL dom
     class ROOT root
@@ -198,11 +200,11 @@ inventory is the TABLE underneath, which is text and always readable.
 graph TD
     UI["<b>PRESENTATION</b><br/>packages/ui/src/ui/<br/>12 components + shells"]
     STORE["<b>store.ts</b><br/>APPROVED — persistent design state"]
-    MANAGED["<b>managedDriver.ts</b><br/>APPROVED — active · edit · what-if"]
+    MANAGED["<b>managedDriver.ts</b><br/>APPROVED — active · edit · what-if<br/><i>TO BECOME managedProject.ts</i>"]
     PRES["<b>presentationState.ts</b> + <b>urlAppState.ts</b><br/>APPROVED — NOT BUILT"]
-    REST["<b>the other 19 logic/ modules</b><br/>see the table below"]
+    REST["<b>the other 19 logic/ modules</b><br/>incl. useVentGroup · usePrGroup<br/><i>vent/PR state is flat in state.P —<br/>no owner, see the ruling above</i>"]
     SVC["<b>SERVICES</b><br/>db/ · diagnostics/ · logging/"]
-    MODEL["<b>@openisd/model</b><br/>OpenISDDriver"]
+    MODEL["<b>@openisd/model</b><br/>OpenISDDriver<br/><i>no OpenISDProject yet</i>"]
     ENGINE["<b>@openisd/engine</b><br/>physics"]
     WINISD["<b>@openisd/winisd</b><br/>serialisation"]
     OLD["<b>winisd/driver.ts</b><br/>CONDEMNED Driver ADT"]
@@ -212,7 +214,7 @@ graph TD
     STORE --> MANAGED
     REST --> STORE
     REST --> SVC
-    MANAGED --> MODEL
+    PROJ --> MODEL
     MODEL --> ENGINE
     WINISD --> MODEL
     STORE --> WINISD
@@ -849,6 +851,26 @@ function cancel() { managedDriver.cancelWhatIf(); state.P.Vb = vbSnapshot; … }
 
 That snapshot exists only because the overlay was drawn around the wrong object. At project level
 it disappears: cancelling the overlay restores `Vb` because `Vb` is IN the overlay.
+
+**`OpenISDProject` is a SUPERSET of a `.wpr`.** At minimum it carries everything needed to drive
+a WinISD `.wpr`; on top of that it carries everything OpenISD needs that WinISD has no concept of.
+The `.wpr` writer trims down to what WinISD understands — the project never trims itself to suit a
+foreign format.
+
+**`OpenISDProject` holds the ENTIRE UI data for the project**, not just the physics inputs.
+
+**Switching box type DELETES NOTHING.** A ported box flipped to sealed keeps its port data; that
+data goes DORMANT, not away. Flip back and it is still there, exactly as it was. Only the `.wpr`
+writer trims dormant data out, because the file format cannot express it — and trimming on the way
+to a file is not the same as discarding from the model. Anything that clears a field on a
+box-type change is a defect: the user did not ask to lose it, they asked to look at a different
+alignment.
+
+**`OpenISDProject` is PRIVATE to `ManagedProject`.** Nothing outside reaches it. Equally, nothing
+outside `ManagedProject` speaks to the individual driver, passive radiator or vent — they are
+members of the project, encapsulated behind the same facade. `ManagedProject` is **the domain
+object for the entire state of ONE project in the left nav**: one entry in that list is one
+`ManagedProject`.
 
 **The same move fixes the asymmetry recorded in ledger QO43.** Vents and passive radiators have no
 facade and carry a second, hand-rolled provenance system (`state.P.entered`) unrelated to the
