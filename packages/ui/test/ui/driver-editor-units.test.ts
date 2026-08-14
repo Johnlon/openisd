@@ -185,11 +185,22 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
   const PANE_PERCENT = '2.3172';
 
   it('the .wdr carries the fraction, and the model holds it unscaled', () => {
+    // bugs/BUG_20260814_gloss-unscaled-test-asserts-exact-equality-against-a-computed-not-entered-fixture-value.md —
+    // this fixture's ParState marks Gloss 'C' (slot 37): WinISD computed it, so the model
+    // legitimately returns its OWN derivation, not the file's literal — the two agree to
+    // ~14 significant figures (independent-implementation float noise), never byte-identical.
+    // A tolerance far tighter than that noise, but nowhere near 100x, is what actually proves
+    // no scaling: this test's real purpose per its own docstring above.
     const text = readFileSync(join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'john-all-noncalc-fields-manually-entered.wdr'), 'utf8');
     const stored = /^Gloss=(.*)$/m.exec(text)?.[1];
     assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
-    assert.equal(Driver.fromWdr(text).cell('loss').value, 1.72503712771898,
-      'the parser must not scale — the model holds the file\'s fraction as written');
+    const cell = Driver.fromWdr(text).cell('loss');
+    assert.equal(cell.state, 'C', 'this fixture\'s ParState marks Gloss computed, not entered');
+    assert.equal(typeof cell.value, 'number', 'loss must be numeric');
+    const relError = Math.abs((cell.value as number) - 1.72503712771898) / 1.72503712771898;
+    assert.ok(relError < 1e-9,
+      `the parser must not scale — got ${cell.value}, file holds 1.72503712771898 ` +
+      `(relative error ${relError}); a real ×100/÷100 bug would show as ~1 or ~0.01, not this`);
   });
 
   it('the panel renders it as a percentage, at WinISD\'s 4 dp', () => {

@@ -110,30 +110,30 @@ belongs in two places.
 ```mermaid
 graph TD
     subgraph L1["PRESENTATION"]
-        UI["<b>ui/</b><br/>components · canvas · directives<br/><i>DOM. Renders state, raises intent.</i>"]
+        UI["<b>ui/</b> — packages/ui/src/ui/<br/>components · canvas · directives<br/><i>DOM. Renders state, raises intent.</i>"]
     end
 
     subgraph L2["APPLICATION"]
-        LOGIC["<b>logic/</b><br/>store · project<br/>workflows · field registry · series<br/><i>The only holder of app state.</i>"]
-        MANAGED["<b>ManagedDriver</b><br/>ground · modified · edit-or-whatif overlay<br/><i>The ONLY path to a driver's state.<br/>Nothing else reaches OpenISDDriver.</i>"]
+        LOGIC["<b>logic/</b> — packages/ui/src/logic/<br/>store · project<br/>workflows · field registry · series<br/><i>The only holder of app state.</i>"]
+        MANAGED["<b>ManagedDriver</b> — packages/ui/src/logic/managedDriver.ts<br/>ground · modified · edit-or-whatif overlay<br/><i>The ONLY path to a driver's state.<br/>Nothing else reaches OpenISDDriver.</i>"]
     end
 
     subgraph L3["SERVICES — arguments in, data out, no app state"]
-        DRIVERREPO["<b>driverRepo</b><br/>the driver commons:<br/>index · search · lookup"]
-        MYREPO["<b>myDriverRepo</b><br/>user-saved drivers"]
-        PREFS["<b>prefsStore</b><br/>favourites · session · layout"]
-        FILEIO["<b>fileIO</b><br/>open · save · share link"]
-        DIAG["<b>diagnostics</b><br/>runtime self-test"]
-        LOGGING["<b>logging</b><br/>flash · alerting"]
+        DRIVERREPO["<b>driverRepo</b> — packages/ui/src/db/driverRepo.ts<br/>the driver commons:<br/>index · search · lookup"]
+        MYREPO["<b>myDriverRepo</b> — packages/ui/src/db/myDrivers.ts<br/>user-saved drivers"]
+        PREFS["<b>prefsStore</b> — packages/ui/src/db/prefs.ts<br/>favourites · session · layout"]
+        FILEIO["<b>fileIO</b> — packages/ui/src/logic/useDesignIO.ts<br/>open · save · share link<br/><i>Not yet its own constructed service — a logic/ composable today, see §2 note.</i>"]
+        DIAG["<b>diagnostics</b> — packages/ui/src/diagnostics/selftest.ts<br/>runtime self-test"]
+        LOGGING["<b>logging</b> — packages/ui/src/logging/flash.ts<br/>flash · alerting"]
     end
 
     subgraph L4["DOMAIN — headless, no DOM, no browser"]
-        MODEL["<b>@openisd/model</b><br/>the OpenISD record<br/>and OpenISDDriver"]
-        ENGINE["<b>@openisd/engine</b><br/>physics: derive · sweep · circuit<br/>alignments · filters · constants"]
-        SERIAL["<b>@openisd/winisd</b><br/>serialisation ONLY:<br/>.wdr · .wpr · ParState"]
+        MODEL["<b>@openisd/model</b> — packages/model/src/<br/>OpenISDDriver<br/>the one driver model"]
+        ENGINE["<b>@openisd/engine</b> — packages/engine/src/<br/>physics: derive · sweep · circuit<br/>alignments · filters · constants"]
+        SERIAL["<b>@openisd/winisd</b> — packages/winisd/src/<br/>serialisation ONLY:<br/>.wdr · .wpr · ParState"]
     end
 
-    ROOT["<b>composition root</b> · main.ts<br/><i>the ONLY place that constructs anything</i>"]
+    ROOT["<b>composition root</b> · packages/ui/src/main.ts<br/><i>the ONLY place that constructs anything</i>"]
 
     ROOT -.constructs & injects.-> LOGIC
     ROOT -.constructs.-> MANAGED
@@ -190,10 +190,10 @@ handed to whoever needs it — it is not importable.
 | `createStore`                | Hold the application's state — a `ManagedDriver` for the driver, everything else in `logic` | `driverRepo`, `myDriverRepo`, `prefsStore`, `fileIO`, `logging`, `ManagedDriver` |
 | `ManagedDriver`              | The one facade over a driver's ground/modified/overlay state — see §3          | an `OpenISDDriver` factory                                      |
 | `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the store (and, through it, `ManagedDriver`), plus whichever services that workflow needs |
-| `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup       | a bundle source (`() => OpenISDRecord[]`)                       |
+| `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup       | a bundle source (`() => OpenISDDriver[]`)                       |
 | `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStore`                                               |
 | `createPrefsStore`           | Browser-local preferences: favourites, session, layout                         | a `KeyValueStore`                                               |
-| `createFileIO`               | Open, save, import, export, share-link encode and decode                       | the serialiser (`@openisd/winisd`), the record codec            |
+| `createFileIO` — not yet built | Open, save, import, export, share-link encode and decode                     | the serialiser (`@openisd/winisd`), the record codec            |
 | `createDiagnostics`          | Run the self-test and report what it found                                     | the engine, a reporter (`(msg) => void`)                        |
 | `createLogging`              | Surface application events to the user                                         | — (leaf; it depends on nothing)                                 |
 | `ui/`                        | Render state, raise intent                                                     | the app facade, via Vue `provide`/`inject` at the root          |
@@ -219,7 +219,7 @@ model, so nothing above the domain layer knows what ParState is.
 | Module            | Path                           | Owns                                                                                                           | May not contain                                               |
 | ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | `@openisd/engine` | `packages/engine/src/`         | **The only place electro-acoustic maths exists** — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState), file formats, DOM, app state |
-| `@openisd/model`  | `packages/model/src/`          | The OpenISD record and `OpenISDDriver`: the driver model itself, its provenance, its derivation                | File formats, DOM, app state                                  |
+| `@openisd/model`  | `packages/model/src/`          | `OpenISDDriver` — the one driver model, its provenance, its derivation. No separately exported record type            | File formats, DOM, app state                                  |
 | `@openisd/winisd` | `packages/winisd/src/`         | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the carried-key set                        | The driver model, derivation, live state, DOM, app state      |
 | `logic`           | `packages/ui/src/logic/`       | The app's ONLY state. Store, project/workspace model, workflows, field registry, chart-series mapping          | Maths, `.vue` imports, direct construction of a service       |
 | `driverRepo`      | `packages/ui/src/db/`          | The driver commons: index, search, filter, lookup. Answers questions, returns records                          | App state, workflow, `.vue` imports                           |
@@ -245,7 +245,7 @@ declaration — never prose, so a comment naming a module cannot fail it.
 | Nothing below presentation imports a `.vue` file                                    | the gate                                                    |
 | `ui` imports `logic` and nothing below it — no service, no engine, no serialiser    | the gate                                                    |
 | A component imports no VALUE from `@openisd/*`; an `import type` is fine, it erases | the gate                                                    |
-| Only `ManagedDriver` imports `OpenISDDriver` — everything else reaches a driver's state through `ManagedDriver` alone | not yet — no gate written                    |
+| Only `ManagedDriver` imports `OpenISDDriver` — everything else reaches a driver's state through `ManagedDriver` alone | the gate                                     |
 | A service never imports `logic`, and never imports a sibling service                | the gate                                                    |
 | No service exports a pre-built instance or a mutable binding                        | the gate                                                    |
 | Every service module offers one `create<Name>(deps)` factory                        | the gate                                                    |
@@ -273,18 +273,20 @@ interface KeyValueStore {
   remove(key: string): void;
 }
 
-/** The driver commons. Queries only — it owns no state and mutates nothing. */
+/** The driver commons. Queries only — it owns no state and mutates nothing. Hands back a
+ *  fresh `OpenISDDriver` per call; `ManagedDriver.create()` is what clones one into its
+ *  own isolated ground/modified state (§3). */
 interface DriverRepo {
-  all(): readonly OpenISDRecord[];
-  byId(id: DriverId): OpenISDRecord | undefined;
-  search(query: string, filter?: DriverFilter): readonly OpenISDRecord[];
+  all(): readonly OpenISDDriver[];
+  byId(id: DriverId): OpenISDDriver | undefined;
+  search(query: string, filter?: DriverFilter): readonly OpenISDDriver[];
 }
 
 /** Drivers the user saved. Keyed by identity, which is `<brand>/<model-slug>`. */
 interface MyDriverRepo {
-  all(): readonly OpenISDRecord[];
-  byId(id: DriverId): OpenISDRecord | undefined;
-  save(record: OpenISDRecord): void;
+  all(): readonly OpenISDDriver[];
+  byId(id: DriverId): OpenISDDriver | undefined;
+  save(driver: OpenISDDriver): void;
   remove(id: DriverId): void;
 }
 
@@ -298,8 +300,8 @@ interface PrefsStore {
 
 /** Every crossing of the file boundary. The only place a byte stream is produced or consumed. */
 interface FileIO {
-  readRecord(text: string, format: RecordFormat): Result<OpenISDRecord>;
-  writeRecord(record: OpenISDRecord, format: RecordFormat): string;
+  readRecord(text: string, format: RecordFormat): Result<OpenISDDriver>;
+  writeRecord(driver: OpenISDDriver, format: RecordFormat): string;
   readProject(text: string, format: ProjectFormat): Result<Project>;
   writeProject(project: Project, format: ProjectFormat): string;
   encodeShareLink(project: Project): Promise<string>;
@@ -352,24 +354,6 @@ interface SpecEntry {
   dq: DqMark[];
 }
 
-/** The record. This is what `openisd.yml` and `.owdr` contain, and what a repository returns. */
-interface OpenISDRecord {
-  uuid: BookkeepingField<string>;
-  brand: ScrapedField<string>;
-  model: ScrapedField<string>;
-  manufacturer: ScrapedField<string>;
-  sku: DerivedField<string>;
-  driver_type: ScrapedField<string>;
-  disposition: DispositionField;
-  quality: QualityBlock;
-  specs: {
-    woofer?: SpecSection;
-    tweeter?: SpecSection;
-    passive_radiator?: SpecSection;
-  };
-  curves?: CurvesBlock;
-}
-
 /** What a field looks like to the app. */
 type CellState = "E" | "C" | "N";
 interface Cell {
@@ -386,12 +370,33 @@ interface Result<T> {
 }
 ```
 
-**`OpenISDDriver`** is the live, editable form of an `OpenISDRecord`:
+**`OpenISDDriver` is the one external form — there is no separately exported record type.**
+Its own constructor takes the record shape directly; `fromRecord`/`toRecord` are the only
+places that shape is named, and it is not exported even there:
 
 ```ts
+/** The `openisd.yml` / `.owdr` shape — `OpenISDDriver`'s own field list, private: it has
+ *  no name outside `fromRecord`'s parameter and `toRecord`'s return type below. */
+type DriverFields = {
+  uuid: BookkeepingField<string>;
+  brand: ScrapedField<string>;
+  model: ScrapedField<string>;
+  manufacturer: ScrapedField<string>;
+  sku: DerivedField<string>;
+  driver_type: ScrapedField<string>;
+  disposition: DispositionField;
+  quality: QualityBlock;
+  specs: {
+    woofer?: SpecSection;
+    tweeter?: SpecSection;
+    passive_radiator?: SpecSection;
+  };
+  curves?: CurvesBlock;
+};
+
 class OpenISDDriver {
-  static fromRecord(record: OpenISDRecord): OpenISDDriver;
-  toRecord(): OpenISDRecord;
+  static fromRecord(record: DriverFields): OpenISDDriver;
+  toRecord(): DriverFields;
   cell(field: SpecField): Cell;
   enter(field: SpecField, value: number): void;
   clear(field: SpecField): void;
@@ -400,7 +405,9 @@ class OpenISDDriver {
 }
 ```
 
-`SpecField` is the closed set of canonical field names, not an open string.
+`SpecField` is the closed set of canonical field names, not an open string. A repository or
+`FileIO` implementation hands back a freshly-built `OpenISDDriver`; `ManagedDriver.create()`
+(§3) is what clones one into its own isolated ground/modified state.
 
 ---
 
@@ -768,8 +775,9 @@ looking like a decision the user made. The commit boundary that decides this is
 **State restores on load.** The app starts from what was stored — active project, open panels — and
 restores it reactively.
 
-A share link carries the same committed design in the URL hash. Every one of these persists the
-`OpenISDRecord` shape, so a saved project's driver and a saved `.owdr` are the same bytes.
+A share link carries the same committed design in the URL hash. Every one of these persists what
+`OpenISDDriver.toRecord()` hands back, so a saved project's driver and a saved `.owdr` are the
+same bytes.
 
 ---
 

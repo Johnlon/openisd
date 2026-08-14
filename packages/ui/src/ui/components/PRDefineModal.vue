@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { state } from '../../logic/store.js';
-import { RHO, C } from '@openisd/engine';
+import { prCanonicalFromDatasheet } from '../../logic/prWinIsdFields.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 
 // Define a brand-new passive radiator — a BLANK, buffered form (mirrors
@@ -29,23 +29,22 @@ const canCreate = computed(() =>
 
 function create() {
   if (!canCreate.value) return;
-  const sd  = num(nSd.value) / 1e4;          // cm² → m²
-  const fs  = num(nFs.value);
-  const qms = num(nQms.value);
-  const vas = num(nVas.value) / 1000;        // L → m³
-  const cms = vas / (sd * sd * RHO * C * C);
-  const mmd = 1 / ((2 * Math.PI * fs) ** 2 * cms);
-  const rms = Math.sqrt(mmd / cms) / qms;
-  const xmaxMm = num(nXmax.value);
+  const canonical = prCanonicalFromDatasheet({
+    sdCm2: num(nSd.value),
+    xmaxMm: num(nXmax.value),
+    fsHz: num(nFs.value),
+    qms: num(nQms.value),
+    vasL: num(nVas.value),
+  });
   const count = num(nNum.value);
 
   state.P.prName = nName.value.trim() || 'New PR';
   state.P.prNum  = count > 0 ? count : 1;
-  state.P.prSd   = sd;
-  state.P.prXmax = isFinite(xmaxMm) && xmaxMm >= 0 ? xmaxMm / 1000 : 0;
-  state.P.prCms  = cms;
-  state.P.prMmd  = mmd;
-  state.P.prRms  = rms;
+  state.P.prSd   = canonical.sd;
+  state.P.prXmax = canonical.xmax;
+  state.P.prCms  = canonical.cms;
+  state.P.prMmd  = canonical.mmd;
+  state.P.prRms  = canonical.rms;
   state.P.prMadd = 0;
   state.P.prMode = 'winisd';
   emit('close');

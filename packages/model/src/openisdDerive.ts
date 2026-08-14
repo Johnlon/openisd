@@ -1,5 +1,5 @@
 /**
- * The T/S consistency-group adapter for `OpenISDDriver` (ARCHITECTURE.md AD-8).
+ * The T/S consistency-group adapter for `OpenISDDriver`.
  *
  * The formulas themselves live in exactly one place — `solveConsistencyGroup` in
  * `@openisd/engine` (`engine/driver.ts`), which is what this function, `Driver#derive()`

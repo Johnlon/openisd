@@ -51,7 +51,7 @@
 //             (same gap as the two disabled Colors rows above); WinISD's "SPL" row already
 //             covers OpenISD's one 'SPL' tab (absolute dB SPL).
 import { computed, reactive, ref } from 'vue';
-import { airFor } from '@openisd/engine';
+import { airForEnvironment } from '../../logic/environment.js';
 import { state, resetUnitTokens } from '../../logic/store.js';
 import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
@@ -112,7 +112,7 @@ function fmt(n: number | null | undefined, dp: number): string {
 /* Sound velocity and air density for the DEFAULT environment. All three inputs feed them
  * (engine air.ts); "Ignore humidity and air pressure" is per project, not an app default, so
  * this readout always shows the physics. */
-const defaultAir = computed(() => airFor({
+const defaultAir = computed(() => airForEnvironment({
   tempK: draft.envDefaults.tempK,
   humidityPct: draft.envDefaults.humidityPct,
   pressurePa: draft.envDefaults.pressurePa,

@@ -1,6 +1,6 @@
 /**
- * `OpenISDDriver` — the stateful driver model the app holds (ARCHITECTURE.md AD-8,
- * docs/plans/PLAN_OPENISD_DRIVER_MODEL.md Phase 1).
+ * `OpenISDDriver` — the stateful driver model the app holds
+ * (docs/plans/PLAN_OPENISD_DRIVER_MODEL.md Phase 1).
  *
  * Seam under test: the public API — `fromRecord`, `enter`, `clear`, `cell`, `errors`,
  * `consistencyIssues`, `toRecord`, `subscribe`. Nothing reaches inside; every assertion
@@ -24,13 +24,13 @@ import { dirname, join } from 'node:path';
 
 import { OpenISDDriver } from '../src/openisdDriver.js';
 import { fromYaml } from '../src/openisdYaml.js';
-import type { OpenISDRecord } from '../src/openisdRecord.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'openisd');
 
-/** A fresh copy of the real GRS 8FR-8 record for every test. */
-function grs8fr8(): OpenISDRecord {
-  return fromYaml(readFileSync(join(FIXTURES, '8fr-8.openisd.yml'), 'utf8'));
+/** A fresh copy of the real GRS 8FR-8 record for every test — the plain record, not a
+ *  driver, since several tests mutate it before constructing one. */
+function grs8fr8() {
+  return fromYaml(readFileSync(join(FIXTURES, '8fr-8.openisd.yml'), 'utf8')).toRecord();
 }
 
 describe('OpenISDDriver — enter() writes a manual-origin reading (QO36 ruling B3)', () => {

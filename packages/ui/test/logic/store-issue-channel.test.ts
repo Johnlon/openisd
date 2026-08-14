@@ -10,16 +10,27 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, allIssues, paramIssues, driverErrors } from '../../src/logic/store.js';
+import { state, allIssues, paramIssues, driverErrors, setDriverFromRaw } from '../../src/logic/store.js';
 
 /** Restore the box volume the default design opens with, so tests don't leak state. */
 const VB_DEFAULT = state.P.Vb;
 
+/** A complete, valid T/S set — the store opens with NO driver selected (a deliberate
+ *  choice, not a bug: a fake built-in demo was removed), so a test that needs "a driver
+ *  that derives cleanly" seeds one itself rather than relying on a store default. */
+function seedValidDriver(): void {
+  setDriverFromRaw({
+    Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300, Sd: 0.0133,
+    Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Z: 8,
+  });
+}
+
 describe('the store unions every hardening layer into one issue list', () => {
   it('the default design is clean — no layer reports a false positive', () => {
     state.P.Vb = VB_DEFAULT;
+    seedValidDriver();
     assert.deepEqual(driverErrors.value.filter(e => e.level === 'error'), [],
-      'the default driver must derive without a blocking error');
+      'a complete driver must derive without a blocking error');
     assert.deepEqual(paramIssues.value, [], 'the default box must raise no parameter issue');
   });
 

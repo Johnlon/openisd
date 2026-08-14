@@ -1,13 +1,11 @@
-/* OBSOLETE: This class is condemned by ARCHITECTURE.md AD-8 ("Today's Driver class dies —
- * has no remaining architectural role once OpenISDDriver takes that job"). It is WinISD's
- * data model wearing a neutral name, not openisd.yml's, per AD-8's own diagnosis. Do NOT
- * maintain, extend, or add behavior to this class — a same-session attempt to patch a
- * feature onto it (a "DriverSession" auto-clear wrapper) was built and fully reverted for
- * exactly this reason; see docs/design/STATE_MODEL.md's note. Any change here must be made
- * with the specific intent of decommissioning it — migrating a call site off it onto
- * OpenISDDriver, or deleting a now-dead reference — never to fix or improve it in place. Its
- * derivation algorithms are not thrown away (AD-4, extract don't rewrite) — they move onto
- * OpenISDDriver, per docs/plans/PLAN_OPENISD_DRIVER_MODEL.md. */
+/* OBSOLETE: This class has no remaining architectural role once OpenISDDriver takes its job
+ * — it is WinISD's data model wearing a neutral name, not openisd.yml's. Do NOT maintain,
+ * extend, or add behavior to this class — a same-session attempt to patch a feature onto it
+ * (a "DriverSession" auto-clear wrapper) was built and fully reverted for exactly this
+ * reason; see docs/design/STATE_MODEL.md's note. Any change here must be made with the
+ * specific intent of decommissioning it — migrating a call site off it onto OpenISDDriver,
+ * or deleting a now-dead reference — never to fix or improve it in place. Its derivation
+ * algorithms move onto OpenISDDriver, per docs/plans/PLAN_OPENISD_DRIVER_MODEL.md. */
 /**
  * Driver ADT — the E/C/N provenance model (docs/design/DRIVER_ADT_DESIGN.md).
  *
@@ -18,7 +16,7 @@
  *
  * Reactivity is framework-free: the class carries its own `subscribe` observer, fired by
  * enter/clear. It does NOT import Vue or any UI framework — @openisd/winisd is a lower
- * layer than the UI (ARCHITECTURE.md AD-6; dependency arrows point up only). A Vue
+ * layer than the UI; dependency arrows point up only. A Vue
  * binding lives in the UI layer and subscribes to a Driver; the Driver never knows Vue
  * exists.
  */

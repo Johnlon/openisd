@@ -68,6 +68,27 @@ function layerOf(spec: string): 'ui' | 'logic' | 'service' | 'domain' | 'externa
   return 'external';
 }
 
+/**
+ * Every VALUE import statement in a file, as (module specifier, bound names) pairs — a finer
+ * grain than `importsOf()`, which only needs the specifier. Reuses the same type-only-import
+ * erasure rule: `import type` and a `type X` inside `{ }` bind no runtime name.
+ */
+function valueImportsOf(file: string): { spec: string; names: string[] }[] {
+  const text = readFileSync(file, 'utf8');
+  const out: { spec: string; names: string[] }[] = [];
+  const valueImport = /^\s*import\s+(type\s+)?([^;]*?)\s*from\s+['"]([^'"]+)['"]/gm;
+  for (let m = valueImport.exec(text); m; m = valueImport.exec(text)) {
+    const [, isTypeOnly, bindings, spec] = m;
+    if (isTypeOnly) continue;
+    const stripped = bindings.replace(/\{[^}]*\}/g, b => b.replace(/\btype\s+\w+,?/g, ''));
+    const names = Array.from(stripped.matchAll(/[A-Za-z_$][\w$]*/g))
+      .map(x => x[0])
+      .filter(n => n !== 'as' && n !== 'default');
+    if (names.length) out.push({ spec, names });
+  }
+  return out;
+}
+
 const rel = (f: string) => relative(UI_SRC, f);
 
 describe('layering — every arrow points downward', () => {
@@ -180,5 +201,40 @@ describe('inversion of control — collaborators are injected, never reached for
     assert.deepEqual(missing, [],
       'One consistent construction pattern: create<Name>(deps) returns the service. ' +
       'Consumers receive it; they never import a ready-made one.');
+  });
+});
+
+/**
+ * ARCHITECTURE.md §3 "`ManagedDriver` — the one facade over every state layer", and the
+ * dependency-rules table (§2): "Only `ManagedDriver` imports `OpenISDDriver` — everything else
+ * reaches a driver's state through `ManagedDriver` alone." Newly written — the table has carried
+ * this rule marked "not yet — no gate written" since the spec overhaul; this closes that gap.
+ * EXPECTED RED until Step 10's store-wide call-site swap lands: `store.ts` and its siblings
+ * still hold the pre-migration loose-function API and have not been rewired onto `ManagedDriver`.
+ */
+describe('ManagedDriver is the only holder of OpenISDDriver', () => {
+  const MANAGED_DRIVER_FILE = join(UI_SRC, 'logic', 'managedDriver.ts');
+
+  it('nothing outside managedDriver.ts imports the OpenISDDriver value', () => {
+    const files = filesUnder(UI_SRC).filter(f => f !== MANAGED_DRIVER_FILE);
+    const offences = files.flatMap(f =>
+      valueImportsOf(f)
+        .filter(vi => /(^|\/)@openisd\/model(\/|$)/.test(vi.spec) && vi.names.includes('OpenISDDriver'))
+        .map(vi => `${rel(f)} imports OpenISDDriver from ${vi.spec}`));
+
+    assert.deepEqual(offences, [],
+      '`ManagedDriver` (packages/ui/src/logic/managedDriver.ts) is the ONLY facade over a ' +
+      "driver's ground/modified/edit-or-whatif state. A second import of the OpenISDDriver " +
+      'class is a second, uncontrolled path into that state — it bypasses the edit/what-if ' +
+      'overlay, the single-channel notification asymmetry, and the what-if-never-leaks ' +
+      'cancellation guard `ManagedDriver` exists to enforce.');
+  });
+
+  it('managedDriver.ts itself is the one file that constructs an OpenISDDriver', () => {
+    const text = readFileSync(MANAGED_DRIVER_FILE, 'utf8');
+    assert.match(text, /OpenISDDriver\.fromRecord\(/,
+      'managedDriver.ts no longer constructs an OpenISDDriver — either the facade was ' +
+      'gutted, or construction moved to a helper file the previous assertion also needs to ' +
+      'exempt. Update both together, never widen the exemption alone.');
   });
 });
