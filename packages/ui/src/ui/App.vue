@@ -4,7 +4,7 @@ import OriginalShell from './shells/original/OriginalShell.vue';
 import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
-import { state, driverJSON, applyState, markProjectSaved } from '../logic/store.js';
+import { state, driverRecord, applyState, markProjectSaved } from '../logic/store.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from '../logic/persist.js';
 import { useApp } from '../logic/app.js';
 
@@ -21,7 +21,7 @@ async function handleHashChange() {
 
 let saveReady = false;
 watch(
-  () => serialize(state, driverJSON.value),
+  () => serialize(state, driverRecord.value),
   (s) => { if (saveReady) saveLocal(s); },
   { deep: true },
 );

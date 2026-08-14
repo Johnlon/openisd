@@ -10,7 +10,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, allIssues, paramIssues, driverErrors, setDriverFromRaw } from '../../src/logic/store.js';
+import { state, allIssues, paramIssues, driverErrors, managedDriver } from '../../src/logic/store.js';
 
 /** Restore the box volume the default design opens with, so tests don't leak state. */
 const VB_DEFAULT = state.P.Vb;
@@ -19,10 +19,12 @@ const VB_DEFAULT = state.P.Vb;
  *  choice, not a bug: a fake built-in demo was removed), so a test that needs "a driver
  *  that derives cleanly" seeds one itself rather than relying on a store default. */
 function seedValidDriver(): void {
-  setDriverFromRaw({
-    Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300, Sd: 0.0133,
-    Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Z: 8,
-  });
+  const stated = { Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300, Sd: 0.0133,
+                   Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8 } as const;
+  managedDriver.loadEmpty();
+  for (const [k, v] of Object.entries(stated)) {
+    managedDriver.enter(k as Parameters<typeof managedDriver.enter>[0], v);
+  }
 }
 
 describe('the store unions every hardening layer into one issue list', () => {
