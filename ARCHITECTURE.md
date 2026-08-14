@@ -145,23 +145,23 @@ graph TD
     ROOT -.constructs.-> DIAG
     ROOT -.constructs.-> LOGGING
 
-    UI --> LOGIC
-    LOGIC --> WSPACE
-    WSPACE --> MANAGED
-    LOGIC --> DRIVERREPO
-    LOGIC --> MYREPO
-    LOGIC --> PREFS
-    LOGIC --> FILEIO
-    LOGIC --> DIAG
-    LOGIC --> LOGGING
-    MANAGED --> MODEL
-    DRIVERREPO --> MODEL
-    MYREPO --> MODEL
-    FILEIO --> SERIAL
-    FILEIO --> MANAGED
-    DIAG --> ENGINE
-    MODEL --> ENGINE
-    SERIAL --> MODEL
+    UI -->|calls| LOGIC
+    LOGIC -->|calls| WSPACE
+    WSPACE -->|"holds, ordered"| MANAGED
+    LOGIC -->|calls| DRIVERREPO
+    LOGIC -->|calls| MYREPO
+    LOGIC -->|calls| PREFS
+    LOGIC -->|calls| FILEIO
+    LOGIC -->|calls| DIAG
+    LOGIC -->|calls| LOGGING
+    MANAGED -->|"wraps 3x"| MODEL
+    DRIVERREPO -->|returns| MODEL
+    MYREPO -->|returns| MODEL
+    FILEIO -->|calls| SERIAL
+    FILEIO -->|"reads via"| MANAGED
+    DIAG -->|calls| ENGINE
+    MODEL -->|calls| ENGINE
+    SERIAL -->|"reads / writes"| MODEL
 
     classDef pres fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
     classDef app fill:#2a2440,stroke:#a78bfa,color:#f2ecff
@@ -175,9 +175,10 @@ graph TD
     class ROOT root
 ```
 
-**Solid arrow = "is given, and calls". Dotted = "constructs".** Only the composition root
-constructs. Every other arrow is a collaborator that arrived as an argument, so the thing at the
-tail can be exercised in a test with a substitute at the head.
+**Every arrow is labelled with the relationship it represents** — an unlabelled edge makes the
+reader guess. Dotted `constructs` edges come only from the composition root; every solid edge is a
+collaborator that arrived as an argument, so the thing at the tail can be exercised in a test with
+a substitute at the head.
 
 **The diagram above is the TARGET.** It shows what the system is specified to be. The one below
 shows what it IS.
@@ -235,33 +236,33 @@ graph TD
         META["<b>OpenISDProjectMeta</b><br/>name · creator · dates · description"]
     end
 
-    WS -->|"projects[0..n], ordered"| MP
-    MP --> G
-    MP --> M
-    MP --> O
-    G --> PROJ
-    M --> PROJ
-    O --> PROJ
-    PROJ --> DRV
-    PROJ --> PR
-    PROJ --> BOX
-    PROJ --> VENT
-    PROJ --> TGT
-    PROJ --> FLT
-    PROJ --> ENV
-    PROJ --> SIG
-    PROJ --> LIS
-    PROJ --> SIM
-    PROJ --> META
-    BOX --> A_SEALED
-    BOX --> A_VENTED
-    BOX --> A_BP4
-    BOX --> A_PR
-    BOX --> A_BP6
-    BOX --> A_ABC
-    A_BP6 --> VENT
-    A_VENTED --> VENT
-    A_PR --> PR
+    WS -->|"holds 0..n, ORDERED"| MP
+    MP -->|holds| G
+    MP -->|holds| M
+    MP -->|holds| O
+    G -->|"is a"| PROJ
+    M -->|"is a"| PROJ
+    O -->|"is a"| PROJ
+    PROJ -->|has| DRV
+    PROJ -->|has| PR
+    PROJ -->|has| BOX
+    PROJ -->|has| VENT
+    PROJ -->|has| TGT
+    PROJ -->|"has 0..n"| FLT
+    PROJ -->|has| ENV
+    PROJ -->|has| SIG
+    PROJ -->|has| LIS
+    PROJ -->|has| SIM
+    PROJ -->|has| META
+    BOX -->|"holds all, one ACTIVE"| A_SEALED
+    BOX -->|"holds all, one ACTIVE"| A_VENTED
+    BOX -->|"holds all, one ACTIVE"| A_BP4
+    BOX -->|"holds all, one ACTIVE"| A_PR
+    BOX -->|"holds all, one ACTIVE"| A_BP6
+    BOX -->|"holds all, one ACTIVE"| A_ABC
+    A_BP6 -->|"owns 2"| VENT
+    A_VENTED -->|owns| VENT
+    A_PR -->|owns| PR
     UAS -.reads · restores.-> MP
     UAS -.reads · restores.-> PS
 
@@ -349,15 +350,15 @@ graph TD
     WINISD["<b>@openisd/winisd</b><br/>serialisation"]
     OLD["<b>winisd/driver.ts</b><br/>CONDEMNED Driver ADT"]
 
-    UI --> STORE
-    UI --> REST
-    STORE --> MANAGED
-    REST --> STORE
-    REST --> SVC
-    MANAGED --> MODEL
-    MODEL --> ENGINE
-    WINISD --> MODEL
-    STORE --> WINISD
+    UI -->|calls| STORE
+    UI -->|calls| REST
+    STORE -->|holds| MANAGED
+    REST -->|reads| STORE
+    REST -->|calls| SVC
+    MANAGED -->|"wraps 3x"| MODEL
+    MODEL -->|calls| ENGINE
+    WINISD -->|"reads / writes"| MODEL
+    STORE -->|calls| WINISD
     REST -.still uses.-> OLD
 
     classDef ok fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
