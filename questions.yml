@@ -2823,6 +2823,42 @@ questions:
       STILL STALE, NOT MINE TO EDIT: docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md:69 blocker B1 says
       "nothing has been probed" and cites the slot-0 exclusion that no longer exists. Whoever owns the
       migration plan should clear B1.
+  - at: '2026-08-14'
+    text: |-
+      STEP 4 RE-VERIFIED, no new work needed. Session found QO30 already carried a full PROBED +
+      IMPLEMENTED answer from earlier tonight (2026-08-13) and did not re-run the wine probe.
+
+      RULE (already in ledger, re-confirmed by reading the artifacts, not re-derived):
+        Znom entered              -> E, value as entered, never corrected against Re
+        Znom absent, Re known     -> C, value 2*round_half_to_even(0.75*Re)
+        Znom absent, Re unknown   -> N
+
+      VERIFIED PRESENT IN THE TREE (this session read each, did not just trust the ledger note):
+        - docs/design/WDR_SCHEMA.md:142 (row 9 Znom cell), :274 (relation row 23), :371-399 (new
+          section 4.2 with evidence, rounding proof, the four E/C/N cases, and the unprobed
+          Re-only case flagged as untested).
+        - packages/engine/src/driver.ts:59 nominalImpedance(Re), used at line 353 in block 14 of
+          solveConsistencyGroup (placed after every Re-producing block).
+        - packages/winisd/src/classic/wdr.ts:31 toWdr uses
+          d.Z ?? (d.Re > 0 ? nominalImpedance(d.Re) : undefined) — no longer `d.Z || d.Re`.
+          parstate() line ~80 emits E/C/N per the rule above.
+        - packages/winisd/test/driver-roundtrip.test.ts:65-68 — slot-0 exclusion is gone, comment
+          explains why; asserts all 49 ParState slots including slot 0.
+
+      THREE-WAY CROSS-CHECK (was the original divergence): now converged, not divergent.
+        - WinISD ground truth (drivers/sample/winisd/John-all-manu-populated.wdr): Znom=8 marked C
+          for Re=6 (2*round(4.5)=8, half-to-even).
+        - openisd engine (nominalImpedance in driver.ts): computes the same 2*round_half_to_even
+          formula, block 14 of solveConsistencyGroup.
+        - classic/wdr.ts parstate()/toWdr: now calls nominalImpedance too, so it agrees with both
+          of the above (previously wrote Znom=Re, i.e. 6 not 8 — that was the bug this closes).
+
+      GATES, this session:
+        npx vitest run packages/winisd/test/driver-roundtrip.test.ts -> 5/5 pass.
+        npm run typecheck -> engine/model/winisd/ui all clean, 0 errors.
+
+      No files edited this session (nothing needed editing). LSP available (ToolSearch not invoked
+      since no symbol navigation was required — read-only grep/Read sufficed for verification).
 - id: QO31
   title: 'Audit of the three never-loaded rule files: engine-source, engine-tests, ui-tests'
   status: open
@@ -3796,6 +3832,54 @@ questions:
       vent-target-reachability.test.ts's stale literal above). LSP: unavailable all session (tried
       ToolSearch("select:LSP") — not offered); used Grep/Read throughout, verified every cited line
       by reading it.
+  - at: '2026-08-14'
+    text: |-
+      2026-08-14 REQUIREMENT ADDED, human verbatim:
+
+        "add a requrelemt for the Openisd.yml to winisd.wdr transform - put the DQs into the comment
+         field as a suffix to any commnts in the openisd field. The dq needs to name the ofending field,
+         the offdencing value and the offence"
+
+      Verified against the real writer before adding: .wdr Comment= is a single-line free-text field
+      (confirmed on drivers/sample/winisd/*.wdr, the WinISD oracle set), currently sourced from
+      record.description (packages/winisd/src/native/openisdToWdr.ts:199) or raw.comment
+      (packages/winisd/src/classic/wdr.ts:28).
+
+      RULE: every DQ mark on the record appends one line to Comment=, after any existing text, in the
+      form `[DQ] <field>=<value>: <offence>`, in record order. Zero marks -> Comment= unchanged from
+      today's output.
+
+      Recorded in ARCHITECTURE.md sect3 (the WinISDDriver-is-serialisation-only subsection) and in the
+      migration plan's Step 8, which is where the single writer gets built. Not yet implemented --
+      Step 8 has not started; this is a requirement on that future work, not a completed change.
+  - at: '2026-08-14'
+    text: |-
+      STEPS 6-7 DONE. Step 6 table (docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md, Step 6 section):
+      34/34 UI call sites classified — OpenISDDriver 17, WinISDDriver 7, dies 9, logic 1. Supplementary
+      member table cross-checks the 9 pinned packages/winisd/test files + 2 pinned packages/ui/test
+      files: enter/clear/cell(numeric)/errors/subscribe already on OpenISDDriver; enter/clear/cell for
+      brand/model/manufacturer -> OpenISDDriver (new); comment/providedBy/added/WDR_META carried-key
+      table -> WinISDDriver (Step 8); link-field enrichment -> logic; raw/toJSON/fromJSON/fromRaw/
+      cell().error/ERROR_ALIASES/DriverJSON/FieldCell -> dies; toWdr/fromWdr -> WinISDDriver; blank
+      ctor -> logic (record literal + fromRecord, no new member).
+
+      Step 7: 6 new members added to OpenISDDriver (packages/model/src/openisdDriver.ts), all calling
+      existing @openisd/engine algorithms, none re-derived:
+      - toDriver() -> resolved engine-ready bag (calls deriveOpenISDFields -> solveConsistencyGroup/
+        deriveDriver), numVC defaults to 1 there only (not in cell()).
+      - consistencyIssues() -> engine's checkConsistency(), memoised alongside errors().
+      - autoCalculate get/set -> derivation-mode toggle; off bypasses solveConsistencyGroup entirely
+        (#deriveEnteredOnly, still validates via deriveDriver).
+      - metaCell()/enterMeta()/clearMeta() -> B3/B4 provenance on the ScrapedField envelope
+        (brand/model/manufacturer), parallel to enter/clear/cell's SpecEntry envelope; new MetaField/
+        MetaCell types, no change to the existing numeric Cell contract.
+
+      18 new tests in packages/model/test/openisdDriver.test.ts (4 existing + 18 new = 22 total, all
+      pass). npm run typecheck clean across all 4 packages. Parity suite UNCHANGED both sides:
+      packages/winisd/test/winisd-parity.test.ts 416 passed / 47 failed of 463, before and after
+      (verified via git stash). LSP available (not needed for this change — no symbol-navigation
+      questions). Full packages/winisd/test/ run: 534 passed / 47 failed (same pre-existing parity
+      failures only, 0 regressions in the other 12 files).
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open
