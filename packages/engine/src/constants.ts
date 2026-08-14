@@ -8,10 +8,16 @@
  *   https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
  */
 
-// 20 °C, 30 % RH, 101325 Pa — WinISD's own derived values (Advanced pane), so
-// OpenISD matches WinISD instead of the old ~24 °C figures that were mislabelled 20 °C.
-export const RHO = 1.20095;  // air density        kg/m³   (20 °C — WinISD)
-export const C   = 343.68;   // speed of sound      m/s     (20 °C — WinISD)
+// 20 °C, 30 % RH, 101325 Pa — WinISD's own derived values (Advanced pane), at WinISD's own
+// full precision. Directly observed twice: all eight `winisd-parity` goldens
+// (packages/winisd/test/fixtures/winisd-parity/goldens/*.wpr) carry these values for `c`/`roo`
+// identically across humidity legs, and `drivers/sample/winisd/john-all-defaults.wdr` (a
+// WinISD-authored blank driver) carries them at ParState C — WinISD's own calculation, not
+// something a human typed. The 6/5-significant-figure truncation previously here
+// (`1.20095`/`343.68`) was 1.8e-6/1.2e-5 relative off and is documented as fixed in
+// bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md.
+export const RHO = 1.20095217714682;  // air density        kg/m³   (20 °C — WinISD, full precision)
+export const C   = 343.684120962153;  // speed of sound      m/s     (20 °C — WinISD, full precision)
 export const P0  = 20e-6;    // SPL reference       Pa RMS  (0 dB SPL)
 
 // Standard acceleration of gravity, CGPM 1901 — the exact defined value, m/s².

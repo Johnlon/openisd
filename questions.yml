@@ -3708,6 +3708,94 @@ questions:
       npm run test:unit 915 passed / 161 failed - 159 parity, 2 in packages/ui/test/ui/architecture.test.ts
       (the pre-existing .vue value-import offences the migration plan assigns to Steps 10/11; I am
       forbidden to edit packages/ui/**).
+  - at: '2026-08-14'
+    text: |-
+      Four calc-logic bugs implemented in packages/engine/src/driver.ts + constants.ts, each per an
+      explicit human ruling in this thread. Docs added to docs/spec/SPEC_ENGINE.md §1.2 (USPL/SPLmax/
+      Mpow, with citations) and §4.2 (air constants).
+
+      TASK 1 — USPL: IMPLEMENTED. USPL = SPL_stated + 10*log10(2.83^2/Re), with SPL_stated = r.SPL
+      (the record's own entered SPL, flows through solveConsistencyGroup's untyped record when a
+      .wdr states one) falling back to SPLref (eta0-derived) when absent. Evidence: 2.83 = the
+      industry-standard 1W/8ohm test voltage (V=sqrt(1*8)=2.828...) — this provenance is NOT stated
+      anywhere in winisd_research/ as WinISD's own reasoning, only the numeric match is proven
+      (reported honestly, not asserted as WinISD's stated intent). Numeric proof: predicting golden
+      sealed-small's USPL from its stated SPL=90 and Re=6.4 with 2.83^2 matches WinISD's stored
+      90.9739289706469 to 4.3e-14 relative; the bare-8 formula gives 90.9691, off by 0.0048 dB —
+      confirmed identically on every winisd-parity golden with a stated SPL. SPLref-vs-stated-SPL
+      second finding CONFIRMED from parity evidence directly: sealed-small stated SPL=90 (WDR
+      ParState slot 3 = E) vs computed SPLref=87.65068346041753 — two different numbers, and USPL
+      only matches WinISD when built from the STATED one. Citation:
+      bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md,
+      docs/spec/SPEC_ENGINE.md#L25 §1.2. New unit test added: advanced-figures.test.ts "USPL/SPLmax
+      prefer a STATED SPL over the eta0-derived SPLref".
+
+      TASK 2 — SPLmax: IMPLEMENTED. SPLmax = SPL_stated + 10*log10(Pe) - 3, same stated-SPL-first
+      base as USPL. WHAT is proven exactly (sealed-small: 90+20-3=107 = WinISD's stored value
+      exactly; NOT 10*log10(2)=3.0103 which would print 106.9897). WHY is UNRESOLVED — stated
+      honestly in code comment, bug file and SPEC_ENGINE.md: no text in winisd_research/ explains the
+      3dB as a program-power convention, half-power headroom, or anything else; only 2 golden values
+      (sealed-small, vented-small) establish the numeric fact. Citation: same bug file,
+      docs/spec/SPEC_ENGINE.md#L58 §1.2.
+
+      TASK 3 — Mpow: IMPLEMENTED. Mpow = Bl/sqrt(Re), falling back to sqrt(Rme) only when Bl absent.
+      Evidence is the inconsistent-fs parity golden
+      (packages/winisd/test/fixtures/winisd-parity/goldens/inconsistent-fs.wpr): Fs stored at 2x
+      true value separates the two routes (identical on every self-consistent record). WinISD wrote
+      Rme=17.578125, Mpow=2.96463530640786; Bl/sqrt(Re)=7.5/sqrt(6.4)=2.96463530640786 matches to the
+      last digit, sqrt(Rme)=4.1926274578121 does not. Citation:
+      bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md,
+      docs/spec/SPEC_ENGINE.md#L68 §1.2.
+
+      TASK 4 — air constants: IMPLEMENTED. RHO/C corrected from 6/5-sig-fig truncations
+      (1.20095/343.68) to WinISD's full-precision values (1.20095217714682/343.684120962153),
+      verified against all 8 winisd-parity goldens' c/roo (identical across humidity legs) and
+      drivers/sample/winisd/john-all-defaults.wdr (ParState C on c/roo). Golden rebaseline: max delta
+      3.6e-3 relative on ONE near-zero impedance-phase (zph) bin (absolute delta 3.7e-3 degrees —
+      relative blow-up is a near-zero-crossing artifact, not a real magnitude); max delta on SPL
+      itself 3.2e-6 relative. All deltas consistent with the ~1.2e-5-relative constant correction
+      propagating through the resonant circuit — threshold used: flag if any delta exceeded 1e-3
+      absolute or clearly inconsistent with 1e-5-level propagation; none did, so rebaselined (npm run
+      gen-golden, packages/engine/test/fixtures/golden/*.json). Citation:
+      bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md,
+      docs/spec/SPEC_ENGINE.md#L122 §4.2.
+
+      NEW FINDINGS surfaced while fixing Task 4 (NOT fixed — new calc-logic discrepancies, permission
+      gate applies, documented and stopped per bugs/):
+      - bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md
+        — winisdAir(tempK) in packages/engine/src/air.ts scales c/roo by temperature; WinISD's own
+        frozen compat air does NOT (env-t-303.wpr and its 293.15K twin env-rh-30.wpr carry
+        byte-identical c/roo). 1.69e-2 relative on c. Blocked on human ruling.
+      - bugs/BUG_20260814_useDesignIO-duplicates-the-truncated-air-constants-now-stale-after-constants-ts-fix.md
+        — packages/ui/src/logic/useDesignIO.ts:234-235 hardcodes RHO=1.20095/C=343.68 locally (not
+        imported from @openisd/engine), now stale after the Task 4 fix. Out of my file scope
+        (packages/ui/**); recorded for the UI-owning agent. Not test-caught (silent).
+      - packages/ui/test/logic/vent-target-reachability.test.ts:28 has a hardcoded literal
+        CEILING_HZ=80.79194836403872 that needs bumping to 80.79291711567241 (computed and verified)
+        after the Task 4 constant fix — a direct, correct consequence, not a bug. Out of file scope
+        to fix; flagged for the UI-owning agent with the exact replacement value.
+      - packages/ui/src/logic/fields/fieldRegistry.ts:404 still documents "USPL = SPL + 10*log10(8/Re)"
+        (the OLD wrong formula) in its `formula` metadata string — inconsistent with
+        packages/ui/src/logic/provenance.ts:121 which already has the correct 2.83^2 form. Out of
+        file scope; flagged for the UI-owning agent.
+
+      GATES: parity suite before=304/463 passed (verified still true at session start, matches
+      sibling's report), after=416/463 passed (159 failed -> 47 failed). All 47 residual failures
+      traced to causes OUTSIDE these four tasks: 30 from a pre-existing missing golden for scenario
+      solve-from-mms-cms (bugs/BUG_20260813_winisd-will-not-open-the-solve-from-mms-cms-parity-project-so-that-golden-cannot-be-captured.md,
+      already recorded, not mine to fix — needs the WinISD/Wine harness), 15 from a pre-existing
+      ParState-cascade bug in packages/winisd/src/driver.ts's toWdr() (drv.toWdr() emits ParState=N
+      for nearly every slot on 12 scenarios; confirmed via git-stash bisection this predates my
+      changes and is untouched by them — not one of the 4 authorized bugs, not fixed), 1 from the new
+      env-t-303 temperature-scaling finding above, 1 top-level "provenance.json coverage" check tied
+      to the missing golden.
+
+      npm run typecheck: 0 errors (engine/model/winisd/ui). npm run test:unit: 1029 passed / 50
+      failed (47 = winisd-parity as above; 2 = pre-existing packages/ui/test/ui/architecture.test.ts
+      layering offences, confirmed pre-existing via git stash bisection, unrelated; 1 =
+      vent-target-reachability.test.ts's stale literal above). LSP: unavailable all session (tried
+      ToolSearch("select:LSP") — not offered); used Grep/Read throughout, verified every cited line
+      by reading it.
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open

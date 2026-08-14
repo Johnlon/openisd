@@ -238,14 +238,32 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     }
 
     // 12. USPL, SPLref, Re
-    if (r.USPL == null && r.SPLref != null && r.Re != null && r.Re > 0) {
-      setVal('USPL', r.SPLref + 10 * Math.log10(8 / r.Re));
+    //
+    // USPL = SPL_stated + 10·log₁₀(2.83²/Re), NOT the bare-8 formula this code used before.
+    // `2.83` is the industry-standard 1 W/8 Ω test voltage (V = √(1·8) = 2.828…, WinISD's own
+    // rounded label). `2.83² = 8.0089`, not `8`, and the two are close enough to look
+    // interchangeable (0.0048 dB) but are NOT: predicting `USPL` from each golden's own STATED
+    // `SPL` and `Re` with the `2.83²` constant agrees with WinISD to 4.3e-14 relative on every
+    // parity golden available (e.g. `sealed-small`: `90 + 10·log₁₀(8.0089/6.4) =
+    // 90.9739289706469`, WinISD's own stored value to the last digit); the bare-8 formula is
+    // off by 0.0048 dB on every one. `SPL_stated` is the record's OWN carried `SPL` (WDR key
+    // `SPL`, entered — present in `r` here as soon as it is entered, since `r` is the untyped
+    // record `solveConsistencyGroup` was handed and it is never declared or touched by this
+    // function, only passed through); a record with no stated SPL falls back to `SPLref`, the
+    // η₀-derived reference sensitivity block 11 above just produced — WinISD does the same
+    // (its own `SPL` cell is entered-or-computed exactly like `SPLref` is here). See
+    // bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md
+    // and docs/spec/SPEC_ENGINE.md "USPL / SPLmax — the 2.83 V reference and the 3 dB derating".
+    const V283_SQ = 2.83 * 2.83;
+    const uSplBase = r.SPL ?? r.SPLref;
+    if (r.USPL == null && uSplBase != null && r.Re != null && r.Re > 0) {
+      setVal('USPL', uSplBase + 10 * Math.log10(V283_SQ / r.Re));
     }
-    if (r.Re == null && r.USPL != null && r.SPLref != null) {
-      setVal('Re', 8 / Math.pow(10, (r.USPL - r.SPLref) / 10));
+    if (r.Re == null && r.USPL != null && uSplBase != null) {
+      setVal('Re', V283_SQ / Math.pow(10, (r.USPL - uSplBase) / 10));
     }
     if (r.SPLref == null && r.USPL != null && r.Re != null && r.Re > 0) {
-      setVal('SPLref', r.USPL - 10 * Math.log10(8 / r.Re));
+      setVal('SPLref', r.USPL - 10 * Math.log10(V283_SQ / r.Re));
     }
 
     // 13. WinISD's Advanced-pane figures of merit (KNOWLEDGE_REPORT.md §4). Everything on
@@ -264,18 +282,34 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     if (r.Rme == null && r.Bl != null && r.Re != null && r.Re > 0) {
       setVal('Rme', r.Bl * r.Bl / r.Re);
     }
-    // Mpow = Bl/√Re = √Rme. Stated as √Rme so it cannot contradict the Rme actually produced
-    // — taking Bl/√Re on the Beyma fixture would print 4.27533 beside an Rme of 18.22124,
-    // whose square root is 4.26863. ⚠ WinISD's own choice between the two is unverified; this
-    // one is chosen because it keeps the pinned identity Mpow = √Rme true of our output.
+    // Mpow = Bl/√Re — WinISD's OWN route, not √Rme. Verified from the `inconsistent-fs`
+    // parity golden (packages/winisd/test/fixtures/winisd-parity/goldens/inconsistent-fs.wpr):
+    // that record's stored `Fs` is written at exactly twice its true 1/(2π√(Mms·Cms)), which
+    // separates the two candidate routes (they agree on every self-consistent record, which is
+    // why 14 of the 15 parity goldens couldn't distinguish them). On that record WinISD wrote
+    // `Rme=17.578125` (the motional route, 2π·Fs·Mms/Qes on the STORED Fs — unaffected by this
+    // change) beside `Mpow=2.96463530640786`. `Bl/√Re = 7.5/√6.4 = 2.96463530640786`, matching
+    // WinISD to the last digit; `√Rme = √17.578125 = 4.1926274578121`, which does not. So
+    // WinISD's `Rme` and `Mpow` are independently sourced, not related by a square root — the
+    // `Mpow = √Rme` identity this code used to pin is not one WinISD holds, and is dropped.
+    // `√Rme` is retained only as the fallback for a record with no `Bl` (e.g. `Bl` itself
+    // absent but `Rme` derivable from Fs/Mms/Qes). See
+    // bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
+    if (r.Mpow == null && r.Bl != null && r.Re != null && r.Re > 0) setVal('Mpow', r.Bl / Math.sqrt(r.Re));
     if (r.Mpow == null && r.Rme != null && r.Rme > 0) setVal('Mpow', Math.sqrt(r.Rme));
     // gamma = Bl/Mms — one route only.
     if (r.gamma == null && r.Bl != null && r.Mms != null && r.Mms > 0) setVal('gamma', r.Bl / r.Mms);
-    // SPLmax = SPL + 10·log₁₀(Pe): the thermal-limit offset from the SAME reference
-    // sensitivity USPL offsets from, which efficiency.ts produced at block 11. No second copy
-    // of the SPL constant exists here.
-    if (r.SPLmax == null && r.SPLref != null && r.Pe != null && r.Pe > 0) {
-      setVal('SPLmax', r.SPLref + 10 * Math.log10(r.Pe));
+    // SPLmax = SPL_stated + 10·log₁₀(Pe) − 3 dB: the thermal-limit offset from the SAME base
+    // USPL offsets from (`uSplBase`, block 12 above — stated SPL, else the η₀-derived
+    // SPLref). The flat 3 dB derating is measured exactly (not 10·log₁₀(2) = 3.0103 — the two
+    // parity goldens available print `SPLmax` values that back out to a derating of precisely
+    // 3.0, e.g. `sealed-small`: `90 + 10·log₁₀(100) − 3 = 107`, WinISD's own stored value
+    // exactly) but its PHYSICAL reason is not established by any source found in
+    // winisd_research/ — the WHAT (exactly −3 dB) is proven, the WHY is not. See
+    // bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md
+    // and docs/spec/SPEC_ENGINE.md "USPL / SPLmax — the 2.83 V reference and the 3 dB derating".
+    if (r.SPLmax == null && uSplBase != null && r.Pe != null && r.Pe > 0) {
+      setVal('SPLmax', uSplBase + 10 * Math.log10(r.Pe) - 3);
     }
     // Gloss — the static gravitational cone sag as a FRACTION of Xmax: g/((2π·Fs)²·Xmax)
     // (winisd_research/SOLVER_GAPS.md §2.4 — 41 live samples, worst relative residual 3.6e-15).
@@ -386,8 +420,18 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
   r.no = referenceEfficiency(r.Fs, r.Vas, r.Qes, C);
   if (r.no > 0) {
     r.SPLref = splFromEfficiency(r.no, RHO, C);
+    // 2.83² (WinISD's own 1 W/8 Ω test-voltage reference, squared), NOT the bare 8 this used to
+    // read — same fix, same evidence, as `solveConsistencyGroup` block 12 above. `Driver`
+    // carries no stated `SPL` of its own (this function's documented boundary, see the
+    // docstring above `Object.assign` two lines up), so the base stays `SPLref` here.
     if (r.Re > 0) {
-      r.USPL = r.SPLref + 10 * Math.log10(8 / r.Re);
+      r.USPL = r.SPLref + 10 * Math.log10(2.83 * 2.83 / r.Re);
+    }
+    // SPLmax = SPLref + 10·log₁₀(Pe) − 3 dB — the flat 3 dB derating measured exactly on the
+    // `winisd-parity` goldens (same evidence as `solveConsistencyGroup`'s SPLmax block); this
+    // duplicate implementation previously omitted SPLmax entirely.
+    if (r.Pe! > 0) {
+      r.SPLmax = r.SPLref + 10 * Math.log10(r.Pe!) - 3;
     }
   }
 
