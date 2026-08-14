@@ -206,9 +206,11 @@ const _version = getOrInit('_version', () => ref(0));
 /**
  * THE driver. The one facade over ground, modified and the edit-or-what-if overlay
  * (`logic/managedDriver.ts`). Every driver read and every driver write in the whole app goes
- * through this object: `.read()` for the effective driver, `.readModified()` for anything
- * persistent, `.beginWhatIf()`/`.cancelWhatIf()`/`.isWhatIfActive()` for a what-if session,
- * `.beginEdit()`/`.commitEdit()`/`.cancelEdit()` for an edit.
+ * through this object: `.cell()`/`.metaCell()`/`.toDriver()`/`.errors()` to read,
+ * `.enter()`/`.clear()` to write, `.recordToPersist()` for anything saved/exported/shared,
+ * `.beginWhatIf()`/`.cancelWhatIf()`/`.isWhatIfActive()` for a what-if session, and
+ * `.beginEdit()`/`.commitEdit()`/`.cancelEdit()` for an edit. The `OpenISDDriver` it wraps is
+ * private to it and never leaves.
  */
 export const managedDriver: ManagedDriver = getOrInit('_managed', () => {
   const md = ManagedDriver.createEmpty();
@@ -228,45 +230,53 @@ export function setDriverFromWdr(text: string): void {
 
 /** Route one per-field edit to whichever layer ManagedDriver says is effective. */
 export function enterDriverField(field: SpecField, value: number): void {
-  managedDriver.read().enter(field, value);
+  managedDriver.enter(field, value);
 }
 export function clearDriverField(field: SpecField): void {
-  managedDriver.read().clear(field);
+  managedDriver.clear(field);
 }
 
 /** One field's value + E/C/N provenance from the EFFECTIVE driver. Reactive: touching
  *  _version makes any render or computed calling this re-run when ManagedDriver notifies. */
 export function driverCell(field: SpecField): Cell {
   void _version.value;
-  return managedDriver.read().cell(field);
+  return managedDriver.cell(field);
 }
 
 /** A record-level metadata field (brand/model/manufacturer) from the EFFECTIVE driver. */
 export function driverMetaCell(field: MetaField): MetaCell {
   void _version.value;
-  return managedDriver.read().metaCell(field);
+  return managedDriver.metaCell(field);
 }
 
 // The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
 export const driver = computed<Driver | null>(() => {
   void _version.value;
-  return managedDriver.read().toDriver();
+  return managedDriver.toDriver();
 });
 
 // The record for persistence — MODIFIED state, never the overlay, so a live what-if is never
-// saved, shared or written to disk. readModified() cancels an active what-if itself.
+// saved, shared or written to disk. recordToPersist() cancels an active what-if itself.
 export const driverRecord = computed(() => {
   void _version.value;
-  return managedDriver.readModified().toRecord();
+  return managedDriver.recordToPersist();
+});
+
+/** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
+ *  driver. '' when nothing names it (no driver chosen yet), so a caller can fall back. */
+export const driverName = computed<string>(() => {
+  void _version.value;
+  return [managedDriver.metaCell('brand').value, managedDriver.metaCell('model').value]
+    .filter(x => x.length > 0).join(' ').trim();
 });
 
 export const driverErrors = computed<DriverError[]>(() => {
   void _version.value;
-  return managedDriver.read().errors();
+  return managedDriver.errors();
 });
 export const driverConsistencyIssues = computed<ConsistencyIssue[]>(() => {
   void _version.value;
-  return managedDriver.read().consistencyIssues();
+  return managedDriver.consistencyIssues();
 });
 // driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
 export const driverWarnings = computed<string[]>(() => driverErrors.value.map(e => e.message));

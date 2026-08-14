@@ -15,31 +15,28 @@
  */
 import { ref, watch } from 'vue';
 import {
-  state, driver, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized, markProjectSaved, applyState, curvesData,
-  isDriverWhatIfActive, cancelDriverWhatIf,
+  state, driver, driverName, driverRecord, managedDriver, setDriverFromWdr,
+  markProjectSaved, applyState, curvesData,
 } from './store.js';
 import { serialize, stateToUrl, download } from './persist.js';
 import type { Logging } from '../logging/flash.js';
 import { saveProject as fsSaveProject, saveProjectAs as fsSaveProjectAs } from './fileSave.js';
 import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
 import { buildWprInput } from './wprMapping.js';
-import { toWpr } from '@openisd/winisd';
+import { toWpr, WinISDDriver } from '@openisd/winisd';
 import type { SerializedState, DriverJSON, UiParams } from '../types.js';
 
 function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
 }
 
-// docs/design/STATE_MODEL.md strict layer encapsulation: a live what-if is an uncommitted preview
-// (rule 4, "A what-if is not a modification"). Design I/O — Save/Export — always operates on
-// the COMMITTED design (getDriverModel() never reads the whatif), so leaving the overlay open
-// afterward would show an edited value on screen that the action just silently ignored. Every
-// I/O action calls this first, so there is never an ambiguous moment where the screen and the
-// file/save disagree.
-function endAnyActiveWhatIfBeforeIO(): void {
-  if (!isDriverWhatIfActive.value) return;
-  cancelDriverWhatIf();
-  state.editDriver = false; // close the Tune panel — same pairing OgTune's own Cancel uses
+// A live what-if is an uncommitted preview that can never be saved, exported or shared
+// (ARCHITECTURE.md §3). That guard is STRUCTURAL, not a call every I/O function must remember:
+// `driverRecord` reads ManagedDriver.readModified(), which cancels an active what-if itself. A
+// per-call-site guard is what let shareLink() ship without one while every sibling had it.
+// Closing the Tune panel is the only part left to the caller, since the panel is UI, not state.
+function closeTunePanelAfterIO(): void {
+  state.editDriver = false;
 }
 
 export interface DesignIO {
@@ -75,7 +72,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   });
 
   function projectJsonText(): string {
-    return JSON.stringify(serialize(state, driverJSON.value), null, 2);
+    return JSON.stringify(serialize(state, driverRecord.value), null, 2);
   }
 
   /** Adopt the picked file's name as the project name — the file names the project. */
@@ -87,7 +84,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   /** Returns true when the project was written, false when the user cancelled the file
    *  dialog — a caller doing "save, then close" must not close on a cancelled save. */
   async function saveProject(): Promise<boolean> {
-    endAnyActiveWhatIfBeforeIO();
+    closeTunePanelAfterIO();
     const suggested = projectFilename(state.project.name);
     const result = await fsSaveProject(projectJsonText(), suggested, fileHandle.value);
     if (result.cancelled) return false;
@@ -112,7 +109,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
    * gives a genuinely new project rather than a second file claiming the same name.
    */
   async function saveProjectAs(): Promise<void> {
-    endAnyActiveWhatIfBeforeIO();
+    closeTunePanelAfterIO();
     const suggested = projectFilename(fileHandle.value ? copyOfName(state.project.name) : state.project.name);
     const result = await fsSaveProjectAs(projectJsonText(), suggested);
     if (result.cancelled) return;
@@ -127,7 +124,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   }
 
   async function shareLink(): Promise<void> {
-    const url = await stateToUrl(serialize(state, driverJSON.value));
+    const url = await stateToUrl(serialize(state, driverRecord.value));
     try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(
@@ -137,22 +134,25 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   }
 
   function exportWdr(): void {
-    endAnyActiveWhatIfBeforeIO();
+    closeTunePanelAfterIO();
     // The ADT's own toWdr is lossless — carried fields + live ParState provenance.
-    download(sanitizeFilename(driverRaw.value.name) + '.wdr', getDriverModel().toWdr(), 'text/plain');
+    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(driverRecord.value);
+    if (!wdr) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+    download(sanitizeFilename(driverName.value) + '.wdr', wdr.toWdr(), 'text/plain');
   }
 
   function exportOwdr(): void {
-    endAnyActiveWhatIfBeforeIO();
-    download(sanitizeFilename(driverRaw.value.name) + '.owdr', JSON.stringify(driverJSON.value, null, 2), 'application/json');
+    closeTunePanelAfterIO();
+    download(sanitizeFilename(driverName.value) + '.owdr', JSON.stringify(driverRecord.value, null, 2), 'application/json');
   }
 
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
-    endAnyActiveWhatIfBeforeIO();
-    const driverSection = getDriverModel().toWdr();
-    const input = buildWprInput(state.box, state.P, driver.value, driverSection, state.project, new Date(), curvesData.value);
-    download(sanitizeFilename(driverRaw.value.name) + '.wpr', toWpr(input), 'text/plain');
+    closeTunePanelAfterIO();
+    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(driverRecord.value);
+    if (!wdr) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+    const input = buildWprInput(state.box, state.P, driver.value, wdr.toWdr(), state.project, new Date(), curvesData.value);
+    download(sanitizeFilename(driverName.value) + '.wpr', toWpr(input), 'text/plain');
   }
 
   function parseWprToState(text: string): SerializedState {
@@ -192,9 +192,10 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
       }
     }
 
+    // The .wpr's [Driver] block IS .wdr text — the serialiser reads it as-read, then projects
+    // it into the app's own record. One reader, not a second parse invented here.
     const driverWdr = driverLines.join('\r\n');
-    const driverModel = ((getDriverModel().constructor as unknown) as { fromWdr: (wdr: string) => { toJSON: () => Record<string, unknown> } }).fromWdr(driverWdr);
-    const driverJson = driverModel.toJSON() as unknown as DriverJSON;
+    const driverJson = WinISDDriver.fromWdr(driverWdr).toOpenISDRecord();
 
     const boxSec = sections['Box'] || {};
     const bType = parseInt(boxSec['BType'] || '1', 10);
@@ -311,8 +312,8 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
           state.project.name = projectNameFromFilename(f.name);
         } else if (isOwdr || nameLower.endsWith('.json') || isOwpr) {
           const parsed = JSON.parse(text);
-          if (parsed && typeof parsed === 'object' && ('inputs' in parsed) && !('box' in parsed)) {
-              setDriverFromSerialized(parsed);
+          if (parsed && typeof parsed === 'object' && ('specs' in parsed) && !('box' in parsed)) {
+              managedDriver.loadRecord(parsed);
           } else {
             applyState(parsed as SerializedState);
             state.project.name = projectNameFromFilename(f.name);
@@ -320,8 +321,8 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
         } else {
           if (/^\s*\{/.test(text)) {
             const parsed = JSON.parse(text);
-            if (parsed && typeof parsed === 'object' && ('inputs' in parsed) && !('box' in parsed)) {
-                  setDriverFromSerialized(parsed);
+            if (parsed && typeof parsed === 'object' && ('specs' in parsed) && !('box' in parsed)) {
+                  managedDriver.loadRecord(parsed);
             } else {
               applyState(parsed as SerializedState);
               state.project.name = projectNameFromFilename(f.name);
