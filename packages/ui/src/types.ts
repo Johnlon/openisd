@@ -257,7 +257,6 @@ export interface UiState {
   originalTuneOpen?: boolean;
   /** The open Tune's uncommitted what-if buffer (overlay), so a refresh
    *  restores the in-progress values. Local-only (stripped from share links via stateToUrl). */
-  originalWhatIf?: DriverJSON | null;
   /** The Driver Editor modal is open. Persisted so a refresh reopens it. */
   originalEditorOpen?: boolean;
   /** Left panel width in px (splitter-dragged). Local-only layout pref
@@ -347,4 +346,4 @@ export interface SerializedState {
   cursor?: { f: number | null; pinnedF: number | null; locked: boolean; range?: { fLo: number; fHi: number } | null };
 }
 
-export type { Driver, DriverRaw, DriverJSON, BoxType, SweepParams, SweepResult, MaxCurvesResult };
+export type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult };

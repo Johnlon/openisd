@@ -52,7 +52,7 @@ export async function stateToUrl(serialized: SerializedState): Promise<string> {
   const { ui, ...rest } = serialized;
   const shareable: Omit<SerializedState, 'ui'> & { ui?: Partial<UiState> } = rest;
   if (ui) {
-    const { originalTuneOpen: _t, originalWhatIf: _w, originalEditorOpen: _e, unitTokens: _u,
+    const { originalTuneOpen: _t, originalEditorOpen: _e, unitTokens: _u,
             originalNavW: _nw, originalBottomH: _bh, originalNavCollapsed: _nc,
             originalBottomCollapsed: _bc, originalChartMax: _cm,
             username: _n, envDefaults: _v, chartColors: _c, ...shareableUi } = ui;

@@ -270,6 +270,17 @@ export const driverName = computed<string>(() => {
     .filter(x => x.length > 0).join(' ').trim();
 });
 
+/**
+ * Open the driver picker — the ONE governed entry point. Cancels any active what-if first: an
+ * uncommitted preview must never be left dangling once the user has moved on to picking a
+ * different driver. Every "Select Driver"/"Browse…" trigger calls this, never a raw
+ * `state.browseOpen = true`. ManagedDriver owns the cancellation; this only asks for it.
+ */
+export function openDriverPicker(): void {
+  if (managedDriver.isWhatIfActive()) { managedDriver.cancelWhatIf(); state.editDriver = false; }
+  state.browseOpen = true;
+}
+
 export const driverErrors = computed<DriverError[]>(() => {
   void _version.value;
   return managedDriver.errors();

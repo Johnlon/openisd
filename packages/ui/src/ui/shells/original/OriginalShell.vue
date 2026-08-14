@@ -21,12 +21,11 @@ const buildDatetime = __BUILD_DATETIME__;
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
-  state, driver, driverRaw, driverJSON,
+  state, driver, driverName, driverRecord,
   syncedP, curvesData, maxData, driverErrors,
   isModified, resetProjectToGround, _ground, markProjectSaved,
-  isDriverWhatIfActive, whatIfJSON, restoreDriverWhatIf,
+  managedDriver,
   formatInUnit as fmtU,
-  setDriverFromRaw,
   enterVentField, clearVentField, ventFieldState, ventMaxReachableFb, ventTargetUnreachable,
   newProject,
 } from '../../../logic/store.js';
@@ -316,33 +315,6 @@ function onFile(e: Event) {
   input.value = '';
 }
 
-const SAMPLES = [
-  {
-    name: 'Generic 6.5" Woofer',
-    driver: { name: 'Samples - Generic 6.5" Woofer', brand: 'Samples', model: 'Generic 6.5" Woofer', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 }
-  },
-  {
-    name: 'Generic 1" Tweeter',
-    driver: { name: 'Samples - Generic 1" Tweeter', brand: 'Samples', model: 'Generic 1" Tweeter', Fs:1500, Qts:0.8, Qes:1.0, Qms:4.0, Vas:0.0001, Sd:0.0008, Re:6.0, Le:0.05e-3, Xmax:0.0005, Pe:50, Z:8 }
-  }
-];
-
-function loadSample(sample: typeof SAMPLES[number]) {
-  // Opens the sample as a project in its own right. It used to call copyCurrentProject()
-  // first, so opening a sample silently forked whatever you had open into a "Copy of …"
-  // row — one project's contents appearing inside another's list is the coupling this
-  // shell is not allowed to have.
-  openNewProject();
-  setDriverFromRaw(sample.driver);
-  state.project.name = sample.name;
-  const nowStr = new Date().toISOString().slice(0, 10);
-  state.project.creator = typeof __PLATFORM_USER__ !== 'undefined' ? __PLATFORM_USER__ : 'john';
-  state.project.created = nowStr;
-  state.project.modified = nowStr;
-  state.project.description = '';
-  markProjectSaved();
-  closeDropdown();
-}
 
 // ---- Cursor readout (top-right) — real interpolation of the selected curve ------
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
@@ -464,8 +436,8 @@ onMounted(() => {
   if (openProjects.value.length === 0) {
     openProjects.value = [{
       id: activeProjectId.value,
-      name: state.project.name || driverShort(driverRaw.value),
-      driver: driverRaw.value,
+      name: state.project.name || driverName.value,
+      driver: driverRecord.value,
       box: state.box,
       P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
       curves: curvesData.value,
@@ -480,17 +452,17 @@ onMounted(() => {
 });
 
 // Keep the active item in openProjects completely in sync with the live store active design
-watch([() => state.box, () => state.P, () => driverRaw.value, curvesData, maxData, () => state.project, isModified, isDriverWhatIfActive], () => {
+watch([() => state.box, () => state.P, () => driverRecord.value, curvesData, maxData, () => state.project, isModified, () => managedDriver.isWhatIfActive()], () => {
   if (isSwapping) return;
-  if (isDriverWhatIfActive.value) return;
+  if (managedDriver.isWhatIfActive()) return;
   const activeItem = openProjects.value.find(p => p.id === activeProjectId.value);
   if (activeItem) {
-    activeItem.driver = driverRaw.value;
+    activeItem.driver = driverRecord.value;
     activeItem.box = state.box;
     activeItem.P = { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) };
     activeItem.curves = curvesData.value;
     activeItem.maxCurves = maxData.value;
-    activeItem.name = state.project.name || driverShort(driverRaw.value);
+    activeItem.name = state.project.name || driverName.value;
     activeItem.project = { ...state.project };
     activeItem._ground = _ground.value;
     activeItem.isModified = isModified.value;
@@ -517,12 +489,12 @@ function syncActiveRowFromStore() {
   const activeItem = activeProject.value;
   if (!activeItem) return;
   Object.assign(activeItem, {
-    driver: driverRaw.value,
+    driver: driverRecord.value,
     box: state.box,
     P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
     curves: curvesData.value,
     maxCurves: maxData.value,
-    name: state.project.name || driverShort(driverRaw.value),
+    name: state.project.name || driverName.value,
     project: { ...state.project },
     _ground: _ground.value,
     isModified: isModified.value,
@@ -542,12 +514,13 @@ function selectProject(p: any) {
   
   state.box = targetDesign.box;
   Object.assign(state.P, { ...targetDesign.P, filters: (targetDesign.P.filters || []).map((f: any) => ({ ...f })) });
-  setDriverFromRaw(targetDesign.driver ? (targetDesign.driver as any) : null);
+  if (targetDesign.driver) managedDriver.loadRecord(targetDesign.driver);
+  else managedDriver.loadEmpty();
   
   const targetProj = targetDesign.project ? targetDesign.project : { name: targetDesign.name || '', creator: '', created: '', modified: '', description: '' };
   Object.assign(state.project, targetProj);
 
-  _ground.value = targetDesign._ground || JSON.stringify({ box: state.box, P: state.P, driver: driverJSON.value, project: state.project });
+  _ground.value = targetDesign._ground || JSON.stringify({ box: state.box, P: state.P, driver: driverRecord.value, project: state.project });
   activeProjectId.value = targetDesign.id;
 
   isSwapping = false;
@@ -555,7 +528,7 @@ function selectProject(p: any) {
   // 3. Immediately set the new active project's states in openProjects to be 100% correct and sync'd
   const newActiveItem = openProjects.value.find(x => x.id === activeProjectId.value);
   if (newActiveItem) {
-    newActiveItem.name = state.project.name || driverShort(driverRaw.value);
+    newActiveItem.name = state.project.name || driverName.value;
     newActiveItem.isModified = isModified.value;
   }
 }
@@ -565,12 +538,12 @@ function copyCurrentProject() {
   currentP.filters = (currentP.filters || []).map(f => ({ ...f }));
   
   const copyId = 'proj-' + Math.random().toString(36).substring(7);
-  const copyName = uniqueName(copyOfName(state.project.name || driverShort(driverRaw.value)),
+  const copyName = uniqueName(copyOfName(state.project.name || driverName.value),
                               openProjects.value.map(p => p.name));
 
   const d = {
     id: copyId,
-    driver: driverRaw.value,
+    driver: driverRecord.value,
     box: state.box,
     P: currentP,
     curves: curvesData.value,
@@ -593,7 +566,7 @@ function openNewProject() {
   openProjects.value.push({
     id,
     name: '',
-    driver: driverRaw.value,
+    driver: driverRecord.value,
     box: state.box,
     P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
     curves: curvesData.value,
@@ -645,8 +618,8 @@ function closeProject(p: any) {
     activeProjectId.value = 'proj-' + Math.random().toString(36).substring(7);
     openProjects.value = [{
       id: activeProjectId.value,
-      name: state.project.name || driverShort(driverRaw.value),
-      driver: driverRaw.value,
+      name: state.project.name || driverName.value,
+      driver: driverRecord.value,
       box: state.box,
       P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
       curves: curvesData.value,
@@ -704,8 +677,8 @@ function onBottomSplitDown(e: PointerEvent): void {
 }
 
 // ---- Driver identity + placement ----------------------------------------------
-const brand = computed(() => driverRaw.value.brand || '');
-const model = computed(() => driverRaw.value.model || driverShort(driverRaw.value));
+const brand = computed(() => managedDriver.metaCell('brand').value);
+const model = computed(() => managedDriver.metaCell('model').value || driverName.value);
 
 // ---- Signal Generator (real audio-out tone) ------------------------------------
 const genOn = ref(false);
@@ -792,17 +765,19 @@ function startEdit() { editProjectDriver(); }
 // state.ui, so they persist to localStorage (refresh) but stateToUrl strips these two fields
 // specifically — an open editor's uncommitted buffer is personal working state, excluded from
 // share links (skin + active tab/chart ARE shared — see stateToUrl's own comment).
-watch([isDriverWhatIfActive, whatIfJSON], ([active, json]) => {
+// Only whether the panel is OPEN is remembered. The what-if VALUES are not: a what-if is
+// unverified and can never commit, so persisting it would bring an uncommitted value back
+// after a refresh looking like a decision the user made. ManagedDriver owns what-if state and
+// nothing else may hold a copy (ARCHITECTURE.md §"Approved state stores").
+watch(() => managedDriver.isWhatIfActive(), (active) => {
   state.ui.originalTuneOpen = active;
-  state.ui.originalWhatIf = active ? json : null;
 });
 // App.vue applies persisted state.ui AFTER this child mounts, so react when originalTuneOpen
-// lands: re-create the overlay from the saved buffer and re-open the Tune panel.
+// lands: re-open the Tune panel. Opening it starts a FRESH what-if from the committed driver
+// (OgTune's own watch does that) — the previous session's scrubbed values are deliberately
+// not restored.
 watch(() => state.ui.originalTuneOpen, (open) => {
-  if (open && !isDriverWhatIfActive.value && state.ui.originalWhatIf) {
-    restoreDriverWhatIf(state.ui.originalWhatIf);
-    state.editDriver = true;
-  }
+  if (open && !managedDriver.isWhatIfActive()) state.editDriver = true;
 }, { immediate: true });
 
 watch(isModified, (val) => {
@@ -843,11 +818,6 @@ watch(() => state.ui.originalEditorOpen, (open) => {
           <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
           <div class="dropdown-menu" :class="{ open: openDd === 'folder-dropdown' }" @click.stop>
             <div class="menu-item" title="Import a .wdr driver or .json design." @click="openClick(); closeDropdown()">Open...</div>
-            <hr>
-            <div class="menu-item" style="font-weight: bold; color: var(--mut); pointer-events: none; padding-top: 4px; padding-bottom: 2px;">Samples:</div>
-            <div v-for="sample in SAMPLES" :key="sample.name" class="menu-item sample-item" style="padding-left: 24px;" @click="loadSample(sample)">
-              {{ sample.name }}
-            </div>
           </div>
         </div>
         <div class="tb-btn" title="New project — choose box type + starting volume, then a driver." @click="newProjectOpen = true">

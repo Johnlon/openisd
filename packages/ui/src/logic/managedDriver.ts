@@ -226,6 +226,19 @@ export class ManagedDriver {
     this.#notify();
   }
 
+  /** Reset an open what-if back to the driver AS LOADED — the Tune panel's "Reset". Ends the
+   *  current session and opens a fresh overlay seeded from GROUND, not from modified state:
+   *  Reset goes back to the library, not to the last keystroke (`docs/design/STATE_MODEL.md`
+   *  rule 5). A no-op when no what-if is open — there is nothing to reset. */
+  resetOverlayToGround(): void {
+    if (this.#overlay?.kind !== 'whatif') return;
+    this.#endWhatIfIfActive();
+    const overlay = OpenISDDriver.fromRecord(cloneRecord(this.#ground.toRecord()));
+    const unsubscribe = overlay.subscribe(() => this.#notify());
+    this.#overlay = { kind: 'whatif', overlay, unsubscribe };
+    this.#notify();
+  }
+
   /** Discard the what-if overlay — the ONLY way a what-if session ends; there is no
    *  `commitWhatIf()`, ever. Modified state was never touched. Notifies, since it changes
    *  which layer `read()` resolves back to. A call with no open what-if is a no-op. */

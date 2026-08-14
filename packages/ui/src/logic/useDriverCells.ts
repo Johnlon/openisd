@@ -1,5 +1,5 @@
 import { computed, type ComputedRef } from 'vue';
-import type { CellState, Cell as FieldCell } from '@openisd/model';
+import type { CellState, Cell as FieldCell, SpecField } from '@openisd/model';
 import type { ConsistencyIssue } from '@openisd/engine';
 
 /**
@@ -35,10 +35,10 @@ export function cellClassOf(state: CellState): CellClass {
  * on its own. All three are therefore flagged TOGETHER while fewer than two are usable —
  * flagging only the blank one would name a field that is not the problem.
  */
-export const Q_GROUP: readonly string[] = ['Qts', 'Qes', 'Qms'];
+export const Q_GROUP: readonly SpecField[] = ['Qts', 'Qes', 'Qms'];
 
 /** True while fewer than two of the Q trio hold a usable value ⇒ the third cannot be solved. */
-export function useQGroupIncomplete(cellOf: (field: string) => FieldCell): ComputedRef<boolean> {
+export function useQGroupIncomplete(cellOf: (field: SpecField) => FieldCell): ComputedRef<boolean> {
   return computed(() => Q_GROUP.filter(k => {
     const v = cellOf(k).value;
     return typeof v === 'number' && isFinite(v) && v > 0;

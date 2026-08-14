@@ -16,13 +16,12 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDDriver } from '@openisd/model';
 import { ManagedDriver } from '../../src/logic/managedDriver.js';
 
 /** A minimal, valid record — one stated field (Fs), enough to exercise enter()/clear()
  *  without pulling in a fixture file this package does not own. Shape verified against
  *  `packages/model/test/openisdRecord.test.ts`'s own literal. */
-function minimalRecord(): Parameters<typeof OpenISDDriver.fromRecord>[0] {
+function minimalRecord(): Parameters<typeof ManagedDriver.fromRecord>[0] {
   return {
     uuid: { value: 'test-0000-0000-0000-000000000000', definition: 'stable record identity' },
     quality: {
@@ -50,23 +49,18 @@ function minimalRecord(): Parameters<typeof OpenISDDriver.fromRecord>[0] {
   };
 }
 
-/** A fresh `OpenISDDriver` built from `minimalRecord()` — `ManagedDriver.create`/`load`
- *  take a driver, never a bare record (`OpenISDDriver` is the one external form). */
-function minimalDriver(): OpenISDDriver {
-  return OpenISDDriver.fromRecord(minimalRecord());
-}
+
 
 describe('ManagedDriver — notification asymmetry (the specification)', () => {
   it('an edit session with N field changes and a commit produces exactly ONE notification, at commit', () => {
-    const md = ManagedDriver.create(minimalDriver());
+    const md = ManagedDriver.fromRecord(minimalRecord());
     let notifications = 0;
     md.subscribe(() => { notifications++; });
 
     md.beginEdit();
-    const draft = md.read();
-    draft.enter('Fs', 40);
-    draft.enter('Qts', 0.35);
-    draft.enter('Vas', 0.03);
+    md.enter('Fs', 40);
+    md.enter('Qts', 0.35);
+    md.enter('Vas', 0.03);
     assert.equal(notifications, 0, 'a draft edit must be silent while open');
 
     md.commitEdit();
@@ -74,17 +68,16 @@ describe('ManagedDriver — notification asymmetry (the specification)', () => {
   });
 
   it('a what-if session with N scrubs produces N+2 notifications (N scrubs + begin + cancel)', () => {
-    const md = ManagedDriver.create(minimalDriver());
+    const md = ManagedDriver.fromRecord(minimalRecord());
     let notifications = 0;
     md.subscribe(() => { notifications++; });
 
     md.beginWhatIf();
     assert.equal(notifications, 1, 'beginWhatIf notifies — it changes which layer resolves');
 
-    const overlay = md.read();
-    overlay.enter('Fs', 41);
-    overlay.enter('Qts', 0.36);
-    overlay.enter('Vas', 0.031);
+    md.enter('Fs', 41);
+    md.enter('Qts', 0.36);
+    md.enter('Vas', 0.031);
     assert.equal(notifications, 4, 'every change to the live overlay notifies immediately');
 
     md.cancelWhatIf();
@@ -92,14 +85,13 @@ describe('ManagedDriver — notification asymmetry (the specification)', () => {
   });
 
   it('an edit session that never commits produces ZERO notifications', () => {
-    const md = ManagedDriver.create(minimalDriver());
+    const md = ManagedDriver.fromRecord(minimalRecord());
     let notifications = 0;
     md.subscribe(() => { notifications++; });
 
     md.beginEdit();
-    const draft = md.read();
-    draft.enter('Fs', 40);
-    draft.enter('Qts', 0.35);
+    md.enter('Fs', 40);
+    md.enter('Qts', 0.35);
     md.cancelEdit();
 
     assert.equal(notifications, 0, 'cancelEdit discards the draft without ever writing modified state');
@@ -108,7 +100,7 @@ describe('ManagedDriver — notification asymmetry (the specification)', () => {
 
 describe('ManagedDriver — a what-if never leaks into anything persistent (ARCHITECTURE.md §3)', () => {
   it('beginEdit() cancels an active what-if itself, as an observable side effect', () => {
-    const md = ManagedDriver.create(minimalDriver());
+    const md = ManagedDriver.fromRecord(minimalRecord());
     let notifications = 0;
     md.subscribe(() => { notifications++; });
 
@@ -124,77 +116,77 @@ describe('ManagedDriver — a what-if never leaks into anything persistent (ARCH
   });
 
   it('readModified() — the path saving/exporting/sharing must use — cancels an active what-if itself', () => {
-    const md = ManagedDriver.create(minimalDriver());
+    const md = ManagedDriver.fromRecord(minimalRecord());
 
     md.beginWhatIf();
-    md.read().enter('Fs', 99);   // an unverified scrub, live on the overlay only
+    md.enter('Fs', 99);   // an unverified scrub, live on the overlay only
 
-    md.readModified();
+    md.recordToPersist();
 
     assert.equal(md.isWhatIfActive(), false, 'a save/export must never observe the live overlay');
-    assert.equal(md.readModified().cell('Fs').value, 37, 'modified state was never touched by the what-if');
+    assert.equal(md.recordToPersist().specs.woofer?.Fs?.readings.manufacturer_datasheet?.read_value, 37, 'modified state was never touched by the what-if');
   });
 
   it('load() cancels an active what-if before adopting the new driver', () => {
-    const md = ManagedDriver.create(minimalDriver());
+    const md = ManagedDriver.fromRecord(minimalRecord());
     md.beginWhatIf();
     assert.equal(md.isWhatIfActive(), true);
 
-    md.load(minimalDriver());
+    md.loadRecord(minimalRecord());
 
     assert.equal(md.isWhatIfActive(), false);
   });
 
   it('beginWhatIf() discards an active edit draft — never both at once', () => {
-    const md = ManagedDriver.create(minimalDriver());
+    const md = ManagedDriver.fromRecord(minimalRecord());
     md.beginEdit();
-    md.read().enter('Fs', 12345);   // typed into the draft, never committed
+    md.enter('Fs', 12345);   // typed into the draft, never committed
     assert.equal(md.isEditActive(), true);
 
     md.beginWhatIf();
 
     assert.equal(md.isEditActive(), false);
     assert.equal(md.isWhatIfActive(), true);
-    assert.equal(md.readModified().cell('Fs').value, 37, 'the discarded draft never reached modified state');
+    assert.equal(md.recordToPersist().specs.woofer?.Fs?.readings.manufacturer_datasheet?.read_value, 37, 'the discarded draft never reached modified state');
   });
 });
 
 describe('ManagedDriver — cancelEdit() is byte-identical (docs/design/STATE_MODEL.md rule 3)', () => {
   it('modified state after cancelEdit() matches modified state before beginEdit(), provenance included', () => {
-    const md = ManagedDriver.create(minimalDriver());
-    const before = JSON.stringify(md.readModified().toRecord());
+    const md = ManagedDriver.fromRecord(minimalRecord());
+    const before = JSON.stringify(md.recordToPersist());
 
     md.beginEdit();
-    md.read().enter('Fs', 999);
-    md.read().enter('Qts', 0.9);
+    md.enter('Fs', 999);
+    md.enter('Qts', 0.9);
     md.cancelEdit();
 
-    const after = JSON.stringify(md.readModified().toRecord());
+    const after = JSON.stringify(md.recordToPersist());
     assert.equal(after, before);
   });
 });
 
 describe('ManagedDriver — read() resolves to the highest layer that exists', () => {
   it('resolves to modified state with no overlay open', () => {
-    const md = ManagedDriver.create(minimalDriver());
-    assert.equal(md.read().cell('Fs').value, 37);
+    const md = ManagedDriver.fromRecord(minimalRecord());
+    assert.equal(md.cell('Fs').value, 37);
   });
 
   it('resolves to the what-if overlay while one is active, without touching modified state', () => {
-    const md = ManagedDriver.create(minimalDriver());
+    const md = ManagedDriver.fromRecord(minimalRecord());
     md.beginWhatIf();
-    md.read().enter('Fs', 41);
+    md.enter('Fs', 41);
 
-    assert.equal(md.read().cell('Fs').value, 41);
-    assert.equal(md.readModified().cell('Fs').value, 37);
+    assert.equal(md.cell('Fs').value, 41);
+    assert.equal(md.recordToPersist().specs.woofer?.Fs?.readings.manufacturer_datasheet?.read_value, 37);
   });
 
   it('resolves to the edit draft while one is active, without touching modified state', () => {
-    const md = ManagedDriver.create(minimalDriver());
+    const md = ManagedDriver.fromRecord(minimalRecord());
     md.beginEdit();
-    md.read().enter('Fs', 41);
+    md.enter('Fs', 41);
 
-    assert.equal(md.read().cell('Fs').value, 41);
-    assert.equal(md.readModified().cell('Fs').value, 37);
+    assert.equal(md.cell('Fs').value, 41);
+    assert.equal(md.recordToPersist().specs.woofer?.Fs?.readings.manufacturer_datasheet?.read_value, 37);
   });
 });
