@@ -60,9 +60,11 @@ they move up a level rather than being rewritten. The gates keep their shape —
   the catalogue machinery a purchasable part needs.
 
 **`OpenISDProject`'s contract, as ruled:**
+- **`ManagedProject` holds `OpenISDProject` × 3** — ground, modified, and the edit-or-what-if
+  overlay. Three complete projects, not one project with three partial diffs.
 - a **SUPERSET of a `.wpr`** — everything needed to drive a WinISD project file at minimum, plus
   everything OpenISD needs on top that WinISD has no concept of
-- holds the **entire UI data** for the project, not just physics inputs
+- holds the **ENTIRE UI data** for the project, not merely the physics inputs
 - **switching box type deletes nothing**: a ported box flipped to sealed keeps its port data, which
   goes DORMANT and returns intact on flipping back. Only the `.wpr` WRITER trims dormant data,
   because the format cannot express it. Anything that clears a field on a box-type change is a
