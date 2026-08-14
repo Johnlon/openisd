@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { reactive, computed, ref, shallowRef, watch } from 'vue';
+import { reactive, computed, ref, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
-import type { Driver, DriverRaw, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
-import { Driver as DriverModel, type DriverJSON, type FieldCell } from '@openisd/winisd';
+import type { Driver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
+import type { Cell, MetaCell, SpecField, MetaField, OpenISDDriver } from '@openisd/model';
+
+/** The openisd.yml record shape — what `OpenISDDriver.toRecord()` hands back. A TYPE only:
+ *  `ManagedDriver` is the one holder of the OpenISDDriver value (ARCHITECTURE.md §2). */
+type DriverRecord = ReturnType<OpenISDDriver['toRecord']>;
+import { WinISDDriver } from '@openisd/winisd';
+import { ManagedDriver } from './managedDriver.js';
 import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
 import { parseChartTabId } from './series.js';
 import { nextToken, toDisplay, displayPrecision, unitDef, type UnitGroup } from './fields/units.js';
@@ -185,216 +191,82 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// The store's single source of truth for the driver is a long-lived Driver ADT instance
-// (@openisd/winisd). It owns E/C/N provenance and every derivation. Its framework-free
-// subscribe() is bridged to Vue through _version: every enter/clear and every instance
-// swap bumps _version, and the computeds below touch it so they re-derive. winisd stays
-// Vue-free — the arrow points up (ui → winisd), never down.
+// ---- The driver: ManagedDriver, and NOTHING else -----------------------------------------
+// ARCHITECTURE.md §"Approved state stores": ManagedDriver holds ALL active/edit/what-if driver
+// state. The store does not hold a driver, does not hold a baseline, and does not know a
+// what-if exists — a second copy of any of those is a second answer to the same question, and
+// the two are free to disagree. Everything below DELEGATES; it stores nothing.
+//
+// ManagedDriver's framework-free subscribe() is bridged to Vue through _version: it fires on
+// every change the facade decides a subscriber should see (an edit draft stays silent until
+// commitEdit; a what-if overlay fires live), and the computeds below touch _version so they
+// re-derive exactly then. @openisd/model stays Vue-free — the arrow points up, never down.
 const _version = getOrInit('_version', () => ref(0));
-let _model = getOrInit('_model', () => {
-  const m = DriverModel.fromRaw({});
-  ctx._unsub = m.subscribe(() => { _version.value++; });
-  return m;
-});
-let _unsub = ctx._unsub;
-
-/** The COMMITTED Driver ADT instance ONLY — never the what-if overlay, matching driverJSON's
- *  committed-only contract. For a display/effective read that must reflect an active what-if,
- *  use `driver`/`driverRaw`/`driverCell` instead. A caller that must not silently disagree
- *  with a what-if the user has on screen cancels it first (`cancelDriverWhatIf`,
- *  `isDriverWhatIfActive`) rather than reaching for this. Never call `.enter()`/`.clear()` on
- *  the result — mutate through `enterDriverField`/`clearDriverField`, which route to whichever
- *  layer (what-if or committed) is actually active. */
-export function getDriverModel(): DriverModel {
-  if (globalCtx && ctx._model) return ctx._model;
-  return _model;
-}
-
-// Swap the held instance (load / import / reset). Re-bridge reactivity and bump once.
-function setModel(m: DriverModel): void {
-  _unsub();
-  _model = m;
-  _unsub = m.subscribe(() => { _version.value++; });
-  _version.value++;
-  if (globalCtx) {
-    ctx._model = m;
-    ctx._unsub = _unsub;
-  }
-}
-// ---- Library baseline (docs/design/STATE_MODEL.md: what "Reset" goes back to) ------------------
-// The driver AS LOADED, before the user's edits — one record, in the model's own shape,
-// written only by the load paths below and by an explicit save. Components read it; none
-// of them maintains their own copy.
-const _baseline = getOrInit('_baseline', () => shallowRef<DriverJSON | null>(null));
-
-/** The as-loaded driver the Reset controls go back to, or null if nothing was loaded. */
-export const driverBaseline = computed<DriverJSON | null>(() => _baseline.value);
-/** Display name of the baseline (for Reset tooltips), or '' when there is none. */
-export const driverBaselineName = computed<string>(() => {
-  const b = _baseline.value;
-  if (!b) return '';
-  return DriverModel.fromJSON(b).raw().name || '';
-});
-/** Adopt a driver as the baseline — a library pick, an import, or a save to My Drivers. */
-export function setDriverBaseline(json: DriverJSON | null): void { _baseline.value = json; }
-/** Restore the driver to the baseline, discarding edits made since it was loaded. */
-export function resetDriverToBaseline(): void {
-  if (_baseline.value) setModel(DriverModel.fromJSON(_baseline.value));
-}
-/** Restore the driver to a snapshot taken earlier in this session (a dialog's Cancel).
- *  The baseline is deliberately untouched — undoing an edit is not loading a new driver. */
-export function revertDriverTo(json: DriverJSON): void { setModel(DriverModel.fromJSON(json)); }
-
-/** Load a driver from a plain DriverRaw bag (My Drivers, saved project, demo). */
-export function setDriverFromRaw(raw: DriverRaw | null | undefined): void {
-  const m = DriverModel.fromRaw(raw ?? {});
-  setModel(m);
-  _baseline.value = m.toJSON();
-}
-/** Load a driver from WinISD .wdr text (import, library) — returns the new instance. */
-export function setDriverFromWdr(text: string): DriverModel {
-  const m = DriverModel.fromWdr(text);
-  setModel(m);
-  _baseline.value = m.toJSON();
-  return m;
-}
-// Restore from a persisted/shared snapshot. v≥2 carries the full DriverJSON (marks +
-// carried fields); a v1 blob carries a flat DriverRaw — routed through fromRaw.
-export function setDriverFromSerialized(d: DriverJSON | DriverRaw | null | undefined): void {
-  if (d && typeof d === 'object' && 'inputs' in d) setModel(DriverModel.fromJSON(d as DriverJSON));
-  else setModel(DriverModel.fromRaw((d ?? {}) as DriverRaw));
-  _baseline.value = getDriverModel().toJSON();
-}
-// ---- What-if overlay (docs/design/STATE_MODEL.md, Increment 2) ---------------------------------
-// A driver-only what-if is a live COPY of the committed model. While active, the charts,
-// StatBar, and the open editor read the copy (via the effective accessors below), so the
-// preview updates live; but the committed `_model` — and therefore persistence and the
-// ground fingerprint — is untouched, so scrubbing a what-if never dirties the project. A
-// what-if can NEVER commit (docs/design/STATE_MODEL.md rule 4) — cancelDriverWhatIf is the only way a
-// what-if session ends. An Entered field that no longer reconciles with a freshly-typed
-// sibling (e.g. Qts vs. new Qes/Qms) is surfaced by `driverConsistencyIssues` (a DQ mark) —
-// it is never silently cleared or overridden (DRIVER_RECORD_MODEL.md §4, QP18 ruling: "which
-// member is left to be derived does not matter; what matters is that the disagreement is
-// visible").
-// `priorityState` (STATE_MODEL): the effective model IS the highest-priority layer that
-// exists — what-if overlay when active, else the committed model. Reactive readers hang off
-// the effective accessors; start/cancel just swap which layer they resolve to.
-// Modern/Classic never start a what-if here, so effective ≡ committed there (Invariant 1).
-const _whatIf       = getOrInit('_whatIf', () => shallowRef<DriverModel | null>(null));
-const _whatIfVersion = getOrInit('_whatIfVersion', () => ref(0));
-let _whatIfUnsub = getOrInit('_whatIfUnsub', () => null as (() => void) | null);
-function _effModel(): DriverModel {
-  return _whatIf.value ?? (globalCtx && ctx._model ? ctx._model : _model);
-}
-
-/** Begin a driver what-if: overlay a live copy of the committed model. Idempotent. */
-export function startDriverWhatIf(): void {
-  if (_whatIf.value) return;
-  const m = DriverModel.fromJSON(_model.toJSON());   // deep copy of the committed driver
-  _whatIfUnsub = m.subscribe(() => { _whatIfVersion.value++; });
-  _whatIf.value = m;
-  _whatIfVersion.value++;
-  if (globalCtx) {
-    ctx._whatIfUnsub = _whatIfUnsub;
-  }
-}
-/** Cancel: discard the what-if overlay; the committed driver is unchanged. A what-if can
- *  never commit (docs/design/STATE_MODEL.md rule 4 — it is exploration only, not real driver data) — this
- *  is the ONLY way a what-if session ends. */
-export function cancelDriverWhatIf(): void {
-  if (_whatIfUnsub) { _whatIfUnsub(); _whatIfUnsub = null; }
-  _whatIf.value = null;
-  _whatIfVersion.value++;
-  if (globalCtx) {
-    ctx._whatIfUnsub = null;
-  }
-}
 
 /**
- * Open the driver picker — the ONE governed entry point (docs/design/STATE_MODEL.md strict layer
- * encapsulation). Auto-cancels any active what-if first: an uncommitted Tune preview must
- * never be left dangling once the user has moved on to picking a different driver. Every
- * "Select Driver" / "Browse…" trigger across every skin calls this, never a raw
- * `state.browseOpen = true`.
+ * THE driver. The one facade over ground, modified and the edit-or-what-if overlay
+ * (`logic/managedDriver.ts`). Every driver read and every driver write in the whole app goes
+ * through this object: `.read()` for the effective driver, `.readModified()` for anything
+ * persistent, `.beginWhatIf()`/`.cancelWhatIf()`/`.isWhatIfActive()` for a what-if session,
+ * `.beginEdit()`/`.commitEdit()`/`.cancelEdit()` for an edit.
  */
-export function openDriverPicker(): void {
-  if (_whatIf.value) { cancelDriverWhatIf(); state.editDriver = false; }
-  state.browseOpen = true;
-}
-/** Set the what-if overlay's driver from a raw bag (e.g. Tune's "Reset to library"). */
-export function setWhatIfFromRaw(raw: DriverRaw | null | undefined): void {
-  if (!_whatIf.value) return;
-  if (_whatIfUnsub) _whatIfUnsub();
-  _whatIf.value = DriverModel.fromRaw(raw ?? {});
-  _whatIfUnsub = _whatIf.value.subscribe(() => { _whatIfVersion.value++; });
-}
-export function setWhatIfFromBaseline(): void {
-  if (!_whatIf.value) return;
-  if (_whatIfUnsub) _whatIfUnsub();
-  _whatIf.value = _baseline.value ? DriverModel.fromJSON(_baseline.value) : DriverModel.fromRaw({});
-  _whatIfUnsub = _whatIf.value.subscribe(() => { _whatIfVersion.value++; });
-  _whatIfVersion.value++;
-}
-export const isDriverWhatIfActive = computed<boolean>(() => _whatIf.value !== null);
-// The active overlay serialized (or null) — lets a skin persist an in-progress what-if so a
-// refresh can restore it. Committed persistence still uses driverJSON (committed-only).
-export const whatIfJSON = computed<DriverJSON | null>(() => {
-  void _whatIfVersion.value;
-  return _whatIf.value ? _whatIf.value.toJSON() : null;
+export const managedDriver: ManagedDriver = getOrInit('_managed', () => {
+  const md = ManagedDriver.createEmpty();
+  ctx._unsub = md.subscribe(() => { _version.value++; });
+  return md;
 });
-/** Re-create the what-if overlay from a persisted snapshot (refresh restore). Unlike
- *  startDriverWhatIf (which copies the committed model), this adopts the given buffer. */
-export function restoreDriverWhatIf(json: DriverJSON): void {
-  if (_whatIfUnsub) _whatIfUnsub();
-  _whatIf.value = DriverModel.fromJSON(json);
-  _whatIfUnsub = _whatIf.value.subscribe(() => { _whatIfVersion.value++; });
-  _whatIfVersion.value++;
+
+/** Adopt a driver as the freshly-loaded one — a library pick, an import, or a file open.
+ *  Ground and modified both become it; any open overlay is cancelled by ManagedDriver. */
+export function loadDriverRecord(record: DriverRecord): void { managedDriver.loadRecord(record); }
+
+/** Load a driver from WinISD `.wdr` text. The `.wdr` is parsed as-read by the serialiser, then
+ *  projected into the app's own model — the file format never reaches past this line. */
+export function setDriverFromWdr(text: string): void {
+  managedDriver.loadRecord(WinISDDriver.fromWdr(text).toOpenISDRecord());
 }
 
-/** Route a single per-field edit through the ADT (what-if input, rename). During an active
- *  what-if it edits the overlay; otherwise the committed model. */
-export function enterDriverField(field: string, value: number | string): void { _effModel().enter(field, value); }
-export function clearDriverField(field: string): void { _effModel().clear(field); }
-
-/** One field's value + E/C/N provenance from the EFFECTIVE model — the single per-field read
- *  a panel needs to show a CALCULATED value (raw() carries entered fields only, so a solved
- *  Qms reads as blank there). Reactive: touching both version refs makes any render or
- *  computed that calls this re-run on a committed edit, a what-if edit, or an overlay swap. */
-export function driverCell(field: string): FieldCell {
-  void _version.value; void _whatIfVersion.value;
-  return _effModel().cell(field);
+/** Route one per-field edit to whichever layer ManagedDriver says is effective. */
+export function enterDriverField(field: SpecField, value: number): void {
+  managedDriver.read().enter(field, value);
+}
+export function clearDriverField(field: SpecField): void {
+  managedDriver.read().clear(field);
 }
 
-// driver / driverRaw / driverErrors are EFFECTIVE: they resolve to the what-if overlay when
-// one is active, else the committed model. They touch both version refs so they re-derive on
-// a committed edit, a what-if edit, or an overlay start/cancel.
-export const driver = computed<Driver | null>(() => {
-  void _version.value; void _whatIfVersion.value;
-  return _effModel().toDriver();
-});
-// driverRaw: the entered bag back out (E fields + carried metadata) — the DriverRaw view
-// the rest of the UI reads. Computed values (Cms/Mms/Bl) are NOT in it; read `driver` for
-// those. Replaces the old plain state.driverRaw reactive object.
-export const driverRaw = computed<DriverRaw>(() => {
-  void _version.value; void _whatIfVersion.value;
-  return _effModel().raw();
-});
-// driverJSON: the full ADT state (marks + carried fields + ParState) for persistence. This is
-// COMMITTED-only (never the what-if overlay) so a live what-if is not persisted and does not
-// move the ground fingerprint — the modified state stays isolated from the what-if.
-export const driverJSON = computed<DriverJSON>(() => {
+/** One field's value + E/C/N provenance from the EFFECTIVE driver. Reactive: touching
+ *  _version makes any render or computed calling this re-run when ManagedDriver notifies. */
+export function driverCell(field: SpecField): Cell {
   void _version.value;
-  return _model.toJSON();
+  return managedDriver.read().cell(field);
+}
+
+/** A record-level metadata field (brand/model/manufacturer) from the EFFECTIVE driver. */
+export function driverMetaCell(field: MetaField): MetaCell {
+  void _version.value;
+  return managedDriver.read().metaCell(field);
+}
+
+// The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
+export const driver = computed<Driver | null>(() => {
+  void _version.value;
+  return managedDriver.read().toDriver();
 });
+
+// The record for persistence — MODIFIED state, never the overlay, so a live what-if is never
+// saved, shared or written to disk. readModified() cancels an active what-if itself.
+export const driverRecord = computed(() => {
+  void _version.value;
+  return managedDriver.readModified().toRecord();
+});
+
 export const driverErrors = computed<DriverError[]>(() => {
-  void _version.value; void _whatIfVersion.value;
-  return _effModel().errors();
+  void _version.value;
+  return managedDriver.read().errors();
 });
-// The consistency-group verdict for the EFFECTIVE model — what the what-if panels mark their
-// fields from, so a panel and the driver editor cannot disagree about the same driver.
 export const driverConsistencyIssues = computed<ConsistencyIssue[]>(() => {
-  void _version.value; void _whatIfVersion.value;
-  return _effModel().consistencyIssues();
+  void _version.value;
+  return managedDriver.read().consistencyIssues();
 });
 // driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
 export const driverWarnings = computed<string[]>(() => driverErrors.value.map(e => e.message));
@@ -498,7 +370,7 @@ export const allIssues = computed<DriverError[]>(
 function projectFingerprint(): string {
   // Order-deterministic: state.P keeps its P_DEFAULTS key order and the ADT's toJSON()
   // preserves input insertion order, so JSON.stringify yields a stable string to diff.
-  return JSON.stringify({ box: state.box, P: state.P, driver: driverJSON.value, project: state.project });
+  return JSON.stringify({ box: state.box, P: state.P, driver: driverRecord.value, project: state.project });
 }
 export const _ground = getOrInit('_ground', () => ref(projectFingerprint()));
 /** True when the live design differs from the last loaded/saved (ground) state. */
@@ -507,7 +379,7 @@ export const isModified = computed<boolean>(() => _ground.value !== projectFinge
 export function markProjectSaved(): void { _ground.value = projectFingerprint(); }
 /** Discard unsaved changes: restore the design to the ground state. */
 export function resetProjectToGround(): void {
-  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: DriverJSON; project?: any };
+  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: DriverRecord; project?: any };
   state.box = g.box;
   // Adopt the stored params verbatim. The ground snapshot already holds BOTH vent-group
   // members and the entered set, so there is nothing to re-solve — and re-solving is exactly
@@ -515,7 +387,7 @@ export function resetProjectToGround(): void {
   // reproduce the calculated member from a value that was rounded on its way through JSON
   // and land on a different double.
   suspendVentSolve(() => Object.assign(state.P, g.P));
-  setDriverFromSerialized(g.driver);
+  managedDriver.loadRecord(g.driver);
   if (g.project) {
     Object.assign(state.project, g.project);
   }
@@ -527,10 +399,9 @@ export function resetProjectToGround(): void {
 export function newProject(): void {
   state.box = 'vented';
   Object.assign(state.P, defaultP());   // fresh filters array + entered set, not the shared default refs
-  setDriverBaseline(null);
   state.yRanges = {};
   state.project = { name: '', creator: '', created: '', modified: '', description: '' }; // blank meta
-  setDriverFromRaw(null);                                   // no driver selected — the user picks one
+  managedDriver.loadEmpty();                                // no driver chosen — the user picks one
   markProjectSaved();                                       // the fresh design is the new clean ground
 }
 
@@ -544,7 +415,7 @@ export function newProject(): void {
  * key serialize() emits is not restored here.
  */
 export function applyState(o: SerializedState): void {
-  if (o.driver) setDriverFromSerialized(o.driver);
+  if (o.driver) managedDriver.loadRecord(o.driver as DriverRecord);
   if (o.box) state.box = o.box;
   if (o.lossMode) state.lossMode = o.lossMode;
   // Verbatim, for the same reason as resetProjectToGround: a persisted design carries both

@@ -99,6 +99,25 @@ export class ManagedDriver {
     );
   }
 
+  /** A ManagedDriver holding a driver with nothing stated — what the app holds before one has
+   *  been chosen. Here rather than at the call site so no caller needs to import
+   *  `OpenISDDriver` to make one: this class is the ONLY holder of that type. */
+  static createEmpty(): ManagedDriver {
+    return ManagedDriver.create(OpenISDDriver.empty());
+  }
+
+  /** Adopt a record (a library pick, a file open, a restored snapshot) as the loaded driver.
+   *  The record→driver construction happens HERE, so a caller with bytes in hand never has to
+   *  reach for `OpenISDDriver` itself. Same semantics as `load()` in every other respect. */
+  loadRecord(record: ReturnType<OpenISDDriver['toRecord']>): void {
+    this.load(OpenISDDriver.fromRecord(record));
+  }
+
+  /** Replace the held driver with one that has nothing stated — "no driver chosen". */
+  loadEmpty(): void {
+    this.load(OpenISDDriver.empty());
+  }
+
   // ---- reads --------------------------------------------------------------------------
 
   /** The EFFECTIVE driver: the open overlay (edit draft or what-if) if one exists, else
