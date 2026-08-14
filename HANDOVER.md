@@ -49,6 +49,16 @@ ground/modified/overlay machinery, its notification asymmetry, and the
 they move up a level rather than being rewritten. The gates keep their shape — substitute
 `ManagedProject` for `ManagedDriver` and `OpenISDProject` for `OpenISDDriver`.
 
+**COMPONENT vs CONFIGURATION (human ruling, 2026-08-14).** They are modelled differently:
+- **`OpenISDDriver`** and **`OpenISDPassiveRadiator`** are COMPONENTS — selectable, editable,
+  PURCHASABLE physical parts with datasheets and catalogue entries. A PR gets the SAME treatment
+  as a driver: its own record, its own per-field provenance, its own library. `OpenISDPassiveRadiator`
+  DOES NOT EXIST yet — a PR is currently a handful of flat `pr*` fields in `state.P`, which is the
+  same mistake the driver's model used to be.
+- **ports/vents and the bandpass orders (4th, 6th, …)** are CONFIGURATIONS, not components. Nobody
+  buys a vent. They are still modelled — provenance and solving included — but more simply, without
+  the catalogue machinery a purchasable part needs.
+
 **`OpenISDProject`'s contract, as ruled:**
 - a **SUPERSET of a `.wpr`** — everything needed to drive a WinISD project file at minimum, plus
   everything OpenISD needs on top that WinISD has no concept of

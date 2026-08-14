@@ -852,6 +852,25 @@ function cancel() { managedDriver.cancelWhatIf(); state.P.Vb = vbSnapshot; … }
 That snapshot exists only because the overlay was drawn around the wrong object. At project level
 it disappears: cancelling the overlay restores `Vb` because `Vb` is IN the overlay.
 
+**A COMPONENT is not a CONFIGURATION, and they are modelled differently.**
+
+| | what it is | modelled as |
+|---|---|---|
+| **`OpenISDDriver`** | a real, selectable, editable, PURCHASABLE physical part | a full record: provenance per field, a library entry, `openisd.yml` on disk |
+| **`OpenISDPassiveRadiator`** | the same — you buy one, it has a datasheet, it is in a catalogue | the SAME treatment as a driver. It is a component, not a box setting. |
+| ports / vents | a hole you cut, sized by the designer | a configuration: modelled, but simply — no catalogue identity, no purchase, no datasheet |
+| 4th-order, 6th-order bandpass | an alignment the designer chooses | likewise a configuration, not a thing you buy |
+
+**A passive radiator therefore gets `OpenISDPassiveRadiator`**, a peer of `OpenISDDriver` with its
+own record and provenance — because a user picks one from a catalogue, edits its published
+parameters, and buys it. Today it is a handful of flat `pr*` fields in `state.P`, which is the
+same mistake the driver's own model used to be.
+
+**A vent is NOT a component.** It has no manufacturer, no datasheet, no library. It is a
+dimensioned configuration of the enclosure, and it is modelled — provenance and solving included —
+but without the catalogue machinery a purchasable part needs. The same is true of the bandpass
+orders: choosing 4th over 6th selects an alignment, it does not select a part.
+
 **`OpenISDProject` is a SUPERSET of a `.wpr`.** At minimum it carries everything needed to drive
 a WinISD `.wpr`; on top of that it carries everything OpenISD needs that WinISD has no concept of.
 The `.wpr` writer trims down to what WinISD understands — the project never trims itself to suit a
