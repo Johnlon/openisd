@@ -57,6 +57,14 @@ ordered array; identity is the entry's own id. `logic/model/workspace.ts` alread
 `projects: WorkspaceEntry[]` — that is correct and must stay a list. Anything that introduces a
 `Map`/`Record` keyed by project name is a defect.
 
+**RECORDS CROSS BOUNDARIES; INSTANCES DO NOT.** A repository, `FileIO` and the catalogue all deal
+in RECORDS — plain data. A live `OpenISDDriver` exists ONLY as a member of an `OpenISDProject` held
+by a `ManagedProject`, and nothing hands one out. That is what makes the containment total: there
+is no other way for an instance to come into being, so there is nowhere else for one to be mutated
+unobserved. (The human caught the spec contradicting itself here — an earlier rewrite had
+`DriverRepo` returning `OpenISDDriver[]`, which would put a live instance outside the facade. The
+CODE was already correct, returning records; the spec was wrong and is fixed.)
+
 **THE PROJECT IS DOMAIN DATA, and every member is an `OpenISD*` type.** An earlier diagram put
 `OpenISDProject` in the APPLICATION layer and `OpenISDDriver` in DOMAIN — incoherent, because
 temperature, air pressure, air density, box volume, Fsc, the signal source, the filters and the
@@ -186,6 +194,7 @@ disagree — is the thing to keep hunting.
 | R12 | **Diagrams must be readable.** They cannot be enlarged in the viewer, so a 46-box diagram is worthless. | DONE — as-built is now a 10-box shape + tables |
 | R13 | **Arch tests must ENFORCE the architecture**, including deliberately-failing ones that stay red until the violation is deleted. | DONE — see §4 |
 | R14 | **We never force-push.** | Respected |
+| R21 | **Repositories and `FileIO` return RECORDS, never live instances.** An `OpenISDDriver` exists only inside an `OpenISDProject` inside a `ManagedProject`. | Code already correct; spec fixed |
 | R19 | **The project is DOMAIN data.** `@openisd/model` owns `OpenISDProject` and every member; `logic/` owns only the state layers over it (`Workspace`, `ManagedProject`). Every domain type carries the `OpenISD` prefix — no bare nouns. | SPECIFIED. Diagrams updated. |
 | R20 | **Each box type is its own data type** — sealed / vented / bandpass4 / passive-radiator alignments, all held at once, one active, the rest dormant with data intact. The vent belongs to the vented alignment, the radiator to the PR alignment. | SPECIFIED. Not built. |
 | R18 | **Projects are an ORDERED LIST, never a map keyed by name.** Two open projects may share a `project.name`; a name is a label, not an identity. `workspace.ts` already uses `WorkspaceEntry[]` — keep it a list. | Already correct in `workspace.ts`; must be preserved |

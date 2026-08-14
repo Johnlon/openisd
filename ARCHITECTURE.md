@@ -155,8 +155,8 @@ graph TD
     LOGIC -->|calls| DIAG
     LOGIC -->|calls| LOGGING
     MANAGED -->|"wraps 3x"| MODEL
-    DRIVERREPO -->|returns| MODEL
-    MYREPO -->|returns| MODEL
+    DRIVERREPO -->|"returns records"| MODEL
+    MYREPO -->|"returns records"| MODEL
     FILEIO -->|calls| SERIAL
     FILEIO -->|"reads via"| MANAGED
     DIAG -->|calls| ENGINE
@@ -443,7 +443,7 @@ handed to whoever needs it — it is not importable.
 | `Workspace`                  | Hold the OPEN PROJECTS as an ordered list — never a map keyed by name          | the `ManagedProject`s it holds                                  |
 | `ManagedProject`             | The one facade over ONE project's ground/modified/overlay state — see §3       | an `OpenISDProject` factory                                     |
 | `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the `ManagedProject`, plus whichever services that workflow needs |
-| `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup       | a bundle source (`() => OpenISDDriver[]`)                       |
+| `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup — returns RECORDS, never live instances | a bundle source (`() => DriverRecord[]`)      |
 | `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStore`                                               |
 | `createPrefsStore`           | Browser-local preferences: favourites, session, layout                         | a `KeyValueStore`                                               |
 | `createFileIO` — not yet built | Open, save, import, export, share-link encode and decode                     | the serialiser (`@openisd/winisd`), the record codec            |
@@ -526,20 +526,24 @@ interface KeyValueStore {
   remove(key: string): void;
 }
 
-/** The driver commons. Queries only — it owns no state and mutates nothing. Hands back a
- *  fresh `OpenISDDriver` per call; `ManagedProject` is what places one into a project and clones it into its
- *  own isolated ground/modified state (§3). */
+/** The driver commons. Queries only — it owns no state and mutates nothing.
+ *
+ *  It returns RECORDS, never live `OpenISDDriver` instances. A live driver exists ONLY inside an
+ *  `OpenISDProject` inside a `ManagedProject`; a catalogue hit is a candidate that is in no
+ *  project yet, so handing back an instance would put one outside the facade and break that
+ *  invariant. `ManagedProject` is what turns a chosen record into a live driver. */
 interface DriverRepo {
-  all(): readonly OpenISDDriver[];
-  byId(id: DriverId): OpenISDDriver | undefined;
-  search(query: string, filter?: DriverFilter): readonly OpenISDDriver[];
+  all(): readonly DriverRecord[];
+  byId(id: DriverId): DriverRecord | undefined;
+  search(query: string, filter?: DriverFilter): readonly DriverRecord[];
 }
 
-/** Drivers the user saved. Keyed by identity, which is `<brand>/<model-slug>`. */
+/** Drivers the user saved. Keyed by identity, which is `<brand>/<model-slug>`. Records, for the
+ *  same reason as above — saving reads a record OUT of a project, it does not lend the instance. */
 interface MyDriverRepo {
-  all(): readonly OpenISDDriver[];
-  byId(id: DriverId): OpenISDDriver | undefined;
-  save(driver: OpenISDDriver): void;
+  all(): readonly DriverRecord[];
+  byId(id: DriverId): DriverRecord | undefined;
+  save(record: DriverRecord): void;
   remove(id: DriverId): void;
 }
 
@@ -553,8 +557,8 @@ interface PrefsStore {
 
 /** Every crossing of the file boundary. The only place a byte stream is produced or consumed. */
 interface FileIO {
-  readRecord(text: string, format: RecordFormat): Result<OpenISDDriver>;
-  writeRecord(driver: OpenISDDriver, format: RecordFormat): string;
+  readRecord(text: string, format: RecordFormat): Result<DriverRecord>;
+  writeRecord(record: DriverRecord, format: RecordFormat): string;
   readProject(text: string, format: ProjectFormat): Result<Project>;
   writeProject(project: Project, format: ProjectFormat): string;
   encodeShareLink(project: Project): Promise<string>;
@@ -658,9 +662,13 @@ class OpenISDDriver {
 }
 ```
 
-`SpecField` is the closed set of canonical field names, not an open string. A repository or
-`FileIO` implementation hands back a freshly-built `OpenISDDriver`; `ManagedProject`
-(§3) is what clones one into its own isolated ground/modified state.
+`SpecField` is the closed set of canonical field names, not an open string.
+
+**A repository and `FileIO` deal in RECORDS; only `ManagedProject` deals in instances.** A record
+is plain data — a catalogue row, a file's contents, a saved driver. An `OpenISDDriver` is live,
+mutable and subscribable, and one exists ONLY as a member of an `OpenISDProject` held by a
+`ManagedProject`. That is what makes the containment total: there is no other way for an instance
+to come into being, so there is nowhere else for one to be mutated unobserved.
 
 ---
 
