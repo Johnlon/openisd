@@ -74,6 +74,14 @@ split that IS coherent:
 uniform — every domain type carries the `OpenISD` prefix.** The old diagram mixed
 `OpenISDDriver · vent · radiator`, a class name beside two bare nouns; that is fixed.
 
+**Only FOUR alignments exist in code**: `BoxType` is `'sealed' | 'vented' | 'pr' | 'bandpass4'`
+(`packages/engine/src/types.ts:125`). The human has named **6th-order and ABC** more than once;
+NEITHER IS MODELLED. Both are drawn in the target diagram marked NOT BUILT so it cannot be read as
+"four is the whole set". A 6th-order vents BOTH chambers, so it needs a rear vent + rear tuning as
+well as the front pair — its own type, not a flag on the 4th-order. **ABC's fields are not
+specified anywhere in the repo** and the diagram deliberately shows it empty rather than inventing
+contents — it needs a human spec first. Ledger QO44.
+
 **EACH BOX TYPE IS ITS OWN DATA TYPE**: `OpenISDSealedAlignment` (Vb·Fsc·Qtc),
 `OpenISDVentedAlignment` (Vb·Fb·the vent), `OpenISDBandpass4Alignment` (rear Vb·front Vf·Ff),
 `OpenISDPassiveRadiatorAlignment` (Vb·Fp·radiator + added mass). Separate types because they hold
