@@ -588,6 +588,17 @@ different rhythms:
 An edit draft that never commits produces zero notifications; a what-if session that never
 commits (none ever do) produces one notification per change plus one on cancel.
 
+**A what-if never leaks into anything persistent.** Its value is unverified against physical
+reality — nothing outside the live overlay is allowed to see it. `ManagedDriver` cancels any active
+what-if, itself, before every operation that reads modified state for a purpose beyond driving the
+open charts: `beginEdit()`, saving the project, saving-as, exporting `.wdr`/`.owdr`/`.wpr`,
+generating a share link, saving to My Drivers, and loading or switching to a different driver. This
+is `ManagedDriver`'s own responsibility, not the caller's — a call site that reads modified state
+without going through `ManagedDriver` can forget the guard, which is exactly how a real bug reached
+production: `shareLink()` serialises the driver into a URL without first cancelling an active
+what-if, while every sibling I/O function in the same module does. `ManagedDriver` closes this
+class of bug structurally: there is no path to modified state that bypasses the cancel.
+
 ---
 
 ## 4. Runtime data flow
