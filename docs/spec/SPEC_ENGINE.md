@@ -22,6 +22,68 @@ This specification defines the electro-acoustic calculation rules, physical form
 - [`packages/engine/test/consistency.test.ts`](../../packages/engine/test/consistency.test.ts)
 - [`packages/engine/test/driver.test.ts`](../../packages/engine/test/driver.test.ts)
 
+### 1.2 USPL / SPLmax / Mpow — the 2.83 V reference and the 3 dB derating
+
+These three fields (`solveConsistencyGroup`/`deriveDriver`, `packages/engine/src/driver.ts`)
+were corrected 2026-08-14 against WinISD 0.7.0.0 goldens in
+`packages/winisd/test/fixtures/winisd-parity/goldens/*.wpr` — the evidence for each is a
+prediction from the golden's OWN stated inputs that reproduces WinISD's stored output value
+to float precision, not a plausibility argument.
+
+- **`SPLref`** — the reference sensitivity (1 W / 1 m) derived from efficiency: $\text{SPLref} =
+  \text{splFromEfficiency}(\eta_0, \rho, c)$ (`efficiency.ts`, §3.1's $\eta_0$ formula). This is
+  openisd's own COMPUTED sensitivity, independent of any sensitivity a driver record states.
+
+- **The base for USPL/SPLmax is the record's STATED `SPL` when it has one, else `SPLref`.**
+  A `.wdr`'s `SPL=` line is an independently entered figure of merit — WinISD's own ParState
+  marks it `E` (entered) exactly like any other typed field, distinct from the `C` (computed)
+  mark on its derived `no`/`SPLref` — so a datasheet SPL and the η₀-derived sensitivity are two
+  different numbers that need not agree, and don't on `sealed-small` (stated `SPL=90`, computed
+  `SPLref=87.65068346041753`). Predicting `USPL`/`SPLmax` from the STATED `SPL` matches WinISD;
+  predicting from `SPLref` does not, on the same golden.
+
+- **USPL — the 2.83 V/1 m sensitivity**:
+  $$\text{USPL} = \text{SPL} + 10\log_{10}\left(\frac{2.83^2}{\text{Re}}\right)$$
+  `2.83` is the industry-standard reference DRIVE VOLTAGE — the voltage that puts exactly 1 W
+  into a nominal 8 Ω load, $V=\sqrt{1\cdot 8}=2.828\ldots$, rounded to WinISD's own printed
+  label. `2.83^2 = 8.0089`, not the bare `8` this code read before 2026-08-14: on
+  `sealed-small` (`SPL=90`, `Re=6.4`), `90+10\log_{10}(8.0089/6.4) = 90.9739289706469`, WinISD's
+  own stored `USPL` to the last digit (agreement 4.3e-14 relative); the bare-8 form gives
+  `90.9691...`, off by 0.0048 dB — small enough to look like formatting noise, but a real,
+  wrong formula. Confirmed identically on all `winisd-parity` goldens with a stated `SPL`.
+  **Provenance of the `2.83 = 2.828…` rounding is the industry 1 W/8 Ω convention** (not found
+  independently stated as WinISD's own reasoning in `winisd_research/`); the numeric match to
+  WinISD's stored output is the primary evidence.
+
+- **SPLmax — the thermal-limit SPL at rated power**:
+  $$\text{SPLmax} = \text{SPL} + 10\log_{10}(\text{Pe}) - 3$$
+  The flat **3 dB derating is measured exactly**, not $10\log_{10}(2)=3.0103$: on
+  `sealed-small` (`SPL=90`, `Pe=100`), `90+20-3=107`, WinISD's stored value to the printed
+  digit — a $10\log_{10}(2)$ derating would print `106.9897`, which the golden does not. ⚠
+  **The WHY of the 3 dB is NOT established** — no text found in `winisd_research/` explains it
+  as a program-power convention, a half-power headroom margin, or anything else; only the
+  numeric fact (exactly −3 dB) is proven, over the two golden values available
+  (`sealed-small`, `vented-small`).
+
+- **Mpow — the "power capability" figure**:
+  $$\text{Mpow} = \frac{\text{BL}}{\sqrt{\text{Re}}}$$
+  falling back to $\sqrt{\text{Rme}}$ only when `Bl` is absent. Recovered from
+  `goldens/inconsistent-fs.wpr`, built specifically to separate the two candidate formulas —
+  its stored `Fs` is written at exactly twice the record's true value from `Mms`/`Cms`, and the
+  two routes are algebraically identical on any SELF-consistent record (every other golden), so
+  only a deliberately inconsistent one can tell them apart. On that record WinISD wrote
+  `Rme = 17.578125`, `Mpow = 2.96463530640786`. `Bl / sqrt(Re) = 7.5 / sqrt(6.4) =
+2.96463530640786` matches to the last digit; `sqrt(Rme) = sqrt(17.578125) = 4.1926274578121`
+  does not. `Mpow = sqrt(Rme)` is not an identity WinISD holds — `Rme` and `Mpow` are
+  independently sourced.
+
+**Verifying Tests**:
+
+- [`packages/engine/test/advanced-figures.test.ts`](../../packages/engine/test/advanced-figures.test.ts)
+- [`packages/winisd/test/winisd-parity.test.ts`](../../packages/winisd/test/winisd-parity.test.ts) — `USPL`, `SPLmax`, `Mpow` rows
+- `bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md`
+- `bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md`
+
 ---
 
 ## 2. Acoustical Mobility Circuit Solver
@@ -121,16 +183,35 @@ required, plus the derived quantities `Cms`/`Mms`/`Rms`/`Bl` (formulas: §1.1).
 
 ### 4.2 Physical Constants
 
-| Export              | Value         | Description                                                      |
-| ------------------- | ------------- | ---------------------------------------------------------------- |
-| `RHO`               | 1.20095 kg/m³ | Air density, 20 °C — WinISD's own Advanced-pane derived value    |
-| `C`                 | 343.68 m/s    | Speed of sound, 20 °C — WinISD's own Advanced-pane derived value |
-| `P0`                | 20×10⁻⁶ Pa    | Reference sound pressure (0 dB SPL)                              |
-| `END_CORRECTION`    | 0.732         | Vent end-correction factor, × diameter per open (unflanged) end  |
-| `FLAT_MAX_BOOST_DB` | 20 dB         | Default ceiling on the force-flat auto-EQ boost                  |
+| Export              | Value                  | Description                                                                      |
+| ------------------- | ---------------------- | -------------------------------------------------------------------------------- |
+| `RHO`               | 1.20095217714682 kg/m³ | Air density, 20 °C — WinISD's own Advanced-pane derived value, full precision    |
+| `C`                 | 343.684120962153 m/s   | Speed of sound, 20 °C — WinISD's own Advanced-pane derived value, full precision |
+| `P0`                | 20×10⁻⁶ Pa             | Reference sound pressure (0 dB SPL)                                              |
+| `END_CORRECTION`    | 0.732                  | Vent end-correction factor, × diameter per open (unflanged) end                  |
+| `FLAT_MAX_BOOST_DB` | 20 dB                  | Default ceiling on the force-flat auto-EQ boost                                  |
 
 `RHO`/`C` are the reference values at `tempK = 293.15` K (20 °C); `sweep`/`circuit` rescale
 both by the live `SweepParams.tempK` when present (§4.3).
+
+**Full precision, corrected 2026-08-14.** Previously `1.20095`/`343.68` (6/5 significant
+figures) — a truncation, not a different value: `winisd-parity` goldens (all eight, across
+every humidity leg) and `drivers/sample/winisd/john-all-defaults.wdr` (a WinISD-authored blank
+driver, ParState `C` on `c`/`roo`) directly carry `1.20095217714682`/`343.684120962153`. The
+truncation cost 1.8e-6 (ρ) / 1.2e-5 (c) relative, propagating into `no` (∝ 1/c³, 3.6e-5) and
+`SPLmaxLF` (2e-7) — see
+`bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md`.
+Fixing it moved `packages/engine/test/fixtures/golden/*.json` (rebaselined in the same commit —
+max delta 3.6e-3 relative on one near-zero impedance-phase bin, 3.2e-6 relative on `spl`; every
+delta traces to this ~1e-5-level correction propagating through the resonant circuit, not to a
+behaviour change) — see `npm run gen-golden`.
+
+⚠ **`winisdAir()`'s temperature scaling of this pair is a SEPARATE, still-open divergence** —
+WinISD's own frozen compatibility air does not move with a record's stated temperature at all
+(`goldens/env-t-303.wpr` and its 293.15 K twin `env-rh-30.wpr` carry byte-identical `c`/`roo`),
+but `airFor({ ignoreHumidityAndPressure: true, tempK })` currently scales both by `tempK`. See
+`bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md`
+(not fixed — awaiting a human ruling, same permission gate).
 
 ### 4.3 Sweep Parameters — `sweep(drv: Driver, box: BoxType, P: SweepParams) → SweepResult`
 

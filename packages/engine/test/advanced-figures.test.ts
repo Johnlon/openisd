@@ -6,12 +6,14 @@
  * only MANUAL fields; everything else is CALCULATED. Deleting Rme in WinISD makes it fill the
  * value back in, and a `Fs` edit moves the whole set — so these are not stored pass-throughs.
  *
- * Formulas, pinned in winisd_research/KNOWLEDGE_REPORT.md §4 and SOLVER_GAPS.md §2.4:
+ * Formulas, pinned in winisd_research/KNOWLEDGE_REPORT.md §4 and SOLVER_GAPS.md §2.4, EXCEPT
+ * `Mpow`, `SPLmax` and `USPL` which that document states wrong — see the citations on each
+ * describe block below for the corrected formula and its evidence:
  *     Rme      = BL²/Re = 2π·Fs·Mms/Qes
- *     Mpow     = BL/√Re = √Rme
+ *     Mpow     = BL/√Re                      (NOT √Rme — see "Mpow, gamma" below)
  *     gamma    = BL/Mms
- *     SPLmax   = SPL + 10·log₁₀(Pe)
- *     USPL     = SPL + 10·log₁₀(8/Re)        (8 = 2.83²)
+ *     SPLmax   = SPL_stated + 10·log₁₀(Pe) − 3   (see "SPLmax and USPL" below)
+ *     USPL     = SPL_stated + 10·log₁₀(2.83²/Re) (2.83² = 8.0089, NOT 8 — see below)
  *     Gloss    = g/((2π·Fs)²·Xmax)           g = 9.80665, the FRACTION of Xmax
  *     SPLmaxLF = 20·log₁₀(ρ₀·(2π·20)²·Vd/(2π·√2)/20 µPa)
  *     Mcost    = Rme·(1 + Xmax/min(Hc, Hg))
@@ -92,10 +94,31 @@ describe('Rme — the two routes, and which one wins', () => {
 });
 
 describe('Mpow, gamma', () => {
-  it('Mpow is √Rme, so it follows the same route Rme took', () => {
+  // Mpow = Bl/√Re, NOT √Rme — recovered from the `inconsistent-fs` parity golden
+  // (packages/winisd/test/fixtures/winisd-parity/goldens/inconsistent-fs.wpr), whose stored
+  // `Fs` is written at exactly twice its true value, separating the two routes (they agree on
+  // every self-consistent record, including BEYMA below — which is why this needs its own
+  // discriminator). WinISD wrote `Rme=17.578125`, `Mpow=2.96463530640786` on that record;
+  // `Bl/√Re` matches to the last digit, `√Rme` (4.1926274578121) does not. See
+  // bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
+  it('Mpow is Bl/√Re, NOT √Rme — the two happen to agree on BEYMA, so this only pins the value', () => {
     const r = solve({ ...BEYMA });
+    assert.ok(Math.abs(r.Mpow - BEYMA.Bl / Math.sqrt(BEYMA.Re)) < 1e-12, `Mpow = ${r.Mpow}`);
+    assert.ok(Math.abs(r.Mpow - 4.275331746012412) < 1e-9);
+  });
+
+  it('Mpow = Bl/√Re disagrees with √Rme on a record whose stored Fs contradicts Mms·Cms', () => {
+    // The `inconsistent-fs` discriminator, transcribed: Fs stored at 2×true, Bl=7.5, Re=6.4,
+    // Qes=0.41220376440829154, Mms=0.0155 — WinISD's own Rme/Mpow pair for this record.
+    const r = solve({ Fs: 74.4, Mms: 0.0155, Qes: 0.41220376440829154, Bl: 7.5, Re: 6.4 });
+    assert.ok(Math.abs(r.Rme - 17.578125) < 1e-9, `Rme = ${r.Rme}`);
+    assert.ok(Math.abs(r.Mpow - 2.96463530640786) < 1e-9, `Mpow = ${r.Mpow}`);
+    assert.ok(Math.abs(r.Mpow - Math.sqrt(r.Rme)) > 1, '√Rme must NOT be the answer here');
+  });
+
+  it('falls back to √Rme when Bl is absent', () => {
+    const r = solve({ Fs: BEYMA.Fs, Mms: BEYMA.Mms, Qes: BEYMA.Qes });
     assert.ok(Math.abs(r.Mpow - Math.sqrt(r.Rme)) < 1e-12, `Mpow = ${r.Mpow}, √Rme = ${Math.sqrt(r.Rme)}`);
-    assert.ok(Math.abs(r.Mpow - 4.268634136444677) < 1e-9);
   });
 
   it('gamma = Bl/Mms', () => {
@@ -110,20 +133,43 @@ describe('Mpow, gamma', () => {
   });
 });
 
-describe('SPLmax and USPL — both offsets from the ONE reference sensitivity', () => {
+describe('SPLmax and USPL — both offsets from the ONE reference base', () => {
   // Vas and Pe complete the efficiency chain; the reference SPL itself comes from
-  // efficiency.ts (via `no` → `SPLref`), which is what these two are offsets from.
+  // efficiency.ts (via `no` → `SPLref`), which is what these two are offsets from when the
+  // record carries no STATED `SPL` (BEYMA does not, so `SPLref` is the base here too).
   const FULL = { ...BEYMA, Vas: 0.055, Pe: 300 };
 
-  it('SPLmax = SPLref + 10·log₁₀(Pe)', () => {
+  // Both formulas corrected 2026-08-14 — the code used to read `SPLref + 10·log₁₀(8/Re)` /
+  // `SPLref + 10·log₁₀(Pe)` (no derating). Recovered from the `winisd-parity` goldens:
+  // predicting each golden's own `USPL`/`SPLmax` from its stated `SPL` and `Re`/`Pe` with
+  // `2.83²` (not the bare `8`) and a flat `−3` dB agrees with WinISD's stored values to
+  // 4.3e-14 / 0 and 4.3e-15 relative respectively, on every golden available. See
+  // bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md.
+  it('SPLmax = SPLref + 10·log₁₀(Pe) − 3 dB', () => {
     const r = solve({ ...FULL });
     assert.ok(r.SPLref > 0, 'the reference sensitivity must have been derived first');
-    assert.ok(Math.abs((r.SPLmax - r.SPLref) - 10 * Math.log10(300)) < 1e-12, `SPLmax = ${r.SPLmax}`);
+    assert.ok(Math.abs((r.SPLmax - r.SPLref) - (10 * Math.log10(300) - 3)) < 1e-12, `SPLmax = ${r.SPLmax}`);
   });
 
-  it('USPL = SPLref + 10·log₁₀(8/Re), with 8 = 2.83²', () => {
+  it('USPL = SPLref + 10·log₁₀(2.83²/Re) — 2.83² = 8.0089, NOT the bare 8', () => {
     const r = solve({ ...FULL });
-    assert.ok(Math.abs((r.USPL - r.SPLref) - 10 * Math.log10(8 / BEYMA.Re)) < 1e-12, `USPL = ${r.USPL}`);
+    assert.ok(Math.abs((r.USPL - r.SPLref) - 10 * Math.log10(2.83 * 2.83 / BEYMA.Re)) < 1e-12, `USPL = ${r.USPL}`);
+    // The two constants are close enough to look interchangeable but are not: on this
+    // record the bare-8 formula would be off by 0.0048 dB, well outside float noise.
+    assert.ok(Math.abs((r.USPL - r.SPLref) - 10 * Math.log10(8 / BEYMA.Re)) > 1e-4,
+      'USPL must not have come from the bare-8 formula');
+  });
+
+  it('USPL/SPLmax prefer a STATED SPL over the η₀-derived SPLref, when the record carries one', () => {
+    // A stated SPL (the record's own `SPL` key, entered — as a WDR's `SPL=` line arrives) is
+    // WinISD's own base, and disagrees with the η₀-derived SPLref on a real record exactly
+    // the way `sealed-small`'s golden does (SPL=90 stated vs SPLref=87.65068346041753 derived).
+    const withStated = solve({ ...FULL, SPL: 90 } as Record<string, number>);
+    assert.ok(Math.abs(withStated.SPLref - 90) > 0.1, 'SPLref must stay the η₀-derived value, not 90');
+    assert.ok(Math.abs((withStated.USPL - 90) - 10 * Math.log10(2.83 * 2.83 / BEYMA.Re)) < 1e-12,
+      `USPL = ${withStated.USPL}, must be based on the stated SPL (90), not SPLref`);
+    assert.ok(Math.abs((withStated.SPLmax - 90) - (10 * Math.log10(300) - 3)) < 1e-12,
+      `SPLmax = ${withStated.SPLmax}, must be based on the stated SPL (90), not SPLref`);
   });
 
   it('SPLmax needs Pe — a driver without a power rating gets no SPLmax rather than a guess', () => {

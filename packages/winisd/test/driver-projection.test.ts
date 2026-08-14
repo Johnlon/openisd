@@ -18,7 +18,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Driver } from '@openisd/winisd';
 
-const RHO = 1.20095, C = 343.68;   // engine constants (WinISD 20 °C — independent restatement)
+// engine constants (WinISD 20 °C, full precision — independent restatement). See
+// bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md.
+const RHO = 1.20095217714682, C = 343.684120962153;
 
 describe('Driver.fromRaw — build from a plain DriverRaw bag', () => {
   it('enters every present field: numerics → E value, metadata strings → E', () => {
