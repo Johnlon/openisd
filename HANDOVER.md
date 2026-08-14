@@ -10,6 +10,49 @@ here deliberately: the failures below are not incidental, they are the point of 
 
 ---
 
+## 0. READ THIS FIRST — the design changed at the very end of the session
+
+**`ManagedDriver` DIES. `ManagedProject` replaces it.** Human ruling, 2026-08-14, made after all
+the work below had landed. Everything in this document that describes `ManagedDriver` as the
+target is now describing an INTERMEDIATE STATE.
+
+```
+ManagedProject { ground, modified, overlay }     each one a complete OpenISDProject
+OpenISDProject { driver: OpenISDDriver, box, vents, radiators,
+                 filters, environment, signal, metadata }
+```
+
+**Why**: a user never explores "a what-if driver". They explore a DESIGN — a driver in a box, with
+vents or passive radiators. Scrubbing `Vb` and scrubbing `Qts` are the same act, so they must be
+the same act to the app. The what-if/edit overlay therefore wraps the PROJECT, not the driver.
+
+**The proof is already in the code.** `OgTune.vue` opens a "driver" what-if and then scrubs `Vb`,
+a BOX value the driver what-if cannot cover, so it hand-rolls a one-field undo:
+
+```ts
+let vbSnapshot = state.P.Vb;
+function cancel() { managedDriver.cancelWhatIf(); state.P.Vb = vbSnapshot; … }
+```
+
+That snapshot exists only because the overlay was drawn around the wrong object. At project level
+it deletes itself: cancelling restores `Vb` because `Vb` is in the overlay.
+
+**This also dissolves §5.4 / ledger QO43** (the driver-has-a-facade, vents-and-PRs-do-not
+asymmetry). Inside `OpenISDProject` each becomes a member under ONE provenance model, and the
+edit/what-if lifecycle covers all of them at once.
+
+**What that means for the work already done**: none of it is wasted. `OpenISDDriver` keeps its job
+unchanged — it maps `openisd.yml` and owns the driver's fields and provenance — it simply becomes
+a MEMBER of `OpenISDProject` instead of the thing being wrapped. `ManagedDriver`'s
+ground/modified/overlay machinery, its notification asymmetry, and the
+"cancel-the-what-if-before-anything-persistent" guard are the design `ManagedProject` inherits;
+they move up a level rather than being rewritten. The gates keep their shape — substitute
+`ManagedProject` for `ManagedDriver` and `OpenISDProject` for `OpenISDDriver`.
+
+Spec: ARCHITECTURE.md §"A what-if is entered on the PROJECT, never on one part of it".
+
+---
+
 ## 1. What the human actually asked for, and what went wrong
 
 ### The standing instruction, repeated all session
@@ -68,6 +111,7 @@ disagree — is the thing to keep hunting.
 | R12 | **Diagrams must be readable.** They cannot be enlarged in the viewer, so a 46-box diagram is worthless. | DONE — as-built is now a 10-box shape + tables |
 | R13 | **Arch tests must ENFORCE the architecture**, including deliberately-failing ones that stay red until the violation is deleted. | DONE — see §4 |
 | R14 | **We never force-push.** | Respected |
+| R15 | **`ManagedDriver` DIES; `ManagedProject` replaces it.** A what-if is entered on the whole project, not on a driver/box/vent/PR in isolation. `OpenISDProject` holds the driver, box, vents, radiators and the rest; `ManagedProject` holds ground/modified/overlay of it. | SPECIFIED. Not built. See §0. |
 
 ---
 
