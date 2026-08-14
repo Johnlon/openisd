@@ -1,5 +1,5 @@
 import { computed, type ComputedRef } from 'vue';
-import type { CellState, FieldCell } from '@openisd/winisd';
+import type { CellState, Cell as FieldCell } from '@openisd/model';
 import type { ConsistencyIssue } from '@openisd/engine';
 
 /**
