@@ -47,6 +47,8 @@ graph LR
         APP["Vue 3 + TypeScript app<br/>packages/ui · packages/model<br/>packages/engine · packages/winisd"]
     end
 
+    PROJ_PKG["<b>@openisd/projection</b><br/>a SEPARATE package — no DOM, no browser<br/>one bundled file, loadable by embedded V8<br/>driver.yml to openisd.yml · openisd.yml to .wdr"]
+
     PAGES["GitHub Pages<br/>openisd.app<br/>static host + PWA cache"]
     LS[("localStorage<br/>committed design · My Drivers<br/>favourites · session · URL-hash share")]
     BUNDLE[("drivers-bundle.json<br/>driver commons, bundled at build")]
@@ -56,19 +58,30 @@ graph LR
     TOOLS["winisd_tools<br/>Python scraper pipeline"]
 
     USER <--> APP
-    PAGES -.serves.-> APP
+    PAGES -. "serves" .-> APP
     APP <--> LS
-    BUNDLE -.build-time import.-> APP
+    BUNDLE -. "build-time import" .-> APP
     APP <-->|import / export| WDR
     APP <-->|read / write| OWDR
     TOOLS -->|"scrapes, writes driver.yml"| DRIVERS
-    TOOLS -->|"calls the utility<br/>with driver.yml TEXT"| APP
-    APP -->|"returns openisd.yml<br/>and .wdr TEXT"| TOOLS
+    TOOLS -->|"embeds V8, calls it<br/>with driver.yml TEXT"| PROJ_PKG
+    PROJ_PKG -->|"returns openisd.yml<br/>and .wdr TEXT"| TOOLS
+    PROJ_PKG -. "shares model + engine with" .-> APP
     TOOLS -->|"writes openisd.yml + .wdr"| DRIVERS
-    DRIVERS -.openisd.yml published as.-> BUNDLE
+    DRIVERS -. "openisd.yml published as" .-> BUNDLE
 ```
 
-**The OpenISD utility TOUCHES NO FILES. It transforms text and returns text.** The Python pipeline
+**The utility is a SEPARATE PACKAGE, not the browser app.** `winisd_tools` embeds V8 and loads a
+single bundled JavaScript file; it cannot load a Vue application, and it must not have to. So the
+projection lives in its own package — call it `@openisd/projection` — which depends on
+`@openisd/model` and `@openisd/engine` and on nothing that touches a DOM, a `window`, a network or
+a filesystem. It builds to one file with no external imports at runtime, because that is what an
+embedded interpreter can load.
+
+The browser SPA and the Python pipeline therefore share the MODEL and the ENGINE, and each brings
+its own shell: the SPA brings Vue, `winisd_tools` brings V8. Neither depends on the other's shell.
+
+**The utility TOUCHES NO FILES. It transforms text and returns text.** The Python pipeline
 scrapes and writes `driver.yml` into `winisd_drivers/db`, reads it, hands the TEXT to the utility,
 gets the `openisd.yml` and `.wdr` TEXT back, and writes those files itself. Every file in
 `winisd_drivers/db` is written by `winisd_tools`; OpenISD writes none of them.
@@ -164,14 +177,14 @@ graph TD
 
     ROOT["<b>composition root</b><br/>packages/ui/src/main.ts<br/><i>the ONLY place<br/>that constructs anything</i>"]
 
-    ROOT -.constructs & injects.-> LOGIC
-    ROOT -.constructs.-> MANAGED
-    ROOT -.constructs.-> DRIVERREPO
-    ROOT -.constructs.-> MYREPO
-    ROOT -.constructs.-> PREFS
-    ROOT -.constructs.-> FILEIO
-    ROOT -.constructs.-> DIAG
-    ROOT -.constructs.-> LOGGING
+    ROOT -. "constructs & injects" .-> LOGIC
+    ROOT -. "constructs" .-> MANAGED
+    ROOT -. "constructs" .-> DRIVERREPO
+    ROOT -. "constructs" .-> MYREPO
+    ROOT -. "constructs" .-> PREFS
+    ROOT -. "constructs" .-> FILEIO
+    ROOT -. "constructs" .-> DIAG
+    ROOT -. "constructs" .-> LOGGING
 
     UI -->|calls| LOGIC
     LOGIC -->|calls| WSPACE
@@ -291,8 +304,8 @@ graph TD
     A_BP6 -->|"owns 2"| VENT
     A_VENTED -->|owns| VENT
     A_PR -->|owns| PR
-    UAS -.reads · restores.-> MP
-    UAS -.reads · restores.-> PS
+    UAS -. "reads · restores" .-> MP
+    UAS -. "reads · restores" .-> PS
 
     classDef owner fill:#2a2440,stroke:#a78bfa,color:#f2ecff
     classDef priv fill:#402020,stroke:#f87171,color:#ffecec
@@ -387,7 +400,7 @@ graph TD
     MODEL -->|calls| ENGINE
     WINISD -->|"reads / writes"| MODEL
     STORE -->|calls| WINISD
-    REST -.still uses.-> OLD
+    REST -. "still uses" .-> OLD
 
     classDef ok fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
     classDef approved fill:#2a2440,stroke:#a78bfa,color:#f2ecff
@@ -501,6 +514,7 @@ model, so nothing above the domain layer knows what ParState is.
 | ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | `@openisd/engine` | `packages/engine/src/`         | **The only place electro-acoustic maths exists** — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState), file formats, DOM, app state |
 | `@openisd/model`  | `packages/model/src/`          | `OpenISDDriver` — the one driver model, its provenance, its derivation. No separately exported record type            | File formats, DOM, app state                                  |
+| `@openisd/projection` | `packages/projection/src/` | The `driver.yml → openisd.yml → .wdr` transforms, bundled as ONE file an embedded V8 can load. Text in, text out, never throws | DOM, `window`, network, filesystem, Vue — anything V8-in-Python lacks |
 | `@openisd/winisd` | `packages/winisd/src/`         | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the carried-key set                        | The driver model, derivation, live state, DOM, app state      |
 | `logic`           | `packages/ui/src/logic/`       | The app's ONLY state. Store, project/workspace model, workflows, field registry, chart-series mapping          | Maths, `.vue` imports, direct construction of a service       |
 | `driverRepo`      | `packages/ui/src/db/`          | The driver commons: index, search, filter, lookup. Answers questions, returns records                          | App state, workflow, `.vue` imports                           |
