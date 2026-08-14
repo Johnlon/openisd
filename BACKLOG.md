@@ -353,7 +353,7 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
       **Route precedence is part of the contract, and it is what the code does not yet express.** `setVal` (line 94) writes only into a still-null field, so whichever branch is reached first wins and source order silently _is_ the precedence. Two engines with identical, correct formulas disagree on any record supplying inputs for both routes, so the order must be stated and tested rather than inherited from line numbering. `Rme` is settled: `2π·Fs·Mms/Qes` beats `BL² / Re`, measured exactly against the Beyma 10BR60_V2 fixture — 18.22124 vs 18.27846 (`winisd_research/GAPS.md` §A5).
       **`Xmax`'s order is NOT settled — re-test it in WinISD before touching the branches.** [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) states it twice and the two statements contradict each other: the §4 group table's row 19 (line 268) says row 20 `Vd / Sd` takes precedence and `abs(Hc − Hg) / 2` fires only when `Vd` is absent, while §4.1's tie-break table (line 310) says row 19 `abs(Hc − Hg) / 2` wins and row 20 is the last-resort fallback used only when nothing else can supply the field. One session settles it: enter `Hc`, `Hg`, `Vd` and `Sd` together with `Xmax` blank, and read which value appears. Correct the losing statement in `WDR_SCHEMA.md` in the same change.
       **Blast radius — every record holding two members of any group's three.** Computed values move across the whole collection, so the golden fixtures move with them: expect `packages/engine/test/golden.test.ts` to go red and regenerate it with `npm run gen-golden`. A fixture diff is the expected outcome of this change, not evidence of a regression.
-      **A derived value carries state `C`, never `E`.** `Xmax = Vd / Sd` claims _the excursion implied by a published `Vd`_, not _the linear limit the manufacturer measured_; the mark is what keeps those two apart — see [`docs/design/DRIVER_RECORD_MODEL.md` §5](docs/design/DRIVER_RECORD_MODEL.md).
+      **A derived value carries state `C`, never `E`.** `Xmax = Vd / Sd` claims _the excursion implied by a published `Vd`_, not _the linear limit the manufacturer measured_; the mark is what keeps those two apart — see [`ARCHITECTURE.md`](ARCHITECTURE.md#relation-groups-solve-in-every-direction) §3 "Relation groups solve in every direction".
       **Related.** `winisd_research/GAPS.md` §A4 ("the driver editor cannot express WinISD's group solve") records the same gap generally and ranks it item 11 in its §F table. The side-by-side parity suite (ledger QO8) must drop its expectation of an `Xmax` divergence — openisd matches WinISD here.
 - [ ] **P1** Guided parameter entry — step-by-step flow following the WinISD-recommended order (Mms+Cms → Sd+BL+Re → Qms → Hc/Hg/Pe → numVC → Znom). Each step shows which fields to fill, why they matter, and what WinISD computes from them. Minimum viable path (Qts+Vas+Fs) clearly signposted. WinISD gives you a blank form with no guidance; this should be meaningfully better.
 - [ ] **P1** Paste raw datasheet text → infer T/S parameters
@@ -557,7 +557,7 @@ These measurements are often available in datasheets (PDF dimensions section, me
 > verification.
 
 Two planned features built on top of the driver record model
-(`docs/design/DRIVER_RECORD_MODEL.md`) and WDR schema (`docs/design/WDR_SCHEMA.md`):
+(`ARCHITECTURE.md` §3) and WDR schema (`docs/design/WDR_SCHEMA.md`):
 
 1. **Type-based filtering** in the driver browser (tweeter / midrange / woofer / subwoofer /
    passive radiator / full-range).

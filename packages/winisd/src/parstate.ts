@@ -11,6 +11,10 @@
 
 export const PARSTATE_LEN = 49;
 
+/** E/C/N edit-state of one field, WinISD's own vocabulary — the one declaration both
+ *  `driver.ts` (the Driver ADT) and `winisdDriver.ts` (the `.wdr` format layer) share. */
+export type CellState = 'E' | 'C' | 'N';
+
 /**
  * Slot → WDR file key (null where the slot has no serialised key: ParState-only slots
  * like Xlim, and the two unidentified always-N slots at 20 and 46).

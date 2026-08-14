@@ -71,6 +71,10 @@ export interface DqMark {
   severity: DqSeverity;
   rule: string;
   params: Record<string, unknown>;
+  /** The registered rule's rendered template — record_registries.py `DqMark.detail`
+   *  (record_registries.py:660-671). Free prose is banned on the Python side; this is
+   *  always the rule's own template rendering, never composed here. */
+  detail: string;
 }
 
 // ── SpecEntry — model_driver.py:362-460. The T/S-field envelope. No flat value. ────────

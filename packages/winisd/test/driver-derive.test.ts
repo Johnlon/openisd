@@ -94,6 +94,22 @@ describe('Driver — extra derived display fields', () => {
     assert.equal(d.cell('numVC').state, 'E');
     assert.equal(d.cell('numVC').value, 2);
   });
+
+  it('EBP = Fs/Qes is computed (C) once both are determinable', () => {
+    // WinISD ParState slot 33 marks EBP C whenever Fs/Qes are; the Driver ADT had no EBP
+    // cell at all, so it always read N even for a driver whose Fs/Qes were solved from other
+    // Q members — bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md.
+    const d = core();
+    const c = d.cell('EBP');
+    assert.equal(c.state, 'C');
+    assert.ok(Math.abs((c.value as number) - 37 / 0.40) < 1e-9);
+  });
+
+  it('EBP stays N when Qes cannot be determined', () => {
+    const d = new Driver();
+    d.enter('Fs', 37);
+    assert.equal(d.cell('EBP').state, 'N');
+  });
 });
 
 describe('Driver — fixed-E override feeds downstream (WinISD semantics)', () => {

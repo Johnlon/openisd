@@ -9,7 +9,7 @@
   "harnessWorkingTreeDirty": true,
   "generator": "scripts/qo8_parity_generator.py",
   "scenariosFile": "/home/john/work/winisd/openisd/packages/winisd/test/fixtures/winisd-parity/scenarios.json",
-  "scenariosSha256": "da7b48b3d6d909702675e3d355b7c339ae96d250a05d89bd2bde5a18333f55e2",
+  "scenariosSha256": "75ff00c027a1ac83c06bbb94d4c932b7488b6a3da749aec75ae15b6fc2973897",
   "scenarios": [
     {
       "id": "sealed-small",

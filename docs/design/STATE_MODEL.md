@@ -20,14 +20,14 @@ architecture (`ARCHITECTURE.md` AD-8) retires `Driver` entirely in favor of `Ope
 
 ## The layers
 
-| Layer                | Holds                                                        | Changed by                                       | Survives a refresh |
-| -------------------- | ------------------------------------------------------------ | ------------------------------------------------ | ------------------ |
-| **Library / disk**   | `.wdr` / `.owdr` files, the bundled catalogue, My Drivers    | scrapers, releases, an explicit save             | yes                |
-| **Baseline**         | the driver exactly as it was loaded                          | a load, or saving to My Drivers                  | no                 |
-| **Ground**           | fingerprint of the last loaded/saved project                 | open, save, New Project                          | no                 |
+| Layer                | Holds                                                        | Changed by                                 | Survives a refresh |
+| -------------------- | ------------------------------------------------------------ | ------------------------------------------ | ------------------ |
+| **Library / disk**   | `.wdr` / `.owdr` files, the bundled catalogue, My Drivers    | scrapers, releases, an explicit save       | yes                |
+| **Baseline**         | the driver exactly as it was loaded                          | a load, or saving to My Drivers            | no                 |
+| **Ground**           | fingerprint of the last loaded/saved project                 | open, save, New Project                    | no                 |
 | **Committed design** | box, params and the `Driver` model the charts are drawn from | a deliberate commit (OK, an edit in place) | yes (localStorage) |
-| **What-if overlay**  | a live copy the charts read while tuning                     | scrubbing a what-if control                      | no                 |
-| **Dialog draft**     | one dialog's working copy                                    | typing in that dialog                            | no                 |
+| **What-if overlay**  | a live copy the charts read while tuning                     | scrubbing a what-if control                | no                 |
+| **Dialog draft**     | one dialog's working copy                                    | typing in that dialog                      | no                 |
 
 Reads resolve to the highest layer that exists: what-if overlay if one is active, else the
 committed design. That is the whole mechanism — starting and cancelling a what-if only
@@ -51,7 +51,7 @@ changes which layer resolves; there is no third state.
    any real, buildable driver — the app cannot verify a scrubbed Qts or Vas against physical
    reality, so nothing promotes a what-if into the design. Scrubbing one never dirties the
    project, and there is no "Keep": Cancel (the panel's ✕, or its Cancel button — both call
-   the same `cancelDriverWhatIf`) is the *only* way a what-if session ends, and it always
+   the same `cancelDriverWhatIf`) is the _only_ way a what-if session ends, and it always
    discards. To make an explored value real, use the driver **Editor** (rule 2) instead —
    editing is for correcting or authoring real driver data, and its OK genuinely commits.
 5. **Reset goes back to the library, not to your last keystroke.** The baseline is the
@@ -70,10 +70,10 @@ changes which layer resolves; there is no third state.
    does. Editing brand or model therefore saves a new driver. Clone forks deliberately, as
    `"Copy of " + <old model>`.
 10. **An Entered value is never silently cleared or overridden — disagreement is MARKED, not
-    resolved (QO13, `DRIVER_RECORD_MODEL.md` §4, QP18 ruling).** A driver loaded from
-    `openisd.yml`/a library record arrives with every asserted field Entered, Q-trio included
-    — and that's correct, not a bug: `openisd.yml` carries ASSERTED values only
-    (`DRIVER_RECORD_MODEL.md` §1), so presence genuinely means someone stated it, whether a
+    resolved (QO13, `ARCHITECTURE.md` §3 "Inconsistency is marked, not resolved", QP18
+    ruling).** A driver loaded from `openisd.yml`/a library record arrives with every asserted
+    field Entered, Q-trio included — and that's correct, not a bug: `openisd.yml` carries
+    ASSERTED values only (`ARCHITECTURE.md` §3), so presence genuinely means someone stated it, whether a
     datasheet or a human. If a fresh edit during a what-if or editor session leaves an
     inherited Entered value (e.g. Qts) no longer reconciling with freshly-typed siblings
     (Qes/Qms), the fix is **never** to auto-clear or evict the stale one — `checkConsistency()`
