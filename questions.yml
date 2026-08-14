@@ -1,5 +1,5 @@
 prefix: QO
-next: 42
+next: 43
 questions:
 - id: QO1
   title: UI TODO List
@@ -4836,3 +4836,8 @@ questions:
       outright; the current field-for-field match to the Python pipeline's shape is because the
       driver.yml -> openisd.yml projection logic has not yet been ported out of Python into
       OpenISD, not because Python is authoritative.
+- id: QO42
+  title: winisd_tools must populate provided_by/comment/added in driver.yml
+  status: open
+  raised: '2026-08-14'
+  body: ''
