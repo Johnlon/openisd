@@ -18,7 +18,6 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Driver } from '@openisd/winisd';
-import { toWdr } from '../src/classic/wdr.js';
 import type { DriverRaw } from '@openisd/engine';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -92,18 +91,15 @@ describe('carried fields use the keys WinISD writes — loaded-file path (Driver
   }
 });
 
-describe('carried fields use the keys WinISD writes — fresh-authored path (classic toWdr)', () => {
+describe('carried fields use the keys WinISD writes — fresh-authored path (Driver.toWdr)', () => {
   // A minimal driver the engine can derive, plus every carried field.
   const base: DriverRaw = { Fs: 40, Re: 6, Sd: 0.0135, Vas: 0.03, Qts: 0.4, Qes: 0.45, brand: 'x', model: 'y' };
 
   it('emits no key WinISD does not write', () => {
     const raw = { ...base } as Record<string, number | string>;
     for (const [field, , probe] of CARRIED) raw[field] = probe;
-    for (const key of Object.keys(fields(toWdr(raw as DriverRaw)))) {
-      // Xlim is the one legitimate exception: WinISD holds it in ParState slot 10 and
-      // writes no key for it (drivers/sample/winisd/s-xlim.wdr), so the value has nowhere
-      // WinISD-conformant to go and this writer keeps its own line for openisd round-trips.
-      if (key === 'Xlim') continue;
+    const d = Driver.fromRaw(raw as DriverRaw);
+    for (const key of Object.keys(fields(d.toWdr()))) {
       assert.ok(WINISD_KEYS.has(key),
         `${key}= is not a key WinISD writes — a value put there never reaches WinISD`);
     }
@@ -112,10 +108,11 @@ describe('carried fields use the keys WinISD writes — fresh-authored path (cla
   for (const [field, wdrKey, probe] of CARRIED) {
     it(`${field} is exported as ${wdrKey}= and survives re-import`, () => {
       const raw = { ...base, [field]: probe } as DriverRaw;
-      const out = fields(toWdr(raw));
+      const d = Driver.fromRaw(raw);
+      const out = fields(d.toWdr());
       assert.ok(wdrKey in out, `export must carry a ${wdrKey}= line`);
       assert.equal(parseFloat(out[wdrKey]), probe, `${wdrKey}= must hold the ${field} value`);
-      assert.equal(Driver.fromWdr(toWdr(raw)).cell(field).value, probe,
+      assert.equal(Driver.fromWdr(d.toWdr()).cell(field).value, probe,
         `${field} must come back on re-import`);
     });
   }
@@ -133,6 +130,6 @@ describe('the writer emits full precision', () => {
 
   it('the fresh-authored writer keeps every digit of an entered value', () => {
     const raw: DriverRaw = { Fs: 40, Re: 6, Sd: 0.0135, Vas: 0.141584099539285, Qts: 0.4, Qes: 0.45 };
-    assert.equal(parseFloat(fields(toWdr(raw)).Vas), 0.141584099539285);
+    assert.equal(parseFloat(fields(Driver.fromRaw(raw).toWdr()).Vas), 0.141584099539285);
   });
 });

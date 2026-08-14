@@ -4,11 +4,16 @@
 **Severity** one of 16 parity scenarios has no oracle. 29 rows of
 `packages/winisd/test/winisd-parity.test.ts` stay RED, plus the two guard tests that count
 goldens and provenance rows.
-**Status** OPEN, reclassified 2026-08-14 (see "Reclassified 2026-08-14" below): this is a
-**harness bug** (the automation cannot see or dismiss a modal dialog during initial attach),
-not an "unknown WinISD limitation" or "WinISD will not open this project." WinISD DOES open it
-— a human confirmed this manually. **Left failing deliberately** — a golden is only ever
-WinISD's own output, and a missing measurement is reported as missing, never substituted.
+**Status** OPEN. Reclassified 2026-08-14 (see "Reclassified 2026-08-14" below): WinISD DOES
+open this project — a human confirmed this manually — so the original "WinISD will not open
+this project" diagnosis is wrong. The narrower harness bug that framing implied (the
+automation could not see or dismiss a modal dialog during initial attach) is now FIXED and
+verified (see "Harness fix implemented 2026-08-14" below). A golden still did not land: the
+fixed harness's re-runs deterministically hit `BUG-004` (`DISCOVERIES.md`) instead — an
+unrecoverable WinISD/wine crash opening the Driver Editor on this scenario's still-unresolved
+driver, which is a WinISD-side limitation, not a harness gap, and nothing here can click
+through it. **Left failing deliberately** — a golden is only ever WinISD's own output, and a
+missing measurement is reported as missing, never substituted.
 
 ## Symptom
 
@@ -174,3 +179,66 @@ window's own layout/message pump. The dialog-detection fix below closes the spec
 signature is consistent with) and adds a stale/degenerate-rect guard for outcome (1); it does
 not and cannot make outcome (2) — a wine-level SEH failure, not a harness detection gap —
 non-fatal, and the existing 2-attempt retry is the correct, already-in-place handling for it.
+
+## Harness fix implemented 2026-08-14, and why a golden STILL did not land
+
+**The fix** (`winisd_research/lib/wine_agent.py`, `lib/wine_control.py`):
+`op_attach()` (`wine_agent.py:161`) and `op_wait_window()` (`wine_agent.py:227`, used by
+`open_driver_editor()`) now poll for a modal of `DIALOG_CLASSES = ("#32770", "TMessageForm",
+"TForm")` on every iteration and dismiss it automatically (click its OK button by class+text,
+falling back to Enter for the default button) before continuing to wait for the target window
+— the exact `WinISDDialog`/`op_dialogs()` detection mechanism already used mid-session,
+extended into the two places that wait for a window before a caller exists to hand a raised
+`WinISDDialog` to. `op_attach` also refuses to treat a genuinely zero-sized main-window rect
+as "ready" (traced from today's `no WinISD X window found (expect=(0, 0, 0, 0))` failure).
+Separately, `open_driver_editor()` (`wine_control.py`) now calls `require_clean()` before its
+diagnostic screenshot, so a process that already died surfaces as the correctly-typed
+`WinISDDied` instead of a confusing secondary error from screenshotting a gone window.
+
+**Verification — three re-runs of
+`python3 scripts/qo8_parity_generator.py --only solve-from-mms-cms --force`, all after the
+fix:** every one now fails with the SAME, clearly-classified error:
+
+    attempt 1 failed: WinISDDied: winisd exited rc=40; log tail:
+        002c:err:seh:dispatch_user_callback ignoring exception c000008e
+        err:seh:NtRaiseException Exception frame is not in stack limits => unable to dispatch exception.
+    attempt 2 failed: WinISDDied: winisd exited rc=40; log tail: [same signature]
+
+No `dialogsDismissed` entry appears in any of the three runs — the fix's own dialog-detection
+loop never fires, meaning the crash is NOT happening at the load/attach stage it targets in
+these runs (attach completes cleanly each time). The crash is deterministic and lands one step
+later, at `open_driver_editor()` — opening the Driver Editor on this scenario's driver. That is
+exactly `BUG-004`'s trigger (`DISCOVERIES.md` line 41): opening the Driver Editor on a driver
+whose T/S fields are still unresolved. `BUG-004`'s own recovery note (`DISCOVERIES.md:47`) is
+explicit: *"OK does not recover — same recovery profile"* as `BUG-002`'s non-recoverable
+variant — this crash never reaches a message-box state at all; wine's SEH cannot dispatch the
+exception out of the nested callback (`dispatch_user_callback ignoring exception c000008e`),
+so the process is simply gone. **No dialog-detection fix, however complete, can make this
+recoverable** — there is nothing to click.
+
+**Why this scenario's driver still has unresolved T/S fields when the editor opens**: this is
+the reverse-solve scenario by design — `Fs`, `Qes`, `Qts`, `Rms` are never in the input, and
+per the hand-captured file's own evidence above, WinISD's own recalc does not finish deriving
+them (it gets as far as `Vas`, then traps) even when the load-time trap IS survived via the
+dialog. So the driver `open_driver_editor()` opens is, apparently reliably, still in exactly
+BUG-004's precondition. This may mean the two-edit-dance golden-capture procedure
+(`qo8_parity_generator.py`'s own docstring) cannot produce a clean golden for this scenario at
+all while it opens the Driver Editor unconditionally as its first step, independent of any
+further harness robustness work — that is a WinISD-side limitation (BUG-004), not a harness
+gap, and is now the actual blocker.
+
+**Open, unresolved discrepancy, stated plainly rather than guessed at:** the human's one
+manual, interactive session hit a recoverable dialog at LOAD time; five separate automated
+launches today (2 bare `wine winisd.exe …`, 3 through the fixed harness) hit the unrecoverable
+SEH crash, either at load or at Driver-Editor-open. Why an interactive session's timing avoids
+the unrecoverable path and an automated one does not is not established — both launch the
+identical binary against the identical file. Worth a follow-up if this scenario is revisited,
+not resolved here.
+
+## Status: still OPEN — no golden for `solve-from-mms-cms`
+
+Per explicit instruction: a partial/interrupted save (the hand-captured file above) is never
+an acceptable substitute, and the automated harness — even fixed for the dialog-detection gap
+it had — has not produced a clean, fully-computed file. `provenance.json` and the goldens
+directory are UNCHANGED by this session. The scenario stays without a golden; the 29 dependent
+test rows and the two guard tests stay red, correctly.

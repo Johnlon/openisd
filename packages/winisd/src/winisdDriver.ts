@@ -56,6 +56,16 @@ export interface WdrHeader {
 const err = (field: string, message: string): DriverError => ({ level: 'error', field, message });
 
 /**
+ * `diffAgainst`'s default tolerance band — the same 1e-9 relative / 1e-12 absolute pair
+ * `winisd-parity.test.ts` uses everywhere else in this codebase for two independent
+ * implementations of one formula (that file's own `REL_TOL`/`ABS_TOL` comment gives the
+ * five-order-wide band this sits in the middle of: float noise on one side, a real formula
+ * difference on the other).
+ */
+const DIFF_REL_TOL = 1e-9;
+const DIFF_ABS_FLOOR = 1e-12;
+
+/**
  * The 48 numeric/text `.wdr` keys in WinISD's OWN file order, each with the value WinISD
  * writes when nothing is set. Source of truth: `drivers/sample/winisd/john-all-defaults.wdr`
  * (New → Save, nothing typed).
@@ -395,7 +405,7 @@ export class WinISDDriver {
    * independently-derived side. A mismatch beyond the file's own float precision is
    * reported, never silently overwritten; a key this instance never stated is not compared.
    */
-  diffAgainst(other: WinISDDriver, relTol = 1e-9): DriverError[] {
+  diffAgainst(other: WinISDDriver, relTol: number = DIFF_REL_TOL): DriverError[] {
     const out: DriverError[] = [];
     for (const [key, cell] of this.#cells) {
       if (cell.state !== 'E') continue;
@@ -404,7 +414,7 @@ export class WinISDDriver {
       const otherCell = other.cell(key);
       const b = Number(otherCell.value);
       if (!isFinite(b)) continue;
-      const tol = Math.max(1e-12, relTol * Math.max(Math.abs(a), Math.abs(b)));
+      const tol = Math.max(DIFF_ABS_FLOOR, relTol * Math.max(Math.abs(a), Math.abs(b)));
       if (Math.abs(a - b) > tol) {
         out.push({ level: 'warn', field: key,
           message: `${key}: the file states ${a}, but the record independently derives ${b} — value hand-edited outside openisd, or the record is stale` });

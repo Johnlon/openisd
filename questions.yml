@@ -3980,6 +3980,52 @@ questions:
       owns the app, Provenance, Relation groups solve in every direction, Inconsistency is marked,
       WinISDDriver is solely a serialisation device, File formats, Scope), no seams between old and
       new content.
+  - at: '2026-08-14'
+    text: |-
+      STEP 8 DONE. One class `WinISDDriver` (packages/winisd/src/winisdDriver.ts) replaces
+      classic/wdr.ts's toWdr()/parstate() (both deleted, file removed) and native/openisdToWdr.ts's
+      openisdYamlToWdr() (deleted, file removed) — grep -c "function toWdr\|function
+      openisdYamlToWdr" packages/winisd/src -> 0, one `class WinISDDriver`. Export:
+      fromOpenISDRecord/fromYaml (record -> deriveOpenISDFields -> WdrCells, never derives itself).
+      Import: fromWdr (as-read, no derivation). diffAgainst(other) compares as-read E-values against
+      an independently-derived WinISDDriver, returns DriverError[] warn-level mismatches — tested,
+      never overwrites. Slot 0 (Znom) unchanged, still nominalImpedance()-based.
+
+      ParState fix: driver.ts's Driver.toWdr() now builds every one of the 49 slots from live
+      cell().state via WinISDDriver.build() instead of MODELED_SLOTS' 15-field subset + raw echo.
+      Added a bug-file-flagged EBP cell to Driver#derive() (bugs/BUG_20260813_parstate-writer...).
+      Surfaced and fixed a second bug in Driver.fromWdr(): WDR_META carried fields were entered
+      unconditionally on presence (even value 0), ignoring the source's own ParState mark — recorded
+      in bugs/BUG_20260814_driver-fromwdr-marks-a-present-zero-or-computed-carried-field-entered...
+      and fixed by gating on the source ParState exactly like the T/S replay already did.
+
+      DQ-comment: added `detail: string` to DqMark (packages/model/src/openisdRecord.ts, matching
+      Python's record_registries.py field-for-field). WinISDDriver walks metadata ScrapedFields then
+      the driver's own specs section in record order, emitting `[DQ] <field>=<value>: <detail>` per
+      mark, appended to Comment= after any existing text. Two tests in openisdToWdr.test.ts: zero-DQ
+      record leaves Comment= unchanged; N-mark record produces N lines in order, exact three-part
+      shape (both green).
+
+      Parity: winisd-parity.test.ts 417/463 -> 432/463 (+15, exactly the count the bug file
+      predicted). All 31 remaining failures are the pre-existing, separately-tracked
+      solve-from-mms-cms missing-golden gap — zero new/regressed failures. Added 20 divergences.json
+      entries (scenario:"*") for WinISD's own "declined-but-defaulted" ParState convention on slots
+      openisd genuinely has no route to (6,7,10,20,29,30,31,36,38-46,47,48), each with its own
+      evidenced cause citing the golden files read directly.
+
+      Gates: packages/winisd/test/ 557/588 passed (was ~535/581 before touching driver.ts; the 31
+      failures are the same pre-existing gap, present before this session too). npm run typecheck
+      (engine+model+winisd+UI) clean. npx eslint packages/winisd/src packages/winisd/test
+      packages/model/src clean. packages/model/test/ 32/32, packages/engine/test/ 351/351 unaffected.
+
+      Known scope reduction, flagged for review: the Xlim= line (openisd's own round-trip-only
+      extension, never a real WinISD key) is no longer written by Driver.toWdr() — WDR_NUMERIC_KEYS
+      is now the pure 48-key WinISD-oracle set with no synthetic extra. No test asserted Xlim
+      round-tripped before or after; a human-entered Xlim value would now be silently dropped on
+      export. Not fixed — flagged for a ruling on whether openisd needs its own Xlim carry-through.
+
+      LSP: not available this session (ToolSearch select:LSP found nothing) — used Grep/Read/Bash
+      throughout, per the tool-inventory rule's own instruction for that case.
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open
