@@ -369,3 +369,60 @@ describe('only the three approved stores hold state', () => {
       'Delete it and call the approved store, every time; never cache a copy for convenience.');
   });
 });
+
+/**
+ * ARCHITECTURE.md §"Approved state stores" and §3: the containment must be TOTAL.
+ *
+ *     everything  ->  store  ->  ManagedDriver  ->  OpenISDDriver
+ *
+ * Each arrow is the ONLY way through. `OpenISDDriver` is private state inside `ManagedDriver`;
+ * `ManagedDriver` is reached through the store. A single leak makes the whole chain advisory:
+ * one caller holding the driver directly can mutate it with no notification and no what-if
+ * guard, which is the exact defect this architecture exists to make impossible.
+ */
+describe('containment is total: store -> ManagedDriver -> OpenISDDriver', () => {
+  const MANAGED = join(UI_SRC, 'logic', 'managedDriver.ts');
+  const STORE = join(UI_SRC, 'logic', 'store.ts');
+
+  it('ManagedDriver never hands an OpenISDDriver out — every public member returns data', () => {
+    const text = readFileSync(MANAGED, 'utf8');
+    // A member whose declared return type is the internal driver. Private members (#name) are
+    // exempt by definition: they cannot be reached from outside the class.
+    const LEAKS = /^\s{2}(?!#)(?:static\s+)?(\w+)\s*\([^)]*\)\s*:\s*OpenISDDriver\b/gm;
+    const offences = Array.from(text.matchAll(LEAKS)).map(m => `${m[1]}() returns OpenISDDriver`);
+
+    assert.deepEqual(offences, [],
+      'OpenISDDriver is ManagedDriver\'s private state (the human\'s ruling: it "sits behind ' +
+      'ManagedDriver as private internal state MAPPED to the openisd.yml file"). A public ' +
+      'member returning one hands the internal driver to the caller, who can then mutate it ' +
+      'behind the facade with no notification and no what-if cancellation. Return the DATA the ' +
+      'caller needs — a Cell, a record, an engine driver — never the object.');
+  });
+
+  it('the store is the only logic module that holds the ManagedDriver instance', () => {
+    const offences = filesUnder(UI_SRC)
+      .filter(f => f !== STORE && f !== MANAGED)
+      .flatMap(f => valueImportsOf(f)
+        .filter(vi => /managedDriver(\.js)?$/.test(vi.spec) && vi.names.includes('ManagedDriver'))
+        .map(() => `${rel(f)} imports the ManagedDriver CLASS`));
+
+    assert.deepEqual(offences, [],
+      'The store constructs and holds the one ManagedDriver; everything else reaches it as ' +
+      '`managedDriver` from the store. Importing the class elsewhere is how a SECOND driver ' +
+      'state appears - two ManagedDrivers are two answers to "what is the driver".');
+  });
+
+  it('nothing reaches past ManagedDriver into the model package for a driver value', () => {
+    const offences = filesUnder(UI_SRC)
+      .filter(f => f !== MANAGED)
+      .flatMap(f => valueImportsOf(f)
+        .filter(vi => /(^|\/)@openisd\/model(\/|$)/.test(vi.spec))
+        .flatMap(vi => vi.names
+          .filter(n => n === 'OpenISDDriver' || n === 'ManagedDriver')
+          .map(n => `${rel(f)} imports ${n} as a VALUE from ${vi.spec}`)));
+
+    assert.deepEqual(offences, [],
+      'Only managedDriver.ts may name OpenISDDriver as a value. A type-only import is fine — ' +
+      'it erases, so it cannot reach the object.');
+  });
+});

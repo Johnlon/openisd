@@ -56,6 +56,15 @@ interface DriverFields {
   product_image?: ScrapedField<string>;
   description?: ScrapedField<string>;
   surround_material?: ScrapedField<string>;
+  /** Who supplied this record. Optional: a scraped record has no supplier to name, a
+   *  hand-authored or shared one does. Its absence from driver.yml/openisd.yml was a DATA
+   *  GAP, not a design choice (human ruling 2026-08-14) — winisd_tools must populate it. */
+  provided_by?: ScrapedField<string>;
+  /** Free human note about this driver. Same standing as provided_by: a real field of the
+   *  record, optional, previously missing from both file formats. */
+  comment?: ScrapedField<string>;
+  /** When this record was added, ISO yyyy-mm-dd. Same standing as provided_by. */
+  added?: ScrapedField<string>;
   specs: Specs;
   curves?: CurvesBlock;
 }
@@ -81,7 +90,9 @@ export type SpecField = keyof SpecSection;
  * split). Not `sku`/`name` (`DerivedField` — built, not read) and not `uuid` (`BookkeepingField`
  * — a pipeline fact, never hand-edited).
  */
-export type MetaField = 'brand' | 'model' | 'manufacturer';
+export type MetaField =
+  | 'brand' | 'model' | 'manufacturer'
+  | 'provided_by' | 'comment' | 'added';
 
 /** What `metaCell()` answers for a `MetaField` — no `C` state: nothing computes a brand. */
 export interface MetaCell {
@@ -350,7 +361,7 @@ export class OpenISDDriver {
    *  a brand. An empty value (never stated, or cleared to nothing) reads `N`. */
   metaCell(field: MetaField): MetaCell {
     const f = this.#record[field];
-    if (f.value && f.value.length > 0) return { value: f.value, state: 'E', origin: f.origin };
+    if (f?.value && f.value.length > 0) return { value: f.value, state: 'E', origin: f.origin };
     return { value: '', state: 'N' };
   }
 
@@ -364,6 +375,9 @@ export class OpenISDDriver {
    */
   enterMeta(field: MetaField, value: string): void {
     if (value === '') { this.clearMeta(field); return; }
+    // The optional metadata fields may be genuinely absent on a record the pipeline wrote
+    // before they existed; entering one creates it rather than throwing.
+    this.#record[field] ??= { value: '', origin: 'manual', definition: field, dq: [] };
     const f = this.#record[field];
     if (f.origin !== 'manual' && !this.#displacedMeta.has(field)) {
       this.#displacedMeta.set(field, { value: f.value, origin: f.origin });
@@ -379,6 +393,7 @@ export class OpenISDDriver {
     const displaced = this.#displacedMeta.get(field);
     if (!displaced) return;
     const f = this.#record[field];
+    if (!f) return;
     f.value = displaced.value;
     f.origin = displaced.origin;
     this.#displacedMeta.delete(field);
