@@ -110,30 +110,30 @@ belongs in two places.
 ```mermaid
 graph TD
     subgraph L1["PRESENTATION"]
-        UI["<b>ui/</b> — packages/ui/src/ui/<br/>components · canvas · directives<br/><i>DOM. Renders state, raises intent.</i>"]
+        UI["<b>ui/</b><br/>packages/ui/src/ui/<br/>components · canvas · directives<br/><i>DOM. Renders state, raises intent.</i>"]
     end
 
     subgraph L2["APPLICATION"]
-        LOGIC["<b>logic/</b> — packages/ui/src/logic/<br/>store · project<br/>workflows · field registry · series<br/><i>The only holder of app state.</i>"]
-        MANAGED["<b>ManagedDriver</b> — packages/ui/src/logic/managedDriver.ts<br/>ground · modified · edit-or-whatif overlay<br/><i>The ONLY path to a driver's state.<br/>Nothing else reaches OpenISDDriver.</i>"]
+        LOGIC["<b>logic/</b><br/>packages/ui/src/logic/<br/>store · project · workflows<br/>field registry · series"]
+        MANAGED["<b>ManagedDriver</b><br/>logic/managedDriver.ts<br/>ground · modified<br/>edit-or-whatif overlay<br/><i>The ONLY path to a driver.</i>"]
     end
 
     subgraph L3["SERVICES — arguments in, data out, no app state"]
-        DRIVERREPO["<b>driverRepo</b> — packages/ui/src/db/driverRepo.ts<br/>the driver commons:<br/>index · search · lookup"]
-        MYREPO["<b>myDriverRepo</b> — packages/ui/src/db/myDrivers.ts<br/>user-saved drivers"]
-        PREFS["<b>prefsStore</b> — packages/ui/src/db/prefs.ts<br/>favourites · session · layout"]
-        FILEIO["<b>fileIO</b> — packages/ui/src/logic/useDesignIO.ts<br/>open · save · share link<br/><i>Not yet its own constructed service — a logic/ composable today, see §2 note.</i>"]
-        DIAG["<b>diagnostics</b> — packages/ui/src/diagnostics/selftest.ts<br/>runtime self-test"]
-        LOGGING["<b>logging</b> — packages/ui/src/logging/flash.ts<br/>flash · alerting"]
+        DRIVERREPO["<b>driverRepo</b><br/>db/driverRepo.ts<br/>index · search · lookup"]
+        MYREPO["<b>myDriverRepo</b><br/>db/myDrivers.ts"]
+        PREFS["<b>prefsStore</b><br/>db/prefs.ts"]
+        FILEIO["<b>fileIO</b><br/>logic/useDesignIO.ts<br/><i>a composable today,<br/>not a constructed service</i>"]
+        DIAG["<b>diagnostics</b><br/>diagnostics/selftest.ts"]
+        LOGGING["<b>logging</b><br/>logging/flash.ts"]
     end
 
     subgraph L4["DOMAIN — headless, no DOM, no browser"]
-        MODEL["<b>@openisd/model</b> — packages/model/src/<br/>OpenISDDriver<br/>the one driver model"]
-        ENGINE["<b>@openisd/engine</b> — packages/engine/src/<br/>physics: derive · sweep · circuit<br/>alignments · filters · constants"]
-        SERIAL["<b>@openisd/winisd</b> — packages/winisd/src/<br/>serialisation ONLY:<br/>.wdr · .wpr · ParState"]
+        MODEL["<b>@openisd/model</b><br/>packages/model/src/<br/>OpenISDDriver"]
+        ENGINE["<b>@openisd/engine</b><br/>packages/engine/src/<br/>derive · sweep · circuit<br/>alignments · filters"]
+        SERIAL["<b>@openisd/winisd</b><br/>packages/winisd/src/<br/>.wdr · .wpr · ParState"]
     end
 
-    ROOT["<b>composition root</b> · packages/ui/src/main.ts<br/><i>the ONLY place that constructs anything</i>"]
+    ROOT["<b>composition root</b><br/>packages/ui/src/main.ts<br/><i>the ONLY place<br/>that constructs anything</i>"]
 
     ROOT -.constructs & injects.-> LOGIC
     ROOT -.constructs.-> MANAGED
@@ -189,79 +189,96 @@ that have not been built. **A red box is a module the target diagram does not ac
 red box is either work still to be placed, or a module that should not exist — none of them is
 sanctioned by the target above.
 
+**Kept small on purpose.** A diagram with forty boxes cannot be read at the size a Markdown
+viewer renders it, and it cannot be enlarged. So the picture below shows only the SHAPE — the four
+layers, the three approved state stores, and the direction of dependency — and the full module
+inventory is the TABLE underneath, which is text and always readable.
+
 ```mermaid
 graph TD
-    subgraph AL1["PRESENTATION — packages/ui/src/ui/"]
-        A_SHELLS["shells/original/<br/>OriginalShell · OgTune · OgFilters · OgNewProject"]
-        A_COMPS["components/<br/>DriverEditorModal · OptionsModal · PRDefineModal<br/>PREditModal · PRBrowser · DriverBrowserWinisd · Flash · App"]
-    end
+    UI["<b>PRESENTATION</b><br/>packages/ui/src/ui/<br/>12 components + shells"]
+    STORE["<b>store.ts</b><br/>APPROVED — persistent design state"]
+    MANAGED["<b>managedDriver.ts</b><br/>APPROVED — active · edit · what-if"]
+    PRES["<b>presentationState.ts</b> + <b>urlAppState.ts</b><br/>APPROVED — NOT BUILT"]
+    REST["<b>the other 19 logic/ modules</b><br/>see the table below"]
+    SVC["<b>SERVICES</b><br/>db/ · diagnostics/ · logging/"]
+    MODEL["<b>@openisd/model</b><br/>OpenISDDriver"]
+    ENGINE["<b>@openisd/engine</b><br/>physics"]
+    WINISD["<b>@openisd/winisd</b><br/>serialisation"]
+    OLD["<b>winisd/driver.ts</b><br/>CONDEMNED Driver ADT"]
 
-    subgraph AL2["APPLICATION — packages/ui/src/logic/"]
-        A_STORE["<b>store.ts</b><br/><i>APPROVED: persistent design state</i>"]
-        A_MANAGED["<b>managedDriver.ts</b><br/><i>APPROVED: active · edit · what-if</i>"]
-        A_PRES["<b>presentationState.ts</b><br/><i>APPROVED — NOT BUILT</i>"]
-        A_URL["<b>urlAppState.ts</b><br/><i>APPROVED — NOT BUILT</i>"]
-        A_IO["useDesignIO.ts<br/><i>open · save · export · share</i>"]
-        A_SEL["driverSelection.ts"]
-        A_LIB["driverLibrary.ts"]
-        A_PERSIST["persist.ts"]
-        A_PROJFILE["projectFile.ts"]
-        A_MODELDIR["model/OpenISDProject.ts"]
-        A_VENT["useVentGroup.ts"]
-        A_PR["usePrGroup.ts"]
-        A_CELLS["useDriverCells.ts"]
-        A_SERIES["series.ts"]
-        A_FIELDS["fields/ (units · registry)"]
-        A_PROV["provenance.ts"]
-        A_ENV["environment.ts"]
-        A_PRWIN["prWinIsdFields.ts"]
-        A_WPRMAP["wprMapping.ts"]
-        A_FILESAVE["fileSave.ts"]
-        A_APP["app.ts"]
-        A_TONE["toneGenerator.ts"]
-        A_ESC["useEscToClose.ts"]
-    end
-
-    subgraph AL3["SERVICES — packages/ui/src/{db,diagnostics,logging}/"]
-        A_REPO["db/driverRepo.ts"]
-        A_MY["db/myDrivers.ts"]
-        A_PREFS["db/prefs.ts"]
-        A_KV["db/kv.ts"]
-        A_PRLIB["db/prLibrary.ts"]
-        A_DIAG["diagnostics/selftest.ts"]
-        A_LOG["logging/flash.ts"]
-    end
-
-    subgraph AL4["DOMAIN — packages/*/src/"]
-        A_MODEL["<b>@openisd/model</b><br/>OpenISDDriver"]
-        A_ENGINE["<b>@openisd/engine</b><br/>physics"]
-        A_WINISD["<b>@openisd/winisd</b><br/>WinISDDriver · wpr · parstate"]
-        A_DRIVER["<b>winisd/driver.ts</b><br/>the CONDEMNED Driver ADT<br/><i>replaced by OpenISDDriver</i>"]
-    end
-
-    A_ROOT["<b>main.ts</b> — composition root"]
-    A_TYPES["types.ts<br/><i>shared shapes</i>"]
-
-    A_SHELLS --> A_STORE
-    A_COMPS --> A_STORE
-    A_STORE --> A_MANAGED
-    A_MANAGED --> A_MODEL
-    A_MODEL --> A_ENGINE
-    A_WINISD --> A_MODEL
-    A_STORE --> A_WINISD
-    A_IO --> A_STORE
-    A_SEL --> A_STORE
-    A_ROOT -.constructs.-> A_STORE
+    UI --> STORE
+    UI --> REST
+    STORE --> MANAGED
+    REST --> STORE
+    REST --> SVC
+    MANAGED --> MODEL
+    MODEL --> ENGINE
+    WINISD --> MODEL
+    STORE --> WINISD
+    REST -.still uses.-> OLD
 
     classDef ok fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
     classDef approved fill:#2a2440,stroke:#a78bfa,color:#f2ecff
     classDef unplaced fill:#402020,stroke:#f87171,color:#ffecec
     classDef condemned fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
-    class A_SHELLS,A_COMPS,A_MODEL,A_ENGINE,A_WINISD,A_REPO,A_MY,A_PREFS,A_DIAG,A_LOG,A_ROOT ok
-    class A_STORE,A_MANAGED,A_PRES,A_URL approved
-    class A_IO,A_SEL,A_LIB,A_PERSIST,A_PROJFILE,A_MODELDIR,A_VENT,A_PR,A_CELLS,A_SERIES,A_FIELDS,A_PROV,A_ENV,A_PRWIN,A_WPRMAP,A_FILESAVE,A_APP,A_TONE,A_ESC,A_KV,A_PRLIB,A_TYPES unplaced
-    class A_DRIVER condemned
+    class UI,SVC,MODEL,ENGINE,WINISD ok
+    class STORE,MANAGED,PRES approved
+    class REST unplaced
+    class OLD condemned
 ```
+
+#### The module inventory
+
+**APPROVED** — the only modules permitted to hold state.
+
+| Module                        | Status                                    |
+| ----------------------------- | ----------------------------------------- |
+| `logic/store.ts`              | built — persistent design state           |
+| `logic/managedDriver.ts`      | built — active · edit · what-if           |
+| `logic/presentationState.ts`  | NOT BUILT                                 |
+| `logic/urlAppState.ts`        | NOT BUILT                                 |
+
+**UNPLACED** — exists, but the target diagram collapses it into one `logic/` box, so that diagram
+cannot say whether it belongs where it is, or at all.
+
+| Module                          | What it does                                    |
+| ------------------------------- | ----------------------------------------------- |
+| `logic/useDesignIO.ts`          | open · save · export · share                    |
+| `logic/driverSelection.ts`      | the driver-picker / editor workflow             |
+| `logic/driverLibrary.ts`        | library browsing                                |
+| `logic/persist.ts`              | localStorage + share-link encode/decode         |
+| `logic/projectFile.ts`          | project file naming                             |
+| `logic/model/OpenISDProject.ts` | project model                                   |
+| `logic/model/workspace.ts`      | workspace model                                 |
+| `logic/useVentGroup.ts`         | vent-group solving                              |
+| `logic/usePrGroup.ts`           | passive-radiator group solving                  |
+| `logic/useDriverCells.ts`       | E/C/N presentation + the Q-group rule           |
+| `logic/series.ts`               | chart-series mapping                            |
+| `logic/fields/`                 | units · field registry                          |
+| `logic/provenance.ts`           | provenance presentation                         |
+| `logic/environment.ts`          | air constants for the view                      |
+| `logic/prWinIsdFields.ts`       | PR field conversions for the view               |
+| `logic/wprMapping.ts`           | `.wpr` input assembly                           |
+| `logic/fileSave.ts`             | File System Access wrapper                      |
+| `logic/app.ts`                  | app facade (provide/inject)                     |
+| `logic/toneGenerator.ts`        | tone generator                                  |
+| `logic/useEscToClose.ts`        | Escape-key handling                             |
+| `db/kv.ts`, `db/prLibrary.ts`   | key-value store · PR library                    |
+
+**SERVICES / DOMAIN** — placed, and matching the target.
+
+| Module                                                        | Layer   |
+| ------------------------------------------------------------- | ------- |
+| `db/driverRepo.ts` · `db/myDrivers.ts` · `db/prefs.ts`        | service |
+| `diagnostics/selftest.ts` · `logging/flash.ts`                | service |
+| `@openisd/model` · `@openisd/engine` · `@openisd/winisd`      | domain  |
+
+**CONDEMNED** — scheduled for deletion, still imported.
+
+| Module                    | Replaced by                                  |
+| ------------------------- | -------------------------------------------- |
+| `packages/winisd/src/driver.ts` (`Driver` ADT) | `OpenISDDriver` behind `ManagedDriver` |
 
 **What the red tells you.** Twenty-two `logic/` and service modules exist that the target diagram
 collapses into one `logic/` box, so it cannot say whether any of them is in the right place or
