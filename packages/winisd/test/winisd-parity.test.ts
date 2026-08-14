@@ -23,7 +23,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { ebp, airFor, sealedFscWinisd, sourceLoadedQts } from '@openisd/engine';
-import { Driver } from '../src/driver.js';
+import { OpenISDDriver } from '@openisd/model';
+import { WinISDDriver } from '../src/winisdDriver.js';
 import { POS_TO_WDRKEY } from '../src/parstate.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -127,11 +128,14 @@ function scenarioWdr(s: Scenario): string {
 }
 
 /**
- * WinISD `[Driver]` key → the Driver class's own field name. Only where they differ; every
- * other key is compared under the same name. `Gloss` is `loss`, `Dd` is `Dia`, `BL` is `Bl`
- * — the class's names, not new ones invented here.
+ * A WinISD `[Driver]` key whose value openisd reaches through the SOLVED engine bag rather
+ * than through a stated record field. `Vd`, `no`, `USPL`, `SPLmax`, `gamma`, `Rme`, `Mpow`,
+ * `Mcost` and `Gloss` have no `SpecEntry` of their own — nothing in openisd.yml asserts them
+ * — so the record cannot answer for them and the derivation must.
  */
-const FIELD_ALIASES: Readonly<Record<string, string>> = { BL: 'Bl', Dd: 'Dia', Gloss: 'loss' };
+const ENGINE_ONLY: Readonly<Record<string, string>> = {
+  Dd: 'Dia', Gloss: 'loss', BL: 'Bl',
+};
 
 /**
  * The `[Driver]` keys compared on every scenario: the T/S consistency group, the geometry
@@ -148,8 +152,16 @@ const DRIVER_FIELDS = [
  * A cell's value when it is a finite NUMBER. `cell()` answers for metadata strings too, and
  * `null` here is a real answer — openisd leaves a field absent where it has no route to it.
  */
-function num(drv: Driver, field: string): number | null {
-  const v = drv.cell(field).value;
+function num(drv: OpenISDDriver, field: string): number | null {
+  // A field the record can state is read through cell(), so its E/C/N provenance is exercised
+  // exactly as the app sees it. Everything else is read from the solved engine bag, which is
+  // the only place it exists.
+  const cell = drv.cell(field as Parameters<OpenISDDriver['cell']>[0]);
+  if (cell.state !== 'N') {
+    return typeof cell.value === 'number' && Number.isFinite(cell.value) ? cell.value : null;
+  }
+  const solved = drv.toDriver() as Record<string, number> | null;
+  const v = solved?.[ENGINE_ONLY[field] ?? field];
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
@@ -272,7 +284,8 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
       const golden = existsSync(path)
         ? parseIni(readFileSync(path, 'utf8'))
         : ({} as Record<string, Record<string, string>>);
-      const drv = Driver.fromWdr(scenarioWdr(s));
+      const asRead = WinISDDriver.fromWdr(scenarioWdr(s));
+      const drv = OpenISDDriver.fromRecord(asRead.toOpenISDRecord());
 
       it('WinISD accepted the scenario and wrote a driver block back', () => {
         assert.ok(golden.Driver, `${s.id}: the golden has no [Driver] section`);
@@ -284,7 +297,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
           const raw = golden.Driver?.[key];
           assert.ok(raw != null, `${s.id}: WinISD wrote no ${key} — the golden cannot answer for it`);
           const winisd = parseFloat(raw);
-          const openisd = num(drv, FIELD_ALIASES[key] ?? key);
+          const openisd = num(drv, key);
 
           if (openisd === null) {
             // openisd leaves a field ABSENT where it has no route to it. That is a real
@@ -348,7 +361,9 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
       it('ParState — the per-field E/C/N marks WinISD assigned', () => {
         const winisd = golden.Driver.ParState;
         assert.ok(winisd, `${s.id}: the golden carries no ParState`);
-        const openisd = parseIni(drv.toWdr()).Driver.ParState;
+        const { value: written } = WinISDDriver.fromOpenISDRecord(drv.toRecord());
+        assert.ok(written, `${s.id}: openisd could not write a .wdr for this driver`);
+        const openisd = parseIni(written.toWdr()).Driver.ParState;
         assert.ok(openisd, `${s.id}: openisd produced no ParState`);
         assert.equal(openisd.length, winisd.length,
           `${s.id}: ParState length ${openisd.length} vs WinISD's ${winisd.length}`);
