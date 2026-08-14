@@ -23,15 +23,14 @@ code catches up to it.
 Each row below has an owner, and that owner is the authority for the detail. This document states
 the boundary and points at it.
 
-| Detail | Authority |
-| --- | --- |
-| Engine formulas, parameter units, API shapes, solver rules | [`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md) |
-| UI presentation rules, tooltips, panel layout, control conventions, chart behaviour | [`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md) |
-| What the app remembers, and when an edit commits | [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md) |
-| The fields of the driver record and what each means | [`docs/design/DRIVER_RECORD_MODEL.md`](docs/design/DRIVER_RECORD_MODEL.md) |
-| WinISD's `.wdr`/`.wpr` byte format, reverse-engineered | [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) |
-| Work items and gaps | [`BACKLOG.md`](BACKLOG.md), [`docs/plans/`](docs/plans/) |
-| Dev workflow, ports, testing strategy | [`AGENTS.md`](AGENTS.md), [`openspec/project.md`](openspec/project.md) |
+| Detail                                                                              | Authority                                                              |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Engine formulas, parameter units, API shapes, solver rules                          | [`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md)                 |
+| UI presentation rules, tooltips, panel layout, control conventions, chart behaviour | [`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md)                         |
+| What the app remembers, and when an edit commits                                    | [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md)             |
+| WinISD's `.wdr`/`.wpr` byte format, reverse-engineered                              | [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md)               |
+| Work items and gaps                                                                 | [`BACKLOG.md`](BACKLOG.md), [`docs/plans/`](docs/plans/)               |
+| Dev workflow, ports, testing strategy                                               | [`AGENTS.md`](AGENTS.md), [`openspec/project.md`](openspec/project.md) |
 
 ---
 
@@ -182,18 +181,18 @@ tail can be exercised in a test with a substitute at the head.
 every consumer of one becomes untestable in isolation. `state` is created by the store factory and
 handed to whoever needs it — it is not importable.
 
-| Module | Single responsibility | Injected dependencies |
-| --- | --- | --- |
-| `main.ts` — composition root | Construct every service and the store, wire them, mount the app | — (it is the top; nothing injects into it) |
-| `createStore` | Hold the application's state and nothing else | `driverRepo`, `myDriverRepo`, `prefsStore`, `fileIO`, `logging` |
-| `logic/` workflows | Decide what the app does next — driver chosen, project opened, what-if applied | the store, plus whichever services that workflow needs |
-| `createDriverRepo` | Answer questions about the driver commons: index, search, filter, lookup | a bundle source (`() => OpenISDRecord[]`) |
-| `createMyDriverRepo` | Read, write and delete user-saved drivers by identity | a `KeyValueStore` |
-| `createPrefsStore` | Browser-local preferences: favourites, session, layout | a `KeyValueStore` |
-| `createFileIO` | Open, save, import, export, share-link encode and decode | the serialiser (`@openisd/winisd`), the record codec |
-| `createDiagnostics` | Run the self-test and report what it found | the engine, a reporter (`(msg) => void`) |
-| `createLogging` | Surface application events to the user | — (leaf; it depends on nothing) |
-| `ui/` | Render state, raise intent | the app facade, via Vue `provide`/`inject` at the root |
+| Module                       | Single responsibility                                                          | Injected dependencies                                           |
+| ---------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| `main.ts` — composition root | Construct every service and the store, wire them, mount the app                | — (it is the top; nothing injects into it)                      |
+| `createStore`                | Hold the application's state and nothing else                                  | `driverRepo`, `myDriverRepo`, `prefsStore`, `fileIO`, `logging` |
+| `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the store, plus whichever services that workflow needs          |
+| `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup       | a bundle source (`() => OpenISDRecord[]`)                       |
+| `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStore`                                               |
+| `createPrefsStore`           | Browser-local preferences: favourites, session, layout                         | a `KeyValueStore`                                               |
+| `createFileIO`               | Open, save, import, export, share-link encode and decode                       | the serialiser (`@openisd/winisd`), the record codec            |
+| `createDiagnostics`          | Run the self-test and report what it found                                     | the engine, a reporter (`(msg) => void`)                        |
+| `createLogging`              | Surface application events to the user                                         | — (leaf; it depends on nothing)                                 |
+| `ui/`                        | Render state, raise intent                                                     | the app facade, via Vue `provide`/`inject` at the root          |
 
 A `KeyValueStore` is an interface — `get`/`set`/`remove`. `localStorage` is one implementation and
 an in-memory map is another, which is what lets the repositories be tested without a browser.
@@ -213,19 +212,19 @@ model, so nothing above the domain layer knows what ParState is.
 
 ### Module responsibilities
 
-| Module | Path | Owns | May not contain |
-| --- | --- | --- | --- |
-| `@openisd/engine` | `packages/engine/src/` | All electro-acoustic maths — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState), file formats, DOM, app state |
-| `@openisd/model` | `packages/model/src/` | The OpenISD record and `OpenISDDriver`: the driver model itself, its provenance, its derivation | File formats, DOM, app state |
-| `@openisd/winisd` | `packages/winisd/src/` | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the carried-key set | The driver model, derivation, live state, DOM, app state |
-| `logic` | `packages/ui/src/logic/` | The app's ONLY state. Store, project/workspace model, workflows, field registry, chart-series mapping | Maths, `.vue` imports, direct construction of a service |
-| `driverRepo` | `packages/ui/src/db/` | The driver commons: index, search, filter, lookup. Answers questions, returns records | App state, workflow, `.vue` imports |
-| `myDriverRepo` | `packages/ui/src/db/` | User-saved drivers: read, write, delete by identity | App state, workflow, `.vue` imports |
-| `prefsStore` | `packages/ui/src/db/` | Browser-local preferences — favourites, session, layout | App state, workflow, `.vue` imports |
-| `designIO` | `packages/ui/src/logic/` | Open, save, import, export, share-link encode/decode | Maths, `.vue` imports, direct construction of a service |
-| `diagnostics` | `packages/ui/src/diagnostics/` | Runtime self-test, solver troubleshooting, diagnostic assertions | App state |
-| `logging` | `packages/ui/src/logging/` | Application event/alert surface (flash messages) | Any other module — it is a leaf |
-| `ui` | `packages/ui/src/ui/` | Vue components, canvas drawing, directives, static presets | Physics, app state, anything a service owns |
+| Module            | Path                           | Owns                                                                                                           | May not contain                                               |
+| ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `@openisd/engine` | `packages/engine/src/`         | **The only place electro-acoustic maths exists** — driver derivation, circuit solve, sweeps, alignments, filters, physical constants. No other module contains a formula | WinISD concepts (WDR, ParState), file formats, DOM, app state |
+| `@openisd/model`  | `packages/model/src/`          | The OpenISD record and `OpenISDDriver`: the driver model itself, its provenance, its derivation                | File formats, DOM, app state                                  |
+| `@openisd/winisd` | `packages/winisd/src/`         | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the carried-key set                        | The driver model, derivation, live state, DOM, app state      |
+| `logic`           | `packages/ui/src/logic/`       | The app's ONLY state. Store, project/workspace model, workflows, field registry, chart-series mapping          | Maths, `.vue` imports, direct construction of a service       |
+| `driverRepo`      | `packages/ui/src/db/`          | The driver commons: index, search, filter, lookup. Answers questions, returns records                          | App state, workflow, `.vue` imports                           |
+| `myDriverRepo`    | `packages/ui/src/db/`          | User-saved drivers: read, write, delete by identity                                                            | App state, workflow, `.vue` imports                           |
+| `prefsStore`      | `packages/ui/src/db/`          | Browser-local preferences — favourites, session, layout                                                        | App state, workflow, `.vue` imports                           |
+| `designIO`        | `packages/ui/src/logic/`       | Open, save, import, export, share-link encode/decode                                                           | Maths, `.vue` imports, direct construction of a service       |
+| `diagnostics`     | `packages/ui/src/diagnostics/` | Runtime self-test, solver troubleshooting, diagnostic assertions                                               | App state                                                     |
+| `logging`         | `packages/ui/src/logging/`     | Application event/alert surface (flash messages)                                                               | Any other module — it is a leaf                               |
+| `ui`              | `packages/ui/src/ui/`          | Vue components, canvas drawing, directives, static presets                                                     | App state, anything a service owns                             |
 
 ### Dependency rules, and what enforces them
 
@@ -234,18 +233,18 @@ Every rule below is enforced by
 row says otherwise. It matches the SHAPE of the code — the import specifier, the exported
 declaration — never prose, so a comment naming a module cannot fail it.
 
-| Rule | Enforced by |
-| --- | --- |
-| `@openisd/engine` depends on nothing (zero runtime dependencies) | `packages/engine/package.json` — empty `dependencies` |
-| `@openisd/model` depends only on `@openisd/engine` (+ `yaml`, for the record codec) | `packages/model/package.json` |
-| `@openisd/winisd` depends only on `@openisd/model` | `packages/winisd/package.json` |
-| Nothing below presentation imports a `.vue` file | the gate |
-| `ui` imports `logic` and nothing below it — no service, no engine, no serialiser | the gate |
-| A component imports no VALUE from `@openisd/*`; an `import type` is fine, it erases | the gate |
-| A service never imports `logic`, and never imports a sibling service | the gate |
-| No service exports a pre-built instance or a mutable binding | the gate |
-| Every service module offers one `create<Name>(deps)` factory | the gate |
-| No maths in `ui` / `logic` | `openspec/project.md` §"Important Constraints" — convention |
+| Rule                                                                                | Enforced by                                                 |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `@openisd/engine` depends on nothing (zero runtime dependencies)                    | `packages/engine/package.json` — empty `dependencies`       |
+| `@openisd/model` depends only on `@openisd/engine` (+ `yaml`, for the record codec) | `packages/model/package.json`                               |
+| `@openisd/winisd` depends only on `@openisd/model`                                  | `packages/winisd/package.json`                              |
+| Nothing below presentation imports a `.vue` file                                    | the gate                                                    |
+| `ui` imports `logic` and nothing below it — no service, no engine, no serialiser    | the gate                                                    |
+| A component imports no VALUE from `@openisd/*`; an `import type` is fine, it erases | the gate                                                    |
+| A service never imports `logic`, and never imports a sibling service                | the gate                                                    |
+| No service exports a pre-built instance or a mutable binding                        | the gate                                                    |
+| Every service module offers one `create<Name>(deps)` factory                        | the gate                                                    |
+| Maths may only be in `@openisd/engine` — no other module                            | the gate (component case); convention elsewhere              |
 
 **A component may not call the engine.** The formula stays in `@openisd/engine`, but a component
 that calls it has put a physics call in the view: the maths cannot then be changed without editing
@@ -323,9 +322,13 @@ closed unions, not open strings.
 ```ts
 /** Where a value came from. `manual` is the one non-URL role: a hand-entered value. */
 type SourceRole =
-  | 'manufacturer_datasheet' | 'manufacturer_product_page' | 'manufacturer_listing_page'
-  | 'distributor_datasheet'  | 'distributor_product_page'  | 'distributor_listing_page'
-  | 'manual';
+  | "manufacturer_datasheet"
+  | "manufacturer_product_page"
+  | "manufacturer_listing_page"
+  | "distributor_datasheet"
+  | "distributor_product_page"
+  | "distributor_listing_page"
+  | "manual";
 
 /** What ONE source published for a field. */
 interface Reading {
@@ -354,12 +357,16 @@ interface OpenISDRecord {
   driver_type: ScrapedField<string>;
   disposition: DispositionField;
   quality: QualityBlock;
-  specs: { woofer?: SpecSection; tweeter?: SpecSection; passive_radiator?: SpecSection };
+  specs: {
+    woofer?: SpecSection;
+    tweeter?: SpecSection;
+    passive_radiator?: SpecSection;
+  };
   curves?: CurvesBlock;
 }
 
 /** What a field looks like to the app. */
-type CellState = 'E' | 'C' | 'N';
+type CellState = "E" | "C" | "N";
 interface Cell {
   value: number | null;
   state: CellState;
@@ -406,12 +413,12 @@ and all consistency-group derivation (Fs from Mms+Cms, Cms from Fs+Vas+Sd, and t
 family). It is strongly typed against the `openisd.yml` shape — **not one uniform envelope, but
 four, by field kind:**
 
-| Envelope | Applies to | Shape |
-| --- | --- | --- |
-| `SpecEntry` | T/S fields, inside `specs:` only | **No flat value.** `origin` names the winning source; a required `readings` dict (≥ 1 source) carries each source's `{actual_reading, read_value, read_precision}`. The number is reachable only at `readings[origin].read_value`. |
-| `ScrapedField<T>` | record-level metadata — `manufacturer`, `brand`, `model` | Flat `value: T`, plus `origin`, *optional* `readings` (populated only when ≥ 2 sources disagreed), `definition`, `dq` |
-| `DerivedField<T>` | pipeline-computed — `sku`, `name` | `value: T` + `definition` + `grounds` (evidence list). No `origin`/`readings` — built, not read |
-| `BookkeepingField<T>` | pure pipeline fact — `uuid` | `value: T` + `definition` |
+| Envelope              | Applies to                                               | Shape                                                                                                                                                                                                                              |
+| --------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SpecEntry`           | T/S fields, inside `specs:` only                         | **No flat value.** `origin` names the winning source; a required `readings` dict (≥ 1 source) carries each source's `{actual_reading, read_value, read_precision}`. The number is reachable only at `readings[origin].read_value`. |
+| `ScrapedField<T>`     | record-level metadata — `manufacturer`, `brand`, `model` | Flat `value: T`, plus `origin`, _optional_ `readings` (populated only when ≥ 2 sources disagreed), `definition`, `dq`                                                                                                              |
+| `DerivedField<T>`     | pipeline-computed — `sku`, `name`                        | `value: T` + `definition` + `grounds` (evidence list). No `origin`/`readings` — built, not read                                                                                                                                    |
+| `BookkeepingField<T>` | pure pipeline fact — `uuid`                              | `value: T` + `definition`                                                                                                                                                                                                          |
 
 ### Provenance, and how it displays
 
@@ -432,6 +439,50 @@ field held before the edit — the ground/baseline layering in
 field that is manually entered is written to the `.owdr` with `origin: manual` — it is an asserted
 fact, not something to silently re-derive. Clearing it reverts it to calculated and removes it from
 storage again.
+
+### Relation groups solve in every direction
+
+A consistency group ([`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) §4) is a relation,
+not a one-way formula: `{Vd, Sd, Xmax}` gives `Vd` from `Sd × Xmax`, `Sd` from `Vd / Xmax`, and
+`Xmax` from `Vd / Sd`, and every group in that table behaves the same way. The model repeats,
+for every relation, filling the one member left unknown once every other member — entered or
+already calculated — holds a value, until nothing changes. A value it derives on one pass feeds
+the next relation: `Vd, Xmax → Sd → Dd` propagates two hops.
+[`solveConsistencyGroup`](packages/engine/src/driver.ts) in `packages/engine/src/driver.ts` is
+the one implementation; nothing else derives a T/S field.
+
+**A field reachable through two groups at once resolves to a fixed winner, not to whichever
+route fires first.** `Xmax` comes from `abs(Hc − Hg) / 2` before it comes from `Vd / Sd`; `Sd`
+comes from `π·Dd²/4` before it comes from `Vd / Xmax`; `Rme` comes from `2π·Fs·Mms/Qes` before it
+comes from `BL² / Re`. On a record whose fields populate the inputs of both routes, the two
+return different numbers, so which route wins is a specification, not an accident of
+implementation order — [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) §4.1 records the
+winning order as observed directly against WinISD, and the model is held to it.
+
+**A derived value is `C`, never `E`, and the difference is a difference in claim.** An `Xmax`
+reached through `Vd / Sd` asserts the excursion implied by a published `Vd`; an `Xmax` in the
+spec asserts the linear limit the manufacturer measured. The number can be identical and the
+claim is not: the spec is asked first, so a field somebody asserted is `E` whatever a group could
+also have reached.
+
+### Inconsistency is marked, not resolved
+
+A datasheet routinely prints a dependent field alongside its own inputs — `Qts` next to `Qms`
+and `Qes` — which at printed precision often does not reconcile exactly. `E` pins a value:
+WinISD never recomputes an entered field and issues no warning when its inputs disagree with it
+([`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) §5.1), so writing all three fields `E`
+buries the disagreement inside a set WinISD will never question.
+
+The model marks it instead of resolving it. **Every field in a relation group whose members
+contradict each other carries a `DqMark`**, judged against each field's own precision rather
+than exact equality — a group agreeing to within its members' own rounding is consistent, and
+only a residual bigger than every member's own uncertainty is reported
+([`checkConsistency`](packages/engine/src/consistency.ts) in
+`packages/engine/src/consistency.ts`). The same mark covers an over-determined group, where more
+members are asserted than the relation needs: an asserted value is then either being ignored or
+silently poisoning a derived one, and both are findings the mark surfaces. The groups themselves
+are [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) §4's; which member is left to derive
+does not matter to the mark — what matters is that the disagreement stays visible.
 
 ### `WinISDDriver` is solely a serialisation device
 
@@ -464,13 +515,13 @@ writer (§2 Step 8 of the migration plan), not an optional enhancement.
 
 The app reads and writes five formats. Two are ours, three are WinISD's.
 
-| Format | Content | Direction |
-| --- | --- | --- |
-| `openisd.yml` | the OpenISD record — the canonical on-disk form | read (commons, at build time) |
-| `.owdr` | one OpenISD driver record, the same schema as `openisd.yml` byte for byte | read / write |
-| `.owpr` | one `OpenISDProject` — box, vent, PR, filters, signal, and its driver records | read / write |
-| `.wdr` | one WinISD driver | read / write |
-| `.wpr` | one WinISD project | read / write |
+| Format        | Content                                                                       | Direction                     |
+| ------------- | ----------------------------------------------------------------------------- | ----------------------------- |
+| `openisd.yml` | the OpenISD record — the canonical on-disk form                               | read (commons, at build time) |
+| `.owdr`       | one OpenISD driver record, the same schema as `openisd.yml` byte for byte     | read / write                  |
+| `.owpr`       | one `OpenISDProject` — box, vent, PR, filters, signal, and its driver records | read / write                  |
+| `.wdr`        | one WinISD driver                                                             | read / write                  |
+| `.wpr`        | one WinISD project                                                            | read / write                  |
 
 **No import loses data.** Every field a file carries survives the round trip, including metadata
 the app does not itself display. A `.wdr` written back out matches the original byte for byte, or
@@ -480,20 +531,17 @@ conforms strictly to the layout rules where a byte-exact match is impossible —
 
 **The two formats carry deliberately different content, and the asymmetry is the point.**
 
-| | `openisd.yml` / `.owdr` | `.wdr` |
-| --- | --- | --- |
-| Asserted values | carried | carried |
-| Derivable values nobody asserted | **absent** | **carried** |
-| The `E`/`C`/`N` character | **never stored** | computed at emit time |
+|                                  | `openisd.yml` / `.owdr` | `.wdr`                |
+| -------------------------------- | ----------------------- | --------------------- |
+| Asserted values                  | carried                 | carried               |
+| Derivable values nobody asserted | **absent**              | **carried**           |
+| The `E`/`C`/`N` character        | **never stored**        | computed at emit time |
 
 A field is in an OpenISD record because someone stated it, so **presence is the assertion** and
 absence is not a value. `.wdr` must additionally carry every calculated value, because WinISD does
 not recompute on open — so `openisd.yml` → `.wdr` is **not a serialisation**: it goes through
 `OpenISDDriver`, which supplies what the file does not hold. That is what keeps one place where
 calculation happens, and is why the browser's exporter and the pipeline's exporter cannot drift.
-
-The fields themselves — what each one means and which source may state it — are
-[`docs/design/DRIVER_RECORD_MODEL.md`](docs/design/DRIVER_RECORD_MODEL.md)'s.
 
 **The oracle is WinISD itself.** `.wdr` files written by WinISD are the reference for our writer's
 output; a third-party database's `.wdr`-shaped export is not an oracle however plausible it looks.
@@ -504,7 +552,7 @@ parity suite expects it — it is never silently absorbed as a tolerance.
 
 Box, vent, passive-radiator, filter, signal and UI-navigation state have no fields in `openisd.yml`
 and none are added. That is `OpenISDProject`'s concern, and `.owpr` is its on-disk form. The
-multi-layer state model is multiple *copies* of the one `OpenISDDriver` shape, never different
+multi-layer state model is multiple _copies_ of the one `OpenISDDriver` shape, never different
 shapes of it.
 
 ---
@@ -623,13 +671,13 @@ It exists alongside the Node suite because the two catch different failures. The
 the **source** is correct, on a developer's machine. The self-test proves the **deployed bundle** is
 correct, in the environment the user actually has.
 
-| Failure mode | Build tests | Self-test |
-| --- | --- | --- |
-| Logic bug in source | ✓ | ✓ |
-| Bundler/minifier corrupts code | ✗ | ✓ |
-| Tree-shaking drops a needed export | ✗ | ✓ |
-| Browser JS engine edge case | ✗ | ✓ |
-| Wrong constants after a config change | ✗ | ✓ |
+| Failure mode                          | Build tests | Self-test |
+| ------------------------------------- | ----------- | --------- |
+| Logic bug in source                   | ✓           | ✓         |
+| Bundler/minifier corrupts code        | ✗           | ✓         |
+| Tree-shaking drops a needed export    | ✗           | ✓         |
+| Browser JS engine edge case           | ✗           | ✓         |
+| Wrong constants after a config change | ✗           | ✓         |
 
 **Three gates:** sealed-box SPL against the closed-form transfer function (< 0.1 dB); passband
 sensitivity against the T/S radiation-efficiency formula (< 0.5 dB); and a vented box rolling off
@@ -642,11 +690,11 @@ tests — it is a synchronisation signal, not a result.
 
 Three things persist in `localStorage`, each reached only through the service that owns it:
 
-| Key owner | Holds |
-| --- | --- |
+| Key owner                                 | Holds                                                                               |
+| ----------------------------------------- | ----------------------------------------------------------------------------------- |
 | the store, via `fileIO` (`openisd.state`) | the **committed design** — box, params, the driver with its marks, project metadata |
-| `myDriverRepo` | user-saved drivers |
-| `prefsStore` | favourites, session, layout |
+| `myDriverRepo`                            | user-saved drivers                                                                  |
+| `prefsStore`                              | favourites, session, layout                                                         |
 
 **Drafts and active what-ifs never persist.** An uncommitted value must not return after a refresh
 looking like a decision the user made. The commit boundary that decides this is

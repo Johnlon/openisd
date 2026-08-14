@@ -23,13 +23,14 @@
  * exists.
  */
 
-import { deriveDriver, solveConsistencyGroup, checkConsistency, splFromEfficiency, C, RHO } from '@openisd/engine';
+import { deriveDriver, solveConsistencyGroup, checkConsistency, splFromEfficiency, ebp, C, RHO } from '@openisd/engine';
 import type { DriverRaw, Driver as EngineDriver, DriverError, ConsistencyIssue } from '@openisd/engine';
-import { toWdr as toWdrRaw } from './classic/wdr.js';
-import { PARSTATE_LEN, MODELED_SLOTS, MODELED_BY_WDRKEY } from './parstate.js';
+import { MODELED_SLOTS, MODELED_BY_WDRKEY, POS_TO_WDRKEY } from './parstate.js';
+import type { CellState } from './parstate.js';
+import { WinISDDriver, WDR_NUMERIC_KEYS } from './winisdDriver.js';
+import type { WdrCell } from './winisdDriver.js';
 
-/** E/C/N edit-state of one field. */
-export type CellState = 'E' | 'C' | 'N';
+export type { CellState } from './parstate.js';
 
 /**
  * A field's value, edit-state, and error as one tied tuple — always from the same
@@ -343,12 +344,21 @@ export class Driver {
 
     // Carry the header metadata (brand/model/providedBy/comment + composed name) into
     // the entered bag so raw() exposes it uniformly, whether the Driver came from a WDR
-    // or a plain DriverRaw. This does not touch toWdr (which echoes #wdrRaw) or ParState.
+    // or a plain DriverRaw. This does not touch toWdr (which reads cell() for every slot)
+    // or ParState directly.
     for (const [wdrKey, field] of WDR_META) {
       if (!fromFile.has(wdrKey)) continue;   // a backfilled default is not a stated value
       const v = raw[wdrKey];
       if (v == null || v === '') continue;
       if (WDR_META_NUMERIC.has(field)) {
+        // A present value is not necessarily ENTERED — WinISD writes 0 as its own default
+        // for an unset numeric field, and computes some carried fields (Gloss) itself. Where
+        // this key has a ParState slot, trust the source's own mark exactly like the T/S
+        // replay above; with no source ParState, presence is the only signal there is.
+        // bugs/BUG_20260814_driver-fromwdr-marks-a-present-zero-or-computed-carried-field-entered-ignoring-the-source-parstate.md
+        const pos = POS_TO_WDRKEY.indexOf(wdrKey);
+        const isE = pos < 0 || !ps ? true : ps[pos] === 'E';
+        if (!isE) continue;
         const n = parseFloat(v);
         if (isFinite(n)) d.#inputs[field] = n;
       } else {
@@ -363,47 +373,43 @@ export class Driver {
   }
 
   /**
-   * Serialise to WinISD .wdr text. Built via fromWdr: echoes every carried key (so
-   * passthrough fields survive), overlays edited modeled values, and rebuilds ParState
-   * live from cell().state at each modeled slot (carried chars elsewhere). Built fresh:
-   * delegates to the raw exporter over the entered fields.
+   * Serialise to WinISD .wdr text. One path regardless of provenance (loaded from a .wdr,
+   * or authored fresh via fromRaw/enter): every WDR-tracked key is read live through
+   * cell(field), so a key's value AND its E/C/N mark always come from the same derivation
+   * pass. The FORMAT itself (key order, WinISD's own defaults, the 49-slot ParState) is
+   * `WinISDDriver`'s job (ARCHITECTURE.md §3) — this method only resolves, per WDR key,
+   * which of THIS Driver's own field names answers for it.
+   *
+   * This is what fixed
+   * bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md:
+   * every one of WinISD's 49 tracked slots now gets its mark from live cell().state, not a
+   * hardcoded 15-field subset with the rest echoed (or, with no source ParState at all,
+   * left N).
    */
   toWdr(): string {
-    if (!this.#wdrOrder || !this.#wdrRaw) {
-      // Fresh-authored driver — no carried WDR. Export from the entered fields.
-      return toWdrRaw(this.raw());
+    const cells = new Map<string, WdrCell>();
+    for (const key of WDR_NUMERIC_KEYS) {
+      const field = MODELED_BY_WDRKEY[key]?.field ?? (WDR_META.find(p => p[0] === key)?.[1] ?? key);
+      const c = this.cell(field);
+      if (c.value === undefined) continue;   // WinISDDriver supplies WinISD's own default
+      cells.set(key, { value: fmtNum(c.value), state: c.state });
     }
-    const lines = ['[Driver]'];
-    for (const key of this.#wdrOrder) {
-      let val = this.#wdrRaw[key];
-      const m = MODELED_BY_WDRKEY[key];
-      if (m && this.cell(m.field).state === 'E') {
-        val = fmtNum(this.cell(m.field).value);   // reflect an edited/entered value
-      } else {
-        const metaPair = WDR_META.find(p => p[0] === key);
-        if (metaPair) {
-          const currentVal = this.#inputs[metaPair[1]];
-          if (currentVal !== undefined) val = fmtNum(currentVal);
-        }
-      }
-      lines.push(key + '=' + val);
-    }
-    lines.push('ParState=' + this.#buildParState());
-    lines.push('');
-    return lines.join('\n');
+    const h = (field: string): string | undefined => {
+      const v = this.cell(field).value;
+      return v === undefined ? undefined : fmtNum(v);
+    };
+    const header = {
+      brand: h('brand'), model: h('model'), manufacturer: h('manufacturer'),
+      providedBy: h('providedBy'), comment: h('comment'), dateAdded: h('added'),
+      // No Driver field models "date modified" — it is pure carried passthrough, echoed
+      // straight from the source .wdr (undefined for a fresh-authored driver, matching
+      // WinISD's own blank on New).
+      dateModified: this.#wdrRaw?.DateModified,
+    };
+    return WinISDDriver.build(header, cells).toWdr();
   }
 
   // ── internal ────────────────────────────────────────────────────────────────
-
-  // Rebuild the 49-char ParState: modeled slots from live cell().state, all other slots
-  // preserved from the source ParState (or N when authored fresh).
-  #buildParState(): string {
-    const base = this.#parStateIn && this.#parStateIn.length === PARSTATE_LEN
-      ? this.#parStateIn.split('')
-      : new Array<string>(PARSTATE_LEN).fill('N');
-    for (const m of MODELED_SLOTS) base[m.pos] = this.cell(m.field).state;
-    return base.join('');
-  }
 
   #invalidate(): void {
     this.#cache = null;
@@ -450,6 +456,13 @@ export class Driver {
     // without this every OTHER construction path (fromJSON, authored in-app) disagreed with
     // it and the editor rendered the field blank. C, not E: the app supplied it, not a human.
     if (r.numVC == null) r.numVC = 1;
+
+    // EBP (ParState slot 33) has no cell of its own in the T/S consistency group — the
+    // engine's ebp() is a standalone display calculation, not one solveConsistencyGroup
+    // produces. Without this the cell reads N even when Fs/Qes are both solved, which is
+    // the gap bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md
+    // names explicitly.
+    if (r.EBP == null && r.Fs != null && r.Qes != null && r.Qes > 0) r.EBP = ebp({ Fs: r.Fs, Qes: r.Qes });
 
     // Validation comes from the engine (single source of the required-field rules).
     // The resolved `r` (Sd filled from Dia, third Q filled) is what it checks, so a

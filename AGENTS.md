@@ -325,10 +325,10 @@ LOADING" tells it to go and read them. Treat that as the mechanism; there is no 
 Before starting work, always read:
 
 - `BACKLOG.md` — feature backlog (P0 gates all feature work)
-- `ARCHITECTURE.md` — hard architectural decisions, the component diagram and the dependency
-  rules (read before touching `packages/engine/src/` or any structural change)
-- `docs/design/DRIVER_RECORD_MODEL.md` — what openisd stores about a driver; the design
-  authority for driver-data tasks
+- `ARCHITECTURE.md` — hard architectural decisions, the component diagram, the dependency
+  rules, and §3 "The driver model" — what openisd stores about a driver, and the design
+  authority for driver-data tasks (read before touching `packages/engine/src/` or any
+  structural change)
 - `docs/spec/SPEC_ENGINE.md`, `docs/spec/SPEC_UI.md` — the engine and UI contracts
 - `docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md` — where the AD-8/AD-9 migration stands, the
   checks that block it, and the divergences the new model must preserve (read with
@@ -339,7 +339,7 @@ Before starting work, always read:
 > AD-8 makes `OpenISDDriver`/`openisd.yml` the app's data model and demotes `.wdr` to a
 > serialisation format generated on demand. Read them as **reference for the foreign format and
 > for parity evidence** — never as a statement of how openisd should be shaped. If one of them
-> and `DRIVER_RECORD_MODEL.md` disagree about our own record, `DRIVER_RECORD_MODEL.md` wins.
+> and `ARCHITECTURE.md` disagree about our own record, `ARCHITECTURE.md` wins.
 >
 > - `docs/design/WDR_SCHEMA.md` — reverse-engineered facts about WinISD's `.wdr` format
 > - `docs/research/WINISD_PARITY.md` — parity evidence and investigation notes
@@ -350,22 +350,22 @@ one your task needs; it is documentation, not a trigger. Nothing auto-loads thes
 `_agent_files/` directory is deliberately outside every auto-load path
 (`../_agent_files/README.md`).
 
-| Rule file                    | Governs                                                   |
-| ---------------------------- | --------------------------------------------------------- |
+| Rule file                    | Governs                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
 | `openisd-result-contract.md` | `packages/{engine,winisd}/src/`, `packages/ui/src/{logic,db,diagnostics,logging}/` |
-| `openisd-engine-source.md`   | `packages/engine/src/`                                    |
-| `openisd-engine-tests.md`    | `packages/{engine,winisd}/test/`                          |
-| `openisd-ui-design.md`       | `packages/ui/src/`                                        |
-| `openisd-ui-tests.md`        | `packages/ui/src/`, `packages/ui/test/`                   |
+| `openisd-engine-source.md`   | `packages/engine/src/`                                                             |
+| `openisd-engine-tests.md`    | `packages/{engine,winisd}/test/`                                                   |
+| `openisd-ui-design.md`       | `packages/ui/src/`                                                                 |
+| `openisd-ui-tests.md`        | `packages/ui/src/`, `packages/ui/test/`                                            |
 
 **Read these yourself for the task domain** — they are documents, not scoped rules:
 
-| Task type                                                      | Load                                              |
-| -------------------------------------------------------------- | ------------------------------------------------- |
-| JS core functions (`packages/engine/src/`, engine, alignments) | `ARCHITECTURE.md` §AD-4 "Extract, do not rewrite" |
-| Vue components, CSS, stores, UI wiring                         | `docs/spec/SPEC_UI.md` §4 (UI-1…UI-4)             |
+| Task type                                                      | Load                                                                                                     |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| JS core functions (`packages/engine/src/`, engine, alignments) | `ARCHITECTURE.md` §AD-4 "Extract, do not rewrite"                                                        |
+| Vue components, CSS, stores, UI wiring                         | `docs/spec/SPEC_UI.md` §4 (UI-1…UI-4)                                                                    |
 | A field's unit, `:scale`, unit group, or a `.wdr`/`.wpr` value | `docs/research/UNIT_BOUNDARY_AUDIT.md` — file/SI/display/WinISD unit per field, with the oracle for each |
-| Either                                                         | "Two suites, both required" above                 |
+| Either                                                         | "Two suites, both required" above                                                                        |
 
 ---
 

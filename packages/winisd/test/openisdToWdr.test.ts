@@ -1,9 +1,11 @@
 /**
- * `openisd.yml` → `winisd.wdr` projection — the entry point `winisd_tools` calls in-process.
- * Spec: `docs/spec/SPEC_ENGINE.md` §4.7.
+ * `openisd.yml` → `winisd.wdr` projection — the entry point `winisd_tools` calls in-process
+ * (embedded V8) to generate the `.wdr` it stores in `winisd_drivers`.
  *
- * Seam under test: `openisdYamlToWdr(yamlText) -> Result<string>` — string in, string out.
- * That IS the boundary an embedded-V8 caller sees.
+ * Seam under test: `WinISDDriver.fromYaml(yamlText) -> Result<WinISDDriver>`, then
+ * `.toWdr() -> string`. `WinISDDriver` (docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md Step 8,
+ * ARCHITECTURE.md §3 "WinISDDriver is solely a serialisation device") replaces the free
+ * function `openisdYamlToWdr` this file used to test directly.
  *
  * 🔒 ORACLE RULE (SPEC_ENGINE §4.7): the ONLY oracle is `drivers/sample/winisd/`, prepared by
  * johnl out of WinISD itself. An oracle `.wdr` is one WinISD ITSELF wrote; a third-party
@@ -23,11 +25,11 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { openisdYamlToWdr } from '../../src/native/openisdToWdr.js';
+import { WinISDDriver } from '../src/winisdDriver.js';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const ORACLE = join(ROOT, 'drivers', 'sample', 'winisd', 'john-all-defaults.wdr');
-const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'openisd');
+const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'openisd');
 
 /** Ordered `.wdr` keys of a file — the format fingerprint. */
 function keysOf(wdr: string): string[] {
@@ -44,6 +46,19 @@ function fieldsOf(wdr: string): Record<string, string> {
     if (i > 0 && line[0] !== '[') out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
   }
   return out;
+}
+
+/** `Comment=`'s full text, including any `[DQ]` lines appended below it (ARCHITECTURE.md
+ *  §3) — every physical line from `Comment=` up to (not including) `DateAdded=`, joined back
+ *  with `\n`. A plain line-by-line `key=value` parse only sees the FIRST physical line of a
+ *  multi-line comment; this reassembles the whole block for assertions. */
+function commentBlockOf(wdr: string): string {
+  const lines = wdr.split(/\r?\n/);
+  const start = lines.findIndex(l => l.startsWith('Comment='));
+  const end = lines.findIndex((l, i) => i > start && l.startsWith('DateAdded='));
+  const block = lines.slice(start, end);
+  block[0] = block[0].slice('Comment='.length);
+  return block.join('\n');
 }
 
 const oracleText = readFileSync(ORACLE, 'utf8');
@@ -63,21 +78,26 @@ authoritative: {value: manual, definition: d}
 specs: {woofer: {}}
 `;
 
+function wdrOf(yamlText: string): { value: string | null; errors: ReturnType<typeof WinISDDriver.fromYaml>['errors'] } {
+  const { value: drv, errors } = WinISDDriver.fromYaml(yamlText);
+  return { value: drv ? drv.toWdr() : null, errors };
+}
+
 describe('openisd.yml → winisd.wdr — format conformance (oracle: drivers/sample/winisd/)', () => {
   it('emits exactly the oracle field set, in the oracle order', () => {
-    const { value, errors } = openisdYamlToWdr(EMPTY_RECORD);
+    const { value, errors } = wdrOf(EMPTY_RECORD);
     assert.deepEqual(errors.filter(e => e.level === 'error'), []);
     assert.notEqual(value, null);
     assert.deepEqual(keysOf(value!), keysOf(oracleText));
   });
 
   it('writes SPL as a key — it is in the fixed set, never omitted', () => {
-    const { value } = openisdYamlToWdr(EMPTY_RECORD);
+    const { value } = wdrOf(EMPTY_RECORD);
     assert.equal(keysOf(value!).includes('SPL'), true);
   });
 
   it('uses the oracle defaults for every unsupplied numeric field', () => {
-    const got = fieldsOf(openisdYamlToWdr(EMPTY_RECORD).value!);
+    const got = fieldsOf(wdrOf(EMPTY_RECORD).value!);
     const want = fieldsOf(oracleText);
     // Everything the oracle defaults, except the header identity fields (which carry the
     // record's own values) and ParState (asserted separately).
@@ -90,13 +110,13 @@ describe('openisd.yml → winisd.wdr — format conformance (oracle: drivers/sam
   });
 
   it('emits a 49-character ParState', () => {
-    const got = fieldsOf(openisdYamlToWdr(EMPTY_RECORD).value!);
+    const got = fieldsOf(wdrOf(EMPTY_RECORD).value!);
     assert.equal(got.ParState.length, 49);
   });
 
   it('marks numVC E and c/roo C on an empty record, exactly as WinISD does', () => {
     // Oracle: NNNNNNNNNNNNNNNNNNNNNNNENNNNNNNNNNNNNNNNNNNNNNNCC
-    const got = fieldsOf(openisdYamlToWdr(EMPTY_RECORD).value!);
+    const got = fieldsOf(wdrOf(EMPTY_RECORD).value!);
     assert.equal(got.ParState, fieldsOf(oracleText).ParState);
   });
 });
@@ -105,7 +125,7 @@ describe('openisd.yml → winisd.wdr — calculation (SPEC_ENGINE §4.7 obligati
   const real = readFileSync(join(FIXTURES, 'w5-1138smf.openisd.yml'), 'utf8');
 
   it('calculates every derivable field rather than leaving it at its default', () => {
-    const { value, errors } = openisdYamlToWdr(real);
+    const { value, errors } = wdrOf(real);
     assert.deepEqual(errors.filter(e => e.level === 'error'), []);
     const f = fieldsOf(value!);
     // Entered, straight from the record.
@@ -124,7 +144,7 @@ describe('openisd.yml → winisd.wdr — calculation (SPEC_ENGINE §4.7 obligati
 
   it('converts the record mm/l dimensions to WinISD SI', () => {
     // w5-1138smf carries Hg_mm and voice_coil_dia_mm; WinISD stores metres.
-    const f = fieldsOf(openisdYamlToWdr(real).value!);
+    const f = fieldsOf(wdrOf(real).value!);
     assert.equal(Number(f.Hg), 0.005);
     assert.equal(Number(f.Vcd), 0.032);
   });
@@ -132,14 +152,53 @@ describe('openisd.yml → winisd.wdr — calculation (SPEC_ENGINE §4.7 obligati
 
 describe('openisd.yml → winisd.wdr — Result contract (never throws)', () => {
   it('reports malformed YAML as an error, does not throw', () => {
-    const { value, errors } = openisdYamlToWdr('specs: [this is: not, valid: yaml\n  ::');
+    const { value, errors } = WinISDDriver.fromYaml('specs: [this is: not, valid: yaml\n  ::');
     assert.equal(value, null);
     assert.equal(errors.some(e => e.level === 'error'), true);
   });
 
   it('reports YAML that is not an OpenISD record as an error, does not throw', () => {
-    const { value, errors } = openisdYamlToWdr('hello: world\n');
+    const { value, errors } = WinISDDriver.fromYaml('hello: world\n');
     assert.equal(value, null);
     assert.equal(errors.some(e => e.level === 'error'), true);
+  });
+});
+
+describe('openisd.yml → winisd.wdr — DQ marks travel into Comment= (ARCHITECTURE.md §3)', () => {
+  it('a record with no DQ marks leaves Comment= byte-identical to a plain writer', () => {
+    const { value } = wdrOf(EMPTY_RECORD);
+    assert.equal(commentBlockOf(value!), '');
+  });
+
+  it('a record with N marks produces N [DQ] lines, in record order, each field=value: offence', () => {
+    const withDq = `
+uuid: {value: u1, definition: d}
+quality: {rating: M, confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}
+manufacturer: {value: Acme, origin: manual, definition: d, dq: []}
+brand: {value: Acme, origin: manual, definition: d, dq: []}
+model: {value: Widget, origin: manual, definition: d, dq: []}
+sku: {value: acme-widget, definition: d, grounds: []}
+driver_type: {value: woofer, origin: manual, definition: d, dq: []}
+disposition: {value: ok, definition: d, detail: ''}
+data_sources: {value: {}, definition: d}
+authoritative: {value: manual, definition: d}
+description: {value: 'a driver', origin: manual, definition: d, dq: []}
+specs:
+  woofer:
+    Qts:
+      origin: manual
+      readings: {manual: {read_value: 1.5}}
+      dq:
+        - {kind: range, severity: error, rule: range-above-max, params: {field: Qts, value: 1.5, limit: 0.8, unit: ''}, detail: 'Qts=1.5 above max 0.8'}
+    Vas:
+      origin: manual
+      readings: {manual: {read_value: 140}}
+      dq:
+        - {kind: range, severity: error, rule: range-above-max, params: {field: Vas, value: 140, limit: 60, unit: L}, detail: 'Vas=140 above max 60 L'}
+`;
+    const { value } = wdrOf(withDq);
+    const comment = commentBlockOf(value!);
+    assert.equal(comment,
+      "a driver\n[DQ] Qts=1.5: Qts=1.5 above max 0.8\n[DQ] Vas=140: Vas=140 above max 60 L");
   });
 });

@@ -3937,6 +3937,49 @@ questions:
       pre-existing in packages/ui: bundle-drivers-disposition.test.ts, vent-target-reachability.test.ts,
       architecture.test.ts — all outside this session's file restriction, untouched, not introduced by
       this session). LSP unavailable all session (never loaded — Grep/Read used throughout).
+  - at: '2026-08-14'
+    text: |-
+      DRIVER_RECORD_MODEL.md folded into ARCHITECTURE.md §3 and deleted, per the human's direct
+      ruling.
+
+      Merged into existing §3 subsections (kept ARCHITECTURE's voice, no new facts needed —
+      already covered at summary depth): (1) driver.yml→openisd.yml→model→.wdr chain — "WinISDDriver
+      is solely a serialisation device" + "File formats" subsections; (2) source/provenance tracking —
+      "Provenance, and how it displays"; (3) E/C/N derivation rule — "presence is the assertion" in
+      "File formats" + the display rule in "Provenance, and how it displays".
+
+      Genuinely new — added as two new §3 subsections (openisd/ARCHITECTURE.md had nothing on
+      either): "Relation groups solve in every direction" (bidirectional fixpoint solving via
+      solveConsistencyGroup in packages/engine/src/driver.ts, plus route-precedence ties for
+      Xmax/Sd/Rme, grounded against current docs/design/WDR_SCHEMA.md §4.1 and the live engine code
+      — the old doc's looser "route precedence order" language was tightened to match WDR_SCHEMA's
+      now-resolved fixpoint mechanism) and "Inconsistency is marked, not resolved" (DQ marking for
+      contradictory/over-determined consistency groups, grounded against checkConsistency in
+      packages/engine/src/consistency.ts — old doc's decision-log framing "Workspace ledger QP18,
+      ruled 2026-08-05" rewritten as present-tense spec fact, ledger citation dropped).
+
+      Removed the "The fields of the driver record and what each means" row from ARCHITECTURE.md's
+      "what this document does not specify" table (no longer true — §3 now specifies it), and the
+      dangling "the fields themselves ... are DRIVER_RECORD_MODEL.md's" sentence.
+
+      Every reference fixed: AGENTS.md:325-333 (dropped the redundant bullet, folded "the driver
+      model" pointer into the ARCHITECTURE.md bullet already there) and AGENTS.md:342 ("if one of
+      them and ARCHITECTURE.md disagree ... ARCHITECTURE.md wins"); BACKLOG.md:356 and :560
+      (re-pointed to ARCHITECTURE.md §3, one with a direct subsection anchor); docs/design/
+      STATE_MODEL.md:73,76 (re-pointed, QO13/QP18 ledger citations left as STATE_MODEL's own style);
+      docs/plans/PLAN_OPENISD_DRIVER_MODEL.md:117 (re-pointed, QP18 citation left).
+
+      NOT fixed, out of scope: docs/design/WDR_SCHEMA.md:368,604 references DRIVER_RECORD_MODEL.md
+      twice — WDR_SCHEMA.md is on this task's explicit file-restriction list (do not edit), so left
+      as a dangling reference for a follow-up. openspec/changes/reorganize-project-docs/{design,
+      proposal,tasks}.md also reference it (3 files) — left untouched as historical change-proposal
+      artifacts outside this task's named scope (AGENTS.md + docs/plans/ only).
+
+      File confirmed deleted: docs/design/DRIVER_RECORD_MODEL.md. Final §3 read end to end after
+      the edit — reads as one coherent section (8 subsections: the driver model intro, OpenISDDriver
+      owns the app, Provenance, Relation groups solve in every direction, Inconsistency is marked,
+      WinISDDriver is solely a serialisation device, File formats, Scope), no seams between old and
+      new content.
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open

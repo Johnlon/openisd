@@ -12,6 +12,7 @@ class AD-8 retires — not repeated here.
 ## Status
 
 **Already built, unconsumed** — `packages/winisd/src/native/`:
+
 - `openisdRecord.ts` (213 lines) — the full `openisd.yml` shape, hand-transcribed against the
   real Python pydantic models: `OpenISDRecord` (top-level record), `Specs`/`SpecSection`
   (per-driver-type — `woofer`/`tweeter`/`passive_radiator` — since a field lives at
@@ -30,6 +31,7 @@ class AD-8 retires — not repeated here.
 partially-tested groundwork with no live caller anywhere in the app.
 
 **Missing, and this plan's actual scope**:
+
 1. `OpenISDDriver` — the stateful, `enter`/`clear`-style class the app should hold and mutate.
    Does not exist. Only the plain data types above exist.
 2. `WinISDDriver` — the serializer-only class. Does not exist. Today's `Driver.toWdr()`/
@@ -47,7 +49,7 @@ is a canonical spec field — `CANONICAL_SPEC_FIELDS`, `winisd_tools/record_regi
 loss" is true; does not block Phase 1 starting.
 
 Everything else checked against AD-8 maps cleanly: the WDR-carried dimension fields (`thick_mm`,
-`depth_mm`, `magnet_depth_mm`, `Hc_mm`, `Hg_mm`) have direct equivalents, and every *calculated*
+`depth_mm`, `magnet_depth_mm`, `Hc_mm`, `Hg_mm`) have direct equivalents, and every _calculated_
 field's absence from the schema (`no`/η₀, `Vd`, `SPLmax`, `SPLmaxLF`, `Mpow`, `Mcost`, `Rme`,
 `gamma`) is correct by design (`winisd_tools/DESIGN.md` §10a), not a gap.
 
@@ -65,7 +67,7 @@ the nested shape:
 
 ```ts
 class OpenISDDriver {
-  constructor(record: OpenISDRecord);           // driver_type pins which SpecSection is live
+  constructor(record: OpenISDRecord); // driver_type pins which SpecSection is live
 
   enter(field: string, value: number | string): void;
   // Writes specs[driverType][field] = { origin: 'manual', readings: { manual: {
@@ -83,11 +85,11 @@ class OpenISDDriver {
   // per origin==='manual' vs a source role) sourced from entry.origin, not a flag.
   // Absent -> deriveOpenISDFields(enteredBag)[field], state 'C' if resolvable else 'N'.
 
-  errors(): DriverError[];               // deriveOpenISDFields(...).errors, unchanged authority
+  errors(): DriverError[]; // deriveOpenISDFields(...).errors, unchanged authority
   consistencyIssues(): ConsistencyIssue[]; // checkConsistency(enteredBag), unchanged authority
-  toRecord(): OpenISDRecord;             // current state -> the record shape, for toYaml()
+  toRecord(): OpenISDRecord; // current state -> the record shape, for toYaml()
   static fromRecord(record: OpenISDRecord): OpenISDDriver;
-  subscribe(listener): () => void;       // same framework-free notify pattern as today's Driver
+  subscribe(listener): () => void; // same framework-free notify pattern as today's Driver
 }
 ```
 
@@ -102,6 +104,7 @@ written — it is the field that used to be `Driver`'s binary E-vs-not-E and is 
 ## Phase 1 — Build `OpenISDDriver` (TDD, red→green per `/test-driven-development`)
 
 Per the locked API above. Write failing tests first for:
+
 - `enter('Fs', 40)` on a record whose `specs.woofer` has no `Fs` → `cell('Fs')` is
   `{ value: 40, state: 'E' }`, and `record.specs.woofer.Fs.origin === 'manual'`.
 - `clear('Fs')` after a manual entry → field absent from `specs.woofer` entirely (not merely
@@ -114,7 +117,8 @@ Per the locked API above. Write failing tests first for:
   fresh `enter('Qes', ...)`/`enter('Qms', ...)` typed afterward → `checkConsistency` flags all
   three once they disagree beyond precision. **No auto-clear, no eviction** — this is where
   this session's wrong `DriverSession` attempt landed; the correct fix is `consistencyIssues()`
-  surfacing the DQ mark, full stop (`DRIVER_RECORD_MODEL.md` §4, QP18 ruling).
+  surfacing the DQ mark, full stop (`ARCHITECTURE.md` §3 "Inconsistency is marked, not
+  resolved", QP18 ruling).
 - `toRecord()` / `fromRecord()` round-trip: entered + derived state survives unchanged.
 
 **Gate:** new tests green; `docs/DRIVER_ADT_DESIGN.md` updated to describe `OpenISDDriver`
@@ -130,7 +134,7 @@ Serializer only — no held state between calls, per AD-8's explicit constraint.
   and `ParState` characters expected (mirrors today's `Driver.toWdr()` test coverage, ported).
 - **Import path:** `WinISDDriver.fromWdr(text): WinISDDriver` (parse only, no app logic) +
   a diff step: compare each `WinISDDriver` field against what `OpenISDDriver` would
-  independently derive from the *asserted* subset, and surface any mismatch as a DQ signal —
+  independently derive from the _asserted_ subset, and surface any mismatch as a DQ signal —
   **never silently overwrite** an existing `OpenISDDriver` field from an imported `.wdr`
   value that disagrees. Write the red test first: import a `.wdr` whose Qts contradicts its
   own Qes/Qms → assert a DQ mark appears, not a silent value change.
