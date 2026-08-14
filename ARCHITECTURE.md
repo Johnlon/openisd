@@ -190,7 +190,8 @@ Kept separate so both stay readable (R12): one picture per question.
 ```mermaid
 graph TD
     subgraph STORES["THE APPROVED STATE OWNERS — nothing else holds state"]
-        MP["<b>ManagedProject</b><br/>logic/managedProject.ts<br/><i>one per project in the left nav</i>"]
+        WS["<b>Workspace</b><br/>logic/model/workspace.ts<br/><b>an ORDERED LIST</b> of open projects<br/><i>never a map keyed by name —<br/>two projects may share a name</i>"]
+        MP["<b>ManagedProject</b><br/>logic/managedProject.ts<br/><i>one per row in the left nav</i>"]
         PS["<b>PresentationState</b><br/>logic/presentationState.ts<br/>browser-storage backed<br/><i>panels · cursor · zoom · skin · units</i>"]
         UAS["<b>UrlAppState</b><br/>logic/urlAppState.ts<br/><i>composes the URL. OWNS NOTHING —<br/>queries the owners, asks them to restore.</i>"]
     end
@@ -219,6 +220,7 @@ graph TD
         META["<b>Project metadata</b><br/>name · creator · dates"]
     end
 
+    WS -->|"projects[0..n], ordered"| MP
     MP --> G
     MP --> M
     MP --> O
@@ -243,12 +245,19 @@ graph TD
     classDef comp fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
     classDef cfg fill:#1e3050,stroke:#60a5fa,color:#eaf2ff
     classDef layer fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
-    class MP,PS,UAS owner
+    class WS,MP,PS,UAS owner
     class PROJ priv
     class DRV,PR comp
     class BOX,ALIGN,VENT,TGT,FLT,ENV,SIG,META cfg
     class G,M,O layer
 ```
+
+**Projects are an ORDERED LIST, never a map.** `project.name` is what the left nav shows, and the
+app deliberately ALLOWS two open projects to carry the same name. A name is therefore a LABEL, not
+an identity: keying the collection by it would silently merge or overwrite two distinct designs the
+user is working on side by side. The workspace holds `ManagedProject`s in an array, position is
+stable, and identity is the entry's own id — never its name. `logic/model/workspace.ts` already
+declares `projects: WorkspaceEntry[]`, which is correct and must stay a list.
 
 **Reading it.** `ManagedProject` is the only thing the app talks to. It holds three complete
 `OpenISDProject`s — ground, modified, and one overlay that is either an edit draft or a what-if,
