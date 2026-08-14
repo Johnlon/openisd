@@ -555,6 +555,39 @@ and none are added. That is `OpenISDProject`'s concern, and `.owpr` is its on-di
 multi-layer state model is multiple _copies_ of the one `OpenISDDriver` shape, never different
 shapes of it.
 
+### `ManagedDriver` — the one facade over every state layer
+
+**`ManagedDriver` wraps a driver's ground state, modified state, and an edit-or-what-if overlay.
+Nothing outside it may read or write any of those layers directly** — a component, a workflow, a
+service, anything — reaches the driver's state only through `ManagedDriver`. This is the layer
+model of [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md) given a single owning object:
+ground state is that document's Baseline/Ground, modified state is its Committed design, and the
+overlay is either a Dialog draft (editing) or a What-if overlay — never both at once.
+
+**The edit lifecycle:** `beginEdit()` opens a draft over the modified state. `commitEdit()` writes
+the draft into modified state and discards the draft. `cancelEdit()` discards the draft without
+writing anything — the modified state is byte-identical to before `beginEdit()` was called,
+provenance marks included.
+
+**The what-if lifecycle:** `beginWhatIf()` opens an overlay read from the modified state.
+`cancelWhatIf()` discards it. **There is no `commitWhatIf()`** — a what-if explores values the app
+cannot verify against physical reality, so nothing ever promotes one into the design. The only way
+a what-if session ends is `cancelWhatIf()`, and it always discards.
+
+**Subscription is single-channel.** A consumer subscribes to `ManagedDriver` and to nothing beneath
+it. `ManagedDriver` alone decides when a subscriber is notified, and the two overlays notify on
+different rhythms:
+
+- **An edit draft is silent.** Typing into an open edit produces no notification. `commitEdit()`
+  writes the draft into modified state, and it is **that write to modified state** — not the act of
+  committing — that triggers the notification a subscriber receives.
+- **A what-if overlay is live.** Every change to an active what-if overlay notifies immediately, so
+  a chart reads the scrubbed value on every frame. `beginWhatIf()`/`cancelWhatIf()` themselves also
+  notify, since they change which layer resolves.
+
+An edit draft that never commits produces zero notifications; a what-if session that never
+commits (none ever do) produces one notification per change plus one on cancel.
+
 ---
 
 ## 4. Runtime data flow
