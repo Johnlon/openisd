@@ -52,7 +52,7 @@ graph LR
     BUNDLE[("drivers-bundle.json<br/>driver commons, bundled at build")]
     WDR[("WinISD files<br/>.wdr driver · .wpr project")]
     OWDR[("Native files<br/>.owdr driver · .owpr project")]
-    DRIVERS[("winisd_drivers repo · db/<br/>driver.yml — owned by winisd_tools<br/>openisd.yml + .wdr — written by OpenISD's utility")]
+    DRIVERS[("winisd_drivers repo · db/<br/>driver.yml · openisd.yml · .wdr<br/><i>every file written by winisd_tools</i>")]
     TOOLS["winisd_tools<br/>Python scraper pipeline"]
 
     USER <--> APP
@@ -62,15 +62,21 @@ graph LR
     APP <-->|import / export| WDR
     APP <-->|read / write| OWDR
     TOOLS -->|"scrapes, writes driver.yml"| DRIVERS
-    TOOLS -->|"calls the utility,<br/>passing driver.yml"| APP
-    APP -->|"writes openisd.yml + .wdr"| DRIVERS
+    TOOLS -->|"calls the utility<br/>with driver.yml TEXT"| APP
+    APP -->|"returns openisd.yml<br/>and .wdr TEXT"| TOOLS
+    TOOLS -->|"writes openisd.yml + .wdr"| DRIVERS
     DRIVERS -.openisd.yml published as.-> BUNDLE
 ```
 
-**The dependency between OpenISD and `winisd_tools` runs BOTH WAYS, deliberately.** The Python
-pipeline scrapes and writes `driver.yml` into `winisd_drivers/db`, then calls a utility OpenISD
-exposes, handing it that `driver.yml`, and OpenISD writes the `openisd.yml` and the `.wdr` beside
-it. So:
+**The OpenISD utility TOUCHES NO FILES. It transforms text and returns text.** The Python pipeline
+scrapes and writes `driver.yml` into `winisd_drivers/db`, reads it, hands the TEXT to the utility,
+gets the `openisd.yml` and `.wdr` TEXT back, and writes those files itself. Every file in
+`winisd_drivers/db` is written by `winisd_tools`; OpenISD writes none of them.
+
+That keeps the boundary a pure function — no paths, no filesystem, no working directory, nothing
+to mock in a test — and it is why the contract below is *string in, string out*.
+
+**The dependency still runs BOTH WAYS, deliberately:**
 
 - **`winisd_tools` knows OpenISD** — it calls the utility, so it depends on that interface.
 - **OpenISD knows `driver.yml`** — it reads the format, so it depends on a schema `winisd_tools`
@@ -100,12 +106,13 @@ no-cloud path.
 imported at build time. It is not a live API. A driver added to the commons reaches users on the
 next deploy.
 
-### `openisd.yml` and `.wdr` are written exclusively by JS/TS owned by OpenISD
+### `openisd.yml` and `.wdr` are PRODUCED exclusively by JS/TS owned by OpenISD
 
 There is one implementation of each transform, not one per language. `winisd_tools` produces
 `driver.yml` — its own format, its own authority — and for everything downstream of that it calls
-the OpenISD utility with input and output paths: `driver.yml → openisd.yml`, and
-`openisd.yml → .wdr`.
+the OpenISD utility, passing TEXT and receiving TEXT: `driver.yml → openisd.yml`, and
+`openisd.yml → .wdr`. **`winisd_tools` then writes both files.** The utility is a transform, not a
+file writer: it is handed no path and opens nothing.
 
 **OpenISD therefore reads `driver.yml`**, a schema `winisd_tools` owns, and that dependency is
 accepted on purpose: one reader of that format in one language beats two readers that agree only
