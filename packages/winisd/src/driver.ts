@@ -391,8 +391,18 @@ export class Driver {
     for (const key of WDR_NUMERIC_KEYS) {
       const field = MODELED_BY_WDRKEY[key]?.field ?? (WDR_META.find(p => p[0] === key)?.[1] ?? key);
       const c = this.cell(field);
-      if (c.value === undefined) continue;   // WinISDDriver supplies WinISD's own default
-      cells.set(key, { value: fmtNum(c.value), state: c.state });
+      if (c.value !== undefined) {
+        cells.set(key, { value: fmtNum(c.value), state: c.state });
+        continue;
+      }
+      // No value at all — neither entered nor derivable by anything @openisd/engine models.
+      // A carried WDR key still surviving in #wdrRaw (WinISD computed it by a route this app
+      // has no formula for — e.g. KLe from fLe, Hg from motor geometry) is passthrough:
+      // ARCHITECTURE.md §3 "No import loses data" means the NUMBER survives even where its
+      // mark honestly stays N (openisd cannot claim E or C for a value it cannot derive).
+      const raw = this.#wdrRaw?.[key];
+      if (raw != null) cells.set(key, { value: raw, state: 'N' });
+      // else: WinISDDriver supplies WinISD's own default for this key.
     }
     const h = (field: string): string | undefined => {
       const v = this.cell(field).value;
