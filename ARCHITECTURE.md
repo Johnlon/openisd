@@ -219,6 +219,8 @@ graph TD
         A_VENTED["<b>OpenISDVentedAlignment</b><br/>Vb · Fb · the vent"]
         A_BP4["<b>OpenISDBandpass4Alignment</b><br/>rear Vb · front Vf · Ff"]
         A_PR["<b>OpenISDPassiveRadiatorAlignment</b><br/>Vb · Fp · the radiator + added mass"]
+        A_BP6["<b>OpenISDBandpass6Alignment</b><br/>rear chamber VENTED too:<br/>rear Vb · Fr · rear vent<br/>front Vf · Ff · front vent<br/><i>NOT BUILT — no BoxType value exists</i>"]
+        A_ABC["<b>OpenISDAbcAlignment</b><br/><i>NOT BUILT — and its fields are<br/>NOT YET SPECIFIED. See the note below.</i>"]
     end
 
     subgraph CFG2["DOMAIN · CONFIGURATIONS continued"]
@@ -255,6 +257,9 @@ graph TD
     BOX --> A_VENTED
     BOX --> A_BP4
     BOX --> A_PR
+    BOX --> A_BP6
+    BOX --> A_ABC
+    A_BP6 --> VENT
     A_VENTED --> VENT
     A_PR --> PR
     UAS -.reads · restores.-> MP
@@ -265,11 +270,13 @@ graph TD
     classDef comp fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
     classDef cfg fill:#1e3050,stroke:#60a5fa,color:#eaf2ff
     classDef layer fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
+    classDef unbuilt fill:#402020,stroke:#f87171,color:#ffecec
     class WS,MP,PS,UAS owner
     class PROJ priv
     class DRV,PR comp
     class BOX,VENT,TGT,FLT,ENV,SIG,LIS,SIM,META cfg
     class A_SEALED,A_VENTED,A_BP4,A_PR cfg
+    class A_BP6,A_ABC unbuilt
     class G,M,O layer
 ```
 
@@ -296,6 +303,17 @@ a bandpass has a second chamber, a PR box has a radiator and its added mass. Cho
 ACTIVE; the rest go DORMANT with their data untouched, so flipping a ported box to sealed and back
 returns everything exactly. Only the `.wpr` writer trims dormant data, because the file format
 cannot express it.
+
+**Two alignments are SPECIFIED BUT NOT BUILT, and the diagram says so rather than implying four
+is the whole set.** `BoxType` today is `'sealed' | 'vented' | 'pr' | 'bandpass4'`
+(`packages/engine/src/types.ts`) — there is no 6th-order and no ABC anywhere in the code.
+
+- **`OpenISDBandpass6Alignment`** — a 6th-order bandpass vents BOTH chambers, so it needs a rear
+  vent and tuning as well as a front one. That is why it is its own type and not a flag on the
+  4th-order: it holds a vent the 4th-order does not have.
+- **`OpenISDAbcAlignment`** — **its fields are not yet specified.** It is drawn so the gap is
+  visible, but nothing here states what an ABC alignment holds, and nothing should pretend to
+  until that is decided.
 
 **The vented alignment owns the vent; the PR alignment owns the radiator.** That is why the vent
 hangs off `OpenISDVentedAlignment` and not off `OpenISDBox` — a sealed box has no vent to

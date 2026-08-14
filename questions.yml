@@ -1,5 +1,5 @@
 prefix: QO
-next: 44
+next: 45
 questions:
 - id: QO1
   title: UI TODO List
@@ -4923,3 +4923,30 @@ questions:
       all of them at once.
 
       Recorded in ARCHITECTURE.md as target state, and in HANDOVER.md.
+- id: QO44
+  title: '6th-order bandpass and ABC alignments: not in BoxType, and ABC''s fields are unspecified'
+  status: open
+  raised: '2026-08-14'
+  body: ''
+  notes:
+  - at: '2026-08-14'
+    text: |-
+      The human has named "vented / 4th / 6th / ABC" as the alignment flavours more than
+      once. The code has FOUR BoxType values and neither 6th-order nor ABC is among them:
+
+          packages/engine/src/types.ts:125
+          export type BoxType = 'sealed' | 'vented' | 'pr' | 'bandpass4';
+
+      So today: sealed, vented, 4th-order bandpass and passive-radiator are modelled;
+      6th-order bandpass and ABC are NOT MODELLED AT ALL.
+
+      Both are now drawn in the target data-model diagram marked NOT BUILT, so the
+      diagram cannot be read as "four is the complete set".
+
+      TWO THINGS ARE NEEDED:
+      1. 6th-order bandpass - a 6th-order vents BOTH chambers, so OpenISDBandpass6Alignment
+         needs a rear vent + rear tuning as well as the front pair. That is why it is its
+         own type rather than a flag on the 4th-order. Straightforward once wanted.
+      2. ABC - ITS FIELDS ARE NOT SPECIFIED. Nothing in the repo says what an ABC
+         alignment holds. The diagram shows the box empty on purpose rather than
+         inventing contents. NEEDS A HUMAN SPEC before it can be modelled.
