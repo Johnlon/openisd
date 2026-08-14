@@ -1,5 +1,5 @@
 prefix: QO
-next: 43
+next: 44
 questions:
 - id: QO1
   title: UI TODO List
@@ -4841,3 +4841,32 @@ questions:
   status: open
   raised: '2026-08-14'
   body: ''
+- id: QO43
+  title: 'Box/vents/PRs have no facade: flat state.P fields + a parallel ''entered'' provenance system'
+  status: open
+  raised: '2026-08-14'
+  body: ''
+  notes:
+  - at: '2026-08-14'
+    text: |-
+      The driver got ManagedDriver; the rest of the project did not.
+
+      WHERE THEY LIVE NOW (verified 2026-08-14):
+      - Vents and PRs are FLAT FIELDS in state.P (store.ts P_DEFAULTS): Vb, Vf, ventShape,
+        ventD, ventW, ventH, ventL, Fb, Frc / prSd, prNum, prMmd, prMadd, prCms, prRms,
+        prXmax, prFp, prName, prMode. No object, no owner - any component can write them.
+      - Their provenance is state.P.entered, a Record<string,true> where presence means
+        Entered. That is a SECOND, hand-rolled E/C/N system, unrelated to the driver's
+        SpecEntry/origin/readings + cell().state.
+      - Their solving is in logic/useVentGroup.ts (solveVentGroup) and logic/usePrGroup.ts
+        (solvePrGroup), driven by two watch()ers in store.ts, with enterVentField/
+        clearVentField/ventFieldState/ventTargetUnreachable/ventMaxReachableFb and
+        enterPrField/clearPrField/prFieldState/prTargetUnreachable wrapping them.
+
+      THE QUESTION: the store owns the PROJECT - box, vents, PRs, filters, environment,
+      metadata - not merely persistent scalars plus a ManagedDriver. Should each of those
+      get the same treatment the driver got (an owning facade with one provenance model),
+      or does the project get ONE facade covering all of them?
+
+      This is the same structural weakness the driver had before ManagedDriver existed:
+      one concept, no owner, written from anywhere.
