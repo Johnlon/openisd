@@ -114,7 +114,8 @@ graph TD
     end
 
     subgraph L2["APPLICATION"]
-        LOGIC["<b>logic/</b><br/>store · project · driver model<br/>workflows · field registry · series<br/><i>The only holder of app state.</i>"]
+        LOGIC["<b>logic/</b><br/>store · project<br/>workflows · field registry · series<br/><i>The only holder of app state.</i>"]
+        MANAGED["<b>ManagedDriver</b><br/>ground · modified · edit-or-whatif overlay<br/><i>The ONLY path to a driver's state.<br/>Nothing else reaches OpenISDDriver.</i>"]
     end
 
     subgraph L3["SERVICES — arguments in, data out, no app state"]
@@ -135,6 +136,7 @@ graph TD
     ROOT["<b>composition root</b> · main.ts<br/><i>the ONLY place that constructs anything</i>"]
 
     ROOT -.constructs & injects.-> LOGIC
+    ROOT -.constructs.-> MANAGED
     ROOT -.constructs.-> DRIVERREPO
     ROOT -.constructs.-> MYREPO
     ROOT -.constructs.-> PREFS
@@ -143,17 +145,18 @@ graph TD
     ROOT -.constructs.-> LOGGING
 
     UI --> LOGIC
+    LOGIC --> MANAGED
     LOGIC --> DRIVERREPO
     LOGIC --> MYREPO
     LOGIC --> PREFS
     LOGIC --> FILEIO
     LOGIC --> DIAG
     LOGIC --> LOGGING
-    LOGIC --> MODEL
+    MANAGED --> MODEL
     DRIVERREPO --> MODEL
     MYREPO --> MODEL
     FILEIO --> SERIAL
-    FILEIO --> MODEL
+    FILEIO --> MANAGED
     DIAG --> ENGINE
     MODEL --> ENGINE
     SERIAL --> MODEL
@@ -164,7 +167,7 @@ graph TD
     classDef dom fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
     classDef root fill:#402020,stroke:#f87171,color:#ffecec
     class UI pres
-    class LOGIC app
+    class LOGIC,MANAGED app
     class DRIVERREPO,MYREPO,PREFS,FILEIO,DIAG,LOGGING svc
     class MODEL,ENGINE,SERIAL dom
     class ROOT root
@@ -183,9 +186,10 @@ handed to whoever needs it — it is not importable.
 
 | Module                       | Single responsibility                                                          | Injected dependencies                                           |
 | ---------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| `main.ts` — composition root | Construct every service and the store, wire them, mount the app                | — (it is the top; nothing injects into it)                      |
-| `createStore`                | Hold the application's state and nothing else                                  | `driverRepo`, `myDriverRepo`, `prefsStore`, `fileIO`, `logging` |
-| `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the store, plus whichever services that workflow needs          |
+| `main.ts` — composition root | Construct every service, the store and `ManagedDriver`, wire them, mount the app | — (it is the top; nothing injects into it)                      |
+| `createStore`                | Hold the application's state — a `ManagedDriver` for the driver, everything else in `logic` | `driverRepo`, `myDriverRepo`, `prefsStore`, `fileIO`, `logging`, `ManagedDriver` |
+| `ManagedDriver`              | The one facade over a driver's ground/modified/overlay state — see §3          | an `OpenISDDriver` factory                                      |
+| `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the store (and, through it, `ManagedDriver`), plus whichever services that workflow needs |
 | `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup       | a bundle source (`() => OpenISDRecord[]`)                       |
 | `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStore`                                               |
 | `createPrefsStore`           | Browser-local preferences: favourites, session, layout                         | a `KeyValueStore`                                               |
@@ -241,6 +245,7 @@ declaration — never prose, so a comment naming a module cannot fail it.
 | Nothing below presentation imports a `.vue` file                                    | the gate                                                    |
 | `ui` imports `logic` and nothing below it — no service, no engine, no serialiser    | the gate                                                    |
 | A component imports no VALUE from `@openisd/*`; an `import type` is fine, it erases | the gate                                                    |
+| Only `ManagedDriver` imports `OpenISDDriver` — everything else reaches a driver's state through `ManagedDriver` alone | not yet — no gate written                    |
 | A service never imports `logic`, and never imports a sibling service                | the gate                                                    |
 | No service exports a pre-built instance or a mutable binding                        | the gate                                                    |
 | Every service module offers one `create<Name>(deps)` factory                        | the gate                                                    |
@@ -611,17 +616,26 @@ sequenceDiagram
     actor User
     participant UI as ui component
     participant Store as logic store
+    participant Managed as ManagedDriver
     participant Driver as OpenISDDriver
     participant Engine as engine
     participant Canvas as ui canvas
 
-    User->>UI: edits a T/S field or box volume
-    UI->>Store: enterDriverField field, value
-    Store->>Driver: enter field, value
+    User->>UI: opens the driver editor, edits a field
+    UI->>Store: request an edit
+    Store->>Managed: beginEdit
+    Note over Managed: cancels any active what-if first
+    User->>UI: types into the field
+    UI->>Managed: set field, value, on the draft
+    Note over Managed: silent -- no notification while the draft is open
+    User->>UI: OK
+    UI->>Store: request commit
+    Store->>Managed: commitEdit
+    Managed->>Driver: enter field, value, on modified state
     Note over Driver: records a manual reading.<br/>C and N are derived, never set
     Driver->>Engine: solve the stated fields
     Engine-->>Driver: a Result carrying value and errors, never a throw
-    Driver-->>Store: notify subscribers
+    Managed-->>Store: notify subscribers<br/>(the write to modified state, not the commit itself)
     Store->>Engine: sweep driver, boxType, params
     Engine-->>Store: SweepResult - spl, phase, excursion, impedance
     Store->>Store: map the arrays to renderer series
@@ -629,13 +643,20 @@ sequenceDiagram
     Canvas-->>User: redrawn charts and readouts
 ```
 
+**A what-if follows the same shape with a different rhythm.** `beginWhatIf()` opens an overlay
+read from modified state; every scrub notifies immediately, live, so the chart updates on each
+frame; `cancelWhatIf()` is the only way the session ends, and it always discards — there is no
+commit. See §3, "`ManagedDriver` — the one facade over every state layer", for the full contract.
+
 **File I/O sits beside this loop, not inside it.** Import builds an `OpenISDDriver` from an
-`openisd.yml`/`.owdr` record, or from `.wdr` text via `WinISDDriver`; export projects the live
-model back out. The sweep never touches a file.
+`openisd.yml`/`.owdr` record, or from `.wdr` text via `WinISDDriver`, and hands it to
+`ManagedDriver`; export reads modified state through `ManagedDriver`, which cancels any active
+what-if first. The sweep never touches a file.
 
 **The store reaches services, never the reverse.** `logic` calls `driverRepo` for a record,
 `myDriverRepo` and `prefsStore` for browser-local data, `fileIO` to read and write, `diagnostics`
-and `logging` to report. Each returns data and holds no reference to the store.
+and `logging` to report, `ManagedDriver` for the driver's own state. Each returns data and holds no
+reference to the store.
 
 ---
 
