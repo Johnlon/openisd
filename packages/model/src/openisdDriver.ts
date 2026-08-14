@@ -28,7 +28,10 @@ import { winningReading } from './openisdRecord.js';
 import type {
   OpenISDRecord, SpecEntry, SpecSection, SourceRole, Reading,
 } from './openisdRecord.js';
-import type { DriverError } from '@openisd/engine';
+import { deriveDriver, checkConsistency, RHO, C } from '@openisd/engine';
+import type {
+  DriverError, DriverRaw, Driver as EngineDriver, ConsistencyIssue,
+} from '@openisd/engine';
 
 /** What `cell()` answers: the number, and where it came from. */
 export type CellState = 'E' | 'C' | 'N';
@@ -44,6 +47,22 @@ export type DriverListener = () => void;
 
 /** A field of `SpecSection` — the closed canonical allowlist, not an open string. */
 export type SpecField = keyof SpecSection;
+
+/**
+ * The record-level metadata fields a live edit can touch — the `ScrapedField<string>`
+ * envelope, distinct from `SpecField`'s `SpecEntry` envelope (openisdRecord.ts's four-kind
+ * split). Not `sku`/`name` (`DerivedField` — built, not read) and not `uuid` (`BookkeepingField`
+ * — a pipeline fact, never hand-edited).
+ */
+export type MetaField = 'brand' | 'model' | 'manufacturer';
+
+/** What `metaCell()` answers for a `MetaField` — no `C` state: nothing computes a brand. */
+export interface MetaCell {
+  value: string;
+  state: 'E' | 'N';
+  /** The winning source, present only for a stated (non-empty) value. */
+  origin?: SourceRole;
+}
 
 /**
  * Which section of `specs` a record's fields live in. Anything that is not a tweeter or a
@@ -76,8 +95,16 @@ export class OpenISDDriver {
   readonly #section: 'woofer' | 'tweeter' | 'passive_radiator';
   /** The origin that won before a manual reading displaced it, so clear() can restore it. */
   readonly #displaced = new Map<SpecField, SourceRole>();
+  /** The {value, origin} a MetaField carried before a manual override, so clearMeta() can
+   *  restore it — the ScrapedField equivalent of #displaced. */
+  readonly #displacedMeta = new Map<MetaField, { value: string; origin: SourceRole }>();
   /** Memoised solve; dropped on every mutation. */
   #cache: { fields: Record<string, number>; errors: DriverError[] } | null = null;
+  /** Memoised consistency verdict; dropped alongside #cache. */
+  #issues: ConsistencyIssue[] | null = null;
+  /** Whether a derivable (never-stated) field solves to `C`. Off: it reads `N` — nothing is
+   *  solved, only what is stated is validated. */
+  #autoCalculate = true;
   readonly #listeners = new Set<DriverListener>();
 
   private constructor(record: OpenISDRecord) {
@@ -120,8 +147,23 @@ export class OpenISDDriver {
   }
 
   #derived(): { fields: Record<string, number>; errors: DriverError[] } {
-    if (!this.#cache) this.#cache = deriveOpenISDFields(this.#stated());
+    if (!this.#cache) {
+      this.#cache = this.#autoCalculate
+        ? deriveOpenISDFields(this.#stated())
+        : this.#deriveEnteredOnly();
+    }
     return this.#cache;
+  }
+
+  /** autoCalculate off: no consistency-group solve at all — only what is stated, validated
+   *  as-is. Matches deriveOpenISDFields' own air-constant backfill (a driver always has SOME
+   *  air, solved or not) but skips its SPL-from-efficiency step, which needs a solved `no`. */
+  #deriveEnteredOnly(): { fields: Record<string, number>; errors: DriverError[] } {
+    const stated = { ...this.#stated() };
+    if (stated.c == null) stated.c = C;
+    if (stated.roo == null) stated.roo = RHO;
+    const { errors } = deriveDriver(stated as unknown as DriverRaw);
+    return { fields: stated, errors };
   }
 
   /**
@@ -183,6 +225,80 @@ export class OpenISDDriver {
   /** What the engine says stops this driver simulating. The engine is the only authority. */
   errors(): DriverError[] { return this.#derived().errors; }
 
+  /**
+   * The resolved, engine-ready driver — every derivable field under its ENGINE name
+   * (`Bl`, not `BL`), for `sweep()`/`maxCurves()`. Null when a blocking ('error' level)
+   * issue means nothing can be drawn — the same guard `deriveDriver` itself enforces.
+   * `numVC` defaults to 1 here only (WinISD's "one voice coil unless stated otherwise") —
+   * `cell('numVC')` stays honestly N when nothing stated it; this is the one place a
+   * default is owed to the physics, not to the field's own display.
+   */
+  toDriver(): EngineDriver | null {
+    const { fields, errors } = this.#derived();
+    if (errors.some(e => e.level === 'error')) return null;
+    const out = { ...fields };
+    if (out.numVC == null) out.numVC = 1;
+    return out as unknown as EngineDriver;
+  }
+
+  /**
+   * The consistency groups (WDR_SCHEMA §4) whose STATED members contradict each other
+   * beyond their own precision — the same `checkConsistency` the engine exposes, run over
+   * exactly what `errors()`/`toDriver()` also start from. Memoised alongside #cache.
+   */
+  consistencyIssues(): ConsistencyIssue[] {
+    return this.#issues ??= checkConsistency(this.#stated());
+  }
+
+  /** Whether a derivable field solves to `C`. Off leaves it `N` — see `#deriveEnteredOnly`. */
+  get autoCalculate(): boolean { return this.#autoCalculate; }
+  set autoCalculate(val: boolean) {
+    if (this.#autoCalculate !== val) {
+      this.#autoCalculate = val;
+      this.#invalidate();
+    }
+  }
+
+  /** The value and provenance of a record-level metadata field (brand/model/manufacturer)
+   *  — the `ScrapedField<string>` envelope's own `cell()`. No `C` state: nothing computes
+   *  a brand. An empty value (never stated, or cleared to nothing) reads `N`. */
+  metaCell(field: MetaField): MetaCell {
+    const f = this.#record[field];
+    if (f.value && f.value.length > 0) return { value: f.value, state: 'E', origin: f.origin };
+    return { value: '', state: 'N' };
+  }
+
+  /**
+   * Record a hand-entered metadata value — the ScrapedField equivalent of `enter()`
+   * (QO36 B3/B4 apply the same way, on the other envelope). An empty string routes to
+   * `clearMeta()`, matching how a blank text input behaves everywhere else in the editor.
+   * The value/origin the field carried before the FIRST manual override is snapshotted so
+   * `clearMeta()` can restore it — `readings`/`definition`/`dq` are left untouched, since
+   * `ScrapedField`'s number is `.value` directly, never looked up via `readings`.
+   */
+  enterMeta(field: MetaField, value: string): void {
+    if (value === '') { this.clearMeta(field); return; }
+    const f = this.#record[field];
+    if (f.origin !== 'manual' && !this.#displacedMeta.has(field)) {
+      this.#displacedMeta.set(field, { value: f.value, origin: f.origin });
+    }
+    f.value = value;
+    f.origin = 'manual';
+    this.#notify();
+  }
+
+  /** Drop a hand-entered metadata value. The value/origin the field carried before the
+   *  override wins again; clearing a field never entered by hand does nothing. */
+  clearMeta(field: MetaField): void {
+    const displaced = this.#displacedMeta.get(field);
+    if (!displaced) return;
+    const f = this.#record[field];
+    f.value = displaced.value;
+    f.origin = displaced.origin;
+    this.#displacedMeta.delete(field);
+    this.#notify();
+  }
+
   subscribe(fn: DriverListener): () => void {
     this.#listeners.add(fn);
     return () => this.#listeners.delete(fn);
@@ -190,6 +306,11 @@ export class OpenISDDriver {
 
   #invalidate(): void {
     this.#cache = null;
+    this.#issues = null;
+    this.#notify();
+  }
+
+  #notify(): void {
     // Copy so a listener that unsubscribes mid-notify does not disturb iteration.
     for (const fn of [...this.#listeners]) fn();
   }

@@ -6,6 +6,20 @@
       "field": "ParState[23]",
       "cause": "numVC: openisd's Driver#derive() autofills numVC = 1 for a record that omits it, so slot 23 reads C (the app supplied it). WinISD pins that slot E, asserting a human entered a value nobody typed. Ruled 2026-08-13 'there was a winisd bug here - obviously dont replicate that', so a red row here would be the suite being wrong, not the app.",
       "reference": "ledger QO28; BACKLOG.md 'Quality / infrastructure'; packages/winisd/src/driver.ts #derive()"
+    },
+    {
+      "scenario": "env-t-303",
+      "field": "air.c",
+      "maxRelative": 2e-2,
+      "cause": "packages/engine/src/air.ts winisdAir() scales the frozen RHO/C pair by tempK (rho ∝ 1/T, c ∝ √T) instead of returning them unconditionally. WinISD's own compatibility air is a fixed pair that does not move with temperature at all — env-t-303's c/roo are byte-identical to its 293.15 K twin env-rh-30. This is a calculation-logic change gated on human authorisation (AGENTS.md 'Calculation logic — permission gate'); not fixed here.",
+      "reference": "bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md"
+    },
+    {
+      "scenario": "env-t-303",
+      "field": "air.roo",
+      "maxRelative": 4e-2,
+      "cause": "Same mechanism as air.c: winisdAir() scales rho by T_REF_K/tempK; WinISD's frozen compatibility air does not scale rho with temperature at all. Same permission gate, same fix, same bug file.",
+      "reference": "bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md"
     }
   ]
 }

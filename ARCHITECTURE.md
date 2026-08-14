@@ -446,6 +446,20 @@ not derive, hold live state, or persist between calls.
 - `.wdr` is therefore 100 % derivable from `OpenISDDriver`: generated on demand, never stored. The
   same relationship holds upstream — `openisd.yml` is 100 % derivable from `driver.yml`.
 
+**Every DQ mark on the record travels into the `.wdr` `Comment=` field as a suffix.** WinISD's
+`.wdr` format has no field for data-quality flags, and the DQ marks are real findings about the
+record — a driver opened in classic WinISD must not lose them silently. The writer appends one
+line per mark, after whatever comment text the record already carries, each stating exactly three
+things: **the offending field, the offending value, and the offence.** Example:
+
+    Comment=<original description text, if any>
+    [DQ] Qts=0.500: value outside plausible range 0.1-0.8 for this driver class
+    [DQ] Vas=140: unit mismatch suspected -- other 8" woofers cluster near 40-60 L
+
+One line per mark, in the order the record carries them. A record with no DQ marks appends
+nothing — the `Comment=` field is unchanged from today. This is a required part of `WinISDDriver`'s
+writer (§2 Step 8 of the migration plan), not an optional enhancement.
+
 ### File formats, and what crossing that boundary guarantees
 
 The app reads and writes five formats. Two are ours, three are WinISD's.
