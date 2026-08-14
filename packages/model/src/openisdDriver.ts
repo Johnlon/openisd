@@ -143,6 +143,43 @@ export class OpenISDDriver {
     return new OpenISDDriver(record);
   }
 
+  /**
+   * A driver with nothing stated — no T/S values, no identity. What the app holds before a
+   * driver has been chosen, and the seed a hand-authored one is built on with `enter()`.
+   *
+   * Every value here is genuinely EMPTY, never a plausible-looking placeholder: an invented
+   * Fs would be indistinguishable from a stated one and would simulate as though someone had
+   * measured it. `specs` is an empty woofer section, so `cell()` answers `N` for every field
+   * — honestly "not set" — rather than throwing.
+   *
+   * `origin: 'manual'` on the identity fields is the truthful role for a value the app itself
+   * put there (openisdRecord.ts: `manual` is the one non-URL role, a hand-entered value with
+   * nothing to index). They carry the empty string, so `metaCell()` reads them as `N`.
+   */
+  static empty(): OpenISDDriver {
+    const identity = (definition: string) =>
+      ({ value: '', origin: 'manual' as SourceRole, definition, dq: [] });
+    return new OpenISDDriver({
+      uuid: { value: '', definition: 'stable record identity' },
+      quality: {
+        rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+        parse_errors: [], cross_source_only: [],
+      },
+      manufacturer: identity('the company that makes the driver'),
+      brand: identity('the selling brand'),
+      model: identity("the vendor's exact designation"),
+      sku: { value: '', definition: 'canonical identity code', grounds: [] },
+      driver_type: identity('what kind of driver this is'),
+      disposition: {
+        value: 'ok', definition: "the record's own account of its standing",
+        detail: 'authored in the app, not scraped',
+      },
+      data_sources: { value: {}, definition: 'the record-wide provenance index' },
+      authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
+      specs: { woofer: {} },
+    });
+  }
+
   /** The record, including every manual reading entered. This is the `.owdr` bytes. */
   toRecord(): DriverFields { return this.#record; }
 

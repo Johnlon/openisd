@@ -337,7 +337,8 @@ describe('only the three approved stores hold state', () => {
   const APPROVED = [
     join(UI_SRC, 'logic', 'store.ts'),
     join(UI_SRC, 'logic', 'managedDriver.ts'),
-    join(UI_SRC, 'logic', 'viewState.ts'),      // not built yet — see ARCHITECTURE.md
+    join(UI_SRC, 'logic', 'presentationState.ts'),   // not built yet — see ARCHITECTURE.md
+    join(UI_SRC, 'logic', 'urlAppState.ts'),         // not built yet — see ARCHITECTURE.md
   ];
 
   /** A module-level reactive container — `ref()`, `shallowRef()`, `reactive()` — assigned to a
@@ -360,8 +361,9 @@ describe('only the three approved stores hold state', () => {
     }
 
     assert.deepEqual(offences, [],
-      'Only three places may hold state: the store (persistent design), ManagedDriver ' +
-      '(active/edit/what-if driver), ViewState (presentation + the visible URL). Each binding ' +
+      'Only the approved stores may hold state: the store (persistent design), ManagedDriver ' +
+      '(active/edit/what-if driver), PresentationState (presentation, browser-backed), ' +
+      'UrlAppState (the URL that encapsulates the app state). Each binding ' +
       'above is a fourth store — module-level, outliving every component, reachable by import, ' +
       'and free to disagree with whichever approved store already answers the same question. ' +
       'Delete it and call the approved store, every time; never cache a copy for convenience.');

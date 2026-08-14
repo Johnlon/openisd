@@ -177,6 +177,99 @@ graph TD
 constructs. Every other arrow is a collaborator that arrived as an argument, so the thing at the
 tail can be exercised in a test with a substitute at the head.
 
+**The diagram above is the TARGET.** It shows what the system is specified to be. The one below
+shows what it IS.
+
+### AS-BUILT — every module that exists today
+
+This is the same system as the diagram above, drawn from what is actually on disk rather than from
+what was specified. It exists because the target diagram is a poor guide to the current tree: it
+omits modules that exist, and shows components (`PresentationState`, `UrlAppState`, `createFileIO`)
+that have not been built. **A red box is a module the target diagram does not account for.** Every
+red box is either work still to be placed, or a module that should not exist — none of them is
+sanctioned by the target above.
+
+```mermaid
+graph TD
+    subgraph AL1["PRESENTATION — packages/ui/src/ui/"]
+        A_SHELLS["shells/original/<br/>OriginalShell · OgTune · OgFilters · OgNewProject"]
+        A_COMPS["components/<br/>DriverEditorModal · OptionsModal · PRDefineModal<br/>PREditModal · PRBrowser · DriverBrowserWinisd · Flash · App"]
+    end
+
+    subgraph AL2["APPLICATION — packages/ui/src/logic/"]
+        A_STORE["<b>store.ts</b><br/><i>APPROVED: persistent design state</i>"]
+        A_MANAGED["<b>managedDriver.ts</b><br/><i>APPROVED: active · edit · what-if</i>"]
+        A_PRES["<b>presentationState.ts</b><br/><i>APPROVED — NOT BUILT</i>"]
+        A_URL["<b>urlAppState.ts</b><br/><i>APPROVED — NOT BUILT</i>"]
+        A_IO["useDesignIO.ts<br/><i>open · save · export · share</i>"]
+        A_SEL["driverSelection.ts"]
+        A_LIB["driverLibrary.ts"]
+        A_PERSIST["persist.ts"]
+        A_PROJFILE["projectFile.ts"]
+        A_MODELDIR["model/OpenISDProject.ts"]
+        A_VENT["useVentGroup.ts"]
+        A_PR["usePrGroup.ts"]
+        A_CELLS["useDriverCells.ts"]
+        A_SERIES["series.ts"]
+        A_FIELDS["fields/ (units · registry)"]
+        A_PROV["provenance.ts"]
+        A_ENV["environment.ts"]
+        A_PRWIN["prWinIsdFields.ts"]
+        A_WPRMAP["wprMapping.ts"]
+        A_FILESAVE["fileSave.ts"]
+        A_APP["app.ts"]
+        A_TONE["toneGenerator.ts"]
+        A_ESC["useEscToClose.ts"]
+    end
+
+    subgraph AL3["SERVICES — packages/ui/src/{db,diagnostics,logging}/"]
+        A_REPO["db/driverRepo.ts"]
+        A_MY["db/myDrivers.ts"]
+        A_PREFS["db/prefs.ts"]
+        A_KV["db/kv.ts"]
+        A_PRLIB["db/prLibrary.ts"]
+        A_DIAG["diagnostics/selftest.ts"]
+        A_LOG["logging/flash.ts"]
+    end
+
+    subgraph AL4["DOMAIN — packages/*/src/"]
+        A_MODEL["<b>@openisd/model</b><br/>OpenISDDriver"]
+        A_ENGINE["<b>@openisd/engine</b><br/>physics"]
+        A_WINISD["<b>@openisd/winisd</b><br/>WinISDDriver · wpr · parstate"]
+        A_DRIVER["<b>winisd/driver.ts</b><br/>the CONDEMNED Driver ADT<br/><i>replaced by OpenISDDriver</i>"]
+    end
+
+    A_ROOT["<b>main.ts</b> — composition root"]
+    A_TYPES["types.ts<br/><i>shared shapes</i>"]
+
+    A_SHELLS --> A_STORE
+    A_COMPS --> A_STORE
+    A_STORE --> A_MANAGED
+    A_MANAGED --> A_MODEL
+    A_MODEL --> A_ENGINE
+    A_WINISD --> A_MODEL
+    A_STORE --> A_WINISD
+    A_IO --> A_STORE
+    A_SEL --> A_STORE
+    A_ROOT -.constructs.-> A_STORE
+
+    classDef ok fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
+    classDef approved fill:#2a2440,stroke:#a78bfa,color:#f2ecff
+    classDef unplaced fill:#402020,stroke:#f87171,color:#ffecec
+    classDef condemned fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
+    class A_SHELLS,A_COMPS,A_MODEL,A_ENGINE,A_WINISD,A_REPO,A_MY,A_PREFS,A_DIAG,A_LOG,A_ROOT ok
+    class A_STORE,A_MANAGED,A_PRES,A_URL approved
+    class A_IO,A_SEL,A_LIB,A_PERSIST,A_PROJFILE,A_MODELDIR,A_VENT,A_PR,A_CELLS,A_SERIES,A_FIELDS,A_PROV,A_ENV,A_PRWIN,A_WPRMAP,A_FILESAVE,A_APP,A_TONE,A_ESC,A_KV,A_PRLIB,A_TYPES unplaced
+    class A_DRIVER condemned
+```
+
+**What the red tells you.** Twenty-two `logic/` and service modules exist that the target diagram
+collapses into one `logic/` box, so it cannot say whether any of them is in the right place or
+should exist at all. `useDesignIO.ts` is the sharpest case: the target names a `createFileIO`
+SERVICE, but what exists is a `logic/` composable — the target's own module table marks it "not yet
+built" and the as-built shows what stands in for it. `winisd/driver.ts` is amber: condemned,
+scheduled for deletion, still imported.
+
 ### Modules, purpose, and injected dependencies
 
 **No module-level singletons, and no exported mutable bindings.** Each module exports a
@@ -713,15 +806,37 @@ of its own. There are NO unapproved exceptions.**
 | ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | the **store**      | PERSISTENT design state — box, params, project metadata: what a save, a load and a share link carry | `packages/ui/src/logic/store.ts`           |
 | **`ManagedDriver`**| ACTIVE, EDIT and WHAT-IF driver state — ground, modified, and the edit-or-what-if overlay        | `packages/ui/src/logic/managedDriver.ts`   |
-| **`ViewState`**    | PRESENTATION state — which panel/dialog is open, which charts are shown, cursor and selection, per-chart zoom, skin and unit tokens — AND keeping the publicly visible URL in step with the design | `packages/ui/src/logic/viewState.ts`       |
+| **`PresentationState`** | PRESENTATION state — which panel/dialog is open, cursor and selection, per-chart zoom, skin, unit tokens. **Backed by browser storage** | `packages/ui/src/logic/presentationState.ts` |
+| **`UrlAppState`**  | Composing the URL that ENCAPSULATES the app state — components on display, projects open, chart selected | `packages/ui/src/logic/urlAppState.ts`     |
 
-**`ViewState` does not exist yet.** Presentation state is currently mixed into the store's one
-`state` object (`state.ui`, `editDriver`, `editDriverInfo`, `browseOpen`, `defineOpen`, `cursorF`,
-`pinnedF`, `cursorLocked`, `dragRange`, `yRanges`, `graphs`) alongside the persistent design state
-it must be separated from. Extracting it is outstanding work, and
+**Neither `PresentationState` nor `UrlAppState` exists yet — both are TARGET state.** Presentation
+state is currently mixed into the store's one `state` object (`state.ui`, `editDriver`,
+`editDriverInfo`, `browseOpen`, `defineOpen`, `cursorF`, `pinnedF`, `cursorLocked`, `dragRange`,
+`yRanges`, `graphs`) alongside the persistent design state it must be separated from.
+
+**They are two components, not one, because they answer to different owners.**
+`PresentationState` is this browser's own preference, persisted to browser storage and never
+shared. `UrlAppState` composes a URL that captures what the app is showing — which components are
+on display, which projects are open, which chart is selected — so that address is a complete,
+shareable description of the session.
+
+**`UrlAppState` OWNS NO STATE. It reads, and it re-establishes.** It needs access to
+`ManagedDriver`, the store and `PresentationState` in order to compose a URL from them, and to put
+them back when a URL is opened — but it is not responsible for any of that state and never holds a
+copy of it. It queries the owner, and it asks the owner to restore. That is the whole of its
+relationship to the other stores: **query, and re-establish**. This is what keeps it from becoming
+the fourth store the rule above forbids.
 `bugs/BUG_20260814_address-bar-carries-no-design-state-at-all-so-the-url-cannot-share-the-design.md`
-is the defect that belongs to it: the address bar carries no design state at all. `state.ui.originalWhatIf`
-does NOT move into `ViewState` — it is what-if state, so it is deleted and `ManagedDriver` answers for it.
+is `UrlAppState`'s defect: the address bar carries no design state at all.
+
+**Edit boxes and what-if boxes are OPTIONAL app state in the URL.** They do not have to survive a
+`Ctrl-Shift-R`. Making them survive is best practice and would let a session be shared for
+diagnostic purposes, so it is the ideal target — but it may be deferred to a later feature if
+deferring makes it easier to clear the tech debt that is already outstanding. Deferring it is a
+sanctioned choice, not a failure.
+
+`state.ui.originalWhatIf` moves into NEITHER — it is what-if state, so it is deleted outright and
+`ManagedDriver` answers for it.
 
 **No local variable may duplicate state any of the three already holds.** Not a `ref`, not a
 `reactive`, not a module-level `let`, not a component-local snapshot, not a "cached copy for
