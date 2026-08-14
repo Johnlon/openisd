@@ -57,6 +57,30 @@ ordered array; identity is the entry's own id. `logic/model/workspace.ts` alread
 `projects: WorkspaceEntry[]` — that is correct and must stay a list. Anything that introduces a
 `Map`/`Record` keyed by project name is a defect.
 
+**THE PROJECT IS DOMAIN DATA, and every member is an `OpenISD*` type.** An earlier diagram put
+`OpenISDProject` in the APPLICATION layer and `OpenISDDriver` in DOMAIN — incoherent, because
+temperature, air pressure, air density, box volume, Fsc, the signal source, the filters and the
+listening position are all pure data with no DOM, no browser and no Vue. They are DOMAIN. The
+split that IS coherent:
+
+- **`@openisd/model` (DOMAIN)** owns the DATA TYPES: `OpenISDProject` and its members —
+  `OpenISDDriver`, `OpenISDPassiveRadiator`, `OpenISDBox`, `OpenISDVent`, `OpenISDTarget`,
+  `OpenISDFilter`, `OpenISDEnvironment`, `OpenISDSignal`, `OpenISDListening`,
+  `OpenISDSimOptions`, `OpenISDProjectMeta`, and the four alignment types below.
+- **`logic/` (APPLICATION)** owns the MUTABLE STATE LAYERS over them: `Workspace` (the ordered
+  project list) and `ManagedProject` (ground/modified/overlay, notification, lifecycle).
+
+`ManagedProject` is state management; `OpenISDProject` is the thing being managed. **Naming is
+uniform — every domain type carries the `OpenISD` prefix.** The old diagram mixed
+`OpenISDDriver · vent · radiator`, a class name beside two bare nouns; that is fixed.
+
+**EACH BOX TYPE IS ITS OWN DATA TYPE**: `OpenISDSealedAlignment` (Vb·Fsc·Qtc),
+`OpenISDVentedAlignment` (Vb·Fb·the vent), `OpenISDBandpass4Alignment` (rear Vb·front Vf·Ff),
+`OpenISDPassiveRadiatorAlignment` (Vb·Fp·radiator + added mass). Separate types because they hold
+different facts. ALL FOUR are held at once, one ACTIVE and the rest DORMANT with data intact. The
+vent hangs off the VENTED alignment and the radiator off the PR alignment — a sealed box has no
+vent to configure, and the model says so instead of leaving an ignored field lying about.
+
 **COMPONENT vs CONFIGURATION (human ruling, 2026-08-14).** They are modelled differently:
 - **`OpenISDDriver`** and **`OpenISDPassiveRadiator`** are COMPONENTS — selectable, editable,
   PURCHASABLE physical parts with datasheets and catalogue entries. A PR gets the SAME treatment
@@ -154,6 +178,8 @@ disagree — is the thing to keep hunting.
 | R12 | **Diagrams must be readable.** They cannot be enlarged in the viewer, so a 46-box diagram is worthless. | DONE — as-built is now a 10-box shape + tables |
 | R13 | **Arch tests must ENFORCE the architecture**, including deliberately-failing ones that stay red until the violation is deleted. | DONE — see §4 |
 | R14 | **We never force-push.** | Respected |
+| R19 | **The project is DOMAIN data.** `@openisd/model` owns `OpenISDProject` and every member; `logic/` owns only the state layers over it (`Workspace`, `ManagedProject`). Every domain type carries the `OpenISD` prefix — no bare nouns. | SPECIFIED. Diagrams updated. |
+| R20 | **Each box type is its own data type** — sealed / vented / bandpass4 / passive-radiator alignments, all held at once, one active, the rest dormant with data intact. The vent belongs to the vented alignment, the radiator to the PR alignment. | SPECIFIED. Not built. |
 | R18 | **Projects are an ORDERED LIST, never a map keyed by name.** Two open projects may share a `project.name`; a name is a label, not an identity. `workspace.ts` already uses `WorkspaceEntry[]` — keep it a list. | Already correct in `workspace.ts`; must be preserved |
 | R16 | **A COMPONENT is not a CONFIGURATION.** `OpenISDDriver` and `OpenISDPassiveRadiator` are components — selectable, editable, purchasable, with datasheets and catalogue entries; a PR gets the SAME modelling as a driver. Ports/vents and the bandpass orders are configurations: modelled, but simply, with no catalogue machinery. | SPECIFIED. `OpenISDPassiveRadiator` does not exist. |
 | R17 | **`OpenISDProject` is a superset of a `.wpr`; it holds the entire UI data; switching box type DELETES NOTHING (dormant, not gone — only the `.wpr` writer trims); it is PRIVATE to `ManagedProject`, as are the driver/PR/vent members. `ManagedProject` is the domain object for one project in the left nav.** | SPECIFIED. Not built. |

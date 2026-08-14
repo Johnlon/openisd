@@ -115,8 +115,8 @@ graph TD
 
     subgraph L2["APPLICATION"]
         LOGIC["<b>logic/</b><br/>packages/ui/src/logic/<br/>store · project · workflows<br/>field registry · series"]
+        WSPACE["<b>Workspace</b><br/>logic/model/workspace.ts<br/><i>the open projects, ORDERED</i>"]
         MANAGED["<b>ManagedProject</b><br/>logic/managedProject.ts<br/>ground · modified<br/>edit-or-whatif overlay<br/><i>3 x OpenISDProject.<br/>The ONLY path to a project.</i>"]
-        PROJ["<b>OpenISDProject</b> — PRIVATE<br/>driver · box · vents · radiators<br/>filters · environment · signal · meta<br/><i>Reached ONLY via ManagedProject.</i>"]
     end
 
     subgraph L3["SERVICES — arguments in, data out, no app state"]
@@ -129,7 +129,7 @@ graph TD
     end
 
     subgraph L4["DOMAIN — headless, no DOM, no browser"]
-        MODEL["<b>@openisd/model</b><br/>packages/model/src/<br/>OpenISDDriver · vent · radiator<br/><i>members of OpenISDProject</i>"]
+        MODEL["<b>@openisd/model</b><br/>packages/model/src/<br/><b>OpenISDProject</b> and its members:<br/>OpenISDDriver · OpenISDPassiveRadiator<br/>OpenISDBox · OpenISDVent · OpenISDEnvironment<br/>OpenISDSignal · OpenISDFilter · OpenISDListening<br/><i>pure data. No DOM, no browser, no Vue.</i>"]
         ENGINE["<b>@openisd/engine</b><br/>packages/engine/src/<br/>derive · sweep · circuit<br/>alignments · filters"]
         SERIAL["<b>@openisd/winisd</b><br/>packages/winisd/src/<br/>.wdr · .wpr · ParState"]
     end
@@ -146,15 +146,15 @@ graph TD
     ROOT -.constructs.-> LOGGING
 
     UI --> LOGIC
-    LOGIC --> MANAGED
-    MANAGED --> PROJ
+    LOGIC --> WSPACE
+    WSPACE --> MANAGED
     LOGIC --> DRIVERREPO
     LOGIC --> MYREPO
     LOGIC --> PREFS
     LOGIC --> FILEIO
     LOGIC --> DIAG
     LOGIC --> LOGGING
-    PROJ --> MODEL
+    MANAGED --> MODEL
     DRIVERREPO --> MODEL
     MYREPO --> MODEL
     FILEIO --> SERIAL
@@ -169,7 +169,7 @@ graph TD
     classDef dom fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
     classDef root fill:#402020,stroke:#f87171,color:#ffecec
     class UI pres
-    class LOGIC,MANAGED,PROJ app
+    class LOGIC,WSPACE,MANAGED app
     class DRIVERREPO,MYREPO,PREFS,FILEIO,DIAG,LOGGING svc
     class MODEL,ENGINE,SERIAL dom
     class ROOT root
@@ -189,7 +189,7 @@ Kept separate so both stay readable (R12): one picture per question.
 
 ```mermaid
 graph TD
-    subgraph STORES["THE APPROVED STATE OWNERS — nothing else holds state"]
+    subgraph STORES["APPLICATION — the mutable state layers (packages/ui/src/logic/)"]
         WS["<b>Workspace</b><br/>logic/model/workspace.ts<br/><b>an ORDERED LIST</b> of open projects<br/><i>never a map keyed by name —<br/>two projects may share a name</i>"]
         MP["<b>ManagedProject</b><br/>logic/managedProject.ts<br/><i>one per row in the left nav</i>"]
         PS["<b>PresentationState</b><br/>logic/presentationState.ts<br/>browser-storage backed<br/><i>panels · cursor · zoom · skin · units</i>"]
@@ -202,22 +202,35 @@ graph TD
         O["overlay<br/><i>edit OR what-if, never both</i>"]
     end
 
-    PROJ["<b>OpenISDProject</b> — PRIVATE to ManagedProject<br/>superset of a .wpr · holds the ENTIRE UI data<br/><i>dormant data is KEPT, never deleted</i>"]
+    PROJ["<b>OpenISDProject</b> — @openisd/model — PRIVATE to ManagedProject<br/>superset of a .wpr · holds the ENTIRE UI data<br/><i>dormant data is KEPT, never deleted</i>"]
 
-    subgraph COMPONENTS["COMPONENTS — purchasable parts, full record + provenance + catalogue"]
+    subgraph COMPONENTS["DOMAIN · COMPONENTS — purchasable parts: record + provenance + catalogue"]
         DRV["<b>OpenISDDriver</b><br/>maps openisd.yml"]
         PR["<b>OpenISDPassiveRadiator</b><br/>maps its own record<br/><i>peer of the driver</i>"]
     end
 
-    subgraph CONFIGS["CONFIGURATIONS — chosen or sized, never bought"]
-        BOX["<b>Box</b><br/>volume · losses (Ql·Qa·Qp)<br/>alignment selection"]
-        ALIGN["<b>Alignments</b> — all KEPT, one ACTIVE<br/>sealed · vented · bandpass4 · pr<br/><i>flipping type makes the others dormant</i>"]
-        VENT["<b>Vent</b><br/>round or slotted · count<br/>length · end correction"]
-        TGT["<b>Targets</b><br/>target Fb / Fsc / alignment goal<br/><i>what the solver aims at</i>"]
-        FLT["<b>Filters</b><br/>the EQ / filter chain"]
-        ENV["<b>Environment</b><br/>T · p · humidity"]
-        SIG["<b>Signal</b><br/>Pin · Rg · nDrivers · wiring"]
-        META["<b>Project metadata</b><br/>name · creator · dates"]
+    subgraph CONFIGS["DOMAIN · CONFIGURATIONS — chosen or sized, never bought"]
+        BOX["<b>OpenISDBox</b><br/>volume · losses (Ql·Qa·Qp)<br/>Fsc · alignment selection"]
+    end
+
+    subgraph ALIGNS["DOMAIN · ALIGNMENTS — ALL held at once, ONE active, the rest DORMANT"]
+        direction TB
+        A_SEALED["<b>OpenISDSealedAlignment</b><br/>Vb · Fsc · Qtc"]
+        A_VENTED["<b>OpenISDVentedAlignment</b><br/>Vb · Fb · the vent"]
+        A_BP4["<b>OpenISDBandpass4Alignment</b><br/>rear Vb · front Vf · Ff"]
+        A_PR["<b>OpenISDPassiveRadiatorAlignment</b><br/>Vb · Fp · the radiator + added mass"]
+    end
+
+    subgraph CFG2["DOMAIN · CONFIGURATIONS continued"]
+        direction TB
+        VENT["<b>OpenISDVent</b><br/>round or slotted · count<br/>length · end correction"]
+        TGT["<b>OpenISDTarget</b><br/>target Fb / Fsc / alignment goal<br/><i>what the solver aims at</i>"]
+        FLT["<b>OpenISDFilter</b><br/>LP · HP · LT · PEQ · LS · HS"]
+        ENV["<b>OpenISDEnvironment</b><br/>T · p · humidity<br/>-> sound velocity · air density"]
+        SIG["<b>OpenISDSignal</b><br/>input power · drive voltage<br/>series resistance · nDrivers · wiring"]
+        LIS["<b>OpenISDListening</b><br/>distance · angle"]
+        SIM["<b>OpenISDSimOptions</b><br/>VC inductance · force-flat<br/>TL port model · Rg side · Xmax-limited SPL"]
+        META["<b>OpenISDProjectMeta</b><br/>name · creator · dates · description"]
     end
 
     WS -->|"projects[0..n], ordered"| MP
@@ -235,8 +248,15 @@ graph TD
     PROJ --> FLT
     PROJ --> ENV
     PROJ --> SIG
+    PROJ --> LIS
+    PROJ --> SIM
     PROJ --> META
-    BOX --> ALIGN
+    BOX --> A_SEALED
+    BOX --> A_VENTED
+    BOX --> A_BP4
+    BOX --> A_PR
+    A_VENTED --> VENT
+    A_PR --> PR
     UAS -.reads · restores.-> MP
     UAS -.reads · restores.-> PS
 
@@ -248,7 +268,8 @@ graph TD
     class WS,MP,PS,UAS owner
     class PROJ priv
     class DRV,PR comp
-    class BOX,ALIGN,VENT,TGT,FLT,ENV,SIG,META cfg
+    class BOX,VENT,TGT,FLT,ENV,SIG,LIS,SIM,META cfg
+    class A_SEALED,A_VENTED,A_BP4,A_PR cfg
     class G,M,O layer
 ```
 
@@ -268,10 +289,17 @@ it, and nothing outside reaches its members either.
 and a catalogue entry. **Blue boxes are CONFIGURATIONS** — you choose or size them, so they are
 modelled without catalogue machinery.
 
-**`Alignments` is the box-type rule made visible.** All four alignments are held at once; choosing
-one makes it ACTIVE and the rest DORMANT. Their data survives untouched, so flipping a ported box
-to sealed and back returns everything. Only the `.wpr` writer trims dormant data, because the file
-format cannot express it.
+**Each box type is its OWN data type, and all four are held at once.** `OpenISDSealedAlignment`,
+`OpenISDVentedAlignment`, `OpenISDBandpass4Alignment` and `OpenISDPassiveRadiatorAlignment` are
+separate types because they hold different facts — a sealed box has `Qtc`, a vented one has a vent,
+a bandpass has a second chamber, a PR box has a radiator and its added mass. Choosing one makes it
+ACTIVE; the rest go DORMANT with their data untouched, so flipping a ported box to sealed and back
+returns everything exactly. Only the `.wpr` writer trims dormant data, because the file format
+cannot express it.
+
+**The vented alignment owns the vent; the PR alignment owns the radiator.** That is why the vent
+hangs off `OpenISDVentedAlignment` and not off `OpenISDBox` — a sealed box has no vent to
+configure, and the model says so rather than leaving an ignored field lying about.
 
 **`Targets` is what the solver aims at** — an entered target tuning drives the vent length, rather
 than a length being typed and a tuning falling out. Both directions exist; the entered set decides.
@@ -308,7 +336,7 @@ graph TD
     STORE --> MANAGED
     REST --> STORE
     REST --> SVC
-    PROJ --> MODEL
+    MANAGED --> MODEL
     MODEL --> ENGINE
     WINISD --> MODEL
     STORE --> WINISD
