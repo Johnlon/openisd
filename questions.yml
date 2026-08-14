@@ -4026,6 +4026,29 @@ questions:
 
       LSP: not available this session (ToolSearch select:LSP found nothing) — used Grep/Read/Bash
       throughout, per the tool-inventory rule's own instruction for that case.
+  - at: '2026-08-14'
+    text: |-
+      Xlim export restored in WinISDDriver. Old condition (driver.ts:85-87 comment, pre-Step-8): Xlim
+      had no true WinISD .wdr key (WinISD tracks it only via ParState slot 10 — parstate.ts
+      POS_TO_WDRKEY[10]=null; s-xlim.wdr, a genuine WinISD save, writes no Xlim= line) — it was
+      openisd's OWN extension line, written whenever the driver carried a value (entered or
+      carried-through), and never injected when the source had none.
+
+      Fix (packages/winisd/src/winisdDriver.ts): fromOpenISDRecord() now reads section.Xlim via
+      winningReading() same as any other SpecEntry field, and — separately from the fixed 48-key
+      NUMERIC_DEFAULTS loop (Xlim is deliberately absent from that list) — sets cells.set('Xlim',
+      {value, state:'E'}) only when a finite value is found. toWdr() emits `Xlim=<value>` only when
+      this.#cells.get('Xlim') exists, right after the 48 fixed keys and before ParState=. No change
+      to ParState slot 10 (stays the documented irreducible 'N' gap, driver-roundtrip.test.ts
+      IRREDUCIBLE_GAP_SLOTS).
+
+      Test added: packages/winisd/test/openisdToWdr.test.ts, new describe "Xlim (openisd's own
+      extension, no real WinISD key)" — (1) EMPTY_RECORD produces no Xlim= key, (2) a record with
+      specs.woofer.Xlim.readings.manual.read_value=12.5 produces Xlim=12.5.
+
+      Gates: npx vitest run packages/winisd/test/ — before 588 tests/557 pass/31 fail (pre-existing,
+      all in winisd-parity.test.ts, unrelated to Xlim); after 590 tests/559 pass/31 fail (same 31,
+      plus the 2 new Xlim tests both green). npm run typecheck — clean, 0 errors.
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open

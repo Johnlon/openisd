@@ -275,6 +275,18 @@ export class WinISDDriver {
     }
     if (computed.EBP == null && computed.Fs > 0 && computed.Qes > 0) computed.EBP = computed.Fs / computed.Qes;
     if (computed.Dia == null && computed.Dd != null) computed.Dia = computed.Dd;
+    // Xlim: openisd's own extension key (never a true WinISD .wdr key — WinISD holds it in
+    // ParState slot 10 only, POS_TO_WDRKEY[10] = null; s-xlim.wdr, a genuine WinISD save
+    // with Xlim entered, writes no `Xlim=` line at all). Written only when the record
+    // states a value — never a default 0 injected into a record that carries none.
+    let xlimEntered: number | undefined;
+    const xlimEntry = section.Xlim;
+    if (xlimEntry?.origin != null && xlimEntry.readings != null) {
+      try {
+        const v = winningReading(xlimEntry).read_value;
+        if (typeof v === 'number' && isFinite(v)) xlimEntered = v;
+      } catch { /* origin has no reading — leave Xlim unset */ }
+    }
     // c/roo are WinISD's OWN stored constants and are never recomputed here — see
     // NUMERIC_DEFAULTS' own comment. The solver's copies are rounded for the simulator and
     // must not leak into a value line.
@@ -292,6 +304,7 @@ export class WinISDDriver {
         : 'N';
       cells.set(key, { value: fmt(v), state });
     }
+    if (xlimEntered != null) cells.set('Xlim', { value: fmt(xlimEntered), state: 'E' });
 
     const s = (v: string | undefined): string => v ?? '';
     const header: WdrHeader = {
@@ -382,6 +395,11 @@ export class WinISDDriver {
       const c = this.#cells.get(key);
       lines.push(`${key}=${c ? c.value : fmt(dflt)}`);
     }
+    // Xlim: openisd's own extension line (never a real WinISD key — see NUMERIC_DEFAULTS'
+    // absence of it and the class doc). Emitted only when a producer supplied a cell for it,
+    // never injected as a default 0 into a file that carries none.
+    const xlim = this.#cells.get('Xlim');
+    if (xlim) lines.push(`Xlim=${xlim.value}`);
     lines.push('ParState=' + this.#parState());
     lines.push('');
     return lines.join('\n');

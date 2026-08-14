@@ -164,6 +164,42 @@ describe('openisd.yml → winisd.wdr — Result contract (never throws)', () => 
   });
 });
 
+describe('openisd.yml → winisd.wdr — Xlim (openisd\'s own extension, no real WinISD key)', () => {
+  // WinISD holds Xlim in ParState slot 10 only (parstate.ts POS_TO_WDRKEY[10] = null) —
+  // s-xlim.wdr, a genuine WinISD save with Xlim entered, writes no `Xlim=` line at all. This
+  // openisd-only extension line exists so a value the human enters survives openisd's own
+  // .wdr round-trip; it must never appear when the record states no Xlim.
+  it('a record with no Xlim produces no Xlim= line', () => {
+    const { value } = wdrOf(EMPTY_RECORD);
+    assert.equal(keysOf(value!).includes('Xlim'), false);
+  });
+
+  it('a record with an entered Xlim produces an Xlim= line with the correct value', () => {
+    const withXlim = `
+uuid: {value: u1, definition: d}
+quality: {rating: M, confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}
+manufacturer: {value: Acme, origin: manual, definition: d, dq: []}
+brand: {value: Acme, origin: manual, definition: d, dq: []}
+model: {value: Widget, origin: manual, definition: d, dq: []}
+sku: {value: acme-widget, definition: d, grounds: []}
+driver_type: {value: woofer, origin: manual, definition: d, dq: []}
+disposition: {value: ok, definition: d, detail: ''}
+data_sources: {value: {}, definition: d}
+authoritative: {value: manual, definition: d}
+specs:
+  woofer:
+    Xlim:
+      origin: manual
+      readings: {manual: {read_value: 12.5}}
+      dq: []
+`;
+    const { value } = wdrOf(withXlim);
+    assert.notEqual(value, null);
+    assert.equal(keysOf(value!).includes('Xlim'), true);
+    assert.equal(Number(fieldsOf(value!).Xlim), 12.5);
+  });
+});
+
 describe('openisd.yml → winisd.wdr — DQ marks travel into Comment= (ARCHITECTURE.md §3)', () => {
   it('a record with no DQ marks leaves Comment= byte-identical to a plain writer', () => {
     const { value } = wdrOf(EMPTY_RECORD);
