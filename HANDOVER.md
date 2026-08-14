@@ -49,7 +49,22 @@ ground/modified/overlay machinery, its notification asymmetry, and the
 they move up a level rather than being rewritten. The gates keep their shape — substitute
 `ManagedProject` for `ManagedDriver` and `OpenISDProject` for `OpenISDDriver`.
 
+**`OpenISDProject`'s contract, as ruled:**
+- a **SUPERSET of a `.wpr`** — everything needed to drive a WinISD project file at minimum, plus
+  everything OpenISD needs on top that WinISD has no concept of
+- holds the **entire UI data** for the project, not just physics inputs
+- **switching box type deletes nothing**: a ported box flipped to sealed keeps its port data, which
+  goes DORMANT and returns intact on flipping back. Only the `.wpr` WRITER trims dormant data,
+  because the format cannot express it. Anything that clears a field on a box-type change is a
+  defect.
+- **PRIVATE to `ManagedProject`** — nothing outside reaches it, and nothing outside `ManagedProject`
+  speaks to the individual driver, PR or vent either; they are members behind the same facade
+- `ManagedProject` is **the domain object for the entire state of ONE project in the left nav** —
+  one row in that list is one `ManagedProject`
+
 Spec: ARCHITECTURE.md §"A what-if is entered on the PROJECT, never on one part of it".
+Both arch diagrams updated: the target now shows `ManagedProject` → `OpenISDProject` (marked
+PRIVATE), and the as-built marks `managedDriver.ts` as "TO BECOME managedProject.ts".
 
 ---
 
