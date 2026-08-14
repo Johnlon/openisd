@@ -374,7 +374,7 @@ cannot say whether it belongs where it is, or at all.
 
 | Module                    | Replaced by                                  |
 | ------------------------- | -------------------------------------------- |
-| `packages/winisd/src/driver.ts` (`Driver` ADT) | `OpenISDDriver` behind `ManagedDriver` |
+| `packages/winisd/src/driver.ts` (`Driver` ADT) | `OpenISDDriver`, a member of `OpenISDProject`, behind `ManagedProject` |
 
 **What the red tells you.** Twenty-two `logic/` and service modules exist that the target diagram
 collapses into one `logic/` box, so it cannot say whether any of them is in the right place or
@@ -392,10 +392,10 @@ handed to whoever needs it — it is not importable.
 
 | Module                       | Single responsibility                                                          | Injected dependencies                                           |
 | ---------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| `main.ts` — composition root | Construct every service, the store and `ManagedDriver`, wire them, mount the app | — (it is the top; nothing injects into it)                      |
-| `createStore`                | Hold the application's state — a `ManagedDriver` for the driver, everything else in `logic` | `driverRepo`, `myDriverRepo`, `prefsStore`, `fileIO`, `logging`, `ManagedDriver` |
-| `ManagedDriver`              | The one facade over a driver's ground/modified/overlay state — see §3          | an `OpenISDDriver` factory                                      |
-| `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the store (and, through it, `ManagedDriver`), plus whichever services that workflow needs |
+| `main.ts` — composition root | Construct every service, the workspace and its `ManagedProject`s, wire them, mount the app | — (it is the top; nothing injects into it)                      |
+| `Workspace`                  | Hold the OPEN PROJECTS as an ordered list — never a map keyed by name          | the `ManagedProject`s it holds                                  |
+| `ManagedProject`             | The one facade over ONE project's ground/modified/overlay state — see §3       | an `OpenISDProject` factory                                     |
+| `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the `ManagedProject`, plus whichever services that workflow needs |
 | `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup       | a bundle source (`() => OpenISDDriver[]`)                       |
 | `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStore`                                               |
 | `createPrefsStore`           | Browser-local preferences: favourites, session, layout                         | a `KeyValueStore`                                               |
@@ -451,7 +451,7 @@ declaration — never prose, so a comment naming a module cannot fail it.
 | Nothing below presentation imports a `.vue` file                                    | the gate                                                    |
 | `ui` imports `logic` and nothing below it — no service, no engine, no serialiser    | the gate                                                    |
 | A component imports no VALUE from `@openisd/*`; an `import type` is fine, it erases | the gate                                                    |
-| Only `ManagedDriver` imports `OpenISDDriver` — everything else reaches a driver's state through `ManagedDriver` alone | the gate                                     |
+| Only `ManagedProject` imports `OpenISDProject`, and only `OpenISDProject` reaches its members (`OpenISDDriver`, `OpenISDPassiveRadiator`, box, vent) — everything else goes through `ManagedProject` alone | the gate |
 | A service never imports `logic`, and never imports a sibling service                | the gate                                                    |
 | No service exports a pre-built instance or a mutable binding                        | the gate                                                    |
 | Every service module offers one `create<Name>(deps)` factory                        | the gate                                                    |
@@ -480,7 +480,7 @@ interface KeyValueStore {
 }
 
 /** The driver commons. Queries only — it owns no state and mutates nothing. Hands back a
- *  fresh `OpenISDDriver` per call; `ManagedDriver.create()` is what clones one into its
+ *  fresh `OpenISDDriver` per call; `ManagedProject` is what places one into a project and clones it into its
  *  own isolated ground/modified state (§3). */
 interface DriverRepo {
   all(): readonly OpenISDDriver[];
@@ -612,7 +612,7 @@ class OpenISDDriver {
 ```
 
 `SpecField` is the closed set of canonical field names, not an open string. A repository or
-`FileIO` implementation hands back a freshly-built `OpenISDDriver`; `ManagedDriver.create()`
+`FileIO` implementation hands back a freshly-built `OpenISDDriver`; `ManagedProject`
 (§3) is what clones one into its own isolated ground/modified state.
 
 ---
@@ -773,11 +773,12 @@ and none are added. That is `OpenISDProject`'s concern, and `.owpr` is its on-di
 multi-layer state model is multiple _copies_ of the one `OpenISDDriver` shape, never different
 shapes of it.
 
-### `ManagedDriver` — the one facade over every state layer
+### `ManagedProject` — the one facade over every state layer
 
-**`ManagedDriver` wraps a driver's ground state, modified state, and an edit-or-what-if overlay.
+**`ManagedProject` wraps a project's ground state, modified state, and an edit-or-what-if overlay
+— three complete `OpenISDProject`s.
 Nothing outside it may read or write any of those layers directly** — a component, a workflow, a
-service, anything — reaches the driver's state only through `ManagedDriver`. This is the layer
+service, anything — reaches the project's state only through `ManagedProject`. This is the layer
 model of [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md) given a single owning object:
 ground state is that document's Baseline/Ground, modified state is its Committed design, and the
 overlay is either a Dialog draft (editing) or a What-if overlay — never both at once.
@@ -792,8 +793,8 @@ provenance marks included.
 cannot verify against physical reality, so nothing ever promotes one into the design. The only way
 a what-if session ends is `cancelWhatIf()`, and it always discards.
 
-**Subscription is single-channel.** A consumer subscribes to `ManagedDriver` and to nothing beneath
-it. `ManagedDriver` alone decides when a subscriber is notified, and the two overlays notify on
+**Subscription is single-channel.** A consumer subscribes to `ManagedProject` and to nothing beneath
+it. `ManagedProject` alone decides when a subscriber is notified, and the two overlays notify on
 different rhythms:
 
 - **An edit draft is silent.** Typing into an open edit produces no notification. `commitEdit()`
@@ -807,14 +808,14 @@ An edit draft that never commits produces zero notifications; a what-if session 
 commits (none ever do) produces one notification per change plus one on cancel.
 
 **A what-if never leaks into anything persistent.** Its value is unverified against physical
-reality — nothing outside the live overlay is allowed to see it. `ManagedDriver` cancels any active
+reality — nothing outside the live overlay is allowed to see it. `ManagedProject` cancels any active
 what-if, itself, before every operation that reads modified state for a purpose beyond driving the
 open charts: `beginEdit()`, saving the project, saving-as, exporting `.wdr`/`.owdr`/`.wpr`,
 generating a share link, saving to My Drivers, and loading or switching to a different driver. This
-is `ManagedDriver`'s own responsibility, not the caller's — a call site that reads modified state
-without going through `ManagedDriver` can forget the guard, which is exactly how a real bug reached
+is `ManagedProject`'s own responsibility, not the caller's — a call site that reads modified state
+without going through `ManagedProject` can forget the guard, which is exactly how a real bug reached
 production: `shareLink()` serialises the driver into a URL without first cancelling an active
-what-if, while every sibling I/O function in the same module does. `ManagedDriver` closes this
+what-if, while every sibling I/O function in the same module does. `ManagedProject` closes this
 class of bug structurally: there is no path to modified state that bypasses the cancel.
 
 ---
@@ -829,7 +830,7 @@ sequenceDiagram
     actor User
     participant UI as ui component
     participant Store as logic store
-    participant Managed as ManagedDriver
+    participant Managed as ManagedProject
     participant Driver as OpenISDDriver
     participant Engine as engine
     participant Canvas as ui canvas
@@ -859,16 +860,16 @@ sequenceDiagram
 **A what-if follows the same shape with a different rhythm.** `beginWhatIf()` opens an overlay
 read from modified state; every scrub notifies immediately, live, so the chart updates on each
 frame; `cancelWhatIf()` is the only way the session ends, and it always discards — there is no
-commit. See §3, "`ManagedDriver` — the one facade over every state layer", for the full contract.
+commit. See §3, "`ManagedProject` — the one facade over every state layer", for the full contract.
 
 **File I/O sits beside this loop, not inside it.** Import builds an `OpenISDDriver` from an
 `openisd.yml`/`.owdr` record, or from `.wdr` text via `WinISDDriver`, and hands it to
-`ManagedDriver`; export reads modified state through `ManagedDriver`, which cancels any active
+`ManagedProject`; export reads modified state through `ManagedProject`, which cancels any active
 what-if first. The sweep never touches a file.
 
 **The store reaches services, never the reverse.** `logic` calls `driverRepo` for a record,
 `myDriverRepo` and `prefsStore` for browser-local data, `fileIO` to read and write, `diagnostics`
-and `logging` to report, `ManagedDriver` for the driver's own state. Each returns data and holds no
+and `logging` to report, `ManagedProject` for the project's own state. Each returns data and holds no
 reference to the store.
 
 ---
@@ -911,7 +912,7 @@ class of bugs.
 
 ### A what-if is entered on the PROJECT, never on one part of it
 
-**HARD DECISION (human ruling 2026-08-14). `ManagedDriver` DIES. `ManagedProject` replaces it.**
+**HARD DECISION (human ruling 2026-08-14). The facade wraps the PROJECT, not the driver.**
 
 A user does not explore "a what-if driver". They explore a DESIGN: a driver in a box, with vents
 or passive radiators, at a drive level, in an environment. Scrubbing `Vb` and scrubbing `Qts` are
@@ -934,17 +935,9 @@ OpenISDProject
 `OpenISDDriver` keeps its job unchanged — it maps `openisd.yml` and owns the driver's fields and
 provenance — but it is now a MEMBER of `OpenISDProject`, not a thing wrapped on its own.
 
-**The evidence this is right, from the code as it stands:** `OgTune.vue` opens what it calls a
-driver what-if, then scrubs `Vb`, which is a BOX value the driver what-if cannot cover. So the
-panel hand-rolls a one-field undo:
-
-```ts
-let vbSnapshot = state.P.Vb;
-function cancel() { managedDriver.cancelWhatIf(); state.P.Vb = vbSnapshot; … }
-```
-
-That snapshot exists only because the overlay was drawn around the wrong object. At project level
-it disappears: cancelling the overlay restores `Vb` because `Vb` is IN the overlay.
+**One overlay covers the whole design.** Scrubbing `Vb` and scrubbing `Qts` are the same act to
+the user, so cancelling restores both — a panel never keeps its own snapshot of one field to undo
+by hand.
 
 **A COMPONENT is not a CONFIGURATION, and they are modelled differently.**
 
@@ -957,8 +950,7 @@ it disappears: cancelling the overlay restores `Vb` because `Vb` is IN the overl
 
 **A passive radiator therefore gets `OpenISDPassiveRadiator`**, a peer of `OpenISDDriver` with its
 own record and provenance — because a user picks one from a catalogue, edits its published
-parameters, and buys it. Today it is a handful of flat `pr*` fields in `state.P`, which is the
-same mistake the driver's own model used to be.
+parameters, and buys it, exactly as with a driver.
 
 **A vent is NOT a component.** It has no manufacturer, no datasheet, no library. It is a
 dimensioned configuration of the enclosure, and it is modelled — provenance and solving included —
@@ -985,10 +977,9 @@ members of the project, encapsulated behind the same facade. `ManagedProject` is
 object for the entire state of ONE project in the left nav**: one entry in that list is one
 `ManagedProject`.
 
-**The same move fixes the asymmetry recorded in ledger QO43.** Vents and passive radiators have no
-facade and carry a second, hand-rolled provenance system (`state.P.entered`) unrelated to the
-driver's. Inside `OpenISDProject` each becomes a member with ONE provenance model, and the
-edit/what-if lifecycle covers all of them at once instead of the driver alone.
+**ONE provenance model covers every member.** The driver, the passive radiator, the box and the
+vent each record what was Entered the same way. There is not one mechanism for the driver and
+another for everything else, and the edit/what-if lifecycle covers all of them together.
 
 ### Approved state stores — there are THREE, and no others
 
@@ -1015,7 +1006,7 @@ on display, which projects are open, which chart is selected — so that address
 shareable description of the session.
 
 **`UrlAppState` OWNS NO STATE. It reads, and it re-establishes.** It needs access to
-`ManagedDriver`, the store and `PresentationState` in order to compose a URL from them, and to put
+the `Workspace`, its `ManagedProject`s and `PresentationState` in order to compose a URL from them, and to put
 them back when a URL is opened — but it is not responsible for any of that state and never holds a
 copy of it. It queries the owner, and it asks the owner to restore. That is the whole of its
 relationship to the other stores: **query, and re-establish**. This is what keeps it from becoming
@@ -1030,21 +1021,21 @@ deferring makes it easier to clear the tech debt that is already outstanding. De
 sanctioned choice, not a failure.
 
 `state.ui.originalWhatIf` moves into NEITHER — it is what-if state, so it is deleted outright and
-`ManagedDriver` answers for it.
+`ManagedProject` answers for it.
 
 **No local variable may duplicate state any of the three already holds.** Not a `ref`, not a
 `reactive`, not a module-level `let`, not a component-local snapshot, not a "cached copy for
 convenience". Every call goes BACK to the approved store, every time. A second copy is a second
 answer to the same question, and the two are free to disagree — which is exactly how a parallel
-what-if implementation grew inside the store while `ManagedDriver` existed beside it, and how
+what-if implementation grew inside the store while a driver facade existed beside it, and how
 `shareLink()` came to serialise state every sibling function had already cancelled.
 
-**What-if is `ManagedDriver`'s and nothing else's.** Nothing outside it may hold a what-if copy,
+**What-if is `ManagedProject`'s and nothing else's.** Nothing outside it may hold a what-if copy,
 a what-if flag, or a what-if lifecycle. A component asks `isWhatIfActive()` to paint itself and
 calls `beginWhatIf()`/`cancelWhatIf()` to drive the session. That is the entire permitted surface.
 
 Gated by [`packages/ui/test/ui/architecture.test.ts`](packages/ui/test/ui/architecture.test.ts):
-"what-if exists ONLY inside ManagedDriver" and "one driver model".
+"what-if exists ONLY inside the project facade" and "one driver model".
 
 **NO GLOBAL VARIABLES.** This is a whole-system rule, not a service-directory convention. Nothing
 in this system holds state that another part can reach without being handed it. Specifically, and
