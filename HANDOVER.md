@@ -136,6 +136,8 @@ disagree — is the thing to keep hunting.
 | R12 | **Diagrams must be readable.** They cannot be enlarged in the viewer, so a 46-box diagram is worthless. | DONE — as-built is now a 10-box shape + tables |
 | R13 | **Arch tests must ENFORCE the architecture**, including deliberately-failing ones that stay red until the violation is deleted. | DONE — see §4 |
 | R14 | **We never force-push.** | Respected |
+| R16 | **A COMPONENT is not a CONFIGURATION.** `OpenISDDriver` and `OpenISDPassiveRadiator` are components — selectable, editable, purchasable, with datasheets and catalogue entries; a PR gets the SAME modelling as a driver. Ports/vents and the bandpass orders are configurations: modelled, but simply, with no catalogue machinery. | SPECIFIED. `OpenISDPassiveRadiator` does not exist. |
+| R17 | **`OpenISDProject` is a superset of a `.wpr`; it holds the entire UI data; switching box type DELETES NOTHING (dormant, not gone — only the `.wpr` writer trims); it is PRIVATE to `ManagedProject`, as are the driver/PR/vent members. `ManagedProject` is the domain object for one project in the left nav.** | SPECIFIED. Not built. |
 | R15 | **`ManagedDriver` DIES; `ManagedProject` replaces it.** A what-if is entered on the whole project, not on a driver/box/vent/PR in isolation. `OpenISDProject` holds the driver, box, vents, radiators and the rest; `ManagedProject` holds ground/modified/overlay of it. | SPECIFIED. Not built. See §0. |
 
 ---
