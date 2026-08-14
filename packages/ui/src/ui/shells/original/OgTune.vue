@@ -13,13 +13,15 @@
  */
 import { computed, reactive, watch, ref, onMounted, onUnmounted } from 'vue';
 import { state, driver, driverCell, driverConsistencyIssues, enterDriverField, clearDriverField,
-         startDriverWhatIf, cancelDriverWhatIf, setWhatIfFromBaseline } from '../../../logic/store.js';
+         managedDriver } from '../../../logic/store.js';
 import { ebp } from '@openisd/engine';
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
 import { cellClassOf, useQGroupIncomplete, consistencyNote, Q_GROUP } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 
-type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe' | 'Bl' | 'Mms';
+// The record's own field names (`BL`, not the engine's `Bl`) — these index OpenISDDriver
+// directly, so they are its field names and nothing else's.
+type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe' | 'BL' | 'Mms';
 // scale = display/SI factor (raw driver values are SI: Vas m³, Sd m², Le H, Xmax m, Mms kg).
 // Decimal places come from the field registry (fieldDp) — the single source of truth — so
 // these units' dp match every other skin. The units here MUST match the registry's unit.
@@ -42,7 +44,7 @@ const OPTIONAL: { key: NumKey; label: string; scale: number; unit: string }[] = 
 // as the driver editor already treats them. So they are edited here like any other field, and
 // the E/C colour says which of the two is happening.
 const DERIVED: { key: NumKey; label: string; scale: number; unit: string }[] = [
-  { key: 'Bl',  label: 'Bl',  scale: 1,    unit: 'T·m' },
+  { key: 'BL',  label: 'Bl',  scale: 1,    unit: 'T·m' },
   { key: 'Mms', label: 'Mms', scale: 1000, unit: 'g' },
 ];
 
@@ -167,12 +169,15 @@ function fmt(v: number | null, dp: number): string { return v != null && isFinit
 // Cancel reverts the driver would silently keep a box change made in the same session.
 let vbSnapshot = state.P.Vb;
 watch(() => state.editDriver, (open) => {
-  if (open) { vbSnapshot = state.P.Vb; startDriverWhatIf(); }
-  else cancelDriverWhatIf();
+  if (open) { vbSnapshot = state.P.Vb; managedDriver.beginWhatIf(); }
+  else managedDriver.cancelWhatIf();
 }, { immediate: true });
 
-function cancel() { cancelDriverWhatIf(); state.P.Vb = vbSnapshot; state.editDriver = false; }
-function reset()  { setWhatIfFromBaseline(); } // overlay ← library values (Vb is not a driver value)
+function cancel() { managedDriver.cancelWhatIf(); state.P.Vb = vbSnapshot; state.editDriver = false; }
+// Reset the overlay to the driver as loaded: end this session and start a fresh one from
+// ground. ManagedDriver owns both halves; the panel does not reach past it. Vb is a box value,
+// not a driver value, so it is untouched here.
+function reset()  { managedDriver.resetOverlayToGround(); }
 </script>
 
 <template>

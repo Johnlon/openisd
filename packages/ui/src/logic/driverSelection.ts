@@ -1,9 +1,6 @@
-import { Driver as DriverModel, type DriverJSON } from '@openisd/winisd';
+import { Driver as DriverModel, type DriverJSON, WinISDDriver } from '@openisd/winisd';
 import type { DriverRaw } from '@openisd/engine';
-import {
-  state, setDriverFromSerialized, getDriverModel, setDriverBaseline,
-  cancelDriverWhatIf, isDriverWhatIfActive,
-} from './store.js';
+import { state, managedDriver, driverRecord } from './store.js';
 import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
 import { DriverFileFormat } from '../driverFileFormat.js';
 
@@ -181,10 +178,21 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
    * The baseline is the driver AS CHOSEN, so Reset returns to it rather than to whatever the
    * user has since typed over it.
    */
+  // The classic ADT and the app's model meet at `.wdr` text — the one format both can write
+  // and read. This is the bridge while the picker/editor still speak the classic ADT; it
+  // disappears when they are migrated onto ManagedDriver directly.
+  function adoptIntoProject(m: DriverModel): void {
+    managedDriver.loadRecord(WinISDDriver.fromWdr(m.toWdr()).toOpenISDRecord());
+  }
+  /** The project's current driver, as the classic ADT the editor still edits. */
+  function projectDriverAsModel(): DriverModel {
+    const { value: wdr } = WinISDDriver.fromOpenISDRecord(driverRecord.value);
+    return wdr ? DriverModel.fromWdr(wdr.toWdr()) : new DriverModel();
+  }
+
   function embedInProject(m: DriverModel): void {
     const json = m.toJSON();
-    setDriverFromSerialized(json);
-    setDriverBaseline(json);
+    adoptIntoProject(m);
     state.browseOpen = false;
   }
 
@@ -246,10 +254,10 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
     },
 
     /** Open the editor on the project's own driver. Auto-cancels any active Tune what-if first —
-     *  the editor always seeds from getDriverModel() (committed-only), so a live preview left
+     *  the editor always seeds from the project's committed driver, so a live preview left
      *  open would silently disagree with what the editor shows. */
     editProjectDriver() {
-      if (isDriverWhatIfActive.value) { cancelDriverWhatIf(); state.editDriver = false; }
+      if (managedDriver.isWhatIfActive()) { managedDriver.cancelWhatIf(); state.editDriver = false; }
       subject = { kind: 'project' };
       editorDraft = null;
       state.editDriverInfo = true;
@@ -273,7 +281,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
     /** What the editor seeds its draft from, and which driver that is. */
     editorSeed() {
       return {
-        json: editorDraft ?? getDriverModel().toJSON(),
+        json: editorDraft ?? projectDriverAsModel().toJSON(),
         subject: subject.kind,
       };
     },
@@ -293,7 +301,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
         if (subject.openedAs && subject.openedAs !== driverId(raw)) myDriverRepo.remove(subject.openedAs);
         myDriverRepo.upsert(raw);
       } else {
-        setDriverFromSerialized(json);
+        adoptIntoProject(DriverModel.fromJSON(json));
       }
       closeEditor();
     },
