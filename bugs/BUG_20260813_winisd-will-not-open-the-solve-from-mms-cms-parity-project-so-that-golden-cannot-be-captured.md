@@ -57,3 +57,15 @@ rather than silently skipped. Neither is loosened.
 2. If confirmed, the reverse-solve direction is still worth an oracle: find an input shape
    WinISD will open that still leaves the reverse routes to it (e.g. omit `Vas` and `Rms` only,
    keeping `Fs`), and add it as a scenario alongside — not instead of — this one.
+
+## Reverified 2026-08-14
+
+Two more attempts, both against a healthy harness (confirmed by a control regeneration of
+`sealed-small`, which succeeded first-attempt in 20.4s in the same session): the scenario as
+committed fails identically to the six 2026-08-13 attempts. A third attempt added `Vas` back
+(keeping `Fs` omitted, everything else unchanged) to test whether sparseness alone — not `Fs`
+specifically — was the trigger; it failed with the same `no ready window titled 'WinISD'*
+within 30.0s (found=True)` signature. This does not overturn the `Fs`-absence hypothesis (the
+`Vas`-added variant still omits `Fs`), but rules out "any five-of-eleven-field input hangs
+WinISD" as a broader alternative explanation. The experimental edit was reverted; `scenarios.json`
+is unchanged from what this bug file already describes.

@@ -70,3 +70,41 @@ behaviour it should never gain.
 The eight `ParState` rows stay RED until Step 8 lands. They are not loosened, not excluded, and
 not covered by a `divergences.json` entry — there is no deliberate difference here, only unbuilt
 work, and a red row is the honest report of that.
+
+## Reverified 2026-08-14
+
+All 15 scenarios that have a golden (every scenario except `solve-from-mms-cms`, which has none —
+`bugs/BUG_20260813_winisd-will-not-open-the-solve-from-mms-cms-parity-project-so-that-golden-cannot-be-captured.md`)
+still fail `ParState` identically. `packages/winisd/src/driver.ts` and `packages/winisd/src/parstate.ts`
+are both outside this session's authorised edit area (`packages/winisd/src/classic/` only), so the
+fix specified below is left for whoever owns Step 8 / the `WinISDDriver` build:
+
+- Extend `#buildParState()` to loop over every non-null `POS_TO_WDRKEY` slot (not only
+  `MODELED_SLOTS`), resolving each slot's Driver field name via
+  `MODELED_BY_WDRKEY[wdrKey]?.field ?? WDR_META.find(([k]) => k === wdrKey)?.[1] ?? wdrKey` (the
+  same lookup order the fresh-authored path already uses) and setting `base[pos] = cell(field).state`.
+  This resolves slots 18 (`Vd`), 21 (`Dd`), 22 (`no`), 24 (`Hc`), 25 (`Hg`), 26 (`SPLmax`),
+  27 (`SPLmaxLF`), 28 (`USPL`), 32 (`gamma`), 34 (`Rme`), 35 (`Mpow`), 36 (`Mcost`, partially —
+  see below), 37 (`Gloss`), 47 (`c`), 48 (`roo`) — all fields `cell()` already answers correctly
+  for value, confirmed by every `DRIVER_FIELDS` test at those keys passing today.
+- Slot 33 (`EBP`) needs a further, separate addition: `Driver` has no `EBP` cell at all (the
+  parity suite reads it via the engine's standalone `ebp()` function, not `cell()` —
+  `winisd-parity.test.ts:266-273`). The loop above cannot fix this slot by itself; `Driver` needs
+  an `EBP` cell state of `C` when `Fs` and `Qes` are both determinable, else `N`.
+- Even after both of the above, the following slots will legitimately keep differing (openisd
+  correctly has no route to them from a synthetic scenario `.wdr` with no ParState line, while
+  WinISD's own convention is to mark them `E` with a stub value regardless of the scenario) and
+  belong in `divergences.json` as `scenario: "*"` rows, not as further code changes: 6 (`fLe`),
+  7 (`KLe`), 10 (`Xlim` — "ParState-only, no WDR key" per this file's own `driver.ts` comment),
+  20 and 46 (undentified — no `POS_TO_WDRKEY` mapping exists for either), 29 (`alfaVC`/`tc`),
+  30 (`Rt`/`Rth`), 31 (`Ct`/`Cth`), 38–45 (`Thick`/`Depth`/`MagDepth`/`Magnet`/`Basket`/`Outer`/
+  `Vcd`/`DVol`) — none of these keys is ever entered by any parity scenario, and none is derived
+  by the engine from the T/S set, so `cell()` stays `N` for all 15 goldens regardless of the fix
+  above. Measured directly against all 15 goldens today: these 16 slots (plus 6/7/10 already
+  named) read `E` in every single one, never `C`, confirming they are WinISD's fixed
+  "declined-but-defaulted" convention and not scenario-dependent.
+- Slot 36 (`Mcost`) is `C` only for `gap-geometry` (the one scenario with `Hc ≠ Hg`) and `E` for
+  the other 14 (`Hc = Hg = 0`, division by zero, matching the `winisdDeclined()` exemption the
+  suite already applies to `Mcost`'s VALUE check at `winisd-parity.test.ts:152-156`) — the loop
+  fix above correctly yields `N` for those 14 (nothing entered, formula undefined), which still
+  will not match WinISD's `E`, and needs its own `divergences.json` row once the loop lands.

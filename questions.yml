@@ -1,5 +1,5 @@
 prefix: QO
-next: 41
+next: 42
 questions:
 - id: QO1
   title: UI TODO List
@@ -3880,6 +3880,63 @@ questions:
       (verified via git stash). LSP available (not needed for this change — no symbol-navigation
       questions). Full packages/winisd/test/ run: 534 passed / 47 failed (same pre-existing parity
       failures only, 0 regressions in the other 12 files).
+  - at: '2026-08-14'
+    text: |-
+      STEP 5 PARTIAL — 417/463 passing (was 416/463), +1. All 47 original failures verified and
+      bucketed into 3 causes; only 1 was fixable within this session's file restriction
+      (packages/winisd/test/**, packages/engine/src/, packages/winisd/src/classic/, bugs/).
+
+      BUCKET 1 — missing golden, 31 tests (guard "every scenario has a golden" + guard "provenance
+      covers every scenario" + 29 solve-from-mms-cms rows). WinISD-under-wine will not open this one
+      scenario (Fs/Qes/Qts/Rms/Vas all omitted, reverse-solve direction) — 8 prior attempts
+      (2026-08-13) plus 2 fresh attempts today, all "no ready window titled 'WinISD'* within 30.0s
+      (found=True)". Verified the harness itself is healthy today via a control regen of
+      sealed-small (succeeded, 20.4s, then reverted — no content change, only timestamps). Tried a
+      variant adding Vas back (Fs still omitted) to test sparseness-vs-Fs-specifically; failed
+      identically, reverted. Left failing, per the guard tests' own design ("a missing golden is a
+      missing measurement, never a skip"). Documented:
+      bugs/BUG_20260813_winisd-will-not-open-the-solve-from-mms-cms-parity-project-so-that-golden-cannot-be-captured.md
+      (pre-existing, reverified today with the new evidence appended).
+
+      BUCKET 2 — ParState unbuilt work, 15 tests (one per scenario with a golden). Root cause:
+      driver.ts's #buildParState() only loops MODELED_SLOTS (16 T/S fields); the other ~32 slots stay
+      whatever the (absent, in these synthetic scenarios) source ParState said, i.e. always 'N'. ~15
+      of those slots ARE correctly computed by cell() already (Vd, Dd, no, Hc, Hg, SPLmax, SPLmaxLF,
+      USPL, gamma, Rme, Mpow, Gloss, c, roo, partially Mcost) and would flip green if the loop covered
+      them; EBP needs a further Driver cell added (not modeled at all today); ~16 slots (fLe, KLe,
+      Xlim, two unidentified, alfaVC, Rt, Ct, Thick, Depth, MagDepth, Magnet, Basket, Outer, Vcd,
+      DVol) are permanently un-routable from this scenario shape (WinISD marks them E-with-stub-0
+      regardless of input; openisd has no formula and nothing enters them) and belong in
+      divergences.json once the loop lands, not before. FIX IS BLOCKED: driver.ts and parstate.ts are
+      outside this session's file restriction (classic/ only) AND driver.ts carries an explicit
+      "condemned, do not extend, do not fix in place" header pending Step 8's WinISDDriver. Full fix
+      spec (exact lookup order, which slots resolve, which don't, per-slot evidence table) written
+      into the existing bug file:
+      bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md
+      (pre-existing, reverified today, extended with the fix spec — its own prior ruling already said
+      "not covered by a divergences.json entry ... only unbuilt work", which I followed: added zero
+      ParState divergence rows).
+
+      BUCKET 3 — env-t-303 air/temperature scaling, 1 test. FIXED via divergences.json (see below) —
+      already-documented bug
+      (bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md),
+      blocked on human permission for the calc-logic fix (winisdAir() scales rho/c by tempK; WinISD's
+      own frozen compatibility air does not scale at all). Recorded as a bounded divergence per the
+      suite's own "pending a fix" language, not a code change.
+
+      divergences.json: added env-t-303/air.c (maxRelative 2e-2) and env-t-303/air.roo (maxRelative
+      4e-2), both citing the bug file above. Pre-existing numVC/ParState[23] entry unchanged.
+
+      No NEW discrepancy found requiring fresh human authorisation — both remaining buckets are
+      pre-existing, already bug-documented, and blocked by (1) an external tool crash outside my
+      control, (2) a file-restriction/architecture-condemnation outside my edit area, not by the
+      calculation-logic permission gate.
+
+      Gates: npx vitest run packages/winisd/test/winisd-parity.test.ts → 417/463 (was 416/463).
+      npm run typecheck → clean. npm run test:unit → 1042/1091 passed, 49 failed (46 parity, +3
+      pre-existing in packages/ui: bundle-drivers-disposition.test.ts, vent-target-reachability.test.ts,
+      architecture.test.ts — all outside this session's file restriction, untouched, not introduced by
+      this session). LSP unavailable all session (never loaded — Grep/Read used throughout).
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open
@@ -4450,3 +4507,8 @@ questions:
 
       TOOLING: LSP was UNAVAILABLE — ToolSearch("select:LSP") returned "No matching deferred tools
       found". Grep + Read were used throughout, and every cited line was verified by Read.
+- id: QO41
+  title: No documented schema for openisd.yml exists anywhere - only two hand-mirrored code copies
+  status: open
+  raised: '2026-08-14'
+  body: ''
