@@ -206,8 +206,8 @@ graph TD
     PROJ["<b>OpenISDProject</b> — @openisd/model — PRIVATE to ManagedProject<br/>superset of a .wpr · holds the ENTIRE UI data<br/><i>dormant data is KEPT, never deleted</i>"]
 
     subgraph COMPONENTS["DOMAIN · COMPONENTS — purchasable parts: record + provenance + catalogue"]
-        DRV["<b>OpenISDDriver</b><br/>maps openisd.yml"]
-        PR["<b>OpenISDPassiveRadiator</b><br/>maps its own record<br/><i>peer of the driver</i>"]
+        DRV["<b>OpenISDDriver</b><br/>live class · edited in the project<br/>record form: <b>OpenISDDriverJson</b><br/><i>openisd.yml / .owdr</i>"]
+        PR["<b>OpenISDPassiveRadiator</b><br/>live class · edited in the project<br/>record form: <b>OpenISDPassiveRadiatorJson</b><br/><i>peer of the driver — also purchasable</i>"]
     end
 
     subgraph CONFIGS["DOMAIN · CONFIGURATIONS — chosen or sized, never bought"]
@@ -443,7 +443,7 @@ handed to whoever needs it — it is not importable.
 | `Workspace`                  | Hold the OPEN PROJECTS as an ordered list — never a map keyed by name          | the `ManagedProject`s it holds                                  |
 | `ManagedProject`             | The one facade over ONE project's ground/modified/overlay state — see §3       | an `OpenISDProject` factory                                     |
 | `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the `ManagedProject`, plus whichever services that workflow needs |
-| `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup — returns RECORDS, never live instances | a bundle source (`() => DriverRecord[]`)      |
+| `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup — returns RECORDS, never live instances | a bundle source (`() => OpenISDDriverJson[]`)      |
 | `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStore`                                               |
 | `createPrefsStore`           | Browser-local preferences: favourites, session, layout                         | a `KeyValueStore`                                               |
 | `createFileIO` — not yet built | Open, save, import, export, share-link encode and decode                     | the serialiser (`@openisd/winisd`), the record codec            |
@@ -533,17 +533,17 @@ interface KeyValueStore {
  *  project yet, so handing back an instance would put one outside the facade and break that
  *  invariant. `ManagedProject` is what turns a chosen record into a live driver. */
 interface DriverRepo {
-  all(): readonly DriverRecord[];
-  byId(id: DriverId): DriverRecord | undefined;
-  search(query: string, filter?: DriverFilter): readonly DriverRecord[];
+  all(): readonly OpenISDDriverJson[];
+  byId(id: DriverId): OpenISDDriverJson | undefined;
+  search(query: string, filter?: DriverFilter): readonly OpenISDDriverJson[];
 }
 
 /** Drivers the user saved. Keyed by identity, which is `<brand>/<model-slug>`. Records, for the
  *  same reason as above — saving reads a record OUT of a project, it does not lend the instance. */
 interface MyDriverRepo {
-  all(): readonly DriverRecord[];
-  byId(id: DriverId): DriverRecord | undefined;
-  save(record: DriverRecord): void;
+  all(): readonly OpenISDDriverJson[];
+  byId(id: DriverId): OpenISDDriverJson | undefined;
+  save(record: OpenISDDriverJson): void;
   remove(id: DriverId): void;
 }
 
@@ -557,8 +557,8 @@ interface PrefsStore {
 
 /** Every crossing of the file boundary. The only place a byte stream is produced or consumed. */
 interface FileIO {
-  readRecord(text: string, format: RecordFormat): Result<DriverRecord>;
-  writeRecord(record: DriverRecord, format: RecordFormat): string;
+  readRecord(text: string, format: RecordFormat): Result<OpenISDDriverJson>;
+  writeRecord(record: OpenISDDriverJson, format: RecordFormat): string;
   readProject(text: string, format: ProjectFormat): Result<Project>;
   writeProject(project: Project, format: ProjectFormat): string;
   encodeShareLink(project: Project): Promise<string>;
@@ -631,10 +631,23 @@ interface Result<T> {
 Its own constructor takes the record shape directly; `fromRecord`/`toRecord` are the only
 places that shape is named, and it is not exported even there:
 
+**Every purchasable COMPONENT has a live class and a record form.** The class is what a project
+holds and edits; the record is what the catalogue, a file and a share link carry. Both components
+have both:
+
+| Component | live class | record form | on disk |
+| --- | --- | --- | --- |
+| driver | `OpenISDDriver` | `OpenISDDriverJson` | `openisd.yml` / `.owdr` |
+| passive radiator | `OpenISDPassiveRadiator` | `OpenISDPassiveRadiatorJson` | its own record, same shape family |
+
+A CONFIGURATION has no record form of its own — a vent or an alignment is not fetched from a
+catalogue, so it is simply part of `OpenISDProject`'s own serialised shape.
+
 ```ts
-/** The `openisd.yml` / `.owdr` shape — `OpenISDDriver`'s own field list, private: it has
- *  no name outside `fromRecord`'s parameter and `toRecord`'s return type below. */
-type DriverFields = {
+/** The `openisd.yml` / `.owdr` shape — what `OpenISDDriver.toRecord()` hands back and what a
+ *  repository, a file reader and a share link all carry. Plain data: no methods, no identity,
+ *  safe to clone and to send. */
+type OpenISDDriverJson = {
   uuid: BookkeepingField<string>;
   brand: ScrapedField<string>;
   model: ScrapedField<string>;
@@ -652,8 +665,8 @@ type DriverFields = {
 };
 
 class OpenISDDriver {
-  static fromRecord(record: DriverFields): OpenISDDriver;
-  toRecord(): DriverFields;
+  static fromRecord(record: OpenISDDriverJson): OpenISDDriver;
+  toRecord(): OpenISDDriverJson;
   cell(field: SpecField): Cell;
   enter(field: SpecField, value: number): void;
   clear(field: SpecField): void;
