@@ -24,7 +24,7 @@ import {
   state, driver, driverName, driverRecord,
   syncedP, curvesData, maxData, driverErrors,
   isModified, resetProjectToGround, _ground, markProjectSaved,
-  managedDriver,
+  managedProject,
   formatInUnit as fmtU,
   enterVentField, clearVentField, ventFieldState, ventMaxReachableFb, ventTargetUnreachable,
   newProject,
@@ -452,9 +452,9 @@ onMounted(() => {
 });
 
 // Keep the active item in openProjects completely in sync with the live store active design
-watch([() => state.box, () => state.P, () => driverRecord.value, curvesData, maxData, () => state.project, isModified, () => managedDriver.isWhatIfActive()], () => {
+watch([() => state.box, () => state.P, () => driverRecord.value, curvesData, maxData, () => state.project, isModified, () => managedProject.isWhatIfActive()], () => {
   if (isSwapping) return;
-  if (managedDriver.isWhatIfActive()) return;
+  if (managedProject.isWhatIfActive()) return;
   const activeItem = openProjects.value.find(p => p.id === activeProjectId.value);
   if (activeItem) {
     activeItem.driver = driverRecord.value;
@@ -514,8 +514,8 @@ function selectProject(p: any) {
   
   state.box = targetDesign.box;
   Object.assign(state.P, { ...targetDesign.P, filters: (targetDesign.P.filters || []).map((f: any) => ({ ...f })) });
-  if (targetDesign.driver) managedDriver.loadRecord(targetDesign.driver);
-  else managedDriver.loadEmpty();
+  if (targetDesign.driver) managedProject.loadDriverRecord(targetDesign.driver);
+  else managedProject.loadEmpty();
   
   const targetProj = targetDesign.project ? targetDesign.project : { name: targetDesign.name || '', creator: '', created: '', modified: '', description: '' };
   Object.assign(state.project, targetProj);
@@ -677,8 +677,8 @@ function onBottomSplitDown(e: PointerEvent): void {
 }
 
 // ---- Driver identity + placement ----------------------------------------------
-const brand = computed(() => managedDriver.metaCell('brand').value);
-const model = computed(() => managedDriver.metaCell('model').value || driverName.value);
+const brand = computed(() => managedProject.metaCell('brand').value);
+const model = computed(() => managedProject.metaCell('model').value || driverName.value);
 
 // ---- Signal Generator (real audio-out tone) ------------------------------------
 const genOn = ref(false);
@@ -767,9 +767,9 @@ function startEdit() { editProjectDriver(); }
 // share links (skin + active tab/chart ARE shared — see stateToUrl's own comment).
 // Only whether the panel is OPEN is remembered. The what-if VALUES are not: a what-if is
 // unverified and can never commit, so persisting it would bring an uncommitted value back
-// after a refresh looking like a decision the user made. ManagedDriver owns what-if state and
+// after a refresh looking like a decision the user made. ManagedProject owns what-if state and
 // nothing else may hold a copy (ARCHITECTURE.md §"Approved state stores").
-watch(() => managedDriver.isWhatIfActive(), (active) => {
+watch(() => managedProject.isWhatIfActive(), (active) => {
   state.ui.originalTuneOpen = active;
 });
 // App.vue applies persisted state.ui AFTER this child mounts, so react when originalTuneOpen
@@ -777,7 +777,7 @@ watch(() => managedDriver.isWhatIfActive(), (active) => {
 // (OgTune's own watch does that) — the previous session's scrubbed values are deliberately
 // not restored.
 watch(() => state.ui.originalTuneOpen, (open) => {
-  if (open && !managedDriver.isWhatIfActive()) state.editDriver = true;
+  if (open && !managedProject.isWhatIfActive()) state.editDriver = true;
 }, { immediate: true });
 
 watch(isModified, (val) => {

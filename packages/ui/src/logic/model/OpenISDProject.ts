@@ -30,7 +30,8 @@ import type { BoxType, DriverJSON, ProjectMeta, UiParams } from '../../types.js'
 export interface ProjectContent {
   box: BoxType;
   P: UiParams;
-  driver: DriverJSON;
+  /** Optional: a design with no driver chosen yet is a real state. */
+  driver?: DriverJSON;
   meta: ProjectMeta;
 }
 

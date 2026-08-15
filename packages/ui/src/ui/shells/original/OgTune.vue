@@ -13,7 +13,7 @@
  */
 import { computed, reactive, watch, ref, onMounted, onUnmounted } from 'vue';
 import { state, driver, driverCell, driverConsistencyIssues, enterDriverField, clearDriverField,
-         managedDriver } from '../../../logic/store.js';
+         managedProject } from '../../../logic/store.js';
 import { ebp } from '@openisd/engine';
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
 import { cellClassOf, useQGroupIncomplete, consistencyNote, Q_GROUP } from '../../../logic/useDriverCells.js';
@@ -169,15 +169,15 @@ function fmt(v: number | null, dp: number): string { return v != null && isFinit
 // Cancel reverts the driver would silently keep a box change made in the same session.
 let vbSnapshot = state.P.Vb;
 watch(() => state.editDriver, (open) => {
-  if (open) { vbSnapshot = state.P.Vb; managedDriver.beginWhatIf(); }
-  else managedDriver.cancelWhatIf();
+  if (open) { vbSnapshot = state.P.Vb; managedProject.beginWhatIf(); }
+  else managedProject.cancelWhatIf();
 }, { immediate: true });
 
-function cancel() { managedDriver.cancelWhatIf(); state.P.Vb = vbSnapshot; state.editDriver = false; }
+function cancel() { managedProject.cancelWhatIf(); state.P.Vb = vbSnapshot; state.editDriver = false; }
 // Reset the overlay to the driver as loaded: end this session and start a fresh one from
-// ground. ManagedDriver owns both halves; the panel does not reach past it. Vb is a box value,
+// ground. ManagedProject owns both halves; the panel does not reach past it. Vb is a box value,
 // not a driver value, so it is untouched here.
-function reset()  { managedDriver.resetOverlayToGround(); }
+function reset()  { managedProject.resetOverlayToGround(); }
 </script>
 
 <template>

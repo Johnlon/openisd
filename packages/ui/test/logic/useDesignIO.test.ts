@@ -12,7 +12,7 @@ import { describe, it, beforeAll, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { createLogging } from '../../src/logging/flash.js';
 import { createDesignIO } from '../../src/logic/useDesignIO.js';
-import { managedDriver } from '../../src/logic/store.js';
+import { managedProject } from '../../src/logic/store.js';
 
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (persist.ts's stateToUrl) and writes to the
@@ -26,12 +26,12 @@ beforeAll(() => {
 describe('shareLink() cancels an active what-if before serialising the driver', () => {
   it('an active what-if is gone after shareLink() returns', async () => {
     const io = createDesignIO({ logging: createLogging() });
-    managedDriver.beginWhatIf();
-    assert.equal(managedDriver.isWhatIfActive(), true, 'precondition: a what-if is open');
+    managedProject.beginWhatIf();
+    assert.equal(managedProject.isWhatIfActive(), true, 'precondition: a what-if is open');
 
     await io.shareLink();
 
-    assert.equal(managedDriver.isWhatIfActive(), false,
+    assert.equal(managedProject.isWhatIfActive(), false,
       'shareLink() must cancel the what-if itself, like every sibling export/save function');
   });
 });

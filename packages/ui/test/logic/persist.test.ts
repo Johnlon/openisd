@@ -1,23 +1,23 @@
 /**
- * Persistence carries provenance (Phase 5).
+ * Persistence — what survives a serialize round trip, and what a share link carries.
  *
- * serialize() → JSON transport (localStorage/share-link/project JSON) → restore must
- * preserve BOTH the E/C/N marks AND the pass-through fields a WDR-loaded driver carries
- * (dimensions/thermal/ParState) — the values raw() alone drops. It must also still read a
- * legacy v1 blob (flat DriverRaw) without provenance, degrading gracefully.
- *
- * Oracle: the Driver's own cell().state and toWdr() — independent of persist.ts.
+ * Two properties, both real:
+ *   1. A driver's PROVENANCE survives. An E field comes back E and a C field comes back C —
+ *      because the record carries `readings`/`origin`, not a flat bag of numbers that would
+ *      make a computed value indistinguishable from a measured one on reload.
+ *   2. A share link carries the WHOLE state, stripped of nothing (human ruling 2026-08-14).
+ *      A link that quietly differs from what the sender saw cannot diagnose what the sender saw.
  */
-
 import { describe, it, beforeAll, afterAll, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
-import { Driver } from '@openisd/winisd';
+import { OpenISDDriver } from '@openisd/model';
+import { WinISDDriver } from '@openisd/winisd';
 import { serialize, stateToUrl } from '../../src/logic/persist.js';
-import type { AppState, SerializedState, UiParams } from '../../src/types.js';
+import type { AppState, SerializedState, UiParams, DriverJSON } from '../../src/types.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLE = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'John-all-manu-populated.wdr');
@@ -26,143 +26,137 @@ const wdrText = readFileSync(SAMPLE, 'utf8');
 // A minimal AppState — serialize only reads box/P/graphs off it.
 const miniState = { box: 'sealed', P: {} as UiParams, graphs: ['SPL'] } as unknown as AppState;
 
-// The restore logic mirrors store.setDriverFromSerialized (kept out of this unit test so
-// it doesn't pull in the reactive store; the discriminator is the whole point).
-function restore(d: unknown): Driver {
-  return (d && typeof d === 'object' && 'inputs' in (d as object))
-    ? Driver.fromJSON(d as Parameters<typeof Driver.fromJSON>[0])
-    : Driver.fromRaw((d ?? {}) as Record<string, never>);
+/** The sample `.wdr`, read as-read by the serialiser and projected into the app's own record.
+ *  One reader, one model — there is no second shape to discriminate on. */
+function sampleRecord(): DriverJSON {
+  return WinISDDriver.fromWdr(wdrText).toOpenISDRecord();
 }
 
-describe('persistence — provenance + carried fields survive a serialize round-trip', () => {
-  it('E/C/N marks are identical after serialize → JSON → restore', () => {
-    const src = Driver.fromWdr(wdrText);
+describe('persistence — provenance survives a serialize round trip', () => {
+  it('E stays E and C stays C across serialize → JSON → restore', () => {
+    const src = OpenISDDriver.fromRecord(sampleRecord());
     // Clear a derivable field so the fixture carries a genuine C (Cms recomputes from
     // Fs/Vas/Sd) alongside the E fields the WinISD save marks entered.
     src.clear('Cms');
-    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJSON())));
-    const back = restore(wire.driver);
 
     // The fixture must actually contain both an E and a C field, or the test is vacuous.
     assert.equal(src.cell('Fs').state, 'E', 'fixture precondition: Fs entered');
     assert.equal(src.cell('Cms').state, 'C', 'fixture precondition: Cms now computed');
 
-    for (const f of ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'Bl']) {
-      assert.equal(back.cell(f).state, src.cell(f).state, `cell(${f}).state must survive persistence`);
+    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toRecord())));
+    const back = OpenISDDriver.fromRecord(wire.driver);
+
+    for (const f of ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const) {
+      assert.equal(back.cell(f).state, src.cell(f).state,
+        `cell(${f}).state must survive persistence — provenance is the point of the record`);
     }
   });
 
-  it('a carried pass-through field (Basket) survives — raw() would have dropped it', () => {
-    const src = Driver.fromWdr(wdrText);
-    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJSON())));
-    assert.match(restore(wire.driver).toWdr(), /^Basket=/m);
+  it('the payload is the RECORD, so `specs` and its readings travel', () => {
+    const ser = serialize(miniState, sampleRecord());
+    assert.ok(ser.driver?.specs, 'the driver payload is the openisd.yml record');
+    assert.ok(ser.driver?.specs.woofer?.Fs?.readings,
+      'each field carries its readings, not a bare number — that is what makes E/C survivable');
   });
 
-  it('serialize stamps v:2 and stores the full DriverJSON (inputs present)', () => {
-    const ser = serialize(miniState, Driver.fromWdr(wdrText).toJSON());
-    assert.equal(ser.v, 2);
-    assert.ok('inputs' in ser.driver, 'driver payload is the full DriverJSON');
-  });
-
-  it('a legacy v1 blob (flat DriverRaw) still loads, marks its fields E', () => {
-    const v1 = { v: 1, driver: { name: 'Old', Fs: 40, Qes: 0.4, Qms: 5, Vas: 0.02, Sd: 0.012, Re: 6 } };
-    const back = restore(JSON.parse(JSON.stringify(v1)).driver);
-    assert.equal(back.cell('Fs').state, 'E');
-    assert.equal(back.cell('Fs').value, 40);
+  it('a design with NO driver chosen serialises without inventing one', () => {
+    const ser = serialize(miniState, undefined);
+    assert.equal(ser.driver, undefined,
+      'a fake driver written to fill the slot would be indistinguishable on reload from one ' +
+      'the user actually picked');
   });
 });
 
-// A share link carries the sender's whole VIEW (skin, active tab, selected chart) so the
-// recipient lands on the identical page — but NOT personal working state (an open editor +
-// its uncommitted buffer) or per-field unit-display prefs.
-describe('share link carries skin + view context but not editor/working state', () => {
+/**
+ * A share link is a COMPLETE description of the session: the recipient lands on exactly what
+ * the sender was looking at. Nothing is stripped — not the open-panel flags, and not the
+ * recipient-preference fields an earlier version removed (human ruling 2026-08-14).
+ */
+describe('share link carries the whole state, stripped of nothing', () => {
   const uiState = {
     box: 'sealed', P: {} as UiParams, graphs: ['SPL'],
     ui: {
       skin: 'classic',
       originalProjectTab: 'signal', originalChartTab: 'Excursion', originalChartLabel: 'Cone excursion',
-      originalTuneOpen: true, originalWhatIf: { inputs: {} }, originalEditorOpen: true,
+      originalTuneOpen: true, originalEditorOpen: true,
       originalNavW: 320, originalBottomH: 200, originalNavCollapsed: true,
       originalBottomCollapsed: true, originalChartMax: true,
       username: 'johnl', envDefaults: { tempK: 300, pressurePa: 100000, humidityPct: 40 },
       chartColors: { background: '#ffffff' },
     },
   } as unknown as AppState;
-  const drv = Driver.fromWdr(wdrText).toJSON();
+  const drv = sampleRecord();
 
   // stateToUrl reads location.{origin,pathname}; stub it (no jsdom needed) for the URL test.
   beforeAll(() => vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' }));
   afterAll(() => vi.unstubAllGlobals());
 
-  // stateToUrl() gzips the payload before base64url — reverse both steps with Node's zlib
-  // (independent of the app's own CompressionStream code path, so this is a real check of
-  // what a browser would decode, not a tautology against the same implementation).
+  // stateToUrl() gzips before base64url — reverse both with Node's zlib, independent of the
+  // app's own CompressionStream path, so this checks what a browser would decode rather than
+  // agreeing with the implementation about itself.
   function decodeShare(url: string): SerializedState {
     const b64 = url.match(/[#&]s=([^&]+)/)![1].replace(/-/g, '+').replace(/_/g, '/');
-    const gzipped = Buffer.from(b64, 'base64');
-    const json = gunzipSync(gzipped).toString('utf8');
-    return JSON.parse(json);
+    return JSON.parse(gunzipSync(Buffer.from(b64, 'base64')).toString('utf8'));
   }
 
-  it('stateToUrl() keeps the active tab + chart but drops the open-editor buffer', async () => {
+  it('every ui field travels — view context, open panels and local preferences alike', async () => {
     const shared = decodeShare(await stateToUrl(serialize(uiState, drv)));
     const ui = shared.ui as Record<string, unknown> | undefined;
-    assert.ok(ui, 'shareable view context (ui) travels');
-    assert.equal(ui!.originalProjectTab, 'signal');       // land on the same tab
-    assert.equal(ui!.originalChartTab, 'Excursion');      // and the same chart
+    assert.ok(ui, 'the view context travels');
+
+    // Where the sender was looking.
+    assert.equal(ui!.originalProjectTab, 'signal');
+    assert.equal(ui!.originalChartTab, 'Excursion');
     assert.equal(ui!.originalChartLabel, 'Cone excursion');
-    assert.equal('originalTuneOpen' in ui!, false);       // personal working state excluded
-    assert.equal('originalWhatIf' in ui!, false);
-    assert.equal('originalEditorOpen' in ui!, false);
-    // device-local layout prefs (panel sizes / collapse / chart maximise) excluded too
-    assert.equal('originalNavW' in ui!, false);
-    assert.equal('originalBottomH' in ui!, false);
-    assert.equal('originalNavCollapsed' in ui!, false);
-    assert.equal('originalBottomCollapsed' in ui!, false);
-    assert.equal('originalChartMax' in ui!, false);
-    assert.equal('username' in ui!, false);               // Options-dialog app-level prefs excluded
-    assert.equal('envDefaults' in ui!, false);
-    assert.equal('chartColors' in ui!, false);
-    assert.equal(shared.box, 'sealed');                   // the design itself still travels
+
+    // WHICH PANELS WERE OPEN — this is app state the URL is meant to encapsulate, not
+    // "personal working state" to be hidden. An earlier version dropped these.
+    assert.equal(ui!.originalTuneOpen, true);
+    assert.equal(ui!.originalEditorOpen, true);
+
+    // Layout and preferences. Kept for fidelity: a link that differs from what the sender saw
+    // cannot be used to diagnose what the sender saw.
+    assert.equal(ui!.originalNavW, 320);
+    assert.equal(ui!.originalChartMax, true);
+    assert.equal(ui!.username, 'johnl');
+    assert.deepEqual(ui!.chartColors, { background: '#ffffff' });
+
+    assert.equal(shared.box, 'sealed', 'and the design itself');
   });
 
-  it('gzip actually shrinks the link vs plain base64 of the same JSON (not just round-trips)', async () => {
-    // A realistic-size payload — a real driver record (many T/S + carried WDR fields) plus
-    // a couple of comparison overlays, so the JSON has the repetition gzip exploits.
+  it('gzip actually shrinks the link vs plain base64 of the same JSON', async () => {
+    // A realistic payload — a real record plus two comparison overlays, so the JSON has the
+    // repetition gzip exploits. A round-trip alone would not prove compression happened.
     const loaded = { ...uiState, compare: [
       { driver: drv, box: 'vented', P: {}, name: 'Compare A', color: '#ff0000' },
       { driver: drv, box: 'sealed', P: {}, name: 'Compare B', color: '#00ff00' },
     ] } as unknown as AppState;
-    const json = JSON.stringify(serialize(loaded, drv));
-    const plainBase64Len = Buffer.from(json, 'utf8').toString('base64').length;
-
-    const url = await stateToUrl(serialize(loaded, drv));
-    const gzipBase64Len = url.match(/[#&]s=([^&]+)/)![1].length;
+    const plainBase64Len = Buffer.from(JSON.stringify(serialize(loaded, drv)), 'utf8').toString('base64').length;
+    const gzipBase64Len = (await stateToUrl(serialize(loaded, drv))).match(/[#&]s=([^&]+)/)![1].length;
 
     assert.ok(gzipBase64Len < plainBase64Len,
-      `gzip+base64 (${gzipBase64Len}) should be smaller than plain base64 (${plainBase64Len}) of the same JSON`);
+      `gzip+base64 (${gzipBase64Len}) should be smaller than plain base64 (${plainBase64Len})`);
   });
 
-  it('carries the graph cursor/marker (live hover + locked/pinned) — both, if both are set', async () => {
+  it('carries the graph cursor — live hover and locked/pinned, both if both are set', async () => {
     const withCursor = { ...uiState, cursorF: 123.4, pinnedF: 500, cursorLocked: true } as unknown as AppState;
     const local = serialize(withCursor, drv);
     assert.deepEqual(local.cursor, { f: 123.4, pinnedF: 500, locked: true, range: null });
-
-    const shared = decodeShare(await stateToUrl(local));
-    assert.deepEqual(shared.cursor, { f: 123.4, pinnedF: 500, locked: true, range: null });
+    assert.deepEqual(decodeShare(await stateToUrl(local)).cursor,
+      { f: 123.4, pinnedF: 500, locked: true, range: null });
   });
 
-  it('carries the dragged frequency band selection (fLo/fHi only — stats are per-panel derived)', async () => {
+  it('carries the dragged band (fLo/fHi only — stats are per-panel derived)', async () => {
     const withBand = { ...uiState, dragRange: { fLo: 31.6, fHi: 100, stats: { peak: 1 } } } as unknown as AppState;
     const local = serialize(withBand, drv);
-    assert.deepEqual(local.cursor!.range, { fLo: 31.6, fHi: 100 }); // stats stripped
-
-    const shared = decodeShare(await stateToUrl(local));
-    assert.deepEqual(shared.cursor!.range, { fLo: 31.6, fHi: 100 });
+    assert.deepEqual(local.cursor!.range, { fLo: 31.6, fHi: 100 }, 'derived stats are not state');
+    assert.deepEqual(decodeShare(await stateToUrl(local)).cursor!.range, { fLo: 31.6, fHi: 100 });
   });
 
-  it('an unset cursor serializes as all-null/false, not omitted (no special-casing "nothing pinned")', () => {
+  it('an unset cursor serialises as all-null/false, not omitted', () => {
     const noCursor = { ...uiState, cursorF: null, pinnedF: null, cursorLocked: false } as unknown as AppState;
-    assert.deepEqual(serialize(noCursor, drv).cursor, { f: null, pinnedF: null, locked: false, range: null });
+    assert.deepEqual(serialize(noCursor, drv).cursor,
+      { f: null, pinnedF: null, locked: false, range: null },
+      'omitting "nothing pinned" would make absence and unset indistinguishable on reload');
   });
 });
