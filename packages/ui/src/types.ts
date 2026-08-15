@@ -324,10 +324,10 @@ export interface ProjectMeta {
 /** The persisted / URL-encoded snapshot shape (persist.ts). */
 export interface SerializedState {
   v: number;
-  // v≥2: the Driver's full state (entered marks + carried WDR fields + ParState), so
-  // provenance and pass-through fields survive reload/share/save. v1 blobs carry a flat
-  // DriverRaw here instead — handled on load (setDriverFromSerialized).
-  driver: DriverJSON;
+  // The driver record — provenance and every stated field, so they survive reload, share and
+  // save. OPTIONAL: a design with no driver chosen yet is a real state, and writing a fake one
+  // to fill the slot would be indistinguishable on reload from a driver the user picked.
+  driver?: DriverJSON;
   box: BoxType;
   lossMode?: string;
   P: UiParams;

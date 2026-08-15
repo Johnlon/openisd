@@ -15,7 +15,7 @@
  */
 import { ref, watch } from 'vue';
 import {
-  state, driver, driverName, driverRecord, managedDriver, setDriverFromWdr,
+  state, driver, driverName, driverRecord, managedProject, setDriverFromWdr,
   markProjectSaved, applyState, curvesData,
 } from './store.js';
 import { serialize, stateToUrl, download } from './persist.js';
@@ -32,7 +32,7 @@ function sanitizeFilename(name: string | undefined): string {
 
 // A live what-if is an uncommitted preview that can never be saved, exported or shared
 // (ARCHITECTURE.md §3). That guard is STRUCTURAL, not a call every I/O function must remember:
-// `driverRecord` reads ManagedDriver.readModified(), which cancels an active what-if itself. A
+// `driverRecord` reads ManagedProject.readModified(), which cancels an active what-if itself. A
 // per-call-site guard is what let shareLink() ship without one while every sibling had it.
 // Closing the Tune panel is the only part left to the caller, since the panel is UI, not state.
 function closeTunePanelAfterIO(): void {
@@ -136,20 +136,26 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   function exportWdr(): void {
     closeTunePanelAfterIO();
     // The ADT's own toWdr is lossless — carried fields + live ParState provenance.
-    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(driverRecord.value);
+    const record = driverRecord.value;
+    if (!record) { flash('Cannot export .wdr: no driver has been chosen'); return; }
+    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(record);
     if (!wdr) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wdr', wdr.toWdr(), 'text/plain');
   }
 
   function exportOwdr(): void {
     closeTunePanelAfterIO();
-    download(sanitizeFilename(driverName.value) + '.owdr', JSON.stringify(driverRecord.value, null, 2), 'application/json');
+    const record = driverRecord.value;
+    if (!record) { flash('Cannot export .owdr: no driver has been chosen'); return; }
+    download(sanitizeFilename(driverName.value) + '.owdr', JSON.stringify(record, null, 2), 'application/json');
   }
 
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
     closeTunePanelAfterIO();
-    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(driverRecord.value);
+    const record = driverRecord.value;
+    if (!record) { flash('Cannot export .wpr: no driver has been chosen'); return; }
+    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(record);
     if (!wdr) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     const input = buildWprInput(state.box, state.P, driver.value, wdr.toWdr(), state.project, new Date(), curvesData.value);
     download(sanitizeFilename(driverName.value) + '.wpr', toWpr(input), 'text/plain');
@@ -313,7 +319,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
         } else if (isOwdr || nameLower.endsWith('.json') || isOwpr) {
           const parsed = JSON.parse(text);
           if (parsed && typeof parsed === 'object' && ('specs' in parsed) && !('box' in parsed)) {
-              managedDriver.loadRecord(parsed);
+              managedProject.loadDriverRecord(parsed);
           } else {
             applyState(parsed as SerializedState);
             state.project.name = projectNameFromFilename(f.name);
@@ -322,7 +328,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
           if (/^\s*\{/.test(text)) {
             const parsed = JSON.parse(text);
             if (parsed && typeof parsed === 'object' && ('specs' in parsed) && !('box' in parsed)) {
-                  managedDriver.loadRecord(parsed);
+                  managedProject.loadDriverRecord(parsed);
             } else {
               applyState(parsed as SerializedState);
               state.project.name = projectNameFromFilename(f.name);

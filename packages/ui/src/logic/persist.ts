@@ -22,7 +22,7 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
   return new TextDecoder().decode(buf);
 }
 
-export function serialize(state: AppState, driver: DriverJSON): SerializedState {
+export function serialize(state: AppState, driver: DriverJSON | undefined): SerializedState {
   return {
     v: 2,
     driver,

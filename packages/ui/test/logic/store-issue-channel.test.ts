@@ -10,7 +10,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, allIssues, paramIssues, driverErrors, managedDriver } from '../../src/logic/store.js';
+import { state, allIssues, paramIssues, driverErrors, managedProject } from '../../src/logic/store.js';
 
 /** Restore the box volume the default design opens with, so tests don't leak state. */
 const VB_DEFAULT = state.P.Vb;
@@ -21,9 +21,9 @@ const VB_DEFAULT = state.P.Vb;
 function seedValidDriver(): void {
   const stated = { Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300, Sd: 0.0133,
                    Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8 } as const;
-  managedDriver.loadEmpty();
+  managedProject.loadEmpty();
   for (const [k, v] of Object.entries(stated)) {
-    managedDriver.enter(k as Parameters<typeof managedDriver.enter>[0], v);
+    managedProject.enter(k as Parameters<typeof managedProject.enter>[0], v);
   }
 }
 

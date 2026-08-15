@@ -5,10 +5,10 @@ import type { Driver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResul
 import type { Cell, MetaCell, SpecField, MetaField, OpenISDDriver } from '@openisd/model';
 
 /** The openisd.yml record shape — what `OpenISDDriver.toRecord()` hands back. A TYPE only:
- *  `ManagedDriver` is the one holder of the OpenISDDriver value (ARCHITECTURE.md §2). */
+ *  `ManagedProject` is the one holder of the OpenISDDriver value (ARCHITECTURE.md §2). */
 type DriverRecord = ReturnType<OpenISDDriver['toRecord']>;
 import { WinISDDriver } from '@openisd/winisd';
-import { ManagedDriver } from './managedDriver.js';
+import { ManagedProject } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
 import { parseChartTabId } from './series.js';
 import { nextToken, toDisplay, displayPrecision, unitDef, type UnitGroup } from './fields/units.js';
@@ -191,82 +191,90 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// ---- The driver: ManagedDriver, and NOTHING else -----------------------------------------
-// ARCHITECTURE.md §"Approved state stores": ManagedDriver holds ALL active/edit/what-if driver
+// ---- The project: ManagedProject, and NOTHING else ----------------------------------------
+// ARCHITECTURE.md §"Approved state stores": ManagedProject holds ALL active/edit/what-if
 // state. The store does not hold a driver, does not hold a baseline, and does not know a
 // what-if exists — a second copy of any of those is a second answer to the same question, and
 // the two are free to disagree. Everything below DELEGATES; it stores nothing.
 //
-// ManagedDriver's framework-free subscribe() is bridged to Vue through _version: it fires on
+// ManagedProject's framework-free subscribe() is bridged to Vue through _version: it fires on
 // every change the facade decides a subscriber should see (an edit draft stays silent until
 // commitEdit; a what-if overlay fires live), and the computeds below touch _version so they
 // re-derive exactly then. @openisd/model stays Vue-free — the arrow points up, never down.
 const _version = getOrInit('_version', () => ref(0));
 
 /**
- * THE driver. The one facade over ground, modified and the edit-or-what-if overlay
- * (`logic/managedDriver.ts`). Every driver read and every driver write in the whole app goes
- * through this object: `.cell()`/`.metaCell()`/`.toDriver()`/`.errors()` to read,
- * `.enter()`/`.clear()` to write, `.recordToPersist()` for anything saved/exported/shared,
- * `.beginWhatIf()`/`.cancelWhatIf()`/`.isWhatIfActive()` for a what-if session, and
- * `.beginEdit()`/`.commitEdit()`/`.cancelEdit()` for an edit. The `OpenISDDriver` it wraps is
- * private to it and never leaves.
+ * THE project. The one facade over ground, committed and the edit-or-what-if overlay
+ * (`logic/managedProject.ts`), and the domain object for ONE project in the left nav.
+ *
+ * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
+ * `.toDriver()`/`.errors()`/`.snapshot()` to read, `.enter()`/`.clear()`/`.mutate()` to write,
+ * `.recordToPersist()` for anything saved/exported/shared, `.beginWhatIf()`/`.cancelWhatIf()`/
+ * `.isWhatIfActive()` for a what-if, `.beginEdit()`/`.commitEdit()`/`.cancelEdit()` for an
+ * edit. The `OpenISDProject` it wraps — and the `OpenISDDriver` inside that — are private to
+ * it and never leave.
  */
-export const managedDriver: ManagedDriver = getOrInit('_managed', () => {
-  const md = ManagedDriver.createEmpty();
+export const managedProject: ManagedProject = getOrInit('_managed', () => {
+  const md = ManagedProject.createEmpty();
   ctx._unsub = md.subscribe(() => { _version.value++; });
   return md;
 });
 
-/** Adopt a driver as the freshly-loaded one — a library pick, an import, or a file open.
- *  Ground and modified both become it; any open overlay is cancelled by ManagedDriver. */
-export function loadDriverRecord(record: DriverRecord): void { managedDriver.loadRecord(record); }
+/** Adopt a chosen driver into the CURRENT design — a library pick, an import, a file open.
+ *  The box and everything else are left alone: choosing a driver is not opening a project. */
+export function loadDriverRecord(record: DriverRecord): void {
+  managedProject.loadDriverRecord(record);
+}
 
 /** Load a driver from WinISD `.wdr` text. The `.wdr` is parsed as-read by the serialiser, then
  *  projected into the app's own model — the file format never reaches past this line. */
 export function setDriverFromWdr(text: string): void {
-  managedDriver.loadRecord(WinISDDriver.fromWdr(text).toOpenISDRecord());
+  managedProject.loadDriverRecord(WinISDDriver.fromWdr(text).toOpenISDRecord());
 }
 
-/** Route one per-field edit to whichever layer ManagedDriver says is effective. */
+/** Route one per-field edit to whichever layer ManagedProject says is effective. */
 export function enterDriverField(field: SpecField, value: number): void {
-  managedDriver.enter(field, value);
+  managedProject.enter(field, value);
 }
 export function clearDriverField(field: SpecField): void {
-  managedDriver.clear(field);
+  managedProject.clear(field);
 }
 
 /** One field's value + E/C/N provenance from the EFFECTIVE driver. Reactive: touching
- *  _version makes any render or computed calling this re-run when ManagedDriver notifies. */
+ *  _version makes any render or computed calling this re-run when ManagedProject notifies. */
 export function driverCell(field: SpecField): Cell {
   void _version.value;
-  return managedDriver.cell(field);
+  return managedProject.cell(field);
 }
 
 /** A record-level metadata field (brand/model/manufacturer) from the EFFECTIVE driver. */
 export function driverMetaCell(field: MetaField): MetaCell {
   void _version.value;
-  return managedDriver.metaCell(field);
+  return managedProject.metaCell(field);
 }
 
 // The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
 export const driver = computed<Driver | null>(() => {
   void _version.value;
-  return managedDriver.toDriver();
+  return managedProject.toDriver();
 });
 
-// The record for persistence — MODIFIED state, never the overlay, so a live what-if is never
+// The PROJECT for persistence — committed state, never the overlay, so a live what-if is never
 // saved, shared or written to disk. recordToPersist() cancels an active what-if itself.
-export const driverRecord = computed(() => {
+export const projectToPersist = computed(() => {
   void _version.value;
-  return managedDriver.recordToPersist();
+  return managedProject.recordToPersist();
 });
+
+/** Just the driver record out of the persistable project, for the paths that write a DRIVER
+ *  file (`.wdr`, `.owdr`) rather than a project file. Undefined when none is chosen. */
+export const driverRecord = computed<DriverRecord | undefined>(() => projectToPersist.value.driver);
 
 /** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
  *  driver. '' when nothing names it (no driver chosen yet), so a caller can fall back. */
 export const driverName = computed<string>(() => {
   void _version.value;
-  return [managedDriver.metaCell('brand').value, managedDriver.metaCell('model').value]
+  return [managedProject.metaCell('brand').value, managedProject.metaCell('model').value]
     .filter(x => x.length > 0).join(' ').trim();
 });
 
@@ -274,20 +282,20 @@ export const driverName = computed<string>(() => {
  * Open the driver picker — the ONE governed entry point. Cancels any active what-if first: an
  * uncommitted preview must never be left dangling once the user has moved on to picking a
  * different driver. Every "Select Driver"/"Browse…" trigger calls this, never a raw
- * `state.browseOpen = true`. ManagedDriver owns the cancellation; this only asks for it.
+ * `state.browseOpen = true`. ManagedProject owns the cancellation; this only asks for it.
  */
 export function openDriverPicker(): void {
-  if (managedDriver.isWhatIfActive()) { managedDriver.cancelWhatIf(); state.editDriver = false; }
+  if (managedProject.isWhatIfActive()) { managedProject.cancelWhatIf(); state.editDriver = false; }
   state.browseOpen = true;
 }
 
 export const driverErrors = computed<DriverError[]>(() => {
   void _version.value;
-  return managedDriver.errors();
+  return managedProject.errors();
 });
 export const driverConsistencyIssues = computed<ConsistencyIssue[]>(() => {
   void _version.value;
-  return managedDriver.consistencyIssues();
+  return managedProject.consistencyIssues();
 });
 // driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
 export const driverWarnings = computed<string[]>(() => driverErrors.value.map(e => e.message));
@@ -408,7 +416,7 @@ export function resetProjectToGround(): void {
   // reproduce the calculated member from a value that was rounded on its way through JSON
   // and land on a different double.
   suspendVentSolve(() => Object.assign(state.P, g.P));
-  managedDriver.loadRecord(g.driver);
+  managedProject.loadDriverRecord(g.driver);
   if (g.project) {
     Object.assign(state.project, g.project);
   }
@@ -422,7 +430,7 @@ export function newProject(): void {
   Object.assign(state.P, defaultP());   // fresh filters array + entered set, not the shared default refs
   state.yRanges = {};
   state.project = { name: '', creator: '', created: '', modified: '', description: '' }; // blank meta
-  managedDriver.loadEmpty();                                // no driver chosen — the user picks one
+  managedProject.loadEmpty();                                // no driver chosen — the user picks one
   markProjectSaved();                                       // the fresh design is the new clean ground
 }
 
@@ -436,7 +444,7 @@ export function newProject(): void {
  * key serialize() emits is not restored here.
  */
 export function applyState(o: SerializedState): void {
-  if (o.driver) managedDriver.loadRecord(o.driver as DriverRecord);
+  if (o.driver) managedProject.loadDriverRecord(o.driver as DriverRecord);
   if (o.box) state.box = o.box;
   if (o.lossMode) state.lossMode = o.lossMode;
   // Verbatim, for the same reason as resetProjectToGround: a persisted design carries both

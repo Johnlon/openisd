@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { OpenISDProject, type ProjectContent } from '../../src/logic/model/OpenISDProject.js';
 import { toSnapshot, fromSnapshot } from '../../src/logic/model/workspace.js';
 import type { UiParams, ProjectMeta } from '../../src/types.js';
+import { OpenISDDriver } from '@openisd/model';
 
 /**
  * The project model's contract (docs/design/STATE_MODEL.md):
@@ -19,7 +20,7 @@ function content(name = 'Project A', Vb = 0.030): ProjectContent {
   return {
     box: 'vented',
     P: { Vb } as unknown as UiParams,
-    driver: { inputs: { name: 'Driver', Fs: 37 } },
+    driver: OpenISDDriver.empty().toRecord(),
     meta: meta(name),
   };
 }

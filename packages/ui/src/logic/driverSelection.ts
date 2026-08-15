@@ -1,6 +1,6 @@
 import { Driver as DriverModel, type DriverJSON, WinISDDriver } from '@openisd/winisd';
 import type { DriverRaw } from '@openisd/engine';
-import { state, managedDriver, driverRecord } from './store.js';
+import { state, managedProject, driverRecord } from './store.js';
 import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
 import { DriverFileFormat } from '../driverFileFormat.js';
 
@@ -180,13 +180,15 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
    */
   // The classic ADT and the app's model meet at `.wdr` text — the one format both can write
   // and read. This is the bridge while the picker/editor still speak the classic ADT; it
-  // disappears when they are migrated onto ManagedDriver directly.
+  // disappears when they are migrated onto ManagedProject directly.
   function adoptIntoProject(m: DriverModel): void {
-    managedDriver.loadRecord(WinISDDriver.fromWdr(m.toWdr()).toOpenISDRecord());
+    managedProject.loadDriverRecord(WinISDDriver.fromWdr(m.toWdr()).toOpenISDRecord());
   }
   /** The project's current driver, as the classic ADT the editor still edits. */
   function projectDriverAsModel(): DriverModel {
-    const { value: wdr } = WinISDDriver.fromOpenISDRecord(driverRecord.value);
+    const record = driverRecord.value;
+    if (!record) return new DriverModel();          // no driver chosen — a blank one to edit
+    const { value: wdr } = WinISDDriver.fromOpenISDRecord(record);
     return wdr ? DriverModel.fromWdr(wdr.toWdr()) : new DriverModel();
   }
 
@@ -257,7 +259,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
      *  the editor always seeds from the project's committed driver, so a live preview left
      *  open would silently disagree with what the editor shows. */
     editProjectDriver() {
-      if (managedDriver.isWhatIfActive()) { managedDriver.cancelWhatIf(); state.editDriver = false; }
+      if (managedProject.isWhatIfActive()) { managedProject.cancelWhatIf(); state.editDriver = false; }
       subject = { kind: 'project' };
       editorDraft = null;
       state.editDriverInfo = true;
