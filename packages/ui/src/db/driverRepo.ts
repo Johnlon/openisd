@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { DriverRaw } from '@openisd/engine';
-import type { DriverJSON } from '@openisd/winisd';
+import { OpenISDDriver } from '@openisd/model';
+import type { OpenISDDriverJson } from '@openisd/model';
 import { DriverType, Chip } from '../driverType.js';
 import { driverShort } from '../driverName.js';
 
@@ -24,7 +24,7 @@ export interface FileEntry {
   date?: string;
   datasheet?: string; manupage?: string; vendorpage?: string; frd?: string; impedance?: string;
   /** Set on a bundled row: the openisd record itself, already parsed. */
-  record?: DriverJSON;
+  record?: OpenISDDriverJson;
   path?: string; repo?: string | null; branch?: string | null;
   sourceKey?: string; sourceName?: string; sourceUrl?: string; sourceDesc?: string;
   _Fs?: number | null; _Sd?: number | null; _Re?: number | null; _Znom?: number | null; _Pe?: number | null;
@@ -33,7 +33,7 @@ export interface FileEntry {
   _nd?: string; _isLatest?: boolean; _isOlder?: boolean;
   /** Set on a My Drivers row: the saved driver itself. Its presence is what makes a row a
    *  user driver rather than a library one — there is no second marker. */
-  myDriverData?: DriverRaw;
+  myDriverData?: OpenISDDriverJson;
 }
 
 /** One driver record in the pre-built bundle, as `scripts/bundle-drivers.mjs` emits it. */
@@ -44,7 +44,7 @@ export interface BundleRecord {
   name: string;
   /** Canonical driver_type as the record states it — authoritative for the chips. */
   driverType?: string;
-  record: DriverJSON;
+  record: OpenISDDriverJson;
 }
 
 /**
@@ -60,7 +60,7 @@ export interface BundleRecord {
  * identity: the editor's OK is disabled without both, Clone forks to "Copy of …", and a file
  * loaded from disk takes its model from the file name when the file itself names none.
  */
-export function driverKey(f: FileEntry, identityOf: (d: DriverRaw) => string): string {
+export function driverKey(f: FileEntry, identityOf: (d: OpenISDDriverJson) => string): string {
   const my = f.myDriverData;
   if (my) return `my:${identityOf(my)}`;
   return `${f.sourceKey || f.sourceName || ''}/${f.path || f.fileName || f.name}`;
@@ -177,7 +177,12 @@ export function shortSource(name: string | undefined): string {
  * which is what the list key and deletion use — two saved drivers may legitimately read
  * the same on screen, and neither may then be undeletable or delete the other.
  */
-export function myDriverName(d: DriverRaw): string { return driverShort(d); }
+export function myDriverName(d: OpenISDDriverJson): string {
+  const brand = d.brand?.value ?? '';
+  const model = d.model?.value ?? '';
+  const name = [brand, model].filter(x => x.length > 0).join(' ').trim();
+  return name || 'Driver';
+}
 
 /**
  * A saved driver as a pool row — the shape selection takes.
@@ -187,16 +192,18 @@ export function myDriverName(d: DriverRaw): string { return driverShort(d); }
  * those columns and a row that cannot answer them cannot be filtered — which is precisely
  * how My Drivers came to ignore the type chips and the Fs/Sd/Znom bounds.
  */
-export function myDriverEntry(d: DriverRaw): FileEntry {
+export function myDriverEntry(d: OpenISDDriverJson): FileEntry {
   const name = myDriverName(d);
-  // No declared type argument: DriverRaw carries no driver_type — that field belongs to the
-  // bundled RECORD, not to the driver itself — so a saved driver is classified from its
-  // name, Fs and Sd, the same fallback path a .wdr from a GitHub source takes.
-  const ct = classifyTypes(d.Fs ?? null, d.Sd ?? null, name);
+  // Read the summary columns through the driver's own accessors, so a value the record STATES
+  // and one the solver DERIVES are both available — the filter bar asks "what is this driver's
+  // Fs", not "did someone type an Fs".
+  const drv = OpenISDDriver.fromRecord(d);
+  const num = (f: Parameters<typeof drv.cell>[0]) => drv.cell(f).value;
+  const ct = classifyTypes(num('Fs'), num('Sd'), name, d.driver_type?.value);
   return {
     name, myDriverData: d,
-    _Fs: d.Fs ?? null, _Sd: d.Sd ?? null, _Re: d.Re ?? null,
-    _Znom: d.Z ?? null, _Pe: d.Pe ?? null,
+    _Fs: num('Fs'), _Sd: num('Sd'), _Re: num('Re'),
+    _Znom: num('Znom'), _Pe: num('Pe'),
     _types: ct.types, _canonical: ct.canonical,
   };
 }
@@ -214,14 +221,18 @@ export function myDriverEntry(d: DriverRaw): FileEntry {
  * pre-computed fields are the available proxy.
  */
 export function driverHasDqIssues(f: FileEntry): boolean {
-  // My Drivers row or bundled record: read directly from the driver bag.
-  const inp = (f.myDriverData ?? (f.record?.inputs as DriverRaw | undefined)) as DriverRaw | undefined;
-  if (inp) {
-    const pos = (v: number | undefined) => typeof v === 'number' && v > 0;
-    const hasFsOk  = pos(inp.Fs);
-    const hasReOk  = pos(inp.Re);
-    const hasSdOk  = pos(inp.Sd) || pos(inp.Vas);   // Sd or Vas is enough for area
-    const qCount   = [inp.Qts, inp.Qes, inp.Qms].filter(pos).length;
+  // A saved driver and a bundled record are the SAME shape, so one path reads both.
+  const record = f.myDriverData ?? f.record;
+  if (record) {
+    const drv = OpenISDDriver.fromRecord(record);
+    const pos = (field: Parameters<typeof drv.cell>[0]) => {
+      const v = drv.cell(field).value;
+      return typeof v === 'number' && v > 0;
+    };
+    const hasFsOk  = pos('Fs');
+    const hasReOk  = pos('Re');
+    const hasSdOk  = pos('Sd') || pos('Vas');   // Sd or Vas is enough for area
+    const qCount   = (['Qts', 'Qes', 'Qms'] as const).filter(pos).length;
     return !hasFsOk || !hasReOk || !hasSdOk || qCount < 2;
   }
   // Federated row (content not yet fetched): fall back to pre-computed summary fields.
@@ -324,45 +335,47 @@ export function previewOf(f: FileEntry): Preview {
   if (f.vendorpage && f.vendorpage !== f.manupage) links.push({ href: f.vendorpage, label: 'Vendor page' });
   if (f.frd) links.push({ href: f.frd, label: 'FRD / ZMA data' });
 
-  // A saved My Driver and a bundled openisd record are both the app's own driver bag —
-  // one path reads both. Only a federated `.wdr` needs the text parse below.
-  const d = f.myDriverData ?? (f.record?.inputs as DriverRaw | undefined);
-  if (d) {
-    const n = (v: number | undefined, scale = 1): number | null => (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
-    const Fs = n(d.Fs), Qes = n(d.Qes);
+  // A saved My Driver and a bundled openisd record are the SAME shape, so one path reads both.
+  // Only a federated `.wdr` needs the text parse below.
+  const rec = f.myDriverData ?? f.record;
+  if (rec) {
+    const drv = OpenISDDriver.fromRecord(rec);
+    const n = (field: Parameters<typeof drv.cell>[0], scale = 1): number | null => {
+      const v = drv.cell(field).value;
+      return (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
+    };
+    const meta = (field: Parameters<typeof drv.metaCell>[0]): string | null =>
+      drv.metaCell(field).value || null;
+    const Fs = n('Fs'), Qes = n('Qes');
     const pathSku = f.path ? f.path.split('/')[1] : null;
-    const sku = (d as any).sku || pathSku || null;
-    const series = (d as any).series || null;
-    const description = (d as any).description || null;
-    const productImage = (d as any).productImage || null;
 
     return {
-      name: d.name || f.name || 'My Driver',
+      name: myDriverName(rec) !== 'Driver' ? myDriverName(rec) : (f.name || 'My Driver'),
       source: f.myDriverData ? 'My Drivers' : f.sourceName,
       sourceUrl: f.sourceUrl || '',
-      providedBy: d.providedBy || '',
-      brand: d.brand || null,
-      model: d.model || null,
-      sku,
-      series,
-      description,
-      productImage,
-      manufacturer: d.manufacturer || null,
-      notes: d.comment || null,
-      added: d.added || null,
+      providedBy: meta('provided_by') ?? '',
+      brand: meta('brand'),
+      model: meta('model'),
+      sku: rec.sku?.value || pathSku || null,
+      series: rec.series?.value || null,
+      description: rec.description?.value || null,
+      productImage: rec.product_image?.value || null,
+      manufacturer: meta('manufacturer'),
+      notes: meta('comment'),
+      added: meta('added'),
       links,
       specs: [
         { label: 'Fs',   value: Fs?.toFixed(1),                            unit: 'Hz'  },
-        { label: 'Qts',  value: n(d.Qts)?.toFixed(3) },
+        { label: 'Qts',  value: n('Qts')?.toFixed(3) },
         { label: 'Qes',  value: Qes?.toFixed(3) },
-        { label: 'Qms',  value: n(d.Qms)?.toFixed(3) },
-        { label: 'Re',   value: n(d.Re)?.toFixed(2),                       unit: 'Ω'   },
-        { label: 'Le',   value: d.Le ? (d.Le * 1000).toFixed(3) : null,    unit: 'mH'  },
-        { label: 'Vas',  value: d.Vas ? (d.Vas * 1000).toFixed(2) : null,  unit: 'L'   },
-        { label: 'Sd',   value: d.Sd ? (d.Sd * 1e4).toFixed(1) : null,     unit: 'cm²' },
-        { label: 'Xmax', value: d.Xmax ? (d.Xmax * 1000).toFixed(1) : null, unit: 'mm' },
-        { label: 'Pe',   value: n(d.Pe)?.toFixed(0),                       unit: 'W'   },
-        { label: 'Znom', value: n(d.Z)?.toFixed(0),                        unit: 'Ω'   },
+        { label: 'Qms',  value: n('Qms')?.toFixed(3) },
+        { label: 'Re',   value: n('Re')?.toFixed(2),                       unit: 'Ω'   },
+        { label: 'Le',   value: n('Le', 1000)?.toFixed(3),                 unit: 'mH'  },
+        { label: 'Vas',  value: n('Vas', 1000)?.toFixed(2),                unit: 'L'   },
+        { label: 'Sd',   value: n('Sd', 1e4)?.toFixed(1),                  unit: 'cm²' },
+        { label: 'Xmax', value: n('Xmax', 1000)?.toFixed(1),               unit: 'mm'  },
+        { label: 'Pe',   value: n('Pe')?.toFixed(0),                       unit: 'W'   },
+        { label: 'Znom', value: n('Znom')?.toFixed(0),                     unit: 'Ω'   },
         { label: 'Type', value: f._canonical && f._canonical !== 'Unclassified' ? f._canonical : null },
         { label: 'EBP',  value: (Fs && Qes) ? (Fs / Qes).toFixed(0) : null },
       ].filter(s => s.value != null),
@@ -464,37 +477,40 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
   );
 
   /**
-   * A bundled openisd record as a pool row. The record is the app's own driver shape, so
-   * every field is read straight off `inputs` — no file format is parsed here.
+   * A bundled openisd record as a pool row. The record IS the app's driver shape, so it is read
+   * through the driver's own accessors — no file format is parsed here, and no second reader.
    */
   function bundledEntry(f: BundleRecord, src: SourceEntry): FileEntry {
-    const inp = (f.record?.inputs ?? {}) as DriverRaw;
+    const rec = f.record;
+    const drv = OpenISDDriver.fromRecord(rec);
+    const num = (field: Parameters<typeof drv.cell>[0]) => drv.cell(field).value;
 
-    // `driverShort()` is the ONE place that decides what a driver is called — brand-led, with
-    // manufacturer trailing only when it differs. A bundled row must read exactly as the same
-    // driver reads everywhere else, so it asks rather than rebuilding the rule. The bundler's
-    // own path is the only fallback, for a record with nothing to name it by.
-    const short = driverShort(inp);
+    // `myDriverName()` is the ONE place that decides what a driver is called. A bundled row must
+    // read exactly as the same driver reads everywhere else, so it asks rather than rebuilding
+    // the rule. The bundler's own path is the only fallback, for a record nothing else names.
+    const short = myDriverName(rec);
     const displayName = short === 'Driver' ? f.name : short;
 
-    const ct = classifyTypes(inp.Fs ?? null, inp.Sd ?? null, displayName + ' ' + f.name, f.driverType);
+    const ct = classifyTypes(num('Fs'), num('Sd'), displayName + ' ' + f.name, f.driverType);
     return {
       name: displayName,
       fileName: f.name,
       record: f.record,
-      date: normaliseDate(inp.added),
-      datasheet: inp.datasheetUrl || '',
-      manupage: inp.manuPageUrl || '',
-      vendorpage: inp.distributorPageUrl || '',
-      frd: inp.frdUrl || '',
-      impedance: inp.impedanceUrl || '',
+      date: normaliseDate(rec.added?.value),
+      // Source links live in the record's own provenance index, keyed by SourceRole — a URL is
+      // not a driver field.
+      datasheet: rec.data_sources?.value?.manufacturer_datasheet || '',
+      manupage: rec.data_sources?.value?.manufacturer_product_page || '',
+      vendorpage: rec.data_sources?.value?.distributor_product_page || '',
+      frd: '',
+      impedance: '',
       path: f.path, repo: null, branch: null,
       sourceKey: src.key,
       sourceName: src.name,
       sourceUrl: src.url || '',
       sourceDesc: src.description || '',
-      _Fs: inp.Fs ?? null, _Sd: inp.Sd ?? null, _Re: inp.Re ?? null,
-      _Znom: inp.Z ?? null, _Pe: inp.Pe ?? null,
+      _Fs: num('Fs'), _Sd: num('Sd'), _Re: num('Re'),
+      _Znom: num('Znom'), _Pe: num('Pe'),
       _types: ct.types, _canonical: ct.canonical,
     };
   }
