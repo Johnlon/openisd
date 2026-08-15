@@ -1,4 +1,4 @@
-import type { AppState, DriverJSON, SerializedState, UiState } from '../types.js';
+import type { AppState, DriverJSON, SerializedState } from '../types.js';
 
 // Share-link payload: gzip (native CompressionStream — Baseline widely available since May
 // 2023, no library needed) then base64url. JSON compresses well (repetitive key names), so
