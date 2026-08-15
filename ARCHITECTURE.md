@@ -157,7 +157,7 @@ graph TD
     subgraph L2["APPLICATION"]
         LOGIC["<b>logic/</b><br/>packages/ui/src/logic/<br/>store · project · workflows<br/>field registry · series"]
         WSPACE["<b>Workspace</b><br/>logic/model/workspace.ts<br/><i>the open projects, ORDERED</i>"]
-        MANAGED["<b>ManagedProject</b><br/>logic/managedProject.ts<br/>ground · modified<br/>edit-or-whatif overlay<br/><i>3 x OpenISDProject.<br/>The ONLY path to a project.</i>"]
+        MANAGED["<b>ManagedProject</b><br/>logic/managedProject.ts<br/>ground · committed<br/>edit-or-whatif overlay<br/><i>3 x OpenISDProject.<br/>The ONLY path to a project.</i>"]
     end
 
     subgraph L3["SERVICES — arguments in, data out, no app state"]
@@ -240,7 +240,7 @@ graph TD
 
     subgraph LAYERS["ManagedProject holds THREE complete projects"]
         G["ground<br/><i>as loaded</i>"]
-        M["modified<br/><i>committed</i>"]
+        M["committed<br/><i>the design as it stands</i>"]
         O["overlay<br/><i>edit OR what-if, never both</i>"]
     end
 
@@ -330,7 +330,7 @@ stable, and identity is the entry's own id — never its name. `logic/model/work
 declares `projects: WorkspaceEntry[]`, which is correct and must stay a list.
 
 **Reading it.** `ManagedProject` is the only thing the app talks to. It holds three complete
-`OpenISDProject`s — ground, modified, and one overlay that is either an edit draft or a what-if,
+`OpenISDProject`s — ground, committed, and one overlay that is either an edit draft or a what-if,
 never both. `OpenISDProject` is red because it is PRIVATE: nothing outside `ManagedProject` reaches
 it, and nothing outside reaches its members either.
 
@@ -482,7 +482,7 @@ handed to whoever needs it — it is not importable.
 | ---------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
 | `main.ts` — composition root | Construct every service, the workspace and its `ManagedProject`s, wire them, mount the app | — (it is the top; nothing injects into it)                      |
 | `Workspace`                  | Hold the OPEN PROJECTS as an ordered list — never a map keyed by name          | the `ManagedProject`s it holds                                  |
-| `ManagedProject`             | The one facade over ONE project's ground/modified/overlay state — see §3       | an `OpenISDProject` factory                                     |
+| `ManagedProject`             | The one facade over ONE project's ground/committed/overlay state — see §3       | an `OpenISDProject` factory                                     |
 | `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the `ManagedProject`, plus whichever services that workflow needs |
 | `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup — returns RECORDS, never live instances | a bundle source (`() => OpenISDDriverJson[]`)      |
 | `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStore`                                               |
@@ -885,20 +885,20 @@ shapes of it.
 
 ### `ManagedProject` — the one facade over every state layer
 
-**`ManagedProject` wraps a project's ground state, modified state, and an edit-or-what-if overlay
+**`ManagedProject` wraps a project's ground state, committed state, and an edit-or-what-if overlay
 — three complete `OpenISDProject`s.
 Nothing outside it may read or write any of those layers directly** — a component, a workflow, a
 service, anything — reaches the project's state only through `ManagedProject`. This is the layer
 model of [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md) given a single owning object:
-ground state is that document's Baseline/Ground, modified state is its Committed design, and the
+ground state is that document's Baseline/Ground, committed state is its Committed design, and the
 overlay is either a Dialog draft (editing) or a What-if overlay — never both at once.
 
-**The edit lifecycle:** `beginEdit()` opens a draft over the modified state. `commitEdit()` writes
-the draft into modified state and discards the draft. `cancelEdit()` discards the draft without
-writing anything — the modified state is byte-identical to before `beginEdit()` was called,
+**The edit lifecycle:** `beginEdit()` opens a draft over the committed state. `commitEdit()` writes
+the draft into committed state and discards the draft. `cancelEdit()` discards the draft without
+writing anything — the committed state is byte-identical to before `beginEdit()` was called,
 provenance marks included.
 
-**The what-if lifecycle:** `beginWhatIf()` opens an overlay read from the modified state.
+**The what-if lifecycle:** `beginWhatIf()` opens an overlay read from the committed state.
 `cancelWhatIf()` discards it. **There is no `commitWhatIf()`** — a what-if explores values the app
 cannot verify against physical reality, so nothing ever promotes one into the design. The only way
 a what-if session ends is `cancelWhatIf()`, and it always discards.
@@ -908,7 +908,7 @@ it. `ManagedProject` alone decides when a subscriber is notified, and the two ov
 different rhythms:
 
 - **An edit draft is silent.** Typing into an open edit produces no notification. `commitEdit()`
-  writes the draft into modified state, and it is **that write to modified state** — not the act of
+  writes the draft into committed state, and it is **that write to committed state** — not the act of
   committing — that triggers the notification a subscriber receives.
 - **A what-if overlay is live.** Every change to an active what-if overlay notifies immediately, so
   a chart reads the scrubbed value on every frame. `beginWhatIf()`/`cancelWhatIf()` themselves also
@@ -919,14 +919,14 @@ commits (none ever do) produces one notification per change plus one on cancel.
 
 **A what-if never leaks into anything persistent.** Its value is unverified against physical
 reality — nothing outside the live overlay is allowed to see it. `ManagedProject` cancels any active
-what-if, itself, before every operation that reads modified state for a purpose beyond driving the
+what-if, itself, before every operation that reads committed state for a purpose beyond driving the
 open charts: `beginEdit()`, saving the project, saving-as, exporting `.wdr`/`.owdr`/`.wpr`,
 generating a share link, saving to My Drivers, and loading or switching to a different driver. This
-is `ManagedProject`'s own responsibility, not the caller's — a call site that reads modified state
+is `ManagedProject`'s own responsibility, not the caller's — a call site that reads committed state
 without going through `ManagedProject` can forget the guard, which is exactly how a real bug reached
 production: `shareLink()` serialises the driver into a URL without first cancelling an active
 what-if, while every sibling I/O function in the same module does. `ManagedProject` closes this
-class of bug structurally: there is no path to modified state that bypasses the cancel.
+class of bug structurally: there is no path to committed state that bypasses the cancel.
 
 ---
 
@@ -955,11 +955,11 @@ sequenceDiagram
     User->>UI: OK
     UI->>Store: request commit
     Store->>Managed: commitEdit
-    Managed->>Driver: enter field, value, on modified state
+    Managed->>Driver: enter field, value, on committed state
     Note over Driver: records a manual reading.<br/>C and N are derived, never set
     Driver->>Engine: solve the stated fields
     Engine-->>Driver: a Result carrying value and errors, never a throw
-    Managed-->>Store: notify subscribers<br/>(the write to modified state, not the commit itself)
+    Managed-->>Store: notify subscribers<br/>(the write to committed state, not the commit itself)
     Store->>Engine: sweep driver, boxType, params
     Engine-->>Store: SweepResult - spl, phase, excursion, impedance
     Store->>Store: map the arrays to renderer series
@@ -968,13 +968,13 @@ sequenceDiagram
 ```
 
 **A what-if follows the same shape with a different rhythm.** `beginWhatIf()` opens an overlay
-read from modified state; every scrub notifies immediately, live, so the chart updates on each
+read from committed state; every scrub notifies immediately, live, so the chart updates on each
 frame; `cancelWhatIf()` is the only way the session ends, and it always discards — there is no
 commit. See §3, "`ManagedProject` — the one facade over every state layer", for the full contract.
 
 **File I/O sits beside this loop, not inside it.** Import builds an `OpenISDDriver` from an
 `openisd.yml`/`.owdr` record, or from `.wdr` text via `WinISDDriver`, and hands it to
-`ManagedProject`; export reads modified state through `ManagedProject`, which cancels any active
+`ManagedProject`; export reads committed state through `ManagedProject`, which cancels any active
 what-if first. The sweep never touches a file.
 
 **The store reaches services, never the reverse.** `logic` calls `driverRepo` for a record,
@@ -1031,7 +1031,7 @@ the same act to the user, so they must be the same act to the app.
 ```
 ManagedProject
   ground     : OpenISDProject     the design exactly as loaded
-  modified   : OpenISDProject     the committed design
+  committed  : OpenISDProject     the design as it stands
   overlay    : OpenISDProject     an edit draft OR a what-if — never both
 
 OpenISDProject
@@ -1100,7 +1100,7 @@ of its own. There are NO unapproved exceptions.**
 | The approved store | Holds, and holds exclusively                                                                    | Path                                       |
 | ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | the **store**      | PERSISTENT design state — box, params, project metadata: what a save, a load and a share link carry | `packages/ui/src/logic/store.ts`           |
-| **`ManagedProject`** | ACTIVE, EDIT and WHAT-IF state for the WHOLE PROJECT — ground, modified, and the edit-or-what-if overlay, each holding a complete `OpenISDProject` | `packages/ui/src/logic/managedProject.ts` |
+| **`ManagedProject`** | ACTIVE, EDIT and WHAT-IF state for the WHOLE PROJECT — ground, committed, and the edit-or-what-if overlay, each holding a complete `OpenISDProject` | `packages/ui/src/logic/managedProject.ts` |
 | **`PresentationState`** | PRESENTATION state — which panel/dialog is open, cursor and selection, per-chart zoom, skin, unit tokens. **Backed by browser storage** | `packages/ui/src/logic/presentationState.ts` |
 | **`UrlAppState`**  | Composing the URL that ENCAPSULATES the app state — components on display, projects open, chart selected | `packages/ui/src/logic/urlAppState.ts`     |
 

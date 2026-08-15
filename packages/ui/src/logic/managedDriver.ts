@@ -1,24 +1,24 @@
 /**
  * `ManagedDriver` — the one facade over every driver state layer (ARCHITECTURE.md §3
  * "`ManagedDriver` — the one facade over every state layer"). Nothing outside it may read or
- * write ground state, modified state, or the edit/what-if overlay directly — a component, a
+ * write ground state, committed state, or the edit/what-if overlay directly — a component, a
  * workflow, a service, anything, reaches a driver's state only through this class.
  *
  * Wraps three things (`docs/design/STATE_MODEL.md`'s layer table, given a single owning
  * object):
  *   - ground state    — that document's Baseline/Ground: the driver exactly as loaded.
- *   - modified state   — that document's Committed design: the live `OpenISDDriver` the
+ *   - committed state   — that document's Committed design: the live `OpenISDDriver` the
  *                          charts are drawn from, held as an `OpenISDDriver`.
  *   - an overlay        — a Dialog draft (editing) OR a What-if overlay — never both at once.
  *
  * ── The edit lifecycle ──
- * `beginEdit()` opens a draft over modified state. `commitEdit()` writes the draft into
- * modified state and discards the draft. `cancelEdit()` discards the draft without writing
- * anything — modified state is byte-identical to before `beginEdit()`, provenance marks
+ * `beginEdit()` opens a draft over committed state. `commitEdit()` writes the draft into
+ * committed state and discards the draft. `cancelEdit()` discards the draft without writing
+ * anything — committed state is byte-identical to before `beginEdit()`, provenance marks
  * included.
  *
  * ── The what-if lifecycle ──
- * `beginWhatIf()` opens an overlay read from modified state. `cancelWhatIf()` discards it.
+ * `beginWhatIf()` opens an overlay read from committed state. `cancelWhatIf()` discards it.
  * There is no `commitWhatIf()` — a what-if explores values the app cannot verify against
  * physical reality, so nothing ever promotes one into the design. The only way a what-if
  * session ends is `cancelWhatIf()`, and it always discards.
@@ -35,7 +35,7 @@
  * when a subscriber is notified:
  *   - An edit draft is silent. Typing into an open edit produces no notification, because this
  *     class never subscribes to the draft's own `subscribe()`. `commitEdit()` writes the draft
- *     into modified state, and it is THAT WRITE — not the act of committing — that triggers the
+ *     into committed state, and it is THAT WRITE — not the act of committing — that triggers the
  *     one notification a subscriber receives.
  *   - A what-if overlay is live. This class subscribes to the overlay for as long as it is
  *     open, so every change re-fires immediately. `beginWhatIf()`/`cancelWhatIf()` themselves
@@ -44,7 +44,7 @@
  * ── A what-if never leaks into anything persistent (ARCHITECTURE.md §3) ──
  * Its value is unverified against physical reality — nothing outside the live overlay is
  * allowed to see it. `ManagedDriver` cancels any active what-if ITSELF, before every operation
- * that reads modified state for a purpose beyond driving the open charts: `beginEdit()`,
+ * that reads committed state for a purpose beyond driving the open charts: `beginEdit()`,
  * `recordToPersist()` (the one path a save/export/share-link/My-Drivers-save operation has to
  * a persistable record), and a load. This is this class's own responsibility, not the caller's
  * — the bug it closes structurally is real: `useDesignIO.ts` once had a per-call-site guard
@@ -75,7 +75,7 @@ type Overlay =
 /** A deep copy of a driver's own record, safe to hold without aliasing the caller's
  *  object graph — every `OpenISDDriver.fromRecord` call in this file passes one of
  *  these, never a record another layer of `ManagedDriver` is still holding a reference
- *  to; without it, editing the draft would mutate ground/modified through the shared
+ *  to; without it, editing the draft would mutate ground/committed through the shared
  *  object graph, since `OpenISDDriver` does not clone what it is handed (`private
  *  constructor(record)`). Generic because the record's shape has no exported name —
  *  `OpenISDDriver` is the one external form (`@openisd/model`). */
@@ -85,16 +85,16 @@ function cloneRecord<T>(record: T): T {
 
 export class ManagedDriver {
   #ground: OpenISDDriver;
-  #modified: OpenISDDriver;
+  #committed: OpenISDDriver;
   #overlay: Overlay | null = null;
   readonly #listeners = new Set<ManagedDriverListener>();
 
-  private constructor(ground: OpenISDDriver, modified: OpenISDDriver) {
+  private constructor(ground: OpenISDDriver, committed: OpenISDDriver) {
     this.#ground = ground;
-    this.#modified = modified;
+    this.#committed = committed;
   }
 
-  /** Build a `ManagedDriver` with ground and modified both seeded from `driver` — the state
+  /** Build a `ManagedDriver` with ground and committed both seeded from `driver` — the state
    *  the moment a driver is chosen/loaded (`docs/design/STATE_MODEL.md` rule 5, "the baseline
    *  is the driver as chosen"). The two are independent copies from the first instant. */
   static fromRecord(record: DriverRecord): ManagedDriver {
@@ -126,14 +126,14 @@ export class ManagedDriver {
   // ---- reads --------------------------------------------------------------------------
 
   /** The EFFECTIVE driver: the open overlay (edit draft or what-if) if one exists, else
-   *  modified state. PRIVATE — an `OpenISDDriver` is this class's internal state and never
+   *  committed state. PRIVATE — an `OpenISDDriver` is this class's internal state and never
    *  leaves it. Handing one out would let a caller mutate the driver behind the facade's
    *  back, with no notification and no what-if guard: exactly what this class exists to
    *  prevent. Every operation a caller needs is published as a method below. */
   #effective(): OpenISDDriver {
     if (this.#overlay?.kind === 'edit') return this.#overlay.draft;
     if (this.#overlay?.kind === 'whatif') return this.#overlay.overlay;
-    return this.#modified;
+    return this.#committed;
   }
 
   // ---- reads on the EFFECTIVE driver — what the open charts and panels show ------------
@@ -163,14 +163,14 @@ export class ManagedDriver {
 
   // ---- the record, for anything persistent -------------------------------------------
 
-  /** The record to SAVE, EXPORT or SHARE — modified state, never an open overlay. Cancels an
+  /** The record to SAVE, EXPORT or SHARE — committed state, never an open overlay. Cancels an
    *  active what-if first, as an observable side effect (`isWhatIfActive()` becomes false and
    *  the cancel notifies). That cancellation is STRUCTURAL: this is the only way to reach a
    *  persistable record, so no call site can forget the guard, which is exactly how
    *  `shareLink()` once shipped without one while every sibling had it. */
   recordToPersist(): DriverRecord {
     this.#endWhatIfIfActive();
-    return this.#modified.toRecord();
+    return this.#committed.toRecord();
   }
 
   /** The record exactly as loaded — what Reset goes back to. Never affected by an overlay. */
@@ -181,30 +181,30 @@ export class ManagedDriver {
 
   // ---- edit lifecycle -------------------------------------------------------------------
 
-  /** Open a draft over modified state. Cancels an active what-if first (this file's header).
+  /** Open a draft over committed state. Cancels an active what-if first (this file's header).
    *  Idempotent: a second call while a draft is already open is a no-op — it does not reseed
-   *  the draft from modified state, which would silently discard whatever the first session
+   *  the draft from committed state, which would silently discard whatever the first session
    *  had already typed. Silent: produces no notification. */
   beginEdit(): void {
     this.#endWhatIfIfActive();
     if (this.#overlay?.kind === 'edit') return;
-    this.#overlay = { kind: 'edit', draft: OpenISDDriver.fromRecord(cloneRecord(this.#modified.toRecord())) };
+    this.#overlay = { kind: 'edit', draft: OpenISDDriver.fromRecord(cloneRecord(this.#committed.toRecord())) };
   }
 
-  /** Write the draft into modified state and discard it. This write — not the act of calling
+  /** Write the draft into committed state and discard it. This write — not the act of calling
    *  commitEdit() — is what produces the one notification (this file's header). A call with
    *  no open edit is a no-op. */
   commitEdit(): void {
     if (this.#overlay?.kind !== 'edit') return;
     const draftRecord = cloneRecord(this.#overlay.draft.toRecord());
     this.#overlay = null;
-    this.#modified = OpenISDDriver.fromRecord(draftRecord);
+    this.#committed = OpenISDDriver.fromRecord(draftRecord);
     this.#notify();
   }
 
-  /** Discard the draft. Modified state is untouched — byte-identical to before `beginEdit()`,
+  /** Discard the draft. Committed state is untouched — byte-identical to before `beginEdit()`,
    *  provenance marks included, because it was never read from. No notification: nothing
-   *  about modified state changed. A call with no open edit is a no-op. */
+   *  about committed state changed. A call with no open edit is a no-op. */
   cancelEdit(): void {
     if (this.#overlay?.kind !== 'edit') return;
     this.#overlay = null;
@@ -212,7 +212,7 @@ export class ManagedDriver {
 
   // ---- what-if lifecycle ------------------------------------------------------------------
 
-  /** Open an overlay read from modified state. Discards an active edit draft first (silently
+  /** Open an overlay read from committed state. Discards an active edit draft first (silently
    *  — this file's header, "never both at once"). Idempotent while a what-if is already open.
    *  Notifies once it is open, since it changes which layer `read()` resolves to. Live from
    *  here on: every `.enter()`/`.clear()` on the `OpenISDDriver` `read()` now returns
@@ -220,14 +220,14 @@ export class ManagedDriver {
   beginWhatIf(): void {
     if (this.#overlay?.kind === 'whatif') return;
     if (this.#overlay?.kind === 'edit') this.#overlay = null;   // silent discard, no commit
-    const overlay = OpenISDDriver.fromRecord(cloneRecord(this.#modified.toRecord()));
+    const overlay = OpenISDDriver.fromRecord(cloneRecord(this.#committed.toRecord()));
     const unsubscribe = overlay.subscribe(() => this.#notify());
     this.#overlay = { kind: 'whatif', overlay, unsubscribe };
     this.#notify();
   }
 
   /** Reset an open what-if back to the driver AS LOADED — the Tune panel's "Reset". Ends the
-   *  current session and opens a fresh overlay seeded from GROUND, not from modified state:
+   *  current session and opens a fresh overlay seeded from GROUND, not from committed state:
    *  Reset goes back to the library, not to the last keystroke (`docs/design/STATE_MODEL.md`
    *  rule 5). A no-op when no what-if is open — there is nothing to reset. */
   resetOverlayToGround(): void {
@@ -240,7 +240,7 @@ export class ManagedDriver {
   }
 
   /** Discard the what-if overlay — the ONLY way a what-if session ends; there is no
-   *  `commitWhatIf()`, ever. Modified state was never touched. Notifies, since it changes
+   *  `commitWhatIf()`, ever. Committed state was never touched. Notifies, since it changes
    *  which layer `read()` resolves back to. A call with no open what-if is a no-op. */
   cancelWhatIf(): void {
     this.#endWhatIfIfActive();
@@ -255,7 +255,7 @@ export class ManagedDriver {
 
   // ---- load / switch ------------------------------------------------------------------
 
-  /** Adopt `driver` as a freshly-chosen driver: ground and modified both become independent
+  /** Adopt `driver` as a freshly-chosen driver: ground and committed both become independent
    *  copies of it (`docs/design/STATE_MODEL.md` rule 5). Cancels any active overlay first —
    *  loading/switching driver is a named trigger of the what-if-never-leaks rule, and an open
    *  edit draft over the driver being replaced has nothing left to commit onto. Notifies once. */
@@ -264,7 +264,7 @@ export class ManagedDriver {
     this.#overlay = null;
     const cloned = cloneRecord(driver.toRecord());
     this.#ground = OpenISDDriver.fromRecord(cloneRecord(cloned));
-    this.#modified = OpenISDDriver.fromRecord(cloned);
+    this.#committed = OpenISDDriver.fromRecord(cloned);
     this.#notify();
   }
 
