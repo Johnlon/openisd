@@ -1,6 +1,6 @@
 import { WinISDDriver } from '@openisd/winisd';
-import { OpenISDDriver } from '@openisd/model';
-import type { OpenISDDriverJson, MetaField } from '@openisd/model';
+import { readMetaCell, emptyDriverRecord } from '@openisd/model';
+import type { OpenISDDriverJson } from '@openisd/model';
 import { state, managedProject, driverRecord } from './store.js';
 import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
 import { DriverFileFormat } from '../driverFileFormat.js';
@@ -110,13 +110,12 @@ export function driverFromFileText(text: string, fileName: string): FileReadResu
 
   // A driver IS its <brand>/<model>, so one with neither cannot be filed. The file name is the
   // last thing that can name it; if that is empty too, say so rather than saving it nameless.
-  const d = OpenISDDriver.fromRecord(record);
-  if (!d.metaCell('brand').value && !d.metaCell('model').value) {
+  if (!readMetaCell(record, 'brand').value && !readMetaCell(record, 'model').value) {
     const base = fileName.replace(/\.[^.]*$/, '').trim();
     if (!base) return { ok: false, error: `${fileName} carries no brand or model, and its name gives none` };
-    d.enterMeta('model', base);
+    record.model = { ...record.model, value: base, origin: 'manual' };
   }
-  return { ok: true, record: d.toRecord() };
+  return { ok: true, record };
 }
 
 /** Fetch and parse a federated `.wdr` row, or say why it could not be read. */
@@ -265,7 +264,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
      */
     openNewDriver() {
       subject = { kind: 'myDriver', openedAs: '' };
-      editorDraft = OpenISDDriver.empty().toRecord();
+      editorDraft = emptyDriverRecord();
       state.browseOpen = false;
       state.editDriverInfo = true;
     },
@@ -275,7 +274,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
       return {
         // The project's own driver when nothing else is being edited. Empty when none is
         // chosen — the editor then authors one from scratch rather than editing a fake.
-        json: editorDraft ?? driverRecord.value ?? OpenISDDriver.empty().toRecord(),
+        json: editorDraft ?? driverRecord.value ?? emptyDriverRecord(),
         subject: subject.kind,
       };
     },

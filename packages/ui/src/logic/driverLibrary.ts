@@ -1,5 +1,6 @@
 import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
-import type { DriverRaw } from '@openisd/engine';
+import { readMetaCell } from '@openisd/model';
+import type { OpenISDDriverJson } from '@openisd/model';
 import { state } from './store.js';
 import { DriverScope } from '../driverScope.js';
 import { Chip } from '../driverType.js';
@@ -68,12 +69,12 @@ export interface DriverLibrary {
   displayedFiles: ComputedRef<FileEntry[]>;
   listTruncated: ComputedRef<boolean>;
   listedCount: ComputedRef<number>;
-  myDrivers: Ref<DriverRaw[]>;
-  filteredMyDrivers: ComputedRef<DriverRaw[]>;
-  myDriverName(d: DriverRaw): string;
-  myDriverEntry(d: DriverRaw): FileEntry;
-  driverId(d: DriverRaw): string;
-  editMyDriver(d: DriverRaw): void;
+  myDrivers: Ref<OpenISDDriverJson[]>;
+  filteredMyDrivers: ComputedRef<OpenISDDriverJson[]>;
+  myDriverName(d: OpenISDDriverJson): string;
+  myDriverEntry(d: OpenISDDriverJson): FileEntry;
+  driverId(d: OpenISDDriverJson): string;
+  editMyDriver(d: OpenISDDriverJson): void;
   editOverviewDriver(f: FileEntry): Promise<{ ok: boolean; error?: string }>;
   reloadMyDrivers(): void;
   deleteMyDriver(id: string): void;
@@ -120,7 +121,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
   const sdMax = ref('');   // cm²
   const selZ = ref<string[]>([]);   // '4', '8', '16'
   const displayLimit = ref(DISPLAY_LIMIT);
-  const myDrivers = ref<DriverRaw[]>([]);
+  const myDrivers = ref<OpenISDDriverJson[]>([]);
   const previewFile = ref<FileEntry | null>(null);
   const favorites = ref<string[]>(prefs.favorites());
   const favoritesOnly = ref(false);   // the Favorites button: an on/off filter, like a type chip
@@ -235,7 +236,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
   // My Drivers answer EVERY control in the filter bar, through the same predicate the pool
   // uses — see matchesCriteria. A section that ignores half the filters is the bug this shape
   // exists to prevent.
-  const filteredMyDrivers = computed<DriverRaw[]>(() => {
+  const filteredMyDrivers = computed<OpenISDDriverJson[]>(() => {
     // The scope chip gates this section exactly as it gates the pool — the two halves of the
     // library are asked the same question, so `Mine` and `Bundled` are true opposites.
     const list = driverScope.value.includesMine ? myDrivers.value : [];
@@ -352,12 +353,12 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
       if (!text) { statusErr.value = true; statusMsg.value = `${file.name} is empty`; return; }
       const res = driverFromFileText(text, file.name);
       if (!res.ok) { statusErr.value = true; statusMsg.value = res.error; return; }
-      const overwrote = myDriverRepo.upsert(res.raw);
+      const overwrote = myDriverRepo.upsert(res.record);
       reloadMyDrivers();
       statusErr.value = false;
       statusMsg.value = '';
       logging.flash(overwrote ? 'Updated in My Drivers' : 'Loaded into My Drivers');
-      previewFile.value = myDriverEntry(res.raw);
+      previewFile.value = myDriverEntry(res.record);
     };
     reader.readAsText(file);
   }
@@ -372,15 +373,25 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
    * that row was a library record or another saved driver.
    */
   function cloneDriver(f: FileEntry): void {
-    const src = f.myDriverData ?? (f.record?.inputs as DriverRaw | undefined);
+    const src = f.myDriverData ?? f.record;
     if (!src) {
       statusErr.value = true;
       statusMsg.value = `Cannot clone ${f.name} — its parameters have not been loaded`;
       return;
     }
-    const copy: DriverRaw = { ...src, model: 'Copy of ' + (src.model ?? '') };
-    // `driverShort()` prefers a carried `name` over brand+model, so a clone that kept one would
-    // read as its source on screen while being a different driver underneath.
+    // A deep copy: the clone must share no object with its source, or editing one would edit
+    // the other through the record graph they had in common.
+    const copy: OpenISDDriverJson = structuredClone(src);
+    // A clone is a DIFFERENT driver, so its model states so — written straight onto the record,
+    // because a record in no project has no facade to go through.
+    const sourceModel = readMetaCell(copy, 'model').value;
+    copy.model = { ...copy.model, value: 'Copy of ' + sourceModel, origin: 'manual' };
+    // `sku` and `name` are DerivedFields — the pipeline BUILT them for the source driver, and
+    // they name that driver. A clone is a different driver, so it carries neither until
+    // something derives them for it.
+    // `sku` is required on the record, so it is BLANKED rather than removed: a clone has no
+    // canonical identity code of its own until something derives one.
+    copy.sku = { value: '', definition: 'canonical identity code', grounds: [] };
     delete copy.name;
     myDriverRepo.upsert(copy);
     reloadMyDrivers();

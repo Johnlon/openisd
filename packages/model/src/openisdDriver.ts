@@ -426,3 +426,44 @@ export class OpenISDDriver {
 }
 
 export { specName };
+
+// ── Reading a RECORD without materialising a driver ──────────────────────────────────────
+
+/**
+ * One field's value and provenance, read straight off a RECORD.
+ *
+ * A catalogue row, a preview pane and a filter bar all need to ask "what is this driver's Fs"
+ * about a record that is in no project. They must NOT construct an `OpenISDDriver` to do it:
+ * a live driver is mutable and subscribable, it belongs inside `ManagedProject`, and one held
+ * anywhere else is a second writer with no notification and no what-if guard.
+ *
+ * So this is a pure function over the record. It answers the same question `cell()` answers —
+ * including a DERIVED value, because "what is this driver's Fs" is a real question about a
+ * record that only states Mms and Cms — and it hands back nothing that can be written to.
+ */
+export function readCell(record: OpenISDDriverJson, field: SpecField): Cell {
+  return OpenISDDriver.fromRecord(record).cell(field);
+}
+
+/** One metadata field, read straight off a RECORD. Same reasoning as `readCell`. */
+export function readMetaCell(record: OpenISDDriverJson, field: MetaField): MetaCell {
+  return OpenISDDriver.fromRecord(record).metaCell(field);
+}
+
+/**
+ * What a record is CALLED: `<brand> <model>`, the identity a saved driver is filed under and
+ * the name it reads by everywhere. `'Driver'` when it states neither — an unnamed driver is a
+ * real state, and inventing a name would make it indistinguishable from one the user set.
+ */
+export function readDisplayName(record: OpenISDDriverJson): string {
+  const brand = record.brand?.value ?? '';
+  const model = record.model?.value ?? '';
+  return [brand, model].filter(x => x.length > 0).join(' ').trim() || 'Driver';
+}
+
+/** A record with nothing stated — what the editor authors a new driver from. Here rather than
+ *  `OpenISDDriver.empty().toRecord()` at the call site, so a caller needing a blank record does
+ *  not have to construct a live driver it will immediately throw away. */
+export function emptyDriverRecord(): OpenISDDriverJson {
+  return OpenISDDriver.empty().toRecord();
+}
