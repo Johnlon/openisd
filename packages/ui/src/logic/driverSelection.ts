@@ -1,5 +1,6 @@
-import { Driver as DriverModel, type DriverJSON, WinISDDriver } from '@openisd/winisd';
-import type { DriverRaw } from '@openisd/engine';
+import { WinISDDriver } from '@openisd/winisd';
+import { OpenISDDriver } from '@openisd/model';
+import type { OpenISDDriverJson, MetaField } from '@openisd/model';
 import { state, managedProject, driverRecord } from './store.js';
 import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
 import { DriverFileFormat } from '../driverFileFormat.js';
@@ -34,7 +35,7 @@ export interface LibraryEntry {
   name: string;
   content?: string;
   /** A bundled `openisd.yml` record — the app's own driver shape. */
-  record?: DriverJSON;
+  record?: OpenISDDriverJson;
   path?: string;
   repo?: string | null;
   branch?: string | null;
@@ -43,24 +44,25 @@ export interface LibraryEntry {
   vendorpage?: string;
   frd?: string;
   impedance?: string;
-  myDriverData?: DriverRaw;
+  myDriverData?: OpenISDDriverJson;
 }
 
 /** Catalogue link fields live in the library index, not in the .wdr — overlay them on load. */
-const LINK_FIELDS: ReadonlyArray<[keyof LibraryEntry, string]> = [
-  ['datasheet', 'datasheetUrl'],
-  ['manupage', 'manuPageUrl'],
-  ['vendorpage', 'vendorpageUrl'],
-  ['frd', 'frdUrl'],
-  ['impedance', 'impedanceUrl'],
+/** Library-row link → the SourceRole it is recorded under. */
+const LINK_ROLES: ReadonlyArray<readonly [keyof LibraryEntry, 'manufacturer_datasheet' | 'manufacturer_product_page' | 'distributor_product_page']> = [
+  ['datasheet', 'manufacturer_datasheet'],
+  ['manupage', 'manufacturer_product_page'],
+  ['vendorpage', 'distributor_product_page'],
 ];
 
-function withLinks(m: DriverModel, f: LibraryEntry): DriverModel {
-  for (const [entryKey, field] of LINK_FIELDS) {
+/** Carry the library row's source links onto the record. They belong in `data_sources` — the
+ *  record's own provenance index — not as driver FIELDS: a datasheet URL is not a T/S value. */
+function withLinks(record: OpenISDDriverJson, f: LibraryEntry): OpenISDDriverJson {
+  for (const [entryKey, role] of LINK_ROLES) {
     const url = f[entryKey];
-    if (typeof url === 'string' && url) m.enter(field, url);
+    if (typeof url === 'string' && url) record.data_sources.value[role] = url;
   }
-  return m;
+  return record;
 }
 
 function rawUrlOf(f: LibraryEntry): string {
@@ -76,7 +78,7 @@ export interface SelectionResult {
 
 /** A driver read off the user's disk, or the reason the file could not be read. */
 export type FileReadResult =
-  | { ok: true; raw: DriverRaw }
+  | { ok: true; record: OpenISDDriverJson }
   | { ok: false; error: string };
 
 /**
@@ -96,27 +98,29 @@ export function driverFromFileText(text: string, fileName: string): FileReadResu
   if (format === null)
     return { ok: false, error: `Not a driver file: ${fileName} (expected ${DriverFileFormat.ACCEPT})` };
 
-  let m: DriverModel;
+  let record: OpenISDDriverJson;
   try {
-    m = format === DriverFileFormat.Wdr
-      ? DriverModel.fromWdr(text)
-      : DriverModel.fromJSON(JSON.parse(text) as DriverJSON);
+    // A `.wdr` is read as-read by the serialiser then projected; an `.owdr` IS the record.
+    record = format === DriverFileFormat.Wdr
+      ? WinISDDriver.fromWdr(text).toOpenISDRecord()
+      : JSON.parse(text) as OpenISDDriverJson;
   } catch (err) {
     return { ok: false, error: `Failed to parse ${fileName}: ${(err as Error).message}` };
   }
 
-  const raw = m.raw();
-  if (!raw.brand && !raw.model) {
+  // A driver IS its <brand>/<model>, so one with neither cannot be filed. The file name is the
+  // last thing that can name it; if that is empty too, say so rather than saving it nameless.
+  const d = OpenISDDriver.fromRecord(record);
+  if (!d.metaCell('brand').value && !d.metaCell('model').value) {
     const base = fileName.replace(/\.[^.]*$/, '').trim();
     if (!base) return { ok: false, error: `${fileName} carries no brand or model, and its name gives none` };
-    m.enter('model', base);
-    return { ok: true, raw: m.raw() };
+    d.enterMeta('model', base);
   }
-  return { ok: true, raw };
+  return { ok: true, record: d.toRecord() };
 }
 
 /** Fetch and parse a federated `.wdr` row, or say why it could not be read. */
-async function modelOf(f: LibraryEntry): Promise<{ ok: true; model: DriverModel } | { ok: false; error: string }> {
+async function modelOf(f: LibraryEntry): Promise<{ ok: true; record: OpenISDDriverJson } | { ok: false; error: string }> {
   let text = f.content;
   if (!text) {
     let res: Response;
@@ -130,7 +134,7 @@ async function modelOf(f: LibraryEntry): Promise<{ ok: true; model: DriverModel 
   }
   if (!/\[Driver\]/.test(text)) return { ok: false, error: 'Could not load: file did not parse as a WDR' };
   try {
-    return { ok: true, model: DriverModel.fromWdr(text) };
+    return { ok: true, record: WinISDDriver.fromWdr(text).toOpenISDRecord() };
   } catch (err) {
     return { ok: false, error: 'Could not load: ' + (err as Error).message };
   }
@@ -152,12 +156,12 @@ type EditorSubject =
 
 export interface DriverSelection {
   selectDriver(f: LibraryEntry): Promise<SelectionResult>;
-  editMyDriver(d: DriverRaw): void;
+  editMyDriver(d: OpenISDDriverJson): void;
   editOverviewDriver(f: LibraryEntry): Promise<SelectionResult>;
   editProjectDriver(): void;
   openNewDriver(): void;
-  editorSeed(): { json: DriverJSON; subject: EditorSubject['kind'] };
-  acceptDriverEdit(json: DriverJSON): void;
+  editorSeed(): { json: OpenISDDriverJson; subject: EditorSubject['kind'] };
+  acceptDriverEdit(json: OpenISDDriverJson): void;
   cancelDriverEdit(): void;
 }
 
@@ -165,7 +169,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
   const { myDriverRepo } = deps;
 
   let subject: EditorSubject = { kind: 'project' };
-  let editorDraft: DriverJSON | null = null;
+  let editorDraft: OpenISDDriverJson | null = null;
 
   /**
    * Choosing a driver COPIES it into the project and returns the user to the project.
@@ -181,20 +185,22 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
   // The classic ADT and the app's model meet at `.wdr` text — the one format both can write
   // and read. This is the bridge while the picker/editor still speak the classic ADT; it
   // disappears when they are migrated onto ManagedProject directly.
-  function adoptIntoProject(m: DriverModel): void {
-    managedProject.loadDriverRecord(WinISDDriver.fromWdr(m.toWdr()).toOpenISDRecord());
-  }
-  /** The project's current driver, as the classic ADT the editor still edits. */
-  function projectDriverAsModel(): DriverModel {
-    const record = driverRecord.value;
-    if (!record) return new DriverModel();          // no driver chosen — a blank one to edit
-    const { value: wdr } = WinISDDriver.fromOpenISDRecord(record);
-    return wdr ? DriverModel.fromWdr(wdr.toWdr()) : new DriverModel();
+  function adoptIntoProject(record: OpenISDDriverJson): void {
+    managedProject.loadDriverRecord(record);
   }
 
-  function embedInProject(m: DriverModel): void {
-    adoptIntoProject(m);
+  function embedInProject(record: OpenISDDriverJson): void {
+    adoptIntoProject(record);
     state.browseOpen = false;
+  }
+
+  /** The record behind a library row, whatever kind of row it is. A saved driver and a bundled
+   *  record are both already the app's shape; only a federated `.wdr` needs fetching. */
+  async function recordOf(f: LibraryEntry):
+      Promise<{ ok: true; record: OpenISDDriverJson } | { ok: false; error: string }> {
+    if (f.myDriverData) return { ok: true, record: structuredClone(f.myDriverData) };
+    if (f.record) return { ok: true, record: structuredClone(f.record) };
+    return modelOf(f);
   }
 
   function closeEditor(): void {
@@ -212,44 +218,29 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
      * was — the project took a copy.
      */
     async selectDriver(f) {
-      let m: DriverModel;
-      if (f.myDriverData) {
-        m = DriverModel.fromRaw(f.myDriverData);
-      } else if (f.record) {
-        // A bundled openisd record is already the app's driver shape — no file parsing.
-        m = DriverModel.fromJSON(f.record);
-      } else {
-        const read = await modelOf(f);
-        if (!read.ok) return { ok: false, error: read.error };
-        m = read.model;
-      }
-      embedInProject(withLinks(m, f));
+      const read = await recordOf(f);
+      if (!read.ok) return { ok: false, error: read.error };
+      embedInProject(withLinks(read.record, f));
       return { ok: true };
     },
 
     /** Open the editor on a saved driver. Its OK writes to My Drivers, never to the project. */
     editMyDriver(d) {
       subject = { kind: 'myDriver', openedAs: driverId(d) };
-      editorDraft = DriverModel.fromRaw(d).toJSON();
+      editorDraft = structuredClone(d);
       state.editDriverInfo = true;
     },
 
     /** Open the editor on a driver selected in the library overview. Its OK/Save writes to My Drivers. */
     async editOverviewDriver(f) {
-      let m: DriverModel;
-      if (f.myDriverData) {
-        m = DriverModel.fromRaw(f.myDriverData);
-        subject = { kind: 'myDriver', openedAs: driverId(f.myDriverData) };
-      } else if (f.record) {
-        m = DriverModel.fromJSON(f.record);
-        subject = { kind: 'myDriver', openedAs: '' };
-      } else {
-        const read = await modelOf(f);
-        if (!read.ok) return { ok: false, error: read.error };
-        m = read.model;
-        subject = { kind: 'myDriver', openedAs: '' };
-      }
-      editorDraft = withLinks(m, f).toJSON();
+      const read = await recordOf(f);
+      if (!read.ok) return { ok: false, error: read.error };
+      // A saved driver is opened AS ITSELF, so OK replaces that entry. Anything else opens as
+      // a new My Driver, so OK files it under whatever identity the user gives it.
+      subject = f.myDriverData
+        ? { kind: 'myDriver', openedAs: driverId(f.myDriverData) }
+        : { kind: 'myDriver', openedAs: '' };
+      editorDraft = withLinks(read.record, f);
       state.editDriverInfo = true;
       return { ok: true };
     },
@@ -274,7 +265,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
      */
     openNewDriver() {
       subject = { kind: 'myDriver', openedAs: '' };
-      editorDraft = new DriverModel().toJSON();
+      editorDraft = OpenISDDriver.empty().toRecord();
       state.browseOpen = false;
       state.editDriverInfo = true;
     },
@@ -282,7 +273,9 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
     /** What the editor seeds its draft from, and which driver that is. */
     editorSeed() {
       return {
-        json: editorDraft ?? projectDriverAsModel().toJSON(),
+        // The project's own driver when nothing else is being edited. Empty when none is
+        // chosen — the editor then authors one from scratch rather than editing a fake.
+        json: editorDraft ?? driverRecord.value ?? OpenISDDriver.empty().toRecord(),
         subject: subject.kind,
       };
     },
@@ -295,14 +288,13 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
      */
     acceptDriverEdit(json) {
       if (subject.kind === 'myDriver') {
-        const raw = DriverModel.fromJSON(json).raw();
         // A rename MOVES the driver: drop the entry the editor opened, then save under the new
         // identity — which overwrites whatever already held it. Two steps, not one, because they
         // are two different entries whenever the user changed the brand or the model.
-        if (subject.openedAs && subject.openedAs !== driverId(raw)) myDriverRepo.remove(subject.openedAs);
-        myDriverRepo.upsert(raw);
+        if (subject.openedAs && subject.openedAs !== driverId(json)) myDriverRepo.remove(subject.openedAs);
+        myDriverRepo.upsert(json);
       } else {
-        adoptIntoProject(DriverModel.fromJSON(json));
+        adoptIntoProject(json);
       }
       closeEditor();
     },

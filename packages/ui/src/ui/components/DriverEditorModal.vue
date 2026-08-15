@@ -5,7 +5,9 @@ import { state } from '../../logic/store.js';
 import { driverShort } from '../../driverName.js';
 import { useApp } from '../../logic/app.js';
 import { ebp, RHO, C } from '@openisd/engine';
-import { Driver as DriverModel } from '@openisd/winisd';
+import { WinISDDriver } from '@openisd/winisd';
+import { OpenISDDriver } from '@openisd/model';
+import type { SpecField, MetaField } from '@openisd/model';
 import NumInput from './NumInput.vue';
 import { precision } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
@@ -46,15 +48,27 @@ const editorTitle = seed.subject === 'myDriver' ? 'Edit My Driver' : "Edit Proje
 // markRaw + shallowRef: Driver is a class with private fields, and a Vue reactive proxy
 // makes every method call on it throw. Redraws are driven by `trigger` below, so the
 // instance never needs to be deeply reactive.
-const draftDriver = shallowRef(markRaw(DriverModel.fromJSON(seed.json)));
+const draftDriver = shallowRef(markRaw(OpenISDDriver.fromRecord(seed.json)));
 const trigger = ref(0);
 function forceUpdate() { trigger.value++; }
 
-// Computed local driverRaw proxy. All template fields bind to this computed property,
-// automatically reading from the local draft driver model.
+// A DISPLAY VIEW of the draft, not a second model: every value is read back out of the draft
+// through its own accessors, so the template binds to one shape while the draft stays the only
+// place a value lives. `sku` is a DerivedField — built by the pipeline, never hand-edited — so
+// it is read off the record rather than through metaCell().
 const driverRaw = computed(() => {
   const _ = trigger.value;
-  return draftDriver.value.raw();
+  const d = draftDriver.value;
+  return {
+    brand: d.metaCell('brand').value,
+    model: d.metaCell('model').value,
+    manufacturer: d.metaCell('manufacturer').value,
+    providedBy: d.metaCell('provided_by').value,
+    comment: d.metaCell('comment').value,
+    added: d.metaCell('added').value,
+    sku: d.toRecord().sku?.value ?? '',
+    VCCon: d.cell('VCCon').value,
+  };
 });
 
 // Computed local driver proxy for derived fields.
@@ -71,15 +85,24 @@ const editorModelValue = computed(() => {
   return (r.model as string) || '';
 });
 
+/** The template's own names for the metadata fields → the record's. `providedBy` is the only
+ *  one that differs, and this is the single place the two spellings meet. */
+const META_FIELD: Record<string, MetaField> = {
+  brand: 'brand', model: 'model', manufacturer: 'manufacturer',
+  providedBy: 'provided_by', comment: 'comment', added: 'added',
+};
+
 function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufacturer' | 'added', e: Event) {
-  draftDriver.value.enter(field, (e.target as HTMLInputElement | HTMLTextAreaElement).value);
+  // Metadata is a ScrapedField, a different envelope from a SpecEntry, so it has its own
+  // entry point. Routing a string through enter() would put it in the wrong envelope.
+  draftDriver.value.enterMeta(META_FIELD[field], (e.target as HTMLInputElement | HTMLTextAreaElement).value);
   forceUpdate();
 }
 function setNum(field: string, v: number | null) {
   if (v == null) {
-    draftDriver.value.clear(field);
+    draftDriver.value.clear(field as SpecField);
   } else {
-    draftDriver.value.enter(field, v);
+    draftDriver.value.enter(field as SpecField, v);
   }
   forceUpdate();
 }
@@ -89,7 +112,7 @@ function setNum(field: string, v: number | null) {
 // disagree between this dialog and a panel showing the same driver.
 function cellOf(field: string) {
   const _ = trigger.value;
-  return draftDriver.value.cell(field);
+  return draftDriver.value.cell(field as SpecField);
 }
 
 function cellClass(field: string): string {
@@ -181,7 +204,7 @@ function handleBodyClickOrFocus(e: Event) {
 // worth showing rather than silently treating as "nothing here".
 function isBadValue(field: string): boolean {
   const _ = trigger.value;
-  const v = draftDriver.value.cell(field).value;
+  const v = draftDriver.value.cell(field as SpecField).value;
   return typeof v === 'number' && !(v > 0);
 }
 
@@ -261,13 +284,11 @@ const saveAlreadyExists = computed(() => {
 
 function openSaveMyDialog(forCopy: boolean = false) {
   saveBrand.value = driverRaw.value.brand || '';
-  const sku = (driverRaw.value as Record<string, unknown>).sku as string | undefined;
-  let m = sku ? sku.toUpperCase() : (driverRaw.value.model || '');
-  if (!m && driverRaw.value.name) {
-    const b = saveBrand.value.trim();
-    m = b && driverRaw.value.name.startsWith(b) ? driverRaw.value.name.slice(b.length).trim() : driverRaw.value.name;
-  }
-  saveModel.value = m;
+  // A saved driver IS its <brand>/<model>. The sku, when the pipeline derived one, is the
+  // canonical spelling of the model; otherwise the stated model is. There is no separate
+  // `name` to fall back to — brand + model IS the name, so nothing has to be un-prefixed.
+  const sku = driverRaw.value.sku;
+  saveModel.value = sku ? sku.toUpperCase() : (driverRaw.value.model || '');
   isCopyAction.value = forCopy;
   saveMyDialogOpen.value = true;
   nextTick(() => {
@@ -356,7 +377,7 @@ function cancel() {
 
 // Reset — draft back to what it was seeded from (the picked driver, or the design).
 function reset() {
-  draftDriver.value = markRaw(DriverModel.fromJSON(seed.json));
+  draftDriver.value = markRaw(OpenISDDriver.fromRecord(seed.json));
   forceUpdate();
 }
 
@@ -383,9 +404,11 @@ function handleFileLoaded(e: Event) {
     const text = evt.target?.result as string;
     if (!text) return;
     try {
-      draftDriver.value = markRaw(format === DriverFileFormat.Wdr
-        ? DriverModel.fromWdr(text)
-        : DriverModel.fromJSON(JSON.parse(text)));
+      // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
+      // an `.owdr` IS that record already. One reader each, and no second parse invented here.
+      draftDriver.value = markRaw(OpenISDDriver.fromRecord(format === DriverFileFormat.Wdr
+        ? WinISDDriver.fromWdr(text).toOpenISDRecord()
+        : JSON.parse(text)));
       forceUpdate();
     } catch (err) {
       alert('Failed to parse file: ' + (err as Error).message);
