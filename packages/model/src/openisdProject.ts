@@ -211,3 +211,52 @@ export interface OpenISDProject {
   sweep: OpenISDSweepRange;
   meta: OpenISDProjectMeta;
 }
+
+// ── Construction and the one legal way to switch alignment ────────────────────────────────
+
+/** A vent with WinISD's own defaults: round, 5 cm, one-flanged end correction. */
+function defaultVent(): OpenISDVent {
+  return {
+    shape: 'round',
+    diameter_m: 0.05,
+    width_m: 0.10,
+    height_m: 0.05,
+    length_m: 0.10,
+    // One-flanged, WinISD's default. 0.613 two-free, 0.849 two-flanged.
+    endCorrection: 0.732,
+  };
+}
+
+/**
+ * A box with EVERY alignment present from the start.
+ *
+ * None is created lazily on first switch: a lazily-created alignment gets DEFAULTS, and a
+ * default written over a value restored from a file is the silent-data-loss this whole design
+ * exists to prevent. They all exist, they all hold values, one is active.
+ */
+export function defaultBox(): OpenISDBox {
+  return {
+    active: 'vented',
+    sealed: { volume_m3: 0.030 },
+    vented: { volume_m3: 0.030, Fb_hz: 0, vent: defaultVent() },
+    bandpass4: {
+      rearVolume_m3: 0.020, frontVolume_m3: 0.035, Ff_hz: 60, frontVent: defaultVent(),
+    },
+    passiveRadiator: { volume_m3: 0.040, Fp_hz: 0, count: 1, addedMass_kg: 0 },
+    // Enclosure losses: leakage, absorption, port. They describe the BOX, not one alignment,
+    // so they sit here and survive every switch.
+    Ql: 10, Qa: 100, Qp: 100,
+  };
+}
+
+/**
+ * Make one alignment active. **This writes exactly one field and nothing else.**
+ *
+ * It is a function rather than a bare assignment so that the rule has somewhere to be
+ * enforced and tested: every dormant alignment keeps its values, so flipping a ported box to
+ * sealed and back returns it intact. If this ever needs to do more than one write, that is the
+ * moment to ask what is being cleared and why.
+ */
+export function setActiveAlignment(box: OpenISDBox, kind: AlignmentKind): void {
+  box.active = kind;
+}
