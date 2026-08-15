@@ -2,7 +2,6 @@
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import { ref, shallowRef, markRaw, computed, nextTick } from 'vue';
 import { state } from '../../logic/store.js';
-import { driverShort } from '../../driverName.js';
 import { useApp } from '../../logic/app.js';
 import { ebp, RHO, C } from '@openisd/engine';
 import { WinISDDriver } from '@openisd/winisd';
@@ -298,18 +297,18 @@ function openSaveMyDialog(forCopy: boolean = false) {
 
 function confirmSaveToMyDrivers() {
   if (!saveBrand.value.trim() || !saveModel.value.trim()) return;
-  draftDriver.value.enter('brand', saveBrand.value.trim());
-  draftDriver.value.enter('model', saveModel.value.trim());
+  draftDriver.value.enterMeta('brand', saveBrand.value.trim());
+  draftDriver.value.enterMeta('model', saveModel.value.trim());
   forceUpdate();
 
   if (isCopyAction.value) {
-    const overwrote = myDrivers.upsert(draftDriver.value.raw());
+    const overwrote = myDrivers.upsert(draftDriver.value.toRecord());
     saveMyDialogOpen.value = false;
     copiedMsg.value = overwrote ? 'Updated in My Drivers' : 'Copied to My Drivers';
     setTimeout(() => { copiedMsg.value = ''; }, 2000);
   } else {
     saveMyDialogOpen.value = false;
-    acceptDriverEdit(draftDriver.value.toJSON());
+    acceptDriverEdit(draftDriver.value.toRecord());
     emit('close');
   }
 }
@@ -357,7 +356,7 @@ function close() {
   if (seed.subject === 'myDriver') {
     openSaveMyDialog(false);
   } else {
-    acceptDriverEdit(draftDriver.value.toJSON());
+    acceptDriverEdit(draftDriver.value.toRecord());
     emit('close');
   }
 }
@@ -427,10 +426,19 @@ async function writeDriver(format: DriverFileFormat) {
   exportPickerOpen.value = false;
   // `<brand> <model>` — the same name the driver reads by everywhere else, and what WinISD's
   // Save-Driver defaults to. It is also what makes the file load back under its own identity.
-  const base = driverShort(driverRaw.value);
-  const text = format === DriverFileFormat.Owdr
-    ? JSON.stringify(draftDriver.value.toJSON(), null, 2)
-    : draftDriver.value.toWdr();
+  const base = [driverRaw.value.brand, driverRaw.value.model]
+    .filter(x => x.length > 0).join(' ').trim() || 'Driver';
+  // `.owdr` IS the record. A `.wdr` is that record projected by the serialiser — the one place
+  // that knows the format — and a driver too incomplete to project says so rather than writing
+  // a file WinISD would refuse.
+  let text: string;
+  if (format === DriverFileFormat.Owdr) {
+    text = JSON.stringify(draftDriver.value.toRecord(), null, 2);
+  } else {
+    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(draftDriver.value.toRecord());
+    if (!wdr) { logging.flash(`Cannot save .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+    text = wdr.toWdr();
+  }
   // Then the SYSTEM save dialog — the user picks folder and name, as a desktop app would.
   // The MIME must be a CUSTOM type, not application/json or text/plain. The picker unions the
   // extensions we list with every extension registered to that MIME, so `application/json`

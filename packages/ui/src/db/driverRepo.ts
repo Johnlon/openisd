@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { OpenISDDriver } from '@openisd/model';
-import type { OpenISDDriverJson } from '@openisd/model';
+import { readCell, readMetaCell, readDisplayName } from '@openisd/model';
+import type { OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
 import { DriverType, Chip } from '../driverType.js';
-import { driverShort } from '../driverName.js';
 
 // The driver commons — index, search, filter, lookup.
 //
@@ -177,12 +175,7 @@ export function shortSource(name: string | undefined): string {
  * which is what the list key and deletion use — two saved drivers may legitimately read
  * the same on screen, and neither may then be undeletable or delete the other.
  */
-export function myDriverName(d: OpenISDDriverJson): string {
-  const brand = d.brand?.value ?? '';
-  const model = d.model?.value ?? '';
-  const name = [brand, model].filter(x => x.length > 0).join(' ').trim();
-  return name || 'Driver';
-}
+export function myDriverName(d: OpenISDDriverJson): string { return readDisplayName(d); }
 
 /**
  * A saved driver as a pool row — the shape selection takes.
@@ -197,8 +190,7 @@ export function myDriverEntry(d: OpenISDDriverJson): FileEntry {
   // Read the summary columns through the driver's own accessors, so a value the record STATES
   // and one the solver DERIVES are both available — the filter bar asks "what is this driver's
   // Fs", not "did someone type an Fs".
-  const drv = OpenISDDriver.fromRecord(d);
-  const num = (f: Parameters<typeof drv.cell>[0]) => drv.cell(f).value;
+  const num = (f: SpecField) => readCell(d, f).value;
   const ct = classifyTypes(num('Fs'), num('Sd'), name, d.driver_type?.value);
   return {
     name, myDriverData: d,
@@ -224,9 +216,8 @@ export function driverHasDqIssues(f: FileEntry): boolean {
   // A saved driver and a bundled record are the SAME shape, so one path reads both.
   const record = f.myDriverData ?? f.record;
   if (record) {
-    const drv = OpenISDDriver.fromRecord(record);
-    const pos = (field: Parameters<typeof drv.cell>[0]) => {
-      const v = drv.cell(field).value;
+    const pos = (field: SpecField) => {
+      const v = readCell(record, field).value;
       return typeof v === 'number' && v > 0;
     };
     const hasFsOk  = pos('Fs');
@@ -339,13 +330,11 @@ export function previewOf(f: FileEntry): Preview {
   // Only a federated `.wdr` needs the text parse below.
   const rec = f.myDriverData ?? f.record;
   if (rec) {
-    const drv = OpenISDDriver.fromRecord(rec);
-    const n = (field: Parameters<typeof drv.cell>[0], scale = 1): number | null => {
-      const v = drv.cell(field).value;
+    const n = (field: SpecField, scale = 1): number | null => {
+      const v = readCell(rec, field).value;
       return (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
     };
-    const meta = (field: Parameters<typeof drv.metaCell>[0]): string | null =>
-      drv.metaCell(field).value || null;
+    const meta = (field: MetaField): string | null => readMetaCell(rec, field).value || null;
     const Fs = n('Fs'), Qes = n('Qes');
     const pathSku = f.path ? f.path.split('/')[1] : null;
 
@@ -482,8 +471,7 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
    */
   function bundledEntry(f: BundleRecord, src: SourceEntry): FileEntry {
     const rec = f.record;
-    const drv = OpenISDDriver.fromRecord(rec);
-    const num = (field: Parameters<typeof drv.cell>[0]) => drv.cell(field).value;
+    const num = (field: SpecField) => readCell(rec, field).value;
 
     // `myDriverName()` is the ONE place that decides what a driver is called. A bundled row must
     // read exactly as the same driver reads everywhere else, so it asks rather than rebuilding
