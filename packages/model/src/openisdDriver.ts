@@ -1,7 +1,7 @@
 /**
  * `OpenISDDriver` — the stateful driver model the app holds.
  *
- * This is the app's ONE driver model. It owns a `DriverFields` record and answers three
+ * This is the app's ONE driver model. It owns a `OpenISDDriverJson` record and answers three
  * questions about every field: what is its value, where did that value come from, and
  * what does the engine say is wrong with the driver as a whole.
  *
@@ -35,11 +35,19 @@ import type {
 } from '@openisd/engine';
 
 /**
- * The openisd.yml record shape — `OpenISDDriver`'s own constructor parameter and the
- * `.owdr` bytes `toRecord()` hands back. Declared here, once, unexported: nothing
- * outside this file ever names it, so `OpenISDDriver` is the one external form.
+ * The `openisd.yml` record shape — `OpenISDDriver`'s constructor parameter and the `.owdr`
+ * bytes `toRecord()` hands back.
+ *
+ * EXPORTED because a project must be able to HOLD one. `OpenISDDriver` is a class with private
+ * fields, and `structuredClone` silently reduces a class instance to a plain object — dropping
+ * every method and the prototype — so a structure that has to be cloned (an `OpenISDProject`,
+ * cloned three ways by `ManagedProject`) cannot hold the live class. It holds the RECORD, and
+ * the facade materialises a live `OpenISDDriver` over whichever layer is effective.
+ *
+ * This is the same rule that governs repositories and file I/O: RECORDS cross boundaries,
+ * INSTANCES do not.
  */
-interface DriverFields {
+export interface OpenISDDriverJson {
   uuid: BookkeepingField<string>;
   quality: QualityBlock;
   manufacturer: ScrapedField<string>;
@@ -107,7 +115,7 @@ export interface MetaCell {
  * passive radiator reads `woofer` — that is the pipeline's own convention, and `full-range`
  * is the common case that proves it.
  */
-function sectionFor(record: DriverFields): 'woofer' | 'tweeter' | 'passive_radiator' {
+function sectionFor(record: OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive_radiator' {
   const t = record.driver_type?.value;
   if (t === 'tweeter') return 'tweeter';
   if (t === 'passive-radiator' || t === 'passive_radiator') return 'passive_radiator';
@@ -150,7 +158,7 @@ function specName(e: string): SpecField { return FROM_ENGINE[e] ?? (e as SpecFie
 
 export class OpenISDDriver {
   /** The record as it stands, including any manual readings entered since load. */
-  readonly #record: DriverFields;
+  readonly #record: OpenISDDriverJson;
   /** The section every T/S field of this driver lives in — fixed by driver_type. */
   readonly #section: 'woofer' | 'tweeter' | 'passive_radiator';
   /** The origin that won before a manual reading displaced it, so clear() can restore it. */
@@ -167,12 +175,12 @@ export class OpenISDDriver {
   #autoCalculate = true;
   readonly #listeners = new Set<DriverListener>();
 
-  private constructor(record: DriverFields) {
+  private constructor(record: OpenISDDriverJson) {
     this.#record = record;
     this.#section = sectionFor(record);
   }
 
-  static fromRecord(record: DriverFields): OpenISDDriver {
+  static fromRecord(record: OpenISDDriverJson): OpenISDDriver {
     return new OpenISDDriver(record);
   }
 
@@ -214,7 +222,7 @@ export class OpenISDDriver {
   }
 
   /** The record, including every manual reading entered. This is the `.owdr` bytes. */
-  toRecord(): DriverFields { return this.#record; }
+  toRecord(): OpenISDDriverJson { return this.#record; }
 
   /** The section this driver's T/S fields live in — `specs.woofer` for anything that is
    *  neither a tweeter nor a passive radiator. */
