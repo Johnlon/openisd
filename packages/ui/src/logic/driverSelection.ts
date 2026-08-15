@@ -193,7 +193,6 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
   }
 
   function embedInProject(m: DriverModel): void {
-    const json = m.toJSON();
     adoptIntoProject(m);
     state.browseOpen = false;
   }

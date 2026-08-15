@@ -29,7 +29,6 @@ import {
   enterVentField, clearVentField, ventFieldState, ventMaxReachableFb, ventTargetUnreachable,
   newProject,
 } from '../../../logic/store.js';
-import { driverShort } from '../../../driverName.js';
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType } from '@openisd/engine';
 import type { PRLibEntry, BundledPR, Design } from '../../../types.js';

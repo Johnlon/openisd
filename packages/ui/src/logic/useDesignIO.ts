@@ -24,7 +24,7 @@ import { saveProject as fsSaveProject, saveProjectAs as fsSaveProjectAs } from '
 import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
 import { buildWprInput } from './wprMapping.js';
 import { toWpr, WinISDDriver } from '@openisd/winisd';
-import type { SerializedState, DriverJSON, UiParams } from '../types.js';
+import type { SerializedState, UiParams } from '../types.js';
 
 function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
