@@ -1,5 +1,5 @@
 prefix: QO
-next: 47
+next: 48
 questions:
 - id: QO1
   title: UI TODO List
@@ -5009,3 +5009,32 @@ questions:
 
       NOT YET DIAGNOSED. The cause is in the template/style region of DriverEditorModal.vue and must
       be established before anything is changed — do not guess at a CSS value.
+- id: QO47
+  title: Audit the whole codebase and docs for unjustified/historic comments and delete them
+  status: open
+  raised: '2026-08-16'
+  body: ''
+  notes:
+  - at: '2026-08-16'
+    text: |-
+      Human 2026-08-16, after finding a test header explaining what an earlier version of that same
+      test had got wrong: "record a todo to analyse the entire code base and docs and remove
+      unjustified comments like this".
+
+      THE TARGET, per the hardened rule in ~/.claude/behavioral_instructions.md §"NEVER COMMENT ON
+      WHAT THE CODE USED TO BE":
+        - any sentence whose SUBJECT no longer exists — "a previous version...", "this used to...",
+          "the old X was wrong because...", "replaces the earlier...", "we no longer...", and every
+          paraphrase, including self-critical ones ("this was wrong twice over").
+        - any comment whose purpose is to JUSTIFY the edit rather than to change what a reader does.
+
+      KEEP: a comment explaining why the CURRENT code is shaped as it is, where a naive reader would
+      otherwise undo it — e.g. "CRLF because .wdr is a Windows INI". The test is whether the subject
+      EXISTS, not whether the sentence sounds historical.
+
+      SCOPE: packages/**, docs/**, ARCHITECTURE.md, the plans, the rule files. Note that some
+      documents are sanctioned exceptions and must NOT be stripped: bugs/**, LOG.md, postmortems, and
+      TODO/questions ledgers are decision and defect records where history is the point.
+
+      This is a sweep, not a one-file fix — the pattern is pervasive because the agent had a standing
+      motive to write it.
