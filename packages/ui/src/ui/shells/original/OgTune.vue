@@ -159,7 +159,7 @@ function fmt(v: number | null, dp: number): string { return v != null && isFinit
 
 // Open the what-if overlay as Tune opens: edits go to a live COPY, so the charts preview
 // live but the committed project stays clean — a what-if can never dirty it, by any path
-// (STATE_MODEL what-if ≠ modified, and never becomes modified). The watch (immediate)
+// (STATE_MODEL what-if ≠ committed, and never becomes committed). The watch (immediate)
 // survives a future switch from v-if to v-show.
 // On EVERY close path (✕ or Cancel — there is no other), discard the overlay so a stray
 // close can never strand the charts on an abandoned what-if.

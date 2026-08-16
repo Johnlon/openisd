@@ -393,7 +393,7 @@ export const allIssues = computed<DriverError[]>(
 // ---- Project state: ground ↔ modified layer (docs/design/STATE_MODEL.md) ----------------------
 // A project fingerprint captures the whole design (box + params + driver). "Ground" is
 // the last loaded/saved fingerprint; the project is "modified" when the live design
-// differs from it. This is the ground↔modified layer of docs/design/STATE_MODEL.md; the what-if/edit
+// differs from it. This is the ground↔committed layer of docs/design/STATE_MODEL.md; the what-if/edit
 // priorityState proxy layers are built on top of it separately. Additive — components keep
 // reading state.P/state.box directly; this only observes and can restore them.
 function projectFingerprint(): string {
