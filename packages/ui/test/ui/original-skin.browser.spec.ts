@@ -591,7 +591,7 @@ test('a dragged frequency band selection survives the share link', async ({ page
   await expect(page.locator('.gread')).toHaveText(readout);
 });
 
-test('the Save bar tracks modified state; Save adopts it, Reset reverts it (STATE_MODEL ground↔modified)', async ({ page }) => {
+test('the Save bar tracks whether the design differs from ground; Save adopts it, Reset reverts it (STATE_MODEL ground↔committed)', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.locator('.skin-picker select').selectOption('original');

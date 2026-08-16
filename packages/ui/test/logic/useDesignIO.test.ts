@@ -2,7 +2,7 @@
  * `bugs/BUG_20260814_sharelink-does-not-cancel-an-active-what-if-before-serialising-the-driver.md`
  *
  * Every I/O action in `useDesignIO.ts` must cancel an active driver what-if before it reads
- * modified state (`ARCHITECTURE.md` §3 "A what-if never leaks into anything persistent") — an
+ * committed state (`ARCHITECTURE.md` §3 "A what-if never leaks into anything persistent") — an
  * uncommitted, unverified overlay must never be left open once the user has generated an
  * artifact from the committed design. `saveProject`/`saveProjectAs`/`exportWdr`/`exportWpr`/
  * `exportOwdr` already do this via `endAnyActiveWhatIfBeforeIO()`; `shareLink()` was the one
