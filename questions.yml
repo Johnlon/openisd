@@ -1,5 +1,5 @@
 prefix: QO
-next: 45
+next: 47
 questions:
 - id: QO1
   title: UI TODO List
@@ -4950,3 +4950,62 @@ questions:
       2. ABC - ITS FIELDS ARE NOT SPECIFIED. Nothing in the repo says what an ABC
          alignment holds. The diagram shows the box empty on purpose rather than
          inventing contents. NEEDS A HUMAN SPEC before it can be modelled.
+- id: QO45
+  title: 'CARRIED: justify the category or eliminate it — Gloss/Hc/Hg are derived, so what does ''carried''
+    mean?'
+  status: open
+  raised: '2026-08-16'
+  body: ''
+  notes:
+  - at: '2026-08-16'
+    text: |-
+      The human: "Gloss is in the OpenIsd model - wth does carried mean??" and "Eliminate
+      CARRIED unless you can justify it to me - EXPLAIN IT".
+
+      CHECKED, not asserted:
+      - `Gloss` is NOT a field of openisd.yml. `grep -c Gloss packages/model/src/openisdRecord.ts`
+        = 0. SpecSection has no Gloss and no `loss`.
+      - The ENGINE derives it: packages/engine/src/driver.ts:314, as `loss` — the static
+        gravitational cone sag, g/((2pi*Fs)^2*Xmax).
+      - It reaches a .wdr through DERIVED_TO_WDR (winisdDriver.ts:143) `loss: 'Gloss'` — i.e. from
+        the engine's derivation output, never from a stated record field.
+
+      So "carried" as I used it meant: a .wdr KEY with no field in openisd.yml. On import nothing
+      stores it as a stated value; on export the writer emits whatever the engine derived. Hc/Hg are
+      NOT in that category (they map to Hc_mm/Hg_mm and ARE stated), so the CARRIED list I wrote was
+      factually wrong and the comment claiming those fields are "not simulated" was false.
+
+      THE QUESTION FOR THE HUMAN: is the category needed at all? Byte-identical round-trip
+      (wdr-round-trip.test.ts) tests the whole file and needs no such list. Two candidate positions:
+        (a) DELETE the concept. Every .wdr key is either stated in the record or derived by the
+            engine; there is no third kind, and the round-trip test proves fidelity without naming
+            any of them.
+        (b) It names a real gap — keys like Vd, Dia, no, Mpow, Mcost, Rme, Gloss that openisd.yml
+            cannot express — and that gap is worth a name because it decides what survives an
+            openisd.yml round trip (as opposed to a .wdr round trip).
+
+      If (b), the name must be accurate and the members must be checked, not guessed.
+- id: QO46
+  title: 'Driver editor layout regressed: comment field long and narrow, row spacing too big'
+  status: open
+  raised: '2026-08-16'
+  body: ''
+  notes:
+  - at: '2026-08-16'
+    text: |-
+      Human, 2026-08-16: "you unecessarily reformated the driver editor page and the comment field
+      is now really long and narrow"; "the vertical spacing between rows in the editor is too big";
+      "Why did you change the ui of the driver editor - this was not discussed - explain it."
+
+      NOT MINE — verified, not claimed. Every change I made to DriverEditorModal.vue this session is
+      inside <script setup>: my last hunk ends at line 448, <template> begins at 460 and
+      <style scoped> at 907. `git log -L 460,520` and `-L 907,960` on the file both show the most
+      recent commit touching those regions as d7cb977 "(auto) Lossy Fsc/Qtc sealed box calculations,
+      parameter provenance inspector, and auto-calculate toggle" — an earlier auto commit, not
+      138ade6 or b2d16f2.
+
+      So the layout complaint predates this session's work. It is still a real defect and needs
+      fixing: the comment textarea renders long and narrow, and the row spacing is too large.
+
+      NOT YET DIAGNOSED. The cause is in the template/style region of DriverEditorModal.vue and must
+      be established before anything is changed — do not guess at a CSS value.
