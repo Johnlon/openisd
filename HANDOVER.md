@@ -296,9 +296,9 @@ The human said, more than once, to kill it and all traces of it. It is still the
    Those two functions are the seam; delete them as the last step.
 3. **10 test files** in `packages/winisd/test/` that test the condemned class ITSELF and go with it:
    `driver-class`, `driver-json`, `driver-derive`, `driver-hardening`, `driver-roundtrip`,
-   `driver-projection`, `driver-fresh-export`, `roundtrip`, `wdr-carried-keys`,
+   `driver-projection`, `driver-fresh-export`, `roundtrip`,
    `wdr-import-fidelity`. **Before deleting, check each for coverage that is NOT about the class
-   itself** — `wdr-import-fidelity` and `wdr-carried-keys` assert real `.wdr` behaviour that
+   itself** — `wdr-import-fidelity` asserts real `.wdr` behaviour that
    `WinISDDriver` now owns and that must not be lost.
 4. `packages/winisd/src/index.ts` line 1: `export * from './driver.js';`
 

@@ -9,7 +9,7 @@ help:
 	@echo "  make fast       - Rebuild driver bundle + start dev server on port 4000 (fastest)"
 	@echo "  make drivers    - Rebuild the driver bundle only"
 	@echo "  make stop       - Stop the running dev server on port 4000"
-	@echo "  make preview    - Run Vite preview on port 4000"
+	@echo "  make preview    - Build the app and serve it via Vite preview on port 4000"
 	@echo "  make check      - Run ESLint, typecheck, and unit tests"
 	@echo ""
 	@echo "Optional desktop shell (never touches the web build):"
@@ -45,8 +45,9 @@ fast: drivers start-4000
 stop:
 	bash scripts/stop-http.sh 4000
 
-# Run Vite preview on port 4000
+# Build the app and serve it via Vite preview on port 4000
 preview:
+	npm run build
 	bash scripts/preview-4000.sh
 
 # Run ESLint, Typecheck, and Unit tests

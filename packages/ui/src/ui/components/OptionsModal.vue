@@ -7,9 +7,8 @@
 //   Environment     — Temperature/Air pressure/Relative humidity + a derived Sound velocity
 //                      readout. These are APP-LEVEL DEFAULTS (state.ui.envDefaults), distinct
 //                      from a project's own per-design Advanced-pane values: they only seed a
-//                      shell's Advanced-pane refs on mount (OriginalShell.vue/ClassicShell.vue),
-//                      replacing what used to be a hardcoded literal (293.15 K / 101325 Pa /
-//                      30%) — an already-open project's Advanced-pane values are never touched
+//                      shell's Advanced-pane refs on mount (OriginalShell.vue) —
+//                      an already-open project's Advanced-pane values are never touched
 //                      by editing this. (docs/research/WINISD_PARITY.md / BACKLOG.md: whether real WinISD's Options
 //                      dialog seeds a brand-new WinISD *project's* Advanced defaults the same
 //                      way is inferred from matching screenshot values, not directly observed —

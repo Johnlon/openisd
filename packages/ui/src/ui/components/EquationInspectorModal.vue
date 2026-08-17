@@ -28,9 +28,6 @@ const emit = defineEmits<{ close: [] }>();
           <span class="eq-path-name" :style="{ color: path.color }">{{ path.colorName }}</span>
         </div>
         <div class="eq-formula">{{ path.formulaText }}</div>
-        <div v-if="path.substitutedText && path.substitutedText !== path.formulaText" class="eq-subst">
-          Live: {{ path.substitutedText }}
-        </div>
         <div class="eq-inputs">
           <span class="eq-in-lbl">Participating fields:</span>
           <span v-for="k in path.inputs" :key="k" class="eq-in-badge" :style="{ borderColor: path.color, color: path.color }">
@@ -155,13 +152,6 @@ const emit = defineEmits<{ close: [] }>();
   background: rgba(0, 0, 0, 0.25);
   padding: 4px 6px;
   border-radius: 3px;
-}
-
-.eq-subst {
-  font-family: monospace;
-  font-size: 10.5px;
-  color: #a0aec0;
-  padding-left: 2px;
 }
 
 .eq-inputs {

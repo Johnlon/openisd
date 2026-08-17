@@ -8,7 +8,6 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.original-root').waitFor({ state: 'visible' });
 });
 

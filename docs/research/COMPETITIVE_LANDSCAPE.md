@@ -330,24 +330,6 @@ CI.**
 
 ---
 
-## A data-source quality finding (not a design tool)
-
-**loudspeakerdatabase.com scraper — third-party collection.** Collection:
-`drivers/loudspeakerdatabase/` (14 WDR files). Source: third-party scraper (not WinISD, not
-OpenISD's current scraper). Analysis (2026-06-28) found: **EBP computation broken** (6/14
-files missing the field entirely, 7/14 written as 0 when it should compute ≈66 from present
-Fs/Qes — e.g. Beyma 10BR60 V2). **ParState issues**: all 14 files use one hardcoded constant
-(`EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC`), not matching the dynamically-computed
-ParState seen in real WinISD files (the `matt` collection) — suggests an older OpenISD scraper
-version or an independent implementation. **Metadata issues**: most files dated December 2025
-(future dates, likely placeholder), several with empty DateAdded/DateModified, `VCCon=2`
-(serial) as default (unusual for single-VC drivers). **Vd/Dd coverage** is suspiciously
-perfect (14/14, 0 zeros) vs. the `matt` collection's realistic 9 zeros for Vd.
-
-**Conclusion:** loudspeakerdatabase files exhibit data-quality issues not seen in real WinISD
-entries. Not suitable as a reference for validating WDR format, scraper correctness, or WinISD
-behaviour — use the `matt` collection (411 real WinISD files) as the authoritative reference.
-
 ---
 
 ## Open questions

@@ -16,8 +16,24 @@ export const PARSTATE_LEN = 49;
 export type CellState = 'E' | 'C' | 'N';
 
 /**
- * Slot → WDR file key (null where the slot has no serialised key: ParState-only slots
- * like Xlim, and the two unidentified always-N slots at 20 and 46).
+ * Slot → WDR file key. Exactly ONE slot is null: 10 (`Xlim`), which has a live editor field
+ * and a mark but no key in the writer's literal pool — WinISD discards its value on save.
+ *
+ * Slots 20 (`Dia`) and 46 (`VCCon`) are real keys, recovered from `winisd.exe` rather than
+ * from probing: the driver editor's field-registration blocks at `0x449e6e` and the stride
+ * 38-46 run over `D+0x188`…`D+0x1C8` bind them to the controls `eddia` and `edConMode`.
+ * See `winisd_research/PARSTATE_DECOMPILED.md`.
+ *
+ * Black-box probing could not reach either, and both look inert for a reason that is NOT that
+ * the slot is unused:
+ *  - slot 20 is `N` in every WinISD-authored file because nothing COMPUTES `Dia` and its field
+ *    is off the default tab, so nobody enters one either;
+ *  - **no instruction in `.text` writes slot 46 at all**, so it only ever holds the `N` from a
+ *    blank driver's `FillChar` or whatever a loaded file supplied.
+ *
+ * Which is why a hand-authored `E` in either slot round-trips through WinISD untouched —
+ * `drivers/sample/winisd/inconsistency-test-saved.wdr` carries `E` in both and WinISD
+ * reproduced them exactly.
  */
 export const POS_TO_WDRKEY: readonly (string | null)[] = [
   'Znom',   // 0
@@ -40,7 +56,7 @@ export const POS_TO_WDRKEY: readonly (string | null)[] = [
   'Sd',     // 17
   'Vd',     // 18
   'Vas',    // 19
-  null,     // 20 unknown — always N
+  'Dia',    // 20  editor field `eddia`, value at D+0xE8
   'Dd',     // 21
   'no',     // 22 η₀
   'numVC',  // 23
@@ -66,7 +82,7 @@ export const POS_TO_WDRKEY: readonly (string | null)[] = [
   'Outer',  // 43
   'Vcd',    // 44
   'DVol',   // 45
-  null,     // 46 unknown — always N
+  'VCCon',  // 46  editor combo `edConMode`, value at D+0x1C8
   'c',      // 47
   'roo',    // 48
 ];
@@ -81,9 +97,9 @@ export interface ModeledSlot {
 }
 
 /**
- * The T/S fields the Driver models directly. Every other ParState slot is either
- * computed by rule (c, roo, gamma…, Vd, Dd, η₀, SPLmax…) or carried passthrough
- * (dimensions, thermal). Only these 15 are read from / written to the model.
+ * The T/S fields the Driver models directly — the 15 read from and written to the model.
+ * Every `.wdr` key has a home in `SpecSection` (`wdr-model-coverage.test.ts`); this list is
+ * narrower, and says only which ones this slot table exposes.
  */
 export const MODELED_SLOTS: readonly ModeledSlot[] = [
   { pos: 0,  wdrKey: 'Znom', field: 'Z' },
@@ -108,6 +124,6 @@ export const MODELED_SLOTS: readonly ModeledSlot[] = [
   { pos: 19, wdrKey: 'Vas',  field: 'Vas' },
 ];
 
-/** WDR key → modeled slot, for overlaying edited values on the carried WDR lines. */
+/** WDR key → modeled slot, for overlaying edited values on the file's own WDR lines. */
 export const MODELED_BY_WDRKEY: Readonly<Record<string, ModeledSlot>> =
   Object.fromEntries(MODELED_SLOTS.map(s => [s.wdrKey, s]));

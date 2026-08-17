@@ -84,6 +84,23 @@ export interface WdrHeader {
   dateModified?: string;
 }
 
+/**
+ * ParState slot 10 — Xlim's MARK, and the only trace of Xlim a `.wdr` carries.
+ *
+ * WinISD offers Xlim in its UI and then FAILS TO SAVE IT — a WinISD bug, not a design.
+ * Probe evidence, two files differing in exactly one respect: `s-fs.wdr` (Fs typed in, saved)
+ * writes `Fs=123` AND sets slot 1 to `E`; `s-xlim-123.wdr` (Xlim set to 123, saved) writes no
+ * key whatsoever — every numeric line is still `0` — and sets ONLY slot 10 to `E`. Its own
+ * comment records the observation: "xlim set to 123 in UI but not written".
+ *
+ * We reproduce the bug rather than route around it. `.wdr` has no extension mechanism, so an
+ * `Xlim=` line is a key WinISD cannot read: it is dropped the moment WinISD saves over the
+ * file, while slot 10 goes on claiming a value was entered — and it breaks the byte
+ * comparison against WinISD's own output that everything downstream is checked by.
+ * `openisd.yml` is where Xlim's value lives, and it is not lossy.
+ */
+const XLIM_PARSTATE_SLOT = 10;
+
 const err = (field: string, message: string): DriverError => ({ level: 'error', field, message });
 
 /**
@@ -101,7 +118,7 @@ const DIFF_ABS_FLOOR = 1e-12;
  * writes when nothing is set. Source of truth: `drivers/sample/winisd/john-all-defaults.wdr`
  * (New → Save, nothing typed).
  */
-const NUMERIC_DEFAULTS: ReadonlyArray<readonly [string, number]> = [
+export const NUMERIC_DEFAULTS: ReadonlyArray<readonly [string, number]> = [
   ['Qts', 0], ['Znom', 0], ['Fs', 0], ['Pe', 0], ['SPL', 0], ['Re', 0], ['Le', 0],
   ['fLe', 0], ['KLe', 0], ['BL', 0], ['Xmax', 0], ['Cms', 0], ['Qms', 0], ['Qes', 0],
   ['Rms', 0], ['Mms', 0], ['Sd', 0], ['Vas', 0], ['Dia', 0], ['Vd', 0], ['no', 0],
@@ -124,7 +141,7 @@ export const WDR_NUMERIC_KEYS: readonly string[] = NUMERIC_DEFAULTS.map(([k]) =>
  * The record stores dimensions in mm and volume in litres (field-NAME convention, not an
  * SI-canonical `read_value`); WinISD stores SI.
  */
-const SPEC_TO_WDR: ReadonlyArray<readonly [keyof SpecSection, string, number]> = [
+export const SPEC_TO_WDR: ReadonlyArray<readonly [keyof SpecSection, string, number]> = [
   ['Fs', 'Fs', 1], ['Re', 'Re', 1], ['Le', 'Le', 1], ['fLe', 'fLe', 1], ['KLe', 'KLe', 1],
   ['Znom', 'Znom', 1], ['Qts', 'Qts', 1], ['Qes', 'Qes', 1], ['Qms', 'Qms', 1],
   ['Vas', 'Vas', 1], ['Sd', 'Sd', 1], ['BL', 'BL', 1], ['Mms', 'Mms', 1],
@@ -136,6 +153,15 @@ const SPEC_TO_WDR: ReadonlyArray<readonly [keyof SpecSection, string, number]> =
   ['magnet_depth_mm', 'MagDepth', 1e-3], ['magnet_dia_mm', 'Magnet', 1e-3],
   ['basket_dia_mm', 'Basket', 1e-3], ['outer_dia_mm', 'Outer', 1e-3],
   ['driver_volume_l', 'DVol', 1e-3],
+  // The remaining `.wdr` fields. OpenISD is a SUPERSET of a `.wdr`, so EVERY key WinISD can
+  // write is mapped, with no exemptions — an ENTERED value must survive the cycle whether or
+  // not we could also have derived it. Scale 1 throughout: these keep WinISD's own field names
+  // and therefore its units.
+  ['c', 'c', 1], ['roo', 'roo', 1],
+  ['Dia', 'Dia', 1], ['Vd', 'Vd', 1], ['no', 'no', 1],
+  ['SPLmax', 'SPLmax', 1], ['SPLmaxLF', 'SPLmaxLF', 1], ['USPL', 'USPL', 1],
+  ['alfaVC', 'alfaVC', 1], ['Rt', 'Rt', 1], ['Ct', 'Ct', 1], ['gamma', 'gamma', 1],
+  ['Rme', 'Rme', 1], ['Mpow', 'Mpow', 1], ['Mcost', 'Mcost', 1], ['Gloss', 'Gloss', 1],
 ];
 
 /** Engine derivation output name → `.wdr` key, where the two spell it differently. */
@@ -144,10 +170,9 @@ const DERIVED_TO_WDR: Readonly<Record<string, string>> = {
 };
 
 /** `.wdr` key → the `SpecSection` field it maps to, with the unit conversion back to record
- *  convention (mm/litres) — the exact inverse of `SPEC_TO_WDR`. A WDR-tracked key with no
- *  `SpecEntry` home (`Vd`, `Dia`, `no`, `Gloss`, `Mpow`, `Mcost`, `Rme`, …) is simply absent
- *  from this map — the migration plan's own Step 8 table calls these "WDR-only carried
- *  pass-through": nothing in `openisd.yml` asserts them, whatever their WDR state. */
+ *  convention (mm/litres) — the exact inverse of `SPEC_TO_WDR`. TOTAL over the `.wdr` key set:
+ *  `OpenISDDriver` is a superset of a `.wdr`, so every key WinISD can write resolves here.
+ *  `wdr-model-coverage.test.ts` fails on any that does not. */
 const WDR_TO_SPEC = new Map<string, readonly [keyof SpecSection, number]>(
   SPEC_TO_WDR.map(([specKey, wdrKey, scale]) => [wdrKey, [specKey, 1 / scale] as const]),
 );
@@ -315,16 +340,15 @@ export class WinISDDriver {
     }
     if (computed.EBP == null && computed.Fs > 0 && computed.Qes > 0) computed.EBP = computed.Fs / computed.Qes;
     if (computed.Dia == null && computed.Dd != null) computed.Dia = computed.Dd;
-    // Xlim: openisd's own extension key (never a true WinISD .wdr key — WinISD holds it in
-    // ParState slot 10 only, POS_TO_WDRKEY[10] = null; s-xlim.wdr, a genuine WinISD save
-    // with Xlim entered, writes no `Xlim=` line at all). Written only when the record
-    // states a value — never a default 0 injected into a record that carries none.
-    let xlimEntered: number | undefined;
+    // Xlim: the record's value cannot be carried into a `.wdr` — the format has no key for it
+    // (see XLIM_PARSTATE_SLOT). All that crosses is the MARK: the record states an Xlim, so
+    // slot 10 says `E`. A record with no Xlim leaves the slot `N`.
+    let xlimEntered = false;
     const xlimEntry = section.Xlim;
     if (xlimEntry?.origin != null && xlimEntry.readings != null) {
       try {
         const v = winningReading(xlimEntry).read_value;
-        if (typeof v === 'number' && isFinite(v)) xlimEntered = v;
+        xlimEntered = typeof v === 'number' && isFinite(v);
       } catch { /* origin has no reading — leave Xlim unset */ }
     }
     // c/roo are WinISD's OWN stored constants and are never recomputed here — see
@@ -344,7 +368,7 @@ export class WinISDDriver {
         : 'N';
       cells.set(key, { value: fmt(v), state });
     }
-    if (xlimEntered != null) cells.set('Xlim', { value: fmt(xlimEntered), state: 'E' });
+    if (xlimEntered) cells.set('Xlim', { value: '', state: 'E' });
 
     const s = (v: string | undefined): string => v ?? '';
     const header: WdrHeader = {
@@ -391,7 +415,11 @@ export class WinISDDriver {
       const i = line.indexOf('=');
       if (i < 0 || line[0] === '[') continue;
       const key = line.slice(0, i).trim();
-      const val = line.slice(i + 1).trim();
+      // The VALUE is taken verbatim. Trimming it destroys real content in the free-text
+      // header fields — `s-xlim-123.wdr` carries `Comment=xlim set to 123 in UI but not
+      // written ` with a trailing space WinISD wrote and reads back. Numeric parsing is
+      // unaffected: `Number(' 0 ')` is 0.
+      const val = line.slice(i + 1);
       if (key === 'ParState') { parState = val; continue; }
       raw[key] = val;
     }
@@ -404,6 +432,13 @@ export class WinISDDriver {
         ? (parState[pos] as CellState)
         : 'E';
       cells.set(key, { value: raw[key], state });
+    }
+
+    // Xlim occupies ParState slot 10 but has no key, so the loop above never reaches it. The
+    // mark still has to survive: writing `N` where the file said `E` is a positive claim
+    // ("not in play") that the source contradicts. There is no value to read.
+    if (parState && parState.length === PARSTATE_LEN && parState[XLIM_PARSTATE_SLOT] !== 'N') {
+      cells.set('Xlim', { value: '', state: parState[XLIM_PARSTATE_SLOT] as CellState });
     }
 
     const header: WdrHeader = {
@@ -496,14 +531,15 @@ export class WinISDDriver {
       const c = this.#cells.get(key);
       lines.push(`${key}=${c ? c.value : fmt(dflt)}`);
     }
-    // Xlim: openisd's own extension line (never a real WinISD key — see NUMERIC_DEFAULTS'
-    // absence of it and the class doc). Emitted only when a producer supplied a cell for it,
-    // never injected as a default 0 into a file that carries none.
-    const xlim = this.#cells.get('Xlim');
-    if (xlim) lines.push(`Xlim=${xlim.value}`);
+    // No `Xlim=` line: WinISD writes none, and `.wdr` has no extension mechanism to add one
+    // (XLIM_PARSTATE_SLOT). Xlim crosses as its slot-10 mark and nothing else.
     lines.push('ParState=' + this.#parState());
     lines.push('');
-    return lines.join('\n');
+    // CRLF, because `.wdr` is a Windows INI and every file WinISD writes uses it. LF would
+    // differ from WinISD's own output on every single line, which makes a byte comparison
+    // against a WinISD-written oracle impossible — and that comparison is how the projection
+    // in Plan 2 is checked. `fromWdr` already accepts either (`split(/\r?\n/)`).
+    return lines.join('\r\n');
   }
 
   #parState(): string {
@@ -513,6 +549,9 @@ export class WinISDDriver {
       if (key == null) continue;
       slots[pos] = this.#cells.get(key)?.state ?? 'N';
     }
+    // Slot 10 has no entry in POS_TO_WDRKEY, so it is filled from Xlim's own cell — which
+    // carries a mark and no value (XLIM_PARSTATE_SLOT).
+    slots[XLIM_PARSTATE_SLOT] = this.#cells.get('Xlim')?.state ?? 'N';
     return slots.join('');
   }
 
@@ -553,7 +592,6 @@ export class WinISDDriver {
 /** WDR key → its ParState slot position, where one exists. `Dia` shares `Dd`'s slot (WinISD
  *  writes both keys but tracks one edit-state for the pair — `Driver=all-defaults.wdr`). */
 function keyPos(wdrKey: string): number | null {
-  if (wdrKey === 'Dia') return POS_TO_WDRKEY.indexOf('Dd');
   const pos = POS_TO_WDRKEY.indexOf(wdrKey);
   return pos >= 0 ? pos : null;
 }

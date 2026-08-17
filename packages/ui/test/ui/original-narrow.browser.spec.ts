@@ -49,7 +49,6 @@ async function overlappingControls(page: Page): Promise<Overlap[]> {
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await expect(page.locator('.original-root')).toBeVisible();
 });
 

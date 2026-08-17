@@ -18,7 +18,6 @@ const humidity = (page: import('@playwright/test').Page) =>
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('li', { hasText: /^Advanced$/ }).click();
 });
 

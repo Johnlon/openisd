@@ -1,8 +1,7 @@
 /**
- * The non-modal What-If panels — Original's docked "Tune" (shells/original/OgTune.vue) and
- * Classic's inline panel (components/DriverWhatIfPanel.vue).
+ * The non-modal What-If panel — the docked "Tune" (shells/original/OgTune.vue).
  *
- * Both are live what-if editors, so what they show has to be as complete and as honest as the
+ * It is a live what-if editor, so what it shows has to be as complete and as honest as the
  * driver editor dialog: a field the app CALCULATED must be visible and marked as calculated,
  * every field must be overridable, and a field that is required-but-missing must say so.
  * These tests pin the five behaviours the human asked for by name.
@@ -33,7 +32,6 @@ async function openTune(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.original-root').waitFor({ state: 'visible' });
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
@@ -162,7 +160,6 @@ test('QO11.5 NumInput: an out-of-range value typed character-by-character goes r
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.original-root').waitFor({ state: 'visible' });
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
 
@@ -197,7 +194,6 @@ test('QO11.5 NumInput: a full-precision value survives typing and blur — dp is
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.original-root').waitFor({ state: 'visible' });
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
 
@@ -210,33 +206,4 @@ test('QO11.5 NumInput: a full-precision value survives typing and blur — dp is
   expect(await readVb(page)).toBeCloseTo(0.012345678, 12);
   await vb.blur();
   expect(await readVb(page)).toBeCloseTo(0.012345678, 12);
-});
-
-// ── The Classic skin's inline panel carries the same five ─────────────────────────────────
-test('Classic inline What-If panel: Bl/Mms editable, Vb present, Q trio marked, fields narrow', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('classic');
-  await page.locator('.cl-whatif').click();
-  const dep = page.locator('.dep');
-  await expect(dep).toBeVisible();
-
-  const row = (label: string) => dep.locator('.row').filter({ has: page.locator('label', { hasText: new RegExp(`^${label}`) }) });
-
-  await expect(row('Mms').locator('input')).toBeEditable();
-  await expect(row('Bl').locator('input')).toBeEditable();
-  await expect(row('Box volume Vb').locator('input')).toBeVisible();
-
-  const qms = row('Qms').locator('input');
-  await qms.click();
-  await qms.press('Control+a');
-  await qms.press('Delete');
-  await expect(qms).toHaveClass(/st-c/);              // solved from Qts + Qes, marked Calculated
-  expect((await cell(page, 'Qms')).state).toBe('C');
-
-  const widths = await dep.locator('.row input').evaluateAll(
-    els => els.map(e => Math.round(e.getBoundingClientRect().width)));
-  expect(new Set(widths).size).toBe(1);
-  expect(widths[0]).toBeLessThanOrEqual(90);
 });

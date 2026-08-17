@@ -9,6 +9,7 @@ import { createPrefsStore } from './db/prefs.js';
 import { createPrRepo } from './db/prLibrary.js';
 import { createLogging } from './logging/flash.js';
 import { createDiagnostics } from './diagnostics/selftest.js';
+import { createFaultLog } from './diagnostics/faultLog.js';
 import { createDriverSelection } from './logic/driverSelection.js';
 import { createDriverLibrary } from './logic/driverLibrary.js';
 import { createDesignIO } from './logic/useDesignIO.js';
@@ -36,6 +37,10 @@ const bundle = bundleJson as {
 };
 
 // --- services: arguments in, data out, no app state ---
+// FIRST: a fault that fires while the rest of this file runs must still be caught.
+const faultLog = createFaultLog();
+faultLog.install();
+
 const store = createLocalStorageStore();
 const logging = createLogging();
 const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle });
@@ -56,6 +61,6 @@ const app = createApp(App)
   .directive('expo-step', vExpoStep)
   .directive('limits', vLimits);
 
-provideApp(app, { logging, library, selection, designIO, prLibrary, myDrivers: myDriverRepo, diagnostics });
+provideApp(app, { logging, library, selection, designIO, prLibrary, myDrivers: myDriverRepo, diagnostics, faultLog });
 
 app.mount('#app');

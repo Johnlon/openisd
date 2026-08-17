@@ -23,7 +23,6 @@ import { test, expect } from '../fixtures.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
 });
 
 test('§A3 — a PR box\'s Fh tracks the PR\'s own added mass, so it is the PR tuning not the sealed Fc', async ({ page }) => {

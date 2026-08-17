@@ -1,23 +1,21 @@
 <script setup lang="ts">
 /**
- * Original-skin Filters tab — the mock's `.filters-quickadd` + `.filters-list` markup,
- * wired to the SAME shared filter state (`state.P.filters`) the Modern skin's FiltersPanel
- * uses. This is a per-skin presentation (its own component under shells/original/), not an
- * edit of the shared FiltersPanel — so Modern is untouched (Invariant 1) and the filter
- * logic stays single-sourced in the store + engine.
+ * Filters tab — the `.filters-quickadd` + `.filters-list` markup, wired to
+ * `state.P.filters`. Presentation only: the filter logic is single-sourced in the store
+ * and the engine.
  *
  * Honesty note: the engine models exactly four filter types (highpass, lowpass, linkwitz,
- * peaking — packages/engine/src/types.ts FilterType). The mock's other four quick-add
- * buttons (Allpass, DLP, Static gain, Peaking-2nd-order-HP) have no engine model, so they
- * are intentionally omitted rather than added as controls that do nothing.
+ * peaking — packages/engine/src/types.ts FilterType). The other four quick-add buttons
+ * WinISD offers (Allpass, DLP, Static gain, Peaking-2nd-order-HP) have no engine model, so
+ * they are intentionally omitted rather than added as controls that do nothing.
  */
 import { ref } from 'vue';
 import { state } from '../../../logic/store.js';
 import { limits } from '../../../logic/fields/fieldRegistry.js';
 import type { Filter, FilterType } from '@openisd/engine';
 
-// Order follows the mock's quick-add row (LP, HP, …, LT, …, PEQ) with the four
-// engine-unsupported types (AP, Peak, DLP, Gain) omitted — see honesty note above.
+// Order: LP, HP, …, LT, …, PEQ, with the four engine-unsupported types (AP, Peak, DLP,
+// Gain) omitted — see honesty note above.
 const QUICK_ADD: { type: FilterType; label: string }[] = [
   { type: 'lowpass',  label: '+ LP' },
   { type: 'highpass', label: '+ HP' },
@@ -27,9 +25,6 @@ const QUICK_ADD: { type: FilterType; label: string }[] = [
   { type: 'highshelf', label: '+ HS' },
 ];
 const BADGE: Record<FilterType, string> = { highpass: 'HP', lowpass: 'LP', linkwitz: 'LT', peaking: 'PEQ', lowshelf: 'LS', highshelf: 'HS' };
-// Mirrors the shared FiltersPanel's defaults. NOT a shared constant: single-sourcing it
-// would mean editing FiltersPanel (a Modern-rendered component), which Invariant 1 forbids
-// for a cosmetic reason — so this is a deliberate per-skin copy; keep in sync if either moves.
 const DEFAULTS: Record<FilterType, Record<string, number>> = {
   highpass: { fc: 80,  Q: 0.7071 },
   lowpass:  { fc: 200, Q: 0.7071 },
@@ -101,7 +96,6 @@ function summary(f: Filter): string {
 </template>
 
 <style scoped>
-/* Ported from mock/style.css (.filters-quickadd / .filters-list / .filter-row-*). */
 .og-filters { display:flex; flex-direction:column; min-height:0; }
 .filters-quickadd { flex:none; display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
 .action-btn { background:#f0f0f0; border:1px solid #999; border-radius:3px; padding:4px 10px; cursor:pointer; font:inherit; }

@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
-import { ref, shallowRef, markRaw, computed, nextTick } from 'vue';
-import { state } from '../../logic/store.js';
+import { ref, shallowRef, markRaw, computed, nextTick, watch, onBeforeUnmount } from 'vue';
+import { state, formatInUnit } from '../../logic/store.js';
 import { useApp } from '../../logic/app.js';
 import { ebp, RHO, C } from '@openisd/engine';
 import { WinISDDriver } from '@openisd/winisd';
 import { OpenISDDriver } from '@openisd/model';
 import type { SpecField, MetaField } from '@openisd/model';
 import NumInput from './NumInput.vue';
+import UnitToggle from './UnitToggle.vue';
 import { precision } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { cellClassOf, useQGroupIncomplete, consistencyNote } from '../../logic/useDriverCells.js';
 import { saveTextAs } from '../../logic/fileSave.js';
 import { DriverFileFormat } from '../../driverFileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
-import { getProvenanceInfo } from '../../logic/provenance.js';
+import { getProvenanceInfo, LABEL_TO_FIELD_KEY } from '../../logic/provenance.js';
 
 const { selection, myDrivers, logging } = useApp();
 const { editorSeed, acceptDriverEdit, cancelDriverEdit } = selection;
 
-// Driver editor — a real modal (unlike DriverWhatIfPanel, an inline overlay that keeps
-// the graph visible). Recreates WinISD's "Driver editor" dialog (docs/winisd/edit_driver_pg*.png):
+// Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced parameters / Dimensions.
 //
 // Layered Memory architecture:
@@ -135,17 +135,51 @@ const autoCalculate = computed({
 const inspectProvenance = ref(false);
 const inspectedField = ref<string | null>(null);
 
-const LABEL_TO_KEY_MAP: Record<string, string> = {
-  Qes: 'Qes', Qms: 'Qms', Qts: 'Qts', Fs: 'Fs', Vas: 'Vas', Mms: 'Mms', Cms: 'Cms', Rms: 'Rms', Re: 'Re', Bl: 'Bl',
-  Dd: 'Dd', Le: 'Le', Sd: 'Sd', fLe: 'fLe', KLe: 'Le2', Xmax: 'Xmax', Hc: 'Hc', Hg: 'Hg', Vd: 'Vd', Xlim: 'Xlim',
-  Pe: 'Pe', no: 'no', Znom: 'Z', USPL: 'USPL', SPL: 'SPL', Voicecoils: 'numVC',
-  AlfaVC: 'tc', 'R(t)': 'Rth', 'C(t)': 'Cth', SPLmaxLF: 'SPLmaxLF', SPLmax: 'SPLmax', Rme: 'Rme', gamma: 'gamma', Mpow: 'Mpow', Mcost: 'Mcost', EBP: 'EBP', Gloss: 'loss',
-  Thick: 'thick', Depth: 'depth', 'Magnet Depth': 'magnetDepth', Magnet: 'magnet', Basket: 'basket', Outer: 'outer', VCd: 'VCd', Dvol: 'basketDisplacement'
-};
+// The popup used to sit at a fixed viewport corner (right: 20px, bottom: 20px) regardless of
+// where the editor actually rendered, so on a narrower or off-centre viewport it landed on top
+// of the modal it was meant to explain. Anchored here to the editor's OWN measured bounding box
+// instead: beside its right edge when there is room, its left edge otherwise — so it can never
+// cover the dialog it is inspecting, at any viewport size.
+const modalRootEl = ref<HTMLElement | null>(null);
+const popupStyle = ref<Record<string, string>>({});
+function updatePopupPosition() {
+  const el = modalRootEl.value;
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  const gap = 12;
+  const popupWidth = 380;
+  // ~380px measured height of the rendered card (header + `.eq-body`'s own 320px max-height +
+  // padding). Always beside the modal's right edge — never below/above it, which on a modest
+  // window height positioned the card past the bottom of the viewport with nothing to signal
+  // it was there. Both axes are clamped into the viewport as a hard floor: on a window too
+  // narrow to clear the modal's right edge this can mean the popup brushes the modal, but a
+  // popup rendered off-screen helps nobody, and that is strictly worse than a rare overlap.
+  const popupHeight = 380;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const width = Math.min(popupWidth, Math.max(200, vw - r.right - 2 * gap));
+  const left = Math.min(Math.max(gap, r.right + gap), vw - gap - width);
+  const top = Math.min(Math.max(gap, r.top), vh - gap - popupHeight);
+
+  popupStyle.value = { position: 'fixed', left: `${Math.round(left)}px`, top: `${Math.round(top)}px`, right: 'auto', bottom: 'auto', width: `${Math.round(width)}px` };
+}
+watch(inspectedField, (v) => { if (v) nextTick(updatePopupPosition); });
+window.addEventListener('resize', updatePopupPosition);
+onBeforeUnmount(() => window.removeEventListener('resize', updatePopupPosition));
 
 const provenanceInfo = computed(() => {
   if (!inspectProvenance.value || !inspectedField.value) return null;
-  return getProvenanceInfo(inspectedField.value, driverRaw.value as unknown as Record<string, number | null>);
+  // `driverRaw` is metadata only (brand/model/…) — it never carried a T/S value, so every
+  // "Live:" substitution read `undefined` and printed `?` for every input, always.
+  // bugs/BUG_20260817_provenance_live_substitution_always_shows_question_marks.md
+  // `cellVal` is the same accessor every NumInput on this modal reads through, and it is
+  // reactive to `trigger` — a Proxy lets `getProvenanceInfo` pull any SpecField id it names
+  // without this file hand-listing every input every formula might use.
+  const currentValues = new Proxy({} as Record<string, number | null>, {
+    get: (_target, key) => cellVal(String(key)),
+  });
+  return getProvenanceInfo(inspectedField.value, currentValues);
 });
 
 function getFieldStyle(fieldKey: string) {
@@ -184,7 +218,7 @@ function handleBodyClickOrFocus(e: Event) {
   if (!fld) return;
   const labelText = fld.querySelector('label')?.textContent?.trim();
   if (labelText) {
-    const key = LABEL_TO_KEY_MAP[labelText] || labelText;
+    const key = LABEL_TO_FIELD_KEY[labelText] || labelText;
     inspectedField.value = key;
   }
 }
@@ -459,7 +493,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
 
 <template>
   <div class="overlay on">
-    <div class="modal de-modal">
+    <div class="modal de-modal" ref="modalRootEl">
       <h2>{{ editorTitle }}<button class="x" @click="cancel" title="Close without keeping changes">✕</button></h2>
 
       <div class="de-tabs">
@@ -470,32 +504,32 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
         <!-- ============================= General ============================= -->
         <div v-if="tab === 'General'" class="de-general">
           <div class="de-row2">
-            <div class="de-fld" title="Manufacturer name — WinISD: Manufacturer">
+            <div class="de-fld" data-field-key="manufacturer" title="Manufacturer name — WinISD: Manufacturer">
               <label>Manufacturer</label>
               <input type="text" :value="driverRaw.manufacturer || ''" @input="setText('manufacturer', $event)">
             </div>
-            <div class="de-fld" title="Manufacturer/brand name — WinISD: Brand">
+            <div class="de-fld" data-field-key="brand" title="Manufacturer/brand name — WinISD: Brand">
               <label>Brand</label>
               <input type="text" class="de-brand" :value="driverRaw.brand || ''" @input="setText('brand', $event)"
                      :class="{ 'de-input-mandatory': true, 'de-input-empty': !driverRaw.brand || !driverRaw.brand.trim() }">
             </div>
-            <div class="de-fld" title="Model number/name — WinISD: Model">
+            <div class="de-fld" data-field-key="model" title="Model number/name — WinISD: Model">
               <label>Model</label>
               <input type="text" class="de-model" :value="editorModelValue" @input="setText('model', $event)"
                      :class="{ 'de-input-mandatory': true, 'de-input-empty': !editorModelValue || !editorModelValue.trim() }">
             </div>
           </div>
           <div class="de-row2">
-            <div class="de-fld" title="Attribution — who supplied this driver's data. WinISD: Data provided by">
+            <div class="de-fld" data-field-key="providedBy" title="Attribution — who supplied this driver's data. WinISD: Data provided by">
               <label>Data provided by</label>
               <input type="text" :value="driverRaw.providedBy || ''" @input="setText('providedBy', $event)">
             </div>
-            <div class="de-fld" title="Date added — WinISD: DateAdded">
+            <div class="de-fld" data-field-key="added" title="Date added — WinISD: DateAdded">
               <label>Date added</label>
               <input type="text" :value="driverRaw.added || ''" @input="setText('added', $event)">
             </div>
           </div>
-          <div class="de-fld de-comment" title="Free-text note saved with this driver. WinISD: Comment">
+          <div class="de-fld de-comment" data-field-key="comment" title="Free-text note saved with this driver. WinISD: Comment">
             <label>Comment</label>
             <textarea :value="driverRaw.comment || ''" @input="setText('comment', $event)"></textarea>
           </div>
@@ -506,32 +540,32 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Thiele/Small parameters</div>
             <div class="de-cols">
-              <div class="de-fld" :style="getFieldStyle('Qes')" title="Electrical Q factor — motor damping. WinISD: Qes">
+              <div class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" title="Electrical Q factor — motor damping. WinISD: Qes">
                 <label>Qes</label>
                 <NumInput :class="cellClass('Qes')" :mandatory="qIncomplete" :model-value="cellVal('Qes')" :scale="1" :precision="3" @update:model-value="v => setNum('Qes', v)">
                 </NumInput><span v-if="dqNote('Qes')" class="de-dq" :title="dqNote('Qes')">&#9888;</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Qms')" title="Mechanical Q factor — suspension damping. WinISD: Qms">
+              <div class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" title="Mechanical Q factor — suspension damping. WinISD: Qms">
                 <label>Qms</label>
                 <NumInput :class="cellClass('Qms')" :mandatory="qIncomplete" :model-value="cellVal('Qms')" :scale="1" :precision="3" @update:model-value="v => setNum('Qms', v)">
                 </NumInput><span v-if="dqNote('Qms')" class="de-dq" :title="dqNote('Qms')">&#9888;</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Qts')" title="Total Q factor = Qes·Qms/(Qes+Qms). WinISD: Qts">
+              <div class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" title="Total Q factor = Qes·Qms/(Qes+Qms). WinISD: Qts">
                 <label>Qts</label>
                 <NumInput :class="cellClass('Qts')" :mandatory="qIncomplete" :model-value="cellVal('Qts')" :scale="1" :precision="3" @update:model-value="v => setNum('Qts', v)">
                 </NumInput><span v-if="dqNote('Qts')" class="de-dq" :title="dqNote('Qts')">&#9888;</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Fs')" title="Free-air resonance frequency. WinISD: Fs">
+              <div class="de-fld" data-field-key="Fs" :style="getFieldStyle('Fs')" title="Free-air resonance frequency. WinISD: Fs">
                 <label>Fs</label>
-                <NumInput :class="cellClass('Fs')" :mandatory="true" :model-value="cellVal('Fs')" :scale="1" :precision="2" @update:model-value="v => setNum('Fs', v)">
+                <NumInput :class="cellClass('Fs')" :mandatory="true" :model-value="cellVal('Fs')" field="Fs" group="freq" base="Hz" :precision="2" @update:model-value="v => setNum('Fs', v)">
                 </NumInput><span v-if="dqNote('Fs')" class="de-dq" :title="dqNote('Fs')">&#9888;</span>
-                <span class="u">Hz</span>
+                <UnitToggle field="Fs" group="freq" base="Hz" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Vas')" title="Equivalent compliance volume. WinISD: Vas">
+              <div class="de-fld" data-field-key="Vas" :style="getFieldStyle('Vas')" title="Equivalent compliance volume. WinISD: Vas">
                 <label>Vas</label>
-                <NumInput :class="cellClass('Vas')" :mandatory="true" :model-value="cellVal('Vas')" :scale="1000" :precision="precision('Vas')" @update:model-value="v => setNum('Vas', v)">
+                <NumInput :class="cellClass('Vas')" :mandatory="true" :model-value="cellVal('Vas')" field="Vas" group="volume" base="L" :precision="precision('Vas')" @update:model-value="v => setNum('Vas', v)">
                 </NumInput><span v-if="dqNote('Vas')" class="de-dq" :title="dqNote('Vas')">&#9888;</span>
-                <span class="u">L</span>
+                <UnitToggle field="Vas" group="volume" base="L" unit-class="u" />
               </div>
             </div>
           </div>
@@ -539,62 +573,62 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Electro-Mechanical parameters</div>
             <div class="de-cols">
-              <div class="de-fld" :style="getFieldStyle('Mms')" title="Derived: Mms = 1 / ((2π·Fs)²·Cms) — total moving mass.">
+              <div class="de-fld" data-field-key="Mms" :style="getFieldStyle('Mms')" title="Derived: Mms = 1 / ((2π·Fs)²·Cms) — total moving mass.">
                 <label>Mms</label>
-                <NumInput :class="cellClass('Mms')" :model-value="cellVal('Mms')" :scale="1000" :precision="2" @update:model-value="v => setNum('Mms', v)">
+                <NumInput :class="cellClass('Mms')" :model-value="cellVal('Mms')" field="Mms" group="mass" base="g" :precision="2" @update:model-value="v => setNum('Mms', v)">
                 </NumInput><span v-if="dqNote('Mms')" class="de-dq" :title="dqNote('Mms')">&#9888;</span>
-                <span class="u">g</span>
+                <UnitToggle field="Mms" group="mass" base="g" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Cms')" title="Derived: Cms = Vas / (ρc²·Sd²) — suspension compliance.">
+              <div class="de-fld" data-field-key="Cms" :style="getFieldStyle('Cms')" title="Derived: Cms = Vas / (ρc²·Sd²) — suspension compliance.">
                 <label>Cms</label>
-                <NumInput :class="cellClass('Cms')" :model-value="cellVal('Cms')" :scale="1000" :precision="4" @update:model-value="v => setNum('Cms', v)">
+                <NumInput :class="cellClass('Cms')" :model-value="cellVal('Cms')" field="Cms" group="compliance" base="mmPerN" :precision="4" @update:model-value="v => setNum('Cms', v)">
                 </NumInput><span v-if="dqNote('Cms')" class="de-dq" :title="dqNote('Cms')">&#9888;</span>
-                <span class="u">mm/N</span>
+                <UnitToggle field="Cms" group="compliance" base="mmPerN" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Rms')" title="Derived: Rms = 2π·Fs·Mms/Qms — suspension mechanical resistance.">
+              <div class="de-fld" data-field-key="Rms" :style="getFieldStyle('Rms')" title="Derived: Rms = 2π·Fs·Mms/Qms — suspension mechanical resistance.">
                 <label>Rms</label>
                 <NumInput :class="cellClass('Rms')" :model-value="cellVal('Rms')" :scale="1" :precision="4" @update:model-value="v => setNum('Rms', v)">
                 </NumInput><span v-if="dqNote('Rms')" class="de-dq" :title="dqNote('Rms')">&#9888;</span>
                 <span class="u">Ns/m</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Re')" title="DC voice coil resistance. WinISD: Re">
+              <div class="de-fld" data-field-key="Re" :style="getFieldStyle('Re')" title="DC voice coil resistance. WinISD: Re">
                 <label>Re</label>
                 <NumInput :class="cellClass('Re')" :mandatory="true" :model-value="cellVal('Re')" :scale="1" :precision="3" @update:model-value="v => setNum('Re', v)">
                 </NumInput><span v-if="dqNote('Re')" class="de-dq" :title="dqNote('Re')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Bl')" title="Derived: Bl = √(2π·Fs·Mms·Re / Qes) — motor force factor.">
+              <div class="de-fld" data-field-key="Bl" :style="getFieldStyle('Bl')" title="Derived: Bl = √(2π·Fs·Mms·Re / Qes) — motor force factor.">
                 <label>BL</label>
                 <NumInput :class="cellClass('Bl')" :model-value="cellVal('Bl')" :scale="1" :precision="3" @update:model-value="v => setNum('Bl', v)">
                 </NumInput><span v-if="dqNote('Bl')" class="de-dq" :title="dqNote('Bl')">&#9888;</span>
                 <span class="u">Tm</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Dd')" title="Diaphragm/dome diameter — WinISD: Dd">
+              <div class="de-fld" data-field-key="Dd" :style="getFieldStyle('Dd')" title="Diaphragm/dome diameter — WinISD: Dd">
                 <label>Dd</label>
-                <NumInput :class="cellClass('Dd')" :model-value="cellVal('Dd')" :scale="1000" :precision="precision('Dd')" @update:model-value="v => setNum('Dd', v)"></NumInput><span v-if="dqNote('Dd')" class="de-dq" :title="dqNote('Dd')">&#9888;</span>
-                <span class="u">mm</span>
+                <NumInput :class="cellClass('Dd')" :model-value="cellVal('Dd')" field="Dd" group="length" base="mm" :precision="precision('Dd')" @update:model-value="v => setNum('Dd', v)"></NumInput><span v-if="dqNote('Dd')" class="de-dq" :title="dqNote('Dd')">&#9888;</span>
+                <UnitToggle field="Dd" group="length" base="mm" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Le')" title="Voice coil inductance. 0 = resistive-only model. WinISD: Le">
+              <div class="de-fld" data-field-key="Le" :style="getFieldStyle('Le')" title="Voice coil inductance. 0 = resistive-only model. WinISD: Le">
                 <label>Le</label>
-                <NumInput :class="cellClass('Le')" :model-value="cellVal('Le')" :scale="1000" :precision="3" @update:model-value="v => setNum('Le', v)">
+                <NumInput :class="cellClass('Le')" :model-value="cellVal('Le')" field="Le" group="inductance" base="mH" :precision="3" @update:model-value="v => setNum('Le', v)">
                 </NumInput><span v-if="dqNote('Le')" class="de-dq" :title="dqNote('Le')">&#9888;</span>
-                <span class="u">mH</span>
+                <UnitToggle field="Le" group="inductance" base="mH" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Sd')" title="Effective piston area. WinISD: Sd">
+              <div class="de-fld" data-field-key="Sd" :style="getFieldStyle('Sd')" title="Effective piston area. WinISD: Sd">
                 <label>Sd</label>
-                <NumInput :class="cellClass('Sd')" :mandatory="true" :model-value="cellVal('Sd')" :scale="1e4" :precision="precision('Sd')" @update:model-value="v => setNum('Sd', v)">
+                <NumInput :class="cellClass('Sd')" :mandatory="true" :model-value="cellVal('Sd')" field="Sd" group="area" base="cm2" :precision="precision('Sd')" @update:model-value="v => setNum('Sd', v)">
                 </NumInput><span v-if="dqNote('Sd')" class="de-dq" :title="dqNote('Sd')">&#9888;</span>
-                <span class="u">cm²</span>
+                <UnitToggle field="Sd" group="area" base="cm2" unit-class="u" />
               </div>
               <!-- fLe is STORED IN HERTZ (docs/design/WDR_SCHEMA.md) and shown in kHz, so the
                    scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
                    Hz as kHz and put the field out by 1e6. -->
-              <div class="de-fld" :style="getFieldStyle('fLe')" title="Voice-coil inductance corner frequency — WinISD: fLe">
+              <div class="de-fld" data-field-key="fLe" :style="getFieldStyle('fLe')" title="Voice-coil inductance corner frequency — WinISD: fLe">
                 <label>fLe</label>
-                <NumInput :class="cellClass('fLe')" :model-value="cellVal('fLe')" :scale="1e-3" :precision="precision('fLe')" @update:model-value="v => setNum('fLe', v)"></NumInput><span v-if="dqNote('fLe')" class="de-dq" :title="dqNote('fLe')">&#9888;</span>
-                <span class="u">kHz</span>
+                <NumInput :class="cellClass('fLe')" :model-value="cellVal('fLe')" field="fLe" group="freq" base="kHz" :precision="precision('fLe')" @update:model-value="v => setNum('fLe', v)"></NumInput><span v-if="dqNote('fLe')" class="de-dq" :title="dqNote('fLe')">&#9888;</span>
+                <UnitToggle field="fLe" group="freq" base="kHz" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Le2')" title="Le semi-inductance coefficient — WinISD: KLe">
+              <div class="de-fld" data-field-key="Le2" :style="getFieldStyle('Le2')" title="Le semi-inductance coefficient — WinISD: KLe">
                 <label>KLe</label>
                 <NumInput :class="cellClass('Le2')" :model-value="cellVal('Le2')" @update:model-value="v => setNum('Le2', v)"></NumInput><span v-if="dqNote('Le2')" class="de-dq" :title="dqNote('Le2')">&#9888;</span>
                 <span class="u">H·√Hz</span>
@@ -605,34 +639,34 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Large-Signal parameters</div>
             <div class="de-cols">
-              <div class="de-fld" :style="getFieldStyle('Xmax')" title="Peak one-way linear excursion. WinISD: Xmax">
+              <div class="de-fld" data-field-key="Xmax" :style="getFieldStyle('Xmax')" title="Peak one-way linear excursion. WinISD: Xmax">
                 <label>Xmax</label>
-                <NumInput :class="cellClass('Xmax')" :model-value="cellVal('Xmax')" :scale="1000" :precision="3" @update:model-value="v => setNum('Xmax', v)">
+                <NumInput :class="cellClass('Xmax')" :model-value="cellVal('Xmax')" field="Xmax" group="length" base="mm" :precision="3" @update:model-value="v => setNum('Xmax', v)">
                 </NumInput><span v-if="dqNote('Xmax')" class="de-dq" :title="dqNote('Xmax')">&#9888;</span>
-                <span class="u">mm peak</span>
+                <UnitToggle field="Xmax" group="length" base="mm" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Hc')" title="Voice coil former height above/below the gap — WinISD: Hc.">
+              <div class="de-fld" data-field-key="Hc" :style="getFieldStyle('Hc')" title="Voice coil former height above/below the gap — WinISD: Hc.">
                 <label>Hc</label>
-                <NumInput :class="cellClass('Hc')" :model-value="cellVal('Hc')" :scale="1000" @update:model-value="v => setNum('Hc', v)"></NumInput><span v-if="dqNote('Hc')" class="de-dq" :title="dqNote('Hc')">&#9888;</span>
-                <span class="u">mm</span>
+                <NumInput :class="cellClass('Hc')" :model-value="cellVal('Hc')" field="Hc" group="length" base="mm" @update:model-value="v => setNum('Hc', v)"></NumInput><span v-if="dqNote('Hc')" class="de-dq" :title="dqNote('Hc')">&#9888;</span>
+                <UnitToggle field="Hc" group="length" base="mm" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Hg')" title="Magnetic gap height — WinISD: Hg.">
+              <div class="de-fld" data-field-key="Hg" :style="getFieldStyle('Hg')" title="Magnetic gap height — WinISD: Hg.">
                 <label>Hg</label>
-                <NumInput :class="cellClass('Hg')" :model-value="cellVal('Hg')" :scale="1000" @update:model-value="v => setNum('Hg', v)"></NumInput><span v-if="dqNote('Hg')" class="de-dq" :title="dqNote('Hg')">&#9888;</span>
-                <span class="u">mm</span>
+                <NumInput :class="cellClass('Hg')" :model-value="cellVal('Hg')" field="Hg" group="length" base="mm" @update:model-value="v => setNum('Hg', v)"></NumInput><span v-if="dqNote('Hg')" class="de-dq" :title="dqNote('Hg')">&#9888;</span>
+                <UnitToggle field="Hg" group="length" base="mm" unit-class="u" />
               </div>
 
-              <div class="de-fld" :style="getFieldStyle('Vd')" title="Volume displaced by the cone at Xmax — WinISD: Vd.">
+              <div class="de-fld" data-field-key="Vd" :style="getFieldStyle('Vd')" title="Volume displaced by the cone at Xmax — WinISD: Vd.">
                 <label>Vd</label>
-                <NumInput :class="cellClass('Vd')" :model-value="cellVal('Vd')" :scale="1e6" @update:model-value="v => setNum('Vd', v)"></NumInput><span v-if="dqNote('Vd')" class="de-dq" :title="dqNote('Vd')">&#9888;</span>
-                <span class="u">cm³</span>
+                <NumInput :class="cellClass('Vd')" :model-value="cellVal('Vd')" field="Vd" group="volume" base="cm3" @update:model-value="v => setNum('Vd', v)"></NumInput><span v-if="dqNote('Vd')" class="de-dq" :title="dqNote('Vd')">&#9888;</span>
+                <UnitToggle field="Vd" group="volume" base="cm3" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Xlim')" title="Mechanical excursion limit before physical damage — WinISD: Xlim.">
+              <div class="de-fld" data-field-key="Xlim" :style="getFieldStyle('Xlim')" title="Mechanical excursion limit before physical damage — WinISD: Xlim.">
                 <label>Xlim</label>
-                <NumInput :class="cellClass('Xlim')" :model-value="cellVal('Xlim')" :scale="1000" @update:model-value="v => setNum('Xlim', v)"></NumInput><span v-if="dqNote('Xlim')" class="de-dq" :title="dqNote('Xlim')">&#9888;</span>
-                <span class="u">mm</span>
+                <NumInput :class="cellClass('Xlim')" :model-value="cellVal('Xlim')" field="Xlim" group="length" base="mm" @update:model-value="v => setNum('Xlim', v)"></NumInput><span v-if="dqNote('Xlim')" class="de-dq" :title="dqNote('Xlim')">&#9888;</span>
+                <UnitToggle field="Xlim" group="length" base="mm" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Pe')" title="Rated continuous power handling. WinISD: Pe">
+              <div class="de-fld" data-field-key="Pe" :style="getFieldStyle('Pe')" title="Rated continuous power handling. WinISD: Pe">
                 <label>Pe</label>
                 <NumInput :class="cellClass('Pe')" :model-value="cellVal('Pe')" :scale="1" :precision="2" @update:model-value="v => setNum('Pe', v)">
                 </NumInput><span v-if="dqNote('Pe')" class="de-dq" :title="dqNote('Pe')">&#9888;</span>
@@ -644,34 +678,34 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Miscellaneous parameters</div>
             <div class="de-cols">
-              <div class="de-fld" :style="getFieldStyle('no')" title="Reference efficiency — WinISD: no">
+              <div class="de-fld" data-field-key="no" :style="getFieldStyle('no')" title="Reference efficiency — WinISD: no">
                 <label>no</label>
                 <NumInput :class="cellClass('no')" :model-value="cellVal('no')" :scale="100" @update:model-value="v => setNum('no', v)"></NumInput><span v-if="dqNote('no')" class="de-dq" :title="dqNote('no')">&#9888;</span>
                 <span class="u">%</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Z')" title="Nominal impedance — label only, not used in simulation. WinISD: Znom. OpenISD field: Z">
+              <div class="de-fld" data-field-key="Z" :style="getFieldStyle('Z')" title="Nominal impedance — label only, not used in simulation. WinISD: Znom. OpenISD field: Z">
                 <label>Znom</label>
                 <NumInput :class="cellClass('Z')" :model-value="cellVal('Z')" :scale="1" :precision="3" @update:model-value="v => setNum('Z', v)">
                 </NumInput><span v-if="dqNote('Z')" class="de-dq" :title="dqNote('Z')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('USPL')" title="Unity SPL — WinISD: USPL">
+              <div class="de-fld" data-field-key="USPL" :style="getFieldStyle('USPL')" title="Unity SPL — WinISD: USPL">
                 <label>USPL</label>
                 <NumInput :class="cellClass('USPL')" :model-value="cellVal('USPL')" @update:model-value="v => setNum('USPL', v)"></NumInput><span v-if="dqNote('USPL')" class="de-dq" :title="dqNote('USPL')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('SPL')" title="Rated sensitivity — WinISD: SPL">
+              <div class="de-fld" data-field-key="SPL" :style="getFieldStyle('SPL')" title="Rated sensitivity — WinISD: SPL">
                 <label>SPL</label>
                 <NumInput :class="cellClass('SPL')" :model-value="cellVal('SPL')" @update:model-value="v => setNum('SPL', v)"></NumInput><span v-if="dqNote('SPL')" class="de-dq" :title="dqNote('SPL')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('numVC')" title="Number of voice coils — WinISD: numVC">
+              <div class="de-fld" data-field-key="numVC" :style="getFieldStyle('numVC')" title="Number of voice coils — WinISD: numVC">
                 <label>Voicecoils</label>
                 <NumInput :class="cellClass('numVC')" :model-value="cellVal('numVC')" @update:model-value="v => setNum('numVC', v)"></NumInput><span v-if="dqNote('numVC')" class="de-dq" :title="dqNote('numVC')">&#9888;</span>
               </div>
-              <div class="de-fld" title="Dual voice coil wiring — WinISD: Connection">
+              <div class="de-fld de-conn" data-field-key="VCCon" title="Dual voice coil wiring — WinISD: Connection">
                 <label>Connection</label>
-                <select :value="driverRaw.VCCon ?? 1" @change="e => setNum('VCCon', parseInt((e.target as HTMLSelectElement).value))"><option :value="1">Parallel</option><option :value="2">Series</option></select>
+                <select class="de-conn-sel" :value="driverRaw.VCCon ?? 1" @change="e => setNum('VCCon', parseInt((e.target as HTMLSelectElement).value))"><option :value="1">Parallel</option><option :value="2">Series</option></select>
               </div>
             </div>
           </div>
@@ -682,17 +716,17 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Thermal parameters</div>
             <div class="de-cols">
-              <div class="de-fld" :style="getFieldStyle('tc')" title="Voice coil resistance temperature coefficient — WinISD: AlfaVC">
+              <div class="de-fld" data-field-key="tc" :style="getFieldStyle('tc')" title="Voice coil resistance temperature coefficient — WinISD: AlfaVC">
                 <label>AlfaVC</label>
-                <NumInput :class="cellClass('tc')" :model-value="cellVal('tc')" :scale="1000" @update:model-value="v => setNum('tc', v)"></NumInput><span v-if="dqNote('tc')" class="de-dq" :title="dqNote('tc')">&#9888;</span>
-                <span class="u">1000/K</span>
+                <NumInput :class="cellClass('tc')" :model-value="cellVal('tc')" field="AlfaVC" group="tempCoeff" base="perMilliK" @update:model-value="v => setNum('tc', v)"></NumInput><span v-if="dqNote('tc')" class="de-dq" :title="dqNote('tc')">&#9888;</span>
+                <UnitToggle field="AlfaVC" group="tempCoeff" base="perMilliK" unit-class="u" />
               </div>
-              <div class="de-fld" :style="getFieldStyle('Rth')" title="Thermal resistance voice coil→ambient — WinISD: R(t)">
+              <div class="de-fld" data-field-key="Rth" :style="getFieldStyle('Rth')" title="Thermal resistance voice coil→ambient — WinISD: R(t)">
                 <label>R(t)</label>
                 <NumInput :class="cellClass('Rth')" :model-value="cellVal('Rth')" @update:model-value="v => setNum('Rth', v)"></NumInput><span v-if="dqNote('Rth')" class="de-dq" :title="dqNote('Rth')">&#9888;</span>
                 <span class="u">K/W</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Cth')" title="Thermal capacitance — WinISD: C(t)">
+              <div class="de-fld" data-field-key="Cth" :style="getFieldStyle('Cth')" title="Thermal capacitance — WinISD: C(t)">
                 <label>C(t)</label>
                 <NumInput :class="cellClass('Cth')" :model-value="cellVal('Cth')" @update:model-value="v => setNum('Cth', v)"></NumInput><span v-if="dqNote('Cth')" class="de-dq" :title="dqNote('Cth')">&#9888;</span>
                 <span class="u">J/K</span>
@@ -703,43 +737,43 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Figure of merits</div>
             <div class="de-cols">
-              <div class="de-fld" :style="getFieldStyle('SPLmaxLF')" title="Max SPL, low-frequency-limited — WinISD: SPLmaxLF">
+              <div class="de-fld" data-field-key="SPLmaxLF" :style="getFieldStyle('SPLmaxLF')" title="Max SPL, low-frequency-limited — WinISD: SPLmaxLF">
                 <label>SPLmaxLF</label>
                 <NumInput :class="cellClass('SPLmaxLF')" :model-value="cellVal('SPLmaxLF')" @update:model-value="v => setNum('SPLmaxLF', v)"></NumInput><span v-if="dqNote('SPLmaxLF')" class="de-dq" :title="dqNote('SPLmaxLF')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('SPLmax')" title="Max SPL — WinISD: SPLmax">
+              <div class="de-fld" data-field-key="SPLmax" :style="getFieldStyle('SPLmax')" title="Max SPL — WinISD: SPLmax">
                 <label>SPLmax</label>
                 <NumInput :class="cellClass('SPLmax')" :model-value="cellVal('SPLmax')" @update:model-value="v => setNum('SPLmax', v)"></NumInput><span v-if="dqNote('SPLmax')" class="de-dq" :title="dqNote('SPLmax')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Rme')" title="Motional electrical resistance at resonance — WinISD: Rme">
+              <div class="de-fld" data-field-key="Rme" :style="getFieldStyle('Rme')" title="Motional electrical resistance at resonance — WinISD: Rme">
                 <label>Rme</label>
                 <NumInput :class="cellClass('Rme')" :model-value="cellVal('Rme')" @update:model-value="v => setNum('Rme', v)"></NumInput><span v-if="dqNote('Rme')" class="de-dq" :title="dqNote('Rme')">&#9888;</span>
                 <span class="u">Ns/m</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('gamma')" title="Motor figure of merit — WinISD: gamma">
+              <div class="de-fld" data-field-key="gamma" :style="getFieldStyle('gamma')" title="Motor figure of merit — WinISD: gamma">
                 <label>gamma</label>
                 <NumInput :class="cellClass('gamma')" :model-value="cellVal('gamma')" @update:model-value="v => setNum('gamma', v)"></NumInput><span v-if="dqNote('gamma')" class="de-dq" :title="dqNote('gamma')">&#9888;</span>
                 <span class="u">N/(A·kg)</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Mpow')" title="Power-limited motor figure of merit — WinISD: Mpow">
+              <div class="de-fld" data-field-key="Mpow" :style="getFieldStyle('Mpow')" title="Power-limited motor figure of merit — WinISD: Mpow">
                 <label>Mpow</label>
                 <NumInput :class="cellClass('Mpow')" :model-value="cellVal('Mpow')" @update:model-value="v => setNum('Mpow', v)"></NumInput><span v-if="dqNote('Mpow')" class="de-dq" :title="dqNote('Mpow')">&#9888;</span>
                 <span class="u">N/√W</span>
               </div>
-              <div class="de-fld" :style="getFieldStyle('Mcost')" title="Cost-normalised motor figure of merit — WinISD: Mcost">
+              <div class="de-fld" data-field-key="Mcost" :style="getFieldStyle('Mcost')" title="Cost-normalised motor figure of merit — WinISD: Mcost">
                 <label>Mcost</label>
                 <NumInput :class="cellClass('Mcost')" :model-value="cellVal('Mcost')" @update:model-value="v => setNum('Mcost', v)"></NumInput><span v-if="dqNote('Mcost')" class="de-dq" :title="dqNote('Mcost')">&#9888;</span>
                 <span class="u">kg/s</span>
               </div>
-              <div class="de-fld st-c" title="Derived: EBP = Fs / Qes — Efficiency Bandwidth Product. Read-only, not entered directly. WinISD: EBP">
+              <div class="de-fld st-c" data-field-key="EBP" :style="getFieldStyle('EBP')" title="Derived: EBP = Fs / Qes — Efficiency Bandwidth Product. Read-only, not entered directly. WinISD: EBP">
                 <label>EBP</label>
-                <input type="text" readonly :value="ebpVal() != null ? ebpVal()!.toFixed(1) : ''"><span class="u">Hz</span>
+                <input type="text" readonly :value="ebpVal() != null ? formatInUnit(ebpVal(), 'EBP', 'freq', 'Hz', 1) : ''"><UnitToggle field="EBP" group="freq" base="Hz" unit-class="u" />
               </div>
               <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
                    percentage. `:scale="100"` is the ONE place that conversion happens. -->
-              <div class="de-fld" :style="getFieldStyle('loss')" title="Static cone sag under gravity, as a percentage of Xmax — WinISD: Gloss">
+              <div class="de-fld" data-field-key="loss" :style="getFieldStyle('loss')" title="Static cone sag under gravity, as a percentage of Xmax — WinISD: Gloss">
                 <label>Gloss</label>
                 <NumInput :class="cellClass('loss')" :model-value="cellVal('loss')" :scale="100" :precision="precision('Gloss')" @update:model-value="v => setNum('loss', v)"></NumInput><span v-if="dqNote('loss')" class="de-dq" :title="dqNote('loss')">&#9888;</span>
                 <span class="u">%</span>
@@ -750,13 +784,13 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Environment parameters</div>
             <div class="de-cols">
-              <div class="de-fld st-c" title="Speed of sound — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
+              <div class="de-fld st-c" data-field-key="c" title="Speed of sound — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
                 <label>c</label>
-                <input type="text" readonly :value="C.toFixed(2)"><span class="u">m/s</span>
+                <input type="text" readonly :value="formatInUnit(C, 'c', 'velocity', 'mps', 2)"><UnitToggle field="c" group="velocity" base="mps" unit-class="u" />
               </div>
-              <div class="de-fld st-c" title="Air density — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
+              <div class="de-fld st-c" data-field-key="roo" title="Air density — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
                 <label>roo</label>
-                <input type="text" readonly :value="RHO.toFixed(5)"><span class="u">kg/m³</span>
+                <input type="text" readonly :value="formatInUnit(RHO, 'roo', 'density', 'kgPerM3', 5)"><UnitToggle field="roo" group="density" base="kgPerM3" unit-class="u" />
               </div>
             </div>
           </div>
@@ -770,14 +804,14 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                  the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
                  WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
                  Thick read a metre value under an inches label. -->
-            <div class="de-fld" title="Frame flange thickness — WinISD: Thick"><label>Thick</label><NumInput :class="cellClass('thick')" :model-value="cellVal('thick')" :scale="1000" :precision="precision('dimThick')" @update:model-value="v => setNum('thick', v)"></NumInput><span v-if="dqNote('thick')" class="de-dq" :title="dqNote('thick')">&#9888;</span><span class="u">mm</span></div>
-            <div class="de-fld" title="Overall driver depth — WinISD: Depth"><label>Depth</label><NumInput :class="cellClass('depth')" :model-value="cellVal('depth')" :scale="1000" :precision="precision('dimDepth')" @update:model-value="v => setNum('depth', v)"></NumInput><span v-if="dqNote('depth')" class="de-dq" :title="dqNote('depth')">&#9888;</span><span class="u">mm</span></div>
-            <div class="de-fld" title="Magnet stack depth — WinISD: Magnet depth"><label>Magnet Depth</label><NumInput :class="cellClass('magnetDepth')" :model-value="cellVal('magnetDepth')" :scale="1000" :precision="precision('dimMagnetDepth')" @update:model-value="v => setNum('magnetDepth', v)"></NumInput><span v-if="dqNote('magnetDepth')" class="de-dq" :title="dqNote('magnetDepth')">&#9888;</span><span class="u">mm</span></div>
-            <div class="de-fld" title="Magnet diameter — WinISD: Magnet"><label>Magnet</label><NumInput :class="cellClass('magnet')" :model-value="cellVal('magnet')" :scale="1000" :precision="precision('dimMagnet')" @update:model-value="v => setNum('magnet', v)"></NumInput><span v-if="dqNote('magnet')" class="de-dq" :title="dqNote('magnet')">&#9888;</span><span class="u">mm</span></div>
-            <div class="de-fld" title="Basket/frame diameter — WinISD: Basket"><label>Basket</label><NumInput :class="cellClass('basket')" :model-value="cellVal('basket')" :scale="1000" :precision="precision('dimBasket')" @update:model-value="v => setNum('basket', v)"></NumInput><span v-if="dqNote('basket')" class="de-dq" :title="dqNote('basket')">&#9888;</span><span class="u">mm</span></div>
-            <div class="de-fld" title="Overall outer frame diameter — WinISD: Outer"><label>Outer</label><NumInput :class="cellClass('outer')" :model-value="cellVal('outer')" :scale="1000" :precision="precision('dimOuter')" @update:model-value="v => setNum('outer', v)"></NumInput><span v-if="dqNote('outer')" class="de-dq" :title="dqNote('outer')">&#9888;</span><span class="u">mm</span></div>
-            <div class="de-fld" title="Voice coil diameter — WinISD: VCd"><label>VCd</label><NumInput :class="cellClass('VCd')" :model-value="cellVal('VCd')" :scale="1000" :precision="precision('dimVCd')" @update:model-value="v => setNum('VCd', v)"></NumInput><span v-if="dqNote('VCd')" class="de-dq" :title="dqNote('VCd')">&#9888;</span><span class="u">mm</span></div>
-            <div class="de-fld" title="Basket displacement volume — WinISD: Dvol"><label>Dvol</label><NumInput :class="cellClass('basketDisplacement')" :model-value="cellVal('basketDisplacement')" :scale="1e6" :precision="precision('dimDvol')" @update:model-value="v => setNum('basketDisplacement', v)"></NumInput><span v-if="dqNote('basketDisplacement')" class="de-dq" :title="dqNote('basketDisplacement')">&#9888;</span><span class="u">cm³</span></div>
+            <div class="de-fld" data-field-key="thick" title="Frame flange thickness — WinISD: Thick"><label>Basket Plate Thickness (Thick)</label><NumInput :class="cellClass('thick')" :model-value="cellVal('thick')" field="dimThick" group="length" base="mm" :precision="precision('dimThick')" @update:model-value="v => setNum('thick', v)"></NumInput><span v-if="dqNote('thick')" class="de-dq" :title="dqNote('thick')">&#9888;</span><UnitToggle field="dimThick" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="depth" title="Overall driver depth — WinISD: Depth"><label>Driver Depth (Depth)</label><NumInput :class="cellClass('depth')" :model-value="cellVal('depth')" field="dimDepth" group="length" base="mm" :precision="precision('dimDepth')" @update:model-value="v => setNum('depth', v)"></NumInput><span v-if="dqNote('depth')" class="de-dq" :title="dqNote('depth')">&#9888;</span><UnitToggle field="dimDepth" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="magnetDepth" title="Magnet stack depth — WinISD: MagDepth"><label>Magnet Depth (MagDepth)</label><NumInput :class="cellClass('magnetDepth')" :model-value="cellVal('magnetDepth')" field="dimMagnetDepth" group="length" base="mm" :precision="precision('dimMagnetDepth')" @update:model-value="v => setNum('magnetDepth', v)"></NumInput><span v-if="dqNote('magnetDepth')" class="de-dq" :title="dqNote('magnetDepth')">&#9888;</span><UnitToggle field="dimMagnetDepth" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="magnet" title="Magnet diameter — WinISD: Magnet"><label>Magnet Diameter (Magnet)</label><NumInput :class="cellClass('magnet')" :model-value="cellVal('magnet')" field="dimMagnet" group="length" base="mm" :precision="precision('dimMagnet')" @update:model-value="v => setNum('magnet', v)"></NumInput><span v-if="dqNote('magnet')" class="de-dq" :title="dqNote('magnet')">&#9888;</span><UnitToggle field="dimMagnet" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="basket" title="Basket/frame diameter — WinISD: Basket"><label>Basket Diameter (Basket)</label><NumInput :class="cellClass('basket')" :model-value="cellVal('basket')" field="dimBasket" group="length" base="mm" :precision="precision('dimBasket')" @update:model-value="v => setNum('basket', v)"></NumInput><span v-if="dqNote('basket')" class="de-dq" :title="dqNote('basket')">&#9888;</span><UnitToggle field="dimBasket" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="outer" title="Overall outer frame diameter — WinISD: Outer"><label>Outer Diameter (Outer)</label><NumInput :class="cellClass('outer')" :model-value="cellVal('outer')" field="dimOuter" group="length" base="mm" :precision="precision('dimOuter')" @update:model-value="v => setNum('outer', v)"></NumInput><span v-if="dqNote('outer')" class="de-dq" :title="dqNote('outer')">&#9888;</span><UnitToggle field="dimOuter" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="VCd" title="Voice coil diameter — WinISD: VCd"><label>Voice Coil Dia (VCd)</label><NumInput :class="cellClass('VCd')" :model-value="cellVal('VCd')" field="dimVCd" group="length" base="mm" :precision="precision('dimVCd')" @update:model-value="v => setNum('VCd', v)"></NumInput><span v-if="dqNote('VCd')" class="de-dq" :title="dqNote('VCd')">&#9888;</span><UnitToggle field="dimVCd" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="basketDisplacement" title="Basket displacement volume — WinISD: Dvol"><label>Driver Displacement Volume (Dvol)</label><NumInput :class="cellClass('basketDisplacement')" :model-value="cellVal('basketDisplacement')" field="dimDvol" group="volume" base="cm3" :precision="precision('dimDvol')" @update:model-value="v => setNum('basketDisplacement', v)"></NumInput><span v-if="dqNote('basketDisplacement')" class="de-dq" :title="dqNote('basketDisplacement')">&#9888;</span><UnitToggle field="dimDvol" group="volume" base="cm3" unit-class="u" /></div>
           </div>
 
           <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
@@ -803,12 +837,12 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
            does not stop the driver being filed. Per-field red borders stay. -->
       <div v-if="identityReasons.length" class="de-incomplete"
            :title="identityReasons.join('\n')">
-        <span class="de-incomplete-hd">⚠ Saves fine, but can’t be filed under a name until:</span>
+        <span class="de-incomplete-hd">⚠ Saves fine, but can’t be filed under a name because:</span>
         <span class="de-incomplete-list">{{ identityReasons.join(' · ') }}</span>
       </div>
       <div v-if="chartBlockingReasons.length" class="de-incomplete"
            :title="chartBlockingReasons.join('\n')">
-        <span class="de-incomplete-hd">⚠ Saves fine, but the charts stay blank until:</span>
+        <span class="de-incomplete-hd">⚠ Saves fine, but the charts stay blank because:</span>
         <span class="de-incomplete-list">{{ chartBlockingReasons.join(' · ') }}</span>
       </div>
 
@@ -899,6 +933,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
       :open="inspectProvenance && inspectedField !== null"
       :target-field="inspectedField"
       :provenance-info="provenanceInfo"
+      :style="popupStyle"
       @close="inspectedField = null"
     />
   </div>
@@ -916,8 +951,8 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
 }
 /* ONE fixed box for all four tabs — switching tab must never resize the dialog under the
    user's cursor. Sized to the largest tab so nothing ever scrolls: Advanced parameters is
-   the widest (748px of content) and Parameters the tallest (550px including chrome). Both
-   measured, not guessed. The vh caps are only a small-screen backstop. */
+   the widest (748px of content) and Parameters the tallest. Both measured, not guessed. The
+   vh caps are only a small-screen backstop. */
 /* position: relative anchors the format picker's scrim to the editor, not the viewport. */
 .de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 770px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
 .de-tabs { display: flex; gap: 2px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
@@ -959,7 +994,12 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
 .de-fld { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; width: fit-content; justify-self: start; }
 .de-fld label { font-size: 11px; color: var(--mut); white-space: nowrap; }
 .de-fld input, .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); width: 90px; }
-.de-fld .u, .u { font-size: 11px; color: var(--mut); white-space: nowrap !important; display: inline-block; }
+.de-fld .u, .u {
+  font-size: 11px; color: var(--mut); white-space: nowrap !important; display: inline-block;
+  /* FIXED width. A unit sized by its own text ("mm" 19px, "cm³" 21px) reflowed the whole
+     panel every time it was cycled. Wide enough for the longest unit the editor shows. */
+  width: 34px; text-align: left; box-sizing: border-box;
+}
 .de-fld.cl-dim input, .de-fld.cl-dim select { background: var(--panel2); color: var(--mut); }
 .de-row2 { display: flex; gap: 16px; }
 .de-row2 .de-fld { flex: 1; width: auto; }
@@ -993,19 +1033,25 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
   min-height: 0 !important;
   gap: 6px !important;
 }
-.de-comment {
+/* The Comment box is this tab's FILLER — it takes the leftover width and the leftover height,
+   being the only field on the tab with no natural size. The selector carries `.de-general` and
+   both classes deliberately: `.de-fld` is one class too and declares `width: fit-content`
+   further down the sheet, which won on cascade order and collapsed the box to 50px.
+   bugs/BUG_20260817_driver_editor_general_comment_box_renders_50px_wide.md */
+.de-general .de-fld.de-comment {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
   width: 100% !important;
   max-width: 100% !important;
+  min-height: 0 !important;
   margin-top: 4px !important;
 }
-.de-comment textarea {
+.de-general .de-fld.de-comment textarea {
   width: 100% !important;
   height: 100% !important;
   flex: 1 1 auto !important;
-  min-height: 220px !important;
+  min-height: 120px !important;
   padding: 8px 10px !important;
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -1031,13 +1077,44 @@ input.st-e, .de-fld.st-e input { color: var(--good); }
 input.st-c, .de-fld.st-c input { color: var(--acc); }
 input.st-n, .de-fld.st-n input { color: var(--mut); }
 
-.de-group { margin-bottom: 2px; }
-.de-hdr { background: var(--panel2); text-align: center; font-size: 11px; padding: 2px 0; border-radius: 3px; margin-bottom: 4px; color: var(--mut); }
-.de-cols { display: flex; gap: 10px 14px; flex-wrap: wrap; }
+/* ONE grid for the WHOLE tab, not one per section: WinISD's editor puts Qes, Mms, Xmax and
+   `no` on the same column edge even though they live under four different headings, and a grid
+   per section can only align the rows inside it. The section wrappers dissolve into it with
+   `display: contents`, so every field on the tab sits in the same four columns and each heading
+   spans the lot. The columns need no negotiation — every field component is the same width. */
+.de-params {
+  display: grid !important;
+  /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
+     subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
+     spanned the whole row and the tab rendered as one field per line instead of four. */
+  grid-template-columns: repeat(4, minmax(0, max-content) minmax(0, max-content) auto 34px) !important;
+  gap: 3px 12px !important;
+  align-items: center !important;
+  align-content: start !important;
+  justify-content: start !important;
+}
+.de-params > .de-group,
+.de-params .de-cols { display: contents !important; }
+.de-params .de-hdr { grid-column: 1 / -1 !important; margin: 2px 0 0 !important; }
+.de-hdr { background: var(--panel2); text-align: center; font-size: 11px; padding: 1px 0; border-radius: 3px; margin-bottom: 2px; color: var(--mut); }
 .de-col { display: flex; flex-direction: column; }
 
 .de-dims { display: flex; gap: 24px; align-items: flex-start; }
-.de-dimlist { width: 200px; flex-shrink: 0; }
+.de-dimlist {
+  /* Sized by its widest row, not a fixed 200px — the labels alone are wider than that, which
+     is what forced them over their inputs. `max-content` on the label track keeps every row
+     on one column edge. FOUR tracks: label, input, DQ marker, unit — the marker needs a track
+     of its own or the row it appears on wraps and stops matching the rows around it. */
+  display: grid;
+  grid-template-columns: max-content max-content auto 34px;
+  align-items: center;
+  /* A tight row pitch: eight fields read as ONE list, as they do in WinISD's own Dimensions
+     page. Row spacing lives HERE and nowhere else — a per-field margin on top of it stacked
+     up to a 24px band between 24px inputs. */
+  gap: 4px 6px;
+  width: max-content;
+  flex-shrink: 0;
+}
 .de-note { font-size: 11px; color: var(--mut); font-style: italic; margin-top: 4px; }
 .de-diagram { flex: 1; display: flex; justify-content: center; padding-top: 0; }
 .de-diagram :deep(.dd-dim-svg) { color: var(--fg); }
@@ -1047,25 +1124,47 @@ input.st-n, .de-fld.st-n input { color: var(--mut); }
 .de-btns { display: flex; gap: 6px; }
 .de-btns .pri { background: var(--acc); color: #fff; border-color: var(--acc); }
 
-/* Row-flex (labels-left) by default for Parameters, Advanced, and Dimensions tabs */
+/* ONE FIELD = ONE COMPONENT, four parts: [label] [value] [unit] [alerts]. A unitless field
+   keeps its unit track empty rather than collapsing it, and a field with no DQ mark keeps its
+   alert track empty — every component in a column is therefore the SAME width, and same width
+   is what makes the columns line up with no per-field negotiation. `subgrid` is how the width
+   is shared: it takes the four tracks from the parent `.de-cols`/`.de-params` grid rather than
+   sizing itself, so "same width" is enforced structurally, not by a guessed pixel number that
+   fits one tab's labels and clips another's. The provenance highlight is painted on this box,
+   so it wraps all four parts as one component. */
 .de-fld {
-  display: flex !important;
-  flex-direction: row !important;
+  display: grid !important;
+  grid-template-columns: subgrid !important;
+  grid-column: span 4 !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 4px !important;
   margin-bottom: 0 !important;
   width: fit-content !important;
   max-width: 100% !important;
-  padding: 2px 4px !important;
+  padding: 1px 4px !important;
   border-radius: 4px !important;
   box-sizing: border-box !important;
   justify-self: start !important;
 }
+/* Connection sits directly UNDER Voicecoils, not beside it: an explicit column-1 start pushes
+   it past Voicecoils' own column-1 slot (already taken) into column 1 of the NEXT row. */
+.de-conn { grid-column: 1 / span 4 !important; }
+/* "Parallel"/"Series" plus the native select arrow do not fit the shared 75px input track —
+   it read as "Paralle" with the last letter clipped. Widened just for this one field. */
+.de-conn-sel { width: 96px !important; }
 .de-fld label {
-  display: inline-block !important;
-  width: 62px !important;
-  text-align: right !important;
-  flex: 0 0 62px !important;
+  display: block !important;
+  /* Sized by the shared subgrid track, never by a fixed pixel width: the track is as wide as
+     the column's longest label — Parameters/Advanced labels are short and the track shrinks to
+     match; Dimensions labels are 3-4x longer ("Driver Displacement Volume (Dvol)") and the same
+     mechanism gives them their own wider track. A hardcoded px width fits one and clips or
+     wastes space on the other. Every field in a column is still the SAME width, because they
+     all subgrid onto the same tracks — that sameness is what makes the columns line up and the
+     provenance highlight (painted on `.de-fld`, wrapping all four parts) read as one component
+     per field. bugs/BUG_20260817_driver_editor_labels_overflow_a_fixed_62px_column.md */
+  width: auto !important;
+  text-align: left !important;
+  flex: 0 0 auto !important;
 }
 .de-fld input,
 .de-fld select {
@@ -1093,17 +1192,37 @@ input.st-n, .de-fld.st-n input { color: var(--mut); }
   width: 100% !important;
 }
 
-/* Spreading out the dimension fields slightly */
-.de-dims .de-fld {
-  margin-bottom: 10px !important;
-}
-
-/* 4-column grid with fixed column widths to align separate grid sections */
+/* FOUR field columns, each of four parts: label, input, DQ marker, unit. The parts are real
+   grid tracks so `.de-fld` can subgrid onto them — that is what puts every field in a column on
+   ONE label edge, ONE input edge and ONE unit edge, the way WinISD's own editor reads
+   (docs/winisd/edit_driver_pg2_parameters.png). A field laid out inside a single wide track
+   instead starts its input wherever its own label happens to end, which put "no" and
+   "Voicecoils" 40px apart in the same column:
+   bugs/BUG_20260817_driver_editor_columns_do_not_share_a_column_edge.md
+   minmax(0, …) on the two content tracks: a bare max-content track refuses to shrink, and four
+   columns of them overran the modal and forced a sideways scroll. */
 .de-cols {
   display: grid !important;
-  grid-template-columns: 165px 165px 165px 1fr !important;
-  gap: 10px 14px !important;
+  grid-template-columns: repeat(4, minmax(0, max-content) minmax(0, max-content) auto 34px) !important;
+  gap: 6px 12px !important;
+  align-items: center !important;
 }
+/* Placement is EXPLICIT, never by document order: a field without a DQ marker would otherwise
+   slide its unit into the marker's track and break the column it shares. */
+.de-cols .de-fld > label,
+.de-dimlist .de-fld > label { grid-column: 1 !important; }
+.de-cols .de-fld > input, .de-cols .de-fld > select,
+.de-dimlist .de-fld > input, .de-dimlist .de-fld > select { grid-column: 2 !important; }
+.de-cols .de-fld > .de-dq,
+.de-dimlist .de-fld > .de-dq {
+  grid-column: 3 !important;
+  /* The DQ track sits right against the input with no padding of its own, so the triangle
+     glyph rendered flush on the input's edge. A small left margin only, so it does not also
+     widen the label→input gap the alert-marker column has nothing to do with. */
+  margin-left: 4px !important;
+}
+.de-cols .de-fld > .u,
+.de-dimlist .de-fld > .u { grid-column: 4 !important; }
 
 /* Format picker — scoped to the editor, not the page, so it reads as part of the editor. */
 .fmt-scrim {

@@ -154,11 +154,11 @@ models are alive.
 
 The class, its `export * from './driver.js'` in `index.ts`, and the ten test files that test the
 class itself: `driver-class`, `driver-json`, `driver-derive`, `driver-hardening`,
-`driver-roundtrip`, `driver-projection`, `driver-fresh-export`, `roundtrip`, `wdr-carried-keys`,
+`driver-roundtrip`, `driver-projection`, `driver-fresh-export`, `roundtrip`,
 `wdr-import-fidelity`.
 
 **Before deleting, read each for coverage that is NOT about the class.** `wdr-import-fidelity` and
-`wdr-carried-keys` assert real `.wdr` behaviour that `WinISDDriver` now owns; that coverage moves
+`wdr-import-fidelity` asserts real `.wdr` behaviour that `WinISDDriver` now owns; that coverage moves
 rather than dies.
 
 **Done when:** `driver.ts` is gone and the suite is green without it.

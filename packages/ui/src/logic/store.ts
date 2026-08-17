@@ -2,6 +2,7 @@
 import { reactive, computed, ref, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { Driver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
+import { driverRecordProblems } from '@openisd/model';
 import type { Cell, MetaCell, SpecField, MetaField, OpenISDDriver } from '@openisd/model';
 
 /** The openisd.yml record shape — what `OpenISDDriver.toRecord()` hands back. A TYPE only:
@@ -443,8 +444,42 @@ export function newProject(): void {
  * graph cursor while appearing to succeed. `project-load-gate.test.ts` fails the suite if a
  * key serialize() emits is not restored here.
  */
+/**
+ * Why the last restore refused something, empty when it took everything.
+ *
+ * A refusal that only reaches the console is a silent data loss the user discovers later, so
+ * it is surfaced: the app is running, and it says what it would not load and why.
+ */
+export const restoreProblems = ref<string[]>([]);
+
 export function applyState(o: SerializedState): void {
-  if (o.driver) managedProject.loadDriverRecord(o.driver as DriverRecord);
+  // ONE POISON PILL MUST NOT TAKE THE APP DOWN (ARCHITECTURE.md §"No single datum may take
+  // the app down"). `o.driver` is untrusted: it comes from localStorage, a share link or a
+  // file, and `as DriverRecord` is an assertion about data we did not write. An unchecked
+  // record with no `specs` threw on its first field read and killed every driver computed in
+  // the app — a blank screen from one absent key.
+  //
+  // So the record is CHECKED here, and a bad one is refused while the rest of the state — box,
+  // vents, targets, charts, UI — restores as normal. Least impact: the user loses the driver
+  // selection, not the session. `restoreProblems` carries the reason to the UI, which is what
+  // makes it a reported fault rather than a silent drop.
+  restoreProblems.value = [];
+  if (o.driver) {
+    const problems = driverRecordProblems(o.driver);
+    if (problems.length) {
+      restoreProblems.value = problems.map(p => `saved driver was not loaded: ${p}`);
+      // QUARANTINE BEFORE THE AUTOSAVE EATS IT. Refusing the record leaves the app with no
+      // driver, and the very next autosave writes that driverless state over `openisd.state` —
+      // so within a tick the user's record is GONE and the least-damaging repair has nothing
+      // left to repair. Setting it aside keeps a one-field fix possible, and keeps the evidence
+      // for diagnosing the cause.
+      try { localStorage.setItem('openisd.quarantine.driver', JSON.stringify(o.driver)); }
+      catch { /* storage full or disabled — the refusal still stands */ }
+      console.error(`[restore] refused the saved driver record — ${problems.join('; ')}`);
+    } else {
+      managedProject.loadDriverRecord(o.driver as DriverRecord);
+    }
+  }
   if (o.box) state.box = o.box;
   if (o.lossMode) state.lossMode = o.lossMode;
   // Verbatim, for the same reason as resetProjectToGround: a persisted design carries both

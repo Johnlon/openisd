@@ -41,11 +41,7 @@ async function setField(page: Page, label: string, value: number, scope?: Locato
 test('sealed box WinISD golden: Fs=40 Vas=7.65L Qes=0.45 Qms=2.94 Re=6.6 Rg=0.1 Vb=6L Ql=10 Qa=100 → Fsc=63.1762Hz Qtc=0.5995', async ({ page }) => {
   await page.goto('/');
 
-  // 'original' — the WinISD-parity skin with its own Box-tab Fsc/Qtc readout.
-  await page.locator('.skin-picker select').selectOption('original');
-
-  // Driver: enter Fs/Qes/Qms/Vas/Re via Original's own "Tune" panel (OgTune.vue — NOT the
-  // shared DriverWhatIfPanel used by Modern; it reimplements the same fields itself).
+  // Driver: enter Fs/Qes/Qms/Vas/Re via the "Tune" panel (OgTune.vue).
   await page.locator('li', { hasText: 'Driver' }).click();
   await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
   const whatIf = page.locator('.tune-panel');

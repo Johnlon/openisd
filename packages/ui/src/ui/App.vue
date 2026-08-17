@@ -4,6 +4,7 @@ import OriginalShell from './shells/original/OriginalShell.vue';
 import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
+import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import { state, driverRecord, applyState, markProjectSaved } from '../logic/store.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from '../logic/persist.js';
 import { useApp } from '../logic/app.js';
@@ -52,4 +53,6 @@ onUnmounted(() => {
        reviewed before it reaches the design. -->
   <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
   <Flash />
+  <!-- Raises itself on the first uncaught error, rejection or console.error. -->
+  <DiagnosticsModal />
 </template>

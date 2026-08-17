@@ -8,7 +8,6 @@ import { chromium } from 'playwright';
   await page.goto('http://localhost:4000/');
   await page.waitForTimeout(2000);
   
-  await page.locator('.skin-picker select').selectOption('original');
   await page.waitForTimeout(1000);
   
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();

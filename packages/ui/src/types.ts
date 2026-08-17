@@ -323,6 +323,10 @@ export interface ProjectMeta {
 
 /** The persisted / URL-encoded snapshot shape (persist.ts). */
 export interface SerializedState {
+  /** The MODEL schema version this payload was serialised from. Readers upgrade from it
+   *  (logic/schemaUpgrade.ts). Optional on the way IN because pre-policy payloads carry none —
+   *  those are V0 — and always written on the way OUT. */
+  schema?: number;
   v: number;
   // The driver record — provenance and every stated field, so they survive reload, share and
   // save. OPTIONAL: a design with no driver chosen yet is a real state, and writing a fake one

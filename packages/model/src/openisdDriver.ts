@@ -7,7 +7,7 @@
  *
  * `.wdr`/`.wpr` do not appear here. WinISD is a CONSUMER of our files and a reference
  * oracle, not our model — everything about that format (ParState, the 49 slots, the
- * carried-key set, VCCon's 1/2 encoding) lives behind the serialisers in `@openisd/winisd`,
+ * 48-key order, VCCon's 1/2 encoding) lives behind the serialisers in `@openisd/winisd`,
  * which depends on this package and is invisible from here.
  *
  * ── Provenance to display state (ledger QO36 ruling B4) ──
@@ -464,6 +464,30 @@ export function readDisplayName(record: OpenISDDriverJson): string {
 /** A record with nothing stated — what the editor authors a new driver from. Here rather than
  *  `OpenISDDriver.empty().toRecord()` at the call site, so a caller needing a blank record does
  *  not have to construct a live driver it will immediately throw away. */
+/**
+ * Structural problems that make a record unusable, empty when it is sound.
+ *
+ * The record types are TypeScript, which is a compile-time promise about code WE wrote. A blob
+ * arriving from localStorage, a share link or a file is data someone else wrote — possibly an
+ * older build of this app, possibly a hand-edited string — and `x as OpenISDDriverJson` is an
+ * assertion, not a check. Reading an unchecked blob into the model let one absent key take the
+ * whole app down: `#specs()` dereferences `record.specs`, so a record without it threw on the
+ * first read and every computed touching the driver died with it.
+ *
+ * This is the boundary test, and it looks only for what would THROW — not for completeness. A
+ * record with no `Fs` is a poor driver and a perfectly loadable one; a record with no `specs`
+ * cannot be loaded at all.
+ */
+export function driverRecordProblems(record: unknown): string[] {
+  const problems: string[] = [];
+  if (record == null || typeof record !== 'object') return ['not an object'];
+  const r = record as Record<string, unknown>;
+  if (r.specs == null || typeof r.specs !== 'object') {
+    problems.push('`specs` is missing — every field read dereferences it');
+  }
+  return problems;
+}
+
 export function emptyDriverRecord(): OpenISDDriverJson {
   return OpenISDDriver.empty().toRecord();
 }
