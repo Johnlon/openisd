@@ -36,10 +36,18 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
       { formulaText: 'Qms = (2π × Fs × Mms) / Rms', inputs: ['Fs', 'Mms', 'Rms'] }
     ]
   },
+  // Matches driver.ts's actual setVal('Fs', ...) sites, in their file/evaluation order
+  // (lines 167, 181, 188, 229) -- NOT WinISD's own priority order (11 > 14 > 2 > 4 > 12, see
+  // docs/design/WDR_SCHEMA.md relation 11). That mismatch is a KNOWN BUG, already ruled on
+  // (QO50: engine must match WinISD's five routes), not an open design question -- see
+  // bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md.
+  // This list must be updated in the SAME change that fixes driver.ts, not before.
   Fs: {
     paths: [
       { formulaText: 'Fs = 1 / (2π × √(Cms × Mms))', inputs: ['Cms', 'Mms'] },
-      { formulaText: 'Fs = 1 / (2π × √(Vas × Mms / (ρ × c² × Sd²)))', inputs: ['Vas', 'Sd', 'Mms'] }
+      { formulaText: 'Fs = (Rms × Qms) / (2π × Mms)', inputs: ['Rms', 'Qms', 'Mms'] },
+      { formulaText: 'Fs = (Qes × BL²) / (2π × Mms × Re)', inputs: ['Qes', 'BL', 'Mms', 'Re'] },
+      { formulaText: 'Fs = ∛(no × Qes / (CONST_NO × Vas))', inputs: ['no', 'Qes', 'Vas'] }
     ]
   },
   Vas: {
@@ -146,9 +154,44 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
   },
   SPLmax: {
     paths: [
-      { formulaText: 'SPLmax = SPL + 10 × log₁₀(Pe)', inputs: ['SPL', 'Pe'] }
+      { formulaText: 'SPLmax = SPL + 10 × log₁₀(Pe) − 3', inputs: ['SPL', 'Pe'] }
+    ]
+  },
+  // The three the solver fills in its full pass (engine driver.ts block 13). Gloss is the
+  // FRACTION the .wdr carries; the editor's ×100 is display only.
+  loss: {
+    paths: [
+      { formulaText: 'Gloss = g / ((2π × Fs)² × Xmax)', inputs: ['Fs', 'Xmax'] }
+    ]
+  },
+  SPLmaxLF: {
+    paths: [
+      { formulaText: 'SPLmaxLF = 20 × log₁₀(ρ × (2π × 20)² × Vd / (2π√2) / p_ref)', inputs: ['Vd'] }
+    ]
+  },
+  Mcost: {
+    paths: [
+      { formulaText: 'Mcost = Rme × (1 + Xmax / min(Hc, Hg))', inputs: ['Rme', 'Xmax', 'Hc', 'Hg'] }
     ]
   }
+};
+
+/**
+ * Rendered `<label>` text → the field key everything else in this module speaks. The editor
+ * identifies a clicked field by reading its label, so a label edit that misses this table
+ * silently kills provenance inspection for that field. Full names are WinISD's own
+ * (research/winisd/help/thielesmall.html).
+ */
+export const LABEL_TO_FIELD_KEY: Record<string, string> = {
+  Qes: 'Qes', Qms: 'Qms', Qts: 'Qts', Fs: 'Fs', Vas: 'Vas', Mms: 'Mms', Cms: 'Cms', Rms: 'Rms', Re: 'Re', BL: 'Bl',
+  Dd: 'Dd', Le: 'Le', Sd: 'Sd', fLe: 'fLe', KLe: 'Le2', Xmax: 'Xmax', Hc: 'Hc', Hg: 'Hg', Vd: 'Vd', Xlim: 'Xlim',
+  Pe: 'Pe', no: 'no', Znom: 'Z', USPL: 'USPL', SPL: 'SPL', Voicecoils: 'numVC',
+  AlfaVC: 'tc', 'R(t)': 'Rth', 'C(t)': 'Cth', SPLmaxLF: 'SPLmaxLF', SPLmax: 'SPLmax', Rme: 'Rme',
+  gamma: 'gamma', Mpow: 'Mpow', Mcost: 'Mcost', EBP: 'EBP', Gloss: 'loss',
+  'Basket Plate Thickness (Thick)': 'thick', 'Driver Depth (Depth)': 'depth',
+  'Magnet Depth (MagDepth)': 'magnetDepth', 'Magnet Diameter (Magnet)': 'magnet',
+  'Basket Diameter (Basket)': 'basket', 'Outer Diameter (Outer)': 'outer',
+  'Voice Coil Dia (VCd)': 'VCd', 'Driver Displacement Volume (Dvol)': 'basketDisplacement',
 };
 
 export function getProvenanceInfo(targetField: string, currentValues?: Record<string, number | null>): ProvenanceInfo | null {

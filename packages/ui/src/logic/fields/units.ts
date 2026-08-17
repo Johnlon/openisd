@@ -24,7 +24,11 @@ export type UnitGroup =
   | 'temp'
   | 'pressure'
   | 'tempDiff'
-  | 'tempCoeff';
+  | 'tempCoeff'
+  | 'inductance'
+  | 'compliance'
+  | 'velocity'
+  | 'density';
 
 /** Never show more than this many decimals in any unit — the resolution-preserving derivation
  *  (displayPrecision) would otherwise pile up meaningless trailing zeros for a much-coarser unit
@@ -48,6 +52,7 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = {
     { token: 'L', label: 'L', factor: 1000 },
     { token: 'cuft', label: 'cu ft', factor: 35.3147 },
     { token: 'cuin', label: 'cu in', factor: 61023.7 },
+    { token: 'cm3', label: 'cm³', factor: 1e6 },
   ],
   length: [
     { token: 'cm', label: 'cm', factor: 100 },
@@ -94,6 +99,29 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = {
     { token: 'perMilliK', label: '1000/K', factor: 1000 },
     { token: 'pctPerK', label: '%/K', factor: 100 },
     { token: 'perK', label: '1/K', factor: 1 },
+  ],
+  // SI unit = henry.
+  inductance: [
+    { token: 'mH', label: 'mH', factor: 1000 },
+    { token: 'H', label: 'H', factor: 1 },
+    { token: 'uH', label: 'µH', factor: 1e6 },
+  ],
+  // Suspension compliance. SI unit = m/N; WinISD prints µm/N, this app's default is mm/N.
+  compliance: [
+    { token: 'mmPerN', label: 'mm/N', factor: 1000 },
+    { token: 'umPerN', label: 'µm/N', factor: 1e6 },
+    { token: 'mPerN', label: 'm/N', factor: 1 },
+  ],
+  // SI unit = m/s.
+  velocity: [
+    { token: 'mps', label: 'm/s', factor: 1 },
+    { token: 'ftps', label: 'ft/s', factor: 3.280839895 },
+  ],
+  // SI unit = kg/m³.
+  density: [
+    { token: 'kgPerM3', label: 'kg/m³', factor: 1 },
+    { token: 'gPerCm3', label: 'g/cm³', factor: 1e-3 },
+    { token: 'lbPerFt3', label: 'lb/cu ft', factor: 0.06242796 },
   ],
 };
 

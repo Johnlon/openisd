@@ -1,15 +1,13 @@
 <script setup lang="ts">
 /**
- * Original-skin Tune panel — the mock's docked `.tune-panel`. This is a WHAT-IF editor:
+ * Tune panel — the docked `.tune-panel`. This is a WHAT-IF editor:
  * changes preview LIVE on the charts (via the shared driver ADT's enterDriverField, the
  * same path the graph's reactive chain reads). A what-if is exploration-only and can never
  * become real driver data (docs/design/STATE_MODEL.md rule 4) — there is no commit/"Keep" control.
  * Cancel is the only way the panel closes, and it always reverts to how the driver was
  * when Tune opened.
  *
- * A per-skin presentation under shells/original/ — NOT an edit of the shared
- * DriverWhatIfPanel, so Modern is untouched (Invariant 1) and the what-if logic stays
- * single-sourced in the store/ADT.
+ * Presentation only: the what-if logic is single-sourced in the store/ADT.
  */
 import { computed, reactive, watch, ref, onMounted, onUnmounted } from 'vue';
 import { state, driver, driverCell, driverConsistencyIssues, enterDriverField, clearDriverField,
@@ -24,7 +22,7 @@ import NumInput from '../../components/NumInput.vue';
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe' | 'BL' | 'Mms';
 // scale = display/SI factor (raw driver values are SI: Vas m³, Sd m², Le H, Xmax m, Mms kg).
 // Decimal places come from the field registry (fieldDp) — the single source of truth — so
-// these units' dp match every other skin. The units here MUST match the registry's unit.
+// The units here MUST match the registry's unit.
 const MAIN: { key: NumKey; label: string; scale: number; unit: string }[] = [
   { key: 'Fs',  label: 'Fs',  scale: 1,    unit: 'Hz' },
   { key: 'Qts', label: 'Qts', scale: 1,    unit: '' },
@@ -49,15 +47,19 @@ const DERIVED: { key: NumKey; label: string; scale: number; unit: string }[] = [
 ];
 
 // While a field is focused, echo the RAW typed string (so mid-typing values like
-// "4" → "42" aren't reformatted out from under the caret); reformat on blur. Same
-// buffer pattern the shared DriverWhatIfPanel uses.
+// "4" → "42" aren't reformatted out from under the caret); reformat on blur.
 const rawVals = reactive<Record<string, string>>({});
 // The CELL, not the entered bag: raw() holds entered fields only, so a Q the app solved from
 // the other two read as blank here. cell() carries the solved value with its C mark, which is
 // what makes the third Q fill itself in as the other two change.
+// The field registry keys the motor force factor by the engine's `Bl`; the record's own
+// field is `BL`. Cross between the two here, at the lookup — the same join the model states
+// in packages/model/src/openisdDriver.ts TO_ENGINE.
+const regId = (key: NumKey): string => (key === 'BL' ? 'Bl' : key);
+
 function disp(key: NumKey, scale: number): string {
   const v = driverCell(key).value;
-  return typeof v === 'number' && isFinite(v) ? (v * scale).toFixed(fieldDp(key)) : '';
+  return typeof v === 'number' && isFinite(v) ? (v * scale).toFixed(fieldDp(regId(key))) : '';
 }
 function fieldVal(key: NumKey, scale: number): string {
   return key in rawVals ? rawVals[key] : disp(key, scale);
@@ -76,7 +78,7 @@ function onBlur(key: NumKey) { delete rawVals[key]; }
 // Registry bounds are SI-space; these inputs display SI × scale, so scale the bounds the
 // same way for the v-limits clamp (e.g. Vas max 100 m³ → 100000 L).
 function scaledLimits(key: NumKey, scale: number): { min?: number; max?: number } {
-  const lim = limits(key);
+  const lim = limits(regId(key));
   return { min: lim.min === undefined ? undefined : lim.min * scale,
            max: lim.max === undefined ? undefined : lim.max * scale };
 }
@@ -268,7 +270,6 @@ function reset()  { managedProject.resetOverlayToGround(); }
 </template>
 
 <style scoped>
-/* Ported from mock/style.css .tune-panel (docked, non-modal what-if editor). */
 /* Width follows its content: two columns of label(34) + gap(6) + input(78) + gap(4) + unit(~26). */
 .tune-panel {
   position: fixed; right: 24px; bottom: 24px; z-index: 60;

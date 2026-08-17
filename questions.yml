@@ -1,5 +1,5 @@
 prefix: QO
-next: 48
+next: 52
 questions:
 - id: QO1
   title: UI TODO List
@@ -147,14 +147,15 @@ questions:
     text: |-
       2026-08-11: human said "parked" on QO3.8 (remaining chart types) — stays open, no work started, no
       further research triggered right now. Revisit when the human raises it again.
-  answer:
-    at: '2026-08-13'
+  - at: '2026-08-16'
     text: |-
-      this is nt a decision or wuqqstion - just move it to backlog as todo
-
-      Moved: QO3.8 is now a todo under BACKLOG.md § "Charts & graph types", carrying the
-      ../winisd_research pointer and the do-not-build-while-unknowns-remain constraint.
-      QO3.1-.7 were already ticked/implemented.
+      2026-08-16 human: "close !o3"
+      Prior 2026-08-13 answer preserved here before re-stamping: "this is nt a decision or
+      wuqqstion - just move it to backlog as todo". QO3.8 remains unticked and lives in
+      BACKLOG.md § "Charts & graph types".
+  answer:
+    at: '2026-08-16'
+    text: close !o3
 - id: QO4
   title: TODO — Engine hardening
   status: done
@@ -396,27 +397,30 @@ questions:
         sample6    single-line diff from baseline, T only; every other byte identical
         sample7    c/roo deleted and recomputed at T=303.15; they come back as the 20 C values
   answer:
-    at: '2026-08-05'
+    at: '2026-08-16'
     text: |-
-      UI should have an option something like "Ignore X as per WinISD", default OFF.
+      2026-08-16 human: "a" (ack)
 
-      So openisd USES humidity and pressure by default — the physically correct behaviour — and the
-      toggle opts INTO WinISD's behaviour of ignoring them. openisd is correct out of the box; the
-      compatibility mode is the deliberate choice, not the other way round.
+      The 2026-08-05 ruling stands and is BUILT — verified against the tree on 2026-08-16, not
+      quoted from this ledger:
 
-      Consequences to build to:
-        - Params gains humidityPct and pressurePa, wired through to c and roo, and thence to K in
-          SPL = K + 10log10(eta0) where K = 10log10(roo*c/(2*pi*p_ref^2)).
-        - Every golden fixture moves unless the toggle is ON, so the fixtures must state which mode
-          produced them.
-        - QO8's parity suite runs with the toggle ON, so a green parity run still means what it says.
-          Comparing WinISD against openisd-with-real-air-properties would report a permanent ~0.07 dB
-          divergence at 30 C and teach everyone to ignore the suite.
-        - The option is per project, since T/p/phi are per project in the .wpr [Box] section.
-        - Note the unit mismatch: WinISD stores phi as a FRACTION (0.3), openisd's humidityPct is a
-          percentage. One conversion boundary, at the .wpr reader/writer.
-        - Wording: "X" should name what is ignored, e.g. "Ignore humidity and air pressure (as WinISD
-          does)". The tooltip should say what it costs: SPL differs by about 0.07 dB at 30 C.
+        UI should have an option something like "Ignore X as per WinISD", default OFF.
+        openisd USES humidity and pressure by default; the toggle opts INTO WinISD's behaviour.
+
+      Where each consequence landed:
+        - engine/src/air.ts  moistAirDensity / moistAirSoundVelocity (CIPM-2007), winisdAir(tempK),
+          and airFor(env) as the single dispatch on ignoreHumidityAndPressure.
+        - Consumed, not merely declared: sweep.ts:129, circuit.ts:65 and :96 all call airFor(P).
+        - engine/src/types.ts:202, model/src/openisdProject.ts:136, ui/src/types.ts:235 carry
+          ignoreHumidityAndPressure; store.ts:58 and managedProject.ts:71 default it FALSE.
+        - UI: AdvancedOptions.vue:41 is the checkbox, labelled "Ignore humidity and air pressure
+          (as WinISD does)"; fieldRegistry.ts:305-307 carries the tooltip incl. the ~0.07 dB cost.
+        - .wpr fraction boundary: winisd/src/classic/wpr.ts:174 writes phi = humidityPct / 100.
+        - Fixtures state their mode: engine/test/golden.test.ts:42-45 asserts T/RH/p AND
+          ignoreHumidityAndPressure === false on every golden; gen-golden.ts:28 sets it.
+        - Parity suite runs WinISD-faithful: winisd-parity.test.ts:334 passes
+          ignoreHumidityAndPressure: true.
+        - Covered by engine/test/air.test.ts.
 - id: QO8
   title: Side-by-side WinISD vs openisd validation suite, with mechanically regenerable golden fixtures
   status: decided
@@ -1867,7 +1871,7 @@ questions:
       Recorded in openisd/WDR_SCHEMA.md 4.1.
 - id: QO24
   title: Implement GAPS.md section F — 11 ranked WinISD-parity fixes, analysis complete, none applied
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -2238,6 +2242,22 @@ questions:
       a concurrent agent's half-landed work, fails on its own missing fixture
       fixtures/winisd-parity/goldens/sealed-small.wpr and has string|number typing errors. It did not
       exist during my earlier clean full typecheck/test run. Left untouched.
+  - at: '2026-08-16'
+    text: |-
+      2026-08-16 -- RE-VERIFIED the two items the 2026-08-13 notes flagged as "needs your ruling".
+      Checked against the tree, not quoted from the notes:
+
+      1. Gloss import provenance -- STILL LIVE, but 1 file, not 245. Raised as its own question,
+         QO49, with the measurement and the three options. The mechanism moved: the WinISDDriver
+         rewrite already reads E/C/N from ParState and drops C cells, so only ParState-less files
+         are exposed. `packages/winisd/src/driver.ts` (the WDR_META the note cites) no longer exists.
+
+      2. BoxPanel.vue Fh mislabel -- DEAD, no ruling needed. The file was DELETED in 546f563
+         ("Vent solver: return the real answer for an unreachable target, and correct the PR
+         labels"), along with the rest of the Modern/Classic components. `packages/ui/src/ui/shells/`
+         now contains `original` only, and no surviving file computes Fs*sqrt(1+Vas/Vb) under an
+         "Fh" label. The deferral reason in the note -- "BoxPanel is Modern/Classic only and the
+         Priority Skin rule bans touching those" -- describes files that are gone.
   items:
   - text: 'A3: bind the PR pane''s Fh to prTuning() — trivial, export path already computes it, screen
       and file currently disagree (72.25 vs 194.87 Hz)'
@@ -2271,6 +2291,24 @@ questions:
   - text: 'A4: make the driver editor a group solver rather than a fixed substitution chain — LARGE, and
       BLOCKED on the probe campaign. Do not copy WinISD''s numbers'
     done: false
+  answer:
+    at: '2026-08-17'
+    text: |-
+      Moved all 11 items to BACKLOG.md under "WinISD input/feature parity", with GAPS.md section F
+      as the evidence pointer (not re-derived, per this question's own instruction). Item A5 annotated
+      with a correction: Mcost/Gloss/SPLmaxLF are confirmed correctly implemented (driver.ts:323,332,344,
+      2026-08-17) -- the real gap found the same day is DVol/Depth/MagDepth/Magnet, zero implementation,
+      see bugs/BUG_20260817_dvol_relation_is_fully_documented_but_zero_percent_implemented.md.
+
+      The "BoxPanel.vue Fh mislabel, blocked by Priority Skin rule" item from the prior recommendation
+      was NOT raised as a new question -- verified stale, not re-raised blind. `BoxPanel.vue` does not
+      exist in the tree (only a stale coverage-report HTML under coverage/). Commit 546f563
+      (2026-08-13, "Vent solver... and correct the PR labels") already separated Fpr from Fh in what
+      is now packages/ui/src/ui/shells/original/OriginalShell.vue -- `Fpr` label at line 1318,
+      `prTuning` wired at line 137. That overlaps GAPS.md A3, already in the BACKLOG item above; no
+      new question needed.
+
+      Gloss import provenance (the other embedded decision) was already raised separately as QO49.
 - id: QO25
   title: |-
     Understand @openisd/engine and @openisd/winisd: what each package is for, and why both export
@@ -2586,7 +2624,7 @@ questions:
       engine/winisd/ui src for any surviving 112.1/112.2 literal or re-derived 4pi^2/c^3.
 - id: QO28
   title: 'numVC ParState slot: openisd emits C where WinISD pins E'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -2625,9 +2663,12 @@ questions:
       DROP its `Xmax` divergence expectation because openisd matches WinISD on the group solve
       (both back-calc routes present: packages/engine/src/driver.ts:135 `abs(Hc-Hg)/2` and :144
       `Vd/Sd`). Not duplicated here.
+  answer:
+    at: '2026-08-17'
+    text: Voicecoils << there was a winisd bug here - obvuously dont replicate that
 - id: QO29
   title: GAPS.md A7 claims WinISD end correction is 0.6; the human states it is 0.732
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -2659,9 +2700,12 @@ questions:
          (packages/ui/src/ui/shells/original/OriginalShell.vue:1208-1209). A project whose vent
          carries any other coefficient cannot round-trip. Allowing free numeric entry alongside the
          three named presets, keeping 0.732 as the default, remains open work.
+  answer:
+    at: '2026-08-17'
+    text: winisd defaults to 0.732
 - id: QO30
   title: 'ParState slot 0 (Znom): WinISD writes C where openisd writes N - probe before changing the rule'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -2859,9 +2903,13 @@ questions:
 
       No files edited this session (nothing needed editing). LSP available (ToolSearch not invoked
       since no symbol navigation was required — read-only grep/Read sufficed for verification).
+  answer:
+    at: '2026-08-17'
+    text: 'A — ack. Also: fix the stale B1 blocker in the migration readiness doc directly, don''t leave
+      it for whoever owns that plan.'
 - id: QO31
   title: 'Audit of the three never-loaded rule files: engine-source, engine-tests, ui-tests'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -3143,6 +3191,9 @@ questions:
       Comment references to the npm scripts still hold: `npm run test:visual -- --update-snapshots`
       still collects 4 tests through the new D1 zero-test guard (verified with --list).
       Re-ran after the change: lint 0 errors (25 pre-existing warnings).
+  answer:
+    at: '2026-08-17'
+    text: A
 - id: QO32
   title: 'Advanced-panel formula recovery: Gloss, SPLmaxLF, Mcost'
   status: open
@@ -4985,6 +5036,18 @@ questions:
             openisd.yml round trip (as opposed to a .wdr round trip).
 
       If (b), the name must be accurate and the members must be checked, not guessed.
+  - at: '2026-08-16'
+    text: |-
+      ANSWERED WITH EVIDENCE — see
+      bugs/BUG_20260816_cycling_a_wdr_through_openisd_destroys_15_entered_winisd_fields.md
+
+      The verdict is neither "keep" nor "eliminate": CARRIED was never implemented. The comment on
+      WDR_TO_SPEC calls the unmapped keys "WDR-only carried pass-through"; the code is
+      `if (!mapped) continue;` — it drops them. Measured: a .wdr -> OpenISD -> .wdr cycle destroys
+      the value of 15 keys, including ones the file marks E.
+
+      So the CONCEPT is justified (without it those 15 fields die), the NAME described something
+      that does not exist, and the open decision is where the state lives — QO48.
 - id: QO46
   title: 'Driver editor layout regressed: comment field long and narrow, row spacing too big'
   status: open
@@ -5038,3 +5101,357 @@ questions:
 
       This is a sweep, not a one-file fix — the pattern is pervasive because the agent had a standing
       motive to write it.
+- id: QO48
+  title: Where do the 15 WinISD-only fields live, so a cycle stops destroying them?
+  status: decided
+  raised: '2026-08-16'
+  body: ''
+  notes:
+  - at: '2026-08-16'
+    text: |-
+      SHARPENED after the human read the cause differently, and correctly.
+
+      What `mapped` tests is NOT "is this a WinISD .wdr field" — every key in the loop is already one,
+      they are keyed by NUMERIC_DEFAULTS and came from the file. WDR_TO_SPEC is SPEC_TO_WDR inverted,
+      so `mapped` answers "does OpenISD's SpecSection have a slot for this, and what is the unit
+      scale". `!mapped` therefore means "our record has nowhere to put this" — and the line reads:
+      when we cannot represent what the user entered, discard it and say nothing.
+
+      So there are TWO things here, and only one of them is this question:
+
+        1. WHERE the 15 fields live — the decision below, still open.
+        2. That an unrepresentable ENTERED value is dropped SILENTLY — wrong regardless of (1), and
+           the banned tolerance pattern: a record is VALID or INVALID, and non-conforming input is a
+           build-blocking failure, never something to `continue` past. No DQ mark, no error, no log:
+           the caller cannot distinguish "the file did not state Gloss" from "the file stated Gloss
+           and we binned it".
+
+      Once (1) is answered and every representable field has a home, the guard covers a genuine
+      impossibility and must FAIL rather than continue.
+
+      Same loop, same class, third `continue`: `if (!isFinite(v)) continue` swallows a malformed
+      number. Measured across both corpora (846 files): no E cell is non-finite, so it has never
+      fired. Latent, not active — but it is the same silent drop.
+
+      NOT a naming problem. `mapped` reads as a routine lookup miss rather than "throw away what the
+      human typed", which is plausibly why the `continue` survived review, but renaming changes no
+      behaviour and destroys the evidence. The fix is the drop.
+  answer:
+    at: '2026-08-16'
+    text: |-
+      "TIS IS IMPPSSOBLE - OpenIsd is a superset of WinIsd"
+
+      "its not a claim - it is my declated ntent for openisd - to be cpompaticla wotk winisd and extra!!"
+
+      "c=343.684120962152 roo=1.20095217714682 These are in the WDR file - ffs CHECK your facts !!!!!"
+
+      "Since the driver editor and WDR support roo/c on the drive then OpenIsd must also. We need to
+      understabd what this mean for the project on WinIsd if its on yhe Driver - aybe its the
+      conditrions the driver was measuted at - we dont' know - does the winisd help docs exkmpla !"
+
+      IMPLEMENTED. All 16 fields given a home on SpecSection (Dia, Vd, no, SPLmax, SPLmaxLF, USPL,
+      alfaVC, Rt, Ct, gamma, Rme, Mpow, Mcost, Gloss, c, roo) and mapped in SPEC_TO_WDR, which carries
+      them both ways. Measured loss across drivers/sample/winisd is now ZERO — NOT_CARRIED in
+      wdr-openisd-round-trip.test.ts is empty and a corpus-level test asserts the measured loss set
+      equals it, so the suite fails if anything starts being lost again.
+
+      The agent's proposed option (c) "accept the loss and gate it" was illegitimate against the
+      declared requirement and is withdrawn. The agent's separate objection — that c/roo are
+      environment constants and so do not belong on a driver — was WRONG on the facts: WinISD offers
+      both for editing at driver level and saves them, and the .wpr puts them inside its [Driver]
+      section (docs/winisd/sample_project_Epique15_-_pr.wpr lines 53-54), not any project-level one.
+
+      Requirement now stated in ARCHITECTURE.md ("OpenISDDriver is a SUPERSET of a .wdr") and gated by
+      packages/winisd/test/wdr-model-coverage.test.ts, which fails on any .wdr key with no home and
+      carries NO exemption list.
+
+      STILL OPEN, raised separately: what c/roo MEAN per-driver. The plausible reading is the
+      conditions that driver was measured at, but nothing in docs/winisd/ states it. Recorded in
+      drivers/sample/PARSTATE-FINDINGS.md as a hypothesis, explicitly not resolved.
+- id: QO49
+  title: 'Gloss import provenance: a ParState-less .wdr imports a carried Gloss=0 as ENTERED, blocking
+    derivation'
+  status: open
+  raised: '2026-08-16'
+  body: ''
+  notes:
+  - at: '2026-08-16'
+    text: |-
+      MEASURED 2026-08-16 against the tree as it stands, NOT quoted from the QO24 note (which
+      predates the WinISDDriver rewrite and does not reproduce).
+
+      THE MECHANISM, current code:
+        packages/winisd/src/winisdDriver.ts:428-435  fromWdr() takes each key's E/C/N mark from the
+          file's own ParState. A file with NO ParState line gets `presence => E` (line 431-433).
+        packages/winisd/src/winisdDriver.ts:472-478  toOpenISDRecord() keeps ONLY `E` cells; a `C`
+          cell is dropped and re-derived by OpenISDDriver.
+        So for any file that HAS a ParState, a WinISD-calculated Gloss is already dropped and
+        re-derived. The exposure is ParState-less files only.
+        The QO24 note's second half -- "fromWdr additionally backfills Gloss=0 for any file lacking
+        the key" -- is NOT true of this code: line 428-429 skips an absent key.
+
+      THE CORPUS, all 1626 .wdr under drivers/:
+        no ParState line ........................ 1102
+        carries a Gloss= key .................... 1378
+        Gloss == 0 .............................. 224
+        Gloss == 0 AND Fs > 0 AND Xmax > 0 ...... 5      <- the only files where a 0 blocks a
+                                                           derivable value
+        ParState slot 37 == 'E' ................. 4      (WinISD really does mark Gloss entered)
+        Of the 224 zeros, 216 have Xmax <= 0 and 70 have Fs <= 0, so Gloss = g/((2*pi*Fs)^2*Xmax)
+        is not evaluable for them at all -- a 0 there blocks nothing.
+
+      THE 5, and what each already does:
+        drivers/sample/winisd/inconsistency-test.wdr           slot 37 = C  -> already dropped
+        drivers/sample/winisd/inconsistency-test-saved.wdr     slot 37 = C  -> already dropped
+        drivers/sample/winisd/inconsistency-test-qts-C.wdr     slot 37 = C  -> already dropped
+        drivers/sample/winisd/inconsistency-test-qts-N.wdr     slot 37 = C  -> already dropped
+        drivers/winisd/TangBand W4-639SA.wdr                   NO ParState -> imported as ENTERED 0
+
+      So the live defect is ONE library file, not 245. The 245-of-1622 figure in QO24's note does
+      not reproduce against this tree.
+
+      THE DECISION (unchanged in kind, much smaller in blast radius):
+        For a ParState-less .wdr, is a carried `Gloss=0` an ENTERED fact or an absent value?
+        (a) Leave presence => E as it is. One library driver shows Gloss 0. Nothing else moves.
+        (b) Treat a carried 0 as absent for Gloss specifically when there is no ParState, so the
+            solver fills it. Changes provenance on that one file today, and on any future
+            ParState-less file that carries Gloss=0 with a usable Fs/Xmax.
+        (c) Generalise (b) to every solvable field, not just Gloss -- a much wider rule about what
+            "presence => E" should mean for scraper-authored files with no ParState.
+- id: QO50
+  title: 'Fs derivation parity: the engine has 4 routes, WinISD has 5, and one of the engine''s is not
+    WinISD''s -'
+  status: decided
+  raised: '2026-08-17'
+  body: ''
+  notes:
+  - at: '2026-08-17'
+    text: |-
+      Recorded as a bug with reproduced evidence:
+      `bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md`
+
+      The three failing input sets, run through `solveConsistencyGroup`:
+
+          EBP=207.77, Qes=0.1925        openisd Fs = null     WinISD = 40   (relation 12 absent)
+          Rme=2.5437, Qes=0.1925, Mms   openisd Fs = null     WinISD = 40   (relation 4 absent)
+          Rms=0.2332, Qms=2.1, Mms      openisd Fs = 40.000   WinISD = blank (extra route)
+
+      The third is the damaging one: a `.wdr` round-tripped through openisd comes back with an `Fs`
+      WinISD never produced, marked `C` at ParState position 2 — asserting WinISD calculated
+      something it did not.
+  - at: '2026-08-17'
+    text: |-
+      Corrected framing — this is a THREE-layer divergence, not two:
+
+          WinISD          5 routes to Fs
+          engine          4 routes  (driver.ts)
+          provenance UI   2 routes  (provenance.ts PROVENANCE_MAP)
+
+      Only ONE route of the seven distinct forms is agreed on by all three layers
+      (relation 11, `Fs = 1/(2π·√(Mms·Cms))`).
+
+      The engine runs one route WinISD does not have, and the panel advertises one route NEITHER of
+      them has. Full seven-row table at the top of
+      `bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md`.
+
+      So whichever option is chosen for the engine, the panel has to be fixed too, or it will keep
+      describing the app inaccurately.
+  - at: '2026-08-17'
+    text: |-
+      FOURTH divergence found: the ORDER differs, and order decides the result because the first
+      route whose inputs are all present wins.
+
+          try   WinISD                          openisd engine
+          1     rel 11  1/(2π·√(Mms·Cms))       rel 11  1/(2π·√(Mms·Cms))
+          2     rel 14  ∛(no·c³·Qes/(4π²·Vas))  THE EXTRA ROUTE  Rms·Qms/(2π·Mms)
+          3     rel 2   Qes·BL²/(2π·Mms·Re)     rel 2   Qes·BL²/(2π·Mms·Re)
+          4     rel 4   Rme·Qes/(2π·Mms)        rel 14  ∛(no·c³·Qes/(4π²·Vas))
+          5     rel 12  EBP·Qes                 —
+
+      The route WinISD does not have runs SECOND, ahead of both routes WinISD would reach first, and
+      14/2 are swapped. On a driver whose fields disagree this yields a different NUMBER, not just a
+      different explanation of the same number.
+
+      Scope of any fix — the route list AND its order are needed in four places:
+        1. engine `driver.ts`                      — wrong today
+        2. `WDR_SCHEMA.md` §3 field table          — correct, generated from the measured engine
+        3. `WDR_SCHEMA.md` §4.3 relation catalogue — correct, same source
+        4. provenance popup `provenance.ts`        — wrong today
+        plus automated tests, which do not exist for Fs at all.
+
+      The two docs are generated and stay right; the two code sites are hand-maintained and drift.
+  - at: '2026-08-17'
+    text: |-
+      Asked whether WinISD's priority order has been confirmed by automation. Answer: PARTLY, and
+      only now — before today it rested on ONE contest in ONE field.
+
+      Confirmed by live runs (`winisd_research/runs/fs_priority.jsonl`,
+      `toys/campaign_fs_priority.py`):
+
+        * relation 11 is FIRST for Fs. Perturb Cms so route 11 says 60 while every other route says
+          40, blank Fs in the editor: WinISD returns 60.00. Matches the address-order prediction.
+
+      NOT confirmed, and why:
+
+        * relations 4 and 12 cannot be isolated — killing the earlier routes needs Cms and Vas absent
+          from the file, and such a project will not open (degenerate-driver crash class).
+        * relation 14 cannot be contested by perturbing Vas: `no` is itself produced by relation 14's
+          own inverse, earlier in the pass than relation 15's, so perturbing Vas drags `no` along and
+          14 keeps predicting the same value as 2. Measured.
+
+      So for Fs the order is confirmed at position 1 and assumed for 2..5. Everywhere else in the
+      catalogue the order is still an inference from the disassembly. That is now stated in
+      `winisd_research/RE_GHIDRA_FINDINGS.md`.
+  - at: '2026-08-17'
+    text: |-
+      Priority order PROVEN, statically, from the guard chain — not by fighting the UI.
+
+      The five Fs compute sites each begin `if Fs==0 and <inputs all > 0>`. Because every block
+      after the first re-tests Fs==0, once an earlier block writes Fs every later block is skipped.
+      The block sequence in address order IS the priority:
+
+          1  rel 11   Fs = 1/(2π·√(Mms·Cms))         needs Cms, Mms
+          2  rel 14   Fs = ∛(no·c³·Qes/(4π²·Vas))     needs Qes, Vas, no
+          3  rel 2    Fs = Qes·BL²/(2π·Mms·Re)        needs Qes, BL, Mms, Re
+          4  rel 4    Fs = Rme·Qes/(2π·Mms)           needs Rme, Qes, Mms
+          5  rel 12   Fs = EBP·Qes                    needs EBP, Qes
+
+      Same guard-on-target pattern appears at every store site in the engine, so address order is the
+      priority for EVERY multi-route field, not just Fs. Live probing was the wrong tool: blanking a
+      field in the editor lets WinISD refill it from Fs before the next blank lands, so multi-field
+      kills heal themselves (the prio_4v12 run measured Cms and Vas restoring each other via relation
+      10). Proof recorded in winisd_research/RE_GHIDRA_FINDINGS.md "Fs priority settled STATICALLY".
+
+      So the QO50 ruling (match WinISD's five routes) is fully specified now: implement all five, in
+      this order, with these guards, in driver.ts and mirror them in provenance.ts.
+  - at: '2026-08-17'
+    text: |-
+      Priority order now CONFIRMED IN THE UI, all four rungs, not just proven from code.
+
+      runs/fs_priority.jsonl (toys/campaign_fs_priority.py), each blanks only Fs in the editor:
+
+          rung 1  route 11 tuned->60, rest 40                  Fs=60  => 11 beats 14,2,4,12
+          rung 2  route 11 off (Cms=0), route 14->60, rest 40  Fs=60  => 14 beats 2,4,12
+          rung 3  routes 11,14 off, route 2->60, rest 40       Fs=60  => 2 beats 4,12
+          rung 4  routes 11,14,2 off, route 4->60, route 12=40 Fs=60  => 4 beats 12
+
+      Order 11 > 14 > 2 > 4 > 12, live UI == guard chain. The trick that made it work: switch a route
+      OFF by zeroing one exclusive input IN THE FILE (Cms, no, BL -- not Vas, which hangs WinISD), and
+      only ever blank Fs in the editor. Editor-blanking other fields self-heals and was the reason the
+      first two attempts failed.
+
+      QO50 ruling (match WinISD's five routes) is fully specified AND verified: implement 11,14,2,4,12
+      in that priority order with the guards, in driver.ts, mirror in provenance.ts.
+  answer:
+    at: '2026-08-17'
+    text: whether openisd's engine should match WinISD's five Fs routes      YES
+- id: QO51
+  title: 'Mcost reads kg/s while Rms/Rme read Ns/m: WinISD-faithful, but should the editor offer a toggle
+    between the two spellings?'
+  status: open
+  raised: '2026-08-17'
+  body: ''
+  notes:
+  - at: '2026-08-17'
+    text: |-
+      VERIFIED against the reference captures, not assumed: WinISD itself spells the same physical
+      dimension two ways in the same editor.
+
+          docs/winisd/edit_driver_pg2_parameters.png            Rms   -> Ns/m
+          docs/winisd/edit_driver_pg3_advanced_parameters.png   Rme   -> Ns/m
+          docs/winisd/edit_driver_pg3_advanced_parameters.png   Mcost -> kg/s
+
+      1 N.s/m == 1 kg/s exactly, so nothing numeric is wrong and no conversion is involved:
+      `Rms` is `:scale="1"` and `Mcost` has no scale at all. openisd reproduces WinISD's text
+      exactly, now pinned by `Parameters/Advanced parameters: each field carries WinISD's own
+      unit` in `packages/ui/test/ui/driver-editor-layout.browser.spec.ts`.
+
+      Neither field has a UnitToggle: there is no mechanical-resistance group in
+      `packages/ui/src/logic/fields/units.ts`, so a user who wants Mcost in Ns/m cannot get it.
+
+      THE DECISION: leave the two spellings fixed and WinISD-faithful (current state), or add a
+      `resistance` unit group (Ns/m <-> kg/s, factor 1) and put a toggle on Rms, Rme and Mcost,
+      with each field's DEFAULT still WinISD's own spelling.
+  - at: '2026-08-17'
+    text: |-
+      FOUND BY the all-fields editor sweep (packages/ui/test/ui/driver-editor-provenance-and-units.browser.spec.ts,
+      "every field the solver calculated has a provenance formula"), 2026-08-17.
+
+      WHAT THE TEST SEES. With a solvable driver entered (Fs 35, Qts 0.38, Qes 0.42, Re 6.4, Vas 32,
+      Sd 220, Xmax 6.5, Pe 150, Hc 18, Hg 8) and auto-calculate on, four fields carry the CALCULATED
+      mark and have no entry in PROVENANCE_MAP:
+
+          Parameters/BL          -> FIXED, a label-map defect, see
+                                    bugs/BUG_20260817_bl_provenance_inspection_is_dead_the_label_map_keys_it_as_Bl.md
+          Parameters/Znom (Z)    -> THIS QUESTION
+          Advanced parameters/c  -> engine constant, not derived from the driver
+          Advanced parameters/roo-> engine constant, not derived from the driver
+
+      THE QUESTION IS ABOUT Znom. The editor's own tooltip says "Nominal impedance — label only, not
+      used in simulation" (DriverEditorModal.vue), yet the field renders with st-c (CALCULATED). Those
+      two statements cannot both be right:
+
+        (a) the mark is wrong — Znom is a stated label, so it should be ENTERED or NOT ENTERED, and
+            whatever sets it to C in the solver/model should stop; or
+        (b) the mark is right — something really does derive it (the obvious candidate is a rounding
+            of Re to the nearest standard 4/8/16 ohm), in which case that route needs recording in
+            PROVENANCE_MAP so the inspector can explain it.
+
+      Related but SEPARATE: ledger QO30 asks what ParState slot 0 (Znom) should carry on WRITE, where
+      WinISD writes C and openisd writes N. A ruling here should be checked against that one — they
+      are the same field's provenance seen from the UI and from the .wdr.
+
+      UNTIL RULED: the sweep test exempts Znom by name alongside c and roo, with this question id in
+      the comment, so the gap stays visible instead of being silently tolerated.
+- id: QO52
+  title: Znom shows as CALCULATED in the editor but no formula exists — is the mark wrong, or is it derived
+    from Re?
+  status: open
+  raised: '2026-08-17'
+  body: ''
+- id: QO53
+  title: Gloss has no TO_ENGINE/FROM_ENGINE entry — every call site reaches it via the engine's raw key
+    'loss' cast past SpecField
+  status: open
+  raised: '2026-08-17'
+  body: ''
+  notes:
+  - at: '2026-08-17'
+    text: |-
+      Recorded as a bug with full trace:
+      bugs/BUG_20260817_gloss_has_no_engine_name_mapping_so_every_call_site_casts_past_the_type.md
+
+      Record name: Gloss (openisdRecord.ts:201). Engine's own derived key: loss
+      (packages/engine/src/driver.ts:323, setVal('loss', ...)). TO_ENGINE/FROM_ENGINE
+      (openisdDriver.ts:131-142) bridge every other renamed field (BL<->Bl, the mm-suffixed
+      dimension fields) but have NO entry for Gloss/loss, so DriverEditorModal.vue and
+      driver-editor-units.test.ts both reach it by casting the engine's raw key straight past
+      SpecField (`'loss' as SpecField`) instead of the type system catching a name it should
+      recognise.
+
+      THE FIX: add `Gloss: 'loss'` to TO_ENGINE and `loss: 'Gloss'` to FROM_ENGINE, then change
+      every 'loss' call site to the record's real name 'Gloss', cast-free. NOT attempted here —
+      found mid-port of an unrelated test file, and changing the mapping ripples into
+      DriverEditorModal.vue, provenance.ts and fieldRegistry.ts, which deserves its own change.
+  - at: '2026-08-17'
+    text: |-
+      HUMAN RULING: Gloss/loss (and any field of this shape) belongs in the record as a REGULAR
+      field under ONE name, on disk (openisd.yml) and in memory alike -- not a record-side name
+      that the engine silently renames internally. DECIDED, not yet implemented: the fix in this
+      question's earlier note (TO_ENGINE/FROM_ENGINE mapping) is the mechanical patch; this
+      ruling sets the actual target -- one name, everywhere, no translation layer needed for
+      this field at all if the engine is changed to compute under 'Gloss' directly instead of
+      'loss'. Whichever route is taken, DriverEditorModal.vue's and this test's `as SpecField`
+      casts must disappear as the completion signal.
+  - at: '2026-08-17'
+    text: |-
+      HUMAN RULING, WIDENED: not just Gloss -- every field the driver editor view displays is
+      expected to be a REGULAR field of the openisd model (on disk in openisd.yml and in
+      memory), under one name, full stop. No engine-internal alias, no record-side/engine-side
+      name split, no `as SpecField` cast standing in for a field the model doesn't actually
+      declare. This generalises the Gloss/loss finding above into the standing rule for the
+      whole editor: every `cellVal('X')`/`cellClass('X')`/`setNum('X', ...)` call site in
+      DriverEditorModal.vue names a field SpecSection actually has, with no cast required to
+      compile. An audit of every editor call site against SpecSection, flagging any that need a
+      cast today (Gloss/loss is the one confirmed so far), is the next step -- not attempted
+      here, this is a ledger record of the ruling only.

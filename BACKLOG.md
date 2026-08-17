@@ -283,6 +283,41 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
 - [ ] **P2** Driver **added mass to cone** (WinISD has it for the driver, not just the PR).
 - [ ] **P3** Metric ↔ imperial **unit switching** (OpenISD is metric-only).
 
+- [ ] **GAPS.md section F — 11 ranked WinISD-parity fixes, moved from QO24 (openisd
+      ledger).** Full evidence tier (live / derived / open) and exact `file:line` for each is in
+      `winisd_research/GAPS.md` section F — read it before starting any item, do not re-derive.
+  - [ ] **A3.** Bind the PR pane's `Fh` to `prTuning()` — screen and file currently disagree
+        (72.25 vs 194.87 Hz).
+  - [ ] **A7.** Default end correction to `0.6` (WinISD's own value), allow free numeric entry —
+        the shipped default `0.732` misses vent length by 4.6%.
+  - [ ] **E.2 (a).** Delete the "`.wpr` is binary, needs reverse-engineering" claim — it is plain
+        INI and a serialiser already ships; the claim has parked import as a hard job.
+  - [ ] **E.2 (b).** Flip the QB3 alignment row to NO on the WinISD-has-it column — WinISD has no
+        alignment tool, ruled out three ways. OpenISD is ahead here; do not remove its buttons.
+  - [ ] **A5.** Implement `Rme`, `gamma`, `Mpow` from the pinned formulas. The rest of this item
+        is **superseded**: `Mcost`, `Gloss`, `SPLmaxLF` are already correctly calculated
+        (`packages/engine/src/driver.ts:323,332,344`, confirmed 2026-08-17) — they were never
+        pass-through. What IS still a total gap, found the same day: the `DVol`/`Depth`/
+        `MagDepth`/`Magnet` geometry relation has zero implementation, see
+        `bugs/BUG_20260817_dvol_relation_is_fully_documented_but_zero_percent_implemented.md`.
+  - [ ] **E.3.** Clear the six stale rows in `INPUT_PARITY.md` and `WINISD_OPENISD_COMPARISON.md`
+        that mark shipped features as missing.
+  - [ ] **A1.** Reverse the vented direction — `Fb` entered, vent length solved via
+        `ventLength()`, per chamber. Highest-value item; surfaces `ventLength`'s hidden 5mm
+        clamp.
+  - [ ] **A6.** Wire humidity and pressure per the QO7 ruling, surface air density beside sound
+        velocity.
+  - [ ] **E.4.** Re-mark the six "assumed" alignment rows as untested — "assumed" reads as a weak
+        yes, and one such row (QB3) turned out to be a confident no.
+  - [ ] **D.** One confirming live run for the Signal-pane Power/Voltage/Rg cascade — `Rg` is
+        absent from the power formula; the 4.0→3.9 shift is a display-rounding round-trip.
+  - [ ] **A4 — LARGE, blocked.** Make the driver editor a group solver rather than a fixed
+        substitution chain. Do NOT start until the probe campaign in
+        `winisd_research/PROMPT_solver_probe_campaign.md` has run — GAPS.md A4 states explicitly
+        "do not copy the numbers": the Re/Rms/Cms recompute residuals (~1.3%) are real and
+        unexplained (`DISCOVERIES.md` BUG-006), so the group-solve BEHAVIOUR is the spec, not
+        WinISD's exact outputs.
+
 ## Enclosure types & box model
 
 - [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set)

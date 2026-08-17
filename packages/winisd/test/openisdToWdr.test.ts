@@ -164,18 +164,39 @@ describe('openisd.yml → winisd.wdr — Result contract (never throws)', () => 
   });
 });
 
-describe('openisd.yml → winisd.wdr — Xlim (openisd\'s own extension, no real WinISD key)', () => {
-  // WinISD holds Xlim in ParState slot 10 only (parstate.ts POS_TO_WDRKEY[10] = null) —
-  // s-xlim.wdr, a genuine WinISD save with Xlim entered, writes no `Xlim=` line at all. This
-  // openisd-only extension line exists so a value the human enters survives openisd's own
-  // .wdr round-trip; it must never appear when the record states no Xlim.
-  it('a record with no Xlim produces no Xlim= line', () => {
-    const { value } = wdrOf(EMPTY_RECORD);
-    assert.equal(keysOf(value!).includes('Xlim'), false);
+/**
+ * Xlim crosses into a `.wdr` as its ParState MARK and nothing else.
+ *
+ * `.wdr` has no key for Xlim and no extension mechanism to add one. Probe evidence:
+ * `s-fs.wdr` (Fs typed into WinISD, saved) writes `Fs=123` AND sets slot 1 to `E`;
+ * `s-xlim.wdr` (Xlim typed in, saved) writes NO key — every numeric line is still `0` — and
+ * sets only slot 10. So WinISD keeps the mark and discards the number.
+ */
+describe('openisd.yml → winisd.wdr — Xlim is a ParState mark, never a key', () => {
+  /** Slot 10 of the ParState this record projects to. */
+  const slot10 = (wdr: string): string =>
+    wdr.split(/\r?\n/).find(l => l.startsWith('ParState='))!.slice('ParState='.length)[10];
+
+  it('no record ever produces an Xlim= line — WinISD writes none, so neither do we', () => {
+    for (const [what, src] of [['no Xlim', EMPTY_RECORD], ['an entered Xlim', WITH_XLIM]] as const) {
+      const { value } = wdrOf(src);
+      assert.notEqual(value, null, `${what}: must project`);
+      assert.equal(keysOf(value!).includes('Xlim'), false,
+        `${what}: an Xlim= line is a key WinISD cannot read — it is dropped on WinISD's next ` +
+        `save while slot 10 goes on claiming a value was entered`);
+    }
   });
 
-  it('a record with an entered Xlim produces an Xlim= line with the correct value', () => {
-    const withXlim = `
+  it('a record with no Xlim leaves slot 10 at N', () => {
+    assert.equal(slot10(wdrOf(EMPTY_RECORD).value!), 'N');
+  });
+
+  it('a record with an entered Xlim marks slot 10 E', () => {
+    assert.equal(slot10(wdrOf(WITH_XLIM).value!), 'E');
+  });
+});
+
+const WITH_XLIM = `
 uuid: {value: u1, definition: d}
 quality: {rating: M, confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}
 manufacturer: {value: Acme, origin: manual, definition: d, dq: []}
@@ -193,12 +214,6 @@ specs:
       readings: {manual: {read_value: 12.5}}
       dq: []
 `;
-    const { value } = wdrOf(withXlim);
-    assert.notEqual(value, null);
-    assert.equal(keysOf(value!).includes('Xlim'), true);
-    assert.equal(Number(fieldsOf(value!).Xlim), 12.5);
-  });
-});
 
 describe('openisd.yml → winisd.wdr — DQ marks travel into Comment= (ARCHITECTURE.md §3)', () => {
   it('a record with no DQ marks leaves Comment= byte-identical to a plain writer', () => {

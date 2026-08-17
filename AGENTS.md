@@ -12,19 +12,10 @@
 
 # Claude Code rules for this project
 
-## Priority Skin — hard rule
+## The skin — hard rule
 
-**THE HUMAN EXPECTS THE AGENT TO MAINTAIN THE ORIGINAL SKIN AND ITS LOGIC. NOT THE MODERN
-SKIN, NOR THE CLASSIC SKIN.** Those two skins are present in the codebase but are **NOT
-CURRENTLY MAINTAINED**. Do not read, reference, search, fix, extend, or otherwise touch
-Classic or Modern code for their own sake — the human does not visit those views anymore.
-
-The only permitted exception: touching Classic/Modern **as strictly necessary to support an
-Original-skin change** (e.g. a shared component both Original and another skin import, where
-Original's fix requires touching the shared file). Even then, change only what Original's fix
-requires — do not proactively fix, clean up, or improve Classic/Modern while there.
-
-Unless the human explicitly names Classic or Modern, assume every request is about Original.
+**There is ONE skin: Original.** `packages/ui/src/ui/shells/` holds `original/` and nothing
+else. Every UI request is about it; there is no other view to disambiguate against.
 
 ## Priority TDD Behaviour
 

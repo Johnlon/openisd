@@ -1,10 +1,10 @@
 <script setup lang="ts">
 /**
- * Original-skin New Project wizard — the mock's 2-step #modal-new-project (box type →
- * starting volume), wired to the shared store. On Create it applies the box type + volume
- * and hands off to the shared driver picker (state.browseOpen) to choose the driver.
+ * New Project wizard — two steps, box type → starting volume, wired to the store. On
+ * Create it applies the box type + volume and hands off to the driver picker
+ * (state.browseOpen) to choose the driver.
  *
- * A per-skin presentation under shells/original/. Honesty note: only the four
+ * Honesty note: only the four
  * engine-modelled box types are offered — you can't "create" a design the engine can't
  * simulate (6th-order bandpass / ABC are pending everywhere), same rule as elsewhere.
  */
@@ -28,8 +28,7 @@ const step = ref(1);
 const STEP_LABELS = ['Project name', 'Box type', 'Starting volume'];
 const projName = ref('');
 const boxType = ref<BoxType>('sealed');
-// Per-box-type starting defaults, matching the mock: single-chamber 6 l, bandpass
-// rear 8 l + front 10 l.
+// Per-box-type starting defaults: single-chamber 6 l, bandpass rear 8 l + front 10 l.
 const vol = ref(6);        // single-chamber volume, litres
 const rearVol = ref(8);    // bandpass rear chamber, litres
 const frontVol = ref(10);  // bandpass front chamber, litres
@@ -110,7 +109,6 @@ function create() {
 </template>
 
 <style scoped>
-/* Ported from mock/style.css (.overlay/.modal/.modal-*). */
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.18); z-index: 100; display: flex; align-items: flex-start; justify-content: center; }
 .modal { margin-top: 8vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 620px; max-width: 92vw; }
 .modal-titlebar { display: flex; align-items: center; justify-content: space-between; background: #e9e9e9; border-bottom: 1px solid #bbb; padding: 8px 12px; font-size: 15px; }

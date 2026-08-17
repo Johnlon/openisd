@@ -1,0 +1,151 @@
+WinISD .wdr sample rename map
+
+Convention
+  lower-case kebab, group prefix first, WinISD key spelled as the file spells it
+    baseline-      nothing entered
+    field-<key>-   one key entered, sentinel 123 scaled to the key's unit
+    conn-          voice-coil count and wiring
+    all-           whole form filled by hand
+    inconsistent-  stored value contradicts its ParState mark or its group
+    qgroup-        Qts / Qms / Qes triangle
+    recalc-        value cleared, WinISD recalculated the dependants
+    text-          character-set and comment-encoding fixtures
+
+CURRENT NAME                                                                  PROPOSED NAME                                ACT     WHAT THE FILE ACTUALLY HOLDS / WHY
+----------------------------------------------------------------------------  -------------------------------------------  ------  -----------------------------------------------------------------------------------------
+
+BASELINE
+----------------------------------------------------------------------------  -------------------------------------------  ------  -----------------------------------------------------------------------------------------
+s_autocalc-no.wdr                                                             baseline-empty.wdr                           rename  every field default; name's autocalc claim is not recorded anywhere in the file
+s-connection-serial-a.wdr                                                                                                  DELETE  byte-identical to s_autocalc-no.wdr; VCCon=1, so not serial
+s-connection-serial.wdr~                                                                                                   DELETE  byte-identical to s_autocalc-no.wdr; editor backup
+john-all-defaults.wdr                                                         baseline-empty-labelled.wdr                  rename  as baseline-empty.wdr plus Brand/Model/Manufacturer/Comment; 23 refs in packages/
+
+SINGLE-FIELD PROBES  (sentinel 123, scaled per unit)
+----------------------------------------------------------------------------  -------------------------------------------  ------  -----------------------------------------------------------------------------------------
+s-znom.wdr                                                                    field-znom-entered.wdr                       rename  Znom=123
+s-fs.wdr                                                                      field-fs-entered.wdr                         rename  Fs=123; 2 refs in packages/
+s-pe.wdr                                                                      field-pe-entered.wdr                         rename  Pe=123
+s-spl.wdr                                                                     field-spl-entered.wdr                        rename  SPL=123; 2 refs in packages/
+s-re.wdr                                                                      field-re-entered.wdr                         rename  Re=123; 1 ref in packages/
+s-le.wdr                                                                      field-le-entered.wdr                         rename  Le=123
+s-fle.wdr                                                                     field-fle-entered.wdr                        rename  fLe=123
+s-kle.wdr                                                                     field-kle-entered.wdr                        rename  KLe=123
+s-bl.wdr                                                                      field-bl-entered.wdr                         rename  BL=123
+s-xmax.wdr                                                                    field-xmax-entered.wdr                       rename  Xmax=0.123
+s-cms.wdr                                                                     field-cms-entered.wdr                        rename  Cms=0.123
+s-qms.wdr                                                                     field-qms-entered.wdr                        rename  Qms=123
+s-qes.wdr                                                                     field-qes-entered.wdr                        rename  Qes=123
+s-qts.wdr                                                                     field-qts-entered.wdr                        rename  Qts=123
+s-rms.wdr                                                                     field-rms-entered.wdr                        rename  Rms=123
+s-mms.wdr                                                                     field-mms-entered.wdr                        rename  Mms=0.123
+s-sd.wdr                                                                      field-sd-entered.wdr                         rename  Sd=0.0123; 1 ref in packages/
+s-vas.wdr                                                                     field-vas-entered.wdr                        rename  Vas=3.48296884866642 - the only probe not on the 123 sentinel
+s-vd.wdr                                                                      field-vd-entered.wdr                         rename  Vd=0.000123
+s-no.wdr                                                                      field-no-entered.wdr                         rename  no=1.23 (reference efficiency); bare 's-no' reads as a negation
+s-dd.wdr                                                                      field-dd-entered.wdr                         rename  Dd=123; 1 ref in packages/
+s-ebp.wdr                                                                     field-ebp-entered.wdr                        rename  EBP=123
+s-voicecoils.wdr                                                              field-numvc-entered.wdr                      rename  numVC=123; name did not use the WinISD key
+s-hc.wdr                                                                      field-hc-entered.wdr                         rename  Hc=123
+s-hg.wdr                                                                      field-hg-entered.wdr                         rename  Hg=123
+s-splmax.wdr                                                                  field-splmax-entered.wdr                     rename  SPLmax=123
+s-splmaxlf.wdr                                                                field-splmaxlf-entered-with-pe.wdr           rename  SPLmaxLF=123 AND Pe=123 - not an isolated single-field probe
+s-uspl.wdr                                                                    field-uspl-entered.wdr                       rename  USPL=123
+s-alfavc.wdr                                                                  field-alfavc-entered.wdr                     rename  alfaVC=123
+s-r-t.wdr                                                                     field-rt-entered.wdr                         rename  Rt=123; stray hyphen splits a single key name
+s-c-t.wdr                                                                     field-ct-entered.wdr                         rename  Ct=123; stray hyphen splits a single key name
+s-gamma.wdr                                                                   field-gamma-entered.wdr                      rename  gamma=123
+s-rme.wdr                                                                     field-rme-entered.wdr                        rename  Rme=123
+s-mpow.wdr                                                                    field-mpow-entered.wdr                       rename  Mpow=123
+s-mcost.wdr                                                                   field-mcost-entered.wdr                      rename  Mcost=123
+s-gloss.wdr                                                                   field-gloss-entered.wdr                      rename  Gloss=1.23; 1 ref in packages/
+s-c.wdr                                                                       field-c-entered.wdr                          rename  c=123 (speed of sound)
+s-roo.wdr                                                                     field-roo-entered.wdr                        rename  roo=123 (air density)
+s-thick.wdr                                                                   field-thick-entered.wdr                      rename  Thick=123
+s-depth.wdr                                                                   field-depth-entered.wdr                      rename  Depth=123
+s-magnetdepth.wdr                                                             field-magdepth-entered.wdr                   rename  MagDepth=123
+s_magdepth.wdr                                                                                                             DELETE  byte-identical to s-magnetdepth.wdr
+s-magnet.wdr                                                                                                               DELETE  MISNAMED: holds MagDepth=123, not Magnet; byte-identical to s-magnetdepth.wdr
+s_magnet.wdr                                                                  field-magnet-entered.wdr                     rename  Magnet=123 - the only file that really sets Magnet
+s_magnet_and__magdepth.wdr                                                    field-magnet-and-magdepth-entered.wdr        rename  Magnet=123, MagDepth=456; double underscore in current name
+s-basket.wdr                                                                  field-basket-entered.wdr                     rename  Basket=123
+s-outer.wdr                                                                   field-outer-entered.wdr                      rename  Outer=123
+s-vcd.wdr                                                                     field-vcd-entered.wdr                        rename  Vcd=123
+s-dvol.wdr                                                                    field-dvol-entered.wdr                       rename  DVol=123
+s-driver-12345678.wdr                                                         field-dims-all8-entered.wdr                  rename  Thick..DVol = 1..8; the 12345678 encoded the values, not a driver id
+s-xlim-123.wdr                                                                field-xlim-entered.wdr                       rename  no Xlim key is written; only ParState slot 10 flips to E; 2 refs in packages/
+s-xlim-not-entered.wdr                                                        field-xlim-not-entered.wdr                   rename  control for the above; ParState slot 10 stays N
+s-xlim.wdr                                                                                                                 GONE    deleted from disk but still referenced by openisdToWdr.test.ts
+
+VOICE-COIL CONNECTION
+----------------------------------------------------------------------------  -------------------------------------------  ------  -----------------------------------------------------------------------------------------
+s-connection-serial.wdr                                                       conn-serial-1vc.wdr                          rename  VCCon=2, numVC=1
+s-connection-serial-3vc.wdr                                                   conn-serial-3vc.wdr                          rename  VCCon=2, numVC=3
+s-connection-parallel-2vc.wdr                                                 conn-parallel-2vc.wdr                        rename  VCCon=1, numVC=2
+s-connection-serial-2vc.wdr                                                                                                DELETE  MISNAMED: VCCon=1 is parallel; byte-identical to s-connection-parallel-2vc.wdr
+s-connection-serial-2vc.wdr~                                                                                               DELETE  editor backup of the above
+s-connection-parallel.wdr                                                     conn-parallel-after-toggle.wdr               rename  VCCon=1; comment records serial -> parallel toggled back
+
+WHOLE-FORM FIXTURES
+----------------------------------------------------------------------------  -------------------------------------------  ------  -----------------------------------------------------------------------------------------
+john-all-set.wdr                                                              all-fields-entered.wdr                       rename  1..n typed into every field; the 8 dimension fields left at 0; 1 ref in packages/
+john-all-entered-driver-dims.wdr                                              all-fields-entered-with-dims-no-0p22.wdr     rename  as above plus Thick..DVol=11..88; no=0.22
+john-all-entered-driver-dim123s.wdr                                           all-fields-entered-with-dims-no-1p23.wdr     rename  identical to the above except no=1.23; current names do not say so
+john-all-set-then-cleaded.wdr                                                 all-fields-entered-then-cleared.wdr          rename  typo 'cleaded'; content proves Clear wipes values AND ParState
+john-all-noncalc-fields-manually-entered.wdr                                  all-noncalc-entered.wdr                      rename  2 refs in packages/
+John-all-manu-populated.wdr                                                   all-noncalc-entered-labelled.wdr             rename  same values+ParState as all-noncalc-entered.wdr, plus Brand/Model/Comment; 4 refs
+John-all-manu-populated-init.wdr                                                                                           DELETE  byte-identical to John-all-manu-populated.wdr
+John-all-manu-populated-ex.wdr                                                recalc-after-clearing-fs-qms-xmax-xlim.wdr   rename  Fs/Xmax/Hg cleared, Qms recalculated to -1.5, Vas recalculated
+
+CONSISTENCY / ParState FIXTURES
+----------------------------------------------------------------------------  -------------------------------------------  ------  -----------------------------------------------------------------------------------------
+inconsistency-test.wdr                                                        inconsistent-qts-vd-dd-handwritten.wdr       rename  Qts=0.500 Vd=0.0002 Dd=0.200, hand-authored; 3 refs in packages/
+inconsistency-test-saved.wdr                                                  inconsistent-qts-vd-dd-winisd-resaved.wdr    rename  same fixture after WinISD re-saved it: 0.500->0.5, 0.200->0.2; 2 refs
+inconsistency-test-qts-C.wdr                                                  inconsistent-qts-parstate-c.wdr              rename  Qts=0.500 with ParState slot 14 = C; 2 refs in packages/
+inconsistency-test-qts-N.wdr                                                  inconsistent-qts-parstate-n.wdr              rename  Qts=0.500 with ParState slot 14 = N
+inconsistency-test-saved-q-1.wdr                                              qgroup-qms334-qes2-qts-calculated.wdr        rename  Qts=1.98809523809524 = 334*2/336, slot 14 = C
+inconsistency-test-saved-q-2.wdr                                              qgroup-qts-entered-99-inconsistent.wdr       rename  Qts=99 entered (slot 14 = E) against Qms=334 Qes=1
+inconsistency-test-saved-q-3.wdr                                              qgroup-qms334-qes1-qts-calculated.wdr        rename  Qts=0.997014925373134 = 334/335, slot 14 = C
+inconsistency-test-saved-q.wdr                                                                                             DELETE  byte-identical to inconsistency-test-saved-q-3.wdr
+
+TEXT AND ENCODING
+----------------------------------------------------------------------------  -------------------------------------------  ------  -----------------------------------------------------------------------------------------
+driver-with-latin-text.wdr                                                    text-ascii-multiline-comment.wdr             rename  multi-line ASCII comment
+driver-with-unicode-text.wdr                                                  text-unicode-fields.wdr                      rename  Euro and Kanji in Brand/Model/Manufacturer/Comment
+driver with Euro € Kanji 漢字 driver with unicode text Euro € Kanji 漢字.wdr  text-unicode-filename Euro € Kanji 漢字.wdr  rename  byte-identical to driver-with-unicode-text.wdr; the FILENAME is the test - phrase doubled
+
+Byte-identical groups on disk
+  s-magnet.wdr = s-magnetdepth.wdr = s_magdepth.wdr
+  s_autocalc-no.wdr = s-connection-serial-a.wdr = s-connection-serial.wdr~
+  s-connection-parallel-2vc.wdr = s-connection-serial-2vc.wdr = s-connection-serial-2vc.wdr~
+  John-all-manu-populated.wdr = John-all-manu-populated-init.wdr
+  inconsistency-test-saved-q.wdr = inconsistency-test-saved-q-3.wdr
+  driver-with-unicode-text.wdr = "driver with Euro ... Kanji ....wdr"
+
+Names that contradict their content
+  s-magnet.wdr             sets MagDepth, not Magnet, and sits one character from s_magnet.wdr which sets Magnet
+  s-connection-serial-2vc  VCCon=1, which is parallel
+  s-connection-serial-a    VCCon=1 and no field set at all
+  s-splmaxlf.wdr           sets Pe as well as SPLmaxLF
+  s-driver-12345678.wdr    12345678 are the eight dimension values, not a driver identifier
+  s_autocalc-no.wdr        no key or ParState slot in the file records an autocalc setting
+
+Renames that need a code edit in the same commit
+  john-all-defaults.wdr                          engine/src/constants.ts, winisd/src/parstate.ts, winisd/src/winisdDriver.ts,
+                                                 winisd/test/openisdToWdr.test.ts, winisd/test/wdr-import-fidelity.test.ts,
+                                                 winisd/test/fixtures/winisd-parity/divergences.json
+  John-all-manu-populated.wdr                    engine/src/efficiency.ts, engine/test/efficiency.test.ts,
+                                                 ui/test/logic/persist.test.ts, winisd/test/wdr-openisd-round-trip.test.ts
+  john-all-noncalc-fields-manually-entered.wdr   engine/test/advanced-figures.test.ts, ui/test/ui/driver-editor-units.test.ts
+  s-xlim-123.wdr                                 winisd/src/winisdDriver.ts, winisd/test/wdr-round-trip.test.ts
+  s-fs.wdr                                       winisd/src/winisdDriver.ts, winisd/test/openisdToWdr.test.ts
+  s-spl.wdr                                      winisd/src/parstate.ts, winisd/test/wdr-import-fidelity.test.ts
+  s-gloss.wdr                                    winisd/test/wdr-import-fidelity.test.ts
+  s-sd.wdr, s-dd.wdr                             winisd/test/wdr-openisd-round-trip.test.ts
+  john-all-set.wdr                               winisd/test/wdr-openisd-round-trip.test.ts
+  inconsistency-test.wdr                         winisd/src/parstate.ts, winisd/src/winisdDriver.ts, winisd/test/wdr-openisd-round-trip.test.ts
+  inconsistency-test-saved.wdr                   winisd/src/parstate.ts, winisd/test/wdr-openisd-round-trip.test.ts
+  inconsistency-test-qts-C.wdr                   winisd/test/wdr-openisd-round-trip.test.ts, winisd/test/wdr-to-openisd-record.test.ts
+
+Dangling reference
+  s-xlim.wdr is absent from this directory and still named by packages/winisd/test/openisdToWdr.test.ts

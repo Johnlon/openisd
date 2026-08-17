@@ -174,6 +174,31 @@ export interface SpecSection {
    *  OpenISDDriver/UI side, not this type. */
   SPL?: SpecEntry;
   Pe?: SpecEntry; Dd?: SpecEntry; EBP?: SpecEntry; numVC?: SpecEntry; VCCon?: SpecEntry;
+  /**
+   * The rest of what a `.wdr` can state about a driver.
+   *
+   * `OpenISDDriver` is a SUPERSET of a `.wdr` (ARCHITECTURE.md §"The same rule binds the
+   * DRIVER"), so every field WinISD can carry has a home here. Most are ordinarily derived —
+   * but WinISD lets a human type any of them, and an entered value is a fact that must not be
+   * discarded just because we could also have computed it. Without these slots, cycling a real
+   * `.wdr` through the model destroyed them.
+   *
+   * `c` (speed of sound) and `roo` (air density) are here too, and they are not a special case:
+   * WinISD offers both for EDITING on the driver and saves what you type. The `.wpr` puts them
+   * inside its `[Driver]` section as well (`docs/winisd/sample_project_Epique15_-_pr.wpr`,
+   * lines 53-54), not in any project-level one. Whatever they describe, they are stored per
+   * driver — plausibly the conditions that driver's figures were measured or computed at.
+   * `OpenISDEnvironment` on the PROJECT is what a simulation runs on; these are what the
+   * driver states.
+   *
+   * Units are WinISD's own (SI, and `Gloss` a fraction) — these keep WinISD's field names, so
+   * they keep its conventions; the mm/litre naming convention applies only to the
+   * `*_mm`/`*_l` fields above.
+   */
+  Dia?: SpecEntry; Vd?: SpecEntry; no?: SpecEntry;
+  SPLmax?: SpecEntry; SPLmaxLF?: SpecEntry; USPL?: SpecEntry;
+  alfaVC?: SpecEntry; Rt?: SpecEntry; Ct?: SpecEntry; gamma?: SpecEntry; Rme?: SpecEntry;
+  Mpow?: SpecEntry; Mcost?: SpecEntry; Gloss?: SpecEntry; c?: SpecEntry; roo?: SpecEntry;
   // Descriptive/dimensional fields (_SPEC_DESCRIPTIVE_FIELDS)
   voice_coil_dia_mm?: SpecEntry; Hg_mm?: SpecEntry; Hc_mm?: SpecEntry;
   freq_low_hz?: SpecEntry; freq_high_hz?: SpecEntry; power_peak_W?: SpecEntry;

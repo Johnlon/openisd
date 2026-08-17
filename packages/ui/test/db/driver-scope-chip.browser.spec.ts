@@ -6,10 +6,7 @@ import { test, expect } from '../fixtures.js';
 // Bundled → My Drivers → All → Bundled. It sits beside the Favorites chip and is ORTHOGONAL
 // to it, so the two compose and all six pairings are reachable. That table is what this spec
 // proves, one test per cell.
-//
-// WinISD picker only (DriverBrowserWinisd.vue) — Original and Classic. The Modern picker is
-// deliberately untouched. store.ts forces `modern` on port 4100, this suite's port, so the
-// skin is seeded through localStorage or these specs never reach the component at all.
+
 
 const POOL_ROWS = '.dlist .ditem:not(.my-ditem)';
 const MY_ROWS = '.dlist .my-ditem';

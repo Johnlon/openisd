@@ -5,7 +5,7 @@ set -euo pipefail
 # Environment guard
 { [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
 
-echo "Verifying that http://localhost:4000/ is running the latest software..."
+echo "Verifying that http://localhost:4000/ is running the latest software, and that it works..."
 
 # 1. Check HTTP response code
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/ || echo "000")
@@ -37,5 +37,15 @@ if [ "$SERVED_JS" != "$BUILT_JS" ]; then
   exit 1
 fi
 
-echo "SUCCESS: Preview server on port 4000 is serving the latest build ($BUILT_JS)."
+echo "Assets are current ($BUILT_JS). Now checking that the app actually RUNS..."
+
+# 4. Load it in a real browser and fail on any uncaught exception or console error.
+#
+# Steps 1-3 compare FILENAMES. They prove the served bytes are CURRENT; they cannot prove they
+# are CORRECT, and they certified a build whose every driver-panel computation threw on load
+# (bugs/BUG_20260817_deploy_verifies_asset_freshness_but_never_that_the_app_runs.md). HTTP 200
+# is the SERVER answering, not the app working.
+node "$(dirname "$0")/verify-app-runs.mjs" http://localhost:4000/
+
+echo "SUCCESS: Preview server on port 4000 is serving the latest build ($BUILT_JS), and it runs."
 exit 0

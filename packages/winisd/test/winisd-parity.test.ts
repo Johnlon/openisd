@@ -182,7 +182,7 @@ function findDivergence(scenario: string, field: string): KnownDivergence | unde
  * slot `C` and writes `13.18359375`, which IS compared, and passes.
  *
  * The slot map is `packages/winisd/src/parstate.ts`, fixed by WinISD's own single-parameter
- * probes in `drivers/sample/winisd/s-*.wdr` and pinned by `wdr-carried-keys.test.ts` — not by
+ * probes in `drivers/sample/winisd/s-*.wdr` and pinned by `wdr-round-trip.test.ts` — not by
  * anything this suite computes.
  */
 function winisdDeclined(scenario: Scenario, parState: string | undefined, key: string): boolean {

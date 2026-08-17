@@ -1,13 +1,8 @@
 <!--
   The driver dimensions diagram — Basket, Outer, Depth, MagDpt, Magnet, Thick.
 
-  ONE definition, shared. It previously existed in THREE versions: a 300x260 inline copy in
-  DriverEditorModal, a second inline copy in DriverDefineModal, and a 600x300 standalone
-  `winisd/driver.svg` that had been dropped from the tree entirely. Three drawings of one
-  thing, free to drift — and two of them already had.
-
-  Recovered from `mock/index.html` @587bc43b9, the version with proper dimension arrow
-  markers.
+  ONE definition, shared by every caller. Do not inline a second copy: two drawings of one
+  thing drift.
 -->
 <template>
   <svg viewBox="0 0 540 450" class="dd-dim-svg" xmlns="http://www.w3.org/2000/svg">

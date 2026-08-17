@@ -21,7 +21,6 @@ async function openTune(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.original-root').waitFor({ state: 'visible' });
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
@@ -35,7 +34,6 @@ async function openEditorParameters(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Edit' }).click();
   await expect(page.locator('.de-modal')).toBeVisible();
@@ -115,27 +113,6 @@ test('Tune what-if: the same mark appears on every member of the group as the dr
   await expect(page.locator('.tune-panel .de-dq')).toHaveCount(0);
 });
 
-// ── The Classic skin's inline What-If panel ───────────────────────────────────────────────
-test('Classic what-if: the mark is the same one, from the same model', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('classic');
-  await page.locator('.cl-whatif').click();
-  const dep = page.locator('.dep');
-  await expect(dep).toBeVisible();
-  await expect(dep.locator('.de-dq')).toHaveCount(0);
-
-  const row = (label: string) => dep.locator('.row').filter({ has: page.locator('label', { hasText: new RegExp(`^${label}`) }) });
-  const mms = row('Mms').locator('input');
-  await mms.click();
-  await mms.press('Control+a');
-  await mms.pressSequentially(IMPOSSIBLE_MMS_G);
-  await mms.blur();
-
-  await expect(row('Fs').locator('.de-dq')).toHaveCount(1);
-  await expect(row('Mms').locator('.de-dq')).toHaveCount(1);
-});
 
 test('Tune what-if: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
   await openTune(page);
@@ -181,52 +158,3 @@ test('Tune what-if: hovering or clicking the alert icon displays the custom form
   await expect(tooltip).toBeHidden();
 });
 
-test('Classic what-if: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('classic');
-  await page.locator('.cl-whatif').click();
-  
-  const dep = page.locator('.dep');
-  await expect(dep).toBeVisible();
-
-  const row = (label: string) => dep.locator('.row').filter({ has: page.locator('label', { hasText: new RegExp(`^${label}`) }) });
-  const mms = row('Mms').locator('input');
-  await mms.click();
-  await mms.press('Control+a');
-  await mms.pressSequentially(IMPOSSIBLE_MMS_G);
-  await mms.blur();
-
-  const dqIcon = row('Mms').locator('.de-dq');
-  await expect(dqIcon).toBeVisible();
-
-  const tooltip = page.locator('body > .dq-tooltip-box-Mms');
-  await expect(tooltip).toBeHidden();
-
-  // Hover
-  await dqIcon.hover();
-  await expect(tooltip).toBeVisible();
-
-  // Verify bounding box is fully visible within viewport boundaries
-  const viewport = page.viewportSize();
-  expect(viewport).not.toBeNull();
-  const box = await tooltip.boundingBox();
-  expect(box).not.toBeNull();
-  expect(box!.x).toBeGreaterThanOrEqual(0);
-  expect(box!.y).toBeGreaterThanOrEqual(0);
-  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
-  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
-
-  // Mouse leave
-  await dep.locator('.subsect', { hasText: 'Box' }).hover();
-  await expect(tooltip).toBeHidden();
-
-  // Click
-  await dqIcon.click();
-  await expect(tooltip).toBeVisible();
-
-  // Click outside
-  await dep.locator('.subsect', { hasText: 'Box' }).click();
-  await expect(tooltip).toBeHidden();
-});

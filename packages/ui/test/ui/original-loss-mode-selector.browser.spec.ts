@@ -1,14 +1,12 @@
 /**
- * The Original skin's sealed-box Box tab must expose the same Fsc-model loss-mode selector
- * (Lossless / Conventional Lossy / WinISD Lossy) the Classic skin already has — the underlying
- * calculation already reads state.lossMode (OriginalShell.vue's sealedRes), but until now
- * nothing rendered a control to change it, so it was silently pinned to the default.
+ * The sealed-box Box tab exposes the Fsc-model loss-mode selector (Lossless / Conventional
+ * Lossy / WinISD Lossy). The calculation reads state.lossMode (OriginalShell.vue's
+ * sealedRes), so without a control the model would be pinned to the default.
  */
 import { test, expect } from '../fixtures.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('select#og-box-type').selectOption('sealed');
 });
 

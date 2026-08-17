@@ -6,6 +6,7 @@ import type { PrRepo } from '../db/prLibrary.js';
 import type { MyDriverRepo } from '../db/myDrivers.js';
 import type { Logging } from '../logging/flash.js';
 import type { Diagnostics } from '../diagnostics/selftest.js';
+import type { FaultLog } from '../diagnostics/faultLog.js';
 
 /**
  * What the presentation layer is given.
@@ -27,6 +28,7 @@ export interface AppLogic {
   prLibrary: PrRepo;
   myDrivers: MyDriverRepo;
   diagnostics: Diagnostics;
+  faultLog: FaultLog;
 }
 
 export const APP_LOGIC: InjectionKey<AppLogic> = Symbol('openisd.app');

@@ -4,14 +4,13 @@ declare const __PLATFORM_USER__: string | undefined;
 declare const __BUILD_DATETIME__: string;
 const buildDatetime = __BUILD_DATETIME__;
 /**
- * Original shell — a faithful wholesale port of the `mock/` WinISD 0.7.0.950
- * recreation (mock/index.html + mock/style.css), wired to the shared store + engine.
+ * The shell — a faithful recreation of WinISD 0.7.0.950's window, wired to the store +
+ * engine.
  *
- * Fidelity rule: the markup, class names, layout and chrome match the mock region by
- * region. The ONE sanctioned divergence is that the mock's fake state/physics are
- * replaced by the shared store + engine — the static graph SVG becomes the shared
- * GraphPanel, every `.calculated` literal becomes a live engine value, and every
- * `.entered` field is v-model-bound to the store.
+ * Fidelity rule: the markup, class names, layout and chrome match WinISD's own screens
+ * region by region (docs/winisd/*.png). Every `.calculated` readout is a live engine
+ * value and every `.entered` field is v-model-bound to the store — nothing on screen is a
+ * literal standing in for physics.
  *
  * Box-type scope: the engine solver (packages/engine/src/circuit.ts) models four types
  * (sealed, vented, pr, bandpass4). 6th-order bandpass and ABC are ported as UI (diagram +
@@ -65,8 +64,7 @@ const { editProjectDriver } = selection;
 // WinISD's yellow-green plot line — the Original skin's default trace colour + Color swatch.
 // The current design's trace colour. The Color button cycles it through a small
 // palette (WinISD's yellow-green first) and it feeds the shared GraphPanel's
-// primaryColor live — self-contained to this skin (no store/shared-component change).
-// The mock's own palette (mock/script.js `colorPalette`) — kept identical for fidelity.
+// primaryColor live.
 const TRACE_PALETTE = ['#c9c92e', '#e34b4b', '#3a7bd5', '#2e8b57', '#c23bc2', '#2ec9c9', '#e08a2e'];
 const traceIdx = ref(0);
 const WINISD_TRACE = computed(() => TRACE_PALETTE[traceIdx.value]);
@@ -111,7 +109,7 @@ const enclosureNavLabel = computed(() =>
     : selectedBox.value === 'sealed' ? 'Closed'
       : boxLabel.value);
 // A Closed box has no vents/PR — its enclosure tab would only duplicate the Box tab's
-// Volume, so it's dropped (matching the Classic skin's sealed-box behaviour).
+// Volume, so it's dropped.
 const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 
 // ---- Live engine-derived readouts (never faked literals) -----------------------
@@ -228,7 +226,7 @@ const prFsMass = computed(() => calcPrFsMass(state.P.prMmd, state.P.prMadd, stat
 const prQms = computed(() => calcPrQms(state.P.prMmd, state.P.prCms, state.P.prRms));
 
 // ---- Chart selector ------------------------------------------------------------
-// The mock's full chart menu; each maps to a real engine curve id (TABS) or null.
+// WinISD's full chart menu; each maps to a real engine curve id (TABS) or null.
 // Null items stay listed (fidelity) but draw no fabricated curve — the graph shows a
 // clean "not available" state, honest about what the engine can and can't compute.
 type ChartItem = { label: string; tab: ChartTabId | null; sep?: boolean };
@@ -724,8 +722,8 @@ const boxLossesOpen = ref(false);
 const newProjectOpen = ref(false);
 const optionsOpen = ref(false);
 
-// Tune (inline What-If) and Edit (full editor modal) reuse the shared driver editors.
-// Both need the driver-source snapshot seeded first, exactly as the Classic skin does.
+// Tune (inline What-If) and Edit (full editor modal) both need the driver-source snapshot
+// seeded first.
 function startTune() { state.editDriver = true; }
 
 // ---- PR selection header (Enclosure tab, PR box type) — mirrors the Driver tab's
@@ -759,11 +757,10 @@ function defineNewPREntry() { prBrowseOpen.value = false; prDefineOpen.value = t
 function startEdit() { editProjectDriver(); }
 
 // R1 refresh fidelity — preserve an open Tune (what-if) + its uncommitted buffer across a
-// reload. Original-scoped: only this shell reads/writes these state.ui fields, so Modern and
-// Classic refresh behaviour is unchanged (they never set originalTuneOpen). These live in
-// state.ui, so they persist to localStorage (refresh) but stateToUrl strips these two fields
-// specifically — an open editor's uncommitted buffer is personal working state, excluded from
-// share links (skin + active tab/chart ARE shared — see stateToUrl's own comment).
+// reload. These live in state.ui, so they persist to localStorage (refresh) but stateToUrl
+// strips these two fields specifically — an open editor's uncommitted buffer is personal
+// working state, excluded from share links (the active tab/chart IS shared — see stateToUrl's
+// own comment).
 // Only whether the panel is OPEN is remembered. The what-if VALUES are not: a what-if is
 // unverified and can never commit, so persisting it would bring an uncommitted value back
 // after a refresh looking like a decision the user made. ManagedProject owns what-if state and
@@ -786,8 +783,7 @@ watch(isModified, (val) => {
 });
 
 // Same for the Driver Editor modal — it edits the committed design live (no separate buffer),
-// so preserving it across refresh is just persisting the open flag and reopening. Original-
-// scoped (Modern/Classic never set originalEditorOpen).
+// so preserving it across refresh is just persisting the open flag and reopening.
 watch(() => state.editDriverInfo, (open) => { state.ui.originalEditorOpen = open; });
 // RESTORE ONLY — hence the `!state.editDriverInfo` guard, the same shape the Tune watcher
 // above uses. The line above MIRRORS every ordinary open into `originalEditorOpen`, so
@@ -1129,6 +1125,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                  pane (and so the whole bottom track, which is auto-sized) whenever a box type
                  with notes was picked, shifting the chart above. -->
             <div class="box-notes-col">
+              <p class="hint"><b>Rear chamber</b> is the chamber behind the driver, <b>front chamber</b> the one in front of it. Closed, vented and PR have a rear chamber only.</p>
               <p v-if="selectedBox === 'sealed'" class="hint"><b>Sealed (Fsc):</b> System resonance frequency where the speaker impedance peaks and below which the response rolls off at 12 dB/octave. Solved from the box volume Vb.</p>
               <p v-if="selectedBox === 'vented'" class="hint"><b>Vented (Fb):</b> Helmholtz resonance of the box volume and port. At Fb, port output is maximized and driver cone excursion is minimized.</p>
               <p v-if="selectedBox === 'pr'" class="hint"><b>PR (Fp):</b> Helmholtz-like tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
@@ -1342,8 +1339,8 @@ watch(() => state.ui.originalEditorOpen, (open) => {
               <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
               <!-- A closed box has no passive radiator, so the PR system tuning is not a
                    quantity it HAS. Its resonance is the sealed Fsc the Box tab already
-                   reports, from the same `boxResonance` — GAPS.md §A3 is exactly this class
-                   of defect: a real number from another model, under a foreign label. -->
+                   reports, from the same `boxResonance`. Never put a number from another
+                   model under this label. -->
               <div class="field"><label>Fsc</label><input id="og-sealed-enclosure-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit" /></div>
             </div>
             <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
@@ -1371,7 +1368,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
           </div>
         </section>
 
-        <!-- ===== Filters tab — mock-styled OgFilters, wired to the same state.P.filters ===== -->
+        <!-- ===== Filters tab — OgFilters, wired to state.P.filters ===== -->
         <section v-show="activeTab === 'filters'" class="tab-section" :class="{ active: activeTab === 'filters' }">
           <OgFilters />
         </section>
@@ -1479,7 +1476,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
       </div>
     </div>
 
-    <!-- ===== Tune (mock-styled docked What-If) + full Driver editor (shared, for now) ===== -->
+    <!-- ===== Tune (docked What-If) + full Driver editor ===== -->
     <OgTune v-if="state.editDriver" />
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
     <OgNewProject v-if="newProjectOpen" @close="newProjectOpen = false" />
@@ -1489,11 +1486,10 @@ watch(() => state.ui.originalEditorOpen, (open) => {
 </template>
 
 <style scoped>
-/* Ported wholesale from mock/style.css — same class names, layout and chrome, so the
-   Original skin renders identically to the mock. The only additions are the WinISD-light
-   palette + --chart-* custom properties (so the shared GraphPanel/canvas render light with
-   no fork) and `:deep(input)` rules so the shared NumInput's inner <input> picks up the
-   mock's `.field` field styling. */
+/* Class names, layout and chrome follow WinISD's own window. The WinISD-light palette and
+   the --chart-* custom properties keep the shared GraphPanel/canvas rendering light without
+   a fork, and the `:deep(input)` rules give the shared NumInput's inner <input> the same
+   `.field` styling as every other field here. */
 .original-root *, .original-root *::before, .original-root *::after { box-sizing: border-box; }
 .original-root {
   /* Light-theme palette overrides — like .classic-root. Without these, reused

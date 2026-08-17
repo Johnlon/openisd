@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Original (WinISD) skin — the wholesale port of the `mock/` prototype, wired to the
- * shared store/engine. Selecting it swaps the whole shell; the reused chart + panels
- * drive the same store, so no shell forks logic. These tests assert the skin seam plus
- * the mock-fidelity regions (toolbar icons, chart-select dropdown, all 7 tabs, the
- * Placement/Advanced/Listening-place sections, box types, and the box-losses modal).
- * The auto console/network guardrail (fixtures) asserts the skin swap raises no errors.
+ * The shell — WinISD 0.7.0.950's window, wired to the store/engine. These tests assert
+ * the WinISD-fidelity regions: toolbar icons, chart-select dropdown, all 7 tabs, the
+ * Placement/Advanced/Listening-place sections, box types, and the box-losses modal.
+ * The auto console/network guardrail (fixtures) asserts none of it raises errors.
  */
 import { test, expect } from '../fixtures.js';
 import type { Locator, Page } from '@playwright/test';
@@ -51,7 +49,6 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.original-root').waitFor({ state: 'visible' });
 });
 
@@ -70,7 +67,7 @@ test('the titlebar displays the build datetime', async ({ page }) => {
 });
 
 
-test('the toolbar ports the mock icon buttons + chart-select', async ({ page }) => {
+test('the toolbar carries WinISD\'s icon buttons + chart-select', async ({ page }) => {
   // Toolbar: 8 icon controls (.tb-btn) — Open, New, Save, Revert, Save-As/Export, Manage Drivers,
   // Options, Info — plus the .chart-select control. (Save As merged into Save-As/Export.)
   await expect(page.locator('.toolbar .tb-btn')).toHaveCount(8);
@@ -169,7 +166,7 @@ test('the Color button cycles the current design trace colour (and wraps)', asyn
   const before = await bg();
   await swatch.click();
   expect(await bg()).not.toBe(before);
-  // The mock palette has 7 colours, so 7 clicks total returns to the start.
+  // The palette has 7 colours, so 7 clicks total returns to the start.
   for (let i = 0; i < 6; i++) await swatch.click();
   expect(await bg()).toBe(before);
 });
@@ -282,7 +279,6 @@ test('the Tune what-if panel previews live and Cancel reverts — no Keep/commit
 test('a Tune what-if can never dirty the project, however it closes (STATE_MODEL: what-if never commits)', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
 
   const unsaved = page.locator('.unsaved-label');
@@ -486,7 +482,6 @@ test('New Project collects the project name first and shows it in the titlebar',
 test('New Project starts fresh — it discards the previous design (filters, params)', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.locator('.skin-picker select').selectOption('original');
 
   // Dirty the current design: a filter and a non-default power.
   await page.evaluate(async () => {
@@ -594,7 +589,6 @@ test('a dragged frequency band selection survives the share link', async ({ page
 test('the Save bar tracks whether the design differs from ground; Save adopts it, Reset reverts it (STATE_MODEL ground↔committed)', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
 
   const unsaved = page.locator('.unsaved-label');
@@ -673,7 +667,6 @@ test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async 
 test('R1: an open Driver Editor is reopened after a reload', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.overlay.on')).toContainText("Edit Project's Driver");
@@ -687,7 +680,6 @@ test('R1: an open Driver Editor is reopened after a reload', async ({ page }) =>
 test('R1: an open Tune with uncommitted what-if values is preserved across a reload', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const fsInput = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).locator('input');
@@ -708,7 +700,6 @@ test('R1: an open Tune with uncommitted what-if values is preserved across a rel
 test('R1 refresh fidelity: box type, active tab, and selected chart survive a reload', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.locator('.skin-picker select').selectOption('original');
 
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('select#og-box-type').selectOption('sealed');

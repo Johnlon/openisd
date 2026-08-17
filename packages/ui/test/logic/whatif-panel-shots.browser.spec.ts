@@ -18,7 +18,6 @@ async function original(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.original-root').waitFor({ state: 'visible' });
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
@@ -49,18 +48,4 @@ test('shots: Original Tune what-if panel — previous field width', async ({ pag
   const tune = await original(page);
   await page.addStyleTag({ content: '.tune-unit input, .tune-roval { width: 100% !important }' });
   await tune.screenshot({ path: `${SHOTS}/view_1_driver_tune_whatif_before_width.png` });
-});
-
-test('shots: Classic inline what-if panel', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('classic');
-  await page.locator('.cl-whatif').click();
-  const dep = page.locator('.dep');
-  await dep.waitFor({ state: 'visible' });
-  await dep.screenshot({ path: `${SHOTS}/view_1_driver_classic_whatif_after.png` });
-
-  await page.addStyleTag({ content: '.dep .row input { width: 96px !important; flex: 0 0 96px !important }' });
-  await dep.screenshot({ path: `${SHOTS}/view_1_driver_classic_whatif_before_width.png` });
 });

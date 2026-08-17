@@ -22,9 +22,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { Driver } from '@openisd/winisd';
+import { WinISDDriver } from '@openisd/winisd';
+import { OpenISDDriver, emptyDriverRecord } from '@openisd/model';
+import type { SpecField } from '@openisd/model';
 import { precision, fieldById } from '../../src/logic/fields/fieldRegistry.js';
-import { UNIT_GROUPS } from '../../src/logic/fields/units.js';
+import { UNIT_GROUPS, unitDef, type UnitGroup } from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const EDITOR = join(here, '..', '..', 'src', 'ui', 'components', 'DriverEditorModal.vue');
@@ -64,8 +66,23 @@ function boundFields(): Bound[] {
     const field = /<NumInput[^>]*:model-value="cellVal\('([^']+)'\)"/.exec(chunk)?.[1];
     if (!label || !field) continue;                       // read-only readout or a text input
     const numInput = /<NumInput[\s\S]*?>/.exec(chunk)![0];
-    const scaleExpr = /:scale="([^"]+)"/.exec(numInput)?.[1] ?? '';
     const precisionExpr = /:precision="([^"]+)"/.exec(numInput)?.[1] ?? '';
+
+    // A field with a click-to-rotate unit binds `field`/`group`/`base` on the NumInput itself
+    // and renders its unit label through `<UnitToggle .../>`, a COMPONENT — the text "mm" or
+    // "kHz" lives inside UnitToggle.vue's own template, not literally in this file's source, so
+    // scraping this file's raw text for it (as the fixed-unit fields below do) always found
+    // nothing. `unitDef()` is the same resolver NumInput/UnitToggle use at runtime, so asking it
+    // for the field's BASE token gives the exact label/factor a fresh render shows.
+    const groupMatch = /\bgroup="([A-Za-z]+)"/.exec(numInput);
+    const baseMatch = /\bbase="([A-Za-z0-9.]+)"/.exec(numInput);
+    if (groupMatch && baseMatch) {
+      const def = unitDef(groupMatch[1] as UnitGroup, baseMatch[1]);
+      out.push({ label, field, scale: def.factor, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr });
+      continue;
+    }
+
+    const scaleExpr = /:scale="([^"]+)"/.exec(numInput)?.[1] ?? '';
     out.push({
       label,
       field,
@@ -100,8 +117,8 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
 }
 
 /** A driver with every core T/S parameter present, in SI. */
-function coreDriver(): Driver {
-  const d = new Driver();
+function coreDriver(): OpenISDDriver {
+  const d = OpenISDDriver.fromRecord(emptyDriverRecord());
   d.enter('Fs', 37);
   d.enter('Qes', 0.4);
   d.enter('Qms', 7.0);
@@ -158,7 +175,9 @@ describe('driver editor — unit label and scale agree', () => {
   it('the Dimensions tab shows lengths in millimetres, not raw metres under a wrong label', () => {
     // A 6.5" driver's basket is 0.165 m. Rendered under a length label it must read as that
     // length — 165 mm — never 0.17, and never a metre value printed beside "in".
-    for (const label of ['Thick', 'Depth', 'Magnet Depth', 'Magnet', 'Basket', 'Outer', 'VCd']) {
+    for (const label of ['Basket Plate Thickness (Thick)', 'Driver Depth (Depth)', 'Magnet Depth (MagDepth)',
+                         'Magnet Diameter (Magnet)', 'Basket Diameter (Basket)',
+                         'Outer Diameter (Outer)', 'Voice Coil Dia (VCd)']) {
       const f = byLabel(label);
       assert.equal(f.unit, 'mm', `${label} is labelled "${f.unit}"`);
       assert.equal(0.165 * f.scale, 165, `${label} renders 0.165 m as ${0.165 * f.scale} ${f.unit}`);
@@ -194,7 +213,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     const text = readFileSync(join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'john-all-noncalc-fields-manually-entered.wdr'), 'utf8');
     const stored = /^Gloss=(.*)$/m.exec(text)?.[1];
     assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
-    const cell = Driver.fromWdr(text).cell('loss');
+    const cell = OpenISDDriver.fromRecord(WinISDDriver.fromWdr(text).toOpenISDRecord()).cell('loss' as SpecField);
     assert.equal(cell.state, 'C', 'this fixture\'s ParState marks Gloss computed, not entered');
     assert.equal(typeof cell.value, 'number', 'loss must be numeric');
     const relError = Math.abs((cell.value as number) - 1.72503712771898) / 1.72503712771898;
@@ -226,7 +245,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     // Advanced-panel ruling QO24: only alfaVC, Rt and Ct are manual. A driver authored in-app
     // has no `Gloss=` line to carry, so the number on the panel can only come from the solver.
     const d = coreDriver();
-    const cell = d.cell('loss');
+    const cell = d.cell('loss' as SpecField);
     assert.equal(typeof cell.value, 'number',
       `Gloss binds cellVal('loss'), which the driver model leaves ${cell.state} — the field renders blank`);
     // g/((2π·37)²·0.005) for coreDriver's Fs/Xmax.
@@ -241,14 +260,16 @@ describe('driver editor — precision comes from the field registry', () => {
   const REGISTRY_ID: Record<string, string> = {
     Dd: 'Dd',
     fLe: 'fLe',
-    Thick: 'dimThick',
-    Depth: 'dimDepth',
-    'Magnet Depth': 'dimMagnetDepth',
-    Magnet: 'dimMagnet',
-    Basket: 'dimBasket',
-    Outer: 'dimOuter',
-    VCd: 'dimVCd',
-    Dvol: 'dimDvol',
+    // Mechanical fields carry "Full Name (Short)" labels, taken from WinISD's own help
+    // (research/winisd/help/thielesmall.html). Keys here are the rendered label text.
+    'Basket Plate Thickness (Thick)': 'dimThick',
+    'Driver Depth (Depth)': 'dimDepth',
+    'Magnet Depth (MagDepth)': 'dimMagnetDepth',
+    'Magnet Diameter (Magnet)': 'dimMagnet',
+    'Basket Diameter (Basket)': 'dimBasket',
+    'Outer Diameter (Outer)': 'dimOuter',
+    'Voice Coil Dia (VCd)': 'dimVCd',
+    'Driver Displacement Volume (Dvol)': 'dimDvol',
   };
 
   for (const [label, id] of Object.entries(REGISTRY_ID)) {
@@ -278,7 +299,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
     const d = coreDriver();
     for (const label of ['SPL', 'no']) {
       const f = byLabel(label);
-      const cell = d.cell(f.field);
+      const cell = d.cell(f.field as SpecField);
       assert.equal(
         typeof cell.value,
         'number',
@@ -287,12 +308,19 @@ describe('driver editor — every bound cell is one the driver model answers', (
     }
   });
 
-  it('Voicecoils reads 1 on a driver that never specified a coil count', () => {
-    // WinISD shows 1 there on a blank driver (docs/winisd/edit_driver_pg2_parameters.png),
-    // and Driver.fromWdr already backfills numVC=1 for a .wdr that omits the key — so a
-    // driver built any other way must answer the same, not blank.
+  it('Voicecoils cell stays honestly N until stated; the engine gets the default of 1, not the display', () => {
+    // openisdDriver.ts's own comment on toDriver() (~line 337): "numVC defaults to 1 here
+    // ONLY ... cell('numVC') stays honestly N when nothing stated it; this is the one place a
+    // default is owed to the physics, not to the field's own display." So the EDITOR field
+    // (which binds cellVal, i.e. cell()) is correctly blank on an unstated driver — WinISD's
+    // own blank-driver screen (docs/winisd/edit_driver_pg2_parameters.png) shows 1 there, but
+    // that is the ENGINE's default, applied at toDriver(), never faked as ENTERED/CALCULATED
+    // on the cell a human is looking at.
     const f = byLabel('Voicecoils');
-    const cell = coreDriver().cell(f.field);
-    assert.equal(cell.value, 1, `Voicecoils is ${cell.state} (${String(cell.value)}) instead of the default 1`);
+    const d = coreDriver();
+    const cell = d.cell(f.field as SpecField);
+    assert.equal(cell.state, 'N', `Voicecoils cell is ${cell.state} — an unstated field must not read as entered or calculated`);
+    assert.equal(cell.value, null, 'an honestly-N cell must not carry a fabricated value');
+    assert.equal(d.toDriver()?.numVC, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');
   });
 });

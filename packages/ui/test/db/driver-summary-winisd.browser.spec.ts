@@ -1,9 +1,8 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures.js';
 
-// ui-todo.md "Single click opens a driver summary, not the editor" — for the WinISD picker
-// (DriverBrowserWinisd.vue), which until now selected straight off the row click. The Modern
-// picker has always previewed first; this brings the WinISD one to the same behaviour.
+// ui-todo.md "Single click opens a driver summary, not the editor" — the picker
+// (DriverBrowserWinisd.vue) previews before it selects.
 //
 // docs/design/STATE_MODEL.md rule 1 governs what a selection DOES, and it changed under this spec: a
 // choice now EMBEDS the driver in the project and closes the picker — no editor in the way.

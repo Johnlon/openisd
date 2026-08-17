@@ -13,7 +13,6 @@ import type { Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
   await expect(page.locator('.original-root')).toBeVisible();
 });
 

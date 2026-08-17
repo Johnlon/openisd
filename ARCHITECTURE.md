@@ -515,7 +515,7 @@ model, so nothing above the domain layer knows what ParState is.
 | `@openisd/engine` | `packages/engine/src/`         | **The only place electro-acoustic maths exists** — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState), file formats, DOM, app state |
 | `@openisd/model`  | `packages/model/src/`          | `OpenISDDriver` — the one driver model, its provenance, its derivation. No separately exported record type            | File formats, DOM, app state                                  |
 | `@openisd/projection` | `packages/projection/src/` | The `driver.yml → openisd.yml → .wdr` transforms, bundled as ONE file an embedded V8 can load. Text in, text out, never throws | DOM, `window`, network, filesystem, Vue — anything V8-in-Python lacks |
-| `@openisd/winisd` | `packages/winisd/src/`         | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the carried-key set                        | The driver model, derivation, live state, DOM, app state      |
+| `@openisd/winisd` | `packages/winisd/src/`         | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the 48-key order                        | The driver model, derivation, live state, DOM, app state      |
 | `logic`           | `packages/ui/src/logic/`       | The app's ONLY state. Store, project/workspace model, workflows, field registry, chart-series mapping          | Maths, `.vue` imports, direct construction of a service       |
 | `driverRepo`      | `packages/ui/src/db/`          | The driver commons: index, search, filter, lookup. Answers questions, returns records                          | App state, workflow, `.vue` imports                           |
 | `myDriverRepo`    | `packages/ui/src/db/`          | User-saved drivers: read, write, delete by identity                                                            | App state, workflow, `.vue` imports                           |
@@ -1072,7 +1072,67 @@ a WinISD `.wpr`; on top of that it carries everything OpenISD needs that WinISD 
 The `.wpr` writer trims down to what WinISD understands — the project never trims itself to suit a
 foreign format.
 
+**EVERY STORED PAYLOAD CARRIES THE SCHEMA VERSION IT WAS SERIALISED FROM** (app dev policy,
+human 2026-08-17). Not the app version — the MODEL version of the shape written. That applies to
+`localStorage`, share links, exported files and anything else that outlives the session.
+
+Reading is a REPAIR: a payload at `Vn` is brought to the current `Vm` by applying the `m − n`
+upgrade steps in order, each step doing one shape change and nothing else. A reader that simply
+hopes the shape matches is the defect this replaces.
+
+**If an upgrade step cannot be written, the agent STOPS DEAD and asks the human.** It does not
+guess the source version, invent a coercion, or quietly drop the payload. Guessing is how a
+"repair" silently rewrites data the user cannot get back.
+
+**Breaking changes are to be avoided even before launch.** Nothing is live yet, and the pattern
+is still established now, deliberately: a versioning discipline adopted after the first real
+user is a versioning discipline adopted too late.
+
+A version number nobody READS is not versioning. `persist.ts` wrote `v: 2` into every saved
+state and no code ever read it back, so it recorded nothing and prevented nothing.
+
+**NO SINGLE DATUM MAY TAKE THE APP DOWN.** One malformed value, anywhere, must degrade one
+thing — never the session. A record that will not load costs the user that record; it does not
+cost them the box they were designing, the charts they had open, or the ability to start again
+without clearing their browser.
+
+Everything crossing INTO the app from outside is untrusted: `localStorage`, a share link, an
+uploaded file, a bundled record. TypeScript says nothing about any of it — `x as SomeRecord`
+is an ASSERTION about data we did not write, and a cast is not a check. So every such boundary
+VALIDATES, refuses what would throw, reports the refusal, and carries on with the rest.
+
+Precedent (2026-08-17): `applyState` did `managedProject.loadDriverRecord(o.driver as
+DriverRecord)` on a blob straight out of `localStorage`. One record lacking its `specs`
+container threw on the first field read, and because every driver figure is a reactive computed
+over that one object, the panel, the charts and the error list all died together — a blank app
+from one absent key, which a hard reload could not clear because the poison was in storage.
+Now gated by `driverRecordProblems()` at the boundary, with the reason surfaced through
+`restoreProblems`.
+
+**Corollary — data is loaded by a RUNNING app, never during its construction.** Restoring state
+is an operation the app performs, not a precondition of its existing. A failure while loading
+must therefore be catchable BY the app: something has to still be up to catch it, report it and
+offer the user a way out. This is why the fault log installs first in `main.ts`, before any
+service is built.
+
 **`OpenISDProject` holds the ENTIRE UI data for the project**, not just the physics inputs.
+
+**The same rule binds the DRIVER: `OpenISDDriver` is a SUPERSET of a `.wdr`.** OpenISD is
+WinISD-compatible AND MORE. So every field a `.wdr` can carry HAS a home in the OpenISD model —
+that is a requirement on the model, not a property to be discovered about it. A `.wdr` key with
+nowhere to go is a hole in `OpenISDDriver`, and the only correct response is to give it a home.
+
+The home is not always the driver record. `c` (speed of sound) and `roo` (air density) are
+properties of the AIR, so they belong to `OpenISDEnvironment` — a driver in the catalogue does
+not have a speed of sound. "Which part of the model" is a real question; "whether the model
+covers it" is not.
+
+**A projection may never SILENTLY drop a field it cannot place.** Trimming on the way to a
+foreign file is legitimate and expected — the `.wpr` and `.wdr` writers both do it, because
+those formats cannot express everything OpenISD knows. Dropping on the way IN is the opposite:
+it destroys what the user gave us, and a `continue` past an unplaceable value hides the hole
+this rule exists to expose. Gated by
+`packages/winisd/test/wdr-model-coverage.test.ts`.
 
 **Switching box type DELETES NOTHING.** A ported box flipped to sealed keeps its port data; that
 data goes DORMANT, not away. Flip back and it is still there, exactly as it was. Only the `.wpr`

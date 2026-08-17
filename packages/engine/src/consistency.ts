@@ -16,7 +16,7 @@
  *                constants exist across the codebase. A detector built on an unresolved
  *                constant would report the codebase's own open defect on every driver.
  *   19           `Xmax = |Hc−Hg|/2` — the solver reads `Hc`/`Hg`; nothing in the app writes
- *                those names (the editor's fields are `hc`/`hag`, carried passthrough), so the
+ *                those names (the editor's fields are `hc`/`hag`), so the
  *                group can never be populated.
  *
  * WHAT COUNTS AS A DISAGREEMENT — precision, not exact equality.

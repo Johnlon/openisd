@@ -23,7 +23,6 @@ function numInputByLabel(page: Page, labelText: string, scope: Locator = page.lo
 
 test('exporting a WinISD driver (.wdr) while a Tune what-if is active auto-cancels the what-if', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
 
   // Start a live what-if and change a field, leaving it UNCOMMITTED (no Keep).
   await page.locator('li', { hasText: 'Driver' }).click();
@@ -50,7 +49,6 @@ test('exporting a WinISD driver (.wdr) while a Tune what-if is active auto-cance
 
 test('opening the driver picker while a Tune what-if is active auto-cancels the what-if', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
 
   await page.locator('li', { hasText: 'Driver' }).click();
   await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
@@ -71,7 +69,6 @@ test('opening the driver picker while a Tune what-if is active auto-cancels the 
 
 test('opening the full driver editor while a Tune what-if is active auto-cancels the what-if and seeds from the committed value', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.skin-picker select').selectOption('original');
 
   await page.locator('li', { hasText: 'Driver' }).click();
   await page.locator('button.edit-btn', { hasText: 'Tune' }).click();

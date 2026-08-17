@@ -10,8 +10,7 @@ const { prLibrary } = useApp();
 
 // PR "Edit" — a real popup (unlike the driver What-If, this doesn't need the graph
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
-// parameters" box). Fields here describe the PR unit itself, not the box around it
-// (that's BoxPanel's "Rear chamber" Fh) nor the tunable added-mass (PRWhatIfPanel).
+// parameters" box). Fields here describe the PR unit itself, not the box around it.
 
 import { useEscToClose } from '../../logic/useEscToClose.js';
 

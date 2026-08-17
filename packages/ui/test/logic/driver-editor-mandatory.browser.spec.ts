@@ -8,7 +8,6 @@ test.beforeEach(async ({ page }) => {
 
 test('brand and model fields are mandatory, have bold borders, and turn red when empty without losing focus', async ({ page }) => {
   // 1. Open the project driver editor
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.de-modal')).toBeVisible();
@@ -90,7 +89,6 @@ test('brand and model fields are mandatory, have bold borders, and turn red when
 // say why not. Missing T/S is a data-quality state that only stops the CHARTS.
 
 async function openParameters(page: import('@playwright/test').Page) {
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.de-modal')).toBeVisible();
@@ -150,6 +148,65 @@ test('Copy to My Drivers and Save are gated the same way', async ({ page }) => {
 
   await saveBtn(page).click();
   await expect(page.getByText('Brand and Model are both required')).toBeVisible();
+});
+
+/**
+ * The incompleteness panel is TWO strips, and the separation is the point: a missing Brand
+ * stops the driver being FILED under a name and changes no curve, while a missing Fs blanks
+ * every chart and has nothing to do with filing. Collapsing them into one list would tell the
+ * user their charts are blank because they have not typed a brand name.
+ *
+ * Neither strip blocks anything — the driver still saves, which is what "Saves fine, but…"
+ * promises.
+ */
+test('a missing Brand raises the IDENTITY strip only, and blanks no chart', async ({ page }) => {
+  await openParameters(page);
+  await page.getByRole('button', { name: 'General', exact: true }).click();
+  await brandInputOf(page).fill('');
+  await brandInputOf(page).blur();
+
+  const identity = page.locator('.de-incomplete', { hasText: 'filed under a name' });
+  await expect(identity).toBeVisible();
+  await expect(identity).toContainText('Brand is not set');
+
+  // The demo driver has its T/S values, so nothing blanks a chart. If this strip appears here,
+  // the two lists have been merged and a naming problem is being reported as a physics one.
+  await expect(page.locator('.de-incomplete', { hasText: 'charts stay blank' })).toHaveCount(0);
+
+  await expect(okBtn(page)).toBeEnabled();       // "Saves fine, but..." — it must still save
+  await expect(saveBtn(page)).toBeEnabled();
+});
+
+test('a missing Fs raises the CHART strip only, and the driver can still be filed', async ({ page }) => {
+  await openParameters(page);
+  await field(page, 'Fs').fill('');
+  await field(page, 'Fs').blur();
+
+  const charts = page.locator('.de-incomplete', { hasText: 'charts stay blank' });
+  await expect(charts).toBeVisible();
+  await expect(charts).toContainText('Fs');
+
+  // Brand and Model are untouched, so the driver still has a name to be filed under.
+  await expect(page.locator('.de-incomplete', { hasText: 'filed under a name' })).toHaveCount(0);
+});
+
+/**
+ * The heading states a CAUSE, and each item under it is a present-tense fact — "Brand is not
+ * set". "until:" would read as "blocked until it stays unset", which is the opposite of what
+ * is meant, so the connective has to be "because".
+ */
+test('each strip says BECAUSE, matching the present-tense facts it lists', async ({ page }) => {
+  await openParameters(page);
+  await page.getByRole('button', { name: 'General', exact: true }).click();
+  await brandInputOf(page).fill('');
+  await field(page, 'Fs').fill('');
+  await field(page, 'Fs').blur();
+
+  for (const heading of await page.locator('.de-incomplete-hd').allTextContents()) {
+    expect(heading, `"${heading}" must state a cause, not a future condition`).toContain('because');
+    expect(heading, `"${heading}" still says "until" over a list of present-tense facts`)
+      .not.toContain('until');
+  }
 });
 
 test('an incomplete driver is flagged in the editor, naming what is missing', async ({ page }) => {

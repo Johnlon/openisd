@@ -1,4 +1,5 @@
 import type { AppState, DriverJSON, SerializedState } from '../types.js';
+import { CURRENT_SCHEMA, upgrade, type StoredBlob } from './schemaUpgrade.js';
 
 // Share-link payload: gzip (native CompressionStream — Baseline widely available since May
 // 2023, no library needed) then base64url. JSON compresses well (repetitive key names), so
@@ -24,6 +25,11 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 
 export function serialize(state: AppState, driver: DriverJSON | undefined): SerializedState {
   return {
+    // The MODEL version this payload is written from — every reader upgrades from it
+    // (ARCHITECTURE.md §"EVERY STORED PAYLOAD CARRIES THE SCHEMA VERSION..."). `v` was
+    // written for years and never read once, so it recorded nothing; it is kept only because
+    // the type still declares it, and `schema` is the field that means something.
+    schema: CURRENT_SCHEMA,
     v: 2,
     driver,
     box: state.box,
@@ -66,8 +72,36 @@ export function saveLocal(serialized: SerializedState): void {
   try { localStorage.setItem('openisd.state', JSON.stringify(serialized)); } catch { /* quota / disabled storage — non-fatal */ }
 }
 
+/**
+ * Read the saved state and bring it to the current schema.
+ *
+ * The upgrade runs HERE, at the boundary, so nothing downstream ever sees an older shape. A
+ * payload this build cannot upgrade — a future version, or a gap in the chain — is refused
+ * rather than loaded hopefully; `upgrade()` throws and this returns null, leaving the app on
+ * its own defaults with the stored bytes untouched for diagnosis.
+ */
 export function loadLocal(): SerializedState | null {
-  try { const s = localStorage.getItem('openisd.state'); return s ? JSON.parse(s) : null; } catch { return null; }
+  let raw: string | null = null;
+  try { raw = localStorage.getItem('openisd.state'); } catch { return null; }
+  if (!raw) return null;
+
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch {
+    console.error('[restore] saved state is not valid JSON — ignored');
+    return null;
+  }
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  try {
+    const { blob, from, applied } = upgrade(parsed as StoredBlob);
+    if (applied.length) {
+      console.info(`[restore] upgraded saved state from schema V${from}: ${applied.join('; ')}`);
+    }
+    return blob as unknown as SerializedState;
+  } catch (e) {
+    console.error(`[restore] cannot load saved state — ${e instanceof Error ? e.message : String(e)}`);
+    return null;
+  }
 }
 
 export function download(name: string, text: string, mime?: string): void {
