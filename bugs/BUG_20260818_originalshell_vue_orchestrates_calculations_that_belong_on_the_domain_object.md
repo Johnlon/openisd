@@ -1,9 +1,9 @@
 # `OriginalShell.vue` orchestrates real calculations in the component instead of reading them off the domain object
 
 # Status
-OPEN 2026-08-18 — ruled, not yet implemented. Related to, but broader than, the vent-area/PR-
-formula duplication bugs found the same session — this one is about WHERE a calculation is
-performed, not whether the formula itself is duplicated.
+FIXED 2026-08-18. Related to, but broader than, the vent-area/PR-formula duplication bugs found
+the same session — this one is about WHERE a calculation is performed, not whether the formula
+itself is duplicated.
 
 ## Symptom
 
@@ -62,15 +62,19 @@ permitted to expose a calculated value from it.
 
 ## Fix
 
-Not applied — reported per bug-first rule; scope is large enough to need its own pass, not a
-field-by-field fix under time pressure. Each of the computed values above becomes a method on
-`ManagedOpenISDProject` (matching the `ventArea_m2()`/`ventEffectiveLength_m()` pattern already
-landed this session), reading from `this.#effective().project`/`this.#effective().driver`
-internally; the component's `computed()` becomes a one-line read of that method, same shape as
-`OriginalShell.vue`'s already-fixed `ventArea`. Needs the full 31-item list actually audited
-(this bug lists representative offenders, not a verified-complete inventory) before starting,
-since some of the 31 are legitimate UI-only state and must not be moved.
+Each of the computed values above is now a method on `ManagedOpenISDProject`
+(`sealedResonance()`, `prSystemTuning_hz()`, `portPipeResonance_hz()`, `prVas_l()`, `prFs_hz()`,
+`prFsWithMass_hz()`, `prQms()`), matching the `ventArea_m2()`/`ventEffectiveLength_m()` pattern.
+`OriginalShell.vue`'s `computed()`s are now one-line reads of those methods.
+`Rs`/`Ql`/`Qa`/`lossMode` stay as method parameters — they are `UiParams` fields, not yet part of
+`_OpenISDProjectJson`, so the domain object cannot read them internally yet.
+
+The remaining ~21 of the 31 `computed()`s in `OriginalShell.vue` were reviewed and are legitimate
+UI-only state (tab selection, layout collapse flags, chart metadata, entered-field E/C/N state
+already delegating to `store.ts`) — not calculation orchestration, out of this bug's scope.
 
 ## Verification
 
-Not yet — no fix applied.
+`npx vue-tsc --noEmit -p packages/ui` — no new errors (same 33 pre-existing, all unrelated).
+`npx vitest run packages/ui/test/ui/architecture.test.ts packages/ui/test/logic` — same 5
+pre-existing failures (the expected-red global-symbols gate), no regressions.

@@ -186,14 +186,27 @@ rule, awaiting implementation.
    (lines 69, 340, 346, 394) — reading a field for display, persisting to My Drivers storage,
    and passing raw JSON out through the driver-selection accept callback twice. `openisdYaml.ts:
    31` also calls `.toRecord()` and is not on `_OpenISDDriverJsonPrivateAllow` — a genuinely new
-   offender, not one of the 7 already tracked by today's architecture test. Neither fixed; both
-   are additional entries for whatever resolves the existing `_OpenISDDriverJson` violation list.
+   offender, not one of the 7 already tracked by today's architecture test.
+   **PARTIAL FIX (2026-08-18):** added `OpenISDDriver.sku()` (a plain-value getter, matching
+   `metaCell()`'s shape) and rewired line 69's single-field display read onto it — that call
+   site no longer needs the raw record. The other 3 `DriverEditorModal.vue` call sites
+   (`myDrivers.upsert()`, `acceptDriverEdit()` ×2) hand the whole record to persistence/callback
+   layers, not a single field — those and `openisdYaml.ts`'s (a legitimate model-package
+   serializer, structurally identical to `openIsdDriverFileIo.ts`) need either a new
+   `PrivateAllow` entry (human-only, not done here) or routing through the existing
+   `openIsdDriverFileIo.ts` API — not resolved.
 10. `bugs/BUG_20260818_originalshell_vue_orchestrates_calculations_that_belong_on_the_domain_object.md`
-    — at least 10 of `OriginalShell.vue`'s 31 `computed()` properties orchestrate a real
-    calculation (calling an engine formula, combining multiple driver/box values) in the
-    component instead of reading it off `managedProject`. Same class of violation as blockers
-    #3/#8, broader scope — needs the full 31-item list audited before fixing, not a guess at
-    which are safe to move.
+    — **DONE (2026-08-18).** `sealedRes`/`rearResonance`/`rearQtc`, `prFh`, `portPipeResonance`,
+    `prVas`/`prFs`/`prFsMass`/`prQms` all moved onto `ManagedOpenISDProject` methods
+    (`sealedResonance()`, `prSystemTuning_hz()`, `portPipeResonance_hz()`, `prVas_l()`,
+    `prFs_hz()`, `prFsWithMass_hz()`, `prQms()`); component reads are one-liners now. Full
+    31-item list reviewed — the rest is legitimate UI-only state. No typecheck/test regressions.
+11. `bugs/BUG_20260818_exportDriver_called_with_a_plain_driverRecord_not_the_live_OpenISDDriver.md`
+    — `useDesignIO.ts`'s `exportWdr()`/`exportWpr()` pass `driverRecord.value`
+    (`_OpenISDDriverJson`) to `WinIsdDriverFileIo.exportDriver(driver: OpenISDDriver)`, which
+    declares and needs the live class. Pre-existing, found via `vue-tsc` during this sweep, not
+    introduced this session. Needs either a new narrow `PrivateAllow` entry (human decision) or
+    a `store.ts`-delegating export method that never hands the instance out — not resolved here.
 
 **Not started:** no code has been touched for this plan. Phase 0 (the enforcement test) hasn't
 been written yet.
