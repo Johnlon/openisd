@@ -66,7 +66,7 @@ const driverRaw = computed(() => {
     providedBy: d.metaCell('provided_by').value,
     comment: d.metaCell('comment').value,
     added: d.metaCell('added').value,
-    sku: d.toRecord().sku?.value ?? '',
+    sku: d.sku(),
     VCCon: d.cell('VCCon').value,
   };
 });
