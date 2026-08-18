@@ -40,7 +40,7 @@ import { defaultBox } from '@openisd/model';
 import {
   activeVent, boxVolume_m3 as readBoxVolume_m3, setBoxVolume_m3 as writeBoxVolume_m3,
   boxTuning_Fb_hz as readBoxTuning_Fb_hz, setBoxTuning_Fb_hz as writeBoxTuning_Fb_hz,
-  passiveRadiatorOrDefault, ensurePassiveRadiator,
+  passiveRadiatorOrDefault, ensurePassiveRadiator, ventArea_m2 as computeVentArea_m2,
 } from '@openisd/model';
 import type {
   Cell, MetaCell, SpecField, MetaField, _OpenISDProjectJson, _OpenISDDriverJson,
@@ -214,6 +214,24 @@ export class ManagedOpenISDProject {
   }
   setActiveVentField<K extends keyof OpenISDVent>(field: K, value: OpenISDVent[K]): void {
     this.mutate(p => { activeVent(p.box)[field] = value; });
+  }
+
+  /** The active vent's cross-sectional area — round or slotted, whichever it currently is.
+   *  A calculated value, exposed here (not computed by any caller) per ARCHITECTURE.md §5
+   *  "only the domain objects calculate". */
+  ventArea_m2(): number {
+    return computeVentArea_m2(activeVent(this.#effective().project.box));
+  }
+
+  /** The active vent's effective acoustic length — physical length plus the end-correction
+   *  term, which needs an equivalent diameter for a slotted vent (derived from its area) since
+   *  the correction is inherently a round-port concept. Calculated here, not by any caller. */
+  ventEffectiveLength_m(): number {
+    const vent = activeVent(this.#effective().project.box);
+    const equivalentDiameter_m = vent.shape === 'slotted'
+      ? 2 * Math.sqrt(this.ventArea_m2() / Math.PI)
+      : vent.diameter_m;
+    return vent.length_m + vent.endCorrection * equivalentDiameter_m;
   }
 
   prField<K extends keyof OpenISDPassiveRadiatorRef>(field: K): OpenISDPassiveRadiatorRef[K] {

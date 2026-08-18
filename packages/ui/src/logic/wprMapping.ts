@@ -37,9 +37,13 @@ export function buildWprInput(
   driverSection: string,
   project: ProjectMeta,
   now: Date,
+  /** Vent cross-sectional area, m² — a calculated value the caller reads off the domain
+   *  object (`managedProject.ventArea_m2()`), never computed in this function
+   *  (ARCHITECTURE.md §5 "only the domain objects calculate"). */
+  ventArea_m2: number,
   curves?: SweepResult | null,
 ): WprInput {
-  const Sp = Math.PI * (P.ventD / 2) ** 2;
+  const Sp = ventArea_m2;
   const modifyDate = `${now.getUTCFullYear()}${pad2(now.getUTCMonth() + 1)}${pad2(now.getUTCDate())}`;
 
   const input: WprInput = {

@@ -1,3 +1,16 @@
+/**
+ * `store.ts` — the app's Vue-reactive state HOLDER. It is a store, nothing more.
+ *
+ * ── What this file MUST NOT do (human ruling 2026-08-18, ARCHITECTURE.md §5) ──
+ * It must never CALCULATE a value — not even by correctly calling out to a properly
+ * single-sourced formula function. A calculated value is a property or method on the domain
+ * object that owns it (`OpenISDDriver`/`ManagedOpenISDProject`), read by this file, never
+ * computed IN this file. If a value this file needs isn't exposed on the owning domain object
+ * yet, the fix is adding it there as a getter/method — never computing it here "just this
+ * once," however small or well-sourced the calculation looks. This file's only legitimate
+ * jobs are: hold Vue-reactive references, delegate reads/writes to `managedProject`/the
+ * project registry, and bridge notifications into Vue's reactivity system.
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { reactive, computed, ref, shallowRef, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
@@ -200,12 +213,12 @@ function defineBoxFieldAccessors(target: object, mp: ManagedOpenISDProject): voi
     Vb: { enumerable: true, configurable: true, get: () => mp.boxVolume_m3(), set: (v: number) => mp.setBoxVolume_m3(v) },
     Vf: { enumerable: true, configurable: true, get: () => mp.frontVolume_m3(), set: (v: number) => mp.setFrontVolume_m3(v) },
     Fb: { enumerable: true, configurable: true, get: () => mp.boxTuning_Fb_hz(), set: (v: number) => mp.setBoxTuning_Fb_hz(v) },
-    ventShape: ventKey('ventShape', 'shape'),
-    ventD: ventKey('ventD', 'diameter_m'),
-    ventW: ventKey('ventW', 'width_m'),
-    ventH: ventKey('ventH', 'height_m'),
-    ventL: ventKey('ventL', 'length_m'),
-    endCorrection: ventKey('endCorrection', 'endCorrection'),
+    ventShape: ventKey('shape'),
+    ventD: ventKey('diameter_m'),
+    ventW: ventKey('width_m'),
+    ventH: ventKey('height_m'),
+    ventL: ventKey('length_m'),
+    endCorrection: ventKey('endCorrection'),
     prSd: prKey('Sd_m2'),
     prCms: prKey('Cms_m_per_N'),
     prMmd: prKey('Mmd_kg'),
@@ -240,7 +253,9 @@ function defineBoxFieldAccessors(target: object, mp: ManagedOpenISDProject): voi
 function defaultP(): UiParams {
   const p = { ...P_DEFAULTS, filters: [] };
   defineBoxFieldAccessors(p, managedProject);
-  return p as UiParams;
+  // BoxFieldKey properties are added by defineBoxFieldAccessors above, invisible to TS since
+  // they're Object.defineProperties, not object-literal fields — hence the double cast.
+  return p as unknown as UiParams;
 }
 
 export const state: AppState = getOrInit('state', () => reactive({
@@ -441,15 +456,8 @@ export const syncedP = computed<SyncedParams>(() => {
   // the sweep would never re-run.
   p.filters = state.P.filters.map(f => ({ ...f }));
   if (state.box === 'vented' || state.box === 'bandpass4') {
-    if (state.P.ventShape === 'slotted') {
-      const Sp = state.P.ventW * state.P.ventH;
-      const d = 2 * Math.sqrt(Sp / Math.PI);
-      p.Sp   = Sp;
-      p.Leff = state.P.ventL + state.P.endCorrection * d;
-    } else {
-      p.Sp   = Math.PI * (state.P.ventD / 2) ** 2;
-      p.Leff = state.P.ventL + state.P.endCorrection * state.P.ventD;
-    }
+    p.Sp = managedProject.ventArea_m2();
+    p.Leff = managedProject.ventEffectiveLength_m();
   }
   return p;
 });

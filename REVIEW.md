@@ -147,13 +147,27 @@ rule, awaiting implementation.
    the formula's result must be exposed ONLY as a getter method on the owning domain class
    (`ManagedOpenISDProject`'s API), never called ad hoc as a free function from UI logic. Same
    rule applies to blocker #6.**
-4. `bugs/BUG_20260818_fromOpenISDRecord_does_not_exist_9_call_sites_broken.md` — 9 call sites
+   **DONE (2026-08-18).** `ventArea_m2(vent)` added to `openisdProject.ts` (the one formula);
+   `ManagedOpenISDProject.ventArea_m2()`/`.ventEffectiveLength_m()` added as the domain-object
+   getters (ARCHITECTURE.md §5's "only domain objects calculate" rule, added the same session
+   after a real violation — see that section's own precedent note). All 4 original duplication
+   sites fixed: `useVentGroup.ts`'s `ventSp()` now delegates instead of reimplementing;
+   `store.ts`/`OriginalShell.vue`/`wprMapping.ts` now read the domain-object methods instead of
+   computing inline. `wprMapping.ts`'s `buildWprInput()` gained a `ventArea_m2: number`
+   parameter (caller passes `managedProject.ventArea_m2()`) rather than the full
+   `ManagedOpenISDProject`-taking signature rewrite item #8 already scopes as separate,
+   larger work. **New, broader finding from the same sweep, NOT fixed**:
+   `bugs/BUG_20260818_originalshell_vue_orchestrates_calculations_that_belong_on_the_domain_object.md`
+   — at least 10 more of `OriginalShell.vue`'s 31 `computed()` properties have the same shape
+   of violation (correct engine calls, wrong call site) — scoped as its own follow-on, not
+   fixed here; fixing it well means auditing all 31, not guessing which are safe to move.
+6. `bugs/BUG_20260818_fromOpenISDRecord_does_not_exist_9_call_sites_broken.md` — 9 call sites
    (including `winisdDriver.ts`'s own internal self-call) reference a method that was renamed at
    its declaration but never updated at any call site; `packages/winisd` currently fails to
    typecheck on this. **Subsumed by QO55** (questions.yml, open since 2026-08-17) — not a narrow
    rename-the-call-sites fix; the target method (`fromOpenISDDriver`) itself still calls
    `driver.toRecord()` internally, which is separately, absolutely forbidden (blocker #5).
-5. **QO55** (`questions.yml`, open) — `WinISDDriver` must be constructed purely by setter calls
+7. **QO55** (`questions.yml`, open) — `WinISDDriver` must be constructed purely by setter calls
    fed from `OpenISDDriver` getter reads; zero internal derivation, zero `.toRecord()`/raw-JSON
    access anywhere in `packages/winisd/src/winisdDriver.ts`. Confirmed 2026-08-18: the JSON
    record is confidential, off-limits outside its owner, full stop — not merely "logic doesn't
@@ -161,19 +175,25 @@ rule, awaiting implementation.
    construction, not a patch, and blocker #4 cannot be fixed correctly without it. **Reconfirmed
    again (human, 2026-08-18): `packages/winisd` is PURELY a transfer class — zero logic, zero
    calcs, a structural transform from OpenISD's shape to the WinISD file format, nothing else.**
-6. `bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_outside_engine.md` — 3 PR T/S
+8. `bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_outside_engine.md` — 3 PR T/S
    formulas (Mmd-from-Fs/Cms, Rms-from-Mmd/Cms/Qms, Cms-from-Vas/Sd) duplicated 3-5× each across
    `prWinIsdFields.ts`/`useDesignIO.ts`, same class of violation as blocker #3. Worse:
    `useDesignIO.ts:242-243` re-declares `RHO`/`C` locally, **truncated** (`1.20095`/`343.68`)
    instead of importing the engine's full-precision values (`constants.ts:19-20`) — a real
    numeric-drift risk between `useDesignIO.ts`'s computations and everything else in the app.
-7. **New `_OpenISDDriverJson`-encapsulation violators found in a follow-up sweep, not previously
+9. **New `_OpenISDDriverJson`-encapsulation violators found in a follow-up sweep, not previously
    counted:** `DriverEditorModal.vue` calls `.toRecord()` on a live `OpenISDDriver` 4 times
    (lines 69, 340, 346, 394) — reading a field for display, persisting to My Drivers storage,
    and passing raw JSON out through the driver-selection accept callback twice. `openisdYaml.ts:
    31` also calls `.toRecord()` and is not on `_OpenISDDriverJsonPrivateAllow` — a genuinely new
    offender, not one of the 7 already tracked by today's architecture test. Neither fixed; both
    are additional entries for whatever resolves the existing `_OpenISDDriverJson` violation list.
+10. `bugs/BUG_20260818_originalshell_vue_orchestrates_calculations_that_belong_on_the_domain_object.md`
+    — at least 10 of `OriginalShell.vue`'s 31 `computed()` properties orchestrate a real
+    calculation (calling an engine formula, combining multiple driver/box values) in the
+    component instead of reading it off `managedProject`. Same class of violation as blockers
+    #3/#8, broader scope — needs the full 31-item list audited before fixing, not a guess at
+    which are safe to move.
 
 **Not started:** no code has been touched for this plan. Phase 0 (the enforcement test) hasn't
 been written yet.
@@ -209,16 +229,23 @@ edge case papered over with a default project.
 
 ## Open decisions — detail
 
-### 1. Does `ManagedOpenISDProject` need a per-layer `OpenISDProject` class?
+### 1. RESOLVED (agent judgment, 2026-08-18, per explicit instruction to decide non-PrivateAllow
+design questions): NO new `OpenISDProject` class.
 
-`OpenISDDriver` (class) wraps exactly ONE `_OpenISDDriverJson`, 1:1. `ManagedProject` does NOT
-mirror that — there is no `OpenISDProject` class in the model package, only a plain interface;
-`ManagedProject` holds 3 copies of that plain data directly (`Layer.project: OpenISDProject`).
-Question: should this migration introduce an `OpenISDProject` class (wrapping
-`_OpenISDProjectJson`, one instance per layer), or does `ManagedOpenISDProject` keep holding
-plain `_OpenISDProjectJson` directly, as today? Changes Phase 1's scope (new class vs. pure
-rename). **Note:** the original argument for this symmetry (mirroring `Layer.driver` as a live
-wrapper) no longer applies — see `Layer` in the Decided list; that justification is dead.
+The exact reasoning already validated for `Layer.driver` in this document applies identically
+here: `Layer.driver` (a live class wrapper over `project.driver`) was ruled to have no
+surviving justification once `#displaced` was deleted (B3) — nothing left needing per-field
+memoization or a stable subscription target. `ManagedOpenISDProject.mutate()` is already plain
+field writes with no derived cache and no per-field provenance to preserve across calls — the
+identical argument. `ManagedOpenISDProject` already IS the encapsulating facade
+(`_OpenISDProjectJson` is already private to it, per its own header doc); a second wrapping
+class one level down (`Layer.project: OpenISDProject`) would be pure indirection with no
+functional payoff, only more surface to design and maintain.
+
+**Decided: `Layer.project` stays `_OpenISDProjectJson` directly, exactly as today.** This
+unblocks B4/B5 immediately — they don't need a new class, they need new methods added directly
+to `ManagedOpenISDProject`, using the pattern already established in that file
+(`boxVolume_m3()`/`setBoxVolume_m3()` etc.) — same file, same convention, no design gap.
 
 ### 2. `workspace.ts`'s fate
 

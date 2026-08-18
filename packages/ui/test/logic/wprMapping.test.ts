@@ -25,7 +25,8 @@ function prParams(): UiParams {
 describe('buildWprInput — passive-radiator Vas unit', () => {
   it('writes [PassiveRadiator].Vas in cubic metres, WinISD\'s own file unit', () => {
     const P = prParams();
-    const input = buildWprInput('pr', P, null, '[Driver]\n', emptyProject, new Date(2026, 0, 1));
+    // ventArea_m2 = 0: irrelevant for box === 'pr', which never reads it.
+    const input = buildWprInput('pr', P, null, '[Driver]\n', emptyProject, new Date(2026, 0, 1), 0);
 
     // Vas = Cms * Sd^2 * rho * c^2, in m^3 -- no litres conversion. Computed independently of
     // prVas()'s own (correct, litres-for-display) implementation.

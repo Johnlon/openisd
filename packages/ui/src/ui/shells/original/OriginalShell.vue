@@ -139,13 +139,12 @@ const prFh = computed<number | null>(() => {
 /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
 const boxResonance = computed<number | null>(() =>
   selectedBox.value === 'pr' ? prFh.value : rearResonance.value);
-// Vent geometry (vented / bandpass4): cross-sectional area and Helmholtz tuning.
-const ventArea = computed(() => {
-  if (state.P.ventShape === 'slotted') {
-    return state.P.ventW * state.P.ventH;
-  }
-  return Math.PI * (state.P.ventD / 2) ** 2;
-});           // m²
+// Vent geometry (vented / bandpass4): cross-sectional area (m²) and Helmholtz tuning.
+// The area is a calculated value read off the domain object here, not computed in this
+// component — only OpenISDDriver/ManagedOpenISDProject may calculate (ARCHITECTURE.md §5).
+const ventArea = computed<number>(() => {
+  return managedProject.ventArea_m2();
+});
 // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber
 // tunes on its own front volume Vf. Same closed form the engine's circuit uses.
 // Box-tab tuning entry (vented). The setter goes through enterVentField so the field is
