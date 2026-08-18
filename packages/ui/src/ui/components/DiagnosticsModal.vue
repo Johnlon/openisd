@@ -22,9 +22,6 @@ const copied = ref(false);
 
 faultLog.onFault(() => { open.value = true; });
 
-const fixes = computed<QuickFix[]>(() => faultLog.applicable());
-const faults = computed(() => faultLog.faults);
-
 function applyFix(fix: QuickFix): void {
   try {
     outcome.value = `${fix.apply()} Reload to continue.`;
@@ -56,7 +53,7 @@ async function copyReport(): Promise<void> {
       </header>
 
       <section class="dg-faults">
-        <div v-for="f in faults" :key="f.id" class="dg-fault">
+        <div v-for="f in faultLog.faults" :key="f.id" class="dg-fault">
           <div class="dg-msg">
             <span class="dg-kind">{{ f.kind }}</span>
             {{ f.message }}
@@ -66,9 +63,9 @@ async function copyReport(): Promise<void> {
         </div>
       </section>
 
-      <section v-if="fixes.length" class="dg-fixes">
+      <section v-if="faultLog.applicable().length" class="dg-fixes">
         <h3>Repairs — least damaging first</h3>
-        <div v-for="fix in fixes" :key="fix.id" class="dg-fix">
+        <div v-for="fix in faultLog.applicable()" :key="fix.id" class="dg-fix">
           <div class="dg-fix-head">
             <strong>{{ fix.title }}</strong>
             <button @click="applyFix(fix)">Apply</button>
