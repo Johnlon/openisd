@@ -184,7 +184,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
    */
   // The classic ADT and the app's model meet at `.wdr` text — the one format both can write
   // and read. This is the bridge while the picker/editor still speak the classic ADT; it
-  // disappears when they are migrated onto ManagedProject directly.
+  // disappears when they are migrated onto ManagedOpenISDProject directly.
   function adoptIntoProject(record: _OpenISDDriverJson): void {
     managedProject.loadDriverRecord(record);
   }

@@ -1,8 +1,8 @@
 /**
- * `ManagedProject` — the one facade over every state layer of a project.
+ * `ManagedOpenISDProject` — the one facade over every state layer of a project.
  *
  * Seam under test: the public API only. `#ground`/`#committed`/`#overlay` are private, and so is
- * the `OpenISDProject` inside each — that is the property being asserted, not an obstacle to
+ * the `_OpenISDProjectJson` inside each — that is the property being asserted, not an obstacle to
  * asserting it.
  *
  * The notification counts ARE the specification (ARCHITECTURE.md §3): an edit is silent until
@@ -12,7 +12,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { ManagedProject, emptyProject } from '../../src/logic/managedProject.js';
+import { ManagedOpenISDProject, emptyProject } from '../../src/logic/managedProject.js';
 import type { _OpenISDDriverJson } from '@openisd/model';
 
 /** A minimal, valid driver record — one stated field, enough to exercise enter()/clear(). */
@@ -53,9 +53,9 @@ function projectWithDriver() {
   return p;
 }
 
-const managed = () => ManagedProject.fromProject(projectWithDriver());
+const managed = () => ManagedOpenISDProject.fromProject(projectWithDriver());
 
-describe('ManagedProject — notification asymmetry (the specification)', () => {
+describe('ManagedOpenISDProject — notification asymmetry (the specification)', () => {
   it('a what-if with N scrubs produces N+2 (begin + each scrub + cancel)', () => {
     const mp = managed();
     let n = 0;
@@ -75,7 +75,7 @@ describe('ManagedProject — notification asymmetry (the specification)', () => 
 
 });
 
-describe('ManagedProject — the overlay covers the WHOLE design', () => {
+describe('ManagedOpenISDProject — the overlay covers the WHOLE design', () => {
   it('cancelling a what-if restores a scrubbed BOX value, with no hand-rolled snapshot', () => {
     const mp = managed();
     mp.beginWhatIf();
@@ -102,7 +102,7 @@ describe('ManagedProject — the overlay covers the WHOLE design', () => {
   });
 });
 
-describe('ManagedProject — a what-if never leaks into anything persistent', () => {
+describe('ManagedOpenISDProject — a what-if never leaks into anything persistent', () => {
   it('recordToPersist() cancels an active what-if itself', () => {
     const mp = managed();
     mp.beginWhatIf();
@@ -117,7 +117,7 @@ describe('ManagedProject — a what-if never leaks into anything persistent', ()
   });
 });
 
-describe('ManagedProject — the project never leaves', () => {
+describe('ManagedOpenISDProject — the project never leaves', () => {
   it('snapshot() hands back a COPY: mutating it changes nothing inside', () => {
     const mp = managed();
     const snap = mp.snapshot();
@@ -141,9 +141,9 @@ describe('ManagedProject — the project never leaves', () => {
   });
 });
 
-describe('ManagedProject — no driver chosen', () => {
+describe('ManagedOpenISDProject — no driver chosen', () => {
   it('reads answer honestly rather than inventing a value', () => {
-    const mp = ManagedProject.createEmpty();
+    const mp = ManagedOpenISDProject.createEmpty();
     assert.equal(mp.hasDriver(), false);
     assert.equal(mp.cell('Fs').state, 'N', 'absent is a real answer; a zero would look measured');
     assert.equal(mp.cell('Fs').value, null);
@@ -152,7 +152,7 @@ describe('ManagedProject — no driver chosen', () => {
   });
 
   it('choosing a driver keeps the box — it is not opening a new project', () => {
-    const mp = ManagedProject.createEmpty();
+    const mp = ManagedOpenISDProject.createEmpty();
     mp.mutate(p => { p.box.vented.volume_m3 = 0.044; });
 
     mp.loadDriverRecord(driverRecord());

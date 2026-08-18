@@ -1,18 +1,18 @@
 /**
- * `ManagedProject` — the one facade over every state layer of ONE project.
+ * `ManagedOpenISDProject` — the one facade over every state layer of ONE project.
  *
  * A user does not explore "a what-if driver". They explore a DESIGN: a driver in a box, with a
  * vent or a radiator, at a drive level, in an environment. Scrubbing `Vb` and scrubbing `Qts`
  * are the same act, so the overlay wraps the whole PROJECT and not one part of it.
  *
  * This is the domain object for ONE project in the left nav. It holds three complete
- * `OpenISDProject`s:
+ * `_OpenISDProjectJson`s:
  *
  *   ground     — the design exactly as loaded. What Reset goes back to.
  *   committed  — the design as it stands. What the charts draw and a save writes.
  *   overlay    — an edit draft OR a what-if. Never both at once.
  *
- * ── `OpenISDProject` is PRIVATE ──
+ * ── `_OpenISDProjectJson` is PRIVATE ──
  * No instance of one ever leaves, and nor does the live `OpenISDDriver` inside it. A caller
  * reads with `cell()`/`metaCell()`/`toDriver()`/`errors()`/`snapshot()` and writes with
  * `enter()`/`clear()`/`mutate()`. Handing the project out would let a caller change it behind
@@ -43,17 +43,17 @@ import {
   passiveRadiatorOrDefault, ensurePassiveRadiator,
 } from '@openisd/model';
 import type {
-  Cell, MetaCell, SpecField, MetaField, OpenISDProject, _OpenISDDriverJson,
+  Cell, MetaCell, SpecField, MetaField, _OpenISDProjectJson, _OpenISDDriverJson,
   OpenISDVent, OpenISDPassiveRadiatorRef,
 } from '@openisd/model';
 import type { DriverError, ConsistencyIssue, Driver as EngineDriver } from '@openisd/engine';
 
-export type ManagedProjectListener = () => void;
+export type ManagedOpenISDProjectListener = () => void;
 
 /** One state layer: the project, and the live driver over its record. They share one object
  *  graph, so `driver` is a VIEW of `project.driver`, never a second copy of it. */
 interface Layer {
-  project: OpenISDProject;
+  project: _OpenISDProjectJson;
   /** Null exactly when no driver has been chosen. */
   driver: OpenISDDriver | null;
 }
@@ -63,7 +63,7 @@ type Overlay =
 
 /** A project with nothing chosen — what the app holds before a driver is picked. Every value is
  *  a real default a user could have set; none is a fake driver standing in for a real one. */
-export function emptyProject(): OpenISDProject {
+export function emptyProject(): _OpenISDProjectJson {
   return {
     driver: undefined,
     box: defaultBox(),
@@ -96,25 +96,25 @@ export function emptyProject(): OpenISDProject {
 }
 
 /** A layer from a project, with its live driver materialised over the SAME record object. */
-function layerOf(project: OpenISDProject): Layer {
+function layerOf(project: _OpenISDProjectJson): Layer {
   return {
     project,
     driver: project.driver ? OpenISDDriver.fromRecord(project.driver) : null,
   };
 }
 
-/** An independent copy of a layer. `structuredClone` is why `OpenISDProject` is plain data:
+/** An independent copy of a layer. `structuredClone` is why `_OpenISDProjectJson` is plain data:
  *  it would silently reduce a class instance to a bare object, so the project holds the
  *  driver's RECORD and the live driver is re-materialised over the clone. */
 function cloneLayer(layer: Layer): Layer {
   return layerOf(structuredClone(layer.project));
 }
 
-export class ManagedProject {
+export class ManagedOpenISDProject {
   #ground: Layer;
   #committed: Layer;
   #overlay: Overlay | null = null;
-  readonly #listeners = new Set<ManagedProjectListener>();
+  readonly #listeners = new Set<ManagedOpenISDProjectListener>();
 
   private constructor(ground: Layer, committed: Layer) {
     this.#ground = ground;
@@ -122,17 +122,17 @@ export class ManagedProject {
   }
 
   /** Adopt `project` as freshly loaded: ground and committed become independent copies of it. */
-  static fromProject(project: OpenISDProject): ManagedProject {
-    return new ManagedProject(
+  static fromProject(project: _OpenISDProjectJson): ManagedOpenISDProject {
+    return new ManagedOpenISDProject(
       layerOf(structuredClone(project)),
       layerOf(structuredClone(project)),
     );
   }
 
   /** A project with nothing chosen. Here rather than at the call site so no caller has to name
-   *  `OpenISDProject`'s shape to make one. */
-  static createEmpty(): ManagedProject {
-    return ManagedProject.fromProject(emptyProject());
+   *  `_OpenISDProjectJson`'s shape to make one. */
+  static createEmpty(): ManagedOpenISDProject {
+    return ManagedOpenISDProject.fromProject(emptyProject());
   }
 
   // ---- which layer is effective ---------------------------------------------------------
@@ -238,7 +238,7 @@ export class ManagedProject {
   //
   // Replaces `state.P.entered: Record<string, true>` — the "second, hand-rolled provenance
   // mechanism" the migration plan (Step 4) requires deleted. Same shape, one home:
-  // `OpenISDProject.target.entered`, already scaffolded for exactly this in P1S1.
+  // `_OpenISDProjectJson.target.entered`, already scaffolded for exactly this in P1S1.
 
   isEntered(field: string): boolean {
     return this.#effective().project.target.entered[field] === true;
@@ -257,7 +257,7 @@ export class ManagedProject {
    * rather than the object itself, because handing out the object would be handing out the
    * state — the thing this class exists to prevent.
    */
-  snapshot(): OpenISDProject {
+  snapshot(): _OpenISDProjectJson {
     return structuredClone(this.#effective().project);
   }
 
@@ -270,7 +270,7 @@ export class ManagedProject {
    * commit. A caller that mutated a project it had been handed could not be given either
    * behaviour.
    */
-  mutate(fn: (project: OpenISDProject) => void): void {
+  mutate(fn: (project: _OpenISDProjectJson) => void): void {
     const layer = this.#effective();
     fn(layer.project);
     // The driver record may have been replaced wholesale (a different driver chosen), so the
@@ -288,13 +288,13 @@ export class ManagedProject {
    * That cancellation is STRUCTURAL: this is the only route to a persistable project, so no
    * call site can forget it.
    */
-  recordToPersist(): OpenISDProject {
+  recordToPersist(): _OpenISDProjectJson {
     this.#endWhatIfIfActive();
     return structuredClone(this.#committed.project);
   }
 
   /** The project exactly as loaded — what Reset goes back to. Never touched by an overlay. */
-  groundRecord(): OpenISDProject {
+  groundRecord(): _OpenISDProjectJson {
     return structuredClone(this.#ground.project);
   }
 
@@ -347,7 +347,7 @@ export class ManagedProject {
   /** Adopt a project as freshly loaded. Ground and committed both become independent copies;
    *  any open overlay is discarded, because loading is a named trigger of the
    *  what-if-never-leaks rule and a draft over the old design has nothing left to commit onto. */
-  load(project: OpenISDProject): void {
+  load(project: _OpenISDProjectJson): void {
     if (this.#overlay?.kind === 'whatif') this.#overlay.unsubscribe();
     this.#overlay = null;
     this.#ground = layerOf(structuredClone(project));
@@ -369,7 +369,7 @@ export class ManagedProject {
 
   // ---- subscription -------------------------------------------------------------------------
 
-  subscribe(fn: ManagedProjectListener): () => void {
+  subscribe(fn: ManagedOpenISDProjectListener): () => void {
     this.#listeners.add(fn);
     return () => this.#listeners.delete(fn);
   }

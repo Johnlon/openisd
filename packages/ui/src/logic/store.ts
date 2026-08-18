@@ -5,7 +5,7 @@ import type { Driver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResul
 import { driverRecordProblems } from '@openisd/model';
 import type { Cell, MetaCell, SpecField, MetaField, _OpenISDDriverJson } from '@openisd/model';
 import * as WinIsdDriverFileIo from './winIsdDriverFileIo.js';
-import { ManagedProject } from './managedProject.js';
+import { ManagedOpenISDProject } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
 import type { OpenISDVent, OpenISDPassiveRadiatorRef } from '@openisd/model';
 import { parseChartTabId } from './series.js';
@@ -37,13 +37,13 @@ function getOrInit<T>(key: string, init: () => T): T {
   return ctx[key];
 }
 
-// ---- The project: ManagedProject, and NOTHING else ----------------------------------------
-// ARCHITECTURE.md §"Approved state stores": ManagedProject holds ALL active/edit/what-if
+// ---- The project: ManagedOpenISDProject, and NOTHING else ----------------------------------------
+// ARCHITECTURE.md §"Approved state stores": ManagedOpenISDProject holds ALL active/edit/what-if
 // state. The store does not hold a driver, does not hold a baseline, and does not know a
 // what-if exists — a second copy of any of those is a second answer to the same question, and
 // the two are free to disagree. Everything below DELEGATES; it stores nothing.
 //
-// ManagedProject's framework-free subscribe() is bridged to Vue through _version: it fires on
+// ManagedOpenISDProject's framework-free subscribe() is bridged to Vue through _version: it fires on
 // every change the facade decides a subscriber should see (a what-if overlay fires live), and
 // the computeds below touch _version so they re-derive exactly then. @openisd/model stays
 // Vue-free — the arrow points up, never down.
@@ -62,7 +62,7 @@ const _version = getOrInit('_version', () => ref(0));
  * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
  * `.toDriver()`/`.errors()`/`.snapshot()` to read, `.enter()`/`.clear()`/`.mutate()` to write,
  * `.recordToPersist()` for anything saved/exported/shared, `.beginWhatIf()`/`.cancelWhatIf()`/
- * `.isWhatIfActive()` for a what-if. The `OpenISDProject` it wraps — and the `OpenISDDriver`
+ * `.isWhatIfActive()` for a what-if. The `_OpenISDProjectJson` it wraps — and the `OpenISDDriver`
  * inside that — are private to it and never leave.
  */
 
@@ -79,8 +79,8 @@ const _version = getOrInit('_version', () => ref(0));
  * shorter than this file's actual export surface until the migration in REVIEW.md is done.
  */
 export const ALLOWED_GLOBALS = ['openProjects', 'focusedProject'];
-export const managedProject: ManagedProject = getOrInit('_managed', () => {
-  const md = ManagedProject.createEmpty();
+export const managedProject: ManagedOpenISDProject = getOrInit('_managed', () => {
+  const md = ManagedOpenISDProject.createEmpty();
   ctx._unsub = md.subscribe(() => { _version.value++; });
   return md;
 });
@@ -131,7 +131,7 @@ const P_DEFAULTS: Omit<UiParams, BoxFieldKey> = {
  * object), and the Proxy needs get/set/has/deleteProperty, nothing more: nothing in this
  * codebase enumerates `state.P.entered`'s keys.
  */
-function defineBoxFieldAccessors(target: object, mp: ManagedProject): void {
+function defineBoxFieldAccessors(target: object, mp: ManagedOpenISDProject): void {
   const ventKey = <K extends keyof OpenISDVent>(ventField: K) => ({
     enumerable: true, configurable: true,
     get: () => mp.activeVentField(ventField),
@@ -308,7 +308,7 @@ export function setDriverFromWdr(text: string): void {
   managedProject.loadDriverRecord(WinIsdDriverFileIo.importDriver(text));
 }
 
-/** Route one per-field edit to whichever layer ManagedProject says is effective. */
+/** Route one per-field edit to whichever layer ManagedOpenISDProject says is effective. */
 export function enterDriverField(field: SpecField, value: number): void {
   managedProject.enter(field, value);
 }
@@ -317,7 +317,7 @@ export function clearDriverField(field: SpecField): void {
 }
 
 /** One field's value + E/C/N provenance from the EFFECTIVE driver. Reactive: touching
- *  _version makes any render or computed calling this re-run when ManagedProject notifies. */
+ *  _version makes any render or computed calling this re-run when ManagedOpenISDProject notifies. */
 export function driverCell(field: SpecField): Cell {
   void _version.value;
   return managedProject.cell(field);
@@ -358,7 +358,7 @@ export const driverName = computed<string>(() => {
  * Open the driver picker — the ONE governed entry point. Cancels any active what-if first: an
  * uncommitted preview must never be left dangling once the user has moved on to picking a
  * different driver. Every "Select Driver"/"Browse…" trigger calls this, never a raw
- * `state.browseOpen = true`. ManagedProject owns the cancellation; this only asks for it.
+ * `state.browseOpen = true`. ManagedOpenISDProject owns the cancellation; this only asks for it.
  */
 export function openDriverPicker(): void {
   if (managedProject.isWhatIfActive()) { managedProject.cancelWhatIf(); state.editDriver = false; }

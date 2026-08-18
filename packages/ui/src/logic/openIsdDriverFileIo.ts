@@ -8,7 +8,7 @@
 import type { OpenISDDriver, _OpenISDDriverJson } from '@openisd/model';
 import type { Result } from '@openisd/engine';
 
-/** `.owdr` text → the app's one record shape — handed straight to STORAGE (`ManagedProject`,
+/** `.owdr` text → the app's one record shape — handed straight to STORAGE (`ManagedOpenISDProject`,
  *  My Drivers), one of the three places permitted to hold the JSON record, per its own
  *  serialisation needs. */
 export function importDriver(text: string): _OpenISDDriverJson {

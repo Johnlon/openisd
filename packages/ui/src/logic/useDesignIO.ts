@@ -33,7 +33,7 @@ function sanitizeFilename(name: string | undefined): string {
 
 // A live what-if is an uncommitted preview that can never be saved, exported or shared
 // (ARCHITECTURE.md §3). That guard is STRUCTURAL, not a call every I/O function must remember:
-// `driverRecord` reads ManagedProject.readModified(), which cancels an active what-if itself. A
+// `driverRecord` reads ManagedOpenISDProject.readModified(), which cancels an active what-if itself. A
 // per-call-site guard is what let shareLink() ship without one while every sibling had it.
 // Closing the Tune panel is the only part left to the caller, since the panel is UI, not state.
 function closeTunePanelAfterIO(): void {
