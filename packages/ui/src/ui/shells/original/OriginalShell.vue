@@ -31,11 +31,7 @@ import {
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType } from '@openisd/engine';
 import type { PRLibEntry, BundledPR, Design } from '../../../types.js';
-import { C,
-         prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
-         prTuning,
-         sealedResonance, LossMode, sourceLoadedQts,
-         driveVoltage, airFor } from '@openisd/engine';
+import { LossMode, driveVoltage, airFor } from '@openisd/engine';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../logic/series.js';
 import { DPAL } from '../../presets.js';
@@ -118,24 +114,15 @@ const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 // high-frequency voice-coil-inductance rise (≈20 kHz) as the GLOBAL |Z| maximum for any driver
 // with Le, which is not the system resonance (and yields Qtc=0). See openspec core-engine
 // "Sealed-Box Resonance Loss Models" and winisd_research/SEALED_FSC_MODEL.md.
-const sealedRes = computed<{ Fsc: number; Qtc: number } | null>(() => {
-  const d = driver.value;
-  if (!d || !(state.P.Vb > 0)) return null;
-  // Qts is loaded by the Signal tab's series resistance Rg — see sourceLoadedQts.
-  const qts = sourceLoadedQts(d.Qms, d.Qes, d.Re, state.P.Rs, d.Qts);
-  return sealedResonance(LossMode.parse(state.lossMode),
-    { Fs: d.Fs, Vas: d.Vas, Qts: qts, Vb: state.P.Vb, Ql: state.P.Ql, Qa: state.P.Qa });
-});
+const sealedRes = computed<{ Fsc: number; Qtc: number } | null>(() =>
+  managedProject.sealedResonance(LossMode.parse(state.lossMode), state.P.Rs, state.P.Ql, state.P.Qa));
 const rearResonance = computed<number | null>(() => sealedRes.value?.Fsc ?? null);
 const rearQtc = computed<number | null>(() => sealedRes.value?.Qtc ?? null);
 // WinISD's "Fh" for a PR box is the PASSIVE RADIATOR system tuning — the box compliance in
 // series with the PR's own, against the PR's moving mass — NOT the sealed Fc above, which
 // ignores the PR entirely. On WinISD's own controlled-trial inputs prTuning() returns 72.25 Hz,
 // matching it exactly, where the sealed formula gives 194.87. winisd_research/GAPS.md §A3.
-const prFh = computed<number | null>(() => {
-  if (!(state.P.Vb > 0) || !(state.P.prSd > 0) || !(state.P.prCms > 0)) return null;
-  return prTuning(state.P);
-});
+const prFh = computed<number | null>(() => managedProject.prSystemTuning_hz());
 /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
 const boxResonance = computed<number | null>(() =>
   selectedBox.value === 'pr' ? prFh.value : rearResonance.value);
@@ -215,14 +202,12 @@ const FB_TARGET_TIP = 'The tuning you are designing to. It is an INPUT, not a re
 // c/(2·L), a standing wave in the vent, DISTINCT from the box Helmholtz tuning ventFb. Uses the
 // PHYSICAL vent length (NOT the end-corrected Leff) to match WinISD exactly: its 86.87 Hz =
 // 343.68/(2·1.978 m physical length). End correction applies to the tuning Fb, not this. §portterminology.
-const portPipeResonance = computed<number | null>(() => {
-  return state.P.ventL > 0 ? C / (2 * state.P.ventL) : null;
-});
+const portPipeResonance = computed<number | null>(() => managedProject.portPipeResonance_hz());
 // Passive-radiator derived params (from the stored PR T/S bag).
-const prVas = computed(() => calcPrVas(state.P.prCms, state.P.prSd));
-const prFs = computed(() => calcPrFs(state.P.prMmd, state.P.prCms));
-const prFsMass = computed(() => calcPrFsMass(state.P.prMmd, state.P.prMadd, state.P.prCms));
-const prQms = computed(() => calcPrQms(state.P.prMmd, state.P.prCms, state.P.prRms));
+const prVas = computed(() => managedProject.prVas_l());
+const prFs = computed(() => managedProject.prFs_hz());
+const prFsMass = computed(() => managedProject.prFsWithMass_hz());
+const prQms = computed(() => managedProject.prQms());
 
 // ---- Chart selector ------------------------------------------------------------
 // WinISD's full chart menu; each maps to a real engine curve id (TABS) or null.
