@@ -29,15 +29,32 @@ engine's key directly instead of the record's.
 
 ## Fix
 
-Add the missing pair — `TO_ENGINE: { Gloss: 'loss' }`, `FROM_ENGINE: { loss: 'Gloss' }` — and
-change every call site currently keyed `'loss'` (with its `as SpecField` cast) to the record's
-real name `'Gloss'`, cast-free. `Gloss?: SpecEntry` already exists on `SpecSection`, so
-`cell('Gloss')` needs no cast once the map exists.
+Ruled 2026-08-17 (QO53): a translation-layer entry (`TO_ENGINE: { Gloss: 'loss' }`) would keep
+the split alive under a mapping instead of removing it. Fixed by making the engine compute
+under `Gloss` directly — `packages/engine/src/driver.ts:322` now `setVal('Gloss', ...)`,
+`packages/engine/src/types.ts:78` now `Gloss?: number`. `TO_ENGINE`/`FROM_ENGINE`
+(`packages/model/src/openisdDriver.ts`) need no entry at all: `engineName('Gloss')` falls
+through to `'Gloss'` by identity, same as any other field with one name. Every `'loss'` call
+site changed to `'Gloss'`, cast-free:
+`packages/ui/src/ui/components/DriverEditorModal.vue` (`data-field-key`, `cellClass`,
+`cellVal`, `setNum`, `dqNote`), `packages/ui/test/ui/driver-editor-units.test.ts` (both
+`'loss' as SpecField` casts removed), `packages/engine/test/advanced-figures.test.ts`
+(`r.loss` → `r.Gloss` throughout; the "must not invent a second key" assertion now checks for
+a stray `loss` key instead of a stray `Gloss` one), `packages/ui/src/logic/provenance.ts`
+(`PROVENANCE_MAP` keyed `Gloss`, `LABEL_TO_FIELD_KEY.Gloss: 'Gloss'`). The two `.wdr`-bridge
+maps that translated the OLD engine key to the wire key (`DERIVED_TO_WDR` in
+`packages/winisd/src/winisdDriver.ts`, `ENGINE_ONLY` in
+`packages/winisd/test/winisd-parity.test.ts`) had their `loss`/`Gloss` entries deleted — both
+fall through to identity (`?? k` / `?? field`) now that the names agree.
 
 ## Verification
 
-Not attempted here — found while porting `driver-editor-units.test.ts` off the deleted `Driver`
-ADT (`bugs/BUG_20260816_typecheck_red_driver_editor_units_test_imports_the_deleted_Driver_ADT.md`),
-ported it, and kept the SAME `'loss' as SpecField` shape the app already uses at its other call
-sites rather than fixing the mapping mid-port. `npm run typecheck` is green with the port as
-shipped; the missing-map fix here still needs to be applied and the casts removed.
+`npx tsc --noEmit` clean on `packages/engine`, `packages/winisd`, `packages/model`; `vue-tsc
+-p packages/ui --noEmit` shows only pre-existing `store.ts` errors from a concurrent session's
+uncommitted work (confirmed via `git stash`, unrelated to this field). Targeted run —
+`packages/engine/test/advanced-figures.test.ts`, `packages/winisd/test/winisd-parity.test.ts`,
+`packages/ui/test/ui/driver-editor-units.test.ts` — 487/487 pass. Wider suite (`packages/engine
+packages/winisd packages/model packages/ui/test/logic packages/ui/test/ui`, browser specs
+excluded): 1801/1806 pass; the 5 failures are pre-existing and unrelated (vent-area validation
+in `store.ts`, `OgTune.vue`/`OriginalShell.vue` importing `@openisd/engine` directly in
+`architecture.test.ts` — both already `M` in `git status` before this change).

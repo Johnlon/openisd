@@ -815,7 +815,26 @@ does not matter to the mark — what matters is that the disagreement stays visi
 ### `WinISDDriver` is solely a serialisation device
 
 A strongly-typed, validating class carrying **no application or calculation logic at all**. It does
-not derive, hold live state, or persist between calls.
+not derive, hold live state, or persist between calls. Every value it writes is either read
+straight off the record it is given, or handed to it as an already-resolved input by its caller —
+never computed inline. **No code outside an `OpenISDDriver` instance may compute or derive a
+driver value; the ONE access point for any such value is a getter on that instance** (e.g.
+`driver.ebp()`) — no free function, no inline formula, anywhere else in the app, ever.
+
+Precedent (2026-08-17): `fromOpenISDRecord` computed EBP inline (`computed.EBP =
+computed.Fs / computed.Qes`) because EBP has no `SpecField` of its own and `deriveOpenISDFields()`
+therefore never produces it. Fixed by adding `OpenISDDriver.ebp()` as the one place that formula
+lives, and having `winIsdDriverFileIo.ts` — the one module allowed to construct a `WinISDDriver`
+— obtain it from that getter and pass it in as a plain value.
+`bugs/BUG_20260817_wdr_writer_computes_ebp_itself_violating_its_own_no-calc-logic_rule.md`
+
+Tracked, NOT done: the human's fuller intent is that `WinISDDriver` should be constructed
+*purely* by a sequence of setter calls fed from `OpenISDDriver` getter reads — no internal
+`deriveOpenISDFields()` call, no ParState-mark assignment logic, no Xlim/DQ-comment special-casing
+inside `winisdDriver.ts` at all; all of that moves to whatever constructs it. This is a full
+rewrite of the `.wdr` export path, not a follow-on patch — scoped as its own change, not attempted
+alongside the EBP fix, because it touches the ParState/CRLF/Xlim fidelity work already landed this
+session and needs its own dedicated test pass. See the open question ledger.
 
 - **Export:** `OpenISDDriver`'s resolved values populate a `WinISDDriver` instance immediately
   before serialisation to `.wdr` text, then it is discarded.

@@ -98,7 +98,7 @@ export interface ModeledSlot {
 
 /**
  * The T/S fields the Driver models directly — the 15 read from and written to the model.
- * Every `.wdr` key has a home in `SpecSection` (`wdr-model-coverage.test.ts`); this list is
+ * Every `.wdr` key has a home in `_SpecSection` (`wdr-model-coverage.test.ts`); this list is
  * narrower, and says only which ones this slot table exposes.
  */
 export const MODELED_SLOTS: readonly ModeledSlot[] = [

@@ -1,6 +1,6 @@
 import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
 import { readMetaCell } from '@openisd/model';
-import type { OpenISDDriverJson } from '@openisd/model';
+import type { _OpenISDDriverJson } from '@openisd/model';
 import { state } from './store.js';
 import { DriverScope } from '../driverScope.js';
 import { Chip } from '../driverType.js';
@@ -69,12 +69,12 @@ export interface DriverLibrary {
   displayedFiles: ComputedRef<FileEntry[]>;
   listTruncated: ComputedRef<boolean>;
   listedCount: ComputedRef<number>;
-  myDrivers: Ref<OpenISDDriverJson[]>;
-  filteredMyDrivers: ComputedRef<OpenISDDriverJson[]>;
-  myDriverName(d: OpenISDDriverJson): string;
-  myDriverEntry(d: OpenISDDriverJson): FileEntry;
-  driverId(d: OpenISDDriverJson): string;
-  editMyDriver(d: OpenISDDriverJson): void;
+  myDrivers: Ref<_OpenISDDriverJson[]>;
+  filteredMyDrivers: ComputedRef<_OpenISDDriverJson[]>;
+  myDriverName(d: _OpenISDDriverJson): string;
+  myDriverEntry(d: _OpenISDDriverJson): FileEntry;
+  driverId(d: _OpenISDDriverJson): string;
+  editMyDriver(d: _OpenISDDriverJson): void;
   editOverviewDriver(f: FileEntry): Promise<{ ok: boolean; error?: string }>;
   reloadMyDrivers(): void;
   deleteMyDriver(id: string): void;
@@ -121,7 +121,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
   const sdMax = ref('');   // cm²
   const selZ = ref<string[]>([]);   // '4', '8', '16'
   const displayLimit = ref(DISPLAY_LIMIT);
-  const myDrivers = ref<OpenISDDriverJson[]>([]);
+  const myDrivers = ref<_OpenISDDriverJson[]>([]);
   const previewFile = ref<FileEntry | null>(null);
   const favorites = ref<string[]>(prefs.favorites());
   const favoritesOnly = ref(false);   // the Favorites button: an on/off filter, like a type chip
@@ -236,7 +236,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
   // My Drivers answer EVERY control in the filter bar, through the same predicate the pool
   // uses — see matchesCriteria. A section that ignores half the filters is the bug this shape
   // exists to prevent.
-  const filteredMyDrivers = computed<OpenISDDriverJson[]>(() => {
+  const filteredMyDrivers = computed<_OpenISDDriverJson[]>(() => {
     // The scope chip gates this section exactly as it gates the pool — the two halves of the
     // library are asked the same question, so `Mine` and `Bundled` are true opposites.
     const list = driverScope.value.includesMine ? myDrivers.value : [];
@@ -381,7 +381,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
     }
     // A deep copy: the clone must share no object with its source, or editing one would edit
     // the other through the record graph they had in common.
-    const copy: OpenISDDriverJson = structuredClone(src);
+    const copy: _OpenISDDriverJson = structuredClone(src);
     // A clone is a DIFFERENT driver, so its model states so — written straight onto the record,
     // because a record in no project has no facade to go through.
     const sourceModel = readMetaCell(copy, 'model').value;

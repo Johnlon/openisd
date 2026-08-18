@@ -22,7 +22,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
   state, driver, driverName, driverRecord,
   syncedP, curvesData, maxData, driverErrors,
-  isModified, resetProjectToGround, _ground, markProjectSaved,
+  isModified, resetProjectToGround, groundCheckpoint, restoreGroundCheckpoint, markProjectSaved,
   managedProject,
   formatInUnit as fmtU,
   enterVentField, clearVentField, ventFieldState, ventMaxReachableFb, ventTargetUnreachable,
@@ -440,7 +440,7 @@ onMounted(() => {
       curves: curvesData.value,
       maxCurves: maxData.value,
       project: { ...state.project },
-      _ground: _ground.value,
+      _ground: groundCheckpoint(),
       isModified: isModified.value,
       visible: true,
       color: WINISD_TRACE.value,
@@ -461,7 +461,7 @@ watch([() => state.box, () => state.P, () => driverRecord.value, curvesData, max
     activeItem.maxCurves = maxData.value;
     activeItem.name = state.project.name || driverName.value;
     activeItem.project = { ...state.project };
-    activeItem._ground = _ground.value;
+    activeItem._ground = groundCheckpoint();
     activeItem.isModified = isModified.value;
     // NOT visible: that is the row's own fact, set only by its checkbox. Re-deriving it
     // here from a second copy is what made the checkbox spring back on some projects.
@@ -493,7 +493,7 @@ function syncActiveRowFromStore() {
     maxCurves: maxData.value,
     name: state.project.name || driverName.value,
     project: { ...state.project },
-    _ground: _ground.value,
+    _ground: groundCheckpoint(),
     isModified: isModified.value,
   });
 }
@@ -517,7 +517,7 @@ function selectProject(p: any) {
   const targetProj = targetDesign.project ? targetDesign.project : { name: targetDesign.name || '', creator: '', created: '', modified: '', description: '' };
   Object.assign(state.project, targetProj);
 
-  _ground.value = targetDesign._ground || JSON.stringify({ box: state.box, P: state.P, driver: driverRecord.value, project: state.project });
+  restoreGroundCheckpoint(targetDesign._ground || JSON.stringify({ box: state.box, P: state.P, driver: driverRecord.value, project: state.project }));
   activeProjectId.value = targetDesign.id;
 
   isSwapping = false;
@@ -547,7 +547,7 @@ function copyCurrentProject() {
     maxCurves: maxData.value,
     name: copyName,
     project: { ...state.project, name: copyName },
-    _ground: _ground.value,
+    _ground: groundCheckpoint(),
     isModified: true, // copy is unsaved
     color: DPAL[(openProjects.value.length) % DPAL.length],
     visible: true,
@@ -569,7 +569,7 @@ function openNewProject() {
     curves: curvesData.value,
     maxCurves: maxData.value,
     project: { ...state.project },
-    _ground: _ground.value,
+    _ground: groundCheckpoint(),
     isModified: false,
     color: DPAL[openProjects.value.length % DPAL.length],
     visible: true,
@@ -622,7 +622,7 @@ function closeProject(p: any) {
       curves: curvesData.value,
       maxCurves: maxData.value,
       project: { ...state.project },
-      _ground: _ground.value,
+      _ground: groundCheckpoint(),
       isModified: false,
       visible: true,
       color: WINISD_TRACE.value,

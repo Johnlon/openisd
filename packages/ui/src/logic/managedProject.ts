@@ -40,8 +40,14 @@
  */
 import { OpenISDDriver } from '@openisd/model';
 import { defaultBox } from '@openisd/model';
+import {
+  activeVent, boxVolume_m3 as readBoxVolume_m3, setBoxVolume_m3 as writeBoxVolume_m3,
+  boxTuning_Fb_hz as readBoxTuning_Fb_hz, setBoxTuning_Fb_hz as writeBoxTuning_Fb_hz,
+  passiveRadiatorOrDefault, ensurePassiveRadiator,
+} from '@openisd/model';
 import type {
-  Cell, MetaCell, SpecField, MetaField, OpenISDProject, OpenISDDriverJson,
+  Cell, MetaCell, SpecField, MetaField, OpenISDProject, _OpenISDDriverJson,
+  OpenISDVent, OpenISDPassiveRadiatorRef,
 } from '@openisd/model';
 import type { DriverError, ConsistencyIssue, Driver as EngineDriver } from '@openisd/engine';
 
@@ -65,7 +71,16 @@ export function emptyProject(): OpenISDProject {
   return {
     driver: undefined,
     box: defaultBox(),
-    target: { entered: { Vb: true, ventD: true, Fb: true } },
+    // WinISD's direction: volume, diameter and tuning are typed; vent length is returned.
+    // `Frc` has no OpenISDBox home yet (no 6th-order alignment exists — QO44) and is carried
+    // here as a bare flag with no corresponding value; `prMadd` is the PR's own entered
+    // member — added mass is typed, its tuning solved. `ventW`/`ventH` mark round-vent
+    // dimensions entered even though only a slotted vent solves against them, matching what
+    // ships: `ventFieldState` reads this set for EVERY vent field's E/C/N badge, not only the
+    // ones the Helmholtz solver consumes.
+    target: { entered: {
+      Vb: true, ventD: true, ventW: true, ventH: true, Fb: true, Frc: true, prMadd: true,
+    } },
     filters: [],
     environment: {
       tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false,
@@ -171,6 +186,72 @@ export class ManagedProject {
   }
   clearMeta(field: MetaField): void {
     this.#effective().driver?.clearMeta(field);
+  }
+
+  // ---- box / vent / PR flat-field accessors, ledger QO54 ---------------------------------
+  //
+  // What `state.P.Vb`/`.ventD`/`.Fb`/`.pr*`/`.entered` accessor properties (store.ts) delegate
+  // to, so the box IS the storage and state.P is a view — not a synced copy. Reads go straight
+  // to the effective layer (no clone: these are read on every reactive tick); writes go
+  // through `mutate()` so the existing edit/what-if notification rule keeps applying with no
+  // second code path to keep in step.
+
+  boxVolume_m3(): number { return readBoxVolume_m3(this.#effective().project.box); }
+  setBoxVolume_m3(value: number): void {
+    this.mutate(p => writeBoxVolume_m3(p.box, value));
+  }
+
+  boxTuning_Fb_hz(): number { return readBoxTuning_Fb_hz(this.#effective().project.box); }
+  setBoxTuning_Fb_hz(value: number): void {
+    this.mutate(p => writeBoxTuning_Fb_hz(p.box, value));
+  }
+
+  /** `Vf` — bandpass4's OWN front-chamber volume. Unconditional: unlike `Vb`, this never
+   *  addresses another alignment's storage, dormant or active — there is only one home. */
+  frontVolume_m3(): number { return this.#effective().project.box.bandpass4.frontVolume_m3; }
+  setFrontVolume_m3(value: number): void {
+    this.mutate(p => { p.box.bandpass4.frontVolume_m3 = value; });
+  }
+
+  activeVentField<K extends keyof OpenISDVent>(field: K): OpenISDVent[K] {
+    return activeVent(this.#effective().project.box)[field];
+  }
+  setActiveVentField<K extends keyof OpenISDVent>(field: K, value: OpenISDVent[K]): void {
+    this.mutate(p => { activeVent(p.box)[field] = value; });
+  }
+
+  prField<K extends keyof OpenISDPassiveRadiatorRef>(field: K): OpenISDPassiveRadiatorRef[K] {
+    return passiveRadiatorOrDefault(this.#effective().project.box.passiveRadiator)[field];
+  }
+  setPrField<K extends keyof OpenISDPassiveRadiatorRef>(field: K, value: OpenISDPassiveRadiatorRef[K]): void {
+    this.mutate(p => { ensurePassiveRadiator(p.box.passiveRadiator)[field] = value; });
+  }
+
+  prCount(): number { return this.#effective().project.box.passiveRadiator.count; }
+  setPrCount(value: number): void { this.mutate(p => { p.box.passiveRadiator.count = value; }); }
+
+  prAddedMass_kg(): number { return this.#effective().project.box.passiveRadiator.addedMass_kg; }
+  setPrAddedMass_kg(value: number): void {
+    this.mutate(p => { p.box.passiveRadiator.addedMass_kg = value; });
+  }
+
+  prFp_hz(): number { return this.#effective().project.box.passiveRadiator.Fp_hz; }
+  setPrFp_hz(value: number): void { this.mutate(p => { p.box.passiveRadiator.Fp_hz = value; }); }
+
+  // ---- entered-set (target provenance), ledger QO54 --------------------------------------
+  //
+  // Replaces `state.P.entered: Record<string, true>` — the "second, hand-rolled provenance
+  // mechanism" the migration plan (Step 4) requires deleted. Same shape, one home:
+  // `OpenISDProject.target.entered`, already scaffolded for exactly this in P1S1.
+
+  isEntered(field: string): boolean {
+    return this.#effective().project.target.entered[field] === true;
+  }
+  setEntered(field: string, value: boolean): void {
+    this.mutate(p => {
+      if (value) p.target.entered[field] = true;
+      else delete p.target.entered[field];
+    });
   }
 
   // ---- project reads and writes ----------------------------------------------------------
@@ -311,7 +392,7 @@ export class ManagedProject {
 
   /** Adopt a chosen driver into the CURRENT design, leaving the box and everything else alone —
    *  choosing a driver is not opening a new project. */
-  loadDriverRecord(record: OpenISDDriverJson): void {
+  loadDriverRecord(record: _OpenISDDriverJson): void {
     this.mutate(p => { p.driver = structuredClone(record); });
     if (this.#overlay?.kind !== 'whatif') this.#notify();
   }

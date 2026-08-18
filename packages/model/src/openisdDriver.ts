@@ -1,7 +1,7 @@
 /**
  * `OpenISDDriver` — the stateful driver model the app holds.
  *
- * This is the app's ONE driver model. It owns a `OpenISDDriverJson` record and answers three
+ * This is the app's ONE driver model. It owns a `_OpenISDDriverJson` record and answers three
  * questions about every field: what is its value, where did that value come from, and
  * what does the engine say is wrong with the driver as a whole.
  *
@@ -26,10 +26,10 @@
 import { deriveOpenISDFields } from './openisdDerive.js';
 import { winningReading } from './openisdRecord.js';
 import type {
-  SpecEntry, SpecSection, Specs, SourceRole, Reading,
-  ScrapedField, DerivedField, BookkeepingField, DispositionField, QualityBlock, CurvesBlock,
+  _SpecEntry, _SpecSection, _Specs, SourceRole, Reading,
+  _ScrapedField, _DerivedField, _BookkeepingField, DispositionField, QualityBlock, CurvesBlock,
 } from './openisdRecord.js';
-import { deriveDriver, checkConsistency, RHO, C } from '@openisd/engine';
+import { deriveDriver, checkConsistency, RHO, C, ebp as computeEbp } from '@openisd/engine';
 import type {
   DriverError, DriverRaw, Driver as EngineDriver, ConsistencyIssue,
 } from '@openisd/engine';
@@ -47,35 +47,53 @@ import type {
  * This is the same rule that governs repositories and file I/O: RECORDS cross boundaries,
  * INSTANCES do not.
  */
-export interface OpenISDDriverJson {
-  uuid: BookkeepingField<string>;
+export interface _OpenISDDriverJson {
+  uuid: _BookkeepingField<string>;
   quality: QualityBlock;
-  manufacturer: ScrapedField<string>;
-  brand: ScrapedField<string>;
-  model: ScrapedField<string>;
-  sku: DerivedField<string>;
-  name?: DerivedField<string>;
-  series?: ScrapedField<string>;
-  driver_type: ScrapedField<string>;
-  nominal_size_cm?: ScrapedField<number>;
+  manufacturer: _ScrapedField<string>;
+  brand: _ScrapedField<string>;
+  model: _ScrapedField<string>;
+  sku: _DerivedField<string>;
+  name?: _DerivedField<string>;
+  series?: _ScrapedField<string>;
+  driver_type: _ScrapedField<string>;
+  nominal_size_cm?: _ScrapedField<number>;
   disposition: DispositionField;
-  data_sources: BookkeepingField<Partial<Record<SourceRole, string>>>;
-  authoritative: BookkeepingField<SourceRole>;
-  product_image?: ScrapedField<string>;
-  description?: ScrapedField<string>;
-  surround_material?: ScrapedField<string>;
+  data_sources: _BookkeepingField<Partial<Record<SourceRole, string>>>;
+  authoritative: _BookkeepingField<SourceRole>;
+  product_image?: _ScrapedField<string>;
+  description?: _ScrapedField<string>;
+  surround_material?: _ScrapedField<string>;
   /** Who supplied this record. Optional: a scraped record has no supplier to name, a
    *  hand-authored or shared one does. Its absence from driver.yml/openisd.yml was a DATA
    *  GAP, not a design choice (human ruling 2026-08-14) — winisd_tools must populate it. */
-  provided_by?: ScrapedField<string>;
+  provided_by?: _ScrapedField<string>;
   /** Free human note about this driver. Same standing as provided_by: a real field of the
    *  record, optional, previously missing from both file formats. */
-  comment?: ScrapedField<string>;
+  comment?: _ScrapedField<string>;
   /** When this record was added, ISO yyyy-mm-dd. Same standing as provided_by. */
-  added?: ScrapedField<string>;
-  specs: Specs;
+  added?: _ScrapedField<string>;
+  specs: _Specs;
   curves?: CurvesBlock;
 }
+
+/**
+ * Human ruling: the ONLY files, `packages/`-relative, permitted to name `_OpenISDDriverJson` —
+ * the class that owns this shape (this file), the store, and the single class responsible
+ * for OpenISD's own file io. Enforced by `packages/ui/test/ui/architecture.test.ts`
+ * ("leading-underscore exports are class-private"), which scans every `_Name` declaration
+ * across the repo for a sibling `<Name>PrivateAllow` export like this one and treats it as
+ * the exhaustive permission list for that name.
+ *
+ * ONLY the human may add, remove, or change an entry here — no agent may edit this list on
+ * its own judgement, however legitimate a call site looks. A failing test naming a new
+ * offender is the correct, expected result, not authorization to widen this list to make it
+ * pass; report the offender and wait for the human's ruling instead.
+ */
+export const _OpenISDDriverJsonPrivateAllow = [
+  'ui/src/logic/openIsdDriverFileIo.ts', // the OpenISD file-io class
+  'ui/src/logic/store.ts',               // the store
+];
 
 /** What `cell()` answers: the number, and where it came from. */
 export type CellState = 'E' | 'C' | 'N';
@@ -89,13 +107,13 @@ export interface Cell {
 
 export type DriverListener = () => void;
 
-/** A field of `SpecSection` — the closed canonical allowlist, not an open string. */
-export type SpecField = keyof SpecSection;
+/** A field of `_SpecSection` — the closed canonical allowlist, not an open string. */
+export type SpecField = keyof _SpecSection;
 
 /**
- * The record-level metadata fields a live edit can touch — the `ScrapedField<string>`
- * envelope, distinct from `SpecField`'s `SpecEntry` envelope (openisdRecord.ts's four-kind
- * split). Not `sku`/`name` (`DerivedField` — built, not read) and not `uuid` (`BookkeepingField`
+ * The record-level metadata fields a live edit can touch — the `_ScrapedField<string>`
+ * envelope, distinct from `SpecField`'s `_SpecEntry` envelope (openisdRecord.ts's four-kind
+ * split). Not `sku`/`name` (`_DerivedField` — built, not read) and not `uuid` (`_BookkeepingField`
  * — a pipeline fact, never hand-edited).
  */
 export type MetaField =
@@ -115,7 +133,7 @@ export interface MetaCell {
  * passive radiator reads `woofer` — that is the pipeline's own convention, and `full-range`
  * is the common case that proves it.
  */
-function sectionFor(record: OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive_radiator' {
+function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive_radiator' {
   const t = record.driver_type?.value;
   if (t === 'tweeter') return 'tweeter';
   if (t === 'passive-radiator' || t === 'passive_radiator') return 'passive_radiator';
@@ -158,13 +176,13 @@ function specName(e: string): SpecField { return FROM_ENGINE[e] ?? (e as SpecFie
 
 export class OpenISDDriver {
   /** The record as it stands, including any manual readings entered since load. */
-  readonly #record: OpenISDDriverJson;
+  readonly #record: _OpenISDDriverJson;
   /** The section every T/S field of this driver lives in — fixed by driver_type. */
   readonly #section: 'woofer' | 'tweeter' | 'passive_radiator';
   /** The origin that won before a manual reading displaced it, so clear() can restore it. */
   readonly #displaced = new Map<SpecField, SourceRole>();
   /** The {value, origin} a MetaField carried before a manual override, so clearMeta() can
-   *  restore it — the ScrapedField equivalent of #displaced. */
+   *  restore it — the _ScrapedField equivalent of #displaced. */
   readonly #displacedMeta = new Map<MetaField, { value: string; origin: SourceRole }>();
   /** Memoised solve; dropped on every mutation. */
   #cache: { fields: Record<string, number>; errors: DriverError[] } | null = null;
@@ -175,12 +193,12 @@ export class OpenISDDriver {
   #autoCalculate = true;
   readonly #listeners = new Set<DriverListener>();
 
-  private constructor(record: OpenISDDriverJson) {
+  private constructor(record: _OpenISDDriverJson) {
     this.#record = record;
     this.#section = sectionFor(record);
   }
 
-  static fromRecord(record: OpenISDDriverJson): OpenISDDriver {
+  static fromRecord(record: _OpenISDDriverJson): OpenISDDriver {
     return new OpenISDDriver(record);
   }
 
@@ -222,19 +240,19 @@ export class OpenISDDriver {
   }
 
   /** The record, including every manual reading entered. This is the `.owdr` bytes. */
-  toRecord(): OpenISDDriverJson { return this.#record; }
+  toRecord(): _OpenISDDriverJson { return this.#record; }
 
   /** The section this driver's T/S fields live in — `specs.woofer` for anything that is
    *  neither a tweeter nor a passive radiator. */
   get section(): 'woofer' | 'tweeter' | 'passive_radiator' { return this.#section; }
 
-  #specs(): SpecSection {
+  #specs(): _SpecSection {
     const s = this.#record.specs[this.#section] ?? {};
     this.#record.specs[this.#section] = s;
     return s;
   }
 
-  #entry(field: SpecField): SpecEntry | undefined {
+  #entry(field: SpecField): _SpecEntry | undefined {
     return this.#specs()[field];
   }
 
@@ -283,6 +301,15 @@ export class OpenISDDriver {
     const v = this.#derived().fields[engineName(field)];
     if (typeof v === 'number' && isFinite(v)) return { value: v, state: 'C' };
     return { value: null, state: 'N' };
+  }
+
+  /** Efficiency Bandwidth Product (Fs/Qes) — WinISD: EBP. Not a stored `SpecField`: it is
+   *  read-only everywhere, computed straight from this driver's own Fs/Qes cells, so it has
+   *  no ENTERED/CALCULATED distinction of its own to carry. Null when either is unknown. */
+  ebp(): number | null {
+    const fs = this.cell('Fs').value;
+    const qes = this.cell('Qes').value;
+    return typeof fs === 'number' && typeof qes === 'number' ? computeEbp({ Fs: fs, Qes: qes }) : null;
   }
 
   /**
@@ -365,7 +392,7 @@ export class OpenISDDriver {
   }
 
   /** The value and provenance of a record-level metadata field (brand/model/manufacturer)
-   *  — the `ScrapedField<string>` envelope's own `cell()`. No `C` state: nothing computes
+   *  — the `_ScrapedField<string>` envelope's own `cell()`. No `C` state: nothing computes
    *  a brand. An empty value (never stated, or cleared to nothing) reads `N`. */
   metaCell(field: MetaField): MetaCell {
     const f = this.#record[field];
@@ -374,12 +401,12 @@ export class OpenISDDriver {
   }
 
   /**
-   * Record a hand-entered metadata value — the ScrapedField equivalent of `enter()`
+   * Record a hand-entered metadata value — the _ScrapedField equivalent of `enter()`
    * (QO36 B3/B4 apply the same way, on the other envelope). An empty string routes to
    * `clearMeta()`, matching how a blank text input behaves everywhere else in the editor.
    * The value/origin the field carried before the FIRST manual override is snapshotted so
    * `clearMeta()` can restore it — `readings`/`definition`/`dq` are left untouched, since
-   * `ScrapedField`'s number is `.value` directly, never looked up via `readings`.
+   * `_ScrapedField`'s number is `.value` directly, never looked up via `readings`.
    */
   enterMeta(field: MetaField, value: string): void {
     if (value === '') { this.clearMeta(field); return; }
@@ -441,12 +468,12 @@ export { specName };
  * including a DERIVED value, because "what is this driver's Fs" is a real question about a
  * record that only states Mms and Cms — and it hands back nothing that can be written to.
  */
-export function readCell(record: OpenISDDriverJson, field: SpecField): Cell {
+export function readCell(record: _OpenISDDriverJson, field: SpecField): Cell {
   return OpenISDDriver.fromRecord(record).cell(field);
 }
 
 /** One metadata field, read straight off a RECORD. Same reasoning as `readCell`. */
-export function readMetaCell(record: OpenISDDriverJson, field: MetaField): MetaCell {
+export function readMetaCell(record: _OpenISDDriverJson, field: MetaField): MetaCell {
   return OpenISDDriver.fromRecord(record).metaCell(field);
 }
 
@@ -455,7 +482,7 @@ export function readMetaCell(record: OpenISDDriverJson, field: MetaField): MetaC
  * the name it reads by everywhere. `'Driver'` when it states neither — an unnamed driver is a
  * real state, and inventing a name would make it indistinguishable from one the user set.
  */
-export function readDisplayName(record: OpenISDDriverJson): string {
+export function readDisplayName(record: _OpenISDDriverJson): string {
   const brand = record.brand?.value ?? '';
   const model = record.model?.value ?? '';
   return [brand, model].filter(x => x.length > 0).join(' ').trim() || 'Driver';
@@ -469,7 +496,7 @@ export function readDisplayName(record: OpenISDDriverJson): string {
  *
  * The record types are TypeScript, which is a compile-time promise about code WE wrote. A blob
  * arriving from localStorage, a share link or a file is data someone else wrote — possibly an
- * older build of this app, possibly a hand-edited string — and `x as OpenISDDriverJson` is an
+ * older build of this app, possibly a hand-edited string — and `x as _OpenISDDriverJson` is an
  * assertion, not a check. Reading an unchecked blob into the model let one absent key take the
  * whole app down: `#specs()` dereferences `record.specs`, so a record without it threw on the
  * first read and every computed touching the driver died with it.
@@ -488,6 +515,6 @@ export function driverRecordProblems(record: unknown): string[] {
   return problems;
 }
 
-export function emptyDriverRecord(): OpenISDDriverJson {
+export function emptyDriverRecord(): _OpenISDDriverJson {
   return OpenISDDriver.empty().toRecord();
 }

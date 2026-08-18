@@ -98,7 +98,11 @@ export function buildWprInput(
     input.box.Fr = prTuning(P);
     input.box.npr = P.prNum;
     input.pr = {
-      Vas: prVas(P.prCms, P.prSd),
+      // prVas() returns LITRES (its own contract, correct for PREditModal's display) — the
+      // .wpr's [PassiveRadiator].Vas is SI cubic metres, like every other field in that
+      // section. BUG_20260817_wpr_passive_radiator_vas_written_in_litres...: this was writing
+      // litres straight into the m^3 field, 1000x too large.
+      Vas: prVas(P.prCms, P.prSd) / 1000,
       Qms: prQms(P.prMmd, P.prCms, P.prRms),
       Fs: prFsWithMass(P.prMmd, P.prMadd, P.prCms),
       Sd: P.prSd,

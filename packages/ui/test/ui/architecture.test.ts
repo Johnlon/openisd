@@ -91,6 +91,27 @@ function valueImportsOf(file: string): { spec: string; names: string[] }[] {
 
 const rel = (f: string) => relative(UI_SRC, f);
 
+const MODEL_SRC = join(UI_SRC, '..', '..', 'model', 'src');
+const WINISD_SRC = join(UI_SRC, '..', '..', 'winisd', 'src');
+
+/**
+ * Every import of `name` from a module matching `specPattern` — type-only or value, since a
+ * type erases at compile time but a type-only import is still a NAME that ties a file to a
+ * shape, which is exactly what this gate restricts. Matches both `import { name } from '...'`
+ * and `import type { name } from '...'`, including mixed brace lists (`import { type A, B }`).
+ */
+function namedImportsOf(file: string, name: string, specPattern: RegExp): string[] {
+  const text = readFileSync(file, 'utf8');
+  const out: string[] = [];
+  const anyImport = /^\s*import\s+(?:type\s+)?[^;]*?from\s+['"]([^'"]+)['"]/gm;
+  for (let m = anyImport.exec(text); m; m = anyImport.exec(text)) {
+    const [whole, spec] = m;
+    if (!specPattern.test(spec)) continue;
+    if (new RegExp(`\\b${name}\\b`).test(whole)) out.push(spec);
+  }
+  return out;
+}
+
 describe('layering — every arrow points downward', () => {
   it('a service never imports the application state or the logic layer', () => {
     const services = [join(UI_SRC, 'db'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')]
@@ -122,22 +143,34 @@ describe('layering — every arrow points downward', () => {
     assert.deepEqual(offences, [], 'Services are siblings; one may not depend on another.');
   });
 
+  // The driver editor's sanctioned exemption: `@openisd/model` (the `OpenISDDriver` record and
+  // its own class) is the domain's ONE data type, not a service — a component that constructs
+  // and edits it directly is not skipping a layer the way a component computing physics would.
+  // Human ruling: "the driver editor needs to work in terms of the existing OpenISDDriver
+  // interface, not a facade — put the driver editor into its own module, allow it to access
+  // OpenISDDriver directly, other views not allowed." Scoped to this ONE file by name, not to
+  // `ui/**` generally — everything else, including `@openisd/engine` even for this same file,
+  // stays banned below.
+  const DRIVER_EDITOR = join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue');
+  const isExemptModelImport = (f: string, s: string) => f === DRIVER_EDITOR && /(^|\/)@openisd\/model(\/|$)/.test(s);
+
   it('the presentation layer depends on logic and nothing below it', () => {
     const offences = filesUnder(join(UI_SRC, 'ui')).flatMap(f =>
       importsOf(f)
-        .filter(s => layerOf(s) === 'service' || layerOf(s) === 'domain')
+        .filter(s => (layerOf(s) === 'service' || layerOf(s) === 'domain') && !isExemptModelImport(f, s))
         .map(s => `${rel(f)} imports ${s}`));
 
     assert.deepEqual(offences, [],
       'ui depends on logic and nothing else. Reaching past it — into a service, into the ' +
       'engine, or into the serialiser — skips a layer, and a second front-end would have to ' +
-      're-wire those calls rather than only re-skinning.');
+      're-wire those calls rather than only re-skinning. (DriverEditorModal.vue is exempt for ' +
+      '@openisd/model only — see the ruling above.)');
   });
 
   it('a component imports no value from the domain — a type-only import is not a dependency', () => {
     const offences = filesUnder(join(UI_SRC, 'ui')).flatMap(f =>
       importsOf(f)
-        .filter(s => layerOf(s) === 'domain')
+        .filter(s => layerOf(s) === 'domain' && !isExemptModelImport(f, s))
         .map(s => `${rel(f)} imports ${s}`));
 
     assert.deepEqual(offences, [],
@@ -435,7 +468,9 @@ describe('containment is total: store -> ManagedProject -> OpenISDDriver', () =>
 
   it('nothing reaches past ManagedProject into the model package for a driver value', () => {
     const offences = filesUnder(UI_SRC)
-      .filter(f => f !== MANAGED && f !== join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue'))
+      .filter(f => f !== MANAGED
+        && f !== join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue')
+        && f !== join(UI_SRC, 'logic', 'winIsdDriverFileIo.ts'))
       .flatMap(f => valueImportsOf(f)
         .filter(vi => /(^|\/)@openisd\/model(\/|$)/.test(vi.spec))
         .flatMap(vi => vi.names
@@ -443,7 +478,99 @@ describe('containment is total: store -> ManagedProject -> OpenISDDriver', () =>
           .map(n => `${rel(f)} imports ${n} as a VALUE from ${vi.spec}`)));
 
     assert.deepEqual(offences, [],
-      'Only managedProject.ts may name OpenISDDriver as a value. A type-only import is fine — ' +
-      'it erases, so it cannot reach the object.');
+      'Only managedProject.ts may name OpenISDDriver as a value (DriverEditorModal.vue and ' +
+      'winIsdDriverFileIo.ts carry their own narrow, ruled exemptions — see the comments at ' +
+      'their own construction sites). A type-only import is fine — it erases, so it cannot ' +
+      'reach the object.');
+  });
+
+  it('only winIsdDriverFileIo.ts may name WinISDDriver as a value', () => {
+    const WDR_FILE_IO = join(UI_SRC, 'logic', 'winIsdDriverFileIo.ts');
+    const offences = filesUnder(UI_SRC)
+      .filter(f => f !== WDR_FILE_IO)
+      .flatMap(f => valueImportsOf(f)
+        .filter(vi => /(^|\/)@openisd\/winisd(\/|$)/.test(vi.spec))
+        .flatMap(vi => vi.names
+          .filter(n => n === 'WinISDDriver')
+          .map(() => `${rel(f)} imports WinISDDriver as a VALUE`)));
+
+    assert.deepEqual(offences, [],
+      'WinISDDriver is the .wdr FILE FORMAT boundary, not a driver representation — it never ' +
+      'crosses winIsdDriverFileIo.ts, whose two exports (importDriver/exportDriver) take and ' +
+      'return OpenISDDriverJson only. Every other file wanting a .wdr import or export calls ' +
+      'those two functions; naming WinISDDriver itself anywhere else reopens the leak this ' +
+      'gate exists to close. A type-only import is fine — it erases, so it cannot reach the ' +
+      'class.');
+  });
+});
+
+/**
+ * Convention: a leading underscore on an exported name (`_Foo`) marks it class-private —
+ * an implementation detail of the module that declares it, exported only so that module's own
+ * file-io/store collaborators can name it, never for general consumption. TypeScript has no
+ * cross-file access modifier for an exported interface, so this gate is the enforcement: it
+ * finds every `export ... _Name` declaration under ui/model/winisd `src/`, then asserts that
+ * no OTHER file names `_Name` in an import — except a file listed in that name's OWN
+ * `<Name>PrivateAllow` export, declared beside `_Name` in its own file (e.g.
+ * `_OpenISDDriverJsonPrivateAllow` next to `_OpenISDDriverJson` in openisdDriver.ts). The
+ * allowlist lives with the declaration it governs, not in this test — ONLY the human may
+ * add, remove, or change one of those exported arrays; no agent may edit one on its own
+ * judgement, however legitimate a call site looks. A failing test naming a new offender is
+ * the correct, expected result, not authorization to widen the list to make it pass.
+ */
+describe('leading-underscore exports are class-private — named only by their own PrivateAllow list', () => {
+  const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC)];
+  const REPO_ROOT = join(UI_SRC, '..', '..');
+
+  /** Every `export <kind> _Name` declaration site, keyed by name. A name declared in two files
+   *  is itself a violation of "one owner" and is asserted separately below. */
+  function privateDeclarationSites(files: string[]): Map<string, string[]> {
+    const sites = new Map<string, string[]>();
+    const decl = /^\s*export\s+(?:interface|type|class|function|const|let)\s+(_[A-Za-z_$][\w$]*)/gm;
+    for (const f of files) {
+      const text = readFileSync(f, 'utf8');
+      for (let m = decl.exec(text); m; m = decl.exec(text)) {
+        const name = m[1];
+        sites.set(name, [...(sites.get(name) ?? []), f]);
+      }
+    }
+    return sites;
+  }
+
+  /** `export const <Name>PrivateAllow = [ 'repo/relative/path.ts', ... ]` declared in the
+   *  same file as `_Name` itself — the exhaustive permission list for that name. Absent ⇒ no
+   *  file outside the owner may name it at all. */
+  function privateAllowOf(ownerFile: string, name: string): string[] {
+    const text = readFileSync(ownerFile, 'utf8');
+    const re = new RegExp(`export const ${name}PrivateAllow[^=]*=\\s*\\[([\\s\\S]*?)\\]`);
+    const m = re.exec(text);
+    if (!m) return [];
+    return Array.from(m[1].matchAll(/['"]([^'"]+)['"]/g)).map(x => x[1]);
+  }
+
+  it('each private name is declared in exactly one file', () => {
+    const sites = privateDeclarationSites(ALL_SRC_FILES);
+    const offences = [...sites.entries()]
+      .filter(([, files]) => files.length > 1)
+      .map(([name, files]) => `${name} is declared in ${files.map(f => relative(REPO_ROOT, f)).join(', ')}`);
+    assert.deepEqual(offences, []);
+  });
+
+  it('no file outside a name\'s declaring file and its own PrivateAllow list imports it', () => {
+    const sites = privateDeclarationSites(ALL_SRC_FILES);
+    const offences = ALL_SRC_FILES
+      .flatMap(f => [...sites.entries()]
+        .filter(([, [owner]]) => f !== owner)
+        .flatMap(([name, [owner]]) => {
+          if (privateAllowOf(owner, name).includes(relative(REPO_ROOT, f))) return [];
+          return namedImportsOf(f, name, /./)
+            .map(spec => `${relative(REPO_ROOT, f)} imports ${name} from ${spec} (owned by ${relative(REPO_ROOT, owner)})`);
+        }));
+
+    assert.deepEqual(offences, [],
+      'A leading underscore marks a name class-private. Every offence above is a file naming ' +
+      'a private declaration it neither owns nor is listed for in that name\'s own ' +
+      '<Name>PrivateAllow export — route through the owning module\'s public API instead of ' +
+      'naming the private shape directly.');
   });
 });

@@ -10,10 +10,10 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { winningReading, type SpecEntry } from '../src/openisdRecord.js';
+import { winningReading, type _SpecEntry } from '../src/openisdRecord.js';
 import { OpenISDDriver } from '../src/openisdDriver.js';
 
-function fsEntry(): SpecEntry {
+function fsEntry(): _SpecEntry {
   return {
     origin: 'manufacturer_datasheet',
     readings: {
@@ -64,11 +64,11 @@ describe('the openisd.yml record shape — constructible against real fixture da
   });
 
   it('throws if origin does not name a present reading — mirrors the Python validator', () => {
-    const broken: SpecEntry = { origin: 'manual', readings: {}, dq: [] };
+    const broken: _SpecEntry = { origin: 'manual', readings: {}, dq: [] };
     assert.throws(() => winningReading(broken));
   });
 
-  it('a metadata field (ScrapedField) has a flat value, unlike a SpecEntry', () => {
+  it('a metadata field (_ScrapedField) has a flat value, unlike a _SpecEntry', () => {
     assert.equal(driver().metaCell('brand').value, 'Beyma');
   });
 

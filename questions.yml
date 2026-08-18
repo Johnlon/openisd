@@ -1,5 +1,5 @@
 prefix: QO
-next: 52
+next: 55
 questions:
 - id: QO1
   title: UI TODO List
@@ -3196,7 +3196,7 @@ questions:
     text: A
 - id: QO32
   title: 'Advanced-panel formula recovery: Gloss, SPLmaxLF, Mcost'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -3297,6 +3297,9 @@ questions:
            oracle-backed round-trip test. SPLmaxLF and Mcost are unaffected: neither is a carried key.
         2. packages/ui/src/logic/fields/fieldRegistry.ts still describes all three as "formula has NOT been
            recovered".
+  answer:
+    at: '2026-08-17'
+    text: A
 - id: QO33
   title: Repo-level skill symlinks into _agent_files are allowed; divergent copies remain banned
   status: open
@@ -3606,7 +3609,7 @@ questions:
   body: ''
 - id: QO36
   title: 'OpenISD model migration: readiness state and outstanding checks'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -4253,9 +4256,21 @@ questions:
       decision: extend SpecSection with those ~15 fields (touches OpenISDDriver, out of scope this
       session per explicit instruction), or drop them from live editing (a feature change). Left
       fully flagged rather than half-swapped.
+  answer:
+    at: '2026-08-17'
+    text: |-
+      Yes of course - if we are editing spec params then they need proper SpecSection entries -
+      and close
+
+      RULING: extend SpecSection with the ~15 fields DriverEditorModal.vue lets the user edit live
+      (Vd, no, tc, Rth, Cth, SPLmaxLF, SPLmax, Rme, gamma, Mpow, Mcost, Gloss/loss, plus metadata
+      providedBy/comment/added). Do NOT drop them from live editing. Implementation (extending
+      OpenISDDriver's SpecSection, swapping store.ts's driver state onto ManagedDriver,
+      DriverEditorModal.vue/useDesignIO.ts) is real engineering work, tracked to BACKLOG.md rather
+      than left open here.
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -4396,6 +4411,24 @@ questions:
       and the .wpr/.wdr writer citations are stable.
 
       STILL NO SOURCE FILE CHANGED BY THIS AUDIT.
+  answer:
+    at: '2026-08-17'
+    text: |-
+      SEVERE BUG - records a severe bug and fix if quick and close
+
+      Recorded and fixed. F1 (severe, corrupts .wpr): bugs/BUG_20260817_wpr_passive_radiator_vas_written_in_litres_into_a_cubic_metre_field.md.
+
+      Cause: wprMapping.ts:101 passed prVas()'s LITRES return value straight into the .wpr's SI
+      [PassiveRadiator].Vas field (1000x). Fix: divide by 1000 at the one write site. prVas() itself
+      untouched -- its litres contract is correct for its display caller (PREditModal.vue).
+
+      TDD: new packages/ui/test/logic/wprMapping.test.ts, RED before the fix (999x error, exactly the
+      bug), GREEN after. packages/winisd/test/classic/wpr.test.ts (14 tests) still green -- no
+      regression. vue-tsc clean except pre-existing store.ts errors from a concurrent session's
+      in-flight uncommitted work (confirmed via git stash, not caused by this fix).
+
+      F2 (11 driver-editor fields silently discarded on .wdr save) and F3 (.wpr Rg/alfaVC/dTVC
+      written as literals) are real but not severe -- moved to BACKLOG.md, not fixed this turn.
 - id: QO38
   title: 'Layering ruling: ui depends on logic; logic consumes services (driver_db, browser stores, file
     io, diagnostics)'
@@ -4644,7 +4677,7 @@ questions:
 - id: QO39
   title: 'Xmax route precedence settled by probe: row 19 abs(Hc-Hg)/2 WINS, Vd/Sd is the fallback - WDR_SCHEMA
     L268 is wrong, L310 is right'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -4757,10 +4790,13 @@ questions:
 
       Corresponding write-up: winisd_research/SOLVER_GAPS.md 2.6, which states the observation and
       labels the mechanism UNTESTED.
+  answer:
+    at: '2026-08-17'
+    text: A — verified live at driver.ts:194, the guard is in.
 - id: QO40
   title: 'Xmax is calculable: the input-only claim removed everywhere, and the WDR_SCHEMA route contradiction
     resolved'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -4863,6 +4899,9 @@ questions:
 
       TOOLING: LSP was UNAVAILABLE — ToolSearch("select:LSP") returned "No matching deferred tools
       found". Grep + Read were used throughout, and every cited line was verified by Read.
+  answer:
+    at: '2026-08-17'
+    text: A — same guard, same verification.
 - id: QO41
   title: No documented schema for openisd.yml exists anywhere - only two hand-mirrored code copies
   status: decided
@@ -4976,7 +5015,7 @@ questions:
       Recorded in ARCHITECTURE.md as target state, and in HANDOVER.md.
 - id: QO44
   title: '6th-order bandpass and ABC alignments: not in BoxType, and ABC''s fields are unspecified'
-  status: open
+  status: decided
   raised: '2026-08-14'
   body: ''
   notes:
@@ -5001,6 +5040,11 @@ questions:
       2. ABC - ITS FIELDS ARE NOT SPECIFIED. Nothing in the repo says what an ABC
          alignment holds. The diagram shows the box empty on purpose rather than
          inventing contents. NEEDS A HUMAN SPEC before it can be modelled.
+  answer:
+    at: '2026-08-17'
+    text: Put it on the backlog and close. 6th-order bandpass was already tracked (BACKLOG.md line 324);
+      added ABC as its own item, flagged blocked on a human spec since no fields are defined for it anywhere
+      in the repo.
 - id: QO45
   title: 'CARRIED: justify the category or eliminate it — Gloss/Hc/Hg are derived, so what does ''carried''
     mean?'
@@ -5403,16 +5447,10 @@ questions:
 
       UNTIL RULED: the sweep test exempts Znom by name alongside c and roo, with this question id in
       the comment, so the gap stays visible instead of being silently tolerated.
-- id: QO52
-  title: Znom shows as CALCULATED in the editor but no formula exists — is the mark wrong, or is it derived
-    from Re?
-  status: open
-  raised: '2026-08-17'
-  body: ''
 - id: QO53
   title: Gloss has no TO_ENGINE/FROM_ENGINE entry — every call site reaches it via the engine's raw key
     'loss' cast past SpecField
-  status: open
+  status: decided
   raised: '2026-08-17'
   body: ''
   notes:
@@ -5455,3 +5493,104 @@ questions:
       compile. An audit of every editor call site against SpecSection, flagging any that need a
       cast today (Gloss/loss is the one confirmed so far), is the next step -- not attempted
       here, this is a ledger record of the ruling only.
+  answer:
+    at: '2026-08-17'
+    text: |-
+      Implemented (the Gloss case; the wider per-field editor audit the ruling calls for is a
+      separate future step, not attempted here). Engine now computes and stores the field under
+      `Gloss` directly (packages/engine/src/driver.ts, packages/engine/src/types.ts), matching the
+      record's one name - no TO_ENGINE/FROM_ENGINE translation entry needed at all, since a
+      translation layer would only re-institute the alias the ruling banned. Every 'loss' call site
+      (DriverEditorModal.vue, driver-editor-units.test.ts, advanced-figures.test.ts, provenance.ts,
+      the two .wdr-bridge maps in packages/winisd) changed to 'Gloss', casts removed. Full detail
+      and verification in bugs/BUG_20260817_gloss_has_no_engine_name_mapping_so_every_call_site_casts_past_the_type.md:
+      tsc clean on engine/winisd/model, 487/487 on the targeted suites, 1801/1806 on the wider
+      sweep (5 pre-existing unrelated failures from a concurrent session's uncommitted store.ts/
+      architecture.test.ts work).
+- id: QO52
+  title: 'P1S4 design decision: state.P box/vent/PR fields become accessor properties over OpenISDProject,
+    not a rewrite of call sites'
+  status: decided
+  raised: '2026-08-17'
+  body: ''
+  answer:
+    at: '2026-08-18'
+    text: |-
+      It is illegal to have a global symbol other than the ones I have specifically agreed to. The only
+      permitted globals are:
+        openProjects(): [OpenISDProject]      — empty if no projects open
+        focusedProject(): null | OpenISDProject — null if no project is open
+
+      Every other export currently in packages/ui/src/logic/store.ts (state, managedProject, _ground,
+      isModified, driver, driverRecord, driverName, driverErrors, syncedP, curvesData, formatInUnit,
+      driverCell, enterVentField, etc — the full ~40-export surface) is a global-symbol violation and
+      must become a method/getter on the focused OpenISDProject instead of a free-standing module
+      export. Globals are inherently evil and usually a lazy or broken design — I will generally reject
+      requests to keep one. If an agent believes a specific symbol has a strong justification to remain
+      global, it must ask for that symbol by name with a strong justification; otherwise remove it.
+
+      This is a full state-model migration (store.ts rewrite + every consuming call site across the ui
+      package, ~15 files) and needs its own planned task, not an inline edit.
+- id: QO54
+  title: 'P1S4 design decision: state.P box/vent/PR fields become accessor properties over OpenISDProject
+    -'
+  status: open
+  raised: '2026-08-17'
+  body: ''
+- id: QO55
+  title: WinISDDriver should be constructed purely by setter calls fed from OpenISDDriver getter reads
+    -- no internal deriveOpenISDFields()/ParState/Xlim/DQ-comment logic of its own
+  status: open
+  raised: '2026-08-17'
+  body: ''
+  notes:
+  - at: '2026-08-17'
+    text: |-
+      HUMAN RULING: no code outside an OpenISDDriver instance may compute or derive a driver
+      value -- the ONE access point for any such value is a getter on that instance. WinISDDriver
+      "MUST NOT attempt to access OpenISDDriver nor perform any calcs. WinISDDriver is purely a
+      value object that is used in and out of the serialisations." And further: "strip all logic
+      from WinISDDriver -- it should merely be constructed by a collection of setter ops based on
+      getter values returned from an instance of OpenISDDriver."
+
+      DONE THIS SESSION (the narrow, confirmed violation): the EBP inline formula in
+      fromOpenISDRecord (packages/winisd/src/winisdDriver.ts) removed; OpenISDDriver.ebp() added
+      as the one place that formula lives; winIsdDriverFileIo.ts obtains it via the getter and
+      passes it in as a plain value. bugs/BUG_20260817_wdr_writer_computes_ebp_itself_violating_
+      its_own_no-calc-logic_rule.md
+
+      NOT DONE, and the larger part of the ruling: `fromOpenISDRecord` (packages/winisd/src/
+      winisdDriver.ts:278-389, ~110 lines) still calls deriveOpenISDFields() internally, still
+      assigns every field's ParState mark itself from entered/computed/solverErrors, still holds
+      the Xlim-slot special-casing and the DQ-comment-line generation -- all logic the ruling
+      says does not belong in this class at all. The full fix moves ALL of that to whatever
+      constructs a WinISDDriver (winIsdDriverFileIo.ts), which would read every field through
+      OpenISDDriver's own getters (value AND E/C/N state) and call plain WinISDDriver setters,
+      field by field, with WinISDDriver itself doing nothing but holding what it's given.
+
+      SCOPED DELIBERATELY OUT of the EBP fix (2026-08-17 session decision, human agreed): this
+      is a full rewrite of the .wdr export path, not a follow-on patch. It touches the ParState-
+      mark, CRLF and Xlim fidelity work already landed this same session (WDR round-trip
+      fidelity commits) and needs its own dedicated implementation + test pass, not a rushed
+      addendum. THE FIX, when scoped: design what OpenISDDriver's getter surface needs to look
+      like to answer every field WinISD's format cares about (value + E/C/N state), then rewrite
+      fromOpenISDRecord as a straight read-getter/call-setter sequence with zero internal
+      derivation.
+  - at: '2026-08-18'
+    text: |-
+      2026-08-18 finding, ties directly to the "NOT DONE" part above: the method got renamed
+      fromOpenISDRecord -> fromOpenISDDriver at its declaration (winisdDriver.ts:261) but the rename
+      was never propagated to 9 call sites (production winIsdDriverFileIo.ts:35, the class's own
+      internal self-call at winisdDriver.ts:385, and 5 test files) — they all call the now-nonexistent
+      fromOpenISDRecord name, so packages/winisd currently fails to typecheck. Recorded as
+      bugs/BUG_20260818_fromOpenISDRecord_does_not_exist_9_call_sites_broken.md.
+
+      HUMAN RULING (2026-08-18, restated/confirmed): driver.toRecord() being called ANYWHERE inside
+      winisdDriver.ts (i.e. WinISDDriver's own construction logic reaching into OpenISDDriver's
+      internal JSON) is ABSOLUTELY FORBIDDEN — not merely undesirable. This is the same constraint
+      already stated above ("no code outside an OpenISDDriver instance may compute or derive a driver
+      value") applied specifically to .toRecord()/the raw JSON object as confidential and off-limits
+      to the rest of the app, not just to "logic". Confirms the fix is the full QO55 rewrite (getter/
+      setter sequence, zero internal derivation, zero .toRecord() call) — not a narrower fix that just
+      repoints the 9 broken call names at fromOpenISDDriver while leaving its current
+      toRecord()-based internals in place.

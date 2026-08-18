@@ -26,8 +26,9 @@
  * Plain data throughout: no methods, no class identity, `structuredClone`-able, because
  * `ManagedProject` clones a whole project to open an overlay.
  */
-import type { OpenISDDriverJson } from './openisdDriver.js';
+import type { _OpenISDDriverJson } from './openisdDriver.js';
 import type { Filter } from '@openisd/engine';
+import { tuningFromLength } from '@openisd/engine';
 
 /** Which alignment is ACTIVE. The others stay populated and dormant. */
 export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator';
@@ -200,7 +201,7 @@ export interface OpenISDProject {
    *  A record, not the live `OpenISDDriver`: this project is cloned three ways by
    *  `ManagedProject`, and `structuredClone` silently reduces a class instance to a plain
    *  object. `ManagedProject` materialises a live driver over whichever layer is effective. */
-  driver?: OpenISDDriverJson;
+  driver?: _OpenISDDriverJson;
   box: OpenISDBox;
   target: OpenISDTarget;
   filters: Filter[];
@@ -235,12 +236,17 @@ function defaultVent(): OpenISDVent {
  * exists to prevent. They all exist, they all hold values, one is active.
  */
 export function defaultBox(): OpenISDBox {
+  const vent = defaultVent();
+  // The Helmholtz tuning THIS vent and THIS volume actually deliver, via the same
+  // `tuningFromLength` the vent-group solver uses — a derived value, not an independent
+  // literal, so the default design cannot state a vent and a tuning that disagree.
+  const ventedFb = tuningFromLength(0.030, vent.length_m, Math.PI * (vent.diameter_m / 2) ** 2, vent.endCorrection);
   return {
     active: 'vented',
     sealed: { volume_m3: 0.030 },
-    vented: { volume_m3: 0.030, Fb_hz: 0, vent: defaultVent() },
+    vented: { volume_m3: 0.030, Fb_hz: ventedFb, vent },
     bandpass4: {
-      rearVolume_m3: 0.020, frontVolume_m3: 0.035, Ff_hz: 60, frontVent: defaultVent(),
+      rearVolume_m3: 0.020, frontVolume_m3: 0.015, Ff_hz: 60, frontVent: defaultVent(),
     },
     passiveRadiator: { volume_m3: 0.040, Fp_hz: 0, count: 1, addedMass_kg: 0 },
     // Enclosure losses: leakage, absorption, port. They describe the BOX, not one alignment,
@@ -259,4 +265,74 @@ export function defaultBox(): OpenISDBox {
  */
 export function setActiveAlignment(box: OpenISDBox, kind: AlignmentKind): void {
   box.active = kind;
+}
+
+// ── Flat field accessors — ledger QO54 ────────────────────────────────────────────────────
+//
+// `ManagedProject`/`store.ts` expose box, vent and PR data through a small set of legacy-shaped
+// flat fields (`Vb`, `ventD`, `Fb`, `prSd`, …) so `useVentGroup.ts`/`usePrGroup.ts` and every UI
+// call site keep working unchanged while the ACTUAL storage moves onto `OpenISDBox`. These
+// functions are what those flat fields are defined in terms of.
+//
+// The rule, uniform across all of them: a field addresses bandpass4's OWN storage only while
+// bandpass4 is active; every other active alignment (sealed, vented, passive-radiator) still
+// addresses the VENTED alignment's storage, dormant or not — a vent or tuning typed in before
+// switching away from vented must stay reachable through the same flat field, matching
+// "switching box type deletes nothing." PR fields never depend on `active` at all.
+
+/** The vent object `ventShape`/`ventD`/`ventW`/`ventH`/`ventL`/`endCorrection` address. A LIVE
+ *  reference — writing through it mutates the box directly. */
+export function activeVent(box: OpenISDBox): OpenISDVent {
+  return box.active === 'bandpass4' ? box.bandpass4.frontVent : box.vented.vent;
+}
+
+/** `Vb` — the rear/primary chamber volume, per active alignment. Bandpass4's FRONT chamber is
+ *  the separate `Vf` field (`bandpass4.frontVolume_m3`), untouched by this. */
+export function boxVolume_m3(box: OpenISDBox): number {
+  switch (box.active) {
+    case 'sealed': return box.sealed.volume_m3;
+    case 'vented': return box.vented.volume_m3;
+    case 'bandpass4': return box.bandpass4.rearVolume_m3;
+    case 'passive-radiator': return box.passiveRadiator.volume_m3;
+  }
+}
+export function setBoxVolume_m3(box: OpenISDBox, value: number): void {
+  switch (box.active) {
+    case 'sealed': box.sealed.volume_m3 = value; break;
+    case 'vented': box.vented.volume_m3 = value; break;
+    case 'bandpass4': box.bandpass4.rearVolume_m3 = value; break;
+    case 'passive-radiator': box.passiveRadiator.volume_m3 = value; break;
+  }
+}
+
+/** `Fb` — system tuning. Bandpass4's `Ff_hz` (front-chamber tuning) IS `Fb` while bandpass4 is
+ *  active; every other alignment reads/writes the vented alignment's `Fb_hz`, dormant or not. */
+export function boxTuning_Fb_hz(box: OpenISDBox): number {
+  return box.active === 'bandpass4' ? box.bandpass4.Ff_hz : box.vented.Fb_hz;
+}
+export function setBoxTuning_Fb_hz(box: OpenISDBox, value: number): void {
+  if (box.active === 'bandpass4') box.bandpass4.Ff_hz = value;
+  else box.vented.Fb_hz = value;
+}
+
+/** A stand-in with every field zeroed, for a read where no radiator has been chosen yet. Frozen
+ *  and shared: a read must never allocate, since a reactive UI calls this on every render. */
+const NO_RADIATOR: Readonly<OpenISDPassiveRadiatorRef> =
+  Object.freeze({ Sd_m2: 0, Mmd_kg: 0, Cms_m_per_N: 0, Rms_Ns_per_m: 0, Xmax_m: 0, name: '' });
+
+/** The radiator's own fields (Sd/Mmd/Cms/Rms/Xmax/name) for READING — zeros when none is
+ *  chosen yet. Never creates one; see `ensurePassiveRadiator` for writing. */
+export function passiveRadiatorOrDefault(
+  alignment: OpenISDPassiveRadiatorAlignment,
+): Readonly<OpenISDPassiveRadiatorRef> {
+  return alignment.radiator ?? NO_RADIATOR;
+}
+
+/** The radiator's own fields for WRITING — creates one on first write if none exists yet, and
+ *  returns the SAME object on every later call so a second field written right after the first
+ *  lands on it rather than silently starting over. */
+export function ensurePassiveRadiator(
+  alignment: OpenISDPassiveRadiatorAlignment,
+): OpenISDPassiveRadiatorRef {
+  return alignment.radiator ??= { Sd_m2: 0, Mmd_kg: 0, Cms_m_per_N: 0, Rms_Ns_per_m: 0, Xmax_m: 0, name: '' };
 }

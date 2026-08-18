@@ -182,17 +182,16 @@ describe('SPLmax and USPL — both offsets from the ONE reference base', () => {
 describe('Gloss — the static cone sag, as a FRACTION of Xmax', () => {
   it('reproduces the WinISD-authored file, whose ParState marks Gloss computed', () => {
     const r = solve({ ...ORACLE_INPUTS });
-    assert.ok(rel(r.loss, ORACLE.Gloss) < 1e-12,
-      `Gloss = ${r.loss}, WinISD wrote ${ORACLE.Gloss} (relative ${rel(r.loss, ORACLE.Gloss)})`);
+    assert.ok(rel(r.Gloss, ORACLE.Gloss) < 1e-12,
+      `Gloss = ${r.Gloss}, WinISD wrote ${ORACLE.Gloss} (relative ${rel(r.Gloss, ORACLE.Gloss)})`);
   });
 
-  it('is written under the record\'s ONE name for the quantity, `loss`', () => {
-    // The `.wdr` key is `Gloss`; the record field is `loss` (DriverRaw, and the WDR_META
-    // pairing in @openisd/winisd). A second key holding the same number would be a second
-    // name for one concept.
+  it('is written under the record\'s ONE name for the quantity, `Gloss`', () => {
+    // The record field and the `.wdr` key are both `Gloss` — one name, on disk and in memory
+    // alike. A second key holding the same number would be a second name for one concept.
     const r = solve({ ...ORACLE_INPUTS });
-    assert.equal((r as Record<string, unknown>).Gloss, undefined,
-      'the solver must not invent a second key for the quantity `loss` already names');
+    assert.equal((r as Record<string, unknown>).loss, undefined,
+      'the solver must not invent a second key for the quantity `Gloss` already names');
   });
 
   it('follows the STORED Fs, not the Fs that Mms·Cms implies', () => {
@@ -204,19 +203,19 @@ describe('Gloss — the static cone sag, as a FRACTION of Xmax', () => {
       Qes: 0.4812931131916, Qms: 2.1, Re: 14.1525718647402, Bl: 6, Sd: 0.022,
       roo: 1.20095217714682, c: 343.684120962153,
     });
-    assert.ok(rel(r.loss, 0.000926885620863929) < 1e-12,
-      `Gloss = ${r.loss}, WinISD gave 0.000926885620863929`);
+    assert.ok(rel(r.Gloss, 0.000926885620863929) < 1e-12,
+      `Gloss = ${r.Gloss}, WinISD gave 0.000926885620863929`);
     const rival = 9.80665 * 0.00194848430081419 * 0.0013 / 0.0067;
-    assert.ok(rel(r.loss, rival) > 0.5, `Gloss must not have come from g·Mms·Cms/Xmax (${rival})`);
+    assert.ok(rel(r.Gloss, rival) > 0.5, `Gloss must not have come from g·Mms·Cms/Xmax (${rival})`);
   });
 
   it('needs both Fs and Xmax — neither alone invents a sag', () => {
-    assert.equal(solve({ Fs: 40, Mms: 0.002 }).loss, undefined);
-    assert.equal(solve({ Xmax: 0.0067, Sd: 0.022 }).loss, undefined);
+    assert.equal(solve({ Fs: 40, Mms: 0.002 }).Gloss, undefined);
+    assert.equal(solve({ Xmax: 0.0067, Sd: 0.022 }).Gloss, undefined);
   });
 
   it('never overwrites an entered value', () => {
-    assert.equal(solve({ ...ORACLE_INPUTS, loss: 0.5 }).loss, 0.5);
+    assert.equal(solve({ ...ORACLE_INPUTS, Gloss: 0.5 }).Gloss, 0.5);
   });
 });
 

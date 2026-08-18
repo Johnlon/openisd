@@ -3,18 +3,15 @@ import { reactive, computed, ref, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { Driver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { driverRecordProblems } from '@openisd/model';
-import type { Cell, MetaCell, SpecField, MetaField, OpenISDDriver } from '@openisd/model';
-
-/** The openisd.yml record shape — what `OpenISDDriver.toRecord()` hands back. A TYPE only:
- *  `ManagedProject` is the one holder of the OpenISDDriver value (ARCHITECTURE.md §2). */
-type DriverRecord = ReturnType<OpenISDDriver['toRecord']>;
-import { WinISDDriver } from '@openisd/winisd';
+import type { Cell, MetaCell, SpecField, MetaField, _OpenISDDriverJson } from '@openisd/model';
+import * as WinIsdDriverFileIo from './winIsdDriverFileIo.js';
 import { ManagedProject } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
+import type { OpenISDVent, OpenISDPassiveRadiatorRef } from '@openisd/model';
 import { parseChartTabId } from './series.js';
 import { nextToken, toDisplay, displayPrecision, unitDef, type UnitGroup } from './fields/units.js';
 import {
-  solveVentGroup, ventSolveSuspended, suspendVentSolve, ventSp,
+  solveVentGroup, ventSolveSuspended, suspendVentSolve,
   enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
   ventFieldState as ventFieldStateOn, type VentField, type VentEntryField,
   ventTargetUnreachable as ventUnreachableOn, ventMaxReachableFb as ventMaxReachableFbOn,
@@ -24,41 +21,6 @@ import {
   enterPrField as enterPrFieldOn, clearPrField as clearPrFieldOn,
   prFieldState as prFieldStateOn, type PrField,
 } from './usePrGroup.js';
-import { tuningFromLength } from '@openisd/engine';
-
-const P_DEFAULTS: UiParams = {
-  Vb:0.030, Vf:0.015, ventShape:'round', ventD:0.05, ventW:0.10, ventH:0.05, ventL:0.10, Ql:10, Qa:100, Qp:100,
-  // Fb is DERIVED from the ventL/ventD/Vb literals above rather than written as its own
-  // number, so the default design is numerically identical to what it has always been —
-  // with `entered` below making ventL the calculated member, it re-solves straight back to
-  // 0.10 m. A hand-written Fb would silently move the default box.
-  Fb: tuningFromLength(0.030, 0.10, ventSp(0.05), 0.732),
-  Frc: 50,
-  // PR system tuning. Seeded to 0 and solved from the added mass on first use, because it
-  // depends on Vb and the PR's own parameters — there is no meaningful literal for it.
-  prFp: 0,
-  // WinISD's direction: volume, diameter and tuning are typed; vent length is returned.
-  // For the PR, added mass is entered and the tuning solved — the panel's historic behaviour.
-  entered: { Vb: true, ventD: true, ventW: true, ventH: true, Fb: true, Frc: true, prMadd: true },
-  nDrivers:1, wiring:'parallel', Pin:1, Rs:0.1,
-  prName:'Custom PR',
-  prSd:0.0133, prNum:1, prMmd:0.010, prMadd:0, prCms:0.0008, prRms:1.0, prXmax:0.012, prMode:'winisd',
-  fmin:1, fmax:20000, N:400,
-  circuitModel: 'winisd',
-  filters: [],
-  vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0,   // WinISD-parity; no-op until temp rise / mass set
-  endCorrection: 0.732,                                 // one-flanged (WinISD default); selectable
-  // WinISD Advanced-pane options. Each default is OpenISD's historic behaviour, so opening an
-  // existing design changes nothing. NOTE rgAtDriverSide defaults true where WinISD's own
-  // checkbox ships unchecked — see PLAN_ADVANCED_SIM_OPTIONS.md Q3.
-  rgAtDriverSide: false, tlPortModel: false, forceFlatResponse: false, splXmaxLimited: false,
-  // Environment — PER PROJECT, as in WinISD's .wpr [Box] section (T / p / phi). ρ and c are
-  // derived from all three (engine air.ts). `ignoreHumidityAndPressure` opts in to WinISD's
-  // behaviour of storing them and never reading them; openisd's default is the physics
-  // (ledger QO7). Humidity is a PERCENT here; the .wpr's fraction is converted in the writer.
-  tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false,
-};
-
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
 // written by App.vue's watch and restored by loadLocal() on mount. store.js does
 // not persist — it initialises to defaults; App.vue applies any saved state.
@@ -75,14 +37,143 @@ function getOrInit<T>(key: string, init: () => T): T {
   return ctx[key];
 }
 
+// ---- The project: ManagedProject, and NOTHING else ----------------------------------------
+// ARCHITECTURE.md §"Approved state stores": ManagedProject holds ALL active/edit/what-if
+// state. The store does not hold a driver, does not hold a baseline, and does not know a
+// what-if exists — a second copy of any of those is a second answer to the same question, and
+// the two are free to disagree. Everything below DELEGATES; it stores nothing.
+//
+// ManagedProject's framework-free subscribe() is bridged to Vue through _version: it fires on
+// every change the facade decides a subscriber should see (an edit draft stays silent until
+// commitEdit; a what-if overlay fires live), and the computeds below touch _version so they
+// re-derive exactly then. @openisd/model stays Vue-free — the arrow points up, never down.
+//
+// Declared here, ABOVE `state`, rather than in its own section below: `state.P`'s box/vent/PR
+// fields (ledger QO54) are accessor properties closing over `managedProject`, and one of
+// `useVentGroup.ts`'s watchers reads `state.P.Vb` synchronously the moment `watch()` is called
+// at module load — before any later `const managedProject` would exist yet (TDZ). It has to
+// be defined before `state` is, not merely before it is first USED at runtime.
+const _version = getOrInit('_version', () => ref(0));
+
 /**
- * A fresh copy of the defaults. The object-valued members (`filters`, `entered`) are cloned,
- * because a shallow spread of P_DEFAULTS hands out the SAME array/object to every design —
- * so pushing a filter or entering a vent field would mutate the defaults themselves, and the
- * next "new project" would inherit it. One helper rather than each call site remembering.
+ * THE project. The one facade over ground, committed and the edit-or-what-if overlay
+ * (`logic/managedProject.ts`), and the domain object for ONE project in the left nav.
+ *
+ * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
+ * `.toDriver()`/`.errors()`/`.snapshot()` to read, `.enter()`/`.clear()`/`.mutate()` to write,
+ * `.recordToPersist()` for anything saved/exported/shared, `.beginWhatIf()`/`.cancelWhatIf()`/
+ * `.isWhatIfActive()` for a what-if, `.beginEdit()`/`.commitEdit()`/`.cancelEdit()` for an
+ * edit. The `OpenISDProject` it wraps — and the `OpenISDDriver` inside that — are private to
+ * it and never leave.
+ */
+export const managedProject: ManagedProject = getOrInit('_managed', () => {
+  const md = ManagedProject.createEmpty();
+  ctx._unsub = md.subscribe(() => { _version.value++; });
+  return md;
+});
+
+/**
+ * Box/vent/PR/entered keys `state.P` no longer STORES — its whole design, ledger QO54.
+ * `P_DEFAULTS` therefore no longer declares them: they never had a value here that anything
+ * would read (the accessor properties `buildP()` defines bypass this object entirely), and a
+ * literal sitting unused is the exact kind of second source of truth this migration removes.
+ * The REAL defaults for these live in `emptyProject()`/`defaultBox()` (managedProject.ts).
+ */
+type BoxFieldKey = 'Vb' | 'Vf' | 'ventShape' | 'ventD' | 'ventW' | 'ventH' | 'ventL' | 'Fb'
+  | 'endCorrection' | 'prSd' | 'prCms' | 'prMmd' | 'prRms' | 'prXmax' | 'prName' | 'prNum'
+  | 'prMadd' | 'prFp' | 'entered';
+
+const P_DEFAULTS: Omit<UiParams, BoxFieldKey> = {
+  Ql:10, Qa:100, Qp:100,
+  Frc: 50,
+  nDrivers:1, wiring:'parallel', Pin:1, Rs:0.1,
+  prMode:'winisd',
+  fmin:1, fmax:20000, N:400,
+  circuitModel: 'winisd',
+  filters: [],
+  vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0,   // WinISD-parity; no-op until temp rise / mass set
+  // WinISD Advanced-pane options. Each default is OpenISD's historic behaviour, so opening an
+  // existing design changes nothing. NOTE rgAtDriverSide defaults true where WinISD's own
+  // checkbox ships unchecked — see PLAN_ADVANCED_SIM_OPTIONS.md Q3.
+  rgAtDriverSide: false, tlPortModel: false, forceFlatResponse: false, splXmaxLimited: false,
+  // Environment — PER PROJECT, as in WinISD's .wpr [Box] section (T / p / phi). ρ and c are
+  // derived from all three (engine air.ts). `ignoreHumidityAndPressure` opts in to WinISD's
+  // behaviour of storing them and never reading them; openisd's default is the physics
+  // (ledger QO7). Humidity is a PERCENT here; the .wpr's fraction is converted in the writer.
+  tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false,
+};
+
+/**
+ * `state.P`'s box/vent/PR/entered keys — accessor properties over `managedProject`, defined
+ * on the plain object BEFORE `reactive()` wraps it (ledger QO54). Vue's reactive Proxy
+ * intercepts the assignment/read itself, so `state.P.Vb = x` still triggers reactivity
+ * correctly with no Vue-visible storage of its own; `managedProject.subscribe()` (bridged
+ * through `_version`, above) covers a bulk project replacement — `load()`, `beginWhatIf()`,
+ * `commitEdit()` — that never goes through one of these setters at all.
+ *
+ * `entered` is a `Proxy`, not a plain accessor: callers do keyed reads/writes
+ * (`P.entered.Vb`, `delete P.entered[f]`) AND, in one existing test fixture, whole-object
+ * REPLACEMENT (`P.entered = {...}`) — so the property itself needs a getter (returning the
+ * live-through Proxy) and a setter (clearing every currently-true key, then applying the new
+ * object), and the Proxy needs get/set/has/deleteProperty, nothing more: nothing in this
+ * codebase enumerates `state.P.entered`'s keys.
+ */
+function defineBoxFieldAccessors(target: object, mp: ManagedProject): void {
+  const ventKey = <K extends keyof OpenISDVent>(ventField: K) => ({
+    enumerable: true, configurable: true,
+    get: () => mp.activeVentField(ventField),
+    set: (v: OpenISDVent[K]) => mp.setActiveVentField(ventField, v),
+  });
+  const prKey = <K extends keyof OpenISDPassiveRadiatorRef>(prField: K) => ({
+    enumerable: true, configurable: true,
+    get: () => mp.prField(prField),
+    set: (v: OpenISDPassiveRadiatorRef[K]) => mp.setPrField(prField, v),
+  });
+  Object.defineProperties(target, {
+    Vb: { enumerable: true, configurable: true, get: () => mp.boxVolume_m3(), set: (v: number) => mp.setBoxVolume_m3(v) },
+    Vf: { enumerable: true, configurable: true, get: () => mp.frontVolume_m3(), set: (v: number) => mp.setFrontVolume_m3(v) },
+    Fb: { enumerable: true, configurable: true, get: () => mp.boxTuning_Fb_hz(), set: (v: number) => mp.setBoxTuning_Fb_hz(v) },
+    ventShape: ventKey('ventShape', 'shape'),
+    ventD: ventKey('ventD', 'diameter_m'),
+    ventW: ventKey('ventW', 'width_m'),
+    ventH: ventKey('ventH', 'height_m'),
+    ventL: ventKey('ventL', 'length_m'),
+    endCorrection: ventKey('endCorrection', 'endCorrection'),
+    prSd: prKey('Sd_m2'),
+    prCms: prKey('Cms_m_per_N'),
+    prMmd: prKey('Mmd_kg'),
+    prRms: prKey('Rms_Ns_per_m'),
+    prXmax: prKey('Xmax_m'),
+    prName: prKey('name'),
+    prNum: { enumerable: true, configurable: true, get: () => mp.prCount(), set: (v: number) => mp.setPrCount(v) },
+    prMadd: { enumerable: true, configurable: true, get: () => mp.prAddedMass_kg(), set: (v: number) => mp.setPrAddedMass_kg(v) },
+    prFp: { enumerable: true, configurable: true, get: () => mp.prFp_hz(), set: (v: number) => mp.setPrFp_hz(v) },
+    entered: {
+      enumerable: true, configurable: true,
+      get: () => new Proxy({} as Record<string, true>, {
+        get: (_t, key) => (typeof key === 'string' && mp.isEntered(key)) ? true : undefined,
+        set: (_t, key, value) => { if (typeof key === 'string') mp.setEntered(key, !!value); return true; },
+        deleteProperty: (_t, key) => { if (typeof key === 'string') mp.setEntered(key, false); return true; },
+        has: (_t, key) => typeof key === 'string' && mp.isEntered(key),
+      }),
+      set: (value: Record<string, true>) => {
+        for (const k of Object.keys(mp.snapshot().target.entered)) mp.setEntered(k, false);
+        for (const k of Object.keys(value)) if (value[k]) mp.setEntered(k, true);
+      },
+    },
+  });
+}
+
+/**
+ * A fresh `P`: the plain defaults (cloned — `filters` is an array every design must own
+ * independently), plus the box/vent/PR/entered accessor properties over `managedProject`.
+ * Every design shares ONE `managedProject`, so these accessors need building only once per
+ * `state.P` object, not once per field write.
  */
 function defaultP(): UiParams {
-  return { ...P_DEFAULTS, filters: [], entered: { ...P_DEFAULTS.entered } };
+  const p = { ...P_DEFAULTS, filters: [] };
+  defineBoxFieldAccessors(p, managedProject);
+  return p as UiParams;
 }
 
 export const state: AppState = getOrInit('state', () => reactive({
@@ -192,45 +283,16 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// ---- The project: ManagedProject, and NOTHING else ----------------------------------------
-// ARCHITECTURE.md §"Approved state stores": ManagedProject holds ALL active/edit/what-if
-// state. The store does not hold a driver, does not hold a baseline, and does not know a
-// what-if exists — a second copy of any of those is a second answer to the same question, and
-// the two are free to disagree. Everything below DELEGATES; it stores nothing.
-//
-// ManagedProject's framework-free subscribe() is bridged to Vue through _version: it fires on
-// every change the facade decides a subscriber should see (an edit draft stays silent until
-// commitEdit; a what-if overlay fires live), and the computeds below touch _version so they
-// re-derive exactly then. @openisd/model stays Vue-free — the arrow points up, never down.
-const _version = getOrInit('_version', () => ref(0));
-
-/**
- * THE project. The one facade over ground, committed and the edit-or-what-if overlay
- * (`logic/managedProject.ts`), and the domain object for ONE project in the left nav.
- *
- * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
- * `.toDriver()`/`.errors()`/`.snapshot()` to read, `.enter()`/`.clear()`/`.mutate()` to write,
- * `.recordToPersist()` for anything saved/exported/shared, `.beginWhatIf()`/`.cancelWhatIf()`/
- * `.isWhatIfActive()` for a what-if, `.beginEdit()`/`.commitEdit()`/`.cancelEdit()` for an
- * edit. The `OpenISDProject` it wraps — and the `OpenISDDriver` inside that — are private to
- * it and never leave.
- */
-export const managedProject: ManagedProject = getOrInit('_managed', () => {
-  const md = ManagedProject.createEmpty();
-  ctx._unsub = md.subscribe(() => { _version.value++; });
-  return md;
-});
-
 /** Adopt a chosen driver into the CURRENT design — a library pick, an import, a file open.
  *  The box and everything else are left alone: choosing a driver is not opening a project. */
-export function loadDriverRecord(record: DriverRecord): void {
+export function loadDriverRecord(record: _OpenISDDriverJson): void {
   managedProject.loadDriverRecord(record);
 }
 
 /** Load a driver from WinISD `.wdr` text. The `.wdr` is parsed as-read by the serialiser, then
  *  projected into the app's own model — the file format never reaches past this line. */
 export function setDriverFromWdr(text: string): void {
-  managedProject.loadDriverRecord(WinISDDriver.fromWdr(text).toOpenISDRecord());
+  managedProject.loadDriverRecord(WinIsdDriverFileIo.importDriver(text));
 }
 
 /** Route one per-field edit to whichever layer ManagedProject says is effective. */
@@ -269,7 +331,7 @@ export const projectToPersist = computed(() => {
 
 /** Just the driver record out of the persistable project, for the paths that write a DRIVER
  *  file (`.wdr`, `.owdr`) rather than a project file. Undefined when none is chosen. */
-export const driverRecord = computed<DriverRecord | undefined>(() => projectToPersist.value.driver);
+export const driverRecord = computed<_OpenISDDriverJson | undefined>(() => projectToPersist.value.driver);
 
 /** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
  *  driver. '' when nothing names it (no driver chosen yet), so a caller can fall back. */
@@ -402,14 +464,20 @@ function projectFingerprint(): string {
   // preserves input insertion order, so JSON.stringify yields a stable string to diff.
   return JSON.stringify({ box: state.box, P: state.P, driver: driverRecord.value, project: state.project });
 }
-export const _ground = getOrInit('_ground', () => ref(projectFingerprint()));
+const _ground = getOrInit('_ground', () => ref(projectFingerprint()));
 /** True when the live design differs from the last loaded/saved (ground) state. */
 export const isModified = computed<boolean>(() => _ground.value !== projectFingerprint());
 /** Adopt the current design as ground (call after load, and after a successful save). */
 export function markProjectSaved(): void { _ground.value = projectFingerprint(); }
+/** The current ground checkpoint, opaque — for embedding in a saved project record
+ *  (openProjects) alongside the design it belongs to. */
+export function groundCheckpoint(): string { return _ground.value; }
+/** Restore a previously-saved ground checkpoint — used when switching the active project
+ *  among several open designs, each with its own ground. */
+export function restoreGroundCheckpoint(value: string): void { _ground.value = value; }
 /** Discard unsaved changes: restore the design to the ground state. */
 export function resetProjectToGround(): void {
-  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: DriverRecord; project?: any };
+  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: _OpenISDDriverJson; project?: any };
   state.box = g.box;
   // Adopt the stored params verbatim. The ground snapshot already holds BOTH vent-group
   // members and the entered set, so there is nothing to re-solve — and re-solving is exactly
@@ -455,7 +523,7 @@ export const restoreProblems = ref<string[]>([]);
 export function applyState(o: SerializedState): void {
   // ONE POISON PILL MUST NOT TAKE THE APP DOWN (ARCHITECTURE.md §"No single datum may take
   // the app down"). `o.driver` is untrusted: it comes from localStorage, a share link or a
-  // file, and `as DriverRecord` is an assertion about data we did not write. An unchecked
+  // file, and `as _OpenISDDriverJson` is an assertion about data we did not write. An unchecked
   // record with no `specs` threw on its first field read and killed every driver computed in
   // the app — a blank screen from one absent key.
   //
@@ -477,7 +545,7 @@ export function applyState(o: SerializedState): void {
       catch { /* storage full or disabled — the refusal still stands */ }
       console.error(`[restore] refused the saved driver record — ${problems.join('; ')}`);
     } else {
-      managedProject.loadDriverRecord(o.driver as DriverRecord);
+      managedProject.loadDriverRecord(o.driver as _OpenISDDriverJson);
     }
   }
   if (o.box) state.box = o.box;

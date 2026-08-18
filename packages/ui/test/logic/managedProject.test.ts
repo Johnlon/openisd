@@ -13,10 +13,10 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { ManagedProject, emptyProject } from '../../src/logic/managedProject.js';
-import type { OpenISDDriverJson } from '@openisd/model';
+import type { _OpenISDDriverJson } from '@openisd/model';
 
 /** A minimal, valid driver record — one stated field, enough to exercise enter()/clear(). */
-function driverRecord(): OpenISDDriverJson {
+function driverRecord(): _OpenISDDriverJson {
   return {
     uuid: { value: 'test-0000', definition: 'stable record identity' },
     quality: {
