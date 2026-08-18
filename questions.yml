@@ -1,5 +1,5 @@
 prefix: QO
-next: 55
+next: 56
 questions:
 - id: QO1
   title: UI TODO List
@@ -5594,3 +5594,17 @@ questions:
       setter sequence, zero internal derivation, zero .toRecord() call) — not a narrower fix that just
       repoints the 9 broken call names at fromOpenISDDriver while leaving its current
       toRecord()-based internals in place.
+- id: QO56
+  title: 'Sequencing risk: workspace.ts deletion before its replacement exists (openisd)'
+  status: decided
+  raised: '2026-08-18'
+  body: ''
+  answer:
+    at: '2026-08-18'
+    text: |-
+      Yes, proceed — implement openProjects()/focusedProject() and delete the old conflicting
+      workspace.ts implementation. Commit, then continue.
+
+      Also need a setter: focusProject(index) (or equivalent), called when the user changes the
+      active project in the UI's project list — this is what actually moves focusedProject()'s
+      cursor. openProjects()/focusedProject() alone are read accessors; this is the write side.

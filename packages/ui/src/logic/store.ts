@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { reactive, computed, ref, watch } from 'vue';
+import { reactive, computed, ref, shallowRef, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { Driver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { driverRecordProblems } from '@openisd/model';
@@ -75,15 +75,69 @@ const _version = getOrInit('_version', () => ref(0));
  * naming a new offender is the correct, expected result until the full migration
  * (REVIEW.md) lands; report the offender and wait for the human's ruling instead.
  *
- * Deliberately seeded with ONLY the two permitted names — this list is expected to be far
+ * Deliberately seeded with ONLY the permitted names — this list is expected to be far
  * shorter than this file's actual export surface until the migration in REVIEW.md is done.
+ * `focusProject`/`removeProject`/`addProject` added 2026-08-18 by explicit human instruction
+ * (the write side of the registry — openProjects()/focusedProject() alone are read-only).
  */
-export const ALLOWED_GLOBALS = ['openProjects', 'focusedProject'];
+export const ALLOWED_GLOBALS = [
+  'openProjects', 'focusedProject', 'focusProject', 'removeProject', 'addProject',
+];
 export const managedProject: ManagedOpenISDProject = getOrInit('_managed', () => {
   const md = ManagedOpenISDProject.createEmpty();
   ctx._unsub = md.subscribe(() => { _version.value++; });
   return md;
 });
+
+/**
+ * The multi-project registry (human ruling, 2026-08-18) — replaces `workspace.ts`'s ad-hoc
+ * `WorkspaceEntry`/`OpenProject` and `OriginalShell.vue`'s local `openProjects`/
+ * `activeProjectId` reimplementation as the ONE place "which projects are open, which is
+ * focused" lives. `_projects[0]` starts as the same object `managedProject` already is — one
+ * project open, matching today's actual behaviour — so this is additive: existing code using
+ * `managedProject` directly keeps working unchanged while new/refactored code reads through
+ * `focusedProject()`. Rewiring `OriginalShell.vue`'s own multi-project UI onto this registry,
+ * and deleting `workspace.ts`, is separate, larger follow-on work (REVIEW.md Phase 1.4/1.5) —
+ * not done in this pass; flagged, not silently deferred.
+ */
+const _projects = getOrInit('_projects', () => shallowRef<ManagedOpenISDProject[]>([managedProject]));
+const _focusedIndex = getOrInit('_focusedIndex', () => ref(0));
+
+/** Every open project. Empty array if none are open. */
+export function openProjects(): ManagedOpenISDProject[] { return _projects.value; }
+
+/** The project currently focused in the UI's project list, or null if none are open. */
+export function focusedProject(): ManagedOpenISDProject | null {
+  return _projects.value[_focusedIndex.value] ?? null;
+}
+
+/** Move focus to the project at `index` — called when the user changes the active project in
+ *  the UI's project list. Out-of-range indices are ignored. */
+export function focusProject(index: number): void {
+  if (index < 0 || index >= _projects.value.length) return;
+  _focusedIndex.value = index;
+}
+
+/** Remove the project at `index` from the registry. If the focused index is now past the end,
+ *  it clamps to the new last project; if the registry is now empty, the index is left alone —
+ *  `focusedProject()` already answers null for an out-of-range index, nothing to noop around. */
+export function removeProject(index: number): void {
+  if (index < 0 || index >= _projects.value.length) return;
+  // shallowRef: reassign a new array rather than splice in place, or the removal wouldn't
+  // trigger reactivity — shallowRef only tracks .value replacement, not in-place mutation.
+  const next = _projects.value.slice();
+  next.splice(index, 1);
+  _projects.value = next;
+  if (next.length > 0 && _focusedIndex.value >= next.length) {
+    _focusedIndex.value = next.length - 1;
+  }
+}
+
+/** Add a newly-created or re-imported project to the registry and focus it. */
+export function addProject(project: ManagedOpenISDProject): void {
+  _projects.value = [..._projects.value, project];
+  _focusedIndex.value = _projects.value.length - 1;
+}
 
 /**
  * Box/vent/PR/entered keys `state.P` no longer STORES — its whole design, ledger QO54.
