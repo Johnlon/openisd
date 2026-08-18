@@ -47,6 +47,12 @@ import type {
   OpenISDVent, OpenISDPassiveRadiatorRef,
 } from '@openisd/model';
 import type { DriverError, ConsistencyIssue, Driver as EngineDriver } from '@openisd/engine';
+import {
+  sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
+  prVas as computePrVas, prFs as computePrFs, prFsWithMass as computePrFsWithMass,
+  prQms as computePrQms, C as SPEED_OF_SOUND,
+} from '@openisd/engine';
+import type { LossMode } from '@openisd/engine';
 
 export type ManagedOpenISDProjectListener = () => void;
 
@@ -232,6 +238,48 @@ export class ManagedOpenISDProject {
       ? 2 * Math.sqrt(this.ventArea_m2() / Math.PI)
       : vent.diameter_m;
     return vent.length_m + vent.endCorrection * equivalentDiameter_m;
+  }
+
+  /** Sealed-box (and PR rear-chamber) resonance + system Q via the given loss model. `Rs`/`Ql`/
+   *  `Qa` are not yet fields of `_OpenISDProjectJson` (they live on `UiParams` today), so they
+   *  are taken as parameters rather than read internally — same shape as `sealedFc`'s own
+   *  decoupling in `wprMapping.ts`. Null when no driver is chosen or `Vb` isn't set. */
+  sealedResonance(lossMode: LossMode, Rs: number, Ql: number, Qa: number): { Fsc: number; Qtc: number } | null {
+    const d = this.toDriver();
+    const Vb = this.boxVolume_m3();
+    if (!d || !(Vb > 0)) return null;
+    const qts = sourceLoadedQts(d.Qms, d.Qes, d.Re, Rs, d.Qts);
+    return computeSealedResonance(lossMode, { Fs: d.Fs, Vas: d.Vas, Qts: qts, Vb, Ql, Qa });
+  }
+
+  /** WinISD's "Fh" for a PR box: the passive-radiator system tuning, distinct from the sealed
+   *  resonance above (which ignores the PR entirely). Null until Vb/prSd/prCms are all set. */
+  prSystemTuning_hz(): number | null {
+    const Vb = this.boxVolume_m3();
+    const prSd = this.prField('Sd_m2');
+    const prCms = this.prField('Cms_m_per_N');
+    if (!(Vb > 0) || !(prSd > 0) || !(prCms > 0)) return null;
+    return computePrTuning({
+      Vb, prSd, prCms,
+      prMmd: this.prField('Mmd_kg'), prMadd: this.prAddedMass_kg(),
+    });
+  }
+
+  /** First port (organ-pipe) resonance of the vent tube itself — the open-open duct
+   *  fundamental c/(2·L) on the PHYSICAL vent length, distinct from the box Helmholtz tuning. */
+  portPipeResonance_hz(): number | null {
+    const ventL = this.activeVentField('length_m');
+    return ventL > 0 ? SPEED_OF_SOUND / (2 * ventL) : null;
+  }
+
+  /** Passive-radiator derived T/S params, from the stored PR bag. */
+  prVas_l(): number { return computePrVas(this.prField('Cms_m_per_N'), this.prField('Sd_m2')); }
+  prFs_hz(): number { return computePrFs(this.prField('Mmd_kg'), this.prField('Cms_m_per_N')); }
+  prFsWithMass_hz(): number {
+    return computePrFsWithMass(this.prField('Mmd_kg'), this.prAddedMass_kg(), this.prField('Cms_m_per_N'));
+  }
+  prQms(): number {
+    return computePrQms(this.prField('Mmd_kg'), this.prField('Cms_m_per_N'), this.prField('Rms_Ns_per_m'));
   }
 
   prField<K extends keyof OpenISDPassiveRadiatorRef>(field: K): OpenISDPassiveRadiatorRef[K] {
