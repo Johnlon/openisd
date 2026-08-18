@@ -417,17 +417,20 @@ Blocked on D1 (needs the class to rename/restructure around):
   `_OpenISDProjectJson` copies. **NOT STARTED — needs D1's design first.**
 - **1.3.** Update the ~15 consuming files' import specifiers/identifiers (mechanical, same
   `perl -pi` approach used for `_OpenISDDriverJson` today) — no call-site logic changes yet.
-- **1.4.** Delete `packages/ui/src/logic/model/OpenISDProject.ts` (per B2-style ruling: delete
-  if possible). Read `docs/design/STATE_MODEL.md` in full before this step — cited by it and by
-  `workspace.ts`, not yet read in this planning pass. **NOT STARTED — deliberately held back**:
-  `workspace.ts` (below) is very likely the mechanism the app currently uses for its
-  multi-project tabs; deleting the class it depends on before Phase 2's `openProjects()`
-  registry exists to replace it risks breaking real, currently-working functionality, not just
-  a test. This is qualitatively different from the mechanical renames done so far — flagged for
-  your review rather than done unilaterally.
-- **1.5.** `workspace.ts` — delete if fully subsumed by the new `openProjects()` registry
-  (Phase 2), rewire only the parts that would otherwise lose real capability. Prefer deletion.
-  **NOT STARTED, same reason as 1.4.**
+- **1.4./1.5. DONE (2026-08-18).** `packages/ui/src/logic/model/OpenISDProject.ts` (the
+  duplicate class), `workspace.ts`, and their only consumer `openisd-project.test.ts` all
+  deleted. **The earlier caution here was wrong, corrected before acting, not after**: verified
+  first (`grep` for real import sites) that neither file was imported by ANY production code —
+  both were used only by their own test. `OriginalShell.vue`, which actually implements the
+  app's multi-project UI, has its own separate, disconnected local `openProjects`/
+  `activeProjectId` state and never touched either deleted file. So this was pure dead-code
+  removal, not the "deleting live functionality" risk flagged in the earlier draft of this
+  plan — `docs/design/STATE_MODEL.md` reading turned out unnecessary once that was confirmed.
+  Verified: 107 tests across `architecture.test.ts`+`test/logic` show the same failures as
+  before this deletion (one extra pre-existing failure in `store-issue-channel.test.ts`
+  confirmed via `git stash` to predate this commit — just not included in earlier baseline
+  runs this session). `OriginalShell.vue`'s own local implementation is still separate,
+  larger follow-on work — it's live and load-bearing, unlike what was just deleted.
 - **1.6. DONE (2026-08-18).** Model-package `OpenISDProject` interface → `_OpenISDProjectJson`.
   `_OpenISDProjectJsonPrivateAllow` NOT added — per D4, that's your edit to make.
 - **1.7.** `Layer` loses its `driver` field (no surviving justification, per today's findings) —
