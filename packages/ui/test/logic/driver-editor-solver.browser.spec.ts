@@ -56,7 +56,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Qts = (0.4 * 4.0) / 4.4 = 0.364 (state C)
     await expect(qtsf).toHaveValue('0.364');
-    await expect(qtsf).toHaveClass(/st-c/);
+    await expect(qtsf).toHaveClass(/value-c/);
   });
 
   test('UI derives Qes from Qts and Qms', async ({ page }) => {
@@ -70,7 +70,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Qes = (0.364 * 4.0) / (4.0 - 0.364) = 0.400 (state C)
     await expect(qesf).toHaveValue('0.400');
-    await expect(qesf).toHaveClass(/st-c/);
+    await expect(qesf).toHaveClass(/value-c/);
   });
 
   // 2. Cone Geometry (Sd <-> Dd)
@@ -83,7 +83,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Sd = pi * (21.0/2)^2 = 346.36 cm²
     await expect(sdf).toHaveValue('346.36');
-    await expect(sdf).toHaveClass(/st-c/);
+    await expect(sdf).toHaveClass(/value-c/);
   });
 
   test('UI solves Dd from Sd', async ({ page }) => {
@@ -95,7 +95,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Dd = 2 * sqrt(346.4 / pi) = 210.01 mm
     await expect(ddf).toHaveValue('210.01');
-    await expect(ddf).toHaveClass(/st-c/);
+    await expect(ddf).toHaveClass(/value-c/);
   });
 
   // 3. Excursion Geometry (Xmax <-> Hc <-> Hg)
@@ -110,7 +110,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Xmax = |16 - 6| / 2 = 5.000 mm (state C)
     await expect(xmaxf).toHaveValue('5.000');
-    await expect(xmaxf).toHaveClass(/st-c/);
+    await expect(xmaxf).toHaveClass(/value-c/);
   });
 
   test('UI solves Hc bi-directionally from Hg and Xmax', async ({ page }) => {
@@ -124,7 +124,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Hc = 8.0 - 2*3.0 = 2.00 mm (state C)
     await expect(hcf).toHaveValue('2.00');
-    await expect(hcf).toHaveClass(/st-c/);
+    await expect(hcf).toHaveClass(/value-c/);
   });
 
   test('UI solves Hg bi-directionally from Hc and Xmax', async ({ page }) => {
@@ -138,7 +138,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Hg = 15.0 - 2*5.0 = 5.00 mm (state C)
     await expect(hgf).toHaveValue('5.00');
-    await expect(hgf).toHaveClass(/st-c/);
+    await expect(hgf).toHaveClass(/value-c/);
   });
 
   // 4. Volume Displacement (Vd <-> Sd * Xmax)
@@ -153,7 +153,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Vd = 346.4 * 0.5 = 173.20 cm³ (state C)
     await expect(vdf).toHaveValue('173.20');
-    await expect(vdf).toHaveClass(/st-c/);
+    await expect(vdf).toHaveClass(/value-c/);
   });
 
   // 5. Priority Fallbacks
@@ -170,7 +170,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Row 6 (Dd -> Sd) gives ~314.16 cm² (vs Row 20 Vd/Xmax = 200 cm²)
     await expect(sdf).toHaveValue('314.16');
-    await expect(sdf).toHaveClass(/st-c/);
+    await expect(sdf).toHaveClass(/value-c/);
   });
 
   test('UI prioritizes Row 19 (Hc,Hg -> Xmax) over Row 20 (Vd/Sd -> Xmax)', async ({ page }) => {
@@ -188,7 +188,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Row 19 (Hc,Hg -> Xmax) gives 4.000 mm (vs Row 20 Vd/Sd = 5.0 mm)
     await expect(xmaxf).toHaveValue('4.000');
-    await expect(xmaxf).toHaveClass(/st-c/);
+    await expect(xmaxf).toHaveClass(/value-c/);
   });
 
   // 6. Multi-Hop 4-Cascade
@@ -208,9 +208,9 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await page.locator('.de-fld:has-text("Re") input').fill('6.0');
     await page.locator('.de-fld:has-text("Dd") input').fill('210.0');
 
-    await expect(mmsf).toHaveClass(/st-c/);
-    await expect(cmsf).toHaveClass(/st-c/);
-    await expect(blf).toHaveClass(/st-c/);
+    await expect(mmsf).toHaveClass(/value-c/);
+    await expect(cmsf).toHaveClass(/value-c/);
+    await expect(blf).toHaveClass(/value-c/);
   });
 
   // 7. Entered Anchor Immunity (E State Lock)
@@ -226,7 +226,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Qts must remain locked at Entered anchor '0.350' (state E), NOT overwritten by solver
     await expect(qtsf).toHaveValue('0.350');
-    await expect(qtsf).toHaveClass(/st-e/);
+    await expect(qtsf).toHaveClass(/value-e/);
   });
 
   // 8. Field Clearing & Re-uncalculation (State N)
@@ -245,7 +245,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Qts must reset to empty / Not Available (state N)
     await expect(qtsf).toHaveValue('');
-    await expect(qtsf).toHaveClass(/st-n/);
+    await expect(qtsf).toHaveClass(/value-n/);
   });
 
   // 9. Reference Efficiency & Sensitivity Chain (eta0, SPL, USPL)
@@ -259,8 +259,8 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await page.locator('.de-fld:has-text("Re") input').fill('6.0');
 
     // SPL and USPL must be derived (state C)
-    await expect(splf).toHaveClass(/st-c/);
-    await expect(usplf).toHaveClass(/st-c/);
+    await expect(splf).toHaveClass(/value-c/);
+    await expect(usplf).toHaveClass(/value-c/);
   });
 
   // 10. Resonant Mass Derivation (Fs, Cms -> Mms)
@@ -274,7 +274,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await cmsf.fill('0.264');
 
     // Mms must be calculated ~78.4g (state C)
-    await expect(mmsf).toHaveClass(/st-c/);
+    await expect(mmsf).toHaveClass(/value-c/);
   });
 
   // 11. Compliance Derivation (Vas, Sd -> Cms)
@@ -288,7 +288,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await sdf.fill('346.4');
 
     // Cms must be calculated (state C)
-    await expect(cmsf).toHaveClass(/st-c/);
+    await expect(cmsf).toHaveClass(/value-c/);
   });
 
   // 12. Force Factor Derivation (Fs, Mms, Re, Qes -> BL)
@@ -302,7 +302,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await page.locator('.de-fld:has-text("Qes") input').fill('0.400');
 
     // BL must be calculated ~16.06 T*m (state C)
-    await expect(blf).toHaveClass(/st-c/);
+    await expect(blf).toHaveClass(/value-c/);
   });
 
   // 13. Mechanical Loss Derivation (Fs, Mms, Qms -> Rms)
@@ -315,7 +315,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await page.locator('.de-fld:has-text("Qms") input').fill('4.500');
 
     // Rms must be calculated ~3.82 Ns/m (state C)
-    await expect(rmsf).toHaveClass(/st-c/);
+    await expect(rmsf).toHaveClass(/value-c/);
   });
 
   // 14. Zero Division & Zero Guarding
@@ -327,7 +327,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Zero-division guard: Qts must remain uncalculated / Not Available (state N, grey, empty '')
     await expect(qtsf).toHaveValue('');
-    await expect(qtsf).toHaveClass(/st-n/);
+    await expect(qtsf).toHaveClass(/value-n/);
   });
 
   // 15. Tab State Persistence
@@ -344,7 +344,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Value and state class must persist
     await expect(qtsf).toHaveValue('0.364');
-    await expect(qtsf).toHaveClass(/st-c/);
+    await expect(qtsf).toHaveClass(/value-c/);
   });
 
   // 16. Modal Reset Button Operation
@@ -401,7 +401,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // 3. Input element cleanly clears to state N (Not Available, empty '') without crashing Vue
     await expect(fsf).toHaveValue('');
-    await expect(fsf).toHaveClass(/st-n/);
+    await expect(fsf).toHaveClass(/value-n/);
     await expect(page.locator('.de-body')).toBeVisible();
   });
 
@@ -419,8 +419,8 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await qtsf.fill('2.000');
 
     // Both Qts and Qes stay locked as user anchors (state E)
-    await expect(qtsf).toHaveClass(/st-e/);
-    await expect(qesf).toHaveClass(/st-e/);
+    await expect(qtsf).toHaveClass(/value-e/);
+    await expect(qesf).toHaveClass(/value-e/);
   });
 
   // 21. Unphysical Negative Parameter Warning
@@ -430,7 +430,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
 
     // Input stores the entered value -8.000 (state E) and receives .inp-bad class
     await expect(ref).toHaveValue('-8.000');
-    await expect(ref).toHaveClass(/st-e/);
+    await expect(ref).toHaveClass(/value-e/);
     await expect(ref).toHaveClass(/inp-bad/);
   });
 
@@ -449,8 +449,8 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await xmaxf.fill('50.0');
 
     // All three remain locked as Entered anchors (state E) without throwing an infinite loop or JS crash
-    await expect(hcf).toHaveClass(/st-e/);
-    await expect(hgf).toHaveClass(/st-e/);
-    await expect(xmaxf).toHaveClass(/st-e/);
+    await expect(hcf).toHaveClass(/value-e/);
+    await expect(hgf).toHaveClass(/value-e/);
+    await expect(xmaxf).toHaveClass(/value-e/);
   });
 });

@@ -3,8 +3,9 @@ import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import { ref, shallowRef, markRaw, computed, nextTick, watch, onBeforeUnmount } from 'vue';
 import { state, formatInUnit } from '../../logic/store.js';
 import { useApp } from '../../logic/app.js';
-import { ebp, RHO, C } from '@openisd/engine';
-import { WinISDDriver } from '@openisd/winisd';
+import { RHO, C } from '../../logic/environment.js';
+import * as WinIsdDriverFileIo from '../../logic/winIsdDriverFileIo.js';
+import * as OpenIsdDriverFileIo from '../../logic/openIsdDriverFileIo.js';
 import { OpenISDDriver } from '@openisd/model';
 import type { SpecField, MetaField } from '@openisd/model';
 import NumInput from './NumInput.vue';
@@ -53,7 +54,7 @@ function forceUpdate() { trigger.value++; }
 
 // A DISPLAY VIEW of the draft, not a second model: every value is read back out of the draft
 // through its own accessors, so the template binds to one shape while the draft stays the only
-// place a value lives. `sku` is a DerivedField — built by the pipeline, never hand-edited — so
+// place a value lives. `sku` is a _DerivedField — built by the pipeline, never hand-edited — so
 // it is read off the record rather than through metaCell().
 const driverRaw = computed(() => {
   const _ = trigger.value;
@@ -68,12 +69,6 @@ const driverRaw = computed(() => {
     sku: d.toRecord().sku?.value ?? '',
     VCCon: d.cell('VCCon').value,
   };
-});
-
-// Computed local driver proxy for derived fields.
-const driver = computed(() => {
-  const _ = trigger.value;
-  return draftDriver.value.toDriver();
 });
 
 const editorModelValue = computed(() => {
@@ -92,7 +87,7 @@ const META_FIELD: Record<string, MetaField> = {
 };
 
 function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufacturer' | 'added', e: Event) {
-  // Metadata is a ScrapedField, a different envelope from a SpecEntry, so it has its own
+  // Metadata is a _ScrapedField, a different envelope from a _SpecEntry, so it has its own
   // entry point. Routing a string through enter() would put it in the wrong envelope.
   draftDriver.value.enterMeta(META_FIELD[field], (e.target as HTMLInputElement | HTMLTextAreaElement).value);
   forceUpdate();
@@ -284,7 +279,7 @@ const qIncomplete = useQGroupIncomplete(cellOf);
 
 function ebpVal(): number | null {
   const _ = trigger.value;
-  return driver.value ? ebp(driver.value) : null;
+  return draftDriver.value.ebp();
 }
 
 /**
@@ -440,8 +435,8 @@ function handleFileLoaded(e: Event) {
       // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
       // an `.owdr` IS that record already. One reader each, and no second parse invented here.
       draftDriver.value = markRaw(OpenISDDriver.fromRecord(format === DriverFileFormat.Wdr
-        ? WinISDDriver.fromWdr(text).toOpenISDRecord()
-        : JSON.parse(text)));
+        ? WinIsdDriverFileIo.importDriver(text)
+        : OpenIsdDriverFileIo.importDriver(text)));
       forceUpdate();
     } catch (err) {
       alert('Failed to parse file: ' + (err as Error).message);
@@ -465,14 +460,9 @@ async function writeDriver(format: DriverFileFormat) {
   // `.owdr` IS the record. A `.wdr` is that record projected by the serialiser — the one place
   // that knows the format — and a driver too incomplete to project says so rather than writing
   // a file WinISD would refuse.
-  let text: string;
-  if (format === DriverFileFormat.Owdr) {
-    text = JSON.stringify(draftDriver.value.toRecord(), null, 2);
-  } else {
-    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(draftDriver.value.toRecord());
-    if (!wdr) { logging.flash(`Cannot save .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
-    text = wdr.toWdr();
-  }
+  const svc = format === DriverFileFormat.Owdr ? OpenIsdDriverFileIo : WinIsdDriverFileIo;
+  const { value: text, errors } = svc.exportDriver(draftDriver.value);
+  if (!text) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
   // Then the SYSTEM save dialog — the user picks folder and name, as a desktop app would.
   // The MIME must be a CUSTOM type, not application/json or text/plain. The picker unions the
   // extensions we list with every extension registered to that MIME, so `application/json`
@@ -767,15 +757,15 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                 <NumInput :class="cellClass('Mcost')" :model-value="cellVal('Mcost')" @update:model-value="v => setNum('Mcost', v)"></NumInput><span v-if="dqNote('Mcost')" class="de-dq" :title="dqNote('Mcost')">&#9888;</span>
                 <span class="u">kg/s</span>
               </div>
-              <div class="de-fld st-c" data-field-key="EBP" :style="getFieldStyle('EBP')" title="Derived: EBP = Fs / Qes — Efficiency Bandwidth Product. Read-only, not entered directly. WinISD: EBP">
+              <div class="de-fld value-c" data-field-key="EBP" :style="getFieldStyle('EBP')" title="Derived: EBP = Fs / Qes — Efficiency Bandwidth Product. Read-only, not entered directly. WinISD: EBP">
                 <label>EBP</label>
                 <input type="text" readonly :value="ebpVal() != null ? formatInUnit(ebpVal(), 'EBP', 'freq', 'Hz', 1) : ''"><UnitToggle field="EBP" group="freq" base="Hz" unit-class="u" />
               </div>
               <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
                    percentage. `:scale="100"` is the ONE place that conversion happens. -->
-              <div class="de-fld" data-field-key="loss" :style="getFieldStyle('loss')" title="Static cone sag under gravity, as a percentage of Xmax — WinISD: Gloss">
+              <div class="de-fld" data-field-key="Gloss" :style="getFieldStyle('Gloss')" title="Static cone sag under gravity, as a percentage of Xmax — WinISD: Gloss">
                 <label>Gloss</label>
-                <NumInput :class="cellClass('loss')" :model-value="cellVal('loss')" :scale="100" :precision="precision('Gloss')" @update:model-value="v => setNum('loss', v)"></NumInput><span v-if="dqNote('loss')" class="de-dq" :title="dqNote('loss')">&#9888;</span>
+                <NumInput :class="cellClass('Gloss')" :model-value="cellVal('Gloss')" :scale="100" :precision="precision('Gloss')" @update:model-value="v => setNum('Gloss', v)"></NumInput><span v-if="dqNote('Gloss')" class="de-dq" :title="dqNote('Gloss')">&#9888;</span>
                 <span class="u">%</span>
               </div>
             </div>
@@ -784,11 +774,11 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Environment parameters</div>
             <div class="de-cols">
-              <div class="de-fld st-c" data-field-key="c" title="Speed of sound — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
+              <div class="de-fld value-c" data-field-key="c" title="Speed of sound — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
                 <label>c</label>
                 <input type="text" readonly :value="formatInUnit(C, 'c', 'velocity', 'mps', 2)"><UnitToggle field="c" group="velocity" base="mps" unit-class="u" />
               </div>
-              <div class="de-fld st-c" data-field-key="roo" title="Air density — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
+              <div class="de-fld value-c" data-field-key="roo" title="Air density — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
                 <label>roo</label>
                 <input type="text" readonly :value="formatInUnit(RHO, 'roo', 'density', 'kgPerM3', 5)"><UnitToggle field="roo" group="density" base="kgPerM3" unit-class="u" />
               </div>
@@ -848,9 +838,9 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
 
       <div class="de-footer">
         <div class="de-legend2">
-          <span class="de-sw st-e"></span>Entered
-          <span class="de-sw st-c"></span>Calculated
-          <span class="de-sw st-n"></span>Not entered
+          <span class="de-sw value-e"></span>Entered
+          <span class="de-sw value-c"></span>Calculated
+          <span class="de-sw value-n"></span>Not entered
         </div>
         <div class="de-btns">
           <input type="file" ref="fileInput" style="display:none" @change="handleFileLoaded" :accept="DriverFileFormat.ACCEPT">
@@ -1065,17 +1055,17 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
 .de-legend, .de-legend2 { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--mut); margin-top: 6px; }
 .de-sw { width: 14px; height: 14px; border: 1px solid var(--line); border-radius: 2px; display: inline-block; margin-left: 8px; }
 .de-legend .de-sw:first-child, .de-legend2 .de-sw:first-child { margin-left: 0; }
-.de-sw.st-e { background: var(--good); }
-.de-sw.st-c { background: var(--acc); }
-.de-sw.st-n { background: #333; }
+.de-sw.value-e { background: var(--good); }
+.de-sw.value-c { background: var(--acc); }
+.de-sw.value-n { background: #333; }
 .de-auto { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 6px; opacity: .8; }
 
 /* Provenance colouring — text colour on the value, matching the legend swatches.
    Two shapes: cellClass() lands directly on NumInput's root <input> (fallthrough
    attrs), or on a wrapping .de-fld for the read-only derived fields. */
-input.st-e, .de-fld.st-e input { color: var(--good); }
-input.st-c, .de-fld.st-c input { color: var(--acc); }
-input.st-n, .de-fld.st-n input { color: var(--mut); }
+input.value-e, .de-fld.value-e input { color: var(--good); }
+input.value-c, .de-fld.value-c input { color: var(--acc); }
+input.value-n, .de-fld.value-n input { color: var(--mut); }
 
 /* ONE grid for the WHOLE tab, not one per section: WinISD's editor puts Qes, Mms, Xmax and
    `no` on the same column edge even though they live under four different headings, and a grid

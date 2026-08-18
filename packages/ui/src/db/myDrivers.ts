@@ -1,4 +1,4 @@
-import type { OpenISDDriverJson } from '@openisd/model';
+import type { _OpenISDDriverJson } from '@openisd/model';
 import type { KeyValueStore } from './kv.js';
 
 // "My Drivers" — the user's own saved drivers, a bucket of its own in browser storage.
@@ -21,7 +21,7 @@ import type { KeyValueStore } from './kv.js';
 
 export const MY_DRIVERS_KEY = 'openisd_my_drivers';
 
-// Saved drivers are RECORDS (`OpenISDDriverJson`) — the same shape a library driver, a file
+// Saved drivers are RECORDS (`_OpenISDDriverJson`) — the same shape a library driver, a file
 // and a share link carry. There is one driver model, so there is one saved shape.
 //
 // Anything previously written under this key was a flat `DriverRaw` bag and is INVALID against
@@ -34,7 +34,7 @@ export const MY_DRIVERS_KEY = 'openisd_my_drivers';
  * carries neither a brand nor a model — an unidentifiable driver, which callers must not
  * treat as equal to any other.
  */
-export function driverId(d: OpenISDDriverJson): string {
+export function driverId(d: _OpenISDDriverJson): string {
   const slug = (s: string | undefined) =>
     (s ?? '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const brand = slug(d.brand?.value);
@@ -45,11 +45,11 @@ export function driverId(d: OpenISDDriverJson): string {
 
 export interface MyDriverRepo {
   /** The identity this repository files a driver under — `<brand>/<model>`. */
-  identityOf(d: OpenISDDriverJson): string;
+  identityOf(d: _OpenISDDriverJson): string;
   /** Every saved driver, in the order they were saved. */
-  list(): OpenISDDriverJson[];
+  list(): _OpenISDDriverJson[];
   /** Replace the whole bucket — used by "reset to the demo samples". */
-  replaceAll(list: OpenISDDriverJson[]): void;
+  replaceAll(list: _OpenISDDriverJson[]): void;
   /**
    * Save one driver. It overwrites the entry already holding the resulting `<brand>/<model>`
    * identity, and adds one when none does — a driver IS its identity, so saving under a name
@@ -57,20 +57,20 @@ export interface MyDriverRepo {
    *
    * Returns true when an existing entry was overwritten, false when one was added.
    */
-  upsert(d: OpenISDDriverJson): boolean;
+  upsert(d: _OpenISDDriverJson): boolean;
   /** Remove the saved driver with this identity. Returns true when one was removed. */
   remove(id: string): boolean;
 }
 
 export function createMyDriverRepo(store: KeyValueStore): MyDriverRepo {
-  function list(): OpenISDDriverJson[] {
+  function list(): _OpenISDDriverJson[] {
     try {
       const parsed: unknown = JSON.parse(store.get(MY_DRIVERS_KEY) ?? '[]');
-      return Array.isArray(parsed) ? (parsed as OpenISDDriverJson[]) : [];
+      return Array.isArray(parsed) ? (parsed as _OpenISDDriverJson[]) : [];
     } catch { return []; }
   }
 
-  function replaceAll(next: OpenISDDriverJson[]): void {
+  function replaceAll(next: _OpenISDDriverJson[]): void {
     store.set(MY_DRIVERS_KEY, JSON.stringify(next));
   }
 

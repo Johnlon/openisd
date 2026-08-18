@@ -53,7 +53,7 @@ test('QO11.1 Tune: Mms and Bl are editable and override the calculation; clearin
 
   // Untouched, Mms is derived from the T/S set → Calculated.
   expect((await cell(page, 'Mms')).state).toBe('C');
-  await expect(mms).toHaveClass(/st-c/);
+  await expect(mms).toHaveClass(/value-c/);
 
   // Typing one makes it Entered, and the model takes the value (g → kg).
   await mms.click();
@@ -62,7 +62,7 @@ test('QO11.1 Tune: Mms and Bl are editable and override the calculation; clearin
   const entered = await cell(page, 'Mms');
   expect(entered.state).toBe('E');
   expect(entered.value).toBeCloseTo(0.0125, 6);
-  await expect(mms).toHaveClass(/st-e/);
+  await expect(mms).toHaveClass(/value-e/);
 
   // Clearing withdraws the override — the field goes back to being calculated.
   await mms.press('Control+a');
@@ -103,7 +103,7 @@ test('QO11.3 Tune: a blank Q autocalculates from the other two, with the editor 
   const qms = tuneField(page, 'Qms').locator('input');
 
   // All three entered to begin with.
-  await expect(qms).toHaveClass(/st-e/);
+  await expect(qms).toHaveClass(/value-e/);
 
   // Clear Qms: the other two still solve it, so it fills itself in — marked Calculated, and
   // NOT flagged, because the group is complete. (While the caret is still in the field the
@@ -114,7 +114,7 @@ test('QO11.3 Tune: a blank Q autocalculates from the other two, with the editor 
   await qms.press('Delete');
   expect((await cell(page, 'Qms')).state).toBe('C');
   await qms.blur();
-  await expect(qms).toHaveClass(/st-c/);
+  await expect(qms).toHaveClass(/value-c/);
   await expect(qms).not.toHaveClass(/de-input-empty/);
   await expect(qms).not.toHaveValue('');
 

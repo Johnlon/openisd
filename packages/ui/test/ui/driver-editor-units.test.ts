@@ -213,9 +213,9 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     const text = readFileSync(join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'john-all-noncalc-fields-manually-entered.wdr'), 'utf8');
     const stored = /^Gloss=(.*)$/m.exec(text)?.[1];
     assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
-    const cell = OpenISDDriver.fromRecord(WinISDDriver.fromWdr(text).toOpenISDRecord()).cell('loss' as SpecField);
+    const cell = OpenISDDriver.fromRecord(WinISDDriver.fromWdr(text).toOpenISDRecord()).cell('Gloss');
     assert.equal(cell.state, 'C', 'this fixture\'s ParState marks Gloss computed, not entered');
-    assert.equal(typeof cell.value, 'number', 'loss must be numeric');
+    assert.equal(typeof cell.value, 'number', 'Gloss must be numeric');
     const relError = Math.abs((cell.value as number) - 1.72503712771898) / 1.72503712771898;
     assert.ok(relError < 1e-9,
       `the parser must not scale — got ${cell.value}, file holds 1.72503712771898 ` +
@@ -245,9 +245,9 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     // Advanced-panel ruling QO24: only alfaVC, Rt and Ct are manual. A driver authored in-app
     // has no `Gloss=` line to carry, so the number on the panel can only come from the solver.
     const d = coreDriver();
-    const cell = d.cell('loss' as SpecField);
+    const cell = d.cell('Gloss');
     assert.equal(typeof cell.value, 'number',
-      `Gloss binds cellVal('loss'), which the driver model leaves ${cell.state} — the field renders blank`);
+      `Gloss binds cellVal('Gloss'), which the driver model leaves ${cell.state} — the field renders blank`);
     // g/((2π·37)²·0.005) for coreDriver's Fs/Xmax.
     assert.ok(Math.abs((cell.value as number) - 9.80665 / ((2 * Math.PI * 37) ** 2 * 0.005)) < 1e-15);
   });

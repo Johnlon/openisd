@@ -14,16 +14,16 @@ import type { ConsistencyIssue } from '@openisd/engine';
 
 /** The provenance CSS classes. A closed set, so an enum — never a bare string literal. */
 export enum CellClass {
-  Entered = 'st-e',
-  Calculated = 'st-c',
-  NotEntered = 'st-n',
+  Entered = 'value-e',
+  Calculated = 'value-c',
+  NotAvailable = 'value-n',
 }
 
 /** TOTAL map: a new CellState becomes a compile error here rather than an unstyled field. */
 const CELL_CLASS: Record<CellState, CellClass> = {
   E: CellClass.Entered,
   C: CellClass.Calculated,
-  N: CellClass.NotEntered,
+  N: CellClass.NotAvailable,
 };
 
 export function cellClassOf(state: CellState): CellClass {

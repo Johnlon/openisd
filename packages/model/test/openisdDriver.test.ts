@@ -151,8 +151,8 @@ describe('OpenISDDriver — autoCalculate', () => {
 });
 
 describe('OpenISDDriver — metaCell()/enterMeta()/clearMeta() (brand/model/manufacturer, ' +
-  'the ScrapedField envelope — QO36 B3/B4 apply the same way as a SpecEntry)', () => {
-  it('metaCell() reads a stated ScrapedField as E, with its origin', () => {
+  'the _ScrapedField envelope — QO36 B3/B4 apply the same way as a _SpecEntry)', () => {
+  it('metaCell() reads a stated _ScrapedField as E, with its origin', () => {
     const d = OpenISDDriver.fromRecord(grs8fr8());
     const c = d.metaCell('brand');
     assert.equal(c.value, 'GRS');
@@ -171,7 +171,7 @@ describe('OpenISDDriver — metaCell()/enterMeta()/clearMeta() (brand/model/manu
   });
 
   it('enterMeta() with an empty string on a field never manually overridden is a no-op — ' +
-     'you cannot blank away a stated fact, same as clear() on a non-manual SpecEntry', () => {
+     'you cannot blank away a stated fact, same as clear() on a non-manual _SpecEntry', () => {
     const d = OpenISDDriver.fromRecord(grs8fr8());
     d.enterMeta('model', '');
     const c = d.metaCell('model');

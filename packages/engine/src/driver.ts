@@ -316,11 +316,11 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     // It reads the STORED Fs. The rival g·Mms·Cms/Xmax is exact on every self-consistent
     // driver, because Mms·Cms = 1/(2π·Fs)² there, and lands at relative residual 3.0 on a
     // driver whose Fs is written to disagree with its own Mms·Cms — so the two are separated,
-    // not merely ranked. `loss` is the record's ONE name for the quantity (the `.wdr` key is
-    // `Gloss`), and what goes in it is the fraction the file carries; the percent WinISD's pane
-    // shows is the display layer's ×100 and exists nowhere in this module.
-    if (r.loss == null && r.Fs != null && r.Fs > 0 && r.Xmax != null && r.Xmax > 0) {
-      setVal('loss', G_STANDARD / ((TAU * r.Fs) ** 2 * r.Xmax));
+    // not merely ranked. `Gloss` is the record's ONE name for the quantity, and what goes in
+    // it is the fraction the file carries; the percent WinISD's pane shows is the display
+    // layer's ×100 and exists nowhere in this module.
+    if (r.Gloss == null && r.Fs != null && r.Fs > 0 && r.Xmax != null && r.Xmax > 0) {
+      setVal('Gloss', G_STANDARD / ((TAU * r.Fs) ** 2 * r.Xmax));
     }
     // SPLmaxLF — the excursion-limited half-space SPL at 20 Hz, 1 m, as dB re 20 µPa. The
     // bracket is the far-field RMS pressure of a piston of volume displacement Vd,

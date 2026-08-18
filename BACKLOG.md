@@ -322,6 +322,7 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
 
 - [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set)
 - [ ] **P2** 6th-order bandpass (both chambers ported) — extend the 4th-order branch. Two distinct alignments to support, as exposed by SpeakerBoxLite: **parallel** (both ports vent to the outside) and **series** (chambers coupled through a shared port).
+- [ ] **P3 — blocked on a spec.** ABC alignment. `BoxType` (`packages/engine/src/types.ts:125`) has no `'abc'` member and nothing in the repo says what fields an ABC alignment holds — this needs a human spec (what parameters, what topology) before it can be modelled at all. From QO44.
 - [ ] **P2** Isobaric / compound loading
 - [ ] **P2** Aperiodic (resistive vent) loading
 - [ ] **P3** Transmission line / quarter-wave (line length + stuffing)
@@ -384,6 +385,21 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
 
 ## Driver data & T/S
 
+- [ ] **P1** **`clear()` stops restoring a displaced reading — becomes unconditional field deletion.**
+      Ruled 2026-08-18: clearing a driver field deletes it, full stop — no automatic restore of
+      whichever source's reading was winning before a manual override. `OpenISDDriver.clear()`
+      (`packages/model/src/openisdDriver.ts:337-352`) currently does `entry.origin = displaced`
+      when `#displaced` (line 183) names a prior non-manual origin still present in `readings`;
+      that branch and `#displaced` itself are deleted. `clear()` becomes unconditionally
+      `delete specs[field]` (the existing `else` branch, made the only branch) — the whole
+      `_SpecEntry` for that field goes, not just the `manual` reading, so the OTHER sources'
+      readings (manufacturer/distributor datasheets) are lost too, not preserved for later
+      cross-source/DQ audit. Getting the value back means retyping it, or discarding the edit and
+      re-picking the driver fresh from the library — never an automatic restore. See
+      `bugs/BUG_20260818_managedproject_edit_draft_lifecycle_is_fully_built_but_never_called_from_the_app.md`
+      for the related finding that `clear()` is currently the ONLY undo mechanism available for
+      driver fields at all (the edit-draft `cancelEdit()` path is dead code, never called from
+      the app).
 - [ ] **P1** **Group solver — relation groups solve in every direction, with WinISD's route precedence.** Ruled 2026-08-13: _"winisd allows that Xmax back calc so Winisd wins that decision"_. WinISD is the oracle, so a group solves in whichever direction the entered data allows — `{Vd, Sd, Xmax}` yields `Xmax = Vd / Sd` as readily as `Vd = Sd · Xmax`. `solveConsistencyGroup` ([`packages/engine/src/driver.ts:46`](packages/engine/src/driver.ts)) already runs to a fixpoint and already carries both `Xmax` routes — `abs(Hc − Hg) / 2` at line 135, `Vd / Sd` at line 144 — so the formulas are not what is missing.
       **Route precedence is part of the contract, and it is what the code does not yet express.** `setVal` (line 94) writes only into a still-null field, so whichever branch is reached first wins and source order silently _is_ the precedence. Two engines with identical, correct formulas disagree on any record supplying inputs for both routes, so the order must be stated and tested rather than inherited from line numbering. `Rme` is settled: `2π·Fs·Mms/Qes` beats `BL² / Re`, measured exactly against the Beyma 10BR60_V2 fixture — 18.22124 vs 18.27846 (`winisd_research/GAPS.md` §A5).
       **`Xmax`'s order is NOT settled — re-test it in WinISD before touching the branches.** [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) states it twice and the two statements contradict each other: the §4 group table's row 19 (line 268) says row 20 `Vd / Sd` takes precedence and `abs(Hc − Hg) / 2` fires only when `Vd` is absent, while §4.1's tie-break table (line 310) says row 19 `abs(Hc − Hg) / 2` wins and row 20 is the last-resort fallback used only when nothing else can supply the field. One session settles it: enter `Hc`, `Hg`, `Vd` and `Sd` together with `Xmax` blank, and read which value appears. Correct the losing statement in `WDR_SCHEMA.md` in the same change.

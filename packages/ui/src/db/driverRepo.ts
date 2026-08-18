@@ -1,5 +1,5 @@
 import { readCell, readMetaCell, readDisplayName } from '@openisd/model';
-import type { OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
+import type { _OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
 import { DriverType, Chip } from '../driverType.js';
 
 // The driver commons — index, search, filter, lookup.
@@ -22,7 +22,7 @@ export interface FileEntry {
   date?: string;
   datasheet?: string; manupage?: string; vendorpage?: string; frd?: string; impedance?: string;
   /** Set on a bundled row: the openisd record itself, already parsed. */
-  record?: OpenISDDriverJson;
+  record?: _OpenISDDriverJson;
   path?: string; repo?: string | null; branch?: string | null;
   sourceKey?: string; sourceName?: string; sourceUrl?: string; sourceDesc?: string;
   _Fs?: number | null; _Sd?: number | null; _Re?: number | null; _Znom?: number | null; _Pe?: number | null;
@@ -31,7 +31,7 @@ export interface FileEntry {
   _nd?: string; _isLatest?: boolean; _isOlder?: boolean;
   /** Set on a My Drivers row: the saved driver itself. Its presence is what makes a row a
    *  user driver rather than a library one — there is no second marker. */
-  myDriverData?: OpenISDDriverJson;
+  myDriverData?: _OpenISDDriverJson;
 }
 
 /** One driver record in the pre-built bundle, as `scripts/bundle-drivers.mjs` emits it. */
@@ -42,7 +42,7 @@ export interface BundleRecord {
   name: string;
   /** Canonical driver_type as the record states it — authoritative for the chips. */
   driverType?: string;
-  record: OpenISDDriverJson;
+  record: _OpenISDDriverJson;
 }
 
 /**
@@ -58,7 +58,7 @@ export interface BundleRecord {
  * identity: the editor's OK is disabled without both, Clone forks to "Copy of …", and a file
  * loaded from disk takes its model from the file name when the file itself names none.
  */
-export function driverKey(f: FileEntry, identityOf: (d: OpenISDDriverJson) => string): string {
+export function driverKey(f: FileEntry, identityOf: (d: _OpenISDDriverJson) => string): string {
   const my = f.myDriverData;
   if (my) return `my:${identityOf(my)}`;
   return `${f.sourceKey || f.sourceName || ''}/${f.path || f.fileName || f.name}`;
@@ -175,7 +175,7 @@ export function shortSource(name: string | undefined): string {
  * which is what the list key and deletion use — two saved drivers may legitimately read
  * the same on screen, and neither may then be undeletable or delete the other.
  */
-export function myDriverName(d: OpenISDDriverJson): string { return readDisplayName(d); }
+export function myDriverName(d: _OpenISDDriverJson): string { return readDisplayName(d); }
 
 /**
  * A saved driver as a pool row — the shape selection takes.
@@ -185,7 +185,7 @@ export function myDriverName(d: OpenISDDriverJson): string { return readDisplayN
  * those columns and a row that cannot answer them cannot be filtered — which is precisely
  * how My Drivers came to ignore the type chips and the Fs/Sd/Znom bounds.
  */
-export function myDriverEntry(d: OpenISDDriverJson): FileEntry {
+export function myDriverEntry(d: _OpenISDDriverJson): FileEntry {
   const name = myDriverName(d);
   // Read the summary columns through the driver's own accessors, so a value the record STATES
   // and one the solver DERIVES are both available — the filter bar asks "what is this driver's

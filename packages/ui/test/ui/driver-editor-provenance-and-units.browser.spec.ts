@@ -178,7 +178,7 @@ test('every field the solver calculated has a provenance formula', async ({ page
     for (const label of labels) {
       const fld = fieldByLabel(page, label);
       const calculated = await fld.evaluate(f =>
-        f.classList.contains('st-c') || !!f.querySelector('input.st-c'));
+        f.classList.contains('value-c') || !!f.querySelector('input.value-c'));
       if (!calculated) continue;
       const key = map[label] ?? label;
       if (!explained.includes(key) && !NO_FORMULA.has(key)) unexplained.push(`${tab}/${label} (${key})`);

@@ -25,13 +25,13 @@ describe('fromYaml — parses REAL Python-written openisd.yml, not synthetic dat
     assert.equal(r.disposition.value, 'no-ts-published');
   });
 
-  it('reads the DerivedField grounds list (sku) — the envelope kind with no origin/readings', () => {
+  it('reads the _DerivedField grounds list (sku) — the envelope kind with no origin/readings', () => {
     const r = fromYaml(REAL_YAML).toRecord();
     assert.equal(r.sku.grounds.length, 1);
     assert.equal(r.sku.grounds[0].origin, 'manufacturer_product_page');
   });
 
-  it('reads the BookkeepingField data_sources map, keyed by SourceRole', () => {
+  it('reads the _BookkeepingField data_sources map, keyed by SourceRole', () => {
     const r = fromYaml(REAL_YAML).toRecord();
     assert.ok(r.data_sources.value.manufacturer_product_page?.startsWith('https://eminence.com'));
   });
@@ -52,7 +52,7 @@ describe('toYaml — round-trips a record built in TS', () => {
     assert.deepEqual(roundTripped.toRecord(), original.toRecord());
   });
 
-  it('a manually-constructed record with a populated SpecEntry round-trips, ' +
+  it('a manually-constructed record with a populated _SpecEntry round-trips, ' +
      'including the readings dict (origin-lifecycle rule)', () => {
     const driver = OpenISDDriver.fromRecord({
       uuid: { value: 'x', definition: 'd' },

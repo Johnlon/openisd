@@ -159,7 +159,7 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
   },
   // The three the solver fills in its full pass (engine driver.ts block 13). Gloss is the
   // FRACTION the .wdr carries; the editor's ×100 is display only.
-  loss: {
+  Gloss: {
     paths: [
       { formulaText: 'Gloss = g / ((2π × Fs)² × Xmax)', inputs: ['Fs', 'Xmax'] }
     ]
@@ -187,7 +187,7 @@ export const LABEL_TO_FIELD_KEY: Record<string, string> = {
   Dd: 'Dd', Le: 'Le', Sd: 'Sd', fLe: 'fLe', KLe: 'Le2', Xmax: 'Xmax', Hc: 'Hc', Hg: 'Hg', Vd: 'Vd', Xlim: 'Xlim',
   Pe: 'Pe', no: 'no', Znom: 'Z', USPL: 'USPL', SPL: 'SPL', Voicecoils: 'numVC',
   AlfaVC: 'tc', 'R(t)': 'Rth', 'C(t)': 'Cth', SPLmaxLF: 'SPLmaxLF', SPLmax: 'SPLmax', Rme: 'Rme',
-  gamma: 'gamma', Mpow: 'Mpow', Mcost: 'Mcost', EBP: 'EBP', Gloss: 'loss',
+  gamma: 'gamma', Mpow: 'Mpow', Mcost: 'Mcost', EBP: 'EBP', Gloss: 'Gloss',
   'Basket Plate Thickness (Thick)': 'thick', 'Driver Depth (Depth)': 'depth',
   'Magnet Depth (MagDepth)': 'magnetDepth', 'Magnet Diameter (Magnet)': 'magnet',
   'Basket Diameter (Basket)': 'basket', 'Outer Diameter (Outer)': 'outer',

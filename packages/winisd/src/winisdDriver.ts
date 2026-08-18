@@ -27,40 +27,11 @@
 import { parse as parseYaml } from 'yaml';
 import { deriveOpenISDFields, winningReading } from '@openisd/model';
 import type {
-  SpecSection, SpecEntry, ScrapedField, DerivedField, BookkeepingField, DispositionField,
-  QualityBlock, CurvesBlock, SourceRole, Specs, DqMark,
+  _SpecSection, _SpecEntry, _ScrapedField, DqMark, OpenISDDriver, _OpenISDDriverJson,
 } from '@openisd/model';
 import type { DriverError, Result } from '@openisd/engine';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from './parstate.js';
 import type { CellState } from './parstate.js';
-
-/**
- * The openisd.yml record shape — this file works directly against the plain record
- * (never constructs an `OpenISDDriver`, per this file's own header), so it declares the
- * same shape `OpenISDDriver`'s constructor does (`@openisd/model`'s `openisdDriver.ts`),
- * built from the same re-exported envelope types. Private to this file — `OpenISDDriver`
- * is the one external form; nothing outside `@openisd/model` exports this name.
- */
-interface DriverFields {
-  uuid: BookkeepingField<string>;
-  quality: QualityBlock;
-  manufacturer: ScrapedField<string>;
-  brand: ScrapedField<string>;
-  model: ScrapedField<string>;
-  sku: DerivedField<string>;
-  name?: DerivedField<string>;
-  series?: ScrapedField<string>;
-  driver_type: ScrapedField<string>;
-  nominal_size_cm?: ScrapedField<number>;
-  disposition: DispositionField;
-  data_sources: BookkeepingField<Partial<Record<SourceRole, string>>>;
-  authoritative: BookkeepingField<SourceRole>;
-  product_image?: ScrapedField<string>;
-  description?: ScrapedField<string>;
-  surround_material?: ScrapedField<string>;
-  specs: Specs;
-  curves?: CurvesBlock;
-}
 
 /** One `.wdr` field: the text that will be written, and its provenance mark. */
 export interface WdrCell {
@@ -141,7 +112,7 @@ export const WDR_NUMERIC_KEYS: readonly string[] = NUMERIC_DEFAULTS.map(([k]) =>
  * The record stores dimensions in mm and volume in litres (field-NAME convention, not an
  * SI-canonical `read_value`); WinISD stores SI.
  */
-export const SPEC_TO_WDR: ReadonlyArray<readonly [keyof SpecSection, string, number]> = [
+export const SPEC_TO_WDR: ReadonlyArray<readonly [keyof _SpecSection, string, number]> = [
   ['Fs', 'Fs', 1], ['Re', 'Re', 1], ['Le', 'Le', 1], ['fLe', 'fLe', 1], ['KLe', 'KLe', 1],
   ['Znom', 'Znom', 1], ['Qts', 'Qts', 1], ['Qes', 'Qes', 1], ['Qms', 'Qms', 1],
   ['Vas', 'Vas', 1], ['Sd', 'Sd', 1], ['BL', 'BL', 1], ['Mms', 'Mms', 1],
@@ -166,14 +137,14 @@ export const SPEC_TO_WDR: ReadonlyArray<readonly [keyof SpecSection, string, num
 
 /** Engine derivation output name → `.wdr` key, where the two spell it differently. */
 const DERIVED_TO_WDR: Readonly<Record<string, string>> = {
-  Bl: 'BL', Z: 'Znom', c: 'c', roo: 'roo', loss: 'Gloss',
+  Bl: 'BL', Z: 'Znom', c: 'c', roo: 'roo',
 };
 
-/** `.wdr` key → the `SpecSection` field it maps to, with the unit conversion back to record
+/** `.wdr` key → the `_SpecSection` field it maps to, with the unit conversion back to record
  *  convention (mm/litres) — the exact inverse of `SPEC_TO_WDR`. TOTAL over the `.wdr` key set:
  *  `OpenISDDriver` is a superset of a `.wdr`, so every key WinISD can write resolves here.
  *  `wdr-model-coverage.test.ts` fails on any that does not. */
-const WDR_TO_SPEC = new Map<string, readonly [keyof SpecSection, number]>(
+const WDR_TO_SPEC = new Map<string, readonly [keyof _SpecSection, number]>(
   SPEC_TO_WDR.map(([specKey, wdrKey, scale]) => [wdrKey, [specKey, 1 / scale] as const]),
 );
 
@@ -184,15 +155,15 @@ const WDR_TO_SPEC = new Map<string, readonly [keyof SpecSection, number]>(
  */
 const fmt = (n: number): string => String(n);
 
-/** Metadata fields that carry a `dq: DqMark[]` array (the `ScrapedField<T>` envelope). Order
+/** Metadata fields that carry a `dq: DqMark[]` array (the `_ScrapedField<T>` envelope). Order
  *  here IS record order for DQ-comment purposes — declared once, walked the same way every
- *  time. `driver_type` is included: it is a `ScrapedField`, not a closed enum wrapper. */
-const DQ_META_FIELDS: ReadonlyArray<keyof DriverFields> = [
+ *  time. `driver_type` is included: it is a `_ScrapedField`, not a closed enum wrapper. */
+const DQ_META_FIELDS: ReadonlyArray<keyof _OpenISDDriverJson> = [
   'manufacturer', 'brand', 'model', 'series', 'driver_type', 'nominal_size_cm',
   'product_image', 'description', 'surround_material',
 ];
 
-/** Format one `SpecEntry`/`ScrapedField`'s current value for the `[DQ]` line — the same
+/** Format one `_SpecEntry`/`_ScrapedField`'s current value for the `[DQ]` line — the same
  *  shortest-round-trip text `fmt`/`toWdr` uses for a number, verbatim for a string. */
 function dqValueText(v: number | string): string {
   return typeof v === 'number' ? fmt(v) : v;
@@ -200,21 +171,21 @@ function dqValueText(v: number | string): string {
 
 /** `[DQ] <field>=<value>: <offence>` for every mark the record carries, in record order —
  *  metadata fields (declared order), then every T/S field of the driver's OWN section
- *  (SpecSection's declared key order). One line per mark; `mark.detail` IS the offence text
+ *  (_SpecSection's declared key order). One line per mark; `mark.detail` IS the offence text
  *  (record_registries.py's one registered template rendering — never composed here). */
-function dqLinesOf(record: DriverFields): string[] {
+function dqLinesOf(record: _OpenISDDriverJson): string[] {
   const lines: string[] = [];
   const push = (field: string, value: number | string, marks: readonly DqMark[] | undefined): void => {
     for (const m of marks ?? []) lines.push(`[DQ] ${field}=${dqValueText(value)}: ${m.detail}`);
   };
 
   for (const key of DQ_META_FIELDS) {
-    const f = record[key] as ScrapedField<string | number> | undefined;
+    const f = record[key] as _ScrapedField<string | number> | undefined;
     if (f && f.value !== '' && f.value != null) push(key, f.value, f.dq);
   }
   const section = sectionFor(record);
   if (section) {
-    for (const key of Object.keys(section) as (keyof SpecSection)[]) {
+    for (const key of Object.keys(section) as (keyof _SpecSection)[]) {
       const entry = section[key];
       if (!entry) continue;
       let value: number | string;
@@ -226,7 +197,7 @@ function dqLinesOf(record: DriverFields): string[] {
 }
 
 /** Which `specs:` section a record's `driver_type` selects. */
-function sectionFor(record: DriverFields): SpecSection | null {
+function sectionFor(record: _OpenISDDriverJson): _SpecSection | null {
   const t = record.driver_type?.value;
   if (t === 'passive_radiator' || t === 'passive-radiator') return record.specs?.passive_radiator ?? null;
   if (t === 'tweeter') return record.specs?.tweeter ?? null;
@@ -275,7 +246,21 @@ export class WinISDDriver {
    * Never throws by itself — the caller (`fromYaml`) is where a malformed source becomes a
    * `Result`. This entry point trusts `record` is already a parsed object.
    */
-  static fromOpenISDRecord(record: DriverFields): Result<WinISDDriver> {
+  /**
+   * Takes the live `OpenISDDriver`, never a raw record: `OpenISDDriver` is the settled public
+   * API for a driver everywhere in this app (human ruling, 2026-08-17) — `.toRecord()` is read
+   * once, immediately below, and nowhere else in this class.
+   *
+   * `ebp`: EBP is not a real `SpecField` (no engine derivation route — ledger, 2026-08-17), so
+   * `deriveOpenISDFields()` below never produces it. `OpenISDDriver.ebp()` is the ONE place
+   * that formula is allowed to live (ARCHITECTURE.md "WinISDDriver is solely a serialisation
+   * device" — no calculation logic here); this class only ever ASSIGNS the value the getter
+   * hands it, never derives one itself.
+   * bugs/BUG_20260817_wdr_writer_computes_ebp_itself_violating_its_own_no-calc-logic_rule.md
+   */
+  static fromOpenISDDriver(driver: OpenISDDriver): Result<WinISDDriver> {
+    const record = driver.toRecord() as unknown as _OpenISDDriverJson;
+    const ebp = driver.ebp();
     const section = sectionFor(record);
     if (section == null) {
       return {
@@ -285,13 +270,13 @@ export class WinISDDriver {
     }
 
     // ── 1. Flatten the record's entered spec values to flat SI numbers ──────────────────
-    // A SpecEntry's number is reachable ONLY at readings[origin].read_value; there is no
+    // A _SpecEntry's number is reachable ONLY at readings[origin].read_value; there is no
     // flat value to fall back on (ARCHITECTURE.md §3).
     const entered: Record<string, number> = {};
     const enteredWdrKeys = new Set<string>();
     const intake: DriverError[] = [];
     for (const [specKey, wdrKey, scale] of SPEC_TO_WDR) {
-      const entry = section[specKey] as SpecEntry | undefined;
+      const entry = section[specKey] as _SpecEntry | undefined;
       if (entry?.origin == null || entry.readings == null) continue;   // genuinely absent ⇒ N
       let v: number;
       try {
@@ -338,7 +323,7 @@ export class WinISDDriver {
       const wdrKey = DERIVED_TO_WDR[k] ?? k;
       if (typeof solved[k] === 'number' && isFinite(solved[k])) computed[wdrKey] = solved[k];
     }
-    if (computed.EBP == null && computed.Fs > 0 && computed.Qes > 0) computed.EBP = computed.Fs / computed.Qes;
+    if (computed.EBP == null && ebp != null) computed.EBP = ebp;
     if (computed.Dia == null && computed.Dd != null) computed.Dia = computed.Dd;
     // Xlim: the record's value cannot be carried into a `.wdr` — the format has no key for it
     // (see XLIM_PARSTATE_SLOT). All that crosses is the MARK: the record states an Xlim, so
@@ -388,9 +373,9 @@ export class WinISDDriver {
    * for `openisdYamlToWdr(yamlText)`.
    */
   static fromYaml(yamlText: string): Result<WinISDDriver> {
-    let record: DriverFields;
+    let record: _OpenISDDriverJson;
     try {
-      record = parseYaml(yamlText) as DriverFields;
+      record = parseYaml(yamlText) as _OpenISDDriverJson;
     } catch (e) {
       return { value: null, errors: [err('yaml', `could not parse openisd.yml: ${String(e)}`)] };
     }
@@ -449,17 +434,17 @@ export class WinISDDriver {
     return new WinISDDriver(header, cells, []);
   }
 
-  // ── IMPORT continued — this AS-READ WinISDDriver → DriverFields ─────────────────────
+  // ── IMPORT continued — this AS-READ WinISDDriver → _OpenISDDriverJson ─────────────────────
 
   /**
-   * Project THIS as-read `.wdr` (from `fromWdr`) into a `DriverFields` — the reader half of
+   * Project THIS as-read `.wdr` (from `fromWdr`) into a `_OpenISDDriverJson` — the reader half of
    * Step 8 (ARCHITECTURE.md §3 "Import": "`.wdr` text populates a `WinISDDriver`; those
    * as-read values are diffed against what `OpenISDDriver` independently derives"). This is a
    * NEW method; `fromWdr` itself keeps returning raw, undived cells — nothing here changes its
    * signature or behaviour.
    *
    * Provenance mapping, field by field:
-   *  - a cell marked `E` becomes a stated `SpecEntry`. A raw `.wdr` import has no finer source
+   *  - a cell marked `E` becomes a stated `_SpecEntry`. A raw `.wdr` import has no finer source
    *    than the file itself, and `SourceRole` has no dedicated WDR role — `manual` is the one
    *    role already meaning exactly that ("no printed literal, no stated precision", ledger
    *    QO36 ruling B3), so the reading carries `read_value` alone.
@@ -469,8 +454,8 @@ export class WinISDDriver {
    *    method's — call it separately against `WinISDDriver.fromOpenISDRecord(record)`.
    *  - a cell marked `N` is simply absent; nothing is invented for it.
    */
-  toOpenISDRecord(): DriverFields {
-    const woofer: SpecSection = {};
+  toOpenISDRecord(): _OpenISDDriverJson {
+    const woofer: _SpecSection = {};
     for (const [wdrKey, cell] of this.#cells) {
       if (cell.state !== 'E') continue;
       const mapped = WDR_TO_SPEC.get(wdrKey);
@@ -482,7 +467,7 @@ export class WinISDDriver {
     }
 
     const h = this.#header;
-    const meta = (value: string | undefined): ScrapedField<string> =>
+    const meta = (value: string | undefined): _ScrapedField<string> =>
       ({ value: value ?? '', origin: 'manual', definition: 'from the .wdr header', dq: [] });
     const brand = h.brand ?? '';
     const model = h.model ?? '';

@@ -75,7 +75,7 @@ export interface DriverRaw {
   tc?: number;
   Rth?: number;
   Cth?: number;
-  loss?: number;
+  Gloss?: number;
   thick?: number;
   depth?: number;
   magnetDepth?: number;
@@ -107,7 +107,7 @@ export interface DriverRaw {
  * derives (the Q trio + Cms/Mms/Rms/Bl). `Le` stays optional: it is passed
  * through from DriverRaw and only affects the impedance plot.
  */
-export interface Driver extends DriverRaw {
+export interface Driver {
   Fs: number;
   Re: number;
   Sd: number;

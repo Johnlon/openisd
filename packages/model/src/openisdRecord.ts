@@ -13,16 +13,16 @@
  * NOT one uniform envelope. Four distinct kinds, matched to what kind of fact a field
  * is:
  *
- *   SpecEntry        T/S fields, inside `specs` only. NO flat value — `origin` names
+ *   _SpecEntry        T/S fields, inside `specs` only. NO flat value — `origin` names
  *                    the winning source, a REQUIRED `readings` dict (>= 1 source) holds
  *                    each source's own reading; the number lives at
  *                    `readings[origin].read_value`, nowhere else.
- *   ScrapedField<T>  record-level metadata (manufacturer, brand, model). HAS a flat
+ *   _ScrapedField<T>  record-level metadata (manufacturer, brand, model). HAS a flat
  *                    `value`, plus `origin`; `readings` is only populated when >= 2
  *                    sources disagreed.
- *   DerivedField<T>  pipeline-computed (sku, name). `value` + `grounds` (evidence the
+ *   _DerivedField<T>  pipeline-computed (sku, name). `value` + `grounds` (evidence the
  *                    pipeline consumed) — no `origin`/`readings`, it was built, not read.
- *   BookkeepingField<T>  a pure pipeline fact with nothing external to point at (uuid).
+ *   _BookkeepingField<T>  a pure pipeline fact with nothing external to point at (uuid).
  *                    Just `value` + `definition`.
  *
  * Lives in `@openisd/model`, distinct from `@openisd/engine` (WinISD-free physics) and
@@ -79,9 +79,9 @@ export interface DqMark {
   detail: string;
 }
 
-// ── SpecEntry — model_driver.py:362-460. The T/S-field envelope. No flat value. ────────
+// ── _SpecEntry — model_driver.py:362-460. The T/S-field envelope. No flat value. ────────
 export type DQStatus = 'MATCH' | 'MISMATCH' | 'NOT_MATCHABLE' | 'UNMATCHED';
-export interface SpecEntry {
+export interface _SpecEntry {
   /** Names WHICH reading won. Always a key of `readings` — enforced on the Python side. */
   origin: SourceRole;
   /** Every source's own reading. ALWAYS populated, one entry or many — never empty. */
@@ -91,19 +91,19 @@ export interface SpecEntry {
   definition?: string;
   dq: DqMark[];
 }
-/** The one legal way to read a SpecEntry's value — mirrors SpecEntry.winning_reading
+/** The one legal way to read a _SpecEntry's value — mirrors _SpecEntry.winning_reading
  *  (model_driver.py:415-420) rather than adding a second name for the same fact. */
-export function winningReading(entry: SpecEntry): Reading {
+export function winningReading(entry: _SpecEntry): Reading {
   const r = entry.readings[entry.origin];
-  if (!r) throw new Error(`origin ${entry.origin} has no entry in readings — invalid SpecEntry`);
+  if (!r) throw new Error(`origin ${entry.origin} has no entry in readings — invalid _SpecEntry`);
   return r;
 }
 
-// ── ScrapedField<T> — model_driver.py:141-153. Record-level metadata envelope. ─────────
-export interface ScrapedField<T> {
+// ── _ScrapedField<T> — model_driver.py:141-153. Record-level metadata envelope. ─────────
+export interface _ScrapedField<T> {
   value: T;
   origin: SourceRole;
-  /** Only populated when >= 2 sources disagreed — NOT the "always >= 1" rule SpecEntry
+  /** Only populated when >= 2 sources disagreed — NOT the "always >= 1" rule _SpecEntry
    *  follows; a single-source metadata field carries no readings at all. */
   readings?: Partial<Record<SourceRole, T>>;
   definition: string;
@@ -111,21 +111,21 @@ export interface ScrapedField<T> {
   note?: string;
 }
 
-// ── DerivedField<T> / BookkeepingField<T> — model_driver.py:164-205 ────────────────────
+// ── _DerivedField<T> / _BookkeepingField<T> — model_driver.py:164-205 ────────────────────
 export interface Ground {
   origin: SourceRole;
   reading: string;
   definition: string;
 }
 /** A value BUILT by the pipeline from evidence — not read from a source. */
-export interface DerivedField<T> {
+export interface _DerivedField<T> {
   value: T;
   definition: string;
   /** What the derivation consumed — always at least one. */
   grounds: Ground[];
 }
 /** A pipeline-made fact with nothing external to point at (e.g. uuid). */
-export interface BookkeepingField<T> {
+export interface _BookkeepingField<T> {
   value: T;
   definition: string;
 }
@@ -159,21 +159,21 @@ export interface QualityBlock {
   cross_source_only: CrossSourceReading[];
 }
 
-// ── SpecSection / Specs — model_driver.py:460+, 603-615 ────────────────────────────────
-// Named, typed fields — NOT a Record<string, SpecEntry> — matching CANONICAL_SPEC_FIELDS
+// ── _SpecSection / _Specs — model_driver.py:460+, 603-615 ────────────────────────────────
+// Named, typed fields — NOT a Record<string, _SpecEntry> — matching CANONICAL_SPEC_FIELDS
 // (record_registries.py:273-284) exactly. A field absent here has no closed-form allowlist
 // slot at all (distinct from present-but-undefined, which means "not on this driver").
-export interface SpecSection {
+export interface _SpecSection {
   // T/S fields (_SPEC_TS_FIELDS)
-  Fs?: SpecEntry; Re?: SpecEntry; Le?: SpecEntry; fLe?: SpecEntry; KLe?: SpecEntry;
-  Znom?: SpecEntry; Qts?: SpecEntry; Qes?: SpecEntry; Qms?: SpecEntry; Vas?: SpecEntry;
-  Sd?: SpecEntry; BL?: SpecEntry; Mms?: SpecEntry; Cms?: SpecEntry; Rms?: SpecEntry;
-  Xmax?: SpecEntry; Xlim?: SpecEntry;
+  Fs?: _SpecEntry; Re?: _SpecEntry; Le?: _SpecEntry; fLe?: _SpecEntry; KLe?: _SpecEntry;
+  Znom?: _SpecEntry; Qts?: _SpecEntry; Qes?: _SpecEntry; Qms?: _SpecEntry; Vas?: _SpecEntry;
+  Sd?: _SpecEntry; BL?: _SpecEntry; Mms?: _SpecEntry; Cms?: _SpecEntry; Rms?: _SpecEntry;
+  Xmax?: _SpecEntry; Xlim?: _SpecEntry;
   /** Printed sensitivity — no equivalent exists anywhere in today's engine types.
    *  Present here because it IS in the real canonical allowlist; the gap is on the
    *  OpenISDDriver/UI side, not this type. */
-  SPL?: SpecEntry;
-  Pe?: SpecEntry; Dd?: SpecEntry; EBP?: SpecEntry; numVC?: SpecEntry; VCCon?: SpecEntry;
+  SPL?: _SpecEntry;
+  Pe?: _SpecEntry; Dd?: _SpecEntry; EBP?: _SpecEntry; numVC?: _SpecEntry; VCCon?: _SpecEntry;
   /**
    * The rest of what a `.wdr` can state about a driver.
    *
@@ -195,22 +195,22 @@ export interface SpecSection {
    * they keep its conventions; the mm/litre naming convention applies only to the
    * `*_mm`/`*_l` fields above.
    */
-  Dia?: SpecEntry; Vd?: SpecEntry; no?: SpecEntry;
-  SPLmax?: SpecEntry; SPLmaxLF?: SpecEntry; USPL?: SpecEntry;
-  alfaVC?: SpecEntry; Rt?: SpecEntry; Ct?: SpecEntry; gamma?: SpecEntry; Rme?: SpecEntry;
-  Mpow?: SpecEntry; Mcost?: SpecEntry; Gloss?: SpecEntry; c?: SpecEntry; roo?: SpecEntry;
+  Dia?: _SpecEntry; Vd?: _SpecEntry; no?: _SpecEntry;
+  SPLmax?: _SpecEntry; SPLmaxLF?: _SpecEntry; USPL?: _SpecEntry;
+  alfaVC?: _SpecEntry; Rt?: _SpecEntry; Ct?: _SpecEntry; gamma?: _SpecEntry; Rme?: _SpecEntry;
+  Mpow?: _SpecEntry; Mcost?: _SpecEntry; Gloss?: _SpecEntry; c?: _SpecEntry; roo?: _SpecEntry;
   // Descriptive/dimensional fields (_SPEC_DESCRIPTIVE_FIELDS)
-  voice_coil_dia_mm?: SpecEntry; Hg_mm?: SpecEntry; Hc_mm?: SpecEntry;
-  freq_low_hz?: SpecEntry; freq_high_hz?: SpecEntry; power_peak_W?: SpecEntry;
-  weight_kg?: SpecEntry; thick_mm?: SpecEntry; depth_mm?: SpecEntry;
-  magnet_depth_mm?: SpecEntry; magnet_dia_mm?: SpecEntry; basket_dia_mm?: SpecEntry;
-  outer_dia_mm?: SpecEntry; outer_x_mm?: SpecEntry; outer_y_mm?: SpecEntry;
-  driver_volume_l?: SpecEntry;
+  voice_coil_dia_mm?: _SpecEntry; Hg_mm?: _SpecEntry; Hc_mm?: _SpecEntry;
+  freq_low_hz?: _SpecEntry; freq_high_hz?: _SpecEntry; power_peak_W?: _SpecEntry;
+  weight_kg?: _SpecEntry; thick_mm?: _SpecEntry; depth_mm?: _SpecEntry;
+  magnet_depth_mm?: _SpecEntry; magnet_dia_mm?: _SpecEntry; basket_dia_mm?: _SpecEntry;
+  outer_dia_mm?: _SpecEntry; outer_x_mm?: _SpecEntry; outer_y_mm?: _SpecEntry;
+  driver_volume_l?: _SpecEntry;
 }
-export interface Specs {
-  woofer?: SpecSection;
-  tweeter?: SpecSection;
-  passive_radiator?: SpecSection;
+export interface _Specs {
+  woofer?: _SpecSection;
+  tweeter?: _SpecSection;
+  passive_radiator?: _SpecSection;
 }
 
 // ── CurvesBlock — model_driver.py:891-896. Shape not yet fully verified (CurveEntry's

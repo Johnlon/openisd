@@ -23,7 +23,8 @@ import type { Logging } from '../logging/flash.js';
 import { saveProject as fsSaveProject, saveProjectAs as fsSaveProjectAs } from './fileSave.js';
 import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
 import { buildWprInput } from './wprMapping.js';
-import { toWpr, WinISDDriver } from '@openisd/winisd';
+import { toWpr } from '@openisd/winisd';
+import * as WinIsdDriverFileIo from './winIsdDriverFileIo.js';
 import type { SerializedState, UiParams } from '../types.js';
 
 function sanitizeFilename(name: string | undefined): string {
@@ -138,9 +139,9 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     // The ADT's own toWdr is lossless — carried fields + live ParState provenance.
     const record = driverRecord.value;
     if (!record) { flash('Cannot export .wdr: no driver has been chosen'); return; }
-    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(record);
+    const { value: wdr, errors } = WinIsdDriverFileIo.exportDriver(record);
     if (!wdr) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
-    download(sanitizeFilename(driverName.value) + '.wdr', wdr.toWdr(), 'text/plain');
+    download(sanitizeFilename(driverName.value) + '.wdr', wdr, 'text/plain');
   }
 
   function exportOwdr(): void {
@@ -155,9 +156,9 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     closeTunePanelAfterIO();
     const record = driverRecord.value;
     if (!record) { flash('Cannot export .wpr: no driver has been chosen'); return; }
-    const { value: wdr, errors } = WinISDDriver.fromOpenISDRecord(record);
+    const { value: wdr, errors } = WinIsdDriverFileIo.exportDriver(record);
     if (!wdr) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
-    const input = buildWprInput(state.box, state.P, driver.value, wdr.toWdr(), state.project, new Date(), curvesData.value);
+    const input = buildWprInput(state.box, state.P, driver.value, wdr, state.project, new Date(), curvesData.value);
     download(sanitizeFilename(driverName.value) + '.wpr', toWpr(input), 'text/plain');
   }
 
@@ -201,7 +202,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     // The .wpr's [Driver] block IS .wdr text — the serialiser reads it as-read, then projects
     // it into the app's own record. One reader, not a second parse invented here.
     const driverWdr = driverLines.join('\r\n');
-    const driverJson = WinISDDriver.fromWdr(driverWdr).toOpenISDRecord();
+    const driverJson = WinIsdDriverFileIo.importDriver(driverWdr);
 
     const boxSec = sections['Box'] || {};
     const bType = parseInt(boxSec['BType'] || '1', 10);
