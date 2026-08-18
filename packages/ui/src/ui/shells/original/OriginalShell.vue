@@ -122,16 +122,9 @@ const rearQtc = computed<number | null>(() => sealedRes.value?.Qtc ?? null);
 // series with the PR's own, against the PR's moving mass — NOT the sealed Fc above, which
 // ignores the PR entirely. On WinISD's own controlled-trial inputs prTuning() returns 72.25 Hz,
 // matching it exactly, where the sealed formula gives 194.87. winisd_research/GAPS.md §A3.
-const prFh = computed<number | null>(() => managedProject.prSystemTuning_hz());
 /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
 const boxResonance = computed<number | null>(() =>
-  selectedBox.value === 'pr' ? prFh.value : rearResonance.value);
-// Vent geometry (vented / bandpass4): cross-sectional area (m²) and Helmholtz tuning.
-// The area is a calculated value read off the domain object here, not computed in this
-// component — only OpenISDDriver/ManagedOpenISDProject may calculate (ARCHITECTURE.md §5).
-const ventArea = computed<number>(() => {
-  return managedProject.ventArea_m2();
-});
+  selectedBox.value === 'pr' ? managedProject.prSystemTuning_hz() : rearResonance.value);
 // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber
 // tunes on its own front volume Vf. Same closed form the engine's circuit uses.
 // Box-tab tuning entry (vented). The setter goes through enterVentField so the field is
@@ -202,12 +195,6 @@ const FB_TARGET_TIP = 'The tuning you are designing to. It is an INPUT, not a re
 // c/(2·L), a standing wave in the vent, DISTINCT from the box Helmholtz tuning ventFb. Uses the
 // PHYSICAL vent length (NOT the end-corrected Leff) to match WinISD exactly: its 86.87 Hz =
 // 343.68/(2·1.978 m physical length). End correction applies to the tuning Fb, not this. §portterminology.
-const portPipeResonance = computed<number | null>(() => managedProject.portPipeResonance_hz());
-// Passive-radiator derived params (from the stored PR T/S bag).
-const prVas = computed(() => managedProject.prVas_l());
-const prFs = computed(() => managedProject.prFs_hz());
-const prFsMass = computed(() => managedProject.prFsWithMass_hz());
-const prQms = computed(() => managedProject.prQms());
 
 // ---- Chart selector ------------------------------------------------------------
 // WinISD's full chart menu; each maps to a real engine curve id (TABS) or null.
@@ -658,7 +645,6 @@ function onBottomSplitDown(e: PointerEvent): void {
 }
 
 // ---- Driver identity + placement ----------------------------------------------
-const brand = computed(() => managedProject.metaCell('brand').value);
 const model = computed(() => managedProject.metaCell('model').value || driverName.value);
 
 // ---- Signal Generator (real audio-out tone) ------------------------------------
@@ -1124,7 +1110,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
         <!-- ===== Driver tab ===== -->
         <section v-show="activeTab === 'driver'" class="tab-section" :class="{ active: activeTab === 'driver' }">
           <div class="field-row driver-id-row">
-            <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="brand" readonly></div>
+            <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="managedProject.metaCell('brand').value" readonly></div>
             <div class="field tight"><label>Model</label><input type="text" style="width:140px" :value="model" readonly></div>
             <button class="edit-btn" title="Swap in a different driver for this project." @click="state.browseOpen = true">Select Driver</button>
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
@@ -1263,10 +1249,10 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                   </div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(ventArea, 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
+                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(managedProject.ventArea_m2(), 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(portPipeResonance, 'portResonance', 'freq', 'Hz', fieldDp('portResonance'))" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(managedProject.portPipeResonance_hz(), 'portResonance', 'freq', 'Hz', fieldDp('portResonance'))" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </div>
               </div>
             </div>
@@ -1289,8 +1275,8 @@ watch(() => state.ui.originalEditorOpen, (open) => {
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div class="field-row">
-                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmtU(prVas != null ? prVas / 1000 : null, 'prVas', 'volume', 'L', fieldDp('prVas'))" readonly><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
-                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(prQms, fieldDp('prQms'))" readonly></div>
+                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmtU(managedProject.prVas_l() / 1000, 'prVas', 'volume', 'L', fieldDp('prVas'))" readonly><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(managedProject.prQms(), fieldDp('prQms'))" readonly></div>
                 </div>
                 <div class="field-row">
                   <!-- The RADIATOR's own free-air resonance, 1/(2π√(Mmd·Cms)) — no box in it.
@@ -1299,7 +1285,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                        this app's symbol for it. Distinct from the SYSTEM tuning on the Box tab
                        (view_2_box.png "Fh": 40.25 Hz on that same project), which is the box
                        compliance in series with the PR's own — two quantities, two readouts. -->
-                  <div class="field"><label>Fpr</label><input id="og-pr-fs" class="calculated greyed" :value="fmtU(prFs, 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div class="field"><label>Fpr</label><input id="og-pr-fs" class="calculated greyed" :value="fmtU(managedProject.prFs_hz(), 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                   <div class="field entered"><label>Sd</label><NumInput v-model="state.P.prSd" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
@@ -1310,7 +1296,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <div class="section-header">User options</div>
                 <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" field="prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
                 <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput id="og-pr-madd" v-model="state.P.prMadd" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
-                <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(prFsMass, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
+                <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(managedProject.prFsWithMass_hz(), 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
             </div>
           </div>
