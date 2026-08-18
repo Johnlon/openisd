@@ -177,7 +177,7 @@ watch(() => state.editDriver, (open) => {
 
 function cancel() { managedProject.cancelWhatIf(); state.P.Vb = vbSnapshot; state.editDriver = false; }
 // Reset the overlay to the driver as loaded: end this session and start a fresh one from
-// ground. ManagedProject owns both halves; the panel does not reach past it. Vb is a box value,
+// ground. ManagedOpenISDProject owns both halves; the panel does not reach past it. Vb is a box value,
 // not a driver value, so it is untouched here.
 function reset()  { managedProject.resetOverlayToGround(); }
 </script>

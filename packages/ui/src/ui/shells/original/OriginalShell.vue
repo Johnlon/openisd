@@ -763,7 +763,7 @@ function startEdit() { editProjectDriver(); }
 // own comment).
 // Only whether the panel is OPEN is remembered. The what-if VALUES are not: a what-if is
 // unverified and can never commit, so persisting it would bring an uncommitted value back
-// after a refresh looking like a decision the user made. ManagedProject owns what-if state and
+// after a refresh looking like a decision the user made. ManagedOpenISDProject owns what-if state and
 // nothing else may hold a copy (ARCHITECTURE.md §"Approved state stores").
 watch(() => managedProject.isWhatIfActive(), (active) => {
   state.ui.originalTuneOpen = active;

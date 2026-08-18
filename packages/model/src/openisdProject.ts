@@ -1,5 +1,5 @@
 /**
- * `OpenISDProject` — one speaker design, whole.
+ * `_OpenISDProjectJson` — one speaker design, whole.
  *
  * This is the thing a user opens, edits, explores with a what-if, saves and shares. It is what
  * `ManagedProject` holds three of (ground / committed / overlay), and it is PRIVATE to that
@@ -194,7 +194,7 @@ export interface OpenISDProjectMeta {
  * THE project. Every member is data; none is a live object with its own lifecycle, because
  * `ManagedProject` clones the whole thing to open an edit or a what-if.
  */
-export interface OpenISDProject {
+export interface _OpenISDProjectJson {
   /** The driver, as a RECORD. Absent before one is chosen — the app opens with no driver, not
    *  with a fake one.
    *
