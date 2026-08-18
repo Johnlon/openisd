@@ -179,10 +179,8 @@ export class OpenISDDriver {
   readonly #record: _OpenISDDriverJson;
   /** The section every T/S field of this driver lives in — fixed by driver_type. */
   readonly #section: 'woofer' | 'tweeter' | 'passive_radiator';
-  /** The origin that won before a manual reading displaced it, so clear() can restore it. */
-  readonly #displaced = new Map<SpecField, SourceRole>();
   /** The {value, origin} a MetaField carried before a manual override, so clearMeta() can
-   *  restore it — the _ScrapedField equivalent of #displaced. */
+   *  restore it. */
   readonly #displacedMeta = new Map<MetaField, { value: string; origin: SourceRole }>();
   /** Memoised solve; dropped on every mutation. */
   #cache: { fields: Record<string, number>; errors: DriverError[] } | null = null;
@@ -315,8 +313,9 @@ export class OpenISDDriver {
   /**
    * Record a hand-entered value. It becomes the winning reading under the `manual` role,
    * carrying the value alone — see the B3 ruling in this file's header. Any reading the
-   * record already held is KEPT: a `readings` dict is the whole point, and the displaced
-   * origin is what `clear()` restores.
+   * record already held is KEPT — a `readings` dict is the whole point — for as long as the
+   * field stays manually entered; `clear()` deletes the whole entry outright, not just the
+   * manual reading, so nothing is restored on clear (human ruling 2026-08-18).
    */
   enter(field: SpecField, value: number): void {
     const specs = this.#specs();
@@ -324,7 +323,6 @@ export class OpenISDDriver {
     const manual: Reading = { read_value: value };
 
     if (existing) {
-      if (existing.origin !== 'manual') this.#displaced.set(field, existing.origin);
       existing.readings.manual = manual;
       existing.origin = 'manual';
     } else {
@@ -334,23 +332,18 @@ export class OpenISDDriver {
   }
 
   /**
-   * Drop a hand-entered value. The reading the record arrived with wins again; if there was
-   * none, the field returns to being solved or absent. Clearing a field that was never
-   * entered by hand does nothing.
+   * Drop a hand-entered value. Deletes the field outright — no restore of whichever source was
+   * winning before the manual override (human ruling 2026-08-18): the field goes back to being
+   * solved or absent, same as a field that was never stated by any source. Recovering the old
+   * value means retyping it, or discarding the edit. Clearing a field that was never entered by
+   * hand does nothing.
    */
   clear(field: SpecField): void {
     const specs = this.#specs();
     const entry = specs[field];
     if (!entry || entry.origin !== 'manual') return;
 
-    delete entry.readings.manual;
-    const displaced = this.#displaced.get(field);
-    if (displaced && entry.readings[displaced]) {
-      entry.origin = displaced;
-      this.#displaced.delete(field);
-    } else {
-      delete specs[field];
-    }
+    delete specs[field];
     this.#invalidate();
   }
 

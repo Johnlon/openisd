@@ -44,9 +44,9 @@ function getOrInit<T>(key: string, init: () => T): T {
 // the two are free to disagree. Everything below DELEGATES; it stores nothing.
 //
 // ManagedProject's framework-free subscribe() is bridged to Vue through _version: it fires on
-// every change the facade decides a subscriber should see (an edit draft stays silent until
-// commitEdit; a what-if overlay fires live), and the computeds below touch _version so they
-// re-derive exactly then. @openisd/model stays Vue-free — the arrow points up, never down.
+// every change the facade decides a subscriber should see (a what-if overlay fires live), and
+// the computeds below touch _version so they re-derive exactly then. @openisd/model stays
+// Vue-free — the arrow points up, never down.
 //
 // Declared here, ABOVE `state`, rather than in its own section below: `state.P`'s box/vent/PR
 // fields (ledger QO54) are accessor properties closing over `managedProject`, and one of
@@ -62,10 +62,23 @@ const _version = getOrInit('_version', () => ref(0));
  * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
  * `.toDriver()`/`.errors()`/`.snapshot()` to read, `.enter()`/`.clear()`/`.mutate()` to write,
  * `.recordToPersist()` for anything saved/exported/shared, `.beginWhatIf()`/`.cancelWhatIf()`/
- * `.isWhatIfActive()` for a what-if, `.beginEdit()`/`.commitEdit()`/`.cancelEdit()` for an
- * edit. The `OpenISDProject` it wraps — and the `OpenISDDriver` inside that — are private to
- * it and never leave.
+ * `.isWhatIfActive()` for a what-if. The `OpenISDProject` it wraps — and the `OpenISDDriver`
+ * inside that — are private to it and never leave.
  */
+
+/**
+ * Human ruling (QO52, closed 2026-08-18): the ONLY module-level globals this file — or any
+ * module — may export are `openProjects()` and `focusedProject()`. Enforced by
+ * `packages/ui/test/ui/architecture.test.ts` ("module-level globals — only openProjects()/
+ * focusedProject() are legal"). ONLY the human may add, remove, or edit an entry here — no
+ * agent may widen this list on its own judgement to make a red test pass. A failing test
+ * naming a new offender is the correct, expected result until the full migration
+ * (REVIEW.md) lands; report the offender and wait for the human's ruling instead.
+ *
+ * Deliberately seeded with ONLY the two permitted names — this list is expected to be far
+ * shorter than this file's actual export surface until the migration in REVIEW.md is done.
+ */
+export const ALLOWED_GLOBALS = ['openProjects', 'focusedProject'];
 export const managedProject: ManagedProject = getOrInit('_managed', () => {
   const md = ManagedProject.createEmpty();
   ctx._unsub = md.subscribe(() => { _version.value++; });
@@ -108,8 +121,8 @@ const P_DEFAULTS: Omit<UiParams, BoxFieldKey> = {
  * on the plain object BEFORE `reactive()` wraps it (ledger QO54). Vue's reactive Proxy
  * intercepts the assignment/read itself, so `state.P.Vb = x` still triggers reactivity
  * correctly with no Vue-visible storage of its own; `managedProject.subscribe()` (bridged
- * through `_version`, above) covers a bulk project replacement — `load()`, `beginWhatIf()`,
- * `commitEdit()` — that never goes through one of these setters at all.
+ * through `_version`, above) covers a bulk project replacement — `load()`, `beginWhatIf()`
+ * — that never goes through one of these setters at all.
  *
  * `entered` is a `Proxy`, not a plain accessor: callers do keyed reads/writes
  * (`P.entered.Vb`, `delete P.entered[f]`) AND, in one existing test fixture, whole-object

@@ -19,12 +19,9 @@
  * the facade — with no notification and no what-if guard — which is precisely what this class
  * exists to make impossible.
  *
- * ── Subscription is single-channel, and asymmetric ──
- *   - An EDIT draft is SILENT. Typing into an open edit notifies nobody. `commitEdit()` writes
- *     the draft into committed state, and it is THAT WRITE — not the act of committing — that
- *     produces the one notification a subscriber sees.
- *   - A WHAT-IF is LIVE. Every change re-fires immediately, because the charts are previewing
- *     it. `beginWhatIf()`/`cancelWhatIf()` notify too: they change which layer is effective.
+ * ── Subscription: what-if is live ──
+ * A WHAT-IF is LIVE. Every change re-fires immediately, because the charts are previewing it.
+ * `beginWhatIf()`/`cancelWhatIf()` notify too: they change which layer is effective.
  *
  * ── A what-if never leaks into anything persistent ──
  * Its values are unverified against physical reality, so nothing outside the live overlay may
@@ -62,7 +59,6 @@ interface Layer {
 }
 
 type Overlay =
-  | { kind: 'edit'; layer: Layer }
   | { kind: 'whatif'; layer: Layer; unsubscribe: () => void };
 
 /** A project with nothing chosen — what the app holds before a driver is picked. Every value is
@@ -302,45 +298,14 @@ export class ManagedProject {
     return structuredClone(this.#ground.project);
   }
 
-  isEditActive(): boolean { return this.#overlay?.kind === 'edit'; }
   isWhatIfActive(): boolean { return this.#overlay?.kind === 'whatif'; }
-
-  // ---- edit lifecycle ---------------------------------------------------------------------
-
-  /** Open a draft over committed state. Cancels an active what-if first. Idempotent: a second
-   *  call while a draft is open does NOT reseed it, which would discard what was already
-   *  typed. Silent — produces no notification. */
-  beginEdit(): void {
-    this.#endWhatIfIfActive();
-    if (this.#overlay?.kind === 'edit') return;
-    this.#overlay = { kind: 'edit', layer: cloneLayer(this.#committed) };
-  }
-
-  /** Write the draft into committed state and discard it. That WRITE — not the act of
-   *  committing — produces the one notification. A call with no open edit is a no-op. */
-  commitEdit(): void {
-    if (this.#overlay?.kind !== 'edit') return;
-    const draft = this.#overlay.layer;
-    this.#overlay = null;
-    this.#committed = cloneLayer(draft);
-    this.#notify();
-  }
-
-  /** Discard the draft. Committed state is untouched — byte-identical to before `beginEdit()`,
-   *  provenance included, because it was never written to. No notification: nothing changed. */
-  cancelEdit(): void {
-    if (this.#overlay?.kind !== 'edit') return;
-    this.#overlay = null;
-  }
 
   // ---- what-if lifecycle -------------------------------------------------------------------
 
-  /** Open a what-if over committed state. Discards an open edit draft first, silently — an
-   *  uncommitted draft notifies nobody, so discarding it notifies nobody either. Notifies once
-   *  open, because it changes which layer is effective. Live from here on. */
+  /** Open a what-if over committed state. Notifies once open, because it changes which layer
+   *  is effective. Live from here on. */
   beginWhatIf(): void {
     if (this.#overlay?.kind === 'whatif') return;
-    if (this.#overlay?.kind === 'edit') this.#overlay = null;   // silent discard, never a commit
     this.#overlay = this.#openWhatIfOver(this.#committed);
     this.#notify();
   }
