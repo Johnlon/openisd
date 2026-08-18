@@ -393,6 +393,12 @@ export class OpenISDDriver {
     return { value: '', state: 'N' };
   }
 
+  /** The built canonical identity code — `_DerivedField`, so there is no provenance to report,
+   *  just the value. Empty until the derivation runs. */
+  sku(): string {
+    return this.#record.sku.value;
+  }
+
   /**
    * Record a hand-entered metadata value — the _ScrapedField equivalent of `enter()`
    * (QO36 B3/B4 apply the same way, on the other envelope). An empty string routes to
