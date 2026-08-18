@@ -56,21 +56,6 @@ function projectWithDriver() {
 const managed = () => ManagedProject.fromProject(projectWithDriver());
 
 describe('ManagedProject — notification asymmetry (the specification)', () => {
-  it('an edit with N changes then a commit produces exactly ONE notification, at the commit', () => {
-    const mp = managed();
-    let n = 0;
-    mp.subscribe(() => { n++; });
-
-    mp.beginEdit();
-    mp.enter('Fs', 40);
-    mp.enter('Qts', 0.35);
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.045; });
-    assert.equal(n, 0, 'an open draft is silent — driver fields AND box fields alike');
-
-    mp.commitEdit();
-    assert.equal(n, 1, 'the write into committed state is the one notification');
-  });
-
   it('a what-if with N scrubs produces N+2 (begin + each scrub + cancel)', () => {
     const mp = managed();
     let n = 0;
@@ -88,18 +73,6 @@ describe('ManagedProject — notification asymmetry (the specification)', () => 
     assert.equal(n, 5, 'cancel notifies — it changes which layer is effective back');
   });
 
-  it('an edit that never commits produces ZERO notifications', () => {
-    const mp = managed();
-    let n = 0;
-    mp.subscribe(() => { n++; });
-
-    mp.beginEdit();
-    mp.enter('Fs', 40);
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.099; });
-    mp.cancelEdit();
-
-    assert.equal(n, 0, 'nothing about committed state changed, so nothing is announced');
-  });
 });
 
 describe('ManagedProject — the overlay covers the WHOLE design', () => {
@@ -142,36 +115,6 @@ describe('ManagedProject — a what-if never leaks into anything persistent', ()
     assert.equal(saved.box.vented.volume_m3, 0.030, 'committed state was never touched');
     assert.equal(saved.driver?.specs.woofer?.Fs?.readings.manufacturer_datasheet?.read_value, 37);
   });
-
-  it('beginEdit() cancels an active what-if first', () => {
-    const mp = managed();
-    let n = 0;
-    mp.subscribe(() => { n++; });
-
-    mp.beginWhatIf();
-    assert.equal(n, 1);
-
-    mp.beginEdit();
-
-    assert.equal(mp.isWhatIfActive(), false, 'gone, not merely superseded');
-    assert.equal(n, 2, "the cancel's own notification — beginEdit itself stays silent");
-    assert.equal(mp.isEditActive(), true);
-  });
-
-  it('beginWhatIf() discards an open edit draft — never both at once', () => {
-    const mp = managed();
-    mp.beginEdit();
-    mp.enter('Fs', 12345);
-    assert.equal(mp.isEditActive(), true);
-
-    mp.beginWhatIf();
-
-    assert.equal(mp.isEditActive(), false);
-    assert.equal(mp.isWhatIfActive(), true);
-    assert.equal(mp.recordToPersist().driver?.specs.woofer?.Fs
-      ?.readings.manufacturer_datasheet?.read_value, 37,
-      'the discarded draft never reached committed state');
-  });
 });
 
 describe('ManagedProject — the project never leaves', () => {
@@ -187,9 +130,7 @@ describe('ManagedProject — the project never leaves', () => {
 
   it('Reset goes back to GROUND, not to the last keystroke', () => {
     const mp = managed();
-    mp.beginEdit();
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.060; });
-    mp.commitEdit();
+    mp.mutate(p => { p.box.vented.volume_m3 = 0.060; });   // writes committed directly, no overlay open
 
     mp.beginWhatIf();
     mp.mutate(p => { p.box.vented.volume_m3 = 0.080; });

@@ -574,3 +574,56 @@ describe('leading-underscore exports are class-private — named only by their o
       'naming the private shape directly.');
   });
 });
+
+/**
+ * Human ruling (QO52, closed 2026-08-18): the only module-level globals the app may export are
+ * `openProjects()` and `focusedProject()`. Everything else in `store.ts`'s state surface must
+ * become a method/getter on the focused project object instead of a free module export.
+ *
+ * Scoped to `store.ts` specifically, not every file under `packages/ui/src` — the ruling
+ * targets STATE (store.ts's ~40-export surface), not every exported type/enum/component prop
+ * in the whole UI codebase; blanket-scanning every module would flag thousands of legitimate,
+ * unrelated exports. Extend `SCANNED_FILES` below deliberately, file by file, only once a
+ * specific module is confirmed to hold state that should be gated the same way — never widen
+ * it to "everything" in one shot.
+ *
+ * Same `ALLOWED_GLOBALS` mechanism as `PrivateAllow` above: a module declares its own
+ * `export const ALLOWED_GLOBALS = [...]`, co-located, human-edit-only. This test is EXPECTED
+ * to fail loudly the day it lands and until the openProjects()/focusedProject() migration is
+ * complete — that failure list is the migration's own checklist (REVIEW.md).
+ */
+describe('module-level globals — only openProjects()/focusedProject() are legal', () => {
+  const SCANNED_FILES = [join(UI_SRC, 'logic', 'store.ts')];
+
+  /** Every top-level `export const|function|class NAME` in a file — same declaration shape as
+   *  `privateDeclarationSites()` above, but without requiring a leading underscore. */
+  function topLevelExportsOf(file: string): string[] {
+    const text = readFileSync(file, 'utf8');
+    const decl = /^export\s+(?:const|function|class)\s+([A-Za-z_$][\w$]*)/gm;
+    return Array.from(text.matchAll(decl)).map(m => m[1]);
+  }
+
+  /** `export const ALLOWED_GLOBALS = ['name1', 'name2', ...]` declared in the file itself. */
+  function allowedGlobalsOf(file: string): string[] {
+    const text = readFileSync(file, 'utf8');
+    const m = /export const ALLOWED_GLOBALS[^=]*=\s*\[([\s\S]*?)\]/.exec(text);
+    if (!m) return [];
+    return Array.from(m[1].matchAll(/['"]([^'"]+)['"]/g)).map(x => x[1]);
+  }
+
+  it('every scanned module\'s exports are named in its own ALLOWED_GLOBALS', () => {
+    const offences = SCANNED_FILES.flatMap(f => {
+      const allowed = new Set(allowedGlobalsOf(f));
+      return topLevelExportsOf(f)
+        .filter(name => name !== 'ALLOWED_GLOBALS' && !allowed.has(name))
+        .map(name => `${rel(f)} exports ${name}, not listed in its own ALLOWED_GLOBALS`);
+    });
+
+    assert.deepEqual(offences, [],
+      'Only openProjects()/focusedProject() are legal module-level globals (QO52). Every ' +
+      'offence above is a store.ts export that must become a method/getter on the focused ' +
+      'project object, be deleted outright, or — only with the human\'s own edit — be added ' +
+      'to ALLOWED_GLOBALS with a one-line justification. An agent may never widen ' +
+      'ALLOWED_GLOBALS itself to make this test pass.');
+  });
+});

@@ -280,11 +280,16 @@ get stuck" list above.
 
 - **B1.** Coax driver-section bug — stays on `BACKLOG.md`/bugs, explicitly NOT blocking (your
   ruling). No task here.
-- **B2.** Delete the edit-draft lifecycle (`beginEdit`/`commitEdit`/`cancelEdit`/`isEditActive`,
-  `managedProject.ts:313-336`, plus its `managedProject.test.ts` coverage and header-comment
-  description). Mechanical deletion, ruled, no design needed.
-- **B3.** Rewrite `OpenISDDriver.clear()` to unconditional `delete specs[field]`; delete
-  `#displaced`. Mechanical, ruled, no design needed.
+- **B2. DONE (2026-08-18).** Edit-draft lifecycle deleted (`beginEdit`/`commitEdit`/
+  `cancelEdit`/`isEditActive`, the `Overlay` type's `'edit'` variant, `managedProject.ts` and
+  `store.ts` doc comments, `managedProject.test.ts`'s covering tests removed/rewritten). Full
+  suite for the touched files verified green (`managedProject.test.ts`, `openisdDriver.test.ts`,
+  `persist.test.ts` — 34/34 pass).
+- **B3. DONE (2026-08-18).** `OpenISDDriver.clear()` rewritten to unconditional
+  `delete specs[field]`; `#displaced` deleted; `enter()`'s write to it removed. Note: left
+  `#displacedMeta`/`clearMeta()` (the metadata-field equivalent) untouched — the ruling was
+  specific to `clear()`/`_SpecEntry`, not `clearMeta()`/`_ScrapedField`, and extending it wasn't
+  discussed; flag if that should change too.
 - **B4.** Vent-area formula (`π·(ventD/2)²`) — per the getter-only ruling, this needs **D1**
   (below) done first, since the destination is a getter on the domain class, not a bare engine
   function. Blocked on D1.
@@ -378,16 +383,22 @@ get stuck" list above.
   project-equivalent of `openIsdDriverFileIo.ts`. **You must make this edit yourself** once D1
   is drafted — `PrivateAllow`/`ALLOWED_GLOBALS` entries are human-only per your rule.
 
-### Phase 0 — the enforcement gate, written to fail first
+### Phase 0 — the enforcement gate, written to fail first — DONE (2026-08-18)
 
-Independent of D1-D4 — can land the moment you're ready, before any rename:
-
-- **0.1.** Add `packages/ui/test/ui/architecture.test.ts` `describe` block (same file, same
-  regex-based approach as `PrivateAllow`): scans every module under `packages/ui/src` for
-  top-level `export const|function|class`; a module may declare its own `export const
-  ALLOWED_GLOBALS = [...]`, human-edit-only, same governance comment as `PrivateAllow`.
-- **0.2.** Seed `store.ts`'s `ALLOWED_GLOBALS` with `['openProjects', 'focusedProject']` ONLY —
-  expected to fail loudly naming all ~40 current violations. That failure list becomes Phase 3's
+- **0.1. DONE.** Added `packages/ui/test/ui/architecture.test.ts`'s `describe('module-level
+  globals — only openProjects()/focusedProject() are legal')` block — same regex-based approach
+  as `PrivateAllow`, `ALLOWED_GLOBALS` co-located and human-edit-only. **Scope judgment call
+  made here, not in the original spec:** scans only `store.ts` (`SCANNED_FILES`), not
+  blanket-every-module-under-`packages/ui/src` as first drafted — that would have flagged
+  thousands of unrelated exports (types, enums, component props) across the whole UI codebase.
+  Extend `SCANNED_FILES` deliberately, file by file, as more modules are confirmed to hold
+  state — never widen it to "everything" in one shot. Flag if this scoping call was wrong.
+- **0.2. DONE.** Seeded `store.ts`'s `ALLOWED_GLOBALS` with `['openProjects', 'focusedProject']`
+  ONLY. Verified: fails loudly, naming all ~30 current violations (full list in the test output
+  — `state`, `managedProject`, `driver`, `driverRecord`, `driverErrors`, `enterVentField`, etc.)
+  — exactly the plan's intended checklist for Phase 3. Full `architecture.test.ts` run shows
+  this as the ONLY new failure beyond the 4 pre-existing ones already on this branch.
+- That failure list becomes Phase 3's
   literal checklist.
 
 ### Phase 1 — rename `ManagedProject` → `ManagedOpenISDProject`, introduce `OpenISDProject`
