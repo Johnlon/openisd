@@ -1014,6 +1014,12 @@ can partially fail returns `{ value, errors }`. `errors` is always an array; emp
 infrastructure is the one place throw-based signalling is correct.
 Contract: [`../_agent_files/rules/openisd-result-contract.md`](../_agent_files/rules/openisd-result-contract.md).
 
+**No padded trailing end-of-line comments (human ruling 2026-08-18).** A comment never sits at
+the end of a code line after whitespace padding pushes it out to the right — e.g.
+`const x = f();           // note`. This is absolutely prohibited: it makes the code difficult
+to follow, the comment is easy to miss, and the padding rots the moment the line's length
+changes. A comment that matters goes on its OWN line, directly above the code it describes.
+
 **The core has no browser.** `@openisd/engine`, `@openisd/model` and `@openisd/winisd` contain no
 DOM, no `window`, no `document` and no canvas. The core is the reusable product: another front-end
 — mobile, CLI, third-party — must build on it without inheriting browser coupling, and DOM-free
@@ -1033,6 +1039,31 @@ the set of fields it reads.
 external vocabulary onto that one canonical name — a datasheet's `Fs`/`fs`/`Resonance frequency`,
 WinISD's `Bl` against the record's `BL` — is required work and happens in exactly one place per
 boundary. An alias mechanism on our own record is not.
+
+**Only the domain objects calculate — the store never does (human ruling 2026-08-18).** A
+calculated value is a property or method on the domain object that owns it —
+`OpenISDDriver`/`ManagedOpenISDProject` — never a calculation performed inline in `store.ts` or
+any other logic-layer file, even when that inline code merely calls out to a properly
+single-sourced formula function. The store's job is to hold and expose state; the moment it
+computes anything itself — however small, however correctly sourced — it has become a second
+place a calculated value can be produced, which is exactly the duplication this rule exists to
+prevent. If a value is missing from a domain object's public surface, the fix is to add it
+there as a getter/method, never to compute it at the call site "just this once."
+Precedent: `store.ts`'s vent cross-sectional area was fixed by consolidating a duplicated
+formula into `@openisd/model`'s `ventArea_m2()` — correct — but then called directly from
+`store.ts` — wrong, caught and reverted the same session. See `store.ts`'s own header comment.
+
+**No local alias for a domain-object read (human ruling 2026-08-18).** A `computed`/`ref`/`const`
+whose entire body is a single passthrough call to a domain-object getter —
+`const x = computed(() => managedProject.someGetter())` — adds a second name for a value that
+already has one. A reader hitting `x` has to go find the alias's definition to learn what it
+actually reads, where `managedProject.someGetter()` at the use site says so directly. Call the
+getter at the point of use — in a template expression, or inline in a computed that combines
+several reads or adds real branching — never wrap a bare single-call (or single-property)
+passthrough in a local name "for convenience." A computed that picks between two ALREADY-ALIASED
+values (`selectedBox.value === 'pr' ? prFh.value : rearResonance.value`) is the same offence one
+level removed: the ternary adds no logic of its own, it just routes between two names that
+shouldn't exist either.
 
 **Validated physics is moved, never re-derived.** The engine is validated to < 0.03 dB against
 closed-form Thiele/Small physics. Restructuring moves that code behind boundaries; it does not

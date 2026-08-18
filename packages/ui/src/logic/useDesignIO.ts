@@ -158,7 +158,10 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     if (!record) { flash('Cannot export .wpr: no driver has been chosen'); return; }
     const { value: wdr, errors } = WinIsdDriverFileIo.exportDriver(record);
     if (!wdr) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
-    const input = buildWprInput(state.box, state.P, driver.value, wdr, state.project, new Date(), curvesData.value);
+    const input = buildWprInput(
+      state.box, state.P, driver.value, wdr, state.project, new Date(),
+      managedProject.ventArea_m2(), curvesData.value,
+    );
     download(sanitizeFilename(driverName.value) + '.wpr', toWpr(input), 'text/plain');
   }
 

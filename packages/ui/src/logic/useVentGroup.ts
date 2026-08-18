@@ -26,6 +26,7 @@
  * three skins mean three chances to get the commit boundary wrong.
  */
 import { ventLength, tuningFromLength } from '@openisd/engine';
+import { ventArea_m2 } from '@openisd/model';
 import type { UiParams } from '../types.js';
 
 /** The four members tied by the Helmholtz relation — the set the solver solves WITHIN. */
@@ -44,9 +45,11 @@ export type VentField = typeof VENT_GROUP[number];
 export const VENT_ENTRY_FIELDS = [...VENT_GROUP, 'ventW', 'ventH'] as const;
 export type VentEntryField = typeof VENT_ENTRY_FIELDS[number];
 
-/** Cross-sectional area of a round vent of diameter `d`. */
+/** Cross-sectional area of a round vent of diameter `d` — delegates to the model package's
+ *  `ventArea_m2()`, the one place this formula lives (bugs/BUG_20260818_vent_area_formula_
+ *  duplicated_four_times_no_engine_source_of_truth.md). */
 export function ventSp(ventD: number): number {
-  return Math.PI * (ventD / 2) ** 2;
+  return ventArea_m2({ shape: 'round', diameter_m: ventD, width_m: 0, height_m: 0, length_m: 0, endCorrection: 0 });
 }
 
 /** The vent's cross-section as currently shaped — a round diameter, or a slot's W×H. */

@@ -286,6 +286,18 @@ export function activeVent(box: OpenISDBox): OpenISDVent {
   return box.active === 'bandpass4' ? box.bandpass4.frontVent : box.vented.vent;
 }
 
+/** Vent cross-sectional area, round or slotted. The single source of this formula — it was
+ *  independently reimplemented as inline `Math.PI * (ventD / 2) ** 2` arithmetic in four
+ *  separate files, one of them inside a module whose own header comment claimed "no physics
+ *  is re-derived here" (bugs/BUG_20260818_vent_area_formula_duplicated_four_times_no_engine_
+ *  source_of_truth.md). Slotted uses width × height directly; round vents are the only shape
+ *  the pre-existing call sites actually computed, so that is the formula being consolidated. */
+export function ventArea_m2(vent: OpenISDVent): number {
+  return vent.shape === 'slotted'
+    ? vent.width_m * vent.height_m
+    : Math.PI * (vent.diameter_m / 2) ** 2;
+}
+
 /** `Vb` — the rear/primary chamber volume, per active alignment. Bandpass4's FRONT chamber is
  *  the separate `Vf` field (`bandpass4.frontVolume_m3`), untouched by this. */
 export function boxVolume_m3(box: OpenISDBox): number {
