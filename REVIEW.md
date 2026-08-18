@@ -405,20 +405,31 @@ get stuck" list above.
 
 Blocked on D1 (needs the class to rename/restructure around):
 
-- **1.1.** Rename class; consider file rename to `managedOpenIsdProject.ts` (confirm casing
-  before the file-level rename).
+- **1.1. DONE (2026-08-18).** `ManagedProject`/`ManagedProjectListener` renamed to
+  `ManagedOpenISDProject`/`ManagedOpenISDProjectListener` across all 10 consuming files. File
+  itself NOT renamed to `managedOpenIsdProject.ts` — left as `managedProject.ts`, a judgment
+  call to keep this commit a pure identifier rename with no import-path churn; revisit once D1
+  restructures the file's contents anyway. Verified: architecture.test.ts +
+  managedProject.test.ts + managedProjectBoxFields.test.ts (41 tests) show the same failures as
+  the prior baseline, no new ones; vue-tsc clean on this specifically.
 - **1.2.** Introduce the `OpenISDProject` class per D1's design; `ManagedOpenISDProject` holds 3
   instances of it (one per ground/committed/overlay layer) instead of 3 raw
-  `_OpenISDProjectJson` copies.
+  `_OpenISDProjectJson` copies. **NOT STARTED — needs D1's design first.**
 - **1.3.** Update the ~15 consuming files' import specifiers/identifiers (mechanical, same
   `perl -pi` approach used for `_OpenISDDriverJson` today) — no call-site logic changes yet.
 - **1.4.** Delete `packages/ui/src/logic/model/OpenISDProject.ts` (per B2-style ruling: delete
   if possible). Read `docs/design/STATE_MODEL.md` in full before this step — cited by it and by
-  `workspace.ts`, not yet read in this planning pass.
+  `workspace.ts`, not yet read in this planning pass. **NOT STARTED — deliberately held back**:
+  `workspace.ts` (below) is very likely the mechanism the app currently uses for its
+  multi-project tabs; deleting the class it depends on before Phase 2's `openProjects()`
+  registry exists to replace it risks breaking real, currently-working functionality, not just
+  a test. This is qualitatively different from the mechanical renames done so far — flagged for
+  your review rather than done unilaterally.
 - **1.5.** `workspace.ts` — delete if fully subsumed by the new `openProjects()` registry
   (Phase 2), rewire only the parts that would otherwise lose real capability. Prefer deletion.
-- **1.6.** Model-package `OpenISDProject` interface → `_OpenISDProjectJson` (decided, unblocked;
-  still needs D4's `PrivateAllow` entry from you).
+  **NOT STARTED, same reason as 1.4.**
+- **1.6. DONE (2026-08-18).** Model-package `OpenISDProject` interface → `_OpenISDProjectJson`.
+  `_OpenISDProjectJsonPrivateAllow` NOT added — per D4, that's your edit to make.
 - **1.7.** `Layer` loses its `driver` field (no surviving justification, per today's findings) —
   becomes `{ project: OpenISDProject }` or removed as a named type entirely, per D1.
 - **1.8.** `types.ts` cleanup per D2 — move/delete the 17 shapes to their decided homes.
