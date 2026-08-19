@@ -1,7 +1,7 @@
 # `OpenISDDriver.fromRecord()` on a valid-but-shapeless object crashes instead of returning an error
 
 # Status
-OPEN
+FIXED (superseded — re-verified 2026-08-19)
 
 ## Symptom
 
@@ -51,4 +51,8 @@ record, not just this one YAML-import path.
 
 ## Verification
 
-Not yet — no fix applied.
+Re-verified 2026-08-19: `npx vitest run packages/winisd/test/openisdToWdr.test.ts -t "reports
+YAML that is not an OpenISD record"` passes. `#specs()` (`packages/model/src/openisdDriver.ts:
+347-350`) now guards the intermediate access — `if (!this.#record.specs) this.#record.specs =
+{};` before indexing by section — matching option 1 from this bug's own Fix section. Superseded
+by other work between filing and now, not by an agent action in this session.

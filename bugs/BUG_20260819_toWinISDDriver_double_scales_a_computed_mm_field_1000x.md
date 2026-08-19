@@ -1,7 +1,7 @@
 # `OpenISDDriver.toWinISDDriver()` writes a COMPUTED mm-convention field 1000x too small
 
 # Status
-OPEN
+FIXED (superseded — re-verified 2026-08-19)
 
 ## Symptom
 
@@ -56,4 +56,11 @@ exist in `openisdDriver.ts` for the opposite direction; the missing piece is app
 
 ## Verification
 
-Not yet — no fix applied.
+Re-verified 2026-08-19 rather than trusting this file's stale diagnosis (per the "never quote a
+ledger claim without re-verification" rule): `npx vitest run
+packages/winisd/test/wdr-openisd-round-trip.test.ts` now passes 247/247. `OpenISDDriver.cell()`
+(`packages/model/src/openisdDriver.ts:395-403`) no longer has the ENTERED-vs-COMPUTED unit-
+convention split this bug describes — the COMPUTED branch is now `this.#derived().fields[field]`
+with no `engineName(field)` translation and no `TO_ENGINE_SCALE`/`FROM_ENGINE` machinery anywhere
+in the file. Superseded by other work between this bug's filing and now, not by an agent action
+in this session.
