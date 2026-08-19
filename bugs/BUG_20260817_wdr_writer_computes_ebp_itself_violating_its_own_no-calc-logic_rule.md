@@ -1,7 +1,7 @@
 # BUG — `WinISDDriver.fromOpenISDRecord` computes EBP itself, violating its own documented "no calculation logic" rule
 
 # Status
-OPEN
+FIXED (re-verified 2026-08-19)
 
 ## Symptom
 
@@ -48,3 +48,9 @@ its own; it is a pure value object used only for serialisation in and out.
 ## Verification
 
 Not yet run — fix landing in the same change as this record.
+
+Re-verified 2026-08-19: `WinISDDriver.fromOpenISDRecord` no longer exists anywhere in the tree —
+superseded by `OpenISDDriver.toWinISDDriver()` (`openisdDriver.ts:230-251`), whose own comment
+cites this bug by name (`:228`) and confirms the fix: EBP is read through `cell('EBP')` in the
+same uniform loop as every other WDR-tracked field, which resolves via `.ebp()` internally
+(`:405-411`) — no inline formula in the writer, no special-cased field.
