@@ -21,22 +21,40 @@ packages/winisd/src/winisdDriver.ts:92 (NUMERIC_DEFAULTS):
 
 ## Cause
 
-Not investigated — two independent transcriptions of the same WinISD-measured value, likely
-copy-pasted from different sources/sessions, one of which has a typo or rounding difference in
-the last digit. Given `deriveOpenISDFields` (`packages/model/src/openisdDerive.ts:45`) uses the
-engine's `C` for any driver whose `c` was never entered, while `WinISDDriver`'s
-`NUMERIC_DEFAULTS` uses the other value for a `.wdr`'s own unwritten-key default, a driver's
-displayed `c` (via `OpenISDDriver.cell('c')`) and the same driver's exported `.wdr` `c=` line
-can genuinely disagree by 1e-12 relative — currently masked in tests only because no existing
-assertion compares the two constants directly against each other.
+Not a copy-paste typo — investigated 2026-08-19 and found a genuine conflict between two
+sources both claiming to be WinISD ground truth:
+
+1. **`packages/engine/src/air.ts:23-25`**'s own comment: "WinISD's own saved files hold
+   `ρ·c² = γ·p` with γ = 1.4 to **1.2e-15** relative (`1.20095217714682 ×
+   343.684120962153² = 141855.00000000017`, `1.4 × 101325 = 141855.0` —
+   `winisd_research/CALC_FINDINGS_FOR_REVIEW.md`)." This is `constants.ts`'s `...153`, verified
+   against the ideal-gas `ρc² = γp` identity to extremely high precision.
+
+2. **`packages/winisd/test/openisdToWdr.test.ts:10-15`**'s own `🔒 ORACLE RULE` (SPEC_ENGINE
+   §4.7): "the ONLY oracle is `drivers/sample/winisd/`, prepared by johnl out of WinISD itself.
+   An oracle `.wdr` is one WinISD ITSELF wrote." Every fixture there (`inconsistency-test-
+   saved-q-3.wdr`, `s-bl.wdr`, `s-dia-natural.wdr`, others) holds `c=343.684120962152` — the
+   OTHER value, one digit different, and this is `winisdDriver.ts`'s `...152`.
+
+Both sources are declared, in-repo, as authoritative WinISD-measured values, and they disagree.
+`winisd_research/CALC_FINDINGS_FOR_REVIEW.md` was not read as part of this investigation — it
+may explain the discrepancy (a different WinISD build/version, a different Advanced-pane state,
+rounding in how the finding was transcribed) but that requires actually reading it, not
+guessing.
 
 ## Fix
 
-Not applied — reported per bug-first rule. Pick the correct value (re-derive from the original
-WinISD probe evidence, not a guess) and make one of the two files import the other's constant
-rather than keep two independent literals — `winisdDriver.ts` importing `@openisd/engine`'s `C`
-would be the natural fix given `winisd` already depends on `@openisd/engine`.
+**Not applied — this needs a human decision, not an agent pick.** Choosing between two
+components each citing their own "this is real WinISD's own value" evidence, backed by
+different documents, is exactly the kind of physics-correctness call this project's own oracle
+rules exist to gate rather than leave to agent judgement. Whichever value is wrong, the fix
+converges on the same shape once decided: make `winisdDriver.ts` import `@openisd/engine`'s `C`
+instead of keeping an independent literal (both already agree this is right), and correct
+whichever of `constants.ts`/`CALC_FINDINGS_FOR_REVIEW.md`/the `drivers/sample/winisd/` fixture
+set is the actual outlier.
 
 ## Verification
 
-Not yet — no fix applied.
+Not yet — no fix applied. Currently red: `npx vitest run
+packages/winisd/test/openisdToWdr.test.ts` — 1/14 fails, "default for c",
+`drivers/sample/winisd/*.wdr` vs `constants.ts`'s `C`.
