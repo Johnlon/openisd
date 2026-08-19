@@ -108,7 +108,7 @@ export interface Cell {
   origin?: SourceRole;
 }
 
-export type DriverListener = () => void;
+type DriverListener = () => void;
 
 /** A field of `_SpecSection` — the closed canonical allowlist, not an open string. */
 export type SpecField = keyof _SpecSection;
