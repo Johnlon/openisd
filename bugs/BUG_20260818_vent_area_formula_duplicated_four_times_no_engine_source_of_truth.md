@@ -1,5 +1,8 @@
 # Vent cross-sectional area (`π·(ventD/2)²`) is computed inline in 4 places, no single engine formula
 
+# Status
+OPEN
+
 ## Symptom
 
 `Sp = π·(ventD/2)²` (round-vent cross-sectional area from diameter) is written as inline

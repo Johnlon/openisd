@@ -1,5 +1,9 @@
 # `GAPS.md` §A4 says OpenISD "never derives" Fs and Re, while the solver derives both
 
+# Status
+FIXED 2026-08-13
+
+
 **Found** 2026-08-13, while landing QO39/QO40 (`questions.yml` QO40 §"ADJACENT STALENESS FOUND").
 **Severity** documentation only — no runtime behaviour. It is recorded because it is the kind of
 claim a later agent acts on: A4's stated recommendation is to build a group solver, and two of its

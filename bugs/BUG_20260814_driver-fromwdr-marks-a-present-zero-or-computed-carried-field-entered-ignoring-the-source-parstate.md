@@ -1,5 +1,9 @@
 # `Driver.fromWdr` marks a present carried field Entered, ignoring what the source ParState says
 
+# Status
+OPEN 2026-08-14
+
+
 **Found** 2026-08-14, implementing Step 8 (`WinISDDriver`) and its comprehensive ParState fix —
 surfaced by `driver-roundtrip.test.ts`'s "ParState must round-trip identically" test going red
 against `drivers/sample/winisd/John-all-manu-populated.wdr` once `Driver.toWdr()` started

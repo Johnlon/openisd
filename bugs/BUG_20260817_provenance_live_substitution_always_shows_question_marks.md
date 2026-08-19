@@ -1,5 +1,8 @@
 # BUG — the provenance popup's "Live:" line never substitutes a real value
 
+# Status
+OPEN
+
 ## Symptom
 
 Inspect Provenance → click any field with a formula (e.g. Fs). The popup shows:

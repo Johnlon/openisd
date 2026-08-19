@@ -9,7 +9,7 @@ import { deriveOpenISDFields } from '../src/openisdDerive.js';
 
 // Beyma 10BR60/V2 real values, this session's batch-recompute fixture
 // (CALC_FINDINGS_FOR_REVIEW.md "Rms, Cms recompute correctly on delete; Re ALSO recomputes").
-const BEYMA = { Fs: 29.0, Mms: 0.044, Cms: 0.000693, Rms: 2.4, Bl: 10.9, Re: 6.5, Qes: 0.44, Qms: 3.3, Sd: 0.038 };
+const BEYMA = { Fs: 29.0, Mms: 0.044, Cms: 0.000693, Rms: 2.4, BL: 10.9, Re: 6.5, Qes: 0.44, Qms: 3.3, Sd: 0.038 };
 
 describe('deriveOpenISDFields — extracted logic (Driver#derive() parity)', () => {
   it('Dia from Sd, both directions', () => {
@@ -36,7 +36,7 @@ describe('deriveOpenISDFields — NEW directions, GAPS.md §A4', () => {
 
   it('Re from Qes+BL+Fs+Mms reproduces the naive hand-calc (6.520), NOT WinISD\'s own ' +
      '6.439 — BUG-006 is open and this must not silently curve-fit it', () => {
-    const { fields } = deriveOpenISDFields({ Qes: BEYMA.Qes, Bl: BEYMA.Bl, Fs: BEYMA.Fs, Mms: BEYMA.Mms });
+    const { fields } = deriveOpenISDFields({ Qes: BEYMA.Qes, BL: BEYMA.BL, Fs: BEYMA.Fs, Mms: BEYMA.Mms });
     assert.ok(Math.abs(fields.Re - 6.520) < 0.001, `Re=${fields.Re}, expected the documented hand-calc 6.520`);
     assert.ok(Math.abs(fields.Re - 6.439) > 0.01, 'must NOT silently match WinISD\'s value — that gap is unexplained (BUG-006)');
   });

@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
 import type { SweepResult, MaxCurvesResult } from '@openisd/engine';
 import { engine } from './load-engine.js';
 
-const { deriveDriver, sweep, maxCurves } = engine;
+const { deriveEngineDriver, sweep, maxCurves } = engine;
 const here        = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, 'fixtures', 'golden');
 
@@ -52,7 +52,7 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
       const { design: { driverRaw, box, P }, sweep: expSw, maxCurves: expMx } =
         JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
 
-      const { value: drv, errors } = deriveDriver(driverRaw);
+      const { value: drv, errors } = deriveEngineDriver(driverRaw);
       assert.ok(drv, `${name}: driver failed to derive — ${errors.map(e => e.message).join('; ')}`);
       const sw = sweep(drv, box, P);
       const mx = maxCurves(drv, box, P);

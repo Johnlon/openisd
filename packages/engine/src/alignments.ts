@@ -23,7 +23,7 @@
  */
 
 import { RHO, C, END_CORRECTION } from './constants.js';
-import type { Driver, SweepParams, SweepResult } from './types.js';
+import type { EngineDriver, SweepParams, SweepResult } from './types.js';
 
 /** The subset of params the PR helpers read — lets callers pass any params object
  *  (engine SweepParams, or the UI's UiParams/SyncedParams) that carries these fields. */
@@ -37,14 +37,14 @@ type PRParams = Pick<SweepParams, 'Vb' | 'prMmd' | 'prMadd' | 'prSd' | 'prCms'>;
  * EBP = Fs / Qes.  EBP < 50 → sealed preferred; EBP > 100 → vented preferred.
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function ebp(drv: Pick<Driver, 'Fs' | 'Qes'>): number { return drv.Fs / drv.Qes; }
+export function ebp(drv: Pick<EngineDriver, 'Fs' | 'Qes'>): number { return drv.Fs / drv.Qes; }
 
 /**
  * Sealed box volume for a target system Q (Qtc).
  * Qtc = Qts · √(1 + Vas/Vb)  →  Vb = Vas / ((Qtc/Qts)² − 1)
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  */
-export function sealedFromQtc(drv: Pick<Driver, 'Qts' | 'Vas'>, Qtc: number): number | null {
+export function sealedFromQtc(drv: Pick<EngineDriver, 'Qts' | 'Vas'>, Qtc: number): number | null {
   const ratio = (Qtc / drv.Qts) ** 2 - 1;
   return ratio <= 0 ? null : drv.Vas / ratio;
 }
@@ -55,7 +55,7 @@ export function sealedFromQtc(drv: Pick<Driver, 'Qts' | 'Vas'>, Qtc: number): nu
  * a known Vb). Fc = Fs · √(1 + Vas/Vb).
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  */
-export function sealedFc(drv: Pick<Driver, 'Fs' | 'Vas'>, Vb: number): number | null {
+export function sealedFc(drv: Pick<EngineDriver, 'Fs' | 'Vas'>, Vb: number): number | null {
   return Vb > 0 ? drv.Fs * Math.sqrt(1 + drv.Vas / Vb) : null;
 }
 
@@ -65,7 +65,7 @@ export function sealedFc(drv: Pick<Driver, 'Fs' | 'Vas'>, Vb: number): number | 
  * fb = Fs · √(Vas / Vb)
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  */
-export function ventedAlignment(drv: Pick<Driver, 'Fs' | 'Qts' | 'Vas'>): { Vb: number; Fb: number } {
+export function ventedAlignment(drv: Pick<EngineDriver, 'Fs' | 'Qts' | 'Vas'>): { Vb: number; Fb: number } {
   const Vb = 15 * drv.Vas * Math.pow(drv.Qts, 2.87);
   return { Vb, Fb: drv.Fs * Math.pow(drv.Vas / Vb, 0.5) };
 }

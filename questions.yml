@@ -1,5 +1,5 @@
 prefix: QO
-next: 56
+next: 60
 questions:
 - id: QO1
   title: UI TODO List
@@ -5608,3 +5608,32 @@ questions:
       Also need a setter: focusProject(index) (or equivalent), called when the user changes the
       active project in the UI's project list — this is what actually moves focusedProject()'s
       cursor. openProjects()/focusedProject() alone are read accessors; this is the write side.
+- id: QO56
+  title: Multiple concurrent sessions are rewriting overlapping hot files (store.ts, managedProject.ts,
+    openisdDriver.ts, winisdDriver.ts) with no coordination -
+  status: open
+  raised: '2026-08-18'
+  body: ''
+- id: QO57
+  title: useDesignIO.ts's OpenISDDriver import is a real layering violation, but the fix is entangled
+    with QO55's in-flight WinISDDriver export-boundary redesign -
+  status: open
+  raised: '2026-08-18'
+  body: ''
+- id: QO58
+  title: store.ts's driverRecord export leaks _OpenISDDriverJson's private shape through type inference,
+    invisible to the syntactic PrivateAllow gate -
+  status: open
+  raised: '2026-08-18'
+  body: ''
+- id: QO59
+  title: ManagedOpenISDProject leaks _OpenISDProjectJson through snapshot/recordToPersist/groundRecord
+    -
+  status: decided
+  raised: '2026-08-19'
+  body: ''
+  answer:
+    at: '2026-08-19'
+    text: |-
+      ManagedOpenISDProject.snapshot/recordToPersist/groundRecord in packages/ui/src/logic/managedProject.ts
+      they should not be returning the json

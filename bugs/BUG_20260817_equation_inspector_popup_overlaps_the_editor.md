@@ -1,5 +1,8 @@
 # BUG — the equation-inspector popup overlaps the driver editor it explains
 
+# Status
+FIXED
+
 ## Symptom
 
 Driver editor → Inspect Provenance → click a field's label. The "Provenance: <field>" popup

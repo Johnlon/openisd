@@ -200,12 +200,12 @@ export interface _SpecSection {
   alfaVC?: _SpecEntry; Rt?: _SpecEntry; Ct?: _SpecEntry; gamma?: _SpecEntry; Rme?: _SpecEntry;
   Mpow?: _SpecEntry; Mcost?: _SpecEntry; Gloss?: _SpecEntry; c?: _SpecEntry; roo?: _SpecEntry;
   // Descriptive/dimensional fields (_SPEC_DESCRIPTIVE_FIELDS)
-  voice_coil_dia_mm?: _SpecEntry; Hg_mm?: _SpecEntry; Hc_mm?: _SpecEntry;
+  Vcd?: _SpecEntry; Hg?: _SpecEntry; Hc?: _SpecEntry;
   freq_low_hz?: _SpecEntry; freq_high_hz?: _SpecEntry; power_peak_W?: _SpecEntry;
-  weight_kg?: _SpecEntry; thick_mm?: _SpecEntry; depth_mm?: _SpecEntry;
-  magnet_depth_mm?: _SpecEntry; magnet_dia_mm?: _SpecEntry; basket_dia_mm?: _SpecEntry;
-  outer_dia_mm?: _SpecEntry; outer_x_mm?: _SpecEntry; outer_y_mm?: _SpecEntry;
-  driver_volume_l?: _SpecEntry;
+  weight_kg?: _SpecEntry; Thick?: _SpecEntry; Depth?: _SpecEntry;
+  MagDepth?: _SpecEntry; Magnet?: _SpecEntry; Basket?: _SpecEntry;
+  Outer?: _SpecEntry; outer_x_mm?: _SpecEntry; outer_y_mm?: _SpecEntry;
+  DVol?: _SpecEntry;
 }
 export interface _Specs {
   woofer?: _SpecSection;

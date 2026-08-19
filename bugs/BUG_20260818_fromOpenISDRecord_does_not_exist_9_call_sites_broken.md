@@ -1,5 +1,8 @@
 # `WinISDDriver.fromOpenISDRecord` is called in 9 places and does not exist — build is broken
 
+# Status
+BLOCKED 2026-08-18 — superseded, subsumed by QO55
+
 ## Symptom
 
 `npx tsc`/`vue-tsc` report `Property 'fromOpenISDRecord' does not exist on type 'typeof

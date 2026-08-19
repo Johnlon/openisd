@@ -1,5 +1,9 @@
 # The WinISD-compatibility air mode returns TRUNCATED ρ and c, not WinISD's own pair
 
+# Status
+BLOCKED 2026-08-13 — needs a human ruling
+
+
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts`.
 **Severity** wrong number, small but systematic — 1.2e-5 relative on c, and it cubes into
 3.6e-5 on η₀.

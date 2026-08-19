@@ -17,7 +17,7 @@
  *   pr         → 4, Vr/Fr = prTuning(P), Npr = prNum, [PassiveRadiator] from the PR T/S
  */
 import { sealedFc, tuningFromLength, prTuning, prVas, prQms, prFsWithMass, findImpedancePeak } from '@openisd/engine';
-import type { Driver, SweepResult } from '@openisd/engine';
+import type { EngineDriver, SweepResult } from '@openisd/engine';
 import type { WprInput } from '@openisd/winisd';
 import type { BoxType, UiParams, ProjectMeta } from '../types.js';
 
@@ -33,7 +33,7 @@ function pad2(n: number): string { return String(n).padStart(2, '0'); }
 export function buildWprInput(
   box: BoxType,
   P: UiParams,
-  driver: Driver | null,
+  driver: EngineDriver | null,
   driverSection: string,
   project: ProjectMeta,
   now: Date,

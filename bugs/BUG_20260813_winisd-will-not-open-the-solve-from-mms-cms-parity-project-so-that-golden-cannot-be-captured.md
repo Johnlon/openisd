@@ -1,5 +1,10 @@
 # Harness cannot detect/dismiss the FP-exception dialog on `solve-from-mms-cms`, so its golden was never captured
 
+# Status
+- harness dialog handling: FIXED 2026-08-14
+- missing golden for solve-from-mms-cms: OPEN
+
+
 **Found** 2026-08-13, capturing the nine missing WinISD parity goldens.
 **Severity** one of 16 parity scenarios has no oracle. 29 rows of
 `packages/winisd/test/winisd-parity.test.ts` stay RED, plus the two guard tests that count

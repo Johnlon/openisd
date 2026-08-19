@@ -14,7 +14,7 @@
  *
  * ── `_OpenISDProjectJson` is PRIVATE ──
  * No instance of one ever leaves, and nor does the live `OpenISDDriver` inside it. A caller
- * reads with `cell()`/`metaCell()`/`toDriver()`/`errors()`/`snapshot()` and writes with
+ * reads with `cell()`/`metaCell()`/`toEngineDriver()`/`errors()`/`snapshot()` and writes with
  * `enter()`/`clear()`/`mutate()`. Handing the project out would let a caller change it behind
  * the facade — with no notification and no what-if guard — which is precisely what this class
  * exists to make impossible.
@@ -36,7 +36,7 @@
  * the two to disagree.
  */
 import { OpenISDDriver } from '@openisd/model';
-import { defaultBox } from '@openisd/model';
+import { prototypeBox } from '@openisd/model';
 import {
   activeVent, boxVolume_m3 as readBoxVolume_m3, setBoxVolume_m3 as writeBoxVolume_m3,
   boxTuning_Fb_hz as readBoxTuning_Fb_hz, setBoxTuning_Fb_hz as writeBoxTuning_Fb_hz,
@@ -46,7 +46,7 @@ import type {
   Cell, MetaCell, SpecField, MetaField, _OpenISDProjectJson, _OpenISDDriverJson,
   OpenISDVent, OpenISDPassiveRadiatorRef,
 } from '@openisd/model';
-import type { DriverError, ConsistencyIssue, Driver as EngineDriver } from '@openisd/engine';
+import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver } from '@openisd/engine';
 import {
   sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
   prVas as computePrVas, prFs as computePrFs, prFsWithMass as computePrFsWithMass,
@@ -61,18 +61,26 @@ export type ManagedOpenISDProjectListener = () => void;
 interface Layer {
   project: _OpenISDProjectJson;
   /** Null exactly when no driver has been chosen. */
-  driver: OpenISDDriver | null;
+  openIsdDriver: OpenISDDriver | null;
 }
 
 type Overlay =
   | { kind: 'whatif'; layer: Layer; unsubscribe: () => void };
 
+/**
+ * Human ruling: the ONLY files, `packages/`-relative, permitted to name `_prototypeProject` —
+ * enforced by `packages/ui/test/ui/architecture.test.ts` the same way as
+ * `_OpenISDDriverJsonPrivateAllow` in openisdDriver.ts. ONLY the human may add, remove, or
+ * change an entry here — no agent may edit this list on its own judgement.
+ */
+export const _prototypeProjectPrivateAllow: string[] = [];
+
 /** A project with nothing chosen — what the app holds before a driver is picked. Every value is
  *  a real default a user could have set; none is a fake driver standing in for a real one. */
-export function emptyProject(): _OpenISDProjectJson {
+export function _prototypeProject(): _OpenISDProjectJson {
   return {
     driver: undefined,
-    box: defaultBox(),
+    box: prototypeBox(),
     // WinISD's direction: volume, diameter and tuning are typed; vent length is returned.
     // `Frc` has no OpenISDBox home yet (no 6th-order alignment exists — QO44) and is carried
     // here as a bare flag with no corresponding value; `prMadd` is the PR's own entered
@@ -105,7 +113,7 @@ export function emptyProject(): _OpenISDProjectJson {
 function layerOf(project: _OpenISDProjectJson): Layer {
   return {
     project,
-    driver: project.driver ? OpenISDDriver.fromRecord(project.driver) : null,
+    openIsdDriver: project.driver ? OpenISDDriver.fromRecord(project.driver) : null,
   };
 }
 
@@ -138,7 +146,7 @@ export class ManagedOpenISDProject {
   /** A project with nothing chosen. Here rather than at the call site so no caller has to name
    *  `_OpenISDProjectJson`'s shape to make one. */
   static createEmpty(): ManagedOpenISDProject {
-    return ManagedOpenISDProject.fromProject(emptyProject());
+    return ManagedOpenISDProject.fromProject(_prototypeProject());
   }
 
   // ---- which layer is effective ---------------------------------------------------------
@@ -154,40 +162,40 @@ export class ManagedOpenISDProject {
   /** One driver field's value and its E/C/N provenance. `N` when no driver is chosen: absent
    *  is a real answer, and inventing a zero would be indistinguishable from a measured one. */
   cell(field: SpecField): Cell {
-    return this.#effective().driver?.cell(field) ?? { value: null, state: 'N' };
+    return this.#effective().openIsdDriver?.cell(field) ?? { value: null, state: 'N' };
   }
   /** One driver metadata field (brand/model/manufacturer/provided_by/comment/added). */
   metaCell(field: MetaField): MetaCell {
-    return this.#effective().driver?.metaCell(field) ?? { value: '', state: 'N' };
+    return this.#effective().openIsdDriver?.metaCell(field) ?? { value: '', state: 'N' };
   }
   /** The resolved, engine-ready driver the charts sweep, or null when nothing can be drawn. */
-  toDriver(): EngineDriver | null {
-    return this.#effective().driver?.toDriver() ?? null;
+  toEngineDriver(): EngineDriver | null {
+    return this.#effective().openIsdDriver?.toDriver() ?? null;
   }
   /** What the engine says stops this driver simulating. */
   errors(): DriverError[] {
-    return this.#effective().driver?.errors() ?? [];
+    return this.#effective().openIsdDriver?.errors() ?? [];
   }
   /** Stated fields that contradict each other beyond their own precision. */
   consistencyIssues(): ConsistencyIssue[] {
-    return this.#effective().driver?.consistencyIssues() ?? [];
+    return this.#effective().openIsdDriver?.consistencyIssues() ?? [];
   }
   /** Whether a driver has been chosen at all. */
-  hasDriver(): boolean { return this.#effective().driver !== null; }
+  hasDriver(): boolean { return this.#effective().openIsdDriver !== null; }
 
   // ---- driver writes, on the EFFECTIVE layer ---------------------------------------------
 
   enter(field: SpecField, value: number): void {
-    this.#effective().driver?.enter(field, value);
+    this.#effective().openIsdDriver?.enter(field, value);
   }
   clear(field: SpecField): void {
-    this.#effective().driver?.clear(field);
+    this.#effective().openIsdDriver?.clear(field);
   }
   enterMeta(field: MetaField, value: string): void {
-    this.#effective().driver?.enterMeta(field, value);
+    this.#effective().openIsdDriver?.enterMeta(field, value);
   }
   clearMeta(field: MetaField): void {
-    this.#effective().driver?.clearMeta(field);
+    this.#effective().openIsdDriver?.clearMeta(field);
   }
 
   // ---- box / vent / PR flat-field accessors, ledger QO54 ---------------------------------
@@ -245,7 +253,7 @@ export class ManagedOpenISDProject {
    *  are taken as parameters rather than read internally — same shape as `sealedFc`'s own
    *  decoupling in `wprMapping.ts`. Null when no driver is chosen or `Vb` isn't set. */
   sealedResonance(lossMode: LossMode, Rs: number, Ql: number, Qa: number): { Fsc: number; Qtc: number } | null {
-    const d = this.toDriver();
+    const d = this.toEngineDriver();
     const Vb = this.boxVolume_m3();
     if (!d || !(Vb > 0)) return null;
     const qts = sourceLoadedQts(d.Qms, d.Qes, d.Re, Rs, d.Qts);
@@ -341,14 +349,14 @@ export class ManagedOpenISDProject {
     fn(layer.project);
     // The driver record may have been replaced wholesale (a different driver chosen), so the
     // live view is re-materialised rather than left pointing at the old object.
-    layer.driver = layer.project.driver ? OpenISDDriver.fromRecord(layer.project.driver) : null;
+    layer.openIsdDriver = layer.project.driver ? OpenISDDriver.fromRecord(layer.project.driver) : null;
     if (this.#overlay?.kind === 'whatif') this.#notify();
   }
 
   // ---- the project, for anything persistent ----------------------------------------------
 
   /**
-   * The project to SAVE, EXPORT or SHARE — committed state, never an open overlay, and it
+   * The project to SAFVE, EXPORT or SHARE — committed state, never an open overlay, and it
    * cancels an active what-if first as an observable side effect.
    *
    * That cancellation is STRUCTURAL: this is the only route to a persistable project, so no
@@ -397,7 +405,7 @@ export class ManagedOpenISDProject {
     const layer = cloneLayer(source);
     // Driver-field scrubs notify through the driver's own channel; project-field scrubs notify
     // through mutate(). Both routes reach the same subscribers.
-    const unsubscribe = layer.driver?.subscribe(() => this.#notify()) ?? (() => {});
+    const unsubscribe = layer.openIsdDriver?.subscribe(() => this.#notify()) ?? (() => {});
     return { kind: 'whatif', layer, unsubscribe };
   }
 
@@ -430,7 +438,7 @@ export class ManagedOpenISDProject {
 
   /** Replace the whole design with an empty one. */
   loadEmpty(): void {
-    this.load(emptyProject());
+    this.load(_prototypeProject());
   }
 
   // ---- subscription -------------------------------------------------------------------------

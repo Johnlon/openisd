@@ -1,5 +1,8 @@
 # BUG — the visible URL stops updating, so the address bar no longer reflects the design
 
+# Status
+OPEN 2026-08-14 — deliberately deferred to the OpenISDDriver migration
+
 ## Symptom
 
 Reported by the human 2026-08-14: the address bar carries NO design state at all — it is entirely

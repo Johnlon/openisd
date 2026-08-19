@@ -11,7 +11,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  deriveDriver, sweep,
+  deriveEngineDriver, sweep,
   prTuning, prMassForFp,
   RHO, C,
   referenceEfficiency, splFromEfficiency,
@@ -37,7 +37,7 @@ const REF_DRIVER = {
   Le:   0.7e-3,  // H   — voice-coil inductance
   Xmax: 0.005,   // m   — maximum linear one-way excursion (= 5 mm)
   Pe:   60,      // W   — rated power
-  Z:    8,       // Ω   — nominal impedance
+  Znom:    8,       // Ω   — nominal impedance
 };
 
 // ---------------------------------------------------------------------------
@@ -100,7 +100,7 @@ describe('Sealed box simulation', () => {
     // We set Le = 0 to isolate the acoustic response from voice-coil inductance.
     // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
     const Vb_m3 = 0.020; // 20 L enclosure volume in m³
-    const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+    const { value: d } = deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
     assert.ok(d);
     const fc  = d.Fs  * Math.sqrt(1 + d.Vas / Vb_m3);
     const Qtc = d.Qts * Math.sqrt(1 + d.Vas / Vb_m3);
@@ -132,7 +132,7 @@ describe('Sealed box simulation', () => {
     // in sweep() against the closed form, not one copy of a constant against another.
     const Vb_m3 = 0.020;
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
-    const { value: d }     = deriveDriver({ ...REF_DRIVER, Le: 0 });
+    const { value: d }     = deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
     assert.ok(d);
     const eta0  = referenceEfficiency(d.Fs, d.Vas, d.Qes, C);
     const predicted = splFromEfficiency(eta0, RHO, C) + 10 * Math.log10(EG ** 2 / d.Re);
@@ -158,7 +158,7 @@ describe('Sealed box simulation', () => {
     const F3_QSPEAKERS_HZ = 70.72; // Hz — f3 from QSpeakers formula, REF_DRIVER, 20 L, lossless
 
     const Vb_m3 = 0.020;
-    const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+    const { value: d } = deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
     assert.ok(d);
     const { fs, spl } = sweep(d, 'sealed', {
       Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)
@@ -202,7 +202,7 @@ describe('Vented (bass-reflex) box simulation', () => {
   const wb     = 2 * Math.PI * Fb_Hz;
   const Map    = 1 / (wb * wb * Cab); // acoustic mass for Fb
   const Leff   = Map * Sp_m2 / RHO;  // effective duct length (including end correction)
-  const { value: d }      = deriveDriver(REF_DRIVER);
+  const { value: d }      = deriveEngineDriver(REF_DRIVER);
   assert.ok(d);
   const { fs, spl, zmag } = sweep(d, 'vented', {
     Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
@@ -260,7 +260,7 @@ describe('Passive radiator box simulation', () => {
     prXmax: 0.012,  // m  — PR linear excursion limit (12 mm)
     fmin: 10, fmax: 1000, N: 300,
   };
-  const { value: d }  = deriveDriver(REF_DRIVER);
+  const { value: d }  = deriveEngineDriver(REF_DRIVER);
   assert.ok(d);
   const sw = sweep(d, 'pr', PR_PARAMS);
 
@@ -442,7 +442,7 @@ describe('Filter chain', () => {
 
     it('an empty filter array leaves the SPL curve completely unchanged', () => {
       // When no filters are applied the engine must produce identical results.
-      const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+      const { value: d } = deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
       assert.ok(d);
       const Vb_m3 = 0.020;
       const opts = { Vb: Vb_m3, Ql: 1e6, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
@@ -465,7 +465,7 @@ describe('Filter chain', () => {
       // approximately 7x12 = 84 dB (2nd order = 12 dB/oct).  We simply assert
       // a large reduction relative to the unfiltered curve to confirm the filter
       // is actually being applied to the sweep.
-      const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+      const { value: d } = deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
       assert.ok(d);
       const Vb_m3 = 0.020;
       const opts = { Vb: Vb_m3, Ql: 1e6, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
@@ -483,7 +483,7 @@ describe('Filter chain', () => {
     });
 
     it('an active high-pass filter leaves SPL unchanged well above its cutoff', () => {
-      const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+      const { value: d } = deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
       assert.ok(d);
       const Vb_m3 = 0.020;
       const opts = { Vb: Vb_m3, Ql: 1e6, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };

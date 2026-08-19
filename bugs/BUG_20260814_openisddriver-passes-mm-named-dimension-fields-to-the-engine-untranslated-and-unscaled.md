@@ -1,5 +1,8 @@
 # BUG — OpenISDDriver hands the engine `Hc_mm`/`Hg_mm` in millimetres, so every field derived from motor geometry is lost
 
+# Status
+OPEN 2026-08-14
+
 ## Symptom
 
 `packages/winisd/test/winisd-parity.test.ts` > `gap-geometry` > `Mcost`:

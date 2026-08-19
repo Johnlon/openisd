@@ -1,5 +1,10 @@
 # `Driver.fromWdr` fabricates ENTERED defaults for keys the `.wdr` never carried, pinning `Gloss` to 0
 
+# Status
+- fabricated defaults for absent .wdr keys: FIXED
+- export-side toWdr() still writes Gloss=0: OPEN
+
+
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts` (341 failed of 463).
 **Severity** wrong value returned to the app and written to file — a calculated field is reported
 as a human-stated 0.

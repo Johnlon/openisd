@@ -1,13 +1,12 @@
 /**
- * `WinISDDriver.toOpenISDRecord()` — the reader half of Step 8 (ARCHITECTURE.md §3 "Import"):
+ * `OpenISDDriver.fromWinISDDriver()` — the reader half of Step 8 (ARCHITECTURE.md §3 "Import"):
  * ".wdr text populates a WinISDDriver; those as-read values are diffed against what
  * OpenISDDriver independently derives, surfacing a mismatch ... as a data-quality signal
- * rather than silently overwriting." `fromWdr()` itself is unchanged — it still returns raw,
- * undived cells (WinISDDriver.fromWdr(text): WinISDDriver). This is a NEW method that projects
- * those as-read cells into an `OpenISDRecord`, so `OpenISDDriver.fromRecord()` has an entry
- * point at all.
+ * rather than silently overwriting." `fromWdrIni()` itself is unchanged — it still returns raw,
+ * undived cells (WinISDDriver.fromWdrIni(text): WinISDDriver). `fromWinISDDriver()` projects
+ * those as-read cells into an `OpenISDDriver`.
  *
- * Seam: `WinISDDriver.fromWdr(text).toOpenISDRecord()` → `OpenISDDriver.fromRecord(record)`.
+ * Seam: `WinISDDriver.fromWdrIni(text)` → `OpenISDDriver.fromWinISDDriver(wdr)`.
  *
  * 🔒 ORACLE: `drivers/sample/winisd/inconsistency-test-qts-C.wdr` is a genuine WinISD save
  * (WDR_SCHEMA.md consistency-check experiment 2026-06-28) that states `Qts=0.500` but marks
@@ -28,9 +27,9 @@ const WDR_TEXT = readFileSync(
   'utf8',
 );
 
-describe('WinISDDriver.toOpenISDRecord — provenance mapping (E -> _SpecEntry, C -> excluded, N -> absent)', () => {
+describe('OpenISDDriver.fromWinISDDriver — provenance mapping (E -> _SpecEntry, C -> excluded, N -> absent)', () => {
   it('a cell marked E becomes a stated _SpecEntry with a manual reading, SI units preserved', () => {
-    const record = WinISDDriver.fromWdr(WDR_TEXT).toOpenISDRecord();
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
     const fs = record.specs.woofer?.Fs;
     assert.ok(fs, 'Fs is E in the source file and must be carried');
     assert.equal(fs.origin, 'manual');
@@ -38,18 +37,18 @@ describe('WinISDDriver.toOpenISDRecord — provenance mapping (E -> _SpecEntry, 
   });
 
   it('a cell marked C (WinISD-computed) is NOT written into the record as a stated _SpecEntry', () => {
-    const record = WinISDDriver.fromWdr(WDR_TEXT).toOpenISDRecord();
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
     assert.equal(record.specs.woofer?.Qts, undefined,
       'Qts is C (WinISD computed 0.500 itself) — the record must not assert it as a fact');
   });
 
   it('a cell marked N is absent from the record', () => {
-    const record = WinISDDriver.fromWdr(WDR_TEXT).toOpenISDRecord();
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
     assert.equal(record.specs.woofer?.fLe, undefined, 'fLe is N in the source file');
   });
 
   it('round-trips through OpenISDDriver.fromRecord(): E fields read back with their stated value', () => {
-    const record = WinISDDriver.fromWdr(WDR_TEXT).toOpenISDRecord();
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
     const driver = OpenISDDriver.fromRecord(record);
 
     assert.deepEqual(driver.cell('Fs'), { value: 38, state: 'E', origin: 'manual' });
@@ -59,7 +58,7 @@ describe('WinISDDriver.toOpenISDRecord — provenance mapping (E -> _SpecEntry, 
   });
 
   it('the excluded C field is independently RE-DERIVED by OpenISDDriver, matching WinISD\'s own formula', () => {
-    const record = WinISDDriver.fromWdr(WDR_TEXT).toOpenISDRecord();
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
     const driver = OpenISDDriver.fromRecord(record);
     const qts = driver.cell('Qts');
     assert.equal(qts.state, 'C');
@@ -70,11 +69,11 @@ describe('WinISDDriver.toOpenISDRecord — provenance mapping (E -> _SpecEntry, 
 
 describe('WinISDDriver.diffAgainst — a WinISD-stored C value that disagrees with the fresh derivation is flagged', () => {
   it('surfaces the stale Qts=0.500 (C) against the freshly-derived ~0.358 as a warn-level mismatch', () => {
-    const sourceWdr = WinISDDriver.fromWdr(WDR_TEXT);
-    const record = sourceWdr.toOpenISDRecord();
+    const sourceWdr = WinISDDriver.fromWdrIni(WDR_TEXT);
+    const record = OpenISDDriver.fromWinISDDriver(sourceWdr).toRecord();
     const driver = OpenISDDriver.fromRecord(record);
 
-    const { value: derivedWdr, errors } = WinISDDriver.fromOpenISDRecord(driver.toRecord());
+    const { value: derivedWdr, errors } = driver.toWinISDDriver();
     assert.ok(derivedWdr, `projection failed: ${JSON.stringify(errors)}`);
 
     const mismatches = sourceWdr.diffAgainst(derivedWdr!);

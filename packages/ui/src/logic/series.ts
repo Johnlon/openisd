@@ -1,5 +1,5 @@
 import { C, passbandRef, rolloffFreq } from '@openisd/engine';
-import type { Driver, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/engine';
+import type { EngineDriver, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/engine';
 import { DPAL } from '../ui/presets.js';
 import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
 
@@ -53,7 +53,7 @@ interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boo
 /** Everything a curve builder may read. Identical inputs to the old if/else chain. */
 interface CurveCtx {
   meta: TabMeta;
-  drv: Driver;
+  drv: EngineDriver;
   box: BoxType;
   P: PlotParams;
   sw: SweepResult;
@@ -225,7 +225,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
   },
 };
 
-export function seriesFor(tabId: ChartTabId, drv: Driver, box: BoxType, P: PlotParams, sw: SweepResult, mx: MaxCurvesResult, bare = false): SeriesBundle {
+export function seriesFor(tabId: ChartTabId, drv: EngineDriver, box: BoxType, P: PlotParams, sw: SweepResult, mx: MaxCurvesResult, bare = false): SeriesBundle {
   const meta = TAB_META[tabId];
   const built = CURVE_BUILDERS[tabId]({
     meta, drv, box, P, sw, mx, bare,

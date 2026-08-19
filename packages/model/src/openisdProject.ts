@@ -27,8 +27,7 @@
  * `ManagedProject` clones a whole project to open an overlay.
  */
 import type { _OpenISDDriverJson } from './openisdDriver.js';
-import type { Filter } from '@openisd/engine';
-import { tuningFromLength } from '@openisd/engine';
+import {type Filter, tuningFromLength} from "@openisd/engine";
 
 /** Which alignment is ACTIVE. The others stay populated and dormant. */
 export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator';
@@ -216,7 +215,7 @@ export interface _OpenISDProjectJson {
 // ── Construction and the one legal way to switch alignment ────────────────────────────────
 
 /** A vent with WinISD's own defaults: round, 5 cm, one-flanged end correction. */
-function defaultVent(): OpenISDVent {
+function prototypeVent(): OpenISDVent {
   return {
     shape: 'round',
     diameter_m: 0.05,
@@ -235,8 +234,8 @@ function defaultVent(): OpenISDVent {
  * default written over a value restored from a file is the silent-data-loss this whole design
  * exists to prevent. They all exist, they all hold values, one is active.
  */
-export function defaultBox(): OpenISDBox {
-  const vent = defaultVent();
+export function prototypeBox(): OpenISDBox {
+  const vent = prototypeVent();
   // The Helmholtz tuning THIS vent and THIS volume actually deliver, via the same
   // `tuningFromLength` the vent-group solver uses — a derived value, not an independent
   // literal, so the default design cannot state a vent and a tuning that disagree.
@@ -246,7 +245,7 @@ export function defaultBox(): OpenISDBox {
     sealed: { volume_m3: 0.030 },
     vented: { volume_m3: 0.030, Fb_hz: ventedFb, vent },
     bandpass4: {
-      rearVolume_m3: 0.020, frontVolume_m3: 0.015, Ff_hz: 60, frontVent: defaultVent(),
+      rearVolume_m3: 0.020, frontVolume_m3: 0.015, Ff_hz: 60, frontVent: prototypeVent(),
     },
     passiveRadiator: { volume_m3: 0.040, Fp_hz: 0, count: 1, addedMass_kg: 0 },
     // Enclosure losses: leakage, absorption, port. They describe the BOX, not one alignment,

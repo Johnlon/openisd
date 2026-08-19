@@ -1,5 +1,9 @@
 # BUG_20260805 — humidity and pressure inputs are collected, persisted, and then ignored
 
+# Status
+OPEN 2026-08-05
+
+
 **Status:** OPEN — not yet fixed. Needs a design ruling before code (see "Why it was not
 fixed on the spot").
 

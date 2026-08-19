@@ -3,7 +3,7 @@
  *
  * One assertion, over every file WinISD itself wrote:
  *
- *     WinISDDriver.fromWdr(text).toWdr() === text
+ *     WinISDDriver.fromWdrIni(text).toWdr() === text
  *
  * Byte equality needs no list of which fields to check, and so cannot be wrong about one.
  *
@@ -23,7 +23,7 @@ const files = readdirSync(SAMPLES)
   .filter(f => f.endsWith('.wdr'))
   .filter(f => /\[Driver\]/.test(readFileSync(join(SAMPLES, f), 'utf8')));
 
-describe('a .wdr survives fromWdr → toWdr byte for byte', () => {
+describe('a .wdr survives fromWdrIni → toWdr byte for byte', () => {
   it('the sample corpus is the oracle, and it is not empty', () => {
     assert.ok(files.length > 3,
       'this suite proves nothing without files WinISD wrote to compare against');
@@ -32,7 +32,7 @@ describe('a .wdr survives fromWdr → toWdr byte for byte', () => {
   for (const file of files) {
     it(`${file} round-trips unchanged`, () => {
       const src = readFileSync(join(SAMPLES, file), 'utf8');
-      const out = WinISDDriver.fromWdr(src).toWdr();
+      const out = WinISDDriver.fromWdrIni(src).toWdr();
 
       if (out === src) return;
 
@@ -78,7 +78,7 @@ describe('an Xlim= line is not part of the format', () => {
       t.split(/\r?\n/).find(l => l.startsWith('ParState='))!.slice('ParState='.length);
 
     assert.equal(parState(src)[10], 'E', 'precondition: the source marks Xlim entered');
-    const out = WinISDDriver.fromWdr(src).toWdr();
+    const out = WinISDDriver.fromWdrIni(src).toWdr();
     assert.equal(parState(out)[10], 'E');
     assert.equal(/^Xlim=/m.test(out), false, 'and no value line is invented to go with it');
   });

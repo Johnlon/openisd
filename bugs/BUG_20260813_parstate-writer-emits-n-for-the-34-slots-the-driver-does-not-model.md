@@ -1,5 +1,9 @@
 # The ParState writer emits `N` for the 34 slots the Driver does not model
 
+# Status
+OPEN (reverified 2026-08-14)
+
+
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts`.
 **Severity** wrong provenance written to file. A `.wdr` openisd authors tells WinISD "nothing is
 set" for every field openisd calculated.

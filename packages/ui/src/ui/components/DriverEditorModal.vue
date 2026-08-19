@@ -5,7 +5,6 @@ import { state, formatInUnit } from '../../logic/store.js';
 import { useApp } from '../../logic/app.js';
 import { RHO, C } from '../../logic/environment.js';
 import * as WinIsdDriverFileIo from '../../logic/winIsdDriverFileIo.js';
-import * as OpenIsdDriverFileIo from '../../logic/openIsdDriverFileIo.js';
 import { OpenISDDriver } from '@openisd/model';
 import type { SpecField, MetaField } from '@openisd/model';
 import NumInput from './NumInput.vue';
@@ -434,9 +433,9 @@ function handleFileLoaded(e: Event) {
     try {
       // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
       // an `.owdr` IS that record already. One reader each, and no second parse invented here.
-      draftDriver.value = markRaw(OpenISDDriver.fromRecord(format === DriverFileFormat.Wdr
-        ? WinIsdDriverFileIo.importDriver(text)
-        : OpenIsdDriverFileIo.importDriver(text)));
+      draftDriver.value = markRaw(format === DriverFileFormat.Wdr
+        ? OpenISDDriver.fromWdrText(text)
+        : OpenISDDriver.fromOwdr(text));
       forceUpdate();
     } catch (err) {
       alert('Failed to parse file: ' + (err as Error).message);
@@ -460,8 +459,9 @@ async function writeDriver(format: DriverFileFormat) {
   // `.owdr` IS the record. A `.wdr` is that record projected by the serialiser — the one place
   // that knows the format — and a driver too incomplete to project says so rather than writing
   // a file WinISD would refuse.
-  const svc = format === DriverFileFormat.Owdr ? OpenIsdDriverFileIo : WinIsdDriverFileIo;
-  const { value: text, errors } = svc.exportDriver(draftDriver.value);
+  const { value: text, errors } = format === DriverFileFormat.Owdr
+    ? { value: JSON.stringify(draftDriver.value.toRecord(), null, 2), errors: [] }
+    : WinIsdDriverFileIo.exportDriver(draftDriver.value);
   if (!text) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
   // Then the SYSTEM save dialog — the user picks folder and name, as a desktop app would.
   // The MIME must be a CUSTOM type, not application/json or text/plain. The picker unions the
@@ -587,10 +587,10 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                 </NumInput><span v-if="dqNote('Re')" class="de-dq" :title="dqNote('Re')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
-              <div class="de-fld" data-field-key="Bl" :style="getFieldStyle('Bl')" title="Derived: Bl = √(2π·Fs·Mms·Re / Qes) — motor force factor.">
+              <div class="de-fld" data-field-key="BL" :style="getFieldStyle('BL')" title="Derived: BL = √(2π·Fs·Mms·Re / Qes) — motor force factor.">
                 <label>BL</label>
-                <NumInput :class="cellClass('Bl')" :model-value="cellVal('Bl')" :scale="1" :precision="3" @update:model-value="v => setNum('Bl', v)">
-                </NumInput><span v-if="dqNote('Bl')" class="de-dq" :title="dqNote('Bl')">&#9888;</span>
+                <NumInput :class="cellClass('BL')" :model-value="cellVal('BL')" :scale="1" :precision="3" @update:model-value="v => setNum('BL', v)">
+                </NumInput><span v-if="dqNote('BL')" class="de-dq" :title="dqNote('BL')">&#9888;</span>
                 <span class="u">Tm</span>
               </div>
               <div class="de-fld" data-field-key="Dd" :style="getFieldStyle('Dd')" title="Diaphragm/dome diameter — WinISD: Dd">
@@ -673,10 +673,10 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                 <NumInput :class="cellClass('no')" :model-value="cellVal('no')" :scale="100" @update:model-value="v => setNum('no', v)"></NumInput><span v-if="dqNote('no')" class="de-dq" :title="dqNote('no')">&#9888;</span>
                 <span class="u">%</span>
               </div>
-              <div class="de-fld" data-field-key="Z" :style="getFieldStyle('Z')" title="Nominal impedance — label only, not used in simulation. WinISD: Znom. OpenISD field: Z">
+              <div class="de-fld" data-field-key="Znom" :style="getFieldStyle('Znom')" title="Nominal impedance — label only, not used in simulation. WinISD: Znom.">
                 <label>Znom</label>
-                <NumInput :class="cellClass('Z')" :model-value="cellVal('Z')" :scale="1" :precision="3" @update:model-value="v => setNum('Z', v)">
-                </NumInput><span v-if="dqNote('Z')" class="de-dq" :title="dqNote('Z')">&#9888;</span>
+                <NumInput :class="cellClass('Znom')" :model-value="cellVal('Znom')" :scale="1" :precision="3" @update:model-value="v => setNum('Znom', v)">
+                </NumInput><span v-if="dqNote('Znom')" class="de-dq" :title="dqNote('Znom')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
               <div class="de-fld" data-field-key="USPL" :style="getFieldStyle('USPL')" title="Unity SPL — WinISD: USPL">
@@ -794,14 +794,14 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                  the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
                  WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
                  Thick read a metre value under an inches label. -->
-            <div class="de-fld" data-field-key="thick" title="Frame flange thickness — WinISD: Thick"><label>Basket Plate Thickness (Thick)</label><NumInput :class="cellClass('thick')" :model-value="cellVal('thick')" field="dimThick" group="length" base="mm" :precision="precision('dimThick')" @update:model-value="v => setNum('thick', v)"></NumInput><span v-if="dqNote('thick')" class="de-dq" :title="dqNote('thick')">&#9888;</span><UnitToggle field="dimThick" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="depth" title="Overall driver depth — WinISD: Depth"><label>Driver Depth (Depth)</label><NumInput :class="cellClass('depth')" :model-value="cellVal('depth')" field="dimDepth" group="length" base="mm" :precision="precision('dimDepth')" @update:model-value="v => setNum('depth', v)"></NumInput><span v-if="dqNote('depth')" class="de-dq" :title="dqNote('depth')">&#9888;</span><UnitToggle field="dimDepth" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="magnetDepth" title="Magnet stack depth — WinISD: MagDepth"><label>Magnet Depth (MagDepth)</label><NumInput :class="cellClass('magnetDepth')" :model-value="cellVal('magnetDepth')" field="dimMagnetDepth" group="length" base="mm" :precision="precision('dimMagnetDepth')" @update:model-value="v => setNum('magnetDepth', v)"></NumInput><span v-if="dqNote('magnetDepth')" class="de-dq" :title="dqNote('magnetDepth')">&#9888;</span><UnitToggle field="dimMagnetDepth" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="magnet" title="Magnet diameter — WinISD: Magnet"><label>Magnet Diameter (Magnet)</label><NumInput :class="cellClass('magnet')" :model-value="cellVal('magnet')" field="dimMagnet" group="length" base="mm" :precision="precision('dimMagnet')" @update:model-value="v => setNum('magnet', v)"></NumInput><span v-if="dqNote('magnet')" class="de-dq" :title="dqNote('magnet')">&#9888;</span><UnitToggle field="dimMagnet" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="basket" title="Basket/frame diameter — WinISD: Basket"><label>Basket Diameter (Basket)</label><NumInput :class="cellClass('basket')" :model-value="cellVal('basket')" field="dimBasket" group="length" base="mm" :precision="precision('dimBasket')" @update:model-value="v => setNum('basket', v)"></NumInput><span v-if="dqNote('basket')" class="de-dq" :title="dqNote('basket')">&#9888;</span><UnitToggle field="dimBasket" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="outer" title="Overall outer frame diameter — WinISD: Outer"><label>Outer Diameter (Outer)</label><NumInput :class="cellClass('outer')" :model-value="cellVal('outer')" field="dimOuter" group="length" base="mm" :precision="precision('dimOuter')" @update:model-value="v => setNum('outer', v)"></NumInput><span v-if="dqNote('outer')" class="de-dq" :title="dqNote('outer')">&#9888;</span><UnitToggle field="dimOuter" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="VCd" title="Voice coil diameter — WinISD: VCd"><label>Voice Coil Dia (VCd)</label><NumInput :class="cellClass('VCd')" :model-value="cellVal('VCd')" field="dimVCd" group="length" base="mm" :precision="precision('dimVCd')" @update:model-value="v => setNum('VCd', v)"></NumInput><span v-if="dqNote('VCd')" class="de-dq" :title="dqNote('VCd')">&#9888;</span><UnitToggle field="dimVCd" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="basketDisplacement" title="Basket displacement volume — WinISD: Dvol"><label>Driver Displacement Volume (Dvol)</label><NumInput :class="cellClass('basketDisplacement')" :model-value="cellVal('basketDisplacement')" field="dimDvol" group="volume" base="cm3" :precision="precision('dimDvol')" @update:model-value="v => setNum('basketDisplacement', v)"></NumInput><span v-if="dqNote('basketDisplacement')" class="de-dq" :title="dqNote('basketDisplacement')">&#9888;</span><UnitToggle field="dimDvol" group="volume" base="cm3" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Thick" title="Frame flange thickness — WinISD: Thick"><label>Basket Plate Thickness (Thick)</label><NumInput :class="cellClass('Thick')" :model-value="cellVal('Thick')" field="dimThick" group="length" base="mm" :precision="precision('dimThick')" @update:model-value="v => setNum('Thick', v)"></NumInput><span v-if="dqNote('Thick')" class="de-dq" :title="dqNote('Thick')">&#9888;</span><UnitToggle field="dimThick" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Depth" title="Overall driver depth — WinISD: Depth"><label>Driver Depth (Depth)</label><NumInput :class="cellClass('Depth')" :model-value="cellVal('Depth')" field="dimDepth" group="length" base="mm" :precision="precision('dimDepth')" @update:model-value="v => setNum('Depth', v)"></NumInput><span v-if="dqNote('Depth')" class="de-dq" :title="dqNote('Depth')">&#9888;</span><UnitToggle field="dimDepth" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="MagDepth" title="Magnet stack depth — WinISD: MagDepth"><label>Magnet Depth (MagDepth)</label><NumInput :class="cellClass('MagDepth')" :model-value="cellVal('MagDepth')" field="dimMagnetDepth" group="length" base="mm" :precision="precision('dimMagnetDepth')" @update:model-value="v => setNum('MagDepth', v)"></NumInput><span v-if="dqNote('MagDepth')" class="de-dq" :title="dqNote('MagDepth')">&#9888;</span><UnitToggle field="dimMagnetDepth" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Magnet" title="Magnet diameter — WinISD: Magnet"><label>Magnet Diameter (Magnet)</label><NumInput :class="cellClass('Magnet')" :model-value="cellVal('Magnet')" field="dimMagnet" group="length" base="mm" :precision="precision('dimMagnet')" @update:model-value="v => setNum('Magnet', v)"></NumInput><span v-if="dqNote('Magnet')" class="de-dq" :title="dqNote('Magnet')">&#9888;</span><UnitToggle field="dimMagnet" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Basket" title="Basket/frame diameter — WinISD: Basket"><label>Basket Diameter (Basket)</label><NumInput :class="cellClass('Basket')" :model-value="cellVal('Basket')" field="dimBasket" group="length" base="mm" :precision="precision('dimBasket')" @update:model-value="v => setNum('Basket', v)"></NumInput><span v-if="dqNote('Basket')" class="de-dq" :title="dqNote('Basket')">&#9888;</span><UnitToggle field="dimBasket" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Outer" title="Overall outer frame diameter — WinISD: Outer"><label>Outer Diameter (Outer)</label><NumInput :class="cellClass('Outer')" :model-value="cellVal('Outer')" field="dimOuter" group="length" base="mm" :precision="precision('dimOuter')" @update:model-value="v => setNum('Outer', v)"></NumInput><span v-if="dqNote('Outer')" class="de-dq" :title="dqNote('Outer')">&#9888;</span><UnitToggle field="dimOuter" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Vcd" title="Voice coil diameter — WinISD: Vcd"><label>Voice Coil Dia (Vcd)</label><NumInput :class="cellClass('Vcd')" :model-value="cellVal('Vcd')" field="dimVCd" group="length" base="mm" :precision="precision('dimVCd')" @update:model-value="v => setNum('Vcd', v)"></NumInput><span v-if="dqNote('Vcd')" class="de-dq" :title="dqNote('Vcd')">&#9888;</span><UnitToggle field="dimVCd" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="DVol" title="Basket displacement volume — WinISD: DVol"><label>Driver Displacement Volume (DVol)</label><NumInput :class="cellClass('DVol')" :model-value="cellVal('DVol')" field="dimDvol" group="volume" base="cm3" :precision="precision('dimDvol')" @update:model-value="v => setNum('DVol', v)"></NumInput><span v-if="dqNote('DVol')" class="de-dq" :title="dqNote('DVol')">&#9888;</span><UnitToggle field="dimDvol" group="volume" base="cm3" unit-class="u" /></div>
           </div>
 
           <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">

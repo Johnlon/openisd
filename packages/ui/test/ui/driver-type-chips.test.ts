@@ -119,10 +119,16 @@ const UI_SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
 const ENUM_FILE = join(UI_SRC, 'driverType.ts');
 
 // 'woofer' and 'unclassified' are deliberately NOT scanned: they collide with the
-// chip ids of the same spelling, where comparing a raw string is legitimate. Every
-// other canonical value is unambiguous — a comparison against it is always the bug.
+// chip ids of the same spelling, where comparing a raw string is legitimate.
+// 'passive-radiator' collides too, with an unrelated domain: `OpenISDBox.active`
+// (@openisd/model AlignmentKind) is an ENCLOSURE alignment choice, not a driver
+// classification — `state.box`'s accessor (logic/store.ts) compares against it
+// legitimately, and the gate cannot tell that comparison apart from a DriverType one
+// by string content alone. Every other canonical value is unambiguous — a comparison
+// against it is always the bug.
 const SCANNED = DriverType.ALL
-  .filter(d => d !== DriverType.Woofer && d !== DriverType.Unclassified)
+  .filter(d => d !== DriverType.Woofer && d !== DriverType.Unclassified
+    && d !== DriverType.PassiveRadiator)
   .map(d => d.value);
 
 function sourceFiles(dir: string): string[] {

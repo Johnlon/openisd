@@ -1,6 +1,4 @@
-import * as WinIsdDriverFileIo from './winIsdDriverFileIo.js';
-import * as OpenIsdDriverFileIo from './openIsdDriverFileIo.js';
-import { readMetaCell, emptyDriverRecord } from '@openisd/model';
+import { _emptyDriverRecord, OpenISDDriver } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
 import { state, managedProject, driverRecord } from './store.js';
 import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
@@ -99,24 +97,24 @@ export function driverFromFileText(text: string, fileName: string): FileReadResu
   if (format === null)
     return { ok: false, error: `Not a driver file: ${fileName} (expected ${DriverFileFormat.ACCEPT})` };
 
-  let record: _OpenISDDriverJson;
+  let driver: OpenISDDriver;
   try {
     // A `.wdr` is read as-read by the serialiser then projected; an `.owdr` IS the record.
-    record = format === DriverFileFormat.Wdr
-      ? WinIsdDriverFileIo.importDriver(text)
-      : OpenIsdDriverFileIo.importDriver(text);
+    driver = format === DriverFileFormat.Wdr
+      ? OpenISDDriver.fromWdrText(text)
+      : OpenISDDriver.fromOwdr(text);
   } catch (err) {
     return { ok: false, error: `Failed to parse ${fileName}: ${(err as Error).message}` };
   }
 
   // A driver IS its <brand>/<model>, so one with neither cannot be filed. The file name is the
   // last thing that can name it; if that is empty too, say so rather than saving it nameless.
-  if (!readMetaCell(record, 'brand').value && !readMetaCell(record, 'model').value) {
+  if (!driver.metaCell('brand').value && !driver.metaCell('model').value) {
     const base = fileName.replace(/\.[^.]*$/, '').trim();
     if (!base) return { ok: false, error: `${fileName} carries no brand or model, and its name gives none` };
-    record.model = { ...record.model, value: base, origin: 'manual' };
+    driver.enterMeta('model', base);
   }
-  return { ok: true, record };
+  return { ok: true, record: driver.toRecord() };
 }
 
 /** Fetch and parse a federated `.wdr` row, or say why it could not be read. */
@@ -134,7 +132,7 @@ async function modelOf(f: LibraryEntry): Promise<{ ok: true; record: _OpenISDDri
   }
   if (!/\[Driver\]/.test(text)) return { ok: false, error: 'Could not load: file did not parse as a WDR' };
   try {
-    return { ok: true, record: WinIsdDriverFileIo.importDriver(text) };
+    return { ok: true, record: OpenISDDriver.fromWdrText(text).toRecord() };
   } catch (err) {
     return { ok: false, error: 'Could not load: ' + (err as Error).message };
   }
@@ -265,7 +263,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
      */
     openNewDriver() {
       subject = { kind: 'myDriver', openedAs: '' };
-      editorDraft = emptyDriverRecord();
+      editorDraft = _emptyDriverRecord();
       state.browseOpen = false;
       state.editDriverInfo = true;
     },
@@ -275,7 +273,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
       return {
         // The project's own driver when nothing else is being edited. Empty when none is
         // chosen — the editor then authors one from scratch rather than editing a fake.
-        json: editorDraft ?? driverRecord.value ?? emptyDriverRecord(),
+        json: editorDraft ?? driverRecord.value ?? _emptyDriverRecord(),
         subject: subject.kind,
       };
     },

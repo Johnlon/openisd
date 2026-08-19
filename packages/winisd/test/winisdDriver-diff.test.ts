@@ -5,11 +5,13 @@
  * — a value hand-edited in WinISD, for instance — as a data-quality signal rather than
  * silently overwriting").
  *
- * Seam under test: `WinISDDriver.fromWdr(text).diffAgainst(WinISDDriver.fromOpenISDRecord(record))`.
+ * Seam under test: `WinISDDriver.fromWdrIni(text).diffAgainst(WinISDDriver.fromOpenISDDriver(driver))`.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
+import { parse } from 'yaml';
 import { WinISDDriver } from '../src/winisdDriver.js';
+import { OpenISDDriver } from '@openisd/model';
 
 const RECORD = `
 uuid: {value: u1, definition: d}
@@ -33,7 +35,7 @@ specs:
 `;
 
 function recordDriver(): WinISDDriver {
-  const { value } = WinISDDriver.fromYaml(RECORD);
+  const { value } = OpenISDDriver.fromRecord(parse(RECORD)).toWinISDDriver();
   if (!value) throw new Error('fixture record failed to project');
   return value;
 }
@@ -41,7 +43,7 @@ function recordDriver(): WinISDDriver {
 describe('WinISDDriver.diffAgainst — as-read values vs the independently-derived record', () => {
   it('reports no mismatch when the .wdr states exactly what the record derives', () => {
     const derived = recordDriver();
-    const asRead = WinISDDriver.fromWdr(derived.toWdr());
+    const asRead = WinISDDriver.fromWdrIni(derived.toWdr());
     const mismatches = asRead.diffAgainst(derived);
     assert.deepEqual(mismatches, []);
   });
@@ -50,7 +52,7 @@ describe('WinISDDriver.diffAgainst — as-read values vs the independently-deriv
     const derived = recordDriver();
     // Hand-edit Fs in the .wdr text as if WinISD's own editor changed it after export.
     const edited = derived.toWdr().replace(/^Fs=40$/m, 'Fs=41.5');
-    const asRead = WinISDDriver.fromWdr(edited);
+    const asRead = WinISDDriver.fromWdrIni(edited);
 
     // The mismatch is REPORTED, not silently applied — diffAgainst never mutates either side.
     const mismatches = asRead.diffAgainst(derived);
@@ -68,7 +70,7 @@ describe('WinISDDriver.diffAgainst — as-read values vs the independently-deriv
     const derived = recordDriver();
     // A .wdr the writer never touched Le on — Le is 0 by WinISD's own default, state N, and
     // must not be treated as an asserted "0" that then falsely disagrees with anything.
-    const asRead = WinISDDriver.fromWdr(derived.toWdr());
+    const asRead = WinISDDriver.fromWdrIni(derived.toWdr());
     assert.equal(asRead.cell('Le').state, 'N');
     const mismatches = asRead.diffAgainst(derived);
     assert.equal(mismatches.some(m => m.field === 'Le'), false);

@@ -1,5 +1,8 @@
 # BUG — driver-editor Parameters/Advanced fields do not share a column edge
 
+# Status
+OPEN
+
 ## Symptom
 
 The Parameters and Advanced parameters tabs read as scattered boxes rather than a table. Every

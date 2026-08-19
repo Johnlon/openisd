@@ -1,5 +1,8 @@
 # The provenance highlight box stops short of the unit on 25 editor fields
 
+# Status
+FIXED
+
 ## Symptom
 
 With "Inspect Provenance" on, the coloured box drawn around a field does not surround the

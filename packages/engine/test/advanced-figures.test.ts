@@ -38,13 +38,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { solveConsistencyGroup, RHO, type DriverRaw } from '@openisd/engine';
+import { solveConsistencyGroup, RHO } from '@openisd/engine';
 
 /** Beyma 10BR60/V2, the real fixture whose stored Bl disagrees with its own Fs/Mms/Re/Qes. */
-const BEYMA = { Fs: 29.0, Mms: 0.044, Cms: 0.000693, Rms: 2.4, Bl: 10.9, Re: 6.5, Qes: 0.44, Qms: 3.3, Sd: 0.038 };
+const BEYMA = { Fs: 29.0, Mms: 0.044, Cms: 0.000693, Rms: 2.4, BL: 10.9, Re: 6.5, Qes: 0.44, Qms: 3.3, Sd: 0.038 };
 
 const solve = (d: Record<string, number>) =>
-  solveConsistencyGroup(d as unknown as DriverRaw, { full: true }) as unknown as Record<string, number>;
+  solveConsistencyGroup(d, { full: true }) as Record<string, number>;
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLES = join(here, '..', '..', '..', 'drivers', 'sample', 'winisd');
@@ -80,7 +80,7 @@ describe('Rme — the two routes, and which one wins', () => {
   });
 
   it('falls back to Bl²/Re when the motional route is short of an input', () => {
-    const r = solve({ Bl: BEYMA.Bl, Re: BEYMA.Re });
+    const r = solve({ BL: BEYMA.BL, Re: BEYMA.Re });
     assert.ok(Math.abs(r.Rme - 18.27846153846154) < 1e-9, `Rme = ${r.Rme}`);
   });
 
@@ -103,14 +103,14 @@ describe('Mpow, gamma', () => {
   // bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
   it('Mpow is Bl/√Re, NOT √Rme — the two happen to agree on BEYMA, so this only pins the value', () => {
     const r = solve({ ...BEYMA });
-    assert.ok(Math.abs(r.Mpow - BEYMA.Bl / Math.sqrt(BEYMA.Re)) < 1e-12, `Mpow = ${r.Mpow}`);
+    assert.ok(Math.abs(r.Mpow - BEYMA.BL / Math.sqrt(BEYMA.Re)) < 1e-12, `Mpow = ${r.Mpow}`);
     assert.ok(Math.abs(r.Mpow - 4.275331746012412) < 1e-9);
   });
 
   it('Mpow = Bl/√Re disagrees with √Rme on a record whose stored Fs contradicts Mms·Cms', () => {
     // The `inconsistent-fs` discriminator, transcribed: Fs stored at 2×true, Bl=7.5, Re=6.4,
     // Qes=0.41220376440829154, Mms=0.0155 — WinISD's own Rme/Mpow pair for this record.
-    const r = solve({ Fs: 74.4, Mms: 0.0155, Qes: 0.41220376440829154, Bl: 7.5, Re: 6.4 });
+    const r = solve({ Fs: 74.4, Mms: 0.0155, Qes: 0.41220376440829154, BL: 7.5, Re: 6.4 });
     assert.ok(Math.abs(r.Rme - 17.578125) < 1e-9, `Rme = ${r.Rme}`);
     assert.ok(Math.abs(r.Mpow - 2.96463530640786) < 1e-9, `Mpow = ${r.Mpow}`);
     assert.ok(Math.abs(r.Mpow - Math.sqrt(r.Rme)) > 1, '√Rme must NOT be the answer here');
@@ -200,7 +200,7 @@ describe('Gloss — the static cone sag, as a FRACTION of Xmax', () => {
     // g·Mms·Cms/Xmax. The rival is exact on every self-consistent driver and 4× out here.
     const r = solve({
       Fs: 200, Xmax: 0.0067, Mms: 0.00194848430081419, Cms: 0.0013,
-      Qes: 0.4812931131916, Qms: 2.1, Re: 14.1525718647402, Bl: 6, Sd: 0.022,
+      Qes: 0.4812931131916, Qms: 2.1, Re: 14.1525718647402, BL: 6, Sd: 0.022,
       roo: 1.20095217714682, c: 343.684120962153,
     });
     assert.ok(rel(r.Gloss, 0.000926885620863929) < 1e-12,
@@ -267,7 +267,7 @@ describe('Mcost — Rme scaled by how far the coil leaves the gap', () => {
     // whenever Xmax = |Hc−Hg|/2 and 40 % out here.
     const r = solve({
       Fs: 40, Xmax: 0.009, Hc: 0.012, Hg: 0.006, Mms: 0.00194848430081419,
-      Qes: 0.19251724527664, Re: 14.1525718647402, Bl: 6, Sd: 0.022,
+      Qes: 0.19251724527664, Re: 14.1525718647402, BL: 6, Sd: 0.022,
       roo: 1.20095217714682, c: 343.684120962153,
     });
     assert.ok(rel(r.Mcost, 6.35926818532726) < 1e-12, `Mcost = ${r.Mcost}, WinISD gave 6.35926818532726`);

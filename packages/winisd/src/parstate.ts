@@ -9,11 +9,16 @@
  * E = the human/source entered the value · C = WinISD computed it · N = not in play.
  */
 
-export const PARSTATE_LEN = 49;
-
 /** E/C/N edit-state of one field, WinISD's own vocabulary — the one declaration both
  *  `driver.ts` (the Driver ADT) and `winisdDriver.ts` (the `.wdr` format layer) share. */
 export type CellState = 'E' | 'C' | 'N';
+
+/** Named members for `CellState`, so a call site can write `CellState.Entered` instead of a
+ *  bare `'E' as const` cast wearing an enum's clothes without an enum's discoverability or
+ *  typo-safety. Not a TS `enum` — a `const` object plays the same role without the numeric-enum
+ *  footguns, and every member is already the exact string WinISD's own format uses, so no
+ *  translation layer sits between this and the `.wdr` bytes. */
+export const CellState = { Entered: 'E', Computed: 'C', Absent: 'N' } as const satisfies Record<string, CellState>;
 
 /**
  * Slot → WDR file key. Exactly ONE slot is null: 10 (`Xlim`), which has a live editor field
@@ -86,6 +91,8 @@ export const POS_TO_WDRKEY: readonly (string | null)[] = [
   'c',      // 47
   'roo',    // 48
 ];
+
+export const PARSTATE_LEN = POS_TO_WDRKEY.length;
 
 /** One field the Driver's E/C/N model owns (enter-able, cell-readable). */
 export interface ModeledSlot {

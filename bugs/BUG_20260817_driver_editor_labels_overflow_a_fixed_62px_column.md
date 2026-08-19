@@ -1,5 +1,8 @@
 # BUG — driver-editor labels overflow a fixed 62px column: clipped text, overlap, and H-scroll
 
+# Status
+OPEN
+
 ## Symptom
 
 Three faults on the driver editor, all visible at once:

@@ -1,5 +1,8 @@
 # `ManagedProject`'s edit-draft lifecycle (`beginEdit`/`commitEdit`/`cancelEdit`) is dead in production — driver-field edits go straight to committed state, uncancellable
 
+# Status
+OPEN 2026-08-18 — ruled, not yet implemented
+
 ## Symptom
 
 `ManagedProject`'s own header doc describes an edit-draft mechanism as central to the design:

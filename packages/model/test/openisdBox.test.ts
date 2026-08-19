@@ -11,13 +11,13 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { defaultBox, setActiveAlignment } from '../src/openisdProject.js';
+import { prototypeBox, setActiveAlignment } from '../src/openisdProject.js';
 import type { OpenISDBox } from '../src/openisdProject.js';
 
 /** A box with EVERY alignment carrying values a human would recognise as their own work, so a
  *  field silently reset to a default is visible as such rather than blending in. */
 function boxWithWorkInEveryAlignment(): OpenISDBox {
-  const box = defaultBox();
+  const box = prototypeBox();
   box.sealed.volume_m3 = 0.021;
   box.vented.volume_m3 = 0.037;
   box.vented.Fb_hz = 33.5;
@@ -71,7 +71,7 @@ describe('OpenISDBox — switching alignment deletes nothing', () => {
   });
 
   it('the losses are shared, not per-alignment — one set, whichever box is active', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.Ql = 7;
     setActiveAlignment(box, 'bandpass4');
     assert.equal(box.Ql, 7,
@@ -93,7 +93,7 @@ describe('OpenISDBox — switching alignment deletes nothing', () => {
   });
 
   it('a fresh box carries every alignment, so none has to be created on first use', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     assert.ok(box.sealed && box.vented && box.bandpass4 && box.passiveRadiator,
       'lazily creating an alignment on first switch is how a default silently overwrites work ' +
       'restored from a file');

@@ -10,9 +10,9 @@
  * Presentation only: the what-if logic is single-sourced in the store/ADT.
  */
 import { computed, reactive, watch, ref, onMounted, onUnmounted } from 'vue';
-import { state, driver, driverCell, driverConsistencyIssues, enterDriverField, clearDriverField,
+import { state, engineDriver, driverCell, driverConsistencyIssues, enterDriverField, clearDriverField,
          managedProject } from '../../../logic/store.js';
-import { ebp } from '@openisd/engine';
+import { ebpOf } from '../../../logic/environment.js';
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
 import { cellClassOf, useQGroupIncomplete, consistencyNote, Q_GROUP } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
@@ -153,10 +153,10 @@ const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It 
 
 const dqNote = (key: NumKey): string => {
   if (isBadValue(key)) return BAD_VALUE_NOTE;
-  return consistencyNote(driverConsistencyIssues.value, key);
+  return consistencyNote(driverConsistencyIssues(), key);
 };
 
-const ebpVal = computed(() => (driver.value ? ebp(driver.value) : null));
+const ebpVal = computed(() => { const d = engineDriver(); return d ? ebpOf(d) : null; });
 function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 
 // Open the what-if overlay as Tune opens: edits go to a live COPY, so the charts preview

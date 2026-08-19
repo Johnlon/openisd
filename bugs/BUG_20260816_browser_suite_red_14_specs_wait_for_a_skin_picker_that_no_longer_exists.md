@@ -1,5 +1,8 @@
 # Browser suite is RED: 14 specs wait for a `.skin-picker` that no longer exists
 
+# Status
+OPEN
+
 ## Symptom
 
 Every browser spec whose `beforeEach` selects a skin times out after 60 s. Observed by

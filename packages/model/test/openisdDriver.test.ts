@@ -22,15 +22,15 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
+import { parse } from 'yaml';
 import { OpenISDDriver } from '../src/openisdDriver.js';
-import { fromYaml } from '../src/openisdYaml.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'openisd');
 
 /** A fresh copy of the real GRS 8FR-8 record for every test — the plain record, not a
  *  driver, since several tests mutate it before constructing one. */
 function grs8fr8() {
-  return fromYaml(readFileSync(join(FIXTURES, '8fr-8.openisd.yml'), 'utf8')).toRecord();
+  return OpenISDDriver.fromRecord(parse(readFileSync(join(FIXTURES, '8fr-8.openisd.yml'), 'utf8'))).toRecord();
 }
 
 describe('OpenISDDriver — enter() writes a manual-origin reading (QO36 ruling B3)', () => {
@@ -90,12 +90,12 @@ describe('OpenISDDriver — toDriver() (the resolved engine-ready bag, PLAN_OPEN
     assert.ok(drv, 'Fs/Re/Sd/Vas + two Qs are all stated on the fixture — must resolve');
     assert.equal(drv!.Fs, 45.0);
     assert.equal(drv!.Re, 7.3);
-    assert.equal(drv!.Bl, 8.5, 'the record spells it BL; the engine spells it Bl');
+    assert.equal(drv!.BL, 8.5);
     assert.equal(drv!.numVC, 1, "WinISD's convention: one voice coil unless stated otherwise");
   });
 
   it('returns null when the required fields cannot all be resolved — the blocking-error ' +
-     'contract (deriveDriver requires Fs/Re/Sd/Vas + two of the three Qs)', () => {
+     'contract (deriveEngineDriver requires Fs/Re/Sd/Vas + two of the three Qs)', () => {
     const record = grs8fr8();
     // Strip every T/S field but Fs — nothing left to cross-derive Re/Sd/Vas/a second Q from.
     record.specs.woofer = { Fs: record.specs.woofer!.Fs };

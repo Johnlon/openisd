@@ -1,5 +1,8 @@
 # The DVol geometry relation is fully documented but zero percent implemented
 
+# Status
+OPEN
+
 ## Symptom
 
 `docs/design/WDR_SCHEMA.md` §3.10.1 documents WinISD's `DVol` relation in full — the truncated

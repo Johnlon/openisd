@@ -1,5 +1,9 @@
 # The provenance panel's Fs paths show a formula the engine never uses and hide two it does
 
+# Status
+- panel entry: FIXED 2026-08-17
+- engine/WinISD parity (QO50): OPEN
+
 ## Symptom
 
 Inspecting provenance on `Fs` offers exactly two paths:
@@ -69,7 +73,6 @@ corresponding group solves only `Qms` and `Rms`, never `Fs`.
 
 Consequence: a driver stating `EBP` + `Qes`, or `Rme` + `Qes` + `Mms`, gets an `Fs` in WinISD
 and a blank in openisd. That is a separate decision, tracked as **QO50**, not fixed here.
-
 
 ## Fix applied
 

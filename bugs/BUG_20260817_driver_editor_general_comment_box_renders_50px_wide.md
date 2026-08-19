@@ -1,5 +1,8 @@
 # BUG — the General tab's Comment box renders 50px wide in a 740px panel
 
+# Status
+OPEN
+
 ## Symptom
 
 On the driver editor's General tab the Comment field is a tall narrow slot: a column of text

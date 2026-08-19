@@ -14,10 +14,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { reactive, computed, ref, shallowRef, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
-import type { Driver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
-import { driverRecordProblems } from '@openisd/model';
+import type { EngineDriver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
+import { driverRecordProblems, OpenISDDriver } from '@openisd/model';
 import type { Cell, MetaCell, SpecField, MetaField, _OpenISDDriverJson } from '@openisd/model';
-import * as WinIsdDriverFileIo from './winIsdDriverFileIo.js';
 import { ManagedOpenISDProject } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
 import type { OpenISDVent, OpenISDPassiveRadiatorRef } from '@openisd/model';
@@ -73,7 +72,7 @@ const _version = getOrInit('_version', () => ref(0));
  * (`logic/managedProject.ts`), and the domain object for ONE project in the left nav.
  *
  * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
- * `.toDriver()`/`.errors()`/`.snapshot()` to read, `.enter()`/`.clear()`/`.mutate()` to write,
+ * `.toEngineDriver()`/`.errors()`/`.snapshot()` to read, `.enter()`/`.clear()`/`.mutate()` to write,
  * `.recordToPersist()` for anything saved/exported/shared, `.beginWhatIf()`/`.cancelWhatIf()`/
  * `.isWhatIfActive()` for a what-if. The `_OpenISDProjectJson` it wraps — and the `OpenISDDriver`
  * inside that — are private to it and never leave.
@@ -258,24 +257,52 @@ function defaultP(): UiParams {
   return p as unknown as UiParams;
 }
 
-export const state: AppState = getOrInit('state', () => reactive({
-  box:       'vented',
-  lossMode:  'winisd-lossy',
-  P:         defaultP(),
-  graphs:    ['SPL', 'Excursion', 'Zmag', 'GD'],
-  editDriver: false,
-  editDriverInfo: false,
-  cursorF:     null,
-  pinnedF:     null,
-  cursorLocked: false,
-  dragRange:   null,  // { fLo, fHi } — shared frequency selection across all graph panels
-  browseOpen:   false,
-  defineOpen:   false,
-  driverSource: null,  // snapshot of the last driver loaded from the library — used for reset
-  yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
-  ui:           { skin: (typeof window !== 'undefined' && window.location.port === '4100') ? 'modern' : 'original', unitTokens: {}, envDefaults: { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 } },  // local-only presentation prefs; never shared (persist.ts)
-  project:      { name: '', creator: '', created: '', modified: '', description: '' },
-}));
+/** `BoxType` (@openisd/engine) and `AlignmentKind` (@openisd/model) name the same four
+ *  alignments and spell one of them differently — 'pr' vs 'passive-radiator'. Both types are
+ *  used pervasively under their own names elsewhere, so this is a translation at the one seam
+ *  that needs it, not a rename of either. */
+function toAlignmentKind(box: BoxType): 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator' {
+  return box === 'pr' ? 'passive-radiator' : box;
+}
+function fromAlignmentKind(active: 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator'): BoxType {
+  return active === 'passive-radiator' ? 'pr' : active;
+}
+
+function buildState(): AppState {
+  const s = {
+    lossMode:  'winisd-lossy',
+    P:         defaultP(),
+    graphs:    ['SPL', 'Excursion', 'Zmag', 'GD'],
+    editDriver: false,
+    editDriverInfo: false,
+    cursorF:     null,
+    pinnedF:     null,
+    cursorLocked: false,
+    dragRange:   null,  // { fLo, fHi } — shared frequency selection across all graph panels
+    browseOpen:   false,
+    defineOpen:   false,
+    driverSource: null,  // snapshot of the last driver loaded from the library — used for reset
+    yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
+    ui:           { skin: (typeof window !== 'undefined' && window.location.port === '4100') ? 'modern' : 'original', unitTokens: {}, envDefaults: { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 } },  // local-only presentation prefs; never shared (persist.ts)
+    project:      { name: '', creator: '', created: '', modified: '', description: '' },
+  };
+  // `box` is an accessor property over `managedProject`'s OWN `OpenISDBox.active` — not an
+  // independent copy — because every `state.P.Vb`/`.ventD`/`.Fb`/`.pr*` accessor (ledger
+  // QO54) picks its storage BY active alignment. Before this, `state.box` and the project's
+  // `box.active` were two separately-writable fields with nothing keeping them equal: nothing
+  // anywhere wrote the project's `active` at all, so it stayed fixed at `defaultBox()`'s
+  // initial `'vented'` forever, and `state.P.Vb` kept addressing the vented alignment's
+  // storage even after the user picked Sealed, PR or Bandpass4 in the UI (found via TDD,
+  // packages/ui/test/logic/boxActiveSync.test.ts, before it could ship).
+  Object.defineProperty(s, 'box', {
+    enumerable: true, configurable: true,
+    get: () => fromAlignmentKind(managedProject.snapshot().box.active),
+    set: (v: BoxType) => managedProject.mutate(p => { p.box.active = toAlignmentKind(v); }),
+  });
+  return s as unknown as AppState;
+}
+
+export const state: AppState = getOrInit('state', () => reactive(buildState()));
 
 // ---- Vent group: keep the calculated member solved while the user edits ------------------
 // Watches only what can DRIVE a re-solve — the two always-entered members, the end
@@ -374,7 +401,7 @@ export function loadDriverRecord(record: _OpenISDDriverJson): void {
 /** Load a driver from WinISD `.wdr` text. The `.wdr` is parsed as-read by the serialiser, then
  *  projected into the app's own model — the file format never reaches past this line. */
 export function setDriverFromWdr(text: string): void {
-  managedProject.loadDriverRecord(WinIsdDriverFileIo.importDriver(text));
+  managedProject.loadDriverRecord(OpenISDDriver.fromWdrText(text).toRecord());
 }
 
 /** Route one per-field edit to whichever layer ManagedOpenISDProject says is effective. */
@@ -399,21 +426,21 @@ export function driverMetaCell(field: MetaField): MetaCell {
 }
 
 // The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
-export const driver = computed<Driver | null>(() => {
+export function engineDriver(): EngineDriver | null {
   void _version.value;
-  return managedProject.toDriver();
-});
+  return managedProject.toEngineDriver();
+}
 
 // The PROJECT for persistence — committed state, never the overlay, so a live what-if is never
 // saved, shared or written to disk. recordToPersist() cancels an active what-if itself.
-export const projectToPersist = computed(() => {
+export function projectToPersist(): ReturnType<typeof managedProject.recordToPersist> {
   void _version.value;
   return managedProject.recordToPersist();
-});
+}
 
 /** Just the driver record out of the persistable project, for the paths that write a DRIVER
  *  file (`.wdr`, `.owdr`) rather than a project file. Undefined when none is chosen. */
-export const driverRecord = computed<_OpenISDDriverJson | undefined>(() => projectToPersist.value.driver);
+export const driverRecord = computed<_OpenISDDriverJson | undefined>(() => projectToPersist().driver);
 
 /** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
  *  driver. '' when nothing names it (no driver chosen yet), so a caller can fall back. */
@@ -434,21 +461,21 @@ export function openDriverPicker(): void {
   state.browseOpen = true;
 }
 
-export const driverErrors = computed<DriverError[]>(() => {
+export function driverErrors(): DriverError[] {
   void _version.value;
   return managedProject.errors();
-});
-export const driverConsistencyIssues = computed<ConsistencyIssue[]>(() => {
+}
+export function driverConsistencyIssues(): ConsistencyIssue[] {
   void _version.value;
   return managedProject.consistencyIssues();
-});
+}
 // driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
-export const driverWarnings = computed<string[]>(() => driverErrors.value.map(e => e.message));
+export const driverWarnings = computed<string[]>(() => driverErrors().map(e => e.message));
 
 export const syncedP = computed<SyncedParams>(() => {
   // Drive voltage: sqrt(Pin × Re) — matches WinISD reference-power convention.
   // Users can also set voltage directly in the UI; Pin is back-calculated from V²/Re.
-  const eg = Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re ?? 1));
+  const eg = Math.sqrt((state.P.Pin ?? 1) * (engineDriver()?.Re ?? 1));
   const p: SyncedParams = { ...state.P, eg };
   // Deep-copy the filters so this computed depends on each filter's fields (fc/Q/gain)
   // AND the array length — the shallow `{ ...state.P }` above only captures the array
@@ -465,7 +492,7 @@ export const syncedP = computed<SyncedParams>(() => {
 const _curves = getOrInit('_curves', () => ref<SweepResult | null>(null));
 const _max    = getOrInit('_max', () => ref<MaxCurvesResult | null>(null));
 const _doSweep = () => {
-  const d = driver.value;
+  const d = engineDriver();
   _curves.value = d ? sweep(d, state.box, syncedP.value) : null;
   _max.value    = d ? maxCurves(d, state.box, syncedP.value) : null;
 };
@@ -496,14 +523,14 @@ function _scheduleSweep(): void {
     }, wait);
   }
 }
-watch([driver, syncedP, () => state.box], _scheduleSweep);
+watch([engineDriver, syncedP, () => state.box], _scheduleSweep);
 export const curvesData = _curves;
 export const maxData    = _max;
 
 // Postcondition (hardening): a valid driver can still yield a non-finite sweep at
 // some frequency (a numerical singularity the input guards can't foresee). Classify
 // the sweep output so it's never a silently blank chart — surfaced through the same
-// issue channel as deriveDriver's errors. Empty when the driver is invalid (no sweep)
+// issue channel as deriveEngineDriver's errors. Empty when the driver is invalid (no sweep)
 // or the sweep is clean.
 export const curveIssues = computed<DriverError[]>(() => {
   const sw = _curves.value, mx = _max.value;
@@ -526,7 +553,7 @@ export const paramIssues = computed<DriverError[]>(() => validateParams(state.bo
 // The full issue list the UI shows: driver-derivation issues + box-parameter issues +
 // sweep/max-curve finiteness issues.
 export const allIssues = computed<DriverError[]>(
-  () => [...driverErrors.value, ...paramIssues.value, ...curveIssues.value]);
+  () => [...driverErrors(), ...paramIssues.value, ...curveIssues.value]);
 
 // ---- Project state: ground ↔ modified layer (docs/design/STATE_MODEL.md) ----------------------
 // A project fingerprint captures the whole design (box + params + driver). "Ground" is

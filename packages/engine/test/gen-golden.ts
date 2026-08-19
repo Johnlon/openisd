@@ -5,19 +5,19 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import type { DriverRaw, BoxType, SweepParams } from '@openisd/engine';
+import type { BoxType, SweepParams } from '@openisd/engine';
 import { engine } from './load-engine.js';
 
-const { deriveDriver, sweep, maxCurves } = engine;
+const { deriveEngineDriver, sweep, maxCurves } = engine;
 
-interface Design { name: string; driverRaw: DriverRaw; box: BoxType; P: SweepParams }
+interface Design { name: string; driverRaw: Record<string, number>; box: BoxType; P: SweepParams }
 const here   = dirname(fileURLToPath(import.meta.url));
 const outDir = join(here, 'fixtures', 'golden');
 mkdirSync(outDir, { recursive: true });
 
 const BASE_DRIVER = {
   Fs:37, Qts:0.38, Qes:0.40, Qms:7.0, Vas:0.030, Sd:0.0133,
-  Re:5.6, Le:0.7e-3, Xmax:0.005, Pe:60, Z:8,
+  Re:5.6, Le:0.7e-3, Xmax:0.005, Pe:60, Znom:8,
 };
 
 /* The air every golden was produced in, written into each fixture rather than left to the
@@ -72,8 +72,8 @@ let ok = true;
 console.log('\nGenerating golden fixtures\n');
 
 for (const d of DESIGNS) {
-  // deriveDriver returns { value, errors } — unwrap the driver before sweeping.
-  const { value: drv, errors } = deriveDriver(d.driverRaw);
+  // deriveEngineDriver returns { value, errors } — unwrap the driver before sweeping.
+  const { value: drv, errors } = deriveEngineDriver(d.driverRaw);
   if (!drv) { console.error(`  ERROR  ${d.name}: driver invalid — ${errors.map(e => e.message).join('; ')}`); process.exit(1); }
   const sw  = sweep(drv, d.box, d.P);
   const mx  = maxCurves(drv, d.box, d.P);

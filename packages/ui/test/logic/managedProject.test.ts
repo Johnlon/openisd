@@ -12,7 +12,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { ManagedOpenISDProject, emptyProject } from '../../src/logic/managedProject.js';
+import { ManagedOpenISDProject, _prototypeProject } from '../../src/logic/managedProject.js';
 import type { _OpenISDDriverJson } from '@openisd/model';
 
 /** A minimal, valid driver record — one stated field, enough to exercise enter()/clear(). */
@@ -47,7 +47,7 @@ function driverRecord(): _OpenISDDriverJson {
 
 /** A project with a driver AND a distinctive box, so a box scrub is observable. */
 function projectWithDriver() {
-  const p = emptyProject();
+  const p = _prototypeProject();
   p.driver = driverRecord();
   p.box.vented.volume_m3 = 0.030;
   return p;
@@ -147,7 +147,7 @@ describe('ManagedOpenISDProject — no driver chosen', () => {
     assert.equal(mp.hasDriver(), false);
     assert.equal(mp.cell('Fs').state, 'N', 'absent is a real answer; a zero would look measured');
     assert.equal(mp.cell('Fs').value, null);
-    assert.equal(mp.toDriver(), null);
+    assert.equal(mp.toEngineDriver(), null);
     assert.deepEqual(mp.errors(), []);
   });
 

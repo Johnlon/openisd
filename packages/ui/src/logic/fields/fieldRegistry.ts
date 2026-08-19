@@ -428,8 +428,8 @@ const FIELDS: FieldSpec[] = [
   { id: 'dimMagnet', label: 'Magnet Diameter (Magnet)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Magnet diameter. Not simulated.' },
   { id: 'dimBasket', label: 'Basket Diameter (Basket)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Basket/frame diameter. Not simulated.' },
   { id: 'dimOuter', label: 'Outer Diameter (Outer)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Outer mounting diameter. Not simulated.' },
-  { id: 'dimVCd', label: 'Voice Coil Dia (VCd)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 1, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Voice-coil diameter. Not simulated.' },
-  { id: 'dimDvol', label: 'Driver Displacement Volume (Dvol)', pane: 'Driver: Dimensions', kind: 'number', unit: 'cm³', precision: 2, min: 0, max: 1, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Basket displacement volume — the box volume the driver itself takes up. Stored in m³, rendered in cm³ (WinISD shows in³ by default and cycles to cm³). Not simulated.' },
+  { id: 'dimVCd', label: 'Voice Coil Dia (Vcd)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 1, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Voice-coil diameter. Not simulated.' },
+  { id: 'dimDvol', label: 'Driver Displacement Volume (DVol)', pane: 'Driver: Dimensions', kind: 'number', unit: 'cm³', precision: 2, min: 0, max: 1, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Basket displacement volume — the box volume the driver itself takes up. Stored in m³, rendered in cm³ (WinISD shows in³ by default and cycles to cm³). Not simulated.' },
 
   // ============================ DRIVER PLACEMENT ============================
   {

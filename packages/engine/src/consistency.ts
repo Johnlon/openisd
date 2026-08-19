@@ -31,7 +31,6 @@
 
 import { RHO, C } from './constants.js';
 import { solveConsistencyGroup } from './driver.js';
-import type { DriverRaw } from './types.js';
 
 /** Field values by name, SI, as the solver produces them. */
 type Values = Readonly<Record<string, number>>;
@@ -70,11 +69,11 @@ const RELATIONS: readonly Relation[] = [
   { formula: 'Rms = 2π·Fs·Mms/Qms', target: 'Rms', fields: ['Rms', 'Fs', 'Mms', 'Qms'],
     predict: v => TAU * v.Fs * v.Mms / v.Qms },
   // §4 row 2
-  { formula: 'Qes = 2π·Fs·Mms·Re/Bl²', target: 'Qes', fields: ['Qes', 'Bl', 'Fs', 'Mms', 'Re'],
-    predict: v => TAU * v.Fs * v.Mms * v.Re / (v.Bl * v.Bl) },
+  { formula: 'Qes = 2π·Fs·Mms·Re/Bl²', target: 'Qes', fields: ['Qes', 'BL', 'Fs', 'Mms', 'Re'],
+    predict: v => TAU * v.Fs * v.Mms * v.Re / (v.BL * v.BL) },
   // §4 row 3
-  { formula: 'Rme = Bl²/Re', target: 'Rme', fields: ['Rme', 'Bl', 'Re'],
-    predict: v => v.Bl * v.Bl / v.Re },
+  { formula: 'Rme = Bl²/Re', target: 'Rme', fields: ['Rme', 'BL', 'Re'],
+    predict: v => v.BL * v.BL / v.Re },
   // §4 row 4
   { formula: 'Rme = 2π·Fs·Mms/Qes', target: 'Rme', fields: ['Rme', 'Fs', 'Mms', 'Qes'],
     predict: v => TAU * v.Fs * v.Mms / v.Qes },
@@ -85,8 +84,8 @@ const RELATIONS: readonly Relation[] = [
   { formula: 'Dd = 2·√(Sd/π)', target: 'Dd', fields: ['Dd', 'Sd'],
     predict: v => 2 * Math.sqrt(v.Sd / Math.PI) },
   // §4 row 8
-  { formula: 'Mpow = Bl/√Re', target: 'Mpow', fields: ['Mpow', 'Bl', 'Re'],
-    predict: v => v.Bl / Math.sqrt(v.Re) },
+  { formula: 'Mpow = Bl/√Re', target: 'Mpow', fields: ['Mpow', 'BL', 'Re'],
+    predict: v => v.BL / Math.sqrt(v.Re) },
   // §4 row 9
   { formula: 'Mpow = √Rme', target: 'Mpow', fields: ['Mpow', 'Rme'],
     predict: v => Math.sqrt(v.Rme) },
@@ -97,8 +96,8 @@ const RELATIONS: readonly Relation[] = [
   { formula: 'Fs = 1/(2π·√(Mms·Cms))', target: 'Fs', fields: ['Fs', 'Mms', 'Cms'],
     predict: v => 1 / (TAU * Math.sqrt(v.Mms * v.Cms)) },
   // §4 row 13
-  { formula: 'gamma = Bl/Mms', target: 'gamma', fields: ['gamma', 'Bl', 'Mms'],
-    predict: v => v.Bl / v.Mms },
+  { formula: 'gamma = Bl/Mms', target: 'gamma', fields: ['gamma', 'BL', 'Mms'],
+    predict: v => v.BL / v.Mms },
   // §4 row 20
   { formula: 'Vd = Sd·Xmax', target: 'Vd', fields: ['Vd', 'Sd', 'Xmax'],
     predict: v => v.Sd * v.Xmax },
@@ -137,7 +136,7 @@ const FLOAT_NOISE = 1e-9;
  * Driver ADT hands `solveConsistencyGroup`.
  */
 export function checkConsistency(entered: Values): ConsistencyIssue[] {
-  const resolved = solveConsistencyGroup(entered as DriverRaw) as unknown as Record<string, number>;
+  const resolved = solveConsistencyGroup(entered) as Record<string, number>;
 
   const usable = (x: number | undefined): boolean => typeof x === 'number' && isFinite(x) && x > 0;
 
@@ -150,7 +149,7 @@ export function checkConsistency(entered: Values): ConsistencyIssue[] {
   }
   for (const k of Object.keys(entered)) {
     if (!(delta[k] > 0)) continue;
-    const bumped = solveConsistencyGroup({ ...entered, [k]: entered[k] + delta[k] } as DriverRaw) as unknown as Record<string, number>;
+    const bumped = solveConsistencyGroup({ ...entered, [k]: entered[k] + delta[k] }) as Record<string, number>;
     for (const j of Object.keys(delta)) {
       if (j in entered) continue;
       if (usable(bumped[j])) delta[j] += Math.abs(bumped[j] - resolved[j]);

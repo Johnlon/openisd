@@ -1,5 +1,9 @@
 # Xmax: an equal overhang writes 0 instead of falling through to Vd/Sd
 
+# Status
+FIXED 2026-08-13
+
+
 **Found** 2026-08-13, by the WinISD route-precedence probe (ledger QO39, QO40).
 **Severity** wrong number shown to the user, and a false excursion limit drawn on two charts.
 

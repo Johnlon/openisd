@@ -1,5 +1,8 @@
 # BUG — Gloss has no TO_ENGINE/FROM_ENGINE entry, so every caller reaches it by casting `'loss'` past SpecField
 
+# Status
+FIXED 2026-08-17
+
 ## Symptom
 
 Nothing in the type system stops a caller reaching the cone-sag field by its RECORD name.

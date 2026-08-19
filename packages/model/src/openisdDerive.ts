@@ -14,8 +14,8 @@
  * GAPS.md §A4 ("E/C/N derivation is one-directional; WinISD's is a group solver") stays
  * open — these two additions are partial coverage, not a full small-system solver.
  */
-import { RHO, C, deriveDriver, solveConsistencyGroup, splFromEfficiency } from '@openisd/engine';
-import type { DriverRaw, DriverError } from '@openisd/engine';
+import { deriveEngineDriver, solveConsistencyGroup, splFromEfficiency } from '@openisd/engine';
+import type { DriverError } from '@openisd/engine';
 
 export interface OpenISDDerivation {
   /** Every derivable field, SI units — both entered (passed through unchanged) and
@@ -42,16 +42,13 @@ export function deriveOpenISDFields(entered: Readonly<Record<string, number>>): 
 
   if (r.Dia == null && r.Dd != null) r.Dia = r.Dd;
 
-  if (r.c == null) r.c = C;
-  if (r.roo == null) r.roo = RHO;
-
   // η₀ and SPL through the ONE implementation in @openisd/engine, evaluated at this
-  // driver's own air. solveConsistencyGroup already fills `no`/`SPLref`; `SPL` is the
-  // `.wdr` spelling of the same quantity.
+  // driver's own air — c/roo are already filled by solveConsistencyGroup above, the same
+  // entered-or-computed path as every other derivable field. `no`/`SPLref` are likewise
+  // already filled; `SPL` is the `.wdr` spelling of the same quantity.
   if (r.SPL == null && r.no != null && r.no > 0) r.SPL = splFromEfficiency(r.no, r.roo, r.c);
 
-  // Same validation authority #derive() uses — unchanged, not part of this extraction's
-  // scope to replace. `DriverRaw`'s retirement (AD-9) is a separate, focused pass.
-  const { errors } = deriveDriver(r as unknown as DriverRaw);
+  // Same validation authority #derive() uses.
+  const { errors } = deriveEngineDriver(r);
   return { fields: r, errors };
 }

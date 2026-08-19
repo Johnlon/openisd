@@ -1,5 +1,8 @@
 # BUG — driver-editor Dimensions rows are padded 24px apart
 
+# Status
+OPEN
+
 ## Symptom
 
 The Dimensions tab's eight fields are spread down the panel with a wide band of empty space

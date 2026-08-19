@@ -6,11 +6,11 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveDriver, withAddedMass, sweep } from '../src/index.js';
-import type { Driver, SweepResult } from '../src/index.js';
+import { deriveEngineDriver, withAddedMass, sweep } from '../src/index.js';
+import type { EngineDriver, SweepResult } from '../src/index.js';
 
-function drv(): Driver {
-  const r = deriveDriver({ Fs: 40, Qes: 0.45, Qms: 4, Vas: 0.03, Sd: 0.0133, Re: 6, Le: 0.5e-3 });
+function drv(): EngineDriver {
+  const r = deriveEngineDriver({ Fs: 40, Qes: 0.45, Qms: 4, Vas: 0.03, Sd: 0.0133, Re: 6, Le: 0.5e-3 });
   assert.ok(r.value, `fixture derives: ${JSON.stringify(r.errors)}`);
   return r.value;
 }
@@ -20,7 +20,7 @@ describe('withAddedMass — driver-side cone mass', () => {
     const d = drv();
     for (const Madd of [0, -0.01]) {
       const d0 = withAddedMass(d, Madd);
-      for (const k of ['Fs', 'Mms', 'Cms', 'Rms', 'Bl', 'Re', 'Sd', 'Qts', 'Qes', 'Qms'] as const) {
+      for (const k of ['Fs', 'Mms', 'Cms', 'Rms', 'BL', 'Re', 'Sd', 'Qts', 'Qes', 'Qms'] as const) {
         assert.equal(d0[k], d[k], `${k} must be unchanged at Madd=${Madd}`);
       }
     }
@@ -30,7 +30,7 @@ describe('withAddedMass — driver-side cone mass', () => {
     const d = drv();
     const m = withAddedMass(d, 0.05); // +50 g
     assert.ok(Math.abs(m.Mms - (d.Mms + 0.05)) < 1e-12, 'Mms += Madd');
-    for (const k of ['Cms', 'Rms', 'Bl', 'Re', 'Sd'] as const) assert.ok(Math.abs(m[k] - d[k]) < 1e-12, `${k} fixed`);
+    for (const k of ['Cms', 'Rms', 'BL', 'Re', 'Sd'] as const) assert.ok(Math.abs(m[k] - d[k]) < 1e-12, `${k} fixed`);
   });
 
   it('lowers Fs by √(Mms/(Mms+Madd)) and raises Qts (the WinISD oracle relationship, §12c)', () => {

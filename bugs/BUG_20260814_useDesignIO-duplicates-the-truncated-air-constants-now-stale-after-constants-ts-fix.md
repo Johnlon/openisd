@@ -1,5 +1,9 @@
 # `useDesignIO.ts` duplicates the (now-corrected) air constants as bare, still-truncated literals
 
+# Status
+OPEN 2026-08-14
+
+
 **Found** 2026-08-14, while implementing the authorized fix for
 `bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md`
 (`packages/engine/src/constants.ts`'s `RHO`/`C` corrected from 6/5-significant-figure truncations

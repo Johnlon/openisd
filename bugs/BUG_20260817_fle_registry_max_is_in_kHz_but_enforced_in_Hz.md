@@ -1,5 +1,8 @@
 # fLe's registry limit is written in kHz but enforced in Hz, so any real fLe is rejected
 
+# Status
+FIXED
+
 ## Symptom
 
 Typing a realistic fLe into the driver editor clears the field instead of accepting it. A

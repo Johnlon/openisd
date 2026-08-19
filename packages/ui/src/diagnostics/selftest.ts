@@ -27,7 +27,7 @@
  */
 import { RHO, C } from '@openisd/engine';
 import { referenceEfficiency, splFromEfficiency } from '@openisd/engine';
-import { deriveDriver } from '@openisd/engine';
+import { deriveEngineDriver } from '@openisd/engine';
 import { sweep } from '@openisd/engine';
 import type { SweepParams } from '@openisd/engine';
 
@@ -67,7 +67,7 @@ const REF_DRIVER = {
   Le:   0.7e-3,  // H   — voice-coil inductance
   Xmax: 0.005,   // m   — max one-way linear excursion (5 mm)
   Pe:   60,      // W   — rated power
-  Z:    8,       // Ω   — nominal impedance
+  Znom:    8,       // Ω   — nominal impedance
 };
 
 // ---------------------------------------------------------------------------
@@ -113,8 +113,8 @@ export function createDiagnostics(deps: DiagnosticsDeps): Diagnostics {
 }
 
 function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
-  const { value: d } = deriveDriver(REF_DRIVER);
-  if (!d) return [{ label: 'Self-test', pass: false, detail: 'REF_DRIVER failed deriveDriver validation' }];
+  const { value: d } = deriveEngineDriver(REF_DRIVER);
+  if (!d) return [{ label: 'Self-test', pass: false, detail: 'REF_DRIVER failed deriveEngineDriver validation' }];
   const dNoLe = { ...d, Le: 0 }; // Le=0 isolates acoustic response from voice-coil inductance
 
   // --- Gate 1: sealed SPL vs closed-form Thiele/Small transfer function ---

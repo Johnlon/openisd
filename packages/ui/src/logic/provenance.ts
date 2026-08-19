@@ -27,7 +27,7 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
   Qes: {
     paths: [
       { formulaText: 'Qes = (Qts × Qms) / (Qms - Qts)', inputs: ['Qts', 'Qms'] },
-      { formulaText: 'Qes = (2π × Fs × Mms × Re) / BL²', inputs: ['Fs', 'Mms', 'Re', 'Bl'] }
+      { formulaText: 'Qes = (2π × Fs × Mms × Re) / BL²', inputs: ['Fs', 'Mms', 'Re', 'BL'] }
     ]
   },
   Qms: {
@@ -59,7 +59,7 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
   Mms: {
     paths: [
       { formulaText: 'Mms = 1 / (4π² × Fs² × Cms)', inputs: ['Fs', 'Cms'] },
-      { formulaText: 'Mms = (BL² × Qes) / (2π × Fs × Re)', inputs: ['Bl', 'Qes', 'Fs', 'Re'] }
+      { formulaText: 'Mms = (BL² × Qes) / (2π × Fs × Re)', inputs: ['BL', 'Qes', 'Fs', 'Re'] }
     ]
   },
   Cms: {
@@ -75,10 +75,10 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
   },
   Re: {
     paths: [
-      { formulaText: 'Re = (BL² × Qes) / (2π × Fs × Mms)', inputs: ['Bl', 'Qes', 'Fs', 'Mms'] }
+      { formulaText: 'Re = (BL² × Qes) / (2π × Fs × Mms)', inputs: ['BL', 'Qes', 'Fs', 'Mms'] }
     ]
   },
-  Bl: {
+  BL: {
     paths: [
       { formulaText: 'BL = √(2π × Fs × Mms × Re / Qes)', inputs: ['Fs', 'Mms', 'Re', 'Qes'] }
     ]
@@ -141,7 +141,7 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
   },
   gamma: {
     paths: [
-      { formulaText: 'γ = BL / Mms', inputs: ['Bl', 'Mms'] }
+      { formulaText: 'γ = BL / Mms', inputs: ['BL', 'Mms'] }
     ]
   },
   // √Rme rather than BL/√Re: the two are the same quantity only on a record whose stored BL
@@ -183,15 +183,15 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
  * (research/winisd/help/thielesmall.html).
  */
 export const LABEL_TO_FIELD_KEY: Record<string, string> = {
-  Qes: 'Qes', Qms: 'Qms', Qts: 'Qts', Fs: 'Fs', Vas: 'Vas', Mms: 'Mms', Cms: 'Cms', Rms: 'Rms', Re: 'Re', BL: 'Bl',
+  Qes: 'Qes', Qms: 'Qms', Qts: 'Qts', Fs: 'Fs', Vas: 'Vas', Mms: 'Mms', Cms: 'Cms', Rms: 'Rms', Re: 'Re', BL: 'BL',
   Dd: 'Dd', Le: 'Le', Sd: 'Sd', fLe: 'fLe', KLe: 'Le2', Xmax: 'Xmax', Hc: 'Hc', Hg: 'Hg', Vd: 'Vd', Xlim: 'Xlim',
-  Pe: 'Pe', no: 'no', Znom: 'Z', USPL: 'USPL', SPL: 'SPL', Voicecoils: 'numVC',
+  Pe: 'Pe', no: 'no', Znom: 'Znom', USPL: 'USPL', SPL: 'SPL', Voicecoils: 'numVC',
   AlfaVC: 'tc', 'R(t)': 'Rth', 'C(t)': 'Cth', SPLmaxLF: 'SPLmaxLF', SPLmax: 'SPLmax', Rme: 'Rme',
   gamma: 'gamma', Mpow: 'Mpow', Mcost: 'Mcost', EBP: 'EBP', Gloss: 'Gloss',
-  'Basket Plate Thickness (Thick)': 'thick', 'Driver Depth (Depth)': 'depth',
-  'Magnet Depth (MagDepth)': 'magnetDepth', 'Magnet Diameter (Magnet)': 'magnet',
-  'Basket Diameter (Basket)': 'basket', 'Outer Diameter (Outer)': 'outer',
-  'Voice Coil Dia (VCd)': 'VCd', 'Driver Displacement Volume (Dvol)': 'basketDisplacement',
+  'Basket Plate Thickness (Thick)': 'Thick', 'Driver Depth (Depth)': 'Depth',
+  'Magnet Depth (MagDepth)': 'MagDepth', 'Magnet Diameter (Magnet)': 'Magnet',
+  'Basket Diameter (Basket)': 'Basket', 'Outer Diameter (Outer)': 'Outer',
+  'Voice Coil Dia (Vcd)': 'Vcd', 'Driver Displacement Volume (DVol)': 'DVol',
 };
 
 export function getProvenanceInfo(targetField: string, currentValues?: Record<string, number | null>): ProvenanceInfo | null {

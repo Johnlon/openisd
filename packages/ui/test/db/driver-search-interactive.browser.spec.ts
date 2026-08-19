@@ -13,7 +13,7 @@ test('a saved driver with no name is listed and searchable under its derived nam
       brand: 'Dayton Audio',
       model: 'Epique Series E150HE-44',
       Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
-      Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Z: 8, _savedAt: 1,
+      Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
     }]));
   });
   await page.goto('/');
@@ -40,8 +40,8 @@ test('the delete button removes a saved driver that carries no name', async ({ p
   await page.goto('/');
   await page.evaluate(() => {
     localStorage.setItem('openisd_my_drivers', JSON.stringify([
-      { brand: 'Dayton Audio', model: 'Epique Series E150HE-44', Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132, Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Z: 8, _savedAt: 1 },
-      { brand: 'Dayton Audio', model: 'RS180-8', Fs: 37, Qts: 0.38, Qes: 0.42, Qms: 4.0, Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.5e-3, Xmax: 0.005, Pe: 60, Z: 8, _savedAt: 2 },
+      { brand: 'Dayton Audio', model: 'Epique Series E150HE-44', Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132, Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1 },
+      { brand: 'Dayton Audio', model: 'RS180-8', Fs: 37, Qts: 0.38, Qes: 0.42, Qms: 4.0, Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.5e-3, Xmax: 0.005, Pe: 60, Znom: 8, _savedAt: 2 },
     ]));
   });
   await page.goto('/');

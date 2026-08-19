@@ -1,5 +1,9 @@
 # The WinISD-compatibility air mode SCALES with temperature; WinISD's own frozen air does not
 
+# Status
+BLOCKED 2026-08-14 — needs a human ruling
+
+
 **Found** 2026-08-14, while re-running `packages/winisd/test/winisd-parity.test.ts` after fixing
 the air-constant truncation (`bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md`).
 **Severity** wrong number, large — 1.69e-2 relative on `c`, 3.36e-2 on `roo` (both far bigger

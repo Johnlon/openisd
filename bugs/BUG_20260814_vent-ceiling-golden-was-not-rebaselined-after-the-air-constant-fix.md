@@ -1,5 +1,8 @@
 # BUG — vent-target-reachability's CEILING_HZ golden was missed by the air-constant rebaseline
 
+# Status
+FIXED 2026-08-14
+
 ## Symptom
 
 `packages/ui/test/logic/vent-target-reachability.test.ts` > `names the true ceiling — the L = 0

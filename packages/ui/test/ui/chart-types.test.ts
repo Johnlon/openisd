@@ -18,16 +18,16 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveDriver, sweep, maxCurves } from '@openisd/engine';
-import type { DriverRaw, SweepParams } from '@openisd/engine';
+import { deriveEngineDriver, sweep, maxCurves } from '@openisd/engine';
+import type { SweepParams } from '@openisd/engine';
 import { TABS, TAB_META, parseChartTabId, seriesFor } from '../../src/logic/series.js';
 import type { ChartTabId } from '../../src/types.js';
 
-const RAW: DriverRaw = {
+const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
-  Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Z: 8,
+  Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
 };
-const { value: DRV } = deriveDriver(RAW);
+const { value: DRV } = deriveEngineDriver(RAW);
 assert.ok(DRV, 'reference driver failed to derive');
 
 const SP: SweepParams = {

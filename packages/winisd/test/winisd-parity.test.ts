@@ -13,7 +13,7 @@
  * engine's own curve regression lives in `packages/engine/test/golden.test.ts`, which is a
  * different guarantee: it proves openisd has not changed, not that it matches WinISD.
  *
- * The openisd side runs through the APP's own path — `Driver.fromWdr()` + `cell()` — not a
+ * The openisd side runs through the APP's own path — `Driver.fromWdrIni()` + `cell()` — not a
  * re-assembly of the formulas here. A test that reimplemented the derivation would prove
  * only that the test agrees with itself.
  */
@@ -134,7 +134,7 @@ function scenarioWdr(s: Scenario): string {
  * — so the record cannot answer for them and the derivation must.
  */
 const ENGINE_ONLY: Readonly<Record<string, string>> = {
-  Dd: 'Dia', BL: 'Bl',
+  Dd: 'Dia',
 };
 
 /**
@@ -284,8 +284,8 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
       const golden = existsSync(path)
         ? parseIni(readFileSync(path, 'utf8'))
         : ({} as Record<string, Record<string, string>>);
-      const asRead = WinISDDriver.fromWdr(scenarioWdr(s));
-      const drv = OpenISDDriver.fromRecord(asRead.toOpenISDRecord());
+      const asRead = WinISDDriver.fromWdrIni(scenarioWdr(s));
+      const drv = OpenISDDriver.fromWinISDDriver(asRead);
 
       it('WinISD accepted the scenario and wrote a driver block back', () => {
         assert.ok(golden.Driver, `${s.id}: the golden has no [Driver] section`);
@@ -361,7 +361,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
       it('ParState — the per-field E/C/N marks WinISD assigned', () => {
         const winisd = golden.Driver.ParState;
         assert.ok(winisd, `${s.id}: the golden carries no ParState`);
-        const { value: written } = WinISDDriver.fromOpenISDRecord(drv.toRecord());
+        const { value: written } = drv.toWinISDDriver();
         assert.ok(written, `${s.id}: openisd could not write a .wdr for this driver`);
         const openisd = parseIni(written.toWdr()).Driver.ParState;
         assert.ok(openisd, `${s.id}: openisd produced no ParState`);

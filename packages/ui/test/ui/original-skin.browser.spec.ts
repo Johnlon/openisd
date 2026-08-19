@@ -435,7 +435,7 @@ test('Signal tab: Driver input voltage is editable and drives System input power
   const re = await page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.driver.value.Re;
+    return s.engineDriver().Re;
   });
   const vInput = page.locator('.field', { hasText: 'Driver input voltage' }).locator('input');
   await vInput.fill('20');
