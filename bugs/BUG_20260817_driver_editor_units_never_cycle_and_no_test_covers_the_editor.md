@@ -1,7 +1,7 @@
 # Driver editor unit labels never cycle, and no test covers them
 
 # Status
-OPEN
+FIXED (re-verified 2026-08-19 — coverage moved to a different file)
 
 ## Symptom
 
@@ -61,3 +61,9 @@ silently open in the wrong unit and every suite would stay green.
 
 `packages/ui/test/ui/driver-editor-unit-cycling.browser.spec.ts` — red before the change (the
 label does not rotate), green after.
+
+Re-verified 2026-08-19: `driver-editor-unit-cycling.browser.spec.ts` no longer exists — coverage
+moved into `driver-editor-provenance-and-units.browser.spec.ts` ("every unit with alternates is
+a working toggle, and every other unit is a plain label"; "rotating a unit changes the display
+only — the stored value round-trips"). Both pass in the full 10/10 run of that file this
+session.

@@ -1,7 +1,7 @@
 # Browser suite is RED: 14 specs wait for a `.skin-picker` that no longer exists
 
 # Status
-OPEN
+FIXED (re-verified 2026-08-19)
 
 ## Symptom
 
@@ -68,3 +68,10 @@ them to cover.
 ## Verification
 
 The affected specs run to their assertions instead of timing out in `beforeEach`.
+
+Re-verified 2026-08-19: `grep -rln "skin-picker" packages/ui/test` — zero hits (fix 1 applied).
+`grep -rln "DriverWhatIfPanel\|selectOption('classic')" packages/ui/test` — zero hits (fix 2
+applied). `npx playwright test packages/ui/test/ui/bottom-scroll.browser.spec.ts --workers=1`
+and the full `whatif-panel-fields.browser.spec.ts`/`driver-editor-provenance-and-units.browser.
+spec.ts`/`driver-editor-layout.browser.spec.ts` runs earlier this session all ran straight past
+`beforeEach` with no timeout.
