@@ -17,6 +17,9 @@
 // (`1.20095`/`343.68`) was 1.8e-6/1.2e-5 relative off and is documented as fixed in
 // bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md.
 export const RHO = 1.20095217714682;  // air density        kg/m³   (20 °C — WinISD, full precision)
+
+// speed of sound in dry air
+// However 0 different software uses different values https://jahonen.kapsi.fi/Audio/Papers/Portlengths.pdf
 export const C   = 343.684120962153;  // speed of sound      m/s     (20 °C — WinISD, full precision)
 export const P0  = 20e-6;    // SPL reference       Pa RMS  (0 dB SPL)
 
