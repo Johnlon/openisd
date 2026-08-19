@@ -36,3 +36,11 @@ duplicate ids safely.
 ## Verification
 
 Not yet — no fix applied.
+
+Reproduced live 2026-08-19: `python3 ~/.claude/bin/inbox.py put QO56 -` (attempting to record
+direct evidence of a concurrent-editing collision, ironically) landed the note on the WRONG
+QO56 — `inbox.py get QO56` immediately after confirms the note attached to the DECIDED
+"Sequencing risk" question, not the OPEN "Multiple concurrent sessions" one it was meant for.
+The intended note is now effectively lost from the question it was about. No workaround
+attempted (hand-editing questions.yml is banned); this needs the human dedupe pass this bug
+already calls for.
