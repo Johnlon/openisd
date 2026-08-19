@@ -35,7 +35,7 @@ export interface SaveResult {
   written: boolean;
 }
 
-export function fileSystemAccessSupported(): boolean {
+function fileSystemAccessSupported(): boolean {
   return typeof (globalThis as { showSaveFilePicker?: unknown }).showSaveFilePicker === 'function';
 }
 
