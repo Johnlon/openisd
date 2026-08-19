@@ -1,7 +1,7 @@
 # BUG — the provenance popup's "Live:" line never substitutes a real value
 
 # Status
-OPEN
+FIXED (superseded 2026-08-19 — the feature was removed)
 
 ## Symptom
 
@@ -55,3 +55,10 @@ and `driver-editor-provenance.browser.spec.ts` check the popup's highlight/color
 `Live:` line's content. Adding a check that opens Inspect Provenance on a field with a
 known-populated input and asserts the `Live:` line contains that input's actual entered value,
 not `?`.
+
+Re-verified 2026-08-19: the "Live:" line no longer exists at all —
+`driver-editor-provenance-and-units.browser.spec.ts:333-340`, `'the equation-inspector popup no
+longer shows a "Live:" substitution line'`, opens Inspect Provenance on Fs and asserts
+`.eq-inspector-card`'s "Live:" text has ZERO count. Rather than fixing the substitution, the
+feature was removed outright — this bug's symptom cannot recur since its cause (the
+substitution mechanism) no longer exists. Test passes.
