@@ -5608,6 +5608,21 @@ questions:
       Also need a setter: focusProject(index) (or equivalent), called when the user changes the
       active project in the UI's project list — this is what actually moves focusedProject()'s
       cursor. openProjects()/focusedProject() alone are read accessors; this is the write side.
+  notes:
+  - at: '2026-08-19'
+    text: |-
+      Direct evidence from tonight's session (2026-08-19, overnight /goal run), despite being told
+      "you are the only editor on this tree overnight": docs/papers/Portlengths.pdf/.txt appeared on
+      disk mid-session (~12:05-12:07) while this agent was running background Playwright tests, never
+      created by this agent. Later, packages/engine/src/constants.ts and its related tests
+      (air.test.ts, advanced-figures.test.ts, wprMapping.test.ts) showed live unstaged modifications
+      matching exactly the speed-of-sound constant conflict this agent had just flagged
+      (BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md) as
+      needing a human decision — strongly suggesting the human was actively resolving it in real time,
+      concurrently, in the same working tree, with no coordination signal visible to the agent beyond
+      noticing the diff appear. Agent response: stopped touching those files, committed only its own
+      scoped changes with explicit git add <file> (not -A), and flagged this in its status report.
+      This is exactly the failure mode QO56 describes, reproduced live rather than theorised.
 - id: QO56
   title: Multiple concurrent sessions are rewriting overlapping hot files (store.ts, managedProject.ts,
     openisdDriver.ts, winisdDriver.ts) with no coordination -
@@ -5626,6 +5641,17 @@ questions:
   status: open
   raised: '2026-08-18'
   body: ''
+  notes:
+  - at: '2026-08-19'
+    text: |-
+      FIXED 2026-08-19. store.ts's driverRecord computed is now explicitly typed
+      ComputedRef<DriverJSON | undefined> (DriverJSON, the existing public type already declared in
+      ui/src/types.ts and already used elsewhere, e.g. AppState.driver?: DriverJSON) instead of the
+      private _OpenISDDriverJson. Verified: architecture.test.ts's "an export typed as a private _Name
+      must itself be _-prefixed" gate now passes (was the one specific failure this question named).
+      Full UI suite: 175/179 pass (was 174/179 before this fix — net +1 passing, 0 regressions), the
+      remaining 4 failures are pre-existing, unrelated architecture-test offences (module-level-globals
+      migration, OpenISDDriver-value imports) requiring separate human-only allowlist edits.
 - id: QO59
   title: ManagedOpenISDProject leaks _OpenISDProjectJson through snapshot/recordToPersist/groundRecord
     -

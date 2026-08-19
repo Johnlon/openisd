@@ -18,7 +18,7 @@ import type { EngineDriver, DriverError, ConsistencyIssue, SweepResult, MaxCurve
 import { driverRecordProblems, OpenISDDriver, setActiveAlignment } from '@openisd/model';
 import type { Cell, MetaCell, SpecField, MetaField, _OpenISDDriverJson, _OpenISDProjectJson } from '@openisd/model';
 import { ManagedOpenISDProject } from './managedProject.js';
-import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
+import type { AppState, UiParams, SyncedParams, SerializedState, DriverJSON } from '../types.js';
 import type { OpenISDVent, OpenISDPassiveRadiatorRef } from '@openisd/model';
 import { parseChartTabId } from './series.js';
 import { nextToken, toDisplay, displayPrecision, unitDef, type UnitGroup } from './fields/units.js';
@@ -442,7 +442,7 @@ export function _projectToPersist(): _OpenISDProjectJson {
 
 /** Just the driver record out of the persistable project, for the paths that write a DRIVER
  *  file (`.wdr`, `.owdr`) rather than a project file. Undefined when none is chosen. */
-export const driverRecord: ComputedRef<_OpenISDDriverJson | undefined> =
+export const driverRecord: ComputedRef<DriverJSON | undefined> =
   computed(() => _projectToPersist().driver);
 
 /** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
