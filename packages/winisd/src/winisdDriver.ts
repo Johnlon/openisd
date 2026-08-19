@@ -36,7 +36,7 @@ export interface WdrCell {
 /** Every `.wdr` field WinISDDriver knows about, keyed by WinISD's OWN spelling (`Fs`, `BL`,
  *  `Znom`, `Gloss`, …) — never an internal field name, so no producer's naming choices leak
  *  into the format layer. */
-export type WdrCells = ReadonlyMap<string, WdrCell>;
+type WdrCells = ReadonlyMap<string, WdrCell>;
 
 /** The seven free-text header lines every `.wdr` carries, in file order. */
 export interface WdrHeader {
