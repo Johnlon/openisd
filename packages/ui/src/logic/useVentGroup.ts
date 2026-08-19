@@ -48,7 +48,7 @@ export type VentEntryField = typeof VENT_ENTRY_FIELDS[number];
 /** Cross-sectional area of a round vent of diameter `d` — delegates to the model package's
  *  `ventArea_m2()`, the one place this formula lives (bugs/BUG_20260818_vent_area_formula_
  *  duplicated_four_times_no_engine_source_of_truth.md). */
-export function ventSp(ventD: number): number {
+function ventSp(ventD: number): number {
   return ventArea_m2({ shape: 'round', diameter_m: ventD, width_m: 0, height_m: 0, length_m: 0, endCorrection: 0 });
 }
 
@@ -61,7 +61,7 @@ export function ventCrossArea(P: UiParams): number {
  * The volume this vent tunes. Per-chamber, not per-box: a bandpass4's port belongs to its
  * FRONT chamber and tunes `Vf`; every other vented type ports the whole box, `Vb`.
  */
-export function ventVolume(P: UiParams, box?: string): number {
+function ventVolume(P: UiParams, box?: string): number {
   return box === 'bandpass4' ? P.Vf : P.Vb;
 }
 
@@ -73,7 +73,7 @@ export function ventVolume(P: UiParams, box?: string): number {
  * it has no closed form. Cleared, it is genuinely Not-available — reporting `C` there would
  * mean showing a number nothing computed.
  */
-export function ventDerivable(P: UiParams, field: VentField, box?: string): boolean {
+function ventDerivable(P: UiParams, field: VentField, box?: string): boolean {
   if (field === 'ventD') return false;
   const volEntered = box === 'bandpass4' ? true : P.entered.Vb; // Vf is always entered
   if (P.ventShape === 'slotted') {
