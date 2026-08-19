@@ -1,7 +1,7 @@
 # BUG — driver-editor Parameters/Advanced fields do not share a column edge
 
 # Status
-OPEN
+FIXED (re-verified 2026-08-19 — driver-editor-layout.browser.spec.ts full suite: 26/26 pass, this bug's own named test included)
 
 ## Symptom
 
