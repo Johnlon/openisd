@@ -14,7 +14,12 @@
 
 import { RHO, C, P0, G_STANDARD } from './constants.js';
 import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
-import type { DriverRaw, Driver, DriverError, Result } from './types.js';
+import { ebp } from './alignments.js';
+import type { EngineDriver, DriverError, Result } from './types.js';
+
+/** A driver's fields by name, before validation — every value present or absent, nothing
+ *  else. `parseWdr` drops absent fields, so a partial driver is a valid intermediate state. */
+type DriverFields = Record<string, number | undefined>;
 
 /**
  * The air a driver record itself carries. A `.wdr` stores `c` and `roo`, and the Driver ADT
@@ -23,9 +28,8 @@ import type { DriverRaw, Driver, DriverError, Result } from './types.js';
  * air, which is why this is read per record rather than taken from the module constants.
  *
  * Only `solveConsistencyGroup` can use it: it works on the untyped record it was handed, which
- * is where those two keys actually arrive. `Driver`/`DriverRaw` do not model air at all (see
- * the OBSOLETE note on `DriverRaw` in types.ts — that interface is frozen pending AD-9's
- * successor type), so `deriveDriver` has nothing to read and uses the app constants.
+ * is where those two keys actually arrive. `EngineDriver` does not model air at all, so
+ * `deriveEngineDriver` has nothing to read and uses the app constants.
  */
 function airOf(r: Readonly<Record<string, number | undefined>>): { c: number; rho: number } {
   return {
@@ -78,7 +82,7 @@ export function nominalImpedance(Re: number): number {
  * Solve every derivable Thiele/Small field from whatever is already present in `d`,
  * without requiring a complete set — an entered (non-null) value is NEVER overwritten
  * (WinISD's fixed-E override semantics). This is the ONE place these formulas exist;
- * `deriveDriver` layers required-field validation on top of it for the "ready to
+ * `deriveEngineDriver` layers required-field validation on top of it for the "ready to
  * simulate" case below. Callers that need partial/progressive derivation (an
  * in-progress edit, not yet complete enough to simulate — e.g. the live driver editor)
  * call this directly instead of reimplementing any of it.
@@ -99,11 +103,8 @@ export function nominalImpedance(Re: number): number {
  * the air in use (`airOf`). η₀ is a FRACTION throughout; the percent lives in the display
  * layer only.
  */
-export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }): DriverRaw {
-  // Keyed access, not `any`: the solver writes fields by name (`r[key] = val` in the full
-  // pass), which a typed DriverRaw cannot express — but every value in the group is a number
-  // or absent, so the index signature says exactly that and keeps the arithmetic checked.
-  const r = { ...d } as unknown as Record<string, number | undefined>;
+export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolean }): DriverFields {
+  const r: DriverFields = { ...d };
 
   const TAU = 2 * Math.PI;
   const air = airOf(r);
@@ -123,8 +124,8 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
       if (r.Cms == null) r.Cms = Cas / (r.Sd * r.Sd);
       if (r.Mms == null && r.Cms != null) r.Mms = 1 / ((2 * Math.PI * r.Fs) ** 2 * r.Cms);
       if (r.Rms == null && r.Qms != null && r.Mms != null) r.Rms = 2 * Math.PI * r.Fs * r.Mms / r.Qms;
-      if (r.Bl == null && r.Re != null && r.Qes != null && r.Mms != null) {
-        r.Bl = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
+      if (r.BL == null && r.Re != null && r.Qes != null && r.Mms != null) {
+        r.BL = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
       }
     }
 
@@ -133,11 +134,11 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     if (r.Fs == null && r.Mms != null && r.Cms != null) {
       r.Fs = 1 / (2 * Math.PI * Math.sqrt(r.Mms * r.Cms));
     }
-    if (r.Re == null && r.Qes != null && r.Bl != null && r.Fs != null && r.Mms != null) {
-      r.Re = r.Qes * r.Bl * r.Bl / (2 * Math.PI * r.Fs * r.Mms);
+    if (r.Re == null && r.Qes != null && r.BL != null && r.Fs != null && r.Mms != null) {
+      r.Re = r.Qes * r.BL * r.BL / (2 * Math.PI * r.Fs * r.Mms);
     }
 
-    return r as unknown as DriverRaw;
+    return r;
   }
 
 
@@ -181,11 +182,11 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     if (r.Fs == null && r.Mms != null && r.Qms != null && r.Rms != null && r.Mms > 0) setVal('Fs', r.Rms * r.Qms / (TAU * r.Mms));
 
     // 6. Qes, Bl, Fs, Mms, Re
-    if (r.Qes == null && r.Fs != null && r.Mms != null && r.Re != null && r.Bl != null) setVal('Qes', TAU * r.Fs * r.Mms * r.Re / (r.Bl * r.Bl));
-    if (r.Re == null && r.Qes != null && r.Bl != null && r.Fs != null && r.Mms != null) setVal('Re', r.Qes * r.Bl * r.Bl / (TAU * r.Fs * r.Mms));
-    if (r.Bl == null && r.Qes != null && r.Re != null && r.Fs != null && r.Mms != null && r.Qes > 0) setVal('Bl', Math.sqrt(TAU * r.Fs * r.Mms * r.Re / r.Qes));
-    if (r.Mms == null && r.Qes != null && r.Bl != null && r.Fs != null && r.Re != null && r.Fs > 0 && r.Re > 0) setVal('Mms', r.Qes * r.Bl * r.Bl / (TAU * r.Fs * r.Re));
-    if (r.Fs == null && r.Qes != null && r.Bl != null && r.Mms != null && r.Re != null && r.Mms > 0 && r.Re > 0) setVal('Fs', r.Qes * r.Bl * r.Bl / (TAU * r.Mms * r.Re));
+    if (r.Qes == null && r.Fs != null && r.Mms != null && r.Re != null && r.BL != null) setVal('Qes', TAU * r.Fs * r.Mms * r.Re / (r.BL * r.BL));
+    if (r.Re == null && r.Qes != null && r.BL != null && r.Fs != null && r.Mms != null) setVal('Re', r.Qes * r.BL * r.BL / (TAU * r.Fs * r.Mms));
+    if (r.BL == null && r.Qes != null && r.Re != null && r.Fs != null && r.Mms != null && r.Qes > 0) setVal('BL', Math.sqrt(TAU * r.Fs * r.Mms * r.Re / r.Qes));
+    if (r.Mms == null && r.Qes != null && r.BL != null && r.Fs != null && r.Re != null && r.Fs > 0 && r.Re > 0) setVal('Mms', r.Qes * r.BL * r.BL / (TAU * r.Fs * r.Re));
+    if (r.Fs == null && r.Qes != null && r.BL != null && r.Mms != null && r.Re != null && r.Mms > 0 && r.Re > 0) setVal('Fs', r.Qes * r.BL * r.BL / (TAU * r.Mms * r.Re));
 
     // 7. Xmax / Hc / Hg relations
     // Precedence between the two Xmax routes is on the RESULT, not the route: WinISD prefers
@@ -279,8 +280,8 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     if (r.Rme == null && r.Fs != null && r.Mms != null && r.Qes != null && r.Qes > 0) {
       setVal('Rme', TAU * r.Fs * r.Mms / r.Qes);
     }
-    if (r.Rme == null && r.Bl != null && r.Re != null && r.Re > 0) {
-      setVal('Rme', r.Bl * r.Bl / r.Re);
+    if (r.Rme == null && r.BL != null && r.Re != null && r.Re > 0) {
+      setVal('Rme', r.BL * r.BL / r.Re);
     }
     // Mpow = Bl/√Re — WinISD's OWN route, not √Rme. Verified from the `inconsistent-fs`
     // parity golden (packages/winisd/test/fixtures/winisd-parity/goldens/inconsistent-fs.wpr):
@@ -295,10 +296,10 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     // `√Rme` is retained only as the fallback for a record with no `Bl` (e.g. `Bl` itself
     // absent but `Rme` derivable from Fs/Mms/Qes). See
     // bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
-    if (r.Mpow == null && r.Bl != null && r.Re != null && r.Re > 0) setVal('Mpow', r.Bl / Math.sqrt(r.Re));
+    if (r.Mpow == null && r.BL != null && r.Re != null && r.Re > 0) setVal('Mpow', r.BL / Math.sqrt(r.Re));
     if (r.Mpow == null && r.Rme != null && r.Rme > 0) setVal('Mpow', Math.sqrt(r.Rme));
     // gamma = Bl/Mms — one route only.
-    if (r.gamma == null && r.Bl != null && r.Mms != null && r.Mms > 0) setVal('gamma', r.Bl / r.Mms);
+    if (r.gamma == null && r.BL != null && r.Mms != null && r.Mms > 0) setVal('gamma', r.BL / r.Mms);
     // SPLmax = SPL_stated + 10·log₁₀(Pe) − 3 dB: the thermal-limit offset from the SAME base
     // USPL offsets from (`uSplBase`, block 12 above — stated SPL, else the η₀-derived
     // SPLref). The flat 3 dB derating is measured exactly (not 10·log₁₀(2) = 3.0103 — the two
@@ -348,39 +349,54 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     // `Re` (6 and 12), because WinISD accepts a calculated Re as this rule's input. It does not
     // go through `setVal`: that refuses a non-positive result, and Re < 2/3 legitimately yields
     // a COMPUTED zero (probe Z_tie_re0.6 — Znom=0 marked C, not the unset Znom=0/N of a blank
-    // driver). An entered Z is never touched, so a Znom contradicting its own Re stays pinned.
-    if (r.Z == null && r.Re != null && r.Re > 0) {
-      r.Z = nominalImpedance(r.Re);
+    // driver). An entered Znom is never touched, so a Znom contradicting its own Re stays pinned.
+    if (r.Znom == null && r.Re != null && r.Re > 0) {
+      r.Znom = nominalImpedance(r.Re);
       changed = true;
     }
 
     iterations++;
   }
 
-  return r as unknown as DriverRaw;
+  // The air a record carries is itself a derivable field, exactly like any other: entered
+  // (a .wdr's own c/roo) wins, and an unset one resolves to the app's own physical constant —
+  // `air` already computed this above for the formulas that need it; surfacing it here in the
+  // output record is what lets every caller treat c/roo through the SAME entered-or-computed
+  // path as Fs/Qes/EBP, with no special case anywhere above this module.
+  if (r.c == null) r.c = air.c;
+  if (r.roo == null) r.roo = air.rho;
+
+  // EBP (Fs/Qes) likewise: a real derivable field, computed once every input it needs is
+  // available, through the SAME formula `alignments.ts` exports for every other caller —
+  // never recomputed ad hoc downstream.
+  if (r.EBP == null && r.Fs != null && r.Qes != null && r.Qes > 0) {
+    r.EBP = ebp({ Fs: r.Fs, Qes: r.Qes });
+  }
+
+  return r;
 }
 
-export function deriveDriver(d: DriverRaw): Result<Driver> {
+export function deriveEngineDriver(d: DriverFields): Result<EngineDriver> {
   const errors: DriverError[] = [];
-  // The working copy becomes a fully-derived Driver once validation passes below;
-  // the single cast lets us assign the derived fields. Guarded reads (r.Fs > 0)
-  // tolerate the pre-validation undefined values fine.
-  const r = Object.assign({}, d) as Driver;
+  // The working copy stays in DriverFields shape through validation and derivation —
+  // guarded reads (r.Fs! > 0) tolerate the pre-validation undefined values fine — and is
+  // cast to EngineDriver only once every required field is confirmed present, at return.
+  const r: DriverFields = { ...d };
 
   // Auto-derive Sd from Dd if Dd is entered but Sd is not
-  if (!(r.Sd > 0) && r.Dd! > 0) {
+  if (!(r.Sd! > 0) && r.Dd! > 0) {
     r.Sd = Math.PI * (r.Dd! / 2) ** 2;
   }
   // Auto-derive Dd from Sd if Sd is entered but Dd is not
-  if (!(r.Dd! > 0) && r.Sd > 0) {
-    r.Dd = 2 * Math.sqrt(r.Sd / Math.PI);
+  if (!(r.Dd! > 0) && r.Sd! > 0) {
+    r.Dd = 2 * Math.sqrt(r.Sd! / Math.PI);
   }
 
   // Required fields — each missing one is a blocking error
-  if (!(r.Fs > 0))  errors.push({ level: 'error', field: 'Fs',  message: 'Resonant frequency (Fs) is required and must be greater than zero' });
-  if (!(r.Re > 0))  errors.push({ level: 'error', field: 'Re',  message: 'DC resistance (Re) is required and must be greater than zero' });
-  if (!(r.Sd > 0))  errors.push({ level: 'error', field: 'Sd',  message: 'Piston area (Sd) is required — enter Sd or cone diameter' });
-  if (!(r.Vas > 0)) errors.push({ level: 'error', field: 'Vas', message: 'Acoustic compliance volume (Vas) is required for moving-mass derivation' });
+  if (!(r.Fs! > 0))  errors.push({ level: 'error', field: 'Fs',  message: 'Resonant frequency (Fs) is required and must be greater than zero' });
+  if (!(r.Re! > 0))  errors.push({ level: 'error', field: 'Re',  message: 'DC resistance (Re) is required and must be greater than zero' });
+  if (!(r.Sd! > 0))  errors.push({ level: 'error', field: 'Sd',  message: 'Piston area (Sd) is required — enter Sd or cone diameter' });
+  if (!(r.Vas! > 0)) errors.push({ level: 'error', field: 'Vas', message: 'Acoustic compliance volume (Vas) is required for moving-mass derivation' });
 
   // A usable Q is FINITE as well as positive. `Infinity > 0` is true, so a bare `> 0` test
   // accepts a Q that is itself already poison — and a caller that ran solveConsistencyGroup
@@ -396,9 +412,9 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
   // Qes = Qts·Qms/(Qms−Qts) divides by zero or flips sign, which would poison Bl and the
   // whole circuit. Checked whenever BOTH members of a pair are given — not only when the
   // third is absent, because an already-present third does not make the pair consistent.
-  if (qOk(r.Qts) && qOk(r.Qms) && r.Qms <= r.Qts)
+  if (qOk(r.Qts) && qOk(r.Qms) && r.Qms! <= r.Qts!)
     errors.push({ level: 'error', field: 'Qms', message: 'Qms must be greater than Qts (Qts is the parallel combination of Qes and Qms)' });
-  if (qOk(r.Qts) && qOk(r.Qes) && r.Qes <= r.Qts)
+  if (qOk(r.Qts) && qOk(r.Qes) && r.Qes! <= r.Qts!)
     errors.push({ level: 'error', field: 'Qes', message: 'Qes must be greater than Qts (Qts is the parallel combination of Qes and Qms)' });
 
   // Optional fields — absence does NOT block derivation; it only drops one reference
@@ -417,15 +433,16 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
   // implementation in efficiency.ts. η₀ is a FRACTION, so nothing here divides by 100.
   // `Driver` carries no air of its own, so the app constants are the air in use here; a
   // record that DOES carry `c`/`roo` gets them honoured in solveConsistencyGroup above.
-  r.no = referenceEfficiency(r.Fs, r.Vas, r.Qes, C);
+  r.no = referenceEfficiency(r.Fs!, r.Vas!, r.Qes!, C);
   if (r.no > 0) {
     r.SPLref = splFromEfficiency(r.no, RHO, C);
     // 2.83² (WinISD's own 1 W/8 Ω test-voltage reference, squared), NOT the bare 8 this used to
     // read — same fix, same evidence, as `solveConsistencyGroup` block 12 above. `Driver`
-    // carries no stated `SPL` of its own (this function's documented boundary, see the
-    // docstring above `Object.assign` two lines up), so the base stays `SPLref` here.
-    if (r.Re > 0) {
-      r.USPL = r.SPLref + 10 * Math.log10(2.83 * 2.83 / r.Re);
+    // carries no stated `SPL` of its own (this function's documented boundary — the working
+    // copy built above from `d`, before the consistency-group solve), so the base stays
+    // `SPLref` here.
+    if (r.Re! > 0) {
+      r.USPL = r.SPLref + 10 * Math.log10(2.83 * 2.83 / r.Re!);
     }
     // SPLmax = SPLref + 10·log₁₀(Pe) − 3 dB — the flat 3 dB derating measured exactly on the
     // `winisd-parity` goldens (same evidence as `solveConsistencyGroup`'s SPLmax block); this
@@ -435,7 +452,7 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
     }
   }
 
-  return { value: r, errors };
+  return { value: r as unknown as EngineDriver, errors };
 }
 
 /**
@@ -457,13 +474,13 @@ export function hotRe(Re: number, alfaVC: number, dT: number): number {
  *   Qms' = ωs'·Mms'/Rms,  Qes' = ωs'·Mms'·Re/Bl²,  Qts' = Qes'·Qms'/(Qes'+Qms').
  * `MaddKg ≤ 0` returns an equivalent driver (exact no-op) so existing goldens never move.
  */
-export function withAddedMass(drv: Driver, MaddKg: number): Driver {
+export function withAddedMass(drv: EngineDriver, MaddKg: number): EngineDriver {
   if (!(MaddKg > 0)) return { ...drv };
   const Mms = drv.Mms + MaddKg;
   const ws  = 1 / Math.sqrt(Mms * drv.Cms);          // ωs = 1/√(Mms·Cms)
   const Fs  = ws / (2 * Math.PI);
   const Qms = ws * Mms / drv.Rms;                    // ωs·Mms/Rms
-  const Qes = ws * Mms * drv.Re / (drv.Bl * drv.Bl); // ωs·Mms·Re/Bl²
+  const Qes = ws * Mms * drv.Re / (drv.BL * drv.BL); // ωs·Mms·Re/Bl²
   const Qts = (Qes * Qms) / (Qes + Qms);
   return { ...drv, Mms, Fs, Qms, Qes, Qts };
 }

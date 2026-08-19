@@ -17,21 +17,21 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  defaultBox, activeVent, boxVolume_m3, setBoxVolume_m3,
+  prototypeBox, activeVent, boxVolume_m3, setBoxVolume_m3,
   boxTuning_Fb_hz, setBoxTuning_Fb_hz, passiveRadiatorOrDefault, ensurePassiveRadiator,
 } from '../src/openisdProject.js';
 import type { OpenISDBox } from '../src/openisdProject.js';
 
 describe('activeVent — which vent state.P\'s flat fields address', () => {
   it('targets the vented alignment\'s own vent when vented is active', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'vented';
     box.vented.vent.diameter_m = 0.09;
     assert.equal(activeVent(box), box.vented.vent);
   });
 
   it('targets bandpass4\'s FRONT vent when bandpass4 is active, not the vented alignment\'s', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'bandpass4';
     box.bandpass4.frontVent.diameter_m = 0.07;
     box.vented.vent.diameter_m = 0.09;
@@ -39,7 +39,7 @@ describe('activeVent — which vent state.P\'s flat fields address', () => {
   });
 
   it('while sealed is active, still targets the DORMANT vented vent — pre-configurable, not gone', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'sealed';
     box.vented.vent.diameter_m = 0.055;
     assert.equal(activeVent(box).diameter_m, 0.055,
@@ -49,14 +49,14 @@ describe('activeVent — which vent state.P\'s flat fields address', () => {
   });
 
   it('while passive-radiator is active, still targets the dormant vented vent', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'passive-radiator';
     box.vented.vent.length_m = 0.21;
     assert.equal(activeVent(box).length_m, 0.21);
   });
 
   it('is a LIVE reference — writing through it mutates the box', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'vented';
     activeVent(box).diameter_m = 0.11;
     assert.equal(box.vented.vent.diameter_m, 0.11);
@@ -73,7 +73,7 @@ describe('boxVolume_m3 / setBoxVolume_m3 — Vb per active alignment', () => {
 
   for (const [active, read] of cases) {
     it(`reads and writes ${active}'s own volume`, () => {
-      const box = defaultBox();
+      const box = prototypeBox();
       box.active = active;
       setBoxVolume_m3(box, 0.033);
       assert.equal(read(box), 0.033);
@@ -82,7 +82,7 @@ describe('boxVolume_m3 / setBoxVolume_m3 — Vb per active alignment', () => {
   }
 
   it('bandpass4\'s Vb is the REAR chamber — the front chamber is a separate field (Vf)', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'bandpass4';
     box.bandpass4.frontVolume_m3 = 0.02;
     setBoxVolume_m3(box, 0.05);
@@ -91,7 +91,7 @@ describe('boxVolume_m3 / setBoxVolume_m3 — Vb per active alignment', () => {
   });
 
   it('switching active alignment does not touch the volume left behind', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'vented';
     setBoxVolume_m3(box, 0.04);
     box.active = 'sealed';
@@ -103,21 +103,21 @@ describe('boxVolume_m3 / setBoxVolume_m3 — Vb per active alignment', () => {
 
 describe('boxTuning_Fb_hz / setBoxTuning_Fb_hz — Fb, same active/vented/bandpass4 split as the vent', () => {
   it('addresses vented.Fb_hz when vented is active', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'vented';
     setBoxTuning_Fb_hz(box, 32);
     assert.equal(box.vented.Fb_hz, 32);
   });
 
   it('addresses bandpass4.Ff_hz when bandpass4 is active — Fb IS the front tuning there', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'bandpass4';
     setBoxTuning_Fb_hz(box, 58);
     assert.equal(box.bandpass4.Ff_hz, 58);
   });
 
   it('while sealed is active, still addresses the dormant vented.Fb_hz', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.active = 'sealed';
     setBoxTuning_Fb_hz(box, 40);
     assert.equal(box.vented.Fb_hz, 40);
@@ -127,7 +127,7 @@ describe('boxTuning_Fb_hz / setBoxTuning_Fb_hz — Fb, same active/vented/bandpa
 
 describe('passive-radiator field access — always passiveRadiator, whatever is active', () => {
   it('passiveRadiatorOrDefault reads zeros without creating a radiator', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     assert.equal(box.passiveRadiator.radiator, undefined, 'precondition: no radiator chosen yet');
     const ref = passiveRadiatorOrDefault(box.passiveRadiator);
     assert.equal(ref.Sd_m2, 0);
@@ -137,7 +137,7 @@ describe('passive-radiator field access — always passiveRadiator, whatever is 
   });
 
   it('ensurePassiveRadiator creates one on first write and returns the SAME object on the next call', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     const first = ensurePassiveRadiator(box.passiveRadiator);
     first.Sd_m2 = 0.005;
     const second = ensurePassiveRadiator(box.passiveRadiator);
@@ -146,7 +146,7 @@ describe('passive-radiator field access — always passiveRadiator, whatever is 
   });
 
   it('count and added mass live directly on the alignment, not inside the radiator', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     box.passiveRadiator.count = 2;
     box.passiveRadiator.addedMass_kg = 0.012;
     assert.equal(box.passiveRadiator.radiator, undefined,
@@ -155,7 +155,7 @@ describe('passive-radiator field access — always passiveRadiator, whatever is 
   });
 
   it('PR fields ignore box.active — they never move to another alignment', () => {
-    const box = defaultBox();
+    const box = prototypeBox();
     ensurePassiveRadiator(box.passiveRadiator).Sd_m2 = 0.006;
     box.active = 'sealed';
     assert.equal(passiveRadiatorOrDefault(box.passiveRadiator).Sd_m2, 0.006,

@@ -23,7 +23,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/winisd';
-import { OpenISDDriver, emptyDriverRecord } from '@openisd/model';
+import { OpenISDDriver, _emptyDriverRecord } from '@openisd/model';
 import type { SpecField } from '@openisd/model';
 import { precision, fieldById } from '../../src/logic/fields/fieldRegistry.js';
 import { UNIT_GROUPS, unitDef, type UnitGroup } from '../../src/logic/fields/units.js';
@@ -118,7 +118,7 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
 
 /** A driver with every core T/S parameter present, in SI. */
 function coreDriver(): OpenISDDriver {
-  const d = OpenISDDriver.fromRecord(emptyDriverRecord());
+  const d = OpenISDDriver.fromRecord(_emptyDriverRecord());
   d.enter('Fs', 37);
   d.enter('Qes', 0.4);
   d.enter('Qms', 7.0);
@@ -177,7 +177,7 @@ describe('driver editor — unit label and scale agree', () => {
     // length — 165 mm — never 0.17, and never a metre value printed beside "in".
     for (const label of ['Basket Plate Thickness (Thick)', 'Driver Depth (Depth)', 'Magnet Depth (MagDepth)',
                          'Magnet Diameter (Magnet)', 'Basket Diameter (Basket)',
-                         'Outer Diameter (Outer)', 'Voice Coil Dia (VCd)']) {
+                         'Outer Diameter (Outer)', 'Voice Coil Dia (Vcd)']) {
       const f = byLabel(label);
       assert.equal(f.unit, 'mm', `${label} is labelled "${f.unit}"`);
       assert.equal(0.165 * f.scale, 165, `${label} renders 0.165 m as ${0.165 * f.scale} ${f.unit}`);
@@ -213,7 +213,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     const text = readFileSync(join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'john-all-noncalc-fields-manually-entered.wdr'), 'utf8');
     const stored = /^Gloss=(.*)$/m.exec(text)?.[1];
     assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
-    const cell = OpenISDDriver.fromRecord(WinISDDriver.fromWdr(text).toOpenISDRecord()).cell('Gloss');
+    const cell = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(text)).cell('Gloss');
     assert.equal(cell.state, 'C', 'this fixture\'s ParState marks Gloss computed, not entered');
     assert.equal(typeof cell.value, 'number', 'Gloss must be numeric');
     const relError = Math.abs((cell.value as number) - 1.72503712771898) / 1.72503712771898;
@@ -268,8 +268,8 @@ describe('driver editor — precision comes from the field registry', () => {
     'Magnet Diameter (Magnet)': 'dimMagnet',
     'Basket Diameter (Basket)': 'dimBasket',
     'Outer Diameter (Outer)': 'dimOuter',
-    'Voice Coil Dia (VCd)': 'dimVCd',
-    'Driver Displacement Volume (Dvol)': 'dimDvol',
+    'Voice Coil Dia (Vcd)': 'dimVCd',
+    'Driver Displacement Volume (DVol)': 'dimDvol',
   };
 
   for (const [label, id] of Object.entries(REGISTRY_ID)) {

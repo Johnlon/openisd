@@ -424,7 +424,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       Mms: 0.026,
       Cms: 0.0006,
       Rms: 1.5,
-      Bl: 10.0,
+      BL: 10.0,
       Pe: 100,
       numVC: 1,
     };

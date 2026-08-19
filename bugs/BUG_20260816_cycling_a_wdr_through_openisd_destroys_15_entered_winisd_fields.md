@@ -1,5 +1,9 @@
 # BUG — cycling a `.wdr` through `OpenISDDriver` destroys 15 fields the user entered
 
+# Status
+- 15-field silent drop: FIXED
+- KLe never computed: OPEN
+
 ## Symptom
 
 `.wdr` → `WinISDDriver` → `OpenISDDriver` → `WinISDDriver` → `.wdr` silently loses the value of

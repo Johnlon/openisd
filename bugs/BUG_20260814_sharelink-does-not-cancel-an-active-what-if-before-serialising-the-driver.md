@@ -1,5 +1,9 @@
 # BUG_20260814 — `shareLink()` does not cancel an active what-if before serialising the driver
 
+# Status
+FIXED 2026-08-14
+
+
 **Status:** FIXED in the same turn this file was written (Step 10, `ManagedDriver`). Proven by
 `packages/ui/test/logic/useDesignIO.test.ts` — red (what-if still active after `shareLink()`)
 before the one-line fix, green after.

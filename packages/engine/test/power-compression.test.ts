@@ -6,11 +6,11 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveDriver, hotRe, sweep } from '../src/index.js';
-import type { Driver, SweepResult } from '../src/index.js';
+import { deriveEngineDriver, hotRe, sweep } from '../src/index.js';
+import type { EngineDriver, SweepResult } from '../src/index.js';
 
-function drv(): Driver {
-  const r = deriveDriver({ Fs: 40, Qes: 0.45, Qms: 4, Vas: 0.03, Sd: 0.0133, Re: 6, Le: 0.5e-3 });
+function drv(): EngineDriver {
+  const r = deriveEngineDriver({ Fs: 40, Qes: 0.45, Qms: 4, Vas: 0.03, Sd: 0.0133, Re: 6, Le: 0.5e-3 });
   assert.ok(r.value, `fixture derives: ${JSON.stringify(r.errors)}`);
   return r.value;
 }

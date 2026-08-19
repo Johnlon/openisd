@@ -8,20 +8,24 @@
 import type { OpenISDDriver, _OpenISDDriverJson } from '@openisd/model';
 import type { Result } from '@openisd/engine';
 
+/**
+ * Human ruling: the ONLY files, `packages/`-relative, permitted to name `_parseOwdr` —
+ * enforced by `packages/ui/test/ui/architecture.test.ts` the same way as
+ * `_OpenISDDriverJsonPrivateAllow` in openisdDriver.ts. ONLY the human may add, remove, or
+ * change an entry here — no agent may edit this list on its own judgement.
+ */
+export const _parseOwdrPrivateAllow: string[] = [];
+
 /** `.owdr` text → the app's one record shape — handed straight to STORAGE (`ManagedOpenISDProject`,
  *  My Drivers), one of the three places permitted to hold the JSON record, per its own
  *  serialisation needs. */
-export function importDriver(text: string): _OpenISDDriverJson {
+export function _parseOwdr(text: string): _OpenISDDriverJson {
   return JSON.parse(text) as _OpenISDDriverJson;
 }
 
 /**
  * A driver → `.owdr` text. Always succeeds — a record is always representable as its own JSON
  * — but `Result` for symmetry with `winIsdDriverFileIo.ts`.
- *
- * Takes the live `OpenISDDriver`, never the raw record: `OpenISDDriver` is the settled public
- * API for a driver everywhere in this app (human ruling, 2026-08-17) — `.toRecord()` is called
- * here, inside the file-io boundary, and nowhere else this function's callers can see.
  */
 export function exportDriver(driver: OpenISDDriver): Result<string> {
   return { value: JSON.stringify(driver.toRecord(), null, 2), errors: [] };

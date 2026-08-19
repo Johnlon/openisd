@@ -1,5 +1,8 @@
 # Typecheck is RED: `driver-editor-units.test.ts` imports the deleted `Driver` ADT
 
+# Status
+FIXED
+
 ## Symptom
 
 `npm run typecheck` fails in the `ui` project:

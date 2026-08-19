@@ -1,5 +1,8 @@
 # A coaxial driver's tweeter T/S section is permanently unreachable through `OpenISDDriver`
 
+# Status
+OPEN
+
 ## Symptom
 
 `driverType.ts` declares a real `coaxial` `DriverType` (woofer + tweeter sharing one axis), and

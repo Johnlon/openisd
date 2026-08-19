@@ -2,7 +2,7 @@
  * Shared UI types — the view-layer shapes (plot series, designs, canvas geometry).
  * Engine shapes (Driver, SweepResult, …) are imported from @openisd/engine.
  */
-import type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@openisd/engine';
+import type { EngineDriver, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@openisd/engine';
 import type { OpenISDDriver } from '@openisd/model';
 
 /** The openisd.yml record shape — what `OpenISDDriver.toRecord()` hands back. */
@@ -58,7 +58,7 @@ export type PlotParams = SweepParams & { splXmaxLimited?: boolean };
 
 /** A design shown on a chart — the current design plus any pinned comparisons. */
 export interface Design {
-  driver: Driver | null;
+  driver: EngineDriver | null;
   box: BoxType;
   P: PlotParams;
   curves: SweepResult | null;
@@ -350,4 +350,4 @@ export interface SerializedState {
   cursor?: { f: number | null; pinnedF: number | null; locked: boolean; range?: { fLo: number; fHi: number } | null };
 }
 
-export type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult };
+export type { EngineDriver, BoxType, SweepParams, SweepResult, MaxCurvesResult };

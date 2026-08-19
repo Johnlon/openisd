@@ -1,5 +1,9 @@
 # `Mpow` uses √Rme where WinISD uses Bl/√Re — the two were indistinguishable until now
 
+# Status
+BLOCKED 2026-08-13 — needs a human ruling
+
+
 **Found** 2026-08-13, on the `inconsistent-fs` parity golden captured the same day.
 **Severity** wrong number on any record whose stored `Fs` disagrees with its own `Mms`·`Cms` —
 41 % on the fixture that separates them. Zero on a self-consistent driver, which is why it

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { state, driver, allIssues, syncedP, curvesData, maxData } from '../../logic/store.js';
+import { state, engineDriver, allIssues, syncedP, curvesData, maxData } from '../../logic/store.js';
 import { TAB_META, buildPlotData } from '../../logic/series.js';
 import type { ChartTabId } from '../../logic/series.js';
 import { drawOne } from '../canvas.js';
@@ -22,7 +22,7 @@ const readEl   = ref<HTMLElement | null>(null);
 const meta     = computed(() => TAB_META[props.tabId]);
 
 const currentDesign = computed(() => ({
-  driver: driver.value, box: state.box, P: syncedP.value,
+  driver: engineDriver(), box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value,
   name: 'Current', color: props.primaryColor || DPAL[0],
 }));

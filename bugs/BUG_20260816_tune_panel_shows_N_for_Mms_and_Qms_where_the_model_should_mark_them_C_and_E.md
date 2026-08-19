@@ -1,5 +1,8 @@
 # Tune panel marks Mms `N` and Qms `N` where the model should mark them `C` and `E`
 
+# Status
+OPEN
+
 ## Symptom
 
 With a driver loaded and the Tune panel open, cells that carry a value are marked **Not in

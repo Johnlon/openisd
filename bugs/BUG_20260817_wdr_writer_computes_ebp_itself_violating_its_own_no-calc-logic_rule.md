@@ -1,5 +1,8 @@
 # BUG — `WinISDDriver.fromOpenISDRecord` computes EBP itself, violating its own documented "no calculation logic" rule
 
+# Status
+OPEN
+
 ## Symptom
 
 `packages/winisd/src/winisdDriver.ts:341`:

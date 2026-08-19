@@ -14,18 +14,18 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveDriver, solve, sweep, portImpedance, cAbs, cSub, cTanh, cx, C,
+import { deriveEngineDriver, solve, sweep, portImpedance, cAbs, cSub, cTanh, cx, C,
          passbandRef, classifyFlatClamp } from '@openisd/engine';
-import type { SweepParams, DriverRaw } from '@openisd/engine';
+import type { SweepParams } from '@openisd/engine';
 
 // Reference driver — the demo 6.5" woofer (store.DEFAULT_DRIVER), which every other
 // engine test also uses, so a failure here is about the option under test, not the driver.
-const RAW: DriverRaw = {
+const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
-  Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Z: 8,
+  Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
 };
-const derive = (raw: DriverRaw) => {
-  const { value, errors } = deriveDriver(raw);
+const derive = (raw: Record<string, number>) => {
+  const { value, errors } = deriveEngineDriver(raw);
   if (!value) throw new Error('driver derivation failed: ' + errors.map(e => e.message).join('; '));
   return value;
 };
@@ -44,8 +44,8 @@ describe('absent Le — the impedance plot must stay finite (BUG)', () => {
   const rawNoLe = { ...RAW };
   delete rawNoLe.Le;
 
-  it('deriveDriver accepts a driver with no Le (Le is optional, not required)', () => {
-    const { value, errors } = deriveDriver(rawNoLe);
+  it('deriveEngineDriver accepts a driver with no Le (Le is optional, not required)', () => {
+    const { value, errors } = deriveEngineDriver(rawNoLe);
     assert.ok(value, 'driver with no Le should still derive');
     assert.equal(errors.filter(e => e.level === 'error').length, 0);
   });

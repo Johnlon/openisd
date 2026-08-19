@@ -8,15 +8,16 @@
  * hands back data; it never reaches back into the application's state.
  *
  * These assertions match the SHAPE of the code — the import specifier and the exported
- * declaration — never prose. A gate that fails because a comment mentions a module name is a
- * broken gate: it manufactures false positives, and the usual "fix" is a rename that changes
- * no behaviour and destroys the evidence.
+ * declaration — via the TypeScript AST (ts-morph), never text-pattern matching. A gate that
+ * fails because a comment mentions a module name is a broken gate: it manufactures false
+ * positives, and the usual "fix" is a rename that changes no behaviour and destroys the evidence.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
+import { Project as TsProject, Node, SyntaxKind, type SourceFile } from 'ts-morph';
 
 const UI_SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
 
@@ -32,30 +33,49 @@ function filesUnder(dir: string): string[] {
   return out;
 }
 
+const project = new TsProject({
+  tsConfigFilePath: join(UI_SRC, '..', 'tsconfig.json'),
+  skipAddingFilesFromTsConfig: true,
+});
+
+/** A `.vue` file's `<script>` block, parsed as a virtual TS source file so the rest of the
+ *  file's queries can treat a component exactly like a module — imports, exports, classes,
+ *  top-level statements — all live inside that block. A plain `.ts` file is used as-is. */
+const sfCache = new Map<string, SourceFile>();
+function sourceFileOf(file: string): SourceFile {
+  const cached = sfCache.get(file);
+  if (cached) return cached;
+  const raw = readFileSync(file, 'utf8');
+  const isVue = file.endsWith('.vue');
+  const text = isVue ? (/<script[^>]*>([\s\S]*?)<\/script>/.exec(raw)?.[1] ?? '') : raw;
+  const virtualPath = isVue ? `${file}.ts` : file;
+  const created = project.createSourceFile(virtualPath, text, { overwrite: true });
+  sfCache.set(file, created);
+  return created;
+}
+
 /**
  * Every module specifier a VALUE import pulls in. `import type` erases at compile time —
  * it creates no runtime edge, so it cannot make one file depend on another's behaviour. Every
  * assertion in this file reasons about runtime dependency, so every one of them must ignore a
- * type-only import; a gate that flags one is flagging nothing.
+ * type-only import; a gate that flags one is flagging nothing. A bare `import '...'` (no
+ * clause) has no bindings to erase — it runs the module for its side effects, so it always
+ * counts.
  */
 function importsOf(file: string): string[] {
-  const text = readFileSync(file, 'utf8');
+  const source = sourceFileOf(file);
   const specs: string[] = [];
-
-  const valueImport = /^\s*import\s+(type\s+)?([^;]*?)\s*from\s+['"]([^'"]+)['"]/gm;
-  for (let m = valueImport.exec(text); m; m = valueImport.exec(text)) {
-    const [, isTypeOnly, bindings, spec] = m;
-    if (isTypeOnly) continue;
-    // `import { type X, Y }` erases X but not Y — only a real binding left after stripping
-    // `type <name>,` inside the braces counts as a value import.
-    const stripped = bindings.replace(/\{[^}]*\}/g, b => b.replace(/\btype\s+\w+,?/g, ''));
-    if (/\w/.test(stripped.replace(/[{},\s]/g, ''))) specs.push(spec);
+  for (const imp of source.getImportDeclarations()) {
+    const spec = imp.getModuleSpecifierValue();
+    const clause = imp.getImportClause();
+    if (!clause) { specs.push(spec); continue; }
+    if (imp.isTypeOnly()) continue;
+    const namedBindings = clause.getNamedBindings();
+    const hasDefaultOrNamespace = !!clause.getDefaultImport() || namedBindings?.getKind() === SyntaxKind.NamespaceImport;
+    const namedImports = namedBindings?.asKind(SyntaxKind.NamedImports)?.getElements() ?? [];
+    const hasValueNamed = namedImports.some(ni => !ni.isTypeOnly());
+    if (hasDefaultOrNamespace || hasValueNamed) specs.push(spec);
   }
-
-  // A bare `import '...'` has no bindings to erase — it runs the module for its side effects.
-  const bare = /^\s*import\s+['"]([^'"]+)['"]/gm;
-  for (let m = bare.exec(text); m; m = bare.exec(text)) specs.push(m[1]);
-
   return specs;
 }
 
@@ -71,19 +91,27 @@ function layerOf(spec: string): 'ui' | 'logic' | 'service' | 'domain' | 'externa
 /**
  * Every VALUE import statement in a file, as (module specifier, bound names) pairs — a finer
  * grain than `importsOf()`, which only needs the specifier. Reuses the same type-only-import
- * erasure rule: `import type` and a `type X` inside `{ }` bind no runtime name.
+ * erasure rule: `import type` and a `type X` inside `{ }` bind no runtime name. Both the
+ * imported (module-export) name and its local alias are recorded, matching the sense every
+ * call site actually checks against — the name the exporting module publishes.
  */
 function valueImportsOf(file: string): { spec: string; names: string[] }[] {
-  const text = readFileSync(file, 'utf8');
+  const source = sourceFileOf(file);
   const out: { spec: string; names: string[] }[] = [];
-  const valueImport = /^\s*import\s+(type\s+)?([^;]*?)\s*from\s+['"]([^'"]+)['"]/gm;
-  for (let m = valueImport.exec(text); m; m = valueImport.exec(text)) {
-    const [, isTypeOnly, bindings, spec] = m;
-    if (isTypeOnly) continue;
-    const stripped = bindings.replace(/\{[^}]*\}/g, b => b.replace(/\btype\s+\w+,?/g, ''));
-    const names = Array.from(stripped.matchAll(/[A-Za-z_$][\w$]*/g))
-      .map(x => x[0])
-      .filter(n => n !== 'as' && n !== 'default');
+  for (const imp of source.getImportDeclarations()) {
+    if (imp.isTypeOnly()) continue;
+    const spec = imp.getModuleSpecifierValue();
+    const names: string[] = [];
+    const def = imp.getDefaultImport();
+    if (def) names.push(def.getText());
+    const ns = imp.getNamespaceImport();
+    if (ns) names.push(ns.getText());
+    for (const ni of imp.getNamedImports()) {
+      if (ni.isTypeOnly()) continue;
+      names.push(ni.getName());
+      const alias = ni.getAliasNode();
+      if (alias) names.push(alias.getText());
+    }
     if (names.length) out.push({ spec, names });
   }
   return out;
@@ -97,19 +125,45 @@ const WINISD_SRC = join(UI_SRC, '..', '..', 'winisd', 'src');
 /**
  * Every import of `name` from a module matching `specPattern` — type-only or value, since a
  * type erases at compile time but a type-only import is still a NAME that ties a file to a
- * shape, which is exactly what this gate restricts. Matches both `import { name } from '...'`
- * and `import type { name } from '...'`, including mixed brace lists (`import { type A, B }`).
+ * shape, which is exactly what this gate restricts. Matches both a bare/default/namespace
+ * import and a named import (aliased or not), for either an `import type {...}` declaration
+ * or a plain `import {...}` that mixes `type X` with a value binding.
  */
 function namedImportsOf(file: string, name: string, specPattern: RegExp): string[] {
-  const text = readFileSync(file, 'utf8');
+  const source = sourceFileOf(file);
   const out: string[] = [];
-  const anyImport = /^\s*import\s+(?:type\s+)?[^;]*?from\s+['"]([^'"]+)['"]/gm;
-  for (let m = anyImport.exec(text); m; m = anyImport.exec(text)) {
-    const [whole, spec] = m;
+  for (const imp of source.getImportDeclarations()) {
+    const spec = imp.getModuleSpecifierValue();
     if (!specPattern.test(spec)) continue;
-    if (new RegExp(`\\b${name}\\b`).test(whole)) out.push(spec);
+    const clause = imp.getImportClause();
+    if (!clause) continue;
+    const bound: string[] = [];
+    const def = clause.getDefaultImport();
+    if (def) bound.push(def.getText());
+    const namedBindings = clause.getNamedBindings();
+    const nsImport = namedBindings?.asKind(SyntaxKind.NamespaceImport);
+    if (nsImport) bound.push(nsImport.getText());
+    for (const ni of namedBindings?.asKind(SyntaxKind.NamedImports)?.getElements() ?? []) {
+      bound.push(ni.getName());
+      const alias = ni.getAliasNode();
+      if (alias) bound.push(alias.getText());
+    }
+    if (bound.includes(name)) out.push(spec);
   }
   return out;
+}
+
+/** Does `file` contain a call expression whose callee text is exactly `expr` (e.g.
+ *  `'OpenISDDriver.fromRecord'`)? Used where a gate asserts a specific construction site
+ *  still exists, rather than scanning imports or declarations. */
+function callsExpression(file: string, expr: string): boolean {
+  const source = sourceFileOf(file);
+  let found = false;
+  source.forEachDescendant(node => {
+    if (found) return;
+    if (Node.isCallExpression(node) && node.getExpression().getText() === expr) found = true;
+  });
+  return found;
 }
 
 describe('layering — every arrow points downward', () => {
@@ -189,19 +243,19 @@ describe('layering — every arrow points downward', () => {
 });
 
 describe('inversion of control — collaborators are injected, never reached for', () => {
-  /** A module-level `let`/`var` that is exported is shared mutable state by another name. */
-  const EXPORTED_MUTABLE = /^export\s+(let|var)\s+(\w+)/gm;
-  /** A ready-made instance exported from the module IS the global — the importer cannot
-   *  substitute one, so nothing that depends on it can be tested in isolation. */
-  const EXPORTED_SINGLETON = /^export\s+const\s+(\w+)\s*=\s*(new\s+\w+|reactive\(|ref\()/gm;
-
   const CONSTRUCTED = [join(UI_SRC, 'db'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')];
+  const REACTIVE_FACTORIES = new Set(['ref', 'shallowRef', 'reactive', 'shallowReactive']);
 
   it('a service exports no mutable module-level binding', () => {
     const offences: string[] = [];
     for (const f of CONSTRUCTED.flatMap(filesUnder)) {
-      const text = readFileSync(f, 'utf8');
-      for (const m of text.matchAll(EXPORTED_MUTABLE)) offences.push(`${rel(f)}: export ${m[1]} ${m[2]}`);
+      const source = sourceFileOf(f);
+      for (const vs of source.getVariableStatements()) {
+        if (!vs.isExported()) continue;
+        const kind = vs.getDeclarationKind();
+        if (kind !== 'let' && kind !== 'var') continue;
+        for (const decl of vs.getDeclarations()) offences.push(`${rel(f)}: export ${kind} ${decl.getName()}`);
+      }
     }
     assert.deepEqual(offences, [],
       'Exported mutable bindings are globals. State belongs to the layer that owns it, ' +
@@ -211,8 +265,19 @@ describe('inversion of control — collaborators are injected, never reached for
   it('a service exports no pre-built instance — it exports a factory the caller wires', () => {
     const offences: string[] = [];
     for (const f of CONSTRUCTED.flatMap(filesUnder)) {
-      const text = readFileSync(f, 'utf8');
-      for (const m of text.matchAll(EXPORTED_SINGLETON)) offences.push(`${rel(f)}: export const ${m[1]} = ${m[2]}…`);
+      const source = sourceFileOf(f);
+      for (const vs of source.getVariableStatements()) {
+        if (!vs.isExported() || vs.getDeclarationKind() !== 'const') continue;
+        for (const decl of vs.getDeclarations()) {
+          const init = decl.getInitializer();
+          if (!init) continue;
+          if (Node.isNewExpression(init)) {
+            offences.push(`${rel(f)}: export const ${decl.getName()} = new ${init.getExpression().getText()}(...)…`);
+          } else if (Node.isCallExpression(init) && REACTIVE_FACTORIES.has(init.getExpression().getText())) {
+            offences.push(`${rel(f)}: export const ${decl.getName()} = ${init.getExpression().getText()}(...)…`);
+          }
+        }
+      }
     }
     assert.deepEqual(offences, [],
       'Export a create*() factory taking its collaborators as arguments. A module-level ' +
@@ -220,15 +285,17 @@ describe('inversion of control — collaborators are injected, never reached for
   });
 
   it('every service module offers a create*() factory', () => {
-    const FACTORY = /^export\s+function\s+create[A-Z]\w*\s*\(/m;
     const missing: string[] = [];
     for (const dir of CONSTRUCTED) {
       const modules = filesUnder(dir).filter(f => f.endsWith('.ts') && !f.endsWith('.d.ts'));
       for (const f of modules) {
-        const text = readFileSync(f, 'utf8');
+        const source = sourceFileOf(f);
+        const hasCallableExport = source.getFunctions().some(fn => fn.isExported())
+          || source.getClasses().some(c => c.isExported());
         // A module that exports nothing callable is a type or constant module — nothing to wire.
-        if (!/^export\s+(function|class)\s/m.test(text)) continue;
-        if (!FACTORY.test(text)) missing.push(rel(f));
+        if (!hasCallableExport) continue;
+        const hasFactory = source.getFunctions().some(fn => fn.isExported() && /^create[A-Z]/.test(fn.getName() ?? ''));
+        if (!hasFactory) missing.push(rel(f));
       }
     }
     assert.deepEqual(missing, [],
@@ -263,8 +330,7 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
   const DRAFT_HOLDER = join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue');
 
   it('the draft exemption names a file that still exists and still holds a draft', () => {
-    const text = readFileSync(DRAFT_HOLDER, 'utf8');
-    assert.match(text, /OpenISDDriver\.fromRecord\(/,
+    assert.ok(callsExpression(DRAFT_HOLDER, 'OpenISDDriver.fromRecord'),
       'DriverEditorModal.vue no longer holds a live draft — delete this exemption rather than ' +
       'leaving a hole in the containment rule for the next file to fall through.');
   });
@@ -285,8 +351,7 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
   });
 
   it('managedProject.ts itself is the one file that constructs an OpenISDDriver', () => {
-    const text = readFileSync(MANAGED_DRIVER_FILE, 'utf8');
-    assert.match(text, /OpenISDDriver\.fromRecord\(/,
+    assert.ok(callsExpression(MANAGED_DRIVER_FILE, 'OpenISDDriver.fromRecord'),
       'managedProject.ts no longer constructs an OpenISDDriver — either the facade was ' +
       'gutted, or construction moved to a helper file the previous assertion also needs to ' +
       'exempt. Update both together, never widen the exemption alone.');
@@ -307,33 +372,26 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
 describe('what-if exists ONLY inside ManagedOpenISDProject', () => {
   const MANAGED_DRIVER_FILE = join(UI_SRC, 'logic', 'managedProject.ts');
 
-  /** An IDENTIFIER naming what-if — a declaration, a call, a property. Never a comment or a
-   *  string: prose may name the concept freely (that is how it gets discussed and deleted),
-   *  and a gate that fails on a docstring manufactures false positives whose usual "fix" is
-   *  a rename that changes no behaviour. Matched on code with comments stripped. */
-  const WHATIF_IDENTIFIER = /\b\w*[wW]hat[_]?[iI]f\w*\b/g;
-
-  /** Source with line comments, block comments and string/template literals removed, so only
-   *  real identifiers remain. Crude but sufficient: it never has to round-trip, only to stop
-   *  prose from reaching the matcher. */
-  function codeOnly(text: string): string {
-    return text
-      .replace(/\/\*[\s\S]*?\*\//g, ' ')
-      .replace(/\/\/[^\n]*/g, ' ')
-      .replace(/<!--[\s\S]*?-->/g, ' ')
-      .replace(/'(?:[^'\\]|\\.)*'/g, "''")
-      .replace(/"(?:[^"\\]|\\.)*"/g, '""')
-      .replace(/`(?:[^`\\]|\\.)*`/g, '``');
-  }
+  /** An IDENTIFIER naming what-if — a declaration, a call, a property. Walking the AST's
+   *  Identifier/PrivateIdentifier nodes means comments and string/template literals are never
+   *  visited at all, so prose may name the concept freely (that is how it gets discussed and
+   *  deleted) with no risk of a false positive from a docstring. */
+  const WHATIF_IDENTIFIER = /^\w*[wW]hat[_]?[iI]f\w*$/;
+  const SANCTIONED = new Set(['isWhatIfActive', 'beginWhatIf', 'cancelWhatIf']);
 
   it('no file outside managedProject.ts declares its own what-if state or lifecycle', () => {
     const files = filesUnder(UI_SRC).filter(f => f !== MANAGED_DRIVER_FILE);
     const offences: string[] = [];
     for (const f of files) {
-      const found = new Set(codeOnly(readFileSync(f, 'utf8')).match(WHATIF_IDENTIFIER) ?? []);
+      const source = sourceFileOf(f);
+      const found = new Set<string>();
+      source.forEachDescendant(node => {
+        if (!Node.isIdentifier(node) && !Node.isPrivateIdentifier(node)) return;
+        const name = node.getText().replace(/^#/, '');
+        if (WHATIF_IDENTIFIER.test(name)) found.add(name);
+      });
       // Reading ManagedOpenISDProject's OWN published API is the sanctioned way to ask "is a what-if
       // effective?" — that is what the facade is FOR. Anything else is a second implementation.
-      const SANCTIONED = new Set(['isWhatIfActive', 'beginWhatIf', 'cancelWhatIf']);
       for (const name of found) {
         if (!SANCTIONED.has(name)) offences.push(`${rel(f)}: ${name}`);
       }
@@ -394,12 +452,26 @@ describe('only the three approved stores hold state', () => {
     join(UI_SRC, 'logic', 'presentationState.ts'),   // not built yet — see ARCHITECTURE.md
     join(UI_SRC, 'logic', 'urlAppState.ts'),         // not built yet — see ARCHITECTURE.md
   ];
+  const REACTIVE_FACTORIES = new Set(['ref', 'shallowRef', 'reactive', 'shallowReactive']);
 
-  /** A module-level reactive container — `ref()`, `shallowRef()`, `reactive()` — assigned to a
-   *  module-scope binding. Inside a component's `setup`/`<script setup>` these are indented;
-   *  a MODULE-level one (column 0) outlives every component and IS a store by another name. */
-  const MODULE_LEVEL_REACTIVE =
-    /^(?:export\s+)?(?:const|let|var)\s+(\w+)\s*(?::[^=]+)?=\s*(ref|shallowRef|reactive|shallowReactive)\s*[(<]/gm;
+  /** Every MODULE-level (top-level statement, not nested in a function/class/setup body)
+   *  `const|let|var X = ref(...)/reactive(...)/...` binding — using the AST's own notion of
+   *  "top-level statement" instead of guessing from indentation, which a differently-formatted
+   *  file (tabs, 4-space, `<script setup>` boilerplate) could dodge under a column-anchored
+   *  regex. Such a binding outlives every component and IS a store by another name. */
+  function moduleLevelReactiveBindings(file: string): { kind: string; name: string }[] {
+    const source = sourceFileOf(file);
+    const out: { kind: string; name: string }[] = [];
+    for (const vs of source.getVariableStatements()) {
+      for (const decl of vs.getDeclarations()) {
+        const init = decl.getInitializer();
+        if (!init || !Node.isCallExpression(init)) continue;
+        const callee = init.getExpression().getText();
+        if (REACTIVE_FACTORIES.has(callee)) out.push({ kind: callee, name: decl.getName() });
+      }
+    }
+    return out;
+  }
 
   it('no module outside the approved stores holds module-level reactive state', () => {
     const files = filesUnder(UI_SRC)
@@ -408,10 +480,7 @@ describe('only the three approved stores hold state', () => {
 
     const offences: string[] = [];
     for (const f of files) {
-      const text = readFileSync(f, 'utf8');
-      for (const m of text.matchAll(MODULE_LEVEL_REACTIVE)) {
-        offences.push(`${rel(f)}: ${m[2]} ${m[1]}`);
-      }
+      for (const { kind, name } of moduleLevelReactiveBindings(f)) offences.push(`${rel(f)}: ${kind} ${name}`);
     }
 
     assert.deepEqual(offences, [],
@@ -439,11 +508,25 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
   const STORE = join(UI_SRC, 'logic', 'store.ts');
 
   it('ManagedOpenISDProject never hands an OpenISDDriver out — every public member returns data', () => {
-    const text = readFileSync(MANAGED, 'utf8');
-    // A member whose declared return type is the internal driver. Private members (#name) are
-    // exempt by definition: they cannot be reached from outside the class.
-    const LEAKS = /^\s{2}(?!#)(?:static\s+)?(\w+)\s*\([^)]*\)\s*:\s*OpenISDDriver\b/gm;
-    const offences = Array.from(text.matchAll(LEAKS)).map(m => `${m[1]}() returns OpenISDDriver`);
+    // AST-driven (ts-morph), not text-pattern: a private-field/method (#name or `private`) is
+    // exempt — it cannot be reached from outside the class — but every other method, getter, or
+    // arrow-function property whose declared return type names OpenISDDriver is a leak,
+    // regardless of indentation or getter-vs-method syntax a regex could miss.
+    const localProject = new TsProject({ tsConfigFilePath: join(UI_SRC, '..', 'tsconfig.json'), skipAddingFilesFromTsConfig: true });
+    const sf = localProject.addSourceFileAtPath(MANAGED);
+    const offences: string[] = [];
+    for (const cls of sf.getClasses()) {
+      const members = [
+        ...cls.getMethods(), ...cls.getGetAccessors(), ...cls.getProperties(),
+      ];
+      for (const m of members) {
+        if (m.hasModifier?.('private') || /^#/.test(m.getName())) continue;
+        const type = 'getReturnType' in m ? m.getReturnType() : m.getType();
+        if (type.getText().includes('OpenISDDriver')) {
+          offences.push(`${m.getName()}() returns ${type.getText()}`);
+        }
+      }
+    }
 
     assert.deepEqual(offences, [],
       'OpenISDDriver is ManagedOpenISDProject\'s private state (the human\'s ruling: it "sits behind ' +
@@ -496,7 +579,7 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
 
     assert.deepEqual(offences, [],
       'WinISDDriver is the .wdr FILE FORMAT boundary, not a driver representation — it never ' +
-      'crosses winIsdDriverFileIo.ts, whose two exports (importDriver/exportDriver) take and ' +
+      'crosses winIsdDriverFileIo.ts, whose two exports (parseWdr/exportDriver) take and ' +
       'return OpenISDDriverJson only. Every other file wanting a .wdr import or export calls ' +
       'those two functions; naming WinISDDriver itself anywhere else reopens the leak this ' +
       'gate exists to close. A type-only import is fine — it erases, so it cannot reach the ' +
@@ -518,36 +601,56 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
  * judgement, however legitimate a call site looks. A failing test naming a new offender is
  * the correct, expected result, not authorization to widen the list to make it pass.
  */
-describe('leading-underscore exports are class-private — named only by their own PrivateAllow list', () => {
-  const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC)];
-  const REPO_ROOT = join(UI_SRC, '..', '..');
+const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC)];
+const REPO_ROOT = join(UI_SRC, '..', '..');
 
-  /** Every `export <kind> _Name` declaration site, keyed by name. A name declared in two files
-   *  is itself a violation of "one owner" and is asserted separately below. */
-  function privateDeclarationSites(files: string[]): Map<string, string[]> {
-    const sites = new Map<string, string[]>();
-    const decl = /^\s*export\s+(?:interface|type|class|function|const|let)\s+(_[A-Za-z_$][\w$]*)/gm;
-    for (const f of files) {
-      const text = readFileSync(f, 'utf8');
-      for (let m = decl.exec(text); m; m = decl.exec(text)) {
-        const name = m[1];
-        sites.set(name, [...(sites.get(name) ?? []), f]);
+/** Every `export interface|type|class|function|const|let _Name` top-level declaration site in
+ *  a file. A name declared in two files is itself a violation of "one owner" and is asserted
+ *  separately below. */
+function declaredExportedPrivateNames(file: string): string[] {
+  const source = sourceFileOf(file);
+  const names: string[] = [];
+  for (const iface of source.getInterfaces()) if (iface.isExported() && iface.getName().startsWith('_')) names.push(iface.getName());
+  for (const ta of source.getTypeAliases()) if (ta.isExported() && ta.getName().startsWith('_')) names.push(ta.getName());
+  for (const cls of source.getClasses()) { const n = cls.getName(); if (cls.isExported() && n?.startsWith('_')) names.push(n); }
+  for (const fn of source.getFunctions()) { const n = fn.getName(); if (fn.isExported() && n?.startsWith('_')) names.push(n); }
+  for (const vs of source.getVariableStatements()) {
+    if (!vs.isExported()) continue;
+    for (const decl of vs.getDeclarations()) if (decl.getName().startsWith('_')) names.push(decl.getName());
+  }
+  return names;
+}
+
+function privateDeclarationSites(files: string[]): Map<string, string[]> {
+  const sites = new Map<string, string[]>();
+  for (const f of files) {
+    for (const name of declaredExportedPrivateNames(f)) {
+      sites.set(name, [...(sites.get(name) ?? []), f]);
+    }
+  }
+  return sites;
+}
+
+/** `export const <Name>PrivateAllow = [ 'repo/relative/path.ts', ... ]` declared in the
+ *  same file as `_Name` itself — the exhaustive permission list for that name. Absent ⇒ no
+ *  file outside the owner may name it at all. */
+function privateAllowOf(ownerFile: string, name: string): string[] {
+  const source = sourceFileOf(ownerFile);
+  const target = `${name}PrivateAllow`;
+  for (const vs of source.getVariableStatements()) {
+    if (!vs.isExported()) continue;
+    for (const decl of vs.getDeclarations()) {
+      if (decl.getName() !== target) continue;
+      const init = decl.getInitializer();
+      if (init && Node.isArrayLiteralExpression(init)) {
+        return init.getElements().filter(Node.isStringLiteral).map(e => e.getLiteralValue());
       }
     }
-    return sites;
   }
+  return [];
+}
 
-  /** `export const <Name>PrivateAllow = [ 'repo/relative/path.ts', ... ]` declared in the
-   *  same file as `_Name` itself — the exhaustive permission list for that name. Absent ⇒ no
-   *  file outside the owner may name it at all. */
-  function privateAllowOf(ownerFile: string, name: string): string[] {
-    const text = readFileSync(ownerFile, 'utf8');
-    const re = new RegExp(`export const ${name}PrivateAllow[^=]*=\\s*\\[([\\s\\S]*?)\\]`);
-    const m = re.exec(text);
-    if (!m) return [];
-    return Array.from(m[1].matchAll(/['"]([^'"]+)['"]/g)).map(x => x[1]);
-  }
-
+describe('leading-underscore exports are class-private — named only by their own PrivateAllow list', () => {
   it('each private name is declared in exactly one file', () => {
     const sites = privateDeclarationSites(ALL_SRC_FILES);
     const offences = [...sites.entries()]
@@ -576,6 +679,119 @@ describe('leading-underscore exports are class-private — named only by their o
 });
 
 /**
+ * Loophole in the gate above: it only catches a file NAMING a private `_Name` directly. A
+ * function, const, method, getter, or arrow-function property that is declared with a public
+ * (non-underscore) name but whose own signature RETURNS or is TYPED AS a private `_Name` hands
+ * the private shape to every caller just as effectively — the caller never has to write `_Name`
+ * in an import to get hold of it. This gate closes that for BOTH top-level declarations and
+ * class members (a class method returning a private type is exactly as invisible to a
+ * text-pattern regex anchored on `export function`/`export const` as it is to a caller who
+ * never imports the type by name — see BUG_20260818_private_type_return_gate_uses_line_anchored_
+ * regex_and_misses_class_methods.md).
+ *
+ * The check also walks the declared type STRUCTURALLY — generics, `Promise<...>`, arrays,
+ * unions/intersections, and inline object-literal member types — so a private name reachable
+ * only through `Result<_Name>`, `Promise<_Name>`, `_Name[]`, or `{ ok: true; record: _Name }`
+ * is caught exactly as if it had been returned bare.
+ */
+describe('an export typed as a private _Name must itself be _-prefixed', () => {
+  /** Every private `_Name` reachable inside a TypeNode, walking generics, unions/intersections,
+   *  arrays, tuples, parenthesised types, and inline object-literal member types. `seen` guards
+   *  against infinite recursion on a self-referential type. */
+  function typeNodeNames(typeNode: Node, seen: Set<Node> = new Set()): string[] {
+    if (seen.has(typeNode)) return [];
+    seen.add(typeNode);
+    const out: string[] = [];
+    if (Node.isTypeReference(typeNode)) {
+      out.push(typeNode.getTypeName().getText());
+      for (const arg of typeNode.getTypeArguments()) out.push(...typeNodeNames(arg, seen));
+    } else if (Node.isUnionTypeNode(typeNode) || Node.isIntersectionTypeNode(typeNode)) {
+      for (const t of typeNode.getTypeNodes()) out.push(...typeNodeNames(t, seen));
+    } else if (Node.isArrayTypeNode(typeNode)) {
+      out.push(...typeNodeNames(typeNode.getElementTypeNode(), seen));
+    } else if (Node.isParenthesizedTypeNode(typeNode)) {
+      out.push(...typeNodeNames(typeNode.getTypeNode(), seen));
+    } else if (Node.isTupleTypeNode(typeNode)) {
+      for (const el of typeNode.getElements()) out.push(...typeNodeNames(el, seen));
+    } else if (Node.isTypeLiteral(typeNode)) {
+      for (const member of typeNode.getMembers()) {
+        const propType = member.asKind(SyntaxKind.PropertySignature)?.getTypeNode();
+        if (propType) out.push(...typeNodeNames(propType, seen));
+      }
+    }
+    return out;
+  }
+
+  it('every exported function/const/class-member returning or typed as a private _Name is itself named _...', () => {
+    const sites = privateDeclarationSites(ALL_SRC_FILES);
+    const privateNames = new Set(sites.keys());
+
+    const report = (offences: string[], fileRel: string, name: string, hit: string[]) => {
+      offences.push(
+        `${fileRel} exports '${name}' typed as private ${hit.join(', ')} ` +
+        `but '${name}' itself has no leading underscore`);
+    };
+
+    /** A private name's own declaring file is its owner and may expose it under a public
+     *  accessor name — the same exemption `f !== owner` grants the import-naming gate above. */
+    const ownedHere = (f: string, hit: string[]): string[] =>
+      hit.filter(n => !(sites.get(n) ?? []).includes(f));
+
+    const offences: string[] = [];
+    for (const f of ALL_SRC_FILES) {
+      const source = sourceFileOf(f);
+      const fileRel = relative(REPO_ROOT, f);
+
+      for (const fn of source.getFunctions()) {
+        if (!fn.isExported()) continue;
+        const name = fn.getName();
+        if (!name || name.startsWith('_')) continue;
+        const rt = fn.getReturnTypeNode();
+        if (!rt) continue;
+        const hit = ownedHere(f, typeNodeNames(rt).filter(n => privateNames.has(n)));
+        if (hit.length) report(offences, fileRel, name, hit);
+      }
+
+      for (const vs of source.getVariableStatements()) {
+        if (!vs.isExported()) continue;
+        for (const decl of vs.getDeclarations()) {
+          const name = decl.getName();
+          if (name.startsWith('_')) continue;
+          const tn = decl.getTypeNode();
+          if (!tn) continue;
+          const hit = ownedHere(f, typeNodeNames(tn).filter(n => privateNames.has(n)));
+          if (hit.length) report(offences, fileRel, name, hit);
+        }
+      }
+
+      for (const cls of source.getClasses()) {
+        if (!cls.isExported()) continue;
+        const className = cls.getName() ?? '<anonymous>';
+        const members = [...cls.getMethods(), ...cls.getGetAccessors(), ...cls.getProperties()];
+        for (const m of members) {
+          if (m.hasModifier?.(SyntaxKind.PrivateKeyword) || /^#/.test(m.getName())) continue;
+          const name = m.getName();
+          if (name.startsWith('_')) continue;
+          const tn = Node.isMethodDeclaration(m) || Node.isGetAccessorDeclaration(m)
+            ? m.getReturnTypeNode()
+            : m.getTypeNode();
+          if (!tn) continue;
+          const hit = ownedHere(f, typeNodeNames(tn).filter(n => privateNames.has(n)));
+          if (hit.length) report(offences, fileRel, `${className}.${name}`, hit);
+        }
+      }
+    }
+
+    assert.deepEqual(offences, [],
+      'An export whose own return/value type names a private _Name — directly, or nested ' +
+      'inside a generic, Promise, array, union, or object-literal type — leaks that private ' +
+      'shape to every caller just as a direct import would. Rename the export itself to _Name ' +
+      '(or stop returning the private type — return the module\'s public shape instead) so it ' +
+      'falls under the PrivateAllow enforcement above.');
+  });
+});
+
+/**
  * Human ruling (QO52, closed 2026-08-18): the only module-level globals the app may export are
  * `openProjects()` and `focusedProject()`. Everything else in `store.ts`'s state surface must
  * become a method/getter on the focused project object instead of a free module export.
@@ -596,19 +812,33 @@ describe('module-level globals — only openProjects()/focusedProject() are lega
   const SCANNED_FILES = [join(UI_SRC, 'logic', 'store.ts')];
 
   /** Every top-level `export const|function|class NAME` in a file — same declaration shape as
-   *  `privateDeclarationSites()` above, but without requiring a leading underscore. */
+   *  `declaredExportedPrivateNames()` above, but without requiring a leading underscore. */
   function topLevelExportsOf(file: string): string[] {
-    const text = readFileSync(file, 'utf8');
-    const decl = /^export\s+(?:const|function|class)\s+([A-Za-z_$][\w$]*)/gm;
-    return Array.from(text.matchAll(decl)).map(m => m[1]);
+    const source = sourceFileOf(file);
+    const names: string[] = [];
+    for (const fn of source.getFunctions()) { const n = fn.getName(); if (fn.isExported() && n) names.push(n); }
+    for (const cls of source.getClasses()) { const n = cls.getName(); if (cls.isExported() && n) names.push(n); }
+    for (const vs of source.getVariableStatements()) {
+      if (!vs.isExported()) continue;
+      for (const decl of vs.getDeclarations()) names.push(decl.getName());
+    }
+    return names;
   }
 
   /** `export const ALLOWED_GLOBALS = ['name1', 'name2', ...]` declared in the file itself. */
   function allowedGlobalsOf(file: string): string[] {
-    const text = readFileSync(file, 'utf8');
-    const m = /export const ALLOWED_GLOBALS[^=]*=\s*\[([\s\S]*?)\]/.exec(text);
-    if (!m) return [];
-    return Array.from(m[1].matchAll(/['"]([^'"]+)['"]/g)).map(x => x[1]);
+    const source = sourceFileOf(file);
+    for (const vs of source.getVariableStatements()) {
+      if (!vs.isExported()) continue;
+      for (const decl of vs.getDeclarations()) {
+        if (decl.getName() !== 'ALLOWED_GLOBALS') continue;
+        const init = decl.getInitializer();
+        if (init && Node.isArrayLiteralExpression(init)) {
+          return init.getElements().filter(Node.isStringLiteral).map(e => e.getLiteralValue());
+        }
+      }
+    }
+    return [];
   }
 
   it('every scanned module\'s exports are named in its own ALLOWED_GLOBALS', () => {

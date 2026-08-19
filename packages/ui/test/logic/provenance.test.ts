@@ -35,7 +35,7 @@ describe('Driver Field Provenance Inspector Engine', () => {
    * print a number contradicting the Rme beside it. */
   it('the Advanced figures of merit name the inputs the engine really uses', () => {
     assert.deepEqual(getProvenanceInfo('Rme')?.paths[0].inputs, ['Fs', 'Mms', 'Qes']);
-    assert.deepEqual(getProvenanceInfo('gamma')?.paths[0].inputs, ['Bl', 'Mms']);
+    assert.deepEqual(getProvenanceInfo('gamma')?.paths[0].inputs, ['BL', 'Mms']);
     assert.deepEqual(getProvenanceInfo('Mpow')?.paths[0].inputs, ['Rme'],
       'Mpow is derived from Rme, not independently from Bl and Re');
     assert.deepEqual(getProvenanceInfo('SPLmax')?.paths[0].inputs, ['SPL', 'Pe']);

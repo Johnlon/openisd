@@ -29,7 +29,7 @@ const miniState = { box: 'sealed', P: {} as UiParams, graphs: ['SPL'] } as unkno
 /** The sample `.wdr`, read as-read by the serialiser and projected into the app's own record.
  *  One reader, one model — there is no second shape to discriminate on. */
 function sampleRecord(): DriverJSON {
-  return WinISDDriver.fromWdr(wdrText).toOpenISDRecord();
+  return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdrText)).toRecord();
 }
 
 describe('persistence — provenance survives a serialize round trip', () => {

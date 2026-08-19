@@ -2,7 +2,7 @@
   "name": "@openisd/model",
   "version": "0.1.0",
   "type": "module",
-  "description": "The OpenISD driver record and OpenISDDriver — the app's driver model, its provenance and its derivation. No file format, no DOM, no app state.",
+  "description": "The OpenISD driver record and OpenISDDriver — the app's driver model, its provenance, its derivation, and its .wdr bridge (toWinISDDriver/fromWinISDDriver). No DOM, no app state.",
   "license": "MIT",
   "exports": {
     ".": {
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@openisd/engine": "*",
+    "@openisd/winisd": "*",
     "yaml": "^2.9.0"
   }
 }

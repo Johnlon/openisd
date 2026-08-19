@@ -31,7 +31,7 @@ describe('the store unions every hardening layer into one issue list', () => {
   it('the default design is clean — no layer reports a false positive', () => {
     state.P.Vb = VB_DEFAULT;
     seedValidDriver();
-    assert.deepEqual(driverErrors.value.filter(e => e.level === 'error'), [],
+    assert.deepEqual(driverErrors().filter(e => e.level === 'error'), [],
       'a complete driver must derive without a blocking error');
     assert.deepEqual(paramIssues.value, [], 'the default box must raise no parameter issue');
   });

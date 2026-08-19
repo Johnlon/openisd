@@ -1,5 +1,9 @@
 # BUG — the deploy check verifies asset freshness and never that the app RUNS
 
+# Status
+- deploy-check gap: FIXED
+- underlying app fault: OPEN
+
 ## Symptom
 
 `scripts/verify-preview.sh` reported

@@ -187,24 +187,24 @@ specs:
           read_precision: 0.5
       dq_status: UNMATCHED
       definition: rated thermal power handling (W, IEC 268-5)
-    voice_coil_dia_mm:
+    Vcd:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
           actual_reading: 32 mm
-          read_value: 32.0
-          read_precision: 0.5
+          read_value: 0.032
+          read_precision: 0.0005
       dq_status: UNMATCHED
-      definition: voice coil diameter (mm)
-    Hg_mm:
+      definition: voice coil diameter — stored in m, not mm
+    Hg:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
           actual_reading: 5 mm
-          read_value: 5.0
-          read_precision: 0.5
+          read_value: 0.005
+          read_precision: 0.0005
       dq_status: UNMATCHED
-      definition: magnetic air-gap height (mm)
+      definition: magnetic air-gap height — stored in m, not mm
     power_peak_W:
       origin: manufacturer_datasheet
       readings:

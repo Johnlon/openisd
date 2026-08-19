@@ -1,5 +1,9 @@
 # BUG_20260805 — `formulas.ts` duplicates the air constants as bare literals
 
+# Status
+OPEN 2026-08-05
+
+
 **Status:** OPEN — fix dispatched to a background agent in the same turn this file was written.
 
 ## Symptom

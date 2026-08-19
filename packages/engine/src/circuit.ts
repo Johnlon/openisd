@@ -30,7 +30,7 @@
 import { airFor } from './air.js';
 import { hotRe } from './driver.js';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cScale, cPar, cTanh } from './complex.js';
-import type { Complex, Driver, BoxType, SweepParams, Solution } from './types.js';
+import type { Complex, EngineDriver, BoxType, SweepParams, Solution } from './types.js';
 
 export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): number {
   return w * Map / (P.Qp || 100);
@@ -86,7 +86,7 @@ export function portImpedance(w: number, P: SweepParams): Complex {
  * Returns U0 (net output volume velocity), UD (driver), UP (port/PR),
  * and Zel (electrical input impedance).
  */
-export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Solution {
+export function solve(f: number, drv: EngineDriver, box: BoxType, P: SweepParams): Solution {
   const w      = 2 * Math.PI * f;
   const n      = P.nDrivers || 1;
   const wiring = P.wiring || 'parallel';
@@ -115,8 +115,8 @@ export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Sol
   const Zcoil1AC = cx(Rdc1, 0);
   const Zcoil1   = cAdd(cx(Rdc1, 0), cx(0, w * Le));
   let ZcoilAC: Complex, Zcoil: Complex, Bl: number;
-  if (wiring === 'series') { ZcoilAC = cScale(Zcoil1AC, n); Zcoil = cScale(Zcoil1, n);     Bl = drv.Bl * n; }
-  else                     { ZcoilAC = cScale(Zcoil1AC, 1/n); Zcoil = cScale(Zcoil1, 1/n); Bl = drv.Bl; }
+  if (wiring === 'series') { ZcoilAC = cScale(Zcoil1AC, n); Zcoil = cScale(Zcoil1, n);     Bl = drv.BL * n; }
+  else                     { ZcoilAC = cScale(Zcoil1AC, 1/n); Zcoil = cScale(Zcoil1, 1/n); Bl = drv.BL; }
   if (!rgAtDriver) { ZcoilAC = cAdd(ZcoilAC, cx(Rg, 0)); Zcoil = cAdd(Zcoil, cx(Rg, 0)); }
 
   // Acoustic pressure source and electrical damping.

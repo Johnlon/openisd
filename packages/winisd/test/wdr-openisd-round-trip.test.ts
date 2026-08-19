@@ -118,9 +118,9 @@ function lostEntered(file: string, src: string): string[] {
 
 /** text → WinISDDriver → OpenISDDriver → WinISDDriver → text. */
 function cycle(src: string): string {
-  const asRead = WinISDDriver.fromWdr(src);
-  const driver = OpenISDDriver.fromRecord(asRead.toOpenISDRecord());
-  const { value, errors } = WinISDDriver.fromOpenISDRecord(driver.toRecord());
+  const asRead = WinISDDriver.fromWdrIni(src);
+  const driver = OpenISDDriver.fromWinISDDriver(asRead);
+  const { value, errors } = driver.toWinISDDriver();
   assert.ok(value, `projection failed: ${errors.map(e => e.message).join('; ')}`);
   return value.toWdr();
 }

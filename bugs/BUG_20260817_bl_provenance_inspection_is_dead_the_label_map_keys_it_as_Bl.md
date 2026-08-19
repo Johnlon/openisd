@@ -1,5 +1,8 @@
 # BL's provenance inspection is dead — the label map keys it as `Bl`
 
+# Status
+OPEN
+
 ## Symptom
 
 In the driver editor with "Inspect Provenance" on, clicking BL explains nothing: no outline on

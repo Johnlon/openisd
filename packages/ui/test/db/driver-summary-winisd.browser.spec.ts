@@ -25,7 +25,7 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem('openisd_my_drivers', JSON.stringify([{
       name, brand: 'Summary', model: 'Fixture',
       Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
-      Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Z: 8, _savedAt: 1,
+      Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
     }]));
   }, PICKED);
   await page.goto('/');

@@ -1,5 +1,8 @@
 # SPLmax's documented formula omits the −3 dB derating the engine actually applies
 
+# Status
+FIXED 2026-08-17
+
 ## Symptom
 
 Three places state `SPLmax = SPL + 10·log₁₀(Pe)`. The engine computes

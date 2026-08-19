@@ -1,5 +1,3 @@
-import type { DriverRaw } from '@openisd/engine';
-
 /**
  * What a driver is CALLED on screen: `<brand> <model>`.
  *
@@ -15,9 +13,9 @@ import type { DriverRaw } from '@openisd/engine';
  *
  * An explicit `name` always wins — that is the user's own label for the driver.
  */
-export function driverShort(raw: DriverRaw | null | undefined): string {
+export function driverShort(raw: Record<string, unknown> | null | undefined): string {
   if (!raw) return 'Driver';
-  const { brand, model, manufacturer, series, sku } = raw as Record<string, unknown>;
+  const { brand, model, manufacturer, series, sku } = raw;
 
   const lead = (brand as string) || (manufacturer as string);
   const trailer = brand && manufacturer && manufacturer !== brand ? `(${manufacturer})` : '';

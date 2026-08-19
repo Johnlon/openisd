@@ -18,8 +18,8 @@ import {
   moistAirDensity, moistAirSoundVelocity, airFor, GAMMA,
   saturationVapourPressure, waterVapourMoleFraction,
   splReferenceConstantDb, RHO, C,
-  sweep, deriveDriver,
-  type SweepParams, type DriverRaw,
+  sweep, deriveEngineDriver,
+  type SweepParams,
 } from '@openisd/engine';
 
 /** WinISD's own stored air, to all 15 digits it writes. */
@@ -98,9 +98,9 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
 });
 
 describe('the sweep actually consumes humidity and pressure', () => {
-  const RAW: DriverRaw = { Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6, Xmax: 0.005, Pe: 60 };
+  const RAW = { Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6, Xmax: 0.005, Pe: 60 };
   const BASE: SweepParams = { Vb: 0.020, Ql: 7, eg: 2.83, fmin: 20, fmax: 200, N: 40 };
-  const drv = deriveDriver(RAW).value!;
+  const drv = deriveEngineDriver(RAW).value!;
   const splAt = (P: SweepParams) => sweep(drv, 'sealed', P).spl;
   const maxAbsDelta = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i])));
 

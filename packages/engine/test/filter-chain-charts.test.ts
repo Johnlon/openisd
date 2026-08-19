@@ -15,16 +15,16 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveDriver, sweep, groupDelayMs, unwrap } from '@openisd/engine';
-import type { SweepParams, DriverRaw, Filter } from '@openisd/engine';
+import { deriveEngineDriver, sweep, groupDelayMs, unwrap } from '@openisd/engine';
+import type { SweepParams, Filter } from '@openisd/engine';
 
 // Same reference driver as the other engine tests, so a failure here is about the filter
 // chain and not about the driver.
-const RAW: DriverRaw = {
+const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
-  Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Z: 8,
+  Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
 };
-const { value: DRV } = deriveDriver(RAW);
+const { value: DRV } = deriveEngineDriver(RAW);
 assert.ok(DRV, 'reference driver failed to derive');
 
 const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 400 };
@@ -104,8 +104,8 @@ describe('EQ/filter chain charts — the chain is electrical, so driver and box 
 
   it('a different driver leaves the chain response untouched', () => {
     // Vary only params that are free of the Q identity 1/Qts = 1/Qes + 1/Qms — changing
-    // Qts alone contradicts Qes/Qms and deriveDriver rejects it, as it should.
-    const { value: other } = deriveDriver({ ...RAW, Fs: 55, Vas: 0.012, Sd: 0.0090 });
+    // Qts alone contradicts Qes/Qms and deriveEngineDriver rejects it, as it should.
+    const { value: other } = deriveEngineDriver({ ...RAW, Fs: 55, Vas: 0.012, Sd: 0.0090 });
     assert.ok(other, 'comparison driver failed to derive');
     const a = sweep(DRV,   'sealed', { ...SEALED, filters });
     const b = sweep(other, 'sealed', { ...SEALED, filters });

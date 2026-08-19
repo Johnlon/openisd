@@ -1,5 +1,9 @@
 # `USPL` and `SPLmax` use formulas WinISD does not — the 2.83 V literal, and a 3 dB derating
 
+# Status
+BLOCKED 2026-08-13 — needs a human ruling
+
+
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts`.
 **Severity** wrong number. `SPLmax` is out by a flat 3 dB — that is a factor of two in power on a
 figure people size amplifiers against.

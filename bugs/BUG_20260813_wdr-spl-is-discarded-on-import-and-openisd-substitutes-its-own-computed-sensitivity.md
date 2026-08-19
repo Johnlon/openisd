@@ -1,5 +1,10 @@
 # A `.wdr`'s stated `SPL` is discarded on import; openisd substitutes its own computed sensitivity
 
+# Status
+- SPL discarded on import: FIXED
+- adjacent item: OPEN
+
+
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts`.
 **Severity** silent data loss on import — a datasheet figure the file states is thrown away and
 replaced by a different number, with no signal to the user.

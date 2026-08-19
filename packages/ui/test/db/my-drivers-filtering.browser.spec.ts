@@ -16,9 +16,9 @@ const MY_ROWS = '.dlist .my-ditem';
 // and nominal impedance — and whose NAMES classify them into different type chips.
 const SAVED = [
   { brand: 'Bench', model: 'Deep Subwoofer', Fs: 22, Qts: 0.4, Qes: 0.44, Qms: 5,
-    Vas: 0.09, Sd: 0.052, Re: 3.4, Xmax: 0.012, Pe: 300, Z: 4 },
+    Vas: 0.09, Sd: 0.052, Re: 3.4, Xmax: 0.012, Pe: 300, Znom: 4 },
   { brand: 'Bench', model: 'Silk Dome Tweeter', Fs: 900, Qts: 0.5, Qes: 0.6, Qms: 3,
-    Vas: 0.0002, Sd: 0.0009, Re: 5.6, Xmax: 0.0005, Pe: 40, Z: 8 },
+    Vas: 0.0002, Sd: 0.0009, Re: 5.6, Xmax: 0.0005, Pe: 40, Znom: 8 },
 ];
 
 async function open(page: Page): Promise<void> {

@@ -1,5 +1,8 @@
 # The engine is missing two of WinISD's Fs routes, and has one WinISD does not
 
+# Status
+OPEN 2026-08-17 — ruled (QO50, closed), not yet implemented
+
 ## Symptom
 
 Three layers, three different answers to "how is `Fs` calculated": **WinISD has 5 routes, the

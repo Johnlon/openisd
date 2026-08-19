@@ -1,37 +1,29 @@
 /**
- * The ONLY module allowed to name `WinISDDriver` (@openisd/winisd) — enforced by
- * architecture.test.ts. `WinISDDriver` is the .wdr FILE FORMAT boundary, not a driver
- * representation, and it never crosses this module's edge: every export here takes or returns
- * `_OpenISDDriverJson` only. A caller that wants a `.wdr` import or export calls one of these
- * two verbs; it never touches `WinISDDriver`, never parses or serialises `.wdr` text itself.
+ * The `.wdr` import/export verbs. `winIsdDriverFileIo.ts` carries its own ruled exemption to
+ * name `OpenISDDriver` as a value (architecture.test.ts, "containment is total") — the ONLY
+ * other files with that exemption are `managedProject.ts` itself and `DriverEditorModal.vue`.
+ * Every other logic module (`store.ts`, `driverSelection.ts`, `useDesignIO.ts`) calls the
+ * record-typed `_parseWdr` here rather than naming `OpenISDDriver` directly.
  */
-import { WinISDDriver } from '@openisd/winisd';
 import { OpenISDDriver } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
 import type { Result } from '@openisd/engine';
 
+/**
+ * Human ruling: the ONLY files, `packages/`-relative, permitted to name `_parseWdr` —
+ * enforced by `packages/ui/test/ui/architecture.test.ts` the same way as
+ * `_OpenISDDriverJsonPrivateAllow` in openisdDriver.ts. ONLY the human may add, remove, or
+ * change an entry here — no agent may edit this list on its own judgement.
+ */
+export const _parseWdrPrivateAllow: string[] = [];
+
 /** `.wdr` text → the app's one record shape. */
-export function importDriver(text: string): _OpenISDDriverJson {
-  return WinISDDriver.fromWdr(text).toOpenISDRecord();
+export function _parseWdr(text: string): _OpenISDDriverJson {
+  return OpenISDDriver.fromWdrText(text).toRecord();
 }
 
-/**
- * A driver → `.wdr` text. A `Result`, since not every driver is complete enough to export —
- * `errors` names what is missing.
- *
- * Takes the live `OpenISDDriver`, never the raw `_OpenISDDriverJson` record: `OpenISDDriver` is
- * the settled public API for a driver everywhere in this app, the record is its own internal
- * implementation detail (human ruling, 2026-08-17) — enforced by
- * `architecture.test.ts`'s "a FileIo module's export verb takes OpenISDDriver, never the JSON
- * record" gate.
- *
- * `WinISDDriver` performs no calculation of its own (ARCHITECTURE.md "WinISDDriver is solely a
- * serialisation device"): any value that has no home in the record's own `_SpecSection` — EBP is
- * the one today — is OBTAINED from `OpenISDDriver`'s own getter, the ONE place that formula is
- * allowed to live, and passed to the writer as a plain value. This module never derives it.
- * bugs/BUG_20260817_wdr_writer_computes_ebp_itself_violating_its_own_no-calc-logic_rule.md
- */
+/** A driver → `.wdr` text. `errors` names what is missing when export can't complete. */
 export function exportDriver(driver: OpenISDDriver): Result<string> {
-  const { value, errors } = WinISDDriver.fromOpenISDRecord(driver.toRecord(), { ebp: driver.ebp() });
+  const { value, errors } = driver.toWinISDDriver();
   return { value: value ? value.toWdr() : null, errors };
 }

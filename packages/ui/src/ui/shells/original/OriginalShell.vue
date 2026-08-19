@@ -20,7 +20,7 @@ const buildDatetime = __BUILD_DATETIME__;
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
-  state, driver, driverName, driverRecord,
+  state, engineDriver, driverName, driverRecord,
   syncedP, curvesData, maxData, driverErrors,
   isModified, resetProjectToGround, groundCheckpoint, restoreGroundCheckpoint, markProjectSaved,
   managedProject,
@@ -31,7 +31,7 @@ import {
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType } from '@openisd/engine';
 import type { PRLibEntry, BundledPR, Design } from '../../../types.js';
-import { LossMode, driveVoltage, airFor } from '@openisd/engine';
+import { LossMode, airForEnvironment, driveVoltageFor } from '../../../logic/environment.js';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../logic/series.js';
 import { DPAL } from '../../presets.js';
@@ -363,7 +363,7 @@ function stopNudge() {
 }
 onUnmounted(stopNudge);
 const currentDesign = computed(() => ({
-  driver: driver.value, box: state.box, P: syncedP.value,
+  driver: engineDriver(), box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE.value,
   // Visibility is the project row's own fact — read it, never keep a second copy.
   visible: activeProject.value?.visible !== false,
@@ -371,7 +371,7 @@ const currentDesign = computed(() => ({
 const cursorVal = computed<number | null>(() => {
   const f = cursorHz.value;
   if (pending.value || chartUnavailable.value || f == null) return null;
-  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, overlays.value, driverErrors.value,
+  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, overlays.value, driverErrors(),
     { bare: true, primaryColor: WINISD_TRACE.value }).value;
   if (!p) return null;
   const s = p.series.find(x => !x.phantom);
@@ -659,8 +659,8 @@ onUnmounted(() => tone?.stop());
 // Drive voltage ↔ system power are two views of the same energy: V = √(P·Re), P = V²/Re.
 // WinISD lets you edit EITHER (each recomputes the other); Pin is the stored source of truth.
 const driveV = computed<number>({
-  get: () => driveVoltage(state.P.Pin ?? 1, driver.value?.Re || 8),
-  set: (v) => { state.P.Pin = (v * v) / (driver.value?.Re || 8); },
+  get: () => driveVoltageFor(state.P.Pin ?? 1, engineDriver()?.Re || 8),
+  set: (v) => { state.P.Pin = (v * v) / (engineDriver()?.Re || 8); },
 });
 
 // ---- Advanced tab: environment. All three inputs drive the real sweep: ρ and c come from
@@ -678,7 +678,7 @@ watch(advHumidity, (v) => { state.P.humidityPct = v; }, { immediate: true });
 const advPressure = ref(state.ui.envDefaults.pressurePa);
 watch(advPressure, (v) => { state.P.pressurePa = v; }, { immediate: true });
 /** The air the sweep is actually running in — one call, both readouts. */
-const advAir = computed(() => airFor({
+const advAir = computed(() => airForEnvironment({
   tempK: advTemp.value, humidityPct: advHumidity.value, pressurePa: advPressure.value,
   ignoreHumidityAndPressure: state.P.ignoreHumidityAndPressure,
 }));

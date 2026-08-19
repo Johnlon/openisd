@@ -1,5 +1,9 @@
 # Znom is calculated from Re, but openisd derives nothing and emits `N` at ParState slot 0
 
+# Status
+FIXED 2026-08-13
+
+
 **Found** 2026-08-13, by the WinISD ParState slot-0 probe (ledger QO30).
 **Severity** a `.wdr` written by openisd tells WinISD a field is unset that WinISD itself computes,
 and the fresh-authored writer puts the wrong number on the `Znom=` line.

@@ -15,7 +15,7 @@
  */
 import { ref, watch } from 'vue';
 import {
-  state, driver, driverName, driverRecord, managedProject, setDriverFromWdr,
+  state, engineDriver, driverName, driverRecord, managedProject, setDriverFromWdr,
   markProjectSaved, applyState, curvesData,
 } from './store.js';
 import { serialize, stateToUrl, download } from './persist.js';
@@ -24,6 +24,7 @@ import { saveProject as fsSaveProject, saveProjectAs as fsSaveProjectAs } from '
 import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
 import { buildWprInput } from './wprMapping.js';
 import { toWpr } from '@openisd/winisd';
+import { OpenISDDriver } from '@openisd/model';
 import * as WinIsdDriverFileIo from './winIsdDriverFileIo.js';
 import type { SerializedState, UiParams } from '../types.js';
 
@@ -137,9 +138,17 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   function exportWdr(): void {
     closeTunePanelAfterIO();
     // The ADT's own toWdr is lossless — carried fields + live ParState provenance.
+    //
+    // OpenISDDriver.fromRecord(record) here is a KNOWN, RECORDED gap (ledger QO57):
+    // architecture.test.ts also forbids any ManagedOpenISDProject member from ever handing out
+    // a live OpenISDDriver, which rules out the obvious fix of asking it for one — WinISDDriver
+    // .fromOpenISDDriver() needs the full OpenISDDriver API (.cell(), for EBP), not just a
+    // record, so a real fix reshapes that export boundary. That reshape is the SAME one QO55
+    // (WinISDDriver constructed purely from OpenISDDriver getter reads) already covers, in
+    // flight elsewhere — deferred here rather than duplicated.
     const record = driverRecord.value;
     if (!record) { flash('Cannot export .wdr: no driver has been chosen'); return; }
-    const { value: wdr, errors } = WinIsdDriverFileIo.exportDriver(record);
+    const { value: wdr, errors } = WinIsdDriverFileIo.exportDriver(OpenISDDriver.fromRecord(record));
     if (!wdr) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wdr', wdr, 'text/plain');
   }
@@ -154,12 +163,13 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
     closeTunePanelAfterIO();
+    // See exportWdr()'s comment: this OpenISDDriver.fromRecord() is a known gap, QO57.
     const record = driverRecord.value;
     if (!record) { flash('Cannot export .wpr: no driver has been chosen'); return; }
-    const { value: wdr, errors } = WinIsdDriverFileIo.exportDriver(record);
+    const { value: wdr, errors } = WinIsdDriverFileIo.exportDriver(OpenISDDriver.fromRecord(record));
     if (!wdr) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     const input = buildWprInput(
-      state.box, state.P, driver.value, wdr, state.project, new Date(),
+      state.box, state.P, engineDriver(), wdr, state.project, new Date(),
       managedProject.ventArea_m2(), curvesData.value,
     );
     download(sanitizeFilename(driverName.value) + '.wpr', toWpr(input), 'text/plain');
@@ -205,7 +215,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     // The .wpr's [Driver] block IS .wdr text — the serialiser reads it as-read, then projects
     // it into the app's own record. One reader, not a second parse invented here.
     const driverWdr = driverLines.join('\r\n');
-    const driverJson = WinIsdDriverFileIo.importDriver(driverWdr);
+    const driverJson = OpenISDDriver.fromWdrText(driverWdr).toRecord();
 
     const boxSec = sections['Box'] || {};
     const bType = parseInt(boxSec['BType'] || '1', 10);

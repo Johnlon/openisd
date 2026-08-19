@@ -1,5 +1,9 @@
 # Two defects in the parity suite itself: it rejects its own `*` divergence, and it compares fields WinISD never calculated
 
+# Status
+FIXED 2026-08-13
+
+
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts`.
 **Severity** test-only. Neither affects a number the app produces; both produce failures that
 are the suite being wrong rather than the app.

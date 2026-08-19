@@ -1,5 +1,8 @@
 # The Tune panel throws `fieldRegistry: no field "BL"` and never renders
 
+# Status
+OPEN
+
 ## Symptom
 
 Clicking **Tune** on the Driver tab renders nothing. The page throws:

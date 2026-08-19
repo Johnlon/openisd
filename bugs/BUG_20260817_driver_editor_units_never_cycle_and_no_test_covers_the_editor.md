@@ -1,5 +1,8 @@
 # Driver editor unit labels never cycle, and no test covers them
 
+# Status
+OPEN
+
 ## Symptom
 
 In the driver editor (Driver tab → Edit), clicking a unit label does nothing. Every unit on

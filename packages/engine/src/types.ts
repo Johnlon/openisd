@@ -30,84 +30,12 @@ export interface Result<T> {
   errors: DriverError[];
 }
 
-/* OBSOLETE: DriverRaw is retired by ARCHITECTURE.md AD-9 ("nothing inherits its shape
- * unmodified"). Do NOT add fields to it or build new consumers of it. Any change here must
- * be made with the specific intent of decommissioning it — migrating a call site off it, or
- * deleting a now-dead reference — never to extend or "fix" it in place. AD-8 still needs a
- * narrow successor type scoped to exactly what deriveDriver/sweep read; that is new work,
- * not a change to this interface. See docs/plans/PLAN_OPENISD_DRIVER_MODEL.md. */
 /**
- * Raw driver parameters as entered/imported — every field optional because a
- * partial driver is a valid intermediate state (parseWdr drops absent fields).
+ * A fully-derived driver — the non-null `value` returned by deriveEngineDriver.
+ * Required fields are those deriveEngineDriver validates (Fs/Re/Sd/Vas) or derives (the Q
+ * trio + Cms/Mms/Rms/Bl). Optional fields are set only when the source data supplied them.
  */
-export interface DriverRaw {
-  // Thiele/Small
-  Fs?: number;
-  Qts?: number;
-  Qes?: number;
-  Qms?: number;
-  Vas?: number;
-  Sd?: number;
-  Re?: number;
-  Le?: number;
-  Xmax?: number;
-  Pe?: number;
-  /** Nominal impedance (WinISD Znom) — label only, not used in simulation. */
-  Z?: number;
-  // Metadata
-  name?: string;
-  brand?: string;
-  model?: string;
-  manufacturer?: string;
-  providedBy?: string;
-  comment?: string;
-  added?: string;
-  datasheetUrl?: string;
-  manuPageUrl?: string;
-  distributorPageUrl?: string;
-  sourceUrl?: string;
-  frdUrl?: string;
-  impedanceUrl?: string;
-  // Non-modeled properties for lossless round-trip / metadata
-  Xlim?: number;
-  numVC?: number;
-  VCCon?: number;
-  tc?: number;
-  Rth?: number;
-  Cth?: number;
-  Gloss?: number;
-  thick?: number;
-  depth?: number;
-  magnetDepth?: number;
-  fLe?: number;
-  Le2?: number;
-  Dd?: number;
-  Hg?: number;
-  Hc?: number;
-  no?: number;
-  SPLref?: number;
-  USPL?: number;
-  Vd?: number;
-  SPLmaxLF?: number;
-  Mpow?: number;
-  SPLmax?: number;
-  Mcost?: number;
-  Rme?: number;
-  gamma?: number;
-  magnet?: number;
-  basket?: number;
-  outer?: number;
-  VCd?: number;
-  basketDisplacement?: number;
-}
-
-/**
- * A fully-derived driver — the non-null `value` returned by deriveDriver.
- * The required fields are those deriveDriver validates (Fs/Re/Sd/Vas) or
- * derives (the Q trio + Cms/Mms/Rms/Bl). `Le` stays optional: it is passed
- * through from DriverRaw and only affects the impedance plot.
- */
-export interface Driver {
+export interface EngineDriver {
   Fs: number;
   Re: number;
   Sd: number;
@@ -118,7 +46,19 @@ export interface Driver {
   Cms: number;
   Mms: number;
   Rms: number;
-  Bl: number;
+  BL: number;
+  /** Voice-coil inductance, H — affects only the impedance plot; absent means "no inductor
+   *  specified" (0 H), not unknown. */
+  Le?: number;
+  /** Peak linear excursion, m — affects only the Excursion and Max-SPL charts; absent means
+   *  the Xmax limit line is omitted from both. */
+  Xmax?: number;
+  /** Rated power, W — affects only the Max-SPL and Max-power charts; absent means the
+   *  thermal-limit line is omitted from both. */
+  Pe?: number;
+  /** Voice-coil count. WinISD's default is 1, not absent (`OpenISDDriver.toDriver()`
+   *  supplies it) — no consumer in this package reads it yet. */
+  numVC?: number;
 }
 
 /** Enclosure types the circuit solver handles. */

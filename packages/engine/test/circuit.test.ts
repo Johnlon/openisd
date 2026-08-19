@@ -12,7 +12,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { solve } from '@openisd/engine';
-import { deriveDriver } from '@openisd/engine';
+import { deriveEngineDriver } from '@openisd/engine';
 import { cAbs } from '@openisd/engine';
 import type { SweepParams } from '@openisd/engine';
 
@@ -28,9 +28,9 @@ const RAW_DRIVER = {
   Le:   0.7e-3,   // H   — voice-coil inductance (0.7 mH — significant above ~1 kHz)
   Xmax: 0.005,    // m   — peak linear excursion
   Pe:   60,       // W   — rated power
-  Z:    8,        // Ω   — nominal impedance
+  Znom:    8,        // Ω   — nominal impedance
 };
-const { value: DRV, errors: _drvErrors } = deriveDriver(RAW_DRIVER);
+const { value: DRV, errors: _drvErrors } = deriveEngineDriver(RAW_DRIVER);
 if (!DRV) throw new Error('RAW_DRIVER derivation failed — check T/S params: ' + _drvErrors.map(e => e.message).join('; '));
 
 // Sealed box parameters for most tests — lossless (Ql → ∞) to isolate circuit model effects

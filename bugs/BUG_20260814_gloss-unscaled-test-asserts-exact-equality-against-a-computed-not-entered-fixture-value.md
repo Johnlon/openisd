@@ -1,5 +1,8 @@
 # BUG — Gloss "unscaled" test asserts exact equality against a WinISD-*computed* value, not the entered one
 
+# Status
+OPEN 2026-08-14
+
 ## Symptom
 
 `packages/ui/test/ui/driver-editor-units.test.ts`, describe `Gloss — a FRACTION in the file, a

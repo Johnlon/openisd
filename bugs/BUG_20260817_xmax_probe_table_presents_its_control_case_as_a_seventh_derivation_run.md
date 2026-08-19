@@ -1,5 +1,8 @@
 # The Xmax probe table presents its control case as a seventh derivation run
 
+# Status
+OPEN
+
 ## Symptom
 
 `docs/design/WDR_SCHEMA.md` §4.1 introduces the `Xmax` tie-break campaign as "seven WinISD runs

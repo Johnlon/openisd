@@ -1,5 +1,8 @@
 # EBP never gets the provenance highlight
 
+# Status
+OPEN
+
 ## Symptom
 
 In the driver editor with "Inspect Provenance" ticked, clicking EBP highlights nothing — the

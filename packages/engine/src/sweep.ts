@@ -19,7 +19,7 @@ import { solve } from './circuit.js';
 import { withAddedMass } from './driver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { applyFilters } from './filters.js';
-import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
+import type { EngineDriver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
 
 /** SPL below this is the "no output" sentinel sweep() writes where |p| = 0, not a real level. */
 const SILENCE_DB = -190;
@@ -122,7 +122,7 @@ export function groupDelayMs(fs: number[], phaseUnwrapped: number[]): number[] {
  * Group delay τg = −dφ/dω
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  */
-export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
+export function sweep(drv: EngineDriver, box: BoxType, P: SweepParams): SweepResult {
   // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
   // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
   const d = withAddedMass(drv, P.driverAddedMass ?? 0);
@@ -244,7 +244,7 @@ export function classifyFlatClamp(sw: SweepResult): DriverError | null {
  * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
  *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function maxCurves(drv: Driver, box: BoxType, P: SweepParams): MaxCurvesResult {
+export function maxCurves(drv: EngineDriver, box: BoxType, P: SweepParams): MaxCurvesResult {
   const base = sweep(drv, box, Object.assign({}, P, { eg: 2.83 }));
   const Pe   = (drv.Pe != null && drv.Pe > 0) ? drv.Pe * (P.nDrivers || 1) : null;
   const Re   = drv.Re;                  // T/S power reference is always Re, not Znom
@@ -265,7 +265,7 @@ export function maxCurves(drv: Driver, box: BoxType, P: SweepParams): MaxCurvesR
  * Postcondition: classify a sweep result's finiteness so a degenerate design is
  * never a silently blank chart. A precondition on inputs can't foresee a
  * frequency-dependent singularity, so this is the belt-and-braces at the exit.
- * Returns a DriverError-shaped issue (same channel as deriveDriver), or null — see
+ * Returns a DriverError-shaped issue (same channel as deriveEngineDriver), or null — see
  * `classifyArrays` below for the three-way rule the two postconditions share.
  */
 export function classifyFinite(sw: SweepResult): DriverError | null {
@@ -285,7 +285,7 @@ export function classifyFinite(sw: SweepResult): DriverError | null {
  * reachable case is a driver with NEITHER `Pe` NOR `Xmax`: `maxCurves` then has no limit
  * to apply, `vUse = min(Infinity, Infinity)`, and `maxspl`/`maxpwr` are `Infinity` at
  * every frequency — which propagates into the chart's own `ymax` scaling and takes the
- * axis with it. `deriveDriver` warns that each limit LINE is missing; that is a different
+ * axis with it. `deriveEngineDriver` warns that each limit LINE is missing; that is a different
  * statement from "these two charts have no drawable value at all".
  */
 export function classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {

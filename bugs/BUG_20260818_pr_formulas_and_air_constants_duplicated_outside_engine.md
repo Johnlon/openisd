@@ -1,5 +1,8 @@
 # PR T/S formulas and RHO/C air constants re-implemented outside the engine, one copy truncated
 
+# Status
+OPEN 2026-08-18 — ruled, not yet implemented
+
 ## Symptom
 
 Three passive-radiator formulas, and the air-physics constants `RHO`/`C`, are duplicated across

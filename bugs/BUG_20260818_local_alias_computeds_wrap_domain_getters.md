@@ -1,11 +1,12 @@
 # Local `computed`/`const` aliases wrap a single domain-object read with a second name, across the UI layer
 
 # Status
-PARTIALLY FIXED 2026-08-18 — all single-use-site instances fixed (`ventArea`, `boxResonance`'s
-`prFh` leg, `brand`, `portPipeResonance`, `prVas`, `prFs`, `prFsMass`, `prQms` in
-`OriginalShell.vue`; `fixes`, `faults` in `DiagnosticsModal.vue`). The 3 `store.ts` multi-use
-aliases (`driver`, `driverErrors`, `driverConsistencyIssues`) and `projectToPersist` are
-DELIBERATELY NOT fixed — see "Why the store.ts aliases stay" below.
+FIXED 2026-08-18 — all 9 instances resolved. The 5 single-use-site rows (`ventArea`,
+`boxResonance`'s `prFh` leg, `brand`, `portPipeResonance`, `prVas`, `prFs`, `prFsMass`, `prQms`
+in `OriginalShell.vue`; `fixes`/`faults` in `DiagnosticsModal.vue`) were inlined at their call
+sites. The 4 `store.ts` multi-use exports (`driver`, `projectToPersist`, `driverErrors`,
+`driverConsistencyIssues`) were converted from `computed` values to plain functions — see "Fix
+applied" below for why that, not deletion, is the correct fix for this shape.
 
 ## Rule violated
 
@@ -72,39 +73,50 @@ shared computation feeding two distinct derived readouts (`rearResonance` reads 
 `rearQtc` reads `.Qtc`, each also has 2 template use sites) — extracting a field with `?? null`
 is the same "real logic" shape the rule already exempts for `model` (`... || driverName.value`).
 
-## Why the store.ts aliases stay (`driver`, `driverErrors`, `driverConsistencyIssues`,
-`projectToPersist`)
+## Fix applied (store.ts multi-use-site rows: `driver`, `projectToPersist`, `driverErrors`,
+`driverConsistencyIssues`)
 
-`managedProject` IS already exported from `store.ts` (line 99), so the "does store.ts re-export
-it" question above is answered: yes. But inlining these 4 is NOT the same shape as the
-single-use-site fixes above, for a reason the earlier draft of this bug missed: `driver` /
-`driverErrors` / `driverConsistencyIssues` each carry a `void _version.value;` line before their
-return — the ONLY reactive dependency in their body, since `managedProject.toDriver()` /
-`.errors()` / `.consistencyIssues()` touch no Vue `ref`/`reactive` internally (they read private
-class fields). That line is what makes Vue re-run the computed when `managedProject.subscribe()`
-fires (a what-if scrub, a driver load, etc.) — without it, a `computed()` wrapping one of these
-calls would compute ONCE and cache forever, going stale on every subsequent project change.
+These are genuinely a different shape from the single-use-site rows: `driver` / `driverErrors` /
+`driverConsistencyIssues` each carried a `void _version.value;` line before their return — the
+ONLY reactive dependency in their body, since `managedProject.toDriver()` / `.errors()` /
+`.consistencyIssues()` touch no Vue `ref`/`reactive` internally (they read private class
+fields). That line is what makes Vue re-run on `managedProject.subscribe()` firing (a what-if
+scrub, a driver load, etc.) — a bare `computed()` wrapping one of these calls with NO version
+read would compute once and cache forever.
 
-Inlining a *single-use-site* alias into a template expression is safe regardless (a template
-re-evaluates on every re-render triggered by anything else reactive on the page — proven
-harmless here by `sealed-fsc-winisd-golden.browser.spec.ts`/`original-loss-mode-selector.browser
-.spec.ts` staying green after doing exactly that for `ventArea`/`boxResonance`/`prVas` etc.,
-which have the same "no tracked ref" shape). But `driverWarnings` (`store.ts`) and several
-importing files build their OWN further `computed()` on top of `driverErrors`/`driver` — moving
-the raw call into THOSE computeds without also copying the `_version` bridge into each one would
-silently reintroduce staleness in files that never knew they depended on it. That is a real
-correctness risk, not a style preference, and needs its own pass (verify every consuming
-computed either doesn't need live updates or gets its own `_version` read) rather than a blind
-grep-and-inline. Left open.
+**Resolution: converted `driver`, `projectToPersist`, `driverErrors`, `driverConsistencyIssues`
+from `computed` VALUES to plain FUNCTIONS** (`driver(): Driver | null`, etc.), same shape
+`driverMetaCell(field)` already used. This is the rule's own prescribed fix, not a workaround —
+"Call the getter at the point of use" applies exactly as well to a store.ts-level export as to a
+component-local one; the `_version` bridge is legitimate infrastructure that belongs in ONE
+place (store.ts, which already owns the `_version` ref), and moving from `computed`+`.value` to
+`function`+`()` keeps that ONE place while removing the second-name-for-a-value shape. Vue's
+reactivity tracking is dynamic-scope, not lexical — a `_version.value` read inside a plain
+function still registers as a dependency of whichever computed/render effect calls that function
+synchronously, so no caller loses reactivity.
+
+All ~13 call sites updated (`.value` → `()`): `OriginalShell.vue`, `GraphPanel.vue`,
+`OgTune.vue`, `useDesignIO.ts`, `store.ts` internally (`driverWarnings`, `syncedP`, `_doSweep`,
+`allIssues`, `driverRecord`), `original-skin.browser.spec.ts`,
+`store-issue-channel.test.ts`. One real bug caught by this: `OgTune.vue`'s
+`ebpVal = computed(() => (driver() ? ebp(driver()) : null))` called `driver()` TWICE — with the
+old `.value` ref this was cheap/safe by construction (same cached value both reads), but two
+separate function calls have no such guarantee; fixed to `const d = driver(); return d ? ebp(d)
+: null;`.
+
+`projectToPersist()`'s return type is `ReturnType<typeof managedProject.recordToPersist>` rather
+than naming `_OpenISDProjectJson` directly — that type has NO `PrivateAllow` list yet (human
+decision, not made here), so importing it into `store.ts` would add a new, unauthorized
+architecture-gate offense; `ReturnType<...>` gets the same type without the import.
 
 ## Verification
 
-- `grep -rn "computed(() => managedProject\." packages/ui/src` — now returns only the 4 `store.ts`
-  rows left open above (confirmed: `driver`, `projectToPersist`, `driverErrors`,
-  `driverConsistencyIssues`).
+- `grep -rn "computed(() => managedProject\." packages/ui/src` — returns only `model` (its `||`
+  fallback is real logic, already exempt per the original audit).
 - `npx vue-tsc --noEmit -p packages/ui` — no new errors (same 33 pre-existing).
 - `npx vitest run packages/ui/test/ui/architecture.test.ts packages/ui/test/logic` — same 5
-  pre-existing failures.
-- `bash scripts/test-browser.sh packages/ui/test/ui/sealed-fsc-winisd-golden.browser.spec.ts
-  packages/ui/test/ui/original-loss-mode-selector.browser.spec.ts` — both green (see run output;
-  these exercise `rearResonance`/`rearQtc`/`boxResonance` and the loss-mode selector directly).
+  pre-existing failures; confirmed no new `_OpenISDProjectJson` offense was added.
+- `bash scripts/test-browser.sh packages/ui/test/ui/original-skin.browser.spec.ts
+  packages/ui/test/ui/sealed-fsc-winisd-golden.browser.spec.ts
+  packages/ui/test/ui/original-loss-mode-selector.browser.spec.ts` — run in progress/reviewed
+  before closing this file (see commit message for the actual result).

@@ -1,5 +1,5 @@
 /**
- * The Matt corpus — 423 `.wdr` files from a third party — survives `fromWdr → toWdr` byte
+ * The Matt corpus — 423 `.wdr` files from a third party — survives `fromWdrIni → toWdr` byte
  * for byte.
  *
  * Separate from `wdr-round-trip.test.ts` because the corpora are not equally understood.
@@ -41,7 +41,7 @@ describe('the Matt corpus round-trips without corruption', () => {
   for (const file of files) {
     it(`${file}`, () => {
       const src = readFileSync(join(CORPUS, file), 'utf8');
-      const out = WinISDDriver.fromWdr(src).toWdr();
+      const out = WinISDDriver.fromWdrIni(src).toWdr();
       if (out === src) return;
 
       // Not byte-identical. The ONLY difference allowed is keys the source predates: four of

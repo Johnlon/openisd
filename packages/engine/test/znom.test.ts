@@ -29,10 +29,10 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { nominalImpedance, solveConsistencyGroup, type DriverRaw } from '@openisd/engine';
+import { nominalImpedance, solveConsistencyGroup } from '@openisd/engine';
 
 const solve = (d: Record<string, number>) =>
-  solveConsistencyGroup(d as unknown as DriverRaw, { full: true }) as unknown as Record<string, number>;
+  solveConsistencyGroup(d, { full: true }) as Record<string, number>;
 
 /**
  * The probe's Re-swept cases, transcribed from `runs/znom_state.jsonl` by label: the `Re` typed
@@ -61,7 +61,7 @@ const PROBE: ReadonlyArray<readonly [label: string, Re: number, Znom: number]> =
  * A driver complete enough for the full solver, minus `Re` and `Znom` — the probe's own entered
  * set for `Z_absent_re*` with those two removed.
  */
-const BASE = { Fs: 40.0, Mms: 0.00194848430081419, Cms: 0.008124999999999992, Sd: 0.022, Qms: 2.1, Bl: 6.0, Xmax: 0.0067, Pe: 100 };
+const BASE = { Fs: 40.0, Mms: 0.00194848430081419, Cms: 0.008124999999999992, Sd: 0.022, Qms: 2.1, BL: 6.0, Xmax: 0.0067, Pe: 100 };
 
 describe('Znom = 2·round_half_to_even(0.75·Re) — WinISD probe QO30', () => {
   it('reproduces all 16 swept Re values exactly', () => {
@@ -99,7 +99,7 @@ describe('Znom = 2·round_half_to_even(0.75·Re) — WinISD probe QO30', () => {
     // WinISD saved Znom=0 marked C — distinct from the unset Znom=0/N of a blank driver.
     assert.equal(nominalImpedance(0.6), 0, 'Z_tie_re0.6');
     const r = solve({ ...BASE, Re: 0.6 });
-    assert.equal(r.Z, 0, 'the solver must WRITE the zero, not leave Z absent');
+    assert.equal(r.Znom, 0, 'the solver must WRITE the zero, not leave Z absent');
   });
 });
 
@@ -107,32 +107,32 @@ describe('Znom in the consistency solver', () => {
   it('derives Z from Re for every probe row', () => {
     for (const [label, Re, Znom] of PROBE) {
       const r = solve({ ...BASE, Re });
-      assert.equal(r.Z, Znom, `${label}: solver must fill Z=${Znom} from Re=${Re}`);
+      assert.equal(r.Znom, Znom, `${label}: solver must fill Z=${Znom} from Re=${Re}`);
     }
   });
 
   it('never corrects an entered Znom that contradicts Re', () => {
     // Z_entered_znom4_re6: Znom=4 typed beside Re=6 (whose rule gives 8) stays 4, marked E.
-    const r = solve({ ...BASE, Re: 6, Z: 4 });
-    assert.equal(r.Z, 4, 'an entered Z is pinned — the rule never overwrites it');
+    const r = solve({ ...BASE, Re: 6, Znom: 4 });
+    assert.equal(r.Znom, 4, 'an entered Z is pinned — the rule never overwrites it');
   });
 
   it('follows Re, not the damping factors', () => {
     // Z_incon_re8_qes27: Re=8 written beside Qes/Qts/Rms describing a driver with Re=27.
     const r = solve({ ...BASE, Re: 8, Qes: 0.3654, Qts: 0.3113, Rms: 0.2332 });
-    assert.equal(r.Z, 12, '2·round(0.75·8) = 12, not the 40 that Re=27 would give');
+    assert.equal(r.Znom, 12, '2·round(0.75·8) = 12, not the 40 that Re=27 would give');
   });
 
   it('accepts a CALCULATED Re as its input', () => {
     // Z_re_unset: no Re typed. WinISD back-derived Re=6 (marked C) and Znom still landed on 8.
     const r = solve({ ...BASE, Qes: 0.08161791953430539 });
     assert.equal(r.Re, 6, 'Re must be back-derived from Qes/Bl/Fs/Mms first');
-    assert.equal(r.Z, 8, 'and Znom follows the derived Re');
+    assert.equal(r.Znom, 8, 'and Znom follows the derived Re');
   });
 
   it('leaves Z absent when Re is unknown', () => {
     const r = solve({ Fs: 40, Mms: 0.00194848430081419, Cms: 0.008124999999999992, Sd: 0.022 });
     assert.equal(r.Re, undefined, 'guard: this record cannot derive Re');
-    assert.equal(r.Z, undefined, 'no Re → no Znom (slot 0 stays N)');
+    assert.equal(r.Znom, undefined, 'no Re → no Znom (slot 0 stays N)');
   });
 });

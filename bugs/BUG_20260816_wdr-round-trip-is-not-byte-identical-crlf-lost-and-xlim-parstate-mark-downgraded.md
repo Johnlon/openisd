@@ -1,5 +1,8 @@
 # BUG — `WinISDDriver.fromWdr(text).toWdr()` is not byte-identical: line endings lost, and Xlim's ParState mark downgraded
 
+# Status
+OPEN
+
 ## Symptom
 
 ```

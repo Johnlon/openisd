@@ -5,7 +5,7 @@
  * channel (`{ level, field, message }`), never by throwing and never by handing a chart a
  * non-finite number in silence. Two layers:
  *
- *   precondition  — `deriveDriver` (driver params) and `validateParams` (box params) reject
+ *   precondition  — `deriveEngineDriver` (driver params) and `validateParams` (box params) reject
  *                   input that would be undefined at EVERY frequency, naming the field.
  *   postcondition — `classifyFinite` / `classifyMaxFinite` classify what actually came out,
  *                   because a frequency-dependent singularity cannot be foreseen from the
@@ -16,14 +16,14 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  deriveDriver, sweep, maxCurves, validateParams, classifyFinite, classifyMaxFinite,
+  deriveEngineDriver, sweep, maxCurves, validateParams, classifyFinite, classifyMaxFinite,
 } from '@openisd/engine';
 import type { BoxType, SweepParams } from '@openisd/engine';
 
 /** The reference 6.5" mid-woofer used across the engine suite — complete and valid. */
 const RAW_COMPLETE = {
   Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
-  Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005, Pe: 60, Z: 8,
+  Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005, Pe: 60, Znom: 8,
 };
 
 const P_SEALED: SweepParams = { Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 50 };
@@ -33,7 +33,7 @@ const P_PR: SweepParams = { ...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, p
 const P_BP4: SweepParams = { ...P_VENTED, Vf: 0.020 };
 
 const validDriver = () => {
-  const { value, errors } = deriveDriver(RAW_COMPLETE);
+  const { value, errors } = deriveEngineDriver(RAW_COMPLETE);
   if (!value) throw new Error('fixture driver must be valid: ' + errors.map(e => e.message).join('; '));
   return value;
 };
@@ -46,12 +46,12 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   const VAS_AND_QTS_ONLY = { Fs: 37, Qts: 0.38, Vas: 0.030, Sd: 0.0133, Re: 5.6 };
 
   it('is rejected before any arithmetic — value is null, so nothing non-finite is ever produced', () => {
-    const { value } = deriveDriver(VAS_AND_QTS_ONLY);
+    const { value } = deriveEngineDriver(VAS_AND_QTS_ONLY);
     assert.equal(value, null, 'one Q is not enough to solve the T/S group; the driver must not derive');
   });
 
   it('the blocking error names the Q parameters and says how many are needed', () => {
-    const { errors } = deriveDriver(VAS_AND_QTS_ONLY);
+    const { errors } = deriveEngineDriver(VAS_AND_QTS_ONLY);
     const blocking = errors.filter(e => e.level === 'error');
     assert.ok(blocking.length > 0, 'a rejected driver must carry at least one error-level issue');
     const q = blocking.find(e => e.field === 'Qts');
@@ -60,7 +60,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   });
 
   it('adding the second Q makes the same driver derive — the guard rejects the gap, not the driver', () => {
-    const { value } = deriveDriver({ ...VAS_AND_QTS_ONLY, Qms: 7.0 });
+    const { value } = deriveEngineDriver({ ...VAS_AND_QTS_ONLY, Qms: 7.0 });
     assert.ok(value, 'Qts + Qms is two of three: the driver must now derive');
     assert.ok(Number.isFinite(value.Qes) && value.Qes > 0, 'Qes must be derived as a finite positive number');
   });
@@ -68,13 +68,13 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   it('Qms equal to Qts is rejected instead of deriving Qes = Infinity', () => {
     // Qes = Qts·Qms/(Qms−Qts): equal values divide by zero. Infinity here would go on to
     // make Bl = √(2π·Fs·Mms·Re/Qes) = 0 and a flat −200 dB sweep with no error at all.
-    const { value, errors } = deriveDriver({ ...VAS_AND_QTS_ONLY, Qms: 0.38 });
+    const { value, errors } = deriveEngineDriver({ ...VAS_AND_QTS_ONLY, Qms: 0.38 });
     assert.equal(value, null, 'Qms == Qts must block');
     assert.ok(errorFields(errors).includes('Qms'), 'the error must name Qms');
   });
 
   it('Qms below Qts is rejected — the derived Qes would be negative, not merely large', () => {
-    const { value, errors } = deriveDriver({ ...VAS_AND_QTS_ONLY, Qms: 0.2 });
+    const { value, errors } = deriveEngineDriver({ ...VAS_AND_QTS_ONLY, Qms: 0.2 });
     assert.equal(value, null, 'Qms < Qts must block');
     assert.ok(errorFields(errors).includes('Qms'), 'the error must name Qms');
   });
@@ -82,7 +82,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   it('an inconsistent Q pair is rejected even when the third Q is also supplied', () => {
     // With all three present nothing divides, so the old guard let this through — but the
     // trio is still inconsistent: Qts is the PARALLEL combination, so Qts < min(Qes, Qms).
-    const { value, errors } = deriveDriver({ ...RAW_COMPLETE, Qts: 0.5, Qes: 0.4, Qms: 0.5 });
+    const { value, errors } = deriveEngineDriver({ ...RAW_COMPLETE, Qts: 0.5, Qes: 0.4, Qms: 0.5 });
     assert.equal(value, null, 'Qms == Qts must block whether or not Qes is present');
     assert.ok(errorFields(errors).includes('Qms'), 'the error must name Qms');
   });
@@ -90,7 +90,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   it('a Q of Infinity is not accepted as a present Q parameter', () => {
     // `Infinity > 0` is true, so a bare positivity test counts it as supplied. It then
     // derives Bl = 0 and a silent flat curve — the exact failure the guard exists to stop.
-    const { value, errors } = deriveDriver({ ...VAS_AND_QTS_ONLY, Qes: Infinity });
+    const { value, errors } = deriveEngineDriver({ ...VAS_AND_QTS_ONLY, Qes: Infinity });
     assert.equal(value, null, 'Qes = Infinity must not satisfy the two-of-three requirement');
     assert.ok(errorFields(errors).includes('Qts'), 'the completeness error must still be raised');
   });
@@ -237,7 +237,7 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
     // A driver with neither Pe nor Xmax has no limit to apply, so maxCurves is Infinity
     // everywhere — while the sweep it derives from is entirely finite. classifyFinite
     // cannot see this; it is a separate output with its own postcondition.
-    const { value: noLimits } = deriveDriver({ Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6 });
+    const { value: noLimits } = deriveEngineDriver({ Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6 });
     assert.ok(noLimits, 'a driver without Pe/Xmax is valid — those are warns, not errors');
     const sw = sweep(noLimits, 'sealed', P_SEALED);
     const mx = maxCurves(noLimits, 'sealed', P_SEALED);

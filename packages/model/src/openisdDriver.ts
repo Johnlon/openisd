@@ -26,13 +26,17 @@
 import { deriveOpenISDFields } from './openisdDerive.js';
 import { winningReading } from './openisdRecord.js';
 import type {
-  _SpecEntry, _SpecSection, _Specs, SourceRole, Reading,
+  _SpecEntry, _SpecSection, _Specs, SourceRole, Reading, DqMark,
   _ScrapedField, _DerivedField, _BookkeepingField, DispositionField, QualityBlock, CurvesBlock,
 } from './openisdRecord.js';
-import { deriveDriver, checkConsistency, RHO, C, ebp as computeEbp } from '@openisd/engine';
+import { deriveEngineDriver, checkConsistency, RHO, C, ebp as computeEbp } from '@openisd/engine';
 import type {
-  DriverError, DriverRaw, Driver as EngineDriver, ConsistencyIssue,
+  DriverError, EngineDriver, ConsistencyIssue, Result,
 } from '@openisd/engine';
+import { WinISDDriver, INI_ROWS } from '@openisd/winisd';
+export { CellState } from '@openisd/winisd';
+import { CellState } from '@openisd/winisd';
+import type { WdrCell, WdrHeader } from '@openisd/winisd';
 
 /**
  * The `openisd.yml` record shape — `OpenISDDriver`'s constructor parameter and the `.owdr`
@@ -96,7 +100,6 @@ export const _OpenISDDriverJsonPrivateAllow = [
 ];
 
 /** What `cell()` answers: the number, and where it came from. */
-export type CellState = 'E' | 'C' | 'N';
 export interface Cell {
   /** SI value, or null when the field is neither stated nor derivable. */
   value: number | null;
@@ -123,7 +126,7 @@ export type MetaField =
 /** What `metaCell()` answers for a `MetaField` — no `C` state: nothing computes a brand. */
 export interface MetaCell {
   value: string;
-  state: 'E' | 'N';
+  state: typeof CellState.Entered | typeof CellState.Absent;
   /** The winning source, present only for a stated (non-empty) value. */
   origin?: SourceRole;
 }
@@ -140,40 +143,6 @@ function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive
   return 'woofer';
 }
 
-/**
- * Record field name → the name the engine solver uses, where the two genuinely differ.
- * This is the ONE place that translation happens, and it exists because the engine
- * predates the record: `BL` is the record's spelling of the engine's `Bl`. It is not an
- * alias on our own field — the record has exactly one name for it, and so does the engine.
- */
-const TO_ENGINE: Partial<Record<SpecField, string>> = {
-  BL: 'Bl',
-  // The record names its dimensions in millimetres and STATES them in millimetres; the engine
-  // works in SI metres throughout. Both are internally consistent, so the conversion belongs
-  // here, at the one join between them — omitting it is not a rounding error, it makes the
-  // field invisible to the engine under a name it never reads.
-  // bugs/BUG_20260814_openisddriver-passes-mm-named-dimension-fields-to-the-engine-untranslated-and-unscaled.md
-  Hc_mm: 'Hc', Hg_mm: 'Hg', voice_coil_dia_mm: 'Vcd',
-  thick_mm: 'Thick', depth_mm: 'Depth', magnet_depth_mm: 'MagDepth',
-  magnet_dia_mm: 'Magnet', basket_dia_mm: 'Basket', outer_dia_mm: 'Outer',
-  driver_volume_l: 'DVol',
-};
-const FROM_ENGINE: Record<string, SpecField> = { Bl: 'BL' };
-
-/** SI value = stated value × this. 1 where the record already states SI, 1e-3 for a field the
- *  record names and states in millimetres (or, for `driver_volume_l`, in litres). Same pairs
- *  the serialiser declares in `SPEC_TO_WDR`; this is the model side of the identical join. */
-const TO_ENGINE_SCALE: Partial<Record<SpecField, number>> = {
-  Hc_mm: 1e-3, Hg_mm: 1e-3, voice_coil_dia_mm: 1e-3,
-  thick_mm: 1e-3, depth_mm: 1e-3, magnet_depth_mm: 1e-3,
-  magnet_dia_mm: 1e-3, basket_dia_mm: 1e-3, outer_dia_mm: 1e-3,
-  driver_volume_l: 1e-3,
-};
-
-function engineName(f: SpecField): string { return TO_ENGINE[f] ?? f; }
-function engineScale(f: SpecField): number { return TO_ENGINE_SCALE[f] ?? 1; }
-function specName(e: string): SpecField { return FROM_ENGINE[e] ?? (e as SpecField); }
-
 export class OpenISDDriver {
   /** The record as it stands, including any manual readings entered since load. */
   readonly #record: _OpenISDDriverJson;
@@ -182,9 +151,9 @@ export class OpenISDDriver {
   /** The {value, origin} a MetaField carried before a manual override, so clearMeta() can
    *  restore it. */
   readonly #displacedMeta = new Map<MetaField, { value: string; origin: SourceRole }>();
-  /** Memoised solve; dropped on every mutation. */
+  /** Memoized solve; dropped on every mutation. */
   #cache: { fields: Record<string, number>; errors: DriverError[] } | null = null;
-  /** Memoised consistency verdict; dropped alongside #cache. */
+  /** Memoized consistency verdict; dropped alongside #cache. */
   #issues: ConsistencyIssue[] | null = null;
   /** Whether a derivable (never-stated) field solves to `C`. Off: it reads `N` — nothing is
    *  solved, only what is stated is validated. */
@@ -198,6 +167,12 @@ export class OpenISDDriver {
 
   static fromRecord(record: _OpenISDDriverJson): OpenISDDriver {
     return new OpenISDDriver(record);
+  }
+
+  /** `.owdr` text → an `OpenISDDriver`, direct. `.owdr` IS `_OpenISDDriverJson` as JSON — this
+   *  is the one-step replacement for `JSON.parse(text)` + `OpenISDDriver.fromRecord(record)`. */
+  static fromOwdr(text: string): OpenISDDriver {
+    return new OpenISDDriver(JSON.parse(text) as _OpenISDDriverJson);
   }
 
   /**
@@ -240,11 +215,137 @@ export class OpenISDDriver {
   /** The record, including every manual reading entered. This is the `.owdr` bytes. */
   toRecord(): _OpenISDDriverJson { return this.#record; }
 
+  /**
+   * Project THIS driver into a `WinISDDriver` — every value comes from a getter call on
+   * `this` (`.cell()`/`.metaCell()`/`.ebp()`/`.description()`/`.dqMarks()`), assigned
+   * straight across. `WinISDDriver` derives nothing of its own (ARCHITECTURE.md
+   * "WinISDDriver is solely a serialisation device") — this method is the ONE place that
+   * reads OpenISDDriver's resolved values to build one.
+   *
+   * `ebp`: EBP is not a real `SpecField` (no engine derivation route). `.ebp()` is the ONE
+   * place that formula is allowed to live; this method only ever ASSIGNS the value the
+   * getter hands it.
+   * bugs/BUG_20260817_wdr_writer_computes_ebp_itself_violating_its_own_no-calc-logic_rule.md
+   */
+  toWinISDDriver(): Result<WinISDDriver> {
+    const cells = new Map<string, WdrCell>();
+    const intake: DriverError[] = [];
+
+    // Every WDR-tracked spec field — c, roo, and EBP included — comes off `cell()` through
+    // the exact same entered-or-computed path as Fs/Qes/Rms/anything else: `cell()`'s
+    // COMPUTED branch already resolves all three via `solveConsistencyGroup`'s own fill
+    // (`@openisd/engine`'s `driver.ts`), so this loop names no field specially.
+    for (const key of INI_ROWS) {
+      const c = this.cell(key as SpecField);
+      if (c.value == null) continue;
+      if (!isFinite(c.value)) {
+        intake.push({ level: 'warn', field: key,
+          message: `${key}: value is not finite — field dropped to N with its WinISD default` });
+        continue;
+      }
+      if (c.state === CellState.Entered && c.value === 0) {
+        intake.push({ level: 'warn', field: key,
+          message: `${key}: entered value is 0 — written as an entered 0; verify this is real and not a failed extraction` });
+      }
+      cells.set(key, { value: String(c.value), state: c.state });
+    }
+    if (!cells.has('Dia')) {
+      const dd = cells.get('Dd');
+      if (dd && dd.state === CellState.Computed) cells.set('Dia', dd);
+    }
+
+    const finalCells = new Map<string, WdrCell>();
+    for (const key of INI_ROWS) {
+      const existing = cells.get(key);
+      // WinISD's own default is numVC=1 ("one voice coil unless stated otherwise" — decompile
+      // evidence at 0x46121c) and VCCon=1 (parallel) — the generic '0' placeholder every
+      // other absent key gets would be wrong for either, not merely unset.
+      const fallback = key === 'numVC' || key === 'VCCon' ? '1' : '0';
+      const state: CellState = key === 'numVC' ? CellState.Entered : existing?.state ?? CellState.Absent;
+      finalCells.set(key, existing ?? { value: fallback, state });
+    }
+    if (this.cell('Xlim').state !== CellState.Absent) finalCells.set('Xlim', { value: '', state: CellState.Entered });
+
+    const header: WdrHeader = {
+      brand: this.metaCell('brand').value,
+      model: this.metaCell('model').value,
+      manufacturer: this.metaCell('manufacturer').value,
+      providedBy: '',
+      comment: this.description(),
+      dateAdded: '',
+    };
+    const dqLines = this.dqMarks().map(({ field, value, mark }) =>
+      `[DQ] ${field}=${typeof value === 'number' ? String(value) : value}: ${mark.detail}`);
+
+    const wdr = WinISDDriver.build(header, finalCells, dqLines);
+    // Always empty in practice — `finalCells` above is built by iterating every INI_ROWS key
+    // explicitly — but a non-empty list means this loop and WinISDDriver's own key set have
+    // drifted apart, a real incompatibility bug this reports rather than silently swallows.
+    for (const key of wdr.missingKeys()) {
+      intake.push({ level: 'warn', field: key,
+        message: `${key}: WinISDDriver has no INI_ROWS entry for this key — OpenISDDriver and ` +
+          `WinISDDriver have drifted out of sync about the .wdr key set` });
+    }
+
+    return { value: wdr, errors: intake };
+  }
+
+  /**
+   * Build an `OpenISDDriver` from a THIS-AS-READ `WinISDDriver` (`WinISDDriver.fromWdrIni(text)`) —
+   * the reader half of the `.wdr` import boundary. A cell marked `E` becomes a stated
+   * `_SpecEntry`; a cell marked `C` (WinISD's own calculated value) is left out entirely, so
+   * `OpenISDDriver` re-derives it fresh once loaded; a cell marked `N` is simply absent.
+   */
+  static fromWinISDDriver(wdr: WinISDDriver): OpenISDDriver {
+    const woofer: _SpecSection = {};
+    for (const key of INI_ROWS) {
+      const cell = wdr.cell(key);
+      if (cell.state !== 'E') continue;
+      const v = Number(cell.value);
+      if (!isFinite(v)) continue;
+      woofer[key as SpecField] = { origin: 'manual', readings: { manual: { read_value: v } }, dq: [] };
+    }
+
+    const brand = wdr.headerField('brand') ?? '';
+    const model = wdr.headerField('model') ?? '';
+    const meta = (value: string | undefined): _ScrapedField<string> =>
+      ({ value: value ?? '', origin: 'manual', definition: 'from the .wdr header', dq: [] });
+    const slug = `${brand} ${model}`.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+    return OpenISDDriver.fromRecord({
+      uuid: { value: '', definition: 'no stable identity — a raw .wdr carries none' },
+      quality: {
+        rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+        parse_errors: [], cross_source_only: [],
+      },
+      manufacturer: meta(wdr.headerField('manufacturer')),
+      brand: meta(wdr.headerField('brand')),
+      model: meta(wdr.headerField('model')),
+      sku: {
+        value: slug,
+        definition: 'slug of the .wdr Brand/Model header text',
+        grounds: [{ origin: 'manual', reading: `${brand} ${model}`.trim(), definition: 'the .wdr Brand/Model header lines' }],
+      },
+      driver_type: { value: 'woofer', origin: 'manual', definition: '.wdr carries no driver-type discriminator', dq: [] },
+      disposition: { value: 'ok', definition: 'imported from a .wdr file', detail: '' },
+      data_sources: { value: {}, definition: '.wdr carries no source URLs' },
+      authoritative: { value: 'manual', definition: 'the .wdr file is its own only source' },
+      specs: { woofer },
+    });
+  }
+
+  /** `.wdr` text → an `OpenISDDriver`, direct — the one-step replacement for
+   *  `WinISDDriver.fromWdrIni(text)` + `OpenISDDriver.fromWinISDDriver(wdr)`. */
+  static fromWdrText(text: string): OpenISDDriver {
+    return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(text));
+  }
+
   /** The section this driver's T/S fields live in — `specs.woofer` for anything that is
    *  neither a tweeter nor a passive radiator. */
   get section(): 'woofer' | 'tweeter' | 'passive_radiator' { return this.#section; }
 
   #specs(): _SpecSection {
+    if (!this.#record.specs) this.#record.specs = {};
     const s = this.#record.specs[this.#section] ?? {};
     this.#record.specs[this.#section] = s;
     return s;
@@ -262,7 +363,7 @@ export class OpenISDDriver {
       const entry = specs[k];
       if (!entry) continue;
       const v = winningReading(entry).read_value;
-      if (typeof v === 'number' && isFinite(v)) out[engineName(k)] = v * engineScale(k);
+      if (typeof v === 'number' && isFinite(v)) out[k] = v;
     }
     return out;
   }
@@ -283,7 +384,7 @@ export class OpenISDDriver {
     const stated = { ...this.#stated() };
     if (stated.c == null) stated.c = C;
     if (stated.roo == null) stated.roo = RHO;
-    const { errors } = deriveDriver(stated as unknown as DriverRaw);
+    const { errors } = deriveEngineDriver(stated);
     return { fields: stated, errors };
   }
 
@@ -294,11 +395,11 @@ export class OpenISDDriver {
   cell(field: SpecField): Cell {
     const entry = this.#entry(field);
     if (entry) {
-      return { value: winningReading(entry).read_value, state: 'E', origin: entry.origin };
+      return { value: winningReading(entry).read_value, state: CellState.Entered, origin: entry.origin };
     }
-    const v = this.#derived().fields[engineName(field)];
-    if (typeof v === 'number' && isFinite(v)) return { value: v, state: 'C' };
-    return { value: null, state: 'N' };
+    const v = this.#derived().fields[field];
+    if (typeof v === 'number' && isFinite(v)) return { value: v, state: CellState.Computed };
+    return { value: null, state: CellState.Absent };
   }
 
   /** Efficiency Bandwidth Product (Fs/Qes) — WinISD: EBP. Not a stored `SpecField`: it is
@@ -353,7 +454,7 @@ export class OpenISDDriver {
   /**
    * The resolved, engine-ready driver — every derivable field under its ENGINE name
    * (`Bl`, not `BL`), for `sweep()`/`maxCurves()`. Null when a blocking ('error' level)
-   * issue means nothing can be drawn — the same guard `deriveDriver` itself enforces.
+   * issue means nothing can be drawn — the same guard `deriveEngineDriver` itself enforces.
    * `numVC` defaults to 1 here only (WinISD's "one voice coil unless stated otherwise") —
    * `cell('numVC')` stays honestly N when nothing stated it; this is the one place a
    * default is owed to the physics, not to the field's own display.
@@ -389,14 +490,51 @@ export class OpenISDDriver {
    *  a brand. An empty value (never stated, or cleared to nothing) reads `N`. */
   metaCell(field: MetaField): MetaCell {
     const f = this.#record[field];
-    if (f?.value && f.value.length > 0) return { value: f.value, state: 'E', origin: f.origin };
-    return { value: '', state: 'N' };
+    if (f?.value && f.value.length > 0) return { value: f.value, state: CellState.Entered, origin: f.origin };
+    return { value: '', state: CellState.Absent };
   }
 
   /** The built canonical identity code — `_DerivedField`, so there is no provenance to report,
    *  just the value. Empty until the derivation runs. */
   sku(): string {
     return this.#record.sku.value;
+  }
+
+  /** The record's free-text description — a scraped/authored field distinct from the
+   *  `comment` MetaField (that one is the later-added "free human note"; `description` is
+   *  the record's own longer-standing field, e.g. `.wdr`'s `Comment=` header line source). */
+  description(): string {
+    return this.#record.description?.value ?? '';
+  }
+
+  /**
+   * Every `[DQ]` mark this record carries, in record order: the metadata fields first (their
+   * own declared order below), then this driver's OWN T/S section (`_SpecSection`'s declared
+   * key order) — the exact traversal a `.wdr`'s `[DQ]` comment lines are built from. Exposes
+   * only a flat, plain-data list (field name, the value the mark is about, the mark itself) —
+   * never the raw `_SpecEntry`/`_ScrapedField` envelope a mark lives in.
+   */
+  dqMarks(): { field: string; value: number | string; mark: DqMark }[] {
+    const out: { field: string; value: number | string; mark: DqMark }[] = [];
+    const metaFields: (keyof _OpenISDDriverJson)[] = [
+      'manufacturer', 'brand', 'model', 'series', 'driver_type', 'nominal_size_cm',
+      'product_image', 'description', 'surround_material',
+    ];
+    for (const key of metaFields) {
+      const f = this.#record[key] as _ScrapedField<string | number> | undefined;
+      if (f && f.value !== '' && f.value != null) {
+        for (const mark of f.dq ?? []) out.push({ field: key, value: f.value, mark });
+      }
+    }
+    const specs = this.#specs();
+    for (const key of Object.keys(specs) as SpecField[]) {
+      const entry = specs[key];
+      if (!entry) continue;
+      let value: number;
+      try { value = winningReading(entry).read_value; } catch { continue; }
+      for (const mark of entry.dq ?? []) out.push({ field: key, value, mark });
+    }
+    return out;
   }
 
   /**
@@ -450,8 +588,6 @@ export class OpenISDDriver {
     for (const fn of [...this.#listeners]) fn();
   }
 }
-
-export { specName };
 
 // ── Reading a RECORD without materialising a driver ──────────────────────────────────────
 
@@ -514,6 +650,14 @@ export function driverRecordProblems(record: unknown): string[] {
   return problems;
 }
 
-export function emptyDriverRecord(): _OpenISDDriverJson {
+/**
+ * Human ruling: the ONLY files, `packages/`-relative, permitted to name `_emptyDriverRecord` —
+ * enforced by `packages/ui/test/ui/architecture.test.ts` the same way as
+ * `_OpenISDDriverJsonPrivateAllow` above. ONLY the human may add, remove, or change an entry
+ * here — no agent may edit this list on its own judgement.
+ */
+export const _emptyDriverRecordPrivateAllow: string[] = [];
+
+export function _emptyDriverRecord(): _OpenISDDriverJson {
   return OpenISDDriver.empty().toRecord();
 }

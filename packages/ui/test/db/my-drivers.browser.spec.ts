@@ -23,7 +23,7 @@ interface SavedDriver { brand?: string; model?: string; Fs?: number }
 const SEEDED: SavedDriver = {
   brand: SEEDED_BRAND, model: SEEDED_MODEL,
   Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
-  Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Z: 8,
+  Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8,
 } as SavedDriver;
 
 /** A minimal WinISD driver file, as a user's own `.wdr` on disk would read. */

@@ -1,5 +1,9 @@
 # `.wpr` writes the passive radiator's Vas in litres into a cubic-metre field — 1000× too large
 
+# Status
+- Vas litres/m³ write-site fix: FIXED
+- F2/F3 sub-findings: OPEN (moved to BACKLOG.md)
+
 ## Symptom
 
 Exporting a passive-radiator design to `.wpr` writes `[PassiveRadiator].Vas` 1000× too large.
