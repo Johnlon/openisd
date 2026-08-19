@@ -83,6 +83,11 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
       { formulaText: 'BL = √(2π × Fs × Mms × Re / Qes)', inputs: ['Fs', 'Mms', 'Re', 'Qes'] }
     ]
   },
+  Znom: {
+    paths: [
+      { formulaText: 'Znom = 2 × round_half_to_even(0.75 × Re)', inputs: ['Re'] }
+    ]
+  },
   Sd: {
     paths: [
       { formulaText: 'Sd = π × (Dd / 2)²', inputs: ['Dd'] },
