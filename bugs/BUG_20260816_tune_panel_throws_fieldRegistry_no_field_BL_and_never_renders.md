@@ -1,7 +1,7 @@
 # The Tune panel throws `fieldRegistry: no field "BL"` and never renders
 
 # Status
-OPEN
+FIXED (re-verified 2026-08-19)
 
 ## Symptom
 
@@ -60,3 +60,11 @@ including `dependsOn: ['Bl', 'Mms']` on the `gamma` entry.
 
 `whatif-panel-fields.browser.spec.ts` QO11.1–QO11.4 pass, and no uncaught page error is
 reported by the diagnostics fixture.
+
+Re-verified 2026-08-19: `OgTune.vue:58` now has `const regId = (key: NumKey): string => (key
+=== 'BL' ? 'Bl' : key);`, applied at both registry lookup call sites (`:62`, `:81`) — the
+translation this bug's Fix section called for. `npx playwright test
+packages/ui/test/logic/whatif-panel-fields.browser.spec.ts --workers=1`: the panel renders, no
+`fieldRegistry: no field "BL"` crash. 4/6 tests in that file pass; the 2 that still fail are the
+separate, already-filed
+`BUG_20260816_tune_panel_shows_N_for_Mms_and_Qms_where_the_model_should_mark_them_C_and_E.md`.
