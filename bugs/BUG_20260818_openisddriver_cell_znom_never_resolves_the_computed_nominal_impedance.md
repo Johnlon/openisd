@@ -1,6 +1,9 @@
 # `OpenISDDriver.cell('Znom')` never resolves the engine's computed nominal impedance
 
 ## Status
+FIXED (re-diagnosed 2026-08-19 — the original cause no longer applies; a narrower, related gap
+was found and fixed instead)
+
 OPEN 2026-08-18 — found while implementing QO55's `WinISDDriver.fromOpenISDDriver` pure-getter
 rewrite (`.cell()`-only, no `.toRecord()`), which surfaced that `cell()` cannot answer 'Znom'
 correctly for an unentered driver.
@@ -47,5 +50,19 @@ const FROM_ENGINE: Record<string, SpecField> = { Bl: 'BL', Z: 'Znom' };
 
 ## Verification
 
-Not yet — fix being applied in the same change as the QO55 rewrite; `winisd-parity.test.ts`'s
-Znom-column comparisons are the fidelity proof once both land.
+Re-diagnosed 2026-08-19, per "never quote a stale ledger claim without re-verification": the
+`TO_ENGINE`/`FROM_ENGINE` join this bug describes no longer exists in `openisdDriver.ts` at
+all — `packages/engine/src/driver.ts:353-354` now computes `r.Znom = nominalImpedance(r.Re)`
+directly under the record's own field name (`Znom`, not `Z`), and `cell()`'s computed branch
+(`this.#derived().fields[field]`) reads that name directly with no translation needed. The
+original `cell('Znom')`-never-resolves symptom is gone at the engine layer.
+
+What remained, found by re-running `driver-editor-provenance-and-units.browser.spec.ts -g
+"every field the solver calculated has a provenance formula"`: `PROVENANCE_MAP` (`provenance.ts`)
+had no `Znom` entry (unlike `LABEL_TO_FIELD_KEY`, which already had `Znom: 'Znom'`), so the
+provenance INSPECTOR — not `cell()` — couldn't explain a computed Znom. Fixed by adding
+`Znom: { paths: [{ formulaText: 'Znom = 2 × round_half_to_even(0.75 × Re)', inputs: ['Re'] }] }`
+to `PROVENANCE_MAP` (`provenance.ts`, next to `BL`), matching `driver.ts:44`'s documented
+formula. `npx playwright test
+packages/ui/test/ui/driver-editor-provenance-and-units.browser.spec.ts --workers=1` — 10/10
+pass.
