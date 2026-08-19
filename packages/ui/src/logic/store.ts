@@ -15,7 +15,7 @@
 import { reactive, computed, ref, shallowRef, watch, type ComputedRef } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { EngineDriver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
-import { driverRecordProblems, OpenISDDriver } from '@openisd/model';
+import { driverRecordProblems, OpenISDDriver, setActiveAlignment } from '@openisd/model';
 import type { Cell, MetaCell, SpecField, MetaField, _OpenISDDriverJson, _OpenISDProjectJson } from '@openisd/model';
 import { ManagedOpenISDProject } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
@@ -299,7 +299,7 @@ function buildState(): AppState {
   Object.defineProperty(s, 'box', {
     enumerable: true, configurable: true,
     get: () => fromAlignmentKind(managedProject._snapshot().box.active),
-    set: (v: BoxType) => managedProject.mutate(p => { p.box.active = toAlignmentKind(v); }),
+    set: (v: BoxType) => managedProject.mutate(p => setActiveAlignment(p.box, toAlignmentKind(v))),
   });
   return s as unknown as AppState;
 }
