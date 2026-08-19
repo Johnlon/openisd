@@ -14,7 +14,7 @@
  *
  * ── `_OpenISDProjectJson` is PRIVATE ──
  * No instance of one ever leaves, and nor does the live `OpenISDDriver` inside it. A caller
- * reads with `cell()`/`metaCell()`/`toEngineDriver()`/`errors()`/`snapshot()` and writes with
+ * reads with `cell()`/`metaCell()`/`toEngineDriver()`/`errors()`/`_snapshot()` and writes with
  * `enter()`/`clear()`/`mutate()`. Handing the project out would let a caller change it behind
  * the facade — with no notification and no what-if guard — which is precisely what this class
  * exists to make impossible.
@@ -25,7 +25,7 @@
  *
  * ── A what-if never leaks into anything persistent ──
  * Its values are unverified against physical reality, so nothing outside the live overlay may
- * see them. `recordToPersist()` — the ONLY route to a savable project — cancels an active
+ * see them. `_recordToPersist()` — the ONLY route to a savable project — cancels an active
  * what-if itself. That is structural, not a rule call sites must remember: the defect it
  * replaces was a per-call-site guard that `shareLink()` was missing while every sibling had it.
  *
@@ -54,7 +54,7 @@ import {
 } from '@openisd/engine';
 import type { LossMode } from '@openisd/engine';
 
-export type ManagedOpenISDProjectListener = () => void;
+type ManagedOpenISDProjectListener = () => void;
 
 /** One state layer: the project, and the live driver over its record. They share one object
  *  graph, so `driver` is a VIEW of `project.driver`, never a second copy of it. */
@@ -331,7 +331,7 @@ export class ManagedOpenISDProject {
    * rather than the object itself, because handing out the object would be handing out the
    * state — the thing this class exists to prevent.
    */
-  snapshot(): _OpenISDProjectJson {
+  _snapshot(): _OpenISDProjectJson {
     return structuredClone(this.#effective().project);
   }
 
@@ -356,20 +356,15 @@ export class ManagedOpenISDProject {
   // ---- the project, for anything persistent ----------------------------------------------
 
   /**
-   * The project to SAFVE, EXPORT or SHARE — committed state, never an open overlay, and it
+   * The project to SAVE, EXPORT or SHARE — committed state, never an open overlay, and it
    * cancels an active what-if first as an observable side effect.
    *
    * That cancellation is STRUCTURAL: this is the only route to a persistable project, so no
    * call site can forget it.
    */
-  recordToPersist(): _OpenISDProjectJson {
+  _projectToPersist(): _OpenISDProjectJson {
     this.#endWhatIfIfActive();
     return structuredClone(this.#committed.project);
-  }
-
-  /** The project exactly as loaded — what Reset goes back to. Never touched by an overlay. */
-  groundRecord(): _OpenISDProjectJson {
-    return structuredClone(this.#ground.project);
   }
 
   isWhatIfActive(): boolean { return this.#overlay?.kind === 'whatif'; }

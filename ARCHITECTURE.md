@@ -142,8 +142,16 @@ cannot usefully cross an embedded-V8 boundary. The projection algorithm itself i
 ## 2. Layers and components
 
 **Four layers. Every import points DOWNWARD, one layer at a time.** No upward import, no lateral
-import between siblings, and no skipping a layer — the UI does not reach past `logic` into a
-service, and a service does not reach back into the app's state.
+import between siblings, and no skipping a layer.
+
+**`UI -> UI LOGIC -> SERVICE -> [domain, STORAGE, io]` (human ruling, QO60).** `store.ts` is
+STORAGE — an L4 peer of `domain` and `io`, not part of L2. `ui/` components and the `ui LOGIC`
+layer never import `store.ts` directly; every read and write of the app's persistent design
+state goes through the SERVICE layer, which is the only layer permitted to hold a reference to
+STORAGE, domain, or io. This is a TARGET ruling, not yet enforced or built — `store.ts` today is
+imported directly by `ui/` components and other `logic/` modules throughout (see AS-BUILT below,
+and QO60 for the open follow-on work: the SERVICE layer itself, and the `architecture.test.ts`
+gate to enforce it).
 
 Each box is ONE responsibility. A module that both fetches data and drives the UI has two, and
 belongs in two places.
@@ -154,24 +162,32 @@ graph TD
         UI["<b>ui/</b><br/>packages/ui/src/ui/<br/>components · canvas · directives<br/><i>DOM. Renders state, raises intent.</i>"]
     end
 
-    subgraph L2["APPLICATION"]
-        LOGIC["<b>logic/</b><br/>packages/ui/src/logic/<br/>store · project · workflows<br/>field registry · series"]
-        WSPACE["<b>Workspace</b><br/>logic/model/workspace.ts<br/><i>the open projects, ORDERED</i>"]
-        MANAGED["<b>ManagedProject</b><br/>logic/managedProject.ts<br/>ground · committed<br/>edit-or-whatif overlay<br/><i>3 x OpenISDProject.<br/>The ONLY path to a project.</i>"]
+    subgraph L2["UI LOGIC — orchestrates intent, never holds STORAGE/domain/io directly"]
+        LOGIC["<b>logic/</b><br/>packages/ui/src/logic/<br/>workflows · field registry · series<br/><i>talks to SERVICE, not to STORAGE</i>"]
     end
 
-    subgraph L3["SERVICES — arguments in, data out, no app state"]
+    subgraph L3["SERVICE — the only layer allowed to reach STORAGE, domain or io"]
         DRIVERREPO["<b>driverRepo</b><br/>db/driverRepo.ts<br/>index · search · lookup"]
         MYREPO["<b>myDriverRepo</b><br/>db/myDrivers.ts"]
         PREFS["<b>prefsStore</b><br/>db/prefs.ts"]
         FILEIO["<b>fileIO</b><br/>logic/useDesignIO.ts<br/><i>a composable today,<br/>not a constructed service</i>"]
         DIAG["<b>diagnostics</b><br/>diagnostics/selftest.ts"]
         LOGGING["<b>logging</b><br/>logging/flash.ts"]
+        PROJSVC["<b>project service</b><br/><i>NOT BUILT — the wrapper QO60 needs:</i><br/>the only caller of STORE/WSPACE/MANAGED"]
     end
 
-    subgraph L4["DOMAIN — headless, no DOM, no browser"]
+    subgraph L4a["STORAGE — persistent Vue-reactive app state"]
+        WSPACE["<b>Workspace</b><br/>logic/model/workspace.ts<br/><i>the open projects, ORDERED</i>"]
+        MANAGED["<b>ManagedProject</b><br/>logic/managedProject.ts<br/>ground · committed<br/>edit-or-whatif overlay<br/><i>3 x OpenISDProject.<br/>The ONLY path to a project.</i>"]
+        STORE["<b>store.ts</b><br/>logic/store.ts<br/><i>the Vue-reactivity bridge<br/>over Workspace/ManagedProject</i>"]
+    end
+
+    subgraph L4b["DOMAIN — headless, no DOM, no browser"]
         MODEL["<b>@openisd/model</b><br/>packages/model/src/<br/><b>OpenISDProject</b> and its members:<br/>OpenISDDriver · OpenISDPassiveRadiator<br/>OpenISDBox · OpenISDVent · OpenISDEnvironment<br/>OpenISDSignal · OpenISDFilter · OpenISDListening<br/><i>pure data. No DOM, no browser, no Vue.</i>"]
         ENGINE["<b>@openisd/engine</b><br/>packages/engine/src/<br/>derive · sweep · circuit<br/>alignments · filters"]
+    end
+
+    subgraph L4c["IO — the serialization / file boundary"]
         SERIAL["<b>@openisd/winisd</b><br/>packages/winisd/src/<br/>.wdr · .wpr · ParState"]
     end
 
@@ -187,32 +203,38 @@ graph TD
     ROOT -. "constructs" .-> LOGGING
 
     UI -->|calls| LOGIC
-    LOGIC -->|calls| WSPACE
-    WSPACE -->|"holds, ordered"| MANAGED
+    LOGIC -->|calls| PROJSVC
     LOGIC -->|calls| DRIVERREPO
     LOGIC -->|calls| MYREPO
     LOGIC -->|calls| PREFS
     LOGIC -->|calls| FILEIO
     LOGIC -->|calls| DIAG
     LOGIC -->|calls| LOGGING
-    MANAGED -->|"wraps 3x"| MODEL
+    PROJSVC -->|calls| STORE
+    STORE -->|"bridges to Vue"| WSPACE
+    WSPACE -->|"holds, ordered"| MANAGED
     DRIVERREPO -->|"returns records"| MODEL
     MYREPO -->|"returns records"| MODEL
     FILEIO -->|calls| SERIAL
-    FILEIO -->|"reads via"| MANAGED
+    FILEIO -->|"reads via"| PROJSVC
     DIAG -->|calls| ENGINE
+    MANAGED -->|"wraps 3x"| MODEL
     MODEL -->|calls| ENGINE
     SERIAL -->|"reads / writes"| MODEL
 
     classDef pres fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
     classDef app fill:#2a2440,stroke:#a78bfa,color:#f2ecff
     classDef svc fill:#1e3050,stroke:#60a5fa,color:#eaf2ff
+    classDef storage fill:#402020,stroke:#f87171,color:#ffecec
     classDef dom fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
+    classDef io fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
     classDef root fill:#402020,stroke:#f87171,color:#ffecec
     class UI pres
-    class LOGIC,WSPACE,MANAGED app
-    class DRIVERREPO,MYREPO,PREFS,FILEIO,DIAG,LOGGING svc
-    class MODEL,ENGINE,SERIAL dom
+    class LOGIC app
+    class DRIVERREPO,MYREPO,PREFS,FILEIO,DIAG,LOGGING,PROJSVC svc
+    class WSPACE,MANAGED,STORE storage
+    class MODEL,ENGINE dom
+    class SERIAL io
     class ROOT root
 ```
 
@@ -372,6 +394,11 @@ omits modules that exist, and shows components (`PresentationState`, `UrlAppStat
 that have not been built. **A red box is a module the target diagram does not account for.** Every
 red box is either work still to be placed, or a module that should not exist — none of them is
 sanctioned by the target above.
+
+**Stale relative to QO60 and the SERVICE-layer ruling above**, and relative to `managedDriver.ts`
+having already become `managedProject.ts`: `store.ts` below is drawn as directly called by the UI
+(`UI -->|calls| STORE`), which the target diagram now above explicitly forbids. Not yet redrawn —
+tracked as part of QO60's follow-on work.
 
 **Kept small on purpose.** A diagram with forty boxes cannot be read at the size a Markdown
 viewer renders it, and it cannot be enlarged. So the picture below shows only the SHAPE — the four
