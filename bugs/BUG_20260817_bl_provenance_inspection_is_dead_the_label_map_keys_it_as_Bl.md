@@ -1,7 +1,7 @@
 # BL's provenance inspection is dead — the label map keys it as `Bl`
 
 # Status
-OPEN
+FIXED (superseded — re-verified 2026-08-19)
 
 ## Symptom
 
@@ -44,3 +44,11 @@ Key the entry on the label the editor actually renders: `BL: 'Bl'`.
 
 The sweep test above no longer lists `Parameters/BL`; clicking BL outlines it and colours
 Fs, Mms, Re and Qes.
+
+Re-verified 2026-08-19: `LABEL_TO_FIELD_KEY['BL']` and `PROVENANCE_MAP.BL` are both already
+correctly keyed `BL` (`packages/ui/src/logic/provenance.ts:81,186`) — this bug's own fix is
+already applied. `npx playwright test
+packages/ui/test/ui/driver-editor-provenance-and-units.browser.spec.ts -g "every field the
+solver calculated has a provenance formula"` — `BL` no longer appears in the unexplained list.
+That test now fails on a DIFFERENT, unrelated field (`Znom`) — see
+`BUG_20260818_openisddriver_cell_znom_never_resolves_the_computed_nominal_impedance.md`.

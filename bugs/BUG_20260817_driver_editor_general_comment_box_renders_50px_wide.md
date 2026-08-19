@@ -1,7 +1,7 @@
 # BUG — the General tab's Comment box renders 50px wide in a 740px panel
 
 # Status
-OPEN
+FIXED (re-verified 2026-08-19)
 
 ## Symptom
 
@@ -50,3 +50,9 @@ leftover height, because it is the only field on the tab with no natural size.
 `General: the Comment box fills the bottom of the panel` — four measurements in a real browser:
 the box spans the panel's content width, its bottom reaches the panel's bottom, it is wider than
 it is tall, and the tab does not scroll in either axis.
+
+Re-verified 2026-08-19: the fix described above (`.de-general .de-fld.de-comment` outranking the
+generic `.de-fld` via specificity) is already present in `DriverEditorModal.vue:1031-1053`,
+citing this bug file by name in its own comment. `npx playwright test
+packages/ui/test/ui/driver-editor-layout.browser.spec.ts -g "Comment box fills the bottom"
+--workers=1` — 4/4 pass.
