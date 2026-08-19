@@ -1,5 +1,5 @@
 prefix: QO
-next: 60
+next: 61
 questions:
 - id: QO1
   title: UI TODO List
@@ -5637,3 +5637,16 @@ questions:
     text: |-
       ManagedOpenISDProject.snapshot/recordToPersist/groundRecord in packages/ui/src/logic/managedProject.ts
       they should not be returning the json
+- id: QO60
+  title: Layer store.ts as STORAGE, hidden behind a SERVICE layer, never called directly from UI -
+  status: open
+  raised: '2026-08-19'
+  body: ''
+  notes:
+  - at: '2026-08-19'
+    text: |-
+      Refined by human: the fan-out at the bottom is UI -> UI LOGIC -> SERVICE -> [domain, STORAGE, io].
+      SERVICE sits above three peer L4 targets, not just STORAGE: domain (@openisd/model +
+      @openisd/engine), STORAGE (store.ts — persistent Vue-reactive design state), and io
+      (serialization/file boundary — @openisd/winisd, useDesignIO.ts). UI LOGIC (renamed from plain
+      LOGIC) never reaches store.ts, domain, or io directly — only through SERVICE.

@@ -23,7 +23,7 @@ describe('state.box drives the project\'s active alignment', () => {
     it(`state.box = '${box}' makes it the project's active alignment`, () => {
       state.box = box;
       const expected = box === 'pr' ? 'passive-radiator' : box;
-      assert.equal(managedProject.snapshot().box.active, expected);
+      assert.equal(managedProject._snapshot().box.active, expected);
     });
   }
 
@@ -32,9 +32,9 @@ describe('state.box drives the project\'s active alignment', () => {
     state.P.Vb = 0.041;
     state.box = 'sealed';
     state.P.Vb = 0.019;
-    assert.equal(managedProject.snapshot().box.vented.volume_m3, 0.041,
+    assert.equal(managedProject._snapshot().box.vented.volume_m3, 0.041,
       'the vented volume typed in before switching away must survive');
-    assert.equal(managedProject.snapshot().box.sealed.volume_m3, 0.019);
+    assert.equal(managedProject._snapshot().box.sealed.volume_m3, 0.019);
     state.box = 'vented';
     assert.equal(state.P.Vb, 0.041, 'switching back reads the SAME field it read before');
   });
@@ -56,7 +56,7 @@ describe('applyState — a restored box type takes effect before the restored P 
     applyState(saved);
 
     assert.equal(state.box, 'sealed');
-    assert.equal(managedProject.snapshot().box.sealed.volume_m3, 0.0275,
+    assert.equal(managedProject._snapshot().box.sealed.volume_m3, 0.0275,
       'the restored Vb must land in the alignment the restored box type just activated');
   });
 

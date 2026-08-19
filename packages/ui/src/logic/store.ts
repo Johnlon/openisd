@@ -12,11 +12,11 @@
  * project registry, and bridge notifications into Vue's reactivity system.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { reactive, computed, ref, shallowRef, watch } from 'vue';
+import { reactive, computed, ref, shallowRef, watch, type ComputedRef } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { EngineDriver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { driverRecordProblems, OpenISDDriver } from '@openisd/model';
-import type { Cell, MetaCell, SpecField, MetaField, _OpenISDDriverJson } from '@openisd/model';
+import type { Cell, MetaCell, SpecField, MetaField, _OpenISDDriverJson, _OpenISDProjectJson } from '@openisd/model';
 import { ManagedOpenISDProject } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
 import type { OpenISDVent, OpenISDPassiveRadiatorRef } from '@openisd/model';
@@ -72,10 +72,12 @@ const _version = getOrInit('_version', () => ref(0));
  * (`logic/managedProject.ts`), and the domain object for ONE project in the left nav.
  *
  * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
- * `.toEngineDriver()`/`.errors()`/`.snapshot()` to read, `.enter()`/`.clear()`/`.mutate()` to write,
- * `.recordToPersist()` for anything saved/exported/shared, `.beginWhatIf()`/`.cancelWhatIf()`/
- * `.isWhatIfActive()` for a what-if. The `_OpenISDProjectJson` it wraps — and the `OpenISDDriver`
- * inside that — are private to it and never leave.
+ * `.toEngineDriver()`/`.errors()`/`._snapshot()` to read; `.enter()`/`.clear()`/`.mutate()` to write;
+ * `.beginWhatIf()`/`.cancelWhatIf()`/`.isWhatIfActive()` to manage a what-if. `._recordToPersist()`
+ * is separate again — it is what anything saved/exported/shared reads, and it never hands out a
+ * live what-if: it cancels one first, so nothing unverified can reach disk. The
+ * `_OpenISDProjectJson` it wraps — and the `OpenISDDriver` inside that — are private to it and
+ * never leave.
  */
 
 /**
@@ -236,7 +238,7 @@ function defineBoxFieldAccessors(target: object, mp: ManagedOpenISDProject): voi
         has: (_t, key) => typeof key === 'string' && mp.isEntered(key),
       }),
       set: (value: Record<string, true>) => {
-        for (const k of Object.keys(mp.snapshot().target.entered)) mp.setEntered(k, false);
+        for (const k of Object.keys(mp._snapshot().target.entered)) mp.setEntered(k, false);
         for (const k of Object.keys(value)) if (value[k]) mp.setEntered(k, true);
       },
     },
@@ -296,7 +298,7 @@ function buildState(): AppState {
   // packages/ui/test/logic/boxActiveSync.test.ts, before it could ship).
   Object.defineProperty(s, 'box', {
     enumerable: true, configurable: true,
-    get: () => fromAlignmentKind(managedProject.snapshot().box.active),
+    get: () => fromAlignmentKind(managedProject._snapshot().box.active),
     set: (v: BoxType) => managedProject.mutate(p => { p.box.active = toAlignmentKind(v); }),
   });
   return s as unknown as AppState;
@@ -432,15 +434,16 @@ export function engineDriver(): EngineDriver | null {
 }
 
 // The PROJECT for persistence — committed state, never the overlay, so a live what-if is never
-// saved, shared or written to disk. recordToPersist() cancels an active what-if itself.
-export function projectToPersist(): ReturnType<typeof managedProject.recordToPersist> {
+// saved, shared or written to disk. _projectToPersist() cancels an active what-if itself.
+export function _projectToPersist(): _OpenISDProjectJson {
   void _version.value;
-  return managedProject.recordToPersist();
+  return managedProject._projectToPersist();
 }
 
 /** Just the driver record out of the persistable project, for the paths that write a DRIVER
  *  file (`.wdr`, `.owdr`) rather than a project file. Undefined when none is chosen. */
-export const driverRecord = computed<_OpenISDDriverJson | undefined>(() => projectToPersist().driver);
+export const driverRecord: ComputedRef<_OpenISDDriverJson | undefined> =
+  computed(() => _projectToPersist().driver);
 
 /** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
  *  driver. '' when nothing names it (no driver chosen yet), so a caller can fall back. */
