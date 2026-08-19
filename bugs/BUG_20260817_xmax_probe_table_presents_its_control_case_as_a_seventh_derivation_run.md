@@ -1,7 +1,7 @@
 # The Xmax probe table presents its control case as a seventh derivation run
 
 # Status
-OPEN
+FIXED (re-verified 2026-08-19)
 
 ## Symptom
 
@@ -51,3 +51,8 @@ already reproduces all seven cases, `D` included, because an entered value is ne
 
 The intro's count of blank-`Xmax` runs matches the number of rows whose "fired" column names a
 route, and every row whose `Xmax` was entered is marked as a control.
+
+Re-verified 2026-08-19: `docs/design/WDR_SCHEMA.md:403-405` now reads "six leave `Xmax` blank
+and watch which route fills it, and the seventh (`D`) supplies an `Xmax` that agrees with
+neither route, as a control" — both fixes applied: `D_all_four_xmax` is row 4 (in sequence, not
+last) and its "fired" column reads `neither — **control**` (`:419`).
