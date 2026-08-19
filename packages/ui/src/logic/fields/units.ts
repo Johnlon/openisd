@@ -125,13 +125,8 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = {
   ],
 };
 
-/** The unit list for a group. */
-export function groupUnits(g: UnitGroup): readonly UnitDef[] {
-  return UNIT_GROUPS[g];
-}
-
 /** The group's canonical default unit (first entry). */
-export function defaultUnit(g: UnitGroup): UnitDef {
+function defaultUnit(g: UnitGroup): UnitDef {
   return UNIT_GROUPS[g][0];
 }
 
