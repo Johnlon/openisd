@@ -1,7 +1,7 @@
 # EBP never gets the provenance highlight
 
 # Status
-OPEN
+FIXED (re-verified 2026-08-19)
 
 ## Symptom
 
@@ -47,3 +47,8 @@ Bind `:style="getFieldStyle('EBP')"` on the EBP field.
 `packages/ui/test/ui/driver-editor-provenance-and-units.browser.spec.ts` asserts that every
 field whose key is in `PROVENANCE_MAP` takes the inspected-field outline when clicked — red for
 EBP before the change, green after.
+
+Re-verified 2026-08-19: `DriverEditorModal.vue:760` already binds `:style="getFieldStyle('EBP')"`
+on the EBP field. `npx playwright test
+packages/ui/test/ui/driver-editor-provenance-and-units.browser.spec.ts -g "every field the
+provenance map explains takes the inspected highlight"` passes.
