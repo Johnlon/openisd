@@ -349,7 +349,11 @@ an `OpenISDDriver` and call `.cell()`/`.metaCell()` on it. Deleting them removes
 `_OpenISDDriverJson` from `driverRepo`, `myDrivers`, `driverLibrary` and `driverSelection` at
 the same time.
 
-**5. `winIsdDriverFileIo.ts` off the driver JSON** — works through `OpenISDDriver`'s API.
+**5. STRUCK — the file it targeted no longer exists.** This objective read "`winIsdDriverFileIo.ts`
+off the driver JSON". That module was DELETED as redundant, along with its twin
+`openIsdDriverFileIo.ts`; neither name appears anywhere in the repo. The `.wdr` read/write path it
+described now belongs to objective 6's `FileIO` (see `docs/design/FILEIO_API_PROPOSALS.md`), so
+there is nothing separate to do here.
 
 **6. QO61 — `useDesignIO.ts`.** Per `docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md`, revised
 against these rules: engine gains the PR inverse formulas, reached ONLY via the objective-3 PR

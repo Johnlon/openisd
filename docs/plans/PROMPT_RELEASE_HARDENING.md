@@ -1,0 +1,314 @@
+# Release-hardening run — mission prompt + checklist
+
+You are the ORCHESTRATOR for preparing OpenISD for a production release. High standards are
+paramount and take priority over expedience: the human is releasing to production and wants no
+new bugs. Act with integrity at all times — no workarounds, no renames to silence gates, no
+weakened tests, nothing left to fall between the cracks. Finish the whole job.
+
+Workspace: `/home/john/work/winisd/` — repos `openisd` (branch `dev`, primary),
+`winisd_tools` (`main`), `winisd_drivers` (`main`), `winisd_research` (`master`).
+The global behavioural rules auto-load from `~/.claude/`; they bind you and every agent you
+spawn (copy the relevant ones into each agent prompt — subagents inherit nothing).
+
+## Non-negotiable working rules
+
+- **NEVER `git push`.** Commits stay local. Commit `--no-verify` only when the human says
+  commit. No branches, no worktrees, no force-push.
+- **Full test suites run in the BACKGROUND, one at a time, never concurrent.** Playwright with
+  `--workers=1` (concurrent workers killed the dev server → 84 false failures, QO10). Narrowest
+  scope that answers the question; full suite once per milestone.
+- **Record a bug file BEFORE fixing and before reporting it.** `bugs/BUG_<date>_<slug>.md`,
+  current-state: Symptom / Evidence / Cause / Fix / Verification.
+- **Re-verify every prior claim** — ledger answers, bug files, plan text, and this prompt
+  itself are claims about the world when written. Open the file, re-run the grep, then act.
+  Line numbers in notes are stale; search by symbol. LSP (`ToolSearch("select:LSP")`) for
+  symbol questions; grep for text only.
+- **TDD.** Failing test first, then code. Among red tests, architecture tests are fixed first.
+  Never delete or weaken a test to go green; a changed test keeps assertions at least as strong.
+- **No historic comments** in any artifact ("used to", "previously", "replaces the old…") —
+  justification lives in commit messages only.
+- Discriminators are named string enums, never ints. The UI never touches a JSON shape.
+  Calculations live in `@openisd/engine` only, reached through domain getters that do
+  entered-override → calculated fallback.
+- `ALLOWED_GLOBALS` in `store.ts` and every PrivateAllow list are HUMAN-EDIT-ONLY. Never widen
+  one to make a red test pass.
+
+## Read first, in this order
+
+1. `ARCHITECTURE.md` (openisd) — its `FileIO` block is known-stale; see item 4.
+2. `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md` — the layering plan. Objective 5 is STRUCK
+   (target file deleted). Task R4 strikes its "QO56 hazard" clause (single writer, ruled).
+3. `docs/design/REACTIVITY.md` — the delegate-free reactivity design (unblocks A3).
+4. `docs/design/FILEIO_API_PROPOSALS.md` — Proposal B is RULED. It is A6's interface and lists
+   the three `ARCHITECTURE.md` corrections.
+5. `questions.yml` in openisd, the workspace root, and winisd_tools — the `answer:` blocks
+   carry the human's verbatim rulings of 2026-08-21 and are the authority for every decision
+   below. One question remains OPEN: the coax item (see R2/D4).
+6. `bugs/*.md` in openisd and winisd_tools.
+7. `winisd_research/COMMENT_ENCODING.md` and `winisd_research/PARSTATE_ABSENT.md` — measured
+   facts from the real WinISD under wine (2026-08-21). PARSTATE_ABSENT.md **confirms** the
+   QO49 ruling: a ParState-less `.wdr` gets a 49-slot all-`E` ParState from WinISD itself, and
+   `Gloss=0` is a stated value WinISD never recomputes. QO49 is UNCONDITIONAL — build nothing
+   that special-cases it.
+
+## State when this prompt was written (2026-08-21 — RE-VERIFY, do not trust)
+
+- `npx vitest run`: **1840 / 1844.** The 4 red are `architecture.test.ts` gates, red by design
+  pending the layering work — **for this release they are the release blockers.**
+- eslint 0 problems; typecheck (tsc ×3 + vue-tsc) clean.
+- Last commits: openisd `c83e0ad`, winisd_tools `00a8fdf9`, winisd_research `b62b81e`,
+  winisd_drivers `340cbbca5`. winisd_research has UNCOMMITTED probe results — task R1.
+- The ledger has TWO entries numbered `QO62` (a closed encoding ruling + the human's OPEN coax
+  question). `inbox.py get QO62` reaches only the first — tasks R2 and R3.
+
+## The rulings of 2026-08-21 (the ledger answers are authoritative)
+
+| ID | Ruling (one line) |
+|---|---|
+| QO49 | ParState-less `.wdr`: presence ⇒ ENTERED, uniformly. CONFIRMED by PARSTATE_ABSENT.md. No special case. |
+| QO51 | ADD the Ns/m ↔ kg/s toggle (`resistance` unit group, factor 1) on Rms/Rme/Mcost; defaults stay WinISD's spellings. |
+| QO61 | FileIO = Proposal B (per-format methods, bytes in/out, domain objects out, separate `FileStore` port). |
+| QO62 (closed, encoding) | `.wdr`/`.wpr` READ: strict UTF-8; on failure decode the whole file as CP1252 and report which was used. WRITE stays UTF-8. Ruled, NOT yet built. |
+| QO63 | Single writer — no session-coordination mechanism; strike the plan's QO56-hazard clause. |
+| QP19 | YES to runtime deps for precision maths (mirrors winisd_tools' `uncertainties`). The engine's "zero dependencies" claim is rewritten in the same change. |
+| QT8 | `_workingout/` diagnostics: harvest EVERY run's bubble artifacts before discard; retention needs a rule. |
+| QT12 | DELETE `accuton/emit.py::emit_from_seed` + its tests; repoint scenario stage 6 at the production IoC path. |
+| QT18 | ONE policy: non-drivers refused at build with `OutOfScope`. Migrate the 11 discovery-filter plugins; then delete `is_non_driver_slug`. Rewrite the `discovers_count: 23` scenario comment, not just its number. |
+| QT47 | SPLIT disposition: store only `no_ts_published`; derive the rest from `missing`/`parse_errors`. Annotate QT37/QT40 as overturned. |
+| QT48 | `read_value: Optional[float]` permitted ONLY with `rejected` set; add `RejectedRead.NO_NUMERIC_VALUE`; "N/A" preserved verbatim in `actual_reading`. |
+| QT49 | RENAME `dq_status`→`corroboration`, `dq`→`dq_marks`; land `DQStatus` as a real Enum in the same change. |
+| QT50 | DELETE `FieldEnvelope.__eq__` and `_unpack`; `_check_readings` gets an explicit unwrap. |
+| QT54 | Build the V8 bridge — **IN RELEASE SCOPE (human, 2026-08-21)**. Export `openisdYamlToWdr` and `driverYamlToOpenisdYaml` from openisd; migrate winisd_tools onto them. |
+| QT7 | Curve digitiser DEFERRED; `extracted_data_path` stays declared. |
+| QO34/QO42 | Brand-primary definition fixed in source; `provided_by`/`comment`/`added` added in winisd_tools (reopen QT20 row D as overturned). Both land via the regeneration gate. |
+
+## Hazards the checklist encodes
+
+- **H1 — ONE regeneration pass.** B1–B5 all change the emitted record shape. ALL land first,
+  then a SINGLE emit re-run reformats every record (human: "once any tools changes are made
+  then rerun the emit phase to refomat all files"). Regenerating early bakes today's defects
+  into ~2,016 records. The V8 bridge (stream F) is an implementation swap verified by PARITY —
+  byte-identical output — so it does NOT require a second regeneration; if parity is not
+  byte-identical, STOP and raise it.
+- **H3 — C/E/N persistence gap.** `Provenance` is derived at read time (`cell()` ⇒ Entered iff
+  a `specs` entry exists); records carry no calculated-marker, so a pipeline-calculated value
+  stored in `openisd.yml` reads back as ENTERED. The model fix (B5) must precede B10.
+- **H4 — sequencing inside the layering stream.** A3 needs A2 (the reactivity adapter). A6
+  needs A5 (the OpenISDProject facade) and the ruled FileIO interface. A8 is last.
+- **H5 — a new project is deliberately unsized.** `prototypeBox()` returns zeros with
+  `TODO(box-wizard)` markers; a fresh project shows Vb/Sp precondition errors. Ruled behaviour,
+  not a regression — never "fix" it by reintroducing literals. The box wizard is out of scope
+  (stream G).
+
+---
+
+# THE CHECKLIST
+
+Rules of use: work a task only when every `blocked-by` is checked. Tasks in different lanes
+touch disjoint files and may run in parallel; tasks inside a lane are ordered. Tick a box ONLY
+when the done-criteria are verified with actual output. Any session can resume from the boxes
+alone. If a task turns out to need something unlisted, STOP, record it here, and re-sequence —
+never improvise around it.
+
+## Lane R — repo & ledger hygiene (immediate, small, mostly independent)
+
+- [ ] **R1** Commit the wine-probe results in `winisd_research` (`PARSTATE_ABSENT.md`,
+      `COMMENT_ENCODING.md`, corrected `WINE_HARNESS.md`, `runs/*_20260821/`, `toys/probe_*`).
+      `--no-verify`, NO push. Done: tree clean.
+- [ ] **R2** Renumber the human's OPEN coax question (second `QO62`) to the next free QO id so
+      it is reachable; content verbatim-preserved. Done: `inbox.py get <newid>` returns it;
+      exactly one `QO62` remains in the file.
+- [ ] **R3** Fix `~/.claude/bin/inbox.py` id minting: `add` minted duplicate ids twice on
+      2026-08-21 (QO61, QO62). Diagnose the actual cause (read the minting code — do not guess;
+      likely it scans only open entries or one ledger). Next id must be max over ALL entries,
+      open and closed, in the target ledger. Record the defect before fixing (commit message in
+      `~/.claude` at minimum). Done: `add` after a close mints a fresh id; demonstrate once.
+- [ ] **R4** `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`: strike the "QO56 hazard" clause
+      (QO63: single writer). `packages/ui/src/logic/useDesignIO.ts`: delete the stale comment
+      citing QO55 as blocking (QO55 is implemented). Done: grep for both returns nothing.
+- [ ] **R5** Phase-0 sweep: audit every `bugs/*.md` in openisd + winisd_tools — Status line vs
+      current code; correct stale statuses; map every STILL-LIVE bug to a lane below or flag it
+      UNOWNED to the human. Done: a table in this file's appendix; zero unowned items.
+
+## Lane A — the four red arch gates (openisd; HOT FILES, strictly serial)
+
+- [ ] **A1** Objective 1: un-export the 10 dead `store.ts` exports (`enterPrField`,
+      `clearPrField`, `prFieldState`, `prTargetUnreachable`, `loadDriverRecord`,
+      `driverMetaCell`, `driverWarnings`, `curveIssues`, `restoreProblems`, `unitLabelOf`) —
+      verified dead 2026-08-21 (see the corrected
+      `bugs/BUG_20260819_store_ts_45_exports_not_on_ALLOWED_GLOBALS_ready_for_review.md`).
+      Done: typecheck clean; the globals gate's offence list shrinks by 10.
+- [ ] **A2** Build the reactivity adapter per `docs/design/REACTIVITY.md`: `logic/liveProject.ts`
+      (`createLiveRef(subscribable)`), unit-tested with a fake subscribable, no component mount.
+      Verify `ManagedOpenISDProject.subscribe` is public; add the gate "every public mutator on
+      ManagedOpenISDProject notifies" (AST check, not grep). Blocked-by: A1.
+      Done: new tests green; gate green.
+- [ ] **A3** Objective 2: DELETE `state.P` and all 37 delegates; every call site repointed to
+      direct domain calls through `liveProject` (ts-morph, not text edits). Build
+      `logic/presentationState.ts` for the view state (dialog flags, chart interaction, display
+      selection, prefs). `prMode` deleted; `Frc` stubbed to a domain method. Blocked-by: A2.
+      Done: `state.P` gone; typecheck clean; ui suite green; no new module-level state outside
+      approved stores.
+- [ ] **A4** Objective 2c: share links serialise the project (not `AppState`);
+      `history.replaceState` moves to `logic/urlAppState.ts` (already on the APPROVED list).
+      Blocked-by: A3. Done: `persist.serialize` no longer takes the whole state; share-link
+      round-trip test green.
+- [ ] **A5** Objective 3: `OpenISDProject` becomes a class facade over `_OpenISDProjectJson`
+      (private constructor, static factories, accessors, `copy()`), mirroring `OpenISDDriver`.
+      `ManagedOpenISDProject` migrates fully off `_OpenISDProjectJson`/`_OpenISDDriverJson`.
+      Blocked-by: A3. Done: PrivateAllow gate's project-shape offences gone; model suite green.
+- [ ] **A6** Objective 6: implement `FileIO` per Proposal B + the `FileStore` destination port
+      (`docs/design/FILEIO_API_PROPOSALS.md`); split `useDesignIO.ts` accordingly; PR inverse
+      formulas to `@openisd/engine`; `.wpr` parsing raw-only in `@openisd/winisd`; apply the
+      three `ARCHITECTURE.md` corrections. Blocked-by: A5, C1. Done: `createFileIO` exists and
+      is constructed only in `main.ts`; useDesignIO's `OpenISDDriver` value import gone;
+      wpr/useDesignIO suites green.
+- [ ] **A7** Objective 4: catalogue index built on demand, env-keyed; bundle emits canonical
+      `_OpenISDDriverJson` verbatim (fixes
+      `BUG_20260820_drivers_bundle_ships_a_shape_openisddriver_cannot_read`); delete
+      `readCell`/`readMetaCell`/`readDisplayName`; measure resident memory of 1,526 live
+      drivers and record the number. Independent of A2–A6; touches `db/`, `scripts/`. Done:
+      picker browser spec green; no `_OpenISDDriverJson` in `driverRepo`/`myDrivers`/
+      `driverLibrary`/`driverSelection`.
+- [ ] **A8** Objective 7: the UI stops importing storage — `.vue` files take domain facades or
+      services; `OriginalShell.vue` (21 names) last. Blocked-by: A1–A7. Done: driver-value and
+      containment gates green.
+- [ ] **A9** Objective 11: the three new arch gates (re-export ban; import-from-declarer-only;
+      no domain VALUE passing through a component) — AST checks, never prose greps. Blocked-by:
+      A8. Done: gates exist and are green on the finished tree.
+- [ ] **A10** RELEASE BLOCKER CHECK: all four original arch gates green in the FULL suite.
+      Blocked-by: A8. Done: `npx vitest run` ≥ 1844/1844 with actual output quoted.
+
+## Lane B — winisd_tools model + the regeneration gate (serial: all touch `model_driver.py`)
+
+- [ ] **B1** QO42: add `provided_by`/`comment`/`added` as optional ScrapedFields to
+      `lib/model_driver.py` + the openisd.yml projection. Reopen QT20 row D in the ledger,
+      recording it as overturned by the 2026-08-14 ruling. Done: pytest green; fields emitted
+      on a test fixture.
+- [ ] **B2** QT48: `read_value: Optional[float]` with a validator permitting None ONLY when
+      `rejected` is set; add `RejectedRead.NO_NUMERIC_VALUE`; settle `read_precision` for the
+      N/A case explicitly. Blocked-by: B1. Done: a fixture with printed "N/A" round-trips.
+- [ ] **B3** QT49: rename `dq_status`→`corroboration`, `dq`→`dq_marks`; `DQStatus` becomes a
+      real Enum; update `crosscheck.py` and the raw-string comparison site. Blocked-by: B2.
+      Done: old names appear nowhere in source (identifiers, not prose); pytest green.
+- [ ] **B4** QT47: disposition split — store `no_ts_published` (plugin-set world-fact), derive
+      `disposition` from it + `missing`/`parse_errors`. Delete `set_disposition`, the
+      `model_copy` hole, `scrapers/bin/recompute_dispositions.py`; re-examine
+      `_THIN_RECORD_DISPOSITIONS`. Annotate QT37/QT40 as overturned. Blocked-by: B3. Done: the
+      253+112 contradictory states are unrepresentable; pytest green.
+- [ ] **B5** H3: persist the calculated-marker — the record shape gains what is needed so a
+      pipeline-CALCULATED value does not read back as ENTERED; openisd's reader honours it.
+      Cross-repo: design first, show the human the shape before building. Blocked-by: B4.
+      Done: a calculated fixture value reads back Calculated in openisd.
+- [ ] **B6** QT50: delete `FieldEnvelope.__eq__` + `_unpack`; explicit unwrap in
+      `_check_readings`; migrate the ~64 assertions to `.value ==`. Verify the call-site count
+      with findReferences before deleting. Blocked-by: B4 (same file). Done: `_unpack` gone;
+      pytest green.
+- [ ] **B7** QT12: delete `accuton/emit.py::emit_from_seed` + `test_emit_metadata.py`; rewrite
+      scenario stage 6 against the IoC path (`test_ioc_pipeline_e2e.py` is the model).
+      Parallel-safe with B1–B6 (different files). Done: no references to the deleted name;
+      scenario green end-to-end.
+- [ ] **B8** QT18: migrate the 11 discovery-filter plugins to `OutOfScope`-at-build (faitalpro,
+      bc_speakers, scanspeak, accuton, purifi, volt, tangband, morel, bliesma, visaton,
+      wavecor — tangband is in both camps, unify it); delete `is_non_driver_slug` +
+      `NON_DRIVER_SLUG_PATTERNS` when unreferenced; rewrite the `discovers_count: 23` comment
+      and expectation (becomes 25 discovered, 2 refused at build). Blocked-by: B7 (scenario).
+      Done: grep for the deleted names returns nothing; scenarios green.
+- [ ] **B9** QT8: harvest EVERY run's bubble artifacts into `winisd_drivers/_workingout/<tool>/`
+      before discard; propose a retention rule to the human. Parallel-safe. Done: a test run
+      leaves artifacts; a failed run leaves artifacts.
+- [ ] **B10** **THE REGENERATION (H1)** — single emit re-run over every record. Blocked-by:
+      B1, B2, B3, B4, B5 (shape) and B6–B8 landed. Done: 0 records carry the old
+      brand-"decides the record's folder" string (was 3,989); spot-check new fields present;
+      pytest + db-conformance green.
+- [ ] **B11** Rebuild openisd's drivers bundle (collects B10 and QT52's pending 1912→1526
+      reduction). Blocked-by: B10, A7 (bundle shape). Done: bundle loads; picker spec green.
+
+## Lane C — encoding (small, early: A6 depends on it)
+
+- [ ] **C1** QO62 ruling: `wdrBytesToText` decodes strict UTF-8 (fatal); on failure decodes the
+      WHOLE file as CP1252; the caller learns which encoding was used and the UI can say so.
+      Write stays UTF-8. Tests: `drivers/winisd/Selenium SW108 .wdr` reads back with `•`/`®`/
+      `±`/`½` intact; the unicode goldens still byte-round-trip. Done: tests green; the
+      FF FF/E6 splice is NOT used as an oracle.
+- [ ] **C2** Flag the Selenium SW108 mid-word byte splice (`reproductio ÿÿ h a æ ...n`) as
+      source damage in winisd_drivers — data fix or upstream report; not code. Done: recorded,
+      owner named.
+
+## Lane D — ruled UI items (registry/units files; disjoint from Lane A until A8)
+
+- [ ] **D1** QO51: add the `resistance` unit group (Ns/m ↔ kg/s, factor 1); `unitGroup` on
+      Rms/Rme/Mcost; defaults keep WinISD's spellings; update the layout spec's WINISD_UNITS
+      pin to assert defaults + toggle-changes-label-not-value. Done: unit tests + spec green.
+- [ ] **D2** Znom: fix the `DriverEditorModal` tooltip ("label only, not used in simulation" is
+      false — `PROVENANCE_MAP.Znom` exists); drop `'Z'` from the provenance sweep's
+      `NO_FORMULA`. Done: sweep green with Znom included.
+- [ ] **D3** Delete the inert `modeled` flag (95 registry entries, zero readers) — flag to the
+      reviewer that wiring-instead-of-deleting is the alternative if any design doc claims a
+      future consumer. Done: property gone; typecheck green.
+- [ ] **D4** COAX (the human's open question, renumbered in R2): `OpenISDDriver` locks to the
+      woofer section only. INVESTIGATE and propose: what breaks for a coax record (tweeter/
+      passive-radiator sections), what the model change is, and whether it is release scope —
+      then ASK THE HUMAN. Do not build without the ruling. Done: proposal delivered, ruling
+      recorded in the ledger.
+
+## Lane E — hygiene (run LAST before the release gate, to avoid conflicts with A/B edits)
+
+- [ ] **E1** The 49 historic comments (27 in `packages/ui`; rest docs/) — READ each, delete
+      those whose subject no longer exists, keep constraint-explaining comments. Blocked-by:
+      A8 (so the sweep sees final code). Done: re-grep shows only justified survivors, each
+      defensible.
+
+## Lane F — the V8 bridge (QT54 — IN SCOPE; openisd side parallel to A, tools side after)
+
+- [ ] **F1** Export `openisdYamlToWdr(yamlText) → Result<string>` from openisd (the seam that
+      currently exists only as a test-local helper in `openisdToWdr.test.ts`). Byte encoding
+      note: the V8 boundary carries STRINGS; whoever writes file bytes must go through
+      `wdrBytes.ts`. Done: exported, tested against the format oracle.
+- [ ] **F2** Implement + export `driverYamlToOpenisdYaml(yamlText) → Result<string>` — the
+      `driver.yml → openisd.yml` projection currently existing ONLY in Python
+      (`model_openisd.py::from_metadata`). Largest new TS work in this stream; port from the
+      Python as the spec, with fixture parity tests against real records. Done: parity on a
+      representative record set.
+- [ ] **F3** winisd_tools: embed a JS engine (choose per `DESIGN.md` §12's due-diligence notes),
+      call F1/F2, and run PARITY against the Python mappers — byte-identical output on the full
+      corpus. Blocked-by: F1, F2, B10 (parity against post-regeneration records). If parity is
+      not byte-identical: STOP, report — do NOT regenerate again to paper over it. Done: parity
+      report quoted.
+- [ ] **F4** Delete the Python mapping half per `DESIGN.md` §12.8: `model_wdr.py`'s mapping,
+      `wdr_ini_file.py`, the pinned tests (`toys/` and `test_ts_formula_parity.py` are ALREADY
+      gone — do not chase them). DQ half moves out first, in its own change, per the design.
+      Blocked-by: F3. Done: pytest green with the deletions.
+
+## Lane G — explicitly OUT of release scope (one line each, do not start)
+
+- Box wizard / alignment-driven sizing (H5): feature gap, reverse-engineering campaign planned.
+- Curve digitiser (QT7): human deferred — "we can do curve scraping later".
+- Precision-maths migration build-out (QP19): dependency ruling made; the migration itself is
+  its own campaign (`MATH_MIGRATION.md`) — only the engine "zero dependencies" text change
+  rides this release IF a precision dep actually lands, which it does not by default.
+
+## Release gate (all verified with actual output quoted)
+
+1. `npx vitest run` — fully green INCLUDING all architecture gates (≥1844/1844). [A10]
+2. `npx eslint packages` — 0 problems. Typecheck ×4 — clean.
+3. Full Playwright suite, background, `--workers=1`, ONCE — green.
+4. Every `bugs/*.md` RESOLVED or carrying an explicit human DEFERRED ruling. [R5 + fixes]
+5. The regeneration ran ONCE, after all model changes; bundle rebuilt. [B10, B11]
+6. Reviewer sign-off (Fable) against the six principles on the final tree.
+Then report to the human for the release decision. Never tag, publish, or push.
+
+## Execution protocol
+
+- **Impl agents: Sonnet.** One checklist task each; give each the working rules above, the arch
+  rules for its files, and the instruction to TDD and to STOP-and-report rather than work
+  around anything. Update this file's checkboxes as tasks verify.
+- **Standing reviewer: Opus, adversarial.** Loads `~/.claude/skills/senior-architect-review`.
+  Reviews every task's diff BEFORE its box is ticked: arch violations, weakened tests,
+  convenience wrappers, historic comments, JSON leaks, calculation outside the engine,
+  invented values, and done-criteria actually met. A finding BLOCKS the task; the impl agent
+  fixes; re-review until clean. The reviewer writes no production code, ever.
+- **Fable reviews twice:** this plan before implementation starts, and the final release-gate
+  sign-off. Those two reviews are where subtle misses ship — do not economise there.
+- Decisions the rulings don't cover go to the human, batched, and are recorded in the ledger
+  (`inbox.py add`) the same turn they are raised.
