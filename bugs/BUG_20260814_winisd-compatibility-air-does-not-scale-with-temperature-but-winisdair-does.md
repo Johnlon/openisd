@@ -86,6 +86,15 @@ the fix the evidence points to, but:
   diff, but it is still a calculation-logic change requiring the human ruling this repo's rules
   reserve for exactly this class of change.
 
+## Human ruling (2026-08-21)
+
+"Use a probe to figure out what winisd does FOR CERTAIN - mimic Winisd unless its buggy." Not a
+final freeze-vs-live decision — a probe against the real WinISD binary is required first to
+establish ground truth beyond the existing two-sample evidence (293.15K/303.15K), before
+implementing either direction. Once the probe result is in: mimic WinISD's actual behavior
+unless it is itself measurably wrong (buggy), in which case implement the correct physics and
+record the divergence.
+
 ## Verification, once a fix is authorised
 
 `npx vitest run --project winisd packages/winisd/test/winisd-parity.test.ts` — `env-t-303 > air`

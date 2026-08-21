@@ -57,6 +57,12 @@ whose record name or unit differs from the engine's — the same pairs the seria
 declares, expressed once on the model side rather than duplicated. `BL → Bl` becomes one row of
 that table instead of a special case.
 
+## Human ruling (2026-08-21)
+
+"Wait for the SI-record migration." No stopgap translation table — this bug is deliberately left
+broken/deferred until `BUG_20260819_record_stores_dimension_fields_in_mm_litres_instead_of_si.md`
+(scheduled, same ruling session) lands and makes a separate translation unnecessary.
+
 ## Verification
 
 `npx vitest run packages/winisd/test/winisd-parity.test.ts` — the `gap-geometry`/`Mcost` case
