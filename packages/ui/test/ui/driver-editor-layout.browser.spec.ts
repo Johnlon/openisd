@@ -21,6 +21,26 @@ async function openEditor(page: import('@playwright/test').Page, tab: string) {
   await page.getByRole('button', { name: tab, exact: true }).click();
 }
 
+/**
+ * Given one section's row widths in visual order, the rows that are full width DESPITE a
+ * shorter row already appearing above them.
+ *
+ * Only a TRAILING run of rows may be short — the remainder, plus any field deliberately forced
+ * onto its own row (Connection, under Voicecoils). A full-width row after a short one means the
+ * grid resumed packing once it had already spilled over, which is the shape a stray field in
+ * the wrong column produces.
+ */
+function fullRowsAfterAShortOne(section: number[]): number[] {
+  const full = section[0]!;
+  let sawShort = false;
+  const wrong: number[] = [];
+  for (const n of section) {
+    if (n !== full) sawShort = true;
+    else if (sawShort) wrong.push(n);
+  }
+  return wrong;
+}
+
 /** Per-field geometry, read from the live layout. */
 async function fields(page: import('@playwright/test').Page, scope: string) {
   return page.evaluate((sel) => {
@@ -163,18 +183,8 @@ for (const tab of ['Parameters', 'Advanced parameters']) {
       return out;
     });
     for (const section of rows) {
-      // Only a TRAILING run of rows may be short — the remainder, plus any field deliberately
-      // forced onto its own row (Connection, under Voicecoils). A full-width row is never
-      // allowed to follow a short one: that would mean the grid resumed packing after already
-      // spilling over, which is the shape a stray field in the wrong column produces.
-      const full = section[0]!;
-      let sawShort = false;
-      const wrong: number[] = [];
-      for (const n of section) {
-        if (n !== full) sawShort = true;
-        else if (sawShort) wrong.push(n);
-      }
-      expect(wrong, `section rows are ${section.join('/')} fields wide`).toEqual([]);
+      expect(fullRowsAfterAShortOne(section), `section rows are ${section.join('/')} fields wide`)
+        .toEqual([]);
     }
   });
 }
@@ -327,7 +337,7 @@ test.describe('General: the Comment box fills the bottom of the panel', () => {
 /**
  * Dimensions: a labelled list, not a form with air in it.
  *
- * WinISD's own Dimensions page (docs/winisd/edit_driver_pg4_dimensions.png) puts eight rows in
+ * WinISD's own Dimensions page (docs/winisd_screenshots/edit_driver_pg4_dimensions.png) puts eight rows in
  * one tight column — the gap between one input and the next is a few pixels, so the eight read
  * as a single list. Padding each row out turns the same eight fields into a page the user has
  * to scan.
@@ -352,7 +362,7 @@ test('Dimensions: the rows are not spaced out', async ({ page }) => {
  * The unit beside each field is WinISD's own spelling.
  *
  * Read off the two reference captures of the real application:
- * docs/winisd/edit_driver_pg2_parameters.png and edit_driver_pg3_advanced_parameters.png.
+ * docs/winisd_screenshots/edit_driver_pg2_parameters.png and edit_driver_pg3_advanced_parameters.png.
  * Rms/Rme read "Ns/m" while Mcost reads "kg/s" — the same physical dimension spelled two ways,
  * which is WinISD's choice and therefore ours: a user comparing the two panels side by side
  * must see the same text in both.

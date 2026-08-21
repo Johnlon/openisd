@@ -3,7 +3,7 @@
  * chart, a saved record, or a derived field. It reads the driver's own fields and reports the
  * groups whose members contradict each other.
  *
- * The groups and their relations are WDR_SCHEMA.md §4 verbatim; nothing here is a new formula.
+ * The groups and their relations are WINISD_SCHEMA.md §4 verbatim; nothing here is a new formula.
  * §4 rows NOT covered, and why:
  *   7,21,22      Mcost, Gloss, SPLmaxLF — `solveConsistencyGroup` derives all three, one route
  *                each (winisd_research/SOLVER_GAPS.md §2.4). Of the three only Gloss has a
@@ -29,8 +29,7 @@
  * i.e. when no rounding of the recorded digits can explain the disagreement.
  */
 
-import { RHO, C } from './constants.js';
-import { solveConsistencyGroup } from './driver.js';
+import { solveConsistencyGroup, driverC, driverRho } from './driver.js';
 
 /** Field values by name, SI, as the solver produces them. */
 type Values = Readonly<Record<string, number>>;
@@ -48,7 +47,7 @@ interface Relation {
  * all of them, never on one nominated field, because no member is more at fault than another.
  */
 export interface ConsistencyIssue {
-  /** The relation as WDR_SCHEMA.md §4 states it. */
+  /** The relation as WINISD_SCHEMA.md §4 states it. */
   readonly formula: string;
   /** Every member of the group. */
   readonly fields: readonly string[];
@@ -89,9 +88,11 @@ const RELATIONS: readonly Relation[] = [
   // §4 row 9
   { formula: 'Mpow = √Rme', target: 'Mpow', fields: ['Mpow', 'Rme'],
     predict: v => Math.sqrt(v.Rme) },
-  // §4 row 10
+  // §4 row 10 -- `v.roo`/`v.c` are NOT guaranteed present: `checkConsistency` below calls
+  // `solveConsistencyGroup` on the classic (non-full) path, which never backfills them.
+  // Resolve them the same way `driver.ts` itself does, directly.
   { formula: 'Vas = ρ₀·c²·Sd²·Cms', target: 'Vas', fields: ['Vas', 'Cms', 'Sd'],
-    predict: v => RHO * C * C * v.Sd * v.Sd * v.Cms },
+    predict: v => driverRho(v) * driverC(v) * driverC(v) * v.Sd * v.Sd * v.Cms },
   // §4 row 11
   { formula: 'Fs = 1/(2π·√(Mms·Cms))', target: 'Fs', fields: ['Fs', 'Mms', 'Cms'],
     predict: v => 1 / (TAU * Math.sqrt(v.Mms * v.Cms)) },
@@ -109,6 +110,11 @@ const RELATIONS: readonly Relation[] = [
  * list elsewhere.
  */
 export const Q_GROUP_FIELDS: readonly string[] = RELATIONS.find(r => r.target === 'Qts')!.fields;
+
+/** Is this field one of the Q trio? Asked of the list above, never of a second copy. */
+export function isQGroupField(field: string): boolean {
+  return Q_GROUP_FIELDS.includes(field);
+}
 
 /**
  * Half the last significant decimal of `v` as stored: `0.0355` ⇒ 0.00005, `37` ⇒ 0.5.

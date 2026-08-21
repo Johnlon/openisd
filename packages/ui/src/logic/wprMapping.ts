@@ -54,8 +54,9 @@ export function buildWprInput(
       modifyDate,
     },
     driverSection,
-    box: { bType: BTYPE[box], Vr: P.Vb, Fr: 0 },
-    signal: { P: P.Pin },
+    box: { bType: BTYPE[box], Vr: P.Vb, Fr: 0, Ql: P.Ql, Qa: P.Qa, Qp: P.Qp },
+    signal: { P: P.Pin, Rg: P.Rs, driverCount: P.nDrivers },
+    voiceCoil: { alfaVC: P.alfaVC, tempRise_K: P.vcTempRise },
     // [SimulatorOptions] — the design's real Advanced-pane settings, not placeholders.
     // "Simulate voice coil inductance" is OpenISD's circuitModel under WinISD's wording.
     // The other two Advanced toggles (rgAtDriverSide, splXmaxLimited) have no key in this

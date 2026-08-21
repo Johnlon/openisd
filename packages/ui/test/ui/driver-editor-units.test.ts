@@ -23,7 +23,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/winisd';
-import { OpenISDDriver, _emptyDriverRecord } from '@openisd/model';
+import { OpenISDDriver, _emptyDriverRecord, Provenance } from '@openisd/model';
 import type { SpecField } from '@openisd/model';
 import { precision, fieldById } from '../../src/logic/fields/fieldRegistry.js';
 import { UNIT_GROUPS, unitDef, type UnitGroup } from '../../src/logic/fields/units.js';
@@ -118,7 +118,7 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
 
 /** A driver with every core T/S parameter present, in SI. */
 function coreDriver(): OpenISDDriver {
-  const d = OpenISDDriver.fromRecord(_emptyDriverRecord());
+  const d = OpenISDDriver.fromJsonRecord(_emptyDriverRecord());
   d.enter('Fs', 37);
   d.enter('Qes', 0.4);
   d.enter('Qms', 7.0);
@@ -147,8 +147,8 @@ describe('driver editor — unit label and scale agree', () => {
   });
 
   it('fLe renders hertz as kilohertz', () => {
-    // .wdr stores fLe in Hz (docs/design/WDR_SCHEMA.md, fLe row); WinISD's Parameters tab
-    // shows it in kHz (docs/winisd/edit_driver_pg2_parameters.png). 1234 Hz ⇒ 1.234 kHz.
+    // .wdr stores fLe in Hz (docs/design/WINISD_SCHEMA.md, fLe row); WinISD's Parameters tab
+    // shows it in kHz (docs/winisd_screenshots/edit_driver_pg2_parameters.png). 1234 Hz ⇒ 1.234 kHz.
     const f = byLabel('fLe');
     assert.equal(f.unit, 'kHz');
     assert.equal(1234 * f.scale, 1.234);
@@ -156,9 +156,9 @@ describe('driver editor — unit label and scale agree', () => {
 
   it('AlfaVC stores per-kelvin when the human types under the "1000/K" label', () => {
     // The label is WinISD's: its Advanced parameters tab prints "1000/K" beside AlfaVC
-    // (docs/winisd/edit_driver_pg3_advanced_parameters.png). The stored quantity is SI 1/K —
-    // docs/design/WDR_SCHEMA.md's alfaVC row ("1/K … copper ≈ 0.0039"), and a real WinISD
-    // project holds exactly that for a copper coil (docs/winisd/sample_project_Epique15_-_pr.wpr
+    // (docs/winisd_screenshots/edit_driver_pg3_advanced_parameters.png). The stored quantity is SI 1/K —
+    // docs/design/WINISD_SCHEMA.md's alfaVC row ("1/K … copper ≈ 0.0039"), and a real WinISD
+    // project holds exactly that for a copper coil (docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr
     // `alfaVC=0.0039`). So copper is 3.9 on screen and 0.0039 in the model, and the editor
     // owes the ÷1000 that NumInput's `fromDisp` performs (`SI = display / scale`).
     const f = byLabel('AlfaVC');
@@ -214,7 +214,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     const stored = /^Gloss=(.*)$/m.exec(text)?.[1];
     assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
     const cell = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(text)).cell('Gloss');
-    assert.equal(cell.state, 'C', 'this fixture\'s ParState marks Gloss computed, not entered');
+    assert.equal(cell.state, Provenance.Calculated, 'this fixture\'s ParState marks Gloss computed, not entered');
     assert.equal(typeof cell.value, 'number', 'Gloss must be numeric');
     const relError = Math.abs((cell.value as number) - 1.72503712771898) / 1.72503712771898;
     assert.ok(relError < 1e-9,
@@ -261,7 +261,7 @@ describe('driver editor — precision comes from the field registry', () => {
     Dd: 'Dd',
     fLe: 'fLe',
     // Mechanical fields carry "Full Name (Short)" labels, taken from WinISD's own help
-    // (research/winisd/help/thielesmall.html). Keys here are the rendered label text.
+    // (docs/winisd_helpfiles/help/thielesmall.html). Keys here are the rendered label text.
     'Basket Plate Thickness (Thick)': 'dimThick',
     'Driver Depth (Depth)': 'dimDepth',
     'Magnet Depth (MagDepth)': 'dimMagnetDepth',
@@ -313,13 +313,13 @@ describe('driver editor — every bound cell is one the driver model answers', (
     // ONLY ... cell('numVC') stays honestly N when nothing stated it; this is the one place a
     // default is owed to the physics, not to the field's own display." So the EDITOR field
     // (which binds cellVal, i.e. cell()) is correctly blank on an unstated driver — WinISD's
-    // own blank-driver screen (docs/winisd/edit_driver_pg2_parameters.png) shows 1 there, but
+    // own blank-driver screen (docs/winisd_screenshots/edit_driver_pg2_parameters.png) shows 1 there, but
     // that is the ENGINE's default, applied at toDriver(), never faked as ENTERED/CALCULATED
     // on the cell a human is looking at.
     const f = byLabel('Voicecoils');
     const d = coreDriver();
     const cell = d.cell(f.field as SpecField);
-    assert.equal(cell.state, 'N', `Voicecoils cell is ${cell.state} — an unstated field must not read as entered or calculated`);
+    assert.equal(cell.state, Provenance.NotAvailable, `Voicecoils cell is ${cell.state} — an unstated field must not read as entered or calculated`);
     assert.equal(cell.value, null, 'an honestly-N cell must not carry a fabricated value');
     assert.equal(d.toDriver()?.numVC, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');
   });

@@ -1,7 +1,15 @@
 # PR T/S formulas and RHO/C air constants re-implemented outside the engine, one copy truncated
 
+Status: DEFERRED
+
 # Status
-OPEN 2026-08-18 — ruled, not yet implemented
+OPEN 2026-08-18 — ruled, not yet implemented. Ruling reconfirmed 2026-08-20 (John): "the calcs
+MUST be implemented in the core engine — nowhere else permitted. the calcs are exposed to calls
+via the appropriate domain object via a getter that implements manual override handling with C
+fallback to the calc." Same shape as this bug's original ruling. Fix now tracked as part of
+docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md objectives 0+1 (OpenISDProject PR-accessor getter,
+engine holds the math). Deferred to that plan rather than fixed standalone — do not action this
+file separately, it will be closed when that plan's objectives 0+1 land.
 
 ## Symptom
 

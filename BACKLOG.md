@@ -271,6 +271,22 @@ WinISD chart inventory mapped to OpenISD status. Box-type scope notes: `[PR]` = 
 
 ## WinISD input/feature parity
 
+- [ ] **P1 — ALIGNMENT-DRIVEN BOX SIZING (missing feature, not a defect).** WinISD calculates
+      box volume and tuning from (1) driver type, (2) box type, (3) alignment — QB3, BB4, SBB4,
+      C4 … — i.e. the Thiele/Small alignment tables: given the driver's `Qts`/`Vas`/`Fs` and a
+      named alignment, `Vb` and `Fb` follow. OpenISD has none of this; `prototypeBox()`
+      (`packages/model/src/openisdProject.ts`) writes invented literals into all four alignments
+      at once. Also: WinISD's default vent is 4″ (0.102 m) not OpenISD's 0.05 m, and vent LENGTH
+      is read-only/derived where OpenISD treats it as the input and derives tuning from it.
+      **Requires reverse-engineering first** — how WinISD initialises project attributes from
+      the wizard's selections is not known. Probe it with the wine harness across at least three
+      drivers of differing `Qts`, per the matrix specified in the bug; do not implement from a
+      textbook alignment table and assume WinISD agrees.
+      NOT in conflict with E.2 (b) below: WinISD has alignment selection in the NEW PROJECT
+      WIZARD but none inside an open project, so OpenISD can have BOTH — creation-time
+      initialisation (this item) and the in-project alignment tool it already has.
+      `bugs/BUG_20260821_new_project_invents_box_and_vent_values_instead_of_asking_the_user.md`.
+
 Gaps found by auditing the WinISD 0.7.0.950 screenshots against OpenISD's UI —
 full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_PARITY.md).
 
@@ -292,8 +308,10 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
         the shipped default `0.732` misses vent length by 4.6%.
   - [ ] **E.2 (a).** Delete the "`.wpr` is binary, needs reverse-engineering" claim — it is plain
         INI and a serialiser already ships; the claim has parked import as a hard job.
-  - [ ] **E.2 (b).** Flip the QB3 alignment row to NO on the WinISD-has-it column — WinISD has no
-        alignment tool, ruled out three ways. OpenISD is ahead here; do not remove its buttons.
+  - [ ] **E.2 (b).** Narrow the QB3 alignment row to "no IN-PROJECT alignment tool" — WinISD has
+        none for a design already open, so OpenISD is ahead there and its buttons stay. It DOES
+        have alignment selection in the New Project wizard (John, 2026-08-21), so a flat "no
+        alignment tool" would be wrong. See the P1 item at the top of this section.
   - [ ] **A5.** Implement `Rme`, `gamma`, `Mpow` from the pinned formulas. The rest of this item
         is **superseded**: `Mcost`, `Gloss`, `SPLmaxLF` are already correctly calculated
         (`packages/engine/src/driver.ts:323,332,344`, confirmed 2026-08-17) — they were never
@@ -402,7 +420,7 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
       the app).
 - [ ] **P1** **Group solver — relation groups solve in every direction, with WinISD's route precedence.** Ruled 2026-08-13: _"winisd allows that Xmax back calc so Winisd wins that decision"_. WinISD is the oracle, so a group solves in whichever direction the entered data allows — `{Vd, Sd, Xmax}` yields `Xmax = Vd / Sd` as readily as `Vd = Sd · Xmax`. `solveConsistencyGroup` ([`packages/engine/src/driver.ts:46`](packages/engine/src/driver.ts)) already runs to a fixpoint and already carries both `Xmax` routes — `abs(Hc − Hg) / 2` at line 135, `Vd / Sd` at line 144 — so the formulas are not what is missing.
       **Route precedence is part of the contract, and it is what the code does not yet express.** `setVal` (line 94) writes only into a still-null field, so whichever branch is reached first wins and source order silently _is_ the precedence. Two engines with identical, correct formulas disagree on any record supplying inputs for both routes, so the order must be stated and tested rather than inherited from line numbering. `Rme` is settled: `2π·Fs·Mms/Qes` beats `BL² / Re`, measured exactly against the Beyma 10BR60_V2 fixture — 18.22124 vs 18.27846 (`winisd_research/GAPS.md` §A5).
-      **`Xmax`'s order is NOT settled — re-test it in WinISD before touching the branches.** [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) states it twice and the two statements contradict each other: the §4 group table's row 19 (line 268) says row 20 `Vd / Sd` takes precedence and `abs(Hc − Hg) / 2` fires only when `Vd` is absent, while §4.1's tie-break table (line 310) says row 19 `abs(Hc − Hg) / 2` wins and row 20 is the last-resort fallback used only when nothing else can supply the field. One session settles it: enter `Hc`, `Hg`, `Vd` and `Sd` together with `Xmax` blank, and read which value appears. Correct the losing statement in `WDR_SCHEMA.md` in the same change.
+      **`Xmax`'s order is NOT settled — re-test it in WinISD before touching the branches.** [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) states it twice and the two statements contradict each other: the §4 group table's row 19 (line 268) says row 20 `Vd / Sd` takes precedence and `abs(Hc − Hg) / 2` fires only when `Vd` is absent, while §4.1's tie-break table (line 310) says row 19 `abs(Hc − Hg) / 2` wins and row 20 is the last-resort fallback used only when nothing else can supply the field. One session settles it: enter `Hc`, `Hg`, `Vd` and `Sd` together with `Xmax` blank, and read which value appears. Correct the losing statement in `WINISD_SCHEMA.md` in the same change.
       **Blast radius — every record holding two members of any group's three.** Computed values move across the whole collection, so the golden fixtures move with them: expect `packages/engine/test/golden.test.ts` to go red and regenerate it with `npm run gen-golden`. A fixture diff is the expected outcome of this change, not evidence of a regression.
       **A derived value carries state `C`, never `E`.** `Xmax = Vd / Sd` claims _the excursion implied by a published `Vd`_, not _the linear limit the manufacturer measured_; the mark is what keeps those two apart — see [`ARCHITECTURE.md`](ARCHITECTURE.md#relation-groups-solve-in-every-direction) §3 "Relation groups solve in every direction".
       **Related.** `winisd_research/GAPS.md` §A4 ("the driver editor cannot express WinISD's group solve") records the same gap generally and ranks it item 11 in its §F table. The side-by-side parity suite (ledger QO8) must drop its expectation of an `Xmax` divergence — openisd matches WinISD here.
@@ -501,7 +519,7 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
       only a hover tooltip. Origin: WinISD's wizard pre-selects box type from EBP with no
       indication it is recommending anything; the human used it for years without knowing.
 - [x] [ ] **P2** In-app parameter explanations / tooltips on inputs and curves — `title=` attributes on all controls
-- [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `docs/research/WINISD_PARITY.md`. Also surface a short version in `README.md`.
+- [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd_screenshots/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `docs/research/WINISD_PARITY.md`. Also surface a short version in `README.md`.
 - [ ] **P3** Open, community-editable knowledge base (T/S, box types, tuning, losses)
 - [ ] **P3** Worked-example tutorial
 
@@ -608,7 +626,7 @@ These measurements are often available in datasheets (PDF dimensions section, me
 > verification.
 
 Two planned features built on top of the driver record model
-(`ARCHITECTURE.md` §3) and WDR schema (`docs/design/WDR_SCHEMA.md`):
+(`ARCHITECTURE.md` §3) and WDR schema (`docs/design/WINISD_SCHEMA.md`):
 
 1. **Type-based filtering** in the driver browser (tweeter / midrange / woofer / subwoofer /
    passive radiator / full-range).

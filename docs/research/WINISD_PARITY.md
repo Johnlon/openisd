@@ -12,7 +12,7 @@ It distinguishes **confirmed** facts (user-observed, sourced), **inferred** conc
 **Confidence markers** (WinISD column, per the project's anti-hallucination rule):
 
 - ✅ Confirmed — source: this document, the WinISD help file, direct user observation, or a
-  WinISD 0.7.0.950 screenshot in [`docs/winisd/`](../winisd/) (Part 2 ties each fact to a
+  WinISD 0.7.0.950 screenshot in [`docs/winisd_screenshots/`](../winisd_screenshots/) (Part 2 ties each fact to a
   named screenshot).
 - ❌ Confirmed absent — observed directly or follows from platform constraints.
 - ❔ Untested — nobody has run a test for this row. Not a soft yes and not a soft no.
@@ -88,7 +88,7 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | Cursor peak snap                           | ✅ right-click snap                                                                                                                              | ❌ confirmed                                                                                  |
 | Cursor lock and nudge                      | ✅                                                                                                                                               | ❔ untested                                                                                   |
 
-> **⚠ Correction — WinISD _does_ overlay multiple designs.** `docs/winisd/view_3_ported.png`
+> **⚠ Correction — WinISD _does_ overlay multiple designs.** `docs/winisd_screenshots/view_3_ported.png`
 > shows two projects ("Epique15 - pr" and "Epique15-ported") both checked in the Projects
 > pane with both transfer-function curves drawn on one graph. This contradicts an earlier
 > claim in Part 3 §9 that WinISD cannot compare designs — that section is corrected below.
@@ -170,7 +170,7 @@ See [`BACKLOG.md`](../../BACKLOG.md) to claim one or discuss prioritisation.
 | Isobaric / compound loading               | Good first issue — acoustic circuit extension                                                                                                                               |
 | Baffle-step / diffraction correction      | Well-understood model; needs a curve and a UI toggle                                                                                                                        |
 | Step response curve                       | Inverse FFT of transfer function; rendering work only                                                                                                                       |
-| `.wpr` WinISD project import              | Reader only — plain INI text, schema documented, writer already ships (`winisd/src/classic/wpr.ts:128` `toWpr()`); sample in `docs/winisd/sample_project_Epique15_-_pr.wpr` |
+| `.wpr` WinISD project import              | Reader only — plain INI text, schema documented, writer already ships (`winisd/src/classic/wpr.ts:128` `toWpr()`); sample in `docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr` |
 | Mobile / small-screen layout              | Responsive CSS pass; no new physics                                                                                                                                         |
 | Measurement import (REW `.mdat`, FRD)     | Would allow measured response overlay alongside simulation                                                                                                                  |
 | Impedance measurement → T/S extraction    | Closed-box or added-mass method; valuable for DIY builders                                                                                                                  |
@@ -183,7 +183,7 @@ See [`BACKLOG.md`](../../BACKLOG.md) to claim one or discuss prioritisation.
 # Part 2 — Per-pane field-by-field parity (Original skin only)
 
 Evidence-based comparison built by reading the WinISD 0.7.0.950 screenshots in
-[`docs/winisd/`](../winisd/) against OpenISD's actual **Original**-skin UI (`OriginalShell.vue`
+[`docs/winisd_screenshots/`](../winisd_screenshots/) against OpenISD's actual **Original**-skin UI (`OriginalShell.vue`
 and its sub-components) and engine — Classic/Modern are not parity targets.
 **Source of each row is the named screenshot**, unless otherwise marked as code-verified.
 
@@ -445,7 +445,7 @@ back-calculated Re+Rs ≈ 3.42 Ω. This briefly suggested WinISD included Rs in 
 - `sqrt(Re) = sqrt(3.4) = 1.844` — rounds to **1.8** ✓
 - Formula confirmed: `Eg = sqrt(Pin × Re)` — Rs is in the circuit but NOT in the voltage reference
 
-Confirmed independently from WinISD help file (`research/winisd/help/plottypes.html`):
+Confirmed independently from WinISD help file (`docs/winisd_helpfiles/help/plottypes.html`):
 
 > "The power applied can be related to excitation voltage with following relation:
 > **Eg = sqrt(P × Re)**, or P = Eg²/Re"
@@ -591,9 +591,9 @@ Engine test `WinISD PR Fs/Qms/Vas round-trips` confirms these are exact inverses
 
 **Sources:**
 
-- `research/winisd/help/boxdesign.html` (extracted from official WinISD 0.7 installer)
-- `research/winisd/versions.txt` — 0.50alpha1: _"Added advanced settings (Ql, Qa, Qp) for chambers."_
-- `research/winisd/versions.txt` — 0.50alpha7: _"Box alignment calculation now considers external resistance and
+- `docs/winisd_helpfiles/help/boxdesign.html` (extracted from official WinISD 0.7 installer)
+- `docs/winisd_helpfiles/versions.txt` — 0.50alpha1: _"Added advanced settings (Ql, Qa, Qp) for chambers."_
+- `docs/winisd_helpfiles/versions.txt` — 0.50alpha7: _"Box alignment calculation now considers external resistance and
   reduction of Q as box has some absorption loss. Leak losses are not considered when calculating alignments."_ (
   confirms Ql and Qa are distinct; Ql excluded from alignment math)
 
@@ -616,7 +616,7 @@ Combined: `1/Qlt = 1/Qa + 1/Ql + 1/Qp`
 The losses control is an **"Advanced->" button at the bottom-left of the Box tab panel** —
 NOT the top-level "Advanced" tab in the main window. Clicking it opens a popup listing
 Ql / Qa / Qp with their current values; clicking any entry opens a small float window with
-an editable field and a drag-square. Confirmed with screenshots in `research/winisd/help/`.
+an editable field and a drag-square. Confirmed with screenshots in `docs/winisd_helpfiles/help/`.
 
 **Directly observed in WinISD 0.7.0.950 (2026-06-24):** Ql = 10.000, Qa = 100.000.
 **Correction (2026-06-24):** Qp IS shown in WinISD 0.7 — it appears on the **ported (vented) box view**
@@ -641,7 +641,7 @@ Cut-and-try with an impedance measurement is the only reliable way to determine 
 
 ## 6. Signal / voltage reference — confirmed from help file
 
-**Source:** `research/winisd/help/boxdesign.html` and `plottypes.html`
+**Source:** `docs/winisd_helpfiles/help/boxdesign.html` and `plottypes.html`
 
 > "Term 'power' should more correctly be voltage. This term 'power' comes from definition by
 > Richard Small, who defined the input power to be P=Eg²/Re … where Eg is RMS output voltage
@@ -696,7 +696,7 @@ The UI should make this explicit. The Vb label tooltip should note "net acoustic
 
 ## 9. Circuit model — WinISD vs Full Gyrator
 
-**Source:** `research/winisd/help/aboutequivalentcircuits.html` (from official WinISD 0.7 installer)
+**Source:** `docs/winisd_helpfiles/help/aboutequivalentcircuits.html` (from official WinISD 0.7 installer)
 
 WinISD's acoustic simulation works entirely in the **acoustical domain** using a simplified
 constant-element model. OpenISD implements both this model and a physically more complete one.
@@ -910,8 +910,8 @@ Physical dimensions (not currently extracted by scrapers):
 | 2   | ~~Does WinISD include Le in its acoustic circuit model?~~ **RESOLVED: No. Le only for impedance. Source: aboutequivalentcircuits.html**                                                                                                                                                                                                                                                                                                      | Closed   |
 | 3   | ~~Does WinISD model box leakage (Ql)?~~ **RESOLVED: Ql=10, Qa=100, Qp=100; entry via "Advanced->" button in the Box tab panel (not the top-level Advanced tab). Confirmed by help file text + screenshots boxdes05/06.**                                                                                                                                                                                                                     | Closed   |
 | 4   | ~~What radiation model does WinISD use?~~ **RESOLVED: half-space (infinite baffle). Formula `p(r) = ρ·ω·U0/(2π·r)` confirmed in `aboutequivalentcircuits.html`. OpenISD uses identical formula.**                                                                                                                                                                                                                                            | Closed   |
-| 5   | ~~Does WinISD account for air load (radiation mass) on the PR separately from Mms?~~ **RESOLVED: No separate term added. `thielesmall.html` defines Mms as "including air load" for all drivers. For PRs, WinISD derives Mms from Fs+Vas via `Mms = 1/((2π·Fs)²·Cms)` — the measured Fs already encodes air-load implicitly. Neither WinISD nor OpenISD adds an extra radiation-mass term. Source: `research/winisd/help/thielesmall.html`** | Closed   |
-| 6   | ~~Does WinISD's Qms in PR mode mean the same as T/S Qms?~~ **RESOLVED: Yes — standard T/S definition. `aboutequivalentcircuits.html` gives `Ram = 1/(2π·Fs·Qms·Ccas)` applied identically for drivers and PRs. Algebraically equivalent to OpenISD's `Rms = sqrt(Mms/Cms)/Qms`. Source: `research/winisd/help/aboutequivalentcircuits.html`**                                                                                                | Closed   |
+| 5   | ~~Does WinISD account for air load (radiation mass) on the PR separately from Mms?~~ **RESOLVED: No separate term added. `thielesmall.html` defines Mms as "including air load" for all drivers. For PRs, WinISD derives Mms from Fs+Vas via `Mms = 1/((2π·Fs)²·Cms)` — the measured Fs already encodes air-load implicitly. Neither WinISD nor OpenISD adds an extra radiation-mass term. Source: `docs/winisd_helpfiles/help/thielesmall.html`** | Closed   |
+| 6   | ~~Does WinISD's Qms in PR mode mean the same as T/S Qms?~~ **RESOLVED: Yes — standard T/S definition. `aboutequivalentcircuits.html` gives `Ram = 1/(2π·Fs·Qms·Ccas)` applied identically for drivers and PRs. Algebraically equivalent to OpenISD's `Rms = sqrt(Mms/Cms)/Qms`. Source: `docs/winisd_helpfiles/help/aboutequivalentcircuits.html`**                                                                                                | Closed   |
 
 ## 12. VCCon — confirmed save bug (verified 2026-06-26)
 
@@ -1220,4 +1220,4 @@ _WinISD comparison (Part 1) accurate as of 2026-07-04. WinISD version observed: 
 Part 2 field-by-field claims independently re-verified 2026-08-13 against live Original-skin
 code. WinISD confirmation sources: official help files extracted from the 0.7 installer,
 direct UI observation, community reports, and the annotated 0.7.0.950 screenshots in
-[`docs/winisd/`](../winisd/)._
+[`docs/winisd_screenshots/`](../winisd_screenshots/)._

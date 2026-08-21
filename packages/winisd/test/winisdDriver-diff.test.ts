@@ -35,7 +35,7 @@ specs:
 `;
 
 function recordDriver(): WinISDDriver {
-  const { value } = OpenISDDriver.fromRecord(parse(RECORD)).toWinISDDriver();
+  const { value } = OpenISDDriver.fromJsonRecord(parse(RECORD)).toWinISDDriver();
   if (!value) throw new Error('fixture record failed to project');
   return value;
 }

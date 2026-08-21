@@ -104,7 +104,7 @@ in practice marked **E** so they persist, since the app has no derivation for th
 
 **`driver.toWdr()`** — the exact inverse: write every carried field (`get(field)`),
 and build `ParState` from `state(field)` at each probe-confirmed position (positions
-like Qts=14, c=47, roo=48 — see `WDR_SCHEMA.md` §8).
+like Qts=14, c=47, roo=48 — see `WINISD_SCHEMA.md` §8).
 
 Import → export is lossless by construction, and provenance survives: ParState in
 via `enter`, ParState out via `state()`.

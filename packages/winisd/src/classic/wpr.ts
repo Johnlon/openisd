@@ -12,7 +12,7 @@
  *   [PlotSettings] [SignalSource] [Filters] [PassiveRadiator] [SimulatorOptions]
  *
  * ⚠ Verified only against the one in-repo sample (a passive-radiator project,
- * docs/winisd/sample_project_Epique15_-_pr.wpr). Sealed / vented / bandpass output follows
+ * docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr). Sealed / vented / bandpass output follows
  * the documented schema but has no in-repo file to byte-diff against — notably sealed
  * [Box].Fr semantics. Default constants below (chamber losses, ambient, thermal, unused
  * vent boilerplate) are copied from that sample; where a value is undocumented, it matches
@@ -76,7 +76,16 @@ export interface WprInput {
   ventFront?: WprVent;
   ventRear?: WprVent;
   ventIntra?: WprVent;
-  signal: { Rg?: number; P: number };
+  signal: {
+    Rg?: number;
+    P: number;
+    /** How many drivers the system uses — WinISD's `Nd`. Absent ⇒ 1. */
+    driverCount?: number;
+  };
+  /** Voice-coil thermal model — WinISD's `alfaVC` (resistance coefficient, /K) and `dTVC`
+   *  (temperature rise, K). Real Advanced-pane state, not boilerplate. Absent ⇒ WinISD's
+   *  own 0.0039 / 0. */
+  voiceCoil?: { alfaVC?: number; tempRise_K?: number };
   plot?: { color?: number; width?: number };
   /** Passive-radiator T/S — written to [PassiveRadiator] only when box.bType === 4. */
   pr?: WprPr | null;
@@ -159,8 +168,11 @@ export function toWpr(input: WprInput): string {
 
   const boxKv: Array<[string, string | number]> = [
     ['BType', box.bType],
-    // Front chamber (bandpass only) — 0 for sealed/vented/PR.
-    ['Vf', num(box.Vf)], ['Ff', num(box.Ff)], ['Qlf', 10], ['Qaf', 100], ['Qpf', 100],
+    // Front chamber (bandpass only) — 0 for sealed/vented/PR. WinISD stores a loss triple per
+    // chamber; OpenISD's box carries ONE, describing the enclosure, so both chambers are
+    // written from it rather than the front chamber discarding the user's losses.
+    ['Vf', num(box.Vf)], ['Ff', num(box.Ff)],
+    ['Qlf', num(box.Ql ?? 10)], ['Qaf', num(box.Qa ?? 100)], ['Qpf', num(box.Qp ?? 100)],
     // Rear (primary) chamber — the populated one for sealed/vented/PR.
     ['Vr', num(box.Vr)], ['Fr', num(box.Fr)],
     ['Qlr', num(box.Ql ?? 10)], ['Qar', num(box.Qa ?? 100)], ['Qpr', num(box.Qp ?? 100)],
@@ -170,9 +182,15 @@ export function toWpr(input: WprInput): string {
     ['Qiclfr', 100], ['Qiclfc', 0], ['Qiclcr', 0],
     // Ambient — the project's own. `phi` is WinISD's FRACTION; the ÷100 from OpenISD's
     // percentage happens HERE and nowhere else. Placement + thermal stay WinISD defaults.
+    // `d` (listening distance) and `Angle` stay at WinISD's own 1 m / 0 rad: OpenISD's UI
+    // collects neither, so there is no design state to write. `Med` and `Isobarik` likewise
+    // have no OpenISD equivalent.
     ['T', num(env.tempK ?? 293.15)], ['p', num(env.pressurePa ?? 101325)],
-    ['phi', num((env.humidityPct ?? 30) / 100)], ['d', 1], ['Med', 0], ['Nd', 1],
-    ['Angle', 0], ['Isobarik', 0], ['alfaVC', 0.0039], ['dTVC', 0],
+    ['phi', num((env.humidityPct ?? 30) / 100)], ['d', 1], ['Med', 0],
+    ['Nd', input.signal.driverCount ?? 1],
+    ['Angle', 0], ['Isobarik', 0],
+    ['alfaVC', num(input.voiceCoil?.alfaVC ?? 0.0039)],
+    ['dTVC', num(input.voiceCoil?.tempRise_K ?? 0)],
     ['Sdfport', num(box.SdFront)], ['Sdrport', num(box.SdRear)],
   ];
   if (box.bType === 4) boxKv.push(['Npr', box.npr ?? 1]); // Npr present ONLY for passive radiators

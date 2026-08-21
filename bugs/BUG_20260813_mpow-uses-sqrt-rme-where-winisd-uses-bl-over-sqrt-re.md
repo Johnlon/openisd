@@ -1,7 +1,11 @@
 # `Mpow` uses √Rme where WinISD uses Bl/√Re — the two were indistinguishable until now
 
+Status: RESOLVED
+
 # Status
-BLOCKED 2026-08-13 — needs a human ruling
+BLOCKED 2026-08-13 — needs a human ruling — resolved 2026-08-20: `driver.ts:300-301` now tries
+`BL/√Re` first, `√Rme` as fallback, exactly the authorised fix. `winisd-parity.test.ts` 436/436
+passing, `inconsistent-fs` Mpow included.
 
 
 **Found** 2026-08-13, on the `inconsistent-fs` parity golden captured the same day.

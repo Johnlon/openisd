@@ -12,12 +12,18 @@
  * fails because a comment mentions a module name is a broken gate: it manufactures false
  * positives, and the usual "fix" is a rename that changes no behaviour and destroys the evidence.
  */
-import { describe, it } from 'vitest';
+import { describe, it, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
 import { Project as TsProject, Node, SyntaxKind, type SourceFile } from 'ts-morph';
+
+// Every gate in this file walks the source tree and builds ASTs — parse-bound work, not the
+// function-call unit tests vitest's 5 s default budget is calibrated for. Stated explicitly so
+// a gate cannot go red for CPU contention during a full-suite run and be read as a real
+// offence: a timeout reports no offence list at all, which looks nothing like a genuine failure.
+vi.setConfig({ testTimeout: 60_000 });
 
 const UI_SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
 
@@ -154,7 +160,7 @@ function namedImportsOf(file: string, name: string, specPattern: RegExp): string
 }
 
 /** Does `file` contain a call expression whose callee text is exactly `expr` (e.g.
- *  `'OpenISDDriver.fromRecord'`)? Used where a gate asserts a specific construction site
+ *  `'OpenISDDriver.fromJsonRecord'`)? Used where a gate asserts a specific construction site
  *  still exists, rather than scanning imports or declarations. */
 function callsExpression(file: string, expr: string): boolean {
   const source = sourceFileOf(file);
@@ -330,7 +336,7 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
   const DRAFT_HOLDER = join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue');
 
   it('the draft exemption names a file that still exists and still holds a draft', () => {
-    assert.ok(callsExpression(DRAFT_HOLDER, 'OpenISDDriver.fromRecord'),
+    assert.ok(callsExpression(DRAFT_HOLDER, 'OpenISDDriver.fromJsonRecord'),
       'DriverEditorModal.vue no longer holds a live draft — delete this exemption rather than ' +
       'leaving a hole in the containment rule for the next file to fall through.');
   });
@@ -351,7 +357,7 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
   });
 
   it('managedProject.ts itself is the one file that constructs an OpenISDDriver', () => {
-    assert.ok(callsExpression(MANAGED_DRIVER_FILE, 'OpenISDDriver.fromRecord'),
+    assert.ok(callsExpression(MANAGED_DRIVER_FILE, 'OpenISDDriver.fromJsonRecord'),
       'managedProject.ts no longer constructs an OpenISDDriver — either the facade was ' +
       'gutted, or construction moved to a helper file the previous assertion also needs to ' +
       'exempt. Update both together, never widen the exemption alone.');
@@ -552,8 +558,7 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
   it('nothing reaches past ManagedOpenISDProject into the model package for a driver value', () => {
     const offences = filesUnder(UI_SRC)
       .filter(f => f !== MANAGED
-        && f !== join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue')
-        && f !== join(UI_SRC, 'logic', 'winIsdDriverFileIo.ts'))
+        && f !== join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue'))
       .flatMap(f => valueImportsOf(f)
         .filter(vi => /(^|\/)@openisd\/model(\/|$)/.test(vi.spec))
         .flatMap(vi => vi.names
@@ -561,16 +566,13 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
           .map(n => `${rel(f)} imports ${n} as a VALUE from ${vi.spec}`)));
 
     assert.deepEqual(offences, [],
-      'Only managedProject.ts may name OpenISDDriver as a value (DriverEditorModal.vue and ' +
-      'winIsdDriverFileIo.ts carry their own narrow, ruled exemptions — see the comments at ' +
-      'their own construction sites). A type-only import is fine — it erases, so it cannot ' +
-      'reach the object.');
+      'Only managedProject.ts may name OpenISDDriver as a value (DriverEditorModal.vue carries ' +
+      'its own narrow, ruled exemption — see the comment at its own construction site). A ' +
+      'type-only import is fine — it erases, so it cannot reach the object.');
   });
 
-  it('only winIsdDriverFileIo.ts may name WinISDDriver as a value', () => {
-    const WDR_FILE_IO = join(UI_SRC, 'logic', 'winIsdDriverFileIo.ts');
+  it('NO ui file may name WinISDDriver as a value', () => {
     const offences = filesUnder(UI_SRC)
-      .filter(f => f !== WDR_FILE_IO)
       .flatMap(f => valueImportsOf(f)
         .filter(vi => /(^|\/)@openisd\/winisd(\/|$)/.test(vi.spec))
         .flatMap(vi => vi.names
@@ -578,12 +580,11 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
           .map(() => `${rel(f)} imports WinISDDriver as a VALUE`)));
 
     assert.deepEqual(offences, [],
-      'WinISDDriver is the .wdr FILE FORMAT boundary, not a driver representation — it never ' +
-      'crosses winIsdDriverFileIo.ts, whose two exports (parseWdr/exportDriver) take and ' +
-      'return OpenISDDriverJson only. Every other file wanting a .wdr import or export calls ' +
-      'those two functions; naming WinISDDriver itself anywhere else reopens the leak this ' +
-      'gate exists to close. A type-only import is fine — it erases, so it cannot reach the ' +
-      'class.');
+      'WinISDDriver is the .wdr FILE FORMAT boundary, not a driver representation, and it ' +
+      'never enters the ui package at all. A file wanting .wdr text calls the symmetric pair ' +
+      'on the driver itself — OpenISDDriver.fromWdrText(text) / driver.toWdrText() — which is ' +
+      'where the projection lives. A type-only import is fine — it erases, so it cannot reach ' +
+      'the class.');
   });
 });
 

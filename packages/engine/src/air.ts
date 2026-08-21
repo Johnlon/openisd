@@ -16,36 +16,45 @@
  *
  * Speed of sound is Laplace's adiabatic relation at that density:
  *
- *     c = √(γ·p/ρ),   γ = 1.4
+ *     c = √(γ·p/ρ)
  *
  * ## Why that pairing, and not Cramer's polynomial
  *
- * WinISD's own saved files hold `ρ·c² = γ·p` with γ = 1.4 to **1.2e-15** relative
- * (`1.20095217714682 × 343.684120962153² = 141855.00000000017`, `1.4 × 101325 = 141855.0` —
- * winisd_research/CALC_FINDINGS_FOR_REVIEW.md). That identity is measured, not assumed, so it
+ * WinISD's own saved files hold `ρ·c² = γ·p` to **1.2e-15** relative
+ * (winisd_research/CALC_FINDINGS_FOR_REVIEW.md). That identity is measured, not assumed, so it
  * is the constraint this model is built to satisfy. It also keeps the engine self-consistent:
  * the box compliance `Cab = Vb/(ρc²)` then depends only on γ and p.
  *
- * Evaluated at WinISD's Advanced-pane defaults — 293.15 K, 30 % RH, 101325 Pa — this returns
- * `ρ = 1.2009621` and `c = 343.68270`, which are **8.3 ppm** and **4.1 ppm** from WinISD's own
- * stored `1.20095217714682` / `343.684120962153`. Cramer's speed-of-sound polynomial
- * (*JASA* **93** (1993) 2510) lands 151 ppm away, and full CIPM-2007 density including Z lands
- * 381 ppm away, so both fit WinISD's pair markedly worse. `air.test.ts` pins the agreement.
+ * Evaluated at WinISD's Advanced-pane defaults (`T_REF_K`/`RH_REF_PCT`/`P_REF_PA` below), this
+ * model is **8.3 ppm** off ρ and **4.1 ppm** off c from WinISD's own live-computed pair.
+ * Cramer's speed-of-sound polynomial (*JASA* **93** (1993) 2510) lands 151 ppm away, and full
+ * CIPM-2007 density including Z lands 381 ppm away, so both fit WinISD's pair markedly worse.
+ * `air.test.ts` pins the agreement.
+ *
+ * ## There is no frozen ρ/c constant, in WinISD or here
+ *
+ * Machine-verified against real WinISD 2026-08-20 (`docs/design/WINISD_SCHEMA.md` §12): a
+ * driver's `c`/`roo` are always either the driver's OWN stated value, or CALCULATED — from
+ * the driver's own remaining field, or from the app's live T/RH/AP — never a stored literal.
+ * "Factory settings give 343.68" is a live computation landing on that number, not a
+ * constant. This module holds no `RHO`/`C` for the same reason.
  *
  * ## The WinISD-parity mode
  *
- * WinISD stores temperature, pressure and humidity in the `.wpr` `[Box]` section and never
- * reads them: its `c`/`roo` stay at those 15 digits through a forced recompute at 303.15 K and
- * come back at them when the two fields are deleted and regenerated. Ledger QO7 rules that
- * openisd uses the physical model by DEFAULT and offers WinISD's behaviour as an opt-in, so
- * `ignoreHumidityAndPressure` drops back to the `RHO`/`C` constants scaled by temperature
- * alone. It costs about 0.077 dB of SPL at 30 °C.
+ * `ignoreHumidityAndPressure` reproduces WinISD's behaviour of never reading the `.wpr`
+ * `[Box]` section's stored T/RH/AP — it still computes live, at `RH_REF_PCT`/`P_REF_PA`
+ * rather than whatever was supplied, using only the caller's temperature. Ledger QO7 rules
+ * openisd uses the full physical model by DEFAULT and offers this as an opt-in.
  */
-
-import { RHO, C } from './constants.js';
 
 /** Ratio of specific heats for air. */
 export const GAMMA = 1.4;
+
+// Port end correction for a vent flanged at one end (baffle) and free at the other
+// (open into the box) — WinISD's own default (Vents tab "End Correction" field;
+// see docs/winisd_screenshots/view_3_ported.png).
+/** Port end correction, × vent diameter, per open (unflanged) end. */
+export const END_CORRECTION = 0.732;
 
 /** Reference conditions — WinISD's Advanced-pane defaults, and openisd's own. */
 export const T_REF_K   = 293.15;
@@ -119,11 +128,12 @@ export function moistAirSoundVelocity(tempK: number, humidityPct: number, pressu
 }
 
 /**
- * WinISD's air: the fixed `RHO`/`C` pair, scaled by temperature alone (ρ ∝ 1/T, c ∝ √T).
- * Returns `RHO` and `C` exactly at `T_REF_K`.
+ * WinISD's air: computed live from the caller's temperature alone, at `RH_REF_PCT`/
+ * `P_REF_PA` — humidity and pressure inputs are accepted but ignored, matching WinISD's
+ * own refusal to read the `.wpr` `[Box]` section's stored values.
  */
 function winisdAir(tempK: number): Air {
-  return { rho: RHO * (T_REF_K / tempK), c: C * Math.sqrt(tempK / T_REF_K) };
+  return { rho: moistAirDensity(tempK, RH_REF_PCT, P_REF_PA), c: moistAirSoundVelocity(tempK, RH_REF_PCT, P_REF_PA) };
 }
 
 /**

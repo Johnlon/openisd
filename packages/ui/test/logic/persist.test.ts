@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
-import { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver, Provenance } from '@openisd/model';
 import { WinISDDriver } from '@openisd/winisd';
 import { serialize, stateToUrl } from '../../src/logic/persist.js';
 import type { AppState, SerializedState, UiParams, DriverJSON } from '../../src/types.js';
@@ -29,22 +29,22 @@ const miniState = { box: 'sealed', P: {} as UiParams, graphs: ['SPL'] } as unkno
 /** The sample `.wdr`, read as-read by the serialiser and projected into the app's own record.
  *  One reader, one model — there is no second shape to discriminate on. */
 function sampleRecord(): DriverJSON {
-  return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdrText)).toRecord();
+  return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdrText)).toJsonRecord();
 }
 
 describe('persistence — provenance survives a serialize round trip', () => {
   it('E stays E and C stays C across serialize → JSON → restore', () => {
-    const src = OpenISDDriver.fromRecord(sampleRecord());
+    const src = OpenISDDriver.fromJsonRecord(sampleRecord());
     // Clear a derivable field so the fixture carries a genuine C (Cms recomputes from
     // Fs/Vas/Sd) alongside the E fields the WinISD save marks entered.
     src.clear('Cms');
 
     // The fixture must actually contain both an E and a C field, or the test is vacuous.
-    assert.equal(src.cell('Fs').state, 'E', 'fixture precondition: Fs entered');
-    assert.equal(src.cell('Cms').state, 'C', 'fixture precondition: Cms now computed');
+    assert.equal(src.cell('Fs').state, Provenance.Entered, 'fixture precondition: Fs entered');
+    assert.equal(src.cell('Cms').state, Provenance.Calculated, 'fixture precondition: Cms now computed');
 
-    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toRecord())));
-    const back = OpenISDDriver.fromRecord(wire.driver);
+    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJsonRecord())));
+    const back = OpenISDDriver.fromJsonRecord(wire.driver);
 
     for (const f of ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const) {
       assert.equal(back.cell(f).state, src.cell(f).state,

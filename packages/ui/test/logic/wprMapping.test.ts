@@ -2,13 +2,9 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { buildWprInput } from '../../src/logic/wprMapping.js';
 import type { UiParams, ProjectMeta } from '../../src/types.js';
+import { moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
 
 const emptyProject: ProjectMeta = { name: '', creator: '', created: '', modified: '', description: '' };
-
-// Same values as @openisd/engine/src/constants.ts RHO/C, hand-copied (not imported) so the
-// test's expected value is derived independently of the code path under test.
-const RHO = 1.20095217714682;
-const C = 343.684120962153;
 
 function prParams(): UiParams {
   return {
@@ -29,8 +25,11 @@ describe('buildWprInput — passive-radiator Vas unit', () => {
     const input = buildWprInput('pr', P, null, '[Driver]\n', emptyProject, new Date(2026, 0, 1), 0);
 
     // Vas = Cms * Sd^2 * rho * c^2, in m^3 -- no litres conversion. Computed independently of
-    // prVas()'s own (correct, litres-for-display) implementation.
-    const expectedM3 = P.prCms * P.prSd * P.prSd * RHO * C * C;
+    // prVas()'s own (correct, litres-for-display) implementation. No environment reaches
+    // this call, so rho/c are the live reference-environment values (no stored constant).
+    const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const expectedM3 = P.prCms * P.prSd * P.prSd * rho * c * c;
 
     assert.ok(input.pr, 'buildWprInput must populate [PassiveRadiator] for box === "pr"');
     const relErr = Math.abs(input.pr!.Vas - expectedM3) / expectedM3;

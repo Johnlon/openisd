@@ -39,7 +39,7 @@ function fileSystemAccessSupported(): boolean {
   return typeof (globalThis as { showSaveFilePicker?: unknown }).showSaveFilePicker === 'function';
 }
 
-async function writeToHandle(handle: FileSystemFileHandle, text: string): Promise<void> {
+async function writeToHandle(handle: FileSystemFileHandle, text: string | Uint8Array<ArrayBuffer>): Promise<void> {
   const stream = await handle.createWritable();
   await stream.write(text);
   await stream.close();
@@ -92,7 +92,7 @@ export async function saveProject(
  * write with nothing to overwrite in place later.
  */
 export async function saveTextAs(
-  text: string, suggestedName: string, description: string, mime: string, ext: string,
+  text: string | Uint8Array<ArrayBuffer>, suggestedName: string, description: string, mime: string, ext: string,
 ): Promise<SaveResult> {
   if (!fileSystemAccessSupported()) {
     download(suggestedName, text, mime);

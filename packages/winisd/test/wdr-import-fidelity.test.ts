@@ -27,7 +27,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/winisd';
-import { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver, Provenance } from '@openisd/model';
 
 /** The app's view of a `.wdr`: read as-read by the serialiser, projected into the record,
  *  then asked through the driver's own accessors — the exact path the app itself takes. */
@@ -96,7 +96,7 @@ describe('a .wdr key the file does carry survives import unchanged', () => {
 
   it('a .wdr stating SPL=90 reports 90, marked ENTERED', () => {
     const cell = driverOf(SEALED_SMALL).cell('SPL');
-    assert.equal(cell.state, 'E',
+    assert.equal(cell.state, Provenance.Entered,
       'SPL=90 is in the file; reporting it as calculated discards the stated figure');
     assert.equal(cell.value, 90);
   });

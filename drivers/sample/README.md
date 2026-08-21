@@ -219,7 +219,7 @@ entry point.
 Only two sources are authoritative for WinISD behaviour:
 
 1. **WinISD.exe itself** — behaviour observed by running the application.
-2. **WinISD help files** — `research/winisd/help/`.
+2. **WinISD help files** — `docs/winisd_helpfiles/help/`.
 
 Do not infer WinISD behaviour from OpenISD source code, forum posts, or third-party
 documentation without cross-checking against one of these two sources.
@@ -237,7 +237,7 @@ WinISD: `Re` `Qes` `Rms` `Mms` `no` `gamma` `EBP` `Rme` `Mpow`.
 ### What it establishes
 
 **1. `Rme = 2π·Fs·Mms/Qes` is exact; `Rme = BL²/Re` is not.** The first reproduces the stored
-value to all 16 digits, the second is out by −0.17385 %. `WDR_SCHEMA.md` §4 rows 3 and 4 present
+value to all 16 digits, the second is out by −0.17385 %. `WINISD_SCHEMA.md` §4 rows 3 and 4 present
 these as one relation group; they are not equivalent in WinISD data.
 
 **2. The cause is inconsistent INPUT, not a wrong formula.** The same −0.17385 % appears in three

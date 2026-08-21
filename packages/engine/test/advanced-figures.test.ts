@@ -38,7 +38,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { solveConsistencyGroup, RHO } from '@openisd/engine';
+import { solveConsistencyGroup, moistAirDensity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
 
 /** Beyma 10BR60/V2, the real fixture whose stored Bl disagrees with its own Fs/Mms/Re/Qes. */
 const BEYMA = { Fs: 29.0, Mms: 0.044, Cms: 0.000693, Rms: 2.4, BL: 10.9, Re: 6.5, Qes: 0.44, Qms: 3.3, Sd: 0.038 };
@@ -201,7 +201,7 @@ describe('Gloss — the static cone sag, as a FRACTION of Xmax', () => {
     const r = solve({
       Fs: 200, Xmax: 0.0067, Mms: 0.00194848430081419, Cms: 0.0013,
       Qes: 0.4812931131916, Qms: 2.1, Re: 14.1525718647402, BL: 6, Sd: 0.022,
-      roo: 1.20095217714682, c: 343.684120962153,
+      roo: 1.20095217714682, c: 343.684120962152,
     });
     assert.ok(rel(r.Gloss, 0.000926885620863929) < 1e-12,
       `Gloss = ${r.Gloss}, WinISD gave 0.000926885620863929`);
@@ -238,9 +238,9 @@ describe('SPLmaxLF — the excursion-limited 20 Hz SPL, at the record\'s own air
     assert.ok(rel(heavy.SPLmaxLF, 85.8656721753764) < 1e-12, `ρ₀=1.5 → ${heavy.SPLmaxLF}`);
   });
 
-  it('falls back to the engine\'s air constant when the record carries none', () => {
+  it('falls back to the live reference-environment density when the record carries none', () => {
     const noAir = solve({ Fs: 40, Xmax: 0.0067, Sd: 0.022 });
-    const withRho = solve({ Fs: 40, Xmax: 0.0067, Sd: 0.022, roo: RHO });
+    const withRho = solve({ Fs: 40, Xmax: 0.0067, Sd: 0.022, roo: moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA) });
     assert.equal(noAir.SPLmaxLF, withRho.SPLmaxLF);
   });
 

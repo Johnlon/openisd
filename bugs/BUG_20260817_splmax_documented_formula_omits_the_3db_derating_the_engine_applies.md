@@ -9,7 +9,7 @@ Three places state `SPLmax = SPL + 10·log₁₀(Pe)`. The engine computes
 `SPL + 10·log₁₀(Pe) − 3`. Anyone implementing from either statement lands 3 dB high on every
 driver.
 
-- `docs/design/WDR_SCHEMA.md` §4, relation 16 — `SPLmax = SPL + 10·log₁₀(Pe)`
+- `docs/design/WINISD_SCHEMA.md` §4, relation 16 — `SPLmax = SPL + 10·log₁₀(Pe)`
 - `packages/ui/src/logic/fields/fieldRegistry.ts:413` —
   `formula: 'SPLmax = SPL + 10·log₁₀(Pe)'`
 - `packages/ui/src/logic/provenance.ts:149` —
@@ -58,7 +58,7 @@ cannot contain it. The registry entry then copied the schema's form.
 
 State the derating in all three places:
 
-- `docs/design/WDR_SCHEMA.md` §4 relation 16 → `SPLmax = SPL + 10·log₁₀(Pe) − 3`
+- `docs/design/WINISD_SCHEMA.md` §4 relation 16 → `SPLmax = SPL + 10·log₁₀(Pe) − 3`
 - `fieldRegistry.ts:413` `formula:` → `SPLmax = SPL + 10·log₁₀(Pe) − 3`
 - `provenance.ts:149` `formulaText:` → `SPLmax = SPL + 10 × log₁₀(Pe) − 3`
 

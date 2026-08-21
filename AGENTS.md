@@ -332,7 +332,7 @@ Before starting work, always read:
 > for parity evidence** — never as a statement of how openisd should be shaped. If one of them
 > and `ARCHITECTURE.md` disagree about our own record, `ARCHITECTURE.md` wins.
 >
-> - `docs/design/WDR_SCHEMA.md` — reverse-engineered facts about WinISD's `.wdr` format
+> - `docs/design/WINISD_SCHEMA.md` — reverse-engineered facts about WinISD's `.wdr` format
 > - `docs/research/WINISD_PARITY.md` — parity evidence and investigation notes
 
 **Coding rules for each area — READ THEM BY HAND from `../_agent_files/rules/`.** The `paths:`

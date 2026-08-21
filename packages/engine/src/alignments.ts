@@ -22,8 +22,14 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2223
  */
 
-import { RHO, C, END_CORRECTION } from './constants.js';
+import { END_CORRECTION, T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
 import type { EngineDriver, SweepParams, SweepResult } from './types.js';
+
+// None of the box/vent/PR geometry callers below carry a project environment (T/RH/AP) --
+// computed live at the reference environment, same basis `driver.ts`'s fallback uses. Never
+// a stored constant.
+const refRho = (): number => moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+const refC = (): number => moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
 
 /** The subset of params the PR helpers read — lets callers pass any params object
  *  (engine SweepParams, or the UI's UiParams/SyncedParams) that carries these fields. */
@@ -84,11 +90,11 @@ export function ventedAlignment(drv: Pick<EngineDriver, 'Fs' | 'Qts' | 'Vas'>): 
  * tunes somewhere else entirely, which is a wrong number wearing a right one's clothes.
  */
 export function ventLength(Vb: number, fb: number, Sp: number, endCorrection: number = END_CORRECTION): number {
-  const Cab = Vb / (RHO * C * C);
+  const Cab = Vb / (refRho() * refC() * refC());
   const wb  = 2 * Math.PI * fb;
   const Map = 1 / (wb * wb * Cab);
   const d   = 2 * Math.sqrt(Sp / Math.PI);
-  return Map * Sp / RHO - endCorrection * d;
+  return Map * Sp / refRho() - endCorrection * d;
 }
 
 /**
@@ -99,8 +105,8 @@ export function ventLength(Vb: number, fb: number, Sp: number, endCorrection: nu
 export function tuningFromLength(Vb: number, L: number, Sp: number, endCorrection: number = END_CORRECTION): number {
   const d    = 2 * Math.sqrt(Sp / Math.PI);
   const Leff = L + endCorrection * d;
-  const Cab  = Vb / (RHO * C * C);
-  const Map  = RHO * Leff / Sp;
+  const Cab  = Vb / (refRho() * refC() * refC());
+  const Map  = refRho() * Leff / Sp;
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
 }
 
@@ -111,7 +117,7 @@ export function tuningFromLength(Vb: number, L: number, Sp: number, endCorrectio
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
 export function prTuning(P: PRParams): number {
-  const Cab  = P.Vb / (RHO * C * C);
+  const Cab  = P.Vb / (refRho() * refC() * refC());
   const Map  = (P.prMmd! + P.prMadd!) / (P.prSd! * P.prSd!);
   const Cap  = P.prCms! * P.prSd! * P.prSd!;
   const Cpar = (Cab * Cap) / (Cab + Cap);
@@ -124,7 +130,7 @@ export function prTuning(P: PRParams): number {
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
 export function prMassForFp(P: PRParams, fp: number): number {
-  const Cab  = P.Vb / (RHO * C * C);
+  const Cab  = P.Vb / (refRho() * refC() * refC());
   const Cap  = P.prCms! * P.prSd! * P.prSd!;
   const Cpar = (Cab * Cap) / (Cab + Cap);
   const Map  = 1 / ((2 * Math.PI * fp) ** 2 * Cpar);

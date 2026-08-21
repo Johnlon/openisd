@@ -128,7 +128,7 @@ test('§A1 — the Vents pane carries the SAME editable target tuning as the Box
   await expect(page.locator('#og-vent-fb-target')).toHaveValue('35.00');
 });
 
-// WinISD's PR screen labels the radiator's own free-air resonance "Fs" (docs/winisd/
+// WinISD's PR screen labels the radiator's own free-air resonance "Fs" (docs/winisd_screenshots/
 // view_3_passive_radiator.png: Fs 30.00 Hz), which collides with the DRIVER's Fs. The human
 // ruled Fpr, for consistency with the other F* symbols. This is the PR's own resonance — NOT
 // the system tuning, which is the Box tab's Fh (view_2_box.png: 40.25 Hz on the same project).

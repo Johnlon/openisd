@@ -27,7 +27,7 @@
  * `ManagedProject` clones a whole project to open an overlay.
  */
 import type { _OpenISDDriverJson } from './openisdDriver.js';
-import {type Filter, tuningFromLength} from "@openisd/engine";
+import type { Filter } from "@openisd/engine";
 
 /** Which alignment is ACTIVE. The others stay populated and dormant. */
 export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator';
@@ -35,14 +35,15 @@ export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiato
 /** A vent, as cut. Not a component: nobody buys a hole, so it has no catalogue record. */
 export interface OpenISDVent {
   shape: 'round' | 'slotted';
-  /** Round: the diameter. */
+  /** Round: the diameter. 0 ⇒ not chosen. */
   diameter_m: number;
-  /** Slotted: the two cross-section sides. */
+  /** Slotted: the two cross-section sides. 0 ⇒ not chosen. */
   width_m: number;
   height_m: number;
-  /** Physical length. Tied to the tuning by one Helmholtz relation — see `OpenISDTarget`. */
+  /** Physical length. DERIVED in WinISD from volume + tuning + diameter + end correction, so it
+   *  is read-only there. 0 ⇒ not chosen. */
   length_m: number;
-  /** × diameter: 0.613 two-free, 0.732 one-flanged (default), 0.849 two-flanged. */
+  /** × diameter: 0.613 two-free, 0.732 one-flanged, 0.849 two-flanged. 0 ⇒ not chosen. */
   endCorrection: number;
 }
 
@@ -212,44 +213,70 @@ export interface _OpenISDProjectJson {
   meta: OpenISDProjectMeta;
 }
 
+/**
+ * The ONLY files, `packages/`-relative, permitted to name `_OpenISDProjectJson`. An absent or
+ * empty list denies everyone outside this file — the absence of a control is never permission.
+ *
+ * ONLY the human may add, remove, or change an entry here — no agent may edit this list on its
+ * own judgement, however legitimate a call site looks. A failing test naming a new offender is
+ * the correct, expected result, not authorization to widen this list to make it pass.
+ */
+export const _OpenISDProjectJsonPrivateAllow: string[] = [];
+
 // ── Construction and the one legal way to switch alignment ────────────────────────────────
 
-/** A vent with WinISD's own defaults: round, 5 cm, one-flanged end correction. */
+/**
+ * A vent with NOTHING chosen. Every dimension is 0 — this codebase's unset marker — until the
+ * New Project wizard sets it from the driver, the box type and the selected alignment. See
+ * bugs/BUG_20260821_new_project_invents_box_and_vent_values_instead_of_asking_the_user.md
+ */
 function prototypeVent(): OpenISDVent {
   return {
     shape: 'round',
-    diameter_m: 0.05,
-    width_m: 0.10,
-    height_m: 0.05,
-    length_m: 0.10,
-    // One-flanged, WinISD's default. 0.613 two-free, 0.849 two-flanged.
-    endCorrection: 0.732,
+    // TODO(box-wizard): WinISD initialises 0.102 m (4 in). Unset until the wizard sets it.
+    diameter_m: 0,
+    // TODO(box-wizard): slot width, unset until the wizard sets it.
+    width_m: 0,
+    // TODO(box-wizard): slot height, unset until the wizard sets it.
+    height_m: 0,
+    // TODO(box-wizard): DERIVED in WinISD from volume + tuning + diameter + end correction.
+    //   Unset until that derivation exists.
+    length_m: 0,
+    // TODO(box-wizard): WinISD initialises 0.732 (one-flanged). Unset until the wizard sets it.
+    endCorrection: 0,
   };
 }
 
 /**
- * A box with EVERY alignment present from the start.
+ * A box with EVERY alignment present from the start, and NOTHING sized.
  *
  * None is created lazily on first switch: a lazily-created alignment gets DEFAULTS, and a
  * default written over a value restored from a file is the silent-data-loss this whole design
- * exists to prevent. They all exist, they all hold values, one is active.
+ * exists to prevent. They all exist, one is active, and none carries a number nobody chose.
+ *
+ * WinISD CALCULATES volume and tuning from driver + box type + alignment in its New Project
+ * wizard. OpenISD has no such wizard yet, so every such value is 0 (unset) rather than an
+ * invented plausible number — see
+ * bugs/BUG_20260821_new_project_invents_box_and_vent_values_instead_of_asking_the_user.md
  */
 export function prototypeBox(): OpenISDBox {
-  const vent = prototypeVent();
-  // The Helmholtz tuning THIS vent and THIS volume actually deliver, via the same
-  // `tuningFromLength` the vent-group solver uses — a derived value, not an independent
-  // literal, so the default design cannot state a vent and a tuning that disagree.
-  const ventedFb = tuningFromLength(0.030, vent.length_m, Math.PI * (vent.diameter_m / 2) ** 2, vent.endCorrection);
   return {
     active: 'vented',
-    sealed: { volume_m3: 0.030 },
-    vented: { volume_m3: 0.030, Fb_hz: ventedFb, vent },
+    // TODO(box-wizard): sealed Vb, calculated from driver + alignment. Unset until then.
+    sealed: { volume_m3: 0 },
+    // TODO(box-wizard): vented Vb and Fb, calculated from driver + alignment. Unset until then.
+    vented: { volume_m3: 0, Fb_hz: 0, vent: prototypeVent() },
+    // TODO(box-wizard): bandpass chamber volumes and front tuning, calculated from driver +
+    //   alignment. Unset until then.
     bandpass4: {
-      rearVolume_m3: 0.020, frontVolume_m3: 0.015, Ff_hz: 60, frontVent: prototypeVent(),
+      rearVolume_m3: 0, frontVolume_m3: 0, Ff_hz: 0, frontVent: prototypeVent(),
     },
-    passiveRadiator: { volume_m3: 0.040, Fp_hz: 0, count: 1, addedMass_kg: 0 },
+    // TODO(box-wizard): PR volume, tuning, count and added mass, calculated from driver + PR +
+    //   alignment. Unset until then.
+    passiveRadiator: { volume_m3: 0, Fp_hz: 0, count: 0, addedMass_kg: 0 },
     // Enclosure losses: leakage, absorption, port. They describe the BOX, not one alignment,
-    // so they sit here and survive every switch.
+    // so they sit here and survive every switch. These three are NOT invented: WinISD itself
+    // writes Ql=10, Qa=100, Qp=100 — see test/fixtures/winisd-parity/goldens/bandpass4.wpr:69.
     Ql: 10, Qa: 100, Qp: 100,
   };
 }

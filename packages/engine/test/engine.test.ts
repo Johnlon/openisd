@@ -13,13 +13,18 @@ import assert from 'node:assert/strict';
 import {
   deriveEngineDriver, sweep,
   prTuning, prMassForFp,
-  RHO, C,
+  moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA,
   referenceEfficiency, splFromEfficiency,
   highPass, lowPass, linkwitz, peakingEQ, evalFilter, applyFilters,
   unwrap, portLoss,
   cAbs,
 } from '@openisd/engine';
 import type { Complex } from '@openisd/engine';
+
+// No environment reaches these test's own reimplementation of the formula under test, so ρ/c
+// are computed live at the reference environment — matching production (no stored constant).
+const refRho = (): number => moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+const refC = (): number => moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
 
 // ---------------------------------------------------------------------------
 // Reference test driver — a synthetic 6.5" mid-woofer, 8 Ω nominal.
@@ -134,8 +139,8 @@ describe('Sealed box simulation', () => {
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
     const { value: d }     = deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
     assert.ok(d);
-    const eta0  = referenceEfficiency(d.Fs, d.Vas, d.Qes, C);
-    const predicted = splFromEfficiency(eta0, RHO, C) + 10 * Math.log10(EG ** 2 / d.Re);
+    const eta0  = referenceEfficiency(d.Fs, d.Vas, d.Qes, refC());
+    const predicted = splFromEfficiency(eta0, refRho(), refC()) + 10 * Math.log10(EG ** 2 / d.Re);
     const { fs, spl } = sweep(d, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 });
     const passbandSPL = spl[idxGe(fs, 300)]; // 300 Hz — well above Fs, in the flat passband
     assert.ok(Math.abs(passbandSPL - predicted) < SPL_FORMULA_TOLERANCE_DB,
@@ -198,10 +203,10 @@ describe('Vented (bass-reflex) box simulation', () => {
   const Vb_m3 = 0.020;
   const Fb_Hz  = 30;
   const Sp_m2  = Math.PI * 0.025 ** 2; // pi·r² for a 50 mm diameter port
-  const Cab    = Vb_m3 / (RHO * C * C);
+  const Cab    = Vb_m3 / (refRho() * refC() * refC());
   const wb     = 2 * Math.PI * Fb_Hz;
   const Map    = 1 / (wb * wb * Cab); // acoustic mass for Fb
-  const Leff   = Map * Sp_m2 / RHO;  // effective duct length (including end correction)
+  const Leff   = Map * Sp_m2 / refRho();  // effective duct length (including end correction)
   const { value: d }      = deriveEngineDriver(REF_DRIVER);
   assert.ok(d);
   const { fs, spl, zmag } = sweep(d, 'vented', {
@@ -324,13 +329,13 @@ describe('Passive radiator — WinISD <-> T/S parameter round-trip', () => {
 
   it('WinISD Fs/Qms/Vas converts to Mms/Cms/Rms and back to the exact same Fs/Qms/Vas', () => {
     // Forward: Cms = Vas/(Sd²·rho·c²),  Mms = 1/(ws²·Cms),  Rms = sqrt(Mms/Cms)/Qms
-    const Cms   = (EXAMPLE_PR.Vas_L / 1000) / (EXAMPLE_PR.Sd_m2 ** 2 * RHO * C * C);
+    const Cms   = (EXAMPLE_PR.Vas_L / 1000) / (EXAMPLE_PR.Sd_m2 ** 2 * refRho() * refC() * refC());
     const Mms   = 1 / ((2 * Math.PI * EXAMPLE_PR.Fs_Hz) ** 2 * Cms);
     const Rms   = Math.sqrt(Mms / Cms) / EXAMPLE_PR.Qms;
     // Inverse: Fs = 1/(2pi·sqrt(Mms·Cms)),  Qms = sqrt(Mms/Cms)/Rms,  Vas = Cms·Sd²·rho·c²·1000
     const Fs_rt  = 1 / (2 * Math.PI * Math.sqrt(Mms * Cms));
     const Qms_rt = Math.sqrt(Mms / Cms) / Rms;
-    const Vas_rt = Cms * EXAMPLE_PR.Sd_m2 ** 2 * RHO * C * C * 1000;
+    const Vas_rt = Cms * EXAMPLE_PR.Sd_m2 ** 2 * refRho() * refC() * refC() * 1000;
 
     assert.ok(Math.abs(Fs_rt  - EXAMPLE_PR.Fs_Hz) < ROUNDTRIP_TOLERANCE,
       `Fs: ${EXAMPLE_PR.Fs_Hz} Hz → Mms/Cms/Rms → ${Fs_rt.toFixed(9)} Hz`);

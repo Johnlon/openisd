@@ -6,7 +6,10 @@ import { dirname, join } from 'node:path';
 import { toWpr } from '@openisd/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLE_WPR_PATH = join(here, '..', '..', '..', '..', 'docs', 'winisd', 'sample_project_Epique15_-_pr.wpr');
+/** The harness-generated PR golden — WinISD Pro wrote it under the wine harness from a scenario
+ *  stated in explicit values (test/fixtures/winisd-parity/scenarios.json, `passive-radiator`),
+ *  so every value in it is traceable to an input this repo controls and can regenerate. */
+const SAMPLE_WPR_PATH = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
 
 /** Substring assertions carry the needle in the message, so a failure names the missing line. */
 function contains(haystack: string, needle: string, label: string) {
@@ -19,7 +22,7 @@ function omits(haystack: string, needle: string, label: string) {
 // A minimal driver section as Driver.toWdr() would emit it (header + fields + ParState).
 const DRIVER_SECTION = '[Driver]\nBrand=Dayton Audio\nModel=E150HE-44\nParState=EEEEEE';
 
-// A passive-radiator project modelled on docs/winisd/sample_project_Epique15_-_pr.wpr.
+// A passive-radiator project modelled on docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr.
 // We assert STRUCTURE (section order, keys, CRLF, box/PR values) — NOT byte-equality with the
 // sample, because WinISD writes ~30 derived [Driver] fields OpenISD never carries.
 function prProject() {
@@ -155,22 +158,22 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     assert.match(s, /\[PassiveRadiator\]\n\n\[SimulatorOptions\]/);
   });
 
-  it('matches the real WinISD sample .wpr on container format + every WinISD-invariant [Box]/[PassiveRadiator] value', () => {
-    // docs/winisd/sample_project_Epique15_-_pr.wpr is a real file saved by WinISD Pro itself
-    // (WINISD_WPR_FILE_SCHEMA.md corpus). We can't byte-match [Driver] (WinISD writes ~30
-    // derived fields OpenISD doesn't carry — SPLmax, gamma, Rme, c, roo, …) or [ProjectInfo]
-    // (Description/Creator/dates are per-project), but every OTHER value here is a WinISD
-    // constant/default our serializer must reproduce exactly, plus the real project's own
-    // [Box]/[PassiveRadiator] physics values, read straight out of the sample file.
+  it('matches the WinISD-written PR golden on container format + every WinISD-invariant [Box]/[PassiveRadiator] value', () => {
+    // The golden is a file WinISD Pro itself wrote under the wine harness, from the
+    // `passive-radiator` scenario's explicit input values. We can't byte-match [Driver] (WinISD
+    // writes ~30 derived fields OpenISD doesn't carry — SPLmax, gamma, Rme, c, roo, …) or
+    // [ProjectInfo] (Description/Creator/dates are per-project), but every OTHER value here is
+    // either a WinISD constant/default our serializer must reproduce exactly, or the scenario's
+    // own [Box]/[PassiveRadiator] physics values, read straight out of the golden.
     const sample = readFileSync(SAMPLE_WPR_PATH, 'utf8');
     assert.ok(sample.includes('\r\n'), 'ground truth confirms the CRLF assumption');
 
     const s = toWpr({
       project: { creator: 'johnl', createDate: '20260621', modifyDate: '20260703' },
       driverSection: DRIVER_SECTION,
-      box: { bType: 4, Vr: 0.00372, Fr: 45.4014352480254, npr: 1 },
-      signal: { P: 140 },
-      pr: { Vas: 0.0048, Qms: 3.3, Fs: 30, Sd: 0.0095, Xmax: 19, Me: 0 },
+      box: { bType: 4, Vr: 0.04, Fr: 31.7490157327751, npr: 1 },
+      signal: { P: 1 },
+      pr: { Vas: 0.0048, Qms: 3.3, Fs: 30, Sd: 0.0095, Xmax: 0.019, Me: 0 },
     }).replace(/\r\n/g, '\n');
     const sampleLf = sample.replace(/\r\n/g, '\n');
 
@@ -181,22 +184,42 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     for (const h of order) contains(sampleLf, h, 'WinISD sample section');
 
     // [Box] values read from the real file, reproduced by our serializer for the same inputs.
-    for (const line of ['BType=4', 'Vr=0.00372', 'Fr=45.4014352480254', 'Qlr=10', 'Qar=100', 'Qpr=100',
+    for (const line of ['BType=4', 'Vr=0.04', 'Fr=31.7490157327751', 'Qlr=10', 'Qar=100', 'Qpr=100',
       'T=293.15', 'p=101325', 'phi=0.3', 'Nd=1', 'Isobarik=0', 'Sdfport=0', 'Sdrport=0', 'Npr=1']) {
       contains(sampleLf, line, 'WinISD sample [Box]');   // our default/constant assumption vs the real file
       contains(s, line, 'our [Box] output');             // our output matches it
     }
 
     // [PassiveRadiator] — real project's own T/S values, byte-identical in our output.
-    for (const line of ['Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', 'Xmax=19', 'Me=0']) {
+    for (const line of ['Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', 'Xmax=0.019', 'Me=0']) {
       contains(sampleLf, line, 'WinISD sample [PassiveRadiator]');
       contains(s, line, 'our [PassiveRadiator] output');
     }
 
     // [VentFront]/[VentRear] boilerplate defaults for a PR project — real file vs ours.
-    for (const line of ['Shape=1', 'dia1=0.102', 'dia2=0.102', 'endcorrection=0.732', 'crosscalc=1']) {
+    // `Num`/`dia1`/`dia2`/`endcorrection` are NOT in this list: openisd writes a phantom vent
+    // (Num=1, dia1=0.102, dia2=0.102, endcorrection=0.732) where WinISD wrote an empty one
+    // (Num=0, dia1=0, dia2=0, endcorrection=0.6) — a real defect, not a fixture quirk, tracked
+    // in bugs/BUG_20260820_wpr_writer_emits_phantom_vent_for_a_passive_radiator_project.md and
+    // asserted as a bounded divergence immediately below so it cannot silently widen or vanish.
+    for (const line of ['Shape=1', 'Fb=0', 'Vb=0', 'carea=0', 'len=0', 'crosscalc=1']) {
       contains(sampleLf, line, 'WinISD sample vent boilerplate');
       contains(s, line, 'our vent boilerplate output');
+    }
+
+    // The phantom-vent divergence, asserted as a BOUND rather than deleted. Each row states
+    // what WinISD wrote and what openisd writes instead; the test fails if either side changes
+    // — including if openisd is fixed, at which point this block is deleted and the four keys
+    // move into the invariant list above.
+    for (const [key, winisd, ours] of [
+      ['Num', '0', '1'], ['dia1', '0', '0.102'], ['dia2', '0', '0.102'],
+      ['endcorrection', '0.6', '0.732'],
+    ] as const) {
+      contains(sampleLf, `${key}=${winisd}`, `WinISD's own [VentFront] ${key}`);
+      contains(s, `${key}=${ours}`,
+        `openisd's [VentFront] ${key} — if this now matches WinISD's ${winisd}, the phantom-vent ` +
+        `defect is FIXED: delete this block and move ${key} into the invariant list above ` +
+        `(bugs/BUG_20260820_wpr_writer_emits_phantom_vent_for_a_passive_radiator_project.md)`);
     }
   });
 

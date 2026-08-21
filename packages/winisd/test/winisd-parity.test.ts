@@ -23,7 +23,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { ebp, airFor, sealedFscWinisd, sourceLoadedQts } from '@openisd/engine';
-import { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver, Provenance } from '@openisd/model';
 import { WinISDDriver } from '../src/winisdDriver.js';
 import { POS_TO_WDRKEY } from '../src/parstate.js';
 
@@ -157,7 +157,7 @@ function num(drv: OpenISDDriver, field: string): number | null {
   // exactly as the app sees it. Everything else is read from the solved engine bag, which is
   // the only place it exists.
   const cell = drv.cell(field as Parameters<OpenISDDriver['cell']>[0]);
-  if (cell.state !== 'N') {
+  if (cell.state !== Provenance.NotAvailable) {
     return typeof cell.value === 'number' && Number.isFinite(cell.value) ? cell.value : null;
   }
   const solved = drv.toDriver() as Record<string, number> | null;

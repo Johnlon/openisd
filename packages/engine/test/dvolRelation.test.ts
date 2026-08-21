@@ -1,6 +1,6 @@
 /**
  * Unit tests for packages/engine/src/dvolRelation.ts — the DVol/Depth/MagDepth/Magnet geometry
- * relation, pinned in docs/design/WDR_SCHEMA.md §3.10.1.
+ * relation, pinned in docs/design/WINISD_SCHEMA.md §3.10.1.
  *
  * A fixed geometry (arbitrary but physically plausible driver dimensions) anchors every test:
  * Dd 90mm, Vcd 25mm, Depth 55mm, MagDepth 20mm, Magnet 60mm. DVol is computed forward once and

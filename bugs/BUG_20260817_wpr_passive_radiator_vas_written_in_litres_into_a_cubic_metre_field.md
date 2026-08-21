@@ -37,8 +37,8 @@ That value flows unconverted into `packages/winisd/src/classic/wpr.ts:197`'s
 `[PassiveRadiator]` write. Every other field in that section is SI — `Sd`, `Xmax`, `Me` — so this
 is not a section-wide convention, just this one field.
 
-**Oracle**: `docs/winisd/sample_project_Epique15_-_pr.wpr:151` has `Vas=0.0048`, which WinISD's
-own PR pane renders as `4.80 l` (`docs/winisd/view_3_passive_radiator.png`). 0.0048 m³ = 4.8 L —
+**Oracle**: `docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr:151` has `Vas=0.0048`, which WinISD's
+own PR pane renders as `4.80 l` (`docs/winisd_screenshots/view_3_passive_radiator.png`). 0.0048 m³ = 4.8 L —
 confirms the file field is cubic metres, litres nowhere in it.
 
 **Why nothing caught it**: `packages/winisd/test/classic/wpr.test.ts:130` hand-feeds

@@ -32,7 +32,7 @@ gap. New findings take the next free number. Verify the two docs agree after any
 ### 13. History-in-docs violations (the project's own hard rule)
 
 `BACKLOG.md:43-50` ("preserved for history", struck-through text),
-`BACKLOG.md:23-37` (`## Shipped ✓` closed `[x]` list), `WDR_SCHEMA.md:439`
+`BACKLOG.md:23-37` (`## Shipped ✓` closed `[x]` list), `WINISD_SCHEMA.md:439`
 ("previously in this section"), `ARCHITECTURE.md:48` ("pre-Vite era no longer
 applies"), `FEATURES.md` dated "as of mid-2025" snapshots.
 
@@ -41,12 +41,12 @@ applies"), `FEATURES.md` dated "as of mid-2025" snapshots.
 
 ### 15. Competing "canonical" / roadmap sources
 
-`FEATURES.md:190` names `drivers/README.md` canonical while `WDR_SCHEMA.md:3` is the
+`FEATURES.md:190` names `drivers/README.md` canonical while `WINISD_SCHEMA.md:3` is the
 real source of truth; `FEATURES.md`, `COMPARISON.md`, and `BACKLOG.md` all act as the
 roadmap. 16 root `.md` files sit beside an empty `docs/` dir.
 
 **Preventative:** one roadmap (`BACKLOG.md`), one canonical schema doc
-(`WDR_SCHEMA.md`); other docs link rather than restate. Consolidate root docs into
+(`WINISD_SCHEMA.md`); other docs link rather than restate. Consolidate root docs into
 `docs/` or remove the empty dir.
 
 ---

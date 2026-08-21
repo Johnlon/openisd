@@ -32,7 +32,7 @@ Four independent checks, all against `winisd.exe` 0.7.0.0:
    executable are `WinISD project files (*.wpr)` and `WinISD driver file [*.wdr]`; there is
    no `*.csv`, `*.txt` or `*.dat` filter, so no "save data" dialog exists to open.
 4. **The official help says the same by omission.** The 21 extracted help pages under
-   `openisd/research/winisd/help/`, including `graphs.html`, contain no occurrence of
+   `docs/winisd_helpfiles/help/`, including `graphs.html`, contain no occurrence of
    *export*, *clipboard* or *csv*.
 
 What still guards the curves: `packages/engine/test/golden.test.ts`, which pins openisd's own

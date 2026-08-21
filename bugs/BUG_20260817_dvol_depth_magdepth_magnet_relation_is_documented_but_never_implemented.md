@@ -12,12 +12,12 @@ relation the editor already implements. openisd derives none of the four.
 
 ## Evidence
 
-**WinISD's own help text** (`research/winisd/help/newdriver.html`, the driver-editor walkthrough):
+**WinISD's own help text** (`docs/winisd_helpfiles/help/newdriver.html`, the driver-editor walkthrough):
 "It shows then approximate displacement volume DVol" — DVol is *shown/computed*, not typed, once
 the other dimensions are entered.
 
 **The formula, already reverse-engineered and sitting in this repo's own docs**
-(`docs/design/WDR_SCHEMA.md` §3.10.1, cross-referenced from `winisd_research/RE_GHIDRA_FINDINGS.md`
+(`docs/design/WINISD_SCHEMA.md` §3.10.1, cross-referenced from `winisd_research/RE_GHIDRA_FINDINGS.md`
 "The DVol geometry relation — recovered formulas"):
 
     S = Dd² + Dd·Vcd + Vcd²
@@ -28,7 +28,7 @@ the other dimensions are entered.
 
 Model: the driver is a cone tapering from the diaphragm `Dd` to the voice coil `Vcd` over height
 `Depth − MagDepth`, plus a cylinder (the magnet) of diameter `Magnet` and height `MagDepth`.
-WDR_SCHEMA states the four expressions "were checked against each other algebraically and agree
+WINISD_SCHEMA states the four expressions "were checked against each other algebraically and agree
 exactly — the inverses are not fits", and cites the exact stamp/store VAs in the WinISD binary
 for each of the four solve directions (`RE_GHIDRA_FINDINGS.md` lines 1012-1027). This is not a
 guess or an approximation to reverse-engineer — it is already recovered and pinned.
@@ -48,7 +48,7 @@ binding — there is no calculated state for any of the four this relation actua
 
 This session earlier told the human "no provenance on Dimensions is correct... nothing derives
 Basket Diameter from anything else" as a blanket statement about the whole tab. That is true for
-`Thick`, `Basket`, `Outer` and `VCd` — WDR_SCHEMA's relation lists only `DVol`, `Depth`,
+`Thick`, `Basket`, `Outer` and `VCd` — WINISD_SCHEMA's relation lists only `DVol`, `Depth`,
 `MagDepth`, `Magnet`, `Dd`, `Vcd` as members, so those four genuinely have no formula and no
 docs claim otherwise. It was WRONG to extend that to `DVol`/`Depth`/`MagDepth`/`Magnet` without
 checking WinISD's own documentation for them specifically, which the human caught.

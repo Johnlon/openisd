@@ -38,7 +38,7 @@ auto-loads every session — not a candidate for renaming, only for absorbing co
 | Tier | Question it answers | Contents after this change |
 |---|---|---|
 | `docs/spec/` | "What must this interface/behavior do, precisely?" | `SPEC_ENGINE.md`, `SPEC_UI.md`, `CONTRACT.md` |
-| `docs/design/` | "What is the current architecture/data model?" | `DRIVER_RECORD_MODEL.md`, `WDR_SCHEMA.md`, `DRIVER_ADT_DESIGN.md`, `STATE_MODEL.md` |
+| `docs/design/` | "What is the current architecture/data model?" | `DRIVER_RECORD_MODEL.md`, `WINISD_SCHEMA.md`, `DRIVER_ADT_DESIGN.md`, `STATE_MODEL.md` |
 | `docs/plans/` | "What phased work is executing this?" | `PLAN_OPENISD_DRIVER_MODEL.md`, `PLAN_JS_CALC_CONSOLIDATION.md`, `PLAN_SBL_CROSSCHECK.md`, `MATH_MIGRATION.md` |
 | `docs/research/` | "What did we find out, that isn't itself a contract?" | `WINISD_PARITY.md`, `WINISD.md`, `COMPETITIVE_LANDSCAPE.md`, `REFERENCES.md` |
 

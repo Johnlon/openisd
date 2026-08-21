@@ -141,7 +141,7 @@ add the default, do not swap.
 ### 8. Gate the documentation rules
 
 `AGENTS.md:93-102` bans history in `.md`. Live violations sit at `BACKLOG.md:129,131-143,152,154-156`,
-`ARCHITECTURE.md:49`, `FEATURES.md:25,54,86`, `WDR_SCHEMA.md:465`. No check exists —
+`ARCHITECTURE.md:49`, `FEATURES.md:25,54,86`, `WINISD_SCHEMA.md:465`. No check exists —
 `grep -rln "preserved for history\|link-check\|linkcheck\|no-history" scripts/` returns nothing,
 and `scripts/hooks-local/pre-commit:14-18` skips every gate for a doc-only commit, which is
 exactly the class of change that introduces these.

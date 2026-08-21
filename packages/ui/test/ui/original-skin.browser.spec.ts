@@ -859,9 +859,8 @@ test('Original skin: Options dialog → "Reset to Metric" reverts a toggled unit
   const amc = field.locator('input');
   const unit = field.locator('.unit');
 
-  if (await unit.textContent() === 'kg') {
-    await unit.click(); // make sure it's in g first
-  }
+  // beforeEach clears localStorage, so the app starts on its metric ground state.
+  await expect(unit).toHaveText('g');
 
   await amc.fill('75');
   await amc.dispatchEvent('input');

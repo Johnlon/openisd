@@ -8,7 +8,7 @@ import type { BoxType } from '@openisd/engine';
  * sanity bounds (`min`/`max`).
  *
  * Coverage is deliberately COMPLETE — every field on the WinISD 0.7.0.950 screens
- * (docs/winisd/info/*.md) is catalogued, whether or not OpenISD models it:
+ * (docs/winisd_screenshots/info/*.md) is catalogued, whether or not OpenISD models it:
  *   - `modeled: true`  — OpenISD renders/computes this; its `precision`/`unit` are OpenISD's
  *     (a skin binds `NumInput :precision="precision(id)"`). Where OpenISD uses a DIFFERENT unit
  *     than WinISD, the dp is unit-ADJUSTED to keep WinISD's resolution — noted in `description`.
@@ -92,7 +92,7 @@ const FIELDS: FieldSpec[] = [
   {
     id: 'Fb', label: 'Target Tuning Freq (Fb)', pane: 'Box', kind: 'number', unit: 'Hz', precision: 2, min: 0, max: 1000,
     provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4', 'pr'],
-    description: 'The tuning the design is aimed at — an INPUT the port solver designs to, not a readout: the vent length is solved from it (logic/useVentGroup.ts, human ruling QO11). Entering a vent length instead swaps the roles within the vent group and Fb becomes the solved member. Shown and editable on both the Box tab and the Vents pane, one stored value. `Fh` is the symbol the passive-radiator system tuning uses on WinISD\'s Box screen (docs/winisd/view_2_box.png, 40.25 Hz), so it is not this quantity\'s symbol. WinISD shows 2 dp.',
+    description: 'The tuning the design is aimed at — an INPUT the port solver designs to, not a readout: the vent length is solved from it (logic/useVentGroup.ts, human ruling QO11). Entering a vent length instead swaps the roles within the vent group and Fb becomes the solved member. Shown and editable on both the Box tab and the Vents pane, one stored value. `Fh` is the symbol the passive-radiator system tuning uses on WinISD\'s Box screen (docs/winisd_screenshots/view_2_box.png, 40.25 Hz), so it is not this quantity\'s symbol. WinISD shows 2 dp.',
   },
 
   // ============================ VENTS / PORTED ============================
@@ -173,7 +173,7 @@ const FIELDS: FieldSpec[] = [
     id: 'prFs', label: 'Fpr', pane: 'PassiveRadiator', kind: 'number', unit: 'Hz', precision: 2, min: 0, max: 1000,
     provenance: 'calculated', modeled: true, appliesTo: ['pr'],
     formula: 'Fpr = 1/(2π·√(Mmd·Cms))', dependsOn: ['prMmd', 'prCms'],
-    description: 'The RADIATOR\'s own free-air resonance — no box in it. WinISD prints it as "Fs" on its PR screen (docs/winisd/view_3_passive_radiator.png, 30.00 Hz), which collides with the driver\'s [Fs]; `Fpr` is this app\'s symbol. Distinct from the PR SYSTEM tuning, which is the Box screen\'s Fh (view_2_box.png, 40.25 Hz on the same project). WinISD 2 dp.',
+    description: 'The RADIATOR\'s own free-air resonance — no box in it. WinISD prints it as "Fs" on its PR screen (docs/winisd_screenshots/view_3_passive_radiator.png, 30.00 Hz), which collides with the driver\'s [Fs]; `Fpr` is this app\'s symbol. Distinct from the PR SYSTEM tuning, which is the Box screen\'s Fh (view_2_box.png, 40.25 Hz on the same project). WinISD 2 dp.',
   },
   {
     id: 'prQms', label: 'Qms', pane: 'PassiveRadiator', kind: 'number', unit: '', precision: 3, min: 0, max: 100,
@@ -269,7 +269,7 @@ const FIELDS: FieldSpec[] = [
   },
 
   // ---- Advanced pane: the five simulation-fidelity toggles --------------------------------
-  // WinISD's own checkbox column (docs/winisd/info/view_6_advanced.md). Three of the five are
+  // WinISD's own checkbox column (docs/winisd_screenshots/info/view_6_advanced.md). Three of the five are
   // per-project in WinISD's file format (.wpr [SimulatorOptions] VCInd / FlatResponse /
   // TLPorts); the other two have no known .wpr key. Their exact WinISD behaviour is ⚠ unverified
   // (every sampled .wpr has all three flags at 0) — the semantics OpenISD implements are
@@ -394,7 +394,7 @@ const FIELDS: FieldSpec[] = [
   // ============================ DRIVER EDITOR — reference-only (Parameters/Advanced/Dimensions) ============================
   // WinISD fields OpenISD does not model. Recorded for parity/DQ/roadmap; precision/unit are WinISD's.
   { id: 'Dd', label: 'Dd', pane: 'Driver: Parameters', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 2, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Effective piston diameter, interchangeable with Sd (Sd = π·(Dd/2)²). Rendered on the driver editor in mm at 2 dp — 0.01 mm, finer than WinISD\'s 3 dp of a metre; WinISD offers the same m/mm/cm/in cycle on this field. Stored in metres.' },
-  { id: 'fLe', label: 'fLe', pane: 'Driver: Parameters', kind: 'number', unit: 'kHz', precision: 5, min: 0, max: 100000, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Semi-inductance reference frequency — the frequency at which Le and KLe were measured; 0 = standard Le model only. Raw passthrough (not simulated). STORED IN HERTZ (docs/design/WDR_SCHEMA.md) and rendered in kHz at 5 dp, as WinISD does, so the editor binds :scale=1e-3.' },
+  { id: 'fLe', label: 'fLe', pane: 'Driver: Parameters', kind: 'number', unit: 'kHz', precision: 5, min: 0, max: 100000, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Semi-inductance reference frequency — the frequency at which Le and KLe were measured; 0 = standard Le model only. Raw passthrough (not simulated). STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and rendered in kHz at 5 dp, as WinISD does, so the editor binds :scale=1e-3.' },
   { id: 'KLe', label: 'KLe', pane: 'Driver: Parameters', kind: 'number', unit: 'H·√Hz', precision: 6, min: 0, max: 10, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Semi-inductance coefficient (WinISD 6 dp). Raw passthrough only.' },
   { id: 'Hc', label: 'Hc', pane: 'Driver: Parameters', kind: 'number', unit: 'm', precision: 3, min: 0, max: 1, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Voice-coil height (WinISD 3 dp). Not modelled.' },
   { id: 'Hg', label: 'Hg', pane: 'Driver: Parameters', kind: 'number', unit: 'm', precision: 3, min: 0, max: 1, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Magnetic gap height (WinISD 3 dp). Not modelled.' },

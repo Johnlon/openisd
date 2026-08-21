@@ -8,7 +8,7 @@ FIXED (re-verified 2026-08-19 — driver-editor-layout.browser.spec.ts full suit
 The Parameters and Advanced parameters tabs read as scattered boxes rather than a table. Every
 row starts its input at whatever x its own label happens to end at, so nothing lines up down the
 panel. WinISD's own editor
-(`docs/winisd/edit_driver_pg2_parameters.png`, `edit_driver_pg3_advanced_parameters.png`) right-
+(`docs/winisd_screenshots/edit_driver_pg2_parameters.png`, `edit_driver_pg3_advanced_parameters.png`) right-
 aligns each label against a shared input edge, giving four clean columns.
 
 Measured input x per column, Parameters tab

@@ -12,7 +12,7 @@
  * needs saying. They look like environment constants, so they look exemptable — but WinISD
  * offers both for EDITING on the driver and saves what you type, which makes them driver
  * fields whatever they describe. The `.wpr` agrees: in
- * `docs/winisd/sample_project_Epique15_-_pr.wpr` they appear at lines 53-54, INSIDE the
+ * `docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr` they appear at lines 53-54, INSIDE the
  * `[Driver]` section, not in any project-level one.
  *
  * `c`/`roo`/`EBP` are not special-cased anywhere in the model or the writer — they resolve
@@ -27,7 +27,8 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { WinISDDriver, INI_ROWS } from '../src/winisdDriver.js';
 import { CellState } from '../src/parstate.js';
-import { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver, Provenance } from '@openisd/model';
+import { moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
 
 describe('every .wdr field has a home in the OpenISD model', () => {
   it('the key list is real and non-trivial', () => {
@@ -66,7 +67,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     // c (speed of sound) and roo (air density) are the case a future edit is most likely to
     // "helpfully" exempt: they look like environment constants. They are not exemptable —
     // WinISD offers both for EDITING on the driver and saves what you type, which makes them
-    // driver fields whatever they describe (docs/winisd/sample_project_Epique15_-_pr.wpr lines
+    // driver fields whatever they describe (docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr lines
     // 53-54: both appear INSIDE the [Driver] section, not any project-level one). This test
     // pins those two keys by name so a future exemption list added to THIS file, not just the
     // general coverage loop above, would still be caught.
@@ -88,11 +89,14 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     assert.equal(roundTripped.cell('roo').value, rooCell.value, "roo's stated value must survive the round trip");
   });
 
-  it('c and roo, left unentered, come back at the engine\'s own constant marked COMPUTED', () => {
+  it('c and roo, left unentered, come back live-computed at the reference environment, marked COMPUTED', () => {
     // No cells at all — this is what a .wdr with no c/roo lines (or any lines) looks like.
-    // `@openisd/engine`'s `solveConsistencyGroup` fills c/roo with its own constants when
-    // unset, unconditionally marked `C` — matching WinISD's own behaviour of writing a live
-    // c/roo value into every driver it saves. `winisd` itself supplies neither value.
+    // `@openisd/engine`'s `solveConsistencyGroup` fills c/roo by computing them live from the
+    // CIPM-2007 moist-air model at the reference environment when unset, unconditionally
+    // marked `C` — there is no stored constant anywhere (AGENTS.md 'Calculation logic —
+    // permission gate' sign-off 2026-08-19). `winisd` itself supplies neither value.
+    const refC = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const refRho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
     const wdr = WinISDDriver.build({}, new Map());
 
     const driver = OpenISDDriver.fromWinISDDriver(wdr);
@@ -100,13 +104,15 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     if (!roundTripped) throw new Error('round-trip export failed to project');
 
     assert.equal(roundTripped.cell('c').state, CellState.Computed, 'unentered c must read as computed, not absent');
-    assert.equal(Number(roundTripped.cell('c').value), 343.684120962153, "unentered c must default to the engine's own speed-of-sound constant");
+    assert.equal(Number(roundTripped.cell('c').value), refC, "unentered c must default to the live reference-environment speed of sound");
     assert.equal(roundTripped.cell('roo').state, CellState.Computed, 'unentered roo must read as computed, not absent');
-    assert.equal(Number(roundTripped.cell('roo').value), 1.20095217714682, "unentered roo must default to the engine's own air-density constant");
+    assert.equal(Number(roundTripped.cell('roo').value), refRho, "unentered roo must default to the live reference-environment air density");
   });
 
-  it('entering then clearing c/roo on the SAME OpenISDDriver: entered value reads back, cleared reverts to the engine constant directly', () => {
-    const driver = OpenISDDriver.fromRecord({
+  it('entering then clearing c/roo on the SAME OpenISDDriver: entered value reads back, cleared reverts to the live reference-environment value', () => {
+    const refC = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const refRho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const driver = OpenISDDriver.fromJsonRecord({
       uuid: { value: 'x', definition: 'd' },
       quality: { rating: 'M', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: [] },
       manufacturer: { value: '', origin: 'manual', definition: 'd', dq: [] },
@@ -123,9 +129,9 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     // ENTER: same object, both fields.
     driver.enter('c', 400);
     driver.enter('roo', 1.5);
-    assert.deepEqual(driver.cell('c'), { value: 400, state: CellState.Entered, origin: 'manual' },
+    assert.deepEqual(driver.cell('c'), { value: 400, state: Provenance.Entered, origin: 'manual' },
       'c must read back exactly what was just entered, on the same object');
-    assert.deepEqual(driver.cell('roo'), { value: 1.5, state: CellState.Entered, origin: 'manual' },
+    assert.deepEqual(driver.cell('roo'), { value: 1.5, state: Provenance.Entered, origin: 'manual' },
       'roo must read back exactly what was just entered, on the same object');
 
     // CLEAR: same object, both fields. c/roo resolve through the SAME entered-or-computed
@@ -133,17 +139,17 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     // export step is needed to see the engine constant; `cell()` alone already returns it.
     driver.clear('c');
     driver.clear('roo');
-    assert.equal(driver.cell('c').state, CellState.Computed, 'a cleared c reads computed directly off the driver, like any other derivable field');
-    assert.equal(driver.cell('c').value, 343.684120962153, "a cleared c reads the engine's own speed-of-sound constant directly off the driver");
-    assert.equal(driver.cell('roo').state, CellState.Computed, 'a cleared roo reads computed directly off the driver, like any other derivable field');
-    assert.equal(driver.cell('roo').value, 1.20095217714682, "a cleared roo reads the engine's own air-density constant directly off the driver");
+    assert.equal(driver.cell('c').state, Provenance.Calculated, 'a cleared c reads computed directly off the driver, like any other derivable field');
+    assert.equal(driver.cell('c').value, refC, "a cleared c reads the live reference-environment speed of sound directly off the driver");
+    assert.equal(driver.cell('roo').state, Provenance.Calculated, 'a cleared roo reads computed directly off the driver, like any other derivable field');
+    assert.equal(driver.cell('roo').value, refRho, "a cleared roo reads the live reference-environment air density directly off the driver");
 
     const { value: exported } = driver.toWinISDDriver();
     if (!exported) throw new Error('export failed to project');
     assert.equal(exported.cell('c').state, CellState.Computed, 'the same computed c carries through to .wdr export unchanged');
-    assert.equal(Number(exported.cell('c').value), 343.684120962153, "the same computed c value carries through to .wdr export unchanged");
+    assert.equal(Number(exported.cell('c').value), refC, "the same computed c value carries through to .wdr export unchanged");
     assert.equal(exported.cell('roo').state, CellState.Computed, 'the same computed roo carries through to .wdr export unchanged');
-    assert.equal(Number(exported.cell('roo').value), 1.20095217714682, "the same computed roo value carries through to .wdr export unchanged");
+    assert.equal(Number(exported.cell('roo').value), refRho, "the same computed roo value carries through to .wdr export unchanged");
   });
 
   it('OpenISDDriver.toWinISDDriver() never drifts out of sync with WinISDDriver about the key set', () => {

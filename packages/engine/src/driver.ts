@@ -12,7 +12,8 @@
  * here — this module is pure physics with no file-format concern (ARCHITECTURE.md AD-6).
  */
 
-import { RHO, C, P0, G_STANDARD } from './constants.js';
+import { P0, G_STANDARD } from './constants.js';
+import { GAMMA, T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
 import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
 import { ebp } from './alignments.js';
 import type { EngineDriver, DriverError, Result } from './types.js';
@@ -22,20 +23,23 @@ import type { EngineDriver, DriverError, Result } from './types.js';
 type DriverFields = Record<string, number | undefined>;
 
 /**
- * The air a driver record itself carries. A `.wdr` stores `c` and `roo`, and the Driver ADT
- * passes them straight through, so a WinISD-authored driver reproduces WinISD's own `no`/`SPL`
- * exactly. Reference efficiency and the SPL constant derived from it are both functions of the
- * air, which is why this is read per record rather than taken from the module constants.
- *
- * Only `solveConsistencyGroup` can use it: it works on the untyped record it was handed, which
- * is where those two keys actually arrive. `EngineDriver` does not model air at all, so
- * `deriveEngineDriver` has nothing to read and uses the app constants.
+ * A driver record's own speed of sound — matches WinISD's own resolution rule
+ * (`docs/design/WINISD_SCHEMA.md` §12): the record's stated `c`; else recomputed from its
+ * stated `roo` via `c = √(γ·p/roo)`; else the live physical model at the reference
+ * environment. Never a stored constant — WinISD has none either.
  */
-function airOf(r: Readonly<Record<string, number | undefined>>): { c: number; rho: number } {
-  return {
-    c:   r.c   != null && r.c   > 0 ? r.c   : C,
-    rho: r.roo != null && r.roo > 0 ? r.roo : RHO,
-  };
+export function driverC(r: Readonly<Record<string, number | undefined>>): number {
+  if (r.c != null && r.c > 0) return r.c;
+  if (r.roo != null && r.roo > 0) return Math.sqrt(GAMMA * P_REF_PA / r.roo);
+  return moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+}
+
+/**
+ * A driver record's own air density — its stated `roo`, else the live physical model at the
+ * reference environment. WinISD never recomputes a missing `roo` from `c` — matched here.
+ */
+export function driverRho(r: Readonly<Record<string, number | undefined>>): number {
+  return r.roo != null && r.roo > 0 ? r.roo : moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
 }
 
 /**
@@ -100,15 +104,13 @@ export function nominalImpedance(Re: number): number {
  *
  * The η₀/SPLref/USPL reference-efficiency chain is solved here too, entirely through
  * `efficiency.ts` — the single implementation of η₀ and of the SPL constant derived from
- * the air in use (`airOf`). η₀ is a FRACTION throughout; the percent lives in the display
- * layer only.
+ * the air in use (`driverC`/`driverRho`). η₀ is a FRACTION throughout; the percent lives in
+ * the display layer only.
  */
 export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolean }): DriverFields {
   const r: DriverFields = { ...d };
 
   const TAU = 2 * Math.PI;
-  const air = airOf(r);
-  const CONST_NO = efficiencyConstant(air.c);
 
   // Run full solver ONLY when explicitly requested, otherwise run classic path to avoid test drift/failures
   if (!options?.full) {
@@ -120,7 +122,7 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     if (r.Qms == null && r.Qts != null && r.Qes != null && r.Qes > r.Qts) r.Qms = r.Qts * r.Qes / (r.Qes - r.Qts);
 
     if (r.Fs != null && r.Vas != null && r.Sd != null) {
-      const Cas = r.Vas / (RHO * C * C);
+      const Cas = r.Vas / (driverRho(r) * driverC(r) * driverC(r));
       if (r.Cms == null) r.Cms = Cas / (r.Sd * r.Sd);
       if (r.Mms == null && r.Cms != null) r.Mms = 1 / ((2 * Math.PI * r.Fs) ** 2 * r.Cms);
       if (r.Rms == null && r.Qms != null && r.Mms != null) r.Rms = 2 * Math.PI * r.Fs * r.Mms / r.Qms;
@@ -170,10 +172,9 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     if (r.Cms == null && r.Fs != null && r.Mms != null) setVal('Cms', 1 / ((TAU * r.Fs) ** 2 * r.Mms));
 
     // 4. Vas, Cms, Sd
-    const rho_c2 = RHO * C * C;
-    if (r.Vas == null && r.Cms != null && r.Sd != null) setVal('Vas', rho_c2 * r.Sd * r.Sd * r.Cms);
-    if (r.Cms == null && r.Vas != null && r.Sd != null && r.Sd > 0) setVal('Cms', r.Vas / (rho_c2 * r.Sd * r.Sd));
-    if (r.Sd == null && r.Vas != null && r.Cms != null && r.Cms > 0) setVal('Sd', Math.sqrt(r.Vas / (rho_c2 * r.Cms)));
+    if (r.Vas == null && r.Cms != null && r.Sd != null) setVal('Vas', driverRho(r) * driverC(r) * driverC(r) * r.Sd * r.Sd * r.Cms);
+    if (r.Cms == null && r.Vas != null && r.Sd != null && r.Sd > 0) setVal('Cms', r.Vas / (driverRho(r) * driverC(r) * driverC(r) * r.Sd * r.Sd));
+    if (r.Sd == null && r.Vas != null && r.Cms != null && r.Cms > 0) setVal('Sd', Math.sqrt(r.Vas / (driverRho(r) * driverC(r) * driverC(r) * r.Cms)));
 
     // 5. Rms, Fs, Mms, Qms
     if (r.Rms == null && r.Fs != null && r.Mms != null && r.Qms != null) setVal('Rms', TAU * r.Fs * r.Mms / r.Qms);
@@ -218,24 +219,24 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
 
     // 10. no, Fs, Qes, Vas
     if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null) {
-      setVal('no', referenceEfficiency(r.Fs, r.Vas, r.Qes, air.c));
+      setVal('no', referenceEfficiency(r.Fs, r.Vas, r.Qes, driverC(r)));
     }
     if (r.Vas == null && r.no != null && r.Qes != null && r.Fs != null && r.Fs > 0) {
-      setVal('Vas', r.no * r.Qes / (CONST_NO * (r.Fs ** 3)));
+      setVal('Vas', r.no * r.Qes / (efficiencyConstant(driverC(r)) * (r.Fs ** 3)));
     }
     if (r.Qes == null && r.no != null && r.Fs != null && r.Vas != null && r.no > 0) {
-      setVal('Qes', CONST_NO * (r.Fs ** 3) * r.Vas / r.no);
+      setVal('Qes', efficiencyConstant(driverC(r)) * (r.Fs ** 3) * r.Vas / r.no);
     }
     if (r.Fs == null && r.no != null && r.Qes != null && r.Vas != null && r.Vas > 0 && r.no > 0) {
-      setVal('Fs', Math.pow((r.no * r.Qes) / (CONST_NO * r.Vas), 1 / 3));
+      setVal('Fs', Math.pow((r.no * r.Qes) / (efficiencyConstant(driverC(r)) * r.Vas), 1 / 3));
     }
 
     // 11. SPLref <-> no
     if (r.SPLref == null && r.no != null && r.no > 0) {
-      setVal('SPLref', splFromEfficiency(r.no, air.rho, air.c));
+      setVal('SPLref', splFromEfficiency(r.no, driverRho(r), driverC(r)));
     }
     if (r.no == null && r.SPLref != null) {
-      setVal('no', efficiencyFromSpl(r.SPLref, air.rho, air.c));
+      setVal('no', efficiencyFromSpl(r.SPLref, driverRho(r), driverC(r)));
     }
 
     // 12. USPL, SPLref, Re
@@ -325,11 +326,11 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     }
     // SPLmaxLF — the excursion-limited half-space SPL at 20 Hz, 1 m, as dB re 20 µPa. The
     // bracket is the far-field RMS pressure of a piston of volume displacement Vd,
-    // p = ρ₀·ω²·Vd/(2π·r·√2) at r = 1 m, ω = 2π·20. ρ₀ is the air the RECORD carries (`airOf`
-    // above — a .wdr's own `roo`, else the app constant), never a literal: WinISD moves
-    // SPLmaxLF by exactly 20·log₁₀(ρ ratio) when `roo` alone is changed.
+    // p = ρ₀·ω²·Vd/(2π·r·√2) at r = 1 m, ω = 2π·20. ρ₀ is the air the RECORD carries
+    // (`driverRho` above — a .wdr's own `roo`, else the live physical model), never a
+    // literal: WinISD moves SPLmaxLF by exactly 20·log₁₀(ρ ratio) when `roo` alone is changed.
     if (r.SPLmaxLF == null && r.Vd != null && r.Vd > 0) {
-      const p20 = air.rho * (TAU * 20) ** 2 * r.Vd / (TAU * Math.SQRT2);
+      const p20 = driverRho(r) * (TAU * 20) ** 2 * r.Vd / (TAU * Math.SQRT2);
       setVal('SPLmaxLF', 20 * Math.log10(p20 / P0));
     }
     // Mcost — Rme scaled by how far the coil leaves the gap: Rme·(1 + Xmax/min(Hc,Hg)). It
@@ -359,12 +360,11 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
   }
 
   // The air a record carries is itself a derivable field, exactly like any other: entered
-  // (a .wdr's own c/roo) wins, and an unset one resolves to the app's own physical constant —
-  // `air` already computed this above for the formulas that need it; surfacing it here in the
-  // output record is what lets every caller treat c/roo through the SAME entered-or-computed
-  // path as Fs/Qes/EBP, with no special case anywhere above this module.
-  if (r.c == null) r.c = air.c;
-  if (r.roo == null) r.roo = air.rho;
+  // (a .wdr's own c/roo) wins, else recomputed exactly as `driverC`/`driverRho` do above —
+  // surfacing it here in the output record is what lets every caller treat c/roo through the
+  // SAME entered-or-computed path as Fs/Qes/EBP, with no special case anywhere above this module.
+  if (r.c == null) r.c = driverC(r);
+  if (r.roo == null) r.roo = driverRho(r);
 
   // EBP (Fs/Qes) likewise: a real derivable field, computed once every input it needs is
   // available, through the SAME formula `alignments.ts` exports for every other caller —
@@ -431,11 +431,11 @@ export function deriveEngineDriver(d: DriverFields): Result<EngineDriver> {
 
   // Calculated sensitivity / efficiency (WinISD equivalents), through the single
   // implementation in efficiency.ts. η₀ is a FRACTION, so nothing here divides by 100.
-  // `Driver` carries no air of its own, so the app constants are the air in use here; a
-  // record that DOES carry `c`/`roo` gets them honoured in solveConsistencyGroup above.
-  r.no = referenceEfficiency(r.Fs!, r.Vas!, r.Qes!, C);
+  // `solveConsistencyGroup` above already resolved r.c/r.roo (entered, or computed) — reused
+  // here rather than re-derived, so there is exactly one air resolution per record.
+  r.no = referenceEfficiency(r.Fs!, r.Vas!, r.Qes!, r.c!);
   if (r.no > 0) {
-    r.SPLref = splFromEfficiency(r.no, RHO, C);
+    r.SPLref = splFromEfficiency(r.no, r.roo!, r.c!);
     // 2.83² (WinISD's own 1 W/8 Ω test-voltage reference, squared), NOT the bare 8 this used to
     // read — same fix, same evidence, as `solveConsistencyGroup` block 12 above. `Driver`
     // carries no stated `SPL` of its own (this function's documented boundary — the working

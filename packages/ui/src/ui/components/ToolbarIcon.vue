@@ -2,7 +2,7 @@
 /**
  * Shared WinISD-style toolbar icon set — ONE source, so every toolbar that draws an icon
  * draws the same one. Shapes/colours are modelled on the real WinISD 0.7.0.950
- * toolbar (docs/winisd/view_2_box.png): filled/shaded glyphs, not bare wireframe strokes —
+ * toolbar (docs/winisd_screenshots/view_2_box.png): filled/shaded glyphs, not bare wireframe strokes —
  * orange folder, silver floppy disks, blue speaker/driver icon, blue info circle, pink
  * chart-curve icon. "saveAs" and "export" extend the real disk+pencil / disk+ribbon icons
  * WinISD itself uses for its 2nd/3rd toolbar floppy — there is no WinISD icon for "export a
@@ -46,7 +46,7 @@ defineProps<{
     <circle cx="15" cy="13" r="2.6" fill="#5f5f5f"/>
   </svg>
   <svg v-else-if="name === 'options'" width="19" height="19" viewBox="0 0 26 26">
-    <!-- A real open-end wrench (docs/winisd/view_1_driver_drivers_standard.png toolbar, cropped
+    <!-- A real open-end wrench (docs/winisd_screenshots/view_1_driver_drivers_standard.png toolbar, cropped
          close up) — a slender, mostly-horizontal handle with a two-pronged open FORK at one end
          and a small ring loop at the other, tilted ~20°. (An earlier attempt used a diagonal bar
          with a full ring at each end and a bite cut from it — that reads as a dumbbell/lollipop,

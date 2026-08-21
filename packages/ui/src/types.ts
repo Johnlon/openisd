@@ -5,8 +5,8 @@
 import type { EngineDriver, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@openisd/engine';
 import type { OpenISDDriver } from '@openisd/model';
 
-/** The openisd.yml record shape — what `OpenISDDriver.toRecord()` hands back. */
-export type DriverJSON = ReturnType<OpenISDDriver['toRecord']>;
+/** The openisd.yml record shape — what `OpenISDDriver.toJsonRecord()` hands back. */
+export type DriverJSON = ReturnType<OpenISDDriver['toJsonRecord']>;
 
 /**
  * The closed set of chart curves the engine can draw. Every member MUST appear in

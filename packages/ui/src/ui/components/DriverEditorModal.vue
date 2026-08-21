@@ -3,15 +3,15 @@ import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import { ref, shallowRef, markRaw, computed, nextTick, watch, onBeforeUnmount } from 'vue';
 import { state, formatInUnit } from '../../logic/store.js';
 import { useApp } from '../../logic/app.js';
-import { RHO, C } from '../../logic/environment.js';
-import * as WinIsdDriverFileIo from '../../logic/winIsdDriverFileIo.js';
+import { referenceRho, referenceC } from '../../logic/environment.js';
 import { OpenISDDriver } from '@openisd/model';
+import { readDriverFileText, driverFileBody } from '../../logic/driverFileText.js';
 import type { SpecField, MetaField } from '@openisd/model';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import { precision } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
-import { cellClassOf, useQGroupIncomplete, consistencyNote } from '../../logic/useDriverCells.js';
+import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../logic/useDriverCells.js';
 import { saveTextAs } from '../../logic/fileSave.js';
 import { DriverFileFormat } from '../../driverFileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
@@ -20,7 +20,7 @@ import { getProvenanceInfo, LABEL_TO_FIELD_KEY } from '../../logic/provenance.js
 const { selection, myDrivers, logging } = useApp();
 const { editorSeed, acceptDriverEdit, cancelDriverEdit } = selection;
 
-// Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd/edit_driver_pg*.png):
+// Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced parameters / Dimensions.
 //
 // Layered Memory architecture:
@@ -47,7 +47,7 @@ const editorTitle = seed.subject === 'myDriver' ? 'Edit My Driver' : "Edit Proje
 // markRaw + shallowRef: Driver is a class with private fields, and a Vue reactive proxy
 // makes every method call on it throw. Redraws are driven by `trigger` below, so the
 // instance never needs to be deeply reactive.
-const draftDriver = shallowRef(markRaw(OpenISDDriver.fromRecord(seed.json)));
+const draftDriver = shallowRef(markRaw(OpenISDDriver.fromJsonRecord(seed.json)));
 const trigger = ref(0);
 function forceUpdate() { trigger.value++; }
 
@@ -109,7 +109,7 @@ function cellOf(field: string) {
 }
 
 function cellClass(field: string): string {
-  return cellClassOf(cellOf(field).state);
+  return cellClassFor(cellOf, field as SpecField);
 }
 
 function cellVal(field: string): number | null {
@@ -237,7 +237,7 @@ function isBadValue(field: string): boolean {
 
 const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.';
 
-// INCONSISTENT — the field belongs to a consistency group (WDR_SCHEMA §4) whose members
+// INCONSISTENT — the field belongs to a consistency group (WINISD_SCHEMA §4) whose members
 // contradict each other beyond their own precision. The ADT decides; every member of the
 // group is marked, because none of them is more wrong than the others. Like every other DQ
 // state here it blocks nothing: the driver still simulates, saves and exports.
@@ -274,7 +274,8 @@ const chartBlockingReasons = computed<string[]>(() => {
   return draftDriver.value.errors().filter(e => e.level === 'error').map(e => e.message);
 });
 
-const qIncomplete = useQGroupIncomplete(cellOf);
+// The domain object already answers this — see OgTune.vue.
+const mandatory = (field: string) => fieldIsMandatoryAndUnsatisfied(cellOf, field);
 
 function ebpVal(): number | null {
   const _ = trigger.value;
@@ -330,13 +331,13 @@ function confirmSaveToMyDrivers() {
   forceUpdate();
 
   if (isCopyAction.value) {
-    const overwrote = myDrivers.upsert(draftDriver.value.toRecord());
+    const overwrote = myDrivers.upsert(draftDriver.value.toJsonRecord());
     saveMyDialogOpen.value = false;
     copiedMsg.value = overwrote ? 'Updated in My Drivers' : 'Copied to My Drivers';
     setTimeout(() => { copiedMsg.value = ''; }, 2000);
   } else {
     saveMyDialogOpen.value = false;
-    acceptDriverEdit(draftDriver.value.toRecord());
+    acceptDriverEdit(draftDriver.value.toJsonRecord());
     emit('close');
   }
 }
@@ -384,7 +385,7 @@ function close() {
   if (seed.subject === 'myDriver') {
     openSaveMyDialog(false);
   } else {
-    acceptDriverEdit(draftDriver.value.toRecord());
+    acceptDriverEdit(draftDriver.value.toJsonRecord());
     emit('close');
   }
 }
@@ -404,7 +405,7 @@ function cancel() {
 
 // Reset — draft back to what it was seeded from (the picked driver, or the design).
 function reset() {
-  draftDriver.value = markRaw(OpenISDDriver.fromRecord(seed.json));
+  draftDriver.value = markRaw(OpenISDDriver.fromJsonRecord(seed.json));
   forceUpdate();
 }
 
@@ -426,22 +427,19 @@ function handleFileLoaded(e: Event) {
     if (!ok) return;
   }
 
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    const text = evt.target?.result as string;
+  void readDriverFileText(file).then(text => {
     if (!text) return;
     try {
       // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
       // an `.owdr` IS that record already. One reader each, and no second parse invented here.
       draftDriver.value = markRaw(format === DriverFileFormat.Wdr
         ? OpenISDDriver.fromWdrText(text)
-        : OpenISDDriver.fromOwdr(text));
+        : OpenISDDriver.fromOwdrText(text));
       forceUpdate();
     } catch (err) {
       alert('Failed to parse file: ' + (err as Error).message);
     }
-  };
-  reader.readAsText(file);
+  }, (err: Error) => { alert('Failed to read file: ' + err.message); });
 }
 
 // Format choice is an in-app panel, not a confirm(): OK/Cancel cannot name two formats, so
@@ -460,15 +458,16 @@ async function writeDriver(format: DriverFileFormat) {
   // that knows the format — and a driver too incomplete to project says so rather than writing
   // a file WinISD would refuse.
   const { value: text, errors } = format === DriverFileFormat.Owdr
-    ? { value: JSON.stringify(draftDriver.value.toRecord(), null, 2), errors: [] }
-    : WinIsdDriverFileIo.exportDriver(draftDriver.value);
+    ? { value: JSON.stringify(draftDriver.value.toJsonRecord(), null, 2), errors: [] }
+    : draftDriver.value.toWdrText();
   if (!text) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+  const body = driverFileBody(text, format !== DriverFileFormat.Owdr);
   // Then the SYSTEM save dialog — the user picks folder and name, as a desktop app would.
   // The MIME must be a CUSTOM type, not application/json or text/plain. The picker unions the
   // extensions we list with every extension registered to that MIME, so `application/json`
   // offered ".owdr, .json" and `text/plain` offered ".wdr, .txt, .text" — a save dialog
   // inviting the user to write a driver to a filename the app will not read back.
-  const r = await saveTextAs(text, format.fileName(base), format.label, format.mime, '.' + format.value);
+  const r = await saveTextAs(body, format.fileName(base), format.label, format.mime, '.' + format.value);
   if (!r.cancelled) logging.flash(`Driver saved as .${format.value}`);
 }
 
@@ -532,17 +531,17 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-cols">
               <div class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" title="Electrical Q factor — motor damping. WinISD: Qes">
                 <label>Qes</label>
-                <NumInput :class="cellClass('Qes')" :mandatory="qIncomplete" :model-value="cellVal('Qes')" :scale="1" :precision="3" @update:model-value="v => setNum('Qes', v)">
+                <NumInput :class="cellClass('Qes')" :mandatory="mandatory('Qes')" :model-value="cellVal('Qes')" :scale="1" :precision="3" @update:model-value="v => setNum('Qes', v)">
                 </NumInput><span v-if="dqNote('Qes')" class="de-dq" :title="dqNote('Qes')">&#9888;</span>
               </div>
               <div class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" title="Mechanical Q factor — suspension damping. WinISD: Qms">
                 <label>Qms</label>
-                <NumInput :class="cellClass('Qms')" :mandatory="qIncomplete" :model-value="cellVal('Qms')" :scale="1" :precision="3" @update:model-value="v => setNum('Qms', v)">
+                <NumInput :class="cellClass('Qms')" :mandatory="mandatory('Qms')" :model-value="cellVal('Qms')" :scale="1" :precision="3" @update:model-value="v => setNum('Qms', v)">
                 </NumInput><span v-if="dqNote('Qms')" class="de-dq" :title="dqNote('Qms')">&#9888;</span>
               </div>
               <div class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" title="Total Q factor = Qes·Qms/(Qes+Qms). WinISD: Qts">
                 <label>Qts</label>
-                <NumInput :class="cellClass('Qts')" :mandatory="qIncomplete" :model-value="cellVal('Qts')" :scale="1" :precision="3" @update:model-value="v => setNum('Qts', v)">
+                <NumInput :class="cellClass('Qts')" :mandatory="mandatory('Qts')" :model-value="cellVal('Qts')" :scale="1" :precision="3" @update:model-value="v => setNum('Qts', v)">
                 </NumInput><span v-if="dqNote('Qts')" class="de-dq" :title="dqNote('Qts')">&#9888;</span>
               </div>
               <div class="de-fld" data-field-key="Fs" :style="getFieldStyle('Fs')" title="Free-air resonance frequency. WinISD: Fs">
@@ -610,7 +609,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                 </NumInput><span v-if="dqNote('Sd')" class="de-dq" :title="dqNote('Sd')">&#9888;</span>
                 <UnitToggle field="Sd" group="area" base="cm2" unit-class="u" />
               </div>
-              <!-- fLe is STORED IN HERTZ (docs/design/WDR_SCHEMA.md) and shown in kHz, so the
+              <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
                    scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
                    Hz as kHz and put the field out by 1e6. -->
               <div class="de-fld" data-field-key="fLe" :style="getFieldStyle('fLe')" title="Voice-coil inductance corner frequency — WinISD: fLe">
@@ -774,13 +773,13 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Environment parameters</div>
             <div class="de-cols">
-              <div class="de-fld value-c" data-field-key="c" title="Speed of sound — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
+              <div class="de-fld value-c" data-field-key="c" title="Speed of sound at OpenISD's reference environment (packages/engine/src/air.ts) — not the driver's own stated value. Not adjustable in this editor.">
                 <label>c</label>
-                <input type="text" readonly :value="formatInUnit(C, 'c', 'velocity', 'mps', 2)"><UnitToggle field="c" group="velocity" base="mps" unit-class="u" />
+                <input type="text" readonly :value="formatInUnit(referenceC(), 'c', 'velocity', 'mps', 2)"><UnitToggle field="c" group="velocity" base="mps" unit-class="u" />
               </div>
-              <div class="de-fld value-c" data-field-key="roo" title="Air density — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
+              <div class="de-fld value-c" data-field-key="roo" title="Air density at OpenISD's reference environment (packages/engine/src/air.ts) — not the driver's own stated value. Not adjustable in this editor.">
                 <label>roo</label>
-                <input type="text" readonly :value="formatInUnit(RHO, 'roo', 'density', 'kgPerM3', 5)"><UnitToggle field="roo" group="density" base="kgPerM3" unit-class="u" />
+                <input type="text" readonly :value="formatInUnit(referenceRho(), 'roo', 'density', 'kgPerM3', 5)"><UnitToggle field="roo" group="density" base="kgPerM3" unit-class="u" />
               </div>
             </div>
           </div>
@@ -1185,7 +1184,7 @@ input.value-n, .de-fld.value-n input { color: var(--mut); }
 /* FOUR field columns, each of four parts: label, input, DQ marker, unit. The parts are real
    grid tracks so `.de-fld` can subgrid onto them — that is what puts every field in a column on
    ONE label edge, ONE input edge and ONE unit edge, the way WinISD's own editor reads
-   (docs/winisd/edit_driver_pg2_parameters.png). A field laid out inside a single wide track
+   (docs/winisd_screenshots/edit_driver_pg2_parameters.png). A field laid out inside a single wide track
    instead starts its input wherever its own label happens to end, which put "no" and
    "Voicecoils" 40px apart in the same column:
    bugs/BUG_20260817_driver_editor_columns_do_not_share_a_column_edge.md

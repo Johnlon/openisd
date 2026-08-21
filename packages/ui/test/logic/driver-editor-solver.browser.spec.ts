@@ -371,7 +371,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
 
     // Modal must close
-    await expect(page.locator('.de-body')).not.toBeVisible();
+    await expect(page.locator('.de-body')).toBeHidden();
   });
 
   // 18. Modal OK Commit Operation
@@ -383,7 +383,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await page.getByRole('button', { name: 'OK', exact: true }).click();
 
     // Modal closes upon successful commit
-    await expect(page.locator('.de-body')).not.toBeVisible();
+    await expect(page.locator('.de-body')).toBeHidden();
   });
 
   // 19. Real Literal Text Fuzzing ('banana', '<script>') Rejection & State N Clearing

@@ -157,29 +157,29 @@ constant is correct) is resolved and cited with proof, not guessed.
 
 **File:** new `packages/engine/src/dqFormulas.ts`.
 
-Design: one pure function per WDR_SCHEMA consistency group, taking and returning plain numbers
+Design: one pure function per WINISD_SCHEMA consistency group, taking and returning plain numbers
 (SI units only, per QT39), with the group number as a doc-comment citation back to
-[WDR_SCHEMA.md §4](http://localhost:8000/winisd/openisd/docs/design/WDR_SCHEMA.md#L248-L271) so the
+[WINISD_SCHEMA.md §4](http://localhost:8000/winisd/openisd/docs/design/WINISD_SCHEMA.md#L248-L271) so the
 blessed-formula provenance travels with the code, not just this plan:
 
 ```ts
 // packages/engine/src/dqFormulas.ts
-/** WDR_SCHEMA.md group 3: Rme = BL²/Re. SI in, SI out. */
+/** WINISD_SCHEMA.md group 3: Rme = BL²/Re. SI in, SI out. */
 export function rme(BL: number, Re: number): number {
   return BL ** 2 / Re;
 }
 
-/** WDR_SCHEMA.md group 8: Mpow = BL/√Re. */
+/** WINISD_SCHEMA.md group 8: Mpow = BL/√Re. */
 export function mpow(BL: number, Re: number): number {
   return BL / Math.sqrt(Re);
 }
 
-/** WDR_SCHEMA.md group 13: gamma = BL/Mms. */
+/** WINISD_SCHEMA.md group 13: gamma = BL/Mms. */
 export function gamma(BL: number, Mms: number): number {
   return BL / Mms;
 }
 
-/** WDR_SCHEMA.md group 10: Vas = ρ₀·c²·Sd²·Cms. */
+/** WINISD_SCHEMA.md group 10: Vas = ρ₀·c²·Sd²·Cms. */
 export function vasFromCms(
   roo: number,
   c: number,
@@ -189,7 +189,7 @@ export function vasFromCms(
   return roo * c ** 2 * Sd ** 2 * Cms;
 }
 
-/** WDR_SCHEMA.md group 14: η₀ = (4π²/c³)·Fs³·Vas/Qes. THE formula — resolves the
+/** WINISD_SCHEMA.md group 14: η₀ = (4π²/c³)·Fs³·Vas/Qes. THE formula — resolves the
  *  3-implementations-3-answers defect logged in PLAN_JS_CALC_CONSOLIDATION.md §2 row 14/18. */
 export function noEfficiency(
   Fs: number,
@@ -308,7 +308,7 @@ export interface Reading {
  *  `"2*sqrt(Sd/pi)"`) and return the derived value plus its GUARANTEED-ENCLOSURE half-width:
  *  Σᵢ|∂expr/∂xᵢ|·halfWidth(xᵢ). Deliberately NOT root-sum-square — see README "Why not RSS".
  *  `expr` IS the formula; there is no separate per-formula calculus to hand-write, unlike a
- *  hand-rolled dual-number engine — every future formula (any of the 22 WDR_SCHEMA groups,
+ *  hand-rolled dual-number engine — every future formula (any of the 22 WINISD_SCHEMA groups,
  *  see PLAN_JS_CALC_CONSOLIDATION.md §2) gets propagation for free from its own expression
  *  string. */
 export function propagate(
@@ -844,7 +844,7 @@ def derive_driver(raw: CalcInput) -> DeriveResult:
     Mathematical foundation: the Thiele/Small small-signal loudspeaker model — Qts from
     Qes/Qms, Cms/Mms/Rms/Bl from Fs/Vas/Sd/Qes/Qms/Re, and the derived quantities EBP, Dd, Vd,
     and sensitivity/efficiency (no/SPLref/USPL). Every formula the JS implementation runs
-    corresponds to one WDR_SCHEMA.md §4 consistency group, each independently confirmed this
+    corresponds to one WINISD_SCHEMA.md §4 consistency group, each independently confirmed this
     session as genuine WinISD behaviour — ASCII strings inside `winisd.exe` itself, or WinISD's
     own shipped help text — not invented physics. See PLAN_JS_CALC_CONSOLIDATION.md §2 for the
     per-formula proof table.
@@ -872,13 +872,13 @@ def derive_driver(raw: CalcInput) -> DeriveResult:
         - Small, R.H., "Direct-Radiator Loudspeaker System Analysis", Journal of the Audio
           Engineering Society 20(5), 1972 (paywalled): https://aes.org/e-lib/browse.cfm?elib=2008
           — the original derivation; cited verbatim at the top of packages/engine/src/driver.ts.
-        - WDR_SCHEMA.md §4 — the 22 consistency groups, WinISD's own internal parameter
+        - WINISD_SCHEMA.md §4 — the 22 consistency groups, WinISD's own internal parameter
           dependency graph, reverse-engineered from the shipped binary and help text.
     """
     return _resolve().derive_driver(raw)
 
 def dq_check(field: str, values: CalcInput) -> float:
-    """Recompute `field` from `values` per its WDR_SCHEMA.md consistency group, for the CALLER
+    """Recompute `field` from `values` per its WINISD_SCHEMA.md consistency group, for the CALLER
     to compare against an already-scraped value — a data-quality check, not a value to store.
 
     Mathematical foundation: the same Thiele-Small physics as `derive_driver()`, applied in the
@@ -888,13 +888,13 @@ def dq_check(field: str, values: CalcInput) -> float:
     concept `agree()` applies — not a rounding budget.
 
     JS implementation: `packages/engine/src/dqFormulas.ts`
-    (MATH_MIGRATION.md §4) — one pure function per WDR_SCHEMA.md group.
+    (MATH_MIGRATION.md §4) — one pure function per WINISD_SCHEMA.md group.
 
     Args:
         field: the WDR field name being checked — one of the 9 DQ-tolerance formulas (`Qts`,
             `Rme`, `Mpow`, `gamma`, `Vas`, `no`, plus `Vd`/`Dd`/`EBP` when checked rather than
             derived) — see PLAN_JS_CALC_CONSOLIDATION.md §2 for the full list and each one's
-            WDR_SCHEMA group number.
+            WINISD_SCHEMA group number.
         values: a `CalcInput` carrying the other already-scraped fields `field`'s formula
             depends on — the same type `derive_driver()` takes, reused here since a DQ-check
             dependency set is just a subset of Thiele-Small fields, not a different shape.
@@ -910,7 +910,7 @@ def dq_check(field: str, values: CalcInput) -> float:
         BridgeUnavailableError: the bridge could not be reached (§6.2).
 
     References:
-        - WDR_SCHEMA.md §4 — the specific consistency group each `field` corresponds to.
+        - WINISD_SCHEMA.md §4 — the specific consistency group each `field` corresponds to.
         - winisd_tools/scrapers/scrapers/lib/model_wdr.py:453-473 — `_WDR_CALCULATABLE`, the
           Python dict this function's JS implementation replaces one-for-one.
     """
