@@ -21,23 +21,35 @@
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
+import { state, applyState, managedProject } from '../../src/logic/store.js';
 import {
-  state, applyState, enterVentField, clearVentField, ventFieldState,
-} from '../../src/logic/store.js';
-import { solveVentGroup } from '../../src/logic/useVentGroup.js';
+  solveVentGroup, enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
+  ventFieldState as ventFieldStateOn,
+} from '../../src/logic/useVentGroup.js';
+
+function enterVentField(field: Parameters<typeof enterVentFieldOn>[1], value: number): void {
+  enterVentFieldOn(managedProject, field, value, state.box);
+}
+function clearVentField(field: Parameters<typeof clearVentFieldOn>[1]): void {
+  clearVentFieldOn(managedProject, field, state.box);
+}
+function ventFieldState(field: Parameters<typeof ventFieldStateOn>[1]): 'E' | 'C' | 'N' {
+  return ventFieldStateOn(managedProject, field, state.box);
+}
+function ventL(): number { return managedProject.activeVentField('length_m'); }
 
 /** WinISD's own Vents-tab trial. */
 function winisdVentsTrial(): void {
-  state.P.Vb = 0.02;
-  state.P.ventD = 0.05;
-  state.P.endCorrection = 0.6;
-  state.P.entered = { Vb: true, ventD: true, Fb: true };
+  managedProject.setBoxVolume_m3(0.02);
+  managedProject.setActiveVentField('diameter_m', 0.05);
+  managedProject.setActiveVentField('endCorrection', 0.6);
+  managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
   enterVentField('Fb', 40);
 }
 
 describe('vent group — the entered set decides the direction', () => {
   beforeEach(() => {
-    state.P.entered = { Vb: true, ventD: true, Fb: true };
+    managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
   });
 
   it('ships WinISD\'s direction: Vb/ventD/Fb entered, vent length calculated', () => {
@@ -47,24 +59,24 @@ describe('vent group — the entered set decides the direction', () => {
 
   it('reproduces WinISD\'s own published vent lengths to within display rounding', () => {
     winisdVentsTrial();
-    assert.ok(Math.abs(state.P.ventL - 0.154) < 0.001,
-      `d=5cm → ${state.P.ventL.toFixed(4)} m, WinISD shows 0.154`);
+    assert.ok(Math.abs(ventL() - 0.154) < 0.001,
+      `d=5cm → ${ventL().toFixed(4)} m, WinISD shows 0.154`);
 
-    state.P.ventD = 0.07;
-    solveVentGroup(state.P);
-    assert.ok(Math.abs(state.P.ventL - 0.318) < 0.001,
-      `d=7cm → ${state.P.ventL.toFixed(4)} m, WinISD shows 0.318`);
+    managedProject.setActiveVentField('diameter_m', 0.07);
+    solveVentGroup(managedProject, state.box);
+    assert.ok(Math.abs(ventL() - 0.318) < 0.001,
+      `d=7cm → ${ventL().toFixed(4)} m, WinISD shows 0.318`);
   });
 
   it('THE DIRECTION TEST — changing vent diameter holds the tuning and moves the length', () => {
     winisdVentsTrial();
-    const lenBefore = state.P.ventL;
+    const lenBefore = ventL();
 
-    state.P.ventD = 0.07;
-    solveVentGroup(state.P);
+    managedProject.setActiveVentField('diameter_m', 0.07);
+    solveVentGroup(managedProject, state.box);
 
-    assert.equal(state.P.Fb, 40, 'an entered tuning must never be rewritten by the solver');
-    assert.notEqual(state.P.ventL, lenBefore, 'the length must absorb the diameter change');
+    assert.equal(managedProject.boxTuning_Fb_hz(), 40, 'an entered tuning must never be rewritten by the solver');
+    assert.notEqual(ventL(), lenBefore, 'the length must absorb the diameter change');
   });
 
   it('the reverse direction is the same solver: enter the length, the tuning is solved', () => {
@@ -75,10 +87,10 @@ describe('vent group — the entered set decides the direction', () => {
     assert.equal(ventFieldState('ventL'), 'E');
     assert.equal(ventFieldState('Fb'), 'C');
 
-    state.P.ventD = 0.07;
-    solveVentGroup(state.P);
-    assert.equal(state.P.ventL, 0.154, 'an entered length must never be rewritten');
-    assert.notEqual(state.P.Fb, 40, 'now the TUNING absorbs the diameter change');
+    managedProject.setActiveVentField('diameter_m', 0.07);
+    solveVentGroup(managedProject, state.box);
+    assert.equal(ventL(), 0.154, 'an entered length must never be rewritten');
+    assert.notEqual(managedProject.boxTuning_Fb_hz(), 40, 'now the TUNING absorbs the diameter change');
   });
 
   it('entering the second of the pair locks it E; clearing it returns it to C', () => {
@@ -114,37 +126,40 @@ describe('vent group — the entered set decides the direction', () => {
     assert.equal(ventFieldState('Fb'), 'E');
     assert.equal(ventFieldState('ventL'), 'E');
 
-    state.P.ventD = 0.07;
-    solveVentGroup(state.P);
-    assert.equal(state.P.Fb, 40, 'entered values are held even when they contradict');
-    assert.equal(state.P.ventL, 0.999);
+    managedProject.setActiveVentField('diameter_m', 0.07);
+    solveVentGroup(managedProject, state.box);
+    assert.equal(managedProject.boxTuning_Fb_hz(), 40, 'entered values are held even when they contradict');
+    assert.equal(ventL(), 0.999);
   });
 });
 
 describe('vent group — a restore is adopted verbatim', () => {
   it('THE RESTORE TEST — round-tripping through JSON returns bit-identical Fb and ventL', () => {
-    state.P.Vb = 0.02;
-    state.P.ventD = 0.05;
-    state.P.endCorrection = 0.6;
-    state.P.entered = { Vb: true, ventD: true, Fb: true };
+    managedProject.setBoxVolume_m3(0.02);
+    managedProject.setActiveVentField('diameter_m', 0.05);
+    managedProject.setActiveVentField('endCorrection', 0.6);
+    managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
     enterVentField('Fb', 40);
 
     // Exactly what persistence does: JSON out, JSON back in. The rounding that happens here
     // is what a re-solve on restore would amplify into a different double.
-    const saved = JSON.parse(JSON.stringify({ P: state.P }));
-    const fbBefore = state.P.Fb, lenBefore = state.P.ventL;
+    const saved = JSON.parse(JSON.stringify({ box: state.box, v: 2, graphs: [], P: managedProject.toUiParams() }));
+    const fbBefore = managedProject.boxTuning_Fb_hz(), lenBefore = ventL();
 
-    state.P.ventD = 0.09;                     // drift the live design away
+    managedProject.setActiveVentField('diameter_m', 0.09);   // drift the live design away
     applyState(saved);
 
-    assert.equal(state.P.Fb, fbBefore, 'restored tuning must be bit-identical');
-    assert.equal(state.P.ventL, lenBefore, 'restored length must be bit-identical');
+    assert.equal(managedProject.boxTuning_Fb_hz(), fbBefore, 'restored tuning must be bit-identical');
+    assert.equal(ventL(), lenBefore, 'restored length must be bit-identical');
   });
 
   it('a design saved before the vent group existed is read as length-entered', () => {
     // No `Fb`, no `entered` — its ventL WAS authoritative, because it was the only direction
     // the app had. Read at the persistence boundary into the one current shape.
-    const legacy = { P: { ...state.P, ventL: 0.154, Vb: 0.02, ventD: 0.05, endCorrection: 0.6 } };
+    const legacy = {
+      box: state.box, v: 2, graphs: [],
+      P: { ...managedProject.toUiParams(), ventL: 0.154, Vb: 0.02, ventD: 0.05, endCorrection: 0.6 },
+    };
     delete (legacy.P as Record<string, unknown>).Fb;
     delete (legacy.P as Record<string, unknown>).entered;
 
@@ -152,7 +167,7 @@ describe('vent group — a restore is adopted verbatim', () => {
 
     assert.equal(ventFieldState('ventL'), 'E', 'the stored length is the authoritative fact');
     assert.equal(ventFieldState('Fb'), 'C', 'and the tuning is solved from it');
-    assert.ok(state.P.Fb > 39 && state.P.Fb < 41,
-      `tuning solved from the stored geometry → ${state.P.Fb.toFixed(2)} Hz, expected ≈40`);
+    assert.ok(managedProject.boxTuning_Fb_hz() > 39 && managedProject.boxTuning_Fb_hz() < 41,
+      `tuning solved from the stored geometry → ${managedProject.boxTuning_Fb_hz().toFixed(2)} Hz, expected ≈40`);
   });
 });

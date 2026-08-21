@@ -1,4 +1,4 @@
-import type { AppState, DriverJSON, SerializedState } from '../types.js';
+import type { AppState, DriverJSON, SerializedState, UiParams } from '../types.js';
 import { CURRENT_SCHEMA, upgrade, type StoredBlob } from './schemaUpgrade.js';
 
 // Share-link payload: gzip (native CompressionStream — Baseline widely available since May
@@ -23,7 +23,10 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
   return new TextDecoder().decode(buf);
 }
 
-export function serialize(state: AppState, driver: DriverJSON | undefined): SerializedState {
+/** `p` is the project's flat `UiParams` snapshot (`managedProject.toUiParams()`) — passed in
+ *  rather than read off `state` because the store holds no such copy (ledger QO54: the
+ *  project already owns this state; the store never duplicates it). */
+export function serialize(state: AppState, driver: DriverJSON | undefined, p: UiParams): SerializedState {
   return {
     // The MODEL version this payload is written from — every reader upgrades from it
     // (ARCHITECTURE.md §"EVERY STORED PAYLOAD CARRIES THE SCHEMA VERSION..."). `v` was
@@ -34,7 +37,7 @@ export function serialize(state: AppState, driver: DriverJSON | undefined): Seri
     driver,
     box: state.box,
     lossMode: state.lossMode,
-    P: state.P,
+    P: p,
     graphs: state.graphs,
     ui: state.ui,
     project: state.project,

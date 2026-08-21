@@ -1,7 +1,8 @@
 /**
- * `ManagedOpenISDProject`'s box/vent/PR/entered accessors — the seam `state.P` accessor properties
- * (store.ts) delegate to, so `state.P.Vb`/`.ventD`/`.Fb`/`.pr*`/`.entered` become a VIEW over
- * the project instead of an independent flat bag (ledger QO54).
+ * `ManagedOpenISDProject`'s box/vent/PR/entered accessors — every caller (the UI, the vent/PR
+ * solvers, `toUiParams()`/`loadUiParams()`) reads and writes box/vent/PR/entered fields
+ * through these, direct to the domain object, instead of through an independent flat bag
+ * (ledger QO54).
  *
  * Same edit/what-if notification rules as every other project mutation: a write inside an open
  * what-if notifies live, a write to an edit draft stays silent until commit — proven here
@@ -30,7 +31,7 @@ describe('ManagedOpenISDProject — box field read/write', () => {
     assert.equal(mp.boxTuning_Fb_hz(), 31);
   });
 
-  it('activeVentField reads/writes the diameter of the vent state.P.ventD addresses', () => {
+  it('activeVentField reads/writes the diameter of the active vent', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     mp.mutate(p => { p.box.active = 'vented'; });
     mp.setActiveVentField('diameter_m', 0.08);

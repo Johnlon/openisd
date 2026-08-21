@@ -1,18 +1,32 @@
 <script setup lang="ts">
 /**
- * Filters tab — the `.filters-quickadd` + `.filters-list` markup, wired to
- * `state.P.filters`. Presentation only: the filter logic is single-sourced in the store
- * and the engine.
+ * Filters tab — the `.filters-quickadd` + `.filters-list` markup, wired to the project's
+ * filter chain. Presentation only: the filter logic is single-sourced in the domain object and
+ * the engine.
+ *
+ * No live mirror array, no deep watch. Every read is `managedProject.filters()` (a fresh copy,
+ * reactive via `live`); every write is a per-filter mutator (`addFilter`/`removeFilter`/
+ * `setFilter(id, patch)`) straight through to `managedProject` — the delegate-free pattern
+ * `docs/design/REACTIVITY.md` specifies, applied to an ARRAY of records instead of one flat
+ * bag. A local mutable draft synced by a bidirectional watch (the earlier shape here) replaces
+ * the array under the user's cursor on every external notification, including the one its own
+ * write causes — editing field A while the pull from that write is in flight could stomp field
+ * B's in-progress keystroke. Per-field patches have no such window: each write names exactly
+ * the filter and field it changes, nothing else is touched, and there is nothing to pull back.
  *
  * Honesty note: the engine models exactly four filter types (highpass, lowpass, linkwitz,
  * peaking — packages/engine/src/types.ts FilterType). The other four quick-add buttons
  * WinISD offers (Allpass, DLP, Static gain, Peaking-2nd-order-HP) have no engine model, so
  * they are intentionally omitted rather than added as controls that do nothing.
  */
-import { ref } from 'vue';
-import { state } from '../../../logic/store.js';
+import { computed, ref } from 'vue';
+import { managedProject } from '../../../logic/store.js';
+import { createLiveRef } from '../../../logic/liveProject.js';
 import { limits } from '../../../logic/fields/fieldRegistry.js';
 import type { Filter, FilterType } from '@openisd/engine';
+
+const { live } = createLiveRef(managedProject);
+const filters = computed<Filter[]>(() => { void live.value; return managedProject.filters(); });
 
 // Order: LP, HP, …, LT, …, PEQ, with the four engine-unsupported types (AP, Peak, DLP,
 // Gain) omitted — see honesty note above.
@@ -37,16 +51,23 @@ const DEFAULTS: Record<FilterType, Record<string, number>> = {
 const editing = ref<string | null>(null);
 
 function addFilter(type: FilterType) {
-  const flt = { id: crypto.randomUUID(), type, enabled: true, ...DEFAULTS[type] };
-  state.P.filters.push(flt);
-  editing.value = flt.id;
+  const flt: Filter = { id: crypto.randomUUID(), type, enabled: true, ...DEFAULTS[type] };
+  managedProject.addFilter(flt);
+  editing.value = flt.id ?? null;
 }
-function removeFilter(i: number) {
-  const removed = state.P.filters[i];
-  state.P.filters.splice(i, 1);
-  if (editing.value === removed.id) editing.value = null;
+function removeFilter(id: string | undefined) {
+  if (!id) return;
+  managedProject.removeFilter(id);
+  if (editing.value === id) editing.value = null;
 }
 function toggleEdit(id: string | undefined) { editing.value = editing.value === id ? null : (id ?? null); }
+
+/** One input's `@input`/`@change` handler: patches exactly this filter's named field. */
+function patch(id: string | undefined, field: keyof Filter, value: number | boolean) {
+  if (!id) return;
+  managedProject.setFilter(id, { [field]: value } as Partial<Filter>);
+}
+function numFrom(e: Event): number { return Number((e.target as HTMLInputElement).value); }
 
 function fnum(v: number | undefined, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 function summary(f: Filter): string {
@@ -64,30 +85,31 @@ function summary(f: Filter): string {
     </div>
 
     <div class="filters-list">
-      <p v-if="!state.P.filters.length" class="hint" style="padding:8px 10px">No filters active.</p>
-      <div v-for="(f, i) in state.P.filters" :key="f.id"
+      <p v-if="!filters.length" class="hint" style="padding:8px 10px">No filters active.</p>
+      <div v-for="(f, i) in filters" :key="f.id ?? i"
            class="filter-row-inline" :class="{ editing: editing === f.id, 'filter-disabled': !f.enabled }">
         <div class="filter-row-head">
-          <input type="checkbox" v-model="f.enabled" title="Bypass / enable this filter" @click.stop>
+          <input type="checkbox" :checked="f.enabled" title="Bypass / enable this filter" @click.stop
+                 @change="patch(f.id, 'enabled', ($event.target as HTMLInputElement).checked)">
           <span class="filter-type-badge">{{ BADGE[f.type] }}</span>
           <span class="filter-summary" @click="toggleEdit(f.id)">{{ summary(f) }}</span>
           <span class="filter-edit-hint" @click="toggleEdit(f.id)">✎ edit</span>
-          <button class="filter-del" title="Remove this filter" @click.stop="removeFilter(i)">×</button>
+          <button class="filter-del" title="Remove this filter" @click.stop="removeFilter(f.id)">×</button>
         </div>
 
         <div v-if="editing === f.id" class="filter-edit-body">
           <template v-if="f.type === 'highpass' || f.type === 'lowpass' || f.type === 'peaking' || f.type === 'lowshelf' || f.type === 'highshelf'">
-            <label>fc <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" v-model.number="f.fc"> Hz</label>
-            <label>Q <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" v-model.number="f.Q"></label>
+            <label>fc <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fc" @change="patch(f.id, 'fc', numFrom($event))"> Hz</label>
+            <label>Q <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Q" @change="patch(f.id, 'Q', numFrom($event))"></label>
           </template>
           <template v-if="f.type === 'peaking' || f.type === 'lowshelf' || f.type === 'highshelf'">
-            <label>Gain <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" v-model.number="f.gain"> dB</label>
+            <label>Gain <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" :value="f.gain" @change="patch(f.id, 'gain', numFrom($event))"> dB</label>
           </template>
           <template v-if="f.type === 'linkwitz'">
-            <label>f0 <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" v-model.number="f.f0"> Hz</label>
-            <label>Q0 <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" v-model.number="f.Q0"></label>
-            <label>fp <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" v-model.number="f.fp"> Hz</label>
-            <label>Qp <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" v-model.number="f.Qp"></label>
+            <label>f0 <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.f0" @change="patch(f.id, 'f0', numFrom($event))"> Hz</label>
+            <label>Q0 <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Q0" @change="patch(f.id, 'Q0', numFrom($event))"></label>
+            <label>fp <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fp" @change="patch(f.id, 'fp', numFrom($event))"> Hz</label>
+            <label>Qp <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Qp" @change="patch(f.id, 'Qp', numFrom($event))"></label>
           </template>
         </div>
       </div>

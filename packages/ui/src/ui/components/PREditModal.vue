@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { state } from '../../logic/store.js';
+import { managedProject } from '../../logic/store.js';
+import { createLiveRef } from '../../logic/liveProject.js';
 import { prVasDisplay, prFsDisplay, prFsWithMassDisplay, prQmsDisplay, setPrFsFromWinIsd, setPrQmsFromWinIsd, setPrVasFromWinIsd } from '../../logic/prWinIsdFields.js';
 import type { PRLibEntry } from '../../types.js';
 import NumInput from './NumInput.vue';
@@ -17,29 +18,52 @@ import { useEscToClose } from '../../logic/useEscToClose.js';
 const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, close);
 
-const P = computed(() => state.P);
+const { live } = createLiveRef(managedProject);
+// A live UiParams snapshot for display only — `prWinIsdFields.ts`'s WinISD-vocabulary
+// formulas take a `UiParams`-shaped bag, so the read side gathers one; writes go through
+// `managedProject`'s own setters below, never back through this snapshot.
+const P = computed(() => { void live.value; return managedProject.toUiParams(); });
 const prVas = computed(() => prVasDisplay(P.value));
 const prFsShown = computed(() => prFsDisplay(P.value));
 const prFsWithMassShown = computed(() => prFsWithMassDisplay(P.value));
 const prQmsShown = computed(() => prQmsDisplay(P.value));
 
-function setWinIsdFs(newFsHz: number) { setPrFsFromWinIsd(state.P, newFsHz); }
-function setWinIsdQms(newQms: number) { setPrQmsFromWinIsd(state.P, newQms); }
-function setWinIsdVas(newVasL: number) { setPrVasFromWinIsd(state.P, newVasL); }
+function setWinIsdFs(newFsHz: number) {
+  const p = managedProject.toUiParams();
+  setPrFsFromWinIsd(p, newFsHz);
+  managedProject.setPrField('Mmd_kg', p.prMmd);
+  managedProject.setPrField('Rms_Ns_per_m', p.prRms);
+}
+function setWinIsdQms(newQms: number) {
+  const p = managedProject.toUiParams();
+  setPrQmsFromWinIsd(p, newQms);
+  managedProject.setPrField('Rms_Ns_per_m', p.prRms);
+}
+function setWinIsdVas(newVasL: number) {
+  const p = managedProject.toUiParams();
+  setPrVasFromWinIsd(p, newVasL);
+  managedProject.setPrField('Cms_m_per_N', p.prCms);
+  managedProject.setPrField('Mmd_kg', p.prMmd);
+  managedProject.setPrField('Rms_Ns_per_m', p.prRms);
+}
+
+// No per-field computed wrapper for name/count/Sd/Xmax (`docs/design/REACTIVITY.md`) — the
+// template below reads `managedProject`'s own getter directly (reactive via `live`) and
+// writes through its own setter directly.
 
 const prLib = ref(prLibrary.list());
 const showPRLib = ref(false);
 function saveCurrentPR() {
-  const name = (state.P.prName || '').trim() || 'Custom PR';
-  prLib.value = prLibrary.save(name, state.P);
+  const name = (managedProject.prField('name') || '').trim() || 'Custom PR';
+  prLib.value = prLibrary.save(name, managedProject.toUiParams());
 }
 function loadPR(entry: PRLibEntry) {
-  state.P.prName = entry.name;
-  state.P.prSd   = entry.prSd;
-  state.P.prMmd  = entry.prMmd;
-  state.P.prCms  = entry.prCms;
-  state.P.prRms  = entry.prRms;
-  state.P.prXmax = entry.prXmax;
+  managedProject.setPrField('name', entry.name);
+  managedProject.setPrField('Sd_m2', entry.prSd);
+  managedProject.setPrField('Mmd_kg', entry.prMmd);
+  managedProject.setPrField('Cms_m_per_N', entry.prCms);
+  managedProject.setPrField('Rms_Ns_per_m', entry.prRms);
+  managedProject.setPrField('Xmax_m', entry.prXmax);
   showPRLib.value = false;
 }
 function removePR(id: number) { prLib.value = prLibrary.remove(id); }
@@ -66,21 +90,21 @@ function close() { emit('close'); }
 
         <div class="row" title="Name for this passive radiator">
           <label>PR name</label>
-          <input style="flex:1" type="text" :value="state.P.prName" @input="e => state.P.prName = (e.target as HTMLInputElement).value" placeholder="e.g. Dayton SD270A-88">
+          <input style="flex:1" type="text" :value="live && managedProject.prField('name')" @input="e => managedProject.setPrField('name', (e.target as HTMLInputElement).value)" placeholder="e.g. Dayton SD270A-88">
         </div>
         <div class="row" title="Number of passive radiators in parallel">
           <label>PR count</label>
-          <NumInput v-model="state.P.prNum" :scale="1" :precision="2" step="1" :min="1" />
+          <NumInput :model-value="live && managedProject.prCount()" @update:model-value="v => managedProject.setPrCount(v ?? 0)" :scale="1" :precision="2" step="1" :min="1" />
           <span class="u"></span>
         </div>
         <div class="row" title="Effective piston area (from datasheet). WinISD: Sd.">
           <label>Sd</label>
-          <NumInput v-model="state.P.prSd" :scale="1e4" :precision="4" />
+          <NumInput :model-value="live && managedProject.prField('Sd_m2')" @update:model-value="v => managedProject.setPrField('Sd_m2', v ?? 0)" :scale="1e4" :precision="4" />
           <span class="u">cm²</span>
         </div>
         <div class="row" title="Maximum linear one-way cone excursion (from datasheet). WinISD: Xmax.">
           <label>Xmax</label>
-          <NumInput v-model="state.P.prXmax" :scale="1000" :precision="3" />
+          <NumInput :model-value="live && managedProject.prField('Xmax_m')" @update:model-value="v => managedProject.setPrField('Xmax_m', v ?? 0)" :scale="1000" :precision="3" />
           <span class="u">mm</span>
         </div>
         <div class="row" title="PR free-air resonance (no added mass, no box). WinISD: Fs.">

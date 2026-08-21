@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { state } from '../../logic/store.js';
+import { managedProject } from '../../logic/store.js';
 import { prCanonicalFromDatasheet } from '../../logic/prWinIsdFields.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 
 // Define a brand-new passive radiator — a BLANK, buffered form (mirrors
 // DriverDefineModal: empty string inputs, writes to the live design ONLY on Create,
-// so an unfinished entry never corrupts state.P). WinISD-style inputs (Sd, Fs, Qms,
+// so an unfinished entry never corrupts the project). WinISD-style inputs (Sd, Fs, Qms,
 // Vas) — the same fields PREditModal exposes — converted to the canonical Sd/Mmd/
 // Cms/Rms on Create using the identical formulas PRPanel.setWinIsd* use.
 
@@ -38,15 +38,14 @@ function create() {
   });
   const count = num(nNum.value);
 
-  state.P.prName = nName.value.trim() || 'New PR';
-  state.P.prNum  = count > 0 ? count : 1;
-  state.P.prSd   = canonical.sd;
-  state.P.prXmax = canonical.xmax;
-  state.P.prCms  = canonical.cms;
-  state.P.prMmd  = canonical.mmd;
-  state.P.prRms  = canonical.rms;
-  state.P.prMadd = 0;
-  state.P.prMode = 'winisd';
+  managedProject.setPrField('name', nName.value.trim() || 'New PR');
+  managedProject.setPrCount(count > 0 ? count : 1);
+  managedProject.setPrField('Sd_m2', canonical.sd);
+  managedProject.setPrField('Xmax_m', canonical.xmax);
+  managedProject.setPrField('Cms_m_per_N', canonical.cms);
+  managedProject.setPrField('Mmd_kg', canonical.mmd);
+  managedProject.setPrField('Rms_Ns_per_m', canonical.rms);
+  managedProject.setPrAddedMass_kg(0);
   emit('close');
 }
 

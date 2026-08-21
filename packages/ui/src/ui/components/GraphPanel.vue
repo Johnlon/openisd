@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { state, engineDriver, allIssues, syncedP, curvesData, maxData } from '../../logic/store.js';
+import { state, managedProject, allIssues, syncedP, curvesData, maxData } from '../../logic/store.js';
 import { TAB_META, buildPlotData } from '../../logic/series.js';
 import type { ChartTabId } from '../../logic/series.js';
 import { drawOne } from '../canvas.js';
@@ -22,7 +22,7 @@ const readEl   = ref<HTMLElement | null>(null);
 const meta     = computed(() => TAB_META[props.tabId]);
 
 const currentDesign = computed(() => ({
-  driver: engineDriver(), box: state.box, P: syncedP.value,
+  driver: managedProject.toEngineDriver(), box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value,
   name: 'Current', color: props.primaryColor || DPAL[0],
 }));
@@ -33,7 +33,7 @@ const currentDesign = computed(() => ({
 // and a sweep that produced no finite point are both reasons a chart cannot be drawn, and
 // this panel is the only place the app can say so.
 const plot        = computed(() =>
-  buildPlotData(props.tabId, state.P.fmin, state.P.fmax, currentDesign.value, overlayDesigns.value, allIssues.value,
+  buildPlotData(props.tabId, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlayDesigns.value, allIssues.value,
     { bare: props.bare, primaryColor: props.primaryColor })
 );
 const plotData    = computed(() => plot.value.value);
@@ -172,7 +172,7 @@ function onPointerDown(e: PointerEvent) {
   if (xzone) {
     xDrag = {
       mode: xzone, startX: e.clientX, pw: geoRef.pw,
-      lx0: Math.log10(state.P.fmin), lx1: Math.log10(state.P.fmax),
+      lx0: Math.log10(syncedP.value.fmin), lx1: Math.log10(syncedP.value.fmax),
     };
     canvasEl.value!.setPointerCapture(e.pointerId);
     e.preventDefault();
@@ -207,8 +207,8 @@ function applyYDrag(e: PointerEvent) {
   state.yRanges[props.tabId] = { min, max };
 }
 
-// Apply the in-progress X-axis (frequency) drag → write state.P.fmin/fmax (which
-// re-sweeps). Math is in log space; result is clamped to 1 Hz … 40 kHz.
+// Apply the in-progress X-axis (frequency) drag → write the project's sweep fmin/fmax
+// (which re-sweeps). Math is in log space; result is clamped to 1 Hz … 40 kHz.
 function applyXDrag(e: PointerEvent) {
   const { mode, startX, lx0, lx1, pw } = xDrag!;
   const span = lx1 - lx0;
@@ -224,8 +224,8 @@ function applyXDrag(e: PointerEvent) {
   a = Math.max(0, Math.min(a, X_LMAX - 0.1));   // 0 = log10(1 Hz)
   b = Math.min(X_LMAX, Math.max(b, a + 0.1));
   if (b - a < 0.1) return;                        // keep at least ~0.1 decade
-  state.P.fmin = Math.pow(10, a);
-  state.P.fmax = Math.pow(10, b);
+  managedProject.setSweepFmin_hz(Math.pow(10, a));
+  managedProject.setSweepFmax_hz(Math.pow(10, b));
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -290,7 +290,7 @@ function onPointerUp(e: PointerEvent) {
 // the X-axis strip resets the frequency range to the 1–20 kHz default.
 function onDblClick(e: MouseEvent) {
   if (yAxisZone(e)) resetY();
-  else if (xAxisZone(e)) { state.P.fmin = 1; state.P.fmax = 20000; }
+  else if (xAxisZone(e)) { managedProject.setSweepFmin_hz(1); managedProject.setSweepFmax_hz(20000); }
 }
 
 function onPointerLeave() {

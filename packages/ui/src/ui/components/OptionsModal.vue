@@ -39,7 +39,7 @@
 //             absolute dB SPL, not a normalized transfer function, so there is no chart these
 //             two colors could correctly apply to yet. Tracked in BACKLOG.md, not fabricated.
 //   Limits  — WinISD's per-chart-type Start/End/Unit table. "Frequency range" binds directly to
-//             the existing global state.P.fmin/fmax (already a real, always-populated field —
+//             the existing global sweep fmin/fmax (already a real, always-populated field —
 //             this is just another entry point onto it, matching WinISD's own single global
 //             setting). Every other row writes into the SAME state.yRanges[tabId] mechanism the
 //             chart's own drag-to-zoom already uses (GraphPanel.vue) — so editing a row here is
@@ -51,7 +51,7 @@
 //             covers OpenISD's one 'SPL' tab (absolute dB SPL).
 import { computed, reactive, ref } from 'vue';
 import { airForEnvironment } from '../../logic/environment.js';
-import { state, resetUnitTokens } from '../../logic/store.js';
+import { state, resetUnitTokens, managedProject } from '../../logic/store.js';
 import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import NumInput from './NumInput.vue';
@@ -71,7 +71,7 @@ const draft = reactive({
   chartColors: JSON.parse(JSON.stringify(state.ui.chartColors ?? {})),
   unitTokens: JSON.parse(JSON.stringify(state.ui.unitTokens ?? {})),
   yRanges: JSON.parse(JSON.stringify(state.yRanges)),
-  P: { fmin: state.P.fmin, fmax: state.P.fmax }
+  P: { fmin: managedProject.sweepFmin_hz(), fmax: managedProject.sweepFmax_hz() }
 });
 
 const unitsResetPending = ref(false);
@@ -97,8 +97,8 @@ function saveAndClose() {
   state.ui.chartColors = { ...draft.chartColors };
   state.ui.unitTokens = { ...draft.unitTokens };
   state.yRanges = { ...draft.yRanges };
-  state.P.fmin = draft.P.fmin;
-  state.P.fmax = draft.P.fmax;
+  managedProject.setSweepFmin_hz(draft.P.fmin);
+  managedProject.setSweepFmax_hz(draft.P.fmax);
   if (unitsResetPending.value) {
     resetUnitTokens();
   }

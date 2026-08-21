@@ -11,7 +11,7 @@ function prParams(): UiParams {
     Vb: 0.02, Vf: 0.02, ventShape: 'round', ventD: 0.05, ventW: 0, ventH: 0, ventL: 0.1,
     Fb: 40, prFp: 40, entered: {}, Ql: 7, Qa: 100, Qp: 100, nDrivers: 1, wiring: 'parallel',
     Pin: 100, Rs: 0.1, prName: 'PR', prSd: 0.008, prNum: 1, prMmd: 0.02, prMadd: 0,
-    prCms: 0.0006, prRms: 0.5, prXmax: 0.005, prMode: 'tuning', fmin: 10, fmax: 1000, N: 200,
+    prCms: 0.0006, prRms: 0.5, prXmax: 0.005, fmin: 10, fmax: 1000, N: 200,
     circuitModel: 'winisd', filters: [], vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0,
     endCorrection: 0.732, rgAtDriverSide: false, tlPortModel: false, forceFlatResponse: false,
     splXmaxLimited: false,

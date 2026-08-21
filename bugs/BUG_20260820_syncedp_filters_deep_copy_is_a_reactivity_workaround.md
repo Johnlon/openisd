@@ -1,4 +1,4 @@
-Status: OPEN
+Status: FIXED
 
 # `syncedP`'s filters deep-copy is a reactivity workaround standing in for proper tracking
 
@@ -40,15 +40,19 @@ which point the sweep silently goes stale.
 
 ## Fix
 
-Not fixed. The cause is the arrangement, not the line: the filters should arrive as a properly
-tracked value from the object that owns them rather than being reached for and manually walked.
-Deferred by John (2026-08-20) to a dedicated discussion, together with the broader reactivity
-question this is one instance of.
+Landed as part of QO60 objective 2 (`state.P` deletion, `docs/design/REACTIVITY.md`).
+`state.P` and its own `filters` array are gone; `managedProject.filters()` returns a fresh copy
+on every call and `syncedP` (`store.ts`) now depends on `_version` — the domain's own
+change-notification channel, bridged through `managedProject.subscribe()` — instead of
+hand-walking the array. A caller edits the filter chain via `managedProject.setFilters(arr)`,
+which calls `mutate()` and therefore bumps `_version` unconditionally; there is no more
+in-place-mutation path that could bypass it, so the manual deep-copy is deleted along with the
+mechanism it was working around.
 
 ## Verification
 
-N/A — open. Whatever the fix, the regression test is: mutate one filter's `fc` in place and
-assert `syncedP` recomputes and the sweep result changes.
+`packages/ui/test/logic/store-filters-reactivity.test.ts` — editing a filter's `fc` and adding a
+filter, both through `managedProject.setFilters()`, each recompute `syncedP`.
 
 ## Note on a claim NOT being made
 

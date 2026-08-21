@@ -1,11 +1,7 @@
 /**
  * `state.box` (the UI's box-type selector) and `ManagedProject`'s `OpenISDBox.active` (what
  * every `Vb`/`ventD`/`Fb`/`activeVent` accessor reads — ledger QO54) must be THE SAME FACT,
- * not two independently-writable copies. Before this was wired, nothing ever wrote the
- * project's `box.active` at all — it stayed at `defaultBox()`'s initial `'vented'` forever, so
- * `state.P.Vb` kept reading/writing the VENTED alignment's storage even after the user picked
- * Sealed, PR or Bandpass4 in the UI. A design entered under "Sealed" would silently land in
- * the vented alignment's `volume_m3`, and switching box type would show STALE numbers.
+ * not two independently-writable copies.
  *
  * `BoxType` (@openisd/engine: 'sealed'|'vented'|'pr'|'bandpass4') and `AlignmentKind`
  * (@openisd/model: 'sealed'|'vented'|'bandpass4'|'passive-radiator') spell the PR case
@@ -29,20 +25,20 @@ describe('state.box drives the project\'s active alignment', () => {
 
   it('switching box type does not clobber the volume left behind in the other alignment', () => {
     state.box = 'vented';
-    state.P.Vb = 0.041;
+    managedProject.setBoxVolume_m3(0.041);
     state.box = 'sealed';
-    state.P.Vb = 0.019;
+    managedProject.setBoxVolume_m3(0.019);
     assert.equal(managedProject._snapshot().box.vented.volume_m3, 0.041,
       'the vented volume typed in before switching away must survive');
     assert.equal(managedProject._snapshot().box.sealed.volume_m3, 0.019);
     state.box = 'vented';
-    assert.equal(state.P.Vb, 0.041, 'switching back reads the SAME field it read before');
+    assert.equal(managedProject.boxVolume_m3(), 0.041, 'switching back reads the SAME field it read before');
   });
 });
 
 describe('applyState — a restored box type takes effect before the restored P is applied', () => {
-  // `applyState` (store.ts) writes `state.box` BEFORE `Object.assign(state.P, incoming)`. That
-  // order now matters in a way it never used to: `state.P.Vb`/`.ventD`/`.Fb` each pick their
+  // `applyState` (store.ts) sets the active alignment BEFORE writing the restored params
+  // (`managedProject.loadUiParams`). That order matters: `Vb`/`ventD`/`Fb` each pick their
   // storage by the ACTIVE alignment (ledger QO54), so applying a sealed design's Vb while
   // 'vented' is still active would silently write it into the vented alignment instead.
   it('restoring a sealed design lands Vb in sealed, not in whatever was active before', () => {
@@ -62,14 +58,14 @@ describe('applyState — a restored box type takes effect before the restored P 
 
   it('a restored entered set replaces the previous one, not merges with it', () => {
     state.box = 'vented';
-    state.P.entered = { Vb: true, ventD: true, Fb: true };
+    managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
     applyState({
       box: 'vented',
       P: { entered: { ventL: true } } as unknown as UiParams,
       graphs: [],
     } as unknown as SerializedState);
-    assert.equal(state.P.entered.ventL, true);
-    assert.equal(state.P.entered.Fb, undefined,
+    assert.equal(managedProject.isEntered('ventL'), true);
+    assert.equal(managedProject.isEntered('Fb'), false,
       'a field entered before the restore must not survive it — the restored set is authoritative');
   });
 });

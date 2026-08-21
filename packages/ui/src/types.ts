@@ -134,9 +134,10 @@ export interface BundledPR {
 }
 
 /**
- * UI-side parameters held in the store. A superset of the engine's SweepParams:
- * it adds view-only inputs (ventD/ventL geometry, Pin drive power, prName/prMode)
- * and omits the derived fields (eg, Sp, Leff) that syncedP computes on the fly.
+ * The flat, engine-facing snapshot of one project — a superset of the engine's SweepParams:
+ * it adds view-only inputs (ventD/ventL geometry, Pin drive power, prName) and omits the
+ * derived fields (eg, Sp, Leff) that `syncedP`/`toUiParams()` compute on the fly. Gathered
+ * from `ManagedOpenISDProject.toUiParams()`, never stored — see `logic/managedProject.ts`.
  */
 export interface UiParams {
   Vb: number;
@@ -196,7 +197,6 @@ export interface UiParams {
   prCms: number;
   prRms: number;
   prXmax: number;
-  prMode: string;
   fmin: number;
   fmax: number;
   N: number;
@@ -296,7 +296,6 @@ export interface AppState {
   box: BoxType;
   /** Sealed-box loss model — a LossMode wire value (@openisd/engine). Default winisd-lossy. */
   lossMode: string;
-  P: UiParams;
   graphs: ChartTabId[];
   editDriver: boolean;
   /** Driver EDIT pane (Brand/Model/Comment/Provided by) — distinct from editDriver (What-If T/S tweaking). */

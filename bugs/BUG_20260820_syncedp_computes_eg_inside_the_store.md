@@ -1,4 +1,4 @@
-Status: OPEN
+Status: FIXED
 
 # `syncedP` computes drive voltage inside `store.ts`, which its own header forbids
 
@@ -37,14 +37,14 @@ locally — precisely the path the header forbids.
 
 ## Fix
 
-Not fixed. `eg` becomes a getter/method on the domain object that owns it, computed from the
-engine's formula, and `store.ts` reads it. Tracked as part of
-`docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md` / the QO60 store-layering work rather than as an
-isolated edit, because `syncedP`'s other defect
-(`BUG_20260820_syncedp_filters_deep_copy_is_a_reactivity_workaround.md`) is in the same
-computed and both should be settled together.
+`ManagedOpenISDProject.driveVoltage_V()` (`packages/ui/src/logic/managedProject.ts`) — reads
+`this.inputPower_W()` and the effective driver's `Re`, and calls `@openisd/engine`'s
+`driveVoltage(pin, re)` (`packages/engine/src/formulas.ts`), the SAME formula `store.ts` used to
+inline. `syncedP` (`store.ts`) now reads `managedProject.driveVoltage_V()` — no arithmetic in
+the store.
 
 ## Verification
 
-N/A — open. The gate afterwards: no `Math.` call and no arithmetic on physical quantities
-anywhere in `store.ts`.
+`grep -n 'Math\.' packages/ui/src/logic/store.ts` finds no arithmetic on a physical quantity.
+`syncedP.eg` is exercised indirectly by every sweep-driving test (`store-filters-reactivity.test.ts`
+et al.) and by `sweep()`'s own consumers, unchanged in value from before the fix.

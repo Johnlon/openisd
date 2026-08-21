@@ -5,7 +5,8 @@ import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
-import { state, driverRecord, applyState, markProjectSaved } from '../logic/store.js';
+import { state, driverRecord, managedProject, applyState, markProjectSaved } from '../logic/store.js';
+import { createLiveRef } from '../logic/liveProject.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from '../logic/persist.js';
 import { useApp } from '../logic/app.js';
 
@@ -21,8 +22,13 @@ async function handleHashChange() {
 }
 
 let saveReady = false;
+// `managedProject.toUiParams()` — never `syncedP.value` (`SyncedParams = UiParams & {eg, Sp,
+// Leff}`): the persisted/shared wire field is `UiParams` alone, and a second shape carrying
+// DERIVED values (`eg`/`Sp`/`Leff`, recomputed from the rest on load) would be a second
+// answer to the same question the moment either drifted from the other on restore.
+const { live } = createLiveRef(managedProject);
 watch(
-  () => serialize(state, driverRecord.value),
+  () => { void live.value; return serialize(state, driverRecord.value, managedProject.toUiParams()); },
   (s) => { if (saveReady) saveLocal(s); },
   { deep: true },
 );

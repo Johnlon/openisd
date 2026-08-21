@@ -15,7 +15,7 @@
  */
 import { ref, watch } from 'vue';
 import {
-  state, engineDriver, driverName, driverRecord, managedProject, setDriverFromWdr,
+  state, driverName, driverRecord, managedProject, setDriverFromWdr,
   markProjectSaved, applyState, curvesData,
 } from './store.js';
 import { serialize, stateToUrl, download } from './persist.js';
@@ -75,7 +75,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   });
 
   function projectJsonText(): string {
-    return JSON.stringify(serialize(state, driverRecord.value), null, 2);
+    return JSON.stringify(serialize(state, driverRecord.value, managedProject.toUiParams()), null, 2);
   }
 
   /** Adopt the picked file's name as the project name — the file names the project. */
@@ -127,7 +127,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   }
 
   async function shareLink(): Promise<void> {
-    const url = await stateToUrl(serialize(state, driverRecord.value));
+    const url = await stateToUrl(serialize(state, driverRecord.value, managedProject.toUiParams()));
     try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(
@@ -163,7 +163,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     const { value: wdr, errors } = OpenISDDriver.fromJsonRecord(record).toWdrText();
     if (!wdr) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     const input = buildWprInput(
-      state.box, state.P, engineDriver(), wdr, state.project, new Date(),
+      state.box, managedProject.toUiParams(), managedProject.toEngineDriver(), wdr, state.project, new Date(),
       managedProject.ventArea_m2(), curvesData.value,
     );
     download(sanitizeFilename(driverName.value) + '.wpr', wdrTextToBytes(toWpr(input)), 'text/plain');

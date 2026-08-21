@@ -11,9 +11,9 @@
  * the tuning, inverting that. **WinISD's direction is what ships as the default.**
  *
  * Rather than swap which field the schema holds — which would bake the opposite direction in
- * just as hard — the ENTERED SET is the stored fact (`UiParams.entered`). Both `Fb` and
- * `ventL` remain fields; provenance decides which is authoritative. This is the same model
- * the driver already uses (`Driver.#inputs`, docs/DRIVER_ADT_DESIGN.md) and what
+ * just as hard — the ENTERED SET is the stored fact (`_OpenISDProjectJson.target.entered`).
+ * Both `Fb` and `ventL` remain fields; provenance decides which is authoritative. This is the
+ * same model the driver already uses (`Driver.#inputs`, docs/DRIVER_ADT_DESIGN.md) and what
  * docs/design/STATE_MODEL.md rule 7 requires: provenance recorded where entry happens, never
  * reconstructed downstream from "is the field present".
  *
@@ -24,10 +24,13 @@
  *
  * Lives in a composable, not in a skin and not in the store, per ARCHITECTURE.md AD-7 —
  * three skins mean three chances to get the commit boundary wrong.
+ *
+ * Reads and writes go straight through `ManagedOpenISDProject`'s own box/vent accessors — the
+ * box IS the storage (ledger QO54); there is no intermediate params object to mutate.
  */
 import { ventLength, tuningFromLength } from '@openisd/engine';
 import { ventArea_m2 } from '@openisd/model';
-import type { UiParams } from '../types.js';
+import type { ManagedOpenISDProject } from './managedProject.js';
 
 /** The four members tied by the Helmholtz relation — the set the solver solves WITHIN. */
 export const VENT_GROUP = ['Vb', 'ventD', 'Fb', 'ventL'] as const;
@@ -38,9 +41,9 @@ export type VentField = typeof VENT_GROUP[number];
  * its cross-section as width × height where a round one states a diameter.
  *
  * `ventW`/`ventH` are deliberately NOT members of VENT_GROUP. That set is what
- * `ventDerivable` walks (`VENT_GROUP.every(f => f === field || P.entered[f])`), so a slotted
- * field inside it would demand slotted geometry be entered before ANY round-vent member could
- * be solved — silently disabling the solver for the common case.
+ * `ventDerivable` walks (`VENT_GROUP.every(f => f === field || mp.isEntered(f))`), so a
+ * slotted field inside it would demand slotted geometry be entered before ANY round-vent
+ * member could be solved — silently disabling the solver for the common case.
  */
 export const VENT_ENTRY_FIELDS = [...VENT_GROUP, 'ventW', 'ventH'] as const;
 export type VentEntryField = typeof VENT_ENTRY_FIELDS[number];
@@ -53,16 +56,18 @@ function ventSp(ventD: number): number {
 }
 
 /** The vent's cross-section as currently shaped — a round diameter, or a slot's W×H. */
-export function ventCrossArea(P: UiParams): number {
-  return P.ventShape === 'slotted' ? P.ventW * P.ventH : ventSp(P.ventD);
+export function ventCrossArea(mp: ManagedOpenISDProject): number {
+  return mp.activeVentField('shape') === 'slotted'
+    ? mp.activeVentField('width_m') * mp.activeVentField('height_m')
+    : ventSp(mp.activeVentField('diameter_m'));
 }
 
 /**
  * The volume this vent tunes. Per-chamber, not per-box: a bandpass4's port belongs to its
  * FRONT chamber and tunes `Vf`; every other vented type ports the whole box, `Vb`.
  */
-function ventVolume(P: UiParams, box?: string): number {
-  return box === 'bandpass4' ? P.Vf : P.Vb;
+function ventVolume(mp: ManagedOpenISDProject, box?: string): number {
+  return box === 'bandpass4' ? mp.frontVolume_m3() : mp.boxVolume_m3();
 }
 
 /**
@@ -73,15 +78,15 @@ function ventVolume(P: UiParams, box?: string): number {
  * it has no closed form. Cleared, it is genuinely Not-available — reporting `C` there would
  * mean showing a number nothing computed.
  */
-function ventDerivable(P: UiParams, field: VentField, box?: string): boolean {
+function ventDerivable(mp: ManagedOpenISDProject, field: VentField, box?: string): boolean {
   if (field === 'ventD') return false;
-  const volEntered = box === 'bandpass4' ? true : P.entered.Vb; // Vf is always entered
-  if (P.ventShape === 'slotted') {
-    if (field === 'Fb') return !!(volEntered && P.entered.ventL);
-    if (field === 'ventL') return !!(volEntered && P.entered.Fb);
+  const volEntered = box === 'bandpass4' ? true : mp.isEntered('Vb'); // Vf is always entered
+  if (mp.activeVentField('shape') === 'slotted') {
+    if (field === 'Fb') return !!(volEntered && mp.isEntered('ventL'));
+    if (field === 'ventL') return !!(volEntered && mp.isEntered('Fb'));
     return false;
   }
-  return VENT_GROUP.every(f => f === field || (f === 'Vb' ? volEntered : P.entered[f]));
+  return VENT_GROUP.every(f => f === field || (f === 'Vb' ? volEntered : mp.isEntered(f)));
 }
 
 /**
@@ -93,59 +98,86 @@ function ventDerivable(P: UiParams, field: VentField, box?: string): boolean {
  * contradictory entered values silently — it took `Qts=0.9` alongside `Qms=3.3`/`Qes=0.44`,
  * which is mathematically impossible, with no warning and no correction.
  */
-export function solveVentGroup(P: UiParams, box?: string): void {
-  const Sp = ventCrossArea(P);
-  const V = ventVolume(P, box);
+export function solveVentGroup(mp: ManagedOpenISDProject, box?: string): void {
+  const Sp = ventCrossArea(mp);
+  const V = ventVolume(mp, box);
   if (!(V > 0) || !(Sp > 0)) return;
-  if (!P.entered.ventL && ventDerivable(P, 'ventL', box)) {
-    if (P.Fb > 0) P.ventL = ventLength(V, P.Fb, Sp, P.endCorrection);
-  } else if (!P.entered.Fb && ventDerivable(P, 'Fb', box)) {
-    if (P.ventL > 0) P.Fb = tuningFromLength(V, P.ventL, Sp, P.endCorrection);
+  const endCorrection = mp.activeVentField('endCorrection');
+  if (!mp.isEntered('ventL') && ventDerivable(mp, 'ventL', box)) {
+    const Fb = mp.boxTuning_Fb_hz();
+    if (Fb > 0) mp.setActiveVentField('length_m', ventLength(V, Fb, Sp, endCorrection));
+  } else if (!mp.isEntered('Fb') && ventDerivable(mp, 'Fb', box)) {
+    const ventL = mp.activeVentField('length_m');
+    if (ventL > 0) mp.setBoxTuning_Fb_hz(tuningFromLength(V, ventL, Sp, endCorrection));
   }
 }
+
+const VENT_ENTRY_TO_MODEL_KEY = {
+  Vb: null, ventD: 'diameter_m', Fb: null, ventL: 'length_m', ventW: 'width_m', ventH: 'height_m',
+} as const;
 
 /**
  * Enter a vent-group field. It is held from now on and is never recomputed, until an
  * explicit `clearVentField`. Entering the second of the Fb/ventL pair does NOT evict the
  * first — it locks both, and the group then solves nothing (see solveVentGroup).
  */
-export function enterVentField(P: UiParams, field: VentEntryField, value: number, box?: string): void {
-  (P as unknown as Record<string, number>)[field] = value;
-  P.entered[field] = true;
-  if (field === 'ventD' || field === 'ventW' || field === 'ventH') {
-    P.entered.Fb = true;
-    delete P.entered.ventL;
-  }
-  solveVentGroup(P, box);
+export function enterVentField(mp: ManagedOpenISDProject, field: VentEntryField, value: number, box?: string): void {
+  // The WHOLE transaction — value write, provenance write(s), AND the resulting solve — is
+  // suspended, so `store.ts`'s own auto-solve watch (which fires on every `managedProject`
+  // mutation, coarse by design — `docs/design/REACTIVITY.md`) never runs for any write this
+  // function makes: not on a half-updated entered set mid-transaction (it would clobber the
+  // value this function is trying to set), and not a SECOND time on `solveVentGroup`'s own
+  // write below (the store watch is not suspension-aware of ITS OWN future firing — its next
+  // synchronous run, once suspension lifts, would otherwise re-solve a design that is already
+  // solved, one user action producing two solves). One user action, one solve — the call
+  // inside this suspension is the only one that runs.
+  suspendVentSolve(() => {
+    if (field === 'Vb') mp.setBoxVolume_m3(value);
+    else if (field === 'Fb') mp.setBoxTuning_Fb_hz(value);
+    else mp.setActiveVentField(VENT_ENTRY_TO_MODEL_KEY[field]!, value);
+    mp.setEntered(field, true);
+    if (field === 'ventD' || field === 'ventW' || field === 'ventH') {
+      mp.setEntered('Fb', true);
+      mp.setEntered('ventL', false);
+    }
+    solveVentGroup(mp, box);
+  });
 }
 
 /**
  * Clear a vent-group field — the only way to un-hold one. It becomes `C` immediately if the
  * remaining entered set determines it, or `N` if nothing can.
+ *
+ * Suspended for the same reason as `enterVentField`: without it, the provenance write and this
+ * function's own trailing `solveVentGroup` call would each independently trigger `store.ts`'s
+ * auto-solve watch, producing two solves for one user action.
  */
-export function clearVentField(P: UiParams, field: VentField, box?: string): void {
-  delete P.entered[field];
-  solveVentGroup(P, box);
+export function clearVentField(mp: ManagedOpenISDProject, field: VentField, box?: string): void {
+  suspendVentSolve(() => {
+    mp.setEntered(field, false);
+    solveVentGroup(mp, box);
+  });
 }
 
 /**
  * `E` entered and locked · `C` calculated from the entered set · `N` not available — neither
  * entered nor derivable. Same vocabulary, and same meaning, as the driver editor's cells.
  */
-export function ventFieldState(P: UiParams, field: VentField, box?: string): 'E' | 'C' | 'N' {
-  if (P.entered[field]) return 'E';
-  return ventDerivable(P, field, box) ? 'C' : 'N';
+export function ventFieldState(mp: ManagedOpenISDProject, field: VentField, box?: string): 'E' | 'C' | 'N' {
+  if (mp.isEntered(field)) return 'E';
+  return ventDerivable(mp, field, box) ? 'C' : 'N';
 }
 
 /**
  * The tuning the CURRENT vent length actually delivers. Asks `tuningFromLength()` — the
  * same relation `ventLength()` inverts — so there is one copy of the physics, not two.
  */
-export function ventAchievedFb(P: UiParams, box?: string): number | null {
-  const Sp = ventCrossArea(P);
-  const V = ventVolume(P, box);
-  if (!(V > 0) || !(Sp > 0) || !(P.ventL > 0)) return null;
-  return tuningFromLength(V, P.ventL, Sp, P.endCorrection);
+export function ventAchievedFb(mp: ManagedOpenISDProject, box?: string): number | null {
+  const Sp = ventCrossArea(mp);
+  const V = ventVolume(mp, box);
+  const ventL = mp.activeVentField('length_m');
+  if (!(V > 0) || !(Sp > 0) || !(ventL > 0)) return null;
+  return tuningFromLength(V, ventL, Sp, mp.activeVentField('endCorrection'));
 }
 
 /**
@@ -154,11 +186,11 @@ export function ventAchievedFb(P: UiParams, box?: string): number | null {
  * resonates, and there is nothing shorter than nothing. Asks `tuningFromLength()`, so this is
  * the same single copy of the physics the solver inverts.
  */
-export function ventMaxReachableFb(P: UiParams, box?: string): number | null {
-  const Sp = ventCrossArea(P);
-  const V = ventVolume(P, box);
+export function ventMaxReachableFb(mp: ManagedOpenISDProject, box?: string): number | null {
+  const Sp = ventCrossArea(mp);
+  const V = ventVolume(mp, box);
   if (!(V > 0) || !(Sp > 0)) return null;
-  return tuningFromLength(V, 0, Sp, P.endCorrection);
+  return tuningFromLength(V, 0, Sp, mp.activeVentField('endCorrection'));
 }
 
 /**
@@ -176,22 +208,24 @@ export function ventMaxReachableFb(P: UiParams, box?: string): number | null {
  * choice sitting alongside an entered tuning — over-determined, deliberately left alone
  * (see `solveVentGroup`), and no claim of the solver's to contradict.
  */
-export function ventTargetUnreachable(P: UiParams, box?: string): boolean {
-  if (!P.entered.Fb || P.entered.ventL) return false;
-  if (!ventDerivable(P, 'ventL', box) || !(P.Fb > 0)) return false;
-  if (ventMaxReachableFb(P, box) == null) return false;   // no volume or area — nothing to judge
-  if (!(P.ventL > 0)) return true;
-  const achieved = ventAchievedFb(P, box);
+export function ventTargetUnreachable(mp: ManagedOpenISDProject, box?: string): boolean {
+  const Fb = mp.boxTuning_Fb_hz();
+  if (!mp.isEntered('Fb') || mp.isEntered('ventL')) return false;
+  if (!ventDerivable(mp, 'ventL', box) || !(Fb > 0)) return false;
+  if (ventMaxReachableFb(mp, box) == null) return false;   // no volume or area — nothing to judge
+  const ventL = mp.activeVentField('length_m');
+  if (!(ventL > 0)) return true;
+  const achieved = ventAchievedFb(mp, box);
   if (achieved == null) return false;
-  return Math.abs(achieved - P.Fb) > 1e-6 * P.Fb;
+  return Math.abs(achieved - Fb) > 1e-6 * Fb;
 }
 
 // ---- Restore suspension (docs/design/STATE_MODEL.md rule 3: "Cancel means byte-identical") -----------
-// A restore assigns a whole persisted `P` — both the entered set AND both members' values.
-// There is nothing to recompute, and recomputing is exactly what breaks byte-identity: the
-// solver would reproduce the calculated member from a value that was rounded on the way to
-// storage, landing on a different double. Restores therefore run inside suspendVentSolve(),
-// which parks the store's watcher while the assignment happens.
+// A restore assigns a whole persisted snapshot — both the entered set AND both members'
+// values. There is nothing to recompute, and recomputing is exactly what breaks
+// byte-identity: the solver would reproduce the calculated member from a value that was
+// rounded on the way to storage, landing on a different double. Restores therefore run
+// inside suspendVentSolve(), which parks the store's watcher while the assignment happens.
 let _suspended = false;
 
 /** True while a restore is in flight — the store's watcher checks this and does not solve. */
@@ -200,7 +234,7 @@ export function ventSolveSuspended(): boolean {
 }
 
 /**
- * Run `fn` with vent solving parked, so a wholesale `P` assignment is adopted verbatim.
+ * Run `fn` with vent solving parked, so a wholesale restore is adopted verbatim.
  * Re-entrant-safe and exception-safe: the flag is always cleared.
  */
 export function suspendVentSolve<T>(fn: () => T): T {

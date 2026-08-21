@@ -1,14 +1,14 @@
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { state } from '../../src/logic/store.js';
+import { state, managedProject } from '../../src/logic/store.js';
 
 describe('Cursor lock & frequency click state transitions', () => {
   beforeEach(() => {
     state.cursorF = null;
     state.pinnedF = null;
     state.cursorLocked = false;
-    state.P.fmin = 1;
-    state.P.fmax = 20000;
+    managedProject.setSweepFmin_hz(1);
+    managedProject.setSweepFmax_hz(20000);
   });
 
   it('clicking an unlocked chart locks the cursor at that frequency', () => {
@@ -119,7 +119,7 @@ describe('Cursor lock & frequency click state transitions', () => {
   });
 
   it('verifies that rgAtDriverSide is unchecked (false) by default', () => {
-    assert.equal(state.P.rgAtDriverSide, false, 'Rg is at driver side must be unchecked (false) by default');
+    assert.equal(managedProject.rgAtDriverSide(), false, 'Rg is at driver side must be unchecked (false) by default');
   });
 
   it('verifies that the de-comment box has a full-width layout constraint', () => {
