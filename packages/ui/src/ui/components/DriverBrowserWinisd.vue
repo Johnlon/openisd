@@ -129,7 +129,7 @@ watch(() => state.browseOpen, val => { if (val) openedLibrary(); else pickFile(n
           <span class="plabel" :class="{ active: selZ.length }">Z</span>
           <button v-for="z in ['4', '8', '16']" :key="z"
                   class="zchip" :class="{ active: selZ.includes(z) }"
-                  :title="`Filter to nominal ${z}Ω impedance — stored as WinISD Znom (descriptive label only; not used in simulation)`"
+                  :title="`Filter to nominal ${z}Ω impedance — stored as WinISD Znom (derived from Re when not entered; not fed back into the simulation)`"
                   @click="toggleZ(z)">{{ z }}Ω</button>
         </div>
 

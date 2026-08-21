@@ -139,14 +139,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   function exportWdr(): void {
     closeTunePanelAfterIO();
     // The ADT's own toWdr is lossless — carried fields + live ParState provenance.
-    //
-    // OpenISDDriver.fromJsonRecord(record) here is a KNOWN, RECORDED gap (ledger QO57):
-    // architecture.test.ts also forbids any ManagedOpenISDProject member from ever handing out
-    // a live OpenISDDriver, which rules out the obvious fix of asking it for one — WinISDDriver
-    // .fromOpenISDDriver() needs the full OpenISDDriver API (.cell(), for EBP), not just a
-    // record, so a real fix reshapes that export boundary. That reshape is the SAME one QO55
-    // (WinISDDriver constructed purely from OpenISDDriver getter reads) already covers, in
-    // flight elsewhere — deferred here rather than duplicated.
+    // OpenISDDriver.fromJsonRecord(record) here is a recorded layering gap (ledger QO57).
     const record = driverRecord.value;
     if (!record) { flash('Cannot export .wdr: no driver has been chosen'); return; }
     const { value: wdr, errors } = OpenISDDriver.fromJsonRecord(record).toWdrText();
@@ -339,7 +332,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     const isOwdr = nameLower.endsWith('.owdr');
     const isOwpr = nameLower.endsWith('.owpr');
 
-    void readDriverFileText(f).then(text => {
+    void readDriverFileText(f).then(({ text }) => {
       try {
         if (isWdr || (nameLower.endsWith('.wdr') || (/^\s*\[Driver\]/.test(text) && !/\[Box\]/.test(text)))) {
           setDriverFromWdr(text);

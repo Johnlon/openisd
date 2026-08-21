@@ -23,6 +23,22 @@ export const WDR_NEWLINE_SENTINEL = '';
 /** UTF-8 for `U+F8A4`. The three bytes the file collapses to a single `0xA4`. */
 const SENTINEL_UTF8 = [0xef, 0xa2, 0xa4] as const;
 
+/**
+ * Which byte encoding `wdrBytesToText` used to decode a `.wdr`/`.wpr` file (QO62, human ruling
+ * 2026-08-21): classic WinISD is Windows-only, so a file that fails a strict UTF-8 decode is
+ * legacy CP1252, not damage — the discriminator lets a caller report which one applied.
+ */
+export enum WdrEncoding {
+  Utf8 = 'utf-8',
+  Cp1252 = 'cp1252',
+}
+
+/** `wdrBytesToText`'s result: the decoded text, and which encoding produced it. */
+export interface WdrDecodedText {
+  readonly text: string;
+  readonly encoding: WdrEncoding;
+}
+
 /** How many bytes the UTF-8 sequence led by `b` occupies, or 1 for a byte that leads nothing
  *  (an invalid lead, including a bare `0xA4`). */
 function sequenceLength(b: number): number {
@@ -33,30 +49,50 @@ function sequenceLength(b: number): number {
   return 1;
 }
 
+/** Re-expands every lead-position `0xA4` in `bytes` to `SENTINEL_UTF8`, leaving an `0xA4` that
+ *  sits INSIDE a valid UTF-8 sequence — the second byte of `¤`, the third of `€` — untouched.
+ *  Only meaningful ahead of a UTF-8 decode; CP1252 has no multi-byte sequences to protect. */
+function expandSentinelForUtf8(bytes: Uint8Array<ArrayBufferLike>): Uint8Array {
+  const out: number[] = [];
+  for (let i = 0; i < bytes.length; ) {
+    const b = bytes[i];
+    if (b === 0xa4) {
+      out.push(...SENTINEL_UTF8);
+      i += 1;
+      continue;
+    }
+    const n = sequenceLength(b);
+    for (let k = 0; k < n && i + k < bytes.length; k++) out.push(bytes[i + k]);
+    i += n;
+  }
+  return new Uint8Array(out);
+}
+
 /**
  * `.wdr` file bytes → text, with every newline sentinel turned into `WDR_NEWLINE_SENTINEL`.
  * Pair with `wdrTextToBytes`. The result still needs `fromWdrIni` to turn the sentinel into a
  * real newline inside each value — that step is per-FIELD, and this one cannot tell fields
  * apart.
+ *
+ * QO62 (human ruling, 2026-08-21): classic WinISD is Windows-only, so a file already in
+ * circulation is overwhelmingly likely to be CP1252 where it is not UTF-8. A strict UTF-8
+ * decode is tried first; on failure the WHOLE FILE is re-decoded as CP1252 — never a mixed or
+ * per-line decode, because a mixed-encoding file is not a thing WinISD can produce. The result
+ * reports which encoding was used so the caller (the UI) can say so.
  */
-export function wdrBytesToText(bytes: Uint8Array<ArrayBufferLike>): string {
-  const out: number[] = [];
-  for (let i = 0; i < bytes.length; ) {
-    const b = bytes[i];
-    if (b === 0xa4) {
-      // A lead-position 0xA4: the sentinel. Re-expand it so the UTF-8 decode below yields
-      // U+F8A4 rather than a replacement character.
-      out.push(...SENTINEL_UTF8);
-      i += 1;
-      continue;
-    }
-    // Anything else is copied whole, so an 0xA4 sitting INSIDE a valid sequence — the second
-    // byte of `¤`, the third of `€` — is carried across untouched.
-    const n = sequenceLength(b);
-    for (let k = 0; k < n && i + k < bytes.length; k++) out.push(bytes[i + k]);
-    i += n;
+export function wdrBytesToText(bytes: Uint8Array<ArrayBufferLike>): WdrDecodedText {
+  try {
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(expandSentinelForUtf8(bytes));
+    return { text, encoding: WdrEncoding.Utf8 };
+  } catch {
+    // CP1252 0xA4 is genuinely ambiguous: it is the code page's own currency sign ¤, AND it is
+    // WinISD's newline byte — the wine probe behind the QO62 ruling typed an Enter keystroke
+    // and WinISD wrote a bare 0xA4 for it, so in a real file the byte means newline in
+    // practice. Every 0xA4 is read as the sentinel; a genuine ¤ character, if one exists in a
+    // CP1252 file, is accepted as a loss (documented by the "¤ reads back as a newline" test).
+    const text = new TextDecoder('windows-1252').decode(bytes).replaceAll('¤', WDR_NEWLINE_SENTINEL);
+    return { text, encoding: WdrEncoding.Cp1252 };
   }
-  return new TextDecoder('utf-8').decode(new Uint8Array(out));
 }
 
 /**

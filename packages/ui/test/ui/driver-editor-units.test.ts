@@ -26,7 +26,7 @@ import { WinISDDriver } from '@openisd/winisd';
 import { OpenISDDriver, _emptyDriverRecord, Provenance } from '@openisd/model';
 import type { SpecField } from '@openisd/model';
 import { precision, fieldById } from '../../src/logic/fields/fieldRegistry.js';
-import { UNIT_GROUPS, unitDef, type UnitGroup } from '../../src/logic/fields/units.js';
+import { UNIT_GROUPS, unitDef, toDisplay, type UnitGroup } from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const EDITOR = join(here, '..', '..', 'src', 'ui', 'components', 'DriverEditorModal.vue');
@@ -45,6 +45,12 @@ interface Bound {
   unit: string;
   /** The literal `:precision="…"` expression, for asserting it reads the registry. */
   precisionExpr: string;
+  /** True when the field binds `group`/`field`/`base` (a click-to-rotate <UnitToggle>) rather
+   *  than a fixed `:scale` + static `<span class="u">` label. */
+  toggleable: boolean;
+  /** The literal `field="…"` attribute on the NumInput (the registry id it looks up for
+   *  min/max bounds), or null when the cell binds no such attribute. */
+  regField: string | null;
 }
 
 /** Evaluate a template numeric expression: a literal, or `precision('<id>')`. */
@@ -67,6 +73,7 @@ function boundFields(): Bound[] {
     if (!label || !field) continue;                       // read-only readout or a text input
     const numInput = /<NumInput[\s\S]*?>/.exec(chunk)![0];
     const precisionExpr = /:precision="([^"]+)"/.exec(numInput)?.[1] ?? '';
+    const regField = /\bfield="([^"]+)"/.exec(numInput)?.[1] ?? null;
 
     // A field with a click-to-rotate unit binds `field`/`group`/`base` on the NumInput itself
     // and renders its unit label through `<UnitToggle .../>`, a COMPONENT — the text "mm" or
@@ -78,7 +85,7 @@ function boundFields(): Bound[] {
     const baseMatch = /\bbase="([A-Za-z0-9.]+)"/.exec(numInput);
     if (groupMatch && baseMatch) {
       const def = unitDef(groupMatch[1] as UnitGroup, baseMatch[1]);
-      out.push({ label, field, scale: def.factor, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr });
+      out.push({ label, field, scale: def.factor, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr, toggleable: true, regField });
       continue;
     }
 
@@ -90,6 +97,8 @@ function boundFields(): Bound[] {
       precision: evalNum(precisionExpr, 2),
       unit: /<span class="u">([^<]*)<\/span>/.exec(chunk)?.[1]?.trim() ?? '',
       precisionExpr,
+      toggleable: false,
+      regField,
     });
   }
   return out;
@@ -181,6 +190,72 @@ describe('driver editor — unit label and scale agree', () => {
       const f = byLabel(label);
       assert.equal(f.unit, 'mm', `${label} is labelled "${f.unit}"`);
       assert.equal(0.165 * f.scale, 165, `${label} renders 0.165 m as ${0.165 * f.scale} ${f.unit}`);
+    }
+  });
+});
+
+describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () => {
+  it('units.ts defines a resistance group offering exactly WinISD\'s two spellings, both SI × 1', () => {
+    const defs = UNIT_GROUPS.resistance;
+    assert.ok(defs, 'no "resistance" group in UNIT_GROUPS');
+    assert.deepEqual(defs.map(d => d.label).sort(), ['Ns/m', 'kg/s']);
+    for (const d of defs) {
+      assert.equal(d.factor, 1, `${d.label} must be SI × 1 — Ns/m and kg/s are the same dimension, so a real ` +
+        'conversion factor here would silently change the number the toggle is only meant to relabel');
+    }
+  });
+
+  it('Rms, Rme and Mcost declare the resistance unitGroup in the field registry', () => {
+    for (const id of ['Rms', 'Rme', 'Mcost']) {
+      const spec = fieldById(id);
+      assert.ok(spec, `fieldRegistry has no "${id}"`);
+      assert.equal(spec!.unitGroup, 'resistance', `${id} does not carry unitGroup: 'resistance'`);
+    }
+  });
+
+  it('Rms, Rme and Mcost render as click-to-rotate toggles, not a fixed unit span', () => {
+    for (const label of ['Rms', 'Rme', 'Mcost']) {
+      assert.equal(byLabel(label).toggleable, true,
+        `${label} still binds a fixed :scale + static <span class="u"> — QO51 requires the resistance group's <UnitToggle>`);
+    }
+  });
+
+  it('DEFAULT spellings stay WinISD\'s own — Rms/Rme "Ns/m", Mcost "kg/s" — on a fresh load', () => {
+    assert.equal(byLabel('Rms').unit, 'Ns/m');
+    assert.equal(byLabel('Rme').unit, 'Ns/m');
+    assert.equal(byLabel('Mcost').unit, 'kg/s');
+  });
+
+  it('every token in the resistance group renders the identical number — a toggle can only change the label', () => {
+    const sample = 12.5;   // neutral value — no claim about any driver's real Rms/Rme/Mcost
+    for (const d of UNIT_GROUPS.resistance) {
+      assert.equal(toDisplay(sample, 'resistance', d.token), sample,
+        `switching to "${d.label}" changed ${sample} — the group's factor must be 1 for every token`);
+    }
+  });
+
+  // Binding `field="Rms"`/`"Rme"`/`"Mcost"` (needed for the toggle) also wires NumInput's
+  // `regSpec` (NumInput.vue), so `effMax` switches from unbounded to the registry's ceiling —
+  // a real behaviour change, not just a label. Pinned here by replicating NumInput's own
+  // `valid(si)` in SI space, the same registry/`byLabel` seam every other test in this file uses.
+  function withinRegistryBounds(id: string, si: number): boolean {
+    const spec = fieldById(id);
+    const min = spec?.min ?? 0;
+    const max = spec?.max;
+    return isFinite(si) && si >= min && (max === undefined || si <= max);
+  }
+
+  it('field="Rms"/"Rme"/"Mcost" wires the registry ceiling into the bound check', () => {
+    for (const id of ['Rms', 'Rme', 'Mcost']) {
+      const f = byLabel(id);
+      assert.equal(f.regField, id,
+        `${id}'s NumInput does not bind field="${id}" — the registry's min/max never reach this cell's bound check`);
+      const spec = fieldById(id);
+      assert.ok(spec, `fieldRegistry has no "${id}"`);
+      assert.equal(spec!.max, 1000, `${id}'s registry ceiling is no longer 1000 — update this pin`);
+      assert.equal(withinRegistryBounds(id, 1000), true, `${id}: exactly at the registry ceiling must still be a valid value`);
+      assert.equal(withinRegistryBounds(id, 1000.0001), false,
+        `${id}: binding field="${id}" switches the bound check onto the registry's max=1000 — 1000.0001 must be rejected`);
     }
   });
 });

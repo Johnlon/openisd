@@ -13,7 +13,8 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveEngineDriver, solveConsistencyGroup } from '../src/driver.js';
+import { deriveEngineDriver, solveConsistencyGroup, driverC, driverRho } from '../src/driver.js';
+import { referenceEfficiency } from '../src/efficiency.js';
 
 
 // ── Q-derivation test values ─────────────────────────────────────────────────
@@ -273,4 +274,121 @@ describe('solveConsistencyGroup — full fixpoint solver mode', () => {
     assert.ok(res.no > 0, 'no must be calculated');
   });
 });
+
+// ── Fs route parity with WinISD — BUG_20260817 ──────────────────────────────
+// WinISD derives Fs via exactly five routes, tried in this priority order (first whose
+// inputs are all present wins — bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md):
+//   1. rel 11  Fs = 1 / (2π·√(Mms·Cms))
+//   2. rel 14  Fs = ∛(no·c³·Qes / (4π²·Vas))
+//   3. rel 2   Fs = Qes·BL² / (2π·Mms·Re)
+//   4. rel 4   Fs = Rme·Qes / (2π·Mms)
+//   5. rel 12  Fs = EBP·Qes
+// WinISD has no route deriving Fs from Rms/Qms/Mms — that direction must stay unfilled.
+describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)', () => {
+  it('derives Fs from EBP + Qes (rel 12)', () => {
+    const res = solveConsistencyGroup({ EBP: 207.77, Qes: 0.1925 }, { full: true }) as Record<string, number>;
+    assert.ok(res.Fs != null, 'Fs must be derived from EBP+Qes');
+    assert.ok(Math.abs(res.Fs - 40) < 0.01, `expected Fs ~40 from rel 12, got ${res.Fs}`);
+  });
+
+  it('derives Fs from Rme + Qes + Mms (rel 4)', () => {
+    const res = solveConsistencyGroup({ Rme: 2.54371, Qes: 0.1925, Mms: 0.00195 }, { full: true }) as Record<string, number>;
+    assert.ok(res.Fs != null, 'Fs must be derived from Rme+Qes+Mms');
+    assert.ok(Math.abs(res.Fs - 40) < 0.05, `expected Fs ~40 from rel 4, got ${res.Fs}`);
+  });
+
+  it('leaves Fs blank from Rms + Qms + Mms alone — WinISD has no such route', () => {
+    const res = solveConsistencyGroup({ Rms: 0.2332, Qms: 2.1, Mms: 0.00195 }, { full: true }) as Record<string, number>;
+    assert.equal(res.Fs, undefined, 'engine must not invent an Fs WinISD would leave blank');
+  });
+
+  it('prefers rel 14 (no/Qes/Vas) over rel 2 (Qes/BL/Re/Mms) when both are available and disagree', () => {
+    const Qes = 0.4;
+    const Vas = 0.045;
+    const fs14 = 40;                       // the value rel 14 must produce
+    const c = driverC({});
+    const no = referenceEfficiency(fs14, Vas, Qes, c);
+
+    // rel 2 inputs engineered to disagree with rel 14's answer (50 Hz instead of 40 Hz).
+    const fs2 = 50;
+    const Mms = 0.02;
+    const Re = 6;
+    const BL = Math.sqrt(2 * Math.PI * fs2 * Mms * Re / Qes);
+
+    const res = solveConsistencyGroup({ Qes, Vas, no, Mms, Re, BL }, { full: true }) as Record<string, number>;
+    assert.ok(Math.abs(res.Fs - fs14) < 1e-6, `rel 14 must win over rel 2, expected ${fs14}, got ${res.Fs}`);
+  });
+
+  it('prefers rel 11 (Mms/Cms) over rel 14 (no/Qes/Vas) when both are available and disagree', () => {
+    const Mms = 0.02;
+    const Cms = 0.0008;
+    const fs11 = 1 / (2 * Math.PI * Math.sqrt(Mms * Cms));   // rel 11's answer
+
+    // rel 14 inputs engineered to disagree with rel 11's answer.
+    const Qes = 0.4;
+    const Vas = 0.045;
+    const fs14 = fs11 * 1.5;
+    const c = driverC({});
+    const no = referenceEfficiency(fs14, Vas, Qes, c);
+
+    const res = solveConsistencyGroup({ Mms, Cms, Qes, Vas, no }, { full: true }) as Record<string, number>;
+    assert.ok(Math.abs(res.Fs - fs11) < 1e-6, `rel 11 must win over rel 14, expected ${fs11}, got ${res.Fs}`);
+  });
+
+  it('prefers rel 2 (Qes/BL/Mms/Re) over rel 4 (Rme/Qes/Mms) when both are available and disagree', () => {
+    const Qes = 0.4;
+    const Mms = 0.02;
+    const Re = 6;
+    const fs2 = 50;                        // the value rel 2 must produce
+    const BL = Math.sqrt(2 * Math.PI * fs2 * Mms * Re / Qes);
+
+    // rel 4 inputs engineered to disagree with rel 2's answer (40 Hz instead of 50 Hz).
+    const fs4 = 40;
+    const Rme = (2 * Math.PI * fs4 * Mms) / Qes;
+
+    const res = solveConsistencyGroup({ Qes, Mms, Re, BL, Rme }, { full: true }) as Record<string, number>;
+    assert.ok(Math.abs(res.Fs - fs2) < 1e-6, `rel 2 must win over rel 4, expected ${fs2}, got ${res.Fs}`);
+  });
+
+  it('prefers rel 4 (Rme/Qes/Mms) over rel 12 (EBP/Qes) when both are available and disagree', () => {
+    const Qes = 0.4;
+    const Mms = 0.02;
+    const fs4 = 40;                        // the value rel 4 must produce
+    const Rme = (2 * Math.PI * fs4 * Mms) / Qes;
+
+    // rel 12 inputs engineered to disagree with rel 4's answer (50 Hz instead of 40 Hz).
+    const fs12 = 50;
+    const EBP = fs12 / Qes;
+
+    const res = solveConsistencyGroup({ Qes, Mms, Rme, EBP }, { full: true }) as Record<string, number>;
+    assert.ok(Math.abs(res.Fs - fs4) < 1e-6, `rel 4 must win over rel 12, expected ${fs4}, got ${res.Fs}`);
+  });
+
+  it('a route ready in pass 1 locks Fs even against a higher-priority route whose input (Cms) is not derived until a later block — WinISD\'s own guard chain has the same lockout (RE_GHIDRA_FINDINGS.md "Fs priority settled STATICALLY": the rel 11 Fs guard is at 0x45f0d6; Cms\'s compute site 0x45f6f7 — winisd_research/scripts/relation_routes.py:40 — sits AFTER it, and every block re-tests Fs for still-unset before writing it)', () => {
+    const Mms = 0.02;
+    const Re = 6;
+    const Qes = 0.4;
+    const Sd = 0.05;
+
+    // rel 2 inputs, ready immediately: Fs = Qes·BL²/(2π·Mms·Re) = 50.
+    const fs2 = 50;
+    const BL = Math.sqrt(2 * Math.PI * fs2 * Mms * Re / Qes);
+
+    // rel 11 inputs: Cms is NOT entered directly — it is only derivable from Vas/Sd in a
+    // later block, so it is not ready when the Fs block runs in pass 1. Vas is chosen so
+    // that block 4 WOULD derive the Cms that makes rel 11 answer 40, if it got the chance.
+    const fs11 = 40;
+    const Cms = 1 / ((2 * Math.PI * fs11) ** 2 * Mms);
+    const rho = driverRho({});
+    const c = driverC({});
+    const Vas = Cms * rho * c * c * Sd * Sd;
+
+    const res = solveConsistencyGroup({ Mms, Re, Qes, Sd, BL, Vas }, { full: true }) as Record<string, number>;
+    assert.ok(Math.abs(res.Fs - fs2) < 1e-6, `rel 2 must lock Fs at ${fs2} before rel 11's Cms is ready, got ${res.Fs}`);
+    assert.notEqual(Math.round(res.Fs), fs11, 'rel 11 must NOT win merely because it has the higher static priority');
+  });
+});
+
+
+
 
