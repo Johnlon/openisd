@@ -112,15 +112,18 @@ never improvise around it.
 
 ## Lane R — repo & ledger hygiene (immediate, small, mostly independent)
 
+- [ ] **R3 — DO THIS FIRST, before any other task.** Fix `~/.claude/bin/inbox.py` id minting:
+      `add` minted duplicate ids twice on 2026-08-21 (QO61, QO62). Every lane raises ledger
+      questions through this tool, so a broken minter corrupts the ledger for the whole run.
+      Diagnose the actual cause (read the minting code — do not guess; likely it scans only
+      open entries or one ledger). Next id must be max over ALL entries, open and closed, in
+      the target ledger. Record the defect before fixing (commit message in `~/.claude` at
+      minimum). Done: `add` after a close mints a fresh id; demonstrate once. Then R2 renumbers
+      the coax question with the FIXED tool.
 - [x] **R1** Commit the wine-probe results in `winisd_research` — DONE, commit `20747a6`.
 - [ ] **R2** Renumber the human's OPEN coax question (second `QO62`) to the next free QO id so
       it is reachable; content verbatim-preserved. Done: `inbox.py get <newid>` returns it;
       exactly one `QO62` remains in the file.
-- [ ] **R3** Fix `~/.claude/bin/inbox.py` id minting: `add` minted duplicate ids twice on
-      2026-08-21 (QO61, QO62). Diagnose the actual cause (read the minting code — do not guess;
-      likely it scans only open entries or one ledger). Next id must be max over ALL entries,
-      open and closed, in the target ledger. Record the defect before fixing (commit message in
-      `~/.claude` at minimum). Done: `add` after a close mints a fresh id; demonstrate once.
 - [ ] **R4** `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`: strike the "QO56 hazard" clause
       (QO63: single writer). `packages/ui/src/logic/useDesignIO.ts`: delete the stale comment
       citing QO55 as blocking (QO55 is implemented). Done: grep for both returns nothing.
