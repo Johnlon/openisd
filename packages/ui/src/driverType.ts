@@ -9,8 +9,8 @@
 // compare against MEMBERS, never against the wire string. `dt === 'subwoofer'`
 // silently survives a value change and cannot be found by rename.
 //
-// `.value` (kebab-case) MUST stay identical to the `.value` set of the Python
-// `DriverType` enum in the sibling winisd_tools repo
+// `.value` MUST stay identical to the `.value` set of the Python `DriverType`
+// enum in the sibling winisd_tools repo
 // (`scrapers/scrapers/lib/driver_type.py`). Parity is enforced by winisd_tools'
 // `scrapers/tests/test_driver_type_enum_parity.py`, which reads this file and
 // hard-fails if it is absent or if the value set differs. Editing either enum
@@ -78,7 +78,7 @@ export class DriverType {
   static readonly Coaxial         = new DriverType('coaxial',          'Coaxial',          [Chip.Coax, Chip.Woofer, Chip.Bass, Chip.Mid, Chip.Tweet]);
   static readonly Tweeter         = new DriverType('tweeter',          'Tweeter',          [Chip.Tweet]);
   static readonly Amt             = new DriverType('amt',              'AMT',              [Chip.Tweet]);
-  static readonly PassiveRadiator = new DriverType('passive-radiator', 'Passive Radiator', [Chip.Pr]);
+  static readonly PassiveRadiator = new DriverType('passive_radiator', 'Passive Radiator', [Chip.Pr]);
   // NOTE: `compression`, `horn`, `waveguide` are deliberately absent — compression
   // (horn-loaded) drivers are not box/T-S-modellable and bare horns/waveguides are
   // passive accessories. All are filtered out at discovery. See

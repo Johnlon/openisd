@@ -1,7 +1,7 @@
 import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
 import { readMetaCell } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
-import { state } from './store.js';
+import { presentationState } from './presentationState.js';
 import { readDriverFileText } from './driverFileText.js';
 import { DriverScope } from '../driverScope.js';
 import { Chip } from '../driverType.js';
@@ -406,7 +406,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
   /** Closing the picker: the preview resets. Nothing is pending — choosing already committed. */
   function closeLibrary(): void {
     previewFile.value = null;
-    state.browseOpen = false;
+    presentationState.browseOpen = false;
   }
 
   /** Opening the picker: build the pool once, and refresh the user's saved drivers. */
@@ -418,7 +418,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
   // Editing a saved driver rewrites My Drivers while this picker is still open behind the
   // editor, so the list it is showing is stale the moment the editor closes. Re-read it then —
   // otherwise the row keeps its old name until the picker is closed and reopened.
-  watch(() => state.editDriverInfo, open => { if (!open && state.browseOpen) reloadMyDrivers(); });
+  watch(() => presentationState.editDriverInfo, open => { if (!open && presentationState.browseOpen) reloadMyDrivers(); });
 
   return {
     // constants

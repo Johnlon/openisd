@@ -3,9 +3,9 @@
 // options_plot_window.png), opened via the wrench/tools toolbar icon.
 //
 // General tab, top→bottom (matches the WinISD wireframe order):
-//   Username        — free-text app-level identity preference (state.ui.username).
+//   Username        — free-text app-level identity preference (presentationState.ui.username).
 //   Environment     — Temperature/Air pressure/Relative humidity + a derived Sound velocity
-//                      readout. These are APP-LEVEL DEFAULTS (state.ui.envDefaults), distinct
+//                      readout. These are APP-LEVEL DEFAULTS (presentationState.ui.envDefaults), distinct
 //                      from a project's own per-design Advanced-pane values: they only seed a
 //                      shell's Advanced-pane refs on mount (OriginalShell.vue) —
 //                      an already-open project's Advanced-pane values are never touched
@@ -16,7 +16,7 @@
 //                      choice, made regardless of that WinISD inference.)
 //   Units           — WinISD's own "Reset to Metric (l, mm, …)" button: a one-click GLOBAL
 //                      unit-system reset, distinct from the per-field unit-cycling behaviour
-//                      (docs/research/WINISD_PARITY.md §14). store.resetUnitTokens() clears state.ui.unitTokens, so
+//                      (docs/research/WINISD_PARITY.md §14). presentationState.resetUnitTokens() clears presentationState.ui.unitTokens, so
 //                      every field reverts to its own default display unit — never touches the
 //                      stored SI design.
 //
@@ -41,7 +41,7 @@
 //   Limits  — WinISD's per-chart-type Start/End/Unit table. "Frequency range" binds directly to
 //             the existing global sweep fmin/fmax (already a real, always-populated field —
 //             this is just another entry point onto it, matching WinISD's own single global
-//             setting). Every other row writes into the SAME state.yRanges[tabId] mechanism the
+//             setting). Every other row writes into the SAME presentationState.yRanges[tabId] mechanism the
 //             chart's own drag-to-zoom already uses (GraphPanel.vue) — so editing a row here is
 //             literally "set this chart's persisted default view", not a parallel concept, and
 //             an untouched row still auto-scales exactly as it does today. WinISD's own
@@ -51,7 +51,8 @@
 //             covers OpenISD's one 'SPL' tab (absolute dB SPL).
 import { computed, reactive, ref } from 'vue';
 import { airForEnvironment } from '../../logic/environment.js';
-import { state, resetUnitTokens, managedProject } from '../../logic/store.js';
+import { managedProject } from '../../logic/store.js';
+import { presentationState, resetUnitTokens } from '../../logic/presentationState.js';
 import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import NumInput from './NumInput.vue';
@@ -66,11 +67,11 @@ type Tab = 'General' | 'Plot Window';
 const tab = reactive({ v: 'General' as Tab });
 
 const draft = reactive({
-  username: state.ui.username,
-  envDefaults: JSON.parse(JSON.stringify(state.ui.envDefaults)),
-  chartColors: JSON.parse(JSON.stringify(state.ui.chartColors ?? {})),
-  unitTokens: JSON.parse(JSON.stringify(state.ui.unitTokens ?? {})),
-  yRanges: JSON.parse(JSON.stringify(state.yRanges)),
+  username: presentationState.ui.username,
+  envDefaults: JSON.parse(JSON.stringify(presentationState.ui.envDefaults)),
+  chartColors: JSON.parse(JSON.stringify(presentationState.ui.chartColors ?? {})),
+  unitTokens: JSON.parse(JSON.stringify(presentationState.ui.unitTokens ?? {})),
+  yRanges: JSON.parse(JSON.stringify(presentationState.yRanges)),
   P: { fmin: managedProject.sweepFmin_hz(), fmax: managedProject.sweepFmax_hz() }
 });
 
@@ -92,11 +93,11 @@ function restoreDefaults() {
 }
 
 function saveAndClose() {
-  state.ui.username = draft.username;
-  state.ui.envDefaults = { ...draft.envDefaults };
-  state.ui.chartColors = { ...draft.chartColors };
-  state.ui.unitTokens = { ...draft.unitTokens };
-  state.yRanges = { ...draft.yRanges };
+  presentationState.ui.username = draft.username;
+  presentationState.ui.envDefaults = { ...draft.envDefaults };
+  presentationState.ui.chartColors = { ...draft.chartColors };
+  presentationState.ui.unitTokens = { ...draft.unitTokens };
+  presentationState.yRanges = { ...draft.yRanges };
   managedProject.setSweepFmin_hz(draft.P.fmin);
   managedProject.setSweepFmax_hz(draft.P.fmax);
   if (unitsResetPending.value) {
@@ -137,7 +138,7 @@ function clearColor(key: ColorKey) {
 }
 
 // WinISD's default Start/End shown as this row's placeholder until the user sets an override;
-// an untouched row keeps auto-scaling (no default is ever silently written to state.yRanges).
+// an untouched row keeps auto-scaling (no default is ever silently written to presentationState.yRanges).
 const LIMIT_ROWS: { tab: string; label: string; start: number; end: number; unit: string }[] = [
   { tab: 'SPL',       label: 'SPL',                   start: 40,   end: 105,  unit: 'dB' },
   { tab: 'Phase',     label: 'Transfer func. phase',  start: -180, end: 180,  unit: 'deg' },

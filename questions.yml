@@ -1,5 +1,5 @@
 prefix: QO
-next: 72
+next: 73
 questions:
 - id: QO1
   title: UI TODO List
@@ -6159,7 +6159,7 @@ questions:
           encoding-correctness oracle.
 - id: QO65
   title: 'Coaxial driver: OpenISDDriver locks to the woofer section only -'
-  status: open
+  status: decided
   raised: '2026-08-21'
   body: ''
   notes:
@@ -6173,9 +6173,31 @@ questions:
       today, so the model fix alone surfaces nothing. Recommendation: DEFER (not release-blocking). NOTE:
       a prior defer ruling exists in bugs/BUG_20260818_coaxial_...md but cites the old id QO62 (id since
       reassigned to encoding) — please reconfirm the ruling under QO65.'
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN RULING, verbatim (2026-08-21):
+      "065 - it si a bug if we have mutlipel pr values here ..  if (t === 'passive-radiator' || t === 'passive_radiator'
+      neeed to make sure _tools has pyton uses only the _ variant, then to save time perform a scrupted yml update directly to fix the db.
+      in the mean time DO NOT inplement the '-' version in OID, keep oid clen.  sectionFor can then be avoided or simplified perhapsp.
+      openisd will never actually use the tweeter section directly as it primarly a sub box tool but the tweetter info would be potentialy usefil to show in the driect info popup. But its not critical at the moment.
+      so BUG_20260818_coaxial_driver_type_still_locks_openisddriver_to_the_woofer_section_only isn't actuly a bug as we dont have a intention atm ot modelling the tweeter - miggh change in future but that is a proper backlog item.
+      section (a) is acked - yes we dont use tweeter atm
+      fndamentally - other tham perhaps listing the full driver specs we dont want to support tweeter atm.
+      for now I ack that the accessor mmethods do not provide access to the tweeted - that sok"
+
+      DECIDED:
+      - Coax/tweeter modelling: NOT a bug — no intent to model the tweeter now; future support is a
+        backlog item. BUG_20260818_coaxial_... flipped to WONTFIX with the reasoning. Accessors not
+        reaching the tweeter is ACKED as fine.
+      - The REAL defect found in the same code: the PR discriminator has two spellings and OID
+        accepts both. Recorded (measured: 76 db records kebab, tools deliberately dual-vocabulary) in
+        bugs/BUG_20260821_passive_radiator_discriminator_has_two_spellings_across_the_stack.md.
+        Ruled fix: tools use ONLY the underscore variant; scripted yml update fixes the 76 db records
+        directly; OID never implements the '-' version; sectionFor then avoidable/simplified.
 - id: QO64
   title: Build the New Project wizard - alignment-driven box sizing
-  status: open
+  status: decided
   raised: '2026-08-21'
   body: ''
   notes:
@@ -6205,6 +6227,15 @@ questions:
 
       Out of release scope (Lane G of docs/plans/PROMPT_RELEASE_HARDENING.md); this item is the
       standing build request so it cannot fall between the cracks.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN, 2026-08-21: "A put it on the backlog - big item not needing work atm"
+
+      ACKED and moved: the build request now lives in BACKLOG.md's existing P1 wizard item ("Alignment
+      selection in New Project wizard AND changeable from the tabs"), which has been amended to carry
+      this ruling and to reference the full scope recorded here (PR arm, derived vent length,
+      reverse-engineer-first constraint). No work now.
 - id: QO67
   title: 'Unify file-format classification: DriverFileFormat models driver formats only (owdr, wdr), while
     driverFileText.ts''s decodeDriverFileBytes uses a private isLegacyWinisdFormat regex (\.(wdr|wpr)$)
@@ -6256,6 +6287,16 @@ questions:
     ~:732) is now consumerless repo-wide — its only consumer was the what-if bridge deleted by A2 (ManagedOpenISDProject
     now notifies unconditionally itself). It is public model surface: delete it (dead-surface rule) or
     keep it (the driver-editor work may want a direct channel)? Your call.'
+  status: open
+  raised: '2026-08-21'
+  body: ''
+- id: QO72
+  title: 'Gate-scope widening needed (human-edit-only list): A3b moved 13 view-state fields out of store.ts
+    (gated by architecture.test.ts''s SCANNED_FILES + per-module ALLOWED_GLOBALS, ~:813) into the new
+    approved store presentationState.ts — which is NOT in SCANNED_FILES, so the migration''s net effect
+    is less gate coverage. Please add presentationState.ts to SCANNED_FILES with its own ALLOWED_GLOBALS
+    entry (the store exports one presentationState object plus, after the current fix round, the three
+    unit-token view functions) — or rule otherwise. Both lists are your edit per the standing rule.'
   status: open
   raised: '2026-08-21'
   body: ''

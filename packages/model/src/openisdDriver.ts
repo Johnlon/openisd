@@ -278,9 +278,7 @@ export interface MetaCell {
  */
 function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive_radiator' {
   const t = record.driver_type?.value;
-  if (t === 'tweeter') return 'tweeter';
-  if (t === 'passive-radiator' || t === 'passive_radiator') return 'passive_radiator';
-  return 'woofer';
+  return t === 'tweeter' || t === 'passive_radiator' ? t : 'woofer';
 }
 
 export class OpenISDDriver {

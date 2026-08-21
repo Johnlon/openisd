@@ -6,6 +6,7 @@ import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import { state, driverRecord, managedProject, applyState, markProjectSaved } from '../logic/store.js';
+import { presentationState } from '../logic/presentationState.js';
 import { createLiveRef } from '../logic/liveProject.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from '../logic/persist.js';
 import { useApp } from '../logic/app.js';
@@ -28,7 +29,7 @@ let saveReady = false;
 // answer to the same question the moment either drifted from the other on restore.
 const { live } = createLiveRef(managedProject);
 watch(
-  () => { void live.value; return serialize(state, driverRecord.value, managedProject.toUiParams()); },
+  () => { void live.value; return serialize(state, presentationState, driverRecord.value, managedProject.toUiParams()); },
   (s) => { if (saveReady) saveLocal(s); },
   { deep: true },
 );
@@ -57,7 +58,7 @@ onUnmounted(() => {
   <DriverBrowserWinisd />
   <!-- The driver editor is global, so a driver picked from the library is always
        reviewed before it reaches the design. -->
-  <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
+  <DriverEditorModal v-if="presentationState.editDriverInfo" @close="presentationState.editDriverInfo = false" />
   <Flash />
   <!-- Raises itself on the first uncaught error, rejection or console.error. -->
   <DiagnosticsModal />

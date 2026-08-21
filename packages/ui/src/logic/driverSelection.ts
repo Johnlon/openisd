@@ -1,6 +1,7 @@
 import { _emptyDriverRecord, OpenISDDriver } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
-import { state, managedProject, driverRecord } from './store.js';
+import { managedProject, driverRecord } from './store.js';
+import { presentationState } from './presentationState.js';
 import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
 import { DriverFileFormat } from '../driverFileFormat.js';
 
@@ -189,7 +190,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
 
   function embedInProject(record: _OpenISDDriverJson): void {
     adoptIntoProject(record);
-    state.browseOpen = false;
+    presentationState.browseOpen = false;
   }
 
   /** The record behind a library row, whatever kind of row it is. A saved driver and a bundled
@@ -204,7 +205,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
   function closeEditor(): void {
     subject = { kind: 'project' };
     editorDraft = null;
-    state.editDriverInfo = false;
+    presentationState.editDriverInfo = false;
   }
 
   return {
@@ -226,7 +227,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
     editMyDriver(d) {
       subject = { kind: 'myDriver', openedAs: driverId(d) };
       editorDraft = structuredClone(d);
-      state.editDriverInfo = true;
+      presentationState.editDriverInfo = true;
     },
 
     /** Open the editor on a driver selected in the library overview. Its OK/Save writes to My Drivers. */
@@ -239,7 +240,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
         ? { kind: 'myDriver', openedAs: driverId(f.myDriverData) }
         : { kind: 'myDriver', openedAs: '' };
       editorDraft = withLinks(read.record, f);
-      state.editDriverInfo = true;
+      presentationState.editDriverInfo = true;
       return { ok: true };
     },
 
@@ -247,10 +248,10 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
      *  the editor always seeds from the project's committed driver, so a live preview left
      *  open would silently disagree with what the editor shows. */
     editProjectDriver() {
-      if (managedProject.isWhatIfActive()) { managedProject.cancelWhatIf(); state.editDriver = false; }
+      if (managedProject.isWhatIfActive()) { managedProject.cancelWhatIf(); presentationState.editDriver = false; }
       subject = { kind: 'project' };
       editorDraft = null;
-      state.editDriverInfo = true;
+      presentationState.editDriverInfo = true;
     },
 
     /**
@@ -264,8 +265,8 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
     openNewDriver() {
       subject = { kind: 'myDriver', openedAs: '' };
       editorDraft = _emptyDriverRecord();
-      state.browseOpen = false;
-      state.editDriverInfo = true;
+      presentationState.browseOpen = false;
+      presentationState.editDriverInfo = true;
     },
 
     /** What the editor seeds its draft from, and which driver that is. */

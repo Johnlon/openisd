@@ -19,8 +19,10 @@ import { driverRecordProblems, OpenISDDriver } from '@openisd/model';
 import type { SpecField, _OpenISDDriverJson, _OpenISDProjectJson } from '@openisd/model';
 import { ManagedOpenISDProject, toAlignmentKind, fromAlignmentKind } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState, DriverJSON } from '../types.js';
+import { presentationState, unitToken } from './presentationState.js';
 import { parseChartTabId } from './series.js';
-import { nextToken, toDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
+import { toDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
+import { getOrInit } from './hmrSingleton.js';
 import {
   solveVentGroup, ventSolveSuspended, suspendVentSolve,
 } from './useVentGroup.js';
@@ -28,18 +30,6 @@ import { solvePrGroup } from './usePrGroup.js';
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
 // written by App.vue's watch and restored by loadLocal() on mount. store.js does
 // not persist — it initialises to defaults; App.vue applies any saved state.
-const globalCtx = (typeof window !== 'undefined') ? (window as any) : null;
-if (globalCtx && !globalCtx.__store_context) {
-  globalCtx.__store_context = {};
-}
-const ctx = globalCtx ? globalCtx.__store_context : {};
-
-function getOrInit<T>(key: string, init: () => T): T {
-  if (!(key in ctx)) {
-    ctx[key] = init();
-  }
-  return ctx[key];
-}
 
 // ---- The project: ManagedOpenISDProject, and NOTHING else ----------------------------------------
 // ARCHITECTURE.md §"Approved state stores": ManagedOpenISDProject holds ALL active/edit/what-if
@@ -56,7 +46,7 @@ function getOrInit<T>(key: string, init: () => T): T {
 // runs `{ immediate: true }` at module load, synchronously reading `managedProject` — before any
 // later `const managedProject` would exist yet (TDZ). It has to be defined before `state` is,
 // not merely before it is first USED at runtime.
-const _version = getOrInit('_version', () => ref(0));
+const _version = getOrInit('store', '_version', () => ref(0));
 
 /**
  * THE project. The one facade over ground, committed and the edit-or-what-if overlay
@@ -88,9 +78,9 @@ const _version = getOrInit('_version', () => ref(0));
 export const ALLOWED_GLOBALS = [
   'openProjects', 'focusedProject', 'focusProject', 'removeProject', 'addProject',
 ];
-export const managedProject: ManagedOpenISDProject = getOrInit('_managed', () => {
+export const managedProject: ManagedOpenISDProject = getOrInit('store', '_managed', () => {
   const md = ManagedOpenISDProject.createEmpty();
-  ctx._unsub = md.subscribe(() => { _version.value++; });
+  md.subscribe(() => { _version.value++; });
   return md;
 });
 
@@ -105,8 +95,8 @@ export const managedProject: ManagedOpenISDProject = getOrInit('_managed', () =>
  * and deleting `workspace.ts`, is separate, larger follow-on work (REVIEW.md Phase 1.4/1.5) —
  * not done in this pass; flagged, not silently deferred.
  */
-const _projects = getOrInit('_projects', () => shallowRef<ManagedOpenISDProject[]>([managedProject]));
-const _focusedIndex = getOrInit('_focusedIndex', () => ref(0));
+const _projects = getOrInit('store', '_projects', () => shallowRef<ManagedOpenISDProject[]>([managedProject]));
+const _focusedIndex = getOrInit('store', '_focusedIndex', () => ref(0));
 
 /** Every open project. Empty array if none are open. */
 export function openProjects(): ManagedOpenISDProject[] { return _projects.value; }
@@ -146,18 +136,6 @@ export function addProject(project: ManagedOpenISDProject): void {
 
 function buildState(): AppState {
   const s = {
-    lossMode:  'winisd-lossy',
-    graphs:    ['SPL', 'Excursion', 'Zmag', 'GD'],
-    editDriver: false,
-    editDriverInfo: false,
-    cursorF:     null,
-    pinnedF:     null,
-    cursorLocked: false,
-    dragRange:   null,  // { fLo, fHi } — shared frequency selection across all graph panels
-    browseOpen:   false,
-    defineOpen:   false,
-    yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
-    ui:           { skin: (typeof window !== 'undefined' && window.location.port === '4100') ? 'modern' : 'original', unitTokens: {}, envDefaults: { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 } },  // local-only presentation prefs; never shared (persist.ts)
     project:      { name: '', creator: '', created: '', modified: '', description: '' },
   };
   // `box` is an accessor property over `managedProject`'s OWN `OpenISDBox.active` — not an
@@ -173,7 +151,7 @@ function buildState(): AppState {
   return s as unknown as AppState;
 }
 
-export const state: AppState = getOrInit('state', () => reactive(buildState()));
+export const state: AppState = getOrInit('store', 'state', () => reactive(buildState()));
 
 // ---- Vent group: keep the calculated member solved while the user edits ------------------
 // `_version` (above) already bumps on every managedProject mutation — box/vent/PR fields
@@ -268,11 +246,11 @@ export const driverName = computed<string>(() => {
  * Open the driver picker — the ONE governed entry point. Cancels any active what-if first: an
  * uncommitted preview must never be left dangling once the user has moved on to picking a
  * different driver. Every "Select Driver"/"Browse…" trigger calls this, never a raw
- * `state.browseOpen = true`. ManagedOpenISDProject owns the cancellation; this only asks for it.
+ * `presentationState.browseOpen = true`. ManagedOpenISDProject owns the cancellation; this only asks for it.
  */
 export function openDriverPicker(): void {
-  if (managedProject.isWhatIfActive()) { managedProject.cancelWhatIf(); state.editDriver = false; }
-  state.browseOpen = true;
+  if (managedProject.isWhatIfActive()) { managedProject.cancelWhatIf(); presentationState.editDriver = false; }
+  presentationState.browseOpen = true;
 }
 
 function _driverErrors(): DriverError[] {
@@ -294,8 +272,8 @@ export const syncedP = computed<SyncedParams>(() => {
   return p;
 });
 
-const _curves = getOrInit('_curves', () => ref<SweepResult | null>(null));
-const _max    = getOrInit('_max', () => ref<MaxCurvesResult | null>(null));
+const _curves = getOrInit('store', '_curves', () => ref<SweepResult | null>(null));
+const _max    = getOrInit('store', '_max', () => ref<MaxCurvesResult | null>(null));
 const _doSweep = () => {
   const d = _engineDriver();
   _curves.value = d ? sweep(d, state.box, syncedP.value) : null;
@@ -374,7 +352,7 @@ function projectFingerprint(): string {
     box: state.box, P: managedProject.toUiParams(), driver: driverRecord.value, project: state.project,
   });
 }
-const _ground = getOrInit('_ground', () => ref(projectFingerprint()));
+const _ground = getOrInit('store', '_ground', () => ref(projectFingerprint()));
 /** True when the live design differs from the last loaded/saved (ground) state. */
 export const isModified = computed<boolean>(() => _ground.value !== projectFingerprint());
 /** Adopt the current design as ground (call after load, and after a successful save). */
@@ -408,7 +386,7 @@ export function resetProjectToGround(): void {
  *  sweep/filters/entered to the app's initial defaults (`_prototypeProject()`) — there is
  *  nothing left for this function to reset on the params side. */
 export function newProject(): void {
-  state.yRanges = {};
+  presentationState.yRanges = {};
   state.project = { name: '', creator: '', created: '', modified: '', description: '' }; // blank meta
   managedProject.loadEmpty();                                // no driver chosen — the user picks one
   markProjectSaved();                                       // the fresh design is the new clean ground
@@ -460,7 +438,7 @@ export function applyState(o: SerializedState): void {
     }
   }
   if (o.box) state.box = o.box;
-  if (o.lossMode) state.lossMode = o.lossMode;
+  if (o.lossMode) presentationState.lossMode = o.lossMode;
   // Verbatim, for the same reason as resetProjectToGround: a persisted design carries both
   // vent-group members and the entered set, so a restore has nothing to compute.
   //
@@ -482,14 +460,14 @@ export function applyState(o: SerializedState): void {
   // A saved/shared blob carries chart ids as plain strings, so each goes through the one
   // string→member boundary; an id this build does not declare is invalid data, and is
   // dropped rather than restored as a chart nothing can draw.
-  if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs.map(parseChartTabId);
-  if (o.ui) Object.assign(state.ui, o.ui);   // skin + active tab/chart ARE carried by a share link (stateToUrl); only an open editor's uncommitted buffer + unit prefs are stripped there
+  if (Array.isArray(o.graphs) && o.graphs.length) presentationState.graphs = o.graphs.map(parseChartTabId);
+  if (o.ui) Object.assign(presentationState.ui, o.ui);   // the whole view context is carried by a share link (stateToUrl, human ruling 2026-08-14) — nothing in it is stripped
   if (o.project) Object.assign(state.project, o.project);
   if (o.cursor) {
-    state.cursorF = o.cursor.f;
-    state.pinnedF = o.cursor.pinnedF;
-    state.cursorLocked = o.cursor.locked;
-    state.dragRange = o.cursor.range ? { fLo: o.cursor.range.fLo, fHi: o.cursor.range.fHi } : null;
+    presentationState.cursorF = o.cursor.f;
+    presentationState.pinnedF = o.cursor.pinnedF;
+    presentationState.cursorLocked = o.cursor.locked;
+    presentationState.dragRange = o.cursor.range ? { fLo: o.cursor.range.fLo, fHi: o.cursor.range.fHi } : null;
   }
 }
 
@@ -498,26 +476,9 @@ export function applyState(o: SerializedState): void {
 // draws nothing, which is the same "loaded but invisible" failure at the overlay level.
 
 // ---- Per-field display units (fields/units.ts) ------------------------------------
-// The store stays SI; these only choose how a field is shown/entered. A skin pairs a
-// NumInput (or a calculated readout) with a <UnitToggle> that cycles the field's token;
-// both read the token here so they agree. Keyed by field id, so the same quantity shown
-// in more than one place/skin shares one selected unit. `baseToken` is the field's own
-// default unit (its historic display unit) used until the user rotates it.
-/** The field's currently-selected unit token (its base unit until rotated). */
-export function unitToken(field: string, baseToken: string): string {
-  return state.ui.unitTokens?.[field] ?? baseToken;
-}
-/** Rotate a field's unit to the next token in its group (persisted, survives refresh). */
-export function cycleUnitToken(field: string, group: UnitGroup, baseToken: string): void {
-  if (!state.ui.unitTokens) state.ui.unitTokens = {};
-  state.ui.unitTokens[field] = nextToken(group, unitToken(field, baseToken));
-}
-/** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
- *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch
- *  the design itself — this only affects how values are DISPLAYED, never the stored (SI) design. */
-export function resetUnitTokens(): void {
-  state.ui.unitTokens = {};
-}
+// The store stays SI; formatInUnit only chooses how a CALCULATED value is shown, reading the
+// selected token off presentationState (logic/presentationState.ts owns
+// unitToken/cycleUnitToken/resetUnitTokens — pure view functions, not design state).
 /** Format a CALCULATED (read-only) value in a field's currently-selected unit — the single
  *  source every skin uses to pair a readout with a <UnitToggle>. `si` MUST be the SI value
  *  (m³/m/m²/Hz/kg); a few engine helpers return convenience units (e.g. prVas is litres → pass

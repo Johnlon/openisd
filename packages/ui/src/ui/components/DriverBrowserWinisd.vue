@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { state } from '../../logic/store.js';
+import { presentationState } from '../../logic/presentationState.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { useApp } from '../../logic/app.js';
 import type { FileEntry } from '../../logic/driverLibrary.js';
@@ -43,26 +43,24 @@ function triggerFileLoad() { fileInputEl.value?.click(); }
 function handleItemClick(f: FileEntry) { pickFile(f); }
 
 function close() { closeLibrary(); }
-useEscToClose(() => state.browseOpen, close);
+useEscToClose(() => presentationState.browseOpen, close);
 
 // Every route that CREATES a driver ends in My Drivers, which is the one place a user
 // driver can land: "Add new Driver" opens the editor on a blank driver, "Clone driver" forks
 // the summarised one, and "Load File…" reads one off disk. None of them touches the project —
 // "Use" is still the only thing that embeds a driver in the design.
-//
-// The T/S define form (state.defineOpen) remains available from other entry points.
 function openNew() { openNewDriver(); }
 
 
 
 // Closing the picker drops any open summary, so reopening lands on the list rather than on
 // whatever was last being read.
-watch(() => state.browseOpen, val => { if (val) openedLibrary(); else pickFile(null); }, { immediate: true });
+watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); else pickFile(null); }, { immediate: true });
 </script>
 
 <template>
-  <div class="overlay" :class="{ on: state.browseOpen }">
-    <div class="modal wb-modal" v-if="state.browseOpen">
+  <div class="overlay" :class="{ on: presentationState.browseOpen }">
+    <div class="modal wb-modal" v-if="presentationState.browseOpen">
       <h2>
         {{ previewFile ? previewData?.name : 'Driver database' }}
         <span class="x" @click="close" title="Close the driver library browser">✕</span>

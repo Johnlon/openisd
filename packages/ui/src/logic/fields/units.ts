@@ -2,7 +2,7 @@
  * Display-unit registry — the single place that knows how to render an SI quantity in an
  * alternate unit and convert typed input back. The store ALWAYS holds SI (m³, m, m², Hz, kg);
  * the UI shows `SI × factor` and, on input, divides by the same factor. Clicking a field's
- * unit label rotates the selected token (persisted per field in `state.ui.unitTokens`), which
+ * unit label rotates the selected token (persisted per field in `presentationState.ui.unitTokens`), which
  * changes the factor + precision only — never the stored value. This is what makes the
  * clickable unit a real conversion instead of a decorative label.
  *
@@ -37,7 +37,7 @@ export type UnitGroup =
 const MAX_DP = 4;
 
 export interface UnitDef {
-  /** Stable machine token stored in state.ui.unitTokens. */
+  /** Stable machine token stored in presentationState.ui.unitTokens. */
   token: string;
   /** Symbol shown next to the field. */
   label: string;

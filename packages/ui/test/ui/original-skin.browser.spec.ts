@@ -520,9 +520,11 @@ test('the New Project wizard sets box type + volume then opens the driver picker
   await modal.locator('button', { hasText: 'Pick Driver' }).click();
 
   const st = await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    return { box: s.state.box, vb: s.state.P.Vb, browse: s.state.browseOpen };
+    const storeModPath = '/src/logic/store.ts';
+    const presModPath = '/src/logic/presentationState.ts';
+    const s = await import(/* @vite-ignore */ storeModPath);
+    const ps = await import(/* @vite-ignore */ presModPath);
+    return { box: s.state.box, vb: s.managedProject.boxVolume_m3(), browse: ps.presentationState.browseOpen };
   });
   expect(st.box).toBe('vented');
   expect(st.vb).toBeCloseTo(0.042, 3); // 42 L → 0.042 m³
@@ -728,8 +730,8 @@ const readVb = (page: Page) =>
   });
 const readVbToken = (page: Page) =>
   page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
-    return (await import(/* @vite-ignore */ modPath)).state.ui.unitTokens?.Vb;
+    const modPath = '/src/logic/presentationState.ts';
+    return (await import(/* @vite-ignore */ modPath)).presentationState.ui.unitTokens?.Vb;
   });
 
 test('clicking an entered field\'s unit label rescales the DISPLAY and keeps the model SI', async ({ page }) => {
@@ -940,9 +942,9 @@ test('Original skin: Options dialog edits are draft-only and discard on Cancel, 
   // Helper to get environment temp from store in browser
   const getStoreTemp = async () => {
     return await page.evaluate(async () => {
-      const modPath = '/src/logic/store.ts';
-      const s = await import(/* @vite-ignore */ modPath);
-      return s.state.ui.envDefaults.tempK;
+      const modPath = '/src/logic/presentationState.ts';
+      const ps = await import(/* @vite-ignore */ modPath);
+      return ps.presentationState.ui.envDefaults.tempK;
     });
   };
 

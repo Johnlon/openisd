@@ -166,13 +166,17 @@ never improvise around it.
       BUG_20260821_vent_group_auto_solve... (RESOLVED, with the coarse-watch mutating-solver
       design risk recorded OPEN), BUG_20260821_input_power_inverse_computed_inline_in_shell...
       (OPEN, pre-existing). Frc stubbed per ruling.
-- [ ] **A3b** (split out of A3, 2026-08-21, per the STOP rule) Build
-      `logic/presentationState.ts` and migrate the VIEW state (dialog flags, chart
-      interaction, display selection, prefs) out of `AppState` across App.vue,
-      OriginalShell.vue, GraphPanel.vue, OptionsModal.vue and peers — a migration of
-      comparable size to A3's domain half, deliberately not rushed with it. Blocked-by: A3.
-      Must land before A8. Done: view state lives in presentationState.ts; no new module-level
-      state outside approved stores; ui suite green.
+- [x] **A3b** DONE 2026-08-21, review PASS after two fix cycles (final round verified by the
+      orchestrator after the reviewer stalled on box contention): PresentationState store
+      (typed initialiser, dead skin/defineOpen deleted), 13 view fields + UiState migrated,
+      unit-token functions moved off store.ts (module-globals offences 25→22), namespaced
+      hmrSingleton, SerializedState wire shape byte-identical, share-link doc claims aligned
+      to the 2026-08-14 ruling, three browser-spec sites repointed. Spin-outs: QO72 (gate
+      scope, human's edit); BUG_20260821_original_skin_spec_reads_state_p... (9 pre-existing
+      sites, task A3c).
+- [ ] **A3c** (added 2026-08-21) Repoint the NINE pre-existing `state.P.*` in-page reads in
+      `original-skin.browser.spec.ts` (lines per the bug file) to the domain facade; must be
+      green before the release-gate Playwright run. Blocked-by: A3b (landed).
 - [ ] **A4** Objective 2c: share links serialise the project (not `AppState`);
       `history.replaceState` moves to `logic/urlAppState.ts` (already on the APPROVED list).
       Blocked-by: A3. Done: `persist.serialize` no longer takes the whole state; share-link
@@ -248,7 +252,15 @@ never improvise around it.
       and openisd gains NO remap shim (one-model rule: an undeclared key is invalid, full
       stop). Interim reads of old records stay lossy until B10 — that is why B10 is a release
       gate item. Done: post-B10 spot-check shows SI keys; a fixture read carries all 10 fields.
-- [ ] **B5** H3: persist the calculated-marker — the record shape gains what is needed so a
+- [ ] **B5** RULED 2026-08-21 (QT56, verbatim in the ledger): the DQ split is ADOPTED — py =
+      structural DQ + cross-source corroboration; oid = all relation-math DQ live. The
+      workability amendment (read_value optional) ALREADY LANDED as B2/QT48. NO calculated
+      marker is built (grounds proposal retired). Remaining B5 work, now unblocking B10:
+      (a) a gate making pipeline-computed spec values unrepresentable (winisd_tools);
+      (b) py's relation-math deletion (model_wdr.py:454-657 + 3 DQ_RULES) rides Lane F4;
+      (c) oid's EBP relation gap = the filed bug; (d) .wdr [DQ] export rewires to live
+      checkConsistency in the F-lane writer. Only (a) blocks B10.
+      Original item — H3: persist the calculated-marker — the record shape gains what is needed so a
       pipeline-CALCULATED value does not read back as ENTERED; openisd's reader honours it.
       Cross-repo: design first, show the human the shape before building. Blocked-by: B4.
       Done: a calculated fixture value reads back Calculated in openisd.
@@ -286,6 +298,11 @@ never improvise around it.
       under SI keys); new meta fields present; pytest + db-conformance green.
 - [ ] **B11** Rebuild openisd's drivers bundle (collects B10 and QT52's pending 1912→1526
       reduction). Blocked-by: B10, A7 (bundle shape). Done: bundle loads; picker spec green.
+      HAZARD (from D7's review): scripts/bundle-drivers.mjs:104 `specSection()` duplicates
+      sectionFor's job in JS with NO passive-radiator branch — PR records would resolve by
+      accident via Object.values(specs)[0]. Today no PR is bundled (disposition gate), but
+      B4's derivation may flip PR records to `ok`, making that path load-bearing. A7/B11 must
+      reconcile specSection with the model's resolution before the rebuild.
 
 ## Lane C — encoding (small, early: A6 depends on it)
 
@@ -368,7 +385,10 @@ never improvise around it.
       (`bugs/BUG_20260821_q_group_redeclared_in_ui...md`, reopened OPEN). Route it through the
       engine's single source; then re-flip the bug. Done: exactly one Q-group declaration
       repo-wide; bug RESOLVED; narrow suites green. (Run BEFORE A7 touches driverRepo.ts.)
-- [ ] **D4** COAX (the human's open question, `QO65`): `OpenISDDriver` locks to the
+- [x] **D4** DONE 2026-08-21 — proposal delivered (docs/design/COAX_QO65_PROPOSAL.md) and the
+      human RULED (QO65, verbatim in the ledger): tweeter modelling is NOT a bug — no current
+      intent, future support is backlog; coax bug flipped WONTFIX. The ruling's REAL finding
+      became task D7. Original item — COAX (the human's open question, `QO65`): `OpenISDDriver` locks to the
       woofer section only. INVESTIGATE and propose: what breaks for a coax record (tweeter/
       passive-radiator sections), what the model change is, and whether it is release scope —
       then ASK THE HUMAN. Do not build without the ruling. Done: proposal delivered, ruling
