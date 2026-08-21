@@ -346,7 +346,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    void readDriverFileText(file).then(text => {
+    void readDriverFileText(file).then(({ text }) => {
       // Clear the input whatever happened, so picking the SAME file again still fires `change`.
       input.value = '';
       if (!text) { statusErr.value = true; statusMsg.value = `${file.name} is empty`; return; }

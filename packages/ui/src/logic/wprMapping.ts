@@ -85,6 +85,10 @@ export function buildWprInput(
     input.box.Fr = P.Fb;
     input.box.SdRear = Sp;
     input.ventRear = { dia: P.ventD, len: P.ventL, endCorrection: P.endCorrection,
+      // [VentRear].Fb/Vb are WinISD's copy of the rear chamber's own [Box].Fr/Vr (confirmed
+      // against the whole parity corpus — see WprVent.Fb/Vb), so they come from the SAME
+      // values just written above, not a second computation.
+      Fb: input.box.Fr, Vb: input.box.Vr, carea: Sp,
       // Round port: the area is always derived from the diameter. This is provenance,
       // not a constant — a slot vent is entered as W×H, i.e. the area IS entered, and
       // this must become false there rather than silently writing a false flag.
@@ -95,6 +99,10 @@ export function buildWprInput(
     input.box.Ff = tuningFromLength(P.Vf, P.ventL, Sp, P.endCorrection); // front: vented
     input.box.SdFront = Sp;
     input.ventFront = { dia: P.ventD, len: P.ventL, endCorrection: P.endCorrection,
+      // [VentFront].Fb/Vb are WinISD's copy of the front chamber's own [Box].Ff/Vf (confirmed
+      // against the whole parity corpus — see WprVent.Fb/Vb), so they come from the SAME
+      // values just written above, not a second computation.
+      Fb: input.box.Ff, Vb: input.box.Vf, carea: Sp,
       // Round port: the area is always derived from the diameter. This is provenance,
       // not a constant — a slot vent is entered as W×H, i.e. the area IS entered, and
       // this must become false there rather than silently writing a false flag.

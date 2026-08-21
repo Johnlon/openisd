@@ -10,6 +10,9 @@ const here = dirname(fileURLToPath(import.meta.url));
  *  stated in explicit values (test/fixtures/winisd-parity/scenarios.json, `passive-radiator`),
  *  so every value in it is traceable to an input this repo controls and can regenerate. */
 const SAMPLE_WPR_PATH = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
+const VENTED_SMALL_WPR_PATH = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'vented-small.wpr');
+const BANDPASS4_WPR_PATH = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'bandpass4.wpr');
+const VENTED_B4_WPR_PATH = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'vented-b4.wpr');
 
 /** Substring assertions carry the needle in the message, so a failure names the missing line. */
 function contains(haystack: string, needle: string, label: string) {
@@ -17,6 +20,19 @@ function contains(haystack: string, needle: string, label: string) {
 }
 function omits(haystack: string, needle: string, label: string) {
   assert.ok(!haystack.includes(needle), `${label}: expected NOT to contain ${JSON.stringify(needle)}`);
+}
+/**
+ * Extract one `[Header]…` block (up to the next blank line) from LF-normalised INI text, for
+ * verbatim block comparison — a substring `contains()` check on a line like `dia1=0` also
+ * matches `dia1=0.102`, so a whole-block `assert.equal` is the only check that can't pass on a
+ * wrong value that happens to share a prefix.
+ */
+function extractSection(text: string, header: string): string {
+  const start = text.indexOf(`${header}\n`);
+  assert.ok(start >= 0, `section ${header} not found`);
+  const rest = text.slice(start);
+  const end = rest.indexOf('\n\n');
+  return end === -1 ? rest : rest.slice(0, end);
 }
 
 // A minimal driver section as Driver.toWdr() would emit it (header + fields + ParState).
@@ -144,15 +160,19 @@ describe('toWpr — WinISD .wpr project serializer', () => {
       project: { creator: 'x', createDate: '20260101', modifyDate: '20260101' },
       driverSection: DRIVER_SECTION,
       box: { bType: 1, Vr: 0.03, Fr: 32, SdRear: 0.00196349540849362 },
-      ventRear: { dia: 0.05, len: 0.12, endCorrection: 0.732 },
+      // Fb/Vb are the rear chamber's OWN Fr/Vr just above — the redundant-copy relationship
+      // confirmed against the golden corpus (WprVent.Fb/Vb doc comment). carea is the same
+      // area as SdRear above (both come from one caller-computed port area).
+      ventRear: { dia: 0.05, len: 0.12, endCorrection: 0.732,
+        Fb: 32, Vb: 0.03, carea: 0.00196349540849362 },
       signal: { P: 40 },
     }).replace(/\r\n/g, '\n');
     assert.match(s, /\[Box\]\nBType=1\n/);
     contains(s, 'Sdrport=0.00196349540849362', 'rear port area');
-    contains(s, '[VentRear]\nNum=1\nShape=1', '[VentRear] header');
-    contains(s, 'dia1=0.05', 'vent diameter');
-    contains(s, 'len=0.12', 'vent length');
-    contains(s, 'endcorrection=0.732', 'vent end correction');
+    assert.equal(extractSection(s, '[VentRear]'),
+      '[VentRear]\nNum=1\nShape=1\nFb=32\nVb=0.03\ndia1=0.05\ndia2=0.05\n'
+      + 'carea=0.00196349540849362\nlen=0.12\nendcorrection=0.732\ncrosscalc=1',
+      '[VentRear] whole block');
     omits(s, 'Npr=', 'no Npr for non-PR boxes');
     // [PassiveRadiator] present as an empty section header for a vented box
     assert.match(s, /\[PassiveRadiator\]\n\n\[SimulatorOptions\]/);
@@ -196,31 +216,64 @@ describe('toWpr — WinISD .wpr project serializer', () => {
       contains(s, line, 'our [PassiveRadiator] output');
     }
 
-    // [VentFront]/[VentRear] boilerplate defaults for a PR project — real file vs ours.
-    // `Num`/`dia1`/`dia2`/`endcorrection` are NOT in this list: openisd writes a phantom vent
-    // (Num=1, dia1=0.102, dia2=0.102, endcorrection=0.732) where WinISD wrote an empty one
-    // (Num=0, dia1=0, dia2=0, endcorrection=0.6) — a real defect, not a fixture quirk, tracked
-    // in bugs/BUG_20260820_wpr_writer_emits_phantom_vent_for_a_passive_radiator_project.md and
-    // asserted as a bounded divergence immediately below so it cannot silently widen or vanish.
-    for (const line of ['Shape=1', 'Fb=0', 'Vb=0', 'carea=0', 'len=0', 'crosscalc=1']) {
-      contains(sampleLf, line, 'WinISD sample vent boilerplate');
-      contains(s, line, 'our vent boilerplate output');
-    }
+    // [VentFront]/[VentRear] for a PR project: WinISD writes an EMPTY vent (no vent of any
+    // kind exists on a passive-radiator box). Whole-block comparison, not per-line substring
+    // matches — `dia1=0` as a substring also matches `dia1=0.102`, which would pass even if
+    // the writer regressed.
+    assert.equal(extractSection(s, '[VentFront]'), extractSection(sampleLf, '[VentFront]'),
+      '[VentFront] must match WinISD\'s empty-vent block exactly');
+    assert.equal(extractSection(s, '[VentRear]'), extractSection(sampleLf, '[VentRear]'),
+      '[VentRear] must match WinISD\'s empty-vent block exactly');
+  });
 
-    // The phantom-vent divergence, asserted as a BOUND rather than deleted. Each row states
-    // what WinISD wrote and what openisd writes instead; the test fails if either side changes
-    // — including if openisd is fixed, at which point this block is deleted and the four keys
-    // move into the invariant list above.
-    for (const [key, winisd, ours] of [
-      ['Num', '0', '1'], ['dia1', '0', '0.102'], ['dia2', '0', '0.102'],
-      ['endcorrection', '0.6', '0.732'],
-    ] as const) {
-      contains(sampleLf, `${key}=${winisd}`, `WinISD's own [VentFront] ${key}`);
-      contains(s, `${key}=${ours}`,
-        `openisd's [VentFront] ${key} — if this now matches WinISD's ${winisd}, the phantom-vent ` +
-        `defect is FIXED: delete this block and move ${key} into the invariant list above ` +
-        `(bugs/BUG_20260820_wpr_writer_emits_phantom_vent_for_a_passive_radiator_project.md)`);
-    }
+  it('matches the WinISD-written vented-small golden on the populated [VentRear] block '
+    + '(Fb/Vb/carea, not just dia1/len)', () => {
+    // Scenario `vented-small` (test/fixtures/winisd-parity/scenarios.json): 20 L rear chamber
+    // tuned to 45 Hz through a 60 mm round port. [Box].Vr/Fr and [VentRear].Fb/Vb carry the
+    // SAME tuning — this is the redundant-copy case the bug asked to establish.
+    const sample = readFileSync(VENTED_SMALL_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
+    const s = toWpr({
+      project: { creator: 'johnl', createDate: '20260101', modifyDate: '20260101' },
+      driverSection: DRIVER_SECTION,
+      box: { bType: 1, Vr: 0.02, Fr: 45, SdRear: 0.00282743338823081 },
+      ventRear: { dia: 0.06, len: 0.172879854593916, Fb: 45, Vb: 0.02, carea: 0.00282743338823081 },
+      signal: { P: 1 },
+    }).replace(/\r\n/g, '\n');
+    assert.equal(extractSection(s, '[VentRear]'), extractSection(sample, '[VentRear]'),
+      '[VentRear] must match WinISD\'s populated-vent block exactly, including Fb/Vb/carea');
+  });
+
+  it('matches the WinISD-written bandpass4 golden on the populated [VentFront] block '
+    + '(Fb/Vb/carea, not just dia1/len)', () => {
+    // Scenario `bandpass4`: front chamber (35 L) is the vented one, tuned to 60 Hz through a
+    // 75 mm round port. [Box].Vf/Ff and [VentFront].Fb/Vb carry the SAME tuning.
+    const sample = readFileSync(BANDPASS4_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
+    const s = toWpr({
+      project: { creator: 'johnl', createDate: '20260101', modifyDate: '20260101' },
+      driverSection: DRIVER_SECTION,
+      box: { bType: 2, Vr: 0.02, Fr: 58.3392371416399, Vf: 0.035, Ff: 60, SdFront: 0.00441786466911065 },
+      ventFront: { dia: 0.075, len: 0.059906176972391, Fb: 60, Vb: 0.035, carea: 0.00441786466911065 },
+      signal: { P: 1 },
+    }).replace(/\r\n/g, '\n');
+    assert.equal(extractSection(s, '[VentFront]'), extractSection(sample, '[VentFront]'),
+      '[VentFront] must match WinISD\'s populated-vent block exactly, including Fb/Vb/carea');
+  });
+
+  it('matches the WinISD-written vented-b4 golden on the populated [VentRear] block '
+    + '(Fb/Vb/carea, not just dia1/len)', () => {
+    // Scenario `vented-b4`: 35 L rear chamber tuned to 36 Hz through a 75 mm round port —
+    // same port diameter as bandpass4 but a different tuning, so no row can be right by
+    // coincidence of one scenario's numbers.
+    const sample = readFileSync(VENTED_B4_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
+    const s = toWpr({
+      project: { creator: 'johnl', createDate: '20260101', modifyDate: '20260101' },
+      driverSection: DRIVER_SECTION,
+      box: { bType: 1, Vr: 0.035, Fr: 36, SdRear: 0.00441786466911065 },
+      ventRear: { dia: 0.075, len: 0.246406047145531, Fb: 36, Vb: 0.035, carea: 0.00441786466911065 },
+      signal: { P: 1 },
+    }).replace(/\r\n/g, '\n');
+    assert.equal(extractSection(s, '[VentRear]'), extractSection(sample, '[VentRear]'),
+      '[VentRear] must match WinISD\'s populated-vent block exactly, including Fb/Vb/carea');
   });
 
   it('sealed box (BType=0) has no ports and no PR body', () => {

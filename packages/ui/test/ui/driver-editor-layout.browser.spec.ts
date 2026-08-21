@@ -359,13 +359,14 @@ test('Dimensions: the rows are not spaced out', async ({ page }) => {
 });
 
 /**
- * The unit beside each field is WinISD's own spelling.
+ * The unit beside each field DEFAULTS to WinISD's own spelling.
  *
  * Read off the two reference captures of the real application:
  * docs/winisd_screenshots/edit_driver_pg2_parameters.png and edit_driver_pg3_advanced_parameters.png.
- * Rms/Rme read "Ns/m" while Mcost reads "kg/s" — the same physical dimension spelled two ways,
- * which is WinISD's choice and therefore ours: a user comparing the two panels side by side
- * must see the same text in both.
+ * Rms/Rme read "Ns/m" while Mcost reads "kg/s" — the same physical dimension spelled two ways.
+ * Ledger QO51: all three now carry a click-to-rotate `resistance` unit group (Ns/m <-> kg/s,
+ * factor 1) for consistency with every other toggleable field, so this table pins the DEFAULT
+ * a fresh load shows, not a fixed label — the toggle test below covers the rotation.
  */
 const WINISD_UNITS: Array<{ tab: string; label: string; unit: string }> = [
   { tab: 'Parameters', label: 'Cms', unit: 'mm/N' },
@@ -400,6 +401,39 @@ for (const tab of ['Parameters', 'Advanced parameters']) {
       return out;
     }, want.map(u => u.label));
     expect(got).toEqual(Object.fromEntries(want.map(u => [u.label, u.unit])));
+  });
+}
+
+/**
+ * Ledger QO51: Rms/Rme/Mcost's Ns/m <-> kg/s toggle is a relabel, never a rescale — the group's
+ * conversion factor is 1 for both spellings, so the number on screen must survive a full
+ * rotation byte-for-byte while the label alone rotates.
+ */
+const RESISTANCE_FIELDS: Array<{ tab: string; label: string; defaultUnit: string; otherUnit: string }> = [
+  { tab: 'Parameters', label: 'Rms', defaultUnit: 'Ns/m', otherUnit: 'kg/s' },
+  { tab: 'Advanced parameters', label: 'Rme', defaultUnit: 'Ns/m', otherUnit: 'kg/s' },
+  { tab: 'Advanced parameters', label: 'Mcost', defaultUnit: 'kg/s', otherUnit: 'Ns/m' },
+];
+
+for (const { tab, label, defaultUnit, otherUnit } of RESISTANCE_FIELDS) {
+  test(`${label}: the resistance unit toggle rotates the label and never the value`, async ({ page }) => {
+    await openEditor(page, tab);
+    const fld = page.locator('.de-body .de-fld', { has: page.locator('label', { hasText: label }) }).first();
+    const unit = fld.locator('.u').first();
+    const input = fld.locator('input').first();
+
+    await expect(unit).toHaveText(defaultUnit);
+    await input.fill('12.5');
+    await input.blur();
+    const before = await input.inputValue();
+
+    await unit.click();
+    await expect(unit).toHaveText(otherUnit);
+    await expect(input, `${label} changed value after the label rotated ${defaultUnit} -> ${otherUnit}`).toHaveValue(before);
+
+    await unit.click();
+    await expect(unit).toHaveText(defaultUnit);
+    await expect(input, `${label} did not round-trip back to ${before} after a full rotation`).toHaveValue(before);
   });
 }
 

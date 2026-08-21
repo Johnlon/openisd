@@ -16,23 +16,19 @@ import { reactive, computed, ref, shallowRef, watch, type ComputedRef } from 'vu
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { EngineDriver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { driverRecordProblems, OpenISDDriver, setActiveAlignment } from '@openisd/model';
-import type { Cell, MetaCell, SpecField, MetaField, _OpenISDDriverJson, _OpenISDProjectJson } from '@openisd/model';
+import type { Cell, SpecField, _OpenISDDriverJson, _OpenISDProjectJson } from '@openisd/model';
 import { ManagedOpenISDProject } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState, DriverJSON } from '../types.js';
 import type { OpenISDVent, OpenISDPassiveRadiatorRef } from '@openisd/model';
 import { parseChartTabId } from './series.js';
-import { nextToken, toDisplay, displayPrecision, unitDef, type UnitGroup } from './fields/units.js';
+import { nextToken, toDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
 import {
   solveVentGroup, ventSolveSuspended, suspendVentSolve,
   enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
   ventFieldState as ventFieldStateOn, type VentField, type VentEntryField,
   ventTargetUnreachable as ventUnreachableOn, ventMaxReachableFb as ventMaxReachableFbOn,
 } from './useVentGroup.js';
-import {
-  solvePrGroup, prTargetUnreachable as prUnreachableOn,
-  enterPrField as enterPrFieldOn, clearPrField as clearPrFieldOn,
-  prFieldState as prFieldStateOn, type PrField,
-} from './usePrGroup.js';
+import { solvePrGroup } from './usePrGroup.js';
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
 // written by App.vue's watch and restored by loadLocal() on mount. store.js does
 // not persist — it initialises to defaults; App.vue applies any saved state.
@@ -369,34 +365,11 @@ watch(
   { flush: 'sync', immediate: true },
 );
 
-/** Enter a PR-group field (target tuning or added mass) — held until explicitly cleared. */
-export function enterPrField(field: PrField, value: number): void {
-  enterPrFieldOn(state.P, field, value);
-}
-/** Clear a PR-group field — it becomes C if the other determines it, else N. */
-export function clearPrField(field: PrField): void {
-  clearPrFieldOn(state.P, field);
-}
-/** E / C / N for a PR-group field. */
-export function prFieldState(field: PrField): 'E' | 'C' | 'N' {
-  return prFieldStateOn(state.P, field);
-}
-/** True when the entered target tuning is not reachable by adding mass to this PR. */
-export function prTargetUnreachable(): boolean {
-  return prUnreachableOn(state.P);
-}
-
 if (typeof window !== 'undefined') {
   if (!(window as any).__store_instances) (window as any).__store_instances = [];
   if (!(window as any).__store_instances.includes(state)) {
     (window as any).__store_instances.push(state);
   }
-}
-
-/** Adopt a chosen driver into the CURRENT design — a library pick, an import, a file open.
- *  The box and everything else are left alone: choosing a driver is not opening a project. */
-export function loadDriverRecord(record: _OpenISDDriverJson): void {
-  managedProject.loadDriverRecord(record);
 }
 
 /** Load a driver from WinISD `.wdr` text. The `.wdr` is parsed as-read by the serialiser, then
@@ -418,12 +391,6 @@ export function clearDriverField(field: SpecField): void {
 export function driverCell(field: SpecField): Cell {
   void _version.value;
   return managedProject.cell(field);
-}
-
-/** A record-level metadata field (brand/model/manufacturer) from the EFFECTIVE driver. */
-export function driverMetaCell(field: MetaField): MetaCell {
-  void _version.value;
-  return managedProject.metaCell(field);
 }
 
 // The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
@@ -475,8 +442,6 @@ export function driverConsistencyIssues(): ConsistencyIssue[] {
   void _version.value;
   return managedProject.consistencyIssues();
 }
-// driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
-export const driverWarnings = computed<string[]>(() => driverErrors().map(e => e.message));
 
 export const syncedP = computed<SyncedParams>(() => {
   // Drive voltage: sqrt(Pin × Re) — matches WinISD reference-power convention.
@@ -538,7 +503,7 @@ export const maxData    = _max;
 // the sweep output so it's never a silently blank chart — surfaced through the same
 // issue channel as deriveEngineDriver's errors. Empty when the driver is invalid (no sweep)
 // or the sweep is clean.
-export const curveIssues = computed<DriverError[]>(() => {
+const curveIssues = computed<DriverError[]>(() => {
   const sw = _curves.value, mx = _max.value;
   if (!sw) return [];
   // classifyFinite: a singularity made the curve undrawable. classifyMaxFinite: the same
@@ -626,7 +591,7 @@ export function newProject(): void {
  * A refusal that only reaches the console is a silent data loss the user discovers later, so
  * it is surfaced: the app is running, and it says what it would not load and why.
  */
-export const restoreProblems = ref<string[]>([]);
+const restoreProblems = ref<string[]>([]);
 
 export function applyState(o: SerializedState): void {
   // ONE POISON PILL MUST NOT TAKE THE APP DOWN (ARCHITECTURE.md §"No single datum may take
@@ -715,10 +680,6 @@ export function cycleUnitToken(field: string, group: UnitGroup, baseToken: strin
  *  state.P — this only affects how values are DISPLAYED, never the stored (SI) design. */
 export function resetUnitTokens(): void {
   state.ui.unitTokens = {};
-}
-/** The current unit symbol shown for a field (its base unit until rotated). */
-export function unitLabelOf(field: string, group: UnitGroup, baseToken: string): string {
-  return unitDef(group, unitToken(field, baseToken)).label;
 }
 /** Format a CALCULATED (read-only) value in a field's currently-selected unit — the single
  *  source every skin uses to pair a readout with a <UnitToggle>. `si` MUST be the SI value

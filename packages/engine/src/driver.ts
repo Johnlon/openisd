@@ -166,8 +166,43 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     if (r.Qes == null && r.Qts != null && r.Qms != null && r.Qms > r.Qts) setVal('Qes', r.Qts * r.Qms / (r.Qms - r.Qts));
     if (r.Qms == null && r.Qts != null && r.Qes != null && r.Qes > r.Qts) setVal('Qms', r.Qts * r.Qes / (r.Qes - r.Qts));
 
-    // 3. Fs, Mms, Cms
-    if (r.Fs == null && r.Mms != null && r.Cms != null) setVal('Fs', 1 / (TAU * Math.sqrt(r.Mms * r.Cms)));
+    // 3. Fs — WinISD's five routes, tried in WinISD's own priority order
+    // (`docs/design/WINISD_SCHEMA.md` §4.3, `winisd_research/RE_GHIDRA_FINDINGS.md` "Fs
+    // priority settled STATICALLY" / "CONFIRMED in the UI"). WinISD's own calculation engine
+    // is ONE linear sequence of guarded blocks re-run to a fixpoint (`mov bl,1` / `test
+    // bl,bl; jne` in the disassembly) — address order is evaluation order, and EVERY block
+    // re-tests its target field for still-unset before writing it, so once any block sets
+    // `Fs` in a pass, every later block (this pass and every pass after) is permanently
+    // skipped, even a higher-priority one whose OWN inputs only become ready later. This is
+    // matched exactly here: `setVal` only writes a null field, so within one pass the
+    // earliest-listed ready route wins, and the loser is never revisited once `Fs` is set —
+    // not "the priority order always wins", but "the priority order wins races that are
+    // still live when this pass reaches them". A route whose inputs are still being derived
+    // (e.g. rel 11's `Cms`, computed in block 4 below, AFTER this block runs) can lose to a
+    // lower-priority route that was ready first — proven in WinISD itself by the `Cms`
+    // compute site (`0x45f6f7`, `winisd_research/scripts/relation_routes.py:40`) sitting
+    // AFTER the rel 11 Fs guard (`0x45f0d6`,
+    // `winisd_research/RE_GHIDRA_FINDINGS.md` "Fs priority settled STATICALLY") in address
+    // order, and pinned here by the "rel 2 locks out a not-yet-ready rel 11" test below.
+    // WinISD has no route deriving Fs from Rms/Qms/Mms; that direction is deliberately
+    // absent (see block 5 below).
+    if (r.Fs == null && r.Mms != null && r.Cms != null) {
+      setVal('Fs', 1 / (TAU * Math.sqrt(r.Mms * r.Cms)));                                  // rel 11
+    }
+    if (r.Fs == null && r.no != null && r.Qes != null && r.Vas != null && r.Vas > 0 && r.no > 0) {
+      setVal('Fs', Math.pow((r.no * r.Qes) / (efficiencyConstant(driverC(r)) * r.Vas), 1 / 3)); // rel 14
+    }
+    if (r.Fs == null && r.Qes != null && r.BL != null && r.Mms != null && r.Re != null && r.Mms > 0 && r.Re > 0) {
+      setVal('Fs', r.Qes * r.BL * r.BL / (TAU * r.Mms * r.Re));                            // rel 2
+    }
+    if (r.Fs == null && r.Rme != null && r.Qes != null && r.Mms != null && r.Mms > 0) {
+      setVal('Fs', r.Rme * r.Qes / (TAU * r.Mms));                                         // rel 4
+    }
+    if (r.Fs == null && r.EBP != null && r.Qes != null) {
+      setVal('Fs', r.EBP * r.Qes);                                                         // rel 12
+    }
+
+    // 3b. Mms, Cms from Fs — the reverse directions, unaffected by which Fs route fired.
     if (r.Mms == null && r.Fs != null && r.Cms != null) setVal('Mms', 1 / ((TAU * r.Fs) ** 2 * r.Cms));
     if (r.Cms == null && r.Fs != null && r.Mms != null) setVal('Cms', 1 / ((TAU * r.Fs) ** 2 * r.Mms));
 
@@ -176,18 +211,16 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     if (r.Cms == null && r.Vas != null && r.Sd != null && r.Sd > 0) setVal('Cms', r.Vas / (driverRho(r) * driverC(r) * driverC(r) * r.Sd * r.Sd));
     if (r.Sd == null && r.Vas != null && r.Cms != null && r.Cms > 0) setVal('Sd', Math.sqrt(r.Vas / (driverRho(r) * driverC(r) * driverC(r) * r.Cms)));
 
-    // 5. Rms, Fs, Mms, Qms
+    // 5. Rms, Fs, Mms, Qms — WinISD has no route deriving Fs from this triple (see block 3).
     if (r.Rms == null && r.Fs != null && r.Mms != null && r.Qms != null) setVal('Rms', TAU * r.Fs * r.Mms / r.Qms);
     if (r.Qms == null && r.Fs != null && r.Mms != null && r.Rms != null) setVal('Qms', TAU * r.Fs * r.Mms / r.Rms);
     if (r.Mms == null && r.Fs != null && r.Qms != null && r.Rms != null && r.Fs > 0) setVal('Mms', r.Rms * r.Qms / (TAU * r.Fs));
-    if (r.Fs == null && r.Mms != null && r.Qms != null && r.Rms != null && r.Mms > 0) setVal('Fs', r.Rms * r.Qms / (TAU * r.Mms));
 
-    // 6. Qes, Bl, Fs, Mms, Re
+    // 6. Qes, Bl, Fs, Mms, Re — Fs-from-this-quartet is rel 2, tried in block 3 above.
     if (r.Qes == null && r.Fs != null && r.Mms != null && r.Re != null && r.BL != null) setVal('Qes', TAU * r.Fs * r.Mms * r.Re / (r.BL * r.BL));
     if (r.Re == null && r.Qes != null && r.BL != null && r.Fs != null && r.Mms != null) setVal('Re', r.Qes * r.BL * r.BL / (TAU * r.Fs * r.Mms));
     if (r.BL == null && r.Qes != null && r.Re != null && r.Fs != null && r.Mms != null && r.Qes > 0) setVal('BL', Math.sqrt(TAU * r.Fs * r.Mms * r.Re / r.Qes));
     if (r.Mms == null && r.Qes != null && r.BL != null && r.Fs != null && r.Re != null && r.Fs > 0 && r.Re > 0) setVal('Mms', r.Qes * r.BL * r.BL / (TAU * r.Fs * r.Re));
-    if (r.Fs == null && r.Qes != null && r.BL != null && r.Mms != null && r.Re != null && r.Mms > 0 && r.Re > 0) setVal('Fs', r.Qes * r.BL * r.BL / (TAU * r.Mms * r.Re));
 
     // 7. Xmax / Hc / Hg relations
     // Precedence between the two Xmax routes is on the RESULT, not the route: WinISD prefers
@@ -217,7 +250,7 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
       setVal('Vd', r.Sd * r.Xmax);
     }
 
-    // 10. no, Fs, Qes, Vas
+    // 10. no, Fs, Qes, Vas — Fs-from-this-triple is rel 14, tried in block 3 above.
     if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null) {
       setVal('no', referenceEfficiency(r.Fs, r.Vas, r.Qes, driverC(r)));
     }
@@ -226,9 +259,6 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     }
     if (r.Qes == null && r.no != null && r.Fs != null && r.Vas != null && r.no > 0) {
       setVal('Qes', efficiencyConstant(driverC(r)) * (r.Fs ** 3) * r.Vas / r.no);
-    }
-    if (r.Fs == null && r.no != null && r.Qes != null && r.Vas != null && r.Vas > 0 && r.no > 0) {
-      setVal('Fs', Math.pow((r.no * r.Qes) / (efficiencyConstant(driverC(r)) * r.Vas), 1 / 3));
     }
 
     // 11. SPLref <-> no

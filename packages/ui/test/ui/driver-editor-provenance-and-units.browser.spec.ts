@@ -170,11 +170,8 @@ test('inspecting a field also colours the inputs its formula names', async ({ pa
 // ── 2. A calculated value can always be explained ───────────────────────────────────────
 
 /** Fields that carry the CALCULATED mark with no formula behind them.
- *  `c` and `roo` are the engine's air constants — nothing about the driver derives them.
- *  `Z` (Znom) is unresolved: the editor calls it "label only, not used in simulation" and still
- *  marks it calculated. Ledger QO52 decides which of the two is wrong; it is named here so the
- *  gap stays visible rather than being tolerated by a blanket skip. */
-const NO_FORMULA = new Set(['c', 'roo', 'Z']);
+ *  `c` and `roo` are the engine's air constants — nothing about the driver derives them. */
+const NO_FORMULA = new Set(['c', 'roo']);
 
 test('every field the solver calculated has a provenance formula', async ({ page }) => {
   await openEditor(page);
@@ -229,7 +226,7 @@ test('every field box encloses its own label, input and unit', async ({ page }) 
  *  quantity with no second unit in `fields/units.ts` — a field landing here that DOES have a
  *  group is a missing toggle, and the test says so rather than passing quietly. */
 const SINGLE_UNIT = new Set([
-  'ohm', 'Tm', 'W', 'dB', '%', 'Ns/m', 'H·√Hz', 'K/W', 'J/K', 'N/(A·kg)', 'N/√W', 'kg/s',
+  'ohm', 'Tm', 'W', 'dB', '%', 'H·√Hz', 'K/W', 'J/K', 'N/(A·kg)', 'N/√W',
 ]);
 
 test('every unit with alternates is a working toggle, and every other unit is a plain label', async ({ page }) => {

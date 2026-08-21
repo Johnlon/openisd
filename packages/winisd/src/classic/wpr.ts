@@ -11,12 +11,11 @@
  *   [ProjectInfo] [Driver] [Box] [VentFront] [VentRear] [VentIntra]
  *   [PlotSettings] [SignalSource] [Filters] [PassiveRadiator] [SimulatorOptions]
  *
- * ⚠ Verified only against the one in-repo sample (a passive-radiator project,
- * docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr). Sealed / vented / bandpass output follows
- * the documented schema but has no in-repo file to byte-diff against — notably sealed
- * [Box].Fr semantics. Default constants below (chamber losses, ambient, thermal, unused
- * vent boilerplate) are copied from that sample; where a value is undocumented, it matches
- * WinISD's own default so a produced file round-trips through WinISD unchanged.
+ * Verified against 15 WinISD Pro-written goldens under
+ * packages/winisd/test/fixtures/winisd-parity/goldens/, covering sealed, vented, bandpass, and
+ * passive-radiator projects (test/classic/wpr.test.ts). Default constants below (chamber
+ * losses, ambient, thermal, unused-vent boilerplate) match WinISD's own defaults so a produced
+ * file round-trips through WinISD unchanged.
  */
 
 export interface WprVent {
@@ -24,8 +23,28 @@ export interface WprVent {
   dia?: number;
   /** Physical vent length, metres. */
   len?: number;
-  /** End-correction coefficient (WinISD default 0.732 = one flanged + one free). */
+  /** End-correction coefficient (WinISD default 0.6, confirmed across the whole parity corpus). */
   endCorrection?: number;
+  /**
+   * Owning chamber's `[Box]` tuning/volume — front vent → `Ff`/`Vf`, rear → `Fr`/`Vr`.
+   * Confirmed against the whole parity corpus (vented-small, bandpass4, vented-b4 goldens):
+   * every populated vent's `Fb`/`Vb` equals its own chamber's `[Box]` tuning/volume, never an
+   * independent value. Not derived here — the caller already has the chamber tuning it wrote
+   * into `WprBox`, so it passes the SAME number through rather than this writer holding a
+   * second source of it. REQUIRED (not defaulted): unlike `endCorrection`, there is no
+   * evidenced WinISD default for a real vent's tuning/volume — a caller building a populated
+   * vent must supply its own chamber's numbers, or the type error forces the call site to be
+   * fixed rather than silently re-zeroing.
+   */
+  Fb: number;
+  Vb: number;
+  /**
+   * Vent cross-sectional area, m². For a round port this is `π·(dia/2)²`, confirmed against the
+   * corpus (0.06 m dia → 0.00282743338823081 m²). Physics derivation stays out of this
+   * formatter — the caller computes it once (the same value it may also write to
+   * `WprBox.SdFront`/`SdRear`) and supplies it here. REQUIRED for the same reason as `Fb`/`Vb`.
+   */
+  carea: number;
   /**
    * `crosscalc` — WinISD's own provenance flag for this vent: true when the cross-sectional
    * area is CALCULATED from the diameter, false when the area was entered directly.
@@ -134,20 +153,33 @@ function section(header: string, kv: Array<[string, string | number]>): string {
   return [header, ...kv.map(([k, v]) => `${k}=${v}`)].join('\n');
 }
 
-/** Unused/boilerplate vent section — WinISD writes all three even when a box doesn't use them. */
+/**
+ * WinISD writes all three vent sections even when a box has no vent of that kind (sealed,
+ * bandpass front/rear, passive radiator) — but an unused one is empty (`Num=0`, `dia1=0`,
+ * `dia2=0`, `endcorrection=0.6`), not a populated fake vent. `v` absent means the box has no
+ * vent there; `v` present means a real port, with `endcorrection` defaulting to WinISD's own
+ * 0.6 when the caller doesn't carry a design-specific value.
+ */
 function ventSection(header: string, v: WprVent | undefined): string {
-  const dia = v?.dia;
+  if (v == null) {
+    return section(header, [
+      ['Num', 0], ['Shape', 1], ['Fb', 0], ['Vb', 0],
+      ['dia1', 0], ['dia2', 0], ['carea', 0], ['len', 0],
+      ['endcorrection', 0.6], ['crosscalc', 1],
+    ]);
+  }
+  const dia = v.dia;
   return section(header, [
     ['Num', 1],
     ['Shape', 1], // 1 = round port (only shape in the corpus)
-    ['Fb', 0], // always 0 in corpus — tuning lives in [Box].Fr
-    ['Vb', 0],
-    ['dia1', dia == null ? 0.102 : num(dia)], // 0.102 = WinISD default port diameter
-    ['dia2', dia == null ? 0.102 : num(dia)],
-    ['carea', 0],
-    ['len', num(v?.len)],
-    ['endcorrection', v?.endCorrection == null ? 0.732 : num(v.endCorrection)],
-    ['crosscalc', v?.crossCalculated === false ? 0 : 1],
+    ['Fb', num(v.Fb)],
+    ['Vb', num(v.Vb)],
+    ['dia1', dia == null ? 0 : num(dia)],
+    ['dia2', dia == null ? 0 : num(dia)],
+    ['carea', num(v.carea)],
+    ['len', num(v.len)],
+    ['endcorrection', v.endCorrection == null ? 0.6 : num(v.endCorrection)],
+    ['crosscalc', v.crossCalculated === false ? 0 : 1],
   ]);
 }
 

@@ -28,7 +28,8 @@ export type UnitGroup =
   | 'inductance'
   | 'compliance'
   | 'velocity'
-  | 'density';
+  | 'density'
+  | 'resistance';
 
 /** Never show more than this many decimals in any unit — the resolution-preserving derivation
  *  (displayPrecision) would otherwise pile up meaningless trailing zeros for a much-coarser unit
@@ -122,6 +123,13 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = {
     { token: 'kgPerM3', label: 'kg/m³', factor: 1 },
     { token: 'gPerCm3', label: 'g/cm³', factor: 1e-3 },
     { token: 'lbPerFt3', label: 'lb/cu ft', factor: 0.06242796 },
+  ],
+  // Mechanical resistance. SI unit = N·s/m = kg/s exactly (kg·m·s⁻² / (m·s⁻¹) = kg·s⁻¹) — WinISD
+  // itself spells the same quantity both ways across its own screens (Rms/Rme "Ns/m", Mcost
+  // "kg/s"), so both tokens carry factor 1: the toggle changes only the label (ledger QO51).
+  resistance: [
+    { token: 'nsPerM', label: 'Ns/m', factor: 1 },
+    { token: 'kgPerS', label: 'kg/s', factor: 1 },
   ],
 };
 

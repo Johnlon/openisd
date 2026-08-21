@@ -427,7 +427,7 @@ function handleFileLoaded(e: Event) {
     if (!ok) return;
   }
 
-  void readDriverFileText(file).then(text => {
+  void readDriverFileText(file).then(({ text }) => {
     if (!text) return;
     try {
       // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
@@ -576,9 +576,9 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="Rms" :style="getFieldStyle('Rms')" title="Derived: Rms = 2π·Fs·Mms/Qms — suspension mechanical resistance.">
                 <label>Rms</label>
-                <NumInput :class="cellClass('Rms')" :model-value="cellVal('Rms')" :scale="1" :precision="4" @update:model-value="v => setNum('Rms', v)">
+                <NumInput :class="cellClass('Rms')" :model-value="cellVal('Rms')" field="Rms" group="resistance" base="nsPerM" :precision="4" @update:model-value="v => setNum('Rms', v)">
                 </NumInput><span v-if="dqNote('Rms')" class="de-dq" :title="dqNote('Rms')">&#9888;</span>
-                <span class="u">Ns/m</span>
+                <UnitToggle field="Rms" group="resistance" base="nsPerM" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Re" :style="getFieldStyle('Re')" title="DC voice coil resistance. WinISD: Re">
                 <label>Re</label>
@@ -672,7 +672,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                 <NumInput :class="cellClass('no')" :model-value="cellVal('no')" :scale="100" @update:model-value="v => setNum('no', v)"></NumInput><span v-if="dqNote('no')" class="de-dq" :title="dqNote('no')">&#9888;</span>
                 <span class="u">%</span>
               </div>
-              <div class="de-fld" data-field-key="Znom" :style="getFieldStyle('Znom')" title="Nominal impedance — label only, not used in simulation. WinISD: Znom.">
+              <div class="de-fld" data-field-key="Znom" :style="getFieldStyle('Znom')" title="Nominal impedance — derived from Re when not entered (Znom = 2 × round_half_to_even(0.75 × Re)); not fed back into the simulation. WinISD: Znom.">
                 <label>Znom</label>
                 <NumInput :class="cellClass('Znom')" :model-value="cellVal('Znom')" :scale="1" :precision="3" @update:model-value="v => setNum('Znom', v)">
                 </NumInput><span v-if="dqNote('Znom')" class="de-dq" :title="dqNote('Znom')">&#9888;</span>
@@ -738,8 +738,8 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="Rme" :style="getFieldStyle('Rme')" title="Motional electrical resistance at resonance — WinISD: Rme">
                 <label>Rme</label>
-                <NumInput :class="cellClass('Rme')" :model-value="cellVal('Rme')" @update:model-value="v => setNum('Rme', v)"></NumInput><span v-if="dqNote('Rme')" class="de-dq" :title="dqNote('Rme')">&#9888;</span>
-                <span class="u">Ns/m</span>
+                <NumInput :class="cellClass('Rme')" :model-value="cellVal('Rme')" field="Rme" group="resistance" base="nsPerM" @update:model-value="v => setNum('Rme', v)"></NumInput><span v-if="dqNote('Rme')" class="de-dq" :title="dqNote('Rme')">&#9888;</span>
+                <UnitToggle field="Rme" group="resistance" base="nsPerM" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="gamma" :style="getFieldStyle('gamma')" title="Motor figure of merit — WinISD: gamma">
                 <label>gamma</label>
@@ -753,8 +753,8 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="Mcost" :style="getFieldStyle('Mcost')" title="Cost-normalised motor figure of merit — WinISD: Mcost">
                 <label>Mcost</label>
-                <NumInput :class="cellClass('Mcost')" :model-value="cellVal('Mcost')" @update:model-value="v => setNum('Mcost', v)"></NumInput><span v-if="dqNote('Mcost')" class="de-dq" :title="dqNote('Mcost')">&#9888;</span>
-                <span class="u">kg/s</span>
+                <NumInput :class="cellClass('Mcost')" :model-value="cellVal('Mcost')" field="Mcost" group="resistance" base="kgPerS" @update:model-value="v => setNum('Mcost', v)"></NumInput><span v-if="dqNote('Mcost')" class="de-dq" :title="dqNote('Mcost')">&#9888;</span>
+                <UnitToggle field="Mcost" group="resistance" base="kgPerS" unit-class="u" />
               </div>
               <div class="de-fld value-c" data-field-key="EBP" :style="getFieldStyle('EBP')" title="Derived: EBP = Fs / Qes — Efficiency Bandwidth Product. Read-only, not entered directly. WinISD: EBP">
                 <label>EBP</label>
