@@ -1,7 +1,8 @@
 # The ParState writer emits `N` for the 34 slots the Driver does not model
 
 # Status
-OPEN (reverified 2026-08-14)
+RESOLVED — `WinISDDriver#parState()` (`packages/winisd/src/winisdDriver.ts:235-246`) now loops
+every `POS_TO_WDRKEY` slot and reads each cell's own state, not a 15-field hardcoded subset.
 
 
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts`.

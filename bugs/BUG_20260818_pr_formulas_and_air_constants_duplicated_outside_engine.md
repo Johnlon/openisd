@@ -1,15 +1,14 @@
 # PR T/S formulas and RHO/C air constants re-implemented outside the engine, one copy truncated
 
-Status: DEFERRED
-
 # Status
-OPEN 2026-08-18 — ruled, not yet implemented. Ruling reconfirmed 2026-08-20 (John): "the calcs
-MUST be implemented in the core engine — nowhere else permitted. the calcs are exposed to calls
-via the appropriate domain object via a getter that implements manual override handling with C
-fallback to the calc." Same shape as this bug's original ruling. Fix now tracked as part of
-docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md objectives 0+1 (OpenISDProject PR-accessor getter,
-engine holds the math). Deferred to that plan rather than fixed standalone — do not action this
-file separately, it will be closed when that plan's objectives 0+1 land.
+DEFERRED — the `useDesignIO.ts` half is resolved (it now calls `prCanonicalFromDatasheet()`,
+no local RHO/C literals — `grep -n "1.20095\|343.68" packages/ui/src/logic/useDesignIO.ts`
+returns nothing). The `prWinIsdFields.ts` half remains: `Math.sqrt(.../P.prCms)` still appears
+inline at lines 50, 56, 68, not behind a domain-class getter. Ruling reconfirmed 2026-08-20
+(John): "the calcs MUST be implemented in the core engine — nowhere else permitted... exposed
+via the appropriate domain object via a getter." Remainder tracked in
+`docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md` objectives 0+1 (OpenISDProject PR-accessor getter,
+engine holds the math) — not yet landed. Do not action this file separately.
 
 ## Symptom
 
@@ -77,4 +76,9 @@ call/re-implementation in `prWinIsdFields.ts`/`useDesignIO.ts` and replace with 
 
 ## Verification
 
-Not yet — no fix applied.
+Partial. `useDesignIO.ts` half: `grep -n "1.20095\|343.68" packages/ui/src/logic/useDesignIO.ts`
+returns nothing, and it now calls `prCanonicalFromDatasheet()` instead of re-deriving Mmd/Rms/Cms
+inline. `prWinIsdFields.ts` half: still open — `Math.sqrt(.../P.prCms)` remains inline at lines
+50, 56, 68, and no getter method on a domain class exposes these values per the ruling's actual
+requirement ("reachable ONLY as a getter"). Not fully verified; remainder tracked in
+`docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md` objectives 0+1.

@@ -1,4 +1,7 @@
-Status: OPEN
+Status: RESOLVED — `useDesignIO.ts:220` defines `numOrAbsent()` (returns `number | undefined`,
+never a literal default) and all sixteen sites (`bType`, `Vr`, `Vf`, `npr`, vent `dia`/`len`/
+`endCorrection`, PR `Sd`/`Xmax`/`Me`/`Vas`/`Fs`/`Qms`, `Ql`/`Qa`/`Qp`, `P`, `Rg`) now call it
+instead of `parseFloat(x || '<literal>')`.
 
 # `.wpr` import fabricates sixteen box/PR values when a key is absent
 
@@ -60,17 +63,23 @@ before anyone can act on it.
 
 ## Fix
 
-Not fixed. Absent must stay absent: the parse returns `undefined` for a key the file does not
-carry, and the caller decides — surface it, refuse the import, or leave the field genuinely
-unset — with an explicit, testable rule per field rather than a `||` literal. `BType`
-especially must never default: a `.wpr` with no box type is not a vented box, it is an invalid
-file.
+Applied. `numOrAbsent()` returns `undefined` for a key the file does not carry or carries
+empty; every former fabrication site now calls it. Per-field handling matches the fix's own
+prescription: `BType` (`useDesignIO.ts:227`) throws loudly when absent or unrecognised rather
+than defaulting to vented; the passive radiator is built only when all four of
+`Sd`/`Vas`/`Fs`/`Qms` are present (`hasPr`, line ~255) and throws if `BType=4` claims one but
+the data is missing; every other field (`Vb`/`Vf`/`Ql`/`Qa`/`Qp`/`Pin`/`Rs`/`ventD`/`ventL`/
+`endCorrection`/`prNum`) goes through `assign()`, which leaves the UI field untouched when
+absent instead of writing a literal.
 
 Interacts with the QO61 rewrite: this parse moves to `@openisd/winisd` as a raw reader
-(objective 2 of `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`), which is the natural place to
-make it return raw-or-absent rather than raw-or-invented.
+(objective 2 of `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`) — not yet done, but no longer
+blocking, since the raw-or-absent behaviour this bug required is already in place here.
 
 ## Verification
 
-N/A — open. Afterwards: importing a `.wpr` with `[PassiveRadiator]` removed must NOT produce a
-passive radiator, and importing one with no `BType` must fail loudly rather than open a vented box.
+`useDesignIO.ts:227-233` throws `'.wpr has no [Box] BType...'` when `bType` is `undefined`, and
+throws on an unrecognised `BType` value. `useDesignIO.ts:255-258` throws when `BType=4` but
+`hasPr` is false (Sd/Vas/Fs/Qms not all present) — a `.wpr` with `[PassiveRadiator]` removed
+does not produce a radiator. Not run under vitest this session (a full run was in progress);
+verified by direct code inspection.

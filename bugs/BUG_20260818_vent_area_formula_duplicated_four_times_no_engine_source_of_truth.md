@@ -1,7 +1,10 @@
 # Vent cross-sectional area (`π·(ventD/2)²`) is computed inline in 4 places, no single engine formula
 
 # Status
-OPEN
+RESOLVED — `ventArea_m2()` (`packages/model/src/openisdProject.ts:321`) is the single source;
+`wprMapping.ts`, `OriginalShell.vue`, `useVentGroup.ts` and `store.ts` all call
+`managedProject.ventArea_m2()` (or the model function directly).
+`grep -rn "Math.PI \* (.*ventD" packages/ui/src` returns nothing.
 
 ## Symptom
 
@@ -42,4 +45,9 @@ patch that keeps four call sites independently calling a shared function.
 
 ## Verification
 
-Not yet — no fix applied.
+Fixed, per the ruling's actual shape (a getter on `ManagedOpenISDProject`, not a bare
+`@openisd/engine` function): `ventArea_m2()` lives once in
+`packages/model/src/openisdProject.ts:321`, and all four former call sites now read
+`managedProject.ventArea_m2()` (`wprMapping.ts`, `OriginalShell.vue`, `store.ts`) or the model
+function directly (`useVentGroup.ts`). `grep -rn "Math.PI \* (.*ventD" packages/ui/src` returns
+nothing.

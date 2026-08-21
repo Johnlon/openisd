@@ -1,7 +1,9 @@
 # `ManagedProject`'s edit-draft lifecycle (`beginEdit`/`commitEdit`/`cancelEdit`) is dead in production — driver-field edits go straight to committed state, uncancellable
 
 # Status
-OPEN 2026-08-18 — ruled, not yet implemented
+RESOLVED — `beginEdit`/`commitEdit`/`cancelEdit`/`isEditActive` no longer exist in
+`packages/ui/src/logic/managedProject.ts` or its test file (grep for all four returns nothing);
+only the `whatif` overlay kind remains.
 
 ## Symptom
 
@@ -84,4 +86,8 @@ Not applied here — reported/ruled per bug-first rule, implementation is separa
 
 ## Verification
 
-Not yet — no fix applied.
+Code deletion applied: `grep -n "beginEdit\|commitEdit\|cancelEdit\|isEditActive"
+packages/ui/src/logic/managedProject.ts packages/ui/test/logic/managedProject.test.ts` returns
+nothing. Doc cleanup (the fix's own 4th bullet) is NOT done: `managedProject.ts:13` still reads
+"overlay — an edit draft OR a what-if" and line 355 still says "an open edit draft stays
+silent" — both describe a mechanism that no longer exists in the code.

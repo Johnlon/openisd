@@ -1,7 +1,9 @@
 # BUG — OpenISDDriver hands the engine `Hc_mm`/`Hg_mm` in millimetres, so every field derived from motor geometry is lost
 
 # Status
-OPEN 2026-08-14
+RESOLVED (SI migration) — `_SpecSection` fields are now SI-native (`Hc`, `Hg`, no `_mm` suffix,
+`packages/model/src/openisdDriver.ts:227`); `#stated()` (line 511) copies keys straight through
+with no `TO_ENGINE`/`engineName` translation table, because none is needed any more.
 
 ## Symptom
 

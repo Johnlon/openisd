@@ -1,7 +1,9 @@
 # The "returns a private _Name" arch gate misses a `computed<T>()` call's generic type argument
 
 # Status
-OPEN
+RESOLVED — `store.ts:415` now declares `export const driverRecord: ComputedRef<DriverJSON |
+undefined> = computed(...)`: an explicit type annotation (closing the gate gap) naming the
+public `DriverJSON` shape, not the private `_OpenISDDriverJson` (closing the leak itself).
 
 ## Symptom
 
@@ -34,4 +36,12 @@ which is human-edit-only, or give the io boundary a public type).
 
 ## Verification
 
-Not yet — no fix applied.
+The specific leak is closed, not merely made gate-visible: `store.ts:415` now reads
+`driverRecord: ComputedRef<DriverJSON | undefined>` — a public type, so nothing leaks. The
+gate's general mechanism gap is NOT closed: `architecture.test.ts:761` still reads only
+`decl.getTypeNode()` and does not walk a `computed<T>()`/`ref<T>()` call expression's generic
+argument. Two other unannotated instances remain in the tree
+(`packages/ui/src/logic/driverLibrary.ts:125,240` — `ref<_OpenISDDriverJson[]>`,
+`computed<_OpenISDDriverJson[]>`), currently invisible to this gate, though neither is an
+`export const` so the variable-statement check would not reach them even if it walked generics
+— out of this specific bug's scope, not re-investigated here.

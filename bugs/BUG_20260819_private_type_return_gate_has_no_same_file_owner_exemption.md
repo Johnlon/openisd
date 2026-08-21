@@ -1,7 +1,11 @@
 # The "returns a private _Name" arch gate has no same-file-owner exemption, and managedProject.ts has three real cross-file leaks
 
 # Status
-PARTIAL — gate fixed (item 1), application leak open as QO59 (item 2)
+RESOLVED — item 1 (`ownedHere` same-file exemption) is in the gate
+(`architecture.test.ts:735-736`). Item 2's three offending methods no longer exist under public
+names: `managedProject.ts` now has `_snapshot()` (line 336) and `_projectToPersist()` (line 367,
+renamed from `recordToPersist`); `groundRecord` was deleted entirely. The gate skips any
+class member `name.startsWith('_')` (`architecture.test.ts:770`), so 0 offences remain.
 
 ## Symptom
 

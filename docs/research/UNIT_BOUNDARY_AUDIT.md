@@ -108,9 +108,9 @@ surfaced it.)_
 ### ⚠ INERT F4 — `fLe`'s registry bound is in HERTZ under a `kHz` label
 
 `fieldRegistry.ts:397` declares `fLe … unit: 'kHz', min: 0, max: 100`, and its own description says
-**"STORED IN HERTZ"**. Registry bounds are SI for a `modeled: true` field
-(`fieldRegistry.ts:45-52`), so `max: 100` is **100 Hz = 0.1 kHz** — below any real fLe (typ.
-0.5–2 kHz).
+**"STORED IN HERTZ"**. `fLe` has no `field=` binding (below), so its bound is documentation in
+its own `unit` column (`fieldRegistry.ts:48-53`) — `unit: 'kHz'` means `max: 100` should read
+100 kHz, but the value is actually **100 Hz = 0.1 kHz** — below any real fLe (typ. 0.5–2 kHz).
 
 **Inert today**: the binding is `<NumInput :class … :model-value="cellVal('fLe')" :scale="1e-3"
 :precision="precision('fLe')">` (`DriverEditorModal.vue:563`) with **no `field=` prop**, and
@@ -157,7 +157,7 @@ gates the fields that _do_ bind `precision('…')`.
 | ---------------------------- | ----------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `advPressure`                | `unit: 'kPa'`, precision 2                            | **Pa**, precision 1          | `OriginalShell.vue:1439` and `OptionsModal.vue:194` both bind `group="pressure" base="Pa" :precision="1"`. WinISD also shows Pa (S-6, `101325.0`). The registry string is the odd one out. |
 | `Hc`, `Hg`, `Xlim`           | `unit: 'm'`                                           | **mm** (`:scale="1000"`)     | `DriverEditorModal.vue:585, 588, 599`.                                                                                                                                                     |
-| `Gloss`, `SPLmaxLF`, `Mcost` | `modeled: false` + _"formula has NOT been recovered"_ | the engine derives all three | `packages/engine/src/driver.ts:289` (`loss`), `:296-298` (`SPLmaxLF`), `:309-310` (`Mcost`).                                                                                               |
+| `Gloss`, `SPLmaxLF`, `Mcost` | resolved — the `modeled` flag is deleted (D3) and each entry now carries a `formula:` (`fieldRegistry.ts:413, 418-419`) | the engine derives all three | `packages/engine/src/driver.ts:289` (`loss`), `:296-298` (`SPLmaxLF`), `:309-310` (`Mcost`).                                                                                               |
 
 ### ❔ F9 — oracle warning: do NOT use `sample_project_Epique15_-_pr.wpr` as a `Gloss` oracle
 
@@ -484,6 +484,8 @@ is the token quoted beside it — a `field="…"` attribute, a `cellVal('…')` 
 3. **F3** — pass `Rs`, `alfaVC` and `vcTempRise` through `wprMapping.ts` instead of the literals.
 4. **F4/F5** — correct the two registry bounds to the unit the comment beside them already names,
    _before_ anyone adds the `field=` prop that would activate them.
-5. **F8** — bring the six registry `unit:`/`modeled:` strings back in line with the code.
+5. **F8** — bring the remaining registry `unit:` strings (`advPressure`, `Hc`, `Hg`, `Xlim`) back
+   in line with the code; the `Gloss`/`SPLmaxLF`/`Mcost` row is resolved (D3 deleted `modeled`
+   and each now carries a `formula:`).
 6. A gate in the shape of `driver-editor-units.test.ts` for the `.wpr` writer and the Original
    shell's unit-group bindings would have caught F1 and F4 mechanically.

@@ -1,7 +1,8 @@
 # `USPL` and `SPLmax` use formulas WinISD does not — the 2.83 V literal, and a 3 dB derating
 
 # Status
-BLOCKED 2026-08-13 — needs a human ruling
+RESOLVED — `packages/engine/src/driver.ts:259-268,313-314` uses `SPL ?? SPLref` as base,
+`2.83*2.83`, and a flat `-3` derating, matching `docs/spec/SPEC_ENGINE.md` §1.2.
 
 
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts`.

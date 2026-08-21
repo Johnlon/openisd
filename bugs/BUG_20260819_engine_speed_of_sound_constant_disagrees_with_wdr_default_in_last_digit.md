@@ -1,7 +1,10 @@
 # `C` constant disagrees with `.wdr` default in last digit
 
 # Status
-OPEN
+RESOLVED — neither `packages/engine/src/constants.ts` nor `packages/winisd/src/winisdDriver.ts`
+defines a hardcoded `RHO`/`C` literal any more (both greps empty); `driver.ts` no longer
+imports `RHO`/`C` at all. `c`/`roo` are now computed live via CIPM-2007
+(`packages/engine/src/air.ts`), which moots the "which frozen digit" question this bug raised.
 
 ## Symptom
 

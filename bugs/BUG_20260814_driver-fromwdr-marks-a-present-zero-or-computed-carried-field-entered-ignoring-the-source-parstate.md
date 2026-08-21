@@ -1,7 +1,9 @@
 # `Driver.fromWdr` marks a present carried field Entered, ignoring what the source ParState says
 
 # Status
-OPEN 2026-08-14
+RESOLVED — `Driver.fromWdr`/`WDR_META` no longer exist. `WinISDDriver.fromWdrIni()`
+(`packages/winisd/src/winisdDriver.ts:155-198`) reads each key's state directly from the
+source ParState slot (`parState[pos]`), never inventing `E` from presence.
 
 
 **Found** 2026-08-14, implementing Step 8 (`WinISDDriver`) and its comprehensive ParState fix —

@@ -1,7 +1,7 @@
 # `prFsWithMassDisplay` is exported and documented but has zero callers, unlike its three siblings
 
 # Status
-FIXED (2026-08-21)
+RESOLVED (2026-08-21) — `PREditModal.vue:4,23` imports and calls `prFsWithMassDisplay`.
 
 ## Symptom
 
