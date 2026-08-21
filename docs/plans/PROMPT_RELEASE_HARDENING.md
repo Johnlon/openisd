@@ -43,7 +43,8 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
    the three `ARCHITECTURE.md` corrections.
 5. `questions.yml` in openisd, the workspace root, and winisd_tools — the `answer:` blocks
    carry the human's verbatim rulings of 2026-08-21 and are the authority for every decision
-   below. One question remains OPEN: the coax item (see R2/D4).
+   below. Two remain OPEN by design: QO65 (coax, task D4) and QO64 (the box-wizard build
+   request, Lane G).
 6. `bugs/*.md` in openisd and winisd_tools.
 7. `winisd_research/COMMENT_ENCODING.md` and `winisd_research/PARSTATE_ABSENT.md` — measured
    facts from the real WinISD under wine (2026-08-21). PARSTATE_ABSENT.md **confirms** the
@@ -58,8 +59,9 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 - eslint 0 problems; typecheck (tsc ×3 + vue-tsc) clean.
 - Last commits: openisd `9c0f26e`, winisd_tools `00a8fdf9`, winisd_research `20747a6`,
   winisd_drivers `340cbbca5`. All four trees clean; R1 is done.
-- The ledger has TWO entries numbered `QO62` (a closed encoding ruling + the human's OPEN coax
-  question). `inbox.py get QO62` reaches only the first — tasks R2 and R3.
+- Ledger ids are UNIQUE again (repaired 2026-08-21): the human's open coax question is QO65,
+  the wizard build request is QO64. `inbox.py add` is STILL BROKEN — it collided a third time
+  (minted QO63 over an existing QO63) — task R3.
 
 ## The rulings of 2026-08-21 (the ledger answers are authoritative)
 
@@ -118,12 +120,12 @@ never improvise around it.
       Diagnose the actual cause (read the minting code — do not guess; likely it scans only
       open entries or one ledger). Next id must be max over ALL entries, open and closed, in
       the target ledger. Record the defect before fixing (commit message in `~/.claude` at
-      minimum). Done: `add` after a close mints a fresh id; demonstrate once. Then R2 renumbers
-      the coax question with the FIXED tool.
+      minimum). Done: `add` after a close mints a fresh id; demonstrate once. It has now
+      collided THREE times (QO61, QO62, QO63 — the third while adding the wizard item), so the
+      failure reproduces on demand.
 - [x] **R1** Commit the wine-probe results in `winisd_research` — DONE, commit `20747a6`.
-- [ ] **R2** Renumber the human's OPEN coax question (second `QO62`) to the next free QO id so
-      it is reachable; content verbatim-preserved. Done: `inbox.py get <newid>` returns it;
-      exactly one `QO62` remains in the file.
+- [x] **R2** DONE 2026-08-21: the coax question is `QO65`, the wizard build request `QO64`;
+      every QO id verified unique.
 - [ ] **R4** `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`: strike the "QO56 hazard" clause
       (QO63: single writer). `packages/ui/src/logic/useDesignIO.ts`: delete the stale comment
       citing QO55 as blocking (QO55 is implemented). Done: grep for both returns nothing.
@@ -199,7 +201,8 @@ never improvise around it.
       `model_copy` hole, `scrapers/bin/recompute_dispositions.py`; re-examine
       `_THIN_RECORD_DISPOSITIONS`. Annotate QT37/QT40 as overturned. Blocked-by: B3. Done: the
       253+112 contradictory states are unrepresentable; pytest green.
-- [ ] **B5b** SI DIMENSION KEYS (prod blocker,
+- [ ] **B5b** SI DIMENSION KEYS — **CRITICAL (human, 2026-08-21: "SI migration is critical
+      make sure its done")** (prod blocker,
       `bugs/BUG_20260819_record_stores_dimension_fields_in_mm_litres_instead_of_si.md`): the
       TS side reads SI field names but real on-disk records still carry the old mm/litre keys
       and `fromJsonRecord` does no remap — 10 dimension fields silently lost on read. Fix
@@ -228,10 +231,15 @@ never improvise around it.
 - [ ] **B9** QT8: harvest EVERY run's bubble artifacts into `winisd_drivers/_workingout/<tool>/`
       before discard; propose a retention rule to the human. Parallel-safe. Done: a test run
       leaves artifacts; a failed run leaves artifacts.
-- [ ] **B10** **THE REGENERATION (H1)** — single emit re-run over every record. Blocked-by:
-      B1, B2, B3, B4, B5 (shape) and B6–B8 landed. Done: 0 records carry the old
-      brand-"decides the record's folder" string (was 3,989); spot-check new fields present;
-      pytest + db-conformance green.
+- [ ] **B10** **THE REGENERATION (H1)** — single emit re-run over every record. The whole of
+      Lane B is the programme recorded in
+      `winisd_tools/bugs/BUG_20260821_emitted_records_lag_the_openisd_model_and_the_cohort_needs_re_emission.md`:
+      the emit phase is made COMPATIBLE with the latest openisd model, then the cohort is
+      re-emitted ONCE (human, 2026-08-21). Blocked-by: B1, B2, B3, B4, B5, B5b and B6–B8
+      landed. Done: 0 records carry the old brand-"decides the record's folder" string (was
+      3,989); a randomly sampled regenerated record loads through
+      `OpenISDDriver.fromJsonRecord` with ZERO dropped fields (all 10 dimension fields present
+      under SI keys); new meta fields present; pytest + db-conformance green.
 - [ ] **B11** Rebuild openisd's drivers bundle (collects B10 and QT52's pending 1912→1526
       reduction). Blocked-by: B10, A7 (bundle shape). Done: bundle loads; picker spec green.
 
@@ -263,14 +271,14 @@ never improvise around it.
 - [ ] **D3** Delete the inert `modeled` flag (95 registry entries, zero readers) — flag to the
       reviewer that wiring-instead-of-deleting is the alternative if any design doc claims a
       future consumer. Done: property gone; typecheck green.
-- [ ] **D5** FS ROUTES (prod blocker,
+- [ ] **D5** FS ROUTES — **CRITICAL (human, 2026-08-21: ordered fixed)** (prod blocker,
       `bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md`):
       the engine's Fs derivation misses two of WinISD's routes, has one WinISD does not, and
       orders priorities differently — a round-tripped `.wdr` can invent or omit Fs marks.
       Re-verify the route inventory against the bug's evidence, implement the missing routes in
       `@openisd/engine` (nowhere else), delete the spurious one, and pin with parity tests.
       Done: parity suite green on the Fs scenarios.
-- [ ] **D4** COAX (the human's open question, renumbered in R2): `OpenISDDriver` locks to the
+- [ ] **D4** COAX (the human's open question, `QO65`): `OpenISDDriver` locks to the
       woofer section only. INVESTIGATE and propose: what breaks for a coax record (tweeter/
       passive-radiator sections), what the model change is, and whether it is release scope —
       then ASK THE HUMAN. Do not build without the ruling. Done: proposal delivered, ruling
@@ -306,7 +314,9 @@ never improvise around it.
 
 ## Lane G — explicitly OUT of release scope (one line each, do not start)
 
-- Box wizard / alignment-driven sizing (H5): feature gap, reverse-engineering campaign planned.
+- Box wizard / alignment-driven sizing (H5): feature gap; standing build request recorded as
+  ledger item **QO64** (2026-08-21) with the full scope and the reverse-engineer-first
+  constraint — it stays open until built, so it cannot fall between the cracks.
 - Curve digitiser (QT7): human deferred — "we can do curve scraping later".
 - Precision-maths migration build-out (QP19): dependency ruling made; the migration itself is
   its own campaign (`MATH_MIGRATION.md`) — only the engine "zero dependencies" text change
