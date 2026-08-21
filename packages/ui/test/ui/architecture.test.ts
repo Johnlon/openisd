@@ -456,7 +456,7 @@ describe('only the three approved stores hold state', () => {
     join(UI_SRC, 'logic', 'store.ts'),
     join(UI_SRC, 'logic', 'managedProject.ts'),
     join(UI_SRC, 'logic', 'presentationState.ts'),   // not built yet — see ARCHITECTURE.md
-    join(UI_SRC, 'logic', 'urlAppState.ts'),         // not built yet — see ARCHITECTURE.md
+    join(UI_SRC, 'logic', 'urlAppState.ts'),
   ];
   const REACTIVE_FACTORIES = new Set(['ref', 'shallowRef', 'reactive', 'shallowReactive']);
 
@@ -602,6 +602,11 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
  * judgement, however legitimate a call site looks. A failing test naming a new offender is
  * the correct, expected result, not authorization to widen the list to make it pass.
  */
+// TESTS ARE EXEMPT from the privacy rules (human ruling, QO68, 2026-08-21: "tests are
+// generally exempt from the privacy rule" / "update the test to allow test access to _").
+// Every privacy scan set below is built from src/ roots ONLY — a test file may name a
+// _-prefixed export or a _-prefixed class member without a PrivateAllow entry. Widening any
+// of these scans to test directories would revoke that ruling and needs the human.
 const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC)];
 const REPO_ROOT = join(UI_SRC, '..', '..');
 
@@ -797,20 +802,26 @@ describe('an export typed as a private _Name must itself be _-prefixed', () => {
  * `openProjects()` and `focusedProject()`. Everything else in `store.ts`'s state surface must
  * become a method/getter on the focused project object instead of a free module export.
  *
- * Scoped to `store.ts` specifically, not every file under `packages/ui/src` — the ruling
- * targets STATE (store.ts's ~40-export surface), not every exported type/enum/component prop
- * in the whole UI codebase; blanket-scanning every module would flag thousands of legitimate,
- * unrelated exports. Extend `SCANNED_FILES` below deliberately, file by file, only once a
- * specific module is confirmed to hold state that should be gated the same way — never widen
- * it to "everything" in one shot.
+ * Human ruling (QO72, 2026-08-21, verbatim): "remove the scanned file list now and make scan
+ * all - potentially I will need to grant individual global[s] on individual files. if I do that
+ * then I need a correlation to ensure that anything I grant actually exists and if its gone then
+ * delete the grant." Scope is now every production file (`ALL_SRC_FILES`, defined above), no
+ * allowlist — the prior `SCANNED_FILES` mechanism this superseded existed specifically to avoid
+ * that breadth (see the deleted comment in git history), which the human has now overruled.
+ * A file with no `ALLOWED_GLOBALS` of its own and any top-level export is therefore an offence
+ * on day one for most of the tree — expected, per the same "fails loudly, the list IS the
+ * checklist" precedent QO52 already established, not a bug in the gate.
+ *
+ * The "correlation" half of the ruling: a name in a file's `ALLOWED_GLOBALS` is a GRANT, and a
+ * grant for an export that no longer exists (renamed or deleted) is stale and must fail too —
+ * `allowedButNotExported` below — so a human can find and delete it, rather than it sitting
+ * inert and unnoticed forever.
  *
  * Same `ALLOWED_GLOBALS` mechanism as `PrivateAllow` above: a module declares its own
- * `export const ALLOWED_GLOBALS = [...]`, co-located, human-edit-only. This test is EXPECTED
- * to fail loudly the day it lands and until the openProjects()/focusedProject() migration is
- * complete — that failure list is the migration's own checklist (REVIEW.md).
+ * `export const ALLOWED_GLOBALS = [...]`, co-located, human-edit-only.
  */
-describe('module-level globals — only openProjects()/focusedProject() are legal', () => {
-  const SCANNED_FILES = [join(UI_SRC, 'logic', 'store.ts')];
+describe('module-level globals — every export must be an explicit, currently-real grant', () => {
+  const SCANNED_FILES = ALL_SRC_FILES;
 
   /** Every top-level `export const|function|class NAME` in a file — same declaration shape as
    *  `declaredExportedPrivateNames()` above, but without requiring a leading underscore. */
@@ -856,5 +867,20 @@ describe('module-level globals — only openProjects()/focusedProject() are lega
       'project object, be deleted outright, or — only with the human\'s own edit — be added ' +
       'to ALLOWED_GLOBALS with a one-line justification. An agent may never widen ' +
       'ALLOWED_GLOBALS itself to make this test pass.');
+  });
+
+  it('every name granted in ALLOWED_GLOBALS still corresponds to a real export (QO72 correlation)', () => {
+    const offences = SCANNED_FILES.flatMap(f => {
+      const exported = new Set(topLevelExportsOf(f));
+      return allowedGlobalsOf(f)
+        .filter(name => !exported.has(name))
+        .map(name => `${rel(f)} lists ${name} in ALLOWED_GLOBALS, but no such export exists`);
+    });
+
+    assert.deepEqual(offences, [],
+      'A grant naming an export that no longer exists (renamed or deleted) is stale (QO72, ' +
+      'human: "if I grant [something] I need a correlation to ensure that anything I grant ' +
+      'actually exists and if its gone then delete the grant"). Delete the stale name from ' +
+      'that file\'s own ALLOWED_GLOBALS — human-edit-only, same as adding one.');
   });
 });

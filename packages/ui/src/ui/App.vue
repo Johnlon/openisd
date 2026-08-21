@@ -29,7 +29,7 @@ let saveReady = false;
 // answer to the same question the moment either drifted from the other on restore.
 const { live } = createLiveRef(managedProject);
 watch(
-  () => { void live.value; return serialize(state, presentationState, driverRecord.value, managedProject.toUiParams()); },
+  () => { void live.value; return serialize(state.box, state.project, presentationState, driverRecord.value, managedProject.toUiParams()); },
   (s) => { if (saveReady) saveLocal(s); },
   { deep: true },
 );

@@ -6,8 +6,8 @@
  * off `window` (rather than module-scope) makes the value survive the module object itself
  * being replaced.
  *
- * `namespace` is the calling module's own name (`store`, `presentationState`, and — once it
- * lands — `urlAppState`). Every caller shares one `window` property, so a bare key (`'state'`,
+ * `namespace` is the calling module's own name (`store`, `presentationState`). Every caller
+ * shares one `window` property, so a bare key (`'state'`,
  * `'_version'`) from two different stores would silently collide and hand one store's
  * singleton back to the other; the namespace makes that structurally impossible instead of
  * relying on every module picking a unique-enough key by convention.

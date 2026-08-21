@@ -1,5 +1,5 @@
 prefix: QO
-next: 73
+next: 74
 questions:
 - id: QO1
   title: UI TODO List
@@ -5798,15 +5798,9 @@ questions:
   answer:
     at: '2026-08-21'
     text: |-
-      ALREADY RESOLVED — re-verified 2026-08-21. The rewrite the note called "NOT DONE" has landed.
-      `fromOpenISDRecord`, `fromOpenISDDriver`, `deriveOpenISDFields` and `toRecord` are all gone from
-      packages/winisd/src (zero grep hits each). WinISDDriver's only constructors are
-      `build(header, cells, dqLines)` and `fromWdrIni(text)`, whose docstring states "This performs NO
-      derivation". `deriveOpenISDFields` now lives in packages/model/src/openisdDerive.ts. The
-      getter-fed sequence the ruling demanded is OpenISDDriver.toWinISDDriver() — a loop over INI_ROWS
-      calling this.cell(), plus metaCell()/description()/dqMarks(), then WinISDDriver.build().
-      Also moot: bugs/BUG_20260818_fromOpenISDRecord_does_not_exist_9_call_sites_broken.md — that name
-      no longer exists repo-wide.
+      Verified 2026-08-21: WinISDDriver now imports nothing from @openisd/model, holds no state,
+      derives nothing — build() only, caller (OpenISDDriver) feeds it from its own getters.
+      1302 tests pass. Ruling satisfied. Closing.
 - id: QO56
   title: 'Sequencing risk: workspace.ts deletion before its replacement exists (openisd)'
   status: decided
@@ -6244,9 +6238,32 @@ questions:
     AND project formats, with the decode gate reading it. The local regex is the recorded interim seam
     (chosen during QO62''s C1 implementation because extending DriverFileFormat would drag .wpr into the
     save picker''s ACCEPT semantics). An agreement test pins the two classifiers together in the interim.'
-  status: open
+  status: decided
   raised: '2026-08-21'
   body: ''
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN RULING, verbatim (2026-08-21):
+      "I believe we need distinct pathways for project and driver, the project should reuse the same
+      serialisation for it's driver subsection routine as driver path uses, you can combine the two
+      bodies of code into a single fileformat file for convenience if it's useful"
+      "we should probably eliminate on of those files and dedupe logic to the greatest extent"
+      And, correcting the first recording attempt:
+      "No not unified - separate paths for friver and proj - but shared code in a single file"
+
+      DECIDED:
+      - SEPARATE pathways for driver and project. Two format models stay distinct — a driver format
+        is not a project format, and neither list is merged into one enum. .wpr can never leak into
+        the driver save picker because it is not in the driver model at all.
+      - SHARED CODE, ONE FILE: both models and the code common to them (extension classification,
+        the legacy-classic-WinISD test that gates the QO62 CP1252 fallback, MIME/label plumbing)
+        live together in a single fileformat file. driverFileText.ts's private isLegacyWinisdFormat
+        regex is eliminated — the decode gate calls the shared code, so the set of known extensions
+        is written down once. Dedupe to the greatest extent.
+      - The PROJECT path REUSES the driver path's serialisation for its [Driver] subsection — one
+        serialiser produces the [Driver] block whether it goes into a .wdr or is embedded in a .wpr
+        (WinISDDriver.toWdr() is that single producer today; keep it so).
 - id: QO68
   title: 'Ruling needed: is ManagedOpenISDProject._projectToPersist() (renamed from recordToPersist during
     the private-type-gate work) a genuine encapsulation fix or a rename around the gate? The gate skips
@@ -6257,9 +6274,28 @@ questions:
     (a) bless as genuine private (add the test call sites to a ManagedProjectPrivateAllow list so the
     convention is enforced, not assumed); (b) judge it a gate-silencing rename and demand the real boundary
     reshape. PrivateAllow lists are human-edit-only, so either way this is yours.'
-  status: open
+  status: decided
   raised: '2026-08-21'
   body: ''
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN RULING, verbatim (2026-08-21): "tests are generally exempt from the privacy rule"
+
+      DECIDED: option (a), on that general principle — the rename is BLESSED as a genuine private.
+      `_` is the codebase's class-private convention, no production caller outside managedProject.ts
+      reaches _projectToPersist()/_snapshot(), and the 20+ cross-file reaches are all in
+      packages/ui/test/logic/, which the ruling exempts. Not a gate-silencing rename.
+
+      STANDING PRINCIPLE this establishes, wider than QO68: test files are GENERALLY exempt from the
+      privacy rule. A privacy gate should scope its scan to production source (or exempt test paths),
+      rather than tests needing per-name PrivateAllow entries. "Generally" is the human's word —
+      a test reaching private state to FABRICATE an impossible situation is still worth a reviewer's
+      eyebrow, but it is not a gate offence.
+
+      CONSEQUENCE for the gates: where the private-member/PrivateAllow gates currently scan test
+      files, scope them to packages/*/src (or add a blanket test exemption) so the enforcement
+      matches the ruling — no per-test allow-list entries.
 - id: QO69
   title: 'REACTIVITY.md correction needed (ruled doc — your call, not an agent edit): the design''s literal
     createLiveRef sample (lines ~78-84, computed(() => { void version.value; return obj; })) is proven
@@ -6270,26 +6306,54 @@ questions:
     + triggerRef (unconditional invalidation; downstream value-based dedup intact — verified by the reviewer).
     Proposed doc fix: replace the sample with the shallowRef+triggerRef version and add one line citing
     the bug file. Approve the doc edit or rule otherwise.'
-  status: open
+  status: decided
   raised: '2026-08-21'
   body: ''
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN RULING, verbatim (2026-08-21): "approved reactivity as long as it doesn't violate the arch"
+
+      DECIDED: the REACTIVITY.md doc edit is APPROVED — replace the broken computed-returning-same-
+      reference sample with the shallowRef + triggerRef mechanism actually landed, with one line
+      citing bugs/BUG_20260821_reactivity_design_computed_short_circuits_on_unchanged_reference.md.
+
+      THE CONDITION, binding: the mechanism must not violate the architecture. Checked against the
+      rules as they stand: shallowRef/triggerRef are imported in logic/ (where Vue is allowed); the
+      model keeps its framework-free subscribe() channel untouched; no JSON crosses; the adapter is a
+      real invalidation adapter, not a zero-value forward. The one arch-sensitive aspect is the
+      adapter's module-level reactive binding, which is exactly what the approved-stores/globals gate
+      polices — the reviewer must confirm the landed shape passes that gate WITHOUT any agent-side
+      widening of ALLOWED_GLOBALS (human-edit-only; A10's byte-identical check applies).
 - id: QO70
   title: 'ARCHITECTURE.md contradicts the landed reactivity code: sections ~355, 942-969, 1112 still document
     beginEdit()/commitEdit() and state ''An edit draft is silent. Typing into an open edit produces no
     notification.'' No edit-draft overlay exists (Overlay has only whatif), and the ruled REACTIVITY.md
     contract — now implemented (task A2) — is unconditional notification from every mutator. Two ruled
     docs disagree; ARCHITECTURE.md needs your edit or your authorisation to align it.'
-  status: open
+  status: decided
   raised: '2026-08-21'
   body: ''
+  answer:
+    at: '2026-08-21'
+    text: 'HUMAN RULING 2026-08-21: ''ok cool / go for it'' — alignment AUTHORIZED. ARCHITECTURE.md sections
+      ~355, 942-969, 1112 get rewritten to the implemented contract: no edit-draft overlay (Overlay has
+      only whatif), every mutator notifies unconditionally per REACTIVITY.md. Edit-draft concept removed
+      (recoverable from git); consistent with QO71''s ruled deletion of the consumerless driver channel.'
 - id: QO71
   title: 'OpenISDDriver''s notification channel (subscribe/#listeners/#notify in packages/model/src/openisdDriver.ts
     ~:732) is now consumerless repo-wide — its only consumer was the what-if bridge deleted by A2 (ManagedOpenISDProject
     now notifies unconditionally itself). It is public model surface: delete it (dead-surface rule) or
     keep it (the driver-editor work may want a direct channel)? Your call.'
-  status: open
+  status: decided
   raised: '2026-08-21'
   body: ''
+  answer:
+    at: '2026-08-21'
+    text: 'HUMAN RULING 2026-08-21: ''A'' — option (a), DELETE the consumerless OpenISDDriver notification
+      channel (subscribe/#listeners/#notify), consistent with the dead-surface rule applied throughout
+      this run; re-addable from git if a future feature (driver editor direct binding / revived edit-draft)
+      wants it. Implementation folded into task A5 (same file, ManagedOpenISDProject/openisdDriver rework).'
 - id: QO72
   title: 'Gate-scope widening needed (human-edit-only list): A3b moved 13 view-state fields out of store.ts
     (gated by architecture.test.ts''s SCANNED_FILES + per-module ALLOWED_GLOBALS, ~:813) into the new
@@ -6297,6 +6361,29 @@ questions:
     is less gate coverage. Please add presentationState.ts to SCANNED_FILES with its own ALLOWED_GLOBALS
     entry (the store exports one presentationState object plus, after the current fix round, the three
     unit-token view functions) — or rule otherwise. Both lists are your edit per the standing rule.'
-  status: open
+  status: decided
   raised: '2026-08-21'
+  body: ''
+  answer:
+    at: '2026-08-21'
+    text: |-
+      remove the scaned fle list now and make scan all - potentially I will need to grant individual global ion indivitual files. if I do that then I need a correlation to ensure that anything I grant actually exists and and if its gon ethen delete the grant.
+
+      Implemented 2026-08-21 in packages/ui/test/ui/architecture.test.ts: SCANNED_FILES (the
+      store.ts-only allowlist) replaced with ALL_SRC_FILES (every file under packages/ui/src,
+      packages/model/src, packages/winisd/src — no allowlist). Added the correlation check: a name
+      listed in a file's own ALLOWED_GLOBALS that no longer corresponds to a real top-level export
+      in that file is now itself a reported offence, so a stale/orphaned grant gets found and
+      deleted rather than sitting inert.
+- id: QO73
+  title: 'DriverJSON alias launders the private driver type past the PrivateAllow gate: packages/ui/src/types.ts:9
+    declares export type DriverJSON = ReturnType<OpenISDDriver[''toJsonRecord'']> — _OpenISDDriverJson
+    under a second name that never NAMES it, so the gate structurally cannot see any consumer typed as
+    DriverJSON. This is the alias-as-second-name pattern the workspace rules ban as a mechanism. Options:
+    (a) delete the alias and make consumers name _OpenISDDriverJson (visible to the gate, each site needing
+    a PrivateAllow grant — your edit); (b) make toJsonRecord return a PUBLIC record type (the A6/A7 boundary
+    reshape direction); (c) bless the alias explicitly. Found by A5''s reviewer 2026-08-22; pre-existing,
+    not A5''s.'
+  status: open
+  raised: '2026-08-22'
   body: ''

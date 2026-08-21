@@ -20,6 +20,7 @@ import {
 } from './store.js';
 import { presentationState } from './presentationState.js';
 import { serialize, stateToUrl, download } from './persist.js';
+import { setShareUrl } from './urlAppState.js';
 import type { Logging } from '../logging/flash.js';
 import { saveProject as fsSaveProject, saveProjectAs as fsSaveProjectAs } from './fileSave.js';
 import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
@@ -76,7 +77,9 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   });
 
   function projectJsonText(): string {
-    return JSON.stringify(serialize(state, presentationState, driverRecord.value, managedProject.toUiParams()), null, 2);
+    return JSON.stringify(
+      serialize(state.box, state.project, presentationState, driverRecord.value, managedProject.toUiParams()),
+      null, 2);
   }
 
   /** Adopt the picked file's name as the project name — the file names the project. */
@@ -128,8 +131,9 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   }
 
   async function shareLink(): Promise<void> {
-    const url = await stateToUrl(serialize(state, presentationState, driverRecord.value, managedProject.toUiParams()));
-    try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
+    const url = await stateToUrl(
+      serialize(state.box, state.project, presentationState, driverRecord.value, managedProject.toUiParams()));
+    setShareUrl(url);
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(
         () => flash('Share link copied to clipboard'),
