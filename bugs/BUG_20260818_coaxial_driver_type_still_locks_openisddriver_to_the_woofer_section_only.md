@@ -1,7 +1,7 @@
 # A coaxial driver's tweeter T/S section is permanently unreachable through `OpenISDDriver`
 
 # Status
-OPEN
+OPEN — human-deferred (2026-08-21), tracked as QO62 in the ledger
 
 ## Symptom
 
@@ -67,6 +67,12 @@ tweeter section a way to be read/written; the class's whole field-access surface
 `enter()`, `clear()`, `metaCell()`, `specs()` — assumes one section). Needs a design decision on
 whether `OpenISDDriver` gains a second, explicit tweeter-section accessor path for coax, or
 whether coax is out of scope for `OpenISDDriver` entirely until a real design is made.
+
+## Human ruling (2026-08-21)
+
+"Coax out of scope atm but add this as an open item in openisd and mark it as human deferred
+until big refactoring complete." Recorded as QO62 in questions.yml. Revisit after the
+WinISDDriver-construction/QO55/QO60-SERVICE-layer refactoring work lands, not before.
 
 ## Verification
 

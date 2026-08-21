@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { state } from '../../logic/store.js';
-import { prVasDisplay, prFsDisplay, prQmsDisplay, setPrFsFromWinIsd, setPrQmsFromWinIsd, setPrVasFromWinIsd } from '../../logic/prWinIsdFields.js';
+import { prVasDisplay, prFsDisplay, prFsWithMassDisplay, prQmsDisplay, setPrFsFromWinIsd, setPrQmsFromWinIsd, setPrVasFromWinIsd } from '../../logic/prWinIsdFields.js';
 import type { PRLibEntry } from '../../types.js';
 import NumInput from './NumInput.vue';
 import { useApp } from '../../logic/app.js';
@@ -20,6 +20,7 @@ useEscToClose(() => true, close);
 const P = computed(() => state.P);
 const prVas = computed(() => prVasDisplay(P.value));
 const prFsShown = computed(() => prFsDisplay(P.value));
+const prFsWithMassShown = computed(() => prFsWithMassDisplay(P.value));
 const prQmsShown = computed(() => prQmsDisplay(P.value));
 
 function setWinIsdFs(newFsHz: number) { setPrFsFromWinIsd(state.P, newFsHz); }
@@ -85,6 +86,11 @@ function close() { emit('close'); }
         <div class="row" title="PR free-air resonance (no added mass, no box). WinISD: Fs.">
           <label>Fs</label>
           <NumInput :model-value="prFsShown" :scale="1" :precision="4" @update:model-value="v => setWinIsdFs(v ?? 0)" />
+          <span class="u">Hz</span>
+        </div>
+        <div class="row" title="PR resonance WITH the added mass — the tuned, not free-air, frequency. Depends on the box's added-mass setting; read-only here.">
+          <label>Fs (with mass)</label>
+          <NumInput :model-value="prFsWithMassShown" :scale="1" :precision="4" readonly />
           <span class="u">Hz</span>
         </div>
         <div class="row" title="Mechanical Q of the PR suspension. WinISD: Qms.">

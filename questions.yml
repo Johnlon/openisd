@@ -1,5 +1,5 @@
 prefix: QO
-next: 62
+next: 63
 questions:
 - id: QO1
   title: UI TODO List
@@ -3302,7 +3302,7 @@ questions:
     text: A
 - id: QO33
   title: Repo-level skill symlinks into _agent_files are allowed; divergent copies remain banned
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -3522,9 +3522,19 @@ questions:
          because AGY reads it only from <location>/.agents/hooks.json, but the two repo copies could be
          symlinks to a shared one. Not fixed: the repo-level .agents/ dirs are outside the gate's
          current scan and winisd_research/ was barred from this session.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      Ruling already given ("Keep them, amend the ruling"). Re-verified 2026-08-21 across all four
+      repos, both .claude and .gemini: 44 skill entries, 44 symlinks, every one resolving inside
+      _agent_files/. ZERO real-directory copies, ZERO foreign links. The 24 openspec copies and the
+      2 tdd foreign links the note recorded are gone, so the content decision that was awaiting the
+      human (keep tdd separate vs fold into test-driven-development) no longer has a subject.
+
+      Nothing left to decide. Closed.
 - id: QO34
   title: 'Brand-primary scraper fix: verified or not, and the fate of the record-regeneration request'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -3601,12 +3611,40 @@ questions:
             remaining path bullet as a statement of the model rather than a pending task.
       LSP: unavailable this session (`ToolSearch("select:LSP")` -> "No matching deferred tools found");
       all findings via `command grep` + Read, every cited line re-read before quoting.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      RULING ALREADY GIVEN ("that regen request is ancient delete it as long as the code fix has been
+      made"), and its condition is NOW MET — re-verified 2026-08-21.
+
+      The blocker the previous note recorded is FALSE today. winisd_tools record_registries.py no longer
+      says manufacturer "also decides the record's folder"; it now reads "a second-order descriptive
+      field, shown only when it differs from the brand". grep for "decides the record" in that file:
+      zero hits. The brand-primary sites (plugins.py brand_dir_slug, framework.py record_dir) are intact.
+
+      WHAT REMAINS IS WORK, NOT A DECISION: 3989 records under winisd_drivers/db/datasheets/ still carry
+      the OLD definition string serialised into them, so the DB is stale against fixed source. Under the
+      ruling: regenerate, then delete BACKLOG.md's regeneration/display-name bullet and rewrite the path
+      bullet as a statement of the model. The second BACKLOG reference folds the same regeneration into
+      the .wdr-export work — do not run it twice. Tracked in the backlog.
 - id: QO35
   title: Check whether modeled:false on SPLmaxLF/Mcost/Gloss is correct, or is suppressing their ParState
     slots
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
+  answer:
+    at: '2026-08-21'
+    text: |-
+      MOOT — re-verified 2026-08-21. The two mechanisms are unconnected, so `modeled:false` cannot
+      suppress a ParState slot. `modeled` is declared 95x in packages/ui/src/logic/fields/fieldRegistry.ts
+      (SPLmaxLF, Mcost, Gloss all `modeled: false`) and READ NOWHERE — a repo-wide grep for any read of
+      the property returns zero hits. ParState slots come from an independent fixed table,
+      packages/winisd/src/parstate.ts, which lists 'SPLmaxLF' //27, 'Mcost' //36, 'Gloss' //37 — all
+      three present.
+
+      SEPARATE FINDING, carried to the backlog rather than left here: `modeled` is a declared-but-inert
+      flag on 95 registry entries. Either delete it or wire it; not a decision.
 - id: QO36
   title: 'OpenISD model migration: readiness state and outstanding checks'
   status: decided
@@ -4432,7 +4470,7 @@ questions:
 - id: QO38
   title: 'Layering ruling: ui depends on logic; logic consumes services (driver_db, browser stores, file
     io, diagnostics)'
-  status: open
+  status: decided
   raised: '2026-08-13'
   body: ''
   notes:
@@ -4674,6 +4712,17 @@ questions:
       I touched. LSP was available (pyright/vtsls) but not needed — plain grep/Read sufficed for this
       import-only pass. Browser spec (app.browser.spec.ts, --workers=1) covering the PR scenario was
       still running at ledger-write time; will follow up if it surfaces a regression.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      ALREADY RESOLVED — re-verified 2026-08-21. The note's claim that the two ui-layer gates contradict
+      each other over `import type` is now FALSE: architecture.test.ts's `importsOf()` contains
+      `if (imp.isTypeOnly()) continue;` and `hasValueNamed = namedImports.some(ni => !ni.isTypeOnly())`,
+      so both gates share ONE erasure rule.
+      packages/ui/src/ui/** imports from '@openisd/*': 5 hits — 4 are `import type`, the 5th is
+      DriverEditorModal.vue's `OpenISDDriver`, covered by the human exemption ruled in-file.
+      packages/ui/src/{db,diagnostics,logging} importing from ../logic/: zero. The "7 VALUE imports"
+      backlog (ebp/RHO/C/airFor/prVas) is gone from ui/.
 - id: QO39
   title: 'Xmax route precedence settled by probe: row 19 abs(Hc-Hg)/2 WINS, Vd/Sd is the fallback - WDR_SCHEMA
     L268 is wrong, L310 is right'
@@ -4928,9 +4977,26 @@ questions:
       OpenISD, not because Python is authoritative.
 - id: QO42
   title: winisd_tools must populate provided_by/comment/added in driver.yml
-  status: open
+  status: decided
   raised: '2026-08-14'
   body: ''
+  answer:
+    at: '2026-08-21'
+    text: |-
+      RULING ALREADY GIVEN (human, 2026-08-14): provided_by/comment/added absent from driver.yml is a
+      DATA GAP, not a design choice — winisd_tools must populate them. Re-verified 2026-08-21.
+
+      openisd already implements its half: packages/model/src/openisdDriver.ts declares all three, they
+      are in MetaField, and driverRepo.ts consumes provided_by. Data side: 0 of 2016 driver.yml files
+      carry provided_by.
+
+      CROSS-REPO CONTRADICTION, now resolved by date: winisd_tools' own ledger QT20 row D records these
+      fields as DELIBERATELY DROPPED on 2026-07-27. The human ruling is 2026-08-14 and SUPERSEDES it.
+      QT20 row D must be reopened saying so, or the two ledgers keep contradicting each other.
+
+      WORK, NOT A DECISION: add the three optional ScrapedFields to winisd_tools lib/model_driver.py and
+      the openisd.yml projection, reopen QT20 row D, then regenerate (fold into the QO34 regeneration).
+      Tracked in the backlog.
 - id: QO43
   title: 'Box/vents/PRs have no facade: flat state.P fields + a parallel ''entered'' provenance system'
   status: decided
@@ -5048,7 +5114,7 @@ questions:
 - id: QO45
   title: 'CARRIED: justify the category or eliminate it — Gloss/Hc/Hg are derived, so what does ''carried''
     mean?'
-  status: open
+  status: decided
   raised: '2026-08-16'
   body: ''
   notes:
@@ -5092,9 +5158,17 @@ questions:
 
       So the CONCEPT is justified (without it those 15 fields die), the NAME described something
       that does not exist, and the open decision is where the state lives — QO48.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      SUPERSEDED by QO48 (status: decided, and implemented). Re-verified 2026-08-21: the premise that
+      "Gloss is not a field of openisd.yml" is now FALSE — packages/model/src/openisdDriver.ts declares
+      `Mpow?/Mcost?/Gloss?/c?/roo?: _SpecEntry`. `DERIVED_TO_WDR`, `NOT_CARRIED` and the `if (!mapped)
+      continue` drop are all gone from packages/ (zero grep hits each). Nothing named CARRIED survives
+      in the tree, so there is no category left to justify or eliminate.
 - id: QO46
   title: 'Driver editor layout regressed: comment field long and narrow, row spacing too big'
-  status: open
+  status: decided
   raised: '2026-08-16'
   body: ''
   notes:
@@ -5116,9 +5190,21 @@ questions:
 
       NOT YET DIAGNOSED. The cause is in the template/style region of DriverEditorModal.vue and must
       be established before anything is changed — do not guess at a CSS value.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      ALREADY FIXED — re-verified 2026-08-21. Both symptoms carry bug records marked FIXED and
+      re-verified 2026-08-19 (driver-editor-layout.browser.spec.ts, 26/26 pass). The fix is live in the
+      sheet: packages/ui/src/ui/components/DriverEditorModal.vue declares
+      `.de-general .de-fld.de-comment { width:100% !important; flex:1 1 auto !important }` and a
+      textarea at width:100%/min-height:120px, AFTER the `.de-fld { width: fit-content }` rule — the
+      exact cascade inversion the bug file names as the cause. Row spacing is tight, not padded:
+      `.de-fld { gap:2px; margin-bottom:3px }`, Dimensions grid `gap:3px 12px`.
+
+      A visual claim is not fully settleable without a browser run; reopen if it still looks wrong.
 - id: QO47
   title: Audit the whole codebase and docs for unjustified/historic comments and delete them
-  status: open
+  status: decided
   raised: '2026-08-16'
   body: ''
   notes:
@@ -5145,6 +5231,24 @@ questions:
 
       This is a sweep, not a one-file fix — the pattern is pervasive because the agent had a standing
       motive to write it.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      NOT A DECISION — a mechanical sweep, tracked in the backlog. Re-measured 2026-08-21.
+
+      49 hits across packages/** and docs/** for comments whose subject no longer exists, concentrated:
+      packages/ui 27, docs/plans 9, docs/design 4, docs/research 3, packages/winisd 2, packages/model 2,
+      packages/engine 1, docs/spec 1. Confirmed real violations by reading:
+        packages/ui/src/ui/components/UnitToggle.vue      "This replaces the old decorative cycleUnit..."
+        packages/ui/src/ui/components/DriverEditorModal.vue "The popup used to sit at a fixed viewport corner..."
+        packages/ui/src/types.ts                          "replacing what used to be a hardcoded literal"
+        packages/ui/test/logic/persist.test.ts            "An earlier version dropped these"
+      Confirmed NON-violations in the same sweep, e.g. packages/ui/src/db/myDrivers.ts, which states the
+      CURRENT validity rule for stored data.
+
+      49 is a text-grep floor as well as an upper bound: paraphrases using none of the matched words are
+      not counted, and some matches are legitimate constraint comments. The pass must READ each one.
+      bugs/, LOG.md and the ledgers are excluded by rule — they are allowed to describe history.
 - id: QO48
   title: Where do the 15 WinISD-only fields live, so a cycle stops destroying them?
   status: decided
@@ -5215,7 +5319,7 @@ questions:
 - id: QO49
   title: 'Gloss import provenance: a ParState-less .wdr imports a carried Gloss=0 as ENTERED, blocking
     derivation'
-  status: open
+  status: decided
   raised: '2026-08-16'
   body: ''
   notes:
@@ -5262,6 +5366,36 @@ questions:
             ParState-less file that carries Gloss=0 with a usable Fs/Xmax.
         (c) Generalise (b) to every solvable field, not just Gloss -- a much wider rule about what
             "presence => E" should mean for scraper-authored files with no ParState.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN RULING, verbatim: "drivers/winisd/TangBand W4-639SA.wdr -> drivers/winisd is someone elses
+      realsl data - if it doesn contain ParStat then we have to live with that and do something sensible
+      like assume everything is 'E'"
+
+      DECIDED: leave the behaviour as it is. A .wdr with no ParState is read as presence => ENTERED,
+      uniformly, including a carried Gloss=0. No Gloss special case, and no generalised
+      "a zero means absent" rule.
+
+      THE REASONING, which is stronger than the defect count: drivers/winisd/ is a THIRD-PARTY export —
+      someone else's real data, not something OpenISD produced or controls. A file that carries no
+      ParState has told us nothing about which of its values were entered and which were computed, so
+      there is no evidence to act on. Treating its 0 as "probably not meant" would be OpenISD inventing
+      provenance the source never stated, which is the same class of fabrication as inventing a value.
+      Uniform "presence => E" is the sensible reading of a file that omits the marks.
+
+      CONSEQUENCE, accepted: drivers/winisd/TangBand W4-639SA.wdr displays Gloss = 0 where the engine
+      would otherwise derive 0.0196 from Fs=65 and Xmax=0.003 (Gloss = g / ((2π x Fs)^2 x Xmax)). One
+      library driver, one field.
+
+      SCOPE MEASURED 2026-08-21, so the decision is on real numbers: 1626 .wdr files, 1102 with no
+      ParState, 1378 carrying Gloss, 224 with Gloss==0, and only 5 where Gloss==0 with Fs>0 and Xmax>0.
+      Four of those five are drivers/sample/winisd/inconsistency-test*.wdr, which DO carry a ParState
+      marking slot 37 as C and are therefore already dropped on import. The live case is one file.
+
+      The mechanism is unchanged and correct as it stands: WinISDDriver.fromWdrIni defaults a cell's
+      state to 'E' when there is no usable ParState, and OpenISDDriver.fromWinISDDriver keeps only
+      E-marked cells.
 - id: QO50
   title: 'Fs derivation parity: the engine has 4 routes, WinISD has 5, and one of the engine''s is not
     WinISD''s -'
@@ -5392,7 +5526,7 @@ questions:
 - id: QO51
   title: 'Mcost reads kg/s while Rms/Rme read Ns/m: WinISD-faithful, but should the editor offer a toggle
     between the two spellings?'
-  status: open
+  status: decided
   raised: '2026-08-17'
   body: ''
   notes:
@@ -5447,6 +5581,38 @@ questions:
 
       UNTIL RULED: the sweep test exempts Znom by name alongside c and roo, with this question id in
       the comment, so the gap stays visible instead of being silently tolerated.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN RULING, verbatim: "51 off unit toggles like ot her fields - be consistent with openisd -
+      unless its harmful"
+
+      DECIDED: add the unit toggle. Rms/Rme/Mcost get a unit group like every other toggleable field;
+      consistency with the rest of OpenISD wins over WinISD-faithful fixed labels.
+
+      NOT HARMFUL — checked before recording: Ns/m and kg/s are the SAME dimension (kg·m·s^-2 / (m·s^-1)
+      = kg·s^-1), so the conversion factor is exactly 1. The toggle changes the label, never the number,
+      which is why it cannot mislead: it tells the user the two spellings are one quantity.
+
+      WORK (tracked, not a further decision):
+        - packages/ui/src/logic/fields/units.ts — add a `resistance` group, Ns/m <-> kg/s, factor 1.
+          Current groups: volume|length|area|freq|mass|temp|pressure|tempDiff|tempCoeff|inductance|
+          compliance|velocity|density. There is no resistance group today.
+        - packages/ui/src/logic/fields/fieldRegistry.ts — give Rms, Rme and Mcost that unitGroup.
+          They currently declare unit only: Rms 'Ns/m', Rme 'Ns/m', Mcost 'kg/s', no unitGroup, which is
+          why no toggle renders.
+        - DEFAULT stays WinISD's own spelling per field (Rms/Rme Ns/m, Mcost kg/s) so a fresh load looks
+          exactly as it does now.
+        - packages/ui/test/ui/driver-editor-layout.browser.spec.ts — its WINISD_UNITS block asserts those
+          three unit strings as FIXED TEXT and will fail; it must assert the DEFAULT spelling instead,
+          and gain a case that toggling changes the label and not the value.
+
+      SEPARATE, filed under this ID by mistake and now half-false — carried to the backlog rather than
+      lost: the Znom note here claims Znom has no PROVENANCE_MAP entry. It DOES
+      (packages/ui/src/logic/provenance.ts, Znom = 2 x round_half_to_even(0.75 x Re)). But
+      DriverEditorModal's tooltip still says "label only, not used in simulation", and the provenance
+      sweep still exempts 'Z' via NO_FORMULA. Both need fixing; the sweep's own comment names QO52, not
+      QO51, as the deciding question.
 - id: QO53
   title: Gloss has no TO_ENGINE/FROM_ENGINE entry — every call site reaches it via the engine's raw key
     'loss' cast past SpecField
@@ -5551,7 +5717,7 @@ questions:
 - id: QO55
   title: WinISDDriver should be constructed purely by setter calls fed from OpenISDDriver getter reads
     -- no internal deriveOpenISDFields()/ParState/Xlim/DQ-comment logic of its own
-  status: open
+  status: decided
   raised: '2026-08-17'
   body: ''
   notes:
@@ -5605,20 +5771,35 @@ questions:
       setter sequence, zero internal derivation, zero .toRecord() call) — not a narrower fix that just
       repoints the 9 broken call names at fromOpenISDDriver while leaving its current
       toRecord()-based internals in place.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      ALREADY RESOLVED — re-verified 2026-08-21. The rewrite the note called "NOT DONE" has landed.
+      `fromOpenISDRecord`, `fromOpenISDDriver`, `deriveOpenISDFields` and `toRecord` are all gone from
+      packages/winisd/src (zero grep hits each). WinISDDriver's only constructors are
+      `build(header, cells, dqLines)` and `fromWdrIni(text)`, whose docstring states "This performs NO
+      derivation". `deriveOpenISDFields` now lives in packages/model/src/openisdDerive.ts. The
+      getter-fed sequence the ruling demanded is OpenISDDriver.toWinISDDriver() — a loop over INI_ROWS
+      calling this.cell(), plus metaCell()/description()/dqMarks(), then WinISDDriver.build().
+      Also moot: bugs/BUG_20260818_fromOpenISDRecord_does_not_exist_9_call_sites_broken.md — that name
+      no longer exists repo-wide.
 - id: QO56
   title: 'Sequencing risk: workspace.ts deletion before its replacement exists (openisd)'
   status: decided
   raised: '2026-08-18'
   body: ''
   answer:
-    at: '2026-08-18'
+    at: '2026-08-21'
     text: |-
-      Yes, proceed — implement openProjects()/focusedProject() and delete the old conflicting
-      workspace.ts implementation. Commit, then continue.
+      ALREADY RESOLVED — re-verified 2026-08-21. `workspace.ts` no longer exists anywhere under
+      packages/ui/src, and its replacement is live: store.ts declares
+      ALLOWED_GLOBALS = ['openProjects','focusedProject','focusProject','removeProject','addProject'],
+      with both the read accessors and the ruled setter present, and documents the registry as replacing
+      workspace.ts's ad-hoc WorkspaceEntry/OpenProject. The sequencing risk did not materialise.
 
-      Also need a setter: focusProject(index) (or equivalent), called when the user changes the
-      active project in the UI's project list — this is what actually moves focusedProject()'s
-      cursor. openProjects()/focusedProject() alone are read accessors; this is the write side.
+      LEDGER REPAIR done in the same change: this ID carried TWO entries, so the second was unreachable
+      through inbox.py (`get QO56` returned only the first). The concurrent-sessions entry has been
+      renumbered QO63.
   notes:
   - at: '2026-08-19'
     text: |-
@@ -5634,22 +5815,52 @@ questions:
       noticing the diff appear. Agent response: stopped touching those files, committed only its own
       scoped changes with explicit git add <file> (not -A), and flagged this in its status report.
       This is exactly the failure mode QO56 describes, reproduced live rather than theorised.
-- id: QO56
+- id: QO63
   title: Multiple concurrent sessions are rewriting overlapping hot files (store.ts, managedProject.ts,
     openisdDriver.ts, winisdDriver.ts) with no coordination -
-  status: open
+  status: decided
   raised: '2026-08-18'
   body: ''
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN RULING, verbatim: "56b - you are the only writer"
+
+      DECIDED: no coordination mechanism. There is one writing session; the premise of contention is
+      withdrawn. No claim file, no per-path lock, no ceremony on edits to store.ts / managedProject.ts /
+      openisdDriver.ts / winisdDriver.ts.
+
+      CONSEQUENCE, recorded so the plan is not written defensively for nothing: the "QO56 hazard" clause
+      in docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md — which tells each objective to confirm no peer
+      session holds those four files before starting — is now moot and should be struck from the plan.
+      Objectives 2 and 7 rewrite exactly those files and can proceed without the check.
 - id: QO57
   title: useDesignIO.ts's OpenISDDriver import is a real layering violation, but the fix is entangled
     with QO55's in-flight WinISDDriver export-boundary redesign -
-  status: open
+  status: decided
   raised: '2026-08-18'
   body: ''
+  answer:
+    at: '2026-08-21'
+    text: |-
+      NOT A RULING — a work item under docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md. Re-verified
+      2026-08-21.
+
+      The entanglement the note records is GONE: it cites QO55 as the blocker, and QO55 is now fully
+      implemented. useDesignIO.ts's in-file comment still cites QO55 as blocking work — that comment is
+      stale and should be deleted.
+
+      Still live: useDesignIO.ts imports the OpenISDDriver VALUE and uses it in exportWdr()/exportWpr().
+      The other current offenders on the same red gate are store.ts and driverSelection.ts. Covered by
+      plan objectives 3 (OIP copy(), so a domain object can be handed out) and 6 (useDesignIO -> FileIO).
+
+      CORRECTION TO THE PLAN, recorded here so it is not lost: objective 5 targets
+      `winIsdDriverFileIo.ts`, which DOES NOT EXIST — it was deleted this session. Objective 5 must be
+      re-pointed at whatever now owns the .wdr write path, or struck.
 - id: QO58
   title: store.ts's driverRecord export leaks _OpenISDDriverJson's private shape through type inference,
     invisible to the syntactic PrivateAllow gate -
-  status: open
+  status: decided
   raised: '2026-08-18'
   body: ''
   notes:
@@ -5663,6 +5874,14 @@ questions:
       Full UI suite: 175/179 pass (was 174/179 before this fix — net +1 passing, 0 regressions), the
       remaining 4 failures are pre-existing, unrelated architecture-test offences (module-level-globals
       migration, OpenISDDriver-value imports) requiring separate human-only allowlist edits.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      ALREADY RESOLVED — re-verified 2026-08-21. store.ts declares
+      `export const driverRecord: ComputedRef<DriverJSON | undefined>` — an explicit PUBLIC type, so
+      nothing leaks through inference. `DriverJSON` is declared in packages/ui/src/types.ts as
+      `ReturnType<OpenISDDriver['toJsonRecord']>`. The private-shaped helper `_projectToPersist` is a
+      plain function, not exported. Landed as 4fc492e. This gate is not among the currently-red four.
 - id: QO59
   title: ManagedOpenISDProject leaks _OpenISDProjectJson through snapshot/recordToPersist/groundRecord
     -
@@ -5676,7 +5895,7 @@ questions:
       they should not be returning the json
 - id: QO60
   title: Layer store.ts as STORAGE, hidden behind a SERVICE layer, never called directly from UI -
-  status: open
+  status: decided
   raised: '2026-08-19'
   body: ''
   notes:
@@ -5716,10 +5935,29 @@ questions:
       workaround (PARKED with the wider reactivity discussion), readcell_builds_and_discards_a_whole_
       driver_to_read_one_field, drivers_bundle_ships_a_shape_openisddriver_cannot_read,
       model_depends_on_winisd_and_re_exports_its_cellstate.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      SUPERSEDED — docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md IS the answer to this question, carrying
+      the rulings verbatim (the ManagedX/JSON access table, "DELETE state.P ENTIRELY", default-deny).
+      This ledger entry is an unclosed duplicate of the plan.
+
+      Re-verified 2026-08-21: the grants were genuinely revoked — `_OpenISDDriverJsonPrivateAllow` now
+      lists only 'model/src/openisdProject.ts', and `_OpenISDProjectJsonPrivateAllow` is []. That is
+      precisely why store.ts's private-shape import is now a red gate. Execution starts at objective 1.
+
+      CORRECTION recorded here so it is not lost:
+      bugs/BUG_20260819_store_ts_45_exports_not_on_ALLOWED_GLOBALS_ready_for_review.md claims "every one
+      of the 45 flagged exports has real callers; none is dead code". That is FALSE for all ten of the
+      plan's objective-1 list: driverMetaCell, driverWarnings, curveIssues, restoreProblems, unitLabelOf
+      have zero references outside store.ts; enterPrField/clearPrField/prFieldState/prTargetUnreachable
+      resolve only to their own declarations; loadDriverRecord's five callers all go to
+      managedProject.loadDriverRecord, never the store's. Fix that bug file before approving any
+      ALLOWED_GLOBALS list.
 - id: QO61
   title: useDesignIO.ts mixes file I/O, .wpr/.wdr construction, and physics calculation in one composable
     - architectural review needed
-  status: open
+  status: decided
   raised: '2026-08-20'
   body: |-
     johnl, mid-session: "useDesignIO should probably be deleted because parseWprToState is a
@@ -5765,10 +6003,49 @@ questions:
       FLAGGED, unresolved: objective 3's FileIO method shape does not match ARCHITECTURE.md:628's
       declared FileIO interface (6 generic readRecord/writeRecord/readProject/... methods vs the 8
       format-specific exportWdr/exportWpr/... proposed). Resolve before the rename.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN RULING: Proposal B — one method per format.
+
+      DECIDED, the FileIO interface (docs/design/FILEIO_API_PROPOSALS.md carries the full comparison):
+        readWdr(bytes)           -> Result<OpenISDDriver>
+        writeWdr(driver)         -> Result<Uint8Array>     // CAN fail: an incomplete driver
+        readOwdr(bytes)          -> Result<OpenISDDriver>
+        writeOwdr(driver)        -> Uint8Array             // cannot fail
+        readWpr(bytes)           -> Result<OpenISDProject>
+        writeWpr(project, now)   -> Result<Uint8Array>     // `now` injected, never the clock
+        readOwpr(bytes)          -> Result<OpenISDProject>
+        writeOwpr(project)       -> Uint8Array
+        formatOf(filename) / sniff(bytes) -> FileFormat | undefined
+        encodeShareLink(project) / decodeShareLink(url)
+
+      WHY B: only this shape lets a signature tell the truth about failure — writeOwdr returns bytes
+      because a record is always representable as its own JSON, while writeWdr returns Result because a
+      driver can be too incomplete to project. Under A one Result covers both and every .owdr caller
+      unwraps an error that can never arrive. B also matches the from*/to* naming already ruled
+      2026-08-20 ("just be very consistent").
+
+      THREE CORRECTIONS TO ARCHITECTURE.md's FileIO block, independent of the A/B choice:
+        1. `text: string` -> `bytes: Uint8Array`. A .wdr's newline sentinel is one 0xA4 byte that is not
+           valid UTF-8; readAsText destroys it before any parser sees it. .wpr included — it embeds its
+           [Driver] block verbatim.
+        2. `OpenISDDriverJson`/`Project` -> `OpenISDDriver`/`OpenISDProject`. As declared today it hands
+           the private record shape to the UI, which the standing ruling forbids without exception, and
+           it could not compile past the current gate.
+        3. The DESTINATION half splits into a separate `FileStore` port (open/save/saveAs over a
+           FileSystemFileHandle or a download). FileIO is then PURE — bytes in, bytes out, no browser,
+           no clock, no dialog — which is what makes it unit-testable.
+
+      The export picker in DriverEditorModal.vue is the one place a format is genuinely a runtime value;
+      it maps its dropdown choice to a method locally rather than the interface carrying a discriminator.
+
+      This is plan objective 6. ARCHITECTURE.md still lists createFileIO as "not yet built", which stays
+      true until it lands.
 - id: QO62
   title: 29 bundled .wdr files are not UTF-8 - what should the reader do, and what does WinISD actually
     write?
-  status: open
+  status: decided
   raised: '2026-08-21'
   body: ''
   notes:
@@ -5809,3 +6086,50 @@ questions:
       BLOCKED ON: the wine probe of how WinISD encodes a character whose UTF-8 carries 0xA4 as a
       continuation byte (¤ = C2 A4). If WinISD writes a bare 0xA4 for ¤, the format is genuinely
       ambiguous and this whole area needs rethinking, not just a fallback.
+  answer:
+    at: '2026-08-21'
+    text: |-
+      HUMAN RULING, verbatim: "62 - since classic winisd ONLY works on windows it is quite likely that
+      existing wdr wpr files have cp1252 - so yes build in an appropriate encoding for old files, but
+      our own writes need to be compat where possible"
+
+      DECIDED — READ: accept legacy single-byte encoding. A .wdr/.wpr that does not decode as UTF-8 is
+      decoded as CP1252 rather than yielding replacement characters. The reasoning is the human's and it
+      is stronger than the byte evidence alone: classic WinISD is Windows-only, so its native output and
+      everything written alongside it is overwhelmingly likely to be the Windows ANSI codepage. That is
+      a statement about the population of files, which one address line's 0x95 could never establish.
+
+      DECIDED — WRITE: our own output stays compatible where possible.
+
+      WHAT THE PROBE ESTABLISHED, and why it does not contradict the ruling
+      (winisd_research/COMMENT_ENCODING.md, measured 2026-08-21 against the real WinISD.exe under wine):
+        - WinISD WRITES UTF-8. Typed characters came back as C2 A4 (¤), D0 A4 (Ф), E0 A4 84 (ऄ), and an
+          Enter keystroke as a bare A4. So the newline sentinel is distinguishable by UTF-8 LEAD
+          POSITION, which packages/winisd/src/wdrBytes.ts already implements.
+        - WinISD does NOT decode CP1252. Loading the CP1252 file drivers/winisd/Selenium SW108 .wdr
+          displays literal '?' glyphs, and a no-edit re-save is DESTRUCTIVE: FF FF -> ??, E6 -> ?,
+          AE -> ?, so "Kapton®" silently becomes "Kapton?".
+      So current WinISD writes UTF-8 while OLDER files in circulation are CP1252 — the two facts are
+      about different eras, and the ruling covers the era WinISD itself mishandles.
+
+      CONSEQUENCE WORTH STATING: on these files OpenISD will read BETTER than WinISD does, and will
+      round-trip content WinISD destroys.
+
+      WORK (tracked, not a further decision):
+        - packages/winisd/src/wdrBytes.ts — wdrBytesToText currently ends in a non-fatal
+          TextDecoder('utf-8'), so bad bytes become U+FFFD silently. Decode UTF-8 STRICT (fatal), and on
+          failure re-decode the whole file as CP1252. Per FILE, not per character — a mixed-encoding file
+          is not a thing WinISD can produce.
+        - Report which encoding was used, so the UI can say so rather than the choice being invisible.
+        - WRITE stays UTF-8, which is what WinISD itself writes today, so our output is compatible with
+          current WinISD. Where a character cannot survive a consumer that expects the legacy codepage,
+          compatibility is best-effort — we do not degrade our own records to match a lossy reader.
+        - Tests: drivers/winisd/Selenium SW108 .wdr must read back with '•' (0x95), '®' (0xAE), '±',
+          '½' intact. Its FF FF / E6 run is garbage in EVERY encoding (spliced mid-word into
+          "reproduction") and is source damage to fix separately — it must not be used as an
+          encoding-correctness oracle.
+- id: QO62
+  title: 'Coaxial driver: OpenISDDriver locks to the woofer section only -'
+  status: open
+  raised: '2026-08-21'
+  body: ''

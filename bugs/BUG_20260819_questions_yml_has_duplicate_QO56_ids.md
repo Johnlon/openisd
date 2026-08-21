@@ -37,6 +37,11 @@ duplicate ids safely.
 
 Not yet — no fix applied.
 
+Reproduced a SECOND time, on a different id, 2026-08-21: `inbox.py add QO "Coaxial driver..."`
+minted `QO62`, but `QO62` was already in use (banner: "29 bundled .wdr files are not UTF-8").
+`grep -c "^- id: QO62" questions.yml` → 2. Same class of collision as the QO56 case above, now
+confirmed to be a general race in the `next:` counter under concurrent writers, not a one-off.
+
 Reproduced live 2026-08-19: `python3 ~/.claude/bin/inbox.py put QO56 -` (attempting to record
 direct evidence of a concurrent-editing collision, ironically) landed the note on the WRONG
 QO56 — `inbox.py get QO56` immediately after confirms the note attached to the DECIDED
