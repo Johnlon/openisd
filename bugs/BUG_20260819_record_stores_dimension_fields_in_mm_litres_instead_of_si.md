@@ -60,6 +60,13 @@ match, regenerate every affected record, then delete `TO_ENGINE_SCALE`'s mm entr
 `SPEC_TO_WDR`'s corresponding scale factors (both collapse to `1` once the record is uniformly
 SI) and update the driver editor UI to do display-only mm conversion instead of storage-level.
 
+## Human ruling (2026-08-21)
+
+"Schedule it now." Proceed with the multi-repo migration plan above. `BUG_20260814_openisddriver-
+passes-mm-named-dimension-fields-to-the-engine-untranslated-and-unscaled.md` (the immediate
+mm-not-translated symptom) is explicitly NOT getting a separate stopgap fix — it waits for this
+migration to make it moot, per the same ruling session.
+
 ## Verification
 
 Not yet — no fix applied.

@@ -100,6 +100,17 @@ WinISD's answers do not move, because it works from the stated `SPL`. openisd's 
 because it works from η₀. So any authorised fix is **three** changes, not two: the base becomes
 the stated `SPL`, the 8 becomes 2.83², and the 3 dB is subtracted.
 
+## Human ruling (2026-08-21)
+
+"Follow winisd so that the numbers are comparable - but if there is a different well known
+Conventional approach that other tools offer then make it an option to choose Winisd /
+Conventional - with explanatory text." Two-part fix: (1) implement WinISD's exact formula (base
+= stated SPL, 2.83² not 8, flat −3dB) as the default so numbers are comparable; (2) investigate
+whether a distinct, well-known "conventional" USPL/SPLmax convention exists elsewhere in the
+industry (separate from openisd's own ad-hoc physics derivation) — if one does, expose a
+WinISD/Conventional toggle with explanatory text; if no such recognized convention exists, no
+toggle is needed and WinISD's formula is simply the answer.
+
 ## Verification, once a decision is made
 
 `npx vitest run --project winisd packages/winisd/test/winisd-parity.test.ts` — 8 `USPL` rows and
