@@ -1,4 +1,4 @@
-import type { AppState, DriverJSON, SerializedState, UiParams } from '../types.js';
+import type { BoxType, DriverJSON, ProjectMeta, SerializedState, UiParams } from '../types.js';
 import type { PresentationState } from './presentationState.js';
 import { CURRENT_SCHEMA, upgrade, type StoredBlob } from './schemaUpgrade.js';
 
@@ -25,10 +25,10 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 }
 
 /** `p` is the project's flat `UiParams` snapshot (`managedProject.toUiParams()`) — passed in
- *  rather than read off `state` because the store holds no such copy (ledger QO54: the
+ *  rather than read off the store because the store holds no such copy (ledger QO54: the
  *  project already owns this state; the store never duplicates it). */
 export function serialize(
-  state: AppState, view: PresentationState, driver: DriverJSON | undefined, p: UiParams,
+  box: BoxType, project: ProjectMeta, view: PresentationState, driver: DriverJSON | undefined, p: UiParams,
 ): SerializedState {
   return {
     // The MODEL version this payload is written from — every reader upgrades from it
@@ -38,12 +38,12 @@ export function serialize(
     schema: CURRENT_SCHEMA,
     v: 2,
     driver,
-    box: state.box,
+    box,
     lossMode: view.lossMode,
     P: p,
     graphs: view.graphs,
     ui: view.ui,
-    project: state.project,
+    project,
     // Graph cursor/marker/band-selection — carried the same way tab/chart are: both a local
     // save (refresh fidelity) and a share link reproduce exactly what the sender was pointing
     // at. The band carries only fLo/fHi; stats are recomputed per-panel on load.
