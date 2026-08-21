@@ -1,7 +1,9 @@
 # store.ts's exports vs `ALLOWED_GLOBALS` — the review list, with TEN of them dead
 
 # Status
-OPEN — proposal only, no code/list change made
+OPEN — the ten dead exports are removed from `store.ts` (task A1, 2026-08-21: eight deleted,
+`curveIssues`/`restoreProblems` un-exported but kept internal); the gate's offence list now
+reads 34, and the review of those remaining 34 is what stays open for the human.
 
 ## Symptom
 

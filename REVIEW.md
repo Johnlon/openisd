@@ -501,9 +501,9 @@ checklist — cross-check against Phase 0's red test output, which is authoritat
   `cycleUnitToken`/`resetUnitTokens`/`unitLabelOf`/`formatInUnit`, vent/PR target-field UI
   helpers) — stay as free functions/a small presentation-state module, flagged by name with a
   one-line justification, not silently kept as `store.ts` globals.
-- **3.3.** Dead exports (`driverMetaCell`, `driverWarnings`, `curveIssues`, `restoreProblems`
-  external use, `unitLabelOf`, PR-field wrapper functions) — re-grep immediately before
-  deleting, then delete outright.
+- **3.3.** Dead exports — DONE (task A1, 2026-08-21): `driverMetaCell`, `driverWarnings`,
+  `unitLabelOf`, the PR-field wrappers and the store's `loadDriverRecord` wrapper are deleted;
+  `curveIssues`/`restoreProblems` are un-exported internal consts.
 
 ### Phase 4 — rewire the ~15 consuming files
 

@@ -1,10 +1,11 @@
 # ARCHITECTURE.md §5 sweep: four more calc-in-store / duplicated-formula violations beyond the known store.ts vent-area case
 
 # Status
-- V1 (eg in syncedP): OPEN
-- V2 (useDesignIO.ts PR re-derivation): OPEN
-- V3 (wprMapping.ts + OriginalShell.vue vent-area duplication): OPEN
-- V4 (store.ts file-wide eslint-disable + window casts): OPEN
+OPEN — V1 and V4 remain unfixed; V2 and V3 resolved.
+- V1 (eg in syncedP): OPEN — `store.ts:448` still computes `Math.sqrt((state.P.Pin ?? 1) * (engineDriver()?.Re ?? 1))` inline.
+- V2 (useDesignIO.ts PR re-derivation): RESOLVED — now calls `prCanonicalFromDatasheet()` (`useDesignIO.ts:270`), no local RHO/C literals.
+- V3 (wprMapping.ts + OriginalShell.vue vent-area duplication): RESOLVED — `grep -rn "Math.PI \* (.*ventD" packages/ui/src` returns nothing.
+- V4 (store.ts file-wide eslint-disable + window casts): OPEN — `store.ts:14` still has the file-scope `/* eslint-disable @typescript-eslint/no-explicit-any */`.
 
 Scope note: the already-tracked `store.ts` `Sp`/`Leff` vent-area violation in `syncedP` is
 **excluded** from this file — see the earlier report / commit in progress for that one. This is

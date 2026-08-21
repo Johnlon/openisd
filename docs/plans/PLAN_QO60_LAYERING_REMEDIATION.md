@@ -169,7 +169,8 @@ Not to be actioned or re-raised until then; recorded here so none is lost.
 
 ## Objectives
 
-**1. Free deletions — `store.ts` 50 → 40 exports.** Un-export the ten with zero callers:
+**1. Free deletions — `store.ts` 50 → 40 exports. DONE 2026-08-21 (task A1; reviewed).**
+Un-export the ten with zero callers:
 `enterPrField`, `clearPrField`, `prFieldState`, `prTargetUnreachable`, `loadDriverRecord`,
 `driverMetaCell`, `driverWarnings`, `curveIssues`, `restoreProblems`, `unitLabelOf`.
 Zero behaviour change; typecheck is the proof.
@@ -456,10 +457,6 @@ a service instead. `OriginalShell.vue` (21 names) is the bulk of this and should
 
 1 → 2 are independent and safe (deletions + mechanical repointing). 3 unblocks 6. 4 is
 independent of all of them. 5 is small. 7 is last, and largest.
-
-**QO56 hazard:** `store.ts`, `managedProject.ts`, `openisdDriver.ts` and `winisdDriver.ts` are
-all named on the concurrent-edit list, and this plan touches every one. Confirm no peer session
-holds them before starting each objective.
 
 ## Verification
 

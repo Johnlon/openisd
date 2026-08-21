@@ -1,7 +1,7 @@
 # The engine is missing two of WinISD's Fs routes, and has one WinISD does not
 
 # Status
-OPEN 2026-08-17 — ruled (QO50, closed), not yet implemented
+RESOLVED 2026-08-21
 
 ## Symptom
 
@@ -92,48 +92,81 @@ them as outputs only.
 
 ## Fix
 
-**Ruled 2026-08-17 (QO50, closed): match WinISD exactly.** Add relations 4 and 12, remove the
-`Rms·Qms` route, and put all five in WinISD's priority order — 11 > 14 > 2 > 4 > 12, proven both
-from the guard chain and live against the binary
-(`winisd_research/RE_GHIDRA_FINDINGS.md` "Fs priority settled STATICALLY" / "CONFIRMED in the
-UI"). This is the only option that makes a `.wdr` round trip through openisd without inventing a
-`C`; the other two options considered before the ruling are superseded.
+**Ruled 2026-08-17 (QO50): match WinISD exactly.** Relations 4 and 12 are added, the `Rms·Qms`
+route is removed, and all five run in WinISD's priority order — 11 > 14 > 2 > 4 > 12, proven both
+from the guard chain and live against the binary (`winisd_research/RE_GHIDRA_FINDINGS.md` "Fs
+priority settled STATICALLY" / "CONFIRMED in the UI"). This is the only option that makes a
+`.wdr` round trip through openisd without inventing a `C`.
 
-**Not yet implemented.** `driver.ts:167,181,188,229` still has the old four routes, unordered
-relative to WinISD. `provenance.ts`'s `Fs` entry was corrected 2026-08-17 to accurately describe
-that CURRENT code (see the sibling provenance bug) — it still needs a second update, in the same
-change that fixes `driver.ts`, to the WinISD-matching order.
+Implemented in `packages/engine/src/driver.ts`'s `solveConsistencyGroup` (the `full: true`
+iterative solver, the path `packages/model/src/openisdDerive.ts` uses for the `.wdr` round
+trip). All five `Fs` routes are consolidated into one block (comment "3. Fs — WinISD's five
+routes..."), in WinISD's own priority order — each `setVal('Fs', ...)` call tagged with its
+relation number in a trailing comment:
+
+| priority | relation | form | tagged |
+| --- | --- | --- | --- |
+| 1 | rel 11 | `Fs = 1 / (2π·√(Mms·Cms))` | `// rel 11` |
+| 2 | rel 14 | `Fs = ∛(no·c³·Qes / (4π²·Vas))` | `// rel 14` |
+| 3 | rel 2 | `Fs = Qes·BL² / (2π·Mms·Re)` | `// rel 2` |
+| 4 | rel 4 | `Fs = Rme·Qes / (2π·Mms)` | `// rel 4` |
+| 5 | rel 12 | `Fs = EBP·Qes` | `// rel 12` |
+
+This is per-pass priority, not an absolute guarantee: `setVal` only writes a null field, so
+within one pass the earliest-listed ready route wins, but a route is never revisited once `Fs`
+is set — even by a higher-priority route whose OWN inputs (e.g. rel 11's `Cms`) only become
+ready in a later block. This matches WinISD's own guard chain exactly (see the `driver.ts`
+comment on this block and `winisd_research/RE_GHIDRA_FINDINGS.md` "Fs priority settled
+STATICALLY"); it is not a bug in this fix, and is pinned by its own test (below).
+
+The `Fs = Rms·Qms/(2π·Mms)` route (no WinISD equivalent) was deleted outright — the
+`Rms`/`Fs`/`Mms`/`Qms` block keeps its other three directions (`Rms`, `Qms`, `Mms` from `Fs`),
+just not the one deriving `Fs`. The reverse-direction lines that sit in the surrounding blocks
+(computing `Mms`/`Cms`, `Qes`/`Re`/`BL`/`Mms`, and `no`/`Vas`/`Qes` FROM `Fs`) are unmoved — only
+the five statements that WRITE `Fs` were relocated into the one ordered block.
+
+`provenance.ts` (the popup) is the sibling bug's scope, not this one — untouched here.
+
+## Verification
+
+`packages/engine/test/driver.test.ts`, describe block `solveConsistencyGroup — Fs route parity
+with WinISD (BUG_20260817)` (8 tests): every scenario in this bug's Evidence section, plus the
+two remaining route-priority pairs and the per-pass-lockout case. Fresh run, 2026-08-21:
+
+```
+ ✓ derives Fs from EBP + Qes (rel 12)
+ ✓ derives Fs from Rme + Qes + Mms (rel 4)
+ ✓ leaves Fs blank from Rms + Qms + Mms alone — WinISD has no such route
+ ✓ prefers rel 14 (no/Qes/Vas) over rel 2 (Qes/BL/Re/Mms) when both are available and disagree
+ ✓ prefers rel 11 (Mms/Cms) over rel 14 (no/Qes/Vas) when both are available and disagree
+ ✓ prefers rel 2 (Qes/BL/Mms/Re) over rel 4 (Rme/Qes/Mms) when both are available and disagree
+ ✓ prefers rel 4 (Rme/Qes/Mms) over rel 12 (EBP/Qes) when both are available and disagree
+ ✓ a route ready in pass 1 locks Fs even against a higher-priority route whose input (Cms) is
+   not derived until a later block — WinISD's own guard chain has the same lockout
+
+ Test Files  1 passed (1)
+      Tests  36 passed (36)
+```
+
+Full `packages/engine` suite: 370/370 passed, no regressions. `packages/model` (56/56) and the
+`packages/winisd` parity-golden suite (436/436, `-t "parity"`) also pass unchanged — no
+calculation code was added outside `packages/engine`.
 
 ## Scope — the route list and its order must reach four places
 
-They are four separate consumers of the same fact, and today all four disagree:
+Four separate consumers of the same fact; three of the four now agree:
 
 | where | what it needs | state today |
 | --- | --- | --- |
-| engine `driver.ts` | the routes, in WinISD's order | 4 routes, wrong order, one route WinISD lacks |
+| engine `driver.ts` | the routes, in WinISD's order | 5 routes, WinISD's priority order (`solveConsistencyGroup`'s "3. Fs" block, each `setVal` tagged `// rel N`) |
 | `WINISD_SCHEMA.md` §3 field table | every route for `Fs`, numbered in firing order | correct — generated from the measured engine |
 | `WINISD_SCHEMA.md` §4.3 catalogue | the same, per relation | correct — same source |
 | provenance popup `provenance.ts` | the routes the ENGINE runs, in engine order | 2 routes, one of which nothing runs |
 
 The two documents are generated from `winisd_research/scripts/relation_routes.py`, so they are
-already right and will stay right. The two code sites are hand-maintained and drift. Any fix
-should make the popup derive from the engine rather than restate it.
-
-## Verification
-
-For whichever option is chosen:
-
-- `Fs` derives from `EBP`+`Qes`, and from `Rme`+`Qes`+`Mms`;
-- under option 1, `Rms`+`Qms`+`Mms` alone leaves `Fs` blank;
-- with several routes available at once, the winner is WinISD's — test a driver where relations
-  14 and 2 disagree and assert 14 wins;
-- the popup lists exactly the engine's routes, in the engine's order.
-
-**Automated test:** the `Xmax` campaign is the model — `winisd_research/runs/xmax_route.jsonl`
-holds seven recorded WinISD runs, and replaying each through `solveConsistencyGroup` is a
-direct parity assertion. An equivalent `Fs` campaign over the five routes, run under wine with
-`toys/campaign_*.py`, would give the same footing. No such fixture exists for `Fs` today, which
-is why this drifted unnoticed.
+already right and will stay right. `driver.ts` is fixed by this bug; the provenance popup
+(`provenance.ts`) remains the sibling bug's scope — it still shows 2 routes, one of which the
+engine never runs.
 
 ## Related
 

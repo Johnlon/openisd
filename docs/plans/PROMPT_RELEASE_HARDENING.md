@@ -114,7 +114,7 @@ never improvise around it.
 
 ## Lane R — repo & ledger hygiene (immediate, small, mostly independent)
 
-- [ ] **R3 — DO THIS FIRST, before any other task.** Fix `~/.claude/bin/inbox.py` id minting:
+- [x] **R3 — DONE 2026-08-21** (~/.claude commit `0c8867e`: mint = max over ALL entries; demo minted QO66 after the ledger sat at next:64 with QO65 present). Fix `~/.claude/bin/inbox.py` id minting:
       `add` minted duplicate ids twice on 2026-08-21 (QO61, QO62). Every lane raises ledger
       questions through this tool, so a broken minter corrupts the ledger for the whole run.
       Diagnose the actual cause (read the minting code — do not guess; likely it scans only
@@ -126,18 +126,22 @@ never improvise around it.
 - [x] **R1** Commit the wine-probe results in `winisd_research` — DONE, commit `20747a6`.
 - [x] **R2** DONE 2026-08-21: the coax question is `QO65`, the wizard build request `QO64`;
       every QO id verified unique.
-- [ ] **R4** `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`: strike the "QO56 hazard" clause
-      (QO63: single writer). `packages/ui/src/logic/useDesignIO.ts`: delete the stale comment
-      citing QO55 as blocking (QO55 is implemented). Done: grep for both returns nothing.
-- [ ] **R5** Phase-0 sweep: the AUDIT ran 2026-08-21 (results in the Appendix below —
-      50 confirmed RESOLVED, ~33 still-live all mapped to lanes, 21 stale Status lines).
-      Remaining work: EDIT the 21 files listed in the appendix to their true status,
-      re-verifying each claim as you do (the sweep is itself a prior claim). Done: every
-      appendix row applied or refuted with evidence.
+- [x] **R4** DONE 2026-08-21: QO56-hazard clause struck from PLAN_QO60_LAYERING_REMEDIATION.md;
+      useDesignIO.ts QO55-citing comment deleted (QO57 pointer kept, one line). Both greps empty.
+- [x] **R5** DONE 2026-08-21, review PASS after one fix cycle. All 21 appendix rows applied
+      with fresh evidence; review spot-checks corrected two (q_group REOPENED — a second
+      `['Qts','Qes','Qms']` declaration survives at `driverRepo.ts:226`, now task D6;
+      disposition evidence renumbered to the YAML-parsed truth, and the 410 archive records'
+      second disposition shape recorded as
+      `winisd_tools/bugs/BUG_20260821_archive_records_carry_disposition_in_a_second_shape.md`).
+      Seven RESOLVED files' bodies aligned with their Status. CARRY-OVER for the release gate
+      item 4: run one header-vs-body consistency pass over BOTH repos' full bug sets (the F7
+      class was found outside the original 21).
 
 ## Lane A — the four red arch gates (openisd; HOT FILES, strictly serial)
 
-- [ ] **A1** Objective 1: un-export the 10 dead `store.ts` exports (`enterPrField`,
+- [x] **A1** DONE 2026-08-21, review PASS (offences 44→34, vue-tsc clean, ALLOWED_GLOBALS +
+      gate byte-identical). Objective 1: un-export the 10 dead `store.ts` exports (`enterPrField`,
       `clearPrField`, `prFieldState`, `prTargetUnreachable`, `loadDriverRecord`,
       `driverMetaCell`, `driverWarnings`, `curveIssues`, `restoreProblems`, `unitLabelOf`) —
       verified dead 2026-08-21 (see the corrected
@@ -193,10 +197,12 @@ never improvise around it.
 
 ## Lane B — winisd_tools model + the regeneration gate (serial: all touch `model_driver.py`)
 
-- [ ] **B1** QO42: add `provided_by`/`comment`/`added` as optional ScrapedFields to
-      `lib/model_driver.py` + the openisd.yml projection. Reopen QT20 row D in the ledger,
-      recording it as overturned by the 2026-08-14 ruling. Done: pytest green; fields emitted
-      on a test fixture.
+- [x] **B1** DONE 2026-08-21, review PASS after one fix cycle (fields + projection + order
+      guards + FIELD_DEFINITIONS completeness assertion — which exposed and deleted a dead
+      `name` entry — + yyyy-mm-dd constraint; 72/72; QT20 row D overturn noted). Spin-outs:
+      openisd `name?: _DerivedField` now producer-less
+      (bugs/BUG_20260821_openisd_name_field_declared_but_inert.md); model_wdr.py's hardcoded
+      ProvidedBy/DateAdded recorded in QO42 notes (fix rides Lane F's TS mapper).
 - [ ] **B2** QT48: `read_value: Optional[float]` with a validator permitting None ONLY when
       `rejected` is set; add `RejectedRead.NO_NUMERIC_VALUE`; settle `read_precision` for the
       N/A case explicitly. Blocked-by: B1. Done: a fixture with printed "N/A" round-trips.
@@ -225,19 +231,25 @@ never improvise around it.
       `_check_readings`; migrate the ~64 assertions to `.value ==`. Verify the call-site count
       with findReferences before deleting. Blocked-by: B4 (same file). Done: `_unpack` gone;
       pytest green.
-- [ ] **B7** QT12: delete `accuton/emit.py::emit_from_seed` + `test_emit_metadata.py`; rewrite
-      scenario stage 6 against the IoC path (`test_ioc_pipeline_e2e.py` is the model).
-      Parallel-safe with B1–B6 (different files). Done: no references to the deleted name;
-      scenario green end-to-end.
+- [x] **B7** DONE 2026-08-21, review PASS (coverage for all four deleted behaviours confirmed
+      on the production path; stage 6 drives FrameworkRunner.run_stage_5_emit; goldens
+      unchanged; scenarios 9/9; two history comments removed by the orchestrator). Follow-ups
+      in QT12 notes: SCRAPING.md stale emit_from_seed prose; identity.resolve's dead
+      distributor_url param. QT12: delete `accuton/emit.py::emit_from_seed` +
+      `test_emit_metadata.py`; scenario stage 6 now runs the IoC path.
 - [ ] **B8** QT18: migrate the 11 discovery-filter plugins to `OutOfScope`-at-build (faitalpro,
       bc_speakers, scanspeak, accuton, purifi, volt, tangband, morel, bliesma, visaton,
       wavecor — tangband is in both camps, unify it); delete `is_non_driver_slug` +
       `NON_DRIVER_SLUG_PATTERNS` when unreferenced; rewrite the `discovers_count: 23` comment
       and expectation (becomes 25 discovered, 2 refused at build). Blocked-by: B7 (scenario).
       Done: grep for the deleted names returns nothing; scenarios green.
-- [ ] **B9** QT8: harvest EVERY run's bubble artifacts into `winisd_drivers/_workingout/<tool>/`
-      before discard; propose a retention rule to the human. Parallel-safe. Done: a test run
-      leaves artifacts; a failed run leaves artifacts.
+- [x] **B9** DONE 2026-08-21, review PASS after three fix cycles: archive hook in
+      unit_pool.settle() (domain-agnostic, typed ArchiveFn), wired at all 5 stages (AST-pinned);
+      finally-based drain settles+archives every still-live unit on abort AND SIGINT (real-
+      signal red-first test), guarded so a settle failure never masks the abort; archive runs
+      after harvest so status labels are final; single derivation authority
+      (FrameworkRunner._workingout_root). 36+8+7 green. Retention ruling + hardlink/Ctrl-C-
+      latency options recorded in QT8 for the human.
 - [ ] **B10** **THE REGENERATION (H1)** — single emit re-run over every record. The whole of
       Lane B is the programme recorded in
       `winisd_tools/bugs/BUG_20260821_emitted_records_lag_the_openisd_model_and_the_cohort_needs_re_emission.md`:
@@ -252,39 +264,82 @@ never improvise around it.
 
 ## Lane C — encoding (small, early: A6 depends on it)
 
-- [ ] **C1** QO62 ruling: `wdrBytesToText` decodes strict UTF-8 (fatal); on failure decodes the
+- [x] **C1** DONE 2026-08-21, review PASS after one fix cycle (encoding enum + {text,encoding}
+      result; CP1252 fallback gated to .wdr/.wpr only, our own formats fail loudly; sweep over
+      all bundled non-UTF-8 files; ¤-loss pinned as accepted; 20/20 + 1260/1260 green; UI
+      surfacing of the encoding recorded as outstanding in QO62; QO67 raised for format-model
+      unification). QO62 ruling: `wdrBytesToText` decodes strict UTF-8 (fatal); on failure decodes the
       WHOLE file as CP1252; the caller learns which encoding was used and the UI can say so.
       Write stays UTF-8. Tests: `drivers/winisd/Selenium SW108 .wdr` reads back with `•`/`®`/
       `±`/`½` intact; the unicode goldens still byte-round-trip. Done: tests green; the
       FF FF/E6 splice is NOT used as an oracle.
-- [ ] **C3** PHANTOM VENT (prod blocker,
+- [x] **C3** DONE 2026-08-21, review PASS after one fix cycle (whole-block golden assertions;
+      revert shows all four keys red; wpr suite 14/14). Uncovered a NEW defect, now task C4.
+      PHANTOM VENT (prod blocker,
       `bugs/BUG_20260820_wpr_writer_emits_phantom_vent_for_a_passive_radiator_project.md`):
       the `.wpr` writer emits a vent section even for a passive-radiator project. Re-verify
       against a WinISD-written PR golden (`goldens/passive-radiator.wpr`), then fix the writer
       to match what WinISD itself emits. Done: PR export matches the golden's section set;
       wpr suite green.
-- [ ] **C2** Flag the Selenium SW108 mid-word byte splice (`reproductio ÿÿ h a æ ...n`) as
-      source damage in winisd_drivers — data fix or upstream report; not code. Done: recorded,
-      owner named.
+- [x] **C4** DONE 2026-08-21, review PASS after one fix cycle: Fb/Vb proven a redundant copy
+      of the owning chamber's [Box] tuning/volume (bandpass4 discriminates); WprVent gained
+      REQUIRED Fb/Vb/carea (no evidenced default → the type forces call sites); whole-block
+      golden equality on all three populated-vent goldens; 18/18. Spin-outs:
+      bugs/BUG_20260821_wpr_float_formatting_diverges_from_winisd_15_digits.md (OPEN — JS
+      17-digit String() vs WinISD's 15; carea/Sdfport/Sdrport literal-fed until resolved;
+      standing rule recorded: parity tests derive inputs from scenarios, never from the
+      golden's output). Backlog: make WprVent.dia/len required too (no live hole today).
+      Original item: Fb/Vb/carea zeroed on POPULATED vents
+      (`bugs/BUG_20260821_wpr_writer_zeroes_fb_vb_carea_on_populated_vents.md`): every
+      vented/bandpass `.wpr` export carries a zeroed port area and untuned per-vent Fb/Vb.
+      `WprVent` has no such fields, so the interface must gain them; `carea = π·(dia/2)²` is a
+      derivation that belongs in `@openisd/engine`; establish from the goldens/engine whether
+      per-vent Fb/Vb are redundant with `[Box].Fr` or independent state — if the evidence is
+      inconclusive, raise to the human instead of guessing. Blocked-by: C1 (same package's
+      test files in flight). Done: populated-vent whole-block equality against the vented and
+      bandpass goldens green; no derivation outside the engine.
+- [x] **C2** DONE 2026-08-21: recorded as
+      `winisd_drivers/bugs/BUG_20260821_selenium_sw108_wdr_mid_word_byte_splice_source_damage.md`
+      with xxd evidence (splice at 0xF1); owner: John (data fix or upstream report).
 
 ## Lane D — ruled UI items (registry/units files; disjoint from Lane A until A8)
 
-- [ ] **D1** QO51: add the `resistance` unit group (Ns/m ↔ kg/s, factor 1); `unitGroup` on
-      Rms/Rme/Mcost; defaults keep WinISD's spellings; update the layout spec's WINISD_UNITS
-      pin to assert defaults + toggle-changes-label-not-value. Done: unit tests + spec green.
-- [ ] **D2** Znom: fix the `DriverEditorModal` tooltip ("label only, not used in simulation" is
-      false — `PROVENANCE_MAP.Znom` exists); drop `'Z'` from the provenance sweep's
-      `NO_FORMULA`. Done: sweep green with Znom included.
-- [ ] **D3** Delete the inert `modeled` flag (95 registry entries, zero readers) — flag to the
-      reviewer that wiring-instead-of-deleting is the alternative if any design doc claims a
-      future consumer. Done: property gone; typecheck green.
-- [ ] **D5** FS ROUTES — **CRITICAL (human, 2026-08-21: ordered fixed)** (prod blocker,
+- [x] **D1** DONE 2026-08-21, review PASS (27/27 unit tests; layout spec 29/29 with
+      --workers=1; factor-1 traced label-only end to end; defaults Rms/Rme=Ns/m, Mcost=kg/s
+      verified against WINISD_PARITY.md + UNIT_BOUNDARY_AUDIT.md; registry-bounds side effect
+      pinned by a ceiling test). Open items spun out: QO51 note (inert unitGroup — registry-
+      vs template-driven mechanism, human's call);
+      bugs/BUG_20260821_rme_mcost_numinput_precision_defaults_to_2_not_registry_5.md.
+- [x] **D2** DONE 2026-08-21, review PASS. Refined verdict: "label only" was false (Znom is
+      derived from Re when not entered, matching the engine formula exactly), but "not used in
+      simulation" is TRUE (nothing in the engine reads Znom as a formula input — verified).
+      Tooltip corrected in DriverEditorModal.vue AND DriverBrowserWinisd.vue; `'Z'` removed
+      from NO_FORMULA (dead entry — the sweep keys on 'Znom'); sweep 10/10 green; QO51 note
+      recorded.
+- [x] **D3** DONE 2026-08-21, review PASS after one doc-fix cycle: `modeled` deleted from
+      FieldSpec + all 94 entries (77 true / 17 false; zero readers re-verified, no doc claims
+      a consumer — UNIT_BOUNDARY_AUDIT.md:160 shows the flag was false for three
+      engine-derived fields); registry doc paragraphs rewritten to the true bounds/unit rule;
+      UNIT_BOUNDARY_AUDIT F4/F8 updated; vue-tsc clean, 27/27.
+- [x] **D5** DONE 2026-08-21, review PASS after two fix cycles: five Fs routes in WinISD's
+      priority order (rels 11>14>2>4>12), spurious Rms·Qms route deleted, per-pass lockout
+      proven identical to WinISD's own guard chain (Ghidra evidence independently verified),
+      all adjacent priority pairs pinned; driver.test.ts 36/36, engine 370/370, parity
+      436/436. Spin-outs recorded: bugs/BUG_20260821_cms_route_order_inverted_vs_winisd.md
+      (pre-existing, factor-2 Cms divergence), bugs/BUG_20260821_consistency_relations_miss_
+      the_ebp_fs_route.md. FS ROUTES — **CRITICAL (human, 2026-08-21: ordered fixed)** (prod blocker,
       `bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md`):
       the engine's Fs derivation misses two of WinISD's routes, has one WinISD does not, and
       orders priorities differently — a round-tripped `.wdr` can invent or omit Fs marks.
       Re-verify the route inventory against the bug's evidence, implement the missing routes in
       `@openisd/engine` (nowhere else), delete the spurious one, and pin with parity tests.
       Done: parity suite green on the Fs scenarios.
+- [ ] **D6** (added 2026-08-21, from R5's review) q_group redeclared:
+      `packages/ui/src/db/driverRepo.ts:226` carries `(['Qts','Qes','Qms'] as const)` and the
+      `qCount < 2` completeness rule — the second declaration of a domain rule the engine owns
+      (`bugs/BUG_20260821_q_group_redeclared_in_ui...md`, reopened OPEN). Route it through the
+      engine's single source; then re-flip the bug. Done: exactly one Q-group declaration
+      repo-wide; bug RESOLVED; narrow suites green. (Run BEFORE A7 touches driverRepo.ts.)
 - [ ] **D4** COAX (the human's open question, `QO65`): `OpenISDDriver` locks to the
       woofer section only. INVESTIGATE and propose: what breaks for a coax record (tweeter/
       passive-radiator sections), what the model change is, and whether it is release scope —

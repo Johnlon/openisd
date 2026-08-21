@@ -1,7 +1,9 @@
 # Tune panel marks Mms `N` and Qms `N` where the model should mark them `C` and `E`
 
 # Status
-OPEN
+OPEN — test-fixture gap only, not an app defect. `openTune()` never loads a driver, so
+`Mms`/`Qms` correctly read `N` (no T/S set exists). Fix is in
+`whatif-panel-fields.browser.spec.ts`'s `openTune()`, not in app code.
 
 ## Symptom
 

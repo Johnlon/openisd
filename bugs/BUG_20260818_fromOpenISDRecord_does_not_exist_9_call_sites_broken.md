@@ -1,7 +1,11 @@
 # `WinISDDriver.fromOpenISDRecord` is called in 9 places and does not exist — build is broken
 
 # Status
-BLOCKED 2026-08-18 — superseded, subsumed by QO55
+RESOLVED — neither `fromOpenISDRecord` nor `fromOpenISDDriver` exists on `WinISDDriver` any
+more (`grep -n "static from" packages/winisd/src/winisdDriver.ts` → only `fromWdrIni`). The
+QO55 rewrite replaced the whole seam with `OpenISDDriver.toWinISDDriver()`
+(`packages/winisd/test/winisdDriver-diff.test.ts:34-37`), a pure getter/setter projection with
+no `.toRecord()` call inside `winisdDriver.ts`.
 
 ## Symptom
 
@@ -63,7 +67,10 @@ sites) without doing that rewrite — see QO55 for the full ruling and scope.
 
 ## Verification
 
-Not yet — no fix applied. Once fixed, `npx tsc --noEmit -p packages/ui` and
-`packages/winisd`'s own build should go clean on this specific error, and every test file
-listed above becomes runnable again (they may currently not even be executing due to the
-compile failure).
+Fixed. `grep -rn "fromOpenISDRecord\|fromOpenISDDriver" packages --include="*.ts"` (excluding
+`node_modules`) returns exactly one hit, a stale doc-comment sentence in
+`winisdDriver-diff.test.ts:8` — not a call site. Every former call site
+(`winIsdDriverFileIo.ts`, the test files listed above) now goes through
+`OpenISDDriver.toWinISDDriver()` / `OpenISDDriver.fromWinISDDriver()`
+(`packages/model/src/openisdDriver.ts:370,439`). `WinISDDriver` itself declares no
+`fromOpenISDRecord`/`fromOpenISDDriver` static factory at all — only `fromWdrIni`.

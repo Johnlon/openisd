@@ -1,7 +1,9 @@
 # The WinISD-compatibility air mode returns TRUNCATED ρ and c, not WinISD's own pair
 
 # Status
-BLOCKED 2026-08-13 — needs a human ruling
+RESOLVED (superseded) — `packages/engine/src/constants.ts` no longer defines `RHO`/`C` literals;
+`packages/engine/src/air.ts:135-137` computes `winisdAir()` live via CIPM-2007
+(`moistAirDensity`/`moistAirSoundVelocity`), within 8.3 ppm of WinISD's live pair.
 
 
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts`.

@@ -1,5 +1,5 @@
 prefix: QO
-next: 64
+next: 70
 questions:
 - id: QO1
   title: UI TODO List
@@ -4997,6 +4997,14 @@ questions:
       WORK, NOT A DECISION: add the three optional ScrapedFields to winisd_tools lib/model_driver.py and
       the openisd.yml projection, reopen QT20 row D, then regenerate (fold into the QO34 regeneration).
       Tracked in the backlog.
+  notes:
+  - at: '2026-08-21'
+    text: 'Review finding while landing the model fields (task B1): scrapers/lib/model_wdr.py''s .wdr
+      builder hardcodes ProvidedBy="" and DateAdded="" and synthesises Comment= from source URLs, so a
+      record carrying the new provided_by/comment/added never projects them into .wdr output. Cross-repo
+      contradiction: openisd''s openisdDriver.ts (~L657) documents .wdr Comment= as sourced from description.
+      NOTE: Lane F (QT54 V8 bridge, task F4) deletes model_wdr.py''s mapping half — the fix belongs in
+      the TS mapper that survives, not in the Python being deleted. Track there.'
 - id: QO43
   title: 'Box/vents/PRs have no facade: flat state.P fields + a parallel ''entered'' provenance system'
   status: decided
@@ -5581,6 +5589,22 @@ questions:
 
       UNTIL RULED: the sweep test exempts Znom by name alongside c and roo, with this question id in
       the comment, so the gap stays visible instead of being silently tolerated.
+  - at: '2026-08-21'
+    text: 'Znom sub-item implemented (task D2, reviewed): DriverEditorModal tooltip corrected (derived
+      from Re, not fed back into simulation) and ''Z'' removed from the provenance sweep''s NO_FORMULA
+      (it was an unreachable dead entry — the sweep keys on ''Znom'' and has demanded a Znom formula since
+      PROVENANCE_MAP.Znom landed). Remaining NO_FORMULA = {c, roo}: environment-derived (moistAirDensity),
+      exempt only because PROVENANCE_MAP has no environment-input concept — backlog candidate to close
+      the allowlist entirely. The Rms/Rme/Mcost resistance unit toggle (task D1) is implemented and in
+      review.'
+  - at: '2026-08-21'
+    text: 'Reviewer finding on D1 needing a ruling: the new FieldSpec.unitGroup property is INERT — no
+      production code reads it; the toggle is declared by the template''s group= prop, as for the 17 pre-existing
+      toggleable fields. So ''no unitGroup'' now means both ''no toggle'' (Re, Pe, BL) and ''toggle declared
+      in template only'' (Fs, Cms, ...). Options: (a) delete the property (template stays the single declaration
+      site); (b) make the registry authoritative: populate unitGroup on all 20 toggleable fields, have
+      the modal/UnitToggle read it, delete every hardcoded group= prop. The ruling''s own wording implies
+      (b). Your call; the vitest entries pin the three current values either way.'
   answer:
     at: '2026-08-21'
     text: |-
@@ -6086,6 +6110,11 @@ questions:
       BLOCKED ON: the wine probe of how WinISD encodes a character whose UTF-8 carries 0xA4 as a
       continuation byte (¤ = C2 A4). If WinISD writes a bare 0xA4 for ¤, the format is genuinely
       ambiguous and this whole area needs rethinking, not just a fallback.
+  - at: '2026-08-21'
+    text: 'C1 implementation status: wdrBytesToText now returns {text, encoding} (WdrEncoding string enum,
+      utf-8|cp1252); the API reports the encoding used. The UI display of that fact (''the UI can say
+      so'') is NOT yet wired — intended surface: the import status line in driverLibrary.ts (statusMsg).
+      Outstanding until surfaced.'
   answer:
     at: '2026-08-21'
     text: |-
@@ -6133,6 +6162,17 @@ questions:
   status: open
   raised: '2026-08-21'
   body: ''
+  notes:
+  - at: '2026-08-21'
+    text: 'Investigation complete (task D4): proposal at docs/design/COAX_QO65_PROPOSAL.md. Findings:
+      sectionFor() fixes #section at construction (openisdDriver.ts); tweeter sections of 15/36 bundled
+      coax records (e.g. dayton-audio/cx120-8) are unreadable/uneditable/never DQ-checked via OpenISDDriver,
+      but survive load/save on disk (toJsonRecord returns the untouched record). Minimal one-shape fix:
+      section param defaulting to today''s resolution on cell/enter/clear, sections() set, dqMarks/consistency
+      iterate populated sections; .wdr export stays woofer-only by choice. UI has zero section-switching
+      today, so the model fix alone surfaces nothing. Recommendation: DEFER (not release-blocking). NOTE:
+      a prior defer ruling exists in bugs/BUG_20260818_coaxial_...md but cites the old id QO62 (id since
+      reassigned to encoding) — please reconfirm the ruling under QO65.'
 - id: QO64
   title: Build the New Project wizard - alignment-driven box sizing
   status: open
@@ -6165,3 +6205,40 @@ questions:
 
       Out of release scope (Lane G of docs/plans/PROMPT_RELEASE_HARDENING.md); this item is the
       standing build request so it cannot fall between the cracks.
+- id: QO67
+  title: 'Unify file-format classification: DriverFileFormat models driver formats only (owdr, wdr), while
+    driverFileText.ts''s decodeDriverFileBytes uses a private isLegacyWinisdFormat regex (\.(wdr|wpr)$)
+    because project formats (.wpr/.owpr) have no model. Two hand-maintained extension classifiers agree
+    today; nothing structural stops drift when .owpr lands. Proposal: one format model covering driver
+    AND project formats, with the decode gate reading it. The local regex is the recorded interim seam
+    (chosen during QO62''s C1 implementation because extending DriverFileFormat would drag .wpr into the
+    save picker''s ACCEPT semantics). An agreement test pins the two classifiers together in the interim.'
+  status: open
+  raised: '2026-08-21'
+  body: ''
+- id: QO68
+  title: 'Ruling needed: is ManagedOpenISDProject._projectToPersist() (renamed from recordToPersist during
+    the private-type-gate work) a genuine encapsulation fix or a rename around the gate? The gate skips
+    class members whose name starts with ''_'' (architecture.test.ts ~:770), so adding the underscore
+    is what took offences to 0. Evidence both ways: ''_'' IS the codebase''s declared class-private convention
+    and no production caller outside managedProject.ts touches _snapshot()/_projectToPersist(); but 20+
+    sites in packages/ui/test/logic/ reach them cross-file with no co-located PrivateAllow entry. Options:
+    (a) bless as genuine private (add the test call sites to a ManagedProjectPrivateAllow list so the
+    convention is enforced, not assumed); (b) judge it a gate-silencing rename and demand the real boundary
+    reshape. PrivateAllow lists are human-edit-only, so either way this is yours.'
+  status: open
+  raised: '2026-08-21'
+  body: ''
+- id: QO69
+  title: 'REACTIVITY.md correction needed (ruled doc — your call, not an agent edit): the design''s literal
+    createLiveRef sample (lines ~78-84, computed(() => { void version.value; return obj; })) is proven
+    broken on the project''s real Vue 3.5.38 — Vue''s computed short-circuits propagation when the returned
+    value is reference-identical, so subscribers never invalidate. Reproduced three independent ways;
+    evidence in bugs/BUG_20260821_reactivity_design_computed_short_circuits_on_unchanged_reference.md.
+    The implementation (task A2) uses the equivalent-intent Vue-idiomatic mechanism instead: shallowRef
+    + triggerRef (unconditional invalidation; downstream value-based dedup intact — verified by the reviewer).
+    Proposed doc fix: replace the sample with the shallowRef+triggerRef version and add one line citing
+    the bug file. Approve the doc edit or rule otherwise.'
+  status: open
+  raised: '2026-08-21'
+  body: ''

@@ -1,7 +1,11 @@
 # BUG — `WinISDDriver.fromWdr(text).toWdr()` is not byte-identical: line endings lost, and Xlim's ParState mark downgraded
 
 # Status
-OPEN
+RESOLVED — `WinISDDriver.toWdr()` joins with `\r\n` (`winisdDriver.ts:232`), writes no `Xlim=`
+line, and carries slot 10's mark via the dedicated `Xlim` cell (`winisdDriver.ts:188-189,244`).
+Covered by `packages/winisd/test/wdr-round-trip.test.ts`'s byte-for-byte assertion over every
+`drivers/sample/winisd/*.wdr` file — verified 2026-08-21,
+`npx vitest run packages/winisd/test/wdr-round-trip.test.ts` → 85/85.
 
 ## Symptom
 
