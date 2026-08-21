@@ -12,7 +12,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { checkConsistency, moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
+import { checkConsistency, moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA, qGroupIsIncomplete } from '@openisd/engine';
 
 // DEMO carries no c/roo, so production resolves it live at the reference environment
 // (driver.ts's driverRho/driverC) -- matched here the same way, never a stored constant.
@@ -115,5 +115,25 @@ describe('checkConsistency — the recorded precision decides, not the size of t
     // every member asserts ±5e-7, so the record genuinely claims two different numbers.
     const issues = checkConsistency({ Qts: 0.381151, Qes: 0.401234, Qms: 7.01234 });
     assert.deepEqual(fieldsOf(issues), [['Qes', 'Qms', 'Qts']]);
+  });
+});
+
+describe('qGroupIsIncomplete — the group needs two of three to solve the third', () => {
+  it('is incomplete with zero usable members', () => {
+    assert.equal(qGroupIsIncomplete(() => false), true);
+  });
+
+  it('is incomplete with exactly one usable member', () => {
+    const usable = new Set(['Qts']);
+    assert.equal(qGroupIsIncomplete(f => usable.has(f)), true);
+  });
+
+  it('is complete with exactly two usable members', () => {
+    const usable = new Set(['Qes', 'Qms']);
+    assert.equal(qGroupIsIncomplete(f => usable.has(f)), false);
+  });
+
+  it('is complete with all three usable', () => {
+    assert.equal(qGroupIsIncomplete(() => true), false);
   });
 });
