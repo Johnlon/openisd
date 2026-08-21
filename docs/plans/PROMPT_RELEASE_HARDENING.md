@@ -334,7 +334,10 @@ never improvise around it.
       Re-verify the route inventory against the bug's evidence, implement the missing routes in
       `@openisd/engine` (nowhere else), delete the spurious one, and pin with parity tests.
       Done: parity suite green on the Fs scenarios.
-- [ ] **D6** (added 2026-08-21, from R5's review) q_group redeclared:
+- [x] **D6** DONE 2026-08-21, review PASS after one fix cycle (engine `qGroupIsIncomplete`
+      single source; exactly one Q-triple declaration repo-wide; `driverHasDqIssues` gained
+      its first direct tests, 15, threshold pinned both sides of 2; commit `40daae8`).
+      (added 2026-08-21, from R5's review) q_group redeclared:
       `packages/ui/src/db/driverRepo.ts:226` carries `(['Qts','Qes','Qms'] as const)` and the
       `qCount < 2` completeness rule — the second declaration of a domain rule the engine owns
       (`bugs/BUG_20260821_q_group_redeclared_in_ui...md`, reopened OPEN). Route it through the

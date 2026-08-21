@@ -357,15 +357,15 @@ export class OpenISDDriver {
 
   /**
    * Project THIS driver into a `WinISDDriver` — every value comes from a getter call on
-   * `this` (`.cell()`/`.metaCell()`/`.ebp()`/`.description()`/`.dqMarks()`), assigned
-   * straight across. `WinISDDriver` derives nothing of its own (ARCHITECTURE.md
-   * "WinISDDriver is solely a serialisation device") — this method is the ONE place that
-   * reads OpenISDDriver's resolved values to build one.
+   * `this` (`.cell()`/`.metaCell()`/`.description()`/`.dqMarks()`), assigned straight across.
+   * `WinISDDriver` derives nothing of its own (ARCHITECTURE.md "WinISDDriver is solely a
+   * serialisation device") — this method is the ONE place that reads OpenISDDriver's
+   * resolved values to build one.
    *
-   * `ebp`: EBP is not a real `SpecField` (no engine derivation route). `.ebp()` is the ONE
-   * place that formula is allowed to live; this method only ever ASSIGNS the value the
-   * getter hands it.
-   * bugs/BUG_20260817_wdr_writer_computes_ebp_itself_violating_its_own_no-calc-logic_rule.md
+   * `EBP` is a real `SpecField` (`_SpecSection.EBP` above, ParState slot 33) with its own
+   * engine derivation route (`Fs = EBP·Qes`, `@openisd/engine`'s `driver.ts` block 3), so it
+   * goes through `cell()` in the `INI_ROWS` loop below exactly like every other field — this
+   * method does not call `.ebp()` at all.
    */
   toWinISDDriver(): Result<WinISDDriver> {
     const cells = new Map<string, WdrCell>();
@@ -556,9 +556,12 @@ export class OpenISDDriver {
     return { value: null, state: Provenance.NotAvailable };
   }
 
-  /** Efficiency Bandwidth Product (Fs/Qes) — WinISD: EBP. Not a stored `SpecField`: it is
-   *  read-only everywhere, computed straight from this driver's own Fs/Qes cells, so it has
-   *  no ENTERED/CALCULATED distinction of its own to carry. Null when either is unknown. */
+  /** Efficiency Bandwidth Product (Fs/Qes) — WinISD: `EBP`, a real `SpecField`
+   *  (`_SpecSection.EBP`, ParState slot 33) with its own engine derivation route
+   *  (`Fs = EBP·Qes`, `@openisd/engine`'s `driver.ts` block 3). This getter is the live-editor
+   *  display shortcut only — it always recomputes `Fs/Qes` from this driver's own cells rather
+   *  than reading `cell('EBP')`, so it carries no ENTERED/CALCULATED distinction of its own.
+   *  Null when either `Fs` or `Qes` is unknown. */
   ebp(): number | null {
     const fs = this.cell('Fs').value;
     const qes = this.cell('Qes').value;

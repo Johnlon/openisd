@@ -1,5 +1,5 @@
 prefix: QO
-next: 70
+next: 72
 questions:
 - id: QO1
   title: UI TODO List
@@ -6239,6 +6239,23 @@ questions:
     + triggerRef (unconditional invalidation; downstream value-based dedup intact — verified by the reviewer).
     Proposed doc fix: replace the sample with the shallowRef+triggerRef version and add one line citing
     the bug file. Approve the doc edit or rule otherwise.'
+  status: open
+  raised: '2026-08-21'
+  body: ''
+- id: QO70
+  title: 'ARCHITECTURE.md contradicts the landed reactivity code: sections ~355, 942-969, 1112 still document
+    beginEdit()/commitEdit() and state ''An edit draft is silent. Typing into an open edit produces no
+    notification.'' No edit-draft overlay exists (Overlay has only whatif), and the ruled REACTIVITY.md
+    contract — now implemented (task A2) — is unconditional notification from every mutator. Two ruled
+    docs disagree; ARCHITECTURE.md needs your edit or your authorisation to align it.'
+  status: open
+  raised: '2026-08-21'
+  body: ''
+- id: QO71
+  title: 'OpenISDDriver''s notification channel (subscribe/#listeners/#notify in packages/model/src/openisdDriver.ts
+    ~:732) is now consumerless repo-wide — its only consumer was the what-if bridge deleted by A2 (ManagedOpenISDProject
+    now notifies unconditionally itself). It is public model surface: delete it (dead-surface rule) or
+    keep it (the driver-editor work may want a direct channel)? Your call.'
   status: open
   raised: '2026-08-21'
   body: ''

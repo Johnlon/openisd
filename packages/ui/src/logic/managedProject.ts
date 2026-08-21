@@ -10,7 +10,7 @@
  *
  *   ground     — the design exactly as loaded. What Reset goes back to.
  *   committed  — the design as it stands. What the charts draw and a save writes.
- *   overlay    — an edit draft OR a what-if. Never both at once.
+ *   overlay    — a what-if over committed state, open at most one at a time.
  *
  * ── `_OpenISDProjectJson` is PRIVATE ──
  * No instance of one ever leaves, and nor does the live `OpenISDDriver` inside it. A caller
@@ -19,9 +19,11 @@
  * the facade — with no notification and no what-if guard — which is precisely what this class
  * exists to make impossible.
  *
- * ── Subscription: what-if is live ──
- * A WHAT-IF is LIVE. Every change re-fires immediately, because the charts are previewing it.
- * `beginWhatIf()`/`cancelWhatIf()` notify too: they change which layer is effective.
+ * ── Subscription: every public mutator notifies (`docs/design/REACTIVITY.md`) ──
+ * Every change re-fires immediately, whether it lands on committed state or a live what-if —
+ * `mutate()` and the four driver methods (`enter`/`clear`/`enterMeta`/`clearMeta`) call
+ * `#notify()` unconditionally. `beginWhatIf()`/`cancelWhatIf()` notify too: they change which
+ * layer is effective.
  *
  * ── A what-if never leaks into anything persistent ──
  * Its values are unverified against physical reality, so nothing outside the live overlay may
@@ -65,7 +67,7 @@ interface Layer {
 }
 
 type Overlay =
-  | { kind: 'whatif'; layer: Layer; unsubscribe: () => void };
+  | { kind: 'whatif'; layer: Layer };
 
 /**
  * Human ruling: the ONLY files, `packages/`-relative, permitted to name `_prototypeProject` —
@@ -187,17 +189,28 @@ export class ManagedOpenISDProject {
 
   // ---- driver writes, on the EFFECTIVE layer ---------------------------------------------
 
+  // Every public mutator notifies unconditionally (`docs/design/REACTIVITY.md`) — no mode guard.
+  // A driver-field edit is not bridged through the driver's OWN `#notify()`: that channel would
+  // need re-subscribing every time `mutate()` re-materialises the effective layer's
+  // `OpenISDDriver` (any box/vent/PR edit does), which is exactly what silently dropped
+  // notifications for `BUG_20260821_whatif_bridge_detaches_when_mutate_rematerialises_the_driver.md`.
+  // Calling `this.#notify()` here directly needs no such subscription and cannot go stale.
+
   enter(field: SpecField, value: number): void {
     this.#effective().openIsdDriver?.enter(field, value);
+    this.#notify();
   }
   clear(field: SpecField): void {
     this.#effective().openIsdDriver?.clear(field);
+    this.#notify();
   }
   enterMeta(field: MetaField, value: string): void {
     this.#effective().openIsdDriver?.enterMeta(field, value);
+    this.#notify();
   }
   clearMeta(field: MetaField): void {
     this.#effective().openIsdDriver?.clearMeta(field);
+    this.#notify();
   }
 
   // ---- box / vent / PR flat-field accessors, ledger QO54 ---------------------------------
@@ -341,10 +354,9 @@ export class ManagedOpenISDProject {
    * Change the effective project — box, vent, environment, signal, filters, anything that is
    * not a driver field.
    *
-   * The mutation happens inside the callback so that this class stays in charge of what
-   * follows it: a live what-if notifies immediately, an open edit draft stays silent until
-   * commit. A caller that mutated a project it had been handed could not be given either
-   * behaviour.
+   * The mutation happens inside the callback so that this class stays in charge of what follows
+   * it — re-materialising the effective layer's `OpenISDDriver` and notifying. A caller that
+   * mutated a project it had been handed could not be given either behaviour.
    */
   mutate(fn: (project: _OpenISDProjectJson) => void): void {
     const layer = this.#effective();
@@ -352,7 +364,7 @@ export class ManagedOpenISDProject {
     // The driver record may have been replaced wholesale (a different driver chosen), so the
     // live view is re-materialised rather than left pointing at the old object.
     layer.openIsdDriver = layer.project.driver ? OpenISDDriver.fromJsonRecord(layer.project.driver) : null;
-    if (this.#overlay?.kind === 'whatif') this.#notify();
+    this.#notify();
   }
 
   // ---- the project, for anything persistent ----------------------------------------------
@@ -399,16 +411,11 @@ export class ManagedOpenISDProject {
   }
 
   #openWhatIfOver(source: Layer): Overlay {
-    const layer = cloneLayer(source);
-    // Driver-field scrubs notify through the driver's own channel; project-field scrubs notify
-    // through mutate(). Both routes reach the same subscribers.
-    const unsubscribe = layer.openIsdDriver?.subscribe(() => this.#notify()) ?? (() => {});
-    return { kind: 'whatif', layer, unsubscribe };
+    return { kind: 'whatif', layer: cloneLayer(source) };
   }
 
   #endWhatIfIfActive(): void {
     if (this.#overlay?.kind !== 'whatif') return;
-    this.#overlay.unsubscribe();
     this.#overlay = null;
     this.#notify();
   }
@@ -416,10 +423,9 @@ export class ManagedOpenISDProject {
   // ---- load / switch -----------------------------------------------------------------------
 
   /** Adopt a project as freshly loaded. Ground and committed both become independent copies;
-   *  any open overlay is discarded, because loading is a named trigger of the
-   *  what-if-never-leaks rule and a draft over the old design has nothing left to commit onto. */
+   *  any open what-if is discarded, because loading is a named trigger of the what-if-never-leaks
+   *  rule and a what-if over the old design has nothing left to explore. */
   load(project: _OpenISDProjectJson): void {
-    if (this.#overlay?.kind === 'whatif') this.#overlay.unsubscribe();
     this.#overlay = null;
     this.#ground = layerOf(structuredClone(project));
     this.#committed = layerOf(structuredClone(project));
@@ -430,7 +436,6 @@ export class ManagedOpenISDProject {
    *  choosing a driver is not opening a new project. */
   loadDriverRecord(record: _OpenISDDriverJson): void {
     this.mutate(p => { p.driver = structuredClone(record); });
-    if (this.#overlay?.kind !== 'whatif') this.#notify();
   }
 
   /** Replace the whole design with an empty one. */
