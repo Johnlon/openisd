@@ -5,10 +5,23 @@
  * the `_OpenISDProjectJson` inside each — that is the property being asserted, not an obstacle to
  * asserting it.
  *
- * The notification counts ARE the specification (ARCHITECTURE.md §3): an edit is silent until
- * commit, a what-if is live. The tests that matter most here are the ones proving a scrubbed
- * BOX value behaves exactly like a scrubbed DRIVER value — that is the whole reason the facade
- * wraps the project rather than the driver.
+ * The notification counts ARE the specification (`docs/design/REACTIVITY.md`): every public
+ * mutator notifies EXACTLY ONCE per call, unconditionally — whether it writes straight to
+ * committed state or into a live what-if. `mutate()` and the four driver methods
+ * (`enter`/`clear`/`enterMeta`/`clearMeta`) each call `#notify()` themselves, on every call, with
+ * no mode guard; there is no separate driver-notify bridge to reach — a what-if's own
+ * `OpenISDDriver` is never subscribed to, so a driver instance re-materialised mid-what-if (any
+ * box/vent/PR edit rebuilds it, `mutate()`) cannot silently drop out of the notification path.
+ *
+ * The what-if LIFECYCLE methods are the exception, and correctly so: they notify once per actual
+ * change of EFFECTIVE LAYER, not once per call. `beginWhatIf()`/`cancelWhatIf()` notify zero times
+ * when called while already in (or already out of) that state — there is no layer change to
+ * announce. `resetOverlayToGround()` notifies TWICE per call (end the current what-if, reopen a
+ * fresh one over ground) because it is genuinely two layer changes, not one.
+ *
+ * The tests that matter most here are the ones proving a scrubbed BOX value behaves exactly like
+ * a scrubbed DRIVER value — that is the whole reason the facade wraps the project rather than
+ * the driver.
  */
 import { describe, it } from 'vitest';
 import { Provenance } from '@openisd/model';
@@ -74,6 +87,79 @@ describe('ManagedOpenISDProject — notification asymmetry (the specification)',
     assert.equal(n, 5, 'cancel notifies — it changes which layer is effective back');
   });
 
+});
+
+describe('ManagedOpenISDProject — every public mutator notifies exactly once (docs/design/REACTIVITY.md)', () => {
+  it('enter/clear/enterMeta/clearMeta notify on COMMITTED state — no what-if open', () => {
+    const mp = managed();
+    let n = 0;
+    mp.subscribe(() => { n++; });
+
+    mp.enter('Qts', 0.36);
+    assert.equal(n, 1, 'enter() on committed state must notify — REACTIVITY.md: every public mutator does');
+    mp.clear('Qts');
+    assert.equal(n, 2, 'clear() on committed state must notify');
+    // 'manufacturer', not 'comment': driverRecord()'s 'comment' is never entered by the fixture,
+    // so OpenISDDriver.clearMeta() (openisdDriver.ts:721-730) finds nothing "displaced" and
+    // returns before notifying — 'manufacturer' carries a real manufacturer_datasheet origin the
+    // fixture sets, so enterMeta()/clearMeta() actually override/restore it and notify both ways.
+    mp.enterMeta('manufacturer', 'Overridden Co');
+    assert.equal(n, 3, 'enterMeta() on committed state must notify');
+    mp.clearMeta('manufacturer');
+    assert.equal(n, 4, 'clearMeta() on committed state must notify');
+  });
+
+  it('enter/clear/enterMeta/clearMeta notify EXACTLY ONCE during a live what-if', () => {
+    const mp = managed();
+    mp.beginWhatIf();
+    let n = 0;
+    mp.subscribe(() => { n++; });
+
+    mp.enter('Qts', 0.36);
+    assert.equal(n, 1, 'exactly one notification per call — the facade\'s own unconditional #notify()');
+    mp.clear('Qts');
+    assert.equal(n, 2);
+    mp.enterMeta('manufacturer', 'Overridden Co');
+    assert.equal(n, 3);
+    mp.clearMeta('manufacturer');
+    assert.equal(n, 4);
+  });
+
+  it('setBoxVolume_m3 (a mutate()-based setter) notifies exactly once on COMMITTED state', () => {
+    const mp = managed();
+    let n = 0;
+    mp.subscribe(() => { n++; });
+
+    mp.setBoxVolume_m3(0.05);
+    assert.equal(n, 1, 'mutate() must notify on committed state too — REACTIVITY.md: every public mutator does');
+  });
+
+  it('setBoxVolume_m3 notifies exactly once during a live what-if', () => {
+    const mp = managed();
+    mp.beginWhatIf();
+    let n = 0;
+    mp.subscribe(() => { n++; });
+
+    mp.setBoxVolume_m3(0.05);
+    assert.equal(n, 1, 'mutate() during a what-if still notifies exactly once, not twice');
+  });
+
+  it('a driver scrub after a box scrub in the SAME what-if still notifies — regression for ' +
+     'BUG_20260821_whatif_bridge_detaches_when_mutate_rematerialises_the_driver.md: the box scrub ' +
+     '(mutate()) re-materialises the effective layer\'s OpenISDDriver instance, which used to ' +
+     'orphan a driver-notify bridge subscribed to the OLD instance', () => {
+    const mp = managed();
+    mp.beginWhatIf();
+    let n = 0;
+    mp.subscribe(() => { n++; });
+
+    mp.enter('Qts', 0.36);
+    assert.equal(n, 1);
+    mp.setBoxVolume_m3(0.05);              // rematerialises openIsdDriver on the effective layer
+    assert.equal(n, 2);
+    mp.enter('Fs', 41);                    // must still notify — was silently lost before the fix
+    assert.equal(n, 3, 'a driver scrub after a box scrub must still notify');
+  });
 });
 
 describe('ManagedOpenISDProject — the overlay covers the WHOLE design', () => {
