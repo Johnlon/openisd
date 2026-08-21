@@ -256,7 +256,7 @@ graph TD
     subgraph STORES["APPLICATION — the mutable state layers (packages/ui/src/logic/)"]
         WS["<b>Workspace</b><br/>logic/model/workspace.ts<br/><b>an ORDERED LIST</b> of open projects<br/><i>never a map keyed by name —<br/>two projects may share a name</i>"]
         MP["<b>ManagedProject</b><br/>logic/managedProject.ts<br/><i>one per row in the left nav</i>"]
-        PS["<b>PresentationState</b><br/>logic/presentationState.ts<br/>browser-storage backed<br/><i>panels · cursor · zoom · skin · units</i>"]
+        PS["<b>PresentationState</b><br/>logic/presentationState.ts<br/><i>panels · cursor · zoom · units</i>"]
         UAS["<b>UrlAppState</b><br/>logic/urlAppState.ts<br/><i>composes the URL. OWNS NOTHING —<br/>queries the owners, asks them to restore.</i>"]
     end
 
@@ -410,7 +410,7 @@ graph TD
     UI["<b>PRESENTATION</b><br/>packages/ui/src/ui/<br/>12 components + shells"]
     STORE["<b>store.ts</b><br/>APPROVED — persistent design state"]
     MANAGED["<b>managedDriver.ts</b><br/>APPROVED — active · edit · what-if<br/><i>TO BECOME managedProject.ts</i>"]
-    PRES["<b>presentationState.ts</b> + <b>urlAppState.ts</b><br/>APPROVED — NOT BUILT"]
+    PRES["<b>presentationState.ts</b> — APPROVED, built<br/><b>urlAppState.ts</b> — APPROVED, NOT BUILT"]
     REST["<b>the other 19 logic/ modules</b><br/>incl. useVentGroup · usePrGroup<br/><i>vent/PR state is flat in state.P —<br/>no owner, see the ruling above</i>"]
     SVC["<b>SERVICES</b><br/>db/ · diagnostics/ · logging/"]
     MODEL["<b>@openisd/model</b><br/>OpenISDDriver<br/><i>no OpenISDProject yet</i>"]
@@ -447,7 +447,7 @@ graph TD
 | ----------------------------- | ----------------------------------------- |
 | `logic/store.ts`              | built — persistent design state           |
 | `logic/managedDriver.ts`      | built — active · edit · what-if           |
-| `logic/presentationState.ts`  | NOT BUILT                                 |
+| `logic/presentationState.ts`  | built — dialog flags, chart cursor/selection, display prefs |
 | `logic/urlAppState.ts`        | NOT BUILT                                 |
 
 **UNPLACED** — exists, but the target diagram collapses it into one `logic/` box, so that diagram
@@ -1238,19 +1238,24 @@ of its own. There are NO unapproved exceptions.**
 | ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | the **store**      | PERSISTENT design state — box, params, project metadata: what a save, a load and a share link carry | `packages/ui/src/logic/store.ts`           |
 | **`ManagedProject`** | ACTIVE, EDIT and WHAT-IF state for the WHOLE PROJECT — ground, committed, and the edit-or-what-if overlay, each holding a complete `OpenISDProject` | `packages/ui/src/logic/managedProject.ts` |
-| **`PresentationState`** | PRESENTATION state — which panel/dialog is open, cursor and selection, per-chart zoom, skin, unit tokens. **Backed by browser storage** | `packages/ui/src/logic/presentationState.ts` |
+| **`PresentationState`** | PRESENTATION state — which panel/dialog is open, cursor and selection, per-chart zoom, unit tokens | `packages/ui/src/logic/presentationState.ts` |
 | **`UrlAppState`**  | Composing the URL that ENCAPSULATES the app state — components on display, projects open, chart selected | `packages/ui/src/logic/urlAppState.ts`     |
 
-**Neither `PresentationState` nor `UrlAppState` exists yet — both are TARGET state.** Presentation
-state is currently mixed into the store's one `state` object (`state.ui`, `editDriver`,
-`editDriverInfo`, `browseOpen`, `defineOpen`, `cursorF`, `pinnedF`, `cursorLocked`, `dragRange`,
-`yRanges`, `graphs`) alongside the persistent design state it must be separated from.
+**`PresentationState` is built; `UrlAppState` is TARGET state, not yet built.** `PresentationState`
+holds `browseOpen`, `editDriver`, `editDriverInfo`, `cursorF`, `pinnedF`, `cursorLocked`,
+`dragRange`, `yRanges`, `graphs`, `lossMode` and `ui` (unit tokens, environment defaults,
+username, chart colours, per-shell layout) — moved out of the store's `state` object, which now
+holds only persistent design state (`box`, `project`).
 
-**They are two components, not one, because they answer to different owners.**
-`PresentationState` is this browser's own preference, persisted to browser storage and never
-shared. `UrlAppState` composes a URL that captures what the app is showing — which components are
-on display, which projects are open, which chart is selected — so that address is a complete,
-shareable description of the session.
+**They are two components, not one, because they answer to different owners — not because one is
+local-only and the other is shared.** `PresentationState` is persisted the same way the design
+store is (`logic/persist.ts`'s `openisd.state` local save, and a share link — human ruling
+2026-08-14: a link is a complete description of the session, stripped of nothing, so the
+recipient sees the sender's open panels, cursor and unit choices too). `UrlAppState` composes a
+URL that captures what the app is showing — which components are on display, which projects are
+open, which chart is selected — so that address is a complete, shareable description of the
+session; it owns no state of its own, only reading `PresentationState`/`Workspace` and asking
+them to restore.
 
 **`UrlAppState` OWNS NO STATE. It reads, and it re-establishes.** It needs access to
 the `Workspace`, its `ManagedProject`s and `PresentationState` in order to compose a URL from them, and to put

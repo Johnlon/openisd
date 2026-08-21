@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { state, managedProject, allIssues, syncedP, curvesData, maxData } from '../../logic/store.js';
+import { presentationState } from '../../logic/presentationState.js';
 import { TAB_META, buildPlotData } from '../../logic/series.js';
 import type { ChartTabId } from '../../logic/series.js';
 import { drawOne } from '../canvas.js';
@@ -60,7 +61,7 @@ watch(warnings, () => { warningsDismissed.value = false; });
 // Per-chart Y-axis (level) override — the vertical half of "zoom out/in". Absent =
 // auto-scale to fit the data. When set, it replaces the auto ymin/ymax on the drawn
 // plot only; series data and cursor stats are untouched.
-const yOverride = computed(() => state.yRanges[props.tabId] || null);
+const yOverride = computed(() => presentationState.yRanges[props.tabId] || null);
 const viewPlot  = computed(() => {
   const p = plotData.value;
   if (!p) return p;
@@ -70,10 +71,10 @@ const viewPlot  = computed(() => {
   return p;
 });
 // Reset a chart's Y scale to auto (invoked by double-clicking its axis).
-function resetY() { delete state.yRanges[props.tabId]; }
+function resetY() { delete presentationState.yRanges[props.tabId]; }
 
 const effectiveF = computed(() =>
-  state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF)
+  presentationState.cursorLocked ? presentationState.pinnedF : (presentationState.cursorF ?? presentationState.pinnedF)
 );
 
 const X_LMAX = Math.log10(40000); // frequency drag clamps to 1 Hz … 40 kHz (log space)
@@ -141,8 +142,8 @@ function rangeStats(fLo: number, fHi: number) {
 
 // Per-panel view of the shared frequency selection — stats come from this panel's series
 const localDragRange = computed(() => {
-  if (!state.dragRange) return null;
-  const { fLo, fHi } = state.dragRange;
+  if (!presentationState.dragRange) return null;
+  const { fLo, fHi } = presentationState.dragRange;
   return { fLo, fHi, stats: rangeStats(fLo, fHi) ?? undefined };
 });
 
@@ -180,7 +181,7 @@ function onPointerDown(e: PointerEvent) {
   }
   const f = freqAt(e.clientX);
   if (f !== null) {
-    state.dragRange = null; // clear previous selection
+    presentationState.dragRange = null; // clear previous selection
     dragOrigin = { clientX: e.clientX, f };
     canvasEl.value!.setPointerCapture(e.pointerId);
   }
@@ -204,7 +205,7 @@ function applyYDrag(e: PointerEvent) {
   const inv = (v: number) => logy ? Math.pow(10, v) : v;
   const min = inv(a), max = inv(b);
   if (!isFinite(min) || !isFinite(max) || (logy && min <= 0)) return;
-  state.yRanges[props.tabId] = { min, max };
+  presentationState.yRanges[props.tabId] = { min, max };
 }
 
 // Apply the in-progress X-axis (frequency) drag → write the project's sweep fmin/fmax
@@ -245,18 +246,18 @@ function onPointerMove(e: PointerEvent) {
       const f2 = freqAt(e.clientX);
       if (f2 !== null) {
         const fLo = Math.min(dragOrigin.f, f2), fHi = Math.max(dragOrigin.f, f2);
-        state.dragRange = { fLo, fHi };
+        presentationState.dragRange = { fLo, fHi };
         redraw();
       }
       return;
     }
   }
-  if (state.cursorLocked || !geoRef) return;
+  if (presentationState.cursorLocked || !geoRef) return;
   const { m, pw, f0, f1 } = geoRef;
   const rect = canvasEl.value!.getBoundingClientRect();
   const frac = (e.clientX - rect.left - m.l) / pw;
-  if (frac < 0 || frac > 1) { if (state.cursorF !== null) state.cursorF = null; return; }
-  state.cursorF = Math.pow(10, Math.log10(f0) + frac * (Math.log10(f1) - Math.log10(f0)));
+  if (frac < 0 || frac > 1) { if (presentationState.cursorF !== null) presentationState.cursorF = null; return; }
+  presentationState.cursorF = Math.pow(10, Math.log10(f0) + frac * (Math.log10(f1) - Math.log10(f0)));
 }
 
 function onPointerUp(e: PointerEvent) {
@@ -266,23 +267,23 @@ function onPointerUp(e: PointerEvent) {
   const wasDrag = Math.abs(e.clientX - dragOrigin.clientX) >= 5;
   dragOrigin = null;
   if (wasDrag) return; // leave selection visible; cleared on next pointerdown
-  state.dragRange = null;
+  presentationState.dragRange = null;
   // Click locks or moves the marker:
   // - Clicking an unlocked chart locks the cursor at that frequency.
   // - Clicking near the already pinned location unlocks it.
   // - Clicking somewhere else while locked moves the cursor to the new location UNLOCKED.
   const f = freqAt(e.clientX);
   if (f === null) return;
-  if (state.cursorLocked && state.pinnedF !== null && Math.abs(Math.log10(f) - Math.log10(state.pinnedF)) < 0.02) {
-    state.cursorLocked = false;
-  } else if (state.cursorLocked) {
-    state.pinnedF = f;
-    state.cursorF = f;
-    state.cursorLocked = false;
+  if (presentationState.cursorLocked && presentationState.pinnedF !== null && Math.abs(Math.log10(f) - Math.log10(presentationState.pinnedF)) < 0.02) {
+    presentationState.cursorLocked = false;
+  } else if (presentationState.cursorLocked) {
+    presentationState.pinnedF = f;
+    presentationState.cursorF = f;
+    presentationState.cursorLocked = false;
   } else {
-    state.pinnedF = f;
-    state.cursorF = f;
-    state.cursorLocked = true;
+    presentationState.pinnedF = f;
+    presentationState.cursorF = f;
+    presentationState.cursorLocked = true;
   }
 }
 
@@ -295,13 +296,13 @@ function onDblClick(e: MouseEvent) {
 
 function onPointerLeave() {
   dragOrigin = null;
-  // Don't clear state.dragRange — selection persists across all panels
-  if (!state.cursorLocked) state.cursorF = null;
+  // Don't clear presentationState.dragRange — selection persists across all panels
+  if (!presentationState.cursorLocked) presentationState.cursorF = null;
 }
 
 function onPointerCancel() {
-  dragOrigin = null; yDrag = null; xDrag = null; state.dragRange = null;
-  if (!state.cursorLocked) state.cursorF = null;
+  dragOrigin = null; yDrag = null; xDrag = null; presentationState.dragRange = null;
+  if (!presentationState.cursorLocked) presentationState.cursorF = null;
 }
 
 // ── context menu ──────────────────────────────────────────────
@@ -309,7 +310,7 @@ const ctxMenu = ref<{ visible: boolean; x: number; y: number; f: number | null }
 
 function onContextMenu(e: MouseEvent) {
   e.preventDefault();
-  const f = state.cursorF ?? state.pinnedF;
+  const f = presentationState.cursorF ?? presentationState.pinnedF;
   ctxMenu.value = { visible: true, x: e.clientX, y: e.clientY, f };
 }
 
@@ -340,14 +341,14 @@ function snapAction(dir: string, type: string) {
     const d = Math.abs(Math.log10(s.xs[i]) - Math.log10(ref));
     if (d < bestD) { bestD = d; best = i; }
   }
-  state.pinnedF = s.xs[best];
-  state.cursorLocked = true;   // hold the snapped point so hover doesn't override it
+  presentationState.pinnedF = s.xs[best];
+  presentationState.cursorLocked = true;   // hold the snapped point so hover doesn't override it
   closeMenu();
 }
 
 function pinHere() {
   const f = ctxMenu.value.f;
-  if (f) { state.pinnedF = f; state.cursorLocked = true; }
+  if (f) { presentationState.pinnedF = f; presentationState.cursorLocked = true; }
   closeMenu();
 }
 
@@ -370,7 +371,7 @@ onUnmounted(() => {
 });
 
 const canvasStyles = computed(() => {
-  const colors = state.ui.chartColors;
+  const colors = presentationState.ui.chartColors;
   if (!colors) return {};
   const styles: Record<string, string> = {};
   if (colors.background) styles['--chart-bg-override'] = colors.background;

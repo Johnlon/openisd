@@ -1,4 +1,5 @@
 import type { AppState, DriverJSON, SerializedState, UiParams } from '../types.js';
+import type { PresentationState } from './presentationState.js';
 import { CURRENT_SCHEMA, upgrade, type StoredBlob } from './schemaUpgrade.js';
 
 // Share-link payload: gzip (native CompressionStream — Baseline widely available since May
@@ -26,7 +27,9 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 /** `p` is the project's flat `UiParams` snapshot (`managedProject.toUiParams()`) — passed in
  *  rather than read off `state` because the store holds no such copy (ledger QO54: the
  *  project already owns this state; the store never duplicates it). */
-export function serialize(state: AppState, driver: DriverJSON | undefined, p: UiParams): SerializedState {
+export function serialize(
+  state: AppState, view: PresentationState, driver: DriverJSON | undefined, p: UiParams,
+): SerializedState {
   return {
     // The MODEL version this payload is written from — every reader upgrades from it
     // (ARCHITECTURE.md §"EVERY STORED PAYLOAD CARRIES THE SCHEMA VERSION..."). `v` was
@@ -36,17 +39,17 @@ export function serialize(state: AppState, driver: DriverJSON | undefined, p: Ui
     v: 2,
     driver,
     box: state.box,
-    lossMode: state.lossMode,
+    lossMode: view.lossMode,
     P: p,
-    graphs: state.graphs,
-    ui: state.ui,
+    graphs: view.graphs,
+    ui: view.ui,
     project: state.project,
     // Graph cursor/marker/band-selection — carried the same way tab/chart are: both a local
     // save (refresh fidelity) and a share link reproduce exactly what the sender was pointing
     // at. The band carries only fLo/fHi; stats are recomputed per-panel on load.
     cursor: {
-      f: state.cursorF, pinnedF: state.pinnedF, locked: state.cursorLocked,
-      range: state.dragRange ? { fLo: state.dragRange.fLo, fHi: state.dragRange.fHi } : null,
+      f: view.cursorF, pinnedF: view.pinnedF, locked: view.cursorLocked,
+      range: view.dragRange ? { fLo: view.dragRange.fLo, fHi: view.dragRange.fHi } : null,
     },
   };
 }

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import { ref, shallowRef, markRaw, computed, nextTick, watch, onBeforeUnmount } from 'vue';
-import { state, formatInUnit } from '../../logic/store.js';
+import { formatInUnit } from '../../logic/store.js';
+import { presentationState } from '../../logic/presentationState.js';
 import { useApp } from '../../logic/app.js';
 import { referenceRho, referenceC } from '../../logic/environment.js';
 import { OpenISDDriver } from '@openisd/model';
@@ -471,7 +472,7 @@ async function writeDriver(format: DriverFileFormat) {
   if (!r.cancelled) logging.flash(`Driver saved as .${format.value}`);
 }
 
-useEscToClose(() => state.editDriverInfo, cancel);
+useEscToClose(() => presentationState.editDriverInfo, cancel);
 // Registered AFTER the editor on purpose: the Esc stack resolves last-registered first, so
 // this makes the format picker the innermost dismissal. Otherwise Esc aimed at a two-option
 // panel would close the whole editor and discard the session's edits.

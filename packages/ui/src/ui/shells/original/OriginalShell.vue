@@ -27,6 +27,7 @@ import {
   formatInUnit as fmtU,
   newProject,
 } from '../../../logic/store.js';
+import { presentationState } from '../../../logic/presentationState.js';
 import { createLiveRef } from '../../../logic/liveProject.js';
 import {
   enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
@@ -129,7 +130,7 @@ const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 const sealedRes = computed<{ Fsc: number; Qtc: number } | null>(() => {
   void live.value;
   return managedProject.sealedResonance(
-    LossMode.parse(state.lossMode), managedProject.seriesResistance_ohm(),
+    LossMode.parse(presentationState.lossMode), managedProject.seriesResistance_ohm(),
     managedProject.boxQl(), managedProject.boxQa());
 });
 const rearResonance = computed<number | null>(() => sealedRes.value?.Fsc ?? null);
@@ -209,17 +210,17 @@ const CHART_ITEMS: ChartItem[] = [
   { label: 'Transfer function phase (EQ/Filter)', tab: 'FltPhase' },
   { label: 'Group Delay (EQ/Filter)', tab: 'FltGD' },
 ];
-// `state.ui` is persisted as plain strings, so the read side goes through the set's one
+// `presentationState.ui` is persisted as plain strings, so the read side goes through the set's one
 // string→member boundary: a chart id this build no longer declares falls back to the
 // default rather than selecting a chart that cannot be drawn.
 const chartTab = computed<ChartTabId>({
-  get: () => parseChartTabId(state.ui.originalChartTab),
-  set: (v: ChartTabId) => { state.ui.originalChartTab = v; },
+  get: () => parseChartTabId(presentationState.ui.originalChartTab),
+  set: (v: ChartTabId) => { presentationState.ui.originalChartTab = v; },
 });
 // The currently-chosen chart label (persisted separately so a "not available" pick sticks).
 const chartLabel = computed({
-  get: () => state.ui.originalChartLabel ?? 'SPL',
-  set: (v: string) => { state.ui.originalChartLabel = v; },
+  get: () => presentationState.ui.originalChartLabel ?? 'SPL',
+  set: (v: string) => { presentationState.ui.originalChartLabel = v; },
 });
 const chartMeta = computed(() => TAB_META[chartTab.value]);
 const chartUnavailable = computed(() => {
@@ -270,7 +271,7 @@ function onFile(e: Event) {
 
 
 // ---- Cursor readout (top-right) — real interpolation of the selected curve ------
-const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
+const cursorHz = computed(() => presentationState.cursorLocked ? presentationState.pinnedF : (presentationState.cursorF ?? presentationState.pinnedF));
 const fmin = computed(() => syncedP.value.fmin ?? 1);
 const fmax = computed(() => syncedP.value.fmax ?? 20000);
 
@@ -297,13 +298,13 @@ function commitHzInput() {
   const v = parseFloat(hzInputText.value);
   if (isFinite(v) && v > 0) {
     const clamped = Math.max(fmin.value, Math.min(fmax.value, v));
-    state.pinnedF = clamped;
-    state.cursorF = clamped;
-    state.cursorLocked = true;
+    presentationState.pinnedF = clamped;
+    presentationState.cursorF = clamped;
+    presentationState.cursorLocked = true;
   } else {
-    state.pinnedF = null;
-    state.cursorF = null;
-    state.cursorLocked = false;
+    presentationState.pinnedF = null;
+    presentationState.cursorF = null;
+    presentationState.cursorLocked = false;
   }
 }
 
@@ -313,9 +314,9 @@ function spinHz(dir: number, factor = 1.02) {
   if (dir > 0 && nextF <= current) nextF = current + 0.1;
   if (dir < 0 && nextF >= current) nextF = current - 0.1;
   const clamped = Math.max(fmin.value, Math.min(fmax.value, nextF));
-  state.pinnedF = clamped;
-  state.cursorF = clamped;
-  state.cursorLocked = true;
+  presentationState.pinnedF = clamped;
+  presentationState.cursorF = clamped;
+  presentationState.cursorLocked = true;
   hzInputText.value = clamped.toFixed(2);
 }
 
@@ -373,8 +374,8 @@ const cursorVal = computed<number | null>(() => {
 // ---- Tab rail (persisted) ------------------------------------------------------
 type TabId = 'box' | 'driver' | 'enclosure' | 'filters' | 'signal' | 'advanced' | 'project';
 const activeTab = computed<TabId>({
-  get: () => (state.ui.originalProjectTab as TabId) ?? 'box',
-  set: (v: TabId) => { state.ui.originalProjectTab = v; },
+  get: () => (presentationState.ui.originalProjectTab as TabId) ?? 'box',
+  set: (v: TabId) => { presentationState.ui.originalProjectTab = v; },
 });
 // If the enclosure tab is dropped (Closed box) while it's active, fall back to the Box tab.
 watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
@@ -591,7 +592,8 @@ function closeProject(p: any) {
 // Left panel width + bottom section height are splitter-dragged; both panels also
 // collapse outright, and the chart can maximise over the whole main area (the toolbar
 // stays, so the chart type remains switchable while maximised). All five prefs live in
-// state.ui → persisted locally across refresh, stripped from share links (persist.ts).
+// presentationState.ui → persisted across refresh and carried by a share link (human ruling
+// 2026-08-14: a link is a complete description of the session, stripped of nothing — persist.ts).
 const mainEl = ref<HTMLElement | null>(null);
 // Fixed natural height for the bottom section. An `auto` row tracked the taller of its two
 // cells — and the left rail's tab count (6 tabs for a sealed box, 7 for every other type)
@@ -600,14 +602,14 @@ const mainEl = ref<HTMLElement | null>(null);
 // (7 tabs) fixes both: the height no longer depends on the box type or the active tab, and
 // it never grows past what the content needs. The user can still drag the splitter to resize.
 const DEFAULT_BOTTOM_H = 206;
-const navCollapsed = computed({ get: () => state.ui.originalNavCollapsed ?? false, set: (v: boolean) => { state.ui.originalNavCollapsed = v; } });
-const bottomCollapsed = computed({ get: () => state.ui.originalBottomCollapsed ?? false, set: (v: boolean) => { state.ui.originalBottomCollapsed = v; } });
-const chartMax = computed({ get: () => state.ui.originalChartMax ?? false, set: (v: boolean) => { state.ui.originalChartMax = v; } });
+const navCollapsed = computed({ get: () => presentationState.ui.originalNavCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalNavCollapsed = v; } });
+const bottomCollapsed = computed({ get: () => presentationState.ui.originalBottomCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalBottomCollapsed = v; } });
+const chartMax = computed({ get: () => presentationState.ui.originalChartMax ?? false, set: (v: boolean) => { presentationState.ui.originalChartMax = v; } });
 const mainStyle = computed(() => chartMax.value ? {} : {
-  gridTemplateColumns: (navCollapsed.value ? '0px' : (state.ui.originalNavW ?? 250) + 'px') + ' 7px 1fr',
+  gridTemplateColumns: (navCollapsed.value ? '0px' : (presentationState.ui.originalNavW ?? 250) + 'px') + ' 7px 1fr',
   // Bottom row: a fixed natural height (DEFAULT_BOTTOM_H) until the user drags the splitter
   // to an explicit px — never `auto`, which would wobble with the rail's tab count.
-  gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (state.ui.originalBottomH ?? DEFAULT_BOTTOM_H) + 'px'),
+  gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (presentationState.ui.originalBottomH ?? DEFAULT_BOTTOM_H) + 'px'),
 });
 function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {
   const el = e.currentTarget as HTMLElement;
@@ -621,11 +623,11 @@ function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent
 }
 function onNavSplitDown(e: PointerEvent): void {
   if (navCollapsed.value) return;
-  startSplitDrag(e, (rect, ev) => { state.ui.originalNavW = Math.min(520, Math.max(140, ev.clientX - rect.left)); });
+  startSplitDrag(e, (rect, ev) => { presentationState.ui.originalNavW = Math.min(520, Math.max(140, ev.clientX - rect.left)); });
 }
 function onBottomSplitDown(e: PointerEvent): void {
   if (bottomCollapsed.value) return;
-  startSplitDrag(e, (rect, ev) => { state.ui.originalBottomH = Math.min(400, Math.max(120, rect.bottom - ev.clientY)); });
+  startSplitDrag(e, (rect, ev) => { presentationState.ui.originalBottomH = Math.min(400, Math.max(120, rect.bottom - ev.clientY)); });
 }
 
 // ---- Driver identity + placement ----------------------------------------------
@@ -651,15 +653,15 @@ const driveV = computed<number>({
 // temperature, relative humidity and static pressure (engine air.ts), and thence the SPL
 // constant K. The "Ignore humidity and air pressure (as WinISD does)" checkbox in the shared
 // AdvancedOptions column opts back out of the last two. ------------------------------
-// Seeded from the app-level Options → General → Environment defaults (state.ui.envDefaults),
+// Seeded from the app-level Options → General → Environment defaults (presentationState.ui.envDefaults),
 // not a hardcoded literal — editing this project's Advanced pane doesn't touch that default.
 // The environment is PER PROJECT (WinISD keeps T/p/phi in the .wpr [Box] section), so each
 // input writes through to managedProject.
-const advTemp = ref(state.ui.envDefaults.tempK);
+const advTemp = ref(presentationState.ui.envDefaults.tempK);
 watch(advTemp, (v) => { managedProject.setEnvTempK(v); }, { immediate: true });
-const advHumidity = ref(state.ui.envDefaults.humidityPct);
+const advHumidity = ref(presentationState.ui.envDefaults.humidityPct);
 watch(advHumidity, (v) => { managedProject.setEnvHumidityPct(v); }, { immediate: true });
-const advPressure = ref(state.ui.envDefaults.pressurePa);
+const advPressure = ref(presentationState.ui.envDefaults.pressurePa);
 watch(advPressure, (v) => { managedProject.setEnvPressurePa(v); }, { immediate: true });
 /** The air the sweep is actually running in — one call, both readouts. */
 const advAir = computed(() => {
@@ -681,7 +683,7 @@ const optionsOpen = ref(false);
 
 // Tune (inline What-If) and Edit (full editor modal) both need the driver-source snapshot
 // seeded first.
-function startTune() { state.editDriver = true; }
+function startTune() { presentationState.editDriver = true; }
 
 // ---- PR selection header (Enclosure tab, PR box type) — mirrors the Driver tab's
 // Brand/Model + Select Driver header, but for the passive radiator. The load handlers
@@ -713,24 +715,24 @@ function loadBundledPREntry(pr: BundledPR) {
 function defineNewPREntry() { prBrowseOpen.value = false; prDefineOpen.value = true; }
 function startEdit() { editProjectDriver(); }
 
-// R1 refresh fidelity — preserve an open Tune (what-if) + its uncommitted buffer across a
-// reload. These live in state.ui, so they persist to localStorage (refresh) but stateToUrl
-// strips these two fields specifically — an open editor's uncommitted buffer is personal
-// working state, excluded from share links (the active tab/chart IS shared — see stateToUrl's
-// own comment).
+// R1 refresh fidelity — preserve an open Tune (what-if) / Driver Editor across a reload.
+// `originalTuneOpen`/`originalEditorOpen` live in presentationState.ui, so they persist to
+// localStorage (refresh) AND travel in a share link (human ruling 2026-08-14: a link is a
+// complete description of the session, stripped of nothing — persist.ts). The what-if VALUES
+// themselves are never carried by either path — see the next comment.
 // Only whether the panel is OPEN is remembered. The what-if VALUES are not: a what-if is
 // unverified and can never commit, so persisting it would bring an uncommitted value back
 // after a refresh looking like a decision the user made. ManagedOpenISDProject owns what-if state and
 // nothing else may hold a copy (ARCHITECTURE.md §"Approved state stores").
 watch(() => managedProject.isWhatIfActive(), (active) => {
-  state.ui.originalTuneOpen = active;
+  presentationState.ui.originalTuneOpen = active;
 });
-// App.vue applies persisted state.ui AFTER this child mounts, so react when originalTuneOpen
+// App.vue applies persisted presentationState.ui AFTER this child mounts, so react when originalTuneOpen
 // lands: re-open the Tune panel. Opening it starts a FRESH what-if from the committed driver
 // (OgTune's own watch does that) — the previous session's scrubbed values are deliberately
 // not restored.
-watch(() => state.ui.originalTuneOpen, (open) => {
-  if (open && !managedProject.isWhatIfActive()) state.editDriver = true;
+watch(() => presentationState.ui.originalTuneOpen, (open) => {
+  if (open && !managedProject.isWhatIfActive()) presentationState.editDriver = true;
 }, { immediate: true });
 
 watch(isModified, (val) => {
@@ -741,14 +743,14 @@ watch(isModified, (val) => {
 
 // Same for the Driver Editor modal — it edits the committed design live (no separate buffer),
 // so preserving it across refresh is just persisting the open flag and reopening.
-watch(() => state.editDriverInfo, (open) => { state.ui.originalEditorOpen = open; });
-// RESTORE ONLY — hence the `!state.editDriverInfo` guard, the same shape the Tune watcher
+watch(() => presentationState.editDriverInfo, (open) => { presentationState.ui.originalEditorOpen = open; });
+// RESTORE ONLY — hence the `!presentationState.editDriverInfo` guard, the same shape the Tune watcher
 // above uses. The line above MIRRORS every ordinary open into `originalEditorOpen`, so
 // without the guard this fires on those too and re-points the editor at the PROJECT's
 // driver: "Add new Driver" and the My Drivers ✎ both opened correctly and then had their
 // subject silently swapped, so OK overwrote the design instead of saving to My Drivers.
-watch(() => state.ui.originalEditorOpen, (open) => {
-  if (open && !state.editDriverInfo) editProjectDriver();
+watch(() => presentationState.ui.originalEditorOpen, (open) => {
+  if (open && !presentationState.editDriverInfo) editProjectDriver();
 }, { immediate: true });
 
 </script>
@@ -785,7 +787,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
           <ToolbarIcon name="saveAs" />
         </ExportMenu>
         <div class="tb-sep"></div>
-        <div class="tb-btn" title="Manage Drivers — browse the library." @click="state.browseOpen = true">
+        <div class="tb-btn" title="Manage Drivers — browse the library." @click="presentationState.browseOpen = true">
           <ToolbarIcon name="drivers" />
         </div>
         <div class="tb-btn" title="Options" @click="optionsOpen = true">
@@ -941,7 +943,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
             <div v-if="selectedBox === 'sealed'" class="field" style="gap:8px;"
               title="Sealed resonance (Fsc) and system Q (Qtc) loss model. Lossless = fs·√(1+Vas/Vb). Conventional Lossy folds Ql/Qa into Qtc only, leaving the frequency fixed (Small/Thiele). WinISD Lossy reports the pole of the lossy 3rd-order model, so Fsc rises as Ql falls — this matches WinISD's own readout. Default: WinISD Lossy.">
               <label style="width:auto;">Model</label>
-              <select id="lossmode" v-model="state.lossMode" style="width:130px">
+              <select id="lossmode" v-model="presentationState.lossMode" style="width:130px">
                 <option v-for="m in LossMode.ALL" :key="m.value" :value="m.value">{{ m.label }}</option>
               </select>
             </div>
@@ -1099,7 +1101,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
           <div class="field-row driver-id-row">
             <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="managedProject.metaCell('brand').value" readonly></div>
             <div class="field tight"><label>Model</label><input type="text" style="width:140px" :value="model" readonly></div>
-            <button class="edit-btn" title="Swap in a different driver for this project." @click="state.browseOpen = true">Select Driver</button>
+            <button class="edit-btn" title="Swap in a different driver for this project." @click="presentationState.browseOpen = true">Select Driver</button>
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
             <button class="edit-btn" title="Reactive minimal editor: tweak headline T/S params and watch the graph." @click="startTune">&#9835; Tune</button>
           </div>
@@ -1434,7 +1436,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
     </div>
 
     <!-- ===== Tune (docked What-If) + full Driver editor ===== -->
-    <OgTune v-if="state.editDriver" />
+    <OgTune v-if="presentationState.editDriver" />
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
     <OgNewProject v-if="newProjectOpen" @close="newProjectOpen = false" />
 
@@ -1539,7 +1541,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
 .dropdown-menu .menu-item.has-submenu:hover .submenu { display:block; }
 
 /* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
-/* Track sizes come from the inline mainStyle (state.ui.originalNavW/originalBottomH,
+/* Track sizes come from the inline mainStyle (presentationState.ui.originalNavW/originalBottomH,
    0px when a panel is collapsed); these template values are only the no-JS fallback. */
 .main { display:grid; grid-template-columns:250px 7px 1fr; grid-template-rows:1fr 7px auto;
   grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail rail content";

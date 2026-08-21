@@ -18,6 +18,7 @@ import {
   state, driverName, driverRecord, managedProject, setDriverFromWdr,
   markProjectSaved, applyState, curvesData,
 } from './store.js';
+import { presentationState } from './presentationState.js';
 import { serialize, stateToUrl, download } from './persist.js';
 import type { Logging } from '../logging/flash.js';
 import { saveProject as fsSaveProject, saveProjectAs as fsSaveProjectAs } from './fileSave.js';
@@ -39,7 +40,7 @@ function sanitizeFilename(name: string | undefined): string {
 // per-call-site guard is what let shareLink() ship without one while every sibling had it.
 // Closing the Tune panel is the only part left to the caller, since the panel is UI, not state.
 function closeTunePanelAfterIO(): void {
-  state.editDriver = false;
+  presentationState.editDriver = false;
 }
 
 export interface DesignIO {
@@ -75,7 +76,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   });
 
   function projectJsonText(): string {
-    return JSON.stringify(serialize(state, driverRecord.value, managedProject.toUiParams()), null, 2);
+    return JSON.stringify(serialize(state, presentationState, driverRecord.value, managedProject.toUiParams()), null, 2);
   }
 
   /** Adopt the picked file's name as the project name — the file names the project. */
@@ -127,7 +128,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   }
 
   async function shareLink(): Promise<void> {
-    const url = await stateToUrl(serialize(state, driverRecord.value, managedProject.toUiParams()));
+    const url = await stateToUrl(serialize(state, presentationState, driverRecord.value, managedProject.toUiParams()));
     try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(

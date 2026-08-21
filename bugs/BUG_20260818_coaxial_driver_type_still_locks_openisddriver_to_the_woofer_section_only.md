@@ -1,7 +1,12 @@
 # A coaxial driver's tweeter T/S section is permanently unreachable through `OpenISDDriver`
 
 # Status
-OPEN — human-deferred (2026-08-21), tracked as QO62 in the ledger
+WONTFIX — human ruling 2026-08-21 (ledger QO65, verbatim): "we dont have a intention atm ot
+modelling the tweeter - miggh change in future but that is a proper backlog item"; the
+accessors not reaching the tweeter is acked as fine. Future tweeter support (e.g. showing
+tweeter specs in the driver-info popup) is a backlog item, not a defect. The REAL defect found
+in the same code — the PR discriminator's two spellings — is
+bugs/BUG_20260821_passive_radiator_discriminator_has_two_spellings_across_the_stack.md.
 
 ## Symptom
 
@@ -77,3 +82,12 @@ WinISDDriver-construction/QO55/QO60-SERVICE-layer refactoring work lands, not be
 ## Verification
 
 Not yet — no fix applied.
+
+## Ruling (human, 2026-08-21, QO65 — reconfirmed under the new id)
+
+Not actually a bug: "we dont have a intention atm ot modelling the tweeter - miggh change in
+future but that is a proper backlog item." OpenISD is primarily a sub-box tool; the tweeter
+info would be potentially useful in the driver info popup but is not critical. The human acks
+that the accessor methods do not provide access to the tweeter — "that sok". Future tweeter
+support is a backlog item, not a defect. (A prior defer note here cited QO62, an id since
+reassigned to the encoding ruling — QO65 is the governing entry.)

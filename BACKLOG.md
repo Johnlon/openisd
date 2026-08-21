@@ -438,7 +438,15 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
 
 ## Alignments & helpers
 
-- [ ] **P1** **Alignment selection in New Project wizard AND changeable from the tabs (WinISD parity).**
+- [ ] **P1** **BIG ITEM, not needing work at the moment (human, 2026-08-21, closing QO64: "big
+      item not needing work atm").** **Alignment selection in New Project wizard AND changeable
+      from the tabs (WinISD parity).** Full ruled scope in the QO64 ledger answer: driver → box
+      type → alignment → calculated Vb/Fb, only the chosen alignment configured; vent seeded
+      4 in / 0.732 with LENGTH derived read-only (ventL reads C, Fb reads E on a new project);
+      PR arm offers library-select OR from-scratch entry; formulas pinned by the wine-harness
+      reverse-engineering campaign in
+      `bugs/BUG_20260821_new_project_invents_box_and_vent_values_instead_of_asking_the_user.md`
+      FIRST — never implemented from textbook tables on the assumption WinISD agrees.
       WinISD's new-project wizard asks for an alignment (sealed: Butterworth/Bessel/Chebyshev/critically-damped by target Qtc; vented: QB3/SBB4/SC4/B4/…) and seeds Vb/Fb from it. OpenISD's
       `OgNewProject.vue` has no alignment step at all, and the Box tab exposes only one-shot
       suggest buttons (QB3-or-B4 via `ventedAlignment()`, B2 via `sealedFromQtc()` in

@@ -10,7 +10,8 @@
  * Presentation only: the what-if logic is single-sourced in the store/ADT.
  */
 import { computed, reactive, watch, ref, onMounted, onUnmounted } from 'vue';
-import { state, enterDriverField, clearDriverField, managedProject } from '../../../logic/store.js';
+import { enterDriverField, clearDriverField, managedProject } from '../../../logic/store.js';
+import { presentationState } from '../../../logic/presentationState.js';
 import { createLiveRef } from '../../../logic/liveProject.js';
 import { ebpOf } from '../../../logic/environment.js';
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
@@ -177,12 +178,12 @@ function fmt(v: number | null, dp: number): string { return v != null && isFinit
 // itself, or a panel whose Cancel reverts the driver would silently keep a box change made in
 // the same session.
 let vbSnapshot = managedProject.boxVolume_m3();
-watch(() => state.editDriver, (open) => {
+watch(() => presentationState.editDriver, (open) => {
   if (open) { vbSnapshot = managedProject.boxVolume_m3(); managedProject.beginWhatIf(); }
   else managedProject.cancelWhatIf();
 }, { immediate: true });
 
-function cancel() { managedProject.cancelWhatIf(); managedProject.setBoxVolume_m3(vbSnapshot); state.editDriver = false; }
+function cancel() { managedProject.cancelWhatIf(); managedProject.setBoxVolume_m3(vbSnapshot); presentationState.editDriver = false; }
 // Reset the overlay to the driver as loaded: end this session and start a fresh one from
 // ground. ManagedOpenISDProject owns both halves; the panel does not reach past it. Vb is a box value,
 // not a driver value, so it is untouched here.

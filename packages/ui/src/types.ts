@@ -245,7 +245,9 @@ export type SyncedParams = UiParams & { eg: number; Sp?: number; Leff?: number }
 /** Per-chart Y-axis override; absent entry = auto-scale. */
 export interface YRange { min: number; max: number }
 
-/** UI-only preferences (not part of a design). Local to the device — never shared. */
+/** UI-only preferences (not part of a design). Persisted across refresh and carried by a
+ *  share link (human ruling 2026-08-14: a link is a complete description of the session,
+ *  stripped of nothing). */
 export interface UiState {
   /** The selected Project tab rail entry (persists across reload). */
   originalProjectTab?: string;
@@ -255,59 +257,51 @@ export interface UiState {
   originalChartLabel?: string;
   /** A Tune (what-if) panel is open. Persisted so a refresh reopens it. */
   originalTuneOpen?: boolean;
-  /** The open Tune's uncommitted what-if buffer (overlay), so a refresh
-   *  restores the in-progress values. Local-only (stripped from share links via stateToUrl). */
   /** The Driver Editor modal is open. Persisted so a refresh reopens it. */
   originalEditorOpen?: boolean;
-  /** Left panel width in px (splitter-dragged). Local-only layout pref
-   *  (device/screen-specific): persisted across refresh, stripped from share links. */
+  /** Left panel width in px (splitter-dragged). Persisted across refresh AND carried by a
+   *  share link (human ruling 2026-08-14: a link is a complete description of the session,
+   *  stripped of nothing — see `persist.ts`'s `stateToUrl()`). */
   originalNavW?: number;
-  /** Bottom section height in px (splitter-dragged). Local-only layout pref. */
+  /** Bottom section height in px (splitter-dragged). Persisted across refresh and carried by
+   *  a share link (2026-08-14 ruling, as above). */
   originalBottomH?: number;
-  /** The left panel (Projects / Signal Generator) is collapsed. Local-only. */
+  /** The left panel (Projects / Signal Generator) is collapsed. Persisted and shared, as above. */
   originalNavCollapsed?: boolean;
-  /** The bottom section (tab rail + content) is collapsed. Local-only. */
+  /** The bottom section (tab rail + content) is collapsed. Persisted and shared, as above. */
   originalBottomCollapsed?: boolean;
-  /** The chart is maximised over the whole main area (toolbar stays). Local-only. */
+  /** The chart is maximised over the whole main area (toolbar stays). Persisted and shared,
+   *  as above. */
   originalChartMax?: boolean;
   /** Per-field selected display-unit token (keyed by field id; see fields/units.ts). The store
    *  always holds SI — this only picks how a field is shown/entered. Absent field ⇒ its base
-   *  unit. Local-only presentation preference: persisted across refresh, stripped from share
-   *  links (a recipient keeps their own unit-display preference). */
+   *  unit. Persisted across refresh and carried by a share link (2026-08-14 ruling, as above —
+   *  the recipient sees the sender's chosen units, not their own). */
   unitTokens?: Record<string, string>;
-  /** Options dialog → General tab "Username" field (WinISD parity). Local-only identity
-   *  preference — persisted across refresh, stripped from share links. */
+  /** Options dialog → General tab "Username" field (WinISD parity). Persisted across refresh
+   *  and carried by a share link (2026-08-14 ruling, as above). */
   username?: string;
   /** Options dialog → General tab "Environment" group (WinISD parity: Temperature/Air
    *  pressure/Relative humidity — Sound velocity is derived, not stored). These are
    *  APP-LEVEL defaults, distinct from a project's own Advanced-pane values: they only seed
    *  a shell's Advanced-pane refs on mount (replacing what used to be a hardcoded literal),
-   *  they never overwrite an already-open project. Local-only, stripped from share links. */
+   *  they never overwrite an already-open project. Persisted across refresh and carried by a
+   *  share link (2026-08-14 ruling, as above). */
   envDefaults: { tempK: number; pressurePa: number; humidityPct: number };
   /** Options dialog → Plot Window tab "Colors" group (WinISD parity, partial — see
    *  OptionsModal.vue header comment for which of WinISD's 6 swatches have a real OpenISD
    *  hook). Absent key = the app's own default (CSS custom property / hardcoded constant).
-   *  Local-only presentation preference, stripped from share links. */
+   *  Persisted across refresh and carried by a share link (2026-08-14 ruling, as above). */
   chartColors?: Partial<Record<'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor', string>>;
 }
 
-/** The reactive application state held in the store. */
+/**
+ * The reactive application state held in the store — PERSISTENT DESIGN state only. View state
+ * (dialog flags, chart cursor/selection, display prefs) lives in `logic/presentationState.ts`'s
+ * `PresentationState` instead (ARCHITECTURE.md §"Approved state stores").
+ */
 export interface AppState {
   box: BoxType;
-  /** Sealed-box loss model — a LossMode wire value (@openisd/engine). Default winisd-lossy. */
-  lossMode: string;
-  graphs: ChartTabId[];
-  editDriver: boolean;
-  /** Driver EDIT pane (Brand/Model/Comment/Provided by) — distinct from editDriver (What-If T/S tweaking). */
-  editDriverInfo: boolean;
-  cursorF: number | null;
-  pinnedF: number | null;
-  cursorLocked: boolean;
-  dragRange: DragRange | null;
-  browseOpen: boolean;
-  defineOpen: boolean;
-  yRanges: Record<string, YRange>;
-  ui: UiState;
   /** Project-level metadata — WinISD Project tab (Creator/Created/Modified/Description). */
   project: ProjectMeta;
 }

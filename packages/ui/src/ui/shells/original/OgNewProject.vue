@@ -2,7 +2,7 @@
 /**
  * New Project wizard — two steps, box type → starting volume, wired to the store. On
  * Create it applies the box type + volume and hands off to the driver picker
- * (state.browseOpen) to choose the driver.
+ * (presentationState.browseOpen) to choose the driver.
  *
  * Honesty note: only the four
  * engine-modelled box types are offered — you can't "create" a design the engine can't

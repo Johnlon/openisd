@@ -1,12 +1,13 @@
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, managedProject } from '../../src/logic/store.js';
+import { managedProject } from '../../src/logic/store.js';
+import { presentationState } from '../../src/logic/presentationState.js';
 
 describe('Cursor lock & frequency click state transitions', () => {
   beforeEach(() => {
-    state.cursorF = null;
-    state.pinnedF = null;
-    state.cursorLocked = false;
+    presentationState.cursorF = null;
+    presentationState.pinnedF = null;
+    presentationState.cursorLocked = false;
     managedProject.setSweepFmin_hz(1);
     managedProject.setSweepFmax_hz(20000);
   });
@@ -14,60 +15,60 @@ describe('Cursor lock & frequency click state transitions', () => {
   it('clicking an unlocked chart locks the cursor at that frequency', () => {
     // 1. Initial click at 100 Hz when unlocked
     const f1 = 100;
-    if (state.cursorLocked && state.pinnedF !== null && Math.abs(Math.log10(f1) - Math.log10(state.pinnedF)) < 0.02) {
-      state.cursorLocked = false;
-    } else if (state.cursorLocked) {
-      state.pinnedF = f1;
-      state.cursorF = f1;
-      state.cursorLocked = false;
+    if (presentationState.cursorLocked && presentationState.pinnedF !== null && Math.abs(Math.log10(f1) - Math.log10(presentationState.pinnedF)) < 0.02) {
+      presentationState.cursorLocked = false;
+    } else if (presentationState.cursorLocked) {
+      presentationState.pinnedF = f1;
+      presentationState.cursorF = f1;
+      presentationState.cursorLocked = false;
     } else {
-      state.pinnedF = f1;
-      state.cursorF = f1;
-      state.cursorLocked = true;
+      presentationState.pinnedF = f1;
+      presentationState.cursorF = f1;
+      presentationState.cursorLocked = true;
     }
 
-    assert.equal(state.pinnedF, 100);
-    assert.equal(state.cursorLocked, true, 'First click on unlocked chart locks cursor');
+    assert.equal(presentationState.pinnedF, 100);
+    assert.equal(presentationState.cursorLocked, true, 'First click on unlocked chart locks cursor');
   });
 
   it('single click somewhere else while locked moves cursor to new location and unlocks', () => {
     // 1. Initially locked at 100 Hz
-    state.pinnedF = 100;
-    state.cursorF = 100;
-    state.cursorLocked = true;
+    presentationState.pinnedF = 100;
+    presentationState.cursorF = 100;
+    presentationState.cursorLocked = true;
 
     // 2. Click at new location 500 Hz while locked
     const f2 = 500;
-    if (state.cursorLocked && state.pinnedF !== null && Math.abs(Math.log10(f2) - Math.log10(state.pinnedF)) < 0.02) {
-      state.cursorLocked = false;
-    } else if (state.cursorLocked) {
-      state.pinnedF = f2;
-      state.cursorF = f2;
-      state.cursorLocked = false;
+    if (presentationState.cursorLocked && presentationState.pinnedF !== null && Math.abs(Math.log10(f2) - Math.log10(presentationState.pinnedF)) < 0.02) {
+      presentationState.cursorLocked = false;
+    } else if (presentationState.cursorLocked) {
+      presentationState.pinnedF = f2;
+      presentationState.cursorF = f2;
+      presentationState.cursorLocked = false;
     } else {
-      state.pinnedF = f2;
-      state.cursorF = f2;
-      state.cursorLocked = true;
+      presentationState.pinnedF = f2;
+      presentationState.cursorF = f2;
+      presentationState.cursorLocked = true;
     }
 
-    assert.equal(state.pinnedF, 500);
-    assert.equal(state.cursorF, 500);
-    assert.equal(state.cursorLocked, false, 'Single click somewhere else moves marker and unlocks');
+    assert.equal(presentationState.pinnedF, 500);
+    assert.equal(presentationState.cursorF, 500);
+    assert.equal(presentationState.cursorLocked, false, 'Single click somewhere else moves marker and unlocks');
   });
 
   it('clicking near the already pinned location unlocks the cursor', () => {
     // 1. Initially locked at 100 Hz
-    state.pinnedF = 100;
-    state.cursorF = 100;
-    state.cursorLocked = true;
+    presentationState.pinnedF = 100;
+    presentationState.cursorF = 100;
+    presentationState.cursorLocked = true;
 
     // 2. Click near 100 Hz (e.g. 100.1 Hz)
     const fNear = 100.1;
-    if (state.cursorLocked && state.pinnedF !== null && Math.abs(Math.log10(fNear) - Math.log10(state.pinnedF)) < 0.02) {
-      state.cursorLocked = false;
+    if (presentationState.cursorLocked && presentationState.pinnedF !== null && Math.abs(Math.log10(fNear) - Math.log10(presentationState.pinnedF)) < 0.02) {
+      presentationState.cursorLocked = false;
     }
 
-    assert.equal(state.cursorLocked, false, 'Clicking near pinned frequency unlocks');
+    assert.equal(presentationState.cursorLocked, false, 'Clicking near pinned frequency unlocks');
   });
 
   it('editorModelValue resolves SKU over long model text', () => {

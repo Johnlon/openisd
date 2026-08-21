@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { unitToken } from '../../logic/store.js';
+import { unitToken } from '../../logic/presentationState.js';
 import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from '../../logic/fields/units.js';
 import { fieldById } from '../../logic/fields/fieldRegistry.js';
 

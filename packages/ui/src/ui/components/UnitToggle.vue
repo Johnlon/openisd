@@ -5,7 +5,7 @@
 // class via `unitClass`. This replaces the old decorative cycleUnit, which rotated the text but
 // never converted the value.
 import { computed } from 'vue';
-import { unitToken, cycleUnitToken } from '../../logic/store.js';
+import { unitToken, cycleUnitToken } from '../../logic/presentationState.js';
 import { unitDef, type UnitGroup } from '../../logic/fields/units.js';
 
 const props = defineProps<{

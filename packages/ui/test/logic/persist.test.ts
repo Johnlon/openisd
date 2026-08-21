@@ -18,14 +18,18 @@ import { OpenISDDriver, Provenance } from '@openisd/model';
 import { WinISDDriver } from '@openisd/winisd';
 import { serialize, stateToUrl } from '../../src/logic/persist.js';
 import { state, managedProject, applyState } from '../../src/logic/store.js';
+import { presentationState } from '../../src/logic/presentationState.js';
 import type { AppState, SerializedState, UiParams, DriverJSON } from '../../src/types.js';
+import type { PresentationState } from '../../src/logic/presentationState.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLE = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'John-all-manu-populated.wdr');
 const wdrText = readFileSync(SAMPLE, 'utf8');
 
-// A minimal AppState — serialize only reads box/P/graphs off it.
-const miniState = { box: 'sealed', P: {} as UiParams, graphs: ['SPL'] } as unknown as AppState;
+// A minimal AppState — serialize only reads box off it (P is passed separately).
+const miniState = { box: 'sealed' } as unknown as AppState;
+// A minimal PresentationState — serialize only reads graphs off it here.
+const miniView = { graphs: ['SPL'] } as unknown as PresentationState;
 
 /** The sample `.wdr`, read as-read by the serialiser and projected into the app's own record.
  *  One reader, one model — there is no second shape to discriminate on. */
@@ -44,7 +48,7 @@ describe('persistence — provenance survives a serialize round trip', () => {
     assert.equal(src.cell('Fs').state, Provenance.Entered, 'fixture precondition: Fs entered');
     assert.equal(src.cell('Cms').state, Provenance.Calculated, 'fixture precondition: Cms now computed');
 
-    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJsonRecord(), {} as UiParams)));
+    const wire = JSON.parse(JSON.stringify(serialize(miniState, miniView, src.toJsonRecord(), {} as UiParams)));
     const back = OpenISDDriver.fromJsonRecord(wire.driver);
 
     for (const f of ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const) {
@@ -54,14 +58,14 @@ describe('persistence — provenance survives a serialize round trip', () => {
   });
 
   it('the payload is the RECORD, so `specs` and its readings travel', () => {
-    const ser = serialize(miniState, sampleRecord(), {} as UiParams);
+    const ser = serialize(miniState, miniView, sampleRecord(), {} as UiParams);
     assert.ok(ser.driver?.specs, 'the driver payload is the openisd.yml record');
     assert.ok(ser.driver?.specs.woofer?.Fs?.readings,
       'each field carries its readings, not a bare number — that is what makes E/C survivable');
   });
 
   it('a design with NO driver chosen serialises without inventing one', () => {
-    const ser = serialize(miniState, undefined, {} as UiParams);
+    const ser = serialize(miniState, miniView, undefined, {} as UiParams);
     assert.equal(ser.driver, undefined,
       'a fake driver written to fill the slot would be indistinguishable on reload from one ' +
       'the user actually picked');
@@ -74,10 +78,10 @@ describe('persistence — provenance survives a serialize round trip', () => {
  * recipient-preference fields an earlier version removed (human ruling 2026-08-14).
  */
 describe('share link carries the whole state, stripped of nothing', () => {
-  const uiState = {
-    box: 'sealed', P: {} as UiParams, graphs: ['SPL'],
+  const uiState = { box: 'sealed' } as unknown as AppState;
+  const uiView = {
+    graphs: ['SPL'],
     ui: {
-      skin: 'classic',
       originalProjectTab: 'signal', originalChartTab: 'Excursion', originalChartLabel: 'Cone excursion',
       originalTuneOpen: true, originalEditorOpen: true,
       originalNavW: 320, originalBottomH: 200, originalNavCollapsed: true,
@@ -85,7 +89,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
       username: 'johnl', envDefaults: { tempK: 300, pressurePa: 100000, humidityPct: 40 },
       chartColors: { background: '#ffffff' },
     },
-  } as unknown as AppState;
+  } as unknown as PresentationState;
   const drv = sampleRecord();
 
   // stateToUrl reads location.{origin,pathname}; stub it (no jsdom needed) for the URL test.
@@ -101,7 +105,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
   }
 
   it('every ui field travels — view context, open panels and local preferences alike', async () => {
-    const shared = decodeShare(await stateToUrl(serialize(uiState, drv, {} as UiParams)));
+    const shared = decodeShare(await stateToUrl(serialize(uiState, uiView, drv, {} as UiParams)));
     const ui = shared.ui as Record<string, unknown> | undefined;
     assert.ok(ui, 'the view context travels');
 
@@ -128,35 +132,35 @@ describe('share link carries the whole state, stripped of nothing', () => {
   it('gzip actually shrinks the link vs plain base64 of the same JSON', async () => {
     // A realistic payload — a real record plus two comparison overlays, so the JSON has the
     // repetition gzip exploits. A round-trip alone would not prove compression happened.
-    const loaded = { ...uiState, compare: [
+    const loaded = { ...uiView, compare: [
       { driver: drv, box: 'vented', P: {}, name: 'Compare A', color: '#ff0000' },
       { driver: drv, box: 'sealed', P: {}, name: 'Compare B', color: '#00ff00' },
-    ] } as unknown as AppState;
-    const plainBase64Len = Buffer.from(JSON.stringify(serialize(loaded, drv, {} as UiParams)), 'utf8').toString('base64').length;
-    const gzipBase64Len = (await stateToUrl(serialize(loaded, drv, {} as UiParams))).match(/[#&]s=([^&]+)/)![1].length;
+    ] } as unknown as PresentationState;
+    const plainBase64Len = Buffer.from(JSON.stringify(serialize(uiState, loaded, drv, {} as UiParams)), 'utf8').toString('base64').length;
+    const gzipBase64Len = (await stateToUrl(serialize(uiState, loaded, drv, {} as UiParams))).match(/[#&]s=([^&]+)/)![1].length;
 
     assert.ok(gzipBase64Len < plainBase64Len,
       `gzip+base64 (${gzipBase64Len}) should be smaller than plain base64 (${plainBase64Len})`);
   });
 
   it('carries the graph cursor — live hover and locked/pinned, both if both are set', async () => {
-    const withCursor = { ...uiState, cursorF: 123.4, pinnedF: 500, cursorLocked: true } as unknown as AppState;
-    const local = serialize(withCursor, drv, {} as UiParams);
+    const withCursor = { ...uiView, cursorF: 123.4, pinnedF: 500, cursorLocked: true } as unknown as PresentationState;
+    const local = serialize(uiState, withCursor, drv, {} as UiParams);
     assert.deepEqual(local.cursor, { f: 123.4, pinnedF: 500, locked: true, range: null });
     assert.deepEqual(decodeShare(await stateToUrl(local)).cursor,
       { f: 123.4, pinnedF: 500, locked: true, range: null });
   });
 
   it('carries the dragged band (fLo/fHi only — stats are per-panel derived)', async () => {
-    const withBand = { ...uiState, dragRange: { fLo: 31.6, fHi: 100, stats: { peak: 1 } } } as unknown as AppState;
-    const local = serialize(withBand, drv, {} as UiParams);
+    const withBand = { ...uiView, dragRange: { fLo: 31.6, fHi: 100, stats: { peak: 1 } } } as unknown as PresentationState;
+    const local = serialize(uiState, withBand, drv, {} as UiParams);
     assert.deepEqual(local.cursor!.range, { fLo: 31.6, fHi: 100 }, 'derived stats are not state');
     assert.deepEqual(decodeShare(await stateToUrl(local)).cursor!.range, { fLo: 31.6, fHi: 100 });
   });
 
   it('an unset cursor serialises as all-null/false, not omitted', () => {
-    const noCursor = { ...uiState, cursorF: null, pinnedF: null, cursorLocked: false } as unknown as AppState;
-    assert.deepEqual(serialize(noCursor, drv, {} as UiParams).cursor,
+    const noCursor = { ...uiView, cursorF: null, pinnedF: null, cursorLocked: false } as unknown as PresentationState;
+    assert.deepEqual(serialize(uiState, noCursor, drv, {} as UiParams).cursor,
       { f: null, pinnedF: null, locked: false, range: null },
       'omitting "nothing pinned" would make absence and unset indistinguishable on reload');
   });
@@ -220,7 +224,7 @@ describe('UiParams round-trips losslessly through serialize/applyState', () => {
 
     const before = managedProject.toUiParams();
 
-    const wire = JSON.parse(JSON.stringify(serialize(state, undefined, before))) as SerializedState;
+    const wire = JSON.parse(JSON.stringify(serialize(state, presentationState, undefined, before))) as SerializedState;
 
     // Scramble the live project back to nothing BEFORE restoring, so this actually exercises
     // write-back — restoring into a project that already held these values would pass even if
