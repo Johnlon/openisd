@@ -1,4 +1,4 @@
-# store.ts's 45 exports are all live, none deletable — ready-made list for tomorrow's `ALLOWED_GLOBALS` review
+# store.ts's exports vs `ALLOWED_GLOBALS` — the review list, with TEN of them dead
 
 # Status
 OPEN — proposal only, no code/list change made
@@ -15,8 +15,29 @@ on its own judgement to make a red test pass").
 ## Investigation (this session)
 
 Checked every one of the 45 flagged exports for actual external usage (`.vue` components,
-other `logic/` modules, tests) — every one of them has real callers; none is dead code an
-agent could just delete to shrink the list. One (`restoreProblems`) is itself a separate,
+other `logic/` modules, tests).
+
+**CORRECTION, re-measured 2026-08-21 — the original "every one of them has real callers; none is
+dead code" is FALSE for TEN of them.** Counting references across `packages/ui/src` and
+`packages/ui/test`, excluding `store.ts`'s own declaration and `architecture.test.ts`'s offence
+list:
+
+| export | external refs | what the refs actually are |
+|---|---|---|
+| `driverMetaCell` | 0 | — |
+| `driverWarnings` | 0 | — |
+| `curveIssues` | 0 | — |
+| `restoreProblems` | 0 | — |
+| `unitLabelOf` | 0 | — |
+| `enterPrField` | 1 | its own declaration in `logic/usePrGroup.ts` — a DIFFERENT module, so the store's export is unused |
+| `clearPrField` | 1 | same |
+| `prFieldState` | 1 | same |
+| `prTargetUnreachable` | 1 | same |
+| `loadDriverRecord` | 6 | every one resolves to `managedProject.loadDriverRecord`, never the store's |
+
+So all ten can be un-exported with no caller change, which is objective 1 of
+`docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md` and shrinks the list before any human review of it.
+The remaining 35 are the ones that need judgement. One (`restoreProblems`) is itself a separate,
 already-filed bug (write-with-no-reader,
 `BUG_20260819_restoreProblems_computed_but_never_read_by_the_ui.md`) — worth resolving THAT
 bug (wire it to a UI element, or delete it) before deciding its fate here, since the answer to
