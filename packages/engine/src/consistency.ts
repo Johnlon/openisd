@@ -10,7 +10,11 @@
  *                carried `.wdr` value that could contradict its derivation; whether a stale
  *                carried Gloss is a DQ mark is undecided (ledger QO24), so no relation is
  *                declared for any of them.
- *   12           EBP — not a driver field; `ebp()` computes it on the way to the screen.
+ *   12           EBP — a real SpecField (`openisdDriver.ts` `_SpecSection.EBP`, ParState slot
+ *                33) with its own engine derivation route (`Fs = EBP·Qes`, `driver.ts` block 3),
+ *                but no relation here mentions it: an entered `EBP` that disagrees with the
+ *                driver's own `Fs`/`Qes` is never flagged. Recorded as
+ *                bugs/BUG_20260821_consistency_relations_miss_the_ebp_fs_route.md.
  *   14,15,16,17,18  the η₀ / SPL / USPL / SPLmax reference-efficiency chain, which
  *                `solveConsistencyGroup` deliberately excludes because three disagreeing
  *                constants exist across the codebase. A detector built on an unresolved
@@ -114,6 +118,23 @@ export const Q_GROUP_FIELDS: readonly string[] = RELATIONS.find(r => r.target ==
 /** Is this field one of the Q trio? Asked of the list above, never of a second copy. */
 export function isQGroupField(field: string): boolean {
   return Q_GROUP_FIELDS.includes(field);
+}
+
+/**
+ * True when fewer than two of the Q trio are usable — too few to solve the third (§4 row 5:
+ * `Qts = Qes·Qms/(Qes+Qms)` needs two of the three). `usable` decides what counts as a usable
+ * value for one member field name; callers supply their own notion of "present" (a positive
+ * number, a Cell in `Entered`/`Calculated` state, …) without restating which fields form the
+ * group.
+ *
+ * Two legitimate call sites, not duplicates of each other: this predicate answers the question
+ * over a RAW RECORD never run through a solver (e.g. a catalogue/DQ scan); a live `Driver`
+ * ADT instead answers it by asking its own solved state — `cell('Qts').state`, which reflects
+ * whatever `solveConsistencyGroup` already computed. Neither should be rewritten in terms of
+ * the other: one reads un-solved data, the other reads a solve's result.
+ */
+export function qGroupIsIncomplete(usable: (field: string) => boolean): boolean {
+  return Q_GROUP_FIELDS.filter(usable).length < 2;
 }
 
 /**

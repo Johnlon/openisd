@@ -58,14 +58,6 @@ export function consistencyNote(issues: readonly ConsistencyIssue[], field: stri
 }
 
 /**
- * Can the Qts/Qes/Qms trio solve? The DOMAIN decides: with fewer than two members usable the
- * group cannot be solved and every member reads `Absent`. This asks the driver rather than
- * re-deriving the rule, so there is no second opinion to drift from the first.
- *
- * Here rather than in a component because the layering rule forbids a component importing a
- * VALUE from the domain — `Provenance` is a value.
- */
-/**
  * Is this field REQUIRED-BUT-UNSATISFIED — i.e. a Q-trio member while the trio cannot solve?
  *
  * One question, one answer. The two facts behind it — which fields form the trio, and whether

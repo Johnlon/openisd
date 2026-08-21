@@ -1,5 +1,6 @@
 import { readCell, readMetaCell, readDisplayName } from '@openisd/model';
 import type { _OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
+import { qGroupIsIncomplete } from '@openisd/engine';
 import { DriverType, Chip } from '../driverType.js';
 
 // The driver commons — index, search, filter, lookup.
@@ -223,8 +224,7 @@ export function driverHasDqIssues(f: FileEntry): boolean {
     const hasFsOk  = pos('Fs');
     const hasReOk  = pos('Re');
     const hasSdOk  = pos('Sd') || pos('Vas');   // Sd or Vas is enough for area
-    const qCount   = (['Qts', 'Qes', 'Qms'] as const).filter(pos).length;
-    return !hasFsOk || !hasReOk || !hasSdOk || qCount < 2;
+    return !hasFsOk || !hasReOk || !hasSdOk || qGroupIsIncomplete(field => pos(field as SpecField));
   }
   // Federated row (content not yet fetched): fall back to pre-computed summary fields.
   const pos2 = (v: number | null | undefined) => typeof v === 'number' && v > 0;
