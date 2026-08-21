@@ -232,14 +232,15 @@ any "human-verified" language on a driver record — an agent never sets it, on 
 
 **Available utility scripts:**
 
-| Script                          | Purpose                                                                                                    |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `scripts/start-http.sh`         | Vite dev on 4000. Runs health-check first, kills the port, starts in bg. Writes PID to `.server-4000.pid`. |
-| `scripts/stop-http.sh`          | Stop the server on 4000.                                                                                   |
-| `scripts/kill-http.sh [port …]` | Kill all processes on specified ports. Never call ad-hoc — use stop-http.sh.                               |
-| `scripts/preview-4000.sh`       | Human's lightweight preview: kills 4000–4005 then starts `vite preview` on 4000 (no health checks).        |
-| `scripts/build-release.sh`      | Production dist build (`GITHUB_PAGES=true`). Release workflow only; never run ad-hoc.                      |
-| `scripts/health-check.sh`       | All health checks: lint, type check, unit tests, browser tests. Single entry point.                        |
+| Script                          | Purpose                                                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/start-http.sh`         | Vite dev on 4000. Runs health-check first, kills the port, starts in bg. Writes PID to `.server-4000.pid`.                             |
+| `scripts/stop-http.sh`          | Stop the server on 4000.                                                                                                               |
+| `scripts/kill-http.sh [port …]` | Kill all processes on specified ports. Never call ad-hoc — use stop-http.sh.                                                           |
+| `scripts/preview-4000.sh`       | Human's lightweight preview: kills 4000–4005 then starts `vite preview` on 4000 (no health checks).                                    |
+| `scripts/build-release.sh`      | Production dist build (`GITHUB_PAGES=true`). Release workflow only; never run ad-hoc.                                                  |
+| `scripts/health-check.sh`       | All health checks: lint, type check, unit tests, browser tests. Single entry point.                                                    |
+| `scripts/archive-bugs.py`       | Scans `bugs/` for closed bugs (status FIXED, RESOLVED, WONTFIX, CLOSED), moves them to `bugs/archive/`, and stages the changes in Git. |
 
 ---
 

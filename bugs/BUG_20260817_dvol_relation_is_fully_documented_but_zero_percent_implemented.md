@@ -1,3 +1,5 @@
+Status: RESOLVED
+
 # The DVol geometry relation is fully documented but zero percent implemented
 
 # Status
@@ -64,3 +66,30 @@ Once implemented: a driver with `Dd`, `Vcd`, `Depth`, `Magnet` present and `MagD
 should derive `MagDepth`; the reverse (all four present, `DVol` blank) should derive `DVol` —
 the WINISD_SCHEMA.md §3.10.1 forward form is the value to check against, algebraically exact, not a
 fit.
+
+## Fix (applied 2026-08-21)
+
+Wired per the integration plan the relation was built for:
+
+- `packages/engine/src/driver.ts` — new solver block 9b in `solveConsistencyGroup`: four
+  guarded solves (`dvolFromDims`/`depthFromDims`/`magDepthFromDims`/`magnetFromDims` from
+  `./dvolRelation.js`), mirroring the Xmax/Hc/Hg block's `setVal` contract — an entered member
+  is never overwritten, a degenerate geometry yields nothing.
+- `packages/ui/src/logic/provenance.ts` — `PROVENANCE_MAP` entries for `DVol`/`Depth`/
+  `MagDepth`/`Magnet` carrying the §3.10.1 formulas (`LABEL_TO_FIELD_KEY` already had the
+  labels).
+- `DriverEditorModal.vue` — `:style="getFieldStyle(...)"` on the four Dimensions fields, same
+  binding as every provenance-lit field.
+- `driver-editor-provenance-and-units.browser.spec.ts` — the seed now enters
+  Depth/MagDepth/Magnet/Vcd on the Dimensions tab, leaving exactly DVol absent (`Dd` derives
+  from the seeded `Sd`), so the sweep exercises a CALCULATED geometry field for real.
+
+NOT built, deliberately: a `consistency.ts` DQ detector for a stale carried DVol — a
+QO49-class decision, raised separately rather than added silently.
+
+## Verification
+
+`packages/engine/test/driver.test.ts` — six new integration cases: all four directions solve
+against the worked geometry, an entered DVol stays pinned, Depth==MagDepth yields no value.
+Engine suite 380/380; ui logic tests 124/124; typecheck engine+ui clean; the provenance
+browser spec run once at `--workers=1` (result recorded in the session).
