@@ -16,6 +16,7 @@ import { P0, G_STANDARD } from './constants.js';
 import { GAMMA, T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
 import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
 import { ebp } from './alignments.js';
+import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
 import type { EngineDriver, DriverError, Result } from './types.js';
 
 /** A driver's fields by name, before validation — every value present or absent, nothing
@@ -248,6 +249,28 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // 9. Vd
     if (r.Vd == null && r.Sd != null && r.Xmax != null) {
       setVal('Vd', r.Sd * r.Xmax);
+    }
+
+    // 9b. The DVol/Depth/MagDepth/Magnet geometry lock (WINISD_SCHEMA.md §3.10.1): the four
+    // are bound by one equation over Dd and Vcd, so any absent member solves from the rest.
+    // The formulas own their domain checks and return null on a degenerate geometry
+    // (dvolRelation.ts); `setVal` is only reached with a real value, so an entered member is
+    // never overwritten and junk is never invented — same contract as blocks 7 and 9.
+    if (r.DVol == null && r.Dd != null && r.Vcd != null && r.Depth != null && r.MagDepth != null && r.Magnet != null) {
+      const v = dvolFromDims({ Dd: r.Dd, Vcd: r.Vcd, Depth: r.Depth, MagDepth: r.MagDepth, Magnet: r.Magnet });
+      if (v != null) setVal('DVol', v);
+    }
+    if (r.Depth == null && r.Dd != null && r.Vcd != null && r.DVol != null && r.MagDepth != null && r.Magnet != null) {
+      const v = depthFromDims({ Dd: r.Dd, Vcd: r.Vcd, DVol: r.DVol, MagDepth: r.MagDepth, Magnet: r.Magnet });
+      if (v != null) setVal('Depth', v);
+    }
+    if (r.MagDepth == null && r.Dd != null && r.Vcd != null && r.DVol != null && r.Depth != null && r.Magnet != null) {
+      const v = magDepthFromDims({ Dd: r.Dd, Vcd: r.Vcd, DVol: r.DVol, Depth: r.Depth, Magnet: r.Magnet });
+      if (v != null) setVal('MagDepth', v);
+    }
+    if (r.Magnet == null && r.Dd != null && r.Vcd != null && r.DVol != null && r.Depth != null && r.MagDepth != null) {
+      const v = magnetFromDims({ Dd: r.Dd, Vcd: r.Vcd, DVol: r.DVol, Depth: r.Depth, MagDepth: r.MagDepth });
+      if (v != null) setVal('Magnet', v);
     }
 
     // 10. no, Fs, Qes, Vas — Fs-from-this-triple is rel 14, tried in block 3 above.

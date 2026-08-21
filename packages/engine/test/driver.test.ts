@@ -238,6 +238,46 @@ describe('deriveEngineDriver — Q-factor derivation branches', () => {
 });
 
 describe('solveConsistencyGroup — full fixpoint solver mode', () => {
+  // The DVol/Depth/MagDepth/Magnet geometry lock (WINISD_SCHEMA.md §3.10.1): any one member
+  // solves from the other three plus Dd and Vcd. Geometry from dvolRelation.test.ts's worked
+  // example — Dd 90mm, Vcd 25mm, Depth 55mm, MagDepth 20mm, Magnet 60mm.
+  const GEOM = { Dd: 0.090, Vcd: 0.025, Depth: 0.055, MagDepth: 0.020, Magnet: 0.060 } as const;
+  const DVOL = (Math.PI / 4) * ((0.090 ** 2 + 0.090 * 0.025 + 0.025 ** 2) * (0.055 - 0.020) / 3
+    + 0.060 ** 2 * 0.020);
+
+  it('solves DVol from Dd/Vcd/Depth/MagDepth/Magnet', () => {
+    const res = solveConsistencyGroup({ ...GEOM }, { full: true }) as Record<string, number>;
+    assert.ok(Math.abs(res.DVol - DVOL) < 1e-9, `DVol must solve to ${DVOL}, got ${res.DVol}`);
+  });
+
+  it('solves Depth back from the other four when DVol is entered', () => {
+    const { Depth: _omitted, ...rest } = GEOM;
+    const res = solveConsistencyGroup({ ...rest, DVol: DVOL }, { full: true }) as Record<string, number>;
+    assert.ok(Math.abs(res.Depth - 0.055) < 1e-9, `Depth must solve to 0.055, got ${res.Depth}`);
+  });
+
+  it('solves MagDepth back from the other four when DVol is entered', () => {
+    const { MagDepth: _omitted, ...rest } = GEOM;
+    const res = solveConsistencyGroup({ ...rest, DVol: DVOL }, { full: true }) as Record<string, number>;
+    assert.ok(Math.abs(res.MagDepth - 0.020) < 1e-9, `MagDepth must solve to 0.020, got ${res.MagDepth}`);
+  });
+
+  it('solves Magnet back from the other four when DVol is entered', () => {
+    const { Magnet: _omitted, ...rest } = GEOM;
+    const res = solveConsistencyGroup({ ...rest, DVol: DVOL }, { full: true }) as Record<string, number>;
+    assert.ok(Math.abs(res.Magnet - 0.060) < 1e-9, `Magnet must solve to 0.060, got ${res.Magnet}`);
+  });
+
+  it('an entered DVol is never overwritten by the derivation', () => {
+    const res = solveConsistencyGroup({ ...GEOM, DVol: 0.123 }, { full: true }) as Record<string, number>;
+    assert.equal(res.DVol, 0.123, 'entered values are pinned; the solver fills only absent members');
+  });
+
+  it('a degenerate geometry (Depth == MagDepth) yields no DVol rather than a junk value', () => {
+    const res = solveConsistencyGroup({ ...GEOM, Depth: 0.020 }, { full: true }) as Record<string, number>;
+    assert.equal(res.DVol, undefined, 'a non-positive cone height must not produce a DVol');
+  });
+
   it('solves Hc bi-directionally when Hg and Xmax are provided (underhung default)', () => {
     const res = solveConsistencyGroup({ Hg: 0.008, Xmax: 0.003 }, { full: true }) as Record<string, number>;
     assert.equal(res.Hc, 0.002, 'Hc must solve to Hg - 2*Xmax = 0.002 m');

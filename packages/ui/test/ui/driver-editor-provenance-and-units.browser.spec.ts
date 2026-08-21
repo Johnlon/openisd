@@ -32,6 +32,15 @@ const SEED: [string, string][] = [
   ['Hc', '18'], ['Hg', '8'],
 ];
 
+/** Dimensions-tab geometry (mm, the tab's display unit). DVol is deliberately the ONE unseeded
+ *  member of the DVol/Depth/MagDepth/Magnet lock (WINISD_SCHEMA.md §3.10.1), so the solver
+ *  fills it and the provenance sweep exercises a CALCULATED geometry field for real — the lock
+ *  needs every other member present, so exactly one may be left absent. */
+const SEED_DIMENSIONS: [string, string][] = [
+  ['Driver Depth (Depth)', '55'], ['Magnet Depth (MagDepth)', '20'],
+  ['Magnet Diameter (Magnet)', '60'], ['Voice Coil Dia (Vcd)', '25'],
+];
+
 async function openEditor(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
@@ -50,6 +59,13 @@ async function seedDriver(page: Page) {
     await input.fill(value);
     await input.blur();
   }
+  await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
+  for (const [label, value] of SEED_DIMENSIONS) {
+    const input = fieldByLabel(page, label).locator('input').first();
+    await input.fill(value);
+    await input.blur();
+  }
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
 }
 
 function fieldByLabel(page: Page, label: string) {

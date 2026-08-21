@@ -88,6 +88,33 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
       { formulaText: 'Znom = 2 × round_half_to_even(0.75 × Re)', inputs: ['Re'] }
     ]
   },
+  // The DVol/Depth/MagDepth/Magnet geometry lock (WINISD_SCHEMA.md §3.10.1): with
+  // S = Dd² + Dd·Vcd + Vcd², DVol = (π/4)·[ S·(Depth−MagDepth)/3 + Magnet²·MagDepth ],
+  // and each sibling is that equation solved for itself (engine dvolRelation.ts).
+  DVol: {
+    paths: [
+      { formulaText: 'DVol = (π/4)·[ (Dd² + Dd·Vcd + Vcd²)·(Depth − MagDepth)/3 + Magnet²·MagDepth ]',
+        inputs: ['Dd', 'Vcd', 'Depth', 'MagDepth', 'Magnet'] }
+    ]
+  },
+  Depth: {
+    paths: [
+      { formulaText: 'Depth = MagDepth + 3·(4·DVol/π − Magnet²·MagDepth) / (Dd² + Dd·Vcd + Vcd²)',
+        inputs: ['Dd', 'Vcd', 'DVol', 'MagDepth', 'Magnet'] }
+    ]
+  },
+  MagDepth: {
+    paths: [
+      { formulaText: 'MagDepth = (4·DVol/π − S·Depth/3) / (Magnet² − S/3),  S = Dd² + Dd·Vcd + Vcd²',
+        inputs: ['Dd', 'Vcd', 'DVol', 'Depth', 'Magnet'] }
+    ]
+  },
+  Magnet: {
+    paths: [
+      { formulaText: 'Magnet = √[ (4·DVol/π − S·(Depth − MagDepth)/3) / MagDepth ],  S = Dd² + Dd·Vcd + Vcd²',
+        inputs: ['Dd', 'Vcd', 'DVol', 'Depth', 'MagDepth'] }
+    ]
+  },
   Sd: {
     paths: [
       { formulaText: 'Sd = π × (Dd / 2)²', inputs: ['Dd'] },
