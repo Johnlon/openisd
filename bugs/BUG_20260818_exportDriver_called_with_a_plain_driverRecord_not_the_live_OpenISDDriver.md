@@ -1,8 +1,9 @@
 # `exportDriver()` called with a plain `_OpenISDDriverJson`, not the live `OpenISDDriver` it declares
 
 ## Status
-OPEN 2026-08-18 — found via `vue-tsc --noEmit -p packages/ui`; pre-existing, not introduced by
-this session's edits (confirmed via `git diff HEAD -- packages/ui/src/logic/useDesignIO.ts`).
+FIXED (superseded 2026-08-21) — the cited `exportDriver()` call site no longer exists in
+`useDesignIO.ts` at all (`grep -n "exportDriver(" packages/ui/src/logic/useDesignIO.ts` — zero
+hits).
 
 ## Symptom
 
