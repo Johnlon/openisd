@@ -1,7 +1,7 @@
 # BUG — Gloss "unscaled" test asserts exact equality against a WinISD-*computed* value, not the entered one
 
 # Status
-OPEN 2026-08-14
+FIXED (re-verified 2026-08-21) — `npx vitest run packages/ui/test/ui/driver-editor-units.test.ts` — 21/21 pass.
 
 ## Symptom
 

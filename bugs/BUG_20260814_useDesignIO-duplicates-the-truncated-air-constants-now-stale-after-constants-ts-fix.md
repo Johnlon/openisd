@@ -1,7 +1,9 @@
 # `useDesignIO.ts` duplicates the (now-corrected) air constants as bare, still-truncated literals
 
 # Status
-OPEN 2026-08-14
+FIXED (superseded 2026-08-21) — `useDesignIO.ts` no longer contains any `RHO`/`C` literals at
+all; superseded by the air-model redesign (`packages/engine/src/air.ts`'s CIPM-2007 physical
+model replaced the bare constants entirely).
 
 
 **Found** 2026-08-14, while implementing the authorized fix for
