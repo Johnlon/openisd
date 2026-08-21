@@ -1,7 +1,7 @@
 # `prFsWithMassDisplay` is exported and documented but has zero callers, unlike its three siblings
 
 # Status
-OPEN
+FIXED (2026-08-21)
 
 ## Symptom
 
@@ -25,11 +25,17 @@ decision, not a guess:
 2. `PREditModal.vue` was meant to show all four PR-derived values for symmetry/completeness and
    this one row was left out when the modal was built — a genuine, if minor, UI gap.
 
+## Human ruling (2026-08-21)
+
+Case 2 — add the missing row.
+
 ## Fix
 
-Not applied — needs a decision on which of the two above is true before doing anything: delete
-`prFsWithMassDisplay` (case 1), or add the missing row to `PREditModal.vue` (case 2).
+Applied: `PREditModal.vue` now imports `prFsWithMassDisplay`, adds `prFsWithMassShown` computed,
+and a read-only "Fs (with mass)" row (no setter — this value depends on `prMadd`, edited at the
+box/design level, not the PR component's own datasheet properties) between `Fs` and `Qms`.
 
 ## Verification
 
-Not yet — no fix applied.
+`npx vue-tsc --noEmit -p packages/ui` — clean (pre-existing unrelated `App.vue` module-resolution
+error only).
