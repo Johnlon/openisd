@@ -22,17 +22,32 @@
  *
  * PR count is deliberately NOT in this group: more radiators change the output but not the
  * tuning, so it is an independent entered value, not a member of this relation.
+ *
+ * Reads and writes go straight through `ManagedOpenISDProject`'s own PR/box accessors — the
+ * box IS the storage (ledger QO54); there is no intermediate params object to mutate.
  */
 import { prTuning, prMassForFp } from '@openisd/engine';
-import type { UiParams } from '../types.js';
+import type { ManagedOpenISDProject } from './managedProject.js';
+import { suspendVentSolve } from './useVentGroup.js';
 
 /** The two members tied by the tuning relation. */
 export const PR_GROUP = ['prFp', 'prMadd'] as const;
 export type PrField = typeof PR_GROUP[number];
 
+function prParamsOf(mp: ManagedOpenISDProject) {
+  return {
+    Vb: mp.boxVolume_m3(),
+    prSd: mp.prField('Sd_m2'),
+    prCms: mp.prField('Cms_m_per_N'),
+    prMmd: mp.prField('Mmd_kg'),
+    prMadd: mp.prAddedMass_kg(),
+  };
+}
+
 /** Enough of a PR to have a tuning at all — otherwise both members are Not-available. */
-function prIsDefined(P: UiParams): boolean {
-  return P.Vb > 0 && P.prSd > 0 && P.prCms > 0 && P.prMmd > 0;
+function prIsDefined(mp: ManagedOpenISDProject): boolean {
+  return mp.boxVolume_m3() > 0 && mp.prField('Sd_m2') > 0 && mp.prField('Cms_m_per_N') > 0
+    && mp.prField('Mmd_kg') > 0;
 }
 
 /**
@@ -40,40 +55,55 @@ function prIsDefined(P: UiParams): boolean {
  * entered field, and solves nothing when both are entered — the same deliberate
  * over-determined behaviour as the vent group.
  */
-export function solvePrGroup(P: UiParams): void {
-  if (!prIsDefined(P)) return;
-  if (P.entered.prFp && !P.entered.prMadd) {
-    if (P.prFp > 0) {
+export function solvePrGroup(mp: ManagedOpenISDProject): void {
+  if (!prIsDefined(mp)) return;
+  const fpEntered = mp.isEntered('prFp');
+  const maddEntered = mp.isEntered('prMadd');
+  if (fpEntered && !maddEntered) {
+    const fp = mp.prFp_hz();
+    if (fp > 0) {
       // prMassForFp returns TOTAL moving mass for the target; added mass is the excess over
       // the PR's own Mmd. Clamped at zero: you cannot remove mass from a radiator, so a
       // target above the PR's bare in-box resonance is simply unreachable by adding mass.
-      P.prMadd = Math.max(0, prMassForFp(P, P.prFp) - P.prMmd);
+      const params = prParamsOf(mp);
+      mp.setPrAddedMass_kg(Math.max(0, prMassForFp(params, fp) - params.prMmd));
     }
-  } else if (!P.entered.prFp) {
-    P.prFp = prTuning(P);
+  } else if (!fpEntered) {
+    mp.setPrFp_hz(prTuning(prParamsOf(mp)));
   }
 }
 
 /** Enter a PR-group field — held until explicitly cleared. */
-export function enterPrField(P: UiParams, field: PrField, value: number): void {
-  (P as unknown as Record<string, number>)[field] = value;
-  P.entered[field] = true;
-  solvePrGroup(P);
+export function enterPrField(mp: ManagedOpenISDProject, field: PrField, value: number): void {
+  // The WHOLE transaction — value write, provenance write, AND the resulting solve — is
+  // suspended: `store.ts`'s coarse auto-solve watch fires on every `managedProject` mutation,
+  // so an unguarded write-then-write would let it run on a half-updated entered set, and an
+  // unguarded trailing `solvePrGroup()` call would let it re-fire a SECOND time on that call's
+  // own write. One user action, one solve — the call inside this suspension is the only one.
+  suspendVentSolve(() => {
+    if (field === 'prFp') mp.setPrFp_hz(value);
+    else mp.setPrAddedMass_kg(value);
+    mp.setEntered(field, true);
+    solvePrGroup(mp);
+  });
 }
 
-/** Clear a PR-group field — it becomes C if the other determines it, else N. */
-export function clearPrField(P: UiParams, field: PrField): void {
-  delete P.entered[field];
-  solvePrGroup(P);
+/** Clear a PR-group field — it becomes C if the other determines it, else N. Suspended for the
+ *  same reason as `enterPrField` — one user action, one solve. */
+export function clearPrField(mp: ManagedOpenISDProject, field: PrField): void {
+  suspendVentSolve(() => {
+    mp.setEntered(field, false);
+    solvePrGroup(mp);
+  });
 }
 
 /**
  * `E` entered and locked · `C` calculated from the other member · `N` not available — the PR
  * or the box is not defined enough for a tuning to exist.
  */
-export function prFieldState(P: UiParams, field: PrField): 'E' | 'C' | 'N' {
-  if (P.entered[field]) return 'E';
-  return prIsDefined(P) ? 'C' : 'N';
+export function prFieldState(mp: ManagedOpenISDProject, field: PrField): 'E' | 'C' | 'N' {
+  if (mp.isEntered(field)) return 'E';
+  return prIsDefined(mp) ? 'C' : 'N';
 }
 
 /**
@@ -82,7 +112,8 @@ export function prFieldState(P: UiParams, field: PrField): 'E' | 'C' | 'N' {
  * honest answer is "this PR cannot tune that high in this box", and the fix is a different
  * radiator or a smaller box, not a number.
  */
-export function prTargetUnreachable(P: UiParams): boolean {
-  if (!P.entered.prFp || !prIsDefined(P)) return false;
-  return prMassForFp(P, P.prFp) - P.prMmd < 0;
+export function prTargetUnreachable(mp: ManagedOpenISDProject): boolean {
+  if (!mp.isEntered('prFp') || !prIsDefined(mp)) return false;
+  const params = prParamsOf(mp);
+  return prMassForFp(params, mp.prFp_hz()) - params.prMmd < 0;
 }

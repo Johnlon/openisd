@@ -147,17 +147,32 @@ never improvise around it.
       verified dead 2026-08-21 (see the corrected
       `bugs/BUG_20260819_store_ts_45_exports_not_on_ALLOWED_GLOBALS_ready_for_review.md`).
       Done: typecheck clean; the globals gate's offence list shrinks by 10.
-- [ ] **A2** Build the reactivity adapter per `docs/design/REACTIVITY.md`: `logic/liveProject.ts`
-      (`createLiveRef(subscribable)`), unit-tested with a fake subscribable, no component mount.
-      Verify `ManagedOpenISDProject.subscribe` is public; add the gate "every public mutator on
-      ManagedOpenISDProject notifies" (AST check, not grep). Blocked-by: A1.
-      Done: new tests green; gate green.
-- [ ] **A3** Objective 2: DELETE `state.P` and all 37 delegates; every call site repointed to
-      direct domain calls through `liveProject` (ts-morph, not text edits). Build
-      `logic/presentationState.ts` for the view state (dialog flags, chart interaction, display
-      selection, prefs). `prMode` deleted; `Frc` stubbed to a domain method. Blocked-by: A2.
-      Done: `state.P` gone; typecheck clean; ui suite green; no new module-level state outside
-      approved stores.
+- [x] **A2** DONE 2026-08-21, review PASS after one fix cycle (commit `00a25ad`):
+      `createLiveRef` via shallowRef+triggerRef — the design's computed() sample is proven
+      broken on Vue 3.5.38 (QO69 raised for the doc fix); every ManagedOpenISDProject mutator
+      now notifies unconditionally, exactly-once both modes probe-verified; the what-if driver
+      bridge deleted (it detached on every mutate() re-materialisation — bug recorded and
+      RESOLVED); AST notify gate in architecture-notify.test.ts (architecture.test.ts
+      untouched). Spin-outs: displaced-meta-lost bug (OPEN), QO70 (ARCHITECTURE.md
+      contradiction), QO71 (consumerless OpenISDDriver.subscribe).
+- [x] **A3** DONE 2026-08-21, review PASS after one major fix cycle: state.P + 19 accessors +
+      P_DEFAULTS + 9 store wrappers + prMode deleted; ~40 facade getters/setters (all
+      notify-gated); toUiParams()/loadUiParams(Partial) the ONE wire shape with a 41-field
+      lossless round-trip test; NO per-field wrappers in components (twoWay and every
+      re-declared wrapper deleted — templates bind direct per REACTIVITY.md); filter chain
+      gets per-filter mutators (no live mirror); vent/PR transactions coalesce to one solve
+      (pinned); module-globals offences 34→25; ui suite 226 green + the 4 pre-existing arch
+      reds. presentationState.ts split to A3b. Spin-outs:
+      BUG_20260821_vent_group_auto_solve... (RESOLVED, with the coarse-watch mutating-solver
+      design risk recorded OPEN), BUG_20260821_input_power_inverse_computed_inline_in_shell...
+      (OPEN, pre-existing). Frc stubbed per ruling.
+- [ ] **A3b** (split out of A3, 2026-08-21, per the STOP rule) Build
+      `logic/presentationState.ts` and migrate the VIEW state (dialog flags, chart
+      interaction, display selection, prefs) out of `AppState` across App.vue,
+      OriginalShell.vue, GraphPanel.vue, OptionsModal.vue and peers — a migration of
+      comparable size to A3's domain half, deliberately not rushed with it. Blocked-by: A3.
+      Must land before A8. Done: view state lives in presentationState.ts; no new module-level
+      state outside approved stores; ui suite green.
 - [ ] **A4** Objective 2c: share links serialise the project (not `AppState`);
       `history.replaceState` moves to `logic/urlAppState.ts` (already on the APPROVED list).
       Blocked-by: A3. Done: `persist.serialize` no longer takes the whole state; share-link
@@ -203,12 +218,22 @@ never improvise around it.
       openisd `name?: _DerivedField` now producer-less
       (bugs/BUG_20260821_openisd_name_field_declared_but_inert.md); model_wdr.py's hardcoded
       ProvidedBy/DateAdded recorded in QO42 notes (fix rides Lane F's TS mapper).
-- [ ] **B2** QT48: `read_value: Optional[float]` with a validator permitting None ONLY when
-      `rejected` is set; add `RejectedRead.NO_NUMERIC_VALUE`; settle `read_precision` for the
-      N/A case explicitly. Blocked-by: B1. Done: a fixture with printed "N/A" round-trips.
-- [ ] **B3** QT49: rename `dq_status`→`corroboration`, `dq`→`dq_marks`; `DQStatus` becomes a
-      real Enum; update `crosscheck.py` and the raw-string comparison site. Blocked-by: B2.
-      Done: old names appear nowhere in source (identifiers, not prose); pytest green.
+- [x] **B2** DONE 2026-08-21, review PASS after two fix cycles: read_value AND read_precision
+      Optional[float], null together, licensed ONLY by RejectedRead.NO_NUMERIC_VALUE (all 9
+      validator states probe-verified incl. the contradiction rejection); "N/A" verbatim in
+      actual_reading; explicit _reading_value/_reading_precision narrowing at every consumer
+      (pyright 0); 171+24 green. NOT independently releasable — QT48's "must land as one"
+      makes B10 the gate (producer wiring + openisd null read-side ride the regeneration).
+      Spin-out: BUG_20260821_no_number_classifiers_disagree... (OPEN, pre-B10 blocker for the
+      factory wiring). Orchestrator also closed the repo-wide bug-ledger evidence gate (7
+      files → 15/15).
+- [x] **B3** DONE 2026-08-21, review PASS after two fix cycles: dq_status→corroboration,
+      dq→dq_marks, DQStatus a real Enum (plain Enum per house convention), 23 raw-string
+      comparison sites swept, the one-dq-verdict gate now catches BOTH spellings (probed),
+      test module renamed, verdict_for's dead dict arm recorded-then-deleted with the spec()
+      pre-validation ordering fixed (typed ValidationError restored), reading_value/
+      reading_precision made public. pyright 0; full touched set 303 passed / 1 pre-filed
+      accuton failure. On-disk records now refuse (expected; B10 regenerates).
 - [ ] **B4** QT47: disposition split — store `no_ts_published` (plugin-set world-fact), derive
       `disposition` from it + `missing`/`parse_errors`. Delete `set_disposition`, the
       `model_copy` hole, `scrapers/bin/recompute_dispositions.py`; re-examine

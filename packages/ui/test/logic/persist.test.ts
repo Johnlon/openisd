@@ -17,6 +17,7 @@ import { gunzipSync } from 'node:zlib';
 import { OpenISDDriver, Provenance } from '@openisd/model';
 import { WinISDDriver } from '@openisd/winisd';
 import { serialize, stateToUrl } from '../../src/logic/persist.js';
+import { state, managedProject, applyState } from '../../src/logic/store.js';
 import type { AppState, SerializedState, UiParams, DriverJSON } from '../../src/types.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -43,7 +44,7 @@ describe('persistence — provenance survives a serialize round trip', () => {
     assert.equal(src.cell('Fs').state, Provenance.Entered, 'fixture precondition: Fs entered');
     assert.equal(src.cell('Cms').state, Provenance.Calculated, 'fixture precondition: Cms now computed');
 
-    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJsonRecord())));
+    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJsonRecord(), {} as UiParams)));
     const back = OpenISDDriver.fromJsonRecord(wire.driver);
 
     for (const f of ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const) {
@@ -53,14 +54,14 @@ describe('persistence — provenance survives a serialize round trip', () => {
   });
 
   it('the payload is the RECORD, so `specs` and its readings travel', () => {
-    const ser = serialize(miniState, sampleRecord());
+    const ser = serialize(miniState, sampleRecord(), {} as UiParams);
     assert.ok(ser.driver?.specs, 'the driver payload is the openisd.yml record');
     assert.ok(ser.driver?.specs.woofer?.Fs?.readings,
       'each field carries its readings, not a bare number — that is what makes E/C survivable');
   });
 
   it('a design with NO driver chosen serialises without inventing one', () => {
-    const ser = serialize(miniState, undefined);
+    const ser = serialize(miniState, undefined, {} as UiParams);
     assert.equal(ser.driver, undefined,
       'a fake driver written to fill the slot would be indistinguishable on reload from one ' +
       'the user actually picked');
@@ -100,7 +101,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
   }
 
   it('every ui field travels — view context, open panels and local preferences alike', async () => {
-    const shared = decodeShare(await stateToUrl(serialize(uiState, drv)));
+    const shared = decodeShare(await stateToUrl(serialize(uiState, drv, {} as UiParams)));
     const ui = shared.ui as Record<string, unknown> | undefined;
     assert.ok(ui, 'the view context travels');
 
@@ -131,8 +132,8 @@ describe('share link carries the whole state, stripped of nothing', () => {
       { driver: drv, box: 'vented', P: {}, name: 'Compare A', color: '#ff0000' },
       { driver: drv, box: 'sealed', P: {}, name: 'Compare B', color: '#00ff00' },
     ] } as unknown as AppState;
-    const plainBase64Len = Buffer.from(JSON.stringify(serialize(loaded, drv)), 'utf8').toString('base64').length;
-    const gzipBase64Len = (await stateToUrl(serialize(loaded, drv))).match(/[#&]s=([^&]+)/)![1].length;
+    const plainBase64Len = Buffer.from(JSON.stringify(serialize(loaded, drv, {} as UiParams)), 'utf8').toString('base64').length;
+    const gzipBase64Len = (await stateToUrl(serialize(loaded, drv, {} as UiParams))).match(/[#&]s=([^&]+)/)![1].length;
 
     assert.ok(gzipBase64Len < plainBase64Len,
       `gzip+base64 (${gzipBase64Len}) should be smaller than plain base64 (${plainBase64Len})`);
@@ -140,7 +141,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
 
   it('carries the graph cursor — live hover and locked/pinned, both if both are set', async () => {
     const withCursor = { ...uiState, cursorF: 123.4, pinnedF: 500, cursorLocked: true } as unknown as AppState;
-    const local = serialize(withCursor, drv);
+    const local = serialize(withCursor, drv, {} as UiParams);
     assert.deepEqual(local.cursor, { f: 123.4, pinnedF: 500, locked: true, range: null });
     assert.deepEqual(decodeShare(await stateToUrl(local)).cursor,
       { f: 123.4, pinnedF: 500, locked: true, range: null });
@@ -148,15 +149,88 @@ describe('share link carries the whole state, stripped of nothing', () => {
 
   it('carries the dragged band (fLo/fHi only — stats are per-panel derived)', async () => {
     const withBand = { ...uiState, dragRange: { fLo: 31.6, fHi: 100, stats: { peak: 1 } } } as unknown as AppState;
-    const local = serialize(withBand, drv);
+    const local = serialize(withBand, drv, {} as UiParams);
     assert.deepEqual(local.cursor!.range, { fLo: 31.6, fHi: 100 }, 'derived stats are not state');
     assert.deepEqual(decodeShare(await stateToUrl(local)).cursor!.range, { fLo: 31.6, fHi: 100 });
   });
 
   it('an unset cursor serialises as all-null/false, not omitted', () => {
     const noCursor = { ...uiState, cursorF: null, pinnedF: null, cursorLocked: false } as unknown as AppState;
-    assert.deepEqual(serialize(noCursor, drv).cursor,
+    assert.deepEqual(serialize(noCursor, drv, {} as UiParams).cursor,
       { f: null, pinnedF: null, locked: false, range: null },
       'omitting "nothing pinned" would make absence and unset indistinguishable on reload');
+  });
+});
+
+/**
+ * `UiParams` is the ONE wire shape for the project's flat params — `managedProject.toUiParams()`
+ * out, `managedProject.loadUiParams()` in, through `serialize()`/`applyState()`. A caller that
+ * passed `SyncedParams` (`UiParams & {eg, Sp, Leff}`) instead would persist DERIVED values
+ * (recomputed from the rest on every load) as if they were stored state — a second, redundant
+ * shape for the same three fields, free to disagree with what they recompute to.
+ * Regression guard: every real `UiParams` field must survive
+ * `toUiParams → serialize → JSON → applyState → toUiParams` unchanged.
+ */
+describe('UiParams round-trips losslessly through serialize/applyState', () => {
+  it('every field of a fully-specified design survives a save/restore cycle unchanged', () => {
+    managedProject.setActiveAlignment('vented');
+    managedProject.setBoxVolume_m3(0.028);
+    managedProject.setFrontVolume_m3(0.011);
+    managedProject.setActiveVentField('shape', 'slotted');
+    managedProject.setActiveVentField('diameter_m', 0.06);
+    managedProject.setActiveVentField('width_m', 0.05);
+    managedProject.setActiveVentField('height_m', 0.03);
+    managedProject.setActiveVentField('length_m', 0.15);
+    managedProject.setActiveVentField('endCorrection', 0.61);
+    managedProject.setBoxTuning_Fb_hz(38.5);
+    managedProject.setPrFp_hz(41);
+    managedProject.setPrField('name', 'Test PR');
+    managedProject.setPrField('Sd_m2', 0.009);
+    managedProject.setPrCount(2);
+    managedProject.setPrField('Mmd_kg', 0.021);
+    managedProject.setPrAddedMass_kg(0.004);
+    managedProject.setPrField('Cms_m_per_N', 0.0007);
+    managedProject.setPrField('Rms_Ns_per_m', 0.6);
+    managedProject.setPrField('Xmax_m', 0.006);
+    managedProject.setBoxQl(9);
+    managedProject.setBoxQa(95);
+    managedProject.setBoxQp(105);
+    managedProject.setDriverCount(2);
+    managedProject.setWiring('series');
+    managedProject.setInputPower_W(85);
+    managedProject.setSeriesResistance_ohm(0.15);
+    managedProject.setSweepFmin_hz(12);
+    managedProject.setSweepFmax_hz(18000);
+    managedProject.setSweepPoints(350);
+    managedProject.setCircuitModel('gyrator');
+    managedProject.setFilters([{ id: 'f1', type: 'highpass', enabled: true, fc: 35, Q: 0.71 }]);
+    managedProject.setVcTempRise(12);
+    managedProject.setAlfaVC(0.004);
+    managedProject.setDriverAddedMass(0.002);
+    managedProject.setRgAtDriverSide(true);
+    managedProject.setTlPortModel(true);
+    managedProject.setForceFlatResponse(true);
+    managedProject.setSplXmaxLimited(true);
+    managedProject.setEnvTempK(300);
+    managedProject.setEnvHumidityPct(45);
+    managedProject.setEnvPressurePa(99000);
+    managedProject.setEnvIgnoreHumidityAndPressure(true);
+    managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true, prMadd: true });
+    state.box = 'vented';
+
+    const before = managedProject.toUiParams();
+
+    const wire = JSON.parse(JSON.stringify(serialize(state, undefined, before))) as SerializedState;
+
+    // Scramble the live project back to nothing BEFORE restoring, so this actually exercises
+    // write-back — restoring into a project that already held these values would pass even if
+    // `loadUiParams` silently dropped every field.
+    managedProject.loadEmpty();
+    applyState(wire);
+
+    const after = managedProject.toUiParams();
+    assert.deepEqual(after, before,
+      'every UiParams field must round-trip byte-identical through serialize/applyState — a ' +
+      'diverging field would mean the wire shape silently drops or corrupts it');
   });
 });

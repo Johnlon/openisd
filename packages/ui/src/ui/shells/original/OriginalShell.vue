@@ -20,14 +20,26 @@ const buildDatetime = __BUILD_DATETIME__;
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
-  state, engineDriver, driverName, driverRecord,
-  syncedP, curvesData, maxData, driverErrors,
+  state, driverName, driverRecord,
+  syncedP, curvesData, maxData,
   isModified, resetProjectToGround, groundCheckpoint, restoreGroundCheckpoint, markProjectSaved,
   managedProject,
   formatInUnit as fmtU,
-  enterVentField, clearVentField, ventFieldState, ventMaxReachableFb, ventTargetUnreachable,
   newProject,
 } from '../../../logic/store.js';
+import { createLiveRef } from '../../../logic/liveProject.js';
+import {
+  enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
+  ventFieldState as ventFieldStateOn, ventMaxReachableFb as ventMaxReachableFbOn,
+  ventTargetUnreachable as ventTargetUnreachableOn,
+} from '../../../logic/useVentGroup.js';
+import { toAlignmentKind } from '../../../logic/managedProject.js';
+
+// The delegate-free reactivity adapter (`docs/design/REACTIVITY.md`): touching `live.value`
+// inside a computed/watch registers a dependency that invalidates on every `managedProject`
+// mutation, which is what makes calling its methods directly — instead of through a store
+// wrapper or a flat field bag — reactive (ledger QO54).
+const { live } = createLiveRef(managedProject);
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType } from '@openisd/engine';
 import type { PRLibEntry, BundledPR, Design } from '../../../types.js';
@@ -114,8 +126,12 @@ const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 // high-frequency voice-coil-inductance rise (≈20 kHz) as the GLOBAL |Z| maximum for any driver
 // with Le, which is not the system resonance (and yields Qtc=0). See openspec core-engine
 // "Sealed-Box Resonance Loss Models" and winisd_research/SEALED_FSC_MODEL.md.
-const sealedRes = computed<{ Fsc: number; Qtc: number } | null>(() =>
-  managedProject.sealedResonance(LossMode.parse(state.lossMode), state.P.Rs, state.P.Ql, state.P.Qa));
+const sealedRes = computed<{ Fsc: number; Qtc: number } | null>(() => {
+  void live.value;
+  return managedProject.sealedResonance(
+    LossMode.parse(state.lossMode), managedProject.seriesResistance_ohm(),
+    managedProject.boxQl(), managedProject.boxQa());
+});
 const rearResonance = computed<number | null>(() => sealedRes.value?.Fsc ?? null);
 const rearQtc = computed<number | null>(() => sealedRes.value?.Qtc ?? null);
 // WinISD's "Fh" for a PR box is the PASSIVE RADIATOR system tuning — the box compliance in
@@ -123,67 +139,36 @@ const rearQtc = computed<number | null>(() => sealedRes.value?.Qtc ?? null);
 // ignores the PR entirely. On WinISD's own controlled-trial inputs prTuning() returns 72.25 Hz,
 // matching it exactly, where the sealed formula gives 194.87. winisd_research/GAPS.md §A3.
 /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
-const boxResonance = computed<number | null>(() =>
-  selectedBox.value === 'pr' ? managedProject.prSystemTuning_hz() : rearResonance.value);
+const boxResonance = computed<number | null>(() => {
+  void live.value;
+  return selectedBox.value === 'pr' ? managedProject.prSystemTuning_hz() : rearResonance.value;
+});
 // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber
 // tunes on its own front volume Vf. Same closed form the engine's circuit uses.
-// Box-tab tuning entry (vented). The setter goes through enterVentField so the field is
-// marked Entered and the vent LENGTH re-solves — WinISD's direction. The getter reads
-// state.P.Fb, which the store keeps solved when the roles are the other way round.
-const fbEntered = computed<number>({
-  get: () => state.P.Fb,
-  set: (v: number) => {
-    if (v == null || isNaN(v) || v <= 0) {
-      clearVentField('Fb');
-    } else {
-      enterVentField('Fb', v);
-    }
-  },
-});
-const fbRearEntered = computed<number>({
-  get: () => state.P.Frc ?? 50,
-  set: (v: number) => {
-    state.P.Frc = v;
-  },
-});
-const ventLEntered = computed<number>({
-  get: () => state.P.ventL,
-  set: (v: number) => {
-    if (v == null || isNaN(v) || v <= 0) {
-      clearVentField('ventL');
-    } else {
-      enterVentField('ventL', v);
-    }
-  },
-});
-const ventDModel = computed<number>({
-  get: () => state.P.ventD,
-  set: (v: number) => enterVentField('ventD', v),
-});
-const ventWModel = computed<number>({
-  get: () => state.P.ventW,
-  set: (v: number) => enterVentField('ventW', v),
-});
-const ventHModel = computed<number>({
-  get: () => state.P.ventH,
-  set: (v: number) => enterVentField('ventH', v),
-});
-// E / C / N for the two members whose roles can swap.
-const fbState    = computed(() => ventFieldState('Fb'));
-const ventLState = computed(() => ventFieldState('ventL'));
+//
+// No per-field write computeds here (ledger QO60/REACTIVITY.md: "no wrapper is written for
+// Vb, or for any of the other eighteen") — every `v-model`/`@change` in the template below
+// calls `managedProject`'s own getter/setter, or (for the vent-group fields) the TESTED
+// `enterVentFieldOn`/`clearVentFieldOn` from `useVentGroup.js`, directly.
+//
+// The four below are READ-ONLY derived values shown in more than one place (E/C/N badges,
+// warning banners) — genuinely DERIVED state, not a get+set mirror of a single field, so a
+// named computed is the right home for them (same shape as `sealedRes`/`boxResonance` above).
+const fbState    = computed<'E' | 'C' | 'N'>(() => { void live.value; return ventFieldStateOn(managedProject, 'Fb', state.box); });
+const ventLState = computed<'E' | 'C' | 'N'>(() => { void live.value; return ventFieldStateOn(managedProject, 'ventL', state.box); });
 // What the port solver can actually deliver. `ventLength()` returns the raw signed root, so a
 // target above the L = 0 ceiling comes back as a NEGATIVE length — invisible while the LENGTH
 // was the input, user-facing now the TARGET is (GAPS.md §A1). The tooltip on the target field
 // promises the port is designed to it; when it cannot be, the pane says so and names the
 // highest tuning this volume and vent area can actually reach.
-const fbUnreachable = computed(() => ventTargetUnreachable());
-const fbCeiling     = computed(() => ventMaxReachableFb());
+const fbUnreachable = computed(() => { void live.value; return ventTargetUnreachableOn(managedProject, state.box); });
+const fbCeiling     = computed(() => { void live.value; return ventMaxReachableFbOn(managedProject, state.box); });
 /** Explains the miss in the user's own terms, on both the Box tab and the Vents tab. */
 const fbUnreachableMsg = computed(() =>
   `Target not reachable: no vent of this diameter in this volume tunes above `
   + `${fbCeiling.value != null ? fbCeiling.value.toFixed(2) : '—'} Hz — the solved length is `
   + `negative, which is not a port you can build. Use a smaller vent diameter, or a larger `
-  + `volume, to reach ${state.P.Fb.toFixed(2)} Hz.`);
+  + `volume, to reach ${managedProject.boxTuning_Fb_hz().toFixed(2)} Hz.`);
 /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
 const frontChamberTuningLabel = computed(() =>
   DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
@@ -286,8 +271,8 @@ function onFile(e: Event) {
 
 // ---- Cursor readout (top-right) — real interpolation of the selected curve ------
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
-const fmin = computed(() => state.P.fmin ?? 1);
-const fmax = computed(() => state.P.fmax ?? 20000);
+const fmin = computed(() => syncedP.value.fmin ?? 1);
+const fmax = computed(() => syncedP.value.fmax ?? 20000);
 
 const isHzInputFocused = ref(false);
 const hzInputText = ref('');
@@ -363,7 +348,7 @@ function stopNudge() {
 }
 onUnmounted(stopNudge);
 const currentDesign = computed(() => ({
-  driver: engineDriver(), box: state.box, P: syncedP.value,
+  driver: managedProject.toEngineDriver(), box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE.value,
   // Visibility is the project row's own fact — read it, never keep a second copy.
   visible: activeProject.value?.visible !== false,
@@ -371,7 +356,7 @@ const currentDesign = computed(() => ({
 const cursorVal = computed<number | null>(() => {
   const f = cursorHz.value;
   if (pending.value || chartUnavailable.value || f == null) return null;
-  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, overlays.value, driverErrors(),
+  const p = buildPlotData(chartTab.value, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlays.value, managedProject.errors(),
     { bare: true, primaryColor: WINISD_TRACE.value }).value;
   if (!p) return null;
   const s = p.series.find(x => !x.phantom);
@@ -407,7 +392,7 @@ onMounted(() => {
       name: state.project.name || driverName.value,
       driver: driverRecord.value,
       box: state.box,
-      P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+      P: managedProject.toUiParams(),
       curves: curvesData.value,
       maxCurves: maxData.value,
       project: { ...state.project },
@@ -420,14 +405,14 @@ onMounted(() => {
 });
 
 // Keep the active item in openProjects completely in sync with the live store active design
-watch([() => state.box, () => state.P, () => driverRecord.value, curvesData, maxData, () => state.project, isModified, () => managedProject.isWhatIfActive()], () => {
+watch([() => state.box, live, () => driverRecord.value, curvesData, maxData, () => state.project, isModified, () => managedProject.isWhatIfActive()], () => {
   if (isSwapping) return;
   if (managedProject.isWhatIfActive()) return;
   const activeItem = openProjects.value.find(p => p.id === activeProjectId.value);
   if (activeItem) {
     activeItem.driver = driverRecord.value;
     activeItem.box = state.box;
-    activeItem.P = { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) };
+    activeItem.P = managedProject.toUiParams();
     activeItem.curves = curvesData.value;
     activeItem.maxCurves = maxData.value;
     activeItem.name = state.project.name || driverName.value;
@@ -459,7 +444,7 @@ function syncActiveRowFromStore() {
   Object.assign(activeItem, {
     driver: driverRecord.value,
     box: state.box,
-    P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+    P: managedProject.toUiParams(),
     curves: curvesData.value,
     maxCurves: maxData.value,
     name: state.project.name || driverName.value,
@@ -481,14 +466,14 @@ function selectProject(p: any) {
   const targetDesign = JSON.parse(JSON.stringify(p));
   
   state.box = targetDesign.box;
-  Object.assign(state.P, { ...targetDesign.P, filters: (targetDesign.P.filters || []).map((f: any) => ({ ...f })) });
+  managedProject.loadUiParams(targetDesign.P, toAlignmentKind(targetDesign.box));
   if (targetDesign.driver) managedProject.loadDriverRecord(targetDesign.driver);
   else managedProject.loadEmpty();
   
   const targetProj = targetDesign.project ? targetDesign.project : { name: targetDesign.name || '', creator: '', created: '', modified: '', description: '' };
   Object.assign(state.project, targetProj);
 
-  restoreGroundCheckpoint(targetDesign._ground || JSON.stringify({ box: state.box, P: state.P, driver: driverRecord.value, project: state.project }));
+  restoreGroundCheckpoint(targetDesign._ground || JSON.stringify({ box: state.box, P: managedProject.toUiParams(), driver: driverRecord.value, project: state.project }));
   activeProjectId.value = targetDesign.id;
 
   isSwapping = false;
@@ -502,9 +487,8 @@ function selectProject(p: any) {
 }
 
 function copyCurrentProject() {
-  const currentP = { ...state.P };
-  currentP.filters = (currentP.filters || []).map(f => ({ ...f }));
-  
+  const currentP = managedProject.toUiParams();
+
   const copyId = 'proj-' + Math.random().toString(36).substring(7);
   const copyName = uniqueName(copyOfName(state.project.name || driverName.value),
                               openProjects.value.map(p => p.name));
@@ -536,7 +520,7 @@ function openNewProject() {
     name: '',
     driver: driverRecord.value,
     box: state.box,
-    P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+    P: managedProject.toUiParams(),
     curves: curvesData.value,
     maxCurves: maxData.value,
     project: { ...state.project },
@@ -589,7 +573,7 @@ function closeProject(p: any) {
       name: state.project.name || driverName.value,
       driver: driverRecord.value,
       box: state.box,
-      P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+      P: managedProject.toUiParams(),
       curves: curvesData.value,
       maxCurves: maxData.value,
       project: { ...state.project },
@@ -659,8 +643,8 @@ onUnmounted(() => tone?.stop());
 // Drive voltage ↔ system power are two views of the same energy: V = √(P·Re), P = V²/Re.
 // WinISD lets you edit EITHER (each recomputes the other); Pin is the stored source of truth.
 const driveV = computed<number>({
-  get: () => driveVoltageFor(state.P.Pin ?? 1, engineDriver()?.Re || 8),
-  set: (v) => { state.P.Pin = (v * v) / (engineDriver()?.Re || 8); },
+  get: () => { void live.value; return driveVoltageFor(managedProject.inputPower_W() ?? 1, managedProject.toEngineDriver()?.Re || 8); },
+  set: (v) => { managedProject.setInputPower_W((v * v) / (managedProject.toEngineDriver()?.Re || 8)); },
 });
 
 // ---- Advanced tab: environment. All three inputs drive the real sweep: ρ and c come from
@@ -670,18 +654,21 @@ const driveV = computed<number>({
 // Seeded from the app-level Options → General → Environment defaults (state.ui.envDefaults),
 // not a hardcoded literal — editing this project's Advanced pane doesn't touch that default.
 // The environment is PER PROJECT (WinISD keeps T/p/phi in the .wpr [Box] section), so each
-// input writes through to state.P.
+// input writes through to managedProject.
 const advTemp = ref(state.ui.envDefaults.tempK);
-watch(advTemp, (v) => { state.P.tempK = v; }, { immediate: true });
+watch(advTemp, (v) => { managedProject.setEnvTempK(v); }, { immediate: true });
 const advHumidity = ref(state.ui.envDefaults.humidityPct);
-watch(advHumidity, (v) => { state.P.humidityPct = v; }, { immediate: true });
+watch(advHumidity, (v) => { managedProject.setEnvHumidityPct(v); }, { immediate: true });
 const advPressure = ref(state.ui.envDefaults.pressurePa);
-watch(advPressure, (v) => { state.P.pressurePa = v; }, { immediate: true });
+watch(advPressure, (v) => { managedProject.setEnvPressurePa(v); }, { immediate: true });
 /** The air the sweep is actually running in — one call, both readouts. */
-const advAir = computed(() => airForEnvironment({
-  tempK: advTemp.value, humidityPct: advHumidity.value, pressurePa: advPressure.value,
-  ignoreHumidityAndPressure: state.P.ignoreHumidityAndPressure,
-}));
+const advAir = computed(() => {
+  void live.value;
+  return airForEnvironment({
+    tempK: advTemp.value, humidityPct: advHumidity.value, pressurePa: advPressure.value,
+    ignoreHumidityAndPressure: managedProject.envIgnoreHumidityAndPressure(),
+  });
+});
 
 // ---- Placement (Signal path multipliers already in the store) ------------------
 // Standard vs Iso-Barik: only Standard is modelled; the radio is shown for parity.
@@ -703,23 +690,23 @@ const prBrowseOpen = ref(false);
 const prEditOpen = ref(false);
 const prDefineOpen = ref(false);
 function loadPREntry(entry: PRLibEntry) {
-  state.P.prName = entry.name;
-  state.P.prSd   = entry.prSd;
-  state.P.prMmd  = entry.prMmd;
-  state.P.prCms  = entry.prCms;
-  state.P.prRms  = entry.prRms;
-  state.P.prXmax = entry.prXmax;
+  managedProject.setPrField('name', entry.name);
+  managedProject.setPrField('Sd_m2', entry.prSd);
+  managedProject.setPrField('Mmd_kg', entry.prMmd);
+  managedProject.setPrField('Cms_m_per_N', entry.prCms);
+  managedProject.setPrField('Rms_Ns_per_m', entry.prRms);
+  managedProject.setPrField('Xmax_m', entry.prXmax);
   prBrowseOpen.value = false;
 }
 // Bundled PRs publish only Sd/Cms — blank the unpublished fields and open the editor so
 // the user supplies them (mirrors PRPanel.loadBundledPR; never leaves stale values).
 function loadBundledPREntry(pr: BundledPR) {
-  state.P.prName = pr.name;
-  if (pr.Sd  != null) state.P.prSd  = pr.Sd;
-  if (pr.Cms != null) state.P.prCms = pr.Cms;
-  state.P.prMmd  = 0;
-  state.P.prRms  = 0;
-  state.P.prXmax = 0;
+  managedProject.setPrField('name', pr.name);
+  if (pr.Sd  != null) managedProject.setPrField('Sd_m2', pr.Sd);
+  if (pr.Cms != null) managedProject.setPrField('Cms_m_per_N', pr.Cms);
+  managedProject.setPrField('Mmd_kg', 0);
+  managedProject.setPrField('Rms_Ns_per_m', 0);
+  managedProject.setPrField('Xmax_m', 0);
   prBrowseOpen.value = false;
   prEditOpen.value = true;
 }
@@ -964,7 +951,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
             <div v-if="!isDual" class="box-fields-col" style="width: 412px;">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
-                <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+                <div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.boxVolume_m3()" @update:model-value="v => managedProject.setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
               </div>
               <div class="field-row" style="flex-wrap: nowrap;">
                 <!-- A vented chamber's tuning is a real design choice (the port is an extra
@@ -972,8 +959,8 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
-                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="live && managedProject.boxTuning_Fb_hz()" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb', state.box); else enterVentFieldOn(managedProject, 'Fb', v, state.box); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(live && managedProject.boxTuning_Fb_hz(), 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
                   <div class="field"><label>Fsc</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
@@ -988,11 +975,11 @@ watch(() => state.ui.originalEditorOpen, (open) => {
             <template v-else>
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.boxVolume_m3()" @update:model-value="v => managedProject.setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
                   <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="field entered">
                     <label>Tuning freq (Frc)</label>
-                    <NumInput v-model="fbRearEntered" field="Frc" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput :model-value="live && managedProject.frcHz()" @update:model-value="v => managedProject.setFrcHz(v ?? 0)" field="Frc" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Frc" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else class="field">
@@ -1008,16 +995,16 @@ watch(() => state.ui.originalEditorOpen, (open) => {
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.frontVolume_m3()" @update:model-value="v => managedProject.setFrontVolume_m3(v ?? 0)" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
                   <div v-if="fbState === 'E'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <NumInput id="og-ffc-target" v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput id="og-ffc-target" :model-value="live && managedProject.boxTuning_Fb_hz()" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb', state.box); else enterVentFieldOn(managedProject, 'Fb', v, state.box); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-ffc-target-field" class="field" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <input class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <input class="calculated greyed" :value="fmtU(live && managedProject.boxTuning_Fb_hz(), 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -1121,7 +1108,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
               <div class="section-header">Placement</div>
               <div class="field-row">
                 <div class="field"><label>Num. of drivers</label>
-                  <select v-model.number="state.P.nDrivers"><option v-for="n in 8" :key="n" :value="n">{{ n }}</option></select>
+                  <select :value="live && managedProject.driverCount()" @change="e => managedProject.setDriverCount(Number((e.target as HTMLSelectElement).value))"><option v-for="n in 8" :key="n" :value="n">{{ n }}</option></select>
                   <span>driver(s)</span>
                 </div>
               </div>
@@ -1131,7 +1118,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
               </div>
               <div class="field-row">
                 <div class="field"><label>Voice coil connection</label>
-                  <select v-model="state.P.wiring"><option value="parallel">Parallel</option><option value="series">Series</option></select>
+                  <select :value="live && managedProject.wiring()" @change="e => managedProject.setWiring((e.target as HTMLSelectElement).value as 'series' | 'parallel')"><option value="parallel">Parallel</option><option value="series">Series</option></select>
                 </div>
               </div>
             </div>
@@ -1139,9 +1126,9 @@ watch(() => state.ui.originalEditorOpen, (open) => {
               <div class="section-header">Advanced options</div>
               <div class="beside-hint">
                 <div>
-                  <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput v-model="state.P.vcTempRise" field="vcTempRise" group="tempDiff" base="K" :precision="fieldDp('vcTempRise')" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
-                  <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput v-model="state.P.alfaVC" field="alfaVC" group="tempCoeff" base="perMilliK" :precision="fieldDp('AlfaVC')" /><UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
-                  <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput v-model="state.P.driverAddedMass" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput :model-value="live && managedProject.vcTempRise()" @update:model-value="v => managedProject.setVcTempRise(v ?? 0)" field="vcTempRise" group="tempDiff" base="K" :precision="fieldDp('vcTempRise')" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput :model-value="live && managedProject.alfaVC()" @update:model-value="v => managedProject.setAlfaVC(v ?? 0)" field="alfaVC" group="tempCoeff" base="perMilliK" :precision="fieldDp('AlfaVC')" /><UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput :model-value="live && managedProject.driverAddedMass()" @update:model-value="v => managedProject.setDriverAddedMass(v ?? 0)" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
                 </div>
                 <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
               </div>
@@ -1163,7 +1150,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div class="field">
                     <label>Shape</label>
-                    <select v-model="state.P.ventShape">
+                    <select :value="live && managedProject.activeVentField('shape')" @change="e => managedProject.setActiveVentField('shape', (e.target as HTMLSelectElement).value as 'round' | 'slotted')">
                       <option value="round">round</option>
                       <option value="slotted">slotted</option>
                     </select>
@@ -1172,7 +1159,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div class="field entered">
                     <label>End Correction</label>
-                    <select v-model.number="state.P.endCorrection" style="width:190px">
+                    <select :value="live && managedProject.activeVentField('endCorrection')" @change="e => managedProject.setActiveVentField('endCorrection', Number((e.target as HTMLSelectElement).value))" style="width:190px">
                       <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
                     </select>
                   </div>
@@ -1181,18 +1168,18 @@ watch(() => state.ui.originalEditorOpen, (open) => {
 
               <!-- Column 2: Dimensions -->
               <div class="vent-dims-col">
-                <div v-if="state.P.ventShape === 'slotted'">
+                <div v-if="live && managedProject.activeVentField('shape') === 'slotted'">
                   <div class="field-row">
                     <div class="field entered">
                       <label>Slot width</label>
-                      <NumInput v-model="ventWModel" field="ventW" group="length" base="cm" :precision="fieldDp('ventW')" />
+                      <NumInput :model-value="live && managedProject.activeVentField('width_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventW', v ?? 0, state.box)" field="ventW" group="length" base="cm" :precision="fieldDp('ventW')" />
                       <UnitToggle field="ventW" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
                   <div class="field-row">
                     <div class="field entered">
                       <label>Slot height</label>
-                      <NumInput v-model="ventHModel" field="ventH" group="length" base="cm" :precision="fieldDp('ventH')" />
+                      <NumInput :model-value="live && managedProject.activeVentField('height_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventH', v ?? 0, state.box)" field="ventH" group="length" base="cm" :precision="fieldDp('ventH')" />
                       <UnitToggle field="ventH" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -1201,7 +1188,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                   <div class="field-row">
                     <div class="field entered">
                       <label>Vent diameter</label>
-                      <NumInput v-model="ventDModel" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" />
+                      <NumInput :model-value="live && managedProject.activeVentField('diameter_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventD', v ?? 0, state.box)" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" />
                       <UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -1210,7 +1197,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div v-if="ventLState === 'E'" class="field entered">
                     <label>Vent length</label>
-                    <NumInput v-model="ventLEntered" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" />
+                    <NumInput :model-value="live && managedProject.activeVentField('length_m')" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'ventL', state.box); else enterVentFieldOn(managedProject, 'ventL', v, state.box); }" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" />
                     <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else class="field">
@@ -1218,7 +1205,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                     <!-- Shown exactly as solved, negative included: a target above the L = 0
                          ceiling has no buildable port, and the honest readout says so instead
                          of a floored length that tunes somewhere else. -->
-                    <input id="og-vent-length-ro" class="calculated greyed" :class="{ impossible: state.P.ventL <= 0 }" :value="fmtU(state.P.ventL, 'ventL', 'length', 'cm', fieldDp('ventL'))" readonly>
+                    <input id="og-vent-length-ro" class="calculated greyed" :class="{ impossible: (live && managedProject.activeVentField('length_m')) <= 0 }" :value="fmtU(live && managedProject.activeVentField('length_m'), 'ventL', 'length', 'cm', fieldDp('ventL'))" readonly>
                     <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -1230,7 +1217,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                      well as the Box tab — you are sizing a vent, and this is the number it is
                      sized to (human ruling QO11). WinISD shows it only on its Box screen
                      (docs/winisd_screenshots/view_3_ported.png has no tuning field); carrying it here is
-                     deliberately ours. Same `state.P.Fb`, same E/C state and same setter as the
+                     deliberately ours. Same tuning target, same E/C state and same setter as the
                      Box tab: ONE stored value with two places to see and edit it.
                      It sits in this column, not beside the other config fields, because the
                      pane's height is set by its tallest column: a fourth row in either of the
@@ -1239,12 +1226,12 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div v-if="fbState === 'E'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <NumInput id="og-vent-fb-target" v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput id="og-vent-fb-target" :model-value="live && managedProject.boxTuning_Fb_hz()" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb', state.box); else enterVentFieldOn(managedProject, 'Fb', v, state.box); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(live && managedProject.boxTuning_Fb_hz(), 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -1263,7 +1250,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
           <!-- passive radiator -->
           <div v-else-if="selectedBox === 'pr'">
             <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
-              <div class="field tight"><label>PR</label><input type="text" style="width:220px" :value="state.P.prName || 'Custom PR'" readonly></div>
+              <div class="field tight"><label>PR</label><input type="text" style="width:220px" :value="(live && managedProject.prField('name')) || 'Custom PR'" readonly></div>
               <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select PR</button>
               <button class="edit-btn" title="Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax." @click="prEditOpen = true">&#9998; Edit</button>
             </div>
@@ -1286,16 +1273,16 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                        (view_2_box.png "Fh": 40.25 Hz on that same project), which is the box
                        compliance in series with the PR's own — two quantities, two readouts. -->
                   <div class="field"><label>Fpr</label><input id="og-pr-fs" class="calculated greyed" :value="fmtU(managedProject.prFs_hz(), 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
-                  <div class="field entered"><label>Sd</label><NumInput v-model="state.P.prSd" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Sd</label><NumInput :model-value="live && managedProject.prField('Sd_m2')" @update:model-value="v => managedProject.setPrField('Sd_m2', v ?? 0)" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Xmax</label><NumInput v-model="state.P.prXmax" field="prXmax" group="length" base="mm" :precision="fieldDp('prXmax')" /><UnitToggle field="prXmax" group="length" base="mm" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Xmax</label><NumInput :model-value="live && managedProject.prField('Xmax_m')" @update:model-value="v => managedProject.setPrField('Xmax_m', v ?? 0)" field="prXmax" group="length" base="mm" :precision="fieldDp('prXmax')" /><UnitToggle field="prXmax" group="length" base="mm" unit-class="unit unit-cyc" /></div>
                 </div>
               </div>
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
-                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" field="prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
-                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput id="og-pr-madd" v-model="state.P.prMadd" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="live && managedProject.prCount()" @update:model-value="v => managedProject.setPrCount(v ?? 0)" field="prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="live && managedProject.prAddedMass_kg()" @update:model-value="v => managedProject.setPrAddedMass_kg(v ?? 0)" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
                 <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(managedProject.prFsWithMass_hz(), 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
             </div>
@@ -1306,7 +1293,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
           <div v-else-if="selectedBox === 'sealed'">
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
-              <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+              <div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.boxVolume_m3()" @update:model-value="v => managedProject.setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
               <!-- A closed box has no passive radiator, so the PR system tuning is not a
                    quantity it HAS. Its resonance is the sealed Fsc the Box tab already
                    reports, from the same `boxResonance`. Never put a number from another
@@ -1338,7 +1325,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
           </div>
         </section>
 
-        <!-- ===== Filters tab — OgFilters, wired to state.P.filters ===== -->
+        <!-- ===== Filters tab — OgFilters, wired to the project's filter chain ===== -->
         <section v-show="activeTab === 'filters'" class="tab-section" :class="{ active: activeTab === 'filters' }">
           <OgFilters />
         </section>
@@ -1354,9 +1341,9 @@ watch(() => state.ui.originalEditorOpen, (open) => {
             </div>
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
-              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput v-model="state.P.Pin" :scale="1" :precision="fieldDp('Pin')" /><span class="unit">W</span></div></div>
+              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput :model-value="live && managedProject.inputPower_W()" @update:model-value="v => managedProject.setInputPower_W(v ?? 0)" :scale="1" :precision="fieldDp('Pin')" /><span class="unit">W</span></div></div>
               <div class="field-row"><div class="field entered"><label>Driver input voltage (each)</label><NumInput v-model="driveV" :scale="1" :precision="fieldDp('driveV')" /><span class="unit">V</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="state.P.Rs" :scale="1" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput :model-value="live && managedProject.seriesResistance_ohm()" @update:model-value="v => managedProject.setSeriesResistance_ohm(v ?? 0)" :scale="1" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
             </div>
           </div>
         </section>
@@ -1414,9 +1401,9 @@ watch(() => state.ui.originalEditorOpen, (open) => {
           <div class="win-controls"><span class="close-btn" @click="boxLossesOpen = false">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput v-model="state.P.Ql" :scale="1" :precision="fieldDp('Ql')" /></div></div>
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput v-model="state.P.Qa" :scale="1" :precision="fieldDp('Qa')" /></div></div>
-          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput v-model="state.P.Qp" :scale="1" :precision="fieldDp('Qp')" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="live && managedProject.boxQl()" @update:model-value="v => managedProject.setBoxQl(v ?? 0)" :scale="1" :precision="fieldDp('Ql')" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="live && managedProject.boxQa()" @update:model-value="v => managedProject.setBoxQa(v ?? 0)" :scale="1" :precision="fieldDp('Qa')" /></div></div>
+          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="live && managedProject.boxQp()" @update:model-value="v => managedProject.setBoxQp(v ?? 0)" :scale="1" :precision="fieldDp('Qp')" /></div></div>
           <p class="hint">100 = no stuffing · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
         </div>
         <div class="modal-footer">

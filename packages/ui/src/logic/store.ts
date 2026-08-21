@@ -14,19 +14,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { reactive, computed, ref, shallowRef, watch, type ComputedRef } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
-import type { EngineDriver, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
-import { driverRecordProblems, OpenISDDriver, setActiveAlignment } from '@openisd/model';
-import type { Cell, SpecField, _OpenISDDriverJson, _OpenISDProjectJson } from '@openisd/model';
-import { ManagedOpenISDProject } from './managedProject.js';
+import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
+import { driverRecordProblems, OpenISDDriver } from '@openisd/model';
+import type { SpecField, _OpenISDDriverJson, _OpenISDProjectJson } from '@openisd/model';
+import { ManagedOpenISDProject, toAlignmentKind, fromAlignmentKind } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState, DriverJSON } from '../types.js';
-import type { OpenISDVent, OpenISDPassiveRadiatorRef } from '@openisd/model';
 import { parseChartTabId } from './series.js';
 import { nextToken, toDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
 import {
   solveVentGroup, ventSolveSuspended, suspendVentSolve,
-  enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
-  ventFieldState as ventFieldStateOn, type VentField, type VentEntryField,
-  ventTargetUnreachable as ventUnreachableOn, ventMaxReachableFb as ventMaxReachableFbOn,
 } from './useVentGroup.js';
 import { solvePrGroup } from './usePrGroup.js';
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
@@ -56,11 +52,10 @@ function getOrInit<T>(key: string, init: () => T): T {
 // the computeds below touch _version so they re-derive exactly then. @openisd/model stays
 // Vue-free — the arrow points up, never down.
 //
-// Declared here, ABOVE `state`, rather than in its own section below: `state.P`'s box/vent/PR
-// fields (ledger QO54) are accessor properties closing over `managedProject`, and one of
-// `useVentGroup.ts`'s watchers reads `state.P.Vb` synchronously the moment `watch()` is called
-// at module load — before any later `const managedProject` would exist yet (TDZ). It has to
-// be defined before `state` is, not merely before it is first USED at runtime.
+// Declared here, ABOVE `state`, rather than in its own section below: the PR-group watch below
+// runs `{ immediate: true }` at module load, synchronously reading `managedProject` — before any
+// later `const managedProject` would exist yet (TDZ). It has to be defined before `state` is,
+// not merely before it is first USED at runtime.
 const _version = getOrInit('_version', () => ref(0));
 
 /**
@@ -149,127 +144,9 @@ export function addProject(project: ManagedOpenISDProject): void {
   _focusedIndex.value = _projects.value.length - 1;
 }
 
-/**
- * Box/vent/PR/entered keys `state.P` no longer STORES — its whole design, ledger QO54.
- * `P_DEFAULTS` therefore no longer declares them: they never had a value here that anything
- * would read (the accessor properties `buildP()` defines bypass this object entirely), and a
- * literal sitting unused is the exact kind of second source of truth this migration removes.
- * The REAL defaults for these live in `emptyProject()`/`defaultBox()` (managedProject.ts).
- */
-type BoxFieldKey = 'Vb' | 'Vf' | 'ventShape' | 'ventD' | 'ventW' | 'ventH' | 'ventL' | 'Fb'
-  | 'endCorrection' | 'prSd' | 'prCms' | 'prMmd' | 'prRms' | 'prXmax' | 'prName' | 'prNum'
-  | 'prMadd' | 'prFp' | 'entered';
-
-const P_DEFAULTS: Omit<UiParams, BoxFieldKey> = {
-  Ql:10, Qa:100, Qp:100,
-  Frc: 50,
-  nDrivers:1, wiring:'parallel', Pin:1, Rs:0.1,
-  prMode:'winisd',
-  fmin:1, fmax:20000, N:400,
-  circuitModel: 'winisd',
-  filters: [],
-  vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0,   // WinISD-parity; no-op until temp rise / mass set
-  // WinISD Advanced-pane options. Each default is OpenISD's historic behaviour, so opening an
-  // existing design changes nothing. NOTE rgAtDriverSide defaults true where WinISD's own
-  // checkbox ships unchecked — see PLAN_ADVANCED_SIM_OPTIONS.md Q3.
-  rgAtDriverSide: false, tlPortModel: false, forceFlatResponse: false, splXmaxLimited: false,
-  // Environment — PER PROJECT, as in WinISD's .wpr [Box] section (T / p / phi). ρ and c are
-  // derived from all three (engine air.ts). `ignoreHumidityAndPressure` opts in to WinISD's
-  // behaviour of storing them and never reading them; openisd's default is the physics
-  // (ledger QO7). Humidity is a PERCENT here; the .wpr's fraction is converted in the writer.
-  tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false,
-};
-
-/**
- * `state.P`'s box/vent/PR/entered keys — accessor properties over `managedProject`, defined
- * on the plain object BEFORE `reactive()` wraps it (ledger QO54). Vue's reactive Proxy
- * intercepts the assignment/read itself, so `state.P.Vb = x` still triggers reactivity
- * correctly with no Vue-visible storage of its own; `managedProject.subscribe()` (bridged
- * through `_version`, above) covers a bulk project replacement — `load()`, `beginWhatIf()`
- * — that never goes through one of these setters at all.
- *
- * `entered` is a `Proxy`, not a plain accessor: callers do keyed reads/writes
- * (`P.entered.Vb`, `delete P.entered[f]`) AND, in one existing test fixture, whole-object
- * REPLACEMENT (`P.entered = {...}`) — so the property itself needs a getter (returning the
- * live-through Proxy) and a setter (clearing every currently-true key, then applying the new
- * object), and the Proxy needs get/set/has/deleteProperty, nothing more: nothing in this
- * codebase enumerates `state.P.entered`'s keys.
- */
-function defineBoxFieldAccessors(target: object, mp: ManagedOpenISDProject): void {
-  const ventKey = <K extends keyof OpenISDVent>(ventField: K) => ({
-    enumerable: true, configurable: true,
-    get: () => mp.activeVentField(ventField),
-    set: (v: OpenISDVent[K]) => mp.setActiveVentField(ventField, v),
-  });
-  const prKey = <K extends keyof OpenISDPassiveRadiatorRef>(prField: K) => ({
-    enumerable: true, configurable: true,
-    get: () => mp.prField(prField),
-    set: (v: OpenISDPassiveRadiatorRef[K]) => mp.setPrField(prField, v),
-  });
-  Object.defineProperties(target, {
-    Vb: { enumerable: true, configurable: true, get: () => mp.boxVolume_m3(), set: (v: number) => mp.setBoxVolume_m3(v) },
-    Vf: { enumerable: true, configurable: true, get: () => mp.frontVolume_m3(), set: (v: number) => mp.setFrontVolume_m3(v) },
-    Fb: { enumerable: true, configurable: true, get: () => mp.boxTuning_Fb_hz(), set: (v: number) => mp.setBoxTuning_Fb_hz(v) },
-    ventShape: ventKey('shape'),
-    ventD: ventKey('diameter_m'),
-    ventW: ventKey('width_m'),
-    ventH: ventKey('height_m'),
-    ventL: ventKey('length_m'),
-    endCorrection: ventKey('endCorrection'),
-    prSd: prKey('Sd_m2'),
-    prCms: prKey('Cms_m_per_N'),
-    prMmd: prKey('Mmd_kg'),
-    prRms: prKey('Rms_Ns_per_m'),
-    prXmax: prKey('Xmax_m'),
-    prName: prKey('name'),
-    prNum: { enumerable: true, configurable: true, get: () => mp.prCount(), set: (v: number) => mp.setPrCount(v) },
-    prMadd: { enumerable: true, configurable: true, get: () => mp.prAddedMass_kg(), set: (v: number) => mp.setPrAddedMass_kg(v) },
-    prFp: { enumerable: true, configurable: true, get: () => mp.prFp_hz(), set: (v: number) => mp.setPrFp_hz(v) },
-    entered: {
-      enumerable: true, configurable: true,
-      get: () => new Proxy({} as Record<string, true>, {
-        get: (_t, key) => (typeof key === 'string' && mp.isEntered(key)) ? true : undefined,
-        set: (_t, key, value) => { if (typeof key === 'string') mp.setEntered(key, !!value); return true; },
-        deleteProperty: (_t, key) => { if (typeof key === 'string') mp.setEntered(key, false); return true; },
-        has: (_t, key) => typeof key === 'string' && mp.isEntered(key),
-      }),
-      set: (value: Record<string, true>) => {
-        for (const k of Object.keys(mp._snapshot().target.entered)) mp.setEntered(k, false);
-        for (const k of Object.keys(value)) if (value[k]) mp.setEntered(k, true);
-      },
-    },
-  });
-}
-
-/**
- * A fresh `P`: the plain defaults (cloned — `filters` is an array every design must own
- * independently), plus the box/vent/PR/entered accessor properties over `managedProject`.
- * Every design shares ONE `managedProject`, so these accessors need building only once per
- * `state.P` object, not once per field write.
- */
-function defaultP(): UiParams {
-  const p = { ...P_DEFAULTS, filters: [] };
-  defineBoxFieldAccessors(p, managedProject);
-  // BoxFieldKey properties are added by defineBoxFieldAccessors above, invisible to TS since
-  // they're Object.defineProperties, not object-literal fields — hence the double cast.
-  return p as unknown as UiParams;
-}
-
-/** `BoxType` (@openisd/engine) and `AlignmentKind` (@openisd/model) name the same four
- *  alignments and spell one of them differently — 'pr' vs 'passive-radiator'. Both types are
- *  used pervasively under their own names elsewhere, so this is a translation at the one seam
- *  that needs it, not a rename of either. */
-function toAlignmentKind(box: BoxType): 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator' {
-  return box === 'pr' ? 'passive-radiator' : box;
-}
-function fromAlignmentKind(active: 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator'): BoxType {
-  return active === 'passive-radiator' ? 'pr' : active;
-}
-
 function buildState(): AppState {
   const s = {
     lossMode:  'winisd-lossy',
-    P:         defaultP(),
     graphs:    ['SPL', 'Excursion', 'Zmag', 'GD'],
     editDriver: false,
     editDriverInfo: false,
@@ -284,17 +161,14 @@ function buildState(): AppState {
     project:      { name: '', creator: '', created: '', modified: '', description: '' },
   };
   // `box` is an accessor property over `managedProject`'s OWN `OpenISDBox.active` — not an
-  // independent copy — because every `state.P.Vb`/`.ventD`/`.Fb`/`.pr*` accessor (ledger
-  // QO54) picks its storage BY active alignment. Before this, `state.box` and the project's
-  // `box.active` were two separately-writable fields with nothing keeping them equal: nothing
-  // anywhere wrote the project's `active` at all, so it stayed fixed at `defaultBox()`'s
-  // initial `'vented'` forever, and `state.P.Vb` kept addressing the vented alignment's
-  // storage even after the user picked Sealed, PR or Bandpass4 in the UI (found via TDD,
-  // packages/ui/test/logic/boxActiveSync.test.ts, before it could ship).
+  // independent copy — because every `managedProject.boxVolume_m3()`/`.activeVentField()`/
+  // `.boxTuning_Fb_hz()`/`.prField()` accessor (ledger QO54) picks its storage BY active
+  // alignment, so `state.box` must always read the SAME `active` those accessors use, never a
+  // second, independently-writable copy of it (packages/ui/test/logic/boxActiveSync.test.ts).
   Object.defineProperty(s, 'box', {
     enumerable: true, configurable: true,
-    get: () => fromAlignmentKind(managedProject._snapshot().box.active),
-    set: (v: BoxType) => managedProject.mutate(p => setActiveAlignment(p.box, toAlignmentKind(v))),
+    get: () => fromAlignmentKind(managedProject.activeAlignment()),
+    set: (v: BoxType) => managedProject.setActiveAlignment(toAlignmentKind(v)),
   });
   return s as unknown as AppState;
 }
@@ -302,25 +176,20 @@ function buildState(): AppState {
 export const state: AppState = getOrInit('state', () => reactive(buildState()));
 
 // ---- Vent group: keep the calculated member solved while the user edits ------------------
-// Watches only what can DRIVE a re-solve — the two always-entered members, the end
-// correction, and whichever of Fb/ventL is currently entered. Two guards:
-//   _solvingVent  — the solver's own write must not re-enter the watcher. With floating
-//                   point, L → Fb → L need not land on the identical double, so an
-//                   unguarded watch on all four can oscillate instead of settling.
-//   ventSolveSuspended() — a restore assigns a whole persisted P and must be adopted
+// `_version` (above) already bumps on every managedProject mutation — box/vent/PR fields
+// included — so it is the one reactive dependency this needs; the group itself decides,
+// field by field, whether there is anything to solve (`ventDerivable`). Two guards:
+//   _solvingVent  — the solver's own write must not re-enter the watcher: `_version` bumping
+//                   again from inside `solveVentGroup`'s own mutation would otherwise recurse.
+//   ventSolveSuspended() — a restore assigns a whole persisted snapshot and must be adopted
 //                   verbatim (docs/design/STATE_MODEL.md rule 3, "Cancel means byte-identical").
 let _solvingVent = false;
 watch(
-  () => [
-    state.box === 'bandpass4' ? state.P.Vf : state.P.Vb,
-    state.P.ventD, state.P.ventShape, state.P.ventW, state.P.ventH, state.P.endCorrection,
-    state.P.entered.Fb ? state.P.Fb : state.P.ventL,
-    state.box,
-  ],
+  () => [_version.value, state.box],
   () => {
     if (_solvingVent || ventSolveSuspended()) return;
     _solvingVent = true;
-    try { solveVentGroup(state.P, state.box); } finally { _solvingVent = false; }
+    try { solveVentGroup(managedProject, state.box); } finally { _solvingVent = false; }
   },
   // flush:'sync' is REQUIRED, not a preference. Vue's default 'pre' defers the callback to
   // the next tick, by which time suspendVentSolve() has already returned and cleared its
@@ -330,37 +199,14 @@ watch(
   { flush: 'sync' },
 );
 
-/** Enter a vent-group field on the current design — held until explicitly cleared. */
-export function enterVentField(field: VentEntryField, value: number): void {
-  enterVentFieldOn(state.P, field, value, state.box);
-}
-/** Clear a vent-group field — it becomes C if the rest determine it, else N. */
-export function clearVentField(field: VentField): void {
-  clearVentFieldOn(state.P, field, state.box);
-}
-/** E / C / N for a vent-group field, in the driver editor's own vocabulary. */
-export function ventFieldState(field: VentField): 'E' | 'C' | 'N' {
-  return ventFieldStateOn(state.P, field, state.box);
-}
-/** True when the entered target tuning is not reachable with this volume and port area. */
-export function ventTargetUnreachable(): boolean {
-  return ventUnreachableOn(state.P, state.box);
-}
-/** The highest tuning any vent of this area can deliver in this volume — the L = 0 tuning. */
-export function ventMaxReachableFb(): number | null {
-  return ventMaxReachableFbOn(state.P, state.box);
-}
-
 // ---- PR tuning group: added mass ↔ system tuning -----------------------------------------
-// Shares the vent group's suspension flag: both are solved off `state.P`, and a restore must
-// adopt the whole of P verbatim or neither group is byte-identical.
+// Shares the vent group's suspension flag and the same `_version` dependency.
 watch(
-  () => [state.P.Vb, state.P.prSd, state.P.prCms, state.P.prMmd, state.P.prNum,
-         state.P.entered.prFp ? state.P.prFp : state.P.prMadd],
+  () => _version.value,
   () => {
     if (_solvingVent || ventSolveSuspended()) return;
     _solvingVent = true;
-    try { solvePrGroup(state.P); } finally { _solvingVent = false; }
+    try { solvePrGroup(managedProject); } finally { _solvingVent = false; }
   },
   { flush: 'sync', immediate: true },
 );
@@ -386,15 +232,10 @@ export function clearDriverField(field: SpecField): void {
   managedProject.clear(field);
 }
 
-/** One field's value + E/C/N provenance from the EFFECTIVE driver. Reactive: touching
- *  _version makes any render or computed calling this re-run when ManagedOpenISDProject notifies. */
-export function driverCell(field: SpecField): Cell {
-  void _version.value;
-  return managedProject.cell(field);
-}
-
 // The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
-export function engineDriver(): EngineDriver | null {
+// PRIVATE to this file's own sweep; every outside caller reads `managedProject.toEngineDriver()`
+// directly through `logic/liveProject.ts`'s reactivity adapter instead of a store wrapper.
+function _engineDriver(): EngineDriver | null {
   void _version.value;
   return managedProject.toEngineDriver();
 }
@@ -434,25 +275,18 @@ export function openDriverPicker(): void {
   state.browseOpen = true;
 }
 
-export function driverErrors(): DriverError[] {
+function _driverErrors(): DriverError[] {
   void _version.value;
   return managedProject.errors();
 }
-export function driverConsistencyIssues(): ConsistencyIssue[] {
-  void _version.value;
-  return managedProject.consistencyIssues();
-}
 
 export const syncedP = computed<SyncedParams>(() => {
-  // Drive voltage: sqrt(Pin × Re) — matches WinISD reference-power convention.
-  // Users can also set voltage directly in the UI; Pin is back-calculated from V²/Re.
-  const eg = Math.sqrt((state.P.Pin ?? 1) * (engineDriver()?.Re ?? 1));
-  const p: SyncedParams = { ...state.P, eg };
-  // Deep-copy the filters so this computed depends on each filter's fields (fc/Q/gain)
-  // AND the array length — the shallow `{ ...state.P }` above only captures the array
-  // reference, so editing or adding/removing a filter would not recompute syncedP and
-  // the sweep would never re-run.
-  p.filters = state.P.filters.map(f => ({ ...f }));
+  // The dependency: `toUiParams()`/`driveVoltage_V()` read the effective project directly and
+  // touch no Vue ref themselves (`managedProject` stays framework-free), so this computed
+  // re-derives on every project mutation via `_version`, the same bridge every other read in
+  // this file uses (`logic/liveProject.ts`'s adapter, in this file's own private form).
+  void _version.value;
+  const p: SyncedParams = { ...managedProject.toUiParams(), eg: managedProject.driveVoltage_V() };
   if (state.box === 'vented' || state.box === 'bandpass4') {
     p.Sp = managedProject.ventArea_m2();
     p.Leff = managedProject.ventEffectiveLength_m();
@@ -463,7 +297,7 @@ export const syncedP = computed<SyncedParams>(() => {
 const _curves = getOrInit('_curves', () => ref<SweepResult | null>(null));
 const _max    = getOrInit('_max', () => ref<MaxCurvesResult | null>(null));
 const _doSweep = () => {
-  const d = engineDriver();
+  const d = _engineDriver();
   _curves.value = d ? sweep(d, state.box, syncedP.value) : null;
   _max.value    = d ? maxCurves(d, state.box, syncedP.value) : null;
 };
@@ -494,7 +328,7 @@ function _scheduleSweep(): void {
     }, wait);
   }
 }
-watch([engineDriver, syncedP, () => state.box], _scheduleSweep);
+watch([_engineDriver, syncedP, () => state.box], _scheduleSweep);
 export const curvesData = _curves;
 export const maxData    = _max;
 
@@ -524,18 +358,21 @@ export const paramIssues = computed<DriverError[]>(() => validateParams(state.bo
 // The full issue list the UI shows: driver-derivation issues + box-parameter issues +
 // sweep/max-curve finiteness issues.
 export const allIssues = computed<DriverError[]>(
-  () => [...driverErrors(), ...paramIssues.value, ...curveIssues.value]);
+  () => [..._driverErrors(), ...paramIssues.value, ...curveIssues.value]);
 
 // ---- Project state: ground ↔ modified layer (docs/design/STATE_MODEL.md) ----------------------
 // A project fingerprint captures the whole design (box + params + driver). "Ground" is
 // the last loaded/saved fingerprint; the project is "modified" when the live design
 // differs from it. This is the ground↔committed layer of docs/design/STATE_MODEL.md; the what-if/edit
 // priorityState proxy layers are built on top of it separately. Additive — components keep
-// reading state.P/state.box directly; this only observes and can restore them.
+// reading state.box/managedProject directly; this only observes and can restore them.
 function projectFingerprint(): string {
-  // Order-deterministic: state.P keeps its P_DEFAULTS key order and the ADT's toJSON()
-  // preserves input insertion order, so JSON.stringify yields a stable string to diff.
-  return JSON.stringify({ box: state.box, P: state.P, driver: driverRecord.value, project: state.project });
+  // Order-deterministic: toUiParams() gathers fields in the same fixed order on every call,
+  // and the ADT's toJSON() preserves input insertion order, so JSON.stringify yields a stable
+  // string to diff.
+  return JSON.stringify({
+    box: state.box, P: managedProject.toUiParams(), driver: driverRecord.value, project: state.project,
+  });
 }
 const _ground = getOrInit('_ground', () => ref(projectFingerprint()));
 /** True when the live design differs from the last loaded/saved (ground) state. */
@@ -551,13 +388,13 @@ export function restoreGroundCheckpoint(value: string): void { _ground.value = v
 /** Discard unsaved changes: restore the design to the ground state. */
 export function resetProjectToGround(): void {
   const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: _OpenISDDriverJson; project?: any };
-  state.box = g.box;
   // Adopt the stored params verbatim. The ground snapshot already holds BOTH vent-group
   // members and the entered set, so there is nothing to re-solve — and re-solving is exactly
   // what breaks "Cancel means byte-identical" (docs/design/STATE_MODEL.md rule 3): the solver would
   // reproduce the calculated member from a value that was rounded on its way through JSON
-  // and land on a different double.
-  suspendVentSolve(() => Object.assign(state.P, g.P));
+  // and land on a different double. `loadUiParams` sets the active alignment itself, so this
+  // is the one call that lands box + every vent/PR/plain field together.
+  suspendVentSolve(() => managedProject.loadUiParams(g.P, toAlignmentKind(g.box)));
   managedProject.loadDriverRecord(g.driver);
   if (g.project) {
     Object.assign(state.project, g.project);
@@ -566,10 +403,11 @@ export function resetProjectToGround(): void {
 /** Start a brand-new project from the app's initial defaults — NOT the ground state. Clears
  *  the whole design (params incl. filters, compare traces, per-chart zoom, driver source) so
  *  a "new" project never inherits the previous one, then adopts the fresh design as ground.
- *  Callers (the New Project wizard) apply the chosen box type + volume on top afterwards. */
+ *  Callers (the New Project wizard) apply the chosen box type + volume on top afterwards.
+ *  `managedProject.loadEmpty()` already resets box/vent/PR/environment/signal/simOptions/
+ *  sweep/filters/entered to the app's initial defaults (`_prototypeProject()`) — there is
+ *  nothing left for this function to reset on the params side. */
 export function newProject(): void {
-  state.box = 'vented';
-  Object.assign(state.P, defaultP());   // fresh filters array + entered set, not the shared default refs
   state.yRanges = {};
   state.project = { name: '', creator: '', created: '', modified: '', description: '' }; // blank meta
   managedProject.loadEmpty();                                // no driver chosen — the user picks one
@@ -632,15 +470,14 @@ export function applyState(o: SerializedState): void {
   // `ventL` WAS authoritative (it was the only direction the app had), so the faithful
   // reading is exactly that: length entered, tuning solved from it.
   if (o.P) suspendVentSolve(() => {
-    const incoming = o.P as UiParams;
-    Object.assign(state.P, incoming);
-    if (state.P.ventShape === undefined) state.P.ventShape = 'round';
-    if (state.P.ventW === undefined) state.P.ventW = 0.10;
-    if (state.P.ventH === undefined) state.P.ventH = 0.05;
-    if (!incoming.entered) {
-      state.P.entered = { Vb: true, ventD: true, ventW: true, ventH: true, ventL: true };
-      solveVentGroup(state.P, state.box);
-    }
+    const incoming = { ...o.P };
+    if (incoming.ventShape === undefined) incoming.ventShape = 'round';
+    if (incoming.ventW === undefined) incoming.ventW = 0.10;
+    if (incoming.ventH === undefined) incoming.ventH = 0.05;
+    const hadEntered = !!incoming.entered;
+    if (!hadEntered) incoming.entered = { Vb: true, ventD: true, ventW: true, ventH: true, ventL: true };
+    managedProject.loadUiParams(incoming, toAlignmentKind(state.box));
+    if (!hadEntered) solveVentGroup(managedProject, state.box);
   });
   // A saved/shared blob carries chart ids as plain strings, so each goes through the one
   // string→member boundary; an id this build does not declare is invalid data, and is
@@ -677,7 +514,7 @@ export function cycleUnitToken(field: string, group: UnitGroup, baseToken: strin
 }
 /** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
  *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch
- *  state.P — this only affects how values are DISPLAYED, never the stored (SI) design. */
+ *  the design itself — this only affects how values are DISPLAYED, never the stored (SI) design. */
 export function resetUnitTokens(): void {
   state.ui.unitTokens = {};
 }
@@ -709,8 +546,8 @@ export function formatInUnit(
  * current behaviour). Every `.wpr` in the corpus has VCInd=0, so no observation settles it.
  */
 export const simVcInductance = computed<boolean>({
-  get: () => state.P.circuitModel === 'gyrator',
-  set: (on) => { state.P.circuitModel = on ? 'gyrator' : 'winisd'; },
+  get: () => { void _version.value; return managedProject.circuitModel() === 'gyrator'; },
+  set: (on) => { managedProject.setCircuitModel(on ? 'gyrator' : 'winisd'); },
 });
 
 

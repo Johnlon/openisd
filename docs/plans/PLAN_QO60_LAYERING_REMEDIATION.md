@@ -191,6 +191,14 @@ Zero behaviour change; typecheck is the proof.
 | the 19 box/vent/PR accessors | `box: OpenISDBox` (already delegating) |
 | `state.project{name,creator,…}` | `meta: OpenISDProjectMeta` |
 
+**This row is STILL OPEN, deferred to A3b (task A3, reviewer pass, 2026-08-21).**
+`managedProject.meta()`/`.setMeta()` were built, had zero callers, and were deleted rather than
+left dead. `state.project` is a genuinely SEPARATE `AppState` field (not nested under
+`state.P`, so its 26 read/write sites in `OriginalShell.vue` were out of A3's literal scope),
+and it is woven into the SAME ad-hoc multi-project workspace mechanism (`openProjects` array
+rows, each carrying its own `project: {...state.project}` snapshot) already flagged above as
+"separate, larger follow-on work" — not mechanical, and not attempted in this pass.
+
 Callers reach all of it through `ManagedOpenISDProject`'s methods — never a held copy.
 
 The view state goes to **`logic/presentationState.ts`**, which is ALREADY the approved home for

@@ -10,12 +10,15 @@
  * Presentation only: the what-if logic is single-sourced in the store/ADT.
  */
 import { computed, reactive, watch, ref, onMounted, onUnmounted } from 'vue';
-import { state, engineDriver, driverCell, driverConsistencyIssues, enterDriverField, clearDriverField,
-         managedProject } from '../../../logic/store.js';
+import { state, enterDriverField, clearDriverField, managedProject } from '../../../logic/store.js';
+import { createLiveRef } from '../../../logic/liveProject.js';
 import { ebpOf } from '../../../logic/environment.js';
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
 import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
+import type { Cell, SpecField } from '@openisd/model';
+
+const { live } = createLiveRef(managedProject);
 
 // The record's own field names (`BL`, not the engine's `Bl`) — these index OpenISDDriver
 // directly, so they are its field names and nothing else's.
@@ -58,7 +61,8 @@ const rawVals = reactive<Record<string, string>>({});
 const regId = (key: NumKey): string => (key === 'BL' ? 'Bl' : key);
 
 function disp(key: NumKey, scale: number): string {
-  const v = driverCell(key).value;
+  void live.value;
+  const v = managedProject.cell(key).value;
   return typeof v === 'number' && isFinite(v) ? (v * scale).toFixed(fieldDp(regId(key))) : '';
 }
 function fieldVal(key: NumKey, scale: number): string {
@@ -88,9 +92,11 @@ function scaledLimits(key: NumKey, scale: number): { min?: number; max?: number 
 // one, against its own draft model.
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
 function fieldClasses(key: NumKey, scale: number): Record<string, boolean> {
-  const mandatory = fieldIsMandatoryAndUnsatisfied(driverCell, key);
+  void live.value;
+  const cellOf = (f: SpecField): Cell => managedProject.cell(f);
+  const mandatory = fieldIsMandatoryAndUnsatisfied(cellOf, key);
   return {
-    [cellClassFor(driverCell, key)]: true,
+    [cellClassFor(cellOf, key)]: true,
     'de-input-mandatory': mandatory,
     'de-input-empty': mandatory && fieldVal(key, scale) === '',
   };
@@ -143,7 +149,8 @@ onUnmounted(() => {
 });
 
 function isBadValue(key: NumKey): boolean {
-  const v = driverCell(key).value;
+  void live.value;
+  const v = managedProject.cell(key).value;
   return typeof v === 'number' && !(v > 0);
 }
 
@@ -151,10 +158,11 @@ const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It 
 
 const dqNote = (key: NumKey): string => {
   if (isBadValue(key)) return BAD_VALUE_NOTE;
-  return consistencyNote(driverConsistencyIssues(), key);
+  void live.value;
+  return consistencyNote(managedProject.consistencyIssues(), key);
 };
 
-const ebpVal = computed(() => { const d = engineDriver(); return d ? ebpOf(d) : null; });
+const ebpVal = computed(() => { void live.value; const d = managedProject.toEngineDriver(); return d ? ebpOf(d) : null; });
 function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 
 // Open the what-if overlay as Tune opens: edits go to a live COPY, so the charts preview
@@ -164,16 +172,17 @@ function fmt(v: number | null, dp: number): string { return v != null && isFinit
 // On EVERY close path (✕ or Cancel — there is no other), discard the overlay so a stray
 // close can never strand the charts on an abandoned what-if.
 // Box volume is BOX state, not driver state, so the driver what-if overlay does not cover it —
-// a Vb scrubbed here writes straight through to state.P.Vb (the SAME binding the Box panel
-// uses; there is no second copy). Cancel must therefore put Vb back itself, or a panel whose
-// Cancel reverts the driver would silently keep a box change made in the same session.
-let vbSnapshot = state.P.Vb;
+// a Vb scrubbed here writes straight through to managedProject.boxVolume_m3() (the SAME
+// binding the Box panel uses; there is no second copy). Cancel must therefore put Vb back
+// itself, or a panel whose Cancel reverts the driver would silently keep a box change made in
+// the same session.
+let vbSnapshot = managedProject.boxVolume_m3();
 watch(() => state.editDriver, (open) => {
-  if (open) { vbSnapshot = state.P.Vb; managedProject.beginWhatIf(); }
+  if (open) { vbSnapshot = managedProject.boxVolume_m3(); managedProject.beginWhatIf(); }
   else managedProject.cancelWhatIf();
 }, { immediate: true });
 
-function cancel() { managedProject.cancelWhatIf(); state.P.Vb = vbSnapshot; state.editDriver = false; }
+function cancel() { managedProject.cancelWhatIf(); managedProject.setBoxVolume_m3(vbSnapshot); state.editDriver = false; }
 // Reset the overlay to the driver as loaded: end this session and start a fresh one from
 // ground. ManagedOpenISDProject owns both halves; the panel does not reach past it. Vb is a box value,
 // not a driver value, so it is untouched here.
@@ -211,7 +220,7 @@ function reset()  { managedProject.resetOverlayToGround(); }
       <div class="tune-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. The same box volume the Box tab edits; Cancel puts it back. WinISD: Vb.">
         <label>Vb</label>
         <div class="tune-unit">
-          <NumInput v-model="state.P.Vb" :scale="1000" :precision="4" />
+          <NumInput :model-value="live && managedProject.boxVolume_m3()" @update:model-value="v => managedProject.setBoxVolume_m3(v ?? 0)" :scale="1000" :precision="4" />
           <span>l</span>
         </div>
       </div>

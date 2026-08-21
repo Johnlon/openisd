@@ -130,8 +130,8 @@ function onInput(e: Event) {
     // a cleared field ⇒ value '', badInput false).
     //
     // Only a genuinely empty field means "clear this". Treating a HALF-TYPED number as a clear
-    // emitted null, which every v-model consumer of a number-typed model (state.P.Vb) took
-    // literally — so the first keystroke of "-5" blanked the value and the charts with it.
+    // emitted null, which every v-model consumer of a number-typed model (a box volume, say)
+    // took literally — so the first keystroke of "-5" blanked the value and the charts with it.
     //
     // `display` is still set to '' on BOTH paths, and must be: Vue's :value patch compares its
     // new value against the LIVE el.value and writes whenever they differ, so leaving `display`

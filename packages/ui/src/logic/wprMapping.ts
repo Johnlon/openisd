@@ -1,6 +1,6 @@
 /**
- * Maps OpenISD's live design (box type + state.P + the derived driver) to the WprInput
- * shape @openisd/winisd's toWpr() serializes into a WinISD .wpr project file.
+ * Maps OpenISD's live design (box type + a `UiParams` snapshot + the derived driver) to the
+ * WprInput shape @openisd/winisd's toWpr() serializes into a WinISD .wpr project file.
  *
  * Pure glue only — every box-tuning value comes from an EXISTING engine formula
  * (sealedFc, tuningFromLength, prTuning, prVas/prQms/prFsWithMass); no physics is

@@ -38,7 +38,7 @@
  * the two to disagree.
  */
 import { OpenISDDriver, Provenance } from '@openisd/model';
-import { prototypeBox } from '@openisd/model';
+import { prototypeBox, setActiveAlignment } from '@openisd/model';
 import {
   activeVent, boxVolume_m3 as readBoxVolume_m3, setBoxVolume_m3 as writeBoxVolume_m3,
   boxTuning_Fb_hz as readBoxTuning_Fb_hz, setBoxTuning_Fb_hz as writeBoxTuning_Fb_hz,
@@ -46,17 +46,30 @@ import {
 } from '@openisd/model';
 import type {
   Cell, MetaCell, SpecField, MetaField, _OpenISDProjectJson, _OpenISDDriverJson,
-  OpenISDVent, OpenISDPassiveRadiatorRef,
+  OpenISDVent, OpenISDPassiveRadiatorRef, AlignmentKind,
 } from '@openisd/model';
-import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver } from '@openisd/engine';
+import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter } from '@openisd/engine';
 import {
   sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
   prVas as computePrVas, prFs as computePrFs, prFsWithMass as computePrFsWithMass,
   prQms as computePrQms, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA,
+  driveVoltage,
 } from '@openisd/engine';
-import type { LossMode } from '@openisd/engine';
+import type { LossMode, BoxType } from '@openisd/engine';
+import type { UiParams } from '../types.js';
 
 type ManagedOpenISDProjectListener = () => void;
+
+/** `BoxType` (@openisd/engine) and `AlignmentKind` (@openisd/model) name the same four
+ *  alignments and spell one of them differently — `'pr'` vs `'passive-radiator'`. Both types
+ *  are used pervasively under their own names elsewhere, so this is a translation at the one
+ *  seam that needs it, not a rename of either. */
+export function toAlignmentKind(box: BoxType): AlignmentKind {
+  return box === 'pr' ? 'passive-radiator' : box;
+}
+export function fromAlignmentKind(active: AlignmentKind): BoxType {
+  return active === 'passive-radiator' ? 'pr' : active;
+}
 
 /** One state layer: the project, and the live driver over its record. They share one object
  *  graph, so `driver` is a VIEW of `project.driver`, never a second copy of it. */
@@ -215,11 +228,11 @@ export class ManagedOpenISDProject {
 
   // ---- box / vent / PR flat-field accessors, ledger QO54 ---------------------------------
   //
-  // What `state.P.Vb`/`.ventD`/`.Fb`/`.pr*`/`.entered` accessor properties (store.ts) delegate
-  // to, so the box IS the storage and state.P is a view — not a synced copy. Reads go straight
-  // to the effective layer (no clone: these are read on every reactive tick); writes go
-  // through `mutate()` so the existing edit/what-if notification rule keeps applying with no
-  // second code path to keep in step.
+  // The box IS the storage: every caller reads and writes these fields through the methods
+  // below, directly, reactive via `logic/liveProject.ts`'s change-notification adapter. Reads
+  // go straight to the effective layer (no clone: these are read on every reactive tick);
+  // writes go through `mutate()` so the existing edit/what-if notification rule keeps applying
+  // with no second code path to keep in step.
 
   boxVolume_m3(): number { return readBoxVolume_m3(this.#effective().project.box); }
   setBoxVolume_m3(value: number): void {
@@ -261,6 +274,15 @@ export class ManagedOpenISDProject {
       ? 2 * Math.sqrt(this.ventArea_m2() / Math.PI)
       : vent.diameter_m;
     return vent.length_m + vent.endCorrection * equivalentDiameter_m;
+  }
+
+  /** Drive voltage from the project's input power and the EFFECTIVE driver's Re — V = √(Pin·Re),
+   *  WinISD's reference-power convention (`bugs/BUG_20260820_syncedp_computes_eg_inside_the_store.md`,
+   *  the fix this getter IS: the formula lives in `@openisd/engine`, read here, never
+   *  recomputed at a call site). 1 Ω assumed until a driver is chosen, matching historic
+   *  behaviour. */
+  driveVoltage_V(): number {
+    return driveVoltage(this.inputPower_W(), this.toEngineDriver()?.Re ?? 1);
   }
 
   /** Sealed-box (and PR rear-chamber) resonance + system Q via the given loss model. `Rs`/`Ql`/
@@ -323,11 +345,120 @@ export class ManagedOpenISDProject {
   prFp_hz(): number { return this.#effective().project.box.passiveRadiator.Fp_hz; }
   setPrFp_hz(value: number): void { this.mutate(p => { p.box.passiveRadiator.Fp_hz = value; }); }
 
+  // ---- box loss factors (leakage/absorption/port), shared by every alignment ------------
+
+  boxQl(): number { return this.#effective().project.box.Ql; }
+  setBoxQl(value: number): void { this.mutate(p => { p.box.Ql = value; }); }
+  boxQa(): number { return this.#effective().project.box.Qa; }
+  setBoxQa(value: number): void { this.mutate(p => { p.box.Qa = value; }); }
+  boxQp(): number { return this.#effective().project.box.Qp; }
+  setBoxQp(value: number): void { this.mutate(p => { p.box.Qp = value; }); }
+
+  // ---- environment ------------------------------------------------------------------------
+
+  envTempK(): number { return this.#effective().project.environment.tempK; }
+  setEnvTempK(value: number): void { this.mutate(p => { p.environment.tempK = value; }); }
+  envHumidityPct(): number { return this.#effective().project.environment.humidityPct; }
+  setEnvHumidityPct(value: number): void { this.mutate(p => { p.environment.humidityPct = value; }); }
+  envPressurePa(): number { return this.#effective().project.environment.pressurePa; }
+  setEnvPressurePa(value: number): void { this.mutate(p => { p.environment.pressurePa = value; }); }
+  envIgnoreHumidityAndPressure(): boolean {
+    return this.#effective().project.environment.ignoreHumidityAndPressure;
+  }
+  setEnvIgnoreHumidityAndPressure(value: boolean): void {
+    this.mutate(p => { p.environment.ignoreHumidityAndPressure = value; });
+  }
+
+  // ---- signal ------------------------------------------------------------------------------
+
+  driverCount(): number { return this.#effective().project.signal.driverCount; }
+  setDriverCount(value: number): void { this.mutate(p => { p.signal.driverCount = value; }); }
+  wiring(): 'series' | 'parallel' { return this.#effective().project.signal.wiring; }
+  setWiring(value: 'series' | 'parallel'): void { this.mutate(p => { p.signal.wiring = value; }); }
+  inputPower_W(): number { return this.#effective().project.signal.inputPower_W; }
+  setInputPower_W(value: number): void { this.mutate(p => { p.signal.inputPower_W = value; }); }
+  seriesResistance_ohm(): number { return this.#effective().project.signal.seriesResistance_ohm; }
+  setSeriesResistance_ohm(value: number): void {
+    this.mutate(p => { p.signal.seriesResistance_ohm = value; });
+  }
+  rgAtDriverSide(): boolean { return this.#effective().project.signal.rgAtDriverSide; }
+  setRgAtDriverSide(value: boolean): void { this.mutate(p => { p.signal.rgAtDriverSide = value; }); }
+
+  // ---- simulation options (WinISD Advanced pane) -------------------------------------------
+
+  circuitModel(): 'winisd' | 'gyrator' { return this.#effective().project.simOptions.circuitModel; }
+  setCircuitModel(value: 'winisd' | 'gyrator'): void {
+    this.mutate(p => { p.simOptions.circuitModel = value; });
+  }
+  tlPortModel(): boolean { return this.#effective().project.simOptions.tlPortModel; }
+  setTlPortModel(value: boolean): void { this.mutate(p => { p.simOptions.tlPortModel = value; }); }
+  forceFlatResponse(): boolean { return this.#effective().project.simOptions.forceFlatResponse; }
+  setForceFlatResponse(value: boolean): void {
+    this.mutate(p => { p.simOptions.forceFlatResponse = value; });
+  }
+  splXmaxLimited(): boolean { return this.#effective().project.simOptions.splXmaxLimited; }
+  setSplXmaxLimited(value: boolean): void { this.mutate(p => { p.simOptions.splXmaxLimited = value; }); }
+  vcTempRise(): number { return this.#effective().project.simOptions.vcTempRise; }
+  setVcTempRise(value: number): void { this.mutate(p => { p.simOptions.vcTempRise = value; }); }
+  alfaVC(): number { return this.#effective().project.simOptions.alfaVC; }
+  setAlfaVC(value: number): void { this.mutate(p => { p.simOptions.alfaVC = value; }); }
+  driverAddedMass(): number { return this.#effective().project.simOptions.driverAddedMass; }
+  setDriverAddedMass(value: number): void {
+    this.mutate(p => { p.simOptions.driverAddedMass = value; });
+  }
+
+  // ---- sweep range ---------------------------------------------------------------------------
+
+  sweepFmin_hz(): number { return this.#effective().project.sweep.fmin_hz; }
+  setSweepFmin_hz(value: number): void { this.mutate(p => { p.sweep.fmin_hz = value; }); }
+  sweepFmax_hz(): number { return this.#effective().project.sweep.fmax_hz; }
+  setSweepFmax_hz(value: number): void { this.mutate(p => { p.sweep.fmax_hz = value; }); }
+  sweepPoints(): number { return this.#effective().project.sweep.points; }
+  setSweepPoints(value: number): void { this.mutate(p => { p.sweep.points = value; }); }
+
+  // ---- filters (parametric EQ chain) ----------------------------------------------------------
+
+  /** A COPY of the filter chain — mutate it and call `setFilters()` to write it back, same
+   *  copy-out/write-back discipline as `_snapshot()`. Prefer `addFilter`/`removeFilter`/
+   *  `setFilter(id, patch)` below for a single-filter change: this whole-array setter is for a
+   *  caller legitimately replacing the WHOLE chain (a project restore), not a per-keystroke
+   *  edit — a UI editing ONE filter's ONE field through a read-modify-write of this copy risks
+   *  losing a concurrent write to a DIFFERENT filter (or from a project reset) that lands
+   *  between the read and the write. */
+  filters(): Filter[] { return this.#effective().project.filters.map(f => ({ ...f })); }
+  setFilters(value: Filter[]): void {
+    this.mutate(p => { p.filters = value.map(f => ({ ...f })); });
+  }
+
+  /** Append one filter to the chain. */
+  addFilter(filter: Filter): void {
+    this.mutate(p => { p.filters = [...p.filters, { ...filter }]; });
+  }
+
+  /** Patch one filter's fields by id — the narrow write a per-field UI control makes, so a
+   *  keystroke never has to read-modify-write a copy of the WHOLE chain. A no-op if `id` names
+   *  no filter (never fabricates one). */
+  setFilter(id: string, patch: Partial<Filter>): void {
+    this.mutate(p => {
+      p.filters = p.filters.map(f => (f.id === id ? { ...f, ...patch } : f));
+    });
+  }
+
+  /** Drop the filter with the given id. A no-op if `id` names no filter. */
+  removeFilter(id: string): void {
+    this.mutate(p => { p.filters = p.filters.filter(f => f.id !== id); });
+  }
+
+  /** Which alignment is active, in the domain's own vocabulary (`'passive-radiator'`, not
+   *  `UiParams`'s `'pr'`). */
+  activeAlignment(): AlignmentKind { return this.#effective().project.box.active; }
+  setActiveAlignment(value: AlignmentKind): void {
+    this.mutate(p => { setActiveAlignment(p.box, value); });
+  }
+
   // ---- entered-set (target provenance), ledger QO54 --------------------------------------
   //
-  // Replaces `state.P.entered: Record<string, true>` — the "second, hand-rolled provenance
-  // mechanism" the migration plan (Step 4) requires deleted. Same shape, one home:
-  // `_OpenISDProjectJson.target.entered`, already scaffolded for exactly this in P1S1.
+  // Which box/vent/PR fields the user entered, one home: `_OpenISDProjectJson.target.entered`.
 
   isEntered(field: string): boolean {
     return this.#effective().project.target.entered[field] === true;
@@ -338,6 +469,37 @@ export class ManagedOpenISDProject {
       else delete p.target.entered[field];
     });
   }
+
+  /** The whole entered set, as a COPY — for a caller that needs every key at once (a
+   *  serialised snapshot), not one field's provenance. */
+  enteredSet(): Record<string, true> { return { ...this.#effective().project.target.entered }; }
+
+  /** Replace the WHOLE entered set in one mutation — clears every currently-true key, then
+   *  applies `value`. For a caller adopting a whole provenance snapshot at once (a test
+   *  fixture, a restore); a single-field edit uses `setEntered()` instead. */
+  setEnteredSet(value: Record<string, true>): void {
+    this.mutate(p => {
+      for (const k of Object.keys(p.target.entered)) delete p.target.entered[k];
+      for (const k of Object.keys(value)) if (value[k]) p.target.entered[k] = true;
+    });
+  }
+
+  // ---- rear-chamber tuning target (bandpass6/ABC) — STUBBED, ledger QO44 -----------------
+  //
+  // No `OpenISDBox` alignment exists yet for a 6th-order bandpass or ABC box, so there is
+  // nowhere real to store this. The UI's Frc input renders only when one of those two
+  // (unbuilt) alignments is selected, so this is unreachable by any live code path today —
+  // it exists so that unreachable call site compiles against a real domain method instead of
+  // holding its own copy of the value (John's ruling 2026-08-20).
+  /** 50 Hz is an arbitrary placeholder, not a measured or derived value — nothing computes
+   *  this field yet (no alignment exists to hold it), and no design has ever entered a real
+   *  one through this unreachable call path. It is a constant so a caller reading it gets a
+   *  stable number rather than 0/NaN while the field waits on QO44. */
+  frcHz(): number { return 50; }
+  /** Stores nothing (no home exists yet) — notifies anyway, uniformly with every other public
+   *  mutator (`docs/design/REACTIVITY.md`, `architecture-notify.test.ts`), so a caller waiting
+   *  on the change channel is never left silently guessing whether this one forgot to. */
+  setFrcHz(_value: number): void { this.#notify(); }
 
   // ---- project reads and writes ----------------------------------------------------------
 
@@ -441,6 +603,99 @@ export class ManagedOpenISDProject {
   /** Replace the whole design with an empty one. */
   loadEmpty(): void {
     this.load(_prototypeProject());
+  }
+
+  // ---- UiParams — the flat, engine-facing snapshot ----------------------------------------
+  //
+  // `UiParams` (packages/ui/src/types.ts) is the shape `@openisd/engine`'s `sweep()`/
+  // `maxCurves()` and the persisted/shared blob (`SerializedState.P`) both need — a superset
+  // of `SweepParams`. It is not a second store: every field here is read from, or written to,
+  // the project fields above. Gathering them into one plain object is not a CALCULATION (no
+  // formula runs), so it belongs beside the getters it reads, not duplicated at every caller.
+
+  /** A live snapshot of every `UiParams` field, gathered from this project's own accessors. */
+  toUiParams(): UiParams {
+    return {
+      Vb: this.boxVolume_m3(), Vf: this.frontVolume_m3(),
+      ventShape: this.activeVentField('shape'), ventD: this.activeVentField('diameter_m'),
+      ventW: this.activeVentField('width_m'), ventH: this.activeVentField('height_m'),
+      ventL: this.activeVentField('length_m'), endCorrection: this.activeVentField('endCorrection'),
+      Fb: this.boxTuning_Fb_hz(), Frc: this.frcHz(),
+      prFp: this.prFp_hz(), prName: this.prField('name'), prSd: this.prField('Sd_m2'),
+      prNum: this.prCount(), prMmd: this.prField('Mmd_kg'), prMadd: this.prAddedMass_kg(),
+      prCms: this.prField('Cms_m_per_N'), prRms: this.prField('Rms_Ns_per_m'),
+      prXmax: this.prField('Xmax_m'),
+      entered: this.enteredSet(),
+      Ql: this.boxQl(), Qa: this.boxQa(), Qp: this.boxQp(),
+      nDrivers: this.driverCount(), wiring: this.wiring(),
+      Pin: this.inputPower_W(), Rs: this.seriesResistance_ohm(),
+      fmin: this.sweepFmin_hz(), fmax: this.sweepFmax_hz(), N: this.sweepPoints(),
+      circuitModel: this.circuitModel(), filters: this.filters(),
+      vcTempRise: this.vcTempRise(), alfaVC: this.alfaVC(), driverAddedMass: this.driverAddedMass(),
+      rgAtDriverSide: this.rgAtDriverSide(), tlPortModel: this.tlPortModel(),
+      forceFlatResponse: this.forceFlatResponse(), splXmaxLimited: this.splXmaxLimited(),
+      tempK: this.envTempK(), humidityPct: this.envHumidityPct(),
+      pressurePa: this.envPressurePa(), ignoreHumidityAndPressure: this.envIgnoreHumidityAndPressure(),
+    };
+  }
+
+  /**
+   * Adopt a `UiParams` blob — a restore (local save, share link, ground checkpoint) that must
+   * land byte-identical on every field IT SUPPLIES, with nothing re-solved
+   * (`docs/design/STATE_MODEL.md` rule 3). `box` is set first so every alignment-relative
+   * write (`Vb`, the vent fields) lands on the alignment the snapshot was taken from.
+   *
+   * `p` is `Partial<UiParams>` because every real caller's blob can genuinely be partial — a
+   * caller restoring only the entered set, or a legacy save missing fields this build added
+   * since it was written. `field()` below is the ONE fallback rule, applied UNIFORMLY to
+   * every field: `p`'s own value if it supplied one, else the CURRENT value — restoring one
+   * field must not silently reset every other one, and no field gets a special-cased fallback
+   * the rest don't have.
+   */
+  loadUiParams(p: Partial<UiParams>, box: AlignmentKind): void {
+    const current = this.toUiParams();
+    const field = <K extends keyof UiParams>(k: K): UiParams[K] => (p[k] !== undefined ? p[k]! : current[k]);
+    // `tempK`/`humidityPct`/`pressurePa`/`ignoreHumidityAndPressure` are the only FOUR fields
+    // `UiParams` itself declares optional (a legacy/serialised blob may genuinely omit them —
+    // WinISD's own environment fields predate this app tracking them per-project). Every other
+    // field is required by the interface, so `field()` alone type-checks for them. These four
+    // need one more step: `current[k]` — read from the LIVE domain object, where
+    // `OpenISDEnvironment`'s fields are NOT optional — is never actually undefined, so this
+    // narrows `field()`'s `T | undefined` back to `T` without inventing a fallback value.
+    const requiredField = <K extends 'tempK' | 'humidityPct' | 'pressurePa' | 'ignoreHumidityAndPressure'>(k: K)
+      : NonNullable<UiParams[K]> => field(k)!;
+    this.mutate(project => {
+      setActiveAlignment(project.box, box);
+      const vent = activeVent(project.box);
+      vent.shape = field('ventShape'); vent.diameter_m = field('ventD'); vent.width_m = field('ventW');
+      vent.height_m = field('ventH'); vent.length_m = field('ventL'); vent.endCorrection = field('endCorrection');
+      writeBoxVolume_m3(project.box, field('Vb'));
+      project.box.bandpass4.frontVolume_m3 = field('Vf');
+      writeBoxTuning_Fb_hz(project.box, field('Fb'));
+      project.box.Ql = field('Ql'); project.box.Qa = field('Qa'); project.box.Qp = field('Qp');
+      const pr = ensurePassiveRadiator(project.box.passiveRadiator);
+      pr.name = field('prName'); pr.Sd_m2 = field('prSd'); pr.Mmd_kg = field('prMmd'); pr.Cms_m_per_N = field('prCms');
+      pr.Rms_Ns_per_m = field('prRms'); pr.Xmax_m = field('prXmax');
+      project.box.passiveRadiator.count = field('prNum');
+      project.box.passiveRadiator.addedMass_kg = field('prMadd');
+      project.box.passiveRadiator.Fp_hz = field('prFp');
+      project.environment.tempK = requiredField('tempK');
+      project.environment.humidityPct = requiredField('humidityPct');
+      project.environment.pressurePa = requiredField('pressurePa');
+      project.environment.ignoreHumidityAndPressure = requiredField('ignoreHumidityAndPressure');
+      project.signal.driverCount = field('nDrivers'); project.signal.wiring = field('wiring');
+      project.signal.inputPower_W = field('Pin'); project.signal.seriesResistance_ohm = field('Rs');
+      project.signal.rgAtDriverSide = field('rgAtDriverSide');
+      project.simOptions.circuitModel = field('circuitModel');
+      project.simOptions.tlPortModel = field('tlPortModel');
+      project.simOptions.forceFlatResponse = field('forceFlatResponse');
+      project.simOptions.splXmaxLimited = field('splXmaxLimited');
+      project.simOptions.vcTempRise = field('vcTempRise'); project.simOptions.alfaVC = field('alfaVC');
+      project.simOptions.driverAddedMass = field('driverAddedMass');
+      project.sweep.fmin_hz = field('fmin'); project.sweep.fmax_hz = field('fmax'); project.sweep.points = field('N');
+      project.filters = field('filters').map(f => ({ ...f }));
+      project.target.entered = { ...field('entered') };
+    });
   }
 
   // ---- subscription -------------------------------------------------------------------------
