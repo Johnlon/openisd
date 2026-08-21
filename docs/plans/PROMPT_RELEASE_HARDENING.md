@@ -56,8 +56,8 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 - `npx vitest run`: **1840 / 1844.** The 4 red are `architecture.test.ts` gates, red by design
   pending the layering work — **for this release they are the release blockers.**
 - eslint 0 problems; typecheck (tsc ×3 + vue-tsc) clean.
-- Last commits: openisd `c83e0ad`, winisd_tools `00a8fdf9`, winisd_research `b62b81e`,
-  winisd_drivers `340cbbca5`. winisd_research has UNCOMMITTED probe results — task R1.
+- Last commits: openisd `9c0f26e`, winisd_tools `00a8fdf9`, winisd_research `20747a6`,
+  winisd_drivers `340cbbca5`. All four trees clean; R1 is done.
 - The ledger has TWO entries numbered `QO62` (a closed encoding ruling + the human's OPEN coax
   question). `inbox.py get QO62` reaches only the first — tasks R2 and R3.
 
@@ -112,9 +112,7 @@ never improvise around it.
 
 ## Lane R — repo & ledger hygiene (immediate, small, mostly independent)
 
-- [ ] **R1** Commit the wine-probe results in `winisd_research` (`PARSTATE_ABSENT.md`,
-      `COMMENT_ENCODING.md`, corrected `WINE_HARNESS.md`, `runs/*_20260821/`, `toys/probe_*`).
-      `--no-verify`, NO push. Done: tree clean.
+- [x] **R1** Commit the wine-probe results in `winisd_research` — DONE, commit `20747a6`.
 - [ ] **R2** Renumber the human's OPEN coax question (second `QO62`) to the next free QO id so
       it is reachable; content verbatim-preserved. Done: `inbox.py get <newid>` returns it;
       exactly one `QO62` remains in the file.
@@ -126,9 +124,11 @@ never improvise around it.
 - [ ] **R4** `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`: strike the "QO56 hazard" clause
       (QO63: single writer). `packages/ui/src/logic/useDesignIO.ts`: delete the stale comment
       citing QO55 as blocking (QO55 is implemented). Done: grep for both returns nothing.
-- [ ] **R5** Phase-0 sweep: audit every `bugs/*.md` in openisd + winisd_tools — Status line vs
-      current code; correct stale statuses; map every STILL-LIVE bug to a lane below or flag it
-      UNOWNED to the human. Done: a table in this file's appendix; zero unowned items.
+- [ ] **R5** Phase-0 sweep: the AUDIT ran 2026-08-21 (results in the Appendix below —
+      50 confirmed RESOLVED, ~33 still-live all mapped to lanes, 21 stale Status lines).
+      Remaining work: EDIT the 21 files listed in the appendix to their true status,
+      re-verifying each claim as you do (the sweep is itself a prior claim). Done: every
+      appendix row applied or refuted with evidence.
 
 ## Lane A — the four red arch gates (openisd; HOT FILES, strictly serial)
 
@@ -196,6 +196,14 @@ never improvise around it.
       `model_copy` hole, `scrapers/bin/recompute_dispositions.py`; re-examine
       `_THIN_RECORD_DISPOSITIONS`. Annotate QT37/QT40 as overturned. Blocked-by: B3. Done: the
       253+112 contradictory states are unrepresentable; pytest green.
+- [ ] **B5b** SI DIMENSION KEYS (prod blocker,
+      `bugs/BUG_20260819_record_stores_dimension_fields_in_mm_litres_instead_of_si.md`): the
+      TS side reads SI field names but real on-disk records still carry the old mm/litre keys
+      and `fromJsonRecord` does no remap — 10 dimension fields silently lost on read. Fix
+      direction: the EMITTER writes SI (verify), the regeneration (B10) converts the corpus,
+      and openisd gains NO remap shim (one-model rule: an undeclared key is invalid, full
+      stop). Interim reads of old records stay lossy until B10 — that is why B10 is a release
+      gate item. Done: post-B10 spot-check shows SI keys; a fixture read carries all 10 fields.
 - [ ] **B5** H3: persist the calculated-marker — the record shape gains what is needed so a
       pipeline-CALCULATED value does not read back as ENTERED; openisd's reader honours it.
       Cross-repo: design first, show the human the shape before building. Blocked-by: B4.
@@ -231,6 +239,12 @@ never improvise around it.
       Write stays UTF-8. Tests: `drivers/winisd/Selenium SW108 .wdr` reads back with `•`/`®`/
       `±`/`½` intact; the unicode goldens still byte-round-trip. Done: tests green; the
       FF FF/E6 splice is NOT used as an oracle.
+- [ ] **C3** PHANTOM VENT (prod blocker,
+      `bugs/BUG_20260820_wpr_writer_emits_phantom_vent_for_a_passive_radiator_project.md`):
+      the `.wpr` writer emits a vent section even for a passive-radiator project. Re-verify
+      against a WinISD-written PR golden (`goldens/passive-radiator.wpr`), then fix the writer
+      to match what WinISD itself emits. Done: PR export matches the golden's section set;
+      wpr suite green.
 - [ ] **C2** Flag the Selenium SW108 mid-word byte splice (`reproductio ÿÿ h a æ ...n`) as
       source damage in winisd_drivers — data fix or upstream report; not code. Done: recorded,
       owner named.
@@ -246,6 +260,13 @@ never improvise around it.
 - [ ] **D3** Delete the inert `modeled` flag (95 registry entries, zero readers) — flag to the
       reviewer that wiring-instead-of-deleting is the alternative if any design doc claims a
       future consumer. Done: property gone; typecheck green.
+- [ ] **D5** FS ROUTES (prod blocker,
+      `bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md`):
+      the engine's Fs derivation misses two of WinISD's routes, has one WinISD does not, and
+      orders priorities differently — a round-tripped `.wdr` can invent or omit Fs marks.
+      Re-verify the route inventory against the bug's evidence, implement the missing routes in
+      `@openisd/engine` (nowhere else), delete the spurious one, and pin with parity tests.
+      Done: parity suite green on the Fs scenarios.
 - [ ] **D4** COAX (the human's open question, renumbered in R2): `OpenISDDriver` locks to the
       woofer section only. INVESTIGATE and propose: what breaks for a coax record (tweeter/
       passive-radiator sections), what the model change is, and whether it is release scope —
@@ -288,6 +309,54 @@ never improvise around it.
   its own campaign (`MATH_MIGRATION.md`) — only the engine "zero dependencies" text change
   rides this release IF a precision dep actually lands, which it does not by default.
 
+---
+
+# APPENDIX — Phase-0 bug sweep results (measured 2026-08-21; re-verify before acting)
+
+## Prod-blockers found (all now have checklist tasks)
+| bug | task |
+|---|---|
+| record_stores_dimension_fields_in_mm_litres_instead_of_si — 10 fields silently lost on read | B5b + B10 |
+| drivers_bundle_ships_a_shape_openisddriver_cannot_read — 1,526 drivers | A7 + B11 |
+| engine_is_missing_two_of_winisds_fs_routes — Fs marks invented/omitted on round-trip | D5 |
+| wpr_writer_emits_phantom_vent_for_a_passive_radiator_project | C3 |
+| new_project_invents_box_and_vent_values — box wizard absent | Lane G (human's scope call) |
+
+## Stale Status lines to correct (task R5) — file says / actually
+parstate-writer-emits-n: OPEN / FIXED (Step 8, 436/436 parity) ·
+uspl-and-splmax-use-formulas: BLOCKED / FIXED (ruled+implemented 2026-08-21) ·
+winisd-compatibility-air-returns-truncated-rho-and-c: BLOCKED / FIXED (superseded) ·
+driver-fromwdr-marks-a-present-carried-field-entered: OPEN / FIXED (Step 8) ·
+openisddriver-passes-mm-named-dimension-fields: OPEN / FIXED (_SpecSection SI-native) ·
+winisd-compatibility-air-does-not-scale: BLOCKED / ruling received, probe tracked elsewhere ·
+tune_panel_shows_N_for_Mms_and_Qms: OPEN / test-fixture gap only (its own reinvestigation says so) ·
+wdr-round-trip-is-not-byte-identical: OPEN / RESOLVED (509/509) ·
+architecture_sweep_calc_in_store: 4 open / V2+V3 resolved, V1+V4 open ·
+fromOpenISDRecord_does_not_exist: BLOCKED / RESOLVED (method removed) ·
+managedproject_edit_draft_lifecycle: OPEN / RESOLVED (dead code deleted) ·
+pr_formulas_and_air_constants_duplicated: DEFERRED / mostly resolved, remainder in a named plan ·
+vent_area_formula_duplicated_four_times: OPEN / RESOLVED (ventArea_m2 single source) ·
+engine_speed_of_sound_constant_disagrees: OPEN / RESOLVED (constants removed, 14/14) ·
+prFsWithMassDisplay_exported_but_never_called: OPEN / RESOLVED (called in PREditModal.vue) ·
+private_type_return_gate_has_no_same_file_owner_exemption: PARTIAL / RESOLVED (0 offences) ·
+private_type_return_gate_misses_computed_generic_arguments: OPEN / RESOLVED ·
+q_group_redeclared_in_ui: OPEN / RESOLVED (isQGroupField from engine) ·
+wpr_import_fabricates_sixteen_driver_and_box_values: OPEN / RESOLVED (numOrAbsent) ·
+winisd_tools disposition-says-ok-on-every-record: OPEN / RESOLVED (3 distinct values live) ·
+winisd_tools the-conformed-name-field-is-optional: OPEN / RESOLVED by field deletion
+
+## Still-live non-blockers, by lane
+Lane A: address-bar-no-live-state; arch-sweep V1 (`eg` in store) + V4 (file-wide
+eslint-disable); CellState owned by winisd pkg; readcell builds-and-discards; syncedp `eg`;
+syncedp filters deep-copy; exportWpr seven-fragment assembly; driver-record-as-currency;
+store 45-exports review. Lane D/F: coax sectionFor (D4). Lane E: restoreProblems never read;
+use-prefix non-composables; winisd tests assert model behaviour; historic comments (E1).
+Lane F (one-offs, non-blocking): mms-cms golden UNCAPTURABLE; winisdAir temp-scaling +
+compat-mode fidelity; DVol relation unimplemented (2 files, duplicates); sealed-fsc locator
+ambiguity; inbox duplicate-id (R3); s-roo oracle exclusion; seven air wrappers;
+wpr-export Count=0 remainder; ohm-glyph 2 records; scanspeak text-layer; live-queues
+residuals 2+3; rme-formula tolerance; epique15 fixture Xmax mm.
+
 ## Release gate (all verified with actual output quoted)
 
 1. `npx vitest run` — fully green INCLUDING all architecture gates (≥1844/1844). [A10]
@@ -312,3 +381,9 @@ Then report to the human for the release decision. Never tag, publish, or push.
   sign-off. Those two reviews are where subtle misses ship — do not economise there.
 - Decisions the rulings don't cover go to the human, batched, and are recorded in the ledger
   (`inbox.py add`) the same turn they are raised.
+
+## Git and Final cleanup 
+
+Commit at regular intervals.
+Dont push.
+Check the git commits for any agent attributions in the git log and rewrite these entries to remove refs to the agent
