@@ -182,7 +182,14 @@ never improvise around it.
       no domain VALUE passing through a component) — AST checks, never prose greps. Blocked-by:
       A8. Done: gates exist and are green on the finished tree.
 - [ ] **A10** RELEASE BLOCKER CHECK: all four original arch gates green in the FULL suite.
-      Blocked-by: A8. Done: `npx vitest run` ≥ 1844/1844 with actual output quoted.
+      **The human's standing instruction (2026-08-21, verbatim): "I am expecting them to be
+      solve without you violating the arch ok" — the gates go green by moving the CODE to the
+      architecture, never the reverse.** Any edit to a gate's own assertions, its scan set, an
+      ALLOWED_GLOBALS entry, or a PrivateAllow list is a HUMAN decision, raised to the human
+      with the reasoning — an agent making such an edit to reach green is falsifying the
+      result. Blocked-by: A8. Done: `npx vitest run` ≥ 1844/1844 with actual output quoted,
+      and a diff check showing `architecture.test.ts`'s assertions and every allow-list are
+      byte-identical to their state at run start except where the human explicitly ruled.
 
 ## Lane B — winisd_tools model + the regeneration gate (serial: all touch `model_driver.py`)
 
