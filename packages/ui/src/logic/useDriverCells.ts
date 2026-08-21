@@ -1,15 +1,15 @@
-import { computed, type ComputedRef } from 'vue';
-import type { CellState, Cell as FieldCell, SpecField } from '@openisd/model';
+import { Provenance } from '@openisd/model';
+import type { Cell as FieldCell, SpecField } from '@openisd/model';
+import { isQGroupField } from '@openisd/engine';
 import type { ConsistencyIssue } from '@openisd/engine';
 
 /**
- * Driver provenance presentation — the ONE place the E/C/N marks and the Q-group rule are
- * expressed. The driver editor and every what-if panel read it, so a panel cannot show a
- * different verdict from the dialog for the same driver.
+ * Driver provenance PRESENTATION — how a field's `Provenance` becomes a CSS class, and how a
+ * consistency issue becomes tooltip text. The driver editor and every what-if panel read it, so
+ * a panel cannot style the same driver differently from the dialog.
  *
- * A caller supplies `cellOf`: how to reach ONE field's cell in whichever model it edits —
- * the editor's local draft, or the store's effective (what-if overlay ▸ committed) model.
- * The rule below is model-agnostic and never reaches for a model itself.
+ * Presentation only: whether a value is entered, calculated or absent is decided by the domain
+ * object (`OpenISDDriver.cell()`), never here.
  */
 
 /** The provenance CSS classes. A closed set, so an enum — never a bare string literal. */
@@ -19,30 +19,22 @@ export enum CellClass {
   NotAvailable = 'value-n',
 }
 
-/** TOTAL map: a new CellState becomes a compile error here rather than an unstyled field. */
-const CELL_CLASS: Record<CellState, CellClass> = {
-  E: CellClass.Entered,
-  C: CellClass.Calculated,
-  N: CellClass.NotAvailable,
+/** TOTAL map: a new Provenance member becomes a compile error here rather than an unstyled
+ *  field. */
+const CELL_CLASS: Record<Provenance, CellClass> = {
+  [Provenance.Entered]: CellClass.Entered,
+  [Provenance.Calculated]: CellClass.Calculated,
+  [Provenance.NotAvailable]: CellClass.NotAvailable,
 };
 
-export function cellClassOf(state: CellState): CellClass {
-  return CELL_CLASS[state];
-}
-
 /**
- * The Q trio is a GROUP: any two of them solve the third, so no single member is required
- * on its own. All three are therefore flagged TOGETHER while fewer than two are usable —
- * flagging only the blank one would name a field that is not the problem.
+ * The CSS class for one field, BY FIELD NAME. The caller supplies `cellOf` — how to reach a
+ * cell in whichever model it edits — and this does the read and the mapping, so a `Provenance`
+ * value never enters a component. A component naming or holding a domain value is what the
+ * layering rule forbids; handing one through is the same leak the gate cannot see.
  */
-export const Q_GROUP: readonly SpecField[] = ['Qts', 'Qes', 'Qms'];
-
-/** True while fewer than two of the Q trio hold a usable value ⇒ the third cannot be solved. */
-export function useQGroupIncomplete(cellOf: (field: SpecField) => FieldCell): ComputedRef<boolean> {
-  return computed(() => Q_GROUP.filter(k => {
-    const v = cellOf(k).value;
-    return typeof v === 'number' && isFinite(v) && v > 0;
-  }).length < 2);
+export function cellClassFor(cellOf: (field: SpecField) => FieldCell, field: SpecField): CellClass {
+  return CELL_CLASS[cellOf(field).state];
 }
 
 /** A near-miss needs its decimal to be readable; a gross one is quoted whole. */
@@ -63,4 +55,29 @@ export function consistencyNote(issues: readonly ConsistencyIssue[], field: stri
     `${i.fields.join(', ')} disagree by ${pct(i.relative)}: ${i.formula}. `
     + `Every field in the group is marked — correct one of them, or clear one to let it be calculated.`
   ).join('\n');
+}
+
+/**
+ * Can the Qts/Qes/Qms trio solve? The DOMAIN decides: with fewer than two members usable the
+ * group cannot be solved and every member reads `Absent`. This asks the driver rather than
+ * re-deriving the rule, so there is no second opinion to drift from the first.
+ *
+ * Here rather than in a component because the layering rule forbids a component importing a
+ * VALUE from the domain — `Provenance` is a value.
+ */
+/**
+ * Is this field REQUIRED-BUT-UNSATISFIED — i.e. a Q-trio member while the trio cannot solve?
+ *
+ * One question, one answer. The two facts behind it — which fields form the trio, and whether
+ * it can solve — are both the domain's: the engine derives `Q_GROUP_FIELDS` from its own Qts
+ * relation, and the driver reports `NotAvailable` for `Qts` when fewer than two members are
+ * usable. Neither is restated here.
+ *
+ * A component asks THIS rather than the two parts, so the composition is unit-testable without
+ * mounting anything, and no component imports the engine or holds a `Provenance`.
+ */
+export function fieldIsMandatoryAndUnsatisfied(
+  cellOf: (field: SpecField) => FieldCell, field: string,
+): boolean {
+  return isQGroupField(field) && cellOf('Qts').state === Provenance.NotAvailable;
 }

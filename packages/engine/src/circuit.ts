@@ -98,7 +98,7 @@ export function solve(f: number, drv: EngineDriver, box: BoxType, P: SweepParams
   // Voice coil impedance — two variants matching WinISD's model split:
   //   ZcoilAC: resistive only (Le excluded) — used for acoustic circuit (SPL, GD, excursion)
   //   Zcoil:   full Re+Rs+jωLe            — used only for electrical impedance plot
-  // Source: research/winisd/help/aboutequivalentcircuits.html
+  // Source: docs/winisd_helpfiles/help/aboutequivalentcircuits.html
   //   "Ze = Re + jω·Le + Zem" — Le added back only for impedance, not for acoustic simulation
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
   // Thermal power compression (docs/research/WINISD_PARITY.md): the coil's DC resistance rises with temperature.
@@ -121,7 +121,7 @@ export function solve(f: number, drv: EngineDriver, box: BoxType, P: SweepParams
 
   // Acoustic pressure source and electrical damping.
   // WinISD mode: Le excluded from acoustic circuit — constant Rae/Uad (Le only for impedance).
-  //   Source: research/winisd/help/aboutequivalentcircuits.html
+  //   Source: docs/winisd_helpfiles/help/aboutequivalentcircuits.html
   // Full gyrator: Le included — physically more complete but diverges from WinISD.
   const ZcoilForAC = (P.circuitModel === 'gyrator') ? Zcoil : ZcoilAC;
   const pg  = cDiv(cx(eg * Bl, 0), cMul(cx(Sdt, 0), ZcoilForAC));

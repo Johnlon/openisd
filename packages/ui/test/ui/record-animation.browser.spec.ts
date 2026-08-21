@@ -3,7 +3,7 @@
    for a walkthrough animation. The pauses are the capture interval — the thing being
    waited for is "the UI has settled enough to photograph", which no DOM condition
    expresses. Every real spec still uses waitForFunction; the rule stands everywhere else. */
-import { test } from '../fixtures.js';
+import { test, expect } from '../fixtures.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'node:url';
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 test('record UI browser automation frames in Original WinISD skin', async ({ page }) => {
   // Repo-local build/, never an OS temp path — AGENTS.md §"Scratch files".
   const framesDir = fileURLToPath(new URL('../../../../build/ui_frames', import.meta.url));
-  if (!fs.existsSync(framesDir)) fs.mkdirSync(framesDir, { recursive: true });
+  fs.mkdirSync(framesDir, { recursive: true });  // recursive:true already tolerates an existing dir
 
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
@@ -61,4 +61,10 @@ test('record UI browser automation frames in Original WinISD skin', async ({ pag
   await page.locator('.de-fld:has-text("Re") input').fill('6.0');
   await page.waitForTimeout(800);
   await page.screenshot({ path: path.join(framesDir, 'frame_04.png') });
+
+  // A recorder that photographed a closed editor would write five useless frames and still
+  // "pass", so the run states what every frame was supposed to contain.
+  await expect(page.locator('.de-body')).toBeVisible();
+  expect(fs.readdirSync(framesDir).filter(f => /^frame_\d\d\.png$/.test(f)).sort())
+    .toEqual(['frame_00.png', 'frame_01.png', 'frame_02.png', 'frame_03.png', 'frame_04.png']);
 });

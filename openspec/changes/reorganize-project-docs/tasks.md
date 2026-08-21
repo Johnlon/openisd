@@ -26,11 +26,11 @@
 - [x] 3.1 Create `docs/spec/`, `docs/design/`, `docs/plans/`, `docs/research/`
 - [x] 3.2 Confirm `SPEC_ENGINE.md`, `SPEC_UI.md` are in `docs/spec/` (already there — no-op)
 - [x] 3.3 `CONTRACT.md` does NOT move as a file — see task group 7, it merges and deletes
-- [x] 3.4 Move `DRIVER_RECORD_MODEL.md`, `WDR_SCHEMA.md`, `docs/DRIVER_ADT_DESIGN.md`,
+- [x] 3.4 Move `DRIVER_RECORD_MODEL.md`, `WINISD_SCHEMA.md`, `docs/DRIVER_ADT_DESIGN.md`,
       `STATE_MODEL.md` into `docs/design/`
 - [x] 3.5 Move `PLAN_OPENISD_DRIVER_MODEL.md`, `PLAN_JS_CALC_CONSOLIDATION.md`,
       `PLAN_SBL_CROSSCHECK.md`, `MATH_MIGRATION.md` into `docs/plans/`
-- [x] 3.6 Confirm `DRIVER_RECORD_MODEL.md` and `WDR_SCHEMA.md` still state their own
+- [x] 3.6 Confirm `DRIVER_RECORD_MODEL.md` and `WINISD_SCHEMA.md` still state their own
       design-vs-facts division of labor accurately after the move; no content merge
 - [x] 3.7 Add an archived-in-place header to `docs/design/DRIVER_ADT_DESIGN.md` pointing to
       `docs/plans/PLAN_OPENISD_DRIVER_MODEL.md`, matching the pattern already on

@@ -22,8 +22,25 @@ import { SCENARIOS } from '../scenarios.js';
 
 const TEMP_C = 20; // air temperature — micka's default; matches OpenISD's c = 343.68 m/s (20 °C)
 
+/** The box inputs micka's form needs for this scenario, as `[input name, value]` pairs. Which
+ *  ones those are is fixed by the scenario table, so it is decided here rather than in the
+ *  test body — the run itself has nothing to choose. */
+function boxFields(box: (typeof SCENARIOS)[number]['box']): Array<[string, string]> {
+  if (box.type === 'sealed' && box.Qtc != null) return [['qtc', String(box.Qtc)]];
+  // "Your own Box" (red curve) — arbitrary user-specified enclosure + vent dimensions
+  if (box.type === 'vented' && box.Vb != null && box.ventD != null && box.ventL != null) {
+    return [['vb2', String(box.Vb)], ['rd2', String(box.ventD)], ['lv2', String(box.ventL)]];
+  }
+  return [];
+}
+
 for (const S of SCENARIOS) {
   if (!S.micka) continue;
+
+  const micka = S.micka;
+  const box = boxFields(S.box);
+  /** The expected output strings this scenario pins. */
+  const expected = [micka.Vb, micka.fc, micka.Fb].filter((v): v is string => !!v);
 
   test(`micka.de: ${S.name}`, async ({ page }) => {
     await page.goto('https://www.micka.de/en/index.php#ideal');
@@ -38,22 +55,13 @@ for (const S of SCENARIOS) {
     await page.locator('input[name="temp_luft"]').fill(String(TEMP_C));
 
     // Fill box-specific inputs
-    if (S.box.type === 'sealed' && S.box.Qtc != null) {
-      await page.locator('input[name="qtc"]').fill(String(S.box.Qtc));
-    } else if (S.box.type === 'vented' && S.box.Vb != null && S.box.ventD != null && S.box.ventL != null) {
-      // "Your own Box" (red curve) — arbitrary user-specified enclosure + vent dimensions
-      await page.locator('input[name="vb2"]').fill(String(S.box.Vb));
-      await page.locator('input[name="rd2"]').fill(String(S.box.ventD));
-      await page.locator('input[name="lv2"]').fill(String(S.box.ventL));
-    }
+    for (const [name, value] of box) await page.locator(`input[name="${name}"]`).fill(value);
 
     // Submit — full page POST; Playwright waits for network idle before asserting
     await page.locator('input[type="submit"]').click();
 
     // Assert micka's computed outputs against scenario's expected values
     const table = page.locator('table.generouscolumns');
-    if (S.micka?.Vb) await expect(table).toContainText(S.micka.Vb);
-    if (S.micka?.fc) await expect(table).toContainText(S.micka.fc);
-    if (S.micka?.Fb) await expect(table).toContainText(S.micka.Fb);
+    for (const text of expected) await expect(table).toContainText(text);
   });
 }

@@ -1,7 +1,7 @@
 # Driver library
 
 Related docs:
-[`WDR_SCHEMA.md`](../docs/design/WDR_SCHEMA.md) — WDR field spec ·
+[`WINISD_SCHEMA.md`](../docs/design/WINISD_SCHEMA.md) — WDR field spec ·
 [`BACKLOG.md` "Driver type classification and matching"](../BACKLOG.md) — the driver file model ·
 [`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules ·
 [`VENDOR-APIS.md`](VENDOR-APIS.md) — vendor API research

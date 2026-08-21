@@ -193,7 +193,7 @@ test of the ADT derivation path's Q handling (§11) and none of the shells' issu
 | `BACKLOG.md:154-156`   | struck-through `~~…~~` block                               |
 | `ARCHITECTURE.md:49`   | "constraint from the pre-Vite era no longer applies"       |
 | `FEATURES.md:25,54,86` | "as of mid-2025", "as of the survey date" ×2               |
-| `WDR_SCHEMA.md:465`    | "Supersedes the inferred table previously in this section" |
+| `WINISD_SCHEMA.md:465`    | "Supersedes the inferred table previously in this section" |
 
 ### 15. Documentation sprawl
 

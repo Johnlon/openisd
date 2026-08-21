@@ -30,12 +30,12 @@
  * replaces was a per-call-site guard that `shareLink()` was missing while every sibling had it.
  *
  * ── One object graph, no synchronisation ──
- * `OpenISDDriver.fromRecord()` holds its record BY REFERENCE and mutates it in place, so a
+ * `OpenISDDriver.fromJsonRecord()` holds its record BY REFERENCE and mutates it in place, so a
  * layer's `project.driver` record and its live driver are the same object. A write through the
  * driver is already in the project; there is no copy to keep in step, and therefore no way for
  * the two to disagree.
  */
-import { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver, Provenance } from '@openisd/model';
 import { prototypeBox } from '@openisd/model';
 import {
   activeVent, boxVolume_m3 as readBoxVolume_m3, setBoxVolume_m3 as writeBoxVolume_m3,
@@ -50,7 +50,7 @@ import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver } from
 import {
   sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
   prVas as computePrVas, prFs as computePrFs, prFsWithMass as computePrFsWithMass,
-  prQms as computePrQms, C as SPEED_OF_SOUND,
+  prQms as computePrQms, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA,
 } from '@openisd/engine';
 import type { LossMode } from '@openisd/engine';
 
@@ -113,7 +113,7 @@ export function _prototypeProject(): _OpenISDProjectJson {
 function layerOf(project: _OpenISDProjectJson): Layer {
   return {
     project,
-    openIsdDriver: project.driver ? OpenISDDriver.fromRecord(project.driver) : null,
+    openIsdDriver: project.driver ? OpenISDDriver.fromJsonRecord(project.driver) : null,
   };
 }
 
@@ -159,14 +159,16 @@ export class ManagedOpenISDProject {
 
   // ---- driver reads, on the EFFECTIVE layer ----------------------------------------------
 
-  /** One driver field's value and its E/C/N provenance. `N` when no driver is chosen: absent
-   *  is a real answer, and inventing a zero would be indistinguishable from a measured one. */
+  /** One driver field's value and its provenance. Absent when no driver is chosen: that is a
+   *  real answer, and inventing a zero would be indistinguishable from a measured one. */
   cell(field: SpecField): Cell {
-    return this.#effective().openIsdDriver?.cell(field) ?? { value: null, state: 'N' };
+    return this.#effective().openIsdDriver?.cell(field)
+      ?? { value: null, state: Provenance.NotAvailable };
   }
   /** One driver metadata field (brand/model/manufacturer/provided_by/comment/added). */
   metaCell(field: MetaField): MetaCell {
-    return this.#effective().openIsdDriver?.metaCell(field) ?? { value: '', state: 'N' };
+    return this.#effective().openIsdDriver?.metaCell(field)
+      ?? { value: '', state: Provenance.NotAvailable };
   }
   /** The resolved, engine-ready driver the charts sweep, or null when nothing can be drawn. */
   toEngineDriver(): EngineDriver | null {
@@ -277,7 +279,7 @@ export class ManagedOpenISDProject {
    *  fundamental c/(2·L) on the PHYSICAL vent length, distinct from the box Helmholtz tuning. */
   portPipeResonance_hz(): number | null {
     const ventL = this.activeVentField('length_m');
-    return ventL > 0 ? SPEED_OF_SOUND / (2 * ventL) : null;
+    return ventL > 0 ? moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA) / (2 * ventL) : null;
   }
 
   /** Passive-radiator derived T/S params, from the stored PR bag. */
@@ -349,7 +351,7 @@ export class ManagedOpenISDProject {
     fn(layer.project);
     // The driver record may have been replaced wholesale (a different driver chosen), so the
     // live view is re-materialised rather than left pointing at the old object.
-    layer.openIsdDriver = layer.project.driver ? OpenISDDriver.fromRecord(layer.project.driver) : null;
+    layer.openIsdDriver = layer.project.driver ? OpenISDDriver.fromJsonRecord(layer.project.driver) : null;
     if (this.#overlay?.kind === 'whatif') this.#notify();
   }
 

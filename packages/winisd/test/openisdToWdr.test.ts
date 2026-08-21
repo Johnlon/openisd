@@ -29,6 +29,7 @@ import { parse } from 'yaml';
 import { WinISDDriver } from '../src/winisdDriver.js';
 import { OpenISDDriver } from '@openisd/model';
 import type { DriverError, Result } from '@openisd/engine';
+import { WDR_NEWLINE_SENTINEL } from '../src/wdrBytes.js';
 
 /** `openisd.yml`/`.owdr` text -> `Result<WinISDDriver>`, never throws — the direct replacement
  *  for the deleted `WinISDDriver.fromYaml`, now that the YAML/record parse lives outside
@@ -44,7 +45,7 @@ function fromYaml(yamlText: string): Result<WinISDDriver> {
   if (record == null || typeof record !== 'object' || !('specs' in record)) {
     return { value: null, errors: [err('yaml', 'openisd.yml did not parse to a record')] };
   }
-  return OpenISDDriver.fromRecord(record as never).toWinISDDriver();
+  return OpenISDDriver.fromJsonRecord(record as never).toWinISDDriver();
 }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -68,17 +69,13 @@ function fieldsOf(wdr: string): Record<string, string> {
   return out;
 }
 
-/** `Comment=`'s full text, including any `[DQ]` lines appended below it (ARCHITECTURE.md
- *  §3) — every physical line from `Comment=` up to (not including) `DateAdded=`, joined back
- *  with `\n`. A plain line-by-line `key=value` parse only sees the FIRST physical line of a
- *  multi-line comment; this reassembles the whole block for assertions. */
+/** `Comment=`'s full text, including any `[DQ]` lines appended to it (ARCHITECTURE.md §3),
+ *  with the format's newline sentinel decoded so assertions can be written with real `\n`.
+ *  `Comment=` is ONE physical line — a newline inside it is the single byte `0xA4`, which
+ *  `wdrBytesToText` presents as `WDR_NEWLINE_SENTINEL`. */
 function commentBlockOf(wdr: string): string {
-  const lines = wdr.split(/\r?\n/);
-  const start = lines.findIndex(l => l.startsWith('Comment='));
-  const end = lines.findIndex((l, i) => i > start && l.startsWith('DateAdded='));
-  const block = lines.slice(start, end);
-  block[0] = block[0].slice('Comment='.length);
-  return block.join('\n');
+  const line = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
+  return (line ?? '').slice('Comment='.length).replaceAll(WDR_NEWLINE_SENTINEL, '\n');
 }
 
 const oracleText = readFileSync(ORACLE, 'utf8');
@@ -123,8 +120,20 @@ describe('openisd.yml → winisd.wdr — format conformance (oracle: drivers/sam
     // record's own values) and ParState (asserted separately).
     const HEADER = new Set(['Brand', 'Model', 'Manufacturer', 'ProvidedBy', 'Comment',
       'DateAdded', 'DateModified', 'ParState']);
+    // c/roo: openisd computes both live from the CIPM-2007 moist-air model at the reference
+    // environment (packages/engine/src/air.ts) rather than holding WinISD's stored literal —
+    // there is no frozen constant anywhere (AGENTS.md 'Calculation logic — permission gate'
+    // sign-off 2026-08-19). Bounded agreement instead of byte equality; same mechanism as
+    // divergences.json's "*"/c and "*"/roo entries in winisd-parity.test.ts.
+    const LIVE_COMPUTED_REL_TOL: Record<string, number> = { c: 5e-6, roo: 9e-6 };
     for (const k of keysOf(oracleText)) {
       if (HEADER.has(k)) continue;
+      if (k in LIVE_COMPUTED_REL_TOL) {
+        const g = Number(got[k]), w = Number(want[k]);
+        assert.ok(Math.abs(g - w) <= LIVE_COMPUTED_REL_TOL[k] * Math.abs(w),
+          `default for ${k}: got ${g}, oracle ${w} (tol ${LIVE_COMPUTED_REL_TOL[k]})`);
+        continue;
+      }
       assert.equal(got[k], want[k], `default for ${k}`);
     }
   });

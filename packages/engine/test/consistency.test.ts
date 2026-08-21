@@ -2,7 +2,7 @@
  * Unit tests for packages/engine/src/consistency.ts — the consistency-group detector.
  *
  * The two behaviours the human ruled on (workspace ledger QP18, openisd ledger QO12) are the
- * same remedy through one mechanism: when a WDR_SCHEMA §4 group loses consistency, EVERY
+ * same remedy through one mechanism: when a WINISD_SCHEMA §4 group loses consistency, EVERY
  * member of that group is marked, and nothing is blocked.
  *
  * The tolerance is not a chosen number — it is each field's own precision, half of the last
@@ -12,7 +12,12 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { checkConsistency, RHO, C } from '@openisd/engine';
+import { checkConsistency, moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
+
+// DEMO carries no c/roo, so production resolves it live at the reference environment
+// (driver.ts's driverRho/driverC) -- matched here the same way, never a stored constant.
+const refRho = (): number => moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+const refC = (): number => moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
 
 /** The app's demo driver: self-consistent, and over-determined by construction. */
 const DEMO = { Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300, Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60 };
@@ -29,7 +34,7 @@ describe('checkConsistency — a group that reconciles is silent', () => {
     // Every derivable member entered as well as its inputs. Qts/Qes/Qms, Vas/Cms/Sd and
     // Fs/Mms/Cms are each fully entered and each self-consistent, so nothing disagrees and
     // no mark is due — over-determination on its own is not a defect.
-    const Cms = DEMO.Vas / (RHO * C * C * DEMO.Sd * DEMO.Sd);
+    const Cms = DEMO.Vas / (refRho() * refC() * refC() * DEMO.Sd * DEMO.Sd);
     const Mms = 1 / ((2 * Math.PI * DEMO.Fs) ** 2 * Cms);
     const over = { ...DEMO, Cms, Mms,
                    Rms: 2 * Math.PI * DEMO.Fs * Mms / DEMO.Qms,
@@ -65,7 +70,7 @@ describe('checkConsistency — a group that does not reconcile marks EVERY membe
   it('marks Vas, Cms and Sd together when the compliance volume contradicts them', () => {
     const Cms = 0.0013;
     const Sd = 0.0133;
-    const Vas = RHO * C * C * Sd * Sd * Cms * 1.2;   // 20% out — far beyond 4 dp on Vas
+    const Vas = refRho() * refC() * refC() * Sd * Sd * Cms * 1.2;   // 20% out — far beyond 4 dp on Vas
     const issues = checkConsistency({ Fs: 37, Re: 5.6, Qes: 0.4, Qms: 7, Vas, Sd, Cms });
     assert.ok(fieldsOf(issues).some(f => f.join() === ['Cms', 'Sd', 'Vas'].sort().join()),
       `expected the Vas group among ${JSON.stringify(fieldsOf(issues))}`);

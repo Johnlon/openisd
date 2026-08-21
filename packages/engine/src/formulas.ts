@@ -6,14 +6,18 @@
  * Air properties (ρ, c) are NOT here: they belong to `air.ts`, which the UI, the sweep and
  * the circuit all call through `airFor`.
  */
-import { RHO, C } from './constants.js';
+import { T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
 
 /**
  * Passive-radiator compliance-equivalent volume Vas, in LITRES.
- * Vas = Cms · Sd² · ρ · c²  (×1000 converts the m³ result to litres).
+ * Vas = Cms · Sd² · ρ · c²  (×1000 converts the m³ result to litres). No environment reaches
+ * this call site, so ρ/c are computed live at the reference environment — never a stored
+ * constant.
  */
 export function prVas(prCms: number, prSd: number): number {
-  return prCms * prSd * prSd * RHO * C * C * 1000;
+  const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  return prCms * prSd * prSd * rho * c * c * 1000;
 }
 
 /**

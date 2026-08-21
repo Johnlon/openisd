@@ -1,7 +1,13 @@
 # BUG_20260805 — `formulas.ts` duplicates the air constants as bare literals
 
+Status: RESOLVED
+
 # Status
-OPEN 2026-08-05
+OPEN 2026-08-05 — superseded 2026-08-20: RHO/C deleted entirely (see BUG_20260819 speed-of-sound
+decision). `formulas.ts` now imports `moistAirDensity`/`moistAirSoundVelocity` from `air.ts`,
+no bare literals, no `soundVelocity()`/`airDensity()` functions left to duplicate anything.
+Verified: `grep -n "343.68\|1.20095\|^import" packages/engine/src/formulas.ts` → only the
+live-computation import remains.
 
 
 **Status:** OPEN — fix dispatched to a background agent in the same turn this file was written.

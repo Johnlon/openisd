@@ -1,8 +1,16 @@
 # `Driver.fromWdr` fabricates ENTERED defaults for keys the `.wdr` never carried, pinning `Gloss` to 0
 
+Status: RESOLVED
+
 # Status
-- fabricated defaults for absent .wdr keys: FIXED
-- export-side toWdr() still writes Gloss=0: OPEN
+- fabricated defaults for absent .wdr keys: FIXED (as recorded 2026-08-13)
+- export-side toWdr() still writes Gloss=0: RESOLVED by the `WinISDDriver`/`OpenISDDriver`
+  split (docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md Step 8) — `packages/winisd/src/driver.ts`
+  and its `fromWdr`/`#inputs`/`STANDARD_NUMERIC_KEYS` mechanism no longer exist; superseded by
+  `packages/winisd/src/winisdDriver.ts` (pure serialisation) + `packages/model/src/openisdDriver.ts`.
+  `winisd-parity.test.ts`'s `Gloss` row runs clean across all 15 scenarios (436/436 passing,
+  re-run 2026-08-20); `wdr-openisd-round-trip.test.ts` (268/268) round-trips Gloss for every
+  `.wdr` in the corpus. No fabricated-E-mark mechanism remains to re-check.
 
 
 **Found** 2026-08-13, bucketing `packages/winisd/test/winisd-parity.test.ts` (341 failed of 463).

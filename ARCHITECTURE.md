@@ -28,7 +28,7 @@ the boundary and points at it.
 | Engine formulas, parameter units, API shapes, solver rules                          | [`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md)                 |
 | UI presentation rules, tooltips, panel layout, control conventions, chart behaviour | [`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md)                         |
 | What the app remembers, and when an edit commits                                    | [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md)             |
-| WinISD's `.wdr`/`.wpr` byte format, reverse-engineered                              | [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md)               |
+| WinISD's `.wdr`/`.wpr` byte format, reverse-engineered                              | [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md)               |
 | Work items and gaps                                                                 | [`BACKLOG.md`](BACKLOG.md), [`docs/plans/`](docs/plans/)               |
 | Dev workflow, ports, testing strategy                                               | [`AGENTS.md`](AGENTS.md), [`openspec/project.md`](openspec/project.md) |
 
@@ -562,8 +562,8 @@ declaration — never prose, so a comment naming a module cannot fail it.
 | Rule                                                                                | Enforced by                                                 |
 | ----------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | `@openisd/engine` depends on nothing (zero runtime dependencies)                    | `packages/engine/package.json` — empty `dependencies`       |
-| `@openisd/model` depends only on `@openisd/engine` (+ `yaml`, for the record codec) | `packages/model/package.json`                               |
-| `@openisd/winisd` depends only on `@openisd/model`                                  | `packages/winisd/package.json`                              |
+| `@openisd/model` depends on `@openisd/engine` and `@openisd/winisd` — it projects itself into WinISD's format via `toWinISDDriver()` | `packages/model/package.json`         |
+| `@openisd/winisd` depends only on `@openisd/engine`. It imports NOTHING from `@openisd/model` and must never learn OpenISD exists | `packages/winisd/package.json`        |
 | Nothing below presentation imports a `.vue` file                                    | the gate                                                    |
 | `ui` imports `logic` and nothing below it — no service, no engine, no serialiser    | the gate                                                    |
 | A component imports no VALUE from `@openisd/*`; an `import type` is fine, it erases | the gate                                                    |
@@ -797,7 +797,7 @@ storage again.
 
 ### Relation groups solve in every direction
 
-A consistency group ([`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) §4) is a relation,
+A consistency group ([`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §4) is a relation,
 not a one-way formula: `{Vd, Sd, Xmax}` gives `Vd` from `Sd × Xmax`, `Sd` from `Vd / Xmax`, and
 `Xmax` from `Vd / Sd`, and every group in that table behaves the same way. The model repeats,
 for every relation, filling the one member left unknown once every other member — entered or
@@ -811,7 +811,7 @@ route fires first.** `Xmax` comes from `abs(Hc − Hg) / 2` before it comes from
 comes from `π·Dd²/4` before it comes from `Vd / Xmax`; `Rme` comes from `2π·Fs·Mms/Qes` before it
 comes from `BL² / Re`. On a record whose fields populate the inputs of both routes, the two
 return different numbers, so which route wins is a specification, not an accident of
-implementation order — [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) §4.1 records the
+implementation order — [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §4.1 records the
 winning order as observed directly against WinISD, and the model is held to it.
 
 **A derived value is `C`, never `E`, and the difference is a difference in claim.** An `Xmax`
@@ -825,7 +825,7 @@ also have reached.
 A datasheet routinely prints a dependent field alongside its own inputs — `Qts` next to `Qms`
 and `Qes` — which at printed precision often does not reconcile exactly. `E` pins a value:
 WinISD never recomputes an entered field and issues no warning when its inputs disagree with it
-([`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) §5.1), so writing all three fields `E`
+([`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §5.1), so writing all three fields `E`
 buries the disagreement inside a set WinISD will never question.
 
 The model marks it instead of resolving it. **Every field in a relation group whose members
@@ -836,7 +836,7 @@ only a residual bigger than every member's own uncertainty is reported
 `packages/engine/src/consistency.ts`). The same mark covers an over-determined group, where more
 members are asserted than the relation needs: an asserted value is then either being ignored or
 silently poisoning a derived one, and both are findings the mark surfaces. The groups themselves
-are [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) §4's; which member is left to derive
+are [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §4's; which member is left to derive
 does not matter to the mark — what matters is that the disagreement stays visible.
 
 ### `WinISDDriver` is solely a serialisation device
@@ -900,7 +900,7 @@ The app reads and writes five formats. Two are ours, three are WinISD's.
 **No import loses data.** Every field a file carries survives the round trip, including metadata
 the app does not itself display. A `.wdr` written back out matches the original byte for byte, or
 conforms strictly to the layout rules where a byte-exact match is impossible — the layout rules are
-[`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) and the round-trip contract is
+[`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) and the round-trip contract is
 [`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md) §4.6.
 
 **The two formats carry deliberately different content, and the asymmetry is the point.**

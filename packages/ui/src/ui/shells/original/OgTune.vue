@@ -14,7 +14,7 @@ import { state, engineDriver, driverCell, driverConsistencyIssues, enterDriverFi
          managedProject } from '../../../logic/store.js';
 import { ebpOf } from '../../../logic/environment.js';
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
-import { cellClassOf, useQGroupIncomplete, consistencyNote, Q_GROUP } from '../../../logic/useDriverCells.js';
+import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 
 // The record's own field names (`BL`, not the engine's `Bl`) — these index OpenISDDriver
@@ -86,13 +86,11 @@ function scaledLimits(key: NumKey, scale: number): { min?: number; max?: number 
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than
 // two are usable. The rule itself lives in useDriverCells — the driver editor reads the same
 // one, against its own draft model.
-const qIncomplete = useQGroupIncomplete(driverCell);
-const isQ = (key: NumKey) => Q_GROUP.includes(key);
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
 function fieldClasses(key: NumKey, scale: number): Record<string, boolean> {
-  const mandatory = isQ(key) && qIncomplete.value;
+  const mandatory = fieldIsMandatoryAndUnsatisfied(driverCell, key);
   return {
-    [cellClassOf(driverCell(key).state)]: true,
+    [cellClassFor(driverCell, key)]: true,
     'de-input-mandatory': mandatory,
     'de-input-empty': mandatory && fieldVal(key, scale) === '',
   };
@@ -290,7 +288,7 @@ function reset()  { managedProject.resetOverlayToGround(); }
 /* Sized to its own content, not to the column. 78px holds the widest value any of these
    fields shows ("30.0000" at the registry's 4 dp) with room to spare; stretching to 100% of
    a 190px grid column made every field three times wider than the number in it, which is
-   what WinISD's own narrow, natural-width fields (docs/winisd/*.png) never do. */
+   what WinISD's own narrow, natural-width fields (docs/winisd_screenshots/*.png) never do. */
 .tune-unit input, .tune-roval { width: 78px; padding: 3px 5px; border: 1px solid #999; border-radius: 3px; background: #fff; font: inherit; }
 .tune-roval { text-align: right; color: var(--acc); font-style: italic; display: inline-block; }
 .tune-unit span { font-size: 11px; color: #666; white-space: nowrap; }

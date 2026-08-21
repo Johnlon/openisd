@@ -30,7 +30,7 @@ doc set.
   between `SPEC_ENGINE.md` (engine-side) and `SPEC_UI.md` (chart-side); its `parseWdr`-throws
   error is fixed during that merge, not left for later.
 - `docs/design/` — current-state architecture/data-model reference:
-  `DRIVER_RECORD_MODEL.md`, `WDR_SCHEMA.md`, `DRIVER_ADT_DESIGN.md` (archived-in-place —
+  `DRIVER_RECORD_MODEL.md`, `WINISD_SCHEMA.md`, `DRIVER_ADT_DESIGN.md` (archived-in-place —
   describes the `Driver` class `ARCHITECTURE.md` AD-8 condemns), `STATE_MODEL.md`.
 - `docs/plans/` — phased executable migrations, active or historical-but-still-relevant:
   `PLAN_OPENISD_DRIVER_MODEL.md`, `PLAN_JS_CALC_CONSOLIDATION.md`, `PLAN_SBL_CROSSCHECK.md`,

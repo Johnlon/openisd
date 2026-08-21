@@ -30,7 +30,12 @@ import {
   prTuning,
   prMassForFp,
 } from '@openisd/engine';
-import { RHO, C, END_CORRECTION } from '@openisd/engine';
+import { END_CORRECTION, moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
+
+// No environment reaches these test's own reimplementation of the formula under test, so ρ/c
+// are computed live at the reference environment — matching production (no stored constant).
+const refRho = (): number => moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+const refC = (): number => moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
 
 // ---------------------------------------------------------------------------
 // Test driver: a typical 6.5" mid-woofer — same parameters used throughout
@@ -214,10 +219,10 @@ describe('Port / vent length calculation (ventLength)', () => {
 
   it('returns the exact closed form L = Map·Sp/ρ − k·d, with nothing clamped', () => {
     const L = ventLength(Vb_m3, Fb_Hz, Sp_m2);
-    const Cab = Vb_m3 / (RHO * C * C);
+    const Cab = Vb_m3 / (refRho() * refC() * refC());
     const Map = 1 / ((2 * Math.PI * Fb_Hz) ** 2 * Cab);
     const d   = 2 * Math.sqrt(Sp_m2 / Math.PI);
-    assert.ok(Math.abs(L - (Map * Sp_m2 / RHO - END_CORRECTION * d)) < 1e-15,
+    assert.ok(Math.abs(L - (Map * Sp_m2 / refRho() - END_CORRECTION * d)) < 1e-15,
       `Vent length ${(L * 1000).toFixed(3)} mm must be the raw solve`);
   });
 
@@ -299,8 +304,8 @@ describe('Port tuning frequency from vent dimensions (tuningFromLength)', () => 
     const L_m = 0.12; // 120 mm vent
     const d   = 2 * Math.sqrt(Sp_m2 / Math.PI);
     const Leff = L_m + END_CORRECTION * d; // end correction
-    const Cab  = Vb_m3 / (RHO * C * C);
-    const Map  = RHO * Leff / Sp_m2;
+    const Cab  = Vb_m3 / (refRho() * refC() * refC());
+    const Map  = refRho() * Leff / Sp_m2;
     const EXPECTED_Fb = 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
     const actual = tuningFromLength(Vb_m3, L_m, Sp_m2);
     assert.ok(Math.abs(actual - EXPECTED_Fb) < EXACT,

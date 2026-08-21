@@ -12,7 +12,7 @@ Measured gap between the bottom of one input and the top of the next
 (`packages/ui/test/ui/driver-editor-layout.browser.spec.ts`): **24px, uniformly, on all seven
 gaps** — nearly as much air as the 24px inputs themselves.
 
-WinISD's own page (`docs/winisd/edit_driver_pg4_dimensions.png`) puts the same eight rows on a
+WinISD's own page (`docs/winisd_screenshots/edit_driver_pg4_dimensions.png`) puts the same eight rows on a
 tight pitch — the gap is a few pixels, and the eight read as one column.
 
 ## Cause

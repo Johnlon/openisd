@@ -14,7 +14,8 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveEngineDriver, solve, sweep, portImpedance, cAbs, cSub, cTanh, cx, C,
+import { deriveEngineDriver, solve, sweep, portImpedance, cAbs, cSub, cTanh, cx,
+         moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA,
          passbandRef, classifyFlatClamp } from '@openisd/engine';
 import type { SweepParams } from '@openisd/engine';
 
@@ -135,7 +136,7 @@ describe('cTanh — complex hyperbolic tangent', () => {
 });
 
 describe('transmission-line port model (WinISD Advanced: TLPorts)', () => {
-  const F_PIPE = C / (2 * LEFF);   // half-wave fundamental of the duct — the same figure the
+  const F_PIPE = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA) / (2 * LEFF);   // half-wave fundamental of the duct — the same figure the
                                    // the UI already reports as "1st port resonance"
 
   it('converges on the lumped port mass as ω→0 — the lumped model IS its low-frequency limit', () => {

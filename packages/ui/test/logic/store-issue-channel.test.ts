@@ -7,60 +7,66 @@
  *
  * Without this, a layer can be implemented, tested, and still reach no one: the store is
  * the only place the three sources are joined.
+ *
+ * A new project opens UNSIZED — `prototypeBox()` states no volume, tuning or vent geometry,
+ * because nothing has chosen them (TODO(box-wizard) there). So a test that needs a design
+ * which raises no precondition issue SIZES THE BOX ITSELF, inline, and says what it set.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { state, allIssues, paramIssues, driverErrors, managedProject } from '../../src/logic/store.js';
 
-/** Restore the box volume the default design opens with, so tests don't leak state. */
-const VB_DEFAULT = state.P.Vb;
-
-/** A complete, valid T/S set — the store opens with NO driver selected (a deliberate
- *  choice, not a bug: a fake built-in demo was removed), so a test that needs "a driver
- *  that derives cleanly" seeds one itself rather than relying on a store default. */
-function seedValidDriver(): void {
-  const stated = { Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300, Sd: 0.0133,
-                   Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8 } as const;
-  managedProject.loadEmpty();
-  for (const [k, v] of Object.entries(stated)) {
-    managedProject.enter(k as Parameters<typeof managedProject.enter>[0], v);
-  }
-}
-
 describe('the store unions every hardening layer into one issue list', () => {
-  it('the default design is clean — no layer reports a false positive', () => {
-    state.P.Vb = VB_DEFAULT;
-    seedValidDriver();
+  it('a fully specified design is clean — no layer reports a false positive', () => {
+    managedProject.loadEmpty();
+    for (const [k, v] of Object.entries({ Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
+                                          Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050,
+                                          Pe: 60, Znom: 8 })) {
+      managedProject.enter(k as Parameters<typeof managedProject.enter>[0], v);
+    }
+    state.P.Vb = 0.030;
+    state.P.ventD = 0.102;
+
     assert.deepEqual(driverErrors().filter(e => e.level === 'error'), [],
       'a complete driver must derive without a blocking error');
-    assert.deepEqual(paramIssues.value, [], 'the default box must raise no parameter issue');
+    assert.deepEqual(paramIssues.value, [], 'a sized box must raise no parameter issue');
   });
 
   it('a zero box volume surfaces a Vb error through allIssues, naming the field', () => {
+    managedProject.loadEmpty();
+    state.P.ventD = 0.102;
     state.P.Vb = 0;
-    try {
-      const vb = allIssues.value.find(e => e.field === 'Vb' && e.level === 'error');
-      assert.ok(vb, `allIssues must carry the Vb error; got: ${allIssues.value.map(e => e.field).join(', ')}`);
-      assert.match(vb.message, /greater than zero/, 'the message must state the requirement');
-    } finally {
-      state.P.Vb = VB_DEFAULT;
-    }
+
+    const vb = allIssues.value.find(e => e.field === 'Vb' && e.level === 'error');
+    assert.ok(vb, `allIssues must carry the Vb error; got: ${allIssues.value.map(e => e.field).join(', ')}`);
+    assert.match(vb.message, /greater than zero/, 'the message must state the requirement');
   });
 
   it('the box-parameter layer is reachable independently as paramIssues', () => {
+    managedProject.loadEmpty();
+    state.P.ventD = 0.102;
     state.P.Vb = 0;
-    try {
-      assert.deepEqual(paramIssues.value.map(e => e.field), ['Vb'],
-        'paramIssues is the precondition layer on its own, for a panel that wants only it');
-    } finally {
-      state.P.Vb = VB_DEFAULT;
-    }
+
+    assert.deepEqual(paramIssues.value.map(e => e.field), ['Vb'],
+      'paramIssues is the precondition layer on its own, for a panel that wants only it');
+  });
+
+  it('an unsized new project reports BOTH preconditions — Vb and the vent area', () => {
+    managedProject.loadEmpty();
+    state.P.Vb = 0;
+    state.P.ventD = 0;
+
+    assert.deepEqual(paramIssues.value.map(e => e.field).sort(), ['Sp', 'Vb'],
+      'nothing has sized the box, and the channel says so rather than assuming a size');
   });
 
   it('clearing the bad value clears the issue — the channel is live, not latched', () => {
+    managedProject.loadEmpty();
+    state.P.ventD = 0.102;
     state.P.Vb = 0;
     assert.ok(paramIssues.value.length > 0, 'precondition of this test');
-    state.P.Vb = VB_DEFAULT;
+
+    state.P.Vb = 0.030;
     assert.deepEqual(paramIssues.value, [], 'fixing the input must retract the issue');
   });
 });

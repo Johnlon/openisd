@@ -283,7 +283,6 @@ function buildState(): AppState {
     dragRange:   null,  // { fLo, fHi } — shared frequency selection across all graph panels
     browseOpen:   false,
     defineOpen:   false,
-    driverSource: null,  // snapshot of the last driver loaded from the library — used for reset
     yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
     ui:           { skin: (typeof window !== 'undefined' && window.location.port === '4100') ? 'modern' : 'original', unitTokens: {}, envDefaults: { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 } },  // local-only presentation prefs; never shared (persist.ts)
     project:      { name: '', creator: '', created: '', modified: '', description: '' },
@@ -403,7 +402,7 @@ export function loadDriverRecord(record: _OpenISDDriverJson): void {
 /** Load a driver from WinISD `.wdr` text. The `.wdr` is parsed as-read by the serialiser, then
  *  projected into the app's own model — the file format never reaches past this line. */
 export function setDriverFromWdr(text: string): void {
-  managedProject.loadDriverRecord(OpenISDDriver.fromWdrText(text).toRecord());
+  managedProject.loadDriverRecord(OpenISDDriver.fromWdrText(text).toJsonRecord());
 }
 
 /** Route one per-field edit to whichever layer ManagedOpenISDProject says is effective. */
@@ -435,7 +434,11 @@ export function engineDriver(): EngineDriver | null {
 
 // The PROJECT for persistence — committed state, never the overlay, so a live what-if is never
 // saved, shared or written to disk. _projectToPersist() cancels an active what-if itself.
-export function _projectToPersist(): _OpenISDProjectJson {
+//
+// NOT EXPORTED. The store may HOLD `_OpenISDProjectJson` (it is the stored object) but may not
+// expose it on its API — only the domain wrappers may (human ruling 2026-08-20). Every consumer
+// outside this file takes a domain wrapper or a public type instead.
+function _projectToPersist(): _OpenISDProjectJson {
   void _version.value;
   return managedProject._projectToPersist();
 }

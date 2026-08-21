@@ -1,13 +1,13 @@
-# WDR Schema
+# WinISD Schema
 
-**Authoritative reference for the WDR file format.**
+**Authoritative reference for WinISD's file formats — `.wdr` (Part 1) and `.wpr` (Part 2).**
 
 > ## PROVENANCE — THIS DOCUMENT IS OUR OWN RESEARCH
 >
 > **Everything here was reverse-engineered by us** — from observing WinISD Pro's behaviour,
-> reading `.wdr` files it wrote, and inspecting ASCII strings in `winisd.exe`. **It is NOT
-> official documentation, NOT derived from WinISD source, and NOT independently verified by
-> any third party.** "Authoritative" above means _this is the one place we state our
+> reading `.wdr`/`.wpr` files it wrote, and inspecting ASCII strings in `winisd.exe`. **It is
+> NOT official documentation, NOT derived from WinISD source, and NOT independently verified
+> by any third party.** "Authoritative" above means _this is the one place we state our
 > understanding_, not _this has been confirmed by someone else_.
 >
 > Four consequences a reader must hold on to:
@@ -20,14 +20,16 @@
 > 2. **Confidence varies per row and is stated per row.** Some facts carry an empirical
 >    verification date; others are marked "assumption", "inferred", or "exact formula
 >    unknown". **An unmarked claim is observed-but-unproven, not fact.**
-> 3. **WinISD cannot be driven automatically** — a Windows GUI with no CLI and no API. Every
->    observation here was made BY HAND, one driver at a time, in a dated session. That is the
->    ceiling on how much of this can ever be confirmed, and why the per-row dates matter.
->    Automating it would mean driving the `.exe` UI (Wine + input automation, or a Windows VM
->    with pywinauto/AutoHotkey) — a real project, not a test harness we have.
-> 4. **Where WinISD deviates from textbook acoustics, the `.wdr` must match WINISD.** It is
->    the consumer. This document records what WinISD DOES, which is not always what the
+> 3. **WinISD CAN now be driven automatically** — a wine-based harness
+>    (`winisd_research/WINE_HARNESS.md`, `lib/wine_control.py`) runs the real `.exe` under
+>    Wine and drives it with real input events, so a growing share of this document's facts
+>    are machine-verified, not hand-observed. Rows without a harness citation are still from
+>    earlier by-hand sessions; the per-row dates and citations distinguish the two.
+> 4. **Where WinISD deviates from textbook acoustics, the file format must match WINISD.** It
+>    is the consumer. This document records what WinISD DOES, which is not always what the
 >    theory says it should do.
+
+# Part 1 — `.wdr` (driver files)
 
 ## 1. File format
 
@@ -162,10 +164,10 @@ How much air the cone moves. `Dia` and `Xlim` are the two fields the UI cannot r
 
 Two first-party sources, and they agree:
 
-- `research/winisd/versions.txt`, **0.50alpha3 [01.01.2002]**, under _Fixes_:
+- `docs/winisd_helpfiles/versions.txt`, **0.50alpha3 [01.01.2002]**, under _Fixes_:
   _"Tiny driver parameter window: "dia" replaced by Dd."_ That is the ONLY mention of either
   `dia` or `Dd` anywhere in the changelog.
-- `research/winisd/help/thielesmall.html` glosses **`Dd` = "Diameter of Diaphragm"** and,
+- `docs/winisd_helpfiles/help/thielesmall.html` glosses **`Dd` = "Diameter of Diaphragm"** and,
   separately, **`VCd` = "Voice coil diameter."**
 
 So `dia` → `Dd` is a diaphragm-diameter field being renamed, which is what "dia" is short for.
@@ -203,7 +205,7 @@ control. `Xlim` is simply absent from the list of keys the save routine writes.
 **Xlim save bug:** `s-xlim-123.wdr` (Xlim set to 123, then saved) contains no `Xlim=` line and
 every numeric line still `0`, with slot 11 = `E`. Compare `s-fs.wdr`, the same experiment on a
 field that works: `Fs=123` written AND slot 2 = `E`. The `.wpr` behaves the same way —
-`docs/winisd/sample_project_Epique15_-_pr.wpr` has no `Xlim=` key in its `[Driver]` section
+`docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr` has no `Xlim=` key in its `[Driver]` section
 either, though that sample's slot 11 is `N`, so it is not a positive test. Verified 2026-08-16.
 
 ### <a id="grp-coilgap"></a>3.7 Voice coil and gap geometry
@@ -1144,7 +1146,7 @@ both for editing on the driver, saves what is typed, and MARKS IT AS ENTERED.
 `s-roo-set400-and-c-set2.wdr` states `c=400` and `roo=2` with **ParState slots 48 and 49 = `E`**
 — every other file in the corpus ends `CC`. So the default pair is WinISD's own computation
 from its environment defaults, and a typed value overrides it as a stated fact. The `.wpr`
-agrees: in `docs/winisd/sample_project_Epique15_-_pr.wpr`
+agrees: in `docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr`
 they appear at lines 53-54, **inside the `[Driver]` section**, not in `[ProjectInfo]`,
 `[SimulatorOptions]` or any other project-level section.
 
@@ -1318,5 +1320,114 @@ order (source: `usingwinisd/newdriver.html`):
 4. Hc + Hg + Pe. If Hc/Hg unavailable, enter Xmax directly.
 5. numVC — number of voice coils.
 6. Correct Znom if necessary.
+
+# Part 2 — `.wpr` (project files)
+
+Confirmed so far, machine-verified via the wine harness (`winisd_research/lib/wine_control.py`,
+`lib/wdr.py`) — this section grows as more of `.wpr` is investigated; it is intentionally not
+a full field enumeration yet.
+
+## 11. `[Box]` section — project-level environment
+
+| Field | Unit / type | Notes |
+| --- | --- | --- |
+| `T`   | K       | Ambient temperature. Project tab's own T/RH/AP editor, distinct from the app-level Options dialog (§13). |
+| `phi` | fraction, 0.0–1.0 | Relative humidity, stored as a FRACTION, not a percentage. `phi=0.3` is 30%. Confirmed 2026-08-19: writing `phi=30.0` (percent) into the file made the Project tab's RH field display `3000.0000` — WinISD's own reader multiplies the stored fraction by 100 for display, so a percent value written raw reads back 100× too large. `lib/wdr.py`'s `DEFAULT_BOX` already has this right (`phi=0.3`); the bug was in ad-hoc probe scripts passing `phi=30.0`, not the library. |
+| `p`   | Pa      | Static air pressure. |
+
+openisd's own `.wpr` writer already gets this right — `packages/ui/src/logic/wprMapping.ts:69`:
+"a PERCENTAGE here; `toWpr` does the single conversion to WinISD's `phi` fraction." UI-side
+humidity is a percentage throughout; the percent→fraction conversion happens once, at the
+`.wpr` write boundary.
+
+## 12. How a driver's `c`/`roo` resolve — the complete rule
+
+Machine-verified 2026-08-20 with four mutually distinct marker values (driver-in-`.wdr`,
+driver-in-`.wpr`, app-level Options, project-level Project tab), 12 cells, every observation
+matching exactly one source. Raw evidence: `winisd_research/runs/` (marker_run, blank_run;
+scripts `/tmp/winisd_probe_c4/run_matrix.py`, `run_blank.py`).
+
+```
+p_app        = app-level Options pressure
+c_app        = app-level Options live-computed speed of sound
+roo_app      = app-level Options live-computed density
+
+c   = driver.c                          if the driver's own c is present
+      else sqrt(GAMMA * p_app / driver.roo)   if the driver's own roo is present
+      else c_app
+
+roo = driver.roo                        if the driver's own roo is present
+      else roo_app
+```
+
+**Every branch is either STATED (driver's own value) or CALCULATED (from `roo`+pressure, or
+the app-level live compute) — there is no branch where WinISD falls back to a frozen
+literal.** Even the factory-settings result (`343.68`) is a live computation landing on that
+number, not a stored constant — `c_app`/`roo_app` are read off the Options dialog's own
+live-computed labels, which recompute from T/RH/AP every time. WinISD has no concept of a
+frozen speed-of-sound constant anywhere in this rule.
+
+- **The project-level T/RH/AP (`[Box]` `T`/`phi`/`p`) is consumed by NOTHING in this rule.**
+  The Project tab shows its own live-computed `c`/`roo` from those values, but they never
+  reach a driver's `c`/`roo`, present or absent, either entry path. Confirmed inert across
+  all 12 cells.
+- **Entry path is irrelevant**: a driver loaded inside a project and a driver loaded through
+  Manage Drivers (standalone) resolve identically.
+- **Interactive blanking is order-dependent (a WinISD quirk, do not replicate):** `c` is
+  re-derived only at the moment the `c` field itself is blanked, using whatever `roo` holds
+  at that instant. Blanking `roo` afterwards does NOT refresh `c`, leaving a pair that no
+  longer satisfies `c = √(γp/roo)`. Blanking `roo` never triggers any recompute of `roo`
+  from `c` — it drops straight to `roo_app`.
+
+Observed truth table (markers: driver `.wdr` c=500.12/roo=1.5, driver-in-`.wpr`
+c=700.25/roo=2.5, app 305 K/31 %/103000 Pa → live 351.05/1.17014, project 302 K/32 %/99000 Pa
+→ live 349.23):
+
+| driver c | driver roo | observed c | observed roo | source of c |
+| --- | --- | --- | --- | --- |
+| set | set | driver's own | driver's own | driver |
+| set | – | driver's own | 1.17014 | driver / app density |
+| – | set | √(γ·p_app/roo) | driver's own | recompute at APP pressure |
+| – | – | 351.05 | 1.17014 | app live pair |
+
+Identical for both entry paths; the project's 349.23 never appeared in any cell.
+
+**The resolved `c`/`roo` are consumed, not just displayed.** Machine-verified 2026-08-20,
+three independent readouts, two identical drivers differing only in `roo` (1.5 vs 2.5):
+
+| readout | roo=1.5 | roo=2.5 |
+| --- | --- | --- |
+| `SPLmaxLF` (derived driver field) | 85.87 | 90.30 |
+| `Vas` re-derived after blanking (editor, then committed) | 0.0654 | 0.0304 |
+| `Fr` (the SIMULATION's sealed-box Fsc), with that re-derived `Vas` | 216.13 | 166.39 |
+
+So the driver's `roo` feeds the derived driver fields directly, and reaches the simulation
+at least through the derived `Vas`. Consistent with the earlier `env_sample7.wpr`
+measurement (`roo=0.9` used verbatim by `SPLmaxLF`) and §3's note that `no`/`SPL` reproduce
+from the stored pair. The pair is a save-time snapshot of the app-level environment AND a
+live input — not merely a record of measurement conditions.
+
+One scoping note: with `Vas` STORED, `Fr` is `roo`-insensitive by algebra
+(`Fsc = Fs·√(1+Vas/Vb)`, `ρc²` cancels through the stored `Vas`) — confirmed identical to 15
+digits. So the sim's `roo`-dependence observed above flows through the derived fields;
+whether the sim ALSO reads `roo` directly anywhere `Vas` doesn't mediate (e.g. the SPL
+reference level of the plotted curves) remains unverifiable by text channels — the plot
+canvas exposes none (WINE_HARNESS.md).
+
+A `.wpr` whose `[Driver]` block lacks `Vas` entirely crashes WinISD at load (`c000008e`,
+the sparse-driver crash class) — `Vas` must be present in a project file even though the
+editor can re-derive it interactively.
+
+## 13. App-level Options — NOT part of the `.wpr` file
+
+WinISD has a separate, global "Options" dialog (Environment T/RH/AP) that is NOT written into
+any `.wpr` — it persists in the app's own config, independent of any project, and per §12 is
+the ONLY environment source a driver's blank `c`/`roo` ever reads. Distinct from `[Box]`'s
+per-project T/RH/AP (§11), which feeds the Project tab's own readouts and nothing else.
+
+The New Driver path (Manage Drivers opened with no file loaded) follows the same rule — a
+fresh driver has no `c`/`roo` of its own, so it shows the app-level live pair. Machine-verified
+2026-08-20 (app at 305 K/31 %/103000 Pa → fresh driver reads `351.05`/`1.17014`, the app's own
+live values exactly).
 
 **Minimum viable entry** (basic graphs only): Qts + Vas + Fs.

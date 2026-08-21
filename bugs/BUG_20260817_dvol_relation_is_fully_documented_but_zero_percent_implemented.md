@@ -5,7 +5,7 @@ OPEN
 
 ## Symptom
 
-`docs/design/WDR_SCHEMA.md` §3.10.1 documents WinISD's `DVol` relation in full — the truncated
+`docs/design/WINISD_SCHEMA.md` §3.10.1 documents WinISD's `DVol` relation in full — the truncated
 cone plus magnet cylinder, the forward form, and all four algebraically exact solve directions
 (relation 25). None of it exists in the engine. A driver missing exactly one of `DVol`, `Depth`,
 `MagDepth`, `Magnet` — the case WinISD fills in automatically — stays blank in openisd.
@@ -62,5 +62,5 @@ Not applied — no ruling requested yet. Implementing needs:
 
 Once implemented: a driver with `Dd`, `Vcd`, `Depth`, `Magnet` present and `MagDepth` blank
 should derive `MagDepth`; the reverse (all four present, `DVol` blank) should derive `DVol` —
-the WDR_SCHEMA.md §3.10.1 forward form is the value to check against, algebraically exact, not a
+the WINISD_SCHEMA.md §3.10.1 forward form is the value to check against, algebraically exact, not a
 fit.

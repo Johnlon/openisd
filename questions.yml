@@ -1,5 +1,5 @@
 prefix: QO
-next: 61
+next: 62
 questions:
 - id: QO1
   title: UI TODO List
@@ -1150,7 +1150,7 @@ questions:
 
       D3 fLe SCALE INVERTED — FIXED. NumInput renders display = SI x scale (NumInput.vue toDisp), and
       .wdr stores fLe in HERTZ (docs/design/WDR_SCHEMA.md, fLe row) while WinISD shows kHz
-      (docs/winisd/edit_driver_pg2_parameters.png). :scale="1000" was therefore out by 1e6. Now
+      (docs/winisd_screenshots/edit_driver_pg2_parameters.png). :scale="1000" was therefore out by 1e6. Now
       :scale="1e-3" with :precision="precision('fLe')".
       Test: driver-editor-units.test.ts :: "fLe renders hertz as kilohertz" (1234 Hz -> 1.234 kHz)
       and the general rule "every dimensional field converts SI to the unit it is labelled with",
@@ -1162,8 +1162,8 @@ questions:
       (packages/winisd/src/driver.ts:301-302); openisdToWdr declares default 1
       (packages/winisd/src/native/openisdToWdr.ts:58); DriverDefineModal documents "1 = parallel,
       2 = series"; the sample file carries VCCon=1
-      (docs/winisd/sample_drive_Dayton_Audio_Epique_E150HE-44.wdr:46); and WinISD's own Connection
-      dropdown reads "Parallel" on a blank driver (docs/winisd/edit_driver_pg2_parameters.png).
+      (docs/winisd_screenshots/sample_drive_Dayton_Audio_Epique_E150HE-44.wdr:46); and WinISD's own Connection
+      dropdown reads "Parallel" on a blank driver (docs/winisd_screenshots/edit_driver_pg2_parameters.png).
       The 0=Parallel/1=Series mapping QO15 describes is not in the file or in its git history.
       BUT the fresh-authored .wdr exporter wrote `VCCon=' + (raw.VCCon || 2)` — SERIES — so a driver
       the editor showed as Parallel exported as Series. packages/winisd/src/classic/wdr.ts:32, live
@@ -1175,7 +1175,7 @@ questions:
       D5 Voicecoils BLANK — FIXED in the derivation, which is where the missing default was.
       fromWdr defaulted numVC to 1 only for a .wdr that omits the key; every other construction path
       (fromJSON, authored in-app) left it absent, so the editor rendered N/blank where WinISD shows 1
-      (docs/winisd/edit_driver_pg2_parameters.png). Added `if (r.numVC == null) r.numVC = 1;` to
+      (docs/winisd_screenshots/edit_driver_pg2_parameters.png). Added `if (r.numVC == null) r.numVC = 1;` to
       Driver#derive, beside the existing c/roo autofills — same mechanism, so it reads C (Calculated),
       not E: the app supplied it, not a human. An entered value still overrides and marks E.
       Tests: packages/winisd/test/driver-derive.test.ts :: "numVC autofills to 1 as C on every
@@ -1184,7 +1184,7 @@ questions:
       coil count".
 
       D6 DIMENSIONS TAB UNITS — FIXED, and QO15's premise about WinISD was wrong. Primary evidence
-      (docs/winisd/edit_driver_pg4_dimensions.png, the real WinISD Dimensions tab) shows WinISD
+      (docs/winisd_screenshots/edit_driver_pg4_dimensions.png, the real WinISD Dimensions tab) shows WinISD
       displaying Depth/Magnet Depth/Magnet/Basket/Outer/VCd in **m** at 3 dp, Thick in **in**, Dvol in
       **in^3** — not mm. What makes mm correct anyway is that those unit labels CYCLE in WinISD:
       docs/research/WINISD_PARITY.md's unit-cycle inventory lists m/mm/cm/in/ft/yd for every one of
@@ -2179,9 +2179,9 @@ questions:
 
       Fpr LABEL + THE Fs/SYSTEM-TUNING DISCREPANCY (resolved with primary evidence, NOT assumed)
       - They are DIFFERENT quantities, and we were NOT conflating them. Evidence, same WinISD project
-        "Epique15 - pr": docs/winisd/view_3_passive_radiator.png shows PR-screen Fs = 30.00 Hz with NO
+        "Epique15 - pr": docs/winisd_screenshots/view_3_passive_radiator.png shows PR-screen Fs = 30.00 Hz with NO
         box volume anywhere on that screen (and "Fs (with added mass)" = 30.00 at 0 g, confirming it is
-        the radiator's own free-air resonance); docs/winisd/view_2_box.png shows Box-screen Fh = 40.25 Hz
+        the radiator's own free-air resonance); docs/winisd_screenshots/view_2_box.png shows Box-screen Fh = 40.25 Hz
         for the SAME project. Two numbers, two screens, two labels.
       - So Fpr was applied ONLY to the radiator's own free-air resonance, which is what our PR pane
         already showed under WinISD's colliding "Fs": OriginalShell.vue "Fs"->"Fpr" and
@@ -2204,7 +2204,7 @@ questions:
       TARGET TUNING ON THE VENTS PANE (QO11)
       - Added, editable, labelled "Target Tuning Freq", same state.P.Fb, same E/C state and same setter
         as the Box tab. Two-way sync tested both directions. Vents hint updated ("editable in either
-        place"). WinISD has no tuning field on its Vents screen (docs/winisd/view_3_ported.png) — this
+        place"). WinISD has no tuning field on its Vents screen (docs/winisd_screenshots/view_3_ported.png) — this
         is deliberately ours.
       - It sits in the THIRD column, not beside the config fields: the pane's height is set by its
         tallest column and a 4th row there overflowed the panel by 19 px (caught by
@@ -2521,9 +2521,9 @@ questions:
         - docs/design/WDR_SCHEMA.md:169 states the .wdr stores `no` as a FRACTION and WinISD
           DISPLAYS it as a percent ("0.000754 = 0.0754%"). That makes (3)'s percent reading the
           odd one out.
-        - docs/winisd/edit_driver_pg2_parameters.png (real WinISD Driver editor) shows `no` at
+        - docs/winisd_screenshots/edit_driver_pg2_parameters.png (real WinISD Driver editor) shows `no` at
           4 dp under a "%" label and SPL at 2 dp under "dB", confirming the display side only.
-        - docs/winisd/sample_drive_Dayton_Audio_Epique_E150HE-44.wdr carries no=0 and SPL=0, so no
+        - docs/winisd_screenshots/sample_drive_Dayton_Audio_Epique_E150HE-44.wdr carries no=0 and SPL=0, so no
           sample in the tree pins the constant.
 
       WHAT STILL NEEDS MEASURING, AND HOW:
@@ -4279,7 +4279,7 @@ questions:
       Read-only sweep, 2026-08-13. Report: docs/research/UNIT_BOUNDARY_AUDIT.md (indexed in
       AGENTS.md's task-type table). Every field's four units — .wdr/.wpr file unit, engine/store SI,
       panel display via :scale or the units.ts group, and WinISD 0.7.0.950's own displayed unit from
-      docs/winisd/*.png — tabulated with the oracle read for each row.
+      docs/winisd_screenshots/*.png — tabulated with the oracle read for each row.
 
       COUNTS
         116 fields swept (56 .wdr keys + 27 .wpr keys + 41 store/panel/chart/record rows)
@@ -4294,7 +4294,7 @@ questions:
       LITRES into a cubic-metre field: 1000x too large.  engine/src/formulas.ts:15 prVas() ends
       `* 1000`; ui/src/logic/wprMapping.ts:101 passes that straight to winisd/src/classic/wpr.ts:197.
       Oracle: sample_project_Epique15_-_pr.wpr:151 `Vas=0.0048` which WinISD's own PR pane renders as
-      `4.80 l` (docs/winisd/view_3_passive_radiator.png) — so the file is m3.  Every other key in that
+      `4.80 l` (docs/winisd_screenshots/view_3_passive_radiator.png) — so the file is m3.  Every other key in that
       section IS SI (Sd=0.0095 -> `95.0 cm^2`, Xmax=19 -> `19000.0 mm`), so this is not a section
       convention.  The default design exports `Vas=20.074` where WinISD needs `0.020074`.
       Why nothing caught it: winisd/test/classic/wpr.test.ts:130 hand-feeds `Vas: 0.0048`, proving the
@@ -5203,14 +5203,14 @@ questions:
       declared requirement and is withdrawn. The agent's separate objection — that c/roo are
       environment constants and so do not belong on a driver — was WRONG on the facts: WinISD offers
       both for editing at driver level and saves them, and the .wpr puts them inside its [Driver]
-      section (docs/winisd/sample_project_Epique15_-_pr.wpr lines 53-54), not any project-level one.
+      section (docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr lines 53-54), not any project-level one.
 
       Requirement now stated in ARCHITECTURE.md ("OpenISDDriver is a SUPERSET of a .wdr") and gated by
       packages/winisd/test/wdr-model-coverage.test.ts, which fails on any .wdr key with no home and
       carries NO exemption list.
 
       STILL OPEN, raised separately: what c/roo MEAN per-driver. The plausible reading is the
-      conditions that driver was measured at, but nothing in docs/winisd/ states it. Recorded in
+      conditions that driver was measured at, but nothing in docs/winisd_screenshots/ states it. Recorded in
       drivers/sample/PARSTATE-FINDINGS.md as a hypothesis, explicitly not resolved.
 - id: QO49
   title: 'Gloss import provenance: a ParState-less .wdr imports a carried Gloss=0 as ENTERED, blocking
@@ -5401,9 +5401,9 @@ questions:
       VERIFIED against the reference captures, not assumed: WinISD itself spells the same physical
       dimension two ways in the same editor.
 
-          docs/winisd/edit_driver_pg2_parameters.png            Rms   -> Ns/m
-          docs/winisd/edit_driver_pg3_advanced_parameters.png   Rme   -> Ns/m
-          docs/winisd/edit_driver_pg3_advanced_parameters.png   Mcost -> kg/s
+          docs/winisd_screenshots/edit_driver_pg2_parameters.png            Rms   -> Ns/m
+          docs/winisd_screenshots/edit_driver_pg3_advanced_parameters.png   Rme   -> Ns/m
+          docs/winisd_screenshots/edit_driver_pg3_advanced_parameters.png   Mcost -> kg/s
 
       1 N.s/m == 1 kg/s exactly, so nothing numeric is wrong and no conversion is involved:
       `Rms` is `:scale="1"` and `Mcost` has no scale at all. openisd reproduces WinISD's text
@@ -5534,9 +5534,20 @@ questions:
 - id: QO54
   title: 'P1S4 design decision: state.P box/vent/PR fields become accessor properties over OpenISDProject
     -'
-  status: open
+  status: decided
   raised: '2026-08-17'
   body: ''
+  answer:
+    at: '2026-08-20'
+    text: |-
+      2026-08-20: OpenISDProject becomes a class facade over _OpenISDProjectJson, mirroring
+      OpenISDDriver (private constructor, static factories fromRecord/fromWinISDProject/empty).
+      Accessor methods/sub-objects for box, PR, etc. all wrap the SAME underlying _OpenISDProjectJson
+      -- no clones, no second copy of the data. Verified: _OpenISDProjectJson.driver is already typed
+      _OpenISDDriverJson (openisdProject.ts:203) -- identical shape to a standalone .wdr record, so
+      the project's driver accessor can call OpenISDDriver.fromRecord(this.#json.driver) directly,
+      no conversion needed. Tracked in docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md as its own
+      objective, larger than and prerequisite-adjacent to the QO61 useDesignIO.ts fix.
 - id: QO55
   title: WinISDDriver should be constructed purely by setter calls fed from OpenISDDriver getter reads
     -- no internal deriveOpenISDFields()/ParState/Xlim/DQ-comment logic of its own
@@ -5676,3 +5687,125 @@ questions:
       @openisd/engine), STORAGE (store.ts — persistent Vue-reactive design state), and io
       (serialization/file boundary — @openisd/winisd, useDesignIO.ts). UI LOGIC (renamed from plain
       LOGIC) never reaches store.ts, domain, or io directly — only through SERVICE.
+  - at: '2026-08-20'
+    text: |-
+      2026-08-21 — DESIGNED. Full plan: docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md (8 objectives).
+      Rulings this session, all binding:
+      - ManagedX may access only X's API, never _XJson. ManagedX clones X by asking X for a copy of
+        itself, never by touching JSON. OID/OIP never clone FOR the layers — they know nothing of layers.
+      - The UI must NEVER talk to a JSON shape. No exceptions.
+      - Default-deny is absolute: absent/empty/missing/broken allow-list = prohibited. Only John's
+        explicit allow grants access. All transitional grants revoked 2026-08-20 (store.ts removed
+        from both PrivateAllow lists; _OpenISDProjectJsonPrivateAllow now empty).
+      - DELETE state.P ENTIRELY. It is a parallel copy of project state: Ql/Qa/Qp -> box,
+        tempK/humidityPct/pressurePa/ignore -> environment, nDrivers/wiring/Pin/Rs/rgAtDriverSide ->
+        signal, the 7 sim options -> simOptions, fmin/fmax/N -> sweep, filters -> filters,
+        entered -> target, the 19 box/vent/PR accessors -> box, state.project -> meta.
+      - Delete ALL 37 delegates (18 functions + 19 state.P accessor properties). Callers talk DIRECT
+        to ManagedOpenISDProject. No convenience wrappers survive.
+      - View state goes to logic/presentationState.ts; share-link/browser-history to logic/urlAppState.ts.
+        Both already on architecture.test.ts's APPROVED list, marked "not built yet".
+      - Verified inventory: store.ts has 50 exports (not 44). 10 have ZERO callers. state has 27
+        importers. OriginalShell.vue alone imports 21 store names.
+      - driverSource DELETED (dead, undeclared in AppState). prMode to be deleted with state.P (written
+        3x, read never, and typed bare `string`). Frc stubs at the domain boundary — its editable input
+        renders only for bandpass6/abc, both unbuilt (QO44).
+      - A domain object's own methods protect its integrity: _projectToPersist cancels the what-if
+        INSIDE the call so no caller can forget. Persistence asking MOIP for data is what triggers it.
+      Bugs recorded: syncedp_computes_eg_inside_the_store, syncedp_filters_deep_copy_is_a_reactivity_
+      workaround (PARKED with the wider reactivity discussion), readcell_builds_and_discards_a_whole_
+      driver_to_read_one_field, drivers_bundle_ships_a_shape_openisddriver_cannot_read,
+      model_depends_on_winisd_and_re_exports_its_cellstate.
+- id: QO61
+  title: useDesignIO.ts mixes file I/O, .wpr/.wdr construction, and physics calculation in one composable
+    - architectural review needed
+  status: open
+  raised: '2026-08-20'
+  body: |-
+    johnl, mid-session: "useDesignIO should probably be deleted because parseWprToState is a
+    horror story" and "recall my comments that this class looks like a horror show with all the
+    calcs and logic — seems completely inappropriate and it's the kind of class I'd trash and
+    then figure out how to do properly — what does useDesignIO mean anyway — horrible."
+    packages/ui/src/logic/useDesignIO.ts (369 lines) is named as file-I/O (Save/Save As/export/
+    import) but contains inline physics derivation (found and fixed in the same session: a
+    truncated local RHO/C computing passive-radiator Cms directly inside parseWprToState,
+    duplicating what packages/engine/src/formulas.ts's prVas already does properly). Not
+    reviewed end-to-end for further instances of the same pattern, nor redesigned. Needs a
+    dedicated pass: what parseWprToState actually does, what belongs in @openisd/engine or
+    @openisd/winisd instead of a UI composable, and whether useDesignIO survives as a thin I/O
+    wrapper or gets split.
+  notes:
+  - at: '2026-08-20'
+    text: |-
+      2026-08-21 — DESIGNED, and subsumed. This is objective 6 of
+      docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md; the QO61-specific detail is
+      docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md, now headed with a pointer saying QO60's plan is
+      authoritative where the two disagree.
+
+      Verdict: NOT a wholesale delete. useDesignIO.ts (369 lines) splits three ways —
+      - inline PR physics (Vas->Cms, Fs->Mmd, Qms->Rms at :255-262) to @openisd/engine, reached ONLY
+        through a getter on OpenISDProject's PR accessor that does entered-override -> C-fallback
+        (John's ruling: "the calcs MUST be implemented in the core engine - nowhere else permitted...
+        exposed via the appropriate domain object via a getter that implements manual override
+        handling with C fallback to the calc"). Same fix closes
+        bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_outside_engine.md, which is marked
+        DEFERRED to this plan.
+      - .wpr parsing (:179-316) to @openisd/winisd, RAW only — box-type comes back as WinISD's own raw
+        code, never interpreted there.
+      - the rest shrinks to a FileIO service and is renamed (createFileIO.ts).
+
+      SECOND DUPLICATE SITE the original review missed: the same three PR formulas are also inlined in
+      packages/ui/src/logic/prWinIsdFields.ts (from QO38's layering pass). Both files must move to the
+      getter, not just useDesignIO.ts.
+
+      Box-type mapping is duplicated THREE times (wpr.ts, wprMapping.ts, useDesignIO.ts) — consolidates
+      to ONE function in @openisd/model, imported and called DIRECTLY at each site, no wrapper. Both
+      sides get named type-safe enums: a discriminator is never a plain int (John's ruling 2026-08-20).
+
+      FLAGGED, unresolved: objective 3's FileIO method shape does not match ARCHITECTURE.md:628's
+      declared FileIO interface (6 generic readRecord/writeRecord/readProject/... methods vs the 8
+      format-specific exportWdr/exportWpr/... proposed). Resolve before the rename.
+- id: QO62
+  title: 29 bundled .wdr files are not UTF-8 - what should the reader do, and what does WinISD actually
+    write?
+  status: open
+  raised: '2026-08-21'
+  body: ''
+  notes:
+  - at: '2026-08-21'
+    text: |-
+      29 of 1626 bundled `.wdr` files (all in `drivers/winisd/`, the third-party set — NOT the
+      WinISD-written oracles in `drivers/sample/winisd/`) are not valid UTF-8 even once the 0xA4
+      newline sentinels are removed. `wdrBytesToText` decodes UTF-8, so those files' non-ASCII
+      characters become replacement characters on import.
+
+      WHAT THE BYTES ACTUALLY SHOW (measured 2026-08-21, not assumed):
+      Every non-ASCII byte in those 29 files, excluding the 0xA4 sentinel:
+        0x95 x52   latin-1: undefined C1 control   cp1252: •
+        0xae x13   latin-1: ®                      cp1252: ®   (identical)
+        0xb1 x3    latin-1: ±                      cp1252: ±   (identical)
+        0xbd x1    latin-1: ½                      cp1252: ½   (identical)
+        0xe6 x1 / 0xff x2 — appear in 'reproductio ÿÿ h a æ ...n of low frequencies',
+                            which is garbage in EVERY encoding; the source data looks damaged.
+
+      So only ONE byte, 0x95, discriminates cp1252 from latin-1, and only in one address line
+      ('RNL Audio • 5035 NW 37th Avenue • Fort Lauderdale'), where a bullet reads as intended
+      text and a C1 control does not. That is suggestive, NOT proof. The claim "these were
+      written as CP1252" is NOT established.
+
+      WHAT IS ESTABLISHED: the bytes are single-byte high-Latin and are definitely not UTF-8.
+
+      WHAT IS NOT KNOWN, and is the more important half: what encoding does WinISD ITSELF write?
+      `drivers/sample/winisd/driver-with-unicode-text.wdr` (WinISD-written) holds € as UTF-8
+      E2 82 AC and 漢字 as UTF-8 — so WinISD writes UTF-8 there. The 29 files are a third-party
+      database export and say nothing about WinISD's own behaviour.
+
+      THE DECISION NEEDED:
+      (a) fall back to CP1252 when the UTF-8 decode fails, per file; or
+      (b) keep the decode strict and surface a damaged-file import warning naming the byte offset,
+          treating the 29 files as data to FIX at source; or
+      (c) something else.
+
+      BLOCKED ON: the wine probe of how WinISD encodes a character whose UTF-8 carries 0xA4 as a
+      continuation byte (¤ = C2 A4). If WinISD writes a bare 0xA4 for ¤, the format is genuinely
+      ambiguous and this whole area needs rethinking, not just a fallback.

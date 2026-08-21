@@ -38,7 +38,7 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
   },
   // Matches driver.ts's actual setVal('Fs', ...) sites, in their file/evaluation order
   // (lines 167, 181, 188, 229) -- NOT WinISD's own priority order (11 > 14 > 2 > 4 > 12, see
-  // docs/design/WDR_SCHEMA.md relation 11). That mismatch is a KNOWN BUG, already ruled on
+  // docs/design/WINISD_SCHEMA.md relation 11). That mismatch is a KNOWN BUG, already ruled on
   // (QO50: engine must match WinISD's five routes), not an open design question -- see
   // bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md.
   // This list must be updated in the SAME change that fixes driver.ts, not before.
@@ -185,7 +185,7 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
  * Rendered `<label>` text → the field key everything else in this module speaks. The editor
  * identifies a clicked field by reading its label, so a label edit that misses this table
  * silently kills provenance inspection for that field. Full names are WinISD's own
- * (research/winisd/help/thielesmall.html).
+ * (docs/winisd_helpfiles/help/thielesmall.html).
  */
 export const LABEL_TO_FIELD_KEY: Record<string, string> = {
   Qes: 'Qes', Qms: 'Qms', Qts: 'Qts', Fs: 'Fs', Vas: 'Vas', Mms: 'Mms', Cms: 'Cms', Rms: 'Rms', Re: 'Re', BL: 'BL',

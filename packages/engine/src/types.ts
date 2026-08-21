@@ -136,8 +136,8 @@ export interface SweepParams {
   /**
    * Opt in to WinISD's behaviour of storing humidity and pressure but never reading them
    * (ledger QO7). Absent/false — openisd's default — derives ρ and c from T, RH and p, and
-   * thence K in `SPL = K + 10·log₁₀(η₀)`. True pins ρ and c to the `RHO`/`C` constants,
-   * temperature-scaled. Worth about 0.077 dB of SPL at 30 °C. See air.ts.
+   * thence K in `SPL = K + 10·log₁₀(η₀)`. True computes ρ and c live from temperature alone,
+   * at the reference humidity/pressure. Worth about 0.077 dB of SPL at 30 °C. See air.ts.
    */
   ignoreHumidityAndPressure?: boolean;
   // Driver-side added mass to cone (kg) — raises Mms, lowers Fs. 0/absent = no-op. docs/research/WINISD_PARITY.md.

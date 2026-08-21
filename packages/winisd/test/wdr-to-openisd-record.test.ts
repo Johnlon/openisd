@@ -9,7 +9,7 @@
  * Seam: `WinISDDriver.fromWdrIni(text)` → `OpenISDDriver.fromWinISDDriver(wdr)`.
  *
  * 🔒 ORACLE: `drivers/sample/winisd/inconsistency-test-qts-C.wdr` is a genuine WinISD save
- * (WDR_SCHEMA.md consistency-check experiment 2026-06-28) that states `Qts=0.500` but marks
+ * (WINISD_SCHEMA.md consistency-check experiment 2026-06-28) that states `Qts=0.500` but marks
  * ParState slot 14 `C` (WinISD computed it, not the human) — its own comment records the
  * correct value as "~0.358", i.e. Qes·Qms/(Qes+Qms) = 0.38·6.2/(0.38+6.2) = 0.3580547...
  */
@@ -19,7 +19,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WinISDDriver } from '../src/winisdDriver.js';
-import { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver, Provenance } from '@openisd/model';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WDR_TEXT = readFileSync(
@@ -29,7 +29,7 @@ const WDR_TEXT = readFileSync(
 
 describe('OpenISDDriver.fromWinISDDriver — provenance mapping (E -> _SpecEntry, C -> excluded, N -> absent)', () => {
   it('a cell marked E becomes a stated _SpecEntry with a manual reading, SI units preserved', () => {
-    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toJsonRecord();
     const fs = record.specs.woofer?.Fs;
     assert.ok(fs, 'Fs is E in the source file and must be carried');
     assert.equal(fs.origin, 'manual');
@@ -37,31 +37,31 @@ describe('OpenISDDriver.fromWinISDDriver — provenance mapping (E -> _SpecEntry
   });
 
   it('a cell marked C (WinISD-computed) is NOT written into the record as a stated _SpecEntry', () => {
-    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toJsonRecord();
     assert.equal(record.specs.woofer?.Qts, undefined,
       'Qts is C (WinISD computed 0.500 itself) — the record must not assert it as a fact');
   });
 
   it('a cell marked N is absent from the record', () => {
-    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toJsonRecord();
     assert.equal(record.specs.woofer?.fLe, undefined, 'fLe is N in the source file');
   });
 
-  it('round-trips through OpenISDDriver.fromRecord(): E fields read back with their stated value', () => {
-    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
-    const driver = OpenISDDriver.fromRecord(record);
+  it('round-trips through OpenISDDriver.fromJsonRecord(): E fields read back with their stated value', () => {
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toJsonRecord();
+    const driver = OpenISDDriver.fromJsonRecord(record);
 
-    assert.deepEqual(driver.cell('Fs'), { value: 38, state: 'E', origin: 'manual' });
-    assert.deepEqual(driver.cell('Re'), { value: 6.4, state: 'E', origin: 'manual' });
-    assert.deepEqual(driver.cell('Qes'), { value: 0.38, state: 'E', origin: 'manual' });
-    assert.deepEqual(driver.cell('Qms'), { value: 6.2, state: 'E', origin: 'manual' });
+    assert.deepEqual(driver.cell('Fs'), { value: 38, state: Provenance.Entered, origin: 'manual' });
+    assert.deepEqual(driver.cell('Re'), { value: 6.4, state: Provenance.Entered, origin: 'manual' });
+    assert.deepEqual(driver.cell('Qes'), { value: 0.38, state: Provenance.Entered, origin: 'manual' });
+    assert.deepEqual(driver.cell('Qms'), { value: 6.2, state: Provenance.Entered, origin: 'manual' });
   });
 
   it('the excluded C field is independently RE-DERIVED by OpenISDDriver, matching WinISD\'s own formula', () => {
-    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toRecord();
-    const driver = OpenISDDriver.fromRecord(record);
+    const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toJsonRecord();
+    const driver = OpenISDDriver.fromJsonRecord(record);
     const qts = driver.cell('Qts');
-    assert.equal(qts.state, 'C');
+    assert.equal(qts.state, Provenance.Calculated);
     assert.ok(qts.value != null && Math.abs(qts.value - 0.35805471124620064) < 1e-9,
       `Qts ${String(qts.value)} does not match Qes*Qms/(Qes+Qms)`);
   });
@@ -70,8 +70,8 @@ describe('OpenISDDriver.fromWinISDDriver — provenance mapping (E -> _SpecEntry
 describe('WinISDDriver.diffAgainst — a WinISD-stored C value that disagrees with the fresh derivation is flagged', () => {
   it('surfaces the stale Qts=0.500 (C) against the freshly-derived ~0.358 as a warn-level mismatch', () => {
     const sourceWdr = WinISDDriver.fromWdrIni(WDR_TEXT);
-    const record = OpenISDDriver.fromWinISDDriver(sourceWdr).toRecord();
-    const driver = OpenISDDriver.fromRecord(record);
+    const record = OpenISDDriver.fromWinISDDriver(sourceWdr).toJsonRecord();
+    const driver = OpenISDDriver.fromJsonRecord(record);
 
     const { value: derivedWdr, errors } = driver.toWinISDDriver();
     assert.ok(derivedWdr, `projection failed: ${JSON.stringify(errors)}`);

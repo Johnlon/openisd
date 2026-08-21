@@ -23,7 +23,7 @@ advertises a route NEITHER of them has. Only one row of seven — relation 11 �
 all three.
 
 **The ORDER differs too**, which matters because the first route whose inputs are all present
-wins (§4.3 of `WDR_SCHEMA.md`):
+wins (§4.3 of `WINISD_SCHEMA.md`):
 
 | try | WinISD | openisd engine |
 | --- | --- | --- |
@@ -111,8 +111,8 @@ They are four separate consumers of the same fact, and today all four disagree:
 | where | what it needs | state today |
 | --- | --- | --- |
 | engine `driver.ts` | the routes, in WinISD's order | 4 routes, wrong order, one route WinISD lacks |
-| `WDR_SCHEMA.md` §3 field table | every route for `Fs`, numbered in firing order | correct — generated from the measured engine |
-| `WDR_SCHEMA.md` §4.3 catalogue | the same, per relation | correct — same source |
+| `WINISD_SCHEMA.md` §3 field table | every route for `Fs`, numbered in firing order | correct — generated from the measured engine |
+| `WINISD_SCHEMA.md` §4.3 catalogue | the same, per relation | correct — same source |
 | provenance popup `provenance.ts` | the routes the ENGINE runs, in engine order | 2 routes, one of which nothing runs |
 
 The two documents are generated from `winisd_research/scripts/relation_routes.py`, so they are

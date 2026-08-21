@@ -1,14 +1,13 @@
 /**
  * `WinISDDriver` — the single class that knows the `.wdr` FILE FORMAT
  * (ARCHITECTURE.md §3 "`WinISDDriver` is solely a serialisation device"). It validates,
- * holds no live state, and derives nothing itself, and it names no other package —
- * `@openisd/model`'s `OpenISDDriver` is the ONE place that reads/writes this class
- * (`.toWinISDDriver()`/`OpenISDDriver.fromWinISDDriver()`), keeping this package a pure
- * `.wdr` FILE FORMAT layer with no knowledge of the app's own driver model.
+ * holds no live state, derives nothing itself, and names no other package. Callers reach IN;
+ * this class never reaches out, and knows nothing of whatever domain model produced the values
+ * it is handed.
  *
  * Two directions, both driven from OUTSIDE this class:
  *
- *  - EXPORT — a caller reads `OpenISDDriver` getters and feeds them to `build()`.
+ *  - EXPORT — a caller reads its own model's getters and feeds them to `build()`.
  *  - IMPORT — `fromWdrIni`. `.wdr` text populates a `WinISDDriver` with exactly what the file
  *    states — no derivation, no recompute. `diffAgainst` compares those as-read values
  *    against a second, independently-derived `WinISDDriver`, surfacing a mismatch as a
@@ -25,6 +24,7 @@
  */
 import type { DriverError } from '@openisd/engine';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from './parstate.js';
+import { WDR_NEWLINE_SENTINEL } from './wdrBytes.js';
 import type { CellState } from './parstate.js';
 
 /** One `.wdr` field: the text that will be written, and its provenance mark. */
@@ -93,6 +93,12 @@ function commentWithDq(base: string, dqLines: readonly string[]): string {
   return [base, ...dqLines].filter(l => l.length > 0).join('\n');
 }
 
+/** A string field's value as one PHYSICAL line: every newline becomes the sentinel the format
+ *  reserves for exactly this, so `Comment=` cannot break the line structure around it. */
+function oneLine(value: string): string {
+  return value.replace(/\r\n|\r|\n/g, WDR_NEWLINE_SENTINEL);
+}
+
 export class WinISDDriver {
   readonly #header: WdrHeader;
   readonly #cells: WdrCells;
@@ -103,11 +109,10 @@ export class WinISDDriver {
     this.#header = header;
     this.#cells = cells;
     this.#dqLines = dqLines;
-    // `OpenISDDriver.toWinISDDriver()` (the ONE production caller of `build()`) always
-    // supplies every `INI_ROWS` key via its own fill-loop, so a key missing here can only mean
-    // `OpenISDDriver` and this class have drifted out of sync about the .wdr key set — a real
-    // incompatibility bug (`wdr-model-coverage.test.ts` asserts this list is always empty in
-    // practice), not a normal absent-field case (that is `state: 'N'`, a PRESENT cell with no
+    // The production caller of `build()` supplies every `INI_ROWS` key via its own fill-loop,
+    // so a key missing here can only mean the caller and this class have drifted out of sync
+    // about the .wdr key set — a real incompatibility bug (`wdr-model-coverage.test.ts`
+    // asserts this list is always empty in practice), not a normal absent-field case (that is `state: 'N'`, a PRESENT cell with no
     // value). Computed at construction, not buried inside `toWdr()`, so it is visible the
     // instant a caller builds an incomplete `WinISDDriver`, whether or not `toWdr()` ever runs.
     this.#missingKeys = INI_ROWS.filter(key => !cells.has(key));
@@ -123,8 +128,8 @@ export class WinISDDriver {
 
   /** `.wdr` keys `build()` was never given a cell for at all — as opposed to a genuinely
    *  absent field (`state: 'N'`), which IS a cell. Empty in every real production path; a
-   *  non-empty list is a `WinISDDriver`/`OpenISDDriver` key-set drift a caller should surface,
-   *  not silently swallow — `toWdr()` still exports (writing `0` for each), it does not throw. */
+   *  non-empty list is a key-set drift between this class and its caller, which the caller
+   *  should surface, not silently swallow — `toWdr()` still exports (writing `0` for each), it does not throw. */
   missingKeys(): readonly string[] {
     return this.#missingKeys;
   }
@@ -158,7 +163,11 @@ export class WinISDDriver {
       // header fields — `s-xlim-123.wdr` carries `Comment=xlim set to 123 in UI but not
       // written ` with a trailing space WinISD wrote and reads back. Numeric parsing is
       // unaffected: `Number(' 0 ')` is 0.
-      const val = line.slice(i + 1);
+      // A newline embedded in a string field arrives as WDR_NEWLINE_SENTINEL (the file's
+      // single 0xA4 byte, re-expanded by `wdrBytesToText`). Decoding it HERE — per value,
+      // after the line split — is what keeps a comment's newlines from being mistaken for
+      // line structure while the file is being parsed.
+      const val = line.slice(i + 1).replaceAll(WDR_NEWLINE_SENTINEL, '\n');
       if (key === 'ParState') { parState = val; continue; }
       raw[key] = val;
     }
@@ -191,24 +200,25 @@ export class WinISDDriver {
   // ── Serialise ──────────────────────────────────────────────────────────────────────
 
   /** Render as `.wdr` text: the seven header lines, the 48 tracked keys in WinISD's own
-   *  order (each cell's value, or its WinISD default when the cell is absent), the 49-slot
-   *  ParState built from every cell's own state, and `[DQ]` lines appended to `Comment=`. */
+   *  order, the 49-slot ParState built from every cell's own state, and `[DQ]` lines appended
+   *  to `Comment=`. A key with no cell at all (`missingKeys()`) is written as `0` — a FILLER
+   *  so the row count stays right, not a WinISD default; its ParState slot reads `N`. */
   toWdr(): string {
     const h = this.#header;
     const lines: string[] = [
       '[Driver]',
-      'Brand=' + (h.brand ?? ''),
-      'Model=' + (h.model ?? ''),
-      'Manufacturer=' + (h.manufacturer ?? ''),
-      'ProvidedBy=' + (h.providedBy ?? ''),
-      'Comment=' + commentWithDq(h.comment ?? '', this.#dqLines),
-      'DateAdded=' + (h.dateAdded ?? ''),
-      'DateModified=' + (h.dateModified ?? ''),
+      'Brand=' + oneLine(h.brand ?? ''),
+      'Model=' + oneLine(h.model ?? ''),
+      'Manufacturer=' + oneLine(h.manufacturer ?? ''),
+      'ProvidedBy=' + oneLine(h.providedBy ?? ''),
+      'Comment=' + oneLine(commentWithDq(h.comment ?? '', this.#dqLines)),
+      'DateAdded=' + oneLine(h.dateAdded ?? ''),
+      'DateModified=' + oneLine(h.dateModified ?? ''),
     ];
     for (const key of INI_ROWS) {
-      // A key in `missingKeys()` still exports here — `0`, same as any other unset numeric
-      // field — rather than aborting the whole `.wdr`; see `missingKeys()`'s own doc for why
-      // that drift is reported, not thrown.
+      // A key in `missingKeys()` still exports here rather than aborting the whole `.wdr`;
+      // see `missingKeys()`'s own doc for why that drift is reported, not thrown. `0` is a
+      // filler to keep the 48 rows intact — the slot is marked `N`, so nothing reads it.
       lines.push(`${key}=${this.#cells.get(key)?.value ?? '0'}`);
     }
     // No `Xlim=` line: WinISD writes none, and `.wdr` has no extension mechanism to add one
@@ -239,8 +249,8 @@ export class WinISDDriver {
 
   /**
    * Compare THIS (as-read) instance's `E` (stated) AND `C` (WinISD's own calculated) values
-   * against `other`'s own value for the same key — `other` is normally
-   * `WinISDDriver.fromOpenISDDriver(driver)`, the independently-derived side. A mismatch
+   * against `other`'s own value for the same key — `other` is the independently-derived
+   * side, built by whoever owns the projection into this format. A mismatch
    * beyond the file's own float precision is reported, never silently overwritten. A key
    * this instance marked `N` (never in play) is not compared — there is nothing "as-read" to
    * check it against. Comparing `C` cells too, not just `E`, is what catches the case

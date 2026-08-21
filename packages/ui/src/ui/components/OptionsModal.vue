@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Options dialog — recreates WinISD's "Options" modal (docs/winisd/options_general.png,
+// Options dialog — recreates WinISD's "Options" modal (docs/winisd_screenshots/options_general.png,
 // options_plot_window.png), opened via the wrench/tools toolbar icon.
 //
 // General tab, top→bottom (matches the WinISD wireframe order):
@@ -34,7 +34,7 @@
 //               Cursor lines→ --chart-cross + --chart-band-line (the crosshair/level cursor and
 //                              the drag-selection band edges).
 //             "0 dB line" / "-3dB line" are shown disabled: WinISD draws them on its separate
-//             0 dB-normalized "Transfer function magnitude" chart (docs/winisd/info/
+//             0 dB-normalized "Transfer function magnitude" chart (docs/winisd_screenshots/info/
 //             view_3_ported.md), which OpenISD does not have — OpenISD's 'SPL' tab plots
 //             absolute dB SPL, not a normalized transfer function, so there is no chart these
 //             two colors could correctly apply to yet. Tracked in BACKLOG.md, not fabricated.

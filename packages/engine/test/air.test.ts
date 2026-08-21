@@ -2,7 +2,7 @@
  * Moist-air properties — the ONE model of ρ and c from temperature, relative humidity and
  * static pressure, and the WinISD-parity mode that ignores the last two (ledger QO7/QO24.8).
  *
- * 🔒 ORACLE: WinISD's own stored pair, `c = 343.684120962153 m/s` and
+ * 🔒 ORACLE: WinISD's own stored pair, `c = 343.684120962152 m/s` and
  * `roo = 1.20095217714682 kg/m³` (winisd_research/CALC_FINDINGS_FOR_REVIEW.md §"WinISD
  * persists temperature, air pressure and relative humidity, and does not use them",
  * files `runs/env_sample1.wpr` … `runs/env_sample7.wpr`). Those 15 digits satisfy
@@ -17,13 +17,13 @@ import assert from 'node:assert/strict';
 import {
   moistAirDensity, moistAirSoundVelocity, airFor, GAMMA,
   saturationVapourPressure, waterVapourMoleFraction,
-  splReferenceConstantDb, RHO, C,
+  splReferenceConstantDb, T_REF_K, RH_REF_PCT, P_REF_PA,
   sweep, deriveEngineDriver,
   type SweepParams,
 } from '@openisd/engine';
 
 /** WinISD's own stored air, to all 15 digits it writes. */
-const WINISD_C   = 343.684120962153;
+const WINISD_C   = 343.684120962152;
 const WINISD_RHO = 1.20095217714682;
 
 /** WinISD's Advanced-pane defaults, the point at which the two must agree. */
@@ -83,15 +83,15 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
     assert.ok(low.rho < dry.rho, 'pressure must change ρ');
   });
 
-  it('ignoreHumidityAndPressure reproduces WinISD: the constants, scaled by temperature only', () => {
+  it('ignoreHumidityAndPressure reproduces WinISD: live from temperature alone, at the reference humidity/pressure', () => {
     const a = airFor({ ignoreHumidityAndPressure: true });
-    assert.equal(a.rho, RHO);
-    assert.equal(a.c,   C);
+    assert.equal(a.rho, moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA));
+    assert.equal(a.c,   moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA));
     // Humidity and pressure are then inert — the whole point of the toggle.
     const b = airFor({ ignoreHumidityAndPressure: true, humidityPct: 95, pressurePa: 88000 });
     assert.equal(b.rho, a.rho);
     assert.equal(b.c,   a.c);
-    // Temperature still scales it, which is openisd's pre-existing behaviour.
+    // Temperature still moves it, which is openisd's pre-existing behaviour.
     const hot = airFor({ ignoreHumidityAndPressure: true, tempK: 303.15 });
     assert.ok(hot.rho < a.rho && hot.c > a.c);
   });

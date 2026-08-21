@@ -16,6 +16,14 @@ import type { Page } from '@playwright/test';
  *     label and converts the value; a field whose quantity has exactly one unit does not.
  */
 
+interface Rect { x: number; y: number; width: number; height: number }
+
+/** True when two bounding boxes share any area — they overlap on BOTH axes at once. */
+function overlaps(a: Rect, b: Rect): boolean {
+  return a.x < b.x + b.width && a.x + a.width > b.x
+    && a.y < b.y + b.height && a.y + a.height > b.y;
+}
+
 /** Every value the seed enters, in the unit the field displays. One solvable driver, so the
  *  solver marks a realistic set of fields CALCULATED for tests 1 and 2. */
 const SEED: [string, string][] = [
@@ -308,9 +316,7 @@ test('the equation-inspector popup never overlaps the editor, even on a narrow v
   await expect(card).toBeVisible();
   const modalBox = await page.locator('.de-modal').boundingBox();
   const cardBox = await card.boundingBox();
-  const overlapsX = cardBox!.x < modalBox!.x + modalBox!.width && cardBox!.x + cardBox!.width > modalBox!.x;
-  const overlapsY = cardBox!.y < modalBox!.y + modalBox!.height && cardBox!.y + cardBox!.height > modalBox!.y;
-  expect(overlapsX && overlapsY, `popup ${JSON.stringify(cardBox)} overlaps modal ${JSON.stringify(modalBox)}`)
+  expect(overlaps(cardBox!, modalBox!), `popup ${JSON.stringify(cardBox)} overlaps modal ${JSON.stringify(modalBox)}`)
     .toBe(false);
 });
 

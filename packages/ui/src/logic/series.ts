@@ -1,4 +1,4 @@
-import { C, passbandRef, rolloffFreq } from '@openisd/engine';
+import { moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA, passbandRef, rolloffFreq } from '@openisd/engine';
 import type { EngineDriver, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/engine';
 import { DPAL } from '../ui/presets.js';
 import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
@@ -128,7 +128,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     if (box !== 'vented' && box !== 'bandpass4')
       return { series: [{ xs: sw.fs, ys: sw.fs.map(() => 0), color: meta.color, name: 'n/a' }], ymin: 0, ymax: 1 };
     const series: Series[] = [{ ...pick(sw.pv), color: meta.color, name: 'Port vel' }];
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0.05 * C), color:'#ffb454', name:'17 m/s', dash:true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0.05 * moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA)), color:'#ffb454', name:'17 m/s', dash:true });
     return { series, ymin: 0, ymax: Math.max(20, Math.max(...sw.pv) * 1.1) };
   },
 

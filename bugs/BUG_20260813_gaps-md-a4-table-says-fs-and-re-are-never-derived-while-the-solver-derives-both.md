@@ -1,5 +1,7 @@
 # `GAPS.md` §A4 says OpenISD "never derives" Fs and Re, while the solver derives both
 
+Status: RESOLVED
+
 # Status
 FIXED 2026-08-13
 

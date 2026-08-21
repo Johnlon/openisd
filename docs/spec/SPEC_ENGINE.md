@@ -428,7 +428,7 @@ runs the full consistency-group derivation (§1.1) before writing, exactly as th
 populates the computed fields the moment the human finishes typing. `Vd`, `Dd`, `Dia`, `no`,
 `EBP`, `Rms`, `Cms`, `Mms`, `BL`, `SPLmax`, `SPLmaxLF`, `USPL`, `Rme`, `Mpow`, `gamma`, `Znom`
 and the rest are outputs of that pass. `Znom` is the one that surprises: WinISD calculates it
-from `Re` as `2·round_half_to_even(0.75·Re)` (probed — `../design/WDR_SCHEMA.md` §4.2), so a
+from `Re` as `2·round_half_to_even(0.75·Re)` (probed — `../design/WINISD_SCHEMA.md` §4.2), so a
 `.wdr` written with `Znom` copied from `Re`, or with slot 0 marked `N`, disagrees with WinISD.
 
 A `0` on a line is therefore ambiguous on its own and must be read together with its ParState
@@ -473,7 +473,7 @@ field (`s-fs.wdr`, `s-qts.wdr`, `s-no.wdr`, `s-gloss.wdr`, `s-vcd.wdr`, `s-conne
 infer it from a multi-field file.
 
 **`ParState`** is 49 characters, one slot per field position (§8 of
-[`../design/WDR_SCHEMA.md`](../design/WDR_SCHEMA.md)). In WinISD's New+Save skeleton every slot
+[`../design/WINISD_SCHEMA.md`](../design/WINISD_SCHEMA.md)). In WinISD's New+Save skeleton every slot
 is `N` except `numVC` (`E`) and `c`/`roo` (`C` — computed).
 
 **openisd writes `C` in the `numVC` slot, not `E`** — a deliberate one-character divergence.

@@ -1,7 +1,13 @@
 # BUG_20260805 — humidity and pressure inputs are collected, persisted, and then ignored
 
+Status: RESOLVED
+
 # Status
-OPEN 2026-08-05
+OPEN 2026-08-05 — resolved by 2026-08-20: `Params.humidityPct`/`pressurePa` exist
+(packages/engine/src/types.ts:133,135), `OriginalShell.vue:676-682` wires `advHumidity`/
+`advPressure` into `state.P`, and `sweep.ts:129` calls `airFor(P)` which consumes both
+(air.ts:146-150) via the CIPM moist-air model. Not inert. `forceFlatResponse`-style opt-out
+to WinISD's ignore-them behaviour also exists (types.ts ~137).
 
 
 **Status:** OPEN — not yet fixed. Needs a design ruling before code (see "Why it was not

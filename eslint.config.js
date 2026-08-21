@@ -78,6 +78,21 @@ export default [
     },
   },
 
+  // ── The console IS the diagnostics channel, in exactly these files ───────
+  // `faultLog.install()` REPLACES `console.error` — capturing the throw Vue swallows out of a
+  // computed is the module's whole job, so it cannot be written without naming the console.
+  {
+    files: ['packages/ui/src/diagnostics/faultLog.ts'],
+    rules: { 'no-console': 'off' },
+  },
+  // The restore boundary reports a payload it refuses through `console.error`/`console.info`,
+  // which is the channel `faultLog` records into and the fault dialog then shows the user.
+  // `console.log` stays banned here: a debug print is not a fault report.
+  {
+    files: ['packages/ui/src/logic/persist.ts', 'packages/ui/src/logic/store.ts'],
+    rules: { 'no-console': ['warn', { allow: ['error', 'info'] }] },
+  },
+
   // ── Engine tests: packages/engine/test/*.{mjs,js,ts} ─────────────────────
   {
     files: ['packages/engine/test/**/*.{mjs,js,ts}'],

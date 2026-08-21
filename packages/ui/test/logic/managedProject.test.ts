@@ -11,6 +11,7 @@
  * wraps the project rather than the driver.
  */
 import { describe, it } from 'vitest';
+import { Provenance } from '@openisd/model';
 import assert from 'node:assert/strict';
 import { ManagedOpenISDProject, _prototypeProject } from '../../src/logic/managedProject.js';
 import type { _OpenISDDriverJson } from '@openisd/model';
@@ -145,7 +146,7 @@ describe('ManagedOpenISDProject — no driver chosen', () => {
   it('reads answer honestly rather than inventing a value', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     assert.equal(mp.hasDriver(), false);
-    assert.equal(mp.cell('Fs').state, 'N', 'absent is a real answer; a zero would look measured');
+    assert.equal(mp.cell('Fs').state, Provenance.NotAvailable, 'absent is a real answer; a zero would look measured');
     assert.equal(mp.cell('Fs').value, null);
     assert.equal(mp.toEngineDriver(), null);
     assert.deepEqual(mp.errors(), []);

@@ -2,6 +2,7 @@ import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
 import { readMetaCell } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
 import { state } from './store.js';
+import { readDriverFileText } from './driverFileText.js';
 import { DriverScope } from '../driverScope.js';
 import { Chip } from '../driverType.js';
 import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
@@ -345,9 +346,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = evt => {
-      const text = evt.target?.result as string;
+    void readDriverFileText(file).then(text => {
       // Clear the input whatever happened, so picking the SAME file again still fires `change`.
       input.value = '';
       if (!text) { statusErr.value = true; statusMsg.value = `${file.name} is empty`; return; }
@@ -359,8 +358,11 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
       statusMsg.value = '';
       logging.flash(overwrote ? 'Updated in My Drivers' : 'Loaded into My Drivers');
       previewFile.value = myDriverEntry(res.record);
-    };
-    reader.readAsText(file);
+    }, (err: Error) => {
+      input.value = '';
+      statusErr.value = true;
+      statusMsg.value = err.message;
+    });
   }
 
   /**

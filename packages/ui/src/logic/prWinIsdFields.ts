@@ -8,8 +8,17 @@
  * PR's WinISD-style fields (PREditModal) and when defining a brand-new one from a datasheet
  * (PRDefineModal) — the same two formulas, so both panels apply the identical solve.
  */
-import { RHO, C, prVas, prFs, prFsWithMass, prQms } from '@openisd/engine';
+import { T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity,
+         prVas, prFs, prFsWithMass, prQms } from '@openisd/engine';
 import type { UiParams } from '../types.js';
+
+/** No environment reaches either call site below, so ρ/c are computed live at the
+ *  reference environment — never a stored constant (docs/design/WINISD_SCHEMA.md §12). */
+function referenceRhoC2(): number {
+  const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  return rho * c * c;
+}
 
 /** Vas (litres) implied by the PR's current Cms/Sd. */
 export function prVasDisplay(P: UiParams): number {
@@ -52,7 +61,7 @@ export function setPrVasFromWinIsd(P: UiParams, newVasL: number): void {
   if (!(newVasL > 0)) return;
   const fsCurr = prFsDisplay(P) || 30;
   const qmsCurr = prQmsDisplay(P) || 5;
-  const newCms = (newVasL / 1000) / (P.prSd * P.prSd * RHO * C * C);
+  const newCms = (newVasL / 1000) / (P.prSd * P.prSd * referenceRhoC2());
   const newMmd = 1 / ((2 * Math.PI * fsCurr) ** 2 * newCms);
   P.prCms = newCms;
   P.prMmd = newMmd;
@@ -80,7 +89,7 @@ export interface PrCanonical {
 export function prCanonicalFromDatasheet(input: PrDatasheetInput): PrCanonical {
   const sd = input.sdCm2 / 1e4;
   const vas = input.vasL / 1000;
-  const cms = vas / (sd * sd * RHO * C * C);
+  const cms = vas / (sd * sd * referenceRhoC2());
   const mmd = 1 / ((2 * Math.PI * input.fsHz) ** 2 * cms);
   const rms = Math.sqrt(mmd / cms) / input.qms;
   const xmax = isFinite(input.xmaxMm) && input.xmaxMm >= 0 ? input.xmaxMm / 1000 : 0;

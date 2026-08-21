@@ -104,9 +104,13 @@ test('closing an unsaved project asks first, and offers all three outcomes by na
 });
 
 test('the last project can be closed too — the app lands on a fresh one, still drawing', async ({ page }) => {
+  // Dirty it first, so the challenge is CERTAIN to appear and the close path under test is the
+  // same one every other close goes through.
+  await page.evaluate(() => { window.__store_context.state.P.Vb = 0.037; });
+
   await page.locator('.proj-actions button:has-text("Close")').click();
-  const challenge = page.locator('.close-actions');
-  if (await challenge.isVisible()) await page.locator('.close-actions button:has-text("Close without saving")').click();
+  await expect(page.locator('.close-actions')).toBeVisible();
+  await page.locator('.close-actions button:has-text("Close without saving")').click();
 
   await expect(page.locator('.project-row')).toHaveCount(1);
   await expect(page.locator('.graph-wrap canvas')).toBeVisible();

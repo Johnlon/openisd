@@ -202,14 +202,14 @@ retained to echo them.
 WinISD offers the speed of sound and air density for editing on the driver and saves what is
 typed. They are not constants it stamps on the way out.
 
-`docs/winisd/sample_project_Epique15_-_pr.wpr` puts them at lines 53-54 — **inside the
+`docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr` puts them at lines 53-54 — **inside the
 `[Driver]` section** (lines 7-64), not in `[ProjectInfo]`, `[SimulatorOptions]` or any other
 project-level section. So both file formats agree they belong to the driver.
 
 What they MEAN per-driver is not documented in anything held here. The plausible reading is the
 conditions that driver's figures were measured or computed at, which would make them provenance
 rather than simulation input — but that is a hypothesis, and nothing in the WinISD material in
-`docs/winisd/` states it. Not resolved.
+`docs/winisd_screenshots/` states it. Not resolved.
 
 OpenISD holds them on the driver record (`SpecSection.c` / `.roo`) because that is where the
 formats put them, and separately on `OpenISDEnvironment` for the PROJECT, which is what a

@@ -96,7 +96,7 @@ proven by another tool.
 
 - ✅ **Driver records come from winisd_tools** — the scraping pipeline is a separate
   project; openisd consumes the records it publishes and never scrapes a vendor itself
-- ✅ **WDR schema documentation** (`WDR_SCHEMA.md`) — canonical field names, SI units,
+- ✅ **WDR schema documentation** (`WINISD_SCHEMA.md`) — canonical field names, SI units,
   common mistakes table, date semantics; the single source of truth for the file format
 - ⬜ Filter drivers by size / params; richer metadata index — _SpeakerBoxLite has 5,000+ / 300+ brands in one DB_
 - ⬜ Paste raw datasheet text → infer T/S params — _seen in 00 Simulator_

@@ -35,3 +35,9 @@ coverage/
 
 # Agent worktrees are local runtime state.
 /.claude/worktrees
+
+# WSL metadata sidecars
+*:Zone.Identifier
+
+# TypeScript incremental build state
+*.tsbuildinfo

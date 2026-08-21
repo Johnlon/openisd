@@ -9,9 +9,9 @@
  * MATCH), to exercise the multi-reading shape a single-source field wouldn't touch.
  */
 import { describe, it } from 'vitest';
+import { Provenance } from '@openisd/model';
 import assert from 'node:assert/strict';
-import { winningReading, type _SpecEntry } from '../src/openisdRecord.js';
-import { OpenISDDriver } from '../src/openisdDriver.js';
+import { winningReading, OpenISDDriver, type _SpecEntry } from '../src/openisdDriver.js';
 
 function fsEntry(): _SpecEntry {
   return {
@@ -31,7 +31,7 @@ function fsEntry(): _SpecEntry {
 }
 
 function driver(): OpenISDDriver {
-  return OpenISDDriver.fromRecord({
+  return OpenISDDriver.fromJsonRecord({
     uuid: { value: 'c4169ddc-0000-0000-0000-000000000000', definition: 'stable record identity' },
     quality: {
       rating: 'M', confirmed_fields: ['Fs'], fields_with_issues: [], missing: [], invalid: [],
@@ -56,7 +56,7 @@ function driver(): OpenISDDriver {
 
 describe('the openisd.yml record shape — constructible against real fixture data, via OpenISDDriver', () => {
   it('holds a real Beyma Fs reading, reachable only via winningReading()', () => {
-    const record = driver().toRecord();
+    const record = driver().toJsonRecord();
     const fs = record.specs.woofer?.Fs;
     assert.ok(fs, 'Fs must be present on the woofer section');
     assert.equal(winningReading(fs!).read_value, 29.0);
@@ -74,6 +74,6 @@ describe('the openisd.yml record shape — constructible against real fixture da
 
   it('the same fixture is reachable through the driver\'s own cell() API', () => {
     assert.equal(driver().cell('Fs').value, 29.0);
-    assert.equal(driver().cell('Fs').state, 'E');
+    assert.equal(driver().cell('Fs').state, Provenance.Entered);
   });
 });

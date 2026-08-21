@@ -22,10 +22,11 @@ import { serialize, stateToUrl, download } from './persist.js';
 import type { Logging } from '../logging/flash.js';
 import { saveProject as fsSaveProject, saveProjectAs as fsSaveProjectAs } from './fileSave.js';
 import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
+import { readDriverFileText } from './driverFileText.js';
 import { buildWprInput } from './wprMapping.js';
-import { toWpr } from '@openisd/winisd';
+import { prCanonicalFromDatasheet } from './prWinIsdFields.js';
+import { toWpr, wdrTextToBytes } from '@openisd/winisd';
 import { OpenISDDriver } from '@openisd/model';
-import * as WinIsdDriverFileIo from './winIsdDriverFileIo.js';
 import type { SerializedState, UiParams } from '../types.js';
 
 function sanitizeFilename(name: string | undefined): string {
@@ -139,7 +140,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     closeTunePanelAfterIO();
     // The ADT's own toWdr is lossless — carried fields + live ParState provenance.
     //
-    // OpenISDDriver.fromRecord(record) here is a KNOWN, RECORDED gap (ledger QO57):
+    // OpenISDDriver.fromJsonRecord(record) here is a KNOWN, RECORDED gap (ledger QO57):
     // architecture.test.ts also forbids any ManagedOpenISDProject member from ever handing out
     // a live OpenISDDriver, which rules out the obvious fix of asking it for one — WinISDDriver
     // .fromOpenISDDriver() needs the full OpenISDDriver API (.cell(), for EBP), not just a
@@ -148,9 +149,9 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     // flight elsewhere — deferred here rather than duplicated.
     const record = driverRecord.value;
     if (!record) { flash('Cannot export .wdr: no driver has been chosen'); return; }
-    const { value: wdr, errors } = WinIsdDriverFileIo.exportDriver(OpenISDDriver.fromRecord(record));
+    const { value: wdr, errors } = OpenISDDriver.fromJsonRecord(record).toWdrText();
     if (!wdr) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
-    download(sanitizeFilename(driverName.value) + '.wdr', wdr, 'text/plain');
+    download(sanitizeFilename(driverName.value) + '.wdr', wdrTextToBytes(wdr), 'text/plain');
   }
 
   function exportOwdr(): void {
@@ -163,16 +164,16 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
     closeTunePanelAfterIO();
-    // See exportWdr()'s comment: this OpenISDDriver.fromRecord() is a known gap, QO57.
+    // See exportWdr()'s comment: this OpenISDDriver.fromJsonRecord() is a known gap, QO57.
     const record = driverRecord.value;
     if (!record) { flash('Cannot export .wpr: no driver has been chosen'); return; }
-    const { value: wdr, errors } = WinIsdDriverFileIo.exportDriver(OpenISDDriver.fromRecord(record));
+    const { value: wdr, errors } = OpenISDDriver.fromJsonRecord(record).toWdrText();
     if (!wdr) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     const input = buildWprInput(
       state.box, state.P, engineDriver(), wdr, state.project, new Date(),
       managedProject.ventArea_m2(), curvesData.value,
     );
-    download(sanitizeFilename(driverName.value) + '.wpr', toWpr(input), 'text/plain');
+    download(sanitizeFilename(driverName.value) + '.wpr', wdrTextToBytes(toWpr(input)), 'text/plain');
   }
 
   function parseWprToState(text: string): SerializedState {
@@ -215,84 +216,102 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     // The .wpr's [Driver] block IS .wdr text — the serialiser reads it as-read, then projects
     // it into the app's own record. One reader, not a second parse invented here.
     const driverWdr = driverLines.join('\r\n');
-    const driverJson = OpenISDDriver.fromWdrText(driverWdr).toRecord();
+    const driverJson = OpenISDDriver.fromWdrText(driverWdr).toJsonRecord();
 
     const boxSec = sections['Box'] || {};
-    const bType = parseInt(boxSec['BType'] || '1', 10);
-    let boxType: 'sealed' | 'vented' | 'bandpass4' | 'pr' = 'vented';
-    if (bType === 0) boxType = 'sealed';
-    else if (bType === 1) boxType = 'vented';
-    else if (bType === 2) boxType = 'bandpass4';
-    else if (bType === 4) boxType = 'pr';
+
+    // A key the file does not carry, or carries empty, is ABSENT — never a number invented here.
+    // A fabricated value is indistinguishable downstream from one WinISD wrote, and the app
+    // would simulate, plot and re-export it as if it were real
+    // (bugs/BUG_20260821_wpr_import_fabricates_sixteen_driver_and_box_values_for_absent_keys.md).
+    const numOrAbsent = (sec: Record<string, string>, key: string): number | undefined => {
+      const raw = sec[key];
+      if (raw == null || raw.trim() === '') return undefined;
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : undefined;
+    };
+
+    // BType is the box's IDENTITY. A .wpr that does not state it is not a vented box — it is a
+    // file this reader cannot honestly interpret, so it refuses rather than guessing.
+    const bType = numOrAbsent(boxSec, 'BType');
+    const BOX_OF_BTYPE: Record<number, 'sealed' | 'vented' | 'bandpass4' | 'pr'> =
+      { 0: 'sealed', 1: 'vented', 2: 'bandpass4', 4: 'pr' };
+    const boxType = bType == null ? undefined : BOX_OF_BTYPE[bType];
+    if (boxType == null) {
+      throw new Error(bType == null
+        ? '.wpr has no [Box] BType — the box type is not stated, and this reader will not assume one'
+        : `.wpr states BType=${bType}, which is not a box type OpenISD models (0/1/2/4)`);
+    }
 
     const pSec = sections['ProjectInfo'] || {};
     const sigSec = sections['SignalSource'] || {};
-    const vr = parseFloat(boxSec['Vr'] || '0.030');
-    const vf = parseFloat(boxSec['Vf'] || '0.015');
-    const npr = parseInt(boxSec['npr'] || '1', 10);
 
     const ventFrontSec = sections['VentFront'] || {};
     const ventRearSec = sections['VentRear'] || {};
     const activeVentSec = boxType === 'bandpass4' ? ventFrontSec : ventRearSec;
-    const ventD = parseFloat(activeVentSec['dia'] || '0.05');
-    const ventL = parseFloat(activeVentSec['len'] || '0.10');
-    const endCorrection = parseFloat(activeVentSec['endCorrection'] || '0.732');
-
     const simOptSec = sections['SimulatorOptions'] || {};
+
     const vcInductance = simOptSec['vcInductance'] === '1';
     const flatResponse = simOptSec['flatResponse'] === '1';
     const tlPorts = simOptSec['tlPorts'] === '1';
 
+    // The passive radiator exists ONLY when the file carries the four values that define one.
+    // A partial [PassiveRadiator] section describes no radiator, so none is built — rather than
+    // a fully-specified one assembled out of literals.
     const prSec = sections['PassiveRadiator'] || {};
-    const prSd = parseFloat(prSec['Sd'] || '0.0133');
-    const prXmax = parseFloat(prSec['Xmax'] || '0.012');
-    const prMadd = parseFloat(prSec['Me'] || '0');
-    const prVasLitres = parseFloat(prSec['Vas'] || '20.0');
-    const prFs = parseFloat(prSec['Fs'] || '20.0');
-    const prQms = parseFloat(prSec['Qms'] || '5.0');
+    const prSd = numOrAbsent(prSec, 'Sd');
+    const prVasM3 = numOrAbsent(prSec, 'Vas');   // [PassiveRadiator].Vas is SI m³
+    const prFs = numOrAbsent(prSec, 'Fs');
+    const prQms = numOrAbsent(prSec, 'Qms');
+    const hasPr = prSd != null && prSd > 0 && prVasM3 != null && prFs != null && prFs > 0
+      && prQms != null && prQms > 0;
+    if (boxType === 'pr' && !hasPr) {
+      throw new Error('.wpr states BType=4 (passive radiator) but [PassiveRadiator] does not '
+        + 'carry Sd, Vas, Fs and Qms — the radiator cannot be reconstructed and will not be invented');
+    }
 
-    const prVasM3 = prVasLitres / 1000;
-    const RHO = 1.20095;
-    const C = 343.68;
-    const prCms = prVasM3 / (prSd * prSd * RHO * C * C);
-    const prMmd = prFs > 0 && prCms > 0 ? 1 / (4 * Math.PI * Math.PI * prFs * prFs * prCms) : 0.010;
-    const prRms = prQms > 0 && prCms > 0 ? Math.sqrt(prMmd / prCms) / prQms : 1.0;
+    // `.wpr` carries SI (m², m³, m); `prCanonicalFromDatasheet` takes datasheet units
+    // (cm², litres, mm) — the one conversion between them happens here, at the file boundary.
+    const prXmaxM = numOrAbsent(prSec, 'Xmax');
+    const pr = hasPr
+      ? prCanonicalFromDatasheet({
+          sdCm2: prSd * 1e4,
+          vasL: prVasM3 * 1000,
+          fsHz: prFs,
+          qms: prQms,
+          xmaxMm: prXmaxM == null ? NaN : prXmaxM * 1000,
+        })
+      : undefined;
 
-    const P = {
-      Vb: vr,
-      Vf: vf,
-      ventD,
-      ventL,
-      Ql: parseFloat(boxSec['Ql'] || '10'),
-      Qa: parseFloat(boxSec['Qa'] || '100'),
-      Qp: parseFloat(boxSec['Qp'] || '100'),
-      nDrivers: 1,
-      wiring: 'parallel',
-      Pin: parseFloat(sigSec['P'] || '1'),
-      Rs: parseFloat(sigSec['Rg'] || '0.1'),
-      prName: 'Custom PR',
-      prSd,
-      prNum: npr,
-      prMmd,
-      prMadd,
-      prCms,
-      prRms,
-      prXmax,
-      prMode: 'winisd',
-      fmin: 1,
-      fmax: 20000,
-      N: 400,
+    const P: Partial<UiParams> = {
       circuitModel: vcInductance ? 'gyrator' : 'winisd',
-      filters: [],
-      vcTempRise: 0,
-      alfaVC: 0.0039,
-      driverAddedMass: 0,
-      endCorrection,
-      rgAtDriverSide: true,
       tlPortModel: tlPorts,
       forceFlatResponse: flatResponse,
-      splXmaxLimited: false,
     };
+    // Every field below is written ONLY when the file states it. An absent key leaves the field
+    // untouched, so `applyState` keeps whatever the app already had rather than adopting a lie.
+    const assign = <K extends keyof UiParams>(k: K, v: UiParams[K] | undefined): void => {
+      if (v !== undefined) P[k] = v;
+    };
+    assign('Vb', numOrAbsent(boxSec, 'Vr'));
+    assign('Vf', numOrAbsent(boxSec, 'Vf'));
+    assign('Ql', numOrAbsent(boxSec, 'Ql'));
+    assign('Qa', numOrAbsent(boxSec, 'Qa'));
+    assign('Qp', numOrAbsent(boxSec, 'Qp'));
+    assign('Pin', numOrAbsent(sigSec, 'P'));
+    assign('Rs', numOrAbsent(sigSec, 'Rg'));
+    assign('ventD', numOrAbsent(activeVentSec, 'dia'));
+    assign('ventL', numOrAbsent(activeVentSec, 'len'));
+    assign('endCorrection', numOrAbsent(activeVentSec, 'endCorrection'));
+    assign('prNum', numOrAbsent(boxSec, 'npr'));
+    if (pr) {
+      assign('prSd', pr.sd);
+      assign('prXmax', prXmaxM);
+      assign('prMadd', numOrAbsent(prSec, 'Me'));
+      assign('prCms', pr.cms);
+      assign('prMmd', pr.mmd);
+      assign('prRms', pr.rms);
+    }
 
     const project = {
       name: pSec['Description'] || 'Imported Design',
@@ -305,7 +324,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
     return {
       v: 2,
       box: boxType,
-      P: P as unknown as UiParams,
+      P: P as UiParams,
       driver: driverJson,
       project,
       graphs: [],
@@ -314,15 +333,13 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
 
   /** Load a driver/design from a picked File. */
   function importFile(f: File): void {
-    const rd = new FileReader();
     const nameLower = f.name.toLowerCase();
     const isWdr = nameLower.endsWith('.wdr');
     const isWpr = nameLower.endsWith('.wpr');
     const isOwdr = nameLower.endsWith('.owdr');
     const isOwpr = nameLower.endsWith('.owpr');
 
-    rd.onload = () => {
-      const text = rd.result as string;
+    void readDriverFileText(f).then(text => {
       try {
         if (isWdr || (nameLower.endsWith('.wdr') || (/^\s*\[Driver\]/.test(text) && !/\[Box\]/.test(text)))) {
           setDriverFromWdr(text);
@@ -354,8 +371,7 @@ export function createDesignIO(deps: { logging: Logging }): DesignIO {
         fileHandle.value = null;
         flash('Opened ' + f.name);
       } catch (err) { alert('Could not read "' + f.name + '": ' + (err as Error).message); }
-    };
-    rd.readAsText(f);
+    }, (err: Error) => { alert('Could not read "' + f.name + '": ' + err.message); });
   }
 
   function about(): void {

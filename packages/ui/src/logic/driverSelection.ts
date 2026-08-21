@@ -102,7 +102,7 @@ export function driverFromFileText(text: string, fileName: string): FileReadResu
     // A `.wdr` is read as-read by the serialiser then projected; an `.owdr` IS the record.
     driver = format === DriverFileFormat.Wdr
       ? OpenISDDriver.fromWdrText(text)
-      : OpenISDDriver.fromOwdr(text);
+      : OpenISDDriver.fromOwdrText(text);
   } catch (err) {
     return { ok: false, error: `Failed to parse ${fileName}: ${(err as Error).message}` };
   }
@@ -114,7 +114,7 @@ export function driverFromFileText(text: string, fileName: string): FileReadResu
     if (!base) return { ok: false, error: `${fileName} carries no brand or model, and its name gives none` };
     driver.enterMeta('model', base);
   }
-  return { ok: true, record: driver.toRecord() };
+  return { ok: true, record: driver.toJsonRecord() };
 }
 
 /** Fetch and parse a federated `.wdr` row, or say why it could not be read. */
@@ -132,7 +132,7 @@ async function modelOf(f: LibraryEntry): Promise<{ ok: true; record: _OpenISDDri
   }
   if (!/\[Driver\]/.test(text)) return { ok: false, error: 'Could not load: file did not parse as a WDR' };
   try {
-    return { ok: true, record: OpenISDDriver.fromWdrText(text).toRecord() };
+    return { ok: true, record: OpenISDDriver.fromWdrText(text).toJsonRecord() };
   } catch (err) {
     return { ok: false, error: 'Could not load: ' + (err as Error).message };
   }

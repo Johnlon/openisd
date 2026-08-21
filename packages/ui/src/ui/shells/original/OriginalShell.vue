@@ -8,7 +8,7 @@ const buildDatetime = __BUILD_DATETIME__;
  * engine.
  *
  * Fidelity rule: the markup, class names, layout and chrome match WinISD's own screens
- * region by region (docs/winisd/*.png). Every `.calculated` readout is a live engine
+ * region by region (docs/winisd_screenshots/*.png). Every `.calculated` readout is a live engine
  * value and every `.entered` field is v-model-bound to the store — nothing on screen is a
  * literal standing in for physics.
  *
@@ -1229,7 +1229,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <!-- The target tuning is the port solver's INPUT, so it belongs on this pane as
                      well as the Box tab — you are sizing a vent, and this is the number it is
                      sized to (human ruling QO11). WinISD shows it only on its Box screen
-                     (docs/winisd/view_3_ported.png has no tuning field); carrying it here is
+                     (docs/winisd_screenshots/view_3_ported.png has no tuning field); carrying it here is
                      deliberately ours. Same `state.P.Fb`, same E/C state and same setter as the
                      Box tab: ONE stored value with two places to see and edit it.
                      It sits in this column, not beside the other config fields, because the
@@ -1280,7 +1280,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 </div>
                 <div class="field-row">
                   <!-- The RADIATOR's own free-air resonance, 1/(2π√(Mmd·Cms)) — no box in it.
-                       WinISD labels this "Fs" on its PR screen (docs/winisd/view_3_passive_
+                       WinISD labels this "Fs" on its PR screen (docs/winisd_screenshots/view_3_passive_
                        radiator.png: 30.00 Hz), which collides with the DRIVER's Fs; `Fpr` is
                        this app's symbol for it. Distinct from the SYSTEM tuning on the Box tab
                        (view_2_box.png "Fh": 40.25 Hz on that same project), which is the box

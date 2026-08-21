@@ -82,7 +82,7 @@ and a blank in openisd. That is a separate decision, tracked as **QO50**, not fi
 now match `driver.ts`'s actual `setVal('Fs', ...)` sites, in file order.
 
 Deliberately NOT set to WinISD's own 5-route priority order (11 > 14 > 2 > 4 > 12,
-`docs/design/WDR_SCHEMA.md` relation 11) — the engine does not implement that order yet
+`docs/design/WINISD_SCHEMA.md` relation 11) — the engine does not implement that order yet
 (**QO50**, ruled but not built). Setting the panel to the target order now would recreate this
 exact bug in reverse: a panel describing code that doesn't exist. A comment in the source marks
 this and says to update the list when the engine changes.

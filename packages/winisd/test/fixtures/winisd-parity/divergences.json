@@ -11,15 +11,57 @@
       "scenario": "env-t-303",
       "field": "air.c",
       "maxRelative": 2e-2,
-      "cause": "packages/engine/src/air.ts winisdAir() scales the frozen RHO/C pair by tempK (rho ∝ 1/T, c ∝ √T) instead of returning them unconditionally. WinISD's own compatibility air is a fixed pair that does not move with temperature at all — env-t-303's c/roo are byte-identical to its 293.15 K twin env-rh-30. This is a calculation-logic change gated on human authorisation (AGENTS.md 'Calculation logic — permission gate'); not fixed here.",
-      "reference": "bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md"
+      "cause": "packages/engine/src/air.ts winisdAir() computes c/roo live from the CIPM-2007 moist-air model at the driver's own tempK. WinISD's own compatibility air is a fixed pair that does not move with temperature at all — env-t-303's c/roo are byte-identical to its 293.15 K twin env-rh-30. This is a calculation-logic change gated on human authorisation (AGENTS.md 'Calculation logic — permission gate'); not fixed here.",
+      "reference": "bugs/BUG_20260820_winisdAir_compat_mode_fidelity_questionable_after_c_roo_research.md"
     },
     {
       "scenario": "env-t-303",
       "field": "air.roo",
       "maxRelative": 4e-2,
-      "cause": "Same mechanism as air.c: winisdAir() scales rho by T_REF_K/tempK; WinISD's frozen compatibility air does not scale rho with temperature at all. Same permission gate, same fix, same bug file.",
-      "reference": "bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md"
+      "cause": "Same mechanism as air.c: winisdAir() computes rho live from tempK via the CIPM-2007 model; WinISD's frozen compatibility air does not scale rho with temperature at all. Same permission gate, same fix, same bug file.",
+      "reference": "bugs/BUG_20260820_winisdAir_compat_mode_fidelity_questionable_after_c_roo_research.md"
+    },
+    {
+      "scenario": "*",
+      "field": "air.c",
+      "maxRelative": 5e-6,
+      "cause": "WinISD's own compatibility air is a stored literal (343.684120962153 m/s); openisd's winisdAir() computes c live from the CIPM-2007 moist-air model at the reference environment instead of holding any frozen constant (AGENTS.md 'Calculation logic — permission gate' sign-off 2026-08-19: 'there shodk be no base C/Roo variable - calculated or stated only'). The live CIPM value differs from WinISD's stored one in the 6th significant figure.",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
+    },
+    {
+      "scenario": "*",
+      "field": "air.roo",
+      "maxRelative": 9e-6,
+      "cause": "Same mechanism as air.c: openisd computes roo live from the CIPM-2007 model instead of holding WinISD's stored literal (1.20095217714682 kg/m³).",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
+    },
+    {
+      "scenario": "*",
+      "field": "c",
+      "maxRelative": 5e-6,
+      "cause": "The driver's own [Driver].c field, filled by OpenISDDriver's #deriveEnteredOnly() when unentered: same live-CIPM-vs-stored-literal mechanism as air.c, applied at driver-derivation time rather than the parity harness's own air.ts call.",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
+    },
+    {
+      "scenario": "*",
+      "field": "roo",
+      "maxRelative": 9e-6,
+      "cause": "Same mechanism as the 'c' entry, for [Driver].roo.",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
+    },
+    {
+      "scenario": "*",
+      "field": "SPLmaxLF",
+      "maxRelative": 1e-6,
+      "cause": "SPLmaxLF's p20 term is driven by driverC()/driverRho(), so the live-CIPM-vs-stored-literal c/roo difference propagates into it at a much smaller relative magnitude (SPLmaxLF depends on c/roo only weakly).",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
+    },
+    {
+      "scenario": "*",
+      "field": "no",
+      "maxRelative": 2e-5,
+      "cause": "Reference efficiency no = (4π²/c³)·Fs³·Vas/Qes is cubic in c, so the live-CIPM-vs-stored-literal difference in c (≈4.14e-6) is amplified roughly 3x here.",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
     },
     {
       "scenario": "*",
