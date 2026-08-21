@@ -1,5 +1,5 @@
 prefix: QO
-next: 63
+next: 64
 questions:
 - id: QO1
   title: UI TODO List
@@ -6128,8 +6128,40 @@ questions:
           '½' intact. Its FF FF / E6 run is garbage in EVERY encoding (spliced mid-word into
           "reproduction") and is source damage to fix separately — it must not be used as an
           encoding-correctness oracle.
-- id: QO62
+- id: QO65
   title: 'Coaxial driver: OpenISDDriver locks to the woofer section only -'
   status: open
   raised: '2026-08-21'
   body: ''
+- id: QO64
+  title: Build the New Project wizard - alignment-driven box sizing
+  status: open
+  raised: '2026-08-21'
+  body: ''
+  notes:
+  - at: '2026-08-21'
+    text: |-
+      BUILD REQUEST (human, 2026-08-21): the New Project wizard.
+
+      WinISD calculates box volume and tuning from THREE inputs — driver type, box type, and a named
+      alignment (QB3, BB4, SBB4, C4, ...) — via the classic Thiele/Small alignment tables: given the
+      driver's Qts/Vas/Fs and the chosen alignment, Vb and Fb FOLLOW. OpenISD has no such flow, which
+      is why prototypeBox() is all zeros with TODO(box-wizard) markers and a new project opens showing
+      Vb/Sp precondition errors.
+
+      Scope, per bugs/BUG_20260821_new_project_invents_box_and_vent_values_instead_of_asking_the_user.md:
+        - New Project flow: driver -> box type -> alignment -> calculated Vb/Fb shown -> ONLY the
+          chosen alignment configured.
+        - Vent initialised 4 in (0.102 m), end correction 0.732; vent LENGTH derived read-only from
+          volume + tuning + diameter + end correction (WinISD's own direction). Entered/calculated
+          marks set accordingly (ventL reads C, Fb reads E on a new project).
+        - PR arm: the wizard offers EITHER selecting a PR from the library OR entering Vas/Qms/Fs/Sd/
+          Xmax from scratch (beyond WinISD, which only takes typed values); alignments calculated for
+          the PR case too.
+        - DO NOT implement from textbook alignment tables and assume WinISD agrees — parity with
+          WinISD is the point. The reverse-engineering campaign in that bug (wine harness over the
+          wizard, >=3 distinct Qts drivers, PR parameter sweeps, matrix into winisd_research/runs/)
+          pins the formulas FIRST.
+
+      Out of release scope (Lane G of docs/plans/PROMPT_RELEASE_HARDENING.md); this item is the
+      standing build request so it cannot fall between the cracks.
