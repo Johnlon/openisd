@@ -118,11 +118,13 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
   - `winisd_tool_fix` (Sonnet): the dimension rename+SI conversion (model surfaces:
     record_registries SpecField enum, units.py, model_driver.py, spec_emit.py DONE per its
     report; model_wdr.py + 18 vendor plugin tables + AST gate + the DB migration script
-    remaining) AND the four reading scenarios + constraint-5 rewrite. Sends me post-migration
-    counts to close openisd's BUG_20260819 (SI/dimension bug).
-  - `yaml-divergence-wdr-refactor` (Sonnet): the disposition deletion (QT58), ALL bridge
-    Python (openisd_js.py per §12.6 against the settled JSON-string contract, mini-racer in
-    pyproject, stub tests), B10 pre-flight + the ONE regeneration trigger when everything
+    remaining), the four reading scenarios + constraint-5 rewrite, AND the disposition
+    deletion (QT58) — ADJUDICATED to them ~13:30 by the same-file rule (it is
+    model_driver.py surgery and they are already mid-flight in that file; one file, one
+    owner). Sends me post-migration counts to close openisd's BUG_20260819.
+  - `yaml-divergence-wdr-refactor` (Sonnet): ALL bridge Python (openisd_js.py per §12.6
+    against the settled JSON-string contract + __openisdBridgeTrace/OOM handling, mini-racer
+    in pyproject, stub tests), B10 pre-flight + the ONE regeneration trigger when everything
     lands, F4 (python .wdr deletion) ONLY after loading my committed bridge artifact in real
     mini-racer. QT63/QT64 ledger re-verification.
   - THIS SESSION: A6 (cycle-5 fixes in flight) → commit → A7 commit → bridge artifact
@@ -814,12 +816,14 @@ never improvise around it.
       approved-stores gate — AST match sees reactives wrapped in call arguments
       (`getOrInit(ns,k,() => ref(0))`) AND .vue script blocks get scanned. Queued behind
       the milestone Playwright run (test-file edits break the frozen tree).
-- [ ] **D13** (QO79 addendum, John's correction 2026-08-22): the sim USES Xmax optionally
-      (the excursion-graph limit line) — a missing optional-use field DEGRADES THE DISPLAY
-      (omit the limit line), never the catalogue and never an error. Verify the excursion
-      graph renders cleanly with Xmax absent (many of the 564 newly-shipped drivers lack
-      it); fix any code that assumes Xmax presence. Standing principle for all
-      optional-use fields.
+- [x] **D13** VERIFIED 2026-08-22 (read-trace by the orchestrator): the behaviour is ALREADY
+      correct. `series.ts:113-115` omits the Xmax limit line when Xmax is absent (its own
+      comment documents exactly the ruled behaviour); `sweep.ts:198` guards Xmax properly
+      (null unless finite and > 0) so `splXlim` degrades to plain SPL; `sweep.ts:254`'s
+      vXmax falls to Infinity (Pe-limited only). RESIDUE (minor, fold into any nearby pass):
+      two fragile non-null assertions that happen to behave via JS comparison semantics —
+      `series.ts:115` and `sweep.ts:254` use `drv.Xmax!` where the honest form is a null
+      check; correct the style without changing behaviour.
 - [ ] **D14** (QO77 follow-through): peer scan complete 2026-08-22 — 28 violations across
       9 of 21 .vue files + 2 logic helpers; 12 files clean. Classes: (1) physics/derivation
       in the view, (2) hand-rolled unit conversion, (3) state writes around the domain,
