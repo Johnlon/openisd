@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import { ref, shallowRef, markRaw, computed, nextTick, watch, onBeforeUnmount } from 'vue';
-import { formatInUnit } from '../../logic/store.js';
+import { formatInUnit, managedProject } from '../../logic/store.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { useApp } from '../../logic/app.js';
 import { referenceRho, referenceC } from '../../logic/environment.js';
@@ -19,7 +19,6 @@ import EquationInspectorModal from './EquationInspectorModal.vue';
 import { getProvenanceInfo, LABEL_TO_FIELD_KEY } from '../../logic/provenance.js';
 
 const { selection, myDrivers, logging } = useApp();
-const { editorSeed, acceptDriverEdit, cancelDriverEdit } = selection;
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced parameters / Dimensions.
@@ -28,29 +27,55 @@ const { editorSeed, acceptDriverEdit, cancelDriverEdit } = selection;
 // - Layer 1: Disk/File/Library (WDR, OWDR)
 // - Layer 2: App Active State / Simulation State (committed design driver in store)
 // - Layer 3: Dialog/Draft Session Layer (local draftDriver instance, isolated until OK)
+//
+// THE EDITOR OWNS ITS OWN DRAFT (D22): `selection.editSubject()` says WHICH driver is being
+// edited and hands over a SEED to build a DETACHED draft from — `selection` holds no draft of
+// its own and never receives the edited driver back. This dialog is one of the three files the
+// containment gate licenses to construct `OpenISDDriver` directly (the other two: managedProject.ts,
+// managedDriver.ts) — see architecture.test.ts "ManagedOpenISDProject is the only holder of
+// OpenISDDriver".
 
 const emit = defineEmits<{ close: [] }>();
 
 type Tab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
 const TABS: Tab[] = ['General', 'Parameters', 'Advanced parameters', 'Dimensions'];
 
-// The draft (layer 3) is seeded from the project's own driver — the only thing this editor
-// ever edits. Choosing from the library no longer routes through here: it copies the driver
-// straight into the project, so arriving here always means "edit the driver I already have",
-// which opens on General.
-const seed = editorSeed();
+// What subject is open, fixed for the dialog's whole lifetime (selection is not consulted
+// again until this dialog closes).
+const subject = selection.editSubject();
 const tab = ref<Tab>('General');
 
 // The title names WHICH driver is on screen, because this one dialog edits two subjects with
 // different consequences: OK on the project's driver changes the design, OK on a saved driver
 // changes that My Drivers entry and leaves the design alone.
-const editorTitle = seed.subject === 'myDriver' ? 'Edit My Driver' : "Edit Project's Driver";
+const editorTitle = subject.kind === 'myDriver' ? 'Edit My Driver' : "Edit Project's Driver";
+
+/** A fresh, detached draft to start or reset from — the project's committed driver (seeded via
+ *  TEXT, since `ManagedOpenISDProject` never hands an `OpenISDDriver` out) for the project
+ *  subject; the picked driver `selection` handed over for an existing My Driver; a blank one
+ *  for a fresh My Driver (`openNewDriver()` — `subject.seed` is null exactly then). */
+function seedDraft(): OpenISDDriver {
+  if (subject.kind === 'project') return OpenISDDriver.fromOwdrText(managedProject.committedDriverText());
+  return subject.seed ? subject.seed.copy() : OpenISDDriver.empty();
+}
+
 // markRaw + shallowRef: Driver is a class with private fields, and a Vue reactive proxy
 // makes every method call on it throw. Redraws are driven by `trigger` below, so the
 // instance never needs to be deeply reactive.
-const draftDriver = shallowRef(markRaw(OpenISDDriver.fromOwdrText(seed.driverText)));
+const draftDriver = shallowRef(markRaw(seedDraft()));
 const trigger = ref(0);
 function forceUpdate() { trigger.value++; }
+
+/** OK on a myDriver subject: save the draft under its `<brand>/<model>` identity. A rename
+ *  MOVES the driver — drop the entry the editor opened, then upsert under the new identity,
+ *  which overwrites whatever already held it — the same two-step Save uses. */
+function commitToMyDrivers(driver: OpenISDDriver): void {
+  if (subject.kind !== 'myDriver') throw new Error('commitToMyDrivers called on a project subject');
+  if (subject.openedAs && subject.openedAs !== myDrivers.identityOf(driver)) {
+    myDrivers.remove(subject.openedAs);
+  }
+  myDrivers.upsert(driver);
+}
 
 // A DISPLAY VIEW of the draft, not a second model: every value is read back out of the draft
 // through its own accessors, so the template binds to one shape while the draft stays the only
@@ -332,13 +357,14 @@ function confirmSaveToMyDrivers() {
   forceUpdate();
 
   if (isCopyAction.value) {
-    const overwrote = myDrivers.upsert(draftDriver.value.toJsonRecord());
+    const overwrote = myDrivers.upsert(draftDriver.value);
     saveMyDialogOpen.value = false;
     copiedMsg.value = overwrote ? 'Updated in My Drivers' : 'Copied to My Drivers';
     setTimeout(() => { copiedMsg.value = ''; }, 2000);
   } else {
     saveMyDialogOpen.value = false;
-    acceptDriverEdit(draftDriver.value.toJsonRecord());
+    commitToMyDrivers(draftDriver.value);
+    selection.closeEditor();
     emit('close');
   }
 }
@@ -383,10 +409,11 @@ function dismissIdentityMsg() {
 // OK — the draft becomes the design or saves to My Drivers.
 function close() {
   if (!requireIdentity()) return;
-  if (seed.subject === 'myDriver') {
+  if (subject.kind === 'myDriver') {
     openSaveMyDialog(false);
   } else {
-    acceptDriverEdit(draftDriver.value.toJsonRecord());
+    managedProject.loadDriverFromOwdrText(draftDriver.value.toOwdrText());
+    selection.closeEditor();
     emit('close');
   }
 }
@@ -400,13 +427,13 @@ function requestExport() {
 // Cancel — drop the draft AND any library pick. The design is exactly as it was, and the
 // picker (still open behind this dialog) is where the user lands.
 function cancel() {
-  cancelDriverEdit();
+  selection.closeEditor();
   emit('close');
 }
 
 // Reset — draft back to what it was seeded from (the picked driver, or the design).
 function reset() {
-  draftDriver.value = markRaw(OpenISDDriver.fromOwdrText(seed.driverText));
+  draftDriver.value = markRaw(seedDraft());
   forceUpdate();
 }
 

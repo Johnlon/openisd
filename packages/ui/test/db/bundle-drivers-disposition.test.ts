@@ -17,6 +17,7 @@ import assert from 'node:assert/strict';
 import { parse as parseYaml } from 'yaml';
 import { project, isBundlable } from '../../../../scripts/bundleProjection.mjs';
 import { driverHasDqIssues } from '../../src/db/driverRepo.js';
+import { OpenISDDriver } from '@openisd/model';
 
 describe('bundle-drivers — bundling gates on structural readability alone', () => {
   it('bundles a fully simulatable, structurally sound record', () => {
@@ -72,7 +73,7 @@ specs:
       'no driver is excluded for missing spec params (QO81) — Fs is a spec param like any other',
     );
     assert.equal(
-      driverHasDqIssues({ name: 'x', record: projected.record }),
+      driverHasDqIssues({ name: 'x', record: OpenISDDriver.fromJsonRecord(projected.record) }),
       true,
       'the record still ships without a usable Fs, so the health-warning badge must fire',
     );

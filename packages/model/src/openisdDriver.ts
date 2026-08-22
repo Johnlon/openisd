@@ -28,6 +28,7 @@ import { deriveOpenISDFields } from './openisdDerive.js';
 import type {
   SourceRole, Reading, DqMark, DQStatus, Ground, QualityBlock, CurvesBlock,
 } from './openisdRecord.js';
+import type { StandingEvidence } from './driverStanding.js';
 import { deriveEngineDriver, checkConsistency, moistAirDensity, moistAirSoundVelocity,
          T_REF_K, RH_REF_PCT, P_REF_PA, ebp as computeEbp } from '@openisd/engine';
 import type {
@@ -301,6 +302,31 @@ export class OpenISDDriver {
 
   static fromJsonRecord(record: _OpenISDDriverJson): OpenISDDriver {
     return new OpenISDDriver(record);
+  }
+
+  /** A detached copy — cloning a domain object needs its own class-owned method:
+   *  `structuredClone` drops methods and the prototype off a class instance, and a text
+   *  round-trip through `.toOwdrText()`/`.fromOwdrText()` is a boundary crossing no caller
+   *  outside the model is licensed to perform just to clone what it already holds. */
+  copy(): OpenISDDriver {
+    return new OpenISDDriver(JSON.parse(JSON.stringify(this.#record)) as _OpenISDDriverJson);
+  }
+
+  /**
+   * `candidate` → an `OpenISDDriver`, or `null` when it does not conform closely enough to the
+   * canonical record shape for every field read to be safe (an absent/non-object `specs`, or a
+   * `quality` block missing its `missing`/`parse_errors` arrays). The one owner-side check for
+   * data arriving from an untrusted seam (browser storage, the driver corpus) — only this file
+   * may cast to `_OpenISDDriverJson`, so the conformance check and the construction it gates
+   * live together here rather than a caller casting after asking elsewhere.
+   */
+  static fromConformingRecord(candidate: unknown): OpenISDDriver | null {
+    if (driverRecordProblems(candidate).length > 0) return null;
+    const quality = (candidate as { quality?: unknown }).quality;
+    if (quality == null || typeof quality !== 'object') return null;
+    const q = quality as { missing?: unknown; parse_errors?: unknown };
+    if (!Array.isArray(q.missing) || !Array.isArray(q.parse_errors)) return null;
+    return new OpenISDDriver(candidate as _OpenISDDriverJson);
   }
 
   /** `.owdr` text → an `OpenISDDriver`, direct. `.owdr` IS this model's own record as JSON. */
@@ -662,6 +688,48 @@ export class OpenISDDriver {
     return { value: '', state: Provenance.NotAvailable };
   }
 
+  /** `series`/`product_image`/`driver_type` — record-level metadata the picker reads (for the
+   *  preview pane, and for classifying the row into its type chips) but the editor does not
+   *  expose for editing, so they sit outside `MetaField`. Empty when unstated. */
+  previewField(field: 'series' | 'product_image' | 'driver_type'): string {
+    const f = this.#record[field];
+    return f?.value && f.value.length > 0 ? f.value : '';
+  }
+
+  /** This record's provenance index — the URL a `SourceRole` was read from, empty when that
+   *  role never contributed to this record. A datasheet/product-page link is not a driver
+   *  FIELD, so it lives here rather than through `cell()`/`metaCell()`. */
+  dataSourceUrl(role: SourceRole): string {
+    return this.#record.data_sources.value[role] ?? '';
+  }
+
+  /** Overlay catalogue link fields (datasheet/product-page URLs) that live in the library
+   *  index, not in the record itself, onto this driver's own provenance index — used when
+   *  adopting a library row so those links are not lost on load. Only a non-empty URL
+   *  overwrites; an absent role leaves whatever this driver already carries for it alone. */
+  withDataSourceLinks(links: Partial<Record<SourceRole, string>>): void {
+    for (const [role, url] of Object.entries(links) as [SourceRole, string][]) {
+      if (url) this.#record.data_sources.value[role] = url;
+    }
+  }
+
+  /** What this record is CALLED: `<brand> <model>`, the identity a saved driver is filed under
+   *  and the name it reads by everywhere. `'Driver'` when it states neither. */
+  displayName(): string {
+    const brand = this.metaCell('brand').value;
+    const model = this.metaCell('model').value;
+    return [brand, model].filter(x => x.length > 0).join(' ').trim() || 'Driver';
+  }
+
+  /** Blank the DERIVED identity fields (`sku`, `name`) — used when forking this driver into a
+   *  new entry (Clone): the pipeline built these for THIS driver, and a fork is a different
+   *  driver until something derives its own. `sku` is required on the record, so it is blanked
+   *  rather than removed; `name` is optional and is dropped outright. */
+  resetDerivedIdentity(): void {
+    this.#record.sku = { value: '', definition: 'canonical identity code', grounds: [] };
+    delete this.#record.name;
+  }
+
   /** The built canonical identity code — `_DerivedField`, so there is no provenance to report,
    *  just the value. Empty until the derivation runs. */
   sku(): string {
@@ -673,6 +741,12 @@ export class OpenISDDriver {
    *  the record's own longer-standing field, e.g. `.wdr`'s `Comment=` header line source). */
   description(): string {
     return this.#record.description?.value ?? '';
+  }
+
+  /** This record's own standing evidence — `recordStandingIsOk` (`driverStanding.ts`)'s input,
+   *  flat plain data rather than the `quality` envelope itself. */
+  standingEvidence(): StandingEvidence {
+    return { missing: this.#record.quality.missing, parse_errors: this.#record.quality.parse_errors };
   }
 
   /**
@@ -744,43 +818,6 @@ export class OpenISDDriver {
   }
 }
 
-// ── Reading a RECORD without materialising a driver ──────────────────────────────────────
-
-/**
- * One field's value and provenance, read straight off a RECORD.
- *
- * A catalogue row, a preview pane and a filter bar all need to ask "what is this driver's Fs"
- * about a record that is in no project. They must NOT construct an `OpenISDDriver` to do it:
- * a live driver is mutable and subscribable, it belongs inside `ManagedProject`, and one held
- * anywhere else is a second writer with no notification and no what-if guard.
- *
- * So this is a pure function over the record. It answers the same question `cell()` answers —
- * including a DERIVED value, because "what is this driver's Fs" is a real question about a
- * record that only states Mms and Cms — and it hands back nothing that can be written to.
- */
-export function readCell(record: _OpenISDDriverJson, field: SpecField): Cell {
-  return OpenISDDriver.fromJsonRecord(record).cell(field);
-}
-
-/** One metadata field, read straight off a RECORD. Same reasoning as `readCell`. */
-export function readMetaCell(record: _OpenISDDriverJson, field: MetaField): MetaCell {
-  return OpenISDDriver.fromJsonRecord(record).metaCell(field);
-}
-
-/**
- * What a record is CALLED: `<brand> <model>`, the identity a saved driver is filed under and
- * the name it reads by everywhere. `'Driver'` when it states neither — an unnamed driver is a
- * real state, and inventing a name would make it indistinguishable from one the user set.
- */
-export function readDisplayName(record: _OpenISDDriverJson): string {
-  const brand = record.brand?.value ?? '';
-  const model = record.model?.value ?? '';
-  return [brand, model].filter(x => x.length > 0).join(' ').trim() || 'Driver';
-}
-
-/** A record with nothing stated — what the editor authors a new driver from. Here rather than
- *  `OpenISDDriver.empty().toJsonRecord()` at the call site, so a caller needing a blank record does
- *  not have to construct a live driver it will immediately throw away. */
 /**
  * Structural problems that make a record unusable, empty when it is sound.
  *
@@ -803,17 +840,5 @@ export function driverRecordProblems(record: unknown): string[] {
     problems.push('`specs` is missing — every field read dereferences it');
   }
   return problems;
-}
-
-/**
- * Human ruling: the ONLY files, `packages/`-relative, permitted to name `_emptyDriverRecord` —
- * enforced by `packages/ui/test/ui/architecture.test.ts` the same way as
- * `_OpenISDDriverJsonPrivateAllow` above. ONLY the human may add, remove, or change an entry
- * here — no agent may edit this list on its own judgement.
- */
-export const _emptyDriverRecordPrivateAllow: string[] = [];
-
-export function _emptyDriverRecord(): _OpenISDDriverJson {
-  return OpenISDDriver.empty().toJsonRecord();
 }
 

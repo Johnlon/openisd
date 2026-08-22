@@ -34,7 +34,10 @@ export function referenceRho(): number {
   return moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
 }
 
-/** The sealed-box loss model enum — re-exported so a component's loss-mode picker (Options
- *  dialog) does not name `@openisd/engine` itself. Not a formula: a wire-format enum, same
- *  reason `DriverType`/`Chip` are UI-owned rather than engine-owned. */
-export { LossMode };
+/** The string→member boundary for the sealed-box loss model, and the picker's option list —
+ *  logic owns both so no component names `@openisd/engine` itself (the layering gate) and no
+ *  re-export exists (QO80). Same pattern as `series.ts`'s `parseChartTabId`. */
+export function parseLossMode(token: string): LossMode { return LossMode.parse(token); }
+export function lossModeOptions(): { value: string; label: string }[] {
+  return LossMode.ALL.map(m => ({ value: m.value, label: m.label }));
+}

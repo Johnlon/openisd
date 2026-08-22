@@ -19,7 +19,8 @@
 import { sealedFc, tuningFromLength, prTuning, prVas, prQms, prFsWithMass, findImpedancePeak } from '@openisd/engine';
 import type { EngineDriver, SweepResult } from '@openisd/engine';
 import type { WprInput } from '@openisd/winisd';
-import type { BoxType, UiParams, ProjectMeta } from '../types.js';
+import type { BoxType } from '@openisd/engine';
+import type { UiParams, ProjectMeta } from '../types.js';
 
 const BTYPE: Record<BoxType, number> = { sealed: 0, vented: 1, bandpass4: 2, pr: 4 };
 

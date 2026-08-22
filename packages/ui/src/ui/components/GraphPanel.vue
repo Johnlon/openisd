@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { state, managedProject, allIssues, syncedP, curvesData, maxData } from '../../logic/store.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { TAB_META, buildPlotData } from '../../logic/series.js';
-import type { ChartTabId } from '../../logic/series.js';
+import type { ChartTabId } from '../../types.js';
 import { drawOne } from '../canvas.js';
 import { DPAL } from '../presets.js';
 import type { Geo, Design } from '../../types.js';

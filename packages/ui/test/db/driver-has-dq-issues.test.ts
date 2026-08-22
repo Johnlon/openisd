@@ -5,16 +5,17 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { driverHasDqIssues, type FileEntry } from '../../src/db/driverRepo.js';
+import { OpenISDDriver } from '@openisd/model';
 import type { _OpenISDDriverJson, SpecField } from '@openisd/model';
 
 /** Boilerplate identity/bookkeeping fields every `_OpenISDDriverJson` needs — no domain value
  *  of its own. Only `fields` (SI numbers, keyed by SpecField) varies per test. */
-function recordWithFields(fields: Partial<Record<SpecField, number>>): _OpenISDDriverJson {
+function driverWithFields(fields: Partial<Record<SpecField, number>>): OpenISDDriver {
   const woofer: Record<string, { origin: 'manual'; readings: { manual: { read_value: number } }; dq: [] }> = {};
   for (const [k, v] of Object.entries(fields)) {
     woofer[k] = { origin: 'manual', readings: { manual: { read_value: v } }, dq: [] };
   }
-  return {
+  const record: _OpenISDDriverJson = {
     uuid: { value: 'test-uuid', definition: 'stable record identity' },
     quality: {
       rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -25,70 +26,71 @@ function recordWithFields(fields: Partial<Record<SpecField, number>>): _OpenISDD
     model: { value: 'Model', origin: 'manual', definition: "the vendor's exact designation", dq: [] },
     sku: { value: 'test-model', definition: 'canonical identity code', grounds: [] },
     driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
-        data_sources: { value: {}, definition: 'the record-wide provenance index' },
+    data_sources: { value: {}, definition: 'the record-wide provenance index' },
     authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
     specs: { woofer: woofer as _OpenISDDriverJson['specs'] extends { woofer?: infer W } ? W : never },
   };
+  return OpenISDDriver.fromJsonRecord(record);
 }
 
 describe('driverHasDqIssues — record path (record/myDriverData present)', () => {
   it('is false when Fs, Re, Sd and two of the Q trio are all usable', () => {
-    const record = recordWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
+    const record = driverWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
     const f: FileEntry = { name: 'x', record };
     assert.equal(driverHasDqIssues(f), false);
   });
 
   it('is true when Fs is missing', () => {
-    const record = recordWithFields({ Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
+    const record = driverWithFields({ Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
     const f: FileEntry = { name: 'x', record };
     assert.equal(driverHasDqIssues(f), true);
   });
 
   it('is true when Fs is entered as zero (not > 0)', () => {
-    const record = recordWithFields({ Fs: 0, Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
+    const record = driverWithFields({ Fs: 0, Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
     const f: FileEntry = { name: 'x', record };
     assert.equal(driverHasDqIssues(f), true);
   });
 
   it('is true when Re is missing', () => {
-    const record = recordWithFields({ Fs: 30, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
+    const record = driverWithFields({ Fs: 30, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
     const f: FileEntry = { name: 'x', record };
     assert.equal(driverHasDqIssues(f), true);
   });
 
   it('is false when Sd is absent but Vas is usable (Sd||Vas branch)', () => {
-    const record = recordWithFields({ Fs: 30, Re: 5.6, Vas: 0.030, Qts: 0.38, Qes: 0.40 });
+    const record = driverWithFields({ Fs: 30, Re: 5.6, Vas: 0.030, Qts: 0.38, Qes: 0.40 });
     const f: FileEntry = { name: 'x', record };
     assert.equal(driverHasDqIssues(f), false);
   });
 
   it('is true when neither Sd nor Vas is usable', () => {
-    const record = recordWithFields({ Fs: 30, Re: 5.6, Qts: 0.38, Qes: 0.40 });
+    const record = driverWithFields({ Fs: 30, Re: 5.6, Qts: 0.38, Qes: 0.40 });
     const f: FileEntry = { name: 'x', record };
     assert.equal(driverHasDqIssues(f), true);
   });
 
   it('is false with exactly two of the Q trio usable (Qts absent, Qes+Qms present)', () => {
-    const record = recordWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133, Qes: 0.40, Qms: 7.0 });
+    const record = driverWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133, Qes: 0.40, Qms: 7.0 });
     const f: FileEntry = { name: 'x', record };
     assert.equal(driverHasDqIssues(f), false);
   });
 
   it('is true with exactly one of the Q trio usable', () => {
-    const record = recordWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133, Qts: 0.38 });
+    const record = driverWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133, Qts: 0.38 });
     const f: FileEntry = { name: 'x', record };
     assert.equal(driverHasDqIssues(f), true);
   });
 
   it('is true with none of the Q trio usable', () => {
-    const record = recordWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133 });
+    const record = driverWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133 });
     const f: FileEntry = { name: 'x', record };
     assert.equal(driverHasDqIssues(f), true);
   });
 
   it('myDriverData takes precedence over record when both are set', () => {
-    const good = recordWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
-    const bad = recordWithFields({ Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 }); // no Fs
+    const good = driverWithFields({ Fs: 30, Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 });
+    const bad = driverWithFields({ Re: 5.6, Sd: 0.0133, Qts: 0.38, Qes: 0.40 }); // no Fs
     const f: FileEntry = { name: 'x', myDriverData: good, record: bad };
     assert.equal(driverHasDqIssues(f), false);
   });
@@ -107,7 +109,7 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
       model: { value: 'Model', origin: 'manual', definition: "the vendor's exact designation", dq: [] },
       sku: { value: 'test-model', definition: 'canonical identity code', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
-            data_sources: { value: {}, definition: 'the record-wide provenance index' },
+      data_sources: { value: {}, definition: 'the record-wide provenance index' },
       authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
       specs: {
         woofer: {
@@ -119,7 +121,7 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
         },
       },
     };
-    const f: FileEntry = { name: 'x', record };
+    const f: FileEntry = { name: 'x', record: OpenISDDriver.fromJsonRecord(record) };
     assert.equal(driverHasDqIssues(f), true);
   });
 
@@ -135,7 +137,7 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
       model: { value: 'Model', origin: 'manual', definition: "the vendor's exact designation", dq: [] },
       sku: { value: 'test-model', definition: 'canonical identity code', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
-            data_sources: { value: {}, definition: 'the record-wide provenance index' },
+      data_sources: { value: {}, definition: 'the record-wide provenance index' },
       authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
       specs: {
         woofer: {
@@ -147,7 +149,7 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
         },
       },
     };
-    const f: FileEntry = { name: 'x', record };
+    const f: FileEntry = { name: 'x', record: OpenISDDriver.fromJsonRecord(record) };
     assert.equal(driverHasDqIssues(f), true);
   });
 });

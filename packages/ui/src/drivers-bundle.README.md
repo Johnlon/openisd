@@ -28,7 +28,7 @@ unconditionally) AND a `quality` block with `missing`/`parse_errors` arrays (the
 thing `recordStandingIsOk` reads unconditionally) — the SAME check `myDrivers.ts::list()`
 runs on browser-stored records, so both seams a record enters the app through enforce
 one contract. Neither datasheet completeness nor simulatability
-(`recordIsSimulatable`, `packages/model/src/driverSimulatability.ts`) gates bundling —
+(`driverIsSimulatable`, `packages/model/src/driverSimulatability.ts`) gates bundling —
 both are settled wrong, permanently. A record with no Fs, or no T/S fields at all,
 still bundles, opens in the editor, and degrades in a design exactly like a
 user-created driver with those fields left blank; the app flags it for the user

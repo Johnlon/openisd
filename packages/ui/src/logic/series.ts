@@ -3,7 +3,6 @@ import type { EngineDriver, BoxType, SweepResult, MaxCurvesResult, DriverError }
 import { DPAL } from '../ui/presets.js';
 import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
 
-export type { ChartTabId };
 
 interface TabMeta { id: ChartTabId; name: string; unit: string; color: string }
 
