@@ -44,7 +44,6 @@ function driverRecord(): _OpenISDDriverJson {
       { origin: 'manufacturer_datasheet', reading: 'Test-1', definition: 'd' },
     ] },
     driver_type: { value: 'woofer', origin: 'manufacturer_datasheet', definition: 'd', dq: [] },
-    disposition: { value: 'ok', definition: 'd', detail: 'complete' },
     data_sources: { value: {}, definition: 'd' },
     authoritative: { value: 'manufacturer_datasheet', definition: 'd' },
     specs: {

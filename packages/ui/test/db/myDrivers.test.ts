@@ -34,7 +34,6 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       model: { value: 'Driver', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'valid-driver', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -71,7 +70,6 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       model: { value: 'Driver', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'valid-driver', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -114,7 +112,6 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       model: { value: 'Driver', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'first-driver', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -138,7 +135,6 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       model: { value: 'Driver', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'second-driver', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -175,7 +171,6 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
       model: { value: 'Driver', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'existing-driver', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -199,7 +194,6 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
       model: { value: 'Driver', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'new-driver', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -250,7 +244,6 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
       model: { value: 'Driver', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'valid-driver', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {

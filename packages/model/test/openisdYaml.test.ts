@@ -24,7 +24,6 @@ describe('fromYaml — parses REAL Python-written openisd.yml, not synthetic dat
     assert.equal(r.manufacturer.origin, 'manufacturer_product_page');
     assert.equal(r.sku.value, 'fs10-20a8');
     assert.equal(r.driver_type.value, 'woofer');
-    assert.equal(r.disposition.value, 'no-ts-published');
   });
 
   it('reads the _DerivedField grounds list (sku) — the envelope kind with no origin/readings', () => {
@@ -64,7 +63,6 @@ describe('toYaml — round-trips a record built in TS', () => {
       model: { value: '10BR60/V2', origin: 'manual', definition: 'd', dq: [] },
       sku: { value: 'x', definition: 'd', grounds: [{ origin: 'manual', reading: 'x', definition: 'd' }] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'd', dq: [] },
-      disposition: { value: 'ok', definition: 'd', detail: 'd' },
       data_sources: { value: {}, definition: 'd' },
       authoritative: { value: 'manual', definition: 'd' },
       specs: {

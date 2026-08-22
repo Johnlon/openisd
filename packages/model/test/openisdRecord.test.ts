@@ -44,7 +44,6 @@ function driver(): OpenISDDriver {
       { origin: 'manufacturer_datasheet', reading: '10BR60/V2', definition: 'the printed designation' },
     ] },
     driver_type: { value: 'woofer', origin: 'manufacturer_datasheet', definition: 'what kind of driver this is', dq: [] },
-    disposition: { value: 'ok', definition: "the record's own account of its standing", detail: 'complete' },
     data_sources: {
       value: { manufacturer_datasheet: 'https://example.invalid/beyma-10br60v2.pdf' },
       definition: 'the record-wide provenance index',
