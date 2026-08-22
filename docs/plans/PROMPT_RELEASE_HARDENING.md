@@ -807,7 +807,7 @@ never improvise around it.
       field with uuid + openisd facts having no INI slot (0xA4 sentinel mechanics, best-effort
       carrier, provenance-not-identity on re-import). Sequence AFTER D20 so it is written in
       the ruled persistence vocabulary rather than migrated twice.
-- [ ] **D19** (air constants, John verbatim: "these are calculated values in the UI in
+- [x] **D19** DONE 2026-08-22 (all three parts: record exclusion advised+held by winisd_tools; grep-verified NO 345.0/1.184 literal survives in openisd source; winisd_research README's category-error framing corrected, its repo commit 29ad654) (air constants, John verbatim: "these are calculated values in the UI in
       openisd not constants"): `c`/`roo` are OUTPUTS of `packages/engine/src/air.ts::airFor(env)`
       from temperature/humidity/pressure — verified by running it: reference conditions
       (293.15K, 30%, 101325Pa) give c=343.6826980479399, rho=1.2009621215255684, while a
