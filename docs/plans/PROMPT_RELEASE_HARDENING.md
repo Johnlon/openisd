@@ -119,7 +119,12 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
   tree with A6+A7 uncommitted work). Expected red: driver-selection.browser.spec.ts (8,
   bug filed — spec seeds retired flat shape). Classify on completion.
 
-- **A6 (FileIO + QO67)** — WORK COMPLETE IN TREE, commit HELD on QO78 ONLY. Three review
+- **A6 — QO78 RULED (option d, verbatim in ledger): file IO MOVES into the owning domain
+  module (project IO → managedProject.ts; driver IO → managedProject.ts or a new
+  managedDriver.ts, gate-licensed by the ruling); wrappers + get driver() deleted
+  (ownership, not exemption). FINAL REWORK DISPATCHED to the A6 child, folding in QO73/D11
+  (alias deletion + no private value in ui/ + the AST anti-alias/anti-erasure gate).
+  Review-then-commit follows. Prior state: Three review
   cycles done: cycle-3's verify pass BLOCKed on 3 comment/doc findings, all fixed by the
   orchestrator directly and verified (grep 0, suites 13/13, typecheck clean): ARCHITECTURE.md
   `.owpr` self-contradiction resolved at :519/:950-table/:982 (current shape = SerializedState,
