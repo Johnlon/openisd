@@ -38,8 +38,10 @@ responsibility.
 
 - MUST NOT: know a dialog is open, decide what happens next, read app state, hold reactive
   state, or serve two collections.
-- MUST: take its store by injection, return RECORDS (never live domain instances —
-  `ARCHITECTURE.md` §"A repository deals in RECORDS").
+- MUST: take its storage by injection and deal in DOMAIN OBJECTS and owner-serialised text
+  (SERIALIZATION_DOCTRINE.md, ruled 2026-08-22 — the owner of the state serialises and
+  persists it; the earlier records-currency rule is superseded, and construction routes
+  through the licensed factories, never the repo naming the private shape).
 - Named `<Collection>Repo` / `create<Collection>Repo`, file `<collection>Repo.ts`.
 
 ### STATE — the app's live, reactive, in-memory truth
