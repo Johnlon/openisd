@@ -1,4 +1,16 @@
-# Persistence vocabulary: STORE, REPO, STATE — the one naming and placement rule
+# Persistence vocabulary: STORAGE, REPO, STATE — the one naming and placement rule
+
+> RULING UPDATE (orchestrator, 2026-08-22, under delegated authority — pending John's review):
+> the word **"store" is eliminated from the codebase entirely**. The port is **STORAGE**
+> (`KeyValueStorage`, `FileStorage` — the web platform's own word: `localStorage` IS a
+> `Storage`), the app state is **`appState`**, and nothing is called a store. Rationale:
+> keeping `Store` beside `Storage` leaves two near-identical words meaning different things —
+> the same class of misdirection this rule exists to remove, and John called that a fudge by
+> implication ("dont fudge it"). His open question ("do we need a different term for our
+> 'store' like 'browser_storage'?") pointed here; this adopts it. Every STORE reference below
+> reads as STORAGE; the rename map gains: `KeyValueStore`→`KeyValueStorage`,
+> `FileStore`→`FileStorage`, `createFileStore`→`createFileStorage`,
+> `createLocalStorageStore`→`createLocalStorage`… (final spellings at implementation).
 
 Ruled 2026-08-22. Three concepts, three words, three homes. A module is exactly one of them.
 No module may be two. If a name and a role disagree, the NAME changes — never the definition.
