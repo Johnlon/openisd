@@ -561,6 +561,27 @@ never improvise around it.
       bespoke gate (extend the :703 typeNodeNames() approach). store.ts:19's direct
       `_OpenISDDriverJson` import (its own violation, not PrivateAllow-covered) resolves
       in the same design.
+- [ ] **D16** (QT58 ruled, John verbatim: "field level stuff is good - disposition is bad -
+      tell main-exec it needs killing"): `disposition` is DELETED OUTRIGHT. winisd_tools side
+      (peer-owned, greenlit by this session): Disposition enum, DispositionField envelope +
+      detail templates, `disposition_of`, the stamp-on-validation machinery, their tests.
+      SURVIVES: all field-level facts — `missing`, `parse_errors`, per-reading N/A evidence,
+      `no_ts_published` as the vendor-emit input. **openisd side (MINE, verified 2026-08-22
+      by grep over packages/ui/src + packages/model/src + scripts — 3 real code sites, not
+      1 as an earlier note implied):** `openisdDriver.ts:97` the `disposition:
+      DispositionField` declaration, `:340` `empty()`'s seeded block, `:465` the `.wdr`
+      import path's `{value:'ok'}` seed — plus the `DispositionField` type itself if nothing
+      else uses it. All three are in the file the A6/QO78 rework is editing RIGHT NOW —
+      SCHEDULE AFTER A6 LANDS, never concurrently. No reader remains (A7/QO79 removed the
+      bundler's last read), so deletion is safe on the openisd side.
+- [ ] **D17** (QO80 ruling): `packages/engine/src/index.ts` → `engine.ts` — John: "its more
+      obvious if that's where calcs live". The old dead `engine.ts` was deleted at his order
+      by the peer (verified unreferenced beforehand). Mechanics: one edit to
+      `packages/engine/package.json`'s `exports` (both `types` and `default` →
+      `./src/engine.ts`); consumers import `@openisd/engine` through the exports map, so
+      zero import churn. PAIR WITH: the D15 re-export gate's barrel exemption must read each
+      package's exports-map TARGET rather than hardcoding `index.ts` — that removes the
+      hardcoded filename and makes this rename safe. Do both in one change.
 - [ ] **D15** (QO80 ruling, John verbatim: "rexports are expreslly forbideen"): the gate
       `packages/ui/test/ui/architecture-no-reexports.test.ts` is IN TREE, untracked, born
       RED by design (authored by a John-dispatched background agent; ts-morph AST — export-
