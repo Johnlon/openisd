@@ -90,6 +90,24 @@ Symbols follow the files: `createPrefsStore` → `createPrefsRepo`, `PrefsStore`
 Comments and docstrings using the old vocabulary are corrected in the same pass — a rename that
 leaves the prose behind rebuilds the confusion it was meant to remove.
 
+## Every module of these three kinds carries a one-line gloss
+
+Because "store"/"storage"/"state" are near-neighbours in English and one of them collides with
+Vue's own vocabulary, each module states which concept it is, in its first docstring line, in
+this exact shape:
+
+```ts
+/** STORAGE (port): where bytes live. Knows keys and strings, never what a driver is. */
+/** REPO: domain access to the My Drivers collection. Takes a storage, returns records. */
+/** STATE: the app's live reactive truth — Vue's sense of "store". Not persistence. */
+```
+
+This is not restating the code: without it a reader meeting `FileStorage` and `appState` in
+adjacent imports cannot tell which layer either belongs to, and that is exactly the
+disambiguation a comment is FOR (`behavioral_instructions.md` §"No Useless Text" permits text
+that "disambiguates something genuinely ambiguous"). Any consumer that holds one of these as a
+local name (`const storage = …`) carries the same one-line gloss at the binding.
+
 ## Enforcement
 
 An AST gate (`no-persistence-vocabulary-drift`), so this cannot rot back:
