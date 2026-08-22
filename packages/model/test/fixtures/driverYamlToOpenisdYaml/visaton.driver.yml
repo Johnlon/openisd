@@ -1,0 +1,255 @@
+uuid:
+  value: 431ca54b-fb22-4f42-979a-5717fec7b60e
+  definition: stable record identity, minted by the pipeline at first emit and never
+    re-derived
+quality:
+  disposition:
+    value: incomplete
+    definition: 'the record''s standing — one of: ok, no-ts-published, incomplete'
+    detail: required parameters for box design simulation are missing
+  no_ts_published:
+    value: false
+    definition: whether the source publishes no T/S parameters at all for this driver
+      — a claim about the SOURCE, so it cannot be derived from the record's own fields
+      and is the one part of `disposition` that is still stated directly, by the vendor
+      emit that read it
+  rating: L
+  confirmed_fields: []
+  fields_with_issues: []
+  missing: [Cms, Xmax]
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: Visaton
+  origin: manufacturer_product_page
+  definition: the company that makes the driver; a second-order descriptive field,
+    shown only when it differs from the brand
+brand:
+  value: Visaton
+  origin: manufacturer_product_page
+  definition: the selling brand; equals the manufacturer except for house brands
+model:
+  value: AL 130 - 8 Ohm
+  origin: manufacturer_product_page
+  definition: the vendor's exact designation including the impedance variant — unique
+    within a brand, and the name shown in the driver browser
+sku:
+  value: al-130-8-ohm
+  definition: the canonical identity code — the vendor designation slugified, impedance
+    variant included; names the record directory (guard-enforced equal) and is unique
+    within the manufacturer
+  grounds:
+  - origin: manufacturer_product_page
+    reading: AL 130 - 8 Ohm
+    definition: the printed designation the code was derived from
+  - origin: manufacturer_product_page
+    reading: https://www.visaton.de/en/products/drivers/bass-midranges/al-130-8-ohm
+    definition: the source URL that corroborated the derivation
+driver_type:
+  value: woofer
+  origin: manufacturer_product_page
+  definition: what kind of driver this is (closed vocabulary); decides which specs
+    section applies
+data_sources:
+  value:
+    manufacturer_datasheet: https://www.visaton.de/sites/default/files/dd_product/AL%20130_1301.pdf
+    manufacturer_product_page: https://www.visaton.de/en/products/drivers/bass-midranges/al-130-8-ohm
+  definition: the record-wide provenance index — every source role used anywhere in
+    this file resolves to a URL here
+authoritative:
+  value: manufacturer_product_page
+  definition: which indexed source wins the datasheet waterfall for this record —
+    the document the specs are extracted from; other sources only corroborate
+product_image:
+  value: https://www.visaton.de/sites/default/files/dd_product/al130.jpg
+  origin: manufacturer_product_page
+  definition: the manufacturer's product photo for this driver
+description:
+  value: 13 cm (5") High-End low midrange driver with stiff, anodized aluminium cone,
+    solid aluminium die-cast basket and elastic rubber surround. Extremely low electrical
+    and mechanical losses due to vented pole plate and vented damper. Capton voice-coil
+    and impedance control ring. Extremely long cone displacement due to long stroke
+    voice coil. Suitable as low-midrange driver for 3-way High-End applications up
+    to 5000 Hz.
+  origin: manufacturer_product_page
+  definition: the manufacturer's own product blurb, page chrome stripped
+specs:
+  woofer:
+    Fs:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 43 Hz
+          read_value: 43.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: free-air resonance frequency (Hz)
+    Re:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 5.6 Ohm
+          read_value: 5.6
+          read_precision: 0.05
+      corroboration: UNMATCHED
+      definition: DC voice coil resistance (Ω)
+    Le:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 0.9 mH
+          read_value: 0.0009
+          read_precision: 5.0e-05
+      corroboration: UNMATCHED
+      definition: voice-coil inductance (H)
+    Znom:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 8 Ohm
+          read_value: 8.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: nominal impedance (Ω)
+    Qts:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '0.38'
+          read_value: 0.38
+          read_precision: 0.005
+      corroboration: UNMATCHED
+      definition: total Q factor at Fs (dimensionless)
+    Qes:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '0.42'
+          read_value: 0.42
+          read_precision: 0.005
+      corroboration: UNMATCHED
+      definition: electrical Q factor at Fs (dimensionless)
+    Qms:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '4.37'
+          read_value: 4.37
+          read_precision: 0.005
+      corroboration: UNMATCHED
+      definition: mechanical Q factor at Fs (dimensionless)
+    Vas:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 13 l
+          read_value: 0.013
+          read_precision: 0.0005
+      corroboration: UNMATCHED
+      definition: equivalent compliance volume — stored in m³, not litres
+    Sd:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 79 cm²
+          read_value: 0.0079
+          read_precision: 5.0e-05
+      corroboration: UNMATCHED
+      definition: effective piston area — stored in m², not cm²
+    BL:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 5.6 Tm
+          read_value: 5.6
+          read_precision: 0.05
+      corroboration: UNMATCHED
+      definition: motor force factor (T·m)
+    Mms:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 9 g
+          read_value: 0.009
+          read_precision: 0.0005
+      corroboration: UNMATCHED
+      definition: moving mass including air load — stored in kg, not g
+    Xlim:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 8.5 mm
+          read_value: 0.0085
+          read_precision: 5.0e-05
+      corroboration: UNMATCHED
+      definition: one-way mechanical excursion limit before damage — stored in m,
+        not mm; distinct from Xmax, the linear limit
+    SPL:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          note: 1W/1m
+          actual_reading: 87 dB (1 W/1 m)
+          read_value: 87.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: sensitivity (dB)
+    Pe:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 60 W
+          read_value: 60.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: rated thermal power handling (W, IEC 268-5)
+    voice_coil_dia_mm:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 25 mm
+          read_value: 25.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: voice coil diameter (mm)
+    Hc_mm:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 18 mm
+          read_value: 18.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: voice-coil winding height (mm)
+    power_peak_W:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 90 W
+          read_value: 90.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: short-term/peak power handling (W)
+    weight_kg:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 1 kg
+          read_value: 1.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: net driver weight (kg)
+    basket_dia_mm:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 115 mm
+          read_value: 115.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: basket diameter — the baffle cutout (mm)
+scraper_meta:
+  scraper:
+    value: visaton_html_extractor
+    definition: the vendor scraper/extraction method that produced this record

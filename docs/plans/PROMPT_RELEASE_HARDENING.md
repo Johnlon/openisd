@@ -222,10 +222,14 @@ never improvise around it.
       test fixtures inline, AppState cast gone. Spin-out: QO73 (DriverJSON alias gate hole,
       pre-existing, human's call). Follow-up noted for later: stateToUrl/loadFromHash still
       in persist.ts (doc assigns them to UrlAppState — surface with A6/A8, not scope-crept).
-- [ ] **A5** Objective 3: `OpenISDProject` becomes a class facade over `_OpenISDProjectJson`
-      (private constructor, static factories, accessors, `copy()`), mirroring `OpenISDDriver`.
-      `ManagedOpenISDProject` migrates fully off `_OpenISDProjectJson`/`_OpenISDDriverJson`.
-      Blocked-by: A3. Done: PrivateAllow gate's project-shape offences gone; model suite green.
+- [x] **A5** DONE 2026-08-22, review PASS after one fix cycle (commit `7d4cb16`): class facade
+      with detached copies; mutation flows only through mutate()/notify (reviewer-audited);
+      structural assignability to _OpenISDProjectJson closed via a required driver key
+      (+ts-expect-error pin — the reviewer's brand suggestion was empirically disproven and
+      withdrawn); consumerless toJsonRecord deleted; QO71 channel deleted; QO70 ARCHITECTURE.md
+      + REACTIVITY.md aligned. PrivateAllow project-shape offences: ZERO. Model 58/58 (67
+      with F1/D8). Follow-ups: 4 remaining edit-draft doc refs (E1 sweep); QO69's sample
+      still the human's item.
 - [ ] **A5c** (added 2026-08-22, peer-suggested, design-conformant) DELETE store.ts's
       `_version` bridge — the parallel second reactivity adapter (`const _version`, the
       `md.subscribe(() => _version.value++)` hookup, every `void _version.value` dependency
@@ -472,10 +476,19 @@ never improvise around it.
 
 ## Lane F — the V8 bridge (QT54 — IN SCOPE; openisd side parallel to A, tools side after)
 
-- [ ] **F1** Export `openisdYamlToWdr(yamlText) → Result<string>` from openisd (the seam that
-      currently exists only as a test-local helper in `openisdToWdr.test.ts`). Byte encoding
-      note: the V8 boundary carries STRINGS; whoever writes file bytes must go through
-      `wdrBytes.ts`. Done: exported, tested against the format oracle.
+- [x] **F1** DONE 2026-08-22, review PASS after one fix cycle (commit `7d4cb16`): exported
+      from @openisd/model (the only cycle-free home); Result contract held via an
+      ACKNOWLEDGED interim try/catch — the real boundary fix (fromJsonRecord →
+      Result<OpenISDDriver>, 6 call sites incl. DriverEditorModal.vue) is recorded OPEN in
+      bugs/BUG_20260822_openisddriver_getters_throw...md and sized for A-lane; the fixture
+      test is a real pin (Fs/full ParState/pre-B10 key forcing regeneration at B10). 16/16 +
+      58/58 + typechecks. Reviewer reports for John: every new export lands as an
+      ALLOWED_GLOBALS offence by design (his grant); the harness-vs-project attribution
+      conflict needs the project git-actions override (interim: the orchestrator suppresses
+      trailers on every commit).
+- [x] **D8** DONE 2026-08-22 (commit `7d4cb16`): rel-25 DVol geometry lock in the engine's
+      RELATIONS (§3.10.1 formula, house half-ULP tolerance, degenerate geometry skipped by
+      the file's own pattern); 5 inline-data cases red-first; engine 385/385; QO74 closed.
 - [ ] **F2** Implement + export `driverYamlToOpenisdYaml(yamlText) → Result<string>` — the
       `driver.yml → openisd.yml` projection currently existing ONLY in Python
       (`model_openisd.py::from_metadata`). Largest new TS work in this stream; port from the

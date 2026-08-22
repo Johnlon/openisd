@@ -2,7 +2,7 @@
  * ONE user action must produce ONE solve, not two.
  *
  * `store.ts` bridges `ManagedOpenISDProject.subscribe()` to a coarse auto-solve watch: ANY
- * project mutation bumps `_version`, and the watch re-runs `solveVentGroup`/`solvePrGroup`
+ * project mutation notifies `live`, and the watch re-runs `solveVentGroup`/`solvePrGroup`
  * unless a suspension is active (`docs/design/REACTIVITY.md`; `bugs/BUG_20260821_vent_group_
  * auto_solve_clobbers_a_half_written_entered_set.md`'s "live design risk" section).
  *
@@ -91,5 +91,33 @@ describe('PR group writes coalesce the same way', () => {
     const count = countNotifications(() => clearPrFieldOn(managedProject, 'prFp'));
     assert.equal(count, 2,
       `expected exactly 2 writes (provenance, one solve) — got ${count}`);
+  });
+});
+
+/**
+ * Lower bound the coalescing tests above cannot see: they only count notifications and would
+ * pass identically whether the store's PR-group auto-solve watch fires or is permanently dead
+ * (`BUG_20260822_pr_group_auto_solve_watch_never_fires_after_the_live_repoint.md`). This proves
+ * the watch itself actually re-solves — writing `prFp` directly through `managedProject`, never
+ * through `enterPrField` (which calls `solvePrGroup` itself inside its own suspension and so
+ * would pass even with a dead store watch), outside any `suspendVentSolve` — so the only thing
+ * that can write `prMadd` here is the store's own watch reacting to the live notification.
+ */
+describe('PR-group auto-solve watch fires on every managedProject notification', () => {
+  it('a raw prFp write outside enterPrField/suspension re-solves prMadd', () => {
+    managedProject.setBoxVolume_m3(0.02);
+    managedProject.setPrField('Sd_m2', 0.008);
+    managedProject.setPrField('Cms_m_per_N', 0.0006);
+    managedProject.setPrField('Mmd_kg', 0.02);
+    managedProject.setEnteredSet({ prFp: true }); // prFp entered, prMadd is the CALCULATED member
+    managedProject.setPrAddedMass_kg(0); // known starting value for the calculated member
+    const before = managedProject.prAddedMass_kg();
+
+    managedProject.setPrFp_hz(55); // raw write — no suspension, no direct solvePrGroup call
+
+    const after = managedProject.prAddedMass_kg();
+    assert.notEqual(after, before,
+      'prMadd was not re-solved after a live prFp write — the store\'s PR-group auto-solve ' +
+      'watch did not fire');
   });
 });
