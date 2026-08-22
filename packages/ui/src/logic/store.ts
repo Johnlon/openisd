@@ -23,6 +23,7 @@ import { presentationState, unitToken } from './presentationState.js';
 import { parseChartTabId } from './series.js';
 import { toDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
 import { getOrInit } from './hmrSingleton.js';
+import { createLiveRef } from './liveProject.js';
 import {
   solveVentGroup, ventSolveSuspended, suspendVentSolve,
 } from './useVentGroup.js';
@@ -37,16 +38,12 @@ import { solvePrGroup } from './usePrGroup.js';
 // what-if exists — a second copy of any of those is a second answer to the same question, and
 // the two are free to disagree. Everything below DELEGATES; it stores nothing.
 //
-// ManagedOpenISDProject's framework-free subscribe() is bridged to Vue through _version: it fires on
-// every change the facade decides a subscriber should see (a what-if overlay fires live), and
-// the computeds below touch _version so they re-derive exactly then. @openisd/model stays
-// Vue-free — the arrow points up, never down.
-//
-// Declared here, ABOVE `state`, rather than in its own section below: the PR-group watch below
-// runs `{ immediate: true }` at module load, synchronously reading `managedProject` — before any
-// later `const managedProject` would exist yet (TDZ). It has to be defined before `state` is,
-// not merely before it is first USED at runtime.
-const _version = getOrInit('store', '_version', () => ref(0));
+// ManagedOpenISDProject's framework-free subscribe() is bridged to Vue through `live`
+// (`logic/liveProject.ts`'s `createLiveRef`, one adapter per consumer, over the one channel —
+// docs/design/REACTIVITY.md): it
+// fires on every change the facade decides a subscriber should see (a what-if overlay fires
+// live), and the computeds below touch `live.value` so they re-derive exactly then.
+// @openisd/model stays Vue-free — the arrow points up, never down.
 
 /**
  * THE project. The one facade over ground, committed and the edit-or-what-if overlay
@@ -79,10 +76,14 @@ export const ALLOWED_GLOBALS = [
   'openProjects', 'focusedProject', 'focusProject', 'removeProject', 'addProject',
 ];
 export const managedProject: ManagedOpenISDProject = getOrInit('store', '_managed', () => {
-  const md = ManagedOpenISDProject.createEmpty();
-  md.subscribe(() => { _version.value++; });
-  return md;
+  return ManagedOpenISDProject.createEmpty();
 });
+
+// The one Vue bridge onto `managedProject`'s subscribe() channel (see the comment above).
+// HMR-singleton same as `managedProject` itself: a bare `createLiveRef(managedProject)` here
+// would re-subscribe on every hot-reload, since `managedProject` survives the reload via
+// `getOrInit` but a fresh module-level `const` would not.
+const live = getOrInit('store', '_live', () => createLiveRef(managedProject)).live;
 
 /**
  * The multi-project registry (human ruling, 2026-08-18) — replaces `workspace.ts`'s ad-hoc
@@ -154,16 +155,23 @@ function buildState(): AppState {
 export const state: AppState = getOrInit('store', 'state', () => reactive(buildState()));
 
 // ---- Vent group: keep the calculated member solved while the user edits ------------------
-// `_version` (above) already bumps on every managedProject mutation — box/vent/PR fields
+// `live` (above) already fires on every managedProject mutation — box/vent/PR fields
 // included — so it is the one reactive dependency this needs; the group itself decides,
 // field by field, whether there is anything to solve (`ventDerivable`). Two guards:
-//   _solvingVent  — the solver's own write must not re-enter the watcher: `_version` bumping
+//   _solvingVent  — the solver's own write must not re-enter the watcher: `live` firing
 //                   again from inside `solveVentGroup`'s own mutation would otherwise recurse.
 //   ventSolveSuspended() — a restore assigns a whole persisted snapshot and must be adopted
 //                   verbatim (docs/design/STATE_MODEL.md rule 3, "Cancel means byte-identical").
+// `live` is a shallow ref whose `.value` is the SAME `managedProject` reference on every
+// notification (`createLiveRef`'s contract), so both watches below pass `live` itself (or
+// inside the sources array), never a getter that reads `live.value` — a getter source is gated
+// on Vue's `hasChanged(newValue, oldValue)`, which an invariant reference always fails, so the
+// callback would never run. Passing the ref directly sets `forceTrigger`, which fires on every
+// `triggerRef` unconditionally, matching the "run on every notification" intent
+// (`BUG_20260822_pr_group_auto_solve_watch_never_fires_after_the_live_repoint.md`).
 let _solvingVent = false;
 watch(
-  () => [_version.value, state.box],
+  [live, () => state.box],
   () => {
     if (_solvingVent || ventSolveSuspended()) return;
     _solvingVent = true;
@@ -178,9 +186,9 @@ watch(
 );
 
 // ---- PR tuning group: added mass ↔ system tuning -----------------------------------------
-// Shares the vent group's suspension flag and the same `_version` dependency.
+// Shares the vent group's suspension flag and the same `live` dependency.
 watch(
-  () => _version.value,
+  live,
   () => {
     if (_solvingVent || ventSolveSuspended()) return;
     _solvingVent = true;
@@ -214,7 +222,7 @@ export function clearDriverField(field: SpecField): void {
 // PRIVATE to this file's own sweep; every outside caller reads `managedProject.toEngineDriver()`
 // directly through `logic/liveProject.ts`'s reactivity adapter instead of a store wrapper.
 function _engineDriver(): EngineDriver | null {
-  void _version.value;
+  void live.value;
   return managedProject.toEngineDriver();
 }
 
@@ -225,7 +233,7 @@ function _engineDriver(): EngineDriver | null {
 // not expose it on its API — only the domain wrappers may (human ruling 2026-08-20). Every
 // consumer outside this file takes a domain wrapper or a public type instead.
 function _projectToPersist(): OpenISDProject {
-  void _version.value;
+  void live.value;
   return managedProject._projectToPersist();
 }
 
@@ -237,7 +245,7 @@ export const driverRecord: ComputedRef<DriverJSON | undefined> =
 /** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
  *  driver. '' when nothing names it (no driver chosen yet), so a caller can fall back. */
 export const driverName = computed<string>(() => {
-  void _version.value;
+  void live.value;
   return [managedProject.metaCell('brand').value, managedProject.metaCell('model').value]
     .filter(x => x.length > 0).join(' ').trim();
 });
@@ -254,16 +262,16 @@ export function openDriverPicker(): void {
 }
 
 function _driverErrors(): DriverError[] {
-  void _version.value;
+  void live.value;
   return managedProject.errors();
 }
 
 export const syncedP = computed<SyncedParams>(() => {
   // The dependency: `toUiParams()`/`driveVoltage_V()` read the effective project directly and
   // touch no Vue ref themselves (`managedProject` stays framework-free), so this computed
-  // re-derives on every project mutation via `_version`, the same bridge every other read in
+  // re-derives on every project mutation via `live`, the same bridge every other read in
   // this file uses (`logic/liveProject.ts`'s adapter, in this file's own private form).
-  void _version.value;
+  void live.value;
   const p: SyncedParams = { ...managedProject.toUiParams(), eg: managedProject.driveVoltage_V() };
   if (state.box === 'vented' || state.box === 'bandpass4') {
     p.Sp = managedProject.ventArea_m2();
@@ -383,7 +391,7 @@ export function resetProjectToGround(): void {
  *  a "new" project never inherits the previous one, then adopts the fresh design as ground.
  *  Callers (the New Project wizard) apply the chosen box type + volume on top afterwards.
  *  `managedProject.loadEmpty()` already resets box/vent/PR/environment/signal/simOptions/
- *  sweep/filters/entered to the app's initial defaults (`_prototypeProject()`) — there is
+ *  sweep/filters/entered to the app's initial defaults — there is
  *  nothing left for this function to reset on the params side. */
 export function newProject(): void {
   presentationState.yRanges = {};
@@ -507,7 +515,7 @@ export function formatInUnit(
  * current behaviour). Every `.wpr` in the corpus has VCInd=0, so no observation settles it.
  */
 export const simVcInductance = computed<boolean>({
-  get: () => { void _version.value; return managedProject.circuitModel() === 'gyrator'; },
+  get: () => { void live.value; return managedProject.circuitModel() === 'gyrator'; },
   set: (on) => { managedProject.setCircuitModel(on ? 'gyrator' : 'winisd'); },
 });
 

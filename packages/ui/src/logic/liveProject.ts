@@ -11,7 +11,7 @@
  * primitives for this purpose. The subscribable itself (`ManagedOpenISDProject`) stays
  * framework-free — it exports plain `subscribe()`, nothing Vue-shaped.
  */
-import { shallowRef, triggerRef, type ShallowRef } from 'vue';
+import { shallowRef, triggerRef, getCurrentScope, onScopeDispose, type ShallowRef } from 'vue';
 
 /** Anything that publishes a plain-JS change channel: `subscribe(fn)` registers a listener and
  *  returns the function that removes it. `ManagedOpenISDProject` satisfies this without
@@ -22,8 +22,14 @@ export interface Subscribable {
 
 /** `live` — the given object, wrapped so that reading `.value` inside a template, `watchEffect`
  *  or `computed` registers a dependency that invalidates on every notification from `obj`.
- *  `dispose()` removes the subscription; call it when the owner of `obj` is discarded, or a
- *  closed object's listener keeps it alive.
+ *
+ *  Disposal is automatic inside a component's `setup()` (or any active effect scope): the
+ *  subscription is torn down via `onScopeDispose` when that scope stops, so a component that
+ *  destructures only `{ live }` and drops `dispose` still cannot leak a listener past its own
+ *  unmount (`BUG_20260822_component_liveref_subscriptions_are_never_disposed.md`). Called with
+ *  no active scope — a module-level singleton like the store's `managedProject` bridge — nothing
+ *  is registered automatically, and the returned `dispose()` is the caller's own responsibility:
+ *  call it when the owner of `obj` is discarded, or a closed object's listener keeps it alive.
  *
  *  A plain `computed(() => { void version.value; return obj; })` does NOT work here: `obj`'s
  *  reference never changes, so Vue's computed short-circuits and never propagates to a consumer
@@ -38,5 +44,6 @@ export interface LiveRef<T> {
 export function createLiveRef<T extends Subscribable>(obj: T): LiveRef<T> {
   const live = shallowRef(obj) as ShallowRef<T>;
   const stop = obj.subscribe(() => { triggerRef(live); });
+  if (getCurrentScope()) onScopeDispose(stop);
   return { live, dispose: stop };
 }

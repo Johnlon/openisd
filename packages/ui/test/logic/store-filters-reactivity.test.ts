@@ -3,7 +3,7 @@
  *
  * The sweep is re-run by `watch([driver, syncedP, box], …)` in store.ts. `syncedP` reads
  * `managedProject.toUiParams()` (which includes `filters()`, a fresh copy on every call) and
- * depends on `_version` — the domain's own change-notification channel
+ * depends on `live` — the store's Vue bridge onto the domain's own change-notification channel
  * (`docs/design/REACTIVITY.md`) — so any edit that goes through `managedProject.setFilters()`
  * must recompute it; a caller that mutated an array in place, bypassing `setFilters()`, would
  * change nothing `syncedP` can see.

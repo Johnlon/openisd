@@ -8,7 +8,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { effect } from 'vue';
+import { effect, effectScope } from 'vue';
 import { createLiveRef } from '../../src/logic/liveProject.js';
 
 /** A minimal subscribable: `subscribe(fn)` registers `fn`, `notify()` fires every registered
@@ -77,5 +77,35 @@ describe('createLiveRef', () => {
     dispose();
     assert.equal(fake.listenerCount(), 0);
     fake.notify(); // must not throw
+  });
+
+  it('called inside an active effect scope, disposes automatically when the scope stops', () => {
+    // Stands in for a component's setup(): createLiveRef called with no explicit dispose()
+    // call, same as `const { live } = createLiveRef(managedProject);` in a .vue component
+    // (`BUG_20260822_component_liveref_subscriptions_are_never_disposed.md`). No component
+    // mount needed — `effectScope()` is the same primitive Vue's own setup() runs inside.
+    const fake = fakeSubscribable();
+    const scope = effectScope();
+    scope.run(() => { createLiveRef(fake.obj); });
+    assert.equal(fake.listenerCount(), 1);
+    assert.equal(fake.unsubscribeCount(), 0);
+
+    scope.stop();
+
+    assert.equal(fake.unsubscribeCount(), 1);
+    assert.equal(fake.listenerCount(), 0);
+    fake.notify(); // must not throw
+  });
+
+  it('called with no active scope, does NOT auto-dispose — the caller keeps explicit control', () => {
+    // The store's module-level bridge (`store.ts`'s `live`) is created at module load, outside
+    // any component scope, and must keep working exactly as before: nothing subscribes it away
+    // automatically, and its own `dispose()` remains the only way to unsubscribe.
+    const fake = fakeSubscribable();
+    const { dispose } = createLiveRef(fake.obj);
+    assert.equal(fake.listenerCount(), 1);
+    assert.equal(fake.unsubscribeCount(), 0);
+    dispose();
+    assert.equal(fake.unsubscribeCount(), 1);
   });
 });

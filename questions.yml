@@ -1,5 +1,5 @@
 prefix: QO
-next: 75
+next: 76
 questions:
 - id: QO1
   title: UI TODO List
@@ -6403,3 +6403,14 @@ questions:
       describe block ''§4 rel-25: the DVol/Depth/MagDepth/Magnet geometry lock'' (5 cases: agree silent,
       disagree flags DVol+all 5 inputs, DVol absent silent, inputs insufficient silent, degenerate geometry
       silent). Engine suite 385/385 (was 380), typecheck clean.'
+- id: QO75
+  title: 'Gate widening (human-edit-only territory, found by A5c''s review): the approved-stores gate
+    ("no module outside the approved stores holds module-level reactive state", architecture.test.ts ~:482)
+    matches only a DIRECT ref|shallowRef|reactive|shallowReactive callee — `const x = getOrInit(ns, k,
+    () => ref(0))` in any non-approved .ts escapes it, and .vue files are not scanned at all. Pre-existing,
+    not opened by A5c. Options: (a) widen the AST match to see reactives wrapped in a call argument, and
+    scan .vue script blocks; (b) accept as a known limit with a note in the gate''s docstring. Your call
+    (the gate is yours to edit per the standing rule) — or authorize an agent to widen it under review.'
+  status: open
+  raised: '2026-08-22'
+  body: ''
