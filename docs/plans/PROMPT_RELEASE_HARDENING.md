@@ -104,7 +104,21 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
-# IN-FLIGHT STATE (updated 2026-08-22 ~17:45
+# IN-FLIGHT STATE (updated 2026-08-22 ~18:45
+- **THIRD MASKED DEBT LAYER (winisd_tool_fix's dry-run; ruled by orchestrator):** pydantic's
+  field-level extra_forbidden errors (dq_status/dq) pre-empted the model_validator, which
+  MASKED definition-text drift at 100% coverage — 2012/2012 driver.yml carry stale definition
+  text on ≥1 top-level field (B10's "cohort-lag" headline was only the emit-side view; the
+  SSOT needs it too, and B10 never rewrites driver.yml). RULED (a): the ONE migration pass
+  widens to restamp ALL definitions (top-level from FIELD_DEFINITIONS, spec entries from
+  SPEC_FIELD_DEFINITIONS) — schema echo, definitionally lossless; bug record first; per-field
+  drift scan; dry-run on scratch samples; idempotency + validate-before-write preserved.
+  Script was CLEARED pre-widening (validate-before-write both models, disk re-load pass,
+  idempotent); the zero-write outcome was caught BY the executor's dry-run discipline.
+  QT71 filed: the ruled scenarios' `value:` lines presuppose a field Q31 structurally removed
+  (verified: NEITHER driver.yml nor openisd.yml nor either model carries value today) — a
+  genuine reversal decision for John; migration orthogonal, proceeding.
+- (prior state below)
 - **★ THE CORPUS WAS ALREADY WEEKS STALE (winisd_tool_fix's full-suite run):** 3,981 of 4,389
   failures are db-conformance reds from the Q31 rename (dq_status→corroboration, 2026-07-29)
   the corpus NEVER received — 60K+ extra_forbidden. Pre-existing debt, retro-validating B10.
