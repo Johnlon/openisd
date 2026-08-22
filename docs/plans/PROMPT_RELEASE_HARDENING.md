@@ -768,7 +768,7 @@ never improvise around it.
       stops importing storage" work would otherwise be written against names about to change.
       Note QO81's storage-failure work also lands in these files; sequence D20 first so that
       work is written in the ruled vocabulary rather than migrated twice.
-- [ ] **D18** (η₀ blocker dissolved 2026-08-22): add a `no`/efficiency relation to
+- [x] **D18** DONE-IN-TREE 2026-08-22 (rides the next combined commit; TDD red-first — a 50%-off `no` passed silently, now marked; engine 393/393; the header's stale exclusion reason corrected): add a `no`/efficiency relation to
       `packages/engine/src/consistency.ts` (today: zero `efficiencyConstant` references).
       The engine ALREADY computes η₀ correctly — `efficiency.ts:31-33`,
       `efficiencyConstant(c)·Fs³·Vas/Qes`, live in `driver.ts:194/:281/:292` and
