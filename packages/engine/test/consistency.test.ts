@@ -118,6 +118,42 @@ describe('checkConsistency — the recorded precision decides, not the size of t
   });
 });
 
+describe('checkConsistency — §4 rel-25: the DVol/Depth/MagDepth/Magnet geometry lock', () => {
+  // Worked geometry from WINISD_SCHEMA.md §3.10.1 / dvolRelation.test.ts: Dd 90mm, Vcd 25mm,
+  // Depth 55mm, MagDepth 20mm, Magnet 60mm. DVOL is the exact §3.10.1 formula over those five.
+  const GEOM = { Dd: 0.090, Vcd: 0.025, Depth: 0.055, MagDepth: 0.020, Magnet: 0.060 };
+  const DVOL = (Math.PI / 4) * ((GEOM.Dd ** 2 + GEOM.Dd * GEOM.Vcd + GEOM.Vcd ** 2) * (GEOM.Depth - GEOM.MagDepth) / 3
+    + GEOM.Magnet ** 2 * GEOM.MagDepth);
+
+  it('is silent when the carried DVol agrees with the §3.10.1 derivation', () => {
+    assert.deepEqual(checkConsistency({ ...GEOM, DVol: DVOL }), []);
+  });
+
+  it('flags DVol, naming the group, when the carried value disagrees', () => {
+    const issues = checkConsistency({ ...GEOM, DVol: DVOL * 1.5 });
+    assert.equal(issues.length, 1);
+    assert.deepEqual(fieldsOf(issues), [['DVol', 'Dd', 'Depth', 'MagDepth', 'Magnet', 'Vcd']]);
+    assert.equal(issues[0].target, 'DVol');
+    assert.equal(issues[0].formula, 'DVol = (π/4)·[ (Dd²+Dd·Vcd+Vcd²)·(Depth−MagDepth)/3 + Magnet²·MagDepth ]');
+    assert.ok(Math.abs(issues[0].expected - DVOL) < 1e-9, `expected ${issues[0].expected}`);
+    assert.equal(issues[0].actual, DVOL * 1.5);
+    assert.ok(issues[0].relative > 0.3, `relative ${issues[0].relative}`);
+  });
+
+  it('is silent when DVol is absent — no derivation to disagree with', () => {
+    assert.deepEqual(checkConsistency({ ...GEOM }), []);
+  });
+
+  it('is silent when the geometry inputs are insufficient to derive DVol', () => {
+    const { Magnet: _omitted, ...rest } = GEOM;
+    assert.deepEqual(checkConsistency({ ...rest, DVol: DVOL }), []);
+  });
+
+  it('is silent on a degenerate geometry (Depth ≤ MagDepth) rather than a junk expected value', () => {
+    assert.deepEqual(checkConsistency({ ...GEOM, MagDepth: 0.060, DVol: DVOL }), []);
+  });
+});
+
 describe('qGroupIsIncomplete — the group needs two of three to solve the third', () => {
   it('is incomplete with zero usable members', () => {
     assert.equal(qGroupIsIncomplete(() => false), true);

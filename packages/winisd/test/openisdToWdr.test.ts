@@ -2,10 +2,10 @@
  * `openisd.yml` → `winisd.wdr` projection — the entry point `winisd_tools` calls in-process
  * (embedded V8) to generate the `.wdr` it stores in `winisd_drivers`.
  *
- * Seam under test: `fromYaml(yamlText) -> Result<WinISDDriver>`, then
- * `.toWdr() -> string`. `WinISDDriver` (docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md Step 8,
- * ARCHITECTURE.md §3 "WinISDDriver is solely a serialisation device") replaces the free
- * function `openisdYamlToWdr` this file used to test directly.
+ * Seam under test: `openisdYamlToWdr(yamlText) -> Result<string>`, the production export
+ * from `@openisd/model` (`packages/model/src/openisdYamlToWdr.ts`) that the V8 bridge calls.
+ * `WinISDDriver` (docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md Step 8, ARCHITECTURE.md §3
+ * "WinISDDriver is solely a serialisation device") stays internal to that composition.
  *
  * 🔒 ORACLE RULE (SPEC_ENGINE §4.7): the ONLY oracle is `drivers/sample/winisd/`, prepared by
  * johnl out of WinISD itself. An oracle `.wdr` is one WinISD ITSELF wrote; a third-party
@@ -26,27 +26,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { parse } from 'yaml';
-import { WinISDDriver } from '../src/winisdDriver.js';
-import { OpenISDDriver } from '@openisd/model';
-import type { DriverError, Result } from '@openisd/engine';
+import { openisdYamlToWdr } from '@openisd/model';
+import type { DriverError } from '@openisd/engine';
 import { WDR_NEWLINE_SENTINEL } from '../src/wdrBytes.js';
-
-/** `openisd.yml`/`.owdr` text -> `Result<WinISDDriver>`, never throws — the direct replacement
- *  for the deleted `WinISDDriver.fromYaml`, now that the YAML/record parse lives outside
- *  `@openisd/winisd` (which no longer depends on `@openisd/model`). */
-function fromYaml(yamlText: string): Result<WinISDDriver> {
-  const err = (field: string, message: string): DriverError => ({ level: 'error', field, message });
-  let record: unknown;
-  try {
-    record = parse(yamlText);
-  } catch (e) {
-    return { value: null, errors: [err('yaml', `could not parse openisd.yml: ${String(e)}`)] };
-  }
-  if (record == null || typeof record !== 'object' || !('specs' in record)) {
-    return { value: null, errors: [err('yaml', 'openisd.yml did not parse to a record')] };
-  }
-  return OpenISDDriver.fromJsonRecord(record as never).toWinISDDriver();
-}
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const ORACLE = join(ROOT, 'drivers', 'sample', 'winisd', 'john-all-defaults.wdr');
@@ -95,10 +77,7 @@ authoritative: {value: manual, definition: d}
 specs: {woofer: {}}
 `;
 
-function wdrOf(yamlText: string): { value: string | null; errors: ReturnType<typeof fromYaml>['errors'] } {
-  const { value: drv, errors } = fromYaml(yamlText);
-  return { value: drv ? drv.toWdr() : null, errors };
-}
+const wdrOf = openisdYamlToWdr;
 
 describe('openisd.yml → winisd.wdr — format conformance (oracle: drivers/sample/winisd/)', () => {
   it('emits exactly the oracle field set, in the oracle order', () => {
@@ -148,6 +127,29 @@ describe('openisd.yml → winisd.wdr — format conformance (oracle: drivers/sam
     const got = fieldsOf(wdrOf(EMPTY_RECORD).value!);
     assert.equal(got.ParState, fieldsOf(oracleText).ParState);
   });
+
+  it('a frozen pre-B10 openisd.yml snapshot (e150he-44) converts to the pinned .wdr values', () => {
+    // `e150he-44.openisd.yml` is a frozen pre-B10 snapshot of the record shape, not a live
+    // bundled driver — `voice_coil_dia_mm` below is a pre-B10 key; if B10 changes that shape
+    // this fixture must be regenerated, which the assertion on it is here to force rather than
+    // let drift silently.
+    const rawYaml = readFileSync(join(FIXTURES, 'e150he-44.openisd.yml'), 'utf8');
+    const preB10Record = parse(rawYaml) as { specs: { woofer: { voice_coil_dia_mm: { readings: { manufacturer_product_page: { read_value: number } } } } } };
+    assert.equal(preB10Record.specs.woofer.voice_coil_dia_mm.readings.manufacturer_product_page.read_value, 38);
+
+    const { value, errors } = wdrOf(rawYaml);
+    assert.deepEqual(errors.filter((e: DriverError) => e.level === 'error'), []);
+    assert.notEqual(value, null);
+    const f = fieldsOf(value!);
+    assert.deepEqual(keysOf(value!), keysOf(oracleText));
+    // Entered, straight from the record.
+    assert.equal(f.Fs, '40');
+    // Derived — Dia = 2·√(Sd/π), Sd = 0.009503 m².
+    assert.equal(f.Dia, String(2 * Math.sqrt(0.009503 / Math.PI)));
+    // The full 49-slot ParState, pinned — the field-by-field E/C/N mix a real datasheet record
+    // produces, distinct from the all-defaults EMPTY_RECORD case above.
+    assert.equal(f.ParState, 'EEEEEENNEENEEEECEECECCCENNCCCNNNCCCCNCNNNNNNNNECC');
+  });
 });
 
 describe('openisd.yml → winisd.wdr — calculation (SPEC_ENGINE §4.7 obligation b)', () => {
@@ -180,13 +182,19 @@ describe('openisd.yml → winisd.wdr — calculation (SPEC_ENGINE §4.7 obligati
 
 describe('openisd.yml → winisd.wdr — Result contract (never throws)', () => {
   it('reports malformed YAML as an error, does not throw', () => {
-    const { value, errors } = fromYaml('specs: [this is: not, valid: yaml\n  ::');
+    const { value, errors } = openisdYamlToWdr('specs: [this is: not, valid: yaml\n  ::');
     assert.equal(value, null);
     assert.equal(errors.some((e: DriverError) => e.level === 'error'), true);
   });
 
   it('reports YAML that is not an OpenISD record as an error, does not throw', () => {
-    const { value, errors } = fromYaml('hello: world\n');
+    const { value, errors } = openisdYamlToWdr('hello: world\n');
+    assert.equal(value, null);
+    assert.equal(errors.some((e: DriverError) => e.level === 'error'), true);
+  });
+
+  it('reports a record whose specs interior is not the _SpecEntry shape as an error, does not throw (BUG_20260822)', () => {
+    const { value, errors } = openisdYamlToWdr('specs: {woofer: {fs: 12}}\n');
     assert.equal(value, null);
     assert.equal(errors.some((e: DriverError) => e.level === 'error'), true);
   });

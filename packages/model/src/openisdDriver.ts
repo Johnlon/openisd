@@ -248,8 +248,6 @@ export interface Cell {
   origin?: SourceRole;
 }
 
-type DriverListener = () => void;
-
 /** A field of `_SpecSection` — the closed canonical allowlist, not an open string. */
 export type SpecField = keyof _SpecSection;
 
@@ -296,7 +294,6 @@ export class OpenISDDriver {
   /** Whether a derivable (never-stated) field solves to `C`. Off: it reads `N` — nothing is
    *  solved, only what is stated is validated. */
   #autoCalculate = true;
-  readonly #listeners = new Set<DriverListener>();
 
   private constructor(record: _OpenISDDriverJson) {
     this.#record = record;
@@ -711,7 +708,6 @@ export class OpenISDDriver {
     }
     f.value = value;
     f.origin = 'manual';
-    this.#notify();
   }
 
   /** Drop a hand-entered metadata value. The value/origin the field carried before the
@@ -724,23 +720,11 @@ export class OpenISDDriver {
     f.value = displaced.value;
     f.origin = displaced.origin;
     this.#displacedMeta.delete(field);
-    this.#notify();
-  }
-
-  subscribe(fn: DriverListener): () => void {
-    this.#listeners.add(fn);
-    return () => this.#listeners.delete(fn);
   }
 
   #invalidate(): void {
     this.#cache = null;
     this.#issues = null;
-    this.#notify();
-  }
-
-  #notify(): void {
-    // Copy so a listener that unsubscribes mid-notify does not disturb iteration.
-    for (const fn of [...this.#listeners]) fn();
   }
 }
 

@@ -8,14 +8,14 @@
  * adapter covers every method the object has, including ones added later.
  *
  * Framework boundary: this file is the only place in `logic/` that imports Vue's reactivity
- * primitives for this purpose. The subscribable itself (`ManagedOpenISDProject`,
- * `OpenISDDriver`) stays framework-free — it exports plain `subscribe()`, nothing Vue-shaped.
+ * primitives for this purpose. The subscribable itself (`ManagedOpenISDProject`) stays
+ * framework-free — it exports plain `subscribe()`, nothing Vue-shaped.
  */
 import { shallowRef, triggerRef, type ShallowRef } from 'vue';
 
 /** Anything that publishes a plain-JS change channel: `subscribe(fn)` registers a listener and
- *  returns the function that removes it. `ManagedOpenISDProject` and `OpenISDDriver` both
- *  satisfy this without importing this file or Vue. */
+ *  returns the function that removes it. `ManagedOpenISDProject` satisfies this without
+ *  importing this file or Vue; the type is generic over anything else that does too. */
 export interface Subscribable {
   subscribe(fn: () => void): () => void;
 }

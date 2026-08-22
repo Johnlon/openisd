@@ -37,15 +37,15 @@
  * driver is already in the project; there is no copy to keep in step, and therefore no way for
  * the two to disagree.
  */
-import { OpenISDDriver, Provenance } from '@openisd/model';
-import { prototypeBox, setActiveAlignment } from '@openisd/model';
+import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
+import { setActiveAlignment } from '@openisd/model';
 import {
   activeVent, boxVolume_m3 as readBoxVolume_m3, setBoxVolume_m3 as writeBoxVolume_m3,
   boxTuning_Fb_hz as readBoxTuning_Fb_hz, setBoxTuning_Fb_hz as writeBoxTuning_Fb_hz,
   passiveRadiatorOrDefault, ensurePassiveRadiator, ventArea_m2 as computeVentArea_m2,
 } from '@openisd/model';
 import type {
-  Cell, MetaCell, SpecField, MetaField, _OpenISDProjectJson, _OpenISDDriverJson,
+  Cell, MetaCell, SpecField, MetaField,
   OpenISDVent, OpenISDPassiveRadiatorRef, AlignmentKind,
 } from '@openisd/model';
 import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter } from '@openisd/engine';
@@ -56,7 +56,7 @@ import {
   driveVoltage,
 } from '@openisd/engine';
 import type { LossMode, BoxType } from '@openisd/engine';
-import type { UiParams } from '../types.js';
+import type { UiParams, DriverJSON } from '../types.js';
 
 type ManagedOpenISDProjectListener = () => void;
 
@@ -71,10 +71,12 @@ export function fromAlignmentKind(active: AlignmentKind): BoxType {
   return active === 'passive-radiator' ? 'pr' : active;
 }
 
-/** One state layer: the project, and the live driver over its record. They share one object
- *  graph, so `driver` is a VIEW of `project.driver`, never a second copy of it. */
+/** One state layer: the project, and the live driver over its record. `openIsdDriver` is
+ *  materialised from `project._driverJsonRecord()` and re-materialised on every `mutate()` —
+ *  `ManagedOpenISDProject` is the one file, by architecture rule, that constructs an
+ *  `OpenISDDriver`; `OpenISDProject` itself holds only the record. */
 interface Layer {
-  project: _OpenISDProjectJson;
+  project: OpenISDProject;
   /** Null exactly when no driver has been chosen. */
   openIsdDriver: OpenISDDriver | null;
 }
@@ -82,61 +84,16 @@ interface Layer {
 type Overlay =
   | { kind: 'whatif'; layer: Layer };
 
-/**
- * Human ruling: the ONLY files, `packages/`-relative, permitted to name `_prototypeProject` —
- * enforced by `packages/ui/test/ui/architecture.test.ts` the same way as
- * `_OpenISDDriverJsonPrivateAllow` in openisdDriver.ts. ONLY the human may add, remove, or
- * change an entry here — no agent may edit this list on its own judgement.
- */
-export const _prototypeProjectPrivateAllow: string[] = [];
-
-/** A project with nothing chosen — what the app holds before a driver is picked. Every value is
- *  a real default a user could have set; none is a fake driver standing in for a real one. */
-export function _prototypeProject(): _OpenISDProjectJson {
-  return {
-    driver: undefined,
-    box: prototypeBox(),
-    // WinISD's direction: volume, diameter and tuning are typed; vent length is returned.
-    // `Frc` has no OpenISDBox home yet (no 6th-order alignment exists — QO44) and is carried
-    // here as a bare flag with no corresponding value; `prMadd` is the PR's own entered
-    // member — added mass is typed, its tuning solved. `ventW`/`ventH` mark round-vent
-    // dimensions entered even though only a slotted vent solves against them, matching what
-    // ships: `ventFieldState` reads this set for EVERY vent field's E/C/N badge, not only the
-    // ones the Helmholtz solver consumes.
-    target: { entered: {
-      Vb: true, ventD: true, ventW: true, ventH: true, Fb: true, Frc: true, prMadd: true,
-    } },
-    filters: [],
-    environment: {
-      tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false,
-    },
-    signal: {
-      inputPower_W: 1, seriesResistance_ohm: 0.1, driverCount: 1,
-      wiring: 'parallel', rgAtDriverSide: false,
-    },
-    listening: { distance_m: 1, angle_rad: 0 },
-    simOptions: {
-      circuitModel: 'winisd', tlPortModel: false, forceFlatResponse: false,
-      splXmaxLimited: false, vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0,
-    },
-    sweep: { fmin_hz: 1, fmax_hz: 20000, points: 400 },
-    meta: { name: '', creator: '', created: '', modified: '', description: '' },
-  };
+/** A layer over `project`, with its live driver materialised from the project's own record. */
+function layerOf(project: OpenISDProject): Layer {
+  const record = project._driverJsonRecord();
+  return { project, openIsdDriver: record ? OpenISDDriver.fromJsonRecord(record) : null };
 }
 
-/** A layer from a project, with its live driver materialised over the SAME record object. */
-function layerOf(project: _OpenISDProjectJson): Layer {
-  return {
-    project,
-    openIsdDriver: project.driver ? OpenISDDriver.fromJsonRecord(project.driver) : null,
-  };
-}
-
-/** An independent copy of a layer. `structuredClone` is why `_OpenISDProjectJson` is plain data:
- *  it would silently reduce a class instance to a bare object, so the project holds the
- *  driver's RECORD and the live driver is re-materialised over the clone. */
+/** An independent copy of a layer — `OpenISDProject.copy()` clones the record and hands back a
+ *  new facade over it; the live driver is re-materialised over that clone's own record. */
 function cloneLayer(layer: Layer): Layer {
-  return layerOf(structuredClone(layer.project));
+  return layerOf(layer.project.copy());
 }
 
 export class ManagedOpenISDProject {
@@ -151,17 +108,13 @@ export class ManagedOpenISDProject {
   }
 
   /** Adopt `project` as freshly loaded: ground and committed become independent copies of it. */
-  static fromProject(project: _OpenISDProjectJson): ManagedOpenISDProject {
-    return new ManagedOpenISDProject(
-      layerOf(structuredClone(project)),
-      layerOf(structuredClone(project)),
-    );
+  static fromProject(project: OpenISDProject): ManagedOpenISDProject {
+    return new ManagedOpenISDProject(layerOf(project.copy()), layerOf(project.copy()));
   }
 
-  /** A project with nothing chosen. Here rather than at the call site so no caller has to name
-   *  `_OpenISDProjectJson`'s shape to make one. */
+  /** A project with nothing chosen. */
   static createEmpty(): ManagedOpenISDProject {
-    return ManagedOpenISDProject.fromProject(_prototypeProject());
+    return ManagedOpenISDProject.fromProject(OpenISDProject.empty());
   }
 
   // ---- which layer is effective ---------------------------------------------------------
@@ -508,8 +461,8 @@ export class ManagedOpenISDProject {
    * rather than the object itself, because handing out the object would be handing out the
    * state — the thing this class exists to prevent.
    */
-  _snapshot(): _OpenISDProjectJson {
-    return structuredClone(this.#effective().project);
+  _snapshot(): OpenISDProject {
+    return this.#effective().project.copy();
   }
 
   /**
@@ -520,12 +473,13 @@ export class ManagedOpenISDProject {
    * it — re-materialising the effective layer's `OpenISDDriver` and notifying. A caller that
    * mutated a project it had been handed could not be given either behaviour.
    */
-  mutate(fn: (project: _OpenISDProjectJson) => void): void {
+  mutate(fn: (project: OpenISDProject) => void): void {
     const layer = this.#effective();
     fn(layer.project);
     // The driver record may have been replaced wholesale (a different driver chosen), so the
     // live view is re-materialised rather than left pointing at the old object.
-    layer.openIsdDriver = layer.project.driver ? OpenISDDriver.fromJsonRecord(layer.project.driver) : null;
+    const record = layer.project._driverJsonRecord();
+    layer.openIsdDriver = record ? OpenISDDriver.fromJsonRecord(record) : null;
     this.#notify();
   }
 
@@ -538,9 +492,9 @@ export class ManagedOpenISDProject {
    * That cancellation is STRUCTURAL: this is the only route to a persistable project, so no
    * call site can forget it.
    */
-  _projectToPersist(): _OpenISDProjectJson {
+  _projectToPersist(): OpenISDProject {
     this.#endWhatIfIfActive();
-    return structuredClone(this.#committed.project);
+    return this.#committed.project.copy();
   }
 
   isWhatIfActive(): boolean { return this.#overlay?.kind === 'whatif'; }
@@ -587,22 +541,22 @@ export class ManagedOpenISDProject {
   /** Adopt a project as freshly loaded. Ground and committed both become independent copies;
    *  any open what-if is discarded, because loading is a named trigger of the what-if-never-leaks
    *  rule and a what-if over the old design has nothing left to explore. */
-  load(project: _OpenISDProjectJson): void {
+  load(project: OpenISDProject): void {
     this.#overlay = null;
-    this.#ground = layerOf(structuredClone(project));
-    this.#committed = layerOf(structuredClone(project));
+    this.#ground = layerOf(project.copy());
+    this.#committed = layerOf(project.copy());
     this.#notify();
   }
 
   /** Adopt a chosen driver into the CURRENT design, leaving the box and everything else alone —
    *  choosing a driver is not opening a new project. */
-  loadDriverRecord(record: _OpenISDDriverJson): void {
-    this.mutate(p => { p.driver = structuredClone(record); });
+  loadDriverRecord(record: DriverJSON): void {
+    this.mutate(p => { p.setDriverRecord(record); });
   }
 
   /** Replace the whole design with an empty one. */
   loadEmpty(): void {
-    this.load(_prototypeProject());
+    this.load(OpenISDProject.empty());
   }
 
   // ---- UiParams — the flat, engine-facing snapshot ----------------------------------------

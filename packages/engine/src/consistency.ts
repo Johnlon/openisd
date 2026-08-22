@@ -34,6 +34,7 @@
  */
 
 import { solveConsistencyGroup, driverC, driverRho } from './driver.js';
+import { dvolFromDims } from './dvolRelation.js';
 
 /** Field values by name, SI, as the solver produces them. */
 type Values = Readonly<Record<string, number>>;
@@ -106,6 +107,13 @@ const RELATIONS: readonly Relation[] = [
   // §4 row 20
   { formula: 'Vd = Sd·Xmax', target: 'Vd', fields: ['Vd', 'Sd', 'Xmax'],
     predict: v => v.Sd * v.Xmax },
+  // §4 rel-25 (WINISD_SCHEMA.md §3.10.1): the truncated-cone-plus-cylinder geometry lock.
+  // Reuses dvolFromDims's own domain guards (all five inputs positive, Depth > MagDepth) —
+  // a degenerate geometry returns null, mapped to NaN so the `isFinite(expected)` check below
+  // skips it exactly like any other unpredictable relation, never a junk `expected`.
+  { formula: 'DVol = (π/4)·[ (Dd²+Dd·Vcd+Vcd²)·(Depth−MagDepth)/3 + Magnet²·MagDepth ]',
+    target: 'DVol', fields: ['DVol', 'Dd', 'Vcd', 'Depth', 'MagDepth', 'Magnet'],
+    predict: v => dvolFromDims({ Dd: v.Dd, Vcd: v.Vcd, Depth: v.Depth, MagDepth: v.MagDepth, Magnet: v.Magnet }) ?? NaN },
 ];
 
 /**
