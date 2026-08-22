@@ -106,14 +106,20 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 # IN-FLIGHT STATE (updated 2026-08-22 ~06:00 — for resume-after-restart; re-verify, don't trust)
 
-- **A6 (FileIO + QO67)** — cycle-3 rework running (child ab2d0edee06cbf90c). Cycle-2 review
-  BLOCKed: gate-laundering codec wrappers + `get driver()` are QO78-GATED (commit HELD until
-  John rules — QO78.1 carries the reviewer's options); child is fixing the rest (rename
-  `toJsonRecord`→`_projectJsonRecord`, ARCHITECTURE.md honesty (:173/:395/:498/:791 +
-  unwired labels), DELETE new writeOwpr/readOwpr (one-model — .owpr shape is A8's), meta-desync
-  bug `BUG_20260822_wpr_import_leaves_previous_projects_meta...` (record written first),
-  real FileStore retention tests + exportWpr test, 4 historic comments, minors 8/10/13).
-  A6 tree stays UNCOMMITTED until fixes re-reviewed AND QO78 ruled.
+- **A6 (FileIO + QO67)** — WORK COMPLETE IN TREE, commit HELD on QO78 ONLY. Three review
+  cycles done: cycle-3's verify pass BLOCKed on 3 comment/doc findings, all fixed by the
+  orchestrator directly and verified (grep 0, suites 13/13, typecheck clean): ARCHITECTURE.md
+  `.owpr` self-contradiction resolved at :519/:950-table/:982 (current shape = SerializedState,
+  A8 decides narrowing), openisdYamlToWdr.ts task-scope narration removed (constraint kept),
+  useDesignIO what-if ordering made structural (snapshot/record hoisted to first statement in
+  projectJsonText + shareLink; header comment states the real mechanism), purity-test comment
+  scoped to what the regex actually guards. `as unknown as FileSystemFileHandle` in
+  fileStore.test.ts adjudicated ACCEPTED (test fake of wide DOM interface, repo precedent).
+  Remaining before A6 commit: John rules QO78 → apply his option → quick final review →
+  commit (note: pre-commit hook runs the full suite; the pre-existing winisd-parity 1-test red
+  must be resolved or the hook will refuse — investigate at commit time). Reviewer's noted
+  sniff deltas (JSON array → error; unparseable driver record → error, was raw load) are
+  accepted strictness increases, recorded here.
 - **B6/B8** — DONE via peer commits `a7b513e2` + `3d2a3aa5` (winisd_tools); reviewed, blockers
   fixed and verified (AGENTS.md revert read directly; evidence gate 19/20, sole red = open
   runlogger bug's own field). Peer `yaml-divergence-wdr-refactor` resumes B-lane on
