@@ -104,7 +104,29 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
-# IN-FLIGHT STATE (updated 2026-08-22 ~15:30 — for resume-after-restart; re-verify, don't trust)
+# IN-FLIGHT STATE (updated 2026-08-22 ~16:00
+- **openisd `5fce7ec`**: D16 (disposition out of the model + DispositionField/Disposition types
+  deleted, 7 test files migrated — sonnet1, verified), OuterX/OuterY member rename, D17 (engine
+  barrel = engine.ts via the exports map; the no-re-exports gate resolves barrels FROM each
+  package's exports map — what makes barrel renames safe). Re-export offence list unchanged
+  (the known 8 = D15's checklist).
+- **COMMAND RESTRUCTURE (John's suggestion, executed):** `opus2` (Opus 1M) is OPERATIONS
+  COORDINATOR for winisd_tools+winisd_drivers — runs winisd_tool_fix + yaml-divergence +
+  haiku1(analysis-only), verifies every claim, sequences cut-commit → migration →
+  differential → B10, reports to me at milestones/contradictions/hard-to-reverse/anything-
+  openisd. openisd remains MINE alone. sonnet1 tasked with D22 PHASE 1 (repos → domain
+  objects + owner text with QO81 behaviours preserved; editor owns draft, editorSeed/
+  editorSeedDriverText/_emptyDriverRecord die; dialog never serialises). John: pushed
+  winisd_tools himself; ordered openisd pushed via opus1 --no-verify (safety snapshot);
+  repo/db deletions authorized post-push; QO81 no-delete = app-UI policy only. John's parting:
+  "dont let questions block progress ... solve the problem - finish the plan".
+- **Bridge VALIDATED in real mini-racer** (yaml-divergence): committed artifact loaded, 56-field
+  projection, no V8 objection. Single-record diff vs golden classified: 16 known-missing =
+  correction; model-name = golden stale; c/roo = D19 ruling working (computed airFor, not
+  constants — differential classifies as expected); Comment divergence = KNOWN-OPEN, bug
+  4111d7b4 (winisd_tools), tied to the QO81 Comment-sidecar idea, John's queue.
+- (superseded state below)
+ — for resume-after-restart; re-verify, don't trust)
 
 - **★ MILESTONE: openisd commit `7ed953c`** — A6 (file IO into the domain models, five review
   cycles) + A7 (bundle-everything, 1969/1969) + the V8 bridge (terser drop_console+keep_fnames,
