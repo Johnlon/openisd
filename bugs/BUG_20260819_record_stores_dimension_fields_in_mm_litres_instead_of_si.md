@@ -67,6 +67,40 @@ passes-mm-named-dimension-fields-to-the-engine-untranslated-and-unscaled.md` (th
 mm-not-translated symptom) is explicitly NOT getting a separate stopgap fix — it waits for this
 migration to make it moot, per the same ruling session.
 
+## Measured consumer impact (2026-08-22) — this is LIVE, not a future risk
+
+Counted directly in the shipped artifact `packages/ui/src/drivers-bundle.json` (1654 bundled
+records, regenerated this session under the QO79 gate):
+
+| key present in shipped bundle | records |
+|---|---|
+| `voice_coil_dia_mm` | 1613 |
+| `Hc_mm` | 817 |
+| `Hg_mm` | 652 |
+| `depth_mm` | 540 |
+| `outer_dia_mm` | 509 |
+| `basket_dia_mm` | 502 |
+| `driver_volume_l` | 380 |
+| `thick_mm` | 354 |
+| `magnet_dia_mm` | 126 |
+| `magnet_depth_mm` | 101 |
+| **any WinISD-SI name** (`Vcd`/`Hg`/`Hc`/`Thick`/`Depth`/`MagDepth`/`Magnet`/`Basket`/`Outer`/`DVol`) | **0** |
+
+`_SpecSection` (`packages/model/src/openisdDriver.ts:226-233`) declares ONLY the WinISD-SI
+names. TypeScript types are erased at runtime, so nothing throws: the reader simply looks up a
+key that is not there and the field reads as absent. **The app therefore drops motor-geometry
+data for up to 1613 of the 1654 bundled drivers today** — silently, with no error surfaced. This
+is the same failure mode `BUG_20260814_openisddriver-passes-mm-named-dimension-fields-to-the-engine-untranslated-and-unscaled.md`
+recorded once already on the engine join; the corpus side of it was never closed.
+
+Consequence for sequencing: the winisd_tools rename + SI migration (that repo's
+`BUG_20260822_dimension_field_names_diverge_from_openisd_winisd_naming_ruling.md`) must land
+BEFORE the V8-bridge differential (`winisd_tools/DESIGN.md` §12.8 step 4) and before B11's
+bundle rebuild — a differential run against today's corpus measures records that are about to
+change under it.
+
 ## Verification
 
-Not yet — no fix applied.
+Not yet — no fix applied. Closure additionally requires: the bundle re-counted after migration
+shows 0 old-name occurrences and non-zero WinISD-SI names, and a spot-checked driver's motor
+geometry reaches the engine.
