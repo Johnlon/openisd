@@ -52,3 +52,30 @@ export function driveVoltage(pin: number, re: number): number {
   return Math.sqrt(pin * re);
 }
 
+/**
+ * Passive-radiator compliance from Vas (litres) and Sd — the inverse of `prVas`:
+ * Cms = (Vas/1000) / (Sd² · ρ · c²). Returns 0 when Sd is non-positive (undefined compliance).
+ */
+export function prCmsFromVas(prVasL: number, prSd: number): number {
+  if (!(prSd > 0)) return 0;
+  const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  return (prVasL / 1000) / (prSd * prSd * rho * c * c);
+}
+
+/**
+ * Passive-radiator moving mass from free-air Fs and compliance — the inverse of `prFs`:
+ * Mmd = 1 / ((2π·Fs)² · Cms). Returns 0 when Fs or Cms is non-positive.
+ */
+export function prMmdFromFs(prFsHz: number, prCms: number): number {
+  return prFsHz > 0 && prCms > 0 ? 1 / ((2 * Math.PI * prFsHz) ** 2 * prCms) : 0;
+}
+
+/**
+ * Passive-radiator mechanical resistance from Qms/Mmd/Cms — the inverse of `prQms`:
+ * Rms = √(Mmd/Cms) / Qms. Returns 0 when Qms is non-positive.
+ */
+export function prRmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number {
+  return prQmsValue > 0 ? Math.sqrt(prMmd / prCms) / prQmsValue : 0;
+}
+

@@ -5,7 +5,7 @@ import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
-import { state, driverRecord, managedProject, applyState, markProjectSaved } from '../logic/store.js';
+import { state, persistedDriver, managedProject, applyState, markProjectSaved } from '../logic/store.js';
 import { presentationState } from '../logic/presentationState.js';
 import { createLiveRef } from '../logic/liveProject.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from '../logic/persist.js';
@@ -29,7 +29,7 @@ let saveReady = false;
 // answer to the same question the moment either drifted from the other on restore.
 const { live } = createLiveRef(managedProject);
 watch(
-  () => { void live.value; return serialize(state.box, state.project, presentationState, driverRecord.value, managedProject.toUiParams()); },
+  () => { void live.value; return serialize(state.box, state.project, presentationState, persistedDriver.value, managedProject.toUiParams()); },
   (s) => { if (saveReady) saveLocal(s); },
   { deep: true },
 );

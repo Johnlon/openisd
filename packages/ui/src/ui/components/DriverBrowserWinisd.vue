@@ -4,7 +4,7 @@ import { presentationState } from '../../logic/presentationState.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { useApp } from '../../logic/app.js';
 import type { FileEntry } from '../../logic/driverLibrary.js';
-import { DriverFileFormat } from '../../driverFileFormat.js';
+import { DriverFileFormat } from '../../fileFormat.js';
 
 const { library, selection } = useApp();
 const { openNewDriver } = selection;

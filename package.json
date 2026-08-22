@@ -16,10 +16,11 @@
     "typecheck:ui": "vue-tsc -p packages/ui --noEmit",
     "check": "npm run lint && npm run typecheck && npm run test:unit",
     "ci": "npm run lint && npm run typecheck && npm run test",
-    "predev": "node scripts/bundle-drivers.mjs && npm run lint",
+    "predev": "npx vite-node scripts/bundle-drivers.mjs && npm run lint",
     "dev": "vite",
-    "prebuild": "node scripts/bundle-drivers.mjs && npm run lint",
+    "prebuild": "npx vite-node scripts/bundle-drivers.mjs && npm run lint",
     "build": "vite build",
+    "build:bridge": "vite build --config packages/winisd/vite.bridge.config.ts",
     "preview": "vite preview",
     "test": "bash scripts/test.sh",
     "test:unit": "vitest run",
@@ -57,9 +58,11 @@
     "typescript-eslint": "^8.62.1",
     "typescript-language-server": "^5.3.0",
     "vite": "^8.0.16",
+    "vite-node": "^3.2.4",
     "vite-plugin-pwa": "^1.3.0",
     "vitest": "^3.2.6",
-    "vue-tsc": "^2.2.12"
+    "vue-tsc": "^2.2.12",
+    "yaml": "^2.9.0"
   },
   "dependencies": {
     "@openisd/engine": "*",

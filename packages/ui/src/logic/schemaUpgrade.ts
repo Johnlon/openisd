@@ -21,7 +21,7 @@
  */
 
 /** The version this build writes. Bump ONLY together with a new step in `STEPS`. */
-export const CURRENT_SCHEMA = 1;
+export const CURRENT_SCHEMA = 2;
 
 /** A stored payload, seen as the untyped thing it actually is on the way in. */
 export type StoredBlob = Record<string, unknown>;
@@ -57,6 +57,15 @@ export const STEPS: readonly UpgradeStep[] = [
         const d = driver as Record<string, unknown>;
         if (d.specs == null || typeof d.specs !== 'object') d.specs = { woofer: {} };
       }
+      return blob;
+    },
+  },
+  {
+    from: 1,
+    what: 'driver slot: record object → its own JSON text (QO73 — the UI carries the driver ' +
+      'only as the managed layer\'s serialisation, never as the record value)',
+    apply: (blob) => {
+      if (blob.driver && typeof blob.driver === 'object') blob.driver = JSON.stringify(blob.driver);
       return blob;
     },
   },

@@ -15,10 +15,9 @@
 import { reactive, computed, ref, shallowRef, watch, type ComputedRef } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
-import { driverRecordProblems, OpenISDDriver } from '@openisd/model';
-import type { SpecField, _OpenISDDriverJson, OpenISDProject } from '@openisd/model';
+import type { SpecField } from '@openisd/model';
 import { ManagedOpenISDProject, toAlignmentKind, fromAlignmentKind } from './managedProject.js';
-import type { AppState, UiParams, SyncedParams, SerializedState, DriverJSON } from '../types.js';
+import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
 import { presentationState, unitToken } from './presentationState.js';
 import { parseChartTabId } from './series.js';
 import { toDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
@@ -204,12 +203,6 @@ if (typeof window !== 'undefined') {
   }
 }
 
-/** Load a driver from WinISD `.wdr` text. The `.wdr` is parsed as-read by the serialiser, then
- *  projected into the app's own model — the file format never reaches past this line. */
-export function setDriverFromWdr(text: string): void {
-  managedProject.loadDriverRecord(OpenISDDriver.fromWdrText(text).toJsonRecord());
-}
-
 /** Route one per-field edit to whichever layer ManagedOpenISDProject says is effective. */
 export function enterDriverField(field: SpecField, value: number): void {
   managedProject.enter(field, value);
@@ -226,21 +219,12 @@ function _engineDriver(): EngineDriver | null {
   return managedProject.toEngineDriver();
 }
 
-// The PROJECT for persistence — committed state, never the overlay, so a live what-if is never
-// saved, shared or written to disk. _projectToPersist() cancels an active what-if itself.
-//
-// NOT EXPORTED. The store may HOLD the `OpenISDProject` facade (it is the stored object) but may
-// not expose it on its API — only the domain wrappers may (human ruling 2026-08-20). Every
-// consumer outside this file takes a domain wrapper or a public type instead.
-function _projectToPersist(): OpenISDProject {
-  void live.value;
-  return managedProject._projectToPersist();
-}
-
-/** Just the driver record out of the persistable project, for the paths that write a DRIVER
- *  file (`.wdr`, `.owdr`) rather than a project file. Undefined when none is chosen. */
-export const driverRecord: ComputedRef<DriverJSON | undefined> =
-  computed(() => _projectToPersist()._driverJsonRecord());
+/** The COMMITTED driver as the managed layer's own persisted TEXT — what a save, a share
+ *  link, or a ground fingerprint embeds. Never the record value: the UI carries only this
+ *  serialisation (QO73). Cancels an active what-if (the managed method's own structural
+ *  guard). Undefined when no driver is chosen. */
+export const persistedDriver: ComputedRef<string | undefined> =
+  computed(() => { void live.value; return managedProject.persistedDriverText(); });
 
 /** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
  *  driver. '' when nothing names it (no driver chosen yet), so a caller can fall back. */
@@ -357,7 +341,7 @@ function projectFingerprint(): string {
   // and the ADT's toJSON() preserves input insertion order, so JSON.stringify yields a stable
   // string to diff.
   return JSON.stringify({
-    box: state.box, P: managedProject.toUiParams(), driver: driverRecord.value, project: state.project,
+    box: state.box, P: managedProject.toUiParams(), driver: persistedDriver.value, project: state.project,
   });
 }
 const _ground = getOrInit('store', '_ground', () => ref(projectFingerprint()));
@@ -373,7 +357,7 @@ export function groundCheckpoint(): string { return _ground.value; }
 export function restoreGroundCheckpoint(value: string): void { _ground.value = value; }
 /** Discard unsaved changes: restore the design to the ground state. */
 export function resetProjectToGround(): void {
-  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: _OpenISDDriverJson; project?: any };
+  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver?: string; project?: any };
   // Adopt the stored params verbatim. The ground snapshot already holds BOTH vent-group
   // members and the entered set, so there is nothing to re-solve — and re-solving is exactly
   // what breaks "Cancel means byte-identical" (docs/design/STATE_MODEL.md rule 3): the solver would
@@ -381,7 +365,16 @@ export function resetProjectToGround(): void {
   // and land on a different double. `loadUiParams` sets the active alignment itself, so this
   // is the one call that lands box + every vent/PR/plain field together.
   suspendVentSolve(() => managedProject.loadUiParams(g.P, toAlignmentKind(g.box)));
-  managedProject.loadDriverRecord(g.driver);
+  restoreProblems.value = [];
+  if (g.driver) {
+    // A refusal is REPORTED, never swallowed: dropping it would leave the previous driver in
+    // place while the UI showed a successful discard-changes.
+    const problems = managedProject.loadDriverFromPersistedText(g.driver);
+    if (problems.length) {
+      restoreProblems.value = problems.map(p => `the checkpoint's driver was not restored: ${p}`);
+      console.error(`[reset] refused the checkpoint's driver record — ${problems.join('; ')}`);
+    }
+  } else managedProject.clearDriver();
   if (g.project) {
     Object.assign(state.project, g.project);
   }
@@ -430,7 +423,9 @@ export function applyState(o: SerializedState): void {
   // makes it a reported fault rather than a silent drop.
   restoreProblems.value = [];
   if (o.driver) {
-    const problems = driverRecordProblems(o.driver);
+    // The managed layer does the checking and the adopting in one call — the store never
+    // parses, names, or holds the record (QO73); it only relays the refusal.
+    const problems = managedProject.loadDriverFromPersistedText(o.driver);
     if (problems.length) {
       restoreProblems.value = problems.map(p => `saved driver was not loaded: ${p}`);
       // QUARANTINE BEFORE THE AUTOSAVE EATS IT. Refusing the record leaves the app with no
@@ -438,11 +433,9 @@ export function applyState(o: SerializedState): void {
       // so within a tick the user's record is GONE and the least-damaging repair has nothing
       // left to repair. Setting it aside keeps a one-field fix possible, and keeps the evidence
       // for diagnosing the cause.
-      try { localStorage.setItem('openisd.quarantine.driver', JSON.stringify(o.driver)); }
+      try { localStorage.setItem('openisd.quarantine.driver', o.driver); }
       catch { /* storage full or disabled — the refusal still stands */ }
       console.error(`[restore] refused the saved driver record — ${problems.join('; ')}`);
-    } else {
-      managedProject.loadDriverRecord(o.driver as _OpenISDDriverJson);
     }
   }
   if (o.box) state.box = o.box;

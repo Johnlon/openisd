@@ -20,7 +20,7 @@ const buildDatetime = __BUILD_DATETIME__;
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
-  state, driverName, driverRecord,
+  state, driverName, persistedDriver,
   syncedP, curvesData, maxData,
   isModified, resetProjectToGround, groundCheckpoint, restoreGroundCheckpoint, markProjectSaved,
   managedProject,
@@ -391,7 +391,7 @@ onMounted(() => {
     openProjects.value = [{
       id: activeProjectId.value,
       name: state.project.name || driverName.value,
-      driver: driverRecord.value,
+      driver: persistedDriver.value,
       box: state.box,
       P: managedProject.toUiParams(),
       curves: curvesData.value,
@@ -406,12 +406,12 @@ onMounted(() => {
 });
 
 // Keep the active item in openProjects completely in sync with the live store active design
-watch([() => state.box, live, () => driverRecord.value, curvesData, maxData, () => state.project, isModified, () => managedProject.isWhatIfActive()], () => {
+watch([() => state.box, live, () => persistedDriver.value, curvesData, maxData, () => state.project, isModified, () => managedProject.isWhatIfActive()], () => {
   if (isSwapping) return;
   if (managedProject.isWhatIfActive()) return;
   const activeItem = openProjects.value.find(p => p.id === activeProjectId.value);
   if (activeItem) {
-    activeItem.driver = driverRecord.value;
+    activeItem.driver = persistedDriver.value;
     activeItem.box = state.box;
     activeItem.P = managedProject.toUiParams();
     activeItem.curves = curvesData.value;
@@ -443,7 +443,7 @@ function syncActiveRowFromStore() {
   const activeItem = activeProject.value;
   if (!activeItem) return;
   Object.assign(activeItem, {
-    driver: driverRecord.value,
+    driver: persistedDriver.value,
     box: state.box,
     P: managedProject.toUiParams(),
     curves: curvesData.value,
@@ -468,13 +468,13 @@ function selectProject(p: any) {
   
   state.box = targetDesign.box;
   managedProject.loadUiParams(targetDesign.P, toAlignmentKind(targetDesign.box));
-  if (targetDesign.driver) managedProject.loadDriverRecord(targetDesign.driver);
+  if (targetDesign.driver) managedProject.loadDriverFromPersistedText(targetDesign.driver);
   else managedProject.loadEmpty();
   
   const targetProj = targetDesign.project ? targetDesign.project : { name: targetDesign.name || '', creator: '', created: '', modified: '', description: '' };
   Object.assign(state.project, targetProj);
 
-  restoreGroundCheckpoint(targetDesign._ground || JSON.stringify({ box: state.box, P: managedProject.toUiParams(), driver: driverRecord.value, project: state.project }));
+  restoreGroundCheckpoint(targetDesign._ground || JSON.stringify({ box: state.box, P: managedProject.toUiParams(), driver: persistedDriver.value, project: state.project }));
   activeProjectId.value = targetDesign.id;
 
   isSwapping = false;
@@ -496,7 +496,7 @@ function copyCurrentProject() {
 
   const d = {
     id: copyId,
-    driver: driverRecord.value,
+    driver: persistedDriver.value,
     box: state.box,
     P: currentP,
     curves: curvesData.value,
@@ -519,7 +519,7 @@ function openNewProject() {
   openProjects.value.push({
     id,
     name: '',
-    driver: driverRecord.value,
+    driver: persistedDriver.value,
     box: state.box,
     P: managedProject.toUiParams(),
     curves: curvesData.value,
@@ -572,7 +572,7 @@ function closeProject(p: any) {
     openProjects.value = [{
       id: activeProjectId.value,
       name: state.project.name || driverName.value,
-      driver: driverRecord.value,
+      driver: persistedDriver.value,
       box: state.box,
       P: managedProject.toUiParams(),
       curves: curvesData.value,

@@ -24,9 +24,9 @@
  * the driver.
  */
 import { describe, it } from 'vitest';
-import { Provenance } from '@openisd/model';
+import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
 import assert from 'node:assert/strict';
-import { ManagedOpenISDProject, _prototypeProject } from '../../src/logic/managedProject.js';
+import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
 import type { _OpenISDDriverJson } from '@openisd/model';
 
 /** A minimal, valid driver record — one stated field, enough to exercise enter()/clear(). */
@@ -60,9 +60,9 @@ function driverRecord(): _OpenISDDriverJson {
 }
 
 /** A project with a driver AND a distinctive box, so a box scrub is observable. */
-function projectWithDriver() {
-  const p = _prototypeProject();
-  p.driver = driverRecord();
+function projectWithDriver(): OpenISDProject {
+  const p = OpenISDProject.empty();
+  p.setDriver(OpenISDDriver.fromJsonRecord(driverRecord()));
   p.box.vented.volume_m3 = 0.030;
   return p;
 }
@@ -200,7 +200,8 @@ describe('ManagedOpenISDProject — a what-if never leaks into anything persiste
 
     assert.equal(mp.isWhatIfActive(), false, 'a save must never observe the live overlay');
     assert.equal(saved.box.vented.volume_m3, 0.030, 'committed state was never touched');
-    assert.equal(saved.driver?.specs.woofer?.Fs?.readings.manufacturer_datasheet?.read_value, 37);
+    assert.equal(
+      OpenISDDriver.fromOwdrText(saved.driverText()!).cell('Fs').value, 37);
   });
 });
 
@@ -242,7 +243,7 @@ describe('ManagedOpenISDProject — no driver chosen', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     mp.mutate(p => { p.box.vented.volume_m3 = 0.044; });
 
-    mp.loadDriverRecord(driverRecord());
+    mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
 
     assert.equal(mp.hasDriver(), true);
     assert.equal(mp.cell('Fs').value, 37);
@@ -250,3 +251,105 @@ describe('ManagedOpenISDProject — no driver chosen', () => {
       'the user picked a driver, not a new design');
   });
 });
+
+/**
+ * File IO on the managed layer (QO78: driver/project file IO lives IN the domain module that
+ * owns what it reads/writes). The driver crosses the boundary only as serialised text/bytes;
+ * construction of the live driver happens inside this licensed module.
+ */
+describe('ManagedOpenISDProject — driver file IO', () => {
+  it('persistedDriverText round-trips through loadDriverFromPersistedText', () => {
+    const src = ManagedOpenISDProject.createEmpty();
+    src.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
+    const text = src.persistedDriverText();
+    assert.ok(text, 'a chosen driver serialises');
+
+    const dst = ManagedOpenISDProject.createEmpty();
+    const problems = dst.loadDriverFromPersistedText(text!);
+    assert.deepEqual(problems, []);
+    assert.equal(dst.cell('Fs').value, 37);
+  });
+
+  it('persistedDriverText is undefined and exports refuse while no driver is chosen', () => {
+    const mp = ManagedOpenISDProject.createEmpty();
+    assert.equal(mp.persistedDriverText(), undefined);
+    assert.equal(mp.exportDriverOwdr(), null);
+    const { value, errors } = mp.exportDriverWdr();
+    assert.equal(value, null);
+    assert.ok(errors.length > 0);
+  });
+
+  it('loadDriverFromPersistedText REFUSES malformed and structurally unloadable text', () => {
+    const mp = ManagedOpenISDProject.createEmpty();
+    assert.ok(mp.loadDriverFromPersistedText('not json{').length > 0, 'malformed JSON is refused');
+    assert.ok(mp.loadDriverFromPersistedText('{"no_specs":true}').length > 0,
+      'a record with no specs container is refused, not adopted to crash later');
+    assert.equal(mp.hasDriver(), false, 'a refused driver is not adopted');
+  });
+
+  it('exportDriverOwdr bytes ARE the persisted record — loadable back via owdr text', () => {
+    const mp = ManagedOpenISDProject.createEmpty();
+    mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
+    const bytes = mp.exportDriverOwdr();
+    assert.ok(bytes);
+    const dst = ManagedOpenISDProject.createEmpty();
+    dst.loadDriverFromOwdrText(new TextDecoder().decode(bytes!));
+    assert.equal(dst.cell('Fs').value, 37);
+  });
+
+  it('exportDriverWdr → loadDriverFromWdrText round-trips the stated Fs', () => {
+    const mp = ManagedOpenISDProject.createEmpty();
+    mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
+    const { value: bytes, errors } = mp.exportDriverWdr();
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    assert.ok(bytes);
+    const dst = ManagedOpenISDProject.createEmpty();
+    dst.loadDriverFromWdrText(new TextDecoder().decode(bytes!));
+    assert.equal(dst.cell('Fs').value, 37);
+  });
+
+  it('clearDriver returns the design to the no-driver state', () => {
+    const mp = ManagedOpenISDProject.createEmpty();
+    mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
+    assert.equal(mp.hasDriver(), true);
+    mp.clearDriver();
+    assert.equal(mp.hasDriver(), false);
+  });
+});
+
+describe('ManagedOpenISDProject — project file IO (.wpr)', () => {
+  it('exportWpr → importWpr round-trips the box volume, driver Fs and meta', () => {
+    const src = ManagedOpenISDProject.createEmpty();
+    src.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
+    src.setActiveAlignment('sealed');
+    src.setBoxVolume_m3(777777e-6);
+    src.mutate(p => { p.meta.description = 'probe-description-123456'; p.meta.creator = 'probe-creator'; });
+
+    const { value: bytes, errors } = src.exportWpr(new Date('2026-01-01'), null);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    assert.ok(bytes);
+
+    const dst = ManagedOpenISDProject.createEmpty();
+    const { value: meta, errors: importErrors } = dst.importWpr(bytes!);
+    assert.deepEqual(importErrors, []);
+    assert.equal(dst.activeAlignment(), 'sealed');
+    assert.ok(Math.abs(dst.boxVolume_m3() - 777777e-6) < 1e-9);
+    assert.equal(dst.cell('Fs').value, 37);
+    assert.equal(meta?.description, 'probe-description-123456');
+    assert.equal(meta?.creator, 'probe-creator');
+  });
+
+  it('exportWpr refuses while no driver is chosen', () => {
+    const { value, errors } = ManagedOpenISDProject.createEmpty().exportWpr(new Date(), null);
+    assert.equal(value, null);
+    assert.ok(errors.length > 0);
+  });
+
+  it('importWpr refuses bytes with no [Box] BType — never guesses a box type', () => {
+    const { value, errors } = ManagedOpenISDProject.createEmpty()
+      .importWpr(new TextEncoder().encode('[ProjectInfo]\n\n[Driver]\n[Box]\n'));
+    assert.equal(value, null);
+    assert.ok(errors.length > 0);
+  });
+});
+

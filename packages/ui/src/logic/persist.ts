@@ -1,4 +1,4 @@
-import type { BoxType, DriverJSON, ProjectMeta, SerializedState, UiParams } from '../types.js';
+import type { BoxType, ProjectMeta, SerializedState, UiParams } from '../types.js';
 import type { PresentationState } from './presentationState.js';
 import { CURRENT_SCHEMA, upgrade, type StoredBlob } from './schemaUpgrade.js';
 
@@ -26,9 +26,11 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 
 /** `p` is the project's flat `UiParams` snapshot (`managedProject.toUiParams()`) — passed in
  *  rather than read off the store because the store holds no such copy (ledger QO54: the
- *  project already owns this state; the store never duplicates it). */
+ *  project already owns this state; the store never duplicates it). `driver` is the managed
+ *  layer's own serialisation (`managedProject.persistedDriverText()`) — TEXT, never the
+ *  record value, so no UI code touches the private shape (QO73). */
 export function serialize(
-  box: BoxType, project: ProjectMeta, view: PresentationState, driver: DriverJSON | undefined, p: UiParams,
+  box: BoxType, project: ProjectMeta, view: PresentationState, driver: string | undefined, p: UiParams,
 ): SerializedState {
   return {
     // The MODEL version this payload is written from — every reader upgrades from it
@@ -68,10 +70,56 @@ export async function stateToUrl(serialized: SerializedState): Promise<string> {
   return location.origin + location.pathname + '#s=' + encoded;
 }
 
+/**
+ * Bring an already-parsed persisted payload to the current schema, or null when it cannot be.
+ * The ONE upgrade seam every reader of a persisted payload shares — localStorage
+ * (`loadLocal`), the share-link hash (`loadFromHash`), and File → Open's JSON branch
+ * (`useDesignIO.importFile`) — so a payload an older build wrote loads identically whichever
+ * door it arrives through
+ * (bugs/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md).
+ */
+export function upgradeParsedState(parsed: unknown): SerializedState | null {
+  if (!parsed || typeof parsed !== 'object') return null;
+  let blob: StoredBlob;
+  try {
+    const result = upgrade(parsed as StoredBlob);
+    blob = result.blob;
+    if (result.applied.length) {
+      console.info(`[restore] upgraded saved state from schema V${result.from}: ${result.applied.join('; ')}`);
+    }
+  } catch (e) {
+    console.error(`[restore] cannot load saved state — ${e instanceof Error ? e.message : String(e)}`);
+    return null;
+  }
+  // `upgrade()` guarantees the VERSION, not the shape: it applies the declared steps and stamps
+  // the result. `carriesStateShape` below checks the two fields the app dereferences without
+  // asking first, so a payload that states a version it does not actually match is refused at
+  // this boundary rather than throwing somewhere downstream. Every OTHER field is
+  // optional-and-guarded at its own read site (`applyState`), so those two are the whole
+  // obligation — and the narrowing is a real type predicate, not a cast.
+  if (!carriesStateShape(blob)) return null;
+  return blob;
+}
+
+/** The shape check `upgradeParsedState` narrows on: `box` present as a string, and `driver`
+ *  either absent or the serialised TEXT the current schema declares. Reports what it refused,
+ *  because a silent null at a restore boundary is indistinguishable from "nothing was saved". */
+function carriesStateShape(blob: StoredBlob): blob is StoredBlob & SerializedState {
+  if (typeof blob.box !== 'string') {
+    console.error('[restore] saved state states a schema but carries no box type — refused');
+    return false;
+  }
+  if (blob.driver !== undefined && typeof blob.driver !== 'string') {
+    console.error('[restore] saved state carries a driver slot that is not serialised text — refused');
+    return false;
+  }
+  return true;
+}
+
 export async function loadFromHash(): Promise<SerializedState | null> {
   const m = (location.hash || '').match(/[#&]s=([^&]+)/);
   if (!m) return null;
-  try { return JSON.parse(await gzipDecodeBase64Url(m[1])); } catch { return null; }
+  try { return upgradeParsedState(JSON.parse(await gzipDecodeBase64Url(m[1]))); } catch { return null; }
 }
 
 export function saveLocal(serialized: SerializedState): void {
@@ -96,18 +144,7 @@ export function loadLocal(): SerializedState | null {
     console.error('[restore] saved state is not valid JSON — ignored');
     return null;
   }
-  if (!parsed || typeof parsed !== 'object') return null;
-
-  try {
-    const { blob, from, applied } = upgrade(parsed as StoredBlob);
-    if (applied.length) {
-      console.info(`[restore] upgraded saved state from schema V${from}: ${applied.join('; ')}`);
-    }
-    return blob as unknown as SerializedState;
-  } catch (e) {
-    console.error(`[restore] cannot load saved state — ${e instanceof Error ? e.message : String(e)}`);
-    return null;
-  }
+  return upgradeParsedState(parsed);
 }
 
 /** `body` is BYTES for any format with its own encoding — a `.wdr`/`.wpr` newline sentinel is

@@ -1,9 +1,9 @@
-import { _emptyDriverRecord, OpenISDDriver } from '@openisd/model';
+import { _emptyDriverRecord } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
-import { managedProject, driverRecord } from './store.js';
+import { managedProject } from './store.js';
 import { presentationState } from './presentationState.js';
 import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
-import { DriverFileFormat } from '../driverFileFormat.js';
+import { driverFromWdrText, driverTextFromRecord } from './managedDriver.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
 //
@@ -76,48 +76,6 @@ export interface SelectionResult {
   error?: string;
 }
 
-/** A driver read off the user's disk, or the reason the file could not be read. */
-export type FileReadResult =
-  | { ok: true; record: _OpenISDDriverJson }
-  | { ok: false; error: string };
-
-/**
- * Read a driver file the user picked off their own disk. The format is taken from the file
- * NAME, not sniffed from the bytes: `.owdr` is the app's own record, `.wdr` is WinISD text.
- *
- * The file name also supplies the MODEL when the file itself carries neither brand nor model
- * — a `.wdr` written by another tool need not fill those in, and a driver with no
- * `<brand>/<model>` has no identity to be saved under. The name is the file's own, not an
- * invented value.
- *
- * Reading a file does not touch the project. The driver lands in My Drivers, and choosing it
- * from there is what embeds it — the same one act for every driver, wherever it came from.
- */
-export function driverFromFileText(text: string, fileName: string): FileReadResult {
-  const format = DriverFileFormat.ofFileName(fileName);
-  if (format === null)
-    return { ok: false, error: `Not a driver file: ${fileName} (expected ${DriverFileFormat.ACCEPT})` };
-
-  let driver: OpenISDDriver;
-  try {
-    // A `.wdr` is read as-read by the serialiser then projected; an `.owdr` IS the record.
-    driver = format === DriverFileFormat.Wdr
-      ? OpenISDDriver.fromWdrText(text)
-      : OpenISDDriver.fromOwdrText(text);
-  } catch (err) {
-    return { ok: false, error: `Failed to parse ${fileName}: ${(err as Error).message}` };
-  }
-
-  // A driver IS its <brand>/<model>, so one with neither cannot be filed. The file name is the
-  // last thing that can name it; if that is empty too, say so rather than saving it nameless.
-  if (!driver.metaCell('brand').value && !driver.metaCell('model').value) {
-    const base = fileName.replace(/\.[^.]*$/, '').trim();
-    if (!base) return { ok: false, error: `${fileName} carries no brand or model, and its name gives none` };
-    driver.enterMeta('model', base);
-  }
-  return { ok: true, record: driver.toJsonRecord() };
-}
-
 /** Fetch and parse a federated `.wdr` row, or say why it could not be read. */
 async function modelOf(f: LibraryEntry): Promise<{ ok: true; record: _OpenISDDriverJson } | { ok: false; error: string }> {
   let text = f.content;
@@ -133,7 +91,7 @@ async function modelOf(f: LibraryEntry): Promise<{ ok: true; record: _OpenISDDri
   }
   if (!/\[Driver\]/.test(text)) return { ok: false, error: 'Could not load: file did not parse as a WDR' };
   try {
-    return { ok: true, record: OpenISDDriver.fromWdrText(text).toJsonRecord() };
+    return { ok: true, record: driverFromWdrText(text).toJsonRecord() };
   } catch (err) {
     return { ok: false, error: 'Could not load: ' + (err as Error).message };
   }
@@ -159,7 +117,7 @@ export interface DriverSelection {
   editOverviewDriver(f: LibraryEntry): Promise<SelectionResult>;
   editProjectDriver(): void;
   openNewDriver(): void;
-  editorSeed(): { json: _OpenISDDriverJson; subject: EditorSubject['kind'] };
+  editorSeed(): { driverText: string; subject: EditorSubject['kind'] };
   acceptDriverEdit(json: _OpenISDDriverJson): void;
   cancelDriverEdit(): void;
 }
@@ -185,7 +143,9 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
   // and read. This is the bridge while the picker/editor still speak the classic ADT; it
   // disappears when they are migrated onto ManagedOpenISDProject directly.
   function adoptIntoProject(record: _OpenISDDriverJson): void {
-    managedProject.loadDriverRecord(record);
+    // The managed layer adopts drivers as SERIALISED TEXT, never as the record value (QO73) —
+    // the round-trip is the boundary crossing, made explicit.
+    managedProject.loadDriverFromOwdrText(JSON.stringify(record));
   }
 
   function embedInProject(record: _OpenISDDriverJson): void {
@@ -269,12 +229,14 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
       presentationState.editDriverInfo = true;
     },
 
-    /** What the editor seeds its draft from, and which driver that is. */
+    /** What the editor seeds its draft from, as TEXT, and which driver that is. Text because
+     *  the editor is the one file licensed to hold a live driver: it builds its draft from
+     *  this directly, so nothing in between parses a driver record out of it. */
     editorSeed() {
       return {
-        // The project's own driver when nothing else is being edited. Empty when none is
-        // chosen — the editor then authors one from scratch rather than editing a fake.
-        json: editorDraft ?? driverRecord.value ?? _emptyDriverRecord(),
+        // A library/My-Drivers pick when one is being edited; otherwise the project's own
+        // driver (or an empty one when none is chosen — the editor then authors from scratch).
+        driverText: editorDraft ? driverTextFromRecord(editorDraft) : managedProject.editorSeedDriverText(),
         subject: subject.kind,
       };
     },

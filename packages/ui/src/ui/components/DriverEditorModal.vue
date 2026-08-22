@@ -14,7 +14,7 @@ import { precision } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../logic/useDriverCells.js';
 import { saveTextAs } from '../../logic/fileSave.js';
-import { DriverFileFormat } from '../../driverFileFormat.js';
+import { DriverFileFormat } from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
 import { getProvenanceInfo, LABEL_TO_FIELD_KEY } from '../../logic/provenance.js';
 
@@ -48,7 +48,7 @@ const editorTitle = seed.subject === 'myDriver' ? 'Edit My Driver' : "Edit Proje
 // markRaw + shallowRef: Driver is a class with private fields, and a Vue reactive proxy
 // makes every method call on it throw. Redraws are driven by `trigger` below, so the
 // instance never needs to be deeply reactive.
-const draftDriver = shallowRef(markRaw(OpenISDDriver.fromJsonRecord(seed.json)));
+const draftDriver = shallowRef(markRaw(OpenISDDriver.fromOwdrText(seed.driverText)));
 const trigger = ref(0);
 function forceUpdate() { trigger.value++; }
 
@@ -406,7 +406,7 @@ function cancel() {
 
 // Reset — draft back to what it was seeded from (the picked driver, or the design).
 function reset() {
-  draftDriver.value = markRaw(OpenISDDriver.fromJsonRecord(seed.json));
+  draftDriver.value = markRaw(OpenISDDriver.fromOwdrText(seed.driverText));
   forceUpdate();
 }
 
@@ -459,7 +459,7 @@ async function writeDriver(format: DriverFileFormat) {
   // that knows the format — and a driver too incomplete to project says so rather than writing
   // a file WinISD would refuse.
   const { value: text, errors } = format === DriverFileFormat.Owdr
-    ? { value: JSON.stringify(draftDriver.value.toJsonRecord(), null, 2), errors: [] }
+    ? { value: draftDriver.value.toOwdrText(), errors: [] }
     : draftDriver.value.toWdrText();
   if (!text) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
   const body = driverFileBody(text, format !== DriverFileFormat.Owdr);

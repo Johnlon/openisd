@@ -19,20 +19,27 @@
  * collection. `.wdr` is WinISD's file format, which the app reads and writes in memory
  * from a driver record: an import/export concern, not a library record.
  *
- * PROJECTION — the bundle carries the app's own driver shape (`DriverJSON`), not the
- * raw record. `openisd.yml` states every value with its origin, its printed reading, its
- * precision and its definition; the browser needs the resolved numbers. Projecting one
- * canonical record onto a different output format is a required step (AD-8), and it is
- * what keeps the bundle at ~1 MB instead of the corpus's ~16 MB of provenance prose.
+ * SHAPE — the bundle carries the canonical `_OpenISDDriverJson` record verbatim (John's
+ * ruling, `bugs/BUG_20260820_drivers_bundle_ships_a_shape_openisddriver_cannot_read.md`):
+ * `OpenISDDriver.fromJsonRecord()` reads a bundled record with no adaptation and no second
+ * shape. Row metadata (`path`, `name`, `driverType`) sits beside `record`, computed once by
+ * `bundleProjection.mjs`'s `project()` so the app is not re-deriving a display name or a
+ * classification hint on every render.
  *
- * Run automatically via `npm run dev` / `npm run build` (predev/prebuild hook).
- * Can also be run manually: node scripts/bundle-drivers.mjs
+ * This file is the CLI entry only — `project()`/`isBundlable()` live in
+ * `scripts/bundleProjection.mjs`, which a test imports directly with no filesystem write.
+ * `main()` below runs unconditionally: nothing but this CLI invocation ever imports this file.
+ *
+ * Run automatically via `npm run dev` / `npm run build` (predev/prebuild hook, `vite-node`
+ * because `@openisd/model`'s package `exports` point at TypeScript source plain `node`
+ * cannot load). Can also be run manually: npx vite-node scripts/bundle-drivers.mjs
  */
 
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'fs';
 import { join, relative, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { parse as parseYaml } from 'yaml';
+import { project, isBundlable } from './bundleProjection.mjs';
 
 const RECORD_FILE = 'openisd.yml';
 
@@ -66,105 +73,6 @@ function walkRecords(dir) {
     }
   }
   return files;
-}
-
-// openisd.yml spec key → the Driver model's own field name. The two differ for Znom→Z
-// and BL→Bl; `packages/winisd/src/parstate.ts` MODELED_SLOTS is the authority, and this
-// map covers exactly the slots it declares. Everything else a record carries
-// (voice_coil_dia_mm, Hg_mm, weight_kg, …) is not modelled by the app and is not bundled.
-const SPEC_TO_FIELD = {
-  Znom: 'Z', Fs: 'Fs', Pe: 'Pe', Re: 'Re', Le: 'Le', BL: 'Bl', Xmax: 'Xmax',
-  Cms: 'Cms', Qms: 'Qms', Qes: 'Qes', Qts: 'Qts', Rms: 'Rms', Mms: 'Mms',
-  Sd: 'Sd', Vas: 'Vas', numVC: 'numVC', VCCon: 'VCCon',
-};
-
-// data_sources role → the app's link field.
-const SOURCE_TO_LINK = {
-  manufacturer_datasheet: 'datasheetUrl',
-  manufacturer_product_page: 'manuPageUrl',
-  distributor_page: 'distributorPageUrl',
-};
-
-/** A record-level `{ value, origin, definition }` wrapper's value. */
-const valueOf = node => (node && typeof node === 'object' && 'value' in node ? node.value : undefined);
-
-/**
- * A spec entry's number. The value lives at readings[origin].read_value — there is no
- * flat copy, by design: the origin names which source won, and each source keeps its own
- * reading. Falls back to the sole reading when a record names no winner.
- */
-function specValue(entry) {
-  const readings = entry?.readings;
-  if (!readings || typeof readings !== 'object') return undefined;
-  const chosen = readings[entry.origin] ?? Object.values(readings)[0];
-  const v = chosen?.read_value;
-  return typeof v === 'number' && isFinite(v) ? v : undefined;
-}
-
-/** The specs section this driver's numbers live in. A coax bundles its woofer half. */
-function specSection(specs, driverType) {
-  if (!specs) return null;
-  if (driverType === 'tweeter' && specs.tweeter) return specs.tweeter;
-  return specs.woofer ?? specs.tweeter ?? Object.values(specs)[0] ?? null;
-}
-
-/** Project one openisd.yml record onto the app's DriverJSON shape. */
-export function project(record) {
-  const inputs = {};
-  const driverType = valueOf(record.driver_type);
-  const section = specSection(record.specs, driverType);
-
-  for (const [specKey, field] of Object.entries(SPEC_TO_FIELD)) {
-    const v = specValue(section?.[specKey]);
-    if (v !== undefined) inputs[field] = v;
-  }
-
-  const brand = valueOf(record.brand);
-  const rawModel = valueOf(record.model);
-  const sku = valueOf(record.sku);
-  const series = valueOf(record.series);
-
-  // Model slug used for display title: uppercase SKU when present, else rawModel
-  const modelSlug = sku ? sku.toUpperCase() : rawModel;
-  if (brand) inputs.brand = brand;
-  if (rawModel) inputs.model = rawModel;
-  if (sku) inputs.sku = sku;
-  if (series) inputs.series = series;
-  const manufacturer = valueOf(record.manufacturer);
-  if (manufacturer) inputs.manufacturer = manufacturer;
-  const description = valueOf(record.description);
-  if (description) inputs.description = description;
-  const productImage = valueOf(record.product_image);
-  if (productImage) inputs.productImage = productImage;
-
-  const lead = brand || manufacturer;
-  const parts = [lead, series, modelSlug].filter(Boolean);
-  const name = parts.join(' - ').trim();
-
-  for (const [role, url] of Object.entries(valueOf(record.data_sources) ?? {})) {
-    const field = SOURCE_TO_LINK[role];
-    if (field && url) inputs[field] = url;
-    if (role === valueOf(record.authoritative) && url) inputs.sourceUrl = url;
-  }
-
-  // `quality.disposition`, not a top-level key: the record's standing is the headline of
-  // its quality block — winisd_tools model_driver.py `QualityBlock`.
-  const disposition = valueOf(record.quality?.disposition);
-  return { inputs, driverType, name, disposition };
-}
-
-/**
- * Whether a projected record belongs in the bundle.
- *
- * A record with no resonance and no cone area cannot be simulated or filtered; it would
- * render as an unusable row. A record whose disposition is not `ok` is the pipeline's own
- * verdict that the app cannot use it (`incomplete` = missing a parameter the simulation
- * engine needs — model_driver.py `is_incomplete_for_ui`). Both are listed by the caller,
- * never silently dropped.
- */
-export function isBundlable({ inputs, disposition }) {
-  if (inputs.Fs === undefined && inputs.Sd === undefined) return false;
-  return disposition === undefined || disposition === 'ok';
 }
 
 function main() {
@@ -202,11 +110,12 @@ function main() {
       const rel = relative(localPath, p).replace(/\\/g, '/');
       const group = rel.split('/')[0];
       const record = parseYaml(readFileSync(p, 'utf8'));
-      const projected = project(record ?? {});
-      const { inputs, driverType, name, disposition } = projected;
+      if (record == null) throw new Error(`${rel}: empty or unparseable record`);
+      const projected = project(record);
+      const { driverType, name } = projected;
 
       if (!isBundlable(projected)) {
-        skipped.push(rel + (disposition && disposition !== 'ok' ? ` (${disposition})` : ''));
+        skipped.push(rel);
       } else {
         files.push({
           // path within the source (forward-slashed) — the unique id together with the
@@ -214,7 +123,7 @@ function main() {
           path: rel,
           name: name || rel,
           ...(driverType ? { driverType } : {}),
-          record: { inputs },
+          record,
         });
         perGroup.set(group, (perGroup.get(group) ?? 0) + 1);
       }
@@ -228,7 +137,7 @@ function main() {
       console.log(`    ${group.padEnd(24)} ${String(n).padStart(4)}`);
     }
     if (skipped.length) {
-      console.log(`  ${skipped.length} records are NOT bundled (no Fs and no Sd, or a disposition other than ok), first 5:`);
+      console.log(`  ${skipped.length} records are NOT bundled (structurally unreadable — no \`specs\` container), first 5:`);
       for (const rel of skipped.slice(0, 5)) console.log(`    - ${rel}`);
     }
 
@@ -245,6 +154,4 @@ function main() {
   if (total === 0) console.warn('WARNING: the bundle is EMPTY — the app will show no bundled drivers.');
 }
 
-// Building the bundle is the CLI run only. Importing this module — a test, another script —
-// gets the projection functions with no filesystem read or write.
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
+main();

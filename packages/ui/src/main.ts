@@ -13,6 +13,7 @@ import { createFaultLog } from './diagnostics/faultLog.js';
 import { createDriverSelection } from './logic/driverSelection.js';
 import { createDriverLibrary } from './logic/driverLibrary.js';
 import { createDesignIO } from './logic/useDesignIO.js';
+import { createFileStore } from './logic/fileStore.js';
 import { provideApp } from './logic/app.js';
 import sourcesJson from '../../../drivers/sources.json';
 import bundleJson from './drivers-bundle.json';
@@ -48,6 +49,7 @@ const myDriverRepo = createMyDriverRepo(store);
 const prefs = createPrefsStore(store);
 const prLibrary = createPrRepo(store, bundle);
 const diagnostics = createDiagnostics({ report: logging.flash });
+const fileStore = createFileStore();
 
 // --- application layer: the app's state and what it does next ---
 const selection = createDriverSelection({ myDriverRepo });
@@ -55,7 +57,7 @@ const library = createDriverLibrary({
   driverRepo, myDriverRepo, prefs, logging, selection,
   confirmReset: (question) => confirm(question),
 });
-const designIO = createDesignIO({ logging });
+const designIO = createDesignIO({ logging, fileStore });
 
 const app = createApp(App)
   .directive('expo-step', vExpoStep)

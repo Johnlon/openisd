@@ -37,7 +37,7 @@
  * driver is already in the project; there is no copy to keep in step, and therefore no way for
  * the two to disagree.
  */
-import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
+import { OpenISDDriver, OpenISDProject, Provenance, driverRecordProblems } from '@openisd/model';
 import { setActiveAlignment } from '@openisd/model';
 import {
   activeVent, boxVolume_m3 as readBoxVolume_m3, setBoxVolume_m3 as writeBoxVolume_m3,
@@ -46,9 +46,10 @@ import {
 } from '@openisd/model';
 import type {
   Cell, MetaCell, SpecField, MetaField,
-  OpenISDVent, OpenISDPassiveRadiatorRef, AlignmentKind,
+  OpenISDVent, OpenISDPassiveRadiatorRef, AlignmentKind, OpenISDProjectMeta,
 } from '@openisd/model';
-import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter } from '@openisd/engine';
+import { toWpr, wdrTextToBytes } from '@openisd/winisd';
+import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/engine';
 import {
   sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
   prVas as computePrVas, prFs as computePrFs, prFsWithMass as computePrFsWithMass,
@@ -56,7 +57,10 @@ import {
   driveVoltage,
 } from '@openisd/engine';
 import type { LossMode, BoxType } from '@openisd/engine';
-import type { UiParams, DriverJSON } from '../types.js';
+import { decodeDriverFileBytes } from './driverFileText.js';
+import { buildWprInput } from './wprMapping.js';
+import { ProjectFileFormat } from '../fileFormat.js';
+import type { UiParams } from '../types.js';
 
 type ManagedOpenISDProjectListener = () => void;
 
@@ -72,7 +76,7 @@ export function fromAlignmentKind(active: AlignmentKind): BoxType {
 }
 
 /** One state layer: the project, and the live driver over its record. `openIsdDriver` is
- *  materialised from `project._driverJsonRecord()` and re-materialised on every `mutate()` —
+ *  materialised from `project.driverText()` and re-materialised on every `mutate()` —
  *  `ManagedOpenISDProject` is the one file, by architecture rule, that constructs an
  *  `OpenISDDriver`; `OpenISDProject` itself holds only the record. */
 interface Layer {
@@ -86,8 +90,8 @@ type Overlay =
 
 /** A layer over `project`, with its live driver materialised from the project's own record. */
 function layerOf(project: OpenISDProject): Layer {
-  const record = project._driverJsonRecord();
-  return { project, openIsdDriver: record ? OpenISDDriver.fromJsonRecord(record) : null };
+  const text = project.driverText();
+  return { project, openIsdDriver: text ? OpenISDDriver.fromOwdrText(text) : null };
 }
 
 /** An independent copy of a layer — `OpenISDProject.copy()` clones the record and hands back a
@@ -478,8 +482,8 @@ export class ManagedOpenISDProject {
     fn(layer.project);
     // The driver record may have been replaced wholesale (a different driver chosen), so the
     // live view is re-materialised rather than left pointing at the old object.
-    const record = layer.project._driverJsonRecord();
-    layer.openIsdDriver = record ? OpenISDDriver.fromJsonRecord(record) : null;
+    const text = layer.project.driverText();
+    layer.openIsdDriver = text ? OpenISDDriver.fromOwdrText(text) : null;
     this.#notify();
   }
 
@@ -548,15 +552,143 @@ export class ManagedOpenISDProject {
     this.#notify();
   }
 
-  /** Adopt a chosen driver into the CURRENT design, leaving the box and everything else alone —
-   *  choosing a driver is not opening a new project. */
-  loadDriverRecord(record: DriverJSON): void {
-    this.mutate(p => { p.setDriverRecord(record); });
-  }
-
   /** Replace the whole design with an empty one. */
   loadEmpty(): void {
     this.load(OpenISDProject.empty());
+  }
+
+  // ---- driver file IO (QO78: driver/project file IO lives IN the managed layer) ----------
+  //
+  // The driver enters and leaves this class as SERIALISED TEXT/BYTES, never as the private
+  // record shape — no caller outside the licensed modules can name, alias, or clone the
+  // record (QO73, behavioral §"ENCAPSULATION IS ABSOLUTE"). Construction of the live
+  // `OpenISDDriver` happens here, inside the gate's licensed set.
+
+  /** Drop the design's driver — back to the no-driver-chosen state. */
+  clearDriver(): void {
+    this.mutate(p => { p.setDriver(undefined); });
+  }
+
+  /** Adopt a driver from WinISD `.wdr` text into the CURRENT design, leaving the box and
+   *  everything else alone — choosing a driver is not opening a new project. */
+  loadDriverFromWdrText(text: string): void {
+    const driver = OpenISDDriver.fromWdrText(text);
+    this.mutate(p => { p.setDriver(driver); });
+  }
+
+  /** Adopt a driver from `.owdr` text (the record's own JSON serialisation). Throws on
+   *  malformed JSON — for a checked, non-throwing adoption of UNTRUSTED text (localStorage,
+   *  a share link) use `loadDriverFromPersistedText`. */
+  loadDriverFromOwdrText(text: string): void {
+    const driver = OpenISDDriver.fromOwdrText(text);
+    this.mutate(p => { p.setDriver(driver); });
+  }
+
+  /**
+   * Adopt a driver from persisted text (the same serialisation `persistedDriverText()`
+   * produces), CHECKED: malformed JSON or a structurally unloadable record is REFUSED, and
+   * the returned problems say why — empty means adopted. The checked/throwing split exists
+   * because persisted text is data someone else wrote (an older build, a hand-edited file),
+   * while `.wdr`/`.owdr` adoption sits behind format detection that already vouched for it.
+   */
+  loadDriverFromPersistedText(text: string): string[] {
+    let parsed: unknown;
+    try { parsed = JSON.parse(text); } catch (err) { return [(err as Error).message]; }
+    const problems = driverRecordProblems(parsed);
+    if (problems.length) return problems;
+    const driver = OpenISDDriver.fromOwdrText(text);
+    this.mutate(p => { p.setDriver(driver); });
+    return [];
+  }
+
+  /** The COMMITTED driver as persisted text (its own JSON serialisation) — what a save, a
+   *  share link, or a ground fingerprint embeds. Cancels an active what-if first, the same
+   *  structural guard as `_projectToPersist()`. Undefined when no driver is chosen. */
+  persistedDriverText(): string | undefined {
+    this.#endWhatIfIfActive();
+    return this.#committed.project.driverText();
+  }
+
+  /** What the driver editor seeds its draft from: the COMMITTED driver's own serialisation, or
+   *  an EMPTY driver's when none is chosen (the editor then authors one from scratch rather
+   *  than editing a fake). TEXT, so the seed reaches the editor — the one file licensed to
+   *  hold a live draft — without any intermediary parsing the record out of it. */
+  editorSeedDriverText(): string {
+    this.#endWhatIfIfActive();
+    const driver = this.#committed.openIsdDriver;
+    return driver ? driver.toOwdrText() : OpenISDDriver.empty().toOwdrText();
+  }
+
+  /** The COMMITTED driver as `.wdr` bytes. Fails (with the projection's own errors) when the
+   *  driver is too incomplete to project, or when none is chosen. */
+  exportDriverWdr(): Result<Uint8Array<ArrayBuffer>> {
+    this.#endWhatIfIfActive();
+    const driver = this.#committed.openIsdDriver;
+    if (!driver) {
+      return { value: null, errors: [{ level: 'error', field: 'driver', message: 'no driver has been chosen' }] };
+    }
+    const { value: text, errors } = driver.toWdrText();
+    if (!text) return { value: null, errors };
+    return { value: wdrTextToBytes(text), errors };
+  }
+
+  /** The COMMITTED driver as `.owdr` bytes — cannot fail once a driver is chosen (the record
+   *  is always representable as its own JSON). Null when none is chosen. */
+  exportDriverOwdr(): Uint8Array<ArrayBuffer> | null {
+    this.#endWhatIfIfActive();
+    const driver = this.#committed.openIsdDriver;
+    return driver ? new TextEncoder().encode(driver.toOwdrText()) as Uint8Array<ArrayBuffer> : null;
+  }
+
+  // ---- project file IO (QO78) -------------------------------------------------------------
+
+  /**
+   * The COMMITTED design as WinISD `.wpr` bytes. `now` is passed, never read from the clock,
+   * so the same design is byte-reproducible; `curve` is the current swept impedance result
+   * (for the sealed-box resonance refinement), or null when none has been computed — only the
+   * live sweep pipeline can supply it, so it is a parameter, never fabricated here.
+   */
+  exportWpr(now: Date, curve: SweepResult | null): Result<Uint8Array<ArrayBuffer>> {
+    this.#endWhatIfIfActive();
+    const driver = this.#committed.openIsdDriver;
+    if (!driver) {
+      return { value: null, errors: [{ level: 'error', field: 'driver', message: 'no driver has been chosen' }] };
+    }
+    const { value: driverSection, errors } = driver.toWdrText();
+    if (!driverSection) return { value: null, errors };
+
+    const boxKind = this.activeAlignment();
+    const meta = this.#committed.project.meta;
+    const input = buildWprInput(
+      boxKind === 'passive-radiator' ? 'pr' : boxKind,
+      this.toUiParams(), driver.toDriver(), driverSection,
+      { name: meta.name, description: meta.description, creator: meta.creator,
+        created: meta.created, modified: meta.modified },
+      now, this.ventArea_m2(), curve,
+    );
+    return { value: wdrTextToBytes(toWpr(input)), errors };
+  }
+
+  /**
+   * Adopt a WinISD `.wpr` file's bytes as THIS project — box-type mapping and PR conversion
+   * happen in `OpenISDProject.fromWinISDProject` (the model's one licensed site), the
+   * `[Driver]` block goes through the driver's own `.wdr` reader, and the loaded project
+   * replaces ground and committed alike. Returns the loaded project's meta (a public plain
+   * type) so the caller can mirror it into its own view state; `value` null means the file
+   * was refused, with the reasons in `errors`.
+   */
+  importWpr(bytes: Uint8Array): Result<OpenISDProjectMeta> {
+    let text: string;
+    try { text = decodeDriverFileBytes(bytes, ProjectFileFormat.Wpr).text; }
+    catch (err) { return { value: null, errors: [{ level: 'error', field: 'wpr', message: (err as Error).message }] }; }
+
+    // The MODEL parses its own format — box-type mapping, PR conversion and the embedded
+    // [Driver] block all happen inside `OpenISDProject`/`OpenISDDriver` (QO83). This method
+    // decodes the bytes, then adopts whatever the model hands back.
+    const { value: project, errors } = OpenISDProject.fromWprText(text);
+    if (!project) return { value: null, errors };
+    this.load(project);
+    return { value: { ...project.meta }, errors: [] };
   }
 
   // ---- UiParams — the flat, engine-facing snapshot ----------------------------------------

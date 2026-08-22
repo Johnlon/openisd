@@ -21,23 +21,29 @@ export interface ToneParam {
   linearRampToValueAtTime(value: number, when: number): void;
   cancelScheduledValues(when: number): void;
 }
+/** An audio sink a node can `connect()` to — the gain node, or the context's own output.
+ *  Structural and empty-of-requirements on purpose: the generator never reads anything off
+ *  its sink, it only hands it to `connect()`. `object` (not `unknown`): a sink is always a
+ *  node object, never a primitive, and the type says exactly that much and no more. */
+export type ToneSink = object;
+
 export interface ToneOsc {
   type: string;
   frequency: ToneParam;
-  connect(dest: unknown): void;
+  connect(dest: ToneSink): void;
   start(): void;
   stop(): void;
   disconnect(): void;
 }
 export interface ToneGain {
   gain: ToneParam;
-  connect(dest: unknown): void;
+  connect(dest: ToneSink): void;
   disconnect(): void;
 }
 export interface ToneCtx {
   createOscillator(): ToneOsc;
   createGain(): ToneGain;
-  destination: unknown;
+  destination: ToneSink;
   currentTime: number;
   state: string;
   resume(): Promise<void>;

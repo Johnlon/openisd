@@ -3,6 +3,7 @@ import { readMetaCell } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
 import { presentationState } from './presentationState.js';
 import { readDriverFileText } from './driverFileText.js';
+import { DriverFileFormat, sniff } from '../fileFormat.js';
 import { DriverScope } from '../driverScope.js';
 import { Chip } from '../driverType.js';
 import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
@@ -13,7 +14,8 @@ import {
   normaliseDate, fmtHz, shortSource, driverHasDqIssues, parseRepoInput,
   type DriverRepo, type FileEntry, type Preview,
 } from '../db/driverRepo.js';
-import { driverFromFileText, type DriverSelection } from './driverSelection.js';
+import { type DriverSelection } from './driverSelection.js';
+import { driverFromFileText } from './managedDriver.js';
 
 // The row and summary shapes the presentation layer is handed. `ui` may not import a
 // service, so the type it needs to name arrives through the layer that gives it the value.
@@ -350,14 +352,25 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
       // Clear the input whatever happened, so picking the SAME file again still fires `change`.
       input.value = '';
       if (!text) { statusErr.value = true; statusMsg.value = `${file.name} is empty`; return; }
-      const res = driverFromFileText(text, file.name);
+      // The one classifier (`fileFormat.ts`) decides what this file is — by name, falling back
+      // to content — so this reader and `useDesignIO.ts`'s import never disagree about a file.
+      const format = DriverFileFormat.ofFileName(file.name) ?? sniff(new TextEncoder().encode(text));
+      if (!(format instanceof DriverFileFormat)) {
+        statusErr.value = true;
+        statusMsg.value = `${file.name} is not a driver file (expected .wdr or .owdr)`;
+        return;
+      }
+      const res = driverFromFileText(text, format === DriverFileFormat.Wdr ? 'wdr' : 'owdr', file.name);
       if (!res.ok) { statusErr.value = true; statusMsg.value = res.error; return; }
-      const overwrote = myDriverRepo.upsert(res.record);
+      // The repositories still hold RECORDS; the driver is asked for its own serialisation at
+      // the moment it is filed, rather than anyone upstream carrying the shape around.
+      const record = res.driver.toJsonRecord();
+      const overwrote = myDriverRepo.upsert(record);
       reloadMyDrivers();
       statusErr.value = false;
       statusMsg.value = '';
       logging.flash(overwrote ? 'Updated in My Drivers' : 'Loaded into My Drivers');
-      previewFile.value = myDriverEntry(res.record);
+      previewFile.value = myDriverEntry(record);
     }, (err: Error) => {
       input.value = '';
       statusErr.value = true;

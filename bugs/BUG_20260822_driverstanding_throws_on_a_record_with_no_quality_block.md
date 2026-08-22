@@ -88,9 +88,12 @@ packages/model/test/driverStanding.test.ts packages/ui/test/db/bundle-drivers-di
 packages/ui/test/db/driver-has-dq-issues.test.ts` — all pass with the tolerance-encoding cases
 deleted (they tested the retired shape, not the fixed behaviour). `npx tsc -p packages/model
 --noEmit` / `npx vue-tsc -p packages/ui --noEmit` clean. `npx vite-node
-scripts/bundle-drivers.mjs` over the full 1969-record live corpus: 1197 bundled, no throw
-(`quality` genuinely is mandatory in every emitted record) — output `drivers-bundle.json`
-byte-identical (md5 `e6628ce2f8b01542cf48362e2f39054d`) before and after the strictness change.
+scripts/bundle-drivers.mjs` over the full 1969-record live corpus: 1197 bundled (the
+then-current interim standing-based gate, since superseded — see
+`bugs/BUG_20260822_openisd_reads_disposition_which_post_b10_records_no_longer_carry.md`'s
+composition-delta section for the current 1969/1969 count), no throw (`quality` genuinely is
+mandatory in every emitted record) — output `drivers-bundle.json` byte-identical (md5
+`e6628ce2f8b01542cf48362e2f39054d`) before and after the strictness change.
 `bash scripts/test-browser.sh packages/ui/test/db/driver-selection.browser.spec.ts --workers=1`
 — see `bugs/BUG_20260822_driver_selection_spec_seeds_a_flat_shape_myDrivers_no_longer_tolerates.md`
 for the post-fix behaviour of that spec (out of A7 scope to rewrite).

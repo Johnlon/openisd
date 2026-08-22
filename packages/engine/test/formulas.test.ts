@@ -7,7 +7,10 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { prVas, prFs, prFsWithMass, prQms, driveVoltage } from '../src/index.js';
+import {
+  prVas, prFs, prFsWithMass, prQms, driveVoltage,
+  prCmsFromVas, prMmdFromFs, prRmsFromQms,
+} from '../src/index.js';
 
 describe('formulas — drive voltage V = √(Pin·Re)', () => {
   it('√(100·4) = 20 V', () => assert.equal(driveVoltage(100, 4), 20));
@@ -39,5 +42,37 @@ describe('formulas — passive radiator derivations', () => {
     assert.equal(prFs(Mmd, 0), 0);
     assert.equal(prFsWithMass(0, 0, Cms), 0);
     assert.equal(prQms(Mmd, Cms, 0), 0);
+  });
+});
+
+describe('formulas — passive radiator inverses round-trip through their forward functions', () => {
+  const Cms = 111111e-8, Sd = 222222e-6, Mmd = 333333e-6, Rms = 444444e-4;
+
+  it('prCmsFromVas inverts prVas: prCmsFromVas(prVas(Cms, Sd), Sd) === Cms', () => {
+    const vasL = prVas(Cms, Sd);
+    assert.ok(Math.abs(prCmsFromVas(vasL, Sd) - Cms) / Cms < 1e-9,
+      `got ${prCmsFromVas(vasL, Sd)}, want ${Cms}`);
+  });
+  it('prCmsFromVas returns 0 when Sd is non-positive', () => {
+    assert.equal(prCmsFromVas(999999, 0), 0);
+  });
+
+  it('prMmdFromFs inverts prFs: prMmdFromFs(prFs(Mmd, Cms), Cms) === Mmd', () => {
+    const fsHz = prFs(Mmd, Cms);
+    assert.ok(Math.abs(prMmdFromFs(fsHz, Cms) - Mmd) / Mmd < 1e-9,
+      `got ${prMmdFromFs(fsHz, Cms)}, want ${Mmd}`);
+  });
+  it('prMmdFromFs returns 0 when Fs or Cms is non-positive', () => {
+    assert.equal(prMmdFromFs(0, Cms), 0);
+    assert.equal(prMmdFromFs(999999, 0), 0);
+  });
+
+  it('prRmsFromQms inverts prQms: prRmsFromQms(prQms(Mmd, Cms, Rms), Mmd, Cms) === Rms', () => {
+    const qms = prQms(Mmd, Cms, Rms);
+    assert.ok(Math.abs(prRmsFromQms(qms, Mmd, Cms) - Rms) / Rms < 1e-9,
+      `got ${prRmsFromQms(qms, Mmd, Cms)}, want ${Rms}`);
+  });
+  it('prRmsFromQms returns 0 when Qms is non-positive', () => {
+    assert.equal(prRmsFromQms(0, Mmd, Cms), 0);
   });
 });

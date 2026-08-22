@@ -1,29 +1,30 @@
 /**
- * The bundler's disposition guard — scripts/bundle-drivers.mjs.
+ * The bundler's bundling gate — scripts/bundle-drivers.mjs / bundleProjection.mjs.
  *
- * A record whose `disposition` is not `ok` is the pipeline's own verdict that the app
- * cannot use it (`incomplete` = missing a parameter the simulation engine needs, set by
- * winisd_tools `model_driver.py::is_incomplete_for_ui`). Such a record must never reach
- * the bundle, however complete its Fs/Sd look.
- *
- * The disposition lives at `quality.disposition.value` — winisd_tools
- * `model_driver.py::QualityBlock` leads the quality block with it, because the verdict and
- * the evidence for it are one statement. A guard that reads it anywhere else reads
- * `undefined` for every record and silently filters nothing.
+ * QO79, FINAL (John, amended, verbatim: "tis is a fail - they shoudl be bundheld with the
+ * usual health warnings visible in the UI"; QO81, John, verbatim: "it is improtant NOT DRIER
+ * GETS EXCLIDED BECAUSE OF MISSIG SPEC PARAMS !!!!"): every structurally readable record
+ * BUNDLES. Simulatability
+ * (`recordIsSimulatable`, `packages/model/src/driverSimulatability.ts`) is DISPLAY
+ * INFORMATION ONLY — the ⚠ health badge `driverRepo.ts::driverHasDqIssues` computes — never a
+ * bundling gate. Datasheet completeness (`recordStandingIsOk`) was already settled wrong;
+ * simulatability-gating is now settled wrong too, permanently. This file must never
+ * reintroduce either as a bundling criterion.
  */
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { parse as parseYaml } from 'yaml';
-import { project, isBundlable } from '../../../../scripts/bundle-drivers.mjs';
+import { project, isBundlable } from '../../../../scripts/bundleProjection.mjs';
+import { driverHasDqIssues } from '../../src/db/driverRepo.js';
 
-/** One openisd.yml as winisd_tools writes it, trimmed to what the bundler reads. */
-const record = (disposition: string) => parseYaml(`
+describe('bundle-drivers — bundling gates on structural readability alone', () => {
+  it('bundles a fully simulatable, structurally sound record', () => {
+    const full = parseYaml(`
 quality:
-  disposition:
-    value: ${disposition}
-    definition: "the record's standing — one of: ok, no-ts-published, incomplete"
   rating: M
+  missing: []
+  parse_errors: []
 manufacturer:
   value: GRS
 brand:
@@ -42,20 +43,102 @@ specs:
         manufacturer_product_page:
           read_value: 45.0
 `);
-
-describe('bundle-drivers — disposition guard', () => {
-  it('bundles a record whose disposition is ok', () => {
-    assert.equal(isBundlable(project(record('ok'))), true);
+    assert.equal(isBundlable(project(full)), true);
   });
 
-  it('excludes a record whose disposition is incomplete', () => {
-    const projected = project(record('incomplete'));
+  it('THE RULING: a structurally sound record with no Fs (not simulatable) still bundles, and driverHasDqIssues still flags it', () => {
+    const notSimulatable = parseYaml(`
+quality:
+  rating: M
+  missing: []
+  parse_errors: []
+manufacturer:
+  value: GRS
+brand:
+  value: GRS
+model:
+  value: 8FR-8
+sku:
+  value: 8fr-8
+driver_type:
+  value: full-range
+specs:
+  woofer: {}
+`);
+    const projected = project(notSimulatable);
     assert.equal(
-      projected.disposition,
-      'incomplete',
-      'the disposition lives at quality.disposition.value; reading it anywhere else yields ' +
-      'undefined for every record and the guard filters nothing',
+      isBundlable(projected),
+      true,
+      'no driver is excluded for missing spec params (QO81) — Fs is a spec param like any other',
     );
-    assert.equal(isBundlable(projected), false);
+    assert.equal(
+      driverHasDqIssues({ name: 'x', record: projected.record }),
+      true,
+      'the record still ships without a usable Fs, so the health-warning badge must fire',
+    );
+  });
+
+  it('excludes a structurally unreadable record (no `specs` container at all)', () => {
+    const unreadable = parseYaml(`
+manufacturer:
+  value: GRS
+brand:
+  value: GRS
+model:
+  value: 8FR-8
+`);
+    assert.equal('specs' in unreadable, false, 'the fixture must genuinely omit the key');
+    assert.equal(isBundlable(project(unreadable)), false);
+  });
+
+  it('excludes a record that has `specs` but no `quality` block at all — the second throw class recordStandingIsOk would hit', () => {
+    const noQuality = parseYaml(`
+manufacturer:
+  value: GRS
+brand:
+  value: GRS
+model:
+  value: 8FR-8
+sku:
+  value: 8fr-8
+driver_type:
+  value: full-range
+specs:
+  woofer:
+    Fs:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          read_value: 45.0
+`);
+    assert.equal('quality' in noQuality, false, 'the fixture must genuinely omit the key');
+    assert.equal(isBundlable(project(noQuality)), false);
+  });
+
+  it('QO81: a record with a non-empty quality.missing (Cms) still bundles', () => {
+    const incomplete = parseYaml(`
+quality:
+  rating: M
+  missing: [Cms]
+  parse_errors: []
+manufacturer:
+  value: GRS
+brand:
+  value: GRS
+model:
+  value: 8FR-8
+sku:
+  value: 8fr-8
+driver_type:
+  value: full-range
+specs:
+  woofer:
+    Fs:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          read_value: 45.0
+`);
+    assert.equal(isBundlable(project(incomplete)), true);
   });
 });

@@ -1,6 +1,7 @@
 import { readCell, readMetaCell, readDisplayName } from '@openisd/model';
 import type { _OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
-import { qGroupIsIncomplete } from '@openisd/engine';
+import { recordStandingIsOk } from '@openisd/model/driverStanding';
+import { recordIsSimulatable } from '@openisd/model/driverSimulatability';
 import { DriverType, Chip } from '../driverType.js';
 
 // The driver commons — index, search, filter, lookup.
@@ -202,29 +203,30 @@ export function myDriverEntry(d: _OpenISDDriverJson): FileEntry {
 }
 
 /**
- * True when a FileEntry is missing core simulation fields, or has a required field entered
- * as ≤ 0 (e.g. Fs=0, Re=0), which would block a meaningful simulation.
+ * True when a FileEntry is not simulatable (`recordIsSimulatable`,
+ * `packages/model/src/driverSimulatability.ts` — Fs, Re, Sd-or-Vas, and at least 2 of
+ * {Qts, Qes, Qms}) or the record's own standing (`recordStandingIsOk`,
+ * `packages/model/src/driverStanding.ts`, derived from `quality.missing`/`quality.parse_errors`)
+ * is not OK. THIS is the ⚠ health-warning badge — the ONLY consumer of both predicates.
+ * Neither gates bundling or listing (QO79/QO81, John, final ruling: no driver is ever excluded
+ * for missing spec params — every structurally readable record bundles and lists; a record
+ * missing Fs, or every T/S field, still ships, and this is the flag that surfaces it).
  *
- * Core required fields for any graph: Fs, Re, Sd or Vas, and at least 2 of {Qts, Qes, Qms}.
- * A driver in the database SHOULD have all of these; flagging the ones that don't lets the
- * user spot incomplete or suspect records at a glance.
- *
- * For bundled records `record.inputs` carries the full DriverRaw bag so every numeric field
- * is checked directly. For federated / My Drivers rows the summary `_Fs` / `_Re` / `_Sd`
- * pre-computed fields are the available proxy.
+ * For records (bundled or My Drivers, the SAME shape) both checks run directly against the
+ * record. `quality` is a required field of `_OpenISDDriverJson`, so every record reaching this
+ * function is assumed to carry one — `recordConforms`
+ * (`packages/model/src/driverConformance.ts`) is the ONE shared check both seams a record can
+ * enter the app through run before handing it here: `myDrivers.ts::list()` for browser
+ * storage, `bundleProjection.mjs::project()` for the driver corpus (see
+ * `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`). For
+ * federated rows (content not yet fetched) the summary `_Fs` / `_Re` / `_Sd` pre-computed
+ * fields are the available proxy — no quality block exists yet to check standing against.
  */
 export function driverHasDqIssues(f: FileEntry): boolean {
   // A saved driver and a bundled record are the SAME shape, so one path reads both.
   const record = f.myDriverData ?? f.record;
   if (record) {
-    const pos = (field: SpecField) => {
-      const v = readCell(record, field).value;
-      return typeof v === 'number' && v > 0;
-    };
-    const hasFsOk  = pos('Fs');
-    const hasReOk  = pos('Re');
-    const hasSdOk  = pos('Sd') || pos('Vas');   // Sd or Vas is enough for area
-    return !hasFsOk || !hasReOk || !hasSdOk || qGroupIsIncomplete(field => pos(field as SpecField));
+    return !recordIsSimulatable(record) || !recordStandingIsOk(record.quality);
   }
   // Federated row (content not yet fetched): fall back to pre-computed summary fields.
   const pos2 = (v: number | null | undefined) => typeof v === 'number' && v > 0;

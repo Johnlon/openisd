@@ -304,8 +304,7 @@ export class OpenISDDriver {
     return new OpenISDDriver(record);
   }
 
-  /** `.owdr` text → an `OpenISDDriver`, direct. `.owdr` IS `_OpenISDDriverJson` as JSON — this
-   *  is the one-step replacement for `JSON.parse(text)` + `OpenISDDriver.fromJsonRecord(record)`. */
+  /** `.owdr` text → an `OpenISDDriver`, direct. `.owdr` IS this model's own record as JSON. */
   static fromOwdrText(text: string): OpenISDDriver {
     return new OpenISDDriver(JSON.parse(text) as _OpenISDDriverJson);
   }
@@ -472,6 +471,29 @@ export class OpenISDDriver {
   /** `.wdr` text → an `OpenISDDriver`. Paired with `toWdrText()`. */
   static fromWdrText(text: string): OpenISDDriver {
     return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(text));
+  }
+
+  /**
+   * A driver FILE's text → an `OpenISDDriver`, given which of this model's own serialisations
+   * the text is already known to be.
+   *
+   * THE OWNER OF THE STATE PARSES IT (human ruling 2026-08-22, QO83): turning `.wdr`/`.owdr`
+   * text into a driver is a question about THIS model's serialisations, so it is answered here.
+   * DECIDING which one a file is is not that question — it depends on the file's name and, when
+   * the name is silent, its bytes, neither of which this model may hold an opinion on
+   * (`@openisd/model` owns no file formats). That classification is the caller's job, via
+   * `fileFormat.ts`'s `DriverFileFormat.ofFileName`/`sniff` — the one classifier, so a `.wdr`
+   * and an `.owdr` reader never disagree about which file they were handed.
+   *
+   * Errors are returned, never thrown: an unreadable file is an ordinary outcome at a file
+   * boundary, and the caller's job is to tell the user which file and why.
+   */
+  static fromFileText(text: string, format: 'wdr' | 'owdr'): Result<OpenISDDriver> {
+    try {
+      return { value: format === 'wdr' ? OpenISDDriver.fromWdrText(text) : OpenISDDriver.fromOwdrText(text), errors: [] };
+    } catch (err) {
+      return { value: null, errors: [{ level: 'error', field: 'file', message: `could not be read: ${(err as Error).message}` }] };
+    }
   }
 
   /** This driver → `.wdr` text. `errors` names what is missing when the projection cannot
@@ -800,3 +822,4 @@ export const _emptyDriverRecordPrivateAllow: string[] = [];
 export function _emptyDriverRecord(): _OpenISDDriverJson {
   return OpenISDDriver.empty().toJsonRecord();
 }
+
