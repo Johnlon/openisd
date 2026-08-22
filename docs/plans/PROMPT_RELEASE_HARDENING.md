@@ -561,6 +561,37 @@ never improvise around it.
       bespoke gate (extend the :703 typeNodeNames() approach). store.ts:19's direct
       `_OpenISDDriverJson` import (its own violation, not PrivateAllow-covered) resolves
       in the same design.
+- [ ] **D20** PERSISTENCE VOCABULARY — one uncompromising rule, ruled by the human 2026-08-22
+      ("I want logic and consistency in the code - and not misdirection ... make them single
+      responsibility and dont fudge it"). FULL STRATEGY:
+      `docs/design/PERSISTENCE_NAMING_AND_PLACEMENT.md`. Three concepts, three words, three
+      homes, one role per module: **STORE** = dumb port onto a medium (no domain vocabulary at
+      all); **REPO** = domain access to exactly ONE collection, takes a store, returns records;
+      **STATE** = live reactive truth, never called a store. Banned as names: `library`,
+      `bucket`, `db`.
+      Layout: `persistence/stores/{keyValueStore,fileStore}.ts` +
+      `persistence/repos/{driver,myDriver,pr,prefs}Repo.ts`; `logic/{appState,
+      presentationState,driverBrowsingState}.ts`.
+      Renames (symbols, files AND prose in one pass): `db/kv.ts`→`stores/keyValueStore.ts`;
+      `logic/fileStore.ts`→`stores/fileStore.ts` (it IS a store, never was logic);
+      `db/myDrivers.ts`→`repos/myDriverRepo.ts`; `db/prLibrary.ts`→`repos/prRepo.ts`;
+      `db/prefs.ts`+`PrefsStore`/`createPrefsStore`→`repos/prefsRepo.ts`+`PrefsRepo`/
+      `createPrefsRepo` (it takes a store and returns domain values — it is a REPO, and this is
+      the one true structural misnaming); `logic/store.ts`→`logic/appState.ts` (frees "store"
+      for the port — the collision is the actual defect, since ARCHITECTURE.md:534 says repos
+      "never touch the store" meaning app state one paragraph after describing repos that take
+      a store meaning the port); `logic/driverLibrary.ts`→`logic/driverBrowsingState.ts`
+      (uses `ref()`, so STATE not persistence).
+      Plus: an AST gate `no-persistence-vocabulary-drift` (5 shape-based checks, never prose
+      greps) so it cannot rot back, and ARCHITECTURE.md's §532 paragraph + module table
+      rewritten to the ruled vocabulary.
+      MECHANICS: `ts-morph` (a repo devDependency) for every symbol rename so references move
+      via the AST, not text matching; verify after with `LSP.findReferences` plus a literal
+      grep for each old name. BLOCKED-BY: A6 (it owns fileStore.ts/store.ts/persist.ts right
+      now) and A7 (owns db/**). Schedule immediately after both commit, BEFORE A8 — A8's "UI
+      stops importing storage" work would otherwise be written against names about to change.
+      Note QO81's storage-failure work also lands in these files; sequence D20 first so that
+      work is written in the ruled vocabulary rather than migrated twice.
 - [ ] **D18** (η₀ blocker dissolved 2026-08-22): add a `no`/efficiency relation to
       `packages/engine/src/consistency.ts` (today: zero `efficiencyConstant` references).
       The engine ALREADY computes η₀ correctly — `efficiency.ts:31-33`,
@@ -574,6 +605,26 @@ never improvise around it.
       projection. `docs/design/DQ_SPLIT_QT56_INVENTORY.md` corrected (its "unresolved
       constant" blocker was stale). Pairs with the EBP relation bug — both are ordinary
       work, neither blocks the QT56 DQ split.
+- [ ] **D21** (QO81 storage-failure package, relayed from John's window 2026-08-22 — design doc
+      `docs/design/MY_DRIVERS_STORAGE_FAILURES.md`). HOLD: John has items "8/9" still to come;
+      schedule now, build only when they land. Ruled so far: (1) bucket unavailable (private
+      mode) → empty list + visible notice; (2) unreadable bucket (bad JSON/not a list) → the
+      app goes READ-ONLY on it, one visible "your saved drivers could not be read" state, with
+      Export (raw string as text) and Delete; delete NEVER automatic and challenges the user if
+      they have not exported; (3) CROSS-CUTTING HARD RULE: any such corruption is a hard stop —
+      a decision modal with only real actions, NO cancel, app does not progress until the user
+      chooses; (4) a non-conforming ENTRY is preserved untouched and surfaced as a broken row
+      with Export/Delete — this RATIFIES A7's preservation and REJECTS its console.warn
+      invisibility, so that warn becomes a visible surface; (6) RULED: file import ALWAYS mints
+      a fresh uuid, a file's own uuid is never adopted as store key (no accidental overwrites;
+      import-twice = two entries), the original surviving as provenance only. UNDER DISCUSSION,
+      not final: (5) keying My Drivers on record uuid (openisdDriver.ts:87 carries it, the app
+      never reads it, empty()/fromWdr() seed `uuid:''` so the app would mint at save) — solves
+      same-name duplicates and flips rename semantics (rename = same driver, Clone = new uuid),
+      flagged to John as a conscious reversal; (7) idea only: stuff `.wdr` export's Comment
+      field with uuid + openisd facts having no INI slot (0xA4 sentinel mechanics, best-effort
+      carrier, provenance-not-identity on re-import). Sequence AFTER D20 so it is written in
+      the ruled persistence vocabulary rather than migrated twice.
 - [ ] **D19** (air constants, John verbatim: "these are calculated values in the UI in
       openisd not constants"): `c`/`roo` are OUTPUTS of `packages/engine/src/air.ts::airFor(env)`
       from temperature/humidity/pressure — verified by running it: reference conditions
