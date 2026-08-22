@@ -1,4 +1,4 @@
-Status: OPEN
+Status: RESOLVED (2026-08-22, task A7)
 
 # `drivers-bundle.json` ships a flat `{inputs}` bag that `OpenISDDriver` cannot read
 
@@ -73,8 +73,17 @@ ruled delete-don't-adapt.
 
 ## Verification
 
-N/A — open. First step is confirming the runtime symptom: open the driver picker and check
-whether bundled rows show Fs/Sd/Znom and a brand-model name, or blanks.
+`scripts/bundle-drivers.mjs`'s `project()` (moved to `scripts/bundleProjection.mjs`, see
+`bugs/BUG_20260822_bundle_drivers_cli_guard_breaks_under_vite_node.md`) no longer builds an
+`inputs` bag — it carries the parsed `openisd.yml` record through as `record` verbatim.
+`driverRepo.ts::bundledEntry` already read the canonical shape (`readCell`/`readMetaCell` on
+`_OpenISDDriverJson`) before this fix; it was the bundle that disagreed. Regenerated the bundle
+against the live `winisd_drivers` checkout (`npx vite-node scripts/bundle-drivers.mjs`): 1197
+records, each `record` a full `_OpenISDDriverJson` (`uuid`, `quality`, `specs`, `data_sources`,
+…), confirmed by inspecting the written `drivers-bundle.json`.
+`npx vitest run packages/ui/test/db/drivers-bundle.test.ts
+packages/ui/test/db/bundle-drivers-disposition.test.ts` — 9/9 pass. `npx vue-tsc -p packages/ui
+--noEmit` clean.
 
 ## Why this matters beyond the picker
 
