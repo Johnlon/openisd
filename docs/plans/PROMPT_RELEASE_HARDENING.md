@@ -561,6 +561,33 @@ never improvise around it.
       bespoke gate (extend the :703 typeNodeNames() approach). store.ts:19's direct
       `_OpenISDDriverJson` import (its own violation, not PrivateAllow-covered) resolves
       in the same design.
+- [ ] **D18** (η₀ blocker dissolved 2026-08-22): add a `no`/efficiency relation to
+      `packages/engine/src/consistency.ts` (today: zero `efficiencyConstant` references).
+      The engine ALREADY computes η₀ correctly — `efficiency.ts:31-33`,
+      `efficiencyConstant(c)·Fs³·Vas/Qes`, live in `driver.ts:194/:281/:292` and
+      `sweep.ts:214` — so no constant is unresolved; only the RELATIONS entry is missing.
+      Evidence: a Wine probe of real WinISD (Beyma 10BR60V2,
+      `winisd_research/scripts/probe_rme_beyma.py`) matched this exact form to 0.000000%
+      against WinISD's saved `no`. Python's `model_wdr.py:471` form is wrong (uses `Mms`
+      where the textbook form uses `Vas`; error ratio `Vas·roo·BL²/Mms`, driver-dependent,
+      NOT a constant) — deliberately NOT repaired: lane F retires python's `.wdr`
+      projection. `docs/design/DQ_SPLIT_QT56_INVENTORY.md` corrected (its "unresolved
+      constant" blocker was stale). Pairs with the EBP relation bug — both are ordinary
+      work, neither blocks the QT56 DQ split.
+- [ ] **D19** (air constants, John verbatim: "these are calculated values in the UI in
+      openisd not constants"): `c`/`roo` are OUTPUTS of `packages/engine/src/air.ts::airFor(env)`
+      from temperature/humidity/pressure — verified by running it: reference conditions
+      (293.15K, 30%, 101325Pa) give c=343.6826980479399, rho=1.2009621215255684, while a
+      WinISD-saved `.wdr` holds 343.684120962152/1.20095217714682 — the 5th-significant-figure
+      drift IS the proof they track an environment, not a constant. Consequences: (a) they
+      never enter a driver RECORD (a datasheet states neither; presence-is-assertion; and
+      `OPENISD_YML_FORMAT_CHANGES_PENDING_B10.md:77` already bars projection-computed values
+      from records) — advised to the winisd_tools peer, no record change; (b) if a `.wdr`
+      emitter needs them it defines an ENVIRONMENT and computes the pair, never hardcodes
+      digits — and via the lane-F bridge it calls `airFor()`, so cross-repo divergence is
+      structurally impossible. TO CHECK HERE: whether any literal `345.0`/`1.184` pair
+      survives in openisd (`winisd_research/README.md` lists it as an open item, but frames
+      343.68/1.20095 as "the correct constants" — same category error, correct the framing).
 - [ ] **D16** (QT58 ruled, John verbatim: "field level stuff is good - disposition is bad -
       tell main-exec it needs killing"): `disposition` is DELETED OUTRIGHT. winisd_tools side
       (peer-owned, greenlit by this session): Disposition enum, DispositionField envelope +
