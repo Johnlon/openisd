@@ -15,20 +15,18 @@
  * rather than handing back a lossy re-decode.
  */
 import { wdrBytesToText, WdrEncoding, wdrTextToBytes, type WdrDecodedText } from '@openisd/winisd';
+import { DriverFileFormat, ProjectFileFormat, isLegacyWinisdFormat, type FileFormat } from '../fileFormat.js';
 
-/** `.wdr`/`.wpr` are the only formats classic (Windows-only) WinISD itself could have written,
- *  and so the only ones the CP1252 fallback (QO62) applies to. */
-function isLegacyWinisdFormat(fileName: string): boolean {
-  return /\.(wdr|wpr)$/i.test(fileName);
-}
-
-/** `bytes` (a file named `fileName`) decoded to text, gated by format: a `.wdr`/`.wpr` may
- *  legitimately fall back to CP1252 (QO62); any other format is OpenISD's own UTF-8 output, so
- *  a CP1252 result there is corruption and throws rather than silently losing data. */
-export function decodeDriverFileBytes(bytes: Uint8Array, fileName: string): WdrDecodedText {
+/** `bytes` decoded to text, gated by `format`: `.wdr`/`.wpr` may legitimately fall back to
+ *  CP1252 (QO62); every other format (or an unrecognised/absent one) is OpenISD's own UTF-8
+ *  output, so a CP1252 result there is corruption and throws rather than silently losing data.
+ *  Takes the format DIRECTLY — never a filename to reverse-engineer it from — so a caller that
+ *  already knows the format (or has none to offer) never has to fabricate a filename just to
+ *  route through this gate. */
+export function decodeDriverFileBytes(bytes: Uint8Array, format: FileFormat | undefined): WdrDecodedText {
   const decoded = wdrBytesToText(bytes);
-  if (decoded.encoding === WdrEncoding.Cp1252 && !isLegacyWinisdFormat(fileName)) {
-    throw new Error(`${fileName} is not valid UTF-8 — OpenISD's own file formats are always UTF-8`);
+  if (decoded.encoding === WdrEncoding.Cp1252 && !isLegacyWinisdFormat(format)) {
+    throw new Error('Not valid UTF-8 — OpenISD\'s own file formats are always UTF-8');
   }
   return decoded;
 }
@@ -36,14 +34,18 @@ export function decodeDriverFileBytes(bytes: Uint8Array, fileName: string): WdrD
 /** One file's text, with the `.wdr` byte encoding already resolved, and which encoding
  *  (`WdrEncoding.Utf8` or `WdrEncoding.Cp1252`, QO62) produced it. Rejects if the read fails,
  *  or if a non-legacy format decodes as anything but UTF-8 (see `decodeDriverFileBytes`). An
- *  empty file resolves to an empty string, which the caller decides what to do about. */
+ *  empty file resolves to an empty string, which the caller decides what to do about. The
+ *  format is classified from `file.name`'s extension alone — cheap and always available before
+ *  the bytes are even read, unlike content-sniffing, which needs the decoded bytes this
+ *  function is what produces. */
 export function readDriverFileText(file: File): Promise<WdrDecodedText> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error(`could not read ${file.name}`));
     reader.onload = () => {
       try {
-        resolve(decodeDriverFileBytes(new Uint8Array(reader.result as ArrayBuffer), file.name));
+        const format = DriverFileFormat.ofFileName(file.name) ?? ProjectFileFormat.ofFileName(file.name) ?? undefined;
+        resolve(decodeDriverFileBytes(new Uint8Array(reader.result as ArrayBuffer), format));
       } catch (err) {
         reject(err as Error);
       }

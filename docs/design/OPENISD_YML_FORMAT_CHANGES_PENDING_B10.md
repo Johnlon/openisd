@@ -26,11 +26,16 @@ the regeneration runs ONCE, after everything below is in — never per-change.
    "TBD"…) is now KEPT verbatim in `actual_reading` with null numerics. The openisd
    READ-SIDE change rides B10: a null `read_value` spec entry reads back as Provenance **N**
    (NotAvailable), never Entered (QT56 refinement, human verbatim in the ledger).
-5. **Disposition derived** (B4, QT47): records store the new fact `no_ts_published`
-   (bookkeeping bool); `disposition` is derived (no_ts_published wins; else
-   missing|parse_errors → incomplete; else ok) and re-serialised. A supplied `disposition:`
-   is silently ignored at load — TOLERANCE THAT MUST DIE WITH B10 (QT58, open: post-B10 it
-   becomes a refused input).
+5. **Disposition derived AND NOT SERIALISED** (B4/QT47 as amended by John's Antigravity
+   ruling, verbatim in `winisd_tools/REWORK:463-1205` — "delete disposition IF BIG IF we can
+   be assured that the emitter will emit the relevant fields mandatorily" → Option 2,
+   "Mandated Field with Omitted Reading Details"): `disposition` AND `no_ts_published` are
+   `exclude=True` — emitted records carry NEITHER key; both re-derive on every validation
+   from `missing`/`parse_errors` (+ the stored evidence). openisd's reader derives standing
+   itself or ignores it. CAVEAT (the "BIG IF", unenforced as of 2026-08-22): mandatory
+   emission of every expected field at the emit seam is NOT yet built — absence currently
+   expresses via `quality.missing`; QT62 puts the mandate question to John. QT58 (post-B10
+   constructor refusal) still applies to the in-model field.
 6. **No calculated marker** (QT56 ruling): the `grounds` proposal is retired; a
    pipeline-computed `read_value` is UNREPRESENTABLE (construction-surface gate in
    winisd_tools). No new key.
@@ -46,6 +51,12 @@ the regeneration runs ONCE, after everything below is in — never per-change.
    and the TS-side declaration awaits deletion
    (`openisd/bugs/BUG_20260821_openisd_name_field_declared_but_inert.md`).
 10. **Brand-primary definition** (QO34/QO42): fixed in source; lands via the regeneration.
+
+## Standing caveat on this whole document
+
+John has also indicated (peer session, 2026-08-22) that `openisd.yml` itself may eventually
+be REPLACED by direct `winisd.wdr` V8-bridge calls — treat long-horizon investments in this
+format accordingly; B10 still regenerates it for the release.
 
 ## Open items that could still touch the format — settle BEFORE B10
 

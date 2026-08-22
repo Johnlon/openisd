@@ -1,4 +1,6 @@
+import { driverRecordProblems } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
+import { recordConforms } from '@openisd/model/driverConformance';
 import type { KeyValueStore } from './kv.js';
 
 // "My Drivers" — the user's own saved drivers, a bucket of its own in browser storage.
@@ -24,10 +26,9 @@ export const MY_DRIVERS_KEY = 'openisd_my_drivers';
 // Saved drivers are RECORDS (`_OpenISDDriverJson`) — the same shape a library driver, a file
 // and a share link carry. There is one driver model, so there is one saved shape.
 //
-// Anything previously written under this key was a flat `DriverRaw` bag and is INVALID against
-// the current model. It is not read, not converted and not tolerated: a reader that accepted
-// both shapes would BE the second model version this architecture forbids. The sanctioned
-// remedy for data that no longer fits is to discard it and re-save on the current model.
+// A stored entry failing `isConformingRecord` is refused on every read — `list()` never hands
+// it to the model — and left untouched in storage by `upsert`/`remove` rather than erased
+// (QO81, pending ratification).
 
 /**
  * A driver's identity: `<brand>/<model>`, lowercased and slugged. Empty when the driver
@@ -62,16 +63,47 @@ export interface MyDriverRepo {
   remove(id: string): boolean;
 }
 
+/**
+ * The stored array, split into records `list()` can hand to the model and everything else —
+ * the retired flat shape, or any other blob failing `recordConforms`
+ * (`packages/model/src/driverConformance.ts` — the SAME conformance check
+ * `bundleProjection.mjs::project()` runs on the driver corpus, so this seam and the bundler's
+ * enforce one contract). A refused entry is logged once here (the ONE call site every
+ * read/write path goes through) and carried through `unrecognised` rather than being dropped:
+ * this key holds the user's own data, and erasing an entry nobody asked to delete is a worse
+ * failure than displaying too few rows (QO81, pending ratification — a future release may
+ * instead migrate or surface these entries to the user).
+ */
+function readAndSplit(store: KeyValueStore): { conforming: _OpenISDDriverJson[]; unrecognised: unknown[] } {
+  let raw: unknown[];
+  try {
+    const parsed: unknown = JSON.parse(store.get(MY_DRIVERS_KEY) ?? '[]');
+    raw = Array.isArray(parsed) ? parsed : [];
+  } catch { raw = []; }
+
+  const conforming: _OpenISDDriverJson[] = [];
+  const unrecognised: unknown[] = [];
+  for (const candidate of raw) {
+    if (recordConforms(candidate)) { conforming.push(candidate as _OpenISDDriverJson); continue; }
+    console.warn('my-drivers: ignoring non-conforming stored record', driverRecordProblems(candidate), candidate);
+    unrecognised.push(candidate);
+  }
+  return { conforming, unrecognised };
+}
+
 export function createMyDriverRepo(store: KeyValueStore): MyDriverRepo {
   function list(): _OpenISDDriverJson[] {
-    try {
-      const parsed: unknown = JSON.parse(store.get(MY_DRIVERS_KEY) ?? '[]');
-      return Array.isArray(parsed) ? (parsed as _OpenISDDriverJson[]) : [];
-    } catch { return []; }
+    return readAndSplit(store).conforming;
   }
 
   function replaceAll(next: _OpenISDDriverJson[]): void {
     store.set(MY_DRIVERS_KEY, JSON.stringify(next));
+  }
+
+  /** Write `conforming` back beside whatever `unrecognised` blobs the store already held —
+   *  each group keeps its own relative order, conforming first. */
+  function writeBack(conforming: _OpenISDDriverJson[], unrecognised: unknown[]): void {
+    store.set(MY_DRIVERS_KEY, JSON.stringify([...conforming, ...unrecognised]));
   }
 
   return {
@@ -81,18 +113,18 @@ export function createMyDriverRepo(store: KeyValueStore): MyDriverRepo {
     upsert(d) {
       const entry = { ...d };
       const id = driverId(entry);
-      const next = list();
-      const idx = id ? next.findIndex(x => driverId(x) === id) : -1;
-      if (idx >= 0) next[idx] = entry; else next.push(entry);
-      replaceAll(next);
+      const { conforming, unrecognised } = readAndSplit(store);
+      const idx = id ? conforming.findIndex(x => driverId(x) === id) : -1;
+      if (idx >= 0) conforming[idx] = entry; else conforming.push(entry);
+      writeBack(conforming, unrecognised);
       return idx >= 0;
     },
     remove(id) {
       if (!id) return false;   // unidentifiable driver: refuse rather than delete an arbitrary row
-      const before = list();
-      const kept = before.filter(d => driverId(d) !== id);
-      if (kept.length === before.length) return false;
-      replaceAll(kept);
+      const { conforming, unrecognised } = readAndSplit(store);
+      const kept = conforming.filter(d => driverId(d) !== id);
+      if (kept.length === conforming.length) return false;
+      writeBack(kept, unrecognised);
       return true;
     },
   };

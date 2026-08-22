@@ -3,22 +3,18 @@
  *
  * A PR's canonical state is Sd/Mmd/Cms/Rms (matches the driver's own T/S vocabulary), but
  * datasheets and WinISD both publish Sd/Fs/Qms/Vas instead. `prVas`/`prFs`/`prQms` in
- * `@openisd/engine` already give the forward direction (canonical -> WinISD vocabulary); this
- * module adds the inverse (WinISD vocabulary -> canonical), used both when editing an existing
- * PR's WinISD-style fields (PREditModal) and when defining a brand-new one from a datasheet
- * (PRDefineModal) — the same two formulas, so both panels apply the identical solve.
+ * `@openisd/engine` already give the forward direction (canonical -> WinISD vocabulary); the
+ * inverse direction (WinISD vocabulary -> canonical) is `@openisd/engine`'s `prCmsFromVas`/
+ * `prMmdFromFs`/`prRmsFromQms`, reachable ONLY through `@openisd/model`'s
+ * `prCmsFromWinIsdVas`/`prMmdFromWinIsdFs`/`prRmsFromWinIsdQms` (this file never calls the
+ * engine functions directly — bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_
+ * outside_engine.md). Used both when editing an existing PR's WinISD-style fields
+ * (PREditModal) and when defining a brand-new one from a datasheet (PRDefineModal) — the same
+ * solve, so both panels apply it identically.
  */
-import { T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity,
-         prVas, prFs, prFsWithMass, prQms } from '@openisd/engine';
+import { prVas, prFs, prFsWithMass, prQms } from '@openisd/engine';
+import { prCmsFromWinIsdVas, prMmdFromWinIsdFs, prRmsFromWinIsdQms } from '@openisd/model';
 import type { UiParams } from '../types.js';
-
-/** No environment reaches either call site below, so ρ/c are computed live at the
- *  reference environment — never a stored constant (docs/design/WINISD_SCHEMA.md §12). */
-function referenceRhoC2(): number {
-  const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
-  const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
-  return rho * c * c;
-}
 
 /** Vas (litres) implied by the PR's current Cms/Sd. */
 export function prVasDisplay(P: UiParams): number {
@@ -45,15 +41,15 @@ export function prQmsDisplay(P: UiParams): number {
 export function setPrFsFromWinIsd(P: UiParams, newFsHz: number): void {
   if (!(newFsHz > 0)) return;
   const qms = prQmsDisplay(P) || 5;
-  const newMmd = 1 / ((2 * Math.PI * newFsHz) ** 2 * P.prCms);
+  const newMmd = prMmdFromWinIsdFs(newFsHz, P.prCms);
   P.prMmd = newMmd;
-  P.prRms = Math.sqrt(newMmd / P.prCms) / qms;
+  P.prRms = prRmsFromWinIsdQms(qms, newMmd, P.prCms);
 }
 
 /** Enter a WinISD-vocabulary Qms: re-solves Rms from the current Mmd/Cms. */
 export function setPrQmsFromWinIsd(P: UiParams, newQms: number): void {
   if (!(newQms > 0)) return;
-  P.prRms = Math.sqrt(P.prMmd / P.prCms) / newQms;
+  P.prRms = prRmsFromWinIsdQms(newQms, P.prMmd, P.prCms);
 }
 
 /** Enter a WinISD-vocabulary Vas (litres): re-solves Cms from Sd, holding Fs/Qms. */
@@ -61,11 +57,11 @@ export function setPrVasFromWinIsd(P: UiParams, newVasL: number): void {
   if (!(newVasL > 0)) return;
   const fsCurr = prFsDisplay(P) || 30;
   const qmsCurr = prQmsDisplay(P) || 5;
-  const newCms = (newVasL / 1000) / (P.prSd * P.prSd * referenceRhoC2());
-  const newMmd = 1 / ((2 * Math.PI * fsCurr) ** 2 * newCms);
+  const newCms = prCmsFromWinIsdVas(newVasL, P.prSd);
+  const newMmd = prMmdFromWinIsdFs(fsCurr, newCms);
   P.prCms = newCms;
   P.prMmd = newMmd;
-  P.prRms = Math.sqrt(newMmd / newCms) / qmsCurr;
+  P.prRms = prRmsFromWinIsdQms(qmsCurr, newMmd, newCms);
 }
 
 /** A brand-new PR's datasheet fields, in WinISD vocabulary. */
@@ -88,10 +84,9 @@ export interface PrCanonical {
 
 export function prCanonicalFromDatasheet(input: PrDatasheetInput): PrCanonical {
   const sd = input.sdCm2 / 1e4;
-  const vas = input.vasL / 1000;
-  const cms = vas / (sd * sd * referenceRhoC2());
-  const mmd = 1 / ((2 * Math.PI * input.fsHz) ** 2 * cms);
-  const rms = Math.sqrt(mmd / cms) / input.qms;
+  const cms = prCmsFromWinIsdVas(input.vasL, sd);
+  const mmd = prMmdFromWinIsdFs(input.fsHz, cms);
+  const rms = prRmsFromWinIsdQms(input.qms, mmd, cms);
   const xmax = isFinite(input.xmaxMm) && input.xmaxMm >= 0 ? input.xmaxMm / 1000 : 0;
   return { sd, xmax, cms, mmd, rms };
 }

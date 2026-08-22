@@ -95,6 +95,72 @@ describe('driverHasDqIssues — record path (record/myDriverData present)', () =
   });
 });
 
+describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared with the bundler', () => {
+  it('is true when every field is usable but quality.missing carries an entry', () => {
+    const record: _OpenISDDriverJson = {
+      uuid: { value: 'test-uuid', definition: 'stable record identity' },
+      quality: {
+        rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: ['Mms'], invalid: [],
+        parse_errors: [], cross_source_only: [],
+      },
+      manufacturer: { value: 'Test', origin: 'manual', definition: 'the company that makes the driver', dq: [] },
+      brand: { value: 'Test', origin: 'manual', definition: 'the selling brand', dq: [] },
+      model: { value: 'Model', origin: 'manual', definition: "the vendor's exact designation", dq: [] },
+      sku: { value: 'test-model', definition: 'canonical identity code', grounds: [] },
+      driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
+      disposition: { value: 'ok', definition: "the record's own account of its standing", detail: 'complete' },
+      data_sources: { value: {}, definition: 'the record-wide provenance index' },
+      authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
+      specs: {
+        woofer: {
+          Fs: { origin: 'manual', readings: { manual: { read_value: 30 } }, dq: [] },
+          Re: { origin: 'manual', readings: { manual: { read_value: 5.6 } }, dq: [] },
+          Sd: { origin: 'manual', readings: { manual: { read_value: 0.0133 } }, dq: [] },
+          Qts: { origin: 'manual', readings: { manual: { read_value: 0.38 } }, dq: [] },
+          Qes: { origin: 'manual', readings: { manual: { read_value: 0.40 } }, dq: [] },
+        },
+      },
+    };
+    const f: FileEntry = { name: 'x', record };
+    assert.equal(driverHasDqIssues(f), true);
+  });
+
+  it('is true when every field is usable but quality.parse_errors carries an entry', () => {
+    const record: _OpenISDDriverJson = {
+      uuid: { value: 'test-uuid', definition: 'stable record identity' },
+      quality: {
+        rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+        parse_errors: ['Fs=xx (Hz): not a number'], cross_source_only: [],
+      },
+      manufacturer: { value: 'Test', origin: 'manual', definition: 'the company that makes the driver', dq: [] },
+      brand: { value: 'Test', origin: 'manual', definition: 'the selling brand', dq: [] },
+      model: { value: 'Model', origin: 'manual', definition: "the vendor's exact designation", dq: [] },
+      sku: { value: 'test-model', definition: 'canonical identity code', grounds: [] },
+      driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
+      disposition: { value: 'ok', definition: "the record's own account of its standing", detail: 'complete' },
+      data_sources: { value: {}, definition: 'the record-wide provenance index' },
+      authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
+      specs: {
+        woofer: {
+          Fs: { origin: 'manual', readings: { manual: { read_value: 30 } }, dq: [] },
+          Re: { origin: 'manual', readings: { manual: { read_value: 5.6 } }, dq: [] },
+          Sd: { origin: 'manual', readings: { manual: { read_value: 0.0133 } }, dq: [] },
+          Qts: { origin: 'manual', readings: { manual: { read_value: 0.38 } }, dq: [] },
+          Qes: { origin: 'manual', readings: { manual: { read_value: 0.40 } }, dq: [] },
+        },
+      },
+    };
+    const f: FileEntry = { name: 'x', record };
+    assert.equal(driverHasDqIssues(f), true);
+  });
+});
+
+// A record with no `quality` block does not reach `driverHasDqIssues` at all: `quality` is
+// required by `_OpenISDDriverJson`, and `myDrivers.ts::list()` is the seam that refuses a
+// record failing that contract before it is ever handed to this function — see
+// `packages/ui/test/db/myDrivers.test.ts` and
+// `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`.
+
 describe('driverHasDqIssues — federated row path (no record/myDriverData yet)', () => {
   it('is false when the summary _Fs and _Re are both positive', () => {
     const f: FileEntry = { name: 'x', _Fs: 30, _Re: 5.6 };

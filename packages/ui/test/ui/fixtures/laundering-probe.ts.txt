@@ -1,0 +1,97 @@
+// PROBE FIXTURE for no-private-type-laundering.test.ts — NOT compiled as part of the app
+// (`.ts.txt`, so tsc/vite/eslint never see it). Every declaration below launders
+// `_OpenISDDriverJson` through a different mechanism; the gate must flag ALL of them. The
+// gate loads this text into its own ts-morph project and asserts the offence count per form,
+// which is what proves each traversal branch actually fires rather than being dead code.
+import type { OpenISDDriver } from '@openisd/model';
+
+declare const d: OpenISDDriver;
+
+// FORM 1 — exported type alias over an indirection (the original QO73 offender).
+export type Form1Alias = ReturnType<OpenISDDriver['toJsonRecord']>;
+
+// FORM 2 — exported ARROW-FUNCTION CONST with an annotated return type.
+export const form2Arrow = (): ReturnType<OpenISDDriver['toJsonRecord']> => d.toJsonRecord();
+
+// FORM 3 — exported function with an INFERRED return type (no annotation to grep).
+export function form3Inferred() {
+  return d.toJsonRecord();
+}
+
+// FORM 4 — exported CLASS method and accessor.
+export class Form4Class {
+  method(): ReturnType<OpenISDDriver['toJsonRecord']> { return d.toJsonRecord(); }
+  get accessor(): ReturnType<OpenISDDriver['toJsonRecord']> { return d.toJsonRecord(); }
+}
+
+// FORM 5 — exported INTERFACE METHOD (not a property).
+export interface Form5Interface {
+  rec(): ReturnType<OpenISDDriver['toJsonRecord']>;
+}
+
+// FORM 6 — exported interface extending the private shape through a heritage clause.
+export interface Form6Heritage extends ReturnType<OpenISDDriver['toJsonRecord']> {
+  extra: number;
+}
+
+// FORM 7 — exported generic alias whose DEFAULT type argument is the private shape.
+export type Form7GenericDefault<T = ReturnType<OpenISDDriver['toJsonRecord']>> = { held: T };
+
+// ── Not offences: these must NOT be flagged, or the gate is unusable ──────────────────────
+
+// A PARAMETER position on a standalone function — narrowing input is the safe direction, and
+// nothing leaves: the return type reaches nothing private. NOT an offence.
+export function acceptsRecord(_r: ReturnType<OpenISDDriver['toJsonRecord']>): void { /* ok */ }
+
+// A public domain type in every position — nothing private is reached at all.
+export interface SafePublic { driver: OpenISDDriver }
+export function safeReturn(): OpenISDDriver { return d; }
+
+// ── FORMs 8-12: the private type hides inside a STRUCTURE rather than a type argument ─────
+// A walk that follows only type arguments and union/intersection members cannot see any of
+// these — the symbol sits on an object type's PROPERTY or behind a CALL SIGNATURE.
+
+// FORM 8 — interface PROPERTY whose type is a function returning the private shape. The same
+// declaration as FORM 5 in a different spelling: `rec(): T` vs `rec: () => T`.
+export interface Form8PropertyFn {
+  rec: () => ReturnType<OpenISDDriver['toJsonRecord']>;
+}
+
+// FORM 9 — exported object-literal const carrying a method that returns the private shape.
+export const form9ObjectLiteral = {
+  rec(): ReturnType<OpenISDDriver['toJsonRecord']> { return d.toJsonRecord(); },
+};
+
+// FORM 10 — class PROPERTY holding a function that returns the private shape.
+export class Form10ClassPropertyFn {
+  rec: () => ReturnType<OpenISDDriver['toJsonRecord']> = () => d.toJsonRecord();
+}
+
+// FORM 11 — exported NAMESPACE containing the laundering alias.
+export namespace Form11Namespace {
+  export type Held = ReturnType<OpenISDDriver['toJsonRecord']>;
+}
+
+// FORM 12 — arrow const whose return type is an object literal holding the private shape.
+export const form12ObjectReturn = (): { rec: ReturnType<OpenISDDriver['toJsonRecord']> } =>
+  ({ rec: d.toJsonRecord() });
+
+// FORM 13 — the CONTRAST that makes the parameter exemption a real test rather than a vacuous
+// one: a callback PROPERTY that receives the private record ships it OUTWARD to whoever
+// supplies the callback, so it IS an offence — unlike `acceptsRecord` above.
+export interface Form13CallbackParam {
+  sink: (r: ReturnType<OpenISDDriver['toJsonRecord']>) => void;
+}
+
+// FORM 14 — a NON-EXPORTED (module-private) carrier INTERFACE, declared right here in the file
+// under scan, holding the private shape on a property; only the FUNCTION that returns it is
+// exported. The carrier has a NAME, so a walk that stops descending into any named declared
+// type (rather than only a GOVERNED one, declared in some other file) never reaches `rec`.
+interface Form14Carrier { rec: ReturnType<OpenISDDriver['toJsonRecord']> }
+export function form14BypassViaInterface(): Form14Carrier { return { rec: d.toJsonRecord() }; }
+
+// FORM 15 — the same bypass with a CLASS instead of an interface as the module-private carrier.
+class Form15CarrierClass {
+  constructor(readonly rec: ReturnType<OpenISDDriver['toJsonRecord']>) {}
+}
+export function form15BypassViaClass(): Form15CarrierClass { return new Form15CarrierClass(d.toJsonRecord()); }

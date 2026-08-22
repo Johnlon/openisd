@@ -50,27 +50,33 @@ describe('the V0 repair — shape only, never a value', () => {
     },
   });
 
+  // A V0 payload traverses the WHOLE chain, so the driver slot arrives at the current shape:
+  // V0→V1 restores the container, V1→V2 serialises the slot to the managed layer's text.
+  const driverOf = (blob: Record<string, unknown>): Record<string, unknown> =>
+    JSON.parse(blob.driver as string);
+
   it('restores the missing specs container and stamps the current version', () => {
     const { blob, from, applied } = upgrade(v0WithBrokenDriver());
     assert.equal(from, 0);
     assert.equal(blob.schema, CURRENT_SCHEMA);
-    assert.deepEqual((blob.driver as Record<string, unknown>).specs, { woofer: {} });
+    assert.equal(typeof blob.driver, 'string', 'V1→V2 serialises the driver slot');
+    assert.deepEqual(driverOf(blob).specs, { woofer: {} });
     assert.equal(applied.length, CURRENT_SCHEMA, 'one line per step applied');
   });
 
   it('invents no VALUE — the repaired section is empty', () => {
     const { blob } = upgrade(v0WithBrokenDriver());
-    const specs = (blob.driver as Record<string, Record<string, object>>).specs;
+    const specs = driverOf(blob).specs as Record<string, object>;
     assert.deepEqual(Object.keys(specs.woofer), [],
       'an empty section asserts nothing about the driver. A step that filled in Fs or Qts ' +
       'would be fabricating measurements, which is why this repair is safe to apply to a ' +
       'payload whose true origin version is unknowable');
   });
 
-  it('leaves a driver that already has specs untouched', () => {
+  it('leaves a driver that already has specs untouched (beyond the slot serialisation)', () => {
     const good = { driver: { specs: { woofer: { Fs: { origin: 'manual', readings: {}, dq: [] } } } } };
     const { blob } = upgrade(structuredClone(good));
-    assert.deepEqual((blob.driver as Record<string, unknown>).specs, good.driver.specs,
+    assert.deepEqual(driverOf(blob).specs, good.driver.specs,
       'a step must change only what its own version got wrong');
   });
 

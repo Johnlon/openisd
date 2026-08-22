@@ -8,6 +8,18 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./driverStanding": {
+      "types": "./src/driverStanding.ts",
+      "default": "./src/driverStanding.ts"
+    },
+    "./driverSimulatability": {
+      "types": "./src/driverSimulatability.ts",
+      "default": "./src/driverSimulatability.ts"
+    },
+    "./driverConformance": {
+      "types": "./src/driverConformance.ts",
+      "default": "./src/driverConformance.ts"
     }
   },
   "scripts": {

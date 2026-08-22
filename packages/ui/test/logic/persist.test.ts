@@ -13,13 +13,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { gunzipSync } from 'node:zlib';
+import { gunzipSync, gzipSync } from 'node:zlib';
 import { OpenISDDriver, Provenance } from '@openisd/model';
 import { WinISDDriver } from '@openisd/winisd';
-import { serialize, stateToUrl } from '../../src/logic/persist.js';
+import { serialize, stateToUrl, loadFromHash, upgradeParsedState } from '../../src/logic/persist.js';
 import { state, managedProject, applyState } from '../../src/logic/store.js';
 import { presentationState } from '../../src/logic/presentationState.js';
-import type { ProjectMeta, SerializedState, UiParams, DriverJSON } from '../../src/types.js';
+import type { ProjectMeta, SerializedState, UiParams } from '../../src/types.js';
 import type { PresentationState } from '../../src/logic/presentationState.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -29,15 +29,16 @@ const wdrText = readFileSync(SAMPLE, 'utf8');
 // A minimal PresentationState — serialize only reads graphs off it here.
 const miniView = { graphs: ['SPL'] } as unknown as PresentationState;
 
-/** The sample `.wdr`, read as-read by the serialiser and projected into the app's own record.
- *  One reader, one model — there is no second shape to discriminate on. */
-function sampleRecord(): DriverJSON {
-  return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdrText)).toJsonRecord();
+/** The sample `.wdr`, read as-read by the serialiser, as the driver's own persisted TEXT —
+ *  the only form the driver takes in a serialised payload (QO73: the UI carries the managed
+ *  layer's serialisation, never the record value). */
+function sampleDriverText(): string {
+  return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdrText)).toOwdrText();
 }
 
 describe('persistence — provenance survives a serialize round trip', () => {
   it('E stays E and C stays C across serialize → JSON → restore', () => {
-    const src = OpenISDDriver.fromJsonRecord(sampleRecord());
+    const src = OpenISDDriver.fromOwdrText(sampleDriverText());
     // Clear a derivable field so the fixture carries a genuine C (Cms recomputes from
     // Fs/Vas/Sd) alongside the E fields the WinISD save marks entered.
     src.clear('Cms');
@@ -48,8 +49,8 @@ describe('persistence — provenance survives a serialize round trip', () => {
 
     const wire = JSON.parse(JSON.stringify(
       serialize('sealed', { name: 'John-all-manu-populated', creator: 'John', created: '2026-01-01',
-        modified: '2026-01-02', description: '' }, miniView, src.toJsonRecord(), {} as UiParams)));
-    const back = OpenISDDriver.fromJsonRecord(wire.driver);
+        modified: '2026-01-02', description: '' }, miniView, src.toOwdrText(), {} as UiParams)));
+    const back = OpenISDDriver.fromOwdrText(wire.driver);
 
     for (const f of ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const) {
       assert.equal(back.cell(f).state, src.cell(f).state,
@@ -59,9 +60,11 @@ describe('persistence — provenance survives a serialize round trip', () => {
 
   it('the payload is the RECORD, so `specs` and its readings travel', () => {
     const ser = serialize('sealed', { name: 'Provenance sample', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, miniView, sampleRecord(), {} as UiParams);
-    assert.ok(ser.driver?.specs, 'the driver payload is the openisd.yml record');
-    assert.ok(ser.driver?.specs.woofer?.Fs?.readings,
+      modified: '2026-01-02', description: '' }, miniView, sampleDriverText(), {} as UiParams);
+    assert.ok(ser.driver, 'the driver payload travels');
+    const record = JSON.parse(ser.driver!);
+    assert.ok(record.specs, 'the driver payload is the openisd.yml record, serialised');
+    assert.ok(record.specs.woofer?.Fs?.readings,
       'each field carries its readings, not a bare number — that is what makes E/C survivable');
   });
 
@@ -91,7 +94,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
       chartColors: { background: '#ffffff' },
     },
   } as unknown as PresentationState;
-  const drv = sampleRecord();
+  const drv = sampleDriverText();
 
   // stateToUrl reads location.{origin,pathname}; stub it (no jsdom needed) for the URL test.
   beforeAll(() => vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' }));
@@ -258,5 +261,44 @@ describe('UiParams round-trips losslessly through serialize/applyState', () => {
     assert.deepEqual(after, before,
       'every UiParams field must round-trip byte-identical through serialize/applyState — a ' +
       'diverging field would mean the wire shape silently drops or corrupts it');
+  });
+});
+
+/**
+ * bugs/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md — every reader
+ * of a persisted payload upgrades it. The V1→V2 step converts the driver slot from a record
+ * OBJECT to the managed layer's serialised TEXT; a V1 share link must arrive upgraded.
+ */
+describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 driver-text)', () => {
+  afterAll(() => vi.unstubAllGlobals());
+
+  it('a V1 payload loaded via the HASH path comes back at the current schema, driver as text', async () => {
+    const v1 = {
+      schema: 1, v: 2, box: 'sealed', P: {}, graphs: [],
+      project: { name: 'v1-fixture', creator: '', created: '', modified: '', description: '' },
+      driver: JSON.parse(sampleDriverText()),
+    };
+    // Encoded with Node's zlib, independent of the app's own CompressionStream path — this
+    // checks what a real browser-produced link would decode to, not the app agreeing with itself.
+    const encoded = gzipSync(Buffer.from(JSON.stringify(v1), 'utf8'))
+      .toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    vi.stubGlobal('location', { hash: '#s=' + encoded, origin: 'https://openisd.test', pathname: '/' });
+
+    const loaded = await loadFromHash();
+    assert.ok(loaded, 'a V1 payload must load, upgraded — not be refused');
+    assert.equal(typeof loaded!.driver, 'string', 'the V1→V2 step serialises the driver slot');
+    const back = OpenISDDriver.fromOwdrText(loaded!.driver!);
+    assert.equal(back.cell('Fs').state, Provenance.Entered,
+      'the upgraded driver is the same record — provenance intact');
+  });
+
+  it('upgradeParsedState is the same seam File → Open uses — V1 object slot becomes text', () => {
+    const upgraded = upgradeParsedState({
+      schema: 1, v: 2, box: 'sealed', P: {}, graphs: [],
+      project: { name: 'v1-file', creator: '', created: '', modified: '', description: '' },
+      driver: JSON.parse(sampleDriverText()),
+    });
+    assert.ok(upgraded);
+    assert.equal(typeof upgraded!.driver, 'string');
   });
 });

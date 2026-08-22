@@ -267,3 +267,121 @@ export function toWpr(input: WprInput): string {
   // Blank line between sections; whole file CRLF with a trailing CRLF.
   return sections.join('\n\n').replace(/\n/g, '\r\n') + '\r\n';
 }
+
+// ── parseWprRaw — the READ side, raw only ──────────────────────────────────────────────────
+//
+// `toWpr` above is the WRITE side, taking already-computed primitives. This is the read side:
+// section/key/value text into raw values, box-type as WinISD's own un-mapped numeric code. No
+// box-type→box-kind mapping and no engine formula runs here — the caller (`@openisd/model`'s
+// `OpenISDProject.fromWinISDProject`) does both. A key the file does not carry is `undefined`,
+// never a fabricated 0 or empty string.
+
+/** One `.wpr` file's raw project-level values, as read — every number already parsed, no
+ *  section's internal shape interpreted beyond that. */
+export interface WprRawParse {
+  /** `[Box].BType`, un-mapped to any OpenISD box kind. `undefined` when the file states no
+   *  `BType` key at all. */
+  bType: number | undefined;
+  /** The `[Driver]` block, verbatim — its own `.wdr` text, readable by
+   *  `OpenISDDriver.fromWdrText()`. Not a second driver parser (QO67). */
+  driverWdrText: string;
+  box: {
+    Vr?: number; Fr?: number; Vf?: number; Ff?: number;
+    Ql?: number; Qa?: number; Qp?: number; npr?: number;
+  };
+  signal: { P?: number; Rg?: number };
+  ventFront: { dia?: number; len?: number; endCorrection?: number };
+  ventRear: { dia?: number; len?: number; endCorrection?: number };
+  simulatorOptions: { vcInductance?: boolean; flatResponse?: boolean; tlPorts?: boolean };
+  environment: { tempK?: number; pressurePa?: number; humidityPct?: number };
+  passiveRadiator: { Sd?: number; Vas?: number; Fs?: number; Qms?: number; Xmax?: number; Me?: number };
+  projectInfo: { description?: string; creator?: string; createDate?: string };
+}
+
+/** A key the section does not carry, or carries empty, parses to `undefined` — never a
+ *  fabricated number. */
+function numOrAbsent(sec: Record<string, string> | undefined, key: string): number | undefined {
+  const raw = sec?.[key];
+  if (raw == null || raw.trim() === '') return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+export function parseWprRaw(text: string): WprRawParse {
+  const sections: Record<string, Record<string, string>> = {};
+  let currentSection: Record<string, string> | null = null;
+  const lines = text.split(/\r?\n/);
+  const driverLines: string[] = [];
+  let inDriver = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith(';') || trimmed.startsWith('#')) continue;
+
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      const secName = trimmed.slice(1, -1).trim();
+      currentSection = {};
+      sections[secName] = currentSection;
+      inDriver = secName === 'Driver';
+      if (inDriver) driverLines.push(trimmed);
+    } else {
+      if (inDriver) driverLines.push(line);
+      if (currentSection) {
+        const idx = line.indexOf('=');
+        if (idx !== -1) {
+          currentSection[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+        }
+      }
+    }
+  }
+
+  const boxSec = sections['Box'];
+  const sigSec = sections['SignalSource'];
+  const pSec = sections['ProjectInfo'];
+  const simOptSec = sections['SimulatorOptions'];
+  const ventFrontSec = sections['VentFront'];
+  const ventRearSec = sections['VentRear'];
+  const prSec = sections['PassiveRadiator'];
+
+  const bType = numOrAbsent(boxSec, 'BType');
+
+  return {
+    bType,
+    driverWdrText: driverLines.join('\r\n'),
+    box: {
+      Vr: numOrAbsent(boxSec, 'Vr'), Fr: numOrAbsent(boxSec, 'Fr'),
+      Vf: numOrAbsent(boxSec, 'Vf'), Ff: numOrAbsent(boxSec, 'Ff'),
+      Ql: numOrAbsent(boxSec, 'Ql'), Qa: numOrAbsent(boxSec, 'Qa'), Qp: numOrAbsent(boxSec, 'Qp'),
+      npr: numOrAbsent(boxSec, 'npr'),
+    },
+    signal: { P: numOrAbsent(sigSec, 'P'), Rg: numOrAbsent(sigSec, 'Rg') },
+    ventFront: {
+      dia: numOrAbsent(ventFrontSec, 'dia'), len: numOrAbsent(ventFrontSec, 'len'),
+      endCorrection: numOrAbsent(ventFrontSec, 'endCorrection'),
+    },
+    ventRear: {
+      dia: numOrAbsent(ventRearSec, 'dia'), len: numOrAbsent(ventRearSec, 'len'),
+      endCorrection: numOrAbsent(ventRearSec, 'endCorrection'),
+    },
+    simulatorOptions: {
+      vcInductance: simOptSec ? simOptSec['VCInd'] === '1' : undefined,
+      flatResponse: simOptSec ? simOptSec['FlatResponse'] === '1' : undefined,
+      tlPorts: simOptSec ? simOptSec['TLPorts'] === '1' : undefined,
+    },
+    environment: {
+      tempK: numOrAbsent(boxSec, 'T'), pressurePa: numOrAbsent(boxSec, 'p'),
+      humidityPct: (() => {
+        const phi = numOrAbsent(boxSec, 'phi');
+        return phi == null ? undefined : phi * 100;
+      })(),
+    },
+    passiveRadiator: {
+      Sd: numOrAbsent(prSec, 'Sd'), Vas: numOrAbsent(prSec, 'Vas'),
+      Fs: numOrAbsent(prSec, 'Fs'), Qms: numOrAbsent(prSec, 'Qms'),
+      Xmax: numOrAbsent(prSec, 'Xmax'), Me: numOrAbsent(prSec, 'Me'),
+    },
+    projectInfo: {
+      description: pSec?.['Description'], creator: pSec?.['Creator'], createDate: pSec?.['CreateDate'],
+    },
+  };
+}

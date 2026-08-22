@@ -233,3 +233,28 @@ describe('OpenISDDriver — driver_type "passive_radiator" is the ONLY spelling 
     assert.equal(d.cell('Fs').value, null);
   });
 });
+
+describe('OpenISDDriver.fromFileText — parses the format it is TOLD, never one it guesses ' +
+         '(QO83/QO67: classification is the caller\'s job, via fileFormat.ts)', () => {
+  it('format "wdr" parses .wdr text, whatever the caller\'s classification came from', () => {
+    const original = OpenISDDriver.fromJsonRecord(grs8fr8());
+    const { value: wdrText, errors: wdrErrors } = original.toWdrText();
+    assert.deepEqual(wdrErrors, []);
+    const { value: driver, errors } = OpenISDDriver.fromFileText(wdrText!, 'wdr');
+    assert.deepEqual(errors, []);
+    assert.equal(driver!.cell('Fs').value, original.cell('Fs').value);
+  });
+
+  it('format "owdr" parses .owdr (JSON) text', () => {
+    const original = OpenISDDriver.fromJsonRecord(grs8fr8());
+    const { value: driver, errors } = OpenISDDriver.fromFileText(original.toOwdrText(), 'owdr');
+    assert.deepEqual(errors, []);
+    assert.equal(driver!.cell('Fs').value, original.cell('Fs').value);
+  });
+
+  it('format "owdr" against text that is not JSON returns an error, never throws', () => {
+    const { value, errors } = OpenISDDriver.fromFileText('not JSON at all', 'owdr');
+    assert.equal(value, null);
+    assert.ok(errors[0]?.message.length);
+  });
+});

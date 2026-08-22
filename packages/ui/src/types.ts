@@ -3,10 +3,6 @@
  * Engine shapes (Driver, SweepResult, …) are imported from @openisd/engine.
  */
 import type { EngineDriver, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@openisd/engine';
-import type { OpenISDDriver } from '@openisd/model';
-
-/** The openisd.yml record shape — what `OpenISDDriver.toJsonRecord()` hands back. */
-export type DriverJSON = ReturnType<OpenISDDriver['toJsonRecord']>;
 
 /**
  * The closed set of chart curves the engine can draw. Every member MUST appear in
@@ -321,10 +317,12 @@ export interface SerializedState {
    *  those are V0 — and always written on the way OUT. */
   schema?: number;
   v: number;
-  // The driver record — provenance and every stated field, so they survive reload, share and
-  // save. OPTIONAL: a design with no driver chosen yet is a real state, and writing a fake one
-  // to fill the slot would be indistinguishable on reload from a driver the user picked.
-  driver?: DriverJSON;
+  // The driver as the managed layer's own SERIALISED TEXT (`managedProject.
+  // persistedDriverText()`) — provenance and every stated field survive reload, share and
+  // save, while no UI code ever holds the record shape itself (QO73). OPTIONAL: a design with
+  // no driver chosen yet is a real state, and writing a fake one to fill the slot would be
+  // indistinguishable on reload from a driver the user picked.
+  driver?: string;
   box: BoxType;
   lossMode?: string;
   P: UiParams;

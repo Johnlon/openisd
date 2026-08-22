@@ -26,11 +26,50 @@
  * Plain data throughout: no methods, no class identity, `structuredClone`-able, because
  * `ManagedProject` clones a whole project to open an overlay.
  */
-import type { _OpenISDDriverJson } from './openisdDriver.js';
+import { OpenISDDriver } from './openisdDriver.js';
 import type { Filter } from "@openisd/engine";
+import { prCmsFromVas, prMmdFromFs, prRmsFromQms } from "@openisd/engine";
+import { parseWprRaw } from "@openisd/winisd";
+import type { WprRawParse } from "@openisd/winisd";
+import type { Result } from "@openisd/engine";
 
 /** Which alignment is ACTIVE. The others stay populated and dormant. */
 export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator';
+
+/** WinISD's own `[Box].BType` numeric code — a raw file-format discriminator, never a bare
+ *  int at a call site that interprets it. `alignmentKindOfBType`/`bTypeOfAlignmentKind` below
+ *  are the ONE place this vocabulary meets `AlignmentKind` — every reader/writer of a `.wpr`
+ *  box type goes through them rather than keeping its own switch. */
+export enum WinIsdBType {
+  Sealed = 0,
+  Vented = 1,
+  Bandpass4 = 2,
+  PassiveRadiator = 4,
+}
+
+/** WinISD's raw BType code → this app's AlignmentKind. `undefined` when `code` is nullish (a
+ *  `.wpr` that never states BType) or not one of WinISD's four modelled box types — the
+ *  caller decides how to report that, since those are different errors this pure mapping does
+ *  not itself choose between. */
+export function alignmentKindOfBType(code: number | undefined): AlignmentKind | undefined {
+  switch (code) {
+    case WinIsdBType.Sealed: return 'sealed';
+    case WinIsdBType.Vented: return 'vented';
+    case WinIsdBType.Bandpass4: return 'bandpass4';
+    case WinIsdBType.PassiveRadiator: return 'passive-radiator';
+    default: return undefined;
+  }
+}
+
+/** This app's AlignmentKind → WinISD's raw BType code — the reverse of `alignmentKindOfBType`. */
+export function bTypeOfAlignmentKind(kind: AlignmentKind): WinIsdBType {
+  switch (kind) {
+    case 'sealed': return WinIsdBType.Sealed;
+    case 'vented': return WinIsdBType.Vented;
+    case 'bandpass4': return WinIsdBType.Bandpass4;
+    case 'passive-radiator': return WinIsdBType.PassiveRadiator;
+  }
+}
 
 /** A vent, as cut. Not a component: nobody buys a hole, so it has no catalogue record. */
 export interface OpenISDVent {
@@ -195,25 +234,18 @@ export interface OpenISDProjectMeta {
  * `ManagedProject` clones the whole thing to open an edit or a what-if.
  */
 export interface _OpenISDProjectJson {
-  /** The driver, as a RECORD. Absent before one is chosen — the app opens with no driver, not
-   *  with a fake one.
-   *
-   *  A record, not the live `OpenISDDriver`: this project is cloned three ways by
-   *  `ManagedProject`, and `structuredClone` silently reduces a class instance to a plain
-   *  object. `ManagedProject` materialises a live driver over whichever layer is effective.
+  /** The driver as ITS OWN serialisation (`OpenISDDriver.toOwdrText()`), never the record
+   *  shape. THE OWNER OF THE STATE SERIALIZES IT (QO83): the driver's record is private to
+   *  `OpenISDDriver`, so the project — a legitimate HOLDER of a driver, not its owner —
+   *  carries the text and materialises a live driver from it when one is asked for.
+   *  `undefined` before a driver is chosen; `structuredClone` copies text exactly.
    *
    *  A REQUIRED key holding `| undefined`, not an optional (`driver?:`) property: `OpenISDProject`
    *  exposes every other field of this interface under a same-named public getter, which makes
    *  the class structurally satisfy this interface UNLESS at least one field the class does NOT
    *  expose is also non-optional — an optional field's mere absence from the class's public
-   *  shape is not a structural mismatch, so `driver?:` let `OpenISDProject` duck-type as this
-   *  private JSON shape with nothing else changed (verified: a private class field, including a
-   *  branded `#brand`, does not block this — TypeScript never applies private-member nominal
-   *  typing when the TARGET is a plain interface, only class-to-class). `OpenISDProject` never
-   *  exposes a `driver` property at all (only `_driverJsonRecord()`/`setDriverRecord()`), so this
-   *  key alone closes the leak; `OpenISDProject`'s own `#brand` field is kept as defense against
-   *  a FUTURE class colliding with this shape, but is not what stops this leak. */
-  driver: _OpenISDDriverJson | undefined;
+   *  shape is not a structural mismatch. */
+  driver: string | undefined;
   box: OpenISDBox;
   target: OpenISDTarget;
   filters: Filter[];
@@ -429,6 +461,24 @@ function prototypeProject(): _OpenISDProjectJson {
   };
 }
 
+/**
+ * WinISD-vocabulary PR conversions — the ONE place `@openisd/engine`'s PR inverse formulas
+ * (`prCmsFromVas`/`prMmdFromFs`/`prRmsFromQms`) are called from outside this project's own
+ * `fromWinISDProject` construction, per the ruling that a PR T/S inverse is reachable ONLY via
+ * the domain layer, never as a free engine call at a UI call site
+ * (bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_outside_engine.md).
+ * `packages/ui/src/logic/prWinIsdFields.ts` calls these three instead of hand-deriving.
+ */
+export function prCmsFromWinIsdVas(vasL: number, sdM2: number): number {
+  return prCmsFromVas(vasL, sdM2);
+}
+export function prMmdFromWinIsdFs(fsHz: number, cmsSI: number): number {
+  return prMmdFromFs(fsHz, cmsSI);
+}
+export function prRmsFromWinIsdQms(qms: number, mmdSI: number, cmsSI: number): number {
+  return prRmsFromQms(qms, mmdSI, cmsSI);
+}
+
 export class OpenISDProject {
   readonly #record: _OpenISDProjectJson;
 
@@ -455,15 +505,140 @@ export class OpenISDProject {
 
   // ---- driver ------------------------------------------------------------------------------
 
-  /** The driver record, raw — for `ManagedOpenISDProject` to materialise its OWN live
-   *  `OpenISDDriver` over (it is the one file, by architecture rule, that constructs one).
-   *  Leading underscore: this hands back the private JSON shape, not a public read. */
-  _driverJsonRecord(): _OpenISDDriverJson | undefined { return this.#record.driver; }
+  /** The driver's own serialised TEXT — for `ManagedOpenISDProject` to materialise its OWN
+   *  live `OpenISDDriver` from. Opaque: no private shape crosses, so this needs no underscore
+   *  and no allow-list entry. `undefined` before a driver is chosen. */
+  driverText(): string | undefined { return this.#record.driver; }
 
-  /** Adopt a driver record into this project — a clone, so the caller's own copy and this
-   *  project's copy are never the same object. */
-  setDriverRecord(record: _OpenISDDriverJson): void {
-    this.#record.driver = structuredClone(record);
+  /** Adopt a driver into this project — the ONE adoption channel, taking the public domain
+   *  object rather than the private record (QO73/human ruling 2026-08-22: no UI code may name
+   *  or infer the driver's record shape). Stores the driver's OWN serialisation, so the
+   *  caller's live driver and this project's copy can never be the same object.
+   *  `undefined` clears the project's driver. */
+  setDriver(driver: OpenISDDriver | undefined): void {
+    this.#record.driver = driver?.toOwdrText();
+  }
+
+  /**
+   * A PROJECT FILE's text → an `OpenISDProject`, driver included.
+   *
+   * THE OWNER OF THE STATE PARSES IT (human ruling 2026-08-22, QO83). A `.wpr` is WinISD's own
+   * project format: the raw section/key/value read belongs to `@openisd/winisd`, the box-type
+   * mapping and PR conversion belong to this class (`fromWinISDProject` below), and the
+   * embedded `[Driver]` block is the DRIVER's own serialisation, so it is handed to
+   * `OpenISDDriver`. Every one of those steps is a question about state this package owns —
+   * which is why the whole chain lives here rather than in a caller that would need the
+   * record shape to stitch it together.
+   *
+   * Errors are returned, never thrown; `value` is null when the file cannot be read.
+   */
+  static fromWprText(text: string): Result<OpenISDProject> {
+    const fail = (message: string): Result<OpenISDProject> =>
+      ({ value: null, errors: [{ level: 'error', field: 'wpr', message }] });
+
+    const raw = parseWprRaw(text);
+    let project: OpenISDProject;
+    try { project = OpenISDProject.fromWinISDProject(raw); }
+    catch (err) { return fail((err as Error).message); }
+
+    if (raw.driverWdrText.trim().length > 0) {
+      try { project.setDriver(OpenISDDriver.fromWdrText(raw.driverWdrText)); }
+      catch (err) { return fail(`the .wpr's [Driver] block could not be read: ${(err as Error).message}`); }
+    }
+    return { value: project, errors: [] };
+  }
+
+  /**
+   * The ONE place a raw `.wpr` parse (`@openisd/winisd`'s `parseWprRaw`) becomes a real
+   * project — box-type→box-kind mapping and the PR WinISD-vocabulary→canonical conversion both
+   * happen here, never at the caller (PLAN_QO60_LAYERING_REMEDIATION.md objective 2b). Builds
+   * on `prototypeProject()`'s defaults; a raw field present overwrites its default, absent
+   * leaves the default untouched — a value the file does not state is never fabricated, and a
+   * default the file does not override is never cleared. Carries no driver: the caller sets one
+   * separately via `setDriver()`, since `raw.driverWdrText` needs `OpenISDDriver.fromWdrText()`,
+   * which this file does not call (it is not one of the licensed construction sites).
+   */
+  static fromWinISDProject(raw: WprRawParse): OpenISDProject {
+    const kind = alignmentKindOfBType(raw.bType);
+    if (kind == null) {
+      throw new Error(raw.bType == null
+        ? '.wpr has no [Box] BType — the box type is not stated, and this reader will not assume one'
+        : `.wpr states BType=${raw.bType}, which is not a box type OpenISD models (0/1/2/4)`);
+    }
+
+    const record = prototypeProject();
+    setActiveAlignment(record.box, kind);
+
+    if (raw.box.Vr != null) {
+      switch (kind) {
+        case 'sealed': record.box.sealed.volume_m3 = raw.box.Vr; break;
+        case 'vented': record.box.vented.volume_m3 = raw.box.Vr; break;
+        case 'bandpass4': record.box.bandpass4.rearVolume_m3 = raw.box.Vr; break;
+        case 'passive-radiator': record.box.passiveRadiator.volume_m3 = raw.box.Vr; break;
+      }
+    }
+    if (raw.box.Vf != null) record.box.bandpass4.frontVolume_m3 = raw.box.Vf;
+    const fb = kind === 'bandpass4' ? raw.box.Ff : raw.box.Fr;
+    if (fb != null) {
+      if (kind === 'bandpass4') record.box.bandpass4.Ff_hz = fb;
+      else record.box.vented.Fb_hz = fb;
+    }
+    if (raw.box.Ql != null) record.box.Ql = raw.box.Ql;
+    if (raw.box.Qa != null) record.box.Qa = raw.box.Qa;
+    if (raw.box.Qp != null) record.box.Qp = raw.box.Qp;
+
+    if (raw.signal.P != null) record.signal.inputPower_W = raw.signal.P;
+    if (raw.signal.Rg != null) record.signal.seriesResistance_ohm = raw.signal.Rg;
+
+    const ventRaw = kind === 'bandpass4' ? raw.ventFront : raw.ventRear;
+    const vent = kind === 'bandpass4' ? record.box.bandpass4.frontVent : record.box.vented.vent;
+    if (ventRaw.dia != null) vent.diameter_m = ventRaw.dia;
+    if (ventRaw.len != null) vent.length_m = ventRaw.len;
+    if (ventRaw.endCorrection != null) vent.endCorrection = ventRaw.endCorrection;
+
+    if (kind === 'passive-radiator') {
+      const { Sd, Vas, Fs, Qms, Xmax, Me } = raw.passiveRadiator;
+      const hasPr = Sd != null && Sd > 0 && Vas != null && Fs != null && Fs > 0 && Qms != null && Qms > 0;
+      if (!hasPr) {
+        throw new Error('.wpr states BType=4 (passive radiator) but [PassiveRadiator] does not '
+          + 'carry Sd, Vas, Fs and Qms — the radiator cannot be reconstructed and will not be invented');
+      }
+      // `.wpr`'s [PassiveRadiator].Vas is SI m³ (BUG_20260817); the engine's Vas-vocabulary
+      // functions take litres, so the ×1000 happens here, at this one boundary.
+      const cms = prCmsFromVas(Vas * 1000, Sd);
+      const mmd = prMmdFromFs(Fs, cms);
+      const rms = prRmsFromQms(Qms, mmd, cms);
+      const radiator = ensurePassiveRadiator(record.box.passiveRadiator);
+      radiator.Sd_m2 = Sd;
+      radiator.Cms_m_per_N = cms;
+      radiator.Mmd_kg = mmd;
+      radiator.Rms_Ns_per_m = rms;
+      radiator.Xmax_m = Xmax ?? 0;
+      if (Me != null) record.box.passiveRadiator.addedMass_kg = Me;
+    }
+    if (raw.box.npr != null) record.box.passiveRadiator.count = raw.box.npr;
+
+    if (raw.environment.tempK != null) record.environment.tempK = raw.environment.tempK;
+    if (raw.environment.pressurePa != null) record.environment.pressurePa = raw.environment.pressurePa;
+    if (raw.environment.humidityPct != null) record.environment.humidityPct = raw.environment.humidityPct;
+
+    if (raw.simulatorOptions.vcInductance != null) {
+      record.simOptions.circuitModel = raw.simulatorOptions.vcInductance ? 'gyrator' : 'winisd';
+    }
+    if (raw.simulatorOptions.tlPorts != null) record.simOptions.tlPortModel = raw.simulatorOptions.tlPorts;
+    if (raw.simulatorOptions.flatResponse != null) {
+      record.simOptions.forceFlatResponse = raw.simulatorOptions.flatResponse;
+    }
+
+    record.meta = {
+      name: raw.projectInfo.description || 'Imported Design',
+      description: raw.projectInfo.description || '',
+      creator: raw.projectInfo.creator || '',
+      created: raw.projectInfo.createDate || '',
+      modified: '',
+    };
+
+    return new OpenISDProject(record);
   }
 
   // ---- sub-object accessors — live references, named exactly like `_OpenISDProjectJson`'s

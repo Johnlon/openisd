@@ -1,5 +1,5 @@
 prefix: QO
-next: 76
+next: 85
 questions:
 - id: QO1
   title: UI TODO List
@@ -6384,9 +6384,12 @@ questions:
     a PrivateAllow grant — your edit); (b) make toJsonRecord return a PUBLIC record type (the A6/A7 boundary
     reshape direction); (c) bless the alias explicitly. Found by A5''s reviewer 2026-08-22; pre-existing,
     not A5''s.'
-  status: open
+  status: decided
   raised: '2026-08-22'
   body: ''
+  answer:
+    at: '2026-08-22'
+    text: delete DriverJSON alias and add an arch test using ast to prohibit such aliasing
 - id: QO74
   title: 'DEFERRED-UNTIL-TRIGGER (raise when consistency.ts is next touched; do not build silently): a
     DQ detector for a stale carried DVol that disagrees with the §3.10.1 derivation — deliberately NOT
@@ -6411,6 +6414,231 @@ questions:
     not opened by A5c. Options: (a) widen the AST match to see reactives wrapped in a call argument, and
     scan .vue script blocks; (b) accept as a known limit with a note in the gate''s docstring. Your call
     (the gate is yours to edit per the standing rule) — or authorize an agent to widen it under review.'
+  status: decided
+  raised: '2026-08-22'
+  body: ''
+  answer:
+    at: '2026-08-22'
+    text: |-
+      A widen it
+      [Ruling = option (a): widen the approved-stores gate — AST match must see reactives wrapped in call arguments, and .vue script blocks get scanned. Agent-implemented under review authorized (the gate edit itself is openisd-side work).]
+- id: QO77
+  title: 'PR-formulas ruling residue (A6''s honest PARTIAL, needs your call): the inverse formulas are
+    now engine-only (the math left prWinIsdFields.ts), but they are reached via free functions on openisdProject.ts,
+    NOT via a getter on a live domain-class instance as your original ruling literally required — because
+    PREditModal edits a plain UiParams snapshot with no live OpenISDProject in that call path. Options:
+    (a) accept free-function access as satisfying the ruling''s intent (the math is single-sourced in
+    the engine; the access shape differs) — flip the bug RESOLVED; (b) demand the literal getter — which
+    means threading a live OpenISDProject into the PR modal''s edit path (A8-adjacent work). bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_outside_engine.md
+    carries the precise framing, Status PARTIAL.'
+  status: decided
+  raised: '2026-08-22'
+  body: ''
+  answer:
+    at: '2026-08-22'
+    text: |-
+      JOHN, verbatim (2026-08-22): "it writes through the live managed project << GOOD << THIS IS THE EXPECTED PATTERN - apply elsehwerw"
+      "DESIGBN INTENT - Since the PR subcomponenrt editor SHOUDL be usign same pattern thn the underlying PR domain object has access via internel refs to its parent container and then entire project it is a constituentn of"
+      [Reading: option (b), strengthened. The live-domain-object editing pattern is the standard everywhere. The PR edit dialog edits a live PR DOMAIN OBJECT; that object reaches its parent container and the whole project through internal references — so the unit conversion (fields/units.ts fromDisplay, per QO82) and the physics inversion (engine formulas) happen inside the domain layer, and the dialog computes nothing. bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_outside_engine.md stays PARTIAL until that shape lands.]
+- id: QO78
+  title: 'FileIO vs the driver-containment gate — your call (A6''s review). Proposal B (your ruling) says
+    FileIO returns DOMAIN OBJECTS, so fileIO.ts must construct OpenISDDriver from bytes. The containment
+    gate ("nothing outside managedProject.ts imports the OpenISDDriver value") predates FileIO. A6 kept
+    the gate green via pure-forward wrappers in the model (driverFromJsonRecord etc. — renamed re-exports),
+    which the reviewer correctly called a hollow green: same construction, laundered name. Options: (a)
+    grant fileIO.ts a gate exemption (the gate is human-edit-only — your edit or your authorization) and
+    delete the wrappers so fileIO names OpenISDDriver honestly; (b) bless the wrapper seam as a real API
+    (the model exporting conversion functions IS arguably the boundary — but then they should be genuine
+    functions with contracts, not renamed forwards); (c) reshape so FileIO returns records and managedProject
+    materialises (contradicts Proposal B''s "domain objects out"). Recommendation: (a). Until ruled, the
+    wrappers stand with this question on record — the green is conditional.'
+  status: decided
+  raised: '2026-08-22'
+  body: ''
+  items:
+  - text: 'Adversarial review (cycle 2, 2026-08-22) hardened this: a GREEN containment gate sitting on
+      top of this open question must not ship. The A6 commit is HELD until you rule. Options restated:
+      (a) you add fileIO.ts to the gate''s exemption list, wrappers deleted, fileIO names OpenISDDriver
+      honestly; (b) gate made to fail with this question''s text until ruled. Same ruling also covers
+      openisdProject.ts get driver() (mints a driver for any project holder, outside the scanned tree).'
+    done: false
+  answer:
+    at: '2026-08-22'
+    text: |-
+      JOHN, verbatim (2026-08-22): "containment gate says only managedProject.ts may import OpenISDDriver << if the file io relates to managed project then move it into manaedproject.ts if the file io relates to manageddriver then movie it into manageddriver"
+      [Reading: option (d), none of the offered three. fileIO.ts does not get an exemption and no wrapper/conversion seam exists: the file-IO code MOVES INTO the domain module that owns what it reads/writes — project file IO into managedProject.ts, driver file IO into the managed-driver module. The containment gate stays as-is; construction of OpenISDDriver stays inside the modules already licensed to name it. Covers QO78.1 and openisdProject.ts get driver() the same way: ownership, not exemption.]
+- id: QO79
+  title: 'Bundle gate criterion — 564 simulatable drivers dropped by A7''s derivation switch. YOUR RULING
+    NEEDED before A7 commits / B11 rebuilds. The bundler''s old gate read the stored disposition==''ok''
+    key (1526 drivers). Post-B10 records carry no such key, so A7 derives standing locally from quality.missing/parse_errors,
+    mirroring python''s stamp_disposition EXACTLY (reviewer-verified line-by-line). But the corpus is
+    stale (564 records store ''ok'' against non-empty missing; 239 store ''incomplete'' against empty
+    missing — the old is_incomplete_for_ui rule no longer exists in python), so the new gate yields 1197
+    drivers: 564 lost, 235 gained. EVERY one of the 564 is fully simulatable by the app''s own criteria
+    (Fs>0, Re>0, Sd-or-Vas, >=2 Q-factors); they are dropped for datasheet-completeness reasons — missing
+    Cms (287), Xmax (260), BL (32), Mms (8), Qms (2), Qts (1) — fields the box simulation never needs.
+    OPTIONS: (a) gate on app-usability (the driverHasDqIssues criteria) — catalogue grows to ~1732, no
+    simulatable driver hidden; (b) keep pipeline-completeness standing as the gate — ships the 1197 (the
+    current uncommitted state); (c) intersect: exclude only when missing/parse_errors touch a simulation-required
+    field (~ equals (a) in effect). Reviewer recommends not shipping (b) unratified. A7 is HELD uncommitted
+    on this.'
+  status: decided
+  raised: '2026-08-22'
+  body: ''
+  answer:
+    at: '2026-08-22'
+    text: |-
+      include
+      OBVIOUSLY !!!!
+      [Ruling = option (a): the bundle gates on APP-USABILITY (the simulation's own required fields), never on datasheet completeness. All 564 simulatable drivers ship; catalogue ~1732.]
+  notes:
+  - at: '2026-08-22'
+    text: |-
+      JOHN addendum, verbatim (2026-08-22): "AND the sim does use xmax optionally - to put a line on th eexcursion graph"
+      [So a missing Xmax must not block inclusion: the driver ships and the excursion-limit line is simply omitted when Xmax is absent. Optional-use fields degrade the display, never the catalogue.]
+  - at: '2026-08-22'
+    text: |-
+      JOHN, verbatim (2026-08-22, on the audit showing scripts/bundle-drivers.mjs skips records failing recordIsSimulatable): "tis is a fail - they shoudl be bundheld with the usual health warnings visible in the UI"
+      [FINAL bundle rule: every structurally readable record BUNDLES. recordIsSimulatable is not a bundling gate at all — it is display information only (the ⚠ health warning the browser already shows via driverHasDqIssues). A no-Fs driver ships, shows, opens in the editor, and degrades in a design exactly like a user-created driver with the field left blank.]
+- id: QO80
+  title: 'ALLOWED_GLOBALS grant request — 18 new export names from A6+A7 (human-edit-only list; A10''s
+    byte-identical check applies). The sanctioned A6 module split (fileFormat.ts, logic/fileIO.ts, logic/fileStore.ts
+    + related) adds 17 export names not on ALLOWED_GLOBALS, and A7''s packages/model/src/driverStanding.ts
+    adds 1 (recordStandingIsOk). Reviewer-verified: nothing was added to any allow-list to hide them;
+    the ALLOWED_GLOBALS arch-gate red simply grew from 200 to 215 offences (18 new, 3 removed — the removed
+    are deleted files/functions). The exact names: diff the gate''s offence output on the current tree
+    against scratchpad/a10-baseline. Your options per name: add to ALLOWED_GLOBALS (your edit), or direct
+    a restructure so the export is unnecessary. Gate stays red until you rule; no agent will touch the
+    list.'
+  status: open
+  raised: '2026-08-22'
+  body: ''
+  items:
+  - text: 'DEFER RECOMMENDED (orchestrator agrees with peer, 2026-08-22): do not grant the 18 names yet
+      — the A6/QO78 relocation rework and A7/QO79 gate change both change the export surface (wrappers
+      deleted, fileIO possibly dissolved, a new shared simulatability predicate added). Rule ONCE on the
+      post-rework list; the request will be re-issued with final names when A6+A7 land.'
+    done: false
+  - text: 'Re-export arch test (packages/ui/test/ui/architecture-no-reexports.test.ts, untracked) is born
+      RED with 10 offences. One needs a ruling the rework must not decide silently: packages/engine/src/engine.ts:1
+      is a whole-package second entry point (export * from ''./index.js'') — the same public surface under
+      two module names. Which file is engine''s ONE entry point, index.ts or engine.ts? The other gets
+      deleted and its importers repointed.'
+    done: true
+  - text: 'UPDATE 2026-08-22 — the surviving surface is now measurable (A6''s reshape landed in-tree).
+      A6 adds 8 ALLOWED_GLOBALS rows from NEW files: fileFormat.ts (DriverFileFormat, ProjectFileFormat,
+      formatOf, sniff, isLegacyWinisdFormat), logic/fileStore.ts (createFileStore), logic/managedDriver.ts
+      (driverFromFileText, _driverRecordFromWdrText); plus rows on existing files (managedProject/openisdProject/wpr/persist/store)
+      and A7''s recordIsSimulatable + recordStandingIsOk. A6 also REMOVES 6 baseline offences (driverFileFormat.ts,
+      fileSave.saveProject/saveProjectAs, store.driverRecord/setDriverFromWdr, driverSelection.driverFromFileText).
+      Both gates were already RED at HEAD — no agent has widened any list (reviewer verified every allow-list
+      BYTE-UNCHANGED vs HEAD). Related: QO83 covers the PrivateAllow half. Recommend ruling both together
+      once A6''s current rework passes review.'
+    done: false
+  notes:
+  - at: '2026-08-22'
+    text: |-
+      JOHN, verbatim (2026-08-22): "rexports are expreslly forbideen - dispatch bg agent to create an arch test to detect" then, on review of the list: "apart from that one those expoerts look ok'ish / but maybe fileio is neing broken up into the manaed files"
+      [Reading: the re-export statement (fileIO.ts's `export type { FileFormat }`) is the offender — re-exports are forbidden as a mechanism and get their own arch test (background agent dispatched). The other 17 names look acceptable to him in principle, but the grant stays deferred (QO80.1) because fileIO/fileStore are dissolving into managedProject/managedDriver under the QO78 rework — rule once on the surviving surface.]
+  - at: '2026-08-22'
+    text: 'QO80.2 struck without needing John: main-exec''s evidence re-verified from this session — packages/engine/package.json
+      "exports" maps "." to ./src/index.ts only, and a repo-wide grep finds ZERO importers of engine/src/engine.ts.
+      It is dead surface, not a competing entry point: index.ts is the sole entry, engine.ts is a one-line
+      unreferenced file to delete (scheduled in D15).'
+  - at: '2026-08-22'
+    text: 'JOHN ruling (2026-08-22), on engine''s entry point: engine.ts (the dead one-line alias) is
+      already deleted at his order; and "maybe index.ts should be renamed to engine.ts? its more obvious
+      if that where calcs live" — confirmed as the ruling to hand main-exec: rename packages/engine/src/index.ts
+      -> engine.ts (one line in package.json "exports"; consumers import @openisd/engine so zero import
+      churn), and the re-export gate''s barrel exemption switches from hardcoded index.ts to reading each
+      package''s exports-map target.'
+- id: QO81
+  title: 'My Drivers: what happens to a stored record that fails validation? A7''s seam fix makes myDrivers.list()
+    validate localStorage records and refuse non-conforming ones (flat legacy shapes predating the record
+    format). The reviewer found the refusal PERSISTS: upsert/remove write the filtered list back, so a
+    user''s non-conforming saved driver is permanently erased, with no signal, the first time they save
+    or delete any unrelated driver. INTERIM (implemented pending your ruling): list() filters for reading;
+    upsert/remove preserve unrecognised entries in storage untouched (never loaded, never erased); a console.warn
+    names each refused record. YOUR OPTIONS: (a) ratify the interim — invalid blobs sit inert in storage
+    forever; (b) erase deliberately — one-time visible migration/notice, then storage holds only conforming
+    records; (c) build a UI surface (export/discard prompt). Note: these records are unusable in the app
+    either way; the question is only whether their bytes survive in the user''s browser.'
+  status: open
+  raised: '2026-08-22'
+  body: ''
+  notes:
+  - at: '2026-08-22'
+    text: |-
+      JOHN rulings (2026-08-22, discussion of the failure-mode table):
+      - Row 1 (localStorage unavailable): "ok" — empty list + visible notice.
+      - Row 2 (bucket unreadable) BLESSED with refinements, verbatim: "teling the use that the data is screwed and giving them the option to export as txt is a good idead. also dont automaticcally delet e the data - also provide a button for that - if the use hits the delete button the challenge them if they havent yet expoted" — documented in docs/design/MY_DRIVERS_STORAGE_FAILURES.md.
+      - Row 3: "correct" (same as 2).
+      - Row 4 (no-identity entry): offer autofix where possible, with export offered before the autofix. His question "is the driver id a uuid?" answered with verified facts: NO — My Drivers keys on the <brand>/<model> slug; the record shape carries uuid (openisdDriver.ts:87) but the app never uses it, and empty()/fromWdr() seed uuid:'' so user-created and .wdr-imported drivers have none. Moving identity onto uuid is under discussion (rename semantics change: today a rename IS a new driver by design).
+      - Cross-cutting, verbatim: "in all cases where there is a corrutption like these do not allow the app to progress - require the user to decide on aciton - no cancel button."
+      - Row 7 (duplicate identity): moot if identity moves to uuid; he judges same brand+model twins plausible enough to matter.
+      - New idea recorded, verbatim: "add the ide of stuffing the comment with important openisd stuff that didnt fit the ini model as a useful idea" — .wdr Comment carries uuid + openisd facts with no INI field on export.
+  - at: '2026-08-22'
+    text: |-
+      JOHN ruling (2026-08-22), verbatim: "if immporting a driver from file we shoudl generate a new UUID for it - I dont want accidental overwrites if we are usign uuid as ket in stores."
+      [So under uuid-keyed storage: FILE IMPORT ALWAYS MINTS A FRESH uuid — the file's own uuid (from the record or a .wdr Comment) is never adopted as the store key; importing the same file twice yields two entries, never a silent overwrite. The file's original uuid is kept as provenance only (e.g. imported-from identity), composing with the Comment-sidecar idea: Comment carries the uuid OUT for traceability, and on import it comes back as provenance, not as identity.]
+  - at: '2026-08-22'
+    text: 'JOHN ruling (2026-08-22): rename semantics = OPTION 3, his words: "ah option 3 - i like it".
+      When a save would change a driver''s brand/model, the app asks ONE question — "Rename this driver,
+      or save as a copy?" — rename keeps the uuid and edits in place; copy mints a new uuid and leaves
+      the original untouched. Nothing silent. This also SETTLES uuid-as-store-identity (option 3 only
+      exists under uuid keying): My Drivers keys on uuid, minted at save when absent; <brand>/<model>
+      becomes display + duplicate-name-capable.'
+  - at: '2026-08-22'
+    text: |-
+      JOHN rulings (2026-08-22, rows 5/6):
+      Row 6, verbatim: "no fs is no diffenet to a new driver Iv'e created an left the field blank - it get shown of course - we do not exclude drivers because if missing spec params - this is critial - it just gets the usial treeament if its used in a design or opened in an edirto" and emphatic: "it is improtant NOT DRIER GETS EXCLIDED BECAUSE OF MISSIG SPEC PARAMS !!!!"
+      Row 5, verbatim: "any breakign schema change need upgrade mech for existing drivers and the upgrade funcs get applied in order from the currnt stoored object ver to the current app ver and then the new object is saved over old one" — My Drivers storage carries a format version; each breaking change ships an upgrade function; on load the chain applies in order stored-ver -> app-ver and the upgraded object is SAVED OVER the old one (in-place, same identity — the fresh-uuid rule applies to FILE IMPORT only). Scope: My Drivers only — "the embeeded drivers are alway compt as they are part fo the dist."
+- id: QO82
+  title: 'UiParams: rename it and give it real doc — plus John''s standing question: every UI input field
+    converts UI-unit-toggle → SI through the ONE standard mechanism (fields/units.ts fromDisplay), never
+    hand-rolled divisions'
+  status: decided
+  raised: '2026-08-22'
+  body: ''
+  answer:
+    at: '2026-08-22'
+    text: |-
+      JOHN, verbatim (2026-08-22): "UiParams << rename it and make sure it has pydoc" · "why prXXX dont we hacve a standard function for all fields on all UI for conversion from UI unit toggle to canoniscal SI?"
+      DECIDED at raise time — this entry existed to hold the rulings: (1) rename UiParams with a real docstring; (2) one standard unit-toggle→SI mechanism (fields/units.ts fromDisplay + fieldRegistry) for every UI input, no hand-rolled conversions. Scheduled as main-exec's D10 (PROMPT_RELEASE_HARDENING.md, commit 1af7896); the 28-item component scan (D14) lists every offending site.
+- id: QO83
+  title: 'PrivateAllow grant request (human-edit-only list) — A6''s QO78/QO73 reshape adds TWO offences
+    to the leading-underscore-exports-are-class-private gate: (1) packages/ui/src/logic/managedDriver.ts
+    imports _OpenISDDriverJson from @openisd/model — this is the HONEST NAMING that QO73''s own option
+    text anticipated (the alternative was the alias you ruled out); (2) packages/ui/src/logic/driverSelection.ts
+    imports _driverRecordFromWdrText from ./managedDriver.js — a private helper owned by the managed-driver
+    module. It also REMOVES one pre-existing offence (store.ts''s _OpenISDDriverJson import). The gate
+    was ALREADY RED at HEAD (driverRepo.ts, myDrivers.ts, driverLibrary.ts, driverSelection.ts all import
+    _OpenISDDriverJson today) so A6 did not break a green gate, but it adds to a red one and _OpenISDDriverJsonPrivateAllow
+    is yours alone to edit. Options: (a) grant both entries; (b) direct a restructure so managedDriver.ts
+    does not need to name the private type. Reviewer-verified: every allow-list is currently BYTE-UNCHANGED
+    from HEAD — no agent has touched one.'
+  status: decided
+  raised: '2026-08-22'
+  body: ''
+  answer:
+    at: '2026-08-22'
+    text: |-
+      JOHN rulings (2026-08-22, the serialization-doctrine discussion). BOTH GRANTS REFUSED — option (b), restructure. The doctrine, one rule: THE OWNER OF THE STATE SERIALIZES IT; EVERYONE ELSE CARRIES OPAQUE TEXT. Per edge:
+      1. Browser storage: stores hold `kv.set(driver.uuid, driver.toJsonText())` — strings and domain objects only; parsing only inside @openisd/model.
+      2. Bundled catalogue: build-time artifact compiled into the app (drivers-bundle.json imported at main.ts:19); the one runtime seam is the composition root passing each record through the model ONCE; nothing downstream sees record data.
+      3. File IO, his words: "I intentionally asked for the oid and oip file handlign code to be moved into the OpenIsdDriver model and the respective [project] file so that the file access has access to the json object - why wasnt that completed." A6 moved it to ui/logic/managedDriver.ts instead (literal reading of QO78's module names) — INCOMPLETE: finish the move into the model classes (OpenISDDriver.fromFileText(text, fileName) -> Result<OpenISDDriver>; project-class equivalent); delete managedDriver's _OpenISDDriverJson import and _driverRecordFromWdrText; managedDriver keeps orchestration only.
+      4. Share links, his words: "this should not have direct access to the json it should ask the the varios components for an opaque 'memo' that can be used to reestablsh state - i suspect this feature is total vibe codeed shit" — memento pattern: each owner (model/store) produces and consumes its own opaque memo; the link code only concatenates/splits memos. Current stateToUrl to be AUDITED against this.
+      5. V8 bridge, his words: "the v8 bridge pipelije side doesn't need to use the _json yml from OpenIsd - its python - this is irrelevasnt."
+      Consequence: _OpenISDDriverJson never crosses the model package boundary; every PrivateAllow entry for it becomes deletable as the restructure lands; the allow-list stops growing by design, not by grant.
+- id: QO84
+  title: 'INVESTIGATE (John, 2026-08-22, during the semantic-DQ cut): port python''s PRECISION-interval
+    approach to OpenISD''s DQ? Python''s physics DQ (deleted semantic_dq) compared readings as PRINTED-PRECISION
+    INTERVALS (scrapers/lib/precision.py: each value carries the half-width its printed form implies;
+    checks compare interval overlap, not floats). openisd''s consistency.ts computes half-ulp intervals
+    per ENTERED field, but does it capture SOURCE-PRINTED precision (''28 Hz'' vs ''28.0 Hz'') now that
+    oid is the sole home of physics DQ (QT56 split executed)? John: ''is it necessary - I think it probably
+    is for the dq''. Compare precision.py vs consistency.ts; check read_precision reaches oid''s checks;
+    port the gap. Ties to D18 + the EBP relation bug.'
   status: open
   raised: '2026-08-22'
   body: ''

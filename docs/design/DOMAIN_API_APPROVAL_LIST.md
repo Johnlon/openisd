@@ -40,8 +40,8 @@ capability handed to it. That is what lets the same code bundle into py-mini-rac
 bridge, where none of those globals exist. Owner-owns-persistence and platform-free are not in
 tension once the capability is injected rather than imported.
 
-**PROPOSED PUBLIC — reading a value** (what the UI legitimately needs, none of it exposing the
-record shape): `cell`, `metaCell`, `description`, `sku`, `dqMarks`, `errors`,
+**✅ APPROVED PUBLIC (John, 2026-08-22: "this looks correct") — reading a value.** None of these
+exposes the record shape: `cell`, `metaCell`, `description`, `sku`, `dqMarks`, `errors`,
 `consistencyIssues`, `ebp`.
 
 **PROPOSED PUBLIC — editing** (the domain API the editor works against):

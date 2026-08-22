@@ -241,7 +241,7 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
   const n = await page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.state.P.filters.length;
+    return s.managedProject.filters().length;
   });
   expect(n).toBe(1);
 
@@ -354,7 +354,7 @@ test('NumInput dp is screen-formatting only — the model keeps FULL precision (
   const vb = await page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.state.P.Vb; // stored in m³ (display L ÷ 1000)
+    return s.managedProject.boxVolume_m3(); // stored in m³ (display L ÷ 1000)
   });
   expect(vb).toBeCloseTo(0.006123456, 9); // MODEL retains full precision — never the 2-dp "0.00612"
 });
@@ -444,7 +444,7 @@ test('Signal tab: Driver input voltage is editable and drives System input power
   const pin = await page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.state.P.Pin;
+    return s.managedProject.inputPower_W();
   });
   expect(pin).toBeCloseTo((20 * 20) / re, 1); // editing V back-calculates W = V²/Re
 });
@@ -487,8 +487,8 @@ test('New Project starts fresh — it discards the previous design (filters, par
   await page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    s.state.P.filters.push({ type: 'highpass', fc: 30, Q: 0.7, gain: 0 });
-    s.state.P.Pin = 250;
+    s.managedProject.addFilter({ type: 'highpass', enabled: true, fc: 30, Q: 0.7, gain: 0 });
+    s.managedProject.setInputPower_W(250);
   });
 
   await page.locator('.tb-btn[title*="New project"]').click();
@@ -502,7 +502,7 @@ test('New Project starts fresh — it discards the previous design (filters, par
   const st = await page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return { filters: s.state.P.filters.length, pin: s.state.P.Pin };
+    return { filters: s.managedProject.filters().length, pin: s.managedProject.inputPower_W() };
   });
   expect(st.filters).toBe(0);  // fresh project — no inherited filters
   expect(st.pin).toBe(1);      // Pin back to the default, not the previous 250
@@ -644,7 +644,7 @@ test('Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg
   await amc.blur();
   const madd = await page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
-    return (await import(/* @vite-ignore */ modPath)).state.P.driverAddedMass;
+    return (await import(/* @vite-ignore */ modPath)).managedProject.driverAddedMass();
   });
   expect(madd).toBeCloseTo(0.05, 6);            // 50 g entered → 0.05 kg in the engine model
   expect(await peakHz()).toBeLessThan(before);  // heavier cone → lower resonance (sweep re-ran with it)
@@ -726,7 +726,7 @@ test('R1 refresh fidelity: box type, active tab, and selected chart survive a re
 const readVb = (page: Page) =>
   page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
-    return (await import(/* @vite-ignore */ modPath)).state.P.Vb;
+    return (await import(/* @vite-ignore */ modPath)).managedProject.boxVolume_m3();
   });
 const readVbToken = (page: Page) =>
   page.evaluate(async () => {
@@ -787,7 +787,7 @@ test('Added mass to cone: clicking the unit converts g → kg; the model stays S
   await expect(unit).toHaveText('g');
   const readMadd = () => page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
-    return (await import(/* @vite-ignore */ modPath)).state.P.driverAddedMass;
+    return (await import(/* @vite-ignore */ modPath)).managedProject.driverAddedMass();
   });
   expect(await readMadd()).toBeCloseTo(0.1, 6);   // 100 g entered → 0.1 kg in the model
 

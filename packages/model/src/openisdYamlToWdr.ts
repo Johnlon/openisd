@@ -24,7 +24,15 @@ export function openisdYamlToWdr(yamlText: string): Result<string> {
   const err = (field: string, message: string): DriverError => ({ level: 'error', field, message });
   let record: unknown;
   try {
-    record = parse(yamlText);
+    // `logLevel: 'error'` because this function is the V8-bridge boundary: the `yaml`
+    // package's default `'warn'` calls `console.warn` on parser warnings, and the bridge runs
+    // inside a host (py-mini-racer) whose console it knows nothing about and whose output no
+    // caller can read. Diagnostics leave through the returned `errors` instead — the only
+    // channel that reaches the caller.
+    // NOT `'silent'`: that level also stops the parser THROWING on malformed input, so a
+    // broken document would return a partial record and convert to a hollow `.wdr` instead of
+    // being reported. Warnings off, errors still raised.
+    record = parse(yamlText, { logLevel: 'error' });
   } catch (e) {
     return { value: null, errors: [err('yaml', `could not parse openisd.yml: ${String(e)}`)] };
   }
@@ -34,8 +42,8 @@ export function openisdYamlToWdr(yamlText: string): Result<string> {
   // Interim per BUG_20260822 (see docstring): `fromJsonRecord`/its getters throw on a record
   // whose `specs` interior is not the `_SpecEntry` shape (`specs: {woofer: {fs: 12}}` — a
   // plausible V8-bridge input). The right fix is `fromJsonRecord` refusing that shape itself
-  // (`Result<OpenISDDriver>`); that touches callers in `@openisd/model` and `packages/ui/src/logic`
-  // (managedProject.ts, useDesignIO.ts) outside this task's scope, so this catch is the
+  // (`Result<OpenISDDriver>`), which reaches its callers in `@openisd/model` and
+  // `packages/ui/src/logic` (managedProject.ts, useDesignIO.ts); this catch is the
   // acknowledged interim — the bug stays OPEN.
   try {
     return OpenISDDriver.fromJsonRecord(record as never).toWdrText();

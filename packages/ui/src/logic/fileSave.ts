@@ -1,12 +1,12 @@
 /**
- * Filesystem save for the OpenISD project (.openisd.json) — File System Access API where
- * supported (Chromium: Chrome/Edge/Opera), so Save writes back to the SAME file the user
- * picked and Save As lets them pick a new one; Firefox/Safari lack the API entirely, so
- * they fall back to a plain download (the browser, not the user, decides the destination —
- * there is no in-place overwrite in that fallback, only a fresh file each time).
+ * Filesystem write mechanics — File System Access API where supported (Chromium:
+ * Chrome/Edge/Opera); Firefox/Safari lack the API entirely, so writes fall back to a plain
+ * download (the browser, not the user, decides the destination — there is no in-place
+ * overwrite in that fallback, only a fresh file each time).
  *
- * The retained `FileSystemFileHandle` is session-only (kept in a Vue ref by the caller,
- * createDesignIO in useDesignIO.ts) — this module never persists it across a reload.
+ * Handle RETENTION lives in `fileStore.ts` (the `FileStore` port), session-only — this module
+ * only writes: `writeToHandle` for an already-retained handle, `saveTextAs` for a fresh
+ * prompt-and-write.
  */
 import { download } from './persist.js';
 
@@ -39,47 +39,12 @@ function fileSystemAccessSupported(): boolean {
   return typeof (globalThis as { showSaveFilePicker?: unknown }).showSaveFilePicker === 'function';
 }
 
-async function writeToHandle(handle: FileSystemFileHandle, text: string | Uint8Array<ArrayBuffer>): Promise<void> {
+/** Exported so `fileStore.ts`'s `FileStore.save()` writes through a retained handle with the
+ *  same mechanics `saveTextAs` below uses, rather than a second implementation. */
+export async function writeToHandle(handle: FileSystemFileHandle, text: string | Uint8Array<ArrayBuffer>): Promise<void> {
   const stream = await handle.createWritable();
   await stream.write(text);
   await stream.close();
-}
-
-/** Save As — always prompts for a NEW location; falls back to a download when unsupported. */
-export async function saveProjectAs(text: string, suggestedName: string): Promise<SaveResult> {
-  if (!fileSystemAccessSupported()) {
-    download(suggestedName, text, 'application/json');
-    return { handle: null, cancelled: false, written: false };   // triggered, not confirmed
-  }
-  try {
-    const handle = await globalThis.showSaveFilePicker({
-      suggestedName,
-      types: [{ description: 'OpenISD project (*.owpr)', accept: { 'application/json': ['.owpr'] } }],
-    });
-    await writeToHandle(handle, text);
-    return { handle, cancelled: false, written: true };
-  } catch (err) {
-    if ((err as Error)?.name === 'AbortError') return { handle: null, cancelled: true, written: false };
-    throw err;
-  }
-}
-
-/**
- * Save — writes in place to a previously-picked handle. With no handle yet (first save in
- * the session, or the browser lacks the API), it behaves exactly like Save As. If the
- * retained handle has gone stale (file moved/deleted, permission revoked), it re-prompts
- * via Save As rather than silently failing.
- */
-export async function saveProject(
-  text: string, suggestedName: string, handle: FileSystemFileHandle | null,
-): Promise<SaveResult> {
-  if (!handle) return saveProjectAs(text, suggestedName);
-  try {
-    await writeToHandle(handle, text);
-    return { handle, cancelled: false, written: true };
-  } catch {
-    return saveProjectAs(text, suggestedName);
-  }
 }
 
 /**
@@ -88,8 +53,8 @@ export async function saveProject(
  * without the File System Access API (Firefox/Safari), where the browser chooses the
  * destination and there is no dialog to offer.
  *
- * Distinct from saveProjectAs: this retains no handle, because a driver export is a one-way
- * write with nothing to overwrite in place later.
+ * Retains no handle itself — the caller (`fileStore.ts`) decides whether the returned handle
+ * is worth keeping for a later in-place write.
  */
 export async function saveTextAs(
   text: string | Uint8Array<ArrayBuffer>, suggestedName: string, description: string, mime: string, ext: string,

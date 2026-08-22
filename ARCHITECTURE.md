@@ -170,7 +170,7 @@ graph TD
         DRIVERREPO["<b>driverRepo</b><br/>db/driverRepo.ts<br/>index · search · lookup"]
         MYREPO["<b>myDriverRepo</b><br/>db/myDrivers.ts"]
         PREFS["<b>prefsStore</b><br/>db/prefs.ts"]
-        FILEIO["<b>fileIO</b><br/>logic/useDesignIO.ts<br/><i>a composable today,<br/>not a constructed service</i>"]
+        FILEIO["<b>file IO</b><br/>ManagedOpenISDProject + logic/managedDriver.ts<br/>(the codecs, QO78) · logic/fileStore.ts<br/>(the destination port, injected into createDesignIO)"]
         DIAG["<b>diagnostics</b><br/>diagnostics/selftest.ts"]
         LOGGING["<b>logging</b><br/>logging/flash.ts"]
         PROJSVC["<b>project service</b><br/><i>NOT BUILT — the wrapper QO60 needs:</i><br/>the only caller of STORE/WSPACE/MANAGED"]
@@ -392,8 +392,8 @@ than a length being typed and a tuning falling out. Both directions exist; the e
 
 This is the same system as the diagram above, drawn from what is actually on disk rather than from
 what was specified. It exists because the target diagram is a poor guide to the current tree: it
-omits modules that exist, and shows components (`PresentationState`, `UrlAppState`, `createFileIO`)
-that have not been built. **A red box is a module the target diagram does not account for.** Every
+omits modules that exist, and shows components (`PresentationState`, `UrlAppState`) that have not
+been built. **A red box is a module the target diagram does not account for.** Every
 red box is either work still to be placed, or a module that should not exist — none of them is
 sanctioned by the target above.
 
@@ -495,10 +495,13 @@ cannot say whether it belongs where it is, or at all.
 
 **What the red tells you.** Twenty-two `logic/` and service modules exist that the target diagram
 collapses into one `logic/` box, so it cannot say whether any of them is in the right place or
-should exist at all. `useDesignIO.ts` is the sharpest case: the target names a `createFileIO`
-SERVICE, but what exists is a `logic/` composable — the target's own module table marks it "not yet
-built" and the as-built shows what stands in for it. `winisd/driver.ts` is amber: condemned,
-scheduled for deletion, still imported.
+should exist at all. File IO lives in the MANAGED LAYER (QO78's ruling — the file-IO code moves
+into the domain module that owns what it reads/writes): `ManagedOpenISDProject`'s own
+export/import/persist methods plus `logic/managedDriver.ts` for driver file IO not bound to a
+project, with `createFileStore` (`logic/fileStore.ts`, constructed in `main.ts` and injected
+into `createDesignIO`) as the destination port and `useDesignIO.ts` shrunk to the orchestration
+composable that calls them. `winisd/driver.ts` is amber: condemned, scheduled for deletion,
+still imported.
 
 ### Modules, purpose, and injected dependencies
 
@@ -516,7 +519,9 @@ handed to whoever needs it — it is not importable.
 | `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup — returns RECORDS, never live instances | a bundle source (`() => OpenISDDriverJson[]`)      |
 | `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStore`                                               |
 | `createPrefsStore`           | Browser-local preferences: favourites, session, layout                         | a `KeyValueStore`                                               |
-| `createFileIO` — not yet built | Open, save, import, export, share-link encode and decode                     | the serialiser (`@openisd/winisd`), the record codec            |
+| `ManagedOpenISDProject` file IO (QO78) | `.wdr`/`.owdr`/`.wpr` codec methods on the facade itself (`exportDriverWdr`/`exportDriverOwdr`/`exportWpr`/`importWpr`/`persistedDriverText`/`loadDriverFrom*Text`) — the driver crosses the boundary only as serialised text/bytes. No `.owpr` codec: its on-disk shape is `SerializedState`, an A8 decision | `@openisd/model`, `@openisd/winisd`, `wprMapping.ts`, `driverFileText.ts`, `fileFormat.ts`, `persist.ts`'s gzip helpers |
+| `managedDriver.ts` (QO78)     | Driver file IO NOT bound to a project — disk/library rows → an `OpenISDDriver` | `@openisd/model` |
+| `createFileStore`             | WHERE bytes go and come from (open/save/save-as), no format knowledge          | the File System Access API + download fallback (`fileSave.ts`)  |
 | `createDiagnostics`          | Run the self-test and report what it found                                     | the engine, a reporter (`(msg) => void`)                        |
 | `createLogging`              | Surface application events to the user                                         | — (leaf; it depends on nothing)                                 |
 | `ui/`                        | Render state, raise intent                                                     | the app facade, via Vue `provide`/`inject` at the root          |
@@ -626,14 +631,48 @@ interface PrefsStore {
   write<T>(key: string, value: T): void;
 }
 
-/** Every crossing of the file boundary. The only place a byte stream is produced or consumed. */
-interface FileIO {
-  readRecord(text: string, format: RecordFormat): Result<OpenISDDriverJson>;
-  writeRecord(record: OpenISDDriverJson, format: RecordFormat): string;
-  readProject(text: string, format: ProjectFormat): Result<Project>;
-  writeProject(project: Project, format: ProjectFormat): string;
-  encodeShareLink(project: Project): Promise<string>;
-  decodeShareLink(url: string): Result<Project>;
+/**
+ * File IO is METHODS ON THE MANAGED LAYER, not a service interface (QO78, human ruling
+ * 2026-08-22: the file-IO code moves into the domain module that owns what it reads/writes —
+ * no wrapper seam, no gate exemption). `ManagedOpenISDProject` itself carries:
+ *
+ *   // driver file IO — the driver crosses the boundary only as serialised text/bytes (QO73)
+ *   persistedDriverText(): string | undefined;                 // what a save/share/fingerprint embeds
+ *   loadDriverFromPersistedText(text: string): string[];       // CHECKED adopt; problems say why refused
+ *   loadDriverFromWdrText(text: string): void;
+ *   loadDriverFromOwdrText(text: string): void;
+ *   clearDriver(): void;
+ *   exportDriverWdr(): Result<Uint8Array>;                     // fails when too incomplete to project
+ *   exportDriverOwdr(): Uint8Array | null;                     // null only when no driver is chosen
+ *
+ *   // project file IO — `now` and `curve` are parameters, never read from a clock or fabricated
+ *   exportWpr(now: Date, curve: SweepResult | null): Result<Uint8Array>;
+ *   importWpr(bytes: Uint8Array): Result<OpenISDProjectMeta>;  // loads itself; meta out for the view
+ *
+ * `logic/managedDriver.ts` (the managed-driver module, same licensed set) carries the driver
+ * file IO that is NOT bound to a project: `driverFromFileText` (disk, already-classified format →
+ * `OpenISDDriver`, for My Drivers) and `driverFromWdrText` (federated library row → `OpenISDDriver`).
+ * Format classification (`formatOf`/`ofFileName` by name, `sniff` by content) is `fileFormat.ts` —
+ * domain-free, one file (QO67); `managedDriver.ts` calls it for neither method — the caller
+ * classifies before calling.
+ * No `.owpr` codec anywhere: the on-disk `.owpr` shape is `SerializedState` (written via
+ * `persist.serialize`); whether it moves to the project record shape is an open A8 decision.
+ */
+
+/** WHERE bytes go and come from — a separate port, no format knowledge and no domain objects.
+ *  `open`/`save`/`saveAs` wrap the File System Access API with a download
+ *  fallback (Firefox/Safari lack the API). The port RETAINS the picked `FileSystemFileHandle`
+ *  itself — `save` takes no handle parameter, prompting only the first time; `openFileName`/
+ *  `forget` are how a caller observes or drops what is retained (e.g. when the project is
+ *  renamed and the stale handle must be let go of). */
+interface FileStore {
+  // Declared, no production caller yet — the live import path reads a File handed over by a
+  // plain <input type="file">, not a picker this port drives.
+  open(accept: readonly string[]): Promise<{ name: string; bytes: Uint8Array } | null>;
+  save(bytes: Uint8Array<ArrayBuffer> | string, suggestedName: string, mime: string, description: string, ext: string): Promise<SaveResult>;
+  saveAs(bytes: Uint8Array<ArrayBuffer> | string, suggestedName: string, mime: string, description: string, ext: string): Promise<SaveResult>;
+  openFileName(): string | null;
+  forget(): void;
 }
 
 /** The runtime self-test. Reports; it does not decide what to do about a failure. */
@@ -649,8 +688,11 @@ interface Logging {
 }
 ```
 
-`RecordFormat` is `openisd.yml` / `.owdr` / `.wdr`; `ProjectFormat` is `.owpr` / `.wpr`. Both are
-closed unions, not open strings.
+`FileFormat` is `DriverFileFormat | ProjectFileFormat` (`packages/ui/src/fileFormat.ts`) — two
+DISTINCT enums, never merged into one (QO67): a driver format is `.owdr`/`.wdr`, a project
+format is `.owpr`/`.wpr`, and `.wpr` can never leak into the driver save picker because it is
+not in that enum at all. The code common to both — extension classification, the legacy-
+classic-WinISD test gating the `.wdr`/`.wpr` CP1252 fallback — lives in that one shared file.
 
 ### Key data types
 
@@ -748,11 +790,16 @@ class OpenISDDriver {
 
 `SpecField` is the closed set of canonical field names, not an open string.
 
-**A repository and `FileIO` deal in RECORDS; only `ManagedProject` deals in instances.** A record
-is plain data — a catalogue row, a file's contents, a saved driver. An `OpenISDDriver` is live,
-mutable and subscribable, and one exists ONLY as a member of an `OpenISDProject` held by a
-`ManagedProject`. That is what makes the containment total: there is no other way for an instance
-to come into being, so there is nowhere else for one to be mutated unobserved.
+**A repository deals in RECORDS; the MANAGED LAYER alone deals in instances.** A record is plain
+data — a catalogue row, a file's contents, a saved driver. The LONG-HELD, subscribable
+`OpenISDDriver` exists only as a member of an `OpenISDProject` held by a `ManagedProject`, and
+every TRANSIENT instance a file crossing requires is constructed INSIDE the licensed set —
+`managedProject.ts`'s own file-IO methods, `managedDriver.ts` for project-unbound driver file IO
+(QO78: ownership, not exemption), and `DriverEditorModal.vue`'s ruled draft. That is the
+containment the architecture gate enforces (`nothing outside managedProject.ts imports the
+OpenISDDriver value`); outside the licensed set, the driver moves only as serialised text/bytes
+or as one-field answers off the facade — never as an instance and never as the record shape
+(QO73).
 
 ---
 
@@ -895,7 +942,7 @@ The app reads and writes five formats. Two are ours, three are WinISD's.
 | ------------- | ----------------------------------------------------------------------------- | ----------------------------- |
 | `openisd.yml` | the OpenISD record — the canonical on-disk form                               | read (commons, at build time) |
 | `.owdr`       | one OpenISD driver record, the same schema as `openisd.yml` byte for byte     | read / write                  |
-| `.owpr`       | one `OpenISDProject` — box, vent, PR, filters, signal, and its driver records | read / write                  |
+| `.owpr`       | the whole app state (`SerializedState` via `persist.serialize`) — box, vent, PR, filters, signal, driver record, view state; whether it narrows to the `OpenISDProject` record shape is an open A8 decision | read / write                  |
 | `.wdr`        | one WinISD driver                                                             | read / write                  |
 | `.wpr`        | one WinISD project                                                            | read / write                  |
 
@@ -927,7 +974,8 @@ parity suite expects it — it is never silently absorbed as a tolerance.
 ### Scope: the driver record only
 
 Box, vent, passive-radiator, filter, signal and UI-navigation state have no fields in `openisd.yml`
-and none are added. That is `OpenISDProject`'s concern, and `.owpr` is its on-disk form. The
+and none are added. That is `OpenISDProject`'s concern, persisted today inside `.owpr`'s
+`SerializedState` (A8 decides whether `.owpr` narrows to the project record shape alone). The
 multi-layer state model is multiple _copies_ of the one `OpenISDDriver` shape, never different
 shapes of it.
 
@@ -1016,7 +1064,7 @@ commit. See §3, "`ManagedProject` — the one facade over every state layer", f
 what-if first. The sweep never touches a file.
 
 **The store reaches services, never the reverse.** `logic` calls `driverRepo` for a record,
-`myDriverRepo` and `prefsStore` for browser-local data, `fileIO` to read and write, `diagnostics`
+`myDriverRepo` and `prefsStore` for browser-local data, the managed layer's file-IO methods (with `fileStore` as the destination port) to read and write, `diagnostics`
 and `logging` to report, `ManagedProject` for the project's own state. Each returns data and holds no
 reference to the store.
 
@@ -1343,7 +1391,7 @@ Three things persist in `localStorage`, each reached only through the service th
 
 | Key owner                                 | Holds                                                                               |
 | ----------------------------------------- | ----------------------------------------------------------------------------------- |
-| the store, via `fileIO` (`openisd.state`) | the **committed design** — box, params, the driver with its marks, project metadata |
+| the store, via `persist.ts` (`openisd.state`) | the **committed design** — box, params, the driver with its marks, project metadata |
 | `myDriverRepo`                            | user-saved drivers                                                                  |
 | `prefsStore`                              | favourites, session, layout                                                         |
 

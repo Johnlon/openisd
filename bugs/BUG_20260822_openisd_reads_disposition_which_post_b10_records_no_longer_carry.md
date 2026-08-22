@@ -46,31 +46,41 @@ Running the bundler live surfaced a second, separate bug (the CLI-entry guard br
 recorded and fixed separately:
 `bugs/BUG_20260822_bundle_drivers_cli_guard_breaks_under_vite_node.md`.
 
-## Bundle composition delta — QO79 RULED (John, verbatim: "include / OBVIOUSLY!!!!")
+## Bundle composition delta — QO79/QO81 RULED, FINAL
 
-Three gates were compared on today's (pre-B10) corpus, walking all 1969
-`winisd_drivers/db/datasheets/**/openisd.yml` records:
+Four gates were compared on today's (pre-B10) corpus, walking all 1969
+`winisd_drivers/db/datasheets/**/openisd.yml` records — the history matters because each
+intermediate gate was independently proposed, implemented, and then overturned:
 
 - Original gate (stored `disposition==='ok'`): **1526** bundlable — reads a key post-B10
   records do not carry at all; this is the bug this file reports.
-- Interim gate (derived `recordStandingIsOk`, missing/parse_errors both empty): **1197**
+- Interim gate 1 (derived `recordStandingIsOk`, missing/parse_errors both empty): **1197**
   bundlable — correctly derives from evidence the corpus does carry, but gates bundling on
   DATASHEET COMPLETENESS. The 564 records this gate excludes (relative to the original 1526)
   are excluded solely because a NON-simulation field — `Cms: 287, Xmax: 260, BL: 32, Mms: 8,
   Qms: 2, Qts: 1` (a record can carry more than one missing field) — is listed in
-  `quality.missing`, and are simulatable by every criterion the app has (`Fs>0`, `Re>0`,
-  `Sd-or-Vas`, ≥2 of `Qts/Qes/Qms`).
-- **QO79-ruled gate (`recordIsSimulatable`, `packages/model/src/driverSimulatability.ts`):
-  1654 bundlable.** Gates on APP-USABILITY only — the same Fs/Re/Sd-or-Vas/≥2-Q criteria
-  `driverHasDqIssues` already used for its DQ flag. `recordStandingIsOk` no longer gates
-  bundling at all; it stays as `driverHasDqIssues`'s DQ-flag input, so a bundled record missing
-  a non-simulation field (e.g. `Cms`) ships AND is flagged — never excluded. Completeness-gating
-  is settled wrong permanently (John's ruling).
+  `quality.missing`. SETTLED WRONG (QO79).
+- Interim gate 2 (`recordIsSimulatable`, `packages/model/src/driverSimulatability.ts` — Fs,
+  Re, Sd-or-Vas, ≥2 of Qts/Qes/Qms): **1654** bundlable. Fixed the completeness-gating error
+  but replaced it with a narrower one — gating on APP-USABILITY. SETTLED WRONG TOO (QO79
+  amended, John, verbatim: "tis is a fail - they shoudl be bundheld with the usual health
+  warnings visible in the UI"; QO81, John, verbatim: "it is improtant NOT DRIER GETS EXCLIDED
+  BECAUSE OF MISSIG SPEC PARAMS !!!!").
+- **FINAL gate (structural readability, `recordConforms()`,
+  `packages/model/src/driverConformance.ts` — the same check guarding My Drivers reads):
+  1969/1969 bundlable — the FULL corpus.** Every record that parses, has a `specs` container,
+  and has a `quality` block with `missing`/`parse_errors` arrays bundles, full stop. Neither
+  completeness nor simulatability excludes a record any more; both are settled wrong,
+  permanently. `recordIsSimulatable` and `recordStandingIsOk` are DISPLAY INFORMATION ONLY
+  now — their one consumer is `driverRepo.ts::driverHasDqIssues`, the ⚠ health-warning badge.
+  A driver with no Fs, or no T/S fields at all, ships, appears in the browser, opens in the
+  editor, and degrades in a design exactly like a user-created driver with those fields left
+  blank.
 
 The 564/1526 stale-`ok`-with-evidence and 239-of-1969 stale-`incomplete`-with-no-evidence split
 observed while investigating this (mismatches between the corpus's STORED `disposition` and
 its own `missing`/`parse_errors` lists) is a separate, independently-filed corpus defect, not
-caused by any of the three gates above:
+caused by any of the gates above:
 `winisd_tools/bugs/BUG_20260822_stale_disposition_disagrees_with_missing_parse_errors_evidence.md`.
 
 ## Verification
@@ -78,10 +88,10 @@ caused by any of the three gates above:
 `npx vitest run packages/model/test/driverStanding.test.ts
 packages/model/test/driverSimulatability.test.ts packages/ui/test/db/bundle-drivers-disposition.test.ts
 packages/ui/test/db/driver-has-dq-issues.test.ts packages/ui/test/db/drivers-bundle.test.ts
-packages/ui/test/db/myDrivers.test.ts` — 40/40 pass, including the QO79 fixture case (a record
-with Fs/Re/Sd/2 Qs but a non-empty `quality.missing` bundles). `npx vite-node
-scripts/bundle-drivers.mjs` regenerated `drivers-bundle.json` against the live
-`winisd_drivers` checkout: **1654/1969 records bundled** (315 excluded, all genuinely not
-simulatable), 13,202,419 bytes raw / 485,581 bytes gzipped. `grep -rn '\.disposition'
-packages/ui/src packages/model/src scripts` matches only the type declaration site
-(`openisdDriver.ts`), never a read.
+packages/ui/test/db/myDrivers.test.ts` — 41/41 pass, including the ruling case: a structurally
+sound record with no Fs still bundles (`isBundlable` true) AND `driverHasDqIssues` still flags
+it (true) — one test, both halves of the ruling. `npx vite-node scripts/bundle-drivers.mjs`
+regenerated `drivers-bundle.json` against the live `winisd_drivers` checkout: **1969/1969
+records bundled** — the full corpus, 0 excluded — 14,880,109 bytes raw / 571,689 bytes
+gzipped. `grep -rn '\.disposition' packages/ui/src packages/model/src scripts` matches only
+the type declaration site (`openisdDriver.ts`), never a read.

@@ -41,3 +41,4 @@ coverage/
 
 # TypeScript incremental build state
 *.tsbuildinfo
+questions.lock
