@@ -589,8 +589,29 @@ never improvise around it.
       Same shape for `.oip` projects and passive radiators — one rule, not three special cases.
       **AUDIT — every site handling domain internals outside the ruled places** (peer-run,
       RE-VERIFY each at implementation):
-      - `driverSelection.ts:148` `JSON.stringify(record)` to feed `loadDriverFromOwdrText`
-        (UI re-serialising domain state to talk to the domain); `:239` same with `editorDraft`
+      - **`driverSelection.ts` — SINGLE-RESPONSIBILITY VIOLATION, human-found 2026-08-22
+        ("there is no reason for the driver selector to ask for an empty driver").** The
+        selector does THREE jobs: selecting a driver (its own), HOLDING THE EDITOR'S DRAFT
+        (`editorDraft`, `:129`), and BROKERING THE EDITOR'S LIFECYCLE (`editorSeed()`,
+        `acceptDriverEdit()`, `openNewDriver()`). Jobs 2 and 3 belong to the editor, and
+        holding them is what CAUSES the leaks here: `:239` `JSON.stringify(editorDraft)` is a
+        non-owner producing serialised state, `:148` re-serialises a record to talk to the
+        domain, and `:121` declares `acceptDriverEdit(json: _OpenISDDriverJson)` — the private
+        record in a UI-layer public interface.
+        RULED SHAPE: the EDITOR owns its own draft. Then `editorDraft` leaves the selector;
+        `editorSeed()` and both stringify sites die; `acceptDriverEdit`'s record parameter
+        disappears (the editor commits through the domain API); `openNewDriver()` becomes the
+        editor opening in new mode, constructing its own blank via `OpenISDDriver.empty()`
+        (which correctly returns an INSTANCE — human: "empty() must not return json");
+        `_emptyDriverRecord()` (`openisdDriver.ts:833`, body = `empty().toJsonRecord()`) is
+        DELETED for want of a caller, together with the permission comment at `:826` naming who
+        may use it — a grant for a deleted symbol is the stale-grant case the gate fails on.
+        Its one test caller round-trips driver→record→driver and becomes `OpenISDDriver.empty()`.
+        Both `driverSelection` PrivateAllow offences die with it (7 → 5 → 3).
+        NOTE: A6's `editorSeedDriverText()` was justified as "text because the editor is the one
+        file licensed to hold a live driver" — that holds only while the SELECTOR is an
+        intermediary. With the editor owning its draft there is no intermediary, so that method
+        goes too rather than surviving as a sanctioned text hand-off.
       - `DriverEditorModal.vue:335/:341/:389/:462` — **human's ruling, verbatim: "the driver
         editor should work against the domain api and it should never touch the json - it
         should hand the domain api to the save api and oid save has been granted access to oid
