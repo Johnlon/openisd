@@ -1,6 +1,10 @@
 # .wpr import leaves the previous project's meta in state and re-exports it
 
-Status: OPEN
+Status: FIXED — import syncs `state.project` from `project.meta` (name from the filename); the
+export-side state→meta copy is deleted. Verified by
+`packages/ui/test/logic/useDesignIO.test.ts::".wpr import syncs state.project from the file,
+and export round-trips it"` — the round-trip this file's Verification section specifies,
+against the real `sealed-small.wpr` golden with a patched probe Description.
 
 ## Symptom
 

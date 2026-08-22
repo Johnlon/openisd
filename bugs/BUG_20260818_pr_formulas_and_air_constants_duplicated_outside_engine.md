@@ -1,14 +1,26 @@
 # PR T/S formulas and RHO/C air constants re-implemented outside the engine, one copy truncated
 
 # Status
-DEFERRED — the `useDesignIO.ts` half is resolved (it now calls `prCanonicalFromDatasheet()`,
-no local RHO/C literals — `grep -n "1.20095\|343.68" packages/ui/src/logic/useDesignIO.ts`
-returns nothing). The `prWinIsdFields.ts` half remains: `Math.sqrt(.../P.prCms)` still appears
-inline at lines 50, 56, 68, not behind a domain-class getter. Ruling reconfirmed 2026-08-20
-(John): "the calcs MUST be implemented in the core engine — nowhere else permitted... exposed
-via the appropriate domain object via a getter." Remainder tracked in
-`docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md` objectives 0+1 (OpenISDProject PR-accessor getter,
-engine holds the math) — not yet landed. Do not action this file separately.
+PARTIAL, engine-containment satisfied, domain-getter form NOT satisfied. `@openisd/engine/
+src/formulas.ts` now exports `prCmsFromVas`/`prMmdFromFs`/`prRmsFromQms`; `packages/model/src/
+openisdProject.ts:478-486` re-exports them as `prCmsFromWinIsdVas`/`prMmdFromWinIsdFs`/
+`prRmsFromWinIsdQms`, and `prWinIsdFields.ts`'s `setPrFsFromWinIsd`, `setPrQmsFromWinIsd`,
+`setPrVasFromWinIsd` and `prCanonicalFromDatasheet` call those instead of hand-deriving
+`Math.sqrt(...)`/`1/((2π·f)²·Cms)` inline — verified: `grep -n "Math.sqrt\|Math.PI"
+packages/ui/src/logic/prWinIsdFields.ts` returns nothing, and `grep -n "1.20095\|343.68"
+packages/ui/src/logic/useDesignIO.ts` (the other half, resolved earlier) also returns nothing.
+So the math itself is confined to the engine and called from exactly one file outside it.
+
+**Not satisfied: the ruling's literal requirement is a GETTER ON A DOMAIN CLASS**
+("reachable ONLY as a getter on the relevant domain class... never called directly as a free
+function sprinkled through UI logic"). `prCmsFromWinIsdVas` etc. are free functions exported
+from `openisdProject.ts`, called directly from `prWinIsdFields.ts` — the same shape the ruling
+named as insufficient ("deduplicating into a shared engine function that's then still called
+ad hoc from prWinIsdFields.ts... would not satisfy this"), just with the free function moved
+one package over. `PREditModal`/`PRDefineModal` edit a plain `UiParams` object directly, not
+an `OpenISDProject` instance, so there is no live domain-class instance in this call path to
+hang a getter off without a larger restructuring of PR editing than this task's scope covers.
+Needs a human ruling: accept this as the resolution, or require the deeper restructuring.
 
 ## Symptom
 
@@ -76,9 +88,7 @@ call/re-implementation in `prWinIsdFields.ts`/`useDesignIO.ts` and replace with 
 
 ## Verification
 
-Partial. `useDesignIO.ts` half: `grep -n "1.20095\|343.68" packages/ui/src/logic/useDesignIO.ts`
-returns nothing, and it now calls `prCanonicalFromDatasheet()` instead of re-deriving Mmd/Rms/Cms
-inline. `prWinIsdFields.ts` half: still open — `Math.sqrt(.../P.prCms)` remains inline at lines
-50, 56, 68, and no getter method on a domain class exposes these values per the ruling's actual
-requirement ("reachable ONLY as a getter"). Not fully verified; remainder tracked in
-`docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md` objectives 0+1.
+Both files' inline formulas/constants are gone (`grep -n "1.20095\|343.68"
+packages/ui/src/logic/useDesignIO.ts` and `grep -n "Math.sqrt\|Math.PI"
+packages/ui/src/logic/prWinIsdFields.ts` both return nothing), and the math lives once in
+`@openisd/engine`. The getter-on-a-domain-class requirement is not met — see Status above.
