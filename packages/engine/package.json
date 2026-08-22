@@ -2,12 +2,12 @@
   "name": "@openisd/engine",
   "version": "0.1.0",
   "type": "module",
-  "description": "Thiele-Small loudspeaker enclosure physics engine — pure functions, zero dependencies",
+  "description": "Thiele-Small loudspeaker enclosure physics engine \u2014 pure functions, zero dependencies",
   "license": "MIT",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./src/engine.ts",
+      "default": "./src/engine.ts"
     }
   },
   "scripts": {

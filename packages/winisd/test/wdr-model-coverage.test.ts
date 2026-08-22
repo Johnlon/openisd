@@ -120,7 +120,6 @@ describe('every .wdr field has a home in the OpenISD model', () => {
       model: { value: '', origin: 'manual', definition: 'd', dq: [] },
       sku: { value: '', definition: 'd', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'd', dq: [] },
-      disposition: { value: 'ok', definition: 'd', detail: 'd' },
       data_sources: { value: {}, definition: 'd' },
       authoritative: { value: 'manual', definition: 'd' },
       specs: { woofer: {} },

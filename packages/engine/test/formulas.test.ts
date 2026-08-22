@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import {
   prVas, prFs, prFsWithMass, prQms, driveVoltage,
   prCmsFromVas, prMmdFromFs, prRmsFromQms,
-} from '../src/index.js';
+} from '../src/engine.js';
 
 describe('formulas — drive voltage V = √(Pin·Re)', () => {
   it('√(100·4) = 20 V', () => assert.equal(driveVoltage(100, 4), 20));

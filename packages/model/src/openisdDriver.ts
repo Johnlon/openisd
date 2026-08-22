@@ -26,7 +26,7 @@
  */
 import { deriveOpenISDFields } from './openisdDerive.js';
 import type {
-  SourceRole, Reading, DqMark, DQStatus, Ground, DispositionField, QualityBlock, CurvesBlock,
+  SourceRole, Reading, DqMark, DQStatus, Ground, QualityBlock, CurvesBlock,
 } from './openisdRecord.js';
 import { deriveEngineDriver, checkConsistency, moistAirDensity, moistAirSoundVelocity,
          T_REF_K, RH_REF_PCT, P_REF_PA, ebp as computeEbp } from '@openisd/engine';
@@ -94,7 +94,6 @@ export interface _OpenISDDriverJson {
   series?: _ScrapedField<string>;
   driver_type: _ScrapedField<string>;
   nominal_size_cm?: _ScrapedField<number>;
-  disposition: DispositionField;
   data_sources: _BookkeepingField<Partial<Record<SourceRole, string>>>;
   authoritative: _BookkeepingField<SourceRole>;
   product_image?: _ScrapedField<string>;
@@ -228,7 +227,7 @@ export interface _SpecSection {
   freq_low_hz?: _SpecEntry; freq_high_hz?: _SpecEntry; power_peak_W?: _SpecEntry;
   weight_kg?: _SpecEntry; Thick?: _SpecEntry; Depth?: _SpecEntry;
   MagDepth?: _SpecEntry; Magnet?: _SpecEntry; Basket?: _SpecEntry;
-  Outer?: _SpecEntry; outer_x_mm?: _SpecEntry; outer_y_mm?: _SpecEntry;
+  Outer?: _SpecEntry; OuterX?: _SpecEntry; OuterY?: _SpecEntry;
   DVol?: _SpecEntry;
 }
 export interface _Specs {
@@ -336,10 +335,6 @@ export class OpenISDDriver {
       model: identity("the vendor's exact designation"),
       sku: { value: '', definition: 'canonical identity code', grounds: [] },
       driver_type: identity('what kind of driver this is'),
-      disposition: {
-        value: 'ok', definition: "the record's own account of its standing",
-        detail: 'authored in the app, not scraped',
-      },
       data_sources: { value: {}, definition: 'the record-wide provenance index' },
       authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
       specs: { woofer: {} },
@@ -461,7 +456,6 @@ export class OpenISDDriver {
         grounds: [{ origin: 'manual', reading: `${brand} ${model}`.trim(), definition: 'the .wdr Brand/Model header lines' }],
       },
       driver_type: { value: 'woofer', origin: 'manual', definition: '.wdr carries no driver-type discriminator', dq: [] },
-      disposition: { value: 'ok', definition: 'imported from a .wdr file', detail: '' },
       data_sources: { value: {}, definition: '.wdr carries no source URLs' },
       authoritative: { value: 'manual', definition: 'the .wdr file is its own only source' },
       specs: { woofer },

@@ -16,7 +16,6 @@ describe('recordIsSimulatable', () => {
       model: { value: 'Model', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'test-model', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -44,7 +43,6 @@ describe('recordIsSimulatable', () => {
       model: { value: 'Model', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'test-model', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -71,7 +69,6 @@ describe('recordIsSimulatable', () => {
       model: { value: 'Model', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'test-model', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -99,7 +96,6 @@ describe('recordIsSimulatable', () => {
       model: { value: 'Model', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'test-model', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {
@@ -127,7 +123,6 @@ describe('recordIsSimulatable', () => {
       model: { value: 'Model', origin: 'manual', definition: 'x', dq: [] },
       sku: { value: 'test-model', definition: 'x', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-      disposition: { value: 'ok', definition: 'x', detail: '' },
       data_sources: { value: {}, definition: 'x' },
       authoritative: { value: 'manual', definition: 'x' },
       specs: {

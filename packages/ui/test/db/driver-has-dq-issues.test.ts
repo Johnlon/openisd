@@ -25,8 +25,7 @@ function recordWithFields(fields: Partial<Record<SpecField, number>>): _OpenISDD
     model: { value: 'Model', origin: 'manual', definition: "the vendor's exact designation", dq: [] },
     sku: { value: 'test-model', definition: 'canonical identity code', grounds: [] },
     driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
-    disposition: { value: 'ok', definition: "the record's own account of its standing", detail: 'complete' },
-    data_sources: { value: {}, definition: 'the record-wide provenance index' },
+        data_sources: { value: {}, definition: 'the record-wide provenance index' },
     authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
     specs: { woofer: woofer as _OpenISDDriverJson['specs'] extends { woofer?: infer W } ? W : never },
   };
@@ -108,8 +107,7 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
       model: { value: 'Model', origin: 'manual', definition: "the vendor's exact designation", dq: [] },
       sku: { value: 'test-model', definition: 'canonical identity code', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
-      disposition: { value: 'ok', definition: "the record's own account of its standing", detail: 'complete' },
-      data_sources: { value: {}, definition: 'the record-wide provenance index' },
+            data_sources: { value: {}, definition: 'the record-wide provenance index' },
       authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
       specs: {
         woofer: {
@@ -137,8 +135,7 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
       model: { value: 'Model', origin: 'manual', definition: "the vendor's exact designation", dq: [] },
       sku: { value: 'test-model', definition: 'canonical identity code', grounds: [] },
       driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
-      disposition: { value: 'ok', definition: "the record's own account of its standing", detail: 'complete' },
-      data_sources: { value: {}, definition: 'the record-wide provenance index' },
+            data_sources: { value: {}, definition: 'the record-wide provenance index' },
       authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
       specs: {
         woofer: {

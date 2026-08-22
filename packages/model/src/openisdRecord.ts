@@ -87,17 +87,6 @@ export interface Ground {
   reading: string;
   definition: string;
 }
-// ── DispositionField — model_driver.py:207-222 ─────────────────────────────────────────
-export type Disposition =
-  | 'ok' | 'no-ts-published' | 'no-wdr-projection' | 'awaiting-datasheet'
-  | 'terminal-artifact' | 'excluded' | 'out-of-scope';
-export interface DispositionField {
-  value: Disposition;
-  definition: string;
-  /** Registered template text for `value` — free prose is rejected on the Python side. */
-  detail: string;
-}
-
 // ── QualityBlock — model_driver.py:697-716 ─────────────────────────────────────────────
 export type Rating = 'M' | 'L';
 export interface CrossSourceReading {

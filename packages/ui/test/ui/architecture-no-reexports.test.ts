@@ -41,8 +41,22 @@ const SRC_ROOTS = readdirSync(PACKAGES)
   .map(pkg => join(PACKAGES, pkg, 'src'))
   .filter(dir => existsSync(dir) && statSync(dir).isDirectory());
 
-/** The sanctioned barrel entry points — one per package, at src/index.ts exactly. */
-const BARRELS = new Set(SRC_ROOTS.map(root => join(root, 'index.ts')));
+/** The sanctioned barrel entry points — one per package, resolved from each package.json's
+ *  OWN exports map (falling back to src/index.ts when a package declares no map). Reading
+ *  the map rather than hardcoding a filename is what makes a barrel rename (D17:
+ *  engine/src/index.ts → engine.ts) safe: the gate follows the package's declared entry
+ *  point instead of silently exempting a file that no longer exists. */
+const BARRELS = new Set(SRC_ROOTS.map(root => {
+  const pkgDir = dirname(root);
+  try {
+    const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')) as
+      { exports?: Record<string, { default?: string } | string> };
+    const entry = pkg.exports?.['.'];
+    const rel = typeof entry === 'string' ? entry : entry?.default;
+    if (rel) return join(pkgDir, rel);
+  } catch { /* no package.json or no map — fall back */ }
+  return join(root, 'index.ts');
+}));
 
 function filesUnder(dir: string): string[] {
   const out: string[] = [];
