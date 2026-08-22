@@ -1,7 +1,7 @@
 # `questions.yml` has two entries both titled `id: QO56` — `inbox.py get QO56` silently returns the wrong one
 
 # Status
-OPEN
+RESOLVED (2026-08-22, per main-exec)
 
 ## Symptom
 
@@ -49,3 +49,13 @@ QO56 — `inbox.py get QO56` immediately after confirms the note attached to the
 The intended note is now effectively lost from the question it was about. No workaround
 attempted (hand-editing questions.yml is banned); this needs the human dedupe pass this bug
 already calls for.
+
+## Resolved 2026-08-22 (main-exec, cross-session report)
+
+The QO56/QO62 duplicates this bug documents were the pre-run collisions — repaired 2026-08-21
+as part of the release plan's counter-drift fix (R2/R3). A fresh YAML-parsed scan of all three
+ledgers (openisd n=74, winisd_tools n=57, workspace n=21) found zero duplicate ids, and every
+recently-minted id resolves uniquely. The underlying race (concurrent `inbox.py add` read-
+modify-write on the `next:` counter) is now closed at the source too: an exclusive `flock`
+around the add path landed in `~/.claude` (commit `0af4c55`), picked up automatically by every
+session on its next `inbox.py` invocation. No further action needed.
