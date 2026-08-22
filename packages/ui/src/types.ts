@@ -341,4 +341,3 @@ export interface SerializedState {
   cursor?: { f: number | null; pinnedF: number | null; locked: boolean; range?: { fLo: number; fHi: number } | null };
 }
 
-export type { EngineDriver, BoxType, SweepParams, SweepResult, MaxCurvesResult };

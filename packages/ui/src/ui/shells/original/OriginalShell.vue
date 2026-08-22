@@ -44,9 +44,9 @@ const { live } = createLiveRef(managedProject);
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType } from '@openisd/engine';
 import type { PRLibEntry, BundledPR, Design } from '../../../types.js';
-import { LossMode, airForEnvironment, driveVoltageFor } from '../../../logic/environment.js';
+import { airForEnvironment, driveVoltageFor, parseLossMode, lossModeOptions } from '../../../logic/environment.js';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
-import type { ChartTabId } from '../../../logic/series.js';
+import type { ChartTabId } from '../../../types.js';
 import { DPAL } from '../../presets.js';
 import { copyOfName, uniqueName } from '../../../logic/projectFile.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
@@ -65,6 +65,10 @@ import PREditModal from '../../components/PREditModal.vue';
 import PRDefineModal from '../../components/PRDefineModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
+
+// Fixed set, not per-render data — hoisted so the template doesn't allocate a fresh array
+// on every re-render.
+const LOSS_MODE_OPTIONS = lossModeOptions();
 
 const { designIO, selection } = useApp();
 const { saveProject, importFile, about } = designIO;
@@ -130,7 +134,7 @@ const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 const sealedRes = computed<{ Fsc: number; Qtc: number } | null>(() => {
   void live.value;
   return managedProject.sealedResonance(
-    LossMode.parse(presentationState.lossMode), managedProject.seriesResistance_ohm(),
+    parseLossMode(presentationState.lossMode), managedProject.seriesResistance_ohm(),
     managedProject.boxQl(), managedProject.boxQa());
 });
 const rearResonance = computed<number | null>(() => sealedRes.value?.Fsc ?? null);
@@ -944,7 +948,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               title="Sealed resonance (Fsc) and system Q (Qtc) loss model. Lossless = fs·√(1+Vas/Vb). Conventional Lossy folds Ql/Qa into Qtc only, leaving the frequency fixed (Small/Thiele). WinISD Lossy reports the pole of the lossy 3rd-order model, so Fsc rises as Ql falls — this matches WinISD's own readout. Default: WinISD Lossy.">
               <label style="width:auto;">Model</label>
               <select id="lossmode" v-model="presentationState.lossMode" style="width:130px">
-                <option v-for="m in LossMode.ALL" :key="m.value" :value="m.value">{{ m.label }}</option>
+                <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
               </select>
             </div>
           </div>

@@ -23,7 +23,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/winisd';
-import { OpenISDDriver, _emptyDriverRecord, Provenance } from '@openisd/model';
+import { OpenISDDriver, Provenance } from '@openisd/model';
 import type { SpecField } from '@openisd/model';
 import { precision, fieldById } from '../../src/logic/fields/fieldRegistry.js';
 import { UNIT_GROUPS, unitDef, toDisplay, type UnitGroup } from '../../src/logic/fields/units.js';
@@ -127,7 +127,7 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
 
 /** A driver with every core T/S parameter present, in SI. */
 function coreDriver(): OpenISDDriver {
-  const d = OpenISDDriver.fromJsonRecord(_emptyDriverRecord());
+  const d = OpenISDDriver.empty();
   d.enter('Fs', 37);
   d.enter('Qes', 0.4);
   d.enter('Qms', 7.0);

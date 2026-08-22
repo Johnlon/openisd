@@ -1,14 +1,13 @@
-import { _emptyDriverRecord } from '@openisd/model';
-import type { _OpenISDDriverJson } from '@openisd/model';
+import type { OpenISDDriver } from '@openisd/model';
 import { managedProject } from './store.js';
 import { presentationState } from './presentationState.js';
-import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
-import { driverFromWdrText, driverTextFromRecord } from './managedDriver.js';
+import { driverId } from '../db/myDrivers.js';
+import { driverFromWdrText } from './managedDriver.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
 //
 // WORKFLOW, so it lives in `logic`: choosing a driver decides what the app does next — it
-// embeds the record in the project, closes the picker and moves the baseline. A repository
+// embeds the driver in the project, closes the picker and moves the baseline. A repository
 // cannot do that without reaching back into the store, which is what inverted the arrow when
 // this lived under `db/`. It CALLS the repository to read and write saved drivers.
 //
@@ -21,11 +20,14 @@ import { driverFromWdrText, driverTextFromRecord } from './managedDriver.js';
 // builds a Driver, copies it into the project, and closes the picker — the user lands back
 // in the project, not in an editor.
 //
-// Editing is a separate act. The editor serves two subjects and `subject` below records
-// which: the PROJECT's own copy (OK changes the design), or a driver from MY DRIVERS (OK
-// saves that entry and the design is not involved). The project is never written back into
-// My Drivers — a saved driver changes only through an explicit save, of which
-// `acceptDriverEdit` on a `myDriver` subject is one.
+// Editing is a separate act, and THE EDITOR OWNS ITS OWN DRAFT (docs/plans/
+// PROMPT_RELEASE_HARDENING.md D22): this module decides WHICH driver is being edited and
+// hands the editor a SEED to build its own detached draft from — it does not hold a draft of
+// its own, and it does not receive the edited driver back. `subject` records which of the
+// editor's two consequences applies: the PROJECT's own copy (OK changes the design), or a
+// driver from MY DRIVERS (OK saves that entry and the design is not involved). The project is
+// never written back into My Drivers — a saved driver changes only through the editor's own
+// explicit save.
 //
 // The pickers own markup and CSS. They must not parse, fetch, commit, or decide what a
 // selection means — they call this.
@@ -34,8 +36,8 @@ import { driverFromWdrText, driverTextFromRecord } from './managedDriver.js';
 export interface LibraryEntry {
   name: string;
   content?: string;
-  /** A bundled `openisd.yml` record — the app's own driver shape. */
-  record?: _OpenISDDriverJson;
+  /** A bundled record, already constructed by the model. */
+  record?: OpenISDDriver;
   path?: string;
   repo?: string | null;
   branch?: string | null;
@@ -44,7 +46,7 @@ export interface LibraryEntry {
   vendorpage?: string;
   frd?: string;
   impedance?: string;
-  myDriverData?: _OpenISDDriverJson;
+  myDriverData?: OpenISDDriver;
 }
 
 /** Catalogue link fields live in the library index, not in the .wdr — overlay them on load. */
@@ -55,14 +57,16 @@ const LINK_ROLES: ReadonlyArray<readonly [keyof LibraryEntry, 'manufacturer_data
   ['vendorpage', 'distributor_product_page'],
 ];
 
-/** Carry the library row's source links onto the record. They belong in `data_sources` — the
- *  record's own provenance index — not as driver FIELDS: a datasheet URL is not a T/S value. */
-function withLinks(record: _OpenISDDriverJson, f: LibraryEntry): _OpenISDDriverJson {
+/** Carry the library row's source links onto the driver. They belong in the record's own
+ *  provenance index — not as driver FIELDS: a datasheet URL is not a T/S value. */
+function withLinks(driver: OpenISDDriver, f: LibraryEntry): OpenISDDriver {
+  const links: Partial<Record<'manufacturer_datasheet' | 'manufacturer_product_page' | 'distributor_product_page', string>> = {};
   for (const [entryKey, role] of LINK_ROLES) {
     const url = f[entryKey];
-    if (typeof url === 'string' && url) record.data_sources.value[role] = url;
+    if (typeof url === 'string' && url) links[role] = url;
   }
-  return record;
+  driver.withDataSourceLinks(links);
+  return driver;
 }
 
 function rawUrlOf(f: LibraryEntry): string {
@@ -77,7 +81,7 @@ export interface SelectionResult {
 }
 
 /** Fetch and parse a federated `.wdr` row, or say why it could not be read. */
-async function modelOf(f: LibraryEntry): Promise<{ ok: true; record: _OpenISDDriverJson } | { ok: false; error: string }> {
+async function modelOf(f: LibraryEntry): Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
   let text = f.content;
   if (!text) {
     let res: Response;
@@ -91,7 +95,7 @@ async function modelOf(f: LibraryEntry): Promise<{ ok: true; record: _OpenISDDri
   }
   if (!/\[Driver\]/.test(text)) return { ok: false, error: 'Could not load: file did not parse as a WDR' };
   try {
-    return { ok: true, record: driverFromWdrText(text).toJsonRecord() };
+    return { ok: true, driver: driverFromWdrText(text) };
   } catch (err) {
     return { ok: false, error: 'Could not load: ' + (err as Error).message };
   }
@@ -111,22 +115,31 @@ type EditorSubject =
   | { kind: 'project' }
   | { kind: 'myDriver'; openedAs: string };
 
+/** What the editor should build its OWN draft from. `seed` is a detached copy, handed once —
+ *  the editor owns it from there; this module keeps nothing for it to hand back. `seed: null`
+ *  means the editor builds its own (a blank `OpenISDDriver.empty()` for a fresh My Driver, or
+ *  the project's committed driver via `managedProject.committedDriverText()` for the project
+ *  subject — this module does not construct either, since it is not a licensed constructor). */
+export type EditorDraftSeed =
+  | { kind: 'project' }
+  | { kind: 'myDriver'; openedAs: string; seed: OpenISDDriver | null };
+
 export interface DriverSelection {
   selectDriver(f: LibraryEntry): Promise<SelectionResult>;
-  editMyDriver(d: _OpenISDDriverJson): void;
+  editMyDriver(d: OpenISDDriver): void;
   editOverviewDriver(f: LibraryEntry): Promise<SelectionResult>;
   editProjectDriver(): void;
   openNewDriver(): void;
-  editorSeed(): { driverText: string; subject: EditorSubject['kind'] };
-  acceptDriverEdit(json: _OpenISDDriverJson): void;
-  cancelDriverEdit(): void;
+  /** What the editor is open on right now, and what to seed its own draft from. */
+  editSubject(): EditorDraftSeed;
+  /** The editor is done — cancelled, or committed elsewhere (the editor commits through the
+   *  domain API directly; this only resets which subject is open). */
+  closeEditor(): void;
 }
 
-export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): DriverSelection {
-  const { myDriverRepo } = deps;
-
+export function createDriverSelection(): DriverSelection {
   let subject: EditorSubject = { kind: 'project' };
-  let editorDraft: _OpenISDDriverJson | null = null;
+  let editSeed: OpenISDDriver | null = null;
 
   /**
    * Choosing a driver COPIES it into the project and returns the user to the project.
@@ -135,71 +148,66 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
    * to wherever the driver came from. The library row, the saved My Driver and the file on
    * disk are all sources; once chosen, the project owns its own copy and later edits change
    * that copy alone. Editing is a separate act, from the Driver panel's Edit button.
-   *
-   * The baseline is the driver AS CHOSEN, so Reset returns to it rather than to whatever the
-   * user has since typed over it.
    */
-  // The classic ADT and the app's model meet at `.wdr` text — the one format both can write
-  // and read. This is the bridge while the picker/editor still speak the classic ADT; it
-  // disappears when they are migrated onto ManagedOpenISDProject directly.
-  function adoptIntoProject(record: _OpenISDDriverJson): void {
+  function adoptIntoProject(driver: OpenISDDriver): void {
     // The managed layer adopts drivers as SERIALISED TEXT, never as the record value (QO73) —
     // the round-trip is the boundary crossing, made explicit.
-    managedProject.loadDriverFromOwdrText(JSON.stringify(record));
+    managedProject.loadDriverFromOwdrText(driver.toOwdrText());
   }
 
-  function embedInProject(record: _OpenISDDriverJson): void {
-    adoptIntoProject(record);
+  function embedInProject(driver: OpenISDDriver): void {
+    adoptIntoProject(driver);
     presentationState.browseOpen = false;
   }
 
-  /** The record behind a library row, whatever kind of row it is. A saved driver and a bundled
-   *  record are both already the app's shape; only a federated `.wdr` needs fetching. */
-  async function recordOf(f: LibraryEntry):
-      Promise<{ ok: true; record: _OpenISDDriverJson } | { ok: false; error: string }> {
-    if (f.myDriverData) return { ok: true, record: structuredClone(f.myDriverData) };
-    if (f.record) return { ok: true, record: structuredClone(f.record) };
+  /** The driver behind a library row, whatever kind of row it is — a DETACHED copy, so the
+   *  caller can edit it freely without mutating the row still on screen. A saved driver and a
+   *  bundled one are both already domain objects; only a federated `.wdr` needs fetching. */
+  async function driverOf(f: LibraryEntry):
+      Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
+    if (f.myDriverData) return { ok: true, driver: f.myDriverData.copy() };
+    if (f.record) return { ok: true, driver: f.record.copy() };
     return modelOf(f);
   }
 
   function closeEditor(): void {
     subject = { kind: 'project' };
-    editorDraft = null;
+    editSeed = null;
     presentationState.editDriverInfo = false;
   }
 
   return {
     /**
      * The user chose a driver from the library. Builds it (from a saved My Driver, a bundled
-     * openisd record, or a `.wdr` fetched from a federated source) and embeds it in the project.
+     * record, or a `.wdr` fetched from a federated source) and embeds it in the project.
      *
      * The picker closes and the user is back in the project. The source is left exactly as it
      * was — the project took a copy.
      */
     async selectDriver(f) {
-      const read = await recordOf(f);
+      const read = await driverOf(f);
       if (!read.ok) return { ok: false, error: read.error };
-      embedInProject(withLinks(read.record, f));
+      embedInProject(withLinks(read.driver, f));
       return { ok: true };
     },
 
     /** Open the editor on a saved driver. Its OK writes to My Drivers, never to the project. */
     editMyDriver(d) {
       subject = { kind: 'myDriver', openedAs: driverId(d) };
-      editorDraft = structuredClone(d);
+      editSeed = d.copy();
       presentationState.editDriverInfo = true;
     },
 
     /** Open the editor on a driver selected in the library overview. Its OK/Save writes to My Drivers. */
     async editOverviewDriver(f) {
-      const read = await recordOf(f);
+      const read = await driverOf(f);
       if (!read.ok) return { ok: false, error: read.error };
       // A saved driver is opened AS ITSELF, so OK replaces that entry. Anything else opens as
       // a new My Driver, so OK files it under whatever identity the user gives it.
       subject = f.myDriverData
         ? { kind: 'myDriver', openedAs: driverId(f.myDriverData) }
         : { kind: 'myDriver', openedAs: '' };
-      editorDraft = withLinks(read.record, f);
+      editSeed = withLinks(read.driver, f);
       presentationState.editDriverInfo = true;
       return { ok: true };
     },
@@ -210,7 +218,7 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
     editProjectDriver() {
       if (managedProject.isWhatIfActive()) { managedProject.cancelWhatIf(); presentationState.editDriver = false; }
       subject = { kind: 'project' };
-      editorDraft = null;
+      editSeed = null;
       presentationState.editDriverInfo = true;
     },
 
@@ -220,49 +228,23 @@ export function createDriverSelection(deps: { myDriverRepo: MyDriverRepo }): Dri
      * so the driver cannot be saved without the `<brand>/<model>` identity it will be filed under.
      *
      * Uses the myDriver subject, so OK saves it into My Drivers and leaves the open project's
-     * driver alone. `openedAs` is empty: there is no existing entry this one replaces.
+     * driver alone. `openedAs` is empty: there is no existing entry this one replaces. `seed`
+     * is null — this module is not a licensed `OpenISDDriver` constructor, so the editor builds
+     * its own blank via `OpenISDDriver.empty()`.
      */
     openNewDriver() {
       subject = { kind: 'myDriver', openedAs: '' };
-      editorDraft = _emptyDriverRecord();
+      editSeed = null;
       presentationState.browseOpen = false;
       presentationState.editDriverInfo = true;
     },
 
-    /** What the editor seeds its draft from, as TEXT, and which driver that is. Text because
-     *  the editor is the one file licensed to hold a live driver: it builds its draft from
-     *  this directly, so nothing in between parses a driver record out of it. */
-    editorSeed() {
-      return {
-        // A library/My-Drivers pick when one is being edited; otherwise the project's own
-        // driver (or an empty one when none is chosen — the editor then authors from scratch).
-        driverText: editorDraft ? driverTextFromRecord(editorDraft) : managedProject.editorSeedDriverText(),
-        subject: subject.kind,
-      };
+    editSubject() {
+      return subject.kind === 'myDriver'
+        ? { kind: 'myDriver', openedAs: subject.openedAs, seed: editSeed }
+        : { kind: 'project' };
     },
 
-    /**
-     * OK. For the project's driver the draft becomes the design. For a saved driver the draft
-     * is written to My Drivers under its `<brand>/<model>` identity — replacing the entry the
-     * editor opened, so a rename moves that driver rather than leaving a stale twin behind, and
-     * replacing any entry the new identity collides with, which is what Save does too.
-     */
-    acceptDriverEdit(json) {
-      if (subject.kind === 'myDriver') {
-        // A rename MOVES the driver: drop the entry the editor opened, then save under the new
-        // identity — which overwrites whatever already held it. Two steps, not one, because they
-        // are two different entries whenever the user changed the brand or the model.
-        if (subject.openedAs && subject.openedAs !== driverId(json)) myDriverRepo.remove(subject.openedAs);
-        myDriverRepo.upsert(json);
-      } else {
-        adoptIntoProject(json);
-      }
-      closeEditor();
-    },
-
-    /** Cancel/Esc: drop the draft. Neither the project nor My Drivers is touched. */
-    cancelDriverEdit() {
-      closeEditor();
-    },
+    closeEditor,
   };
 }

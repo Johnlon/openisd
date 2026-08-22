@@ -1,9 +1,10 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { recordIsSimulatable } from '../src/driverSimulatability.js';
+import { driverIsSimulatable } from '../src/driverSimulatability.js';
+import { OpenISDDriver } from '../src/openisdDriver.js';
 import type { _OpenISDDriverJson } from '../src/openisdDriver.js';
 
-describe('recordIsSimulatable', () => {
+describe('driverIsSimulatable', () => {
   it('is true when Fs, Re, Sd and two of the Q trio are all usable', () => {
     const record: _OpenISDDriverJson = {
       uuid: { value: 'test-uuid', definition: 'stable record identity' },
@@ -28,7 +29,7 @@ describe('recordIsSimulatable', () => {
         },
       },
     };
-    assert.equal(recordIsSimulatable(record), true);
+    assert.equal(driverIsSimulatable(OpenISDDriver.fromJsonRecord(record)), true);
   });
 
   it('is false when Fs is missing', () => {
@@ -54,7 +55,7 @@ describe('recordIsSimulatable', () => {
         },
       },
     };
-    assert.equal(recordIsSimulatable(record), false);
+    assert.equal(driverIsSimulatable(OpenISDDriver.fromJsonRecord(record)), false);
   });
 
   it('is true when quality.missing carries a non-simulation field (Cms) — QO79: usability, not completeness, gates', () => {
@@ -81,7 +82,7 @@ describe('recordIsSimulatable', () => {
         },
       },
     };
-    assert.equal(recordIsSimulatable(record), true);
+    assert.equal(driverIsSimulatable(OpenISDDriver.fromJsonRecord(record)), true);
   });
 
   it('is true when Sd is absent but Vas is usable', () => {
@@ -108,7 +109,7 @@ describe('recordIsSimulatable', () => {
         },
       },
     };
-    assert.equal(recordIsSimulatable(record), true);
+    assert.equal(driverIsSimulatable(OpenISDDriver.fromJsonRecord(record)), true);
   });
 
   it('is false with fewer than two of the Q trio usable', () => {
@@ -134,6 +135,6 @@ describe('recordIsSimulatable', () => {
         },
       },
     };
-    assert.equal(recordIsSimulatable(record), false);
+    assert.equal(driverIsSimulatable(OpenISDDriver.fromJsonRecord(record)), false);
   });
 });

@@ -173,3 +173,35 @@ describe('qGroupIsIncomplete — the group needs two of three to solve the third
     assert.equal(qGroupIsIncomplete(() => true), false);
   });
 });
+
+describe('checkConsistency — the η₀ reference-efficiency relation (D18)', () => {
+  // no = efficiencyConstant(c)·Fs³·Vas/Qes — the WinISD-verified route (a Wine probe of real
+  // WinISD matched this form to 0.000000% on its own saved `no`; winisd_research
+  // scripts/probe_rme_beyma.py). Values below are self-consistent by construction.
+  const consistent = { Fs: 28, Vas: 0.028, Qes: 0.4,
+    no: (4 * Math.PI * Math.PI / (343.6826980479399 ** 3)) * 28 ** 3 * 0.028 / 0.4 };
+
+  it('a consistent no/Fs/Vas/Qes group is silent', () => {
+    assert.deepEqual(checkConsistency(consistent), []);
+  });
+
+  it('an inconsistent no marks the group', () => {
+    const off = { ...consistent, no: consistent.no * 1.5 };
+    const marks = checkConsistency(off);
+    assert.equal(marks.length > 0, true, 'a 50%-off no must not pass silently');
+    assert.equal(marks.some(m => m.target === 'no' && m.fields.includes('no')), true, 'the no group is the one marked');
+  });
+});
+
+describe('checkConsistency — the EBP relation (§4 row 12, BUG_20260821)', () => {
+  // EBP = Fs/Qes — the derivation route driver.ts rel 12 already uses (Fs = EBP·Qes).
+  it('a consistent EBP/Fs/Qes group is silent', () => {
+    assert.deepEqual(checkConsistency({ Fs: 28, Qes: 0.4, EBP: 70 }), []);
+  });
+
+  it('an inconsistent EBP marks the group', () => {
+    const marks = checkConsistency({ Fs: 28, Qes: 0.4, EBP: 120 });
+    assert.equal(marks.length > 0, true, 'EBP=120 against Fs/Qes implying 70 must not pass silently');
+    assert.equal(marks.some(m => m.target === 'EBP' && m.fields.includes('EBP')), true);
+  });
+});

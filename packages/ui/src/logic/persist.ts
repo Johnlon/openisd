@@ -1,4 +1,5 @@
-import type { BoxType, ProjectMeta, SerializedState, UiParams } from '../types.js';
+import type { BoxType } from '@openisd/engine';
+import type { ProjectMeta, SerializedState, UiParams } from '../types.js';
 import type { PresentationState } from './presentationState.js';
 import { CURRENT_SCHEMA, upgrade, type StoredBlob } from './schemaUpgrade.js';
 

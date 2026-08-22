@@ -10,15 +10,11 @@
  *                carried `.wdr` value that could contradict its derivation; whether a stale
  *                carried Gloss is a DQ mark is undecided (ledger QO24), so no relation is
  *                declared for any of them.
- *   12           EBP — a real SpecField (`openisdDriver.ts` `_SpecSection.EBP`, ParState slot
- *                33) with its own engine derivation route (`Fs = EBP·Qes`, `driver.ts` block 3),
- *                but no relation here mentions it: an entered `EBP` that disagrees with the
- *                driver's own `Fs`/`Qes` is never flagged. Recorded as
- *                bugs/BUG_20260821_consistency_relations_miss_the_ebp_fs_route.md.
- *   14,15,16,17,18  the η₀ / SPL / USPL / SPLmax reference-efficiency chain, which
- *                `solveConsistencyGroup` deliberately excludes because three disagreeing
- *                constants exist across the codebase. A detector built on an unresolved
- *                constant would report the codebase's own open defect on every driver.
+ *   15,16,17,18  the SPL / USPL / SPLmax legs of the reference-efficiency chain. Row 14's η₀
+ *                core IS covered below (D18) — `efficiencyConstant(c)` derives the constant
+ *                from the air in use, and the form is pinned against real WinISD's own saved
+ *                `no` (winisd_research scripts/probe_rme_beyma.py, 0.000000%). The SPL legs
+ *                stay out until their K-constant handling gets the same treatment.
  *   19           `Xmax = |Hc−Hg|/2` — the solver reads `Hc`/`Hg`; nothing in the app writes
  *                those names (the editor's fields are `hc`/`hag`), so the
  *                group can never be populated.
@@ -33,6 +29,7 @@
  * i.e. when no rounding of the recorded digits can explain the disagreement.
  */
 
+import { referenceEfficiency } from './efficiency.js';
 import { solveConsistencyGroup, driverC, driverRho } from './driver.js';
 import { dvolFromDims } from './dvolRelation.js';
 
@@ -107,6 +104,15 @@ const RELATIONS: readonly Relation[] = [
   // §4 row 20
   { formula: 'Vd = Sd·Xmax', target: 'Vd', fields: ['Vd', 'Sd', 'Xmax'],
     predict: v => v.Sd * v.Xmax },
+  // §4 row 12 (BUG_20260821): EBP against the driver's own Fs/Qes — the same route
+  // driver.ts rel 12 derives Fs from (Fs = EBP·Qes), stated in EBP-target form.
+  { formula: 'EBP = Fs/Qes', target: 'EBP', fields: ['EBP', 'Fs', 'Qes'],
+    predict: v => v.Fs / v.Qes },
+  // §4 rows 14-18's η₀ core (D18): the reference-efficiency route WinISD itself uses —
+  // verified against real WinISD's own saved `no` to 0.000000% (winisd_research
+  // scripts/probe_rme_beyma.py). `c` resolves the same way row 10 resolves air.
+  { formula: 'no = (4π²/c³)·Fs³·Vas/Qes', target: 'no', fields: ['no', 'Fs', 'Vas', 'Qes'],
+    predict: v => referenceEfficiency(v.Fs, v.Vas, v.Qes, driverC(v)) },
   // §4 rel-25 (WINISD_SCHEMA.md §3.10.1): the truncated-cone-plus-cylinder geometry lock.
   // Reuses dvolFromDims's own domain guards (all five inputs positive, Depth > MagDepth) —
   // a degenerate geometry returns null, mapped to NaN so the `isFinite(expected)` check below

@@ -13,12 +13,8 @@
  * It holds the `OpenISDDriver` VALUE import, which the containment gate
  * (`packages/ui/test/ui/architecture.test.ts`) licenses for this file and `managedProject.ts`
  * alone — project-bound driver IO is `ManagedOpenISDProject`'s own methods, not this module.
- * `driverTextFromRecord` also names `_OpenISDDriverJson` (an editor draft is already a record,
- * never a live driver — see `driverSelection.ts`), so it can hand that record to the owner
- * for serialisation instead of a caller hand-rolling `JSON.stringify` on it.
  */
 import { OpenISDDriver } from '@openisd/model';
-import type { _OpenISDDriverJson } from '@openisd/model';
 
 /** A driver read off the user's disk, or the reason the file could not be read. The driver is
  *  the public domain object — never the record shape. */
@@ -60,10 +56,18 @@ export function driverFromWdrText(text: string): OpenISDDriver {
   return OpenISDDriver.fromWdrText(text);
 }
 
-/** A driver RECORD → its owner's OWN serialisation. THE OWNER OF THE STATE SERIALIZES IT
- *  (QO83): routes through `OpenISDDriver.fromJsonRecord(...).toOwdrText()` rather than a
- *  caller hand-rolling `JSON.stringify` on the record, so a future change to the owner's own
- *  encoding cannot silently diverge from what a caller assembles by hand. */
-export function driverTextFromRecord(record: _OpenISDDriverJson): string {
-  return OpenISDDriver.fromJsonRecord(record).toOwdrText();
+/**
+ * Untrusted `unknown` data → a driver, or `null` when it does not conform closely enough to be
+ * constructed safely. ONE shared read seam for every source of untrusted driver JSON — browser
+ * storage (`db/myDrivers.ts::list()`) and the driver corpus bundle
+ * (`db/driverRepo.ts::bundledEntry()`) alike, so neither seam can silently drift from the
+ * other's conformance bar (the same "one shared implementation" reasoning
+ * `driverConformance.ts::recordConforms` already states). The containment gate licenses only
+ * this file, `managedProject.ts` and `DriverEditorModal.vue` to name `OpenISDDriver` as a
+ * value, so a repository that needs to construct one at its own read seam is handed this
+ * function as an INJECTED collaborator from the composition root (`main.ts`) rather than
+ * importing the class itself.
+ */
+export function driverFromConformingRecord(candidate: unknown): OpenISDDriver | null {
+  return OpenISDDriver.fromConformingRecord(candidate);
 }

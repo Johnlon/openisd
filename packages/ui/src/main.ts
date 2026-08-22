@@ -12,6 +12,7 @@ import { createDiagnostics } from './diagnostics/selftest.js';
 import { createFaultLog } from './diagnostics/faultLog.js';
 import { createDriverSelection } from './logic/driverSelection.js';
 import { createDriverLibrary } from './logic/driverLibrary.js';
+import { driverFromConformingRecord } from './logic/managedDriver.js';
 import { createDesignIO } from './logic/useDesignIO.js';
 import { createFileStore } from './logic/fileStore.js';
 import { provideApp } from './logic/app.js';
@@ -44,15 +45,15 @@ faultLog.install();
 
 const store = createLocalStorageStore();
 const logging = createLogging();
-const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle });
-const myDriverRepo = createMyDriverRepo(store);
+const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle, fromBundleRecord: driverFromConformingRecord });
+const myDriverRepo = createMyDriverRepo(store, driverFromConformingRecord);
 const prefs = createPrefsStore(store);
 const prLibrary = createPrRepo(store, bundle);
 const diagnostics = createDiagnostics({ report: logging.flash });
 const fileStore = createFileStore();
 
 // --- application layer: the app's state and what it does next ---
-const selection = createDriverSelection({ myDriverRepo });
+const selection = createDriverSelection();
 const library = createDriverLibrary({
   driverRepo, myDriverRepo, prefs, logging, selection,
   confirmReset: (question) => confirm(question),

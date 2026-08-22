@@ -13,19 +13,12 @@
  * `{Qts, Qes, Qms}` — the same threshold `@openisd/engine`'s `qGroupIsIncomplete` enforces for
  * the consistency-group solve.
  */
-import { readCell } from './openisdDriver.js';
-import type { SpecField } from './openisdDriver.js';
+import type { OpenISDDriver, SpecField } from './openisdDriver.js';
 import { qGroupIsIncomplete } from '@openisd/engine';
 
-/** Whatever record shape `readCell` itself accepts — taken from its own signature rather than
- *  naming `_OpenISDDriverJson` (class-private to `openisdDriver.ts`, see
- *  `_OpenISDDriverJsonPrivateAllow` there) so this module states no opinion of its own about
- *  that shape. */
-type DriverRecord = Parameters<typeof readCell>[0];
-
-export function recordIsSimulatable(record: DriverRecord): boolean {
+export function driverIsSimulatable(driver: OpenISDDriver): boolean {
   const pos = (field: SpecField) => {
-    const v = readCell(record, field).value;
+    const v = driver.cell(field).value;
     return typeof v === 'number' && v > 0;
   };
   const hasFsOk = pos('Fs');

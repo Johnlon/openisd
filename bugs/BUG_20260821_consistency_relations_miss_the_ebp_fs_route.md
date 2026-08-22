@@ -1,7 +1,9 @@
 # The consistency detector never checks `EBP` against `Fs`/`Qes`
 
 # Status
-OPEN 2026-08-21
+FIXED 2026-08-22 — `EBP = Fs/Qes` added to RELATIONS (red-first: EBP=120 against
+Fs/Qes implying 70 passed silently, now marked); engine suite green; the header's
+row-12 exclusion note removed.
 
 ## Symptom
 
@@ -64,3 +66,9 @@ entered `EBP` that disagrees with the driver's own `Fs`/`Qes` is caught the same
 A test pinning `checkConsistency({ Fs: 40, Qes: 0.4, EBP: 300 })` to report a `Fs`/`EBP`
 consistency issue, alongside the existing "reconciles is silent" cases for a driver where `EBP`
 agrees with `Fs · Qes` to within its recorded precision.
+
+## Corpus impact (measured after the fix landed)
+
+The new relation marks 23 of the 1969 bundled records — spot-checked as true positives, not
+false alarms from the new row: `faitalpro/3fe26-16` states `EBP = 43` while its own `Fs`/`Qes`
+imply `96.2`, a real disagreement no prior relation caught.

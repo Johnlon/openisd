@@ -64,9 +64,9 @@ never touches the TypeScript type — outside this doctrine's scope by design.
 
 - `@openisd/model` is the only package that parses or produces record JSON, inside
   `fromJsonText`/`toJsonText`/`fromFileText` and the per-format importers.
-- Field access from outside the model goes through model-exported functions
-  (`readCell`, `driverId`, `recordIsSimulatable`, `driverHasDqIssues`) applied to
-  domain objects — never to raw records.
+- Field access from outside the model goes through the domain object's own accessors
+  (`OpenISDDriver.cell`/`metaCell`) or model-exported functions taking a domain object
+  (`driverId`, `driverIsSimulatable`, `driverHasDqIssues`) — never a raw record.
 - The leading-underscore privacy gate and the no-re-export gate enforce the doctrine
   mechanically; a new PrivateAllow request for the record type signals a design error,
   not a missing grant.

@@ -609,11 +609,15 @@ export class ManagedOpenISDProject {
     return this.#committed.project.driverText();
   }
 
-  /** What the driver editor seeds its draft from: the COMMITTED driver's own serialisation, or
-   *  an EMPTY driver's when none is chosen (the editor then authors one from scratch rather
-   *  than editing a fake). TEXT, so the seed reaches the editor — the one file licensed to
-   *  hold a live draft — without any intermediary parsing the record out of it. */
-  editorSeedDriverText(): string {
+  /**
+   * The committed driver's own serialisation, or an EMPTY driver's when none is chosen. TEXT —
+   * `ManagedOpenISDProject` never hands an `OpenISDDriver` out (architecture.test.ts, "every
+   * public member returns data"), so this is the sanctioned channel: any caller LICENSED to
+   * construct a driver (today: `DriverEditorModal.vue`, via `OpenISDDriver.fromOwdrText`) can
+   * build its own detached instance from this text without this class handing out the live
+   * object itself. Becomes part of the capability seam when serialisation goes `#`-private.
+   */
+  committedDriverText(): string {
     this.#endWhatIfIfActive();
     const driver = this.#committed.openIsdDriver;
     return driver ? driver.toOwdrText() : OpenISDDriver.empty().toOwdrText();
