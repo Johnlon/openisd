@@ -594,8 +594,14 @@ never improvise around it.
       - `DriverEditorModal.vue:335/:341/:389/:462` — **human's ruling, verbatim: "the driver
         editor should work against the domain api and it should never touch the json - it
         should hand the domain api to the save api and oid save has been granted access to oid
-        internal already"**. So: the dialog passes the DOMAIN OBJECT to the save API; it never
-        calls `toJsonRecord()`; preview uses the owner's `toJsonText()`.
+        internal already"**, and on the register's wording: "what json preview - wth ... there
+        are no exceptions". CORRECTION: there IS no JSON preview — an earlier register row said
+        so and was wrong. `:462` is the `.owdr` FILE-SAVE path, hand-rolling
+        `JSON.stringify(draftDriver.value.toJsonRecord(), null, 2)` — which is byte-for-byte
+        `OpenISDDriver.toOwdrText()`, already on the model at `openisdDriver.ts:520-522`. So no
+        exception and no new API: `:335`/`:341`/`:389` pass the DOMAIN OBJECT to
+        `myDrivers.upsert`/`acceptDriverEdit`, `:462` calls `draftDriver.value.toOwdrText()`,
+        and the dialog never calls `toJsonRecord()` at all.
       - `OriginalShell.vue:467/:477` — hand-rolled `_ground` checkpoint stringifying
         `{box, UiParams, driver, project}`: a proto-memo built by the shell. Remediate with
         the memo pattern (owners produce/consume). Confirms the human's vibe-code suspicion.
