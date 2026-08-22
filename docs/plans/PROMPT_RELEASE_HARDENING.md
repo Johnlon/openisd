@@ -610,6 +610,27 @@ never improvise around it.
       `_ScrapedField` etc. Those are db/ files, so they land here, not in A6.
       Share-link audit: `docs/design/SHARE_LINK_MEMENTO_AUDIT.md` (8 of 9 payload fields are
       NOT mementos; `v: 2` is dead; `stateToUrl` reads `location` globals).
+
+      **THE REGISTER — every site owned (human directive: "I want every single one of these
+      either directly sanctioned by me OR with a documented remediation plan - stop pissing
+      about").** Source of truth: `docs/design/SERIALIZATION_DOCTRINE.md` §register, 12 rows.
+      LIVE DOCUMENT: any newly found site gets a register row AND a plan mapping the day it is
+      found — no quiet passes. Mapping of every REMEDIATE row to the task that closes it:
+
+      | register row | closed by | state |
+      |---|---|---|
+      | `logic/managedDriver.ts` — file IO into the model classes | **A6** (in its running rework; the two refused PrivateAllow rows must disappear) | in flight |
+      | `logic/store.ts` — private-type import removed | **A6** — VERIFY at its commit, do not take the claim | in flight |
+      | `logic/driverSelection.ts:148,239` — model API, stringify path deleted | **A6** (same files, same cycle) | in flight |
+      | `fileFormat.ts:124` — sniffing into the model | **A6** (rides the file-IO completion) | in flight |
+      | `db/myDrivers.ts` — domain-owned persistence | **D21** (QO81 package: uuid keying, upgrade chain, broken rows) | scheduled |
+      | `db/driverRepo.ts` — one composition-root seam | **D22** (this row) | scheduled |
+      | `logic/driverLibrary.ts` — model API; re-export dies | **D15** (re-export gate) + **D22** | scheduled |
+      | `DriverEditorModal.vue:335,341,389,462` — domain object to the save API, preview via `toJsonText()` | **D22**, human-ruled verbatim above | scheduled |
+      | `OriginalShell.vue:467,477` — `_ground` checkpoint → memo pattern | **D22** (with the share-link memento work — same pattern, same owners) | scheduled |
+      | `db/prLibrary.ts` — `UiParams` bags → PR domain objects | **D14 item 5** + **D9** (QO77 live-domain-object pattern) | scheduled |
+      SANCTIONED, no work: `scripts/bundle-drivers.mjs` (build-time, edge 2), `db/prefs.ts`
+      (UI's own state), and the share-link memo as the ONE opaque-string handoff.
 - [ ] **D20** PERSISTENCE VOCABULARY — one uncompromising rule, ruled by the human 2026-08-22
       ("I want logic and consistency in the code - and not misdirection ... make them single
       responsibility and dont fudge it"). FULL STRATEGY:
