@@ -104,7 +104,30 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
-# IN-FLIGHT STATE (updated 2026-08-22 ~16:00
+# IN-FLIGHT STATE (updated 2026-08-22 ~17:45
+- **★ THE CORPUS WAS ALREADY WEEKS STALE (winisd_tool_fix's full-suite run):** 3,981 of 4,389
+  failures are db-conformance reds from the Q31 rename (dq_status→corroboration, 2026-07-29)
+  the corpus NEVER received — 60K+ extra_forbidden. Pre-existing debt, retro-validating B10.
+  THE ONE MIGRATION PASS now officially covers 4 debt classes: dimension renames+SI,
+  OuterX/OuterY+SI, Q31 key renames (dq_status→corroboration, dq→dq_marks), applicable
+  QT59 stored shapes. Sequence: triage the 408 non-corpus failures (in flight) → script →
+  one run with counts → commit → differential (any post-migration dq_status sighting =
+  MIGRATION defect, not bridge) → B10 → my 10-record sample check (now incl. corroboration
+  keys). QT70 filed (rating measurement, unsolved by instruction).
+- **winisd_tools cut: all 8 finish-items DONE** (spec_emit/emit_record/accuton seams,
+  referencer sweep, CONE_DRIVER_TS honest rename, woofer_ts/tweeter_ts deleted-not-renamed
+  with the zero-consumer+already-broken evidence, toys, 2 DQ test files). Uncommitted pending
+  the 408-triage.
+- **openisd safety push DONE by this session** (dev==origin/dev at 1592ff9; opus1's order was
+  classifier-DENIED and it reported only to John's window — correction adopted fleet-wide:
+  every order gets a terminal report to the orderer).
+- **D20 vocabulary RULED (a2e66c5, pending John):** 'store' eliminated — STORAGE/REPO/appState;
+  strategy harmonised with the doctrine (8360ea9). D19 closed (1592ff9 + research 29ad654).
+  D18+EBP relations landed in consistency.ts (in-tree, riding the combined commit).
+  sonnet1: D22 blocker 1 landed green (injected factories, containment gates pass);
+  committedDriverText() ruled (8e8f142) after the never-hands-out gate correctly killed
+  draftDriverForEditor; moves 2+3 in flight.
+- (prior state below)
 - **openisd `5fce7ec`**: D16 (disposition out of the model + DispositionField/Disposition types
   deleted, 7 test files migrated — sonnet1, verified), OuterX/OuterY member rename, D17 (engine
   barrel = engine.ts via the exports map; the no-re-exports gate resolves barrels FROM each
