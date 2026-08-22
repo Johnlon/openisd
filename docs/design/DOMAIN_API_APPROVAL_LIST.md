@@ -86,3 +86,20 @@ group rather than nine times.
 The AST gate checks every domain-class member against this list: a public member with no entry
 here FAILS. The list is human-edit-only, like `ALLOWED_GLOBALS` — an agent may propose an
 addition in a ledger question, never add one.
+
+## Orchestrator ruling 2026-08-22, AMENDED same day (John away, authority delegated — pending his review)
+
+FIRST FORM, WITHDRAWN: `draftDriverForEditor(): OpenISDDriver`. The always-enforced
+"ManagedOpenISDProject never hands an OpenISDDriver out" gate rejects it — and the gate is
+RIGHT: a returned live object is a channel the type system hands to ANY caller, while a text
+hand-off is only useful to a file licensed to construct. Found by sonnet1 RUNNING the gate
+before building.
+
+RULED INSTEAD: `ManagedOpenISDProject.committedDriverText(): string` — the committed driver's
+own serialisation (or the empty driver's when none is chosen). Callable by any file licensed to
+construct a driver; today's one consumer is DriverEditorModal, which builds its own draft via
+`fromOwdrText` (itself probed by the draft exemption) and commits back through the existing
+adoption channels. NOT opacity-as-licence: the ban is on NON-owners holding state, and the
+modal is a licensed holder — this is a sanctioned construction channel, the exact one the gates
+were built around. Becomes part of the capability seam when serialisation goes `#`-private.
+The selector-intermediary design and `editorSeedDriverText()`'s name die with this.
