@@ -571,10 +571,50 @@ never improvise around it.
       graph renders cleanly with Xmax absent (many of the 564 newly-shipped drivers lack
       it); fix any code that assumes Xmax presence. Standing principle for all
       optional-use fields.
-- [ ] **D14** (QO77 follow-through): the peer's read-only scan of ALL UI components for
-      layering violations (editing anything other than live domain objects; local
-      computation/unit math in dialogs) — findings land here as sub-items when the scan
-      reports; each then gets the D9 treatment.
+- [ ] **D14** (QO77 follow-through): peer scan complete 2026-08-22 — 28 violations across
+      9 of 21 .vue files + 2 logic helpers; 12 files clean. Classes: (1) physics/derivation
+      in the view, (2) hand-rolled unit conversion, (3) state writes around the domain,
+      (4) private-shape contact. EVERY file:line below is a peer-scan claim — RE-VERIFY at
+      implementation before acting (line numbers drift; the A6/A7 reworks are moving these
+      files). Each fix gets the D9 treatment (live domain object; dialogs compute nothing).
+      1. PRDefineModal.vue:32-47 [1] prCanonicalFromDatasheet + five setPrField writes (=D9)
+      2. logic/prWinIsdFields.ts:86,:90 [2] /1e4, /1000 by hand
+      3. PREditModal.vue:31-48 [1+3] toUiParams() snapshot mutated by free fns, copied back
+      4. PREditModal.vue:102,:107 [2] :scale="1e4"/"1000" instead of NumInput unit binding
+      5. PREditModal.vue:58 [4] whole UiParams bag as prLibrary.save storage currency
+      6. OgTune.vue:30-51,67,79 [2] local scale table; divides typed value pre-enterDriverField
+      7. OgTune.vue:85-89 [2] scaledLimits multiplies registry SI bounds by hand
+      8. OgNewProject.vue:47-48 [2] vol/1000, frontVol/1000 inline
+      9. OgNewProject.vue:45 [3] state.project.name written directly
+      10. OgNewProject.vue:46 [3] state.box assigned directly
+      11. OriginalShell.vue:104,:469 [3] state.box assigned directly (watcher + selectProject)
+      12. OriginalShell.vue:245-250 [3] created/modified/creator written on mount
+      13. OriginalShell.vue:740 [3] isModified watcher stamps state.project.modified
+      14. OriginalShell.vue:1377-1384 [3] five v-model bindings onto state.project fields
+      15. OriginalShell.vue:391-585 (5 ranges) [3] multi-project rows = toUiParams()
+          snapshots + driverRecord.value as project state
+      16. OriginalShell.vue:467-478 [3+4] JSON deep-clone row → Object.assign(state.project)
+          → private record through loadDriverRecord
+      17. OriginalShell.vue:2,385,458,544,551,559 [4] no-explicit-any disable + ref<any[]>/
+          p:any erasing project rows
+      18. OriginalShell.vue:647-650 [1] driveV setter computes P=V²/R in the view (||8 lit)
+      19. OriginalShell.vue:1267 [2] prVas_l()/1000 inline in template
+      20. OriginalShell.vue:660-665 [3] advTemp/advHumidity/advPressure shadow project env
+      21. OriginalShell.vue:357-372 [1?] cursorVal interpolates plotted series in component
+      22. DriverEditorModal.vue:51,335,341,389,409,462 [4] dialog trafficks in
+          _OpenISDDriverJson (seed.json/toJsonRecord)
+      23. DriverEditorModal.vue:75 [4-minor] driverRaw Record<string,unknown> indexing
+      24. DriverEditorModal.vue:174-177 [4-minor] Proxy over unchecked keys
+      25. DriverEditorModal.vue:673,:768 [2] :scale="100" fraction→percent outside units.ts
+      26. PRBrowser.vue:58 [2] tooltip *1e4/*1000/*1000 by hand
+      27. App.vue:32 [4] root passes driverRecord.value + raw state.project into serialize
+      28. GraphPanel.vue:127-141 [1?] rangeStats computes peak/trough/ripple/average locally
+      Clean (12): AdvancedOptions, DiagnosticsModal, DriverBrowserWinisd,
+      DriverDimensionsDiagram, EquationInspectorModal, ExportMenu, Flash, NumInput (its raw
+      `scale` prop is the escape hatch items 4/6/25 abuse — delete the prop under D10),
+      OptionsModal, ToolbarIcon, UnitToggle, OgFilters. Items 22/27 overlap D11 (private
+      shape); 2/4/6/7/8/19/25/26 fold into D10's one-mechanism sweep; 18/21/28 need an
+      engine/domain home for the math.
 - [x] **F2** DONE 2026-08-22, review PASS after one fix cycle (commit `3596c6c`; the reviewer
       also RETRACTED its fixture finding on re-probing — three of four were provably
       mechanical). Pure select+join+reorder port pinned to winisd_tools 16492ffc; flow styles
