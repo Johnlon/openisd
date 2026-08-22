@@ -104,34 +104,27 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
-# IN-FLIGHT STATE (updated 2026-08-22 ~00:40 — for resume-after-restart; re-verify, don't trust)
+# IN-FLIGHT STATE (updated 2026-08-22 ~06:00 — for resume-after-restart; re-verify, don't trust)
 
-- **A5** — impl done, review BLOCKed, REWORK IN FLIGHT (5 items: delete
-  OpenISDProject.toJsonRecord (live-#record backdoor, zero consumers); brand the class
-  against structural assignment to _OpenISDProjectJson + @ts-expect-error pin;
-  ARCHITECTURE.md :354/:1102 corrections; REACTIVITY.md:21-25 channel prose (QO69
-  authorises); report restatements). openisd tree is UNCOMMITTED with A5's facade + QO70/71
-  edits + D7's two tests in openisdDriver.test.ts (ride A5's commit with a message note).
-- **B6** (QT50 envelope deletion), **B8** (QT18 OutOfScope) — impl agents mid-work in
-  winisd_tools (clean base 16492ffc). Reviews not yet dispatched.
-- **F1** (openisdYamlToWdr export), **F2** (driverYamlToOpenisdYaml port; python
-  model_openisd.py at 16492ffc is the spec; parity vs FRESH python output, not the lagging
-  corpus) — impl agents mid-work. Reviews not yet dispatched.
-- **Review protocol state**: every finished task above needs its Opus adversarial review
-  before ticking; reviewers re-check reworks until PASS.
-- **Playwright**: full-suite runs ONLY on a frozen tree (no agent editing packages/* during
-  the run) — two collapses recorded in
-  bugs/BUG_20260821_milestone_playwright_run_166_failures_after_a3_wave.md. Release-gate run
-  pending, after A-lane settles.
-- **PEER session**: owns the accuton quality bug
-  (winisd_tools bugs/BUG_20260821_accuton_quality_out_of_range_test_fails.md) — fix
-  authorised since 16492ffc landed. Do not duplicate.
-- **Queued next**: A5c (after A5), A6 (carries the QO67 ruling; after A5+A4 — A4 landed
-  f0b5d26), A7, A8, A9, A10; B10 (after B5b verification + B6 + B8; B5b's emitter-side
-  SI check still unverified — fold into B10's pre-flight), B11; F3 (after F1+F2+B10), F4;
-  E1; the release gate.
-- **Open ledger items**: QO73 (DriverJSON alias — human), QO74 (deferred DVol trigger),
-  QT58/QT59 (post-B10), QO69 (REACTIVITY.md sample — being consumed by A5's rework).
+- **A6 (FileIO + QO67)** — REWORK child running (ab2d0edee06cbf90c) on the 8-finding review
+  list (F1 purity, F4 single .wpr writer, F5 handle retention, F6 enum MIME/label, F7 honesty
+  labels + ARCHITECTURE.md deps, delete driverToWdrText/driverToOwdrText, minors). Re-review
+  then commit when it lands.
+- **B6/B8** — DONE via peer commits `a7b513e2` + `3d2a3aa5` (winisd_tools); reviewed, blockers
+  fixed and verified (AGENTS.md revert read directly; evidence gate 19/20, sole red = open
+  runlogger bug's own field). Peer `yaml-divergence-wdr-refactor` resumes B-lane on
+  model_driver.py; peer `add-title-filter-tests` holding (its no_tmp-guard settings.json fix is
+  a DRAFT proposal in the bug file — needs sign-off, it's a security guard).
+- **inbox.py flock verified** 2026-08-22: 4-way concurrent mint stress test → unique ids, no
+  dupes; the peer's reported collision predated the flock commit.
+- **Queued next**: A6 re-review+commit → F3-support bundle build → A7 (carries the disposition
+  bug `BUG_20260822_openisd_reads_disposition...`), A8 (last), A9, A10; B10 (pre-flight SI
+  check; QT59/QT62 rulings), B11; E1; frozen-tree full Playwright; release gate; final
+  attribution-trailer rewrite of unpushed commits.
+- **Morning queue for John** (unacked): QO73, QO75, QO77, QO78, QT58, QT59, QT62, QT63, QT64.
+- **Standing rules in force**: adversarial review before every tick; agent attribution = a
+  blocking review finding (this run's commits clean; 48 legacy unpushed openisd commits carry
+  trailers — final-cleanup rewrite); full Playwright only on a frozen tree.
 
 # THE CHECKLIST
 
@@ -230,12 +223,13 @@ never improvise around it.
       + REACTIVITY.md aligned. PrivateAllow project-shape offences: ZERO. Model 58/58 (67
       with F1/D8). Follow-ups: 4 remaining edit-draft doc refs (E1 sweep); QO69's sample
       still the human's item.
-- [ ] **A5c** (added 2026-08-22, peer-suggested, design-conformant) DELETE store.ts's
-      `_version` bridge — the parallel second reactivity adapter (`const _version`, the
-      `md.subscribe(() => _version.value++)` hookup, every `void _version.value` dependency
-      touch) — and repoint each reader onto `createLiveRef` from logic/liveProject.ts: ONE
-      adapter, zero duplicates, identical behaviour (same subscribe channel). Also sweep the
-      stale `_prototypeProject` comment mention at store.ts:386. Blocked-by: A5. Before A8.
+- [x] **A5c** DONE 2026-08-22, review PASS after one fix cycle (commit `3596c6c`): _version
+      bridge deleted, watches take the LIVE REF directly (the review caught — with executed
+      proof — that a getter-source watch returning an identical reference never refires: the
+      PR auto-solve watch was dead; fixed + pinned by a lower-bound solve test);
+      createLiveRef now disposes with its owning scope (component leak recorded+RESOLVED);
+      grep-zero _version; 56 narrow + ui 230/234 (the 4 pre-existing arch reds). Spin-out:
+      QO75 (approved-stores gate blind to wrapped reactives + .vue files — human's gate).
 - [ ] **A6** Objective 6 — NOW CARRIES THE QO67 RULING (human, 2026-08-21: distinct
       driver/project pathways; the project REUSES the driver-subsection serialisation the
       driver path uses; combine into ONE fileformat file and dedupe to the greatest extent;
@@ -246,7 +240,12 @@ never improvise around it.
       three `ARCHITECTURE.md` corrections. Blocked-by: A5, C1. Done: `createFileIO` exists and
       is constructed only in `main.ts`; useDesignIO's `OpenISDDriver` value import gone;
       wpr/useDesignIO suites green.
-- [ ] **A7** Objective 4: catalogue index built on demand, env-keyed; bundle emits canonical
+- [ ] **A7** NOW ALSO CARRIES (2026-08-22):
+      bugs/BUG_20260822_openisd_reads_disposition_which_post_b10_records_no_longer_carry.md —
+      post-B10 records carry NO quality.disposition/no_ts_published (John's REWORK ruling);
+      bundle-drivers.mjs's `disposition === 'ok'` gate and driverHasDqIssues must switch to a
+      SHARED local derivation from missing/parse_errors before B11. Objective 4: catalogue
+      index built on demand, env-keyed; bundle emits canonical
       `_OpenISDDriverJson` verbatim (fixes
       `BUG_20260820_drivers_bundle_ships_a_shape_openisddriver_cannot_read`); delete
       `readCell`/`readMetaCell`/`readDisplayName`; measure resident memory of 1,526 live
@@ -323,22 +322,24 @@ never improvise around it.
       pipeline-CALCULATED value does not read back as ENTERED; openisd's reader honours it.
       Cross-repo: design first, show the human the shape before building. Blocked-by: B4.
       Done: a calculated fixture value reads back Calculated in openisd.
-- [ ] **B6** QT50: delete `FieldEnvelope.__eq__` + `_unpack`; explicit unwrap in
-      `_check_readings`; migrate the ~64 assertions to `.value ==`. Verify the call-site count
-      with findReferences before deleting. Blocked-by: B4 (same file). Done: `_unpack` gone;
-      pytest green.
+- [x] **B6** DONE 2026-08-22 (peer session `yaml-divergence-wdr-refactor`, winisd_tools
+      `a7b513e2` + review-fix `3d2a3aa5`): `FieldEnvelope.__eq__`/`_unpack` deleted, explicit
+      unwrap in `_check_readings` (dead `comparable` param also deleted in the fix commit),
+      assertions migrated. Orchestrator post-commit review raised 2 BLOCKs (unauthorized
+      AGENTS.md carve-out widening — reverted verbatim to 2026-07-20 wording; bug-file evidence
+      headings — fixed, gate 19/20 green, sole red is the open runlogger bug's own field) — both
+      verified fixed by direct read of AGENTS.md + gate run 2026-08-22.
 - [x] **B7** DONE 2026-08-21, review PASS (coverage for all four deleted behaviours confirmed
       on the production path; stage 6 drives FrameworkRunner.run_stage_5_emit; goldens
       unchanged; scenarios 9/9; two history comments removed by the orchestrator). Follow-ups
       in QT12 notes: SCRAPING.md stale emit_from_seed prose; identity.resolve's dead
       distributor_url param. QT12: delete `accuton/emit.py::emit_from_seed` +
       `test_emit_metadata.py`; scenario stage 6 now runs the IoC path.
-- [ ] **B8** QT18: migrate the 11 discovery-filter plugins to `OutOfScope`-at-build (faitalpro,
-      bc_speakers, scanspeak, accuton, purifi, volt, tangband, morel, bliesma, visaton,
-      wavecor — tangband is in both camps, unify it); delete `is_non_driver_slug` +
-      `NON_DRIVER_SLUG_PATTERNS` when unreferenced; rewrite the `discovers_count: 23` comment
-      and expectation (becomes 25 discovered, 2 refused at build). Blocked-by: B7 (scenario).
-      Done: grep for the deleted names returns nothing; scenarios green.
+- [x] **B8** DONE 2026-08-22 (same peer commits `a7b513e2` + `3d2a3aa5`): plugins migrated to
+      `OutOfScope`-at-build; `is_non_driver_slug`/`NON_DRIVER_SLUG_PATTERNS` deleted; scenario
+      count re-measured to 23 with comments rewritten; DSP distributor coverage restored in the
+      fix commit (`'dsp'` in `_DISTRIBUTOR_COMPONENT_PATTERNS`) after review flagged its loss.
+      Scenario suite green per peer report; evidence gate verified by orchestrator.
 - [x] **B9** DONE 2026-08-21, review PASS after three fix cycles: archive hook in
       unit_pool.settle() (domain-agnostic, typed ArchiveFn), wired at all 5 stages (AST-pinned);
       finally-based drain settles+archives every still-live unit on abort AND SIGINT (real-
@@ -489,20 +490,38 @@ never improvise around it.
 - [x] **D8** DONE 2026-08-22 (commit `7d4cb16`): rel-25 DVol geometry lock in the engine's
       RELATIONS (§3.10.1 formula, house half-ULP tolerance, degenerate geometry skipped by
       the file's own pattern); 5 inline-data cases red-first; engine 385/385; QO74 closed.
-- [ ] **F2** Implement + export `driverYamlToOpenisdYaml(yamlText) → Result<string>` — the
-      `driver.yml → openisd.yml` projection currently existing ONLY in Python
-      (`model_openisd.py::from_metadata`). Largest new TS work in this stream; port from the
-      Python as the spec, with fixture parity tests against real records. Done: parity on a
-      representative record set.
-- [ ] **F3** winisd_tools: embed a JS engine (choose per `DESIGN.md` §12's due-diligence notes),
-      call F1/F2, and run PARITY against the Python mappers — byte-identical output on the full
-      corpus. Blocked-by: F1, F2, B10 (parity against post-regeneration records). If parity is
-      not byte-identical: STOP, report — do NOT regenerate again to paper over it. Done: parity
-      report quoted.
-- [ ] **F4** Delete the Python mapping half per `DESIGN.md` §12.8: `model_wdr.py`'s mapping,
-      `wdr_ini_file.py`, the pinned tests (`toys/` and `test_ts_formula_parity.py` are ALREADY
-      gone — do not chase them). DQ half moves out first, in its own change, per the design.
-      Blocked-by: F3. Done: pytest green with the deletions.
+- [x] **F2** DONE 2026-08-22, review PASS after one fix cycle (commit `3596c6c`; the reviewer
+      also RETRACTED its fixture finding on re-probing — three of four were provably
+      mechanical). Pure select+join+reorder port pinned to winisd_tools 16492ffc; flow styles
+      fixed at the ROOT (the silenced TS2367 was the diagnosis — ownerKey(path) now, guard
+      live); flowCollectionPadding matched to PyYAML (closes one of QT60's three byte gaps);
+      6 real-record parity fixtures incl. a faithful no-ts-published case; 12/12 + 70/70.
+      QT60 (the F3 byte-identical bar: folding+quoting remain) awaits the human before F3.
+      SUPERSEDED 2026-08-22 (QT54 ruling update, verbatim in the ledger): python keeps the
+      driver.yml→openisd.yml projection — the port was DELETED as dead surface (commit
+      `0a8ebe9`). The work stands as review-hardened history only.
+- [ ] **F3** RESCOped 2026-08-22 (QT54 supersession): winisd_tools embeds a JS engine and
+      calls ONLY `openisdYamlToWdr`; parity vs the python .wdr mapper per the QT60 bar (bar
+      ruling pending). OWNED BY the yaml-divergence-wdr-refactor peer session (John-directed);
+      main-exec supplies the openisd bridge artifact on request (openisd read-only for the
+      peer). Blocked-by: F1 (done), B10 (parity against post-regeneration records), QT60.
+      If parity fails the ruled bar: STOP, report — never regenerate to paper over it.
+- [ ] **F4** RESCOped 2026-08-22 (QT54 supersession): delete ONLY the .wdr mapping half —
+      `model_wdr.py`'s mapping + `wdr_ini_file.py` + their pinned tests; `model_openisd.py`
+      SURVIVES (python keeps the driver.yml→openisd.yml projection). DQ half moves out first,
+      in its own change, per the design (note: QT56 deferred the relation-math-DQ deletion —
+      re-read the QT56 notes before touching semantic_dq). Blocked-by: F3. Done: pytest green
+      with the deletions. NOTE (peer, 2026-08-22): test_ts_formula_parity.py — F4-slated —
+      currently red on test_uselib_ts_carries_ebp_formula (openisd's useDriverLibrary.ts no
+      longer carries EBP=Fs/Qes after the A-lane rework); dies with F4, chase nothing.
+
+- [ ] **F3-support** (owed BY main-exec to the yaml-divergence-wdr-refactor peer per QT61,
+      John: "the openisd agent will create the v8 bundle... assume it will exist"): after A6
+      lands, build the V8-loadable bridge bundle — `npm run build:bridge` emitting an IIFE,
+      ES2020, yaml-inlined `dist/openisd-bridge.js` exposing `globalThis.openisdYamlToWdr`
+      ONLY (QT54 supersession; correct DESIGN.md §12.5's two-function text in the same
+      change). Message the peer the artifact path. Done: bundle builds reproducibly; a node
+      smoke-run evaluates it and converts a fixture.
 
 ## Lane G — explicitly OUT of release scope (one line each, do not start)
 
