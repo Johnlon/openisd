@@ -104,7 +104,33 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
-# IN-FLIGHT STATE (updated 2026-08-22 ~10:15 — for resume-after-restart; re-verify, don't trust)
+# IN-FLIGHT STATE (updated 2026-08-22 ~13:20 — for resume-after-restart; re-verify, don't trust)
+
+- **COMMAND STRUCTURE (John, ~13:00): this session (Fable) CONTROLS all dev across openisd,
+  winisd_tools, winisd_drivers; free use of the machine incl. Wine/WinISD probes. The two peer
+  sessions are switched to Sonnet and execute under my direction; every report they make is a
+  CLAIM to verify, every diff goes through adversarial review before it counts. John is away;
+  his standing directive: "I dont want a remediation register I want you to fix it" — execute
+  under recorded rulings, ledger anything genuinely un-ruled WITHOUT stopping adjacent work.
+  The one deliberately-waiting item: QO80 re-issues per the agreed delta format after the
+  export surface settles.**
+- **LANE ASSIGNMENTS (settled ~13:15, peers negotiated the bridge split themselves):**
+  - `winisd_tool_fix` (Sonnet): the dimension rename+SI conversion (model surfaces:
+    record_registries SpecField enum, units.py, model_driver.py, spec_emit.py DONE per its
+    report; model_wdr.py + 18 vendor plugin tables + AST gate + the DB migration script
+    remaining) AND the four reading scenarios + constraint-5 rewrite. Sends me post-migration
+    counts to close openisd's BUG_20260819 (SI/dimension bug).
+  - `yaml-divergence-wdr-refactor` (Sonnet): the disposition deletion (QT58), ALL bridge
+    Python (openisd_js.py per §12.6 against the settled JSON-string contract, mini-racer in
+    pyproject, stub tests), B10 pre-flight + the ONE regeneration trigger when everything
+    lands, F4 (python .wdr deletion) ONLY after loading my committed bridge artifact in real
+    mini-racer. QT63/QT64 ledger re-verification.
+  - THIS SESSION: A6 (cycle-5 fixes in flight) → commit → A7 commit → bridge artifact
+    (keepNames + __openisdBridgeTrace) build+commit → ping yaml-divergence → then the D-lane
+    in dependency order: D16 (disposition, openisd side), D22 second half (repos adopt
+    doctrine, #-private sweep, editor owns draft), D20 (vocabulary), D21 (QO81 package),
+    D15/D17 (re-export gate + engine barrel), D12 (approved-stores widening), D13, D9/D10/D14
+    residue, A8, A9, A10, E1, frozen-tree Playwright, release gate.
 
 - **SCHEMA RULINGS (John, this morning, in chat — recorded in winisd_tools DESIGN.md
   §"Per-source reading scenarios" + QT59/QT62 ledger items, commits a28c6bbc/fdc9a07f/985508c3):**
