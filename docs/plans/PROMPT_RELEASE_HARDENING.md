@@ -561,6 +561,55 @@ never improvise around it.
       bespoke gate (extend the :703 typeNodeNames() approach). store.ts:19's direct
       `_OpenISDDriverJson` import (its own violation, not PrivateAllow-covered) resolves
       in the same design.
+- [ ] **D22** SERIALIZATION DOCTRINE — QO83 CLOSED, both PrivateAllow grants REFUSED; the
+      human ruled the architecture instead. ONE RULE: **THE OWNER OF THE STATE SERIALIZES AND
+      PERSISTS IT.** The `KeyValueStore` is injected INTO the model/managed layer, which
+      saves and loads itself; NO ui module ferries record strings. Consequence by design:
+      `_OpenISDDriverJson` never crosses the model package boundary and every PrivateAllow
+      entry for it becomes deletable — the allow-list shrinks to empty by restructure, never
+      by grant.
+      **⛔ OPACITY IS NOT A LICENCE (human, emphatic 2026-08-22):** *"I dont want the internal
+      state leaking out of the component at all - there are no exceptions and the grant that
+      the sharing facility is given a memo ... may in no way be interpreted by the AI as a
+      weakening of that rule. There is no situation where I want even an opaque version of
+      that state being passed around."* Making state a `string`/`unknown` does NOT make it
+      stop being that component's state. Precedent: A6 retyped `SerializedState.driver` to
+      `string`, declared the boundary closed, and a consumer immediately did
+      `JSON.parse(...) as _OpenISDDriverJson` — same bytes, same coupling, now invisible to
+      every gate. The ONE sanctioned opaque handoff in the app is the share-link memo, and it
+      travels owner → sink → SAME owner only.
+      **Native `#` privacy is the mechanism** (human's insight): `OpenISDDriver` already holds
+      `readonly #record`. Serialisation moving INSIDE the class reads `#record` directly and
+      the runtime — not a gate, not a convention — enforces the rest. BOUNDARY: serialisation
+      moves in, BROWSER ACCESS DOES NOT. `packages/model` is verified platform-free (no
+      `localStorage`/`window`/`document` in any src file) and the V8 bridge bundles it into
+      mini-racer where `localStorage` does not exist; a storage call inside the model breaks
+      the bridge at runtime and makes the model untestable without a browser. The repo keeps
+      the call and holds only strings + domain objects: `kv.set(driver.uuid, driver.toJsonText())`.
+      Same shape for `.oip` projects and passive radiators — one rule, not three special cases.
+      **AUDIT — every site handling domain internals outside the ruled places** (peer-run,
+      RE-VERIFY each at implementation):
+      - `driverSelection.ts:148` `JSON.stringify(record)` to feed `loadDriverFromOwdrText`
+        (UI re-serialising domain state to talk to the domain); `:239` same with `editorDraft`
+      - `DriverEditorModal.vue:335/:341/:389/:462` — **human's ruling, verbatim: "the driver
+        editor should work against the domain api and it should never touch the json - it
+        should hand the domain api to the save api and oid save has been granted access to oid
+        internal already"**. So: the dialog passes the DOMAIN OBJECT to the save API; it never
+        calls `toJsonRecord()`; preview uses the owner's `toJsonText()`.
+      - `OriginalShell.vue:467/:477` — hand-rolled `_ground` checkpoint stringifying
+        `{box, UiParams, driver, project}`: a proto-memo built by the shell. Remediate with
+        the memo pattern (owners produce/consume). Confirms the human's vibe-code suspicion.
+      - `driverLibrary.ts` — types itself in records + its re-export offence; model API instead
+      - `fileFormat.ts:124` — format-sniffing `JSON.parse` moves into the model with the
+        file-IO completion
+      - `store.ts` `_OpenISDDriverJson` import — A6 claims removal; VERIFY at commit
+      - `prLibrary.ts` stores `UiParams` bags (also D14 item 5)
+      Sanctioned and clean: `bundle-drivers.mjs` (build-time), `prefs.ts` (UI's own state).
+      NOTE: the strengthened QO73 gate already catches more of these — a probe run shows
+      `MyDriverRepo.list()`/`createMyDriverRepo()` resolving to hidden `_SpecEntry`/`_Specs`/
+      `_ScrapedField` etc. Those are db/ files, so they land here, not in A6.
+      Share-link audit: `docs/design/SHARE_LINK_MEMENTO_AUDIT.md` (8 of 9 payload fields are
+      NOT mementos; `v: 2` is dead; `stateToUrl` reads `location` globals).
 - [ ] **D20** PERSISTENCE VOCABULARY — one uncompromising rule, ruled by the human 2026-08-22
       ("I want logic and consistency in the code - and not misdirection ... make them single
       responsibility and dont fudge it"). FULL STRATEGY:
