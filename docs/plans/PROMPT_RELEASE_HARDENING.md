@@ -131,7 +131,20 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
   bug `BUG_20260822_openisd_reads_disposition...`), A8 (last), A9, A10; B10 (pre-flight SI
   check; QT59/QT62 rulings), B11; E1; frozen-tree full Playwright; release gate; final
   attribution-trailer rewrite of unpushed commits.
-- **Morning queue for John** (unacked): QO73, QO75, QO77, QO78, QT58, QT59, QT62, QT63, QT64.
+- **A7 (catalogue/bundle)** — implementation + adversarial review done; cycle-2 fixes running
+  (child). Derivation VERIFIED correct (mirrors python stamp_disposition; corpus keys stale —
+  564 store 'ok' against non-empty missing, 239 the reverse; stale-corpus bug being filed in
+  winisd_tools). Commit HELD on QO79 (bundle gate criterion: new gate yields 1197 vs 1526,
+  564 dropped drivers ALL simulatable — product call). QO80 filed: 18 new export names
+  (A6's 17 + A7's recordStandingIsOk) need John's ALLOWED_GLOBALS grants. readCell/
+  readMetaCell/readDisplayName deletion deferred — live callers in driverRepo/driverLibrary;
+  needs the A6-held openisdDriver.ts or a QO73/QO75-adjacent ruling. Pre-existing
+  driver-selection.browser.spec.ts red has its own bug file (spec seeds a flat shape
+  myDrivers no longer tolerates).
+- **archive-bugs.py** — classifier rewritten (any OPEN line anywhere keeps the file in
+  bugs/), probe-verified; fix in tree, rides next code commit (bug record committed d537e9b).
+- **Morning queue for John** (unacked): QO73, QO75, QO77, QO78, QO79 (holds A7+B11),
+  QO80 (ALLOWED_GLOBALS grants), QT58, QT59, QT62, QT63, QT64.
 - **Standing rules in force**: adversarial review before every tick; agent attribution = a
   blocking review finding (this run's commits clean; 48 legacy unpushed openisd commits carry
   trailers — final-cleanup rewrite); full Playwright only on a frozen tree.
