@@ -1,81 +1,34 @@
-# `.wpr` writes the passive radiator's Vas in litres into a cubic-metre field — 1000× too large
+# Driver-editor fields and project values are silently dropped on file write
 
-# Status
-- Vas litres/m³ write-site fix: FIXED
-- F2/F3 sub-findings: OPEN (moved to BACKLOG.md)
+## Status
+OPEN — two findings, both tracked in `BACKLOG.md` as F2 and F3.
 
 ## Symptom
 
-Exporting a passive-radiator design to `.wpr` writes `[PassiveRadiator].Vas` 1000× too large.
-WinISD reads the file as cubic metres; openisd writes litres. The default design exports
-`Vas=20.074` where WinISD needs `0.020074`.
+**F2 — eleven driver-editor fields are silently discarded on `.wdr` save.** `Vd`, `Dd`, `no`,
+`SPL`, `USPL`, `SPLmax`, `SPLmaxLF`, `Rme`, `gamma`, `Mpow` and `Mcost` are editable in the driver
+editor and do not reach the file.
 
-## Evidence
+**F3 — `.wpr` writes three project values as literals.** `Rg`, `alfaVC` and `dTVC` are emitted as
+fixed constants, so the project's real values never reach the file. A design exported and reopened
+comes back with someone else's numbers in those three fields.
 
-`packages/engine/src/formulas.ts:15-17`:
-
-```ts
-export function prVas(prCms: number, prSd: number): number {
-  return prCms * prSd * prSd * RHO * C * C * 1000;   // ×1000 converts m³ to litres
-}
-```
-
-`prVas()` deliberately returns **litres** — its own comment says so, and that's correct for its
-display use (`packages/ui/src/logic/prWinIsdFields.ts:16`, shown under an "L" label in
-`PREditModal.vue`).
-
-The bug is at the one call site that writes the `.wpr` file,
-`packages/ui/src/logic/wprMapping.ts:101`:
-
-```ts
-input.pr = {
-  Vas: prVas(P.prCms, P.prSd),   // litres, passed straight to the SI field
-  ...
-```
-
-That value flows unconverted into `packages/winisd/src/classic/wpr.ts:197`'s
-`[PassiveRadiator]` write. Every other field in that section is SI — `Sd`, `Xmax`, `Me` — so this
-is not a section-wide convention, just this one field.
-
-**Oracle**: `docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr:151` has `Vas=0.0048`, which WinISD's
-own PR pane renders as `4.80 l` (`docs/winisd_screenshots/view_3_passive_radiator.png`). 0.0048 m³ = 4.8 L —
-confirms the file field is cubic metres, litres nowhere in it.
-
-**Why nothing caught it**: `packages/winisd/test/classic/wpr.test.ts:130` hand-feeds
-`Vas: 0.0048` directly — it proves the serialiser only, never the mapping. `buildWprInput` itself
-had zero tests (`grep -r buildWprInput packages/ui/test` returned nothing before this fix).
+Both are silent: nothing is logged, no DQ mark is raised, and the written file is well-formed, so
+the loss is invisible until the file is read back and compared.
 
 ## Cause
 
-`prVas()`'s public contract is litres (correct, and used correctly for display). The `.wpr`
-mapping layer called it directly instead of converting back to the file's SI unit — the one
-function serves two unit domains and the boundary crossing was never converted.
+Both are write-side gaps in the mapping layer rather than serialiser faults. The serialisers emit
+what they are handed; the mapping never hands them these values.
 
 ## Fix
 
-`packages/ui/src/logic/wprMapping.ts:101` — divide by 1000 at the write site, converting `prVas`'s
-litres back to the file's cubic metres:
+F2: give each of the eleven fields a write path from the editor's record to the `.wdr` key it
+belongs to.
 
-```ts
-Vas: prVas(P.prCms, P.prSd) / 1000,
-```
-
-`prVas()` itself is unchanged — its litres contract is correct for its other caller.
+F3: read `Rg`, `alfaVC` and `dTVC` from the project rather than emitting constants.
 
 ## Verification
 
-New test `packages/ui/test/logic/wprMapping.test.ts` — a red/green pair: asserts
-`buildWprInput('pr', ...).pr.Vas` equals `prCms · prSd² · ρ · c²` (no `×1000`, no `÷1000`
-duplicated in the test — computed independently from the same physical formula) for a
-representative PR driver. Fails against the pre-fix code (was 1000× the asserted value), passes
-after.
-
-## Scope note
-
-The same audit (QO37) found two more real gaps not fixed here, not called severe:
-- **F2** — 11 driver-editor fields (`Vd`, `Dd`, `no`, `SPL`, `USPL`, `SPLmax`, `SPLmaxLF`, `Rme`,
-  `gamma`, `Mpow`, `Mcost`) are silently discarded on `.wdr` save.
-- **F3** — `.wpr` writes `Rg`, `alfaVC`, `dTVC` as literals; the project's real values never reach
-  the file.
-
-Both moved to `BACKLOG.md`.
+A round trip through each format returns every field the editor accepted, asserted field by field
+rather than on a sampled subset — a partial assertion is what let these through.
