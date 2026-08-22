@@ -48,9 +48,9 @@ describe('toYaml — round-trips a record built in TS', () => {
   it('parses back to the same data after a write/read cycle', () => {
     const original = fromYaml(REAL_YAML);
     const roundTripped = fromYaml(toYaml(original));
-    // Compare records, not driver instances: OpenISDDriver's own state (#cache, #listeners,
-    // ...) is private, so assert.deepEqual on two instances sees no own properties on either
-    // side and passes vacuously regardless of content — verified empirically, not assumed.
+    // Compare records, not driver instances: OpenISDDriver's own state (#cache, ...) is
+    // private, so assert.deepEqual on two instances sees no own properties on either side and
+    // passes vacuously regardless of content — verified empirically, not assumed.
     assert.deepEqual(roundTripped.toJsonRecord(), original.toJsonRecord());
   });
 

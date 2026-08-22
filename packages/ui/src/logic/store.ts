@@ -16,7 +16,7 @@ import { reactive, computed, ref, shallowRef, watch, type ComputedRef } from 'vu
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { driverRecordProblems, OpenISDDriver } from '@openisd/model';
-import type { SpecField, _OpenISDDriverJson, _OpenISDProjectJson } from '@openisd/model';
+import type { SpecField, _OpenISDDriverJson, OpenISDProject } from '@openisd/model';
 import { ManagedOpenISDProject, toAlignmentKind, fromAlignmentKind } from './managedProject.js';
 import type { AppState, UiParams, SyncedParams, SerializedState, DriverJSON } from '../types.js';
 import { presentationState, unitToken } from './presentationState.js';
@@ -221,10 +221,10 @@ function _engineDriver(): EngineDriver | null {
 // The PROJECT for persistence — committed state, never the overlay, so a live what-if is never
 // saved, shared or written to disk. _projectToPersist() cancels an active what-if itself.
 //
-// NOT EXPORTED. The store may HOLD `_OpenISDProjectJson` (it is the stored object) but may not
-// expose it on its API — only the domain wrappers may (human ruling 2026-08-20). Every consumer
-// outside this file takes a domain wrapper or a public type instead.
-function _projectToPersist(): _OpenISDProjectJson {
+// NOT EXPORTED. The store may HOLD the `OpenISDProject` facade (it is the stored object) but may
+// not expose it on its API — only the domain wrappers may (human ruling 2026-08-20). Every
+// consumer outside this file takes a domain wrapper or a public type instead.
+function _projectToPersist(): OpenISDProject {
   void _version.value;
   return managedProject._projectToPersist();
 }
@@ -232,7 +232,7 @@ function _projectToPersist(): _OpenISDProjectJson {
 /** Just the driver record out of the persistable project, for the paths that write a DRIVER
  *  file (`.wdr`, `.owdr`) rather than a project file. Undefined when none is chosen. */
 export const driverRecord: ComputedRef<DriverJSON | undefined> =
-  computed(() => _projectToPersist().driver);
+  computed(() => _projectToPersist()._driverJsonRecord());
 
 /** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
  *  driver. '' when nothing names it (no driver chosen yet), so a caller can fall back. */

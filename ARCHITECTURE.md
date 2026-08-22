@@ -351,10 +351,12 @@ user is working on side by side. The workspace holds `ManagedProject`s in an arr
 stable, and identity is the entry's own id — never its name. `logic/model/workspace.ts` already
 declares `projects: WorkspaceEntry[]`, which is correct and must stay a list.
 
-**Reading it.** `ManagedProject` is the only thing the app talks to. It holds three complete
-`OpenISDProject`s — ground, committed, and one overlay that is either an edit draft or a what-if,
-never both. `OpenISDProject` is red because it is PRIVATE: nothing outside `ManagedProject` reaches
-it, and nothing outside reaches its members either.
+**Reading it.** `ManagedProject` is the only thing the app talks to for a project's STATE. It holds
+three complete `OpenISDProject`s — ground, committed, and at most one open what-if overlay.
+`OpenISDProject` itself is a public class (`packages/model/src/openisdProject.ts`) — the store
+names its type for a persistable project's return shape — but the `_OpenISDProjectJson` record it
+wraps is red because THAT is private: nothing outside `openisdProject.ts` may name it, and every
+read or write of a project's fields goes through `OpenISDProject`'s own methods.
 
 **Green boxes are COMPONENTS** — you buy them, so they carry a full record, per-field provenance
 and a catalogue entry. **Blue boxes are CONFIGURATIONS** — you choose or size them, so they are
@@ -931,42 +933,32 @@ shapes of it.
 
 ### `ManagedProject` — the one facade over every state layer
 
-**`ManagedProject` wraps a project's ground state, committed state, and an edit-or-what-if overlay
-— three complete `OpenISDProject`s.
+**`ManagedProject` wraps a project's ground state, committed state, and at most one open what-if
+overlay — three complete `OpenISDProject`s.
 Nothing outside it may read or write any of those layers directly** — a component, a workflow, a
 service, anything — reaches the project's state only through `ManagedProject`. This is the layer
 model of [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md) given a single owning object:
 ground state is that document's Baseline/Ground, committed state is its Committed design, and the
-overlay is either a Dialog draft (editing) or a What-if overlay — never both at once.
-
-**The edit lifecycle:** `beginEdit()` opens a draft over the committed state. `commitEdit()` writes
-the draft into committed state and discards the draft. `cancelEdit()` discards the draft without
-writing anything — the committed state is byte-identical to before `beginEdit()` was called,
-provenance marks included.
+overlay is a What-if.
 
 **The what-if lifecycle:** `beginWhatIf()` opens an overlay read from the committed state.
-`cancelWhatIf()` discards it. **There is no `commitWhatIf()`** — a what-if explores values the app
-cannot verify against physical reality, so nothing ever promotes one into the design. The only way
-a what-if session ends is `cancelWhatIf()`, and it always discards.
+`resetOverlayToGround()` discards it and reopens a fresh one read from ground — the Tune panel's
+Reset. `cancelWhatIf()` discards it. **There is no `commitWhatIf()`** — a what-if explores values
+the app cannot verify against physical reality, so nothing ever promotes one into the design. The
+only way a what-if session ends is `cancelWhatIf()`, and it always discards.
 
-**Subscription is single-channel.** A consumer subscribes to `ManagedProject` and to nothing beneath
-it. `ManagedProject` alone decides when a subscriber is notified, and the two overlays notify on
-different rhythms:
-
-- **An edit draft is silent.** Typing into an open edit produces no notification. `commitEdit()`
-  writes the draft into committed state, and it is **that write to committed state** — not the act of
-  committing — that triggers the notification a subscriber receives.
-- **A what-if overlay is live.** Every change to an active what-if overlay notifies immediately, so
-  a chart reads the scrubbed value on every frame. `beginWhatIf()`/`cancelWhatIf()` themselves also
-  notify, since they change which layer resolves.
-
-An edit draft that never commits produces zero notifications; a what-if session that never
-commits (none ever do) produces one notification per change plus one on cancel.
+**Subscription is single-channel, and every public mutator notifies unconditionally**
+(`docs/design/REACTIVITY.md`). A consumer subscribes to `ManagedProject` and to nothing beneath it;
+`ManagedProject` alone decides when a subscriber is notified. Every mutation — a driver field
+(`enter`/`clear`/`enterMeta`/`clearMeta`), a box/vent/PR/environment/signal/sim-option/sweep/filter
+write (`mutate()`), and a what-if lifecycle change (`beginWhatIf`/`cancelWhatIf`, when it actually
+changes which layer is effective) — notifies exactly once, whether it lands on committed state or a
+live what-if. There is no silent edit path: every write is observed the instant it happens.
 
 **A what-if never leaks into anything persistent.** Its value is unverified against physical
 reality — nothing outside the live overlay is allowed to see it. `ManagedProject` cancels any active
 what-if, itself, before every operation that reads committed state for a purpose beyond driving the
-open charts: `beginEdit()`, saving the project, saving-as, exporting `.wdr`/`.owdr`/`.wpr`,
+open charts: saving the project, saving-as, exporting `.wdr`/`.owdr`/`.wpr`,
 generating a share link, saving to My Drivers, and loading or switching to a different driver. This
 is `ManagedProject`'s own responsibility, not the caller's — a call site that reads committed state
 without going through `ManagedProject` can forget the guard, which is exactly how a real bug reached
@@ -1109,10 +1101,11 @@ the same act to the user, so they must be the same act to the app.
 ManagedProject
   ground     : OpenISDProject     the design exactly as loaded
   committed  : OpenISDProject     the design as it stands
-  overlay    : OpenISDProject     an edit draft OR a what-if — never both
+  overlay    : OpenISDProject     a what-if, open at most one at a time
 
 OpenISDProject
-  driver     : OpenISDDriver      one driver
+  driver record : the chosen driver, as data — ManagedOpenISDProject materialises the
+                  live OpenISDDriver over it (the one file, by architecture rule, that does)
   box        : the enclosure and its alignment
   vents      : the vent group (round / slotted / …)
   radiators  : the passive-radiator group

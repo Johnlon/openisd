@@ -3,7 +3,7 @@
  * (docs/plans/PLAN_OPENISD_DRIVER_MODEL.md Phase 1).
  *
  * Seam under test: the public API — `fromRecord`, `enter`, `clear`, `cell`, `errors`,
- * `consistencyIssues`, `toRecord`, `subscribe`. Nothing reaches inside; every assertion
+ * `consistencyIssues`, `toRecord`. Nothing reaches inside; every assertion
  * goes through one of those or through the record `toRecord()` hands back, which is the
  * `.owdr` bytes and therefore a genuine public surface.
  *
@@ -207,13 +207,29 @@ describe('OpenISDDriver — metaCell()/enterMeta()/clearMeta() (brand/model/manu
     assert.equal(c.value, 'GRS');
     assert.equal(c.origin, 'manufacturer_product_page');
   });
+});
 
-  it('subscribe() fires on enterMeta()/clearMeta() the same as a numeric enter/clear', () => {
-    const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    let calls = 0;
-    d.subscribe(() => { calls++; });
-    d.enterMeta('brand', 'GRS Audio');
-    d.clearMeta('brand');
-    assert.equal(calls, 2);
+describe('OpenISDDriver — driver_type "passive_radiator" is the ONLY spelling (QO65 ruling)', () => {
+  it('driver_type "passive_radiator" (underscore) resolves to the passive_radiator section, ' +
+     'reading the value stated there', () => {
+    const record = grs8fr8();
+    record.driver_type.value = 'passive_radiator';
+    record.specs = { passive_radiator: { Fs: record.specs.woofer!.Fs } };
+    const d = OpenISDDriver.fromJsonRecord(record);
+    assert.equal(d.section, 'passive_radiator');
+    assert.equal(d.cell('Fs').value, 45.0);
+  });
+
+  it('driver_type "passive-radiator" (kebab) is undeclared — sectionFor falls back to the ' +
+     'woofer section, so the value stated under specs.passive_radiator reads not-available ' +
+     '(BUG_20260821_sectionfor_cannot_distinguish_invalid_driver_type_from_woofer: this is a ' +
+     'silent fallback, not a refusal — an undeclared value takes the same branch as every ' +
+     'legitimately-woofer driver type)', () => {
+    const record = grs8fr8();
+    record.driver_type.value = 'passive-radiator';
+    record.specs = { passive_radiator: { Fs: record.specs.woofer!.Fs } };
+    const d = OpenISDDriver.fromJsonRecord(record);
+    assert.equal(d.section, 'woofer');
+    assert.equal(d.cell('Fs').value, null);
   });
 });

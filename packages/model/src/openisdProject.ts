@@ -200,8 +200,20 @@ export interface _OpenISDProjectJson {
    *
    *  A record, not the live `OpenISDDriver`: this project is cloned three ways by
    *  `ManagedProject`, and `structuredClone` silently reduces a class instance to a plain
-   *  object. `ManagedProject` materialises a live driver over whichever layer is effective. */
-  driver?: _OpenISDDriverJson;
+   *  object. `ManagedProject` materialises a live driver over whichever layer is effective.
+   *
+   *  A REQUIRED key holding `| undefined`, not an optional (`driver?:`) property: `OpenISDProject`
+   *  exposes every other field of this interface under a same-named public getter, which makes
+   *  the class structurally satisfy this interface UNLESS at least one field the class does NOT
+   *  expose is also non-optional — an optional field's mere absence from the class's public
+   *  shape is not a structural mismatch, so `driver?:` let `OpenISDProject` duck-type as this
+   *  private JSON shape with nothing else changed (verified: a private class field, including a
+   *  branded `#brand`, does not block this — TypeScript never applies private-member nominal
+   *  typing when the TARGET is a plain interface, only class-to-class). `OpenISDProject` never
+   *  exposes a `driver` property at all (only `_driverJsonRecord()`/`setDriverRecord()`), so this
+   *  key alone closes the leak; `OpenISDProject`'s own `#brand` field is kept as defense against
+   *  a FUTURE class colliding with this shape, but is not what stops this leak. */
+  driver: _OpenISDDriverJson | undefined;
   box: OpenISDBox;
   target: OpenISDTarget;
   filters: Filter[];
@@ -373,4 +385,101 @@ export function ensurePassiveRadiator(
   alignment: OpenISDPassiveRadiatorAlignment,
 ): OpenISDPassiveRadiatorRef {
   return alignment.radiator ??= { Sd_m2: 0, Mmd_kg: 0, Cms_m_per_N: 0, Rms_Ns_per_m: 0, Xmax_m: 0, name: '' };
+}
+
+// ── OpenISDProject — the class facade over `_OpenISDProjectJson` ──────────────────────────
+//
+// Mirrors `OpenISDDriver`'s own pattern (openisdDriver.ts): private constructor, static
+// factories, accessors, `copy()`. `ManagedOpenISDProject` holds three of these (ground /
+// committed / what-if) and never touches `_OpenISDProjectJson` directly — every read and
+// write goes through this class's own API instead.
+
+/** A project with nothing chosen — what the app holds before a driver is picked, and the seed
+ *  `OpenISDProject.empty()` builds. Every value is a real default a user could have set; none
+ *  is a fake driver standing in for a real one. */
+function prototypeProject(): _OpenISDProjectJson {
+  return {
+    driver: undefined,
+    box: prototypeBox(),
+    // WinISD's direction: volume, diameter and tuning are typed; vent length is returned.
+    // `Frc` has no OpenISDBox home yet (no 6th-order alignment exists — QO44) and is carried
+    // here as a bare flag with no corresponding value; `prMadd` is the PR's own entered
+    // member — added mass is typed, its tuning solved. `ventW`/`ventH` mark round-vent
+    // dimensions entered even though only a slotted vent solves against them, matching what
+    // ships: `ventFieldState` reads this set for EVERY vent field's E/C/N badge, not only the
+    // ones the Helmholtz solver consumes.
+    target: { entered: {
+      Vb: true, ventD: true, ventW: true, ventH: true, Fb: true, Frc: true, prMadd: true,
+    } },
+    filters: [],
+    environment: {
+      tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false,
+    },
+    signal: {
+      inputPower_W: 1, seriesResistance_ohm: 0.1, driverCount: 1,
+      wiring: 'parallel', rgAtDriverSide: false,
+    },
+    listening: { distance_m: 1, angle_rad: 0 },
+    simOptions: {
+      circuitModel: 'winisd', tlPortModel: false, forceFlatResponse: false,
+      splXmaxLimited: false, vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0,
+    },
+    sweep: { fmin_hz: 1, fmax_hz: 20000, points: 400 },
+    meta: { name: '', creator: '', created: '', modified: '', description: '' },
+  };
+}
+
+export class OpenISDProject {
+  readonly #record: _OpenISDProjectJson;
+
+  private constructor(record: _OpenISDProjectJson) {
+    this.#record = record;
+  }
+
+  /** Adopt an existing record — a load from disk, a share link, a restore. */
+  static fromJsonRecord(record: _OpenISDProjectJson): OpenISDProject {
+    return new OpenISDProject(record);
+  }
+
+  /** A project with nothing chosen. */
+  static empty(): OpenISDProject {
+    return new OpenISDProject(prototypeProject());
+  }
+
+  /** An independent copy — how `ManagedOpenISDProject` obtains its ground/committed/what-if
+   *  layers without ever touching the JSON itself (`ManagedX` clones `X` by asking `X` for a
+   *  copy of itself — never by touching its JSON, ledger QO60/61). */
+  copy(): OpenISDProject {
+    return new OpenISDProject(structuredClone(this.#record));
+  }
+
+  // ---- driver ------------------------------------------------------------------------------
+
+  /** The driver record, raw — for `ManagedOpenISDProject` to materialise its OWN live
+   *  `OpenISDDriver` over (it is the one file, by architecture rule, that constructs one).
+   *  Leading underscore: this hands back the private JSON shape, not a public read. */
+  _driverJsonRecord(): _OpenISDDriverJson | undefined { return this.#record.driver; }
+
+  /** Adopt a driver record into this project — a clone, so the caller's own copy and this
+   *  project's copy are never the same object. */
+  setDriverRecord(record: _OpenISDDriverJson): void {
+    this.#record.driver = structuredClone(record);
+  }
+
+  // ---- sub-object accessors — live references, named exactly like `_OpenISDProjectJson`'s
+  // own fields so a caller reads and writes them precisely as it would the raw record, without
+  // ever naming `_OpenISDProjectJson` itself. "The box IS the storage" (managedProject.ts):
+  // these are public, non-private types — `OpenISDBox` and its siblings, not `_XJson` — so
+  // handing out a live reference is not handing out the private shape. --------------------
+
+  get box(): OpenISDBox { return this.#record.box; }
+  get target(): OpenISDTarget { return this.#record.target; }
+  get environment(): OpenISDEnvironment { return this.#record.environment; }
+  get signal(): OpenISDSignal { return this.#record.signal; }
+  get listening(): OpenISDListening { return this.#record.listening; }
+  get simOptions(): OpenISDSimOptions { return this.#record.simOptions; }
+  get sweep(): OpenISDSweepRange { return this.#record.sweep; }
+  get meta(): OpenISDProjectMeta { return this.#record.meta; }
+  get filters(): Filter[] { return this.#record.filters; }
+  set filters(value: Filter[]) { this.#record.filters = value; }
 }

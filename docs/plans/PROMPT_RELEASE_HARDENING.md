@@ -104,6 +104,35 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
+# IN-FLIGHT STATE (updated 2026-08-22 ~00:40 — for resume-after-restart; re-verify, don't trust)
+
+- **A5** — impl done, review BLOCKed, REWORK IN FLIGHT (5 items: delete
+  OpenISDProject.toJsonRecord (live-#record backdoor, zero consumers); brand the class
+  against structural assignment to _OpenISDProjectJson + @ts-expect-error pin;
+  ARCHITECTURE.md :354/:1102 corrections; REACTIVITY.md:21-25 channel prose (QO69
+  authorises); report restatements). openisd tree is UNCOMMITTED with A5's facade + QO70/71
+  edits + D7's two tests in openisdDriver.test.ts (ride A5's commit with a message note).
+- **B6** (QT50 envelope deletion), **B8** (QT18 OutOfScope) — impl agents mid-work in
+  winisd_tools (clean base 16492ffc). Reviews not yet dispatched.
+- **F1** (openisdYamlToWdr export), **F2** (driverYamlToOpenisdYaml port; python
+  model_openisd.py at 16492ffc is the spec; parity vs FRESH python output, not the lagging
+  corpus) — impl agents mid-work. Reviews not yet dispatched.
+- **Review protocol state**: every finished task above needs its Opus adversarial review
+  before ticking; reviewers re-check reworks until PASS.
+- **Playwright**: full-suite runs ONLY on a frozen tree (no agent editing packages/* during
+  the run) — two collapses recorded in
+  bugs/BUG_20260821_milestone_playwright_run_166_failures_after_a3_wave.md. Release-gate run
+  pending, after A-lane settles.
+- **PEER session**: owns the accuton quality bug
+  (winisd_tools bugs/BUG_20260821_accuton_quality_out_of_range_test_fails.md) — fix
+  authorised since 16492ffc landed. Do not duplicate.
+- **Queued next**: A5c (after A5), A6 (carries the QO67 ruling; after A5+A4 — A4 landed
+  f0b5d26), A7, A8, A9, A10; B10 (after B5b verification + B6 + B8; B5b's emitter-side
+  SI check still unverified — fold into B10's pre-flight), B11; F3 (after F1+F2+B10), F4;
+  E1; the release gate.
+- **Open ledger items**: QO73 (DriverJSON alias — human), QO74 (deferred DVol trigger),
+  QT58/QT59 (post-B10), QO69 (REACTIVITY.md sample — being consumed by A5's rework).
+
 # THE CHECKLIST
 
 Rules of use: work a task only when every `blocked-by` is checked. Tasks in different lanes
@@ -174,18 +203,40 @@ never improvise around it.
       to the 2026-08-14 ruling, three browser-spec sites repointed. Spin-outs: QO72 (gate
       scope, human's edit); BUG_20260821_original_skin_spec_reads_state_p... (9 pre-existing
       sites, task A3c).
-- [ ] **A3c** (added 2026-08-21) Repoint the NINE pre-existing `state.P.*` in-page reads in
-      `original-skin.browser.spec.ts` (lines per the bug file) to the domain facade; must be
-      green before the release-gate Playwright run. Blocked-by: A3b (landed).
-- [ ] **A4** Objective 2c: share links serialise the project (not `AppState`);
-      `history.replaceState` moves to `logic/urlAppState.ts` (already on the APPROVED list).
-      Blocked-by: A3. Done: `persist.serialize` no longer takes the whole state; share-link
-      round-trip test green.
+- [x] **D7** (added and DONE 2026-08-21, ruled by QO65, review PASS): `passive_radiator` is
+      the ONLY spelling — python enum snake, 154 live db records migrated by
+      `scrapers/bin/fix_passive_radiator_spelling.py` (idempotent, archive untouched, both
+      record kinds validated), openisd dual-accept deleted. Spin-out:
+      bugs/BUG_20260821_sectionfor_cannot_distinguish_invalid_driver_type_from_woofer.md
+      (OPEN — undeclared values silently read the woofer section; vocabulary lives in a
+      package the model cannot see).
+- [x] **A3c** DONE 2026-08-21 (orchestrator-verified: grep zero `state.P`, vue-tsc/eslint
+      clean; assertion values unchanged; getter names confirmed against managedProject).
+      The single-spec probe's 54 launch crashes are the frozen-tree/dev-server issue recorded
+      in BUG_20260821_milestone_playwright_run_166_failures... — the release-gate run happens
+      on a frozen tree.
+- [x] **A4** DONE 2026-08-22, review PASS after one fix cycle (commit `f0b5d26`): serialize
+      takes five named inputs (no AppState — verified a pure function of its parameters);
+      history.replaceState exists ONLY in urlAppState.ts; wire shape byte-identical to the
+      2026-08-14 nothing-stripped ruling with project meta now pinned by the round-trip test;
+      test fixtures inline, AppState cast gone. Spin-out: QO73 (DriverJSON alias gate hole,
+      pre-existing, human's call). Follow-up noted for later: stateToUrl/loadFromHash still
+      in persist.ts (doc assigns them to UrlAppState — surface with A6/A8, not scope-crept).
 - [ ] **A5** Objective 3: `OpenISDProject` becomes a class facade over `_OpenISDProjectJson`
       (private constructor, static factories, accessors, `copy()`), mirroring `OpenISDDriver`.
       `ManagedOpenISDProject` migrates fully off `_OpenISDProjectJson`/`_OpenISDDriverJson`.
       Blocked-by: A3. Done: PrivateAllow gate's project-shape offences gone; model suite green.
-- [ ] **A6** Objective 6: implement `FileIO` per Proposal B + the `FileStore` destination port
+- [ ] **A5c** (added 2026-08-22, peer-suggested, design-conformant) DELETE store.ts's
+      `_version` bridge — the parallel second reactivity adapter (`const _version`, the
+      `md.subscribe(() => _version.value++)` hookup, every `void _version.value` dependency
+      touch) — and repoint each reader onto `createLiveRef` from logic/liveProject.ts: ONE
+      adapter, zero duplicates, identical behaviour (same subscribe channel). Also sweep the
+      stale `_prototypeProject` comment mention at store.ts:386. Blocked-by: A5. Before A8.
+- [ ] **A6** Objective 6 — NOW CARRIES THE QO67 RULING (human, 2026-08-21: distinct
+      driver/project pathways; the project REUSES the driver-subsection serialisation the
+      driver path uses; combine into ONE fileformat file and dedupe to the greatest extent;
+      one [Driver]-block serialiser for .wdr and .wpr; DELETE isLegacyWinisdFormat in the
+      same change — closing QO67). Implement `FileIO` per Proposal B + the `FileStore` destination port
       (`docs/design/FILEIO_API_PROPOSALS.md`); split `useDesignIO.ts` accordingly; PR inverse
       formulas to `@openisd/engine`; `.wpr` parsing raw-only in `@openisd/winisd`; apply the
       three `ARCHITECTURE.md` corrections. Blocked-by: A5, C1. Done: `createFileIO` exists and
@@ -238,11 +289,15 @@ never improvise around it.
       pre-validation ordering fixed (typed ValidationError restored), reading_value/
       reading_precision made public. pyright 0; full touched set 303 passed / 1 pre-filed
       accuton failure. On-disk records now refuse (expected; B10 regenerates).
-- [ ] **B4** QT47: disposition split — store `no_ts_published` (plugin-set world-fact), derive
-      `disposition` from it + `missing`/`parse_errors`. Delete `set_disposition`, the
-      `model_copy` hole, `scrapers/bin/recompute_dispositions.py`; re-examine
-      `_THIN_RECORD_DISPOSITIONS`. Annotate QT37/QT40 as overturned. Blocked-by: B3. Done: the
-      253+112 contradictory states are unrepresentable; pytest green.
+- [x] **B4** DONE 2026-08-21, review PASS after one fix cycle (and the reviewer WITHDREW its
+      own count finding on re-measurement — 253+112 exact, archive excluded). disposition
+      derived (no_ts_published wins; else missing|parse_errors → incomplete; else ok), the
+      contradictions unrepresentable at load; set_disposition/model_copy-hole/
+      recompute_dispositions/_THIN_RECORD_DISPOSITIONS/constraint-7 deleted with an
+      import-time totality guard + parametrized test replacing constraint 7's job;
+      constraint 12 re-targeted; 18 emitters keyword-ised; exemplar corrected; 1173 lib green;
+      pyright 0. Spin-outs: QT58 (post-B10 refusal), QT57 verdict (peer-recorded,
+      re-verify), B-post checklist item.
 - [ ] **B5b** SI DIMENSION KEYS — **CRITICAL (human, 2026-08-21: "SI migration is critical
       make sure its done")** (prod blocker,
       `bugs/BUG_20260819_record_stores_dimension_fields_in_mm_litres_instead_of_si.md`): the
@@ -287,6 +342,13 @@ never improvise around it.
       after harvest so status labels are final; single derivation authority
       (FrameworkRunner._workingout_root). 36+8+7 green. Retention ruling + hardlink/Ctrl-C-
       latency options recorded in QT8 for the human.
+- [ ] **B-post** (added 2026-08-21; ride or follow B10, per rulings) QT58: after the re-emit,
+      `disposition=` construction input becomes non-constructible (the load tolerance must not
+      outlive the regeneration). QT57 (John delegated; verdict recorded by the peer session —
+      RE-VERIFY the ledger before acting): MEASURE whether rating ⟺ disposition over the
+      corpus INCLUDING the crosscheck/apply_fielddq mutation axis; isomorphic → DELETE rating;
+      wider-evidence → derive it like disposition; genuine human-judgement counter-examples →
+      STOP and present them.
 - [ ] **B10** **THE REGENERATION (H1)** — single emit re-run over every record. The whole of
       Lane B is the programme recorded in
       `winisd_tools/bugs/BUG_20260821_emitted_records_lag_the_openisd_model_and_the_cohort_needs_re_emission.md`:
@@ -394,6 +456,13 @@ never improvise around it.
       then ASK THE HUMAN. Do not build without the ruling. Done: proposal delivered, ruling
       recorded in the ledger.
 
+- [ ] **D8** (added 2026-08-22, QO74 promoted to plan work by the human: "add QO74 to the
+      plan as a suffix to the main work - of if it fits in to a spare gap then do it")
+      Build the DQ detector for a stale carried DVol disagreeing with the §3.10.1 derivation
+      (deliberately not built with the DVol lock, HEAD 102979c). Engine-only
+      (consistency.ts territory), TDD, no weakened gates. Done: detector pinned by tests over
+      agree/disagree/absent cases; consistency suite green; QO74 closed with the outcome.
+
 ## Lane E — hygiene (run LAST before the release gate, to avoid conflicts with A/B edits)
 
 - [ ] **E1** The 49 historic comments (27 in `packages/ui`; rest docs/) — READ each, delete
@@ -476,9 +545,14 @@ store 45-exports review. Lane D/F: coax sectionFor (D4). Lane E: restoreProblems
 use-prefix non-composables; winisd tests assert model behaviour; historic comments (E1).
 Lane F (one-offs, non-blocking): mms-cms golden UNCAPTURABLE; winisdAir temp-scaling +
 compat-mode fidelity; DVol relation unimplemented (2 files, duplicates); sealed-fsc locator
-ambiguity; inbox duplicate-id (R3); s-roo oracle exclusion; seven air wrappers;
+ambiguity; inbox duplicate-id (R3 — DONE); s-roo oracle exclusion; seven air wrappers;
 wpr-export Count=0 remainder; ohm-glyph 2 records; scanspeak text-layer; live-queues
-residuals 2+3; rme-formula tolerance; epique15 fixture Xmax mm.
+residuals 2+3; rme-formula tolerance; epique15 fixture Xmax mm (re-triaged: openisd data).
+EXTERNALLY BLOCKED (2026-08-21, why they wait): ohm-glyph/scanspeak-text-layer/rme-formula
+need datasheet re-reads or a live WinISD install; queue seeds wait on the no-rebuilds rule,
+superseded by B10's regeneration. ASSIGNED OUT: the accuton quality-test bug
+(BUG_20260821_accuton_quality_out_of_range_test_fails.md) → the PEER session, diagnosis
+read-only until this run's winisd_tools wave commits, then it may fix.
 
 ## Release gate (all verified with actual output quoted)
 
@@ -500,6 +574,11 @@ Then report to the human for the release decision. Never tag, publish, or push.
   convenience wrappers, historic comments, JSON leaks, calculation outside the engine,
   invented values, and done-criteria actually met. A finding BLOCKS the task; the impl agent
   fixes; re-review until clean. The reviewer writes no production code, ever.
+  **AGENT ATTRIBUTION IS A BLOCKING FINDING (human, 2026-08-22):** every review checks the
+  repo's recent commit messages in its scope (`git log --format="%B"` over the commits since
+  the task began) for `Co-Authored-By: Claude`, `Claude-Session:`, `Generated with [Claude`,
+  or any agent/Anthropic attribution — any hit BLOCKS until the (unpushed) message is
+  rewritten clean. The orchestrator writes all commits with no attribution.
 - **Fable reviews twice:** this plan before implementation starts, and the final release-gate
   sign-off. Those two reviews are where subtle misses ship — do not economise there.
 - Decisions the rulings don't cover go to the human, batched, and are recorded in the ledger
@@ -509,4 +588,9 @@ Then report to the human for the release decision. Never tag, publish, or push.
 
 Commit at regular intervals.
 Dont push.
-Check the git commits for any agent attributions in the git log and rewrite these entries to remove refs to the agent
+Check the git commits for any agent attributions in the git log and rewrite these entries to
+remove refs to the agent. MEASURED 2026-08-22: this run's own commits are clean; 48 OLDER
+unpushed commits on openisd `origin/dev..dev` (prior sessions) carry
+`Co-Authored-By: Claude`/`Claude-Session:` trailers — the cleanup rewrite covers those
+(unpushed, so rewritable without violating the never-force-push rule). Sweep winisd_tools/
+winisd_drivers/winisd_research unpushed ranges the same way at cleanup time.

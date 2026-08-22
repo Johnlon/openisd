@@ -19,14 +19,19 @@ So the answer cannot be "wrap each value", "make the model reactive", or "expose
 
 ## The mechanism already exists and the UI does not use it
 
-`OpenISDDriver` carries `#listeners`, `subscribe(fn): () => void` and a private `#notify()` called
-on every mutation. `ManagedOpenISDProject` carries the same, and already bridges the two — it
-subscribes to its layer's driver so a driver-field scrub and a project-field `mutate()` both reach
-the same subscribers.
+`ManagedOpenISDProject` carries `#listeners`, `subscribe(fn): () => void` and a private `#notify()`
+called, unconditionally, at the end of every public mutator — the four driver methods
+(`enter`/`clear`/`enterMeta`/`clearMeta`), `mutate()` (box/vent/PR/environment/signal/sim-option/
+sweep/filter writes), and the what-if lifecycle methods when they actually change which layer is
+effective. `OpenISDDriver` itself carries no channel of its own (QO71, 2026-08-21: its `subscribe`/
+`#listeners`/`#notify` had zero consumers and were deleted) — a driver-field edit reaches
+`ManagedOpenISDProject`'s `#notify()` directly, by call, not by subscription, precisely so
+re-materialising the effective layer's `OpenISDDriver` on every `mutate()` can never orphan a
+bridge subscribed to the old instance.
 
-That is a complete change-notification channel, framework-free, owned by the domain. Nothing in
-`packages/ui` subscribes to it. The 19 accessors and the five `void _version.value` delegates are
-a hand-rolled substitute for a channel that was already there.
+That is a complete change-notification channel, framework-free, owned by the domain. `logic/
+liveProject.ts`'s `createLiveRef()` is what actually subscribes to it, turning each notification
+into a Vue invalidation — see `Subscribable`/`createLiveRef()` below.
 
 ## The design: ONE adapter, not one wrapper per field
 
@@ -99,8 +104,8 @@ If a hot path is ever measured to suffer, the fix is a second counter for that s
 
 ## What must be true before objective 2 lands
 
-1. `ManagedOpenISDProject.subscribe` is public. `OpenISDDriver.subscribe` already is; confirm the
-   managed one is exported on the public surface rather than used only internally.
+1. `ManagedOpenISDProject.subscribe` is public and exported on the public surface rather than
+   used only internally.
 2. Every mutating method on `ManagedOpenISDProject` calls `#notify()`. The ones that change which
    LAYER is effective (`beginWhatIf`/`cancelWhatIf`) already do. A mutator that forgets is a
    silently stale UI, and it is the one failure mode this design has — worth an architecture gate

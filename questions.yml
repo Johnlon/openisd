@@ -1,5 +1,5 @@
 prefix: QO
-next: 74
+next: 75
 questions:
 - id: QO1
   title: UI TODO List
@@ -6387,3 +6387,19 @@ questions:
   status: open
   raised: '2026-08-22'
   body: ''
+- id: QO74
+  title: 'DEFERRED-UNTIL-TRIGGER (raise when consistency.ts is next touched; do not build silently): a
+    DQ detector for a stale carried DVol that disagrees with the §3.10.1 derivation — deliberately NOT
+    built alongside the DVol lock (HEAD 102979c). QO49-class decision: building it changes what records
+    get flagged, so it needs a ruling at build time, not a silent addition.'
+  status: done
+  raised: '2026-08-22'
+  body: ''
+  notes:
+  - at: '2026-08-22'
+    text: 'Built as a RELATIONS row in packages/engine/src/consistency.ts (rel-25, §3.10.1): target DVol,
+      fields [DVol,Dd,Vcd,Depth,MagDepth,Magnet], predict reuses dvolFromDims (returns NaN on degenerate
+      geometry so isFinite() skips it, matching the file''s existing skip pattern). Tests in packages/engine/test/consistency.test.ts,
+      describe block ''§4 rel-25: the DVol/Depth/MagDepth/Magnet geometry lock'' (5 cases: agree silent,
+      disagree flags DVol+all 5 inputs, DVol absent silent, inputs insufficient silent, degenerate geometry
+      silent). Engine suite 385/385 (was 380), typecheck clean.'
