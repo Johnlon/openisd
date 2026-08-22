@@ -561,6 +561,20 @@ never improvise around it.
       bespoke gate (extend the :703 typeNodeNames() approach). store.ts:19's direct
       `_OpenISDDriverJson` import (its own violation, not PrivateAllow-covered) resolves
       in the same design.
+- [ ] **D12** (QO75 ruled "A widen it", agent-under-review authorized): widen the
+      approved-stores gate — AST match sees reactives wrapped in call arguments
+      (`getOrInit(ns,k,() => ref(0))`) AND .vue script blocks get scanned. Queued behind
+      the milestone Playwright run (test-file edits break the frozen tree).
+- [ ] **D13** (QO79 addendum, John's correction 2026-08-22): the sim USES Xmax optionally
+      (the excursion-graph limit line) — a missing optional-use field DEGRADES THE DISPLAY
+      (omit the limit line), never the catalogue and never an error. Verify the excursion
+      graph renders cleanly with Xmax absent (many of the 564 newly-shipped drivers lack
+      it); fix any code that assumes Xmax presence. Standing principle for all
+      optional-use fields.
+- [ ] **D14** (QO77 follow-through): the peer's read-only scan of ALL UI components for
+      layering violations (editing anything other than live domain objects; local
+      computation/unit math in dialogs) — findings land here as sub-items when the scan
+      reports; each then gets the D9 treatment.
 - [x] **F2** DONE 2026-08-22, review PASS after one fix cycle (commit `3596c6c`; the reviewer
       also RETRACTED its fixture finding on re-probing — three of four were provably
       mechanical). Pure select+join+reorder port pinned to winisd_tools 16492ffc; flow styles
