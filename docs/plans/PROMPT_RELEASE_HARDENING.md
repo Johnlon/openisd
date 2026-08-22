@@ -104,7 +104,20 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
-# IN-FLIGHT STATE (updated 2026-08-22 ~06:00 — for resume-after-restart; re-verify, don't trust)
+# IN-FLIGHT STATE (updated 2026-08-22 ~10:15 — for resume-after-restart; re-verify, don't trust)
+
+- **SCHEMA RULINGS (John, this morning, in chat — recorded in winisd_tools DESIGN.md
+  §"Per-source reading scenarios" + QT59/QT62 ledger items, commits a28c6bbc/fdc9a07f/985508c3):**
+  the nine reading scenarios are the ruled design. Mandatory expected-field emission;
+  value-less rejected-only entries; actual_reading Optional (omitted = nothing to read);
+  single-entry readings lists LEGAL (≥2 constraint removed — every scraped field carries
+  readings); co-presence rule (value/origin/corroboration together or not at all). STILL
+  OPEN: which fields are "expected" (recommended _SPEC_TS_FIELDS 23 vs all 39 — John's
+  call). These rulings are B-lane model work (constraint 5 rewrite, emit seam) and change
+  B10's output shape substantially — B-lane peer must implement before B10.
+- **Milestone Playwright run** launched ~10:10 (background bhntxlbg8, --workers=1, quiet
+  tree with A6+A7 uncommitted work). Expected red: driver-selection.browser.spec.ts (8,
+  bug filed — spec seeds retired flat shape). Classify on completion.
 
 - **A6 (FileIO + QO67)** — WORK COMPLETE IN TREE, commit HELD on QO78 ONLY. Three review
   cycles done: cycle-3's verify pass BLOCKed on 3 comment/doc findings, all fixed by the
