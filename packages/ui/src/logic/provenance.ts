@@ -36,18 +36,20 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
       { formulaText: 'Qms = (2π × Fs × Mms) / Rms', inputs: ['Fs', 'Mms', 'Rms'] }
     ]
   },
-  // Matches driver.ts's actual setVal('Fs', ...) sites, in their file/evaluation order
-  // (lines 167, 181, 188, 229) -- NOT WinISD's own priority order (11 > 14 > 2 > 4 > 12, see
-  // docs/design/WINISD_SCHEMA.md relation 11). That mismatch is a KNOWN BUG, already ruled on
-  // (QO50: engine must match WinISD's five routes), not an open design question -- see
+  // One entry per setVal('Fs', ...) site in driver.ts, in that file's evaluation order -- NOT
+  // WinISD's own priority order (11 > 14 > 2 > 4 > 12, docs/design/WINISD_SCHEMA.md relation 11).
+  // That ordering mismatch is ruled on separately (QO50: the engine must match WinISD's five
+  // routes) -- see
   // bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md.
-  // This list must be updated in the SAME change that fixes driver.ts, not before.
+  // provenance-matches-engine.test.ts holds this list to the engine's site count, so a route
+  // added to driver.ts fails there until it is declared here too.
   Fs: {
     paths: [
       { formulaText: 'Fs = 1 / (2π × √(Cms × Mms))', inputs: ['Cms', 'Mms'] },
-      { formulaText: 'Fs = (Rms × Qms) / (2π × Mms)', inputs: ['Rms', 'Qms', 'Mms'] },
+      { formulaText: 'Fs = (Rme × Qes) / (2π × Mms)', inputs: ['Rme', 'Qes', 'Mms'] },
       { formulaText: 'Fs = (Qes × BL²) / (2π × Mms × Re)', inputs: ['Qes', 'BL', 'Mms', 'Re'] },
-      { formulaText: 'Fs = ∛(no × Qes / (CONST_NO × Vas))', inputs: ['no', 'Qes', 'Vas'] }
+      { formulaText: 'Fs = ∛(no × Qes / (CONST_NO × Vas))', inputs: ['no', 'Qes', 'Vas'] },
+      { formulaText: 'Fs = EBP × Qes', inputs: ['EBP', 'Qes'] }
     ]
   },
   Vas: {
