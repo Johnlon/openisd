@@ -605,9 +605,15 @@ never improvise around it.
       projection. `docs/design/DQ_SPLIT_QT56_INVENTORY.md` corrected (its "unresolved
       constant" blocker was stale). Pairs with the EBP relation bug — both are ordinary
       work, neither blocks the QT56 DQ split.
-- [ ] **D21** (QO81 storage-failure package, relayed from John's window 2026-08-22 — design doc
-      `docs/design/MY_DRIVERS_STORAGE_FAILURES.md`). HOLD: John has items "8/9" still to come;
-      schedule now, build only when they land. Ruled so far: (1) bucket unavailable (private
+- [ ] **D21** (QO81 storage-failure package — design doc
+      `docs/design/MY_DRIVERS_STORAGE_FAILURES.md`). HOLD LIFTED 2026-08-22, package complete.
+      ADDED in the final items: **My Drivers UPGRADE CHAIN** — My-Drivers storage carries a
+      format version; every breaking shape change ships an upgrade function; on load the chain
+      applies in order stored-ver → app-ver and the upgraded object SAVES OVER the old one in
+      place, SAME identity (fresh-uuid is FILE IMPORT only). Scoped to My Drivers alone —
+      bundled drivers ship current with the dist. Entries still failing AFTER the chain get the
+      broken-row treatment. Also: identity keyed on record uuid is now ruled (option 3, with
+      rename-asks). Earlier items: (1) bucket unavailable (private
       mode) → empty list + visible notice; (2) unreadable bucket (bad JSON/not a list) → the
       app goes READ-ONLY on it, one visible "your saved drivers could not be read" state, with
       Export (raw string as text) and Delete; delete NEVER automatic and challenges the user if
