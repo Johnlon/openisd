@@ -80,7 +80,7 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 | QT48 | `read_value: Optional[float]` permitted ONLY with `rejected` set; add `RejectedRead.NO_NUMERIC_VALUE`; "N/A" preserved verbatim in `actual_reading`. |
 | QT49 | RENAME `dq_status`→`corroboration`, `dq`→`dq_marks`; land `DQStatus` as a real Enum in the same change. |
 | QT50 | DELETE `FieldEnvelope.__eq__` and `_unpack`; `_check_readings` gets an explicit unwrap. |
-| QT54 | Build the V8 bridge — **IN RELEASE SCOPE (human, 2026-08-21)**. Export `openisdYamlToWdr` and `driverYamlToOpenisdYaml` from openisd; migrate winisd_tools onto them. |
+| QT54 | Build the V8 bridge — **IN RELEASE SCOPE (human, 2026-08-21); SUPERSEDED 2026-08-22 (human, verbatim in ledger)**: export `openisdYamlToWdr` ONLY — `driverYamlToOpenisdYaml` is not needed (python creates driver.yml exclusively; openisd never knows about it). The dangling `driverYamlToOpenisdYaml` re-export was removed from `packages/model/src/index.ts` in A6 (the module never existed). |
 | QT7 | Curve digitiser DEFERRED; `extracted_data_path` stays declared. |
 | QO34/QO42 | Brand-primary definition fixed in source; `provided_by`/`comment`/`added` added in winisd_tools (reopen QT20 row D as overturned). Both land via the regeneration gate. |
 
@@ -106,10 +106,14 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 # IN-FLIGHT STATE (updated 2026-08-22 ~06:00 — for resume-after-restart; re-verify, don't trust)
 
-- **A6 (FileIO + QO67)** — REWORK child running (ab2d0edee06cbf90c) on the 8-finding review
-  list (F1 purity, F4 single .wpr writer, F5 handle retention, F6 enum MIME/label, F7 honesty
-  labels + ARCHITECTURE.md deps, delete driverToWdrText/driverToOwdrText, minors). Re-review
-  then commit when it lands.
+- **A6 (FileIO + QO67)** — cycle-3 rework running (child ab2d0edee06cbf90c). Cycle-2 review
+  BLOCKed: gate-laundering codec wrappers + `get driver()` are QO78-GATED (commit HELD until
+  John rules — QO78.1 carries the reviewer's options); child is fixing the rest (rename
+  `toJsonRecord`→`_projectJsonRecord`, ARCHITECTURE.md honesty (:173/:395/:498/:791 +
+  unwired labels), DELETE new writeOwpr/readOwpr (one-model — .owpr shape is A8's), meta-desync
+  bug `BUG_20260822_wpr_import_leaves_previous_projects_meta...` (record written first),
+  real FileStore retention tests + exportWpr test, 4 historic comments, minors 8/10/13).
+  A6 tree stays UNCOMMITTED until fixes re-reviewed AND QO78 ruled.
 - **B6/B8** — DONE via peer commits `a7b513e2` + `3d2a3aa5` (winisd_tools); reviewed, blockers
   fixed and verified (AGENTS.md revert read directly; evidence gate 19/20, sole red = open
   runlogger bug's own field). Peer `yaml-divergence-wdr-refactor` resumes B-lane on
