@@ -198,9 +198,20 @@ All rows are RELATION-MATH (solve one field from others of a different physical 
 
 Deliberately excluded, per the file's own header comment (lines 7-24): row 7/21/22
 (Mcost/Gloss/SPLmaxLF — ledger QO24 undecided); **row 12, EBP↔Fs — the known bug below**; rows
-14-18 (η₀/SPL chain — "unresolved constant across codebase," i.e. python's `no`/efficiency
-relation has NO oid counterpart today, deliberately, not by oversight of a single row); row 19
+14-18 (η₀/SPL chain — no `no`/efficiency relation in the RELATIONS table; the engine can
+nonetheless COMPUTE η₀ correctly, see below); row 19
 (Xmax=|Hc−Hg|/2 — fields never populated).
+
+**The η₀ constant question is settled (2026-08-22).** `packages/engine/src/efficiency.ts:31-33`
+computes `referenceEfficiency(Fs,Vas,Qes,c) = efficiencyConstant(c)·Fs³·Vas/Qes`, live in the
+solve routes (`driver.ts:194`, `:281`, `:292`) and the sweep (`sweep.ts:214`). There is no
+unresolved constant: it is `efficiencyConstant(c)`, derived from the `c` in use. A Wine probe of
+real WinISD (Beyma 10BR60V2, `winisd_research/scripts/probe_rme_beyma.py`) matched this form to
+0.000000% against WinISD's own saved `no`, while python's `model_wdr.py:471` form — which uses
+`Mms` where the textbook form uses `Vas` — was off by a driver-dependent ratio
+(`Vas·roo·BL²/Mms`; no universal factor). Python's `.wdr` projection is retired by lane F, so the
+python form is not repaired. What remains here is ordinary work, not a blocker: add a `no`
+relation to `consistency.ts` (which today contains zero `efficiencyConstant` references).
 
 `checkConsistency` (`consistency.ts:165-207`): computes half-ulp precision intervals per entered
 field, propagates through `solveConsistencyGroup`, flags a relation only when the residual exceeds
@@ -268,7 +279,7 @@ one of them itself.
 | gamma = BL/Mms | yes (tol 0.01) | yes (row 13) | both |
 | Vas = ρc²Sd²Cms | yes (tol 0.04) | yes (row 10) | both |
 | EBP = Fs/Qes | **yes** (tol 0.01) | **no** — BUG_20260821 | **py-only (bug in oid)** |
-| no (efficiency η₀) | **yes** (tol 0.02) | **no** — deliberately excluded, "unresolved constant across codebase" | **py-only** |
+| no (efficiency η₀) | **yes** (tol 0.02) | **no** relation in RELATIONS — but the engine computes η₀ correctly (`efficiency.ts:31-33`); adding the relation is scheduled work | **py-only today** |
 | Rms = 2π·Fs·Mms/Qms | no | yes (row 1) | oid-only |
 | Qes = 2π·Fs·Mms·Re/Bl² | no | yes (row 2) | oid-only |
 | Fs = 1/(2π√(Mms·Cms)) | no | yes (row 11) | oid-only |
@@ -300,9 +311,9 @@ Scope of deletion: `model_wdr.py:454-474` (`_WDR_CALCULATABLE`), `model_wdr.py:5
 **Net**: disposition and cross-source corroboration are unaffected by deleting python's
 relation-math. `rating`'s relation-based trigger and the stored `dq_marks[kind=calc]` do disappear
 and must be replaced by oid computing and surfacing the equivalent live — which oid's engine
-already does for 7 of 9 relations, is missing one to a filed, independently-fixable bug (EBP), and
-is structurally blocked on one (`no`/efficiency, the η₀ constant problem) until that separate issue
-is resolved.
+already does for 7 of 9 relations and is missing two to filed, independently-fixable work: EBP
+(a recorded bug) and `no`/efficiency (the relation is absent from `consistency.ts`, though the
+engine computes η₀ correctly — see the η₀ note above). Neither blocks the split.
 
 ---
 
