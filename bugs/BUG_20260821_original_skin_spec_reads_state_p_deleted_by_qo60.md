@@ -1,6 +1,6 @@
 # `original-skin.browser.spec.ts` reads `state.P.Vb`, a shape the QO60 migration deleted
 
-Status: OPEN
+Status: RESOLVED
 
 ## Symptom
 
@@ -23,12 +23,28 @@ project's tests).
 
 ## Fix
 
-Not yet applied. Repoint the in-page reads to the domain facade (`managedProject`'s
-accessors — box volume, input power, added mass — and the filter mutators/readers landed with
-A3) or to the serialized snapshot the spec actually needs. The write sites (490-491) become
-`managedProject.addFilter(...)`/`setInputPower_W(...)`.
+All nine `state.P.*` sites in `packages/ui/test/ui/original-skin.browser.spec.ts` repointed to
+`managedProject`'s facade, via the file's existing in-page `import('/src/logic/store.ts')`
+pattern:
+
+- :244 `s.state.P.filters.length` → `s.managedProject.filters().length`
+- :357 `s.state.P.Vb` → `s.managedProject.boxVolume_m3()`
+- :447 `s.state.P.Pin` → `s.managedProject.inputPower_W()`
+- :490 `s.state.P.filters.push({...})` → `s.managedProject.addFilter({ type: 'highpass', enabled: true, fc: 30, Q: 0.7, gain: 0 })` (added `enabled: true` — required by the `Filter` interface, not carried by the old ad-hoc push)
+- :491 `s.state.P.Pin = 250` → `s.managedProject.setInputPower_W(250)`
+- :505 `{ filters: s.state.P.filters.length, pin: s.state.P.Pin }` → `{ filters: s.managedProject.filters().length, pin: s.managedProject.inputPower_W() }`
+- :647 `...state.P.driverAddedMass` → `...managedProject.driverAddedMass()`
+- :729 `...state.P.Vb` → `...managedProject.boxVolume_m3()`
+- :790 `...state.P.driverAddedMass` → `...managedProject.driverAddedMass()`
+
+No assertion values changed.
 
 ## Verification
 
-Closure = the spec's reads repointed, the full Playwright suite (single worker) green on that
-file.
+- `grep -n 'state\.P' packages/ui/test/ui/original-skin.browser.spec.ts` → zero matches.
+- `npx vue-tsc --noEmit -p tsconfig.json` in `packages/ui` → clean of this file (pre-existing,
+  unrelated errors remain in `openisdDriver.ts`, `useDesignIO.ts`, `App.vue`, `persist.test.ts`).
+- `npx eslint test/ui/original-skin.browser.spec.ts` → clean, no output.
+- `npx playwright test test/ui/original-skin.browser.spec.ts --workers=1` (no other
+  Playwright/Chromium process running at the time) → see run output recorded in the release
+  session; remaining failures, if any, are unrelated to the `state.P` repoint.
