@@ -526,6 +526,36 @@ never improvise around it.
 - [x] **D8** DONE 2026-08-22 (commit `7d4cb16`): rel-25 DVol geometry lock in the engine's
       RELATIONS (§3.10.1 formula, house half-ULP tolerance, degenerate geometry skipped by
       the file's own pattern); 5 inline-data cases red-first; engine 385/385; QO74 closed.
+- [ ] **D9** (added 2026-08-22, QO77 ruled option-b-strengthened; his verbatim: "writes
+      through the live managed project — GOOD — THIS IS THE EXPECTED PATTERN - apply
+      elsewhere"): PRDefineModal edits a live PR DOMAIN OBJECT (reaching parent container
+      and project via internal refs); the dialog computes NOTHING — unit conversion and
+      physics inversion live in the domain layer; direct prCanonicalFromDatasheet call +
+      field-by-field setPrField writes replaced. The PR-formulas bug stays PARTIAL until
+      this lands. STANDING PATTERN: live-domain-object editing is the expected shape for
+      every editor dialog — check on review of any dialog work.
+- [ ] **D10** (added 2026-08-22, QO82 raised by the human): (1) rename `UiParams` + real
+      docstring — it is the engine-facing snapshot from `toUiParams()`, never stored;
+      (2) EVERY UI input converts unit-toggle→SI through the ONE mechanism
+      (`fields/units.ts` fromDisplay + fieldRegistry) — `prCanonicalFromDatasheet`'s
+      hand-rolled /1e4 and /1000 are the offending precedent to delete. Composes with D9.
+- [ ] **D11** (added 2026-08-22; QO73 ruled + handed to THIS session end-to-end by John
+      via winisd_tool_fix, whose attempted `unknown`-channel fix he rejected — "your role
+      is not to hack around my rulings"; its edits are fully reverted, tree verified clean,
+      typechecks green; its `OpenISDProject.setDriver(driver)` addition KEPT as the
+      real-API direction). Scope: (1) delete the DriverJSON alias with a design in which
+      the UI never holds the private record value — no naming, no alias, no erased type,
+      no structural clone (§ENCAPSULATION IS ABSOLUTE, global); the model owns the
+      persisted driver payload end-to-end; HELD until QO78 rules (same design knot — what
+      currency the UI holds). (2) AST arch gate (NEW file, A9-style): resolve type
+      aliases back to private targets incl. ReturnType<X['method']> indirection, AND ban
+      erased-type channels — John 2026-08-22: "I also want an arch check prohibiting use
+      of any types". Enforcement split: `any` already banned repo-wide (tseslint
+      recommended no-explicit-any); `unknown` in exported/interface positions via
+      no-restricted-syntax AST selector or gate assertion; alias resolution is the
+      bespoke gate (extend the :703 typeNodeNames() approach). store.ts:19's direct
+      `_OpenISDDriverJson` import (its own violation, not PrivateAllow-covered) resolves
+      in the same design.
 - [x] **F2** DONE 2026-08-22, review PASS after one fix cycle (commit `3596c6c`; the reviewer
       also RETRACTED its fixture finding on re-probing — three of four were provably
       mechanical). Pure select+join+reorder port pinned to winisd_tools 16492ffc; flow styles
