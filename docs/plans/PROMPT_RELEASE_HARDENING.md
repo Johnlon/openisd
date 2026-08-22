@@ -104,7 +104,36 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
-# IN-FLIGHT STATE (updated 2026-08-22 ~13:20 — for resume-after-restart; re-verify, don't trust)
+# IN-FLIGHT STATE (updated 2026-08-22 ~15:30 — for resume-after-restart; re-verify, don't trust)
+
+- **★ MILESTONE: openisd commit `7ed953c`** — A6 (file IO into the domain models, five review
+  cycles) + A7 (bundle-everything, 1969/1969) + the V8 bridge (terser drop_console+keep_fnames,
+  9/9 incl. the mini-racer-shaped sandbox) + the checklist-gate PRECOMMIT deferral (hook sets
+  PRECOMMIT=1; gates + the no-skips reporter defer the three born-red checklists loudly, still
+  red in ci/health-check/A10; any OTHER skip still fails). Also `8a1aeb0`: the OuterX/OuterY SI
+  bug record (John: SI everywhere inside; conversion only at parse-in and display-out).
+- **AGENT ROSTER (John away; this session commands):** executors `winisd_tool_fix` (Sonnet —
+  finishing the FULL .wdr cut I handed over: writer+semantic-DQ deletion, my exact-tree-state
+  handover in its inbox; then rename/SI migration incl. OuterX/OuterY, scenarios, disposition,
+  migration script + post-migration counts) and `yaml-divergence-wdr-refactor` (Sonnet —
+  artifact ping SENT: real mini-racer load + goldens validation; then B10 trigger when
+  winisd_tool_fix lands; QO84 precision investigation DONE, verified-by-code, plan drafted at
+  winisd_tools brain/PRECISION_DQ_PORT_QO84.md, scheduling deferred). NEW: `sonnet1` (tasked:
+  openisd D16 disposition-site deletion + _SpecSection OuterX/OuterY rename, no-commit,
+  I review), `opus1` (reserve; wired /home/john/work/winisd hooks), `fable1` (reserve; John's
+  inbox walkthrough runs in ITS window — rulings may arrive from there), `haiku1` (reserve,
+  mechanical sweeps).
+- **winisd_tools .wdr cut state at handover** (now winisd_tool_fix's): deleted from disk —
+  model_wdr.py, wdr_ini_file.py, rebuild_wdr.py, 6 pinned test files, test_ts_formula_parity;
+  wdr_dq.py halfway house created then DELETED (John: no halfway houses — semantic/physics DQ
+  leaves python entirely; oid is the sole physics-DQ home per QT56); my partial spec_emit/
+  emit_record/accuton edits enumerated in the handover message. Replacement physics-DQ in oid:
+  D18 (no-relation) + EBP bug + QO84 (read_precision is DECLARED openisdRecord.ts:58, CONSUMED
+  NOWHERE; halfUlp infers precision from the stored SI float — verified in code, not docstring).
+- **NEXT from this session:** inspect winisd_tool_fix's cut commit; review sonnet1's diff and
+  commit; D22 second half (repos adopt doctrine, editor owns draft, #-private sweep) — now
+  unblocked by 7ed953c; D20 vocabulary; D15/D17; A8-A10; E1; frozen-tree Playwright;
+  release gate.
 
 - **COMMAND STRUCTURE (John, ~13:00): this session (Fable) CONTROLS all dev across openisd,
   winisd_tools, winisd_drivers; free use of the machine incl. Wine/WinISD probes. The two peer
