@@ -561,6 +561,27 @@ never improvise around it.
       bespoke gate (extend the :703 typeNodeNames() approach). store.ts:19's direct
       `_OpenISDDriverJson` import (its own violation, not PrivateAllow-covered) resolves
       in the same design.
+- [ ] **D15** (QO80 ruling, John verbatim: "rexports are expreslly forbideen"): the gate
+      `packages/ui/test/ui/architecture-no-reexports.test.ts` is IN TREE, untracked, born
+      RED by design (authored by a John-dispatched background agent; ts-morph AST — export-
+      from / export * / export type-from / specifier-less `export {X}` of an import binding;
+      scans packages/*/src .ts + .vue script blocks; exempts package barrels
+      `packages/*/src/index.ts` — that exemption is docstring-flagged as John-pending).
+      Run from REPO ROOT (`npx vitest run packages/ui/test/ui/architecture-no-reexports.test.ts`)
+      — a packages/ui cwd breaks the root custom-reporter path. 10 offences:
+      - `engine/src/engine.ts:1` — VERIFIED DEAD, no ruling needed: package.json's exports
+        map names ONLY `./src/index.ts`, and a repo-wide grep finds ZERO importers of
+        engine.ts. It is an unreferenced one-line `export * from './index.js'` — delete the
+        file. (The peer raised this as an "which entry point wins" question for John; the
+        evidence answers it — index.ts is the sole entry point and always was.)
+      - `ui/src/types.ts:346` — five engine type names re-exported (EngineDriver, BoxType,
+        SweepParams, SweepResult, MaxCurvesResult): consumers import from `@openisd/engine`
+        directly; folds into D10/D11's UI-layer work.
+      - `ui/src/logic/fileIO.ts:47` — cleared by the A6/QO78 rework in flight.
+      - `ui/src/logic/driverLibrary.ts:20`, `ui/src/logic/environment.ts:40`,
+        `ui/src/logic/series.ts:6` — re-verify at implementation, then repoint importers.
+      Gate goes green as A6 + D10/D11 land; commit it with whichever change clears the last
+      offence, never before (a red gate in the tree is the honest state until then).
 - [ ] **D12** (QO75 ruled "A widen it", agent-under-review authorized): widen the
       approved-stores gate — AST match sees reactives wrapped in call arguments
       (`getOrInit(ns,k,() => ref(0))`) AND .vue script blocks get scanned. Queued behind
