@@ -103,6 +103,13 @@ actually lands — deferred with QO85 itself, as John directed ("do not add band
   layer exactly as driver fields already bind — same idiom both panels, which is the visible
   symmetry John is asking for.
 
+## Precision on the 27f48bd claims (opus2 review, R5)
+
+No-drop holds for a FILE-READ instance (verbatim return) and for unknown keys SUPPLIED to
+`build()`; the domain path narrows to what OpenISD models. The "golden" comparisons in
+`winisdProject.test.ts` are whole-block and line-containment comparisons against WinISD-written
+files, not whole-file byte comparisons.
+
 ## Constraints carried unchanged
 
 Owner serialises (QO83) — `toWinISDProject`/`fromWinISDProject`/`driverText` untouched.

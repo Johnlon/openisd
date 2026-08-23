@@ -11,6 +11,7 @@ import {
 } from '../src/openisdProject.js';
 import { OpenISDDriver } from '../src/openisdDriver.js';
 import { WinISDProject } from '@openisd/winisd';
+import { moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
 
 describe('alignmentKindOfBType / bTypeOfAlignmentKind — the one BType<->AlignmentKind mapping', () => {
   it('maps every WinISD code to its AlignmentKind and back', () => {
@@ -102,6 +103,10 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
   it('chamber losses round-trip through the per-chamber keys the file actually has', () => {
     // Import read the invented key `Ql` before this rewrite, so losses were silently never
     // imported; the real keys are Qlr/Qar/Qpr.
+    //
+    // Writing ONE triple into BOTH chambers pins the box model's PRESENT gap, not the
+    // contract: bandpass4 has two real chambers and the model has one loss triple
+    // (bugs/BUG_20260823_box_model_collapses_per_chamber_losses.md, folded into Lane P).
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'));
     const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
@@ -121,5 +126,51 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
     const vas = Number(/Vas=([0-9.eE+-]+)/.exec(out)![1]);
     const relErr = Math.abs(vas - 0.0048) / 0.0048;
     assert.ok(relErr < 1e-6, `Vas must come back in m³ (~0.0048), got ${vas}`);
+
+    // First principles, independently of every prX helper: Vas = Cms·Sd²·ρ·c², computed here
+    // from the record's own derived Cms and the engine's reference air. If the writer ever
+    // reverts to litres this is off by 1000×, which is exactly BUG_20260817's failure.
+    const radiator = project.box.passiveRadiator.radiator!;
+    const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const firstPrinciples = radiator.Cms_m_per_N * radiator.Sd_m2 ** 2 * rho * c * c;
+    const fpErr = Math.abs(vas - firstPrinciples) / firstPrinciples;
+    assert.ok(fpErr < 1e-9,
+      `Vas must equal Cms·Sd²·ρ·c² = ${firstPrinciples} m³; got ${vas}` +
+      (Math.abs(vas / firstPrinciples - 1000) < 1 ? ' — 1000× off: litres written into the m³ field' : ''));
+  });
+});
+
+describe('fromWinISDProject — import-side assertions against literals (a round trip cannot see a compensating error pair)', () => {
+  it('crosscalc=0 marks the vent slotted on the record; crosscalc=1 leaves it round', () => {
+    const slotted = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
+      '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=0\n'));
+    assert.equal(slotted.box.vented.vent.shape, 'slotted');
+
+    const round = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
+      '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=1\n'));
+    assert.equal(round.box.vented.vent.shape, 'round');
+  });
+
+  it('Qlr/Qar/Qpr land on the record as the box losses', () => {
+    const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
+      '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'));
+    assert.equal(project.box.Ql, 7);
+    assert.equal(project.box.Qa, 50);
+    assert.equal(project.box.Qp, 80);
+  });
+
+  it('Npr lands on the record as the radiator count', () => {
+    const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
+      '[Box]', 'BType=4', 'Vr=0.04', 'Npr=2', '',
+      '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', '',
+    ].join('\n')));
+    assert.equal(project.box.passiveRadiator.count, 2);
+  });
+
+  it('Nd lands on the record as the driver count', () => {
+    const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
+      '[Box]\nBType=0\nVr=0.02\nNd=3\n'));
+    assert.equal(project.signal.driverCount, 3);
   });
 });

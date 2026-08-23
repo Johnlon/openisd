@@ -8,8 +8,11 @@
  * `WinISDDriver`'s job, not this class's.
  *
  * Values live in one generic store: section name → key → string. Reading keeps EVERY key of
- * every section, whether or not anything currently consumes it — a key this class cannot name
- * cannot be silently destroyed on a round trip. Writing lays the file out from the fixed
+ * every section, whether or not anything currently consumes it. Stated precisely: no-drop
+ * holds for a FILE-READ instance (toWpr returns the file verbatim) and for unknown keys
+ * SUPPLIED to build(); the DOMAIN path narrows to what OpenISD models — an export from
+ * `OpenISDProject` is a projection of the model, as WinISD itself rewrites files from its own
+ * model. Writing lays the file out from the fixed
  * template below: the eleven sections in WinISD's own order, each key's WinISD default filled
  * in unless the builder supplied a value, and supplied keys the template does not list (for
  * example `Npr`, present only for passive radiators) appended at the end of their section.
