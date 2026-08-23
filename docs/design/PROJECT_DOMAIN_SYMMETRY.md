@@ -119,12 +119,15 @@ everything reaches the record through the class.
 
 ## Plan rows (for the checklist, in order)
 
-- [ ] P1 — `vents: OpenISDVent[]` migration + `vent(i)`/`ventCount()` accessors + schema
-      V-step; UiParams untouched. The V-step upgrades EVERY reader of a persisted payload:
-      localStorage, the share-link hash, and File→Open all funnel through `upgradeParsedState`
-      (persist.ts, the V1→V2 precedent), so one step covers all three — with a round-trip test
-      per route (old-shape payload via hash AND via storage → `vents[0]`). (Prerequisite for
-      freezing the surface; QO85 stays open for ABC itself.)
+- [x] P1 — `vents: OpenISDVent[]` migration + `vent(i)`/`ventCount()` accessors; UiParams
+      untouched. NO schema V-step, ruled after verification (main-exec, 2026-08-23): the
+      project record shape never persists — `SerializedState` carries `P: UiParams` + the
+      driver as text + `ProjectMeta` on every route (localStorage, share-link hash, `.owpr`
+      File→Open), and the ground fingerprint is the same shape in memory only; the record is
+      rebuilt via `loadUiParams` on every load. A V-step would be a repair with no possible
+      input — dead code born gated. The upgrade requirement transfers forward to the moment a
+      multi-port alignment changes the WIRE shape (UiParams per-port fields, deferred with
+      QO85). (QO85 stays open for ABC itself.)
 - [ ] P2 — `project.cell()`/`enter()`/`clear()` over box/vent/PR/env/signal fields, with the
       vent + PR group solvers moved in from useVentGroup/usePrGroup. Driver's `Provenance`
       reused.

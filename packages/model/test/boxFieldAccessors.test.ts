@@ -26,22 +26,22 @@ describe('activeVent — which vent state.P\'s flat fields address', () => {
   it('targets the vented alignment\'s own vent when vented is active', () => {
     const box = prototypeBox();
     box.active = 'vented';
-    box.vented.vent.diameter_m = 0.09;
-    assert.equal(activeVent(box), box.vented.vent);
+    box.vented.vents[0]!.diameter_m = 0.09;
+    assert.equal(activeVent(box), box.vented.vents[0]!);
   });
 
   it('targets bandpass4\'s FRONT vent when bandpass4 is active, not the vented alignment\'s', () => {
     const box = prototypeBox();
     box.active = 'bandpass4';
-    box.bandpass4.frontVent.diameter_m = 0.07;
-    box.vented.vent.diameter_m = 0.09;
-    assert.equal(activeVent(box), box.bandpass4.frontVent);
+    box.bandpass4.vents[0]!.diameter_m = 0.07;
+    box.vented.vents[0]!.diameter_m = 0.09;
+    assert.equal(activeVent(box), box.bandpass4.vents[0]!);
   });
 
   it('while sealed is active, still targets the DORMANT vented vent — pre-configurable, not gone', () => {
     const box = prototypeBox();
     box.active = 'sealed';
-    box.vented.vent.diameter_m = 0.055;
+    box.vented.vents[0]!.diameter_m = 0.055;
     assert.equal(activeVent(box).diameter_m, 0.055,
       'a vent typed in before switching away from vented must stay reachable through the ' +
       'same flat field, or "switching box type deletes nothing" only holds for reads a ' +
@@ -51,7 +51,7 @@ describe('activeVent — which vent state.P\'s flat fields address', () => {
   it('while passive-radiator is active, still targets the dormant vented vent', () => {
     const box = prototypeBox();
     box.active = 'passive-radiator';
-    box.vented.vent.length_m = 0.21;
+    box.vented.vents[0]!.length_m = 0.21;
     assert.equal(activeVent(box).length_m, 0.21);
   });
 
@@ -59,7 +59,7 @@ describe('activeVent — which vent state.P\'s flat fields address', () => {
     const box = prototypeBox();
     box.active = 'vented';
     activeVent(box).diameter_m = 0.11;
-    assert.equal(box.vented.vent.diameter_m, 0.11);
+    assert.equal(box.vented.vents[0]!.diameter_m, 0.11);
   });
 });
 

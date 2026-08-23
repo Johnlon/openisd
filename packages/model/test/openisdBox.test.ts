@@ -21,12 +21,12 @@ function boxWithWorkInEveryAlignment(): OpenISDBox {
   box.sealed.volume_m3 = 0.021;
   box.vented.volume_m3 = 0.037;
   box.vented.Fb_hz = 33.5;
-  box.vented.vent.diameter_m = 0.081;
-  box.vented.vent.length_m = 0.194;
-  box.vented.vent.endCorrection = 0.613;
-  box.vented.vent.shape = 'slotted';
-  box.vented.vent.width_m = 0.12;
-  box.vented.vent.height_m = 0.04;
+  box.vented.vents[0]!.diameter_m = 0.081;
+  box.vented.vents[0]!.length_m = 0.194;
+  box.vented.vents[0]!.endCorrection = 0.613;
+  box.vented.vents[0]!.shape = 'slotted';
+  box.vented.vents[0]!.width_m = 0.12;
+  box.vented.vents[0]!.height_m = 0.04;
   box.bandpass4.rearVolume_m3 = 0.019;
   box.bandpass4.frontVolume_m3 = 0.044;
   box.bandpass4.Ff_hz = 57.5;
@@ -97,6 +97,6 @@ describe('OpenISDBox — switching alignment deletes nothing', () => {
     assert.ok(box.sealed && box.vented && box.bandpass4 && box.passiveRadiator,
       'lazily creating an alignment on first switch is how a default silently overwrites work ' +
       'restored from a file');
-    assert.ok(box.vented.vent, 'the vented alignment owns its vent from the start');
+    assert.ok(box.vented.vents[0]!, 'the vented alignment owns its vent from the start');
   });
 });

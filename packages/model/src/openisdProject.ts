@@ -97,7 +97,9 @@ export interface OpenISDVentedAlignment {
   volume_m3: number;
   /** System tuning. */
   Fb_hz: number;
-  vent: OpenISDVent;
+  /** The alignment's ports, arity fixed by the alignment: vented has exactly one. An array
+   *  from day one so a multi-port alignment (ABC needs three, QO85) adds no new shape. */
+  vents: OpenISDVent[];
 }
 
 /** 4th-order bandpass: a sealed rear chamber and a vented front one. */
@@ -106,7 +108,9 @@ export interface OpenISDBandpass4Alignment {
   frontVolume_m3: number;
   /** Front-chamber tuning. */
   Ff_hz: number;
-  frontVent: OpenISDVent;
+  /** The front chamber's ports — bandpass4 has exactly one. Same arity-by-alignment array as
+   *  `OpenISDVentedAlignment.vents` (QO85). */
+  vents: OpenISDVent[];
 }
 
 /** A passive-radiator box OWNS its radiator, for the same reason a vented box owns its vent. */
@@ -299,11 +303,11 @@ export function prototypeBox(): OpenISDBox {
     // TODO(box-wizard): sealed Vb, calculated from driver + alignment. Unset until then.
     sealed: { volume_m3: 0 },
     // TODO(box-wizard): vented Vb and Fb, calculated from driver + alignment. Unset until then.
-    vented: { volume_m3: 0, Fb_hz: 0, vent: prototypeVent() },
+    vented: { volume_m3: 0, Fb_hz: 0, vents: [prototypeVent()] },
     // TODO(box-wizard): bandpass chamber volumes and front tuning, calculated from driver +
     //   alignment. Unset until then.
     bandpass4: {
-      rearVolume_m3: 0, frontVolume_m3: 0, Ff_hz: 0, frontVent: prototypeVent(),
+      rearVolume_m3: 0, frontVolume_m3: 0, Ff_hz: 0, vents: [prototypeVent()],
     },
     // TODO(box-wizard): PR volume, tuning, count and added mass, calculated from driver + PR +
     //   alignment. Unset until then.
@@ -343,7 +347,7 @@ export function setActiveAlignment(box: OpenISDBox, kind: AlignmentKind): void {
 /** The vent object `ventShape`/`ventD`/`ventW`/`ventH`/`ventL`/`endCorrection` address. A LIVE
  *  reference — writing through it mutates the box directly. */
 export function activeVent(box: OpenISDBox): OpenISDVent {
-  return box.active === 'bandpass4' ? box.bandpass4.frontVent : box.vented.vent;
+  return (box.active === 'bandpass4' ? box.bandpass4.vents : box.vented.vents)[0]!;
 }
 
 /** Vent cross-sectional area, round or slotted. The single source of this formula — it was
@@ -500,7 +504,7 @@ export class OpenISDProject {
       : kind === 'vented' ? record.box.vented.volume_m3
       : kind === 'bandpass4' ? record.box.bandpass4.rearVolume_m3
       : record.box.passiveRadiator.volume_m3;
-    const vent = kind === 'bandpass4' ? record.box.bandpass4.frontVent : record.box.vented.vent;
+    const vent = (kind === 'bandpass4' ? record.box.bandpass4.vents : record.box.vented.vents)[0]!;
     const Sp = ventArea_m2(vent);
 
     const peak = (driver && curve) ? findImpedancePeak(curve, driver.Re) : null;
@@ -697,7 +701,7 @@ export class OpenISDProject {
     if (Nd != null) record.signal.driverCount = Nd;
 
     const ventSec = kind === 'bandpass4' ? 'VentFront' : 'VentRear';
-    const vent = kind === 'bandpass4' ? record.box.bandpass4.frontVent : record.box.vented.vent;
+    const vent = (kind === 'bandpass4' ? record.box.bandpass4.vents : record.box.vented.vents)[0]!;
     const dia = n(ventSec, 'dia1');
     if (dia != null) vent.diameter_m = dia;
     const len = n(ventSec, 'len');
@@ -766,6 +770,25 @@ export class OpenISDProject {
   // handing out a live reference is not handing out the private shape. --------------------
 
   get box(): OpenISDBox { return this.#record.box; }
+
+  /** How many ports the ACTIVE alignment has (sealed and PR: 0). */
+  ventCount(): number {
+    const box = this.#record.box;
+    return box.active === 'vented' ? box.vented.vents.length
+      : box.active === 'bandpass4' ? box.bandpass4.vents.length
+      : 0;
+  }
+
+  /** One port of the active alignment, as an independent copy — mutating it changes nothing.
+   *  Index-based from day one so a multi-port alignment (QO85) adds no new accessor shape. */
+  vent(i: number): OpenISDVent | undefined {
+    const box = this.#record.box;
+    const vents = box.active === 'vented' ? box.vented.vents
+      : box.active === 'bandpass4' ? box.bandpass4.vents
+      : [];
+    const v = vents[i];
+    return v ? { ...v } : undefined;
+  }
   get target(): OpenISDTarget { return this.#record.target; }
   get environment(): OpenISDEnvironment { return this.#record.environment; }
   get signal(): OpenISDSignal { return this.#record.signal; }

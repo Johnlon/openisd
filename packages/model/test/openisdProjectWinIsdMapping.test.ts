@@ -145,11 +145,11 @@ describe('fromWinISDProject — import-side assertions against literals (a round
   it('crosscalc=0 marks the vent slotted on the record; crosscalc=1 leaves it round', () => {
     const slotted = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=0\n'));
-    assert.equal(slotted.box.vented.vent.shape, 'slotted');
+    assert.equal(slotted.vent(0)?.shape, 'slotted');
 
     const round = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=1\n'));
-    assert.equal(round.box.vented.vent.shape, 'round');
+    assert.equal(round.vent(0)?.shape, 'round');
   });
 
   it('Qlr/Qar/Qpr land on the record as the box losses', () => {

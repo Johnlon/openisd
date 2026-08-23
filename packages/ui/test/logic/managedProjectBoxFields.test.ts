@@ -35,7 +35,7 @@ describe('ManagedOpenISDProject — box field read/write', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     mp.mutate(p => { p.box.active = 'vented'; });
     mp.setActiveVentField('diameter_m', 0.08);
-    assert.equal(mp._snapshot().box.vented.vent.diameter_m, 0.08);
+    assert.equal(mp._snapshot().box.vented.vents[0]!.diameter_m, 0.08);
     assert.equal(mp.activeVentField('diameter_m'), 0.08);
   });
 
