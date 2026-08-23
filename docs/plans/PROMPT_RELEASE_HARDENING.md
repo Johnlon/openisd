@@ -554,10 +554,23 @@ never improvise around it.
       drivers and record the number. Independent of A2–A6; touches `db/`, `scripts/`. Done:
       picker browser spec green; no `_OpenISDDriverJson` in `driverRepo`/`myDrivers`/
       `driverLibrary`/`driverSelection`.
-- [ ] **A8** Objective 7: the UI stops importing storage — `.vue` files take domain facades or
+      ❔ PARTIAL (audit pass 1): `readCell`/`readMetaCell`/`readDisplayName` — zero hits
+      confirmed, that half is done. But `driverRepo.ts:3,64` still imports/types
+      `_OpenISDDriverJson` on `BundleRecord.record` — done-criterion not met as written (the
+      plan's own D22 register notes this as the "gate-forced floor of 1" sanctioned exception,
+      not a fresh violation — still, the literal box stays unticked until that's reconciled).
+- [x] **A8** DONE — landed with the D20 commit `4a29bfc`. RECONCILIATION EVIDENCE (audit pass 1
+      + direct re-check at HEAD `4a29bfc`): zero `.vue` files under `packages/ui/src` import
+      `persistence/repos`, `persistence/storage`, or `db/` (grep, both passes agree). Objective 7:
+      the UI stops importing storage — `.vue` files take domain facades or
       services; `OriginalShell.vue` (21 names) last. Blocked-by: A1–A7. Done: driver-value and
-      containment gates green.
-- [ ] **A9** Objective 11: the three new arch gates (re-export ban; import-from-declarer-only;
+      containment gates green. NOTE: A9's own two gates (`docs/design/a9-drafts/*.draft`) are
+      still draft files at this HEAD, not yet real tests — that is A9's row, not a hold on A8.
+- [ ] **A9** ❔ PARTIAL, re-verified at HEAD `4a29bfc` (audit pass 1+2): re-export gate
+      (`architecture-no-reexports.test.ts`) exists and passes (1/1, 0 offences);
+      `no-private-type-laundering.test.ts` exists. `docs/design/a9-drafts/`'s two gates
+      (`import-from-declarer-only.test.ts.draft`, `no-domain-value-through-component.test.ts.draft`)
+      are STILL `.draft` files, not wired-in tests — done-criterion not met. Objective 11: the three new arch gates (re-export ban; import-from-declarer-only;
       no domain VALUE passing through a component) — AST checks, never prose greps. Blocked-by:
       A8. Done: gates exist and are green on the finished tree.
 - [ ] **A10** RELEASE BLOCKER CHECK: all four original arch gates green in the FULL suite.
@@ -603,7 +616,13 @@ never improvise around it.
       constraint 12 re-targeted; 18 emitters keyword-ised; exemplar corrected; 1173 lib green;
       pyright 0. Spin-outs: QT58 (post-B10 refusal), QT57 verdict (peer-recorded,
       re-verify), B-post checklist item.
-- [ ] **B5b** SI DIMENSION KEYS — **CRITICAL (human, 2026-08-21: "SI migration is critical
+- [ ] **B5b** ❔ PARTIAL (audit pass 2): the TS/model side now declares bare SI names —
+      `openisdDriver.ts:202-212` has zero `_mm`/`_l`-suffixed fields. But this row's own
+      done-criterion needs a post-B10 spot-check on the actual corpus, and B10 has not run —
+      not closeable yet. `bugs/BUG_20260819_record_stores_dimension_fields_in_mm_litres...md`
+      (still marked OPEN) should be re-verified against this same evidence before flipping its
+      own status — that bug file was not edited in this reconciliation pass (out of this task's
+      scope: PROMPT_RELEASE_HARDENING.md only). SI DIMENSION KEYS — **CRITICAL (human, 2026-08-21: "SI migration is critical
       make sure its done")** (prod blocker,
       `bugs/BUG_20260819_record_stores_dimension_fields_in_mm_litres_instead_of_si.md`): the
       TS side reads SI field names but real on-disk records still carry the old mm/litre keys
@@ -612,7 +631,10 @@ never improvise around it.
       and openisd gains NO remap shim (one-model rule: an undeclared key is invalid, full
       stop). Interim reads of old records stay lossy until B10 — that is why B10 is a release
       gate item. Done: post-B10 spot-check shows SI keys; a fixture read carries all 10 fields.
-- [ ] **B5** RULED 2026-08-21 (QT56, verbatim in the ledger): the DQ split is ADOPTED — py =
+- [ ] **B5** ❔ (a)'s gate is un-located (audit pass 2 — did not find a "pipeline-computed spec
+      value unrepresentable" gate test in winisd_tools within the pass's time budget; needs a
+      dedicated pass, not assumed absent). Leaving ❔ per main-exec: settles at the sweep
+      pre-flight. RULED 2026-08-21 (QT56, verbatim in the ledger): the DQ split is ADOPTED — py =
       structural DQ + cross-source corroboration; oid = all relation-math DQ live. The
       workability amendment (read_value optional) ALREADY LANDED as B2/QT48. NO calculated
       marker is built (grounds proposal retired). Remaining B5 work, now unblocking B10:
@@ -649,7 +671,11 @@ never improvise around it.
       after harvest so status labels are final; single derivation authority
       (FrameworkRunner._workingout_root). 36+8+7 green. Retention ruling + hardlink/Ctrl-C-
       latency options recorded in QT8 for the human.
-- [ ] **B-post** (added 2026-08-21; ride or follow B10, per rulings) QT58: after the re-emit,
+- [ ] **B-post** ❔ PARTIAL (audit pass 1, QT70 investigation): the QT58 structural half is
+      DONE — zero hits for `disposition=` construction anywhere in `scrapers/` non-test code,
+      non-constructible by definition. The QT57 half (rating⟺disposition) is folded under
+      QT57's own tracking per main-exec's ratify-close with fable1 — not independently closed
+      here. (added 2026-08-21; ride or follow B10, per rulings) QT58: after the re-emit,
       `disposition=` construction input becomes non-constructible (the load tolerance must not
       outlive the regeneration). QT57 (John delegated; verdict recorded by the peer session —
       RE-VERIFY the ledger before acting): MEASURE whether rating ⟺ disposition over the
@@ -763,7 +789,13 @@ never improvise around it.
       then ASK THE HUMAN. Do not build without the ruling. Done: proposal delivered, ruling
       recorded in the ledger.
 
-- [ ] **D8** (added 2026-08-22, QO74 promoted to plan work by the human: "add QO74 to the
+- [x] **D8 (line-766 instance)** CLOSED as duplicate-done (main-exec ruling, reconciliation
+      2026-08-23, on audit-pass-2 evidence). This row and the line-792 `D8` below are one task
+      under one ID: the line-792 instance's commit `7d4cb16` already satisfies THIS row's own
+      literal done-criterion — `packages/engine/test/consistency.test.ts:121-153` pins exactly
+      the three agree/disagree/absent cases this row asks for, against the rel-25 DVol
+      relation. The "deliberately not built" framing below is stale — it predates what 792
+      shipped. No re-ID needed; both instances close together. (added 2026-08-22, QO74 promoted to plan work by the human: "add QO74 to the
       plan as a suffix to the main work - of if it fits in to a spare gap then do it")
       Build the DQ detector for a stale carried DVol disagreeing with the §3.10.1 derivation
       (deliberately not built with the DVol lock, HEAD 102979c). Engine-only
@@ -805,7 +837,10 @@ never improvise around it.
       (2) EVERY UI input converts unit-toggle→SI through the ONE mechanism
       (`fields/units.ts` fromDisplay + fieldRegistry) — `prCanonicalFromDatasheet`'s
       hand-rolled /1e4 and /1000 are the offending precedent to delete. Composes with D9.
-- [ ] **D11** (added 2026-08-22; QO73 ruled + handed to THIS session end-to-end by John
+- [ ] **D11** ❔ PARTIAL (audit pass 1): the `DriverJSON` alias itself — zero hits in
+      `packages/ui/src`, confirmed. NOT verified: the AST arch gate banning erased-type/alias
+      channels (part 2 of this row) and `store.ts:19`'s direct `_OpenISDDriverJson` import. Box
+      stays unticked pending those. (added 2026-08-22; QO73 ruled + handed to THIS session end-to-end by John
       via winisd_tool_fix, whose attempted `unknown`-channel fix he rejected — "your role
       is not to hack around my rulings"; its edits are fully reverted, tree verified clean,
       typechecks green; its `OpenISDProject.setDriver(driver)` addition KEPT as the
@@ -822,7 +857,10 @@ never improvise around it.
       bespoke gate (extend the :703 typeNodeNames() approach). store.ts:19's direct
       `_OpenISDDriverJson` import (its own violation, not PrivateAllow-covered) resolves
       in the same design.
-- [ ] **D22** SERIALIZATION DOCTRINE — QO83 CLOSED, both PrivateAllow grants REFUSED; the
+- [ ] **D22** ❔ PARTIAL (audit pass 1): the `driverSelection.ts` sub-item (loses
+      `editorDraft`/`editorSeed`/`acceptDriverEdit`) is DONE — zero hits, confirmed. The
+      row's own REGISTER table below still shows most other sites "in flight"/"scheduled" — no
+      re-verification of those in this pass, box stays unticked. SERIALIZATION DOCTRINE — QO83 CLOSED, both PrivateAllow grants REFUSED; the
       human ruled the architecture instead. ONE RULE: **THE OWNER OF THE STATE SERIALIZES AND
       PERSISTS IT.** The `KeyValueStore` is injected INTO the model/managed layer, which
       saves and loads itself; NO ui module ferries record strings. Consequence by design:
@@ -919,7 +957,11 @@ never improvise around it.
       | `db/prLibrary.ts` — `UiParams` bags → PR domain objects | **D14 item 5** + **D9** (QO77 live-domain-object pattern) | scheduled |
       SANCTIONED, no work: `scripts/bundle-drivers.mjs` (build-time, edge 2), `db/prefs.ts`
       (UI's own state), and the share-link memo as the ONE opaque-string handoff.
-- [ ] **D20** PERSISTENCE VOCABULARY — one uncompromising rule, ruled by the human 2026-08-22
+- [x] **D20** DONE — landed and committed at `4a29bfc` (audit pass 1 caught it uncommitted;
+      main-exec confirms the commit landed). New tree populated
+      (`persistence/repos/*`, `persistence/storage/*`, `logic/appState.ts`,
+      `logic/driverBrowsingState.ts`); old `db/*.ts`, `store.ts`, `driverLibrary.ts` deleted;
+      `no-persistence-vocabulary-drift.test.ts` present. PERSISTENCE VOCABULARY — one uncompromising rule, ruled by the human 2026-08-22
       ("I want logic and consistency in the code - and not misdirection ... make them single
       responsibility and dont fudge it"). FULL STRATEGY:
       `docs/design/PERSISTENCE_NAMING_AND_PLACEMENT.md`. Three concepts, three words, three
@@ -963,7 +1005,10 @@ never improvise around it.
       projection. `docs/design/DQ_SPLIT_QT56_INVENTORY.md` corrected (its "unresolved
       constant" blocker was stale). Pairs with the EBP relation bug — both are ordinary
       work, neither blocks the QT56 DQ split.
-- [ ] **D21** (QO81 storage-failure package — design doc
+- [ ] **D21** ❔ PARTIAL (audit pass 2): format-version/upgrade-chain vocabulary found in
+      `logic/persist.ts` and `logic/managedProject.ts`; "could not be read" broken-row language
+      found in `logic/managedDriver.ts` and `logic/driverSelection.ts` — real code exists, but
+      the 7 numbered sub-requirements were not individually verified this pass. (QO81 storage-failure package — design doc
       `docs/design/MY_DRIVERS_STORAGE_FAILURES.md`). HOLD LIFTED 2026-08-22, package complete.
       ADDED in the final items: **My Drivers UPGRADE CHAIN** — My-Drivers storage carries a
       format version; every breaking shape change ships an upgrade function; on load the chain
@@ -1003,7 +1048,9 @@ never improvise around it.
       structurally impossible. TO CHECK HERE: whether any literal `345.0`/`1.184` pair
       survives in openisd (`winisd_research/README.md` lists it as an open item, but frames
       343.68/1.20095 as "the correct constants" — same category error, correct the framing).
-- [ ] **D16** (QT58 ruled, John verbatim: "field level stuff is good - disposition is bad -
+- [x] **D16** DONE (audit pass 1, re-verified at HEAD `ad20a61`+): `disposition`/
+      `DispositionField` — zero hits in `packages/model/src/openisdDriver.ts` (the plan cites
+      `:97`/`:340`/`:465` — all three gone). (QT58 ruled, John verbatim: "field level stuff is good - disposition is bad -
       tell main-exec it needs killing"): `disposition` is DELETED OUTRIGHT. winisd_tools side
       (peer-owned, greenlit by this session): Disposition enum, DispositionField envelope +
       detail templates, `disposition_of`, the stamp-on-validation machinery, their tests.
@@ -1016,7 +1063,8 @@ never improvise around it.
       else uses it. All three are in the file the A6/QO78 rework is editing RIGHT NOW —
       SCHEDULE AFTER A6 LANDS, never concurrently. No reader remains (A7/QO79 removed the
       bundler's last read), so deletion is safe on the openisd side.
-- [ ] **D17** (QO80 ruling): `packages/engine/src/index.ts` → `engine.ts` — John: "its more
+- [x] **D17** DONE (audit pass 1): `engine/package.json`'s `types`/`default` both point to
+      `./src/engine.ts`; `src/index.ts` does not exist. Committed, clean vs HEAD. (QO80 ruling): `packages/engine/src/index.ts` → `engine.ts` — John: "its more
       obvious if that's where calcs live". The old dead `engine.ts` was deleted at his order
       by the peer (verified unreferenced beforehand). Mechanics: one edit to
       `packages/engine/package.json`'s `exports` (both `types` and `default` →
@@ -1024,7 +1072,8 @@ never improvise around it.
       zero import churn. PAIR WITH: the D15 re-export gate's barrel exemption must read each
       package's exports-map TARGET rather than hardcoding `index.ts` — that removes the
       hardcoded filename and makes this rename safe. Do both in one change.
-- [ ] **D15** (QO80 ruling, John verbatim: "rexports are expreslly forbideen"): the gate
+- [x] **D15** DONE (audit pass 1): `architecture-no-reexports.test.ts` run directly from repo
+      root — 1/1 pass, 0 offences. Gate green. (QO80 ruling, John verbatim: "rexports are expreslly forbideen"): the gate
       `packages/ui/test/ui/architecture-no-reexports.test.ts` is IN TREE, untracked, born
       RED by design (authored by a John-dispatched background agent; ts-morph AST — export-
       from / export * / export type-from / specifier-less `export {X}` of an import binding;
@@ -1057,7 +1106,13 @@ never improvise around it.
       two fragile non-null assertions that happen to behave via JS comparison semantics —
       `series.ts:115` and `sweep.ts:254` use `drv.Xmax!` where the honest form is a null
       check; correct the style without changing behaviour.
-- [ ] **D14** (QO77 follow-through): peer scan complete 2026-08-22 — 28 violations across
+- [ ] **D14** ❔ PARTIAL — audit pass 2 individually re-verified all 28 sub-items at HEAD
+      `ad20a61`: item 22 (`DriverEditorModal.vue` trafficking `_OpenISDDriverJson`) is DONE —
+      zero hits for `_OpenISDDriverJson`/`toJsonRecord`/`seed.json` in that file, contradicting
+      this row's unchecked status for that one item. All other 27 items (1–21, 23–28) are
+      UNTOUCHED — re-checked line-by-line against current file content, evidence unchanged from
+      the peer scan below (line numbers drifted slightly, content matches). Row stays unticked;
+      item 22 alone does not clear it. (QO77 follow-through): peer scan complete 2026-08-22 — 28 violations across
       9 of 21 .vue files + 2 logic helpers; 12 files clean. Classes: (1) physics/derivation
       in the view, (2) hand-rolled unit conversion, (3) state writes around the domain,
       (4) private-shape contact. EVERY file:line below is a peer-scan claim — RE-VERIFY at
@@ -1111,13 +1166,20 @@ never improvise around it.
       SUPERSEDED 2026-08-22 (QT54 ruling update, verbatim in the ledger): python keeps the
       driver.yml→openisd.yml projection — the port was DELETED as dead surface (commit
       `0a8ebe9`). The work stands as review-hardened history only.
-- [ ] **F3** RESCOped 2026-08-22 (QT54 supersession): winisd_tools embeds a JS engine and
+- [ ] **F3** ❔ PARTIAL (audit pass 2): winisd_tools has `openisd_js.py` + `test_openisd_js.py`
+      wired to the bridge; the production zero-fields bug on this path
+      (`BUG_20260822_v8_bridge_zeroes_all_ts_fields...`) is RESOLVED. But this row's own
+      done-criterion (parity vs the QT60 bar) is blocked-by B10, which is untouched — cannot
+      close yet. RESCOped 2026-08-22 (QT54 supersession): winisd_tools embeds a JS engine and
       calls ONLY `openisdYamlToWdr`; parity vs the python .wdr mapper per the QT60 bar (bar
       ruling pending). OWNED BY the yaml-divergence-wdr-refactor peer session (John-directed);
       main-exec supplies the openisd bridge artifact on request (openisd read-only for the
       peer). Blocked-by: F1 (done), B10 (parity against post-regeneration records), QT60.
       If parity fails the ruled bar: STOP, report — never regenerate to paper over it.
-- [ ] **F4** RESCOped 2026-08-22 (QT54 supersession): delete ONLY the .wdr mapping half —
+- [ ] **F4** ❔ PARTIAL (audit pass 1): `model_wdr.py`/`wdr_ini_file.py`/`rebuild_wdr.py` —
+      zero find-results for all three filenames in winisd_tools, committed at `e9524e82`
+      (commit `7546d421`). NOT verified: the pytest-green half of this row's done-criterion —
+      no test run performed this pass. RESCOped 2026-08-22 (QT54 supersession): delete ONLY the .wdr mapping half —
       `model_wdr.py`'s mapping + `wdr_ini_file.py` + their pinned tests; `model_openisd.py`
       SURVIVES (python keeps the driver.yml→openisd.yml projection). DQ half moves out first,
       in its own change, per the design (note: QT56 deferred the relation-math-DQ deletion —
@@ -1126,7 +1188,10 @@ never improvise around it.
       currently red on test_uselib_ts_carries_ebp_formula (openisd's useDriverLibrary.ts no
       longer carries EBP=Fs/Qes after the A-lane rework); dies with F4, chase nothing.
 
-- [ ] **F3-support** (owed BY main-exec to the yaml-divergence-wdr-refactor peer per QT61,
+- [x] **F3-support** DONE (audit pass 2): `packages/winisd/dist/openisd-bridge.js` exists
+      (131,969 bytes, built 2026-08-23 01:40), contains exactly one reference to
+      `openisdYamlToWdr` (matches "expose ONLY that global"); `npm run build:bridge` confirmed
+      in root `package.json:23`. (owed BY main-exec to the yaml-divergence-wdr-refactor peer per QT61,
       John: "the openisd agent will create the v8 bundle... assume it will exist"): after A6
       lands, build the V8-loadable bridge bundle — `npm run build:bridge` emitting an IIFE,
       ES2020, yaml-inlined `dist/openisd-bridge.js` exposing `globalThis.openisdYamlToWdr`
