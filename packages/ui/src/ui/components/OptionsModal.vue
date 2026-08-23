@@ -77,14 +77,22 @@ const draft = reactive({
 
 const unitsResetPending = ref(false);
 
+// Physical default environment (WinISD's own defaults) — the one literal shared by the
+// Environment fieldset's scoped reset and the whole-modal Defaults reset.
+const DEFAULT_ENV_DEFAULTS = { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 };
+
 function resetUnitsDraft() {
   unitsResetPending.value = true;
   draft.unitTokens = {};
 }
 
+function resetEnvDraft() {
+  draft.envDefaults = { ...DEFAULT_ENV_DEFAULTS };
+}
+
 function restoreDefaults() {
   draft.username = '';
-  draft.envDefaults = { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 };
+  draft.envDefaults = { ...DEFAULT_ENV_DEFAULTS };
   draft.chartColors = {};
   draft.unitTokens = {};
   draft.yRanges = {};
@@ -183,6 +191,9 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 
           <fieldset class="opt-group">
             <legend>Environment</legend>
+            <button class="opt-reset-btn" title="Reset temperature, air pressure and humidity back to their default values (293.15 K, 101325 Pa, 30%). Only this fieldset is affected." @click="resetEnvDraft">
+              Reset to defaults
+            </button>
             <div class="opt-env-grid">
               <div class="opt-fld">
                 <label>Temperature</label>
@@ -305,7 +316,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
   display: flex; flex-direction: column; gap: 10px; }
 .opt-group { border: 1px solid var(--line); border-radius: 5px; padding: 10px 12px; margin: 0; }
 .opt-group legend { padding: 0 6px; font-size: 11px; color: var(--mut); }
-.opt-reset-btn { width: 100%; padding: 6px 0; cursor: pointer; }
+.opt-reset-btn { width: 100%; padding: 6px 0; cursor: pointer; margin-bottom: 8px; }
 .opt-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
 .opt-ok { font-weight: 600; }
 .opt-defaults-btn { margin-right: auto; cursor: pointer; }

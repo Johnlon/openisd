@@ -986,6 +986,38 @@ test('Original skin: Options dialog edits are draft-only and discard on Cancel, 
   expect(await getStoreTemp()).toBe(293.15);
 });
 
+test('Original skin: Environment fieldset has its own reset button that resets envDefaults without touching other draft fields', async ({ page }) => {
+  // Helper to read the relevant store fields from the browser
+  const getStore = async () => {
+    return await page.evaluate(async () => {
+      const modPath = '/src/logic/presentationState.ts';
+      const ps = await import(/* @vite-ignore */ modPath);
+      return { tempK: ps.presentationState.ui.envDefaults.tempK, username: ps.presentationState.ui.username };
+    });
+  };
+
+  // 1. Open options, set a username and change Temperature away from defaults, apply with OK
+  await page.locator('.tb-btn[title="Options"]').click();
+  await page.locator('.opt-input').fill('111111');
+  const tempInput = page.locator('.opt-fld', { hasText: 'Temperature' }).locator('input');
+  await tempInput.click();
+  await tempInput.press('Control+a');
+  await tempInput.press('Delete');
+  await tempInput.pressSequentially('300.00');
+  await tempInput.blur();
+  await page.locator('.opt-footer button', { hasText: 'OK' }).click();
+
+  expect(await getStore()).toEqual({ tempK: 300, username: '111111' });
+
+  // 2. Reopen options, click the Environment fieldset's own reset button, then OK
+  await page.locator('.tb-btn[title="Options"]').click();
+  await page.locator('.opt-group', { hasText: 'Environment' }).locator('.opt-reset-btn').click();
+  await page.locator('.opt-footer button', { hasText: 'OK' }).click();
+
+  // Verification: envDefaults back to the physical default, username left untouched
+  expect(await getStore()).toEqual({ tempK: 293.15, username: '111111' });
+});
+
 test('Original skin: Open the two samples and switch between them, ensuring the active selection highlight moves correctly', async ({ page }) => {
   // 1. Open first sample: "Generic 6.5\" Woofer"
   await page.locator('.tb-btn.has-menu[title="Open project"]').click();
