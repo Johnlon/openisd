@@ -331,7 +331,7 @@ describe('ManagedOpenISDProject — project file IO (.wpr)', () => {
     src.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
     src.setActiveAlignment('sealed');
     src.setBoxVolume_m3(777777e-6);
-    src.mutate(p => { p.meta.description = 'probe-description-123456'; p.meta.creator = 'probe-creator'; });
+    src.mutate(p => p.setProjectMeta({ ...p.projectMeta(), description: 'probe-description-123456', creator: 'probe-creator' }));
 
     const { value: bytes, errors } = src.exportWpr(new Date('2026-01-01'), null);
     assert.equal(errors.length, 0, JSON.stringify(errors));

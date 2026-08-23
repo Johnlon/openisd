@@ -130,3 +130,27 @@ test('a name-changing save asks the ONE question; Save as a copy keeps the origi
   const models = parsed.drivers.map(d => d.model.value).sort();
   expect(models).toEqual(['Name', 'Renamed']);
 });
+
+test('importing the same driver file twice through the real path yields two entries (S1)', async ({ page }) => {
+  // The mint-fresh rule LIVES in driverBrowsingState.loadFromDisk — this exercises it
+  // through the actual file input, not the repo given a correct caller.
+  await seedRaw(page, JSON.stringify({ schema: 2, drivers: [] }));
+  await openPicker(page);
+
+  const wdr = [
+    '[Driver]', 'Brand=Twice', 'Model=Imported', 'Manufacturer=', 'ProvidedBy=', 'Comment=',
+    'DateAdded=', 'DateModified=', 'Qts=0.4', 'Fs=40', 'Re=6', 'ParState=' + 'N'.repeat(49), '',
+  ].join('\r\n');
+  const file = { name: 'twice.wdr', mimeType: 'text/plain', buffer: Buffer.from(wdr) };
+
+  for (let i = 0; i < 2; i++) {
+    await page.locator('button', { hasText: /load.*disk|from disk/i }).first().click().catch(() => {});
+    await page.locator('input[type="file"]').setInputFiles(file);
+    await expect(page.locator('.my-ditem')).toHaveCount(i + 1);
+  }
+
+  const stored = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
+  const parsed = JSON.parse(stored!) as { drivers: { uuid: { value: string } }[] };
+  expect(parsed.drivers).toHaveLength(2);
+  expect(parsed.drivers[0]!.uuid.value).not.toBe(parsed.drivers[1]!.uuid.value);
+});

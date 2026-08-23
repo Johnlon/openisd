@@ -58,7 +58,10 @@ function enteredStateTouches(source: SourceFile): string[] {
   for (const node of source.getDescendants()) {
     if (Node.isPropertyAccessExpression(node) && node.getName() === 'entered') {
       const target = node.getExpression();
-      if (Node.isPropertyAccessExpression(target) && target.getName() === 'target') {
+      // property-access base (x.target.entered) AND identifier base (target.entered on a
+      // destructured local) — the destructure would otherwise slip the gate
+      if ((Node.isPropertyAccessExpression(target) && target.getName() === 'target')
+        || (Node.isIdentifier(target) && target.getText() === 'target')) {
         hits.push(`${node.getStartLineNumber()}: ${node.getText().slice(0, 60)}`);
       }
     }
@@ -119,8 +122,11 @@ describe('project symmetry — the invariants hold (Lane P5)', () => {
         if (!name.endsWith('.ts') && !name.endsWith('.vue')) continue;
         if (full.endsWith('logic/managedProject.ts')) continue; // the ONE licensed home
         const raw = readFileSync(full, 'utf8');
+        // EVERY script block, not just the first — a .vue file may carry both a setup and a
+        // plain script block, and a gate that reads one is blind to the other.
         const text = name.endsWith('.vue')
-          ? (/<script[^>]*>([\s\S]*?)<\/script>/.exec(raw)?.[1] ?? '') : raw;
+          ? [...raw.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n')
+          : raw;
         const sf = project.createSourceFile(`${full}.gate.ts`, text, { overwrite: true });
         for (const hit of enteredStateTouches(sf)) {
           offences.push(`${relative(REPO_ROOT, full)}:${hit}`);

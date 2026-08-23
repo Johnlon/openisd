@@ -38,6 +38,12 @@ import type { Result, EngineDriver, SweepResult } from "@openisd/engine";
  *  the derived port area. */
 export type ProjectFieldId =
   | 'Vb' | 'ventD' | 'Fb' | 'ventL' | 'ventW' | 'ventH' | 'Sp' | 'prFp' | 'prMadd'
+  // Relation-less registered fields — one name each, the registry's own symbol. All are
+  // Entered by the prototype-stater rule (QO36-B4): the prototype or the user stated them,
+  // nothing ever solves them.
+  | 'Vf' | 'Ql' | 'Qa' | 'Qp' | 'endCorrection'
+  | 'advTemp' | 'advHumidity' | 'advPressure'
+  | 'Pin' | 'Rs' | 'nDrivers' | 'vcTempRise' | 'driverAddedMass'
   // The radiator's own facts (SI), and its datasheet vocabulary — Vas/Fs/Qms are DERIVED
   // views of the canonical Sd/Cms/Mmd/Rms; entering one re-solves the canonical set with
   // the ruled holds. All values SI (prVas in m³ — display units are the registry's job).
@@ -63,6 +69,17 @@ function assertVentArity(box: OpenISDBox): void {
   check('vented', box.vented.vents);
   check('bandpass4', box.bandpass4.vents);
 }
+
+/**
+ * THE litres↔m³ crossing — one place, because the engine's PR-Vas vocabulary is litres while
+ * this model is SI throughout, and a hand-typed 1000 at each call site is exactly how the
+ * silent-×1000 class shipped twice before (BUG_20260817's litres-into-the-m³-field,
+ * BUG_20260818's truncated duplicate constants).
+ */
+const litresToM3 = (litres: number): number => litres / 1000;
+const m3ToLitres = (m3: number): number => m3 * 1000;
+
+const RELATIONLESS: ReadonlySet<string> = new Set(['Vf','Ql','Qa','Qp','endCorrection','advTemp','advHumidity','advPressure','Pin','Rs','nDrivers','vcTempRise','driverAddedMass']);
 
 /** Which alignment is ACTIVE. The others stay populated and dormant. */
 export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator';
@@ -614,7 +631,7 @@ export class OpenISDProject {
           // prVas() returns LITRES (its own contract); the file's Vas is SI m³ like every
           // other key in the section, so the ÷1000 is load-bearing
           // (BUG_20260817_wpr_passive_radiator_vas_written_in_litres...).
-          Vas: prVas(r.Cms_m_per_N, r.Sd_m2) / 1000,
+          Vas: litresToM3(prVas(r.Cms_m_per_N, r.Sd_m2)),
           Qms: prQms(r.Mmd_kg, r.Cms_m_per_N, r.Rms_Ns_per_m),
           Fs: prFsWithMass(r.Mmd_kg, pr.addedMass_kg, r.Cms_m_per_N),
           Sd: r.Sd_m2, Xmax: r.Xmax_m, Me: pr.addedMass_kg,
@@ -693,6 +710,60 @@ export class OpenISDProject {
   /** Has a radiator actually been picked? Reads never allocate one — `prField()` serves
    *  defaults until a write does. */
   prChosen(): boolean { return this.#record.box.passiveRadiator.radiator != null; }
+
+  // ── Non-numeric named accessors — survivors of the keyed surface, each with its reason ──
+  // (an enum or boolean cannot be a numeric cell; a string field is not a registered field)
+
+  ventShape(): OpenISDVent['shape'] { return activeVent(this.#record.box).shape; }
+  setVentShape(value: OpenISDVent['shape']): void { activeVent(this.#record.box).shape = value; }
+
+  wiring(): OpenISDSignal['wiring'] { return this.#record.signal.wiring; }
+  setWiring(value: OpenISDSignal['wiring']): void { this.#record.signal.wiring = value; }
+  rgAtDriverSide(): boolean { return this.#record.signal.rgAtDriverSide; }
+  setRgAtDriverSide(value: boolean): void { this.#record.signal.rgAtDriverSide = value; }
+
+  circuitModel(): OpenISDSimOptions['circuitModel'] { return this.#record.simOptions.circuitModel; }
+  setCircuitModel(value: OpenISDSimOptions['circuitModel']): void { this.#record.simOptions.circuitModel = value; }
+  tlPortModel(): boolean { return this.#record.simOptions.tlPortModel; }
+  setTlPortModel(value: boolean): void { this.#record.simOptions.tlPortModel = value; }
+  forceFlatResponse(): boolean { return this.#record.simOptions.forceFlatResponse; }
+  setForceFlatResponse(value: boolean): void { this.#record.simOptions.forceFlatResponse = value; }
+  splXmaxLimited(): boolean { return this.#record.simOptions.splXmaxLimited; }
+  setSplXmaxLimited(value: boolean): void { this.#record.simOptions.splXmaxLimited = value; }
+  /** Voice-coil resistance coefficient (project-side sim option; not a registered field —
+   *  the registered `AlfaVC` is the DRIVER's own). */
+  alfaVC(): number { return this.#record.simOptions.alfaVC; }
+  setAlfaVC(value: number): void { this.#record.simOptions.alfaVC = value; }
+
+  ignoreHumidityAndPressure(): boolean { return this.#record.environment.ignoreHumidityAndPressure; }
+  setIgnoreHumidityAndPressure(value: boolean): void { this.#record.environment.ignoreHumidityAndPressure = value; }
+
+  /** Sweep range — not registered fields; the unit suffixes mark genuine raw crossings. */
+  sweepFmin_hz(): number { return this.#record.sweep.fmin_hz; }
+  setSweepFmin_hz(value: number): void { this.#record.sweep.fmin_hz = value; }
+  sweepFmax_hz(): number { return this.#record.sweep.fmax_hz; }
+  setSweepFmax_hz(value: number): void { this.#record.sweep.fmax_hz = value; }
+  sweepPoints(): number { return this.#record.sweep.points; }
+  setSweepPoints(value: number): void { this.#record.sweep.points = value; }
+
+  /** The filter chain, as independent copies both ways. */
+  filters(): Filter[] { return this.#record.filters.map(f => ({ ...f })); }
+  setFilters(value: Filter[]): void { this.#record.filters = value.map(f => ({ ...f })); }
+
+  /** Project metadata, as a copy. */
+  projectMeta(): OpenISDProjectMeta { return { ...this.#record.meta }; }
+  setProjectMeta(value: OpenISDProjectMeta): void { this.#record.meta = { ...value }; }
+
+  // ── The entered set — provenance storage, one licensed surface ────────────────────────────
+  isEntered(field: string): boolean { return this.#record.target.entered[field] === true; }
+  setEntered(field: string, on: boolean): void {
+    if (on) this.#record.target.entered[field] = true;
+    else delete this.#record.target.entered[field];
+  }
+  enteredSet(): Record<string, true> { return { ...this.#record.target.entered }; }
+  replaceEnteredSet(value: Record<string, true>): void {
+    this.#record.target.entered = { ...value };
+  }
 
   prCount(): number { return this.#record.box.passiveRadiator.count; }
   setPrCount(value: number): void { this.#record.box.passiveRadiator.count = value; }
@@ -841,7 +912,7 @@ export class OpenISDProject {
       }
       // `.wpr`'s [PassiveRadiator].Vas is SI m³ (BUG_20260817); the engine's Vas-vocabulary
       // functions take litres, so the ×1000 happens here, at this one boundary.
-      const cms = prCmsFromVas(Vas * 1000, Sd);
+      const cms = prCmsFromVas(m3ToLitres(Vas), Sd);
       const mmd = prMmdFromFs(Fs, cms);
       const rms = prRmsFromQms(Qms, mmd, cms);
       const radiator = ensurePassiveRadiator(record.box.passiveRadiator);
@@ -922,8 +993,8 @@ export class OpenISDProject {
       // Derived views of the canonical radiator — Calculated whenever one is defined.
       return { value, state: this.#prIsDefined() ? Provenance.Calculated : Provenance.NotAvailable };
     }
-    if (field === 'prSd' || field === 'prXmax' || field === 'prNum') {
-      // Component facts: stated (by datasheet entry or the prototype), never solved.
+    if (field === 'prSd' || field === 'prXmax' || field === 'prNum' || RELATIONLESS.has(field)) {
+      // Stated facts (by the user, a datasheet, or the prototype — QO36-B4), never solved.
       return { value, state: Provenance.Entered };
     }
     if (field === 'Sp') {
@@ -937,9 +1008,46 @@ export class OpenISDProject {
     return { value, state: derivable ? Provenance.Calculated : Provenance.NotAvailable };
   }
 
+  /** Write a field's value with NO provenance mark and NO solve — the restore/wire verb, for
+   *  adopting persisted state verbatim. A user ACTION goes through `enter()`. */
+  set(field: ProjectFieldId, value: number): void {
+    const record = this.#record;
+    switch (field) {
+      case 'Sp': throw new Error('Sp is derived from the port geometry — set ventD, or ventW/ventH');
+      case 'Vb': setBoxVolume_m3(record.box, value); return;
+      case 'Fb': setBoxTuning_Fb_hz(record.box, value); return;
+      case 'ventD': activeVent(record.box).diameter_m = value; return;
+      case 'ventL': activeVent(record.box).length_m = value; return;
+      case 'ventW': activeVent(record.box).width_m = value; return;
+      case 'ventH': activeVent(record.box).height_m = value; return;
+      case 'endCorrection': activeVent(record.box).endCorrection = value; return;
+      case 'prFp': record.box.passiveRadiator.Fp_hz = value; return;
+      case 'prMadd': record.box.passiveRadiator.addedMass_kg = value; return;
+      case 'prSd': this.setPrField('Sd_m2', value); return;
+      case 'prXmax': this.setPrField('Xmax_m', value); return;
+      case 'prNum': record.box.passiveRadiator.count = value; return;
+      case 'prVas': case 'prFs': case 'prQms': case 'prFsMass':
+        throw new Error(`${field} is datasheet vocabulary — enter() it, or set the canonical fields`);
+      case 'Vf': record.box.bandpass4.frontVolume_m3 = value; return;
+      case 'Ql': record.box.Ql = value; return;
+      case 'Qa': record.box.Qa = value; return;
+      case 'Qp': record.box.Qp = value; return;
+      case 'advTemp': record.environment.tempK = value; return;
+      case 'advHumidity': record.environment.humidityPct = value; return;
+      case 'advPressure': record.environment.pressurePa = value; return;
+      case 'Pin': record.signal.inputPower_W = value; return;
+      case 'Rs': record.signal.seriesResistance_ohm = value; return;
+      case 'nDrivers': record.signal.driverCount = value; return;
+      case 'vcTempRise': record.simOptions.vcTempRise = value; return;
+      case 'driverAddedMass': record.simOptions.driverAddedMass = value; return;
+    }
+  }
+
   /** Enter a field: held from now on, never recomputed, until an explicit `clear()`. The
-   *  write, the provenance mark and the group re-solve are one operation. */
+   *  write, the provenance mark and the group re-solve are one operation. A relation-less
+   *  field has no group and no mark — its enter IS the plain write. */
   enter(field: ProjectFieldId, value: number): void {
+    if (RELATIONLESS.has(field)) { this.set(field, value); return; }
     const record = this.#record;
     switch (field) {
       case 'Sp': throw new Error('Sp is derived from the port geometry — enter ventD, or ventW/ventH');
@@ -962,7 +1070,7 @@ export class OpenISDProject {
         const sd = this.prField('Sd_m2');
         const fs = this.cell('prFs').value || 30;
         const qms = this.cell('prQms').value || 5;
-        const cms = prCmsFromWinIsdVas(value * 1000, sd); // engine vocabulary is litres
+        const cms = prCmsFromWinIsdVas(m3ToLitres(value), sd); // engine vocabulary is litres
         const mmd = prMmdFromWinIsdFs(fs, cms);
         this.setPrField('Cms_m_per_N', cms);
         this.setPrField('Mmd_kg', mmd);
@@ -1088,7 +1196,23 @@ export class OpenISDProject {
     const record = this.#record;
     const vent = activeVent(record.box);
     switch (field) {
-      case 'Vb': return this.#ventVolume();
+      // Registry semantics: the ACTIVE alignment's own volume (bandpass4: the REAR chamber —
+      // its front chamber is 'Vf'). The Helmholtz solver's per-chamber volume is the internal
+      // #ventVolume(), which is NOT this field.
+      case 'Vb': return boxVolume_m3(record.box);
+      case 'Vf': return record.box.bandpass4.frontVolume_m3;
+      case 'Ql': return record.box.Ql;
+      case 'Qa': return record.box.Qa;
+      case 'Qp': return record.box.Qp;
+      case 'endCorrection': return vent.endCorrection;
+      case 'advTemp': return record.environment.tempK;
+      case 'advHumidity': return record.environment.humidityPct;
+      case 'advPressure': return record.environment.pressurePa;
+      case 'Pin': return record.signal.inputPower_W;
+      case 'Rs': return record.signal.seriesResistance_ohm;
+      case 'nDrivers': return record.signal.driverCount;
+      case 'vcTempRise': return record.simOptions.vcTempRise;
+      case 'driverAddedMass': return record.simOptions.driverAddedMass;
       case 'Fb': return boxTuning_Fb_hz(record.box);
       case 'ventD': return vent.diameter_m;
       case 'ventL': return vent.length_m;
@@ -1102,7 +1226,7 @@ export class OpenISDProject {
       case 'prNum': return record.box.passiveRadiator.count;
       // prVas in SI m³: the engine's prVas contract is litres, so the ÷1000 happens here,
       // at the model boundary — one unit system inside, the registry converts for display.
-      case 'prVas': return prVas(this.prField('Cms_m_per_N'), this.prField('Sd_m2')) / 1000;
+      case 'prVas': return litresToM3(prVas(this.prField('Cms_m_per_N'), this.prField('Sd_m2')));
       case 'prFs': return prFsWithMass(this.prField('Mmd_kg'), 0, this.prField('Cms_m_per_N'));
       case 'prQms': return prQms(this.prField('Mmd_kg'), this.prField('Cms_m_per_N'), this.prField('Rms_Ns_per_m'));
       case 'prFsMass': return prFsWithMass(this.prField('Mmd_kg'), this.#record.box.passiveRadiator.addedMass_kg, this.prField('Cms_m_per_N'));
@@ -1150,13 +1274,4 @@ export class OpenISDProject {
     const p = this.#prParams();
     return p.Vb > 0 && p.prSd > 0 && p.prCms > 0 && p.prMmd > 0;
   }
-  get target(): OpenISDTarget { return this.#record.target; }
-  get environment(): OpenISDEnvironment { return this.#record.environment; }
-  get signal(): OpenISDSignal { return this.#record.signal; }
-  get listening(): OpenISDListening { return this.#record.listening; }
-  get simOptions(): OpenISDSimOptions { return this.#record.simOptions; }
-  get sweep(): OpenISDSweepRange { return this.#record.sweep; }
-  get meta(): OpenISDProjectMeta { return this.#record.meta; }
-  get filters(): Filter[] { return this.#record.filters; }
-  set filters(value: Filter[]) { this.#record.filters = value; }
 }

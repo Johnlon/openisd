@@ -126,12 +126,12 @@ describe('fromWinISDProject — import-side assertions against literals (a round
   it('crosscalc=0 marks the AREA entered on the record; shape follows the observed geometry', () => {
     const areaEntered = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=0\n'));
-    assert.equal(areaEntered.target.entered['ventCrossArea'], true);
+    assert.equal(areaEntered.isEntered('ventCrossArea'), true);
     assert.equal(areaEntered.vent(0)?.shape, 'round', 'a stated dia1 is a round port — crosscalc is not shape');
 
     const derived = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=1\n'));
-    assert.equal(derived.target.entered['ventCrossArea'], undefined);
+    assert.equal(derived.isEntered('ventCrossArea'), false);
     assert.equal(derived.vent(0)?.shape, 'round');
   });
 
@@ -154,7 +154,7 @@ describe('fromWinISDProject — import-side assertions against literals (a round
   it('Nd lands on the record as the driver count', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=0\nVr=0.02\nNd=3\n'));
-    assert.equal(project.signal.driverCount, 3);
+    assert.equal(project.cell('nDrivers').value, 3);
   });
 });
 
@@ -181,7 +181,7 @@ describe('crosscalc is AREA provenance, never port shape (opus2 H1, interim ruli
   it('crosscalc=0 is held as entered area provenance and round-trips without touching shape', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=0\n'));
-    assert.equal(project.target.entered['ventCrossArea'], true);
+    assert.equal(project.isEntered('ventCrossArea'), true);
     const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
       .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
     assert.match(rear, /crosscalc=0/);
@@ -190,7 +190,7 @@ describe('crosscalc is AREA provenance, never port shape (opus2 H1, interim ruli
   it('crosscalc=1 leaves the entered set alone and writes crosscalc=1 back', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=1\n'));
-    assert.equal(project.target.entered['ventCrossArea'], undefined);
+    assert.equal(project.isEntered('ventCrossArea'), false);
     const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
       .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
     assert.match(rear, /crosscalc=1/);

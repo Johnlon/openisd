@@ -320,65 +320,65 @@ export class ManagedOpenISDProject {
 
   // ---- environment ------------------------------------------------------------------------
 
-  envTempK(): number { return this.#effective().project.environment.tempK; }
-  setEnvTempK(value: number): void { this.mutate(p => { p.environment.tempK = value; }); }
-  envHumidityPct(): number { return this.#effective().project.environment.humidityPct; }
-  setEnvHumidityPct(value: number): void { this.mutate(p => { p.environment.humidityPct = value; }); }
-  envPressurePa(): number { return this.#effective().project.environment.pressurePa; }
-  setEnvPressurePa(value: number): void { this.mutate(p => { p.environment.pressurePa = value; }); }
+  envTempK(): number { return this.#effective().project.cell('advTemp').value; }
+  setEnvTempK(value: number): void { this.mutate(p => p.set('advTemp', value)); }
+  envHumidityPct(): number { return this.#effective().project.cell('advHumidity').value; }
+  setEnvHumidityPct(value: number): void { this.mutate(p => p.set('advHumidity', value)); }
+  envPressurePa(): number { return this.#effective().project.cell('advPressure').value; }
+  setEnvPressurePa(value: number): void { this.mutate(p => p.set('advPressure', value)); }
   envIgnoreHumidityAndPressure(): boolean {
-    return this.#effective().project.environment.ignoreHumidityAndPressure;
+    return this.#effective().project.ignoreHumidityAndPressure();
   }
   setEnvIgnoreHumidityAndPressure(value: boolean): void {
-    this.mutate(p => { p.environment.ignoreHumidityAndPressure = value; });
+    this.mutate(p => p.setIgnoreHumidityAndPressure(value));
   }
 
   // ---- signal ------------------------------------------------------------------------------
 
-  driverCount(): number { return this.#effective().project.signal.driverCount; }
-  setDriverCount(value: number): void { this.mutate(p => { p.signal.driverCount = value; }); }
-  wiring(): 'series' | 'parallel' { return this.#effective().project.signal.wiring; }
-  setWiring(value: 'series' | 'parallel'): void { this.mutate(p => { p.signal.wiring = value; }); }
-  inputPower_W(): number { return this.#effective().project.signal.inputPower_W; }
-  setInputPower_W(value: number): void { this.mutate(p => { p.signal.inputPower_W = value; }); }
-  seriesResistance_ohm(): number { return this.#effective().project.signal.seriesResistance_ohm; }
+  driverCount(): number { return this.#effective().project.cell('nDrivers').value; }
+  setDriverCount(value: number): void { this.mutate(p => p.set('nDrivers', value)); }
+  wiring(): 'series' | 'parallel' { return this.#effective().project.wiring(); }
+  setWiring(value: 'series' | 'parallel'): void { this.mutate(p => p.setWiring(value)); }
+  inputPower_W(): number { return this.#effective().project.cell('Pin').value; }
+  setInputPower_W(value: number): void { this.mutate(p => p.set('Pin', value)); }
+  seriesResistance_ohm(): number { return this.#effective().project.cell('Rs').value; }
   setSeriesResistance_ohm(value: number): void {
-    this.mutate(p => { p.signal.seriesResistance_ohm = value; });
+    this.mutate(p => p.set('Rs', value));
   }
-  rgAtDriverSide(): boolean { return this.#effective().project.signal.rgAtDriverSide; }
-  setRgAtDriverSide(value: boolean): void { this.mutate(p => { p.signal.rgAtDriverSide = value; }); }
+  rgAtDriverSide(): boolean { return this.#effective().project.rgAtDriverSide(); }
+  setRgAtDriverSide(value: boolean): void { this.mutate(p => p.setRgAtDriverSide(value)); }
 
   // ---- simulation options (WinISD Advanced pane) -------------------------------------------
 
-  circuitModel(): 'winisd' | 'gyrator' { return this.#effective().project.simOptions.circuitModel; }
+  circuitModel(): 'winisd' | 'gyrator' { return this.#effective().project.circuitModel(); }
   setCircuitModel(value: 'winisd' | 'gyrator'): void {
-    this.mutate(p => { p.simOptions.circuitModel = value; });
+    this.mutate(p => p.setCircuitModel(value));
   }
-  tlPortModel(): boolean { return this.#effective().project.simOptions.tlPortModel; }
-  setTlPortModel(value: boolean): void { this.mutate(p => { p.simOptions.tlPortModel = value; }); }
-  forceFlatResponse(): boolean { return this.#effective().project.simOptions.forceFlatResponse; }
+  tlPortModel(): boolean { return this.#effective().project.tlPortModel(); }
+  setTlPortModel(value: boolean): void { this.mutate(p => p.setTlPortModel(value)); }
+  forceFlatResponse(): boolean { return this.#effective().project.forceFlatResponse(); }
   setForceFlatResponse(value: boolean): void {
-    this.mutate(p => { p.simOptions.forceFlatResponse = value; });
+    this.mutate(p => p.setForceFlatResponse(value));
   }
-  splXmaxLimited(): boolean { return this.#effective().project.simOptions.splXmaxLimited; }
-  setSplXmaxLimited(value: boolean): void { this.mutate(p => { p.simOptions.splXmaxLimited = value; }); }
-  vcTempRise(): number { return this.#effective().project.simOptions.vcTempRise; }
-  setVcTempRise(value: number): void { this.mutate(p => { p.simOptions.vcTempRise = value; }); }
-  alfaVC(): number { return this.#effective().project.simOptions.alfaVC; }
-  setAlfaVC(value: number): void { this.mutate(p => { p.simOptions.alfaVC = value; }); }
-  driverAddedMass(): number { return this.#effective().project.simOptions.driverAddedMass; }
+  splXmaxLimited(): boolean { return this.#effective().project.splXmaxLimited(); }
+  setSplXmaxLimited(value: boolean): void { this.mutate(p => p.setSplXmaxLimited(value)); }
+  vcTempRise(): number { return this.#effective().project.cell('vcTempRise').value; }
+  setVcTempRise(value: number): void { this.mutate(p => p.set('vcTempRise', value)); }
+  alfaVC(): number { return this.#effective().project.alfaVC(); }
+  setAlfaVC(value: number): void { this.mutate(p => p.setAlfaVC(value)); }
+  driverAddedMass(): number { return this.#effective().project.cell('driverAddedMass').value; }
   setDriverAddedMass(value: number): void {
-    this.mutate(p => { p.simOptions.driverAddedMass = value; });
+    this.mutate(p => p.set('driverAddedMass', value));
   }
 
   // ---- sweep range ---------------------------------------------------------------------------
 
-  sweepFmin_hz(): number { return this.#effective().project.sweep.fmin_hz; }
-  setSweepFmin_hz(value: number): void { this.mutate(p => { p.sweep.fmin_hz = value; }); }
-  sweepFmax_hz(): number { return this.#effective().project.sweep.fmax_hz; }
-  setSweepFmax_hz(value: number): void { this.mutate(p => { p.sweep.fmax_hz = value; }); }
-  sweepPoints(): number { return this.#effective().project.sweep.points; }
-  setSweepPoints(value: number): void { this.mutate(p => { p.sweep.points = value; }); }
+  sweepFmin_hz(): number { return this.#effective().project.sweepFmin_hz(); }
+  setSweepFmin_hz(value: number): void { this.mutate(p => p.setSweepFmin_hz(value)); }
+  sweepFmax_hz(): number { return this.#effective().project.sweepFmax_hz(); }
+  setSweepFmax_hz(value: number): void { this.mutate(p => p.setSweepFmax_hz(value)); }
+  sweepPoints(): number { return this.#effective().project.sweepPoints(); }
+  setSweepPoints(value: number): void { this.mutate(p => p.setSweepPoints(value)); }
 
   // ---- filters (parametric EQ chain) ----------------------------------------------------------
 
@@ -389,14 +389,14 @@ export class ManagedOpenISDProject {
    *  edit — a UI editing ONE filter's ONE field through a read-modify-write of this copy risks
    *  losing a concurrent write to a DIFFERENT filter (or from a project reset) that lands
    *  between the read and the write. */
-  filters(): Filter[] { return this.#effective().project.filters.map(f => ({ ...f })); }
+  filters(): Filter[] { return this.#effective().project.filters(); }
   setFilters(value: Filter[]): void {
-    this.mutate(p => { p.filters = value.map(f => ({ ...f })); });
+    this.mutate(p => p.setFilters(value));
   }
 
   /** Append one filter to the chain. */
   addFilter(filter: Filter): void {
-    this.mutate(p => { p.filters = [...p.filters, { ...filter }]; });
+    this.mutate(p => p.setFilters([...p.filters(), filter]));
   }
 
   /** Patch one filter's fields by id — the narrow write a per-field UI control makes, so a
@@ -404,13 +404,13 @@ export class ManagedOpenISDProject {
    *  no filter (never fabricates one). */
   setFilter(id: string, patch: Partial<Filter>): void {
     this.mutate(p => {
-      p.filters = p.filters.map(f => (f.id === id ? { ...f, ...patch } : f));
+      p.setFilters(p.filters().map(f => (f.id === id ? { ...f, ...patch } : f)));
     });
   }
 
   /** Drop the filter with the given id. A no-op if `id` names no filter. */
   removeFilter(id: string): void {
-    this.mutate(p => { p.filters = p.filters.filter(f => f.id !== id); });
+    this.mutate(p => p.setFilters(p.filters().filter(f => f.id !== id)));
   }
 
   /** Which alignment is active, in the domain's own vocabulary (`'passive-radiator'`, not
@@ -425,27 +425,21 @@ export class ManagedOpenISDProject {
   // Which box/vent/PR fields the user entered, one home: `_OpenISDProjectJson.target.entered`.
 
   isEntered(field: string): boolean {
-    return this.#effective().project.target.entered[field] === true;
+    return this.#effective().project.isEntered(field);
   }
   setEntered(field: string, value: boolean): void {
-    this.mutate(p => {
-      if (value) p.target.entered[field] = true;
-      else delete p.target.entered[field];
-    });
+    this.mutate(p => p.setEntered(field, value));
   }
 
   /** The whole entered set, as a COPY — for a caller that needs every key at once (a
    *  serialised snapshot), not one field's provenance. */
-  enteredSet(): Record<string, true> { return { ...this.#effective().project.target.entered }; }
+  enteredSet(): Record<string, true> { return this.#effective().project.enteredSet(); }
 
   /** Replace the WHOLE entered set in one mutation — clears every currently-true key, then
    *  applies `value`. For a caller adopting a whole provenance snapshot at once (a test
    *  fixture, a restore); a single-field edit uses `setEntered()` instead. */
   setEnteredSet(value: Record<string, true>): void {
-    this.mutate(p => {
-      for (const k of Object.keys(p.target.entered)) delete p.target.entered[k];
-      for (const k of Object.keys(value)) if (value[k]) p.target.entered[k] = true;
-    });
+    this.mutate(p => p.replaceEnteredSet(value));
   }
 
   // ---- rear-chamber tuning target (bandpass6/ABC) — STUBBED, ledger QO44 -----------------
@@ -694,7 +688,7 @@ export class ManagedOpenISDProject {
     const { value: project, errors } = OpenISDProject.fromWprText(text);
     if (!project) return { value: null, errors };
     this.load(project);
-    return { value: { ...project.meta }, errors: [] };
+    return { value: project.projectMeta(), errors: [] };
   }
 
   // ---- UiParams — the flat, engine-facing snapshot ----------------------------------------
@@ -777,22 +771,22 @@ export class ManagedOpenISDProject {
       project.setPrCount(field('prNum'));
       project.setPrAddedMass_kg(field('prMadd'));
       project.setPrFp_hz(field('prFp'));
-      project.environment.tempK = requiredField('tempK');
-      project.environment.humidityPct = requiredField('humidityPct');
-      project.environment.pressurePa = requiredField('pressurePa');
-      project.environment.ignoreHumidityAndPressure = requiredField('ignoreHumidityAndPressure');
-      project.signal.driverCount = field('nDrivers'); project.signal.wiring = field('wiring');
-      project.signal.inputPower_W = field('Pin'); project.signal.seriesResistance_ohm = field('Rs');
-      project.signal.rgAtDriverSide = field('rgAtDriverSide');
-      project.simOptions.circuitModel = field('circuitModel');
-      project.simOptions.tlPortModel = field('tlPortModel');
-      project.simOptions.forceFlatResponse = field('forceFlatResponse');
-      project.simOptions.splXmaxLimited = field('splXmaxLimited');
-      project.simOptions.vcTempRise = field('vcTempRise'); project.simOptions.alfaVC = field('alfaVC');
-      project.simOptions.driverAddedMass = field('driverAddedMass');
-      project.sweep.fmin_hz = field('fmin'); project.sweep.fmax_hz = field('fmax'); project.sweep.points = field('N');
-      project.filters = field('filters').map(f => ({ ...f }));
-      project.target.entered = { ...field('entered') };
+      project.set('advTemp', requiredField('tempK'));
+      project.set('advHumidity', requiredField('humidityPct'));
+      project.set('advPressure', requiredField('pressurePa'));
+      project.setIgnoreHumidityAndPressure(requiredField('ignoreHumidityAndPressure'));
+      project.set('nDrivers', field('nDrivers')); project.setWiring(field('wiring'));
+      project.set('Pin', field('Pin')); project.set('Rs', field('Rs'));
+      project.setRgAtDriverSide(field('rgAtDriverSide'));
+      project.setCircuitModel(field('circuitModel'));
+      project.setTlPortModel(field('tlPortModel'));
+      project.setForceFlatResponse(field('forceFlatResponse'));
+      project.setSplXmaxLimited(field('splXmaxLimited'));
+      project.set('vcTempRise', field('vcTempRise')); project.setAlfaVC(field('alfaVC'));
+      project.set('driverAddedMass', field('driverAddedMass'));
+      project.setSweepFmin_hz(field('fmin')); project.setSweepFmax_hz(field('fmax')); project.setSweepPoints(field('N'));
+      project.setFilters(field('filters'));
+      project.replaceEnteredSet({ ...field('entered') });
     });
   }
 

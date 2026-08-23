@@ -120,6 +120,6 @@ describe('ManagedOpenISDProject — entered-set (target provenance)', () => {
   it('the entered set survives a snapshot round trip', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     mp.setEntered('prFp', true);
-    assert.equal(mp._snapshot().target.entered.prFp, true);
+    assert.equal(mp._snapshot().isEntered('prFp'), true);
   });
 });
