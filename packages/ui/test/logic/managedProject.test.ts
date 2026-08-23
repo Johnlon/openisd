@@ -361,3 +361,34 @@ describe('ManagedOpenISDProject — project file IO (.wpr)', () => {
   });
 });
 
+
+describe('ManagedOpenISDProject — relation-less fields are always Entered (QO36-B4)', () => {
+  // A relation-less registered field is a stated fact — by the user, a datasheet, or the
+  // prototype — so cell() reports it Entered unconditionally, and no verb can strip that:
+  // clear() has no mark to delete and enter()/set() are the same plain write. The managed
+  // user setters still SAY enter(), because the action is an entry and the verb becomes
+  // load-bearing the moment such a field gains a relation
+  // (bugs/BUG_20260823_managed_user_setters_route_set_instead_of_enter.md).
+  const cases: [string, string, number, (mp: ManagedOpenISDProject) => void, (mp: ManagedOpenISDProject) => number][] = [
+    ['setEnvTempK', 'advTemp', 300, mp => mp.setEnvTempK(300), mp => mp.envTempK()],
+    ['setEnvHumidityPct', 'advHumidity', 40, mp => mp.setEnvHumidityPct(40), mp => mp.envHumidityPct()],
+    ['setEnvPressurePa', 'advPressure', 100000, mp => mp.setEnvPressurePa(100000), mp => mp.envPressurePa()],
+    ['setDriverCount', 'nDrivers', 2, mp => mp.setDriverCount(2), mp => mp.driverCount()],
+    ['setInputPower_W', 'Pin', 5, mp => mp.setInputPower_W(5), mp => mp.inputPower_W()],
+    ['setSeriesResistance_ohm', 'Rs', 0.5, mp => mp.setSeriesResistance_ohm(0.5), mp => mp.seriesResistance_ohm()],
+    ['setVcTempRise', 'vcTempRise', 20, mp => mp.setVcTempRise(20), mp => mp.vcTempRise()],
+    ['setDriverAddedMass', 'driverAddedMass', 0.005, mp => mp.setDriverAddedMass(0.005), mp => mp.driverAddedMass()],
+  ];
+  for (const [setter, field, value, drive, read] of cases) {
+    it(`${setter}: ${field} stays Entered through clear() and carries the typed value`, () => {
+      const mp = ManagedOpenISDProject.fromProject(projectWithDriver());
+      mp.clearProjectField(field as Parameters<typeof mp.clearProjectField>[0]);
+      assert.equal(mp.projectCell(field as Parameters<typeof mp.projectCell>[0]).state, Provenance.Entered,
+        `${field} must report Entered even after clear()`);
+      drive(mp);
+      assert.equal(read(mp), value, `${setter} must write the value`);
+      assert.equal(mp.projectCell(field as Parameters<typeof mp.projectCell>[0]).state, Provenance.Entered,
+        `${field} must report Entered after ${setter}`);
+    });
+  }
+});

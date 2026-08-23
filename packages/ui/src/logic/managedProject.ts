@@ -321,11 +321,11 @@ export class ManagedOpenISDProject {
   // ---- environment ------------------------------------------------------------------------
 
   envTempK(): number { return this.#effective().project.cell('advTemp').value; }
-  setEnvTempK(value: number): void { this.mutate(p => p.set('advTemp', value)); }
+  setEnvTempK(value: number): void { this.mutate(p => p.enter('advTemp', value)); }
   envHumidityPct(): number { return this.#effective().project.cell('advHumidity').value; }
-  setEnvHumidityPct(value: number): void { this.mutate(p => p.set('advHumidity', value)); }
+  setEnvHumidityPct(value: number): void { this.mutate(p => p.enter('advHumidity', value)); }
   envPressurePa(): number { return this.#effective().project.cell('advPressure').value; }
-  setEnvPressurePa(value: number): void { this.mutate(p => p.set('advPressure', value)); }
+  setEnvPressurePa(value: number): void { this.mutate(p => p.enter('advPressure', value)); }
   envIgnoreHumidityAndPressure(): boolean {
     return this.#effective().project.ignoreHumidityAndPressure();
   }
@@ -336,14 +336,14 @@ export class ManagedOpenISDProject {
   // ---- signal ------------------------------------------------------------------------------
 
   driverCount(): number { return this.#effective().project.cell('nDrivers').value; }
-  setDriverCount(value: number): void { this.mutate(p => p.set('nDrivers', value)); }
+  setDriverCount(value: number): void { this.mutate(p => p.enter('nDrivers', value)); }
   wiring(): 'series' | 'parallel' { return this.#effective().project.wiring(); }
   setWiring(value: 'series' | 'parallel'): void { this.mutate(p => p.setWiring(value)); }
   inputPower_W(): number { return this.#effective().project.cell('Pin').value; }
-  setInputPower_W(value: number): void { this.mutate(p => p.set('Pin', value)); }
+  setInputPower_W(value: number): void { this.mutate(p => p.enter('Pin', value)); }
   seriesResistance_ohm(): number { return this.#effective().project.cell('Rs').value; }
   setSeriesResistance_ohm(value: number): void {
-    this.mutate(p => p.set('Rs', value));
+    this.mutate(p => p.enter('Rs', value));
   }
   rgAtDriverSide(): boolean { return this.#effective().project.rgAtDriverSide(); }
   setRgAtDriverSide(value: boolean): void { this.mutate(p => p.setRgAtDriverSide(value)); }
@@ -363,12 +363,12 @@ export class ManagedOpenISDProject {
   splXmaxLimited(): boolean { return this.#effective().project.splXmaxLimited(); }
   setSplXmaxLimited(value: boolean): void { this.mutate(p => p.setSplXmaxLimited(value)); }
   vcTempRise(): number { return this.#effective().project.cell('vcTempRise').value; }
-  setVcTempRise(value: number): void { this.mutate(p => p.set('vcTempRise', value)); }
+  setVcTempRise(value: number): void { this.mutate(p => p.enter('vcTempRise', value)); }
   alfaVC(): number { return this.#effective().project.alfaVC(); }
   setAlfaVC(value: number): void { this.mutate(p => p.setAlfaVC(value)); }
   driverAddedMass(): number { return this.#effective().project.cell('driverAddedMass').value; }
   setDriverAddedMass(value: number): void {
-    this.mutate(p => p.set('driverAddedMass', value));
+    this.mutate(p => p.enter('driverAddedMass', value));
   }
 
   // ---- sweep range ---------------------------------------------------------------------------
