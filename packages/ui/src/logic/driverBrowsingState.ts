@@ -5,7 +5,7 @@ import { readDriverFileText } from './driverFileText.js';
 import { DriverFileFormat, sniff } from '../fileFormat.js';
 import { DriverScope } from '../driverScope.js';
 import { Chip } from '../driverType.js';
-import { driverId, type MyDriverRepo } from '../persistence/repos/myDriverRepo.js';
+import type { MyDriverRepo, MyDriversRead, BrokenEntry } from '../persistence/repos/myDriverRepo.js';
 import type { PrefsRepo } from '../persistence/repos/prefsRepo.js';
 import type { Logging } from '../logging/flash.js';
 import {
@@ -74,6 +74,12 @@ export interface DriverBrowsingState {
   listTruncated: ComputedRef<boolean>;
   listedCount: ComputedRef<number>;
   myDrivers: Ref<OpenISDDriver[]>;
+  myDriversRead: Ref<MyDriversRead>;
+  exportedThisSession: Ref<boolean>;
+  exportMyDriversRaw(): void;
+  exportBrokenEntry(entry: BrokenEntry): void;
+  deleteAllMyDrivers(): void;
+  removeBrokenEntry(key: number): void;
   filteredMyDrivers: ComputedRef<OpenISDDriver[]>;
   myDriverName(d: OpenISDDriver): string;
   myDriverEntry(d: OpenISDDriver): FileEntry;
@@ -132,6 +138,11 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const selZ = ref<string[]>([]);   // '4', '8', '16'
   const displayLimit = ref(DISPLAY_LIMIT);
   const myDrivers = shallowRef<OpenISDDriver[]>([]);
+  /** The bucket's full read — the My Drivers surface reacts to 'unavailable'/'unreadable'
+   *  and to broken rows, which are PRESERVED and surfaced, never hidden (QO81). */
+  const myDriversRead = shallowRef<MyDriversRead>({ kind: 'ok', drivers: [], broken: [] });
+  /** True once the user has exported the raw bucket this session — the Delete challenge. */
+  const exportedThisSession = ref(false);
   const previewFile = shallowRef<FileEntry | null>(null);
   const favorites = ref<string[]>(prefs.favorites());
   const favoritesOnly = ref(false);   // the Favorites button: an on/off filter, like a type chip
@@ -169,6 +180,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     displayLimit.value = DISPLAY_LIMIT;
   }
 
+  const driverId = (d: OpenISDDriver): string => d.uuid();
   const driverKey = (f: FileEntry): string => keyOf(f, driverId);
 
   function isFavorite(f: FileEntry): boolean { return favorites.value.includes(driverKey(f)); }
@@ -272,7 +284,44 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
    */
   const listedCount = computed<number>(() => filteredFiles.value.length + filteredMyDrivers.value.length);
 
-  function reloadMyDrivers(): void { myDrivers.value = myDriverRepo.list(); }
+  function reloadMyDrivers(): void {
+    const read = myDriverRepo.read();
+    myDriversRead.value = read;
+    myDrivers.value = read.kind === 'ok' ? read.drivers : [];
+  }
+
+  /** Download text as a file — the Export the corruption surfaces offer BEFORE any
+   *  destructive choice. Marks the session exported, which is what disarms the challenge. */
+  function exportMyDriversRaw(): void {
+    const raw = myDriverRepo.exportRaw();
+    if (raw == null) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
+    a.download = 'my-drivers-export.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    exportedThisSession.value = true;
+  }
+
+  function exportBrokenEntry(entry: BrokenEntry): void {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([entry.raw], { type: 'application/json' }));
+    a.download = `my-driver-${entry.key}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    exportedThisSession.value = true;
+  }
+
+  function deleteAllMyDrivers(): void {
+    myDriverRepo.deleteAll();
+    exportedThisSession.value = false;
+    reloadMyDrivers();
+  }
+
+  function removeBrokenEntry(key: number): void {
+    myDriverRepo.removeBroken(key);
+    reloadMyDrivers();
+  }
 
   /** Empty the user's saved-driver list, back to the built-in demo samples. */
   function clearMyDrivers(): void {
@@ -375,11 +424,15 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       }
       const res = driverFromFileText(text, format === DriverFileFormat.Wdr ? 'wdr' : 'owdr', file.name);
       if (!res.ok) { statusErr.value = true; statusMsg.value = res.error; return; }
-      const overwrote = myDriverRepo.upsert(res.driver);
+      // A FILE IMPORT always mints a fresh identity (QO81): the file's own uuid is
+      // provenance, never the store key — importing twice yields two entries.
+      res.driver.mintFreshUuid();
+      const saved = myDriverRepo.upsert(res.driver);
       reloadMyDrivers();
+      if (!saved) { statusErr.value = true; statusMsg.value = 'Saved drivers are read-only until the storage problem is resolved'; return; }
       statusErr.value = false;
       statusMsg.value = '';
-      logging.flash(overwrote ? 'Updated in My Drivers' : 'Loaded into My Drivers');
+      logging.flash('Loaded into My Drivers');
       previewFile.value = myDriverEntry(res.driver);
     }, (err: Error) => {
       input.value = '';
@@ -414,6 +467,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     // they name that driver. A clone is a different driver, so it carries neither until
     // something derives them for it.
     copy.resetDerivedIdentity();
+    copy.mintFreshUuid(); // a clone is a DIFFERENT driver — its identity says so
     myDriverRepo.upsert(copy);
     reloadMyDrivers();
     statusErr.value = false;
@@ -458,6 +512,8 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     filteredFiles, displayedFiles, listTruncated, listedCount,
     // my drivers
     myDrivers, filteredMyDrivers, myDriverName, myDriverEntry, driverId,
+    myDriversRead, exportedThisSession, exportMyDriversRaw, exportBrokenEntry,
+    deleteAllMyDrivers, removeBrokenEntry,
     editMyDriver: selection.editMyDriver,
     editOverviewDriver: selection.editOverviewDriver,
     reloadMyDrivers, deleteMyDriver, clearMyDrivers,

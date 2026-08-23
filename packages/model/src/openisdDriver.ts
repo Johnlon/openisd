@@ -256,7 +256,8 @@ export interface MetaCell {
  *
  * A driver TYPE and a specs SECTION KEY are two vocabularies, mapped here, never equated:
  * there are more types than sections (`amt` files under `tweeter` — `spec_emit.py`'s rule for
- * HF transducers), and the section key is a field name in the emitting pydantic model, so it
+ * HF transducers), and the section key is an ENUM VALUE used as a dict key in the emitting
+ * pydantic model (`Specs` is `RootModel[dict[SpecSectionName, SpecSection]]`), so it is
  * spelled as a STRING, hyphenated like the type value it mirrors.
  */
 function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive-radiator' {
@@ -512,6 +513,24 @@ export class OpenISDDriver {
 
   /** This driver → `.owdr` text. Always succeeds — the record is always representable as its
    *  own JSON. Paired with `fromOwdrText()`. */
+  /** This driver's stable identity — empty until one is minted. */
+  uuid(): string { return this.#record.uuid.value; }
+
+  /** Mint an identity if none exists; the existing one is kept. Saving is what mints
+   *  (QO81 identity ruling): a draft has no identity until it is worth keeping. */
+  ensureUuid(): string {
+    if (!this.#record.uuid.value) this.#record.uuid.value = crypto.randomUUID();
+    return this.#record.uuid.value;
+  }
+
+  /** Force a NEW identity — the FILE-IMPORT and save-as-copy rule (QO81): a file's own uuid
+   *  is provenance, never adopted as a store key, so importing twice yields two entries and
+   *  can never silently overwrite a saved driver. */
+  mintFreshUuid(): string {
+    this.#record.uuid.value = crypto.randomUUID();
+    return this.#record.uuid.value;
+  }
+
   toOwdrText(): string {
     return JSON.stringify(this.toJsonRecord(), null, 2);
   }

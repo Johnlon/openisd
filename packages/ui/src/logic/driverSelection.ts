@@ -1,7 +1,7 @@
 import type { OpenISDDriver } from '@openisd/model';
 import { managedProject } from './appState.js';
 import { presentationState } from './presentationState.js';
-import { driverId } from '../persistence/repos/myDriverRepo.js';
+
 import { driverFromWdrText } from './managedDriver.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
@@ -193,7 +193,7 @@ export function createDriverSelection(): DriverSelection {
 
     /** Open the editor on a saved driver. Its OK writes to My Drivers, never to the project. */
     editMyDriver(d) {
-      subject = { kind: 'myDriver', openedAs: driverId(d) };
+      subject = { kind: 'myDriver', openedAs: d.uuid() };
       editSeed = d.copy();
       presentationState.editDriverInfo = true;
     },
@@ -205,7 +205,7 @@ export function createDriverSelection(): DriverSelection {
       // A saved driver is opened AS ITSELF, so OK replaces that entry. Anything else opens as
       // a new My Driver, so OK files it under whatever identity the user gives it.
       subject = f.myDriverData
-        ? { kind: 'myDriver', openedAs: driverId(f.myDriverData) }
+        ? { kind: 'myDriver', openedAs: f.myDriverData.uuid() }
         : { kind: 'myDriver', openedAs: '' };
       editSeed = withLinks(read.driver, f);
       presentationState.editDriverInfo = true;

@@ -1,8 +1,10 @@
 # My Drivers — storage-failure handling (human rulings 2026-08-22, QO81 thread)
 
 How the app behaves when the `openisd_my_drivers` browser-storage bucket, or an entry in
-it, cannot be read. The seam is `packages/ui/src/db/myDrivers.ts` — the one read/write
-path for the bucket.
+it, cannot be read. The seam is `packages/ui/src/persistence/repos/myDriverRepo.ts` — the
+one read/write path for the bucket. Implemented (D21): the versioned envelope + upgrade
+chain, uuid identity with the rename question, and every failure surface below;
+`packages/ui/test/persistence/myDriverRepo.test.ts` pins each ruling.
 
 ## The governing principle
 

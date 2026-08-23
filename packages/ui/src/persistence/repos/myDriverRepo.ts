@@ -10,136 +10,221 @@ import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 // A REPO: it is handed a storage, takes arguments and returns DOMAIN OBJECTS. It does not
 // know a dialog is open and it never decides what happens next — that is the logic layer's job.
 //
-// THE OWNER OF THE STATE SERIALIZES AND PERSISTS IT (docs/design/SERIALIZATION_DOCTRINE.md):
-// this repository speaks `OpenISDDriver` at its contract and record TEXT only internally,
-// between the read seam (`OpenISDDriver.fromConformingRecord`, the model's own untrusted-input
-// constructor) and the write seam (`driver.toJsonRecord()`, only ever re-serialised straight
-// back out via `JSON.stringify` — never held or inspected as a record by this file).
+// THE GOVERNING PRINCIPLE (docs/design/MY_DRIVERS_STORAGE_FAILURES.md, QO81 rulings): a saved
+// driver in the browser has no other copy anywhere. This repository therefore NEVER destroys
+// or silently hides those bytes on its own — data leaves the bucket only by an explicit
+// deleting call, and a corrupt bucket makes every ordinary write a refusal (read-only) so the
+// one copy cannot be overwritten.
 //
-// IDENTITY is `<brand>/<model-slug>` — the same scheme the driver database uses on disk
-// (`dayton-audio/pro-8`), so a saved driver and a database driver are named the same way.
-// Brand, not manufacturer: WinISD's Save-Driver defaults to `<brand> <model>.wdr`, and
-// brand is what the user recognises. `manufacturer` is second-order, descriptive only.
+// IDENTITY is the record's uuid, minted at save when absent (`ensureUuid()`). Brand/model is
+// DISPLAY naming only: two drivers with the same name coexist. A FILE IMPORT always mints a
+// fresh uuid before it reaches `upsert` (the caller's duty, `mintFreshUuid()`), so importing
+// the same file twice yields two entries and can never silently overwrite a saved driver.
 //
-// A rename IS a new identity. Editing a driver's brand or model and saving therefore writes
-// a DIFFERENT driver, which is what makes Clone ("Copy of …") the deliberate way to fork one.
-// Nothing here is written by editing a project: a project embeds its own copy of a driver,
-// so only an explicit save reaches this collection.
+// FORMAT VERSION + UPGRADE CHAIN: the bucket is a versioned envelope. A bare array (the
+// pre-version shape) reads as version 1; every breaking shape change ships an upgrade
+// function, applied IN ORDER on load, and the upgraded bucket is saved over the old one in
+// place — same identities. Scope is My Drivers alone: bundled drivers ship current.
 
 export const MY_DRIVERS_KEY = 'openisd_my_drivers';
 
-// A stored entry failing `OpenISDDriver.fromConformingRecord` is refused on every read —
-// `list()` never hands it to the model — and left untouched in storage by `upsert`/`remove`
-// rather than erased (QO81, pending ratification).
+/** The shape this build writes. */
+export const MY_DRIVERS_VERSION = 2;
 
-/**
- * A driver's identity: `<brand>/<model>`, lowercased and slugged. Empty when the driver
- * carries neither a brand nor a model — an unidentifiable driver, which callers must not
- * treat as equal to any other.
- */
-export function driverId(d: OpenISDDriver): string {
-  const slug = (s: string | undefined) =>
-    (s ?? '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const brand = slug(d.metaCell('brand').value);
-  const model = slug(d.metaCell('model').value);
-  if (!brand && !model) return '';
-  return `${brand}/${model}`;
+interface Envelope { version: number; drivers: unknown[] }
+
+/** stored version N → N+1. Applied in order until `MY_DRIVERS_VERSION`. */
+const UPGRADES: Readonly<Record<number, (e: Envelope) => Envelope>> = {
+  // v1 (the bare, unversioned array) → v2: uuid-keyed identity. Every record lacking a uuid
+  // gets one minted here — the upgrade IS a save, and the identity ruling mints at save.
+  1: e => ({ version: 2, drivers: e.drivers.map(stampUuid) }),
+};
+
+function stampUuid(record: unknown): unknown {
+  if (record && typeof record === 'object' && !Array.isArray(record)) {
+    const r = record as { uuid?: { value?: unknown } };
+    const has = typeof r.uuid?.value === 'string' && r.uuid.value !== '';
+    if (!has) return { ...r, uuid: { value: crypto.randomUUID(), definition: 'stable record identity' } };
+  }
+  return record;
 }
+
+/** A stored entry the current shape cannot read — preserved untouched, surfaced by name. */
+export interface BrokenEntry {
+  /** Position in the stored broken set — the handle `removeBroken` takes. */
+  key: number;
+  /** Best-effort display name recovered from the blob, for the surface to say WHICH entry. */
+  label: string;
+  /** The entry's own bytes, verbatim JSON — what Export offers before any destructive choice. */
+  raw: string;
+}
+
+export type MyDriversRead =
+  /** Bucket readable. `broken` entries are preserved in storage and surfaced, never hidden. */
+  | { kind: 'ok'; drivers: OpenISDDriver[]; broken: BrokenEntry[] }
+  /** Storage itself is inaccessible (private mode, browser policy). Not a corruption. */
+  | { kind: 'unavailable' }
+  /** The bucket's string is not a readable envelope. The bucket is READ-ONLY until the user
+   *  decides; `raw` is the one copy of their data, offered verbatim by Export. */
+  | { kind: 'unreadable'; raw: string };
 
 export interface MyDriverRepo {
-  /** The identity this repository files a driver under — `<brand>/<model>`. */
+  /** The identity this repository files a driver under — its uuid; '' before one is minted. */
   identityOf(d: OpenISDDriver): string;
-  /** Every saved driver, in the order they were saved. */
+  /** The bucket, with its failure states made explicit. */
+  read(): MyDriversRead;
+  /** Every saved driver, in saved order — `[]` when the bucket is unavailable or unreadable.
+   *  Surfaces that must react to failure use `read()`. */
   list(): OpenISDDriver[];
-  /** Replace the whole collection — used by "reset to the demo samples". */
-  replaceAll(list: OpenISDDriver[]): void;
-  /**
-   * Save one driver. It overwrites the entry already holding the resulting `<brand>/<model>`
-   * identity, and adds one when none does — a driver IS its identity, so saving under a name
-   * that is already taken means saving THAT driver, not a twin of it.
-   *
-   * Returns true when an existing entry was overwritten, false when one was added.
-   */
-  upsert(d: OpenISDDriver): boolean;
-  /** Remove the saved driver with this identity. Returns true when one was removed. */
-  remove(id: string): boolean;
+  /** Replace the whole collection — used by "reset to the demo samples". Refused (false)
+   *  while the bucket is unreadable. */
+  replaceAll(list: OpenISDDriver[]): boolean;
+  /** Save one driver under its uuid, minting one when absent. Overwrites the entry with the
+   *  same uuid, adds one otherwise. Returns whether it overwrote; null = refused (read-only). */
+  upsert(d: OpenISDDriver): { overwrote: boolean } | null;
+  /** Remove the saved driver with this uuid. Refused (false) while unreadable. */
+  remove(uuid: string): boolean;
+  /** Remove ONE broken entry by its `BrokenEntry.key` — the surface challenges first. */
+  removeBroken(key: number): boolean;
+  /** The stored string, verbatim — what the unreadable-bucket Export downloads. */
+  exportRaw(): string | null;
+  /** Wipe the bucket and start fresh — the unreadable-bucket Delete, NEVER automatic; the
+   *  surface challenges for an un-exported session before calling this. */
+  deleteAll(): void;
 }
 
-/**
- * The stored array, split into records `OpenISDDriver.fromConformingRecord` can construct a
- * domain object from and everything else — the retired flat shape, or any other blob failing
- * conformance (`bundleProjection.mjs::project()` runs the SAME conformance check on the driver
- * corpus, so this seam and the bundler's enforce one contract). A refused entry is logged once
- * here (the ONE call site every read/write path goes through) and carried through
- * `unrecognised` rather than being dropped: this key holds the user's own data, and erasing an
- * entry nobody asked to delete is a worse failure than displaying too few rows (QO81, pending
- * ratification — a future release may instead migrate or surface these entries to the user).
- */
-function readAndSplit(
-  storage: KeyValueStorage, fromConformingRecord: (candidate: unknown) => OpenISDDriver | null,
-): { conforming: OpenISDDriver[]; unrecognised: unknown[] } {
-  let raw: unknown[];
-  try {
-    const parsed: unknown = JSON.parse(storage.get(MY_DRIVERS_KEY) ?? '[]');
-    raw = Array.isArray(parsed) ? parsed : [];
-  } catch { raw = []; }
-
-  const conforming: OpenISDDriver[] = [];
-  const unrecognised: unknown[] = [];
-  for (const candidate of raw) {
-    const driver = fromConformingRecord(candidate);
-    if (driver) { conforming.push(driver); continue; }
-    console.warn('my-drivers: ignoring non-conforming stored record', candidate);
-    unrecognised.push(candidate);
+/** Best-effort name for a blob the shape cannot read — so the surface can say WHICH entry. */
+function labelOf(blob: unknown): string {
+  if (blob && typeof blob === 'object') {
+    const b = blob as Record<string, { value?: unknown } | unknown>;
+    const get = (k: string) => {
+      const v = b[k];
+      if (typeof v === 'string') return v;
+      if (v && typeof v === 'object' && typeof (v as { value?: unknown }).value === 'string') {
+        return (v as { value: string }).value;
+      }
+      return '';
+    };
+    const name = [get('brand'), get('model')].filter(Boolean).join(' ') || get('name') || get('uuid');
+    if (name) return name;
   }
-  return { conforming, unrecognised };
+  return '(unnamed entry)';
 }
 
-/**
- * `fromConformingRecord` is an INJECTED collaborator, not an import of `OpenISDDriver` itself:
- * the containment gate (`packages/ui/test/ui/architecture.test.ts`, "ManagedOpenISDProject is
- * the only holder of OpenISDDriver") licenses only `managedProject.ts`, `managedDriver.ts` and
- * `DriverEditorModal.vue` to name the class as a value. This repository's read seam still
- * constructs its own domain objects — the composition root (`main.ts`) just hands it the
- * licensed constructor (`managedDriver.ts::driverFromConformingRecord`) rather than this file
- * importing the class to do it itself.
- */
 export function createMyDriverRepo(
   storage: KeyValueStorage, fromConformingRecord: (candidate: unknown) => OpenISDDriver | null,
 ): MyDriverRepo {
-  function list(): OpenISDDriver[] {
-    return readAndSplit(storage, fromConformingRecord).conforming;
+  /** null = storage inaccessible; distinct from an absent key (a fresh browser). */
+  function rawString(): { ok: true; raw: string | null } | { ok: false } {
+    try { return { ok: true, raw: storage.get(MY_DRIVERS_KEY) }; } catch { return { ok: false }; }
   }
 
-  function replaceAll(next: OpenISDDriver[]): void {
-    storage.set(MY_DRIVERS_KEY, JSON.stringify(next.map(d => d.toJsonRecord())));
+  /** Parse + upgrade. Returns the envelope at MY_DRIVERS_VERSION, or null when unreadable. */
+  function envelopeOf(raw: string): Envelope | null {
+    let parsed: unknown;
+    try { parsed = JSON.parse(raw); } catch { return null; }
+    let envelope: Envelope;
+    if (Array.isArray(parsed)) envelope = { version: 1, drivers: parsed };
+    else if (parsed && typeof parsed === 'object'
+      && typeof (parsed as Envelope).version === 'number'
+      && Array.isArray((parsed as Envelope).drivers)) envelope = parsed as Envelope;
+    else return null;
+    if (envelope.version > MY_DRIVERS_VERSION) return null; // written by a newer app — this one cannot claim to read it
+    while (envelope.version < MY_DRIVERS_VERSION) {
+      const step = UPGRADES[envelope.version];
+      if (!step) return null; // older than the oldest upgrade
+      envelope = step(envelope);
+    }
+    return envelope;
   }
 
-  /** Write `conforming` back beside whatever `unrecognised` blobs the storage already held —
-   *  each group keeps its own relative order, conforming first. */
-  function writeBack(conforming: OpenISDDriver[], unrecognised: unknown[]): void {
-    storage.set(MY_DRIVERS_KEY, JSON.stringify([...conforming.map(d => d.toJsonRecord()), ...unrecognised]));
+  function write(envelope: Envelope): boolean {
+    try {
+      storage.set(MY_DRIVERS_KEY, JSON.stringify(envelope));
+      return true;
+    } catch { return false; }
+  }
+
+  /** The full read, plus the raw record blobs each driver came from (for write-back). */
+  function readFull(): { state: MyDriversRead; drivers: unknown[]; brokenRaw: unknown[] } {
+    const r = rawString();
+    if (!r.ok) return { state: { kind: 'unavailable' }, drivers: [], brokenRaw: [] };
+    if (r.raw == null) return { state: { kind: 'ok', drivers: [], broken: [] }, drivers: [], brokenRaw: [] };
+
+    const envelope = envelopeOf(r.raw);
+    if (!envelope) return { state: { kind: 'unreadable', raw: r.raw }, drivers: [], brokenRaw: [] };
+
+    const drivers: OpenISDDriver[] = [];
+    const driverBlobs: unknown[] = [];
+    const brokenRaw: unknown[] = [];
+    const broken: BrokenEntry[] = [];
+    for (const blob of envelope.drivers) {
+      const driver = fromConformingRecord(blob);
+      if (driver) { drivers.push(driver); driverBlobs.push(blob); continue; }
+      broken.push({ key: brokenRaw.length, label: labelOf(blob), raw: JSON.stringify(blob) });
+      brokenRaw.push(blob);
+    }
+
+    // The chain ran (or entries were re-labelled): persist the upgraded envelope over the old
+    // one, in place, same identities — but ONLY when the shape actually moved, so an ordinary
+    // read never rewrites the user's bytes.
+    if (r.raw !== null && JSON.parse(r.raw) && (Array.isArray(JSON.parse(r.raw))
+      || (JSON.parse(r.raw) as Envelope).version !== envelope.version)) {
+      write(envelope);
+    }
+
+    return { state: { kind: 'ok', drivers, broken }, drivers: driverBlobs, brokenRaw };
+  }
+
+  function writeBack(driverBlobs: unknown[], brokenRaw: unknown[]): boolean {
+    return write({ version: MY_DRIVERS_VERSION, drivers: [...driverBlobs, ...brokenRaw] });
   }
 
   return {
-    identityOf: driverId,
-    list,
-    replaceAll,
-    upsert(d) {
-      const id = driverId(d);
-      const { conforming, unrecognised } = readAndSplit(storage, fromConformingRecord);
-      const idx = id ? conforming.findIndex(x => driverId(x) === id) : -1;
-      if (idx >= 0) conforming[idx] = d; else conforming.push(d);
-      writeBack(conforming, unrecognised);
-      return idx >= 0;
+    identityOf: d => d.uuid(),
+    read: () => readFull().state,
+    list() {
+      const s = readFull().state;
+      return s.kind === 'ok' ? s.drivers : [];
     },
-    remove(id) {
-      if (!id) return false;   // unidentifiable driver: refuse rather than delete an arbitrary row
-      const { conforming, unrecognised } = readAndSplit(storage, fromConformingRecord);
-      const kept = conforming.filter(d => driverId(d) !== id);
-      if (kept.length === conforming.length) return false;
-      writeBack(kept, unrecognised);
-      return true;
+    replaceAll(next) {
+      const { state } = readFull();
+      if (state.kind === 'unreadable') return false; // read-only: the string is the only copy
+      return writeBack(next.map(d => { d.ensureUuid(); return d.toJsonRecord(); }), []);
+    },
+    upsert(d) {
+      const { state, brokenRaw } = readFull();
+      if (state.kind === 'unreadable') return null;
+      const uuid = d.ensureUuid();
+      const drivers = state.kind === 'ok' ? state.drivers : [];
+      const idx = drivers.findIndex(x => x.uuid() === uuid);
+      const blobs = drivers.map(x => x.toJsonRecord() as unknown);
+      if (idx >= 0) blobs[idx] = d.toJsonRecord();
+      else blobs.push(d.toJsonRecord());
+      writeBack(blobs, brokenRaw);
+      return { overwrote: idx >= 0 };
+    },
+    remove(uuid) {
+      if (!uuid) return false; // an unminted identity names nothing — refuse, never guess
+      const { state, brokenRaw } = readFull();
+      if (state.kind !== 'ok') return false;
+      const kept = state.drivers.filter(d => d.uuid() !== uuid);
+      if (kept.length === state.drivers.length) return false;
+      return writeBack(kept.map(d => d.toJsonRecord() as unknown), brokenRaw);
+    },
+    removeBroken(key) {
+      const { state, drivers, brokenRaw } = readFull();
+      if (state.kind !== 'ok') return false;
+      if (key < 0 || key >= brokenRaw.length) return false;
+      return writeBack(drivers, brokenRaw.filter((_, i) => i !== key));
+    },
+    exportRaw() {
+      const r = rawString();
+      return r.ok ? r.raw : null;
+    },
+    deleteAll() {
+      try { storage.set(MY_DRIVERS_KEY, JSON.stringify({ version: MY_DRIVERS_VERSION, drivers: [] })); }
+      catch { /* unavailable storage: nothing to wipe */ }
     },
   };
 }

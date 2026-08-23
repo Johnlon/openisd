@@ -32,7 +32,25 @@ const {
   previewFile, previewData, pickFile, chooseDriver, loadFromDisk, cloneDriver,
   openedLibrary, closeLibrary,
   shortSource, driverHasDqIssues,
+  myDriversRead, exportedThisSession, exportMyDriversRaw, exportBrokenEntry,
+  deleteAllMyDrivers, removeBrokenEntry,
 } = driverBrowsing;
+
+// The unreadable-bucket Delete and the broken-row Delete both CHALLENGE an un-exported
+// session before acting (QO81: the user is always offered their bytes first). Two-step,
+// no cancel: every button is a real action.
+const deleteChallengeArmed = ref(false);
+const brokenDeleteArmed = ref<number | null>(null);
+function requestDeleteAll(): void {
+  if (!exportedThisSession.value && !deleteChallengeArmed.value) { deleteChallengeArmed.value = true; return; }
+  deleteChallengeArmed.value = false;
+  deleteAllMyDrivers();
+}
+function requestRemoveBroken(key: number): void {
+  if (!exportedThisSession.value && brokenDeleteArmed.value !== key) { brokenDeleteArmed.value = key; return; }
+  brokenDeleteArmed.value = null;
+  removeBrokenEntry(key);
+}
 
 const fileInputEl = ref<HTMLInputElement | null>(null);
 function triggerFileLoad() { fileInputEl.value?.click(); }
@@ -157,6 +175,39 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
         </div>
 
         <div class="dlist">
+          <!-- QO81 failure surfaces: the bucket's own state, before any list -->
+          <div v-if="myDriversRead.kind === 'unavailable'" class="my-storage-note">
+            Saved drivers are unavailable in this browser mode (storage is inaccessible).
+          </div>
+          <div v-else-if="myDriversRead.kind === 'unreadable'" class="my-storage-broken" role="alert">
+            <div class="dlist-section">My Drivers</div>
+            <p><b>Your saved drivers could not be read.</b> The stored data is corrupted. Nothing
+              has been changed, and nothing will be written until you decide. Export downloads
+              your data exactly as stored — a partly corrupt file usually still contains most
+              drivers as recoverable text.</p>
+            <div class="my-storage-actions">
+              <button class="pri my-export-raw" @click="exportMyDriversRaw()">Export</button>
+              <button class="my-delete-all" @click="requestDeleteAll()">
+                {{ deleteChallengeArmed ? 'Delete WITHOUT exporting' : 'Delete and start fresh' }}
+              </button>
+            </div>
+            <p v-if="deleteChallengeArmed" class="my-storage-warn">
+              You have not exported this session — deleting now destroys the only copy of your
+              saved drivers. Export first, or press again to delete anyway.
+            </p>
+          </div>
+          <template v-if="myDriversRead.kind === 'ok' && myDriversRead.broken.length">
+            <div class="dlist-section">My Drivers — entries that could not be read</div>
+            <div v-for="b in myDriversRead.broken" :key="'broken-' + b.key" class="ditem my-broken-row">
+              <b>{{ b.label }}</b>
+              <span class="dq-flag" title="This saved entry could not be read by this version of the app. It is preserved untouched.">⚠</span>
+              <button class="my-broken-export" @click.stop="exportBrokenEntry(b)">Export</button>
+              <button class="my-broken-del" @click.stop="requestRemoveBroken(b.key)">
+                {{ brokenDeleteArmed === b.key ? 'Delete WITHOUT exporting' : 'Delete' }}
+              </button>
+            </div>
+            <div class="dlist-sep"></div>
+          </template>
           <template v-if="filteredMyDrivers.length">
             <div class="dlist-section">My Drivers</div>
             <div v-for="d in filteredMyDrivers" :key="driverId(d) || myDriverName(d)"

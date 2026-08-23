@@ -65,15 +65,49 @@ const draftDriver = shallowRef(markRaw(seedDraft()));
 const trigger = ref(0);
 function forceUpdate() { trigger.value++; }
 
-/** OK on a myDriver subject: save the draft under its `<brand>/<model>` identity. A rename
- *  MOVES the driver — drop the entry the editor opened, then upsert under the new identity,
- *  which overwrites whatever already held it — the same two-step Save uses. */
+/** OK on a myDriver subject: save the draft under its uuid — in place, same identity. A save
+ *  that would CHANGE the driver's brand/model first asks the ONE ruled question (rename in
+ *  place vs save as copy) via `renameQuestionOpen`; by the time this runs, that is decided. */
 function commitToMyDrivers(driver: OpenISDDriver): void {
   if (subject.kind !== 'myDriver') throw new Error('commitToMyDrivers called on a project subject');
-  if (subject.openedAs && subject.openedAs !== myDrivers.identityOf(driver)) {
-    myDrivers.remove(subject.openedAs);
+  if (myDrivers.upsert(driver) == null) {
+    alert('Saved drivers are read-only until the storage problem is resolved');
   }
-  myDrivers.upsert(driver);
+}
+
+/** The saved entry this editor session opened, as it stands in storage — the comparison base
+ *  for the rename question. Null when the subject is new or storage is not readable. */
+function savedEntryForSubject(): OpenISDDriver | null {
+  if (subject.kind !== 'myDriver' || !subject.openedAs) return null;
+  return myDrivers.list().find(d => d.uuid() === subject.openedAs) ?? null;
+}
+
+/** A save is a RENAME when the draft's brand/model differ from the SAVED entry's. */
+function saveWouldRename(): boolean {
+  const saved = savedEntryForSubject();
+  if (!saved) return false;
+  return saved.metaCell('brand').value !== draftDriver.value.metaCell('brand').value
+    || saved.metaCell('model').value !== draftDriver.value.metaCell('model').value;
+}
+
+// The ONE question (QO81 rename ruling, "option 3"): rename this driver in place (same uuid),
+// or save as a copy (new uuid, the original untouched). Two real actions; Clone stays the
+// explicit fork elsewhere.
+const renameQuestionOpen = ref(false);
+
+function saveRenameInPlace(): void {
+  renameQuestionOpen.value = false;
+  commitToMyDrivers(draftDriver.value);
+  selection.closeEditor();
+  emit('close');
+}
+
+function saveAsCopy(): void {
+  renameQuestionOpen.value = false;
+  draftDriver.value.mintFreshUuid();
+  commitToMyDrivers(draftDriver.value);
+  selection.closeEditor();
+  emit('close');
 }
 
 // A DISPLAY VIEW of the draft, not a second model: every value is read back out of the draft
@@ -322,18 +356,9 @@ const saveBrand = ref('');
 const saveModel = ref('');
 const isCopyAction = ref(false);
 
-const saveTargetId = computed(() => {
-  const slug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const b = slug(saveBrand.value);
-  const m = slug(saveModel.value);
-  if (!b && !m) return '';
-  return `${b}/${m}`;
-});
 
-const saveAlreadyExists = computed(() => {
-  if (!saveTargetId.value) return false;
-  return myDrivers.list().some(d => myDrivers.identityOf(d) === saveTargetId.value);
-});
+// Same-name drivers COEXIST under uuid identity (QO81): a name collision overwrites nothing,
+// so there is no overwrite warning to show.
 
 function openSaveMyDialog(forCopy: boolean = false) {
   saveBrand.value = driverRaw.value.brand || '';
@@ -356,10 +381,15 @@ function confirmSaveToMyDrivers() {
   forceUpdate();
 
   if (isCopyAction.value) {
-    const overwrote = myDrivers.upsert(draftDriver.value);
+    // A copy is a DIFFERENT driver: fresh identity, never an overwrite (QO81).
+    draftDriver.value.mintFreshUuid();
+    const saved = myDrivers.upsert(draftDriver.value);
     saveMyDialogOpen.value = false;
-    copiedMsg.value = overwrote ? 'Updated in My Drivers' : 'Copied to My Drivers';
+    copiedMsg.value = saved ? 'Copied to My Drivers' : 'Saved drivers are read-only — copy not stored';
     setTimeout(() => { copiedMsg.value = ''; }, 2000);
+  } else if (saveWouldRename()) {
+    saveMyDialogOpen.value = false;
+    renameQuestionOpen.value = true;   // the ONE question; its two buttons finish the save
   } else {
     saveMyDialogOpen.value = false;
     commitToMyDrivers(draftDriver.value);
@@ -919,6 +949,19 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
       </div>
 
       <!-- Save to My Drivers prompt dialog -->
+      <div v-if="renameQuestionOpen" class="fmt-scrim de-rename-panel">
+        <div class="fmt-panel" role="dialog" aria-label="Rename or copy">
+          <h3>This changes the driver's name</h3>
+          <p class="fmt-note">
+            You changed this saved driver's brand or model. Rename it in place, or keep the
+            original and save your changes as a copy?
+          </p>
+          <div class="fmt-foot" style="margin-top: 14px;">
+            <button class="pri rename-in-place-btn" @click="saveRenameInPlace">Rename this driver</button>
+            <button class="save-as-copy-btn" @click="saveAsCopy">Save as a copy</button>
+          </div>
+        </div>
+      </div>
       <div v-if="saveMyDialogOpen" class="fmt-scrim de-save-my-panel" @click.self="saveMyDialogOpen = false">
         <div class="fmt-panel" role="dialog" aria-label="Save to My Drivers">
           <h3>Save to My Drivers</h3>
@@ -933,12 +976,9 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <label>Model</label>
             <input type="text" class="save-model-input" v-model="saveModel" placeholder="Model slug (e.g. E150HE-44)">
           </div>
-          <div v-if="saveAlreadyExists" class="save-warn" style="color: #d93025; font-size: 12px; margin-top: 10px; font-weight: 600;">
-            ⚠ Warning: A driver with brand "{{ saveBrand }}" and model "{{ saveModel }}" already exists in My Drivers and will be overwritten.
-          </div>
           <div class="fmt-foot" style="margin-top: 14px;">
             <button class="pri save-confirm-btn" :disabled="!saveBrand.trim() || !saveModel.trim()" @click="confirmSaveToMyDrivers">
-              {{ saveAlreadyExists ? 'Overwrite / Save to My Drivers' : 'Save to My Drivers' }}
+              Save to My Drivers
             </button>
             <button class="save-cancel-btn" @click="saveMyDialogOpen = false">Cancel</button>
           </div>
