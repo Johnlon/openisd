@@ -69,10 +69,10 @@ by itself; a repo or a store persists it.
 
 ```
 packages/ui/src/persistence/
-  stores/                  ports only — no domain vocabulary anywhere in this directory
-    keyValueStore.ts       KeyValueStore + createLocalStorageStore + createMemoryStore
-    fileStore.ts           FileStore + createFileStore
-  repos/                   one file per collection, each taking a store
+  storage/                 ports only — no domain vocabulary anywhere in this directory
+    keyValueStorage.ts     KeyValueStorage + createLocalStorage + createMemoryStorage
+    fileStorage.ts         FileStorage + createFileStorage
+  repos/                   one file per collection, each taking a storage
     driverRepo.ts
     myDriverRepo.ts
     prRepo.ts
@@ -83,16 +83,16 @@ packages/ui/src/logic/
   driverBrowsingState.ts   reactive browsing surface (from driverLibrary.ts)
 ```
 
-The `stores/` ↔ `repos/` split is the enforceable form of the rule: a file under `stores/`
+The `storage/` ↔ `repos/` split is the enforceable form of the rule: a file under `storage/`
 that names a domain type is a violation a gate can SEE, and so is a file under `repos/` that
-touches `window`/`localStorage` directly instead of taking a store.
+touches `window`/`localStorage` directly instead of taking a storage.
 
 ## The rename map
 
 | today | becomes | why |
 |---|---|---|
-| `db/kv.ts` | `persistence/stores/keyValueStore.ts` | name the concept, not an abbreviation |
-| `logic/fileStore.ts` | `persistence/stores/fileStore.ts` | it IS a store; it was never logic |
+| `db/kv.ts` | `persistence/storage/keyValueStorage.ts` | name the concept, not an abbreviation |
+| `logic/fileStore.ts` | `persistence/storage/fileStorage.ts` | it IS storage; it was never logic |
 | `db/driverRepo.ts` | `persistence/repos/driverRepo.ts` | move only |
 | `db/myDrivers.ts` | `persistence/repos/myDriverRepo.ts` | file now matches `MyDriverRepo` |
 | `db/prLibrary.ts` → `PrRepo` | `persistence/repos/prRepo.ts` | file matched neither role nor type |
@@ -125,13 +125,13 @@ local name (`const storage = …`) carries the same one-line gloss at the bindin
 ## Enforcement
 
 An AST gate (`no-persistence-vocabulary-drift`), so this cannot rot back:
-1. No file under `stores/` imports a domain type or names a domain concept.
+1. No file under `storage/` imports a domain type or names a domain concept.
 2. No file under `repos/` touches `window`, `localStorage`, or a browser API directly — it
-   takes a store.
-3. No exported symbol matching `/Store$/` lives under `repos/`; none matching `/Repo$/` lives
-   under `stores/`.
-4. No exported symbol outside `persistence/` is named `*Store` except the ports themselves.
-5. No module or exported type name contains `Library` or `Bucket`.
+   takes a storage.
+3. No exported symbol matching `/Storage$/` lives under `repos/`; none matching `/Repo$/` lives
+   under `storage/`.
+4. No exported symbol outside `persistence/` is named `*Storage` except the ports themselves.
+5. No module or exported type name contains `Library`, `Bucket`, or `Store`.
 Shape-based checks over the AST, never prose greps — a docstring explaining the rule must not
 fail the rule (`behavioral_instructions.md` §"BAN THE CODE, NEVER THE VOCABULARY").
 

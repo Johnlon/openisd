@@ -80,7 +80,8 @@ describe('persistence — provenance survives a serialize round trip', () => {
 /**
  * A share link is a COMPLETE description of the session: the recipient lands on exactly what
  * the sender was looking at. Nothing is stripped — not the open-panel flags, and not the
- * recipient-preference fields an earlier version removed (human ruling 2026-08-14).
+ * recipient-preference fields, even though they are preferences rather than design data
+ * (human ruling 2026-08-14).
  */
 describe('share link carries the whole state, stripped of nothing', () => {
   const uiView = {
@@ -129,7 +130,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
     assert.equal(ui!.originalChartLabel, 'Cone excursion');
 
     // WHICH PANELS WERE OPEN — this is app state the URL is meant to encapsulate, not
-    // "personal working state" to be hidden. An earlier version dropped these.
+    // "personal working state" to be hidden.
     assert.equal(ui!.originalTuneOpen, true);
     assert.equal(ui!.originalEditorOpen, true);
 

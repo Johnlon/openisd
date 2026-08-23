@@ -93,8 +93,10 @@ function topLevelExportedNames(file: string): string[] {
 
 describe('persistence vocabulary — CHECK 1: stores/ names no domain concept', () => {
   it('no file under persistence/storage/ imports a domain type or a repo', () => {
+    const files = filesUnder(STORAGE_DIR);
+    assert.ok(files.length > 0, 'no files found under persistence/storage/ — the gate would pass vacuously');
     const offences: string[] = [];
-    for (const f of filesUnder(STORAGE_DIR)) {
+    for (const f of files) {
       for (const spec of valueImportSpecs(f)) {
         if (spec.startsWith('@openisd/')) offences.push(`${rel(f)} imports domain package ${spec}`);
         if (/(^|\/)repos\//.test(spec)) offences.push(`${rel(f)} imports a repo (${spec}) — a port knows no collection`);
@@ -108,9 +110,11 @@ describe('persistence vocabulary — CHECK 1: stores/ names no domain concept', 
 
 describe('persistence vocabulary — CHECK 2: repos/ never touches a browser API directly', () => {
   it('no file under persistence/repos/ names window, document, or localStorage', () => {
+    const files = filesUnder(REPOS_DIR);
+    assert.ok(files.length > 0, 'no files found under persistence/repos/ — the gate would pass vacuously');
     const BROWSER_GLOBALS = new Set(['window', 'document', 'localStorage', 'sessionStorage', 'indexedDB']);
     const offences: string[] = [];
-    for (const f of filesUnder(REPOS_DIR)) {
+    for (const f of files) {
       const source = sourceFileOf(f);
       source.forEachDescendant(node => {
         if (!Node.isIdentifier(node)) return;

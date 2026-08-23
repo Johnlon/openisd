@@ -63,10 +63,10 @@ export async function stateToUrl(serialized: SerializedState): Promise<string> {
   // sender was looking at, which is what makes a link usable for diagnostics and not just for
   // handing over a design.
   //
-  // This deliberately includes the recipient's-preference fields an earlier version removed
-  // (unit tokens, chart colours, environment defaults, username, panel sizes) and the
-  // open-panel flags. Fidelity beats politeness: a link that quietly differs from what the
-  // sender saw cannot be used to diagnose what the sender saw.
+  // This deliberately includes the recipient's-preference fields (unit tokens, chart colours,
+  // environment defaults, username, panel sizes) and the open-panel flags, even though they are
+  // preferences rather than design data. Fidelity beats politeness: a link that quietly differs
+  // from what the sender saw cannot be used to diagnose what the sender saw.
   const encoded = await gzipEncodeBase64Url(JSON.stringify(serialized));
   return location.origin + location.pathname + '#s=' + encoded;
 }

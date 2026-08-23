@@ -154,11 +154,11 @@ const autoCalculate = computed({
 const inspectProvenance = ref(false);
 const inspectedField = ref<string | null>(null);
 
-// The popup used to sit at a fixed viewport corner (right: 20px, bottom: 20px) regardless of
-// where the editor actually rendered, so on a narrower or off-centre viewport it landed on top
-// of the modal it was meant to explain. Anchored here to the editor's OWN measured bounding box
-// instead: beside its right edge when there is room, its left edge otherwise — so it can never
-// cover the dialog it is inspecting, at any viewport size.
+// Guards the popup sitting at a fixed viewport corner (right: 20px, bottom: 20px) regardless of
+// where the editor renders — on a narrower or off-centre viewport it would land on top of the
+// very modal it explains. Anchored here to the editor's OWN measured bounding box instead:
+// beside its right edge when there is room, its left edge otherwise — so it can never cover the
+// dialog it is inspecting, at any viewport size.
 const modalRootEl = ref<HTMLElement | null>(null);
 const popupStyle = ref<Record<string, string>>({});
 function updatePopupPosition() {

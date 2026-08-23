@@ -41,11 +41,11 @@ const plotData    = computed(() => plot.value.value);
 const blockErrors = computed(() => plot.value.errors.filter(e => e.level === 'error'));
 // An error-level issue blocks the chart, FULL STOP — the Result contract says an error means
 // the value is unusable for the purpose, so a curve drawn from it is a lie whether or not the
-// arrays exist. Both cases reach here and only one of them used to:
+// arrays exist. Both cases below reach here, but a bare `!plotData` check would only catch one:
 //   • a missing required T/S param — no driver, so no plot object at all;
 //   • a degenerate design like Vb = 0 — a VALID driver whose sweep is NaN at every frequency.
-//     `curves` is non-null there, so a `!plotData` test read it as "fine" and the panel showed
-//     a blank canvas with no explanation. There is no separate issue list; the chart
+//     `curves` is non-null there, so `!plotData` alone would read it as "fine" and the panel
+//     would show a blank canvas with no explanation. There is no separate issue list; the chart
 //     is the only place they can say anything.
 // A transient null during sweep recompute carries NO errors, so it still shows nothing —
 // that case is covered by the errors array being empty, not by the plot being null.

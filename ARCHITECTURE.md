@@ -144,14 +144,14 @@ cannot usefully cross an embedded-V8 boundary. The projection algorithm itself i
 **Four layers. Every import points DOWNWARD, one layer at a time.** No upward import, no lateral
 import between siblings, and no skipping a layer.
 
-**`UI -> UI LOGIC -> SERVICE -> [domain, STORAGE, io]` (human ruling, QO60).** `store.ts` is
+**`UI -> UI LOGIC -> SERVICE -> [domain, STORAGE, io]` (human ruling, QO60).** `appState.ts` is
 STORAGE — an L4 peer of `domain` and `io`, not part of L2. `ui/` components and the `ui LOGIC`
-layer never import `store.ts` directly; every read and write of the app's persistent design
+layer never import `appState.ts` directly; every read and write of the app's persistent design
 state goes through the SERVICE layer, which is the only layer permitted to hold a reference to
-STORAGE, domain, or io. This is a TARGET ruling, not yet enforced or built — `store.ts` today is
-imported directly by `ui/` components and other `logic/` modules throughout (see AS-BUILT below,
-and QO60 for the open follow-on work: the SERVICE layer itself, and the `architecture.test.ts`
-gate to enforce it).
+STORAGE, domain, or io. This is a TARGET ruling, not yet enforced or built — `appState.ts` today
+is imported directly by `ui/` components and other `logic/` modules throughout (see AS-BUILT
+below, and QO60 for the open follow-on work: the SERVICE layer itself, and the
+`architecture.test.ts` gate to enforce it).
 
 Each box is ONE responsibility. A module that both fetches data and drives the UI has two, and
 belongs in two places.
@@ -179,7 +179,7 @@ graph TD
     subgraph L4a["STORAGE — persistent Vue-reactive app state"]
         WSPACE["<b>Workspace</b><br/>logic/model/workspace.ts<br/><i>the open projects, ORDERED</i>"]
         MANAGED["<b>ManagedProject</b><br/>logic/managedProject.ts<br/>ground · committed<br/>edit-or-whatif overlay<br/><i>3 x OpenISDProject.<br/>The ONLY path to a project.</i>"]
-        STORE["<b>store.ts</b><br/>logic/store.ts<br/><i>the Vue-reactivity bridge<br/>over Workspace/ManagedProject</i>"]
+        STORE["<b>appState.ts</b><br/>logic/appState.ts<br/><i>the Vue-reactivity bridge<br/>over Workspace/ManagedProject</i>"]
     end
 
     subgraph L4b["DOMAIN — headless, no DOM, no browser"]
@@ -397,8 +397,9 @@ been built. **A red box is a module the target diagram does not account for.** E
 red box is either work still to be placed, or a module that should not exist — none of them is
 sanctioned by the target above.
 
-**Stale relative to QO60 and the SERVICE-layer ruling above**, and relative to `managedDriver.ts`
-having already become `managedProject.ts`: `store.ts` below is drawn as directly called by the UI
+**Stale relative to QO60 and the SERVICE-layer ruling above**, relative to `managedDriver.ts`
+having already become `managedProject.ts`, and relative to `store.ts` having become
+`appState.ts` (D20): `appState.ts` below is drawn as directly called by the UI
 (`UI -->|calls| STORE`), which the target diagram now above explicitly forbids. Not yet redrawn —
 tracked as part of QO60's follow-on work.
 
@@ -410,7 +411,7 @@ inventory is the TABLE underneath, which is text and always readable.
 ```mermaid
 graph TD
     UI["<b>PRESENTATION</b><br/>packages/ui/src/ui/<br/>12 components + shells"]
-    STORE["<b>store.ts</b><br/>APPROVED — persistent design state"]
+    STORE["<b>appState.ts</b><br/>APPROVED — persistent design state"]
     MANAGED["<b>managedDriver.ts</b><br/>APPROVED — active · edit · what-if<br/><i>TO BECOME managedProject.ts</i>"]
     PRES["<b>presentationState.ts</b> — APPROVED, built<br/><b>urlAppState.ts</b> — APPROVED, NOT BUILT"]
     REST["<b>the other 19 logic/ modules</b><br/>incl. useVentGroup · usePrGroup<br/><i>vent/PR state is flat in state.P —<br/>no owner, see the ruling above</i>"]
@@ -1107,18 +1108,18 @@ external vocabulary onto that one canonical name — a datasheet's `Fs`/`fs`/`Re
 WinISD's `Bl` against the record's `BL` — is required work and happens in exactly one place per
 boundary. An alias mechanism on our own record is not.
 
-**Only the domain objects calculate — the store never does (human ruling 2026-08-18).** A
+**Only the domain objects calculate — the app state never does (human ruling 2026-08-18).** A
 calculated value is a property or method on the domain object that owns it —
-`OpenISDDriver`/`ManagedOpenISDProject` — never a calculation performed inline in `store.ts` or
-any other logic-layer file, even when that inline code merely calls out to a properly
-single-sourced formula function. The store's job is to hold and expose state; the moment it
+`OpenISDDriver`/`ManagedOpenISDProject` — never a calculation performed inline in `appState.ts`
+or any other logic-layer file, even when that inline code merely calls out to a properly
+single-sourced formula function. The app state's job is to hold and expose state; the moment it
 computes anything itself — however small, however correctly sourced — it has become a second
 place a calculated value can be produced, which is exactly the duplication this rule exists to
 prevent. If a value is missing from a domain object's public surface, the fix is to add it
 there as a getter/method, never to compute it at the call site "just this once."
-Precedent: `store.ts`'s vent cross-sectional area was fixed by consolidating a duplicated
+Precedent: `appState.ts`'s vent cross-sectional area was fixed by consolidating a duplicated
 formula into `@openisd/model`'s `ventArea_m2()` — correct — but then called directly from
-`store.ts` — wrong, caught and reverted the same session. See `store.ts`'s own header comment.
+`appState.ts` — wrong, caught and reverted the same session, per this same rule stated above.
 
 **No local alias for a domain-object read (human ruling 2026-08-18).** A `computed`/`ref`/`const`
 whose entire body is a single passthrough call to a domain-object getter —
@@ -1277,7 +1278,7 @@ of its own. There are NO unapproved exceptions.**
 
 | The approved store | Holds, and holds exclusively                                                                    | Path                                       |
 | ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| the **store**      | PERSISTENT design state — box, params, project metadata: what a save, a load and a share link carry | `packages/ui/src/logic/store.ts`           |
+| the **app state**  | PERSISTENT design state — box, params, project metadata: what a save, a load and a share link carry | `packages/ui/src/logic/appState.ts`        |
 | **`ManagedProject`** | ACTIVE, EDIT and WHAT-IF state for the WHOLE PROJECT — ground, committed, and the edit-or-what-if overlay, each holding a complete `OpenISDProject` | `packages/ui/src/logic/managedProject.ts` |
 | **`PresentationState`** | PRESENTATION state — which panel/dialog is open, cursor and selection, per-chart zoom, unit tokens | `packages/ui/src/logic/presentationState.ts` |
 | **`UrlAppState`**  | Composing the URL that ENCAPSULATES the app state — components on display, projects open, chart selected | `packages/ui/src/logic/urlAppState.ts`     |
