@@ -48,7 +48,7 @@ import type {
   Cell, MetaCell, SpecField, MetaField,
   OpenISDVent, OpenISDPassiveRadiatorRef, AlignmentKind, OpenISDProjectMeta,
 } from '@openisd/model';
-import { WinISDProject, winisdTextToBytes } from '@openisd/winisd';
+import { winisdTextToBytes } from '@openisd/winisd';
 import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/engine';
 import {
   sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
@@ -58,7 +58,6 @@ import {
 } from '@openisd/engine';
 import type { LossMode, BoxType } from '@openisd/engine';
 import { decodeDriverFileBytes } from './driverFileText.js';
-import { buildWprInput } from './wprMapping.js';
 import { ProjectFileFormat } from '../fileFormat.js';
 import type { UiParams } from '../types.js';
 
@@ -666,16 +665,11 @@ export class ManagedOpenISDProject {
     const { value: driverSection, errors } = driver.toWdrText();
     if (!driverSection) return { value: null, errors };
 
-    const boxKind = this.activeAlignment();
-    const meta = this.#committed.project.meta;
-    const input = buildWprInput(
-      fromAlignmentKind(boxKind),
-      this.toUiParams(), driver.toDriver(), driverSection,
-      { name: meta.name, description: meta.description, creator: meta.creator,
-        created: meta.created, modified: meta.modified },
-      now, this.ventArea_m2(), curve,
-    );
-    return { value: winisdTextToBytes(WinISDProject.build(input).toWpr()), errors };
+    // The domain object derives its own box/vent tuning and speaks the file's vocabulary —
+    // this layer only supplies what it alone has: the driver's serialisation, the engine
+    // projection, the clock, and the live sweep.
+    const wpr = this.#committed.project.toWinISDProject(driverSection, driver.toDriver(), now, curve);
+    return { value: winisdTextToBytes(wpr.toWpr()), errors };
   }
 
   /**

@@ -1,441 +1,169 @@
-
-
 /**
- * The `.wpr` FILE FORMAT — the project-level sibling of `winisdDriver.ts`'s `.wdr`. It holds no
- * live state, derives nothing itself, and names no other package. Callers reach IN; this module
- * never reaches out, and knows nothing of whatever domain model produced the values it is handed.
+ * One WinISD `.wpr` project file — the in/out object for the format, exactly as `WinISDDriver`
+ * is for `.wdr`. Build one from values, or read one from file text; either way you hold the
+ * same thing and can ask it for its text or for any value it carries.
  *
- * Two directions, both driven from OUTSIDE:
+ * A `.wpr` is INI text: eleven `[Section]` blocks of `key=value` lines, with a whole `.wdr`
+ * embedded as the `[Driver]` section. The driver block is carried verbatim — parsing it is
+ * `WinISDDriver`'s job, not this class's.
  *
- *  - EXPORT — `toWpr`. A caller reads its own model's getters, computes the physics its own way
- *    (chamber tuning, port area), and hands the finished primitives over as a `WprInput`. The
- *    `[Driver]` block is reused verbatim from the `.wdr` writer, since a `.wpr`'s `[Driver]`
- *    section is field-identical to a `.wdr`.
- *  - IMPORT — `parseWprRaw`. `.wpr` text yields exactly what the file states — no derivation, no
- *    recompute, and a key the file does not carry reads as `undefined`, never a fabricated 0.
+ * Values live in one generic store: section name → key → string. Reading keeps EVERY key of
+ * every section, whether or not anything currently consumes it — a key this class cannot name
+ * cannot be silently destroyed on a round trip. Writing lays the file out from the fixed
+ * template below: the eleven sections in WinISD's own order, each key's WinISD default filled
+ * in unless the builder supplied a value, and supplied keys the template does not list (for
+ * example `Npr`, present only for passive radiators) appended at the end of their section.
  *
- * DRIVER provenance survives a `.wpr` intact: the embedded `[Driver]` block is a full `.wdr`
- * block, `ParState` included, and `parseWprRaw` hands it on verbatim as `driverWdrText` for the
- * `.wdr` reader to parse. There is no second driver parser (QO67).
- *
- * PROJECT-level values are where the two formats genuinely differ: `.wpr` states no E/C/N for
- * `[Box]`, the vents or the filters, so there is nothing for a project-level `diffAgainst` to
- * compare against. That is a property of the format, not a gap in this module.
- *
- * The write shape (`WprInput`) and the read shape (`WprRawParse`) are different types, because
- * the writer is handed finished primitives while the reader yields only what the file states.
- * Unifying them behind one class would put two shapes in one object.
- *
- * Schema + field semantics: WINISD_WPR_FILE_SCHEMA.md (inferred from 50 real WinISD Pro `.wpr`
- * files + the decompiled help). Container: Windows INI, CRLF line endings, no quoting, exactly
- * these 11 sections in this fixed order:
- *   [ProjectInfo] [Driver] [Box] [VentFront] [VentRear] [VentIntra]
- *   [PlotSettings] [SignalSource] [Filters] [PassiveRadiator] [SimulatorOptions]
+ * This class does no physics and no unit conversion. The builder speaks the file's own
+ * vocabulary (`Vr`, `phi`, `crosscalc`, …) and has already computed every number — the same
+ * contract as `WinISDDriver.build()`, where the caller names WDR keys directly.
  *
  * Verified against 15 WinISD Pro-written goldens under
- * packages/winisd/test/fixtures/winisd-parity/goldens/, covering sealed, vented, bandpass, and
- * passive-radiator projects (test/winisdProject.test.ts). Default constants below (chamber
- * losses, ambient, thermal, unused-vent boilerplate) match WinISD's own defaults so a produced
- * file round-trips through WinISD unchanged.
+ * packages/winisd/test/fixtures/winisd-parity/goldens/ (test/winisdProject.test.ts). The
+ * defaults below match WinISD's own, so a produced file round-trips through WinISD unchanged.
  */
-export interface WprVent {
-  /** Port diameter, metres (dia1 = dia2, round port). */
-  dia?: number;
-  /** Physical vent length, metres. */
-  len?: number;
-  /** End-correction coefficient (WinISD default 0.6, confirmed across the whole parity corpus). */
-  endCorrection?: number;
-  /**
-   * Owning chamber's `[Box]` tuning/volume — front vent → `Ff`/`Vf`, rear → `Fr`/`Vr`.
-   * Confirmed against the whole parity corpus (vented-small, bandpass4, vented-b4 goldens):
-   * every populated vent's `Fb`/`Vb` equals its own chamber's `[Box]` tuning/volume, never an
-   * independent value. Not derived here — the caller already has the chamber tuning it wrote
-   * into `WprBox`, so it passes the SAME number through rather than this writer holding a
-   * second source of it. REQUIRED (not defaulted): unlike `endCorrection`, there is no
-   * evidenced WinISD default for a real vent's tuning/volume — a caller building a populated
-   * vent must supply its own chamber's numbers, or the type error forces the call site to be
-   * fixed rather than silently re-zeroing.
-   */
-  Fb: number;
-  Vb: number;
-  /**
-   * Vent cross-sectional area, m². For a round port this is `π·(dia/2)²`, confirmed against the
-   * corpus (0.06 m dia → 0.00282743338823081 m²). Physics derivation stays out of this
-   * formatter — the caller computes it once (the same value it may also write to
-   * `WprBox.SdFront`/`SdRear`) and supplies it here. REQUIRED for the same reason as `Fb`/`Vb`.
-   */
-  carea: number;
-  /**
-   * `crosscalc` — WinISD's own provenance flag for this vent: true when the cross-sectional
-   * area is CALCULATED from the diameter, false when the area was entered directly.
-   *
-   * It must come from the caller's real provenance, not a literal. A round port's area is
-   * always derived from its diameter, so this is true for every design OpenISD can currently
-   * produce — but a slot vent is entered as W×H, which IS entering the area, and hardcoding
-   * true would then write a false provenance flag into a WinISD file with nothing to catch
-   * it. Defaults to true only because that is what an absent vent section means.
-   */
-  crossCalculated?: boolean;
-}
 
-interface WprBox {
-  /** WinISD box-type enum: 0 sealed · 1 vented · 2 4th-order bandpass · 4 passive radiator. */
-  bType: number;
-  /** Rear (primary) chamber volume, m³, and its tuning frequency, Hz. */
-  Vr: number;
-  Fr: number;
-  /** Front chamber (bandpass only), m³ / Hz. Default 0. */
-  Vf?: number;
-  Ff?: number;
-  /** Primary-chamber loss factors. Default 10 / 100 / 100 (WinISD defaults). */
-  Ql?: number;
-  Qa?: number;
-  Qp?: number;
-  /** Port cross-sectional areas, m². Default 0 (closed / PR). */
-  SdFront?: number;
-  SdRear?: number;
-  /** Passive-radiator count — emitted as the last [Box] key ONLY when bType === 4. */
-  npr?: number;
-}
+/** Every key of every section, in WinISD's own order, with WinISD's own default. A `null`
+ *  default means the key is written only when the builder supplies it. */
+const TEMPLATE: ReadonlyArray<readonly [string, ReadonlyArray<readonly [string, string | null]>]> = (() => {
+  const vent: ReadonlyArray<readonly [string, string | null]> = [
+    ['Num', '0'], ['Shape', '1'], ['Fb', '0'], ['Vb', '0'],
+    ['dia1', '0'], ['dia2', '0'], ['carea', '0'], ['len', '0'],
+    ['endcorrection', '0.6'], ['crosscalc', '1'],
+  ];
+  return [
+    ['ProjectInfo', [['Description', ''], ['Creator', ''], ['CreateDate', ''], ['ModifyDate', '']]],
+    // [Driver] is spliced here, verbatim.
+    ['Box', [
+      ['BType', '0'],
+      // Front chamber (bandpass only). WinISD stores a loss triple per chamber.
+      ['Vf', '0'], ['Ff', '0'], ['Qlf', '10'], ['Qaf', '100'], ['Qpf', '100'],
+      // Rear (primary) chamber — the populated one for sealed/vented/PR.
+      ['Vr', '0'], ['Fr', '0'], ['Qlr', '10'], ['Qar', '100'], ['Qpr', '100'],
+      // Centre chamber — unused across every sampled box type.
+      ['Vc', '0'], ['Fc', '0'], ['Qlc', '0'], ['Qac', '0'], ['Qpc', '0'],
+      // Inter-chamber coupling losses.
+      ['Qiclfr', '100'], ['Qiclfc', '0'], ['Qiclcr', '0'],
+      // Ambient. `phi` is WinISD's FRACTION — the builder supplies it already converted.
+      // `d` (listening distance) and `Angle` stay WinISD's 1 m / 0: OpenISD collects neither.
+      ['T', '293.15'], ['p', '101325'], ['phi', '0.3'], ['d', '1'], ['Med', '0'],
+      ['Nd', '1'], ['Angle', '0'], ['Isobarik', '0'],
+      ['alfaVC', '0.0039'], ['dTVC', '0'],
+      ['Sdfport', '0'], ['Sdrport', '0'],
+    ]],
+    ['VentFront', vent], ['VentRear', vent], ['VentIntra', vent],
+    ['PlotSettings', [['Color', '16711680'], ['Width', '1']]], // Win32 COLORREF; default pure blue
+    ['SignalSource', [['Rg', '0.1'], ['P', '0']]],
+    ['Filters', [['Count', '0']]],
+    // Body only when a radiator is supplied; otherwise the bare section header.
+    ['PassiveRadiator', [['Vas', null], ['Qms', null], ['Fs', null], ['Sd', null], ['Xmax', null], ['Me', null]]],
+    ['SimulatorOptions', [['VCInd', '0'], ['FlatResponse', '0'], ['TLPorts', '0']]],
+  ];
+})();
 
-interface WprPr {
-  Vas: number;
-  Qms: number;
-  Fs: number;
-  Sd: number;
-  Xmax: number;
-  Me?: number;
-}
-
-export interface WprInput {
-  project: { description?: string; creator?: string; createDate?: string; modifyDate?: string };
-  /** The full `[Driver]` block from Driver.toWdr() — header line through `ParState=…`. */
-  driverSection: string;
-  box: WprBox;
-  ventFront?: WprVent;
-  ventRear?: WprVent;
-  ventIntra?: WprVent;
-  signal: {
-    Rg?: number;
-    P: number;
-    /** How many drivers the system uses — WinISD's `Nd`. Absent ⇒ 1. */
-    driverCount?: number;
-  };
-  /** Voice-coil thermal model — WinISD's `alfaVC` (resistance coefficient, /K) and `dTVC`
-   *  (temperature rise, K). Real Advanced-pane state, not boilerplate. Absent ⇒ WinISD's
-   *  own 0.0039 / 0. */
-  voiceCoil?: { alfaVC?: number; tempRise_K?: number };
-  plot?: { color?: number; width?: number };
-  /** Passive-radiator T/S — written to [PassiveRadiator] only when box.bType === 4. */
-  pr?: WprPr | null;
-  /**
-   * `[SimulatorOptions]` — WinISD's per-project simulation-fidelity flags. These are real
-   * design state, not boilerplate, so they are written from the caller's actual settings.
-   * Absent → all three 0 (WinISD's own defaults). WinISD's two OTHER Advanced-pane toggles
-   * ("Rg is at driver side", "SPL graph is Xmax limited") have no known key in this format —
-   * every `.wpr` in the reference corpus lacks them — so they are deliberately NOT written
-   * rather than invented. See WINISD_WPR_FILE_SCHEMA.md §10.
-   */
-  simulatorOptions?: {
-    /** Le included in the acoustic circuit (OpenISD: circuitModel === 'gyrator'). */
-    vcInductance?: boolean;
-    /** Force flat response (auto-EQ). */
-    flatResponse?: boolean;
-    /** Transmission-line port model. */
-    tlPorts?: boolean;
-  };
-  /**
-   * `[Box]`'s ambient block — real per-project design state, written from the caller's own
-   * environment rather than as boilerplate. Absent → WinISD's defaults (293.15 K, 101325 Pa,
-   * 30 % RH). WinISD stores all three and reads none of them, but it round-trips them
-   * faithfully, so writing the user's actual air is what makes the file honest.
-   */
-  environment?: {
-    /** Temperature, K — the same unit on both sides. */
-    tempK?: number;
-    /** Static pressure, Pa — the same unit on both sides. */
-    pressurePa?: number;
-    /**
-     * Relative humidity as a PERCENTAGE, which is what OpenISD carries everywhere.
-     * WinISD's `phi` is a FRACTION, so this is the ONE place the ÷100 happens.
-     */
-    humidityPct?: number;
-  };
-}
-
-// ── parseWprRaw — the READ side, raw only ──────────────────────────────────────────────────
-//
-// `toWpr` above is the WRITE side, taking already-computed primitives. This is the read side:
-// section/key/value text into raw values, box-type as WinISD's own un-mapped numeric code. No
-// box-type→box-kind mapping and no engine formula runs here — the caller (`@openisd/model`'s
-// `OpenISDProject.fromWinISDProject`) does both. A key the file does not carry is `undefined`,
-// never a fabricated 0 or empty string.
-
-/** One `.wpr` file's raw project-level values, as read — every number already parsed, no
- *  section's internal shape interpreted beyond that. */
-export interface WprRawParse {
-  /** `[Box].BType`, un-mapped to any OpenISD box kind. `undefined` when the file states no
-   *  `BType` key at all. */
-  bType: number | undefined;
-  /** The `[Driver]` block, verbatim — its own `.wdr` text, readable by
-   *  `OpenISDDriver.fromWdrText()`. Not a second driver parser (QO67). */
-  driverWdrText: string;
-  box: {
-    Vr?: number; Fr?: number; Vf?: number; Ff?: number;
-    Ql?: number; Qa?: number; Qp?: number; npr?: number;
-  };
-  signal: { P?: number; Rg?: number };
-  ventFront: { dia?: number; len?: number; endCorrection?: number };
-  ventRear: { dia?: number; len?: number; endCorrection?: number };
-  simulatorOptions: { vcInductance?: boolean; flatResponse?: boolean; tlPorts?: boolean };
-  environment: { tempK?: number; pressurePa?: number; humidityPct?: number };
-  passiveRadiator: { Sd?: number; Vas?: number; Fs?: number; Qms?: number; Xmax?: number; Me?: number };
-  projectInfo: { description?: string; creator?: string; createDate?: string };
-}
-
-/** Format a number the WinISD way: plain decimal, full precision, non-finite → 0. */
-function num(x: number | undefined | null): string {
-  return x == null || !Number.isFinite(x) ? '0' : String(x);
-}
-
-/** One INI section: header line then `Key=Value` lines. */
-function section(header: string, kv: Array<[string, string | number]>): string {
-  return [header, ...kv.map(([k, v]) => `${k}=${v}`)].join('\n');
-}
-
-/**
- * WinISD writes all three vent sections even when a box has no vent of that kind (sealed,
- * bandpass front/rear, passive radiator) — but an unused one is empty (`Num=0`, `dia1=0`,
- * `dia2=0`, `endcorrection=0.6`), not a populated fake vent. `v` absent means the box has no
- * vent there; `v` present means a real port, with `endcorrection` defaulting to WinISD's own
- * 0.6 when the caller doesn't carry a design-specific value.
- */
-function ventSection(header: string, v: WprVent | undefined): string {
-  if (v == null) {
-    return section(header, [
-      ['Num', 0], ['Shape', 1], ['Fb', 0], ['Vb', 0],
-      ['dia1', 0], ['dia2', 0], ['carea', 0], ['len', 0],
-      ['endcorrection', 0.6], ['crosscalc', 1],
-    ]);
-  }
-  const dia = v.dia;
-  return section(header, [
-    ['Num', 1],
-    ['Shape', 1], // 1 = round port (only shape in the corpus)
-    ['Fb', num(v.Fb)],
-    ['Vb', num(v.Vb)],
-    ['dia1', dia == null ? 0 : num(dia)],
-    ['dia2', dia == null ? 0 : num(dia)],
-    ['carea', num(v.carea)],
-    ['len', num(v.len)],
-    ['endcorrection', v.endCorrection == null ? 0.6 : num(v.endCorrection)],
-    ['crosscalc', v.crossCalculated === false ? 0 : 1],
-  ]);
-}
-
-/** A key the section does not carry, or carries empty, parses to `undefined` — never a
- *  fabricated number. */
-function numOrAbsent(sec: Record<string, string> | undefined, key: string): number | undefined {
-  const raw = sec?.[key];
-  if (raw == null || raw.trim() === '') return undefined;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : undefined;
-}
-
-/**
- * One `.wpr` file. Build it from your own values, or read one that already exists; either way
- * you end up holding the same thing and can ask it for its text or for what it says.
- *
- * Same shape as `WinISDDriver` next door, which does the same job for `.wdr`.
- */
 export class WinISDProject {
-  readonly #text: string;
+  /** The `[Driver]` block, verbatim — its own `.wdr` text, readable by `WinISDDriver`. */
+  readonly #driverSection: string;
+  /** section name (no brackets) → key → value, as supplied or as read. Nothing dropped. */
+  readonly #sections: ReadonlyMap<string, ReadonlyMap<string, string>>;
+  /** Set when this instance was read from a file: `toWpr()` then returns the file unchanged. */
+  readonly #sourceText: string | null;
 
-  private constructor(text: string) {
-    this.#text = text;
+  private constructor(
+    driverSection: string,
+    sections: ReadonlyMap<string, ReadonlyMap<string, string>>,
+    sourceText: string | null,
+  ) {
+    this.#driverSection = driverSection;
+    this.#sections = sections;
+    this.#sourceText = sourceText;
   }
 
-  /** Build a file from values the caller has already worked out. */
-  static build(input: WprInput): WinISDProject {
-    return new WinISDProject(renderWpr(input));
+  /** Build a file from values the caller has already computed, keyed by the file's own
+   *  section and key names. Everything not supplied takes WinISD's own default. */
+  static build(
+    driverSection: string,
+    values: Readonly<Record<string, Readonly<Record<string, string | number>>>>,
+  ): WinISDProject {
+    const sections = new Map<string, Map<string, string>>();
+    for (const [sec, kv] of Object.entries(values)) {
+      const m = new Map<string, string>();
+      for (const [k, v] of Object.entries(kv)) m.set(k, String(v));
+      sections.set(sec, m);
+    }
+    return new WinISDProject(driverSection, sections, null);
   }
 
-  /** Read a file WinISD (or we) wrote earlier. */
+  /** Read a file WinISD (or we) wrote earlier. Every key of every section is kept. */
   static fromWprIni(text: string): WinISDProject {
-    return new WinISDProject(text);
-  }
+    const sections = new Map<string, Map<string, string>>();
+    const driverLines: string[] = [];
+    let current: Map<string, string> | null = null;
+    let inDriver = false;
 
-  /** The file, as text ready to write to disk. */
-  toWpr(): string {
-    return this.#text;
-  }
+    for (const line of text.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith(';') || trimmed.startsWith('#')) continue;
 
-  /** What the file says, section by section. A key it does not carry reads as `undefined`. */
-  parsed(): WprRawParse {
-    return readWpr(this.#text);
-  }
-}
-
-function renderWpr(input: WprInput): string {
-  const { project, box, signal, plot, pr } = input;
-  const env = input.environment ?? {};
-
-  const projectInfo = section('[ProjectInfo]', [
-    ['Description', project.description ?? ''],
-    ['Creator', project.creator ?? ''],
-    ['CreateDate', project.createDate ?? ''],
-    ['ModifyDate', project.modifyDate ?? ''],
-  ]);
-
-  // [Driver] is reused verbatim from Driver.toWdr(): header line + fields + ParState. Trim any
-  // trailing blank line so section joining controls the blank-line spacing uniformly.
-  const driver = input.driverSection.replace(/\r\n/g, '\n').replace(/\n+$/, '');
-
-  const boxKv: Array<[string, string | number]> = [
-    ['BType', box.bType],
-    // Front chamber (bandpass only) — 0 for sealed/vented/PR. WinISD stores a loss triple per
-    // chamber; OpenISD's box carries ONE, describing the enclosure, so both chambers are
-    // written from it rather than the front chamber discarding the user's losses.
-    ['Vf', num(box.Vf)], ['Ff', num(box.Ff)],
-    ['Qlf', num(box.Ql ?? 10)], ['Qaf', num(box.Qa ?? 100)], ['Qpf', num(box.Qp ?? 100)],
-    // Rear (primary) chamber — the populated one for sealed/vented/PR.
-    ['Vr', num(box.Vr)], ['Fr', num(box.Fr)],
-    ['Qlr', num(box.Ql ?? 10)], ['Qar', num(box.Qa ?? 100)], ['Qpr', num(box.Qp ?? 100)],
-    // Centre chamber — unused across every sampled box type.
-    ['Vc', 0], ['Fc', 0], ['Qlc', 0], ['Qac', 0], ['Qpc', 0],
-    // Inter-chamber coupling losses (defaults from corpus).
-    ['Qiclfr', 100], ['Qiclfc', 0], ['Qiclcr', 0],
-    // Ambient — the project's own. `phi` is WinISD's FRACTION; the ÷100 from OpenISD's
-    // percentage happens HERE and nowhere else. Placement + thermal stay WinISD defaults.
-    // `d` (listening distance) and `Angle` stay at WinISD's own 1 m / 0 rad: OpenISD's UI
-    // collects neither, so there is no design state to write. `Med` and `Isobarik` likewise
-    // have no OpenISD equivalent.
-    ['T', num(env.tempK ?? 293.15)], ['p', num(env.pressurePa ?? 101325)],
-    ['phi', num((env.humidityPct ?? 30) / 100)], ['d', 1], ['Med', 0],
-    ['Nd', input.signal.driverCount ?? 1],
-    ['Angle', 0], ['Isobarik', 0],
-    ['alfaVC', num(input.voiceCoil?.alfaVC ?? 0.0039)],
-    ['dTVC', num(input.voiceCoil?.tempRise_K ?? 0)],
-    ['Sdfport', num(box.SdFront)], ['Sdrport', num(box.SdRear)],
-  ];
-  if (box.bType === 4) boxKv.push(['Npr', box.npr ?? 1]); // Npr present ONLY for passive radiators
-  const boxSection = section('[Box]', boxKv);
-
-  const plotSettings = section('[PlotSettings]', [
-    ['Color', plot?.color ?? 16711680], // Win32 COLORREF; default pure blue
-    ['Width', plot?.width ?? 1],
-  ]);
-
-  const signalSource = section('[SignalSource]', [
-    ['Rg', signal.Rg ?? 0.1],
-    ['P', num(signal.P)],
-  ]);
-
-  // OpenISD does not yet drive WinISD's behavioural filter chain — emit an empty chain.
-  const filters = section('[Filters]', [['Count', 0]]);
-
-  // [PassiveRadiator] body only for BType=4; otherwise an empty section header.
-  const passiveRadiator = box.bType === 4 && pr
-    ? section('[PassiveRadiator]', [
-        ['Vas', num(pr.Vas)], ['Qms', num(pr.Qms)], ['Fs', num(pr.Fs)],
-        ['Sd', num(pr.Sd)], ['Xmax', num(pr.Xmax)], ['Me', num(pr.Me)],
-      ])
-    : '[PassiveRadiator]';
-
-  const sim = input.simulatorOptions;
-  const simulatorOptions = section('[SimulatorOptions]', [
-    ['VCInd',        sim?.vcInductance  ? 1 : 0],
-    ['FlatResponse', sim?.flatResponse  ? 1 : 0],
-    ['TLPorts',      sim?.tlPorts       ? 1 : 0],
-  ]);
-
-  const sections = [
-    projectInfo, driver, boxSection,
-    ventSection('[VentFront]', input.ventFront),
-    ventSection('[VentRear]', input.ventRear),
-    ventSection('[VentIntra]', input.ventIntra),
-    plotSettings, signalSource, filters, passiveRadiator, simulatorOptions,
-  ];
-
-  // Blank line between sections; whole file CRLF with a trailing CRLF.
-  return sections.join('\n\n').replace(/\n/g, '\r\n') + '\r\n';
-}
-
-function readWpr(text: string): WprRawParse {
-  const sections: Record<string, Record<string, string>> = {};
-  let currentSection: Record<string, string> | null = null;
-  const lines = text.split(/\r?\n/);
-  const driverLines: string[] = [];
-  let inDriver = false;
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith(';') || trimmed.startsWith('#')) continue;
-
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      const secName = trimmed.slice(1, -1).trim();
-      currentSection = {};
-      sections[secName] = currentSection;
-      inDriver = secName === 'Driver';
-      if (inDriver) driverLines.push(trimmed);
-    } else {
-      if (inDriver) driverLines.push(line);
-      if (currentSection) {
-        const idx = line.indexOf('=');
-        if (idx !== -1) {
-          currentSection[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
-        }
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        const name = trimmed.slice(1, -1).trim();
+        inDriver = name === 'Driver';
+        if (inDriver) { driverLines.push(trimmed); current = null; continue; }
+        current = new Map<string, string>();
+        sections.set(name, current);
+        continue;
+      }
+      if (inDriver) { driverLines.push(line); continue; }
+      if (current) {
+        const i = line.indexOf('=');
+        if (i !== -1) current.set(line.slice(0, i).trim(), line.slice(i + 1).trim());
       }
     }
+    return new WinISDProject(driverLines.join('\r\n'), sections, text);
   }
 
-  const boxSec = sections['Box'];
-  const sigSec = sections['SignalSource'];
-  const pSec = sections['ProjectInfo'];
-  const simOptSec = sections['SimulatorOptions'];
-  const ventFrontSec = sections['VentFront'];
-  const ventRearSec = sections['VentRear'];
-  const prSec = sections['PassiveRadiator'];
+  /** The `[Driver]` block as its own `.wdr` text; `''` when the file carried none. */
+  driverWdrText(): string { return this.#driverSection; }
 
-  const bType = numOrAbsent(boxSec, 'BType');
+  /** One value, as the file states it. `undefined` when the section or key is absent. */
+  value(section: string, key: string): string | undefined {
+    return this.#sections.get(section)?.get(key);
+  }
 
-  return {
-    bType,
-    driverWdrText: driverLines.join('\r\n'),
-    box: {
-      Vr: numOrAbsent(boxSec, 'Vr'), Fr: numOrAbsent(boxSec, 'Fr'),
-      Vf: numOrAbsent(boxSec, 'Vf'), Ff: numOrAbsent(boxSec, 'Ff'),
-      Ql: numOrAbsent(boxSec, 'Ql'), Qa: numOrAbsent(boxSec, 'Qa'), Qp: numOrAbsent(boxSec, 'Qp'),
-      npr: numOrAbsent(boxSec, 'npr'),
-    },
-    signal: { P: numOrAbsent(sigSec, 'P'), Rg: numOrAbsent(sigSec, 'Rg') },
-    ventFront: {
-      dia: numOrAbsent(ventFrontSec, 'dia'), len: numOrAbsent(ventFrontSec, 'len'),
-      endCorrection: numOrAbsent(ventFrontSec, 'endCorrection'),
-    },
-    ventRear: {
-      dia: numOrAbsent(ventRearSec, 'dia'), len: numOrAbsent(ventRearSec, 'len'),
-      endCorrection: numOrAbsent(ventRearSec, 'endCorrection'),
-    },
-    simulatorOptions: {
-      vcInductance: simOptSec ? simOptSec['VCInd'] === '1' : undefined,
-      flatResponse: simOptSec ? simOptSec['FlatResponse'] === '1' : undefined,
-      tlPorts: simOptSec ? simOptSec['TLPorts'] === '1' : undefined,
-    },
-    environment: {
-      tempK: numOrAbsent(boxSec, 'T'), pressurePa: numOrAbsent(boxSec, 'p'),
-      humidityPct: (() => {
-        const phi = numOrAbsent(boxSec, 'phi');
-        return phi == null ? undefined : phi * 100;
-      })(),
-    },
-    passiveRadiator: {
-      Sd: numOrAbsent(prSec, 'Sd'), Vas: numOrAbsent(prSec, 'Vas'),
-      Fs: numOrAbsent(prSec, 'Fs'), Qms: numOrAbsent(prSec, 'Qms'),
-      Xmax: numOrAbsent(prSec, 'Xmax'), Me: numOrAbsent(prSec, 'Me'),
-    },
-    projectInfo: {
-      description: pSec?.['Description'], creator: pSec?.['Creator'], createDate: pSec?.['CreateDate'],
-    },
-  };
+  /** One numeric value. `undefined` when absent, empty, or not a number — never fabricated. */
+  number(section: string, key: string): number | undefined {
+    const raw = this.value(section, key);
+    if (raw == null || raw === '') return undefined;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : undefined;
+  }
+
+  /** The file as text. An instance read from a file returns that file unchanged; a built one
+   *  renders the template with its supplied values. CRLF throughout, trailing CRLF. */
+  toWpr(): string {
+    if (this.#sourceText != null) return this.#sourceText;
+
+    const rendered: string[] = [];
+    for (const [name, keys] of TEMPLATE) {
+      const supplied = this.#sections.get(name);
+      const lines: string[] = [`[${name}]`];
+      const written = new Set<string>();
+      for (const [key, def] of keys) {
+        const v = supplied?.get(key) ?? def;
+        if (v == null) continue; // omit-unless-supplied key, not supplied
+        lines.push(`${key}=${v}`);
+        written.add(key);
+      }
+      if (supplied) {
+        for (const [key, v] of supplied) {
+          if (!written.has(key)) lines.push(`${key}=${v}`);
+        }
+      }
+      rendered.push(lines.join('\n'));
+      if (name === 'ProjectInfo') {
+        rendered.push(this.#driverSection.replace(/\r\n/g, '\n').replace(/\n+$/, ''));
+      }
+    }
+    return rendered.join('\n\n').replace(/\n/g, '\r\n') + '\r\n';
+  }
 }

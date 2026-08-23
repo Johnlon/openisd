@@ -1,9 +1,9 @@
 /**
- * `parseWprRaw` — raw `.wpr` section/key/value extraction (PLAN_QO60_LAYERING_REMEDIATION.md
- * objective 2, PLAN_USEDESIGNIO_REMEDIATION.md objective 2). RAW only: box-type comes back as
- * WinISD's own numeric code, un-mapped to any OpenISD box kind; no engine formula runs here.
- * The `[Driver]` block is returned as its own `.wdr` text — the same text `OpenISDDriver.
- * fromWdrText()` already reads, not a second driver parser (QO67).
+ * `WinISDProject.fromWprIni` — reading a `.wpr`. RAW only: box-type comes back as WinISD's own
+ * numeric code, un-mapped to any OpenISD box kind; no engine formula runs here. The `[Driver]`
+ * block comes back as its own `.wdr` text — the same text `OpenISDDriver.fromWdrText()` already
+ * reads, not a second driver parser (QO67). Reading keeps every key the file states, whether or
+ * not this class knows the key — a foreign key survives a round trip.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
@@ -16,39 +16,51 @@ const here = dirname(fileURLToPath(import.meta.url));
 const SEALED_SMALL = join(here, 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
 const PASSIVE_RADIATOR = join(here, 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
 
-describe('parseWprRaw — sealed-small.wpr golden', () => {
-  const raw = WinISDProject.fromWprIni(readFileSync(SEALED_SMALL, 'utf8')).parsed();
+describe('fromWprIni — sealed-small.wpr golden', () => {
+  const wpr = WinISDProject.fromWprIni(readFileSync(SEALED_SMALL, 'utf8'));
 
-  it('extracts the raw, un-mapped BType', () => assert.equal(raw.bType, 0));
-  it('extracts [Box] Vr as a number', () => assert.equal(raw.box.Vr, 0.02));
-  it('extracts [ProjectInfo] fields', () => {
-    assert.equal(raw.projectInfo.creator, 'winisd_research overnight harness');
-    assert.equal(raw.projectInfo.createDate, '20260813');
+  it('reads the raw, un-mapped BType', () => assert.equal(wpr.number('Box', 'BType'), 0));
+  it('reads [Box] Vr as a number', () => assert.equal(wpr.number('Box', 'Vr'), 0.02));
+  it('reads [ProjectInfo] fields', () => {
+    assert.equal(wpr.value('ProjectInfo', 'Creator'), 'winisd_research overnight harness');
+    assert.equal(wpr.value('ProjectInfo', 'CreateDate'), '20260813');
   });
-  it('extracts the [Driver] block as its own .wdr text, readable by OpenISDDriver.fromWdrText', () => {
-    assert.match(raw.driverWdrText, /^\[Driver\]/);
-    assert.match(raw.driverWdrText, /Fs=37\.2/);
+  it('reads the [Driver] block as its own .wdr text, readable by OpenISDDriver.fromWdrText', () => {
+    assert.match(wpr.driverWdrText(), /^\[Driver\]/);
+    assert.match(wpr.driverWdrText(), /Fs=37\.2/);
   });
-});
-
-describe('parseWprRaw — passive-radiator.wpr golden', () => {
-  const raw = WinISDProject.fromWprIni(readFileSync(PASSIVE_RADIATOR, 'utf8')).parsed();
-  it('extracts the raw PassiveRadiator section', () => {
-    assert.equal(raw.bType, 4);
-    assert.ok(raw.passiveRadiator.Sd != null && raw.passiveRadiator.Sd > 0);
-    assert.ok(raw.passiveRadiator.Vas != null && raw.passiveRadiator.Vas > 0);
+  it('returns the file unchanged from toWpr() — reading is not a rewrite', () => {
+    assert.equal(wpr.toWpr(), readFileSync(SEALED_SMALL, 'utf8'));
   });
 });
 
-describe('parseWprRaw — keys the file does not carry are absent, never fabricated', () => {
+describe('fromWprIni — passive-radiator.wpr golden', () => {
+  const wpr = WinISDProject.fromWprIni(readFileSync(PASSIVE_RADIATOR, 'utf8'));
+  it('reads the raw PassiveRadiator section', () => {
+    assert.equal(wpr.number('Box', 'BType'), 4);
+    assert.ok((wpr.number('PassiveRadiator', 'Sd') ?? 0) > 0);
+    assert.ok((wpr.number('PassiveRadiator', 'Vas') ?? 0) > 0);
+  });
+});
+
+describe('fromWprIni — keys the file does not carry are absent, never fabricated', () => {
   it('a key missing from [Box] is undefined, not 0', () => {
-    const text = '[ProjectInfo]\n\n[Driver]\n[Box]\nBType=0\n';
-    const raw = WinISDProject.fromWprIni(text).parsed();
-    assert.equal(raw.box.Vr, undefined);
+    const wpr = WinISDProject.fromWprIni('[ProjectInfo]\n\n[Driver]\n[Box]\nBType=0\n');
+    assert.equal(wpr.number('Box', 'Vr'), undefined);
   });
   it('BType is undefined when [Box] has no BType key', () => {
-    const text = '[ProjectInfo]\n\n[Driver]\n[Box]\nVr=0.02\n';
-    const raw = WinISDProject.fromWprIni(text).parsed();
-    assert.equal(raw.bType, undefined);
+    const wpr = WinISDProject.fromWprIni('[ProjectInfo]\n\n[Driver]\n[Box]\nVr=0.02\n');
+    assert.equal(wpr.number('Box', 'BType'), undefined);
+  });
+});
+
+describe('fromWprIni — every key the file states is kept, known to this class or not', () => {
+  it('a key nothing consumes still reads back — nothing is silently destroyed', () => {
+    const wpr = WinISDProject.fromWprIni('[Box]\nBType=1\ncrosscalc_of_the_future=7\n');
+    assert.equal(wpr.value('Box', 'crosscalc_of_the_future'), '7');
+  });
+  it('vent provenance (crosscalc) survives a read — the key the old reader dropped', () => {
+    const wpr = WinISDProject.fromWprIni('[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=0\n');
+    assert.equal(wpr.number('VentRear', 'crosscalc'), 0);
   });
 });

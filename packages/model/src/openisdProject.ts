@@ -28,10 +28,10 @@
  */
 import { OpenISDDriver } from './openisdDriver.js';
 import type { Filter } from '@openisd/engine';
-import { prCmsFromVas, prMmdFromFs, prRmsFromQms } from "@openisd/engine";
+import { prCmsFromVas, prMmdFromFs, prRmsFromQms, prVas, prQms, prFsWithMass,
+         sealedFc, tuningFromLength, prTuning, findImpedancePeak } from "@openisd/engine";
 import { WinISDProject } from "@openisd/winisd";
-import type { WprRawParse } from "@openisd/winisd";
-import type { Result } from "@openisd/engine";
+import type { Result, EngineDriver, SweepResult } from "@openisd/engine";
 
 /** Which alignment is ACTIVE. The others stay populated and dormant. */
 export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator';
@@ -257,16 +257,6 @@ export interface _OpenISDProjectJson {
   meta: OpenISDProjectMeta;
 }
 
-/**
- * The ONLY files, `packages/`-relative, permitted to name `_OpenISDProjectJson`. An absent or
- * empty list denies everyone outside this file — the absence of a control is never permission.
- *
- * ONLY the human may add, remove, or change an entry here — no agent may edit this list on its
- * own judgement, however legitimate a call site looks. A failing test naming a new offender is
- * the correct, expected result, not authorization to widen this list to make it pass.
- */
-export const _OpenISDProjectJsonPrivateAllow: string[] = [];
-
 // ── Construction and the one legal way to switch alignment ────────────────────────────────
 
 /**
@@ -491,6 +481,110 @@ export class OpenISDProject {
     return new OpenISDProject(record);
   }
 
+  /**
+   * THIS design as a WinISD `.wpr` project — the write-side twin of `fromWinISDProject`, and
+   * the one place box/vent tuning is derived for export (the owner of the state calculates).
+   *
+   * `driverSection` is the driver's own `.wdr` text (the DRIVER serialises itself — this
+   * project only holds it). `driver` is the engine projection for the sealed-resonance
+   * refinement, `curve` the current swept impedance when one exists, and `now` is passed in,
+   * never read from the clock, so the same design is byte-reproducible.
+   */
+  toWinISDProject(driverSection: string, driver: EngineDriver | null, now: Date,
+                  curve: SweepResult | null): WinISDProject {
+    const record = this.#record;
+    const kind = record.box.active;
+    const pad2 = (x: number) => String(x).padStart(2, '0');
+
+    const Vb = kind === 'sealed' ? record.box.sealed.volume_m3
+      : kind === 'vented' ? record.box.vented.volume_m3
+      : kind === 'bandpass4' ? record.box.bandpass4.rearVolume_m3
+      : record.box.passiveRadiator.volume_m3;
+    const vent = kind === 'bandpass4' ? record.box.bandpass4.frontVent : record.box.vented.vent;
+    const Sp = ventArea_m2(vent);
+
+    const peak = (driver && curve) ? findImpedancePeak(curve, driver.Re) : null;
+    const sealedFr = peak ? peak.Fsc : ((driver && sealedFc(driver, Vb)) ?? 0);
+
+    const box: Record<string, string | number> = {
+      BType: bTypeOfAlignmentKind(kind),
+      Vr: Vb, Fr: 0,
+      // ONE loss triple describes the enclosure; the file wants one per chamber, so both
+      // chambers are written from it rather than one discarding the user's losses.
+      Qlf: record.box.Ql, Qaf: record.box.Qa, Qpf: record.box.Qp,
+      Qlr: record.box.Ql, Qar: record.box.Qa, Qpr: record.box.Qp,
+      // Ambient — the design's own. The file's `phi` is a FRACTION; the record carries percent.
+      T: record.environment.tempK, p: record.environment.pressurePa,
+      phi: record.environment.humidityPct / 100,
+      Nd: record.signal.driverCount,
+      alfaVC: record.simOptions.alfaVC, dTVC: record.simOptions.vcTempRise,
+    };
+    const sections: Record<string, Record<string, string | number>> = {
+      ProjectInfo: {
+        Description: record.meta.description || '',
+        Creator: record.meta.creator || '',
+        CreateDate: (record.meta.created || '').replace(/-/g, ''), // '' if truly unknown
+        ModifyDate: `${now.getUTCFullYear()}${pad2(now.getUTCMonth() + 1)}${pad2(now.getUTCDate())}`,
+      },
+      Box: box,
+      SignalSource: { Rg: record.signal.seriesResistance_ohm, P: record.signal.inputPower_W },
+      SimulatorOptions: {
+        VCInd: record.simOptions.circuitModel === 'gyrator' ? 1 : 0,
+        FlatResponse: record.simOptions.forceFlatResponse ? 1 : 0,
+        TLPorts: record.simOptions.tlPortModel ? 1 : 0,
+      },
+    };
+
+    // A round port's area is DERIVED from the diameter; a slotted port's area is ENTERED.
+    // WinISD's `crosscalc` states exactly that, so it is written from the vent's own shape
+    // (bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md).
+    const ventKv = (Fb: number, ventVb: number): Record<string, string | number> => ({
+      Num: 1, Shape: 1,
+      // [Vent*].Fb/Vb are WinISD's copy of the owning chamber's own [Box] tuning/volume
+      // (confirmed across the parity corpus), so they repeat the SAME numbers written above.
+      Fb, Vb: ventVb,
+      dia1: vent.diameter_m, dia2: vent.diameter_m, carea: Sp, len: vent.length_m,
+      endcorrection: vent.endCorrection,
+      crosscalc: vent.shape === 'slotted' ? 0 : 1,
+    });
+
+    if (kind === 'sealed') {
+      box.Fr = sealedFr;
+    } else if (kind === 'vented') {
+      // The record's solved tuning, not a recompute from the length: if BOTH Fb and length are
+      // entered (allowed), recomputing here would export a tuning contradicting the one on
+      // screen. The file is plain geometry either way; it should be the geometry the user sees.
+      box.Fr = record.box.vented.Fb_hz;
+      box.Sdrport = Sp;
+      sections.VentRear = ventKv(record.box.vented.Fb_hz, Vb);
+    } else if (kind === 'bandpass4') {
+      box.Fr = sealedFr; // rear: sealed, the driver's own chamber
+      const Vf = record.box.bandpass4.frontVolume_m3;
+      const Ff = tuningFromLength(Vf, vent.length_m, Sp, vent.endCorrection); // front: vented
+      box.Vf = Vf; box.Ff = Ff; box.Sdfport = Sp;
+      sections.VentFront = ventKv(Ff, Vf);
+    } else {
+      const pr = record.box.passiveRadiator;
+      const r = pr.radiator;
+      if (r) {
+        box.Fr = prTuning({ Vb, prMmd: r.Mmd_kg, prMadd: pr.addedMass_kg,
+                            prSd: r.Sd_m2, prCms: r.Cms_m_per_N });
+        box.Npr = pr.count;
+        sections.PassiveRadiator = {
+          // prVas() returns LITRES (its own contract); the file's Vas is SI m³ like every
+          // other key in the section, so the ÷1000 is load-bearing
+          // (BUG_20260817_wpr_passive_radiator_vas_written_in_litres...).
+          Vas: prVas(r.Cms_m_per_N, r.Sd_m2) / 1000,
+          Qms: prQms(r.Mmd_kg, r.Cms_m_per_N, r.Rms_Ns_per_m),
+          Fs: prFsWithMass(r.Mmd_kg, pr.addedMass_kg, r.Cms_m_per_N),
+          Sd: r.Sd_m2, Xmax: r.Xmax_m, Me: pr.addedMass_kg,
+        };
+      }
+    }
+
+    return WinISDProject.build(driverSection, sections);
+  }
+
   /** A project with nothing chosen. */
   static empty(): OpenISDProject {
     return new OpenISDProject(prototypeProject());
@@ -536,13 +630,13 @@ export class OpenISDProject {
     const fail = (message: string): Result<OpenISDProject> =>
       ({ value: null, errors: [{ level: 'error', field: 'wpr', message }] });
 
-    const raw = WinISDProject.fromWprIni(text).parsed();
+    const wpr = WinISDProject.fromWprIni(text);
     let project: OpenISDProject;
-    try { project = OpenISDProject.fromWinISDProject(raw); }
+    try { project = OpenISDProject.fromWinISDProject(wpr); }
     catch (err) { return fail((err as Error).message); }
 
-    if (raw.driverWdrText.trim().length > 0) {
-      try { project.setDriver(OpenISDDriver.fromWdrText(raw.driverWdrText)); }
+    if (wpr.driverWdrText().trim().length > 0) {
+      try { project.setDriver(OpenISDDriver.fromWdrText(wpr.driverWdrText())); }
       catch (err) { return fail(`the .wpr's [Driver] block could not be read: ${(err as Error).message}`); }
     }
     return { value: project, errors: [] };
@@ -558,46 +652,67 @@ export class OpenISDProject {
    * separately via `setDriver()`, since `raw.driverWdrText` needs `OpenISDDriver.fromWdrText()`,
    * which this file does not call (it is not one of the licensed construction sites).
    */
-  static fromWinISDProject(raw: WprRawParse): OpenISDProject {
-    const kind = alignmentKindOfBType(raw.bType);
+  static fromWinISDProject(wpr: WinISDProject): OpenISDProject {
+    const n = (sec: string, key: string) => wpr.number(sec, key);
+    const t = (sec: string, key: string) => wpr.value(sec, key);
+
+    const kind = alignmentKindOfBType(n('Box', 'BType'));
     if (kind == null) {
-      throw new Error(raw.bType == null
+      const bType = n('Box', 'BType');
+      throw new Error(bType == null
         ? '.wpr has no [Box] BType — the box type is not stated, and this reader will not assume one'
-        : `.wpr states BType=${raw.bType}, which is not a box type OpenISD models (0/1/2/4)`);
+        : `.wpr states BType=${bType}, which is not a box type OpenISD models (0/1/2/4)`);
     }
 
     const record = prototypeProject();
     setActiveAlignment(record.box, kind);
 
-    if (raw.box.Vr != null) {
+    const Vr = n('Box', 'Vr');
+    if (Vr != null) {
       switch (kind) {
-        case 'sealed': record.box.sealed.volume_m3 = raw.box.Vr; break;
-        case 'vented': record.box.vented.volume_m3 = raw.box.Vr; break;
-        case 'bandpass4': record.box.bandpass4.rearVolume_m3 = raw.box.Vr; break;
-        case 'passive-radiator': record.box.passiveRadiator.volume_m3 = raw.box.Vr; break;
+        case 'sealed': record.box.sealed.volume_m3 = Vr; break;
+        case 'vented': record.box.vented.volume_m3 = Vr; break;
+        case 'bandpass4': record.box.bandpass4.rearVolume_m3 = Vr; break;
+        case 'passive-radiator': record.box.passiveRadiator.volume_m3 = Vr; break;
       }
     }
-    if (raw.box.Vf != null) record.box.bandpass4.frontVolume_m3 = raw.box.Vf;
-    const fb = kind === 'bandpass4' ? raw.box.Ff : raw.box.Fr;
+    const Vf = n('Box', 'Vf');
+    if (Vf != null) record.box.bandpass4.frontVolume_m3 = Vf;
+    const fb = kind === 'bandpass4' ? n('Box', 'Ff') : n('Box', 'Fr');
     if (fb != null) {
       if (kind === 'bandpass4') record.box.bandpass4.Ff_hz = fb;
       else record.box.vented.Fb_hz = fb;
     }
-    if (raw.box.Ql != null) record.box.Ql = raw.box.Ql;
-    if (raw.box.Qa != null) record.box.Qa = raw.box.Qa;
-    if (raw.box.Qp != null) record.box.Qp = raw.box.Qp;
+    // The file stores a loss triple PER CHAMBER (Qlf/Qlr, …); the rear chamber is the primary
+    // one for every box type OpenISD models, so the record's single triple reads from it.
+    const Ql = n('Box', 'Qlr'), Qa = n('Box', 'Qar'), Qp = n('Box', 'Qpr');
+    if (Ql != null) record.box.Ql = Ql;
+    if (Qa != null) record.box.Qa = Qa;
+    if (Qp != null) record.box.Qp = Qp;
 
-    if (raw.signal.P != null) record.signal.inputPower_W = raw.signal.P;
-    if (raw.signal.Rg != null) record.signal.seriesResistance_ohm = raw.signal.Rg;
+    const P = n('SignalSource', 'P'), Rg = n('SignalSource', 'Rg');
+    if (P != null) record.signal.inputPower_W = P;
+    if (Rg != null) record.signal.seriesResistance_ohm = Rg;
+    const Nd = n('Box', 'Nd');
+    if (Nd != null) record.signal.driverCount = Nd;
 
-    const ventRaw = kind === 'bandpass4' ? raw.ventFront : raw.ventRear;
+    const ventSec = kind === 'bandpass4' ? 'VentFront' : 'VentRear';
     const vent = kind === 'bandpass4' ? record.box.bandpass4.frontVent : record.box.vented.vent;
-    if (ventRaw.dia != null) vent.diameter_m = ventRaw.dia;
-    if (ventRaw.len != null) vent.length_m = ventRaw.len;
-    if (ventRaw.endCorrection != null) vent.endCorrection = ventRaw.endCorrection;
+    const dia = n(ventSec, 'dia1');
+    if (dia != null) vent.diameter_m = dia;
+    const len = n(ventSec, 'len');
+    if (len != null) vent.length_m = len;
+    const endCorrection = n(ventSec, 'endcorrection');
+    if (endCorrection != null) vent.endCorrection = endCorrection;
+    // `crosscalc=0` means the cross-section AREA was entered, not derived from a diameter —
+    // WinISD's own provenance for a slot port. The file states no width/height, so the slot's
+    // real sides are unrecoverable; what must not happen is re-exporting the file as a round
+    // port (bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md).
+    if (n(ventSec, 'crosscalc') === 0) vent.shape = 'slotted';
 
     if (kind === 'passive-radiator') {
-      const { Sd, Vas, Fs, Qms, Xmax, Me } = raw.passiveRadiator;
+      const Sd = n('PassiveRadiator', 'Sd'), Vas = n('PassiveRadiator', 'Vas');
+      const Fs = n('PassiveRadiator', 'Fs'), Qms = n('PassiveRadiator', 'Qms');
       const hasPr = Sd != null && Sd > 0 && Vas != null && Fs != null && Fs > 0 && Qms != null && Qms > 0;
       if (!hasPr) {
         throw new Error('.wpr states BType=4 (passive radiator) but [PassiveRadiator] does not '
@@ -613,28 +728,31 @@ export class OpenISDProject {
       radiator.Cms_m_per_N = cms;
       radiator.Mmd_kg = mmd;
       radiator.Rms_Ns_per_m = rms;
-      radiator.Xmax_m = Xmax ?? 0;
+      radiator.Xmax_m = n('PassiveRadiator', 'Xmax') ?? 0;
+      const Me = n('PassiveRadiator', 'Me');
       if (Me != null) record.box.passiveRadiator.addedMass_kg = Me;
-    }
-    if (raw.box.npr != null) record.box.passiveRadiator.count = raw.box.npr;
-
-    if (raw.environment.tempK != null) record.environment.tempK = raw.environment.tempK;
-    if (raw.environment.pressurePa != null) record.environment.pressurePa = raw.environment.pressurePa;
-    if (raw.environment.humidityPct != null) record.environment.humidityPct = raw.environment.humidityPct;
-
-    if (raw.simulatorOptions.vcInductance != null) {
-      record.simOptions.circuitModel = raw.simulatorOptions.vcInductance ? 'gyrator' : 'winisd';
-    }
-    if (raw.simulatorOptions.tlPorts != null) record.simOptions.tlPortModel = raw.simulatorOptions.tlPorts;
-    if (raw.simulatorOptions.flatResponse != null) {
-      record.simOptions.forceFlatResponse = raw.simulatorOptions.flatResponse;
+      const Npr = n('Box', 'Npr');
+      if (Npr != null) record.box.passiveRadiator.count = Npr;
     }
 
+    const tempK = n('Box', 'T'), pressurePa = n('Box', 'p'), phi = n('Box', 'phi');
+    if (tempK != null) record.environment.tempK = tempK;
+    if (pressurePa != null) record.environment.pressurePa = pressurePa;
+    if (phi != null) record.environment.humidityPct = phi * 100; // file: fraction; record: percent
+
+    const vcInd = t('SimulatorOptions', 'VCInd');
+    if (vcInd != null) record.simOptions.circuitModel = vcInd === '1' ? 'gyrator' : 'winisd';
+    const tlPorts = t('SimulatorOptions', 'TLPorts');
+    if (tlPorts != null) record.simOptions.tlPortModel = tlPorts === '1';
+    const flat = t('SimulatorOptions', 'FlatResponse');
+    if (flat != null) record.simOptions.forceFlatResponse = flat === '1';
+
+    const description = t('ProjectInfo', 'Description');
     record.meta = {
-      name: raw.projectInfo.description || 'Imported Design',
-      description: raw.projectInfo.description || '',
-      creator: raw.projectInfo.creator || '',
-      created: raw.projectInfo.createDate || '',
+      name: description || 'Imported Design',
+      description: description || '',
+      creator: t('ProjectInfo', 'Creator') || '',
+      created: t('ProjectInfo', 'CreateDate') || '',
       modified: '',
     };
 

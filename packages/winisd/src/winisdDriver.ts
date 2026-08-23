@@ -1,26 +1,22 @@
 /**
- * `WinISDDriver` — the single class that knows the `.wdr` FILE FORMAT
- * (ARCHITECTURE.md §3 "`WinISDDriver` is solely a serialisation device"). It validates,
- * holds no live state, derives nothing itself, and names no other package. Callers reach IN;
- * this class never reaches out, and knows nothing of whatever domain model produced the values
- * it is handed.
+ * One WinISD `.wdr` driver file — the in/out object for the format, exactly as `WinISDProject`
+ * is for `.wpr`. Build one from values, or read one from file text; either way you hold the
+ * same thing and can ask it for its text or for any field it carries.
  *
- * Two directions, both driven from OUTSIDE this class:
+ * A `.wdr` is INI text: a `[Driver]` header, seven free-text lines (Brand … DateModified),
+ * 48 numeric `key=value` rows in a fixed order, and a 49-character `ParState` row marking each
+ * field E (a person or datasheet stated it), C (WinISD computed it) or N (not in play).
  *
- *  - EXPORT — a caller reads its own model's getters and feeds them to `build()`.
- *  - IMPORT — `fromWdrIni`. `.wdr` text populates a `WinISDDriver` with exactly what the file
- *    states — no derivation, no recompute.
+ * This class does no physics and no unit conversion. `build()` takes every field the caller
+ * can answer for, keyed by WinISD's own spelling (`Fs`, `BL`, `Znom`, …) — the caller has
+ * already computed the numbers. The 48-key order, WinISD's defaults, the ParState row and the
+ * `[DQ]`-suffixed `Comment=` line all live here once, not once per producer — which is what
+ * fixed `bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md`.
  *
- * `build()` is the low-level constructor: any producer that already knows a field's WDR key,
- * value and E/C/N state (the classic `Driver` ADT included — see `driver.ts`) hands over a
- * `WdrCells` map and gets the format for free — the 48-key order and WinISD's own defaults,
- * the 49-slot ParState, and the `[DQ]`-suffixed `Comment=` line all live HERE ONCE, not once
- * per producer. That consolidation is what fixes
- * `bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md`:
- * every producer marks a slot from its OWN per-field state for every slot WinISD tracks, not
- * a hardcoded 15-field subset.
+ * Reading keeps EVERY key the file states: known keys become cells with their ParState mark,
+ * and a key this class does not know is carried through untouched and written back by
+ * `toWdr()` — a foreign key cannot be silently destroyed on a round trip.
  */
-
 import { PARSTATE_LEN, POS_TO_WDRKEY } from './parstate.js';
 import { WINISD_NEWLINE_SENTINEL } from './winisdBytes.js';
 import type { CellState } from './parstate.js';
@@ -94,11 +90,15 @@ export class WinISDDriver {
   readonly #cells: WdrCells;
 
   readonly #dqLines: readonly string[];
+  /** Keys the file stated that this class does not know — carried through, never dropped. */
+  readonly #extras: ReadonlyMap<string, string>;
 
-  private constructor(header: WdrHeader, cells: WdrCells, dqLines: readonly string[]) {
+  private constructor(header: WdrHeader, cells: WdrCells, dqLines: readonly string[],
+                      extras: ReadonlyMap<string, string> = new Map()) {
     this.#header = header;
     this.#cells = cells;
     this.#dqLines = dqLines;
+    this.#extras = extras;
     // The production caller of `build()` supplies every `INI_ROWS` key via its own fill-loop,
     // so a key missing here can only mean the caller and this class have drifted out of sync
     // about the .wdr key set — a real incompatibility bug (`wdr-model-coverage.test.ts`
@@ -166,7 +166,17 @@ export class WinISDDriver {
       providedBy: raw.ProvidedBy, comment: raw.Comment, dateAdded: raw.DateAdded,
       dateModified: raw.DateModified,
     };
-    return new WinISDDriver(header, cells, []);
+
+    // Every key the file stated and nothing above consumed is kept and written back by
+    // `toWdr()` — reading a file must never silently destroy a field, whether or not this
+    // class knows what the field means.
+    const HEADER_KEYS = new Set(['Brand', 'Model', 'Manufacturer', 'ProvidedBy', 'Comment',
+      'DateAdded', 'DateModified']);
+    const extras = new Map<string, string>();
+    for (const [key, value] of Object.entries(raw)) {
+      if (!cells.has(key) && !HEADER_KEYS.has(key)) extras.set(key, value);
+    }
+    return new WinISDDriver(header, cells, [], extras);
   }
 
   // ── Serialise ──────────────────────────────────────────────────────────────────────
@@ -195,6 +205,7 @@ export class WinISDDriver {
     }
     // No `Xlim=` line: WinISD writes none, and `.wdr` has no extension mechanism to add one
     // (XLIM_PARSTATE_SLOT). Xlim crosses as its slot-10 mark and nothing else.
+    for (const [key, value] of this.#extras) lines.push(`${key}=${value}`);
     lines.push('ParState=' + this.#parState());
     lines.push('');
     // CRLF, because `.wdr` is a Windows INI and every file WinISD writes uses it. LF would
