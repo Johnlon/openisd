@@ -14,6 +14,7 @@
  * correct value as "~0.358", i.e. Qes·Qms/(Qes+Qms) = 0.38·6.2/(0.38+6.2) = 0.3580547...
  */
 import { describe, it } from 'vitest';
+import { diffWdrValues } from './wdrDiff.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -76,7 +77,7 @@ describe('WinISDDriver.diffAgainst — a WinISD-stored C value that disagrees wi
     const { value: derivedWdr, errors } = driver.toWinISDDriver();
     assert.ok(derivedWdr, `projection failed: ${JSON.stringify(errors)}`);
 
-    const mismatches = sourceWdr.diffAgainst(derivedWdr!);
+    const mismatches = diffWdrValues(sourceWdr, derivedWdr!);
     const qtsMismatch = mismatches.find(m => m.field === 'Qts');
     assert.ok(qtsMismatch, 'expected a Qts mismatch between the stored C value and the fresh derivation');
     assert.equal(qtsMismatch!.level, 'warn');

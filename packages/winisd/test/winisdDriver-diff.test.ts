@@ -8,6 +8,7 @@
  * Seam under test: `WinISDDriver.fromWdrIni(text).diffAgainst(WinISDDriver.fromOpenISDDriver(driver))`.
  */
 import { describe, it } from 'vitest';
+import { diffWdrValues } from './wdrDiff.js';
 import assert from 'node:assert/strict';
 import { parse } from 'yaml';
 import { WinISDDriver } from '../src/winisdDriver.js';
@@ -44,7 +45,7 @@ describe('WinISDDriver.diffAgainst — as-read values vs the independently-deriv
   it('reports no mismatch when the .wdr states exactly what the record derives', () => {
     const derived = recordDriver();
     const asRead = WinISDDriver.fromWdrIni(derived.toWdr());
-    const mismatches = asRead.diffAgainst(derived);
+    const mismatches = diffWdrValues(asRead, derived);
     assert.deepEqual(mismatches, []);
   });
 
@@ -55,7 +56,7 @@ describe('WinISDDriver.diffAgainst — as-read values vs the independently-deriv
     const asRead = WinISDDriver.fromWdrIni(edited);
 
     // The mismatch is REPORTED, not silently applied — diffAgainst never mutates either side.
-    const mismatches = asRead.diffAgainst(derived);
+    const mismatches = diffWdrValues(asRead, derived);
     assert.equal(mismatches.length, 1);
     assert.equal(mismatches[0].field, 'Fs');
     assert.match(mismatches[0].message, /41\.5/);
@@ -72,7 +73,7 @@ describe('WinISDDriver.diffAgainst — as-read values vs the independently-deriv
     // must not be treated as an asserted "0" that then falsely disagrees with anything.
     const asRead = WinISDDriver.fromWdrIni(derived.toWdr());
     assert.equal(asRead.cell('Le').state, 'N');
-    const mismatches = asRead.diffAgainst(derived);
+    const mismatches = diffWdrValues(asRead, derived);
     assert.equal(mismatches.some(m => m.field === 'Le'), false);
   });
 });

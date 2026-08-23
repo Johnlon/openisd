@@ -9,9 +9,7 @@
  *
  *  - EXPORT — a caller reads its own model's getters and feeds them to `build()`.
  *  - IMPORT — `fromWdrIni`. `.wdr` text populates a `WinISDDriver` with exactly what the file
- *    states — no derivation, no recompute. `diffAgainst` compares those as-read values
- *    against a second, independently-derived `WinISDDriver`, surfacing a mismatch as a
- *    data-quality signal instead of silently overwriting.
+ *    states — no derivation, no recompute.
  *
  * `build()` is the low-level constructor: any producer that already knows a field's WDR key,
  * value and E/C/N state (the classic `Driver` ADT included — see `driver.ts`) hands over a
@@ -22,7 +20,7 @@
  * every producer marks a slot from its OWN per-field state for every slot WinISD tracks, not
  * a hardcoded 15-field subset.
  */
-import type { DriverError } from '@openisd/engine';
+
 import { PARSTATE_LEN, POS_TO_WDRKEY } from './parstate.js';
 import { WINISD_NEWLINE_SENTINEL } from './winisdBytes.js';
 import type { CellState } from './parstate.js';
@@ -66,15 +64,6 @@ export interface WdrHeader {
  */
 const XLIM_PARSTATE_SLOT = 10;
 
-/**
- * `diffAgainst`'s default tolerance band — the same 1e-9 relative / 1e-12 absolute pair
- * `winisd-parity.test.ts` uses everywhere else in this codebase for two independent
- * implementations of one formula (that file's own `REL_TOL`/`ABS_TOL` comment gives the
- * five-order-wide band this sits in the middle of: float noise on one side, a real formula
- * difference on the other).
- */
-const DIFF_REL_TOL = 1e-9;
-const DIFF_ABS_FLOOR = 1e-12;
 
 /**
  * The 48 numeric/text `.wdr` keys in WinISD's OWN file order, each with the value WinISD
@@ -133,7 +122,7 @@ export class WinISDDriver {
    * Parse a `.wdr`'s `[Driver]` section into a `WinISDDriver` holding exactly what the file
    * states — the raw text of every key, and its E/C/N mark taken directly from the source
    * ParState (or, for a file with none, presence ⇒ E, matching a scraper-authored file with
-   * no ParState line). This performs NO derivation — pairs with `diffAgainst` for that.
+   * no ParState line). This performs NO derivation.
    */
   static fromWdrIni(text: string): WinISDDriver {
     const raw: Record<string, string> = {};
@@ -231,39 +220,6 @@ export class WinISDDriver {
    *  should surface, not silently swallow — `toWdr()` still exports (writing `0` for each), it does not throw. */
   missingKeys(): readonly string[] {
     return this.#missingKeys;
-  }
-
-  // ── Import diffs, never overwrites (ARCHITECTURE.md §3) ───────────────────────────────
-
-  /**
-   * Compare THIS (as-read) instance's `E` (stated) AND `C` (WinISD's own calculated) values
-   * against `other`'s own value for the same key — `other` is the independently-derived
-   * side, built by whoever owns the projection into this format. A mismatch
-   * beyond the file's own float precision is reported, never silently overwritten. A key
-   * this instance marked `N` (never in play) is not compared — there is nothing "as-read" to
-   * check it against. Comparing `C` cells too, not just `E`, is what catches the case
-   * ARCHITECTURE.md §3 names: a value WinISD itself computed and stored, that no longer
-   * agrees with a fresh derivation from the same `E`-marked inputs (stale save, or the two
-   * solvers disagree) — see
-   * `bugs/BUG_20260813_wdr-spl-is-discarded-on-import-and-openisd-substitutes-its-own-computed-sensitivity.md`
-   * for the sibling defect this same principle already guards against on the `E` side.
-   */
-  diffAgainst(other: WinISDDriver, relTol: number = DIFF_REL_TOL): DriverError[] {
-    const out: DriverError[] = [];
-    for (const [key, cell] of this.#cells) {
-      if (cell.state === 'N') continue;
-      const a = Number(cell.value);
-      if (!isFinite(a)) continue;   // text fields (brand/model/…) are not this comparison's job
-      const otherCell = other.cell(key);
-      const b = Number(otherCell.value);
-      if (!isFinite(b)) continue;
-      const tol = Math.max(DIFF_ABS_FLOOR, relTol * Math.max(Math.abs(a), Math.abs(b)));
-      if (Math.abs(a - b) > tol) {
-        out.push({ level: 'warn', field: key,
-          message: `${key}: the file states ${a}, but the record independently derives ${b} — value hand-edited outside openisd, or the record is stale` });
-      }
-    }
-    return out;
   }
 
   readonly #missingKeys: readonly string[];
