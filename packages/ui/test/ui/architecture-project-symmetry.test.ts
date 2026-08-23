@@ -1,0 +1,146 @@
+/**
+ * Lane P's symmetry gate (docs/design/PROJECT_DOMAIN_SYMMETRY.md P5).
+ *
+ * Two invariants, both matched on the AST, never on prose:
+ *
+ * 1. `openisdProject.ts` exports NO free functions. A question about a project's state is a
+ *    method on the object that owns it — a new exported function is the getter problem coming
+ *    back under a different spelling. ONE sunset exemption: the `prCmsFromWinIsdVas` trio,
+ *    whose only consumer (`prWinIsdFields.ts`) is P4's held restructure; the trio and this
+ *    exemption are deleted together with P4.
+ *
+ * 2. No UI code outside `managedProject.ts` touches the entered set (`target.entered`,
+ *    `isEntered(`, `setEntered(`). Without entered-state access no UI code CAN derive a
+ *    field's provenance on its own, so every E/C/N the UI shows necessarily resolves through
+ *    `projectCell()` — the enforceable shape of "the UI binds through cell()".
+ */
+import { describe, it, vi } from 'vitest';
+import assert from 'node:assert/strict';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join, relative } from 'node:path';
+import { Project as TsProject, Node, type SourceFile } from 'ts-morph';
+
+vi.setConfig({ testTimeout: 60_000 });
+
+const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const REPO_ROOT = join(UI_PKG, '..', '..');
+const OPENISD_PROJECT_TS = join(REPO_ROOT, 'packages', 'model', 'src', 'openisdProject.ts');
+
+/** Dies with P4: prWinIsdFields.ts (the only consumer) is P4's held restructure. An exemption
+ *  with a death date — delete these rows and the trio in the same commit as P4. */
+const SUNSET_P4 = ['prCmsFromWinIsdVas', 'prMmdFromWinIsdFs', 'prRmsFromWinIsdQms'];
+
+const project = new TsProject({
+  tsConfigFilePath: join(UI_PKG, 'tsconfig.json'),
+  skipAddingFilesFromTsConfig: true,
+});
+
+/** Exported free-function names in a source file — declarations and exported consts whose
+ *  initialiser is a function. */
+function exportedFreeFunctions(source: SourceFile): string[] {
+  const names: string[] = [];
+  for (const fn of source.getFunctions()) {
+    if (fn.isExported() && fn.getName()) names.push(fn.getName()!);
+  }
+  for (const v of source.getVariableStatements()) {
+    if (!v.isExported()) continue;
+    for (const d of v.getDeclarations()) {
+      const init = d.getInitializer();
+      if (init && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) {
+        names.push(d.getName());
+      }
+    }
+  }
+  return names.sort();
+}
+
+/** Entered-state touches in a source file: `target.entered` property chains and
+ *  `isEntered(`/`setEntered(` call names. */
+function enteredStateTouches(source: SourceFile): string[] {
+  const hits: string[] = [];
+  for (const node of source.getDescendants()) {
+    if (Node.isPropertyAccessExpression(node) && node.getName() === 'entered') {
+      const target = node.getExpression();
+      if (Node.isPropertyAccessExpression(target) && target.getName() === 'target') {
+        hits.push(`${node.getStartLineNumber()}: ${node.getText().slice(0, 60)}`);
+      }
+    }
+    if (Node.isCallExpression(node)) {
+      const callee = node.getExpression();
+      if (Node.isPropertyAccessExpression(callee)
+        && (callee.getName() === 'isEntered' || callee.getName() === 'setEntered')) {
+        hits.push(`${node.getStartLineNumber()}: ${node.getText().slice(0, 60)}`);
+      }
+    }
+  }
+  return hits;
+}
+
+describe('project symmetry — the gate can fail (non-vacuous demonstrations)', () => {
+  it('flags an exported free function and passes a method', () => {
+    const demo = new TsProject({ useInMemoryFileSystem: true });
+    const bad = demo.createSourceFile('/a.ts',
+      'export function boxVolume(box: object): number { return 0; }\n'
+      + 'export const readIt = (b: object): number => 1;\n'
+      + 'export class C { volume(): number { return 0; } }\n');
+    assert.deepEqual(exportedFreeFunctions(bad), ['boxVolume', 'readIt']);
+    const good = demo.createSourceFile('/b.ts', 'export class C { volume(): number { return 0; } }\n');
+    assert.deepEqual(exportedFreeFunctions(good), []);
+  });
+
+  it('flags an entered-state touch and passes a projectCell read', () => {
+    const demo = new TsProject({ useInMemoryFileSystem: true });
+    const bad = demo.createSourceFile('/a.ts',
+      'declare const p: { target: { entered: Record<string, true> } };\n'
+      + 'declare const mp: { isEntered(f: string): boolean };\n'
+      + 'export const x = p.target.entered["Fb"];\n'
+      + 'export const y = mp.isEntered("Fb");\n');
+    assert.equal(enteredStateTouches(bad).length, 2);
+    const good = demo.createSourceFile('/b.ts',
+      'declare const mp: { projectCell(f: string): { state: string } };\n'
+      + 'export const s = mp.projectCell("Fb").state;\n');
+    assert.deepEqual(enteredStateTouches(good), []);
+  });
+});
+
+describe('project symmetry — the invariants hold (Lane P5)', () => {
+  it('openisdProject.ts exports no free functions beyond the P4-sunset trio', () => {
+    const source = project.addSourceFileAtPath(OPENISD_PROJECT_TS);
+    const offenders = exportedFreeFunctions(source).filter(n => !SUNSET_P4.includes(n));
+    assert.deepEqual(offenders, [],
+      'A question about a project\'s state is a METHOD on OpenISDProject (or its alignment '
+      + 'surface), never a free function operating on the record from outside — that is the '
+      + 'retired getter coming back under another spelling. Move the logic onto the class.');
+    // and the sunset list itself must not silently outlive its consumer
+    const stillExported = exportedFreeFunctions(source).filter(n => SUNSET_P4.includes(n));
+    assert.deepEqual(stillExported, SUNSET_P4,
+      'The sunset trio changed: if prWinIsdFields.ts (P4) is gone, delete the trio AND the '
+      + 'SUNSET_P4 rows of this gate in that same commit.');
+  });
+
+  it('no UI code outside managedProject.ts touches the entered set', () => {
+    const SRC = join(UI_PKG, 'src');
+    const offences: string[] = [];
+    const walk = (dir: string): void => {
+      for (const name of readdirSync(dir)) {
+        const full = join(dir, name);
+        if (statSync(full).isDirectory()) { walk(full); continue; }
+        if (!name.endsWith('.ts') && !name.endsWith('.vue')) continue;
+        if (full.endsWith('logic/managedProject.ts')) continue; // the ONE licensed home
+        const raw = readFileSync(full, 'utf8');
+        const text = name.endsWith('.vue')
+          ? (/<script[^>]*>([\s\S]*?)<\/script>/.exec(raw)?.[1] ?? '') : raw;
+        const sf = project.createSourceFile(`${full}.gate.ts`, text, { overwrite: true });
+        for (const hit of enteredStateTouches(sf)) {
+          offences.push(`${relative(REPO_ROOT, full)}:${hit}`);
+        }
+      }
+    };
+    if (existsSync(SRC)) walk(SRC);
+    assert.deepEqual(offences, [],
+      'Provenance is the domain object\'s answer. UI code reading or writing the entered set '
+      + 'is deriving E/C/N on its own — route through projectCell()/enterProjectField()/'
+      + 'clearProjectField() instead.');
+  });
+});

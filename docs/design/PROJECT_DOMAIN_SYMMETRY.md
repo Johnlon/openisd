@@ -157,5 +157,10 @@ everything reaches the record through the class.
       accordingly (deletions only, no new grants).
 - [ ] P4 — UI seam shrink: managedProject delegations, useVentGroup/usePrGroup reduced to UI
       concerns, prWinIsdFields deleted.
-- [ ] P5 — symmetry gate: a test asserting `openisdProject.ts` exports no free functions and
-      that every project field the UI binds resolves through `cell()` (AST, not grep).
+- [x] P5 — symmetry gate landed: `packages/ui/test/ui/architecture-project-symmetry.test.ts`
+      asserts (AST, not grep) that `openisdProject.ts` exports no free functions — the
+      `prCmsFromWinIsdVas` trio carries a SUNSET exemption that dies with P4 — and that no UI
+      code outside `managedProject.ts` touches the entered set, which is the enforceable shape
+      of "every E/C/N the UI shows resolves through `projectCell()`". Non-vacuous both ways:
+      in-file in-memory demonstrations, plus red verified live against a re-exported free
+      function during authoring.
