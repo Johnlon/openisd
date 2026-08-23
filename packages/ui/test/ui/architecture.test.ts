@@ -933,22 +933,34 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
 
   it('every cross-layer import matches a ruled-legal edge', () => {
     const offences: string[] = [];
+    let edgesObserved = 0;
     for (const f of ALL_SRC_FILES) {
       const fromLayer = fileLayer(f);
       if (fromLayer === 'ui/entrypoint' || fromLayer === 'ui/test') continue; // composition root / tests: exempt
       for (const s of importsOf(f)) {
         const toLayer = specLayer(f, s);
         if (!toLayer || toLayer === fromLayer) continue; // unresolved (npm package) or same-layer composition
+        edgesObserved++;
         const edge = `${fromLayer}->${toLayer}`;
         if (!ALLOWED_EDGES.has(edge)) offences.push(`${edge}: ${rel(f)} imports ${s}`);
       }
     }
+    assert.ok(edgesObserved > 0, 'no cross-layer edges observed — the gate would pass vacuously');
     assert.deepEqual(offences, [],
       'This edge is not on the ruled legality matrix (QO80, 2026-08-23). Either it is a genuine ' +
       'new layering violation (fix the dependency direction or relocate the export, as with the ' +
       'DriverType move), or it is a new legitimate edge that needs the human\'s ruling added to ' +
       'ALLOWED_EDGES above — an agent may not widen ALLOWED_EDGES on its own authority, same as ' +
       'the retired ALLOWED_GLOBALS rule.');
+  });
+
+  it('the gate can fail (non-vacuous demonstration): the matrix distinguishes a ruled-legal edge from an unruled one', () => {
+    // This detector is a Set-membership check, not an AST pattern-matcher (unlike the export *
+    // ratchet above) — the honest demonstration is that the Set itself separates a known-legal
+    // edge from a known-unruled one, proving ALLOWED_EDGES is not vacuously permissive.
+    assert.equal(ALLOWED_EDGES.has('ui/logic->model'), true, 'a real ruled-legal edge must be recognised');
+    assert.equal(ALLOWED_EDGES.has('ui/components->winisd'), false,
+      'an edge nobody ruled legal must be absent from the matrix, proving it is not vacuously permissive');
   });
 });
 
@@ -1009,27 +1021,54 @@ const EXPORT_STAR_BASELINE: Record<string, Record<string, string[]>> = {
 };
 /** Every bare `export * from '...'` in a file — no named bindings, no namespace alias — with
  *  the target module's own current top-level exported names (one level, matching exactly what
- *  `export *` re-exports from that specifier). */
-function starSitesIn(file: string): { spec: string; names: string[] }[] {
-  const source = sourceFileOf(file);
-  const sites: { spec: string; names: string[] }[] = [];
+ *  `export *` re-exports from that specifier). `unresolved` is true when the specifier could
+ *  not be resolved to a source file (a moved file, stale project state) — the caller must treat
+ *  that as a FAILURE, never as "this site re-exports nothing": an unresolvable target is a gap
+ *  in what the gate can see, not evidence the site is empty or compliant. */
+function starSitesIn(source: SourceFile): { spec: string; names: string[]; unresolved: boolean }[] {
+  const sites: { spec: string; names: string[]; unresolved: boolean }[] = [];
   for (const exp of source.getExportDeclarations()) {
     if (exp.getNamedExports().length > 0 || exp.getNamespaceExport()) continue;
     const spec = exp.getModuleSpecifierValue();
     if (!spec) continue; // `export *` always has a `from` clause; this is unreachable in practice
     const target = exp.getModuleSpecifierSourceFile();
-    sites.push({ spec, names: target ? [...target.getExportedDeclarations().keys()].sort() : [] });
+    sites.push({ spec, names: target ? [...target.getExportedDeclarations().keys()].sort() : [], unresolved: !target });
   }
   return sites;
 }
 
+describe('export * ratchet — the gate can fail (non-vacuous demonstration)', () => {
+  it('reports resolved names, detects baseline growth, and flags an unresolved target as a failure', () => {
+    const demo = new TsProject({ useInMemoryFileSystem: true });
+    demo.createSourceFile('/target.ts', 'export const a = 1;\nexport const b = 2;\n');
+    const barrel = demo.createSourceFile('/barrel.ts', "export * from './target';\n");
+    const [resolved] = starSitesIn(barrel);
+    assert.equal(resolved.unresolved, false);
+    assert.deepEqual(resolved.names, ['a', 'b']);
+    // Growth beyond a baseline of only 'a' — the same comparison the real gate makes below.
+    assert.deepEqual(resolved.names.filter(n => !['a'].includes(n)), ['b']);
+
+    const dangling = demo.createSourceFile('/dangling.ts', "export * from './nowhere';\n");
+    const [missing] = starSitesIn(dangling);
+    assert.equal(missing.unresolved, true,
+      'an unresolvable star target must be flagged, never silently treated as an empty export list');
+  });
+});
+
 describe('export * is banned outright — QO86 ratchet (baseline now, zero eventually)', () => {
   it('no export * site outside the recorded baseline, and no baselined site has grown', () => {
     const offences: string[] = [];
+    let starSitesObserved = 0;
     for (const f of ALL_SRC_FILES) {
       const key = relative(REPO_ROOT, f).replace(/\\/g, '/');
       const baseline = EXPORT_STAR_BASELINE[key];
-      for (const { spec, names } of starSitesIn(f)) {
+      for (const { spec, names, unresolved } of starSitesIn(sourceFileOf(f))) {
+        starSitesObserved++;
+        if (unresolved) {
+          offences.push(`${key}: export * from '${spec}' did not resolve to a source file — cannot ` +
+            'verify what it re-exports, so this counts as a violation, not a pass');
+          continue;
+        }
         const baselineNames = baseline?.[spec];
         if (!baselineNames) {
           offences.push(`${key}: NEW export * from '${spec}' — not on the QO86 baseline; convert to named exports`);
@@ -1041,6 +1080,8 @@ describe('export * is banned outright — QO86 ratchet (baseline now, zero event
         }
       }
     }
+    assert.ok(starSitesObserved >= Object.values(EXPORT_STAR_BASELINE).flatMap(Object.keys).length,
+      'the scan found fewer export * sites than the baseline records — the gate would pass vacuously');
     assert.deepEqual(offences, [],
       'export * is banned outright (QO86, John: "export * is a serious violation of control and ' +
       'arch"). A barrel lists its exports by name, selectively, intentionally. New wildcards are ' +

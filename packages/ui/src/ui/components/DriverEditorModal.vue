@@ -130,11 +130,9 @@ const driverRaw = computed(() => {
 });
 
 const editorModelValue = computed(() => {
-  const r = driverRaw.value as Record<string, unknown> | null | undefined;
-  if (!r) return '';
-  const sku = r.sku;
-  if (sku) return String(sku).toUpperCase();
-  return (r.model as string) || '';
+  const r = driverRaw.value;
+  if (r.sku) return r.sku.toUpperCase();
+  return String(r.model ?? '');
 });
 
 /** The template's own names for the metadata fields → the record's. `providedBy` is the only

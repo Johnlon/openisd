@@ -2,10 +2,9 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { state, managedProject, allIssues, syncedP, curvesData, maxData } from '../../logic/appState.js';
 import { presentationState } from '../../logic/presentationState.js';
-import { TAB_META, buildPlotData } from '../../logic/series.js';
+import { TAB_META, buildPlotData, DPAL, rangeStatsOf } from '../../logic/series.js';
 import type { ChartTabId } from '../../types.js';
 import { drawOne } from '../canvas.js';
-import { DPAL } from '../presets.js';
 import type { Geo, Design } from '../../types.js';
 
 // `bare`/`primaryColor` are the WinISD chart mode: a clean single trace with no
@@ -126,18 +125,7 @@ function freqAt(clientX: number): number | null {
 
 function rangeStats(fLo: number, fHi: number) {
   const s = plotData.value?.series?.find(s => !s.dash && !s.phantom);
-  if (!s) return null;
-  let peakY = -Infinity, peakF = null, troughY = Infinity, sum = 0, n = 0;
-  for (let i = 0; i < s.xs.length; i++) {
-    if (s.xs[i] < fLo || s.xs[i] > fHi) continue;
-    const y = s.ys[i];
-    if (!isFinite(y)) continue;
-    if (y > peakY) { peakY = y; peakF = s.xs[i]; }
-    if (y < troughY) troughY = y;
-    sum += y; n++;
-  }
-  if (!n) return null;
-  return { peak: peakY, peakF, trough: troughY, ripple: peakY - troughY, avg: sum / n };
+  return s ? rangeStatsOf(s, fLo, fHi) : null;
 }
 
 // Per-panel view of the shared frequency selection — stats come from this panel's series

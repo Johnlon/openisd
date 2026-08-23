@@ -21,7 +21,7 @@ import { ManagedOpenISDProject, toAlignmentKind, fromAlignmentKind } from './man
 import type { AppState, UiParams, SyncedParams, SerializedState } from '../types.js';
 import { presentationState, unitToken } from './presentationState.js';
 import { parseChartTabId } from './series.js';
-import { toDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
+import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
 import { getOrInit } from './hmrSingleton.js';
 import { createLiveRef } from './liveProject.js';
 import {
@@ -58,23 +58,6 @@ import { solvePrGroup } from './usePrGroup.js';
  * never leave.
  */
 
-/**
- * Human ruling (QO52, closed 2026-08-18): the ONLY module-level globals this file — or any
- * module — may export are `openProjects()` and `focusedProject()`. Enforced by
- * `packages/ui/test/ui/architecture.test.ts` ("module-level globals — only openProjects()/
- * focusedProject() are legal"). ONLY the human may add, remove, or edit an entry here — no
- * agent may widen this list on its own judgement to make a red test pass. A failing test
- * naming a new offender is the correct, expected result until the full migration
- * (REVIEW.md) lands; report the offender and wait for the human's ruling instead.
- *
- * Deliberately seeded with ONLY the permitted names — this list is expected to be far
- * shorter than this file's actual export surface until the migration in REVIEW.md is done.
- * `focusProject`/`removeProject`/`addProject` added 2026-08-18 by explicit human instruction
- * (the write side of the registry — openProjects()/focusedProject() alone are read-only).
- */
-export const ALLOWED_GLOBALS = [
-  'openProjects', 'focusedProject', 'focusProject', 'removeProject', 'addProject',
-];
 export const managedProject: ManagedOpenISDProject = getOrInit('appState', '_managed', () => {
   return ManagedOpenISDProject.createEmpty();
 });
@@ -380,17 +363,34 @@ export function resetProjectToGround(): void {
     Object.assign(state.project, g.project);
   }
 }
+/** The New Project wizard's starting choices — name, box type, and its starting volume(s) in
+ *  LITRES (the wizard's own display unit; converted to SI here, the one place that owns the
+ *  litres↔m³ factor, rather than the wizard hand-rolling `/1000`). `frontVolumeL` only applies
+ *  to a dual-chamber box (bandpass4). */
+export interface NewProjectSpec {
+  name: string;
+  box: BoxType;
+  volumeL: number;
+  frontVolumeL?: number;
+}
+
 /** Start a brand-new project from the app's initial defaults — NOT the ground state. Clears
  *  the whole design (params incl. filters, compare traces, per-chart zoom, driver source) so
  *  a "new" project never inherits the previous one, then adopts the fresh design as ground.
- *  Callers (the New Project wizard) apply the chosen box type + volume on top afterwards.
+ *  `spec`, when given, is the New Project wizard's chosen name/box/volume, applied atomically
+ *  as part of the same reset — the wizard has nothing left to write onto `state` by hand.
  *  `managedProject.loadEmpty()` already resets box/vent/PR/environment/signal/simOptions/
  *  sweep/filters/entered to the app's initial defaults — there is
  *  nothing left for this function to reset on the params side. */
-export function newProject(): void {
+export function newProject(spec?: NewProjectSpec): void {
   presentationState.yRanges = {};
-  state.project = { name: '', creator: '', created: '', modified: '', description: '' }; // blank meta
+  state.project = { name: spec?.name ?? '', creator: '', created: '', modified: '', description: '' }; // blank meta
   managedProject.loadEmpty();                                // no driver chosen — the user picks one
+  if (spec) {
+    state.box = spec.box;
+    managedProject.setBoxVolume_m3(fromDisplay(spec.volumeL, 'volume', 'L'));
+    if (spec.frontVolumeL != null) managedProject.setFrontVolume_m3(fromDisplay(spec.frontVolumeL, 'volume', 'L'));
+  }
   markProjectSaved();                                       // the fresh design is the new clean ground
 }
 

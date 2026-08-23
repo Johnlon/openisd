@@ -23,6 +23,11 @@ export function driveVoltageFor(inputPowerW: number, reOhm: number): number {
     return engineDriveVoltage(inputPowerW, reOhm);
 }
 
+/** Fallback DC resistance for the drive-voltage readout when no driver is chosen yet (so
+ *  `EngineDriver.Re` is unavailable) — the nominal impedance of a typical driver, standing in
+ *  only until a real one is picked. */
+export const DEFAULT_RE_OHM = 8;
+
 /** Speed of sound / air density at the reference environment (`T_REF_K`/`RH_REF_PCT`/
  *  `P_REF_PA`), computed live — no constant exists, in WinISD or here
  *  (`docs/design/WINISD_SCHEMA.md` §12). Functions, not values, so the driver editor's

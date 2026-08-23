@@ -14,6 +14,7 @@ import { enterDriverField, clearDriverField, managedProject } from '../../../log
 import { presentationState } from '../../../logic/presentationState.js';
 import { createLiveRef } from '../../../logic/liveProject.js';
 import { ebpOf } from '../../../logic/environment.js';
+import { toDisplay, fromDisplay, type UnitGroup } from '../../../logic/fields/units.js';
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
 import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
@@ -24,30 +25,33 @@ const { live } = createLiveRef(managedProject);
 // The record's own field names (`BL`, not the engine's `Bl`) — these index OpenISDDriver
 // directly, so they are its field names and nothing else's.
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe' | 'BL' | 'Mms';
-// scale = display/SI factor (raw driver values are SI: Vas m³, Sd m², Le H, Xmax m, Mms kg).
+// Raw driver values are SI (Vas m³, Sd m², Le H, Xmax m, Mms kg); a field with a `group`/
+// `token` displays and accepts input via the one units.ts conversion (`display = SI × factor`);
+// a field with neither is already shown in its SI unit (Hz, Ω, W, T·m, dimensionless Q).
 // Decimal places come from the field registry (fieldDp) — the single source of truth — so
-// The units here MUST match the registry's unit.
-const MAIN: { key: NumKey; label: string; scale: number; unit: string }[] = [
-  { key: 'Fs',  label: 'Fs',  scale: 1,    unit: 'Hz' },
-  { key: 'Qts', label: 'Qts', scale: 1,    unit: '' },
-  { key: 'Qes', label: 'Qes', scale: 1,    unit: '' },
-  { key: 'Qms', label: 'Qms', scale: 1,    unit: '' },
-  { key: 'Vas', label: 'Vas', scale: 1000, unit: 'l' },
-  { key: 'Sd',  label: 'Sd',  scale: 1e4,  unit: 'cm²' },
-  { key: 'Re',  label: 'Re',  scale: 1,    unit: 'Ω' },
+// the units here MUST match the registry's unit.
+interface TuneField { key: NumKey; label: string; group?: UnitGroup; token?: string; unit: string }
+const MAIN: TuneField[] = [
+  { key: 'Fs',  label: 'Fs',  unit: 'Hz' },
+  { key: 'Qts', label: 'Qts', unit: '' },
+  { key: 'Qes', label: 'Qes', unit: '' },
+  { key: 'Qms', label: 'Qms', unit: '' },
+  { key: 'Vas', label: 'Vas', group: 'volume', token: 'L',   unit: 'l' },
+  { key: 'Sd',  label: 'Sd',  group: 'area',   token: 'cm2', unit: 'cm²' },
+  { key: 'Re',  label: 'Re',  unit: 'Ω' },
 ];
-const OPTIONAL: { key: NumKey; label: string; scale: number; unit: string }[] = [
-  { key: 'Le',   label: 'Le',   scale: 1000, unit: 'mH' },
-  { key: 'Xmax', label: 'Xmax', scale: 1000, unit: 'mm' },
-  { key: 'Pe',   label: 'Pe',   scale: 1,    unit: 'W' },
+const OPTIONAL: TuneField[] = [
+  { key: 'Le',   label: 'Le',   group: 'inductance', token: 'mH', unit: 'mH' },
+  { key: 'Xmax', label: 'Xmax', group: 'length',      token: 'mm', unit: 'mm' },
+  { key: 'Pe',   label: 'Pe',   unit: 'W' },
 ];
 // Bl and Mms are ordinary driver fields, not outputs: the ADT derives them when they are not
 // entered and honours them when they are (Driver.enter → state E → fixed-E override), exactly
 // as the driver editor already treats them. So they are edited here like any other field, and
 // the E/C colour says which of the two is happening.
-const DERIVED: { key: NumKey; label: string; scale: number; unit: string }[] = [
-  { key: 'BL',  label: 'Bl',  scale: 1,    unit: 'T·m' },
-  { key: 'Mms', label: 'Mms', scale: 1000, unit: 'g' },
+const DERIVED: TuneField[] = [
+  { key: 'BL',  label: 'Bl',  unit: 'T·m' },
+  { key: 'Mms', label: 'Mms', group: 'mass', token: 'g', unit: 'g' },
 ];
 
 // While a field is focused, echo the RAW typed string (so mid-typing values like
@@ -61,45 +65,48 @@ const rawVals = reactive<Record<string, string>>({});
 // in packages/model/src/openisdDriver.ts TO_ENGINE.
 const regId = (key: NumKey): string => (key === 'BL' ? 'Bl' : key);
 
-function disp(key: NumKey, scale: number): string {
+function disp(key: NumKey, group: UnitGroup | undefined, token: string | undefined): string {
   void live.value;
   const v = managedProject.cell(key).value;
-  return typeof v === 'number' && isFinite(v) ? (v * scale).toFixed(fieldDp(regId(key))) : '';
+  if (typeof v !== 'number' || !isFinite(v)) return '';
+  const d = group && token ? toDisplay(v, group, token) : v;
+  return d.toFixed(fieldDp(regId(key)));
 }
-function fieldVal(key: NumKey, scale: number): string {
-  return key in rawVals ? rawVals[key] : disp(key, scale);
+function fieldVal(key: NumKey, group: UnitGroup | undefined, token: string | undefined): string {
+  return key in rawVals ? rawVals[key] : disp(key, group, token);
 }
-function onField(key: NumKey, scale: number, e: Event) {
+function onField(key: NumKey, group: UnitGroup | undefined, token: string | undefined, e: Event) {
   const raw = (e.target as HTMLInputElement).value;
   rawVals[key] = raw;
   const v = parseFloat(raw);
   // Emptying a field RELEASES it back to Calculated — the override is withdrawn, not set to
   // nothing. Without this a cleared field would keep its last entered value invisibly.
   if (raw.trim() === '') clearDriverField(key);
-  else if (isFinite(v)) enterDriverField(key, v / scale);
+  else if (isFinite(v)) enterDriverField(key, group && token ? fromDisplay(v, group, token) : v);
 }
 function onBlur(key: NumKey) { delete rawVals[key]; }
 
-// Registry bounds are SI-space; these inputs display SI × scale, so scale the bounds the
-// same way for the v-limits clamp (e.g. Vas max 100 m³ → 100000 L).
-function scaledLimits(key: NumKey, scale: number): { min?: number; max?: number } {
+// Registry bounds are SI-space; the input shows the display unit, so the v-limits clamp needs
+// the same conversion (e.g. Vas max 100 m³ → 100000 L).
+function scaledLimits(key: NumKey, group: UnitGroup | undefined, token: string | undefined): { min?: number; max?: number } {
   const lim = limits(regId(key));
-  return { min: lim.min === undefined ? undefined : lim.min * scale,
-           max: lim.max === undefined ? undefined : lim.max * scale };
+  if (!group || !token) return lim;
+  return { min: lim.min === undefined ? undefined : toDisplay(lim.min, group, token),
+           max: lim.max === undefined ? undefined : toDisplay(lim.max, group, token) };
 }
 
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than
 // two are usable. The rule itself lives in useDriverCells — the driver editor reads the same
 // one, against its own draft model.
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
-function fieldClasses(key: NumKey, scale: number): Record<string, boolean> {
+function fieldClasses(key: NumKey, group: UnitGroup | undefined, token: string | undefined): Record<string, boolean> {
   void live.value;
   const cellOf = (f: SpecField): Cell => managedProject.cell(f);
   const mandatory = fieldIsMandatoryAndUnsatisfied(cellOf, key);
   return {
     [cellClassFor(cellOf, key)]: true,
     'de-input-mandatory': mandatory,
-    'de-input-empty': mandatory && fieldVal(key, scale) === '',
+    'de-input-empty': mandatory && fieldVal(key, group, token) === '',
   };
 }
 
@@ -202,7 +209,7 @@ function reset()  { managedProject.resetOverlayToGround(); }
       <div v-for="f in MAIN" :key="f.key" class="tune-fld">
         <label>{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.scale)" :class="fieldClasses(f.key, f.scale)" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.group, f.token)" :class="fieldClasses(f.key, f.group, f.token)" :value="fieldVal(f.key, f.group, f.token)" @input="onField(f.key, f.group, f.token, $event)" @blur="onBlur(f.key)">
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">
@@ -232,7 +239,7 @@ function reset()  { managedProject.resetOverlayToGround(); }
       <div v-for="f in OPTIONAL" :key="f.key" class="tune-fld">
         <label class="opt-lbl">{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.scale)" :class="fieldClasses(f.key, f.scale)" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.group, f.token)" :class="fieldClasses(f.key, f.group, f.token)" :value="fieldVal(f.key, f.group, f.token)" @input="onField(f.key, f.group, f.token, $event)" @blur="onBlur(f.key)">
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">
@@ -251,7 +258,7 @@ function reset()  { managedProject.resetOverlayToGround(); }
       <div v-for="f in DERIVED" :key="f.key" class="tune-fld" :title="`${f.label} is calculated from the parameters above until you type one — then it overrides them. Clear the field to hand it back to the calculation.`">
         <label>{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.scale)" :class="fieldClasses(f.key, f.scale)" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.group, f.token)" :class="fieldClasses(f.key, f.group, f.token)" :value="fieldVal(f.key, f.group, f.token)" @input="onField(f.key, f.group, f.token, $event)" @blur="onBlur(f.key)">
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">

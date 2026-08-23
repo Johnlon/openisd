@@ -1,7 +1,8 @@
 import { moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA, passbandRef, rolloffFreq } from '@openisd/engine';
 import type { EngineDriver, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/engine';
-import { DPAL } from '../ui/presets.js';
 import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
+
+export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
 
 
 interface TabMeta { id: ChartTabId; name: string; unit: string; color: string }
@@ -276,4 +277,23 @@ export function buildPlotData(
     out.logy = out.logy || pd.logy;
   });
   return { value: out, errors };
+}
+
+export interface RangeStats { peak: number; peakF: number | null; trough: number; ripple: number; avg: number }
+
+/** Peak/trough/ripple/average of `series` over a dragged frequency band — the readout under
+ *  the graph's band-select drag. Chart-annotation arithmetic on the already-drawn series, not
+ *  a physics derivation, so it lives beside the series it reads rather than in the engine. */
+export function rangeStatsOf(series: Series, fLo: number, fHi: number): RangeStats | null {
+  let peakY = -Infinity, peakF: number | null = null, troughY = Infinity, sum = 0, n = 0;
+  for (let i = 0; i < series.xs.length; i++) {
+    if (series.xs[i] < fLo || series.xs[i] > fHi) continue;
+    const y = series.ys[i];
+    if (!isFinite(y)) continue;
+    if (y > peakY) { peakY = y; peakF = series.xs[i]; }
+    if (y < troughY) troughY = y;
+    sum += y; n++;
+  }
+  if (!n) return null;
+  return { peak: peakY, peakF, trough: troughY, ripple: peakY - troughY, avg: sum / n };
 }

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import type { PRLibEntry, BundledPR } from '../../types.js';
+import type { PRLibEntry, BundledPR } from '@openisd/persistence';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { useApp } from '../../logic/app.js';
+import { toDisplay } from '../../logic/fields/units.js';
 
 const { prRepo } = useApp();
 
@@ -55,7 +56,7 @@ useEscToClose(() => true, close);
           </div>
           <div v-for="e in fSaved" :key="e.id" class="pr-lib-item">
             <span class="pr-lib-name" @click="loadSaved(e)"
-              :title="`Load ${e.name} — Sd=${(e.prSd*1e4).toFixed(0)}cm² Mms=${(e.prMmd*1000).toFixed(1)}g Cms=${(e.prCms*1000).toFixed(2)}mm/N`">{{ e.name }}</span>
+              :title="`Load ${e.name} — Sd=${toDisplay(e.prSd, 'area', 'cm2').toFixed(0)}cm² Mms=${toDisplay(e.prMmd, 'mass', 'g').toFixed(1)}g Cms=${toDisplay(e.prCms, 'compliance', 'mmPerN').toFixed(2)}mm/N`">{{ e.name }}</span>
             <button class="pr-lib-del" @click="remove(e.id)" title="Remove this PR from your library">✕</button>
           </div>
 

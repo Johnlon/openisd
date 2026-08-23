@@ -31,3 +31,16 @@ export function clampedFrequency(value: number, fmin: number, fmax: number): num
   if (!isFinite(value) || value <= 0) return null;
   return Math.max(fmin, Math.min(fmax, value));
 }
+
+/** The chart cursor's readout value: linear interpolation between the two already-plotted
+ *  points straddling `x` (clamped to the series' own ends outside its range). `xs` must be
+ *  sorted ascending and non-empty, and hold at least one point — the caller (which already
+ *  built the series to draw the chart) guarantees this. */
+export function interpolatedY(xs: readonly number[], ys: readonly number[], x: number): number {
+  if (x <= xs[0]) return ys[0];
+  if (x >= xs[xs.length - 1]) return ys[ys.length - 1];
+  let i = 1;
+  while (i < xs.length && xs[i] < x) i++;
+  const t = (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
+  return ys[i - 1] + t * (ys[i] - ys[i - 1]);
+}

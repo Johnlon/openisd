@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
 declare const __PLATFORM_USER__: string | undefined;
 /**
  * The shell — a faithful recreation of WinISD 0.7.0.950's window, wired to the store +
@@ -40,16 +39,17 @@ import { toAlignmentKind } from '../../../logic/managedProject.js';
 // wrapper or a flat field bag — reactive (ledger QO54).
 const { live } = createLiveRef(managedProject);
 import UnitToggle from '../../components/UnitToggle.vue';
-import type { BoxType } from '@openisd/engine';
-import type { PRLibEntry, BundledPR, Design } from '../../../types.js';
-import { airForEnvironment, driveVoltageFor, parseLossMode, lossModeOptions } from '../../../logic/environment.js';
+import type { BoxType, SweepResult, MaxCurvesResult } from '@openisd/engine';
+import type { Design, UiParams, ProjectMeta } from '../../../types.js';
+import type { PRLibEntry, BundledPR } from '@openisd/persistence';
+import { airForEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
 import { TAB_META, parseChartTabId, buildPlotData, DPAL } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../types.js';
 import { copyOfName, uniqueName } from '../../../logic/projectFile.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
 import { useApp } from '../../../logic/app.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
-import { steppedFrequency, clampedFrequency } from '../../../logic/cursorFrequency.js';
+import { steppedFrequency, clampedFrequency, interpolatedY } from '../../../logic/cursorFrequency.js';
 import GraphPanel from '../../components/GraphPanel.vue';
 import NumInput from '../../components/NumInput.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
@@ -353,13 +353,7 @@ const cursorVal = computed<number | null>(() => {
   if (!p) return null;
   const s = p.series.find(x => !x.phantom);
   if (!s || !s.xs.length) return null;
-  const { xs, ys } = s;
-  if (f <= xs[0]) return ys[0];
-  if (f >= xs[xs.length - 1]) return ys[ys.length - 1];
-  let i = 1;
-  while (i < xs.length && xs[i] < f) i++;
-  const t = (f - xs[i - 1]) / (xs[i] - xs[i - 1]);
-  return ys[i - 1] + t * (ys[i] - ys[i - 1]);
+  return interpolatedY(s.xs, s.ys, f);
 });
 
 // ---- Tab rail (persisted) ------------------------------------------------------
@@ -372,8 +366,27 @@ const activeTab = computed<TabId>({
 watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
 
 // ---- Projects list -------------------------------------------------------------
+/** One tab's worth of open design — a snapshot of everything the editor holds live,
+ *  parked here while another tab is active. `driver` is the managed layer's own persisted
+ *  TEXT (never an `EngineDriver`/private record — QO73), reloaded via
+ *  `managedProject.loadDriverFromPersistedText()` on tab switch. `_ground` is the JSON
+ *  checkpoint string `restoreGroundCheckpoint()` accepts. */
+interface ProjectRow {
+  id: string;
+  name: string;
+  driver: string | undefined;
+  box: BoxType;
+  P: UiParams;
+  curves: SweepResult | null;
+  maxCurves: MaxCurvesResult | null;
+  project: ProjectMeta;
+  _ground: string;
+  isModified: boolean;
+  visible: boolean;
+  color?: string;
+}
 const activeProjectId = ref('proj-' + Math.random().toString(36).substring(7));
-const openProjects = ref<any[]>([]);
+const openProjects = ref<ProjectRow[]>([]);
 const activeProject = computed(() => openProjects.value.find(p => p.id === activeProjectId.value) ?? null);
 let isSwapping = false;
 
@@ -419,6 +432,11 @@ watch([() => state.box, live, () => persistedDriver.value, curvesData, maxData, 
 // The other open projects, as drawable overlays. A COMPUTED VIEW built for the graph and
 // nothing else: no project is written into another project's state to get drawn, and none
 // is reconstructed back out of it.
+// KNOWN BUG (bugs/BUG_20260823_compare_overlays_pass_persisted_driver_text_where_an_engine_
+// driver_object_is_required.md): `p.driver` is persisted TEXT, not the `EngineDriver` object
+// `Design.driver` declares — pre-existing, unmasked (not introduced) by giving `ProjectRow`
+// a real type in this pass. Left as-is; the fix needs a driver-domain text→EngineDriver parse
+// API this file is not licensed to build.
 const overlays = computed<Design[]>(() =>
   openProjects.value
     .filter(p => p.id !== activeProjectId.value && p.visible !== false)
@@ -426,7 +444,7 @@ const overlays = computed<Design[]>(() =>
       driver: p.driver, box: p.box, P: p.P,
       curves: p.curves, maxCurves: p.maxCurves,
       name: p.name, color: p.color, visible: true,
-    })) as Design[],
+    })) as unknown as Design[], // BUG_20260823_compare_overlays... — driver is text, not EngineDriver
 );
 
 /** Write the live editor state back into the active project's own row. */
@@ -446,7 +464,7 @@ function syncActiveRowFromStore() {
   });
 }
 
-function selectProject(p: any) {
+function selectProject(p: ProjectRow) {
   if (p.id === activeProjectId.value) return;
 
   isSwapping = true;
@@ -455,7 +473,7 @@ function selectProject(p: any) {
   syncActiveRowFromStore();
 
   // 2. Load the target project into the active editor
-  const targetDesign = JSON.parse(JSON.stringify(p));
+  const targetDesign: ProjectRow = JSON.parse(JSON.stringify(p));
   
   state.box = targetDesign.box;
   managedProject.loadUiParams(targetDesign.P, toAlignmentKind(targetDesign.box));
@@ -529,17 +547,17 @@ function openNewProject() {
 // cannot close is a trap. Unsaved work is never discarded silently: closing a modified
 // project asks, and the ask names all three outcomes rather than making "Cancel" secretly
 // mean "throw my work away".
-const closeChallenge = ref<any | null>(null);
+const closeChallenge = ref<ProjectRow | null>(null);
 useEscToClose(() => closeChallenge.value !== null, () => { closeChallenge.value = null; });
 
-function requestCloseProject(p: any) {
+function requestCloseProject(p: ProjectRow | null) {
   if (!p) return;
   const unsaved = p.id === activeProjectId.value ? isModified.value : p.isModified;
   if (unsaved) { closeChallenge.value = p; return; }
   closeProject(p);
 }
 
-async function saveThenClose(p: any) {
+async function saveThenClose(p: ProjectRow) {
   closeChallenge.value = null;
   if (p.id !== activeProjectId.value) selectProject(p);   // Save always writes the live design
   const saved = await saveProject();
@@ -547,7 +565,7 @@ async function saveThenClose(p: any) {
   closeProject(p);
 }
 
-function closeProject(p: any) {
+function closeProject(p: ProjectRow) {
   closeChallenge.value = null;
   const others = openProjects.value.filter(x => x.id !== p.id);
   if (p.id === activeProjectId.value) {
@@ -636,24 +654,29 @@ onUnmounted(() => tone?.stop());
 // Drive voltage ↔ system power are two views of the same energy: V = √(P·Re), P = V²/Re.
 // WinISD lets you edit EITHER (each recomputes the other); Pin is the stored source of truth.
 const driveV = computed<number>({
-  get: () => { void live.value; return driveVoltageFor(managedProject.inputPower_W() ?? 1, managedProject.toEngineDriver()?.Re || 8); },
-  set: (v) => { managedProject.setInputPower_W((v * v) / (managedProject.toEngineDriver()?.Re || 8)); },
+  get: () => { void live.value; return driveVoltageFor(managedProject.inputPower_W() ?? 1, managedProject.toEngineDriver()?.Re || DEFAULT_RE_OHM); },
+  set: (v) => { managedProject.setInputPower_W((v * v) / (managedProject.toEngineDriver()?.Re || DEFAULT_RE_OHM)); },
 });
 
 // ---- Advanced tab: environment. All three inputs drive the real sweep: ρ and c come from
 // temperature, relative humidity and static pressure (engine air.ts), and thence the SPL
 // constant K. The "Ignore humidity and air pressure (as WinISD does)" checkbox in the shared
 // AdvancedOptions column opts back out of the last two. ------------------------------
-// Seeded from the app-level Options → General → Environment defaults (presentationState.ui.envDefaults),
-// not a hardcoded literal — editing this project's Advanced pane doesn't touch that default.
-// The environment is PER PROJECT (WinISD keeps T/p/phi in the .wpr [Box] section), so each
-// input writes through to managedProject.
-const advTemp = ref(presentationState.ui.envDefaults.tempK);
-watch(advTemp, (v) => { managedProject.setEnvTempK(v); }, { immediate: true });
-const advHumidity = ref(presentationState.ui.envDefaults.humidityPct);
-watch(advHumidity, (v) => { managedProject.setEnvHumidityPct(v); }, { immediate: true });
-const advPressure = ref(presentationState.ui.envDefaults.pressurePa);
-watch(advPressure, (v) => { managedProject.setEnvPressurePa(v); }, { immediate: true });
+// The environment is PER PROJECT (WinISD keeps T/p/phi in the .wpr [Box] section) — these
+// read and write straight through to managedProject, so a loaded project's own values show
+// immediately rather than being overwritten by the Options → General defaults on mount.
+const advTemp = computed<number>({
+  get: () => { void live.value; return managedProject.envTempK(); },
+  set: (v) => managedProject.setEnvTempK(v),
+});
+const advHumidity = computed<number>({
+  get: () => { void live.value; return managedProject.envHumidityPct(); },
+  set: (v) => managedProject.setEnvHumidityPct(v),
+});
+const advPressure = computed<number>({
+  get: () => { void live.value; return managedProject.envPressurePa(); },
+  set: (v) => managedProject.setEnvPressurePa(v),
+});
 /** The air the sweep is actually running in — one call, both readouts. */
 const advAir = computed(() => {
   void live.value;
