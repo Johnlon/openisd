@@ -76,7 +76,7 @@ export function solvePrGroup(mp: ManagedOpenISDProject): void {
 /** Enter a PR-group field — held until explicitly cleared. */
 export function enterPrField(mp: ManagedOpenISDProject, field: PrField, value: number): void {
   // The WHOLE transaction — value write, provenance write, AND the resulting solve — is
-  // suspended: `store.ts`'s coarse auto-solve watch fires on every `managedProject` mutation,
+  // suspended: `appState.ts`'s coarse auto-solve watch fires on every `managedProject` mutation,
   // so an unguarded write-then-write would let it run on a half-updated entered set, and an
   // unguarded trailing `solvePrGroup()` call would let it re-fire a SECOND time on that call's
   // own write. One user action, one solve — the call inside this suspension is the only one.

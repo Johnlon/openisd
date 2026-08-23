@@ -15,8 +15,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createLogging } from '../../src/logging/flash.js';
 import { createDesignIO } from '../../src/logic/useDesignIO.js';
-import { createFileStore } from '../../src/logic/fileStore.js';
-import { managedProject, state } from '../../src/logic/store.js';
+import { createFileStorage } from '../../src/persistence/storage/fileStorage.js';
+import { managedProject, state } from '../../src/logic/appState.js';
 
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (persist.ts's stateToUrl) and writes to the
@@ -29,7 +29,7 @@ beforeAll(() => {
 
 describe('shareLink() cancels an active what-if before serialising the driver', () => {
   it('an active what-if is gone after shareLink() returns', async () => {
-    const io = createDesignIO({ logging: createLogging(), fileStore: createFileStore() });
+    const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage() });
     managedProject.beginWhatIf();
     assert.equal(managedProject.isWhatIfActive(), true, 'precondition: a what-if is open');
 
@@ -85,7 +85,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       }
     });
     try {
-      const io = createDesignIO({ logging: createLogging(), fileStore: createFileStore() });
+      const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage() });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone after.
       state.project.name = 'stale-name-999999';

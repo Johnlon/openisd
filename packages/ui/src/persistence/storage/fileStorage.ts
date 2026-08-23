@@ -1,5 +1,7 @@
+/** STORAGE (port): where bytes go and come from — the interactive kind, where the user picks
+ *  the destination. Knows no format. */
 /**
- * `FileStore` — WHERE bytes go and come from (docs/design/FILEIO_API_PROPOSALS.md). Knows no
+ * `FileStorage` — WHERE bytes go and come from (docs/design/FILEIO_API_PROPOSALS.md). Knows no
  * format. A thin adapter over `fileSave.ts`'s existing File System Access API + download-
  * fallback mechanics (`writeToHandle`, `saveTextAs`), which already implement this shape
  * closely enough to wrap directly — no rewrite of what already works.
@@ -14,7 +16,7 @@
  * WRITE-side only: file READS reach the app through a plain `<input type="file">` element,
  * which hands `useDesignIO.ts` a `File` directly — no picker this module drives.
  */
-import { saveTextAs, writeToHandle } from './fileSave.js';
+import { createFileSave } from './fileSave.js';
 
 export interface SaveResult {
   /** The name of the file actually written, when a handle now exists to retain. Null when
@@ -30,7 +32,7 @@ export interface SaveResult {
   written: boolean;
 }
 
-export interface FileStore {
+export interface FileStorage {
   /** Write to the RETAINED destination, prompting via `saveAs` the first time, or when the
    *  retained handle has gone stale (file moved/deleted, permission revoked). */
   save(
@@ -49,7 +51,8 @@ export interface FileStore {
   forget(): void;
 }
 
-export function createFileStore(): FileStore {
+export function createFileStorage(): FileStorage {
+  const { saveTextAs, writeToHandle } = createFileSave();
   let retained: FileSystemFileHandle | null = null;
 
   async function saveAs(

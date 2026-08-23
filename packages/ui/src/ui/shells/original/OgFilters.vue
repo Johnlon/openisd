@@ -20,7 +20,7 @@
  * they are intentionally omitted rather than added as controls that do nothing.
  */
 import { computed, ref } from 'vue';
-import { managedProject } from '../../../logic/store.js';
+import { managedProject } from '../../../logic/appState.js';
 import { createLiveRef } from '../../../logic/liveProject.js';
 import { limits } from '../../../logic/fields/fieldRegistry.js';
 import type { Filter, FilterType } from '@openisd/engine';

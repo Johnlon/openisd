@@ -5,7 +5,7 @@ import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
-import { state, persistedDriver, managedProject, applyState, markProjectSaved } from '../logic/store.js';
+import { state, persistedDriver, managedProject, applyState, markProjectSaved } from '../logic/appState.js';
 import { presentationState } from '../logic/presentationState.js';
 import { createLiveRef } from '../logic/liveProject.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from '../logic/persist.js';

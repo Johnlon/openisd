@@ -75,9 +75,8 @@ class Driver {
 - **Stored:** the entered-marks + the carried field values (including pass-through
   fields OpenISD does not simulate, so they survive a round-trip).
 - **Derived:** every computed (C) value, and the whole E/C/N view.
-- `state(field)` is the single implementation that both the editor (was `stateOf`)
-  and the exporter (was `parstate`) call. `ParState` becomes purely the on-disk
-  serialization of `state()`.
+- `state(field)` is the single implementation that both the editor and the exporter
+  call. `ParState` is purely the on-disk serialization of `state()`.
 
 ### `enter` / `clear` semantics
 

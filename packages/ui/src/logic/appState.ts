@@ -1,5 +1,6 @@
+/** STATE: the app's live reactive truth — Vue's sense of "store". Not persistence. */
 /**
- * `store.ts` — the app's Vue-reactive state HOLDER. It is a store, nothing more.
+ * `appState.ts` — the app's Vue-reactive state HOLDER, and nothing more.
  *
  * ── What this file MUST NOT do (human ruling 2026-08-18, ARCHITECTURE.md §5) ──
  * It must never CALCULATE a value — not even by correctly calling out to a properly
@@ -28,14 +29,14 @@ import {
 } from './useVentGroup.js';
 import { solvePrGroup } from './usePrGroup.js';
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
-// written by App.vue's watch and restored by loadLocal() on mount. store.js does
+// written by App.vue's watch and restored by loadLocal() on mount. appState.ts does
 // not persist — it initialises to defaults; App.vue applies any saved state.
 
 // ---- The project: ManagedOpenISDProject, and NOTHING else ----------------------------------------
 // ARCHITECTURE.md §"Approved state stores": ManagedOpenISDProject holds ALL active/edit/what-if
-// state. The store does not hold a driver, does not hold a baseline, and does not know a
+// state. appState does not hold a driver, does not hold a baseline, and does not know a
 // what-if exists — a second copy of any of those is a second answer to the same question, and
-// the two are free to disagree. Everything below DELEGATES; it stores nothing.
+// the two are free to disagree. Everything below DELEGATES; it holds nothing of its own.
 //
 // ManagedOpenISDProject's framework-free subscribe() is bridged to Vue through `live`
 // (`logic/liveProject.ts`'s `createLiveRef`, one adapter per consumer, over the one channel —
@@ -74,7 +75,7 @@ import { solvePrGroup } from './usePrGroup.js';
 export const ALLOWED_GLOBALS = [
   'openProjects', 'focusedProject', 'focusProject', 'removeProject', 'addProject',
 ];
-export const managedProject: ManagedOpenISDProject = getOrInit('store', '_managed', () => {
+export const managedProject: ManagedOpenISDProject = getOrInit('appState', '_managed', () => {
   return ManagedOpenISDProject.createEmpty();
 });
 
@@ -82,7 +83,7 @@ export const managedProject: ManagedOpenISDProject = getOrInit('store', '_manage
 // HMR-singleton same as `managedProject` itself: a bare `createLiveRef(managedProject)` here
 // would re-subscribe on every hot-reload, since `managedProject` survives the reload via
 // `getOrInit` but a fresh module-level `const` would not.
-const live = getOrInit('store', '_live', () => createLiveRef(managedProject)).live;
+const live = getOrInit('appState', '_live', () => createLiveRef(managedProject)).live;
 
 /**
  * The multi-project registry (human ruling, 2026-08-18) — replaces `workspace.ts`'s ad-hoc
@@ -95,8 +96,8 @@ const live = getOrInit('store', '_live', () => createLiveRef(managedProject)).li
  * and deleting `workspace.ts`, is separate, larger follow-on work (REVIEW.md Phase 1.4/1.5) —
  * not done in this pass; flagged, not silently deferred.
  */
-const _projects = getOrInit('store', '_projects', () => shallowRef<ManagedOpenISDProject[]>([managedProject]));
-const _focusedIndex = getOrInit('store', '_focusedIndex', () => ref(0));
+const _projects = getOrInit('appState', '_projects', () => shallowRef<ManagedOpenISDProject[]>([managedProject]));
+const _focusedIndex = getOrInit('appState', '_focusedIndex', () => ref(0));
 
 /** Every open project. Empty array if none are open. */
 export function openProjects(): ManagedOpenISDProject[] { return _projects.value; }
@@ -151,7 +152,7 @@ function buildState(): AppState {
   return s as unknown as AppState;
 }
 
-export const state: AppState = getOrInit('store', 'state', () => reactive(buildState()));
+export const state: AppState = getOrInit('appState', 'state', () => reactive(buildState()));
 
 // ---- Vent group: keep the calculated member solved while the user edits ------------------
 // `live` (above) already fires on every managedProject mutation — box/vent/PR fields
@@ -213,7 +214,7 @@ export function clearDriverField(field: SpecField): void {
 
 // The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
 // PRIVATE to this file's own sweep; every outside caller reads `managedProject.toEngineDriver()`
-// directly through `logic/liveProject.ts`'s reactivity adapter instead of a store wrapper.
+// directly through `logic/liveProject.ts`'s reactivity adapter instead of an appState wrapper.
 function _engineDriver(): EngineDriver | null {
   void live.value;
   return managedProject.toEngineDriver();
@@ -264,8 +265,8 @@ export const syncedP = computed<SyncedParams>(() => {
   return p;
 });
 
-const _curves = getOrInit('store', '_curves', () => ref<SweepResult | null>(null));
-const _max    = getOrInit('store', '_max', () => ref<MaxCurvesResult | null>(null));
+const _curves = getOrInit('appState', '_curves', () => ref<SweepResult | null>(null));
+const _max    = getOrInit('appState', '_max', () => ref<MaxCurvesResult | null>(null));
 const _doSweep = () => {
   const d = _engineDriver();
   _curves.value = d ? sweep(d, state.box, syncedP.value) : null;
@@ -322,7 +323,7 @@ const curveIssues = computed<DriverError[]>(() => {
 // Precondition (hardening, CODE_REVIEW.md §18): the enclosure parameters the circuit
 // divides by — Vb everywhere, Sp/Vf/PR per box type. The postcondition above does catch
 // the resulting garbage, but only as "no usable values"; this names the field to change.
-// Validated at the same store boundary, from the same params the sweep is actually run on.
+// Validated at the same appState boundary, from the same params the sweep is actually run on.
 export const paramIssues = computed<DriverError[]>(() => validateParams(state.box, syncedP.value));
 
 // The full issue list the UI shows: driver-derivation issues + box-parameter issues +
@@ -344,7 +345,7 @@ function projectFingerprint(): string {
     box: state.box, P: managedProject.toUiParams(), driver: persistedDriver.value, project: state.project,
   });
 }
-const _ground = getOrInit('store', '_ground', () => ref(projectFingerprint()));
+const _ground = getOrInit('appState', '_ground', () => ref(projectFingerprint()));
 /** True when the live design differs from the last loaded/saved (ground) state. */
 export const isModified = computed<boolean>(() => _ground.value !== projectFingerprint());
 /** Adopt the current design as ground (call after load, and after a successful save). */
@@ -395,7 +396,7 @@ export function newProject(): void {
 
 /**
  * Restore a persisted snapshot (local save, share link, or an opened `.openisd.json` file)
- * into the live store — the ONE loader every entry point calls.
+ * into the live appState — the ONE loader every entry point calls.
  *
  * Every load path must land the WHOLE snapshot: a second, hand-rolled subset loader is how
  * File → Open… silently dropped the project name, the view, the comparison overlays and the
@@ -423,7 +424,7 @@ export function applyState(o: SerializedState): void {
   // makes it a reported fault rather than a silent drop.
   restoreProblems.value = [];
   if (o.driver) {
-    // The managed layer does the checking and the adopting in one call — the store never
+    // The managed layer does the checking and the adopting in one call — appState never
     // parses, names, or holds the record (QO73); it only relays the refusal.
     const problems = managedProject.loadDriverFromPersistedText(o.driver);
     if (problems.length) {
@@ -477,7 +478,7 @@ export function applyState(o: SerializedState): void {
 // draws nothing, which is the same "loaded but invisible" failure at the overlay level.
 
 // ---- Per-field display units (fields/units.ts) ------------------------------------
-// The store stays SI; formatInUnit only chooses how a CALCULATED value is shown, reading the
+// appState stays SI; formatInUnit only chooses how a CALCULATED value is shown, reading the
 // selected token off presentationState (logic/presentationState.ts owns
 // unitToken/cycleUnitToken/resetUnitTokens — pure view functions, not design state).
 /** Format a CALCULATED (read-only) value in a field's currently-selected unit — the single

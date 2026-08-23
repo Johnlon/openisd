@@ -4,10 +4,10 @@
 
 `packages/model/src/openisdDriver.ts:279-284`:
 ```ts
-function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive_radiator' {
+function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive-radiator' {
   const t = record.driver_type?.value;
   if (t === 'tweeter') return 'tweeter';
-  if (t === 'passive-radiator' || t === 'passive_radiator') return 'passive_radiator';
+  if (t === 'passive-radiator' || t === 'passive-radiator') return 'passive-radiator';
   return 'woofer';   // 'coaxial' falls through to here
 }
 ```
@@ -22,7 +22,7 @@ side by side:
 export interface _Specs {
   woofer?: _SpecSection;
   tweeter?: _SpecSection;
-  passive_radiator?: _SpecSection;
+  'passive-radiator'?: _SpecSection;
 }
 ```
 
@@ -104,7 +104,7 @@ section must expose ALL of them through the same, single API surface `cell()`/`e
 `dqMarks()` already define — not a second envelope, not a second method family. Concretely:
 
 - Every `SpecField`-taking method (`cell`, `enter`, `clear`) gains a `section` parameter
-  (`'woofer' | 'tweeter' | 'passive_radiator'`), defaulting to `this.section` (today's single
+  (`'woofer' | 'tweeter' | 'passive-radiator'`), defaulting to `this.section` (today's single
   resolved section) so every existing non-coax call site is unchanged.
 - `sections()` (or equivalent) replaces the single `section` getter with the set of sections the
   record actually has populated data or a `driver_type` claim for — a coax record answers

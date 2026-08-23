@@ -2,7 +2,7 @@
  * The multi-project registry (`openProjects()`/`focusedProject()`/`focusProject()`/
  * `removeProject()`/`addProject()`) — human ruling 2026-08-18, REVIEW.md.
  *
- * `store.ts` caches its state on a module-scope `ctx` (keyed off `window`, or an in-process
+ * `appState.ts` caches its state on a module-scope `ctx` (keyed off `window`, or an in-process
  * object outside a browser), shared across every test file that imports it in this run — so
  * these tests assert relative behaviour (deltas from whatever the registry already holds),
  * never an absolute starting count.
@@ -11,7 +11,7 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   openProjects, focusedProject, focusProject, removeProject, addProject,
-} from '../../src/logic/store.js';
+} from '../../src/logic/appState.js';
 import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
 
 describe('project registry', () => {

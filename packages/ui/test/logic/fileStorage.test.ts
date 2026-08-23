@@ -1,5 +1,5 @@
 /**
- * `createFileStore` — the `FileStore` port (WHERE bytes go/come from, no format knowledge).
+ * `createFileStorage` — the `FileStorage` port (WHERE bytes go/come from, no format knowledge).
  * The port RETAINS the picked handle itself — `save()` takes no handle parameter, and
  * `openFileName()`/`forget()` are how a caller observes/drops it. The retention loop is the
  * substance under test: saveAs retains, save writes through WITHOUT re-prompting, forget
@@ -11,9 +11,9 @@
  */
 import { describe, it, vi, beforeEach, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { createFileStore } from '../../src/logic/fileStore.js';
+import { createFileStorage } from '../../src/persistence/storage/fileStorage.js';
 
-/** Exactly the two members `fileStore.ts`/`fileSave.ts` touch on a picked handle. Declared
+/** Exactly the two members `fileStorage.ts`/`fileSave.ts` touch on a picked handle. Declared
  *  here rather than leaning on the DOM lib (which this node-environment suite does not have in
  *  scope), so the fake states what it actually provides rather than claiming a whole
  *  `FileSystemFileHandle` it does not implement. */
@@ -35,7 +35,7 @@ function fakeHandle(name: string, writes: (string | Uint8Array)[]): WritableHand
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe('createFileStore — handle retention (File System Access API present)', () => {
+describe('createFileStorage — handle retention (File System Access API present)', () => {
   let pickerCalls = 0;
   let writes: (string | Uint8Array)[] = [];
 
@@ -49,7 +49,7 @@ describe('createFileStore — handle retention (File System Access API present)'
   });
 
   it('saveAs retains the picked handle: openFileName() answers it', async () => {
-    const store = createFileStore();
+    const store = createFileStorage();
     const result = await store.saveAs('probe-111111', 'x.owpr', 'application/x-openisd-project', 'OpenISD project', '.owpr');
     assert.equal(result.written, true);
     assert.equal(result.name, 'x.owpr');
@@ -58,7 +58,7 @@ describe('createFileStore — handle retention (File System Access API present)'
   });
 
   it('save() after saveAs writes through the RETAINED handle without re-prompting', async () => {
-    const store = createFileStore();
+    const store = createFileStorage();
     await store.saveAs('probe-222222', 'x.owpr', 'application/x-openisd-project', 'OpenISD project', '.owpr');
     assert.equal(pickerCalls, 1);
 
@@ -70,7 +70,7 @@ describe('createFileStore — handle retention (File System Access API present)'
   });
 
   it('forget() drops the retained handle: the next save() prompts again', async () => {
-    const store = createFileStore();
+    const store = createFileStorage();
     await store.saveAs('probe-444444', 'x.owpr', 'application/x-openisd-project', 'OpenISD project', '.owpr');
     assert.equal(pickerCalls, 1);
 
@@ -82,7 +82,7 @@ describe('createFileStore — handle retention (File System Access API present)'
   });
 
   it('save() with nothing retained yet prompts and then retains, so a THIRD save is silent', async () => {
-    const store = createFileStore();
+    const store = createFileStorage();
     await store.save('probe-666666', 'z.owpr', 'application/x-openisd-project', 'OpenISD project', '.owpr');
     assert.equal(pickerCalls, 1);
     assert.equal(store.openFileName(), 'z.owpr');
@@ -92,7 +92,7 @@ describe('createFileStore — handle retention (File System Access API present)'
   });
 });
 
-describe('createFileStore — no File System Access API available', () => {
+describe('createFileStorage — no File System Access API available', () => {
   let clicked: string[] = [];
 
   beforeEach(() => {
@@ -108,7 +108,7 @@ describe('createFileStore — no File System Access API available', () => {
   });
 
   it('saveAs() falls back to a browser download, retains nothing, and reports written:false', async () => {
-    const store = createFileStore();
+    const store = createFileStorage();
     const result = await store.saveAs('probe-888888', 'x.owdr', 'application/x-openisd-driver', 'OpenISD driver', '.owdr');
     assert.equal(result.cancelled, false);
     assert.equal(result.written, false);

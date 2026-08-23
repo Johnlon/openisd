@@ -315,9 +315,9 @@ test('rotating a unit changes the display only — the stored value round-trips'
 
 // ── 5. The equation-inspector popup never covers the dialog it explains ─────────────────
 
-/** bugs/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md — the popup used to sit
- *  at a fixed viewport corner regardless of where the editor rendered, so on a viewport too
- *  narrow to clear it on either side the popup landed on top of the very panel it explains. */
+/** Guards the popup sitting at a fixed viewport corner regardless of where the editor
+ *  renders — on a viewport too narrow to clear it on either side it would land on top of
+ *  the very panel it explains (bugs/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md). */
 test('the equation-inspector popup never overlaps the editor, even on a narrow viewport', async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 900 }); // 770px modal, ~215px free per side
   await openEditor(page);
@@ -349,7 +349,7 @@ test('the equation-inspector popup is visible on screen at a normal window heigh
     .toBeLessThanOrEqual(vh + 1);
 });
 
-test('the equation-inspector popup no longer shows a "Live:" substitution line', async ({ page }) => {
+test('the equation-inspector popup shows no "Live:" substitution line', async ({ page }) => {
   await openEditor(page);
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();
   await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();

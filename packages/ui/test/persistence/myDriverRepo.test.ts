@@ -11,11 +11,11 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { createMemoryStore } from '../../src/db/kv.js';
-import { createMyDriverRepo, MY_DRIVERS_KEY } from '../../src/db/myDrivers.js';
+import { createMemoryStorage } from '../../src/persistence/storage/keyValueStorage.js';
+import { createMyDriverRepo, MY_DRIVERS_KEY } from '../../src/persistence/repos/myDriverRepo.js';
 import { OpenISDDriver } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
-import { driverHasDqIssues } from '../../src/db/driverRepo.js';
+import { driverHasDqIssues } from '../../src/persistence/repos/driverRepo.js';
 import { driverFromConformingRecord } from '../../src/logic/managedDriver.js';
 
 describe('myDrivers.ts::list() — refuses records that do not conform to _OpenISDDriverJson', () => {
@@ -48,7 +48,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
         },
       },
     };
-    const store = createMemoryStore({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, valid]) });
+    const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, valid]) });
     const repo = createMyDriverRepo(store, driverFromConformingRecord);
     const list = repo.list();
     assert.equal(list.length, 1);
@@ -84,7 +84,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
         },
       },
     };
-    const store = createMemoryStore({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, valid]) });
+    const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, valid]) });
     const repo = createMyDriverRepo(store, driverFromConformingRecord);
     for (const record of repo.list()) {
       assert.doesNotThrow(() => driverHasDqIssues({ name: 'x', record }));
@@ -97,7 +97,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
       Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
     };
-    const store = createMemoryStore({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy]) });
+    const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy]) });
     const repo = createMyDriverRepo(store, driverFromConformingRecord);
     assert.deepEqual(repo.list(), []);
   });
@@ -149,7 +149,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
         },
       },
     };
-    const store = createMemoryStore({ [MY_DRIVERS_KEY]: JSON.stringify([first, second]) });
+    const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([first, second]) });
     const repo = createMyDriverRepo(store, driverFromConformingRecord);
     assert.equal(repo.list().length, 2);
   });
@@ -208,7 +208,7 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
         },
       },
     };
-    const store = createMemoryStore({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, existingValid]) });
+    const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, existingValid]) });
     const repo = createMyDriverRepo(store, driverFromConformingRecord);
 
     repo.upsert(OpenISDDriver.fromJsonRecord(newValid));
@@ -258,7 +258,7 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
         },
       },
     };
-    const store = createMemoryStore({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, valid]) });
+    const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, valid]) });
     const repo = createMyDriverRepo(store, driverFromConformingRecord);
 
     const removed = repo.remove('valid/driver');

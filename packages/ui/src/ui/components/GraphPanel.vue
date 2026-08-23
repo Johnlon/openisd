@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { state, managedProject, allIssues, syncedP, curvesData, maxData } from '../../logic/store.js';
+import { state, managedProject, allIssues, syncedP, curvesData, maxData } from '../../logic/appState.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { TAB_META, buildPlotData } from '../../logic/series.js';
 import type { ChartTabId } from '../../types.js';

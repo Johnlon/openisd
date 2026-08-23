@@ -8,11 +8,10 @@ The code that implements it is `packages/ui/src/logic/store.ts` plus two files u
 `packages/ui/src/db/`: `useDriverSelection.ts` (draft → commit) and `useDriverLibrary.ts` (the
 library picker). The rule that keeps skins from diverging is ARCHITECTURE.md AD-7.
 
-**A note on a design that was tried and reverted (2026-08-12):** an earlier pass this session
-built a `DriverSession` class that auto-cleared an inherited, now-contradicted Q-group member
-the moment a session completed the group with fresh input. That is wrong and was removed —
-see rule 10. `Driver` (`packages/winisd/src/driver.ts`, `DRIVER_ADT_DESIGN.md`) carries no
-session/what-if/edit concept, and nothing should be added back to give it one for this purpose.
+`Driver` (`packages/winisd/src/driver.ts`, `DRIVER_ADT_DESIGN.md`) carries no
+session/what-if/edit concept, and nothing may be added to give it one — an auto-clearing
+session layer on the driver WOULD silently evict inherited Q-group members instead of
+surfacing the contradiction to the user (see rule 10).
 See also [PLAN_OPENISD_DRIVER_MODEL.md](../plans/PLAN_OPENISD_DRIVER_MODEL.md) — the actual target
 architecture (`ARCHITECTURE.md` AD-8) retires `Driver` entirely in favor of `OpenISDDriver`.
 
@@ -77,9 +76,7 @@ changes which layer resolves; there is no third state.
     datasheet or a human. If a fresh edit during a what-if or editor session leaves an
     inherited Entered value (e.g. Qts) no longer reconciling with freshly-typed siblings
     (Qes/Qms), the fix is **never** to auto-clear or evict the stale one — `checkConsistency()`
-    flags the whole group with a DQ mark instead, visible to the user, who decides. An earlier
-    version of this rule described an auto-clear mechanism (`DriverSession`); that was wrong
-    and has been removed — see the note above.
+    flags the whole group with a DQ mark instead, visible to the user, who decides.
 
 ## What persists
 

@@ -8,7 +8,7 @@ import type { Directive } from 'vue';
 // for kilo-scale ones. Direction is left to the native control, so a signed field still
 // increases/decreases correctly; only the step MAGNITUDE is proportional.
 //
-// A power of ten (not the old value×0.1) is deliberate: value×0.1 is an arbitrary float,
+// A power of ten (not value×0.1) is deliberate: value×0.1 is an arbitrary float,
 // so it compounds into long decimals (50 → 55 → 60.5 → 66.55 → …) and, not being a clean
 // multiple of the min, makes the browser refuse stepDown near min (the "down-arrow sticks"
 // symptom). A power of ten is a clean multiple of 0, so the browser grid-snaps each step to

@@ -1,9 +1,10 @@
-import type { PRLibEntry, BundledPR } from '../types.js';
+/** REPO: domain access to the passive-radiator collection. Takes a storage, returns records. */
+import type { PRLibEntry, BundledPR } from '../../types.js';
 import type { SweepParams } from '@openisd/engine';
-import type { KeyValueStore } from './kv.js';
+import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 
-// The passive-radiator library: the read-only PRs that ship in the driver bundle, plus the
-// ones the user saved. Arguments in, records out — it decides nothing.
+// Passive radiators: the read-only PRs that ship in the driver bundle, plus the ones the user
+// saved. Arguments in, records out — it decides nothing.
 
 export const PR_LIB_KEY = 'openisd_pr_lib';
 
@@ -21,10 +22,10 @@ export interface PrRepo {
   remove(id: number): PRLibEntry[];
 }
 
-export function createPrRepo(store: KeyValueStore, bundle: { passiveRadiators?: BundledPR[] }): PrRepo {
+export function createPrRepo(storage: KeyValueStorage, bundle: { passiveRadiators?: BundledPR[] }): PrRepo {
   function list(): PRLibEntry[] {
     try {
-      const parsed: unknown = JSON.parse(store.get(PR_LIB_KEY) ?? '[]');
+      const parsed: unknown = JSON.parse(storage.get(PR_LIB_KEY) ?? '[]');
       return Array.isArray(parsed) ? (parsed as PRLibEntry[]) : [];
     } catch { return []; }
   }
@@ -44,12 +45,12 @@ export function createPrRepo(store: KeyValueStore, bundle: { passiveRadiators?: 
         prXmax: P.prXmax!,
         savedAt: new Date().toISOString(),
       });
-      store.set(PR_LIB_KEY, JSON.stringify(next));
+      storage.set(PR_LIB_KEY, JSON.stringify(next));
       return next;
     },
     remove(id) {
       const next = list().filter(e => e.id !== id);
-      store.set(PR_LIB_KEY, JSON.stringify(next));
+      storage.set(PR_LIB_KEY, JSON.stringify(next));
       return next;
     },
   };

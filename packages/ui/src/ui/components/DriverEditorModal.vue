@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import { ref, shallowRef, markRaw, computed, nextTick, watch, onBeforeUnmount } from 'vue';
-import { formatInUnit, managedProject } from '../../logic/store.js';
+import { formatInUnit, managedProject } from '../../logic/appState.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { useApp } from '../../logic/app.js';
 import { referenceRho, referenceC } from '../../logic/environment.js';
@@ -13,12 +13,11 @@ import UnitToggle from './UnitToggle.vue';
 import { precision } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../logic/useDriverCells.js';
-import { saveTextAs } from '../../logic/fileSave.js';
 import { DriverFileFormat } from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
 import { getProvenanceInfo, LABEL_TO_FIELD_KEY } from '../../logic/provenance.js';
 
-const { selection, myDrivers, logging } = useApp();
+const { selection, myDrivers, logging, driverFileStorage } = useApp();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced parameters / Dimensions.
@@ -495,7 +494,7 @@ async function writeDriver(format: DriverFileFormat) {
   // extensions we list with every extension registered to that MIME, so `application/json`
   // offered ".owdr, .json" and `text/plain` offered ".wdr, .txt, .text" — a save dialog
   // inviting the user to write a driver to a filename the app will not read back.
-  const r = await saveTextAs(body, format.fileName(base), format.label, format.mime, '.' + format.value);
+  const r = await driverFileStorage.saveAs(body, format.fileName(base), format.mime, format.label, '.' + format.value);
   if (!r.cancelled) logging.flash(`Driver saved as .${format.value}`);
 }
 

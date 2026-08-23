@@ -345,8 +345,8 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // `Rme=17.578125` (the motional route, 2π·Fs·Mms/Qes on the STORED Fs — unaffected by this
     // change) beside `Mpow=2.96463530640786`. `Bl/√Re = 7.5/√6.4 = 2.96463530640786`, matching
     // WinISD to the last digit; `√Rme = √17.578125 = 4.1926274578121`, which does not. So
-    // WinISD's `Rme` and `Mpow` are independently sourced, not related by a square root — the
-    // `Mpow = √Rme` identity this code used to pin is not one WinISD holds, and is dropped.
+    // WinISD's `Rme` and `Mpow` are independently sourced, not related by a square root —
+    // `Mpow = √Rme` is not an identity WinISD holds, so this code must not pin it.
     // `√Rme` is retained only as the fallback for a record with no `Bl` (e.g. `Bl` itself
     // absent but `Rme` derivable from Fs/Mms/Qes). See
     // bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
@@ -498,8 +498,7 @@ export function deriveEngineDriver(d: DriverFields): Result<EngineDriver> {
       r.USPL = r.SPLref + 10 * Math.log10(2.83 * 2.83 / r.Re!);
     }
     // SPLmax = SPLref + 10·log₁₀(Pe) − 3 dB — the flat 3 dB derating measured exactly on the
-    // `winisd-parity` goldens (same evidence as `solveConsistencyGroup`'s SPLmax block); this
-    // duplicate implementation previously omitted SPLmax entirely.
+    // `winisd-parity` goldens (same evidence as `solveConsistencyGroup`'s SPLmax block).
     if (r.Pe! > 0) {
       r.SPLmax = r.SPLref + 10 * Math.log10(r.Pe!) - 3;
     }

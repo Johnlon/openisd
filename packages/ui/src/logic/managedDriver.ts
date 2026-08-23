@@ -59,8 +59,8 @@ export function driverFromWdrText(text: string): OpenISDDriver {
 /**
  * Untrusted `unknown` data → a driver, or `null` when it does not conform closely enough to be
  * constructed safely. ONE shared read seam for every source of untrusted driver JSON — browser
- * storage (`db/myDrivers.ts::list()`) and the driver corpus bundle
- * (`db/driverRepo.ts::bundledEntry()`) alike, so neither seam can silently drift from the
+ * storage (`persistence/repos/myDriverRepo.ts::list()`) and the driver corpus bundle
+ * (`persistence/repos/driverRepo.ts::bundledEntry()`) alike, so neither seam can silently drift from the
  * other's conformance bar (the same "one shared implementation" reasoning
  * `driverConformance.ts::recordConforms` already states). The containment gate licenses only
  * this file, `managedProject.ts` and `DriverEditorModal.vue` to name `OpenISDDriver` as a

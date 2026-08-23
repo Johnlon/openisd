@@ -9,10 +9,10 @@
 import { test, expect } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
-/** The store's own verdict for one field — the model, not the pixels. */
+/** appState's own verdict for one field — the model, not the pixels. */
 async function cell(page: Page, field: string): Promise<{ value: unknown; state: string }> {
   return page.evaluate(async (f) => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     const c = s.driverCell(f);
     return { value: c.value, state: c.state };
@@ -21,7 +21,7 @@ async function cell(page: Page, field: string): Promise<{ value: unknown; state:
 
 async function readVb(page: Page): Promise<number> {
   return page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return s.state.P.Vb;
   });

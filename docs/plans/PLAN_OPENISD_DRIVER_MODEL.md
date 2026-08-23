@@ -15,7 +15,7 @@ class AD-8 retires — not repeated here.
 
 - `openisdRecord.ts` (213 lines) — the full `openisd.yml` shape, hand-transcribed against the
   real Python pydantic models: `OpenISDRecord` (top-level record), `Specs`/`SpecSection`
-  (per-driver-type — `woofer`/`tweeter`/`passive_radiator` — since a field lives at
+  (per-driver-type — `woofer`/`tweeter`/`passive-radiator` — since a field lives at
   `record.specs[driverType][field]`, not one flat bag), `SpecEntry`/`ScrapedField<T>`/
   `DerivedField<T>`/`BookkeepingField<T>` (the four field-kind envelopes), `Reading`,
   `winningReading()`.

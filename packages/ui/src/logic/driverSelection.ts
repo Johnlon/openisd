@@ -1,7 +1,7 @@
 import type { OpenISDDriver } from '@openisd/model';
-import { managedProject } from './store.js';
+import { managedProject } from './appState.js';
 import { presentationState } from './presentationState.js';
-import { driverId } from '../db/myDrivers.js';
+import { driverId } from '../persistence/repos/myDriverRepo.js';
 import { driverFromWdrText } from './managedDriver.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
@@ -33,7 +33,7 @@ import { driverFromWdrText } from './managedDriver.js';
 // selection means — they call this.
 
 /** A row in the driver pool, as the pickers build it. Only the fields selection needs. */
-export interface LibraryEntry {
+export interface PoolEntry {
   name: string;
   content?: string;
   /** A bundled record, already constructed by the model. */
@@ -51,7 +51,7 @@ export interface LibraryEntry {
 
 /** Catalogue link fields live in the library index, not in the .wdr — overlay them on load. */
 /** Library-row link → the SourceRole it is recorded under. */
-const LINK_ROLES: ReadonlyArray<readonly [keyof LibraryEntry, 'manufacturer_datasheet' | 'manufacturer_product_page' | 'distributor_product_page']> = [
+const LINK_ROLES: ReadonlyArray<readonly [keyof PoolEntry, 'manufacturer_datasheet' | 'manufacturer_product_page' | 'distributor_product_page']> = [
   ['datasheet', 'manufacturer_datasheet'],
   ['manupage', 'manufacturer_product_page'],
   ['vendorpage', 'distributor_product_page'],
@@ -59,7 +59,7 @@ const LINK_ROLES: ReadonlyArray<readonly [keyof LibraryEntry, 'manufacturer_data
 
 /** Carry the library row's source links onto the driver. They belong in the record's own
  *  provenance index — not as driver FIELDS: a datasheet URL is not a T/S value. */
-function withLinks(driver: OpenISDDriver, f: LibraryEntry): OpenISDDriver {
+function withLinks(driver: OpenISDDriver, f: PoolEntry): OpenISDDriver {
   const links: Partial<Record<'manufacturer_datasheet' | 'manufacturer_product_page' | 'distributor_product_page', string>> = {};
   for (const [entryKey, role] of LINK_ROLES) {
     const url = f[entryKey];
@@ -69,7 +69,7 @@ function withLinks(driver: OpenISDDriver, f: LibraryEntry): OpenISDDriver {
   return driver;
 }
 
-function rawUrlOf(f: LibraryEntry): string {
+function rawUrlOf(f: PoolEntry): string {
   const path = (f.path ?? '').split('/').map(encodeURIComponent).join('/');
   return `https://raw.githubusercontent.com/${f.repo}/${f.branch}/${path}`;
 }
@@ -81,7 +81,7 @@ export interface SelectionResult {
 }
 
 /** Fetch and parse a federated `.wdr` row, or say why it could not be read. */
-async function modelOf(f: LibraryEntry): Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
+async function modelOf(f: PoolEntry): Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
   let text = f.content;
   if (!text) {
     let res: Response;
@@ -125,9 +125,9 @@ export type EditorDraftSeed =
   | { kind: 'myDriver'; openedAs: string; seed: OpenISDDriver | null };
 
 export interface DriverSelection {
-  selectDriver(f: LibraryEntry): Promise<SelectionResult>;
+  selectDriver(f: PoolEntry): Promise<SelectionResult>;
   editMyDriver(d: OpenISDDriver): void;
-  editOverviewDriver(f: LibraryEntry): Promise<SelectionResult>;
+  editOverviewDriver(f: PoolEntry): Promise<SelectionResult>;
   editProjectDriver(): void;
   openNewDriver(): void;
   /** What the editor is open on right now, and what to seed its own draft from. */
@@ -163,7 +163,7 @@ export function createDriverSelection(): DriverSelection {
   /** The driver behind a library row, whatever kind of row it is — a DETACHED copy, so the
    *  caller can edit it freely without mutating the row still on screen. A saved driver and a
    *  bundled one are both already domain objects; only a federated `.wdr` needs fetching. */
-  async function driverOf(f: LibraryEntry):
+  async function driverOf(f: PoolEntry):
       Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
     if (f.myDriverData) return { ok: true, driver: f.myDriverData.copy() };
     if (f.record) return { ok: true, driver: f.record.copy() };

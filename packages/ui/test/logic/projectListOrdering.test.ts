@@ -4,14 +4,14 @@
  * `OpenISDProjectMeta`'s own doc already states why: "`name` is a LABEL: two open projects may
  * share one, so it is never an identity." A map keyed by name cannot hold two projects that
  * share a label at all — the second `add` would silently overwrite the first. This is the gate
- * that keeps that true of the registry `store.ts` actually exposes (`openProjects()` /
+ * that keeps that true of the registry `appState.ts` actually exposes (`openProjects()` /
  * `addProject()` / `removeProject()` / `focusProject()`), not just of the type comment.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   openProjects, addProject, removeProject, focusProject, focusedProject,
-} from '../../src/logic/store.js';
+} from '../../src/logic/appState.js';
 import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
 
 /** Two independent projects, both named identically, so any name-keyed storage would collapse

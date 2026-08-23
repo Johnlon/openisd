@@ -209,25 +209,38 @@ describe('OpenISDDriver — metaCell()/enterMeta()/clearMeta() (brand/model/manu
   });
 });
 
-describe('OpenISDDriver — driver_type "passive_radiator" is the ONLY spelling (QO65 ruling)', () => {
-  it('driver_type "passive_radiator" (underscore) resolves to the passive_radiator section, ' +
-     'reading the value stated there', () => {
+describe('OpenISDDriver — a driver TYPE and a specs SECTION KEY are two vocabularies, mapped', () => {
+  it('driver_type "passive-radiator" reads the passive-radiator section — the type value is ' +
+     'kebab like every other member, the section key is the emitting model\'s field name and ' +
+     'so cannot carry a hyphen; sectionFor maps between them', () => {
     const record = grs8fr8();
-    record.driver_type.value = 'passive_radiator';
-    record.specs = { passive_radiator: { Fs: record.specs.woofer!.Fs } };
+    record.driver_type.value = 'passive-radiator';
+    record.specs = { 'passive-radiator': { Fs: record.specs.woofer!.Fs } };
     const d = OpenISDDriver.fromJsonRecord(record);
-    assert.equal(d.section, 'passive_radiator');
+    assert.equal(d.section, 'passive-radiator');
     assert.equal(d.cell('Fs').value, 45.0);
   });
 
-  it('driver_type "passive-radiator" (kebab) is undeclared — sectionFor falls back to the ' +
-     'woofer section, so the value stated under specs.passive_radiator reads not-available ' +
+  it('driver_type "amt" reads the tweeter section — the emitter files AMT specs under ' +
+     'specs.tweeter (spec_emit.py: "HF transducers file under specs.tweeter"), and the two ' +
+     'sides share one section convention ' +
+     '(BUG_20260822_sectionfor_sends_amt_records_to_the_empty_woofer_section)', () => {
+    const record = grs8fr8();
+    record.driver_type.value = 'amt';
+    record.specs = { tweeter: { Re: record.specs.woofer!.Re } };
+    const d = OpenISDDriver.fromJsonRecord(record);
+    assert.equal(d.section, 'tweeter');
+    assert.equal(d.cell('Re').value, 7.3);
+  });
+
+  it('an undeclared driver_type falls back to the woofer section, so a value stated under ' +
+     'specs.passive-radiator reads not-available ' +
      '(BUG_20260821_sectionfor_cannot_distinguish_invalid_driver_type_from_woofer: this is a ' +
      'silent fallback, not a refusal — an undeclared value takes the same branch as every ' +
      'legitimately-woofer driver type)', () => {
     const record = grs8fr8();
-    record.driver_type.value = 'passive-radiator';
-    record.specs = { passive_radiator: { Fs: record.specs.woofer!.Fs } };
+    record.driver_type.value = 'qwertyuiop';
+    record.specs = { 'passive-radiator': { Fs: record.specs.woofer!.Fs } };
     const d = OpenISDDriver.fromJsonRecord(record);
     assert.equal(d.section, 'woofer');
     assert.equal(d.cell('Fs').value, null);

@@ -32,7 +32,7 @@ sanctioned way to edit a driver at all.
 |---|---|---|---|
 | `toWinISDDriver` | `(): Result<WinISDDriver>` | **0** | hands out the WinISD projection OBJECT. Zero production callers — the text route `toWdrText` was the public path and is now `#` anyway. Nothing needs it. |
 | `static fromWinISDDriver` | `(wdr: WinISDDriver): OpenISDDriver` | **0** | same, inbound. Zero production callers. |
-| `get section` | `(): 'woofer' \| 'tweeter' \| 'passive_radiator'` | 2 | returns which spec SECTION this driver is — a fact about the record's internal layout. Callers wanting the driver TYPE should ask for the driver type. |
+| `get section` | `(): 'woofer' \| 'tweeter' \| 'passive-radiator'` | 2 | returns which spec SECTION this driver is — a fact about the record's internal layout. Callers wanting the driver TYPE should ask for the driver type. |
 
 **Recommendation: PRIVATE all three.** The first two are free — nothing calls them. `get section`
 has 2 callers to migrate.

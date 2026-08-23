@@ -1,10 +1,10 @@
 /**
- * Unit tests for `driverHasDqIssues` (`packages/ui/src/db/driverRepo.ts`) — pins the current
+ * Unit tests for `driverHasDqIssues` (`packages/ui/src/persistence/repos/driverRepo.ts`) — pins the current
  * behaviour (Fs/Re presence, the Sd||Vas branch, and the Q-group threshold on both sides of 2).
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { driverHasDqIssues, type FileEntry } from '../../src/db/driverRepo.js';
+import { driverHasDqIssues, type FileEntry } from '../../src/persistence/repos/driverRepo.js';
 import { OpenISDDriver } from '@openisd/model';
 import type { _OpenISDDriverJson, SpecField } from '@openisd/model';
 
@@ -157,7 +157,7 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
 // A record with no `quality` block does not reach `driverHasDqIssues` at all: `quality` is
 // required by `_OpenISDDriverJson`, and `myDrivers.ts::list()` is the seam that refuses a
 // record failing that contract before it is ever handed to this function — see
-// `packages/ui/test/db/myDrivers.test.ts` and
+// `packages/ui/test/persistence/myDriverRepo.test.ts` and
 // `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`.
 
 describe('driverHasDqIssues — federated row path (no record/myDriverData yet)', () => {

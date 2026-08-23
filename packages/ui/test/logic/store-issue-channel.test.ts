@@ -14,7 +14,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { allIssues, paramIssues, managedProject } from '../../src/logic/store.js';
+import { allIssues, paramIssues, managedProject } from '../../src/logic/appState.js';
 
 describe('the store unions every hardening layer into one issue list', () => {
   it('a fully specified design is clean — no layer reports a false positive', () => {

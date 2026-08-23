@@ -447,7 +447,7 @@ graph TD
 
 | Module                        | Status                                    |
 | ----------------------------- | ----------------------------------------- |
-| `logic/store.ts`              | built — persistent design state           |
+| `logic/appState.ts`           | built — persistent design state           |
 | `logic/managedDriver.ts`      | built — active · edit · what-if           |
 | `logic/presentationState.ts`  | built — dialog flags, chart cursor/selection, display prefs |
 | `logic/urlAppState.ts`        | NOT BUILT                                 |
@@ -459,7 +459,7 @@ cannot say whether it belongs where it is, or at all.
 | ------------------------------- | ----------------------------------------------- |
 | `logic/useDesignIO.ts`          | open · save · export · share                    |
 | `logic/driverSelection.ts`      | the driver-picker / editor workflow             |
-| `logic/driverLibrary.ts`        | library browsing                                |
+| `logic/driverBrowsingState.ts`  | driver-browsing reactive state                  |
 | `logic/persist.ts`              | localStorage + share-link encode/decode         |
 | `logic/projectFile.ts`          | project file naming                             |
 | `logic/model/OpenISDProject.ts` | project model                                   |
@@ -473,11 +473,11 @@ cannot say whether it belongs where it is, or at all.
 | `logic/environment.ts`          | air constants for the view                      |
 | `logic/prWinIsdFields.ts`       | PR field conversions for the view               |
 | `logic/wprMapping.ts`           | `.wpr` input assembly                           |
-| `logic/fileSave.ts`             | File System Access wrapper                      |
+| `persistence/storage/fileSave.ts` | File System Access wrapper                    |
 | `logic/app.ts`                  | app facade (provide/inject)                     |
 | `logic/toneGenerator.ts`        | tone generator                                  |
 | `logic/useEscToClose.ts`        | Escape-key handling                             |
-| `db/kv.ts`, `db/prLibrary.ts`   | key-value store · PR library                    |
+| `persistence/storage/keyValueStorage.ts`, `persistence/repos/prRepo.ts` | key-value storage port · PR repo |
 
 **SERVICES / DOMAIN** — placed, and matching the target.
 
@@ -507,7 +507,7 @@ still imported.
 
 **No module-level singletons, and no exported mutable bindings.** Each module exports a
 `create<Name>(deps)` factory and nothing pre-built: a ready-made instance cannot be substituted, so
-every consumer of one becomes untestable in isolation. `state` is created by the store factory and
+every consumer of one becomes untestable in isolation. `state` is created by the appState factory and
 handed to whoever needs it — it is not importable.
 
 | Module                       | Single responsibility                                                          | Injected dependencies                                           |
@@ -517,26 +517,26 @@ handed to whoever needs it — it is not importable.
 | `ManagedProject`             | The one facade over ONE project's ground/committed/overlay state — see §3       | an `OpenISDProject` factory                                     |
 | `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the `ManagedProject`, plus whichever services that workflow needs |
 | `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup — returns RECORDS, never live instances | a bundle source (`() => OpenISDDriverJson[]`)      |
-| `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStore`                                               |
-| `createPrefsStore`           | Browser-local preferences: favourites, session, layout                         | a `KeyValueStore`                                               |
+| `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStorage`                                              |
+| `createPrefsRepo`            | Browser-local preferences: favourites, session, layout                         | a `KeyValueStorage`                                              |
 | `ManagedOpenISDProject` file IO (QO78) | `.wdr`/`.owdr`/`.wpr` codec methods on the facade itself (`exportDriverWdr`/`exportDriverOwdr`/`exportWpr`/`importWpr`/`persistedDriverText`/`loadDriverFrom*Text`) — the driver crosses the boundary only as serialised text/bytes. No `.owpr` codec: its on-disk shape is `SerializedState`, an A8 decision | `@openisd/model`, `@openisd/winisd`, `wprMapping.ts`, `driverFileText.ts`, `fileFormat.ts`, `persist.ts`'s gzip helpers |
 | `managedDriver.ts` (QO78)     | Driver file IO NOT bound to a project — disk/library rows → an `OpenISDDriver` | `@openisd/model` |
-| `createFileStore`             | WHERE bytes go and come from (open/save/save-as), no format knowledge          | the File System Access API + download fallback (`fileSave.ts`)  |
+| `createFileStorage`           | WHERE bytes go and come from (open/save/save-as), no format knowledge          | the File System Access API + download fallback (`fileSave.ts`)  |
 | `createDiagnostics`          | Run the self-test and report what it found                                     | the engine, a reporter (`(msg) => void`)                        |
 | `createLogging`              | Surface application events to the user                                         | — (leaf; it depends on nothing)                                 |
 | `ui/`                        | Render state, raise intent                                                     | the app facade, via Vue `provide`/`inject` at the root          |
 
-A `KeyValueStore` is an interface — `get`/`set`/`remove`. `localStorage` is one implementation and
+A `KeyValueStorage` is an interface — `get`/`set`/`remove`. `localStorage` is one implementation and
 an in-memory map is another, which is what lets the repositories be tested without a browser.
 
 **Why a repository, not a "db".** `driverRepo` and `myDriverRepo` answer questions about drivers
 and hand back records. They take arguments and return data. They do not know a dialog is open,
-they do not decide what happens next, and they never touch the store — a service that reads app
+they do not decide what happens next, and they never touch app state — a service that reads app
 state has inverted the arrow and dragged the layer above it into its own.
 
 **Where workflow lives.** "The user chose a driver" is a decision about what the app does next: it
 belongs in `logic`, which may call a repository to fetch the record and then update its own state.
-Putting that sequence inside a repository is what forces a service to import the store.
+Putting that sequence inside a repository is what forces a service to import appState.
 
 **Serialisation is a leaf.** `@openisd/winisd` turns the OpenISD record into WinISD's bytes and
 back. WinISD is a consumer of our files and the reference oracle for our numbers — it is not our

@@ -148,10 +148,3 @@ export function loadLocal(): SerializedState | null {
   return upgradeParsedState(parsed);
 }
 
-/** `body` is BYTES for any format with its own encoding — a `.wdr`/`.wpr` newline sentinel is
- *  one byte that UTF-8 cannot express, so those callers encode first and hand the bytes over. */
-export function download(name: string, body: string | Uint8Array<ArrayBuffer>, mime?: string): void {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([body], { type: mime || 'text/plain' }));
-  a.download = name; a.click();
-}

@@ -149,7 +149,7 @@ export interface SweepParams {
   /**
    * Source resistance placement (WinISD Advanced: "Rg is at driver side").
    * true/absent — Rs sits in series with EACH driver, so it scales with the array
-   *               (n in parallel → Rs/n). This is OpenISD's historic behaviour.
+   *               (n in parallel → Rs/n); the default.
    * false       — one Rs in series with the whole array, at the amplifier.
    * Identical either way when nDrivers is 1.
    */

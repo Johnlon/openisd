@@ -6171,7 +6171,7 @@ questions:
     at: '2026-08-21'
     text: |-
       HUMAN RULING, verbatim (2026-08-21):
-      "065 - it si a bug if we have mutlipel pr values here ..  if (t === 'passive-radiator' || t === 'passive_radiator'
+      "065 - it si a bug if we have mutlipel pr values here ..  if (t === 'passive-radiator' 
       neeed to make sure _tools has pyton uses only the _ variant, then to save time perform a scrupted yml update directly to fix the db.
       in the mean time DO NOT inplement the '-' version in OID, keep oid clen.  sectionFor can then be avoided or simplified perhapsp.
       openisd will never actually use the tweeter section directly as it primarly a sub box tool but the tweetter info would be potentialy usefil to show in the driect info popup. But its not critical at the moment.
@@ -6641,4 +6641,18 @@ questions:
     port the gap. Ties to D18 + the EBP relation bug.'
   status: open
   raised: '2026-08-22'
+  body: ''
+- id: QO85
+  title: 'ABC (Aperiodic Bi-Chamber) needs 3 ports, not 1 (John, 2026-08-23). QO44/ledger say
+    "ABC has no field specification anywhere" as if the gap were undocumented WinISD parity
+    work; John: that is because ABC has three ports, and the current alignment shape
+    (OpenISDVentedAlignment/OpenISDBandpass4Alignment each carry exactly one `vent:
+    OpenISDVent` field) cannot represent that at all — this is a structural gap in
+    OpenISDBox, not a missing-spec gap. Before OpenISDBandpass6Alignment/OpenISDAbcAlignment
+    can be added, decide whether a multi-port alignment holds `vents: OpenISDVent[]` or
+    named fields (vent1/vent2/vent3), and whether Sp/Leff on SyncedParams/UiParams/SweepParams
+    (currently single optional scalars) become per-port arrays or stay scalars with a
+    box-type-specific meaning. Explicitly deferred: John said do not add bandpass6/abc yet.'
+  status: open
+  raised: '2026-08-23'
   body: ''

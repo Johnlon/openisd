@@ -1,7 +1,7 @@
 /**
  * ONE user action must produce ONE solve, not two.
  *
- * `store.ts` bridges `ManagedOpenISDProject.subscribe()` to a coarse auto-solve watch: ANY
+ * `appState.ts` bridges `ManagedOpenISDProject.subscribe()` to a coarse auto-solve watch: ANY
  * project mutation notifies `live`, and the watch re-runs `solveVentGroup`/`solvePrGroup`
  * unless a suspension is active (`docs/design/REACTIVITY.md`; `bugs/BUG_20260821_vent_group_
  * auto_solve_clobbers_a_half_written_entered_set.md`'s "live design risk" section).
@@ -23,7 +23,7 @@
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, managedProject } from '../../src/logic/store.js';
+import { state, managedProject } from '../../src/logic/appState.js';
 import { enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn } from '../../src/logic/useVentGroup.js';
 import { enterPrField as enterPrFieldOn, clearPrField as clearPrFieldOn } from '../../src/logic/usePrGroup.js';
 

@@ -3,14 +3,13 @@ import { ref, watch } from 'vue';
 import { presentationState } from '../../logic/presentationState.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { useApp } from '../../logic/app.js';
-import type { FileEntry } from '../../db/driverRepo.js';
 import { DriverFileFormat } from '../../fileFormat.js';
 
-const { library, selection } = useApp();
+const { driverBrowsing, selection } = useApp();
 const { openNewDriver } = selection;
 
 // The WinISD-style driver library — markup and
-// CSS only (ARCHITECTURE.md AD-7). All behaviour is logic/driverLibrary.ts; callers differ in
+// CSS only (ARCHITECTURE.md AD-7). All behaviour is logic/driverBrowsingState.ts; callers differ in
 // their own stylesheets, not in what a click does.
 //
 // Choosing a driver EMBEDS it in the project and closes this picker (docs/design/STATE_MODEL.md rule 1) —
@@ -33,14 +32,16 @@ const {
   previewFile, previewData, pickFile, chooseDriver, loadFromDisk, cloneDriver,
   openedLibrary, closeLibrary,
   shortSource, driverHasDqIssues,
-} = library;
+} = driverBrowsing;
 
 const fileInputEl = ref<HTMLInputElement | null>(null);
 function triggerFileLoad() { fileInputEl.value?.click(); }
 
 // A row click SUMMARISES; "Use" is what chooses. The summary is a reading step in front of the
-// choice, so the user can check a driver before it lands in their project.
-function handleItemClick(f: FileEntry) { pickFile(f); }
+// choice, so the user can check a driver before it lands in their project. The parameter type
+// is derived from the already-injected `pickFile` rather than imported from `persistence/` —
+// this component takes its facade by injection and never names the persistence layer itself.
+function handleItemClick(f: Parameters<typeof pickFile>[0]) { pickFile(f); }
 
 function close() { closeLibrary(); }
 useEscToClose(() => presentationState.browseOpen, close);

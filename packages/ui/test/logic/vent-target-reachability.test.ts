@@ -19,7 +19,7 @@
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, managedProject } from '../../src/logic/store.js';
+import { state, managedProject } from '../../src/logic/appState.js';
 import {
   ventAchievedFb, ventTargetUnreachable, ventMaxReachableFb,
   enterVentField as enterVentFieldOn,

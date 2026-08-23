@@ -4,11 +4,10 @@ Status: OPEN
 
 ## Symptom
 
-`packages/model/src/openisdDriver.ts:280`:
-`return t === 'tweeter' || t === 'passive_radiator' ? t : 'woofer';`
-An undeclared value (`'passive-radiator'`, `'banana'`) takes the identical branch as the nine
-driver types that legitimately read the woofer section — nothing downstream can report the
-record as defective. `packages/ui/src/driverType.ts`'s `DriverType.parse` states the house
+`packages/model/src/openisdDriver.ts`, `sectionFor()`: every value that is not `tweeter`,
+`amt` or `passive-radiator` returns `'woofer'`. An undeclared value (`'banana'`) therefore
+takes the identical branch as the nine driver types that legitimately read the woofer
+section — nothing downstream can report the record as defective. `packages/ui/src/driverType.ts`'s `DriverType.parse` states the house
 semantics for exactly this case: an undeclared value is INVALID data returning a
 distinguishable null "while the record stays reportable as a data defect".
 
@@ -20,8 +19,8 @@ in `@openisd/ui`, which `@openisd/model` cannot depend on (dependency direction 
 model→engine/winisd only) — the record model has nothing to validate its own discriminator
 against. Contrast: `AlignmentKind` in `openisdProject.ts` is handled by an exhaustive
 no-default `switch` (TypeScript-enforced totality) — the house pattern `sectionFor` lacks.
-`packages/model/test/openisdDriver.test.ts`'s kebab test pins the fallback behaviour (title
-corrected to say so).
+`packages/model/test/openisdDriver.test.ts` pins the fallback behaviour with an arbitrary
+undeclared value, since every undeclared value takes that one branch.
 
 ## Cause
 

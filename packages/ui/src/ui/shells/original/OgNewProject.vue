@@ -9,7 +9,7 @@
  * simulate (6th-order bandpass / ABC are pending everywhere), same rule as elsewhere.
  */
 import { ref, computed } from 'vue';
-import { state, managedProject, isModified, newProject, markProjectSaved, openDriverPicker } from '../../../logic/store.js';
+import { state, managedProject, isModified, newProject, markProjectSaved, openDriverPicker } from '../../../logic/appState.js';
 import type { BoxType } from '@openisd/engine';
 
 import { useEscToClose } from '../../../logic/useEscToClose.js';

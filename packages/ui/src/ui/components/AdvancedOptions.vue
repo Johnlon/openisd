@@ -10,7 +10,7 @@
  * short form of the same text. Design: PLAN_ADVANCED_SIM_OPTIONS.md.
  */
 import { computed } from 'vue';
-import { state, simVcInductance, managedProject } from '../../logic/store.js';
+import { state, simVcInductance, managedProject } from '../../logic/appState.js';
 import { createLiveRef } from '../../logic/liveProject.js';
 
 /** The transmission-line port model only means anything for a box that HAS a vent. */

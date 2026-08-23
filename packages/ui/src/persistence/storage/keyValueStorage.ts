@@ -1,11 +1,14 @@
+/** STORAGE (port): where bytes live, keyed by string. Knows keys and strings, never what a
+ *  driver or a preference is. */
+//
 // The one storage abstraction the repositories are built on.
 //
 // A repository does not know whether it is talking to a browser or to a test: it is handed a
-// KeyValueStore and asks it for strings. `localStorage` is one implementation and an
-// in-memory map is another, which is what lets My Drivers, favourites and the PR library be
+// KeyValueStorage and asks it for strings. `localStorage` is one implementation and an
+// in-memory map is another, which is what lets My Drivers, favourites and the PR repo be
 // exercised without a DOM.
 
-export interface KeyValueStore {
+export interface KeyValueStorage {
   get(key: string): string | null;
   set(key: string, value: string): void;
   remove(key: string): void;
@@ -16,7 +19,7 @@ export interface KeyValueStore {
  * full, and neither is a reason for the app to stop — a preference that cannot be written is
  * a preference that does not persist, not a crash.
  */
-export function createLocalStorageStore(): KeyValueStore {
+export function createLocalStorage(): KeyValueStorage {
   return {
     get(key) { try { return localStorage.getItem(key); } catch { return null; } },
     set(key, value) { try { localStorage.setItem(key, value); } catch { /* disabled or full */ } },
@@ -24,8 +27,8 @@ export function createLocalStorageStore(): KeyValueStore {
   };
 }
 
-/** An equivalent store with no browser behind it — what a test injects. */
-export function createMemoryStore(initial: Record<string, string> = {}): KeyValueStore {
+/** An equivalent storage with no browser behind it — what a test injects. */
+export function createMemoryStorage(initial: Record<string, string> = {}): KeyValueStorage {
   const map = new Map<string, string>(Object.entries(initial));
   return {
     get(key) { return map.has(key) ? map.get(key)! : null; },

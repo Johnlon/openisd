@@ -208,8 +208,8 @@ export interface UiParams {
   endCorrection: number;
   // ---- WinISD Advanced-pane simulation options (PLAN_ADVANCED_SIM_OPTIONS.md) ----------
   // The fifth WinISD toggle, "Simulate voice coil inductance", is NOT a field of its own:
-  // it is `circuitModel` under WinISD's wording (store.simVcInductance is the alias).
-  /** Rg sits in series with each driver (true, historic) rather than at the amplifier. */
+  // it is `circuitModel` under WinISD's wording (appState.simVcInductance maps it).
+  /** Rg sits in series with each driver (true, the default) rather than at the amplifier. */
   rgAtDriverSide: boolean;
   /** Model the vent as an acoustic transmission line instead of a lumped mass. */
   tlPortModel: boolean;
@@ -280,7 +280,7 @@ export interface UiState {
   /** Options dialog → General tab "Environment" group (WinISD parity: Temperature/Air
    *  pressure/Relative humidity — Sound velocity is derived, not stored). These are
    *  APP-LEVEL defaults, distinct from a project's own Advanced-pane values: they only seed
-   *  a shell's Advanced-pane refs on mount (replacing what used to be a hardcoded literal),
+   *  a shell's Advanced-pane refs on mount,
    *  they never overwrite an already-open project. Persisted across refresh and carried by a
    *  share link (2026-08-14 ruling, as above). */
   envDefaults: { tempK: number; pressurePa: number; humidityPct: number };

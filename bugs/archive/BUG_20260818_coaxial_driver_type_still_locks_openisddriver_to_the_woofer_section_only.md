@@ -23,10 +23,10 @@ driver's own record is never read, never written, and never visible through `cel
 
 `packages/model/src/openisdDriver.ts:136-141`:
 ```ts
-function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive_radiator' {
+function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive-radiator' {
   const t = record.driver_type?.value;
   if (t === 'tweeter') return 'tweeter';
-  if (t === 'passive-radiator' || t === 'passive_radiator') return 'passive_radiator';
+  if (t === 'passive-radiator' || t === 'passive-radiator') return 'passive-radiator';
   return 'woofer';   // <- 'coaxial' (and anything else unrecognised) lands here
 }
 ```
@@ -58,7 +58,7 @@ static readonly Coaxial = new DriverType('coaxial', 'Coaxial', [Chip.Coax, Chip.
 ## Cause
 
 `sectionFor()` was written enumerating the sections `OpenISDDriver` was built to expose
-one-at-a-time (`'woofer' | 'tweeter' | 'passive_radiator'`), matching a driver that has exactly
+one-at-a-time (`'woofer' | 'tweeter' | 'passive-radiator'`), matching a driver that has exactly
 one spec section. `coaxial` was added to `DriverType`'s vocabulary (UI-facing enum) without a
 corresponding case in the model's section resolver, so it was never given a legal outcome —
 it silently defaults to the same branch as every other unrecognised `driver_type` value.

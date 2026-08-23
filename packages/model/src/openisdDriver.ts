@@ -105,33 +105,13 @@ export interface _OpenISDDriverJson {
    *  GAP, not a design choice (human ruling 2026-08-14) — winisd_tools must populate it. */
   provided_by?: _ScrapedField<string>;
   /** Free human note about this driver. Same standing as provided_by: a real field of the
-   *  record, optional, previously missing from both file formats. */
+   *  record, optional. */
   comment?: _ScrapedField<string>;
   /** When this record was added, ISO yyyy-mm-dd. Same standing as provided_by. */
   added?: _ScrapedField<string>;
   specs: _Specs;
   curves?: CurvesBlock;
 }
-
-/**
- * Human ruling: the ONLY files, `packages/`-relative, permitted to name `_OpenISDDriverJson` —
- * the class that owns this shape (this file), the store, and the single class responsible
- * for OpenISD's own file io. Enforced by `packages/ui/test/ui/architecture.test.ts`
- * ("leading-underscore exports are class-private"), which scans every `_Name` declaration
- * across the repo for a sibling `<Name>PrivateAllow` export like this one and treats it as
- * the exhaustive permission list for that name.
- *
- * ONLY the human may add, remove, or change an entry here — no agent may edit this list on
- * its own judgement, however legitimate a call site looks. A failing test naming a new
- * offender is the correct, expected result, not authorization to widen this list to make it
- * pass; report the offender and wait for the human's ruling instead.
- */
-export const _OpenISDDriverJsonPrivateAllow = [
-  // Human grant 2026-08-20: "openisdproject is Permitted by me to share it's internal Json
-  // state object with openisd class - granted these are the API classes for the domain and
-  // private sharing is ok". The two domain API classes, and only those two.
-  'model/src/openisdProject.ts',
-];
 
 // ── The envelope kinds `_OpenISDDriverJson`'s fields are built from ──────────────────────
 //
@@ -234,7 +214,7 @@ export interface _SpecSection {
 export interface _Specs {
   woofer?: _SpecSection;
   tweeter?: _SpecSection;
-  passive_radiator?: _SpecSection;
+  'passive-radiator'?: _SpecSection;
 }
 
 // ── CurvesBlock — model_driver.py:891-896. Shape not yet fully verified (CurveEntry's
@@ -273,17 +253,24 @@ export interface MetaCell {
  * Which section of `specs` a record's fields live in. Anything that is not a tweeter or a
  * passive radiator reads `woofer` — that is the pipeline's own convention, and `full-range`
  * is the common case that proves it.
+ *
+ * A driver TYPE and a specs SECTION KEY are two vocabularies, mapped here, never equated:
+ * there are more types than sections (`amt` files under `tweeter` — `spec_emit.py`'s rule for
+ * HF transducers), and the section key is a field name in the emitting pydantic model, so it
+ * spelled as a STRING, hyphenated like the type value it mirrors.
  */
-function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive_radiator' {
+function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive-radiator' {
   const t = record.driver_type?.value;
-  return t === 'tweeter' || t === 'passive_radiator' ? t : 'woofer';
+  if (t === 'amt') return 'tweeter';
+  if (t === 'passive-radiator') return 'passive-radiator';
+  return t === 'tweeter' ? 'tweeter' : 'woofer';
 }
 
 export class OpenISDDriver {
   /** The record as it stands, including any manual readings entered since load. */
   readonly #record: _OpenISDDriverJson;
   /** The section every T/S field of this driver lives in — fixed by driver_type. */
-  readonly #section: 'woofer' | 'tweeter' | 'passive_radiator';
+  readonly #section: 'woofer' | 'tweeter' | 'passive-radiator';
   /** The {value, origin} a MetaField carried before a manual override, so clearMeta() can
    *  restore it. */
   readonly #displacedMeta = new Map<MetaField, { value: string; origin: SourceRole }>();
@@ -531,7 +518,7 @@ export class OpenISDDriver {
 
   /** The section this driver's T/S fields live in — `specs.woofer` for anything that is
    *  neither a tweeter nor a passive radiator. */
-  get section(): 'woofer' | 'tweeter' | 'passive_radiator' { return this.#section; }
+  get section(): 'woofer' | 'tweeter' | 'passive-radiator' { return this.#section; }
 
   #specs(): _SpecSection {
     if (!this.#record.specs) this.#record.specs = {};

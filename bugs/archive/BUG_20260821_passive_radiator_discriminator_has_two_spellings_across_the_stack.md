@@ -95,3 +95,34 @@ standing in for one canonical spelling.
   task's own edits and re-running: the same error persists. `driver-type-chips.test.ts` could
   not be run standalone for the same reason (its import chain reaches `store.ts`); its edits
   were verified by inspection instead.
+
+## Superseded 2026-08-23 — still RESOLVED, by the opposite route
+
+Human ruling: "english is `-` and I want hyphen everywhere in passive-radiator specifically.
+symbols can be `passive_radiator` but string must be `passive-radiator`."
+
+QO65 (above) collapsed the two spellings onto the UNDERSCORE, because Fix item 1's premise was
+that the `specs:` section key had to be a pydantic FIELD NAME and a Python identifier cannot
+carry a hyphen. That premise is now gone: `model_driver.Specs` is
+`RootModel[dict[SpecSectionName, SpecSection]]`, so the section name is DATA rather than an
+attribute, carries the hyphen like every other wire string, and the dynamic
+`getattr(self, name.value)` — reading a STRING as a SYMBOL — is deleted. Python identifiers
+stay `snake_case`: `specs.woofer`/`.tweeter`/`.passive_radiator` remain, as properties over the
+root mapping.
+
+Both the `driver_type` value and the `specs:` section key are now `passive-radiator` in all 154
+records (`scrapers/bin/fix_passive_radiator_type_value.py`, canonical-writer round-trip,
+db-conformance 3983 passed / 0 failed).
+
+**Fix item 3's collision note came true.** It recorded that the driver-type value collided with
+`AlignmentKind`'s unrelated `'passive-radiator'` string "only while both were kebab". Both are
+kebab again, so `driver-type-chips.test.ts` flagged `managedProject.ts`'s two alignment
+comparisons. Resolved WITHOUT weakening the gate: the alignment seam names the value once
+(`const PR_ALIGNMENT = 'passive-radiator' satisfies AlignmentKind`) so no raw literal sits in a
+comparison, and a duplicate of that translation inlined at the `.wpr` build site now calls
+`fromAlignmentKind` instead.
+
+The bug this record describes stays fixed under either ruling: there is exactly ONE spelling of
+the wire string and nothing accepts a second. `sectionFor()` MAPS a driver TYPE to a section
+KEY — it must, since `amt` files under `tweeter` — and a map between two vocabularies is not an
+alias for one.

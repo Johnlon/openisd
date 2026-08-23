@@ -49,7 +49,7 @@ const realDb = (ys: number[]) => ys.filter(v => Number.isFinite(v) && v > SILENC
 
 interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boolean; unit: string }
 
-/** Everything a curve builder may read. Identical inputs to the old if/else chain. */
+/** Everything a curve builder may read. */
 interface CurveCtx {
   meta: TabMeta;
   drv: EngineDriver;

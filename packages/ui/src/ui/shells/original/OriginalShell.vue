@@ -1,8 +1,6 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare const __PLATFORM_USER__: string | undefined;
-declare const __BUILD_DATETIME__: string;
-const buildDatetime = __BUILD_DATETIME__;
 /**
  * The shell — a faithful recreation of WinISD 0.7.0.950's window, wired to the store +
  * engine.
@@ -26,7 +24,7 @@ import {
   managedProject,
   formatInUnit as fmtU,
   newProject,
-} from '../../../logic/store.js';
+} from '../../../logic/appState.js';
 import { presentationState } from '../../../logic/presentationState.js';
 import { createLiveRef } from '../../../logic/liveProject.js';
 import {
@@ -52,6 +50,7 @@ import { copyOfName, uniqueName } from '../../../logic/projectFile.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
 import { useApp } from '../../../logic/app.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
+import { steppedFrequency, clampedFrequency } from '../../../logic/cursorFrequency.js';
 import GraphPanel from '../../components/GraphPanel.vue';
 import NumInput from '../../components/NumInput.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
@@ -299,29 +298,18 @@ function onHzInputBlur() {
 }
 
 function commitHzInput() {
-  const v = parseFloat(hzInputText.value);
-  if (isFinite(v) && v > 0) {
-    const clamped = Math.max(fmin.value, Math.min(fmax.value, v));
-    presentationState.pinnedF = clamped;
-    presentationState.cursorF = clamped;
-    presentationState.cursorLocked = true;
-  } else {
-    presentationState.pinnedF = null;
-    presentationState.cursorF = null;
-    presentationState.cursorLocked = false;
-  }
+  const f = clampedFrequency(parseFloat(hzInputText.value), fmin.value, fmax.value);
+  presentationState.pinnedF = f;
+  presentationState.cursorF = f;
+  presentationState.cursorLocked = f != null;
 }
 
 function spinHz(dir: number, factor = 1.02) {
-  const current = cursorHz.value ?? ((fmin.value * fmax.value) ** 0.5);
-  let nextF = dir > 0 ? current * factor : current / factor;
-  if (dir > 0 && nextF <= current) nextF = current + 0.1;
-  if (dir < 0 && nextF >= current) nextF = current - 0.1;
-  const clamped = Math.max(fmin.value, Math.min(fmax.value, nextF));
-  presentationState.pinnedF = clamped;
-  presentationState.cursorF = clamped;
+  const f = steppedFrequency({ current: cursorHz.value, dir, factor, fmin: fmin.value, fmax: fmax.value });
+  presentationState.pinnedF = f;
+  presentationState.cursorF = f;
   presentationState.cursorLocked = true;
-  hzInputText.value = clamped.toFixed(2);
+  hzInputText.value = f.toFixed(2);
 }
 
 function onHzKeydown(e: KeyboardEvent) {
@@ -610,7 +598,7 @@ const navCollapsed = computed({ get: () => presentationState.ui.originalNavColla
 const bottomCollapsed = computed({ get: () => presentationState.ui.originalBottomCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalBottomCollapsed = v; } });
 const chartMax = computed({ get: () => presentationState.ui.originalChartMax ?? false, set: (v: boolean) => { presentationState.ui.originalChartMax = v; } });
 const mainStyle = computed(() => chartMax.value ? {} : {
-  gridTemplateColumns: (navCollapsed.value ? '0px' : (presentationState.ui.originalNavW ?? 250) + 'px') + ' 7px 1fr',
+  gridTemplateColumns: (navCollapsed.value ? '0px' : (presentationState.ui.originalNavW ?? 175) + 'px') + ' 7px 1fr',
   // Bottom row: a fixed natural height (DEFAULT_BOTTOM_H) until the user drags the splitter
   // to an explicit px — never `auto`, which would wobble with the rail's tab count.
   gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (presentationState.ui.originalBottomH ?? DEFAULT_BOTTOM_H) + 'px'),
@@ -761,13 +749,6 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
 
 <template>
   <div class="original-root">
-    <!-- ================= Title bar ================= -->
-    <div class="titlebar" style="position: relative;">
-      <div class="tb-left"><span class="app-icon"></span><span>OpenISD — WinISD Original Mode (ALIGNED)<template v-if="state.project.name"> — {{ state.project.name }}{{ isModified ? ' *' : '' }}</template></span></div>
-      <div class="tb-center" style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666; font-family: monospace;">{{ buildDatetime }}</div>
-      <div class="win-controls"><span>&#8211;</span><span>&#9633;</span><span class="close-btn">&#10005;</span></div>
-    </div>
-
     <!-- ================= Toolbar ================= -->
     <div class="toolbar">
       <div class="tb-icons">
@@ -1468,14 +1449,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
 }
 .original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
 
-/* ---------- Title bar ---------- */
-.titlebar { display:flex; align-items:center; justify-content:space-between; background:#e9e9e9; border-bottom:1px solid #bbb; padding:6px 10px; font-size:15px; }
-.titlebar .tb-left { display:flex; align-items:center; gap:8px; }
 .app-icon { width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #888, #333 70%); display:inline-block; }
-.titlebar .win-controls { display:flex; gap:14px; color:#555; font-size:15px; }
-.titlebar .win-controls span { cursor:pointer; padding:2px 6px; }
-.titlebar .win-controls span:hover { background:#dcdcdc; }
-.titlebar .win-controls .close-btn:hover { background:#e64545; color:#fff; }
 
 /* ---------- Toolbar ---------- */
 .toolbar { display:flex; align-items:center; justify-content:space-between; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
@@ -1547,7 +1521,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
 /* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
 /* Track sizes come from the inline mainStyle (presentationState.ui.originalNavW/originalBottomH,
    0px when a panel is collapsed); these template values are only the no-JS fallback. */
-.main { display:grid; grid-template-columns:250px 7px 1fr; grid-template-rows:1fr 7px auto;
+.main { display:grid; grid-template-columns:175px 7px 1fr; grid-template-rows:1fr 7px auto;
   grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail rail content";
   flex:1 1 auto; min-height:0; overflow:hidden; }
 .quad-topleft { grid-area:nav; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; overflow-x:hidden; min-height:0; min-width:0; }
@@ -1581,7 +1555,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
    reads as one continuous shape with the panel (the break-through notch). */
 .quad-bottomleft {
   grid-area: rail;
-  background: #f7f7f7;
+  background: #fcfcfc;
   display: flex;
   flex-direction: column;
   gap: 4px;

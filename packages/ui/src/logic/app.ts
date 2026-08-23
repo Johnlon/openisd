@@ -1,12 +1,13 @@
 import { inject, type App, type InjectionKey } from 'vue';
-import type { DriverLibrary } from './driverLibrary.js';
+import type { DriverBrowsingState } from './driverBrowsingState.js';
 import type { DriverSelection } from './driverSelection.js';
 import type { DesignIO } from './useDesignIO.js';
-import type { PrRepo } from '../db/prLibrary.js';
-import type { MyDriverRepo } from '../db/myDrivers.js';
+import type { PrRepo } from '../persistence/repos/prRepo.js';
+import type { MyDriverRepo } from '../persistence/repos/myDriverRepo.js';
 import type { Logging } from '../logging/flash.js';
 import type { Diagnostics } from '../diagnostics/selftest.js';
 import type { FaultLog } from '../diagnostics/faultLog.js';
+import type { FileStorage } from '../persistence/storage/fileStorage.js';
 
 /**
  * What the presentation layer is given.
@@ -16,17 +17,22 @@ import type { FaultLog } from '../diagnostics/faultLog.js';
  * composition root (`main.ts`) — no component reaches for a ready-made instance, so a test
  * can mount the same tree over substitutes.
  *
- * `prLibrary` and `myDrivers` are repositories the UI is handed directly: the PR browser and
+ * `prRepo` and `myDrivers` are repositories the UI is handed directly: the PR browser and
  * the driver editor read and write records without any workflow in between, so wrapping them
- * in a logic module would add a layer that decides nothing.
+ * in a logic module would add a layer that decides nothing. `driverFileStorage` is the same
+ * direct-handoff shape for a STORAGE port: the driver editor's `.wdr`/`.owdr` export is a
+ * one-shot save with no workflow of its own, and it is a SEPARATE `FileStorage` instance from
+ * `designIO`'s — sharing one would mean exporting a driver silently retargets the project
+ * Save button's retained file handle.
  */
 export interface AppLogic {
   logging: Logging;
-  library: DriverLibrary;
+  driverBrowsing: DriverBrowsingState;
   selection: DriverSelection;
   designIO: DesignIO;
-  prLibrary: PrRepo;
+  prRepo: PrRepo;
   myDrivers: MyDriverRepo;
+  driverFileStorage: FileStorage;
   diagnostics: Diagnostics;
   faultLog: FaultLog;
 }

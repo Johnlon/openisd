@@ -51,7 +51,7 @@
 //             covers OpenISD's one 'SPL' tab (absolute dB SPL).
 import { computed, reactive, ref } from 'vue';
 import { airForEnvironment } from '../../logic/environment.js';
-import { managedProject } from '../../logic/store.js';
+import { managedProject } from '../../logic/appState.js';
 import { presentationState, resetUnitTokens } from '../../logic/presentationState.js';
 import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';

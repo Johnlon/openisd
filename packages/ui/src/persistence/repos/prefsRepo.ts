@@ -1,4 +1,6 @@
-import type { KeyValueStore } from './kv.js';
+/** REPO: domain access to the user's browser-local preferences. Takes a storage, returns
+ *  domain values. */
+import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 
 // Browser-local preferences. THE one place that knows their storage keys and their shapes.
 //
@@ -13,21 +15,21 @@ import type { KeyValueStore } from './kv.js';
 
 export const FAVORITES_KEY = 'openisd_favorite_drivers';
 
-export interface PrefsStore {
+export interface PrefsRepo {
   favorites(): string[];
   setFavorites(keys: string[]): void;
 }
 
-export function createPrefsStore(store: KeyValueStore): PrefsStore {
+export function createPrefsRepo(storage: KeyValueStorage): PrefsRepo {
   return {
     favorites() {
       try {
-        const parsed: unknown = JSON.parse(store.get(FAVORITES_KEY) ?? '[]');
+        const parsed: unknown = JSON.parse(storage.get(FAVORITES_KEY) ?? '[]');
         return Array.isArray(parsed) ? parsed.filter((k): k is string => typeof k === 'string') : [];
       } catch { return []; }
     },
     setFavorites(keys) {
-      store.set(FAVORITES_KEY, JSON.stringify(keys));
+      storage.set(FAVORITES_KEY, JSON.stringify(keys));
     },
   };
 }

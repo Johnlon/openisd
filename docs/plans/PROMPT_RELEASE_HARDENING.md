@@ -104,7 +104,152 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
-# IN-FLIGHT STATE (updated 2026-08-22 ~18:45
+# COMMAND STATE (2026-08-23 ~night — John asleep; Fable supervises ONLY, no toil; every
+# completion claim is adversarially re-verified before it counts)
+
+## New ruled lane P — PROJECT DOMAIN SYMMETRY (John, 2026-08-23, verbatim intent)
+"a much more central role for the domain object in the project to carry the appropriate set
+of properties including calc and manual and hybrid just like the driver and for there to be
+few if any floating functions augmenting the project classes (project/pr/vented/sealed/4th
+etc) and instead I expect to see a similar set of accessors to what we see on the driver.
+Symmetry is highly valued - consistency is highly valued - encapsulation etc etc."
+- MEASURED starting debt: 16 exported free functions operate on project/box/vent/pr shapes
+  in model/src/openisdProject.ts (setActiveAlignment, activeVent, ventArea_m2,
+  boxVolume_m3/set, boxTuning_Fb_hz/set, passiveRadiatorOrDefault, ensurePassiveRadiator,
+  prCmsFromWinIsdVas, prMmdFromWinIsdFs, prRmsFromWinIsdQms, alignmentKindOfBType,
+  bTypeOfAlignmentKind, prototypeBox …) — each is a candidate accessor/method on
+  OpenISDProject or its box objects, with Provenance (E/C/N) semantics mirroring
+  OpenISDDriver.cell(). QO85 (ABC needs 3 ports vs the single-vent OpenISDBox) folds in here.
+- OWNER: opus1 designs it (it is rewriting that file now); design goes to Fable for
+  adversarial review BEFORE implementation; implementation delegated after.
+- John's related rulings already executing: ONE class per WinISD file format
+  (WinISDProject in/out, all side types deleted); box/vent physics moves ONTO
+  OpenISDProject.toWinISDProject(); wprMapping.ts dies.
+
+## The commit train (strict order, one wave per commit, PATH-SCOPED adds only)
+1. opus1: winisd .wpr rewrite (frozen paths: winisd/src, model/openisdProject.ts,
+   ui/logic/managedProject.ts, wpr tests). ETA requested.
+2. sonnet1: D20+A8 wave + Fable's riders (E1 comments, amt fix, doc updates) — pathspec
+   prepared, commits ON MY GO after 1 lands, re-verified green first.
+3. Fable's remaining tree changes ride 2 (already in its set) — incl. the passive-radiator
+   hyphen work and the HUMAN_GRANTED gate exception (John-ruled).
+4. Bridge artifact rebuild (`npm run build:bridge`) + tpl-75 smoke → ping yaml-divergence.
+5. yaml-divergence: amt-slice differential proof → B10 emit sweep (tools tree green).
+6. sonnet 3: A9 gates (test-files-only — may land independently of 1-3; assigned).
+7. Then: D21 (sonnet1), E1 remainder, A10 register review, frozen-tree Playwright,
+   release sign-off (needs John: QO80, PRECOMMIT rows, pushed-attribution).
+
+## Plan review (Fable, 2026-08-23 night — John's standing advice: slice efficiently, decide,
+## log to inbox, never block on him). DECISIONS MADE, discussable later:
+
+- **D-P1: Lane P is RELEASE-BLOCKING** (John's emphasis reads as an architecture goal for
+  this hardening, not a someday) and is SLICED: P1 = the 16 floating functions become
+  methods/accessors (mechanical once designed); P2 = project-field provenance (E/C/N +
+  "hybrid" solved-from-entered) mirroring driver `cell()`; P3 = the box model itself (QO85:
+  ABC needs 3 ports; single-vent OpenISDBox is wrong shape) — P3 is app+`.wpr` only, no
+  corpus impact, so it does NOT reopen B10/H1. Design (opus1) covers all three; slices
+  implement in parallel after my review. QO85 logged for John's ratification, work proceeds.
+- **D-P2: openisd attribution rewrite rides the train** as a step after the LAST content
+  commit, under John's existing ruling ("rewrite them and we'll do a forced push") — no new
+  permission needed; inbox item logs the timing for visibility. winisd_drivers' hung push:
+  next attempt SSH, same ruling.
+- **D-P3: QT71 stays BLOCKED-ON-JOHN by design** (a genuine reversal decision — `value:` on
+  entries vs Q31's removal); consequence contained: B-lane scenario implementation stays
+  deferred and B10's row-6 stays ❔; nothing else waits on it.
+- **D-P4: new plan row — the SPL two-names-one-quantity offence** (provenance panel declares
+  SPL from `no` by the same formula the engine uses for SPLref; blocked on the Step 7
+  rename): parked as a named row with the bug record as its spec; not release-blocking.
+- **D-P5: E1 remainder reassigned to sonnet 3** the moment sonnet1's commit lands (persist
+  ×2 + GraphPanel + DriverEditorModal hits, pre-located; ruling classes already adjudicated
+  in E1_WORKLIST.md). D21 stays with sonnet1 after D20.
+- **D-P6: tools Class A (4 un-migrated plugins) is added to the release gate's row 4 scope**
+  — it is production emit code and B10's sweep runs through it; winisd_tool_fix must land A
+  before the sweep fires (B and C may trail).
+
+## Fleet assignments (standing)
+- opus2 — STANDING ADVERSARY (John's order): re-verifies every completion claim against the
+  tree; first targets: Fable's own day's changes, then each train landing. Also owns the
+  HUMAN_GRANTED path-format fix in architecture.test.ts (Fable's error, John-ruled feature).
+- winisd_tool_fix — the 129 baseline failures: Class A (4 un-migrated plugins + dq.py
+  half-migration — REAL production debt, bug record first), then B (test-side SpecField
+  lag), then C (SI value lag). Seam stays SpecField-only; no dual-accept.
+- fable1 — John's walkthrough queue (6 ledger Qs + deferrals + pushed-attribution), holding.
+- PrivateAllow DECOMMISSIONED (John): gate is owner-only + HUMAN_GRANTED pairs named in the
+  gate itself; widening an allow list is no longer an available answer anywhere.
+- winisd_drivers push: rewritten history is local-only; push hangs in git-remote-https —
+  next attempt is SSH, John's call. winisd_tools/research rewrites LANDED.
+
+# IN-FLIGHT STATE (updated 2026-08-22 ~21:00
+- **★ AMT SILENT-ZERO BUG found by the differential, root-caused and FIXED (rides the D20
+  commit):** openisd `sectionFor` sent `driver_type: amt` to the empty woofer section (the
+  emitter files AMT under specs.tweeter — spec_emit.py:124), so the 5 Beyma TPL records
+  projected all-zero .wdr with errors:[]. Fix: amt→tweeter + red-first test
+  (bugs/BUG_20260822_sectionfor_sends_amt_records_to_the_empty_woofer_section.md, cross-ref'd
+  to the tools-side differential bug). B10 SWEEP HELD until `npm run build:bridge` rebuilds
+  the artifact post-commit and yaml-divergence re-proves the amt slice.
+- **§12.8 DIFFERENTIAL DONE (yaml-divergence, b2621784):** 1893 records through the real
+  bridge vs golden; classifications held (16 known-missing adds, c/roo per D19, Comment
+  known-open); the AMT finding was its one novel red. Sweep sequence locked: D20 commit →
+  bridge rebuild + tpl-75 smoke → amt-slice proof → full sweep (tools tree is now green).
+- **TOOLS LANDED (winisd_tool_fix):** 75a7387a GRS inch fix (verified by orchestrator, all
+  five ×0.0254 exact, float-noise restamped), 4dc573ef accuton F4 cleanup, fc9d4e96 QT58
+  disposition deletion (grep-zero residue). Bug-ledger audit of winisd_tools running.
+- **OPENISD BUG LEDGER repaired (opus1, staged, commits on hook-pass):** dvol pair merged;
+  8 MIXED files split to open-half-only; archive-parser code-block bug recorded; needs-John
+  set (8 items) handed to fable1. NEW FINDING assigned to opus1 post-commit: provenance
+  panel re-diverged (missing Fs=EBP·Qes route; provenance.ts:48 shows Rms/Qms where
+  driver.ts:200 computes Rme/Qes) — fix with a STRUCTURAL route-parity test.
+- **E1 nearly closed by orchestrator:** docs/scripts/gate-header/engine/model/ui-logic/
+  browser-specs/UnitToggle/expoStep all done; remainder (GraphPanel, DriverEditorModal ×2,
+  persist ×2) inside sonnet1's held set — claim after its commit.
+- **Release-gate cleanup row corrected with live evidence:** openisd attributed commits are
+  PUSHED (10 in recent history; rewrite = force-push = banned) — John's decision; drivers'
+  2 unpushed attributed commits rewritable at cleanup; tools clean.
+- **★★ THE ONE-SHOT MIGRATION RAN AND STANDS (B-lane's biggest risk retired):** 2012
+  driver.yml + 1969 openisd.yml rewritten, 0 validation failures, 0 reload failures;
+  manufacturer definition restamped ×3981; all old keys grep to zero; db-conformance
+  3983/0 (the 3,981 standing reds are dead). Orchestrator's personal sample verification
+  APPENDED to B10_SAMPLE_VERIFICATION_PROTOCOL.md — every assertion green with quoted
+  evidence except row 6 (❔ untested: the value-less rejected-entry shape has no corpus
+  exemplar until the B-lane scenario work lands); migrated c25-6-013 proven through the
+  REAL V8 bridge (errors: [], clean .wdr). Corpus is GITIGNORED in winisd_drivers
+  (.gitignore:22 /db/, verified) — the migration's record is the script (cut commit
+  88631450) + run report + the verdict appendix, no corpus commit exists to make.
+  Cut commit 88631450 also carries F4's ordered hard-delete (model_wdr/rebuild_wdr/
+  wdr_ini_file + 9 pinned tests + toys, −10,928 lines) — verified against --name-status.
+  GRS outer-dimension inch fix DONE AND VERIFIED (all five records exact ×0.0254 with
+  literals preserved; the one float-noise precision restamped to 1.27e-05 — orchestrator
+  checked every value). Tools-side remainder: differential + B10 emit sweep (yaml-divergence,
+  pinged).
+- **★ openisd `38bd5cd` LANDED AND PUSHED — the doctrine wave**: D22 complete (repos speak
+  OpenISDDriver; injected `driverFromConformingRecord` factories via main.ts; editor owns its
+  draft via `committedDriverText()`/`OpenISDDriver.empty()`; driverSelection loses
+  editorDraft/editorSeed/acceptDriverEdit; toJsonRecord gone from the UI), D15 re-export wave
+  (checklist 8→0), D18 η₀ + EBP relations in consistency.ts. 2038/2043 through the pre-commit
+  hook; PrivateAllow at its gate-forced floor of 1 (BundleRecord.record — the
+  no-unknown-in-channel gate rejects unknown in output position; zero grants issued).
+- **D20 EXECUTING (sonnet1, dispatched ~19:00)**: full rename map per
+  PERSISTENCE_NAMING_AND_PLACEMENT.md incl. the 'store'-elimination ruling — db/→persistence/
+  (storage/+repos/), store.ts→appState.ts, driverLibrary.ts→driverBrowsingState.ts,
+  PrefsStore→PrefsRepo, glosses, prose sweep, ARCHITECTURE.md §532/534 rewrite, and the
+  born-appropriate `no-persistence-vocabulary-drift` AST gate. Transient typecheck reds in the
+  tree are this wave in flight.
+- **opus2 pinged for tools-chain status** (widened migration dry-run → ONE-SHOT run → cut
+  commit → differential → B10 sweep → my ten-record sample check).
+- **A8 GAP MEASURED (orchestrator, post-38bd5cd)**: the Done criterion (driver-value +
+  containment gates green) is already met; the only `.vue` importing persistence is
+  `DriverBrowserWinisd.vue` → `persistence/repos/driverRepo.js` (fix: inject the facade at
+  the composition root, D22's main.ts pattern). The 11 `appState` imports are
+  presentation→logic, permitted by the layering gate. A8 = that one repointing.
+- **A9 READY EARLY**: opus1's two gates drafted (docs/design/a9-drafts/), demonstrated
+  non-vacuous, ZERO offences on the current tree — landing does not wait for A8. Queued
+  behind the D20 commit, plus the re-export gate's exports-map alignment (a currently-vacuous
+  LOOSENING, its A10 register row worded as such for John).
+- **B10 sample pinned + probe proven**: rows 4–10 instantiated pre-migration (protocol doc),
+  eleven files snapshotted, the mechanical checker demonstrated finding every debt class
+  pre-migration. NEW BUG recorded (winisd_tools): the five GRS planars store INCHES under
+  outer_x/y_mm (10.04 "mm" on a 10-inch driver); vcd on the same records converts correctly —
+  scraper's outer-dimension path misses the inch factor. Queued post-migration; row 9 carved.
 - **THIRD MASKED DEBT LAYER (winisd_tool_fix's dry-run; ruled by orchestrator):** pydantic's
   field-level extra_forbidden errors (dq_status/dq) pre-empted the model_validator, which
   MASKED definition-text drift at 100% coverage — 2012/2012 driver.yml carry stale definition
@@ -353,7 +498,7 @@ never improvise around it.
       to the 2026-08-14 ruling, three browser-spec sites repointed. Spin-outs: QO72 (gate
       scope, human's edit); BUG_20260821_original_skin_spec_reads_state_p... (9 pre-existing
       sites, task A3c).
-- [x] **D7** (added and DONE 2026-08-21, ruled by QO65, review PASS): `passive_radiator` is
+- [x] **D7** (added and DONE 2026-08-21, ruled by QO65, review PASS): `passive-radiator` is
       the ONLY spelling — python enum snake, 154 live db records migrated by
       `scrapers/bin/fix_passive_radiator_spelling.py` (idempotent, archive untouched, both
       record kinds validated), openisd dual-accept deleted. Spin-out:
@@ -1087,8 +1232,11 @@ Then report to the human for the release decision. Never tag, publish, or push.
 Commit at regular intervals.
 Dont push.
 Check the git commits for any agent attributions in the git log and rewrite these entries to
-remove refs to the agent. MEASURED 2026-08-22: this run's own commits are clean; 48 OLDER
-unpushed commits on openisd `origin/dev..dev` (prior sessions) carry
-`Co-Authored-By: Claude`/`Claude-Session:` trailers — the cleanup rewrite covers those
-(unpushed, so rewritable without violating the never-force-push rule). Sweep winisd_tools/
-winisd_drivers/winisd_research unpushed ranges the same way at cleanup time.
+remove refs to the agent. RE-MEASURED 2026-08-22 ~19:50 (post safety-pushes, verified live):
+openisd `origin/dev..dev` = 0 — everything is PUSHED, including 10 attributed commits in the
+recent history, so the openisd rewrite is now IMPOSSIBLE without force-push, which is
+absolutely banned. The attributed openisd history stays as-is unless John explicitly rules
+otherwise (HIS decision — the safety pushes he ordered took precedence over this cleanup
+row). winisd_tools unpushed: 2 commits, 0 attributions — clean. winisd_drivers unpushed:
+2 commits, BOTH attributed — rewritable at cleanup time (genuinely unpushed). This run's
+own commits are written clean.

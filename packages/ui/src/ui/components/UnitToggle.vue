@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // The clickable unit label. Rotating it switches the field's display unit for every widget
-// bound to the same field id (the paired NumInput, or a calculated readout) — the store stays
-// SI; only the chosen token changes. Pass the caller's own unit-span
-// class via `unitClass`. This replaces the old decorative cycleUnit, which rotated the text but
-// never converted the value.
+// bound to the same field id (the paired NumInput, or a calculated readout) — the app state
+// stays SI; only the chosen token changes, and the displayed VALUE converts with it (a toggle
+// that rotated the text without converting the value would silently misstate every reading).
+// Pass the caller's own unit-span class via `unitClass`.
 import { computed } from 'vue';
 import { unitToken, cycleUnitToken } from '../../logic/presentationState.js';
 import { unitDef, type UnitGroup } from '../../logic/fields/units.js';

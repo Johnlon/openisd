@@ -4,7 +4,7 @@ import type { PRLibEntry, BundledPR } from '../../types.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { useApp } from '../../logic/app.js';
 
-const { prLibrary } = useApp();
+const { prRepo } = useApp();
 
 // PR browser — a popup mirroring the driver browser (DriverBrowserMd.vue): two
 // sections, "Saved" (your localStorage PR library) and "Bundled" (passive radiators
@@ -18,8 +18,8 @@ const emit = defineEmits<{
   define: [];
 }>();
 
-const saved = ref(prLibrary.list());
-const bundled = prLibrary.bundled();
+const saved = ref(prRepo.list());
+const bundled = prRepo.bundled();
 const filter = ref('');
 
 const fSaved = computed(() => {
@@ -33,7 +33,7 @@ const fBundled = computed(() => {
 
 function loadSaved(e: PRLibEntry) { emit('load', e); }
 function loadBundledPR(p: BundledPR) { emit('loadBundled', p); }
-function remove(id: number) { saved.value = prLibrary.remove(id); }
+function remove(id: number) { saved.value = prRepo.remove(id); }
 function define() { emit('define'); }
 function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }

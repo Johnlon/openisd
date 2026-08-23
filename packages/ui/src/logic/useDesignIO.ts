@@ -7,7 +7,7 @@
  * This file is ORCHESTRATION ONLY: filename bookkeeping and flashing messages, calling the
  * MANAGED LAYER's own file-IO methods (`managedProject.exportDriverWdr()`/`exportWpr()`/
  * `importWpr()`/…, QO78: file IO lives in the domain module that owns what it reads/writes)
- * and the injected `FileStore` (WHERE bytes go AND the retained file handle, `fileStore.ts`).
+ * and the injected `FileStorage` (WHERE bytes go AND the retained file handle, `fileStorage.ts`).
  * It holds no driver value in any form — the driver crosses this file only as the managed
  * layer's serialised text (`persistedDriver`, QO73) or as opaque export bytes.
  *
@@ -24,15 +24,18 @@ import { watch } from 'vue';
 import {
   state, driverName, persistedDriver, managedProject,
   markProjectSaved, applyState, curvesData,
-} from './store.js';
+} from './appState.js';
 import { presentationState } from './presentationState.js';
-import { serialize, stateToUrl, download, upgradeParsedState } from './persist.js';
+import { serialize, stateToUrl, upgradeParsedState } from './persist.js';
+import { createFileSave } from '../persistence/storage/fileSave.js';
 import { setShareUrl } from './urlAppState.js';
 import type { Logging } from '../logging/flash.js';
 import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
 import { readDriverFileText } from './driverFileText.js';
-import type { FileStore } from './fileStore.js';
+import type { FileStorage } from '../persistence/storage/fileStorage.js';
 import { DriverFileFormat, ProjectFileFormat, formatOf, sniff } from '../fileFormat.js';
+
+declare const __BUILD_DATETIME__: string;
 
 function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
@@ -61,21 +64,22 @@ export interface DesignIO {
 /**
  * Built ONCE by the composition root and handed to every consumer. Every shell's Save button
  * and the shared ExportMenu must agree on which file is open; a second construction would
- * give each its own `FileStore` (and so its own retained handle), so Save As in the menu and
+ * give each its own `FileStorage` (and so its own retained handle), so Save As in the menu and
  * Save in the toolbar would track different files. Session-only either way — the File System
  * Access API does not persist handles across a page load.
  */
-export function createDesignIO(deps: { logging: Logging; fileStore: FileStore }): DesignIO {
+export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorage }): DesignIO {
   const flash = (msg: string) => deps.logging.flash(msg);
+  const { download } = createFileSave();
 
   // Renaming the project retargets the file. Browsers cannot rename a file on disk, so the
   // honest equivalent is to let go of the retained handle: the next Save prompts for a
   // location, with the new name already filled in. Without this, renaming would keep silently
   // overwriting the file that still carries the OLD name — the one thing the name↔file rule
-  // forbids. `FileStore` retains the handle itself; this only asks it to forget.
+  // forbids. `FileStorage` retains the handle itself; this only asks it to forget.
   watch(() => state.project.name, (name) => {
-    const openName = deps.fileStore.openFileName();
-    if (openName && projectNameFromFilename(openName) !== name) deps.fileStore.forget();
+    const openName = deps.fileStorage.openFileName();
+    if (openName && projectNameFromFilename(openName) !== name) deps.fileStorage.forget();
   });
 
   function projectJsonText(): string {
@@ -95,7 +99,7 @@ export function createDesignIO(deps: { logging: Logging; fileStore: FileStore })
   async function saveProject(): Promise<boolean> {
     closeTunePanelAfterIO();
     const suggested = projectFilename(state.project.name);
-    const result = await deps.fileStore.save(
+    const result = await deps.fileStorage.save(
       projectJsonText(), suggested, ProjectFileFormat.Owpr.mime, ProjectFileFormat.Owpr.label, '.' + ProjectFileFormat.Owpr.value);
     if (result.cancelled) return false;
     adoptFileName(result.name, suggested);
@@ -119,9 +123,9 @@ export function createDesignIO(deps: { logging: Logging; fileStore: FileStore })
    */
   async function saveProjectAs(): Promise<void> {
     closeTunePanelAfterIO();
-    const hadOpenFile = deps.fileStore.openFileName() != null;
+    const hadOpenFile = deps.fileStorage.openFileName() != null;
     const suggested = projectFilename(hadOpenFile ? copyOfName(state.project.name) : state.project.name);
-    const result = await deps.fileStore.saveAs(
+    const result = await deps.fileStorage.saveAs(
       projectJsonText(), suggested, ProjectFileFormat.Owpr.mime, ProjectFileFormat.Owpr.label, '.' + ProjectFileFormat.Owpr.value);
     if (result.cancelled) return;
     adoptFileName(result.name, suggested);
@@ -215,14 +219,14 @@ export function createDesignIO(deps: { logging: Logging; fileStore: FileStore })
         } else {
           throw new Error('Unsupported or unrecognized file format');
         }
-        deps.fileStore.forget();
+        deps.fileStorage.forget();
         flash('Opened ' + f.name);
       } catch (err) { alert('Could not read "' + f.name + '": ' + (err as Error).message); }
     }, (err: Error) => { alert('Could not read "' + f.name + '": ' + err.message); });
   }
 
   function about(): void {
-    alert(`OpenISD — opensource interactive speaker designer\nA community-owned tool modelling the Thiele/Small electro-mechano-acoustical system.\n\nBox types: sealed, vented, 4th-order bandpass, passive radiator\nCurves: SPL, excursion, port velocity, group delay, impedance, max SPL/power\n\nSee docs/MATHS.md for the circuit model and equations.`);
+    alert(`OpenISD — opensource interactive speaker designer\nA community-owned tool modelling the Thiele/Small electro-mechano-acoustical system.\n\nBox types: sealed, vented, 4th-order bandpass, passive radiator\nCurves: SPL, excursion, port velocity, group delay, impedance, max SPL/power\n\nSee docs/MATHS.md for the circuit model and equations.\n\nBuild: ${__BUILD_DATETIME__}`);
   }
 
   return { saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, about };

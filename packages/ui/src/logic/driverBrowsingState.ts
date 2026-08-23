@@ -5,19 +5,19 @@ import { readDriverFileText } from './driverFileText.js';
 import { DriverFileFormat, sniff } from '../fileFormat.js';
 import { DriverScope } from '../driverScope.js';
 import { Chip } from '../driverType.js';
-import { driverId, type MyDriverRepo } from '../db/myDrivers.js';
-import type { PrefsStore } from '../db/prefs.js';
+import { driverId, type MyDriverRepo } from '../persistence/repos/myDriverRepo.js';
+import type { PrefsRepo } from '../persistence/repos/prefsRepo.js';
 import type { Logging } from '../logging/flash.js';
 import {
   driverKey as keyOf, myDriverEntry, myDriverName, matchesCriteria, previewOf,
   normaliseDate, fmtHz, shortSource, driverHasDqIssues, parseRepoInput,
   type DriverRepo, type FileEntry, type Preview,
-} from '../db/driverRepo.js';
+} from '../persistence/repos/driverRepo.js';
 import { type DriverSelection } from './driverSelection.js';
 import { driverFromFileText } from './managedDriver.js';
 
 // The row and summary shapes the presentation layer is handed. A component names them with a
-// TYPE-ONLY import straight from `db/driverRepo.js` — exempt from the presentation-depends-
+// TYPE-ONLY import straight from `persistence/repos/driverRepo.js` — exempt from the presentation-depends-
 // only-on-logic layering rule (a type erases at compile time, so it carries no runtime
 // dependency) and from the no-re-export gate (QO80): the name is imported from the module that
 // actually declares it, never relabelled through an intermediary.
@@ -43,7 +43,7 @@ export const DRIVER_TYPES = Chip.ALL;
 // labels could disagree with the rotation; reading them off the enum cannot.
 export const DRIVER_SCOPES = DriverScope.ALL;
 
-export interface DriverLibrary {
+export interface DriverBrowsingState {
   DRIVER_TYPES: typeof DRIVER_TYPES;
   DRIVER_SCOPES: typeof DRIVER_SCOPES;
   DISPLAY_LIMIT: number;
@@ -98,17 +98,17 @@ export interface DriverLibrary {
   driverHasDqIssues: typeof driverHasDqIssues;
 }
 
-export interface DriverLibraryDeps {
+export interface DriverBrowsingStateDeps {
   driverRepo: DriverRepo;
   myDriverRepo: MyDriverRepo;
-  prefs: PrefsStore;
+  prefs: PrefsRepo;
   logging: Logging;
   selection: DriverSelection;
   /** Asks the user to confirm a destructive action. The browser's `confirm` in the app. */
   confirmReset: (question: string) => boolean;
 }
 
-export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
+export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): DriverBrowsingState {
   const { driverRepo, myDriverRepo, prefs, logging, selection } = deps;
 
   // `shallowRef`, not `ref`: `FileEntry.record`/`myDriverData` carry an `OpenISDDriver` — a
@@ -142,7 +142,7 @@ export function createDriverLibrary(deps: DriverLibraryDeps): DriverLibrary {
   // held in a `ref` and breaks `===` identity on a singleton (driverType.ts).
   //
   // Not persisted, deliberately — `favoritesOnly` is not either. Both are view state for the
-  // session; what persists is the DATA the user created (db/prefs.ts, db/myDrivers.ts).
+  // session; what persists is the DATA the user created (persistence/repos/prefsRepo.ts, persistence/repos/myDriverRepo.ts).
   const driverScopeValue = ref<string>(DriverScope.All.value);
 
   /** The scope in force, as a member. */

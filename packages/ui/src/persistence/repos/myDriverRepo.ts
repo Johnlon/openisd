@@ -1,12 +1,13 @@
+/** REPO: domain access to the My Drivers collection. Takes a storage, returns domain objects. */
 import type { OpenISDDriver } from '@openisd/model';
-import type { KeyValueStore } from './kv.js';
+import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 
-// "My Drivers" — the user's own saved drivers, a bucket of its own in browser storage.
+// "My Drivers" — the user's own saved-driver collection, in browser storage.
 // THE one place that knows the storage key and its shape, and THE one write path: every
 // route that creates a user driver (Add new, Clone, Load File, Save-and-reload) ends in
 // `upsert`, so there is exactly one rule for what saving means.
 //
-// A REPOSITORY: it is handed a store, takes arguments and returns DOMAIN OBJECTS. It does not
+// A REPO: it is handed a storage, takes arguments and returns DOMAIN OBJECTS. It does not
 // know a dialog is open and it never decides what happens next — that is the logic layer's job.
 //
 // THE OWNER OF THE STATE SERIALIZES AND PERSISTS IT (docs/design/SERIALIZATION_DOCTRINE.md):
@@ -23,7 +24,7 @@ import type { KeyValueStore } from './kv.js';
 // A rename IS a new identity. Editing a driver's brand or model and saving therefore writes
 // a DIFFERENT driver, which is what makes Clone ("Copy of …") the deliberate way to fork one.
 // Nothing here is written by editing a project: a project embeds its own copy of a driver,
-// so only an explicit save reaches this bucket.
+// so only an explicit save reaches this collection.
 
 export const MY_DRIVERS_KEY = 'openisd_my_drivers';
 
@@ -50,7 +51,7 @@ export interface MyDriverRepo {
   identityOf(d: OpenISDDriver): string;
   /** Every saved driver, in the order they were saved. */
   list(): OpenISDDriver[];
-  /** Replace the whole bucket — used by "reset to the demo samples". */
+  /** Replace the whole collection — used by "reset to the demo samples". */
   replaceAll(list: OpenISDDriver[]): void;
   /**
    * Save one driver. It overwrites the entry already holding the resulting `<brand>/<model>`
@@ -75,11 +76,11 @@ export interface MyDriverRepo {
  * ratification — a future release may instead migrate or surface these entries to the user).
  */
 function readAndSplit(
-  store: KeyValueStore, fromConformingRecord: (candidate: unknown) => OpenISDDriver | null,
+  storage: KeyValueStorage, fromConformingRecord: (candidate: unknown) => OpenISDDriver | null,
 ): { conforming: OpenISDDriver[]; unrecognised: unknown[] } {
   let raw: unknown[];
   try {
-    const parsed: unknown = JSON.parse(store.get(MY_DRIVERS_KEY) ?? '[]');
+    const parsed: unknown = JSON.parse(storage.get(MY_DRIVERS_KEY) ?? '[]');
     raw = Array.isArray(parsed) ? parsed : [];
   } catch { raw = []; }
 
@@ -104,20 +105,20 @@ function readAndSplit(
  * importing the class to do it itself.
  */
 export function createMyDriverRepo(
-  store: KeyValueStore, fromConformingRecord: (candidate: unknown) => OpenISDDriver | null,
+  storage: KeyValueStorage, fromConformingRecord: (candidate: unknown) => OpenISDDriver | null,
 ): MyDriverRepo {
   function list(): OpenISDDriver[] {
-    return readAndSplit(store, fromConformingRecord).conforming;
+    return readAndSplit(storage, fromConformingRecord).conforming;
   }
 
   function replaceAll(next: OpenISDDriver[]): void {
-    store.set(MY_DRIVERS_KEY, JSON.stringify(next.map(d => d.toJsonRecord())));
+    storage.set(MY_DRIVERS_KEY, JSON.stringify(next.map(d => d.toJsonRecord())));
   }
 
-  /** Write `conforming` back beside whatever `unrecognised` blobs the store already held —
+  /** Write `conforming` back beside whatever `unrecognised` blobs the storage already held —
    *  each group keeps its own relative order, conforming first. */
   function writeBack(conforming: OpenISDDriver[], unrecognised: unknown[]): void {
-    store.set(MY_DRIVERS_KEY, JSON.stringify([...conforming.map(d => d.toJsonRecord()), ...unrecognised]));
+    storage.set(MY_DRIVERS_KEY, JSON.stringify([...conforming.map(d => d.toJsonRecord()), ...unrecognised]));
   }
 
   return {
@@ -126,7 +127,7 @@ export function createMyDriverRepo(
     replaceAll,
     upsert(d) {
       const id = driverId(d);
-      const { conforming, unrecognised } = readAndSplit(store, fromConformingRecord);
+      const { conforming, unrecognised } = readAndSplit(storage, fromConformingRecord);
       const idx = id ? conforming.findIndex(x => driverId(x) === id) : -1;
       if (idx >= 0) conforming[idx] = d; else conforming.push(d);
       writeBack(conforming, unrecognised);
@@ -134,7 +135,7 @@ export function createMyDriverRepo(
     },
     remove(id) {
       if (!id) return false;   // unidentifiable driver: refuse rather than delete an arbitrary row
-      const { conforming, unrecognised } = readAndSplit(store, fromConformingRecord);
+      const { conforming, unrecognised } = readAndSplit(storage, fromConformingRecord);
       const kept = conforming.filter(d => driverId(d) !== id);
       if (kept.length === conforming.length) return false;
       writeBack(kept, unrecognised);

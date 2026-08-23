@@ -98,7 +98,7 @@ describe('createLiveRef', () => {
   });
 
   it('called with no active scope, does NOT auto-dispose — the caller keeps explicit control', () => {
-    // The store's module-level bridge (`store.ts`'s `live`) is created at module load, outside
+    // The store's module-level bridge (`appState.ts`'s `live`) is created at module load, outside
     // any component scope, and must keep working exactly as before: nothing subscribes it away
     // automatically, and its own `dispose()` remains the only way to unsubscribe.
     const fake = fakeSubscribable();

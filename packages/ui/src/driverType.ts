@@ -78,7 +78,7 @@ export class DriverType {
   static readonly Coaxial         = new DriverType('coaxial',          'Coaxial',          [Chip.Coax, Chip.Woofer, Chip.Bass, Chip.Mid, Chip.Tweet]);
   static readonly Tweeter         = new DriverType('tweeter',          'Tweeter',          [Chip.Tweet]);
   static readonly Amt             = new DriverType('amt',              'AMT',              [Chip.Tweet]);
-  static readonly PassiveRadiator = new DriverType('passive_radiator', 'Passive Radiator', [Chip.Pr]);
+  static readonly PassiveRadiator = new DriverType('passive-radiator', 'Passive Radiator', [Chip.Pr]);
   // NOTE: `compression`, `horn`, `waveguide` are deliberately absent — compression
   // (horn-loaded) drivers are not box/T-S-modellable and bare horns/waveguides are
   // passive accessories. All are filtered out at discovery. See

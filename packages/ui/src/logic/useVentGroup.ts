@@ -7,8 +7,7 @@
  *
  * One equation solves one unknown, so three of the four are chosen and the fourth follows.
  * WinISD chooses `Vb`, `Fb` and the diameter and returns the LENGTH — you design to a tuning,
- * then build the port that delivers it. OpenISD historically chose the length and returned
- * the tuning, inverting that. **WinISD's direction is what ships as the default.**
+ * then build the port that delivers it. **WinISD's direction is what ships as the default.**
  *
  * Rather than swap which field the schema holds — which would bake the opposite direction in
  * just as hard — the ENTERED SET is the stored fact (`_OpenISDProjectJson.target.entered`).
@@ -123,7 +122,7 @@ const VENT_ENTRY_TO_MODEL_KEY = {
  */
 export function enterVentField(mp: ManagedOpenISDProject, field: VentEntryField, value: number, box?: string): void {
   // The WHOLE transaction — value write, provenance write(s), AND the resulting solve — is
-  // suspended, so `store.ts`'s own auto-solve watch (which fires on every `managedProject`
+  // suspended, so `appState.ts`'s own auto-solve watch (which fires on every `managedProject`
   // mutation, coarse by design — `docs/design/REACTIVITY.md`) never runs for any write this
   // function makes: not on a half-updated entered set mid-transaction (it would clobber the
   // value this function is trying to set), and not a SECOND time on `solveVentGroup`'s own
@@ -149,7 +148,7 @@ export function enterVentField(mp: ManagedOpenISDProject, field: VentEntryField,
  * remaining entered set determines it, or `N` if nothing can.
  *
  * Suspended for the same reason as `enterVentField`: without it, the provenance write and this
- * function's own trailing `solveVentGroup` call would each independently trigger `store.ts`'s
+ * function's own trailing `solveVentGroup` call would each independently trigger `appState.ts`'s
  * auto-solve watch, producing two solves for one user action.
  */
 export function clearVentField(mp: ManagedOpenISDProject, field: VentField, box?: string): void {

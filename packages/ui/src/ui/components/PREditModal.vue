@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { managedProject } from '../../logic/store.js';
+import { managedProject } from '../../logic/appState.js';
 import { createLiveRef } from '../../logic/liveProject.js';
 import { prVasDisplay, prFsDisplay, prFsWithMassDisplay, prQmsDisplay, setPrFsFromWinIsd, setPrQmsFromWinIsd, setPrVasFromWinIsd } from '../../logic/prWinIsdFields.js';
 import type { PRLibEntry } from '../../types.js';
 import NumInput from './NumInput.vue';
 import { useApp } from '../../logic/app.js';
 
-const { prLibrary } = useApp();
+const { prRepo } = useApp();
 
 // PR "Edit" — a real popup (unlike the driver What-If, this doesn't need the graph
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
@@ -51,11 +51,11 @@ function setWinIsdVas(newVasL: number) {
 // template below reads `managedProject`'s own getter directly (reactive via `live`) and
 // writes through its own setter directly.
 
-const prLib = ref(prLibrary.list());
+const prLib = ref(prRepo.list());
 const showPRLib = ref(false);
 function saveCurrentPR() {
   const name = (managedProject.prField('name') || '').trim() || 'Custom PR';
-  prLib.value = prLibrary.save(name, managedProject.toUiParams());
+  prLib.value = prRepo.save(name, managedProject.toUiParams());
 }
 function loadPR(entry: PRLibEntry) {
   managedProject.setPrField('name', entry.name);
@@ -66,7 +66,7 @@ function loadPR(entry: PRLibEntry) {
   managedProject.setPrField('Xmax_m', entry.prXmax);
   showPRLib.value = false;
 }
-function removePR(id: number) { prLib.value = prLibrary.remove(id); }
+function removePR(id: number) { prLib.value = prRepo.remove(id); }
 
 function close() { emit('close'); }
 </script>

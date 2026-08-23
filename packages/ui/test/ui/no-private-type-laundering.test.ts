@@ -131,9 +131,9 @@ function isNamedDeclaredType(type: Type): boolean {
  * here would make every holder of a domain object an offender for what that object legitimately
  * exposes, which is exactly what `isNamedDeclaredType` above exists to stop.
  *
- * A named type declared IN THIS FILE is different: it has no governing PrivateAllow list of
- * its own (only a `_`-prefixed export gets one), and if it is not itself exported, the
- * PrivateAllow gate cannot see it at all — a local `interface`/`class` wrapper is a WRAPPER,
+ * A named type declared IN THIS FILE is different: it is governed by nothing (only a
+ * `_`-prefixed export falls under the PrivateAllow gate at all), and if it is not itself
+ * exported, that gate cannot see it either — a local `interface`/`class` wrapper is a WRAPPER,
  * not a cross-package boundary, so treating it as opaque was the hole (bugs/laundering probe
  * FORMs 14-15): an exported function could return one and walk the private shape straight
  * through it.
@@ -192,7 +192,8 @@ function privateTypesReached(
   // Descend into MEMBERS for a type with no declared identity — an inline object type, a
   // function type, or a member's own type — AND for a named type declared IN THE FILE UNDER
   // SCAN: a local `interface`/`class` wrapper is not itself governed anywhere (only a
-  // `_`-prefixed EXPORT gets a PrivateAllow list), so it is a carrier, not a boundary. A named
+  // `_`-prefixed EXPORT falls under the PrivateAllow gate at all), so it is a carrier, not a
+  // boundary. A named
   // type declared elsewhere (`OpenISDDriver`, `_OpenISDDriverJson`, `FileEntry` from a
   // DIFFERENT file) is recorded above if it is private and otherwise left alone: it IS
   // governed where it is declared, and following its own public API would make every holder
@@ -380,7 +381,7 @@ describe('the gate itself detects all fifteen laundering forms (probe fixture)',
   // exported itself) walks the private shape through an EXPORTED function's return type. A
   // walk that stops descending into every NAMED declared type — instead of only one governed
   // elsewhere, outside this file — cannot see either: this is a cross-layer crossing (the
-  // function IS exported) hiding behind a name with no PrivateAllow list of its own to police it.
+  // function IS exported) hiding behind a name the PrivateAllow gate never governs at all.
   it('FORM 14 — private carrier INTERFACE, declared in-file, exported only via a function', () =>
     assert.ok(flagged('form14BypassViaInterface'), 'a local named wrapper is not a governed boundary'));
   it('FORM 15 — private carrier CLASS, declared in-file, exported only via a function', () =>
@@ -436,8 +437,9 @@ describe('no private-type laundering (QO73) — packages/ui/src', () => {
     assert.deepEqual(offences, [],
       'A declaration that RESOLVES to a private _Name without WRITING it is the laundering ' +
       'QO73 bans: the PrivateAllow gate cannot see a name that is never imported. Either name ' +
-      'the private type openly (governed by its PrivateAllow list) or, better, redesign so the ' +
-      'private shape does not cross the boundary at all — a real API on the owning object, ' +
+      'the private type openly (and let the PrivateAllow gate govern it, owner-only) or, ' +
+      'better, redesign so the private shape does not cross the boundary at all — a real API ' +
+      'on the owning object, ' +
       'answering the question the caller actually has.');
   });
 

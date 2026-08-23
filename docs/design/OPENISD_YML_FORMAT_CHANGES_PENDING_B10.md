@@ -39,7 +39,7 @@ the regeneration runs ONCE, after everything below is in — never per-change.
 6. **No calculated marker** (QT56 ruling): the `grounds` proposal is retired; a
    pipeline-computed `read_value` is UNREPRESENTABLE (construction-surface gate in
    winisd_tools). No new key.
-7. **Discriminator spelling** (D7, QO65): `driver_type: value: passive_radiator` (snake) is
+7. **Discriminator spelling** (D7, QO65): `driver_type: value: passive-radiator` (snake) is
    the only spelling — ALREADY migrated on disk (154 live records, script
    `scrapers/bin/fix_passive_radiator_spelling.py`); B10 re-emission preserves it.
 8. **Definition-text refresh** (the cohort-lag bug,

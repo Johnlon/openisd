@@ -17,7 +17,7 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 import { OpenISDDriver, Provenance } from '@openisd/model';
 import { WinISDDriver } from '@openisd/winisd';
 import { serialize, stateToUrl, loadFromHash, upgradeParsedState } from '../../src/logic/persist.js';
-import { state, managedProject, applyState } from '../../src/logic/store.js';
+import { state, managedProject, applyState } from '../../src/logic/appState.js';
 import { presentationState } from '../../src/logic/presentationState.js';
 import type { ProjectMeta, SerializedState, UiParams } from '../../src/types.js';
 import type { PresentationState } from '../../src/logic/presentationState.js';

@@ -38,6 +38,12 @@ docs (STATE_MODEL.md two blocks, DRIVER_ADT_DESIGN.md parenthetical) (3).
 
 ## Execution
 
+Non-src subset EXECUTED by the orchestrator (2026-08-22, while D20 held the src tree):
+scripts/test-browser.sh (ruling 4: constraint kept, hypothetical tense), STATE_MODEL.md
+both blocks (live guard kept in present tense; the reverted-design narratives deleted),
+DRIVER_ADT_DESIGN.md's two `(was …)` parentheticals deleted. Remaining for the executor:
+the src/test hits.
+
 E1 runs after A8 per the plan. Executor: re-locate each hit by its quoted text, apply the
 disposition, then re-run opus1's marker grep to prove zero VIOLATION-class residue; the
 UNSURE classes are settled above, no per-hit judgement calls remain.

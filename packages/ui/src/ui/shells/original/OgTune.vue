@@ -10,7 +10,7 @@
  * Presentation only: the what-if logic is single-sourced in the store/ADT.
  */
 import { computed, reactive, watch, ref, onMounted, onUnmounted } from 'vue';
-import { enterDriverField, clearDriverField, managedProject } from '../../../logic/store.js';
+import { enterDriverField, clearDriverField, managedProject } from '../../../logic/appState.js';
 import { presentationState } from '../../../logic/presentationState.js';
 import { createLiveRef } from '../../../logic/liveProject.js';
 import { ebpOf } from '../../../logic/environment.js';

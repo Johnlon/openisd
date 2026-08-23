@@ -1,13 +1,15 @@
+/** REPO: domain access to the driver collection (bundled + federated sources). Takes a
+ *  storage/bundle, returns domain objects. */
 import type { OpenISDDriver, _OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
 import { recordStandingIsOk } from '@openisd/model/driverStanding';
 import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
-import { DriverType, Chip } from '../driverType.js';
+import { DriverType, Chip } from '../../driverType.js';
 
 // The driver commons — index, search, filter, lookup.
 //
-// A REPOSITORY: it answers questions about drivers and hands back records. It takes its
+// A REPO: it answers questions about drivers and hands back records. It takes its
 // bundle source as an argument, it does not know a dialog is open, it does not decide what
-// happens next, and it never touches the store. "The user chose a driver" is a decision about
+// happens next, and it never touches app state. "The user chose a driver" is a decision about
 // what the app does next and lives in `logic/`, which calls this to fetch the record.
 
 export interface SourceEntry {
@@ -40,14 +42,17 @@ export interface FileEntry {
 /**
  * One driver record in the pre-built bundle, as `scripts/bundle-drivers.mjs` emits it.
  *
- * `record` is typed `_OpenISDDriverJson`, NOT `unknown`: the always-enforced no-unknown-in-
- * channel gate (`no-private-type-laundering.test.ts`) exempts `unknown` in a PARAMETER
- * position only (the injected `fromBundleRecord`'s own parameter takes it) — an interface
- * PROPERTY typed `unknown` is a flagged OUTPUT-position channel, confirmed by running the gate
- * (`db/driverRepo.ts: BundleRecord.record typed unknown` was the sole offence). So this field
- * keeps the model's own shape; the runtime check still happens exactly once, at
- * `bundledEntry()`, via the SAME injected `driverFromConformingRecord` browser storage uses —
- * only the compile-time type stays honest about what the bundler already guarantees.
+ * `record` is typed `_OpenISDDriverJson` — the honest name for what the bundler actually
+ * wrote. `scripts/bundle-drivers.mjs` copies each driver's canonical record into the artifact
+ * verbatim, so this field IS one; calling it anything wider or opaquer would hide that fact
+ * from the reader and from the gate without changing a single byte that crosses.
+ *
+ * Human ruling 2026-08-23: "If the bundle is genuinely a _Json... object then just add an
+ * exception in the test itself to permit that access." That exception is named in
+ * `architecture.test.ts`'s class-private gate, in the open, rather than dressed up here.
+ *
+ * The value is still only ever OPENED once, at `bundledEntry()`, through the injected
+ * `driverFromConformingRecord` — the same conformance check browser storage uses.
  */
 export interface BundleRecord {
   /** Path within its source, forward-slashed — half of the driver's identity. */

@@ -2,10 +2,10 @@
  * `presentationState.ts` — PRESENTATION state: which dialog/panel is open, chart cursor and
  * selection, per-chart display prefs (ARCHITECTURE.md §"Approved state stores — there are
  * THREE, and no others"). It holds no domain value: `box`, driver, box/vent/PR fields, project
- * metadata and every other design input live on `managedProject`/`store.ts` and are read
+ * metadata and every other design input live on `managedProject`/`appState.ts` and are read
  * through them, never copied here.
  *
- * Same singleton-survives-HMR shape as `store.ts`'s own `state` — a Vite hot-reload re-runs
+ * Same singleton-survives-HMR shape as `appState.ts`'s own `state` — a Vite hot-reload re-runs
  * this module's top-level code, and a fresh `reactive()` on every reload would orphan every
  * other module's already-captured reference to the old one.
  */

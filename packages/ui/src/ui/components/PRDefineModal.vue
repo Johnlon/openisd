@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { managedProject } from '../../logic/store.js';
+import { managedProject } from '../../logic/appState.js';
 import { prCanonicalFromDatasheet } from '../../logic/prWinIsdFields.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 

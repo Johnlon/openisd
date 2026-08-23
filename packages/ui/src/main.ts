@@ -2,23 +2,23 @@ import { createApp } from 'vue';
 import App from './ui/App.vue';
 import { vExpoStep } from './ui/directives/expoStep.js';
 import { vLimits } from './ui/directives/limits.js';
-import { createLocalStorageStore } from './db/kv.js';
-import { createDriverRepo } from './db/driverRepo.js';
-import { createMyDriverRepo } from './db/myDrivers.js';
-import { createPrefsStore } from './db/prefs.js';
-import { createPrRepo } from './db/prLibrary.js';
+import { createLocalStorage } from './persistence/storage/keyValueStorage.js';
+import { createDriverRepo } from './persistence/repos/driverRepo.js';
+import { createMyDriverRepo } from './persistence/repos/myDriverRepo.js';
+import { createPrefsRepo } from './persistence/repos/prefsRepo.js';
+import { createPrRepo } from './persistence/repos/prRepo.js';
 import { createLogging } from './logging/flash.js';
 import { createDiagnostics } from './diagnostics/selftest.js';
 import { createFaultLog } from './diagnostics/faultLog.js';
 import { createDriverSelection } from './logic/driverSelection.js';
-import { createDriverLibrary } from './logic/driverLibrary.js';
+import { createDriverBrowsingState } from './logic/driverBrowsingState.js';
 import { driverFromConformingRecord } from './logic/managedDriver.js';
 import { createDesignIO } from './logic/useDesignIO.js';
-import { createFileStore } from './logic/fileStore.js';
+import { createFileStorage } from './persistence/storage/fileStorage.js';
 import { provideApp } from './logic/app.js';
 import sourcesJson from '../../../drivers/sources.json';
 import bundleJson from './drivers-bundle.json';
-import type { BundleRecord } from './db/driverRepo.js';
+import type { BundleRecord } from './persistence/repos/driverRepo.js';
 import type { BundledPR } from './types.js';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
@@ -43,27 +43,35 @@ const bundle = bundleJson as {
 const faultLog = createFaultLog();
 faultLog.install();
 
-const store = createLocalStorageStore();
+// STORAGE (port): the browser's own key-value storage.
+const storage = createLocalStorage();
 const logging = createLogging();
 const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle, fromBundleRecord: driverFromConformingRecord });
-const myDriverRepo = createMyDriverRepo(store, driverFromConformingRecord);
-const prefs = createPrefsStore(store);
-const prLibrary = createPrRepo(store, bundle);
+const myDriverRepo = createMyDriverRepo(storage, driverFromConformingRecord);
+const prefs = createPrefsRepo(storage);
+const prRepo = createPrRepo(storage, bundle);
 const diagnostics = createDiagnostics({ report: logging.flash });
-const fileStore = createFileStore();
+// STORAGE (port): the interactive file-save destination. Two SEPARATE instances — one for
+// the project (retains the open project's file handle), one for the driver editor's one-shot
+// .wdr/.owdr export — so exporting a driver cannot silently retarget the project Save button.
+const fileStorage = createFileStorage();
+const driverFileStorage = createFileStorage();
 
 // --- application layer: the app's state and what it does next ---
 const selection = createDriverSelection();
-const library = createDriverLibrary({
+const driverBrowsing = createDriverBrowsingState({
   driverRepo, myDriverRepo, prefs, logging, selection,
   confirmReset: (question) => confirm(question),
 });
-const designIO = createDesignIO({ logging, fileStore });
+const designIO = createDesignIO({ logging, fileStorage });
 
 const app = createApp(App)
   .directive('expo-step', vExpoStep)
   .directive('limits', vLimits);
 
-provideApp(app, { logging, library, selection, designIO, prLibrary, myDrivers: myDriverRepo, diagnostics, faultLog });
+provideApp(app, {
+  logging, driverBrowsing, selection, designIO, prRepo, myDrivers: myDriverRepo,
+  driverFileStorage, diagnostics, faultLog,
+});
 
 app.mount('#app');

@@ -102,7 +102,7 @@ function importsOf(file: string): string[] {
 
 /** Which layer a specifier resolves into, judged from the path it names. */
 function layerOf(spec: string): 'ui' | 'logic' | 'service' | 'domain' | 'external' {
-  if (/(^|\/)(db)\//.test(spec) || /(^|\/)(diagnostics|logging)\//.test(spec)) return 'service';
+  if (/(^|\/)(persistence)\//.test(spec) || /(^|\/)(diagnostics|logging)\//.test(spec)) return 'service';
   if (/(^|\/)logic\//.test(spec)) return 'logic';
   if (/(^|\/)ui\//.test(spec) || spec.endsWith('.vue')) return 'ui';
   if (spec.startsWith('@openisd/')) return 'domain';
@@ -189,7 +189,7 @@ function callsExpression(file: string, expr: string): boolean {
 
 describe('layering — every arrow points downward', () => {
   it('a service never imports the application state or the logic layer', () => {
-    const services = [join(UI_SRC, 'db'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')]
+    const services = [join(UI_SRC, 'persistence'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')]
       .flatMap(filesUnder);
     assert.ok(services.length > 0, 'no service files found — the gate would pass vacuously');
 
@@ -204,7 +204,7 @@ describe('layering — every arrow points downward', () => {
   });
 
   it('a service never imports a sibling service', () => {
-    const groups = { db: join(UI_SRC, 'db'), diagnostics: join(UI_SRC, 'diagnostics'), logging: join(UI_SRC, 'logging') };
+    const groups = { persistence: join(UI_SRC, 'persistence'), diagnostics: join(UI_SRC, 'diagnostics'), logging: join(UI_SRC, 'logging') };
     const offences: string[] = [];
     for (const [own, dir] of Object.entries(groups)) {
       for (const f of filesUnder(dir)) {
@@ -254,7 +254,7 @@ describe('layering — every arrow points downward', () => {
   });
 
   it('logic and the services hold no view components', () => {
-    const files = [join(UI_SRC, 'logic'), join(UI_SRC, 'db'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')]
+    const files = [join(UI_SRC, 'logic'), join(UI_SRC, 'persistence'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')]
       .flatMap(filesUnder);
     const offences = files.flatMap(f =>
       importsOf(f).filter(s => s.endsWith('.vue')).map(s => `${rel(f)} imports ${s}`));
@@ -264,7 +264,7 @@ describe('layering — every arrow points downward', () => {
 });
 
 describe('inversion of control — collaborators are injected, never reached for', () => {
-  const CONSTRUCTED = [join(UI_SRC, 'db'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')];
+  const CONSTRUCTED = [join(UI_SRC, 'persistence'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')];
   const REACTIVE_FACTORIES = new Set(['ref', 'shallowRef', 'reactive', 'shallowReactive']);
 
   it('a service exports no mutable module-level binding', () => {
@@ -484,7 +484,7 @@ describe('one driver model — the classic Driver ADT is not part of the app', (
  */
 describe('only the three approved stores hold state', () => {
   const APPROVED = [
-    join(UI_SRC, 'logic', 'store.ts'),
+    join(UI_SRC, 'logic', 'appState.ts'),
     join(UI_SRC, 'logic', 'managedProject.ts'),
     join(UI_SRC, 'logic', 'presentationState.ts'),   // not built yet — see ARCHITECTURE.md
     join(UI_SRC, 'logic', 'urlAppState.ts'),
@@ -542,7 +542,7 @@ describe('only the three approved stores hold state', () => {
  */
 describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver', () => {
   const MANAGED = join(UI_SRC, 'logic', 'managedProject.ts');
-  const STORE = join(UI_SRC, 'logic', 'store.ts');
+  const STORE = join(UI_SRC, 'logic', 'appState.ts');
 
   it('ManagedOpenISDProject never hands an OpenISDDriver out — every public member returns data', () => {
     // AST-driven (ts-morph), not text-pattern: a private-field/method (#name or `private`) is
@@ -629,19 +629,14 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
  * file-io/store collaborators can name it, never for general consumption. TypeScript has no
  * cross-file access modifier for an exported interface, so this gate is the enforcement: it
  * finds every `export ... _Name` declaration under ui/model/winisd `src/`, then asserts that
- * no OTHER file names `_Name` in an import — except a file listed in that name's OWN
- * `<Name>PrivateAllow` export, declared beside `_Name` in its own file (e.g.
- * `_OpenISDDriverJsonPrivateAllow` next to `_OpenISDDriverJson` in openisdDriver.ts). The
- * allowlist lives with the declaration it governs, not in this test — ONLY the human may
- * add, remove, or change one of those exported arrays; no agent may edit one on its own
- * judgement, however legitimate a call site looks. A failing test naming a new offender is
- * the correct, expected result, not authorization to widen the list to make it pass.
+ * NO OTHER file names `_Name` in an import. Owner-only, no exceptions, no grant mechanism —
+ * a file that needs one goes through the owning module's public API instead.
  */
 // TESTS ARE EXEMPT from the privacy rules (human ruling, QO68, 2026-08-21: "tests are
 // generally exempt from the privacy rule" / "update the test to allow test access to _").
 // Every privacy scan set below is built from src/ roots ONLY — a test file may name a
-// _-prefixed export or a _-prefixed class member without a PrivateAllow entry. Widening any
-// of these scans to test directories would revoke that ruling and needs the human.
+// _-prefixed export or a _-prefixed class member freely. Widening any of these scans to
+// test directories would revoke that ruling and needs the human.
 const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC)];
 const REPO_ROOT = join(UI_SRC, '..', '..');
 
@@ -672,26 +667,7 @@ function privateDeclarationSites(files: string[]): Map<string, string[]> {
   return sites;
 }
 
-/** `export const <Name>PrivateAllow = [ 'repo/relative/path.ts', ... ]` declared in the
- *  same file as `_Name` itself — the exhaustive permission list for that name. Absent ⇒ no
- *  file outside the owner may name it at all. */
-function privateAllowOf(ownerFile: string, name: string): string[] {
-  const source = sourceFileOf(ownerFile);
-  const target = `${name}PrivateAllow`;
-  for (const vs of source.getVariableStatements()) {
-    if (!vs.isExported()) continue;
-    for (const decl of vs.getDeclarations()) {
-      if (decl.getName() !== target) continue;
-      const init = decl.getInitializer();
-      if (init && Node.isArrayLiteralExpression(init)) {
-        return init.getElements().filter(Node.isStringLiteral).map(e => e.getLiteralValue());
-      }
-    }
-  }
-  return [];
-}
-
-checklistDescribe('leading-underscore exports are class-private — named only by their own PrivateAllow list', () => {
+checklistDescribe('leading-underscore exports are class-private — owner-only, no exceptions', () => {
   it('each private name is declared in exactly one file', () => {
     const sites = privateDeclarationSites(ALL_SRC_FILES);
     const offences = [...sites.entries()]
@@ -700,22 +676,46 @@ checklistDescribe('leading-underscore exports are class-private — named only b
     assert.deepEqual(offences, []);
   });
 
-  it('no file outside a name\'s declaring file and its own PrivateAllow list imports it', () => {
+  /**
+   * Human rulings 2026-08-23, each an (importing file, private name) pair granted HERE, in the
+   * gate, in the open — never disguised at the use site behind a widened or renamed type,
+   * which the encapsulation rule bans outright.
+   *
+   * - driverRepo.ts + _OpenISDDriverJson: "If the bundle is genuinely a _Json... object then
+   *   just add an exception in the test itself to permit that access. if the bundle IS THAT
+   *   OBJECT then of course it deserves that access." `scripts/bundle-drivers.mjs` copies each
+   *   canonical record into the artifact verbatim, so `BundleRecord.record` IS one and is
+   *   typed as one; it is opened exactly once, through the injected conformance factory.
+   */
+  const HUMAN_GRANTED: ReadonlyArray<readonly [file: string, name: string]> = [
+    ['ui/src/persistence/repos/driverRepo.ts', '_OpenISDDriverJson'],
+  ];
+
+  it('no file outside a name\'s declaring file imports it (human-granted pairs excepted)', () => {
     const sites = privateDeclarationSites(ALL_SRC_FILES);
     const offences = ALL_SRC_FILES
       .flatMap(f => [...sites.entries()]
         .filter(([, [owner]]) => f !== owner)
-        .flatMap(([name, [owner]]) => {
-          if (privateAllowOf(owner, name).includes(relative(REPO_ROOT, f))) return [];
-          return namedImportsOf(f, name, /./)
-            .map(spec => `${relative(REPO_ROOT, f)} imports ${name} from ${spec} (owned by ${relative(REPO_ROOT, owner)})`);
-        }));
+        .filter(([name]) => !HUMAN_GRANTED.some(
+          ([gFile, gName]) => gName === name && relative(REPO_ROOT, f) === gFile))
+        .flatMap(([name, [owner]]) =>
+          namedImportsOf(f, name, /./)
+            .map(spec => `${relative(REPO_ROOT, f)} imports ${name} from ${spec} (owned by ${relative(REPO_ROOT, owner)})`)));
 
     assert.deepEqual(offences, [],
       'A leading underscore marks a name class-private. Every offence above is a file naming ' +
-      'a private declaration it neither owns nor is listed for in that name\'s own ' +
-      '<Name>PrivateAllow export — route through the owning module\'s public API instead of ' +
-      'naming the private shape directly.');
+      'a private declaration it does not own — route through the owning module\'s public API ' +
+      'instead of naming the private shape directly, or bring the pair to the human for a ' +
+      'HUMAN_GRANTED entry above. Only the human adds a pair there.');
+  });
+
+  it('every human-granted pair is live — the file still imports the name (stale grants die)', () => {
+    const stale = HUMAN_GRANTED.filter(([gFile, gName]) => {
+      const abs = ALL_SRC_FILES.find(f => relative(REPO_ROOT, f) === gFile);
+      return !abs || namedImportsOf(abs, gName, /./).length === 0;
+    }).map(([gFile, gName]) => `${gFile} no longer imports ${gName}`);
+    assert.deepEqual(stale, [],
+      'A grant for an import that no longer exists is a dormant permission — delete the pair.');
   });
 });
 
@@ -834,15 +834,14 @@ describe('an export typed as a private _Name must itself be _-prefixed', () => {
 
 /**
  * Human ruling (QO52, closed 2026-08-18): the only module-level globals the app may export are
- * `openProjects()` and `focusedProject()`. Everything else in `store.ts`'s state surface must
+ * `openProjects()` and `focusedProject()`. Everything else in `appState.ts`'s state surface must
  * become a method/getter on the focused project object instead of a free module export.
  *
  * Human ruling (QO72, 2026-08-21, verbatim): "remove the scanned file list now and make scan
  * all - potentially I will need to grant individual global[s] on individual files. if I do that
  * then I need a correlation to ensure that anything I grant actually exists and if its gone then
- * delete the grant." Scope is now every production file (`ALL_SRC_FILES`, defined above), no
- * allowlist — the prior `SCANNED_FILES` mechanism this superseded existed specifically to avoid
- * that breadth (see the deleted comment in git history), which the human has now overruled.
+ * delete the grant." Scope is every production file (`ALL_SRC_FILES`, defined above), no
+ * allowlist.
  * A file with no `ALLOWED_GLOBALS` of its own and any top-level export is therefore an offence
  * on day one for most of the tree — expected, per the same "fails loudly, the list IS the
  * checklist" precedent QO52 already established, not a bug in the gate.
@@ -898,7 +897,7 @@ checklistDescribe('module-level globals — every export must be an explicit, cu
 
     assert.deepEqual(offences, [],
       'Only openProjects()/focusedProject() are legal module-level globals (QO52). Every ' +
-      'offence above is a store.ts export that must become a method/getter on the focused ' +
+      'offence above is an appState.ts export that must become a method/getter on the focused ' +
       'project object, be deleted outright, or — only with the human\'s own edit — be added ' +
       'to ALLOWED_GLOBALS with a one-line justification. An agent may never widen ' +
       'ALLOWED_GLOBALS itself to make this test pass.');

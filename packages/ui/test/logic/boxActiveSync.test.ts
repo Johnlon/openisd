@@ -11,7 +11,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, managedProject, applyState } from '../../src/logic/store.js';
+import { state, managedProject, applyState } from '../../src/logic/appState.js';
 import type { SerializedState, UiParams } from '../../src/types.js';
 
 describe('state.box drives the project\'s active alignment', () => {
@@ -37,7 +37,7 @@ describe('state.box drives the project\'s active alignment', () => {
 });
 
 describe('applyState — a restored box type takes effect before the restored P is applied', () => {
-  // `applyState` (store.ts) sets the active alignment BEFORE writing the restored params
+  // `applyState` (appState.ts) sets the active alignment BEFORE writing the restored params
   // (`managedProject.loadUiParams`). That order matters: `Vb`/`ventD`/`Fb` each pick their
   // storage by the ACTIVE alignment (ledger QO54), so applying a sealed design's Vb while
   // 'vented' is still active would silently write it into the vented alignment instead.

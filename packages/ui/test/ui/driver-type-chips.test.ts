@@ -18,8 +18,8 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
 import { DriverType, Chip } from '../../src/driverType.js';
-import { classifyTypes } from '../../src/db/driverRepo.js';
-import { DRIVER_TYPES } from '../../src/logic/driverLibrary.js';
+import { classifyTypes } from '../../src/persistence/repos/driverRepo.js';
+import { DRIVER_TYPES } from '../../src/logic/driverBrowsingState.js';
 
 const CHIP_VALUES = new Set(Chip.ALL.map(c => c.value));
 const chipValues = (dt: DriverType) => dt.chips.map(c => c.value);
@@ -70,7 +70,7 @@ describe('driver_type -> chip projection', () => {
   });
 
   it('serialises members to their wire value', () => {
-    assert.equal(String(DriverType.PassiveRadiator), 'passive_radiator');
+    assert.equal(String(DriverType.PassiveRadiator), 'passive-radiator');
     assert.equal(JSON.stringify(DriverType.MidWoofer), '"mid-woofer"');
     assert.equal(String(Chip.FullRange), 'fullrange');
   });

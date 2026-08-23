@@ -21,7 +21,7 @@
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, applyState, managedProject } from '../../src/logic/store.js';
+import { state, applyState, managedProject } from '../../src/logic/appState.js';
 import {
   solveVentGroup, enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
   ventFieldState as ventFieldStateOn,

@@ -141,7 +141,7 @@ test('an externally loaded box type re-syncs the Box tab (no desync while pendin
   await expect(boxTab).toContainText(/response model pending/i);
 
   await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const store = await import(/* @vite-ignore */ modPath);
     store.state.box = 'sealed';
   });
@@ -188,7 +188,7 @@ test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL)
   const field = page.locator('.field', { hasText: '1st port resonance' }).locator('input');
   const v = Number(await field.inputValue());
   // WinISD's "1st port resonance" = c/(2·physical vent length). A ~10 cm vent → ~1.7 kHz — far
-  // above the box Helmholtz tuning (~tens of Hz), which is what the field used to (wrongly) show.
+  // above the box Helmholtz tuning (~tens of Hz), the wrong value this assertion pins against.
   expect(v).toBeGreaterThan(500);
 });
 
@@ -239,7 +239,7 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
   await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(1);
   await expect(panel.locator('.filter-type-badge')).toContainText('HP');
   const n = await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return s.managedProject.filters().length;
   });
@@ -260,7 +260,7 @@ test('the Tune what-if panel previews live and Cancel reverts — no Keep/commit
   await expect(tune.locator('button', { hasText: 'Cancel' })).toBeVisible();
 
   const readFs = () => page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return s.driverRaw.value.Fs;
   });
@@ -285,7 +285,7 @@ test('a Tune what-if can never dirty the project, however it closes (STATE_MODEL
   await expect(unsaved).toBeHidden(); // fresh load = ground = clean
 
   const readFs = () => page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return s.driverRaw.value.Fs;
   });
@@ -317,7 +317,7 @@ test('the Tune fields accept multi-character typing (no reformat-while-typing cl
   await fsInput.pressSequentially('42'); // type char-by-char, like a real user
   await expect(fsInput).toHaveValue('42');
   const fs = await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return s.driverRaw.value.Fs;
   });
@@ -352,7 +352,7 @@ test('NumInput dp is screen-formatting only — the model keeps FULL precision (
   await vol.blur();
   await expect(vol).toHaveValue('6.12'); // DISPLAY is formatted to 2 dp
   const vb = await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return s.managedProject.boxVolume_m3(); // stored in m³ (display L ÷ 1000)
   });
@@ -433,7 +433,7 @@ test('Signal tab: Series resistance shows WinISD 3-dp precision (0.100 ohm)', as
 test('Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Signal' }).click();
   const re = await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return s.engineDriver().Re;
   });
@@ -442,7 +442,7 @@ test('Signal tab: Driver input voltage is editable and drives System input power
   await vInput.dispatchEvent('input');
   await vInput.blur();
   const pin = await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return s.managedProject.inputPower_W();
   });
@@ -471,7 +471,7 @@ test('New Project collects the project name first and shows it in the titlebar',
   await modal.locator('button', { hasText: 'Pick Driver' }).click(); // step 3 = volume → create
 
   const name = await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return s.state.project.name;
   });
@@ -485,7 +485,7 @@ test('New Project starts fresh — it discards the previous design (filters, par
 
   // Dirty the current design: a filter and a non-default power.
   await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     s.managedProject.addFilter({ type: 'highpass', enabled: true, fc: 30, Q: 0.7, gain: 0 });
     s.managedProject.setInputPower_W(250);
@@ -500,7 +500,7 @@ test('New Project starts fresh — it discards the previous design (filters, par
   await modal.locator('button', { hasText: 'Pick Driver' }).click(); // step 3 volume → create
 
   const st = await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     return { filters: s.managedProject.filters().length, pin: s.managedProject.inputPower_W() };
   });
@@ -520,7 +520,7 @@ test('the New Project wizard sets box type + volume then opens the driver picker
   await modal.locator('button', { hasText: 'Pick Driver' }).click();
 
   const st = await page.evaluate(async () => {
-    const storeModPath = '/src/logic/store.ts';
+    const storeModPath = '/src/logic/appState.ts';
     const presModPath = '/src/logic/presentationState.ts';
     const s = await import(/* @vite-ignore */ storeModPath);
     const ps = await import(/* @vite-ignore */ presModPath);
@@ -610,7 +610,7 @@ test('the Save bar tracks whether the design differs from ground; Save adopts it
   // Programmatically mark saved (simulates successful save file pick & write)
   await page.evaluate(async () => {
     // @ts-expect-error - runtime browser-only import of store.ts
-    const s = await import(/* @vite-ignore */ '/src/logic/store.ts');
+    const s = await import(/* @vite-ignore */ '/src/logic/appState.ts');
     s.markProjectSaved();
   });
   
@@ -628,7 +628,7 @@ test('Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg
   await page.locator('select#og-box-type').selectOption('sealed');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   const peakHz = () => page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     const z = s.curvesData.value.zmag as number[], f = s.curvesData.value.fs as number[];
     // The impedance resonance peak lives in the bass region; above it, Le makes |Z| climb to
@@ -643,7 +643,7 @@ test('Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg
   await amc.dispatchEvent('input');
   await amc.blur();
   const madd = await page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     return (await import(/* @vite-ignore */ modPath)).managedProject.driverAddedMass();
   });
   expect(madd).toBeCloseTo(0.05, 6);            // 50 g entered → 0.05 kg in the engine model
@@ -725,7 +725,7 @@ test('R1 refresh fidelity: box type, active tab, and selected chart survive a re
 // conversion that replaced the old decorative cycleUnit (which rotated the label alone).
 const readVb = (page: Page) =>
   page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     return (await import(/* @vite-ignore */ modPath)).managedProject.boxVolume_m3();
   });
 const readVbToken = (page: Page) =>
@@ -786,7 +786,7 @@ test('Added mass to cone: clicking the unit converts g → kg; the model stays S
   await amc.blur();
   await expect(unit).toHaveText('g');
   const readMadd = () => page.evaluate(async () => {
-    const modPath = '/src/logic/store.ts';
+    const modPath = '/src/logic/appState.ts';
     return (await import(/* @vite-ignore */ modPath)).managedProject.driverAddedMass();
   });
   expect(await readMadd()).toBeCloseTo(0.1, 6);   // 100 g entered → 0.1 kg in the model
@@ -911,7 +911,7 @@ test('Original skin: Options dialog is centered on screen, not pinned to the top
   const viewport = page.viewportSize()!;
   const modalMidY = modalBox!.y + modalBox!.height / 2;
   // Centered vertically within a reasonable tolerance — not stuck near the top of the viewport
-  // (the bug: Original's own unscoped `.overlay { align-items:flex-start }` used to leak onto
+  // (guards: Original's own unscoped `.overlay { align-items:flex-start }` would leak onto
   // this modal's root element via Vue's parent-scope-on-child-root behaviour).
   expect(Math.abs(modalMidY - viewport.height / 2)).toBeLessThan(viewport.height * 0.15);
   expect(box).toBeTruthy();

@@ -3,12 +3,12 @@
 #   bash scripts/test-browser.sh
 #   bash scripts/test-browser.sh packages/ui/test/visual.browser.spec.js
 #
-# The kill CANNOT live in playwright.config.js's `webServer.command`, which is where it
-# used to sit. With `reuseExistingServer: false` Playwright probes the url BEFORE running
-# that command and aborts with "http://localhost:4100 is already used" the moment anything
-# answers — so the command never runs and the kill inside it never fires. An orphaned
-# server from a previous run therefore failed the whole suite instead of being replaced.
-# Freeing the port has to happen before Playwright is invoked at all, which is here.
+# The kill CANNOT live in playwright.config.js's `webServer.command`: with
+# `reuseExistingServer: false` Playwright probes the url BEFORE running that command and
+# aborts with "http://localhost:4100 is already used" the moment anything answers — the
+# command would never run and a kill inside it would never fire, so an orphaned server
+# would fail the whole suite instead of being replaced. Freeing the port has to happen
+# before Playwright is invoked at all, which is here.
 #
 # Taking the port is always correct: 4100 is Playwright's own (AGENTS.md "Port assignments"),
 # never the human's 4000, and a server left on it serves stale code.
