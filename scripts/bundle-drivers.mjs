@@ -40,6 +40,7 @@ import { join, relative, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { parse as parseYaml } from 'yaml';
 import { project, isBundlable } from './bundleProjection.mjs';
+import { checkOpenisdRoundTrip, checkWdrRoundTrip } from './roundTripGate.mjs';
 
 const RECORD_FILE = 'openisd.yml';
 
@@ -75,6 +76,22 @@ function walkRecords(dir) {
   return files;
 }
 
+/** Every `.wdr` file under `dir` — not bundled (only `openisd.yml` is), but the round-trip
+ *  gate exercises it too (plan `shiny-noodling-kahan.md`: "a strong test of the serialisation
+ *  code the app will use"). */
+function walkWdrFiles(dir) {
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (entry.name.startsWith('_')) continue;
+      files.push(...walkWdrFiles(join(dir, entry.name)));
+    } else if (entry.name.toLowerCase().endsWith('.wdr')) {
+      files.push(join(dir, entry.name));
+    }
+  }
+  return files;
+}
+
 function main() {
   const sources = JSON.parse(
     readFileSync(join(ROOT, 'drivers/sources.json'), 'utf8')
@@ -104,6 +121,8 @@ function main() {
     const files = [];
     const skipped = [];
     const perGroup = new Map();          // top path segment (the brand) → kept count
+    const roundTripFailures = [];        // Round-trip gate (shiny-noodling-kahan.md): every
+    // BUNDLED record must survive OpenISDDriver.fromJsonRecord(record).toOwdrText() unaltered.
     let done = 0;
 
     for (const p of recordPaths) {
@@ -117,6 +136,13 @@ function main() {
       if (!isBundlable(projected)) {
         skipped.push(rel);
       } else {
+        // Round-trip gate: the SAME real functions the app's own loader/export path and the
+        // bridge's roundTripOpenisdYaml use (packages/model/src/openisdDriver.ts:291,534) — no
+        // reimplemented parse/serialise. Runs only on records that are actually bundled; a
+        // record already excluded by isBundlable is not a round-trip concern here.
+        const gate = checkOpenisdRoundTrip(record, rel);
+        if (!gate.ok) roundTripFailures.push(gate.message);
+
         files.push({
           // path within the source (forward-slashed) — the unique id together with the
           // source key; never rely on the display name, which can repeat.
@@ -133,6 +159,15 @@ function main() {
       }
     }
 
+    if (roundTripFailures.length > 0) {
+      throw new Error(
+        `${key} (${src.name}): ${roundTripFailures.length} openisd.yml round-trip failure(s) — ` +
+        `the app's own loader/export path does not reproduce these records:\n` +
+        roundTripFailures.map(m => `  - ${m}`).join('\n'),
+      );
+    }
+    console.log(`  round-trip gate: ${files.length}/${files.length} bundled records clean`);
+
     for (const [group, n] of [...perGroup].sort((a, b) => b[1] - a[1])) {
       console.log(`    ${group.padEnd(24)} ${String(n).padStart(4)}`);
     }
@@ -143,6 +178,35 @@ function main() {
 
     bundle.sources.push({ key, name: src.name, files });
     console.log(`  → ${files.length} records bundled from ${key}`);
+
+    // Second leg of the round-trip gate (shiny-noodling-kahan.md): the tools-generated
+    // `.wdr` files reachable from this same corpus root, through OpenISDDriver.fromWdrText /
+    // .toWdrText — the app's own wdr reader/writer pair. `.wdr` is never bundled; this is a
+    // strong test of the serialisation code the app will use (John's stated purpose), not a
+    // bundling concern, so a mismatch WARNS rather than fails the build: today's on-disk
+    // `.wdr` corpus predates this bridge (it was written by the Python `rebuild_wdr.py` INI
+    // serialiser F4 deleted — a smaller key set than `toWdr()`'s fixed 48-row table, confirmed
+    // by `round-trip-gate.test.ts`'s "REAL CORPUS FINDING" case) and will universally miss the
+    // QT60 bar until winisd_tools regenerates it through this same bridge. Making this fatal
+    // today would block every `npm run dev`/`build` for a reason unrelated to today's
+    // correctness. NEEDS A RULING before this becomes build-fatal — see the task report.
+    let wdrPaths;
+    try { wdrPaths = walkWdrFiles(localPath); }
+    catch { wdrPaths = []; }
+    if (wdrPaths.length > 0) {
+      const wdrFailures = [];
+      for (const p of wdrPaths) {
+        const rel = relative(localPath, p).replace(/\\/g, '/');
+        const gate = checkWdrRoundTrip(readFileSync(p, 'utf8'), rel);
+        if (!gate.ok) wdrFailures.push(gate.message);
+      }
+      const clean = wdrPaths.length - wdrFailures.length;
+      console.log(`  .wdr round-trip (non-fatal, QT60 bar): ${clean}/${wdrPaths.length} clean`);
+      if (wdrFailures.length > 0) {
+        console.warn(`  ${wdrFailures.length} .wdr file(s) do not round-trip through the app's own reader/writer, first 5:`);
+        for (const m of wdrFailures.slice(0, 5)) console.warn(`    - ${m}`);
+      }
+    }
   }
 
   const total = bundle.sources.reduce((n, s) => n + s.files.length, 0);
