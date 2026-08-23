@@ -168,6 +168,16 @@ checklistDescribe('no re-exports — a name is declared where it is exported (QO
       're-export site). Delete the re-export; migrate its consumers to the declaring module.');
   });
 
+  it('the detector fires on a real barrel (positive control): the model root barrel is all re-exports', () => {
+    // packages/model/src/index.ts re-exports its whole surface (`export ... from` lines) —
+    // a live positive control proving `reExportOffencesIn` detects the shape, and pinning in
+    // code WHY root barrels are excluded from the sweep above: they would all be offences.
+    const modelBarrel = join(PACKAGES, 'model', 'src', 'index.ts');
+    assert.ok(BARRELS.has(modelBarrel), 'precondition: the model barrel is a sanctioned barrel');
+    assert.ok(reExportOffencesIn(modelBarrel).length > 0,
+      'the detector must flag a file that genuinely re-exports — if this is zero the sweep above is blind');
+  });
+
   it('a subpath barrel (e.g. model/./driverStanding) is exempt from the gate but not from scrutiny — none currently re-exports', () => {
     assert.ok(SUBPATH_BARRELS.size > 0, 'no subpath barrels found — this guard would pass vacuously');
     const offences = [...SUBPATH_BARRELS].flatMap(reExportOffencesIn);

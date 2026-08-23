@@ -1,5 +1,5 @@
 /**
- * Persistence — what survives a serialize round trip, and what a share link carries.
+ * Persistence — what survives a save round trip, and what a share link carries.
  *
  * Two properties, both real:
  *   1. A driver's PROVENANCE survives. An E field comes back E and a C field comes back C —
@@ -16,18 +16,40 @@ import { dirname, join } from 'node:path';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { OpenISDDriver, Provenance } from '@openisd/model';
 import { WinISDDriver } from '@openisd/winisd';
-import { serialize, stateToUrl, loadFromHash, upgradeParsedState } from '../../src/logic/persist.js';
-import { state, managedProject, applyState } from '../../src/logic/appState.js';
-import { presentationState } from '../../src/logic/presentationState.js';
-import type { ProjectMeta, SerializedState, UiParams } from '../../src/types.js';
-import type { PresentationState } from '../../src/logic/presentationState.js';
+import { createProjectRepo, createMemoryStorage, type FileStorage, type ProjectWrite, type ViewSnapshot } from '@openisd/persistence';
+import { projectSchema } from '../../src/logic/schemaUpgrade.js';
+import { state, managedProject, applyState, currentProjectWrite } from '../../src/logic/appState.js';
+import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
+import type { BoxType } from '@openisd/engine';
+
+/** A picker that is never reached — these tests exercise the storage/link/text doors only. */
+const noFilePicker: FileStorage = {
+  save: async () => ({ name: null, cancelled: true, written: false }),
+  saveAs: async () => ({ name: null, cancelled: true, written: false }),
+  openFileName: () => null,
+  forget: () => {},
+};
+const mem = createMemoryStorage();
+const repo = createProjectRepo(mem, projectSchema, noFilePicker);
+
+/** The write shape the doors take, from the same pieces the old positional call passed. */
+function writeOf(box: BoxType, meta: OpenISDProjectMeta, view: ViewSnapshot,
+  driverText: string | undefined, params: UiParams): ProjectWrite {
+  return { params, box, meta, view, driverText };
+}
+
+/** The stored payload as raw bytes — what the repo actually wrote, decoded independently. */
+function storedPayload(w: ProjectWrite): ReturnType<typeof JSON.parse> {
+  repo.saveLocal(w);
+  return JSON.parse(mem.get('openisd.state')!);
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLE = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'John-all-manu-populated.wdr');
 const wdrText = readFileSync(SAMPLE, 'utf8');
 
-// A minimal PresentationState — serialize only reads graphs off it here.
-const miniView = { graphs: ['SPL'] } as unknown as PresentationState;
+// A minimal view — only graphs matters to these payload tests.
+const miniView: ViewSnapshot = { graphs: ['SPL'] };
 
 /** The sample `.wdr`, read as-read by the serialiser, as the driver's own persisted TEXT —
  *  the only form the driver takes in a serialised payload (QO73: the UI carries the managed
@@ -36,8 +58,8 @@ function sampleDriverText(): string {
   return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdrText)).toOwdrText();
 }
 
-describe('persistence — provenance survives a serialize round trip', () => {
-  it('E stays E and C stays C across serialize → JSON → restore', () => {
+describe('persistence — provenance survives a save round trip', () => {
+  it('E stays E and C stays C across save → JSON → restore', () => {
     const src = OpenISDDriver.fromOwdrText(sampleDriverText());
     // Clear a derivable field so the fixture carries a genuine C (Cms recomputes from
     // Fs/Vas/Sd) alongside the E fields the WinISD save marks entered.
@@ -47,9 +69,8 @@ describe('persistence — provenance survives a serialize round trip', () => {
     assert.equal(src.cell('Fs').state, Provenance.Entered, 'fixture precondition: Fs entered');
     assert.equal(src.cell('Cms').state, Provenance.Calculated, 'fixture precondition: Cms now computed');
 
-    const wire = JSON.parse(JSON.stringify(
-      serialize('sealed', { name: 'John-all-manu-populated', creator: 'John', created: '2026-01-01',
-        modified: '2026-01-02', description: '' }, miniView, src.toOwdrText(), {} as UiParams)));
+    const wire = storedPayload(writeOf('sealed', { name: 'John-all-manu-populated', creator: 'John',
+      created: '2026-01-01', modified: '2026-01-02', description: '' }, miniView, src.toOwdrText(), {} as UiParams));
     const back = OpenISDDriver.fromOwdrText(wire.driver);
 
     for (const f of ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const) {
@@ -59,8 +80,8 @@ describe('persistence — provenance survives a serialize round trip', () => {
   });
 
   it('the payload is the RECORD, so `specs` and its readings travel', () => {
-    const ser = serialize('sealed', { name: 'Provenance sample', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, miniView, sampleDriverText(), {} as UiParams);
+    const ser = storedPayload(writeOf('sealed', { name: 'Provenance sample', creator: 'John', created: '2026-01-01',
+      modified: '2026-01-02', description: '' }, miniView, sampleDriverText(), {} as UiParams));
     assert.ok(ser.driver, 'the driver payload travels');
     const record = JSON.parse(ser.driver!);
     assert.ok(record.specs, 'the driver payload is the openisd.yml record, serialised');
@@ -69,8 +90,8 @@ describe('persistence — provenance survives a serialize round trip', () => {
   });
 
   it('a design with NO driver chosen serialises without inventing one', () => {
-    const ser = serialize('sealed', { name: 'No driver yet', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, miniView, undefined, {} as UiParams);
+    const ser = storedPayload(writeOf('sealed', { name: 'No driver yet', creator: 'John', created: '2026-01-01',
+      modified: '2026-01-02', description: '' }, miniView, undefined, {} as UiParams));
     assert.equal(ser.driver, undefined,
       'a fake driver written to fill the slot would be indistinguishable on reload from one ' +
       'the user actually picked');
@@ -84,7 +105,7 @@ describe('persistence — provenance survives a serialize round trip', () => {
  * (human ruling 2026-08-14).
  */
 describe('share link carries the whole state, stripped of nothing', () => {
-  const uiView = {
+  const uiView: ViewSnapshot = {
     graphs: ['SPL'],
     ui: {
       originalProjectTab: 'signal', originalChartTab: 'Excursion', originalChartLabel: 'Cone excursion',
@@ -94,7 +115,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
       username: 'johnl', envDefaults: { tempK: 300, pressurePa: 100000, humidityPct: 40 },
       chartColors: { background: '#ffffff' },
     },
-  } as unknown as PresentationState;
+  };
   const drv = sampleDriverText();
 
   // stateToUrl reads location.{origin,pathname}; stub it (no jsdom needed) for the URL test.
@@ -104,17 +125,17 @@ describe('share link carries the whole state, stripped of nothing', () => {
   // stateToUrl() gzips before base64url — reverse both with Node's zlib, independent of the
   // app's own CompressionStream path, so this checks what a browser would decode rather than
   // agreeing with the implementation about itself.
-  function decodeShare(url: string): SerializedState {
+  function decodeShare(url: string): ReturnType<typeof JSON.parse> {
     const b64 = url.match(/[#&]s=([^&]+)/)![1].replace(/-/g, '+').replace(/_/g, '/');
     return JSON.parse(gunzipSync(Buffer.from(b64, 'base64')).toString('utf8'));
   }
 
   it('every ui field travels — view context, open panels, local preferences and project meta alike', async () => {
-    const project: ProjectMeta = {
+    const project: OpenISDProjectMeta = {
       name: 'Kick bin', creator: 'John Lonergan', created: '2026-08-01T00:00:00.000Z',
       modified: '2026-08-14T12:30:00.000Z', description: 'PA subwoofer for the shed',
     };
-    const shared = decodeShare(await stateToUrl(serialize('sealed', project, uiView, drv, {} as UiParams)));
+    const shared = decodeShare(await repo.stateToUrl(writeOf('sealed', project, uiView, drv, {} as UiParams)));
     const ui = shared.ui as Record<string, unknown> | undefined;
     assert.ok(ui, 'the view context travels');
 
@@ -147,60 +168,57 @@ describe('share link carries the whole state, stripped of nothing', () => {
   it('gzip actually shrinks the link vs plain base64 of the same JSON', async () => {
     // A realistic payload — a real record plus two comparison overlays, so the JSON has the
     // repetition gzip exploits. A round-trip alone would not prove compression happened.
-    const loaded = { ...uiView, compare: [
-      { driver: drv, box: 'vented', P: {}, name: 'Compare A', color: '#ff0000' },
-      { driver: drv, box: 'sealed', P: {}, name: 'Compare B', color: '#00ff00' },
-    ] } as unknown as PresentationState;
-    const project: ProjectMeta = { name: 'Gzip fixture', creator: 'John', created: '2026-01-01',
+    const project: OpenISDProjectMeta = { name: 'Gzip fixture', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' };
-    const plainBase64Len = Buffer.from(
-      JSON.stringify(serialize('sealed', project, loaded, drv, {} as UiParams)), 'utf8').toString('base64').length;
-    const gzipBase64Len = (await stateToUrl(serialize('sealed', project, loaded, drv, {} as UiParams)))
-      .match(/[#&]s=([^&]+)/)![1].length;
+    // Two driver texts in one payload gives the JSON the repetition gzip exploits.
+    const w = writeOf('sealed', { ...project, description: drv }, uiView, drv, {} as UiParams);
+    const plainBase64Len = Buffer.from(JSON.stringify(storedPayload(w)), 'utf8').toString('base64').length;
+    const gzipBase64Len = (await repo.stateToUrl(w)).match(/[#&]s=([^&]+)/)![1].length;
 
     assert.ok(gzipBase64Len < plainBase64Len,
       `gzip+base64 (${gzipBase64Len}) should be smaller than plain base64 (${plainBase64Len})`);
   });
 
   it('carries the graph cursor — live hover and locked/pinned, both if both are set', async () => {
-    const withCursor = { ...uiView, cursorF: 123.4, pinnedF: 500, cursorLocked: true } as unknown as PresentationState;
-    const project: ProjectMeta = { name: 'Cursor fixture', creator: 'John', created: '2026-01-01',
+    const withCursor: ViewSnapshot = { ...uiView, cursor: { f: 123.4, pinnedF: 500, locked: true, range: null } };
+    const project: OpenISDProjectMeta = { name: 'Cursor fixture', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' };
-    const local = serialize('sealed', project, withCursor, drv, {} as UiParams);
-    assert.deepEqual(local.cursor, { f: 123.4, pinnedF: 500, locked: true, range: null });
-    assert.deepEqual(decodeShare(await stateToUrl(local)).cursor,
+    const w = writeOf('sealed', project, withCursor, drv, {} as UiParams);
+    assert.deepEqual(storedPayload(w).cursor, { f: 123.4, pinnedF: 500, locked: true, range: null });
+    assert.deepEqual(decodeShare(await repo.stateToUrl(w)).cursor,
       { f: 123.4, pinnedF: 500, locked: true, range: null });
   });
 
-  it('carries the dragged band (fLo/fHi only — stats are per-panel derived)', async () => {
-    const withBand = { ...uiView, dragRange: { fLo: 31.6, fHi: 100, stats: { peak: 1 } } } as unknown as PresentationState;
-    const project: ProjectMeta = { name: 'Band fixture', creator: 'John', created: '2026-01-01',
+  it('the dragged band crosses as fLo/fHi only — per-panel stats are derived, not state', async () => {
+    // The stats-stripping itself happens in `currentProjectWrite()` (appState.ts), which reads
+    // the live presentation state; at the repo door the band is already bare.
+    const withBand: ViewSnapshot = { ...uiView, cursor: { f: null, pinnedF: null, locked: false, range: { fLo: 31.6, fHi: 100 } } };
+    const project: OpenISDProjectMeta = { name: 'Band fixture', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' };
-    const local = serialize('sealed', project, withBand, drv, {} as UiParams);
-    assert.deepEqual(local.cursor!.range, { fLo: 31.6, fHi: 100 }, 'derived stats are not state');
-    assert.deepEqual(decodeShare(await stateToUrl(local)).cursor!.range, { fLo: 31.6, fHi: 100 });
+    const w = writeOf('sealed', project, withBand, drv, {} as UiParams);
+    assert.deepEqual(storedPayload(w).cursor.range, { fLo: 31.6, fHi: 100 });
+    assert.deepEqual(decodeShare(await repo.stateToUrl(w)).cursor.range, { fLo: 31.6, fHi: 100 });
   });
 
-  it('an unset cursor serialises as all-null/false, not omitted', () => {
-    const noCursor = { ...uiView, cursorF: null, pinnedF: null, cursorLocked: false } as unknown as PresentationState;
-    const project: ProjectMeta = { name: 'No-cursor fixture', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' };
-    assert.deepEqual(serialize('sealed', project, noCursor, drv, {} as UiParams).cursor,
-      { f: null, pinnedF: null, locked: false, range: null },
-      'omitting "nothing pinned" would make absence and unset indistinguishable on reload');
+  it('an unset cursor serialises as all-null/false, not omitted — via the live gatherer', () => {
+    // `currentProjectWrite()` is the one mapping from live presentation state to the payload's
+    // cursor; an unset cursor must cross as explicit null/false, or absence and unset become
+    // indistinguishable on reload.
+    const cw = currentProjectWrite();
+    assert.deepEqual(cw.view.cursor, { f: null, pinnedF: null, locked: false, range: null });
   });
 });
 
 /**
  * `UiParams` is the ONE wire shape for the project's flat params — `managedProject.toUiParams()`
- * out, `managedProject.loadUiParams()` in, through `serialize()`/`applyState()`. A caller that
+ * out, `managedProject.loadUiParams()` in, through the project repo and `applyState()`. A caller that
  * passed `SyncedParams` (`UiParams & {eg, Sp, Leff}`) instead would persist DERIVED values
  * (recomputed from the rest on every load) as if they were stored state — a second, redundant
  * shape for the same three fields, free to disagree with what they recompute to.
  * Regression guard: every real `UiParams` field must survive
- * `toUiParams → serialize → JSON → applyState → toUiParams` unchanged.
+ * `toUiParams → save → load → applyState → toUiParams` unchanged.
  */
-describe('UiParams round-trips losslessly through serialize/applyState', () => {
+describe('UiParams round-trips losslessly through the repo and applyState', () => {
   it('every field of a fully-specified design survives a save/restore cycle unchanged', () => {
     managedProject.setActiveAlignment('vented');
     managedProject.setBoxVolume_m3(0.028);
@@ -249,18 +267,19 @@ describe('UiParams round-trips losslessly through serialize/applyState', () => {
 
     const before = managedProject.toUiParams();
 
-    const wire = JSON.parse(JSON.stringify(
-      serialize(state.box, state.project, presentationState, undefined, before))) as SerializedState;
+    repo.saveLocal({ ...currentProjectWrite(), params: before, driverText: undefined });
+    const wire = repo.loadLocal();
+    assert.ok(wire, 'the just-saved design must load');
 
     // Scramble the live project back to nothing BEFORE restoring, so this actually exercises
     // write-back — restoring into a project that already held these values would pass even if
     // `loadUiParams` silently dropped every field.
     managedProject.loadEmpty();
-    applyState(wire);
+    applyState(wire!);
 
     const after = managedProject.toUiParams();
     assert.deepEqual(after, before,
-      'every UiParams field must round-trip byte-identical through serialize/applyState — a ' +
+      'every UiParams field must round-trip byte-identical through the repo and applyState — a ' +
       'diverging field would mean the wire shape silently drops or corrupts it');
   });
 });
@@ -285,21 +304,21 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
       .toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     vi.stubGlobal('location', { hash: '#s=' + encoded, origin: 'https://openisd.test', pathname: '/' });
 
-    const loaded = await loadFromHash();
+    const loaded = await repo.loadFromHash();
     assert.ok(loaded, 'a V1 payload must load, upgraded — not be refused');
-    assert.equal(typeof loaded!.driver, 'string', 'the V1→V2 step serialises the driver slot');
-    const back = OpenISDDriver.fromOwdrText(loaded!.driver!);
+    assert.equal(typeof loaded!.driverText, 'string', 'the V1→V2 step serialises the driver slot');
+    const back = OpenISDDriver.fromOwdrText(loaded!.driverText!);
     assert.equal(back.cell('Fs').state, Provenance.Entered,
       'the upgraded driver is the same record — provenance intact');
   });
 
-  it('upgradeParsedState is the same seam File → Open uses — V1 object slot becomes text', () => {
-    const upgraded = upgradeParsedState({
+  it('readProjectText is the same seam File → Open uses — V1 object slot becomes text', () => {
+    const upgraded = repo.readProjectText(JSON.stringify({
       schema: 1, v: 2, box: 'sealed', P: {}, graphs: [],
       project: { name: 'v1-file', creator: '', created: '', modified: '', description: '' },
       driver: JSON.parse(sampleDriverText()),
-    });
+    }));
     assert.ok(upgraded);
-    assert.equal(typeof upgraded!.driver, 'string');
+    assert.equal(typeof upgraded!.driverText, 'string');
   });
 });

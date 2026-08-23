@@ -524,6 +524,108 @@ function prRmsFromWinIsdQms(qms: number, mmdSI: number, cmsSI: number): number {
   return prRmsFromQms(qms, mmdSI, cmsSI);
 }
 
+/**
+ * The flat, engine-facing snapshot of one project — a superset of the engine's SweepParams:
+ * it adds view-only inputs (ventD/ventL geometry, Pin drive power, prName) and omits the
+ * derived fields (eg, Sp, Leff) that `syncedP`/`toUiParams()` compute on the fly. Produced by
+ * `toUiParams()`, adopted by `loadUiParams()`, never stored.
+ */
+export interface UiParams {
+  Vb: number;
+  Vf: number;
+  ventShape: 'round' | 'slotted';
+  ventD: number;
+  ventW: number;
+  ventH: number;
+  ventL: number;
+  /** Box tuning. Tied to Vb/ventD/ventL by one Helmholtz relation — see `entered`. */
+  Fb: number;
+  /** Rear chamber tuning frequency (e.g. for bandpass6) */
+  Frc?: number;
+  /**
+   * Passive-radiator system tuning (WinISD: Fp). Tied to `prMadd` by one relation — the PR's
+   * intrinsic Mmd/Cms/Sd plus Vb are given, and added mass is what moves the tuning. Enter a
+   * target tuning and the mass is solved; enter a mass and the tuning is. See `entered`.
+   */
+  prFp: number;
+  /**
+   * Which box/vent fields the user ENTERED. Presence ⇒ Entered: the value is held and never
+   * recomputed. Absence ⇒ Calculated, re-solved whenever an entered member changes.
+   *
+   * Same model as the driver's provenance (`Driver.#inputs`, docs/DRIVER_ADT_DESIGN.md) and
+   * the same reason: docs/design/STATE_MODEL.md rule 7 — provenance is recorded where entry happens,
+   * never reconstructed downstream from "is the field present".
+   *
+   * `Fb` and `ventL` are the pair this arbitrates, and BOTH stay fields.
+   *
+   * **WinISD's direction is the default and is what ships**: `{Vb, ventD, Fb}` entered, vent
+   * length calculated — change the diameter and the LENGTH moves while the tuning holds.
+   * WinISD itself offers no way to reverse that; its Vents tab renders length, cross area and
+   * port resonance greyed/calculated, with only vent count and diameter editable (confirmed
+   * live against 0.7.0.950).
+   *
+   * The reverse — enter `ventL`, let the tuning be solved — falls out of the entered-set
+   * model rather than being copied from WinISD. It costs nothing to allow, and it is the
+   * foundation the "pin any subset and solve the rest" vent solver builds on (BACKLOG P2).
+   * Storing one member and deriving the other would have baked one direction into the schema
+   * and made that later work a rewrite.
+   *
+   * Solved by `composables/useVentGroup.ts`.
+   */
+  entered: Record<string, true>;
+  Ql: number;
+  Qa: number;
+  Qp: number;
+  nDrivers: number;
+  wiring: 'series' | 'parallel';
+  Pin: number;
+  Rs: number;
+  prName: string;
+  prSd: number;
+  prNum: number;
+  prMmd: number;
+  prMadd: number;
+  prCms: number;
+  prRms: number;
+  prXmax: number;
+  fmin: number;
+  fmax: number;
+  N: number;
+  circuitModel: 'winisd' | 'gyrator';
+  filters: Filter[];
+  // WinISD-parity driver inputs (docs/research/WINISD_PARITY.md). SI/engine units: vcTempRise K, alfaVC /K
+  // (UI shows 1000/K), driverAddedMass kg (UI shows g). All 0-safe: no-op at the default.
+  vcTempRise: number;
+  alfaVC: number;
+  driverAddedMass: number;
+  // Port end-correction coefficient (× vent diameter): 0.613 two-free / 0.732 one-flanged
+  // (default) / 0.849 two-flanged. Feeds Leff → box tuning Fb.
+  endCorrection: number;
+  // ---- WinISD Advanced-pane simulation options (PLAN_ADVANCED_SIM_OPTIONS.md) ----------
+  // The fifth WinISD toggle, "Simulate voice coil inductance", is NOT a field of its own:
+  // it is `circuitModel` under WinISD's wording (appState.simVcInductance maps it).
+  /** Rg sits in series with each driver (true, the default) rather than at the amplifier. */
+  rgAtDriverSide: boolean;
+  /** Model the vent as an acoustic transmission line instead of a lumped mass. */
+  tlPortModel: boolean;
+  /** Auto-EQ the response flat, charging the boost to excursion/velocity/max-SPL. */
+  forceFlatResponse: boolean;
+  /** Plot the SPL chart backed off to Xmax (engine `splXlim`) instead of the raw SPL. */
+  splXmaxLimited: boolean;
+  // ---- Environment — per project, as WinISD's .wpr [Box] T / p / phi ------------------
+  /** Ambient temperature, K. */
+  tempK?: number;
+  /** Relative humidity, PERCENT. The .wpr's `phi` is a FRACTION — converted in that writer only. */
+  humidityPct?: number;
+  /** Static air pressure, Pa. */
+  pressurePa?: number;
+  /**
+   * Opt in to WinISD's behaviour of ignoring humidity and air pressure (ledger QO7).
+   * Default false — openisd derives ρ and c from T, RH and p, and thence the SPL constant K.
+   */
+  ignoreHumidityAndPressure?: boolean;
+}
+
 export class OpenISDProject {
   readonly #record: _OpenISDProjectJson;
 
@@ -764,6 +866,105 @@ export class OpenISDProject {
   replaceEnteredSet(value: Record<string, true>): void {
     this.#record.target.entered = { ...value };
   }
+
+  /** 50 Hz is an arbitrary placeholder, not a measured or derived value — nothing computes
+   *  this field yet (no alignment exists to hold it), and no design has ever entered a real
+   *  one through this unreachable call path. It is a constant so a caller reading it gets a
+   *  stable number rather than 0/NaN while the field waits on QO44. */
+  frcHz(): number { return 50; }
+
+  /** The project as its flat wire snapshot — every field a plain value, provenance carried
+   *  as the entered set. The one producer `serialize()` and the share link read. */
+  toUiParams(): UiParams {
+    return {
+      Vb: this.volume_m3(), Vf: this.frontVolume_m3(),
+      ventShape: this.ventField('shape'), ventD: this.ventField('diameter_m'),
+      ventW: this.ventField('width_m'), ventH: this.ventField('height_m'),
+      ventL: this.ventField('length_m'), endCorrection: this.ventField('endCorrection'),
+      Fb: this.tuning_Fb_hz(), Frc: this.frcHz(),
+      prFp: this.prFp_hz(), prName: this.prField('name'), prSd: this.prField('Sd_m2'),
+      prNum: this.prCount(), prMmd: this.prField('Mmd_kg'), prMadd: this.prAddedMass_kg(),
+      prCms: this.prField('Cms_m_per_N'), prRms: this.prField('Rms_Ns_per_m'),
+      prXmax: this.prField('Xmax_m'),
+      entered: this.enteredSet(),
+      Ql: this.loss('Ql'), Qa: this.loss('Qa'), Qp: this.loss('Qp'),
+      nDrivers: this.cell('nDrivers').value, wiring: this.wiring(),
+      Pin: this.cell('Pin').value, Rs: this.cell('Rs').value,
+      fmin: this.sweepFmin_hz(), fmax: this.sweepFmax_hz(), N: this.sweepPoints(),
+      circuitModel: this.circuitModel(), filters: this.filters(),
+      vcTempRise: this.cell('vcTempRise').value, alfaVC: this.alfaVC(),
+      driverAddedMass: this.cell('driverAddedMass').value,
+      rgAtDriverSide: this.rgAtDriverSide(), tlPortModel: this.tlPortModel(),
+      forceFlatResponse: this.forceFlatResponse(), splXmaxLimited: this.splXmaxLimited(),
+      tempK: this.cell('advTemp').value, humidityPct: this.cell('advHumidity').value,
+      pressurePa: this.cell('advPressure').value,
+      ignoreHumidityAndPressure: this.ignoreHumidityAndPressure(),
+    };
+  }
+
+  /**
+   * Adopt a `UiParams` blob — a restore (local save, share link, ground checkpoint) that must
+   * land byte-identical on every field IT SUPPLIES, with nothing re-solved
+   * (`docs/design/STATE_MODEL.md` rule 3). `box` is set first so every alignment-relative
+   * write (`Vb`, the vent fields) lands on the alignment the snapshot was taken from.
+   *
+   * `p` is `Partial<UiParams>` because every real caller's blob can genuinely be partial — a
+   * caller restoring only the entered set, or a serialised blob missing fields this build
+   * added since it was written. `field()` below is the ONE fallback rule, applied UNIFORMLY
+   * to every field: `p`'s own value if it supplied one, else the CURRENT value — restoring
+   * one field must not silently reset every other one, and no field gets a special-cased
+   * fallback the rest don't have.
+   */
+  loadUiParams(p: Partial<UiParams>, box: AlignmentKind): void {
+    const current = this.toUiParams();
+    const field = <K extends keyof UiParams>(k: K): UiParams[K] => (p[k] !== undefined ? p[k]! : current[k]);
+    // `tempK`/`humidityPct`/`pressurePa`/`ignoreHumidityAndPressure` are the only FOUR fields
+    // `UiParams` itself declares optional (a serialised blob may genuinely omit them —
+    // WinISD's own environment fields predate this app tracking them per-project). Every other
+    // field is required by the interface, so `field()` alone type-checks for them. These four
+    // need one more step: `current[k]` — read from the live record, where the environment's
+    // fields are NOT optional — is never actually undefined, so this narrows `field()`'s
+    // `T | undefined` back to `T` without inventing a fallback value.
+    const requiredField = <K extends 'tempK' | 'humidityPct' | 'pressurePa' | 'ignoreHumidityAndPressure'>(k: K)
+      : NonNullable<UiParams[K]> => field(k)!;
+    this.setAlignment(box);
+    this.setVentField('shape', field('ventShape'));
+    this.setVentField('diameter_m', field('ventD'));
+    this.setVentField('width_m', field('ventW'));
+    this.setVentField('height_m', field('ventH'));
+    this.setVentField('length_m', field('ventL'));
+    this.setVentField('endCorrection', field('endCorrection'));
+    this.setVolume_m3(field('Vb'));
+    this.setFrontVolume_m3(field('Vf'));
+    this.setTuning_Fb_hz(field('Fb'));
+    this.setLoss('Ql', field('Ql')); this.setLoss('Qa', field('Qa')); this.setLoss('Qp', field('Qp'));
+    this.setPrField('name', field('prName'));
+    this.setPrField('Sd_m2', field('prSd'));
+    this.setPrField('Mmd_kg', field('prMmd'));
+    this.setPrField('Cms_m_per_N', field('prCms'));
+    this.setPrField('Rms_Ns_per_m', field('prRms'));
+    this.setPrField('Xmax_m', field('prXmax'));
+    this.setPrCount(field('prNum'));
+    this.setPrAddedMass_kg(field('prMadd'));
+    this.setPrFp_hz(field('prFp'));
+    this.set('advTemp', requiredField('tempK'));
+    this.set('advHumidity', requiredField('humidityPct'));
+    this.set('advPressure', requiredField('pressurePa'));
+    this.setIgnoreHumidityAndPressure(requiredField('ignoreHumidityAndPressure'));
+    this.set('nDrivers', field('nDrivers')); this.setWiring(field('wiring'));
+    this.set('Pin', field('Pin')); this.set('Rs', field('Rs'));
+    this.setRgAtDriverSide(field('rgAtDriverSide'));
+    this.setCircuitModel(field('circuitModel'));
+    this.setTlPortModel(field('tlPortModel'));
+    this.setForceFlatResponse(field('forceFlatResponse'));
+    this.setSplXmaxLimited(field('splXmaxLimited'));
+    this.set('vcTempRise', field('vcTempRise')); this.setAlfaVC(field('alfaVC'));
+    this.set('driverAddedMass', field('driverAddedMass'));
+    this.setSweepFmin_hz(field('fmin')); this.setSweepFmax_hz(field('fmax')); this.setSweepPoints(field('N'));
+    this.setFilters(field('filters'));
+    this.replaceEnteredSet({ ...field('entered') });
+  }
+
 
   prCount(): number { return this.#record.box.passiveRadiator.count; }
   setPrCount(value: number): void { this.#record.box.passiveRadiator.count = value; }

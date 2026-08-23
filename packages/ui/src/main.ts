@@ -2,9 +2,9 @@ import { createApp } from 'vue';
 import App from './ui/App.vue';
 import { vExpoStep } from './ui/directives/expoStep.js';
 import { vLimits } from './ui/directives/limits.js';
-import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRepo, createPrRepo, createFileStorage } from '@openisd/persistence';
+import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRepo, createPrRepo, createFileStorage, createProjectRepo } from '@openisd/persistence';
 import type { BundleRecord, BundledPR } from '@openisd/persistence';
-import { myDriversSchema } from './logic/schemaUpgrade.js';
+import { myDriversSchema, projectSchema } from './logic/schemaUpgrade.js';
 import { createLogging } from './logging/flash.js';
 import { createDiagnostics } from './diagnostics/selftest.js';
 import { createFaultLog } from './diagnostics/faultLog.js';
@@ -58,7 +58,8 @@ const driverBrowsing = createDriverBrowsingState({
   driverRepo, myDriverRepo, prefs, logging, selection,
   confirmReset: (question) => confirm(question),
 });
-const designIO = createDesignIO({ logging, fileStorage });
+const projectRepo = createProjectRepo(storage, projectSchema, fileStorage);
+const designIO = createDesignIO({ logging, fileStorage, projectRepo });
 
 const app = createApp(App)
   .directive('expo-step', vExpoStep)
@@ -66,7 +67,7 @@ const app = createApp(App)
 
 provideApp(app, {
   logging, driverBrowsing, selection, designIO, prRepo, myDrivers: myDriverRepo,
-  driverFileStorage, diagnostics, faultLog,
+  driverFileStorage, diagnostics, faultLog, projectRepo,
 });
 
 app.mount('#app');

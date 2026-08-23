@@ -10,7 +10,8 @@
  * other module's already-captured reference to the old one.
  */
 import { reactive } from 'vue';
-import type { ChartTabId, DragRange, YRange, UiState } from '../types.js';
+import type { ChartTabId, DragRange, YRange } from '../types.js';
+import type { UiState } from '@openisd/persistence';
 import { getOrInit } from './hmrSingleton.js';
 import { nextToken, type UnitGroup } from './fields/units.js';
 

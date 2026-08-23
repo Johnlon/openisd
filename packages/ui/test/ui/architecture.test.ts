@@ -959,6 +959,7 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
     // ratchet above) — the honest demonstration is that the Set itself separates a known-legal
     // edge from a known-unruled one, proving ALLOWED_EDGES is not vacuously permissive.
     assert.equal(ALLOWED_EDGES.has('ui/logic->model'), true, 'a real ruled-legal edge must be recognised');
+    // any edge not on the matrix will do — replace if this one is ever ruled.
     assert.equal(ALLOWED_EDGES.has('ui/components->winisd'), false,
       'an edge nobody ruled legal must be absent from the matrix, proving it is not vacuously permissive');
   });
@@ -991,7 +992,6 @@ const EXPORT_STAR_BASELINE: Record<string, Record<string, string[]>> = {
     './openisdRecord.js': ['CrossSourceReading', 'CurveEntry', 'CurvesBlock', 'DQStatus', 'DqKind', 'DqMark', 'DqSeverity', 'Ground', 'QualityBlock', 'Rating', 'Reading', 'SourceRole'],
     './openisdDerive.js': ['OpenISDDerivation', 'deriveOpenISDFields'],
     './openisdDriver.js': ['Cell', 'MetaCell', 'MetaField', 'OpenISDDriver', 'Provenance', 'SpecField', '_BookkeepingField', '_DerivedField', '_OpenISDDriverJson', '_ScrapedField', '_SpecEntry', '_SpecSection', '_Specs', 'driverRecordProblems', 'winningReading'],
-    './openisdProject.js': ['AlignmentKind', 'OpenISDBandpass4Alignment', 'OpenISDBox', 'OpenISDEnvironment', 'OpenISDListening', 'OpenISDPassiveRadiatorAlignment', 'OpenISDPassiveRadiatorRef', 'OpenISDProject', 'OpenISDProjectMeta', 'OpenISDSealedAlignment', 'OpenISDSignal', 'OpenISDSimOptions', 'OpenISDSweepRange', 'OpenISDTarget', 'OpenISDVent', 'OpenISDVentedAlignment', 'ProjectFieldId', 'VENT_ARITY', 'WinIsdBType', '_OpenISDProjectJson'],
     './openisdYamlToWdr.js': ['openisdYamlToWdr'],
     './driverType.js': ['Chip', 'DriverType'],
   },

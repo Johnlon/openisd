@@ -176,3 +176,7 @@ export const myDriversSchema = {
     } catch { return null; }
   },
 };
+
+/** The app-state chain as the project repo's schema collaborator — what the composition root
+ *  hands `createProjectRepo` (the repo defines the port; this is its one implementation). */
+export const projectSchema = { current: CURRENT_SCHEMA, upgrade };

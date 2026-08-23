@@ -2,7 +2,7 @@ import { inject, type App, type InjectionKey } from 'vue';
 import type { DriverBrowsingState } from './driverBrowsingState.js';
 import type { DriverSelection } from './driverSelection.js';
 import type { DesignIO } from './useDesignIO.js';
-import type { PrRepo, MyDriverRepo, FileStorage } from '@openisd/persistence';
+import type { PrRepo, MyDriverRepo, FileStorage, ProjectRepo } from '@openisd/persistence';
 import type { Logging } from '../logging/flash.js';
 import type { Diagnostics } from '../diagnostics/selftest.js';
 import type { FaultLog } from '../diagnostics/faultLog.js';
@@ -31,6 +31,7 @@ export interface AppLogic {
   prRepo: PrRepo;
   myDrivers: MyDriverRepo;
   driverFileStorage: FileStorage;
+  projectRepo: ProjectRepo;
   diagnostics: Diagnostics;
   faultLog: FaultLog;
 }

@@ -5,20 +5,19 @@ import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
-import { state, persistedDriver, managedProject, applyState, markProjectSaved } from '../logic/appState.js';
+import { managedProject, applyState, markProjectSaved, currentProjectWrite } from '../logic/appState.js';
 import { presentationState } from '../logic/presentationState.js';
 import { createLiveRef } from '../logic/liveProject.js';
-import { serialize, loadFromHash, loadLocal, saveLocal } from '../logic/persist.js';
 import { useApp } from '../logic/app.js';
 
-const { diagnostics } = useApp();
+const { diagnostics, projectRepo } = useApp();
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash / self-test)
 // and the global overlays. The shell only arranges the shared components — no lifecycle or
 // logic lives here twice.
 
 async function handleHashChange() {
-  const saved = await loadFromHash();
+  const saved = await projectRepo.loadFromHash();
   if (saved) applyState(saved);
 }
 
@@ -29,15 +28,15 @@ let saveReady = false;
 // answer to the same question the moment either drifted from the other on restore.
 const { live } = createLiveRef(managedProject);
 watch(
-  () => { void live.value; return serialize(state.box, state.project, presentationState, persistedDriver.value, managedProject.toUiParams()); },
-  (s) => { if (saveReady) saveLocal(s); },
+  () => { void live.value; return currentProjectWrite(); },
+  (s) => { if (saveReady) projectRepo.saveLocal(s); },
   { deep: true },
 );
 
 onMounted(async () => {
-  const fromUrl = await loadFromHash();
+  const fromUrl = await projectRepo.loadFromHash();
   if (!fromUrl) {
-    const local = loadLocal();
+    const local = projectRepo.loadLocal();
     if (local) applyState(local);
   } else {
     applyState(fromUrl);

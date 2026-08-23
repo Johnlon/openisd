@@ -53,7 +53,7 @@ import {
 import type { LossMode, BoxType } from '@openisd/engine';
 import { decodeDriverFileBytes } from './driverFileText.js';
 import { ProjectFileFormat } from '../fileFormat.js';
-import type { UiParams } from '../types.js';
+import type { UiParams } from '@openisd/model';
 
 type ManagedOpenISDProjectListener = () => void;
 
@@ -449,11 +449,7 @@ export class ManagedOpenISDProject {
   // (unbuilt) alignments is selected, so this is unreachable by any live code path today —
   // it exists so that unreachable call site compiles against a real domain method instead of
   // holding its own copy of the value (John's ruling 2026-08-20).
-  /** 50 Hz is an arbitrary placeholder, not a measured or derived value — nothing computes
-   *  this field yet (no alignment exists to hold it), and no design has ever entered a real
-   *  one through this unreachable call path. It is a constant so a caller reading it gets a
-   *  stable number rather than 0/NaN while the field waits on QO44. */
-  frcHz(): number { return 50; }
+  frcHz(): number { return this.#effective().project.frcHz(); }
   /** Stores nothing (no home exists yet) — notifies anyway, uniformly with every other public
    *  mutator (`docs/design/REACTIVITY.md`, `architecture-notify.test.ts`), so a caller waiting
    *  on the change channel is never left silently guessing whether this one forgot to. */
@@ -700,94 +696,12 @@ export class ManagedOpenISDProject {
   // formula runs), so it belongs beside the getters it reads, not duplicated at every caller.
 
   /** A live snapshot of every `UiParams` field, gathered from this project's own accessors. */
-  toUiParams(): UiParams {
-    return {
-      Vb: this.boxVolume_m3(), Vf: this.frontVolume_m3(),
-      ventShape: this.activeVentField('shape'), ventD: this.activeVentField('diameter_m'),
-      ventW: this.activeVentField('width_m'), ventH: this.activeVentField('height_m'),
-      ventL: this.activeVentField('length_m'), endCorrection: this.activeVentField('endCorrection'),
-      Fb: this.boxTuning_Fb_hz(), Frc: this.frcHz(),
-      prFp: this.prFp_hz(), prName: this.prField('name'), prSd: this.prField('Sd_m2'),
-      prNum: this.prCount(), prMmd: this.prField('Mmd_kg'), prMadd: this.prAddedMass_kg(),
-      prCms: this.prField('Cms_m_per_N'), prRms: this.prField('Rms_Ns_per_m'),
-      prXmax: this.prField('Xmax_m'),
-      entered: this.enteredSet(),
-      Ql: this.boxQl(), Qa: this.boxQa(), Qp: this.boxQp(),
-      nDrivers: this.driverCount(), wiring: this.wiring(),
-      Pin: this.inputPower_W(), Rs: this.seriesResistance_ohm(),
-      fmin: this.sweepFmin_hz(), fmax: this.sweepFmax_hz(), N: this.sweepPoints(),
-      circuitModel: this.circuitModel(), filters: this.filters(),
-      vcTempRise: this.vcTempRise(), alfaVC: this.alfaVC(), driverAddedMass: this.driverAddedMass(),
-      rgAtDriverSide: this.rgAtDriverSide(), tlPortModel: this.tlPortModel(),
-      forceFlatResponse: this.forceFlatResponse(), splXmaxLimited: this.splXmaxLimited(),
-      tempK: this.envTempK(), humidityPct: this.envHumidityPct(),
-      pressurePa: this.envPressurePa(), ignoreHumidityAndPressure: this.envIgnoreHumidityAndPressure(),
-    };
-  }
+  toUiParams(): UiParams { return this.#effective().project.toUiParams(); }
 
-  /**
-   * Adopt a `UiParams` blob — a restore (local save, share link, ground checkpoint) that must
-   * land byte-identical on every field IT SUPPLIES, with nothing re-solved
-   * (`docs/design/STATE_MODEL.md` rule 3). `box` is set first so every alignment-relative
-   * write (`Vb`, the vent fields) lands on the alignment the snapshot was taken from.
-   *
-   * `p` is `Partial<UiParams>` because every real caller's blob can genuinely be partial — a
-   * caller restoring only the entered set, or a legacy save missing fields this build added
-   * since it was written. `field()` below is the ONE fallback rule, applied UNIFORMLY to
-   * every field: `p`'s own value if it supplied one, else the CURRENT value — restoring one
-   * field must not silently reset every other one, and no field gets a special-cased fallback
-   * the rest don't have.
-   */
+  /** Adopt a `UiParams` blob — the domain's own restore (`OpenISDProject.loadUiParams`),
+   *  wrapped in `mutate` for the single notification every public mutator owes. */
   loadUiParams(p: Partial<UiParams>, box: AlignmentKind): void {
-    const current = this.toUiParams();
-    const field = <K extends keyof UiParams>(k: K): UiParams[K] => (p[k] !== undefined ? p[k]! : current[k]);
-    // `tempK`/`humidityPct`/`pressurePa`/`ignoreHumidityAndPressure` are the only FOUR fields
-    // `UiParams` itself declares optional (a legacy/serialised blob may genuinely omit them —
-    // WinISD's own environment fields predate this app tracking them per-project). Every other
-    // field is required by the interface, so `field()` alone type-checks for them. These four
-    // need one more step: `current[k]` — read from the LIVE domain object, where
-    // `OpenISDEnvironment`'s fields are NOT optional — is never actually undefined, so this
-    // narrows `field()`'s `T | undefined` back to `T` without inventing a fallback value.
-    const requiredField = <K extends 'tempK' | 'humidityPct' | 'pressurePa' | 'ignoreHumidityAndPressure'>(k: K)
-      : NonNullable<UiParams[K]> => field(k)!;
-    this.mutate(project => {
-      project.setAlignment(box);
-      project.setVentField('shape', field('ventShape'));
-      project.setVentField('diameter_m', field('ventD'));
-      project.setVentField('width_m', field('ventW'));
-      project.setVentField('height_m', field('ventH'));
-      project.setVentField('length_m', field('ventL'));
-      project.setVentField('endCorrection', field('endCorrection'));
-      project.setVolume_m3(field('Vb'));
-      project.setFrontVolume_m3(field('Vf'));
-      project.setTuning_Fb_hz(field('Fb'));
-      project.setLoss('Ql', field('Ql')); project.setLoss('Qa', field('Qa')); project.setLoss('Qp', field('Qp'));
-      project.setPrField('name', field('prName'));
-      project.setPrField('Sd_m2', field('prSd'));
-      project.setPrField('Mmd_kg', field('prMmd'));
-      project.setPrField('Cms_m_per_N', field('prCms'));
-      project.setPrField('Rms_Ns_per_m', field('prRms'));
-      project.setPrField('Xmax_m', field('prXmax'));
-      project.setPrCount(field('prNum'));
-      project.setPrAddedMass_kg(field('prMadd'));
-      project.setPrFp_hz(field('prFp'));
-      project.set('advTemp', requiredField('tempK'));
-      project.set('advHumidity', requiredField('humidityPct'));
-      project.set('advPressure', requiredField('pressurePa'));
-      project.setIgnoreHumidityAndPressure(requiredField('ignoreHumidityAndPressure'));
-      project.set('nDrivers', field('nDrivers')); project.setWiring(field('wiring'));
-      project.set('Pin', field('Pin')); project.set('Rs', field('Rs'));
-      project.setRgAtDriverSide(field('rgAtDriverSide'));
-      project.setCircuitModel(field('circuitModel'));
-      project.setTlPortModel(field('tlPortModel'));
-      project.setForceFlatResponse(field('forceFlatResponse'));
-      project.setSplXmaxLimited(field('splXmaxLimited'));
-      project.set('vcTempRise', field('vcTempRise')); project.setAlfaVC(field('alfaVC'));
-      project.set('driverAddedMass', field('driverAddedMass'));
-      project.setSweepFmin_hz(field('fmin')); project.setSweepFmax_hz(field('fmax')); project.setSweepPoints(field('N'));
-      project.setFilters(field('filters'));
-      project.replaceEnteredSet({ ...field('entered') });
-    });
+    this.mutate(project => project.loadUiParams(p, box));
   }
 
   // ---- subscription -------------------------------------------------------------------------

@@ -23,6 +23,7 @@ import {
   managedProject,
   formatInUnit as fmtU,
   newProject,
+  copyProjectName,
 } from '../../../logic/appState.js';
 import { presentationState } from '../../../logic/presentationState.js';
 import { createLiveRef } from '../../../logic/liveProject.js';
@@ -40,12 +41,12 @@ import { toAlignmentKind } from '../../../logic/managedProject.js';
 const { live } = createLiveRef(managedProject);
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType, SweepResult, MaxCurvesResult } from '@openisd/engine';
-import type { Design, UiParams, ProjectMeta } from '../../../types.js';
+import type { Design } from '../../../types.js';
+import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
 import type { PRLibEntry, BundledPR } from '@openisd/persistence';
 import { airForEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
 import { TAB_META, parseChartTabId, buildPlotData, DPAL } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../types.js';
-import { copyOfName, uniqueName } from '../../../logic/projectFile.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
 import { useApp } from '../../../logic/app.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
@@ -379,7 +380,7 @@ interface ProjectRow {
   P: UiParams;
   curves: SweepResult | null;
   maxCurves: MaxCurvesResult | null;
-  project: ProjectMeta;
+  project: OpenISDProjectMeta;
   _ground: string;
   isModified: boolean;
   visible: boolean;
@@ -500,8 +501,7 @@ function copyCurrentProject() {
   const currentP = managedProject.toUiParams();
 
   const copyId = 'proj-' + Math.random().toString(36).substring(7);
-  const copyName = uniqueName(copyOfName(state.project.name || driverName.value),
-                              openProjects.value.map(p => p.name));
+  const copyName = copyProjectName(openProjects.value.map(p => p.name));
 
   const d = {
     id: copyId,

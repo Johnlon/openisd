@@ -143,7 +143,7 @@ describe('vent group — a restore is adopted verbatim', () => {
 
     // Exactly what persistence does: JSON out, JSON back in. The rounding that happens here
     // is what a re-solve on restore would amplify into a different double.
-    const saved = JSON.parse(JSON.stringify({ box: state.box, v: 2, graphs: [], P: managedProject.toUiParams() }));
+    const saved = JSON.parse(JSON.stringify({ box: state.box, view: { graphs: [] }, params: managedProject.toUiParams() }));
     const fbBefore = managedProject.boxTuning_Fb_hz(), lenBefore = ventL();
 
     managedProject.setActiveVentField('diameter_m', 0.09);   // drift the live design away
@@ -157,11 +157,11 @@ describe('vent group — a restore is adopted verbatim', () => {
     // No `Fb`, no `entered` — its ventL WAS authoritative, because it was the only direction
     // the app had. Read at the persistence boundary into the one current shape.
     const legacy = {
-      box: state.box, v: 2, graphs: [],
-      P: { ...managedProject.toUiParams(), ventL: 0.154, Vb: 0.02, ventD: 0.05, endCorrection: 0.6 },
+      box: state.box, view: { graphs: [] },
+      params: { ...managedProject.toUiParams(), ventL: 0.154, Vb: 0.02, ventD: 0.05, endCorrection: 0.6 },
     };
-    delete (legacy.P as Record<string, unknown>).Fb;
-    delete (legacy.P as Record<string, unknown>).entered;
+    delete (legacy.params as Record<string, unknown>).Fb;
+    delete (legacy.params as Record<string, unknown>).entered;
 
     applyState(JSON.parse(JSON.stringify(legacy)));
 

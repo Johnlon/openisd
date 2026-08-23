@@ -30,3 +30,13 @@ export {
 export { createFileSave, type FileSave } from './storage/fileSave.js';
 
 export { type SaveResult, type FileStorage, createFileStorage } from './storage/fileStorage.js';
+
+export {
+  type UiState, type ViewSnapshot, type ProjectWrite, type ProjectRead,
+  type ProjectSchema, type ProjectRepo, type FileNaming, PROJECT_STATE_KEY,
+  createProjectRepo,
+} from './repos/projectRepo.js';
+
+export {
+  PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,
+} from './repos/projectRepo.js';

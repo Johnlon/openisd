@@ -16,21 +16,19 @@
  * (Firefox/Safari) fall back to a plain download. WPR/driver export and Share stay
  * one-way downloads/links — there is nothing to "overwrite" for those.
  *
- * The file name IS the project name (utils/projectFile.ts): picking a file on Save As
+ * The file name IS the project name (@openisd/persistence projectFile.ts): picking a file on Save As
  * renames the project to match, and opening a file names the project after the file it came
  * from — the name stored inside the file never contradicts the name on disk.
  */
 import { watch } from 'vue';
 import {
-  state, driverName, persistedDriver, managedProject,
-  markProjectSaved, applyState, curvesData,
+  state, driverName, managedProject,
+  markProjectSaved, applyState, curvesData, currentProjectWrite,
 } from './appState.js';
 import { presentationState } from './presentationState.js';
-import { serialize, stateToUrl, upgradeParsedState } from './persist.js';
-import { createFileSave, type FileStorage } from '@openisd/persistence';
+import { createFileSave, projectNameFromFilename, projectFilename, copyOfName, type FileStorage, type ProjectRepo, type FileNaming } from '@openisd/persistence';
 import { setShareUrl } from './urlAppState.js';
 import type { Logging } from '../logging/flash.js';
-import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
 import { readDriverFileText } from './driverFileText.js';
 import { DriverFileFormat, ProjectFileFormat, formatOf, sniff } from '../fileFormat.js';
 
@@ -67,7 +65,7 @@ export interface DesignIO {
  * Save in the toolbar would track different files. Session-only either way — the File System
  * Access API does not persist handles across a page load.
  */
-export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorage }): DesignIO {
+export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorage; projectRepo: ProjectRepo }): DesignIO {
   const flash = (msg: string) => deps.logging.flash(msg);
   const { download } = createFileSave();
 
@@ -81,10 +79,8 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
     if (openName && projectNameFromFilename(openName) !== name) deps.fileStorage.forget();
   });
 
-  function projectJsonText(): string {
-    return JSON.stringify(
-      serialize(state.box, state.project, presentationState, persistedDriver.value, managedProject.toUiParams()),
-      null, 2);
+  function owprNaming(suggestedName: string): FileNaming {
+    return { suggestedName, mime: ProjectFileFormat.Owpr.mime, label: ProjectFileFormat.Owpr.label, ext: '.' + ProjectFileFormat.Owpr.value };
   }
 
   /** Adopt the picked file's name as the project name — the file names the project. */
@@ -98,8 +94,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
   async function saveProject(): Promise<boolean> {
     closeTunePanelAfterIO();
     const suggested = projectFilename(state.project.name);
-    const result = await deps.fileStorage.save(
-      projectJsonText(), suggested, ProjectFileFormat.Owpr.mime, ProjectFileFormat.Owpr.label, '.' + ProjectFileFormat.Owpr.value);
+    const result = await deps.projectRepo.saveToFile(currentProjectWrite(), owprNaming(suggested));
     if (result.cancelled) return false;
     adoptFileName(result.name, suggested);
     // SAVED means written to disk. Only a write that completed and closed proves that, so
@@ -124,8 +119,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
     closeTunePanelAfterIO();
     const hadOpenFile = deps.fileStorage.openFileName() != null;
     const suggested = projectFilename(hadOpenFile ? copyOfName(state.project.name) : state.project.name);
-    const result = await deps.fileStorage.saveAs(
-      projectJsonText(), suggested, ProjectFileFormat.Owpr.mime, ProjectFileFormat.Owpr.label, '.' + ProjectFileFormat.Owpr.value);
+    const result = await deps.projectRepo.saveToNewFile(currentProjectWrite(), owprNaming(suggested));
     if (result.cancelled) return;
     adoptFileName(result.name, suggested);
     if (!result.written) {
@@ -138,12 +132,11 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
 
   // shareLink() carries the WHOLE app state (human ruling 2026-08-14, persist.ts's
   // stateToUrl docstring) — chart cursor, panel layout, unit tokens — not just the domain
-  // project `ManagedOpenISDProject.encodeShareLink` models. It therefore calls `serialize`/
-  // `stateToUrl` directly rather than the managed method, whose share-link pair is scoped to
+  // project `ManagedOpenISDProject.encodeShareLink` models. It therefore calls the project
+  // repo's `stateToUrl` rather than the managed method, whose share-link pair is scoped to
   // the project record alone (a narrower, domain-only link for other consumers).
   async function shareLink(): Promise<void> {
-    const url = await stateToUrl(
-      serialize(state.box, state.project, presentationState, persistedDriver.value, managedProject.toUiParams()));
+    const url = await deps.projectRepo.stateToUrl(currentProjectWrite());
     setShareUrl(url);
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(
@@ -210,7 +203,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
             // An opened file is a persisted payload like any other — it goes through the same
             // schema upgrade as localStorage and the share-link hash
             // (bugs/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md).
-            const upgraded = upgradeParsedState(JSON.parse(text));
+            const upgraded = deps.projectRepo.readProjectText(text);
             if (!upgraded) throw new Error('the file could not be brought to the current schema');
             applyState(upgraded);
             state.project.name = projectNameFromFilename(f.name);

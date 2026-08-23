@@ -15,11 +15,12 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createLogging } from '../../src/logging/flash.js';
 import { createDesignIO } from '../../src/logic/useDesignIO.js';
-import { createFileStorage } from '@openisd/persistence';
+import { createFileStorage, createProjectRepo, createMemoryStorage } from '@openisd/persistence';
+import { projectSchema } from '../../src/logic/schemaUpgrade.js';
 import { managedProject, state } from '../../src/logic/appState.js';
 
 beforeAll(() => {
-  // shareLink() reads location.{origin,pathname} (persist.ts's stateToUrl) and writes to the
+  // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
   // clipboard/history — none exist in this suite's node environment. Stubbed exactly as
   // persist.test.ts stubs `location`, plus the two calls shareLink() itself makes.
   vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
@@ -29,7 +30,7 @@ beforeAll(() => {
 
 describe('shareLink() cancels an active what-if before serialising the driver', () => {
   it('an active what-if is gone after shareLink() returns', async () => {
-    const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage() });
+    const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createMemoryStorage(), projectSchema, createFileStorage()) });
     managedProject.beginWhatIf();
     assert.equal(managedProject.isWhatIfActive(), true, 'precondition: a what-if is open');
 
@@ -85,7 +86,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       }
     });
     try {
-      const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage() });
+      const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createMemoryStorage(), projectSchema, createFileStorage()) });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone after.
       state.project.name = 'stale-name-999999';
