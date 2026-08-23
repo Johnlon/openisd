@@ -38,6 +38,7 @@
  * the two to disagree.
  */
 import { OpenISDDriver, OpenISDProject, Provenance, driverRecordProblems } from '@openisd/model';
+import type { ProjectFieldId } from '@openisd/model';
 import { setActiveAlignment } from '@openisd/model';
 import {
   activeVent, boxVolume_m3 as readBoxVolume_m3, setBoxVolume_m3 as writeBoxVolume_m3,
@@ -208,6 +209,23 @@ export class ManagedOpenISDProject {
   /** `Vf` — bandpass4's OWN front-chamber volume. Unconditional: unlike `Vb`, this never
    *  addresses another alignment's storage, dormant or active — there is only one home. */
   frontVolume_m3(): number { return this.#effective().project.box.bandpass4.frontVolume_m3; }
+
+  // ── Project field cells — value + provenance, owned and solved by the domain object ──────
+  projectCell(field: ProjectFieldId): { value: number; state: Provenance } {
+    return this.#effective().project.cell(field);
+  }
+  enterProjectField(field: ProjectFieldId, value: number): void {
+    this.mutate(p => p.enter(field, value));
+  }
+  clearProjectField(field: ProjectFieldId): void {
+    this.mutate(p => p.clear(field));
+  }
+  solveVentGroup(): void { this.mutate(p => p.solveVentGroup()); }
+  solvePrGroup(): void { this.mutate(p => p.solvePrGroup()); }
+  ventAchievedFb(): number | null { return this.#effective().project.ventAchievedFb(); }
+  ventMaxReachableFb(): number | null { return this.#effective().project.ventMaxReachableFb(); }
+  ventTargetUnreachable(): boolean { return this.#effective().project.ventTargetUnreachable(); }
+  prTargetUnreachable(): boolean { return this.#effective().project.prTargetUnreachable(); }
   setFrontVolume_m3(value: number): void {
     this.mutate(p => { p.box.bandpass4.frontVolume_m3 = value; });
   }

@@ -103,14 +103,22 @@ actually lands — deferred with QO85 itself, as John directed ("do not add band
   layer exactly as driver fields already bind — same idiom both panels, which is the visible
   symmetry John is asking for.
 
-## Vent semantics for P2 (opus2 H1, interim ruling pending the WinISD probe)
+## Vent semantics (opus2 H1; STANDING after the WinISD probe — winisd_research 109a2f9,
+VENT_SHAPE_CROSSCALC.md)
 
 `crosscalc` is the cross-section AREA's provenance (0 = entered, 1 = derived from the
 diameter) and is carried as `target.entered['ventCrossArea']`. It is NOT the port's shape:
-shape comes from observed geometry (a stated `dia1` is a round port), and the `.wpr`'s unread
-`Shape=` key awaits the ground-truth probe. P2's provenance work builds on the entered-set
-carrier, not on any crosscalc↔shape mapping. Invariant, pinned by test: no import may build a
-vent whose area computes to zero while the file states a nonzero diameter.
+shape comes from observed geometry (a stated `dia1` is a round port). The probe measured the
+available WinISD binary's Vents tab offering ONLY diameter geometry — `carea` disabled and
+always π·(dia1/2)² (dia1=0.076 → carea=0.00453645979178366 exact on save/read-back),
+`crosscalc` never leaving 1, `Shape=` never varying, no slot control anywhere in the widget
+enumeration. Two caveats carried from the note: the probed binary is a Lazarus/LCL rebuild,
+not the original Delphi VCL, so whether original WinISD ever writes crosscalc=0/Shape≠1 is
+untested; and the bandpass front/intra vent tabs were not probed. Consequence: OpenISD's
+slotted-vent support (width/height) is an OPENISD EXTENSION beyond observed WinISD parity,
+and the crosscalc=0 import path handles a file class no available binary can produce — kept
+because the format documents it, guarded by the carea invariant (no import may build a vent
+whose area computes to zero while the file states a nonzero diameter, pinned by test).
 
 ## Precision on the 27f48bd claims (opus2 review, R5)
 
@@ -137,9 +145,14 @@ everything reaches the record through the class.
       input — dead code born gated. The upgrade requirement transfers forward to the moment a
       multi-port alignment changes the WIRE shape (UiParams per-port fields, deferred with
       QO85). (QO85 stays open for ABC itself.)
-- [ ] P2 — `project.cell()`/`enter()`/`clear()` over box/vent/PR/env/signal fields, with the
-      vent + PR group solvers moved in from useVentGroup/usePrGroup. Driver's `Provenance`
-      reused.
+- [x] P2 — `project.cell()`/`enter()`/`clear()` with the vent + PR group solvers MOVED in
+      from useVentGroup/usePrGroup (both now delegate; zero `@openisd/engine` imports remain
+      in either). Driver's `Provenance` reused. One user action = one domain transaction =
+      one notification (the coalescing contract tightened from 3 writes to 1). Riders: K1
+      (vent(i)/ventCount() direct tests) and K2 (VENT_ARITY enforced at the construction
+      chokepoint and the activeVent read; wrong arity refuses loudly, both directions
+      tested). Env/signal/losses cells deferred to P3 alongside the accessor cleanup —
+      they have no solver, so nothing moves for them, only naming.
 - [ ] P3 — free-function elimination per the table above; barrel and ALLOWED_GLOBALS shrink
       accordingly (deletions only, no new grants).
 - [ ] P4 — UI seam shrink: managedProject delegations, useVentGroup/usePrGroup reduced to UI

@@ -1,25 +1,17 @@
 /**
- * ONE user action must produce ONE solve, not two.
+ * ONE user action is ONE domain transaction — exactly one notification, one solve.
  *
- * `appState.ts` bridges `ManagedOpenISDProject.subscribe()` to a coarse auto-solve watch: ANY
- * project mutation notifies `live`, and the watch re-runs `solveVentGroup`/`solvePrGroup`
- * unless a suspension is active (`docs/design/REACTIVITY.md`; `bugs/BUG_20260821_vent_group_
- * auto_solve_clobbers_a_half_written_entered_set.md`'s "live design risk" section).
+ * `OpenISDProject.enter()`/`clear()` perform the value write, the provenance mark and the
+ * group re-solve as one operation; the managed layer runs it inside a single `mutate()`, so
+ * `managedProject.subscribe()` fires EXACTLY ONCE per user action. `appState.ts`'s coarse
+ * auto-solve watch is parked by the suspension for that one notification, so it can never add
+ * a second solve (`docs/design/REACTIVITY.md`; `bugs/BUG_20260821_vent_group_auto_solve_
+ * clobbers_a_half_written_entered_set.md`).
  *
- * `enterVentField`/`clearVentField` (`useVentGroup.ts`) each make more than one write — the
- * field's value, its provenance flag, and the solve's own write. Reviewer finding 9: with only
- * the WRITE+PROVENANCE pair suspended and the trailing `solveVentGroup()` call left OUTSIDE the
- * suspension, that call's own write re-triggers the store's auto-solve watch a SECOND time
- * (unsuspended by then), so one `enterVentField()` call produced two solves. The fix wraps the
- * ENTIRE transaction, including the trailing solve, in one `suspendVentSolve()` — nothing
- * mutates outside the suspension, so the store's watch never fires for this call at all, and
- * the ONE call to `solveVentGroup` inside the suspension is the only solve that runs.
- *
- * This is pinned by counting `managedProject.subscribe()` notifications for one call — not by
- * spying on `solveVentGroup` itself (same-module internal calls do not go through a spy-able
- * export binding), but each write (value, provenance, solve) notifies exactly once, so the
- * notification count is an exact, direct measure of how many writes — and therefore how many
- * solve attempts — one call causes.
+ * Pinned by counting `managedProject.subscribe()` notifications for one call: more than one
+ * means the transaction split (value/provenance/solve as separate mutations — the shape whose
+ * unsuspended tail once produced a second store-triggered solve), and zero means the write
+ * never notified at all.
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
@@ -49,8 +41,8 @@ describe('vent/PR group writes coalesce to exactly the writes made, never an ext
     // Before the fix (trailing solve outside suspension) this counted 4: the store's
     // auto-solve watch, unsuspended by the time the solve's own write landed, ran a second,
     // fully redundant `solveVentGroup`.
-    assert.equal(count, 3,
-      `expected exactly 3 writes (value, provenance, one solve) — got ${count}; extra writes ` +
+    assert.equal(count, 1,
+      `expected exactly 1 notification (one domain transaction) — got ${count}; extra writes ` +
       `mean the store's auto-solve watch re-ran the solver a second time for one user action`);
   });
 
@@ -61,8 +53,8 @@ describe('vent/PR group writes coalesce to exactly the writes made, never an ext
     // valid scenario, but not one that exercises a solve write).
     enterVentFieldOn(managedProject, 'ventL', 0.15, state.box);
     const count = countNotifications(() => clearVentFieldOn(managedProject, 'Fb', state.box));
-    assert.equal(count, 2,
-      `expected exactly 2 writes (provenance, one solve) — got ${count}`);
+    assert.equal(count, 1,
+      `expected exactly 1 notification (one domain transaction) — got ${count}`);
   });
 });
 
@@ -79,8 +71,8 @@ describe('PR group writes coalesce the same way', () => {
 
   it('enterPrField(prFp) — value write + provenance write + one solve write, no more', () => {
     const count = countNotifications(() => enterPrFieldOn(managedProject, 'prFp', 40));
-    assert.equal(count, 3,
-      `expected exactly 3 writes (value, provenance, one solve) — got ${count}`);
+    assert.equal(count, 1,
+      `expected exactly 1 notification (one domain transaction) — got ${count}`);
   });
 
   it('clearPrField(prFp) — provenance write + one solve write, no more', () => {
@@ -89,8 +81,8 @@ describe('PR group writes coalesce the same way', () => {
     enterPrFieldOn(managedProject, 'prFp', 40);
     enterPrFieldOn(managedProject, 'prMadd', 0.01);
     const count = countNotifications(() => clearPrFieldOn(managedProject, 'prFp'));
-    assert.equal(count, 2,
-      `expected exactly 2 writes (provenance, one solve) — got ${count}`);
+    assert.equal(count, 1,
+      `expected exactly 1 notification (one domain transaction) — got ${count}`);
   });
 });
 

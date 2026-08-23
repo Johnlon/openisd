@@ -26,12 +26,39 @@
  * Plain data throughout: no methods, no class identity, `structuredClone`-able, because
  * `ManagedProject` clones a whole project to open an overlay.
  */
-import { OpenISDDriver } from './openisdDriver.js';
+import { OpenISDDriver, Provenance } from './openisdDriver.js';
 import type { Filter } from '@openisd/engine';
 import { prCmsFromVas, prMmdFromFs, prRmsFromQms, prVas, prQms, prFsWithMass,
-         sealedFc, tuningFromLength, prTuning, findImpedancePeak } from "@openisd/engine";
+         sealedFc, tuningFromLength, ventLength, prTuning, prMassForFp,
+         findImpedancePeak } from "@openisd/engine";
 import { WinISDProject } from "@openisd/winisd";
 import type { Result, EngineDriver, SweepResult } from "@openisd/engine";
+
+/** The project fields `cell()`/`enter()`/`clear()` speak — the vent group, the PR group, and
+ *  the derived port area. */
+export type ProjectFieldId =
+  | 'Vb' | 'ventD' | 'Fb' | 'ventL' | 'ventW' | 'ventH' | 'Sp' | 'prFp' | 'prMadd';
+
+/** How many ports each alignment HAS — the enforced fact behind `vents[]`, not a comment.
+ *  A future multi-port alignment (ABC needs three, QO85) changes ONE row here. */
+export const VENT_ARITY: Readonly<Record<AlignmentKind, number>> = {
+  sealed: 0, vented: 1, bandpass4: 1, 'passive-radiator': 0,
+};
+
+/** Throws when a record's vents arrays do not match their alignments' declared arity — a
+ *  wrong-arity record must refuse loudly, never have vents silently ignored by `[0]` reads
+ *  (the silent-drop class QO85's shape decision exists to prevent). */
+function assertVentArity(box: OpenISDBox): void {
+  const check = (kind: 'vented' | 'bandpass4', vents: OpenISDVent[]) => {
+    if (vents.length !== VENT_ARITY[kind]) {
+      throw new Error(`${kind} declares ${VENT_ARITY[kind]} port(s) but the record carries `
+        + `${vents.length} — arity is fixed per alignment (QO85) and a mismatch is refused, `
+        + 'never truncated');
+    }
+  };
+  check('vented', box.vented.vents);
+  check('bandpass4', box.bandpass4.vents);
+}
 
 /** Which alignment is ACTIVE. The others stay populated and dormant. */
 export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator';
@@ -347,6 +374,7 @@ export function setActiveAlignment(box: OpenISDBox, kind: AlignmentKind): void {
 /** The vent object `ventShape`/`ventD`/`ventW`/`ventH`/`ventL`/`endCorrection` address. A LIVE
  *  reference — writing through it mutates the box directly. */
 export function activeVent(box: OpenISDBox): OpenISDVent {
+  assertVentArity(box);
   return (box.active === 'bandpass4' ? box.bandpass4.vents : box.vented.vents)[0]!;
 }
 
@@ -477,6 +505,7 @@ export class OpenISDProject {
   readonly #record: _OpenISDProjectJson;
 
   private constructor(record: _OpenISDProjectJson) {
+    assertVentArity(record.box);
     this.#record = record;
   }
 
@@ -600,6 +629,11 @@ export class OpenISDProject {
    *  copy of itself — never by touching its JSON, ledger QO60/61). */
   copy(): OpenISDProject {
     return new OpenISDProject(structuredClone(this.#record));
+  }
+
+  /** Switch the ACTIVE alignment — the others stay populated and dormant. */
+  setAlignment(kind: AlignmentKind): void {
+    setActiveAlignment(this.#record.box, kind);
   }
 
   // ---- driver ------------------------------------------------------------------------------
@@ -791,6 +825,199 @@ export class OpenISDProject {
       : [];
     const v = vents[i];
     return v ? { ...v } : undefined;
+  }
+
+  // ── Field cells — value + provenance, the driver's own model applied to the project ──────
+  //
+  // The vent group (Vb, ventD, Fb, ventL — one Helmholtz relation, three chosen, the fourth
+  // follows) and the PR group (prFp ↔ prMadd) are solved HERE, by the owner of the state.
+  // `target.entered` decides which members are held; a member not entered is Calculated when
+  // the rest of its group determines it, NotAvailable otherwise. An over-determined group
+  // solves nothing and is left as typed — WinISD's own observed behaviour.
+
+  cell(field: ProjectFieldId): { value: number; state: Provenance } {
+    const value = this.#fieldValue(field);
+    if (field === 'Sp') {
+      // Always derived (πD²/4 round, W×H slotted), never entered: no one states an area.
+      return { value, state: value > 0 ? Provenance.Calculated : Provenance.NotAvailable };
+    }
+    if (this.#isEntered(field)) return { value, state: Provenance.Entered };
+    const derivable = field === 'prFp' || field === 'prMadd'
+      ? this.#prIsDefined()
+      : this.#ventDerivable(field);
+    return { value, state: derivable ? Provenance.Calculated : Provenance.NotAvailable };
+  }
+
+  /** Enter a field: held from now on, never recomputed, until an explicit `clear()`. The
+   *  write, the provenance mark and the group re-solve are one operation. */
+  enter(field: ProjectFieldId, value: number): void {
+    const record = this.#record;
+    switch (field) {
+      case 'Sp': throw new Error('Sp is derived from the port geometry — enter ventD, or ventW/ventH');
+      case 'Vb': setBoxVolume_m3(record.box, value); break;
+      case 'Fb': setBoxTuning_Fb_hz(record.box, value); break;
+      case 'ventD': activeVent(record.box).diameter_m = value; break;
+      case 'ventL': activeVent(record.box).length_m = value; break;
+      case 'ventW': activeVent(record.box).width_m = value; break;
+      case 'ventH': activeVent(record.box).height_m = value; break;
+      case 'prFp': record.box.passiveRadiator.Fp_hz = value; break;
+      case 'prMadd': record.box.passiveRadiator.addedMass_kg = value; break;
+    }
+    record.target.entered[field] = true;
+    if (field === 'ventD' || field === 'ventW' || field === 'ventH') {
+      // New geometry re-solves the LENGTH for the held tuning, never the other way round.
+      record.target.entered['Fb'] = true;
+      delete record.target.entered['ventL'];
+    }
+    if (field === 'prFp' || field === 'prMadd') this.solvePrGroup();
+    else this.solveVentGroup();
+  }
+
+  /** Clear a field — the only way to un-hold one. It becomes Calculated immediately if the
+   *  remaining entered set determines it, NotAvailable if nothing can. */
+  clear(field: ProjectFieldId): void {
+    delete this.#record.target.entered[field];
+    if (field === 'prFp' || field === 'prMadd') this.solvePrGroup();
+    else this.solveVentGroup();
+  }
+
+  /** Re-solve every Calculated vent-group member from the Entered ones, in place. Never
+   *  writes an entered field; an over-determined set is left exactly as typed. */
+  solveVentGroup(): void {
+    const record = this.#record;
+    const Sp = this.#ventCrossArea();
+    const V = this.#ventVolume();
+    if (!(V > 0) || !(Sp > 0)) return;
+    const vent = activeVent(record.box);
+    if (!this.#isEntered('ventL') && this.#ventDerivable('ventL')) {
+      const Fb = boxTuning_Fb_hz(record.box);
+      if (Fb > 0) vent.length_m = ventLength(V, Fb, Sp, vent.endCorrection);
+    } else if (!this.#isEntered('Fb') && this.#ventDerivable('Fb')) {
+      if (vent.length_m > 0) {
+        setBoxTuning_Fb_hz(record.box, tuningFromLength(V, vent.length_m, Sp, vent.endCorrection));
+      }
+    }
+  }
+
+  /** Re-solve whichever PR member is Calculated from the entered one. Added mass is clamped
+   *  at zero: mass cannot be removed from a radiator, so a target above the bare in-box
+   *  resonance is unreachable (see `prTargetUnreachable`). */
+  solvePrGroup(): void {
+    if (!this.#prIsDefined()) return;
+    const pr = this.#record.box.passiveRadiator;
+    const fpEntered = this.#isEntered('prFp');
+    if (fpEntered && !this.#isEntered('prMadd')) {
+      if (pr.Fp_hz > 0) {
+        const params = this.#prParams();
+        pr.addedMass_kg = Math.max(0, prMassForFp(params, pr.Fp_hz) - params.prMmd);
+      }
+    } else if (!fpEntered) {
+      pr.Fp_hz = prTuning(this.#prParams());
+    }
+  }
+
+  /** The tuning the CURRENT vent length actually delivers, or null when undefined. */
+  ventAchievedFb(): number | null {
+    const Sp = this.#ventCrossArea();
+    const V = this.#ventVolume();
+    const vent = activeVent(this.#record.box);
+    if (!(V > 0) || !(Sp > 0) || !(vent.length_m > 0)) return null;
+    return tuningFromLength(V, vent.length_m, Sp, vent.endCorrection);
+  }
+
+  /** The highest tuning this volume and port area can reach with ANY vent — the tuning at
+   *  L = 0 (the end correction alone still contributes acoustic mass). */
+  ventMaxReachableFb(): number | null {
+    const Sp = this.#ventCrossArea();
+    const V = this.#ventVolume();
+    if (!(V > 0) || !(Sp > 0)) return null;
+    return tuningFromLength(V, 0, Sp, activeVent(this.#record.box).endCorrection);
+  }
+
+  /** True when the solver cannot deliver the entered target tuning with this volume and port
+   *  area — judged by consequence (the solved length is absent, non-positive, or does not
+   *  reproduce the target), never by a second copy of the physics. Reported only while the
+   *  length is the SOLVED member; an entered length beside an entered tuning is the user's
+   *  own over-determined choice and no claim of the solver's to contradict. */
+  ventTargetUnreachable(): boolean {
+    const record = this.#record;
+    const Fb = boxTuning_Fb_hz(record.box);
+    if (!this.#isEntered('Fb') || this.#isEntered('ventL')) return false;
+    if (!this.#ventDerivable('ventL') || !(Fb > 0)) return false;
+    if (this.ventMaxReachableFb() == null) return false;
+    const ventL = activeVent(record.box).length_m;
+    if (!(ventL > 0)) return true;
+    const achieved = this.ventAchievedFb();
+    if (achieved == null) return false;
+    return Math.abs(achieved - Fb) > 1e-6 * Fb;
+  }
+
+  /** True when the entered target tuning cannot be reached by ADDING mass — the solver hit
+   *  its zero floor. The honest answer is "this PR cannot tune that high in this box". */
+  prTargetUnreachable(): boolean {
+    if (!this.#isEntered('prFp') || !this.#prIsDefined()) return false;
+    const params = this.#prParams();
+    return prMassForFp(params, this.#record.box.passiveRadiator.Fp_hz) - params.prMmd < 0;
+  }
+
+  #isEntered(field: string): boolean { return this.#record.target.entered[field] === true; }
+
+  #fieldValue(field: ProjectFieldId): number {
+    const record = this.#record;
+    const vent = activeVent(record.box);
+    switch (field) {
+      case 'Vb': return this.#ventVolume();
+      case 'Fb': return boxTuning_Fb_hz(record.box);
+      case 'ventD': return vent.diameter_m;
+      case 'ventL': return vent.length_m;
+      case 'ventW': return vent.width_m;
+      case 'ventH': return vent.height_m;
+      case 'Sp': return this.#ventCrossArea();
+      case 'prFp': return record.box.passiveRadiator.Fp_hz;
+      case 'prMadd': return record.box.passiveRadiator.addedMass_kg;
+    }
+  }
+
+  /** The volume this vent tunes. Per-chamber: a bandpass4's port belongs to its FRONT
+   *  chamber; every other vented type ports the whole box. */
+  #ventVolume(): number {
+    const box = this.#record.box;
+    return box.active === 'bandpass4' ? box.bandpass4.frontVolume_m3 : boxVolume_m3(box);
+  }
+
+  #ventCrossArea(): number { return ventArea_m2(activeVent(this.#record.box)); }
+
+  /** Can `field` be solved from the current entered set? One equation solves one unknown, so
+   *  every OTHER member must be entered. `ventD` is never derivable: it appears in both Sp
+   *  and Leff, so solving for it has no closed form — cleared, it is genuinely NotAvailable. */
+  #ventDerivable(field: string): boolean {
+    if (field === 'ventD') return false;
+    const box = this.#record.box;
+    // A bandpass4 ports its front chamber, whose volume is always an entered fact.
+    const volEntered = box.active === 'bandpass4' ? true : this.#isEntered('Vb');
+    if (activeVent(box).shape === 'slotted') {
+      if (field === 'Fb') return volEntered && this.#isEntered('ventL');
+      if (field === 'ventL') return volEntered && this.#isEntered('Fb');
+      return false;
+    }
+    const group = ['Vb', 'ventD', 'Fb', 'ventL'];
+    return group.every(f => f === field || (f === 'Vb' ? volEntered : this.#isEntered(f)));
+  }
+
+  #prParams(): { Vb: number; prSd: number; prCms: number; prMmd: number; prMadd: number } {
+    const pr = this.#record.box.passiveRadiator;
+    const r = pr.radiator;
+    return {
+      Vb: boxVolume_m3(this.#record.box),
+      prSd: r?.Sd_m2 ?? 0, prCms: r?.Cms_m_per_N ?? 0, prMmd: r?.Mmd_kg ?? 0,
+      prMadd: pr.addedMass_kg,
+    };
+  }
+
+  /** Enough of a PR to have a tuning at all — otherwise both members are NotAvailable. */
+  #prIsDefined(): boolean {
+    const p = this.#prParams();
+    return p.Vb > 0 && p.prSd > 0 && p.prCms > 0 && p.prMmd > 0;
   }
   get target(): OpenISDTarget { return this.#record.target; }
   get environment(): OpenISDEnvironment { return this.#record.environment; }

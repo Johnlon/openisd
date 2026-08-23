@@ -1,0 +1,189 @@
+/**
+ * `OpenISDProject.cell()/enter()/clear()` — the project's own field provenance and group
+ * solving, the driver's model applied to the project (docs/design/PROJECT_DOMAIN_SYMMETRY.md
+ * P2). The vent group (Vb/ventD/Fb/ventL, one Helmholtz relation) and the PR group
+ * (prFp ↔ prMadd) solve INSIDE the domain object; `target.entered` decides what is held.
+ *
+ * Also pins P1's public surface (vent(i)/ventCount(), opus2 K1) and the enforced per-alignment
+ * vent arity (opus2 K2): a wrong-arity record is refused loudly, never silently truncated.
+ */
+import { describe, it } from 'vitest';
+import assert from 'node:assert/strict';
+import { OpenISDProject, VENT_ARITY, Provenance } from '../src/index.js';
+import { WinISDProject } from '@openisd/winisd';
+import { ventLength, tuningFromLength } from '@openisd/engine';
+
+function ventedProject(): OpenISDProject {
+  const p = OpenISDProject.empty();
+  p.setAlignment('vented');
+  return p;
+}
+
+describe('cell() — provenance over the vent group', () => {
+  it('a fresh vented project is born over-determined and states it: Vb, ventD, Fb all Entered', () => {
+    // A1 (QO36-B4): the prototype is the STATER — its defaults are Entered, and the group
+    // solves nothing until a member is cleared, matching WinISD's own observed acceptance of
+    // over-determined input.
+    const p = ventedProject();
+    assert.equal(p.cell('Vb').state, Provenance.Entered);
+    assert.equal(p.cell('ventD').state, Provenance.Entered);
+    assert.equal(p.cell('Fb').state, Provenance.Entered);
+    assert.equal(p.cell('ventL').state, Provenance.Calculated,
+      'ventL is the un-entered member the entered trio determines');
+  });
+
+  it('Sp is always Calculated when derivable and never Entered — no one states an area', () => {
+    const p = ventedProject();
+    p.enter('ventD', 0.05);
+    const sp = p.cell('Sp');
+    assert.equal(sp.state, Provenance.Calculated);
+    assert.ok(Math.abs(sp.value - Math.PI * 0.025 ** 2) < 1e-12);
+    assert.throws(() => p.enter('Sp', 0.001), /derived from the port geometry/);
+  });
+
+  it('ventD cleared is NotAvailable, never Calculated — it has no closed-form solve', () => {
+    const p = ventedProject();
+    p.clear('ventD');
+    assert.equal(p.cell('ventD').state, Provenance.NotAvailable);
+  });
+});
+
+describe('enter()/clear() — the solve happens inside the domain object', () => {
+  it('entering Vb, ventD and Fb solves the length to the engine relation, marked Calculated', () => {
+    const p = ventedProject();
+    p.clear('ventL');
+    p.enter('Vb', 0.02);
+    p.enter('ventD', 0.06);
+    p.enter('Fb', 45);
+    const Sp = Math.PI * 0.03 ** 2;
+    const expected = ventLength(0.02, 45, Sp, p.vent(0)!.endCorrection);
+    assert.equal(p.cell('ventL').state, Provenance.Calculated);
+    assert.ok(Math.abs(p.cell('ventL').value - expected) / expected < 1e-12,
+      `solved length must be the engine's ${expected}, got ${p.cell('ventL').value}`);
+  });
+
+  it('entering the length instead solves the tuning — the group runs both directions', () => {
+    const p = ventedProject();
+    p.enter('Vb', 0.02);
+    // geometry first: entering ventD re-holds Fb by design, so the clear must FOLLOW it
+    p.enter('ventD', 0.06);
+    p.clear('Fb');
+    p.enter('ventL', 0.15);
+    const Sp = Math.PI * 0.03 ** 2;
+    const expected = tuningFromLength(0.02, 0.15, Sp, p.vent(0)!.endCorrection);
+    assert.equal(p.cell('Fb').state, Provenance.Calculated);
+    assert.ok(Math.abs(p.cell('Fb').value - expected) / expected < 1e-12);
+  });
+
+  it('an over-determined group solves nothing — both members stay exactly as typed', () => {
+    const p = ventedProject();
+    p.enter('Fb', 45);
+    p.enter('ventL', 0.123);
+    assert.equal(p.cell('Fb').value, 45);
+    assert.equal(p.cell('ventL').value, 0.123);
+    assert.equal(p.cell('Fb').state, Provenance.Entered);
+    assert.equal(p.cell('ventL').state, Provenance.Entered);
+  });
+
+  it('new port geometry re-solves the LENGTH for the held tuning, never the tuning', () => {
+    const p = ventedProject();
+    p.enter('Vb', 0.02);
+    p.enter('Fb', 45);
+    p.enter('ventL', 0.2);   // over-determined for a moment
+    p.enter('ventD', 0.05);  // geometry entry: Fb held, ventL released and re-solved
+    assert.equal(p.cell('Fb').state, Provenance.Entered);
+    assert.equal(p.cell('Fb').value, 45);
+    assert.equal(p.cell('ventL').state, Provenance.Calculated);
+    const Sp = Math.PI * 0.025 ** 2;
+    const expected = ventLength(0.02, 45, Sp, p.vent(0)!.endCorrection);
+    assert.ok(Math.abs(p.cell('ventL').value - expected) / expected < 1e-12);
+  });
+});
+
+describe('the PR group — prFp ↔ prMadd on the domain object', () => {
+  function prProject(): OpenISDProject {
+    // A PR with real intrinsics, reached through the domain's own .wpr reader — the licensed
+    // construction route for a radiator.
+    return OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
+      '[Box]', 'BType=4', 'Vr=0.04', 'Npr=1', '',
+      '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', 'Xmax=0.019', 'Me=0', '',
+    ].join('\n')));
+  }
+
+  it('with mass entered (the default direction) the tuning is Calculated', () => {
+    const p = prProject();
+    p.enter('prMadd', 0.005);
+    assert.equal(p.cell('prMadd').state, Provenance.Entered);
+    assert.equal(p.cell('prFp').state, Provenance.Calculated);
+    assert.ok(p.cell('prFp').value > 0, 'a defined PR has a real tuning');
+  });
+
+  it('entering a target tuning solves the added mass, clamped at zero', () => {
+    const p = prProject();
+    p.clear('prMadd');
+    p.enter('prFp', 1000);   // far above the bare in-box resonance — unreachable by adding mass
+    assert.equal(p.cell('prMadd').value, 0, 'mass cannot be removed from a radiator');
+    assert.equal(p.prTargetUnreachable(), true);
+  });
+});
+
+describe('vent(i)/ventCount() — P1 public surface (opus2 K1)', () => {
+  it('ventCount() states each alignment\'s arity', () => {
+    const p = OpenISDProject.empty();
+    p.setAlignment('sealed');
+    assert.equal(p.ventCount(), 0);
+    p.setAlignment('vented');
+    assert.equal(p.ventCount(), 1);
+    p.setAlignment('bandpass4');
+    assert.equal(p.ventCount(), 1);
+    p.setAlignment('passive-radiator');
+    assert.equal(p.ventCount(), 0);
+  });
+
+  it('vent(i) returns an independent copy — mutating it changes nothing', () => {
+    const p = ventedProject();
+    p.enter('ventD', 0.05);
+    const copy = p.vent(0)!;
+    copy.diameter_m = 99;
+    assert.equal(p.vent(0)!.diameter_m, 0.05, 'the record must be untouched by copy mutation');
+  });
+
+  it('out of range is undefined, never a throw and never a fabricated vent', () => {
+    const p = ventedProject();
+    assert.equal(p.vent(1), undefined);
+    assert.equal(p.vent(-1), undefined);
+    p.setAlignment('sealed');
+    assert.equal(p.vent(0), undefined);
+  });
+});
+
+describe('vent arity is ENFORCED, not commented (opus2 K2)', () => {
+  it('the declared arity table matches what the accessors report', () => {
+    assert.deepEqual(VENT_ARITY, { sealed: 0, vented: 1, bandpass4: 1, 'passive-radiator': 0 });
+  });
+
+  it('a record whose vents array disagrees with its alignment\'s arity is refused loudly', () => {
+    const good = OpenISDProject.empty();
+    // corrupt a structural clone of a valid record through the box getter (the record is the
+    // getter's referent), then adopt it — adoption is the chokepoint that must refuse
+    const raw = structuredClone({
+      driver: undefined, box: good.box, target: good.target, filters: good.filters,
+      environment: good.environment, signal: good.signal, listening: good.listening,
+      simOptions: good.simOptions, sweep: good.sweep, meta: good.meta,
+    });
+    raw.box.vented.vents.push({ ...raw.box.vented.vents[0]! });
+    assert.throws(() => OpenISDProject.fromJsonRecord(raw as never),
+      /arity is fixed per alignment \(QO85\)/,
+      'a two-port vented record must refuse, never have vents\\[1\\] silently ignored');
+  });
+
+  it('a correct-arity record is accepted', () => {
+    const good = OpenISDProject.empty();
+    const raw = structuredClone({
+      driver: undefined, box: good.box, target: good.target, filters: good.filters,
+      environment: good.environment, signal: good.signal, listening: good.listening,
+      simOptions: good.simOptions, sweep: good.sweep, meta: good.meta,
+    });
+    assert.ok(OpenISDProject.fromJsonRecord(raw as never));
+  });
+});

@@ -2,8 +2,11 @@
 
 ## Status
 - crosscalc dropped on read, flipped on re-export: FIXED
-- what crosscalc/Shape actually mean in a real WinISD slot-port file: OPEN — awaiting the
-  WinISD ground-truth probe
+- crosscalc semantics: RESOLVED as area provenance — the probe (winisd_research 109a2f9,
+  VENT_SHAPE_CROSSCALC.md) found the available binary cannot produce crosscalc≠1 or Shape≠1
+  at all, so the observed-geometry rule is compatible with every file it can write. Caveats
+  carried in the research note: the probed binary is a Lazarus/LCL rebuild (original Delphi
+  VCL untested), and bandpass front/intra vent tabs were not probed.
 
 ## Symptom
 
@@ -40,14 +43,15 @@ into. `fromWinISDProject` reads the real keys; `toWinISDProject` writes from the
 - `crosscalc=0` is carried as `target.entered['ventCrossArea']` and written back from it, so
   the flag round-trips without touching shape.
 
-## Open half — the probe
+## The probe's answer
 
-Nothing in the repo measures a real `crosscalc=0` file: all 45 golden vent blocks are
-`crosscalc=1`/`Shape=1`. The `.wpr` also carries a separate `Shape=` key nothing reads, which
-is the likelier home of port shape. A wine-harness probe (dispatched by main-exec) will author
-a slot port in real WinISD and read what it writes to `Shape`/`crosscalc`/`carea`/`dia1` — its
-result refines the interpretation. The observed-geometry rule above is chosen so no probe
-outcome forces this fix to be undone.
+The wine-harness probe (winisd_research 109a2f9, VENT_SHAPE_CROSSCALC.md) enumerated the Vents
+tab in full: only diameter geometry is offered, `carea` is disabled and always π·(dia1/2)²
+(verified by keystroke edit and save/read-back), `crosscalc` never leaves 1 and `Shape=` never
+varies. The interim ruling is standing. OpenISD's slotted-vent support is therefore an OpenISD
+EXTENSION beyond observed WinISD parity, and the crosscalc=0 import path handles a file class
+no available binary can produce — kept because the format documents it, guarded by the carea
+invariant.
 
 ## Verification
 
