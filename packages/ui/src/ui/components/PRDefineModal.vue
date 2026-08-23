@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { managedProject } from '../../logic/appState.js';
-import { prCanonicalFromDatasheet } from '../../logic/prWinIsdFields.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 
 // Define a brand-new passive radiator — a BLANK, buffered form (mirrors
@@ -29,22 +28,19 @@ const canCreate = computed(() =>
 
 function create() {
   if (!canCreate.value) return;
-  const canonical = prCanonicalFromDatasheet({
-    sdCm2: num(nSd.value),
-    xmaxMm: num(nXmax.value),
+  const count = num(nNum.value);
+  const xmaxMm = num(nXmax.value);
+  managedProject.setPrField('name', nName.value.trim() || 'New PR');
+  managedProject.setPrCount(count > 0 ? count : 1);
+  // The datasheet → canonical conversion lives on the domain object — this form only
+  // converts its own display units (cm², mm, L) to SI at the boundary.
+  managedProject.enterPrDatasheet({
+    sdM2: num(nSd.value) / 1e4,
+    xmaxM: isFinite(xmaxMm) && xmaxMm >= 0 ? xmaxMm / 1000 : 0,
     fsHz: num(nFs.value),
     qms: num(nQms.value),
     vasL: num(nVas.value),
   });
-  const count = num(nNum.value);
-
-  managedProject.setPrField('name', nName.value.trim() || 'New PR');
-  managedProject.setPrCount(count > 0 ? count : 1);
-  managedProject.setPrField('Sd_m2', canonical.sd);
-  managedProject.setPrField('Xmax_m', canonical.xmax);
-  managedProject.setPrField('Cms_m_per_N', canonical.cms);
-  managedProject.setPrField('Mmd_kg', canonical.mmd);
-  managedProject.setPrField('Rms_Ns_per_m', canonical.rms);
   managedProject.setPrAddedMass_kg(0);
   emit('close');
 }

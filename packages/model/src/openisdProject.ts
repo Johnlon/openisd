@@ -37,7 +37,11 @@ import type { Result, EngineDriver, SweepResult } from "@openisd/engine";
 /** The project fields `cell()`/`enter()`/`clear()` speak — the vent group, the PR group, and
  *  the derived port area. */
 export type ProjectFieldId =
-  | 'Vb' | 'ventD' | 'Fb' | 'ventL' | 'ventW' | 'ventH' | 'Sp' | 'prFp' | 'prMadd';
+  | 'Vb' | 'ventD' | 'Fb' | 'ventL' | 'ventW' | 'ventH' | 'Sp' | 'prFp' | 'prMadd'
+  // The radiator's own facts (SI), and its datasheet vocabulary — Vas/Fs/Qms are DERIVED
+  // views of the canonical Sd/Cms/Mmd/Rms; entering one re-solves the canonical set with
+  // the ruled holds. All values SI (prVas in m³ — display units are the registry's job).
+  | 'prSd' | 'prXmax' | 'prNum' | 'prVas' | 'prFs' | 'prQms' | 'prFsMass';
 
 /** How many ports each alignment HAS — the enforced fact behind `vents[]`, not a comment.
  *  A future multi-port alignment (ABC needs three, QO85) changes ONE row here. */
@@ -493,13 +497,13 @@ function prototypeProject(): _OpenISDProjectJson {
  * (bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_outside_engine.md).
  * `packages/ui/src/logic/prWinIsdFields.ts` calls these three instead of hand-deriving.
  */
-export function prCmsFromWinIsdVas(vasL: number, sdM2: number): number {
+function prCmsFromWinIsdVas(vasL: number, sdM2: number): number {
   return prCmsFromVas(vasL, sdM2);
 }
-export function prMmdFromWinIsdFs(fsHz: number, cmsSI: number): number {
+function prMmdFromWinIsdFs(fsHz: number, cmsSI: number): number {
   return prMmdFromFs(fsHz, cmsSI);
 }
-export function prRmsFromWinIsdQms(qms: number, mmdSI: number, cmsSI: number): number {
+function prRmsFromWinIsdQms(qms: number, mmdSI: number, cmsSI: number): number {
   return prRmsFromQms(qms, mmdSI, cmsSI);
 }
 
@@ -914,6 +918,14 @@ export class OpenISDProject {
 
   cell(field: ProjectFieldId): { value: number; state: Provenance } {
     const value = this.#fieldValue(field);
+    if (field === 'prVas' || field === 'prFs' || field === 'prQms' || field === 'prFsMass') {
+      // Derived views of the canonical radiator — Calculated whenever one is defined.
+      return { value, state: this.#prIsDefined() ? Provenance.Calculated : Provenance.NotAvailable };
+    }
+    if (field === 'prSd' || field === 'prXmax' || field === 'prNum') {
+      // Component facts: stated (by datasheet entry or the prototype), never solved.
+      return { value, state: Provenance.Entered };
+    }
     if (field === 'Sp') {
       // Always derived (πD²/4 round, W×H slotted), never entered: no one states an area.
       return { value, state: value > 0 ? Provenance.Calculated : Provenance.NotAvailable };
@@ -939,6 +951,39 @@ export class OpenISDProject {
       case 'ventH': activeVent(record.box).height_m = value; break;
       case 'prFp': record.box.passiveRadiator.Fp_hz = value; break;
       case 'prMadd': record.box.passiveRadiator.addedMass_kg = value; break;
+      case 'prSd': this.setPrField('Sd_m2', value); break;
+      case 'prXmax': this.setPrField('Xmax_m', value); break;
+      case 'prNum': record.box.passiveRadiator.count = value; break;
+      case 'prFsMass': throw new Error('prFsMass is derived — enter prFp (the tuning) or prMadd (the mass)');
+      // Datasheet vocabulary: each entry re-solves the canonical set, holding what the
+      // ruled conversions hold (the former prWinIsdFields solves, now owned here).
+      case 'prVas': {
+        if (!(value > 0)) return;
+        const sd = this.prField('Sd_m2');
+        const fs = this.cell('prFs').value || 30;
+        const qms = this.cell('prQms').value || 5;
+        const cms = prCmsFromWinIsdVas(value * 1000, sd); // engine vocabulary is litres
+        const mmd = prMmdFromWinIsdFs(fs, cms);
+        this.setPrField('Cms_m_per_N', cms);
+        this.setPrField('Mmd_kg', mmd);
+        this.setPrField('Rms_Ns_per_m', prRmsFromWinIsdQms(qms, mmd, cms));
+        return; // not an entered-set member; the canonical fields carry the state
+      }
+      case 'prFs': {
+        if (!(value > 0)) return;
+        const qms = this.cell('prQms').value || 5;
+        const cms = this.prField('Cms_m_per_N');
+        const mmd = prMmdFromWinIsdFs(value, cms);
+        this.setPrField('Mmd_kg', mmd);
+        this.setPrField('Rms_Ns_per_m', prRmsFromWinIsdQms(qms, mmd, cms));
+        return;
+      }
+      case 'prQms': {
+        if (!(value > 0)) return;
+        this.setPrField('Rms_Ns_per_m',
+          prRmsFromWinIsdQms(value, this.prField('Mmd_kg'), this.prField('Cms_m_per_N')));
+        return;
+      }
     }
     record.target.entered[field] = true;
     if (field === 'ventD' || field === 'ventW' || field === 'ventH') {
@@ -1052,6 +1097,15 @@ export class OpenISDProject {
       case 'Sp': return this.#ventCrossArea();
       case 'prFp': return record.box.passiveRadiator.Fp_hz;
       case 'prMadd': return record.box.passiveRadiator.addedMass_kg;
+      case 'prSd': return this.prField('Sd_m2');
+      case 'prXmax': return this.prField('Xmax_m');
+      case 'prNum': return record.box.passiveRadiator.count;
+      // prVas in SI m³: the engine's prVas contract is litres, so the ÷1000 happens here,
+      // at the model boundary — one unit system inside, the registry converts for display.
+      case 'prVas': return prVas(this.prField('Cms_m_per_N'), this.prField('Sd_m2')) / 1000;
+      case 'prFs': return prFsWithMass(this.prField('Mmd_kg'), 0, this.prField('Cms_m_per_N'));
+      case 'prQms': return prQms(this.prField('Mmd_kg'), this.prField('Cms_m_per_N'), this.prField('Rms_Ns_per_m'));
+      case 'prFsMass': return prFsWithMass(this.prField('Mmd_kg'), this.#record.box.passiveRadiator.addedMass_kg, this.prField('Cms_m_per_N'));
     }
   }
 

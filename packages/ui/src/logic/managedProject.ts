@@ -47,8 +47,7 @@ import { winisdTextToBytes } from '@openisd/winisd';
 import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/engine';
 import {
   sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
-  prVas as computePrVas, prFs as computePrFs, prFsWithMass as computePrFsWithMass,
-  prQms as computePrQms, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA,
+  moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA,
   driveVoltage,
 } from '@openisd/engine';
 import type { LossMode, BoxType } from '@openisd/engine';
@@ -287,13 +286,9 @@ export class ManagedOpenISDProject {
   }
 
   /** Passive-radiator derived T/S params, from the stored PR bag. */
-  prVas_l(): number { return computePrVas(this.prField('Cms_m_per_N'), this.prField('Sd_m2')); }
-  prFs_hz(): number { return computePrFs(this.prField('Mmd_kg'), this.prField('Cms_m_per_N')); }
-  prFsWithMass_hz(): number {
-    return computePrFsWithMass(this.prField('Mmd_kg'), this.prAddedMass_kg(), this.prField('Cms_m_per_N'));
-  }
-  prQms(): number {
-    return computePrQms(this.prField('Mmd_kg'), this.prField('Cms_m_per_N'), this.prField('Rms_Ns_per_m'));
+  /** Adopt a radiator from its datasheet vocabulary — the one conversion, on the owner. */
+  enterPrDatasheet(d: { vasL: number; fsHz: number; qms: number; sdM2: number; xmaxM?: number }): void {
+    this.mutate(p => p.enterPrDatasheet(d));
   }
 
   prField<K extends keyof OpenISDPassiveRadiatorRef>(field: K): OpenISDPassiveRadiatorRef[K] {

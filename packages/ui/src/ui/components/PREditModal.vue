@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue';
 import { managedProject } from '../../logic/appState.js';
 import { createLiveRef } from '../../logic/liveProject.js';
-import { prVasDisplay, prFsDisplay, prFsWithMassDisplay, prQmsDisplay, setPrFsFromWinIsd, setPrQmsFromWinIsd, setPrVasFromWinIsd } from '../../logic/prWinIsdFields.js';
 import type { PRLibEntry } from '../../types.js';
 import NumInput from './NumInput.vue';
 import { useApp } from '../../logic/app.js';
@@ -19,33 +18,17 @@ const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, close);
 
 const { live } = createLiveRef(managedProject);
-// A live UiParams snapshot for display only — `prWinIsdFields.ts`'s WinISD-vocabulary
-// formulas take a `UiParams`-shaped bag, so the read side gathers one; writes go through
-// `managedProject`'s own setters below, never back through this snapshot.
-const P = computed(() => { void live.value; return managedProject.toUiParams(); });
-const prVas = computed(() => prVasDisplay(P.value));
-const prFsShown = computed(() => prFsDisplay(P.value));
-const prFsWithMassShown = computed(() => prFsWithMassDisplay(P.value));
-const prQmsShown = computed(() => prQmsDisplay(P.value));
+// The datasheet vocabulary is the DOMAIN's own keyed surface now: cells read the derived
+// views (SI — the ×1000 below is the litre display this dialog shows), entries re-solve the
+// canonical Sd/Cms/Mmd/Rms with the ruled holds inside the domain object.
+const prVas = computed(() => { void live.value; return managedProject.projectCell('prVas').value * 1000; });
+const prFsShown = computed(() => { void live.value; return managedProject.projectCell('prFs').value; });
+const prFsWithMassShown = computed(() => { void live.value; return managedProject.projectCell('prFsMass').value; });
+const prQmsShown = computed(() => { void live.value; return managedProject.projectCell('prQms').value; });
 
-function setWinIsdFs(newFsHz: number) {
-  const p = managedProject.toUiParams();
-  setPrFsFromWinIsd(p, newFsHz);
-  managedProject.setPrField('Mmd_kg', p.prMmd);
-  managedProject.setPrField('Rms_Ns_per_m', p.prRms);
-}
-function setWinIsdQms(newQms: number) {
-  const p = managedProject.toUiParams();
-  setPrQmsFromWinIsd(p, newQms);
-  managedProject.setPrField('Rms_Ns_per_m', p.prRms);
-}
-function setWinIsdVas(newVasL: number) {
-  const p = managedProject.toUiParams();
-  setPrVasFromWinIsd(p, newVasL);
-  managedProject.setPrField('Cms_m_per_N', p.prCms);
-  managedProject.setPrField('Mmd_kg', p.prMmd);
-  managedProject.setPrField('Rms_Ns_per_m', p.prRms);
-}
+function setWinIsdFs(newFsHz: number) { managedProject.enterProjectField('prFs', newFsHz); }
+function setWinIsdQms(newQms: number) { managedProject.enterProjectField('prQms', newQms); }
+function setWinIsdVas(newVasL: number) { managedProject.enterProjectField('prVas', newVasL / 1000); }
 
 // No per-field computed wrapper for name/count/Sd/Xmax (`docs/design/REACTIVITY.md`) — the
 // template below reads `managedProject`'s own getter directly (reactive via `live`) and

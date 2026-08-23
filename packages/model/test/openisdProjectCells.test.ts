@@ -223,3 +223,45 @@ describe('the read paths refuse a corrupt record even past the type system (opus
     assert.throws(() => p.vent(0), /arity is fixed per alignment \(QO85\)/);
   });
 });
+
+describe('the PR datasheet vocabulary is the domain\'s own keyed surface (P4a)', () => {
+  function prProject(): OpenISDProject {
+    return OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
+      '[Box]', 'BType=4', 'Vr=0.04', 'Npr=1', '',
+      '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', 'Xmax=0.019', 'Me=0', '',
+    ].join('\n')));
+  }
+
+  it('cells read the derived views in SI, Calculated while a radiator is defined', () => {
+    const p = prProject();
+    assert.equal(p.cell('prVas').state, Provenance.Calculated);
+    assert.ok(Math.abs(p.cell('prVas').value - 0.0048) / 0.0048 < 1e-9, 'Vas in m³, round-tripping the imported value');
+    assert.ok(Math.abs(p.cell('prQms').value - 3.3) / 3.3 < 1e-9);
+    assert.ok(Math.abs(p.cell('prFs').value - 30) / 30 < 1e-9);
+    assert.equal(p.cell('prSd').state, Provenance.Entered, 'a component fact is stated, never solved');
+  });
+
+  it('entering Vas re-solves the canonical set holding Fs and Qms', () => {
+    const p = prProject();
+    p.enter('prVas', 0.0060);
+    assert.ok(Math.abs(p.cell('prVas').value - 0.0060) / 0.0060 < 1e-9, 'the entered Vas reads back');
+    assert.ok(Math.abs(p.cell('prFs').value - 30) / 30 < 1e-6, 'Fs held across the Vas entry');
+    assert.ok(Math.abs(p.cell('prQms').value - 3.3) / 3.3 < 1e-6, 'Qms held across the Vas entry');
+  });
+
+  it('entering Fs re-solves Mmd/Rms holding Qms; entering Qms re-solves Rms alone', () => {
+    const p = prProject();
+    const mmdBefore = p.prField('Mmd_kg');
+    p.enter('prFs', 25);
+    assert.ok(Math.abs(p.cell('prFs').value - 25) / 25 < 1e-9);
+    assert.notEqual(p.prField('Mmd_kg'), mmdBefore, 'a lower Fs means more moving mass');
+    assert.ok(Math.abs(p.cell('prQms').value - 3.3) / 3.3 < 1e-6, 'Qms held');
+    p.enter('prQms', 5);
+    assert.ok(Math.abs(p.cell('prQms').value - 5) / 5 < 1e-9);
+  });
+
+  it('prFsMass is derived and refuses entry, naming the real knobs', () => {
+    const p = prProject();
+    assert.throws(() => p.enter('prFsMass', 25), /enter prFp .* or prMadd/);
+  });
+});

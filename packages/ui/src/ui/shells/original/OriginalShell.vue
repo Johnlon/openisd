@@ -43,9 +43,8 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType } from '@openisd/engine';
 import type { PRLibEntry, BundledPR, Design } from '../../../types.js';
 import { airForEnvironment, driveVoltageFor, parseLossMode, lossModeOptions } from '../../../logic/environment.js';
-import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
+import { TAB_META, parseChartTabId, buildPlotData, DPAL } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../types.js';
-import { DPAL } from '../../presets.js';
 import { copyOfName, uniqueName } from '../../../logic/projectFile.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
 import { useApp } from '../../../logic/app.js';
@@ -1249,8 +1248,8 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div class="field-row">
-                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmtU(managedProject.prVas_l() / 1000, 'prVas', 'volume', 'L', fieldDp('prVas'))" readonly><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
-                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(managedProject.prQms(), fieldDp('prQms'))" readonly></div>
+                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmtU(managedProject.projectCell('prVas').value, 'prVas', 'volume', 'L', fieldDp('prVas'))" readonly><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(managedProject.projectCell('prQms').value, fieldDp('prQms'))" readonly></div>
                 </div>
                 <div class="field-row">
                   <!-- The RADIATOR's own free-air resonance, 1/(2π√(Mmd·Cms)) — no box in it.
@@ -1259,7 +1258,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                        this app's symbol for it. Distinct from the SYSTEM tuning on the Box tab
                        (view_2_box.png "Fh": 40.25 Hz on that same project), which is the box
                        compliance in series with the PR's own — two quantities, two readouts. -->
-                  <div class="field"><label>Fpr</label><input id="og-pr-fs" class="calculated greyed" :value="fmtU(managedProject.prFs_hz(), 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div class="field"><label>Fpr</label><input id="og-pr-fs" class="calculated greyed" :value="fmtU(managedProject.projectCell('prFs').value, 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                   <div class="field entered"><label>Sd</label><NumInput :model-value="live && managedProject.prField('Sd_m2')" @update:model-value="v => managedProject.setPrField('Sd_m2', v ?? 0)" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
@@ -1270,7 +1269,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="section-header">User options</div>
                 <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="live && managedProject.prCount()" @update:model-value="v => managedProject.setPrCount(v ?? 0)" field="prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
                 <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="live && managedProject.prAddedMass_kg()" @update:model-value="v => managedProject.setPrAddedMass_kg(v ?? 0)" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
-                <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(managedProject.prFsWithMass_hz(), 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
+                <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(managedProject.projectCell('prFsMass').value, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
             </div>
           </div>

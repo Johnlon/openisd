@@ -27,10 +27,6 @@ const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const REPO_ROOT = join(UI_PKG, '..', '..');
 const OPENISD_PROJECT_TS = join(REPO_ROOT, 'packages', 'model', 'src', 'openisdProject.ts');
 
-/** Dies with P4: prWinIsdFields.ts (the only consumer) is P4's held restructure. An exemption
- *  with a death date — delete these rows and the trio in the same commit as P4. */
-const SUNSET_P4 = ['prCmsFromWinIsdVas', 'prMmdFromWinIsdFs', 'prRmsFromWinIsdQms'];
-
 const project = new TsProject({
   tsConfigFilePath: join(UI_PKG, 'tsconfig.json'),
   skipAddingFilesFromTsConfig: true,
@@ -105,18 +101,12 @@ describe('project symmetry — the gate can fail (non-vacuous demonstrations)', 
 });
 
 describe('project symmetry — the invariants hold (Lane P5)', () => {
-  it('openisdProject.ts exports no free functions beyond the P4-sunset trio', () => {
+  it('openisdProject.ts exports no free functions — none, no exemptions', () => {
     const source = project.addSourceFileAtPath(OPENISD_PROJECT_TS);
-    const offenders = exportedFreeFunctions(source).filter(n => !SUNSET_P4.includes(n));
-    assert.deepEqual(offenders, [],
+    assert.deepEqual(exportedFreeFunctions(source), [],
       'A question about a project\'s state is a METHOD on OpenISDProject (or its alignment '
       + 'surface), never a free function operating on the record from outside — that is the '
       + 'retired getter coming back under another spelling. Move the logic onto the class.');
-    // and the sunset list itself must not silently outlive its consumer
-    const stillExported = exportedFreeFunctions(source).filter(n => SUNSET_P4.includes(n));
-    assert.deepEqual(stillExported, SUNSET_P4,
-      'The sunset trio changed: if prWinIsdFields.ts (P4) is gone, delete the trio AND the '
-      + 'SUNSET_P4 rows of this gate in that same commit.');
   });
 
   it('no UI code outside managedProject.ts touches the entered set', () => {
