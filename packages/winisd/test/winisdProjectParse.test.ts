@@ -13,8 +13,8 @@ import { dirname, join } from 'node:path';
 import { parseWprRaw } from '@openisd/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SEALED_SMALL = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
-const PASSIVE_RADIATOR = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
+const SEALED_SMALL = join(here, 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+const PASSIVE_RADIATOR = join(here, 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
 
 describe('parseWprRaw — sealed-small.wpr golden', () => {
   const raw = parseWprRaw(readFileSync(SEALED_SMALL, 'utf8'));

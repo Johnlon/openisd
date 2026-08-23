@@ -9,10 +9,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 /** The harness-generated PR golden — WinISD Pro wrote it under the wine harness from a scenario
  *  stated in explicit values (test/fixtures/winisd-parity/scenarios.json, `passive-radiator`),
  *  so every value in it is traceable to an input this repo controls and can regenerate. */
-const SAMPLE_WPR_PATH = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
-const VENTED_SMALL_WPR_PATH = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'vented-small.wpr');
-const BANDPASS4_WPR_PATH = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'bandpass4.wpr');
-const VENTED_B4_WPR_PATH = join(here, '..', 'fixtures', 'winisd-parity', 'goldens', 'vented-b4.wpr');
+const SAMPLE_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
+const VENTED_SMALL_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'vented-small.wpr');
+const BANDPASS4_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'bandpass4.wpr');
+const VENTED_B4_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'vented-b4.wpr');
 
 /** Substring assertions carry the needle in the message, so a failure names the missing line. */
 function contains(haystack: string, needle: string, label: string) {

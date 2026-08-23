@@ -1,23 +1,41 @@
 /**
- * WinISD `.wpr` project-file serialisation. File-format concerns live here, not in
- * @openisd/engine. Pure formatter: it takes already-computed
- * primitives (the caller does the physics — chamber tuning, port area) plus the driver's
- * `[Driver]` block (reused verbatim from Driver.toWdr(), which is field-identical to a
- * `.wpr` [Driver] section) and emits the INI text. No engine, store, or Vue imports.
+ * The `.wpr` FILE FORMAT — the project-level sibling of `winisdDriver.ts`'s `.wdr`. It holds no
+ * live state, derives nothing itself, and names no other package. Callers reach IN; this module
+ * never reaches out, and knows nothing of whatever domain model produced the values it is handed.
  *
- * Schema + field semantics: WINISD_WPR_FILE_SCHEMA.md (inferred from 50 real WinISD Pro
- * `.wpr` files + the decompiled help). Container: Windows INI, CRLF line endings, no quoting,
- * exactly these 11 sections in this fixed order:
+ * Two directions, both driven from OUTSIDE:
+ *
+ *  - EXPORT — `toWpr`. A caller reads its own model's getters, computes the physics its own way
+ *    (chamber tuning, port area), and hands the finished primitives over as a `WprInput`. The
+ *    `[Driver]` block is reused verbatim from the `.wdr` writer, since a `.wpr`'s `[Driver]`
+ *    section is field-identical to a `.wdr`.
+ *  - IMPORT — `parseWprRaw`. `.wpr` text yields exactly what the file states — no derivation, no
+ *    recompute, and a key the file does not carry reads as `undefined`, never a fabricated 0.
+ *
+ * DRIVER provenance survives a `.wpr` intact: the embedded `[Driver]` block is a full `.wdr`
+ * block, `ParState` included, and `parseWprRaw` hands it on verbatim as `driverWdrText` for the
+ * `.wdr` reader to parse. There is no second driver parser (QO67).
+ *
+ * PROJECT-level values are where the two formats genuinely differ: `.wpr` states no E/C/N for
+ * `[Box]`, the vents or the filters, so there is nothing for a project-level `diffAgainst` to
+ * compare against. That is a property of the format, not a gap in this module.
+ *
+ * The write shape (`WprInput`) and the read shape (`WprRawParse`) are different types, because
+ * the writer is handed finished primitives while the reader yields only what the file states.
+ * Unifying them behind one class would put two shapes in one object.
+ *
+ * Schema + field semantics: WINISD_WPR_FILE_SCHEMA.md (inferred from 50 real WinISD Pro `.wpr`
+ * files + the decompiled help). Container: Windows INI, CRLF line endings, no quoting, exactly
+ * these 11 sections in this fixed order:
  *   [ProjectInfo] [Driver] [Box] [VentFront] [VentRear] [VentIntra]
  *   [PlotSettings] [SignalSource] [Filters] [PassiveRadiator] [SimulatorOptions]
  *
  * Verified against 15 WinISD Pro-written goldens under
  * packages/winisd/test/fixtures/winisd-parity/goldens/, covering sealed, vented, bandpass, and
- * passive-radiator projects (test/classic/wpr.test.ts). Default constants below (chamber
+ * passive-radiator projects (test/winisdProject.test.ts). Default constants below (chamber
  * losses, ambient, thermal, unused-vent boilerplate) match WinISD's own defaults so a produced
  * file round-trips through WinISD unchanged.
  */
-
 export interface WprVent {
   /** Port diameter, metres (dia1 = dia2, round port). */
   dia?: number;
