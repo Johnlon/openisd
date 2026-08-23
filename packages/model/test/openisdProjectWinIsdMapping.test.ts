@@ -6,29 +6,10 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import {
-  OpenISDProject, WinIsdBType, alignmentKindOfBType, bTypeOfAlignmentKind,
-} from '../src/openisdProject.js';
+import { OpenISDProject } from '../src/openisdProject.js';
 import { OpenISDDriver } from '../src/openisdDriver.js';
 import { WinISDProject } from '@openisd/winisd';
 import { moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
-
-describe('alignmentKindOfBType / bTypeOfAlignmentKind — the one BType<->AlignmentKind mapping', () => {
-  it('maps every WinISD code to its AlignmentKind and back', () => {
-    assert.equal(alignmentKindOfBType(WinIsdBType.Sealed), 'sealed');
-    assert.equal(alignmentKindOfBType(WinIsdBType.Vented), 'vented');
-    assert.equal(alignmentKindOfBType(WinIsdBType.Bandpass4), 'bandpass4');
-    assert.equal(alignmentKindOfBType(WinIsdBType.PassiveRadiator), 'passive-radiator');
-    assert.equal(bTypeOfAlignmentKind('sealed'), WinIsdBType.Sealed);
-    assert.equal(bTypeOfAlignmentKind('vented'), WinIsdBType.Vented);
-    assert.equal(bTypeOfAlignmentKind('bandpass4'), WinIsdBType.Bandpass4);
-    assert.equal(bTypeOfAlignmentKind('passive-radiator'), WinIsdBType.PassiveRadiator);
-  });
-  it('is undefined for a code WinISD does not model, or absent', () => {
-    assert.equal(alignmentKindOfBType(3), undefined);
-    assert.equal(alignmentKindOfBType(undefined), undefined);
-  });
-});
 
 describe('OpenISDProject.setDriver — adopts a driver into this project as a record clone', () => {
   it('a fresh project holds no driver text', () => {
@@ -54,8 +35,8 @@ function wprOf(boxLines: string[]) {
 describe('OpenISDProject.fromWinISDProject — the one place raw .wpr data becomes a project', () => {
   it('sets the active alignment from BType and carries the sealed volume across', () => {
     const project = OpenISDProject.fromWinISDProject(wprOf(['BType=0', 'Vr=0.222222']));
-    assert.equal(project.box.active, 'sealed');
-    assert.equal(project.box.sealed.volume_m3, 222222e-6);
+    assert.equal(project.activeAlignment(), 'sealed');
+    assert.equal(project.volume_m3(), 222222e-6);
   });
   it('throws when BType is absent — never guesses a box type', () => {
     assert.throws(() => OpenISDProject.fromWinISDProject(wprOf(['Vr=0.02'])));
@@ -131,10 +112,9 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
     // First principles, independently of every prX helper: Vas = Cms·Sd²·ρ·c², computed here
     // from the record's own derived Cms and the engine's reference air. If the writer ever
     // reverts to litres this is off by 1000×, which is exactly BUG_20260817's failure.
-    const radiator = project.box.passiveRadiator.radiator!;
     const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
     const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
-    const firstPrinciples = radiator.Cms_m_per_N * radiator.Sd_m2 ** 2 * rho * c * c;
+    const firstPrinciples = project.prField('Cms_m_per_N') * project.prField('Sd_m2') ** 2 * rho * c * c;
     const fpErr = Math.abs(vas - firstPrinciples) / firstPrinciples;
     assert.ok(fpErr < 1e-9,
       `Vas must equal Cms·Sd²·ρ·c² = ${firstPrinciples} m³; got ${vas}` +
@@ -158,9 +138,9 @@ describe('fromWinISDProject — import-side assertions against literals (a round
   it('Qlr/Qar/Qpr land on the record as the box losses', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'));
-    assert.equal(project.box.Ql, 7);
-    assert.equal(project.box.Qa, 50);
-    assert.equal(project.box.Qp, 80);
+    assert.equal(project.loss('Ql'), 7);
+    assert.equal(project.loss('Qa'), 50);
+    assert.equal(project.loss('Qp'), 80);
   });
 
   it('Npr lands on the record as the radiator count', () => {
@@ -168,7 +148,7 @@ describe('fromWinISDProject — import-side assertions against literals (a round
       '[Box]', 'BType=4', 'Vr=0.04', 'Npr=2', '',
       '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', '',
     ].join('\n')));
-    assert.equal(project.box.passiveRadiator.count, 2);
+    assert.equal(project.prCount(), 2);
   });
 
   it('Nd lands on the record as the driver count', () => {

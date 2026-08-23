@@ -49,7 +49,7 @@ export const VENT_ARITY: Readonly<Record<AlignmentKind, number>> = {
  *  wrong-arity record must refuse loudly, never have vents silently ignored by `[0]` reads
  *  (the silent-drop class QO85's shape decision exists to prevent). */
 function assertVentArity(box: OpenISDBox): void {
-  const check = (kind: 'vented' | 'bandpass4', vents: OpenISDVent[]) => {
+  const check = (kind: 'vented' | 'bandpass4', vents: readonly OpenISDVent[]) => {
     if (vents.length !== VENT_ARITY[kind]) {
       throw new Error(`${kind} declares ${VENT_ARITY[kind]} port(s) but the record carries `
         + `${vents.length} — arity is fixed per alignment (QO85) and a mismatch is refused, `
@@ -78,7 +78,7 @@ export enum WinIsdBType {
  *  `.wpr` that never states BType) or not one of WinISD's four modelled box types — the
  *  caller decides how to report that, since those are different errors this pure mapping does
  *  not itself choose between. */
-export function alignmentKindOfBType(code: number | undefined): AlignmentKind | undefined {
+function alignmentKindOfBType(code: number | undefined): AlignmentKind | undefined {
   switch (code) {
     case WinIsdBType.Sealed: return 'sealed';
     case WinIsdBType.Vented: return 'vented';
@@ -89,7 +89,7 @@ export function alignmentKindOfBType(code: number | undefined): AlignmentKind | 
 }
 
 /** This app's AlignmentKind → WinISD's raw BType code — the reverse of `alignmentKindOfBType`. */
-export function bTypeOfAlignmentKind(kind: AlignmentKind): WinIsdBType {
+function bTypeOfAlignmentKind(kind: AlignmentKind): WinIsdBType {
   switch (kind) {
     case 'sealed': return WinIsdBType.Sealed;
     case 'vented': return WinIsdBType.Vented;
@@ -125,8 +125,10 @@ export interface OpenISDVentedAlignment {
   /** System tuning. */
   Fb_hz: number;
   /** The alignment's ports, arity fixed by the alignment: vented has exactly one. An array
-   *  from day one so a multi-port alignment (ABC needs three, QO85) adds no new shape. */
-  vents: OpenISDVent[];
+   *  from day one so a multi-port alignment (ABC needs three, QO85) adds no new shape.
+   *  READONLY: growing or shrinking it is refused at compile time; arity changes only with a
+   *  new alignment definition. */
+  vents: readonly OpenISDVent[];
 }
 
 /** 4th-order bandpass: a sealed rear chamber and a vented front one. */
@@ -136,8 +138,8 @@ export interface OpenISDBandpass4Alignment {
   /** Front-chamber tuning. */
   Ff_hz: number;
   /** The front chamber's ports — bandpass4 has exactly one. Same arity-by-alignment array as
-   *  `OpenISDVentedAlignment.vents` (QO85). */
-  vents: OpenISDVent[];
+   *  `OpenISDVentedAlignment.vents` (QO85), and readonly for the same reason. */
+  vents: readonly OpenISDVent[];
 }
 
 /** A passive-radiator box OWNS its radiator, for the same reason a vented box owns its vent. */
@@ -324,7 +326,7 @@ function prototypeVent(): OpenISDVent {
  * invented plausible number — see
  * bugs/BUG_20260821_new_project_invents_box_and_vent_values_instead_of_asking_the_user.md
  */
-export function prototypeBox(): OpenISDBox {
+function prototypeBox(): OpenISDBox {
   return {
     active: 'vented',
     // TODO(box-wizard): sealed Vb, calculated from driver + alignment. Unset until then.
@@ -354,7 +356,7 @@ export function prototypeBox(): OpenISDBox {
  * sealed and back returns it intact. If this ever needs to do more than one write, that is the
  * moment to ask what is being cleared and why.
  */
-export function setActiveAlignment(box: OpenISDBox, kind: AlignmentKind): void {
+function setActiveAlignment(box: OpenISDBox, kind: AlignmentKind): void {
   box.active = kind;
 }
 
@@ -373,7 +375,7 @@ export function setActiveAlignment(box: OpenISDBox, kind: AlignmentKind): void {
 
 /** The vent object `ventShape`/`ventD`/`ventW`/`ventH`/`ventL`/`endCorrection` address. A LIVE
  *  reference — writing through it mutates the box directly. */
-export function activeVent(box: OpenISDBox): OpenISDVent {
+function activeVent(box: OpenISDBox): OpenISDVent {
   assertVentArity(box);
   return (box.active === 'bandpass4' ? box.bandpass4.vents : box.vented.vents)[0]!;
 }
@@ -384,7 +386,7 @@ export function activeVent(box: OpenISDBox): OpenISDVent {
  *  is re-derived here" (bugs/BUG_20260818_vent_area_formula_duplicated_four_times_no_engine_
  *  source_of_truth.md). Slotted uses width × height directly; round vents are the only shape
  *  the pre-existing call sites actually computed, so that is the formula being consolidated. */
-export function ventArea_m2(vent: OpenISDVent): number {
+function ventArea_m2(vent: OpenISDVent): number {
   return vent.shape === 'slotted'
     ? vent.width_m * vent.height_m
     : Math.PI * (vent.diameter_m / 2) ** 2;
@@ -392,7 +394,7 @@ export function ventArea_m2(vent: OpenISDVent): number {
 
 /** `Vb` — the rear/primary chamber volume, per active alignment. Bandpass4's FRONT chamber is
  *  the separate `Vf` field (`bandpass4.frontVolume_m3`), untouched by this. */
-export function boxVolume_m3(box: OpenISDBox): number {
+function boxVolume_m3(box: OpenISDBox): number {
   switch (box.active) {
     case 'sealed': return box.sealed.volume_m3;
     case 'vented': return box.vented.volume_m3;
@@ -400,7 +402,7 @@ export function boxVolume_m3(box: OpenISDBox): number {
     case 'passive-radiator': return box.passiveRadiator.volume_m3;
   }
 }
-export function setBoxVolume_m3(box: OpenISDBox, value: number): void {
+function setBoxVolume_m3(box: OpenISDBox, value: number): void {
   switch (box.active) {
     case 'sealed': box.sealed.volume_m3 = value; break;
     case 'vented': box.vented.volume_m3 = value; break;
@@ -411,10 +413,10 @@ export function setBoxVolume_m3(box: OpenISDBox, value: number): void {
 
 /** `Fb` — system tuning. Bandpass4's `Ff_hz` (front-chamber tuning) IS `Fb` while bandpass4 is
  *  active; every other alignment reads/writes the vented alignment's `Fb_hz`, dormant or not. */
-export function boxTuning_Fb_hz(box: OpenISDBox): number {
+function boxTuning_Fb_hz(box: OpenISDBox): number {
   return box.active === 'bandpass4' ? box.bandpass4.Ff_hz : box.vented.Fb_hz;
 }
-export function setBoxTuning_Fb_hz(box: OpenISDBox, value: number): void {
+function setBoxTuning_Fb_hz(box: OpenISDBox, value: number): void {
   if (box.active === 'bandpass4') box.bandpass4.Ff_hz = value;
   else box.vented.Fb_hz = value;
 }
@@ -426,7 +428,7 @@ const NO_RADIATOR: Readonly<OpenISDPassiveRadiatorRef> =
 
 /** The radiator's own fields (Sd/Mmd/Cms/Rms/Xmax/name) for READING — zeros when none is
  *  chosen yet. Never creates one; see `ensurePassiveRadiator` for writing. */
-export function passiveRadiatorOrDefault(
+function passiveRadiatorOrDefault(
   alignment: OpenISDPassiveRadiatorAlignment,
 ): Readonly<OpenISDPassiveRadiatorRef> {
   return alignment.radiator ?? NO_RADIATOR;
@@ -435,7 +437,7 @@ export function passiveRadiatorOrDefault(
 /** The radiator's own fields for WRITING — creates one on first write if none exists yet, and
  *  returns the SAME object on every later call so a second field written right after the first
  *  lands on it rather than silently starting over. */
-export function ensurePassiveRadiator(
+function ensurePassiveRadiator(
   alignment: OpenISDPassiveRadiatorAlignment,
 ): OpenISDPassiveRadiatorRef {
   return alignment.radiator ??= { Sd_m2: 0, Mmd_kg: 0, Cms_m_per_N: 0, Rms_Ns_per_m: 0, Xmax_m: 0, name: '' };
@@ -636,6 +638,80 @@ export class OpenISDProject {
     setActiveAlignment(this.#record.box, kind);
   }
 
+  // ── Named box questions — the getter-free surface (M2: no interior value ever crosses) ───
+
+  activeAlignment(): AlignmentKind { return this.#record.box.active; }
+
+  /** The ACTIVE alignment's own volume. */
+  volume_m3(): number { return boxVolume_m3(this.#record.box); }
+  setVolume_m3(value: number): void { setBoxVolume_m3(this.#record.box, value); }
+
+  tuning_Fb_hz(): number { return boxTuning_Fb_hz(this.#record.box); }
+  setTuning_Fb_hz(value: number): void { setBoxTuning_Fb_hz(this.#record.box, value); }
+
+  /** `Vf` — bandpass4's OWN front-chamber volume; unlike `Vb` it has exactly one home. */
+  frontVolume_m3(): number { return this.#record.box.bandpass4.frontVolume_m3; }
+  setFrontVolume_m3(value: number): void { this.#record.box.bandpass4.frontVolume_m3 = value; }
+
+  /** One field of the ACTIVE alignment's port. */
+  ventField<K extends keyof OpenISDVent>(field: K): OpenISDVent[K] {
+    return activeVent(this.#record.box)[field];
+  }
+  setVentField<K extends keyof OpenISDVent>(field: K, value: OpenISDVent[K]): void {
+    activeVent(this.#record.box)[field] = value;
+  }
+
+  /** The active vent's effective acoustic length — physical length plus the end-correction
+   *  term, which needs an equivalent diameter for a slotted vent since the correction is
+   *  inherently a round-port concept. */
+  ventEffectiveLength_m(): number {
+    const vent = activeVent(this.#record.box);
+    const equivalentDiameter_m = vent.shape === 'slotted'
+      ? 2 * Math.sqrt(this.#ventCrossArea() / Math.PI)
+      : vent.diameter_m;
+    return vent.length_m + vent.endCorrection * equivalentDiameter_m;
+  }
+
+  /** Enclosure loss factors — leakage (Ql), absorption (Qa), port (Qp). */
+  loss(kind: 'Ql' | 'Qa' | 'Qp'): number { return this.#record.box[kind]; }
+  setLoss(kind: 'Ql' | 'Qa' | 'Qp', value: number): void { this.#record.box[kind] = value; }
+
+  // ── Passive radiator ──────────────────────────────────────────────────────────────────────
+
+  /** One intrinsic of the chosen radiator; the prototype default before one is chosen. */
+  prField<K extends keyof OpenISDPassiveRadiatorRef>(field: K): OpenISDPassiveRadiatorRef[K] {
+    return passiveRadiatorOrDefault(this.#record.box.passiveRadiator)[field];
+  }
+  setPrField<K extends keyof OpenISDPassiveRadiatorRef>(field: K, value: OpenISDPassiveRadiatorRef[K]): void {
+    ensurePassiveRadiator(this.#record.box.passiveRadiator)[field] = value;
+  }
+
+  /** Has a radiator actually been picked? Reads never allocate one — `prField()` serves
+   *  defaults until a write does. */
+  prChosen(): boolean { return this.#record.box.passiveRadiator.radiator != null; }
+
+  prCount(): number { return this.#record.box.passiveRadiator.count; }
+  setPrCount(value: number): void { this.#record.box.passiveRadiator.count = value; }
+  prAddedMass_kg(): number { return this.#record.box.passiveRadiator.addedMass_kg; }
+  setPrAddedMass_kg(value: number): void { this.#record.box.passiveRadiator.addedMass_kg = value; }
+  prFp_hz(): number { return this.#record.box.passiveRadiator.Fp_hz; }
+  setPrFp_hz(value: number): void { this.#record.box.passiveRadiator.Fp_hz = value; }
+
+  /** Adopt a radiator from its DATASHEET vocabulary (Vas litres, Fs, Qms, Sd, Xmax) — the
+   *  one conversion into canonical Cms/Mmd/Rms, on the owner. The datasheet↔canonical
+   *  converters are not reachable any other way. */
+  enterPrDatasheet(d: { vasL: number; fsHz: number; qms: number; sdM2: number; xmaxM?: number }): void {
+    const cms = prCmsFromWinIsdVas(d.vasL, d.sdM2);
+    const mmd = prMmdFromWinIsdFs(d.fsHz, cms);
+    const rms = prRmsFromWinIsdQms(d.qms, mmd, cms);
+    const radiator = ensurePassiveRadiator(this.#record.box.passiveRadiator);
+    radiator.Sd_m2 = d.sdM2;
+    radiator.Cms_m_per_N = cms;
+    radiator.Mmd_kg = mmd;
+    radiator.Rms_Ns_per_m = rms;
+    if (d.xmaxM != null) radiator.Xmax_m = d.xmaxM;
+  }
+
   // ---- driver ------------------------------------------------------------------------------
 
   /** The driver's own serialised TEXT — for `ManagedOpenISDProject` to materialise its OWN
@@ -806,10 +882,10 @@ export class OpenISDProject {
   // these are public, non-private types — `OpenISDBox` and its siblings, not `_XJson` — so
   // handing out a live reference is not handing out the private shape. --------------------
 
-  get box(): OpenISDBox { return this.#record.box; }
 
   /** How many ports the ACTIVE alignment has (sealed and PR: 0). */
   ventCount(): number {
+    assertVentArity(this.#record.box); // readonly is erased at runtime — never report a corrupt state as fact
     const box = this.#record.box;
     return box.active === 'vented' ? box.vented.vents.length
       : box.active === 'bandpass4' ? box.bandpass4.vents.length
@@ -819,6 +895,7 @@ export class OpenISDProject {
   /** One port of the active alignment, as an independent copy — mutating it changes nothing.
    *  Index-based from day one so a multi-port alignment (QO85) adds no new accessor shape. */
   vent(i: number): OpenISDVent | undefined {
+    assertVentArity(this.#record.box); // readonly is erased at runtime — never report a corrupt state as fact
     const box = this.#record.box;
     const vents = box.active === 'vented' ? box.vented.vents
       : box.active === 'bandpass4' ? box.bandpass4.vents

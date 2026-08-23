@@ -10,6 +10,14 @@
  * silently degrades to "the mapping does nothing" rather than a type error.
  */
 import { describe, it } from 'vitest';
+
+/** Read one dormant-or-active slot off an INDEPENDENT snapshot: switching the copy's
+ *  alignment is safe (it is a copy) and is the public route to a dormant slot's value. */
+function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator') {
+  p.setAlignment(kind);
+  return p;
+}
+
 import assert from 'node:assert/strict';
 import { state, managedProject, applyState } from '../../src/logic/appState.js';
 import type { SerializedState, UiParams } from '../../src/types.js';
@@ -19,7 +27,7 @@ describe('state.box drives the project\'s active alignment', () => {
     it(`state.box = '${box}' makes it the project's active alignment`, () => {
       state.box = box;
       const expected = box === 'pr' ? 'passive-radiator' : box;
-      assert.equal(managedProject._snapshot().box.active, expected);
+      assert.equal(managedProject._snapshot().activeAlignment(), expected);
     });
   }
 
@@ -28,9 +36,9 @@ describe('state.box drives the project\'s active alignment', () => {
     managedProject.setBoxVolume_m3(0.041);
     state.box = 'sealed';
     managedProject.setBoxVolume_m3(0.019);
-    assert.equal(managedProject._snapshot().box.vented.volume_m3, 0.041,
+    assert.equal(slotOf(managedProject._snapshot(), 'vented').volume_m3(), 0.041,
       'the vented volume typed in before switching away must survive');
-    assert.equal(managedProject._snapshot().box.sealed.volume_m3, 0.019);
+    assert.equal(slotOf(managedProject._snapshot(), 'sealed').volume_m3(), 0.019);
     state.box = 'vented';
     assert.equal(managedProject.boxVolume_m3(), 0.041, 'switching back reads the SAME field it read before');
   });
@@ -52,7 +60,7 @@ describe('applyState — a restored box type takes effect before the restored P 
     applyState(saved);
 
     assert.equal(state.box, 'sealed');
-    assert.equal(managedProject._snapshot().box.sealed.volume_m3, 0.0275,
+    assert.equal(slotOf(managedProject._snapshot(), 'sealed').volume_m3(), 0.0275,
       'the restored Vb must land in the alignment the restored box type just activated');
   });
 

@@ -39,12 +39,6 @@
  */
 import { OpenISDDriver, OpenISDProject, Provenance, driverRecordProblems } from '@openisd/model';
 import type { ProjectFieldId } from '@openisd/model';
-import { setActiveAlignment } from '@openisd/model';
-import {
-  activeVent, boxVolume_m3 as readBoxVolume_m3, setBoxVolume_m3 as writeBoxVolume_m3,
-  boxTuning_Fb_hz as readBoxTuning_Fb_hz, setBoxTuning_Fb_hz as writeBoxTuning_Fb_hz,
-  passiveRadiatorOrDefault, ensurePassiveRadiator, ventArea_m2 as computeVentArea_m2,
-} from '@openisd/model';
 import type {
   Cell, MetaCell, SpecField, MetaField,
   OpenISDVent, OpenISDPassiveRadiatorRef, AlignmentKind, OpenISDProjectMeta,
@@ -196,19 +190,19 @@ export class ManagedOpenISDProject {
   // writes go through `mutate()` so the existing edit/what-if notification rule keeps applying
   // with no second code path to keep in step.
 
-  boxVolume_m3(): number { return readBoxVolume_m3(this.#effective().project.box); }
+  boxVolume_m3(): number { return this.#effective().project.volume_m3(); }
   setBoxVolume_m3(value: number): void {
-    this.mutate(p => writeBoxVolume_m3(p.box, value));
+    this.mutate(p => p.setVolume_m3(value));
   }
 
-  boxTuning_Fb_hz(): number { return readBoxTuning_Fb_hz(this.#effective().project.box); }
+  boxTuning_Fb_hz(): number { return this.#effective().project.tuning_Fb_hz(); }
   setBoxTuning_Fb_hz(value: number): void {
-    this.mutate(p => writeBoxTuning_Fb_hz(p.box, value));
+    this.mutate(p => p.setTuning_Fb_hz(value));
   }
 
   /** `Vf` — bandpass4's OWN front-chamber volume. Unconditional: unlike `Vb`, this never
    *  addresses another alignment's storage, dormant or active — there is only one home. */
-  frontVolume_m3(): number { return this.#effective().project.box.bandpass4.frontVolume_m3; }
+  frontVolume_m3(): number { return this.#effective().project.frontVolume_m3(); }
 
   // ── Project field cells — value + provenance, owned and solved by the domain object ──────
   projectCell(field: ProjectFieldId): { value: number; state: Provenance } {
@@ -227,32 +221,28 @@ export class ManagedOpenISDProject {
   ventTargetUnreachable(): boolean { return this.#effective().project.ventTargetUnreachable(); }
   prTargetUnreachable(): boolean { return this.#effective().project.prTargetUnreachable(); }
   setFrontVolume_m3(value: number): void {
-    this.mutate(p => { p.box.bandpass4.frontVolume_m3 = value; });
+    this.mutate(p => p.setFrontVolume_m3(value));
   }
 
   activeVentField<K extends keyof OpenISDVent>(field: K): OpenISDVent[K] {
-    return activeVent(this.#effective().project.box)[field];
+    return this.#effective().project.ventField(field);
   }
   setActiveVentField<K extends keyof OpenISDVent>(field: K, value: OpenISDVent[K]): void {
-    this.mutate(p => { activeVent(p.box)[field] = value; });
+    this.mutate(p => p.setVentField(field, value));
   }
 
   /** The active vent's cross-sectional area — round or slotted, whichever it currently is.
    *  A calculated value, exposed here (not computed by any caller) per ARCHITECTURE.md §5
    *  "only the domain objects calculate". */
   ventArea_m2(): number {
-    return computeVentArea_m2(activeVent(this.#effective().project.box));
+    return this.#effective().project.cell('Sp').value;
   }
 
   /** The active vent's effective acoustic length — physical length plus the end-correction
    *  term, which needs an equivalent diameter for a slotted vent (derived from its area) since
    *  the correction is inherently a round-port concept. Calculated here, not by any caller. */
   ventEffectiveLength_m(): number {
-    const vent = activeVent(this.#effective().project.box);
-    const equivalentDiameter_m = vent.shape === 'slotted'
-      ? 2 * Math.sqrt(this.ventArea_m2() / Math.PI)
-      : vent.diameter_m;
-    return vent.length_m + vent.endCorrection * equivalentDiameter_m;
+    return this.#effective().project.ventEffectiveLength_m();
   }
 
   /** Drive voltage from the project's input power and the EFFECTIVE driver's Re — V = √(Pin·Re),
@@ -307,31 +297,31 @@ export class ManagedOpenISDProject {
   }
 
   prField<K extends keyof OpenISDPassiveRadiatorRef>(field: K): OpenISDPassiveRadiatorRef[K] {
-    return passiveRadiatorOrDefault(this.#effective().project.box.passiveRadiator)[field];
+    return this.#effective().project.prField(field);
   }
   setPrField<K extends keyof OpenISDPassiveRadiatorRef>(field: K, value: OpenISDPassiveRadiatorRef[K]): void {
-    this.mutate(p => { ensurePassiveRadiator(p.box.passiveRadiator)[field] = value; });
+    this.mutate(p => p.setPrField(field, value));
   }
 
-  prCount(): number { return this.#effective().project.box.passiveRadiator.count; }
-  setPrCount(value: number): void { this.mutate(p => { p.box.passiveRadiator.count = value; }); }
+  prCount(): number { return this.#effective().project.prCount(); }
+  setPrCount(value: number): void { this.mutate(p => p.setPrCount(value)); }
 
-  prAddedMass_kg(): number { return this.#effective().project.box.passiveRadiator.addedMass_kg; }
+  prAddedMass_kg(): number { return this.#effective().project.prAddedMass_kg(); }
   setPrAddedMass_kg(value: number): void {
-    this.mutate(p => { p.box.passiveRadiator.addedMass_kg = value; });
+    this.mutate(p => p.setPrAddedMass_kg(value));
   }
 
-  prFp_hz(): number { return this.#effective().project.box.passiveRadiator.Fp_hz; }
-  setPrFp_hz(value: number): void { this.mutate(p => { p.box.passiveRadiator.Fp_hz = value; }); }
+  prFp_hz(): number { return this.#effective().project.prFp_hz(); }
+  setPrFp_hz(value: number): void { this.mutate(p => p.setPrFp_hz(value)); }
 
   // ---- box loss factors (leakage/absorption/port), shared by every alignment ------------
 
-  boxQl(): number { return this.#effective().project.box.Ql; }
-  setBoxQl(value: number): void { this.mutate(p => { p.box.Ql = value; }); }
-  boxQa(): number { return this.#effective().project.box.Qa; }
-  setBoxQa(value: number): void { this.mutate(p => { p.box.Qa = value; }); }
-  boxQp(): number { return this.#effective().project.box.Qp; }
-  setBoxQp(value: number): void { this.mutate(p => { p.box.Qp = value; }); }
+  boxQl(): number { return this.#effective().project.loss('Ql'); }
+  setBoxQl(value: number): void { this.mutate(p => p.setLoss('Ql', value)); }
+  boxQa(): number { return this.#effective().project.loss('Qa'); }
+  setBoxQa(value: number): void { this.mutate(p => p.setLoss('Qa', value)); }
+  boxQp(): number { return this.#effective().project.loss('Qp'); }
+  setBoxQp(value: number): void { this.mutate(p => p.setLoss('Qp', value)); }
 
   // ---- environment ------------------------------------------------------------------------
 
@@ -430,9 +420,9 @@ export class ManagedOpenISDProject {
 
   /** Which alignment is active, in the domain's own vocabulary (`'passive-radiator'`, not
    *  `UiParams`'s `'pr'`). */
-  activeAlignment(): AlignmentKind { return this.#effective().project.box.active; }
+  activeAlignment(): AlignmentKind { return this.#effective().project.activeAlignment(); }
   setActiveAlignment(value: AlignmentKind): void {
-    this.mutate(p => { setActiveAlignment(p.box, value); });
+    this.mutate(p => p.setAlignment(value));
   }
 
   // ---- entered-set (target provenance), ledger QO54 --------------------------------------
@@ -772,20 +762,26 @@ export class ManagedOpenISDProject {
     const requiredField = <K extends 'tempK' | 'humidityPct' | 'pressurePa' | 'ignoreHumidityAndPressure'>(k: K)
       : NonNullable<UiParams[K]> => field(k)!;
     this.mutate(project => {
-      setActiveAlignment(project.box, box);
-      const vent = activeVent(project.box);
-      vent.shape = field('ventShape'); vent.diameter_m = field('ventD'); vent.width_m = field('ventW');
-      vent.height_m = field('ventH'); vent.length_m = field('ventL'); vent.endCorrection = field('endCorrection');
-      writeBoxVolume_m3(project.box, field('Vb'));
-      project.box.bandpass4.frontVolume_m3 = field('Vf');
-      writeBoxTuning_Fb_hz(project.box, field('Fb'));
-      project.box.Ql = field('Ql'); project.box.Qa = field('Qa'); project.box.Qp = field('Qp');
-      const pr = ensurePassiveRadiator(project.box.passiveRadiator);
-      pr.name = field('prName'); pr.Sd_m2 = field('prSd'); pr.Mmd_kg = field('prMmd'); pr.Cms_m_per_N = field('prCms');
-      pr.Rms_Ns_per_m = field('prRms'); pr.Xmax_m = field('prXmax');
-      project.box.passiveRadiator.count = field('prNum');
-      project.box.passiveRadiator.addedMass_kg = field('prMadd');
-      project.box.passiveRadiator.Fp_hz = field('prFp');
+      project.setAlignment(box);
+      project.setVentField('shape', field('ventShape'));
+      project.setVentField('diameter_m', field('ventD'));
+      project.setVentField('width_m', field('ventW'));
+      project.setVentField('height_m', field('ventH'));
+      project.setVentField('length_m', field('ventL'));
+      project.setVentField('endCorrection', field('endCorrection'));
+      project.setVolume_m3(field('Vb'));
+      project.setFrontVolume_m3(field('Vf'));
+      project.setTuning_Fb_hz(field('Fb'));
+      project.setLoss('Ql', field('Ql')); project.setLoss('Qa', field('Qa')); project.setLoss('Qp', field('Qp'));
+      project.setPrField('name', field('prName'));
+      project.setPrField('Sd_m2', field('prSd'));
+      project.setPrField('Mmd_kg', field('prMmd'));
+      project.setPrField('Cms_m_per_N', field('prCms'));
+      project.setPrField('Rms_Ns_per_m', field('prRms'));
+      project.setPrField('Xmax_m', field('prXmax'));
+      project.setPrCount(field('prNum'));
+      project.setPrAddedMass_kg(field('prMadd'));
+      project.setPrFp_hz(field('prFp'));
       project.environment.tempK = requiredField('tempK');
       project.environment.humidityPct = requiredField('humidityPct');
       project.environment.pressurePa = requiredField('pressurePa');

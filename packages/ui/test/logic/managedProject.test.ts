@@ -24,6 +24,14 @@
  * the driver.
  */
 import { describe, it } from 'vitest';
+
+/** Read one dormant-or-active slot off an INDEPENDENT snapshot: switching the copy's
+ *  alignment is safe (it is a copy) and is the public route to a dormant slot's value. */
+function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator') {
+  p.setAlignment(kind);
+  return p;
+}
+
 import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
 import assert from 'node:assert/strict';
 import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
@@ -62,7 +70,8 @@ function driverRecord(): _OpenISDDriverJson {
 function projectWithDriver(): OpenISDProject {
   const p = OpenISDProject.empty();
   p.setDriver(OpenISDDriver.fromJsonRecord(driverRecord()));
-  p.box.vented.volume_m3 = 0.030;
+  p.setAlignment('vented');
+  p.setVolume_m3(0.030);
   return p;
 }
 
@@ -79,7 +88,7 @@ describe('ManagedOpenISDProject — notification asymmetry (the specification)',
 
     mp.enter('Fs', 41);
     mp.enter('Qts', 0.36);
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.050; });
+    mp.mutate(p => p.setVolume_m3(0.050));
     assert.equal(n, 4, 'every live scrub notifies — a BOX scrub exactly like a DRIVER scrub');
 
     mp.cancelWhatIf();
@@ -165,12 +174,12 @@ describe('ManagedOpenISDProject — the overlay covers the WHOLE design', () => 
   it('cancelling a what-if restores a scrubbed BOX value, with no hand-rolled snapshot', () => {
     const mp = managed();
     mp.beginWhatIf();
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.075; });
-    assert.equal(mp._snapshot().box.vented.volume_m3, 0.075, 'the overlay shows the scrub');
+    mp.mutate(p => p.setVolume_m3(0.075));
+    assert.equal(mp._snapshot().volume_m3(), 0.075, 'the overlay shows the scrub');
 
     mp.cancelWhatIf();
 
-    assert.equal(mp._snapshot().box.vented.volume_m3, 0.030,
+    assert.equal(mp._snapshot().volume_m3(), 0.030,
       'Vb is IN the overlay, so cancelling restores it. This is what deletes OgTune.vue\'s ' +
       'vbSnapshot: no panel needs to remember one field by hand.');
   });
@@ -179,12 +188,12 @@ describe('ManagedOpenISDProject — the overlay covers the WHOLE design', () => 
     const mp = managed();
     mp.beginWhatIf();
     mp.enter('Fs', 99);
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.075; });
+    mp.mutate(p => p.setVolume_m3(0.075));
 
     mp.cancelWhatIf();
 
     assert.equal(mp.cell('Fs').value, 37);
-    assert.equal(mp._snapshot().box.vented.volume_m3, 0.030);
+    assert.equal(mp._snapshot().volume_m3(), 0.030);
   });
 });
 
@@ -193,12 +202,12 @@ describe('ManagedOpenISDProject — a what-if never leaks into anything persiste
     const mp = managed();
     mp.beginWhatIf();
     mp.enter('Fs', 99);
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.075; });
+    mp.mutate(p => p.setVolume_m3(0.075));
 
     const saved = mp._projectToPersist();
 
     assert.equal(mp.isWhatIfActive(), false, 'a save must never observe the live overlay');
-    assert.equal(saved.box.vented.volume_m3, 0.030, 'committed state was never touched');
+    assert.equal(slotOf(saved, 'vented').volume_m3(), 0.030, 'committed state was never touched');
     assert.equal(
       OpenISDDriver.fromOwdrText(saved.driverText()!).cell('Fs').value, 37);
   });
@@ -208,22 +217,22 @@ describe('ManagedOpenISDProject — the project never leaves', () => {
   it('snapshot() hands back a COPY: mutating it changes nothing inside', () => {
     const mp = managed();
     const snap = mp._snapshot();
-    snap.box.vented.volume_m3 = 999;
+    snap.setVolume_m3(999);
 
-    assert.equal(mp._snapshot().box.vented.volume_m3, 0.030,
+    assert.equal(mp._snapshot().volume_m3(), 0.030,
       'if a snapshot were the live object, every caller would be a second writer with no ' +
       'notification and no what-if guard');
   });
 
   it('Reset goes back to GROUND, not to the last keystroke', () => {
     const mp = managed();
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.060; });   // writes committed directly, no overlay open
+    mp.mutate(p => p.setVolume_m3(0.060));   // writes committed directly, no overlay open
 
     mp.beginWhatIf();
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.080; });
+    mp.mutate(p => p.setVolume_m3(0.080));
     mp.resetOverlayToGround();
 
-    assert.equal(mp._snapshot().box.vented.volume_m3, 0.030,
+    assert.equal(mp._snapshot().volume_m3(), 0.030,
       'STATE_MODEL.md rule 5 — Reset returns to the design as loaded, not to committed');
   });
 });
@@ -240,13 +249,13 @@ describe('ManagedOpenISDProject — no driver chosen', () => {
 
   it('choosing a driver keeps the box — it is not opening a new project', () => {
     const mp = ManagedOpenISDProject.createEmpty();
-    mp.mutate(p => { p.box.vented.volume_m3 = 0.044; });
+    mp.mutate(p => { p.setAlignment('vented'); p.setVolume_m3(0.044); });
 
     mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
 
     assert.equal(mp.hasDriver(), true);
     assert.equal(mp.cell('Fs').value, 37);
-    assert.equal(mp._snapshot().box.vented.volume_m3, 0.044,
+    assert.equal(slotOf(mp._snapshot(), 'vented').volume_m3(), 0.044,
       'the user picked a driver, not a new design');
   });
 });

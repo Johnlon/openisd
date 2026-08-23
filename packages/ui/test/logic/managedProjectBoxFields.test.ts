@@ -16,26 +16,26 @@ import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
 describe('ManagedOpenISDProject — box field read/write', () => {
   it('boxVolume_m3 reads and writes through to the active alignment', () => {
     const mp = ManagedOpenISDProject.createEmpty();
-    mp.mutate(p => { p.box.active = 'vented'; });
-    assert.equal(mp.boxVolume_m3(), mp._snapshot().box.vented.volume_m3);
+    mp.mutate(p => p.setAlignment('vented'));
+    assert.equal(mp.boxVolume_m3(), mp._snapshot().volume_m3());
     mp.setBoxVolume_m3(0.045);
-    assert.equal(mp._snapshot().box.vented.volume_m3, 0.045);
+    assert.equal(mp._snapshot().volume_m3(), 0.045);
     assert.equal(mp.boxVolume_m3(), 0.045);
   });
 
   it('boxTuning_Fb_hz reads and writes vented.Fb_hz when vented is active', () => {
     const mp = ManagedOpenISDProject.createEmpty();
-    mp.mutate(p => { p.box.active = 'vented'; });
+    mp.mutate(p => p.setAlignment('vented'));
     mp.setBoxTuning_Fb_hz(31);
-    assert.equal(mp._snapshot().box.vented.Fb_hz, 31);
+    assert.equal(mp._snapshot().tuning_Fb_hz(), 31);
     assert.equal(mp.boxTuning_Fb_hz(), 31);
   });
 
   it('activeVentField reads/writes the diameter of the active vent', () => {
     const mp = ManagedOpenISDProject.createEmpty();
-    mp.mutate(p => { p.box.active = 'vented'; });
+    mp.mutate(p => p.setAlignment('vented'));
     mp.setActiveVentField('diameter_m', 0.08);
-    assert.equal(mp._snapshot().box.vented.vents[0]!.diameter_m, 0.08);
+    assert.equal(mp._snapshot().ventField('diameter_m'), 0.08);
     assert.equal(mp.activeVentField('diameter_m'), 0.08);
   });
 
@@ -53,9 +53,9 @@ describe('ManagedOpenISDProject — box field read/write', () => {
 describe('ManagedOpenISDProject — bandpass4 front chamber (Vf)', () => {
   it('frontVolume_m3 always addresses bandpass4.frontVolume_m3, regardless of active alignment', () => {
     const mp = ManagedOpenISDProject.createEmpty();
-    mp.mutate(p => { p.box.active = 'sealed'; });   // Vf must stay reachable while dormant
+    mp.mutate(p => p.setAlignment('sealed'));   // Vf must stay reachable while dormant
     mp.setFrontVolume_m3(0.017);
-    assert.equal(mp._snapshot().box.bandpass4.frontVolume_m3, 0.017);
+    assert.equal(mp._snapshot().frontVolume_m3(), 0.017);
     assert.equal(mp.frontVolume_m3(), 0.017);
   });
 });
@@ -64,17 +64,17 @@ describe('ManagedOpenISDProject — PR field read/write', () => {
   it('prField reads zero with no radiator chosen, and never creates one on read', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     assert.equal(mp.prField('Sd_m2'), 0);
-    assert.equal(mp._snapshot().box.passiveRadiator.radiator, undefined);
+    assert.equal(mp._snapshot().prChosen(), false);
   });
 
   it('setPrField creates the radiator on first write and keeps it on the next', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     mp.setPrField('Sd_m2', 0.006);
     mp.setPrField('Mmd_kg', 0.02);
-    const radiator = mp._snapshot().box.passiveRadiator.radiator;
-    assert.ok(radiator);
-    assert.equal(radiator!.Sd_m2, 0.006);
-    assert.equal(radiator!.Mmd_kg, 0.02, 'a second field write must land on the SAME radiator');
+    const snap = mp._snapshot();
+    assert.equal(snap.prChosen(), true);
+    assert.equal(snap.prField('Sd_m2'), 0.006);
+    assert.equal(snap.prField('Mmd_kg'), 0.02, 'a second field write must land on the SAME radiator');
   });
 
   it('prCount and prAddedMass_kg live on the alignment, settable with no radiator chosen', () => {
@@ -83,7 +83,7 @@ describe('ManagedOpenISDProject — PR field read/write', () => {
     mp.setPrAddedMass_kg(0.011);
     assert.equal(mp.prCount(), 2);
     assert.equal(mp.prAddedMass_kg(), 0.011);
-    assert.equal(mp._snapshot().box.passiveRadiator.radiator, undefined);
+    assert.equal(mp._snapshot().prChosen(), false);
   });
 });
 

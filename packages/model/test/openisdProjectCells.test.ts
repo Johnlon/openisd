@@ -10,8 +10,36 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { OpenISDProject, VENT_ARITY, Provenance } from '../src/index.js';
+import type { _OpenISDProjectJson } from '../src/openisdProject.js';
 import { WinISDProject } from '@openisd/winisd';
 import { ventLength, tuningFromLength } from '@openisd/engine';
+
+
+/** A complete, valid record literal — the by-reference door `fromJsonRecord` adopts, retained
+ *  so a test can corrupt it PAST the type system and prove the runtime guards. */
+function corruptibleRecord(): _OpenISDProjectJson {
+  const vent = { shape: 'round' as const, diameter_m: 0.05, width_m: 0, height_m: 0, length_m: 0.1, endCorrection: 0.732 };
+  return {
+    driver: undefined,
+    box: {
+      active: 'vented' as const,
+      sealed: { volume_m3: 0.02 },
+      vented: { volume_m3: 0.02, Fb_hz: 45, vents: [vent] },
+      bandpass4: { rearVolume_m3: 0, frontVolume_m3: 0, Ff_hz: 0, vents: [{ ...vent }] },
+      passiveRadiator: { volume_m3: 0, Fp_hz: 0, count: 1, addedMass_kg: 0 },
+      Ql: 10, Qa: 100, Qp: 100,
+    },
+    target: { entered: {} as Record<string, true> },
+    filters: [],
+    environment: { tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false },
+    signal: { inputPower_W: 1, seriesResistance_ohm: 0.1, driverCount: 1, wiring: 'parallel' as const, rgAtDriverSide: false },
+    listening: { distance_m: 1, angle_rad: 0 },
+    simOptions: { circuitModel: 'winisd' as const, tlPortModel: false, forceFlatResponse: false,
+      splXmaxLimited: false, vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0 },
+    sweep: { fmin_hz: 1, fmax_hz: 20000, points: 400 },
+    meta: { name: '', creator: '', created: '', modified: '', description: '' },
+  };
+}
 
 function ventedProject(): OpenISDProject {
   const p = OpenISDProject.empty();
@@ -163,27 +191,35 @@ describe('vent arity is ENFORCED, not commented (opus2 K2)', () => {
   });
 
   it('a record whose vents array disagrees with its alignment\'s arity is refused loudly', () => {
-    const good = OpenISDProject.empty();
-    // corrupt a structural clone of a valid record through the box getter (the record is the
-    // getter's referent), then adopt it — adoption is the chokepoint that must refuse
-    const raw = structuredClone({
-      driver: undefined, box: good.box, target: good.target, filters: good.filters,
-      environment: good.environment, signal: good.signal, listening: good.listening,
-      simOptions: good.simOptions, sweep: good.sweep, meta: good.meta,
-    });
-    raw.box.vented.vents.push({ ...raw.box.vented.vents[0]! });
-    assert.throws(() => OpenISDProject.fromJsonRecord(raw as never),
+    const record = corruptibleRecord();
+    (record.box.vented.vents as unknown as unknown[]).push({ ...record.box.vented.vents[0]! });
+    assert.throws(() => OpenISDProject.fromJsonRecord(record),
       /arity is fixed per alignment \(QO85\)/,
-      'a two-port vented record must refuse, never have vents\\[1\\] silently ignored');
+      'a two-port vented record must refuse, never have vents[1] silently ignored');
   });
 
   it('a correct-arity record is accepted', () => {
-    const good = OpenISDProject.empty();
-    const raw = structuredClone({
-      driver: undefined, box: good.box, target: good.target, filters: good.filters,
-      environment: good.environment, signal: good.signal, listening: good.listening,
-      simOptions: good.simOptions, sweep: good.sweep, meta: good.meta,
-    });
-    assert.ok(OpenISDProject.fromJsonRecord(raw as never));
+    assert.ok(OpenISDProject.fromJsonRecord(corruptibleRecord()));
+  });
+});
+
+describe('the read paths refuse a corrupt record even past the type system (opus2 P3 bar)', () => {
+  it('growing vents is a compile error — pinned so the readonly ban can never silently lapse', () => {
+    const record = corruptibleRecord();
+    const p = OpenISDProject.fromJsonRecord(record);
+    void p;
+    // @ts-expect-error vents is readonly — the push route must not compile
+    if (p.vent(0)) record.box.vented.vents.push({ ...record.box.vented.vents[0]! });
+  });
+
+  it('ventCount()/vent(i) throw rather than report a wrong-arity state as fact', () => {
+    // `fromJsonRecord` adopts BY REFERENCE, so the route past the type system is to retain
+    // the record, adopt it while valid, then corrupt the retained reference with a cast —
+    // deliberate type laundering, in a TEST only, to prove the guard erased readonly cannot.
+    const record = corruptibleRecord();
+    const p = OpenISDProject.fromJsonRecord(record);
+    (record.box.vented.vents as unknown as unknown[]).push({ ...record.box.vented.vents[0]! });
+    assert.throws(() => p.ventCount(), /arity is fixed per alignment \(QO85\)/);
+    assert.throws(() => p.vent(0), /arity is fixed per alignment \(QO85\)/);
   });
 });

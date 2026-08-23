@@ -1,3 +1,4 @@
+import { Provenance as ModelProvenance } from '@openisd/model';
 import type { BoxType } from '@openisd/engine';
 import type { UnitGroup } from './units.js';
 
@@ -22,8 +23,11 @@ import type { UnitGroup } from './units.js';
 
 /** Kind of field — only 'number' carries a `precision`. */
 export type FieldKind = 'number' | 'enum' | 'text' | 'toggle' | 'date' | 'control';
-/** Whether a field's value is supplied by the human or derived by the app. */
-export type Provenance = 'entered' | 'calculated';
+/** Whether a field's value is supplied by the human or derived by the app. A registry entry
+ *  declares an AUTHORING kind, so `NotAvailable` can never appear here — the type is the
+ *  narrower union derived from the model's own `Provenance` enum, never a second
+ *  declaration of the concept. */
+type FieldProvenance = `${ModelProvenance.Entered}` | `${ModelProvenance.Calculated}`;
 
 export interface FieldSpec {
   /** Stable field id — the key the UI and tests reference. */
@@ -54,7 +58,7 @@ export interface FieldSpec {
    *  (or not) on the same terms. REQUIRED for every numeric field. */
   max?: number;
   /** Entered by the human, or Calculated by the app. */
-  provenance: Provenance;
+  provenance: FieldProvenance;
   /** Box types the field applies to, or 'all' when it is box-type-independent. */
   appliesTo: BoxType[] | 'all';
   /** For calculated fields: the closed form (derivation), for documentation and traceability. */
