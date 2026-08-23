@@ -103,6 +103,15 @@ actually lands — deferred with QO85 itself, as John directed ("do not add band
   layer exactly as driver fields already bind — same idiom both panels, which is the visible
   symmetry John is asking for.
 
+## Vent semantics for P2 (opus2 H1, interim ruling pending the WinISD probe)
+
+`crosscalc` is the cross-section AREA's provenance (0 = entered, 1 = derived from the
+diameter) and is carried as `target.entered['ventCrossArea']`. It is NOT the port's shape:
+shape comes from observed geometry (a stated `dia1` is a round port), and the `.wpr`'s unread
+`Shape=` key awaits the ground-truth probe. P2's provenance work builds on the entered-set
+carrier, not on any crosscalc↔shape mapping. Invariant, pinned by test: no import may build a
+vent whose area computes to zero while the file states a nonzero diameter.
+
 ## Precision on the 27f48bd claims (opus2 review, R5)
 
 No-drop holds for a FILE-READ instance (verbatim return) and for unknown keys SUPPLIED to

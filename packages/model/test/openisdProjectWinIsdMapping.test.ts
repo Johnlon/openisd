@@ -69,10 +69,11 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
   const NOW = new Date(Date.UTC(2026, 0, 15));
   const DRIVER = '[Driver]\nBrand=x\nParState=EEE';
 
-  it('a slot port survives a round trip: crosscalc=0 in, crosscalc=0 out', () => {
+  it('entered-area provenance survives a round trip: crosscalc=0 in, crosscalc=0 out', () => {
     // The bug this pins: import used to drop the flag, and re-export wrote crosscalc=1 —
     // flipping the file's own stated provenance with no user action
-    // (bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md).
+    // (bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md). crosscalc is
+    // AREA provenance, carried through the entered set; it never touches the vent's shape.
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
       '[Box]', 'BType=1', 'Vr=0.02', 'Fr=45', '',
       '[VentRear]', 'Num=1', 'dia1=0.05', 'len=0.12', 'crosscalc=0', '',
@@ -142,14 +143,16 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
 });
 
 describe('fromWinISDProject — import-side assertions against literals (a round trip cannot see a compensating error pair)', () => {
-  it('crosscalc=0 marks the vent slotted on the record; crosscalc=1 leaves it round', () => {
-    const slotted = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
+  it('crosscalc=0 marks the AREA entered on the record; shape follows the observed geometry', () => {
+    const areaEntered = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=0\n'));
-    assert.equal(slotted.vent(0)?.shape, 'slotted');
+    assert.equal(areaEntered.target.entered['ventCrossArea'], true);
+    assert.equal(areaEntered.vent(0)?.shape, 'round', 'a stated dia1 is a round port — crosscalc is not shape');
 
-    const round = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
+    const derived = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=1\n'));
-    assert.equal(round.vent(0)?.shape, 'round');
+    assert.equal(derived.target.entered['ventCrossArea'], undefined);
+    assert.equal(derived.vent(0)?.shape, 'round');
   });
 
   it('Qlr/Qar/Qpr land on the record as the box losses', () => {
@@ -172,5 +175,44 @@ describe('fromWinISDProject — import-side assertions against literals (a round
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=0\nVr=0.02\nNd=3\n'));
     assert.equal(project.signal.driverCount, 3);
+  });
+});
+
+describe('crosscalc is AREA provenance, never port shape (opus2 H1, interim ruling pending the WinISD probe)', () => {
+  const NOW = new Date(Date.UTC(2026, 0, 15));
+  const DRIVER = '[Driver]\nBrand=x\nParState=EEE';
+
+  it('no import may build a vent whose area is zero while the file states a nonzero dia1', () => {
+    const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
+      '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=0\n'));
+    const vent = project.vent(0)!;
+    // Shape comes from OBSERVED GEOMETRY: a stated dia1 is a round port. The file has no
+    // width/height keys, so shape='slotted' here would force area = 0·0 = 0.
+    assert.equal(vent.shape, 'round');
+    assert.equal(vent.diameter_m, 0.05);
+    const area = Math.PI * (0.05 / 2) ** 2;
+    const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
+    const rear = out.split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
+    const carea = Number(/carea=([0-9.eE+-]+)/.exec(rear)![1]);
+    assert.ok(Math.abs(carea - area) / area < 1e-9,
+      `carea must be the real port area ${area}, got ${carea} — zero means the import invented a zero-area vent`);
+  });
+
+  it('crosscalc=0 is held as entered area provenance and round-trips without touching shape', () => {
+    const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
+      '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=0\n'));
+    assert.equal(project.target.entered['ventCrossArea'], true);
+    const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
+      .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
+    assert.match(rear, /crosscalc=0/);
+  });
+
+  it('crosscalc=1 leaves the entered set alone and writes crosscalc=1 back', () => {
+    const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
+      '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=1\n'));
+    assert.equal(project.target.entered['ventCrossArea'], undefined);
+    const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
+      .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
+    assert.match(rear, /crosscalc=1/);
   });
 });

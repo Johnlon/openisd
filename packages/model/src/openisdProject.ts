@@ -539,9 +539,10 @@ export class OpenISDProject {
       },
     };
 
-    // A round port's area is DERIVED from the diameter; a slotted port's area is ENTERED.
-    // WinISD's `crosscalc` states exactly that, so it is written from the vent's own shape
-    // (bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md).
+    // `crosscalc` is the AREA's provenance — 0 when the area was entered, 1 when derived from
+    // the diameter. Held as the entered-set flag pending the WinISD probe's ground truth
+    // (bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md); it is NOT the
+    // port's shape.
     const ventKv = (Fb: number, ventVb: number): Record<string, string | number> => ({
       Num: 1, Shape: 1,
       // [Vent*].Fb/Vb are WinISD's copy of the owning chamber's own [Box] tuning/volume
@@ -549,7 +550,7 @@ export class OpenISDProject {
       Fb, Vb: ventVb,
       dia1: vent.diameter_m, dia2: vent.diameter_m, carea: Sp, len: vent.length_m,
       endcorrection: vent.endCorrection,
-      crosscalc: vent.shape === 'slotted' ? 0 : 1,
+      crosscalc: record.target.entered['ventCrossArea'] ? 0 : 1,
     });
 
     if (kind === 'sealed') {
@@ -708,11 +709,13 @@ export class OpenISDProject {
     if (len != null) vent.length_m = len;
     const endCorrection = n(ventSec, 'endcorrection');
     if (endCorrection != null) vent.endCorrection = endCorrection;
-    // `crosscalc=0` means the cross-section AREA was entered, not derived from a diameter —
-    // WinISD's own provenance for a slot port. The file states no width/height, so the slot's
-    // real sides are unrecoverable; what must not happen is re-exporting the file as a round
-    // port (bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md).
-    if (n(ventSec, 'crosscalc') === 0) vent.shape = 'slotted';
+    // `crosscalc=0` states the cross-section AREA was entered rather than derived from the
+    // diameter. It says nothing about port SHAPE: the file carries no width/height keys, and
+    // its separate `Shape=` key is unread pending ground truth from the WinISD probe
+    // (bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md). Shape comes
+    // from OBSERVED GEOMETRY — a stated dia1 is a round port — so no import can build a vent
+    // whose area computes to zero while the file states a nonzero diameter.
+    if (n(ventSec, 'crosscalc') === 0) record.target.entered['ventCrossArea'] = true;
 
     if (kind === 'passive-radiator') {
       const Sd = n('PassiveRadiator', 'Sd'), Vas = n('PassiveRadiator', 'Vas');
