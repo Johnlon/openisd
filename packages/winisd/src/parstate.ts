@@ -94,43 +94,4 @@ export const POS_TO_WDRKEY: readonly (string | null)[] = [
 
 export const PARSTATE_LEN = POS_TO_WDRKEY.length;
 
-/** One field the Driver's E/C/N model owns (enter-able, cell-readable). */
-export interface ModeledSlot {
-  pos: number;
-  /** WDR file key (as written in the .wdr). */
-  wdrKey: string;
-  /** Internal Driver field name (differs from wdrKey for Znom→Z and BL→Bl). */
-  field: string;
-}
 
-/**
- * The T/S fields the Driver models directly — the 15 read from and written to the model.
- * Every `.wdr` key has a home in `_SpecSection` (`wdr-model-coverage.test.ts`); this list is
- * narrower, and says only which ones this slot table exposes.
- */
-export const MODELED_SLOTS: readonly ModeledSlot[] = [
-  { pos: 0,  wdrKey: 'Znom', field: 'Z' },
-  { pos: 1,  wdrKey: 'Fs',   field: 'Fs' },
-  { pos: 2,  wdrKey: 'Pe',   field: 'Pe' },
-  // Reference sensitivity is STATED, never computed by WinISD: `s-spl.wdr` (SPL=123 typed,
-  // everything else 0) marks slot 3 E with every derivable slot N, and all 16 parity goldens
-  // echo the scenario's own SPL at slot 3 = E beside an INDEPENDENTLY calculated η₀ at slot
-  // 22 = C. Omitting it here let openisd overwrite a datasheet figure with its own number.
-  { pos: 3,  wdrKey: 'SPL',  field: 'SPL' },
-  { pos: 4,  wdrKey: 'Re',   field: 'Re' },
-  { pos: 5,  wdrKey: 'Le',   field: 'Le' },
-  { pos: 8,  wdrKey: 'BL',   field: 'Bl' },
-  { pos: 9,  wdrKey: 'Xmax', field: 'Xmax' },
-  { pos: 11, wdrKey: 'Cms',  field: 'Cms' },
-  { pos: 12, wdrKey: 'Qms',  field: 'Qms' },
-  { pos: 13, wdrKey: 'Qes',  field: 'Qes' },
-  { pos: 14, wdrKey: 'Qts',  field: 'Qts' },
-  { pos: 15, wdrKey: 'Rms',  field: 'Rms' },
-  { pos: 16, wdrKey: 'Mms',  field: 'Mms' },
-  { pos: 17, wdrKey: 'Sd',   field: 'Sd' },
-  { pos: 19, wdrKey: 'Vas',  field: 'Vas' },
-];
-
-/** WDR key → modeled slot, for overlaying edited values on the file's own WDR lines. */
-export const MODELED_BY_WDRKEY: Readonly<Record<string, ModeledSlot>> =
-  Object.fromEntries(MODELED_SLOTS.map(s => [s.wdrKey, s]));

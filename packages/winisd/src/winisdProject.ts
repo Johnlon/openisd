@@ -78,7 +78,7 @@ export interface WprVent {
   crossCalculated?: boolean;
 }
 
-export interface WprBox {
+interface WprBox {
   /** WinISD box-type enum: 0 sealed · 1 vented · 2 4th-order bandpass · 4 passive radiator. */
   bType: number;
   /** Rear (primary) chamber volume, m³, and its tuning frequency, Hz. */
@@ -98,7 +98,7 @@ export interface WprBox {
   npr?: number;
 }
 
-export interface WprPr {
+interface WprPr {
   Vas: number;
   Qms: number;
   Fs: number;
