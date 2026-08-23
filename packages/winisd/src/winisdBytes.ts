@@ -1,42 +1,45 @@
 /**
- * The `.wdr` BYTE boundary — the one place that knows a `.wdr` file is bytes rather than text.
+ * Reads a WinISD file into text and writes it back out.
  *
- * A `.wdr` string field may contain embedded newlines, and WinISD encodes each one as the
- * single byte `0xA4` so that `Comment=` stays on ONE physical line. Every other line-oriented
- * part of the format — key=value, `[Section]`, the ParState row — depends on that being true.
+ * A .wdr is INI text: [Section] headers and key=value lines. But a file is bytes, and you need
+ * the encoding before you can read it. WinISD only ran on Windows, so old files are CP1252 and
+ * newer ones UTF-8. We try UTF-8, fall back to CP1252, and report which we used. We always write
+ * UTF-8. .wpr files come through here too, since a .wpr has a .wdr inside its [Driver] section.
  *
- * `0xA4` is not a legal UTF-8 LEAD byte, which is exactly why it can serve as a sentinel: no
- * character encodes to it in that position. It IS a legal CONTINUATION byte, though — `¤` is
- * `C2 A4` and `€` is `E2 82 AC` — so a byte-for-byte substitution would corrupt real text.
- * The decoder below therefore walks UTF-8 sequences and treats an `0xA4` as the sentinel ONLY
- * where a sequence starts.
+ * The other job is comments. A comment can run to several lines, but every line of the file has
+ * to mean one thing, so WinISD stores a newline inside a value as the byte 0xA4 and keeps the
+ * comment on one line.
  *
- * In memory the sentinel is `U+F8A4`, a private-use code point, matching the reference
- * implementation (`winisd_tools/scrapers/scrapers/lib/wdr_ini_file.py`). Keeping it distinct
- * from `\n` all the way to `fromWdrIni` is what lets the parser split lines unambiguously;
- * `fromWdrIni` turns it into `\n` inside a value, and `toWdr` turns `\n` back into it.
+ * You can't just swap every 0xA4 for a newline. It never starts a UTF-8 character, which is why
+ * WinISD could use it as a marker, but it does appear inside one: ¤ is C2 A4, € is E2 82 AC.
+ * So we walk whole characters and only treat 0xA4 as a marker where a character starts.
+ *
+ * In memory it becomes U+F8A4, a private-use code point that can't collide with real text.
+ * fromWdrIni turns it into a newline, toWdr turns it back. The Python side does the same thing
+ * in winisd_tools/scrapers/scrapers/lib/wdr_ini_file.py.
  */
 
 /** In-memory stand-in for the file's `0xA4`. Private-use, so it cannot collide with content. */
-export const WDR_NEWLINE_SENTINEL = '';
+export const WINISD_NEWLINE_SENTINEL = '';
 
 /** UTF-8 for `U+F8A4`. The three bytes the file collapses to a single `0xA4`. */
 const SENTINEL_UTF8 = [0xef, 0xa2, 0xa4] as const;
 
 /**
- * Which byte encoding `wdrBytesToText` used to decode a `.wdr`/`.wpr` file (QO62, human ruling
- * 2026-08-21): classic WinISD is Windows-only, so a file that fails a strict UTF-8 decode is
- * legacy CP1252, not damage — the discriminator lets a caller report which one applied.
+ * Which character encoding `winisdBytesToText` found the file to be in (QO62, human ruling
+ * 2026-08-21). A file that is not valid UTF-8 is read as Windows CP1252 rather than treated as
+ * damaged, because classic WinISD only ever ran on Windows. The caller is told which applied so
+ * it can say so.
  */
-export enum WdrEncoding {
+export enum WinisdEncoding {
   Utf8 = 'utf-8',
   Cp1252 = 'cp1252',
 }
 
-/** `wdrBytesToText`'s result: the decoded text, and which encoding produced it. */
-export interface WdrDecodedText {
+/** `winisdBytesToText`'s result: the decoded text, and which encoding produced it. */
+export interface WinisdDecodedText {
   readonly text: string;
-  readonly encoding: WdrEncoding;
+  readonly encoding: WinisdEncoding;
 }
 
 /** How many bytes the UTF-8 sequence led by `b` occupies, or 1 for a byte that leads nothing
@@ -69,8 +72,8 @@ function expandSentinelForUtf8(bytes: Uint8Array<ArrayBufferLike>): Uint8Array {
 }
 
 /**
- * `.wdr` file bytes → text, with every newline sentinel turned into `WDR_NEWLINE_SENTINEL`.
- * Pair with `wdrTextToBytes`. The result still needs `fromWdrIni` to turn the sentinel into a
+ * `.wdr` file bytes → text, with every newline sentinel turned into `WINISD_NEWLINE_SENTINEL`.
+ * Pair with `winisdTextToBytes`. The result still needs `fromWdrIni` to turn the sentinel into a
  * real newline inside each value — that step is per-FIELD, and this one cannot tell fields
  * apart.
  *
@@ -80,29 +83,29 @@ function expandSentinelForUtf8(bytes: Uint8Array<ArrayBufferLike>): Uint8Array {
  * per-line decode, because a mixed-encoding file is not a thing WinISD can produce. The result
  * reports which encoding was used so the caller (the UI) can say so.
  */
-export function wdrBytesToText(bytes: Uint8Array<ArrayBufferLike>): WdrDecodedText {
+export function winisdBytesToText(bytes: Uint8Array<ArrayBufferLike>): WinisdDecodedText {
   try {
     const text = new TextDecoder('utf-8', { fatal: true }).decode(expandSentinelForUtf8(bytes));
-    return { text, encoding: WdrEncoding.Utf8 };
+    return { text, encoding: WinisdEncoding.Utf8 };
   } catch {
     // CP1252 0xA4 is genuinely ambiguous: it is the code page's own currency sign ¤, AND it is
     // WinISD's newline byte — the wine probe behind the QO62 ruling typed an Enter keystroke
     // and WinISD wrote a bare 0xA4 for it, so in a real file the byte means newline in
     // practice. Every 0xA4 is read as the sentinel; a genuine ¤ character, if one exists in a
     // CP1252 file, is accepted as a loss (documented by the "¤ reads back as a newline" test).
-    const text = new TextDecoder('windows-1252').decode(bytes).replaceAll('¤', WDR_NEWLINE_SENTINEL);
-    return { text, encoding: WdrEncoding.Cp1252 };
+    const text = new TextDecoder('windows-1252').decode(bytes).replaceAll('¤', WINISD_NEWLINE_SENTINEL);
+    return { text, encoding: WinisdEncoding.Cp1252 };
   }
 }
 
 /**
- * Text → `.wdr` file bytes: UTF-8, with `WDR_NEWLINE_SENTINEL` collapsed back to the single
- * `0xA4` the format specifies. Pair with `wdrBytesToText`.
+ * Text → `.wdr` file bytes: UTF-8, with `WINISD_NEWLINE_SENTINEL` collapsed back to the single
+ * `0xA4` the format specifies. Pair with `winisdBytesToText`.
  *
  * The text handed in is `WinISDDriver.toWdr()`'s output, which has already put the sentinel
  * where a value's newlines were — so no line structure is at risk here.
  */
-export function wdrTextToBytes(text: string): Uint8Array<ArrayBuffer> {
+export function winisdTextToBytes(text: string): Uint8Array<ArrayBuffer> {
   const encoded = new TextEncoder().encode(text);
   const out: number[] = [];
   for (let i = 0; i < encoded.length; i++) {

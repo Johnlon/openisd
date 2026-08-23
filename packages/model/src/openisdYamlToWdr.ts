@@ -13,7 +13,7 @@
  *
  * Returns a STRING. The V8 boundary carries strings, not bytes — a caller that needs to write
  * `.wdr` file bytes (the `0xA4` `Comment=` newline sentinel, CP1252/UTF-8 discrimination) must
- * go through `wdrTextToBytes`/`wdrBytesToText` in `@openisd/winisd`'s `wdrBytes.ts`; this
+ * go through `winisdTextToBytes`/`winisdBytesToText` in `@openisd/winisd`'s `winisdBytes.ts`; this
  * function does not touch that boundary at all.
  */
 import { parse } from 'yaml';

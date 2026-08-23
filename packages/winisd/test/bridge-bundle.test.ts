@@ -74,9 +74,9 @@ describe('openisd-bridge.js — artifact shape', () => {
   });
 
   it('tree-shakes TextEncoder/TextDecoder out entirely (they are absent from mini-racer)', () => {
-    // packages/winisd/src/wdrBytes.ts uses both, but only on the .wdr BYTE boundary (file
+    // packages/winisd/src/winisdBytes.ts uses both, but only on the .wdr BYTE boundary (file
     // read/write), which the yaml -> record -> toWdrText() call path this bridge exposes
-    // never reaches — winisdDriver.ts only imports the WDR_NEWLINE_SENTINEL *constant* from
+    // never reaches — winisdDriver.ts only imports the WINISD_NEWLINE_SENTINEL *constant* from
     // that module. If a future change makes either survive bundling, that is a real change
     // to what the bridge touches and must be reported, not silently polyfilled.
     assert.equal(/\bTextEncoder\b/.test(bundleSource), false);

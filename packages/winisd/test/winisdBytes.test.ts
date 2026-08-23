@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { wdrBytesToText, wdrTextToBytes, WDR_NEWLINE_SENTINEL, WdrEncoding } from '../src/wdrBytes.js';
+import { winisdBytesToText, winisdTextToBytes, WINISD_NEWLINE_SENTINEL, WinisdEncoding } from '../src/winisdBytes.js';
 import { WinISDDriver } from '../src/winisdDriver.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -24,11 +24,11 @@ const DAI_ICHI_SP65_40_WDR = join(BUNDLED_WINISD_DIR, 'Dai-Ichi SP65-40.wdr');
 
 describe('the 0xA4 newline sentinel in a .wdr string field', () => {
   it("decodes WinISD's own unicode sample — Euro, Kanji and two embedded newlines", () => {
-    const { text, encoding } = wdrBytesToText(new Uint8Array(readFileSync(UNICODE_WDR)));
+    const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(UNICODE_WDR)));
     const comment = /^Comment=(.*)$/m.exec(text)?.[1];
 
-    assert.equal(encoding, WdrEncoding.Utf8, "WinISD's own sample is valid UTF-8");
-    assert.equal(comment, `Euro €${WDR_NEWLINE_SENTINEL}Kanji 漢字${WDR_NEWLINE_SENTINEL}`,
+    assert.equal(encoding, WinisdEncoding.Utf8, "WinISD's own sample is valid UTF-8");
+    assert.equal(comment, `Euro €${WINISD_NEWLINE_SENTINEL}Kanji 漢字${WINISD_NEWLINE_SENTINEL}`,
       'both sentinels survive as sentinels, and the multi-byte characters around them are intact');
   });
 
@@ -36,18 +36,18 @@ describe('the 0xA4 newline sentinel in a .wdr string field', () => {
     // U+00A4 (¤) encodes as C2 A4 — its second byte is 0xA4. A byte-for-byte substitution
     // would tear the character in half; only a lead-position test gets this right.
     const bytes = new Uint8Array([0x43, 0x3d, 0xc2, 0xa4, 0xa4, 0x78]); // "C=" ¤ <sentinel> "x"
-    const { text, encoding } = wdrBytesToText(bytes);
-    assert.equal(encoding, WdrEncoding.Utf8);
-    assert.equal(text, `C=¤${WDR_NEWLINE_SENTINEL}x`);
+    const { text, encoding } = winisdBytesToText(bytes);
+    assert.equal(encoding, WinisdEncoding.Utf8);
+    assert.equal(text, `C=¤${WINISD_NEWLINE_SENTINEL}x`);
   });
 
   it('bytes -> text -> bytes is the identity on a WinISD-written file', () => {
     const original = new Uint8Array(readFileSync(UNICODE_WDR));
-    assert.deepEqual(wdrTextToBytes(wdrBytesToText(original).text), original);
+    assert.deepEqual(winisdTextToBytes(winisdBytesToText(original).text), original);
   });
 
   it('a multi-line Comment survives a full driver round trip and stays on one line', () => {
-    const source = wdrBytesToText(new Uint8Array(readFileSync(UNICODE_WDR))).text;
+    const source = winisdBytesToText(new Uint8Array(readFileSync(UNICODE_WDR))).text;
 
     const driver = WinISDDriver.fromWdrIni(source);
     assert.equal(driver.headerField('comment'), 'Euro €\nKanji 漢字\n',
@@ -57,7 +57,7 @@ describe('the 0xA4 newline sentinel in a .wdr string field', () => {
     const commentLines = written.split(/\r\n/).filter(l => l.startsWith('Comment='));
     assert.equal(commentLines.length, 1, 'the comment occupies exactly one physical line');
     assert.equal(commentLines[0],
-      `Comment=Euro €${WDR_NEWLINE_SENTINEL}Kanji 漢字${WDR_NEWLINE_SENTINEL}`);
+      `Comment=Euro €${WINISD_NEWLINE_SENTINEL}Kanji 漢字${WINISD_NEWLINE_SENTINEL}`);
   });
 
   it('appended [DQ] lines are encoded too — they are newlines in the comment like any other', () => {
@@ -67,7 +67,7 @@ describe('the 0xA4 newline sentinel in a .wdr string field', () => {
     );
     const line = driver.toWdr().split(/\r\n/).find(l => l.startsWith('Comment='));
 
-    assert.equal(line, `Comment=a driver${WDR_NEWLINE_SENTINEL}[DQ] Qts=1.5: above max 0.8`);
+    assert.equal(line, `Comment=a driver${WINISD_NEWLINE_SENTINEL}[DQ] Qts=1.5: above max 0.8`);
   });
 });
 
@@ -76,44 +76,44 @@ describe('CP1252 fallback for a .wdr that is not valid UTF-8 (QO62)', () => {
     // 0x95 bullet, 0xAE (R), 0xB1 +/-, 0xBD 1/2 - none of these is a valid UTF-8 lead or
     // continuation byte in this arrangement, so a strict UTF-8 decode must fail here.
     const bytes = new Uint8Array([0x95, 0xae, 0xb1, 0xbd]);
-    const { text, encoding } = wdrBytesToText(bytes);
+    const { text, encoding } = winisdBytesToText(bytes);
 
-    assert.equal(encoding, WdrEncoding.Cp1252);
+    assert.equal(encoding, WinisdEncoding.Cp1252);
     assert.equal(text, '•®±½', 'bullet, (R), +/-, 1/2 per the CP1252 code page');
   });
 
   it('the CP1252 fallback still recognises 0xA4 as the newline sentinel, whole-file, not per-line', () => {
     const bytes = new Uint8Array([0x41, 0xa4, 0x95, 0xa4, 0x42]); // "A" <sentinel> bullet <sentinel> "B"
-    const { text, encoding } = wdrBytesToText(bytes);
+    const { text, encoding } = winisdBytesToText(bytes);
 
-    assert.equal(encoding, WdrEncoding.Cp1252);
-    assert.equal(text, `A${WDR_NEWLINE_SENTINEL}•${WDR_NEWLINE_SENTINEL}B`);
+    assert.equal(encoding, WinisdEncoding.Cp1252);
+    assert.equal(text, `A${WINISD_NEWLINE_SENTINEL}•${WINISD_NEWLINE_SENTINEL}B`);
   });
 
   it('the real Selenium SW108 fixture is not valid UTF-8 and reads back with (R) (0xAE) intact', () => {
-    const { text, encoding } = wdrBytesToText(new Uint8Array(readFileSync(SELENIUM_SW108_WDR)));
+    const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(SELENIUM_SW108_WDR)));
 
-    assert.equal(encoding, WdrEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
+    assert.equal(encoding, WinisdEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
     assert.ok(text.includes('Kapton®'), "'Kapton(R)' survives with the (R) intact");
     // The file's FF FF / E6 run is source damage — spliced mid-word into "reproduction" in
     // every encoding — and is deliberately NOT asserted on here (QO62: not an encoding oracle).
   });
 
   it('the bundled Audiopipe TS-A10 fixture (0x95) reads back with the bullet intact', () => {
-    const { text, encoding } = wdrBytesToText(new Uint8Array(readFileSync(AUDIOPIPE_TS_A10_WDR)));
-    assert.equal(encoding, WdrEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
+    const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(AUDIOPIPE_TS_A10_WDR)));
+    assert.equal(encoding, WinisdEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
     assert.ok(text.includes('•'), "0x95 decodes to the CP1252 bullet, not a C1 control or U+FFFD");
   });
 
   it('the bundled Dai-Ichi SIS8000 fixture (0xB1) reads back with +/- intact', () => {
-    const { text, encoding } = wdrBytesToText(new Uint8Array(readFileSync(DAI_ICHI_SIS8000_WDR)));
-    assert.equal(encoding, WdrEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
+    const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(DAI_ICHI_SIS8000_WDR)));
+    assert.equal(encoding, WinisdEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
     assert.ok(text.includes('±'), '0xB1 decodes to the CP1252 plus-minus sign');
   });
 
   it('the bundled Dai-Ichi SP65-40 fixture (0xBD) reads back with 1/2 intact', () => {
-    const { text, encoding } = wdrBytesToText(new Uint8Array(readFileSync(DAI_ICHI_SP65_40_WDR)));
-    assert.equal(encoding, WdrEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
+    const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(DAI_ICHI_SP65_40_WDR)));
+    assert.equal(encoding, WinisdEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
     assert.ok(text.includes('½'), '0xBD decodes to the CP1252 one-half sign');
   });
 
@@ -124,10 +124,10 @@ describe('CP1252 fallback for a .wdr that is not valid UTF-8 (QO62)', () => {
     // standalone currency sign, if one exists in a CP1252 file, is lost to this reading.
     // 0xAE (a lone CP1252 (R)) forces the CP1252 branch, since on its own it is not valid UTF-8.
     const bytes = new Uint8Array([0x50, 0x72, 0x69, 0x63, 0x65, 0x3a, 0x20, 0xa4, 0x31, 0x30, 0xae]); // "Price: <curr>10" (R)
-    const { text, encoding } = wdrBytesToText(bytes);
+    const { text, encoding } = winisdBytesToText(bytes);
 
-    assert.equal(encoding, WdrEncoding.Cp1252);
-    assert.equal(text, `Price: ${WDR_NEWLINE_SENTINEL}10®`);
+    assert.equal(encoding, WinisdEncoding.Cp1252);
+    assert.equal(text, `Price: ${WINISD_NEWLINE_SENTINEL}10®`);
   });
 
   it('every non-UTF-8 bundled .wdr decodes as CP1252 with no replacement character', () => {
@@ -136,8 +136,8 @@ describe('CP1252 fallback for a .wdr that is not valid UTF-8 (QO62)', () => {
 
     const nonUtf8: string[] = [];
     for (const f of wdrFiles) {
-      const { text, encoding } = wdrBytesToText(new Uint8Array(readFileSync(join(BUNDLED_WINISD_DIR, f))));
-      if (encoding === WdrEncoding.Cp1252) {
+      const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(join(BUNDLED_WINISD_DIR, f))));
+      if (encoding === WinisdEncoding.Cp1252) {
         nonUtf8.push(f);
         assert.ok(!text.includes('�'), `${f}: CP1252 decode produced a replacement character`);
       }

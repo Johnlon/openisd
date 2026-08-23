@@ -28,7 +28,7 @@ import { dirname, join } from 'node:path';
 import { parse } from 'yaml';
 import { openisdYamlToWdr } from '@openisd/model';
 import type { DriverError } from '@openisd/engine';
-import { WDR_NEWLINE_SENTINEL } from '../src/wdrBytes.js';
+import { WINISD_NEWLINE_SENTINEL } from '../src/winisdBytes.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const ORACLE = join(ROOT, 'drivers', 'sample', 'winisd', 'john-all-defaults.wdr');
@@ -54,10 +54,10 @@ function fieldsOf(wdr: string): Record<string, string> {
 /** `Comment=`'s full text, including any `[DQ]` lines appended to it (ARCHITECTURE.md §3),
  *  with the format's newline sentinel decoded so assertions can be written with real `\n`.
  *  `Comment=` is ONE physical line — a newline inside it is the single byte `0xA4`, which
- *  `wdrBytesToText` presents as `WDR_NEWLINE_SENTINEL`. */
+ *  `winisdBytesToText` presents as `WINISD_NEWLINE_SENTINEL`. */
 function commentBlockOf(wdr: string): string {
   const line = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
-  return (line ?? '').slice('Comment='.length).replaceAll(WDR_NEWLINE_SENTINEL, '\n');
+  return (line ?? '').slice('Comment='.length).replaceAll(WINISD_NEWLINE_SENTINEL, '\n');
 }
 
 const oracleText = readFileSync(ORACLE, 'utf8');

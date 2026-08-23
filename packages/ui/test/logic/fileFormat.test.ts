@@ -5,7 +5,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { DriverFileFormat, ProjectFileFormat, formatOf, sniff } from '../../src/fileFormat.js';
-import { wdrTextToBytes } from '@openisd/winisd';
+import { winisdTextToBytes } from '@openisd/winisd';
 
 describe('formatOf — file-name classification across both format families', () => {
   it('identifies every known driver and project extension', () => {
@@ -19,8 +19,8 @@ describe('formatOf — file-name classification across both format families', ()
 
 describe('sniff — content classification when the name does not say', () => {
   it('tells .wdr from .wpr by INI section headers', () => {
-    assert.equal(sniff(wdrTextToBytes('[Driver]\nBrand=x\n')), DriverFileFormat.Wdr);
-    assert.equal(sniff(wdrTextToBytes('[ProjectInfo]\n[Driver]\n[Box]\nBType=0\n')), ProjectFileFormat.Wpr);
+    assert.equal(sniff(winisdTextToBytes('[Driver]\nBrand=x\n')), DriverFileFormat.Wdr);
+    assert.equal(sniff(winisdTextToBytes('[ProjectInfo]\n[Driver]\n[Box]\nBType=0\n')), ProjectFileFormat.Wpr);
   });
   it('tells a driver record from a project payload by JSON shape', () => {
     assert.equal(sniff(new TextEncoder().encode('{"specs":{}}')), DriverFileFormat.Owdr);

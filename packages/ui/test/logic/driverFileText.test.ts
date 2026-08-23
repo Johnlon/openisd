@@ -7,7 +7,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { decodeDriverFileBytes } from '../../src/logic/driverFileText.js';
-import { WdrEncoding } from '@openisd/winisd';
+import { WinisdEncoding } from '@openisd/winisd';
 import { DriverFileFormat, ProjectFileFormat } from '../../src/fileFormat.js';
 
 describe('decodeDriverFileBytes format gate (QO62)', () => {
@@ -15,7 +15,7 @@ describe('decodeDriverFileBytes format gate (QO62)', () => {
     const bytes = new Uint8Array([0x4b, 0x61, 0x70, 0x74, 0x6f, 0x6e, 0xae]); // "Kapton" + (R)
     const { text, encoding } = decodeDriverFileBytes(bytes, DriverFileFormat.Wdr);
 
-    assert.equal(encoding, WdrEncoding.Cp1252);
+    assert.equal(encoding, WinisdEncoding.Cp1252);
     assert.equal(text, 'Kapton®');
   });
 
@@ -23,7 +23,7 @@ describe('decodeDriverFileBytes format gate (QO62)', () => {
     const bytes = new Uint8Array([0x4b, 0x61, 0x70, 0x74, 0x6f, 0x6e, 0xae]);
     const { text, encoding } = decodeDriverFileBytes(bytes, ProjectFileFormat.Wpr);
 
-    assert.equal(encoding, WdrEncoding.Cp1252);
+    assert.equal(encoding, WinisdEncoding.Cp1252);
     assert.equal(text, 'Kapton®');
   });
 
@@ -49,7 +49,7 @@ describe('decodeDriverFileBytes format gate (QO62)', () => {
     const bytes = new TextEncoder().encode('{"a":1}');
     const { text, encoding } = decodeDriverFileBytes(bytes, DriverFileFormat.Owdr);
 
-    assert.equal(encoding, WdrEncoding.Utf8);
+    assert.equal(encoding, WinisdEncoding.Utf8);
     assert.equal(text, '{"a":1}');
   });
 
@@ -63,7 +63,7 @@ describe('decodeDriverFileBytes format gate (QO62)', () => {
     for (const format of DriverFileFormat.ALL) {
       if (format === DriverFileFormat.Wdr) {
         const { encoding } = decodeDriverFileBytes(bytes, format);
-        assert.equal(encoding, WdrEncoding.Cp1252, `${format.value}: expected the CP1252 fallback`);
+        assert.equal(encoding, WinisdEncoding.Cp1252, `${format.value}: expected the CP1252 fallback`);
       } else {
         assert.throws(() => decodeDriverFileBytes(bytes, format), /not valid UTF-8/i,
           `${format.value}: expected a non-legacy format to reject non-UTF-8 bytes`);
@@ -74,7 +74,7 @@ describe('decodeDriverFileBytes format gate (QO62)', () => {
   it('the legacy-format gate also falls back for .wpr (a PROJECT format, not a DriverFileFormat member)', () => {
     const bytes = new Uint8Array([0x4b, 0x61, 0x70, 0x74, 0x6f, 0x6e, 0xae]);
     const { encoding } = decodeDriverFileBytes(bytes, ProjectFileFormat.Wpr);
-    assert.equal(encoding, WdrEncoding.Cp1252);
+    assert.equal(encoding, WinisdEncoding.Cp1252);
   });
 
   it('the legacy-format gate does NOT fall back for .owpr — the project format that is NOT classic WinISD', () => {

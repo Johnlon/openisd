@@ -24,7 +24,7 @@
  */
 import type { DriverError } from '@openisd/engine';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from './parstate.js';
-import { WDR_NEWLINE_SENTINEL } from './wdrBytes.js';
+import { WINISD_NEWLINE_SENTINEL } from './winisdBytes.js';
 import type { CellState } from './parstate.js';
 
 /** One `.wdr` field: the text that will be written, and its provenance mark. */
@@ -96,7 +96,7 @@ function commentWithDq(base: string, dqLines: readonly string[]): string {
 /** A string field's value as one PHYSICAL line: every newline becomes the sentinel the format
  *  reserves for exactly this, so `Comment=` cannot break the line structure around it. */
 function oneLine(value: string): string {
-  return value.replace(/\r\n|\r|\n/g, WDR_NEWLINE_SENTINEL);
+  return value.replace(/\r\n|\r|\n/g, WINISD_NEWLINE_SENTINEL);
 }
 
 export class WinISDDriver {
@@ -163,11 +163,11 @@ export class WinISDDriver {
       // header fields — `s-xlim-123.wdr` carries `Comment=xlim set to 123 in UI but not
       // written ` with a trailing space WinISD wrote and reads back. Numeric parsing is
       // unaffected: `Number(' 0 ')` is 0.
-      // A newline embedded in a string field arrives as WDR_NEWLINE_SENTINEL (the file's
-      // single 0xA4 byte, re-expanded by `wdrBytesToText`). Decoding it HERE — per value,
+      // A newline embedded in a string field arrives as WINISD_NEWLINE_SENTINEL (the file's
+      // single 0xA4 byte, re-expanded by `winisdBytesToText`). Decoding it HERE — per value,
       // after the line split — is what keeps a comment's newlines from being mistaken for
       // line structure while the file is being parsed.
-      const val = line.slice(i + 1).replaceAll(WDR_NEWLINE_SENTINEL, '\n');
+      const val = line.slice(i + 1).replaceAll(WINISD_NEWLINE_SENTINEL, '\n');
       if (key === 'ParState') { parState = val; continue; }
       raw[key] = val;
     }

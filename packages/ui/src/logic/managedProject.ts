@@ -48,7 +48,7 @@ import type {
   Cell, MetaCell, SpecField, MetaField,
   OpenISDVent, OpenISDPassiveRadiatorRef, AlignmentKind, OpenISDProjectMeta,
 } from '@openisd/model';
-import { toWpr, wdrTextToBytes } from '@openisd/winisd';
+import { toWpr, winisdTextToBytes } from '@openisd/winisd';
 import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/engine';
 import {
   sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
@@ -68,11 +68,16 @@ type ManagedOpenISDProjectListener = () => void;
  *  alignments and spell one of them differently — `'pr'` vs `'passive-radiator'`. Both types
  *  are used pervasively under their own names elsewhere, so this is a translation at the one
  *  seam that needs it, not a rename of either. */
+/** The one alignment the two vocabularies spell differently. `satisfies` keeps the literal
+ *  type — a widened `AlignmentKind` annotation would stop the narrowing the two translations
+ *  below depend on — while still checking it IS an `AlignmentKind`. */
+const PR_ALIGNMENT = 'passive-radiator' satisfies AlignmentKind;
+
 export function toAlignmentKind(box: BoxType): AlignmentKind {
-  return box === 'pr' ? 'passive-radiator' : box;
+  return box === 'pr' ? PR_ALIGNMENT : box;
 }
 export function fromAlignmentKind(active: AlignmentKind): BoxType {
-  return active === 'passive-radiator' ? 'pr' : active;
+  return active === PR_ALIGNMENT ? 'pr' : active;
 }
 
 /** One state layer: the project, and the live driver over its record. `openIsdDriver` is
@@ -633,7 +638,7 @@ export class ManagedOpenISDProject {
     }
     const { value: text, errors } = driver.toWdrText();
     if (!text) return { value: null, errors };
-    return { value: wdrTextToBytes(text), errors };
+    return { value: winisdTextToBytes(text), errors };
   }
 
   /** The COMMITTED driver as `.owdr` bytes — cannot fail once a driver is chosen (the record
@@ -664,13 +669,13 @@ export class ManagedOpenISDProject {
     const boxKind = this.activeAlignment();
     const meta = this.#committed.project.meta;
     const input = buildWprInput(
-      boxKind === 'passive-radiator' ? 'pr' : boxKind,
+      fromAlignmentKind(boxKind),
       this.toUiParams(), driver.toDriver(), driverSection,
       { name: meta.name, description: meta.description, creator: meta.creator,
         created: meta.created, modified: meta.modified },
       now, this.ventArea_m2(), curve,
     );
-    return { value: wdrTextToBytes(toWpr(input)), errors };
+    return { value: winisdTextToBytes(toWpr(input)), errors };
   }
 
   /**
