@@ -5,12 +5,16 @@
  * packages/winisd/dist/openisd-bridge.js) and evaluated once per process inside a bare V8
  * context that has no `console`, `process`, `fetch`, `require` or module loader.
  *
- * `globalThis.openisdYamlToWdr` is the SOLE global this file adds — the one property
- * mini-racer's Python caller reads and calls (`ctx.call("openisdYamlToWdr", [yamlText])`).
- * This is a deliberate, spec-mandated exception to ARCHITECTURE.md §5 "NO GLOBAL VARIABLES":
- * the whole point of this file is to publish a symbol a foreign V8 embedding can find with no
- * import machinery of its own, matching the existing `window._selfTestDone` precedent — a
- * single named exception, scoped to exactly this file, for exactly this reason.
+ * `globalThis.openisdYamlToWdr`, `globalThis.roundTripOpenisdYaml` and `globalThis.roundTripWdr`
+ * are the THREE globals this file adds — the properties mini-racer's Python caller reads and
+ * calls (`ctx.call("openisdYamlToWdr", [yamlText])`, and likewise for the other two). This is a
+ * deliberate, spec-mandated exception to ARCHITECTURE.md §5 "NO GLOBAL VARIABLES": the whole
+ * point of this file is to publish symbols a foreign V8 embedding can find with no import
+ * machinery of its own, matching the existing `window._selfTestDone` precedent — named
+ * exceptions, scoped to exactly this file, for exactly this reason. QT69.1 originally ruled the
+ * bridge exposes exactly ONE function; John's later instruction (plan `shiny-noodling-kahan.md`
+ * "Bridge round-trip API for the tools") supersedes it to add the round-trip pair below — record
+ * the amendment against QT69 in the winisd_tools ledger when wiring the tools-side caller.
  *
  * Contract (pinned by John, 2026-08-22): the exposed function takes `yamlText: string` and
  * returns a JSON STRING — not an object — so the value crosses the mini-racer boundary as a
@@ -30,15 +34,84 @@
  * composes. This bridge only renames `value` to `wdr` and serialises the pair to JSON at the
  * V8 boundary; the field-for-field shape of `errors` is passed through unchanged.
  */
-import { openisdYamlToWdr as projectOpenisdYamlToWdr } from '@openisd/model';
+import { parse } from 'yaml';
+import { openisdYamlToWdr as projectOpenisdYamlToWdr, OpenISDDriver } from '@openisd/model';
 
 function openisdYamlToWdrBridge(yamlText: string): string {
   const result = projectOpenisdYamlToWdr(yamlText);
   return JSON.stringify({ wdr: result.value, errors: result.errors });
 }
 
+/**
+ * openisd.yml round trip: `{ reserialised: string | null, errors: DriverError[] }` as a JSON
+ * string. `reserialised` is the `.owdr` JSON text the app's own record loader
+ * (`OpenISDDriver.fromJsonRecord`, `packages/model/src/openisdDriver.ts:291`) and export path
+ * (`.toOwdrText()`, `openisdDriver.ts:534`) produce from the parsed record — the exact functions
+ * `openisdYamlToWdr` above and the app's own load/export call sites use. The `yaml` parse is the
+ * same call `openisdYamlToWdr.ts:35` makes (`parse(text, { logLevel: 'error' })`).
+ *
+ * Does NOT compare `reserialised` against anything — no in-app code serialises a record back to
+ * YAML text, so byte-comparing an `.owdr` (JSON) against an `openisd.yml` (YAML) input can never
+ * be meaningful. The caller (the openisd bundler gate, or winisd_tools) already holds the
+ * ORIGINAL parsed record — it compares that against `JSON.parse(reserialised)` at the data
+ * level, which is the round trip this function actually proves: nothing the app's loader/export
+ * path touches was lost or altered.
+ */
+function roundTripOpenisdYamlBridge(yamlText: string): string {
+  let record: unknown;
+  try {
+    record = parse(yamlText, { logLevel: 'error' });
+  } catch (e) {
+    return JSON.stringify({
+      reserialised: null,
+      errors: [{ level: 'error', field: 'yaml', message: `could not parse openisd.yml: ${String(e)}` }],
+    });
+  }
+  if (record == null || typeof record !== 'object') {
+    return JSON.stringify({
+      reserialised: null,
+      errors: [{ level: 'error', field: 'yaml', message: 'openisd.yml did not parse to a record' }],
+    });
+  }
+  try {
+    const reserialised = OpenISDDriver.fromJsonRecord(record as never).toOwdrText();
+    return JSON.stringify({ reserialised, errors: [] });
+  } catch (e) {
+    return JSON.stringify({
+      reserialised: null,
+      errors: [{ level: 'error', field: 'specs', message: `openisd.yml record shape rejected: ${String(e)}` }],
+    });
+  }
+}
+
+/**
+ * .wdr round trip: `{ reserialised: string | null, errors: DriverError[] }` as a JSON string.
+ * `reserialised` is the `.wdr` text the app's own wdr reader (`OpenISDDriver.fromWdrText`,
+ * `openisdDriver.ts:480`) and wdr export path (`.toWdrText()`, `openisdDriver.ts:509`) produce —
+ * the same two calls the app's own import/export UI makes. The caller compares `reserialised`
+ * against the bytes it just wrote, at the QT60 re-parse-equal bar (values + key order after
+ * parsing), not byte-identity.
+ */
+function roundTripWdrBridge(wdrText: string): string {
+  let driver: OpenISDDriver;
+  try {
+    driver = OpenISDDriver.fromWdrText(wdrText);
+  } catch (e) {
+    return JSON.stringify({
+      reserialised: null,
+      errors: [{ level: 'error', field: 'wdr', message: `could not read .wdr: ${String(e)}` }],
+    });
+  }
+  const { value, errors } = driver.toWdrText();
+  return JSON.stringify({ reserialised: value, errors });
+}
+
 declare global {
   var openisdYamlToWdr: typeof openisdYamlToWdrBridge;
+  var roundTripOpenisdYaml: typeof roundTripOpenisdYamlBridge;
+  var roundTripWdr: typeof roundTripWdrBridge;
 }
 
 globalThis.openisdYamlToWdr = openisdYamlToWdrBridge;
+globalThis.roundTripOpenisdYaml = roundTripOpenisdYamlBridge;
+globalThis.roundTripWdr = roundTripWdrBridge;

@@ -20,7 +20,10 @@
  *     mini-racer 0.14.1's measured set exactly (`MEASURED_PRESENT`/`MEASURED_ABSENT` below),
  *     `globalThis.openisdYamlToWdr(realYamlFixture)` returns the pinned JSON-string contract
  *     for a clean record, a blocking-error record and a warn-alongside-a-good-record case;
- *  5. exactly one global is added to the sandbox.
+ *  5. exactly three globals are added to the sandbox (`openisdYamlToWdr`, `roundTripOpenisdYaml`,
+ *     `roundTripWdr` — the round-trip pair added per plan `shiny-noodling-kahan.md` "Bridge
+ *     round-trip API for the tools"; their own behavioural coverage as TypeScript source lives
+ *     in `serialisationTest.test.ts`, this file only re-confirms they survive the BUILT bundle).
  */
 import { describe, it, beforeAll, afterAll } from 'vitest';
 import assert from 'node:assert/strict';
@@ -142,7 +145,7 @@ function createMiniRacerLikeContext(): vm.Context {
 }
 
 describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)', () => {
-  it('adds exactly one global: openisdYamlToWdr', () => {
+  it('adds exactly three globals: openisdYamlToWdr, roundTripOpenisdYaml, roundTripWdr', () => {
     const ctx = createMiniRacerLikeContext();
     // Array.from: the vm realm's own Array constructor (via Symbol.species) would otherwise
     // make the array returned by vm.runInContext structurally equal but not deepStrictEqual
@@ -151,8 +154,32 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
     vm.runInContext(bundleSource, ctx);
     const after = Array.from(vm.runInContext('Object.getOwnPropertyNames(globalThis)', ctx) as string[]);
     const added = after.filter(k => !before.has(k));
-    assert.deepEqual(added, ['openisdYamlToWdr']);
+    assert.deepEqual(added.sort(), ['openisdYamlToWdr', 'roundTripOpenisdYaml', 'roundTripWdr'].sort());
     assert.equal(vm.runInContext('typeof globalThis.openisdYamlToWdr', ctx), 'function');
+    assert.equal(vm.runInContext('typeof globalThis.roundTripOpenisdYaml', ctx), 'function');
+    assert.equal(vm.runInContext('typeof globalThis.roundTripWdr', ctx), 'function');
+  });
+
+  it('roundTripOpenisdYaml and roundTripWdr work in the built bundle on real corpus records', () => {
+    const yamlText = readFileSync(REAL_OPENISD_YML, 'utf8');
+    const ctx = createMiniRacerLikeContext();
+    vm.runInContext(bundleSource, ctx);
+    ctx.YAML_TEXT = yamlText;
+    const yamlRaw = vm.runInContext('globalThis.roundTripOpenisdYaml(YAML_TEXT)', ctx) as string;
+    const yamlParsed = JSON.parse(yamlRaw) as { reserialised: string | null; errors: unknown[] };
+    assert.deepEqual(yamlParsed.errors, []);
+    assert.equal(typeof yamlParsed.reserialised, 'string');
+
+    // Any real .wdr text exercises the reader/writer pair — reuse the existing yaml sample's
+    // sibling .wdr conversion via openisdYamlToWdr to get one without a second fixture path.
+    const wdrRaw0 = vm.runInContext('globalThis.openisdYamlToWdr(YAML_TEXT)', ctx) as string;
+    const wdrText = (JSON.parse(wdrRaw0) as { wdr: string }).wdr;
+    ctx.WDR_TEXT = wdrText;
+    const wdrRaw = vm.runInContext('globalThis.roundTripWdr(WDR_TEXT)', ctx) as string;
+    const wdrParsed = JSON.parse(wdrRaw) as { reserialised: string | null; errors: { level: string }[] };
+    assert.equal(wdrParsed.errors.some(e => e.level === 'error'), false);
+    assert.equal(typeof wdrParsed.reserialised, 'string');
+    assert.equal((wdrParsed.reserialised as string).startsWith('[Driver]'), true);
   });
 
   it('converts a real openisd.yml record to a .wdr string, JSON-enveloped, CRLF-preserved', () => {
