@@ -964,7 +964,12 @@ never improvise around it.
       SANCTIONED, no work: `scripts/bundle-drivers.mjs` (build-time, edge 2), `db/prefs.ts`
       (UI's own state), and the share-link memo as the ONE opaque-string handoff.
 - [x] **D20** DONE — landed and committed at `4a29bfc` (audit pass 1 caught it uncommitted;
-      main-exec confirms the commit landed). New tree populated
+      main-exec confirms the commit landed). ACCOUNTABILITY (main-exec's disclosure,
+      2026-08-23, recorded here verbatim-close because this row is the durable artifact and
+      chat is not): main-exec committed sonnet1's prepared wave directly because sonnet1 was
+      permission-stuck, making main-exec both the committer and the author of the riders
+      folded into the same commit; opus2's post-commit adversarial review is the compensating
+      control for that. New tree populated
       (`persistence/repos/*`, `persistence/storage/*`, `logic/appState.ts`,
       `logic/driverBrowsingState.ts`); old `db/*.ts`, `store.ts`, `driverLibrary.ts` deleted;
       `no-persistence-vocabulary-drift.test.ts` present. PERSISTENCE VOCABULARY — one uncompromising rule, ruled by the human 2026-08-22
