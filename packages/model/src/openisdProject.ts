@@ -27,9 +27,9 @@
  * `ManagedProject` clones a whole project to open an overlay.
  */
 import { OpenISDDriver } from './openisdDriver.js';
-import type { Filter } from "@openisd/engine";
+import type { Filter } from '@openisd/engine';
 import { prCmsFromVas, prMmdFromFs, prRmsFromQms } from "@openisd/engine";
-import { parseWprRaw } from "@openisd/winisd";
+import { WinISDProject } from "@openisd/winisd";
 import type { WprRawParse } from "@openisd/winisd";
 import type { Result } from "@openisd/engine";
 
@@ -536,7 +536,7 @@ export class OpenISDProject {
     const fail = (message: string): Result<OpenISDProject> =>
       ({ value: null, errors: [{ level: 'error', field: 'wpr', message }] });
 
-    const raw = parseWprRaw(text);
+    const raw = WinISDProject.fromWprIni(text).parsed();
     let project: OpenISDProject;
     try { project = OpenISDProject.fromWinISDProject(raw); }
     catch (err) { return fail((err as Error).message); }

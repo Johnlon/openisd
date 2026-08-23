@@ -101,9 +101,10 @@ function oneLine(value: string): string {
 
 export class WinISDDriver {
   readonly #header: WdrHeader;
+
   readonly #cells: WdrCells;
+
   readonly #dqLines: readonly string[];
-  readonly #missingKeys: readonly string[];
 
   private constructor(header: WdrHeader, cells: WdrCells, dqLines: readonly string[]) {
     this.#header = header;
@@ -124,24 +125,6 @@ export class WinISDDriver {
    */
   static build(header: WdrHeader, cells: WdrCells, dqLines: readonly string[] = []): WinISDDriver {
     return new WinISDDriver(header, cells, dqLines);
-  }
-
-  /** `.wdr` keys `build()` was never given a cell for at all — as opposed to a genuinely
-   *  absent field (`state: 'N'`), which IS a cell. Empty in every real production path; a
-   *  non-empty list is a key-set drift between this class and its caller, which the caller
-   *  should surface, not silently swallow — `toWdr()` still exports (writing `0` for each), it does not throw. */
-  missingKeys(): readonly string[] {
-    return this.#missingKeys;
-  }
-
-  /** One field, by WinISD's own key spelling. Never throws — an unknown key reads N/absent. */
-  cell(wdrKey: string): WdrCell {
-    return this.#cells.get(wdrKey) ?? { value: '', state: 'N' };
-  }
-
-  /** One header field, by name. */
-  headerField(field: keyof WdrHeader): string | undefined {
-    return this.#header[field];
   }
 
   // ── IMPORT — `.wdr` text → WinISDDriver, as read (no derivation) ─────────────────────
@@ -232,17 +215,22 @@ export class WinISDDriver {
     return lines.join('\r\n');
   }
 
-  #parState(): string {
-    const slots = new Array<string>(PARSTATE_LEN).fill('N');
-    for (let pos = 0; pos < PARSTATE_LEN; pos++) {
-      const key = POS_TO_WDRKEY[pos];
-      if (key == null) continue;
-      slots[pos] = this.#cells.get(key)?.state ?? 'N';
-    }
-    // Slot 10 has no entry in POS_TO_WDRKEY, so it is filled from Xlim's own cell — which
-    // carries a mark and no value (XLIM_PARSTATE_SLOT).
-    slots[XLIM_PARSTATE_SLOT] = this.#cells.get('Xlim')?.state ?? 'N';
-    return slots.join('');
+  /** One field, by WinISD's own key spelling. Never throws — an unknown key reads N/absent. */
+  cell(wdrKey: string): WdrCell {
+    return this.#cells.get(wdrKey) ?? { value: '', state: 'N' };
+  }
+
+  /** One header field, by name. */
+  headerField(field: keyof WdrHeader): string | undefined {
+    return this.#header[field];
+  }
+
+  /** `.wdr` keys `build()` was never given a cell for at all — as opposed to a genuinely
+   *  absent field (`state: 'N'`), which IS a cell. Empty in every real production path; a
+   *  non-empty list is a key-set drift between this class and its caller, which the caller
+   *  should surface, not silently swallow — `toWdr()` still exports (writing `0` for each), it does not throw. */
+  missingKeys(): readonly string[] {
+    return this.#missingKeys;
   }
 
   // ── Import diffs, never overwrites (ARCHITECTURE.md §3) ───────────────────────────────
@@ -276,6 +264,21 @@ export class WinISDDriver {
       }
     }
     return out;
+  }
+
+  readonly #missingKeys: readonly string[];
+
+  #parState(): string {
+    const slots = new Array<string>(PARSTATE_LEN).fill('N');
+    for (let pos = 0; pos < PARSTATE_LEN; pos++) {
+      const key = POS_TO_WDRKEY[pos];
+      if (key == null) continue;
+      slots[pos] = this.#cells.get(key)?.state ?? 'N';
+    }
+    // Slot 10 has no entry in POS_TO_WDRKEY, so it is filled from Xlim's own cell — which
+    // carries a mark and no value (XLIM_PARSTATE_SLOT).
+    slots[XLIM_PARSTATE_SLOT] = this.#cells.get('Xlim')?.state ?? 'N';
+    return slots.join('');
   }
 }
 

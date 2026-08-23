@@ -10,14 +10,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { parseWprRaw } from '@openisd/winisd';
+import { WinISDProject } from '@openisd/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SEALED_SMALL = join(here, 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
 const PASSIVE_RADIATOR = join(here, 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
 
 describe('parseWprRaw — sealed-small.wpr golden', () => {
-  const raw = parseWprRaw(readFileSync(SEALED_SMALL, 'utf8'));
+  const raw = WinISDProject.fromWprIni(readFileSync(SEALED_SMALL, 'utf8')).parsed();
 
   it('extracts the raw, un-mapped BType', () => assert.equal(raw.bType, 0));
   it('extracts [Box] Vr as a number', () => assert.equal(raw.box.Vr, 0.02));
@@ -32,7 +32,7 @@ describe('parseWprRaw — sealed-small.wpr golden', () => {
 });
 
 describe('parseWprRaw — passive-radiator.wpr golden', () => {
-  const raw = parseWprRaw(readFileSync(PASSIVE_RADIATOR, 'utf8'));
+  const raw = WinISDProject.fromWprIni(readFileSync(PASSIVE_RADIATOR, 'utf8')).parsed();
   it('extracts the raw PassiveRadiator section', () => {
     assert.equal(raw.bType, 4);
     assert.ok(raw.passiveRadiator.Sd != null && raw.passiveRadiator.Sd > 0);
@@ -43,12 +43,12 @@ describe('parseWprRaw — passive-radiator.wpr golden', () => {
 describe('parseWprRaw — keys the file does not carry are absent, never fabricated', () => {
   it('a key missing from [Box] is undefined, not 0', () => {
     const text = '[ProjectInfo]\n\n[Driver]\n[Box]\nBType=0\n';
-    const raw = parseWprRaw(text);
+    const raw = WinISDProject.fromWprIni(text).parsed();
     assert.equal(raw.box.Vr, undefined);
   });
   it('BType is undefined when [Box] has no BType key', () => {
     const text = '[ProjectInfo]\n\n[Driver]\n[Box]\nVr=0.02\n';
-    const raw = parseWprRaw(text);
+    const raw = WinISDProject.fromWprIni(text).parsed();
     assert.equal(raw.bType, undefined);
   });
 });

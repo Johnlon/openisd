@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { toWpr } from '@openisd/winisd';
+import { WinISDProject } from '@openisd/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 /** The harness-generated PR golden — WinISD Pro wrote it under the wine harness from a scenario
@@ -42,13 +42,13 @@ const DRIVER_SECTION = '[Driver]\nBrand=Dayton Audio\nModel=E150HE-44\nParState=
 // We assert STRUCTURE (section order, keys, CRLF, box/PR values) — NOT byte-equality with the
 // sample, because WinISD writes ~30 derived [Driver] fields OpenISD never carries.
 function prProject() {
-  return toWpr({
-    project: { description: '', creator: 'johnl', createDate: '20260621', modifyDate: '20260703' },
-    driverSection: DRIVER_SECTION,
-    box: { bType: 4, Vr: 0.00372, Fr: 45.4014352480254, npr: 1 },
-    signal: { P: 140 },
-    pr: { Vas: 0.0048, Qms: 3.3, Fs: 30, Sd: 0.0095, Xmax: 19, Me: 0 },
-  });
+  return WinISDProject.build({
+      project: { description: '', creator: 'johnl', createDate: '20260621', modifyDate: '20260703' },
+      driverSection: DRIVER_SECTION,
+      box: { bType: 4, Vr: 0.00372, Fr: 45.4014352480254, npr: 1 },
+      signal: { P: 140 },
+      pr: { Vas: 0.0048, Qms: 3.3, Fs: 30, Sd: 0.0095, Xmax: 19, Me: 0 },
+    }).toWpr();
 }
 
 describe('toWpr — [Box] environment, and the percent/fraction boundary', () => {
@@ -58,11 +58,11 @@ describe('toWpr — [Box] environment, and the percent/fraction boundary', () =>
    * Evidence for the fraction: winisd_research/CALC_FINDINGS_FOR_REVIEW.md §"WinISD persists
    * temperature, air pressure and relative humidity". */
   it('writes the project\'s own T / p / phi, with humidity converted percent → fraction', () => {
-    const s = toWpr({
-      project: {}, driverSection: DRIVER_SECTION,
-      box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
-      environment: { tempK: 303.15, pressurePa: 90000, humidityPct: 80 },
-    });
+    const s = WinISDProject.build({
+          project: {}, driverSection: DRIVER_SECTION,
+          box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
+          environment: { tempK: 303.15, pressurePa: 90000, humidityPct: 80 },
+        }).toWpr();
     contains(s, 'T=303.15', 'temperature');
     contains(s, 'p=90000', 'pressure');
     contains(s, 'phi=0.8', 'humidity as a fraction');
@@ -70,10 +70,10 @@ describe('toWpr — [Box] environment, and the percent/fraction boundary', () =>
   });
 
   it('defaults to WinISD\'s own ambient when the caller supplies no environment', () => {
-    const s = toWpr({
-      project: {}, driverSection: DRIVER_SECTION,
-      box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
-    });
+    const s = WinISDProject.build({
+          project: {}, driverSection: DRIVER_SECTION,
+          box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
+        }).toWpr();
     contains(s, 'T=293.15', 'default temperature');
     contains(s, 'p=101325', 'default pressure');
     contains(s, 'phi=0.3', 'default humidity');
@@ -82,21 +82,21 @@ describe('toWpr — [Box] environment, and the percent/fraction boundary', () =>
 
 describe('toWpr — WinISD .wpr project serializer', () => {
   it('[SimulatorOptions] reflects the design\'s real flags, not a fixed placeholder', () => {
-    const on = toWpr({
-      project: {}, driverSection: DRIVER_SECTION,
-      box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
-      simulatorOptions: { vcInductance: true, flatResponse: false, tlPorts: true },
-    });
+    const on = WinISDProject.build({
+          project: {}, driverSection: DRIVER_SECTION,
+          box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
+          simulatorOptions: { vcInductance: true, flatResponse: false, tlPorts: true },
+        }).toWpr();
     contains(on, 'VCInd=1', 'voice-coil inductance flag');
     contains(on, 'FlatResponse=0', 'flat-response flag');
     contains(on, 'TLPorts=1', 'transmission-line ports flag');
   });
 
   it('[SimulatorOptions] defaults to WinISD\'s own all-off when the caller supplies nothing', () => {
-    const s = toWpr({
-      project: {}, driverSection: DRIVER_SECTION,
-      box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
-    });
+    const s = WinISDProject.build({
+          project: {}, driverSection: DRIVER_SECTION,
+          box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
+        }).toWpr();
     contains(s, 'VCInd=0', 'default voice-coil inductance flag');
     contains(s, 'FlatResponse=0', 'default flat-response flag');
     contains(s, 'TLPorts=0', 'default transmission-line ports flag');
@@ -156,17 +156,17 @@ describe('toWpr — WinISD .wpr project serializer', () => {
   });
 
   it('vented box (BType=1) writes a real rear port and non-zero Sdrport', () => {
-    const s = toWpr({
-      project: { creator: 'x', createDate: '20260101', modifyDate: '20260101' },
-      driverSection: DRIVER_SECTION,
-      box: { bType: 1, Vr: 0.03, Fr: 32, SdRear: 0.00196349540849362 },
-      // Fb/Vb are the rear chamber's OWN Fr/Vr just above — the redundant-copy relationship
-      // confirmed against the golden corpus (WprVent.Fb/Vb doc comment). carea is the same
-      // area as SdRear above (both come from one caller-computed port area).
-      ventRear: { dia: 0.05, len: 0.12, endCorrection: 0.732,
-        Fb: 32, Vb: 0.03, carea: 0.00196349540849362 },
-      signal: { P: 40 },
-    }).replace(/\r\n/g, '\n');
+    const s = WinISDProject.build({
+          project: { creator: 'x', createDate: '20260101', modifyDate: '20260101' },
+          driverSection: DRIVER_SECTION,
+          box: { bType: 1, Vr: 0.03, Fr: 32, SdRear: 0.00196349540849362 },
+          // Fb/Vb are the rear chamber's OWN Fr/Vr just above — the redundant-copy relationship
+          // confirmed against the golden corpus (WprVent.Fb/Vb doc comment). carea is the same
+          // area as SdRear above (both come from one caller-computed port area).
+          ventRear: { dia: 0.05, len: 0.12, endCorrection: 0.732,
+            Fb: 32, Vb: 0.03, carea: 0.00196349540849362 },
+          signal: { P: 40 },
+        }).toWpr().replace(/\r\n/g, '\n');
     assert.match(s, /\[Box\]\nBType=1\n/);
     contains(s, 'Sdrport=0.00196349540849362', 'rear port area');
     assert.equal(extractSection(s, '[VentRear]'),
@@ -188,13 +188,13 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     const sample = readFileSync(SAMPLE_WPR_PATH, 'utf8');
     assert.ok(sample.includes('\r\n'), 'ground truth confirms the CRLF assumption');
 
-    const s = toWpr({
-      project: { creator: 'johnl', createDate: '20260621', modifyDate: '20260703' },
-      driverSection: DRIVER_SECTION,
-      box: { bType: 4, Vr: 0.04, Fr: 31.7490157327751, npr: 1 },
-      signal: { P: 1 },
-      pr: { Vas: 0.0048, Qms: 3.3, Fs: 30, Sd: 0.0095, Xmax: 0.019, Me: 0 },
-    }).replace(/\r\n/g, '\n');
+    const s = WinISDProject.build({
+          project: { creator: 'johnl', createDate: '20260621', modifyDate: '20260703' },
+          driverSection: DRIVER_SECTION,
+          box: { bType: 4, Vr: 0.04, Fr: 31.7490157327751, npr: 1 },
+          signal: { P: 1 },
+          pr: { Vas: 0.0048, Qms: 3.3, Fs: 30, Sd: 0.0095, Xmax: 0.019, Me: 0 },
+        }).toWpr().replace(/\r\n/g, '\n');
     const sampleLf = sample.replace(/\r\n/g, '\n');
 
     // Section order — identical corpus-confirmed sequence.
@@ -232,13 +232,13 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     // tuned to 45 Hz through a 60 mm round port. [Box].Vr/Fr and [VentRear].Fb/Vb carry the
     // SAME tuning — this is the redundant-copy case the bug asked to establish.
     const sample = readFileSync(VENTED_SMALL_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
-    const s = toWpr({
-      project: { creator: 'johnl', createDate: '20260101', modifyDate: '20260101' },
-      driverSection: DRIVER_SECTION,
-      box: { bType: 1, Vr: 0.02, Fr: 45, SdRear: 0.00282743338823081 },
-      ventRear: { dia: 0.06, len: 0.172879854593916, Fb: 45, Vb: 0.02, carea: 0.00282743338823081 },
-      signal: { P: 1 },
-    }).replace(/\r\n/g, '\n');
+    const s = WinISDProject.build({
+          project: { creator: 'johnl', createDate: '20260101', modifyDate: '20260101' },
+          driverSection: DRIVER_SECTION,
+          box: { bType: 1, Vr: 0.02, Fr: 45, SdRear: 0.00282743338823081 },
+          ventRear: { dia: 0.06, len: 0.172879854593916, Fb: 45, Vb: 0.02, carea: 0.00282743338823081 },
+          signal: { P: 1 },
+        }).toWpr().replace(/\r\n/g, '\n');
     assert.equal(extractSection(s, '[VentRear]'), extractSection(sample, '[VentRear]'),
       '[VentRear] must match WinISD\'s populated-vent block exactly, including Fb/Vb/carea');
   });
@@ -248,13 +248,13 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     // Scenario `bandpass4`: front chamber (35 L) is the vented one, tuned to 60 Hz through a
     // 75 mm round port. [Box].Vf/Ff and [VentFront].Fb/Vb carry the SAME tuning.
     const sample = readFileSync(BANDPASS4_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
-    const s = toWpr({
-      project: { creator: 'johnl', createDate: '20260101', modifyDate: '20260101' },
-      driverSection: DRIVER_SECTION,
-      box: { bType: 2, Vr: 0.02, Fr: 58.3392371416399, Vf: 0.035, Ff: 60, SdFront: 0.00441786466911065 },
-      ventFront: { dia: 0.075, len: 0.059906176972391, Fb: 60, Vb: 0.035, carea: 0.00441786466911065 },
-      signal: { P: 1 },
-    }).replace(/\r\n/g, '\n');
+    const s = WinISDProject.build({
+          project: { creator: 'johnl', createDate: '20260101', modifyDate: '20260101' },
+          driverSection: DRIVER_SECTION,
+          box: { bType: 2, Vr: 0.02, Fr: 58.3392371416399, Vf: 0.035, Ff: 60, SdFront: 0.00441786466911065 },
+          ventFront: { dia: 0.075, len: 0.059906176972391, Fb: 60, Vb: 0.035, carea: 0.00441786466911065 },
+          signal: { P: 1 },
+        }).toWpr().replace(/\r\n/g, '\n');
     assert.equal(extractSection(s, '[VentFront]'), extractSection(sample, '[VentFront]'),
       '[VentFront] must match WinISD\'s populated-vent block exactly, including Fb/Vb/carea');
   });
@@ -265,24 +265,24 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     // same port diameter as bandpass4 but a different tuning, so no row can be right by
     // coincidence of one scenario's numbers.
     const sample = readFileSync(VENTED_B4_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
-    const s = toWpr({
-      project: { creator: 'johnl', createDate: '20260101', modifyDate: '20260101' },
-      driverSection: DRIVER_SECTION,
-      box: { bType: 1, Vr: 0.035, Fr: 36, SdRear: 0.00441786466911065 },
-      ventRear: { dia: 0.075, len: 0.246406047145531, Fb: 36, Vb: 0.035, carea: 0.00441786466911065 },
-      signal: { P: 1 },
-    }).replace(/\r\n/g, '\n');
+    const s = WinISDProject.build({
+          project: { creator: 'johnl', createDate: '20260101', modifyDate: '20260101' },
+          driverSection: DRIVER_SECTION,
+          box: { bType: 1, Vr: 0.035, Fr: 36, SdRear: 0.00441786466911065 },
+          ventRear: { dia: 0.075, len: 0.246406047145531, Fb: 36, Vb: 0.035, carea: 0.00441786466911065 },
+          signal: { P: 1 },
+        }).toWpr().replace(/\r\n/g, '\n');
     assert.equal(extractSection(s, '[VentRear]'), extractSection(sample, '[VentRear]'),
       '[VentRear] must match WinISD\'s populated-vent block exactly, including Fb/Vb/carea');
   });
 
   it('sealed box (BType=0) has no ports and no PR body', () => {
-    const s = toWpr({
-      project: { creator: 'x', createDate: '20260101', modifyDate: '20260101' },
-      driverSection: DRIVER_SECTION,
-      box: { bType: 0, Vr: 0.02, Fr: 58 },
-      signal: { P: 40 },
-    }).replace(/\r\n/g, '\n');
+    const s = WinISDProject.build({
+          project: { creator: 'x', createDate: '20260101', modifyDate: '20260101' },
+          driverSection: DRIVER_SECTION,
+          box: { bType: 0, Vr: 0.02, Fr: 58 },
+          signal: { P: 40 },
+        }).toWpr().replace(/\r\n/g, '\n');
     assert.match(s, /\[Box\]\nBType=0\n/);
     contains(s, 'Sdfport=0', 'front port area');
     contains(s, 'Sdrport=0', 'rear port area');

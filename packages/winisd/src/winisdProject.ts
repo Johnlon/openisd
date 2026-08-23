@@ -1,3 +1,5 @@
+
+
 /**
  * The `.wpr` FILE FORMAT — the project-level sibling of `winisdDriver.ts`'s `.wdr`. It holds no
  * live state, derives nothing itself, and names no other package. Callers reach IN; this module
@@ -161,6 +163,36 @@ export interface WprInput {
   };
 }
 
+// ── parseWprRaw — the READ side, raw only ──────────────────────────────────────────────────
+//
+// `toWpr` above is the WRITE side, taking already-computed primitives. This is the read side:
+// section/key/value text into raw values, box-type as WinISD's own un-mapped numeric code. No
+// box-type→box-kind mapping and no engine formula runs here — the caller (`@openisd/model`'s
+// `OpenISDProject.fromWinISDProject`) does both. A key the file does not carry is `undefined`,
+// never a fabricated 0 or empty string.
+
+/** One `.wpr` file's raw project-level values, as read — every number already parsed, no
+ *  section's internal shape interpreted beyond that. */
+export interface WprRawParse {
+  /** `[Box].BType`, un-mapped to any OpenISD box kind. `undefined` when the file states no
+   *  `BType` key at all. */
+  bType: number | undefined;
+  /** The `[Driver]` block, verbatim — its own `.wdr` text, readable by
+   *  `OpenISDDriver.fromWdrText()`. Not a second driver parser (QO67). */
+  driverWdrText: string;
+  box: {
+    Vr?: number; Fr?: number; Vf?: number; Ff?: number;
+    Ql?: number; Qa?: number; Qp?: number; npr?: number;
+  };
+  signal: { P?: number; Rg?: number };
+  ventFront: { dia?: number; len?: number; endCorrection?: number };
+  ventRear: { dia?: number; len?: number; endCorrection?: number };
+  simulatorOptions: { vcInductance?: boolean; flatResponse?: boolean; tlPorts?: boolean };
+  environment: { tempK?: number; pressurePa?: number; humidityPct?: number };
+  passiveRadiator: { Sd?: number; Vas?: number; Fs?: number; Qms?: number; Xmax?: number; Me?: number };
+  projectInfo: { description?: string; creator?: string; createDate?: string };
+}
+
 /** Format a number the WinISD way: plain decimal, full precision, non-finite → 0. */
 function num(x: number | undefined | null): string {
   return x == null || !Number.isFinite(x) ? '0' : String(x);
@@ -201,7 +233,50 @@ function ventSection(header: string, v: WprVent | undefined): string {
   ]);
 }
 
-export function toWpr(input: WprInput): string {
+/** A key the section does not carry, or carries empty, parses to `undefined` — never a
+ *  fabricated number. */
+function numOrAbsent(sec: Record<string, string> | undefined, key: string): number | undefined {
+  const raw = sec?.[key];
+  if (raw == null || raw.trim() === '') return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/**
+ * One `.wpr` file. Build it from your own values, or read one that already exists; either way
+ * you end up holding the same thing and can ask it for its text or for what it says.
+ *
+ * Same shape as `WinISDDriver` next door, which does the same job for `.wdr`.
+ */
+export class WinISDProject {
+  readonly #text: string;
+
+  private constructor(text: string) {
+    this.#text = text;
+  }
+
+  /** Build a file from values the caller has already worked out. */
+  static build(input: WprInput): WinISDProject {
+    return new WinISDProject(renderWpr(input));
+  }
+
+  /** Read a file WinISD (or we) wrote earlier. */
+  static fromWprIni(text: string): WinISDProject {
+    return new WinISDProject(text);
+  }
+
+  /** The file, as text ready to write to disk. */
+  toWpr(): string {
+    return this.#text;
+  }
+
+  /** What the file says, section by section. A key it does not carry reads as `undefined`. */
+  parsed(): WprRawParse {
+    return readWpr(this.#text);
+  }
+}
+
+function renderWpr(input: WprInput): string {
   const { project, box, signal, plot, pr } = input;
   const env = input.environment ?? {};
 
@@ -286,46 +361,7 @@ export function toWpr(input: WprInput): string {
   return sections.join('\n\n').replace(/\n/g, '\r\n') + '\r\n';
 }
 
-// ── parseWprRaw — the READ side, raw only ──────────────────────────────────────────────────
-//
-// `toWpr` above is the WRITE side, taking already-computed primitives. This is the read side:
-// section/key/value text into raw values, box-type as WinISD's own un-mapped numeric code. No
-// box-type→box-kind mapping and no engine formula runs here — the caller (`@openisd/model`'s
-// `OpenISDProject.fromWinISDProject`) does both. A key the file does not carry is `undefined`,
-// never a fabricated 0 or empty string.
-
-/** One `.wpr` file's raw project-level values, as read — every number already parsed, no
- *  section's internal shape interpreted beyond that. */
-export interface WprRawParse {
-  /** `[Box].BType`, un-mapped to any OpenISD box kind. `undefined` when the file states no
-   *  `BType` key at all. */
-  bType: number | undefined;
-  /** The `[Driver]` block, verbatim — its own `.wdr` text, readable by
-   *  `OpenISDDriver.fromWdrText()`. Not a second driver parser (QO67). */
-  driverWdrText: string;
-  box: {
-    Vr?: number; Fr?: number; Vf?: number; Ff?: number;
-    Ql?: number; Qa?: number; Qp?: number; npr?: number;
-  };
-  signal: { P?: number; Rg?: number };
-  ventFront: { dia?: number; len?: number; endCorrection?: number };
-  ventRear: { dia?: number; len?: number; endCorrection?: number };
-  simulatorOptions: { vcInductance?: boolean; flatResponse?: boolean; tlPorts?: boolean };
-  environment: { tempK?: number; pressurePa?: number; humidityPct?: number };
-  passiveRadiator: { Sd?: number; Vas?: number; Fs?: number; Qms?: number; Xmax?: number; Me?: number };
-  projectInfo: { description?: string; creator?: string; createDate?: string };
-}
-
-/** A key the section does not carry, or carries empty, parses to `undefined` — never a
- *  fabricated number. */
-function numOrAbsent(sec: Record<string, string> | undefined, key: string): number | undefined {
-  const raw = sec?.[key];
-  if (raw == null || raw.trim() === '') return undefined;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : undefined;
-}
-
-export function parseWprRaw(text: string): WprRawParse {
+function readWpr(text: string): WprRawParse {
   const sections: Record<string, Record<string, string>> = {};
   let currentSection: Record<string, string> | null = null;
   const lines = text.split(/\r?\n/);

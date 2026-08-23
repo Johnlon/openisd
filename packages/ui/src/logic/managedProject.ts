@@ -48,7 +48,7 @@ import type {
   Cell, MetaCell, SpecField, MetaField,
   OpenISDVent, OpenISDPassiveRadiatorRef, AlignmentKind, OpenISDProjectMeta,
 } from '@openisd/model';
-import { toWpr, winisdTextToBytes } from '@openisd/winisd';
+import { WinISDProject, winisdTextToBytes } from '@openisd/winisd';
 import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/engine';
 import {
   sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
@@ -675,7 +675,7 @@ export class ManagedOpenISDProject {
         created: meta.created, modified: meta.modified },
       now, this.ventArea_m2(), curve,
     );
-    return { value: winisdTextToBytes(toWpr(input)), errors };
+    return { value: winisdTextToBytes(WinISDProject.build(input).toWpr()), errors };
   }
 
   /**
