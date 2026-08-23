@@ -498,9 +498,15 @@ never improvise around it.
       to the 2026-08-14 ruling, three browser-spec sites repointed. Spin-outs: QO72 (gate
       scope, human's edit); BUG_20260821_original_skin_spec_reads_state_p... (9 pre-existing
       sites, task A3c).
-- [x] **D7** (added and DONE 2026-08-21, ruled by QO65, review PASS): `passive-radiator` is
-      the ONLY spelling — python enum snake, 154 live db records migrated by
-      `scrapers/bin/fix_passive_radiator_spelling.py` (idempotent, archive untouched, both
+- [x] **D7** (added and DONE 2026-08-21, ruled by QO65, review PASS; SUPERSEDED 2026-08-23,
+      still DONE — corrected here per
+      `bugs/archive/BUG_20260821_passive_radiator_discriminator_has_two_spellings_across_the_stack.md`):
+      `passive-radiator` (kebab, not snake — the 2026-08-23 human ruling collapsed both the
+      `driver_type` value AND the `specs:` section key onto hyphen, superseding QO65's original
+      underscore choice) is the ONLY spelling, in **78 PR records (154 files: 78 `driver.yml` +
+      76 `openisd.yml` — 2 records have no `openisd.yml` sidecar)** migrated by
+      `scrapers/bin/fix_passive_radiator_spelling.py` then `fix_passive_radiator_type_value.py`
+      (idempotent, archive untouched, both
       record kinds validated), openisd dual-accept deleted. Spin-out:
       bugs/BUG_20260821_sectionfor_cannot_distinguish_invalid_driver_type_from_woofer.md
       (OPEN — undeclared values silently read the woofer section; vocabulary lives in a
