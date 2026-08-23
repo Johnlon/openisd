@@ -46,16 +46,18 @@ const SRC_ROOTS = readdirSync(PACKAGES)
  *  the map rather than hardcoding a filename is what makes a barrel rename (D17:
  *  engine/src/index.ts → engine.ts) safe: the gate follows the package's declared entry
  *  point instead of silently exempting a file that no longer exists. */
-const BARRELS = new Set(SRC_ROOTS.map(root => {
+const BARRELS = new Set(SRC_ROOTS.flatMap(root => {
   const pkgDir = dirname(root);
   try {
     const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')) as
       { exports?: Record<string, { default?: string } | string> };
-    const entry = pkg.exports?.['.'];
-    const rel = typeof entry === 'string' ? entry : entry?.default;
-    if (rel) return join(pkgDir, rel);
+    const entries = Object.values(pkg.exports ?? {})
+      .map(entry => typeof entry === 'string' ? entry : entry?.default)
+      .filter((rel): rel is string => Boolean(rel))
+      .map(rel => join(pkgDir, rel));
+    if (entries.length) return entries;
   } catch { /* no package.json or no map — fall back */ }
-  return join(root, 'index.ts');
+  return [join(root, 'index.ts')];
 }));
 
 function filesUnder(dir: string): string[] {

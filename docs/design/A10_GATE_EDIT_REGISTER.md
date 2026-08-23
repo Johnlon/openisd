@@ -21,6 +21,7 @@ against the run-start snapshots (`scratchpad/a10-baseline/`), each row carrying 
 |---|---|
 | The gate itself exists | John, QO80 verbatim: "rexports are expreslly forbideen - dispatch bg agent to create an arch test to detect"; authored by his directly-dispatched agent. |
 | Barrel exemption resolves each package's entry from its exports map instead of hardcoding `index.ts` | John's D17 barrel rename ("its more obvious if that's where calcs live") + the peer's paired suggestion; what makes barrel renames safe. |
+| Barrel exemption widened to read EVERY subpath in each package's exports map, not only `.` | Orchestrator-ruled LOOSENING of the exemption surface, currently VACUOUS (the model package's subpaths declare rather than re-export today, so the widened exemption catches nothing new yet), pending John. |
 | `checklistDescribe` PRECOMMIT deferral | Same orchestrator resolution as above. |
 
 ## `packages/ui/test/ui/no-private-type-laundering.test.ts` (NEW since baseline)
