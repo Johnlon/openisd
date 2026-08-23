@@ -1,6 +1,7 @@
 # Project domain symmetry — the project carries its own values, provenance and physics
 
-**Status: DESIGN, awaiting adversarial review (main-exec). No production code until approved.**
+**Status: APPROVED with three binding amendments (main-exec adversarial review, 2026-08-23),
+folded in below. Implementation go: P1 then P2; P3/P4/P5 gated on the P2 review.**
 
 John's ruling (2026-08-23, verbatim): "a much more central role for the domain object in the
 project to carry the appropriate set of properties including calc and manual and hybrid just
@@ -33,7 +34,7 @@ object that owns that state. A function survives free only with a named justific
 | `boxVolume_m3` / `setBoxVolume_m3` | `project.cell('Vb')` / `project.enter('Vb', v)` |
 | `boxTuning_Fb_hz` / `setBoxTuning_Fb_hz` | `project.cell('Fb')` / `project.enter('Fb', v)` |
 | `activeVent` | private — callers use the vent cells below |
-| `ventArea_m2` | `project.cell('Sp')` (Calculated for a round port, Entered-equivalent via W×H for a slotted one) |
+| `ventArea_m2` | `project.cell('Sp')` — always Calculated when derivable (πD²/4 round, W×H slotted), NotAvailable otherwise; never Entered, because no one ever states an area |
 | `setActiveAlignment` | `project.setAlignment(kind)` |
 | `prototypeBox` | folds into the private `prototypeProject()` |
 | `passiveRadiatorOrDefault` / `ensurePassiveRadiator` | private behind `project.pr()` accessors |
@@ -61,10 +62,14 @@ The storage for this ALREADY exists and is already the ruled model: `target.ente
 members Entered and the remainder Calculated. Per field the answer is still one of E/C/N —
 same as a driver whose Qts is entered and Qes solved. No new state is invented.
 
-Fields with no relation (losses Ql/Qa/Qp, environment, signal, sim options) are Entered when
-set, NotAvailable never (they have WinISD defaults) — they come back
-`{value, state: 'E'}` or the default with `state: 'C'`-equivalent default marking. The design
-deliberately reuses the driver's `Provenance` enum rather than minting a second vocabulary.
+Defaults are ENTERED, stated by the prototype. QO36 ruling B4 defines E as STATED, not
+typed-by-this-user — a datasheet stating Fs makes it E, and by the same rule `empty()`'s
+prototype stating Ql=7 or the standard temperature makes those E: the prototype is the stater.
+No default marking exists — that would be a fourth state under an alias. Accepted consequence,
+stated plainly: a fresh project's vent group is born over-determined (the prototype states both
+Vb and Fb), so nothing solves until the user clears a member — which is exactly WinISD's own
+observed behaviour with over-determined groups, so the symmetry is real, not accidental. The
+design reuses the driver's `Provenance` enum; no second vocabulary.
 
 ## 3. QO85 — the box model must be right before the accessors freeze
 
@@ -108,8 +113,11 @@ everything reaches the record through the class.
 ## Plan rows (for the checklist, in order)
 
 - [ ] P1 — `vents: OpenISDVent[]` migration + `vent(i)`/`ventCount()` accessors + schema
-      V-step; UiParams untouched. (Prerequisite for freezing the surface; QO85 stays open for
-      ABC itself.)
+      V-step; UiParams untouched. The V-step upgrades EVERY reader of a persisted payload:
+      localStorage, the share-link hash, and File→Open all funnel through `upgradeParsedState`
+      (persist.ts, the V1→V2 precedent), so one step covers all three — with a round-trip test
+      per route (old-shape payload via hash AND via storage → `vents[0]`). (Prerequisite for
+      freezing the surface; QO85 stays open for ABC itself.)
 - [ ] P2 — `project.cell()`/`enter()`/`clear()` over box/vent/PR/env/signal fields, with the
       vent + PR group solvers moved in from useVentGroup/usePrGroup. Driver's `Provenance`
       reused.
