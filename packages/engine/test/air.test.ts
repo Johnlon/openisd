@@ -18,6 +18,7 @@ import {
   moistAirDensity, moistAirSoundVelocity, airFor, GAMMA,
   saturationVapourPressure, waterVapourMoleFraction,
   splReferenceConstantDb, T_REF_K, RH_REF_PCT, P_REF_PA,
+  WINISD_MEASURED_C_REF, WINISD_MEASURED_RHO_REF,
   sweep, deriveEngineDriver,
   type SweepParams,
 } from '@openisd/engine';
@@ -83,17 +84,24 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
     assert.ok(low.rho < dry.rho, 'pressure must change ρ');
   });
 
-  it('ignoreHumidityAndPressure reproduces WinISD: live from temperature alone, at the reference humidity/pressure', () => {
-    const a = airFor({ ignoreHumidityAndPressure: true });
-    assert.equal(a.rho, moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA));
-    assert.equal(a.c,   moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA));
-    // Humidity and pressure are then inert — the whole point of the toggle.
-    const b = airFor({ ignoreHumidityAndPressure: true, humidityPct: 95, pressurePa: 88000 });
-    assert.equal(b.rho, a.rho);
-    assert.equal(b.c,   a.c);
-    // Temperature still moves it, which is openisd's pre-existing behaviour.
+  it('ignoreHumidityAndPressure reproduces WinISD exactly at the reference conditions (QO88): the bridge-stamped constant', () => {
+    const atRef = airFor({ ignoreHumidityAndPressure: true, tempK: T_REF_K, humidityPct: RH_REF_PCT, pressurePa: P_REF_PA });
+    assert.equal(atRef.rho, WINISD_MEASURED_RHO_REF);
+    assert.equal(atRef.c,   WINISD_MEASURED_C_REF);
+    // Absent fields default to the same reference conditions, so the bare call matches too —
+    // this IS the invariant QO88 requires: live-calculated-at-defaults === bridge-stamped-constant.
+    const bare = airFor({ ignoreHumidityAndPressure: true });
+    assert.equal(bare.rho, WINISD_MEASURED_RHO_REF);
+    assert.equal(bare.c,   WINISD_MEASURED_C_REF);
+  });
+
+  it('ignoreHumidityAndPressure still varies with humidity, pressure AND temperature away from the reference conditions — the engine computes from whatever environment the caller supplies (the UI supplies its app-level Options-equivalent in this mode, §12/§13), and divergence from the bridge constant off-defaults is ruled correct, not a defect (QO88)', () => {
+    const atRef = airFor({ ignoreHumidityAndPressure: true });
+    const humid = airFor({ ignoreHumidityAndPressure: true, humidityPct: 95, pressurePa: 88000 });
+    assert.notEqual(humid.rho, atRef.rho, 'humidity/pressure must move the ignore-mode result away from the reference conditions');
+    assert.notEqual(humid.c,   atRef.c);
     const hot = airFor({ ignoreHumidityAndPressure: true, tempK: 303.15 });
-    assert.ok(hot.rho < a.rho && hot.c > a.c);
+    assert.ok(hot.rho < atRef.rho && hot.c > atRef.c);
   });
 });
 
@@ -114,10 +122,11 @@ describe('the sweep actually consumes humidity and pressure', () => {
     assert.ok(d > 0.1, `pressure moved SPL by ${d} dB`);
   });
 
-  it('with the WinISD toggle on, humidity and pressure move nothing at all', () => {
+  it('with the WinISD toggle on, the humidity and pressure the sweep is HANDED still move SPL (QO88) — the engine ignores nothing itself; the UI decides which environment (app-level Options-equivalent) reaches it in this mode', () => {
     const a = splAt({ ...BASE, ignoreHumidityAndPressure: true, humidityPct: 0,   pressurePa: 90000 });
     const b = splAt({ ...BASE, ignoreHumidityAndPressure: true, humidityPct: 100, pressurePa: 105000 });
-    assert.deepEqual(a, b);
+    const d = maxAbsDelta(a, b);
+    assert.ok(d > 0, `humidity/pressure moved SPL by ${d} dB under the toggle — an inert input moves it by exactly 0`);
   });
 
   it('the cost of the toggle is the ~0.073 dB order the ledger predicts, at 30 °C', () => {

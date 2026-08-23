@@ -44,7 +44,7 @@ import type { BoxType, SweepResult, MaxCurvesResult } from '@openisd/engine';
 import type { Design } from '../../../types.js';
 import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
 import type { PRLibEntry, BundledPR } from '@openisd/persistence';
-import { airForEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
+import { airForEnvironment, resolveAirEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
 import { TAB_META, parseChartTabId, buildPlotData, DPAL } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../types.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
@@ -680,10 +680,10 @@ const advPressure = computed<number>({
 /** The air the sweep is actually running in — one call, both readouts. */
 const advAir = computed(() => {
   void live.value;
-  return airForEnvironment({
+  return airForEnvironment(resolveAirEnvironment({
     tempK: advTemp.value, humidityPct: advHumidity.value, pressurePa: advPressure.value,
     ignoreHumidityAndPressure: managedProject.envIgnoreHumidityAndPressure(),
-  });
+  }, presentationState.ui.envDefaults));
 });
 
 // ---- Placement (Signal path multipliers already in the store) ------------------

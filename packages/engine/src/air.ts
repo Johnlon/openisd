@@ -41,10 +41,17 @@
  *
  * ## The WinISD-parity mode
  *
- * `ignoreHumidityAndPressure` reproduces WinISD's behaviour of never reading the `.wpr`
- * `[Box]` section's stored T/RH/AP — it still computes live, at `RH_REF_PCT`/`P_REF_PA`
- * rather than whatever was supplied, using only the caller's temperature. Ledger QO7 rules
- * openisd uses the full physical model by DEFAULT and offers this as an opt-in.
+ * `ignoreHumidityAndPressure` reproduces WinISD's behaviour of never reading the PROJECT's
+ * `.wpr` `[Box]` section's stored T/RH/AP (confirmed inert there — §12): real WinISD computes
+ * `c`/`roo` live from its APP-LEVEL Options dialog instead (§13, the only environment source
+ * they ever read). This module still computes live from whatever temperature, humidity and
+ * pressure the caller supplies — the UI substitutes its app-level Options-equivalent
+ * (`presentationState.ui.envDefaults`, via `logic/environment.ts`'s `resolveAirEnvironment`)
+ * before calling in — anchored to `WINISD_MEASURED_C_REF`/`WINISD_MEASURED_RHO_REF` (QO88)
+ * so it reproduces
+ * WinISD's own value exactly at the reference conditions and diverges from the physical model
+ * off them by design (a real, ruled behaviour, not the fidelity gap this constant closes).
+ * Ledger QO7 rules openisd uses the full physical model by DEFAULT and offers this as an opt-in.
  */
 
 /** Ratio of specific heats for air. */
@@ -60,6 +67,26 @@ export const END_CORRECTION = 0.732;
 export const T_REF_K   = 293.15;
 export const RH_REF_PCT = 30;
 export const P_REF_PA  = 101325;
+
+/**
+ * WinISD's own measured air pair at the reference conditions above. The raw IEEE-754 double
+ * WinISD holds internally, captured live via gdb breakpoint on the write instruction
+ * (`winisd_research/RE_GHIDRA_FINDINGS.md`, "LIVE DEBUGGER CAPTURE"): `c=343.6841209621523`,
+ * `rho=1.200952177146823` — rounded here to 15 significant figures. NOTE: WinISD's saved
+ * `.wpr` TEXT serializes `c` as `...153` (one ULP off the raw double, per
+ * `CALC_FINDINGS_FOR_REVIEW.md` env_sample7) — the raw double is used here, not the text
+ * form, per BUG_20260819's explicit ban on substituting one digit for the other; do not
+ * "correct" this constant to `...153` without re-reading that bug first. No closed-form
+ * reproduction of WinISD's internal live calculation has been recovered: five physically-
+ * motivated candidates (this module's own CIPM-2007 model, Cramer's polynomial, full
+ * CIPM+compressibility, the classical Rd=287.058/Magnus-Tetens meteorological formula,
+ * dry-air-only) were checked against this exact point and every one missed by 8 ppm or more.
+ * These two are measured ground truth, not derived — QO88 (John, 2026-08-23): the live-
+ * calculated pair at these exact conditions must equal the constant the bridge stamps into
+ * generated files.
+ */
+export const WINISD_MEASURED_C_REF   = 343.684120962152;
+export const WINISD_MEASURED_RHO_REF = 1.20095217714682;
 
 /** Molar gas constant, J/(mol·K) — CIPM-2007. */
 const R_MOLAR = 8.314472;
@@ -128,12 +155,27 @@ export function moistAirSoundVelocity(tempK: number, humidityPct: number, pressu
 }
 
 /**
- * WinISD's air: computed live from the caller's temperature alone, at `RH_REF_PCT`/
- * `P_REF_PA` — humidity and pressure inputs are accepted but ignored, matching WinISD's
- * own refusal to read the `.wpr` `[Box]` section's stored values.
+ * WinISD's air: computed live from the caller's temperature, humidity AND pressure
+ * (`docs/design/WINISD_SCHEMA.md` §12/§13: `ignoreHumidityAndPressure` means "ignore the
+ * PROJECT's stored `.wpr` [Box] environment", never "ignore these three live inputs" — the
+ * UI passes its app-level Options-equivalent values here in that mode) — anchored to
+ * `WINISD_MEASURED_C_REF`/
+ * `WINISD_MEASURED_RHO_REF` by the ratio this module's own moist-air model gives between the
+ * caller's conditions and the reference conditions. At exactly the reference conditions the
+ * ratio is 1 and this returns the measured pair exactly; away from it, the result varies
+ * continuously and physically, anchored to the one point that is actually verified — matching
+ * every physically-motivated candidate this module's docstring above already tried and
+ * matching none of them well enough on its own to use unanchored.
  */
-function winisdAir(tempK: number): Air {
-  return { rho: moistAirDensity(tempK, RH_REF_PCT, P_REF_PA), c: moistAirSoundVelocity(tempK, RH_REF_PCT, P_REF_PA) };
+function winisdAir(tempK: number, humidityPct: number, pressurePa: number): Air {
+  const modelRho    = moistAirDensity(tempK, humidityPct, pressurePa);
+  const modelC       = moistAirSoundVelocity(tempK, humidityPct, pressurePa);
+  const modelRhoRef  = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  const modelCRef     = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  return {
+    rho: WINISD_MEASURED_RHO_REF * (modelRho / modelRhoRef),
+    c:   WINISD_MEASURED_C_REF   * (modelC   / modelCRef),
+  };
 }
 
 /**
@@ -142,9 +184,9 @@ function winisdAir(tempK: number): Air {
  */
 export function airFor(env: AirEnvironment): Air {
   const tempK = env.tempK ?? T_REF_K;
-  if (env.ignoreHumidityAndPressure) return winisdAir(tempK);
   const humidityPct = env.humidityPct ?? RH_REF_PCT;
   const pressurePa  = env.pressurePa  ?? P_REF_PA;
+  if (env.ignoreHumidityAndPressure) return winisdAir(tempK, humidityPct, pressurePa);
   return {
     rho: moistAirDensity(tempK, humidityPct, pressurePa),
     c:   moistAirSoundVelocity(tempK, humidityPct, pressurePa),

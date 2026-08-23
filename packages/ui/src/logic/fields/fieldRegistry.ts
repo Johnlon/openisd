@@ -263,14 +263,14 @@ const FIELDS: FieldSpec[] = [
     id: 'advSoundVelocity', label: 'Sound velocity', pane: 'Advanced', kind: 'number', unit: 'm/s', precision: 2, min: 0, max: 1000,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'c = √(γ·p/ρ), γ = 1.4', dependsOn: ['advTemp', 'advHumidity', 'advPressure'],
-    description: 'Derived speed of sound (engine air.ts). Laplace\'s adiabatic relation at the moist-air density below — the pairing WinISD\'s own stored c/roo satisfy to 1.2e-15. At 293.15 K / 30 % / 101325 Pa it gives 343.68270 m/s, 4.1 ppm from WinISD\'s 343.684120962153. WinISD 2 dp (343.68 m/s). Ticking [ignoreHumidityAndPressure] drops back to the C constant, temperature-scaled.',
+    description: 'Derived speed of sound (engine air.ts). Laplace\'s adiabatic relation at the moist-air density below — the pairing WinISD\'s own stored c/roo satisfy to 1.2e-15. At 293.15 K / 30 % / 101325 Pa it gives 343.68270 m/s, 4.1 ppm from WinISD\'s measured 343.684120962152. WinISD 2 dp (343.68 m/s). Ticking [ignoreHumidityAndPressure] switches to the WinISD-anchored model (engine WINISD_MEASURED_C_REF, ratio-scaled) fed by the app-level Options environment instead of this pane\'s humidity/pressure — exactly WinISD\'s value at the Options defaults.',
   },
   {
     id: 'advAirDensity', label: 'Air density', pane: 'Advanced', kind: 'number', unit: 'kg/m³', precision: 5, min: 0, max: 10,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'ρ = p·Ma/(R·T)·[1 − xv(1 − Mv/Ma)] — CIPM-2007 moist air',
     dependsOn: ['advTemp', 'advHumidity', 'advPressure'],
-    description: 'Air density readout, live from T/RH/p (engine air.ts, CIPM-2007 composition as an ideal gas). At 293.15 K / 30 % / 101325 Pa it gives 1.2009621 kg/m³, 8.3 ppm from WinISD\'s stored 1.20095217714682. WinISD 5 dp (1.20095 kg/m³). Ticking [ignoreHumidityAndPressure] drops back to the RHO constant, temperature-scaled.',
+    description: 'Air density readout, live from T/RH/p (engine air.ts, CIPM-2007 composition as an ideal gas). At 293.15 K / 30 % / 101325 Pa it gives 1.2009621 kg/m³, 8.3 ppm from WinISD\'s measured 1.20095217714682. WinISD 5 dp (1.20095 kg/m³). Ticking [ignoreHumidityAndPressure] switches to the WinISD-anchored model (engine WINISD_MEASURED_RHO_REF, ratio-scaled) fed by the app-level Options environment instead of this pane\'s humidity/pressure — exactly WinISD\'s value at the Options defaults.',
   },
 
   // ---- Advanced pane: the five simulation-fidelity toggles --------------------------------
@@ -309,7 +309,7 @@ const FIELDS: FieldSpec[] = [
   {
     id: 'ignoreHumidityAndPressure', label: 'Ignore humidity and air pressure (as WinISD does)', pane: 'Advanced', kind: 'toggle', unit: '',
     provenance: 'entered', appliesTo: 'all',
-    description: 'Derive air density and sound velocity from temperature alone, discarding [advHumidity] and [advPressure]. WinISD stores T/p/phi in the .wpr [Box] section and reads NONE of them — its c/roo stay at 343.684120962153 / 1.20095217714682 through a forced recompute at 303.15 K and through delete-and-regenerate (winisd_research/CALC_FINDINGS_FOR_REVIEW.md, runs/env_sample1…7.wpr). Ledger QO7 rules that OpenISD does the physics by DEFAULT and offers WinISD\'s behaviour as this opt-in, so it ships OFF. Cost of ticking it: SPL differs by about 0.07 dB at 30 °C. PER PROJECT, because T/p/phi are per project in WinISD too. Model: engine air.ts airFor().',
+    description: 'Compute air density and sound velocity from the app-level Options environment instead of this project\'s [advHumidity]/[advPressure] (temperature stays the project\'s own), on the WinISD-anchored model (engine air.ts airFor(), WINISD_MEASURED_C_REF/RHO_REF). WinISD stores T/p/phi in the .wpr [Box] section and reads NONE of them — its c/roo come live from its own app-level Options dialog (WINISD_SCHEMA.md §12/§13), which at factory defaults lands on 343.684120962152 / 1.20095217714682. Ledger QO7 rules that OpenISD does the physics by DEFAULT and offers WinISD\'s behaviour as this opt-in, so it ships OFF. Cost of ticking it: SPL differs by about 0.07 dB at 30 °C. PER PROJECT, because T/p/phi are per project in WinISD too.',
   },
 
   // ============================ DRIVER EDITOR — T/S (Parameters tab) ============================

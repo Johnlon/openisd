@@ -1,5 +1,5 @@
 prefix: QO
-next: 85
+next: 92
 questions:
 - id: QO1
   title: UI TODO List
@@ -6169,26 +6169,24 @@ questions:
       reassigned to encoding) — please reconfirm the ruling under QO65.'
   answer:
     at: '2026-08-21'
-    text: |-
-      HUMAN RULING, verbatim (2026-08-21):
-      "065 - it si a bug if we have mutlipel pr values here ..  if (t === 'passive-radiator' 
-      neeed to make sure _tools has pyton uses only the _ variant, then to save time perform a scrupted yml update directly to fix the db.
-      in the mean time DO NOT inplement the '-' version in OID, keep oid clen.  sectionFor can then be avoided or simplified perhapsp.
-      openisd will never actually use the tweeter section directly as it primarly a sub box tool but the tweetter info would be potentialy usefil to show in the driect info popup. But its not critical at the moment.
-      so BUG_20260818_coaxial_driver_type_still_locks_openisddriver_to_the_woofer_section_only isn't actuly a bug as we dont have a intention atm ot modelling the tweeter - miggh change in future but that is a proper backlog item.
-      section (a) is acked - yes we dont use tweeter atm
-      fndamentally - other tham perhaps listing the full driver specs we dont want to support tweeter atm.
-      for now I ack that the accessor mmethods do not provide access to the tweeted - that sok"
-
-      DECIDED:
-      - Coax/tweeter modelling: NOT a bug — no intent to model the tweeter now; future support is a
-        backlog item. BUG_20260818_coaxial_... flipped to WONTFIX with the reasoning. Accessors not
-        reaching the tweeter is ACKED as fine.
-      - The REAL defect found in the same code: the PR discriminator has two spellings and OID
-        accepts both. Recorded (measured: 76 db records kebab, tools deliberately dual-vocabulary) in
-        bugs/BUG_20260821_passive_radiator_discriminator_has_two_spellings_across_the_stack.md.
-        Ruled fix: tools use ONLY the underscore variant; scripted yml update fixes the 76 db records
-        directly; OID never implements the '-' version; sectionFor then avoidable/simplified.
+    text: "HUMAN RULING, verbatim (2026-08-21):\n\"065 - it si a bug if we have mutlipel pr values here\
+      \ ..  if (t === 'passive-radiator' \nneeed to make sure _tools has pyton uses only the _ variant,\
+      \ then to save time perform a scrupted yml update directly to fix the db.\nin the mean time DO NOT\
+      \ inplement the '-' version in OID, keep oid clen.  sectionFor can then be avoided or simplified\
+      \ perhapsp.\nopenisd will never actually use the tweeter section directly as it primarly a sub box\
+      \ tool but the tweetter info would be potentialy usefil to show in the driect info popup. But its\
+      \ not critical at the moment.\nso BUG_20260818_coaxial_driver_type_still_locks_openisddriver_to_the_woofer_section_only\
+      \ isn't actuly a bug as we dont have a intention atm ot modelling the tweeter - miggh change in\
+      \ future but that is a proper backlog item.\nsection (a) is acked - yes we dont use tweeter atm\n\
+      fndamentally - other tham perhaps listing the full driver specs we dont want to support tweeter\
+      \ atm.\nfor now I ack that the accessor mmethods do not provide access to the tweeted - that sok\"\
+      \n\nDECIDED:\n- Coax/tweeter modelling: NOT a bug — no intent to model the tweeter now; future support\
+      \ is a\n  backlog item. BUG_20260818_coaxial_... flipped to WONTFIX with the reasoning. Accessors\
+      \ not\n  reaching the tweeter is ACKED as fine.\n- The REAL defect found in the same code: the PR\
+      \ discriminator has two spellings and OID\n  accepts both. Recorded (measured: 76 db records kebab,\
+      \ tools deliberately dual-vocabulary) in\n  bugs/BUG_20260821_passive_radiator_discriminator_has_two_spellings_across_the_stack.md.\n\
+      \  Ruled fix: tools use ONLY the underscore variant; scripted yml update fixes the 76 db records\n\
+      \  directly; OID never implements the '-' version; sectionFor then avoidable/simplified."
 - id: QO64
   title: Build the New Project wizard - alignment-driven box sizing
   status: decided
@@ -6510,7 +6508,7 @@ questions:
     against scratchpad/a10-baseline. Your options per name: add to ALLOWED_GLOBALS (your edit), or direct
     a restructure so the export is unnecessary. Gate stays red until you rule; no agent will touch the
     list.'
-  status: open
+  status: decided
   raised: '2026-08-22'
   body: ''
   items:
@@ -6552,6 +6550,60 @@ questions:
       -> engine.ts (one line in package.json "exports"; consumers import @openisd/engine so zero import
       churn), and the re-export gate''s barrel exemption switches from hardcoded index.ts to reading each
       package''s exports-map target.'
+  - at: '2026-08-23'
+    text: |-
+      UPDATE 2026-08-23, re-verified against current tree (not the QO80.3 snapshot): the "18 new names" premise is stale on two counts.
+
+      1. SCOPE CHANGED: QO72 (ruled 2026-08-21, closed) moved the gate from a curated file list to ALL_SRC_FILES (packages/ui/test/ui/architecture.test.ts:864-927) — every production module with a top-level export must now carry its own `export const ALLOWED_GLOBALS = [...]`, human-edit-only, or every export is an offence. Only ONE file in the tree declares one today: packages/ui/src/logic/appState.ts:75-77 (openProjects, focusedProject, focusProject, removeProject, addProject).
+
+      2. ACTUAL COUNT, re-run just now (`npx vitest run packages/ui/test/ui/architecture.test.ts -t ALLOWED_GLOBALS`): 189 offences across 56 files (not 18, not 215 — corrected from an earlier draft of this note that double-counted vitest's ANSI+plain diff output as 378). Top offenders by file: logic/appState.ts 21, persistence/repos/driverRepo.ts 12, logic/useVentGroup.ts 12, logic/prWinIsdFields.ts 8, logic/environment.ts 7, ui/canvas.ts 6, logic/usePrGroup.ts 6, logic/persist.ts 6, logic/fields/units.ts 6, then 30+ more files at 1-5 each (persistence/repos/*, model/src/*, winisd/src/*, logic/app.ts, driverType.ts, driverScope.ts, diagnostics/*, ui/directives/*). Full 56-file breakdown with counts saved at scratchpad qo80_counts.txt this session, not yet committed anywhere in-repo.
+
+      3. THE SPECIFIC 18 NAMES QO80 NAMED NO LONGER MATCH THE TREE: logic/fileStore.ts (createFileStore) does not exist — grep confirms no file of that name anywhere under packages/ui/src. managedDriver.ts's `_driverRecordFromWdrText` does not exist either (managedDriver.ts's current 3 exports are driverFromWdrText, driverFromFileText, driverFromConformingRecord). A7's `recordIsSimulatable` was never the export name — the actual export is `driverIsSimulatable` in model/src/driverSimulatability.ts; `recordStandingIsOk` (model/src/driverStanding.ts) does match. So at least 3 of the original 18 names are grants for code that no longer exists under that name.
+
+      CONCLUSION: QO80 as originally worded cannot be ruled on — it asks for a grant of specific names against a gate scope and an export surface that have both moved on. Recommend closing QO80 as superseded by QO72, and if John wants to grant anything now, raising it fresh against the current 189-offence/56-file list (e.g. starting with appState.ts's 21, the largest single file).
+  - at: '2026-08-23'
+    text: 'CORRECTION 2026-08-23: drop the QO72 framing above — irrelevant to this decision, do not cite
+      it again on QO80. Restated plainly: the gate (packages/ui/test/ui/architecture.test.ts:864-927)
+      currently reports 189 offences across 56 files — every top-level export in a file with no ALLOWED_GLOBALS
+      of its own. Only appState.ts has one today (5 names). QO80''s original list of 18 A6/A7 names is
+      a small, stale subset of that 189: 3 of those 18 names no longer exist in the tree under those spellings
+      (fileStore.ts/createFileStore deleted, _driverRecordFromWdrText gone, recordIsSimulatable was never
+      the real name — it''s driverIsSimulatable). Ruling needed: which of the 189 red exports get added
+      to their file''s own ALLOWED_GLOBALS (grant) vs. restructured/deleted (no grant). The old 18-name
+      list should not be acted on as-is.'
+  - at: '2026-08-23'
+    text: |-
+      UPDATE 2026-08-23 (sonnet 3, via peer check with refactor-driver-type-relocate, formerly openisd-e7): confirmed the 189/56 baseline is NOT stable — at least 3 sessions are actively moving rows in it concurrently:
+      1. refactor-driver-type-relocate moved packages/ui/src/driverType.ts -> packages/model/src/driverType.ts (DriverType, Chip) per a John ruling that a persistence-repo importing a "primitive" under ui/ was a layering violation. Net count unchanged (still 2 ungranted names) but the row's path changed from ui/root to model.
+      2. An unidentified session (per main-exec) already deleted ~15 exports from openisdProject.ts and 4 from managedProject.ts via P3/P4a, shrinking the list further.
+      3. A third unidentified session is active on persistence/repos/myDriverRepo.ts / logic/schemaUpgrade.ts (surfaced a different gate failure - service importing logic layer, not ALLOWED_GLOBALS - as evidence of activity there, not a new finding for this question).
+      Recommend: do not rule on a specific 189/56 snapshot right now. Wait for the fleet's current pass to settle, then take one fresh count as the actual basis for a ruling.
+  - at: '2026-08-23'
+    text: |-
+      JOHN rulings 2026-08-23 on the layer-legality matrix (mechanical diagnose() output in architecture.test.ts, dependency direction importer -> depends-on):
+      - ui/persistence-repos -> ui/primitives (driverRepo.ts importing Chip/DriverType from ui/src/driverType.ts): VIOLATION, relocate. DONE this session: driverType.ts moved to packages/model/src/driverType.ts, re-exported from model/src/index.ts, all 4 real importers repointed to @openisd/model (driverRepo.ts, driverBrowsingState.ts, driver-type-chips.test.ts, driver-type-chips.browser.spec.ts). Typecheck clean, driver-type-chips.test.ts 12/12 passes.
+      - model -> winisd (openisdDriver.ts's toWinISDDriver() using WinISDDriver/INI_ROWS/CellState; openisdProject.ts's toWinISDProject()/fromWinISDProject() using WinISDProject): APPROVED — leave as model-class methods, no extraction to a bridge file required.
+      - ui/logic -> winisd (driverFileText.ts, managedProject.ts calling winisdBytesToText/winisdTextToBytes): let go for now. Noted future candidate: relocate driverFileText.ts's byte/text codec beside winisd as a file service, so ui/logic talks to a file service rather than importing winisd's codec directly. Not scheduled.
+      - Gate scope (main-exec's option-1 framing question — "police only module-level STATE + layer edges, exempt pure exports like constants"): REJECTED. John verbatim: "i dont think costants and stuff should fall otuside it entirely ut I do think that the layer to layer is the key bit." Constants/pure exports stay in the gate's scope; layer-to-layer legality is the priority lens for review, not a scope-narrowing exemption. Large chunks of the 189 are expected to shrink via targeted relocations (like the DriverType move above, and the DPAL move already landed) rather than by exempting categories.
+      List is a moving target: main-exec reports P3/P4a deleted ~15 exports from openisdProject.ts + 4 from managedProject.ts; a concurrent session (untraced) is editing myDriverRepo.ts/schemaUpgrade.ts (surfaced as an unrelated new "service imports logic" layering failure, not ALLOWED_GLOBALS, not caused by this session). Re-run the diagnostic before compiling any final grant list.
+  - at: '2026-08-23'
+    text: '2026-08-23 (fable1, per main-exec/opus2 S3 finding): the filed 18-name enumeration is doubly
+      stale (P3/P4a deleted exports; D21-R added 6 / removed 1 on schemaUpgrade.ts, all legitimate, none
+      self-granted). When John rules, the list he triages MUST be regenerated from the ALLOWED_GLOBALS
+      gate''s live offence output at the freeze window, never this filed enumeration. His layer-matrix
+      ruling (everything in scope, layer-edges the priority lens, shrink by relocations) governs the triage
+      method; this note pins only WHICH list.'
+  answer:
+    at: '2026-08-23'
+    text: 'CLOSED BY REFRAME (John, 2026-08-23, verbatim): "since ui modules are at the top of the tree
+      then there should logic be nothing exported to other lower dirs, I am not so concerned about individual
+      files at the moment but the orderly layering so make sure qo80 is closed if it''s still bothered
+      by file level stuff and instead make sure we have layering and enforcement covered." RULING: the
+      per-export ALLOWED_GLOBALS grant checklist is RETIRED — no file-by-file grant pass will happen.
+      Enforcement pivots to ORDERLY LAYERING: (1) nothing below the ui layer imports FROM ui (ui is the
+      top; nothing may depend upward on it); (2) the layer-edge legality matrix John ruled in the QO80
+      triage session (ui/persistence→model OK, model→winisd OK as-is, etc.) is the enforced contract.
+      The release gate''s criterion changes accordingly: layering gates green, not grant-list completeness.'
 - id: QO81
   title: 'My Drivers: what happens to a stored record that fails validation? A7''s seam fix makes myDrivers.list()
     validate localStorage records and refuse non-conforming ones (flat legacy shapes predating the record
@@ -6563,7 +6615,7 @@ questions:
     forever; (b) erase deliberately — one-time visible migration/notice, then storage holds only conforming
     records; (c) build a UI surface (export/discard prompt). Note: these records are unusable in the app
     either way; the question is only whether their bytes survive in the user''s browser.'
-  status: open
+  status: decided
   raised: '2026-08-22'
   body: ''
   notes:
@@ -6593,6 +6645,16 @@ questions:
       JOHN rulings (2026-08-22, rows 5/6):
       Row 6, verbatim: "no fs is no diffenet to a new driver Iv'e created an left the field blank - it get shown of course - we do not exclude drivers because if missing spec params - this is critial - it just gets the usial treeament if its used in a design or opened in an edirto" and emphatic: "it is improtant NOT DRIER GETS EXCLIDED BECAUSE OF MISSIG SPEC PARAMS !!!!"
       Row 5, verbatim: "any breakign schema change need upgrade mech for existing drivers and the upgrade funcs get applied in order from the currnt stoored object ver to the current app ver and then the new object is saved over old one" — My Drivers storage carries a format version; each breaking change ships an upgrade function; on load the chain applies in order stored-ver -> app-ver and the upgraded object is SAVED OVER the old one (in-place, same identity — the fresh-uuid rule applies to FILE IMPORT only). Scope: My Drivers only — "the embeeded drivers are alway compt as they are part fo the dist."
+  answer:
+    at: '2026-08-23'
+    text: |-
+      JOHN's rulings, given in chat 2026-08-22 (main-exec session), recorded verbatim in this question's notes and in docs/design/MY_DRIVERS_STORAGE_FAILURES.md; ledger flip performed 2026-08-23 by fable1 at main-exec's direction after opus2 flagged the answered-item-left-OPEN state:
+      - "in all cases where there is a corrutption like these do not allow the app to progress - require the use to decide on aciton - no cancel button" (hard-stop on every corruption surface; export offered, delete only via explicit button with challenge-if-unexported)
+      - upgrade chain: "any breakign schema change need upgrade mech for existing drivers and the upgrade funcs get applied in order from the currnt stoored object ver to the current app ver and then the new object is saved over old one" (My Drivers only; embedded drivers always compatible as part of the dist)
+      - identity: "ah option 3 - i like it" — uuid-keyed storage, rename-or-copy one-question prompt on brand/model change
+      - file import: "if immporting a driver from file we shoudl generate a new UUID for it - I dont want accidental overwrites if we are usign uuid as ket in stores"
+      - never-exclude: "it is improtant NOT DRIER GETS EXCLIDED BECAUSE OF MISSIG SPEC PARAMS !!!!"
+      Status: IMPLEMENTED-pending-ratification — D21 (openisd 7dc2858) implements the package: storage version + upgrade chain, uuid identity with rename-asks, all three hard-stop failure surfaces, never-exclude pinned; remediation in flight for full conformance. Held in John's walkthrough queue as a ratification item.
 - id: QO82
   title: 'UiParams: rename it and give it real doc — plus John''s standing question: every UI input field
     converts UI-unit-toggle → SI through the ONE standard mechanism (fields/units.ts fromDisplay), never
@@ -6639,20 +6701,163 @@ questions:
     oid is the sole home of physics DQ (QT56 split executed)? John: ''is it necessary - I think it probably
     is for the dq''. Compare precision.py vs consistency.ts; check read_precision reaches oid''s checks;
     port the gap. Ties to D18 + the EBP relation bug.'
-  status: open
+  status: decided
   raised: '2026-08-22'
   body: ''
+  notes:
+  - at: '2026-08-23'
+    text: '2026-08-23 (sonnet 3): dispatched to main-exec for agent assignment per John''s instruction
+      — investigate precision.py vs consistency.ts, report whether porting is necessary, no code change
+      without a ruling. Awaiting result.'
+  - at: '2026-08-23'
+    text: |-
+      Investigation complete (opus2, relayed by main-exec, 2026-08-23). VERDICT: NECESSARY.
+      read_precision is consumed nowhere in openisd; consistency.ts infers precision from the
+      stored float (halfUlp), which cannot see trailing zeros or non-decimal unit conversions.
+      Corpus-wide: 96.8% of records carry >=1 divergent reading; 7,230 readings too loose (worst
+      x10,000 false-negative) and 580 too tight (worst 283,000x, concentrated on imperial-unit
+      datasheets - the release-damaging false-positive class). Three confirmed Q-group verdict
+      flips: dayton mx15-22, beyma 12lx60v2, seas w12cy003 (floor, not ceiling - only Q-group swept).
+      Full evidence: docs/design/QO84_PRECISION_NECESSITY.md.
+      Remaining ruling needed (scope, not necessity): minimal fix (seed tolerance from
+      read_precision where present, halfUlp fallback otherwise) vs porting precision.py's fuller
+      interval algebra. Investigation deliberately does not pick.
+  - at: '2026-08-23'
+    text: |-
+      Corroboration addendum (main-exec, 2026-08-23): opus2's corpus-measured derivation and an
+      earlier, independent winisd_tools brain note (which opus2 deliberately did not read) reach
+      the SAME verdict, SAME mechanism (read_precision, declared openisdRecord.ts:58, consumed
+      nowhere), SAME two failure directions (unit conversion + trailing zeros), and SAME minimal
+      fix shape (seed tolerance from read_precision where present, halfUlp fallback -
+      "precisions[k] ?? halfUlp" per the older doc). Two independent derivations, zero contact,
+      one answer - high confidence.
+      Sequencing note from the older doc: implementation should gate on B10's re-emission
+      completing first, so read_precision coverage across the corpus is actually complete before
+      the fix relies on it. Matches the existing sweep sequencing already planned.
+      Ruling still owed: just the SHAPE - minimal seeding now, vs the fuller interval-model
+      question the older doc leaves open.
+  answer:
+    at: '2026-08-23'
+    text: 'DECIDED (John, 2026-08-23): "decided 84 small fix but also a write up of the big fix and precision
+      plan added as a reference at bottom of current plan and a q left open to cover it." RULING: implement
+      the SMALL fix — seed the consistency check''s per-field tolerance from read_precision where a reading
+      carries one, halfUlp fallback where none does (sequenced after B10''s re-emission completes so corpus
+      coverage is real). The BIG fix (porting the full printed-precision interval algebra) is written
+      up and referenced at the bottom of PROMPT_RELEASE_HARDENING.md, with QO87 left open to cover it.'
 - id: QO85
-  title: 'ABC (Aperiodic Bi-Chamber) needs 3 ports, not 1 (John, 2026-08-23). QO44/ledger say
-    "ABC has no field specification anywhere" as if the gap were undocumented WinISD parity
-    work; John: that is because ABC has three ports, and the current alignment shape
-    (OpenISDVentedAlignment/OpenISDBandpass4Alignment each carry exactly one `vent:
-    OpenISDVent` field) cannot represent that at all — this is a structural gap in
-    OpenISDBox, not a missing-spec gap. Before OpenISDBandpass6Alignment/OpenISDAbcAlignment
-    can be added, decide whether a multi-port alignment holds `vents: OpenISDVent[]` or
-    named fields (vent1/vent2/vent3), and whether Sp/Leff on SyncedParams/UiParams/SweepParams
-    (currently single optional scalars) become per-port arrays or stay scalars with a
-    box-type-specific meaning. Explicitly deferred: John said do not add bandpass6/abc yet.'
+  title: 'ABC (Aperiodic Bi-Chamber) needs 3 ports, not 1 (John, 2026-08-23). QO44/ledger say "ABC has
+    no field specification anywhere" as if the gap were undocumented WinISD parity work; John: that is
+    because ABC has three ports, and the current alignment shape (OpenISDVentedAlignment/OpenISDBandpass4Alignment
+    each carry exactly one `vent: OpenISDVent` field) cannot represent that at all — this is a structural
+    gap in OpenISDBox, not a missing-spec gap. Before OpenISDBandpass6Alignment/OpenISDAbcAlignment can
+    be added, decide whether a multi-port alignment holds `vents: OpenISDVent[]` or named fields (vent1/vent2/vent3),
+    and whether Sp/Leff on SyncedParams/UiParams/SweepParams (currently single optional scalars) become
+    per-port arrays or stay scalars with a box-type-specific meaning. Explicitly deferred: John said do
+    not add bandpass6/abc yet.'
+  status: deferred
+  raised: '2026-08-23'
+  body: ''
+  answer:
+    at: '2026-08-23'
+    text: stays deferred / don't add bandpass6/abc yet
+- id: QO86
+  title: 'Export discipline: nothing public by default; export * banned outright'
+  status: decided
+  raised: '2026-08-23'
+  body: ''
+  answer:
+    at: '2026-08-23'
+    text: |-
+      RULED (John, 2026-08-23, verbatim): "generally nothing should be public or exported and that export * is a serious violation of control and arch, and we need an arch test to detect it and block it in favour of named selective intentional exports of own code and never a re-exported symbol."
+
+      The principle: private by default. A symbol is exported only when a named consumer needs it, as a NAMED, SELECTIVE, INTENTIONAL export of the module's OWN code. `export *` is banned everywhere including package barrels — a barrel lists its exports by name. A re-exported symbol (any spelling) remains banned per QO80's re-export gate; this ruling extends it: the wildcard form is a serious violation in its own right, and an arch test must detect and BLOCK it.
+  notes:
+  - at: '2026-08-23'
+    text: |-
+      EXECUTION REFINED (John, 2026-08-23, verbatim): "make the exports check take a baseline from current state so it isn't blocking our release, but a fail if new wildcards are added. needs to record exactly what is exported where to make this possible. the job for the AI and human will be to trim back that baseline by replacing them all with explicit exports then remove the baseline data so any new instances are fails, then finally we remove unjustified exports and/or move code to its proper home if that's the root cause. for now let's take a baseline and add the tests, then as a non-blocking unit of work convert all wildcard to specific and remove the wildcard from the baseline, but not as a release blocker."
+
+      So: a RATCHET gate. (1) NOW: baseline every existing `export *` site WITH the exact symbol list it currently re-exports, recorded in the gate; test passes on the baseline, fails on any NEW wildcard or any growth of an existing one. (2) Non-blocking work unit: convert wildcards to named exports one by one, deleting each from the baseline as it converts, until the baseline is empty and the ban is absolute. (3) Later, separate: trim unjustified exports / relocate code where misplacement is the root cause. None of it blocks the release.
+- id: QO87
+  title: 'Big precision fix: port the full printed-precision interval model into consistency checking'
   status: open
   raised: '2026-08-23'
   body: ''
+  notes:
+  - at: '2026-08-23'
+    text: 'Scope (opened by John''s QO84 ruling, 2026-08-23): the small fix (read_precision seeding with
+      halfUlp fallback) lands first; THIS question covers whether/when to go further — porting python
+      precision.py''s full interval algebra (every value carries the half-width its printed form implies;
+      every comparison is interval overlap, not float distance). Open sub-questions from the two corroborating
+      investigations (docs/design/QO84_PRECISION_NECESSITY.md + winisd_tools/brain/PRECISION_DQ_PORT_QO84.md):
+      is the symmetric half-width interval model itself right; should derived values propagate interval
+      widths through formulas (full interval arithmetic) rather than the current perturbation-based delta
+      accumulation; and what the UI shows when a verdict is precision-marginal. Cycle 2+; no schedule.'
+- id: QO88
+  title: 'winisdAir ignore-mode: four conflicting sources on what c/rho should be - needs your ruling,
+    blocks the Playwright gate'
+  status: decided
+  raised: '2026-08-23'
+  body: ''
+  notes:
+  - at: '2026-08-23'
+    text: |-
+      The "Ignore humidity and air pressure" mode computes air density/sound speed via winisdAir(). Four sources disagree on what it should return, and a red Playwright test at HEAD hangs on the answer:
+      1. The Playwright pin (advanced-environment.browser.spec.ts): ignore-mode must print 1.20095 (WinISD's stored constant). Currently red: c83e0ad (Aug 21) rewrote winisdAir() to moist-air-at-reference, printing 1.20096 - and at default temperature the checkbox is observably inert.
+      2. c83e0ad's rewrite was NOT needed by its own commit's .wpr work (verified: zero code connection), but cites an AGENTS.md sign-off quote ("there shodk be no base C/Roo variable - calculated or stated only") that appears nowhere in the repo - unverifiable.
+      3. bugs/archive/BUG_20260819: WinISD's c/roo track a MUTABLE app-level setting; 343.684120962152 and ...153 are both genuine outputs from different save-time states; explicit ban: "Do not replace either digit with the other anywhere in the codebase." A naive revert to the pre-c83e0ad temperature-scaled formula performs that substitution.
+      4. The parity goldens env-t-303.wpr / env-rh-30.wpr (10 K apart) are BYTE-IDENTICAL for c/roo - supporting a truly FROZEN pair in ignore mode, which contradicts BOTH the current moist model AND the pre-c83e0ad temperature-scaled formula.
+      Also open: BUG_20260820 (winisdAir compat-mode fidelity questionable) was never actioned. Full diagnosis with citations: bugs commit 759c857 (winisd-3a).
+      Decision needed: what is ignore-mode's contract - (a) frozen stored pair regardless of temperature (matches goldens + Playwright pin; must pick WHICH stored pair per the 20260819 finding), (b) temperature-scaled WinISD formula (pre-c83e0ad; diverges from the goldens), or (c) something else you know about WinISD's Options fallback. Blocks the frozen-tree Playwright run.
+  - at: '2026-08-23'
+    text: 'John clarification 2026-08-23: "the app settings for temp and hum etc can be entirely different
+      to the constant used to init the WinIsd bridge data, and that''s correct - but assuming the app
+      settings have not been tweaked from their default then the calculated c and roo in the app will
+      match that constant calculated c and roo in the generated wdr files"'
+  answer:
+    at: '2026-08-23'
+    text: the OpenIsd provide a calculatee constant roo an d c calculed from the default air constantl
+      values of temp and humidity etc, those calculated c and r are To be used solely I believe to populr
+      the WinIsd file that the bridge genrates - by contrast the app uses the values of the 3 air values
+      in the app settings pane to calculate Inalial values of c a and roo for new drivers and maybe to
+      iniutilise new projects, but the constants c and roo are solely for tb bridge
+- id: QO89
+  title: Air settings page needs a reset-to-defaults button (John, 2026-08-23)
+  status: open
+  raised: '2026-08-23'
+  body: ''
+  notes:
+  - at: '2026-08-23'
+    text: |-
+      John 2026-08-23, verbatim: "there should be a reset button on the air conststst page in settings please log that gap"
+      Gap: the air-constants settings pane (temp/humidity/pressure) has no reset-to-defaults control. Once reset, the app's live-calculated c/roo again match the constant pair stamped into bridge-generated wdr files (they only diverge when the user tweaks the settings — which is correct behaviour per QO88's ruling). UI work, not release-blocking; slot with cycle-2 UI items unless pulled forward.
+- id: QO90
+  title: Project save API takes the OIP; .owpr/autosave become pure project data
+  status: decided
+  raised: '2026-08-23'
+  body: ''
+  answer:
+    at: '2026-08-23'
+    text: 'John 2026-08-23: "this looks entirely wrong for project save .. i expected the oip domain object
+      and maybe the env nothing more as save params after all we are saving the project" — then ruled
+      on the file-content fork: "Pure project file": a .owpr save and autosave carry only the project
+      (and env); view/UI preferences persist separately under their own localStorage key; share links
+      KEEP carrying the whole session per the 2026-08-14 ruling — links and files diverge. Consequences:
+      ProjectRepo API becomes save(project[, env]); the ProjectWrite bundle dies; the managed-layer containment
+      invariant is amended to name the persistence repo as the one sanctioned receiver of the OIP; old
+      saved files (which carry view state) still load via the schema-upgrade seam.'
+- id: QO91
+  title: OptionsModal preview and driver-editor reference c/roo still show the pure moist model (1.20096),
+    not the WinISD-anchored pair
+  status: open
+  raised: '2026-08-23'
+  body: ''
+  notes:
+  - at: '2026-08-23'
+    text: 'Under the QO88 fix, airFor''s ignore branch reproduces WinISD''s live Options pair exactly
+      at defaults (1.20095217714682 / 343.684120962152). Two readouts still compute the PURE moist model
+      instead: OptionsModal.vue''s defaultAir preview (shows 1.20096 at the very defaults whose WinISD
+      pair is 1.20095) and DriverEditorModal''s referenceC()/referenceRho() Environment readout (logic/environment.ts).
+      If QO88''s ''the app settings pane calculates initial c and roo for new drivers'' means those readouts
+      must show the ANCHORED pair, they should switch to airFor({ignoreHumidityAndPressure:true}) fed
+      by envDefaults; if they are physics previews, current state is correct. Needs a ruling; no code
+      touched.'

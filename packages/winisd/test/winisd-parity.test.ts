@@ -22,7 +22,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { ebp, airFor, sealedFscWinisd, sourceLoadedQts } from '@openisd/engine';
+import { ebp, airFor, RH_REF_PCT, P_REF_PA, sealedFscWinisd, sourceLoadedQts } from '@openisd/engine';
 import { OpenISDDriver, Provenance } from '@openisd/model';
 import { WinISDDriver } from '../src/winisdDriver.js';
 import { POS_TO_WDRKEY } from '../src/parstate.js';
@@ -327,10 +327,18 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
         // QO7: the parity suite runs with "Ignore humidity and air pressure (as WinISD does)"
         // ON. With it OFF, openisd derives rho and c from T/RH/p — physically right, and a
         // permanent ~0.07 dB divergence that would teach everyone to ignore this suite.
+        //
+        // In that mode the app swaps the PROJECT's humidity/pressure for its app-level
+        // Options environment before the engine sees them (logic/environment.ts
+        // resolveAirEnvironment — §12/§13: WinISD never reads the project [Box] env, which is
+        // why every env-* golden stores the same pair). The goldens were captured with the
+        // Options environment at factory defaults, so the harness performs the same
+        // substitution with the reference values. The project's temperature stays its own —
+        // the env-t-303 divergence entry bounds that leg.
         const air = airFor({
           tempK: s.environment.T,
-          humidityPct: s.environment.phi * 100,   // WinISD stores phi as a FRACTION
-          pressurePa: s.environment.p,
+          humidityPct: RH_REF_PCT,
+          pressurePa: P_REF_PA,
           ignoreHumidityAndPressure: true,
         });
         for (const [key, got] of [['c', air.c], ['roo', air.rho]] as const) {

@@ -22,6 +22,7 @@ import type { AppState, SyncedParams } from '../types.js';
 import type { UiParams } from '@openisd/model';
 import { copyOfName, uniqueName, type ProjectRead, type ProjectWrite } from '@openisd/persistence';
 import { presentationState, unitToken } from './presentationState.js';
+import { resolveAirEnvironment } from './environment.js';
 import { parseChartTabId } from './series.js';
 import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
 import { getOrInit } from './hmrSingleton.js';
@@ -247,7 +248,11 @@ export const syncedP = computed<SyncedParams>(() => {
     p.Sp = managedProject.ventArea_m2();
     p.Leff = managedProject.ventEffectiveLength_m();
   }
-  return p;
+  // The WinISD toggle swaps the PROJECT's humidity/pressure for the app-level Options
+  // environment before the engine sees them (resolveAirEnvironment's docstring) — sweep and
+  // readouts honour the toggle identically. Persistence is untouched: the autosave/share
+  // writers read `toUiParams()` directly, so a saved project keeps its own environment.
+  return resolveAirEnvironment(p, presentationState.ui.envDefaults);
 });
 
 const _curves = getOrInit('appState', '_curves', () => ref<SweepResult | null>(null));

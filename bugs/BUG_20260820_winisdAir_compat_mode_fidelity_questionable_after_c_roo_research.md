@@ -1,47 +1,40 @@
-Status: OPEN
+Status: RESOLVED
 
 # `winisdAir()` compat mode's fidelity to real WinISD is now questionable
 
 # Status
-OPEN
+RESOLVED 2026-08-23 — the fidelity gap this bug identified is closed by the QO88 fix
+(mechanism and verification in
+`BUG_20260823_winisdair_recomputes_moist_air_instead_of_winisds_stored_constants.md`).
 
-## Symptom
+## What this bug identified
 
-`packages/engine/src/air.ts`'s `winisdAir()` (the `ignoreHumidityAndPressure` opt-in) models
-WinISD's "never reads the `.wpr` environment" behaviour as: compute ρ/c live from temperature
-alone, at the reference humidity/pressure.
+`winisdAir()` (the `ignoreHumidityAndPressure` opt-in) modelled WinISD's "never reads the
+`.wpr` environment" behaviour as: compute ρ/c live from temperature alone, humidity and
+pressure pinned to reference. The 2026-08-19/20 research (`WINISD_SCHEMA.md` §12) showed
+real WinISD's rule is different: the project's `[Box]` T/RH/AP is inert (matching the
+premise), but a blank driver's `c`/`roo` come from the APP-LEVEL Options dialog's live
+three-variable computation — a store openisd then had no concept of.
 
-The 2026-08-19/20 investigation into how WinISD actually resolves a driver's `c`/`roo`
-(`docs/design/WINISD_SCHEMA.md` §12, `bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md`)
-found real WinISD's rule is considerably more specific than "ignore humidity/pressure,
-temperature still matters":
+## How it resolved
 
-- A driver with `c`/`roo` present uses them as-is — WinISD's actual T/RH/AP settings are
-  irrelevant to it, temperature included.
-- A driver missing both falls back to the **app-level Options dialog's live computation** —
-  which DOES use temperature (and, per the dialog itself, humidity and pressure — the dialog
-  has its own T/RH/AP, all three live).
-- The project's own `.wpr` `[Box]` T/RH/AP (`ignoreHumidityAndPressure`'s actual subject) was
-  confirmed INERT for `c`/`roo` in every one of 12+ machine-verified cells — WinISD really
-  does never read it, matching the existing model's premise.
+Both halves of the "not yet investigated" list are now answered:
 
-So `winisdAir()`'s premise (ignore the PROJECT's stored environment) is right, but its
-implementation (temperature-only live compute, humidity/pressure pinned to reference) may not
-match what a real blank driver actually shows, because that's governed by the APP-level
-Options dialog — a live, mutable, three-variable store openisd has no concept of at all, not
-a temperature-only function.
+- **Where a behavioural difference surfaces:** `airFor`'s ignore branch feeds the Advanced
+  pane readouts and the sweep — the Playwright pin (`advanced-environment.browser.spec.ts`,
+  1.20095 vs the moist model's 1.20096) was exactly such a surfacing.
+- **Whether openisd should model an app-level store:** it already had one —
+  Options → General → Environment (`presentationState.ui.envDefaults`). The fix wires it as
+  §12/§13's app-level Options analog: with the toggle on, `resolveAirEnvironment`
+  (`logic/environment.ts`) substitutes its humidity/pressure for the project's before the
+  engine computes, and the engine's `winisdAir` anchors the result to WinISD's live-captured
+  pair (`WINISD_MEASURED_C_REF`/`WINISD_MEASURED_RHO_REF`) so the Options-defaults case
+  reproduces real WinISD exactly (QO88's ruled invariant: live-calculated-at-defaults equals
+  the bridge-stamped constant pair).
 
-## Not yet investigated
-
-- Whether `winisdAir()` is used anywhere a real behavioural difference would surface, or
-  whether its current temperature-only approximation is close enough in practice.
-- Whether openisd should model an app-level-equivalent store, or whether the existing
-  reference-environment fallback (`T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) is an acceptable
-  simplification now that there's no frozen `RHO`/`C` constant underneath it either
-  (`bugs/BUG_20260819_...md` — those were deleted 2026-08-20, calculation-logic change,
-  human-approved).
-
-## Impact
-
-Not fixed — needs investigation into actual callers/impact before any calculation-logic
-change (AGENTS.md "Calculation logic — permission gate").
+One deliberate divergence remains, by design: ignore-mode temperature stays the PROJECT's
+own (the toggle's label names humidity and pressure as what it discards), where real WinISD
+would use the Options dialog's temperature. At the default temperature the two agree
+exactly; the ledger question on the remaining readouts (OptionsModal's own preview and the
+driver editor's reference pair still showing the pure moist model) is tracked separately in
+`questions.yml`.

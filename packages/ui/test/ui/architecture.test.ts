@@ -1004,7 +1004,6 @@ const EXPORT_STAR_BASELINE: Record<string, Record<string, string[]>> = {
   'engine/src/engine.ts': {
     './types.js': ['BoxType', 'CircuitModel', 'Complex', 'DriverError', 'EngineDriver', 'Filter', 'FilterType', 'IssueLevel', 'MaxCurvesResult', 'Result', 'Solution', 'SweepParams', 'SweepResult', 'Wiring'],
     './constants.js': ['FLAT_MAX_BOOST_DB', 'G_STANDARD', 'P0'],
-    './air.js': ['Air', 'AirEnvironment', 'END_CORRECTION', 'GAMMA', 'P_REF_PA', 'RH_REF_PCT', 'T_REF_K', 'airFor', 'moistAirDensity', 'moistAirSoundVelocity', 'saturationVapourPressure', 'waterVapourMoleFraction'],
     './complex.js': ['cAbs', 'cAdd', 'cArg', 'cDiv', 'cInv', 'cMul', 'cPar', 'cScale', 'cSub', 'cTanh', 'cx'],
     './driver.js': ['deriveEngineDriver', 'driverC', 'driverRho', 'hotRe', 'nominalImpedance', 'solveConsistencyGroup', 'withAddedMass'],
     './efficiency.js': ['efficiencyConstant', 'efficiencyFromSpl', 'referenceEfficiency', 'splFromEfficiency', 'splReferenceConstantDb'],

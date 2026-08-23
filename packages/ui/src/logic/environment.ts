@@ -12,6 +12,23 @@ export function airForEnvironment(env: AirEnvironment): Air {
     return airFor(env);
 }
 
+/**
+ * The environment `airFor` actually runs in once the WinISD toggle is honoured.
+ * `ignoreHumidityAndPressure` means "ignore the PROJECT's stored humidity and pressure" —
+ * real WinISD never reads its project's `[Box]` environment and computes `c`/`roo` from its
+ * APP-LEVEL Options dialog instead (`docs/design/WINISD_SCHEMA.md` §12/§13). openisd's
+ * app-level analog is Options → General → Environment (`presentationState.ui.envDefaults`),
+ * which the caller passes here. Temperature stays the project's own: the toggle's label names
+ * exactly what it discards, and at the default temperature the substituted environment lands
+ * `airFor` on WinISD's measured pair exactly (engine `WINISD_MEASURED_*`, ledger QO88).
+ * With the flag off, the project's environment passes through untouched.
+ */
+export function resolveAirEnvironment<T extends AirEnvironment>(
+    env: T, appLevel: { humidityPct: number; pressurePa: number }): T {
+    if (!env.ignoreHumidityAndPressure) return env;
+    return { ...env, humidityPct: appLevel.humidityPct, pressurePa: appLevel.pressurePa };
+}
+
 /** EBP = Fs/Qes — the vented-alignment suitability figure OgTune.vue's Vents pane shows. */
 export function ebpOf(driver: EngineDriver): number {
     return engineEbp(driver);
