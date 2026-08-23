@@ -2,12 +2,10 @@ import { inject, type App, type InjectionKey } from 'vue';
 import type { DriverBrowsingState } from './driverBrowsingState.js';
 import type { DriverSelection } from './driverSelection.js';
 import type { DesignIO } from './useDesignIO.js';
-import type { PrRepo } from '../persistence/repos/prRepo.js';
-import type { MyDriverRepo } from '../persistence/repos/myDriverRepo.js';
+import type { PrRepo, MyDriverRepo, FileStorage } from '@openisd/persistence';
 import type { Logging } from '../logging/flash.js';
 import type { Diagnostics } from '../diagnostics/selftest.js';
 import type { FaultLog } from '../diagnostics/faultLog.js';
-import type { FileStorage } from '../persistence/storage/fileStorage.js';
 
 /**
  * What the presentation layer is given.

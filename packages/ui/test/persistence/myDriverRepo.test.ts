@@ -11,8 +11,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { createMemoryStorage } from '../../src/persistence/storage/keyValueStorage.js';
-import { createMyDriverRepo, MY_DRIVERS_KEY } from '../../src/persistence/repos/myDriverRepo.js';
+import { createMemoryStorage, createMyDriverRepo, MY_DRIVERS_KEY, driverHasDqIssues } from '@openisd/persistence';
 import { CURRENT_MY_DRIVERS_SCHEMA, myDriversSchema } from '../../src/logic/schemaUpgrade.js';
 
 /** The stored bucket's records, whichever envelope version wraps them. */
@@ -22,7 +21,6 @@ function storedDrivers(raw: string | null): unknown[] {
 }
 import { OpenISDDriver } from '@openisd/model';
 import type { _OpenISDDriverJson } from '@openisd/model';
-import { driverHasDqIssues } from '../../src/persistence/repos/driverRepo.js';
 import { driverFromConformingRecord } from '../../src/logic/managedDriver.js';
 
 describe('myDrivers.ts::list() — refuses records that do not conform to _OpenISDDriverJson', () => {

@@ -1,10 +1,10 @@
 /**
- * Unit tests for `driverHasDqIssues` (`packages/ui/src/persistence/repos/driverRepo.ts`) — pins the current
+ * Unit tests for `driverHasDqIssues` (`packages/persistence/src/repos/driverRepo.ts`) — pins the current
  * behaviour (Fs/Re presence, the Sd||Vas branch, and the Q-group threshold on both sides of 2).
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { driverHasDqIssues, type FileEntry } from '../../src/persistence/repos/driverRepo.js';
+import { driverHasDqIssues, type FileEntry } from '@openisd/persistence';
 import { OpenISDDriver } from '@openisd/model';
 import type { _OpenISDDriverJson, SpecField } from '@openisd/model';
 

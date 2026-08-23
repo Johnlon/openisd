@@ -7,7 +7,7 @@ import { test, expect } from '../fixtures.js';
 // the type chips and the Fs/Sd/Znom bounds, so narrowing the library left unrelated saved
 // drivers sitting on screen — the exact failure `.claude/rules/openisd-ui-design.md`
 // §"Filters apply to every list" exists to prevent. Both lists now run through one
-// predicate (`matchesCriteria` in persistence/repos/driverRepo.ts).
+// predicate (`matchesCriteria` in packages/persistence/src/repos/driverRepo.ts).
 
 const MY_DRIVERS_KEY = 'openisd_my_drivers';
 const MY_ROWS = '.dlist .my-ditem';

@@ -17,8 +17,8 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
-import { DriverType, Chip } from '../../src/driverType.js';
-import { classifyTypes } from '../../src/persistence/repos/driverRepo.js';
+import { DriverType, Chip } from '@openisd/model';
+import { classifyTypes } from '@openisd/persistence';
 import { DRIVER_TYPES } from '../../src/logic/driverBrowsingState.js';
 
 const CHIP_VALUES = new Set(Chip.ALL.map(c => c.value));
@@ -116,7 +116,8 @@ describe('classifyTypes honours every canonical driver_type', () => {
 // ---------------------------------------------------------------------------------
 
 const UI_SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
-const ENUM_FILE = join(UI_SRC, 'driverType.ts');
+// driverType.ts lives in @openisd/model now, outside the UI_SRC tree this gate scans —
+// ENUM_FILE no longer needs a self-exclusion, but sourceFiles() below is UI_SRC-only.
 
 // 'woofer' and 'unclassified' are deliberately NOT scanned: they collide with the
 // chip ids of the same spelling, where comparing a raw string is legitimate. Every
@@ -143,7 +144,6 @@ describe('no raw driver_type string literals in comparisons', () => {
     // comparison survives a value change and no rename can find it.
     const offences: string[] = [];
     for (const file of sourceFiles(UI_SRC)) {
-      if (file === ENUM_FILE) continue;
       const text = readFileSync(file, 'utf8');
       for (const value of SCANNED) {
         const re = new RegExp(`(?:[=!]==?\\s*['"\`]${value}['"\`])|(?:['"\`]${value}['"\`]\\s*[=!]==?)`, 'g');

@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures.js';
-import { Chip } from '../../src/driverType.js';
+import { Chip } from '@openisd/model';
 
 // The filter chips are rendered straight from the Chip enum (`DRIVER_TYPES = Chip.ALL`),
 // so this spec needs NO driver records — it stays meaningful while the bundler ships an

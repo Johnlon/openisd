@@ -3,7 +3,7 @@
 import type { OpenISDDriver, _OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
 import { recordStandingIsOk } from '@openisd/model/driverStanding';
 import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
-import { DriverType, Chip } from '../../driverType.js';
+import { DriverType, Chip } from '@openisd/model';
 
 // The driver commons — index, search, filter, lookup.
 //

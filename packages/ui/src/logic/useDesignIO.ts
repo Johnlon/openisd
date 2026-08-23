@@ -27,12 +27,11 @@ import {
 } from './appState.js';
 import { presentationState } from './presentationState.js';
 import { serialize, stateToUrl, upgradeParsedState } from './persist.js';
-import { createFileSave } from '../persistence/storage/fileSave.js';
+import { createFileSave, type FileStorage } from '@openisd/persistence';
 import { setShareUrl } from './urlAppState.js';
 import type { Logging } from '../logging/flash.js';
 import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
 import { readDriverFileText } from './driverFileText.js';
-import type { FileStorage } from '../persistence/storage/fileStorage.js';
 import { DriverFileFormat, ProjectFileFormat, formatOf, sniff } from '../fileFormat.js';
 
 declare const __BUILD_DATETIME__: string;

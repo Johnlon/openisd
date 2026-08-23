@@ -22,9 +22,13 @@ import { Project as TsProject, Node, SyntaxKind, type SourceFile } from 'ts-morp
 vi.setConfig({ testTimeout: 60_000 });
 
 const UI_SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
-const STORAGE_DIR = join(UI_SRC, 'persistence', 'storage');
-const REPOS_DIR = join(UI_SRC, 'persistence', 'repos');
-const PERSISTENCE_DIR = join(UI_SRC, 'persistence');
+// persistence/repos and persistence/storage live in their own package now (@openisd/persistence,
+// moved out of ui/src by John's ruling that the data-access tier is a real package boundary,
+// not a directory convention) — this gate's checks still apply to it, just at its new home.
+const PERSISTENCE_SRC = join(UI_SRC, '..', '..', 'persistence', 'src');
+const STORAGE_DIR = join(PERSISTENCE_SRC, 'storage');
+const REPOS_DIR = join(PERSISTENCE_SRC, 'repos');
+const PERSISTENCE_DIR = PERSISTENCE_SRC;
 
 function filesUnder(dir: string): string[] {
   const out: string[] = [];
@@ -156,7 +160,7 @@ describe('persistence vocabulary — CHECK 3: *Storage lives only under storage/
 describe('persistence vocabulary — CHECK 4: "store" is eliminated from the codebase entirely', () => {
   it('no exported symbol anywhere is named *Store or *store (the word is banned, not relocated)', () => {
     const offences: string[] = [];
-    for (const f of [...filesUnder(UI_SRC)]) {
+    for (const f of [...filesUnder(UI_SRC), ...filesUnder(PERSISTENCE_SRC)]) {
       for (const name of topLevelExportedNames(f)) {
         // Case-sensitive on the suffix "Store"/"store" as a whole word component — matches
         // `KeyValueStore`, `createFileStore`, `PrefsStore`, but not `Storage`/`storage` (a
@@ -175,7 +179,7 @@ describe('persistence vocabulary — CHECK 4: "store" is eliminated from the cod
 
   it('no local/module-level binding is literally named `store` (the STORAGE gloss binds it `storage`)', () => {
     const offences: string[] = [];
-    for (const f of filesUnder(UI_SRC)) {
+    for (const f of [...filesUnder(UI_SRC), ...filesUnder(PERSISTENCE_SRC)]) {
       const source = sourceFileOf(f);
       source.forEachDescendant(node => {
         if (!Node.isVariableDeclaration(node)) return;
@@ -203,7 +207,7 @@ describe('persistence vocabulary — CHECK 5: "Library"/"Bucket" name no module 
 
   it('no exported type/interface/class name contains "Library" or "Bucket"', () => {
     const offences: string[] = [];
-    for (const f of filesUnder(UI_SRC)) {
+    for (const f of [...filesUnder(UI_SRC), ...filesUnder(PERSISTENCE_SRC)]) {
       const source = sourceFileOf(f);
       const typeNames = [
         ...source.getInterfaces().filter(i => i.isExported()).map(i => i.getName()),

@@ -1,23 +1,22 @@
 import { ref, shallowRef, computed, watch, type Ref, type ComputedRef } from 'vue';
 import type { OpenISDDriver } from '@openisd/model';
+import { Chip } from '@openisd/model';
 import { presentationState } from './presentationState.js';
 import { readDriverFileText } from './driverFileText.js';
 import { DriverFileFormat, sniff } from '../fileFormat.js';
 import { DriverScope } from '../driverScope.js';
-import { Chip } from '../driverType.js';
-import type { MyDriverRepo, MyDriversRead, BrokenEntry } from '../persistence/repos/myDriverRepo.js';
-import type { PrefsRepo } from '../persistence/repos/prefsRepo.js';
 import type { Logging } from '../logging/flash.js';
 import {
   driverKey as keyOf, myDriverEntry, myDriverName, matchesCriteria, previewOf,
   normaliseDate, fmtHz, shortSource, driverHasDqIssues, parseRepoInput,
   type DriverRepo, type FileEntry, type Preview,
-} from '../persistence/repos/driverRepo.js';
+  type MyDriverRepo, type MyDriversRead, type BrokenEntry, type PrefsRepo,
+} from '@openisd/persistence';
 import { type DriverSelection } from './driverSelection.js';
 import { driverFromFileText } from './managedDriver.js';
 
 // The row and summary shapes the presentation layer is handed. A component names them with a
-// TYPE-ONLY import straight from `persistence/repos/driverRepo.js` — exempt from the presentation-depends-
+// TYPE-ONLY import straight from `@openisd/persistence` — exempt from the presentation-depends-
 // only-on-logic layering rule (a type erases at compile time, so it carries no runtime
 // dependency) and from the no-re-export gate (QO80): the name is imported from the module that
 // actually declares it, never relabelled through an intermediary.
@@ -153,7 +152,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   // held in a `ref` and breaks `===` identity on a singleton (driverType.ts).
   //
   // Not persisted, deliberately — `favoritesOnly` is not either. Both are view state for the
-  // session; what persists is the DATA the user created (persistence/repos/prefsRepo.ts, persistence/repos/myDriverRepo.ts).
+  // session; what persists is the DATA the user created (@openisd/persistence's prefsRepo.ts, myDriverRepo.ts).
   const driverScopeValue = ref<string>(DriverScope.All.value);
 
   /** The scope in force, as a member. */

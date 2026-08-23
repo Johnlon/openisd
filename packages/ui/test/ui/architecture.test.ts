@@ -16,12 +16,16 @@ import { describe, it, vi } from 'vitest';
 import assert from 'node:assert/strict';
 
 /**
- * The two CHECKLIST gates below (PrivateAllow, ALLOWED_GLOBALS) are born-red by design —
- * their offence list IS the human's to-do list, and their enforcement point is A10's
- * byte-identical allow-list check plus `npm run ci`/health-check, not the per-commit gate.
- * Under `PRECOMMIT=1` (set only by scripts/hooks-local/pre-commit) they SKIP, loudly, so a
- * standing checklist cannot block every commit; in every other run they execute and stay
- * red until the checklist is worked off. This changes WHEN they run, never what they assert.
+ * The two CHECKLIST gates below (PrivateAllow, ALLOWED_GLOBALS) self-skip loudly under
+ * `PRECOMMIT=1` (set only by scripts/hooks-local/pre-commit) so a standing checklist cannot
+ * block every commit; in every other run they execute normally. This changes WHEN they run,
+ * never what they assert. `ALLOWED_GLOBALS` is still born-red by design — its offence list IS
+ * the human's to-do list, enforced at A10/`npm run ci`/health-check rather than per-commit.
+ * `PrivateAllow` (the class-private gate below) is NOT that kind of checklist any more: an
+ * import of a private name is a hard failure unless the (file, name) pair is individually
+ * `HUMAN_GRANTED` in the gate itself — the wrapper is kept only because a handful of
+ * pre-existing offences are still being worked down toward zero, not because open-ended
+ * grants are how this gate is meant to be satisfied.
  */
 const checklistDescribe = process.env.PRECOMMIT === '1'
   ? (name: string, fn: () => void) => {
@@ -31,7 +35,7 @@ const checklistDescribe = process.env.PRECOMMIT === '1'
   : describe;
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { Project as TsProject, Node, SyntaxKind, type SourceFile } from 'ts-morph';
 
 // Every gate in this file walks the source tree and builds ASTs — parse-bound work, not the
@@ -102,7 +106,7 @@ function importsOf(file: string): string[] {
 
 /** Which layer a specifier resolves into, judged from the path it names. */
 function layerOf(spec: string): 'ui' | 'logic' | 'service' | 'domain' | 'external' {
-  if (/(^|\/)(persistence)\//.test(spec) || /(^|\/)(diagnostics|logging)\//.test(spec)) return 'service';
+  if (spec === '@openisd/persistence' || /(^|\/)(persistence)\//.test(spec) || /(^|\/)(diagnostics|logging)\//.test(spec)) return 'service';
   if (/(^|\/)logic\//.test(spec)) return 'logic';
   if (/(^|\/)ui\//.test(spec) || spec.endsWith('.vue')) return 'ui';
   if (spec.startsWith('@openisd/')) return 'domain';
@@ -142,6 +146,10 @@ const rel = (f: string) => relative(UI_SRC, f);
 
 const MODEL_SRC = join(UI_SRC, '..', '..', 'model', 'src');
 const WINISD_SRC = join(UI_SRC, '..', '..', 'winisd', 'src');
+// The data-access tier (repos/storage) is its own package now, not a ui/src directory
+// (John's ruling: a real 3-tier package boundary, not a directory convention).
+const PERSISTENCE_SRC = join(UI_SRC, '..', '..', 'persistence', 'src');
+const ENGINE_SRC = join(UI_SRC, '..', '..', 'engine', 'src');
 
 /**
  * Every import of `name` from a module matching `specPattern` — type-only or value, since a
@@ -189,7 +197,7 @@ function callsExpression(file: string, expr: string): boolean {
 
 describe('layering — every arrow points downward', () => {
   it('a service never imports the application state or the logic layer', () => {
-    const services = [join(UI_SRC, 'persistence'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')]
+    const services = [PERSISTENCE_SRC, join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')]
       .flatMap(filesUnder);
     assert.ok(services.length > 0, 'no service files found — the gate would pass vacuously');
 
@@ -204,7 +212,7 @@ describe('layering — every arrow points downward', () => {
   });
 
   it('a service never imports a sibling service', () => {
-    const groups = { persistence: join(UI_SRC, 'persistence'), diagnostics: join(UI_SRC, 'diagnostics'), logging: join(UI_SRC, 'logging') };
+    const groups = { persistence: PERSISTENCE_SRC, diagnostics: join(UI_SRC, 'diagnostics'), logging: join(UI_SRC, 'logging') };
     const offences: string[] = [];
     for (const [own, dir] of Object.entries(groups)) {
       for (const f of filesUnder(dir)) {
@@ -254,7 +262,7 @@ describe('layering — every arrow points downward', () => {
   });
 
   it('logic and the services hold no view components', () => {
-    const files = [join(UI_SRC, 'logic'), join(UI_SRC, 'persistence'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')]
+    const files = [join(UI_SRC, 'logic'), PERSISTENCE_SRC, join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')]
       .flatMap(filesUnder);
     const offences = files.flatMap(f =>
       importsOf(f).filter(s => s.endsWith('.vue')).map(s => `${rel(f)} imports ${s}`));
@@ -264,7 +272,7 @@ describe('layering — every arrow points downward', () => {
 });
 
 describe('inversion of control — collaborators are injected, never reached for', () => {
-  const CONSTRUCTED = [join(UI_SRC, 'persistence'), join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')];
+  const CONSTRUCTED = [PERSISTENCE_SRC, join(UI_SRC, 'diagnostics'), join(UI_SRC, 'logging')];
   const REACTIVE_FACTORIES = new Set(['ref', 'shallowRef', 'reactive', 'shallowReactive']);
 
   it('a service exports no mutable module-level binding', () => {
@@ -637,7 +645,7 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
 // Every privacy scan set below is built from src/ roots ONLY — a test file may name a
 // _-prefixed export or a _-prefixed class member freely. Widening any of these scans to
 // test directories would revoke that ruling and needs the human.
-const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC)];
+const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC), ...filesUnder(PERSISTENCE_SRC), ...filesUnder(ENGINE_SRC)];
 const REPO_ROOT = join(UI_SRC, '..', '..');
 
 /** Every `export interface|type|class|function|const|let _Name` top-level declaration site in
@@ -688,7 +696,7 @@ checklistDescribe('leading-underscore exports are class-private — owner-only, 
    *   typed as one; it is opened exactly once, through the injected conformance factory.
    */
   const HUMAN_GRANTED: ReadonlyArray<readonly [file: string, name: string]> = [
-    ['ui/src/persistence/repos/driverRepo.ts', '_OpenISDDriverJson'],
+    ['persistence/src/repos/driverRepo.ts', '_OpenISDDriverJson'],
   ];
 
   it('no file outside a name\'s declaring file imports it (human-granted pairs excepted)', () => {
@@ -832,89 +840,211 @@ describe('an export typed as a private _Name must itself be _-prefixed', () => {
   });
 });
 
+
 /**
- * Human ruling (QO52, closed 2026-08-18): the only module-level globals the app may export are
- * `openProjects()` and `focusedProject()`. Everything else in `appState.ts`'s state surface must
- * become a method/getter on the focused project object instead of a free module export.
+ * Human ruling (QO52, closed 2026-08-18; RETIRED 2026-08-23): appState.ts's export surface was
+ * once restricted to `openProjects()`/`focusedProject()` by name, enforced by the per-export
+ * ALLOWED_GLOBALS checklist below. That checklist is gone.
  *
- * Human ruling (QO72, 2026-08-21, verbatim): "remove the scanned file list now and make scan
- * all - potentially I will need to grant individual global[s] on individual files. if I do that
- * then I need a correlation to ensure that anything I grant actually exists and if its gone then
- * delete the grant." Scope is every production file (`ALL_SRC_FILES`, defined above), no
- * allowlist.
- * A file with no `ALLOWED_GLOBALS` of its own and any top-level export is therefore an offence
- * on day one for most of the tree — expected, per the same "fails loudly, the list IS the
- * checklist" precedent QO52 already established, not a bug in the gate.
- *
- * The "correlation" half of the ruling: a name in a file's `ALLOWED_GLOBALS` is a GRANT, and a
- * grant for an export that no longer exists (renamed or deleted) is stale and must fail too —
- * `allowedButNotExported` below — so a human can find and delete it, rather than it sitting
- * inert and unnoticed forever.
- *
- * Same `ALLOWED_GLOBALS` mechanism as `PrivateAllow` above: a module declares its own
- * `export const ALLOWED_GLOBALS = [...]`, co-located, human-edit-only.
+ * Human ruling (QO80, closed 2026-08-23, verbatim): "since ui modules are at the top of the
+ * tree then there should [be] nothing exported to other lower dirs, I am not so concerned about
+ * individual files at the moment but the orderly layering — make sure QO80 is closed if it's
+ * still bothered by file-level stuff and instead make sure we have layering and enforcement
+ * covered." The per-export ALLOWED_GLOBALS grant checklist (QO72's ALL_SRC_FILES scan, a
+ * human-edit-only array per file) is RETIRED — no file-by-file grant list, no per-module
+ * `ALLOWED_GLOBALS` array. Enforcement pivots entirely to the ORDERLY LAYERING checked below:
+ * which layer may depend on which, never which individual name a file happens to export.
  */
-checklistDescribe('module-level globals — every export must be an explicit, currently-real grant', () => {
-  const SCANNED_FILES = ALL_SRC_FILES;
 
-  /** Every top-level `export const|function|class NAME` in a file — same declaration shape as
-   *  `declaredExportedPrivateNames()` above, but without requiring a leading underscore. */
-  function topLevelExportsOf(file: string): string[] {
-    const source = sourceFileOf(file);
-    const names: string[] = [];
-    for (const fn of source.getFunctions()) { const n = fn.getName(); if (fn.isExported() && n) names.push(n); }
-    for (const cls of source.getClasses()) { const n = cls.getName(); if (cls.isExported() && n) names.push(n); }
-    for (const vs of source.getVariableStatements()) {
-      if (!vs.isExported()) continue;
-      for (const decl of vs.getDeclarations()) names.push(decl.getName());
-    }
-    return names;
+/** Coarse layer bucket for a file path, judged from its directory — shared by both layering
+ *  gates below (the upward-import ban and the layer-edge legality matrix). */
+function fileLayer(file: string): string {
+  if (file.startsWith(MODEL_SRC)) return 'model';
+  if (file.startsWith(WINISD_SRC)) return 'winisd';
+  if (file.startsWith(ENGINE_SRC)) return 'engine';
+  if (file.startsWith(PERSISTENCE_SRC)) {
+    const pr = relative(PERSISTENCE_SRC, file).replace(/\\/g, '/');
+    if (pr.startsWith('repos/')) return 'persistence-repos';
+    if (pr.startsWith('storage/')) return 'persistence-storage';
+    return 'persistence';
   }
+  const r = relative(UI_SRC, file).replace(/\\/g, '/');
+  if (r.startsWith('..')) return 'ui/other';
+  if (/(^|\/)test\//.test(r) || file.includes(`${sep}test${sep}`)) return 'ui/test';
+  if (file === join(UI_SRC, 'main.ts')) return 'ui/entrypoint';
+  if (r.startsWith('logic/')) return 'ui/logic';
+  if (r.startsWith('diagnostics/')) return 'ui/diagnostics';
+  if (r.startsWith('logging/')) return 'ui/logging';
+  if (r.startsWith('ui/')) return 'ui/components';
+  if (!r.includes('/')) return 'ui/root';
+  return `ui/other:${r.split('/')[0]}`;
+}
 
-  /** `export const ALLOWED_GLOBALS = ['name1', 'name2', ...]` declared in the file itself. */
-  function allowedGlobalsOf(file: string): string[] {
-    const source = sourceFileOf(file);
-    for (const vs of source.getVariableStatements()) {
-      if (!vs.isExported()) continue;
-      for (const decl of vs.getDeclarations()) {
-        if (decl.getName() !== 'ALLOWED_GLOBALS') continue;
-        const init = decl.getInitializer();
-        if (init && Node.isArrayLiteralExpression(init)) {
-          return init.getElements().filter(Node.isStringLiteral).map(e => e.getLiteralValue());
+/** Resolve a value-import specifier to the layer it names — a bare `@openisd/*` package maps
+ *  directly; a relative specifier is resolved against the importing file and classified by
+ *  `fileLayer()`, same as the file it points at. Returns null for an npm package (irrelevant
+ *  to the app's own layering) or a specifier that cannot be resolved to a file on disk. */
+function specLayer(fromFile: string, spec: string): string | null {
+  if (spec.startsWith('@openisd/model')) return 'model';
+  if (spec.startsWith('@openisd/persistence')) return 'persistence';
+  if (spec.startsWith('@openisd/winisd')) return 'winisd';
+  if (spec.startsWith('@openisd/engine')) return 'engine';
+  if (spec.startsWith('@openisd/')) return null;
+  if (!spec.startsWith('.')) return null;
+  const base = join(dirname(fromFile), spec).replace(/\.js$/, '');
+  for (const candidate of [`${base}.ts`, `${base}.vue`, base]) {
+    if (ALL_SRC_FILES.includes(candidate)) return fileLayer(candidate);
+  }
+  return null;
+}
+
+describe('layering — nothing outside ui imports from ui (QO80: "ui modules are at the top of the tree")', () => {
+  it('no file in logic, persistence, model, winisd, or engine imports a ui/ module or a .vue file', () => {
+    const offences: string[] = [];
+    for (const f of ALL_SRC_FILES) {
+      const layer = fileLayer(f);
+      if (layer.startsWith('ui/')) continue; // ui files importing sibling ui files is expected
+      for (const s of importsOf(f)) {
+        if (/(^|\/)ui\//.test(s) || s.endsWith('.vue')) offences.push(`${fileLayer(f)}: ${rel(f)} imports ${s}`);
+      }
+    }
+    assert.deepEqual(offences, [],
+      'ui is the top of the tree (QO80, John: "there should [be] nothing exported to other ' +
+      'lower dirs"). Nothing below ui — logic, persistence, model, winisd, engine — may import ' +
+      'a ui/ module or a .vue file. That dependency runs the wrong direction.');
+  });
+});
+
+describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 2026-08-23)', () => {
+  // Every (importer layer -> depends-on layer) edge John has ruled legal, either directly
+  // (the QO80 triage session's layer-matrix ruling) or by the pre-existing downward-layering
+  // gates above (ui/components -> ui/logic, ui/logic -> model, etc.). `ui/entrypoint`
+  // (main.ts, the composition root) is exempt below — it legitimately wires every layer.
+  const ALLOWED_EDGES = new Set([
+    'ui/components->ui/logic', 'ui/components->model', 'ui/components->ui/root',
+    'ui/logic->model', 'ui/logic->persistence', 'ui/logic->ui/root', 'ui/logic->winisd', 'ui/logic->engine',
+    'persistence-repos->model', 'persistence-repos->engine', 'persistence-storage->model',
+    'model->winisd', // human-approved 2026-08-23: toWinISDDriver/toWinISDProject/fromWinISDProject
+    'winisd->model', // the correct-direction bridge (winisd/src/bridge.ts)
+    'ui/diagnostics->ui/root', 'ui/logging->ui/root',
+    'ui/diagnostics->engine', // selftest.ts exercises the engine to self-check it's callable
+    'model->engine', // the domain layer computes against engine's calc types (e.g. driverSimulatability)
+  ]);
+
+  it('every cross-layer import matches a ruled-legal edge', () => {
+    const offences: string[] = [];
+    for (const f of ALL_SRC_FILES) {
+      const fromLayer = fileLayer(f);
+      if (fromLayer === 'ui/entrypoint' || fromLayer === 'ui/test') continue; // composition root / tests: exempt
+      for (const s of importsOf(f)) {
+        const toLayer = specLayer(f, s);
+        if (!toLayer || toLayer === fromLayer) continue; // unresolved (npm package) or same-layer composition
+        const edge = `${fromLayer}->${toLayer}`;
+        if (!ALLOWED_EDGES.has(edge)) offences.push(`${edge}: ${rel(f)} imports ${s}`);
+      }
+    }
+    assert.deepEqual(offences, [],
+      'This edge is not on the ruled legality matrix (QO80, 2026-08-23). Either it is a genuine ' +
+      'new layering violation (fix the dependency direction or relocate the export, as with the ' +
+      'DriverType move), or it is a new legitimate edge that needs the human\'s ruling added to ' +
+      'ALLOWED_EDGES above — an agent may not widen ALLOWED_EDGES on its own authority, same as ' +
+      'the retired ALLOWED_GLOBALS rule.');
+  });
+});
+
+
+/**
+ * Human ruling (QO86, closed 2026-08-23, verbatim): "generally nothing should be public or
+ * exported and that export * is a serious violation of control and arch, and we need an arch
+ * test to detect it and block it in favour of named selective intentional exports of own code
+ * and never a re-exported symbol." Refined execution (same day, verbatim): "make the exports
+ * check take a baseline from current state so it isn't blocking our release, but a fail if new
+ * wildcards are added ... for now let's take a baseline and add the tests, then as a
+ * non-blocking unit of work convert all wildcard to specific and remove the wildcard from the
+ * baseline, but not as a release blocker."
+ *
+ * A RATCHET, not a born-red checklist: `EXPORT_STAR_BASELINE` below is the exact symbol set
+ * every pre-existing `export * from X` site re-exported at baseline time (2026-08-23),
+ * generated mechanically from the AST, not hand-typed. The gate passes on this snapshot and
+ * fails on (a) any `export *` anywhere not in the baseline — a brand-new violation, or
+ * (b) a baselined site whose CURRENTLY-resolved symbol set is a superset of its baseline — a
+ * new symbol smuggled through an old star. `@openisd/persistence`'s barrel is born compliant
+ * (named exports only, see `packages/persistence/src/index.ts`) and carries no baseline row.
+ * Converting each remaining row to named exports (deleting it from the baseline as it
+ * converts, until the baseline is empty and the ban is absolute) is separate, non-blocking work
+ * — not this gate's job.
+ */
+const EXPORT_STAR_BASELINE: Record<string, Record<string, string[]>> = {
+  'model/src/index.ts': {
+    './openisdRecord.js': ['CrossSourceReading', 'CurveEntry', 'CurvesBlock', 'DQStatus', 'DqKind', 'DqMark', 'DqSeverity', 'Ground', 'QualityBlock', 'Rating', 'Reading', 'SourceRole'],
+    './openisdDerive.js': ['OpenISDDerivation', 'deriveOpenISDFields'],
+    './openisdDriver.js': ['Cell', 'MetaCell', 'MetaField', 'OpenISDDriver', 'Provenance', 'SpecField', '_BookkeepingField', '_DerivedField', '_OpenISDDriverJson', '_ScrapedField', '_SpecEntry', '_SpecSection', '_Specs', 'driverRecordProblems', 'winningReading'],
+    './openisdProject.js': ['AlignmentKind', 'OpenISDBandpass4Alignment', 'OpenISDBox', 'OpenISDEnvironment', 'OpenISDListening', 'OpenISDPassiveRadiatorAlignment', 'OpenISDPassiveRadiatorRef', 'OpenISDProject', 'OpenISDProjectMeta', 'OpenISDSealedAlignment', 'OpenISDSignal', 'OpenISDSimOptions', 'OpenISDSweepRange', 'OpenISDTarget', 'OpenISDVent', 'OpenISDVentedAlignment', 'ProjectFieldId', 'VENT_ARITY', 'WinIsdBType', '_OpenISDProjectJson'],
+    './openisdYamlToWdr.js': ['openisdYamlToWdr'],
+    './driverType.js': ['Chip', 'DriverType'],
+  },
+  'winisd/src/index.ts': {
+    './winisdBytes.js': ['WINISD_NEWLINE_SENTINEL', 'WinisdDecodedText', 'WinisdEncoding', 'winisdBytesToText', 'winisdTextToBytes'],
+    './winisdProject.js': ['WinISDProject'],
+    './winisdDriver.js': ['INI_ROWS', 'WdrCell', 'WdrHeader', 'WinISDDriver'],
+    './parstate.js': ['CellState', 'PARSTATE_LEN', 'POS_TO_WDRKEY'],
+  },
+  'engine/src/engine.ts': {
+    './types.js': ['BoxType', 'CircuitModel', 'Complex', 'DriverError', 'EngineDriver', 'Filter', 'FilterType', 'IssueLevel', 'MaxCurvesResult', 'Result', 'Solution', 'SweepParams', 'SweepResult', 'Wiring'],
+    './constants.js': ['FLAT_MAX_BOOST_DB', 'G_STANDARD', 'P0'],
+    './air.js': ['Air', 'AirEnvironment', 'END_CORRECTION', 'GAMMA', 'P_REF_PA', 'RH_REF_PCT', 'T_REF_K', 'airFor', 'moistAirDensity', 'moistAirSoundVelocity', 'saturationVapourPressure', 'waterVapourMoleFraction'],
+    './complex.js': ['cAbs', 'cAdd', 'cArg', 'cDiv', 'cInv', 'cMul', 'cPar', 'cScale', 'cSub', 'cTanh', 'cx'],
+    './driver.js': ['deriveEngineDriver', 'driverC', 'driverRho', 'hotRe', 'nominalImpedance', 'solveConsistencyGroup', 'withAddedMass'],
+    './efficiency.js': ['efficiencyConstant', 'efficiencyFromSpl', 'referenceEfficiency', 'splFromEfficiency', 'splReferenceConstantDb'],
+    './consistency.js': ['ConsistencyIssue', 'Q_GROUP_FIELDS', 'checkConsistency', 'isQGroupField', 'qGroupIsIncomplete'],
+    './params.js': ['validateParams'],
+    './circuit.js': ['portImpedance', 'portLoss', 'solve'],
+    './sweep.js': ['classifyFinite', 'classifyFlatClamp', 'classifyMaxFinite', 'groupDelayMs', 'hfPassbandRef', 'maxCurves', 'passbandRef', 'rolloffFreq', 'sweep', 'tfMag', 'unwrap'],
+    './alignments.js': ['ebp', 'findImpedancePeak', 'prMassForFp', 'prTuning', 'sealedFc', 'sealedFromQtc', 'tuningFromLength', 'ventLength', 'ventedAlignment'],
+    './filters.js': ['applyFilters', 'evalFilter', 'highPass', 'highShelf', 'linkwitz', 'lowPass', 'lowShelf', 'peakingEQ'],
+    './formulas.js': ['driveVoltage', 'prCmsFromVas', 'prFs', 'prFsWithMass', 'prMmdFromFs', 'prQms', 'prRmsFromQms', 'prVas'],
+    './lossMode.js': ['LossMode', 'SealedParams', 'sealedFscWinisd', 'sealedResonance', 'sealedResonanceWinisd', 'sourceLoadedQts'],
+    './dvolRelation.js': ['DvolInputs', 'depthFromDims', 'dvolFromDims', 'magDepthFromDims', 'magnetFromDims'],
+  },
+};
+/** Every bare `export * from '...'` in a file — no named bindings, no namespace alias — with
+ *  the target module's own current top-level exported names (one level, matching exactly what
+ *  `export *` re-exports from that specifier). */
+function starSitesIn(file: string): { spec: string; names: string[] }[] {
+  const source = sourceFileOf(file);
+  const sites: { spec: string; names: string[] }[] = [];
+  for (const exp of source.getExportDeclarations()) {
+    if (exp.getNamedExports().length > 0 || exp.getNamespaceExport()) continue;
+    const spec = exp.getModuleSpecifierValue();
+    if (!spec) continue; // `export *` always has a `from` clause; this is unreachable in practice
+    const target = exp.getModuleSpecifierSourceFile();
+    sites.push({ spec, names: target ? [...target.getExportedDeclarations().keys()].sort() : [] });
+  }
+  return sites;
+}
+
+describe('export * is banned outright — QO86 ratchet (baseline now, zero eventually)', () => {
+  it('no export * site outside the recorded baseline, and no baselined site has grown', () => {
+    const offences: string[] = [];
+    for (const f of ALL_SRC_FILES) {
+      const key = relative(REPO_ROOT, f).replace(/\\/g, '/');
+      const baseline = EXPORT_STAR_BASELINE[key];
+      for (const { spec, names } of starSitesIn(f)) {
+        const baselineNames = baseline?.[spec];
+        if (!baselineNames) {
+          offences.push(`${key}: NEW export * from '${spec}' — not on the QO86 baseline; convert to named exports`);
+          continue;
+        }
+        const grown = names.filter(n => !baselineNames.includes(n));
+        if (grown.length) {
+          offences.push(`${key}: export * from '${spec}' now also re-exports ${grown.join(', ')} — growth beyond its QO86 baseline`);
         }
       }
     }
-    return [];
-  }
-
-  it('every scanned module\'s exports are named in its own ALLOWED_GLOBALS', () => {
-    const offences = SCANNED_FILES.flatMap(f => {
-      const allowed = new Set(allowedGlobalsOf(f));
-      return topLevelExportsOf(f)
-        .filter(name => name !== 'ALLOWED_GLOBALS' && !allowed.has(name))
-        .map(name => `${rel(f)} exports ${name}, not listed in its own ALLOWED_GLOBALS`);
-    });
-
     assert.deepEqual(offences, [],
-      'Only openProjects()/focusedProject() are legal module-level globals (QO52). Every ' +
-      'offence above is an appState.ts export that must become a method/getter on the focused ' +
-      'project object, be deleted outright, or — only with the human\'s own edit — be added ' +
-      'to ALLOWED_GLOBALS with a one-line justification. An agent may never widen ' +
-      'ALLOWED_GLOBALS itself to make this test pass.');
-  });
-
-  it('every name granted in ALLOWED_GLOBALS still corresponds to a real export (QO72 correlation)', () => {
-    const offences = SCANNED_FILES.flatMap(f => {
-      const exported = new Set(topLevelExportsOf(f));
-      return allowedGlobalsOf(f)
-        .filter(name => !exported.has(name))
-        .map(name => `${rel(f)} lists ${name} in ALLOWED_GLOBALS, but no such export exists`);
-    });
-
-    assert.deepEqual(offences, [],
-      'A grant naming an export that no longer exists (renamed or deleted) is stale (QO72, ' +
-      'human: "if I grant [something] I need a correlation to ensure that anything I grant ' +
-      'actually exists and if its gone then delete the grant"). Delete the stale name from ' +
-      'that file\'s own ALLOWED_GLOBALS — human-edit-only, same as adding one.');
+      'export * is banned outright (QO86, John: "export * is a serious violation of control and ' +
+      'arch"). A barrel lists its exports by name, selectively, intentionally. New wildcards are ' +
+      'never allowed; an existing baselined wildcard may shrink (as it is converted to named ' +
+      'exports) but never grow.');
   });
 });

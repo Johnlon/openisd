@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { managedProject } from '../../logic/appState.js';
 import { createLiveRef } from '../../logic/liveProject.js';
-import type { PRLibEntry } from '../../types.js';
+import type { PRLibEntry } from '@openisd/persistence';
 import NumInput from './NumInput.vue';
 import { useApp } from '../../logic/app.js';
 

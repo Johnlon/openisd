@@ -533,6 +533,12 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
 
 ## Quality / infrastructure
 
+- [ ] **P1** driverRepo takes the domain object, not the JSON record — retire the
+      `_OpenISDDriverJson` HUMAN_GRANTED pair in `packages/ui/test/ui/architecture.test.ts` by
+      changing the repo's API to accept/return `OpenISDDriver`, keeping the JSON shape private
+      to `@openisd/model`. John's ruling (2026-08-23): "allow repo to see Json class, though
+      personally I would expect the API of the remote take the domain object to avoid callers
+      having access to Json object too"
 - [ ] **P1** Fix existing code-review / vibe-coding issues before adding new features — run `/code-review` and clear all findings first
 - [ ] **P1** Enforce architecture at build time — wire ESLint plugins into `vite build` (fail build on lint errors); add `eslint-plugin-functional` (immutability), `eslint-plugin-boundaries` (module layers), `eslint-plugin-sonarjs` (complexity), `eslint-plugin-import` (no-cycle), `dependency-cruiser` (dep graph); see `docs/research/COMPETITIVE_LANDSCAPE.md`
 - [ ] **P1** `scripts/` utility (+ CI step) to detect duplicate / same-model drivers as the library grows

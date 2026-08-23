@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createLogging } from '../../src/logging/flash.js';
 import { createDesignIO } from '../../src/logic/useDesignIO.js';
-import { createFileStorage } from '../../src/persistence/storage/fileStorage.js';
+import { createFileStorage } from '@openisd/persistence';
 import { managedProject, state } from '../../src/logic/appState.js';
 
 beforeAll(() => {
