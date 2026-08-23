@@ -56,10 +56,10 @@ export interface UiState {
   chartColors?: Partial<Record<'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor', string>>;
 }
 
-/** The presentation remainder of a saved session — everything a link or a save carries that
- *  is neither the project's own fields (`UiParams`) nor its metadata: the loss-model choice,
- *  the open charts, the panel/unit preferences, and the graph cursor. Declared HERE, by the
- *  repo, as the port the logic layer maps its live presentation state into. */
+/** The presentation remainder of a saved session — everything a link carries that is neither
+ *  the project's own fields (`UiParams`) nor its metadata: the loss-model choice, the open
+ *  charts, the panel/unit preferences, and the graph cursor. Declared HERE, by the repo, as
+ *  the port the logic layer maps its live presentation state into. */
 export interface ViewSnapshot {
   lossMode?: string;
   graphs: string[];
@@ -67,24 +67,27 @@ export interface ViewSnapshot {
   cursor?: { f: number | null; pinnedF: number | null; locked: boolean; range?: { fLo: number; fHi: number } | null };
 }
 
-/** One open design, in domain vocabulary — what a save takes and a load returns. `params` is
- *  the domain's own wire snapshot (`OpenISDProject.toUiParams()`); `driverText` is the managed
- *  layer's serialised driver TEXT (QO73 — the record shape never crosses); `meta`/`box` are the
- *  app's live project metadata and alignment. */
-export interface ProjectWrite {
+/**
+ * One persisted design snapshot, in domain vocabulary — what every door of this repo takes
+ * and returns, on both the write and the read side (QO90: a separate hand-written read shape
+ * is how a field added to one silently stops being tracked by the other).
+ *
+ * `params`/`box`/`meta`/`view` are required: there are no old saves this build must tolerate
+ * missing them (`ProjectSchema.upgrade()` repairs SHAPE faults in already-written payloads,
+ * per the 2026-08-17 policy — it is not a reason to model a field as optional here). Only
+ * `driverText` is genuinely optional, and for a live, current reason: a brand-new project
+ * before the user has picked any driver from the library has none
+ * (`managedProject.persistedDriverText()` returns `undefined` for exactly that state).
+ *
+ * `view` is carried by every door at this type's level, but only WRITTEN to the wire by the
+ * share-link doors (`stateToUrl`/`loadFromHash`) — the pure-project doors (`saveLocal`/
+ * `saveToFile`/`saveToNewFile`/`loadLocal`/`readProjectText`, QO90) ignore it. See
+ * `projectPayloadOf`/`sessionPayloadOf` below.
+ */
+export interface ProjectPayload {
   params: UiParams;
   box: BoxType;
   meta: OpenISDProjectMeta;
-  view: ViewSnapshot;
-  driverText: string | undefined;
-}
-
-/** A loaded design. Fields are partial where an older payload may genuinely lack them; the
- *  caller applies each only if present, onto the state it already has. */
-export interface ProjectRead {
-  params?: Partial<UiParams>;
-  box: BoxType;
-  meta?: OpenISDProjectMeta;
   view: ViewSnapshot;
   driverText?: string;
 }
@@ -104,8 +107,11 @@ export interface ProjectSchema {
 
 export const PROJECT_STATE_KEY = 'openisd.state';
 
-/** The persisted / URL-encoded snapshot shape. INTERNAL: repo callers speak
- *  `ProjectWrite`/`ProjectRead`; this is the payload they become on disk and in links. */
+/** The persisted / URL-encoded snapshot shape. INTERNAL: repo callers speak `ProjectPayload`;
+ *  this is the payload it becomes on disk and in links. `P`/`graphs`/`lossMode`/`ui`/`cursor`
+ *  are all optional on the wire because a pure-project save (QO90 — `saveLocal`/`saveToFile`/
+ *  `saveToNewFile`) never writes the view fields, while a share link (`stateToUrl`) writes
+ *  every field. One schema, an optional view section — not two payload shapes. */
 interface SerializedState {
   /** The MODEL schema version this payload was serialised from. Readers upgrade from it
    *  (the injected `ProjectSchema`). Optional on the way IN because pre-policy payloads carry none —
@@ -120,11 +126,10 @@ interface SerializedState {
   driver?: string;
   box: BoxType;
   lossMode?: string;
-  P: UiParams;
-  graphs: string[];
-  // A local save carries the full ui; stateToUrl() carries most of it too (active
-  // tab/chart), stripping only personal working state (open-editor buffer, unit prefs) —
-  // see `stateToUrl()`.
+  P?: UiParams;
+  graphs?: string[];
+  // A share link carries the full ui (human ruling 2026-08-14); a pure-project save carries
+  // none of it (QO90).
   ui?: UiState;
   project?: OpenISDProjectMeta;
   // Graph cursor/marker — carried by BOTH a local save (refresh fidelity) and a share link,
@@ -160,23 +165,26 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 
 export interface ProjectRepo {
   /** Autosave to browser storage. Quota/disabled storage is non-fatal — an autosave that
-   *  cannot happen must not take the session down. */
-  saveLocal(w: ProjectWrite): void;
+   *  cannot happen must not take the session down. Writes PURE PROJECT DATA (QO90) — `p.view`
+   *  is accepted (every caller has one to hand) but never reaches the wire. */
+  saveLocal(p: ProjectPayload): void;
   /** The saved design, brought to the current schema, or null when none/unreadable. */
-  loadLocal(): ProjectRead | null;
-  /** A URL carrying the WHOLE state, stripped of nothing (human ruling 2026-08-14). */
-  stateToUrl(w: ProjectWrite): Promise<string>;
+  loadLocal(): ProjectPayload | null;
+  /** A URL carrying the WHOLE session, stripped of nothing (human ruling 2026-08-14) —
+   *  `p.view` is written to the wire, unlike the pure-project doors. */
+  stateToUrl(p: ProjectPayload): Promise<string>;
   /** The design in the current location hash, or null when the hash carries none. */
-  loadFromHash(): Promise<ProjectRead | null>;
+  loadFromHash(): Promise<ProjectPayload | null>;
   /** A design parsed from opened file TEXT — File → Open's JSON branch. Same schema seam as
    *  every other door, so a payload an older build wrote loads identically whichever way it
    *  arrives (bugs/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md). */
-  readProjectText(text: string): ProjectRead | null;
+  readProjectText(text: string): ProjectPayload | null;
   /** Write to the previously-picked file (first save prompts). `naming` carries the
-   *  suggested filename and the picker's format bits. */
-  saveToFile(w: ProjectWrite, naming: FileNaming): Promise<SaveResult>;
-  /** Always prompt for a new location. */
-  saveToNewFile(w: ProjectWrite, naming: FileNaming): Promise<SaveResult>;
+   *  suggested filename and the picker's format bits. Pure project data (QO90), like
+   *  `saveLocal`. */
+  saveToFile(p: ProjectPayload, naming: FileNaming): Promise<SaveResult>;
+  /** Always prompt for a new location. Pure project data (QO90), like `saveLocal`. */
+  saveToNewFile(p: ProjectPayload, naming: FileNaming): Promise<SaveResult>;
 }
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
@@ -185,7 +193,9 @@ export function createProjectRepo(
   storage: KeyValueStorage, schema: ProjectSchema, fileStorage: FileStorage,
 ): ProjectRepo {
 
-  function payloadOf(w: ProjectWrite): SerializedState {
+  /** PURE PROJECT DATA (QO90) — `saveLocal`/`saveToFile`/`saveToNewFile`'s wire writer. `p.view`
+   *  is ignored: a `.owpr` save and the local autosave carry only the project. */
+  function projectPayloadOf(p: ProjectPayload): SerializedState {
     return {
       // The MODEL version this payload is written from — every reader upgrades from it
       // (ARCHITECTURE.md §"EVERY STORED PAYLOAD CARRIES THE SCHEMA VERSION..."). `v` was
@@ -193,22 +203,29 @@ export function createProjectRepo(
       // the type still declares it, and `schema` is the field that means something.
       schema: schema.current,
       v: 2,
-      driver: w.driverText,
-      box: w.box,
-      lossMode: w.view.lossMode,
-      P: w.params,
-      graphs: w.view.graphs,
-      ui: w.view.ui,
-      project: w.meta,
-      cursor: w.view.cursor,
+      driver: p.driverText,
+      box: p.box,
+      P: p.params,
+      project: p.meta,
     };
   }
 
-  function readOf(s: SerializedState): ProjectRead {
+  /** The WHOLE session (human ruling 2026-08-14) — `stateToUrl`'s wire writer. */
+  function sessionPayloadOf(p: ProjectPayload): SerializedState {
     return {
-      params: s.P,
+      ...projectPayloadOf(p),
+      lossMode: p.view.lossMode,
+      graphs: p.view.graphs,
+      ui: p.view.ui,
+      cursor: p.view.cursor,
+    };
+  }
+
+  function readOf(s: SerializedState): ProjectPayload {
+    return {
+      params: s.P!,   // guaranteed present — carriesStateShape refuses a blob without it
       box: s.box,
-      meta: s.project,
+      meta: s.project!,   // guaranteed present — carriesStateShape refuses a blob without it
       driverText: s.driver,
       view: { lossMode: s.lossMode, graphs: s.graphs ?? [], ui: s.ui, cursor: s.cursor },
     };
@@ -244,9 +261,11 @@ export function createProjectRepo(
     return blob;
   }
 
-  /** The shape check `upgradeParsedState` narrows on: `box` present as a string, and `driver`
-   *  either absent or serialised TEXT. Reports what it refused, because a silent null at a
-   *  restore boundary is indistinguishable from "nothing was saved". */
+  /** The shape check `upgradeParsedState` narrows on: `box` present as a string, `driver`
+   *  either absent or serialised TEXT, and `P`/`project` present — `ProjectPayload.params`/
+   *  `.meta` are required (there are no old saves this build must tolerate missing them).
+   *  Reports what it refused, because a silent null at a restore boundary is indistinguishable
+   *  from "nothing was saved". */
   function carriesStateShape(blob: Record<string, unknown>): blob is Record<string, unknown> & SerializedState {
     if (typeof blob.box !== 'string') {
       console.error('[restore] saved state states a schema but carries no box type — refused');
@@ -256,17 +275,25 @@ export function createProjectRepo(
       console.error('[restore] saved state carries a driver slot that is not serialised text — refused');
       return false;
     }
+    if (!blob.P || typeof blob.P !== 'object') {
+      console.error('[restore] saved state carries no project params — refused');
+      return false;
+    }
+    if (!blob.project || typeof blob.project !== 'object') {
+      console.error('[restore] saved state carries no project metadata — refused');
+      return false;
+    }
     return true;
   }
 
-  function readParsed(parsed: unknown): ProjectRead | null {
+  function readParsed(parsed: unknown): ProjectPayload | null {
     const s = upgradeParsedState(parsed);
     return s ? readOf(s) : null;
   }
 
   return {
-    saveLocal(w: ProjectWrite): void {
-      storage.set(PROJECT_STATE_KEY, JSON.stringify(payloadOf(w)));   // createLocalStorage already guards quota/disabled
+    saveLocal(p: ProjectPayload): void {
+      storage.set(PROJECT_STATE_KEY, JSON.stringify(projectPayloadOf(p)));   // createLocalStorage already guards quota/disabled
     },
 
     /**
@@ -277,7 +304,7 @@ export function createProjectRepo(
      * refused rather than loaded hopefully; `upgrade()` throws and this returns null, leaving
      * the app on its own defaults with the stored bytes untouched for diagnosis.
      */
-    loadLocal(): ProjectRead | null {
+    loadLocal(): ProjectPayload | null {
       const raw = storage.get(PROJECT_STATE_KEY);
       if (!raw) return null;
       let parsed: unknown;
@@ -288,7 +315,7 @@ export function createProjectRepo(
       return readParsed(parsed);
     },
 
-    async stateToUrl(w: ProjectWrite): Promise<string> {
+    async stateToUrl(p: ProjectPayload): Promise<string> {
       // The URL carries the WHOLE state, stripped of nothing (human ruling 2026-08-14). A
       // share link is a complete description of the session: the recipient lands on exactly
       // what the sender was looking at, which is what makes a link usable for diagnostics and
@@ -299,27 +326,27 @@ export function createProjectRepo(
       // though they are preferences rather than design data. Fidelity beats politeness: a
       // link that quietly differs from what the sender saw cannot be used to diagnose what
       // the sender saw.
-      const encoded = await gzipEncodeBase64Url(JSON.stringify(payloadOf(w)));
+      const encoded = await gzipEncodeBase64Url(JSON.stringify(sessionPayloadOf(p)));
       return location.origin + location.pathname + '#s=' + encoded;
     },
 
-    async loadFromHash(): Promise<ProjectRead | null> {
+    async loadFromHash(): Promise<ProjectPayload | null> {
       const m = (location.hash || '').match(/[#&]s=([^&]+)/);
       if (!m) return null;
       try { return readParsed(JSON.parse(await gzipDecodeBase64Url(m[1]))); } catch { return null; }
     },
 
-    readProjectText(text: string): ProjectRead | null {
+    readProjectText(text: string): ProjectPayload | null {
       try { return readParsed(JSON.parse(text)); } catch { return null; }
     },
 
-    saveToFile(w: ProjectWrite, naming: FileNaming): Promise<SaveResult> {
-      return fileStorage.save(JSON.stringify(payloadOf(w), null, 2),
+    saveToFile(p: ProjectPayload, naming: FileNaming): Promise<SaveResult> {
+      return fileStorage.save(JSON.stringify(projectPayloadOf(p), null, 2),
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
 
-    saveToNewFile(w: ProjectWrite, naming: FileNaming): Promise<SaveResult> {
-      return fileStorage.saveAs(JSON.stringify(payloadOf(w), null, 2),
+    saveToNewFile(p: ProjectPayload, naming: FileNaming): Promise<SaveResult> {
+      return fileStorage.saveAs(JSON.stringify(projectPayloadOf(p), null, 2),
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
   };

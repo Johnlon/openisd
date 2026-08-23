@@ -5,12 +5,15 @@ import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
-import { managedProject, applyState, markProjectSaved, currentProjectWrite } from '../logic/appState.js';
+import {
+  managedProject, applyState, applyProjectPayload, applyViewSnapshot,
+  markProjectSaved, currentProjectPayload,
+} from '../logic/appState.js';
 import { presentationState } from '../logic/presentationState.js';
 import { createLiveRef } from '../logic/liveProject.js';
 import { useApp } from '../logic/app.js';
 
-const { diagnostics, projectRepo } = useApp();
+const { diagnostics, projectRepo, viewStateRepo } = useApp();
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash / self-test)
 // and the global overlays. The shell only arranges the shared components — no lifecycle or
@@ -27,18 +30,29 @@ let saveReady = false;
 // DERIVED values (`eg`/`Sp`/`Leff`, recomputed from the rest on load) would be a second
 // answer to the same question the moment either drifted from the other on restore.
 const { live } = createLiveRef(managedProject);
+// ONE gathered snapshot, TWO autosaves (QO90): `projectRepo.saveLocal` writes only the
+// project to the wire (it ignores `s.view` itself — see `projectRepo.ts`); `viewStateRepo`
+// persists the view separately, under its own storage key.
 watch(
-  () => { void live.value; return currentProjectWrite(); },
-  (s) => { if (saveReady) projectRepo.saveLocal(s); },
+  () => { void live.value; return currentProjectPayload(); },
+  (s) => {
+    if (!saveReady) return;
+    projectRepo.saveLocal(s);
+    viewStateRepo.save(s.view);
+  },
   { deep: true },
 );
 
 onMounted(async () => {
   const fromUrl = await projectRepo.loadFromHash();
   if (!fromUrl) {
+    // Project and view load independently (QO90) — each from its own storage key.
     const local = projectRepo.loadLocal();
-    if (local) applyState(local);
+    if (local) applyProjectPayload(local);
+    const view = viewStateRepo.load();
+    if (view) applyViewSnapshot(view);
   } else {
+    // A share link still carries the WHOLE session (human ruling 2026-08-14).
     applyState(fromUrl);
   }
   markProjectSaved();   // the just-loaded design is the ground state (clean, not modified)

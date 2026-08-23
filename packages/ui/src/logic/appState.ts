@@ -20,7 +20,7 @@ import type { SpecField } from '@openisd/model';
 import { ManagedOpenISDProject, toAlignmentKind, fromAlignmentKind } from './managedProject.js';
 import type { AppState, SyncedParams } from '../types.js';
 import type { UiParams } from '@openisd/model';
-import { copyOfName, uniqueName, type ProjectRead, type ProjectWrite } from '@openisd/persistence';
+import { copyOfName, uniqueName, type ProjectPayload, type ViewSnapshot } from '@openisd/persistence';
 import { presentationState, unitToken } from './presentationState.js';
 import { resolveAirEnvironment } from './environment.js';
 import { parseChartTabId } from './series.js';
@@ -402,15 +402,6 @@ export function newProject(spec?: NewProjectSpec): void {
 }
 
 /**
- * Restore a persisted snapshot (local save, share link, or an opened `.openisd.json` file)
- * into the live appState — the ONE loader every entry point calls.
- *
- * Every load path must land the WHOLE snapshot: a second, hand-rolled subset loader is how
- * File → Open… silently dropped the project name, the view, the comparison overlays and the
- * graph cursor while appearing to succeed. `project-load-gate.test.ts` fails the suite if a
- * key serialize() emits is not restored here.
- */
-/**
  * Why the last restore refused something, empty when it took everything.
  *
  * A refusal that only reaches the console is a silent data loss the user discovers later, so
@@ -425,27 +416,47 @@ export function copyProjectName(taken: readonly string[]): string {
   return uniqueName(copyOfName(state.project.name || driverName.value), taken);
 }
 
-/** The open design as the repo's write shape — the ONE gatherer every save/share door calls,
- *  so what a link, an autosave and a file carry can never drift apart. */
-export function currentProjectWrite(): ProjectWrite {
+/** The open design as the repo's payload shape — the ONE gatherer every save/share door calls,
+ *  so what a link, an autosave and a file carry can never drift apart. `view` is always
+ *  gathered (every caller has one to hand), even though the pure-project doors (`saveLocal`/
+ *  `saveToFile`/`saveToNewFile`, QO90) never write it to the wire — the repo, not this
+ *  gatherer, decides which door persists which fields. */
+export function currentProjectPayload(): ProjectPayload {
   return {
     params: managedProject.toUiParams(),
     box: state.box,
     meta: { ...state.project },
     driverText: persistedDriver.value,
-    view: {
-      lossMode: presentationState.lossMode,
-      graphs: presentationState.graphs,
-      ui: presentationState.ui,
-      cursor: {
-        f: presentationState.cursorF, pinnedF: presentationState.pinnedF, locked: presentationState.cursorLocked,
-        range: presentationState.dragRange ? { fLo: presentationState.dragRange.fLo, fHi: presentationState.dragRange.fHi } : null,
-      },
+    view: currentViewSnapshot(),
+  };
+}
+
+/** The live presentation state as the repo's view shape — read by `currentProjectPayload()`
+ *  for the share-link doors, and directly by the view-state autosave (QO90 — view/UI
+ *  preferences persist under their own storage key, independent of the project). */
+export function currentViewSnapshot(): ViewSnapshot {
+  return {
+    lossMode: presentationState.lossMode,
+    graphs: presentationState.graphs,
+    ui: presentationState.ui,
+    cursor: {
+      f: presentationState.cursorF, pinnedF: presentationState.pinnedF, locked: presentationState.cursorLocked,
+      range: presentationState.dragRange ? { fLo: presentationState.dragRange.fLo, fHi: presentationState.dragRange.fHi } : null,
     },
   };
 }
 
-export function applyState(o: ProjectRead): void {
+/**
+ * Restore a project's own fields — `box`/`params`/`meta`/`driverText` — ignoring `o.view`.
+ * The pure-project load doors (`loadLocal`/`readProjectText`, QO90) call this; the view is
+ * restored separately, from its own storage key, by `applyViewSnapshot()`.
+ *
+ * Every load path must land the WHOLE project: a second, hand-rolled subset loader is how
+ * File → Open… silently dropped the project name, the comparison overlays and the graph
+ * cursor while appearing to succeed. `project-load-gate.test.ts` fails the suite if a key
+ * `currentProjectPayload()` emits is not restored here.
+ */
+export function applyProjectPayload(o: ProjectPayload): void {
   // ONE POISON PILL MUST NOT TAKE THE APP DOWN (ARCHITECTURE.md §"No single datum may take
   // the app down"). `o.driver` is untrusted: it comes from localStorage, a share link or a
   // file, and `as _OpenISDDriverJson` is an assertion about data we did not write. An unchecked
@@ -473,8 +484,7 @@ export function applyState(o: ProjectRead): void {
       console.error(`[restore] refused the saved driver record — ${problems.join('; ')}`);
     }
   }
-  if (o.box) state.box = o.box;
-  if (o.view.lossMode) presentationState.lossMode = o.view.lossMode;
+  state.box = o.box;
   // Verbatim, for the same reason as resetProjectToGround: a persisted design carries both
   // vent-group members and the entered set, so a restore has nothing to compute.
   //
@@ -483,7 +493,7 @@ export function applyState(o: ProjectRead): void {
   // boundary, and this is the one place it gets read into the single current shape. Its
   // `ventL` WAS authoritative (it was the only direction the app had), so the faithful
   // reading is exactly that: length entered, tuning solved from it.
-  if (o.params) suspendVentSolve(() => {
+  suspendVentSolve(() => {
     const incoming = { ...o.params };
     if (incoming.ventShape === undefined) incoming.ventShape = 'round';
     if (incoming.ventW === undefined) incoming.ventW = 0.10;
@@ -493,18 +503,34 @@ export function applyState(o: ProjectRead): void {
     managedProject.loadUiParams(incoming, toAlignmentKind(state.box));
     if (!hadEntered) solveVentGroup(managedProject, state.box);
   });
+  Object.assign(state.project, o.meta);
+}
+
+/** Restore view/UI preferences — loss-model choice, open charts, panel/unit preferences, the
+ *  graph cursor — from a `ViewSnapshot` loaded independently of the project (QO90). Also the
+ *  view-restoring half of a full-session apply (`applyState()` below), for the share-link
+ *  doors that still carry project and view together (human ruling 2026-08-14). */
+export function applyViewSnapshot(v: ViewSnapshot): void {
+  if (v.lossMode) presentationState.lossMode = v.lossMode;
   // A saved/shared blob carries chart ids as plain strings, so each goes through the one
   // string→member boundary; an id this build does not declare is invalid data, and is
   // dropped rather than restored as a chart nothing can draw.
-  if (Array.isArray(o.view.graphs) && o.view.graphs.length) presentationState.graphs = o.view.graphs.map(parseChartTabId);
-  if (o.view.ui) Object.assign(presentationState.ui, o.view.ui);   // the whole view context is carried by a share link (stateToUrl, human ruling 2026-08-14) — nothing in it is stripped
-  if (o.meta) Object.assign(state.project, o.meta);
-  if (o.view.cursor) {
-    presentationState.cursorF = o.view.cursor.f;
-    presentationState.pinnedF = o.view.cursor.pinnedF;
-    presentationState.cursorLocked = o.view.cursor.locked;
-    presentationState.dragRange = o.view.cursor.range ? { fLo: o.view.cursor.range.fLo, fHi: o.view.cursor.range.fHi } : null;
+  if (Array.isArray(v.graphs) && v.graphs.length) presentationState.graphs = v.graphs.map(parseChartTabId);
+  if (v.ui) Object.assign(presentationState.ui, v.ui);   // the whole view context is carried by a share link (stateToUrl, human ruling 2026-08-14) — nothing in it is stripped
+  if (v.cursor) {
+    presentationState.cursorF = v.cursor.f;
+    presentationState.pinnedF = v.cursor.pinnedF;
+    presentationState.cursorLocked = v.cursor.locked;
+    presentationState.dragRange = v.cursor.range ? { fLo: v.cursor.range.fLo, fHi: v.cursor.range.fHi } : null;
   }
+}
+
+/** Restore a FULL session — project and view together — for the share-link doors
+ *  (`stateToUrl`/`loadFromHash`), which still carry both (human ruling 2026-08-14). The
+ *  pure-project doors (`loadLocal`/`readProjectText`) call `applyProjectPayload()` alone. */
+export function applyState(o: ProjectPayload): void {
+  applyProjectPayload(o);
+  applyViewSnapshot(o.view);
 }
 
 // A comparison overlay is stored WITHOUT its curves (they are derived, and bulk out every

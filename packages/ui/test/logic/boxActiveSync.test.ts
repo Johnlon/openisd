@@ -19,9 +19,9 @@ function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 've
 }
 
 import assert from 'node:assert/strict';
-import { state, managedProject, applyState } from '../../src/logic/appState.js';
+import { state, managedProject, applyProjectPayload } from '../../src/logic/appState.js';
 import type { UiParams } from '@openisd/model';
-import type { ProjectRead } from '@openisd/persistence';
+import type { ProjectPayload } from '@openisd/persistence';
 
 describe('state.box drives the project\'s active alignment', () => {
   for (const box of ['sealed', 'vented', 'bandpass4', 'pr'] as const) {
@@ -52,13 +52,14 @@ describe('applyState — a restored box type takes effect before the restored P 
   // 'vented' is still active would silently write it into the vented alignment instead.
   it('restoring a sealed design lands Vb in sealed, not in whatever was active before', () => {
     state.box = 'vented';   // simulate a session that was on a different box type
-    const saved: ProjectRead = {
+    const saved: ProjectPayload = {
       box: 'sealed',
-      params: { Vb: 0.0275 } as Partial<UiParams>,
+      params: { Vb: 0.0275 } as UiParams,
+      meta: { name: '', creator: '', created: '', modified: '', description: '' },
       view: { graphs: [] },
     };
 
-    applyState(saved);
+    applyProjectPayload(saved);
 
     assert.equal(state.box, 'sealed');
     assert.equal(slotOf(managedProject._snapshot(), 'sealed').volume_m3(), 0.0275,
@@ -68,9 +69,10 @@ describe('applyState — a restored box type takes effect before the restored P 
   it('a restored entered set replaces the previous one, not merges with it', () => {
     state.box = 'vented';
     managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
-    applyState({
+    applyProjectPayload({
       box: 'vented',
-      params: { entered: { ventL: true } } as Partial<UiParams>,
+      params: { entered: { ventL: true } } as Partial<UiParams> as UiParams,
+      meta: { name: '', creator: '', created: '', modified: '', description: '' },
       view: { graphs: [] },
     });
     assert.equal(managedProject.isEntered('ventL'), true);

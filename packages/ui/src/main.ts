@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import App from './ui/App.vue';
 import { vExpoStep } from './ui/directives/expoStep.js';
 import { vLimits } from './ui/directives/limits.js';
-import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRepo, createPrRepo, createFileStorage, createProjectRepo } from '@openisd/persistence';
+import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRepo, createPrRepo, createFileStorage, createProjectRepo, createViewStateRepo } from '@openisd/persistence';
 import type { BundleRecord, BundledPR } from '@openisd/persistence';
 import { myDriversSchema, projectSchema } from './logic/schemaUpgrade.js';
 import { createLogging } from './logging/flash.js';
@@ -59,6 +59,7 @@ const driverBrowsing = createDriverBrowsingState({
   confirmReset: (question) => confirm(question),
 });
 const projectRepo = createProjectRepo(storage, projectSchema, fileStorage);
+const viewStateRepo = createViewStateRepo(storage);
 const designIO = createDesignIO({ logging, fileStorage, projectRepo });
 
 const app = createApp(App)
@@ -67,7 +68,7 @@ const app = createApp(App)
 
 provideApp(app, {
   logging, driverBrowsing, selection, designIO, prRepo, myDrivers: myDriverRepo,
-  driverFileStorage, diagnostics, faultLog, projectRepo,
+  driverFileStorage, diagnostics, faultLog, projectRepo, viewStateRepo,
 });
 
 app.mount('#app');
