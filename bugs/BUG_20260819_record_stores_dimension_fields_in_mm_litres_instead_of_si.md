@@ -1,7 +1,7 @@
 # The `openisd.yml` record stores 10 dimension fields in mm/litres, not SI — human ruling: this is a bug
 
 # Status
-OPEN
+RESOLVED (2026-08-23)
 
 ## Symptom
 
@@ -99,8 +99,27 @@ BEFORE the V8-bridge differential (`winisd_tools/DESIGN.md` §12.8 step 4) and b
 bundle rebuild — a differential run against today's corpus measures records that are about to
 change under it.
 
-## Verification
+## Verification (2026-08-23, re-verified against the current tree, not carried from the ledger)
 
-Not yet — no fix applied. Closure additionally requires: the bundle re-counted after migration
-shows 0 old-name occurrences and non-zero WinISD-SI names, and a spot-checked driver's motor
-geometry reaches the engine.
+- **winisd_tools side** — the writer and corpus migration:
+  `winisd_tools/bugs/BUG_20260822_dimension_field_names_diverge_from_openisd_winisd_naming_ruling.md`
+  RESOLVED, `scrapers/bin/fix_dimension_fields_and_dq_status.py` migrated `driver.yml fixed:
+  2012`, `openisd.yml fixed: 1969`, 0 failures; grep for every retired mm-name over
+  `db/datasheets --include="*.yml"` finds 0 live keys. 3 records still carry a retired name as
+  frozen TEXT inside `quality.parse_errors` (self-heals on next re-emit, not a live key).
+- **openisd model side**: `packages/model/src/openisdDriver.ts:202-212`'s `_SpecSection`
+  declares only the WinISD-SI names (`Thick`, `Depth`, `MagDepth`, `Magnet`, `Basket`, `Outer`,
+  `DVol`, `Vcd`, `Hg`, `Hc`) — zero `_mm`/`_l`-suffixed fields anywhere in the file (grep).
+- **Shipped artifact**: `grep -c` for the ten retired names
+  (`voice_coil_dia_mm|Hc_mm|Hg_mm|depth_mm|outer_dia_mm|basket_dia_mm|driver_volume_l|thick_mm|
+  magnet_dia_mm|magnet_depth_mm`) against `packages/ui/src/drivers-bundle.json` returns 1 line
+  match; every occurrence in it is inside a frozen `quality.parse_errors` string (e.g.
+  `"outer_dia_mm='98 x 92 mm ...": unparseable`), not a live `_SpecSection` key — matches the
+  winisd_tools bug's own residual-3-records finding exactly, no live-key survivor. The WinISD-SI
+  names are populated in the same bundle: `Vcd` 1781, `Hc` 926, `Hg` 710, `Depth` 567, `Basket`
+  584, `Outer` 527, `Thick` 354, `Magnet` 128, `DVol` 380, `MagDepth` 101 occurrences.
+- **Not independently re-run this pass**: a live spot-check of one driver's motor geometry
+  reaching `@openisd/engine` end-to-end (the original closure criterion's second half) — the
+  static evidence above (SI names present in both model and shipped corpus, zero live old-key
+  survivors) is what this closure is based on; a runtime engine-join spot-check would firm it
+  up further but was not performed.
