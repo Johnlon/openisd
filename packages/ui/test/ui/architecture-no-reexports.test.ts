@@ -60,6 +60,27 @@ const BARRELS = new Set(SRC_ROOTS.flatMap(root => {
   return [join(root, 'index.ts')];
 }));
 
+/** Every BARRELS entry keyed by something other than the package root ('.') — e.g. model's
+ *  ./driverStanding, ./driverSimulatability, ./driverConformance. The exemption above grants
+ *  these the SAME re-export licence as a root barrel, unconditionally — an empty socket today
+ *  (all three currently contain zero re-exports), but a dormant permission is not harmless
+ *  (John's by_alias precedent: an unused grant is not a safe grant, it is a grant nobody has
+ *  tested yet). Kept separate from BARRELS so the guard below can assert these specific files
+ *  stay re-export-free without touching the root-barrel exemption. */
+const SUBPATH_BARRELS = new Set(SRC_ROOTS.flatMap(root => {
+  const pkgDir = dirname(root);
+  try {
+    const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')) as
+      { exports?: Record<string, { default?: string } | string> };
+    return Object.entries(pkg.exports ?? {})
+      .filter(([key]) => key !== '.')
+      .map(([, entry]) => typeof entry === 'string' ? entry : entry?.default)
+      .filter((rel): rel is string => Boolean(rel))
+      .map(rel => join(pkgDir, rel));
+  } catch { /* no package.json or no map */ }
+  return [];
+}));
+
 function filesUnder(dir: string): string[] {
   const out: string[] = [];
   (function walk(current: string) {
@@ -105,39 +126,57 @@ function importBindingsOf(source: SourceFile): Set<string> {
  *  red in ci/health-check/A10 until the list is worked off. Assertions unchanged. */
 const checklistDescribe = process.env.PRECOMMIT === '1' ? describe.skip : describe;
 
-checklistDescribe('no re-exports — a name is declared where it is exported (QO80)', () => {
-  it('no file outside a package barrel (packages/*/src/index.ts) re-exports anything', () => {
-    const offences: string[] = [];
+/** Every re-export offence in one file, by the same detection this gate has always used:
+ *  a specifier-bearing export declaration, or a specifier-less `export { X }` naming a local
+ *  import binding. Shared by the main sweep and the subpath-barrel guard below so both check
+ *  the identical shape. */
+function reExportOffencesIn(f: string): string[] {
+  const offences: string[] = [];
+  const source = sourceFileOf(f);
+  const fileRel = relative(REPO_ROOT, f);
+  const imported = importBindingsOf(source);
 
-    for (const f of SRC_ROOTS.flatMap(filesUnder)) {
-      if (BARRELS.has(f)) continue;
-      const source = sourceFileOf(f);
-      const fileRel = relative(REPO_ROOT, f);
-
-      const imported = importBindingsOf(source);
-
-      for (const exp of source.getExportDeclarations()) {
-        const line = exp.getStartLineNumber();
-        const spec = exp.getModuleSpecifierValue();
-        if (spec !== undefined) {
-          // export { X } from / export * from / export * as NS from / export type { X } from
-          offences.push(`${fileRel}:${line} re-exports from '${spec}': ${exp.getText()}`);
-          continue;
-        }
-        // export { X }  /  export type { X }  — a re-export when X is an import binding
-        for (const ne of exp.getNamedExports()) {
-          const local = ne.getNameNode().getText();
-          if (imported.has(local)) {
-            offences.push(`${fileRel}:${line} re-exports import binding '${local}': ${exp.getText()}`);
-          }
-        }
+  for (const exp of source.getExportDeclarations()) {
+    const line = exp.getStartLineNumber();
+    const spec = exp.getModuleSpecifierValue();
+    if (spec !== undefined) {
+      // export { X } from / export * from / export * as NS from / export type { X } from
+      offences.push(`${fileRel}:${line} re-exports from '${spec}': ${exp.getText()}`);
+      continue;
+    }
+    // export { X }  /  export type { X }  — a re-export when X is an import binding
+    for (const ne of exp.getNamedExports()) {
+      const local = ne.getNameNode().getText();
+      if (imported.has(local)) {
+        offences.push(`${fileRel}:${line} re-exports import binding '${local}': ${exp.getText()}`);
       }
     }
+  }
+  return offences;
+}
+
+checklistDescribe('no re-exports — a name is declared where it is exported (QO80)', () => {
+  it('no file outside a package barrel (packages/*/src/index.ts) re-exports anything', () => {
+    const offences = SRC_ROOTS.flatMap(filesUnder)
+      .filter(f => !BARRELS.has(f))
+      .flatMap(reExportOffencesIn);
 
     assert.deepEqual(offences, [],
       'A re-export relabels a name across a module boundary and launders it past every ' +
       'import-shape gate in this suite. Consumers import a name from the module that declares ' +
       'it (or from that package\'s barrel, packages/<pkg>/src/index.ts — the one sanctioned ' +
       're-export site). Delete the re-export; migrate its consumers to the declaring module.');
+  });
+
+  it('a subpath barrel (e.g. model/./driverStanding) is exempt from the gate but not from scrutiny — none currently re-exports', () => {
+    assert.ok(SUBPATH_BARRELS.size > 0, 'no subpath barrels found — this guard would pass vacuously');
+    const offences = [...SUBPATH_BARRELS].flatMap(reExportOffencesIn);
+
+    assert.deepEqual(offences, [],
+      'A subpath barrel is exempted by the SAME rule as a root barrel (packages/*/src/index.ts) ' +
+      '— but that exemption was granted for the package-entry-point shape in general, not ' +
+      'reviewed per file. This file has just gained a re-export, so the exemption is now doing ' +
+      'real work rather than sitting dormant: that needs a human decision (widen the exemption ' +
+      'deliberately, or move this file\'s content so it no longer needs one), not a silent pass.');
   });
 });

@@ -19,7 +19,13 @@ import { Project as TsProject, Node, SyntaxKind, type SourceFile } from 'ts-morp
 
 // AST-walking over the whole tree is parse-bound work, not the function-call unit tests
 // vitest's 5s default budget is calibrated for (same reasoning as architecture.test.ts).
-vi.setConfig({ testTimeout: 60_000 });
+// Measured clean-run total: ~16-20s (CHECK 4's first case alone ~12s — it scans topLevelExportedNames
+// over the ENTIRE ui/src + persistence/src tree, the widest scope of any check here; parsing is
+// already cached via sfCache below, so this is genuine full-tree AST-getter traversal cost, not
+// a parse gap). Reported once under full-suite load as a 37s-vs-60s near-timeout, though not
+// actually red (passed standalone) — widened to 120s so CPU contention during a full-suite run
+// can't turn the slowest gate here into a fake timeout that looks nothing like a genuine offence list.
+vi.setConfig({ testTimeout: 120_000 });
 
 const UI_SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
 // persistence/repos and persistence/storage live in their own package now (@openisd/persistence,
