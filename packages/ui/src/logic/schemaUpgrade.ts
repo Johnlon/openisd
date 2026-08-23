@@ -94,30 +94,85 @@ export function schemaOf(blob: StoredBlob): number {
  * how data gets truncated on the next save.
  */
 export function upgrade(blob: StoredBlob): UpgradeResult {
+  return runUpgrades(blob, STEPS, CURRENT_SCHEMA);
+}
+
+/**
+ * The one chain runner, shared by every payload family this file registers. Throws when a
+ * payload states a version this build has no route from — including a version from the
+ * FUTURE (a newer build wrote it): an older build silently loading a newer shape is exactly
+ * how data gets truncated on the next save. STOP AND ASK THE HUMAN is the policy for both
+ * failures; what "asking" looks like belongs to the reading surface (the app-state reader
+ * reports and refuses; the My Drivers bucket routes to its Export/Delete decision surface —
+ * the browser form of the same stop).
+ */
+export function runUpgrades(
+  blob: StoredBlob, steps: readonly UpgradeStep[], currentSchema: number,
+): UpgradeResult {
   const from = schemaOf(blob);
   const applied: string[] = [];
 
-  if (from > CURRENT_SCHEMA) {
+  if (from > currentSchema) {
     throw new Error(
-      `saved data is schema V${from}, but this build only understands V${CURRENT_SCHEMA} — ` +
+      `saved data is schema V${from}, but this build only understands V${currentSchema} — ` +
       'it was written by a newer version of OpenISD');
   }
 
   let current = blob;
-  for (let v = from; v < CURRENT_SCHEMA; v++) {
-    const step = STEPS.find(s => s.from === v);
+  for (let v = from; v < currentSchema; v++) {
+    const step = steps.find(s => s.from === v);
     if (!step) {
       throw new Error(`no upgrade step from schema V${v} to V${v + 1}`);
     }
     current = step.apply(current);
     applied.push(`V${v}→V${v + 1}: ${step.what}`);
   }
-  current.schema = CURRENT_SCHEMA;
+  current.schema = currentSchema;
   return { blob: current, from, applied };
 }
+
+// ── The My Drivers bucket's chain — a second payload family, registered in this one place ──
+
+/** The bucket envelope this build writes: `{ schema, drivers }`. */
+export const CURRENT_MY_DRIVERS_SCHEMA = 2;
+
+export const MY_DRIVERS_STEPS: readonly UpgradeStep[] = [
+  {
+    from: 1,
+    what: 'My Drivers: uuid becomes the stored identity — every saved driver lacking one is '
+      + 'minted one (names become display only, so same-name drivers can coexist)',
+    apply: (blob) => {
+      const drivers = Array.isArray(blob.drivers) ? blob.drivers : [];
+      blob.drivers = drivers.map((record: unknown) => {
+        if (record && typeof record === 'object' && !Array.isArray(record)) {
+          const r = record as { uuid?: { value?: unknown } };
+          const has = typeof r.uuid?.value === 'string' && r.uuid.value !== '';
+          if (!has) return { ...r, uuid: { value: crypto.randomUUID(), definition: 'stable record identity' } };
+        }
+        return record;
+      });
+      return blob;
+    },
+  },
+];
 
 /** Stamp a payload being written. Every writer calls this — an unstamped payload is a V0 the
  *  next reader has to guess about, which is the situation this policy exists to end. */
 export function stamp<T extends object>(payload: T): T & { schema: number } {
   return Object.assign(payload as T & { schema: number }, { schema: CURRENT_SCHEMA });
 }
+
+/** The My Drivers schema collaborator — what the composition root hands
+ *  `createMyDriverRepo` (the repo defines the port; this is its one implementation). */
+export const myDriversSchema = {
+  current: CURRENT_MY_DRIVERS_SCHEMA,
+  repair(blob: StoredBlob): { envelope: { schema: number; drivers: Record<string, unknown>[] }; upgraded: boolean } | null {
+    try {
+      const result = runUpgrades(blob, MY_DRIVERS_STEPS, CURRENT_MY_DRIVERS_SCHEMA);
+      return {
+        envelope: result.blob as unknown as { schema: number; drivers: Record<string, unknown>[] },
+        upgraded: result.applied.length > 0,
+      };
+    } catch { return null; }
+  },
+};

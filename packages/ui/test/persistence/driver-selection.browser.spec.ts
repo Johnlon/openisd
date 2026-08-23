@@ -18,11 +18,30 @@ const PICKER = '.modal:not(.de-modal)';   // the library dialog
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.evaluate(name => {
-    localStorage.setItem('openisd_my_drivers', JSON.stringify([{
-      name, brand: 'Spec', model: 'Fixture',
-      Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
-      Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
-    }]));
+    // The CURRENT bucket shape: a { schema, drivers } envelope of conforming records
+    // (BUG_20260822_driver_selection_spec_seeds_a_flat_shape — the old flat seed was a
+    // shape myDrivers refuses, so the spec exercised the broken-row path, not selection).
+    const spec = (v: number) => ({ origin: 'manual', readings: { manual: { read_value: v } }, dq: [] });
+    localStorage.setItem('openisd_my_drivers', JSON.stringify({
+      schema: 2,
+      drivers: [{
+        uuid: { value: 'spec-fixture-uuid', definition: 'stable record identity' },
+        quality: { rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [],
+          invalid: [], parse_errors: [], cross_source_only: [] },
+        manufacturer: { value: 'Spec', origin: 'manual', definition: 'x', dq: [] },
+        brand: { value: 'Spec', origin: 'manual', definition: 'x', dq: [] },
+        model: { value: 'Fixture', origin: 'manual', definition: 'x', dq: [] },
+        sku: { value: name, definition: 'x', grounds: [] },
+        driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
+        data_sources: { value: {}, definition: 'x' },
+        authoritative: { value: 'manual', definition: 'x' },
+        specs: { woofer: {
+          Fs: spec(41), Qts: spec(0.35), Qes: spec(0.38), Qms: spec(4.5), Vas: spec(0.028),
+          Sd: spec(0.0132), Re: spec(5.4), Le: spec(0.5e-3), Xmax: spec(0.0055),
+          Pe: spec(70), Znom: spec(8),
+        } },
+      }],
+    }));
   }, PICKED);
   await page.goto('/');
 });
@@ -95,7 +114,7 @@ test('the embedded driver is a copy — editing it does not touch the saved driv
 
   // The saved driver in My Drivers is untouched — a project embeds a COPY.
   const saved = await page.evaluate(() => localStorage.getItem('openisd_my_drivers'));
-  expect(saved).toContain('"model":"Fixture"');
+  expect(saved).toContain('"value":"Fixture"');
   expect(saved).not.toContain('Fixture Edited');
 });
 

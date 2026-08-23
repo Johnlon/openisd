@@ -78,6 +78,37 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
 </script>
 
 <template>
+
+  <!-- QO81 hard stop (human ruling, verbatim: "do not allow the app to progress - require
+       the user to decide on action - no cancel button"). A true blocking dialog: full scrim,
+       no dismiss, no Escape, only real actions. -->
+  <div v-if="myDriversRead.kind === 'unreadable'" class="fmt-scrim my-storage-modal-scrim">
+    <div class="fmt-panel my-storage-modal" role="dialog" aria-modal="true" aria-label="Saved drivers cannot be read">
+      <h3>Your saved drivers cannot be read</h3>
+      <p class="fmt-note">
+        The browser storage holding your My Drivers list is corrupted — it is no longer valid
+        saved-driver data. This is the only copy of those drivers, so nothing has been changed
+        and nothing will be written until you choose below.
+      </p>
+      <p class="fmt-note">
+        <b>Export</b> downloads the stored data exactly as it is, as a text file. A partly
+        corrupt file usually still contains most of your drivers as recoverable text — keep it
+        even if it looks wrong.
+        <b>Delete</b> permanently erases the stored list and starts My Drivers fresh; your
+        projects and their embedded drivers are not affected.
+      </p>
+      <div class="fmt-foot" style="margin-top: 14px;">
+        <button class="pri my-export-raw" @click="exportMyDriversRaw()">Export my data</button>
+        <button class="my-delete-all" @click="requestDeleteAll()">
+          {{ deleteChallengeArmed ? 'Delete WITHOUT exporting — erase the only copy' : 'Delete and start fresh' }}
+        </button>
+      </div>
+      <p v-if="deleteChallengeArmed" class="my-storage-warn" style="color:#d93025; font-weight:600;">
+        You have not exported this session. Deleting now destroys the only copy of your saved
+        drivers, unrecoverably. Export first, or press the delete button again to erase anyway.
+      </p>
+    </div>
+  </div>
   <div class="overlay" :class="{ on: presentationState.browseOpen }">
     <div class="modal wb-modal" v-if="presentationState.browseOpen">
       <h2>
@@ -181,20 +212,7 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
           </div>
           <div v-else-if="myDriversRead.kind === 'unreadable'" class="my-storage-broken" role="alert">
             <div class="dlist-section">My Drivers</div>
-            <p><b>Your saved drivers could not be read.</b> The stored data is corrupted. Nothing
-              has been changed, and nothing will be written until you decide. Export downloads
-              your data exactly as stored — a partly corrupt file usually still contains most
-              drivers as recoverable text.</p>
-            <div class="my-storage-actions">
-              <button class="pri my-export-raw" @click="exportMyDriversRaw()">Export</button>
-              <button class="my-delete-all" @click="requestDeleteAll()">
-                {{ deleteChallengeArmed ? 'Delete WITHOUT exporting' : 'Delete and start fresh' }}
-              </button>
-            </div>
-            <p v-if="deleteChallengeArmed" class="my-storage-warn">
-              You have not exported this session — deleting now destroys the only copy of your
-              saved drivers. Export first, or press again to delete anyway.
-            </p>
+            <p>Saved drivers could not be read — resolve the storage problem in the dialog.</p>
           </div>
           <template v-if="myDriversRead.kind === 'ok' && myDriversRead.broken.length">
             <div class="dlist-section">My Drivers — entries that could not be read</div>

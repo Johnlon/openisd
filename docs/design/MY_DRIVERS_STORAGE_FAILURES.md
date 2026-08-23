@@ -2,9 +2,13 @@
 
 How the app behaves when the `openisd_my_drivers` browser-storage bucket, or an entry in
 it, cannot be read. The seam is `packages/ui/src/persistence/repos/myDriverRepo.ts` — the
-one read/write path for the bucket. Implemented (D21): the versioned envelope + upgrade
-chain, uuid identity with the rename question, and every failure surface below;
-`packages/ui/test/persistence/myDriverRepo.test.ts` pins each ruling.
+one read/write path for the bucket. Implemented (D21 + D21-R): the bucket's chain lives on
+the app's ONE upgrade seam (`logic/schemaUpgrade.ts`, the 2026-08-17 policy) as its own
+payload family — the seam's "stop and ask the human" is, for this bucket, the Export/Delete
+decision modal, the browser form of the same stop. uuid identity with the rename question,
+the BLOCKING corruption modal, and every failure surface below are in;
+`packages/ui/test/persistence/myDriverRepo.test.ts` pins each ruling and
+`my-drivers-failures.browser.spec.ts` exercises the surfaces (endgame Playwright batch).
 
 ## The governing principle
 

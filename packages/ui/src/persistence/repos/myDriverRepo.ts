@@ -1,6 +1,23 @@
 /** REPO: domain access to the My Drivers collection. Takes a storage, returns domain objects. */
 import type { OpenISDDriver } from '@openisd/model';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
+/** One element of the stored drivers array, as parsed JSON actually is — an object in every
+ *  healthy entry, but corruption can leave any JSON value there and the repo preserves it. */
+export type StoredEntry = Record<string, unknown> | string | number | boolean | null;
+
+/**
+ * The storage's schema collaborator — INJECTED at the composition root (a repo takes its
+ * collaborators as arguments; it never reaches up into the logic layer). The implementation
+ * is `logic/schemaUpgrade.ts`'s chain for this payload family.
+ */
+export interface MyDriversSchema {
+  /** The schema this build writes. */
+  current: number;
+  /** Repair a parsed envelope to `current`. Null when there is no route — a newer build's
+   *  payload, or one older than the oldest step — which this repo surfaces as `unreadable`:
+   *  the seam's "stop and ask the human", in Export/Delete form. */
+  repair(blob: Record<string, unknown>): { envelope: { schema: number; drivers: StoredEntry[] }; upgraded: boolean } | null;
+}
 
 // "My Drivers" — the user's own saved-driver collection, in browser storage.
 // THE one place that knows the storage key and its shape, and THE one write path: every
@@ -21,33 +38,18 @@ import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 // fresh uuid before it reaches `upsert` (the caller's duty, `mintFreshUuid()`), so importing
 // the same file twice yields two entries and can never silently overwrite a saved driver.
 //
-// FORMAT VERSION + UPGRADE CHAIN: the bucket is a versioned envelope. A bare array (the
-// pre-version shape) reads as version 1; every breaking shape change ships an upgrade
-// function, applied IN ORDER on load, and the upgraded bucket is saved over the old one in
-// place — same identities. Scope is My Drivers alone: bundled drivers ship current.
+// FORMAT VERSION + UPGRADE CHAIN: the bucket is a `{ schema, drivers }` envelope on the
+// app's ONE upgrade seam (`logic/schemaUpgrade.ts` — its steps registered there beside the
+// app-state chain, per the 2026-08-17 policy: every payload that outlives the session states
+// its version, and reading is a repair). A bare array (the pre-policy shape) reads as
+// schema 1; the chain applies in order and the upgraded bucket saves over the old one in
+// place, same identities. The seam's "stop and ask the human" is, for this bucket, the
+// Export/Delete decision surface: a payload the chain cannot bring current (newer build, or
+// no route) reads as `unreadable`, which is what routes the user there.
 
 export const MY_DRIVERS_KEY = 'openisd_my_drivers';
 
-/** The shape this build writes. */
-export const MY_DRIVERS_VERSION = 2;
-
-interface Envelope { version: number; drivers: unknown[] }
-
-/** stored version N → N+1. Applied in order until `MY_DRIVERS_VERSION`. */
-const UPGRADES: Readonly<Record<number, (e: Envelope) => Envelope>> = {
-  // v1 (the bare, unversioned array) → v2: uuid-keyed identity. Every record lacking a uuid
-  // gets one minted here — the upgrade IS a save, and the identity ruling mints at save.
-  1: e => ({ version: 2, drivers: e.drivers.map(stampUuid) }),
-};
-
-function stampUuid(record: unknown): unknown {
-  if (record && typeof record === 'object' && !Array.isArray(record)) {
-    const r = record as { uuid?: { value?: unknown } };
-    const has = typeof r.uuid?.value === 'string' && r.uuid.value !== '';
-    if (!has) return { ...r, uuid: { value: crypto.randomUUID(), definition: 'stable record identity' } };
-  }
-  return record;
-}
+interface Envelope { schema: number; drivers: unknown[] }
 
 /** A stored entry the current shape cannot read — preserved untouched, surfaced by name. */
 export interface BrokenEntry {
@@ -113,29 +115,24 @@ function labelOf(blob: unknown): string {
 
 export function createMyDriverRepo(
   storage: KeyValueStorage, fromConformingRecord: (candidate: unknown) => OpenISDDriver | null,
+  schema: MyDriversSchema,
 ): MyDriverRepo {
   /** null = storage inaccessible; distinct from an absent key (a fresh browser). */
   function rawString(): { ok: true; raw: string | null } | { ok: false } {
     try { return { ok: true, raw: storage.get(MY_DRIVERS_KEY) }; } catch { return { ok: false }; }
   }
 
-  /** Parse + upgrade. Returns the envelope at MY_DRIVERS_VERSION, or null when unreadable. */
-  function envelopeOf(raw: string): Envelope | null {
+  /** Parse + repair through the injected schema collaborator. Returns the envelope at the
+   *  current schema plus whether the chain moved it, or null when unreadable. */
+  function envelopeOf(raw: string): { envelope: Envelope; upgraded: boolean } | null {
     let parsed: unknown;
     try { parsed = JSON.parse(raw); } catch { return null; }
-    let envelope: Envelope;
-    if (Array.isArray(parsed)) envelope = { version: 1, drivers: parsed };
-    else if (parsed && typeof parsed === 'object'
-      && typeof (parsed as Envelope).version === 'number'
-      && Array.isArray((parsed as Envelope).drivers)) envelope = parsed as Envelope;
-    else return null;
-    if (envelope.version > MY_DRIVERS_VERSION) return null; // written by a newer app — this one cannot claim to read it
-    while (envelope.version < MY_DRIVERS_VERSION) {
-      const step = UPGRADES[envelope.version];
-      if (!step) return null; // older than the oldest upgrade
-      envelope = step(envelope);
-    }
-    return envelope;
+    let blob: Record<string, unknown>;
+    if (Array.isArray(parsed)) blob = { schema: 1, drivers: parsed }; // the pre-policy shape, recognised, not repaired
+    else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as Envelope).drivers)) {
+      blob = parsed as Record<string, unknown>;
+    } else return null;
+    return schema.repair(blob);
   }
 
   function write(envelope: Envelope): boolean {
@@ -151,8 +148,9 @@ export function createMyDriverRepo(
     if (!r.ok) return { state: { kind: 'unavailable' }, drivers: [], brokenRaw: [] };
     if (r.raw == null) return { state: { kind: 'ok', drivers: [], broken: [] }, drivers: [], brokenRaw: [] };
 
-    const envelope = envelopeOf(r.raw);
-    if (!envelope) return { state: { kind: 'unreadable', raw: r.raw }, drivers: [], brokenRaw: [] };
+    const repaired = envelopeOf(r.raw);
+    if (!repaired) return { state: { kind: 'unreadable', raw: r.raw }, drivers: [], brokenRaw: [] };
+    const envelope = repaired.envelope;
 
     const drivers: OpenISDDriver[] = [];
     const driverBlobs: unknown[] = [];
@@ -165,19 +163,16 @@ export function createMyDriverRepo(
       brokenRaw.push(blob);
     }
 
-    // The chain ran (or entries were re-labelled): persist the upgraded envelope over the old
-    // one, in place, same identities — but ONLY when the shape actually moved, so an ordinary
-    // read never rewrites the user's bytes.
-    if (r.raw !== null && JSON.parse(r.raw) && (Array.isArray(JSON.parse(r.raw))
-      || (JSON.parse(r.raw) as Envelope).version !== envelope.version)) {
-      write(envelope);
-    }
+    // The chain ran: persist the upgraded envelope over the old one, in place, same
+    // identities — but ONLY when the shape actually moved (bare-array adoption included), so
+    // an ordinary read never rewrites the user's bytes.
+    if (repaired.upgraded || Array.isArray(JSON.parse(r.raw))) write(envelope);
 
     return { state: { kind: 'ok', drivers, broken }, drivers: driverBlobs, brokenRaw };
   }
 
   function writeBack(driverBlobs: unknown[], brokenRaw: unknown[]): boolean {
-    return write({ version: MY_DRIVERS_VERSION, drivers: [...driverBlobs, ...brokenRaw] });
+    return write({ schema: schema.current, drivers: [...driverBlobs, ...brokenRaw] });
   }
 
   return {
@@ -223,7 +218,7 @@ export function createMyDriverRepo(
       return r.ok ? r.raw : null;
     },
     deleteAll() {
-      try { storage.set(MY_DRIVERS_KEY, JSON.stringify({ version: MY_DRIVERS_VERSION, drivers: [] })); }
+      try { storage.set(MY_DRIVERS_KEY, JSON.stringify({ schema: schema.current, drivers: [] })); }
       catch { /* unavailable storage: nothing to wipe */ }
     },
   };

@@ -12,7 +12,8 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { createMemoryStorage } from '../../src/persistence/storage/keyValueStorage.js';
-import { createMyDriverRepo, MY_DRIVERS_KEY, MY_DRIVERS_VERSION } from '../../src/persistence/repos/myDriverRepo.js';
+import { createMyDriverRepo, MY_DRIVERS_KEY } from '../../src/persistence/repos/myDriverRepo.js';
+import { CURRENT_MY_DRIVERS_SCHEMA, myDriversSchema } from '../../src/logic/schemaUpgrade.js';
 
 /** The stored bucket's records, whichever envelope version wraps them. */
 function storedDrivers(raw: string | null): unknown[] {
@@ -55,7 +56,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       },
     };
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, valid]) });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     const list = repo.list();
     assert.equal(list.length, 1);
     assert.equal(list[0].metaCell('brand').value, 'Valid');
@@ -91,7 +92,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       },
     };
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, valid]) });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     for (const record of repo.list()) {
       assert.doesNotThrow(() => driverHasDqIssues({ name: 'x', record }));
     }
@@ -104,7 +105,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
     };
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy]) });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     assert.deepEqual(repo.list(), []);
   });
 
@@ -156,7 +157,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       },
     };
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([first, second]) });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     assert.equal(repo.list().length, 2);
   });
 });
@@ -215,7 +216,7 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
       },
     };
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, existingValid]) });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
 
     repo.upsert(OpenISDDriver.fromJsonRecord(newValid));
 
@@ -267,7 +268,7 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
       },
     };
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([flatLegacy, valid]) });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
 
     const removed = repo.remove('valid-uuid');
     assert.equal(removed, true);
@@ -313,19 +314,19 @@ function validRecord(uuid: string, brand: string, model: string): _OpenISDDriver
 describe('D21 — format version and the upgrade chain', () => {
   it('a v1 bare array reads, is upgraded to the current envelope, and is saved back IN PLACE', () => {
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([validRecord('u-1', 'A', 'One')]) });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     const read = repo.read();
     assert.equal(read.kind, 'ok');
     assert.equal(read.kind === 'ok' && read.drivers.length, 1);
-    const stored = JSON.parse(store.get(MY_DRIVERS_KEY)!) as { version: number };
-    assert.equal(stored.version, MY_DRIVERS_VERSION,
+    const stored = JSON.parse(store.get(MY_DRIVERS_KEY)!) as { schema: number };
+    assert.equal(stored.schema, CURRENT_MY_DRIVERS_SCHEMA,
       'the upgraded envelope must be saved over the old shape, same identities');
   });
 
   it('the v1→v2 step mints a uuid for a record that lacks one — the upgrade IS a save', () => {
     const noUuid = { ...validRecord('', 'B', 'Two'), uuid: { value: '', definition: 'x' } };
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: JSON.stringify([noUuid]) });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     const drivers = repo.list();
     assert.equal(drivers.length, 1);
     assert.ok(drivers[0]!.uuid().length > 0, 'a stored record without identity gets one minted');
@@ -333,9 +334,9 @@ describe('D21 — format version and the upgrade chain', () => {
 
   it('a bucket written by a NEWER app version is unreadable here — never guessed at', () => {
     const store = createMemoryStorage({
-      [MY_DRIVERS_KEY]: JSON.stringify({ version: MY_DRIVERS_VERSION + 1, drivers: [] }),
+      [MY_DRIVERS_KEY]: JSON.stringify({ schema: CURRENT_MY_DRIVERS_SCHEMA + 1, drivers: [] }),
     });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     assert.equal(repo.read().kind, 'unreadable');
   });
 });
@@ -343,7 +344,7 @@ describe('D21 — format version and the upgrade chain', () => {
 describe('D21 — identity is the uuid; names are display only', () => {
   it('same-name drivers coexist; upsert overwrites by uuid alone', () => {
     const store = createMemoryStorage({});
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     repo.upsert(OpenISDDriver.fromJsonRecord(validRecord('u-a', 'Same', 'Name')));
     repo.upsert(OpenISDDriver.fromJsonRecord(validRecord('u-b', 'Same', 'Name')));
     assert.equal(repo.list().length, 2, 'a name collision overwrites nothing');
@@ -356,7 +357,7 @@ describe('D21 — identity is the uuid; names are display only', () => {
 
   it('upsert mints an identity for a draft that has none', () => {
     const store = createMemoryStorage({});
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     const draft = OpenISDDriver.fromJsonRecord(validRecord('', 'New', 'Draft'));
     repo.upsert(draft);
     assert.ok(draft.uuid().length > 0, 'saving is what mints identity');
@@ -371,7 +372,7 @@ describe('D21 — failure surfaces', () => {
       set(_key: string, _value: string): void { throw new Error('denied'); },
       remove(_key: string): void { throw new Error('denied'); },
     };
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     assert.equal(repo.read().kind, 'unavailable');
     assert.deepEqual(repo.list(), []);
   });
@@ -379,7 +380,7 @@ describe('D21 — failure surfaces', () => {
   it('an unreadable bucket is READ-ONLY: every ordinary write refuses, the raw string is exported verbatim', () => {
     const corrupt = '{"version": 2, "drivers": NOT-JSON';
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: corrupt });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
 
     const read = repo.read();
     assert.equal(read.kind, 'unreadable');
@@ -395,7 +396,7 @@ describe('D21 — failure surfaces', () => {
 
   it('deleteAll is the ONE sanctioned wipe of an unreadable bucket, and starts a fresh envelope', () => {
     const store = createMemoryStorage({ [MY_DRIVERS_KEY]: 'garbage' });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     repo.deleteAll();
     assert.equal(repo.read().kind, 'ok');
     assert.deepEqual(repo.list(), []);
@@ -404,9 +405,9 @@ describe('D21 — failure surfaces', () => {
   it('an entry failing after the chain is preserved untouched and surfaced by name', () => {
     const broken = { brand: { value: 'Ghost' }, model: { value: 'Blob' }, halfARecord: true };
     const store = createMemoryStorage({
-      [MY_DRIVERS_KEY]: JSON.stringify({ version: MY_DRIVERS_VERSION, drivers: [broken, validRecord('u-ok', 'A', 'B')] }),
+      [MY_DRIVERS_KEY]: JSON.stringify({ schema: CURRENT_MY_DRIVERS_SCHEMA, drivers: [broken, validRecord('u-ok', 'A', 'B')] }),
     });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     const read = repo.read();
     assert.equal(read.kind, 'ok');
     if (read.kind !== 'ok') return;
@@ -426,10 +427,33 @@ describe('D21 — failure surfaces', () => {
     const bare = validRecord('u-bare', 'Bare', 'Driver');
     (bare.specs.woofer as Record<string, unknown>) = {};
     const store = createMemoryStorage({
-      [MY_DRIVERS_KEY]: JSON.stringify({ version: MY_DRIVERS_VERSION, drivers: [bare] }),
+      [MY_DRIVERS_KEY]: JSON.stringify({ schema: CURRENT_MY_DRIVERS_SCHEMA, drivers: [bare] }),
     });
-    const repo = createMyDriverRepo(store, driverFromConformingRecord);
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
     assert.equal(repo.list().length, 1,
       'no Fs is no different from a new driver the user left blank — it shows everywhere');
+  });
+});
+
+describe('D21-R Q3 — importing the same file twice can never silently overwrite (the governing risk)', () => {
+  it('two imports of one file are two entries with two identities', () => {
+    const store = createMemoryStorage({});
+    const repo = createMyDriverRepo(store, driverFromConformingRecord, myDriversSchema);
+    const fileRecord = validRecord('the-files-own-uuid', 'FileBrand', 'FileModel');
+
+    // The import path's rule (driverBrowsingState.loadFromDisk): ALWAYS mint fresh before
+    // upsert — the file's own uuid is provenance, never the store key.
+    const first = OpenISDDriver.fromJsonRecord(structuredClone(fileRecord));
+    first.mintFreshUuid();
+    repo.upsert(first);
+    const second = OpenISDDriver.fromJsonRecord(structuredClone(fileRecord));
+    second.mintFreshUuid();
+    repo.upsert(second);
+
+    const drivers = repo.list();
+    assert.equal(drivers.length, 2, 'importing the same file twice yields two entries');
+    assert.notEqual(drivers[0]!.uuid(), drivers[1]!.uuid(), 'each with its own identity');
+    assert.ok(drivers.every(d => d.uuid() !== 'the-files-own-uuid'),
+      "the file's own uuid is never adopted as the store key");
   });
 });
