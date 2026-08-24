@@ -30,8 +30,8 @@ const RAW_DRIVER = {
   Pe:   60,       // W   — rated power
   Znom:    8,        // Ω   — nominal impedance
 };
-const { value: DRV, errors: _drvErrors } = deriveEngineDriver(RAW_DRIVER);
-if (!DRV) throw new Error('RAW_DRIVER derivation failed — check T/S params: ' + _drvErrors.map(e => e.message).join('; '));
+const { value: DRV, errors: drvErrors } = deriveEngineDriver(RAW_DRIVER);
+if (!DRV) throw new Error('RAW_DRIVER derivation failed — check T/S params: ' + drvErrors.map(e => e.message).join('; '));
 
 // Sealed box parameters for most tests — lossless (Ql → ∞) to isolate circuit model effects
 const VB_M3 = 0.030;  // 30 L — equal to Vas for Qtc ≈ 0.537

@@ -20,7 +20,7 @@ import { sweep, maxCurves, classifyFinite, hfPassbandRef, tfMag, rolloffFreq } f
 import { deriveEngineDriver } from '@openisd/engine';
 
 // Reference driver: same synthetic 6.5" mid-woofer as engine.test.mjs
-const { value: DRV, errors: _drvErrors } = deriveEngineDriver({
+const { value: DRV, errors: drvErrors } = deriveEngineDriver({
   Fs:   37,      // Hz
   Qts:  0.38,
   Qes:  0.40,
@@ -33,7 +33,7 @@ const { value: DRV, errors: _drvErrors } = deriveEngineDriver({
   Pe:   60,      // W
   Znom:    8,       // Ω
 });
-if (!DRV) throw new Error('Test fixture driver is invalid: ' + _drvErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
+if (!DRV) throw new Error('Test fixture driver is invalid: ' + drvErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
 // Sealed box — lossless, 30 L
 const BOX = 'sealed';
@@ -121,12 +121,12 @@ describe('sweep — fmin=fmax produces constant-frequency sweep where dw=0', () 
 describe('maxCurves — one limit absent falls back to the other (never poisons the curve)', () => {
   it('driver without Pe → curve is Xmax-limited and finite (no thermal limit, no fabricated default)', () => {
     // Pe absent → vPe = Infinity; the excursion (Xmax) limit alone bounds the curve.
-    const { value: drvNoPe, errors: _noPeErrors } = deriveEngineDriver({
+    const { value: drvNoPe, errors: noPeErrors } = deriveEngineDriver({
       Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
       Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005,
       // Pe intentionally absent — deriveEngineDriver returns warn (not error); Xmax-limited max curves
     });
-    if (!drvNoPe) throw new Error('Test fixture invalid: ' + _noPeErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
+    if (!drvNoPe) throw new Error('Test fixture invalid: ' + noPeErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
     const { fs, maxspl } = maxCurves(drvNoPe, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
@@ -146,11 +146,11 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
     // Regression: Xmax=0 used to make vXmax=0 → vUse=0 → maxspl=-Infinity, maxpwr=0
     // (blank Max-SPL/Max-power charts). Xmax=0 must be treated as "no excursion limit"
     // so the Pe (thermal) limit alone bounds the curve.
-    const { value: drvXmax0, errors: _e } = deriveEngineDriver({
+    const { value: drvXmax0, errors: xmax0Errors } = deriveEngineDriver({
       Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
       Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Pe: 60, Xmax: 0,
     });
-    if (!drvXmax0) throw new Error('Test fixture invalid: ' + _e.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
+    if (!drvXmax0) throw new Error('Test fixture invalid: ' + xmax0Errors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
     const { maxspl, maxpwr } = maxCurves(drvXmax0, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,

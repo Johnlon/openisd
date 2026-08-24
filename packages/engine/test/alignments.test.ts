@@ -62,12 +62,6 @@ const EXACT = 1e-9;
 // Speaker alignment frequencies are typically quoted to 1 Hz; this is 100× tighter.
 const FREQ_TOLERANCE_HZ = 0.01;
 
-// 0.001 L: volume precision.  Real enclosures are built to ±1 L at best.
-const _VOL_TOLERANCE_LITRES = 0.001;
-
-// 1 mm: vent-length precision.  Ports are cut to ±2 mm in practice.
-const _VENT_LENGTH_TOLERANCE_MM = 1;
-
 
 // ===========================================================================
 // Efficiency Bandwidth Product (EBP)
