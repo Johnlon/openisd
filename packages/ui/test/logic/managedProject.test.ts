@@ -208,8 +208,7 @@ describe('ManagedOpenISDProject — a what-if never leaks into anything persiste
 
     assert.equal(mp.isWhatIfActive(), false, 'a save must never observe the live overlay');
     assert.equal(slotOf(saved, 'vented').volume_m3(), 0.030, 'committed state was never touched');
-    assert.equal(
-      OpenISDDriver.fromOwdrText(saved.driverText()!).cell('Fs').value, 37);
+    assert.equal(saved.driver()!.cell('Fs').value, 37);
   });
 });
 

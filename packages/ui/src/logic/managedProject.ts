@@ -73,10 +73,11 @@ export function fromAlignmentKind(active: AlignmentKind): BoxType {
   return active === PR_ALIGNMENT ? 'pr' : active;
 }
 
-/** One state layer: the project, and the live driver over its record. `openIsdDriver` is
- *  materialised from `project.driverText()` and re-materialised on every `mutate()` —
- *  `ManagedOpenISDProject` is the one file, by architecture rule, that constructs an
- *  `OpenISDDriver`; `OpenISDProject` itself holds only the record. */
+/** One state layer: the project, and its own live driver, read straight off it. `openIsdDriver`
+ *  is `project.driver()` — the SAME object, `?? null` in place of `?? undefined` for this
+ *  file's own null-means-unchosen convention — never a re-parse: `OpenISDProject` holds the
+ *  live driver directly (the mixed-representation defect this used to paper over is fixed at
+ *  the source, not here). */
 interface Layer {
   project: OpenISDProject;
   /** Null exactly when no driver has been chosen. */
@@ -86,14 +87,13 @@ interface Layer {
 type Overlay =
   | { kind: 'whatif'; layer: Layer };
 
-/** A layer over `project`, with its live driver materialised from the project's own record. */
+/** A layer over `project`, its live driver read straight off it. */
 function layerOf(project: OpenISDProject): Layer {
-  const text = project.driverText();
-  return { project, openIsdDriver: text ? OpenISDDriver.fromOwdrText(text) : null };
+  return { project, openIsdDriver: project.driver() ?? null };
 }
 
-/** An independent copy of a layer — `OpenISDProject.copy()` clones the record and hands back a
- *  new facade over it; the live driver is re-materialised over that clone's own record. */
+/** An independent copy of a layer — `OpenISDProject.copy()` clones the whole project, driver
+ *  included, and the layer's own driver reference is just read back off that copy. */
 function cloneLayer(layer: Layer): Layer {
   return layerOf(layer.project.copy());
 }
@@ -471,16 +471,15 @@ export class ManagedOpenISDProject {
    * not a driver field.
    *
    * The mutation happens inside the callback so that this class stays in charge of what follows
-   * it — re-materialising the effective layer's `OpenISDDriver` and notifying. A caller that
+   * it — re-reading the effective layer's driver reference and notifying. A caller that
    * mutated a project it had been handed could not be given either behaviour.
    */
   mutate(fn: (project: OpenISDProject) => void): void {
     const layer = this.#effective();
     fn(layer.project);
-    // The driver record may have been replaced wholesale (a different driver chosen), so the
-    // live view is re-materialised rather than left pointing at the old object.
-    const text = layer.project.driverText();
-    layer.openIsdDriver = text ? OpenISDDriver.fromOwdrText(text) : null;
+    // The driver may have been replaced wholesale (a different driver chosen) or cleared, so
+    // the layer's own reference is re-read rather than left pointing at the old one.
+    layer.openIsdDriver = layer.project.driver() ?? null;
     this.#notify();
   }
 
@@ -603,7 +602,7 @@ export class ManagedOpenISDProject {
    *  structural guard as `_projectToPersist()`. Undefined when no driver is chosen. */
   persistedDriverText(): string | undefined {
     this.#endWhatIfIfActive();
-    return this.#committed.project.driverText();
+    return this.#committed.openIsdDriver?.toOwdrText();
   }
 
   /**

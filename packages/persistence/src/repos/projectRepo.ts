@@ -1,10 +1,24 @@
 /** REPO: the open design as a persisted payload — localStorage autosave, the share-link
- *  hash, and the project file on disk (`.owpr`). Takes domain values, returns domain values;
- *  the JSON payload shape stays inside this file. */
-import type { OpenISDProjectMeta, UiParams } from '@openisd/model';
+ *  hash, and the project file on disk (`.owpr`). Takes the domain object, returns the domain
+ *  object; the JSON wire shape stays inside this file. */
+import { OpenISDProject, OpenISDDriver } from '@openisd/model';
+import type { AlignmentKind, OpenISDProjectMeta, UiParams } from '@openisd/model';
 import type { BoxType } from '@openisd/engine';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 import type { FileStorage, SaveResult } from '../storage/fileStorage.js';
+
+/** `AlignmentKind` (`@openisd/model`) and this file's own wire field `box: BoxType`
+ *  (`@openisd/engine`) name the same four alignments and spell one of them differently
+ *  ('passive-radiator' vs 'pr') — the SAME translation `managedProject.ts` makes at its own
+ *  seam (ui/logic → engine vocabulary), duplicated here because persistence may not import a
+ *  ui/logic module (layering runs one way) and this crossing is needed at this boundary too. */
+const PR_ALIGNMENT = 'passive-radiator' satisfies AlignmentKind;
+function wireBoxOf(kind: AlignmentKind): BoxType {
+  return kind === PR_ALIGNMENT ? 'pr' : kind;
+}
+function alignmentOfWireBox(box: BoxType): AlignmentKind {
+  return box === 'pr' ? PR_ALIGNMENT : box;
+}
 
 /** UI-only preferences (not part of a design). Persisted across refresh and carried by a
  *  share link (human ruling 2026-08-14: a link is a complete description of the session,
@@ -68,31 +82,6 @@ export interface ViewSnapshot {
 }
 
 /**
- * One persisted design snapshot, in domain vocabulary — what every door of this repo takes
- * and returns, on both the write and the read side (QO90: a separate hand-written read shape
- * is how a field added to one silently stops being tracked by the other).
- *
- * `params`/`box`/`meta`/`view` are required: there are no old saves this build must tolerate
- * missing them (`ProjectSchema.upgrade()` repairs SHAPE faults in already-written payloads,
- * per the 2026-08-17 policy — it is not a reason to model a field as optional here). Only
- * `driverText` is genuinely optional, and for a live, current reason: a brand-new project
- * before the user has picked any driver from the library has none
- * (`managedProject.persistedDriverText()` returns `undefined` for exactly that state).
- *
- * `view` is carried by every door at this type's level, but only WRITTEN to the wire by the
- * share-link doors (`stateToUrl`/`loadFromHash`) — the pure-project doors (`saveLocal`/
- * `saveToFile`/`saveToNewFile`/`loadLocal`/`readProjectText`, QO90) ignore it. See
- * `projectPayloadOf`/`sessionPayloadOf` below.
- */
-export interface ProjectPayload {
-  params: UiParams;
-  box: BoxType;
-  meta: OpenISDProjectMeta;
-  view: ViewSnapshot;
-  driverText?: string;
-}
-
-/**
  * The storage's schema collaborator — INJECTED at the composition root (a repo takes its
  * collaborators as arguments; it never reaches up into the logic layer). The implementation
  * is `logic/schemaUpgrade.ts`'s chain for this payload family.
@@ -107,11 +96,13 @@ export interface ProjectSchema {
 
 export const PROJECT_STATE_KEY = 'openisd.state';
 
-/** The persisted / URL-encoded snapshot shape. INTERNAL: repo callers speak `ProjectPayload`;
- *  this is the payload it becomes on disk and in links. `P`/`graphs`/`lossMode`/`ui`/`cursor`
- *  are all optional on the wire because a pure-project save (QO90 — `saveLocal`/`saveToFile`/
- *  `saveToNewFile`) never writes the view fields, while a share link (`stateToUrl`) writes
- *  every field. One schema, an optional view section — not two payload shapes. */
+/** The persisted / URL-encoded snapshot shape. INTERNAL: repo callers speak `OpenISDProject`
+ *  (+ `ViewSnapshot` for the share-link doors); this is the flat wire shape it becomes on disk
+ *  and in links, built from and read back into the project's OWN `toUiParams()`/`loadUiParams()`
+ *  surface. `P`/`graphs`/`lossMode`/`ui`/`cursor` are all optional on the wire because a
+ *  pure-project save (QO90 — `saveLocal`/`saveToFile`/`saveToNewFile`) never writes the view
+ *  fields, while a share link (`stateToUrl`) writes every field. One schema, an optional view
+ *  section — not two payload shapes. */
 interface SerializedState {
   /** The MODEL schema version this payload was serialised from. Readers upgrade from it
    *  (the injected `ProjectSchema`). Optional on the way IN because pre-policy payloads carry none —
@@ -165,26 +156,26 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 
 export interface ProjectRepo {
   /** Autosave to browser storage. Quota/disabled storage is non-fatal — an autosave that
-   *  cannot happen must not take the session down. Writes PURE PROJECT DATA (QO90) — `p.view`
-   *  is accepted (every caller has one to hand) but never reaches the wire. */
-  saveLocal(p: ProjectPayload): void;
+   *  cannot happen must not take the session down. Pure project data (QO90) — no view. */
+  saveLocal(project: OpenISDProject): void;
   /** The saved design, brought to the current schema, or null when none/unreadable. */
-  loadLocal(): ProjectPayload | null;
-  /** A URL carrying the WHOLE session, stripped of nothing (human ruling 2026-08-14) —
-   *  `p.view` is written to the wire, unlike the pure-project doors. */
-  stateToUrl(p: ProjectPayload): Promise<string>;
-  /** The design in the current location hash, or null when the hash carries none. */
-  loadFromHash(): Promise<ProjectPayload | null>;
+  loadLocal(): OpenISDProject | null;
+  /** A URL carrying the WHOLE session, stripped of nothing (human ruling 2026-08-14) — `view`
+   *  is written to the wire here, unlike the pure-project doors. The one legitimate place a
+   *  project and its view are bundled together — a share link is genuinely both at once. */
+  stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string>;
+  /** The design and view in the current location hash, or null when the hash carries none. */
+  loadFromHash(): Promise<{ project: OpenISDProject; view: ViewSnapshot } | null>;
   /** A design parsed from opened file TEXT — File → Open's JSON branch. Same schema seam as
    *  every other door, so a payload an older build wrote loads identically whichever way it
    *  arrives (bugs/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md). */
-  readProjectText(text: string): ProjectPayload | null;
+  readProjectText(text: string): OpenISDProject | null;
   /** Write to the previously-picked file (first save prompts). `naming` carries the
    *  suggested filename and the picker's format bits. Pure project data (QO90), like
    *  `saveLocal`. */
-  saveToFile(p: ProjectPayload, naming: FileNaming): Promise<SaveResult>;
+  saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
   /** Always prompt for a new location. Pure project data (QO90), like `saveLocal`. */
-  saveToNewFile(p: ProjectPayload, naming: FileNaming): Promise<SaveResult>;
+  saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
 }
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
@@ -193,9 +184,11 @@ export function createProjectRepo(
   storage: KeyValueStorage, schema: ProjectSchema, fileStorage: FileStorage,
 ): ProjectRepo {
 
-  /** PURE PROJECT DATA (QO90) — `saveLocal`/`saveToFile`/`saveToNewFile`'s wire writer. `p.view`
-   *  is ignored: a `.owpr` save and the local autosave carry only the project. */
-  function projectPayloadOf(p: ProjectPayload): SerializedState {
+  /** PURE PROJECT DATA (QO90) — `saveLocal`/`saveToFile`/`saveToNewFile`'s wire writer, built
+   *  from the project's OWN existing serialisation surface (`toUiParams()`/`activeAlignment()`/
+   *  `projectMeta()`/`driver()`) rather than a hand-assembled second shape — `OpenISDProject` is
+   *  what every caller of this repo already holds; nothing here re-declares its fields. */
+  function projectPayloadOf(project: OpenISDProject): SerializedState {
     return {
       // The MODEL version this payload is written from — every reader upgrades from it
       // (ARCHITECTURE.md §"EVERY STORED PAYLOAD CARRIES THE SCHEMA VERSION..."). `v` was
@@ -203,32 +196,66 @@ export function createProjectRepo(
       // the type still declares it, and `schema` is the field that means something.
       schema: schema.current,
       v: 2,
-      driver: p.driverText,
-      box: p.box,
-      P: p.params,
-      project: p.meta,
+      driver: project.driver()?.toOwdrText(),
+      box: wireBoxOf(project.activeAlignment()),
+      P: project.toUiParams(),
+      project: project.projectMeta(),
     };
   }
 
   /** The WHOLE session (human ruling 2026-08-14) — `stateToUrl`'s wire writer. */
-  function sessionPayloadOf(p: ProjectPayload): SerializedState {
+  function sessionPayloadOf(project: OpenISDProject, view: ViewSnapshot): SerializedState {
     return {
-      ...projectPayloadOf(p),
-      lossMode: p.view.lossMode,
-      graphs: p.view.graphs,
-      ui: p.view.ui,
-      cursor: p.view.cursor,
+      ...projectPayloadOf(project),
+      lossMode: view.lossMode,
+      graphs: view.graphs,
+      ui: view.ui,
+      cursor: view.cursor,
     };
   }
 
-  function readOf(s: SerializedState): ProjectPayload {
-    return {
-      params: s.P!,   // guaranteed present — carriesStateShape refuses a blob without it
-      box: s.box,
-      meta: s.project!,   // guaranteed present — carriesStateShape refuses a blob without it
-      driverText: s.driver,
-      view: { lossMode: s.lossMode, graphs: s.graphs ?? [], ui: s.ui, cursor: s.cursor },
-    };
+  /**
+   * A saved wire state → a live `OpenISDProject`, via the project's own `loadUiParams()` — the
+   * SAME restore surface `OpenISDProject` already exposes, not a second reconstruction path.
+   * The driver's text is untrusted (a hand-edited file, an old build's link), so it is CHECKED
+   * (`OpenISDDriver.fromConformingRecord`) rather than trusted outright: a driver too broken to
+   * load safely is quarantined and dropped, while the rest of the project still loads
+   * (least-impact refusal — the user loses the driver selection, not the session).
+   *
+   * Old-schema repair (a pre-vent-group save carrying no `ventShape`/`ventW`/`ventH`/`entered`)
+   * happens here too, on the raw incoming params, before they ever reach a live project —
+   * `OpenISDProject.solveVentGroup()` (the domain object's own solver) settles the fabricated
+   * entered set once, on the detached project, before anything reactive can see it.
+   */
+  function projectOf(s: SerializedState): OpenISDProject {
+    const incoming: Partial<UiParams> = { ...(s.P ?? {}) };
+    if (incoming.ventShape === undefined) incoming.ventShape = 'round';
+    if (incoming.ventW === undefined) incoming.ventW = 0.10;
+    if (incoming.ventH === undefined) incoming.ventH = 0.05;
+    const hadEntered = !!incoming.entered;
+    if (!hadEntered) incoming.entered = { Vb: true, ventD: true, ventW: true, ventH: true, ventL: true };
+
+    const project = OpenISDProject.empty();
+    project.loadUiParams(incoming, alignmentOfWireBox(s.box));
+    if (!hadEntered) project.solveVentGroup();
+    project.setProjectMeta(s.project!);   // guaranteed present — carriesStateShape refuses a blob without it
+
+    if (s.driver) {
+      let parsed: unknown;
+      try { parsed = JSON.parse(s.driver); } catch { parsed = null; }
+      const driver = parsed != null ? OpenISDDriver.fromConformingRecord(parsed) : null;
+      if (driver) {
+        project.setDriver(driver);
+      } else {
+        console.error('[restore] refused the saved driver record — not a conforming driver record');
+        // QUARANTINE BEFORE THE AUTOSAVE EATS IT. Refusing the record leaves the project with
+        // no driver, and the very next autosave writes that driverless state over the same
+        // key — so within a tick the evidence would be gone with nothing left to repair.
+        try { storage.set('openisd.quarantine.driver', s.driver); }
+        catch { /* storage full or disabled — the refusal still stands */ }
+      }
+    }
+    return project;
   }
 
   /**
@@ -262,10 +289,10 @@ export function createProjectRepo(
   }
 
   /** The shape check `upgradeParsedState` narrows on: `box` present as a string, `driver`
-   *  either absent or serialised TEXT, and `P`/`project` present — `ProjectPayload.params`/
-   *  `.meta` are required (there are no old saves this build must tolerate missing them).
-   *  Reports what it refused, because a silent null at a restore boundary is indistinguishable
-   *  from "nothing was saved". */
+   *  either absent or serialised TEXT, and `P`/`project` present — a saved project's params
+   *  and meta are always both written together, so a blob missing either is refused rather
+   *  than reconstructed from defaults. Reports what it refused, because a silent null at a
+   *  restore boundary is indistinguishable from "nothing was saved". */
   function carriesStateShape(blob: Record<string, unknown>): blob is Record<string, unknown> & SerializedState {
     if (typeof blob.box !== 'string') {
       console.error('[restore] saved state states a schema but carries no box type — refused');
@@ -286,14 +313,20 @@ export function createProjectRepo(
     return true;
   }
 
-  function readParsed(parsed: unknown): ProjectPayload | null {
+  function readParsedProject(parsed: unknown): OpenISDProject | null {
     const s = upgradeParsedState(parsed);
-    return s ? readOf(s) : null;
+    return s ? projectOf(s) : null;
+  }
+
+  function readParsedSession(parsed: unknown): { project: OpenISDProject; view: ViewSnapshot } | null {
+    const s = upgradeParsedState(parsed);
+    if (!s) return null;
+    return { project: projectOf(s), view: { lossMode: s.lossMode, graphs: s.graphs ?? [], ui: s.ui, cursor: s.cursor } };
   }
 
   return {
-    saveLocal(p: ProjectPayload): void {
-      storage.set(PROJECT_STATE_KEY, JSON.stringify(projectPayloadOf(p)));   // createLocalStorage already guards quota/disabled
+    saveLocal(project: OpenISDProject): void {
+      storage.set(PROJECT_STATE_KEY, JSON.stringify(projectPayloadOf(project)));   // createLocalStorage already guards quota/disabled
     },
 
     /**
@@ -304,7 +337,7 @@ export function createProjectRepo(
      * refused rather than loaded hopefully; `upgrade()` throws and this returns null, leaving
      * the app on its own defaults with the stored bytes untouched for diagnosis.
      */
-    loadLocal(): ProjectPayload | null {
+    loadLocal(): OpenISDProject | null {
       const raw = storage.get(PROJECT_STATE_KEY);
       if (!raw) return null;
       let parsed: unknown;
@@ -312,10 +345,10 @@ export function createProjectRepo(
         console.error('[restore] saved state is not valid JSON — ignored');
         return null;
       }
-      return readParsed(parsed);
+      return readParsedProject(parsed);
     },
 
-    async stateToUrl(p: ProjectPayload): Promise<string> {
+    async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {
       // The URL carries the WHOLE state, stripped of nothing (human ruling 2026-08-14). A
       // share link is a complete description of the session: the recipient lands on exactly
       // what the sender was looking at, which is what makes a link usable for diagnostics and
@@ -326,27 +359,27 @@ export function createProjectRepo(
       // though they are preferences rather than design data. Fidelity beats politeness: a
       // link that quietly differs from what the sender saw cannot be used to diagnose what
       // the sender saw.
-      const encoded = await gzipEncodeBase64Url(JSON.stringify(sessionPayloadOf(p)));
+      const encoded = await gzipEncodeBase64Url(JSON.stringify(sessionPayloadOf(project, view)));
       return location.origin + location.pathname + '#s=' + encoded;
     },
 
-    async loadFromHash(): Promise<ProjectPayload | null> {
+    async loadFromHash(): Promise<{ project: OpenISDProject; view: ViewSnapshot } | null> {
       const m = (location.hash || '').match(/[#&]s=([^&]+)/);
       if (!m) return null;
-      try { return readParsed(JSON.parse(await gzipDecodeBase64Url(m[1]))); } catch { return null; }
+      try { return readParsedSession(JSON.parse(await gzipDecodeBase64Url(m[1]))); } catch { return null; }
     },
 
-    readProjectText(text: string): ProjectPayload | null {
-      try { return readParsed(JSON.parse(text)); } catch { return null; }
+    readProjectText(text: string): OpenISDProject | null {
+      try { return readParsedProject(JSON.parse(text)); } catch { return null; }
     },
 
-    saveToFile(p: ProjectPayload, naming: FileNaming): Promise<SaveResult> {
-      return fileStorage.save(JSON.stringify(projectPayloadOf(p), null, 2),
+    saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
+      return fileStorage.save(JSON.stringify(projectPayloadOf(project), null, 2),
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
 
-    saveToNewFile(p: ProjectPayload, naming: FileNaming): Promise<SaveResult> {
-      return fileStorage.saveAs(JSON.stringify(projectPayloadOf(p), null, 2),
+    saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
+      return fileStorage.saveAs(JSON.stringify(projectPayloadOf(project), null, 2),
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
   };

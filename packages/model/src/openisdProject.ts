@@ -27,6 +27,12 @@
  * `ManagedProject` clones a whole project to open an overlay.
  */
 import { OpenISDDriver, Provenance } from './openisdDriver.js';
+// `_OpenISDDriverJson` is `openisdDriver.ts`'s own private wire shape — named openly here (not
+// laundered through an alias or `unknown`) because `_OpenISDProjectJson.driver` below HOLDS one
+// as opaque data: this file never reads a field off it, only passes it whole to
+// `OpenISDDriver.fromJsonRecord()`/`.toJsonRecord()`. Granted in `architecture.test.ts`'s
+// HUMAN_GRANTED list, same pattern as `driverRepo.ts` + `_OpenISDDriverJson`.
+import type { _OpenISDDriverJson } from './openisdDriver.js';
 import type { Filter } from '@openisd/engine';
 import { prCmsFromVas, prMmdFromFs, prRmsFromQms, prVas, prQms, prFsWithMass,
          sealedFc, tuningFromLength, ventLength, prTuning, prMassForFp,
@@ -284,22 +290,28 @@ export interface OpenISDProjectMeta {
 }
 
 /**
- * THE project. Every member is data; none is a live object with its own lifecycle, because
- * `ManagedProject` clones the whole thing to open an edit or a what-if.
+ * THE project's WIRE shape — what `toJsonRecord()` produces and `fromJsonRecord()` adopts.
+ * Every member is plain data, because this is the shape that actually crosses a boundary
+ * (`structuredClone`, `JSON.stringify`, a file, a share link).
+ *
+ * `driver` is the driver's OWN wire record (`OpenISDDriver.toJsonRecord()`'s `_OpenISDDriverJson`
+ * — named openly here, not laundered, and held as OPAQUE data: this file never reads a field
+ * off it, only ever passes it whole to `OpenISDDriver.fromJsonRecord()`/`.toJsonRecord()`), so a
+ * saved project nests real JSON, not a JSON string escaped inside JSON. `undefined` before a
+ * driver is chosen.
+ *
+ * This is NOT what `OpenISDProject` holds live (see `ProjectLiveState` below, right above
+ * the class) — the driver's record here is a PROJECTION, built once by `toJsonRecord()` at the
+ * moment bytes are actually needed, never the class's own in-memory storage.
+ *
+ * A REQUIRED key holding `| undefined`, not an optional (`driver?:`) property: `OpenISDProject`
+ * exposes every other field of this interface under a same-named public getter, which makes
+ * the class structurally satisfy this interface UNLESS at least one field the class does NOT
+ * expose is also non-optional — an optional field's mere absence from the class's public
+ * shape is not a structural mismatch (`openisdProjectFacade.test.ts` pins this).
  */
 export interface _OpenISDProjectJson {
-  /** The driver as ITS OWN serialisation (`OpenISDDriver.toOwdrText()`), never the record
-   *  shape. THE OWNER OF THE STATE SERIALIZES IT (QO83): the driver's record is private to
-   *  `OpenISDDriver`, so the project — a legitimate HOLDER of a driver, not its owner —
-   *  carries the text and materialises a live driver from it when one is asked for.
-   *  `undefined` before a driver is chosen; `structuredClone` copies text exactly.
-   *
-   *  A REQUIRED key holding `| undefined`, not an optional (`driver?:`) property: `OpenISDProject`
-   *  exposes every other field of this interface under a same-named public getter, which makes
-   *  the class structurally satisfy this interface UNLESS at least one field the class does NOT
-   *  expose is also non-optional — an optional field's mere absence from the class's public
-   *  shape is not a structural mismatch. */
-  driver: string | undefined;
+  driver: _OpenISDDriverJson | undefined;
   box: OpenISDBox;
   target: OpenISDTarget;
   filters: Filter[];
@@ -309,6 +321,18 @@ export interface _OpenISDProjectJson {
   simOptions: OpenISDSimOptions;
   sweep: OpenISDSweepRange;
   meta: OpenISDProjectMeta;
+}
+
+/**
+ * `OpenISDProject`'s actual live, in-memory storage — identical to `_OpenISDProjectJson` except
+ * `driver` is the real, live `OpenISDDriver` object rather than its serialised text. The project
+ * is either wholly a domain object or wholly text, never a mix: `#record` holds this type
+ * throughout the object's lifetime, and the ONLY place a driver becomes text is `toJsonRecord()`
+ * (output) — the only place text becomes a driver is `fromJsonRecord()` (input). Internal only:
+ * this type never crosses `OpenISDProject`'s own boundary, so it is not exported.
+ */
+interface ProjectLiveState extends Omit<_OpenISDProjectJson, 'driver'> {
+  driver: OpenISDDriver | undefined;
 }
 
 // ── Construction and the one legal way to switch alignment ────────────────────────────────
@@ -474,7 +498,7 @@ function ensurePassiveRadiator(
 /** A project with nothing chosen — what the app holds before a driver is picked, and the seed
  *  `OpenISDProject.empty()` builds. Every value is a real default a user could have set; none
  *  is a fake driver standing in for a real one. */
-function prototypeProject(): _OpenISDProjectJson {
+function prototypeProject(): ProjectLiveState {
   return {
     driver: undefined,
     box: prototypeBox(),
@@ -627,16 +651,32 @@ export interface UiParams {
 }
 
 export class OpenISDProject {
-  readonly #record: _OpenISDProjectJson;
+  readonly #record: ProjectLiveState;
 
-  private constructor(record: _OpenISDProjectJson) {
+  private constructor(record: ProjectLiveState) {
     assertVentArity(record.box);
     this.#record = record;
   }
 
-  /** Adopt an existing record — a load from disk, a share link, a restore. */
+  /** Adopt a wire record — a load from disk, a share link, a restore. The ONE place `driver`'s
+   *  record becomes a live `OpenISDDriver`; every other field is adopted BY REFERENCE (not
+   *  cloned — `openisdProjectCells.test.ts` pins this: a caller that retains `record` and
+   *  mutates it past the type system must see that mutation reflected). `record.driver` is data
+   *  from an untrusted boundary (a hand-edited file, an old build's share link), so it is
+   *  CHECKED (`OpenISDDriver.fromConformingRecord`) rather than trusted outright — a driver
+   *  record too broken to load safely is dropped, never carried into every field read that
+   *  dereferences it, but the rest of the project still loads (least-impact refusal). */
   static fromJsonRecord(record: _OpenISDProjectJson): OpenISDProject {
-    return new OpenISDProject(record);
+    const { driver, ...rest } = record;
+    return new OpenISDProject({ ...rest, driver: driver ? (OpenISDDriver.fromConformingRecord(driver) ?? undefined) : undefined });
+  }
+
+  /** This project as its wire record — the driver's live object PROJECTED to its own record
+   *  (`OpenISDDriver.toJsonRecord()`) here, once, at the moment bytes are actually needed. Paired
+   *  with `fromJsonRecord()`. */
+  toJsonRecord(): _OpenISDProjectJson {
+    const { driver, ...rest } = this.#record;
+    return { ...rest, driver: driver?.toJsonRecord() };
   }
 
   /**
@@ -753,7 +793,11 @@ export class OpenISDProject {
    *  layers without ever touching the JSON itself (`ManagedX` clones `X` by asking `X` for a
    *  copy of itself — never by touching its JSON, ledger QO60/61). */
   copy(): OpenISDProject {
-    return new OpenISDProject(structuredClone(this.#record));
+    // `structuredClone` cannot clone a class instance (it drops the private field data that
+    // gives it meaning), so `driver` is cloned separately via its own `OpenISDDriver.copy()` —
+    // every other field is plain data and clones normally.
+    const { driver, ...rest } = this.#record;
+    return new OpenISDProject({ ...structuredClone(rest), driver: driver?.copy() });
   }
 
   /** Switch the ACTIVE alignment — the others stay populated and dormant. */
@@ -990,18 +1034,17 @@ export class OpenISDProject {
 
   // ---- driver ------------------------------------------------------------------------------
 
-  /** The driver's own serialised TEXT — for `ManagedOpenISDProject` to materialise its OWN
-   *  live `OpenISDDriver` from. Opaque: no private shape crosses, so this needs no underscore
-   *  and no allow-list entry. `undefined` before a driver is chosen. */
-  driverText(): string | undefined { return this.#record.driver; }
+  /** The live driver this project holds — the same public domain object throughout, never
+   *  round-tripped through text on the way in or out. `undefined` before a driver is chosen. */
+  driver(): OpenISDDriver | undefined { return this.#record.driver; }
 
   /** Adopt a driver into this project — the ONE adoption channel, taking the public domain
-   *  object rather than the private record (QO73/human ruling 2026-08-22: no UI code may name
-   *  or infer the driver's record shape). Stores the driver's OWN serialisation, so the
-   *  caller's live driver and this project's copy can never be the same object.
-   *  `undefined` clears the project's driver. */
+   *  object (QO73/human ruling 2026-08-22: no UI code may name or infer the driver's private
+   *  record shape) and HOLDING it: the project is either wholly a domain object or wholly
+   *  text, never a mix — text exists only as `toJsonRecord()`'s output, built once, at the
+   *  moment bytes are actually needed. `undefined` clears the project's driver. */
   setDriver(driver: OpenISDDriver | undefined): void {
-    this.#record.driver = driver?.toOwdrText();
+    this.#record.driver = driver;
   }
 
   /**

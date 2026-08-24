@@ -11,18 +11,31 @@ import { OpenISDDriver } from '../src/openisdDriver.js';
 import { WinISDProject } from '@openisd/winisd';
 import { moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
 
-describe('OpenISDProject.setDriver — adopts a driver into this project as a record clone', () => {
-  it('a fresh project holds no driver text', () => {
-    assert.equal(OpenISDProject.empty().driverText(), undefined);
+describe('OpenISDProject.setDriver — holds the live driver object', () => {
+  it('a fresh project holds no driver', () => {
+    assert.equal(OpenISDProject.empty().driver(), undefined);
   });
-  it('a driver adopted via setDriver reads back off the project\'s own stored text', () => {
+  it('a driver adopted via setDriver reads back as the SAME live object', () => {
     const project = OpenISDProject.empty();
     const driver = OpenISDDriver.empty();
     driver.enter('Fs', 111111);
     project.setDriver(driver);
-    const text = project.driverText();
-    assert.ok(text, 'setDriver must store the driver\'s own serialisation');
-    assert.equal(OpenISDDriver.fromOwdrText(text!).cell('Fs').value, 111111);
+    assert.equal(project.driver(), driver, 'setDriver must hold the object itself, not a copy or a text round-trip');
+    assert.equal(project.driver()!.cell('Fs').value, 111111);
+  });
+  it('toJsonRecord()/fromJsonRecord() round-trip the driver as its own JSON record, once, at the wire boundary', () => {
+    const project = OpenISDProject.empty();
+    const driver = OpenISDDriver.empty();
+    driver.enter('Fs', 222222);
+    project.setDriver(driver);
+
+    const record = project.toJsonRecord();
+    assert.equal(typeof record.driver, 'object', 'toJsonRecord() projects the live driver to its own JSON record');
+    assert.ok(record.driver && 'specs' in record.driver, 'the projected record is the driver\'s real wire shape');
+
+    const restored = OpenISDProject.fromJsonRecord(record);
+    assert.notEqual(restored.driver(), driver, 'a record round-trip must not hand back the original live object');
+    assert.equal(restored.driver()!.cell('Fs').value, 222222);
   });
 });
 

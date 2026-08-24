@@ -16,11 +16,11 @@
 import { reactive, computed, ref, shallowRef, watch, type ComputedRef } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
-import type { SpecField } from '@openisd/model';
+import type { SpecField, OpenISDProject } from '@openisd/model';
 import { ManagedOpenISDProject, toAlignmentKind, fromAlignmentKind } from './managedProject.js';
 import type { AppState, SyncedParams } from '../types.js';
 import type { UiParams } from '@openisd/model';
-import { copyOfName, uniqueName, type ProjectPayload, type ViewSnapshot } from '@openisd/persistence';
+import { copyOfName, uniqueName, type ViewSnapshot } from '@openisd/persistence';
 import { presentationState, unitToken } from './presentationState.js';
 import { resolveAirEnvironment } from './environment.js';
 import { parseChartTabId } from './series.js';
@@ -416,24 +416,18 @@ export function copyProjectName(taken: readonly string[]): string {
   return uniqueName(copyOfName(state.project.name || driverName.value), taken);
 }
 
-/** The open design as the repo's payload shape — the ONE gatherer every save/share door calls,
- *  so what a link, an autosave and a file carry can never drift apart. `view` is always
- *  gathered (every caller has one to hand), even though the pure-project doors (`saveLocal`/
- *  `saveToFile`/`saveToNewFile`, QO90) never write it to the wire — the repo, not this
- *  gatherer, decides which door persists which fields. */
-export function currentProjectPayload(): ProjectPayload {
-  return {
-    params: managedProject.toUiParams(),
-    box: state.box,
-    meta: { ...state.project },
-    driverText: persistedDriver.value,
-    view: currentViewSnapshot(),
-  };
+/** The open design, as the domain object every save/share door persists — the managed layer's
+ *  own persist-safe copy (`_projectToPersist()`, which cancels an active what-if itself). No
+ *  field is re-gathered by hand: `OpenISDProject` already IS params + box + meta + driver
+ *  together, so a second, parallel struct duplicating those fields would be a second answer to
+ *  the same question. */
+export function currentProject(): OpenISDProject {
+  return managedProject._projectToPersist();
 }
 
-/** The live presentation state as the repo's view shape — read by `currentProjectPayload()`
- *  for the share-link doors, and directly by the view-state autosave (QO90 — view/UI
- *  preferences persist under their own storage key, independent of the project). */
+/** The live presentation state as the repo's view shape — read directly by the share-link
+ *  doors and by the view-state autosave (QO90 — view/UI preferences persist under their own
+ *  storage key, independent of the project). */
 export function currentViewSnapshot(): ViewSnapshot {
   return {
     lossMode: presentationState.lossMode,
@@ -447,63 +441,30 @@ export function currentViewSnapshot(): ViewSnapshot {
 }
 
 /**
- * Restore a project's own fields — `box`/`params`/`meta`/`driverText` — ignoring `o.view`.
- * The pure-project load doors (`loadLocal`/`readProjectText`, QO90) call this; the view is
- * restored separately, from its own storage key, by `applyViewSnapshot()`.
+ * Adopt a freshly loaded project as the WHOLE design — driver, box, vents, PR, environment,
+ * signal, filters, entered set and meta together, in one coherent operation
+ * (`ManagedOpenISDProject.load()`). The pure-project load doors (`loadLocal`/`readProjectText`,
+ * QO90) call this; the view is restored separately, from its own storage key, by
+ * `applyViewSnapshot()`.
+ *
+ * Old-schema repair (a pre-vent-group save with no `ventShape`/`ventW`/`ventH`/`entered`) and
+ * driver-record conformance checking (a bad record refused rather than crashing the whole
+ * load, quarantined so an autosave cannot overwrite the evidence) already happened at the repo
+ * boundary (`@openisd/persistence`'s `projectRepo.ts`) that produced `project` — this only
+ * adopts the result.
  *
  * Every load path must land the WHOLE project: a second, hand-rolled subset loader is how
  * File → Open… silently dropped the project name, the comparison overlays and the graph
- * cursor while appearing to succeed. `project-load-gate.test.ts` fails the suite if a key
- * `currentProjectPayload()` emits is not restored here.
+ * cursor while appearing to succeed. `project-load-gate.test.ts` fails the suite if a field
+ * `currentProject()` carries is not restored here.
  */
-export function applyProjectPayload(o: ProjectPayload): void {
-  // ONE POISON PILL MUST NOT TAKE THE APP DOWN (ARCHITECTURE.md §"No single datum may take
-  // the app down"). `o.driver` is untrusted: it comes from localStorage, a share link or a
-  // file, and `as _OpenISDDriverJson` is an assertion about data we did not write. An unchecked
-  // record with no `specs` threw on its first field read and killed every driver computed in
-  // the app — a blank screen from one absent key.
-  //
-  // So the record is CHECKED here, and a bad one is refused while the rest of the state — box,
-  // vents, targets, charts, UI — restores as normal. Least impact: the user loses the driver
-  // selection, not the session. `restoreProblems` carries the reason to the UI, which is what
-  // makes it a reported fault rather than a silent drop.
-  restoreProblems.value = [];
-  if (o.driverText) {
-    // The managed layer does the checking and the adopting in one call — appState never
-    // parses, names, or holds the record (QO73); it only relays the refusal.
-    const problems = managedProject.loadDriverFromPersistedText(o.driverText);
-    if (problems.length) {
-      restoreProblems.value = problems.map(p => `saved driver was not loaded: ${p}`);
-      // QUARANTINE BEFORE THE AUTOSAVE EATS IT. Refusing the record leaves the app with no
-      // driver, and the very next autosave writes that driverless state over `openisd.state` —
-      // so within a tick the user's record is GONE and the least-damaging repair has nothing
-      // left to repair. Setting it aside keeps a one-field fix possible, and keeps the evidence
-      // for diagnosing the cause.
-      try { localStorage.setItem('openisd.quarantine.driver', o.driverText); }
-      catch { /* storage full or disabled — the refusal still stands */ }
-      console.error(`[restore] refused the saved driver record — ${problems.join('; ')}`);
-    }
-  }
-  state.box = o.box;
-  // Verbatim, for the same reason as resetProjectToGround: a persisted design carries both
-  // vent-group members and the entered set, so a restore has nothing to compute.
-  //
-  // A design saved before the vent group existed carries `ventL` and no provenance. That is
-  // not a second model to support — it is foreign input arriving at the persistence
-  // boundary, and this is the one place it gets read into the single current shape. Its
-  // `ventL` WAS authoritative (it was the only direction the app had), so the faithful
-  // reading is exactly that: length entered, tuning solved from it.
-  suspendVentSolve(() => {
-    const incoming = { ...o.params };
-    if (incoming.ventShape === undefined) incoming.ventShape = 'round';
-    if (incoming.ventW === undefined) incoming.ventW = 0.10;
-    if (incoming.ventH === undefined) incoming.ventH = 0.05;
-    const hadEntered = !!incoming.entered;
-    if (!hadEntered) incoming.entered = { Vb: true, ventD: true, ventW: true, ventH: true, ventL: true };
-    managedProject.loadUiParams(incoming, toAlignmentKind(state.box));
-    if (!hadEntered) solveVentGroup(managedProject, state.box);
-  });
-  Object.assign(state.project, o.meta);
+export function applyLoadedProject(project: OpenISDProject): void {
+  // `suspendVentSolve`: a restore must land byte-identical (`docs/design/STATE_MODEL.md` rule
+  // 3), and `managedProject.load()` notifies — which would otherwise let the reactive
+  // vent-group watcher re-solve a member the load already set, landing a rounded-through-JSON
+  // double instead of the persisted one.
+  suspendVentSolve(() => managedProject.load(project));
+  Object.assign(state.project, project.projectMeta());
 }
 
 /** Restore view/UI preferences — loss-model choice, open charts, panel/unit preferences, the
@@ -527,9 +488,9 @@ export function applyViewSnapshot(v: ViewSnapshot): void {
 
 /** Restore a FULL session — project and view together — for the share-link doors
  *  (`stateToUrl`/`loadFromHash`), which still carry both (human ruling 2026-08-14). The
- *  pure-project doors (`loadLocal`/`readProjectText`) call `applyProjectPayload()` alone. */
-export function applyState(o: ProjectPayload): void {
-  applyProjectPayload(o);
+ *  pure-project doors (`loadLocal`/`readProjectText`) call `applyLoadedProject()` alone. */
+export function applyState(o: { project: OpenISDProject; view: ViewSnapshot }): void {
+  applyLoadedProject(o.project);
   applyViewSnapshot(o.view);
 }
 

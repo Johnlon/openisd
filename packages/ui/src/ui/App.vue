@@ -6,8 +6,8 @@ import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import {
-  managedProject, applyState, applyProjectPayload, applyViewSnapshot,
-  markProjectSaved, currentProjectPayload,
+  managedProject, applyState, applyLoadedProject, applyViewSnapshot,
+  markProjectSaved, currentProject, currentViewSnapshot,
 } from '../logic/appState.js';
 import { presentationState } from '../logic/presentationState.js';
 import { createLiveRef } from '../logic/liveProject.js';
@@ -34,11 +34,11 @@ const { live } = createLiveRef(managedProject);
 // project to the wire (it ignores `s.view` itself — see `projectRepo.ts`); `viewStateRepo`
 // persists the view separately, under its own storage key.
 watch(
-  () => { void live.value; return currentProjectPayload(); },
-  (s) => {
+  () => { void live.value; return currentProject(); },
+  (project) => {
     if (!saveReady) return;
-    projectRepo.saveLocal(s);
-    viewStateRepo.save(s.view);
+    projectRepo.saveLocal(project);
+    viewStateRepo.save(currentViewSnapshot());
   },
   { deep: true },
 );
@@ -48,7 +48,7 @@ onMounted(async () => {
   if (!fromUrl) {
     // Project and view load independently (QO90) — each from its own storage key.
     const local = projectRepo.loadLocal();
-    if (local) applyProjectPayload(local);
+    if (local) applyLoadedProject(local);
     const view = viewStateRepo.load();
     if (view) applyViewSnapshot(view);
   } else {

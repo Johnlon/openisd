@@ -694,9 +694,15 @@ checklistDescribe('leading-underscore exports are class-private — owner-only, 
    *   OBJECT then of course it deserves that access." `scripts/bundle-drivers.mjs` copies each
    *   canonical record into the artifact verbatim, so `BundleRecord.record` IS one and is
    *   typed as one; it is opened exactly once, through the injected conformance factory.
+   * - model/src/openisdProject.ts + _OpenISDDriverJson: the driver mixed-representation fix
+   *   (John, 2026-08-24) — `_OpenISDProjectJson.driver` HOLDS the driver's own wire record so a
+   *   saved project nests real JSON rather than a JSON string escaped inside JSON. It is opaque
+   *   data there: `openisdProject.ts` never reads a field off it, only passes it whole to
+   *   `OpenISDDriver.fromJsonRecord()`/`.fromConformingRecord()`/`.toJsonRecord()`.
    */
   const HUMAN_GRANTED: ReadonlyArray<readonly [file: string, name: string]> = [
     ['persistence/src/repos/driverRepo.ts', '_OpenISDDriverJson'],
+    ['model/src/openisdProject.ts', '_OpenISDDriverJson'],
   ];
 
   it('no file outside a name\'s declaring file imports it (human-granted pairs excepted)', () => {

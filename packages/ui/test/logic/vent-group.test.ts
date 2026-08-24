@@ -21,11 +21,24 @@
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, applyState, managedProject } from '../../src/logic/appState.js';
+import { state, applyLoadedProject, managedProject } from '../../src/logic/appState.js';
 import {
   solveVentGroup, enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
   ventFieldState as ventFieldStateOn,
 } from '../../src/logic/useVentGroup.js';
+import { createProjectRepo, createMemoryStorage, type FileStorage } from '@openisd/persistence';
+import { projectSchema } from '../../src/logic/schemaUpgrade.js';
+
+/** A real repo, memory-backed — the restore tests below go through its actual read pipeline
+ *  (schema upgrade, old-schema vent-field repair, `OpenISDProject` reconstruction) rather than
+ *  hand-building a project, because that pipeline is exactly what is under test. */
+const neverPicksAFile: FileStorage = {
+  save: async () => ({ name: null, cancelled: true, written: false }),
+  saveAs: async () => ({ name: null, cancelled: true, written: false }),
+  openFileName: () => null,
+  forget: () => {},
+};
+const restoreRepo = createProjectRepo(createMemoryStorage(), projectSchema, neverPicksAFile);
 
 function enterVentField(field: Parameters<typeof enterVentFieldOn>[1], value: number): void {
   enterVentFieldOn(managedProject, field, value, state.box);
@@ -141,13 +154,19 @@ describe('vent group — a restore is adopted verbatim', () => {
     managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
     enterVentField('Fb', 40);
 
-    // Exactly what persistence does: JSON out, JSON back in. The rounding that happens here
-    // is what a re-solve on restore would amplify into a different double.
-    const saved = JSON.parse(JSON.stringify({ box: state.box, view: { graphs: [] }, params: managedProject.toUiParams() }));
+    // Exactly what persistence does: JSON out, JSON back in, through the REAL repo (the
+    // rounding that happens here is what a re-solve on restore would amplify into a different
+    // double).
+    const saved = JSON.stringify({
+      schema: 2, v: 2, box: state.box, P: managedProject.toUiParams(),
+      project: { name: '', creator: '', created: '', modified: '', description: '' },
+    });
     const fbBefore = managedProject.boxTuning_Fb_hz(), lenBefore = ventL();
 
     managedProject.setActiveVentField('diameter_m', 0.09);   // drift the live design away
-    applyState(saved);
+    const restored = restoreRepo.readProjectText(saved);
+    assert.ok(restored, 'the just-built payload must load');
+    applyLoadedProject(restored!);
 
     assert.equal(managedProject.boxTuning_Fb_hz(), fbBefore, 'restored tuning must be bit-identical');
     assert.equal(ventL(), lenBefore, 'restored length must be bit-identical');
@@ -156,14 +175,19 @@ describe('vent group — a restore is adopted verbatim', () => {
   it('a design saved before the vent group existed is read as length-entered', () => {
     // No `Fb`, no `entered` — its ventL WAS authoritative, because it was the only direction
     // the app had. Read at the persistence boundary into the one current shape.
-    const legacy = {
-      box: state.box, view: { graphs: [] },
-      params: { ...managedProject.toUiParams(), ventL: 0.154, Vb: 0.02, ventD: 0.05, endCorrection: 0.6 },
+    const legacyParams: Record<string, unknown> = {
+      ...managedProject.toUiParams(), ventL: 0.154, Vb: 0.02, ventD: 0.05, endCorrection: 0.6,
     };
-    delete (legacy.params as Record<string, unknown>).Fb;
-    delete (legacy.params as Record<string, unknown>).entered;
+    delete legacyParams.Fb;
+    delete legacyParams.entered;
+    const legacy = JSON.stringify({
+      schema: 2, v: 2, box: state.box, P: legacyParams,
+      project: { name: '', creator: '', created: '', modified: '', description: '' },
+    });
 
-    applyState(JSON.parse(JSON.stringify(legacy)));
+    const restored = restoreRepo.readProjectText(legacy);
+    assert.ok(restored, 'the just-built payload must load');
+    applyLoadedProject(restored!);
 
     assert.equal(ventFieldState('ventL'), 'E', 'the stored length is the authoritative fact');
     assert.equal(ventFieldState('Fb'), 'C', 'and the tuning is solved from it');

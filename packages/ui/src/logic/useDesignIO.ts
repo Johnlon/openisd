@@ -23,7 +23,7 @@
 import { watch } from 'vue';
 import {
   state, driverName, managedProject,
-  markProjectSaved, applyProjectPayload, curvesData, currentProjectPayload,
+  markProjectSaved, applyLoadedProject, curvesData, currentProject, currentViewSnapshot,
 } from './appState.js';
 import { presentationState } from './presentationState.js';
 import { createFileSave, projectNameFromFilename, projectFilename, copyOfName, type FileStorage, type ProjectRepo, type FileNaming } from '@openisd/persistence';
@@ -94,7 +94,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
   async function saveProject(): Promise<boolean> {
     closeTunePanelAfterIO();
     const suggested = projectFilename(state.project.name);
-    const result = await deps.projectRepo.saveToFile(currentProjectPayload(), owprNaming(suggested));
+    const result = await deps.projectRepo.saveToFile(currentProject(), owprNaming(suggested));
     if (result.cancelled) return false;
     adoptFileName(result.name, suggested);
     // SAVED means written to disk. Only a write that completed and closed proves that, so
@@ -119,7 +119,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
     closeTunePanelAfterIO();
     const hadOpenFile = deps.fileStorage.openFileName() != null;
     const suggested = projectFilename(hadOpenFile ? copyOfName(state.project.name) : state.project.name);
-    const result = await deps.projectRepo.saveToNewFile(currentProjectPayload(), owprNaming(suggested));
+    const result = await deps.projectRepo.saveToNewFile(currentProject(), owprNaming(suggested));
     if (result.cancelled) return;
     adoptFileName(result.name, suggested);
     if (!result.written) {
@@ -136,7 +136,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
   // repo's `stateToUrl` rather than the managed method, whose share-link pair is scoped to
   // the project record alone (a narrower, domain-only link for other consumers).
   async function shareLink(): Promise<void> {
-    const url = await deps.projectRepo.stateToUrl(currentProjectPayload());
+    const url = await deps.projectRepo.stateToUrl(currentProject(), currentViewSnapshot());
     setShareUrl(url);
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(
@@ -205,7 +205,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
             // (bugs/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md).
             const upgraded = deps.projectRepo.readProjectText(text);
             if (!upgraded) throw new Error('the file could not be brought to the current schema');
-            applyProjectPayload(upgraded);
+            applyLoadedProject(upgraded);
             state.project.name = projectNameFromFilename(f.name);
           }
         } else {

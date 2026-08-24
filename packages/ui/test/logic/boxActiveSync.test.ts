@@ -19,9 +19,18 @@ function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 've
 }
 
 import assert from 'node:assert/strict';
-import { state, managedProject, applyProjectPayload } from '../../src/logic/appState.js';
+import { state, managedProject, applyLoadedProject } from '../../src/logic/appState.js';
+import { OpenISDProject } from '@openisd/model';
 import type { UiParams } from '@openisd/model';
-import type { ProjectPayload } from '@openisd/persistence';
+
+/** A project built the same way `applyLoadedProject()`'s caller (the repo) builds one — via
+ *  `OpenISDProject`'s own restore surface, not a second construction path. */
+function projectOf(box: 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator', params: Partial<UiParams>): OpenISDProject {
+  const project = OpenISDProject.empty();
+  project.loadUiParams(params, box);
+  project.setProjectMeta({ name: '', creator: '', created: '', modified: '', description: '' });
+  return project;
+}
 
 describe('state.box drives the project\'s active alignment', () => {
   for (const box of ['sealed', 'vented', 'bandpass4', 'pr'] as const) {
@@ -45,21 +54,16 @@ describe('state.box drives the project\'s active alignment', () => {
   });
 });
 
-describe('applyState — a restored box type takes effect before the restored P is applied', () => {
-  // `applyState` (appState.ts) sets the active alignment BEFORE writing the restored params
-  // (`managedProject.loadUiParams`). That order matters: `Vb`/`ventD`/`Fb` each pick their
-  // storage by the ACTIVE alignment (ledger QO54), so applying a sealed design's Vb while
-  // 'vented' is still active would silently write it into the vented alignment instead.
+describe('applyLoadedProject — a restored box type takes effect before the restored P is applied', () => {
+  // `OpenISDProject.loadUiParams` sets the active alignment BEFORE writing the restored params.
+  // That order matters: `Vb`/`ventD`/`Fb` each pick their storage by the ACTIVE alignment
+  // (ledger QO54), so applying a sealed design's Vb while 'vented' is still active would
+  // silently write it into the vented alignment instead.
   it('restoring a sealed design lands Vb in sealed, not in whatever was active before', () => {
     state.box = 'vented';   // simulate a session that was on a different box type
-    const saved: ProjectPayload = {
-      box: 'sealed',
-      params: { Vb: 0.0275 } as UiParams,
-      meta: { name: '', creator: '', created: '', modified: '', description: '' },
-      view: { graphs: [] },
-    };
+    const saved = projectOf('sealed', { Vb: 0.0275 });
 
-    applyProjectPayload(saved);
+    applyLoadedProject(saved);
 
     assert.equal(state.box, 'sealed');
     assert.equal(slotOf(managedProject._snapshot(), 'sealed').volume_m3(), 0.0275,
@@ -69,12 +73,7 @@ describe('applyState — a restored box type takes effect before the restored P 
   it('a restored entered set replaces the previous one, not merges with it', () => {
     state.box = 'vented';
     managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
-    applyProjectPayload({
-      box: 'vented',
-      params: { entered: { ventL: true } } as Partial<UiParams> as UiParams,
-      meta: { name: '', creator: '', created: '', modified: '', description: '' },
-      view: { graphs: [] },
-    });
+    applyLoadedProject(projectOf('vented', { entered: { ventL: true } }));
     assert.equal(managedProject.isEntered('ventL'), true);
     assert.equal(managedProject.isEntered('Fb'), false,
       'a field entered before the restore must not survive it — the restored set is authoritative');
