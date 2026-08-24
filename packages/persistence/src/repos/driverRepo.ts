@@ -435,29 +435,6 @@ export function previewOf(f: FileEntry): Preview {
   };
 }
 
-/**
- * The manufacturer a row is grouped under, for a manufacturer-tree view of the picker
- * (WinISD's New Project wizard). Brand leads, manufacturer trails — the same precedence
- * `driverShort` (driverName.ts) uses to name the row and `previewOf` uses to show it in the
- * summary pane, so a tree groups a driver under the same name its own row already carries.
- *
- * A row with neither (a federated summary row whose text has not been fetched yet) is
- * `'Unclassified'` — the same label `_canonical` already uses for a driver with no type.
- */
-export function manufacturerOf(f: FileEntry): string {
-  const driver = f.myDriverData ?? f.record;
-  if (driver) {
-    const meta = (field: MetaField): string | null => driver.metaCell(field).value || null;
-    return meta('brand') || meta('manufacturer') || 'Unclassified';
-  }
-  if (f.content) {
-    const raw = parseWdrLoose(f.content);
-    const str = (k: string): string | null => (raw[k] || '').trim() || null;
-    return str('Brand') || str('Manufacturer') || 'Unclassified';
-  }
-  return 'Unclassified';
-}
-
 // ---- federated GitHub sources ----------------------------------------------------------
 
 /** owner/repo, or a github.com URL with an optional branch and subfolder. */

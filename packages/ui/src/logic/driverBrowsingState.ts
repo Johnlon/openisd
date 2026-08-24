@@ -8,7 +8,7 @@ import { DriverScope } from '../driverScope.js';
 import type { Logging } from '../logging/flash.js';
 import {
   driverKey as keyOf, myDriverEntry, myDriverName, matchesCriteria, previewOf,
-  normaliseDate, fmtHz, shortSource, driverHasDqIssues, parseRepoInput, manufacturerOf,
+  normaliseDate, fmtHz, shortSource, driverHasDqIssues, parseRepoInput,
   type DriverRepo, type FileEntry, type Preview,
   type MyDriverRepo, type MyDriversRead, type BrokenEntry, type PrefsRepo,
 } from '@openisd/persistence';
@@ -42,38 +42,6 @@ export const DRIVER_TYPES = Chip.ALL;
 // labels could disagree with the rotation; reading them off the enum cannot.
 export const DRIVER_SCOPES = DriverScope.ALL;
 
-/** One manufacturer's branch of a manufacturer-tree picker view (WinISD's New Project
- *  wizard): the manufacturer name and its models, both already sorted. */
-export interface ManufacturerGroup {
-  manufacturer: string;
-  files: FileEntry[];
-}
-
-/**
- * Buckets an already-filtered driver list by manufacturer — a manufacturer-tree view over
- * whatever the flat list is currently showing (search, type/param filters, favourites, scope
- * all narrow `files` before this ever sees it; grouping never re-widens the pool).
- *
- * Manufacturers sorted alphabetically; models sorted alphabetically within each — by `name`
- * (`driverShort`'s "<brand> <model>"), which is the same order the flat list already sorts
- * by, and which reduces to model order within one manufacturer's bucket since every row in
- * it shares that manufacturer as its name's leading word.
- */
-export function groupByManufacturer(files: FileEntry[]): ManufacturerGroup[] {
-  const buckets = new Map<string, FileEntry[]>();
-  for (const f of files) {
-    const m = manufacturerOf(f);
-    const bucket = buckets.get(m);
-    if (bucket) bucket.push(f); else buckets.set(m, [f]);
-  }
-  return [...buckets.entries()]
-    .sort(([a], [b]) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
-    .map(([manufacturer, group]) => ({
-      manufacturer,
-      files: [...group].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
-    }));
-}
-
 export interface DriverBrowsingState {
   DRIVER_TYPES: typeof DRIVER_TYPES;
   DRIVER_SCOPES: typeof DRIVER_SCOPES;
@@ -102,10 +70,6 @@ export interface DriverBrowsingState {
   cycleDriverScope(): void;
   filteredFiles: ComputedRef<FileEntry[]>;
   displayedFiles: ComputedRef<FileEntry[]>;
-  /** `filteredFiles`, grouped as a manufacturer tree — additive to the flat list above, for
-   *  a tree-style consumer (e.g. a New Project wizard driver picker); the flat list is
-   *  unaffected. */
-  groupedByManufacturer: ComputedRef<ManufacturerGroup[]>;
   listTruncated: ComputedRef<boolean>;
   listedCount: ComputedRef<number>;
   myDrivers: Ref<OpenISDDriver[]>;
@@ -295,7 +259,6 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
 
   const displayedFiles = computed<FileEntry[]>(() => filteredFiles.value.slice(0, displayLimit.value));
   const listTruncated = computed<boolean>(() => filteredFiles.value.length > displayLimit.value);
-  const groupedByManufacturer = computed<ManufacturerGroup[]>(() => groupByManufacturer(filteredFiles.value));
 
   // My Drivers answer EVERY control in the filter bar, through the same predicate the pool
   // uses — see matchesCriteria. A section that ignores half the filters is the bug this shape
@@ -546,7 +509,6 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     driverScope, cycleDriverScope,
     // list
     filteredFiles, displayedFiles, listTruncated, listedCount,
-    groupedByManufacturer,
     // my drivers
     myDrivers, filteredMyDrivers, myDriverName, myDriverEntry, driverId,
     myDriversRead, exportedThisSession, exportMyDriversRaw, exportBrokenEntry,
