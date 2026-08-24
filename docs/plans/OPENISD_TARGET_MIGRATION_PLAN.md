@@ -105,8 +105,6 @@ Its contract, from `ARCHITECTURE.md` §3:
 - Notification asymmetry: an edit draft is SILENT until commit; a what-if is LIVE on every change.
 - `recordToPersist()` is the ONLY route to a savable record, and it cancels an active what-if
   itself — so no call site can forget the guard.
-- `OpenISDProject` is PRIVATE to it, and so is every member. Nothing outside reaches the driver,
-  the radiator, the box or the vent.
 
 **`packages/ui/src/logic/managedDriver.ts` is DELETED in this step** — a driver-shaped facade is
 the wrong shape, and leaving it beside `ManagedProject` is the two-implementations-of-one-concept

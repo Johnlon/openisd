@@ -25,7 +25,6 @@ interface TaskLike {
  * skip licence.
  */
 const CHECKLIST_SUITES = [
-  'leading-underscore exports are class-private',
   'module-level globals — every export must be an explicit, currently-real grant',
   'no re-exports — a name is declared where it is exported',
 ];

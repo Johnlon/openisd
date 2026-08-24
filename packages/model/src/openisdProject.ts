@@ -1,5 +1,5 @@
 /**
- * `_OpenISDProjectJson` — one speaker design, whole.
+ * `OpenISDProjectJson` — one speaker design, whole.
  *
  * This is the thing a user opens, edits, explores with a what-if, saves and shares. It is what
  * `ManagedProject` holds three of (ground / committed / overlay), and it is PRIVATE to that
@@ -27,12 +27,11 @@
  * `ManagedProject` clones a whole project to open an overlay.
  */
 import { OpenISDDriver, Provenance } from './openisdDriver.js';
-// `_OpenISDDriverJson` is `openisdDriver.ts`'s own private wire shape — named openly here (not
-// laundered through an alias or `unknown`) because `_OpenISDProjectJson.driver` below HOLDS one
+// `OpenISDDriverJson` is `openisdDriver.ts`'s own wire shape — named openly here (not
+// laundered through an alias or `unknown`) because `OpenISDProjectJson.driver` below HOLDS one
 // as opaque data: this file never reads a field off it, only passes it whole to
-// `OpenISDDriver.fromJsonRecord()`/`.toJsonRecord()`. Granted in `architecture.test.ts`'s
-// HUMAN_GRANTED list, same pattern as `driverRepo.ts` + `_OpenISDDriverJson`.
-import type { _OpenISDDriverJson } from './openisdDriver.js';
+// `OpenISDDriver.fromJsonRecord()`/`.toJsonRecord()`.
+import type { OpenISDDriverJson } from './openisdDriver.js';
 import type { Filter } from '@openisd/engine';
 import { prCmsFromVas, prMmdFromFs, prRmsFromQms, prVas, prQms, prFsWithMass,
          sealedFc, tuningFromLength, ventLength, prTuning, prMassForFp,
@@ -294,7 +293,7 @@ export interface OpenISDProjectMeta {
  * Every member is plain data, because this is the shape that actually crosses a boundary
  * (`structuredClone`, `JSON.stringify`, a file, a share link).
  *
- * `driver` is the driver's OWN wire record (`OpenISDDriver.toJsonRecord()`'s `_OpenISDDriverJson`
+ * `driver` is the driver's OWN wire record (`OpenISDDriver.toJsonRecord()`'s `OpenISDDriverJson`
  * — named openly here, not laundered, and held as OPAQUE data: this file never reads a field
  * off it, only ever passes it whole to `OpenISDDriver.fromJsonRecord()`/`.toJsonRecord()`), so a
  * saved project nests real JSON, not a JSON string escaped inside JSON. `undefined` before a
@@ -310,8 +309,8 @@ export interface OpenISDProjectMeta {
  * expose is also non-optional — an optional field's mere absence from the class's public
  * shape is not a structural mismatch (`openisdProjectFacade.test.ts` pins this).
  */
-export interface _OpenISDProjectJson {
-  driver: _OpenISDDriverJson | undefined;
+export interface OpenISDProjectJson {
+  driver: OpenISDDriverJson | undefined;
   box: OpenISDBox;
   target: OpenISDTarget;
   filters: Filter[];
@@ -324,14 +323,14 @@ export interface _OpenISDProjectJson {
 }
 
 /**
- * `OpenISDProject`'s actual live, in-memory storage — identical to `_OpenISDProjectJson` except
+ * `OpenISDProject`'s actual live, in-memory storage — identical to `OpenISDProjectJson` except
  * `driver` is the real, live `OpenISDDriver` object rather than its serialised text. The project
  * is either wholly a domain object or wholly text, never a mix: `#record` holds this type
  * throughout the object's lifetime, and the ONLY place a driver becomes text is `toJsonRecord()`
  * (output) — the only place text becomes a driver is `fromJsonRecord()` (input). Internal only:
  * this type never crosses `OpenISDProject`'s own boundary, so it is not exported.
  */
-interface ProjectLiveState extends Omit<_OpenISDProjectJson, 'driver'> {
+interface ProjectLiveState extends Omit<OpenISDProjectJson, 'driver'> {
   driver: OpenISDDriver | undefined;
 }
 
@@ -488,11 +487,11 @@ function ensurePassiveRadiator(
   return alignment.radiator ??= { Sd_m2: 0, Mmd_kg: 0, Cms_m_per_N: 0, Rms_Ns_per_m: 0, Xmax_m: 0, name: '' };
 }
 
-// ── OpenISDProject — the class facade over `_OpenISDProjectJson` ──────────────────────────
+// ── OpenISDProject — the class facade over `OpenISDProjectJson` ──────────────────────────
 //
 // Mirrors `OpenISDDriver`'s own pattern (openisdDriver.ts): private constructor, static
 // factories, accessors, `copy()`. `ManagedOpenISDProject` holds three of these (ground /
-// committed / what-if) and never touches `_OpenISDProjectJson` directly — every read and
+// committed / what-if) and never touches `OpenISDProjectJson` directly — every read and
 // write goes through this class's own API instead.
 
 /** A project with nothing chosen — what the app holds before a driver is picked, and the seed
@@ -666,7 +665,7 @@ export class OpenISDProject {
    *  CHECKED (`OpenISDDriver.fromConformingRecord`) rather than trusted outright — a driver
    *  record too broken to load safely is dropped, never carried into every field read that
    *  dereferences it, but the rest of the project still loads (least-impact refusal). */
-  static fromJsonRecord(record: _OpenISDProjectJson): OpenISDProject {
+  static fromJsonRecord(record: OpenISDProjectJson): OpenISDProject {
     const { driver, ...rest } = record;
     return new OpenISDProject({ ...rest, driver: driver ? (OpenISDDriver.fromConformingRecord(driver) ?? undefined) : undefined });
   }
@@ -674,7 +673,7 @@ export class OpenISDProject {
   /** This project as its wire record — the driver's live object PROJECTED to its own record
    *  (`OpenISDDriver.toJsonRecord()`) here, once, at the moment bytes are actually needed. Paired
    *  with `fromJsonRecord()`. */
-  toJsonRecord(): _OpenISDProjectJson {
+  toJsonRecord(): OpenISDProjectJson {
     const { driver, ...rest } = this.#record;
     return { ...rest, driver: driver?.toJsonRecord() };
   }
@@ -1195,11 +1194,11 @@ export class OpenISDProject {
     return new OpenISDProject(record);
   }
 
-  // ---- sub-object accessors — live references, named exactly like `_OpenISDProjectJson`'s
+  // ---- sub-object accessors — live references, named exactly like `OpenISDProjectJson`'s
   // own fields so a caller reads and writes them precisely as it would the raw record, without
-  // ever naming `_OpenISDProjectJson` itself. "The box IS the storage" (managedProject.ts):
-  // these are public, non-private types — `OpenISDBox` and its siblings, not `_XJson` — so
-  // handing out a live reference is not handing out the private shape. --------------------
+  // ever naming `OpenISDProjectJson` itself. "The box IS the storage" (managedProject.ts):
+  // these are `OpenISDBox` and its siblings, not the wire record itself, so handing out a
+  // live reference does not hand out the record shape. --------------------
 
 
   /** How many ports the ACTIVE alignment has (sealed and PR: 0). */

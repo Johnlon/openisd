@@ -1,6 +1,6 @@
 /** REPO: domain access to the driver collection (bundled + federated sources). Takes a
  *  storage/bundle, returns domain objects. */
-import type { OpenISDDriver, _OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
+import type { OpenISDDriver, OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
 import { recordStandingIsOk } from '@openisd/model/driverStanding';
 import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
 import { DriverType, Chip } from '@openisd/model';
@@ -42,14 +42,10 @@ export interface FileEntry {
 /**
  * One driver record in the pre-built bundle, as `scripts/bundle-drivers.mjs` emits it.
  *
- * `record` is typed `_OpenISDDriverJson` — the honest name for what the bundler actually
+ * `record` is typed `OpenISDDriverJson` — the honest name for what the bundler actually
  * wrote. `scripts/bundle-drivers.mjs` copies each driver's canonical record into the artifact
  * verbatim, so this field IS one; calling it anything wider or opaquer would hide that fact
- * from the reader and from the gate without changing a single byte that crosses.
- *
- * Human ruling 2026-08-23: "If the bundle is genuinely a _Json... object then just add an
- * exception in the test itself to permit that access." That exception is named in
- * `architecture.test.ts`'s class-private gate, in the open, rather than dressed up here.
+ * from the reader without changing a single byte that crosses.
  *
  * The value is still only ever OPENED once, at `bundledEntry()`, through the injected
  * `driverFromConformingRecord` — the same conformance check browser storage uses.
@@ -61,7 +57,7 @@ export interface BundleRecord {
   name: string;
   /** Canonical driver_type as the record states it — authoritative for the chips. */
   driverType?: string;
-  record: _OpenISDDriverJson;
+  record: OpenISDDriverJson;
 }
 
 /**

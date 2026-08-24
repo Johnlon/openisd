@@ -2,7 +2,7 @@
  * `ManagedOpenISDProject` — the one facade over every state layer of a project.
  *
  * Seam under test: the public API only. `#ground`/`#committed`/`#overlay` are private, and so is
- * the `_OpenISDProjectJson` inside each — that is the property being asserted, not an obstacle to
+ * the `OpenISDProjectJson` inside each — that is the property being asserted, not an obstacle to
  * asserting it.
  *
  * The notification counts ARE the specification (`docs/design/REACTIVITY.md`): every public
@@ -35,10 +35,10 @@ function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 've
 import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
 import assert from 'node:assert/strict';
 import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
-import type { _OpenISDDriverJson } from '@openisd/model';
+import type { OpenISDDriverJson } from '@openisd/model';
 
 /** A minimal, valid driver record — one stated field, enough to exercise enter()/clear(). */
-function driverRecord(): _OpenISDDriverJson {
+function driverRecord(): OpenISDDriverJson {
   return {
     uuid: { value: 'test-0000', definition: 'stable record identity' },
     quality: {

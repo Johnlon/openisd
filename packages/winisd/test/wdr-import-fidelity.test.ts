@@ -70,7 +70,7 @@ describe('a .wdr key the file does not carry is not a stated value', () => {
   });
 
   it('a driver whose .wdr has no Gloss= line reports Gloss as CALCULATED, not entered', () => {
-    // The record CAN hold a Gloss (`_SpecSection.Gloss`), and this one does not state a value.
+    // The record CAN hold a Gloss (`SpecSection.Gloss`), and this one does not state a value.
     // So the serialiser writes what the engine derived and marks slot 37 `C` — an `E` would
     // assert a human typed a value nobody typed.
     const { value: wdr } = driverOf(SEALED_SMALL).toWinISDDriver();

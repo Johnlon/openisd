@@ -28,8 +28,8 @@ const WDR_TEXT = readFileSync(
   'utf8',
 );
 
-describe('OpenISDDriver.fromWinISDDriver — provenance mapping (E -> _SpecEntry, C -> excluded, N -> absent)', () => {
-  it('a cell marked E becomes a stated _SpecEntry with a manual reading, SI units preserved', () => {
+describe('OpenISDDriver.fromWinISDDriver — provenance mapping (E -> SpecEntry, C -> excluded, N -> absent)', () => {
+  it('a cell marked E becomes a stated SpecEntry with a manual reading, SI units preserved', () => {
     const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toJsonRecord();
     const fs = record.specs.woofer?.Fs;
     assert.ok(fs, 'Fs is E in the source file and must be carried');
@@ -37,7 +37,7 @@ describe('OpenISDDriver.fromWinISDDriver — provenance mapping (E -> _SpecEntry
     assert.equal(fs.readings.manual?.read_value, 38);
   });
 
-  it('a cell marked C (WinISD-computed) is NOT written into the record as a stated _SpecEntry', () => {
+  it('a cell marked C (WinISD-computed) is NOT written into the record as a stated SpecEntry', () => {
     const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toJsonRecord();
     assert.equal(record.specs.woofer?.Qts, undefined,
       'Qts is C (WinISD computed 0.500 itself) — the record must not assert it as a fact');

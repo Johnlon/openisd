@@ -13,16 +13,16 @@
  * NOT one uniform envelope. Four distinct kinds, matched to what kind of fact a field
  * is:
  *
- *   _SpecEntry        T/S fields, inside `specs` only. NO flat value — `origin` names
+ *   SpecEntry        T/S fields, inside `specs` only. NO flat value — `origin` names
  *                    the winning source, a REQUIRED `readings` dict (>= 1 source) holds
  *                    each source's own reading; the number lives at
  *                    `readings[origin].read_value`, nowhere else.
- *   _ScrapedField<T>  record-level metadata (manufacturer, brand, model). HAS a flat
+ *   ScrapedField<T>  record-level metadata (manufacturer, brand, model). HAS a flat
  *                    `value`, plus `origin`; `readings` is only populated when >= 2
  *                    sources disagreed.
- *   _DerivedField<T>  pipeline-computed (sku, name). `value` + `grounds` (evidence the
+ *   DerivedField<T>  pipeline-computed (sku, name). `value` + `grounds` (evidence the
  *                    pipeline consumed) — no `origin`/`readings`, it was built, not read.
- *   _BookkeepingField<T>  a pure pipeline fact with nothing external to point at (uuid).
+ *   BookkeepingField<T>  a pure pipeline fact with nothing external to point at (uuid).
  *                    Just `value` + `definition`.
  *
  * Lives in `@openisd/model`, distinct from `@openisd/engine` (WinISD-free physics) and
@@ -79,9 +79,9 @@ export interface DqMark {
   detail: string;
 }
 
-// ── _SpecEntry — model_driver.py:362-460. The T/S-field envelope. No flat value. ────────
+// ── SpecEntry — model_driver.py:362-460. The T/S-field envelope. No flat value. ────────
 export type DQStatus = 'MATCH' | 'MISMATCH' | 'NOT_MATCHABLE' | 'UNMATCHED';
-// ── _DerivedField<T> / _BookkeepingField<T> — model_driver.py:164-205 ────────────────────
+// ── DerivedField<T> / BookkeepingField<T> — model_driver.py:164-205 ────────────────────
 export interface Ground {
   origin: SourceRole;
   reading: string;
@@ -105,8 +105,8 @@ export interface QualityBlock {
   cross_source_only: CrossSourceReading[];
 }
 
-// ── _SpecSection / _Specs — model_driver.py:460+, 603-615 ────────────────────────────────
-// Named, typed fields — NOT a Record<string, _SpecEntry> — matching CANONICAL_SPEC_FIELDS
+// ── SpecSection / Specs — model_driver.py:460+, 603-615 ────────────────────────────────
+// Named, typed fields — NOT a Record<string, SpecEntry> — matching CANONICAL_SPEC_FIELDS
 // (record_registries.py:273-284) exactly. A field absent here has no closed-form allowlist
 // own fields were not checked this pass) — typed loosely, flagged rather than guessed. ─
 export interface CurveEntry { [key: string]: unknown }

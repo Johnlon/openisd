@@ -57,7 +57,7 @@ import { solvePrGroup } from './usePrGroup.js';
  * `.beginWhatIf()`/`.cancelWhatIf()`/`.isWhatIfActive()` to manage a what-if. `._recordToPersist()`
  * is separate again — it is what anything saved/exported/shared reads, and it never hands out a
  * live what-if: it cancels one first, so nothing unverified can reach disk. The
- * `_OpenISDProjectJson` it wraps — and the `OpenISDDriver` inside that — are private to it and
+ * `OpenISDProjectJson` it wraps — and the `OpenISDDriver` inside that — are private to it and
  * never leave.
  */
 

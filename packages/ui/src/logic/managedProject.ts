@@ -6,13 +6,13 @@
  * are the same act, so the overlay wraps the whole PROJECT and not one part of it.
  *
  * This is the domain object for ONE project in the left nav. It holds three complete
- * `_OpenISDProjectJson`s:
+ * `OpenISDProjectJson`s:
  *
  *   ground     — the design exactly as loaded. What Reset goes back to.
  *   committed  — the design as it stands. What the charts draw and a save writes.
  *   overlay    — a what-if over committed state, open at most one at a time.
  *
- * ── `_OpenISDProjectJson` is PRIVATE ──
+ * ── `OpenISDProjectJson` is PRIVATE ──
  * No instance of one ever leaves, and nor does the live `OpenISDDriver` inside it. A caller
  * reads with `cell()`/`metaCell()`/`toEngineDriver()`/`errors()`/`_snapshot()` and writes with
  * `enter()`/`clear()`/`mutate()`. Handing the project out would let a caller change it behind
@@ -254,7 +254,7 @@ export class ManagedOpenISDProject {
   }
 
   /** Sealed-box (and PR rear-chamber) resonance + system Q via the given loss model. `Rs`/`Ql`/
-   *  `Qa` are not yet fields of `_OpenISDProjectJson` (they live on `UiParams` today), so they
+   *  `Qa` are not yet fields of `OpenISDProjectJson` (they live on `UiParams` today), so they
    *  are taken as parameters rather than read internally — same shape as `sealedFc`'s own
    *  decoupling in `wprMapping.ts`. Null when no driver is chosen or `Vb` isn't set. */
   sealedResonance(lossMode: LossMode, Rs: number, Ql: number, Qa: number): { Fsc: number; Qtc: number } | null {
@@ -422,7 +422,7 @@ export class ManagedOpenISDProject {
 
   // ---- entered-set (target provenance), ledger QO54 --------------------------------------
   //
-  // Which box/vent/PR fields the user entered, one home: `_OpenISDProjectJson.target.entered`.
+  // Which box/vent/PR fields the user entered, one home: `OpenISDProjectJson.target.entered`.
 
   isEntered(field: string): boolean {
     return this.#effective().project.isEntered(field);

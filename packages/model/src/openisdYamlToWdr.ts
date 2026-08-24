@@ -40,7 +40,7 @@ export function openisdYamlToWdr(yamlText: string): Result<string> {
     return { value: null, errors: [err('yaml', 'openisd.yml did not parse to a record')] };
   }
   // Interim per BUG_20260822 (see docstring): `fromJsonRecord`/its getters throw on a record
-  // whose `specs` interior is not the `_SpecEntry` shape (`specs: {woofer: {fs: 12}}` — a
+  // whose `specs` interior is not the `SpecEntry` shape (`specs: {woofer: {fs: 12}}` — a
   // plausible V8-bridge input). The right fix is `fromJsonRecord` refusing that shape itself
   // (`Result<OpenISDDriver>`), which reaches its callers in `@openisd/model` and
   // `packages/ui/src/logic` (managedProject.ts, useDesignIO.ts); this catch is the

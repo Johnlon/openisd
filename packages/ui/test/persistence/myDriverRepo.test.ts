@@ -1,6 +1,6 @@
 /**
  * `myDrivers.ts::list()` is the seam that reads unchecked browser-storage data. A record that
- * does not conform to `_OpenISDDriverJson` (the flat legacy shape this key predates, or any
+ * does not conform to `OpenISDDriverJson` (the flat legacy shape this key predates, or any
  * other malformed blob) must be refused here — never handed downstream, where
  * `driverHasDqIssues`/`recordStandingIsOk` assume every field the type declares required is
  * actually present (`bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`).
@@ -20,17 +20,17 @@ function storedDrivers(raw: string | null): unknown[] {
   return Array.isArray(parsed) ? parsed : (parsed as { drivers: unknown[] }).drivers;
 }
 import { OpenISDDriver } from '@openisd/model';
-import type { _OpenISDDriverJson } from '@openisd/model';
+import type { OpenISDDriverJson } from '@openisd/model';
 import { driverFromConformingRecord } from '../../src/logic/managedDriver.js';
 
-describe('myDrivers.ts::list() — refuses records that do not conform to _OpenISDDriverJson', () => {
+describe('myDrivers.ts::list() — refuses records that do not conform to OpenISDDriverJson', () => {
   it('returns only the valid record when the stored list mixes a flat legacy record with a valid one', () => {
     const flatLegacy = {
       name: 'Spec Fixture Driver', brand: 'Spec', model: 'Fixture',
       Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
       Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
     };
-    const valid: _OpenISDDriverJson = {
+    const valid: OpenISDDriverJson = {
       uuid: { value: 'valid-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -66,7 +66,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
       Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
       Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
     };
-    const valid: _OpenISDDriverJson = {
+    const valid: OpenISDDriverJson = {
       uuid: { value: 'valid-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -108,7 +108,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
   });
 
   it('returns every record when all are valid', () => {
-    const first: _OpenISDDriverJson = {
+    const first: OpenISDDriverJson = {
       uuid: { value: 'first-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -131,7 +131,7 @@ describe('myDrivers.ts::list() — refuses records that do not conform to _OpenI
         },
       },
     };
-    const second: _OpenISDDriverJson = {
+    const second: OpenISDDriverJson = {
       uuid: { value: 'second-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -167,7 +167,7 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
       Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
       Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
     };
-    const existingValid: _OpenISDDriverJson = {
+    const existingValid: OpenISDDriverJson = {
       uuid: { value: 'existing-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -190,7 +190,7 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
         },
       },
     };
-    const newValid: _OpenISDDriverJson = {
+    const newValid: OpenISDDriverJson = {
       uuid: { value: 'new-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -242,7 +242,7 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
       Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
       Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
     };
-    const valid: _OpenISDDriverJson = {
+    const valid: OpenISDDriverJson = {
       uuid: { value: 'valid-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -288,7 +288,7 @@ describe('myDrivers.ts — upsert/remove preserve non-conforming stored entries 
 // ── D21: the QO81 storage-failure package ────────────────────────────────────────────────
 
 /** A minimal conforming record with a chosen uuid. */
-function validRecord(uuid: string, brand: string, model: string): _OpenISDDriverJson {
+function validRecord(uuid: string, brand: string, model: string): OpenISDDriverJson {
   return {
     uuid: { value: uuid, definition: 'stable record identity' },
     quality: {
@@ -306,7 +306,7 @@ function validRecord(uuid: string, brand: string, model: string): _OpenISDDriver
       Fs: { origin: 'manual', readings: { manual: { read_value: 30 } }, dq: [] },
       Re: { origin: 'manual', readings: { manual: { read_value: 5.6 } }, dq: [] },
     } },
-  } as _OpenISDDriverJson;
+  } as OpenISDDriverJson;
 }
 
 describe('D21 — format version and the upgrade chain', () => {

@@ -193,7 +193,7 @@ describe('openisd.yml → winisd.wdr — Result contract (never throws)', () => 
     assert.equal(errors.some((e: DriverError) => e.level === 'error'), true);
   });
 
-  it('reports a record whose specs interior is not the _SpecEntry shape as an error, does not throw (BUG_20260822)', () => {
+  it('reports a record whose specs interior is not the SpecEntry shape as an error, does not throw (BUG_20260822)', () => {
     const { value, errors } = openisdYamlToWdr('specs: {woofer: {fs: 12}}\n');
     assert.equal(value, null);
     assert.equal(errors.some((e: DriverError) => e.level === 'error'), true);

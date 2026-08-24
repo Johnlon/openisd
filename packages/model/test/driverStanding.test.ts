@@ -19,7 +19,7 @@ describe('recordStandingIsOk', () => {
     assert.equal(recordStandingIsOk({ missing: ['Mms'], parse_errors: ['Fs=xx: not a number'] }), false);
   });
 
-  // `quality.missing`/`quality.parse_errors` are required by `_OpenISDDriverJson`, so this
+  // `quality.missing`/`quality.parse_errors` are required by `OpenISDDriverJson`, so this
   // function assumes both are present arrays — it is never handed a record failing that
   // contract, because `myDrivers.ts::list()` refuses a non-conforming record at the seam
   // (`bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`).

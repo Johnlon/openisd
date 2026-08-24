@@ -8,7 +8,7 @@ export {
   type OpenISDPassiveRadiatorRef, type OpenISDBox, type OpenISDTarget,
   type OpenISDEnvironment, type OpenISDSignal, type OpenISDListening,
   type OpenISDSimOptions, type OpenISDSweepRange, type OpenISDProjectMeta,
-  type _OpenISDProjectJson, type UiParams, OpenISDProject,
+  type OpenISDProjectJson, type UiParams, OpenISDProject,
 } from './openisdProject.js';
 export * from './openisdYamlToWdr.js';
 export * from './driverType.js';

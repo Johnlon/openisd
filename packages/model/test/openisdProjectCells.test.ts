@@ -10,14 +10,14 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { OpenISDProject, VENT_ARITY, Provenance } from '../src/index.js';
-import type { _OpenISDProjectJson } from '../src/openisdProject.js';
+import type { OpenISDProjectJson } from '../src/openisdProject.js';
 import { WinISDProject } from '@openisd/winisd';
 import { ventLength, tuningFromLength } from '@openisd/engine';
 
 
 /** A complete, valid record literal — the by-reference door `fromJsonRecord` adopts, retained
  *  so a test can corrupt it PAST the type system and prove the runtime guards. */
-function corruptibleRecord(): _OpenISDProjectJson {
+function corruptibleRecord(): OpenISDProjectJson {
   const vent = { shape: 'round' as const, diameter_m: 0.05, width_m: 0, height_m: 0, length_m: 0.1, endCorrection: 0.732 };
   return {
     driver: undefined,

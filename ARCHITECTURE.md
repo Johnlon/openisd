@@ -1,34 +1,31 @@
 # OpenISD — architecture specification
 
-**This document specifies the system.** It defines the boundaries, the layers, the dependency
-direction, the driver model, the runtime data flow and the invariants that hold across the whole
-application.
+**This document specifies the system.** It defines the boundaries, the layers, the dependency direction, the driver
+model, the runtime data flow and the invariants that hold across the whole application.
 
 ## The standing of this document
 
-**This document is the authority.** Where any other document, plan, rule file, comment, test name
-or code comment disagrees with it, **this document is correct and the other is wrong**.
+**This document is the authority.** Where any other document, plan, rule file, comment, test name or code comment
+disagrees with it, **this document is correct and the other is wrong**.
 
 **A conflicting document is a cleanup item, never a blocker.** Raise it as a TODO in
-[`docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md`](docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md) and
-carry on. Nobody stops work to reconcile a stale document, and nobody weakens this specification to
-match one.
+[`docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md`](docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md) and carry on. Nobody stops
+work to reconcile a stale document, and nobody weakens this specification to match one.
 
-**Code that does not match this specification is unfinished work.** It is tracked in the migration
-plan and it is not an argument about what the system is. The specification states the system; the
-code catches up to it.
+**Code that does not match this specification is unfinished work.** It is tracked in the migration plan and it is not an
+argument about what the system is. The specification states the system; the code catches up to it.
 
 ## What this document does not specify
 
-Each row below has an owner, and that owner is the authority for the detail. This document states
-the boundary and points at it.
+Each row below has an owner, and that owner is the authority for the detail. This document states the boundary and
+points at it.
 
 | Detail                                                                              | Authority                                                              |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
 | Engine formulas, parameter units, API shapes, solver rules                          | [`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md)                 |
 | UI presentation rules, tooltips, panel layout, control conventions, chart behaviour | [`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md)                         |
 | What the app remembers, and when an edit commits                                    | [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md)             |
-| WinISD's `.wdr`/`.wpr` byte format, reverse-engineered                              | [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md)               |
+| WinISD's `.wdr`/`.wpr` byte format, reverse-engineered                              | [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md)         |
 | Work items and gaps                                                                 | [`BACKLOG.md`](BACKLOG.md), [`docs/plans/`](docs/plans/)               |
 | Dev workflow, ports, testing strategy                                               | [`AGENTS.md`](AGENTS.md), [`openspec/project.md`](openspec/project.md) |
 
@@ -36,8 +33,8 @@ the boundary and points at it.
 
 ## 1. System context
 
-OpenISD is a single-page browser application with no backend. Everything inside the boundary runs
-in the user's browser; everything outside it is a file, a repository, or a static host.
+OpenISD is a single-page browser application with no backend. Everything inside the boundary runs in the user's browser;
+everything outside it is a file, a repository, or a static host.
 
 ```mermaid
 graph LR
@@ -48,7 +45,6 @@ graph LR
     end
 
     PROJ_PKG["<b>@openisd/projection</b><br/>a SEPARATE package — no DOM, no browser<br/>one bundled file, loadable by embedded V8<br/>driver.yml to openisd.yml · openisd.yml to .wdr"]
-
     PAGES["GitHub Pages<br/>openisd.app<br/>static host + PWA cache"]
     LS[("localStorage<br/>committed design · My Drivers<br/>favourites · session · URL-hash share")]
     BUNDLE[("drivers-bundle.json<br/>driver commons, bundled at build")]
@@ -56,38 +52,36 @@ graph LR
     OWDR[("Native files<br/>.owdr driver · .owpr project")]
     DRIVERS[("winisd_drivers repo · db/<br/>driver.yml · openisd.yml · .wdr<br/><i>every file written by winisd_tools</i>")]
     TOOLS["<b>winisd_tools</b><br/>Python scraper pipeline<br/>scrapes the web, WRITES driver.yml<br/>into winisd_drivers/db<br/><i>owns driver.yml · writes every file</i>"]
-
     USER <--> APP
-    PAGES -. "serves" .-> APP
+    PAGES -. " serves " .-> APP
     APP <--> LS
-    BUNDLE -. "build-time import" .-> APP
+    BUNDLE -. " build-time import " .-> APP
     APP <-->|import / export| WDR
     APP <-->|read / write| OWDR
-    TOOLS -->|"scrapes, writes driver.yml"| DRIVERS
-    TOOLS -->|"embeds V8, calls it<br/>with driver.yml TEXT"| PROJ_PKG
-    PROJ_PKG -->|"returns openisd.yml<br/>and .wdr TEXT"| TOOLS
-    PROJ_PKG -. "shares model + engine with" .-> APP
-    TOOLS -->|"writes openisd.yml + .wdr"| DRIVERS
-    DRIVERS -. "openisd.yml published as" .-> BUNDLE
+    TOOLS -->|" scrapes, writes driver.yml "| DRIVERS
+    TOOLS -->|" embeds V8, calls it<br/>with driver.yml TEXT "| PROJ_PKG
+    PROJ_PKG -->|" returns openisd.yml<br/>and .wdr TEXT "| TOOLS
+    PROJ_PKG -. " shares model + engine with " .-> APP
+    TOOLS -->|" writes openisd.yml + .wdr "| DRIVERS
+    DRIVERS -. " openisd.yml published as " .-> BUNDLE
 ```
 
-**The utility is a SEPARATE PACKAGE, not the browser app.** `winisd_tools` embeds V8 and loads a
-single bundled JavaScript file; it cannot load a Vue application, and it must not have to. So the
-projection lives in its own package — call it `@openisd/projection` — which depends on
-`@openisd/model` and `@openisd/engine` and on nothing that touches a DOM, a `window`, a network or
-a filesystem. It builds to one file with no external imports at runtime, because that is what an
-embedded interpreter can load.
+**The utility is a SEPARATE PACKAGE, not the browser app.** `winisd_tools` embeds V8 and loads a single bundled
+JavaScript file; it cannot load a Vue application, and it must not have to. So the projection lives in its own package —
+call it `@openisd/projection` — which depends on
+`@openisd/model` and `@openisd/engine` and on nothing that touches a DOM, a `window`, a network or a filesystem. It
+builds to one file with no external imports at runtime, because that is what an embedded interpreter can load.
 
-The browser SPA and the Python pipeline therefore share the MODEL and the ENGINE, and each brings
-its own shell: the SPA brings Vue, `winisd_tools` brings V8. Neither depends on the other's shell.
+The browser SPA and the Python pipeline therefore share the MODEL and the ENGINE, and each brings its own shell: the SPA
+brings Vue, `winisd_tools` brings V8. Neither depends on the other's shell.
 
-**The utility TOUCHES NO FILES. It transforms text and returns text.** The Python pipeline
-scrapes and writes `driver.yml` into `winisd_drivers/db`, reads it, hands the TEXT to the utility,
-gets the `openisd.yml` and `.wdr` TEXT back, and writes those files itself. Every file in
+**The utility TOUCHES NO FILES. It transforms text and returns text.** The Python pipeline scrapes and writes
+`driver.yml` into `winisd_drivers/db`, reads it, hands the TEXT to the utility, gets the `openisd.yml` and `.wdr` TEXT
+back, and writes those files itself. Every file in
 `winisd_drivers/db` is written by `winisd_tools`; OpenISD writes none of them.
 
-That keeps the boundary a pure function — no paths, no filesystem, no working directory, nothing
-to mock in a test — and it is why the contract below is *string in, string out*.
+That keeps the boundary a pure function — no paths, no filesystem, no working directory, nothing to mock in a test — and
+it is why the contract below is *string in, string out*.
 
 **The dependency still runs BOTH WAYS, deliberately:**
 
@@ -95,66 +89,61 @@ to mock in a test — and it is why the contract below is *string in, string out
 - **OpenISD knows `driver.yml`** — it reads the format, so it depends on a schema `winisd_tools`
   owns.
 
-That mutual knowledge is a CHOICE, not an accident, and it buys the thing that matters: **there is
-exactly ONE implementation of each transform**, in TypeScript, rather than one per language that
-would drift apart field by field. `winisd_tools` owns `driver.yml`; OpenISD owns `openisd.yml` and
+That mutual knowledge is a CHOICE, not an accident, and it buys the thing that matters: **there is exactly ONE
+implementation of each transform**, in TypeScript, rather than one per language that would drift apart field by field.
+`winisd_tools` owns `driver.yml`; OpenISD owns `openisd.yml` and
 `.wdr` and both transforms into them. Neither format has a second reader or a second writer.
 
 ### The no-backend boundary
 
-**The simulator runs entirely in the browser.** No server, no account and no API call is required
-for the physics, for file operations, or for reading the driver commons. The Thiele/Small model is
-pure mathematics and needs no server; a backend costs money to run, adds availability risk, and
-creates pressure toward paywalling a tool whose purpose is to be unconditionally free.
+**The simulator runs entirely in the browser.** No server, no account and no API call is required for the physics, for
+file operations, or for reading the driver commons. The Thiele/Small model is pure mathematics and needs no server; a
+backend costs money to run, adds availability risk, and creates pressure toward paywalling a tool whose purpose is to be
+unconditionally free.
 
-**A backend implies an authentication stack.** The moment a backend exists, authn/authz is
-required, which means an identity provider and session management. **A feature that requires a
-backend — accounts, cloud storage, collaborative editing — is out of scope.** A cloud feature that
-is desirable anyway (Google Drive, for example) is strictly opt-in and degrades gracefully to the
-no-cloud path.
+**A backend implies an authentication stack.** The moment a backend exists, authn/authz is required, which means an
+identity provider and session management. **A feature that requires a backend — accounts, cloud storage, collaborative
+editing — is out of scope.** A cloud feature that is desirable anyway (Google Drive, for example) is strictly opt-in and
+degrades gracefully to the no-cloud path.
 
 ### The driver commons is a build-time artifact
 
-`drivers-bundle.json` is compiled from the `winisd_drivers` repository's `openisd.yml` records and
-imported at build time. It is not a live API. A driver added to the commons reaches users on the
-next deploy.
+`drivers-bundle.json` is compiled from the `winisd_drivers` repository's `openisd.yml` records and imported at build
+time. It is not a live API. A driver added to the commons reaches users on the next deploy.
 
 ### `openisd.yml` and `.wdr` are PRODUCED exclusively by JS/TS owned by OpenISD
 
 There is one implementation of each transform, not one per language. `winisd_tools` produces
-`driver.yml` — its own format, its own authority — and for everything downstream of that it calls
-the OpenISD utility, passing TEXT and receiving TEXT: `driver.yml → openisd.yml`, and
-`openisd.yml → .wdr`. **`winisd_tools` then writes both files.** The utility is a transform, not a
-file writer: it is handed no path and opens nothing.
+`driver.yml` — its own format, its own authority — and for everything downstream of that it calls the OpenISD utility,
+passing TEXT and receiving TEXT: `driver.yml → openisd.yml`, and
+`openisd.yml → .wdr`. **`winisd_tools` then writes both files.** The utility is a transform, not a file writer: it is
+handed no path and opens nothing.
 
-**OpenISD therefore reads `driver.yml`**, a schema `winisd_tools` owns, and that dependency is
-accepted on purpose: one reader of that format in one language beats two readers that agree only
-until someone adds a field.
+**OpenISD therefore reads `driver.yml`**, a schema `winisd_tools` owns, and that dependency is accepted on purpose: one
+reader of that format in one language beats two readers that agree only until someone adds a field.
 
-**The call is in-process, into an embedded V8** — not a subprocess and not an RPC. The contract
-across that boundary is **string in, string out, and it never throws**: invalid input and
-well-formed-but-wrong input both come back as `Result{value: null, errors}`, because a thrown value
-cannot usefully cross an embedded-V8 boundary. The projection algorithm itself is
+**The call is in-process, into an embedded V8** — not a subprocess and not an RPC. The contract across that boundary is
+**string in, string out, and it never throws**: invalid input and well-formed-but-wrong input both come back as
+`Result{value: null, errors}`, because a thrown value cannot usefully cross an embedded-V8 boundary. The projection
+algorithm itself is
 [`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md) §4.7.
 
 ---
 
 ## 2. Layers and components
 
-**Four layers. Every import points DOWNWARD, one layer at a time.** No upward import, no lateral
-import between siblings, and no skipping a layer.
+**Four layers. Every import points DOWNWARD, one layer at a time.** No upward import, no lateral import between
+siblings, and no skipping a layer.
 
-**`UI -> UI LOGIC -> SERVICE -> [domain, STORAGE, io]` (human ruling, QO60).** `appState.ts` is
-STORAGE — an L4 peer of `domain` and `io`, not part of L2. `ui/` components and the `ui LOGIC`
-layer never import `appState.ts` directly; every read and write of the app's persistent design
-state goes through the SERVICE layer, which is the only layer permitted to hold a reference to
-STORAGE, domain, or io. This is a TARGET ruling, not yet enforced or built — `appState.ts` today
-is imported directly by `ui/` components and other `logic/` modules throughout (see AS-BUILT
-below, and QO60 for the open follow-on work: the SERVICE layer itself, and the
+**`UI -> UI LOGIC -> SERVICE -> [domain, STORAGE, io]` (human ruling, QO60).** `appState.ts` is STORAGE — an L4 peer of
+`domain` and `io`, not part of L2. `ui/` components and the `ui LOGIC`
+layer never import `appState.ts` directly; every read and write of the app's persistent design state goes through the
+SERVICE layer, which is the only layer permitted to hold a reference to STORAGE, domain, or io. This is a TARGET ruling,
+not yet enforced or built — `appState.ts` today is imported directly by `ui/` components and other `logic/` modules
+throughout (see AS-BUILT below, and QO60 for the open follow-on work: the SERVICE layer itself, and the
 `architecture.test.ts` gate to enforce it).
 
-Each box is ONE responsibility. A module that both fetches data and drives the UI has two, and
-belongs in two places.
+Each box is ONE responsibility. A module that both fetches data and drives the UI has two, and belongs in two places.
 
 ```mermaid
 graph TD
@@ -192,16 +181,14 @@ graph TD
     end
 
     ROOT["<b>composition root</b><br/>packages/ui/src/main.ts<br/><i>the ONLY place<br/>that constructs anything</i>"]
-
-    ROOT -. "constructs & injects" .-> LOGIC
-    ROOT -. "constructs" .-> MANAGED
-    ROOT -. "constructs" .-> DRIVERREPO
-    ROOT -. "constructs" .-> MYREPO
-    ROOT -. "constructs" .-> PREFS
-    ROOT -. "constructs" .-> FILEIO
-    ROOT -. "constructs" .-> DIAG
-    ROOT -. "constructs" .-> LOGGING
-
+    ROOT -. " constructs & injects " .-> LOGIC
+    ROOT -. " constructs " .-> MANAGED
+    ROOT -. " constructs " .-> DRIVERREPO
+    ROOT -. " constructs " .-> MYREPO
+    ROOT -. " constructs " .-> PREFS
+    ROOT -. " constructs " .-> FILEIO
+    ROOT -. " constructs " .-> DIAG
+    ROOT -. " constructs " .-> LOGGING
     UI -->|calls| LOGIC
     LOGIC -->|calls| PROJSVC
     LOGIC -->|calls| DRIVERREPO
@@ -211,45 +198,42 @@ graph TD
     LOGIC -->|calls| DIAG
     LOGIC -->|calls| LOGGING
     PROJSVC -->|calls| STORE
-    STORE -->|"bridges to Vue"| WSPACE
-    WSPACE -->|"holds, ordered"| MANAGED
-    DRIVERREPO -->|"returns records"| MODEL
-    MYREPO -->|"returns records"| MODEL
+    STORE -->|" bridges to Vue "| WSPACE
+    WSPACE -->|" holds, ordered "| MANAGED
+    DRIVERREPO -->|" returns records "| MODEL
+    MYREPO -->|" returns records "| MODEL
     FILEIO -->|calls| SERIAL
-    FILEIO -->|"reads via"| PROJSVC
+    FILEIO -->|" reads via "| PROJSVC
     DIAG -->|calls| ENGINE
-    MANAGED -->|"wraps 3x"| MODEL
+    MANAGED -->|" wraps 3x "| MODEL
     MODEL -->|calls| ENGINE
-    SERIAL -->|"reads / writes"| MODEL
-
-    classDef pres fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
-    classDef app fill:#2a2440,stroke:#a78bfa,color:#f2ecff
-    classDef svc fill:#1e3050,stroke:#60a5fa,color:#eaf2ff
-    classDef storage fill:#402020,stroke:#f87171,color:#ffecec
-    classDef dom fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
-    classDef io fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
-    classDef root fill:#402020,stroke:#f87171,color:#ffecec
+    SERIAL -->|" reads / writes "| MODEL
+    classDef pres fill: #3d2b16, stroke: #fbbf24, color: #fff8e8
+    classDef app fill: #2a2440, stroke: #a78bfa, color: #f2ecff
+    classDef svc fill: #1e3050, stroke: #60a5fa, color: #eaf2ff
+    classDef storage fill: #402020, stroke: #f87171, color: #ffecec
+    classDef dom fill: #1b3a2f, stroke: #4ade80, color: #e8fff4
+    classDef io fill: #1b3a2f, stroke: #4ade80, color: #e8fff4
+    classDef root fill: #402020, stroke: #f87171, color: #ffecec
     class UI pres
     class LOGIC app
-    class DRIVERREPO,MYREPO,PREFS,FILEIO,DIAG,LOGGING,PROJSVC svc
-    class WSPACE,MANAGED,STORE storage
-    class MODEL,ENGINE dom
-    class SERIAL io
-    class ROOT root
+class DRIVERREPO, MYREPO, PREFS, FILEIO, DIAG, LOGGING, PROJSVC svc
+class WSPACE, MANAGED, STORE storage
+class MODEL, ENGINE dom
+class SERIAL io
+class ROOT root
 ```
 
-**Every arrow is labelled with the relationship it represents** — an unlabelled edge makes the
-reader guess. Dotted `constructs` edges come only from the composition root; every solid edge is a
-collaborator that arrived as an argument, so the thing at the tail can be exercised in a test with
-a substitute at the head.
+**Every arrow is labelled with the relationship it represents** — an unlabelled edge makes the reader guess. Dotted
+`constructs` edges come only from the composition root; every solid edge is a collaborator that arrived as an argument,
+so the thing at the tail can be exercised in a test with a substitute at the head.
 
-**The diagram above is the TARGET.** It shows what the system is specified to be. The one below
-shows what it IS.
+**The diagram above is the TARGET.** It shows what the system is specified to be. The one below shows what it IS.
 
 ### TARGET — the data model, and who owns it
 
-The layering diagram above says where code LIVES. This one says what the DATA is and who owns it.
-Kept separate so both stay readable (R12): one picture per question.
+The layering diagram above says where code LIVES. This one says what the DATA is and who owns it. Kept separate so both
+stay readable (R12): one picture per question.
 
 ```mermaid
 graph TD
@@ -266,7 +250,7 @@ graph TD
         O["overlay<br/><i>edit OR what-if, never both</i>"]
     end
 
-    PROJ["<b>OpenISDProject</b> — @openisd/model — PRIVATE to ManagedProject<br/>superset of a .wpr · holds the ENTIRE UI data<br/><i>dormant data is KEPT, never deleted</i>"]
+    PROJ["<b>OpenISDProject</b> — @openisd/model<br/>superset of a .wpr · holds the ENTIRE UI data<br/><i>dormant data is KEPT, never deleted</i>"]
 
     subgraph COMPONENTS["DOMAIN · COMPONENTS — purchasable parts: record + provenance + catalogue"]
         DRV["<b>OpenISDDriver</b><br/>live class · edited in the project<br/>record form: <b>OpenISDDriverJson</b><br/><i>openisd.yml / .owdr</i>"]
@@ -299,114 +283,105 @@ graph TD
         META["<b>OpenISDProjectMeta</b><br/>name · creator · dates · description"]
     end
 
-    WS -->|"holds 0..n, ORDERED"| MP
+    WS -->|" holds 0..n, ORDERED "| MP
     MP -->|holds| G
     MP -->|holds| M
     MP -->|holds| O
-    G -->|"is a"| PROJ
-    M -->|"is a"| PROJ
-    O -->|"is a"| PROJ
+    G -->|" is a "| PROJ
+    M -->|" is a "| PROJ
+    O -->|" is a "| PROJ
     PROJ -->|has| DRV
     PROJ -->|has| PR
     PROJ -->|has| BOX
     PROJ -->|has| VENT
     PROJ -->|has| TGT
-    PROJ -->|"has 0..n"| FLT
+    PROJ -->|" has 0..n "| FLT
     PROJ -->|has| ENV
     PROJ -->|has| SIG
     PROJ -->|has| LIS
     PROJ -->|has| SIM
     PROJ -->|has| META
-    BOX -->|"holds all, one ACTIVE"| A_SEALED
-    BOX -->|"holds all, one ACTIVE"| A_VENTED
-    BOX -->|"holds all, one ACTIVE"| A_BP4
-    BOX -->|"holds all, one ACTIVE"| A_PR
-    BOX -->|"holds all, one ACTIVE"| A_BP6
-    BOX -->|"holds all, one ACTIVE"| A_ABC
-    A_BP6 -->|"owns 2"| VENT
+    BOX -->|" holds all, one ACTIVE "| A_SEALED
+    BOX -->|" holds all, one ACTIVE "| A_VENTED
+    BOX -->|" holds all, one ACTIVE "| A_BP4
+    BOX -->|" holds all, one ACTIVE "| A_PR
+    BOX -->|" holds all, one ACTIVE "| A_BP6
+    BOX -->|" holds all, one ACTIVE "| A_ABC
+    A_BP6 -->|" owns 2 "| VENT
     A_VENTED -->|owns| VENT
     A_PR -->|owns| PR
-    UAS -. "reads · restores" .-> MP
-    UAS -. "reads · restores" .-> PS
-
-    classDef owner fill:#2a2440,stroke:#a78bfa,color:#f2ecff
-    classDef priv fill:#402020,stroke:#f87171,color:#ffecec
-    classDef comp fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
-    classDef cfg fill:#1e3050,stroke:#60a5fa,color:#eaf2ff
-    classDef layer fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
-    classDef unbuilt fill:#402020,stroke:#f87171,color:#ffecec
-    class WS,MP,PS,UAS owner
-    class PROJ priv
-    class DRV,PR comp
-    class BOX,VENT,TGT,FLT,ENV,SIG,LIS,SIM,META cfg
-    class A_SEALED,A_VENTED,A_BP4,A_PR cfg
-    class A_BP6,A_ABC unbuilt
-    class G,M,O layer
+    UAS -. " reads · restores " .-> MP
+    UAS -. " reads · restores " .-> PS
+    classDef owner fill: #2a2440, stroke: #a78bfa, color: #f2ecff
+    classDef priv fill: #402020, stroke: #f87171, color: #ffecec
+    classDef comp fill: #1b3a2f, stroke: #4ade80, color: #e8fff4
+    classDef cfg fill: #1e3050, stroke: #60a5fa, color: #eaf2ff
+    classDef layer fill: #3d2b16, stroke: #fbbf24, color: #fff8e8
+    classDef unbuilt fill: #402020, stroke: #f87171, color: #ffecec
+class WS, MP, PS, UAS owner
+class PROJ priv
+class DRV, PR comp
+class BOX, VENT,TGT, FLT, ENV, SIG, LIS, SIM, META cfg
+class A_SEALED,A_VENTED,A_BP4, A_PR cfg
+class A_BP6, A_ABC unbuilt
+class G, M,O layer
 ```
 
-**Projects are an ORDERED LIST, never a map.** `project.name` is what the left nav shows, and the
-app deliberately ALLOWS two open projects to carry the same name. A name is therefore a LABEL, not
-an identity: keying the collection by it would silently merge or overwrite two distinct designs the
-user is working on side by side. The workspace holds `ManagedProject`s in an array, position is
-stable, and identity is the entry's own id — never its name. `logic/model/workspace.ts` already
-declares `projects: WorkspaceEntry[]`, which is correct and must stay a list.
+**Projects are an ORDERED LIST, never a map.** `project.name` is what the left nav shows, and the app deliberately
+ALLOWS two open projects to carry the same name. A name is therefore a LABEL, not an identity: keying the collection by
+it would silently merge or overwrite two distinct designs the user is working on side by side. The workspace holds
+`ManagedProject`s in an array, position is stable, and identity is the entry's own id — never its name.
+`logic/model/workspace.ts` already declares `projects: WorkspaceEntry[]`, which is correct and must stay a list.
 
-**Reading it.** `ManagedProject` is the only thing the app talks to for a project's STATE. It holds
-three complete `OpenISDProject`s — ground, committed, and at most one open what-if overlay.
-`OpenISDProject` itself is a public class (`packages/model/src/openisdProject.ts`) — the store
-names its type for a persistable project's return shape — but the `_OpenISDProjectJson` record it
-wraps is red because THAT is private: nothing outside `openisdProject.ts` may name it, and every
-read or write of a project's fields goes through `OpenISDProject`'s own methods.
+**Reading it.** `ManagedProject` is the only thing the app talks to for a project's STATE. It holds three complete
+`OpenISDProject`s — ground, committed, and at most one open what-if overlay.
+`OpenISDProject` itself is a public class (`packages/model/src/openisdProject.ts`) — the store names its type for a
+persistable project's return shape. The `OpenISDProjectJson` record it wraps is that class's own wire shape, defined in
+the same file.
 
-**Green boxes are COMPONENTS** — you buy them, so they carry a full record, per-field provenance
-and a catalogue entry. **Blue boxes are CONFIGURATIONS** — you choose or size them, so they are
-modelled without catalogue machinery.
+**Green boxes are COMPONENTS** — you buy them, so they carry a full record, per-field provenance and a catalogue entry.
+**Blue boxes are CONFIGURATIONS** — you choose or size them, so they are modelled without catalogue machinery.
 
 **Each box type is its OWN data type, and all four are held at once.** `OpenISDSealedAlignment`,
-`OpenISDVentedAlignment`, `OpenISDBandpass4Alignment` and `OpenISDPassiveRadiatorAlignment` are
-separate types because they hold different facts — a sealed box has `Qtc`, a vented one has a vent,
-a bandpass has a second chamber, a PR box has a radiator and its added mass. Choosing one makes it
-ACTIVE; the rest go DORMANT with their data untouched, so flipping a ported box to sealed and back
-returns everything exactly. Only the `.wpr` writer trims dormant data, because the file format
-cannot express it.
+`OpenISDVentedAlignment`, `OpenISDBandpass4Alignment` and `OpenISDPassiveRadiatorAlignment` are separate types because
+they hold different facts — a sealed box has `Qtc`, a vented one has a vent, a bandpass has a second chamber, a PR box
+has a radiator and its added mass. Choosing one makes it ACTIVE; the rest go DORMANT with their data untouched, so
+flipping a ported box to sealed and back returns everything exactly. Only the `.wpr` writer trims dormant data, because
+the file format cannot express it.
 
-**Two alignments are SPECIFIED BUT NOT BUILT, and the diagram says so rather than implying four
-is the whole set.** `BoxType` today is `'sealed' | 'vented' | 'pr' | 'bandpass4'`
+**Two alignments are SPECIFIED BUT NOT BUILT, and the diagram says so rather than implying four is the whole set.**
+`BoxType` today is `'sealed' | 'vented' | 'pr' | 'bandpass4'`
 (`packages/engine/src/types.ts`) — there is no 6th-order and no ABC anywhere in the code.
 
-- **`OpenISDBandpass6Alignment`** — a 6th-order bandpass vents BOTH chambers, so it needs a rear
-  vent and tuning as well as a front one. That is why it is its own type and not a flag on the
-  4th-order: it holds a vent the 4th-order does not have.
-- **`OpenISDAbcAlignment`** — **its fields are not yet specified.** It is drawn so the gap is
-  visible, but nothing here states what an ABC alignment holds, and nothing should pretend to
-  until that is decided.
+- **`OpenISDBandpass6Alignment`** — a 6th-order bandpass vents BOTH chambers, so it needs a rear vent and tuning as well
+  as a front one. That is why it is its own type and not a flag on the 4th-order: it holds a vent the 4th-order does not
+  have.
+- **`OpenISDAbcAlignment`** — **its fields are not yet specified.** It is drawn so the gap is visible, but nothing here
+  states what an ABC alignment holds, and nothing should pretend to until that is decided.
 
-**The vented alignment owns the vent; the PR alignment owns the radiator.** That is why the vent
-hangs off `OpenISDVentedAlignment` and not off `OpenISDBox` — a sealed box has no vent to
-configure, and the model says so rather than leaving an ignored field lying about.
+**The vented alignment owns the vent; the PR alignment owns the radiator.** That is why the vent hangs off
+`OpenISDVentedAlignment` and not off `OpenISDBox` — a sealed box has no vent to configure, and the model says so rather
+than leaving an ignored field lying about.
 
-**`Targets` is what the solver aims at** — an entered target tuning drives the vent length, rather
-than a length being typed and a tuning falling out. Both directions exist; the entered set decides.
+**`Targets` is what the solver aims at** — an entered target tuning drives the vent length, rather than a length being
+typed and a tuning falling out. Both directions exist; the entered set decides.
 
 ### AS-BUILT — every module that exists today
 
-This is the same system as the diagram above, drawn from what is actually on disk rather than from
-what was specified. It exists because the target diagram is a poor guide to the current tree: it
-omits modules that exist, and shows components (`PresentationState`, `UrlAppState`) that have not
-been built. **A red box is a module the target diagram does not account for.** Every
-red box is either work still to be placed, or a module that should not exist — none of them is
-sanctioned by the target above.
+This is the same system as the diagram above, drawn from what is actually on disk rather than from what was specified.
+It exists because the target diagram is a poor guide to the current tree: it omits modules that exist, and shows
+components (`PresentationState`, `UrlAppState`) that have not been built. **A red box is a module the target diagram
+does not account for.** Every red box is either work still to be placed, or a module that should not exist — none of
+them is sanctioned by the target above.
 
 **Stale relative to QO60 and the SERVICE-layer ruling above**, relative to `managedDriver.ts`
 having already become `managedProject.ts`, and relative to `store.ts` having become
-`appState.ts` (D20): `appState.ts` below is drawn as directly called by the UI
-(`UI -->|calls| STORE`), which the target diagram now above explicitly forbids. Not yet redrawn —
-tracked as part of QO60's follow-on work.
+`appState.ts` (D20): `appState.ts` below is drawn as directly called by the UI (`UI -->|calls| STORE`), which the target
+diagram now above explicitly forbids. Not yet redrawn — tracked as part of QO60's follow-on work.
 
-**Kept small on purpose.** A diagram with forty boxes cannot be read at the size a Markdown
-viewer renders it, and it cannot be enlarged. So the picture below shows only the SHAPE — the four
-layers, the three approved state stores, and the direction of dependency — and the full module
-inventory is the TABLE underneath, which is text and always readable.
+**Kept small on purpose.** A diagram with forty boxes cannot be read at the size a Markdown viewer renders it, and it
+cannot be enlarged. So the picture below shows only the SHAPE — the four layers, the three approved state stores, and
+the direction of dependency — and the full module inventory is the TABLE underneath, which is text and always readable.
 
 ```mermaid
 graph TD
@@ -420,187 +395,175 @@ graph TD
     ENGINE["<b>@openisd/engine</b><br/>physics"]
     WINISD["<b>@openisd/winisd</b><br/>serialisation"]
     OLD["<b>winisd/driver.ts</b><br/>CONDEMNED Driver ADT"]
-
     UI -->|calls| STORE
     UI -->|calls| REST
     STORE -->|holds| MANAGED
     REST -->|reads| STORE
     REST -->|calls| SVC
-    MANAGED -->|"wraps 3x"| MODEL
+    MANAGED -->|" wraps 3x "| MODEL
     MODEL -->|calls| ENGINE
-    WINISD -->|"reads / writes"| MODEL
+    WINISD -->|" reads / writes "| MODEL
     STORE -->|calls| WINISD
-    REST -. "still uses" .-> OLD
-
-    classDef ok fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
-    classDef approved fill:#2a2440,stroke:#a78bfa,color:#f2ecff
-    classDef unplaced fill:#402020,stroke:#f87171,color:#ffecec
-    classDef condemned fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
-    class UI,SVC,MODEL,ENGINE,WINISD ok
-    class STORE,MANAGED,PRES approved
-    class REST unplaced
-    class OLD condemned
+    REST -. " still uses " .-> OLD
+    classDef ok fill: #1b3a2f, stroke: #4ade80, color: #e8fff4
+    classDef approved fill: #2a2440, stroke: #a78bfa, color: #f2ecff
+    classDef unplaced fill: #402020, stroke: #f87171, color: #ffecec
+    classDef condemned fill: #3d2b16, stroke: #fbbf24, color: #fff8e8
+class UI, SVC, MODEL, ENGINE, WINISD ok
+class STORE, MANAGED, PRES approved
+class REST unplaced
+class OLD condemned
 ```
 
 #### The module inventory
 
 **APPROVED** — the only modules permitted to hold state.
 
-| Module                        | Status                                    |
-| ----------------------------- | ----------------------------------------- |
-| `logic/appState.ts`           | built — persistent design state           |
-| `logic/managedDriver.ts`      | built — active · edit · what-if           |
-| `logic/presentationState.ts`  | built — dialog flags, chart cursor/selection, display prefs |
-| `logic/urlAppState.ts`        | NOT BUILT                                 |
+| Module                       | Status                                                      |
+|------------------------------|-------------------------------------------------------------|
+| `logic/appState.ts`          | built — persistent design state                             |
+| `logic/managedDriver.ts`     | built — active · edit · what-if                             |
+| `logic/presentationState.ts` | built — dialog flags, chart cursor/selection, display prefs |
+| `logic/urlAppState.ts`       | NOT BUILT                                                   |
 
-**UNPLACED** — exists, but the target diagram collapses it into one `logic/` box, so that diagram
-cannot say whether it belongs where it is, or at all.
+**UNPLACED** — exists, but the target diagram collapses it into one `logic/` box, so that diagram cannot say whether it
+belongs where it is, or at all.
 
-| Module                          | What it does                                    |
-| ------------------------------- | ----------------------------------------------- |
-| `logic/useDesignIO.ts`          | open · save · export · share                    |
-| `logic/driverSelection.ts`      | the driver-picker / editor workflow             |
-| `logic/driverBrowsingState.ts`  | driver-browsing reactive state                  |
-| `logic/persist.ts`              | localStorage + share-link encode/decode         |
-| `logic/projectFile.ts`          | project file naming                             |
-| `logic/model/OpenISDProject.ts` | project model                                   |
-| `logic/model/workspace.ts`      | workspace model                                 |
-| `logic/useVentGroup.ts`         | vent-group solving                              |
-| `logic/usePrGroup.ts`           | passive-radiator group solving                  |
-| `logic/useDriverCells.ts`       | E/C/N presentation + the Q-group rule           |
-| `logic/series.ts`               | chart-series mapping                            |
-| `logic/fields/`                 | units · field registry                          |
-| `logic/provenance.ts`           | provenance presentation                         |
-| `logic/environment.ts`          | air constants for the view                      |
-| `logic/prWinIsdFields.ts`       | PR field conversions for the view               |
-| `logic/wprMapping.ts`           | `.wpr` input assembly                           |
-| `persistence/storage/fileSave.ts` | File System Access wrapper                    |
-| `logic/app.ts`                  | app facade (provide/inject)                     |
-| `logic/toneGenerator.ts`        | tone generator                                  |
-| `logic/useEscToClose.ts`        | Escape-key handling                             |
-| `persistence/storage/keyValueStorage.ts`, `persistence/repos/prRepo.ts` | key-value storage port · PR repo |
+| Module                                                                  | What it does                            |
+|-------------------------------------------------------------------------|-----------------------------------------|
+| `logic/useDesignIO.ts`                                                  | open · save · export · share            |
+| `logic/driverSelection.ts`                                              | the driver-picker / editor workflow     |
+| `logic/driverBrowsingState.ts`                                          | driver-browsing reactive state          |
+| `logic/persist.ts`                                                      | localStorage + share-link encode/decode |
+| `logic/projectFile.ts`                                                  | project file naming                     |
+| `logic/model/OpenISDProject.ts`                                         | project model                           |
+| `logic/model/workspace.ts`                                              | workspace model                         |
+| `logic/useVentGroup.ts`                                                 | vent-group solving                      |
+| `logic/usePrGroup.ts`                                                   | passive-radiator group solving          |
+| `logic/useDriverCells.ts`                                               | E/C/N presentation + the Q-group rule   |
+| `logic/series.ts`                                                       | chart-series mapping                    |
+| `logic/fields/`                                                         | units · field registry                  |
+| `logic/provenance.ts`                                                   | provenance presentation                 |
+| `logic/environment.ts`                                                  | air constants for the view              |
+| `logic/prWinIsdFields.ts`                                               | PR field conversions for the view       |
+| `logic/wprMapping.ts`                                                   | `.wpr` input assembly                   |
+| `persistence/storage/fileSave.ts`                                       | File System Access wrapper              |
+| `logic/app.ts`                                                          | app facade (provide/inject)             |
+| `logic/toneGenerator.ts`                                                | tone generator                          |
+| `logic/useEscToClose.ts`                                                | Escape-key handling                     |
+| `persistence/storage/keyValueStorage.ts`, `persistence/repos/prRepo.ts` | key-value storage port · PR repo        |
 
 **SERVICES / DOMAIN** — placed, and matching the target.
 
-| Module                                                        | Layer   |
-| ------------------------------------------------------------- | ------- |
-| `db/driverRepo.ts` · `db/myDrivers.ts` · `db/prefs.ts`        | service |
-| `diagnostics/selftest.ts` · `logging/flash.ts`                | service |
-| `@openisd/model` · `@openisd/engine` · `@openisd/winisd`      | domain  |
+| Module                                                   | Layer   |
+|----------------------------------------------------------|---------|
+| `db/driverRepo.ts` · `db/myDrivers.ts` · `db/prefs.ts`   | service |
+| `diagnostics/selftest.ts` · `logging/flash.ts`           | service |
+| `@openisd/model` · `@openisd/engine` · `@openisd/winisd` | domain  |
 
 **CONDEMNED** — scheduled for deletion, still imported.
 
-| Module                    | Replaced by                                  |
-| ------------------------- | -------------------------------------------- |
+| Module                                         | Replaced by                                                            |
+|------------------------------------------------|------------------------------------------------------------------------|
 | `packages/winisd/src/driver.ts` (`Driver` ADT) | `OpenISDDriver`, a member of `OpenISDProject`, behind `ManagedProject` |
 
-**What the red tells you.** Twenty-two `logic/` and service modules exist that the target diagram
-collapses into one `logic/` box, so it cannot say whether any of them is in the right place or
-should exist at all. File IO lives in the MANAGED LAYER (QO78's ruling — the file-IO code moves
-into the domain module that owns what it reads/writes): `ManagedOpenISDProject`'s own
-export/import/persist methods plus `logic/managedDriver.ts` for driver file IO not bound to a
-project, with `createFileStore` (`logic/fileStore.ts`, constructed in `main.ts` and injected
-into `createDesignIO`) as the destination port and `useDesignIO.ts` shrunk to the orchestration
-composable that calls them. `winisd/driver.ts` is amber: condemned, scheduled for deletion,
-still imported.
+**What the red tells you.** Twenty-two `logic/` and service modules exist that the target diagram collapses into one
+`logic/` box, so it cannot say whether any of them is in the right place or should exist at all. File IO lives in the
+MANAGED LAYER (QO78's ruling — the file-IO code moves into the domain module that owns what it reads/writes):
+`ManagedOpenISDProject`'s own export/import/persist methods plus `logic/managedDriver.ts` for driver file IO not bound
+to a project, with `createFileStore` (`logic/fileStore.ts`, constructed in `main.ts` and injected into `createDesignIO`)
+as the destination port and `useDesignIO.ts` shrunk to the orchestration composable that calls them. `winisd/driver.ts`
+is amber: condemned, scheduled for deletion, still imported.
 
 ### Modules, purpose, and injected dependencies
 
 **No module-level singletons, and no exported mutable bindings.** Each module exports a
-`create<Name>(deps)` factory and nothing pre-built: a ready-made instance cannot be substituted, so
-every consumer of one becomes untestable in isolation. `state` is created by the appState factory and
-handed to whoever needs it — it is not importable.
+`create<Name>(deps)` factory and nothing pre-built: a ready-made instance cannot be substituted, so every consumer of
+one becomes untestable in isolation. `state` is created by the appState factory and handed to whoever needs it — it is
+not importable.
 
-| Module                       | Single responsibility                                                          | Injected dependencies                                           |
-| ---------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| `main.ts` — composition root | Construct every service, the workspace and its `ManagedProject`s, wire them, mount the app | — (it is the top; nothing injects into it)                      |
-| `Workspace`                  | Hold the OPEN PROJECTS as an ordered list — never a map keyed by name          | the `ManagedProject`s it holds                                  |
-| `ManagedProject`             | The one facade over ONE project's ground/committed/overlay state — see §3       | an `OpenISDProject` factory                                     |
-| `logic/` workflows           | Decide what the app does next — driver chosen, project opened, what-if applied | the `ManagedProject`, plus whichever services that workflow needs |
-| `createDriverRepo`           | Answer questions about the driver commons: index, search, filter, lookup — returns RECORDS, never live instances | a bundle source (`() => OpenISDDriverJson[]`)      |
-| `createMyDriverRepo`         | Read, write and delete user-saved drivers by identity                          | a `KeyValueStorage`                                              |
-| `createPrefsRepo`            | Browser-local preferences: favourites, session, layout                         | a `KeyValueStorage`                                              |
+| Module                                 | Single responsibility                                                                                                                                                                                                                                                                                         | Injected dependencies                                                                                                   |
+|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `main.ts` — composition root           | Construct every service, the workspace and its `ManagedProject`s, wire them, mount the app                                                                                                                                                                                                                    | — (it is the top; nothing injects into it)                                                                              |
+| `Workspace`                            | Hold the OPEN PROJECTS as an ordered list — never a map keyed by name                                                                                                                                                                                                                                         | the `ManagedProject`s it holds                                                                                          |
+| `ManagedProject`                       | The one facade over ONE project's ground/committed/overlay state — see §3                                                                                                                                                                                                                                     | an `OpenISDProject` factory                                                                                             |
+| `logic/` workflows                     | Decide what the app does next — driver chosen, project opened, what-if applied                                                                                                                                                                                                                                | the `ManagedProject`, plus whichever services that workflow needs                                                       |
+| `createDriverRepo`                     | Answer questions about the driver commons: index, search, filter, lookup — returns RECORDS, never live instances                                                                                                                                                                                              | a bundle source (`() => OpenISDDriverJson[]`)                                                                           |
+| `createMyDriverRepo`                   | Read, write and delete user-saved drivers by identity                                                                                                                                                                                                                                                         | a `KeyValueStorage`                                                                                                     |
+| `createPrefsRepo`                      | Browser-local preferences: favourites, session, layout                                                                                                                                                                                                                                                        | a `KeyValueStorage`                                                                                                     |
 | `ManagedOpenISDProject` file IO (QO78) | `.wdr`/`.owdr`/`.wpr` codec methods on the facade itself (`exportDriverWdr`/`exportDriverOwdr`/`exportWpr`/`importWpr`/`persistedDriverText`/`loadDriverFrom*Text`) — the driver crosses the boundary only as serialised text/bytes. No `.owpr` codec: its on-disk shape is `SerializedState`, an A8 decision | `@openisd/model`, `@openisd/winisd`, `wprMapping.ts`, `driverFileText.ts`, `fileFormat.ts`, `persist.ts`'s gzip helpers |
-| `managedDriver.ts` (QO78)     | Driver file IO NOT bound to a project — disk/library rows → an `OpenISDDriver` | `@openisd/model` |
-| `createFileStorage`           | WHERE bytes go and come from (open/save/save-as), no format knowledge          | the File System Access API + download fallback (`fileSave.ts`)  |
-| `createDiagnostics`          | Run the self-test and report what it found                                     | the engine, a reporter (`(msg) => void`)                        |
-| `createLogging`              | Surface application events to the user                                         | — (leaf; it depends on nothing)                                 |
-| `ui/`                        | Render state, raise intent                                                     | the app facade, via Vue `provide`/`inject` at the root          |
+| `managedDriver.ts` (QO78)              | Driver file IO NOT bound to a project — disk/library rows → an `OpenISDDriver`                                                                                                                                                                                                                                | `@openisd/model`                                                                                                        |
+| `createFileStorage`                    | WHERE bytes go and come from (open/save/save-as), no format knowledge                                                                                                                                                                                                                                         | the File System Access API + download fallback (`fileSave.ts`)                                                          |
+| `createDiagnostics`                    | Run the self-test and report what it found                                                                                                                                                                                                                                                                    | the engine, a reporter (`(msg) => void`)                                                                                |
+| `createLogging`                        | Surface application events to the user                                                                                                                                                                                                                                                                        | — (leaf; it depends on nothing)                                                                                         |
+| `ui/`                                  | Render state, raise intent                                                                                                                                                                                                                                                                                    | the app facade, via Vue `provide`/`inject` at the root                                                                  |
 
-A `KeyValueStorage` is an interface — `get`/`set`/`remove`. `localStorage` is one implementation and
-an in-memory map is another, which is what lets the repositories be tested without a browser.
+A `KeyValueStorage` is an interface — `get`/`set`/`remove`. `localStorage` is one implementation and an in-memory map is
+another, which is what lets the repositories be tested without a browser.
 
-**Why a repository, not a "db".** `driverRepo` and `myDriverRepo` answer questions about drivers
-and hand back records. They take arguments and return data. They do not know a dialog is open,
-they do not decide what happens next, and they never touch app state — a service that reads app
-state has inverted the arrow and dragged the layer above it into its own.
+**Why a repository, not a "db".** `driverRepo` and `myDriverRepo` answer questions about drivers and hand back records.
+They take arguments and return data. They do not know a dialog is open, they do not decide what happens next, and they
+never touch app state — a service that reads app state has inverted the arrow and dragged the layer above it into its
+own.
 
-**Where workflow lives.** "The user chose a driver" is a decision about what the app does next: it
-belongs in `logic`, which may call a repository to fetch the record and then update its own state.
-Putting that sequence inside a repository is what forces a service to import appState.
+**Where workflow lives.** "The user chose a driver" is a decision about what the app does next: it belongs in `logic`,
+which may call a repository to fetch the record and then update its own state. Putting that sequence inside a repository
+is what forces a service to import appState.
 
-**Serialisation is a leaf.** `@openisd/winisd` turns the OpenISD record into WinISD's bytes and
-back. WinISD is a consumer of our files and the reference oracle for our numbers — it is not our
-model, so nothing above the domain layer knows what ParState is.
+**Serialisation is a leaf.** `@openisd/winisd` turns the OpenISD record into WinISD's bytes and back. WinISD is a
+consumer of our files and the reference oracle for our numbers — it is not our model, so nothing above the domain layer
+knows what ParState is.
 
 ### Module responsibilities
 
-| Module            | Path                           | Owns                                                                                                           | May not contain                                               |
-| ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `@openisd/engine` | `packages/engine/src/`         | **The only place electro-acoustic maths exists** — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState), file formats, DOM, app state |
-| `@openisd/model`  | `packages/model/src/`          | `OpenISDDriver` — the one driver model, its provenance, its derivation. No separately exported record type            | File formats, DOM, app state                                  |
-| `@openisd/projection` | `packages/projection/src/` | The `driver.yml → openisd.yml → .wdr` transforms, bundled as ONE file an embedded V8 can load. Text in, text out, never throws | DOM, `window`, network, filesystem, Vue — anything V8-in-Python lacks |
-| `@openisd/winisd` | `packages/winisd/src/`         | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the 48-key order                        | The driver model, derivation, live state, DOM, app state      |
-| `logic`           | `packages/ui/src/logic/`       | The app's ONLY state. Store, project/workspace model, workflows, field registry, chart-series mapping          | Maths, `.vue` imports, direct construction of a service       |
-| `driverRepo`      | `packages/ui/src/db/`          | The driver commons: index, search, filter, lookup. Answers questions, returns records                          | App state, workflow, `.vue` imports                           |
-| `myDriverRepo`    | `packages/ui/src/db/`          | User-saved drivers: read, write, delete by identity                                                            | App state, workflow, `.vue` imports                           |
-| `prefsStore`      | `packages/ui/src/db/`          | Browser-local preferences — favourites, session, layout                                                        | App state, workflow, `.vue` imports                           |
-| `designIO`        | `packages/ui/src/logic/`       | Open, save, import, export, share-link encode/decode                                                           | Maths, `.vue` imports, direct construction of a service       |
-| `diagnostics`     | `packages/ui/src/diagnostics/` | Runtime self-test, solver troubleshooting, diagnostic assertions                                               | App state                                                     |
-| `logging`         | `packages/ui/src/logging/`     | Application event/alert surface (flash messages)                                                               | Any other module — it is a leaf                               |
-| `ui`              | `packages/ui/src/ui/`          | Vue components, canvas drawing, directives, static presets                                                     | App state, anything a service owns                             |
+| Module                | Path                           | Owns                                                                                                                                 | May not contain                                                       |
+|-----------------------|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| `@openisd/engine`     | `packages/engine/src/`         | **The only place electro-acoustic maths exists** — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState), file formats, DOM, app state         |
+| `@openisd/model`      | `packages/model/src/`          | `OpenISDDriver` — the one driver model, its provenance, its derivation. No separately exported record type                           | File formats, DOM, app state                                          |
+| `@openisd/projection` | `packages/projection/src/`     | The `driver.yml → openisd.yml → .wdr` transforms, bundled as ONE file an embedded V8 can load. Text in, text out, never throws       | DOM, `window`, network, filesystem, Vue — anything V8-in-Python lacks |
+| `@openisd/winisd`     | `packages/winisd/src/`         | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the 48-key order                                                 | The driver model, derivation, live state, DOM, app state              |
+| `logic`               | `packages/ui/src/logic/`       | The app's ONLY state. Store, project/workspace model, workflows, field registry, chart-series mapping                                | Maths, `.vue` imports, direct construction of a service               |
+| `driverRepo`          | `packages/ui/src/db/`          | The driver commons: index, search, filter, lookup. Answers questions, returns records                                                | App state, workflow, `.vue` imports                                   |
+| `myDriverRepo`        | `packages/ui/src/db/`          | User-saved drivers: read, write, delete by identity                                                                                  | App state, workflow, `.vue` imports                                   |
+| `prefsStore`          | `packages/ui/src/db/`          | Browser-local preferences — favourites, session, layout                                                                              | App state, workflow, `.vue` imports                                   |
+| `designIO`            | `packages/ui/src/logic/`       | Open, save, import, export, share-link encode/decode                                                                                 | Maths, `.vue` imports, direct construction of a service               |
+| `diagnostics`         | `packages/ui/src/diagnostics/` | Runtime self-test, solver troubleshooting, diagnostic assertions                                                                     | App state                                                             |
+| `logging`             | `packages/ui/src/logging/`     | Application event/alert surface (flash messages)                                                                                     | Any other module — it is a leaf                                       |
+| `ui`                  | `packages/ui/src/ui/`          | Vue components, canvas drawing, directives, static presets                                                                           | App state, anything a service owns                                    |
 
 ### Dependency rules, and what enforces them
 
 Every rule below is enforced by
-[`packages/ui/test/ui/architecture.test.ts`](packages/ui/test/ui/architecture.test.ts) unless the
-row says otherwise. It matches the SHAPE of the code — the import specifier, the exported
-declaration — never prose, so a comment naming a module cannot fail it.
+[`packages/ui/test/ui/architecture.test.ts`](packages/ui/test/ui/architecture.test.ts) unless the row says otherwise. It
+matches the SHAPE of the code — the import specifier, the exported declaration — never prose, so a comment naming a
+module cannot fail it.
 
-| Rule                                                                                | Enforced by                                                 |
-| ----------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `@openisd/engine` depends on nothing (zero runtime dependencies)                    | `packages/engine/package.json` — empty `dependencies`       |
-| `@openisd/model` depends on `@openisd/engine` and `@openisd/winisd` — it projects itself into WinISD's format via `toWinISDDriver()` | `packages/model/package.json`         |
-| `@openisd/winisd` depends only on `@openisd/engine`. It imports NOTHING from `@openisd/model` and must never learn OpenISD exists | `packages/winisd/package.json`        |
-| Nothing below presentation imports a `.vue` file                                    | the gate                                                    |
-| `ui` imports `logic` and nothing below it — no service, no engine, no serialiser    | the gate                                                    |
-| A component imports no VALUE from `@openisd/*`; an `import type` is fine, it erases | the gate                                                    |
-| Only `ManagedProject` imports `OpenISDProject`, and only `OpenISDProject` reaches its members (`OpenISDDriver`, `OpenISDPassiveRadiator`, box, vent) — everything else goes through `ManagedProject` alone | the gate |
-| A service never imports `logic`, and never imports a sibling service                | the gate                                                    |
-| No service exports a pre-built instance or a mutable binding                        | the gate                                                    |
-| Every service module offers one `create<Name>(deps)` factory                        | the gate                                                    |
-| Maths may only be in `@openisd/engine` — no other module                            | the gate (component case); convention elsewhere              |
+| Rule                                                                                                                                                                                                       | Enforced by                                           |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| `@openisd/engine` depends on nothing (zero runtime dependencies)                                                                                                                                           | `packages/engine/package.json` — empty `dependencies` |
+| `@openisd/model` depends on `@openisd/engine` and `@openisd/winisd` — it projects itself into WinISD's format via `toWinISDDriver()`                                                                       | `packages/model/package.json`                         |
+| `@openisd/winisd` depends only on `@openisd/engine`. It imports NOTHING from `@openisd/model` and must never learn OpenISD exists                                                                          | `packages/winisd/package.json`                        |
+| `ui` imports `logic` and nothing below it — no service, no engine, no serialiser                                                                                                                           | the gate                                              |
+| No service exports a pre-built instance or a mutable binding                                                                                                                                               | the gate                                              |
+| Every service module offers one `create<Name>(deps)` factory                                                                                                                                               | the gate                                              |
 
-**A component may not call the engine.** The formula stays in `@openisd/engine`, but a component
-that calls it has put a physics call in the view: the maths cannot then be changed without editing
-components, and a second front-end has to re-wire those calls rather than only re-skinning. The
-value a component needs is computed in `logic` and handed down as data.
-
-**There is ONE user interface**, under `packages/ui/src/ui/`. Behaviour beyond pure presentation —
-a commit boundary, a derivation, a load/save flow — is written once as a composable under
+**There is ONE user interface**, under `packages/ui/src/ui/`. Behaviour beyond pure presentation — a commit boundary, a
+derivation, a load/save flow — is written once as a composable under
 `packages/ui/src/logic/` and called from the view. A component that re-implements it is a defect.
 
 ### Service interfaces
 
-Each service is reached only through the interface below. The composition root constructs one
-implementation of each and injects it; a test constructs a different one.
+Each service is reached only through the interface below. The composition root constructs one implementation of each and
+injects it; a test constructs a different one.
 
 ```ts
 /** Browser-local storage, abstracted so a repository can be tested without a browser. */
 interface KeyValueStore {
-  get(key: string): string | null;
-  set(key: string, value: string): void;
-  remove(key: string): void;
+    get(key: string): string | null;
+
+    set(key: string, value: string): void;
+
+    remove(key: string): void;
 }
 
 /** The driver commons. Queries only — it owns no state and mutates nothing.
@@ -610,26 +573,34 @@ interface KeyValueStore {
  *  project yet, so handing back an instance would put one outside the facade and break that
  *  invariant. `ManagedProject` is what turns a chosen record into a live driver. */
 interface DriverRepo {
-  all(): readonly OpenISDDriverJson[];
-  byId(id: DriverId): OpenISDDriverJson | undefined;
-  search(query: string, filter?: DriverFilter): readonly OpenISDDriverJson[];
+    all(): readonly OpenISDDriverJson[];
+
+    byId(id: DriverId): OpenISDDriverJson | undefined;
+
+    search(query: string, filter?: DriverFilter): readonly OpenISDDriverJson[];
 }
 
 /** Drivers the user saved. Keyed by identity, which is `<brand>/<model-slug>`. Records, for the
  *  same reason as above — saving reads a record OUT of a project, it does not lend the instance. */
 interface MyDriverRepo {
-  all(): readonly OpenISDDriverJson[];
-  byId(id: DriverId): OpenISDDriverJson | undefined;
-  save(record: OpenISDDriverJson): void;
-  remove(id: DriverId): void;
+    all(): readonly OpenISDDriverJson[];
+
+    byId(id: DriverId): OpenISDDriverJson | undefined;
+
+    save(record: OpenISDDriverJson): void;
+
+    remove(id: DriverId): void;
 }
 
 /** Browser-local preferences. Nothing here affects a simulation. */
 interface PrefsStore {
-  favourites(): readonly DriverId[];
-  setFavourite(id: DriverId, on: boolean): void;
-  read<T>(key: string): T | undefined;
-  write<T>(key: string, value: T): void;
+    favourites(): readonly DriverId[];
+
+    setFavourite(id: DriverId, on: boolean): void;
+
+    read<T>(key: string): T | undefined;
+
+    write<T>(key: string, value: T): void;
 }
 
 /**
@@ -650,7 +621,7 @@ interface PrefsStore {
  *   exportWpr(now: Date, curve: SweepResult | null): Result<Uint8Array>;
  *   importWpr(bytes: Uint8Array): Result<OpenISDProjectMeta>;  // loads itself; meta out for the view
  *
- * `logic/managedDriver.ts` (the managed-driver module, same licensed set) carries the driver
+ * `logic/managedDriver.ts` (the managed-driver module) carries the driver
  * file IO that is NOT bound to a project: `driverFromFileText` (disk, already-classified format →
  * `OpenISDDriver`, for My Drivers) and `driverFromWdrText` (federated library row → `OpenISDDriver`).
  * Format classification (`formatOf`/`ofFileName` by name, `sniff` by content) is `fileFormat.ts` —
@@ -667,159 +638,166 @@ interface PrefsStore {
  *  `forget` are how a caller observes or drops what is retained (e.g. when the project is
  *  renamed and the stale handle must be let go of). */
 interface FileStore {
-  // Declared, no production caller yet — the live import path reads a File handed over by a
-  // plain <input type="file">, not a picker this port drives.
-  open(accept: readonly string[]): Promise<{ name: string; bytes: Uint8Array } | null>;
-  save(bytes: Uint8Array<ArrayBuffer> | string, suggestedName: string, mime: string, description: string, ext: string): Promise<SaveResult>;
-  saveAs(bytes: Uint8Array<ArrayBuffer> | string, suggestedName: string, mime: string, description: string, ext: string): Promise<SaveResult>;
-  openFileName(): string | null;
-  forget(): void;
+    // Declared, no production caller yet — the live import path reads a File handed over by a
+    // plain <input type="file">, not a picker this port drives.
+    open(accept: readonly string[]): Promise<{ name: string; bytes: Uint8Array } | null>;
+
+    save(bytes: Uint8Array<ArrayBuffer> | string, suggestedName: string, mime: string, description: string, ext: string): Promise<SaveResult>;
+
+    saveAs(bytes: Uint8Array<ArrayBuffer> | string, suggestedName: string, mime: string, description: string, ext: string): Promise<SaveResult>;
+
+    openFileName(): string | null;
+
+    forget(): void;
 }
 
 /** The runtime self-test. Reports; it does not decide what to do about a failure. */
 interface Diagnostics {
-  run(): DiagnosticReport;
+    run(): DiagnosticReport;
 }
 
 /** The user-facing event surface. A leaf: it depends on nothing. */
 interface Logging {
-  info(message: string): void;
-  warn(message: string): void;
-  error(message: string): void;
+    info(message: string): void;
+
+    warn(message: string): void;
+
+    error(message: string): void;
 }
 ```
 
-`FileFormat` is `DriverFileFormat | ProjectFileFormat` (`packages/ui/src/fileFormat.ts`) — two
-DISTINCT enums, never merged into one (QO67): a driver format is `.owdr`/`.wdr`, a project
-format is `.owpr`/`.wpr`, and `.wpr` can never leak into the driver save picker because it is
-not in that enum at all. The code common to both — extension classification, the legacy-
-classic-WinISD test gating the `.wdr`/`.wpr` CP1252 fallback — lives in that one shared file.
+`FileFormat` is `DriverFileFormat | ProjectFileFormat` (`packages/ui/src/fileFormat.ts`) — two DISTINCT enums, never
+merged into one (QO67): a driver format is `.owdr`/`.wdr`, a project format is `.owpr`/`.wpr`, and `.wpr` can never leak
+into the driver save picker because it is not in that enum at all. The code common to both — extension classification,
+the legacy- classic-WinISD test gating the `.wdr`/`.wpr` CP1252 fallback — lives in that one shared file.
 
 ### Key data types
 
 ```ts
 /** Where a value came from. `manual` is the one non-URL role: a hand-entered value. */
 type SourceRole =
-  | "manufacturer_datasheet"
-  | "manufacturer_product_page"
-  | "manufacturer_listing_page"
-  | "distributor_datasheet"
-  | "distributor_product_page"
-  | "distributor_listing_page"
-  | "manual";
+    | "manufacturer_datasheet"
+    | "manufacturer_product_page"
+    | "manufacturer_listing_page"
+    | "distributor_datasheet"
+    | "distributor_product_page"
+    | "distributor_listing_page"
+    | "manual";
 
 /** What ONE source published for a field. */
 interface Reading {
-  /** SI-canonical value. The only place a number lives. */
-  read_value: number;
-  /** The literal the source printed. ABSENT on a manual reading — there was no printed text. */
-  actual_reading?: string;
-  /** SI half-width of the interval the printed digits assert. ABSENT on a manual reading. */
-  read_precision?: number;
+    /** SI-canonical value. The only place a number lives. */
+    read_value: number;
+    /** The literal the source printed. ABSENT on a manual reading — there was no printed text. */
+    actual_reading?: string;
+    /** SI half-width of the interval the printed digits assert. ABSENT on a manual reading. */
+    read_precision?: number;
 }
 
 /** A T/S field. No flat value: the number is at `readings[origin].read_value` and nowhere else. */
 interface SpecEntry {
-  origin: SourceRole;
-  readings: Partial<Record<SourceRole, Reading>>;
-  dq: DqMark[];
+    origin: SourceRole;
+    readings: Partial<Record<SourceRole, Reading>>;
+    dq: DqMark[];
 }
 
 /** What a field looks like to the app. */
 type CellState = "E" | "C" | "N";
+
 interface Cell {
-  value: number | null;
-  state: CellState;
-  /** The winning source. Present only for a stated value. */
-  origin?: SourceRole;
+    value: number | null;
+    state: CellState;
+    /** The winning source. Present only for a stated value. */
+    origin?: SourceRole;
 }
 
 /** Failure is a value. Nothing in the engine throws. */
 interface Result<T> {
-  value: T | null;
-  errors: readonly DriverError[];
+    value: T | null;
+    errors: readonly DriverError[];
 }
 ```
 
 **`OpenISDDriver` is the one external form — there is no separately exported record type.**
-Its own constructor takes the record shape directly; `fromRecord`/`toRecord` are the only
-places that shape is named, and it is not exported even there:
+Its own constructor takes the record shape directly; `fromRecord`/`toRecord` are the only places that shape is named,
+and it is not exported even there:
 
-**Every purchasable COMPONENT has a live class and a record form.** The class is what a project
-holds and edits; the record is what the catalogue, a file and a share link carry. Both components
-have both:
+**Every purchasable COMPONENT has a live class and a record form.** The class is what a project holds and edits; the
+record is what the catalogue, a file and a share link carry. Both components have both:
 
-| Component | live class | record form | on disk |
-| --- | --- | --- | --- |
-| driver | `OpenISDDriver` | `OpenISDDriverJson` | `openisd.yml` / `.owdr` |
+| Component        | live class               | record form                  | on disk                           |
+|------------------|--------------------------|------------------------------|-----------------------------------|
+| driver           | `OpenISDDriver`          | `OpenISDDriverJson`          | `openisd.yml` / `.owdr`           |
 | passive radiator | `OpenISDPassiveRadiator` | `OpenISDPassiveRadiatorJson` | its own record, same shape family |
 
-A CONFIGURATION has no record form of its own — a vent or an alignment is not fetched from a
-catalogue, so it is simply part of `OpenISDProject`'s own serialised shape.
+A CONFIGURATION has no record form of its own — a vent or an alignment is not fetched from a catalogue, so it is simply
+part of `OpenISDProject`'s own serialised shape.
 
 ```ts
 /** The `openisd.yml` / `.owdr` shape — what `OpenISDDriver.toRecord()` hands back and what a
  *  repository, a file reader and a share link all carry. Plain data: no methods, no identity,
  *  safe to clone and to send. */
 type OpenISDDriverJson = {
-  uuid: BookkeepingField<string>;
-  brand: ScrapedField<string>;
-  model: ScrapedField<string>;
-  manufacturer: ScrapedField<string>;
-  sku: DerivedField<string>;
-  driver_type: ScrapedField<string>;
-  disposition: DispositionField;
-  quality: QualityBlock;
-  specs: {
-    woofer?: SpecSection;
-    tweeter?: SpecSection;
-    passive_radiator?: SpecSection;
-  };
-  curves?: CurvesBlock;
+    uuid: BookkeepingField<string>;
+    brand: ScrapedField<string>;
+    model: ScrapedField<string>;
+    manufacturer: ScrapedField<string>;
+    sku: DerivedField<string>;
+    driver_type: ScrapedField<string>;
+    disposition: DispositionField;
+    quality: QualityBlock;
+    specs: {
+        woofer?: SpecSection;
+        tweeter?: SpecSection;
+        passive_radiator?: SpecSection;
+    };
+    curves?: CurvesBlock;
 };
 
 class OpenISDDriver {
-  static fromRecord(record: OpenISDDriverJson): OpenISDDriver;
-  toRecord(): OpenISDDriverJson;
-  cell(field: SpecField): Cell;
-  enter(field: SpecField, value: number): void;
-  clear(field: SpecField): void;
-  errors(): readonly DriverError[];
-  subscribe(fn: () => void): () => void;
+    static fromRecord(record: OpenISDDriverJson): OpenISDDriver;
+
+    toRecord(): OpenISDDriverJson;
+
+    cell(field: SpecField): Cell;
+
+    enter(field: SpecField, value: number): void;
+
+    clear(field: SpecField): void;
+
+    errors(): readonly DriverError[];
+
+    subscribe(fn: () => void): () => void;
 }
 ```
 
 `SpecField` is the closed set of canonical field names, not an open string.
 
-**A repository deals in RECORDS; the MANAGED LAYER alone deals in instances.** A record is plain
-data — a catalogue row, a file's contents, a saved driver. The LONG-HELD, subscribable
-`OpenISDDriver` exists only as a member of an `OpenISDProject` held by a `ManagedProject`, and
-every TRANSIENT instance a file crossing requires is constructed INSIDE the licensed set —
-`managedProject.ts`'s own file-IO methods, `managedDriver.ts` for project-unbound driver file IO
-(QO78: ownership, not exemption), and `DriverEditorModal.vue`'s ruled draft. That is the
-containment the architecture gate enforces (`nothing outside managedProject.ts imports the
-OpenISDDriver value`); outside the licensed set, the driver moves only as serialised text/bytes
-or as one-field answers off the facade — never as an instance and never as the record shape
-(QO73).
+**A repository deals in RECORDS; the MANAGED LAYER alone deals in instances.** A record is plain data — a catalogue row,
+a file's contents, a saved driver. The LONG-HELD, subscribable
+`OpenISDDriver` exists only as a member of an `OpenISDProject` held by a `ManagedProject`, and every TRANSIENT instance
+a file crossing requires is constructed inside `managedProject.ts`'s own file-IO methods, `managedDriver.ts` for
+project-unbound driver file IO (QO78: ownership, not exemption), and `DriverEditorModal.vue`'s ruled draft. Elsewhere the
+driver moves only as serialised text/bytes or as one-field answers off the facade — never as an instance and never as
+the record shape (QO73).
 
 ---
 
 ## 3. The driver model
 
-**The application is built around `OpenISDProject` and `OpenISDDriver`.** `OpenISDDriver`'s on-disk
-form is `openisd.yml` — the same schema, byte for byte. `.owdr` is the extension the browser app
-uses for identical content when reading or writing a single driver to local disk. There is one
-parse, not two, whether the source is a library `openisd.yml` or a user's `.owdr`.
+**The application is built around `OpenISDProject` and `OpenISDDriver`.** `OpenISDDriver`'s on-disk form is
+`openisd.yml` — the same schema, byte for byte. `.owdr` is the extension the browser app uses for identical content when
+reading or writing a single driver to local disk. There is one parse, not two, whether the source is a library
+`openisd.yml` or a user's `.owdr`.
 
 ### `OpenISDDriver` owns the app
 
-It is the live, long-held in-memory model — every T/S field, every derived value, all provenance,
-and all consistency-group derivation (Fs from Mms+Cms, Cms from Fs+Vas+Sd, and the rest of that
-family). It is strongly typed against the `openisd.yml` shape — **not one uniform envelope, but
-four, by field kind:**
+It is the live, long-held in-memory model — every T/S field, every derived value, all provenance, and all
+consistency-group derivation (Fs from Mms+Cms, Cms from Fs+Vas+Sd, and the rest of that family). It is strongly typed
+against the `openisd.yml` shape — **not one uniform envelope, but four, by field kind:**
 
 | Envelope              | Applies to                                               | Shape                                                                                                                                                                                                                              |
-| --------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------|----------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `SpecEntry`           | T/S fields, inside `specs:` only                         | **No flat value.** `origin` names the winning source; a required `readings` dict (≥ 1 source) carries each source's `{actual_reading, read_value, read_precision}`. The number is reachable only at `readings[origin].read_value`. |
 | `ScrapedField<T>`     | record-level metadata — `manufacturer`, `brand`, `model` | Flat `value: T`, plus `origin`, _optional_ `readings` (populated only when ≥ 2 sources disagreed), `definition`, `dq`                                                                                                              |
 | `DerivedField<T>`     | pipeline-computed — `sku`, `name`                        | `value: T` + `definition` + `grounds` (evidence list). No `origin`/`readings` — built, not read                                                                                                                                    |
@@ -827,200 +805,187 @@ four, by field kind:**
 
 ### Provenance, and how it displays
 
-**Any real reading displays as `E`. Only a solver result is `C`. Absent is `N`.** `E` means
-STATED, not typed-by-this-user: a value that came off a datasheet and a value the user typed are
-both stated facts, and both render `E`. The finer provenance — which source a reading came from —
-stays on the record for the provenance inspector; it does not split the display state.
+**Any real reading displays as `E`. Only a solver result is `C`. Absent is `N`.** `E` means STATED, not
+typed-by-this-user: a value that came off a datasheet and a value the user typed are both stated facts, and both render
+`E`. The finer provenance — which source a reading came from — stays on the record for the provenance inspector; it does
+not split the display state.
 
 **A hand-entered value** becomes a reading under the `manual` role carrying the value ALONE.
-`read_precision` and `actual_reading` are omitted: there was no printed literal to echo and nothing
-stated a precision, so writing either would fabricate provenance. There is one reading shape, with
-those two genuinely absent — not a second envelope for hand entry.
+`read_precision` and `actual_reading` are omitted: there was no printed literal to echo and nothing stated a precision,
+so writing either would fabricate provenance. There is one reading shape, with those two genuinely absent — not a second
+envelope for hand entry.
 
-**A field's `origin`** stays whatever it was extracted as until the user overwrites it in the UI,
-at which point it becomes `manual`. Reset reloads the prior snapshot and restores the `origin` the
-field held before the edit — the ground/baseline layering in
-[`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md) is the mechanism. A normally-calculated
-field that is manually entered is written to the `.owdr` with `origin: manual` — it is an asserted
-fact, not something to silently re-derive. Clearing it reverts it to calculated and removes it from
-storage again.
+**A field's `origin`** stays whatever it was extracted as until the user overwrites it in the UI, at which point it
+becomes `manual`. Reset reloads the prior snapshot and restores the `origin` the field held before the edit — the
+ground/baseline layering in
+[`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md) is the mechanism. A normally-calculated field that is
+manually entered is written to the `.owdr` with `origin: manual` — it is an asserted fact, not something to silently
+re-derive. Clearing it reverts it to calculated and removes it from storage again.
 
 ### Relation groups solve in every direction
 
-A consistency group ([`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §4) is a relation,
-not a one-way formula: `{Vd, Sd, Xmax}` gives `Vd` from `Sd × Xmax`, `Sd` from `Vd / Xmax`, and
-`Xmax` from `Vd / Sd`, and every group in that table behaves the same way. The model repeats,
-for every relation, filling the one member left unknown once every other member — entered or
-already calculated — holds a value, until nothing changes. A value it derives on one pass feeds
-the next relation: `Vd, Xmax → Sd → Dd` propagates two hops.
-[`solveConsistencyGroup`](packages/engine/src/driver.ts) in `packages/engine/src/driver.ts` is
-the one implementation; nothing else derives a T/S field.
+A consistency group ([`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §4) is a relation, not a one-way
+formula: `{Vd, Sd, Xmax}` gives `Vd` from `Sd × Xmax`, `Sd` from `Vd / Xmax`, and
+`Xmax` from `Vd / Sd`, and every group in that table behaves the same way. The model repeats, for every relation,
+filling the one member left unknown once every other member — entered or already calculated — holds a value, until
+nothing changes. A value it derives on one pass feeds the next relation: `Vd, Xmax → Sd → Dd` propagates two hops.
+[`solveConsistencyGroup`](packages/engine/src/driver.ts) in `packages/engine/src/driver.ts` is the one implementation;
+nothing else derives a T/S field.
 
-**A field reachable through two groups at once resolves to a fixed winner, not to whichever
-route fires first.** `Xmax` comes from `abs(Hc − Hg) / 2` before it comes from `Vd / Sd`; `Sd`
-comes from `π·Dd²/4` before it comes from `Vd / Xmax`; `Rme` comes from `2π·Fs·Mms/Qes` before it
-comes from `BL² / Re`. On a record whose fields populate the inputs of both routes, the two
-return different numbers, so which route wins is a specification, not an accident of
-implementation order — [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §4.1 records the
-winning order as observed directly against WinISD, and the model is held to it.
+**A field reachable through two groups at once resolves to a fixed winner, not to whichever route fires first.** `Xmax`
+comes from `abs(Hc − Hg) / 2` before it comes from `Vd / Sd`; `Sd`
+comes from `π·Dd²/4` before it comes from `Vd / Xmax`; `Rme` comes from `2π·Fs·Mms/Qes` before it comes from `BL² / Re`.
+On a record whose fields populate the inputs of both routes, the two return different numbers, so which route wins is a
+specification, not an accident of implementation order — [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md)
+§4.1 records the winning order as observed directly against WinISD, and the model is held to it.
 
 **A derived value is `C`, never `E`, and the difference is a difference in claim.** An `Xmax`
-reached through `Vd / Sd` asserts the excursion implied by a published `Vd`; an `Xmax` in the
-spec asserts the linear limit the manufacturer measured. The number can be identical and the
-claim is not: the spec is asked first, so a field somebody asserted is `E` whatever a group could
-also have reached.
+reached through `Vd / Sd` asserts the excursion implied by a published `Vd`; an `Xmax` in the spec asserts the linear
+limit the manufacturer measured. The number can be identical and the claim is not: the spec is asked first, so a field
+somebody asserted is `E` whatever a group could also have reached.
 
 ### Inconsistency is marked, not resolved
 
 A datasheet routinely prints a dependent field alongside its own inputs — `Qts` next to `Qms`
 and `Qes` — which at printed precision often does not reconcile exactly. `E` pins a value:
-WinISD never recomputes an entered field and issues no warning when its inputs disagree with it
-([`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §5.1), so writing all three fields `E`
+WinISD never recomputes an entered field and issues no warning when its inputs disagree with it ([
+`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §5.1), so writing all three fields `E`
 buries the disagreement inside a set WinISD will never question.
 
-The model marks it instead of resolving it. **Every field in a relation group whose members
-contradict each other carries a `DqMark`**, judged against each field's own precision rather
-than exact equality — a group agreeing to within its members' own rounding is consistent, and
-only a residual bigger than every member's own uncertainty is reported
-([`checkConsistency`](packages/engine/src/consistency.ts) in
-`packages/engine/src/consistency.ts`). The same mark covers an over-determined group, where more
-members are asserted than the relation needs: an asserted value is then either being ignored or
-silently poisoning a derived one, and both are findings the mark surfaces. The groups themselves
-are [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) §4's; which member is left to derive
-does not matter to the mark — what matters is that the disagreement stays visible.
+The model marks it instead of resolving it. **Every field in a relation group whose members contradict each other
+carries a `DqMark`**, judged against each field's own precision rather than exact equality — a group agreeing to within
+its members' own rounding is consistent, and only a residual bigger than every member's own uncertainty is reported ([
+`checkConsistency`](packages/engine/src/consistency.ts) in
+`packages/engine/src/consistency.ts`). The same mark covers an over-determined group, where more members are asserted
+than the relation needs: an asserted value is then either being ignored or silently poisoning a derived one, and both
+are findings the mark surfaces. The groups themselves are [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md)
+§4's; which member is left to derive does not matter to the mark — what matters is that the disagreement stays visible.
 
 ### `WinISDDriver` is solely a serialisation device
 
-A strongly-typed, validating class carrying **no application or calculation logic at all**. It does
-not derive, hold live state, or persist between calls. Every value it writes is either read
-straight off the record it is given, or handed to it as an already-resolved input by its caller —
-never computed inline. **No code outside an `OpenISDDriver` instance may compute or derive a
-driver value; the ONE access point for any such value is a getter on that instance** (e.g.
+A strongly-typed, validating class carrying **no application or calculation logic at all**. It does not derive, hold
+live state, or persist between calls. Every value it writes is either read straight off the record it is given, or
+handed to it as an already-resolved input by its caller — never computed inline. **No code outside an `OpenISDDriver`
+instance may compute or derive a driver value; the ONE access point for any such value is a getter on that instance**
+(e.g.
 `driver.ebp()`) — no free function, no inline formula, anywhere else in the app, ever.
 
 Precedent (2026-08-17): `fromOpenISDRecord` computed EBP inline (`computed.EBP =
 computed.Fs / computed.Qes`) because EBP has no `SpecField` of its own and `deriveOpenISDFields()`
-therefore never produces it. Fixed by adding `OpenISDDriver.ebp()` as the one place that formula
-lives, and having `winIsdDriverFileIo.ts` — the one module allowed to construct a `WinISDDriver`
+therefore never produces it. Fixed by adding `OpenISDDriver.ebp()` as the one place that formula lives, and having
+`winIsdDriverFileIo.ts` — the one module allowed to construct a `WinISDDriver`
 — obtain it from that getter and pass it in as a plain value.
 `bugs/BUG_20260817_wdr_writer_computes_ebp_itself_violating_its_own_no-calc-logic_rule.md`
 
-Tracked, NOT done: the human's fuller intent is that `WinISDDriver` should be constructed
-*purely* by a sequence of setter calls fed from `OpenISDDriver` getter reads — no internal
-`deriveOpenISDFields()` call, no ParState-mark assignment logic, no Xlim/DQ-comment special-casing
-inside `winisdDriver.ts` at all; all of that moves to whatever constructs it. This is a full
-rewrite of the `.wdr` export path, not a follow-on patch — scoped as its own change, not attempted
-alongside the EBP fix, because it touches the ParState/CRLF/Xlim fidelity work already landed this
-session and needs its own dedicated test pass. See the open question ledger.
+Tracked, NOT done: the human's fuller intent is that `WinISDDriver` should be constructed *purely* by a sequence of
+setter calls fed from `OpenISDDriver` getter reads — no internal
+`deriveOpenISDFields()` call, no ParState-mark assignment logic, no Xlim/DQ-comment special-casing inside
+`winisdDriver.ts` at all; all of that moves to whatever constructs it. This is a full rewrite of the `.wdr` export path,
+not a follow-on patch — scoped as its own change, not attempted alongside the EBP fix, because it touches the
+ParState/CRLF/Xlim fidelity work already landed this session and needs its own dedicated test pass. See the open
+question ledger.
 
-- **Export:** `OpenISDDriver`'s resolved values populate a `WinISDDriver` instance immediately
-  before serialisation to `.wdr` text, then it is discarded.
+- **Export:** `OpenISDDriver`'s resolved values populate a `WinISDDriver` instance immediately before serialisation to
+  `.wdr` text, then it is discarded.
 - **Import:** `.wdr` text populates a `WinISDDriver`; those as-read values are diffed against what
-  `OpenISDDriver` independently derives, surfacing a mismatch — a value hand-edited in WinISD, for
-  instance — as a data-quality signal rather than silently overwriting.
-- `.wdr` is therefore 100 % derivable from `OpenISDDriver`: generated on demand, never stored. The
-  same relationship holds upstream — `openisd.yml` is 100 % derivable from `driver.yml`.
+  `OpenISDDriver` independently derives, surfacing a mismatch — a value hand-edited in WinISD, for instance — as a
+  data-quality signal rather than silently overwriting.
+- `.wdr` is therefore 100 % derivable from `OpenISDDriver`: generated on demand, never stored. The same relationship
+  holds upstream — `openisd.yml` is 100 % derivable from `driver.yml`.
 
 **Every DQ mark on the record travels into the `.wdr` `Comment=` field as a suffix.** WinISD's
-`.wdr` format has no field for data-quality flags, and the DQ marks are real findings about the
-record — a driver opened in classic WinISD must not lose them silently. The writer appends one
-line per mark, after whatever comment text the record already carries, each stating exactly three
-things: **the offending field, the offending value, and the offence.** Example:
+`.wdr` format has no field for data-quality flags, and the DQ marks are real findings about the record — a driver opened
+in classic WinISD must not lose them silently. The writer appends one line per mark, after whatever comment text the
+record already carries, each stating exactly three things: **the offending field, the offending value, and the
+offence.** Example:
 
     Comment=<original description text, if any>
     [DQ] Qts=0.500: value outside plausible range 0.1-0.8 for this driver class
     [DQ] Vas=140: unit mismatch suspected -- other 8" woofers cluster near 40-60 L
 
-One line per mark, in the order the record carries them. A record with no DQ marks appends
-nothing — the `Comment=` field is unchanged from today. This is a required part of `WinISDDriver`'s
-writer (§2 Step 8 of the migration plan), not an optional enhancement.
+One line per mark, in the order the record carries them. A record with no DQ marks appends nothing — the `Comment=`
+field is unchanged from today. This is a required part of `WinISDDriver`'s writer (§2 Step 8 of the migration plan), not
+an optional enhancement.
 
 ### File formats, and what crossing that boundary guarantees
 
 The app reads and writes five formats. Two are ours, three are WinISD's.
 
-| Format        | Content                                                                       | Direction                     |
-| ------------- | ----------------------------------------------------------------------------- | ----------------------------- |
-| `openisd.yml` | the OpenISD record — the canonical on-disk form                               | read (commons, at build time) |
-| `.owdr`       | one OpenISD driver record, the same schema as `openisd.yml` byte for byte     | read / write                  |
+| Format        | Content                                                                                                                                                                                                     | Direction                     |
+|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------|
+| `openisd.yml` | the OpenISD record — the canonical on-disk form                                                                                                                                                             | read (commons, at build time) |
+| `.owdr`       | one OpenISD driver record, the same schema as `openisd.yml` byte for byte                                                                                                                                   | read / write                  |
 | `.owpr`       | the whole app state (`SerializedState` via `persist.serialize`) — box, vent, PR, filters, signal, driver record, view state; whether it narrows to the `OpenISDProject` record shape is an open A8 decision | read / write                  |
-| `.wdr`        | one WinISD driver                                                             | read / write                  |
-| `.wpr`        | one WinISD project                                                            | read / write                  |
+| `.wdr`        | one WinISD driver                                                                                                                                                                                           | read / write                  |
+| `.wpr`        | one WinISD project                                                                                                                                                                                          | read / write                  |
 
-**No import loses data.** Every field a file carries survives the round trip, including metadata
-the app does not itself display. A `.wdr` written back out matches the original byte for byte, or
-conforms strictly to the layout rules where a byte-exact match is impossible — the layout rules are
+**No import loses data.** Every field a file carries survives the round trip, including metadata the app does not itself
+display. A `.wdr` written back out matches the original byte for byte, or conforms strictly to the layout rules where a
+byte-exact match is impossible — the layout rules are
 [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) and the round-trip contract is
 [`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md) §4.6.
 
 **The two formats carry deliberately different content, and the asymmetry is the point.**
 
 |                                  | `openisd.yml` / `.owdr` | `.wdr`                |
-| -------------------------------- | ----------------------- | --------------------- |
+|----------------------------------|-------------------------|-----------------------|
 | Asserted values                  | carried                 | carried               |
 | Derivable values nobody asserted | **absent**              | **carried**           |
 | The `E`/`C`/`N` character        | **never stored**        | computed at emit time |
 
-A field is in an OpenISD record because someone stated it, so **presence is the assertion** and
-absence is not a value. `.wdr` must additionally carry every calculated value, because WinISD does
-not recompute on open — so `openisd.yml` → `.wdr` is **not a serialisation**: it goes through
-`OpenISDDriver`, which supplies what the file does not hold. That is what keeps one place where
-calculation happens, and is why the browser's exporter and the pipeline's exporter cannot drift.
+A field is in an OpenISD record because someone stated it, so **presence is the assertion** and absence is not a value.
+`.wdr` must additionally carry every calculated value, because WinISD does not recompute on open — so `openisd.yml` →
+`.wdr` is **not a serialisation**: it goes through
+`OpenISDDriver`, which supplies what the file does not hold. That is what keeps one place where calculation happens, and
+is why the browser's exporter and the pipeline's exporter cannot drift.
 
-**The oracle is WinISD itself.** `.wdr` files written by WinISD are the reference for our writer's
-output; a third-party database's `.wdr`-shaped export is not an oracle however plausible it looks.
-Where OpenISD deliberately differs from WinISD, the difference is recorded with its ruling and the
-parity suite expects it — it is never silently absorbed as a tolerance.
+**The oracle is WinISD itself.** `.wdr` files written by WinISD are the reference for our writer's output; a third-party
+database's `.wdr`-shaped export is not an oracle however plausible it looks. Where OpenISD deliberately differs from
+WinISD, the difference is recorded with its ruling and the parity suite expects it — it is never silently absorbed as a
+tolerance.
 
 ### Scope: the driver record only
 
 Box, vent, passive-radiator, filter, signal and UI-navigation state have no fields in `openisd.yml`
 and none are added. That is `OpenISDProject`'s concern, persisted today inside `.owpr`'s
-`SerializedState` (A8 decides whether `.owpr` narrows to the project record shape alone). The
-multi-layer state model is multiple _copies_ of the one `OpenISDDriver` shape, never different
-shapes of it.
+`SerializedState` (A8 decides whether `.owpr` narrows to the project record shape alone). The multi-layer state model is
+multiple _copies_ of the one `OpenISDDriver` shape, never different shapes of it.
 
 ### `ManagedProject` — the one facade over every state layer
 
-**`ManagedProject` wraps a project's ground state, committed state, and at most one open what-if
-overlay — three complete `OpenISDProject`s.
-Nothing outside it may read or write any of those layers directly** — a component, a workflow, a
-service, anything — reaches the project's state only through `ManagedProject`. This is the layer
-model of [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md) given a single owning object:
-ground state is that document's Baseline/Ground, committed state is its Committed design, and the
-overlay is a What-if.
+**`ManagedProject` wraps a project's ground state, committed state, and at most one open what-if overlay — three
+complete `OpenISDProject`s.** This is the layer model of [
+`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md) given a single owning object:
+ground state is that document's Baseline/Ground, committed state is its Committed design, and the overlay is a What-if.
 
 **The what-if lifecycle:** `beginWhatIf()` opens an overlay read from the committed state.
-`resetOverlayToGround()` discards it and reopens a fresh one read from ground — the Tune panel's
-Reset. `cancelWhatIf()` discards it. **There is no `commitWhatIf()`** — a what-if explores values
-the app cannot verify against physical reality, so nothing ever promotes one into the design. The
-only way a what-if session ends is `cancelWhatIf()`, and it always discards.
+`resetOverlayToGround()` discards it and reopens a fresh one read from ground — the Tune panel's Reset. `cancelWhatIf()`
+discards it. **There is no `commitWhatIf()`** — a what-if explores values the app cannot verify against physical
+reality, so nothing ever promotes one into the design. The only way a what-if session ends is `cancelWhatIf()`, and it
+always discards.
 
 **Subscription is single-channel, and every public mutator notifies unconditionally**
 (`docs/design/REACTIVITY.md`). A consumer subscribes to `ManagedProject` and to nothing beneath it;
-`ManagedProject` alone decides when a subscriber is notified. Every mutation — a driver field
-(`enter`/`clear`/`enterMeta`/`clearMeta`), a box/vent/PR/environment/signal/sim-option/sweep/filter
-write (`mutate()`), and a what-if lifecycle change (`beginWhatIf`/`cancelWhatIf`, when it actually
-changes which layer is effective) — notifies exactly once, whether it lands on committed state or a
-live what-if. There is no silent edit path: every write is observed the instant it happens.
+`ManagedProject` alone decides when a subscriber is notified. Every mutation — a driver field (`enter`/`clear`/
+`enterMeta`/`clearMeta`), a box/vent/PR/environment/signal/sim-option/sweep/filter write (`mutate()`), and a what-if
+lifecycle change (`beginWhatIf`/`cancelWhatIf`, when it actually changes which layer is effective) — notifies exactly
+once, whether it lands on committed state or a live what-if. There is no silent edit path: every write is observed the
+instant it happens.
 
-**A what-if never leaks into anything persistent.** Its value is unverified against physical
-reality — nothing outside the live overlay is allowed to see it. `ManagedProject` cancels any active
-what-if, itself, before every operation that reads committed state for a purpose beyond driving the
-open charts: saving the project, saving-as, exporting `.wdr`/`.owdr`/`.wpr`,
-generating a share link, saving to My Drivers, and loading or switching to a different driver. This
-is `ManagedProject`'s own responsibility, not the caller's — a call site that reads committed state
-without going through `ManagedProject` can forget the guard, which is exactly how a real bug reached
-production: `shareLink()` serialises the driver into a URL without first cancelling an active
-what-if, while every sibling I/O function in the same module does. `ManagedProject` closes this
-class of bug structurally: there is no path to committed state that bypasses the cancel.
+**A what-if never leaks into anything persistent.** Its value is unverified against physical reality — nothing outside
+the live overlay is allowed to see it. `ManagedProject` cancels any active what-if, itself, before every operation that
+reads committed state for a purpose beyond driving the open charts: saving the project, saving-as, exporting `.wdr`/
+`.owdr`/`.wpr`, generating a share link, saving to My Drivers, and loading or switching to a different driver. This is
+`ManagedProject`'s own responsibility, not the caller's — a call site that reads committed state without going through
+`ManagedProject` can forget the guard, which is exactly how a real bug reached production: `shareLink()` serialises the
+driver into a URL without first cancelling an active what-if, while every sibling I/O function in the same module does.
+`ManagedProject` closes this class of bug structurally: there is no path to committed state that bypasses the cancel.
 
 ---
 
 ## 4. Runtime data flow
 
-One pass, driven by any parameter change. Nothing caches a curve; a sweep is cheap enough to re-run
-on every edit.
+One pass, driven by any parameter change. Nothing caches a curve; a sweep is cheap enough to re-run on every edit.
 
 ```mermaid
 sequenceDiagram
@@ -1031,43 +996,43 @@ sequenceDiagram
     participant Driver as OpenISDDriver
     participant Engine as engine
     participant Canvas as ui canvas
-
-    User->>UI: opens the driver editor, edits a field
-    UI->>Store: request an edit
-    Store->>Managed: beginEdit
+    User ->> UI: opens the driver editor, edits a field
+    UI ->> Store: request an edit
+    Store ->> Managed: beginEdit
     Note over Managed: cancels any active what-if first
-    User->>UI: types into the field
-    UI->>Managed: set field, value, on the draft
+    User ->> UI: types into the field
+    UI ->> Managed: set field, value, on the draft
     Note over Managed: silent -- no notification while the draft is open
-    User->>UI: OK
-    UI->>Store: request commit
-    Store->>Managed: commitEdit
-    Managed->>Driver: enter field, value, on committed state
+    User ->> UI: OK
+    UI ->> Store: request commit
+    Store ->> Managed: commitEdit
+    Managed ->> Driver: enter field, value, on committed state
     Note over Driver: records a manual reading.<br/>C and N are derived, never set
-    Driver->>Engine: solve the stated fields
-    Engine-->>Driver: a Result carrying value and errors, never a throw
-    Managed-->>Store: notify subscribers<br/>(the write to committed state, not the commit itself)
-    Store->>Engine: sweep driver, boxType, params
-    Engine-->>Store: SweepResult - spl, phase, excursion, impedance
-    Store->>Store: map the arrays to renderer series
-    Store-->>Canvas: reactive series
-    Canvas-->>User: redrawn charts and readouts
+    Driver ->> Engine: solve the stated fields
+    Engine -->> Driver: a Result carrying value and errors, never a throw
+    Managed -->> Store: notify subscribers<br/>(the write to committed state, not the commit itself)
+    Store ->> Engine: sweep driver, boxType, params
+    Engine -->> Store: SweepResult - spl, phase, excursion, impedance
+    Store ->> Store: map the arrays to renderer series
+    Store -->> Canvas: reactive series
+    Canvas -->> User: redrawn charts and readouts
 ```
 
-**A what-if follows the same shape with a different rhythm.** `beginWhatIf()` opens an overlay
-read from committed state; every scrub notifies immediately, live, so the chart updates on each
-frame; `cancelWhatIf()` is the only way the session ends, and it always discards — there is no
-commit. See §3, "`ManagedProject` — the one facade over every state layer", for the full contract.
+**A what-if follows the same shape with a different rhythm.** `beginWhatIf()` opens an overlay read from committed
+state; every scrub notifies immediately, live, so the chart updates on each frame; `cancelWhatIf()` is the only way the
+session ends, and it always discards — there is no commit. See §3, "`ManagedProject` — the one facade over every state
+layer", for the full contract.
 
 **File I/O sits beside this loop, not inside it.** Import builds an `OpenISDDriver` from an
 `openisd.yml`/`.owdr` record, or from `.wdr` text via `WinISDDriver`, and hands it to
-`ManagedProject`; export reads committed state through `ManagedProject`, which cancels any active
-what-if first. The sweep never touches a file.
+`ManagedProject`; export reads committed state through `ManagedProject`, which cancels any active what-if first. The
+sweep never touches a file.
 
 **The store reaches services, never the reverse.** `logic` calls `driverRepo` for a record,
-`myDriverRepo` and `prefsStore` for browser-local data, the managed layer's file-IO methods (with `fileStore` as the destination port) to read and write, `diagnostics`
-and `logging` to report, `ManagedProject` for the project's own state. Each returns data and holds no
-reference to the store.
+`myDriverRepo` and `prefsStore` for browser-local data, the managed layer's file-IO methods (with `fileStore` as the
+destination port) to read and write, `diagnostics`
+and `logging` to report, `ManagedProject` for the project's own state. Each returns data and holds no reference to the
+store.
 
 ---
 
@@ -1075,76 +1040,69 @@ reference to the store.
 
 These hold everywhere, across every module.
 
-**Failure travels as a value.** Every function that performs I/O, validation, or a calculation that
-can partially fail returns `{ value, errors }`. `errors` is always an array; empty means clean.
-**Nothing in the engine throws.** A parser handed malformed input returns `{ value: null, errors:
-[…] }`. Third-party code that throws is wrapped at the call site and its throw converted. Test
-infrastructure is the one place throw-based signalling is correct.
-Contract: [`../_agent_files/rules/openisd-result-contract.md`](../_agent_files/rules/openisd-result-contract.md).
+**Failure travels as a value.** Every function that performs I/O, validation, or a calculation that can partially fail
+returns `{ value, errors }`. `errors` is always an array; empty means clean. **Nothing in the engine throws.** A parser
+handed malformed input returns `{ value: null, errors:
+[…] }`. Third-party code that throws is wrapped at the call site and its throw converted. Test infrastructure is the one
+place throw-based signalling is correct. Contract: [
+`../_agent_files/rules/openisd-result-contract.md`](../_agent_files/rules/openisd-result-contract.md).
 
-**No padded trailing end-of-line comments (human ruling 2026-08-18).** A comment never sits at
-the end of a code line after whitespace padding pushes it out to the right — e.g.
-`const x = f();           // note`. This is absolutely prohibited: it makes the code difficult
-to follow, the comment is easy to miss, and the padding rots the moment the line's length
-changes. A comment that matters goes on its OWN line, directly above the code it describes.
+**No padded trailing end-of-line comments (human ruling 2026-08-18).** A comment never sits at the end of a code line
+after whitespace padding pushes it out to the right — e.g.
+`const x = f();           // note`. This is absolutely prohibited: it makes the code difficult to follow, the comment is
+easy to miss, and the padding rots the moment the line's length changes. A comment that matters goes on its OWN line,
+directly above the code it describes.
 
-**The core has no browser.** `@openisd/engine`, `@openisd/model` and `@openisd/winisd` contain no
-DOM, no `window`, no `document` and no canvas. The core is the reusable product: another front-end
-— mobile, CLI, third-party — must build on it without inheriting browser coupling, and DOM-free
-code is directly testable in Node with no stubs and no jsdom.
+**The core has no browser.** `@openisd/engine`, `@openisd/model` and `@openisd/winisd` contain no DOM, no `window`, no
+`document` and no canvas. The core is the reusable product: another front-end — mobile, CLI, third-party — must build on
+it without inheriting browser coupling, and DOM-free code is directly testable in Node with no stubs and no jsdom.
 
-**`series.ts` is a presentation adapter.** It maps engine arrays onto renderer `Series[]` and does
-no acoustic maths and no baseline subtraction ([`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md)
+**`series.ts` is a presentation adapter.** It maps engine arrays onto renderer `Series[]` and does no acoustic maths and
+no baseline subtraction ([`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md)
 §1.1). Every number it hands the canvas arrived from the engine.
 
-**Strong typing over loose bags.** No untyped grab-bag types: no all-optional interface accepting
-fields a consumer never reads, no `Record<string, any>`, no shape whose real contract is narrower
-than its declared type. Every type states exactly what it holds. Every boundary that can fail
-validates and reports rather than accepting anything and hoping. The type a function declares is
-the set of fields it reads.
+**Strong typing over loose bags.** No untyped grab-bag types: no all-optional interface accepting fields a consumer
+never reads, no `Record<string, any>`, no shape whose real contract is narrower than its declared type. Every type
+states exactly what it holds. Every boundary that can fail validates and reports rather than accepting anything and
+hoping. The type a function declares is the set of fields it reads.
 
-**One name per field.** A field, model or entity has exactly one name in our own record. Parsing an
-external vocabulary onto that one canonical name — a datasheet's `Fs`/`fs`/`Resonance frequency`,
-WinISD's `Bl` against the record's `BL` — is required work and happens in exactly one place per
-boundary. An alias mechanism on our own record is not.
+**One name per field.** A field, model or entity has exactly one name in our own record. Parsing an external vocabulary
+onto that one canonical name — a datasheet's `Fs`/`fs`/`Resonance frequency`, WinISD's `Bl` against the record's `BL` —
+is required work and happens in exactly one place per boundary. An alias mechanism on our own record is not.
 
-**Only the domain objects calculate — the app state never does (human ruling 2026-08-18).** A
-calculated value is a property or method on the domain object that owns it —
+**Only the domain objects calculate — the app state never does (human ruling 2026-08-18).** A calculated value is a
+property or method on the domain object that owns it —
 `OpenISDDriver`/`ManagedOpenISDProject` — never a calculation performed inline in `appState.ts`
-or any other logic-layer file, even when that inline code merely calls out to a properly
-single-sourced formula function. The app state's job is to hold and expose state; the moment it
-computes anything itself — however small, however correctly sourced — it has become a second
-place a calculated value can be produced, which is exactly the duplication this rule exists to
-prevent. If a value is missing from a domain object's public surface, the fix is to add it
-there as a getter/method, never to compute it at the call site "just this once."
-Precedent: `appState.ts`'s vent cross-sectional area was fixed by consolidating a duplicated
-formula into `@openisd/model`'s `ventArea_m2()` — correct — but then called directly from
+or any other logic-layer file, even when that inline code merely calls out to a properly single-sourced formula
+function. The app state's job is to hold and expose state; the moment it computes anything itself — however small,
+however correctly sourced — it has become a second place a calculated value can be produced, which is exactly the
+duplication this rule exists to prevent. If a value is missing from a domain object's public surface, the fix is to add
+it there as a getter/method, never to compute it at the call site "just this once."
+Precedent: `appState.ts`'s vent cross-sectional area was fixed by consolidating a duplicated formula into
+`@openisd/model`'s `ventArea_m2()` — correct — but then called directly from
 `appState.ts` — wrong, caught and reverted the same session, per this same rule stated above.
 
 **No local alias for a domain-object read (human ruling 2026-08-18).** A `computed`/`ref`/`const`
 whose entire body is a single passthrough call to a domain-object getter —
-`const x = computed(() => managedProject.someGetter())` — adds a second name for a value that
-already has one. A reader hitting `x` has to go find the alias's definition to learn what it
-actually reads, where `managedProject.someGetter()` at the use site says so directly. Call the
-getter at the point of use — in a template expression, or inline in a computed that combines
-several reads or adds real branching — never wrap a bare single-call (or single-property)
-passthrough in a local name "for convenience." A computed that picks between two ALREADY-ALIASED
-values (`selectedBox.value === 'pr' ? prFh.value : rearResonance.value`) is the same offence one
-level removed: the ternary adds no logic of its own, it just routes between two names that
-shouldn't exist either.
+`const x = computed(() => managedProject.someGetter())` — adds a second name for a value that already has one. A reader
+hitting `x` has to go find the alias's definition to learn what it actually reads, where `managedProject.someGetter()`
+at the use site says so directly. Call the getter at the point of use — in a template expression, or inline in a
+computed that combines several reads or adds real branching — never wrap a bare single-call (or single-property)
+passthrough in a local name "for convenience." A computed that picks between two ALREADY-ALIASED values
+(`selectedBox.value === 'pr' ? prFh.value : rearResonance.value`) is the same offence one level removed: the ternary
+adds no logic of its own, it just routes between two names that shouldn't exist either.
 
-**Validated physics is moved, never re-derived.** The engine is validated to < 0.03 dB against
-closed-form Thiele/Small physics. Restructuring moves that code behind boundaries; it does not
-rewrite the formulas. A clean-room rewrite discards paid-for correctness and re-introduces the same
-class of bugs.
+**Validated physics is moved, never re-derived.** The engine is validated to < 0.03 dB against closed-form Thiele/Small
+physics. Restructuring moves that code behind boundaries; it does not rewrite the formulas. A clean-room rewrite
+discards paid-for correctness and re-introduces the same class of bugs.
 
 ### A what-if is entered on the PROJECT, never on one part of it
 
 **HARD DECISION (human ruling 2026-08-14). The facade wraps the PROJECT, not the driver.**
 
-A user does not explore "a what-if driver". They explore a DESIGN: a driver in a box, with vents
-or passive radiators, at a drive level, in an environment. Scrubbing `Vb` and scrubbing `Qts` are
-the same act to the user, so they must be the same act to the app.
+A user does not explore "a what-if driver". They explore a DESIGN: a driver in a box, with vents or passive radiators,
+at a drive level, in an environment. Scrubbing `Vb` and scrubbing `Qts` are the same act to the user, so they must be
+the same act to the app.
 
 ```
 ManagedProject
@@ -1161,195 +1119,178 @@ OpenISDProject
   filters, environment, signal, project metadata
 ```
 
-`OpenISDDriver` keeps its job unchanged — it maps `openisd.yml` and owns the driver's fields and
-provenance — but it is now a MEMBER of `OpenISDProject`, not a thing wrapped on its own.
+`OpenISDDriver` keeps its job unchanged — it maps `openisd.yml` and owns the driver's fields and provenance — but it is
+now a MEMBER of `OpenISDProject`, not a thing wrapped on its own.
 
-**One overlay covers the whole design.** Scrubbing `Vb` and scrubbing `Qts` are the same act to
-the user, so cancelling restores both — a panel never keeps its own snapshot of one field to undo
-by hand.
+**One overlay covers the whole design.** Scrubbing `Vb` and scrubbing `Qts` are the same act to the user, so cancelling
+restores both — a panel never keeps its own snapshot of one field to undo by hand.
 
 **A COMPONENT is not a CONFIGURATION, and they are modelled differently.**
 
-| | what it is | modelled as |
-|---|---|---|
-| **`OpenISDDriver`** | a real, selectable, editable, PURCHASABLE physical part | a full record: provenance per field, a library entry, `openisd.yml` on disk |
-| **`OpenISDPassiveRadiator`** | the same — you buy one, it has a datasheet, it is in a catalogue | the SAME treatment as a driver. It is a component, not a box setting. |
-| ports / vents | a hole you cut, sized by the designer | a configuration: modelled, but simply — no catalogue identity, no purchase, no datasheet |
-| 4th-order, 6th-order bandpass | an alignment the designer chooses | likewise a configuration, not a thing you buy |
+|                               | what it is                                                       | modelled as                                                                              |
+|-------------------------------|------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| **`OpenISDDriver`**           | a real, selectable, editable, PURCHASABLE physical part          | a full record: provenance per field, a library entry, `openisd.yml` on disk              |
+| **`OpenISDPassiveRadiator`**  | the same — you buy one, it has a datasheet, it is in a catalogue | the SAME treatment as a driver. It is a component, not a box setting.                    |
+| ports / vents                 | a hole you cut, sized by the designer                            | a configuration: modelled, but simply — no catalogue identity, no purchase, no datasheet |
+| 4th-order, 6th-order bandpass | an alignment the designer chooses                                | likewise a configuration, not a thing you buy                                            |
 
-**A passive radiator therefore gets `OpenISDPassiveRadiator`**, a peer of `OpenISDDriver` with its
-own record and provenance — because a user picks one from a catalogue, edits its published
-parameters, and buys it, exactly as with a driver.
+**A passive radiator therefore gets `OpenISDPassiveRadiator`**, a peer of `OpenISDDriver` with its own record and
+provenance — because a user picks one from a catalogue, edits its published parameters, and buys it, exactly as with a
+driver.
 
-**A vent is NOT a component.** It has no manufacturer, no datasheet, no library. It is a
-dimensioned configuration of the enclosure, and it is modelled — provenance and solving included —
-but without the catalogue machinery a purchasable part needs. The same is true of the bandpass
-orders: choosing 4th over 6th selects an alignment, it does not select a part.
+**A vent is NOT a component.** It has no manufacturer, no datasheet, no library. It is a dimensioned configuration of
+the enclosure, and it is modelled — provenance and solving included — but without the catalogue machinery a purchasable
+part needs. The same is true of the bandpass orders: choosing 4th over 6th selects an alignment, it does not select a
+part.
 
-**`OpenISDProject` is a SUPERSET of a `.wpr`.** At minimum it carries everything needed to drive
-a WinISD `.wpr`; on top of that it carries everything OpenISD needs that WinISD has no concept of.
-The `.wpr` writer trims down to what WinISD understands — the project never trims itself to suit a
-foreign format.
+**`OpenISDProject` is a SUPERSET of a `.wpr`.** At minimum it carries everything needed to drive a WinISD `.wpr`; on top
+of that it carries everything OpenISD needs that WinISD has no concept of. The `.wpr` writer trims down to what WinISD
+understands — the project never trims itself to suit a foreign format.
 
-**EVERY STORED PAYLOAD CARRIES THE SCHEMA VERSION IT WAS SERIALISED FROM** (app dev policy,
-human 2026-08-17). Not the app version — the MODEL version of the shape written. That applies to
+**EVERY STORED PAYLOAD CARRIES THE SCHEMA VERSION IT WAS SERIALISED FROM** (app dev policy, human 2026-08-17). Not the
+app version — the MODEL version of the shape written. That applies to
 `localStorage`, share links, exported files and anything else that outlives the session.
 
 Reading is a REPAIR: a payload at `Vn` is brought to the current `Vm` by applying the `m − n`
-upgrade steps in order, each step doing one shape change and nothing else. A reader that simply
-hopes the shape matches is the defect this replaces.
+upgrade steps in order, each step doing one shape change and nothing else. A reader that simply hopes the shape matches
+is the defect this replaces.
 
-**If an upgrade step cannot be written, the agent STOPS DEAD and asks the human.** It does not
-guess the source version, invent a coercion, or quietly drop the payload. Guessing is how a
+**If an upgrade step cannot be written, the agent STOPS DEAD and asks the human.** It does not guess the source version,
+invent a coercion, or quietly drop the payload. Guessing is how a
 "repair" silently rewrites data the user cannot get back.
 
-**Breaking changes are to be avoided even before launch.** Nothing is live yet, and the pattern
-is still established now, deliberately: a versioning discipline adopted after the first real
-user is a versioning discipline adopted too late.
+**Breaking changes are to be avoided even before launch.** Nothing is live yet, and the pattern is still established
+now, deliberately: a versioning discipline adopted after the first real user is a versioning discipline adopted too
+late.
 
-A version number nobody READS is not versioning. `persist.ts` wrote `v: 2` into every saved
-state and no code ever read it back, so it recorded nothing and prevented nothing.
+A version number nobody READS is not versioning. `persist.ts` wrote `v: 2` into every saved state and no code ever read
+it back, so it recorded nothing and prevented nothing.
 
-**NO SINGLE DATUM MAY TAKE THE APP DOWN.** One malformed value, anywhere, must degrade one
-thing — never the session. A record that will not load costs the user that record; it does not
-cost them the box they were designing, the charts they had open, or the ability to start again
-without clearing their browser.
+**NO SINGLE DATUM MAY TAKE THE APP DOWN.** One malformed value, anywhere, must degrade one thing — never the session. A
+record that will not load costs the user that record; it does not cost them the box they were designing, the charts they
+had open, or the ability to start again without clearing their browser.
 
-Everything crossing INTO the app from outside is untrusted: `localStorage`, a share link, an
-uploaded file, a bundled record. TypeScript says nothing about any of it — `x as SomeRecord`
-is an ASSERTION about data we did not write, and a cast is not a check. So every such boundary
-VALIDATES, refuses what would throw, reports the refusal, and carries on with the rest.
+Everything crossing INTO the app from outside is untrusted: `localStorage`, a share link, an uploaded file, a bundled
+record. TypeScript says nothing about any of it — `x as SomeRecord`
+is an ASSERTION about data we did not write, and a cast is not a check. So every such boundary VALIDATES, refuses what
+would throw, reports the refusal, and carries on with the rest.
 
 Precedent (2026-08-17): `applyState` did `managedProject.loadDriverRecord(o.driver as
 DriverRecord)` on a blob straight out of `localStorage`. One record lacking its `specs`
-container threw on the first field read, and because every driver figure is a reactive computed
-over that one object, the panel, the charts and the error list all died together — a blank app
-from one absent key, which a hard reload could not clear because the poison was in storage.
-Now gated by `driverRecordProblems()` at the boundary, with the reason surfaced through
+container threw on the first field read, and because every driver figure is a reactive computed over that one object,
+the panel, the charts and the error list all died together — a blank app from one absent key, which a hard reload could
+not clear because the poison was in storage. Now gated by `driverRecordProblems()` at the boundary, with the reason
+surfaced through
 `restoreProblems`.
 
-**Corollary — data is loaded by a RUNNING app, never during its construction.** Restoring state
-is an operation the app performs, not a precondition of its existing. A failure while loading
-must therefore be catchable BY the app: something has to still be up to catch it, report it and
-offer the user a way out. This is why the fault log installs first in `main.ts`, before any
-service is built.
+**Corollary — data is loaded by a RUNNING app, never during its construction.** Restoring state is an operation the app
+performs, not a precondition of its existing. A failure while loading must therefore be catchable BY the app: something
+has to still be up to catch it, report it and offer the user a way out. This is why the fault log installs first in
+`main.ts`, before any service is built.
 
 **`OpenISDProject` holds the ENTIRE UI data for the project**, not just the physics inputs.
 
-**The same rule binds the DRIVER: `OpenISDDriver` is a SUPERSET of a `.wdr`.** OpenISD is
-WinISD-compatible AND MORE. So every field a `.wdr` can carry HAS a home in the OpenISD model —
-that is a requirement on the model, not a property to be discovered about it. A `.wdr` key with
-nowhere to go is a hole in `OpenISDDriver`, and the only correct response is to give it a home.
+**The same rule binds the DRIVER: `OpenISDDriver` is a SUPERSET of a `.wdr`.** OpenISD is WinISD-compatible AND MORE. So
+every field a `.wdr` can carry HAS a home in the OpenISD model — that is a requirement on the model, not a property to
+be discovered about it. A `.wdr` key with nowhere to go is a hole in `OpenISDDriver`, and the only correct response is
+to give it a home.
 
-The home is not always the driver record. `c` (speed of sound) and `roo` (air density) are
-properties of the AIR, so they belong to `OpenISDEnvironment` — a driver in the catalogue does
-not have a speed of sound. "Which part of the model" is a real question; "whether the model
-covers it" is not.
+The home is not always the driver record. `c` (speed of sound) and `roo` (air density) are properties of the AIR, so
+they belong to `OpenISDEnvironment` — a driver in the catalogue does not have a speed of sound. "Which part of the
+model" is a real question; "whether the model covers it" is not.
 
-**A projection may never SILENTLY drop a field it cannot place.** Trimming on the way to a
-foreign file is legitimate and expected — the `.wpr` and `.wdr` writers both do it, because
-those formats cannot express everything OpenISD knows. Dropping on the way IN is the opposite:
-it destroys what the user gave us, and a `continue` past an unplaceable value hides the hole
-this rule exists to expose. Gated by
+**A projection may never SILENTLY drop a field it cannot place.** Trimming on the way to a foreign file is legitimate
+and expected — the `.wpr` and `.wdr` writers both do it, because those formats cannot express everything OpenISD knows.
+Dropping on the way IN is the opposite:
+it destroys what the user gave us, and a `continue` past an unplaceable value hides the hole this rule exists to expose.
+Gated by
 `packages/winisd/test/wdr-model-coverage.test.ts`.
 
-**Switching box type DELETES NOTHING.** A ported box flipped to sealed keeps its port data; that
-data goes DORMANT, not away. Flip back and it is still there, exactly as it was. Only the `.wpr`
-writer trims dormant data out, because the file format cannot express it — and trimming on the way
-to a file is not the same as discarding from the model. Anything that clears a field on a
-box-type change is a defect: the user did not ask to lose it, they asked to look at a different
-alignment.
+**Switching box type DELETES NOTHING.** A ported box flipped to sealed keeps its port data; that data goes DORMANT, not
+away. Flip back and it is still there, exactly as it was. Only the `.wpr`
+writer trims dormant data out, because the file format cannot express it — and trimming on the way to a file is not the
+same as discarding from the model. Anything that clears a field on a box-type change is a defect: the user did not ask
+to lose it, they asked to look at a different alignment.
 
-**`OpenISDProject` is PRIVATE to `ManagedProject`.** Nothing outside reaches it. Equally, nothing
-outside `ManagedProject` speaks to the individual driver, passive radiator or vent — they are
-members of the project, encapsulated behind the same facade. `ManagedProject` is **the domain
-object for the entire state of ONE project in the left nav**: one entry in that list is one
+The driver, passive radiator and vent are members of the `OpenISDProject` that `ManagedProject` holds. `ManagedProject`
+is **the domain object for the entire state of ONE project in the left nav**: one entry in that list is one
 `ManagedProject`.
 
-**ONE provenance model covers every member.** The driver, the passive radiator, the box and the
-vent each record what was Entered the same way. There is not one mechanism for the driver and
-another for everything else, and the edit/what-if lifecycle covers all of them together.
+**ONE provenance model covers every member.** The driver, the passive radiator, the box and the vent each record what
+was Entered the same way. There is not one mechanism for the driver and another for everything else, and the
+edit/what-if lifecycle covers all of them together.
 
 ### Approved state stores — there are THREE, and no others
 
-**HARD DECISION. Only three places in this system are permitted to hold state. Every other
-component is a SLAVE to them: it reads through them and writes through them, and holds nothing
-of its own. There are NO unapproved exceptions.**
+**HARD DECISION. Only three places in this system are permitted to hold state. Every other component is a SLAVE to them:
+it reads through them and writes through them, and holds nothing of its own. There are NO unapproved exceptions.**
 
-| The approved store | Holds, and holds exclusively                                                                    | Path                                       |
-| ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| the **app state**  | PERSISTENT design state — box, params, project metadata: what a save, a load and a share link carry | `packages/ui/src/logic/appState.ts`        |
-| **`ManagedProject`** | ACTIVE, EDIT and WHAT-IF state for the WHOLE PROJECT — ground, committed, and the edit-or-what-if overlay, each holding a complete `OpenISDProject` | `packages/ui/src/logic/managedProject.ts` |
-| **`PresentationState`** | PRESENTATION state — which panel/dialog is open, cursor and selection, per-chart zoom, unit tokens | `packages/ui/src/logic/presentationState.ts` |
-| **`UrlAppState`**  | Composing the URL that ENCAPSULATES the app state — components on display, projects open, chart selected | `packages/ui/src/logic/urlAppState.ts`     |
+| The approved store      | Holds, and holds exclusively                                                                                                                        | Path                                         |
+|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| the **app state**       | PERSISTENT design state — box, params, project metadata: what a save, a load and a share link carry                                                 | `packages/ui/src/logic/appState.ts`          |
+| **`ManagedProject`**    | ACTIVE, EDIT and WHAT-IF state for the WHOLE PROJECT — ground, committed, and the edit-or-what-if overlay, each holding a complete `OpenISDProject` | `packages/ui/src/logic/managedProject.ts`    |
+| **`PresentationState`** | PRESENTATION state — which panel/dialog is open, cursor and selection, per-chart zoom, unit tokens                                                  | `packages/ui/src/logic/presentationState.ts` |
+| **`UrlAppState`**       | Composing the URL that ENCAPSULATES the app state — components on display, projects open, chart selected                                            | `packages/ui/src/logic/urlAppState.ts`       |
 
 **`PresentationState` is built; `UrlAppState` is TARGET state, not yet built.** `PresentationState`
 holds `browseOpen`, `editDriver`, `editDriverInfo`, `cursorF`, `pinnedF`, `cursorLocked`,
-`dragRange`, `yRanges`, `graphs`, `lossMode` and `ui` (unit tokens, environment defaults,
-username, chart colours, per-shell layout) — moved out of the store's `state` object, which now
-holds only persistent design state (`box`, `project`).
+`dragRange`, `yRanges`, `graphs`, `lossMode` and `ui` (unit tokens, environment defaults, username, chart colours,
+per-shell layout) — moved out of the store's `state` object, which now holds only persistent design state (`box`,
+`project`).
 
-**They are two components, not one, because they answer to different owners — not because one is
-local-only and the other is shared.** `PresentationState` is persisted the same way the design
-store is (`logic/persist.ts`'s `openisd.state` local save, and a share link — human ruling
-2026-08-14: a link is a complete description of the session, stripped of nothing, so the
-recipient sees the sender's open panels, cursor and unit choices too). `UrlAppState` composes a
-URL that captures what the app is showing — which components are on display, which projects are
-open, which chart is selected — so that address is a complete, shareable description of the
-session; it owns no state of its own, only reading `PresentationState`/`Workspace` and asking
-them to restore.
+**They are two components, not one, because they answer to different owners — not because one is local-only and the
+other is shared.** `PresentationState` is persisted the same way the design store is (`logic/persist.ts`'s
+`openisd.state` local save, and a share link — human ruling 2026-08-14: a link is a complete description of the session,
+stripped of nothing, so the recipient sees the sender's open panels, cursor and unit choices too). `UrlAppState`
+composes a URL that captures what the app is showing — which components are on display, which projects are open, which
+chart is selected — so that address is a complete, shareable description of the session; it owns no state of its own,
+only reading `PresentationState`/`Workspace` and asking them to restore.
 
-**`UrlAppState` OWNS NO STATE. It reads, and it re-establishes.** It needs access to
-the `Workspace`, its `ManagedProject`s and `PresentationState` in order to compose a URL from them, and to put
-them back when a URL is opened — but it is not responsible for any of that state and never holds a
-copy of it. It queries the owner, and it asks the owner to restore. That is the whole of its
-relationship to the other stores: **query, and re-establish**. This is what keeps it from becoming
-the fourth store the rule above forbids.
+**`UrlAppState` OWNS NO STATE. It reads, and it re-establishes.** It needs access to the `Workspace`, its
+`ManagedProject`s and `PresentationState` in order to compose a URL from them, and to put them back when a URL is
+opened — but it is not responsible for any of that state and never holds a copy of it. It queries the owner, and it asks
+the owner to restore. That is the whole of its relationship to the other stores: **query, and re-establish**. This is
+what keeps it from becoming the fourth store the rule above forbids.
 `bugs/BUG_20260814_address-bar-carries-no-design-state-at-all-so-the-url-cannot-share-the-design.md`
 is `UrlAppState`'s defect: the address bar carries no design state at all.
 
 **Edit boxes and what-if boxes are OPTIONAL app state in the URL.** They do not have to survive a
-`Ctrl-Shift-R`. Making them survive is best practice and would let a session be shared for
-diagnostic purposes, so it is the ideal target — but it may be deferred to a later feature if
-deferring makes it easier to clear the tech debt that is already outstanding. Deferring it is a
-sanctioned choice, not a failure.
+`Ctrl-Shift-R`. Making them survive is best practice and would let a session be shared for diagnostic purposes, so it is
+the ideal target — but it may be deferred to a later feature if deferring makes it easier to clear the tech debt that is
+already outstanding. Deferring it is a sanctioned choice, not a failure.
 
 `state.ui.originalWhatIf` moves into NEITHER — it is what-if state, so it is deleted outright and
 `ManagedProject` answers for it.
 
 **No local variable may duplicate state any of the three already holds.** Not a `ref`, not a
-`reactive`, not a module-level `let`, not a component-local snapshot, not a "cached copy for
-convenience". Every call goes BACK to the approved store, every time. A second copy is a second
-answer to the same question, and the two are free to disagree — which is exactly how a parallel
-what-if implementation grew inside the store while a driver facade existed beside it, and how
+`reactive`, not a module-level `let`, not a component-local snapshot, not a "cached copy for convenience". Every call
+goes BACK to the approved store, every time. A second copy is a second answer to the same question, and the two are free
+to disagree — which is exactly how a parallel what-if implementation grew inside the store while a driver facade existed
+beside it, and how
 `shareLink()` came to serialise state every sibling function had already cancelled.
 
-**What-if is `ManagedProject`'s and nothing else's.** Nothing outside it may hold a what-if copy,
-a what-if flag, or a what-if lifecycle. A component asks `isWhatIfActive()` to paint itself and
-calls `beginWhatIf()`/`cancelWhatIf()` to drive the session. That is the entire permitted surface.
+**What-if is `ManagedProject`'s and nothing else's.** Nothing outside it may hold a what-if copy, a what-if flag, or a
+what-if lifecycle. A component asks `isWhatIfActive()` to paint itself and calls `beginWhatIf()`/`cancelWhatIf()` to
+drive the session. That is the entire permitted surface.
 
 Gated by [`packages/ui/test/ui/architecture.test.ts`](packages/ui/test/ui/architecture.test.ts):
 "what-if exists ONLY inside the project facade" and "one driver model".
 
-**NO GLOBAL VARIABLES.** This is a whole-system rule, not a service-directory convention. Nothing
-in this system holds state that another part can reach without being handed it. Specifically, and
-without exception:
+**NO GLOBAL VARIABLES.** This is a whole-system rule, not a service-directory convention. Nothing in this system holds
+state that another part can reach without being handed it. Specifically, and without exception:
 
-- **No module-level mutable binding.** No `export let`, no `export var`, no exported object that
-  is mutated after construction.
-- **No exported pre-built instance.** A module exports a `create<Name>(deps)` factory, never a
-  ready-made `new X()`, `reactive()` or `ref()`. An instance nobody can substitute makes every
-  consumer of it untestable in isolation.
-- **Nothing on `window`.** The one exception is `window._selfTestDone`, which carries no state —
-  it is a completion flag read by the browser test harness.
+- **No module-level mutable binding.** No `export let`, no `export var`, no exported object that is mutated after
+  construction.
+- **No exported pre-built instance.** A module exports a `create<Name>(deps)` factory, never a ready-made `new X()`,
+  `reactive()` or `ref()`. An instance nobody can substitute makes every consumer of it untestable in isolation.
+- **Nothing on `window`.** The one exception is `window._selfTestDone`, which carries no state — it is a completion flag
+  read by the browser test harness.
 - **`state` is not importable.** It is created by the store factory and passed to what needs it.
-- **No ambient singleton reached through a module import**, including caches, registries and
-  loggers. If two callers must share one, the composition root constructs it once and injects it
-  into both.
+- **No ambient singleton reached through a module import**, including caches, registries and loggers. If two callers
+  must share one, the composition root constructs it once and injects it into both.
 
-Every collaborator arrives as an argument. That is what makes any part of this system testable
-with a substitute in place of the thing it depends on, and it is why the composition root is the
-only place that constructs.
+Every collaborator arrives as an argument. That is what makes any part of this system testable with a substitute in
+place of the thing it depends on, and it is why the composition root is the only place that constructs.
 
 ---
 
@@ -1358,63 +1299,61 @@ only place that constructs.
 ### Offline via a service worker
 
 Offline use is delivered by a Workbox service worker (Vite PWA plugin, `registerType: 'autoUpdate'`)
-that caches the built app. The app is **installable and auto-updating**. The build produces standard
-ES modules, which require a server origin — the app is served over HTTP, never opened from
+that caches the built app. The app is **installable and auto-updating**. The build produces standard ES modules, which
+require a server origin — the app is served over HTTP, never opened from
 `file://`.
 
 ### The runtime self-test
 
-**A physics smoke-test runs once per page load, in the user's browser, against the live deployed
-bundle.** Results go to the console under `[OpenISD self-test]`.
+**A physics smoke-test runs once per page load, in the user's browser, against the live deployed bundle.** Results go to
+the console under `[OpenISD self-test]`.
 
-It exists alongside the Node suite because the two catch different failures. The Node suite proves
-the **source** is correct, on a developer's machine. The self-test proves the **deployed bundle** is
-correct, in the environment the user actually has.
+It exists alongside the Node suite because the two catch different failures. The Node suite proves the **source** is
+correct, on a developer's machine. The self-test proves the **deployed bundle** is correct, in the environment the user
+actually has.
 
 | Failure mode                          | Build tests | Self-test |
-| ------------------------------------- | ----------- | --------- |
-| Logic bug in source                   | ✓           | ✓         |
-| Bundler/minifier corrupts code        | ✗           | ✓         |
-| Tree-shaking drops a needed export    | ✗           | ✓         |
-| Browser JS engine edge case           | ✗           | ✓         |
-| Wrong constants after a config change | ✗           | ✓         |
+|---------------------------------------|-------------|-----------|
+| Logic bug in source                   | ✓          | ✓        |
+| Bundler/minifier corrupts code        | ✗          | ✓        |
+| Tree-shaking drops a needed export    | ✗          | ✓        |
+| Browser JS engine edge case           | ✗          | ✓        |
+| Wrong constants after a config change | ✗          | ✓        |
 
-**Three gates:** sealed-box SPL against the closed-form transfer function (< 0.1 dB); passband
-sensitivity against the T/S radiation-efficiency formula (< 0.5 dB); and a vented box rolling off
-at ~24 dB/oct with two impedance peaks straddling Fb.
+**Three gates:** sealed-box SPL against the closed-form transfer function (< 0.1 dB); passband sensitivity against the
+T/S radiation-efficiency formula (< 0.5 dB); and a vented box rolling off at ~24 dB/oct with two impedance peaks
+straddling Fb.
 
-**`window._selfTestDone`** is set on completion. Playwright waits on it before running browser
-tests — it is a synchronisation signal, not a result.
+**`window._selfTestDone`** is set on completion. Playwright waits on it before running browser tests — it is a
+synchronisation signal, not a result.
 
 ### Persistence
 
 Three things persist in `localStorage`, each reached only through the service that owns it:
 
-| Key owner                                 | Holds                                                                               |
-| ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| Key owner                                     | Holds                                                                               |
+|-----------------------------------------------|-------------------------------------------------------------------------------------|
 | the store, via `persist.ts` (`openisd.state`) | the **committed design** — box, params, the driver with its marks, project metadata |
-| `myDriverRepo`                            | user-saved drivers                                                                  |
-| `prefsStore`                              | favourites, session, layout                                                         |
+| `myDriverRepo`                                | user-saved drivers                                                                  |
+| `prefsStore`                                  | favourites, session, layout                                                         |
 
-**Drafts and active what-ifs never persist.** An uncommitted value must not return after a refresh
-looking like a decision the user made. The commit boundary that decides this is
+**Drafts and active what-ifs never persist.** An uncommitted value must not return after a refresh looking like a
+decision the user made. The commit boundary that decides this is
 [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md)'s.
 
-**State restores on load.** The app starts from what was stored — active project, open panels — and
-restores it reactively.
+**State restores on load.** The app starts from what was stored — active project, open panels — and restores it
+reactively.
 
 A share link carries the same committed design in the URL hash. Every one of these persists what
-`OpenISDDriver.toRecord()` hands back, so a saved project's driver and a saved `.owdr` are the
-same bytes.
+`OpenISDDriver.toRecord()` hands back, so a saved project's driver and a saved `.owdr` are the same bytes.
 
 ---
 
 ## 7. Out of scope
 
-- **Anything requiring a backend**: accounts, server-side computation, cloud storage as the primary
-  store, collaborative editing, per-user server state.
+- **Anything requiring a backend**: accounts, server-side computation, cloud storage as the primary store, collaborative
+  editing, per-user server state.
 - **An authentication stack.** No IDP, no session management, no authorisation model.
 - **A live driver API.** The commons ships in the bundle at build time.
-- **Python reading or writing `openisd.yml`.** That transform is JS/TS, invoked from Python when
-  Python needs it.
+- **Python reading or writing `openisd.yml`.** That transform is JS/TS, invoked from Python when Python needs it.
 - **A second user interface.** There is one.

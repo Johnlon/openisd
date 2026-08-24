@@ -130,7 +130,7 @@ function scenarioWdr(s: Scenario): string {
 /**
  * A WinISD `[Driver]` key whose value openisd reaches through the SOLVED engine bag rather
  * than through a stated record field. `Vd`, `no`, `USPL`, `SPLmax`, `gamma`, `Rme`, `Mpow`,
- * `Mcost` and `Gloss` have no `_SpecEntry` of their own — nothing in openisd.yml asserts them
+ * `Mcost` and `Gloss` have no `SpecEntry` of their own — nothing in openisd.yml asserts them
  * — so the record cannot answer for them and the derivation must.
  */
 const ENGINE_ONLY: Readonly<Record<string, string>> = {

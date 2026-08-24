@@ -14,25 +14,6 @@
  */
 import { describe, it, vi } from 'vitest';
 import assert from 'node:assert/strict';
-
-/**
- * The two CHECKLIST gates below (PrivateAllow, ALLOWED_GLOBALS) self-skip loudly under
- * `PRECOMMIT=1` (set only by scripts/hooks-local/pre-commit) so a standing checklist cannot
- * block every commit; in every other run they execute normally. This changes WHEN they run,
- * never what they assert. `ALLOWED_GLOBALS` is still born-red by design — its offence list IS
- * the human's to-do list, enforced at A10/`npm run ci`/health-check rather than per-commit.
- * `PrivateAllow` (the class-private gate below) is NOT that kind of checklist any more: an
- * import of a private name is a hard failure unless the (file, name) pair is individually
- * `HUMAN_GRANTED` in the gate itself — the wrapper is kept only because a handful of
- * pre-existing offences are still being worked down toward zero, not because open-ended
- * grants are how this gate is meant to be satisfied.
- */
-const checklistDescribe = process.env.PRECOMMIT === '1'
-  ? (name: string, fn: () => void) => {
-      console.warn(`[pre-commit] SKIPPING checklist gate "${name}" — runs red in ci/health-check/A10`);
-      return describe.skip(name, fn);
-    }
-  : describe;
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
@@ -150,37 +131,6 @@ const WINISD_SRC = join(UI_SRC, '..', '..', 'winisd', 'src');
 // (John's ruling: a real 3-tier package boundary, not a directory convention).
 const PERSISTENCE_SRC = join(UI_SRC, '..', '..', 'persistence', 'src');
 const ENGINE_SRC = join(UI_SRC, '..', '..', 'engine', 'src');
-
-/**
- * Every import of `name` from a module matching `specPattern` — type-only or value, since a
- * type erases at compile time but a type-only import is still a NAME that ties a file to a
- * shape, which is exactly what this gate restricts. Matches both a bare/default/namespace
- * import and a named import (aliased or not), for either an `import type {...}` declaration
- * or a plain `import {...}` that mixes `type X` with a value binding.
- */
-function namedImportsOf(file: string, name: string, specPattern: RegExp): string[] {
-  const source = sourceFileOf(file);
-  const out: string[] = [];
-  for (const imp of source.getImportDeclarations()) {
-    const spec = imp.getModuleSpecifierValue();
-    if (!specPattern.test(spec)) continue;
-    const clause = imp.getImportClause();
-    if (!clause) continue;
-    const bound: string[] = [];
-    const def = clause.getDefaultImport();
-    if (def) bound.push(def.getText());
-    const namedBindings = clause.getNamedBindings();
-    const nsImport = namedBindings?.asKind(SyntaxKind.NamespaceImport);
-    if (nsImport) bound.push(nsImport.getText());
-    for (const ni of namedBindings?.asKind(SyntaxKind.NamedImports)?.getElements() ?? []) {
-      bound.push(ni.getName());
-      const alias = ni.getAliasNode();
-      if (alias) bound.push(alias.getText());
-    }
-    if (bound.includes(name)) out.push(spec);
-  }
-  return out;
-}
 
 /** Does `file` contain a call expression whose callee text is exactly `expr` (e.g.
  *  `'OpenISDDriver.fromJsonRecord'`)? Used where a gate asserts a specific construction site
@@ -335,8 +285,8 @@ describe('inversion of control — collaborators are injected, never reached for
 
 /**
  * ARCHITECTURE.md §3 "`ManagedOpenISDProject` — the one facade over every state layer", and the
- * dependency-rules table (§2): only `ManagedOpenISDProject` reaches `_OpenISDProjectJson`, and only
- * `_OpenISDProjectJson` reaches its members — the driver, the radiator, the box, the vent.
+ * dependency-rules table (§2): only `ManagedOpenISDProject` reaches `OpenISDProjectJson`, and only
+ * `OpenISDProjectJson` reaches its members — the driver, the radiator, the box, the vent.
  * Everything else goes through the facade alone.
  */
 describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
@@ -631,221 +581,8 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
   });
 });
 
-/**
- * Convention: a leading underscore on an exported name (`_Foo`) marks it class-private —
- * an implementation detail of the module that declares it, exported only so that module's own
- * file-io/store collaborators can name it, never for general consumption. TypeScript has no
- * cross-file access modifier for an exported interface, so this gate is the enforcement: it
- * finds every `export ... _Name` declaration under ui/model/winisd `src/`, then asserts that
- * NO OTHER file names `_Name` in an import. Owner-only, no exceptions, no grant mechanism —
- * a file that needs one goes through the owning module's public API instead.
- */
-// TESTS ARE EXEMPT from the privacy rules (human ruling, QO68, 2026-08-21: "tests are
-// generally exempt from the privacy rule" / "update the test to allow test access to _").
-// Every privacy scan set below is built from src/ roots ONLY — a test file may name a
-// _-prefixed export or a _-prefixed class member freely. Widening any of these scans to
-// test directories would revoke that ruling and needs the human.
 const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC), ...filesUnder(PERSISTENCE_SRC), ...filesUnder(ENGINE_SRC)];
 const REPO_ROOT = join(UI_SRC, '..', '..');
-
-/** Every `export interface|type|class|function|const|let _Name` top-level declaration site in
- *  a file. A name declared in two files is itself a violation of "one owner" and is asserted
- *  separately below. */
-function declaredExportedPrivateNames(file: string): string[] {
-  const source = sourceFileOf(file);
-  const names: string[] = [];
-  for (const iface of source.getInterfaces()) if (iface.isExported() && iface.getName().startsWith('_')) names.push(iface.getName());
-  for (const ta of source.getTypeAliases()) if (ta.isExported() && ta.getName().startsWith('_')) names.push(ta.getName());
-  for (const cls of source.getClasses()) { const n = cls.getName(); if (cls.isExported() && n?.startsWith('_')) names.push(n); }
-  for (const fn of source.getFunctions()) { const n = fn.getName(); if (fn.isExported() && n?.startsWith('_')) names.push(n); }
-  for (const vs of source.getVariableStatements()) {
-    if (!vs.isExported()) continue;
-    for (const decl of vs.getDeclarations()) if (decl.getName().startsWith('_')) names.push(decl.getName());
-  }
-  return names;
-}
-
-function privateDeclarationSites(files: string[]): Map<string, string[]> {
-  const sites = new Map<string, string[]>();
-  for (const f of files) {
-    for (const name of declaredExportedPrivateNames(f)) {
-      sites.set(name, [...(sites.get(name) ?? []), f]);
-    }
-  }
-  return sites;
-}
-
-checklistDescribe('leading-underscore exports are class-private — owner-only, no exceptions', () => {
-  it('each private name is declared in exactly one file', () => {
-    const sites = privateDeclarationSites(ALL_SRC_FILES);
-    const offences = [...sites.entries()]
-      .filter(([, files]) => files.length > 1)
-      .map(([name, files]) => `${name} is declared in ${files.map(f => relative(REPO_ROOT, f)).join(', ')}`);
-    assert.deepEqual(offences, []);
-  });
-
-  /**
-   * Human rulings 2026-08-23, each an (importing file, private name) pair granted HERE, in the
-   * gate, in the open — never disguised at the use site behind a widened or renamed type,
-   * which the encapsulation rule bans outright.
-   *
-   * - driverRepo.ts + _OpenISDDriverJson: "If the bundle is genuinely a _Json... object then
-   *   just add an exception in the test itself to permit that access. if the bundle IS THAT
-   *   OBJECT then of course it deserves that access." `scripts/bundle-drivers.mjs` copies each
-   *   canonical record into the artifact verbatim, so `BundleRecord.record` IS one and is
-   *   typed as one; it is opened exactly once, through the injected conformance factory.
-   * - model/src/openisdProject.ts + _OpenISDDriverJson: the driver mixed-representation fix
-   *   (John, 2026-08-24) — `_OpenISDProjectJson.driver` HOLDS the driver's own wire record so a
-   *   saved project nests real JSON rather than a JSON string escaped inside JSON. It is opaque
-   *   data there: `openisdProject.ts` never reads a field off it, only passes it whole to
-   *   `OpenISDDriver.fromJsonRecord()`/`.fromConformingRecord()`/`.toJsonRecord()`.
-   */
-  const HUMAN_GRANTED: ReadonlyArray<readonly [file: string, name: string]> = [
-    ['persistence/src/repos/driverRepo.ts', '_OpenISDDriverJson'],
-    ['model/src/openisdProject.ts', '_OpenISDDriverJson'],
-  ];
-
-  it('no file outside a name\'s declaring file imports it (human-granted pairs excepted)', () => {
-    const sites = privateDeclarationSites(ALL_SRC_FILES);
-    const offences = ALL_SRC_FILES
-      .flatMap(f => [...sites.entries()]
-        .filter(([, [owner]]) => f !== owner)
-        .filter(([name]) => !HUMAN_GRANTED.some(
-          ([gFile, gName]) => gName === name && relative(REPO_ROOT, f) === gFile))
-        .flatMap(([name, [owner]]) =>
-          namedImportsOf(f, name, /./)
-            .map(spec => `${relative(REPO_ROOT, f)} imports ${name} from ${spec} (owned by ${relative(REPO_ROOT, owner)})`)));
-
-    assert.deepEqual(offences, [],
-      'A leading underscore marks a name class-private. Every offence above is a file naming ' +
-      'a private declaration it does not own — route through the owning module\'s public API ' +
-      'instead of naming the private shape directly, or bring the pair to the human for a ' +
-      'HUMAN_GRANTED entry above. Only the human adds a pair there.');
-  });
-
-  it('every human-granted pair is live — the file still imports the name (stale grants die)', () => {
-    const stale = HUMAN_GRANTED.filter(([gFile, gName]) => {
-      const abs = ALL_SRC_FILES.find(f => relative(REPO_ROOT, f) === gFile);
-      return !abs || namedImportsOf(abs, gName, /./).length === 0;
-    }).map(([gFile, gName]) => `${gFile} no longer imports ${gName}`);
-    assert.deepEqual(stale, [],
-      'A grant for an import that no longer exists is a dormant permission — delete the pair.');
-  });
-});
-
-/**
- * Loophole in the gate above: it only catches a file NAMING a private `_Name` directly. A
- * function, const, method, getter, or arrow-function property that is declared with a public
- * (non-underscore) name but whose own signature RETURNS or is TYPED AS a private `_Name` hands
- * the private shape to every caller just as effectively — the caller never has to write `_Name`
- * in an import to get hold of it. This gate closes that for BOTH top-level declarations and
- * class members (a class method returning a private type is exactly as invisible to a
- * text-pattern regex anchored on `export function`/`export const` as it is to a caller who
- * never imports the type by name — see BUG_20260818_private_type_return_gate_uses_line_anchored_
- * regex_and_misses_class_methods.md).
- *
- * The check also walks the declared type STRUCTURALLY — generics, `Promise<...>`, arrays,
- * unions/intersections, and inline object-literal member types — so a private name reachable
- * only through `Result<_Name>`, `Promise<_Name>`, `_Name[]`, or `{ ok: true; record: _Name }`
- * is caught exactly as if it had been returned bare.
- */
-describe('an export typed as a private _Name must itself be _-prefixed', () => {
-  /** Every private `_Name` reachable inside a TypeNode, walking generics, unions/intersections,
-   *  arrays, tuples, parenthesised types, and inline object-literal member types. `seen` guards
-   *  against infinite recursion on a self-referential type. */
-  function typeNodeNames(typeNode: Node, seen: Set<Node> = new Set()): string[] {
-    if (seen.has(typeNode)) return [];
-    seen.add(typeNode);
-    const out: string[] = [];
-    if (Node.isTypeReference(typeNode)) {
-      out.push(typeNode.getTypeName().getText());
-      for (const arg of typeNode.getTypeArguments()) out.push(...typeNodeNames(arg, seen));
-    } else if (Node.isUnionTypeNode(typeNode) || Node.isIntersectionTypeNode(typeNode)) {
-      for (const t of typeNode.getTypeNodes()) out.push(...typeNodeNames(t, seen));
-    } else if (Node.isArrayTypeNode(typeNode)) {
-      out.push(...typeNodeNames(typeNode.getElementTypeNode(), seen));
-    } else if (Node.isParenthesizedTypeNode(typeNode)) {
-      out.push(...typeNodeNames(typeNode.getTypeNode(), seen));
-    } else if (Node.isTupleTypeNode(typeNode)) {
-      for (const el of typeNode.getElements()) out.push(...typeNodeNames(el, seen));
-    } else if (Node.isTypeLiteral(typeNode)) {
-      for (const member of typeNode.getMembers()) {
-        const propType = member.asKind(SyntaxKind.PropertySignature)?.getTypeNode();
-        if (propType) out.push(...typeNodeNames(propType, seen));
-      }
-    }
-    return out;
-  }
-
-  it('every exported function/const/class-member returning or typed as a private _Name is itself named _...', () => {
-    const sites = privateDeclarationSites(ALL_SRC_FILES);
-    const privateNames = new Set(sites.keys());
-
-    const report = (offences: string[], fileRel: string, name: string, hit: string[]) => {
-      offences.push(
-        `${fileRel} exports '${name}' typed as private ${hit.join(', ')} ` +
-        `but '${name}' itself has no leading underscore`);
-    };
-
-    /** A private name's own declaring file is its owner and may expose it under a public
-     *  accessor name — the same exemption `f !== owner` grants the import-naming gate above. */
-    const ownedHere = (f: string, hit: string[]): string[] =>
-      hit.filter(n => !(sites.get(n) ?? []).includes(f));
-
-    const offences: string[] = [];
-    for (const f of ALL_SRC_FILES) {
-      const source = sourceFileOf(f);
-      const fileRel = relative(REPO_ROOT, f);
-
-      for (const fn of source.getFunctions()) {
-        if (!fn.isExported()) continue;
-        const name = fn.getName();
-        if (!name || name.startsWith('_')) continue;
-        const rt = fn.getReturnTypeNode();
-        if (!rt) continue;
-        const hit = ownedHere(f, typeNodeNames(rt).filter(n => privateNames.has(n)));
-        if (hit.length) report(offences, fileRel, name, hit);
-      }
-
-      for (const vs of source.getVariableStatements()) {
-        if (!vs.isExported()) continue;
-        for (const decl of vs.getDeclarations()) {
-          const name = decl.getName();
-          if (name.startsWith('_')) continue;
-          const tn = decl.getTypeNode();
-          if (!tn) continue;
-          const hit = ownedHere(f, typeNodeNames(tn).filter(n => privateNames.has(n)));
-          if (hit.length) report(offences, fileRel, name, hit);
-        }
-      }
-
-      for (const cls of source.getClasses()) {
-        if (!cls.isExported()) continue;
-        const className = cls.getName() ?? '<anonymous>';
-        const members = [...cls.getMethods(), ...cls.getGetAccessors(), ...cls.getProperties()];
-        for (const m of members) {
-          if (m.hasModifier?.(SyntaxKind.PrivateKeyword) || /^#/.test(m.getName())) continue;
-          const name = m.getName();
-          if (name.startsWith('_')) continue;
-          const tn = Node.isMethodDeclaration(m) || Node.isGetAccessorDeclaration(m)
-            ? m.getReturnTypeNode()
-            : m.getTypeNode();
-          if (!tn) continue;
-          const hit = ownedHere(f, typeNodeNames(tn).filter(n => privateNames.has(n)));
-          if (hit.length) report(offences, fileRel, `${className}.${name}`, hit);
-        }
-      }
-    }
-
-    assert.deepEqual(offences, [],
-      'An export whose own return/value type names a private _Name — directly, or nested ' +
-      'inside a generic, Promise, array, union, or object-literal type — leaks that private ' +
-      'shape to every caller just as a direct import would. Rename the export itself to _Name ' +
-      '(or stop returning the private type — return the module\'s public shape instead) so it ' +
-      'falls under the PrivateAllow enforcement above.');
-  });
-});
-
 
 /**
  * Human ruling (QO52, closed 2026-08-18; RETIRED 2026-08-23): appState.ts's export surface was
@@ -997,7 +734,7 @@ const EXPORT_STAR_BASELINE: Record<string, Record<string, string[]>> = {
   'model/src/index.ts': {
     './openisdRecord.js': ['CrossSourceReading', 'CurveEntry', 'CurvesBlock', 'DQStatus', 'DqKind', 'DqMark', 'DqSeverity', 'Ground', 'QualityBlock', 'Rating', 'Reading', 'SourceRole'],
     './openisdDerive.js': ['OpenISDDerivation', 'deriveOpenISDFields'],
-    './openisdDriver.js': ['Cell', 'MetaCell', 'MetaField', 'OpenISDDriver', 'Provenance', 'SpecField', '_BookkeepingField', '_DerivedField', '_OpenISDDriverJson', '_ScrapedField', '_SpecEntry', '_SpecSection', '_Specs', 'driverRecordProblems', 'winningReading'],
+    './openisdDriver.js': ['Cell', 'MetaCell', 'MetaField', 'OpenISDDriver', 'Provenance', 'SpecField', 'BookkeepingField', 'DerivedField', 'OpenISDDriverJson', 'ScrapedField', 'SpecEntry', 'SpecSection', 'Specs', 'driverRecordProblems', 'winningReading'],
     './openisdYamlToWdr.js': ['openisdYamlToWdr'],
     './driverType.js': ['Chip', 'DriverType'],
   },

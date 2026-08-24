@@ -6,16 +6,16 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { driverHasDqIssues, type FileEntry } from '@openisd/persistence';
 import { OpenISDDriver } from '@openisd/model';
-import type { _OpenISDDriverJson, SpecField } from '@openisd/model';
+import type { OpenISDDriverJson, SpecField } from '@openisd/model';
 
-/** Boilerplate identity/bookkeeping fields every `_OpenISDDriverJson` needs — no domain value
+/** Boilerplate identity/bookkeeping fields every `OpenISDDriverJson` needs — no domain value
  *  of its own. Only `fields` (SI numbers, keyed by SpecField) varies per test. */
 function driverWithFields(fields: Partial<Record<SpecField, number>>): OpenISDDriver {
   const woofer: Record<string, { origin: 'manual'; readings: { manual: { read_value: number } }; dq: [] }> = {};
   for (const [k, v] of Object.entries(fields)) {
     woofer[k] = { origin: 'manual', readings: { manual: { read_value: v } }, dq: [] };
   }
-  const record: _OpenISDDriverJson = {
+  const record: OpenISDDriverJson = {
     uuid: { value: 'test-uuid', definition: 'stable record identity' },
     quality: {
       rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -28,7 +28,7 @@ function driverWithFields(fields: Partial<Record<SpecField, number>>): OpenISDDr
     driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
     data_sources: { value: {}, definition: 'the record-wide provenance index' },
     authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
-    specs: { woofer: woofer as _OpenISDDriverJson['specs'] extends { woofer?: infer W } ? W : never },
+    specs: { woofer: woofer as OpenISDDriverJson['specs'] extends { woofer?: infer W } ? W : never },
   };
   return OpenISDDriver.fromJsonRecord(record);
 }
@@ -98,7 +98,7 @@ describe('driverHasDqIssues — record path (record/myDriverData present)', () =
 
 describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared with the bundler', () => {
   it('is true when every field is usable but quality.missing carries an entry', () => {
-    const record: _OpenISDDriverJson = {
+    const record: OpenISDDriverJson = {
       uuid: { value: 'test-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: ['Mms'], invalid: [],
@@ -126,7 +126,7 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
   });
 
   it('is true when every field is usable but quality.parse_errors carries an entry', () => {
-    const record: _OpenISDDriverJson = {
+    const record: OpenISDDriverJson = {
       uuid: { value: 'test-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -155,7 +155,7 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
 });
 
 // A record with no `quality` block does not reach `driverHasDqIssues` at all: `quality` is
-// required by `_OpenISDDriverJson`, and `myDrivers.ts::list()` is the seam that refuses a
+// required by `OpenISDDriverJson`, and `myDrivers.ts::list()` is the seam that refuses a
 // record failing that contract before it is ever handed to this function — see
 // `packages/ui/test/persistence/myDriverRepo.test.ts` and
 // `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`.

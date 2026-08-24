@@ -2,11 +2,11 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { driverIsSimulatable } from '../src/driverSimulatability.js';
 import { OpenISDDriver } from '../src/openisdDriver.js';
-import type { _OpenISDDriverJson } from '../src/openisdDriver.js';
+import type { OpenISDDriverJson } from '../src/openisdDriver.js';
 
 describe('driverIsSimulatable', () => {
   it('is true when Fs, Re, Sd and two of the Q trio are all usable', () => {
-    const record: _OpenISDDriverJson = {
+    const record: OpenISDDriverJson = {
       uuid: { value: 'test-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -33,7 +33,7 @@ describe('driverIsSimulatable', () => {
   });
 
   it('is false when Fs is missing', () => {
-    const record: _OpenISDDriverJson = {
+    const record: OpenISDDriverJson = {
       uuid: { value: 'test-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -59,7 +59,7 @@ describe('driverIsSimulatable', () => {
   });
 
   it('is true when quality.missing carries a non-simulation field (Cms) — QO79: usability, not completeness, gates', () => {
-    const record: _OpenISDDriverJson = {
+    const record: OpenISDDriverJson = {
       uuid: { value: 'test-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: ['Cms'], invalid: [],
@@ -86,7 +86,7 @@ describe('driverIsSimulatable', () => {
   });
 
   it('is true when Sd is absent but Vas is usable', () => {
-    const record: _OpenISDDriverJson = {
+    const record: OpenISDDriverJson = {
       uuid: { value: 'test-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -113,7 +113,7 @@ describe('driverIsSimulatable', () => {
   });
 
   it('is false with fewer than two of the Q trio usable', () => {
-    const record: _OpenISDDriverJson = {
+    const record: OpenISDDriverJson = {
       uuid: { value: 'test-uuid', definition: 'stable record identity' },
       quality: {
         rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

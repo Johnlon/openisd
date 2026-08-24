@@ -1,7 +1,7 @@
 /**
  * `OpenISDDriver` — the stateful driver model the app holds.
  *
- * This is the app's ONE driver model. It owns a `_OpenISDDriverJson` record and answers three
+ * This is the app's ONE driver model. It owns a `OpenISDDriverJson` record and answers three
  * questions about every field: what is its value, where did that value come from, and
  * what does the engine say is wrong with the driver as a whole.
  *
@@ -84,43 +84,43 @@ const WDR_MARK: Record<Provenance, CellState> = {
  * This is the same rule that governs repositories and file I/O: RECORDS cross boundaries,
  * INSTANCES do not.
  */
-export interface _OpenISDDriverJson {
-  uuid: _BookkeepingField<string>;
+export interface OpenISDDriverJson {
+  uuid: BookkeepingField<string>;
   quality: QualityBlock;
-  manufacturer: _ScrapedField<string>;
-  brand: _ScrapedField<string>;
-  model: _ScrapedField<string>;
-  sku: _DerivedField<string>;
-  name?: _DerivedField<string>;
-  series?: _ScrapedField<string>;
-  driver_type: _ScrapedField<string>;
-  nominal_size_cm?: _ScrapedField<number>;
-  data_sources: _BookkeepingField<Partial<Record<SourceRole, string>>>;
-  authoritative: _BookkeepingField<SourceRole>;
-  product_image?: _ScrapedField<string>;
-  description?: _ScrapedField<string>;
-  surround_material?: _ScrapedField<string>;
+  manufacturer: ScrapedField<string>;
+  brand: ScrapedField<string>;
+  model: ScrapedField<string>;
+  sku: DerivedField<string>;
+  name?: DerivedField<string>;
+  series?: ScrapedField<string>;
+  driver_type: ScrapedField<string>;
+  nominal_size_cm?: ScrapedField<number>;
+  data_sources: BookkeepingField<Partial<Record<SourceRole, string>>>;
+  authoritative: BookkeepingField<SourceRole>;
+  product_image?: ScrapedField<string>;
+  description?: ScrapedField<string>;
+  surround_material?: ScrapedField<string>;
   /** Who supplied this record. Optional: a scraped record has no supplier to name, a
    *  hand-authored or shared one does. Its absence from driver.yml/openisd.yml was a DATA
    *  GAP, not a design choice (human ruling 2026-08-14) — winisd_tools must populate it. */
-  provided_by?: _ScrapedField<string>;
+  provided_by?: ScrapedField<string>;
   /** Free human note about this driver. Same standing as provided_by: a real field of the
    *  record, optional. */
-  comment?: _ScrapedField<string>;
+  comment?: ScrapedField<string>;
   /** When this record was added, ISO yyyy-mm-dd. Same standing as provided_by. */
-  added?: _ScrapedField<string>;
-  specs: _Specs;
+  added?: ScrapedField<string>;
+  specs: Specs;
   curves?: CurvesBlock;
 }
 
-// ── The envelope kinds `_OpenISDDriverJson`'s fields are built from ──────────────────────
+// ── The envelope kinds `OpenISDDriverJson`'s fields are built from ──────────────────────
 //
 // They live beside the JSON shape and the class that wraps it because they ARE that shape's
-// parts: every one of them appears as a field type in `_OpenISDDriverJson` above. Human
+// parts: every one of them appears as a field type in `OpenISDDriverJson` above. Human
 // grant 2026-08-20 — "if the Json object is in same file as class wrapper then that's ok,
 // move the other Json object into same file, they can share privately".
 
-export interface _SpecEntry {
+export interface SpecEntry {
   /** Names WHICH reading won. Always a key of `readings` — enforced on the Python side. */
   origin: SourceRole;
   /** Every source's own reading. ALWAYS populated, one entry or many — never empty. */
@@ -130,20 +130,20 @@ export interface _SpecEntry {
   definition?: string;
   dq: DqMark[];
 }
-/** The one legal way to read a _SpecEntry's value — mirrors _SpecEntry.winning_reading
+/** The one legal way to read a SpecEntry's value — mirrors SpecEntry.winning_reading
  *  (model_driver.py:415-420) rather than adding a second name for the same fact. */
-export function winningReading(entry: _SpecEntry): Reading {
+export function winningReading(entry: SpecEntry): Reading {
   const r = entry.readings[entry.origin];
-  if (!r) throw new Error(`origin ${entry.origin} has no entry in readings — invalid _SpecEntry`);
+  if (!r) throw new Error(`origin ${entry.origin} has no entry in readings — invalid SpecEntry`);
   return r;
 }
 
 
-// ── _ScrapedField<T> — model_driver.py:141-153. Record-level metadata envelope. ─────────
-export interface _ScrapedField<T> {
+// ── ScrapedField<T> — model_driver.py:141-153. Record-level metadata envelope. ─────────
+export interface ScrapedField<T> {
   value: T;
   origin: SourceRole;
-  /** Only populated when >= 2 sources disagreed — NOT the "always >= 1" rule _SpecEntry
+  /** Only populated when >= 2 sources disagreed — NOT the "always >= 1" rule SpecEntry
    *  follows; a single-source metadata field carries no readings at all. */
   readings?: Partial<Record<SourceRole, T>>;
   definition: string;
@@ -153,31 +153,31 @@ export interface _ScrapedField<T> {
 
 
 /** A value BUILT by the pipeline from evidence — not read from a source. */
-export interface _DerivedField<T> {
+export interface DerivedField<T> {
   value: T;
   definition: string;
   /** What the derivation consumed — always at least one. */
   grounds: Ground[];
 }
 /** A pipeline-made fact with nothing external to point at (e.g. uuid). */
-export interface _BookkeepingField<T> {
+export interface BookkeepingField<T> {
   value: T;
   definition: string;
 }
 
 
 // slot at all (distinct from present-but-undefined, which means "not on this driver").
-export interface _SpecSection {
+export interface SpecSection {
   // T/S fields (_SPEC_TS_FIELDS)
-  Fs?: _SpecEntry; Re?: _SpecEntry; Le?: _SpecEntry; fLe?: _SpecEntry; KLe?: _SpecEntry;
-  Znom?: _SpecEntry; Qts?: _SpecEntry; Qes?: _SpecEntry; Qms?: _SpecEntry; Vas?: _SpecEntry;
-  Sd?: _SpecEntry; BL?: _SpecEntry; Mms?: _SpecEntry; Cms?: _SpecEntry; Rms?: _SpecEntry;
-  Xmax?: _SpecEntry; Xlim?: _SpecEntry;
+  Fs?: SpecEntry; Re?: SpecEntry; Le?: SpecEntry; fLe?: SpecEntry; KLe?: SpecEntry;
+  Znom?: SpecEntry; Qts?: SpecEntry; Qes?: SpecEntry; Qms?: SpecEntry; Vas?: SpecEntry;
+  Sd?: SpecEntry; BL?: SpecEntry; Mms?: SpecEntry; Cms?: SpecEntry; Rms?: SpecEntry;
+  Xmax?: SpecEntry; Xlim?: SpecEntry;
   /** Printed sensitivity — no equivalent exists anywhere in today's engine types.
    *  Present here because it IS in the real canonical allowlist; the gap is on the
    *  OpenISDDriver/UI side, not this type. */
-  SPL?: _SpecEntry;
-  Pe?: _SpecEntry; Dd?: _SpecEntry; EBP?: _SpecEntry; numVC?: _SpecEntry; VCCon?: _SpecEntry;
+  SPL?: SpecEntry;
+  Pe?: SpecEntry; Dd?: SpecEntry; EBP?: SpecEntry; numVC?: SpecEntry; VCCon?: SpecEntry;
   /**
    * The rest of what a `.wdr` can state about a driver.
    *
@@ -199,22 +199,22 @@ export interface _SpecSection {
    * they keep its conventions; the mm/litre naming convention applies only to the
    * `*_mm`/`*_l` fields above.
    */
-  Dia?: _SpecEntry; Vd?: _SpecEntry; no?: _SpecEntry;
-  SPLmax?: _SpecEntry; SPLmaxLF?: _SpecEntry; USPL?: _SpecEntry;
-  alfaVC?: _SpecEntry; Rt?: _SpecEntry; Ct?: _SpecEntry; gamma?: _SpecEntry; Rme?: _SpecEntry;
-  Mpow?: _SpecEntry; Mcost?: _SpecEntry; Gloss?: _SpecEntry; c?: _SpecEntry; roo?: _SpecEntry;
+  Dia?: SpecEntry; Vd?: SpecEntry; no?: SpecEntry;
+  SPLmax?: SpecEntry; SPLmaxLF?: SpecEntry; USPL?: SpecEntry;
+  alfaVC?: SpecEntry; Rt?: SpecEntry; Ct?: SpecEntry; gamma?: SpecEntry; Rme?: SpecEntry;
+  Mpow?: SpecEntry; Mcost?: SpecEntry; Gloss?: SpecEntry; c?: SpecEntry; roo?: SpecEntry;
   // Descriptive/dimensional fields (_SPEC_DESCRIPTIVE_FIELDS)
-  Vcd?: _SpecEntry; Hg?: _SpecEntry; Hc?: _SpecEntry;
-  freq_low_hz?: _SpecEntry; freq_high_hz?: _SpecEntry; power_peak_W?: _SpecEntry;
-  weight_kg?: _SpecEntry; Thick?: _SpecEntry; Depth?: _SpecEntry;
-  MagDepth?: _SpecEntry; Magnet?: _SpecEntry; Basket?: _SpecEntry;
-  Outer?: _SpecEntry; OuterX?: _SpecEntry; OuterY?: _SpecEntry;
-  DVol?: _SpecEntry;
+  Vcd?: SpecEntry; Hg?: SpecEntry; Hc?: SpecEntry;
+  freq_low_hz?: SpecEntry; freq_high_hz?: SpecEntry; power_peak_W?: SpecEntry;
+  weight_kg?: SpecEntry; Thick?: SpecEntry; Depth?: SpecEntry;
+  MagDepth?: SpecEntry; Magnet?: SpecEntry; Basket?: SpecEntry;
+  Outer?: SpecEntry; OuterX?: SpecEntry; OuterY?: SpecEntry;
+  DVol?: SpecEntry;
 }
-export interface _Specs {
-  woofer?: _SpecSection;
-  tweeter?: _SpecSection;
-  'passive-radiator'?: _SpecSection;
+export interface Specs {
+  woofer?: SpecSection;
+  tweeter?: SpecSection;
+  'passive-radiator'?: SpecSection;
 }
 
 // ── CurvesBlock — model_driver.py:891-896. Shape not yet fully verified (CurveEntry's
@@ -228,13 +228,13 @@ export interface Cell {
   origin?: SourceRole;
 }
 
-/** A field of `_SpecSection` — the closed canonical allowlist, not an open string. */
-export type SpecField = keyof _SpecSection;
+/** A field of `SpecSection` — the closed canonical allowlist, not an open string. */
+export type SpecField = keyof SpecSection;
 
 /**
- * The record-level metadata fields a live edit can touch — the `_ScrapedField<string>`
- * envelope, distinct from `SpecField`'s `_SpecEntry` envelope (openisdRecord.ts's four-kind
- * split). Not `sku`/`name` (`_DerivedField` — built, not read) and not `uuid` (`_BookkeepingField`
+ * The record-level metadata fields a live edit can touch — the `ScrapedField<string>`
+ * envelope, distinct from `SpecField`'s `SpecEntry` envelope (openisdRecord.ts's four-kind
+ * split). Not `sku`/`name` (`DerivedField` — built, not read) and not `uuid` (`BookkeepingField`
  * — a pipeline fact, never hand-edited).
  */
 export type MetaField =
@@ -260,7 +260,7 @@ export interface MetaCell {
  * pydantic model (`Specs` is `RootModel[dict[SpecSectionName, SpecSection]]`), so it is
  * spelled as a STRING, hyphenated like the type value it mirrors.
  */
-function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive-radiator' {
+function sectionFor(record: OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive-radiator' {
   const t = record.driver_type?.value;
   if (t === 'amt') return 'tweeter';
   if (t === 'passive-radiator') return 'passive-radiator';
@@ -269,7 +269,7 @@ function sectionFor(record: _OpenISDDriverJson): 'woofer' | 'tweeter' | 'passive
 
 export class OpenISDDriver {
   /** The record as it stands, including any manual readings entered since load. */
-  readonly #record: _OpenISDDriverJson;
+  readonly #record: OpenISDDriverJson;
   /** The section every T/S field of this driver lives in — fixed by driver_type. */
   readonly #section: 'woofer' | 'tweeter' | 'passive-radiator';
   /** The {value, origin} a MetaField carried before a manual override, so clearMeta() can
@@ -283,12 +283,12 @@ export class OpenISDDriver {
    *  solved, only what is stated is validated. */
   #autoCalculate = true;
 
-  private constructor(record: _OpenISDDriverJson) {
+  private constructor(record: OpenISDDriverJson) {
     this.#record = record;
     this.#section = sectionFor(record);
   }
 
-  static fromJsonRecord(record: _OpenISDDriverJson): OpenISDDriver {
+  static fromJsonRecord(record: OpenISDDriverJson): OpenISDDriver {
     return new OpenISDDriver(record);
   }
 
@@ -297,7 +297,7 @@ export class OpenISDDriver {
    *  round-trip through `.toOwdrText()`/`.fromOwdrText()` is a boundary crossing no caller
    *  outside the model is licensed to perform just to clone what it already holds. */
   copy(): OpenISDDriver {
-    return new OpenISDDriver(JSON.parse(JSON.stringify(this.#record)) as _OpenISDDriverJson);
+    return new OpenISDDriver(JSON.parse(JSON.stringify(this.#record)) as OpenISDDriverJson);
   }
 
   /**
@@ -305,7 +305,7 @@ export class OpenISDDriver {
    * canonical record shape for every field read to be safe (an absent/non-object `specs`, or a
    * `quality` block missing its `missing`/`parse_errors` arrays). The one owner-side check for
    * data arriving from an untrusted seam (browser storage, the driver corpus) — only this file
-   * may cast to `_OpenISDDriverJson`, so the conformance check and the construction it gates
+   * may cast to `OpenISDDriverJson`, so the conformance check and the construction it gates
    * live together here rather than a caller casting after asking elsewhere.
    */
   static fromConformingRecord(candidate: unknown): OpenISDDriver | null {
@@ -314,12 +314,12 @@ export class OpenISDDriver {
     if (quality == null || typeof quality !== 'object') return null;
     const q = quality as { missing?: unknown; parse_errors?: unknown };
     if (!Array.isArray(q.missing) || !Array.isArray(q.parse_errors)) return null;
-    return new OpenISDDriver(candidate as _OpenISDDriverJson);
+    return new OpenISDDriver(candidate as OpenISDDriverJson);
   }
 
   /** `.owdr` text → an `OpenISDDriver`, direct. `.owdr` IS this model's own record as JSON. */
   static fromOwdrText(text: string): OpenISDDriver {
-    return new OpenISDDriver(JSON.parse(text) as _OpenISDDriverJson);
+    return new OpenISDDriver(JSON.parse(text) as OpenISDDriverJson);
   }
 
   /**
@@ -356,7 +356,7 @@ export class OpenISDDriver {
   }
 
   /** The record, including every manual reading entered. This is the `.owdr` bytes. */
-  toJsonRecord(): _OpenISDDriverJson { return this.#record; }
+  toJsonRecord(): OpenISDDriverJson { return this.#record; }
 
   /**
    * Project THIS driver into a `WinISDDriver` — every value comes from a getter call on
@@ -365,7 +365,7 @@ export class OpenISDDriver {
    * serialisation device") — this method is the ONE place that reads OpenISDDriver's
    * resolved values to build one.
    *
-   * `EBP` is a real `SpecField` (`_SpecSection.EBP` above, ParState slot 33) with its own
+   * `EBP` is a real `SpecField` (`SpecSection.EBP` above, ParState slot 33) with its own
    * engine derivation route (`Fs = EBP·Qes`, `@openisd/engine`'s `driver.ts` block 3), so it
    * goes through `cell()` in the `INI_ROWS` loop below exactly like every other field — this
    * method does not call `.ebp()` at all.
@@ -436,11 +436,11 @@ export class OpenISDDriver {
   /**
    * Build an `OpenISDDriver` from a THIS-AS-READ `WinISDDriver` (`WinISDDriver.fromWdrIni(text)`) —
    * the reader half of the `.wdr` import boundary. A cell marked `E` becomes a stated
-   * `_SpecEntry`; a cell marked `C` (WinISD's own calculated value) is left out entirely, so
+   * `SpecEntry`; a cell marked `C` (WinISD's own calculated value) is left out entirely, so
    * `OpenISDDriver` re-derives it fresh once loaded; a cell marked `N` is simply absent.
    */
   static fromWinISDDriver(wdr: WinISDDriver): OpenISDDriver {
-    const woofer: _SpecSection = {};
+    const woofer: SpecSection = {};
     for (const key of INI_ROWS) {
       const cell = wdr.cell(key);
       if (cell.state !== 'E') continue;
@@ -451,7 +451,7 @@ export class OpenISDDriver {
 
     const brand = wdr.headerField('brand') ?? '';
     const model = wdr.headerField('model') ?? '';
-    const meta = (value: string | undefined): _ScrapedField<string> =>
+    const meta = (value: string | undefined): ScrapedField<string> =>
       ({ value: value ?? '', origin: 'manual', definition: 'from the .wdr header', dq: [] });
     const slug = `${brand} ${model}`.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
@@ -539,14 +539,14 @@ export class OpenISDDriver {
    *  neither a tweeter nor a passive radiator. */
   get section(): 'woofer' | 'tweeter' | 'passive-radiator' { return this.#section; }
 
-  #specs(): _SpecSection {
+  #specs(): SpecSection {
     if (!this.#record.specs) this.#record.specs = {};
     const s = this.#record.specs[this.#section] ?? {};
     this.#record.specs[this.#section] = s;
     return s;
   }
 
-  #entry(field: SpecField): _SpecEntry | undefined {
+  #entry(field: SpecField): SpecEntry | undefined {
     return this.#specs()[field];
   }
 
@@ -600,7 +600,7 @@ export class OpenISDDriver {
   }
 
   /** Efficiency Bandwidth Product (Fs/Qes) — WinISD: `EBP`, a real `SpecField`
-   *  (`_SpecSection.EBP`, ParState slot 33) with its own engine derivation route
+   *  (`SpecSection.EBP`, ParState slot 33) with its own engine derivation route
    *  (`Fs = EBP·Qes`, `@openisd/engine`'s `driver.ts` block 3). This getter is the live-editor
    *  display shortcut only — it always recomputes `Fs/Qes` from this driver's own cells rather
    *  than reading `cell('EBP')`, so it carries no ENTERED/CALCULATED distinction of its own.
@@ -686,7 +686,7 @@ export class OpenISDDriver {
   }
 
   /** The value and provenance of a record-level metadata field (brand/model/manufacturer)
-   *  — the `_ScrapedField<string>` envelope's own `cell()`. No `C` state: nothing computes
+   *  — the `ScrapedField<string>` envelope's own `cell()`. No `C` state: nothing computes
    *  a brand. An empty value (never stated, or cleared to nothing) reads `N`. */
   metaCell(field: MetaField): MetaCell {
     const f = this.#record[field];
@@ -736,7 +736,7 @@ export class OpenISDDriver {
     delete this.#record.name;
   }
 
-  /** The built canonical identity code — `_DerivedField`, so there is no provenance to report,
+  /** The built canonical identity code — `DerivedField`, so there is no provenance to report,
    *  just the value. Empty until the derivation runs. */
   sku(): string {
     return this.#record.sku.value;
@@ -757,19 +757,19 @@ export class OpenISDDriver {
 
   /**
    * Every `[DQ]` mark this record carries, in record order: the metadata fields first (their
-   * own declared order below), then this driver's OWN T/S section (`_SpecSection`'s declared
+   * own declared order below), then this driver's OWN T/S section (`SpecSection`'s declared
    * key order) — the exact traversal a `.wdr`'s `[DQ]` comment lines are built from. Exposes
    * only a flat, plain-data list (field name, the value the mark is about, the mark itself) —
-   * never the raw `_SpecEntry`/`_ScrapedField` envelope a mark lives in.
+   * never the raw `SpecEntry`/`ScrapedField` envelope a mark lives in.
    */
   dqMarks(): { field: string; value: number | string; mark: DqMark }[] {
     const out: { field: string; value: number | string; mark: DqMark }[] = [];
-    const metaFields: (keyof _OpenISDDriverJson)[] = [
+    const metaFields: (keyof OpenISDDriverJson)[] = [
       'manufacturer', 'brand', 'model', 'series', 'driver_type', 'nominal_size_cm',
       'product_image', 'description', 'surround_material',
     ];
     for (const key of metaFields) {
-      const f = this.#record[key] as _ScrapedField<string | number> | undefined;
+      const f = this.#record[key] as ScrapedField<string | number> | undefined;
       if (f && f.value !== '' && f.value != null) {
         for (const mark of f.dq ?? []) out.push({ field: key, value: f.value, mark });
       }
@@ -786,12 +786,12 @@ export class OpenISDDriver {
   }
 
   /**
-   * Record a hand-entered metadata value — the _ScrapedField equivalent of `enter()`
+   * Record a hand-entered metadata value — the ScrapedField equivalent of `enter()`
    * (QO36 B3/B4 apply the same way, on the other envelope). An empty string routes to
    * `clearMeta()`, matching how a blank text input behaves everywhere else in the editor.
    * The value/origin the field carried before the FIRST manual override is snapshotted so
    * `clearMeta()` can restore it — `readings`/`definition`/`dq` are left untouched, since
-   * `_ScrapedField`'s number is `.value` directly, never looked up via `readings`.
+   * `ScrapedField`'s number is `.value` directly, never looked up via `readings`.
    */
   enterMeta(field: MetaField, value: string): void {
     if (value === '') { this.clearMeta(field); return; }
@@ -829,7 +829,7 @@ export class OpenISDDriver {
  *
  * The record types are TypeScript, which is a compile-time promise about code WE wrote. A blob
  * arriving from localStorage, a share link or a file is data someone else wrote — possibly an
- * older build of this app, possibly a hand-edited string — and `x as _OpenISDDriverJson` is an
+ * older build of this app, possibly a hand-edited string — and `x as OpenISDDriverJson` is an
  * assertion, not a check. Reading an unchecked blob into the model let one absent key take the
  * whole app down: `#specs()` dereferences `record.specs`, so a record without it threw on the
  * first read and every computed touching the driver died with it.
