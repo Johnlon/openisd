@@ -189,19 +189,9 @@ export class ManagedOpenISDProject {
   // writes go through `mutate()` so the existing edit/what-if notification rule keeps applying
   // with no second code path to keep in step.
 
-  boxVolume_m3(): number { return this.#effective().project.volume_m3(); }
-  setBoxVolume_m3(value: number): void {
-    this.mutate(p => p.setVolume_m3(value));
-  }
-
-  boxTuning_Fb_hz(): number { return this.#effective().project.tuning_Fb_hz(); }
-  setBoxTuning_Fb_hz(value: number): void {
-    this.mutate(p => p.setTuning_Fb_hz(value));
-  }
-
   /** `Vf` — bandpass4's OWN front-chamber volume. Unconditional: unlike `Vb`, this never
    *  addresses another alignment's storage, dormant or active — there is only one home. */
-  frontVolume_m3(): number { return this.#effective().project.frontVolume_m3(); }
+  frontVolume_m3(): number { return this.#effective().project.cell('Vf').value; }
 
   // ── Project field cells — value + provenance, owned and solved by the domain object ──────
   projectCell(field: ProjectFieldId): { value: number; state: Provenance } {
@@ -220,7 +210,7 @@ export class ManagedOpenISDProject {
   ventTargetUnreachable(): boolean { return this.#effective().project.ventTargetUnreachable(); }
   prTargetUnreachable(): boolean { return this.#effective().project.prTargetUnreachable(); }
   setFrontVolume_m3(value: number): void {
-    this.mutate(p => p.setFrontVolume_m3(value));
+    this.mutate(p => p.enter('Vf', value));
   }
 
   activeVentField<K extends keyof OpenISDVent>(field: K): OpenISDVent[K] {
@@ -250,7 +240,7 @@ export class ManagedOpenISDProject {
    *  recomputed at a call site). 1 Ω assumed until a driver is chosen, matching historic
    *  behaviour. */
   driveVoltage_V(): number {
-    return driveVoltage(this.inputPower_W(), this.toEngineDriver()?.Re ?? 1);
+    return driveVoltage(this.projectCell('Pin').value, this.toEngineDriver()?.Re ?? 1);
   }
 
   /** Sealed-box (and PR rear-chamber) resonance + system Q via the given loss model. `Rs`/`Ql`/
@@ -259,7 +249,7 @@ export class ManagedOpenISDProject {
    *  decoupling in `wprMapping.ts`. Null when no driver is chosen or `Vb` isn't set. */
   sealedResonance(lossMode: LossMode, Rs: number, Ql: number, Qa: number): { Fsc: number; Qtc: number } | null {
     const d = this.toEngineDriver();
-    const Vb = this.boxVolume_m3();
+    const Vb = this.projectCell('Vb').value;
     if (!d || !(Vb > 0)) return null;
     const qts = sourceLoadedQts(d.Qms, d.Qes, d.Re, Rs, d.Qts);
     return computeSealedResonance(lossMode, { Fs: d.Fs, Vas: d.Vas, Qts: qts, Vb, Ql, Qa });
@@ -268,13 +258,13 @@ export class ManagedOpenISDProject {
   /** WinISD's "Fh" for a PR box: the passive-radiator system tuning, distinct from the sealed
    *  resonance above (which ignores the PR entirely). Null until Vb/prSd/prCms are all set. */
   prSystemTuning_hz(): number | null {
-    const Vb = this.boxVolume_m3();
+    const Vb = this.projectCell('Vb').value;
     const prSd = this.prField('Sd_m2');
     const prCms = this.prField('Cms_m_per_N');
     if (!(Vb > 0) || !(prSd > 0) || !(prCms > 0)) return null;
     return computePrTuning({
       Vb, prSd, prCms,
-      prMmd: this.prField('Mmd_kg'), prMadd: this.prAddedMass_kg(),
+      prMmd: this.prField('Mmd_kg'), prMadd: this.projectCell('prMadd').value,
     });
   }
 
@@ -298,34 +288,8 @@ export class ManagedOpenISDProject {
     this.mutate(p => p.setPrField(field, value));
   }
 
-  prCount(): number { return this.#effective().project.prCount(); }
-  setPrCount(value: number): void { this.mutate(p => p.setPrCount(value)); }
-
-  prAddedMass_kg(): number { return this.#effective().project.prAddedMass_kg(); }
-  setPrAddedMass_kg(value: number): void {
-    this.mutate(p => p.setPrAddedMass_kg(value));
-  }
-
-  prFp_hz(): number { return this.#effective().project.prFp_hz(); }
-  setPrFp_hz(value: number): void { this.mutate(p => p.setPrFp_hz(value)); }
-
-  // ---- box loss factors (leakage/absorption/port), shared by every alignment ------------
-
-  boxQl(): number { return this.#effective().project.loss('Ql'); }
-  setBoxQl(value: number): void { this.mutate(p => p.setLoss('Ql', value)); }
-  boxQa(): number { return this.#effective().project.loss('Qa'); }
-  setBoxQa(value: number): void { this.mutate(p => p.setLoss('Qa', value)); }
-  boxQp(): number { return this.#effective().project.loss('Qp'); }
-  setBoxQp(value: number): void { this.mutate(p => p.setLoss('Qp', value)); }
-
   // ---- environment ------------------------------------------------------------------------
 
-  envTempK(): number { return this.#effective().project.cell('advTemp').value; }
-  setEnvTempK(value: number): void { this.mutate(p => p.enter('advTemp', value)); }
-  envHumidityPct(): number { return this.#effective().project.cell('advHumidity').value; }
-  setEnvHumidityPct(value: number): void { this.mutate(p => p.enter('advHumidity', value)); }
-  envPressurePa(): number { return this.#effective().project.cell('advPressure').value; }
-  setEnvPressurePa(value: number): void { this.mutate(p => p.enter('advPressure', value)); }
   envIgnoreHumidityAndPressure(): boolean {
     return this.#effective().project.ignoreHumidityAndPressure();
   }
@@ -335,16 +299,8 @@ export class ManagedOpenISDProject {
 
   // ---- signal ------------------------------------------------------------------------------
 
-  driverCount(): number { return this.#effective().project.cell('nDrivers').value; }
-  setDriverCount(value: number): void { this.mutate(p => p.enter('nDrivers', value)); }
   wiring(): 'series' | 'parallel' { return this.#effective().project.wiring(); }
   setWiring(value: 'series' | 'parallel'): void { this.mutate(p => p.setWiring(value)); }
-  inputPower_W(): number { return this.#effective().project.cell('Pin').value; }
-  setInputPower_W(value: number): void { this.mutate(p => p.enter('Pin', value)); }
-  seriesResistance_ohm(): number { return this.#effective().project.cell('Rs').value; }
-  setSeriesResistance_ohm(value: number): void {
-    this.mutate(p => p.enter('Rs', value));
-  }
   rgAtDriverSide(): boolean { return this.#effective().project.rgAtDriverSide(); }
   setRgAtDriverSide(value: boolean): void { this.mutate(p => p.setRgAtDriverSide(value)); }
 
@@ -362,14 +318,8 @@ export class ManagedOpenISDProject {
   }
   splXmaxLimited(): boolean { return this.#effective().project.splXmaxLimited(); }
   setSplXmaxLimited(value: boolean): void { this.mutate(p => p.setSplXmaxLimited(value)); }
-  vcTempRise(): number { return this.#effective().project.cell('vcTempRise').value; }
-  setVcTempRise(value: number): void { this.mutate(p => p.enter('vcTempRise', value)); }
   alfaVC(): number { return this.#effective().project.alfaVC(); }
   setAlfaVC(value: number): void { this.mutate(p => p.setAlfaVC(value)); }
-  driverAddedMass(): number { return this.#effective().project.cell('driverAddedMass').value; }
-  setDriverAddedMass(value: number): void {
-    this.mutate(p => p.enter('driverAddedMass', value));
-  }
 
   // ---- sweep range ---------------------------------------------------------------------------
 

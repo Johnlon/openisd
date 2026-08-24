@@ -31,7 +31,7 @@ function create() {
   const count = num(nNum.value);
   const xmaxMm = num(nXmax.value);
   managedProject.setPrField('name', nName.value.trim() || 'New PR');
-  managedProject.setPrCount(count > 0 ? count : 1);
+  managedProject.enterProjectField('prNum', count > 0 ? count : 1);
   // The datasheet → canonical conversion lives on the domain object — this form only
   // converts its own display units (cm², mm, L) to SI at the boundary.
   managedProject.enterPrDatasheet({
@@ -41,7 +41,7 @@ function create() {
     qms: num(nQms.value),
     vasL: num(nVas.value),
   });
-  managedProject.setPrAddedMass_kg(0);
+  managedProject.enterProjectField('prMadd', 0);
   emit('close');
 }
 

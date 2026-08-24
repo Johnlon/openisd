@@ -53,7 +53,7 @@ function ventL(): number { return managedProject.activeVentField('length_m'); }
 
 /** WinISD's own Vents-tab trial. */
 function winisdVentsTrial(): void {
-  managedProject.setBoxVolume_m3(0.02);
+  managedProject.enterProjectField('Vb', 0.02);
   managedProject.setActiveVentField('diameter_m', 0.05);
   managedProject.setActiveVentField('endCorrection', 0.6);
   managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
@@ -88,7 +88,7 @@ describe('vent group — the entered set decides the direction', () => {
     managedProject.setActiveVentField('diameter_m', 0.07);
     solveVentGroup(managedProject, state.box);
 
-    assert.equal(managedProject.boxTuning_Fb_hz(), 40, 'an entered tuning must never be rewritten by the solver');
+    assert.equal(managedProject.projectCell('Fb').value, 40, 'an entered tuning must never be rewritten by the solver');
     assert.notEqual(ventL(), lenBefore, 'the length must absorb the diameter change');
   });
 
@@ -103,7 +103,7 @@ describe('vent group — the entered set decides the direction', () => {
     managedProject.setActiveVentField('diameter_m', 0.07);
     solveVentGroup(managedProject, state.box);
     assert.equal(ventL(), 0.154, 'an entered length must never be rewritten');
-    assert.notEqual(managedProject.boxTuning_Fb_hz(), 40, 'now the TUNING absorbs the diameter change');
+    assert.notEqual(managedProject.projectCell('Fb').value, 40, 'now the TUNING absorbs the diameter change');
   });
 
   it('entering the second of the pair locks it E; clearing it returns it to C', () => {
@@ -141,14 +141,14 @@ describe('vent group — the entered set decides the direction', () => {
 
     managedProject.setActiveVentField('diameter_m', 0.07);
     solveVentGroup(managedProject, state.box);
-    assert.equal(managedProject.boxTuning_Fb_hz(), 40, 'entered values are held even when they contradict');
+    assert.equal(managedProject.projectCell('Fb').value, 40, 'entered values are held even when they contradict');
     assert.equal(ventL(), 0.999);
   });
 });
 
 describe('vent group — a restore is adopted verbatim', () => {
   it('THE RESTORE TEST — round-tripping through JSON returns bit-identical Fb and ventL', () => {
-    managedProject.setBoxVolume_m3(0.02);
+    managedProject.enterProjectField('Vb', 0.02);
     managedProject.setActiveVentField('diameter_m', 0.05);
     managedProject.setActiveVentField('endCorrection', 0.6);
     managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
@@ -161,14 +161,14 @@ describe('vent group — a restore is adopted verbatim', () => {
       schema: 2, v: 2, box: state.box, P: managedProject.toUiParams(),
       project: { name: '', creator: '', created: '', modified: '', description: '' },
     });
-    const fbBefore = managedProject.boxTuning_Fb_hz(), lenBefore = ventL();
+    const fbBefore = managedProject.projectCell('Fb').value, lenBefore = ventL();
 
     managedProject.setActiveVentField('diameter_m', 0.09);   // drift the live design away
     const restored = restoreRepo.readProjectText(saved);
     assert.ok(restored, 'the just-built payload must load');
     applyLoadedProject(restored!);
 
-    assert.equal(managedProject.boxTuning_Fb_hz(), fbBefore, 'restored tuning must be bit-identical');
+    assert.equal(managedProject.projectCell('Fb').value, fbBefore, 'restored tuning must be bit-identical');
     assert.equal(ventL(), lenBefore, 'restored length must be bit-identical');
   });
 
@@ -191,7 +191,7 @@ describe('vent group — a restore is adopted verbatim', () => {
 
     assert.equal(ventFieldState('ventL'), 'E', 'the stored length is the authoritative fact');
     assert.equal(ventFieldState('Fb'), 'C', 'and the tuning is solved from it');
-    assert.ok(managedProject.boxTuning_Fb_hz() > 39 && managedProject.boxTuning_Fb_hz() < 41,
-      `tuning solved from the stored geometry → ${managedProject.boxTuning_Fb_hz().toFixed(2)} Hz, expected ≈40`);
+    assert.ok(managedProject.projectCell('Fb').value > 39 && managedProject.projectCell('Fb').value < 41,
+      `tuning solved from the stored geometry → ${managedProject.projectCell('Fb').value.toFixed(2)} Hz, expected ≈40`);
   });
 });

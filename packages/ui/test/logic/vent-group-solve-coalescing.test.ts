@@ -29,7 +29,7 @@ function countNotifications(fn: () => void): number {
 describe('vent/PR group writes coalesce to exactly the writes made, never an extra store-triggered re-solve', () => {
   beforeEach(() => {
     state.box = 'vented';
-    managedProject.setBoxVolume_m3(0.02);
+    managedProject.enterProjectField('Vb', 0.02);
     managedProject.setActiveVentField('diameter_m', 0.05);
     managedProject.setActiveVentField('endCorrection', 0.6);
     managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
@@ -60,7 +60,7 @@ describe('vent/PR group writes coalesce to exactly the writes made, never an ext
 
 describe('PR group writes coalesce the same way', () => {
   beforeEach(() => {
-    managedProject.setBoxVolume_m3(0.02);
+    managedProject.enterProjectField('Vb', 0.02);
     managedProject.setPrField('Sd_m2', 0.008);
     managedProject.setPrField('Cms_m_per_N', 0.0006);
     managedProject.setPrField('Mmd_kg', 0.02);
@@ -97,17 +97,17 @@ describe('PR group writes coalesce the same way', () => {
  */
 describe('PR-group auto-solve watch fires on every managedProject notification', () => {
   it('a raw prFp write outside enterPrField/suspension re-solves prMadd', () => {
-    managedProject.setBoxVolume_m3(0.02);
+    managedProject.enterProjectField('Vb', 0.02);
     managedProject.setPrField('Sd_m2', 0.008);
     managedProject.setPrField('Cms_m_per_N', 0.0006);
     managedProject.setPrField('Mmd_kg', 0.02);
     managedProject.setEnteredSet({ prFp: true }); // prFp entered, prMadd is the CALCULATED member
-    managedProject.setPrAddedMass_kg(0); // known starting value for the calculated member
-    const before = managedProject.prAddedMass_kg();
+    managedProject.mutate(p => p.set('prMadd', 0)); // known starting value for the calculated member — a raw write, must NOT mark prMadd entered
+    const before = managedProject.projectCell('prMadd').value;
 
-    managedProject.setPrFp_hz(55); // raw write — no suspension, no direct solvePrGroup call
+    managedProject.mutate(p => p.set('prFp', 55)); // raw write — no suspension, no direct solvePrGroup call
 
-    const after = managedProject.prAddedMass_kg();
+    const after = managedProject.projectCell('prMadd').value;
     assert.notEqual(after, before,
       'prMadd was not re-solved after a live prFp write — the store\'s PR-group auto-solve ' +
       'watch did not fire');

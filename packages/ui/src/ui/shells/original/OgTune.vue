@@ -180,17 +180,17 @@ function fmt(v: number | null, dp: number): string { return v != null && isFinit
 // On EVERY close path (✕ or Cancel — there is no other), discard the overlay so a stray
 // close can never strand the charts on an abandoned what-if.
 // Box volume is BOX state, not driver state, so the driver what-if overlay does not cover it —
-// a Vb scrubbed here writes straight through to managedProject.boxVolume_m3() (the SAME
+// a Vb scrubbed here writes straight through to managedProject.projectCell('Vb') (the SAME
 // binding the Box panel uses; there is no second copy). Cancel must therefore put Vb back
 // itself, or a panel whose Cancel reverts the driver would silently keep a box change made in
 // the same session.
-let vbSnapshot = managedProject.boxVolume_m3();
+let vbSnapshot = managedProject.projectCell('Vb').value;
 watch(() => presentationState.editDriver, (open) => {
-  if (open) { vbSnapshot = managedProject.boxVolume_m3(); managedProject.beginWhatIf(); }
+  if (open) { vbSnapshot = managedProject.projectCell('Vb').value; managedProject.beginWhatIf(); }
   else managedProject.cancelWhatIf();
 }, { immediate: true });
 
-function cancel() { managedProject.cancelWhatIf(); managedProject.setBoxVolume_m3(vbSnapshot); presentationState.editDriver = false; }
+function cancel() { managedProject.cancelWhatIf(); managedProject.enterProjectField('Vb', vbSnapshot); presentationState.editDriver = false; }
 // Reset the overlay to the driver as loaded: end this session and start a fresh one from
 // ground. ManagedOpenISDProject owns both halves; the panel does not reach past it. Vb is a box value,
 // not a driver value, so it is untouched here.
@@ -228,7 +228,7 @@ function reset()  { managedProject.resetOverlayToGround(); }
       <div class="tune-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. The same box volume the Box tab edits; Cancel puts it back. WinISD: Vb.">
         <label>Vb</label>
         <div class="tune-unit">
-          <NumInput :model-value="live && managedProject.boxVolume_m3()" @update:model-value="v => managedProject.setBoxVolume_m3(v ?? 0)" :scale="1000" :precision="4" />
+          <NumInput :model-value="live && managedProject.projectCell('Vb').value" @update:model-value="v => managedProject.enterProjectField('Vb', v ?? 0)" :scale="1000" :precision="4" />
           <span>l</span>
         </div>
       </div>

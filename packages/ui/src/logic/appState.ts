@@ -126,8 +126,8 @@ function buildState(): AppState {
     project:      { name: '', creator: '', created: '', modified: '', description: '' },
   };
   // `box` is an accessor property over `managedProject`'s OWN `OpenISDBox.active` — not an
-  // independent copy — because every `managedProject.boxVolume_m3()`/`.activeVentField()`/
-  // `.boxTuning_Fb_hz()`/`.prField()` accessor (ledger QO54) picks its storage BY active
+  // independent copy — because every `managedProject.projectCell('Vb')`/`.activeVentField()`/
+  // `.projectCell('Fb')`/`.prField()` accessor (ledger QO54) picks its storage BY active
   // alignment, so `state.box` must always read the SAME `active` those accessors use, never a
   // second, independently-writable copy of it (packages/ui/test/logic/boxActiveSync.test.ts).
   Object.defineProperty(s, 'box', {
@@ -395,7 +395,7 @@ export function newProject(spec?: NewProjectSpec): void {
   managedProject.loadEmpty();                                // no driver chosen — the user picks one
   if (spec) {
     state.box = spec.box;
-    managedProject.setBoxVolume_m3(fromDisplay(spec.volumeL, 'volume', 'L'));
+    managedProject.enterProjectField('Vb', fromDisplay(spec.volumeL, 'volume', 'L'));
     if (spec.frontVolumeL != null) managedProject.setFrontVolume_m3(fromDisplay(spec.frontVolumeL, 'volume', 'L'));
   }
   markProjectSaved();                                       // the fresh design is the new clean ground

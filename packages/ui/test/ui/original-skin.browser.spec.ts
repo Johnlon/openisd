@@ -354,7 +354,7 @@ test('NumInput dp is screen-formatting only — the model keeps FULL precision (
   const vb = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.managedProject.boxVolume_m3(); // stored in m³ (display L ÷ 1000)
+    return s.managedProject.projectCell('Vb').value; // stored in m³ (display L ÷ 1000)
   });
   expect(vb).toBeCloseTo(0.006123456, 9); // MODEL retains full precision — never the 2-dp "0.00612"
 });
@@ -444,7 +444,7 @@ test('Signal tab: Driver input voltage is editable and drives System input power
   const pin = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.managedProject.inputPower_W();
+    return s.managedProject.projectCell('Pin').value;
   });
   expect(pin).toBeCloseTo((20 * 20) / re, 1); // editing V back-calculates W = V²/Re
 });
@@ -488,7 +488,7 @@ test('New Project starts fresh — it discards the previous design (filters, par
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
     s.managedProject.addFilter({ type: 'highpass', enabled: true, fc: 30, Q: 0.7, gain: 0 });
-    s.managedProject.setInputPower_W(250);
+    s.managedProject.enterProjectField('Pin', 250);
   });
 
   await page.locator('.tb-btn[title*="New project"]').click();
@@ -502,7 +502,7 @@ test('New Project starts fresh — it discards the previous design (filters, par
   const st = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return { filters: s.managedProject.filters().length, pin: s.managedProject.inputPower_W() };
+    return { filters: s.managedProject.filters().length, pin: s.managedProject.projectCell('Pin').value };
   });
   expect(st.filters).toBe(0);  // fresh project — no inherited filters
   expect(st.pin).toBe(1);      // Pin back to the default, not the previous 250
@@ -524,7 +524,7 @@ test('the New Project wizard sets box type + volume then opens the driver picker
     const presModPath = '/src/logic/presentationState.ts';
     const s = await import(/* @vite-ignore */ storeModPath);
     const ps = await import(/* @vite-ignore */ presModPath);
-    return { box: s.state.box, vb: s.managedProject.boxVolume_m3(), browse: ps.presentationState.browseOpen };
+    return { box: s.state.box, vb: s.managedProject.projectCell('Vb').value, browse: ps.presentationState.browseOpen };
   });
   expect(st.box).toBe('vented');
   expect(st.vb).toBeCloseTo(0.042, 3); // 42 L → 0.042 m³
@@ -644,7 +644,7 @@ test('Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg
   await amc.blur();
   const madd = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
-    return (await import(/* @vite-ignore */ modPath)).managedProject.driverAddedMass();
+    return (await import(/* @vite-ignore */ modPath)).managedProject.projectCell('driverAddedMass').value;
   });
   expect(madd).toBeCloseTo(0.05, 6);            // 50 g entered → 0.05 kg in the engine model
   expect(await peakHz()).toBeLessThan(before);  // heavier cone → lower resonance (sweep re-ran with it)
@@ -726,7 +726,7 @@ test('R1 refresh fidelity: box type, active tab, and selected chart survive a re
 const readVb = (page: Page) =>
   page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
-    return (await import(/* @vite-ignore */ modPath)).managedProject.boxVolume_m3();
+    return (await import(/* @vite-ignore */ modPath)).managedProject.projectCell('Vb').value;
   });
 const readVbToken = (page: Page) =>
   page.evaluate(async () => {
@@ -787,7 +787,7 @@ test('Added mass to cone: clicking the unit converts g → kg; the model stays S
   await expect(unit).toHaveText('g');
   const readMadd = () => page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
-    return (await import(/* @vite-ignore */ modPath)).managedProject.driverAddedMass();
+    return (await import(/* @vite-ignore */ modPath)).managedProject.projectCell('driverAddedMass').value;
   });
   expect(await readMadd()).toBeCloseTo(0.1, 6);   // 100 g entered → 0.1 kg in the model
 

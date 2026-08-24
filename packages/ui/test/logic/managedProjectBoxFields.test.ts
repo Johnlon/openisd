@@ -17,18 +17,18 @@ describe('ManagedOpenISDProject — box field read/write', () => {
   it('boxVolume_m3 reads and writes through to the active alignment', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     mp.mutate(p => p.setAlignment('vented'));
-    assert.equal(mp.boxVolume_m3(), mp._snapshot().volume_m3());
-    mp.setBoxVolume_m3(0.045);
-    assert.equal(mp._snapshot().volume_m3(), 0.045);
-    assert.equal(mp.boxVolume_m3(), 0.045);
+    assert.equal(mp.projectCell('Vb').value, mp._snapshot().cell('Vb').value);
+    mp.enterProjectField('Vb', 0.045);
+    assert.equal(mp._snapshot().cell('Vb').value, 0.045);
+    assert.equal(mp.projectCell('Vb').value, 0.045);
   });
 
   it('boxTuning_Fb_hz reads and writes vented.Fb_hz when vented is active', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     mp.mutate(p => p.setAlignment('vented'));
-    mp.setBoxTuning_Fb_hz(31);
-    assert.equal(mp._snapshot().tuning_Fb_hz(), 31);
-    assert.equal(mp.boxTuning_Fb_hz(), 31);
+    mp.enterProjectField('Fb', 31);
+    assert.equal(mp._snapshot().cell('Fb').value, 31);
+    assert.equal(mp.projectCell('Fb').value, 31);
   });
 
   it('activeVentField reads/writes the diameter of the active vent', () => {
@@ -45,7 +45,7 @@ describe('ManagedOpenISDProject — box field read/write', () => {
     mp.subscribe(() => notified++);
     mp.beginWhatIf();
     notified = 0;
-    mp.setBoxVolume_m3(0.05);
+    mp.enterProjectField('Vb', 0.05);
     assert.equal(notified, 1, 'a live what-if must notify on every project mutation');
   });
 });
@@ -55,7 +55,7 @@ describe('ManagedOpenISDProject — bandpass4 front chamber (Vf)', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     mp.mutate(p => p.setAlignment('sealed'));   // Vf must stay reachable while dormant
     mp.setFrontVolume_m3(0.017);
-    assert.equal(mp._snapshot().frontVolume_m3(), 0.017);
+    assert.equal(mp._snapshot().cell('Vf').value, 0.017);
     assert.equal(mp.frontVolume_m3(), 0.017);
   });
 });
@@ -79,10 +79,10 @@ describe('ManagedOpenISDProject — PR field read/write', () => {
 
   it('prCount and prAddedMass_kg live on the alignment, settable with no radiator chosen', () => {
     const mp = ManagedOpenISDProject.createEmpty();
-    mp.setPrCount(2);
-    mp.setPrAddedMass_kg(0.011);
-    assert.equal(mp.prCount(), 2);
-    assert.equal(mp.prAddedMass_kg(), 0.011);
+    mp.enterProjectField('prNum', 2);
+    mp.enterProjectField('prMadd', 0.011);
+    assert.equal(mp.projectCell('prNum').value, 2);
+    assert.equal(mp.projectCell('prMadd').value, 0.011);
     assert.equal(mp._snapshot().prChosen(), false);
   });
 });

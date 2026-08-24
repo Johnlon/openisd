@@ -34,7 +34,7 @@ const CEILING_HZ = 80.79258261843188;
 function trial(targetFb: number): void {
   state.box = 'vented';
   managedProject.setActiveVentField('shape', 'round');
-  managedProject.setBoxVolume_m3(0.03);
+  managedProject.enterProjectField('Vb', 0.03);
   managedProject.setActiveVentField('diameter_m', 0.05);
   managedProject.setActiveVentField('endCorrection', 0.6);
   managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
@@ -92,7 +92,7 @@ describe('vent target reachability — an unreachable tuning must surface, not h
   it('the bandpass front chamber is judged on its OWN volume, not the whole box', () => {
     state.box = 'bandpass4';
     managedProject.setActiveVentField('shape', 'round');
-    managedProject.setBoxVolume_m3(0.03);
+    managedProject.enterProjectField('Vb', 0.03);
     managedProject.setFrontVolume_m3(0.002);   // small front chamber → the same 40 Hz target is far easier
     managedProject.setActiveVentField('diameter_m', 0.05);
     managedProject.setActiveVentField('endCorrection', 0.6);

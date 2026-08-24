@@ -49,7 +49,7 @@ describe('OpenISDProject.fromWinISDProject — the one place raw .wpr data becom
   it('sets the active alignment from BType and carries the sealed volume across', () => {
     const project = OpenISDProject.fromWinISDProject(wprOf(['BType=0', 'Vr=0.222222']));
     assert.equal(project.activeAlignment(), 'sealed');
-    assert.equal(project.volume_m3(), 222222e-6);
+    assert.equal(project.cell('Vb').value, 222222e-6);
   });
   it('throws when BType is absent — never guesses a box type', () => {
     assert.throws(() => OpenISDProject.fromWinISDProject(wprOf(['Vr=0.02'])));
@@ -151,9 +151,9 @@ describe('fromWinISDProject — import-side assertions against literals (a round
   it('Qlr/Qar/Qpr land on the record as the box losses', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'));
-    assert.equal(project.loss('Ql'), 7);
-    assert.equal(project.loss('Qa'), 50);
-    assert.equal(project.loss('Qp'), 80);
+    assert.equal(project.cell('Ql').value, 7);
+    assert.equal(project.cell('Qa').value, 50);
+    assert.equal(project.cell('Qp').value, 80);
   });
 
   it('Npr lands on the record as the radiator count', () => {
@@ -161,7 +161,7 @@ describe('fromWinISDProject — import-side assertions against literals (a round
       '[Box]', 'BType=4', 'Vr=0.04', 'Npr=2', '',
       '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', '',
     ].join('\n')));
-    assert.equal(project.prCount(), 2);
+    assert.equal(project.cell('prNum').value, 2);
   });
 
   it('Nd lands on the record as the driver count', () => {

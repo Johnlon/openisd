@@ -808,17 +808,6 @@ export class OpenISDProject {
 
   activeAlignment(): AlignmentKind { return this.#record.box.active; }
 
-  /** The ACTIVE alignment's own volume. */
-  volume_m3(): number { return boxVolume_m3(this.#record.box); }
-  setVolume_m3(value: number): void { setBoxVolume_m3(this.#record.box, value); }
-
-  tuning_Fb_hz(): number { return boxTuning_Fb_hz(this.#record.box); }
-  setTuning_Fb_hz(value: number): void { setBoxTuning_Fb_hz(this.#record.box, value); }
-
-  /** `Vf` — bandpass4's OWN front-chamber volume; unlike `Vb` it has exactly one home. */
-  frontVolume_m3(): number { return this.#record.box.bandpass4.frontVolume_m3; }
-  setFrontVolume_m3(value: number): void { this.#record.box.bandpass4.frontVolume_m3 = value; }
-
   /** One field of the ACTIVE alignment's port. */
   ventField<K extends keyof OpenISDVent>(field: K): OpenISDVent[K] {
     return activeVent(this.#record.box)[field];
@@ -838,10 +827,6 @@ export class OpenISDProject {
     return vent.length_m + vent.endCorrection * equivalentDiameter_m;
   }
 
-  /** Enclosure loss factors — leakage (Ql), absorption (Qa), port (Qp). */
-  loss(kind: 'Ql' | 'Qa' | 'Qp'): number { return this.#record.box[kind]; }
-  setLoss(kind: 'Ql' | 'Qa' | 'Qp', value: number): void { this.#record.box[kind] = value; }
-
   // ── Passive radiator ──────────────────────────────────────────────────────────────────────
 
   /** One intrinsic of the chosen radiator; the prototype default before one is chosen. */
@@ -858,9 +843,6 @@ export class OpenISDProject {
 
   // ── Non-numeric named accessors — survivors of the keyed surface, each with its reason ──
   // (an enum or boolean cannot be a numeric cell; a string field is not a registered field)
-
-  ventShape(): OpenISDVent['shape'] { return activeVent(this.#record.box).shape; }
-  setVentShape(value: OpenISDVent['shape']): void { activeVent(this.#record.box).shape = value; }
 
   wiring(): OpenISDSignal['wiring'] { return this.#record.signal.wiring; }
   setWiring(value: OpenISDSignal['wiring']): void { this.#record.signal.wiring = value; }
@@ -920,17 +902,17 @@ export class OpenISDProject {
    *  as the entered set. The one producer `serialize()` and the share link read. */
   toUiParams(): UiParams {
     return {
-      Vb: this.volume_m3(), Vf: this.frontVolume_m3(),
+      Vb: this.cell('Vb').value, Vf: this.cell('Vf').value,
       ventShape: this.ventField('shape'), ventD: this.ventField('diameter_m'),
       ventW: this.ventField('width_m'), ventH: this.ventField('height_m'),
       ventL: this.ventField('length_m'), endCorrection: this.ventField('endCorrection'),
-      Fb: this.tuning_Fb_hz(), Frc: this.frcHz(),
-      prFp: this.prFp_hz(), prName: this.prField('name'), prSd: this.prField('Sd_m2'),
-      prNum: this.prCount(), prMmd: this.prField('Mmd_kg'), prMadd: this.prAddedMass_kg(),
+      Fb: this.cell('Fb').value, Frc: this.frcHz(),
+      prFp: this.cell('prFp').value, prName: this.prField('name'), prSd: this.prField('Sd_m2'),
+      prNum: this.cell('prNum').value, prMmd: this.prField('Mmd_kg'), prMadd: this.cell('prMadd').value,
       prCms: this.prField('Cms_m_per_N'), prRms: this.prField('Rms_Ns_per_m'),
       prXmax: this.prField('Xmax_m'),
       entered: this.enteredSet(),
-      Ql: this.loss('Ql'), Qa: this.loss('Qa'), Qp: this.loss('Qp'),
+      Ql: this.cell('Ql').value, Qa: this.cell('Qa').value, Qp: this.cell('Qp').value,
       nDrivers: this.cell('nDrivers').value, wiring: this.wiring(),
       Pin: this.cell('Pin').value, Rs: this.cell('Rs').value,
       fmin: this.sweepFmin_hz(), fmax: this.sweepFmax_hz(), N: this.sweepPoints(),
@@ -977,19 +959,19 @@ export class OpenISDProject {
     this.setVentField('height_m', field('ventH'));
     this.setVentField('length_m', field('ventL'));
     this.setVentField('endCorrection', field('endCorrection'));
-    this.setVolume_m3(field('Vb'));
-    this.setFrontVolume_m3(field('Vf'));
-    this.setTuning_Fb_hz(field('Fb'));
-    this.setLoss('Ql', field('Ql')); this.setLoss('Qa', field('Qa')); this.setLoss('Qp', field('Qp'));
+    this.set('Vb', field('Vb'));
+    this.set('Vf', field('Vf'));
+    this.set('Fb', field('Fb'));
+    this.set('Ql', field('Ql')); this.set('Qa', field('Qa')); this.set('Qp', field('Qp'));
     this.setPrField('name', field('prName'));
     this.setPrField('Sd_m2', field('prSd'));
     this.setPrField('Mmd_kg', field('prMmd'));
     this.setPrField('Cms_m_per_N', field('prCms'));
     this.setPrField('Rms_Ns_per_m', field('prRms'));
     this.setPrField('Xmax_m', field('prXmax'));
-    this.setPrCount(field('prNum'));
-    this.setPrAddedMass_kg(field('prMadd'));
-    this.setPrFp_hz(field('prFp'));
+    this.set('prNum', field('prNum'));
+    this.set('prMadd', field('prMadd'));
+    this.set('prFp', field('prFp'));
     this.set('advTemp', requiredField('tempK'));
     this.set('advHumidity', requiredField('humidityPct'));
     this.set('advPressure', requiredField('pressurePa'));
@@ -1007,14 +989,6 @@ export class OpenISDProject {
     this.setFilters(field('filters'));
     this.replaceEnteredSet({ ...field('entered') });
   }
-
-
-  prCount(): number { return this.#record.box.passiveRadiator.count; }
-  setPrCount(value: number): void { this.#record.box.passiveRadiator.count = value; }
-  prAddedMass_kg(): number { return this.#record.box.passiveRadiator.addedMass_kg; }
-  setPrAddedMass_kg(value: number): void { this.#record.box.passiveRadiator.addedMass_kg = value; }
-  prFp_hz(): number { return this.#record.box.passiveRadiator.Fp_hz; }
-  setPrFp_hz(value: number): void { this.#record.box.passiveRadiator.Fp_hz = value; }
 
   /** Adopt a radiator from its DATASHEET vocabulary (Vas litres, Fs, Qms, Sd, Xmax) — the
    *  one conversion into canonical Cms/Mmd/Rms, on the owner. The datasheet↔canonical

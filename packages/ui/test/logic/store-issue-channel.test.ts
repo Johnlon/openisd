@@ -24,7 +24,7 @@ describe('the store unions every hardening layer into one issue list', () => {
                                           Pe: 60, Znom: 8 })) {
       managedProject.enter(k as Parameters<typeof managedProject.enter>[0], v);
     }
-    managedProject.setBoxVolume_m3(0.030);
+    managedProject.enterProjectField('Vb', 0.030);
     managedProject.setActiveVentField('diameter_m', 0.102);
 
     assert.deepEqual(managedProject.errors().filter(e => e.level === 'error'), [],
@@ -35,7 +35,7 @@ describe('the store unions every hardening layer into one issue list', () => {
   it('a zero box volume surfaces a Vb error through allIssues, naming the field', () => {
     managedProject.loadEmpty();
     managedProject.setActiveVentField('diameter_m', 0.102);
-    managedProject.setBoxVolume_m3(0);
+    managedProject.enterProjectField('Vb', 0);
 
     const vb = allIssues.value.find(e => e.field === 'Vb' && e.level === 'error');
     assert.ok(vb, `allIssues must carry the Vb error; got: ${allIssues.value.map(e => e.field).join(', ')}`);
@@ -45,7 +45,7 @@ describe('the store unions every hardening layer into one issue list', () => {
   it('the box-parameter layer is reachable independently as paramIssues', () => {
     managedProject.loadEmpty();
     managedProject.setActiveVentField('diameter_m', 0.102);
-    managedProject.setBoxVolume_m3(0);
+    managedProject.enterProjectField('Vb', 0);
 
     assert.deepEqual(paramIssues.value.map(e => e.field), ['Vb'],
       'paramIssues is the precondition layer on its own, for a panel that wants only it');
@@ -53,7 +53,7 @@ describe('the store unions every hardening layer into one issue list', () => {
 
   it('an unsized new project reports BOTH preconditions — Vb and the vent area', () => {
     managedProject.loadEmpty();
-    managedProject.setBoxVolume_m3(0);
+    managedProject.enterProjectField('Vb', 0);
     managedProject.setActiveVentField('diameter_m', 0);
 
     assert.deepEqual(paramIssues.value.map(e => e.field).sort(), ['Sp', 'Vb'],
@@ -63,10 +63,10 @@ describe('the store unions every hardening layer into one issue list', () => {
   it('clearing the bad value clears the issue — the channel is live, not latched', () => {
     managedProject.loadEmpty();
     managedProject.setActiveVentField('diameter_m', 0.102);
-    managedProject.setBoxVolume_m3(0);
+    managedProject.enterProjectField('Vb', 0);
     assert.ok(paramIssues.value.length > 0, 'precondition of this test');
 
-    managedProject.setBoxVolume_m3(0.030);
+    managedProject.enterProjectField('Vb', 0.030);
     assert.deepEqual(paramIssues.value, [], 'fixing the input must retract the issue');
   });
 });

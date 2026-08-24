@@ -47,21 +47,21 @@ describe('volume_m3 — Vb per active alignment', () => {
     const p = OpenISDProject.empty();
     for (const [kind, v] of [['sealed', 0.021], ['vented', 0.037], ['bandpass4', 0.019], ['passive-radiator', 0.052]] as const) {
       p.setAlignment(kind);
-      p.setVolume_m3(v);
+      p.set('Vb', v);
     }
     for (const [kind, v] of [['sealed', 0.021], ['vented', 0.037], ['bandpass4', 0.019], ['passive-radiator', 0.052]] as const) {
       p.setAlignment(kind);
-      assert.equal(p.volume_m3(), v, `${kind}'s own volume must survive the round trip`);
+      assert.equal(p.cell('Vb').value, v, `${kind}'s own volume must survive the round trip`);
     }
   });
 
   it('bandpass4\'s Vb is the REAR chamber — the front chamber is its own field (Vf)', () => {
     const p = OpenISDProject.empty();
     p.setAlignment('bandpass4');
-    p.setFrontVolume_m3(0.02);
-    p.setVolume_m3(0.05);
-    assert.equal(p.volume_m3(), 0.05);
-    assert.equal(p.frontVolume_m3(), 0.02, 'Vf untouched by a Vb write');
+    p.set('Vf', 0.02);
+    p.set('Vb', 0.05);
+    assert.equal(p.cell('Vb').value, 0.05);
+    assert.equal(p.cell('Vf').value, 0.02, 'Vf untouched by a Vb write');
   });
 });
 
@@ -69,17 +69,17 @@ describe('tuning_Fb_hz — Fb per active alignment', () => {
   it('addresses bandpass4\'s front tuning while bandpass4 is active', () => {
     const p = OpenISDProject.empty();
     p.setAlignment('bandpass4');
-    p.setTuning_Fb_hz(58);
-    assert.equal(p.tuning_Fb_hz(), 58);
+    p.set('Fb', 58);
+    assert.equal(p.cell('Fb').value, 58);
   });
 
   it('while sealed is active, still addresses the dormant vented tuning', () => {
     const p = OpenISDProject.empty();
     p.setAlignment('sealed');
-    p.setTuning_Fb_hz(40);
-    assert.equal(p.tuning_Fb_hz(), 40);
+    p.set('Fb', 40);
+    assert.equal(p.cell('Fb').value, 40);
     p.setAlignment('vented');
-    assert.equal(p.tuning_Fb_hz(), 40, 'the same slot the sealed-active write addressed');
+    assert.equal(p.cell('Fb').value, 40, 'the same slot the sealed-active write addressed');
   });
 });
 
@@ -87,8 +87,8 @@ describe('switching alignment deletes nothing — the whole box, field by field'
   it('a ported box flipped away and back reads back identically', () => {
     const p = OpenISDProject.empty();
     p.setAlignment('vented');
-    p.setVolume_m3(0.037);
-    p.setTuning_Fb_hz(33.5);
+    p.set('Vb', 0.037);
+    p.set('Fb', 33.5);
     p.setVentField('diameter_m', 0.081);
     p.setVentField('length_m', 0.194);
     p.setVentField('endCorrection', 0.613);
@@ -96,8 +96,8 @@ describe('switching alignment deletes nothing — the whole box, field by field'
     p.setVentField('width_m', 0.12);
     p.setVentField('height_m', 0.04);
     for (const kind of ['sealed', 'bandpass4', 'passive-radiator', 'vented'] as const) p.setAlignment(kind);
-    assert.equal(p.volume_m3(), 0.037);
-    assert.equal(p.tuning_Fb_hz(), 33.5);
+    assert.equal(p.cell('Vb').value, 0.037);
+    assert.equal(p.cell('Fb').value, 33.5);
     assert.equal(p.ventField('diameter_m'), 0.081);
     assert.equal(p.ventField('length_m'), 0.194);
     assert.equal(p.ventField('endCorrection'), 0.613);

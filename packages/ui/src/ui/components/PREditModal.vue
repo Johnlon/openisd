@@ -77,7 +77,7 @@ function close() { emit('close'); }
         </div>
         <div class="row" title="Number of passive radiators in parallel">
           <label>PR count</label>
-          <NumInput :model-value="live && managedProject.prCount()" @update:model-value="v => managedProject.setPrCount(v ?? 0)" :scale="1" :precision="2" step="1" :min="1" />
+          <NumInput :model-value="live && managedProject.projectCell('prNum').value" @update:model-value="v => managedProject.enterProjectField('prNum', v ?? 0)" :scale="1" :precision="2" step="1" :min="1" />
           <span class="u"></span>
         </div>
         <div class="row" title="Effective piston area (from datasheet). WinISD: Sd.">
