@@ -112,7 +112,7 @@ function saveAsCopy(): void {
 
 // A DISPLAY VIEW of the draft, not a second model: every value is read back out of the draft
 // through its own accessors, so the template binds to one shape while the draft stays the only
-// place a value lives. `sku` is a _DerivedField — built by the pipeline, never hand-edited — so
+// place a value lives. `sku` is a DerivedField — built by the pipeline, never hand-edited — so
 // it is read off the record rather than through metaCell().
 const driverRaw = computed(() => {
   const _ = trigger.value;
@@ -143,7 +143,7 @@ const META_FIELD: Record<string, MetaField> = {
 };
 
 function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufacturer' | 'added', e: Event) {
-  // Metadata is a _ScrapedField, a different envelope from a _SpecEntry, so it has its own
+  // Metadata is a ScrapedField, a different envelope from a SpecEntry, so it has its own
   // entry point. Routing a string through enter() would put it in the wrong envelope.
   draftDriver.value.enterMeta(META_FIELD[field], (e.target as HTMLInputElement | HTMLTextAreaElement).value);
   forceUpdate();
