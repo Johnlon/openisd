@@ -111,10 +111,10 @@ interface SerializedState {
   v: number;
   // The driver as the managed layer's own SERIALISED TEXT (`managedProject.
   // persistedDriverText()`) — provenance and every stated field survive reload, share and
-  // save, while no UI code ever holds the record shape itself (QO73). OPTIONAL: a design with
-  // no driver chosen yet is a real state, and writing a fake one to fill the slot would be
-  // indistinguishable on reload from a driver the user picked.
-  driver?: string;
+  // save, while no UI code ever holds the record shape itself (QO73). REQUIRED: a project
+  // cannot exist without a driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`) — a payload
+  // with no driver is refused on load, never repaired by inventing one.
+  driver: string;
   box: BoxType;
   lossMode?: string;
   P?: UiParams;
@@ -196,7 +196,7 @@ export function createProjectRepo(
       // the type still declares it, and `schema` is the field that means something.
       schema: schema.current,
       v: 2,
-      driver: project.driver()?.toOwdrText(),
+      driver: project.driver().toOwdrText(),
       box: wireBoxOf(project.activeAlignment()),
       P: project.toUiParams(),
       project: project.projectMeta(),
@@ -226,8 +226,25 @@ export function createProjectRepo(
    * happens here too, on the raw incoming params, before they ever reach a live project —
    * `OpenISDProject.solveVentGroup()` (the domain object's own solver) settles the fabricated
    * entered set once, on the detached project, before anything reactive can see it.
+   *
+   * Null when the driver record is too broken to load — a project cannot exist without a
+   * driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`), so the WHOLE payload is refused
+   * rather than adopted driverless.
    */
-  function projectOf(s: SerializedState): OpenISDProject {
+  function projectOf(s: SerializedState): OpenISDProject | null {
+    let parsed: unknown;
+    try { parsed = JSON.parse(s.driver); } catch { parsed = null; }
+    const driver = parsed != null ? OpenISDDriver.fromConformingRecord(parsed) : null;
+    if (!driver) {
+      console.error('[restore] refused the saved driver record — not a conforming driver record');
+      // QUARANTINE BEFORE THE AUTOSAVE EATS IT. Refusing the record leaves nothing to load
+      // from, and the very next autosave would overwrite the same key — so within a tick the
+      // evidence would be gone with nothing left to repair.
+      try { storage.set('openisd.quarantine.driver', s.driver); }
+      catch { /* storage full or disabled — the refusal still stands */ }
+      return null;
+    }
+
     const incoming: Partial<UiParams> = { ...(s.P ?? {}) };
     if (incoming.ventShape === undefined) incoming.ventShape = 'round';
     if (incoming.ventW === undefined) incoming.ventW = 0.10;
@@ -235,26 +252,10 @@ export function createProjectRepo(
     const hadEntered = !!incoming.entered;
     if (!hadEntered) incoming.entered = { Vb: true, ventD: true, ventW: true, ventH: true, ventL: true };
 
-    const project = OpenISDProject.empty();
+    const project = OpenISDProject.empty(driver);
     project.loadUiParams(incoming, alignmentOfWireBox(s.box));
     if (!hadEntered) project.solveVentGroup();
     project.setProjectMeta(s.project!);   // guaranteed present — carriesStateShape refuses a blob without it
-
-    if (s.driver) {
-      let parsed: unknown;
-      try { parsed = JSON.parse(s.driver); } catch { parsed = null; }
-      const driver = parsed != null ? OpenISDDriver.fromConformingRecord(parsed) : null;
-      if (driver) {
-        project.setDriver(driver);
-      } else {
-        console.error('[restore] refused the saved driver record — not a conforming driver record');
-        // QUARANTINE BEFORE THE AUTOSAVE EATS IT. Refusing the record leaves the project with
-        // no driver, and the very next autosave writes that driverless state over the same
-        // key — so within a tick the evidence would be gone with nothing left to repair.
-        try { storage.set('openisd.quarantine.driver', s.driver); }
-        catch { /* storage full or disabled — the refusal still stands */ }
-      }
-    }
     return project;
   }
 
@@ -289,17 +290,18 @@ export function createProjectRepo(
   }
 
   /** The shape check `upgradeParsedState` narrows on: `box` present as a string, `driver`
-   *  either absent or serialised TEXT, and `P`/`project` present — a saved project's params
-   *  and meta are always both written together, so a blob missing either is refused rather
-   *  than reconstructed from defaults. Reports what it refused, because a silent null at a
-   *  restore boundary is indistinguishable from "nothing was saved". */
+   *  present as serialised TEXT (REQUIRED — a project cannot exist without a driver,
+   *  `docs/design/DRIVER_NON_NULL_INVARIANT.md`), and `P`/`project` present — a saved
+   *  project's params and meta are always both written together, so a blob missing either is
+   *  refused rather than reconstructed from defaults. Reports what it refused, because a
+   *  silent null at a restore boundary is indistinguishable from "nothing was saved". */
   function carriesStateShape(blob: Record<string, unknown>): blob is Record<string, unknown> & SerializedState {
     if (typeof blob.box !== 'string') {
       console.error('[restore] saved state states a schema but carries no box type — refused');
       return false;
     }
-    if (blob.driver !== undefined && typeof blob.driver !== 'string') {
-      console.error('[restore] saved state carries a driver slot that is not serialised text — refused');
+    if (typeof blob.driver !== 'string') {
+      console.error('[restore] saved state carries no driver — refused (a project cannot exist without one)');
       return false;
     }
     if (!blob.P || typeof blob.P !== 'object') {
@@ -321,7 +323,9 @@ export function createProjectRepo(
   function readParsedSession(parsed: unknown): { project: OpenISDProject; view: ViewSnapshot } | null {
     const s = upgradeParsedState(parsed);
     if (!s) return null;
-    return { project: projectOf(s), view: { lossMode: s.lossMode, graphs: s.graphs ?? [], ui: s.ui, cursor: s.cursor } };
+    const project = projectOf(s);
+    if (!project) return null;
+    return { project, view: { lossMode: s.lossMode, graphs: s.graphs ?? [], ui: s.ui, cursor: s.cursor } };
   }
 
   return {

@@ -37,13 +37,13 @@ const repo = createProjectRepo(mem, projectSchema, noFilePicker);
 
 /** The project every door takes, from the same pieces the old positional call passed —
  *  `OpenISDProject`'s own restore surface (`loadUiParams()`/`setProjectMeta()`/`setDriver()`),
- *  not a second, hand-rolled construction path. */
+ *  not a second, hand-rolled construction path. `driverText` is REQUIRED: a project cannot
+ *  exist without a driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
 function projectOf(box: BoxType, meta: OpenISDProjectMeta,
-  driverText: string | undefined, params: Partial<UiParams>): OpenISDProject {
-  const project = OpenISDProject.empty();
+  driverText: string, params: Partial<UiParams>): OpenISDProject {
+  const project = OpenISDProject.empty(OpenISDDriver.fromOwdrText(driverText));
   project.loadUiParams(params, toAlignmentKind(box));
   project.setProjectMeta(meta);
-  if (driverText) project.setDriver(OpenISDDriver.fromOwdrText(driverText));
   return project;
 }
 
@@ -103,12 +103,11 @@ describe('persistence — provenance survives a local-save round trip', () => {
       'each field carries its readings, not a bare number — that is what makes E/C survivable');
   });
 
-  it('a design with NO driver chosen serialises without inventing one', () => {
-    const ser = storedPayload(projectOf('sealed', { name: 'No driver yet', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, undefined, {}));
-    assert.equal(ser.driver, undefined,
-      'a fake driver written to fill the slot would be indistinguishable on reload from one ' +
-      'the user actually picked');
+  it('the driver always travels — a project cannot exist without one', () => {
+    const ser = storedPayload(projectOf('sealed', { name: 'Has a driver', creator: 'John', created: '2026-01-01',
+      modified: '2026-01-02', description: '' }, OpenISDDriver.empty().toOwdrText(), {}));
+    assert.equal(typeof ser.driver, 'string',
+      'driver is REQUIRED on the wire (docs/design/DRIVER_NON_NULL_INVARIANT.md) — never absent');
   });
 });
 
@@ -120,7 +119,7 @@ describe('persistence — provenance survives a local-save round trip', () => {
 describe('local save carries PURE PROJECT DATA — no view (QO90)', () => {
   it('the stored payload carries no ui/cursor/graphs/lossMode', () => {
     const ser = storedPayload(projectOf('sealed', { name: 'View-free save', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, undefined, {}));
+      modified: '2026-01-02', description: '' }, OpenISDDriver.empty().toOwdrText(), {}));
     assert.equal(ser.lossMode, undefined, 'saveLocal\'s wire writer must not emit a lossMode');
     assert.equal(ser.graphs, undefined, 'saveLocal\'s wire writer must not emit open charts');
     assert.equal(ser.ui, undefined, 'saveLocal\'s wire writer must not emit UI preferences');

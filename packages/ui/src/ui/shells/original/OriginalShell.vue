@@ -22,7 +22,6 @@ import {
   isModified, resetProjectToGround, groundCheckpoint, restoreGroundCheckpoint, markProjectSaved,
   managedProject,
   formatInUnit as fmtU,
-  newProject,
   copyProjectName,
 } from '../../../logic/appState.js';
 import { presentationState } from '../../../logic/presentationState.js';
@@ -479,6 +478,10 @@ function selectProject(p: ProjectRow) {
   
   state.box = targetDesign.box;
   managedProject.loadUiParams(targetDesign.P, toAlignmentKind(targetDesign.box));
+  // `targetDesign.driver` is always populated in practice — every `ProjectRow` is built from
+  // `persistedDriver.value`, which is always a string (a project cannot exist without a
+  // driver, `docs/design/DRIVER_NON_NULL_INVARIANT.md`). The empty-driver fallback below is
+  // defensive only, for a row somehow missing it.
   if (targetDesign.driver) managedProject.loadDriverFromPersistedText(targetDesign.driver);
   else managedProject.loadEmpty();
   
@@ -575,24 +578,10 @@ function closeProject(p: ProjectRow) {
       openProjects.value = openProjects.value.filter(x => x.id !== p.id);
       return;
     }
-    // Closing the last project leaves the app on a fresh empty one rather than on nothing.
+    // Closing the last project leaves a genuine "no projects open" state (John's ruling,
+    // docs/design/DRIVER_NON_NULL_INVARIANT.md) — never a fresh driver-less project
+    // reseeded to fill the slot.
     openProjects.value = [];
-    newProject();
-    activeProjectId.value = 'proj-' + Math.random().toString(36).substring(7);
-    openProjects.value = [{
-      id: activeProjectId.value,
-      name: state.project.name || driverName.value,
-      driver: persistedDriver.value,
-      box: state.box,
-      P: managedProject.toUiParams(),
-      curves: curvesData.value,
-      maxCurves: maxData.value,
-      project: { ...state.project },
-      _ground: groundCheckpoint(),
-      isModified: false,
-      visible: true,
-      color: WINISD_TRACE.value,
-    }];
     return;
   }
   openProjects.value = others;
@@ -861,7 +850,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
           <div class="panel-title">Projects</div>
           <div class="projects-list">
             <div v-if="openProjects.length === 0" class="project-empty-row" style="padding: 12px 10px; color: var(--mut, #888); font-style: italic; font-size: 12px; text-align: center;">
-              no project open
+              No projects open
             </div>
             <div v-else v-for="p in openProjects" :key="p.id" class="project-row"
                  :class="{ selected: p.id === activeProjectId, 'trace-hidden': p.visible === false, 'is-unsaved': p.isModified }"

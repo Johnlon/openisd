@@ -7,10 +7,11 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { OpenISDProject } from '../src/openisdProject.js';
+import { OpenISDDriver } from '../src/openisdDriver.js';
 
 describe('ventField — which vent the flat fields address', () => {
   it('targets the vented alignment\'s own port while vented is active', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     p.setAlignment('vented');
     p.setVentField('diameter_m', 0.09);
     assert.equal(p.ventField('diameter_m'), 0.09);
@@ -18,7 +19,7 @@ describe('ventField — which vent the flat fields address', () => {
   });
 
   it('targets bandpass4\'s FRONT port while bandpass4 is active, not the vented alignment\'s', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     p.setAlignment('vented');
     p.setVentField('diameter_m', 0.09);
     p.setAlignment('bandpass4');
@@ -29,7 +30,7 @@ describe('ventField — which vent the flat fields address', () => {
   });
 
   it('while sealed is active, still targets the DORMANT vented port — pre-configurable, not gone', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     p.setAlignment('vented');
     p.setVentField('diameter_m', 0.055);
     p.setAlignment('sealed');
@@ -44,7 +45,7 @@ describe('ventField — which vent the flat fields address', () => {
 
 describe('volume_m3 — Vb per active alignment', () => {
   it('reads and writes each alignment\'s own volume, and they never bleed', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     for (const [kind, v] of [['sealed', 0.021], ['vented', 0.037], ['bandpass4', 0.019], ['passive-radiator', 0.052]] as const) {
       p.setAlignment(kind);
       p.set('Vb', v);
@@ -56,7 +57,7 @@ describe('volume_m3 — Vb per active alignment', () => {
   });
 
   it('bandpass4\'s Vb is the REAR chamber — the front chamber is its own field (Vf)', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     p.setAlignment('bandpass4');
     p.set('Vf', 0.02);
     p.set('Vb', 0.05);
@@ -67,14 +68,14 @@ describe('volume_m3 — Vb per active alignment', () => {
 
 describe('tuning_Fb_hz — Fb per active alignment', () => {
   it('addresses bandpass4\'s front tuning while bandpass4 is active', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     p.setAlignment('bandpass4');
     p.set('Fb', 58);
     assert.equal(p.cell('Fb').value, 58);
   });
 
   it('while sealed is active, still addresses the dormant vented tuning', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     p.setAlignment('sealed');
     p.set('Fb', 40);
     assert.equal(p.cell('Fb').value, 40);
@@ -85,7 +86,7 @@ describe('tuning_Fb_hz — Fb per active alignment', () => {
 
 describe('switching alignment deletes nothing — the whole box, field by field', () => {
   it('a ported box flipped away and back reads back identically', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     p.setAlignment('vented');
     p.set('Vb', 0.037);
     p.set('Fb', 33.5);
@@ -109,7 +110,7 @@ describe('switching alignment deletes nothing — the whole box, field by field'
 
 describe('passive-radiator access — always the PR alignment, whatever is active', () => {
   it('prField reads defaults without creating a radiator — a READ must never allocate', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     assert.equal(p.prChosen(), false, 'precondition: no radiator chosen yet');
     assert.equal(p.prField('Sd_m2'), 0);
     assert.equal(p.prField('name'), '');
@@ -117,7 +118,7 @@ describe('passive-radiator access — always the PR alignment, whatever is activ
   });
 
   it('the first WRITE creates the radiator, and later writes land on the same one', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     p.setPrField('Sd_m2', 0.0095);
     assert.equal(p.prChosen(), true);
     p.setPrField('Mmd_kg', 0.05);

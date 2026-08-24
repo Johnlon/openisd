@@ -154,8 +154,9 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
 
   function exportOwdr(): void {
     closeTunePanelAfterIO();
+    // Always succeeds: a driver is always present (docs/design/DRIVER_NON_NULL_INVARIANT.md)
+    // and .owdr is the record's own JSON, always representable.
     const bytes = managedProject.exportDriverOwdr();
-    if (!bytes) { flash('Cannot export .owdr: no driver has been chosen'); return; }
     download(sanitizeFilename(driverName.value) + '.owdr', bytes, DriverFileFormat.Owdr.mime);
   }
 

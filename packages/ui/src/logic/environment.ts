@@ -40,9 +40,9 @@ export function driveVoltageFor(inputPowerW: number, reOhm: number): number {
     return engineDriveVoltage(inputPowerW, reOhm);
 }
 
-/** Fallback DC resistance for the drive-voltage readout when no driver is chosen yet (so
- *  `EngineDriver.Re` is unavailable) — the nominal impedance of a typical driver, standing in
- *  only until a real one is picked. */
+/** Fallback DC resistance for the drive-voltage readout when the driver is too incomplete to
+ *  resolve an `EngineDriver` (so `.Re` is unavailable) — the nominal impedance of a typical
+ *  driver, standing in only until enough of a real one is entered. */
 export const DEFAULT_RE_OHM = 8;
 
 /** Speed of sound / air density at the reference environment (`T_REF_K`/`RH_REF_PCT`/

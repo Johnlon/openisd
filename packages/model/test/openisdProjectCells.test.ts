@@ -9,7 +9,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDProject, VENT_ARITY, Provenance } from '../src/index.js';
+import { OpenISDProject, OpenISDDriver, VENT_ARITY, Provenance } from '../src/index.js';
 import type { OpenISDProjectJson } from '../src/openisdProject.js';
 import { WinISDProject } from '@openisd/winisd';
 import { ventLength, tuningFromLength } from '@openisd/engine';
@@ -20,7 +20,7 @@ import { ventLength, tuningFromLength } from '@openisd/engine';
 function corruptibleRecord(): OpenISDProjectJson {
   const vent = { shape: 'round' as const, diameter_m: 0.05, width_m: 0, height_m: 0, length_m: 0.1, endCorrection: 0.732 };
   return {
-    driver: undefined,
+    driver: OpenISDDriver.empty().toJsonRecord(),
     box: {
       active: 'vented' as const,
       sealed: { volume_m3: 0.02 },
@@ -42,7 +42,7 @@ function corruptibleRecord(): OpenISDProjectJson {
 }
 
 function ventedProject(): OpenISDProject {
-  const p = OpenISDProject.empty();
+  const p = OpenISDProject.empty(OpenISDDriver.empty());
   p.setAlignment('vented');
   return p;
 }
@@ -135,7 +135,7 @@ describe('the PR group — prFp ↔ prMadd on the domain object', () => {
     return OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
       '[Box]', 'BType=4', 'Vr=0.04', 'Npr=1', '',
       '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', 'Xmax=0.019', 'Me=0', '',
-    ].join('\n')));
+    ].join('\n')), OpenISDDriver.empty());
   }
 
   it('with mass entered (the default direction) the tuning is Calculated', () => {
@@ -157,7 +157,7 @@ describe('the PR group — prFp ↔ prMadd on the domain object', () => {
 
 describe('vent(i)/ventCount() — P1 public surface (opus2 K1)', () => {
   it('ventCount() states each alignment\'s arity', () => {
-    const p = OpenISDProject.empty();
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
     p.setAlignment('sealed');
     assert.equal(p.ventCount(), 0);
     p.setAlignment('vented');
@@ -229,7 +229,7 @@ describe('the PR datasheet vocabulary is the domain\'s own keyed surface (P4a)',
     return OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
       '[Box]', 'BType=4', 'Vr=0.04', 'Npr=1', '',
       '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', 'Xmax=0.019', 'Me=0', '',
-    ].join('\n')));
+    ].join('\n')), OpenISDDriver.empty());
   }
 
   it('cells read the derived views in SI, Calculated while a radiator is defined', () => {

@@ -11,31 +11,32 @@ import { OpenISDDriver } from '../src/openisdDriver.js';
 import { WinISDProject } from '@openisd/winisd';
 import { moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
 
-describe('OpenISDProject.setDriver — holds the live driver object', () => {
-  it('a fresh project holds no driver', () => {
-    assert.equal(OpenISDProject.empty().driver(), undefined);
+describe('OpenISDProject.driver()/setDriver() — holds the live driver object', () => {
+  it('OpenISDProject.empty() holds the driver it was given', () => {
+    const driver = OpenISDDriver.empty();
+    const project = OpenISDProject.empty(driver);
+    assert.equal(project.driver(), driver, 'empty() must hold the object itself, not a copy');
   });
-  it('a driver adopted via setDriver reads back as the SAME live object', () => {
-    const project = OpenISDProject.empty();
+  it('setDriver REPLACES the project\'s driver, reading back as the SAME live object', () => {
+    const project = OpenISDProject.empty(OpenISDDriver.empty());
     const driver = OpenISDDriver.empty();
     driver.enter('Fs', 111111);
     project.setDriver(driver);
     assert.equal(project.driver(), driver, 'setDriver must hold the object itself, not a copy or a text round-trip');
-    assert.equal(project.driver()!.cell('Fs').value, 111111);
+    assert.equal(project.driver().cell('Fs').value, 111111);
   });
   it('toJsonRecord()/fromJsonRecord() round-trip the driver as its own JSON record, once, at the wire boundary', () => {
-    const project = OpenISDProject.empty();
     const driver = OpenISDDriver.empty();
     driver.enter('Fs', 222222);
-    project.setDriver(driver);
+    const project = OpenISDProject.empty(driver);
 
     const record = project.toJsonRecord();
     assert.equal(typeof record.driver, 'object', 'toJsonRecord() projects the live driver to its own JSON record');
-    assert.ok(record.driver && 'specs' in record.driver, 'the projected record is the driver\'s real wire shape');
+    assert.ok('specs' in record.driver, 'the projected record is the driver\'s real wire shape');
 
     const restored = OpenISDProject.fromJsonRecord(record);
     assert.notEqual(restored.driver(), driver, 'a record round-trip must not hand back the original live object');
-    assert.equal(restored.driver()!.cell('Fs').value, 222222);
+    assert.equal(restored.driver().cell('Fs').value, 222222);
   });
 });
 
@@ -47,15 +48,15 @@ function wprOf(boxLines: string[]) {
 
 describe('OpenISDProject.fromWinISDProject — the one place raw .wpr data becomes a project', () => {
   it('sets the active alignment from BType and carries the sealed volume across', () => {
-    const project = OpenISDProject.fromWinISDProject(wprOf(['BType=0', 'Vr=0.222222']));
+    const project = OpenISDProject.fromWinISDProject(wprOf(['BType=0', 'Vr=0.222222']), OpenISDDriver.empty());
     assert.equal(project.activeAlignment(), 'sealed');
     assert.equal(project.cell('Vb').value, 222222e-6);
   });
   it('throws when BType is absent — never guesses a box type', () => {
-    assert.throws(() => OpenISDProject.fromWinISDProject(wprOf(['Vr=0.02'])));
+    assert.throws(() => OpenISDProject.fromWinISDProject(wprOf(['Vr=0.02']), OpenISDDriver.empty()));
   });
   it('throws when BType names a code OpenISD does not model', () => {
-    assert.throws(() => OpenISDProject.fromWinISDProject(wprOf(['BType=3'])));
+    assert.throws(() => OpenISDProject.fromWinISDProject(wprOf(['BType=3']), OpenISDDriver.empty()));
   });
 });
 
@@ -71,7 +72,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
       '[Box]', 'BType=1', 'Vr=0.02', 'Fr=45', '',
       '[VentRear]', 'Num=1', 'dia1=0.05', 'len=0.12', 'crosscalc=0', '',
-    ].join('\n')));
+    ].join('\n')), OpenISDDriver.empty());
     const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
     assert.match(out, /crosscalc=0/);
     assert.doesNotMatch(out.split('[VentRear]')[1]!.split('[VentIntra]')[0]!, /crosscalc=1/);
@@ -81,7 +82,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
       '[Box]', 'BType=1', 'Vr=0.02', 'Fr=45', '',
       '[VentRear]', 'Num=1', 'dia1=0.05', 'len=0.12', 'crosscalc=1', '',
-    ].join('\n')));
+    ].join('\n')), OpenISDDriver.empty());
     const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
       .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
     assert.match(rear, /crosscalc=1/);
@@ -89,7 +90,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
 
   it('humidity crosses percent → fraction exactly once, here', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
-      '[Box]\nBType=0\nVr=0.02\nT=303.15\np=90000\nphi=0.8\n'));
+      '[Box]\nBType=0\nVr=0.02\nT=303.15\np=90000\nphi=0.8\n'), OpenISDDriver.empty());
     const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
     assert.match(out, /phi=0\.8/);   // record held 80 %; the file gets the fraction back
     assert.doesNotMatch(out, /phi=80/);
@@ -103,7 +104,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
     // contract: bandpass4 has two real chambers and the model has one loss triple
     // (bugs/BUG_20260823_box_model_collapses_per_chamber_losses.md, folded into Lane P).
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
-      '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'));
+      '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'), OpenISDDriver.empty());
     const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
     for (const line of ['Qlf=7', 'Qlr=7', 'Qaf=50', 'Qar=50', 'Qpf=80', 'Qpr=80']) {
       assert.ok(out.includes(line), `expected ${line}`);
@@ -116,7 +117,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
       '[Box]', 'BType=4', 'Vr=0.04', 'Npr=1', '',
       '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', 'Xmax=0.019', 'Me=0', '',
-    ].join('\n')));
+    ].join('\n')), OpenISDDriver.empty());
     const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
     const vas = Number(/Vas=([0-9.eE+-]+)/.exec(out)![1]);
     const relErr = Math.abs(vas - 0.0048) / 0.0048;
@@ -138,19 +139,19 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
 describe('fromWinISDProject — import-side assertions against literals (a round trip cannot see a compensating error pair)', () => {
   it('crosscalc=0 marks the AREA entered on the record; shape follows the observed geometry', () => {
     const areaEntered = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
-      '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=0\n'));
+      '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=0\n'), OpenISDDriver.empty());
     assert.equal(areaEntered.isEntered('ventCrossArea'), true);
     assert.equal(areaEntered.vent(0)?.shape, 'round', 'a stated dia1 is a round port — crosscalc is not shape');
 
     const derived = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
-      '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=1\n'));
+      '[Box]\nBType=1\nVr=0.02\n\n[VentRear]\nNum=1\ndia1=0.05\ncrosscalc=1\n'), OpenISDDriver.empty());
     assert.equal(derived.isEntered('ventCrossArea'), false);
     assert.equal(derived.vent(0)?.shape, 'round');
   });
 
   it('Qlr/Qar/Qpr land on the record as the box losses', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
-      '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'));
+      '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'), OpenISDDriver.empty());
     assert.equal(project.cell('Ql').value, 7);
     assert.equal(project.cell('Qa').value, 50);
     assert.equal(project.cell('Qp').value, 80);
@@ -160,13 +161,13 @@ describe('fromWinISDProject — import-side assertions against literals (a round
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
       '[Box]', 'BType=4', 'Vr=0.04', 'Npr=2', '',
       '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', '',
-    ].join('\n')));
+    ].join('\n')), OpenISDDriver.empty());
     assert.equal(project.cell('prNum').value, 2);
   });
 
   it('Nd lands on the record as the driver count', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
-      '[Box]\nBType=0\nVr=0.02\nNd=3\n'));
+      '[Box]\nBType=0\nVr=0.02\nNd=3\n'), OpenISDDriver.empty());
     assert.equal(project.cell('nDrivers').value, 3);
   });
 });
@@ -177,7 +178,7 @@ describe('crosscalc is AREA provenance, never port shape (opus2 H1, interim ruli
 
   it('no import may build a vent whose area is zero while the file states a nonzero dia1', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
-      '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=0\n'));
+      '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=0\n'), OpenISDDriver.empty());
     const vent = project.vent(0)!;
     // Shape comes from OBSERVED GEOMETRY: a stated dia1 is a round port. The file has no
     // width/height keys, so shape='slotted' here would force area = 0·0 = 0.
@@ -193,7 +194,7 @@ describe('crosscalc is AREA provenance, never port shape (opus2 H1, interim ruli
 
   it('crosscalc=0 is held as entered area provenance and round-trips without touching shape', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
-      '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=0\n'));
+      '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=0\n'), OpenISDDriver.empty());
     assert.equal(project.isEntered('ventCrossArea'), true);
     const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
       .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
@@ -202,7 +203,7 @@ describe('crosscalc is AREA provenance, never port shape (opus2 H1, interim ruli
 
   it('crosscalc=1 leaves the entered set alone and writes crosscalc=1 back', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
-      '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=1\n'));
+      '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=1\n'), OpenISDDriver.empty());
     assert.equal(project.isEntered('ventCrossArea'), false);
     const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
       .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;

@@ -21,12 +21,13 @@ function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 've
 import assert from 'node:assert/strict';
 import { state, managedProject, applyLoadedProject } from '../../src/logic/appState.js';
 import { OpenISDProject } from '@openisd/model';
+import { OpenISDDriver } from '@openisd/model';
 import type { UiParams } from '@openisd/model';
 
 /** A project built the same way `applyLoadedProject()`'s caller (the repo) builds one — via
  *  `OpenISDProject`'s own restore surface, not a second construction path. */
 function projectOf(box: 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator', params: Partial<UiParams>): OpenISDProject {
-  const project = OpenISDProject.empty();
+  const project = OpenISDProject.empty(OpenISDDriver.empty());
   project.loadUiParams(params, box);
   project.setProjectMeta({ name: '', creator: '', created: '', modified: '', description: '' });
   return project;

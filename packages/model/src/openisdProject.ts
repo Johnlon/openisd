@@ -296,21 +296,16 @@ export interface OpenISDProjectMeta {
  * `driver` is the driver's OWN wire record (`OpenISDDriver.toJsonRecord()`'s `OpenISDDriverJson`
  * — named openly here, not laundered, and held as OPAQUE data: this file never reads a field
  * off it, only ever passes it whole to `OpenISDDriver.fromJsonRecord()`/`.toJsonRecord()`), so a
- * saved project nests real JSON, not a JSON string escaped inside JSON. `undefined` before a
- * driver is chosen.
+ * saved project nests real JSON, not a JSON string escaped inside JSON. Never absent: a project
+ * without a driver cannot exist (`docs/design/DRIVER_NON_NULL_INVARIANT.md`, John's ruling
+ * "driver in proj is non-null - full stop").
  *
  * This is NOT what `OpenISDProject` holds live (see `ProjectLiveState` below, right above
  * the class) — the driver's record here is a PROJECTION, built once by `toJsonRecord()` at the
  * moment bytes are actually needed, never the class's own in-memory storage.
- *
- * A REQUIRED key holding `| undefined`, not an optional (`driver?:`) property: `OpenISDProject`
- * exposes every other field of this interface under a same-named public getter, which makes
- * the class structurally satisfy this interface UNLESS at least one field the class does NOT
- * expose is also non-optional — an optional field's mere absence from the class's public
- * shape is not a structural mismatch (`openisdProjectFacade.test.ts` pins this).
  */
 export interface OpenISDProjectJson {
-  driver: OpenISDDriverJson | undefined;
+  driver: OpenISDDriverJson;
   box: OpenISDBox;
   target: OpenISDTarget;
   filters: Filter[];
@@ -331,7 +326,7 @@ export interface OpenISDProjectJson {
  * this type never crosses `OpenISDProject`'s own boundary, so it is not exported.
  */
 interface ProjectLiveState extends Omit<OpenISDProjectJson, 'driver'> {
-  driver: OpenISDDriver | undefined;
+  driver: OpenISDDriver;
 }
 
 // ── Construction and the one legal way to switch alignment ────────────────────────────────
@@ -494,12 +489,13 @@ function ensurePassiveRadiator(
 // committed / what-if) and never touches `OpenISDProjectJson` directly — every read and
 // write goes through this class's own API instead.
 
-/** A project with nothing chosen — what the app holds before a driver is picked, and the seed
- *  `OpenISDProject.empty()` builds. Every value is a real default a user could have set; none
- *  is a fake driver standing in for a real one. */
-function prototypeProject(): ProjectLiveState {
+/** A project with a chosen driver and nothing else set — the seed `OpenISDProject.empty()`
+ *  builds. Every OTHER value is a real default a user could have set; none is a fake value
+ *  standing in for a real one. `driver` is REQUIRED: a project cannot exist without one
+ *  (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
+function prototypeProject(driver: OpenISDDriver): ProjectLiveState {
   return {
-    driver: undefined,
+    driver,
     box: prototypeBox(),
     // WinISD's direction: volume, diameter and tuning are typed; vent length is returned.
     // `Frc` has no OpenISDBox home yet (no 6th-order alignment exists — QO44) and is carried
@@ -663,11 +659,14 @@ export class OpenISDProject {
    *  mutates it past the type system must see that mutation reflected). `record.driver` is data
    *  from an untrusted boundary (a hand-edited file, an old build's share link), so it is
    *  CHECKED (`OpenISDDriver.fromConformingRecord`) rather than trusted outright — a driver
-   *  record too broken to load safely is dropped, never carried into every field read that
-   *  dereferences it, but the rest of the project still loads (least-impact refusal). */
+   *  record too broken to load safely means the WHOLE record is refused (throws): a project
+   *  cannot exist without a driver, so there is no "load the rest, drop the driver" outcome
+   *  any more (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
   static fromJsonRecord(record: OpenISDProjectJson): OpenISDProject {
     const { driver, ...rest } = record;
-    return new OpenISDProject({ ...rest, driver: driver ? (OpenISDDriver.fromConformingRecord(driver) ?? undefined) : undefined });
+    const liveDriver = OpenISDDriver.fromConformingRecord(driver);
+    if (!liveDriver) throw new Error('project record carries a driver too broken to load');
+    return new OpenISDProject({ ...rest, driver: liveDriver });
   }
 
   /** This project as its wire record — the driver's live object PROJECTED to its own record
@@ -675,7 +674,7 @@ export class OpenISDProject {
    *  with `fromJsonRecord()`. */
   toJsonRecord(): OpenISDProjectJson {
     const { driver, ...rest } = this.#record;
-    return { ...rest, driver: driver?.toJsonRecord() };
+    return { ...rest, driver: driver.toJsonRecord() };
   }
 
   /**
@@ -783,9 +782,10 @@ export class OpenISDProject {
     return WinISDProject.build(driverSection, sections);
   }
 
-  /** A project with nothing chosen. */
-  static empty(): OpenISDProject {
-    return new OpenISDProject(prototypeProject());
+  /** A project with the given driver and nothing else chosen. `driver` is REQUIRED — a project
+   *  cannot exist without one (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
+  static empty(driver: OpenISDDriver): OpenISDProject {
+    return new OpenISDProject(prototypeProject(driver));
   }
 
   /** An independent copy — how `ManagedOpenISDProject` obtains its ground/committed/what-if
@@ -796,7 +796,7 @@ export class OpenISDProject {
     // gives it meaning), so `driver` is cloned separately via its own `OpenISDDriver.copy()` —
     // every other field is plain data and clones normally.
     const { driver, ...rest } = this.#record;
-    return new OpenISDProject({ ...structuredClone(rest), driver: driver?.copy() });
+    return new OpenISDProject({ ...structuredClone(rest), driver: driver.copy() });
   }
 
   /** Switch the ACTIVE alignment — the others stay populated and dormant. */
@@ -1008,15 +1008,17 @@ export class OpenISDProject {
   // ---- driver ------------------------------------------------------------------------------
 
   /** The live driver this project holds — the same public domain object throughout, never
-   *  round-tripped through text on the way in or out. `undefined` before a driver is chosen. */
-  driver(): OpenISDDriver | undefined { return this.#record.driver; }
+   *  round-tripped through text on the way in or out. Never absent: a project cannot exist
+   *  without a driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
+  driver(): OpenISDDriver { return this.#record.driver; }
 
-  /** Adopt a driver into this project — the ONE adoption channel, taking the public domain
+  /** REPLACE this project's driver — the ONE adoption channel, taking the public domain
    *  object (QO73/human ruling 2026-08-22: no UI code may name or infer the driver's private
    *  record shape) and HOLDING it: the project is either wholly a domain object or wholly
    *  text, never a mix — text exists only as `toJsonRecord()`'s output, built once, at the
-   *  moment bytes are actually needed. `undefined` clears the project's driver. */
-  setDriver(driver: OpenISDDriver | undefined): void {
+   *  moment bytes are actually needed. There is no "clear": a project's driver is always
+   *  replaced with another, never removed (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
+  setDriver(driver: OpenISDDriver): void {
     this.#record.driver = driver;
   }
 
@@ -1031,21 +1033,26 @@ export class OpenISDProject {
    * which is why the whole chain lives here rather than in a caller that would need the
    * record shape to stitch it together.
    *
-   * Errors are returned, never thrown; `value` is null when the file cannot be read.
+   * Errors are returned, never thrown; `value` is null when the file cannot be read. A `.wpr`
+   * with no `[Driver]` block is refused outright — a project cannot exist without a driver
+   * (`docs/design/DRIVER_NON_NULL_INVARIANT.md`), so there is no "load the box, driverless" any
+   * more.
    */
   static fromWprText(text: string): Result<OpenISDProject> {
     const fail = (message: string): Result<OpenISDProject> =>
       ({ value: null, errors: [{ level: 'error', field: 'wpr', message }] });
 
     const wpr = WinISDProject.fromWprIni(text);
-    let project: OpenISDProject;
-    try { project = OpenISDProject.fromWinISDProject(wpr); }
-    catch (err) { return fail((err as Error).message); }
-
-    if (wpr.driverWdrText().trim().length > 0) {
-      try { project.setDriver(OpenISDDriver.fromWdrText(wpr.driverWdrText())); }
-      catch (err) { return fail(`the .wpr's [Driver] block could not be read: ${(err as Error).message}`); }
+    if (wpr.driverWdrText().trim().length === 0) {
+      return fail('.wpr has no [Driver] block — a project cannot exist without a driver');
     }
+    let driver: OpenISDDriver;
+    try { driver = OpenISDDriver.fromWdrText(wpr.driverWdrText()); }
+    catch (err) { return fail(`the .wpr's [Driver] block could not be read: ${(err as Error).message}`); }
+
+    let project: OpenISDProject;
+    try { project = OpenISDProject.fromWinISDProject(wpr, driver); }
+    catch (err) { return fail((err as Error).message); }
     return { value: project, errors: [] };
   }
 
@@ -1055,11 +1062,12 @@ export class OpenISDProject {
    * happen here, never at the caller (PLAN_QO60_LAYERING_REMEDIATION.md objective 2b). Builds
    * on `prototypeProject()`'s defaults; a raw field present overwrites its default, absent
    * leaves the default untouched — a value the file does not state is never fabricated, and a
-   * default the file does not override is never cleared. Carries no driver: the caller sets one
-   * separately via `setDriver()`, since `raw.driverWdrText` needs `OpenISDDriver.fromWdrText()`,
-   * which this file does not call (it is not one of the licensed construction sites).
+   * default the file does not override is never cleared. `driver` is supplied by the caller
+   * (`fromWprText`, which reads `wpr.driverWdrText()` via `OpenISDDriver.fromWdrText()` — this
+   * method is not one of the licensed construction sites for that) — a project cannot exist
+   * without one.
    */
-  static fromWinISDProject(wpr: WinISDProject): OpenISDProject {
+  static fromWinISDProject(wpr: WinISDProject, driver: OpenISDDriver): OpenISDProject {
     const n = (sec: string, key: string) => wpr.number(sec, key);
     const t = (sec: string, key: string) => wpr.value(sec, key);
 
@@ -1071,7 +1079,7 @@ export class OpenISDProject {
         : `.wpr states BType=${bType}, which is not a box type OpenISD models (0/1/2/4)`);
     }
 
-    const record = prototypeProject();
+    const record = prototypeProject(driver);
     setActiveAlignment(record.box, kind);
 
     const Vr = n('Box', 'Vr');

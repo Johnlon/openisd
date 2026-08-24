@@ -74,14 +74,12 @@ export function fromAlignmentKind(active: AlignmentKind): BoxType {
 }
 
 /** One state layer: the project, and its own live driver, read straight off it. `openIsdDriver`
- *  is `project.driver()` — the SAME object, `?? null` in place of `?? undefined` for this
- *  file's own null-means-unchosen convention — never a re-parse: `OpenISDProject` holds the
- *  live driver directly (the mixed-representation defect this used to paper over is fixed at
- *  the source, not here). */
+ *  is `project.driver()` — the SAME object, never a re-parse: `OpenISDProject` holds the live
+ *  driver directly. Never absent — a project cannot exist without a driver
+ *  (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
 interface Layer {
   project: OpenISDProject;
-  /** Null exactly when no driver has been chosen. */
-  openIsdDriver: OpenISDDriver | null;
+  openIsdDriver: OpenISDDriver;
 }
 
 type Overlay =
@@ -89,7 +87,7 @@ type Overlay =
 
 /** A layer over `project`, its live driver read straight off it. */
 function layerOf(project: OpenISDProject): Layer {
-  return { project, openIsdDriver: project.driver() ?? null };
+  return { project, openIsdDriver: project.driver() };
 }
 
 /** An independent copy of a layer — `OpenISDProject.copy()` clones the whole project, driver
@@ -114,9 +112,13 @@ export class ManagedOpenISDProject {
     return new ManagedOpenISDProject(layerOf(project.copy()), layerOf(project.copy()));
   }
 
-  /** A project with nothing chosen. */
+  /** A project holding an empty (unfilled) driver — nothing chosen yet. A project cannot
+   *  exist without SOME driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`), so this
+   *  constructs `OpenISDDriver.empty()` itself: it is the one place outside `OpenISDDriver`'s
+   *  own module licensed to name it as a value (QO73/ENCAPSULATION IS ABSOLUTE) — a caller
+   *  never supplies one. */
   static createEmpty(): ManagedOpenISDProject {
-    return ManagedOpenISDProject.fromProject(OpenISDProject.empty());
+    return ManagedOpenISDProject.fromProject(OpenISDProject.empty(OpenISDDriver.empty()));
   }
 
   // ---- which layer is effective ---------------------------------------------------------
@@ -129,31 +131,27 @@ export class ManagedOpenISDProject {
 
   // ---- driver reads, on the EFFECTIVE layer ----------------------------------------------
 
-  /** One driver field's value and its provenance. Absent when no driver is chosen: that is a
-   *  real answer, and inventing a zero would be indistinguishable from a measured one. */
+  /** One driver field's value and its provenance. */
   cell(field: SpecField): Cell {
-    return this.#effective().openIsdDriver?.cell(field)
-      ?? { value: null, state: Provenance.NotAvailable };
+    return this.#effective().openIsdDriver.cell(field);
   }
   /** One driver metadata field (brand/model/manufacturer/provided_by/comment/added). */
   metaCell(field: MetaField): MetaCell {
-    return this.#effective().openIsdDriver?.metaCell(field)
-      ?? { value: '', state: Provenance.NotAvailable };
+    return this.#effective().openIsdDriver.metaCell(field);
   }
-  /** The resolved, engine-ready driver the charts sweep, or null when nothing can be drawn. */
+  /** The resolved, engine-ready driver the charts sweep, or null when nothing can be drawn
+   *  (an incomplete driver — never "no driver", since one is always chosen). */
   toEngineDriver(): EngineDriver | null {
-    return this.#effective().openIsdDriver?.toDriver() ?? null;
+    return this.#effective().openIsdDriver.toDriver();
   }
   /** What the engine says stops this driver simulating. */
   errors(): DriverError[] {
-    return this.#effective().openIsdDriver?.errors() ?? [];
+    return this.#effective().openIsdDriver.errors();
   }
   /** Stated fields that contradict each other beyond their own precision. */
   consistencyIssues(): ConsistencyIssue[] {
-    return this.#effective().openIsdDriver?.consistencyIssues() ?? [];
+    return this.#effective().openIsdDriver.consistencyIssues();
   }
-  /** Whether a driver has been chosen at all. */
-  hasDriver(): boolean { return this.#effective().openIsdDriver !== null; }
 
   // ---- driver writes, on the EFFECTIVE layer ---------------------------------------------
 
@@ -165,19 +163,19 @@ export class ManagedOpenISDProject {
   // Calling `this.#notify()` here directly needs no such subscription and cannot go stale.
 
   enter(field: SpecField, value: number): void {
-    this.#effective().openIsdDriver?.enter(field, value);
+    this.#effective().openIsdDriver.enter(field, value);
     this.#notify();
   }
   clear(field: SpecField): void {
-    this.#effective().openIsdDriver?.clear(field);
+    this.#effective().openIsdDriver.clear(field);
     this.#notify();
   }
   enterMeta(field: MetaField, value: string): void {
-    this.#effective().openIsdDriver?.enterMeta(field, value);
+    this.#effective().openIsdDriver.enterMeta(field, value);
     this.#notify();
   }
   clearMeta(field: MetaField): void {
-    this.#effective().openIsdDriver?.clearMeta(field);
+    this.#effective().openIsdDriver.clearMeta(field);
     this.#notify();
   }
 
@@ -237,8 +235,8 @@ export class ManagedOpenISDProject {
   /** Drive voltage from the project's input power and the EFFECTIVE driver's Re — V = √(Pin·Re),
    *  WinISD's reference-power convention (`bugs/BUG_20260820_syncedp_computes_eg_inside_the_store.md`,
    *  the fix this getter IS: the formula lives in `@openisd/engine`, read here, never
-   *  recomputed at a call site). 1 Ω assumed until a driver is chosen, matching historic
-   *  behaviour. */
+   *  recomputed at a call site). 1 Ω assumed while the driver is too incomplete to resolve an
+   *  `EngineDriver` (`toEngineDriver()` null), matching historic behaviour. */
   driveVoltage_V(): number {
     return driveVoltage(this.projectCell('Pin').value, this.toEngineDriver()?.Re ?? 1);
   }
@@ -246,7 +244,8 @@ export class ManagedOpenISDProject {
   /** Sealed-box (and PR rear-chamber) resonance + system Q via the given loss model. `Rs`/`Ql`/
    *  `Qa` are not yet fields of `OpenISDProjectJson` (they live on `UiParams` today), so they
    *  are taken as parameters rather than read internally — same shape as `sealedFc`'s own
-   *  decoupling in `wprMapping.ts`. Null when no driver is chosen or `Vb` isn't set. */
+   *  decoupling in `wprMapping.ts`. Null when the driver is too incomplete to resolve an
+   *  `EngineDriver`, or `Vb` isn't set. */
   sealedResonance(lossMode: LossMode, Rs: number, Ql: number, Qa: number): { Fsc: number; Qtc: number } | null {
     const d = this.toEngineDriver();
     const Vb = this.projectCell('Vb').value;
@@ -427,9 +426,9 @@ export class ManagedOpenISDProject {
   mutate(fn: (project: OpenISDProject) => void): void {
     const layer = this.#effective();
     fn(layer.project);
-    // The driver may have been replaced wholesale (a different driver chosen) or cleared, so
-    // the layer's own reference is re-read rather than left pointing at the old one.
-    layer.openIsdDriver = layer.project.driver() ?? null;
+    // The driver may have been replaced wholesale (a different driver chosen), so the layer's
+    // own reference is re-read rather than left pointing at the old one.
+    layer.openIsdDriver = layer.project.driver();
     this.#notify();
   }
 
@@ -498,9 +497,10 @@ export class ManagedOpenISDProject {
     this.#notify();
   }
 
-  /** Replace the whole design with an empty one. */
+  /** Replace the whole design with an empty one, holding an empty (unfilled) driver — see
+   *  `createEmpty()`. */
   loadEmpty(): void {
-    this.load(OpenISDProject.empty());
+    this.load(OpenISDProject.empty(OpenISDDriver.empty()));
   }
 
   // ---- driver file IO (QO78: driver/project file IO lives IN the managed layer) ----------
@@ -509,11 +509,6 @@ export class ManagedOpenISDProject {
   // record shape — no caller outside the licensed modules can name, alias, or clone the
   // record (QO73, behavioral §"ENCAPSULATION IS ABSOLUTE"). Construction of the live
   // `OpenISDDriver` happens here, inside the gate's licensed set.
-
-  /** Drop the design's driver — back to the no-driver-chosen state. */
-  clearDriver(): void {
-    this.mutate(p => { p.setDriver(undefined); });
-  }
 
   /** Adopt a driver from WinISD `.wdr` text into the CURRENT design, leaving the box and
    *  everything else alone — choosing a driver is not opening a new project. */
@@ -549,45 +544,40 @@ export class ManagedOpenISDProject {
 
   /** The COMMITTED driver as persisted text (its own JSON serialisation) — what a save, a
    *  share link, or a ground fingerprint embeds. Cancels an active what-if first, the same
-   *  structural guard as `_projectToPersist()`. Undefined when no driver is chosen. */
-  persistedDriverText(): string | undefined {
+   *  structural guard as `_projectToPersist()`. */
+  persistedDriverText(): string {
     this.#endWhatIfIfActive();
-    return this.#committed.openIsdDriver?.toOwdrText();
+    return this.#committed.openIsdDriver.toOwdrText();
   }
 
   /**
-   * The committed driver's own serialisation, or an EMPTY driver's when none is chosen. TEXT —
-   * `ManagedOpenISDProject` never hands an `OpenISDDriver` out (architecture.test.ts, "every
-   * public member returns data"), so this is the sanctioned channel: any caller LICENSED to
-   * construct a driver (today: `DriverEditorModal.vue`, via `OpenISDDriver.fromOwdrText`) can
-   * build its own detached instance from this text without this class handing out the live
-   * object itself. Becomes part of the capability seam when serialisation goes `#`-private.
+   * The committed driver's own serialisation. TEXT — `ManagedOpenISDProject` never hands an
+   * `OpenISDDriver` out (architecture.test.ts, "every public member returns data"), so this is
+   * the sanctioned channel: any caller LICENSED to construct a driver (today:
+   * `DriverEditorModal.vue`, via `OpenISDDriver.fromOwdrText`) can build its own detached
+   * instance from this text without this class handing out the live object itself. Becomes
+   * part of the capability seam when serialisation goes `#`-private.
    */
   committedDriverText(): string {
     this.#endWhatIfIfActive();
-    const driver = this.#committed.openIsdDriver;
-    return driver ? driver.toOwdrText() : OpenISDDriver.empty().toOwdrText();
+    return this.#committed.openIsdDriver.toOwdrText();
   }
 
-  /** The COMMITTED driver as `.wdr` bytes. Fails (with the projection's own errors) when the
-   *  driver is too incomplete to project, or when none is chosen. */
+  /** The COMMITTED driver as `.wdr` bytes. Every field not entered projects to its WinISD
+   *  default (`OpenISDDriver.toWinISDDriver()`'s fallback-fill), so this never refuses on an
+   *  unfilled driver — `errors` carries warnings only (a non-finite or entered-zero field). */
   exportDriverWdr(): Result<Uint8Array<ArrayBuffer>> {
     this.#endWhatIfIfActive();
-    const driver = this.#committed.openIsdDriver;
-    if (!driver) {
-      return { value: null, errors: [{ level: 'error', field: 'driver', message: 'no driver has been chosen' }] };
-    }
-    const { value: text, errors } = driver.toWdrText();
+    const { value: text, errors } = this.#committed.openIsdDriver.toWdrText();
     if (!text) return { value: null, errors };
     return { value: winisdTextToBytes(text), errors };
   }
 
-  /** The COMMITTED driver as `.owdr` bytes — cannot fail once a driver is chosen (the record
-   *  is always representable as its own JSON). Null when none is chosen. */
-  exportDriverOwdr(): Uint8Array<ArrayBuffer> | null {
+  /** The COMMITTED driver as `.owdr` bytes — cannot fail (the record is always representable
+   *  as its own JSON). */
+  exportDriverOwdr(): Uint8Array<ArrayBuffer> {
     this.#endWhatIfIfActive();
-    const driver = this.#committed.openIsdDriver;
-    return driver ? new TextEncoder().encode(driver.toOwdrText()) as Uint8Array<ArrayBuffer> : null;
+    return new TextEncoder().encode(this.#committed.openIsdDriver.toOwdrText()) as Uint8Array<ArrayBuffer>;
   }
 
   // ---- project file IO (QO78) -------------------------------------------------------------
@@ -601,9 +591,6 @@ export class ManagedOpenISDProject {
   exportWpr(now: Date, curve: SweepResult | null): Result<Uint8Array<ArrayBuffer>> {
     this.#endWhatIfIfActive();
     const driver = this.#committed.openIsdDriver;
-    if (!driver) {
-      return { value: null, errors: [{ level: 'error', field: 'driver', message: 'no driver has been chosen' }] };
-    }
     const { value: driverSection, errors } = driver.toWdrText();
     if (!driverSection) return { value: null, errors };
 

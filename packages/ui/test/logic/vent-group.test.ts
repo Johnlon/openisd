@@ -28,6 +28,7 @@ import {
 } from '../../src/logic/useVentGroup.js';
 import { createProjectRepo, createMemoryStorage, type FileStorage } from '@openisd/persistence';
 import { projectSchema } from '../../src/logic/schemaUpgrade.js';
+import { OpenISDDriver } from '@openisd/model';
 
 /** A real repo, memory-backed — the restore tests below go through its actual read pipeline
  *  (schema upgrade, old-schema vent-field repair, `OpenISDProject` reconstruction) rather than
@@ -159,6 +160,7 @@ describe('vent group — a restore is adopted verbatim', () => {
     // double).
     const saved = JSON.stringify({
       schema: 2, v: 2, box: state.box, P: managedProject.toUiParams(),
+      driver: OpenISDDriver.empty().toOwdrText(),
       project: { name: '', creator: '', created: '', modified: '', description: '' },
     });
     const fbBefore = managedProject.projectCell('Fb').value, lenBefore = ventL();
@@ -182,6 +184,7 @@ describe('vent group — a restore is adopted verbatim', () => {
     delete legacyParams.entered;
     const legacy = JSON.stringify({
       schema: 2, v: 2, box: state.box, P: legacyParams,
+      driver: OpenISDDriver.empty().toOwdrText(),
       project: { name: '', creator: '', created: '', modified: '', description: '' },
     });
 

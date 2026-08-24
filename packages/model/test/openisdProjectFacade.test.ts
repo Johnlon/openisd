@@ -8,15 +8,16 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { OpenISDProject } from '../src/openisdProject.js';
+import { OpenISDDriver } from '../src/openisdDriver.js';
 import type { OpenISDProjectJson } from '../src/openisdProject.js';
 
 describe('OpenISDProject — does not structurally leak as OpenISDProjectJson', () => {
   it('a variable typed as the private JSON shape cannot hold a live facade instance', () => {
-    const p: OpenISDProject = OpenISDProject.empty();
+    const p: OpenISDProject = OpenISDProject.empty(OpenISDDriver.empty());
     // @ts-expect-error — OpenISDProject must not duck-type as OpenISDProjectJson: it exposes
     // no `driver` property at all (only `driver()`/`setDriver()`), and
-    // `OpenISDProjectJson.driver` is a REQUIRED (if `| undefined`) key precisely so this stays
-    // a compile error rather than a silent runtime `undefined`. This assertion is what `tsc`
+    // `OpenISDProjectJson.driver` is a REQUIRED key precisely so this stays a compile error
+    // rather than a silent runtime `undefined`. This assertion is what `tsc`
     // actually checks — vitest's own transform strips the directive and runs the line, so the
     // runtime assertion below is what keeps this test meaningful under `vitest run` too.
     const leak: OpenISDProjectJson = p;

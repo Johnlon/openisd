@@ -209,8 +209,9 @@ function _engineDriver(): EngineDriver | null {
 /** The COMMITTED driver as the managed layer's own persisted TEXT — what a save, a share
  *  link, or a ground fingerprint embeds. Never the record value: the UI carries only this
  *  serialisation (QO73). Cancels an active what-if (the managed method's own structural
- *  guard). Undefined when no driver is chosen. */
-export const persistedDriver: ComputedRef<string | undefined> =
+ *  guard). Always a real string: a project cannot exist without a driver
+ *  (`docs/design/DRIVER_NON_NULL_INVARIANT.md`) — an unfilled one still serialises. */
+export const persistedDriver: ComputedRef<string> =
   computed(() => { void live.value; return managedProject.persistedDriverText(); });
 
 /** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
@@ -348,7 +349,7 @@ export function groundCheckpoint(): string { return _ground.value; }
 export function restoreGroundCheckpoint(value: string): void { _ground.value = value; }
 /** Discard unsaved changes: restore the design to the ground state. */
 export function resetProjectToGround(): void {
-  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver?: string; project?: any };
+  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: string; project?: any };
   // Adopt the stored params verbatim. The ground snapshot already holds BOTH vent-group
   // members and the entered set, so there is nothing to re-solve — and re-solving is exactly
   // what breaks "Cancel means byte-identical" (docs/design/STATE_MODEL.md rule 3): the solver would
@@ -357,15 +358,15 @@ export function resetProjectToGround(): void {
   // is the one call that lands box + every vent/PR/plain field together.
   suspendVentSolve(() => managedProject.loadUiParams(g.P, toAlignmentKind(g.box)));
   restoreProblems.value = [];
-  if (g.driver) {
-    // A refusal is REPORTED, never swallowed: dropping it would leave the previous driver in
-    // place while the UI showed a successful discard-changes.
-    const problems = managedProject.loadDriverFromPersistedText(g.driver);
-    if (problems.length) {
-      restoreProblems.value = problems.map(p => `the checkpoint's driver was not restored: ${p}`);
-      console.error(`[reset] refused the checkpoint's driver record — ${problems.join('; ')}`);
-    }
-  } else managedProject.clearDriver();
+  // A refusal is REPORTED, never swallowed: dropping it would leave the previous driver in
+  // place while the UI showed a successful discard-changes. `g.driver` is always present — a
+  // ground checkpoint is a fingerprint of a live project, and a project cannot exist without
+  // a driver (docs/design/DRIVER_NON_NULL_INVARIANT.md).
+  const problems = managedProject.loadDriverFromPersistedText(g.driver);
+  if (problems.length) {
+    restoreProblems.value = problems.map(p => `the checkpoint's driver was not restored: ${p}`);
+    console.error(`[reset] refused the checkpoint's driver record — ${problems.join('; ')}`);
+  }
   if (g.project) {
     Object.assign(state.project, g.project);
   }
@@ -392,7 +393,7 @@ export interface NewProjectSpec {
 export function newProject(spec?: NewProjectSpec): void {
   presentationState.yRanges = {};
   state.project = { name: spec?.name ?? '', creator: '', created: '', modified: '', description: '' }; // blank meta
-  managedProject.loadEmpty();                                // no driver chosen — the user picks one
+  managedProject.loadEmpty();                                 // an unfilled driver — the user picks one
   if (spec) {
     state.box = spec.box;
     managedProject.enterProjectField('Vb', fromDisplay(spec.volumeL, 'volume', 'L'));
