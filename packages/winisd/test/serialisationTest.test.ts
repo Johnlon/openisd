@@ -41,7 +41,7 @@ const REAL_OPENISD_YML = join(
 const WDR_SAMPLES = join(here, '..', '..', '..', 'drivers', 'sample', 'winisd');
 
 describe('roundTripOpenIsdYml — openisd.yml leg', () => {
-  it('a real corpus record round-trips: ymlResult .owdr JSON deep-equals the record the yaml parsed to', () => {
+  it('a real corpus record round-trips: ymlResult (YAML text) parses back to the record the input yaml parsed to', () => {
     assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
     const yamlText = readFileSync(REAL_OPENISD_YML, 'utf8');
 
@@ -54,13 +54,13 @@ describe('roundTripOpenIsdYml — openisd.yml leg', () => {
     // not a second implementation of the bridge's own parse step (which uses the same `yaml`
     // package function, asserted by the AST check below).
     const original = parseYaml(yamlText, { logLevel: 'error' });
-    assert.deepEqual(JSON.parse(ymlResult as string), original,
+    assert.deepEqual(parseYaml(ymlResult as string, { logLevel: 'error' }), original,
       'the app\'s own load (fromJsonRecord) + export (.toOwdrText()) path must reproduce the ' +
-      'exact record the yaml parsed to, byte-for-byte at the data level');
+      'exact record the yaml parsed to, byte-for-byte at the data level, once ymlResult is ' +
+      'parsed back with the yaml package');
   });
 
-  it('ymlResult is parseable by a generic YAML parser, not only JSON.parse — the caller must ' +
-     'never have to know the internal representation happens to be JSON', () => {
+  it('ymlResult is real YAML text, not JSON text — the internal .owdr JSON representation must never leak out', () => {
     assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
     const yamlText = readFileSync(REAL_OPENISD_YML, 'utf8');
 
@@ -68,13 +68,11 @@ describe('roundTripOpenIsdYml — openisd.yml leg', () => {
     const { ymlResult } = JSON.parse(raw) as { ymlResult: string | null; errors: unknown[] };
     assert.equal(typeof ymlResult, 'string');
 
-    // JSON text is valid YAML (a strict subset), so a generic YAML parser must read ymlResult
-    // and produce the exact same value as JSON.parse does — proving a caller (winisd_tools, in
-    // Python) can uniformly use its own yaml.safe_load()-equivalent and never touch a
-    // JSON-specific parser.
-    const viaYamlParser = parseYaml(ymlResult as string, { logLevel: 'error' });
-    const viaJsonParser = JSON.parse(ymlResult as string);
-    assert.deepEqual(viaYamlParser, viaJsonParser);
+    // yaml's stringify() emits block-style YAML (unquoted keys, no braces) for an object of
+    // this shape, so the text is not valid JSON — proving ymlResult really is YAML output from
+    // stringify(), not the .owdr JSON text relabelled.
+    assert.throws(() => JSON.parse(ymlResult as string),
+      'ymlResult must not be parseable as JSON — it must be genuine YAML produced by stringify()');
   });
 
   it('a blocking parse failure returns ymlResult:null with a non-empty errors array', () => {

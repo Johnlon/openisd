@@ -34,7 +34,7 @@
  * composes. This bridge only renames `value` to `wdr` and serialises the pair to JSON at the
  * V8 boundary; the field-for-field shape of `errors` is passed through unchanged.
  */
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 import { openisdYamlToWdr as projectOpenisdYamlToWdr, OpenISDDriver } from '@openisd/model';
 
 function openisdYamlToWdrBridge(yamlText: string): string {
@@ -44,25 +44,26 @@ function openisdYamlToWdrBridge(yamlText: string): string {
 
 /**
  * openisd.yml round trip: `{ ymlResult: string | null, errors: DriverError[] }` as a JSON
- * string. `ymlResult` is the `.owdr` JSON text the app's own record loader
- * (`OpenISDDriver.fromJsonRecord`, `packages/model/src/openisdDriver.ts:291`) and export path
- * (`.toOwdrText()`, `openisdDriver.ts:534`) produce from the parsed record — the exact functions
- * `openisdYamlToWdr` above and the app's own load/export call sites use. The `yaml` parse is the
- * same call `openisdYamlToWdr.ts:35` makes (`parse(text, { logLevel: 'error' })`).
+ * string. `ymlResult` is real YAML text, produced by running the input through the app's own
+ * load/export chain and back out to YAML:
  *
- * The field is named `ymlResult`, not `json` or `reserialised`, because the caller across the V8
- * boundary (winisd_tools, in Python) must never learn that openisd's internal representation
- * happens to be JSON. JSON text is valid YAML — a strict subset — so the caller parses this
- * field with its own generic YAML parser (`yaml.safe_load()`), the same one it already uses for
- * `openisd.yml` itself, instead of reaching for a JSON-specific parser. Per John's ruling: if the
- * round trip uses JSON internally, no one outside this file should know.
+ * 1. `parse()` (the `yaml` package) turns `yamlText` into a plain object.
+ * 2. `OpenISDDriver.fromJsonRecord()` (`packages/model/src/openisdDriver.ts:291`) constructs a
+ *    driver from that object — the same construction call the bundler
+ *    (`scripts/bundle-drivers.mjs`) uses.
+ * 3. `.toOwdrText()` (`openisdDriver.ts:534`) serialises the driver to `.owdr` JSON text — the
+ *    same serialiser the app's real persistence save path uses
+ *    (`packages/persistence/src/repos/projectRepo.ts:199`).
+ * 4. `JSON.parse()` turns that JSON text back into a plain object.
+ * 5. `stringify()` (the same `yaml` package, its serialise side) turns that object into YAML
+ *    text — this is `ymlResult`.
  *
- * Does NOT compare `ymlResult` against anything — no in-app code serialises a record back to
- * YAML text, so byte-comparing an `.owdr` (JSON) against an `openisd.yml` (YAML) input can never
- * be meaningful. The caller (the openisd bundler gate, or winisd_tools) already holds the
- * ORIGINAL parsed record — it compares that against the parsed value of `ymlResult` at the data
- * level, which is the round trip this function actually proves: nothing the app's loader/export
- * path touches was lost or altered.
+ * This function does not compare anything — no comparison logic lives here. The caller
+ * (winisd_tools, in Python) holds the original record and compares it against `ymlResult` at
+ * the data level (`yaml.safe_load()` on both sides), not byte-for-byte. Comments and original
+ * formatting in `yamlText` are not preserved through this round trip — step 1→4 loses them by
+ * parsing through JSON — and that's by design: the comparison this bridge feeds is data-level,
+ * not byte-level.
  */
 function roundTripOpenIsdYmlBridge(yamlText: string): string {
   let record: unknown;
@@ -81,7 +82,8 @@ function roundTripOpenIsdYmlBridge(yamlText: string): string {
     });
   }
   try {
-    const ymlResult = OpenISDDriver.fromJsonRecord(record as never).toOwdrText();
+    const reserialised = OpenISDDriver.fromJsonRecord(record as never).toOwdrText();
+    const ymlResult = stringify(JSON.parse(reserialised));
     return JSON.stringify({ ymlResult, errors: [] });
   } catch (e) {
     return JSON.stringify({
