@@ -161,28 +161,28 @@ describe('driverHasDqIssues — standing (quality.missing/parse_errors), shared 
 // `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`.
 
 describe('driverHasDqIssues — federated row path (no record/myDriverData yet)', () => {
-  it('is false when the summary _Fs and _Re are both positive', () => {
-    const f: FileEntry = { name: 'x', _Fs: 30, _Re: 5.6 };
+  it('is false when the summary Fs and Re are both positive', () => {
+    const f: FileEntry = { name: 'x', Fs: 30, Re: 5.6 };
     assert.equal(driverHasDqIssues(f), false);
   });
 
-  it('is true when the summary _Fs is missing', () => {
-    const f: FileEntry = { name: 'x', _Re: 5.6 };
+  it('is true when the summary Fs is missing', () => {
+    const f: FileEntry = { name: 'x', Re: 5.6 };
     assert.equal(driverHasDqIssues(f), true);
   });
 
-  it('is true when the summary _Re is zero', () => {
-    const f: FileEntry = { name: 'x', _Fs: 30, _Re: 0 };
+  it('is true when the summary Re is zero', () => {
+    const f: FileEntry = { name: 'x', Fs: 30, Re: 0 };
     assert.equal(driverHasDqIssues(f), true);
   });
 
-  it('is true when a stated summary _Sd is zero', () => {
-    const f: FileEntry = { name: 'x', _Fs: 30, _Re: 5.6, _Sd: 0 };
+  it('is true when a stated summary Sd is zero', () => {
+    const f: FileEntry = { name: 'x', Fs: 30, Re: 5.6, Sd: 0 };
     assert.equal(driverHasDqIssues(f), true);
   });
 
-  it('is false when the summary _Sd is null (treated as missing, not failing)', () => {
-    const f: FileEntry = { name: 'x', _Fs: 30, _Re: 5.6, _Sd: null };
+  it('is false when the summary Sd is null (treated as missing, not failing)', () => {
+    const f: FileEntry = { name: 'x', Fs: 30, Re: 5.6, Sd: null };
     assert.equal(driverHasDqIssues(f), false);
   });
 });

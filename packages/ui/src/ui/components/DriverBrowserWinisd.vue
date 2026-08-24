@@ -244,12 +244,12 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
           </template>
           
           <div v-for="f in displayedFiles" :key="driverKey(f)"
-               :class="['ditem', f._isLatest && 'ditem-latest', f._isOlder && 'ditem-older']"
+               :class="['ditem', f.isLatest && 'ditem-latest', f.isOlder && 'ditem-older']"
                @click="handleItemClick(f)">
             <b>{{ f.name }}</b>
             <span v-if="driverHasDqIssues(f)" class="dq-flag" title="Data quality issues detected — some core fields may be missing or have suspicious values (e.g. Fs=0). Open to review.">⚠</span>
             <span class="dmeta">
-              <span v-if="f._nd" :class="['ddate', f._isLatest && 'ddate-latest', f._isOlder && 'ddate-older']">{{ f._nd }}</span>
+              <span v-if="f.normalisedDate" :class="['ddate', f.isLatest && 'ddate-latest', f.isOlder && 'ddate-older']">{{ f.normalisedDate }}</span>
               <a v-if="f.datasheet" class="dpdf"
                  :href="f.datasheet" target="_blank" rel="noopener"
                  title="Open manufacturer datasheet (PDF)" @click.stop>PDF</a>
@@ -262,7 +262,7 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
               <a v-if="f.frd" class="dpdf"
                  :href="f.frd" target="_blank" rel="noopener"
                  title="Download frequency response & impedance data (FRD/ZMA)" @click.stop>FRD ↗</a>
-              <span v-if="f._canonical" :class="['dtype', f._canonical === 'Unclassified' && 'unk']">{{ f._canonical }}</span>
+              <span v-if="f.canonical" :class="['dtype', f.canonical === 'Unclassified' && 'unk']">{{ f.canonical }}</span>
               <span class="stag" :title="f.sourceName + (f.sourceDesc ? ' — ' + f.sourceDesc : '')">{{ shortSource(f.sourceName) }}</span>
               <button class="fav-btn" :class="{ on: isFavorite(f) }"
                       :title="isFavorite(f) ? 'Remove from favourites' : 'Add to favourites'"

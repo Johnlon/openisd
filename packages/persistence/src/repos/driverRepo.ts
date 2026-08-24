@@ -30,10 +30,10 @@ export interface FileEntry {
   record?: OpenISDDriver;
   path?: string; repo?: string | null; branch?: string | null;
   sourceKey?: string; sourceName?: string; sourceUrl?: string; sourceDesc?: string;
-  _Fs?: number | null; _Sd?: number | null; _Re?: number | null; _Znom?: number | null; _Pe?: number | null;
-  _types?: string[]; _canonical?: string;
-  _freqRange?: { lo: number; hi: number } | null;
-  _nd?: string; _isLatest?: boolean; _isOlder?: boolean;
+  Fs?: number | null; Sd?: number | null; Re?: number | null; Znom?: number | null; Pe?: number | null;
+  types?: string[]; canonical?: string;
+  freqRange?: { lo: number; hi: number } | null;
+  normalisedDate?: string; isLatest?: boolean; isOlder?: boolean;
   /** Set on a My Drivers row: the saved driver itself. Its presence is what makes a row a
    *  user driver rather than a library one — there is no second marker. */
   myDriverData?: OpenISDDriver;
@@ -195,7 +195,7 @@ export function myDriverName(d: OpenISDDriver): string { return d.displayName();
 /**
  * A saved driver as a pool row — the shape selection takes.
  *
- * It carries the SAME derived columns a bundled row does (`_Fs`, `_Sd`, `_Znom`, `_types`,
+ * It carries the SAME derived columns a bundled row does (`Fs`, `Sd`, `Znom`, `types`,
  * …), classified by the one `classifyTypes` the pool uses, because the filter bar reads
  * those columns and a row that cannot answer them cannot be filtered — which is precisely
  * how My Drivers came to ignore the type chips and the Fs/Sd/Znom bounds.
@@ -209,9 +209,9 @@ export function myDriverEntry(d: OpenISDDriver): FileEntry {
   const ct = classifyTypes(num('Fs'), num('Sd'), name, d.previewField('driver_type'));
   return {
     name, myDriverData: d,
-    _Fs: num('Fs'), _Sd: num('Sd'), _Re: num('Re'),
-    _Znom: num('Znom'), _Pe: num('Pe'),
-    _types: ct.types, _canonical: ct.canonical,
+    Fs: num('Fs'), Sd: num('Sd'), Re: num('Re'),
+    Znom: num('Znom'), Pe: num('Pe'),
+    types: ct.types, canonical: ct.canonical,
   };
 }
 
@@ -232,7 +232,7 @@ export function myDriverEntry(d: OpenISDDriver): FileEntry {
  * at its read seam — `myDrivers.ts::list()` for browser storage, `bundledEntry()` above for the
  * driver corpus (see `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`)
  * — so `quality` is guaranteed present. For federated rows (content not yet fetched) the summary
- * `_Fs` / `_Re` / `_Sd` pre-computed fields are the available proxy — no quality block exists
+ * `Fs` / `Re` / `Sd` pre-computed fields are the available proxy — no quality block exists
  * yet to check standing against.
  */
 export function driverHasDqIssues(f: FileEntry): boolean {
@@ -243,9 +243,9 @@ export function driverHasDqIssues(f: FileEntry): boolean {
   }
   // Federated row (content not yet fetched): fall back to pre-computed summary fields.
   const pos2 = (v: number | null | undefined) => typeof v === 'number' && v > 0;
-  if (!pos2(f._Fs) || !pos2(f._Re)) return true;
+  if (!pos2(f.Fs) || !pos2(f.Re)) return true;
   // Sd summary is in SI (m²); treat null as missing
-  if (f._Sd != null && !pos2(f._Sd)) return true;
+  if (f.Sd != null && !pos2(f.Sd)) return true;
   return false;
 }
 
@@ -289,24 +289,24 @@ export function matchesCriteria(f: FileEntry, c: SearchCriteria): boolean {
 
   const included = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'include');
   const excluded = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'exclude');
-  // `unclassified` is derived, never carried in _types — a driver is unclassified
+  // `unclassified` is derived, never carried in types — a driver is unclassified
   // exactly when it got no chips at all, so it is filtered separately from the rest.
   const UNCLASSIFIED = Chip.Unclassified.value;
-  const isUnclassified = !f._types?.length;
+  const isUnclassified = !f.types?.length;
   if (included.length &&
       !((included.includes(UNCLASSIFIED) && isUnclassified) ||
-        included.filter(t => t !== UNCLASSIFIED).some(t => f._types?.includes(t)))) return false;
+        included.filter(t => t !== UNCLASSIFIED).some(t => f.types?.includes(t)))) return false;
   if (excluded.includes(UNCLASSIFIED) && isUnclassified) return false;
-  if (excluded.filter(t => t !== UNCLASSIFIED).some(t => f._types?.includes(t))) return false;
+  if (excluded.filter(t => t !== UNCLASSIFIED).some(t => f.types?.includes(t))) return false;
 
   const fsMinV = parseFloat(c.fsMin), fsMaxV = parseFloat(c.fsMax);
   const sdMinV = parseFloat(c.sdMin), sdMaxV = parseFloat(c.sdMax);
-  if (isFinite(fsMinV) && !(f._Fs != null && f._Fs >= fsMinV)) return false;
-  if (isFinite(fsMaxV) && !(f._Fs != null && f._Fs <= fsMaxV)) return false;
-  if (isFinite(sdMinV) && !(f._Sd != null && f._Sd * 1e4 >= sdMinV)) return false;
-  if (isFinite(sdMaxV) && !(f._Sd != null && f._Sd * 1e4 <= sdMaxV)) return false;
+  if (isFinite(fsMinV) && !(f.Fs != null && f.Fs >= fsMinV)) return false;
+  if (isFinite(fsMaxV) && !(f.Fs != null && f.Fs <= fsMaxV)) return false;
+  if (isFinite(sdMinV) && !(f.Sd != null && f.Sd * 1e4 >= sdMinV)) return false;
+  if (isFinite(sdMaxV) && !(f.Sd != null && f.Sd * 1e4 <= sdMaxV)) return false;
   if (c.selZ.length &&
-      !c.selZ.some(oz => f._Znom != null && Math.abs(f._Znom - parseFloat(oz)) < 1.5)) return false;
+      !c.selZ.some(oz => f.Znom != null && Math.abs(f.Znom - parseFloat(oz)) < 1.5)) return false;
 
   if (c.favoritesOnly && !c.favorites.includes(c.keyOf(f))) return false;
   return true;
@@ -381,7 +381,7 @@ export function previewOf(f: FileEntry): Preview {
         { label: 'Xmax', value: n('Xmax', 1000)?.toFixed(1),               unit: 'mm'  },
         { label: 'Pe',   value: n('Pe')?.toFixed(0),                       unit: 'W'   },
         { label: 'Znom', value: n('Znom')?.toFixed(0),                     unit: 'Ω'   },
-        { label: 'Type', value: f._canonical && f._canonical !== 'Unclassified' ? f._canonical : null },
+        { label: 'Type', value: f.canonical && f.canonical !== 'Unclassified' ? f.canonical : null },
         { label: 'EBP',  value: (Fs && Qes) ? (Fs / Qes).toFixed(0) : null },
       ].filter(s => s.value != null),
     };
@@ -424,8 +424,8 @@ export function previewOf(f: FileEntry): Preview {
       { label: 'Vd',     value: Vd ? (Vd * 1e6).toFixed(1) : null,       unit: 'cm³'   },
       { label: 'Dia',    value: Dia ? (Dia * 1000).toFixed(0) : null,    unit: 'mm'    },
       { label: 'η₀',     value: noEff ? (noEff * 100).toFixed(3) : null, unit: '%'     },
-      { label: 'Type',   value: f._canonical && f._canonical !== 'Unclassified' ? f._canonical : null },
-      { label: 'Freq',   value: f._freqRange ? fmtHz(f._freqRange.lo) + '–' + fmtHz(f._freqRange.hi) : null },
+      { label: 'Type',   value: f.canonical && f.canonical !== 'Unclassified' ? f.canonical : null },
+      { label: 'Freq',   value: f.freqRange ? fmtHz(f.freqRange.lo) + '–' + fmtHz(f.freqRange.hi) : null },
       { label: 'EBP',    value: (Fs && Qes) ? (Fs / Qes).toFixed(0) : null },
     ].filter(sp => sp.value != null),
   };
@@ -531,9 +531,9 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
       sourceName: src.name,
       sourceUrl: src.url || '',
       sourceDesc: src.description || '',
-      _Fs: num('Fs'), _Sd: num('Sd'), _Re: num('Re'),
-      _Znom: num('Znom'), _Pe: num('Pe'),
-      _types: ct.types, _canonical: ct.canonical,
+      Fs: num('Fs'), Sd: num('Sd'), Re: num('Re'),
+      Znom: num('Znom'), Pe: num('Pe'),
+      types: ct.types, canonical: ct.canonical,
     };
   }
 
@@ -595,9 +595,9 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
               sourceName: src.name,
               sourceUrl: src.url || '',
               sourceDesc: src.description || '',
-              // _ properties are computed at client runtime from WDR content — not in the bundle JSON
-              _Fs: null, _Sd: null, _Re: null, _Znom: null, _Pe: null,
-              _types: ct.types, _canonical: ct.canonical,
+              // These summary fields are computed at client runtime from WDR content — not in the bundle JSON
+              Fs: null, Sd: null, Re: null, Znom: null, Pe: null,
+              types: ct.types, canonical: ct.canonical,
             } satisfies FileEntry;
           });
         return { sourceName: src.name, entries, error: null };

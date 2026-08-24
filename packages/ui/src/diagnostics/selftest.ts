@@ -15,7 +15,7 @@
  * OUTPUT: console.log under the prefix "[OpenISD self-test]".
  *         On failure: Flash notification visible to the user.
  *
- * window._selfTestDone: set to true when complete. Playwright waits on this
+ * window.selfTestDone: set to true when complete. Playwright waits on this
  * flag before running browser integration tests (test/app.browser.spec.js).
  *
  * NOTE ON CONSTANTS: The tolerance and driver constants below are intentionally
@@ -37,7 +37,7 @@ const refRho = (): number => moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
 const refC = (): number => moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
 
 declare global {
-  interface Window { _selfTestDone?: boolean }
+  interface Window { selfTestDone?: boolean }
 }
 
 export interface Diagnostics {
@@ -191,6 +191,6 @@ function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
     report(`⚠ Physics self-test FAILED (${failed}) — open console for details`);
   }
 
-  window._selfTestDone = true;
+  window.selfTestDone = true;
   return { p1, p2, p3 };
 }

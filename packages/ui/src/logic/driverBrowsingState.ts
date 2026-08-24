@@ -253,7 +253,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       // widens `record` to a structural lookalike, which then fails to satisfy `FileEntry`.
       // `Object.assign` onto a fresh object copies the SAME property values (same object
       // references, including `record`) without re-inferring their types from a literal.
-      return Object.assign({}, f, { _nd: nd, _isLatest: isLatest, _isOlder: hasDups && !isLatest });
+      return Object.assign({}, f, { normalisedDate: nd, isLatest: isLatest, isOlder: hasDups && !isLatest });
     });
   });
 

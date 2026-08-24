@@ -10,7 +10,7 @@
  * calls (`ctx.call("openisdYamlToWdr", [yamlText])`, and likewise for the other two). This is a
  * deliberate, spec-mandated exception to ARCHITECTURE.md §5 "NO GLOBAL VARIABLES": the whole
  * point of this file is to publish symbols a foreign V8 embedding can find with no import
- * machinery of its own, matching the existing `window._selfTestDone` precedent — named
+ * machinery of its own, matching the existing `window.selfTestDone` precedent — named
  * exceptions, scoped to exactly this file, for exactly this reason. QT69.1 originally ruled the
  * bridge exposes exactly ONE function; John's later instruction (plan `shiny-noodling-kahan.md`
  * "Bridge round-trip API for the tools") supersedes it to add the round-trip pair below — record

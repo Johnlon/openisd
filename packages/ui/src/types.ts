@@ -66,7 +66,7 @@ export interface Design {
    * the graph. Additive: a design without this field is always drawn. */
   visible?: boolean;
   project?: { name: string; creator?: string; created?: string; modified?: string; description?: string };
-  _ground?: string;
+  ground?: string;
   isModified?: boolean;
 }
 

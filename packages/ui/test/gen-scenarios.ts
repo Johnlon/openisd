@@ -39,7 +39,7 @@ for (const S of SCENARIOS) {
     const Vb    = sealedFromQtc(drv, S.box.Qtc);
     if (Vb == null) { console.warn(`  SKIP  ${S.id}: Qtc below driver Qts`); continue; }
     const scale = Math.sqrt(1 + VAS_M3 / Vb);
-    S._computed = {
+    S.computed = {
       // StatBar.vue: Qtc.toFixed(3)  fc.toFixed(1)
       Qtc: (drv.Qts * scale).toFixed(3),
       fc:  (drv.Fs  * scale).toFixed(1),
@@ -50,7 +50,7 @@ for (const S of SCENARIOS) {
     const L   = S.box.ventL / 100;        // cm → m (physical length)
     const Sp  = Math.PI * (S.box.ventD / 200) ** 2;  // cm bore diameter → m² area
     const fb  = tuningFromLength(Vb, L, Sp);
-    S._computed = {
+    S.computed = {
       // StatBar.vue: fb.toFixed(1)
       Fb: fb.toFixed(1),
     };
@@ -69,7 +69,7 @@ for (const S of SCENARIOS) {
       prRms:  pr.Rms,                   // kg/s   (direct)
     };
     const fp = prTuning(P);
-    S._computed = {
+    S.computed = {
       // StatBar.vue: fp.toFixed(1)
       Fp: fp.toFixed(1),
     };
@@ -83,15 +83,15 @@ for (const S of SCENARIOS) {
 
 console.log('');
 for (const S of SCENARIOS) {
-  if (!S._computed) continue;
-  const changed = JSON.stringify(S.openisd) !== JSON.stringify(S._computed);
+  if (!S.computed) continue;
+  const changed = JSON.stringify(S.openisd) !== JSON.stringify(S.computed);
   const tag = changed ? 'CHANGE' : 'ok    ';
   console.log(`  [${tag}]  ${S.id}`);
   if (changed) {
     console.log(`           was:  ${JSON.stringify(S.openisd)}`);
-    console.log(`           now:  ${JSON.stringify(S._computed)}`);
+    console.log(`           now:  ${JSON.stringify(S.computed)}`);
   } else {
-    console.log(`           ${JSON.stringify(S._computed)}`);
+    console.log(`           ${JSON.stringify(S.computed)}`);
   }
 }
 console.log('');
@@ -107,8 +107,8 @@ const scenariosPath = join(here, 'scenarios.ts');
 let lines = readFileSync(scenariosPath, 'utf8').split(/\r?\n/);
 
 for (const S of SCENARIOS) {
-  if (!S._computed) continue;
-  lines = replaceOpenISDBlock(lines, S.id, S._computed);
+  if (!S.computed) continue;
+  lines = replaceOpenISDBlock(lines, S.id, S.computed);
   console.log(`  wrote  ${S.id}`);
 }
 
