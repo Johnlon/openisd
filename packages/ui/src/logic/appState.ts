@@ -246,7 +246,7 @@ export const syncedP = computed<SyncedParams>(() => {
   void live.value;
   const p: SyncedParams = { ...managedProject.toUiParams(), eg: managedProject.driveVoltage_V() };
   if (state.box === 'vented' || state.box === 'bandpass4') {
-    p.Sp = managedProject.ventArea_m2();
+    p.Sp = managedProject.projectCell('Sp').value;
     p.Leff = managedProject.ventEffectiveLength_m();
   }
   // The WinISD toggle swaps the PROJECT's humidity/pressure for the app-level Options
@@ -397,7 +397,7 @@ export function newProject(spec?: NewProjectSpec): void {
   if (spec) {
     state.box = spec.box;
     managedProject.enterProjectField('Vb', fromDisplay(spec.volumeL, 'volume', 'L'));
-    if (spec.frontVolumeL != null) managedProject.setFrontVolume_m3(fromDisplay(spec.frontVolumeL, 'volume', 'L'));
+    if (spec.frontVolumeL != null) managedProject.enterProjectField('Vf', fromDisplay(spec.frontVolumeL, 'volume', 'L'));
   }
   markProjectSaved();                                       // the fresh design is the new clean ground
 }

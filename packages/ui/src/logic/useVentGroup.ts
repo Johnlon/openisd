@@ -26,11 +26,6 @@ const LETTER: Record<Provenance, 'E' | 'C' | 'N'> = {
   [Provenance.Entered]: 'E', [Provenance.Calculated]: 'C', [Provenance.NotAvailable]: 'N',
 };
 
-/** The vent's cross-section as currently shaped — the domain's `Sp` cell. */
-export function ventCrossArea(mp: ManagedOpenISDProject): number {
-  return mp.projectCell('Sp').value;
-}
-
 /** Re-solve every CALCULATED member from the ENTERED ones — the domain's own solver. */
 export function solveVentGroup(mp: ManagedOpenISDProject, _box?: string): void {
   mp.solveVentGroup();

@@ -994,7 +994,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.frontVolume_m3()" @update:model-value="v => managedProject.setFrontVolume_m3(v ?? 0)" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.projectCell('Vf').value" @update:model-value="v => managedProject.enterProjectField('Vf', v ?? 0)" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
                   <div v-if="fbState === 'E'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
@@ -1174,7 +1174,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                   </div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(managedProject.ventArea_m2(), 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
+                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(managedProject.projectCell('Sp').value, 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
                   <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(managedProject.portPipeResonance_hz(), 'portResonance', 'freq', 'Hz', fieldDp('portResonance'))" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>

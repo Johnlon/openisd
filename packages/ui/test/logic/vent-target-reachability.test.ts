@@ -93,7 +93,7 @@ describe('vent target reachability — an unreachable tuning must surface, not h
     state.box = 'bandpass4';
     managedProject.setActiveVentField('shape', 'round');
     managedProject.enterProjectField('Vb', 0.03);
-    managedProject.setFrontVolume_m3(0.002);   // small front chamber → the same 40 Hz target is far easier
+    managedProject.enterProjectField('Vf', 0.002);   // small front chamber → the same 40 Hz target is far easier
     managedProject.setActiveVentField('diameter_m', 0.05);
     managedProject.setActiveVentField('endCorrection', 0.6);
     managedProject.setEnteredSet({ ventD: true, Fb: true });
@@ -104,7 +104,7 @@ describe('vent target reachability — an unreachable tuning must surface, not h
       `front-chamber solve must use Vf: got ${achieved?.toFixed(4)} Hz`);
     assert.equal(ventTargetUnreachable(managedProject, state.box), false);
 
-    managedProject.setFrontVolume_m3(0.03);   // now the same geometry as the unreachable single-chamber case
+    managedProject.enterProjectField('Vf', 0.03);   // now the same geometry as the unreachable single-chamber case
     enterVentFieldOn(managedProject, 'Fb', 90, state.box);
     assert.equal(ventTargetUnreachable(managedProject, state.box), true);
   });

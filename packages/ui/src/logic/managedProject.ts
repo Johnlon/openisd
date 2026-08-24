@@ -187,10 +187,6 @@ export class ManagedOpenISDProject {
   // writes go through `mutate()` so the existing edit/what-if notification rule keeps applying
   // with no second code path to keep in step.
 
-  /** `Vf` — bandpass4's OWN front-chamber volume. Unconditional: unlike `Vb`, this never
-   *  addresses another alignment's storage, dormant or active — there is only one home. */
-  frontVolume_m3(): number { return this.#effective().project.cell('Vf').value; }
-
   // ── Project field cells — value + provenance, owned and solved by the domain object ──────
   projectCell(field: ProjectFieldId): { value: number; state: Provenance } {
     return this.#effective().project.cell(field);
@@ -207,22 +203,12 @@ export class ManagedOpenISDProject {
   ventMaxReachableFb(): number | null { return this.#effective().project.ventMaxReachableFb(); }
   ventTargetUnreachable(): boolean { return this.#effective().project.ventTargetUnreachable(); }
   prTargetUnreachable(): boolean { return this.#effective().project.prTargetUnreachable(); }
-  setFrontVolume_m3(value: number): void {
-    this.mutate(p => p.enter('Vf', value));
-  }
 
   activeVentField<K extends keyof OpenISDVent>(field: K): OpenISDVent[K] {
     return this.#effective().project.ventField(field);
   }
   setActiveVentField<K extends keyof OpenISDVent>(field: K, value: OpenISDVent[K]): void {
     this.mutate(p => p.setVentField(field, value));
-  }
-
-  /** The active vent's cross-sectional area — round or slotted, whichever it currently is.
-   *  A calculated value, exposed here (not computed by any caller) per ARCHITECTURE.md §5
-   *  "only the domain objects calculate". */
-  ventArea_m2(): number {
-    return this.#effective().project.cell('Sp').value;
   }
 
   /** The active vent's effective acoustic length — physical length plus the end-correction

@@ -245,7 +245,7 @@ describe('UiParams round-trips losslessly through the repo and applyLoadedProjec
   it('every field of a fully-specified design survives a save/restore cycle unchanged', () => {
     managedProject.setActiveAlignment('vented');
     managedProject.enterProjectField('Vb', 0.028);
-    managedProject.setFrontVolume_m3(0.011);
+    managedProject.enterProjectField('Vf', 0.011);
     managedProject.setActiveVentField('shape', 'slotted');
     managedProject.setActiveVentField('diameter_m', 0.06);
     managedProject.setActiveVentField('width_m', 0.05);

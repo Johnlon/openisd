@@ -51,12 +51,12 @@ describe('ManagedOpenISDProject — box field read/write', () => {
 });
 
 describe('ManagedOpenISDProject — bandpass4 front chamber (Vf)', () => {
-  it('frontVolume_m3 always addresses bandpass4.frontVolume_m3, regardless of active alignment', () => {
+  it('Vf always addresses bandpass4.frontVolume_m3, regardless of active alignment', () => {
     const mp = ManagedOpenISDProject.createEmpty();
     mp.mutate(p => p.setAlignment('sealed'));   // Vf must stay reachable while dormant
-    mp.setFrontVolume_m3(0.017);
+    mp.enterProjectField('Vf', 0.017);
     assert.equal(mp._snapshot().cell('Vf').value, 0.017);
-    assert.equal(mp.frontVolume_m3(), 0.017);
+    assert.equal(mp.projectCell('Vf').value, 0.017);
   });
 });
 
