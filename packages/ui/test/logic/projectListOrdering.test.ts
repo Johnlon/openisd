@@ -33,7 +33,7 @@ describe('the project registry is an ordered array, not a name-keyed map', () =>
     const b = namedProject('Untitled');
     addProject(a);
     addProject(b);
-    const names = openProjects().slice(before).map(p => p._snapshot().projectMeta().name);
+    const names = openProjects().slice(before).map(p => p.snapshot().projectMeta().name);
     assert.deepEqual(names, ['Untitled', 'Untitled'],
       'a name-keyed store would have silently dropped one of these two');
     assert.equal(openProjects().length, before + 2, 'both entries must be present, not merged');

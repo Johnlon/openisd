@@ -27,40 +27,40 @@ const LETTER: Record<Provenance, 'E' | 'C' | 'N'> = {
 };
 
 /** Re-solve every CALCULATED member from the ENTERED ones — the domain's own solver. */
-export function solveVentGroup(mp: ManagedOpenISDProject, _box?: string): void {
+export function solveVentGroup(mp: ManagedOpenISDProject): void {
   mp.solveVentGroup();
 }
 
 /** Enter a vent-group field — held until an explicit `clearVentField`. One user action, one
  *  solve: the domain solves inside `enter()`, and the suspension parks the auto-solve watch. */
-export function enterVentField(mp: ManagedOpenISDProject, field: VentEntryField, value: number, _box?: string): void {
+export function enterVentField(mp: ManagedOpenISDProject, field: VentEntryField, value: number): void {
   suspendVentSolve(() => mp.enterProjectField(field as ProjectFieldId, value));
 }
 
 /** Clear a vent-group field — it becomes `C` if the remaining entered set determines it, `N`
  *  if nothing can. */
-export function clearVentField(mp: ManagedOpenISDProject, field: VentField, _box?: string): void {
+export function clearVentField(mp: ManagedOpenISDProject, field: VentField): void {
   suspendVentSolve(() => mp.clearProjectField(field));
 }
 
 /** `E` entered and locked · `C` calculated · `N` not available — the badge letter for the
  *  domain's own provenance. */
-export function ventFieldState(mp: ManagedOpenISDProject, field: VentField, _box?: string): 'E' | 'C' | 'N' {
+export function ventFieldState(mp: ManagedOpenISDProject, field: VentField): 'E' | 'C' | 'N' {
   return LETTER[mp.projectCell(field).state];
 }
 
 /** The tuning the CURRENT vent length actually delivers. */
-export function ventAchievedFb(mp: ManagedOpenISDProject, _box?: string): number | null {
+export function ventAchievedFb(mp: ManagedOpenISDProject): number | null {
   return mp.ventAchievedFb();
 }
 
 /** The highest tuning this volume and port area can reach with ANY vent (L = 0). */
-export function ventMaxReachableFb(mp: ManagedOpenISDProject, _box?: string): number | null {
+export function ventMaxReachableFb(mp: ManagedOpenISDProject): number | null {
   return mp.ventMaxReachableFb();
 }
 
 /** True when the solver cannot deliver the entered target tuning — see the domain method. */
-export function ventTargetUnreachable(mp: ManagedOpenISDProject, _box?: string): boolean {
+export function ventTargetUnreachable(mp: ManagedOpenISDProject): boolean {
   return mp.ventTargetUnreachable();
 }
 
@@ -70,11 +70,11 @@ export function ventTargetUnreachable(mp: ManagedOpenISDProject, _box?: string):
 // byte-identity: the solver would reproduce the calculated member from a value that was
 // rounded on the way to storage, landing on a different double. Restores therefore run
 // inside suspendVentSolve(), which parks the store's watcher while the assignment happens.
-let _suspended = false;
+let suspended = false;
 
 /** True while a restore is in flight — the store's watcher checks this and does not solve. */
 export function ventSolveSuspended(): boolean {
-  return _suspended;
+  return suspended;
 }
 
 /**
@@ -82,7 +82,7 @@ export function ventSolveSuspended(): boolean {
  * Re-entrant-safe and exception-safe: the flag is always cleared.
  */
 export function suspendVentSolve<T>(fn: () => T): T {
-  const prev = _suspended;
-  _suspended = true;
-  try { return fn(); } finally { _suspended = prev; }
+  const prev = suspended;
+  suspended = true;
+  try { return fn(); } finally { suspended = prev; }
 }

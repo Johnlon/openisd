@@ -340,7 +340,7 @@ function pinHere() {
   closeMenu();
 }
 
-function onDocClick(_e: Event) {
+function onDocClick() {
   if (ctxMenu.value.visible) closeMenu();
 }
 

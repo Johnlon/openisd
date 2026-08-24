@@ -14,7 +14,7 @@
  *
  * ── `OpenISDProjectJson` is PRIVATE ──
  * No instance of one ever leaves, and nor does the live `OpenISDDriver` inside it. A caller
- * reads with `cell()`/`metaCell()`/`toEngineDriver()`/`errors()`/`_snapshot()` and writes with
+ * reads with `cell()`/`metaCell()`/`toEngineDriver()`/`errors()`/`snapshot()` and writes with
  * `enter()`/`clear()`/`mutate()`. Handing the project out would let a caller change it behind
  * the facade — with no notification and no what-if guard — which is precisely what this class
  * exists to make impossible.
@@ -27,7 +27,7 @@
  *
  * ── A what-if never leaks into anything persistent ──
  * Its values are unverified against physical reality, so nothing outside the live overlay may
- * see them. `_recordToPersist()` — the ONLY route to a savable project — cancels an active
+ * see them. `projectToPersist()` — the ONLY route to a savable project — cancels an active
  * what-if itself. That is structural, not a rule call sites must remember: the defect it
  * replaces was a per-call-site guard that `shareLink()` was missing while every sibling had it.
  *
@@ -318,7 +318,7 @@ export class ManagedOpenISDProject {
   // ---- filters (parametric EQ chain) ----------------------------------------------------------
 
   /** A COPY of the filter chain — mutate it and call `setFilters()` to write it back, same
-   *  copy-out/write-back discipline as `_snapshot()`. Prefer `addFilter`/`removeFilter`/
+   *  copy-out/write-back discipline as `snapshot()`. Prefer `addFilter`/`removeFilter`/
    *  `setFilter(id, patch)` below for a single-filter change: this whole-array setter is for a
    *  caller legitimately replacing the WHOLE chain (a project restore), not a per-keystroke
    *  edit — a UI editing ONE filter's ONE field through a read-modify-write of this copy risks
@@ -397,7 +397,7 @@ export class ManagedOpenISDProject {
    * rather than the object itself, because handing out the object would be handing out the
    * state — the thing this class exists to prevent.
    */
-  _snapshot(): OpenISDProject {
+  snapshot(): OpenISDProject {
     return this.#effective().project.copy();
   }
 
@@ -427,7 +427,7 @@ export class ManagedOpenISDProject {
    * That cancellation is STRUCTURAL: this is the only route to a persistable project, so no
    * call site can forget it.
    */
-  _projectToPersist(): OpenISDProject {
+  projectToPersist(): OpenISDProject {
     this.#endWhatIfIfActive();
     return this.#committed.project.copy();
   }
@@ -530,7 +530,7 @@ export class ManagedOpenISDProject {
 
   /** The COMMITTED driver as persisted text (its own JSON serialisation) — what a save, a
    *  share link, or a ground fingerprint embeds. Cancels an active what-if first, the same
-   *  structural guard as `_projectToPersist()`. */
+   *  structural guard as `projectToPersist()`. */
   persistedDriverText(): string {
     this.#endWhatIfIfActive();
     return this.#committed.openIsdDriver.toOwdrText();

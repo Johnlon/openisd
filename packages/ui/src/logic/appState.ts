@@ -53,8 +53,8 @@ import { solvePrGroup } from './usePrGroup.js';
  * (`logic/managedProject.ts`), and the domain object for ONE project in the left nav.
  *
  * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
- * `.toEngineDriver()`/`.errors()`/`._snapshot()` to read; `.enter()`/`.clear()`/`.mutate()` to write;
- * `.beginWhatIf()`/`.cancelWhatIf()`/`.isWhatIfActive()` to manage a what-if. `._recordToPersist()`
+ * `.toEngineDriver()`/`.errors()`/`.snapshot()` to read; `.enter()`/`.clear()`/`.mutate()` to write;
+ * `.beginWhatIf()`/`.cancelWhatIf()`/`.isWhatIfActive()` to manage a what-if. `.projectToPersist()`
  * is separate again — it is what anything saved/exported/shared reads, and it never hands out a
  * live what-if: it cancels one first, so nothing unverified can reach disk. The
  * `OpenISDProjectJson` it wraps — and the `OpenISDDriver` inside that — are private to it and
@@ -75,50 +75,50 @@ const live = getOrInit('appState', '_live', () => createLiveRef(managedProject))
  * The multi-project registry (human ruling, 2026-08-18) — replaces `workspace.ts`'s ad-hoc
  * `WorkspaceEntry`/`OpenProject` and `OriginalShell.vue`'s local `openProjects`/
  * `activeProjectId` reimplementation as the ONE place "which projects are open, which is
- * focused" lives. `_projects[0]` starts as the same object `managedProject` already is — one
+ * focused" lives. `projects[0]` starts as the same object `managedProject` already is — one
  * project open, matching today's actual behaviour — so this is additive: existing code using
  * `managedProject` directly keeps working unchanged while new/refactored code reads through
  * `focusedProject()`. Rewiring `OriginalShell.vue`'s own multi-project UI onto this registry,
  * and deleting `workspace.ts`, is separate, larger follow-on work (REVIEW.md Phase 1.4/1.5) —
  * not done in this pass; flagged, not silently deferred.
  */
-const _projects = getOrInit('appState', '_projects', () => shallowRef<ManagedOpenISDProject[]>([managedProject]));
-const _focusedIndex = getOrInit('appState', '_focusedIndex', () => ref(0));
+const projects = getOrInit('appState', 'projects', () => shallowRef<ManagedOpenISDProject[]>([managedProject]));
+const focusedIndex = getOrInit('appState', 'focusedIndex', () => ref(0));
 
 /** Every open project. Empty array if none are open. */
-export function openProjects(): ManagedOpenISDProject[] { return _projects.value; }
+export function openProjects(): ManagedOpenISDProject[] { return projects.value; }
 
 /** The project currently focused in the UI's project list, or null if none are open. */
 export function focusedProject(): ManagedOpenISDProject | null {
-  return _projects.value[_focusedIndex.value] ?? null;
+  return projects.value[focusedIndex.value] ?? null;
 }
 
 /** Move focus to the project at `index` — called when the user changes the active project in
  *  the UI's project list. Out-of-range indices are ignored. */
 export function focusProject(index: number): void {
-  if (index < 0 || index >= _projects.value.length) return;
-  _focusedIndex.value = index;
+  if (index < 0 || index >= projects.value.length) return;
+  focusedIndex.value = index;
 }
 
 /** Remove the project at `index` from the registry. If the focused index is now past the end,
  *  it clamps to the new last project; if the registry is now empty, the index is left alone —
  *  `focusedProject()` already answers null for an out-of-range index, nothing to noop around. */
 export function removeProject(index: number): void {
-  if (index < 0 || index >= _projects.value.length) return;
+  if (index < 0 || index >= projects.value.length) return;
   // shallowRef: reassign a new array rather than splice in place, or the removal wouldn't
   // trigger reactivity — shallowRef only tracks .value replacement, not in-place mutation.
-  const next = _projects.value.slice();
+  const next = projects.value.slice();
   next.splice(index, 1);
-  _projects.value = next;
-  if (next.length > 0 && _focusedIndex.value >= next.length) {
-    _focusedIndex.value = next.length - 1;
+  projects.value = next;
+  if (next.length > 0 && focusedIndex.value >= next.length) {
+    focusedIndex.value = next.length - 1;
   }
 }
 
 /** Add a newly-created or re-imported project to the registry and focus it. */
 export function addProject(project: ManagedOpenISDProject): void {
-  _projects.value = [..._projects.value, project];
-  _focusedIndex.value = _projects.value.length - 1;
+  projects.value = [...projects.value, project];
+  focusedIndex.value = projects.value.length - 1;
 }
 
 function buildState(): AppState {
@@ -144,7 +144,7 @@ export const state: AppState = getOrInit('appState', 'state', () => reactive(bui
 // `live` (above) already fires on every managedProject mutation — box/vent/PR fields
 // included — so it is the one reactive dependency this needs; the group itself decides,
 // field by field, whether there is anything to solve (`ventDerivable`). Two guards:
-//   _solvingVent  — the solver's own write must not re-enter the watcher: `live` firing
+//   solvingVent  — the solver's own write must not re-enter the watcher: `live` firing
 //                   again from inside `solveVentGroup`'s own mutation would otherwise recurse.
 //   ventSolveSuspended() — a restore assigns a whole persisted snapshot and must be adopted
 //                   verbatim (docs/design/STATE_MODEL.md rule 3, "Cancel means byte-identical").
@@ -155,13 +155,13 @@ export const state: AppState = getOrInit('appState', 'state', () => reactive(bui
 // callback would never run. Passing the ref directly sets `forceTrigger`, which fires on every
 // `triggerRef` unconditionally, matching the "run on every notification" intent
 // (`BUG_20260822_pr_group_auto_solve_watch_never_fires_after_the_live_repoint.md`).
-let _solvingVent = false;
+let solvingVent = false;
 watch(
   [live, () => state.box],
   () => {
-    if (_solvingVent || ventSolveSuspended()) return;
-    _solvingVent = true;
-    try { solveVentGroup(managedProject, state.box); } finally { _solvingVent = false; }
+    if (solvingVent || ventSolveSuspended()) return;
+    solvingVent = true;
+    try { solveVentGroup(managedProject); } finally { solvingVent = false; }
   },
   // flush:'sync' is REQUIRED, not a preference. Vue's default 'pre' defers the callback to
   // the next tick, by which time suspendVentSolve() has already returned and cleared its
@@ -176,9 +176,9 @@ watch(
 watch(
   live,
   () => {
-    if (_solvingVent || ventSolveSuspended()) return;
-    _solvingVent = true;
-    try { solvePrGroup(managedProject); } finally { _solvingVent = false; }
+    if (solvingVent || ventSolveSuspended()) return;
+    solvingVent = true;
+    try { solvePrGroup(managedProject); } finally { solvingVent = false; }
   },
   { flush: 'sync', immediate: true },
 );
@@ -201,7 +201,7 @@ export function clearDriverField(field: SpecField): void {
 // The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
 // PRIVATE to this file's own sweep; every outside caller reads `managedProject.toEngineDriver()`
 // directly through `logic/liveProject.ts`'s reactivity adapter instead of an appState wrapper.
-function _engineDriver(): EngineDriver | null {
+function engineDriver(): EngineDriver | null {
   void live.value;
   return managedProject.toEngineDriver();
 }
@@ -233,7 +233,7 @@ export function openDriverPicker(): void {
   presentationState.browseOpen = true;
 }
 
-function _driverErrors(): DriverError[] {
+function driverErrors(): DriverError[] {
   void live.value;
   return managedProject.errors();
 }
@@ -256,43 +256,43 @@ export const syncedP = computed<SyncedParams>(() => {
   return resolveAirEnvironment(p, presentationState.ui.envDefaults);
 });
 
-const _curves = getOrInit('appState', '_curves', () => ref<SweepResult | null>(null));
-const _max    = getOrInit('appState', '_max', () => ref<MaxCurvesResult | null>(null));
-const _doSweep = () => {
-  const d = _engineDriver();
-  _curves.value = d ? sweep(d, state.box, syncedP.value) : null;
-  _max.value    = d ? maxCurves(d, state.box, syncedP.value) : null;
+const curves = getOrInit('appState', 'curves', () => ref<SweepResult | null>(null));
+const max    = getOrInit('appState', 'max', () => ref<MaxCurvesResult | null>(null));
+const doSweep = () => {
+  const d = engineDriver();
+  curves.value = d ? sweep(d, state.box, syncedP.value) : null;
+  max.value    = d ? maxCurves(d, state.box, syncedP.value) : null;
 };
-_doSweep();
+doSweep();
 // Leading-edge throttle (was a pure trailing debounce): the chart curves must
 // redraw DURING a held/rapid spinner drag, not only after release. A pure
-// `setTimeout(_doSweep, 80)` cleared on every change starves the sweep while the
+// `setTimeout(doSweep, 80)` cleared on every change starves the sweep while the
 // value keeps changing faster than 80ms, so the graph froze until you let go
 // (the bottom stat numbers, which read `driver`/`syncedP` directly, stayed live —
 // that mismatch was the tell). Here the first change runs immediately, then at
-// most once per _SWEEP_MS while changes keep coming, with a trailing run to catch
+// most once per SWEEP_MS while changes keep coming, with a trailing run to catch
 // the final value.
-const _SWEEP_MS = 32;   // ~30 fps — live-feeling without resweeping every event
-let _sweepTimer: ReturnType<typeof setTimeout> | null = null;
-let _lastSweep = 0;
-function _scheduleSweep(): void {
+const SWEEP_MS = 32;   // ~30 fps — live-feeling without resweeping every event
+let sweepTimer: ReturnType<typeof setTimeout> | null = null;
+let lastSweep = 0;
+function scheduleSweep(): void {
   const now = performance.now();
-  const wait = _SWEEP_MS - (now - _lastSweep);
+  const wait = SWEEP_MS - (now - lastSweep);
   if (wait <= 0) {
-    if (_sweepTimer) { clearTimeout(_sweepTimer); _sweepTimer = null; }
-    _lastSweep = now;
-    _doSweep();
-  } else if (_sweepTimer === null) {
-    _sweepTimer = setTimeout(() => {
-      _sweepTimer = null;
-      _lastSweep = performance.now();
-      _doSweep();
+    if (sweepTimer) { clearTimeout(sweepTimer); sweepTimer = null; }
+    lastSweep = now;
+    doSweep();
+  } else if (sweepTimer === null) {
+    sweepTimer = setTimeout(() => {
+      sweepTimer = null;
+      lastSweep = performance.now();
+      doSweep();
     }, wait);
   }
 }
-watch([_engineDriver, syncedP, () => state.box], _scheduleSweep);
-export const curvesData = _curves;
-export const maxData    = _max;
+watch([engineDriver, syncedP, () => state.box], scheduleSweep);
+export const curvesData = curves;
+export const maxData    = max;
 
 // Postcondition (hardening): a valid driver can still yield a non-finite sweep at
 // some frequency (a numerical singularity the input guards can't foresee). Classify
@@ -300,7 +300,7 @@ export const maxData    = _max;
 // issue channel as deriveEngineDriver's errors. Empty when the driver is invalid (no sweep)
 // or the sweep is clean.
 const curveIssues = computed<DriverError[]>(() => {
-  const sw = _curves.value, mx = _max.value;
+  const sw = curves.value, mx = max.value;
   if (!sw) return [];
   // classifyFinite: a singularity made the curve undrawable. classifyMaxFinite: the same
   // question asked of the Max-SPL/Max-power pair, which is computed after the sweep and can
@@ -320,7 +320,7 @@ export const paramIssues = computed<DriverError[]>(() => validateParams(state.bo
 // The full issue list the UI shows: driver-derivation issues + box-parameter issues +
 // sweep/max-curve finiteness issues.
 export const allIssues = computed<DriverError[]>(
-  () => [..._driverErrors(), ...paramIssues.value, ...curveIssues.value]);
+  () => [...driverErrors(), ...paramIssues.value, ...curveIssues.value]);
 
 // ---- Project state: ground ↔ modified layer (docs/design/STATE_MODEL.md) ----------------------
 // A project fingerprint captures the whole design (box + params + driver). "Ground" is
@@ -336,20 +336,20 @@ function projectFingerprint(): string {
     box: state.box, P: managedProject.toUiParams(), driver: persistedDriver.value, project: state.project,
   });
 }
-const _ground = getOrInit('appState', '_ground', () => ref(projectFingerprint()));
+const ground = getOrInit('appState', 'ground', () => ref(projectFingerprint()));
 /** True when the live design differs from the last loaded/saved (ground) state. */
-export const isModified = computed<boolean>(() => _ground.value !== projectFingerprint());
+export const isModified = computed<boolean>(() => ground.value !== projectFingerprint());
 /** Adopt the current design as ground (call after load, and after a successful save). */
-export function markProjectSaved(): void { _ground.value = projectFingerprint(); }
+export function markProjectSaved(): void { ground.value = projectFingerprint(); }
 /** The current ground checkpoint, opaque — for embedding in a saved project record
  *  (openProjects) alongside the design it belongs to. */
-export function groundCheckpoint(): string { return _ground.value; }
+export function groundCheckpoint(): string { return ground.value; }
 /** Restore a previously-saved ground checkpoint — used when switching the active project
  *  among several open designs, each with its own ground. */
-export function restoreGroundCheckpoint(value: string): void { _ground.value = value; }
+export function restoreGroundCheckpoint(value: string): void { ground.value = value; }
 /** Discard unsaved changes: restore the design to the ground state. */
 export function resetProjectToGround(): void {
-  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: string; project?: any };
+  const g = JSON.parse(ground.value) as { box: BoxType; P: UiParams; driver: string; project?: any };
   // Adopt the stored params verbatim. The ground snapshot already holds BOTH vent-group
   // members and the entered set, so there is nothing to re-solve — and re-solving is exactly
   // what breaks "Cancel means byte-identical" (docs/design/STATE_MODEL.md rule 3): the solver would
@@ -418,12 +418,12 @@ export function copyProjectName(taken: readonly string[]): string {
 }
 
 /** The open design, as the domain object every save/share door persists — the managed layer's
- *  own persist-safe copy (`_projectToPersist()`, which cancels an active what-if itself). No
+ *  own persist-safe copy (`projectToPersist()`, which cancels an active what-if itself). No
  *  field is re-gathered by hand: `OpenISDProject` already IS params + box + meta + driver
  *  together, so a second, parallel struct duplicating those fields would be a second answer to
  *  the same question. */
 export function currentProject(): OpenISDProject {
-  return managedProject._projectToPersist();
+  return managedProject.projectToPersist();
 }
 
 /** The live presentation state as the repo's view shape — read directly by the share-link

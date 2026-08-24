@@ -38,7 +38,7 @@ function trial(targetFb: number): void {
   managedProject.setActiveVentField('diameter_m', 0.05);
   managedProject.setActiveVentField('endCorrection', 0.6);
   managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
-  enterVentFieldOn(managedProject, 'Fb', targetFb, state.box);
+  enterVentFieldOn(managedProject, 'Fb', targetFb);
 }
 
 describe('vent target reachability — an unreachable tuning must surface, not hide', () => {
@@ -49,25 +49,25 @@ describe('vent target reachability — an unreachable tuning must surface, not h
 
   it('a reachable target is delivered exactly by the solved length', () => {
     trial(40);
-    const achieved = ventAchievedFb(managedProject, state.box);
+    const achieved = ventAchievedFb(managedProject);
     assert.ok(achieved != null && Math.abs(achieved - 40) < 1e-6,
       `solved length ${managedProject.activeVentField('length_m').toFixed(4)} m tunes to ${achieved?.toFixed(4)} Hz, target 40`);
-    assert.equal(ventTargetUnreachable(managedProject, state.box), false);
+    assert.equal(ventTargetUnreachable(managedProject), false);
   });
 
   it('THE UNREACHABLE TEST — the solved length goes NEGATIVE and is reported, not floored', () => {
     trial(90);
     assert.ok(managedProject.activeVentField('length_m') < 0,
       `90 Hz needs L = ${(managedProject.activeVentField('length_m') * 1000).toFixed(2)} mm — a floor here would hide the failure`);
-    assert.equal(ventTargetUnreachable(managedProject, state.box), true,
+    assert.equal(ventTargetUnreachable(managedProject), true,
       '90 Hz on a 30 L box with a 5 cm vent is above the L = 0 ceiling');
-    assert.equal(ventAchievedFb(managedProject, state.box), null,
+    assert.equal(ventAchievedFb(managedProject), null,
       'a negative length has no achieved tuning to quote');
   });
 
   it('names the true ceiling — the L = 0 tuning, not an arbitrary shortest vent', () => {
     trial(90);
-    const ceiling = ventMaxReachableFb(managedProject, state.box);
+    const ceiling = ventMaxReachableFb(managedProject);
     assert.ok(ceiling != null && Math.abs(ceiling - CEILING_HZ) < 1e-6,
       `ceiling ${ceiling?.toFixed(4)} Hz, expected ${CEILING_HZ.toFixed(4)}`);
   });
@@ -75,17 +75,17 @@ describe('vent target reachability — an unreachable tuning must surface, not h
   it('THE BOUNDARY — just below the ceiling is reachable, just above it is not', () => {
     trial(CEILING_HZ * 0.999);
     assert.ok(managedProject.activeVentField('length_m') > 0, 'just below the ceiling the length is positive');
-    assert.equal(ventTargetUnreachable(managedProject, state.box), false);
+    assert.equal(ventTargetUnreachable(managedProject), false);
 
     trial(CEILING_HZ * 1.001);
     assert.ok(managedProject.activeVentField('length_m') < 0, 'just above the ceiling the length is negative');
-    assert.equal(ventTargetUnreachable(managedProject, state.box), true);
+    assert.equal(ventTargetUnreachable(managedProject), true);
   });
 
   it('an ENTERED length is the user\'s own choice — never reported as unreachable', () => {
     trial(90);
-    enterVentFieldOn(managedProject, 'ventL', 0.005, state.box);
-    assert.equal(ventTargetUnreachable(managedProject, state.box), false,
+    enterVentFieldOn(managedProject, 'ventL', 0.005);
+    assert.equal(ventTargetUnreachable(managedProject), false,
       'both members entered: the solver does not run, so there is no solver claim to contradict');
   });
 
@@ -97,15 +97,15 @@ describe('vent target reachability — an unreachable tuning must surface, not h
     managedProject.setActiveVentField('diameter_m', 0.05);
     managedProject.setActiveVentField('endCorrection', 0.6);
     managedProject.setEnteredSet({ ventD: true, Fb: true });
-    enterVentFieldOn(managedProject, 'Fb', 40, state.box);
+    enterVentFieldOn(managedProject, 'Fb', 40);
 
-    const achieved = ventAchievedFb(managedProject, state.box);
+    const achieved = ventAchievedFb(managedProject);
     assert.ok(achieved != null && Math.abs(achieved - 40) < 1e-6,
       `front-chamber solve must use Vf: got ${achieved?.toFixed(4)} Hz`);
-    assert.equal(ventTargetUnreachable(managedProject, state.box), false);
+    assert.equal(ventTargetUnreachable(managedProject), false);
 
     managedProject.enterProjectField('Vf', 0.03);   // now the same geometry as the unreachable single-chamber case
-    enterVentFieldOn(managedProject, 'Fb', 90, state.box);
-    assert.equal(ventTargetUnreachable(managedProject, state.box), true);
+    enterVentFieldOn(managedProject, 'Fb', 90);
+    assert.equal(ventTargetUnreachable(managedProject), true);
   });
 });

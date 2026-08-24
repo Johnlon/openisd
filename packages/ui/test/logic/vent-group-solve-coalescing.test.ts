@@ -36,7 +36,7 @@ describe('vent/PR group writes coalesce to exactly the writes made, never an ext
   });
 
   it('enterVentField(Fb) — value write + provenance write + one solve write, no more', () => {
-    const count = countNotifications(() => enterVentFieldOn(managedProject, 'Fb', 40, state.box));
+    const count = countNotifications(() => enterVentFieldOn(managedProject, 'Fb', 40));
     // setBoxTuning_Fb_hz + setEntered('Fb') + solveVentGroup's own ventL write = 3.
     // Before the fix (trailing solve outside suspension) this counted 4: the store's
     // auto-solve watch, unsuspended by the time the solve's own write landed, ran a second,
@@ -51,8 +51,8 @@ describe('vent/PR group writes coalesce to exactly the writes made, never an ext
     // sole entered member and Fb genuinely becomes the CALCULATED one — otherwise nothing is
     // derivable after the clear and the solve step is a real no-op (a different, equally
     // valid scenario, but not one that exercises a solve write).
-    enterVentFieldOn(managedProject, 'ventL', 0.15, state.box);
-    const count = countNotifications(() => clearVentFieldOn(managedProject, 'Fb', state.box));
+    enterVentFieldOn(managedProject, 'ventL', 0.15);
+    const count = countNotifications(() => clearVentFieldOn(managedProject, 'Fb'));
     assert.equal(count, 1,
       `expected exactly 1 notification (one domain transaction) — got ${count}`);
   });

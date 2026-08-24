@@ -42,13 +42,13 @@ const neverPicksAFile: FileStorage = {
 const restoreRepo = createProjectRepo(createMemoryStorage(), projectSchema, neverPicksAFile);
 
 function enterVentField(field: Parameters<typeof enterVentFieldOn>[1], value: number): void {
-  enterVentFieldOn(managedProject, field, value, state.box);
+  enterVentFieldOn(managedProject, field, value);
 }
 function clearVentField(field: Parameters<typeof clearVentFieldOn>[1]): void {
-  clearVentFieldOn(managedProject, field, state.box);
+  clearVentFieldOn(managedProject, field);
 }
 function ventFieldState(field: Parameters<typeof ventFieldStateOn>[1]): 'E' | 'C' | 'N' {
-  return ventFieldStateOn(managedProject, field, state.box);
+  return ventFieldStateOn(managedProject, field);
 }
 function ventL(): number { return managedProject.activeVentField('length_m'); }
 
@@ -77,7 +77,7 @@ describe('vent group — the entered set decides the direction', () => {
       `d=5cm → ${ventL().toFixed(4)} m, WinISD shows 0.154`);
 
     managedProject.setActiveVentField('diameter_m', 0.07);
-    solveVentGroup(managedProject, state.box);
+    solveVentGroup(managedProject);
     assert.ok(Math.abs(ventL() - 0.318) < 0.001,
       `d=7cm → ${ventL().toFixed(4)} m, WinISD shows 0.318`);
   });
@@ -87,7 +87,7 @@ describe('vent group — the entered set decides the direction', () => {
     const lenBefore = ventL();
 
     managedProject.setActiveVentField('diameter_m', 0.07);
-    solveVentGroup(managedProject, state.box);
+    solveVentGroup(managedProject);
 
     assert.equal(managedProject.projectCell('Fb').value, 40, 'an entered tuning must never be rewritten by the solver');
     assert.notEqual(ventL(), lenBefore, 'the length must absorb the diameter change');
@@ -102,7 +102,7 @@ describe('vent group — the entered set decides the direction', () => {
     assert.equal(ventFieldState('Fb'), 'C');
 
     managedProject.setActiveVentField('diameter_m', 0.07);
-    solveVentGroup(managedProject, state.box);
+    solveVentGroup(managedProject);
     assert.equal(ventL(), 0.154, 'an entered length must never be rewritten');
     assert.notEqual(managedProject.projectCell('Fb').value, 40, 'now the TUNING absorbs the diameter change');
   });
@@ -141,7 +141,7 @@ describe('vent group — the entered set decides the direction', () => {
     assert.equal(ventFieldState('ventL'), 'E');
 
     managedProject.setActiveVentField('diameter_m', 0.07);
-    solveVentGroup(managedProject, state.box);
+    solveVentGroup(managedProject);
     assert.equal(managedProject.projectCell('Fb').value, 40, 'entered values are held even when they contradict');
     assert.equal(ventL(), 0.999);
   });

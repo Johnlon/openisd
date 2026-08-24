@@ -14,7 +14,7 @@
  *
  * Known limit of the `void`-return mutator definition: a mutator that returns a VALUE (e.g. a
  * builder-style method returning `this`, or one returning the field it just wrote) would not be
- * classified as a mutator at all and would evade this gate entirely. `_projectToPersist()` IS
+ * classified as a mutator at all and would evade this gate entirely. `projectToPersist()` IS
  * such a method today — it returns `OpenISDProjectJson`, and mutates: it cancels an active
  * what-if (`#endWhatIfIfActive()`), which reaches `#notify()`. The gate's void-only filter skips
  * it, so its own reachability check never runs on it; it happens to notify anyway (traced above),

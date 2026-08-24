@@ -158,15 +158,15 @@ const boxResonance = computed<number | null>(() => {
 // The four below are READ-ONLY derived values shown in more than one place (E/C/N badges,
 // warning banners) — genuinely DERIVED state, not a get+set mirror of a single field, so a
 // named computed is the right home for them (same shape as `sealedRes`/`boxResonance` above).
-const fbState    = computed<'E' | 'C' | 'N'>(() => { void live.value; return ventFieldStateOn(managedProject, 'Fb', state.box); });
-const ventLState = computed<'E' | 'C' | 'N'>(() => { void live.value; return ventFieldStateOn(managedProject, 'ventL', state.box); });
+const fbState    = computed<'E' | 'C' | 'N'>(() => { void live.value; return ventFieldStateOn(managedProject, 'Fb'); });
+const ventLState = computed<'E' | 'C' | 'N'>(() => { void live.value; return ventFieldStateOn(managedProject, 'ventL'); });
 // What the port solver can actually deliver. `ventLength()` returns the raw signed root, so a
 // target above the L = 0 ceiling comes back as a NEGATIVE length — invisible while the LENGTH
 // was the input, user-facing now the TARGET is (GAPS.md §A1). The tooltip on the target field
 // promises the port is designed to it; when it cannot be, the pane says so and names the
 // highest tuning this volume and vent area can actually reach.
-const fbUnreachable = computed(() => { void live.value; return ventTargetUnreachableOn(managedProject, state.box); });
-const fbCeiling     = computed(() => { void live.value; return ventMaxReachableFbOn(managedProject, state.box); });
+const fbUnreachable = computed(() => { void live.value; return ventTargetUnreachableOn(managedProject); });
+const fbCeiling     = computed(() => { void live.value; return ventMaxReachableFbOn(managedProject); });
 /** Explains the miss in the user's own terms, on both the Box tab and the Vents tab. */
 const fbUnreachableMsg = computed(() =>
   `Target not reachable: no vent of this diameter in this volume tunes above `
@@ -370,7 +370,7 @@ watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure'
 /** One tab's worth of open design — a snapshot of everything the editor holds live,
  *  parked here while another tab is active. `driver` is the managed layer's own persisted
  *  TEXT (never an `EngineDriver`/private record — QO73), reloaded via
- *  `managedProject.loadDriverFromPersistedText()` on tab switch. `_ground` is the JSON
+ *  `managedProject.loadDriverFromPersistedText()` on tab switch. `ground` is the JSON
  *  checkpoint string `restoreGroundCheckpoint()` accepts. */
 interface ProjectRow {
   id: string;
@@ -381,7 +381,7 @@ interface ProjectRow {
   curves: SweepResult | null;
   maxCurves: MaxCurvesResult | null;
   project: OpenISDProjectMeta;
-  _ground: string;
+  ground: string;
   isModified: boolean;
   visible: boolean;
   color?: string;
@@ -402,7 +402,7 @@ onMounted(() => {
       curves: curvesData.value,
       maxCurves: maxData.value,
       project: { ...state.project },
-      _ground: groundCheckpoint(),
+      ground: groundCheckpoint(),
       isModified: isModified.value,
       visible: true,
       color: WINISD_TRACE.value,
@@ -423,7 +423,7 @@ watch([() => state.box, live, () => persistedDriver.value, curvesData, maxData, 
     activeItem.maxCurves = maxData.value;
     activeItem.name = state.project.name || driverName.value;
     activeItem.project = { ...state.project };
-    activeItem._ground = groundCheckpoint();
+    activeItem.ground = groundCheckpoint();
     activeItem.isModified = isModified.value;
     // NOT visible: that is the row's own fact, set only by its checkbox. Re-deriving it
     // here from a second copy is what made the checkbox spring back on some projects.
@@ -460,7 +460,7 @@ function syncActiveRowFromStore() {
     maxCurves: maxData.value,
     name: state.project.name || driverName.value,
     project: { ...state.project },
-    _ground: groundCheckpoint(),
+    ground: groundCheckpoint(),
     isModified: isModified.value,
   });
 }
@@ -488,7 +488,7 @@ function selectProject(p: ProjectRow) {
   const targetProj = targetDesign.project ? targetDesign.project : { name: targetDesign.name || '', creator: '', created: '', modified: '', description: '' };
   Object.assign(state.project, targetProj);
 
-  restoreGroundCheckpoint(targetDesign._ground || JSON.stringify({ box: state.box, P: managedProject.toUiParams(), driver: persistedDriver.value, project: state.project }));
+  restoreGroundCheckpoint(targetDesign.ground || JSON.stringify({ box: state.box, P: managedProject.toUiParams(), driver: persistedDriver.value, project: state.project }));
   activeProjectId.value = targetDesign.id;
 
   isSwapping = false;
@@ -516,7 +516,7 @@ function copyCurrentProject() {
     maxCurves: maxData.value,
     name: copyName,
     project: { ...state.project, name: copyName },
-    _ground: groundCheckpoint(),
+    ground: groundCheckpoint(),
     isModified: true, // copy is unsaved
     color: DPAL[(openProjects.value.length) % DPAL.length],
     visible: true,
@@ -538,7 +538,7 @@ function openNewProject() {
     curves: curvesData.value,
     maxCurves: maxData.value,
     project: { ...state.project },
-    _ground: groundCheckpoint(),
+    ground: groundCheckpoint(),
     isModified: false,
     color: DPAL[openProjects.value.length % DPAL.length],
     visible: true,
@@ -958,7 +958,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="live && managedProject.projectCell('Fb').value" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb', state.box); else enterVentFieldOn(managedProject, 'Fb', v, state.box); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="live && managedProject.projectCell('Fb').value" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb'); else enterVentFieldOn(managedProject, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                   <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(live && managedProject.projectCell('Fb').value, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
@@ -998,7 +998,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div v-if="fbState === 'E'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <NumInput id="og-ffc-target" :model-value="live && managedProject.projectCell('Fb').value" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb', state.box); else enterVentFieldOn(managedProject, 'Fb', v, state.box); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput id="og-ffc-target" :model-value="live && managedProject.projectCell('Fb').value" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb'); else enterVentFieldOn(managedProject, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-ffc-target-field" class="field" :title="FB_TARGET_TIP">
@@ -1110,14 +1110,14 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                   <div class="field-row">
                     <div class="field entered">
                       <label>Slot width</label>
-                      <NumInput :model-value="live && managedProject.activeVentField('width_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventW', v ?? 0, state.box)" field="ventW" group="length" base="cm" :precision="fieldDp('ventW')" />
+                      <NumInput :model-value="live && managedProject.activeVentField('width_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventW', v ?? 0)" field="ventW" group="length" base="cm" :precision="fieldDp('ventW')" />
                       <UnitToggle field="ventW" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
                   <div class="field-row">
                     <div class="field entered">
                       <label>Slot height</label>
-                      <NumInput :model-value="live && managedProject.activeVentField('height_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventH', v ?? 0, state.box)" field="ventH" group="length" base="cm" :precision="fieldDp('ventH')" />
+                      <NumInput :model-value="live && managedProject.activeVentField('height_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventH', v ?? 0)" field="ventH" group="length" base="cm" :precision="fieldDp('ventH')" />
                       <UnitToggle field="ventH" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -1126,7 +1126,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                   <div class="field-row">
                     <div class="field entered">
                       <label>Vent diameter</label>
-                      <NumInput :model-value="live && managedProject.activeVentField('diameter_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventD', v ?? 0, state.box)" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" />
+                      <NumInput :model-value="live && managedProject.activeVentField('diameter_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventD', v ?? 0)" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" />
                       <UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -1135,7 +1135,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div v-if="ventLState === 'E'" class="field entered">
                     <label>Vent length</label>
-                    <NumInput :model-value="live && managedProject.activeVentField('length_m')" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'ventL', state.box); else enterVentFieldOn(managedProject, 'ventL', v, state.box); }" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" />
+                    <NumInput :model-value="live && managedProject.activeVentField('length_m')" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'ventL'); else enterVentFieldOn(managedProject, 'ventL', v); }" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" />
                     <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else class="field">
@@ -1164,7 +1164,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div v-if="fbState === 'E'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <NumInput id="og-vent-fb-target" :model-value="live && managedProject.projectCell('Fb').value" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb', state.box); else enterVentFieldOn(managedProject, 'Fb', v, state.box); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput id="og-vent-fb-target" :model-value="live && managedProject.projectCell('Fb').value" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb'); else enterVentFieldOn(managedProject, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">

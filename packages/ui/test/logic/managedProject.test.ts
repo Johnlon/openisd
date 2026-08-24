@@ -174,11 +174,11 @@ describe('ManagedOpenISDProject — the overlay covers the WHOLE design', () => 
     const mp = managed();
     mp.beginWhatIf();
     mp.mutate(p => p.set('Vb', 0.075));
-    assert.equal(mp._snapshot().cell('Vb').value, 0.075, 'the overlay shows the scrub');
+    assert.equal(mp.snapshot().cell('Vb').value, 0.075, 'the overlay shows the scrub');
 
     mp.cancelWhatIf();
 
-    assert.equal(mp._snapshot().cell('Vb').value, 0.030,
+    assert.equal(mp.snapshot().cell('Vb').value, 0.030,
       'Vb is IN the overlay, so cancelling restores it. This is what deletes OgTune.vue\'s ' +
       'vbSnapshot: no panel needs to remember one field by hand.');
   });
@@ -192,18 +192,18 @@ describe('ManagedOpenISDProject — the overlay covers the WHOLE design', () => 
     mp.cancelWhatIf();
 
     assert.equal(mp.cell('Fs').value, 37);
-    assert.equal(mp._snapshot().cell('Vb').value, 0.030);
+    assert.equal(mp.snapshot().cell('Vb').value, 0.030);
   });
 });
 
 describe('ManagedOpenISDProject — a what-if never leaks into anything persistent', () => {
-  it('_projectToPersist() cancels an active what-if itself', () => {
+  it('projectToPersist() cancels an active what-if itself', () => {
     const mp = managed();
     mp.beginWhatIf();
     mp.enter('Fs', 99);
     mp.mutate(p => p.set('Vb', 0.075));
 
-    const saved = mp._projectToPersist();
+    const saved = mp.projectToPersist();
 
     assert.equal(mp.isWhatIfActive(), false, 'a save must never observe the live overlay');
     assert.equal(slotOf(saved, 'vented').cell('Vb').value, 0.030, 'committed state was never touched');
@@ -214,10 +214,10 @@ describe('ManagedOpenISDProject — a what-if never leaks into anything persiste
 describe('ManagedOpenISDProject — the project never leaves', () => {
   it('snapshot() hands back a COPY: mutating it changes nothing inside', () => {
     const mp = managed();
-    const snap = mp._snapshot();
+    const snap = mp.snapshot();
     snap.set('Vb', 999);
 
-    assert.equal(mp._snapshot().cell('Vb').value, 0.030,
+    assert.equal(mp.snapshot().cell('Vb').value, 0.030,
       'if a snapshot were the live object, every caller would be a second writer with no ' +
       'notification and no what-if guard');
   });
@@ -230,7 +230,7 @@ describe('ManagedOpenISDProject — the project never leaves', () => {
     mp.mutate(p => p.set('Vb', 0.080));
     mp.resetOverlayToGround();
 
-    assert.equal(mp._snapshot().cell('Vb').value, 0.030,
+    assert.equal(mp.snapshot().cell('Vb').value, 0.030,
       'STATE_MODEL.md rule 5 — Reset returns to the design as loaded, not to committed');
   });
 });
@@ -254,7 +254,7 @@ describe('ManagedOpenISDProject — an empty (unfilled) driver', () => {
     mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
 
     assert.equal(mp.cell('Fs').value, 37);
-    assert.equal(slotOf(mp._snapshot(), 'vented').cell('Vb').value, 0.044,
+    assert.equal(slotOf(mp.snapshot(), 'vented').cell('Vb').value, 0.044,
       'the user picked a driver, not a new design');
   });
 });
