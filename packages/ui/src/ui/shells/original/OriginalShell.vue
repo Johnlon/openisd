@@ -978,7 +978,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="field entered">
                     <label>Tuning freq (Frc)</label>
-                    <NumInput :model-value="live && managedProject.frcHz()" @update:model-value="v => managedProject.setFrcHz(v ?? 0)" field="Frc" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput :model-value="live && managedProject.projectCell('frcHz').value" @update:model-value="v => managedProject.enterProjectField('frcHz', v ?? 0)" field="Frc" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Frc" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else class="field">

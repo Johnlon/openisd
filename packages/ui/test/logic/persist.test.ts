@@ -262,6 +262,7 @@ describe('UiParams round-trips losslessly through the repo and applyLoadedProjec
     managedProject.setPrField('Cms_m_per_N', 0.0007);
     managedProject.setPrField('Rms_Ns_per_m', 0.6);
     managedProject.setPrField('Xmax_m', 0.006);
+    managedProject.enterProjectField('frcHz', 111111);
     managedProject.enterProjectField('Ql', 9);
     managedProject.enterProjectField('Qa', 95);
     managedProject.enterProjectField('Qp', 105);

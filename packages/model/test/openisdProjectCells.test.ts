@@ -27,7 +27,7 @@ function corruptibleRecord(): OpenISDProjectJson {
       vented: { volume_m3: 0.02, Fb_hz: 45, vents: [vent] },
       bandpass4: { rearVolume_m3: 0, frontVolume_m3: 0, Ff_hz: 0, vents: [{ ...vent }] },
       passiveRadiator: { volume_m3: 0, Fp_hz: 0, count: 1, addedMass_kg: 0 },
-      Ql: 10, Qa: 100, Qp: 100,
+      Ql: 10, Qa: 100, Qp: 100, frcHz: 0,
     },
     target: { entered: {} as Record<string, true> },
     filters: [],
@@ -263,5 +263,21 @@ describe('the PR datasheet vocabulary is the domain\'s own keyed surface (P4a)',
   it('prFsMass is derived and refuses entry, naming the real knobs', () => {
     const p = prProject();
     assert.throws(() => p.enter('prFsMass', 25), /enter prFp .* or prMadd/);
+  });
+});
+
+describe('frcHz — relation-less like Vf/Ql/Qa/Qp, never solved (bugs/BUG_20260823 fix)', () => {
+  it('a fresh project reads frcHz as Entered with the documented default, not the old 50 stub', () => {
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
+    const cell = p.cell('frcHz');
+    assert.equal(cell.state, Provenance.Entered, 'stated by the prototype, never solved');
+    assert.equal(cell.value, 0, 'unset — matches every other un-wizarded box value (prototypeBox)');
+  });
+
+  it('entering frcHz holds the value and reads it back verbatim', () => {
+    const p = OpenISDProject.empty(OpenISDDriver.empty());
+    p.enter('frcHz', 111111);
+    assert.equal(p.cell('frcHz').value, 111111);
+    assert.equal(p.cell('frcHz').state, Provenance.Entered);
   });
 });

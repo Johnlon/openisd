@@ -171,6 +171,22 @@ test('the Color button cycles the current design trace colour (and wraps)', asyn
   expect(await bg()).toBe(before);
 });
 
+test('the 6th-order-bandpass Frc field persists a typed value instead of discarding it (BUG_20260823)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('select#og-box-type').selectOption('bandpass6');
+  const frc = page.locator('.field', { hasText: 'Tuning freq (Frc)' }).locator('input');
+  await frc.click();
+  await frc.fill('222222');
+  await frc.blur();
+  await expect(frc).toHaveValue(/^222222(\.0+)?$/); // 2-dp display formatting, not the bug
+  const stored = await page.evaluate(async () => {
+    const modPath = '/src/logic/appState.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.managedProject.projectCell('frcHz').value;
+  });
+  expect(stored).toBe(222222); // model actually holds it, not just the local input's own state
+});
+
 test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('select#og-box-type').selectOption('bandpass4');

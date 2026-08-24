@@ -46,7 +46,7 @@ export type ProjectFieldId =
   // Relation-less registered fields — one name each, the registry's own symbol. All are
   // Entered by the prototype-stater rule (QO36-B4): the prototype or the user stated them,
   // nothing ever solves them.
-  | 'Vf' | 'Ql' | 'Qa' | 'Qp' | 'endCorrection'
+  | 'Vf' | 'Ql' | 'Qa' | 'Qp' | 'endCorrection' | 'frcHz'
   | 'advTemp' | 'advHumidity' | 'advPressure'
   | 'Pin' | 'Rs' | 'nDrivers' | 'vcTempRise' | 'driverAddedMass'
   // The radiator's own facts (SI), and its datasheet vocabulary — Vas/Fs/Qms are DERIVED
@@ -84,7 +84,7 @@ function assertVentArity(box: OpenISDBox): void {
 const litresToM3 = (litres: number): number => litres / 1000;
 const m3ToLitres = (m3: number): number => m3 * 1000;
 
-const RELATIONLESS: ReadonlySet<string> = new Set(['Vf','Ql','Qa','Qp','endCorrection','advTemp','advHumidity','advPressure','Pin','Rs','nDrivers','vcTempRise','driverAddedMass']);
+const RELATIONLESS: ReadonlySet<string> = new Set(['Vf','Ql','Qa','Qp','endCorrection','frcHz','advTemp','advHumidity','advPressure','Pin','Rs','nDrivers','vcTempRise','driverAddedMass']);
 
 /** Which alignment is ACTIVE. The others stay populated and dormant. */
 export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator';
@@ -211,6 +211,10 @@ export interface OpenISDBox {
   Ql: number;
   Qa: number;
   Qp: number;
+  /** Rear-chamber tuning target (WinISD: Frc) — read/written by 6th-order bandpass and ABC's
+   *  Box tab (both unbuilt, ledger QO44/QO85). Box-level like Ql/Qa/Qp: stored regardless of
+   *  which alignment is active, because nothing about it depends on one existing. */
+  frcHz: number;
 }
 
 /**
@@ -384,6 +388,10 @@ function prototypeBox(): OpenISDBox {
     // so they sit here and survive every switch. These three are NOT invented: WinISD itself
     // writes Ql=10, Qa=100, Qp=100 — see test/fixtures/winisd-parity/goldens/bandpass4.wpr:69.
     Ql: 10, Qa: 100, Qp: 100,
+    // TODO(box-wizard): rear-chamber tuning, calculated from driver + alignment once
+    // 6th-order bandpass/ABC exist (QO44/QO85). Unset until then, same as every other
+    // un-wizarded box value above — not a plausible invented number.
+    frcHz: 0,
   };
 }
 
@@ -498,14 +506,14 @@ function prototypeProject(driver: OpenISDDriver): ProjectLiveState {
     driver,
     box: prototypeBox(),
     // WinISD's direction: volume, diameter and tuning are typed; vent length is returned.
-    // `Frc` has no OpenISDBox home yet (no 6th-order alignment exists — QO44) and is carried
-    // here as a bare flag with no corresponding value; `prMadd` is the PR's own entered
-    // member — added mass is typed, its tuning solved. `ventW`/`ventH` mark round-vent
-    // dimensions entered even though only a slotted vent solves against them, matching what
-    // ships: `ventFieldState` reads this set for EVERY vent field's E/C/N badge, not only the
-    // ones the Helmholtz solver consumes.
+    // `prMadd` is the PR's own entered member — added mass is typed, its tuning solved.
+    // `ventW`/`ventH` mark round-vent dimensions entered even though only a slotted vent
+    // solves against them, matching what ships: `ventFieldState` reads this set for EVERY
+    // vent field's E/C/N badge, not only the ones the Helmholtz solver consumes. `frcHz` is
+    // relation-less (RELATIONLESS set) so it needs no entry here — `cell()` reports it
+    // Entered unconditionally, same as Vf/Ql/Qa/Qp.
     target: { entered: {
-      Vb: true, ventD: true, ventW: true, ventH: true, Fb: true, Frc: true, prMadd: true,
+      Vb: true, ventD: true, ventW: true, ventH: true, Fb: true, prMadd: true,
     } },
     filters: [],
     environment: {
@@ -559,8 +567,9 @@ export interface UiParams {
   ventL: number;
   /** Box tuning. Tied to Vb/ventD/ventL by one Helmholtz relation — see `entered`. */
   Fb: number;
-  /** Rear chamber tuning frequency (e.g. for bandpass6) */
-  Frc?: number;
+  /** Rear-chamber tuning target — WinISD: Frc, for 6th-order bandpass/ABC (both unbuilt,
+   *  QO44/QO85). Relation-less like `Ql`/`Qa`/`Qp`: always a real value, never absent. */
+  Frc: number;
   /**
    * Passive-radiator system tuning (WinISD: Fp). Tied to `prMadd` by one relation — the PR's
    * intrinsic Mmd/Cms/Sd plus Vb are given, and added mass is what moves the tuning. Enter a
@@ -892,12 +901,6 @@ export class OpenISDProject {
     this.#record.target.entered = { ...value };
   }
 
-  /** 50 Hz is an arbitrary placeholder, not a measured or derived value — nothing computes
-   *  this field yet (no alignment exists to hold it), and no design has ever entered a real
-   *  one through this unreachable call path. It is a constant so a caller reading it gets a
-   *  stable number rather than 0/NaN while the field waits on QO44. */
-  frcHz(): number { return 50; }
-
   /** The project as its flat wire snapshot — every field a plain value, provenance carried
    *  as the entered set. The one producer `serialize()` and the share link read. */
   toUiParams(): UiParams {
@@ -906,7 +909,7 @@ export class OpenISDProject {
       ventShape: this.ventField('shape'), ventD: this.ventField('diameter_m'),
       ventW: this.ventField('width_m'), ventH: this.ventField('height_m'),
       ventL: this.ventField('length_m'), endCorrection: this.ventField('endCorrection'),
-      Fb: this.cell('Fb').value, Frc: this.frcHz(),
+      Fb: this.cell('Fb').value, Frc: this.cell('frcHz').value,
       prFp: this.cell('prFp').value, prName: this.prField('name'), prSd: this.prField('Sd_m2'),
       prNum: this.cell('prNum').value, prMmd: this.prField('Mmd_kg'), prMadd: this.cell('prMadd').value,
       prCms: this.prField('Cms_m_per_N'), prRms: this.prField('Rms_Ns_per_m'),
@@ -962,6 +965,7 @@ export class OpenISDProject {
     this.set('Vb', field('Vb'));
     this.set('Vf', field('Vf'));
     this.set('Fb', field('Fb'));
+    this.set('frcHz', field('Frc'));
     this.set('Ql', field('Ql')); this.set('Qa', field('Qa')); this.set('Qp', field('Qp'));
     this.setPrField('name', field('prName'));
     this.setPrField('Sd_m2', field('prSd'));
@@ -1257,6 +1261,7 @@ export class OpenISDProject {
       case 'Ql': record.box.Ql = value; return;
       case 'Qa': record.box.Qa = value; return;
       case 'Qp': record.box.Qp = value; return;
+      case 'frcHz': record.box.frcHz = value; return;
       case 'advTemp': record.environment.tempK = value; return;
       case 'advHumidity': record.environment.humidityPct = value; return;
       case 'advPressure': record.environment.pressurePa = value; return;
@@ -1429,6 +1434,7 @@ export class OpenISDProject {
       case 'Ql': return record.box.Ql;
       case 'Qa': return record.box.Qa;
       case 'Qp': return record.box.Qp;
+      case 'frcHz': return record.box.frcHz;
       case 'endCorrection': return vent.endCorrection;
       case 'advTemp': return record.environment.tempK;
       case 'advHumidity': return record.environment.humidityPct;

@@ -377,19 +377,6 @@ export class ManagedOpenISDProject {
     this.mutate(p => p.replaceEnteredSet(value));
   }
 
-  // ---- rear-chamber tuning target (bandpass6/ABC) — STUBBED, ledger QO44 -----------------
-  //
-  // No `OpenISDBox` alignment exists yet for a 6th-order bandpass or ABC box, so there is
-  // nowhere real to store this. The UI's Frc input renders only when one of those two
-  // (unbuilt) alignments is selected, so this is unreachable by any live code path today —
-  // it exists so that unreachable call site compiles against a real domain method instead of
-  // holding its own copy of the value (John's ruling 2026-08-20).
-  frcHz(): number { return this.#effective().project.frcHz(); }
-  /** Stores nothing (no home exists yet) — notifies anyway, uniformly with every other public
-   *  mutator (`docs/design/REACTIVITY.md`, `architecture-notify.test.ts`), so a caller waiting
-   *  on the change channel is never left silently guessing whether this one forgot to. */
-  setFrcHz(_value: number): void { this.#notify(); }
-
   // ---- project reads and writes ----------------------------------------------------------
 
   /**
