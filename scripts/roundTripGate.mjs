@@ -10,7 +10,7 @@
  * no fixture files.
  *
  * Calls ONLY the app's real functions — the same ones the bridge round-trip pair in
- * `packages/winisd/src/bridge.ts` (`roundTripOpenisdYaml`/`roundTripWdr`) and the app's own
+ * `packages/winisd/src/bridge.ts` (`roundTripOpenIsdYml`/`roundTripWdr`) and the app's own
  * record loader / `.owdr` / `.wdr` export paths use: `OpenISDDriver.fromJsonRecord`
  * (`packages/model/src/openisdDriver.ts:291`), `.toOwdrText()` (`openisdDriver.ts:534`),
  * `OpenISDDriver.fromWdrText` (`openisdDriver.ts:480`), `.toWdrText()` (`openisdDriver.ts:509`).

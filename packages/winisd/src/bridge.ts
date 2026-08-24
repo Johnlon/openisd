@@ -5,7 +5,7 @@
  * packages/winisd/dist/openisd-bridge.js) and evaluated once per process inside a bare V8
  * context that has no `console`, `process`, `fetch`, `require` or module loader.
  *
- * `globalThis.openisdYamlToWdr`, `globalThis.roundTripOpenisdYaml` and `globalThis.roundTripWdr`
+ * `globalThis.openisdYamlToWdr`, `globalThis.roundTripOpenIsdYml` and `globalThis.roundTripWdr`
  * are the THREE globals this file adds — the properties mini-racer's Python caller reads and
  * calls (`ctx.call("openisdYamlToWdr", [yamlText])`, and likewise for the other two). This is a
  * deliberate, spec-mandated exception to ARCHITECTURE.md §5 "NO GLOBAL VARIABLES": the whole
@@ -43,42 +43,49 @@ function openisdYamlToWdrBridge(yamlText: string): string {
 }
 
 /**
- * openisd.yml round trip: `{ reserialised: string | null, errors: DriverError[] }` as a JSON
- * string. `reserialised` is the `.owdr` JSON text the app's own record loader
+ * openisd.yml round trip: `{ ymlResult: string | null, errors: DriverError[] }` as a JSON
+ * string. `ymlResult` is the `.owdr` JSON text the app's own record loader
  * (`OpenISDDriver.fromJsonRecord`, `packages/model/src/openisdDriver.ts:291`) and export path
  * (`.toOwdrText()`, `openisdDriver.ts:534`) produce from the parsed record — the exact functions
  * `openisdYamlToWdr` above and the app's own load/export call sites use. The `yaml` parse is the
  * same call `openisdYamlToWdr.ts:35` makes (`parse(text, { logLevel: 'error' })`).
  *
- * Does NOT compare `reserialised` against anything — no in-app code serialises a record back to
+ * The field is named `ymlResult`, not `json` or `reserialised`, because the caller across the V8
+ * boundary (winisd_tools, in Python) must never learn that openisd's internal representation
+ * happens to be JSON. JSON text is valid YAML — a strict subset — so the caller parses this
+ * field with its own generic YAML parser (`yaml.safe_load()`), the same one it already uses for
+ * `openisd.yml` itself, instead of reaching for a JSON-specific parser. Per John's ruling: if the
+ * round trip uses JSON internally, no one outside this file should know.
+ *
+ * Does NOT compare `ymlResult` against anything — no in-app code serialises a record back to
  * YAML text, so byte-comparing an `.owdr` (JSON) against an `openisd.yml` (YAML) input can never
  * be meaningful. The caller (the openisd bundler gate, or winisd_tools) already holds the
- * ORIGINAL parsed record — it compares that against `JSON.parse(reserialised)` at the data
+ * ORIGINAL parsed record — it compares that against the parsed value of `ymlResult` at the data
  * level, which is the round trip this function actually proves: nothing the app's loader/export
  * path touches was lost or altered.
  */
-function roundTripOpenisdYamlBridge(yamlText: string): string {
+function roundTripOpenIsdYmlBridge(yamlText: string): string {
   let record: unknown;
   try {
     record = parse(yamlText, { logLevel: 'error' });
   } catch (e) {
     return JSON.stringify({
-      reserialised: null,
+      ymlResult: null,
       errors: [{ level: 'error', field: 'yaml', message: `could not parse openisd.yml: ${String(e)}` }],
     });
   }
   if (record == null || typeof record !== 'object') {
     return JSON.stringify({
-      reserialised: null,
+      ymlResult: null,
       errors: [{ level: 'error', field: 'yaml', message: 'openisd.yml did not parse to a record' }],
     });
   }
   try {
-    const reserialised = OpenISDDriver.fromJsonRecord(record as never).toOwdrText();
-    return JSON.stringify({ reserialised, errors: [] });
+    const ymlResult = OpenISDDriver.fromJsonRecord(record as never).toOwdrText();
+    return JSON.stringify({ ymlResult, errors: [] });
   } catch (e) {
     return JSON.stringify({
-      reserialised: null,
+      ymlResult: null,
       errors: [{ level: 'error', field: 'specs', message: `openisd.yml record shape rejected: ${String(e)}` }],
     });
   }
@@ -108,10 +115,10 @@ function roundTripWdrBridge(wdrText: string): string {
 
 declare global {
   var openisdYamlToWdr: typeof openisdYamlToWdrBridge;
-  var roundTripOpenisdYaml: typeof roundTripOpenisdYamlBridge;
+  var roundTripOpenIsdYml: typeof roundTripOpenIsdYmlBridge;
   var roundTripWdr: typeof roundTripWdrBridge;
 }
 
 globalThis.openisdYamlToWdr = openisdYamlToWdrBridge;
-globalThis.roundTripOpenisdYaml = roundTripOpenisdYamlBridge;
+globalThis.roundTripOpenIsdYml = roundTripOpenIsdYmlBridge;
 globalThis.roundTripWdr = roundTripWdrBridge;

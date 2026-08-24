@@ -137,7 +137,7 @@ function main() {
         skipped.push(rel);
       } else {
         // Round-trip gate: the SAME real functions the app's own loader/export path and the
-        // bridge's roundTripOpenisdYaml use (packages/model/src/openisdDriver.ts:291,534) — no
+        // bridge's roundTripOpenIsdYml use (packages/model/src/openisdDriver.ts:291,534) — no
         // reimplemented parse/serialise. Runs only on records that are actually bundled; a
         // record already excluded by isBundlable is not a round-trip concern here.
         const gate = checkOpenisdRoundTrip(record, rel);

@@ -1,6 +1,6 @@
 /**
  * TASK A of `shiny-noodling-kahan.md` "Bridge round-trip API for the tools": two new bridge
- * globals, `roundTripOpenisdYaml` and `roundTripWdr`, alongside `openisdYamlToWdr` in
+ * globals, `roundTripOpenIsdYml` and `roundTripWdr`, alongside `openisdYamlToWdr` in
  * `src/bridge.ts` — each a thin adapter over the exact functions the app's own record loader
  * and `.owdr`/`.wdr` export paths call:
  *   - `OpenISDDriver.fromJsonRecord` (`packages/model/src/openisdDriver.ts:291`) and
@@ -30,7 +30,7 @@ import { Project, SyntaxKind, type CallExpression } from 'ts-morph';
 import '../src/bridge.js';
 
 declare global {
-  var roundTripOpenisdYaml: (yamlText: string) => string;
+  var roundTripOpenIsdYml: (yamlText: string) => string;
   var roundTripWdr: (wdrText: string) => string;
 }
 
@@ -40,29 +40,47 @@ const REAL_OPENISD_YML = join(
 );
 const WDR_SAMPLES = join(here, '..', '..', '..', 'drivers', 'sample', 'winisd');
 
-describe('roundTripOpenisdYaml — openisd.yml leg', () => {
-  it('a real corpus record round-trips: reserialised .owdr JSON deep-equals the record the yaml parsed to', () => {
+describe('roundTripOpenIsdYml — openisd.yml leg', () => {
+  it('a real corpus record round-trips: ymlResult .owdr JSON deep-equals the record the yaml parsed to', () => {
     assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
     const yamlText = readFileSync(REAL_OPENISD_YML, 'utf8');
 
-    const raw = globalThis.roundTripOpenisdYaml(yamlText);
-    const { reserialised, errors } = JSON.parse(raw) as { reserialised: string | null; errors: unknown[] };
+    const raw = globalThis.roundTripOpenIsdYml(yamlText);
+    const { ymlResult, errors } = JSON.parse(raw) as { ymlResult: string | null; errors: unknown[] };
     assert.deepEqual(errors, []);
-    assert.equal(typeof reserialised, 'string');
+    assert.equal(typeof ymlResult, 'string');
 
     // Test-oracle parse only — this is test code establishing what the ORIGINAL record was,
     // not a second implementation of the bridge's own parse step (which uses the same `yaml`
     // package function, asserted by the AST check below).
     const original = parseYaml(yamlText, { logLevel: 'error' });
-    assert.deepEqual(JSON.parse(reserialised as string), original,
+    assert.deepEqual(JSON.parse(ymlResult as string), original,
       'the app\'s own load (fromJsonRecord) + export (.toOwdrText()) path must reproduce the ' +
       'exact record the yaml parsed to, byte-for-byte at the data level');
   });
 
-  it('a blocking parse failure returns reserialised:null with a non-empty errors array', () => {
-    const raw = globalThis.roundTripOpenisdYaml(': : : not yaml : :');
-    const { reserialised, errors } = JSON.parse(raw) as { reserialised: string | null; errors: unknown[] };
-    assert.equal(reserialised, null);
+  it('ymlResult is parseable by a generic YAML parser, not only JSON.parse — the caller must ' +
+     'never have to know the internal representation happens to be JSON', () => {
+    assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
+    const yamlText = readFileSync(REAL_OPENISD_YML, 'utf8');
+
+    const raw = globalThis.roundTripOpenIsdYml(yamlText);
+    const { ymlResult } = JSON.parse(raw) as { ymlResult: string | null; errors: unknown[] };
+    assert.equal(typeof ymlResult, 'string');
+
+    // JSON text is valid YAML (a strict subset), so a generic YAML parser must read ymlResult
+    // and produce the exact same value as JSON.parse does — proving a caller (winisd_tools, in
+    // Python) can uniformly use its own yaml.safe_load()-equivalent and never touch a
+    // JSON-specific parser.
+    const viaYamlParser = parseYaml(ymlResult as string, { logLevel: 'error' });
+    const viaJsonParser = JSON.parse(ymlResult as string);
+    assert.deepEqual(viaYamlParser, viaJsonParser);
+  });
+
+  it('a blocking parse failure returns ymlResult:null with a non-empty errors array', () => {
+    const raw = globalThis.roundTripOpenIsdYml(': : : not yaml : :');
+    const { ymlResult, errors } = JSON.parse(raw) as { ymlResult: string | null; errors: unknown[] };
+    assert.equal(ymlResult, null);
     assert.equal(errors.length > 0, true);
   });
 });
@@ -99,14 +117,14 @@ describe('roundTripWdr — .wdr leg', () => {
 });
 
 describe('mechanical enforcement — the new bridge functions call ONLY the real model functions', () => {
-  it('every call inside roundTripOpenisdYamlBridge/roundTripWdrBridge resolves to yaml\'s parse, ' +
+  it('every call inside roundTripOpenIsdYmlBridge/roundTripWdrBridge resolves to yaml\'s parse, ' +
      'or a declaration inside @openisd/model\'s own source (no re-implemented parse/serialise)', () => {
     // ts-morph loading the full tsconfig'd program (for real module resolution to `yaml` and
     // `@openisd/model`) is slow under a loaded test runner — well past vitest's 5s default.
     const project = new Project({ tsConfigFilePath: join(here, '..', 'tsconfig.json') });
     const sf = project.getSourceFileOrThrow(join(here, '..', 'src', 'bridge.ts'));
 
-    const targetNames = ['roundTripOpenisdYamlBridge', 'roundTripWdrBridge'];
+    const targetNames = ['roundTripOpenIsdYmlBridge', 'roundTripWdrBridge'];
     const fns = sf.getFunctions().filter(f => targetNames.includes(f.getName() ?? ''));
     assert.deepEqual(fns.map(f => f.getName()).sort(), [...targetNames].sort(),
       'expected both bridge functions to exist as top-level function declarations in bridge.ts');
