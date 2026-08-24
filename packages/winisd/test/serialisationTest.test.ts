@@ -3,8 +3,10 @@
  * globals, `roundTripOpenIsdYml` and `roundTripWdr`, alongside `openisdYamlToWdr` in
  * `src/bridge.ts` — each a thin adapter over the exact functions the app's own record loader
  * and `.owdr`/`.wdr` export paths call:
- *   - `OpenISDDriver.fromOwdrYml`/`.toOwdrYml()` (`packages/model/src/openisdDriver.ts`) for
- *     the openisd.yml leg;
+ *   - `OpenISDDriver.fromOwdrYml`/`.toOwdrJson()`/`.fromOwdrJson`/`.toOwdrYml()`
+ *     (`packages/model/src/openisdDriver.ts`) chained in that order for the openisd.yml leg —
+ *     proving all four Owdr construction/serialisation methods survive a round trip together,
+ *     not just the yml pair;
  *   - `OpenISDDriver.fromWdrText` (`openisdDriver.ts:480`) and `.toWdrText()`
  *     (`openisdDriver.ts:509`) for the .wdr leg;
  *   - the `yaml` package's `parse(text, { logLevel: 'error' })`
@@ -162,5 +164,21 @@ describe('mechanical enforcement — the new bridge functions call ONLY the real
       'functions — no reimplemented YAML parsing, no reimplemented WDR line-writing ' +
       '(plan `shiny-noodling-kahan.md`, John: "only useful if the code path is exactly and ' +
       'maximally the same path that app takes (no deviation)")');
+  }, 30_000);
+
+  it('roundTripOpenIsdYmlBridge calls all four OpenISDDriver Owdr methods, not just the yml pair', () => {
+    const project = new Project({ tsConfigFilePath: join(here, '..', 'tsconfig.json') });
+    const sf = project.getSourceFileOrThrow(join(here, '..', 'src', 'bridge.ts'));
+    const fn = sf.getFunctionOrThrow('roundTripOpenIsdYmlBridge');
+
+    const calledMethodNames = fn.getDescendantsOfKind(SyntaxKind.CallExpression)
+      .map(call => call.getExpression())
+      .filter(expr => expr.getKind() === SyntaxKind.PropertyAccessExpression)
+      .map(expr => expr.asKindOrThrow(SyntaxKind.PropertyAccessExpression).getName());
+
+    for (const required of ['fromOwdrYml', 'toOwdrJson', 'fromOwdrJson', 'toOwdrYml']) {
+      assert.equal(calledMethodNames.includes(required), true,
+        `roundTripOpenIsdYmlBridge must call OpenISDDriver.${required} — got calls: ${JSON.stringify(calledMethodNames)}`);
+    }
   }, 30_000);
 });

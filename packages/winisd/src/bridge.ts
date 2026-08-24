@@ -43,18 +43,22 @@ function openisdYamlToWdrBridge(yamlText: string): string {
 
 /**
  * openisd.yml round trip: `{ ymlResult: string | null, errors: DriverError[] }` as a JSON
- * string. `ymlResult` is real YAML text, produced by running the input through the app's own
- * load/export chain and back out to YAML:
+ * string. `ymlResult` is real YAML text, produced by driving the input through all four of
+ * `OpenISDDriver`'s Owdr construction/serialisation methods (`packages/model/src/openisdDriver.ts`)
+ * in one chain, proving the whole set of serialisation surfaces survives together, not just the
+ * yml pair:
  *
- * 1. `OpenISDDriver.fromOwdrYml(yamlText)` (`packages/model/src/openisdDriver.ts`) parses the
- *    YAML and constructs the driver in one call — the same call the bundler
- *    (`scripts/bundle-drivers.mjs`) and the round-trip gate (`scripts/roundTripGate.mjs`) build
- *    on.
- * 2. `.toOwdrYml()` (`openisdDriver.ts`) serialises that driver straight back to YAML text —
- *    this is `ymlResult`.
+ * 1. `OpenISDDriver.fromOwdrYml(yamlText)` parses the YAML and constructs the first driver
+ *    instance.
+ * 2. `.toOwdrJson()` serialises that driver to `openisd.json` text.
+ * 3. `OpenISDDriver.fromOwdrJson(jsonText)` parses the JSON and constructs a second, independent
+ *    driver instance.
+ * 4. `.toOwdrYml()` serialises that second driver back to YAML text — this is `ymlResult`.
  *
- * Both the parse-and-construct step and the reserialise-to-yaml step are owned by the model
- * itself, not assembled ad-hoc in this bridge — this function is a thin adapter over the two.
+ * Every step is owned by the model itself, not assembled ad-hoc in this bridge — this function
+ * is a thin adapter chaining the four. Applies uniformly to regular drivers and passive-radiator
+ * records; PR-vs-not only matters later for whether a `.wdr` gets generated, which is unrelated
+ * to this yml/json round trip.
  *
  * This function does not compare anything — no comparison logic lives here. The caller
  * (winisd_tools, in Python) holds the original record and compares it against `ymlResult` at
@@ -65,7 +69,10 @@ function openisdYamlToWdrBridge(yamlText: string): string {
  */
 function roundTripOpenIsdYmlBridge(yamlText: string): string {
   try {
-    const ymlResult = OpenISDDriver.fromOwdrYml(yamlText).toOwdrYml();
+    const driver1 = OpenISDDriver.fromOwdrYml(yamlText);
+    const jsonText = driver1.toOwdrJson();
+    const driver2 = OpenISDDriver.fromOwdrJson(jsonText);
+    const ymlResult = driver2.toOwdrYml();
     return JSON.stringify({ ymlResult, errors: [] });
   } catch (e) {
     return JSON.stringify({
