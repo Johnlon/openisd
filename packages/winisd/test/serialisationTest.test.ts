@@ -33,12 +33,16 @@ import '../src/bridge.js';
 
 declare global {
   var roundTripOpenIsdYml: (yamlText: string) => string;
+  var roundTripOpenIsdYmlViaWdr: (yamlText: string) => string;
   var roundTripWdr: (wdrText: string) => string;
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
 const REAL_OPENISD_YML = join(
   here, '..', '..', '..', '..', 'winisd_drivers', 'db', 'datasheets', 'accuton', 'bd90-6-727', 'openisd.yml',
+);
+const REAL_PR_OPENISD_YML = join(
+  here, '..', '..', '..', '..', 'winisd_drivers', 'db', 'datasheets', 'accuton', 'asp190', 'openisd.yml',
 );
 const WDR_SAMPLES = join(here, '..', '..', '..', 'drivers', 'sample', 'winisd');
 
@@ -85,6 +89,91 @@ describe('roundTripOpenIsdYml — openisd.yml leg', () => {
   });
 });
 
+describe('roundTripOpenIsdYmlViaWdr — openisd.yml round trip VIA .wdr', () => {
+  it('a real corpus record: INI_ROWS-tracked entered spec values survive fromOwdrYml -> ' +
+     'toWdrText -> fromWdrText -> toOwdrYml exactly, even though the .wdr format drops ' +
+     'everything else (uuid, provenance, dq, data_sources, driver_type, ...)', () => {
+    assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
+    const yamlText = readFileSync(REAL_OPENISD_YML, 'utf8');
+
+    const raw = globalThis.roundTripOpenIsdYmlViaWdr(yamlText);
+    const { ymlResult, errors } = JSON.parse(raw) as { ymlResult: string | null; errors: unknown[] };
+    assert.deepEqual(errors, []);
+    assert.equal(typeof ymlResult, 'string');
+
+    const original = parseYaml(yamlText, { logLevel: 'error' }) as {
+      driver_type: { value: string };
+      specs: Record<string, Record<string, { readings?: Record<string, { read_value: number }> }>>;
+    };
+    const result = parseYaml(ymlResult as string, { logLevel: 'error' }) as typeof original;
+
+    // driver_type is always read back as a plain woofer — .wdr carries no discriminator — so
+    // the original section's spec fields are compared against the RESULT's woofer section.
+    const origSection = original.specs[original.driver_type.value === 'tweeter' ? 'tweeter' : 'woofer']
+      ?? original.specs[original.driver_type.value] ?? {};
+    const resultSection = result.specs.woofer ?? {};
+    let checked = 0;
+    for (const [field, entry] of Object.entries(origSection)) {
+      const readings = entry.readings;
+      if (!readings) continue;
+      const values = Object.values(readings);
+      if (values.length === 0) continue;
+      const before = values[0].read_value;
+      const after = resultSection[field]?.readings?.manual?.read_value;
+      // Only WDR-representable fields are asserted; anything the result section never even
+      // has a key for is out of .wdr's scope (proven separately by the divergence check below).
+      if (after !== undefined) {
+        assert.equal(after, before, `${field}: entered ${before}, round-tripped via .wdr as ${after}`);
+        checked++;
+      }
+    }
+    assert.ok(checked > 0, 'expected at least one WDR-representable spec field to compare');
+  });
+
+  it('a real passive-radiator corpus record round-trips its INI_ROWS-tracked spec values via ' +
+     '.wdr exactly, though its section itself does not survive (.wdr has no PR discriminator)', () => {
+    assert.equal(existsSync(REAL_PR_OPENISD_YML), true, `fixture missing: ${REAL_PR_OPENISD_YML}`);
+    const yamlText = readFileSync(REAL_PR_OPENISD_YML, 'utf8');
+
+    const raw = globalThis.roundTripOpenIsdYmlViaWdr(yamlText);
+    const { ymlResult, errors } = JSON.parse(raw) as { ymlResult: string | null; errors: unknown[] };
+    assert.deepEqual(errors, []);
+    assert.equal(typeof ymlResult, 'string');
+
+    const original = parseYaml(yamlText, { logLevel: 'error' }) as {
+      driver_type: { value: string };
+      specs: Record<string, Record<string, { readings?: Record<string, { read_value: number }> }>>;
+    };
+    assert.equal(original.driver_type.value, 'passive-radiator');
+    const result = parseYaml(ymlResult as string, { logLevel: 'error' }) as typeof original;
+    // .wdr's fromWdrText hardcodes driver_type: woofer — this is the documented, known-lossy
+    // behaviour, not a bug this test guards against.
+    assert.equal(result.driver_type.value, 'woofer');
+
+    const origSection = original.specs['passive-radiator'] ?? {};
+    const resultSection = result.specs.woofer ?? {};
+    let checked = 0;
+    for (const [field, entry] of Object.entries(origSection)) {
+      const values = entry.readings ? Object.values(entry.readings) : [];
+      if (values.length === 0) continue;
+      const before = values[0].read_value;
+      const after = resultSection[field]?.readings?.manual?.read_value;
+      if (after !== undefined) {
+        assert.equal(after, before, `${field}: entered ${before}, round-tripped via .wdr as ${after}`);
+        checked++;
+      }
+    }
+    assert.ok(checked > 0, 'expected at least one WDR-representable passive-radiator spec field to compare');
+  });
+
+  it('a blocking .wdr projection failure returns ymlResult:null with the projection\'s own errors', () => {
+    const raw = globalThis.roundTripOpenIsdYmlViaWdr(': : : not yaml : :');
+    const { ymlResult, errors } = JSON.parse(raw) as { ymlResult: string | null; errors: unknown[] };
+    assert.equal(ymlResult, null);
+    assert.equal(errors.length > 0, true);
+  });
+});
+
 describe('roundTripWdr — .wdr leg', () => {
   it('a real corpus .wdr round-trips clean: no error-level entries, reserialised text looks like a .wdr', () => {
     const files = readdirSync(WDR_SAMPLES).filter(f => f.endsWith('.wdr'));
@@ -117,17 +206,18 @@ describe('roundTripWdr — .wdr leg', () => {
 });
 
 describe('mechanical enforcement — the new bridge functions call ONLY the real model functions', () => {
-  it('every call inside roundTripOpenIsdYmlBridge/roundTripWdrBridge resolves to yaml\'s parse, ' +
-     'or a declaration inside @openisd/model\'s own source (no re-implemented parse/serialise)', () => {
+  it('every call inside roundTripOpenIsdYmlBridge/roundTripOpenIsdYmlViaWdrBridge/roundTripWdrBridge ' +
+     'resolves to yaml\'s parse, or a declaration inside @openisd/model\'s own source (no ' +
+     're-implemented parse/serialise)', () => {
     // ts-morph loading the full tsconfig'd program (for real module resolution to `yaml` and
     // `@openisd/model`) is slow under a loaded test runner — well past vitest's 5s default.
     const project = new Project({ tsConfigFilePath: join(here, '..', 'tsconfig.json') });
     const sf = project.getSourceFileOrThrow(join(here, '..', 'src', 'bridge.ts'));
 
-    const targetNames = ['roundTripOpenIsdYmlBridge', 'roundTripWdrBridge'];
+    const targetNames = ['roundTripOpenIsdYmlBridge', 'roundTripOpenIsdYmlViaWdrBridge', 'roundTripWdrBridge'];
     const fns = sf.getFunctions().filter(f => targetNames.includes(f.getName() ?? ''));
     assert.deepEqual(fns.map(f => f.getName()).sort(), [...targetNames].sort(),
-      'expected both bridge functions to exist as top-level function declarations in bridge.ts');
+      'expected all three bridge functions to exist as top-level function declarations in bridge.ts');
 
     const violations: string[] = [];
     for (const fn of fns) {
@@ -179,6 +269,23 @@ describe('mechanical enforcement — the new bridge functions call ONLY the real
     for (const required of ['fromOwdrYml', 'toOwdrJson', 'fromOwdrJson', 'toOwdrYml']) {
       assert.equal(calledMethodNames.includes(required), true,
         `roundTripOpenIsdYmlBridge must call OpenISDDriver.${required} — got calls: ${JSON.stringify(calledMethodNames)}`);
+    }
+  }, 30_000);
+
+  it('roundTripOpenIsdYmlViaWdrBridge calls fromOwdrYml, toWdrText, fromWdrText and toOwdrYml — ' +
+     'the full yml-through-.wdr-and-back chain, not a shortcut through the yml/json pair', () => {
+    const project = new Project({ tsConfigFilePath: join(here, '..', 'tsconfig.json') });
+    const sf = project.getSourceFileOrThrow(join(here, '..', 'src', 'bridge.ts'));
+    const fn = sf.getFunctionOrThrow('roundTripOpenIsdYmlViaWdrBridge');
+
+    const calledMethodNames = fn.getDescendantsOfKind(SyntaxKind.CallExpression)
+      .map(call => call.getExpression())
+      .filter(expr => expr.getKind() === SyntaxKind.PropertyAccessExpression)
+      .map(expr => expr.asKindOrThrow(SyntaxKind.PropertyAccessExpression).getName());
+
+    for (const required of ['fromOwdrYml', 'toWdrText', 'fromWdrText', 'toOwdrYml']) {
+      assert.equal(calledMethodNames.includes(required), true,
+        `roundTripOpenIsdYmlViaWdrBridge must call OpenISDDriver.${required} — got calls: ${JSON.stringify(calledMethodNames)}`);
     }
   }, 30_000);
 });

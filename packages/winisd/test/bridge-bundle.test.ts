@@ -20,10 +20,13 @@
  *     mini-racer 0.14.1's measured set exactly (`MEASURED_PRESENT`/`MEASURED_ABSENT` below),
  *     `globalThis.openisdYamlToWdr(realYamlFixture)` returns the pinned JSON-string contract
  *     for a clean record, a blocking-error record and a warn-alongside-a-good-record case;
- *  5. exactly three globals are added to the sandbox (`openisdYamlToWdr`, `roundTripOpenIsdYml`,
- *     `roundTripWdr` — the round-trip pair added per plan `shiny-noodling-kahan.md` "Bridge
- *     round-trip API for the tools"; their own behavioural coverage as TypeScript source lives
- *     in `serialisationTest.test.ts`, this file only re-confirms they survive the BUILT bundle).
+ *  5. exactly four globals are added to the sandbox (`openisdYamlToWdr`, `roundTripOpenIsdYml`,
+ *     `roundTripOpenIsdYmlViaWdr`, `roundTripWdr` — the round-trip trio added per plan
+ *     `shiny-noodling-kahan.md` "Bridge round-trip API for the tools" and John's later
+ *     instruction adding `roundTripOpenIsdYmlViaWdr`; their own behavioural coverage as
+ *     TypeScript source lives in `serialisationTest.test.ts`, this file only re-confirms they
+ *     survive the BUILT bundle). `openisdYamlToWdr` alone is the production call — see
+ *     `bridge.ts`'s own docstring — the other three are lower-level diagnostic primitives.
  */
 import { describe, it, beforeAll, afterAll } from 'vitest';
 import assert from 'node:assert/strict';
@@ -145,7 +148,7 @@ function createMiniRacerLikeContext(): vm.Context {
 }
 
 describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)', () => {
-  it('adds exactly three globals: openisdYamlToWdr, roundTripOpenIsdYml, roundTripWdr', () => {
+  it('adds exactly four globals: openisdYamlToWdr, roundTripOpenIsdYml, roundTripOpenIsdYmlViaWdr, roundTripWdr', () => {
     const ctx = createMiniRacerLikeContext();
     // Array.from: the vm realm's own Array constructor (via Symbol.species) would otherwise
     // make the array returned by vm.runInContext structurally equal but not deepStrictEqual
@@ -154,9 +157,10 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
     vm.runInContext(bundleSource, ctx);
     const after = Array.from(vm.runInContext('Object.getOwnPropertyNames(globalThis)', ctx) as string[]);
     const added = after.filter(k => !before.has(k));
-    assert.deepEqual(added.sort(), ['openisdYamlToWdr', 'roundTripOpenIsdYml', 'roundTripWdr'].sort());
+    assert.deepEqual(added.sort(), ['openisdYamlToWdr', 'roundTripOpenIsdYml', 'roundTripOpenIsdYmlViaWdr', 'roundTripWdr'].sort());
     assert.equal(vm.runInContext('typeof globalThis.openisdYamlToWdr', ctx), 'function');
     assert.equal(vm.runInContext('typeof globalThis.roundTripOpenIsdYml', ctx), 'function');
+    assert.equal(vm.runInContext('typeof globalThis.roundTripOpenIsdYmlViaWdr', ctx), 'function');
     assert.equal(vm.runInContext('typeof globalThis.roundTripWdr', ctx), 'function');
   });
 
