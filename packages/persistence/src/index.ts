@@ -4,6 +4,7 @@ export {
   myDriverName, myDriverEntry, driverHasDqIssues,
   type SearchCriteria, matchesCriteria,
   type PreviewSpec, type Preview, previewOf,
+  manufacturerOf,
   parseRepoInput, type SourceFetch,
   type DriverRepo, type DriverRepoDeps, createDriverRepo,
 } from './repos/driverRepo.js';
