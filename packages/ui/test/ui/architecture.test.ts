@@ -319,11 +319,11 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
   const MANAGED_DRIVER_IO_FILE = join(UI_SRC, 'logic', 'managedDriver.ts');
 
   it('the draft exemption names a file that still exists and still holds a draft', () => {
-    assert.ok(callsExpression(DRAFT_HOLDER, 'OpenISDDriver.fromOwdrText'),
+    assert.ok(callsExpression(DRAFT_HOLDER, 'OpenISDDriver.fromOwdrJson'),
       'DriverEditorModal.vue no longer holds a live draft — delete this exemption rather than ' +
       'leaving a hole in the containment rule for the next file to fall through. (It seeds the ' +
       'draft from the editor-seed TEXT the managed layer hands it, which is why the probe names ' +
-      'fromOwdrText: nothing between the project and the editor parses a driver record.)');
+      'fromOwdrJson: nothing between the project and the editor parses a driver record.)');
   });
 
   it('nothing outside managedProject.ts imports the OpenISDDriver value', () => {
@@ -344,12 +344,12 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
   });
 
   it('managedProject.ts itself is the one file that constructs an OpenISDDriver', () => {
-    assert.ok(callsExpression(MANAGED_DRIVER_FILE, 'OpenISDDriver.fromOwdrText'),
+    assert.ok(callsExpression(MANAGED_DRIVER_FILE, 'OpenISDDriver.fromOwdrJson'),
       'managedProject.ts no longer constructs an OpenISDDriver — either the facade was ' +
       'gutted, or construction moved to a helper file the previous assertion also needs to ' +
       'exempt. Update both together, never widen the exemption alone. (It materialises each ' +
       "layer's driver from the project's stored TEXT — QO83: the project holds the driver's " +
-      'own serialisation, never its record — which is why the probe names fromOwdrText.)');
+      'own serialisation, never its record — which is why the probe names fromOwdrJson.)');
   });
 });
 

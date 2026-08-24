@@ -196,7 +196,7 @@ export function createProjectRepo(
       // the type still declares it, and `schema` is the field that means something.
       schema: schema.current,
       v: 2,
-      driver: project.driver().toOwdrText(),
+      driver: project.driver().toOwdrJson(),
       box: wireBoxOf(project.activeAlignment()),
       P: project.toUiParams(),
       project: project.projectMeta(),

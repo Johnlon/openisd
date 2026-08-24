@@ -494,7 +494,7 @@ export class ManagedOpenISDProject {
    *  malformed JSON — for a checked, non-throwing adoption of UNTRUSTED text (localStorage,
    *  a share link) use `loadDriverFromPersistedText`. */
   loadDriverFromOwdrText(text: string): void {
-    const driver = OpenISDDriver.fromOwdrText(text);
+    const driver = OpenISDDriver.fromOwdrJson(text);
     this.mutate(p => { p.setDriver(driver); });
   }
 
@@ -510,7 +510,7 @@ export class ManagedOpenISDProject {
     try { parsed = JSON.parse(text); } catch (err) { return [(err as Error).message]; }
     const problems = driverRecordProblems(parsed);
     if (problems.length) return problems;
-    const driver = OpenISDDriver.fromOwdrText(text);
+    const driver = OpenISDDriver.fromOwdrJson(text);
     this.mutate(p => { p.setDriver(driver); });
     return [];
   }
@@ -520,20 +520,20 @@ export class ManagedOpenISDProject {
    *  structural guard as `projectToPersist()`. */
   persistedDriverText(): string {
     this.#endWhatIfIfActive();
-    return this.#committed.openIsdDriver.toOwdrText();
+    return this.#committed.openIsdDriver.toOwdrJson();
   }
 
   /**
    * The committed driver's own serialisation. TEXT — `ManagedOpenISDProject` never hands an
    * `OpenISDDriver` out (architecture.test.ts, "every public member returns data"), so this is
    * the sanctioned channel: any caller LICENSED to construct a driver (today:
-   * `DriverEditorModal.vue`, via `OpenISDDriver.fromOwdrText`) can build its own detached
+   * `DriverEditorModal.vue`, via `OpenISDDriver.fromOwdrJson`) can build its own detached
    * instance from this text without this class handing out the live object itself. Becomes
    * part of the capability seam when serialisation goes `#`-private.
    */
   committedDriverText(): string {
     this.#endWhatIfIfActive();
-    return this.#committed.openIsdDriver.toOwdrText();
+    return this.#committed.openIsdDriver.toOwdrJson();
   }
 
   /** The COMMITTED driver as `.wdr` bytes. Every field not entered projects to its WinISD
@@ -550,7 +550,7 @@ export class ManagedOpenISDProject {
    *  as its own JSON). */
   exportDriverOwdr(): Uint8Array<ArrayBuffer> {
     this.#endWhatIfIfActive();
-    return new TextEncoder().encode(this.#committed.openIsdDriver.toOwdrText()) as Uint8Array<ArrayBuffer>;
+    return new TextEncoder().encode(this.#committed.openIsdDriver.toOwdrJson()) as Uint8Array<ArrayBuffer>;
   }
 
   // ---- project file IO (QO78) -------------------------------------------------------------

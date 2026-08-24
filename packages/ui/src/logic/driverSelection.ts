@@ -152,7 +152,7 @@ export function createDriverSelection(): DriverSelection {
   function adoptIntoProject(driver: OpenISDDriver): void {
     // The managed layer adopts drivers as SERIALISED TEXT, never as the record value (QO73) —
     // the round-trip is the boundary crossing, made explicit.
-    managedProject.loadDriverFromOwdrText(driver.toOwdrText());
+    managedProject.loadDriverFromOwdrText(driver.toOwdrJson());
   }
 
   function embedInProject(driver: OpenISDDriver): void {

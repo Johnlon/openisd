@@ -54,7 +54,7 @@ const editorTitle = subject.kind === 'myDriver' ? 'Edit My Driver' : "Edit Proje
  *  subject; the picked driver `selection` handed over for an existing My Driver; a blank one
  *  for a fresh My Driver (`openNewDriver()` — `subject.seed` is null exactly then). */
 function seedDraft(): OpenISDDriver {
-  if (subject.kind === 'project') return OpenISDDriver.fromOwdrText(managedProject.committedDriverText());
+  if (subject.kind === 'project') return OpenISDDriver.fromOwdrJson(managedProject.committedDriverText());
   return subject.seed ? subject.seed.copy() : OpenISDDriver.empty();
 }
 
@@ -439,7 +439,7 @@ function close() {
   if (subject.kind === 'myDriver') {
     openSaveMyDialog(false);
   } else {
-    managedProject.loadDriverFromOwdrText(draftDriver.value.toOwdrText());
+    managedProject.loadDriverFromOwdrText(draftDriver.value.toOwdrJson());
     selection.closeEditor();
     emit('close');
   }
@@ -489,7 +489,7 @@ function handleFileLoaded(e: Event) {
       // an `.owdr` IS that record already. One reader each, and no second parse invented here.
       draftDriver.value = markRaw(format === DriverFileFormat.Wdr
         ? OpenISDDriver.fromWdrText(text)
-        : OpenISDDriver.fromOwdrText(text));
+        : OpenISDDriver.fromOwdrJson(text));
       forceUpdate();
     } catch (err) {
       alert('Failed to parse file: ' + (err as Error).message);
@@ -513,7 +513,7 @@ async function writeDriver(format: DriverFileFormat) {
   // that knows the format — and a driver too incomplete to project says so rather than writing
   // a file WinISD would refuse.
   const { value: text, errors } = format === DriverFileFormat.Owdr
-    ? { value: draftDriver.value.toOwdrText(), errors: [] }
+    ? { value: draftDriver.value.toOwdrJson(), errors: [] }
     : draftDriver.value.toWdrText();
   if (!text) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
   const body = driverFileBody(text, format !== DriverFileFormat.Owdr);

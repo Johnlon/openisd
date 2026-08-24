@@ -34,7 +34,6 @@
  * composes. This bridge only renames `value` to `wdr` and serialises the pair to JSON at the
  * V8 boundary; the field-for-field shape of `errors` is passed through unchanged.
  */
-import { parse, stringify } from 'yaml';
 import { openisdYamlToWdr as projectOpenisdYamlToWdr, OpenISDDriver } from '@openisd/model';
 
 function openisdYamlToWdrBridge(yamlText: string): string {
@@ -47,48 +46,31 @@ function openisdYamlToWdrBridge(yamlText: string): string {
  * string. `ymlResult` is real YAML text, produced by running the input through the app's own
  * load/export chain and back out to YAML:
  *
- * 1. `parse()` (the `yaml` package) turns `yamlText` into a plain object.
- * 2. `OpenISDDriver.fromJsonRecord()` (`packages/model/src/openisdDriver.ts:291`) constructs a
- *    driver from that object — the same construction call the bundler
- *    (`scripts/bundle-drivers.mjs`) uses.
- * 3. `.toOwdrText()` (`openisdDriver.ts:534`) serialises the driver to `.owdr` JSON text — the
- *    same serialiser the app's real persistence save path uses
- *    (`packages/persistence/src/repos/projectRepo.ts:199`).
- * 4. `JSON.parse()` turns that JSON text back into a plain object.
- * 5. `stringify()` (the same `yaml` package, its serialise side) turns that object into YAML
- *    text — this is `ymlResult`.
+ * 1. `OpenISDDriver.fromOwdrYml(yamlText)` (`packages/model/src/openisdDriver.ts`) parses the
+ *    YAML and constructs the driver in one call — the same call the bundler
+ *    (`scripts/bundle-drivers.mjs`) and the round-trip gate (`scripts/roundTripGate.mjs`) build
+ *    on.
+ * 2. `.toOwdrYml()` (`openisdDriver.ts`) serialises that driver straight back to YAML text —
+ *    this is `ymlResult`.
+ *
+ * Both the parse-and-construct step and the reserialise-to-yaml step are owned by the model
+ * itself, not assembled ad-hoc in this bridge — this function is a thin adapter over the two.
  *
  * This function does not compare anything — no comparison logic lives here. The caller
  * (winisd_tools, in Python) holds the original record and compares it against `ymlResult` at
  * the data level (`yaml.safe_load()` on both sides), not byte-for-byte. Comments and original
- * formatting in `yamlText` are not preserved through this round trip — step 1→4 loses them by
- * parsing through JSON — and that's by design: the comparison this bridge feeds is data-level,
- * not byte-level.
+ * formatting in `yamlText` are not preserved through this round trip — parsing to a plain
+ * object and back loses them — and that's by design: the comparison this bridge feeds is
+ * data-level, not byte-level.
  */
 function roundTripOpenIsdYmlBridge(yamlText: string): string {
-  let record: unknown;
   try {
-    record = parse(yamlText, { logLevel: 'error' });
-  } catch (e) {
-    return JSON.stringify({
-      ymlResult: null,
-      errors: [{ level: 'error', field: 'yaml', message: `could not parse openisd.yml: ${String(e)}` }],
-    });
-  }
-  if (record == null || typeof record !== 'object') {
-    return JSON.stringify({
-      ymlResult: null,
-      errors: [{ level: 'error', field: 'yaml', message: 'openisd.yml did not parse to a record' }],
-    });
-  }
-  try {
-    const reserialised = OpenISDDriver.fromJsonRecord(record as never).toOwdrText();
-    const ymlResult = stringify(JSON.parse(reserialised));
+    const ymlResult = OpenISDDriver.fromOwdrYml(yamlText).toOwdrYml();
     return JSON.stringify({ ymlResult, errors: [] });
   } catch (e) {
     return JSON.stringify({
       ymlResult: null,
-      errors: [{ level: 'error', field: 'specs', message: `openisd.yml record shape rejected: ${String(e)}` }],
+      errors: [{ level: 'error', field: 'yaml', message: `openisd.yml could not be read: ${String(e)}` }],
     });
   }
 }

@@ -24,6 +24,7 @@
  * and nothing stated a precision, so writing either would fabricate provenance. One
  * reading shape, with those two genuinely absent — not a second envelope for hand entry.
  */
+import { parse, stringify } from 'yaml';
 import { deriveOpenISDFields } from './openisdDerive.js';
 import type {
   SourceRole, Reading, DqMark, DQStatus, Ground, QualityBlock, CurvesBlock,
@@ -294,7 +295,7 @@ export class OpenISDDriver {
 
   /** A detached copy — cloning a domain object needs its own class-owned method:
    *  `structuredClone` drops methods and the prototype off a class instance, and a text
-   *  round-trip through `.toOwdrText()`/`.fromOwdrText()` is a boundary crossing no caller
+   *  round-trip through `.toOwdrJson()`/`.fromOwdrJson()` is a boundary crossing no caller
    *  outside the model is licensed to perform just to clone what it already holds. */
   copy(): OpenISDDriver {
     return new OpenISDDriver(JSON.parse(JSON.stringify(this.#record)) as OpenISDDriverJson);
@@ -318,8 +319,17 @@ export class OpenISDDriver {
   }
 
   /** `.owdr` text → an `OpenISDDriver`, direct. `.owdr` IS this model's own record as JSON. */
-  static fromOwdrText(text: string): OpenISDDriver {
+  static fromOwdrJson(text: string): OpenISDDriver {
     return new OpenISDDriver(JSON.parse(text) as OpenISDDriverJson);
+  }
+
+  /** `openisd.yml` text → an `OpenISDDriver`, direct — the YAML-serialised twin of
+   *  `fromOwdrJson()`. Parses via the `yaml` package, then constructs exactly as
+   *  `fromJsonRecord` does; this is the one call the bundler (`scripts/bundle-drivers.mjs`) and
+   *  the round-trip gate (`scripts/roundTripGate.mjs`) build a driver from raw `openisd.yml`
+   *  file text with, so neither script parses YAML itself just to hand the result on. */
+  static fromOwdrYml(text: string): OpenISDDriver {
+    return OpenISDDriver.fromJsonRecord(parse(text) as OpenISDDriverJson);
   }
 
   /**
@@ -498,7 +508,7 @@ export class OpenISDDriver {
    */
   static fromFileText(text: string, format: 'wdr' | 'owdr'): Result<OpenISDDriver> {
     try {
-      return { value: format === 'wdr' ? OpenISDDriver.fromWdrText(text) : OpenISDDriver.fromOwdrText(text), errors: [] };
+      return { value: format === 'wdr' ? OpenISDDriver.fromWdrText(text) : OpenISDDriver.fromOwdrJson(text), errors: [] };
     } catch (err) {
       return { value: null, errors: [{ level: 'error', field: 'file', message: `could not be read: ${(err as Error).message}` }] };
     }
@@ -512,7 +522,7 @@ export class OpenISDDriver {
   }
 
   /** This driver → `.owdr` text. Always succeeds — the record is always representable as its
-   *  own JSON. Paired with `fromOwdrText()`. */
+   *  own JSON. Paired with `fromOwdrJson()`. */
   /** This driver's stable identity — empty until one is minted. */
   uuid(): string { return this.#record.uuid.value; }
 
@@ -531,8 +541,14 @@ export class OpenISDDriver {
     return this.#record.uuid.value;
   }
 
-  toOwdrText(): string {
+  toOwdrJson(): string {
     return JSON.stringify(this.toJsonRecord(), null, 2);
+  }
+
+  /** This driver → `openisd.yml` text — the YAML-serialised twin of `toOwdrJson()`, same
+   *  record, run through the `yaml` package's `stringify()` instead of `JSON.stringify()`. */
+  toOwdrYml(): string {
+    return stringify(this.toJsonRecord());
   }
 
   /** The section this driver's T/S fields live in — `specs.woofer` for anything that is

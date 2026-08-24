@@ -160,7 +160,7 @@ describe('vent group — a restore is adopted verbatim', () => {
     // double).
     const saved = JSON.stringify({
       schema: 2, v: 2, box: state.box, P: managedProject.toUiParams(),
-      driver: OpenISDDriver.empty().toOwdrText(),
+      driver: OpenISDDriver.empty().toOwdrJson(),
       project: { name: '', creator: '', created: '', modified: '', description: '' },
     });
     const fbBefore = managedProject.projectCell('Fb').value, lenBefore = ventL();
@@ -184,7 +184,7 @@ describe('vent group — a restore is adopted verbatim', () => {
     delete legacyParams.entered;
     const legacy = JSON.stringify({
       schema: 2, v: 2, box: state.box, P: legacyParams,
-      driver: OpenISDDriver.empty().toOwdrText(),
+      driver: OpenISDDriver.empty().toOwdrJson(),
       project: { name: '', creator: '', created: '', modified: '', description: '' },
     });
 

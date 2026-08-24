@@ -9,11 +9,12 @@
  * inline with the record it already parsed, and a test can call either function directly with
  * no fixture files.
  *
- * Calls ONLY the app's real functions — the same ones the bridge round-trip pair in
- * `packages/winisd/src/bridge.ts` (`roundTripOpenIsdYml`/`roundTripWdr`) and the app's own
- * record loader / `.owdr` / `.wdr` export paths use: `OpenISDDriver.fromJsonRecord`
- * (`packages/model/src/openisdDriver.ts:291`), `.toOwdrText()` (`openisdDriver.ts:534`),
- * `OpenISDDriver.fromWdrText` (`openisdDriver.ts:480`), `.toWdrText()` (`openisdDriver.ts:509`).
+ * Calls ONLY the app's real functions — `OpenISDDriver.fromJsonRecord`/`.toOwdrJson()` for the
+ * openisd.yml leg (`checkOpenisdRoundTrip` takes the already-parsed record, since
+ * `bundle-drivers.mjs`'s own loop needs that same parsed object for other purposes too, so it
+ * cannot hand this function raw YAML text the way the bridge's `roundTripOpenIsdYml`
+ * (`packages/winisd/src/bridge.ts`, `OpenISDDriver.fromOwdrYml`/`.toOwdrYml()`) does), and
+ * `OpenISDDriver.fromWdrText`/`.toWdrText()` for the .wdr leg.
  * This script runs inside the same Node/vite-node process as the rest of the bundler, so it
  * imports `@openisd/model` directly rather than crossing the V8-bridge boundary the tools side
  * needs — same functions, no V8 round trip to duplicate.
@@ -51,23 +52,25 @@ export function firstDivergence(a, b, path = '$') {
 }
 
 /**
- * `record` — the already-YAML-parsed openisd.yml object. `relPath` — for the failure message
- * only. Round trip: `OpenISDDriver.fromJsonRecord(record).toOwdrText()`, `JSON.parse`d back,
- * compared against `record` at the DATA level.
+ * `record` — the already-YAML-parsed openisd.yml object, held onto by `bundle-drivers.mjs`'s own
+ * loop for other purposes (`project(record)`, the bundled `files` entry), so this function takes
+ * the parsed object rather than raw YAML text — `OpenISDDriver.fromOwdrYml(text)` would parse it
+ * a second time for nothing. `relPath` — for the failure message only. Round trip:
+ * `OpenISDDriver.fromJsonRecord(record).toOwdrJson()`, `JSON.parse`d back, compared against
+ * `record` at the DATA level.
  *
- * NOT a byte comparison against the original `openisd.yml` FILE TEXT: `.owdr` is JSON and
- * `openisd.yml` is YAML — two different serialisations of the same record, and the app owns
- * no YAML writer to produce a directly byte-comparable output (`@openisd/model` has no
- * `toYamlText`). Byte-comparing JSON output against YAML input can never pass regardless of
- * correctness, so the meaningful bar — proving the app's load+export path drops or alters
- * nothing — is data-level equality between the parsed record and the reserialised-then-reparsed
- * one. This is a documented judgment call, not a loosened check: it still fails on ANY data
- * loss or alteration the app's own code introduces.
+ * NOT a byte comparison against the original `openisd.yml` FILE TEXT: this leg compares the
+ * JSON-shaped record before and after, not the YAML text — a direct YAML-to-YAML byte comparison
+ * is what `OpenISDDriver.fromOwdrYml(text).toOwdrYml()` is for, and belongs to the caller that
+ * holds the original file text, not to this function which is handed an already-parsed object.
+ * Data-level equality between the parsed record and the reserialised-then-reparsed one is the
+ * meaningful bar here: it still fails on ANY data loss or alteration the app's own code
+ * introduces.
  */
 export function checkOpenisdRoundTrip(record, relPath) {
   let reserialisedText;
   try {
-    reserialisedText = OpenISDDriver.fromJsonRecord(record).toOwdrText();
+    reserialisedText = OpenISDDriver.fromJsonRecord(record).toOwdrJson();
   } catch (e) {
     return { ok: false, message: `${relPath}: openisd.yml record shape rejected by OpenISDDriver.fromJsonRecord: ${e}` };
   }
@@ -75,7 +78,7 @@ export function checkOpenisdRoundTrip(record, relPath) {
   try {
     reserialisedRecord = JSON.parse(reserialisedText);
   } catch (e) {
-    return { ok: false, message: `${relPath}: toOwdrText() produced unparseable JSON: ${e}` };
+    return { ok: false, message: `${relPath}: toOwdrJson() produced unparseable JSON: ${e}` };
   }
   const divergence = firstDivergence(record, reserialisedRecord);
   if (divergence) {

@@ -3,8 +3,8 @@
  * globals, `roundTripOpenIsdYml` and `roundTripWdr`, alongside `openisdYamlToWdr` in
  * `src/bridge.ts` — each a thin adapter over the exact functions the app's own record loader
  * and `.owdr`/`.wdr` export paths call:
- *   - `OpenISDDriver.fromJsonRecord` (`packages/model/src/openisdDriver.ts:291`) and
- *     `.toOwdrText()` (`openisdDriver.ts:534`) for the openisd.yml leg;
+ *   - `OpenISDDriver.fromOwdrYml`/`.toOwdrYml()` (`packages/model/src/openisdDriver.ts`) for
+ *     the openisd.yml leg;
  *   - `OpenISDDriver.fromWdrText` (`openisdDriver.ts:480`) and `.toWdrText()`
  *     (`openisdDriver.ts:509`) for the .wdr leg;
  *   - the `yaml` package's `parse(text, { logLevel: 'error' })`
@@ -55,7 +55,7 @@ describe('roundTripOpenIsdYml — openisd.yml leg', () => {
     // package function, asserted by the AST check below).
     const original = parseYaml(yamlText, { logLevel: 'error' });
     assert.deepEqual(parseYaml(ymlResult as string, { logLevel: 'error' }), original,
-      'the app\'s own load (fromJsonRecord) + export (.toOwdrText()) path must reproduce the ' +
+      'the app\'s own load (fromOwdrYml) + export (.toOwdrYml()) path must reproduce the ' +
       'exact record the yaml parsed to, byte-for-byte at the data level, once ymlResult is ' +
       'parsed back with the yaml package');
   });

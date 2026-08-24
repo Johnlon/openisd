@@ -260,7 +260,7 @@ describe('OpenISDDriver.fromFileText — parses the format it is TOLD, never one
 
   it('format "owdr" parses .owdr (JSON) text', () => {
     const original = OpenISDDriver.fromJsonRecord(grs8fr8());
-    const { value: driver, errors } = OpenISDDriver.fromFileText(original.toOwdrText(), 'owdr');
+    const { value: driver, errors } = OpenISDDriver.fromFileText(original.toOwdrJson(), 'owdr');
     assert.deepEqual(errors, []);
     assert.equal(driver!.cell('Fs').value, original.cell('Fs').value);
   });
@@ -269,5 +269,43 @@ describe('OpenISDDriver.fromFileText — parses the format it is TOLD, never one
     const { value, errors } = OpenISDDriver.fromFileText('not JSON at all', 'owdr');
     assert.equal(value, null);
     assert.ok(errors[0]?.message.length);
+  });
+});
+
+describe('OpenISDDriver.fromOwdrYml()/toOwdrYml() — the openisd.yml-serialised twin of ' +
+         'fromOwdrJson()/toOwdrJson() (QO84: "Text" is ambiguous about format)', () => {
+  const REAL_OPENISD_YML = join(
+    dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..',
+    'winisd_drivers', 'db', 'datasheets', 'accuton', 'bd90-6-727', 'openisd.yml',
+  );
+
+  it('round-trips a real corpus record: fromOwdrYml(text).toOwdrYml() parses back to the same ' +
+     'data the input yaml parsed to', () => {
+    const yamlText = readFileSync(REAL_OPENISD_YML, 'utf8');
+    const original = parse(yamlText);
+
+    const reserialised = OpenISDDriver.fromOwdrYml(yamlText).toOwdrYml();
+
+    assert.deepEqual(parse(reserialised), original);
+  });
+
+  it('toOwdrYml() produces genuine YAML, not the internal .owdr JSON text relabelled', () => {
+    const yamlText = readFileSync(REAL_OPENISD_YML, 'utf8');
+    const reserialised = OpenISDDriver.fromOwdrYml(yamlText).toOwdrYml();
+
+    // yaml's stringify() emits block-style YAML (unquoted keys, no braces) for a record this
+    // shape, so the text is not valid JSON — proving toOwdrYml() really is stringify() output,
+    // not toOwdrJson()'s JSON text handed back under a different name.
+    assert.throws(() => JSON.parse(reserialised),
+      'toOwdrYml() output must not be parseable as JSON — it must be genuine YAML');
+  });
+
+  it('rejects malformed YAML syntax cleanly (throws, does not silently drop data)', () => {
+    assert.throws(() => OpenISDDriver.fromOwdrYml(': : : not yaml : :'));
+  });
+
+  it('rejects a shape fromJsonRecord already rejects — a document that does not parse to a ' +
+     'record object', () => {
+    assert.throws(() => OpenISDDriver.fromOwdrYml('null'));
   });
 });

@@ -41,7 +41,7 @@ const repo = createProjectRepo(mem, projectSchema, noFilePicker);
  *  exist without a driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
 function projectOf(box: BoxType, meta: OpenISDProjectMeta,
   driverText: string, params: Partial<UiParams>): OpenISDProject {
-  const project = OpenISDProject.empty(OpenISDDriver.fromOwdrText(driverText));
+  const project = OpenISDProject.empty(OpenISDDriver.fromOwdrJson(driverText));
   project.loadUiParams(params, toAlignmentKind(box));
   project.setProjectMeta(meta);
   return project;
@@ -69,12 +69,12 @@ const wdrText = readFileSync(SAMPLE, 'utf8');
  *  the only form the driver takes in a serialised payload (QO73: the UI carries the managed
  *  layer's serialisation, never the record value). */
 function sampleDriverText(): string {
-  return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdrText)).toOwdrText();
+  return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdrText)).toOwdrJson();
 }
 
 describe('persistence — provenance survives a local-save round trip', () => {
   it('E stays E and C stays C across save → JSON → restore', () => {
-    const src = OpenISDDriver.fromOwdrText(sampleDriverText());
+    const src = OpenISDDriver.fromOwdrJson(sampleDriverText());
     // Clear a derivable field so the fixture carries a genuine C (Cms recomputes from
     // Fs/Vas/Sd) alongside the E fields the WinISD save marks entered.
     src.clear('Cms');
@@ -84,8 +84,8 @@ describe('persistence — provenance survives a local-save round trip', () => {
     assert.equal(src.cell('Cms').state, Provenance.Calculated, 'fixture precondition: Cms now computed');
 
     const wire = storedPayload(projectOf('sealed', { name: 'John-all-manu-populated', creator: 'John',
-      created: '2026-01-01', modified: '2026-01-02', description: '' }, src.toOwdrText(), {}));
-    const back = OpenISDDriver.fromOwdrText(wire.driver);
+      created: '2026-01-01', modified: '2026-01-02', description: '' }, src.toOwdrJson(), {}));
+    const back = OpenISDDriver.fromOwdrJson(wire.driver);
 
     for (const f of ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const) {
       assert.equal(back.cell(f).state, src.cell(f).state,
@@ -105,7 +105,7 @@ describe('persistence — provenance survives a local-save round trip', () => {
 
   it('the driver always travels — a project cannot exist without one', () => {
     const ser = storedPayload(projectOf('sealed', { name: 'Has a driver', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, OpenISDDriver.empty().toOwdrText(), {}));
+      modified: '2026-01-02', description: '' }, OpenISDDriver.empty().toOwdrJson(), {}));
     assert.equal(typeof ser.driver, 'string',
       'driver is REQUIRED on the wire (docs/design/DRIVER_NON_NULL_INVARIANT.md) — never absent');
   });
@@ -119,7 +119,7 @@ describe('persistence — provenance survives a local-save round trip', () => {
 describe('local save carries PURE PROJECT DATA — no view (QO90)', () => {
   it('the stored payload carries no ui/cursor/graphs/lossMode', () => {
     const ser = storedPayload(projectOf('sealed', { name: 'View-free save', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, OpenISDDriver.empty().toOwdrText(), {}));
+      modified: '2026-01-02', description: '' }, OpenISDDriver.empty().toOwdrJson(), {}));
     assert.equal(ser.lossMode, undefined, 'saveLocal\'s wire writer must not emit a lossMode');
     assert.equal(ser.graphs, undefined, 'saveLocal\'s wire writer must not emit open charts');
     assert.equal(ser.ui, undefined, 'saveLocal\'s wire writer must not emit UI preferences');

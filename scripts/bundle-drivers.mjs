@@ -122,7 +122,7 @@ function main() {
     const skipped = [];
     const perGroup = new Map();          // top path segment (the brand) → kept count
     const roundTripFailures = [];        // Round-trip gate (shiny-noodling-kahan.md): every
-    // BUNDLED record must survive OpenISDDriver.fromJsonRecord(record).toOwdrText() unaltered.
+    // BUNDLED record must survive OpenISDDriver.fromJsonRecord(record).toOwdrJson() unaltered.
     let done = 0;
 
     for (const p of recordPaths) {
