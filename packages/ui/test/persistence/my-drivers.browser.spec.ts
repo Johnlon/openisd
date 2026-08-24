@@ -6,8 +6,7 @@ import { test, expect } from '../fixtures.js';
 // then loading it back. Each is asserted against browser storage, which is where a saved
 // driver actually lives — a row on screen proves rendering, not persistence.
 //
-// WinISD picker only (DriverBrowserWinisd.vue), per the agreed scope. The skin is seeded
-// through localStorage because store.ts forces `modern` on port 4100, this suite's port.
+// WinISD picker only (DriverBrowserWinisd.vue), per the agreed scope.
 
 const SEEDED_BRAND = 'Spec';
 const SEEDED_MODEL = 'Fixture';
@@ -75,7 +74,6 @@ async function captureSavedFiles(page: Page): Promise<void> {
 
 async function seed(page: Page, myDrivers: SavedDriver[] = [SEEDED]): Promise<void> {
   await page.addInitScript(([drivers, key]) => {
-    localStorage.setItem('openisd.state', JSON.stringify({ ui: { skin: 'original' } }));
     localStorage.setItem(key as string, JSON.stringify(drivers));
   }, [myDrivers, MY_DRIVERS_KEY] as const);
   await page.goto('/');

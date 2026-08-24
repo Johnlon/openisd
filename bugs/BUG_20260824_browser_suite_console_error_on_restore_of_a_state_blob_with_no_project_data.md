@@ -1,7 +1,7 @@
 # Browser suite: dozens of specs fail on a console.error logged for a state blob that never had project data
 
-Status: OPEN — found incidentally during the duplicate-accessor cleanup task; NOT caused by
-that task's changes (bisected below); out of that task's scope to fix.
+Status: RESOLVED — found incidentally during the duplicate-accessor cleanup task; NOT caused by
+that task's changes (bisected below).
 
 ## Symptom
 
@@ -60,8 +60,48 @@ defect, or whether some other recent change caused a UI-only write to start bein
 project reader that previously wasn't. Not investigated further — out of scope for the
 duplicate-accessor task this was found during.
 
+## Root cause
+
+`carriesStateShape()` (`packages/persistence/src/repos/projectRepo.ts`) is correct as written.
+`PROJECT_STATE_KEY` ('openisd.state') has exactly one writer, `saveLocal()`, and it always
+writes the complete payload (`box`/`driver`/`P`/`project` together — `projectPayloadOf()`).
+"Nothing was ever saved" is therefore represented by the key being ABSENT, which `loadLocal()`
+already handles silently (`if (!raw) return null`). There is no code path under which the key
+legitimately holds a value carrying zero project-shaped keys — any such value is anomalous, and
+the loud `console.error` refusal is the correct response to it, not a bug to silence.
+
+The actual defect was in the FIXTURES. Seven `packages/ui/test/persistence/*.browser.spec.ts`
+files (`driver-favorites`, `driver-count`, `my-drivers`, `my-drivers-failures`,
+`my-drivers-filtering`, `driver-scope-chip`, `driver-summary-winisd`) seeded
+`localStorage['openisd.state'] = JSON.stringify({ ui: { skin: 'original' } })`, with a comment
+explaining this worked around "`store.ts` forces `modern` on port 4100". That mechanism does not
+exist: there is no `store.ts` anywhere in `packages/ui/src`, no code reads a `ui.skin` field, and
+`App.vue` imports `OriginalShell` directly with no runtime skin switching (MEMORY.md: "Original
+is the only skin — Classic and Modern are deleted from the tree"). Separately, a QO90 refactor
+split persistence into two independent storage keys — `PROJECT_STATE_KEY` ('openisd.state', pure
+project data) and `VIEW_STATE_KEY` ('openisd.view', UI/view prefs, `viewStateRepo.ts`) — so even
+if `ui.skin` still meant something, it would never belong under `openisd.state`. The fixtures
+were dead code from a deleted feature, writing garbage to a key whose reader correctly refuses
+garbage.
+
 ## Fix
 
-Not fixed. Needs someone owning `packages/persistence/src/repos/projectRepo.ts` /
-`packages/ui/src/logic/schemaUpgrade.ts` to decide whether a state blob with no project keys at
-all should be a silent no-op or an error, and to confirm what changed to make so many `browser.spec.ts` fixtures land in this state.
+Removed the dead `localStorage.setItem('openisd.state', ...skin...)` seeding (and the stale
+"store.ts forces modern" comments) from all 7 fixture files. No production code changed —
+`carriesStateShape()` / `upgradeParsedState()` / `loadLocal()` in `projectRepo.ts` are untouched,
+since the investigation found them correct.
+
+Added `packages/ui/test/logic/persist.test.ts` → `describe('loadLocal — key absent is silent,
+key present-but-shapeless is refused loudly')`, three tests pinning the correct current
+behaviour: (1) key absent → `null`, zero `console.error` calls; (2) key present with a value
+carrying no project-shaped fields (the exact `{ui:{skin:'original'}}` shape the fixtures used) →
+`null`, refused loudly; (3) key present with a partial/corrupt project shape (`box` present,
+`driver` missing) → `null`, refused loudly. This guards against a future "fix" that weakens
+`carriesStateShape()` to silence case (2).
+
+## Verification
+
+- `npx vitest run packages/ui/test/logic/persist.test.ts` → 15/15 pass (12 pre-existing + 3 new).
+- `bash scripts/test-browser.sh packages/ui/test/persistence/driver-favorites.browser.spec.ts --workers=1 --reporter=line`
+  → 4/4 pass, zero console errors (previously 4/4 failed on
+  `[restore] saved state states a schema but carries no box type — refused`).

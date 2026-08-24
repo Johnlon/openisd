@@ -31,7 +31,6 @@ function record(uuid: string, brand: string, model: string): Record<string, unkn
 
 async function seedRaw(page: Page, raw: string): Promise<void> {
   await page.addInitScript(([value, key]) => {
-    localStorage.setItem('openisd.state', JSON.stringify({ ui: { skin: 'original' } }));
     localStorage.setItem(key as string, value as string);
   }, [raw, MY_DRIVERS_KEY] as const);
   await page.goto('/');

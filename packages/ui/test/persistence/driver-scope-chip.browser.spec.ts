@@ -32,7 +32,6 @@ const CLICKS_TO: Record<string, number> = { All: 0, Bundled: 1, 'My Drivers': 2 
 
 async function openPicker(page: Page): Promise<void> {
   await page.addInitScript((drivers) => {
-    localStorage.setItem('openisd.state', JSON.stringify({ ui: { skin: 'original' } }));
     localStorage.setItem('openisd_my_drivers', JSON.stringify(drivers));
   }, MY_DRIVERS);
   await page.goto('/');

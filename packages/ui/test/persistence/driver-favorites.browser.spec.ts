@@ -5,13 +5,9 @@ import { test, expect } from '../fixtures.js';
 // the All Sources dropdown vacated, behaving as an on/off filter over the same list exactly
 // as the type chips do.
 //
-// WinISD picker only (DriverBrowserWinisd.vue), per the agreed scope. The skin is seeded
-// through localStorage because store.ts forces `modern` on port 4100, this suite's port.
+// WinISD picker only (DriverBrowserWinisd.vue), per the agreed scope.
 
 async function openPicker(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd.state', JSON.stringify({ ui: { skin: 'original' } }));
-  });
   await page.goto('/');
   await page.locator('[title*="librar" i]').first().click();
   await expect(page.locator('.dlist')).toBeVisible();

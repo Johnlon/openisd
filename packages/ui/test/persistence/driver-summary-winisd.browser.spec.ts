@@ -17,9 +17,6 @@ const EDITOR = '.de-modal';
 const SUMMARY = '.preview';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd.state', JSON.stringify({ ui: { skin: 'original' } }));
-  });
   await page.goto('/');
   await page.evaluate(name => {
     localStorage.setItem('openisd_my_drivers', JSON.stringify([{

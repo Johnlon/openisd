@@ -8,9 +8,6 @@ import { test, expect } from '../fixtures.js';
 // two meanings, depending on what the user had done earlier.
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd.state', JSON.stringify({ ui: { skin: 'original' } }));
-  });
   await page.goto('/');
   await page.locator('[title*="librar" i]').first().click();
   await expect(page.locator('.dlist')).toBeVisible();

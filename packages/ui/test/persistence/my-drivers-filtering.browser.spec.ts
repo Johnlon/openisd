@@ -23,7 +23,6 @@ const SAVED = [
 
 async function open(page: Page): Promise<void> {
   await page.addInitScript(([drivers, key]) => {
-    localStorage.setItem('openisd.state', JSON.stringify({ ui: { skin: 'original' } }));
     localStorage.setItem(key as string, JSON.stringify(drivers));
   }, [SAVED, MY_DRIVERS_KEY] as const);
   await page.goto('/');

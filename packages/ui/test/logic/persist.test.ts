@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
 import { WinISDDriver } from '@openisd/winisd';
-import { createProjectRepo, createMemoryStorage, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
+import { createProjectRepo, createMemoryStorage, PROJECT_STATE_KEY, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
 import { projectSchema } from '../../src/logic/schemaUpgrade.js';
 import { state, managedProject, applyLoadedProject, currentProject, currentViewSnapshot } from '../../src/logic/appState.js';
 import { toAlignmentKind } from '../../src/logic/managedProject.js';
@@ -342,5 +342,54 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
     }));
     assert.ok(upgraded);
     assert.ok(upgraded!.driver());
+  });
+});
+
+/**
+ * `loadLocal()`'s two distinct empty cases (bugs/BUG_20260824_browser_suite_console_error_on_
+ * restore_of_a_state_blob_with_no_project_data.md): "nothing was ever saved" is the KEY being
+ * ABSENT — `saveLocal` is the only writer of `PROJECT_STATE_KEY`, and it always writes the
+ * complete payload (`box`/`driver`/`P`/`project` together), so there is no code path that
+ * legitimately leaves the key SET to a value carrying none of those. A value at the key that
+ * carries no project shape is therefore always anomalous — worth the loud refusal, not a
+ * silent skip.
+ */
+describe('loadLocal — key absent is silent, key present-but-shapeless is refused loudly', () => {
+  afterAll(() => mem.remove(PROJECT_STATE_KEY));
+
+  it('no key at all → null, no console.error (nothing was ever saved)', () => {
+    mem.remove(PROJECT_STATE_KEY);
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const result = repo.loadLocal();
+      assert.equal(result, null);
+      assert.equal(spy.mock.calls.length, 0, 'a missing key must not log — there is nothing to refuse');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('key present but carrying no project-shaped fields → null, refused loudly', () => {
+    mem.set(PROJECT_STATE_KEY, JSON.stringify({ ui: { skin: 'original' } }));
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const result = repo.loadLocal();
+      assert.equal(result, null);
+      assert.ok(spy.mock.calls.length > 0, 'a shapeless value at the key is anomalous and must be refused loudly');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('key present with a partial/corrupt project shape (box, no driver) → null, refused loudly', () => {
+    mem.set(PROJECT_STATE_KEY, JSON.stringify({ box: 'sealed', P: {}, project: {} }));
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const result = repo.loadLocal();
+      assert.equal(result, null);
+      assert.ok(spy.mock.calls.length > 0, 'a partial project shape is corrupt, not empty, and must be refused loudly');
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
