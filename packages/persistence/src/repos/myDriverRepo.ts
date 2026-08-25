@@ -1,5 +1,5 @@
 /** REPO: domain access to the My Drivers collection. Takes a storage, returns domain objects. */
-import type { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver } from '@openisd/model';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 /** One element of the stored drivers array, as parsed JSON actually is — an object in every
  *  healthy entry, but corruption can leave any JSON value there and the repo preserves it. */
@@ -114,7 +114,7 @@ function labelOf(blob: unknown): string {
 }
 
 export function createMyDriverRepo(
-  storage: KeyValueStorage, fromConformingRecord: (candidate: unknown) => OpenISDDriver | null,
+  storage: KeyValueStorage,
   schema: MyDriversSchema,
 ): MyDriverRepo {
   /** null = storage inaccessible; distinct from an absent key (a fresh browser). */
@@ -157,7 +157,7 @@ export function createMyDriverRepo(
     const brokenRaw: unknown[] = [];
     const broken: BrokenEntry[] = [];
     for (const blob of envelope.drivers) {
-      const driver = fromConformingRecord(blob);
+      const driver = OpenISDDriver.upgrade(blob);
       if (driver) { drivers.push(driver); driverBlobs.push(blob); continue; }
       broken.push({ key: brokenRaw.length, label: labelOf(blob), raw: JSON.stringify(blob) });
       brokenRaw.push(blob);

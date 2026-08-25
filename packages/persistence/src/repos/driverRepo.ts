@@ -1,9 +1,43 @@
 /** REPO: domain access to the driver collection (bundled + federated sources). Takes a
  *  storage/bundle, returns domain objects. */
-import type { OpenISDDriver, OpenISDDriverJson, SpecField, MetaField } from '@openisd/model';
+import { OpenISDDriver } from '@openisd/model';
+import type { OpenISDDriverJson, MetaField } from '@openisd/model';
 import { recordStandingIsOk } from '@openisd/model/driverStanding';
 import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
 import { DriverType, Chip } from '@openisd/model';
+
+/** The fixed field set the driver-summary/preview panel shows — `SpecField` never crosses this
+ *  file's boundary (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md); this is the one
+ *  place a small closed field list needs generic dispatch, so it lives here as a switch, not as
+ *  a keyed method on `OpenISDDriver`. */
+export type DriverSummaryField = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Re' | 'Le' | 'Vas' | 'Sd' | 'Xmax' | 'Pe' | 'Znom';
+
+function driverFieldValue(driver: OpenISDDriver, field: DriverSummaryField): number | null {
+  switch (field) {
+    case 'Fs': return driver.Fs();
+    case 'Qts': return driver.Qts();
+    case 'Qes': return driver.Qes();
+    case 'Qms': return driver.Qms();
+    case 'Re': return driver.Re();
+    case 'Le': return driver.Le();
+    case 'Vas': return driver.Vas();
+    case 'Sd': return driver.Sd();
+    case 'Xmax': return driver.Xmax();
+    case 'Pe': return driver.Pe();
+    case 'Znom': return driver.Znom();
+  }
+}
+
+function driverFieldMeta(driver: OpenISDDriver, field: MetaField): string {
+  switch (field) {
+    case 'brand': return driver.brand();
+    case 'model': return driver.model();
+    case 'manufacturer': return driver.manufacturer();
+    case 'provided_by': return driver.providedBy();
+    case 'comment': return driver.comment();
+    case 'added': return driver.added();
+  }
+}
 
 // The driver commons — index, search, filter, lookup.
 //
@@ -47,8 +81,11 @@ export interface FileEntry {
  * verbatim, so this field IS one; calling it anything wider or opaquer would hide that fact
  * from the reader without changing a single byte that crosses.
  *
- * The value is still only ever OPENED once, at `bundledEntry()`, through the injected
- * `driverFromConformingRecord` — the same conformance check browser storage uses.
+ * The value is still only ever OPENED once, at `bundledEntry()`, via
+ * `OpenISDDriver.fromJsonRecord()` — bundled drivers ship inside this build's own dist and
+ * are always current, so no conformance check runs against them the way browser storage's
+ * untrusted per-entry blobs need (`docs/design/MY_DRIVERS_STORAGE_FAILURES.md`: "bundled
+ * drivers are always current, they ship with the dist").
  */
 export interface BundleRecord {
   /** Path within its source, forward-slashed — half of the driver's identity. */
@@ -205,12 +242,11 @@ export function myDriverEntry(d: OpenISDDriver): FileEntry {
   // Read the summary columns through the driver's own accessors, so a value the record STATES
   // and one the solver DERIVES are both available — the filter bar asks "what is this driver's
   // Fs", not "did someone type an Fs".
-  const num = (f: SpecField) => d.cell(f).value;
-  const ct = classifyTypes(num('Fs'), num('Sd'), name, d.previewField('driver_type'));
+  const ct = classifyTypes(d.Fs(), d.Sd(), name, d.previewField('driver_type'));
   return {
     name, myDriverData: d,
-    Fs: num('Fs'), Sd: num('Sd'), Re: num('Re'),
-    Znom: num('Znom'), Pe: num('Pe'),
+    Fs: d.Fs(), Sd: d.Sd(), Re: d.Re(),
+    Znom: d.Znom(), Pe: d.Pe(),
     types: ct.types, canonical: ct.canonical,
   };
 }
@@ -227,13 +263,13 @@ export function myDriverEntry(d: OpenISDDriver): FileEntry {
  * the flag that surfaces it).
  *
  * For domain objects (bundled or My Drivers, the SAME shape) both checks run directly against
- * the driver. Every driver reaching this function was already constructed via
- * `driverFromConformingRecord` (`managedDriver.ts`, wrapping `OpenISDDriver.fromConformingRecord`)
- * at its read seam — `myDrivers.ts::list()` for browser storage, `bundledEntry()` above for the
- * driver corpus (see `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`)
- * — so `quality` is guaranteed present. For federated rows (content not yet fetched) the summary
- * `Fs` / `Re` / `Sd` pre-computed fields are the available proxy — no quality block exists
- * yet to check standing against.
+ * the driver. Every driver reaching this function was already constructed at its own read seam
+ * — `myDriverRepo.ts`'s `readFull()` (`OpenISDDriver.upgrade()`) for browser storage,
+ * `bundledEntry()` above (`OpenISDDriver.fromJsonRecord()`) for the driver corpus (see
+ * `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`) — so `quality`
+ * is guaranteed present. For federated rows (content not yet fetched) the summary `Fs` / `Re` /
+ * `Sd` pre-computed fields are the available proxy — no quality block exists yet to check
+ * standing against.
  */
 export function driverHasDqIssues(f: FileEntry): boolean {
   // A saved driver and a bundled record are the SAME shape, so one path reads both.
@@ -345,12 +381,11 @@ export function previewOf(f: FileEntry): Preview {
   // Only a federated `.wdr` needs the text parse below.
   const driver = f.myDriverData ?? f.record;
   if (driver) {
-    const n = (field: SpecField, scale = 1): number | null => {
-      const v = driver.cell(field).value;
-      return (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
-    };
+    const scaled = (v: number | null, scale = 1): number | null =>
+      (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
+    const n = (field: DriverSummaryField, scale = 1): number | null => scaled(driverFieldValue(driver, field), scale);
     const meta = (field: MetaField): string | null =>
-      driver.metaCell(field).value || null;
+      driverFieldMeta(driver, field) || null;
     const Fs = n('Fs'), Qes = n('Qes');
     const pathSku = f.path ? f.path.split('/')[1] : null;
 
@@ -467,18 +502,6 @@ export interface DriverRepoDeps {
   sources: Record<string, Omit<SourceEntry, 'key'>>;
   /** The pre-built driver bundle: `{ sources: [{ key, files }] }`. */
   bundle: { sources?: Array<{ key: string; files: BundleRecord[] }> };
-  /**
-   * Builds a driver from one bundle record, or `null` when it does not conform — INJECTED
-   * rather than imported, because the containment gate (`packages/ui/test/ui/architecture.test.ts`,
-   * "ManagedOpenISDProject is the only holder of OpenISDDriver") licenses only
-   * `managedProject.ts`, `managedDriver.ts` and `DriverEditorModal.vue` to name `OpenISDDriver`
-   * as a value. The composition root (`main.ts`) supplies
-   * `managedDriver.ts::driverFromConformingRecord` — the SAME read seam browser storage uses,
-   * so a build artifact is checked exactly as strictly as user data (SERIALIZATION_DOCTRINE.md
-   * edge 2: "the ONE runtime seam is the composition root passing each record through the
-   * model ONCE").
-   */
-  fromBundleRecord: (record: unknown) => OpenISDDriver | null;
 }
 
 export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
@@ -498,27 +521,24 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
    * (SERIALIZATION_DOCTRINE.md edge 2): the bundle's raw JSON is passed through the model
    * ONCE, right here, into a domain object — every downstream reader (the filter bar, the
    * preview pane, the DQ badge) sees `FileEntry.record` as an `OpenISDDriver`, never as data.
+   *
+   * `f.record` is already typed `OpenISDDriverJson` — the bundler wrote it, so `fromJsonRecord`
+   * constructs directly with no conformance check and no `null` outcome.
    */
-  function bundledEntry(f: BundleRecord, src: SourceEntry): FileEntry | null {
-    const driver = deps.fromBundleRecord(f.record);
-    if (!driver) {
-      console.warn('driverRepo: ignoring non-conforming bundled record', src.key, f.path);
-      return null;
-    }
-    const num = (field: SpecField) => driver.cell(field).value;
-
+  function bundledEntry(f: BundleRecord, src: SourceEntry): FileEntry {
+    const driver = OpenISDDriver.fromJsonRecord(f.record);
     // `myDriverName()` is the ONE place that decides what a driver is called. A bundled row must
     // read exactly as the same driver reads everywhere else, so it asks rather than rebuilding
     // the rule. The bundler's own path is the only fallback, for a record nothing else names.
     const short = myDriverName(driver);
     const displayName = short === 'Driver' ? f.name : short;
 
-    const ct = classifyTypes(num('Fs'), num('Sd'), displayName + ' ' + f.name, f.driverType);
+    const ct = classifyTypes(driver.Fs(), driver.Sd(), displayName + ' ' + f.name, f.driverType);
     return {
       name: displayName,
       fileName: f.name,
       record: driver,
-      date: normaliseDate(driver.metaCell('added').value),
+      date: normaliseDate(driver.added()),
       // Source links live in the record's own provenance index, keyed by SourceRole — a URL is
       // not a driver field.
       datasheet: driver.dataSourceUrl('manufacturer_datasheet'),
@@ -531,8 +551,8 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
       sourceName: src.name,
       sourceUrl: src.url || '',
       sourceDesc: src.description || '',
-      Fs: num('Fs'), Sd: num('Sd'), Re: num('Re'),
-      Znom: num('Znom'), Pe: num('Pe'),
+      Fs: driver.Fs(), Sd: driver.Sd(), Re: driver.Re(),
+      Znom: driver.Znom(), Pe: driver.Pe(),
       types: ct.types, canonical: ct.canonical,
     };
   }
@@ -549,10 +569,7 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
       for (const src of sources) {
         const files = bundledByKey[src.key];
         if (!files) continue;
-        for (const f of files) {
-          const entry = bundledEntry(f, src);
-          if (entry) out.push(entry);
-        }
+        for (const f of files) out.push(bundledEntry(f, src));
       }
       return out;
     },

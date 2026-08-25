@@ -7,7 +7,8 @@ import { useApp } from '../../logic/app.js';
 import { referenceRho, referenceC } from '../../logic/environment.js';
 import { OpenISDDriver } from '@openisd/model';
 import { readDriverFileText, driverFileBody } from '../../logic/driverFileText.js';
-import type { SpecField, MetaField } from '@openisd/model';
+import type { SpecField, Cell } from '@openisd/model';
+import { Provenance } from '@openisd/model';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import { precision } from '../../logic/fields/fieldRegistry.js';
@@ -29,9 +30,9 @@ const { selection, myDrivers, logging, driverFileStorage } = useApp();
 //
 // THE EDITOR OWNS ITS OWN DRAFT (D22): `selection.editSubject()` says WHICH driver is being
 // edited and hands over a SEED to build a DETACHED draft from — `selection` holds no draft of
-// its own and never receives the edited driver back. This dialog is one of the three files the
-// containment gate licenses to construct `OpenISDDriver` directly (the other two: managedProject.ts,
-// managedDriver.ts) — see architecture.test.ts "ManagedOpenISDProject is the only holder of
+// its own and never receives the edited driver back. This dialog is one of the files the
+// containment gate licenses to construct `OpenISDDriver` directly (the others: managedProject.ts,
+// driverSelection.ts) — see architecture.test.ts "ManagedProject is the only holder of
 // OpenISDDriver".
 
 const emit = defineEmits<{ close: [] }>();
@@ -50,7 +51,7 @@ const tab = ref<Tab>('General');
 const editorTitle = subject.kind === 'myDriver' ? 'Edit My Driver' : "Edit Project's Driver";
 
 /** A fresh, detached draft to start or reset from — the project's committed driver (seeded via
- *  TEXT, since `ManagedOpenISDProject` never hands an `OpenISDDriver` out) for the project
+ *  TEXT, since `ManagedProject` never hands an `OpenISDDriver` out) for the project
  *  subject; the picked driver `selection` handed over for an existing My Driver; a blank one
  *  for a fresh My Driver (`openNewDriver()` — `subject.seed` is null exactly then). */
 function seedDraft(): OpenISDDriver {
@@ -86,8 +87,8 @@ function savedEntryForSubject(): OpenISDDriver | null {
 function saveWouldRename(): boolean {
   const saved = savedEntryForSubject();
   if (!saved) return false;
-  return saved.metaCell('brand').value !== draftDriver.value.metaCell('brand').value
-    || saved.metaCell('model').value !== draftDriver.value.metaCell('model').value;
+  return saved.brand() !== draftDriver.value.brand()
+    || saved.model() !== draftDriver.value.model();
 }
 
 // The ONE question (QO81 rename ruling, "option 3"): rename this driver in place (same uuid),
@@ -118,14 +119,14 @@ const driverRaw = computed(() => {
   const _ = trigger.value;
   const d = draftDriver.value;
   return {
-    brand: d.metaCell('brand').value,
-    model: d.metaCell('model').value,
-    manufacturer: d.metaCell('manufacturer').value,
-    providedBy: d.metaCell('provided_by').value,
-    comment: d.metaCell('comment').value,
-    added: d.metaCell('added').value,
+    brand: d.brand(),
+    model: d.model(),
+    manufacturer: d.manufacturer(),
+    providedBy: d.providedBy(),
+    comment: d.comment(),
+    added: d.added(),
     sku: d.sku(),
-    VCCon: d.cell('VCCon').value,
+    VCCon: d.VCCon(),
   };
 });
 
@@ -135,24 +136,145 @@ const editorModelValue = computed(() => {
   return String(r.model ?? '');
 });
 
-/** The template's own names for the metadata fields → the record's. `providedBy` is the only
- *  one that differs, and this is the single place the two spellings meet. */
-const META_FIELD: Record<string, MetaField> = {
-  brand: 'brand', model: 'model', manufacturer: 'manufacturer',
-  providedBy: 'provided_by', comment: 'comment', added: 'added',
-};
-
 function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufacturer' | 'added', e: Event) {
   // Metadata is a ScrapedField, a different envelope from a SpecEntry, so it has its own
   // entry point. Routing a string through enter() would put it in the wrong envelope.
-  draftDriver.value.enterMeta(META_FIELD[field], (e.target as HTMLInputElement | HTMLTextAreaElement).value);
+  const value = (e.target as HTMLInputElement | HTMLTextAreaElement).value;
+  const d = draftDriver.value;
+  switch (field) {
+    case 'brand': d.enterBrand(value); break;
+    case 'model': d.enterModel(value); break;
+    case 'manufacturer': d.enterManufacturer(value); break;
+    case 'providedBy': d.enterProvidedBy(value); break;
+    case 'comment': d.enterComment(value); break;
+    case 'added': d.enterAdded(value); break;
+  }
   forceUpdate();
 }
+
+/** Dispatch a runtime `SpecField` name to the draft's flat accessor — `SpecField` never
+ *  appears as a public parameter on `OpenISDDriver` itself (human ruling 2026-08-24,
+ *  ENCAPSULATION_AND_LAYERING.md); this is the one UI-layer dispatch point for the editor's
+ *  data-driven field table. */
 function setNum(field: string, v: number | null) {
+  const d = draftDriver.value;
   if (v == null) {
-    draftDriver.value.clear(field as SpecField);
+    switch (field as SpecField) {
+    case 'Fs': d.clearFs(); return;
+    case 'Re': d.clearRe(); return;
+    case 'Le': d.clearLe(); return;
+    case 'fLe': d.clearFLe(); return;
+    case 'KLe': d.clearKLe(); return;
+    case 'Znom': d.clearZnom(); return;
+    case 'Qts': d.clearQts(); return;
+    case 'Qes': d.clearQes(); return;
+    case 'Qms': d.clearQms(); return;
+    case 'Vas': d.clearVas(); return;
+    case 'Sd': d.clearSd(); return;
+    case 'BL': d.clearBL(); return;
+    case 'Mms': d.clearMms(); return;
+    case 'Cms': d.clearCms(); return;
+    case 'Rms': d.clearRms(); return;
+    case 'Xmax': d.clearXmax(); return;
+    case 'Xlim': d.clearXlim(); return;
+    case 'SPL': d.clearSPL(); return;
+    case 'Pe': d.clearPe(); return;
+    case 'Dd': d.clearDd(); return;
+    case 'EBP': d.clearEBP(); return;
+    case 'numVC': d.clearNumVC(); return;
+    case 'VCCon': d.clearVCCon(); return;
+    case 'Dia': d.clearDia(); return;
+    case 'Vd': d.clearVd(); return;
+    case 'no': d.clearNo(); return;
+    case 'SPLmax': d.clearSPLmax(); return;
+    case 'SPLmaxLF': d.clearSPLmaxLF(); return;
+    case 'USPL': d.clearUSPL(); return;
+    case 'alfaVC': d.clearAlfaVC(); return;
+    case 'Rt': d.clearRt(); return;
+    case 'Ct': d.clearCt(); return;
+    case 'gamma': d.clearGamma(); return;
+    case 'Rme': d.clearRme(); return;
+    case 'Mpow': d.clearMpow(); return;
+    case 'Mcost': d.clearMcost(); return;
+    case 'Gloss': d.clearGloss(); return;
+    case 'c': d.clearC(); return;
+    case 'roo': d.clearRoo(); return;
+    case 'Vcd': d.clearVcd(); return;
+    case 'Hg': d.clearHg(); return;
+    case 'Hc': d.clearHc(); return;
+    case 'freq_low_hz': d.clearFreq_low_hz(); return;
+    case 'freq_high_hz': d.clearFreq_high_hz(); return;
+    case 'power_peak_W': d.clearPower_peak_W(); return;
+    case 'weight_kg': d.clearWeight_kg(); return;
+    case 'Thick': d.clearThick(); return;
+    case 'Depth': d.clearDepth(); return;
+    case 'MagDepth': d.clearMagDepth(); return;
+    case 'Magnet': d.clearMagnet(); return;
+    case 'Basket': d.clearBasket(); return;
+    case 'Outer': d.clearOuter(); return;
+    case 'OuterX': d.clearOuterX(); return;
+    case 'OuterY': d.clearOuterY(); return;
+    case 'DVol': d.clearDVol(); return;
+    }
   } else {
-    draftDriver.value.enter(field as SpecField, v);
+    const value = v;
+    switch (field as SpecField) {
+    case 'Fs': d.enterFs(value); return;
+    case 'Re': d.enterRe(value); return;
+    case 'Le': d.enterLe(value); return;
+    case 'fLe': d.enterFLe(value); return;
+    case 'KLe': d.enterKLe(value); return;
+    case 'Znom': d.enterZnom(value); return;
+    case 'Qts': d.enterQts(value); return;
+    case 'Qes': d.enterQes(value); return;
+    case 'Qms': d.enterQms(value); return;
+    case 'Vas': d.enterVas(value); return;
+    case 'Sd': d.enterSd(value); return;
+    case 'BL': d.enterBL(value); return;
+    case 'Mms': d.enterMms(value); return;
+    case 'Cms': d.enterCms(value); return;
+    case 'Rms': d.enterRms(value); return;
+    case 'Xmax': d.enterXmax(value); return;
+    case 'Xlim': d.enterXlim(value); return;
+    case 'SPL': d.enterSPL(value); return;
+    case 'Pe': d.enterPe(value); return;
+    case 'Dd': d.enterDd(value); return;
+    case 'EBP': d.enterEBP(value); return;
+    case 'numVC': d.enterNumVC(value); return;
+    case 'VCCon': d.enterVCCon(value); return;
+    case 'Dia': d.enterDia(value); return;
+    case 'Vd': d.enterVd(value); return;
+    case 'no': d.enterNo(value); return;
+    case 'SPLmax': d.enterSPLmax(value); return;
+    case 'SPLmaxLF': d.enterSPLmaxLF(value); return;
+    case 'USPL': d.enterUSPL(value); return;
+    case 'alfaVC': d.enterAlfaVC(value); return;
+    case 'Rt': d.enterRt(value); return;
+    case 'Ct': d.enterCt(value); return;
+    case 'gamma': d.enterGamma(value); return;
+    case 'Rme': d.enterRme(value); return;
+    case 'Mpow': d.enterMpow(value); return;
+    case 'Mcost': d.enterMcost(value); return;
+    case 'Gloss': d.enterGloss(value); return;
+    case 'c': d.enterC(value); return;
+    case 'roo': d.enterRoo(value); return;
+    case 'Vcd': d.enterVcd(value); return;
+    case 'Hg': d.enterHg(value); return;
+    case 'Hc': d.enterHc(value); return;
+    case 'freq_low_hz': d.enterFreq_low_hz(value); return;
+    case 'freq_high_hz': d.enterFreq_high_hz(value); return;
+    case 'power_peak_W': d.enterPower_peak_W(value); return;
+    case 'weight_kg': d.enterWeight_kg(value); return;
+    case 'Thick': d.enterThick(value); return;
+    case 'Depth': d.enterDepth(value); return;
+    case 'MagDepth': d.enterMagDepth(value); return;
+    case 'Magnet': d.enterMagnet(value); return;
+    case 'Basket': d.enterBasket(value); return;
+    case 'Outer': d.enterOuter(value); return;
+    case 'OuterX': d.enterOuterX(value); return;
+    case 'OuterY': d.enterOuterY(value); return;
+    case 'DVol': d.enterDVol(value); return;
+    }
   }
   forceUpdate();
 }
@@ -160,9 +282,67 @@ function setNum(field: string, v: number | null) {
 // One reach into the DRAFT model (layer 3) — the what-if panels pass the store's effective
 // model to the same helpers instead, so the provenance marks and the Q-group rule cannot
 // disagree between this dialog and a panel showing the same driver.
-function cellOf(field: string) {
+function cellOf(field: string): Cell {
   const _ = trigger.value;
-  return draftDriver.value.cell(field as SpecField);
+  const d = draftDriver.value;
+  switch (field as SpecField) {
+    case 'Fs': return d.FsCell();
+    case 'Re': return d.ReCell();
+    case 'Le': return d.LeCell();
+    case 'fLe': return d.fLeCell();
+    case 'KLe': return d.KLeCell();
+    case 'Znom': return d.ZnomCell();
+    case 'Qts': return d.QtsCell();
+    case 'Qes': return d.QesCell();
+    case 'Qms': return d.QmsCell();
+    case 'Vas': return d.VasCell();
+    case 'Sd': return d.SdCell();
+    case 'BL': return d.BLCell();
+    case 'Mms': return d.MmsCell();
+    case 'Cms': return d.CmsCell();
+    case 'Rms': return d.RmsCell();
+    case 'Xmax': return d.XmaxCell();
+    case 'Xlim': return d.XlimCell();
+    case 'SPL': return d.SPLCell();
+    case 'Pe': return d.PeCell();
+    case 'Dd': return d.DdCell();
+    case 'EBP': return d.EBPCell();
+    case 'numVC': return d.numVCCell();
+    case 'VCCon': return d.VCConCell();
+    case 'Dia': return d.DiaCell();
+    case 'Vd': return d.VdCell();
+    case 'no': return d.noCell();
+    case 'SPLmax': return d.SPLmaxCell();
+    case 'SPLmaxLF': return d.SPLmaxLFCell();
+    case 'USPL': return d.USPLCell();
+    case 'alfaVC': return d.alfaVCCell();
+    case 'Rt': return d.RtCell();
+    case 'Ct': return d.CtCell();
+    case 'gamma': return d.gammaCell();
+    case 'Rme': return d.RmeCell();
+    case 'Mpow': return d.MpowCell();
+    case 'Mcost': return d.McostCell();
+    case 'Gloss': return d.GlossCell();
+    case 'c': return d.cCell();
+    case 'roo': return d.rooCell();
+    case 'Vcd': return d.VcdCell();
+    case 'Hg': return d.HgCell();
+    case 'Hc': return d.HcCell();
+    case 'freq_low_hz': return d.freq_low_hzCell();
+    case 'freq_high_hz': return d.freq_high_hzCell();
+    case 'power_peak_W': return d.power_peak_WCell();
+    case 'weight_kg': return d.weight_kgCell();
+    case 'Thick': return d.ThickCell();
+    case 'Depth': return d.DepthCell();
+    case 'MagDepth': return d.MagDepthCell();
+    case 'Magnet': return d.MagnetCell();
+    case 'Basket': return d.BasketCell();
+    case 'Outer': return d.OuterCell();
+    case 'OuterX': return d.OuterXCell();
+    case 'OuterY': return d.OuterYCell();
+    case 'DVol': return d.DVolCell();
+    default: return { value: null, state: Provenance.NotAvailable };
+  }
 }
 
 function cellClass(field: string): string {
@@ -287,8 +467,7 @@ function handleBodyClickOrFocus(e: Event) {
 // Zero is a VALUE, not an absence: someone recorded it, and a scraper mis-read or a typo is
 // worth showing rather than silently treating as "nothing here".
 function isBadValue(field: string): boolean {
-  const _ = trigger.value;
-  const v = draftDriver.value.cell(field as SpecField).value;
+  const v = cellOf(field).value;
   return typeof v === 'number' && !(v > 0);
 }
 
@@ -374,8 +553,8 @@ function openSaveMyDialog(forCopy: boolean = false) {
 
 function confirmSaveToMyDrivers() {
   if (!saveBrand.value.trim() || !saveModel.value.trim()) return;
-  draftDriver.value.enterMeta('brand', saveBrand.value.trim());
-  draftDriver.value.enterMeta('model', saveModel.value.trim());
+  draftDriver.value.enterBrand(saveBrand.value.trim());
+  draftDriver.value.enterModel(saveModel.value.trim());
   forceUpdate();
 
   if (isCopyAction.value) {

@@ -284,12 +284,12 @@ describe('inversion of control — collaborators are injected, never reached for
 });
 
 /**
- * ARCHITECTURE.md §3 "`ManagedOpenISDProject` — the one facade over every state layer", and the
- * dependency-rules table (§2): only `ManagedOpenISDProject` reaches `OpenISDProjectJson`, and only
+ * ARCHITECTURE.md §3 "`ManagedProject` — the one facade over every state layer", and the
+ * dependency-rules table (§2): only `ManagedProject` reaches `OpenISDProjectJson`, and only
  * `OpenISDProjectJson` reaches its members — the driver, the radiator, the box, the vent.
  * Everything else goes through the facade alone.
  */
-describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
+describe('ManagedProject is the only holder of OpenISDDriver', () => {
   const MANAGED_DRIVER_FILE = join(UI_SRC, 'logic', 'managedProject.ts');
 
   /**
@@ -309,14 +309,11 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
   const DRAFT_HOLDER = join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue');
 
   /**
-   * The managed-DRIVER file-IO module — licensed by QO78's ruling (human, 2026-08-22: "if the
-   * file io relates to managed project then move it into manaedproject.ts if the file io
-   * relates to manageddriver then movie it into manageddriver"): driver file IO that is not
-   * bound to a project (disk/library rows → records for the repositories) constructs its
-   * transient drivers HERE, inside the managed layer, rather than through a wrapper seam in
-   * the model or an exemption for a service file.
+   * The driver-selection module — driver file IO that is not bound to a project (disk/library
+   * rows → records for the pickers and the editor) constructs its transient drivers HERE,
+   * rather than through a wrapper seam in the model or an exemption for a service file.
    */
-  const MANAGED_DRIVER_IO_FILE = join(UI_SRC, 'logic', 'managedDriver.ts');
+  const MANAGED_DRIVER_IO_FILE = join(UI_SRC, 'logic', 'driverSelection.ts');
 
   it('the draft exemption names a file that still exists and still holds a draft', () => {
     assert.ok(callsExpression(DRAFT_HOLDER, 'OpenISDDriver.fromOwdrJson'),
@@ -335,12 +332,12 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
         .map(vi => `${rel(f)} imports OpenISDDriver from ${vi.spec}`));
 
     assert.deepEqual(offences, [],
-      '`ManagedOpenISDProject` (packages/ui/src/logic/managedProject.ts) is the ONLY facade over a ' +
-      "driver's ground/modified/edit-or-whatif state, and `managedDriver.ts` (QO78's ruling) is " +
-      'the only other licensed constructor, for driver file IO not bound to a project. A ' +
-      'further import of the OpenISDDriver class is an uncontrolled path into that state — it ' +
-      'bypasses the edit/what-if overlay, the single-channel notification asymmetry, and the ' +
-      'what-if-never-leaks cancellation guard `ManagedOpenISDProject` exists to enforce.');
+      '`ManagedProject` (packages/ui/src/logic/managedProject.ts) is the ONLY facade over a ' +
+      "driver's ground/modified/edit-or-whatif state, and `driverSelection.ts` is the only other " +
+      'licensed constructor, for driver file IO not bound to a project. A further import of the ' +
+      'OpenISDDriver class is an uncontrolled path into that state — it bypasses the edit/what-if ' +
+      'overlay, the single-channel notification asymmetry, and the what-if-never-leaks ' +
+      'cancellation guard `ManagedProject` exists to enforce.');
   });
 
   it('managedProject.ts itself is the one file that constructs an OpenISDDriver', () => {
@@ -354,9 +351,9 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
 });
 
 /**
- * ARCHITECTURE.md §3: `ManagedOpenISDProject` wraps ground state, committed state, and an
+ * ARCHITECTURE.md §3: `ManagedProject` wraps ground state, committed state, and an
  * edit-or-what-if overlay, and NOTHING outside it may hold, name, or reason about a
- * what-if. A component asks `ManagedOpenISDProject` whether a what-if is effective; it never
+ * what-if. A component asks `ManagedProject` whether a what-if is effective; it never
  * keeps its own flag, its own copy, or its own lifecycle.
  *
  * A second what-if implementation is the same defect as a second model version: two
@@ -364,7 +361,7 @@ describe('ManagedOpenISDProject is the only holder of OpenISDDriver', () => {
  * screen. That is exactly how `shareLink()` came to serialise an active what-if while
  * every sibling I/O function cancelled it first.
  */
-describe('what-if exists ONLY inside ManagedOpenISDProject', () => {
+describe('what-if exists ONLY inside ManagedProject', () => {
   const MANAGED_DRIVER_FILE = join(UI_SRC, 'logic', 'managedProject.ts');
 
   /** An IDENTIFIER naming what-if — a declaration, a call, a property. Walking the AST's
@@ -385,17 +382,17 @@ describe('what-if exists ONLY inside ManagedOpenISDProject', () => {
         const name = node.getText().replace(/^#/, '');
         if (WHATIF_IDENTIFIER.test(name)) found.add(name);
       });
-      // Reading ManagedOpenISDProject's OWN published API is the sanctioned way to ask "is a what-if
+      // Reading ManagedProject's OWN published API is the sanctioned way to ask "is a what-if
       // effective?" — that is what the facade is FOR. Anything else is a second implementation.
       for (const name of found) {
         if (!SANCTIONED.has(name)) offences.push(`${rel(f)}: ${name}`);
       }
     }
     assert.deepEqual(offences, [],
-      'What-if is ManagedOpenISDProject\'s concept and nothing else may hold it. Every identifier ' +
+      'What-if is ManagedProject\'s concept and nothing else may hold it. Every identifier ' +
       'listed above is a SECOND what-if implementation — its own copy, flag, snapshot, ' +
       'subscription or lifecycle function — living outside the one facade that is allowed to ' +
-      'know a what-if exists. Delete it and call ManagedOpenISDProject: beginWhatIf() / cancelWhatIf() ' +
+      'know a what-if exists. Delete it and call ManagedProject: beginWhatIf() / cancelWhatIf() ' +
       'to drive the session, isWhatIfActive() to paint the UI. Nothing else.');
   });
 });
@@ -424,7 +421,7 @@ describe('one driver model — the classic Driver ADT is not part of the app', (
       'REPLACES, and `@openisd/winisd` is a serialisation device only. Every import above is ' +
       'a second, competing driver model inside the application — with its own provenance, ' +
       'derivation and JSON shape, free to disagree with OpenISDDriver about the same driver. ' +
-      'Migrate the call site onto ManagedOpenISDProject/OpenISDDriver and delete the import; never ' +
+      'Migrate the call site onto ManagedProject/OpenISDDriver and delete the import; never ' +
       'fix or extend the condemned class in place.');
   });
 });
@@ -432,13 +429,13 @@ describe('one driver model — the classic Driver ADT is not part of the app', (
 /**
  * ARCHITECTURE.md §"Approved state stores — there are THREE, and no others".
  *
- * The store holds persistent design state; `ManagedOpenISDProject` holds active/edit/what-if driver
+ * The store holds persistent design state; `ManagedProject` holds active/edit/what-if driver
  * state; `ViewState` holds presentation state and the visible URL. EVERY other component is a
  * slave to those three — it reads and writes through them and holds nothing of its own.
  *
  * A local copy of state one of the three already holds is a SECOND ANSWER to the same question,
  * and two answers are free to disagree. That is not a hypothetical: it is how a parallel what-if
- * implementation grew inside the store while `ManagedOpenISDProject` existed beside it.
+ * implementation grew inside the store while `ManagedProject` existed beside it.
  */
 describe('only the three approved stores hold state', () => {
   const APPROVED = [
@@ -479,7 +476,7 @@ describe('only the three approved stores hold state', () => {
     }
 
     assert.deepEqual(offences, [],
-      'Only the approved stores may hold state: the store (persistent design), ManagedOpenISDProject ' +
+      'Only the approved stores may hold state: the store (persistent design), ManagedProject ' +
       '(active/edit/what-if driver), PresentationState (presentation, browser-backed), ' +
       'UrlAppState (the URL that encapsulates the app state). Each binding ' +
       'above is a fourth store — module-level, outliving every component, reachable by import, ' +
@@ -491,18 +488,18 @@ describe('only the three approved stores hold state', () => {
 /**
  * ARCHITECTURE.md §"Approved state stores" and §3: the containment must be TOTAL.
  *
- *     everything  ->  store  ->  ManagedOpenISDProject  ->  OpenISDDriver
+ *     everything  ->  store  ->  ManagedProject  ->  OpenISDDriver
  *
- * Each arrow is the ONLY way through. `OpenISDDriver` is private state inside `ManagedOpenISDProject`;
- * `ManagedOpenISDProject` is reached through the store. A single leak makes the whole chain advisory:
+ * Each arrow is the ONLY way through. `OpenISDDriver` is private state inside `ManagedProject`;
+ * `ManagedProject` is reached through the store. A single leak makes the whole chain advisory:
  * one caller holding the driver directly can mutate it with no notification and no what-if
  * guard, which is the exact defect this architecture exists to make impossible.
  */
-describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver', () => {
+describe('containment is total: store -> ManagedProject -> OpenISDDriver', () => {
   const MANAGED = join(UI_SRC, 'logic', 'managedProject.ts');
   const STORE = join(UI_SRC, 'logic', 'appState.ts');
 
-  it('ManagedOpenISDProject never hands an OpenISDDriver out — every public member returns data', () => {
+  it('ManagedProject never hands an OpenISDDriver out — every public member returns data', () => {
     // AST-driven (ts-morph), not text-pattern: a private-field/method (#name or `private`) is
     // exempt — it cannot be reached from outside the class — but every other method, getter, or
     // arrow-function property whose declared return type names OpenISDDriver is a leak,
@@ -524,44 +521,43 @@ describe('containment is total: store -> ManagedOpenISDProject -> OpenISDDriver'
     }
 
     assert.deepEqual(offences, [],
-      'OpenISDDriver is ManagedOpenISDProject\'s private state (the human\'s ruling: it "sits behind ' +
-      'ManagedOpenISDProject as private internal state MAPPED to the openisd.yml file"). A public ' +
+      'OpenISDDriver is ManagedProject\'s private state (the human\'s ruling: it "sits behind ' +
+      'ManagedProject as private internal state MAPPED to the openisd.yml file"). A public ' +
       'member returning one hands the internal driver to the caller, who can then mutate it ' +
       'behind the facade with no notification and no what-if cancellation. Return the DATA the ' +
       'caller needs — a Cell, a record, an engine driver — never the object.');
   });
 
-  it('the store is the only logic module that holds the ManagedOpenISDProject instance', () => {
+  it('the store is the only logic module that holds the ManagedProject instance', () => {
     const offences = filesUnder(UI_SRC)
       .filter(f => f !== STORE && f !== MANAGED)
       .flatMap(f => valueImportsOf(f)
-        .filter(vi => /managedProject(\.js)?$/.test(vi.spec) && vi.names.includes('ManagedOpenISDProject'))
-        .map(() => `${rel(f)} imports the ManagedOpenISDProject CLASS`));
+        .filter(vi => /managedProject(\.js)?$/.test(vi.spec) && vi.names.includes('ManagedProject'))
+        .map(() => `${rel(f)} imports the ManagedProject CLASS`));
 
     assert.deepEqual(offences, [],
-      'The store constructs and holds the one ManagedOpenISDProject; everything else reaches it as ' +
+      'The store constructs and holds the one ManagedProject; everything else reaches it as ' +
       '`managedProject` from the store. Importing the class elsewhere is how a SECOND driver ' +
       'state appears - two ManagedProjects are two answers to "what is the driver".');
   });
 
-  it('nothing reaches past ManagedOpenISDProject into the model package for a driver value', () => {
+  it('nothing reaches past ManagedProject into the model package for a driver value', () => {
     const offences = filesUnder(UI_SRC)
       .filter(f => f !== MANAGED
-        && f !== join(UI_SRC, 'logic', 'managedDriver.ts')
+        && f !== join(UI_SRC, 'logic', 'driverSelection.ts')
         && f !== join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue'))
       .flatMap(f => valueImportsOf(f)
         .filter(vi => /(^|\/)@openisd\/model(\/|$)/.test(vi.spec))
         .flatMap(vi => vi.names
-          .filter(n => n === 'OpenISDDriver' || n === 'ManagedOpenISDProject')
+          .filter(n => n === 'OpenISDDriver' || n === 'ManagedProject')
           .map(n => `${rel(f)} imports ${n} as a VALUE from ${vi.spec}`)));
 
     assert.deepEqual(offences, [],
       'Only the managed layer may name OpenISDDriver as a value: managedProject.ts, and ' +
-      'managedDriver.ts for driver file IO not bound to a project (QO78, human ruling ' +
-      '2026-08-22 — file IO moves INTO the domain module that owns what it reads/writes). ' +
-      'DriverEditorModal.vue carries its own narrow, ruled draft exemption — see the comment ' +
-      'at its own construction site. A type-only import is fine — it erases, so it cannot ' +
-      'reach the object.');
+      'driverSelection.ts for driver file IO not bound to a project — picker rows, a fetched ' +
+      '.wdr, and a file read off disk. DriverEditorModal.vue carries its own narrow, ruled ' +
+      'draft exemption — see the comment at its own construction site. A type-only import is ' +
+      'fine — it erases, so it cannot reach the object.');
   });
 
   it('NO ui file may name WinISDDriver as a value', () => {

@@ -12,8 +12,7 @@ import {
   type DriverRepo, type FileEntry, type Preview,
   type MyDriverRepo, type MyDriversRead, type BrokenEntry, type PrefsRepo,
 } from '@openisd/persistence';
-import { type DriverSelection } from './driverSelection.js';
-import { driverFromFileText } from './managedDriver.js';
+import { type DriverSelection, driverFromFileText } from './driverSelection.js';
 
 // The row and summary shapes the presentation layer is handed. A component names them with a
 // TYPE-ONLY import straight from `@openisd/persistence` — exempt from the presentation-depends-
@@ -460,8 +459,8 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     // edit the other through the record graph they had in common.
     const copy = src.copy();
     // A clone is a DIFFERENT driver, so its model states so.
-    const sourceModel = copy.metaCell('model').value;
-    copy.enterMeta('model', 'Copy of ' + sourceModel);
+    const sourceModel = copy.model();
+    copy.enterModel('Copy of ' + sourceModel);
     // `sku` and `name` are DerivedFields — the pipeline BUILT them for the source driver, and
     // they name that driver. A clone is a different driver, so it carries neither until
     // something derives them for it.

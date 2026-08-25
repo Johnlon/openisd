@@ -10,7 +10,6 @@ import { createDiagnostics } from './diagnostics/selftest.js';
 import { createFaultLog } from './diagnostics/faultLog.js';
 import { createDriverSelection } from './logic/driverSelection.js';
 import { createDriverBrowsingState } from './logic/driverBrowsingState.js';
-import { driverFromConformingRecord } from './logic/managedDriver.js';
 import { createDesignIO } from './logic/useDesignIO.js';
 import { provideApp } from './logic/app.js';
 import sourcesJson from '../../../drivers/sources.json';
@@ -41,8 +40,8 @@ faultLog.install();
 // STORAGE (port): the browser's own key-value storage.
 const storage = createLocalStorage();
 const logging = createLogging();
-const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle, fromBundleRecord: driverFromConformingRecord });
-const myDriverRepo = createMyDriverRepo(storage, driverFromConformingRecord, myDriversSchema);
+const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle });
+const myDriverRepo = createMyDriverRepo(storage, myDriversSchema);
 const prefs = createPrefsRepo(storage);
 const prRepo = createPrRepo(storage, bundle);
 const diagnostics = createDiagnostics({ report: logging.flash });

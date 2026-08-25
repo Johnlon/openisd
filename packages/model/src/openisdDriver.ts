@@ -318,6 +318,22 @@ export class OpenISDDriver {
     return new OpenISDDriver(candidate as OpenISDDriverJson);
   }
 
+  /**
+   * A My Drivers browser-storage entry → an `OpenISDDriver`, or `null` when it cannot be
+   * brought current. A per-entry blob may have been saved by an older build of this app, at an
+   * older schema than the one this build writes — the correct test for "can this be loaded" is
+   * whether the entry survives its OWN schema-upgrade chain from its stored version to current,
+   * not a generic structural conformance check against the CURRENT shape.
+   *
+   * This does not yet implement that per-entry chain. It is a pure pass-through to
+   * `fromConformingRecord()` — a placeholder for when the upgrade chain closes the gap between
+   * the whole-bucket/envelope-level schema steps (`schemaUpgrade.ts`'s `MY_DRIVERS_STEPS`) and
+   * a single stored entry.
+   */
+  static upgrade(candidate: unknown): OpenISDDriver | null {
+    return OpenISDDriver.fromConformingRecord(candidate);
+  }
+
   /** `.owdr` text → an `OpenISDDriver`, direct. `.owdr` IS this model's own record as JSON. */
   static fromOwdrJson(text: string): OpenISDDriver {
     return new OpenISDDriver(JSON.parse(text) as OpenISDDriverJson);
@@ -389,7 +405,7 @@ export class OpenISDDriver {
     // COMPUTED branch already resolves all three via `solveConsistencyGroup`'s own fill
     // (`@openisd/engine`'s `driver.ts`), so this loop names no field specially.
     for (const key of INI_ROWS) {
-      const c = this.cell(key as SpecField);
+      const c = this.#cell(key as SpecField);
       if (c.value == null) continue;
       if (!isFinite(c.value)) {
         intake.push({ level: 'warn', field: key,
@@ -417,12 +433,12 @@ export class OpenISDDriver {
       const state: CellState = key === 'numVC' ? CellState.Entered : existing?.state ?? CellState.Absent;
       finalCells.set(key, existing ?? { value: fallback, state });
     }
-    if (this.cell('Xlim').state !== Provenance.NotAvailable) finalCells.set('Xlim', { value: '', state: CellState.Entered });
+    if (this.XlimCell().state !== Provenance.NotAvailable) finalCells.set('Xlim', { value: '', state: CellState.Entered });
 
     const header: WdrHeader = {
-      brand: this.metaCell('brand').value,
-      model: this.metaCell('model').value,
-      manufacturer: this.metaCell('manufacturer').value,
+      brand: this.brand(),
+      model: this.model(),
+      manufacturer: this.manufacturer(),
       providedBy: '',
       comment: this.description(),
       dateAdded: '',
@@ -605,7 +621,11 @@ export class OpenISDDriver {
    * The value and its provenance. A stated reading — from a datasheet or from the keyboard
    * — is `E`; a solver result is `C`; neither is `N`.
    */
-  cell(field: SpecField): Cell {
+  /** PRIVATE. `SpecField` is an internal datatype — never a public parameter (human ruling
+   *  2026-08-24, docs/design/ENCAPSULATION_AND_LAYERING.md). The public surface is one flat
+   *  method per field, generated below; this stays only for `toWinISDDriver()`'s genuine
+   *  generic iteration over every `.wdr`-tracked field. */
+  #cell(field: SpecField): Cell {
     const entry = this.#entry(field);
     if (entry) {
       return { value: winningReading(entry).read_value, state: Provenance.Entered, origin: entry.origin };
@@ -622,8 +642,8 @@ export class OpenISDDriver {
    *  than reading `cell('EBP')`, so it carries no ENTERED/CALCULATED distinction of its own.
    *  Null when either `Fs` or `Qes` is unknown. */
   ebp(): number | null {
-    const fs = this.cell('Fs').value;
-    const qes = this.cell('Qes').value;
+    const fs = this.Fs();
+    const qes = this.Qes();
     return typeof fs === 'number' && typeof qes === 'number' ? computeEbp({ Fs: fs, Qes: qes }) : null;
   }
 
@@ -634,7 +654,8 @@ export class OpenISDDriver {
    * field stays manually entered; `clear()` deletes the whole entry outright, not just the
    * manual reading, so nothing is restored on clear (human ruling 2026-08-18).
    */
-  enter(field: SpecField, value: number): void {
+  /** PRIVATE — see `#cell()`. */
+  #enter(field: SpecField, value: number): void {
     const specs = this.#specs();
     const existing = specs[field];
     const manual: Reading = { read_value: value };
@@ -655,7 +676,8 @@ export class OpenISDDriver {
    * value means retyping it, or discarding the edit. Clearing a field that was never entered by
    * hand does nothing.
    */
-  clear(field: SpecField): void {
+  /** PRIVATE — see `#cell()`. */
+  #clear(field: SpecField): void {
     const specs = this.#specs();
     const entry = specs[field];
     if (!entry || entry.origin !== 'manual') return;
@@ -704,7 +726,8 @@ export class OpenISDDriver {
   /** The value and provenance of a record-level metadata field (brand/model/manufacturer)
    *  — the `ScrapedField<string>` envelope's own `cell()`. No `C` state: nothing computes
    *  a brand. An empty value (never stated, or cleared to nothing) reads `N`. */
-  metaCell(field: MetaField): MetaCell {
+  /** PRIVATE — see `#cell()`; `MetaField` is the same kind of internal datatype. */
+  #metaCell(field: MetaField): MetaCell {
     const f = this.#record[field];
     if (f?.value && f.value.length > 0) return { value: f.value, state: Provenance.Entered, origin: f.origin };
     return { value: '', state: Provenance.NotAvailable };
@@ -738,8 +761,8 @@ export class OpenISDDriver {
   /** What this record is CALLED: `<brand> <model>`, the identity a saved driver is filed under
    *  and the name it reads by everywhere. `'Driver'` when it states neither. */
   displayName(): string {
-    const brand = this.metaCell('brand').value;
-    const model = this.metaCell('model').value;
+    const brand = this.brand();
+    const model = this.model();
     return [brand, model].filter(x => x.length > 0).join(' ').trim() || 'Driver';
   }
 
@@ -809,8 +832,9 @@ export class OpenISDDriver {
    * `clearMeta()` can restore it — `readings`/`definition`/`dq` are left untouched, since
    * `ScrapedField`'s number is `.value` directly, never looked up via `readings`.
    */
-  enterMeta(field: MetaField, value: string): void {
-    if (value === '') { this.clearMeta(field); return; }
+  /** PRIVATE — see `#cell()`. */
+  #enterMeta(field: MetaField, value: string): void {
+    if (value === '') { this.#clearMeta(field); return; }
     // The optional metadata fields may be genuinely absent on a record the pipeline wrote
     // before they existed; entering one creates it rather than throwing.
     this.#record[field] ??= { value: '', origin: 'manual', definition: field, dq: [] };
@@ -824,7 +848,8 @@ export class OpenISDDriver {
 
   /** Drop a hand-entered metadata value. The value/origin the field carried before the
    *  override wins again; clearing a field never entered by hand does nothing. */
-  clearMeta(field: MetaField): void {
+  /** PRIVATE — see `#cell()`. */
+  #clearMeta(field: MetaField): void {
     const displaced = this.#displacedMeta.get(field);
     if (!displaced) return;
     const f = this.#record[field];
@@ -833,6 +858,259 @@ export class OpenISDDriver {
     f.origin = displaced.origin;
     this.#displacedMeta.delete(field);
   }
+
+  // ---- Flat, individually-named field accessors — the public surface ------------------
+  //
+  // `SpecField`/`MetaField` never appear here as a public parameter (human ruling 2026-08-24,
+  // docs/design/ENCAPSULATION_AND_LAYERING.md: "SpecField is an internal datatype"). Each
+  // getter returns the bare value; the `*Cell()` twin returns the full `Cell`/`MetaCell` with
+  // provenance, for a caller that needs the E/C/N state. Generated mechanically — every field's
+  // body is structurally identical, differing only in which key it names.
+
+  Fs(): number | null { return this.#cell('Fs').value; }
+  FsCell(): Cell { return this.#cell('Fs'); }
+  enterFs(value: number): void { this.#enter('Fs', value); }
+  clearFs(): void { this.#clear('Fs'); }
+  Re(): number | null { return this.#cell('Re').value; }
+  ReCell(): Cell { return this.#cell('Re'); }
+  enterRe(value: number): void { this.#enter('Re', value); }
+  clearRe(): void { this.#clear('Re'); }
+  Le(): number | null { return this.#cell('Le').value; }
+  LeCell(): Cell { return this.#cell('Le'); }
+  enterLe(value: number): void { this.#enter('Le', value); }
+  clearLe(): void { this.#clear('Le'); }
+  fLe(): number | null { return this.#cell('fLe').value; }
+  fLeCell(): Cell { return this.#cell('fLe'); }
+  enterFLe(value: number): void { this.#enter('fLe', value); }
+  clearFLe(): void { this.#clear('fLe'); }
+  KLe(): number | null { return this.#cell('KLe').value; }
+  KLeCell(): Cell { return this.#cell('KLe'); }
+  enterKLe(value: number): void { this.#enter('KLe', value); }
+  clearKLe(): void { this.#clear('KLe'); }
+  Znom(): number | null { return this.#cell('Znom').value; }
+  ZnomCell(): Cell { return this.#cell('Znom'); }
+  enterZnom(value: number): void { this.#enter('Znom', value); }
+  clearZnom(): void { this.#clear('Znom'); }
+  Qts(): number | null { return this.#cell('Qts').value; }
+  QtsCell(): Cell { return this.#cell('Qts'); }
+  enterQts(value: number): void { this.#enter('Qts', value); }
+  clearQts(): void { this.#clear('Qts'); }
+  Qes(): number | null { return this.#cell('Qes').value; }
+  QesCell(): Cell { return this.#cell('Qes'); }
+  enterQes(value: number): void { this.#enter('Qes', value); }
+  clearQes(): void { this.#clear('Qes'); }
+  Qms(): number | null { return this.#cell('Qms').value; }
+  QmsCell(): Cell { return this.#cell('Qms'); }
+  enterQms(value: number): void { this.#enter('Qms', value); }
+  clearQms(): void { this.#clear('Qms'); }
+  Vas(): number | null { return this.#cell('Vas').value; }
+  VasCell(): Cell { return this.#cell('Vas'); }
+  enterVas(value: number): void { this.#enter('Vas', value); }
+  clearVas(): void { this.#clear('Vas'); }
+  Sd(): number | null { return this.#cell('Sd').value; }
+  SdCell(): Cell { return this.#cell('Sd'); }
+  enterSd(value: number): void { this.#enter('Sd', value); }
+  clearSd(): void { this.#clear('Sd'); }
+  BL(): number | null { return this.#cell('BL').value; }
+  BLCell(): Cell { return this.#cell('BL'); }
+  enterBL(value: number): void { this.#enter('BL', value); }
+  clearBL(): void { this.#clear('BL'); }
+  Mms(): number | null { return this.#cell('Mms').value; }
+  MmsCell(): Cell { return this.#cell('Mms'); }
+  enterMms(value: number): void { this.#enter('Mms', value); }
+  clearMms(): void { this.#clear('Mms'); }
+  Cms(): number | null { return this.#cell('Cms').value; }
+  CmsCell(): Cell { return this.#cell('Cms'); }
+  enterCms(value: number): void { this.#enter('Cms', value); }
+  clearCms(): void { this.#clear('Cms'); }
+  Rms(): number | null { return this.#cell('Rms').value; }
+  RmsCell(): Cell { return this.#cell('Rms'); }
+  enterRms(value: number): void { this.#enter('Rms', value); }
+  clearRms(): void { this.#clear('Rms'); }
+  Xmax(): number | null { return this.#cell('Xmax').value; }
+  XmaxCell(): Cell { return this.#cell('Xmax'); }
+  enterXmax(value: number): void { this.#enter('Xmax', value); }
+  clearXmax(): void { this.#clear('Xmax'); }
+  Xlim(): number | null { return this.#cell('Xlim').value; }
+  XlimCell(): Cell { return this.#cell('Xlim'); }
+  enterXlim(value: number): void { this.#enter('Xlim', value); }
+  clearXlim(): void { this.#clear('Xlim'); }
+  SPL(): number | null { return this.#cell('SPL').value; }
+  SPLCell(): Cell { return this.#cell('SPL'); }
+  enterSPL(value: number): void { this.#enter('SPL', value); }
+  clearSPL(): void { this.#clear('SPL'); }
+  Pe(): number | null { return this.#cell('Pe').value; }
+  PeCell(): Cell { return this.#cell('Pe'); }
+  enterPe(value: number): void { this.#enter('Pe', value); }
+  clearPe(): void { this.#clear('Pe'); }
+  Dd(): number | null { return this.#cell('Dd').value; }
+  DdCell(): Cell { return this.#cell('Dd'); }
+  enterDd(value: number): void { this.#enter('Dd', value); }
+  clearDd(): void { this.#clear('Dd'); }
+  EBP(): number | null { return this.#cell('EBP').value; }
+  EBPCell(): Cell { return this.#cell('EBP'); }
+  enterEBP(value: number): void { this.#enter('EBP', value); }
+  clearEBP(): void { this.#clear('EBP'); }
+  numVC(): number | null { return this.#cell('numVC').value; }
+  numVCCell(): Cell { return this.#cell('numVC'); }
+  enterNumVC(value: number): void { this.#enter('numVC', value); }
+  clearNumVC(): void { this.#clear('numVC'); }
+  VCCon(): number | null { return this.#cell('VCCon').value; }
+  VCConCell(): Cell { return this.#cell('VCCon'); }
+  enterVCCon(value: number): void { this.#enter('VCCon', value); }
+  clearVCCon(): void { this.#clear('VCCon'); }
+  Dia(): number | null { return this.#cell('Dia').value; }
+  DiaCell(): Cell { return this.#cell('Dia'); }
+  enterDia(value: number): void { this.#enter('Dia', value); }
+  clearDia(): void { this.#clear('Dia'); }
+  Vd(): number | null { return this.#cell('Vd').value; }
+  VdCell(): Cell { return this.#cell('Vd'); }
+  enterVd(value: number): void { this.#enter('Vd', value); }
+  clearVd(): void { this.#clear('Vd'); }
+  no(): number | null { return this.#cell('no').value; }
+  noCell(): Cell { return this.#cell('no'); }
+  enterNo(value: number): void { this.#enter('no', value); }
+  clearNo(): void { this.#clear('no'); }
+  SPLmax(): number | null { return this.#cell('SPLmax').value; }
+  SPLmaxCell(): Cell { return this.#cell('SPLmax'); }
+  enterSPLmax(value: number): void { this.#enter('SPLmax', value); }
+  clearSPLmax(): void { this.#clear('SPLmax'); }
+  SPLmaxLF(): number | null { return this.#cell('SPLmaxLF').value; }
+  SPLmaxLFCell(): Cell { return this.#cell('SPLmaxLF'); }
+  enterSPLmaxLF(value: number): void { this.#enter('SPLmaxLF', value); }
+  clearSPLmaxLF(): void { this.#clear('SPLmaxLF'); }
+  USPL(): number | null { return this.#cell('USPL').value; }
+  USPLCell(): Cell { return this.#cell('USPL'); }
+  enterUSPL(value: number): void { this.#enter('USPL', value); }
+  clearUSPL(): void { this.#clear('USPL'); }
+  alfaVC(): number | null { return this.#cell('alfaVC').value; }
+  alfaVCCell(): Cell { return this.#cell('alfaVC'); }
+  enterAlfaVC(value: number): void { this.#enter('alfaVC', value); }
+  clearAlfaVC(): void { this.#clear('alfaVC'); }
+  Rt(): number | null { return this.#cell('Rt').value; }
+  RtCell(): Cell { return this.#cell('Rt'); }
+  enterRt(value: number): void { this.#enter('Rt', value); }
+  clearRt(): void { this.#clear('Rt'); }
+  Ct(): number | null { return this.#cell('Ct').value; }
+  CtCell(): Cell { return this.#cell('Ct'); }
+  enterCt(value: number): void { this.#enter('Ct', value); }
+  clearCt(): void { this.#clear('Ct'); }
+  gamma(): number | null { return this.#cell('gamma').value; }
+  gammaCell(): Cell { return this.#cell('gamma'); }
+  enterGamma(value: number): void { this.#enter('gamma', value); }
+  clearGamma(): void { this.#clear('gamma'); }
+  Rme(): number | null { return this.#cell('Rme').value; }
+  RmeCell(): Cell { return this.#cell('Rme'); }
+  enterRme(value: number): void { this.#enter('Rme', value); }
+  clearRme(): void { this.#clear('Rme'); }
+  Mpow(): number | null { return this.#cell('Mpow').value; }
+  MpowCell(): Cell { return this.#cell('Mpow'); }
+  enterMpow(value: number): void { this.#enter('Mpow', value); }
+  clearMpow(): void { this.#clear('Mpow'); }
+  Mcost(): number | null { return this.#cell('Mcost').value; }
+  McostCell(): Cell { return this.#cell('Mcost'); }
+  enterMcost(value: number): void { this.#enter('Mcost', value); }
+  clearMcost(): void { this.#clear('Mcost'); }
+  Gloss(): number | null { return this.#cell('Gloss').value; }
+  GlossCell(): Cell { return this.#cell('Gloss'); }
+  enterGloss(value: number): void { this.#enter('Gloss', value); }
+  clearGloss(): void { this.#clear('Gloss'); }
+  c(): number | null { return this.#cell('c').value; }
+  cCell(): Cell { return this.#cell('c'); }
+  enterC(value: number): void { this.#enter('c', value); }
+  clearC(): void { this.#clear('c'); }
+  roo(): number | null { return this.#cell('roo').value; }
+  rooCell(): Cell { return this.#cell('roo'); }
+  enterRoo(value: number): void { this.#enter('roo', value); }
+  clearRoo(): void { this.#clear('roo'); }
+  Vcd(): number | null { return this.#cell('Vcd').value; }
+  VcdCell(): Cell { return this.#cell('Vcd'); }
+  enterVcd(value: number): void { this.#enter('Vcd', value); }
+  clearVcd(): void { this.#clear('Vcd'); }
+  Hg(): number | null { return this.#cell('Hg').value; }
+  HgCell(): Cell { return this.#cell('Hg'); }
+  enterHg(value: number): void { this.#enter('Hg', value); }
+  clearHg(): void { this.#clear('Hg'); }
+  Hc(): number | null { return this.#cell('Hc').value; }
+  HcCell(): Cell { return this.#cell('Hc'); }
+  enterHc(value: number): void { this.#enter('Hc', value); }
+  clearHc(): void { this.#clear('Hc'); }
+  freq_low_hz(): number | null { return this.#cell('freq_low_hz').value; }
+  freq_low_hzCell(): Cell { return this.#cell('freq_low_hz'); }
+  enterFreq_low_hz(value: number): void { this.#enter('freq_low_hz', value); }
+  clearFreq_low_hz(): void { this.#clear('freq_low_hz'); }
+  freq_high_hz(): number | null { return this.#cell('freq_high_hz').value; }
+  freq_high_hzCell(): Cell { return this.#cell('freq_high_hz'); }
+  enterFreq_high_hz(value: number): void { this.#enter('freq_high_hz', value); }
+  clearFreq_high_hz(): void { this.#clear('freq_high_hz'); }
+  power_peak_W(): number | null { return this.#cell('power_peak_W').value; }
+  power_peak_WCell(): Cell { return this.#cell('power_peak_W'); }
+  enterPower_peak_W(value: number): void { this.#enter('power_peak_W', value); }
+  clearPower_peak_W(): void { this.#clear('power_peak_W'); }
+  weight_kg(): number | null { return this.#cell('weight_kg').value; }
+  weight_kgCell(): Cell { return this.#cell('weight_kg'); }
+  enterWeight_kg(value: number): void { this.#enter('weight_kg', value); }
+  clearWeight_kg(): void { this.#clear('weight_kg'); }
+  Thick(): number | null { return this.#cell('Thick').value; }
+  ThickCell(): Cell { return this.#cell('Thick'); }
+  enterThick(value: number): void { this.#enter('Thick', value); }
+  clearThick(): void { this.#clear('Thick'); }
+  Depth(): number | null { return this.#cell('Depth').value; }
+  DepthCell(): Cell { return this.#cell('Depth'); }
+  enterDepth(value: number): void { this.#enter('Depth', value); }
+  clearDepth(): void { this.#clear('Depth'); }
+  MagDepth(): number | null { return this.#cell('MagDepth').value; }
+  MagDepthCell(): Cell { return this.#cell('MagDepth'); }
+  enterMagDepth(value: number): void { this.#enter('MagDepth', value); }
+  clearMagDepth(): void { this.#clear('MagDepth'); }
+  Magnet(): number | null { return this.#cell('Magnet').value; }
+  MagnetCell(): Cell { return this.#cell('Magnet'); }
+  enterMagnet(value: number): void { this.#enter('Magnet', value); }
+  clearMagnet(): void { this.#clear('Magnet'); }
+  Basket(): number | null { return this.#cell('Basket').value; }
+  BasketCell(): Cell { return this.#cell('Basket'); }
+  enterBasket(value: number): void { this.#enter('Basket', value); }
+  clearBasket(): void { this.#clear('Basket'); }
+  Outer(): number | null { return this.#cell('Outer').value; }
+  OuterCell(): Cell { return this.#cell('Outer'); }
+  enterOuter(value: number): void { this.#enter('Outer', value); }
+  clearOuter(): void { this.#clear('Outer'); }
+  OuterX(): number | null { return this.#cell('OuterX').value; }
+  OuterXCell(): Cell { return this.#cell('OuterX'); }
+  enterOuterX(value: number): void { this.#enter('OuterX', value); }
+  clearOuterX(): void { this.#clear('OuterX'); }
+  OuterY(): number | null { return this.#cell('OuterY').value; }
+  OuterYCell(): Cell { return this.#cell('OuterY'); }
+  enterOuterY(value: number): void { this.#enter('OuterY', value); }
+  clearOuterY(): void { this.#clear('OuterY'); }
+  DVol(): number | null { return this.#cell('DVol').value; }
+  DVolCell(): Cell { return this.#cell('DVol'); }
+  enterDVol(value: number): void { this.#enter('DVol', value); }
+  clearDVol(): void { this.#clear('DVol'); }
+  brand(): string { return this.#metaCell('brand').value; }
+  brandCell(): MetaCell { return this.#metaCell('brand'); }
+  enterBrand(value: string): void { this.#enterMeta('brand', value); }
+  clearBrand(): void { this.#clearMeta('brand'); }
+  model(): string { return this.#metaCell('model').value; }
+  modelCell(): MetaCell { return this.#metaCell('model'); }
+  enterModel(value: string): void { this.#enterMeta('model', value); }
+  clearModel(): void { this.#clearMeta('model'); }
+  manufacturer(): string { return this.#metaCell('manufacturer').value; }
+  manufacturerCell(): MetaCell { return this.#metaCell('manufacturer'); }
+  enterManufacturer(value: string): void { this.#enterMeta('manufacturer', value); }
+  clearManufacturer(): void { this.#clearMeta('manufacturer'); }
+  providedBy(): string { return this.#metaCell('provided_by').value; }
+  providedByCell(): MetaCell { return this.#metaCell('provided_by'); }
+  enterProvidedBy(value: string): void { this.#enterMeta('provided_by', value); }
+  clearProvidedBy(): void { this.#clearMeta('provided_by'); }
+  comment(): string { return this.#metaCell('comment').value; }
+  commentCell(): MetaCell { return this.#metaCell('comment'); }
+  enterComment(value: string): void { this.#enterMeta('comment', value); }
+  clearComment(): void { this.#clearMeta('comment'); }
+  added(): string { return this.#metaCell('added').value; }
+  addedCell(): MetaCell { return this.#metaCell('added'); }
+  enterAdded(value: string): void { this.#enterMeta('added', value); }
+  clearAdded(): void { this.#clearMeta('added'); }
 
   #invalidate(): void {
     this.#cache = null;

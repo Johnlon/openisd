@@ -1,8 +1,6 @@
-import type { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver } from '@openisd/model';
 import { managedProject } from './appState.js';
 import { presentationState } from './presentationState.js';
-
-import { driverFromWdrText } from './managedDriver.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
 //
@@ -95,10 +93,46 @@ async function modelOf(f: PoolEntry): Promise<{ ok: true; driver: OpenISDDriver 
   }
   if (!/\[Driver\]/.test(text)) return { ok: false, error: 'Could not load: file did not parse as a WDR' };
   try {
-    return { ok: true, driver: driverFromWdrText(text) };
+    return { ok: true, driver: OpenISDDriver.fromWdrText(text) };
   } catch (err) {
     return { ok: false, error: 'Could not load: ' + (err as Error).message };
   }
+}
+
+// ---- reading a driver file off the user's own disk -------------------------------------
+// Driver file IO that is not bound to a project — Load File… lands a driver in My Drivers,
+// never in the open project, so it belongs beside the rest of this module's "driver file IO
+// not bound to a project" work (`modelOf()` above) rather than in a project-scoped module.
+
+/** A driver read off the user's disk, or the reason the file could not be read. The driver is
+ *  the public domain object — never the record shape. */
+export type FileReadResult =
+  | { ok: true; driver: OpenISDDriver }
+  | { ok: false; error: string };
+
+/**
+ * Read a driver file the user picked off their own disk.
+ *
+ * `format` is the caller's classification (`fileFormat.ts`'s `DriverFileFormat.ofFileName`/
+ * `sniff`) — this module names no private type, parses nothing, and sniffs no format itself.
+ *
+ * The file name also supplies the MODEL when the file itself carries neither brand nor model
+ * — a `.wdr` written by another tool need not fill those in, and a driver with no
+ * `<brand>/<model>` has no identity to be saved under. The name is the file's own, not an
+ * invented value.
+ */
+export function driverFromFileText(text: string, format: 'wdr' | 'owdr', fileName: string): FileReadResult {
+  const { value: driver, errors } = OpenISDDriver.fromFileText(text, format);
+  if (!driver) return { ok: false, error: errors[0]?.message ?? `${fileName} could not be read` };
+
+  // A driver IS its <brand>/<model>, so one with neither cannot be filed. The file name is the
+  // last thing that can name it; if that is empty too, say so rather than saving it nameless.
+  if (!driver.brand() && !driver.model()) {
+    const base = fileName.replace(/\.[^.]*$/, '').trim();
+    if (!base) return { ok: false, error: `${fileName} carries no brand or model, and its name gives none` };
+    driver.enterModel(base);
+  }
+  return { ok: true, driver };
 }
 
 // ---- what the editor is editing --------------------------------------------------------
