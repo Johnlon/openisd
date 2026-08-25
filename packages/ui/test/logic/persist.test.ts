@@ -20,7 +20,7 @@ import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
 import { WinISDDriver } from '@openisd/winisd';
 import { createProjectRepo, createMemoryStorage, PROJECT_STATE_KEY, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
 import { projectSchema } from '../../src/logic/schemaUpgrade.js';
-import { state, managedProject, applyLoadedProject, currentProject, currentViewSnapshot } from '../../src/logic/appState.js';
+import { state, requireFocusedProject, applyLoadedProject, currentProject, currentViewSnapshot } from '../../src/logic/appState.js';
 import { toAlignmentKind } from '../../src/logic/managedProject.js';
 import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
 import type { BoxType } from '@openisd/engine';
@@ -77,18 +77,37 @@ describe('persistence — provenance survives a local-save round trip', () => {
     const src = OpenISDDriver.fromOwdrJson(sampleDriverText());
     // Clear a derivable field so the fixture carries a genuine C (Cms recomputes from
     // Fs/Vas/Sd) alongside the E fields the WinISD save marks entered.
-    src.clear('Cms');
+    src.clearCms();
 
     // The fixture must actually contain both an E and a C field, or the test is vacuous.
-    assert.equal(src.cell('Fs').state, Provenance.Entered, 'fixture precondition: Fs entered');
-    assert.equal(src.cell('Cms').state, Provenance.Calculated, 'fixture precondition: Cms now computed');
+    assert.equal(src.FsCell().state, Provenance.Entered, 'fixture precondition: Fs entered');
+    assert.equal(src.CmsCell().state, Provenance.Calculated, 'fixture precondition: Cms now computed');
 
     const wire = storedPayload(projectOf('sealed', { name: 'John-all-manu-populated', creator: 'John',
       created: '2026-01-01', modified: '2026-01-02', description: '' }, src.toOwdrJson(), {}));
     const back = OpenISDDriver.fromOwdrJson(wire.driver);
 
-    for (const f of ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const) {
-      assert.equal(back.cell(f).state, src.cell(f).state,
+    const CHECKED_FIELDS = ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const;
+    /** Dispatch a fixed field name to its flat accessor's `.state` — `SpecField` never
+     *  appears as a public parameter (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md);
+     *  this test needs the same field checked on two driver instances, so the dispatch lives
+     *  here. */
+    function stateOf(d: OpenISDDriver, field: typeof CHECKED_FIELDS[number]) {
+      switch (field) {
+        case 'Fs': return d.FsCell().state;
+        case 'Qts': return d.QtsCell().state;
+        case 'Qes': return d.QesCell().state;
+        case 'Qms': return d.QmsCell().state;
+        case 'Vas': return d.VasCell().state;
+        case 'Sd': return d.SdCell().state;
+        case 'Re': return d.ReCell().state;
+        case 'Cms': return d.CmsCell().state;
+        case 'Mms': return d.MmsCell().state;
+        case 'BL': return d.BLCell().state;
+      }
+    }
+    for (const f of CHECKED_FIELDS) {
+      assert.equal(stateOf(back, f), stateOf(src, f),
         `cell(${f}).state must survive persistence — provenance is the point of the record`);
     }
   });
@@ -233,8 +252,8 @@ describe('share link carries the whole state, stripped of nothing', () => {
 });
 
 /**
- * `UiParams` is the ONE wire shape for the project's flat params — `managedProject.toUiParams()`
- * out, `managedProject.loadUiParams()` in, through the project repo and `applyLoadedProject()`.
+ * `UiParams` is the ONE wire shape for the project's flat params — `requireFocusedProject().toUiParams()`
+ * out, `requireFocusedProject().loadUiParams()` in, through the project repo and `applyLoadedProject()`.
  * A caller that passed `SyncedParams` (`UiParams & {eg, Sp, Leff}`) instead would persist
  * DERIVED values (recomputed from the rest on every load) as if they were stored state — a
  * second, redundant shape for the same three fields, free to disagree with what they recompute
@@ -243,53 +262,53 @@ describe('share link carries the whole state, stripped of nothing', () => {
  */
 describe('UiParams round-trips losslessly through the repo and applyLoadedProject', () => {
   it('every field of a fully-specified design survives a save/restore cycle unchanged', () => {
-    managedProject.setActiveAlignment('vented');
-    managedProject.enterProjectField('Vb', 0.028);
-    managedProject.enterProjectField('Vf', 0.011);
-    managedProject.setActiveVentField('shape', 'slotted');
-    managedProject.setActiveVentField('diameter_m', 0.06);
-    managedProject.setActiveVentField('width_m', 0.05);
-    managedProject.setActiveVentField('height_m', 0.03);
-    managedProject.setActiveVentField('length_m', 0.15);
-    managedProject.setActiveVentField('endCorrection', 0.61);
-    managedProject.enterProjectField('Fb', 38.5);
-    managedProject.enterProjectField('prFp', 41);
-    managedProject.setPrField('name', 'Test PR');
-    managedProject.setPrField('Sd_m2', 0.009);
-    managedProject.enterProjectField('prNum', 2);
-    managedProject.setPrField('Mmd_kg', 0.021);
-    managedProject.enterProjectField('prMadd', 0.004);
-    managedProject.setPrField('Cms_m_per_N', 0.0007);
-    managedProject.setPrField('Rms_Ns_per_m', 0.6);
-    managedProject.setPrField('Xmax_m', 0.006);
-    managedProject.enterProjectField('frcHz', 111111);
-    managedProject.enterProjectField('Ql', 9);
-    managedProject.enterProjectField('Qa', 95);
-    managedProject.enterProjectField('Qp', 105);
-    managedProject.enterProjectField('nDrivers', 2);
-    managedProject.setWiring('series');
-    managedProject.enterProjectField('Pin', 85);
-    managedProject.enterProjectField('Rs', 0.15);
-    managedProject.setSweepFmin_hz(12);
-    managedProject.setSweepFmax_hz(18000);
-    managedProject.setSweepPoints(350);
-    managedProject.setCircuitModel('gyrator');
-    managedProject.setFilters([{ id: 'f1', type: 'highpass', enabled: true, fc: 35, Q: 0.71 }]);
-    managedProject.enterProjectField('vcTempRise', 12);
-    managedProject.setAlfaVC(0.004);
-    managedProject.enterProjectField('driverAddedMass', 0.002);
-    managedProject.setRgAtDriverSide(true);
-    managedProject.setTlPortModel(true);
-    managedProject.setForceFlatResponse(true);
-    managedProject.setSplXmaxLimited(true);
-    managedProject.enterProjectField('advTemp', 300);
-    managedProject.enterProjectField('advHumidity', 45);
-    managedProject.enterProjectField('advPressure', 99000);
-    managedProject.setEnvIgnoreHumidityAndPressure(true);
-    managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true, prMadd: true });
+    requireFocusedProject().setActiveAlignment('vented');
+    requireFocusedProject().setBoxVolume_m3(0.028);
+    requireFocusedProject().setFrontVolume_m3(0.011);
+    requireFocusedProject().setVentShape('slotted');
+    requireFocusedProject().setVentDiameter_m(0.06);
+    requireFocusedProject().setVentWidth_m(0.05);
+    requireFocusedProject().setVentHeight_m(0.03);
+    requireFocusedProject().setVentLength_m(0.15);
+    requireFocusedProject().setVentEndCorrection(0.61);
+    requireFocusedProject().setBoxTuning_Fb_hz(38.5);
+    requireFocusedProject().setPrFp_hz(41);
+    requireFocusedProject().setPrName('Test PR');
+    requireFocusedProject().setPrSd_m2(0.009);
+    requireFocusedProject().setPrCount(2);
+    requireFocusedProject().setPrMmd_kg(0.021);
+    requireFocusedProject().setPrAddedMass_kg(0.004);
+    requireFocusedProject().setPrCms_m_per_N(0.0007);
+    requireFocusedProject().setPrRms_Ns_per_m(0.6);
+    requireFocusedProject().setPrXmax_m(0.006);
+    requireFocusedProject().setFrcHz(111111);
+    requireFocusedProject().setBoxQl(9);
+    requireFocusedProject().setBoxQa(95);
+    requireFocusedProject().setBoxQp(105);
+    requireFocusedProject().setDriverCount(2);
+    requireFocusedProject().setWiring('series');
+    requireFocusedProject().setInputPower_W(85);
+    requireFocusedProject().setSeriesResistance_ohm(0.15);
+    requireFocusedProject().setSweepFmin_hz(12);
+    requireFocusedProject().setSweepFmax_hz(18000);
+    requireFocusedProject().setSweepPoints(350);
+    requireFocusedProject().setCircuitModel('gyrator');
+    requireFocusedProject().setFilters([{ id: 'f1', type: 'highpass', enabled: true, fc: 35, Q: 0.71 }]);
+    requireFocusedProject().setVcTempRise(12);
+    requireFocusedProject().setAlfaVC(0.004);
+    requireFocusedProject().setDriverAddedMass(0.002);
+    requireFocusedProject().setRgAtDriverSide(true);
+    requireFocusedProject().setTlPortModel(true);
+    requireFocusedProject().setForceFlatResponse(true);
+    requireFocusedProject().setSplXmaxLimited(true);
+    requireFocusedProject().setEnvTempK(300);
+    requireFocusedProject().setEnvHumidityPct(45);
+    requireFocusedProject().setEnvPressurePa(99000);
+    requireFocusedProject().setEnvIgnoreHumidityAndPressure(true);
+    requireFocusedProject().setEnteredSet({ Vb: true, ventD: true, Fb: true, prMadd: true });
     state.box = 'vented';
 
-    const before = managedProject.toUiParams();
+    const before = requireFocusedProject().toUiParams();
 
     repo.saveLocal(currentProject());
     const wire = repo.loadLocal();
@@ -298,10 +317,10 @@ describe('UiParams round-trips losslessly through the repo and applyLoadedProjec
     // Scramble the live project back to nothing BEFORE restoring, so this actually exercises
     // write-back — restoring into a project that already held these values would pass even if
     // `loadUiParams` silently dropped every field.
-    managedProject.loadEmpty();
+    requireFocusedProject().loadEmpty();
     applyLoadedProject(wire!);
 
-    const after = managedProject.toUiParams();
+    const after = requireFocusedProject().toUiParams();
     assert.deepEqual(after, before,
       'every UiParams field must round-trip byte-identical through the repo and applyLoadedProject — a ' +
       'diverging field would mean the wire shape silently drops or corrupts it');
@@ -331,7 +350,7 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
     const loaded = await repo.loadFromHash();
     assert.ok(loaded, 'a V1 payload must load, upgraded — not be refused');
     assert.ok(loaded!.project.driver(), 'the V1→V2 step serialises the driver slot, and the repo adopts it');
-    assert.equal(loaded!.project.driver()!.cell('Fs').state, Provenance.Entered,
+    assert.equal(loaded!.project.driver()!.FsCell().state, Provenance.Entered,
       'the upgraded driver is the same record — provenance intact');
   });
 

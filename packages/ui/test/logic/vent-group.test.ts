@@ -21,7 +21,7 @@
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, applyLoadedProject, managedProject } from '../../src/logic/appState.js';
+import { state, applyLoadedProject, requireFocusedProject } from '../../src/logic/appState.js';
 import {
   solveVentGroup, enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
   ventFieldState as ventFieldStateOn,
@@ -42,28 +42,28 @@ const neverPicksAFile: FileStorage = {
 const restoreRepo = createProjectRepo(createMemoryStorage(), projectSchema, neverPicksAFile);
 
 function enterVentField(field: Parameters<typeof enterVentFieldOn>[1], value: number): void {
-  enterVentFieldOn(managedProject, field, value);
+  enterVentFieldOn(requireFocusedProject(), field, value);
 }
 function clearVentField(field: Parameters<typeof clearVentFieldOn>[1]): void {
-  clearVentFieldOn(managedProject, field);
+  clearVentFieldOn(requireFocusedProject(), field);
 }
 function ventFieldState(field: Parameters<typeof ventFieldStateOn>[1]): 'E' | 'C' | 'N' {
-  return ventFieldStateOn(managedProject, field);
+  return ventFieldStateOn(requireFocusedProject(), field);
 }
-function ventL(): number { return managedProject.activeVentField('length_m'); }
+function ventL(): number { return requireFocusedProject().ventLength_m(); }
 
 /** WinISD's own Vents-tab trial. */
 function winisdVentsTrial(): void {
-  managedProject.enterProjectField('Vb', 0.02);
-  managedProject.setActiveVentField('diameter_m', 0.05);
-  managedProject.setActiveVentField('endCorrection', 0.6);
-  managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
+  requireFocusedProject().setBoxVolume_m3(0.02);
+  requireFocusedProject().setVentDiameter_m(0.05);
+  requireFocusedProject().setVentEndCorrection(0.6);
+  requireFocusedProject().setEnteredSet({ Vb: true, ventD: true, Fb: true });
   enterVentField('Fb', 40);
 }
 
 describe('vent group — the entered set decides the direction', () => {
   beforeEach(() => {
-    managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
+    requireFocusedProject().setEnteredSet({ Vb: true, ventD: true, Fb: true });
   });
 
   it('ships WinISD\'s direction: Vb/ventD/Fb entered, vent length calculated', () => {
@@ -76,8 +76,8 @@ describe('vent group — the entered set decides the direction', () => {
     assert.ok(Math.abs(ventL() - 0.154) < 0.001,
       `d=5cm → ${ventL().toFixed(4)} m, WinISD shows 0.154`);
 
-    managedProject.setActiveVentField('diameter_m', 0.07);
-    solveVentGroup(managedProject);
+    requireFocusedProject().setVentDiameter_m(0.07);
+    solveVentGroup(requireFocusedProject());
     assert.ok(Math.abs(ventL() - 0.318) < 0.001,
       `d=7cm → ${ventL().toFixed(4)} m, WinISD shows 0.318`);
   });
@@ -86,10 +86,10 @@ describe('vent group — the entered set decides the direction', () => {
     winisdVentsTrial();
     const lenBefore = ventL();
 
-    managedProject.setActiveVentField('diameter_m', 0.07);
-    solveVentGroup(managedProject);
+    requireFocusedProject().setVentDiameter_m(0.07);
+    solveVentGroup(requireFocusedProject());
 
-    assert.equal(managedProject.projectCell('Fb').value, 40, 'an entered tuning must never be rewritten by the solver');
+    assert.equal(requireFocusedProject().boxTuning_Fb_hz(), 40, 'an entered tuning must never be rewritten by the solver');
     assert.notEqual(ventL(), lenBefore, 'the length must absorb the diameter change');
   });
 
@@ -101,10 +101,10 @@ describe('vent group — the entered set decides the direction', () => {
     assert.equal(ventFieldState('ventL'), 'E');
     assert.equal(ventFieldState('Fb'), 'C');
 
-    managedProject.setActiveVentField('diameter_m', 0.07);
-    solveVentGroup(managedProject);
+    requireFocusedProject().setVentDiameter_m(0.07);
+    solveVentGroup(requireFocusedProject());
     assert.equal(ventL(), 0.154, 'an entered length must never be rewritten');
-    assert.notEqual(managedProject.projectCell('Fb').value, 40, 'now the TUNING absorbs the diameter change');
+    assert.notEqual(requireFocusedProject().boxTuning_Fb_hz(), 40, 'now the TUNING absorbs the diameter change');
   });
 
   it('entering the second of the pair locks it E; clearing it returns it to C', () => {
@@ -140,37 +140,37 @@ describe('vent group — the entered set decides the direction', () => {
     assert.equal(ventFieldState('Fb'), 'E');
     assert.equal(ventFieldState('ventL'), 'E');
 
-    managedProject.setActiveVentField('diameter_m', 0.07);
-    solveVentGroup(managedProject);
-    assert.equal(managedProject.projectCell('Fb').value, 40, 'entered values are held even when they contradict');
+    requireFocusedProject().setVentDiameter_m(0.07);
+    solveVentGroup(requireFocusedProject());
+    assert.equal(requireFocusedProject().boxTuning_Fb_hz(), 40, 'entered values are held even when they contradict');
     assert.equal(ventL(), 0.999);
   });
 });
 
 describe('vent group — a restore is adopted verbatim', () => {
   it('THE RESTORE TEST — round-tripping through JSON returns bit-identical Fb and ventL', () => {
-    managedProject.enterProjectField('Vb', 0.02);
-    managedProject.setActiveVentField('diameter_m', 0.05);
-    managedProject.setActiveVentField('endCorrection', 0.6);
-    managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
+    requireFocusedProject().setBoxVolume_m3(0.02);
+    requireFocusedProject().setVentDiameter_m(0.05);
+    requireFocusedProject().setVentEndCorrection(0.6);
+    requireFocusedProject().setEnteredSet({ Vb: true, ventD: true, Fb: true });
     enterVentField('Fb', 40);
 
     // Exactly what persistence does: JSON out, JSON back in, through the REAL repo (the
     // rounding that happens here is what a re-solve on restore would amplify into a different
     // double).
     const saved = JSON.stringify({
-      schema: 2, v: 2, box: state.box, P: managedProject.toUiParams(),
+      schema: 2, v: 2, box: state.box, P: requireFocusedProject().toUiParams(),
       driver: OpenISDDriver.empty().toOwdrJson(),
       project: { name: '', creator: '', created: '', modified: '', description: '' },
     });
-    const fbBefore = managedProject.projectCell('Fb').value, lenBefore = ventL();
+    const fbBefore = requireFocusedProject().boxTuning_Fb_hz(), lenBefore = ventL();
 
-    managedProject.setActiveVentField('diameter_m', 0.09);   // drift the live design away
+    requireFocusedProject().setVentDiameter_m(0.09);   // drift the live design away
     const restored = restoreRepo.readProjectText(saved);
     assert.ok(restored, 'the just-built payload must load');
     applyLoadedProject(restored!);
 
-    assert.equal(managedProject.projectCell('Fb').value, fbBefore, 'restored tuning must be bit-identical');
+    assert.equal(requireFocusedProject().boxTuning_Fb_hz(), fbBefore, 'restored tuning must be bit-identical');
     assert.equal(ventL(), lenBefore, 'restored length must be bit-identical');
   });
 
@@ -178,7 +178,7 @@ describe('vent group — a restore is adopted verbatim', () => {
     // No `Fb`, no `entered` — its ventL WAS authoritative, because it was the only direction
     // the app had. Read at the persistence boundary into the one current shape.
     const legacyParams: Record<string, unknown> = {
-      ...managedProject.toUiParams(), ventL: 0.154, Vb: 0.02, ventD: 0.05, endCorrection: 0.6,
+      ...requireFocusedProject().toUiParams(), ventL: 0.154, Vb: 0.02, ventD: 0.05, endCorrection: 0.6,
     };
     delete legacyParams.Fb;
     delete legacyParams.entered;
@@ -194,7 +194,7 @@ describe('vent group — a restore is adopted verbatim', () => {
 
     assert.equal(ventFieldState('ventL'), 'E', 'the stored length is the authoritative fact');
     assert.equal(ventFieldState('Fb'), 'C', 'and the tuning is solved from it');
-    assert.ok(managedProject.projectCell('Fb').value > 39 && managedProject.projectCell('Fb').value < 41,
-      `tuning solved from the stored geometry → ${managedProject.projectCell('Fb').value.toFixed(2)} Hz, expected ≈40`);
+    assert.ok(requireFocusedProject().boxTuning_Fb_hz() > 39 && requireFocusedProject().boxTuning_Fb_hz() < 41,
+      `tuning solved from the stored geometry → ${requireFocusedProject().boxTuning_Fb_hz().toFixed(2)} Hz, expected ≈40`);
   });
 });

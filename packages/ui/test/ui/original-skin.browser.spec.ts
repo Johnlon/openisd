@@ -182,7 +182,7 @@ test('the 6th-order-bandpass Frc field persists a typed value instead of discard
   const stored = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.managedProject.projectCell('frcHz').value;
+    return s.requireFocusedProject().frcHz();
   });
   expect(stored).toBe(222222); // model actually holds it, not just the local input's own state
 });
@@ -257,7 +257,7 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
   const n = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.managedProject.filters().length;
+    return s.requireFocusedProject().filters().length;
   });
   expect(n).toBe(1);
 
@@ -370,7 +370,7 @@ test('NumInput dp is screen-formatting only — the model keeps FULL precision (
   const vb = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.managedProject.projectCell('Vb').value; // stored in m³ (display L ÷ 1000)
+    return s.requireFocusedProject().boxVolume_m3(); // stored in m³ (display L ÷ 1000)
   });
   expect(vb).toBeCloseTo(0.006123456, 9); // MODEL retains full precision — never the 2-dp "0.00612"
 });
@@ -460,7 +460,7 @@ test('Signal tab: Driver input voltage is editable and drives System input power
   const pin = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.managedProject.projectCell('Pin').value;
+    return s.requireFocusedProject().inputPower_W();
   });
   expect(pin).toBeCloseTo((20 * 20) / re, 1); // editing V back-calculates W = V²/Re
 });
@@ -503,8 +503,8 @@ test('New Project starts fresh — it discards the previous design (filters, par
   await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    s.managedProject.addFilter({ type: 'highpass', enabled: true, fc: 30, Q: 0.7, gain: 0 });
-    s.managedProject.enterProjectField('Pin', 250);
+    s.requireFocusedProject().addFilter({ type: 'highpass', enabled: true, fc: 30, Q: 0.7, gain: 0 });
+    s.requireFocusedProject().setInputPower_W(250);
   });
 
   await page.locator('.tb-btn[title*="New project"]').click();
@@ -518,7 +518,7 @@ test('New Project starts fresh — it discards the previous design (filters, par
   const st = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return { filters: s.managedProject.filters().length, pin: s.managedProject.projectCell('Pin').value };
+    return { filters: s.requireFocusedProject().filters().length, pin: s.requireFocusedProject().inputPower_W() };
   });
   expect(st.filters).toBe(0);  // fresh project — no inherited filters
   expect(st.pin).toBe(1);      // Pin back to the default, not the previous 250
@@ -540,7 +540,7 @@ test('the New Project wizard sets box type + volume then opens the driver picker
     const presModPath = '/src/logic/presentationState.ts';
     const s = await import(/* @vite-ignore */ storeModPath);
     const ps = await import(/* @vite-ignore */ presModPath);
-    return { box: s.state.box, vb: s.managedProject.projectCell('Vb').value, browse: ps.presentationState.browseOpen };
+    return { box: s.state.box, vb: s.requireFocusedProject().boxVolume_m3(), browse: ps.presentationState.browseOpen };
   });
   expect(st.box).toBe('vented');
   expect(st.vb).toBeCloseTo(0.042, 3); // 42 L → 0.042 m³
@@ -660,7 +660,7 @@ test('Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg
   await amc.blur();
   const madd = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
-    return (await import(/* @vite-ignore */ modPath)).managedProject.projectCell('driverAddedMass').value;
+    return (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driverAddedMass();
   });
   expect(madd).toBeCloseTo(0.05, 6);            // 50 g entered → 0.05 kg in the engine model
   expect(await peakHz()).toBeLessThan(before);  // heavier cone → lower resonance (sweep re-ran with it)
@@ -742,7 +742,7 @@ test('R1 refresh fidelity: box type, active tab, and selected chart survive a re
 const readVb = (page: Page) =>
   page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
-    return (await import(/* @vite-ignore */ modPath)).managedProject.projectCell('Vb').value;
+    return (await import(/* @vite-ignore */ modPath)).requireFocusedProject().boxVolume_m3();
   });
 const readVbToken = (page: Page) =>
   page.evaluate(async () => {
@@ -803,7 +803,7 @@ test('Added mass to cone: clicking the unit converts g → kg; the model stays S
   await expect(unit).toHaveText('g');
   const readMadd = () => page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
-    return (await import(/* @vite-ignore */ modPath)).managedProject.projectCell('driverAddedMass').value;
+    return (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driverAddedMass();
   });
   expect(await readMadd()).toBeCloseTo(0.1, 6);   // 100 g entered → 0.1 kg in the model
 
@@ -1117,4 +1117,101 @@ test('Original skin: Revert/reset button resets modifications correctly', async 
   // 4. Name should revert back to original
   await expect(nameInput).toHaveValue(originalName);
   await expect(revertBtn).toHaveClass(/disabled/);
+});
+
+// ---- Multi-project registry wiring (PROMPT_RELEASE_HARDENING plan) ------------------------
+// These three exercise the plan's own verification list: opening a second project routes
+// edits to the correct one and the chart/tab UI reflects whichever is focused; closing the
+// last open project shows the explicit empty state (chart AND tab section both gone); and
+// switching focus between two open projects never disturbs an open what-if on either one
+// (regression guard for BUG_20260825_whatif_destroyed_by_autosave_watcher.md, extended to the
+// multi-project case the single-project R1 reload test above does not cover).
+
+test('opening a second project: edits land on the correct one, and the Project tab reflects whichever is focused', async ({ page }) => {
+  // Name the original project so the two open tabs are distinguishable from the start.
+  await page.locator('.project-nav li', { hasText: 'Project' }).click();
+  const nameInput = page.locator('.tab-section.active .field', { hasText: 'Name' }).locator('input');
+  await nameInput.fill('Original');
+  await nameInput.blur();
+
+  // "+ Copy" opens a second, genuinely independent project and focuses it.
+  await page.locator('.link-btn', { hasText: 'Copy' }).click();
+  const rows = page.locator('.projects-list .project-row');
+  await expect(rows).toHaveCount(2);
+
+  // The copy is focused — rename IT. This must not touch the original's own name.
+  await nameInput.fill('Edited Copy');
+  await nameInput.blur();
+  await expect(rows.filter({ hasText: 'Edited Copy' })).toHaveCount(1);
+  const originalRow = rows.filter({ hasText: /^Original$/ });
+  await expect(originalRow).toHaveCount(1);
+
+  // Switch focus to the original — the Project tab's own Name field now shows ITS name, not
+  // the edit just made to the copy (this is the read-side of BUG_20260825_project_meta_edits_
+  // never_reach_the_domain_object_or_save.md: switching focus via the registry alone, with no
+  // load call, must not leave stale meta on screen).
+  await originalRow.click();
+  await expect(nameInput).toHaveValue('Original');
+
+  // Switching back, the copy's edit is still there — it was never lost or bled into the
+  // original.
+  await rows.filter({ hasText: 'Edited Copy' }).click();
+  await expect(nameInput).toHaveValue('Edited Copy');
+});
+
+test('closing the last open project shows the explicit empty state, with a working recovery action', async ({ page }) => {
+  // The default single open project is unmodified at fresh load (onMounted's own
+  // markProjectSaved()), so Close needs no confirmation.
+  await page.locator('.quad-projects-wrap .close-btn').click();
+
+  await expect(page.locator('.no-project-open')).toBeVisible();
+  await expect(page.locator('.no-project-open')).toContainText('No project is open');
+  // Both the chart views and the tab section are gone — not silently rendered with
+  // empty/default data.
+  await expect(page.locator('.quad-projects-wrap')).toHaveCount(0);
+  await expect(page.locator('.project-nav')).toHaveCount(0);
+  await expect(page.locator('canvas')).toHaveCount(0);
+
+  // The empty state's own recovery action reopens a working shell.
+  await page.locator('.no-project-open button', { hasText: 'Start a new project' }).click();
+  await expect(page.locator('.quad-projects-wrap')).toBeVisible();
+  await expect(page.locator('.projects-list .project-row')).toHaveCount(1);
+});
+
+test('switching focus between two open projects preserves an open what-if on the originally focused one', async ({ page }) => {
+  // Name the project so it is recognisable as the one to switch back to.
+  await page.locator('.project-nav li', { hasText: 'Project' }).click();
+  const nameInput = page.locator('.tab-section.active .field', { hasText: 'Name' }).locator('input');
+  await nameInput.fill('Has The Whatif');
+  await nameInput.blur();
+
+  // Open a Tune what-if on it and change Fs without closing it. `.blur()`, not just
+  // `dispatchEvent('input')`: the field only reformats to its display precision once it
+  // stops being the raw, mid-typing echo (`OgTune.vue`'s own "no reformat while typing"
+  // rule) — checking the value immediately after typing (no blur) would assert against
+  // that raw, unformatted string instead of the field's real, settled value.
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
+  const tune = page.locator('.tune-panel');
+  const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
+  await fsInput.fill('61');
+  await fsInput.blur();
+  await expect(fsInput).not.toHaveValue('');
+  const settled = await fsInput.inputValue();
+
+  // "+ Copy" opens a second, independent project and focuses it — this must not touch the
+  // first project's what-if.
+  await page.locator('.link-btn', { hasText: 'Copy' }).click();
+  const rows = page.locator('.projects-list .project-row');
+  await expect(rows).toHaveCount(2);
+
+  // Switch back to the first project — its Tune panel still shows the what-if value, not
+  // reverted or destroyed by autosave running while the second project was focused
+  // (BUG_20260825_whatif_destroyed_by_autosave_watcher.md, multi-project case).
+  await rows.filter({ hasText: /^Has The Whatif$/ }).click();
+  await expect(tune).toBeVisible();
+  await expect(fsInput).toHaveValue(settled);
+
+  await tune.locator('button', { hasText: 'Cancel' }).click();
+  await expect(tune).toBeHidden();
 });

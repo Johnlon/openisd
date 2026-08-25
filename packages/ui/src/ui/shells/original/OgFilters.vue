@@ -4,15 +4,16 @@
  * filter chain. Presentation only: the filter logic is single-sourced in the domain object and
  * the engine.
  *
- * No live mirror array, no deep watch. Every read is `managedProject.filters()` (a fresh copy,
- * reactive via `live`); every write is a per-filter mutator (`addFilter`/`removeFilter`/
- * `setFilter(id, patch)`) straight through to `managedProject` — the delegate-free pattern
- * `docs/design/REACTIVITY.md` specifies, applied to an ARRAY of records instead of one flat
- * bag. A local mutable draft synced by a bidirectional watch (the earlier shape here) replaces
- * the array under the user's cursor on every external notification, including the one its own
- * write causes — editing field A while the pull from that write is in flight could stomp field
- * B's in-progress keystroke. Per-field patches have no such window: each write names exactly
- * the filter and field it changes, nothing else is touched, and there is nothing to pull back.
+ * No live mirror array, no deep watch. Every read is `project.filters()` (a fresh copy,
+ * reactive via the focused-project injection); every write is a per-filter mutator
+ * (`addFilter`/`removeFilter`/`setFilter(id, patch)`) straight through to it — the
+ * delegate-free pattern `docs/design/REACTIVITY.md` specifies, applied to an ARRAY of records
+ * instead of one flat bag. A local mutable draft synced by a bidirectional watch (the earlier
+ * shape here) replaces the array under the user's cursor on every external notification,
+ * including the one its own write causes — editing field A while the pull from that write is
+ * in flight could stomp field B's in-progress keystroke. Per-field patches have no such
+ * window: each write names exactly the filter and field it changes, nothing else is touched,
+ * and there is nothing to pull back.
  *
  * Honesty note: the engine models exactly four filter types (highpass, lowpass, linkwitz,
  * peaking — packages/engine/src/types.ts FilterType). The other four quick-add buttons
@@ -20,13 +21,12 @@
  * they are intentionally omitted rather than added as controls that do nothing.
  */
 import { computed, ref } from 'vue';
-import { managedProject } from '../../../logic/appState.js';
-import { createLiveRef } from '../../../logic/liveProject.js';
+import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
 import { limits } from '../../../logic/fields/fieldRegistry.js';
 import type { Filter, FilterType } from '@openisd/engine';
 
-const { live } = createLiveRef(managedProject);
-const filters = computed<Filter[]>(() => { void live.value; return managedProject.filters(); });
+const project = useFocusedProject();
+const filters = computed<Filter[]>(() => project.value.filters());
 
 // Order: LP, HP, …, LT, …, PEQ, with the four engine-unsupported types (AP, Peak, DLP,
 // Gain) omitted — see honesty note above.
@@ -52,12 +52,12 @@ const editing = ref<string | null>(null);
 
 function addFilter(type: FilterType) {
   const flt: Filter = { id: crypto.randomUUID(), type, enabled: true, ...DEFAULTS[type] };
-  managedProject.addFilter(flt);
+  project.value.addFilter(flt);
   editing.value = flt.id ?? null;
 }
 function removeFilter(id: string | undefined) {
   if (!id) return;
-  managedProject.removeFilter(id);
+  project.value.removeFilter(id);
   if (editing.value === id) editing.value = null;
 }
 function toggleEdit(id: string | undefined) { editing.value = editing.value === id ? null : (id ?? null); }
@@ -65,7 +65,7 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
 /** One input's `@input`/`@change` handler: patches exactly this filter's named field. */
 function patch(id: string | undefined, field: keyof Filter, value: number | boolean) {
   if (!id) return;
-  managedProject.setFilter(id, { [field]: value } as Partial<Filter>);
+  project.value.setFilter(id, { [field]: value } as Partial<Filter>);
 }
 function numFrom(e: Event): number { return Number((e.target as HTMLInputElement).value); }
 

@@ -8,13 +8,13 @@
  * adapter covers every method the object has, including ones added later.
  *
  * Framework boundary: this file is the only place in `logic/` that imports Vue's reactivity
- * primitives for this purpose. The subscribable itself (`ManagedOpenISDProject`) stays
+ * primitives for this purpose. The subscribable itself (`ManagedProject`) stays
  * framework-free — it exports plain `subscribe()`, nothing Vue-shaped.
  */
 import { shallowRef, triggerRef, getCurrentScope, onScopeDispose, type ShallowRef } from 'vue';
 
 /** Anything that publishes a plain-JS change channel: `subscribe(fn)` registers a listener and
- *  returns the function that removes it. `ManagedOpenISDProject` satisfies this without
+ *  returns the function that removes it. `ManagedProject` satisfies this without
  *  importing this file or Vue; the type is generic over anything else that does too. */
 export interface Subscribable {
   subscribe(fn: () => void): () => void;
@@ -27,7 +27,7 @@ export interface Subscribable {
  *  subscription is torn down via `onScopeDispose` when that scope stops, so a component that
  *  destructures only `{ live }` and drops `dispose` still cannot leak a listener past its own
  *  unmount (`BUG_20260822_component_liveref_subscriptions_are_never_disposed.md`). Called with
- *  no active scope — a module-level singleton like the store's `managedProject` bridge — nothing
+ *  no active scope — a module-level singleton bridge outside any component — nothing
  *  is registered automatically, and the returned `dispose()` is the caller's own responsibility:
  *  call it when the owner of `obj` is discarded, or a closed object's listener keeps it alive.
  *

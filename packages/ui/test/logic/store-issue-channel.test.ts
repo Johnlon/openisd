@@ -14,28 +14,34 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { allIssues, paramIssues, managedProject } from '../../src/logic/appState.js';
+import { allIssues, paramIssues, requireFocusedProject } from '../../src/logic/appState.js';
 
 describe('the store unions every hardening layer into one issue list', () => {
   it('a fully specified design is clean — no layer reports a false positive', () => {
-    managedProject.loadEmpty();
-    for (const [k, v] of Object.entries({ Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
-                                          Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050,
-                                          Pe: 60, Znom: 8 })) {
-      managedProject.enter(k as Parameters<typeof managedProject.enter>[0], v);
-    }
-    managedProject.enterProjectField('Vb', 0.030);
-    managedProject.setActiveVentField('diameter_m', 0.102);
+    requireFocusedProject().loadEmpty();
+    requireFocusedProject().enterFs(37);
+    requireFocusedProject().enterQts(0.378);
+    requireFocusedProject().enterQes(0.40);
+    requireFocusedProject().enterQms(7.0);
+    requireFocusedProject().enterVas(0.0300);
+    requireFocusedProject().enterSd(0.0133);
+    requireFocusedProject().enterRe(5.6);
+    requireFocusedProject().enterLe(0.70e-3);
+    requireFocusedProject().enterXmax(0.0050);
+    requireFocusedProject().enterPe(60);
+    requireFocusedProject().enterZnom(8);
+    requireFocusedProject().setBoxVolume_m3(0.030);
+    requireFocusedProject().setVentDiameter_m(0.102);
 
-    assert.deepEqual(managedProject.errors().filter(e => e.level === 'error'), [],
+    assert.deepEqual(requireFocusedProject().errors().filter(e => e.level === 'error'), [],
       'a complete driver must derive without a blocking error');
     assert.deepEqual(paramIssues.value, [], 'a sized box must raise no parameter issue');
   });
 
   it('a zero box volume surfaces a Vb error through allIssues, naming the field', () => {
-    managedProject.loadEmpty();
-    managedProject.setActiveVentField('diameter_m', 0.102);
-    managedProject.enterProjectField('Vb', 0);
+    requireFocusedProject().loadEmpty();
+    requireFocusedProject().setVentDiameter_m(0.102);
+    requireFocusedProject().setBoxVolume_m3(0);
 
     const vb = allIssues.value.find(e => e.field === 'Vb' && e.level === 'error');
     assert.ok(vb, `allIssues must carry the Vb error; got: ${allIssues.value.map(e => e.field).join(', ')}`);
@@ -43,30 +49,30 @@ describe('the store unions every hardening layer into one issue list', () => {
   });
 
   it('the box-parameter layer is reachable independently as paramIssues', () => {
-    managedProject.loadEmpty();
-    managedProject.setActiveVentField('diameter_m', 0.102);
-    managedProject.enterProjectField('Vb', 0);
+    requireFocusedProject().loadEmpty();
+    requireFocusedProject().setVentDiameter_m(0.102);
+    requireFocusedProject().setBoxVolume_m3(0);
 
     assert.deepEqual(paramIssues.value.map(e => e.field), ['Vb'],
       'paramIssues is the precondition layer on its own, for a panel that wants only it');
   });
 
   it('an unsized new project reports BOTH preconditions — Vb and the vent area', () => {
-    managedProject.loadEmpty();
-    managedProject.enterProjectField('Vb', 0);
-    managedProject.setActiveVentField('diameter_m', 0);
+    requireFocusedProject().loadEmpty();
+    requireFocusedProject().setBoxVolume_m3(0);
+    requireFocusedProject().setVentDiameter_m(0);
 
     assert.deepEqual(paramIssues.value.map(e => e.field).sort(), ['Sp', 'Vb'],
       'nothing has sized the box, and the channel says so rather than assuming a size');
   });
 
   it('clearing the bad value clears the issue — the channel is live, not latched', () => {
-    managedProject.loadEmpty();
-    managedProject.setActiveVentField('diameter_m', 0.102);
-    managedProject.enterProjectField('Vb', 0);
+    requireFocusedProject().loadEmpty();
+    requireFocusedProject().setVentDiameter_m(0.102);
+    requireFocusedProject().setBoxVolume_m3(0);
     assert.ok(paramIssues.value.length > 0, 'precondition of this test');
 
-    managedProject.enterProjectField('Vb', 0.030);
+    requireFocusedProject().setBoxVolume_m3(0.030);
     assert.deepEqual(paramIssues.value, [], 'fixing the input must retract the issue');
   });
 });

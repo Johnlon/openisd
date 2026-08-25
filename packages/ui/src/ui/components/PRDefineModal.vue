@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { managedProject } from '../../logic/appState.js';
+import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
+
+const project = useFocusedProject();
 
 // Define a brand-new passive radiator — a BLANK, buffered form (mirrors
 // DriverDefineModal: empty string inputs, writes to the live design ONLY on Create,
@@ -30,18 +32,18 @@ function create() {
   if (!canCreate.value) return;
   const count = num(nNum.value);
   const xmaxMm = num(nXmax.value);
-  managedProject.setPrField('name', nName.value.trim() || 'New PR');
-  managedProject.enterProjectField('prNum', count > 0 ? count : 1);
+  project.value.setPrName(nName.value.trim() || 'New PR');
+  project.value.setPrCount(count > 0 ? count : 1);
   // The datasheet → canonical conversion lives on the domain object — this form only
   // converts its own display units (cm², mm, L) to SI at the boundary.
-  managedProject.enterPrDatasheet({
+  project.value.enterPrDatasheet({
     sdM2: num(nSd.value) / 1e4,
     xmaxM: isFinite(xmaxMm) && xmaxMm >= 0 ? xmaxMm / 1000 : 0,
     fsHz: num(nFs.value),
     qms: num(nQms.value),
     vasL: num(nVas.value),
   });
-  managedProject.enterProjectField('prMadd', 0);
+  project.value.setPrAddedMass_kg(0);
   emit('close');
 }
 

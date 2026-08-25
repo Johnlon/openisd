@@ -1,5 +1,5 @@
 import { OpenISDDriver } from '@openisd/model';
-import { managedProject } from './appState.js';
+import { requireFocusedProject } from './appState.js';
 import { presentationState } from './presentationState.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
@@ -152,7 +152,7 @@ type EditorSubject =
 /** What the editor should build its OWN draft from. `seed` is a detached copy, handed once —
  *  the editor owns it from there; this module keeps nothing for it to hand back. `seed: null`
  *  means the editor builds its own (a blank `OpenISDDriver.empty()` for a fresh My Driver, or
- *  the project's committed driver via `managedProject.committedDriverText()` for the project
+ *  the project's committed driver via `requireFocusedProject().committedDriverText()` for the project
  *  subject — this module does not construct either, since it is not a licensed constructor). */
 export type EditorDraftSeed =
   | { kind: 'project' }
@@ -186,7 +186,7 @@ export function createDriverSelection(): DriverSelection {
   function adoptIntoProject(driver: OpenISDDriver): void {
     // The managed layer adopts drivers as SERIALISED TEXT, never as the record value (QO73) —
     // the round-trip is the boundary crossing, made explicit.
-    managedProject.loadDriverFromOwdrText(driver.toOwdrJson());
+    requireFocusedProject().loadDriverFromOwdrText(driver.toOwdrYml());
   }
 
   function embedInProject(driver: OpenISDDriver): void {
@@ -250,7 +250,7 @@ export function createDriverSelection(): DriverSelection {
      *  the editor always seeds from the project's committed driver, so a live preview left
      *  open would silently disagree with what the editor shows. */
     editProjectDriver() {
-      if (managedProject.isWhatIfActive()) { managedProject.cancelWhatIf(); presentationState.editDriver = false; }
+      if (requireFocusedProject().isWhatIfActive()) { requireFocusedProject().cancelWhatIf(); presentationState.editDriver = false; }
       subject = { kind: 'project' };
       editSeed = null;
       presentationState.editDriverInfo = true;

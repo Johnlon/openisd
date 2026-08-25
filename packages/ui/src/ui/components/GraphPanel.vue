@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { state, managedProject, allIssues, syncedP, curvesData, maxData } from '../../logic/appState.js';
+import { state, allIssues, syncedP, curvesData, maxData } from '../../logic/appState.js';
+import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { TAB_META, buildPlotData, DPAL, rangeStatsOf } from '../../logic/series.js';
 import type { ChartTabId } from '../../types.js';
@@ -15,6 +16,8 @@ import type { Geo, Design } from '../../types.js';
 // no overlays passed means this project is drawn alone.
 const props = defineProps<{ tabId: ChartTabId; bare?: boolean; primaryColor?: string; overlays?: Design[] }>();
 
+const project = useFocusedProject();
+
 const overlayDesigns = computed(() => props.overlays ?? []);
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
@@ -22,7 +25,7 @@ const readEl   = ref<HTMLElement | null>(null);
 const meta     = computed(() => TAB_META[props.tabId]);
 
 const currentDesign = computed(() => ({
-  driver: managedProject.toEngineDriver(), box: state.box, P: syncedP.value,
+  driver: project.value.toEngineDriver(), box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value,
   name: 'Current', color: props.primaryColor || DPAL[0],
 }));
@@ -213,8 +216,8 @@ function applyXDrag(e: PointerEvent) {
   a = Math.max(0, Math.min(a, X_LMAX - 0.1));   // 0 = log10(1 Hz)
   b = Math.min(X_LMAX, Math.max(b, a + 0.1));
   if (b - a < 0.1) return;                        // keep at least ~0.1 decade
-  managedProject.setSweepFmin_hz(Math.pow(10, a));
-  managedProject.setSweepFmax_hz(Math.pow(10, b));
+  project.value.setSweepFmin_hz(Math.pow(10, a));
+  project.value.setSweepFmax_hz(Math.pow(10, b));
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -279,7 +282,7 @@ function onPointerUp(e: PointerEvent) {
 // the X-axis strip resets the frequency range to the 1–20 kHz default.
 function onDblClick(e: MouseEvent) {
   if (yAxisZone(e)) resetY();
-  else if (xAxisZone(e)) { managedProject.setSweepFmin_hz(1); managedProject.setSweepFmax_hz(20000); }
+  else if (xAxisZone(e)) { project.value.setSweepFmin_hz(1); project.value.setSweepFmax_hz(20000); }
 }
 
 function onPointerLeave() {

@@ -10,17 +10,17 @@
  * short form of the same text. Design: PLAN_ADVANCED_SIM_OPTIONS.md.
  */
 import { computed } from 'vue';
-import { state, simVcInductance, managedProject } from '../../logic/appState.js';
-import { createLiveRef } from '../../logic/liveProject.js';
+import { state, simVcInductance } from '../../logic/appState.js';
+import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 
 /** The transmission-line port model only means anything for a box that HAS a vent. */
 const hasVent = computed(() => state.box === 'vented' || state.box === 'bandpass4');
 
-// No per-toggle computed wrapper (`docs/design/REACTIVITY.md`): each checkbox below reads
-// `managedProject`'s own getter directly, reactive via `live`, and writes through its own
+// No per-toggle computed wrapper (`docs/design/REACTIVITY.md`): each checkbox below reads the
+// focused project's own getter directly, reactive via `project`, and writes through its own
 // setter directly on `@change` — `simVcInductance` above is the one exception, a store-level
 // alias over `circuitModel` (two WORDINGS of one setting, not a per-field mirror of it).
-const { live } = createLiveRef(managedProject);
+const project = useFocusedProject();
 </script>
 
 <template>
@@ -29,23 +29,23 @@ const { live } = createLiveRef(managedProject);
       <input type="checkbox" v-model="simVcInductance"> Simulate voice coil inductance
     </label>
     <label title="Apply the EQ that lifts the whole response to the passband level, and charge its cost to the excursion, port-velocity and max-SPL curves. Boost is capped at 20 dB; a warning names the frequency where the cap binds. WinISD: Advanced → 'Force flat response'.">
-      <input type="checkbox" :checked="live && managedProject.forceFlatResponse()" @change="e => managedProject.setForceFlatResponse((e.target as HTMLInputElement).checked)"> Force flat response
+      <input type="checkbox" :checked="project.forceFlatResponse()" @change="e => project.setForceFlatResponse((e.target as HTMLInputElement).checked)"> Force flat response
     </label>
     <label
       :class="{ 'na': !hasVent }"
       :title="hasVent
         ? 'Model the vent as an acoustic transmission line rather than a lumped air mass, adding the duct\'s own pipe resonances at c/(2·Leff). The box tuning is unchanged. WinISD: Advanced → \'Use &quot;transmission line&quot;-model for port simulation\'.'
         : 'Only applies to a box with a vent (vented or 4th-order bandpass) — the current box has no port to model.'">
-      <input type="checkbox" :checked="live && managedProject.tlPortModel()" @change="e => managedProject.setTlPortModel((e.target as HTMLInputElement).checked)" :disabled="!hasVent"> Use "transmission line"-model for port simulation
+      <input type="checkbox" :checked="project.tlPortModel()" @change="e => project.setTlPortModel((e.target as HTMLInputElement).checked)" :disabled="!hasVent"> Use "transmission line"-model for port simulation
     </label>
     <label title="Put the source resistance Rg in series with each driver rather than as a single Rg at the amplifier. Only changes anything with more than one driver: n in parallel see Rg/n at the driver side but a full Rg at the amp side. WinISD: Advanced → 'Rg is at driver side'.">
-      <input type="checkbox" :checked="live && managedProject.rgAtDriverSide()" @change="e => managedProject.setRgAtDriverSide((e.target as HTMLInputElement).checked)"> Rg is at driver side
+      <input type="checkbox" :checked="project.rgAtDriverSide()" @change="e => project.setRgAtDriverSide((e.target as HTMLInputElement).checked)"> Rg is at driver side
     </label>
     <label title="Plot the SPL chart with the drive backed off wherever the cone would exceed Xmax, shading the limited region. Xmax only — the Maximum SPL chart still applies the Pe thermal limit too. WinISD: Advanced → 'SPL graph is Xmax limited'.">
-      <input type="checkbox" :checked="live && managedProject.splXmaxLimited()" @change="e => managedProject.setSplXmaxLimited((e.target as HTMLInputElement).checked)"> SPL graph is Xmax limited
+      <input type="checkbox" :checked="project.splXmaxLimited()" @change="e => project.setSplXmaxLimited((e.target as HTMLInputElement).checked)"> SPL graph is Xmax limited
     </label>
     <label title="Derive air density and sound velocity from temperature alone, discarding the relative humidity and air pressure you entered. WinISD stores all three in its project file and reads none of them, so tick this to reproduce its numbers exactly. It costs accuracy: SPL differs by about 0.07 dB at 30 °C.">
-      <input type="checkbox" :checked="live && managedProject.envIgnoreHumidityAndPressure()" @change="e => managedProject.setEnvIgnoreHumidityAndPressure((e.target as HTMLInputElement).checked)"> Ignore humidity and air pressure (as WinISD does)
+      <input type="checkbox" :checked="project.envIgnoreHumidityAndPressure()" @change="e => project.setEnvIgnoreHumidityAndPressure((e.target as HTMLInputElement).checked)"> Ignore humidity and air pressure (as WinISD does)
     </label>
   </div>
 </template>

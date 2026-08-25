@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { managedProject } from '../../logic/appState.js';
-import { createLiveRef } from '../../logic/liveProject.js';
+import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import type { PRLibEntry } from '@openisd/persistence';
 import NumInput from './NumInput.vue';
 import { useApp } from '../../logic/app.js';
@@ -17,36 +16,36 @@ import { useEscToClose } from '../../logic/useEscToClose.js';
 const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, close);
 
-const { live } = createLiveRef(managedProject);
+const project = useFocusedProject();
 // The datasheet vocabulary is the DOMAIN's own keyed surface now: cells read the derived
 // views (SI — the ×1000 below is the litre display this dialog shows), entries re-solve the
 // canonical Sd/Cms/Mmd/Rms with the ruled holds inside the domain object.
-const prVas = computed(() => { void live.value; return managedProject.projectCell('prVas').value * 1000; });
-const prFsShown = computed(() => { void live.value; return managedProject.projectCell('prFs').value; });
-const prFsWithMassShown = computed(() => { void live.value; return managedProject.projectCell('prFsMass').value; });
-const prQmsShown = computed(() => { void live.value; return managedProject.projectCell('prQms').value; });
+const prVas = computed(() => project.value.prVas_m3() * 1000);
+const prFsShown = computed(() => project.value.prFs_hz());
+const prFsWithMassShown = computed(() => project.value.prFsMass_hz());
+const prQmsShown = computed(() => project.value.prQms());
 
-function setWinIsdFs(newFsHz: number) { managedProject.enterProjectField('prFs', newFsHz); }
-function setWinIsdQms(newQms: number) { managedProject.enterProjectField('prQms', newQms); }
-function setWinIsdVas(newVasL: number) { managedProject.enterProjectField('prVas', newVasL / 1000); }
+function setWinIsdFs(newFsHz: number) { project.value.setPrFs_hz(newFsHz); }
+function setWinIsdQms(newQms: number) { project.value.setPrQms(newQms); }
+function setWinIsdVas(newVasL: number) { project.value.setPrVas_m3(newVasL / 1000); }
 
 // No per-field computed wrapper for name/count/Sd/Xmax (`docs/design/REACTIVITY.md`) — the
-// template below reads `managedProject`'s own getter directly (reactive via `live`) and
+// template below reads the focused project's own getter directly (reactive via `project`) and
 // writes through its own setter directly.
 
 const prLib = ref(prRepo.list());
 const showPRLib = ref(false);
 function saveCurrentPR() {
-  const name = (managedProject.prField('name') || '').trim() || 'Custom PR';
-  prLib.value = prRepo.save(name, managedProject.toUiParams());
+  const name = (project.value.prName() || '').trim() || 'Custom PR';
+  prLib.value = prRepo.save(name, project.value.toUiParams());
 }
 function loadPR(entry: PRLibEntry) {
-  managedProject.setPrField('name', entry.name);
-  managedProject.setPrField('Sd_m2', entry.prSd);
-  managedProject.setPrField('Mmd_kg', entry.prMmd);
-  managedProject.setPrField('Cms_m_per_N', entry.prCms);
-  managedProject.setPrField('Rms_Ns_per_m', entry.prRms);
-  managedProject.setPrField('Xmax_m', entry.prXmax);
+  project.value.setPrName(entry.name);
+  project.value.setPrSd_m2(entry.prSd);
+  project.value.setPrMmd_kg(entry.prMmd);
+  project.value.setPrCms_m_per_N(entry.prCms);
+  project.value.setPrRms_Ns_per_m(entry.prRms);
+  project.value.setPrXmax_m(entry.prXmax);
   showPRLib.value = false;
 }
 function removePR(id: number) { prLib.value = prRepo.remove(id); }
@@ -73,21 +72,21 @@ function close() { emit('close'); }
 
         <div class="row" title="Name for this passive radiator">
           <label>PR name</label>
-          <input style="flex:1" type="text" :value="live && managedProject.prField('name')" @input="e => managedProject.setPrField('name', (e.target as HTMLInputElement).value)" placeholder="e.g. Dayton SD270A-88">
+          <input style="flex:1" type="text" :value="project.prName()" @input="e => project.setPrName((e.target as HTMLInputElement).value)" placeholder="e.g. Dayton SD270A-88">
         </div>
         <div class="row" title="Number of passive radiators in parallel">
           <label>PR count</label>
-          <NumInput :model-value="live && managedProject.projectCell('prNum').value" @update:model-value="v => managedProject.enterProjectField('prNum', v ?? 0)" :scale="1" :precision="2" step="1" :min="1" />
+          <NumInput :model-value="project.prCount()" @update:model-value="v => project.setPrCount(v ?? 0)" :scale="1" :precision="2" step="1" :min="1" />
           <span class="u"></span>
         </div>
         <div class="row" title="Effective piston area (from datasheet). WinISD: Sd.">
           <label>Sd</label>
-          <NumInput :model-value="live && managedProject.prField('Sd_m2')" @update:model-value="v => managedProject.setPrField('Sd_m2', v ?? 0)" :scale="1e4" :precision="4" />
+          <NumInput :model-value="project.prSd_m2()" @update:model-value="v => project.setPrSd_m2(v ?? 0)" :scale="1e4" :precision="4" />
           <span class="u">cm²</span>
         </div>
         <div class="row" title="Maximum linear one-way cone excursion (from datasheet). WinISD: Xmax.">
           <label>Xmax</label>
-          <NumInput :model-value="live && managedProject.prField('Xmax_m')" @update:model-value="v => managedProject.setPrField('Xmax_m', v ?? 0)" :scale="1000" :precision="3" />
+          <NumInput :model-value="project.prXmax_m()" @update:model-value="v => project.setPrXmax_m(v ?? 0)" :scale="1000" :precision="3" />
           <span class="u">mm</span>
         </div>
         <div class="row" title="PR free-air resonance (no added mass, no box). WinISD: Fs.">

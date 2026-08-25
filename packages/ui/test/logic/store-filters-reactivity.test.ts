@@ -2,9 +2,9 @@
  * Filter edits must drive a re-sweep.
  *
  * The sweep is re-run by `watch([driver, syncedP, box], …)` in store.ts. `syncedP` reads
- * `managedProject.toUiParams()` (which includes `filters()`, a fresh copy on every call) and
+ * `requireFocusedProject().toUiParams()` (which includes `filters()`, a fresh copy on every call) and
  * depends on `live` — the store's Vue bridge onto the domain's own change-notification channel
- * (`docs/design/REACTIVITY.md`) — so any edit that goes through `managedProject.setFilters()`
+ * (`docs/design/REACTIVITY.md`) — so any edit that goes through `requireFocusedProject().setFilters()`
  * must recompute it; a caller that mutated an array in place, bypassing `setFilters()`, would
  * change nothing `syncedP` can see.
  *
@@ -14,32 +14,32 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { watch } from 'vue';
-import { syncedP, managedProject } from '../../src/logic/appState.js';
+import { syncedP, requireFocusedProject } from '../../src/logic/appState.js';
 import type { Filter } from '@openisd/engine';
 
 const hp = (fc: number): Filter => ({ id: 'f-hp', type: 'highpass', enabled: true, fc, Q: 0.7071 });
 
 describe('filter edits re-trigger the sweep params (syncedP reactivity)', () => {
   it('editing a filter field recomputes syncedP', () => {
-    managedProject.setFilters([hp(80)]);
+    requireFocusedProject().setFilters([hp(80)]);
     let fires = 0;
     const stop = watch(syncedP, () => { fires++; }, { flush: 'sync' });
     void syncedP.value;                 // ensure it's tracked
     fires = 0;
-    const edited = managedProject.filters();
+    const edited = requireFocusedProject().filters();
     edited[0].fc = 120;
-    managedProject.setFilters(edited);  // edit — must re-trigger the sweep params
+    requireFocusedProject().setFilters(edited);  // edit — must re-trigger the sweep params
     stop();
     assert.ok(fires > 0, 'editing a filter field must recompute syncedP (drives the re-sweep)');
   });
 
   it('adding a filter recomputes syncedP', () => {
-    managedProject.setFilters([]);
+    requireFocusedProject().setFilters([]);
     let fires = 0;
     const stop = watch(syncedP, () => { fires++; }, { flush: 'sync' });
     void syncedP.value;
     fires = 0;
-    managedProject.setFilters([...managedProject.filters(), hp(60)]);   // add — must re-trigger
+    requireFocusedProject().setFilters([...requireFocusedProject().filters(), hp(60)]);   // add — must re-trigger
     stop();
     assert.ok(fires > 0, 'adding a filter must recompute syncedP');
   });

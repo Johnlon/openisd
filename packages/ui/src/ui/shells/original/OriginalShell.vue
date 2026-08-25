@@ -15,36 +15,36 @@ declare const __PLATFORM_USER__: string | undefined;
  * model pending" state instead of a fabricated curve. When the engine gains those
  * branches, add them to `SUPPORTED_BOX` and the pending state clears.
  */
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, shallowRef, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
-  state, driverName, persistedDriver,
+  state, driverName,
   syncedP, curvesData, maxData,
-  isModified, resetProjectToGround, groundCheckpoint, restoreGroundCheckpoint, markProjectSaved,
-  managedProject,
+  isModified, resetProjectToGround, markProjectSaved,
+  openProjects, focusProject, removeProject, openBlankProject, duplicateFocusedProject,
   formatInUnit as fmtU,
   copyProjectName,
 } from '../../../logic/appState.js';
 import { presentationState } from '../../../logic/presentationState.js';
-import { createLiveRef } from '../../../logic/liveProject.js';
+import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
 import {
   enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
   ventFieldState as ventFieldStateOn, ventMaxReachableFb as ventMaxReachableFbOn,
   ventTargetUnreachable as ventTargetUnreachableOn,
 } from '../../../logic/useVentGroup.js';
-import { toAlignmentKind } from '../../../logic/managedProject.js';
+import type { ManagedProject } from '../../../logic/managedProject.js';
 
-// The delegate-free reactivity adapter (`docs/design/REACTIVITY.md`): touching `live.value`
-// inside a computed/watch registers a dependency that invalidates on every `managedProject`
+// The delegate-free reactivity adapter (`docs/design/REACTIVITY.md`): touching `project.value`
+// inside a computed/watch registers a dependency that invalidates on every focused-project
 // mutation, which is what makes calling its methods directly — instead of through a store
-// wrapper or a flat field bag — reactive (ledger QO54).
-const { live } = createLiveRef(managedProject);
+// wrapper or a flat field bag — reactive (ledger QO54). `project` also re-derives on every
+// focus change (switching tabs), sourced from `appState.ts`'s own focus-aware `live` bridge.
+const project = useFocusedProject();
 import UnitToggle from '../../components/UnitToggle.vue';
-import type { BoxType, SweepResult, MaxCurvesResult } from '@openisd/engine';
+import type { BoxType } from '@openisd/engine';
 import type { Design } from '../../../types.js';
-import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
 import type { PRLibEntry, BundledPR } from '@openisd/persistence';
 import { airForEnvironment, resolveAirEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
-import { TAB_META, parseChartTabId, buildPlotData, DPAL } from '../../../logic/series.js';
+import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../types.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
 import { useApp } from '../../../logic/app.js';
@@ -131,10 +131,10 @@ const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 // with Le, which is not the system resonance (and yields Qtc=0). See openspec core-engine
 // "Sealed-Box Resonance Loss Models" and winisd_research/SEALED_FSC_MODEL.md.
 const sealedRes = computed<{ Fsc: number; Qtc: number } | null>(() => {
-  void live.value;
-  return managedProject.sealedResonance(
-    parseLossMode(presentationState.lossMode), managedProject.projectCell('Rs').value,
-    managedProject.projectCell('Ql').value, managedProject.projectCell('Qa').value);
+  void project.value;
+  return project.value.sealedResonance(
+    parseLossMode(presentationState.lossMode), project.value.seriesResistance_ohm(),
+    project.value.boxQl(), project.value.boxQa());
 });
 const rearResonance = computed<number | null>(() => sealedRes.value?.Fsc ?? null);
 const rearQtc = computed<number | null>(() => sealedRes.value?.Qtc ?? null);
@@ -144,35 +144,35 @@ const rearQtc = computed<number | null>(() => sealedRes.value?.Qtc ?? null);
 // matching it exactly, where the sealed formula gives 194.87. winisd_research/GAPS.md §A3.
 /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
 const boxResonance = computed<number | null>(() => {
-  void live.value;
-  return selectedBox.value === 'pr' ? managedProject.prSystemTuning_hz() : rearResonance.value;
+  void project.value;
+  return selectedBox.value === 'pr' ? project.value.prSystemTuning_hz() : rearResonance.value;
 });
 // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber
 // tunes on its own front volume Vf. Same closed form the engine's circuit uses.
 //
 // No per-field write computeds here (ledger QO60/REACTIVITY.md: "no wrapper is written for
 // Vb, or for any of the other eighteen") — every `v-model`/`@change` in the template below
-// calls `managedProject`'s own getter/setter, or (for the vent-group fields) the TESTED
+// calls `project.value`'s own getter/setter, or (for the vent-group fields) the TESTED
 // `enterVentFieldOn`/`clearVentFieldOn` from `useVentGroup.js`, directly.
 //
 // The four below are READ-ONLY derived values shown in more than one place (E/C/N badges,
 // warning banners) — genuinely DERIVED state, not a get+set mirror of a single field, so a
 // named computed is the right home for them (same shape as `sealedRes`/`boxResonance` above).
-const fbState    = computed<'E' | 'C' | 'N'>(() => { void live.value; return ventFieldStateOn(managedProject, 'Fb'); });
-const ventLState = computed<'E' | 'C' | 'N'>(() => { void live.value; return ventFieldStateOn(managedProject, 'ventL'); });
+const fbState    = computed<'E' | 'C' | 'N'>(() => { void project.value; return ventFieldStateOn(project.value, 'Fb'); });
+const ventLState = computed<'E' | 'C' | 'N'>(() => { void project.value; return ventFieldStateOn(project.value, 'ventL'); });
 // What the port solver can actually deliver. `ventLength()` returns the raw signed root, so a
 // target above the L = 0 ceiling comes back as a NEGATIVE length — invisible while the LENGTH
 // was the input, user-facing now the TARGET is (GAPS.md §A1). The tooltip on the target field
 // promises the port is designed to it; when it cannot be, the pane says so and names the
 // highest tuning this volume and vent area can actually reach.
-const fbUnreachable = computed(() => { void live.value; return ventTargetUnreachableOn(managedProject); });
-const fbCeiling     = computed(() => { void live.value; return ventMaxReachableFbOn(managedProject); });
+const fbUnreachable = computed(() => { void project.value; return ventTargetUnreachableOn(project.value); });
+const fbCeiling     = computed(() => { void project.value; return ventMaxReachableFbOn(project.value); });
 /** Explains the miss in the user's own terms, on both the Box tab and the Vents tab. */
 const fbUnreachableMsg = computed(() =>
   `Target not reachable: no vent of this diameter in this volume tunes above `
   + `${fbCeiling.value != null ? fbCeiling.value.toFixed(2) : '—'} Hz — the solved length is `
   + `negative, which is not a port you can build. Use a smaller vent diameter, or a larger `
-  + `volume, to reach ${managedProject.projectCell('Fb').value.toFixed(2)} Hz.`);
+  + `volume, to reach ${project.value.boxTuning_Fb_hz().toFixed(2)} Hz.`);
 /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
 const frontChamberTuningLabel = computed(() =>
   DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
@@ -341,15 +341,15 @@ function stopNudge() {
 }
 onUnmounted(stopNudge);
 const currentDesign = computed(() => ({
-  driver: managedProject.toEngineDriver(), box: state.box, P: syncedP.value,
+  driver: project.value.toEngineDriver(), box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE.value,
   // Visibility is the project row's own fact — read it, never keep a second copy.
-  visible: activeProject.value?.visible !== false,
+  visible: isRowVisible(project.value),
 }));
 const cursorVal = computed<number | null>(() => {
   const f = cursorHz.value;
   if (pending.value || chartUnavailable.value || f == null) return null;
-  const p = buildPlotData(chartTab.value, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlays.value, managedProject.errors(),
+  const p = buildPlotData(chartTab.value, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlays.value, project.value.errors(),
     { bare: true, primaryColor: WINISD_TRACE.value }).value;
   if (!p) return null;
   const s = p.series.find(x => !x.phantom);
@@ -367,224 +367,99 @@ const activeTab = computed<TabId>({
 watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
 
 // ---- Projects list -------------------------------------------------------------
-/** One tab's worth of open design — a snapshot of everything the editor holds live,
- *  parked here while another tab is active. `driver` is the managed layer's own persisted
- *  TEXT (never an `EngineDriver`/private record — QO73), reloaded via
- *  `managedProject.loadDriverFromPersistedText()` on tab switch. `ground` is the JSON
- *  checkpoint string `restoreGroundCheckpoint()` accepts. */
-interface ProjectRow {
-  id: string;
-  name: string;
-  driver: string | undefined;
-  box: BoxType;
-  P: UiParams;
-  curves: SweepResult | null;
-  maxCurves: MaxCurvesResult | null;
-  project: OpenISDProjectMeta;
-  ground: string;
-  isModified: boolean;
-  visible: boolean;
-  color?: string;
-}
-const activeProjectId = ref('proj-' + Math.random().toString(36).substring(7));
-const openProjects = ref<ProjectRow[]>([]);
-const activeProject = computed(() => openProjects.value.find(p => p.id === activeProjectId.value) ?? null);
-let isSwapping = false;
+// The REAL registry (`appState.ts`'s `openProjects()`/`focusProject()`/`removeProject()`/
+// `addProject()`) is the ONE place "which projects are open, which is focused" lives — no
+// second, hand-rolled copy here (BUG_20260825_multi_project_registry_is_decorative_nothing_
+// writes_through_it.md). Each entry is a genuinely independent, live `ManagedProject`:
+// switching tabs is just `focusProject(index)`, and there is nothing to snapshot/restore,
+// because every open project stays live in memory for as long as it is open — no
+// serialize-on-blur/deserialize-on-focus round trip, and so no risk of losing precision or an
+// open what-if to one.
+const projectList = computed(() => openProjects());
 
-onMounted(() => {
-  if (openProjects.value.length === 0) {
-    openProjects.value = [{
-      id: activeProjectId.value,
-      name: state.project.name || driverName.value,
-      driver: persistedDriver.value,
-      box: state.box,
-      P: managedProject.toUiParams(),
-      curves: curvesData.value,
-      maxCurves: maxData.value,
-      project: { ...state.project },
-      ground: groundCheckpoint(),
-      isModified: isModified.value,
-      visible: true,
-      color: WINISD_TRACE.value,
-    }];
-  }
-});
+// Graph visibility is UI-only per-project state with no domain meaning (a project has no
+// "is its trace shown" fact of its own — that is this graph's own bookkeeping), so it lives
+// in a WeakMap here, keyed by project identity — the same pattern `appState.ts` itself uses
+// for `groundByProject`. No per-row trace COLOUR yet: compare-overlay curves for other open
+// projects are not drawn this pass (see `overlays` below), so there is nothing to colour.
+// `reactive()`, not a bare `WeakMap`: Vue 3 instruments Map/Set/WeakMap/WeakSet operations
+// through `reactive()`, so a `.set()` here correctly invalidates every `isRowVisible(p)` read
+// in the template — a bare WeakMap gives Vue no signal at all, and the checkbox/`trace-hidden`
+// class would silently stop updating (found running this file's own browser spec).
+const visibleOf = reactive(new WeakMap<ManagedProject, boolean>());
+function isRowVisible(p: ManagedProject): boolean { return visibleOf.get(p) ?? true; }
+function setRowVisible(p: ManagedProject, v: boolean): void { visibleOf.set(p, v); }
 
-// Keep the active item in openProjects completely in sync with the live store active design
-watch([() => state.box, live, () => persistedDriver.value, curvesData, maxData, () => state.project, isModified, () => managedProject.isWhatIfActive()], () => {
-  if (isSwapping) return;
-  if (managedProject.isWhatIfActive()) return;
-  const activeItem = openProjects.value.find(p => p.id === activeProjectId.value);
-  if (activeItem) {
-    activeItem.driver = persistedDriver.value;
-    activeItem.box = state.box;
-    activeItem.P = managedProject.toUiParams();
-    activeItem.curves = curvesData.value;
-    activeItem.maxCurves = maxData.value;
-    activeItem.name = state.project.name || driverName.value;
-    activeItem.project = { ...state.project };
-    activeItem.ground = groundCheckpoint();
-    activeItem.isModified = isModified.value;
-    // NOT visible: that is the row's own fact, set only by its checkbox. Re-deriving it
-    // here from a second copy is what made the checkbox spring back on some projects.
-  }
-}, { deep: true, immediate: true });
-
-// The other open projects, as drawable overlays. A COMPUTED VIEW built for the graph and
-// nothing else: no project is written into another project's state to get drawn, and none
-// is reconstructed back out of it.
-// KNOWN BUG (bugs/BUG_20260823_compare_overlays_pass_persisted_driver_text_where_an_engine_
-// driver_object_is_required.md): `p.driver` is persisted TEXT, not the `EngineDriver` object
-// `Design.driver` declares — pre-existing, unmasked (not introduced) by giving `ProjectRow`
-// a real type in this pass. Left as-is; the fix needs a driver-domain text→EngineDriver parse
-// API this file is not licensed to build.
-const overlays = computed<Design[]>(() =>
-  openProjects.value
-    .filter(p => p.id !== activeProjectId.value && p.visible !== false)
-    .map(p => ({
-      driver: p.driver, box: p.box, P: p.P,
-      curves: p.curves, maxCurves: p.maxCurves,
-      name: p.name, color: p.color, visible: true,
-    })) as unknown as Design[], // BUG_20260823_compare_overlays... — driver is text, not EngineDriver
-);
-
-/** Write the live editor state back into the active project's own row. */
-function syncActiveRowFromStore() {
-  const activeItem = activeProject.value;
-  if (!activeItem) return;
-  Object.assign(activeItem, {
-    driver: persistedDriver.value,
-    box: state.box,
-    P: managedProject.toUiParams(),
-    curves: curvesData.value,
-    maxCurves: maxData.value,
-    name: state.project.name || driverName.value,
-    project: { ...state.project },
-    ground: groundCheckpoint(),
-    isModified: isModified.value,
-  });
+/** Each row's display name. The FOCUSED project reads the live (possibly just-typed) name so
+ *  editing the Project tab's Name field is reflected immediately; every other open project
+ *  reads its own last-committed name — a typed-but-not-yet-persisted name on a project you
+ *  are not looking at was already lost before this rewrite too
+ *  (`BUG_20260825_project_meta_edits_never_reach_the_domain_object_or_save.md`, found while
+ *  building this: `state.project` edits never reach `ManagedProject` at all, not even the
+ *  focused one — recorded, not fixed here). */
+function rowName(p: ManagedProject): string {
+  if (p === project.value) return state.project.name || driverName.value;
+  const meta = p.committedSnapshot().projectMeta();
+  return meta.name || [p.brand(), p.model()].filter(x => x.length > 0).join(' ').trim();
 }
 
-function selectProject(p: ProjectRow) {
-  if (p.id === activeProjectId.value) return;
-
-  isSwapping = true;
-
-  // 1. Sync current active editor state back to the active project in openProjects
-  syncActiveRowFromStore();
-
-  // 2. Load the target project into the active editor
-  const targetDesign: ProjectRow = JSON.parse(JSON.stringify(p));
-  
-  state.box = targetDesign.box;
-  managedProject.loadUiParams(targetDesign.P, toAlignmentKind(targetDesign.box));
-  // `targetDesign.driver` is always populated in practice — every `ProjectRow` is built from
-  // `persistedDriver.value`, which is always a string (a project cannot exist without a
-  // driver, `docs/design/DRIVER_NON_NULL_INVARIANT.md`). The empty-driver fallback below is
-  // defensive only, for a row somehow missing it.
-  if (targetDesign.driver) managedProject.loadDriverFromPersistedText(targetDesign.driver);
-  else managedProject.loadEmpty();
-  
-  const targetProj = targetDesign.project ? targetDesign.project : { name: targetDesign.name || '', creator: '', created: '', modified: '', description: '' };
-  Object.assign(state.project, targetProj);
-
-  restoreGroundCheckpoint(targetDesign.ground || JSON.stringify({ box: state.box, P: managedProject.toUiParams(), driver: persistedDriver.value, project: state.project }));
-  activeProjectId.value = targetDesign.id;
-
-  isSwapping = false;
-
-  // 3. Immediately set the new active project's states in openProjects to be 100% correct and sync'd
-  const newActiveItem = openProjects.value.find(x => x.id === activeProjectId.value);
-  if (newActiveItem) {
-    newActiveItem.name = state.project.name || driverName.value;
-    newActiveItem.isModified = isModified.value;
-  }
+function selectProject(p: ManagedProject) {
+  const idx = projectList.value.indexOf(p);
+  if (idx >= 0) focusProject(idx);
 }
 
+// Compare-overlay curves for OTHER open projects are NOT computed in this pass: the app's one
+// sweep pipeline (`appState.ts`'s `doSweep`) only ever sweeps the FOCUSED project, and
+// building a second, per-project sweep call here would duplicate that single-sourced formula
+// rather than reuse it — the existing compare-overlay path was already known broken in a
+// different way (`bugs/BUG_20260823_compare_overlays_pass_persisted_driver_text_where_an_
+// engine_driver_object_is_required.md`: it passed persisted driver TEXT where an `EngineDriver`
+// was declared). Other open tabs are listed, selectable and closable; only the FOCUSED
+// project's own curve is drawn until a real per-project sweep exists.
+const overlays = computed<Design[]>(() => []);
+
+/** "+ Copy" — duplicate the focused project's committed design into a brand-new, independent
+ *  tab (`appState.ts`'s `duplicateFocusedProject()` — the store, not this file, is licensed to
+ *  construct a `ManagedProject`, `architecture.test.ts` "the store is the only logic module
+ *  that holds the ManagedProject instance"). */
 function copyCurrentProject() {
-  const currentP = managedProject.toUiParams();
-
-  const copyId = 'proj-' + Math.random().toString(36).substring(7);
-  const copyName = copyProjectName(openProjects.value.map(p => p.name));
-
-  const d = {
-    id: copyId,
-    driver: persistedDriver.value,
-    box: state.box,
-    P: currentP,
-    curves: curvesData.value,
-    maxCurves: maxData.value,
-    name: copyName,
-    project: { ...state.project, name: copyName },
-    ground: groundCheckpoint(),
-    isModified: true, // copy is unsaved
-    color: DPAL[(openProjects.value.length) % DPAL.length],
-    visible: true,
-  };
-
-  openProjects.value.push(d);
+  const taken = projectList.value.map(rowName);
+  duplicateFocusedProject(copyProjectName(taken));
 }
 
-/** Open a brand-new, independent project row and make it active. */
+/** Open a brand-new, blank project tab and focus it. */
 function openNewProject() {
-  syncActiveRowFromStore();
-  const id = 'proj-' + Math.random().toString(36).substring(7);
-  openProjects.value.push({
-    id,
-    name: '',
-    driver: persistedDriver.value,
-    box: state.box,
-    P: managedProject.toUiParams(),
-    curves: curvesData.value,
-    maxCurves: maxData.value,
-    project: { ...state.project },
-    ground: groundCheckpoint(),
-    isModified: false,
-    color: DPAL[openProjects.value.length % DPAL.length],
-    visible: true,
-  });
-  activeProjectId.value = id;
+  openBlankProject();
 }
 
 // ---- Closing a project ---------------------------------------------------------
-// Any project can be closed, including the first one and the last one — a project you
-// cannot close is a trap. Unsaved work is never discarded silently: closing a modified
-// project asks, and the ask names all three outcomes rather than making "Cancel" secretly
-// mean "throw my work away".
-const closeChallenge = ref<ProjectRow | null>(null);
+// Only the FOCUSED project is ever closed from this panel (the "✕ Close" button always
+// targets it) — any project can be closed, including the first one and the last one, a
+// project you cannot close is a trap. Unsaved work is never discarded silently: closing a
+// modified project asks, and the ask names all three outcomes rather than making "Cancel"
+// secretly mean "throw my work away".
+// shallowRef, not ref: `ManagedProject` has private fields, and Vue's deep `ref()` proxying
+// strips them, breaking its own nominal typing (a class instance is never plain reactive data).
+const closeChallenge = shallowRef<ManagedProject | null>(null);
 useEscToClose(() => closeChallenge.value !== null, () => { closeChallenge.value = null; });
 
-function requestCloseProject(p: ProjectRow | null) {
+function requestCloseProject(p: ManagedProject | null) {
   if (!p) return;
-  const unsaved = p.id === activeProjectId.value ? isModified.value : p.isModified;
-  if (unsaved) { closeChallenge.value = p; return; }
+  if (isModified.value) { closeChallenge.value = p; return; }
   closeProject(p);
 }
 
-async function saveThenClose(p: ProjectRow) {
+async function saveThenClose(p: ManagedProject) {
   closeChallenge.value = null;
-  if (p.id !== activeProjectId.value) selectProject(p);   // Save always writes the live design
   const saved = await saveProject();
   if (saved === false) return;    // the user backed out of the file dialog — keep the project
   closeProject(p);
 }
 
-function closeProject(p: ProjectRow) {
+function closeProject(p: ManagedProject) {
   closeChallenge.value = null;
-  const others = openProjects.value.filter(x => x.id !== p.id);
-  if (p.id === activeProjectId.value) {
-    if (others.length) {
-      selectProject(others[0]);
-      openProjects.value = openProjects.value.filter(x => x.id !== p.id);
-      return;
-    }
-    // Closing the last project leaves a genuine "no projects open" state (John's ruling,
-    // docs/design/DRIVER_NON_NULL_INVARIANT.md) — never a fresh driver-less project
-    // reseeded to fill the slot.
-    openProjects.value = [];
-    return;
-  }
-  openProjects.value = others;
+  const idx = projectList.value.indexOf(p);
+  if (idx >= 0) removeProject(idx);
 }
 
 // ---- Resizable / collapsible layout --------------------------------------------
@@ -630,7 +505,7 @@ function onBottomSplitDown(e: PointerEvent): void {
 }
 
 // ---- Driver identity + placement ----------------------------------------------
-const model = computed(() => managedProject.metaCell('model').value || driverName.value);
+const model = computed(() => project.value.model() || driverName.value);
 
 // ---- Signal Generator (real audio-out tone) ------------------------------------
 const genOn = ref(false);
@@ -644,8 +519,8 @@ onUnmounted(() => tone?.stop());
 // Drive voltage ↔ system power are two views of the same energy: V = √(P·Re), P = V²/Re.
 // WinISD lets you edit EITHER (each recomputes the other); Pin is the stored source of truth.
 const driveV = computed<number>({
-  get: () => { void live.value; return driveVoltageFor(managedProject.projectCell('Pin').value ?? 1, managedProject.toEngineDriver()?.Re || DEFAULT_RE_OHM); },
-  set: (v) => { managedProject.enterProjectField('Pin', (v * v) / (managedProject.toEngineDriver()?.Re || DEFAULT_RE_OHM)); },
+  get: () => { void project.value; return driveVoltageFor(project.value.inputPower_W() ?? 1, project.value.toEngineDriver()?.Re || DEFAULT_RE_OHM); },
+  set: (v) => { project.value.setInputPower_W((v * v) / (project.value.toEngineDriver()?.Re || DEFAULT_RE_OHM)); },
 });
 
 // ---- Advanced tab: environment. All three inputs drive the real sweep: ρ and c come from
@@ -653,26 +528,26 @@ const driveV = computed<number>({
 // constant K. The "Ignore humidity and air pressure (as WinISD does)" checkbox in the shared
 // AdvancedOptions column opts back out of the last two. ------------------------------
 // The environment is PER PROJECT (WinISD keeps T/p/phi in the .wpr [Box] section) — these
-// read and write straight through to managedProject, so a loaded project's own values show
+// read and write straight through to project.value, so a loaded project's own values show
 // immediately rather than being overwritten by the Options → General defaults on mount.
 const advTemp = computed<number>({
-  get: () => { void live.value; return managedProject.projectCell('advTemp').value; },
-  set: (v) => managedProject.enterProjectField('advTemp', v),
+  get: () => { void project.value; return project.value.envTempK(); },
+  set: (v) => project.value.setEnvTempK(v),
 });
 const advHumidity = computed<number>({
-  get: () => { void live.value; return managedProject.projectCell('advHumidity').value; },
-  set: (v) => managedProject.enterProjectField('advHumidity', v),
+  get: () => { void project.value; return project.value.envHumidityPct(); },
+  set: (v) => project.value.setEnvHumidityPct(v),
 });
 const advPressure = computed<number>({
-  get: () => { void live.value; return managedProject.projectCell('advPressure').value; },
-  set: (v) => managedProject.enterProjectField('advPressure', v),
+  get: () => { void project.value; return project.value.envPressurePa(); },
+  set: (v) => project.value.setEnvPressurePa(v),
 });
 /** The air the sweep is actually running in — one call, both readouts. */
 const advAir = computed(() => {
-  void live.value;
+  void project.value;
   return airForEnvironment(resolveAirEnvironment({
     tempK: advTemp.value, humidityPct: advHumidity.value, pressurePa: advPressure.value,
-    ignoreHumidityAndPressure: managedProject.envIgnoreHumidityAndPressure(),
+    ignoreHumidityAndPressure: project.value.envIgnoreHumidityAndPressure(),
   }, presentationState.ui.envDefaults));
 });
 
@@ -696,23 +571,23 @@ const prBrowseOpen = ref(false);
 const prEditOpen = ref(false);
 const prDefineOpen = ref(false);
 function loadPREntry(entry: PRLibEntry) {
-  managedProject.setPrField('name', entry.name);
-  managedProject.setPrField('Sd_m2', entry.prSd);
-  managedProject.setPrField('Mmd_kg', entry.prMmd);
-  managedProject.setPrField('Cms_m_per_N', entry.prCms);
-  managedProject.setPrField('Rms_Ns_per_m', entry.prRms);
-  managedProject.setPrField('Xmax_m', entry.prXmax);
+  project.value.setPrName(entry.name);
+  project.value.setPrSd_m2(entry.prSd);
+  project.value.setPrMmd_kg(entry.prMmd);
+  project.value.setPrCms_m_per_N(entry.prCms);
+  project.value.setPrRms_Ns_per_m(entry.prRms);
+  project.value.setPrXmax_m(entry.prXmax);
   prBrowseOpen.value = false;
 }
 // Bundled PRs publish only Sd/Cms — blank the unpublished fields and open the editor so
 // the user supplies them (mirrors PRPanel.loadBundledPR; never leaves stale values).
 function loadBundledPREntry(pr: BundledPR) {
-  managedProject.setPrField('name', pr.name);
-  if (pr.Sd  != null) managedProject.setPrField('Sd_m2', pr.Sd);
-  if (pr.Cms != null) managedProject.setPrField('Cms_m_per_N', pr.Cms);
-  managedProject.setPrField('Mmd_kg', 0);
-  managedProject.setPrField('Rms_Ns_per_m', 0);
-  managedProject.setPrField('Xmax_m', 0);
+  project.value.setPrName(pr.name);
+  if (pr.Sd  != null) project.value.setPrSd_m2(pr.Sd);
+  if (pr.Cms != null) project.value.setPrCms_m_per_N(pr.Cms);
+  project.value.setPrMmd_kg(0);
+  project.value.setPrRms_Ns_per_m(0);
+  project.value.setPrXmax_m(0);
   prBrowseOpen.value = false;
   prEditOpen.value = true;
 }
@@ -726,9 +601,9 @@ function startEdit() { editProjectDriver(); }
 // themselves are never carried by either path — see the next comment.
 // Only whether the panel is OPEN is remembered. The what-if VALUES are not: a what-if is
 // unverified and can never commit, so persisting it would bring an uncommitted value back
-// after a refresh looking like a decision the user made. ManagedOpenISDProject owns what-if state and
+// after a refresh looking like a decision the user made. ManagedProject owns what-if state and
 // nothing else may hold a copy (ARCHITECTURE.md §"Approved state stores").
-watch(() => managedProject.isWhatIfActive(), (active) => {
+watch(() => project.value.isWhatIfActive(), (active) => {
   presentationState.ui.originalTuneOpen = active;
 });
 // App.vue applies persisted presentationState.ui AFTER this child mounts, so react when originalTuneOpen
@@ -736,7 +611,7 @@ watch(() => managedProject.isWhatIfActive(), (active) => {
 // (OgTune's own watch does that) — the previous session's scrubbed values are deliberately
 // not restored.
 watch(() => presentationState.ui.originalTuneOpen, (open) => {
-  if (open && !managedProject.isWhatIfActive()) presentationState.editDriver = true;
+  if (open && !project.value.isWhatIfActive()) presentationState.editDriver = true;
 }, { immediate: true });
 
 watch(isModified, (val) => {
@@ -849,25 +724,25 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
         <div class="quad-projects-wrap">
           <div class="panel-title">Projects</div>
           <div class="projects-list">
-            <div v-if="openProjects.length === 0" class="project-empty-row" style="padding: 12px 10px; color: var(--mut, #888); font-style: italic; font-size: 12px; text-align: center;">
+            <div v-if="projectList.length === 0" class="project-empty-row" style="padding: 12px 10px; color: var(--mut, #888); font-style: italic; font-size: 12px; text-align: center;">
               No projects open
             </div>
-            <div v-else v-for="p in openProjects" :key="p.id" class="project-row"
-                 :class="{ selected: p.id === activeProjectId, 'trace-hidden': p.visible === false, 'is-unsaved': p.isModified }"
-                 :title="'Project — ' + p.name + (p.id === activeProjectId ? ' (Active)' : ' (Click to select)')"
+            <div v-else v-for="(p, i) in projectList" :key="i" class="project-row"
+                 :class="{ selected: p === project, 'trace-hidden': !isRowVisible(p), 'is-unsaved': p === project && isModified }"
+                 :title="'Project — ' + rowName(p) + (p === project ? ' (Active)' : ' (Click to select)')"
                  @click="selectProject(p)">
-              <input type="checkbox" :checked="p.visible !== false"
+              <input type="checkbox" :checked="isRowVisible(p)"
                      @click.stop
-                     @change.stop="p.visible = ($event.target as HTMLInputElement).checked"
+                     @change.stop="setRowVisible(p, ($event.target as HTMLInputElement).checked)"
                      title="Show/hide this project's trace on the graph">
-              <span>{{ p.name }}</span>
+              <span>{{ rowName(p) }}</span>
             </div>
           </div>
           <div class="proj-actions">
             <button class="link-btn" title="Copy this project — adds &quot;Copy of &lt;project&gt;&quot; to the list and overlays its curves on the graph for comparison" @click="copyCurrentProject">＋ Copy</button>
             <button class="link-btn close-btn"
                     title="Close the selected project. Unsaved work is not discarded silently — you are asked first."
-                    @click="requestCloseProject(activeProject)">✕ Close</button>
+                    @click="requestCloseProject(project)">✕ Close</button>
           </div>
         </div>
 
@@ -950,7 +825,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
             <div v-if="!isDual" class="box-fields-col" style="width: 412px;">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
-                <div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.projectCell('Vb').value" @update:model-value="v => managedProject.enterProjectField('Vb', v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+                <div class="field entered"><label>Volume</label><NumInput :model-value="project.boxVolume_m3()" @update:model-value="v => project.setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
               </div>
               <div class="field-row" style="flex-wrap: nowrap;">
                 <!-- A vented chamber's tuning is a real design choice (the port is an extra
@@ -958,8 +833,8 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="live && managedProject.projectCell('Fb').value" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb'); else enterVentFieldOn(managedProject, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
-                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(live && managedProject.projectCell('Fb').value, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="project.boxTuning_Fb_hz()" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(project.boxTuning_Fb_hz(), 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
                   <div class="field"><label>Fsc</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
@@ -974,11 +849,11 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
             <template v-else>
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.projectCell('Vb').value" @update:model-value="v => managedProject.enterProjectField('Vb', v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="project.boxVolume_m3()" @update:model-value="v => project.setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
                   <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="field entered">
                     <label>Tuning freq (Frc)</label>
-                    <NumInput :model-value="live && managedProject.projectCell('frcHz').value" @update:model-value="v => managedProject.enterProjectField('frcHz', v ?? 0)" field="Frc" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput :model-value="project.frcHz()" @update:model-value="v => project.setFrcHz(v ?? 0)" field="Frc" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Frc" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else class="field">
@@ -994,16 +869,16 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.projectCell('Vf').value" @update:model-value="v => managedProject.enterProjectField('Vf', v ?? 0)" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="project.frontVolume_m3()" @update:model-value="v => project.setFrontVolume_m3(v ?? 0)" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
                   <div v-if="fbState === 'E'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <NumInput id="og-ffc-target" :model-value="live && managedProject.projectCell('Fb').value" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb'); else enterVentFieldOn(managedProject, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput id="og-ffc-target" :model-value="project.boxTuning_Fb_hz()" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-ffc-target-field" class="field" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <input class="calculated greyed" :value="fmtU(live && managedProject.projectCell('Fb').value, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <input class="calculated greyed" :value="fmtU(project.boxTuning_Fb_hz(), 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -1035,7 +910,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
         <!-- ===== Driver tab ===== -->
         <section v-show="activeTab === 'driver'" class="tab-section" :class="{ active: activeTab === 'driver' }">
           <div class="field-row driver-id-row">
-            <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="managedProject.metaCell('brand').value" readonly></div>
+            <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="project.brand()" readonly></div>
             <div class="field tight"><label>Model</label><input type="text" style="width:140px" :value="model" readonly></div>
             <button class="edit-btn" title="Swap in a different driver for this project." @click="presentationState.browseOpen = true">Select Driver</button>
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
@@ -1046,7 +921,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               <div class="section-header">Placement</div>
               <div class="field-row">
                 <div class="field"><label>Num. of drivers</label>
-                  <select :value="live && managedProject.projectCell('nDrivers').value" @change="e => managedProject.enterProjectField('nDrivers', Number((e.target as HTMLSelectElement).value))"><option v-for="n in 8" :key="n" :value="n">{{ n }}</option></select>
+                  <select :value="project.driverCount()" @change="e => project.setDriverCount(Number((e.target as HTMLSelectElement).value))"><option v-for="n in 8" :key="n" :value="n">{{ n }}</option></select>
                   <span>driver(s)</span>
                 </div>
               </div>
@@ -1056,7 +931,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               </div>
               <div class="field-row">
                 <div class="field"><label>Voice coil connection</label>
-                  <select :value="live && managedProject.wiring()" @change="e => managedProject.setWiring((e.target as HTMLSelectElement).value as 'series' | 'parallel')"><option value="parallel">Parallel</option><option value="series">Series</option></select>
+                  <select :value="project.wiring()" @change="e => project.setWiring((e.target as HTMLSelectElement).value as 'series' | 'parallel')"><option value="parallel">Parallel</option><option value="series">Series</option></select>
                 </div>
               </div>
             </div>
@@ -1064,9 +939,9 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               <div class="section-header">Advanced options</div>
               <div class="beside-hint">
                 <div>
-                  <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput :model-value="live && managedProject.projectCell('vcTempRise').value" @update:model-value="v => managedProject.enterProjectField('vcTempRise', v ?? 0)" field="vcTempRise" group="tempDiff" base="K" :precision="fieldDp('vcTempRise')" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
-                  <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput :model-value="live && managedProject.alfaVC()" @update:model-value="v => managedProject.setAlfaVC(v ?? 0)" field="alfaVC" group="tempCoeff" base="perMilliK" :precision="fieldDp('AlfaVC')" /><UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
-                  <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput :model-value="live && managedProject.projectCell('driverAddedMass').value" @update:model-value="v => managedProject.enterProjectField('driverAddedMass', v ?? 0)" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput :model-value="project.vcTempRise()" @update:model-value="v => project.setVcTempRise(v ?? 0)" field="vcTempRise" group="tempDiff" base="K" :precision="fieldDp('vcTempRise')" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput :model-value="project.alfaVC()" @update:model-value="v => project.setAlfaVC(v ?? 0)" field="alfaVC" group="tempCoeff" base="perMilliK" :precision="fieldDp('AlfaVC')" /><UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput :model-value="project.driverAddedMass()" @update:model-value="v => project.setDriverAddedMass(v ?? 0)" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
                 </div>
                 <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
               </div>
@@ -1088,7 +963,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div class="field">
                     <label>Shape</label>
-                    <select :value="live && managedProject.activeVentField('shape')" @change="e => managedProject.setActiveVentField('shape', (e.target as HTMLSelectElement).value as 'round' | 'slotted')">
+                    <select :value="project.ventShape()" @change="e => project.setVentShape((e.target as HTMLSelectElement).value as 'round' | 'slotted')">
                       <option value="round">round</option>
                       <option value="slotted">slotted</option>
                     </select>
@@ -1097,7 +972,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div class="field entered">
                     <label>End Correction</label>
-                    <select :value="live && managedProject.activeVentField('endCorrection')" @change="e => managedProject.setActiveVentField('endCorrection', Number((e.target as HTMLSelectElement).value))" style="width:190px">
+                    <select :value="project.ventEndCorrection()" @change="e => project.setVentEndCorrection(Number((e.target as HTMLSelectElement).value))" style="width:190px">
                       <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
                     </select>
                   </div>
@@ -1106,18 +981,18 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
 
               <!-- Column 2: Dimensions -->
               <div class="vent-dims-col">
-                <div v-if="live && managedProject.activeVentField('shape') === 'slotted'">
+                <div v-if="project.ventShape() === 'slotted'">
                   <div class="field-row">
                     <div class="field entered">
                       <label>Slot width</label>
-                      <NumInput :model-value="live && managedProject.activeVentField('width_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventW', v ?? 0)" field="ventW" group="length" base="cm" :precision="fieldDp('ventW')" />
+                      <NumInput :model-value="project.ventWidth_m()" @update:model-value="v => enterVentFieldOn(project, 'ventW', v ?? 0)" field="ventW" group="length" base="cm" :precision="fieldDp('ventW')" />
                       <UnitToggle field="ventW" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
                   <div class="field-row">
                     <div class="field entered">
                       <label>Slot height</label>
-                      <NumInput :model-value="live && managedProject.activeVentField('height_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventH', v ?? 0)" field="ventH" group="length" base="cm" :precision="fieldDp('ventH')" />
+                      <NumInput :model-value="project.ventHeight_m()" @update:model-value="v => enterVentFieldOn(project, 'ventH', v ?? 0)" field="ventH" group="length" base="cm" :precision="fieldDp('ventH')" />
                       <UnitToggle field="ventH" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -1126,7 +1001,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                   <div class="field-row">
                     <div class="field entered">
                       <label>Vent diameter</label>
-                      <NumInput :model-value="live && managedProject.activeVentField('diameter_m')" @update:model-value="v => enterVentFieldOn(managedProject, 'ventD', v ?? 0)" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" />
+                      <NumInput :model-value="project.ventDiameter_m()" @update:model-value="v => enterVentFieldOn(project, 'ventD', v ?? 0)" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" />
                       <UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -1135,7 +1010,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div v-if="ventLState === 'E'" class="field entered">
                     <label>Vent length</label>
-                    <NumInput :model-value="live && managedProject.activeVentField('length_m')" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'ventL'); else enterVentFieldOn(managedProject, 'ventL', v); }" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" />
+                    <NumInput :model-value="project.ventLength_m()" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'ventL'); else enterVentFieldOn(project, 'ventL', v); }" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" />
                     <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else class="field">
@@ -1143,7 +1018,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                     <!-- Shown exactly as solved, negative included: a target above the L = 0
                          ceiling has no buildable port, and the honest readout says so instead
                          of a floored length that tunes somewhere else. -->
-                    <input id="og-vent-length-ro" class="calculated greyed" :class="{ impossible: (live && managedProject.activeVentField('length_m')) <= 0 }" :value="fmtU(live && managedProject.activeVentField('length_m'), 'ventL', 'length', 'cm', fieldDp('ventL'))" readonly>
+                    <input id="og-vent-length-ro" class="calculated greyed" :class="{ impossible: (project.ventLength_m()) <= 0 }" :value="fmtU(project.ventLength_m(), 'ventL', 'length', 'cm', fieldDp('ventL'))" readonly>
                     <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -1164,20 +1039,20 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div v-if="fbState === 'E'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <NumInput id="og-vent-fb-target" :model-value="live && managedProject.projectCell('Fb').value" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(managedProject, 'Fb'); else enterVentFieldOn(managedProject, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput id="og-vent-fb-target" :model-value="project.boxTuning_Fb_hz()" @update:model-value="v => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(live && managedProject.projectCell('Fb').value, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(project.boxTuning_Fb_hz(), 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(managedProject.projectCell('Sp').value, 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
+                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(project.ventArea_m2(), 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(managedProject.portPipeResonance_hz(), 'portResonance', 'freq', 'Hz', fieldDp('portResonance'))" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(project.portPipeResonance_hz(), 'portResonance', 'freq', 'Hz', fieldDp('portResonance'))" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </div>
               </div>
             </div>
@@ -1188,7 +1063,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
           <!-- passive radiator -->
           <div v-else-if="selectedBox === 'pr'">
             <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
-              <div class="field tight"><label>PR</label><input type="text" style="width:220px" :value="(live && managedProject.prField('name')) || 'Custom PR'" readonly></div>
+              <div class="field tight"><label>PR</label><input type="text" style="width:220px" :value="(project.prName()) || 'Custom PR'" readonly></div>
               <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select PR</button>
               <button class="edit-btn" title="Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax." @click="prEditOpen = true">&#9998; Edit</button>
             </div>
@@ -1200,8 +1075,8 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div class="field-row">
-                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmtU(managedProject.projectCell('prVas').value, 'prVas', 'volume', 'L', fieldDp('prVas'))" readonly><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
-                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(managedProject.projectCell('prQms').value, fieldDp('prQms'))" readonly></div>
+                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmtU(project.prVas_m3(), 'prVas', 'volume', 'L', fieldDp('prVas'))" readonly><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(project.prQms(), fieldDp('prQms'))" readonly></div>
                 </div>
                 <div class="field-row">
                   <!-- The RADIATOR's own free-air resonance, 1/(2π√(Mmd·Cms)) — no box in it.
@@ -1210,18 +1085,18 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                        this app's symbol for it. Distinct from the SYSTEM tuning on the Box tab
                        (view_2_box.png "Fh": 40.25 Hz on that same project), which is the box
                        compliance in series with the PR's own — two quantities, two readouts. -->
-                  <div class="field"><label>Fpr</label><input id="og-pr-fs" class="calculated greyed" :value="fmtU(managedProject.projectCell('prFs').value, 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
-                  <div class="field entered"><label>Sd</label><NumInput :model-value="live && managedProject.prField('Sd_m2')" @update:model-value="v => managedProject.setPrField('Sd_m2', v ?? 0)" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
+                  <div class="field"><label>Fpr</label><input id="og-pr-fs" class="calculated greyed" :value="fmtU(project.prFs_hz(), 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Sd</label><NumInput :model-value="project.prSd_m2()" @update:model-value="v => project.setPrSd_m2(v ?? 0)" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Xmax</label><NumInput :model-value="live && managedProject.prField('Xmax_m')" @update:model-value="v => managedProject.setPrField('Xmax_m', v ?? 0)" field="prXmax" group="length" base="mm" :precision="fieldDp('prXmax')" /><UnitToggle field="prXmax" group="length" base="mm" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Xmax</label><NumInput :model-value="project.prXmax_m()" @update:model-value="v => project.setPrXmax_m(v ?? 0)" field="prXmax" group="length" base="mm" :precision="fieldDp('prXmax')" /><UnitToggle field="prXmax" group="length" base="mm" unit-class="unit unit-cyc" /></div>
                 </div>
               </div>
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
-                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="live && managedProject.projectCell('prNum').value" @update:model-value="v => managedProject.enterProjectField('prNum', v ?? 0)" field="prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
-                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="live && managedProject.projectCell('prMadd').value" @update:model-value="v => managedProject.enterProjectField('prMadd', v ?? 0)" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
-                <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(managedProject.projectCell('prFsMass').value, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="project.prCount()" @update:model-value="v => project.setPrCount(v ?? 0)" field="prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.prAddedMass_kg()" @update:model-value="v => project.setPrAddedMass_kg(v ?? 0)" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
+                <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(project.prFsMass_hz(), 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
             </div>
           </div>
@@ -1231,7 +1106,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
           <div v-else-if="selectedBox === 'sealed'">
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
-              <div class="field entered"><label>Volume</label><NumInput :model-value="live && managedProject.projectCell('Vb').value" @update:model-value="v => managedProject.enterProjectField('Vb', v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+              <div class="field entered"><label>Volume</label><NumInput :model-value="project.boxVolume_m3()" @update:model-value="v => project.setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
               <!-- A closed box has no passive radiator, so the PR system tuning is not a
                    quantity it HAS. Its resonance is the sealed Fsc the Box tab already
                    reports, from the same `boxResonance`. Never put a number from another
@@ -1279,9 +1154,9 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
             </div>
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
-              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput :model-value="live && managedProject.projectCell('Pin').value" @update:model-value="v => managedProject.enterProjectField('Pin', v ?? 0)" :scale="1" :precision="fieldDp('Pin')" /><span class="unit">W</span></div></div>
+              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput :model-value="project.inputPower_W()" @update:model-value="v => project.setInputPower_W(v ?? 0)" :scale="1" :precision="fieldDp('Pin')" /><span class="unit">W</span></div></div>
               <div class="field-row"><div class="field entered"><label>Driver input voltage (each)</label><NumInput v-model="driveV" :scale="1" :precision="fieldDp('driveV')" /><span class="unit">V</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput :model-value="live && managedProject.projectCell('Rs').value" @update:model-value="v => managedProject.enterProjectField('Rs', v ?? 0)" :scale="1" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput :model-value="project.seriesResistance_ohm()" @update:model-value="v => project.setSeriesResistance_ohm(v ?? 0)" :scale="1" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
             </div>
           </div>
         </section>
@@ -1339,9 +1214,9 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
           <div class="win-controls"><span class="close-btn" @click="boxLossesOpen = false">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="live && managedProject.projectCell('Ql').value" @update:model-value="v => managedProject.enterProjectField('Ql', v ?? 0)" :scale="1" :precision="fieldDp('Ql')" /></div></div>
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="live && managedProject.projectCell('Qa').value" @update:model-value="v => managedProject.enterProjectField('Qa', v ?? 0)" :scale="1" :precision="fieldDp('Qa')" /></div></div>
-          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="live && managedProject.projectCell('Qp').value" @update:model-value="v => managedProject.enterProjectField('Qp', v ?? 0)" :scale="1" :precision="fieldDp('Qp')" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="project.boxQl()" @update:model-value="v => project.setBoxQl(v ?? 0)" :scale="1" :precision="fieldDp('Ql')" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="project.boxQa()" @update:model-value="v => project.setBoxQa(v ?? 0)" :scale="1" :precision="fieldDp('Qa')" /></div></div>
+          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="project.boxQp()" @update:model-value="v => project.setBoxQp(v ?? 0)" :scale="1" :precision="fieldDp('Qp')" /></div></div>
           <p class="hint">100 = no stuffing · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
         </div>
         <div class="modal-footer">
@@ -1361,7 +1236,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
           <div class="win-controls"><span class="close-btn" @click="closeChallenge = null">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <p><b>{{ closeChallenge.name || 'This project' }}</b> has unsaved changes.</p>
+          <p><b>{{ (closeChallenge && rowName(closeChallenge)) || 'This project' }}</b> has unsaved changes.</p>
           <div class="close-actions">
             <button class="btn" title="Save the project to its file, then close it" @click="saveThenClose(closeChallenge)">Save and close</button>
             <button class="btn" title="Close the project and lose the changes made since it was last saved" @click="closeProject(closeChallenge)">Close without saving</button>

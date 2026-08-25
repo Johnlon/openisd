@@ -17,7 +17,7 @@ import { createLogging } from '../../src/logging/flash.js';
 import { createDesignIO } from '../../src/logic/useDesignIO.js';
 import { createFileStorage, createProjectRepo, createMemoryStorage } from '@openisd/persistence';
 import { projectSchema } from '../../src/logic/schemaUpgrade.js';
-import { managedProject, state } from '../../src/logic/appState.js';
+import { requireFocusedProject, state } from '../../src/logic/appState.js';
 
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
@@ -31,12 +31,12 @@ beforeAll(() => {
 describe('shareLink() cancels an active what-if before serialising the driver', () => {
   it('an active what-if is gone after shareLink() returns', async () => {
     const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createMemoryStorage(), projectSchema, createFileStorage()) });
-    managedProject.beginWhatIf();
-    assert.equal(managedProject.isWhatIfActive(), true, 'precondition: a what-if is open');
+    requireFocusedProject().beginWhatIf();
+    assert.equal(requireFocusedProject().isWhatIfActive(), true, 'precondition: a what-if is open');
 
     await io.shareLink();
 
-    assert.equal(managedProject.isWhatIfActive(), false,
+    assert.equal(requireFocusedProject().isWhatIfActive(), false,
       'shareLink() must cancel the what-if itself, like every sibling export/save function');
   });
 });

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import { ref, shallowRef, markRaw, computed, nextTick, watch, onBeforeUnmount } from 'vue';
-import { formatInUnit, managedProject } from '../../logic/appState.js';
+import { formatInUnit } from '../../logic/appState.js';
+import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { useApp } from '../../logic/app.js';
 import { referenceRho, referenceC } from '../../logic/environment.js';
@@ -44,6 +45,7 @@ const TABS: Tab[] = ['General', 'Parameters', 'Advanced parameters', 'Dimensions
 // again until this dialog closes).
 const subject = selection.editSubject();
 const tab = ref<Tab>('General');
+const project = useFocusedProject();
 
 // The title names WHICH driver is on screen, because this one dialog edits two subjects with
 // different consequences: OK on the project's driver changes the design, OK on a saved driver
@@ -55,7 +57,7 @@ const editorTitle = subject.kind === 'myDriver' ? 'Edit My Driver' : "Edit Proje
  *  subject; the picked driver `selection` handed over for an existing My Driver; a blank one
  *  for a fresh My Driver (`openNewDriver()` — `subject.seed` is null exactly then). */
 function seedDraft(): OpenISDDriver {
-  if (subject.kind === 'project') return OpenISDDriver.fromOwdrJson(managedProject.committedDriverText());
+  if (subject.kind === 'project') return OpenISDDriver.fromOwdrJson(project.value.committedDriverText());
   return subject.seed ? subject.seed.copy() : OpenISDDriver.empty();
 }
 
@@ -618,7 +620,7 @@ function close() {
   if (subject.kind === 'myDriver') {
     openSaveMyDialog(false);
   } else {
-    managedProject.loadDriverFromOwdrText(draftDriver.value.toOwdrJson());
+    project.value.loadDriverFromOwdrText(draftDriver.value.toOwdrYml());
     selection.closeEditor();
     emit('close');
   }
@@ -668,7 +670,7 @@ function handleFileLoaded(e: Event) {
       // an `.owdr` IS that record already. One reader each, and no second parse invented here.
       draftDriver.value = markRaw(format === DriverFileFormat.Wdr
         ? OpenISDDriver.fromWdrText(text)
-        : OpenISDDriver.fromOwdrJson(text));
+        : OpenISDDriver.fromOwdrYml(text));
       forceUpdate();
     } catch (err) {
       alert('Failed to parse file: ' + (err as Error).message);
@@ -692,7 +694,7 @@ async function writeDriver(format: DriverFileFormat) {
   // that knows the format — and a driver too incomplete to project says so rather than writing
   // a file WinISD would refuse.
   const { value: text, errors } = format === DriverFileFormat.Owdr
-    ? { value: draftDriver.value.toOwdrJson(), errors: [] }
+    ? { value: draftDriver.value.toOwdrYml(), errors: [] }
     : draftDriver.value.toWdrText();
   if (!text) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
   const body = driverFileBody(text, format !== DriverFileFormat.Owdr);

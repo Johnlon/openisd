@@ -51,7 +51,7 @@
 //             covers OpenISD's one 'SPL' tab (absolute dB SPL).
 import { computed, reactive, ref } from 'vue';
 import { airForEnvironment } from '../../logic/environment.js';
-import { managedProject } from '../../logic/appState.js';
+import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { presentationState, resetUnitTokens } from '../../logic/presentationState.js';
 import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
@@ -63,6 +63,8 @@ function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
 useEscToClose(() => true, close);
 
+const project = useFocusedProject();
+
 type Tab = 'General' | 'Plot Window';
 const tab = reactive({ v: 'General' as Tab });
 
@@ -72,7 +74,7 @@ const draft = reactive({
   chartColors: JSON.parse(JSON.stringify(presentationState.ui.chartColors ?? {})),
   unitTokens: JSON.parse(JSON.stringify(presentationState.ui.unitTokens ?? {})),
   yRanges: JSON.parse(JSON.stringify(presentationState.yRanges)),
-  P: { fmin: managedProject.sweepFmin_hz(), fmax: managedProject.sweepFmax_hz() }
+  P: { fmin: project.value.sweepFmin_hz(), fmax: project.value.sweepFmax_hz() }
 });
 
 const unitsResetPending = ref(false);
@@ -106,8 +108,8 @@ function saveAndClose() {
   presentationState.ui.chartColors = { ...draft.chartColors };
   presentationState.ui.unitTokens = { ...draft.unitTokens };
   presentationState.yRanges = { ...draft.yRanges };
-  managedProject.setSweepFmin_hz(draft.P.fmin);
-  managedProject.setSweepFmax_hz(draft.P.fmax);
+  project.value.setSweepFmin_hz(draft.P.fmin);
+  project.value.setSweepFmax_hz(draft.P.fmax);
   if (unitsResetPending.value) {
     resetUnitTokens();
   }

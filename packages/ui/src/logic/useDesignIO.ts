@@ -5,8 +5,8 @@
  * the export menu reuse ONE implementation — no duplication.
  *
  * This file is ORCHESTRATION ONLY: filename bookkeeping and flashing messages, calling the
- * MANAGED LAYER's own file-IO methods (`managedProject.exportDriverWdr()`/`exportWpr()`/
- * `importWpr()`/…, QO78: file IO lives in the domain module that owns what it reads/writes)
+ * FOCUSED PROJECT's own file-IO methods (`.exportDriverWdr()`/`.exportWpr()`/`.importWpr()`/…,
+ * QO78: file IO lives in the domain module that owns what it reads/writes)
  * and the injected `FileStorage` (WHERE bytes go AND the retained file handle, `fileStorage.ts`).
  * It holds no driver value in any form — the driver crosses this file only as the managed
  * layer's serialised text (`persistedDriver`, QO73) or as opaque export bytes.
@@ -22,7 +22,7 @@
  */
 import { watch } from 'vue';
 import {
-  state, driverName, managedProject,
+  state, driverName, requireFocusedProject,
   markProjectSaved, applyLoadedProject, curvesData, currentProject, currentViewSnapshot,
 } from './appState.js';
 import { presentationState } from './presentationState.js';
@@ -132,7 +132,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
 
   // shareLink() carries the WHOLE app state (human ruling 2026-08-14, persist.ts's
   // stateToUrl docstring) — chart cursor, panel layout, unit tokens — not just the domain
-  // project `ManagedOpenISDProject.encodeShareLink` models. It therefore calls the project
+  // project `ManagedProject.encodeShareLink` models. It therefore calls the project
   // repo's `stateToUrl` rather than the managed method, whose share-link pair is scoped to
   // the project record alone (a narrower, domain-only link for other consumers).
   async function shareLink(): Promise<void> {
@@ -147,7 +147,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
 
   function exportWdr(): void {
     closeTunePanelAfterIO();
-    const { value: bytes, errors } = managedProject.exportDriverWdr();
+    const { value: bytes, errors } = requireFocusedProject().exportDriverWdr();
     if (!bytes) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wdr', bytes, DriverFileFormat.Wdr.mime);
   }
@@ -156,7 +156,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
     closeTunePanelAfterIO();
     // Always succeeds: a driver is always present (docs/design/DRIVER_NON_NULL_INVARIANT.md)
     // and .owdr is the record's own JSON, always representable.
-    const bytes = managedProject.exportDriverOwdr();
+    const bytes = requireFocusedProject().exportDriverOwdr();
     download(sanitizeFilename(driverName.value) + '.owdr', bytes, DriverFileFormat.Owdr.mime);
   }
 
@@ -166,7 +166,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
    *  refinement — and the download plumbing. */
   function exportWpr(): void {
     closeTunePanelAfterIO();
-    const { value: bytes, errors } = managedProject.exportWpr(new Date(), curvesData.value);
+    const { value: bytes, errors } = requireFocusedProject().exportWpr(new Date(), curvesData.value);
     if (!bytes) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wpr', bytes, ProjectFileFormat.Wpr.mime);
   }
@@ -179,9 +179,9 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
         const format = formatOf(f.name) ?? sniff(bytes);
 
         if (format === DriverFileFormat.Wdr) {
-          managedProject.loadDriverFromWdrText(text);
+          requireFocusedProject().loadDriverFromWdrText(text);
         } else if (format === ProjectFileFormat.Wpr) {
-          const { value: meta, errors } = managedProject.importWpr(bytes);
+          const { value: meta, errors } = requireFocusedProject().importWpr(bytes);
           if (!meta) throw new Error(errors[0]?.message ?? 'could not read .wpr');
           // `state.project` mirrors the loaded project's own meta — leaving the PREVIOUS
           // project's creator/description in place re-exports them into the next .wpr
@@ -193,13 +193,13 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
           state.project.modified = meta.modified;
           state.project.name = projectNameFromFilename(f.name);
         } else if (format === DriverFileFormat.Owdr) {
-          managedProject.loadDriverFromOwdrText(text);
+          requireFocusedProject().loadDriverFromOwdrText(text);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
           // A `.owpr`-NAMED file can still contain a bare driver record — `sniff` is the one
           // content classifier (the same rule `formatOf`-by-extension cannot see), so the
           // JSON-content dispatch asks it rather than keeping a second copy of the rule.
           if (sniff(bytes) === DriverFileFormat.Owdr) {
-            managedProject.loadDriverFromOwdrText(text);
+            requireFocusedProject().loadDriverFromOwdrText(text);
           } else {
             // An opened file is a persisted payload like any other — it goes through the same
             // schema upgrade as localStorage and the share-link hash

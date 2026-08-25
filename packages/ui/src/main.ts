@@ -12,6 +12,7 @@ import { createDriverSelection } from './logic/driverSelection.js';
 import { createDriverBrowsingState } from './logic/driverBrowsingState.js';
 import { createDesignIO } from './logic/useDesignIO.js';
 import { provideApp } from './logic/app.js';
+import { NoFocusedProjectError } from './logic/appState.js';
 import sourcesJson from '../../../drivers/sources.json';
 import bundleJson from './drivers-bundle.json';
 import '@fontsource/inter/400.css';
@@ -69,5 +70,17 @@ provideApp(app, {
   logging, driverBrowsing, selection, designIO, prRepo, myDrivers: myDriverRepo,
   driverFileStorage, diagnostics, faultLog, projectRepo, viewStateRepo,
 });
+
+// Visibility only, not a recovery mechanism (PROMPT_RELEASE_HARDENING plan): a
+// `NoFocusedProjectError` means the top-level gate itself has a bug, or a caller bypassed it —
+// masking that would hide it. `console.error` always; the flash toast is best-effort (Logging
+// is already constructed above, so this never races app startup).
+app.config.errorHandler = (err, instance, info) => {
+  console.error('[app] uncaught error', err, info, instance);
+  const message = err instanceof NoFocusedProjectError
+    ? 'Something needed an open project, but none is open. Please report this.'
+    : `Unexpected error: ${err instanceof Error ? err.message : String(err)}`;
+  logging.flash(message);
+};
 
 app.mount('#app');

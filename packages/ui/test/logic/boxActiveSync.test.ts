@@ -19,7 +19,7 @@ function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 've
 }
 
 import assert from 'node:assert/strict';
-import { state, managedProject, applyLoadedProject } from '../../src/logic/appState.js';
+import { state, requireFocusedProject, applyLoadedProject } from '../../src/logic/appState.js';
 import { OpenISDProject } from '@openisd/model';
 import { OpenISDDriver } from '@openisd/model';
 import type { UiParams } from '@openisd/model';
@@ -38,20 +38,20 @@ describe('state.box drives the project\'s active alignment', () => {
     it(`state.box = '${box}' makes it the project's active alignment`, () => {
       state.box = box;
       const expected = box === 'pr' ? 'passive-radiator' : box;
-      assert.equal(managedProject.snapshot().activeAlignment(), expected);
+      assert.equal(requireFocusedProject().snapshot().activeAlignment(), expected);
     });
   }
 
   it('switching box type does not clobber the volume left behind in the other alignment', () => {
     state.box = 'vented';
-    managedProject.enterProjectField('Vb', 0.041);
+    requireFocusedProject().setBoxVolume_m3(0.041);
     state.box = 'sealed';
-    managedProject.enterProjectField('Vb', 0.019);
-    assert.equal(slotOf(managedProject.snapshot(), 'vented').cell('Vb').value, 0.041,
+    requireFocusedProject().setBoxVolume_m3(0.019);
+    assert.equal(slotOf(requireFocusedProject().snapshot(), 'vented').cell('Vb').value, 0.041,
       'the vented volume typed in before switching away must survive');
-    assert.equal(slotOf(managedProject.snapshot(), 'sealed').cell('Vb').value, 0.019);
+    assert.equal(slotOf(requireFocusedProject().snapshot(), 'sealed').cell('Vb').value, 0.019);
     state.box = 'vented';
-    assert.equal(managedProject.projectCell('Vb').value, 0.041, 'switching back reads the SAME field it read before');
+    assert.equal(requireFocusedProject().boxVolume_m3(), 0.041, 'switching back reads the SAME field it read before');
   });
 });
 
@@ -67,16 +67,16 @@ describe('applyLoadedProject — a restored box type takes effect before the res
     applyLoadedProject(saved);
 
     assert.equal(state.box, 'sealed');
-    assert.equal(slotOf(managedProject.snapshot(), 'sealed').cell('Vb').value, 0.0275,
+    assert.equal(slotOf(requireFocusedProject().snapshot(), 'sealed').cell('Vb').value, 0.0275,
       'the restored Vb must land in the alignment the restored box type just activated');
   });
 
   it('a restored entered set replaces the previous one, not merges with it', () => {
     state.box = 'vented';
-    managedProject.setEnteredSet({ Vb: true, ventD: true, Fb: true });
+    requireFocusedProject().setEnteredSet({ Vb: true, ventD: true, Fb: true });
     applyLoadedProject(projectOf('vented', { entered: { ventL: true } }));
-    assert.equal(managedProject.isEntered('ventL'), true);
-    assert.equal(managedProject.isEntered('Fb'), false,
+    assert.equal(requireFocusedProject().isEntered('ventL'), true);
+    assert.equal(requireFocusedProject().isEntered('Fb'), false,
       'a field entered before the restore must not survive it — the restored set is authoritative');
   });
 });
