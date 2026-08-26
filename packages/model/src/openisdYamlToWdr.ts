@@ -27,12 +27,12 @@
  * record, never calls a second function:
  *
  *   1. **`yml-round-trip`** — `fromJsonRecord(record) -> toOwdrJson() -> fromOwdrJson() ->
- *      toOwdrYml()`, parsed back and compared against the ORIGINAL parsed `record` at the data
- *      level, STRICT equality (no tolerance — this leg is `.owdr`'s own JSON/YAML twin pair,
- *      which carries the record's full shape with nothing to lose; `roundTripOpenIsdYmlBridge`,
- *      `packages/winisd/src/bridge.ts`, exercises the same four methods as a standalone
- *      primitive and asserts the same strict bar in `serialisationTest.test.ts`). Any
- *      divergence is a real defect: `level: 'error'`, field `yml-round-trip`.
+ *      toOwdrYml() -> fromOwdrYml() -> toOwdrJson()`, parsed back and compared against the
+ *      ORIGINAL parsed `record` at the data level, STRICT equality (no tolerance — this leg
+ *      exercises BOTH real serialisation pairs `OpenISDDriver` has — JSON for
+ *      localStorage/the share-link, YAML for `.owdr` file save/load — each via its own
+ *      matching read method, never a generic stand-in). Any divergence is a real defect:
+ *      `level: 'error'`, field `yml-round-trip`.
  *
  *   2. **`wdr-round-trip`** — `toWdrText() -> fromWdrText()`, re-reading the very `.wdr` text
  *      this function is about to return, compared against the ORIGINAL driver at the `cell()`
@@ -57,14 +57,19 @@
  *      carry, checked against what it actually carried — every such field survived exactly,
  *      byte-for-value, in every fixture this was checked against (both
  *      `packages/winisd/test/fixtures/openisd/` samples and real corpus records `grs/8fr-8`,
- *      `tang-band/pr01`, `accuton/asp190` — the last two passive-radiator). Only
- *      `Provenance.Entered` fields are compared, never `Provenance.Calculated` ones: a
- *      calculated value is re-derived independently by each `OpenISDDriver` instance from
- *      whatever it has stated, and the second instance (built from the `.wdr` alone) has
- *      stated strictly less than the first — comparing two independently re-solved numbers
- *      would manufacture false positives out of the solver's own legitimate input-set
- *      difference, not out of anything the `.wdr` projection got wrong. Any mismatch is a real
- *      defect: `level: 'error'`, field `wdr-round-trip:<field>`.
+ *      `tang-band/pr01`, `accuton/asp190` — the last two passive-radiator). Both
+ *      `Provenance.Entered` AND `Provenance.Calculated` `INI_ROWS` fields are compared — NOT
+ *      only Entered ones: every field that can feed `solveConsistencyGroup`/
+ *      `deriveOpenISDFields` is itself an `INI_ROWS` member (confirmed: `Xlim`, `OuterX`,
+ *      `OuterY`, `freq_low_hz`, `freq_high_hz`, `power_peak_W`, `weight_kg` — the only
+ *      `SpecSection` fields outside `INI_ROWS` — are referenced nowhere in
+ *      `@openisd/engine`'s `driver.ts`), so the Entered-field agreement this check already
+ *      establishes IS the solver's entire input set; re-deriving from an identical input set
+ *      through the same deterministic pure function must reproduce the identical Calculated
+ *      value, and a divergence is a real defect. `numVC`/`VCCon` never reach the comparison as
+ *      Calculated — neither is ever a solver output, so their own state is always Entered or
+ *      NotAvailable. Any mismatch is a real defect: `level: 'error'`, field
+ *      `wdr-round-trip:<field>`.
  *
  * Both checks are purely additive: the `value` returned is always the ORIGINAL fresh
  * projection (computed once, never re-derived from either check's own re-read), so the
@@ -84,7 +89,7 @@
 import { parse } from 'yaml';
 import type { DriverError, Result } from '@openisd/engine';
 import { INI_ROWS } from '@openisd/winisd';
-import { OpenISDDriver, Provenance, type SpecField } from './openisdDriver.js';
+import { OpenISDDriver, Provenance, type Cell } from './openisdDriver.js';
 
 /** Deep-compares two JSON-shaped values; returns a slash-separated path naming the FIRST point
  *  they diverge, or `null` if identical. Same idea as `scripts/roundTripGate.mjs`'s
@@ -116,15 +121,20 @@ function firstDivergence(a: unknown, b: unknown, path = '$'): string | null {
 }
 
 /** `record` — the already-parsed original openisd.yml. Round-trips `driver` through
- *  `.toOwdrJson() -> fromOwdrJson() -> .toOwdrYml()`, parses the result, and compares it
- *  against `record` at the data level, strict equality. See this file's own docstring for why
- *  this leg tolerates nothing. */
+ *  `.toOwdrJson() -> fromOwdrJson() -> .toOwdrYml() -> fromOwdrYml() -> .toJsonRecord()` and
+ *  compares the result against `record` at the data level, strict equality. Every real
+ *  serialisation pair `OpenISDDriver` has is exercised by its OWN matching method, never a
+ *  generic stand-in: `toOwdrJson`/`fromOwdrJson` (localStorage autosave, the share-link
+ *  payload) AND `toOwdrYml`/`fromOwdrYml` (`.owdr` file save/load). See this file's own
+ *  docstring for why this leg tolerates nothing. */
 function ymlRoundTripErrors(driver: OpenISDDriver, record: unknown): DriverError[] {
   let reparsed: unknown;
   try {
     const jsonText = driver.toOwdrJson();
     const driver2 = OpenISDDriver.fromOwdrJson(jsonText);
-    reparsed = parse(driver2.toOwdrYml(), { logLevel: 'error' });
+    const ymlText = driver2.toOwdrYml();
+    const driver3 = OpenISDDriver.fromOwdrYml(ymlText);
+    reparsed = JSON.parse(driver3.toOwdrJson());
   } catch (e) {
     return [{ level: 'error', field: 'yml-round-trip',
       message: `openisd.yml/json round trip failed: ${String(e)}` }];
@@ -142,6 +152,64 @@ function ymlRoundTripErrors(driver: OpenISDDriver, record: unknown): DriverError
  *  is documented never to throw on malformed `.wdr` text, but this function is still the LAST
  *  line before returning to the corpus pipeline, so a defensive catch turns any surprise into
  *  one reported error rather than crashing the emit for one record out of a whole corpus run. */
+/** Dispatch an `INI_ROWS` field name to its flat `OpenISDDriver` accessor — `SpecField` never
+ *  crosses this file's boundary (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md); this
+ *  is the one place a runtime field-name loop needs every field's `Cell`, so the dispatch lives
+ *  here rather than as a keyed method on the class. */
+function driverFieldCell(driver: OpenISDDriver, key: string): Cell {
+  switch (key) {
+    case 'Qts': return driver.QtsCell();
+    case 'Znom': return driver.ZnomCell();
+    case 'Fs': return driver.FsCell();
+    case 'Pe': return driver.PeCell();
+    case 'SPL': return driver.SPLCell();
+    case 'Re': return driver.ReCell();
+    case 'Le': return driver.LeCell();
+    case 'fLe': return driver.fLeCell();
+    case 'KLe': return driver.KLeCell();
+    case 'BL': return driver.BLCell();
+    case 'Xmax': return driver.XmaxCell();
+    case 'Cms': return driver.CmsCell();
+    case 'Qms': return driver.QmsCell();
+    case 'Qes': return driver.QesCell();
+    case 'Rms': return driver.RmsCell();
+    case 'Mms': return driver.MmsCell();
+    case 'Sd': return driver.SdCell();
+    case 'Vas': return driver.VasCell();
+    case 'Dia': return driver.DiaCell();
+    case 'Vd': return driver.VdCell();
+    case 'no': return driver.noCell();
+    case 'Dd': return driver.DdCell();
+    case 'EBP': return driver.EBPCell();
+    case 'numVC': return driver.numVCCell();
+    case 'Hc': return driver.HcCell();
+    case 'Hg': return driver.HgCell();
+    case 'SPLmax': return driver.SPLmaxCell();
+    case 'SPLmaxLF': return driver.SPLmaxLFCell();
+    case 'USPL': return driver.USPLCell();
+    case 'alfaVC': return driver.alfaVCCell();
+    case 'Rt': return driver.RtCell();
+    case 'Ct': return driver.CtCell();
+    case 'gamma': return driver.gammaCell();
+    case 'Rme': return driver.RmeCell();
+    case 'Mpow': return driver.MpowCell();
+    case 'Mcost': return driver.McostCell();
+    case 'Gloss': return driver.GlossCell();
+    case 'VCCon': return driver.VCConCell();
+    case 'c': return driver.cCell();
+    case 'roo': return driver.rooCell();
+    case 'Thick': return driver.ThickCell();
+    case 'Depth': return driver.DepthCell();
+    case 'MagDepth': return driver.MagDepthCell();
+    case 'Magnet': return driver.MagnetCell();
+    case 'Basket': return driver.BasketCell();
+    case 'Outer': return driver.OuterCell();
+    case 'Vcd': return driver.VcdCell();
+    case 'DVol': return driver.DVolCell();
+    default: return { value: null, state: Provenance.NotAvailable };
+  }
+}
+
 function wdrRoundTripErrors(driver: OpenISDDriver, wdrText: string): DriverError[] {
   let reread: OpenISDDriver;
   try {
@@ -154,14 +222,37 @@ function wdrRoundTripErrors(driver: OpenISDDriver, wdrText: string): DriverError
   }
   const errors: DriverError[] = [];
   for (const key of INI_ROWS) {
-    const before = driver.cell(key as SpecField);
-    if (before.state !== Provenance.Entered) continue;
-    const after = reread.cell(key as SpecField);
-    if (after.value !== before.value) {
+    const before = driverFieldCell(driver, key);
+    // Entered fields: value must survive byte-for-value — `.wdr` promises to carry exactly
+    // what was stated. Calculated fields: also compared, NOT skipped — every field that can
+    // feed `solveConsistencyGroup`/`deriveOpenISDFields` (packages/model/src/openisdDerive.ts)
+    // is itself an `INI_ROWS` member, so the Entered set this loop already proves identical
+    // between `driver` and `reread` is the SOLVER'S ENTIRE INPUT SET; re-deriving from an
+    // identical input set through the same deterministic pure function must reproduce the
+    // identical Calculated value. A divergence here is a real defect (non-determinism, or a
+    // hidden input this reasoning missed), never the solver's own legitimate input-set
+    // difference — that concern only applied when `reread` could have LESS input than
+    // `driver`, which the Entered-field check above already rules out for every `INI_ROWS`
+    // field. `numVC`/`VCCon` are excluded from ever reaching this comparison as Calculated:
+    // neither is a `solveConsistencyGroup` output (confirmed: not referenced in
+    // `@openisd/engine`'s `driver.ts`), so `before.state` for either is always `Entered` or
+    // `NotAvailable`, never `Calculated`.
+    if (before.state === Provenance.NotAvailable) continue;
+    const after = driverFieldCell(reread, key);
+    // ParState (`.wdr`'s E/C/N letter) is checked too, not just the number: a `C` field must
+    // come back `C`, not merely carry the same value by coincidence while its provenance
+    // silently changed underneath it (e.g. NotAvailable, if `reread` turned out unable to
+    // re-derive it) — `fromWinISDDriver` only ever admits a `C`-marked cell back in by
+    // re-deriving it fresh (openisdDriver.ts:472), never as a stated reading, so `Calculated`
+    // is the only state that mismatch could hide behind a value coincidence.
+    if (after.value !== before.value || after.state !== before.state) {
+      const kind = before.state === Provenance.Entered ? 'stated' : 'derived';
+      const stateNote = after.state !== before.state
+        ? ` [state ${before.state} -> ${after.state}]` : '';
       errors.push({
         level: 'error', field: `wdr-round-trip:${key}`,
-        message: `${key}: stated value ${before.value} did not survive the .wdr round trip ` +
-          `(re-read as ${after.value === null ? 'absent' : after.value})`,
+        message: `${key}: ${kind} value ${before.value} did not survive the .wdr round trip ` +
+          `(re-read as ${after.value === null ? 'absent' : after.value}${stateNote})`,
       });
     }
   }
@@ -196,7 +287,10 @@ export function openisdYamlToWdr(yamlText: string): Result<string> {
   let driver: OpenISDDriver;
   let projection: Result<string>;
   try {
-    driver = OpenISDDriver.fromJsonRecord(record as never);
+    // `OpenISDDriver.fromOwdrYml(yamlText)` — the same `.owdr`/`openisd.yml` construction
+    // `.owdr` file load uses. `record` above exists only for the pre-check error message and
+    // as `ymlRoundTripErrors`' comparison baseline, never as this construction's input.
+    driver = OpenISDDriver.fromOwdrYml(yamlText);
     // `.toWdrText()` is inside this same try: its `cell()` calls are where a `specs` interior
     // of the wrong shape actually throws (BUG_20260822 — `fromJsonRecord` itself does not
     // validate), not the construction above.

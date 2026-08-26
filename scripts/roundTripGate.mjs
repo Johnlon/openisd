@@ -11,9 +11,7 @@
  *
  * Calls ONLY the app's real functions — `OpenISDDriver.fromJsonRecord`/`.toOwdrJson()` for the
  * openisd.yml leg (`checkOpenisdRoundTrip` takes the already-parsed record, since
- * `bundle-drivers.mjs`'s own loop needs that same parsed object for other purposes too, so it
- * cannot hand this function raw YAML text the way the bridge's `roundTripOpenIsdYml`
- * (`packages/winisd/src/bridge.ts`, `OpenISDDriver.fromOwdrYml`/`.toOwdrYml()`) does), and
+ * `bundle-drivers.mjs`'s own loop needs that same parsed object for other purposes too), and
  * `OpenISDDriver.fromWdrText`/`.toWdrText()` for the .wdr leg.
  * This script runs inside the same Node/vite-node process as the rest of the bundler, so it
  * imports `@openisd/model` directly rather than crossing the V8-bridge boundary the tools side

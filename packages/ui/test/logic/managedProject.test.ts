@@ -1,5 +1,5 @@
 /**
- * `ManagedOpenISDProject` — the one facade over every state layer of a project.
+ * `ManagedProject` — the one facade over every state layer of a project.
  *
  * Seam under test: the public API only. `#ground`/`#committed`/`#overlay` are private, and so is
  * the `OpenISDProjectJson` inside each — that is the property being asserted, not an obstacle to
@@ -34,7 +34,7 @@ function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 've
 
 import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
 import assert from 'node:assert/strict';
-import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
+import { ManagedProject } from '../../src/logic/managedProject.js';
 import type { OpenISDDriverJson } from '@openisd/model';
 
 /** A minimal, valid driver record — one stated field, enough to exercise enter()/clear(). */
@@ -74,9 +74,9 @@ function projectWithDriver(): OpenISDProject {
   return p;
 }
 
-const managed = () => ManagedOpenISDProject.fromProject(projectWithDriver());
+const managed = () => ManagedProject.fromProject(projectWithDriver());
 
-describe('ManagedOpenISDProject — notification asymmetry (the specification)', () => {
+describe('ManagedProject — notification asymmetry (the specification)', () => {
   it('a what-if with N scrubs produces N+2 (begin + each scrub + cancel)', () => {
     const mp = managed();
     let n = 0;
@@ -85,8 +85,8 @@ describe('ManagedOpenISDProject — notification asymmetry (the specification)',
     mp.beginWhatIf();
     assert.equal(n, 1, 'beginWhatIf notifies — it changes which layer is effective');
 
-    mp.enter('Fs', 41);
-    mp.enter('Qts', 0.36);
+    mp.enterFs(41);
+    mp.enterQts(0.36);
     mp.mutate(p => p.set('Vb', 0.050));
     assert.equal(n, 4, 'every live scrub notifies — a BOX scrub exactly like a DRIVER scrub');
 
@@ -96,23 +96,23 @@ describe('ManagedOpenISDProject — notification asymmetry (the specification)',
 
 });
 
-describe('ManagedOpenISDProject — every public mutator notifies exactly once (docs/design/REACTIVITY.md)', () => {
+describe('ManagedProject — every public mutator notifies exactly once (docs/design/REACTIVITY.md)', () => {
   it('enter/clear/enterMeta/clearMeta notify on COMMITTED state — no what-if open', () => {
     const mp = managed();
     let n = 0;
     mp.subscribe(() => { n++; });
 
-    mp.enter('Qts', 0.36);
+    mp.enterQts(0.36);
     assert.equal(n, 1, 'enter() on committed state must notify — REACTIVITY.md: every public mutator does');
-    mp.clear('Qts');
+    mp.clearQts();
     assert.equal(n, 2, 'clear() on committed state must notify');
     // 'manufacturer', not 'comment': driverRecord()'s 'comment' is never entered by the fixture,
     // so OpenISDDriver.clearMeta() (openisdDriver.ts:721-730) finds nothing "displaced" and
     // returns before notifying — 'manufacturer' carries a real manufacturer_datasheet origin the
     // fixture sets, so enterMeta()/clearMeta() actually override/restore it and notify both ways.
-    mp.enterMeta('manufacturer', 'Overridden Co');
+    mp.enterManufacturer('Overridden Co');
     assert.equal(n, 3, 'enterMeta() on committed state must notify');
-    mp.clearMeta('manufacturer');
+    mp.clearManufacturer();
     assert.equal(n, 4, 'clearMeta() on committed state must notify');
   });
 
@@ -122,13 +122,13 @@ describe('ManagedOpenISDProject — every public mutator notifies exactly once (
     let n = 0;
     mp.subscribe(() => { n++; });
 
-    mp.enter('Qts', 0.36);
+    mp.enterQts(0.36);
     assert.equal(n, 1, 'exactly one notification per call — the facade\'s own unconditional #notify()');
-    mp.clear('Qts');
+    mp.clearQts();
     assert.equal(n, 2);
-    mp.enterMeta('manufacturer', 'Overridden Co');
+    mp.enterManufacturer('Overridden Co');
     assert.equal(n, 3);
-    mp.clearMeta('manufacturer');
+    mp.clearManufacturer();
     assert.equal(n, 4);
   });
 
@@ -137,7 +137,7 @@ describe('ManagedOpenISDProject — every public mutator notifies exactly once (
     let n = 0;
     mp.subscribe(() => { n++; });
 
-    mp.enterProjectField('Vb', 0.05);
+    mp.setBoxVolume_m3(0.05);
     assert.equal(n, 1, 'mutate() must notify on committed state too — REACTIVITY.md: every public mutator does');
   });
 
@@ -147,7 +147,7 @@ describe('ManagedOpenISDProject — every public mutator notifies exactly once (
     let n = 0;
     mp.subscribe(() => { n++; });
 
-    mp.enterProjectField('Vb', 0.05);
+    mp.setBoxVolume_m3(0.05);
     assert.equal(n, 1, 'mutate() during a what-if still notifies exactly once, not twice');
   });
 
@@ -160,16 +160,16 @@ describe('ManagedOpenISDProject — every public mutator notifies exactly once (
     let n = 0;
     mp.subscribe(() => { n++; });
 
-    mp.enter('Qts', 0.36);
+    mp.enterQts(0.36);
     assert.equal(n, 1);
-    mp.enterProjectField('Vb', 0.05);              // rematerialises openIsdDriver on the effective layer
+    mp.setBoxVolume_m3(0.05);              // rematerialises openIsdDriver on the effective layer
     assert.equal(n, 2);
-    mp.enter('Fs', 41);                    // must still notify — was silently lost before the fix
+    mp.enterFs(41);                    // must still notify — was silently lost before the fix
     assert.equal(n, 3, 'a driver scrub after a box scrub must still notify');
   });
 });
 
-describe('ManagedOpenISDProject — the overlay covers the WHOLE design', () => {
+describe('ManagedProject — the overlay covers the WHOLE design', () => {
   it('cancelling a what-if restores a scrubbed BOX value, with no hand-rolled snapshot', () => {
     const mp = managed();
     mp.beginWhatIf();
@@ -186,32 +186,32 @@ describe('ManagedOpenISDProject — the overlay covers the WHOLE design', () => 
   it('a driver scrub and a box scrub are both discarded by one cancel', () => {
     const mp = managed();
     mp.beginWhatIf();
-    mp.enter('Fs', 99);
+    mp.enterFs(99);
     mp.mutate(p => p.set('Vb', 0.075));
 
     mp.cancelWhatIf();
 
-    assert.equal(mp.cell('Fs').value, 37);
+    assert.equal(mp.FsCell().value, 37);
     assert.equal(mp.snapshot().cell('Vb').value, 0.030);
   });
 });
 
-describe('ManagedOpenISDProject — a what-if never leaks into anything persistent', () => {
+describe('ManagedProject — a what-if never leaks into anything persistent', () => {
   it('projectToPersist() cancels an active what-if itself', () => {
     const mp = managed();
     mp.beginWhatIf();
-    mp.enter('Fs', 99);
+    mp.enterFs(99);
     mp.mutate(p => p.set('Vb', 0.075));
 
     const saved = mp.projectToPersist();
 
     assert.equal(mp.isWhatIfActive(), false, 'a save must never observe the live overlay');
     assert.equal(slotOf(saved, 'vented').cell('Vb').value, 0.030, 'committed state was never touched');
-    assert.equal(saved.driver().cell('Fs').value, 37);
+    assert.equal(saved.driver().FsCell().value, 37);
   });
 });
 
-describe('ManagedOpenISDProject — the project never leaves', () => {
+describe('ManagedProject — the project never leaves', () => {
   it('snapshot() hands back a COPY: mutating it changes nothing inside', () => {
     const mp = managed();
     const snap = mp.snapshot();
@@ -235,11 +235,11 @@ describe('ManagedOpenISDProject — the project never leaves', () => {
   });
 });
 
-describe('ManagedOpenISDProject — an empty (unfilled) driver', () => {
+describe('ManagedProject — an empty (unfilled) driver', () => {
   it('reads answer honestly rather than inventing a value', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
-    assert.equal(mp.cell('Fs').state, Provenance.NotAvailable, 'absent is a real answer; a zero would look measured');
-    assert.equal(mp.cell('Fs').value, null);
+    const mp = ManagedProject.createEmpty();
+    assert.equal(mp.FsCell().state, Provenance.NotAvailable, 'absent is a real answer; a zero would look measured');
+    assert.equal(mp.FsCell().value, null);
     assert.equal(mp.toEngineDriver(), null);
     // An unfilled driver genuinely IS incomplete — errors() reports its real required-field
     // problems (Fs/Re/Sd/Vas/Qts), not an empty list. Suppressing them for "no driver chosen"
@@ -248,12 +248,12 @@ describe('ManagedOpenISDProject — an empty (unfilled) driver', () => {
   });
 
   it('choosing a driver keeps the box — it is not opening a new project', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     mp.mutate(p => { p.setAlignment('vented'); p.set('Vb', 0.044); });
 
     mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
 
-    assert.equal(mp.cell('Fs').value, 37);
+    assert.equal(mp.FsCell().value, 37);
     assert.equal(slotOf(mp.snapshot(), 'vented').cell('Vb').value, 0.044,
       'the user picked a driver, not a new design');
   });
@@ -264,21 +264,21 @@ describe('ManagedOpenISDProject — an empty (unfilled) driver', () => {
  * owns what it reads/writes). The driver crosses the boundary only as serialised text/bytes;
  * construction of the live driver happens inside this licensed module.
  */
-describe('ManagedOpenISDProject — driver file IO', () => {
+describe('ManagedProject — driver file IO', () => {
   it('persistedDriverText round-trips through loadDriverFromPersistedText', () => {
-    const src = ManagedOpenISDProject.createEmpty();
+    const src = ManagedProject.createEmpty();
     src.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
     const text = src.persistedDriverText();
     assert.ok(text, 'a chosen driver serialises');
 
-    const dst = ManagedOpenISDProject.createEmpty();
+    const dst = ManagedProject.createEmpty();
     const problems = dst.loadDriverFromPersistedText(text);
     assert.deepEqual(problems, []);
-    assert.equal(dst.cell('Fs').value, 37);
+    assert.equal(dst.FsCell().value, 37);
   });
 
   it('persistedDriverText and exportDriverWdr both succeed for an empty (unfilled) driver', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     assert.equal(typeof mp.persistedDriverText(), 'string',
       'driver is REQUIRED (docs/design/DRIVER_NON_NULL_INVARIANT.md) — always serialises');
     assert.ok(mp.exportDriverOwdr(), 'an empty driver still projects to .owdr — always representable as JSON');
@@ -289,75 +289,75 @@ describe('ManagedOpenISDProject — driver file IO', () => {
   });
 
   it('loadDriverFromPersistedText REFUSES malformed and structurally unloadable text', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     assert.ok(mp.loadDriverFromPersistedText('not json{').length > 0, 'malformed JSON is refused');
     assert.ok(mp.loadDriverFromPersistedText('{"no_specs":true}').length > 0,
       'a record with no specs container is refused, not adopted to crash later');
-    assert.equal(mp.cell('Fs').state, Provenance.NotAvailable,
+    assert.equal(mp.FsCell().state, Provenance.NotAvailable,
       'a refused driver is not adopted — the empty driver this project was created with remains');
   });
 
   it('exportDriverOwdr bytes ARE the persisted record — loadable back via owdr text', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
     const bytes = mp.exportDriverOwdr();
     assert.ok(bytes);
-    const dst = ManagedOpenISDProject.createEmpty();
+    const dst = ManagedProject.createEmpty();
     dst.loadDriverFromOwdrText(new TextDecoder().decode(bytes));
-    assert.equal(dst.cell('Fs').value, 37);
+    assert.equal(dst.FsCell().value, 37);
   });
 
   it('exportDriverWdr → loadDriverFromWdrText round-trips the stated Fs', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
     const { value: bytes, errors } = mp.exportDriverWdr();
     assert.equal(errors.length, 0, JSON.stringify(errors));
     assert.ok(bytes);
-    const dst = ManagedOpenISDProject.createEmpty();
+    const dst = ManagedProject.createEmpty();
     dst.loadDriverFromWdrText(new TextDecoder().decode(bytes!));
-    assert.equal(dst.cell('Fs').value, 37);
+    assert.equal(dst.FsCell().value, 37);
   });
 
   it('adopting a different driver REPLACES the previous one wholesale — there is no clear, only a replace', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
-    assert.equal(mp.cell('Fs').value, 37);
+    assert.equal(mp.FsCell().value, 37);
     const other = { ...driverRecord(), model: { value: 'Test-2', origin: 'manufacturer_datasheet' as const, definition: 'd', dq: [] } };
     mp.loadDriverFromOwdrText(JSON.stringify(other));
-    assert.equal(mp.metaCell('model').value, 'Test-2', 'the new driver replaces the old one entirely');
+    assert.equal(mp.modelCell().value, 'Test-2', 'the new driver replaces the old one entirely');
   });
 });
 
-describe('ManagedOpenISDProject — project file IO (.wpr)', () => {
+describe('ManagedProject — project file IO (.wpr)', () => {
   it('exportWpr → importWpr round-trips the box volume, driver Fs and meta', () => {
-    const src = ManagedOpenISDProject.createEmpty();
+    const src = ManagedProject.createEmpty();
     src.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
     src.setActiveAlignment('sealed');
-    src.enterProjectField('Vb', 777777e-6);
+    src.setBoxVolume_m3(777777e-6);
     src.mutate(p => p.setProjectMeta({ ...p.projectMeta(), description: 'probe-description-123456', creator: 'probe-creator' }));
 
     const { value: bytes, errors } = src.exportWpr(new Date('2026-01-01'), null);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     assert.ok(bytes);
 
-    const dst = ManagedOpenISDProject.createEmpty();
+    const dst = ManagedProject.createEmpty();
     const { value: meta, errors: importErrors } = dst.importWpr(bytes!);
     assert.deepEqual(importErrors, []);
     assert.equal(dst.activeAlignment(), 'sealed');
-    assert.ok(Math.abs(dst.projectCell('Vb').value - 777777e-6) < 1e-9);
-    assert.equal(dst.cell('Fs').value, 37);
+    assert.ok(Math.abs(dst.boxVolume_m3() - 777777e-6) < 1e-9);
+    assert.equal(dst.FsCell().value, 37);
     assert.equal(meta?.description, 'probe-description-123456');
     assert.equal(meta?.creator, 'probe-creator');
   });
 
   it('exportWpr succeeds for an empty (unfilled) driver — every field falls back to its WinISD default', () => {
-    const { value, errors } = ManagedOpenISDProject.createEmpty().exportWpr(new Date(), null);
+    const { value, errors } = ManagedProject.createEmpty().exportWpr(new Date(), null);
     assert.ok(value);
     assert.deepEqual(errors, []);
   });
 
   it('importWpr refuses bytes with no [Box] BType — never guesses a box type', () => {
-    const { value, errors } = ManagedOpenISDProject.createEmpty()
+    const { value, errors } = ManagedProject.createEmpty()
       .importWpr(new TextEncoder().encode('[ProjectInfo]\n\n[Driver]\n[Box]\n'));
     assert.equal(value, null);
     assert.ok(errors.length > 0);
@@ -365,33 +365,26 @@ describe('ManagedOpenISDProject — project file IO (.wpr)', () => {
 });
 
 
-describe('ManagedOpenISDProject — relation-less fields are always Entered (QO36-B4)', () => {
+describe('OpenISDProject — relation-less fields are always Entered (QO36-B4)', () => {
   // A relation-less registered field is a stated fact — by the user, a datasheet, or the
   // prototype — so cell() reports it Entered unconditionally, and no verb can strip that:
-  // clear() has no mark to delete and enter()/set() are the same plain write. The managed
-  // user setters still SAY enter(), because the action is an entry and the verb becomes
-  // load-bearing the moment such a field gains a relation
-  // (bugs/BUG_20260823_managed_user_setters_route_set_instead_of_enter.md).
-  const cases: [string, string, number, (mp: ManagedOpenISDProject) => void, (mp: ManagedOpenISDProject) => number][] = [
-    ['setEnvTempK', 'advTemp', 300, mp => mp.enterProjectField('advTemp', 300), mp => mp.projectCell('advTemp').value],
-    ['setEnvHumidityPct', 'advHumidity', 40, mp => mp.enterProjectField('advHumidity', 40), mp => mp.projectCell('advHumidity').value],
-    ['setEnvPressurePa', 'advPressure', 100000, mp => mp.enterProjectField('advPressure', 100000), mp => mp.projectCell('advPressure').value],
-    ['setDriverCount', 'nDrivers', 2, mp => mp.enterProjectField('nDrivers', 2), mp => mp.projectCell('nDrivers').value],
-    ['setInputPower_W', 'Pin', 5, mp => mp.enterProjectField('Pin', 5), mp => mp.projectCell('Pin').value],
-    ['setSeriesResistance_ohm', 'Rs', 0.5, mp => mp.enterProjectField('Rs', 0.5), mp => mp.projectCell('Rs').value],
-    ['setVcTempRise', 'vcTempRise', 20, mp => mp.enterProjectField('vcTempRise', 20), mp => mp.projectCell('vcTempRise').value],
-    ['setDriverAddedMass', 'driverAddedMass', 0.005, mp => mp.enterProjectField('driverAddedMass', 0.005), mp => mp.projectCell('driverAddedMass').value],
-  ];
-  for (const [setter, field, value, drive, read] of cases) {
-    it(`${setter}: ${field} stays Entered through clear() and carries the typed value`, () => {
-      const mp = ManagedOpenISDProject.fromProject(projectWithDriver());
-      mp.clearProjectField(field as Parameters<typeof mp.clearProjectField>[0]);
-      assert.equal(mp.projectCell(field as Parameters<typeof mp.projectCell>[0]).state, Provenance.Entered,
-        `${field} must report Entered even after clear()`);
-      drive(mp);
-      assert.equal(read(mp), value, `${setter} must write the value`);
-      assert.equal(mp.projectCell(field as Parameters<typeof mp.projectCell>[0]).state, Provenance.Entered,
-        `${field} must report Entered after ${setter}`);
+  // clear() has no mark to delete and enter()/set() are the same plain write.
+  //
+  // Exercised directly on `OpenISDProject` (not through `ManagedProject`): the generic
+  // `cell()`/`enter()`/`clear()` this invariant lives in are `ManagedProject`-private now
+  // (docs/design/ENCAPSULATION_AND_LAYERING.md) — the managed layer's own named setters
+  // (`setEnvTempK` etc, still routing through `enter()` internally —
+  // bugs/BUG_20260823_managed_user_setters_route_set_instead_of_enter.md) are covered by their
+  // own read/write round-trip tests elsewhere; this invariant is the domain object's own.
+  const fields = ['advTemp', 'advHumidity', 'advPressure', 'nDrivers', 'Pin', 'Rs', 'vcTempRise', 'driverAddedMass'] as const;
+  for (const field of fields) {
+    it(`${field} stays Entered through clear() and carries the entered value`, () => {
+      const p = projectWithDriver();
+      p.clear(field);
+      assert.equal(p.cell(field).state, Provenance.Entered, `${field} must report Entered even after clear()`);
+      p.enter(field, 12345);
+      assert.equal(p.cell(field).value, 12345, `enter(${field}, ...) must write the value`);
+      assert.equal(p.cell(field).state, Provenance.Entered, `${field} must report Entered after enter()`);
     });
   }
 });

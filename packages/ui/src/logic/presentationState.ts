@@ -15,6 +15,9 @@ import type { UiState } from '@openisd/persistence';
 import { getOrInit } from './hmrSingleton.js';
 import { nextToken, type UnitGroup } from './fields/units.js';
 
+export const AIR_CONSTANTS_APP_DEFAULT: UiState['envDefaults'] =
+  { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 };
+
 export interface PresentationState {
   /** The Browse Drivers modal is open. */
   browseOpen: boolean;
@@ -50,7 +53,7 @@ function buildPresentationState(): PresentationState {
     lossMode: 'winisd-lossy',
     ui: {
       unitTokens: {},
-      envDefaults: { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 },
+      envDefaults: { ...AIR_CONSTANTS_APP_DEFAULT },
     },
   };
   return s;
@@ -79,4 +82,12 @@ export function cycleUnitToken(field: string, group: UnitGroup, baseToken: strin
  *  the design itself — this only affects how values are DISPLAYED, never the stored (SI) design. */
 export function resetUnitTokens(): void {
   presentationState.ui.unitTokens = {};
+}
+
+/** A fresh copy of AIR_CONSTANTS_APP_DEFAULT — used both to seed presentationState's own initial
+ *  ui.envDefaults and by the Options dialog's Environment reset button. Returns a new object
+ *  each call so callers can freely mutate their copy (e.g. a modal's draft) without aliasing
+ *  the constant. */
+export function airConstantsAppDefaults(): UiState['envDefaults'] {
+  return { ...AIR_CONSTANTS_APP_DEFAULT };
 }

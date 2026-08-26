@@ -12,12 +12,12 @@ import assert from 'node:assert/strict';
 import {
   openProjects, addProject, removeProject, focusProject, focusedProject,
 } from '../../src/logic/appState.js';
-import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
+import { ManagedProject } from '../../src/logic/managedProject.js';
 
 /** Two independent projects, both named identically, so any name-keyed storage would collapse
  *  them into one. */
-function namedProject(name: string): ManagedOpenISDProject {
-  const p = ManagedOpenISDProject.createEmpty();
+function namedProject(name: string): ManagedProject {
+  const p = ManagedProject.createEmpty();
   p.mutate(project => project.setProjectMeta({ ...project.projectMeta(), name }));
   return p;
 }

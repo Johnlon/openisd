@@ -341,6 +341,7 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
 - [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set)
 - [ ] **P2** 6th-order bandpass (both chambers ported) — extend the 4th-order branch. Two distinct alignments to support, as exposed by SpeakerBoxLite: **parallel** (both ports vent to the outside) and **series** (chambers coupled through a shared port).
 - [ ] **P3 — blocked on a spec.** ABC alignment. `BoxType` (`packages/engine/src/types.ts:125`) has no `'abc'` member and nothing in the repo says what fields an ABC alignment holds — this needs a human spec (what parameters, what topology) before it can be modelled at all. From QO44.
+- [ ] **P2** `ManagedOpenISDProject.setFrcHz()` (`packages/ui/src/logic/managedProject.ts:391`) is a stub — its `value` parameter is discarded (`_value`), it only calls `#notify()`. Rear-chamber tuning target has no field/home on the domain model yet for bandpass6/ABC. Give it a real backing field once bandpass6 (P2 above) or ABC (P3 above) lands, then drop the `_` prefix and wire the value through.
 - [ ] **P2** Isobaric / compound loading
 - [ ] **P2** Aperiodic (resistive vent) loading
 - [ ] **P3** Transmission line / quarter-wave (line length + stuffing)
@@ -533,6 +534,13 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
 
 ## Quality / infrastructure
 
+- [ ] **P1** Make the wdr round-trip leg of `scripts/roundTripGate.mjs` build-fatal. Landed
+      warn-only (commit `cb84600`) because every corpus `.wdr` predates the restored bridge
+      writer (winisd_tools F4 deleted the old Python `.wdr` serialiser; today's corpus is stale
+      — 0/1893 pass, a sample legacy file has 38 rows vs the app's fixed 48-row table). Once
+      winisd_tools' Stage 6 projection phase (`8186e1f6`) sweeps the corpus and every `.wdr` is
+      bridge-generated, flip this leg to fatal alongside the openisd.yml leg — a fresh regression
+      should fail the build the same way a bad openisd.yml does.
 - [ ] **P1** driverRepo takes the domain object, not the JSON record — retire the
       `_OpenISDDriverJson` HUMAN_GRANTED pair in `packages/ui/test/ui/architecture.test.ts` by
       changing the repo's API to accept/return `OpenISDDriver`, keeping the JSON shape private

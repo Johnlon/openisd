@@ -6,9 +6,9 @@ import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import {
-  focusedProject, requireFocusedProject, committedSnapshot, newProject,
-  applyState, applyLoadedProject, applyViewSnapshot,
-  markProjectSaved, currentViewSnapshot,
+  focusedProject, requireFocusedProject, projectChanged, newProject,
+  applyState, applyViewSnapshot,
+  markProjectSaved,
 } from '../logic/appState.js';
 import { presentationState } from '../logic/presentationState.js';
 import { provideFocusedProject } from '../logic/focusedProjectContext.js';
@@ -33,31 +33,27 @@ async function handleHashChange() {
 }
 
 let saveReady = false;
-// ONE gathered snapshot, TWO autosaves (QO90): `projectRepo.saveLocal` writes only the
-// project to the wire (it ignores `s.view` itself — see `projectRepo.ts`); `viewStateRepo`
-// persists the view separately, under its own storage key.
-// `committedSnapshot` (`appState.ts`), not `currentProject()` (BUG_20260825): this getter
-// re-runs on every reactive tick, including edits inside an open what-if. `currentProject()`/
-// `projectToPersist()` cancels an active what-if as a side effect — correct for an explicit
-// save/export/share action, wrong here, where it silently destroyed an open what-if moments
-// after the user opened one. `committedSnapshot` reads committed state without touching it,
-// on whichever project is currently focused; null (nothing to autosave) when none is.
-watch(
-  committedSnapshot,
-  (snap) => {
-    if (!saveReady || !snap) return;
-    projectRepo.saveLocal(snap);
-    viewStateRepo.save(currentViewSnapshot());
-  },
-  { deep: true },
-);
+// THE AUTOSAVE HOOK — deliberately EMPTY (QO92, John 2026-08-26: "rip out autosave 100% as I
+// never designed that"). The trigger point is kept, and so are its integration tests, because
+// where persistence plugs in is agreed; WHAT it does is not, and the version that stood here
+// was never designed. It persisted committed state on every reactive tick, which is what forced
+// `ManagedProject` to hand a whole `OpenISDProject` out to the app purely so the repo could
+// serialise it — the one thing the layering doctrine forbids.
+//
+// A design has to settle which layer is persisted (an open what-if must never reach storage —
+// BUG_20260825), on what trigger, and whether the domain hands over bytes rather than the
+// project object. Until then this fires and does nothing.
+watch(projectChanged, () => {
+  if (!saveReady) return;
+  // no persistence — see above
+});
 
 onMounted(async () => {
   const fromUrl = await projectRepo.loadFromHash();
   if (!fromUrl) {
-    // Project and view load independently (QO90) — each from its own storage key.
-    const local = projectRepo.loadLocal();
-    if (local) applyLoadedProject(local);
+    // No project is restored: autosave is gone, so nothing was written for a reload to find.
+    // View/UI preferences are a SEPARATE feature under their own storage key (QO90) and are
+    // unaffected.
     const view = viewStateRepo.load();
     if (view) applyViewSnapshot(view);
   } else {

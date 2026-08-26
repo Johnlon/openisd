@@ -3,5 +3,5 @@
   "compilerOptions": {
     "lib": ["ES2022"]
   },
-  "include": ["domain/**/*.ts"]
+  "include": ["domain/**/*.ts", "browser/**/*.ts", "app/**/*.ts"]
 }

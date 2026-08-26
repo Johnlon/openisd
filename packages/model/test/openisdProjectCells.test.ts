@@ -251,10 +251,10 @@ describe('the PR datasheet vocabulary is the domain\'s own keyed surface (P4a)',
 
   it('entering Fs re-solves Mmd/Rms holding Qms; entering Qms re-solves Rms alone', () => {
     const p = prProject();
-    const mmdBefore = p.prField('Mmd_kg');
+    const mmdBefore = p.prMmd_kg();
     p.enter('prFs', 25);
     assert.ok(Math.abs(p.cell('prFs').value - 25) / 25 < 1e-9);
-    assert.notEqual(p.prField('Mmd_kg'), mmdBefore, 'a lower Fs means more moving mass');
+    assert.notEqual(p.prMmd_kg(), mmdBefore, 'a lower Fs means more moving mass');
     assert.ok(Math.abs(p.cell('prQms').value - 3.3) / 3.3 < 1e-6, 'Qms held');
     p.enter('prQms', 5);
     assert.ok(Math.abs(p.cell('prQms').value - 5) / 5 < 1e-9);

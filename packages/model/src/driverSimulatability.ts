@@ -13,16 +13,28 @@
  * `{Qts, Qes, Qms}` — the same threshold `@openisd/engine`'s `qGroupIsIncomplete` enforces for
  * the consistency-group solve.
  */
-import type { OpenISDDriver, SpecField } from './openisdDriver.js';
+import type { OpenISDDriver } from './openisdDriver.js';
 import { qGroupIsIncomplete } from '@openisd/engine';
 
+function isPositive(v: number | null): boolean {
+  return typeof v === 'number' && v > 0;
+}
+
+/** The Q-group's three members, by name, for `qGroupIsIncomplete`'s generic callback — the
+ *  ONE place this file dispatches a field name to a flat driver accessor; `SpecField` never
+ *  crosses this file's own boundary (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md). */
+function qFieldPositive(driver: OpenISDDriver, field: string): boolean {
+  switch (field) {
+    case 'Qts': return isPositive(driver.Qts());
+    case 'Qes': return isPositive(driver.Qes());
+    case 'Qms': return isPositive(driver.Qms());
+    default: return false;
+  }
+}
+
 export function driverIsSimulatable(driver: OpenISDDriver): boolean {
-  const pos = (field: SpecField) => {
-    const v = driver.cell(field).value;
-    return typeof v === 'number' && v > 0;
-  };
-  const hasFsOk = pos('Fs');
-  const hasReOk = pos('Re');
-  const hasSdOk = pos('Sd') || pos('Vas');   // Sd or Vas is enough for area
-  return hasFsOk && hasReOk && hasSdOk && !qGroupIsIncomplete(field => pos(field as SpecField));
+  const hasFsOk = isPositive(driver.Fs());
+  const hasReOk = isPositive(driver.Re());
+  const hasSdOk = isPositive(driver.Sd()) || isPositive(driver.Vas());   // Sd or Vas is enough for area
+  return hasFsOk && hasReOk && hasSdOk && !qGroupIsIncomplete(field => qFieldPositive(driver, field));
 }

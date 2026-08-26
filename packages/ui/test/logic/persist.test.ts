@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
 import { WinISDDriver } from '@openisd/winisd';
-import { createProjectRepo, createMemoryStorage, PROJECT_STATE_KEY, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
+import { createProjectRepo, createMemoryStorage, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
 import { projectSchema } from '../../src/logic/schemaUpgrade.js';
 import { state, requireFocusedProject, applyLoadedProject, currentProject, currentViewSnapshot } from '../../src/logic/appState.js';
 import { toAlignmentKind } from '../../src/logic/managedProject.js';
@@ -35,6 +35,25 @@ const noFilePicker: FileStorage = {
 const mem = createMemoryStorage();
 const repo = createProjectRepo(mem, projectSchema, noFilePicker);
 
+/** A picker that KEEPS what was written, so a test can decode the file door's own bytes. */
+let written: string | null = null;
+const capturingPicker: FileStorage = {
+  save: async (bytes) => { written = typeof bytes === 'string' ? bytes : new TextDecoder().decode(bytes); return { name: 'p.owpr', cancelled: false, written: true }; },
+  saveAs: async (bytes) => { written = typeof bytes === 'string' ? bytes : new TextDecoder().decode(bytes); return { name: 'p.owpr', cancelled: false, written: true }; },
+  openFileName: () => 'p.owpr',
+  forget: () => {},
+};
+const fileRepo = createProjectRepo(createMemoryStorage(), projectSchema, capturingPicker);
+const owprNaming = { suggestedName: 'p.owpr', mime: 'application/json', label: 'OpenISD project', ext: '.owpr' };
+
+/** The bytes the FILE door writes, decoded independently. */
+async function savedFileText(project: OpenISDProject): Promise<string> {
+  written = null;
+  await fileRepo.saveToFile(project, owprNaming);
+  assert.ok(written, 'the file door must have written bytes');
+  return written!;
+}
+
 /** The project every door takes, from the same pieces the old positional call passed —
  *  `OpenISDProject`'s own restore surface (`loadUiParams()`/`setProjectMeta()`/`setDriver()`),
  *  not a second, hand-rolled construction path. `driverText` is REQUIRED: a project cannot
@@ -47,11 +66,10 @@ function projectOf(box: BoxType, meta: OpenISDProjectMeta,
   return project;
 }
 
-/** The stored LOCAL-SAVE payload as raw bytes — what `saveLocal` actually writes, decoded
- *  independently. Pure project data (QO90): no view ever reaches this wire. */
-function storedPayload(project: OpenISDProject): ReturnType<typeof JSON.parse> {
-  repo.saveLocal(project);
-  return JSON.parse(mem.get('openisd.state')!);
+/** The saved-FILE payload, decoded independently. Pure project data (QO90): no view ever
+ *  reaches this wire. */
+async function storedPayload(project: OpenISDProject): Promise<ReturnType<typeof JSON.parse>> {
+  return JSON.parse(await savedFileText(project));
 }
 
 /** The share-link payload, decoded independently of the app's own `stateToUrl`/gzip path —
@@ -72,8 +90,8 @@ function sampleDriverText(): string {
   return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdrText)).toOwdrJson();
 }
 
-describe('persistence — provenance survives a local-save round trip', () => {
-  it('E stays E and C stays C across save → JSON → restore', () => {
+describe('persistence — provenance survives a file-save round trip', () => {
+  it('E stays E and C stays C across save → JSON → restore', async () => {
     const src = OpenISDDriver.fromOwdrJson(sampleDriverText());
     // Clear a derivable field so the fixture carries a genuine C (Cms recomputes from
     // Fs/Vas/Sd) alongside the E fields the WinISD save marks entered.
@@ -83,7 +101,7 @@ describe('persistence — provenance survives a local-save round trip', () => {
     assert.equal(src.FsCell().state, Provenance.Entered, 'fixture precondition: Fs entered');
     assert.equal(src.CmsCell().state, Provenance.Calculated, 'fixture precondition: Cms now computed');
 
-    const wire = storedPayload(projectOf('sealed', { name: 'John-all-manu-populated', creator: 'John',
+    const wire = await storedPayload(projectOf('sealed', { name: 'John-all-manu-populated', creator: 'John',
       created: '2026-01-01', modified: '2026-01-02', description: '' }, src.toOwdrJson(), {}));
     const back = OpenISDDriver.fromOwdrJson(wire.driver);
 
@@ -112,8 +130,8 @@ describe('persistence — provenance survives a local-save round trip', () => {
     }
   });
 
-  it('the payload is the RECORD, so `specs` and its readings travel', () => {
-    const ser = storedPayload(projectOf('sealed', { name: 'Provenance sample', creator: 'John', created: '2026-01-01',
+  it('the payload is the RECORD, so `specs` and its readings travel', async () => {
+    const ser = await storedPayload(projectOf('sealed', { name: 'Provenance sample', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' }, sampleDriverText(), {}));
     assert.ok(ser.driver, 'the driver payload travels');
     const record = JSON.parse(ser.driver!);
@@ -122,8 +140,8 @@ describe('persistence — provenance survives a local-save round trip', () => {
       'each field carries its readings, not a bare number — that is what makes E/C survivable');
   });
 
-  it('the driver always travels — a project cannot exist without one', () => {
-    const ser = storedPayload(projectOf('sealed', { name: 'Has a driver', creator: 'John', created: '2026-01-01',
+  it('the driver always travels — a project cannot exist without one', async () => {
+    const ser = await storedPayload(projectOf('sealed', { name: 'Has a driver', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' }, OpenISDDriver.empty().toOwdrJson(), {}));
     assert.equal(typeof ser.driver, 'string',
       'driver is REQUIRED on the wire (docs/design/DRIVER_NON_NULL_INVARIANT.md) — never absent');
@@ -131,18 +149,18 @@ describe('persistence — provenance survives a local-save round trip', () => {
 });
 
 /**
- * QO90: a local autosave and a `.owpr` file are PURE PROJECT DATA — `saveLocal`/`saveToFile`/
- * `saveToNewFile` take only `OpenISDProject`, with no `ViewSnapshot` parameter at all; only
- * `stateToUrl` takes a view, and separately (see the share-link describe block below).
+ * QO90: a `.owpr` file is PURE PROJECT DATA — `saveToFile`/`saveToNewFile` take only
+ * `OpenISDProject`, with no `ViewSnapshot` parameter at all; only `stateToUrl` takes a view,
+ * and separately (see the share-link describe block below).
  */
-describe('local save carries PURE PROJECT DATA — no view (QO90)', () => {
-  it('the stored payload carries no ui/cursor/graphs/lossMode', () => {
-    const ser = storedPayload(projectOf('sealed', { name: 'View-free save', creator: 'John', created: '2026-01-01',
+describe('file save carries PURE PROJECT DATA — no view (QO90)', () => {
+  it('the stored payload carries no ui/cursor/graphs/lossMode', async () => {
+    const ser = await storedPayload(projectOf('sealed', { name: 'View-free save', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' }, OpenISDDriver.empty().toOwdrJson(), {}));
-    assert.equal(ser.lossMode, undefined, 'saveLocal\'s wire writer must not emit a lossMode');
-    assert.equal(ser.graphs, undefined, 'saveLocal\'s wire writer must not emit open charts');
-    assert.equal(ser.ui, undefined, 'saveLocal\'s wire writer must not emit UI preferences');
-    assert.equal(ser.cursor, undefined, 'saveLocal\'s wire writer must not emit the graph cursor');
+    assert.equal(ser.lossMode, undefined, 'the file wire writer must not emit a lossMode');
+    assert.equal(ser.graphs, undefined, 'the file wire writer must not emit open charts');
+    assert.equal(ser.ui, undefined, 'the file wire writer must not emit UI preferences');
+    assert.equal(ser.cursor, undefined, 'the file wire writer must not emit the graph cursor');
     // The project itself still travels.
     assert.equal(ser.project?.name, 'View-free save');
   });
@@ -261,7 +279,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
  * `toUiParams → save → load → applyLoadedProject → toUiParams` unchanged.
  */
 describe('UiParams round-trips losslessly through the repo and applyLoadedProject', () => {
-  it('every field of a fully-specified design survives a save/restore cycle unchanged', () => {
+  it('every field of a fully-specified design survives a save/restore cycle unchanged', async () => {
     requireFocusedProject().setActiveAlignment('vented');
     requireFocusedProject().setBoxVolume_m3(0.028);
     requireFocusedProject().setFrontVolume_m3(0.011);
@@ -310,8 +328,7 @@ describe('UiParams round-trips losslessly through the repo and applyLoadedProjec
 
     const before = requireFocusedProject().toUiParams();
 
-    repo.saveLocal(currentProject());
-    const wire = repo.loadLocal();
+    const wire = fileRepo.readProjectText(await savedFileText(currentProject()));
     assert.ok(wire, 'the just-saved design must load');
 
     // Scramble the live project back to nothing BEFORE restoring, so this actually exercises
@@ -365,51 +382,3 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
   });
 });
 
-/**
- * `loadLocal()`'s two distinct empty cases (bugs/BUG_20260824_browser_suite_console_error_on_
- * restore_of_a_state_blob_with_no_project_data.md): "nothing was ever saved" is the KEY being
- * ABSENT — `saveLocal` is the only writer of `PROJECT_STATE_KEY`, and it always writes the
- * complete payload (`box`/`driver`/`P`/`project` together), so there is no code path that
- * legitimately leaves the key SET to a value carrying none of those. A value at the key that
- * carries no project shape is therefore always anomalous — worth the loud refusal, not a
- * silent skip.
- */
-describe('loadLocal — key absent is silent, key present-but-shapeless is refused loudly', () => {
-  afterAll(() => mem.remove(PROJECT_STATE_KEY));
-
-  it('no key at all → null, no console.error (nothing was ever saved)', () => {
-    mem.remove(PROJECT_STATE_KEY);
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      const result = repo.loadLocal();
-      assert.equal(result, null);
-      assert.equal(spy.mock.calls.length, 0, 'a missing key must not log — there is nothing to refuse');
-    } finally {
-      spy.mockRestore();
-    }
-  });
-
-  it('key present but carrying no project-shaped fields → null, refused loudly', () => {
-    mem.set(PROJECT_STATE_KEY, JSON.stringify({ ui: { skin: 'original' } }));
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      const result = repo.loadLocal();
-      assert.equal(result, null);
-      assert.ok(spy.mock.calls.length > 0, 'a shapeless value at the key is anomalous and must be refused loudly');
-    } finally {
-      spy.mockRestore();
-    }
-  });
-
-  it('key present with a partial/corrupt project shape (box, no driver) → null, refused loudly', () => {
-    mem.set(PROJECT_STATE_KEY, JSON.stringify({ box: 'sealed', P: {}, project: {} }));
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      const result = repo.loadLocal();
-      assert.equal(result, null);
-      assert.ok(spy.mock.calls.length > 0, 'a partial project shape is corrupt, not empty, and must be refused loudly');
-    } finally {
-      spy.mockRestore();
-    }
-  });
-});

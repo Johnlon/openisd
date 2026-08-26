@@ -12,7 +12,8 @@ import assert from 'node:assert/strict';
 import {
   openProjects, focusedProject, focusProject, removeProject, addProject,
 } from '../../src/logic/appState.js';
-import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
+import { ManagedProject } from '../../src/logic/managedProject.js';
+import { presentationState } from '../../src/logic/presentationState.js';
 
 describe('project registry', () => {
   it('starts with at least one project open, and it is focused', () => {
@@ -22,7 +23,7 @@ describe('project registry', () => {
 
   it('addProject() appends and focuses the new project', () => {
     const before = openProjects().length;
-    const p = ManagedOpenISDProject.createEmpty();
+    const p = ManagedProject.createEmpty();
 
     addProject(p);
 
@@ -32,8 +33,8 @@ describe('project registry', () => {
   });
 
   it('focusProject(index) moves focus; an out-of-range index is ignored', () => {
-    const p1 = ManagedOpenISDProject.createEmpty();
-    const p2 = ManagedOpenISDProject.createEmpty();
+    const p1 = ManagedProject.createEmpty();
+    const p2 = ManagedProject.createEmpty();
     addProject(p1);
     addProject(p2);
     const i1 = openProjects().indexOf(p1);
@@ -49,8 +50,8 @@ describe('project registry', () => {
   });
 
   it('removeProject(index) clamps focus to the new last project when it was past the end', () => {
-    const p1 = ManagedOpenISDProject.createEmpty();
-    const p2 = ManagedOpenISDProject.createEmpty();
+    const p1 = ManagedProject.createEmpty();
+    const p2 = ManagedProject.createEmpty();
     addProject(p1);
     addProject(p2);
     const iLast = openProjects().length - 1;
@@ -67,5 +68,45 @@ describe('project registry', () => {
     removeProject(-1);
     removeProject(before + 5);
     assert.equal(openProjects().length, before);
+  });
+
+  it('focusProject(index) cancels an active what-if on the project being left, and closes Tune, '
+    + 'without ever starting a what-if on the newly-focused project '
+    + '(BUG_20260825_tune_whatif_stays_open_across_a_project_switch_with_no_overlay_on_the_newly_focused_project)',
+    () => {
+      const a = ManagedProject.createEmpty();
+      const b = ManagedProject.createEmpty();
+      addProject(a);
+      addProject(b);
+      const iA = openProjects().indexOf(a);
+      const iB = openProjects().indexOf(b);
+
+      focusProject(iA);
+      presentationState.editDriver = true;
+      a.beginWhatIf();
+      assert.ok(a.isWhatIfActive(), 'precondition: A has an open what-if');
+
+      focusProject(iB);
+
+      assert.equal(focusedProject(), b);
+      assert.equal(presentationState.editDriver, false, 'Tune closes on focus switch');
+      assert.equal(a.isWhatIfActive(), false, "A's what-if is cancelled, not left dangling");
+      assert.equal(b.isWhatIfActive(), false, 'B never had a what-if started on it');
+    });
+
+  it('focusProject(index) closes the Driver Editor modal on focus switch', () => {
+    const a = ManagedProject.createEmpty();
+    const b = ManagedProject.createEmpty();
+    addProject(a);
+    addProject(b);
+    const iA = openProjects().indexOf(a);
+    const iB = openProjects().indexOf(b);
+
+    focusProject(iA);
+    presentationState.editDriverInfo = true;
+
+    focusProject(iB);
+
+    assert.equal(presentationState.editDriverInfo, false, 'Driver Editor modal closes on focus switch');
   });
 });

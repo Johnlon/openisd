@@ -20,14 +20,14 @@ describe('OpenISDProject.driver()/setDriver() — holds the live driver object',
   it('setDriver REPLACES the project\'s driver, reading back as the SAME live object', () => {
     const project = OpenISDProject.empty(OpenISDDriver.empty());
     const driver = OpenISDDriver.empty();
-    driver.enter('Fs', 111111);
+    driver.enterFs(111111);
     project.setDriver(driver);
     assert.equal(project.driver(), driver, 'setDriver must hold the object itself, not a copy or a text round-trip');
-    assert.equal(project.driver().cell('Fs').value, 111111);
+    assert.equal(project.driver().FsCell().value, 111111);
   });
   it('toJsonRecord()/fromJsonRecord() round-trip the driver as its own JSON record, once, at the wire boundary', () => {
     const driver = OpenISDDriver.empty();
-    driver.enter('Fs', 222222);
+    driver.enterFs(222222);
     const project = OpenISDProject.empty(driver);
 
     const record = project.toJsonRecord();
@@ -36,7 +36,7 @@ describe('OpenISDProject.driver()/setDriver() — holds the live driver object',
 
     const restored = OpenISDProject.fromJsonRecord(record);
     assert.notEqual(restored.driver(), driver, 'a record round-trip must not hand back the original live object');
-    assert.equal(restored.driver().cell('Fs').value, 222222);
+    assert.equal(restored.driver().FsCell().value, 222222);
   });
 });
 
@@ -50,7 +50,7 @@ describe('OpenISDProject.fromWinISDProject — the one place raw .wpr data becom
   it('sets the active alignment from BType and carries the sealed volume across', () => {
     const project = OpenISDProject.fromWinISDProject(wprOf(['BType=0', 'Vr=0.222222']), OpenISDDriver.empty());
     assert.equal(project.activeAlignment(), 'sealed');
-    assert.equal(project.cell('Vb').value, 222222e-6);
+    assert.equal(project.volume_m3(), 222222e-6);
   });
   it('throws when BType is absent — never guesses a box type', () => {
     assert.throws(() => OpenISDProject.fromWinISDProject(wprOf(['Vr=0.02']), OpenISDDriver.empty()));
@@ -128,7 +128,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
     // reverts to litres this is off by 1000×, which is exactly BUG_20260817's failure.
     const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
     const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
-    const firstPrinciples = project.prField('Cms_m_per_N') * project.prField('Sd_m2') ** 2 * rho * c * c;
+    const firstPrinciples = project.prCms_m_per_N() * project.prSd_m2() ** 2 * rho * c * c;
     const fpErr = Math.abs(vas - firstPrinciples) / firstPrinciples;
     assert.ok(fpErr < 1e-9,
       `Vas must equal Cms·Sd²·ρ·c² = ${firstPrinciples} m³; got ${vas}` +
@@ -152,9 +152,9 @@ describe('fromWinISDProject — import-side assertions against literals (a round
   it('Qlr/Qar/Qpr land on the record as the box losses', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'), OpenISDDriver.empty());
-    assert.equal(project.cell('Ql').value, 7);
-    assert.equal(project.cell('Qa').value, 50);
-    assert.equal(project.cell('Qp').value, 80);
+    assert.equal(project.loss('Ql'), 7);
+    assert.equal(project.loss('Qa'), 50);
+    assert.equal(project.loss('Qp'), 80);
   });
 
   it('Npr lands on the record as the radiator count', () => {
@@ -162,7 +162,7 @@ describe('fromWinISDProject — import-side assertions against literals (a round
       '[Box]', 'BType=4', 'Vr=0.04', 'Npr=2', '',
       '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', '',
     ].join('\n')), OpenISDDriver.empty());
-    assert.equal(project.cell('prNum').value, 2);
+    assert.equal(project.prCount(), 2);
   });
 
   it('Nd lands on the record as the driver count', () => {

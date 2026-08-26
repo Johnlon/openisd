@@ -52,16 +52,16 @@ describe('OpenISDDriver.fromWinISDDriver — provenance mapping (E -> SpecEntry,
     const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toJsonRecord();
     const driver = OpenISDDriver.fromJsonRecord(record);
 
-    assert.deepEqual(driver.cell('Fs'), { value: 38, state: Provenance.Entered, origin: 'manual' });
-    assert.deepEqual(driver.cell('Re'), { value: 6.4, state: Provenance.Entered, origin: 'manual' });
-    assert.deepEqual(driver.cell('Qes'), { value: 0.38, state: Provenance.Entered, origin: 'manual' });
-    assert.deepEqual(driver.cell('Qms'), { value: 6.2, state: Provenance.Entered, origin: 'manual' });
+    assert.deepEqual(driver.FsCell(), { value: 38, state: Provenance.Entered, origin: 'manual' });
+    assert.deepEqual(driver.ReCell(), { value: 6.4, state: Provenance.Entered, origin: 'manual' });
+    assert.deepEqual(driver.QesCell(), { value: 0.38, state: Provenance.Entered, origin: 'manual' });
+    assert.deepEqual(driver.QmsCell(), { value: 6.2, state: Provenance.Entered, origin: 'manual' });
   });
 
   it('the excluded C field is independently RE-DERIVED by OpenISDDriver, matching WinISD\'s own formula', () => {
     const record = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(WDR_TEXT)).toJsonRecord();
     const driver = OpenISDDriver.fromJsonRecord(record);
-    const qts = driver.cell('Qts');
+    const qts = driver.QtsCell();
     assert.equal(qts.state, Provenance.Calculated);
     assert.ok(qts.value != null && Math.abs(qts.value - 0.35805471124620064) < 1e-9,
       `Qts ${String(qts.value)} does not match Qes*Qms/(Qes+Qms)`);

@@ -126,22 +126,22 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     });
 
     // ENTER: same object, both fields.
-    driver.enter('c', 400);
-    driver.enter('roo', 1.5);
-    assert.deepEqual(driver.cell('c'), { value: 400, state: Provenance.Entered, origin: 'manual' },
+    driver.enterC(400);
+    driver.enterRoo(1.5);
+    assert.deepEqual(driver.cCell(), { value: 400, state: Provenance.Entered, origin: 'manual' },
       'c must read back exactly what was just entered, on the same object');
-    assert.deepEqual(driver.cell('roo'), { value: 1.5, state: Provenance.Entered, origin: 'manual' },
+    assert.deepEqual(driver.rooCell(), { value: 1.5, state: Provenance.Entered, origin: 'manual' },
       'roo must read back exactly what was just entered, on the same object');
 
     // CLEAR: same object, both fields. c/roo resolve through the SAME entered-or-computed
     // path as any other spec field (`solveConsistencyGroup` fills both when unset) — no
     // export step is needed to see the engine constant; `cell()` alone already returns it.
-    driver.clear('c');
-    driver.clear('roo');
-    assert.equal(driver.cell('c').state, Provenance.Calculated, 'a cleared c reads computed directly off the driver, like any other derivable field');
-    assert.equal(driver.cell('c').value, refC, "a cleared c reads the live reference-environment speed of sound directly off the driver");
-    assert.equal(driver.cell('roo').state, Provenance.Calculated, 'a cleared roo reads computed directly off the driver, like any other derivable field');
-    assert.equal(driver.cell('roo').value, refRho, "a cleared roo reads the live reference-environment air density directly off the driver");
+    driver.clearC();
+    driver.clearRoo();
+    assert.equal(driver.cCell().state, Provenance.Calculated, 'a cleared c reads computed directly off the driver, like any other derivable field');
+    assert.equal(driver.cCell().value, refC, "a cleared c reads the live reference-environment speed of sound directly off the driver");
+    assert.equal(driver.rooCell().state, Provenance.Calculated, 'a cleared roo reads computed directly off the driver, like any other derivable field');
+    assert.equal(driver.rooCell().value, refRho, "a cleared roo reads the live reference-environment air density directly off the driver");
 
     const { value: exported } = driver.toWinISDDriver();
     if (!exported) throw new Error('export failed to project');

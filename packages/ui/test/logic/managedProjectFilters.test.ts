@@ -1,5 +1,5 @@
 /**
- * `ManagedOpenISDProject`'s per-filter mutators — `addFilter`/`removeFilter`/`setFilter(id,
+ * `ManagedProject`'s per-filter mutators — `addFilter`/`removeFilter`/`setFilter(id,
  * patch)` — the API `OgFilters.vue` binds directly to (no live mirror array, no deep watch).
  *
  * `setFilters(whole array)` already existed for a caller that legitimately replaces the WHOLE
@@ -11,14 +11,14 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { ManagedOpenISDProject } from '../../src/logic/managedProject.js';
+import { ManagedProject } from '../../src/logic/managedProject.js';
 import type { Filter } from '@openisd/engine';
 
 const hp = (id: string, fc: number): Filter => ({ id, type: 'highpass', enabled: true, fc, Q: 0.7071 });
 
-describe('ManagedOpenISDProject — per-filter mutators', () => {
+describe('ManagedProject — per-filter mutators', () => {
   it('addFilter appends to the chain without disturbing existing filters', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     mp.addFilter(hp('a', 80));
     mp.addFilter(hp('b', 200));
     assert.deepEqual(mp.filters().map(f => f.id), ['a', 'b']);
@@ -27,7 +27,7 @@ describe('ManagedOpenISDProject — per-filter mutators', () => {
   });
 
   it('setFilter patches one field of the named filter, leaving its other fields and every other filter alone', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     mp.addFilter(hp('a', 80));
     mp.addFilter(hp('b', 200));
     mp.setFilter('a', { fc: 120 });
@@ -37,7 +37,7 @@ describe('ManagedOpenISDProject — per-filter mutators', () => {
   });
 
   it('setFilter on an unknown id is a no-op, not a crash or a fabricated filter', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     mp.addFilter(hp('a', 80));
     mp.setFilter('does-not-exist', { fc: 999 });
     assert.deepEqual(mp.filters().map(f => f.id), ['a']);
@@ -45,7 +45,7 @@ describe('ManagedOpenISDProject — per-filter mutators', () => {
   });
 
   it('removeFilter drops exactly the named filter', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     mp.addFilter(hp('a', 80));
     mp.addFilter(hp('b', 200));
     mp.addFilter(hp('c', 300));
@@ -54,7 +54,7 @@ describe('ManagedOpenISDProject — per-filter mutators', () => {
   });
 
   it('every per-filter mutator notifies', () => {
-    const mp = ManagedOpenISDProject.createEmpty();
+    const mp = ManagedProject.createEmpty();
     let notified = 0;
     mp.subscribe(() => notified++);
     mp.addFilter(hp('a', 80));

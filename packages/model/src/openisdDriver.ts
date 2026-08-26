@@ -38,6 +38,7 @@ import type {
 import { WinISDDriver, INI_ROWS } from '@openisd/winisd';
 import { CellState } from '@openisd/winisd';
 import type { WdrCell, WdrHeader } from '@openisd/winisd';
+import { driverFromConformingRecord } from './driverConformance.js';
 
 /**
  * `Provenance` — where a field's value came from. OpenISD's own concept, in OpenISD's own
@@ -47,7 +48,7 @@ import type { WdrCell, WdrHeader } from '@openisd/winisd';
  *
  *   Entered     a human or a source STATED this value. Never recomputed over.
  *   Calculated  the solver derived it from other fields.
- *   Absent      nothing states it and nothing derives it — genuinely not set.
+ *   Not-Availe  nothing states it and nothing derives it — genuinely not set.
  *
  * `.wdr`'s ParState spells the same three ideas as the letters `E`/`C`/`N`. Those letters are
  * that FILE FORMAT's encoding, declared in `@openisd/winisd` and used only there; the mapping
@@ -57,7 +58,7 @@ import type { WdrCell, WdrHeader } from '@openisd/winisd';
 export enum Provenance {
   Entered = 'entered',
   Calculated = 'calculated',
-  NotAvailable = 'notavailable',
+  NotAvailable = 'not-available',
 }
 
 /**
@@ -302,23 +303,6 @@ export class OpenISDDriver {
   }
 
   /**
-   * `candidate` → an `OpenISDDriver`, or `null` when it does not conform closely enough to the
-   * canonical record shape for every field read to be safe (an absent/non-object `specs`, or a
-   * `quality` block missing its `missing`/`parse_errors` arrays). The one owner-side check for
-   * data arriving from an untrusted seam (browser storage, the driver corpus) — only this file
-   * may cast to `OpenISDDriverJson`, so the conformance check and the construction it gates
-   * live together here rather than a caller casting after asking elsewhere.
-   */
-  static fromConformingRecord(candidate: unknown): OpenISDDriver | null {
-    if (driverRecordProblems(candidate).length > 0) return null;
-    const quality = (candidate as { quality?: unknown }).quality;
-    if (quality == null || typeof quality !== 'object') return null;
-    const q = quality as { missing?: unknown; parse_errors?: unknown };
-    if (!Array.isArray(q.missing) || !Array.isArray(q.parse_errors)) return null;
-    return new OpenISDDriver(candidate as OpenISDDriverJson);
-  }
-
-  /**
    * A My Drivers browser-storage entry → an `OpenISDDriver`, or `null` when it cannot be
    * brought current. A per-entry blob may have been saved by an older build of this app, at an
    * older schema than the one this build writes — the correct test for "can this be loaded" is
@@ -326,24 +310,26 @@ export class OpenISDDriver {
    * not a generic structural conformance check against the CURRENT shape.
    *
    * This does not yet implement that per-entry chain. It is a pure pass-through to
-   * `fromConformingRecord()` — a placeholder for when the upgrade chain closes the gap between
-   * the whole-bucket/envelope-level schema steps (`schemaUpgrade.ts`'s `MY_DRIVERS_STEPS`) and
-   * a single stored entry.
+   * `driverConformance.ts`'s `driverFromConformingRecord()` — a placeholder for when the
+   * upgrade chain closes the gap between the whole-bucket/envelope-level schema steps
+   * (`schemaUpgrade.ts`'s `MY_DRIVERS_STEPS`) and a single stored entry.
    */
   static upgrade(candidate: unknown): OpenISDDriver | null {
-    return OpenISDDriver.fromConformingRecord(candidate);
+    return driverFromConformingRecord(candidate);
   }
 
-  /** `.owdr` text → an `OpenISDDriver`, direct. `.owdr` IS this model's own record as JSON. */
+  /** This record's own JSON serialisation — NOT the `.owdr` file format (`fromOwdrYml`/
+   *  `toOwdrYml` below, which is). This pair is the internal wire shape `ManagedProject`'s
+   *  `persistedDriverText()`/`committedDriverText()` use for localStorage autosave and the
+   *  share-link payload — never written to a file. */
   static fromOwdrJson(text: string): OpenISDDriver {
     return new OpenISDDriver(JSON.parse(text) as OpenISDDriverJson);
   }
 
-  /** `openisd.yml` text → an `OpenISDDriver`, direct — the YAML-serialised twin of
-   *  `fromOwdrJson()`. Parses via the `yaml` package, then constructs exactly as
-   *  `fromJsonRecord` does; this is the one call the bundler (`scripts/bundle-drivers.mjs`) and
-   *  the round-trip gate (`scripts/roundTripGate.mjs`) build a driver from raw `openisd.yml`
-   *  file text with, so neither script parses YAML itself just to hand the result on. */
+  /** `.owdr`/`openisd.yml` text → an `OpenISDDriver`, direct — this record's own YAML
+   *  serialisation, and the format `.owdr` actually is on disk. Parses via the `yaml` package,
+   *  then constructs exactly as `fromJsonRecord` does. Also what the corpus's `openisd.yml`
+   *  files are. */
   static fromOwdrYml(text: string): OpenISDDriver {
     return OpenISDDriver.fromJsonRecord(parse(text) as OpenISDDriverJson);
   }
@@ -524,7 +510,7 @@ export class OpenISDDriver {
    */
   static fromFileText(text: string, format: 'wdr' | 'owdr'): Result<OpenISDDriver> {
     try {
-      return { value: format === 'wdr' ? OpenISDDriver.fromWdrText(text) : OpenISDDriver.fromOwdrJson(text), errors: [] };
+      return { value: format === 'wdr' ? OpenISDDriver.fromWdrText(text) : OpenISDDriver.fromOwdrYml(text), errors: [] };
     } catch (err) {
       return { value: null, errors: [{ level: 'error', field: 'file', message: `could not be read: ${(err as Error).message}` }] };
     }
@@ -557,12 +543,14 @@ export class OpenISDDriver {
     return this.#record.uuid.value;
   }
 
+  /** This record's own JSON serialisation — see `fromOwdrJson()`: the internal wire shape for
+   *  localStorage/share-link, not the `.owdr` file format. */
   toOwdrJson(): string {
     return JSON.stringify(this.toJsonRecord(), null, 2);
   }
 
-  /** This driver → `openisd.yml` text — the YAML-serialised twin of `toOwdrJson()`, same
-   *  record, run through the `yaml` package's `stringify()` instead of `JSON.stringify()`. */
+  /** This driver → `.owdr`/`openisd.yml` text — same record, run through the `yaml` package's
+   *  `stringify()`. This is what `.owdr` actually is on disk. */
   toOwdrYml(): string {
     return stringify(this.toJsonRecord());
   }

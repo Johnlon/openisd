@@ -1,6 +1,6 @@
 /**
  * Owns the URL as an app-state surface (ARCHITECTURE.md §"Approved state stores" — the third
- * of the three: store / ManagedOpenISDProject / the URL). `persist.ts` builds the share-link
+ * of the three: store / ManagedProject / the URL). `persist.ts` builds the share-link
  * URL string purely; this module is where the app actually reaches into browser history to
  * make the address bar reflect it.
  */

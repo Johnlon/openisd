@@ -27,6 +27,7 @@
  * `ManagedProject` clones a whole project to open an overlay.
  */
 import { OpenISDDriver, Provenance } from './openisdDriver.js';
+import { driverFromConformingRecord } from './driverConformance.js';
 // `OpenISDDriverJson` is `openisdDriver.ts`'s own wire shape — named openly here (not
 // laundered through an alias or `unknown`) because `OpenISDProjectJson.driver` below HOLDS one
 // as opaque data: this file never reads a field off it, only passes it whole to
@@ -46,7 +47,7 @@ export type ProjectFieldId =
   // Relation-less registered fields — one name each, the registry's own symbol. All are
   // Entered by the prototype-stater rule (QO36-B4): the prototype or the user stated them,
   // nothing ever solves them.
-  | 'Vf' | 'Ql' | 'Qa' | 'Qp' | 'endCorrection' | 'frcHz'
+  | 'Vf' | 'Ql' | 'Qa' | 'Qp' | 'frcHz' | 'endCorrection'
   | 'advTemp' | 'advHumidity' | 'advPressure'
   | 'Pin' | 'Rs' | 'nDrivers' | 'vcTempRise' | 'driverAddedMass'
   // The radiator's own facts (SI), and its datasheet vocabulary — Vas/Fs/Qms are DERIVED
@@ -283,7 +284,7 @@ export interface OpenISDSweepRange {
 }
 
 /** Who made this project, and when. `name` is a LABEL: two open projects may share one, so it
- *  is never an identity — the workspace entry's own id is. */
+ *  is never an identity — `OpenISDProject.uuid()` is, and that lives only in memory. */
 export interface OpenISDProjectMeta {
   name: string;
   creator: string;
@@ -331,6 +332,21 @@ export interface OpenISDProjectJson {
  */
 interface ProjectLiveState extends Omit<OpenISDProjectJson, 'driver'> {
   driver: OpenISDDriver;
+  /** THE project's identity, and IN-MEMORY ONLY — declared here rather than on the wire shape
+   *  above, which is the whole point (John 2026-08-26: "lets make the UUID an internal only
+   *  feature ... when loading an owdr we assign a new uuid").
+   *
+   *  It exists so the running app can tell two open projects apart when their NAMES collide —
+   *  a store keys on it, and `focusedIndex` can become a `focusedUuid` that survives reordering.
+   *  Nothing outside the process needs it, and persisting it would buy a problem rather than
+   *  solve one: a file carrying an id makes re-importing it a collision the user has to be
+   *  asked about, over an identity they never knew existed. Unpersisted, a load is simply a
+   *  new project, which is what it looks like to the user anyway.
+   *
+   *  Minted at construction, preserved by `copy()` — every layer of a `ManagedProject` is a
+   *  copy of ONE project, so they share an id and the wrapper is identified by it too (John:
+   *  "the managed project is a wrapper id'd by same id"). */
+  uuid: string;
 }
 
 // ── Construction and the one legal way to switch alignment ────────────────────────────────
@@ -493,7 +509,7 @@ function ensurePassiveRadiator(
 // ── OpenISDProject — the class facade over `OpenISDProjectJson` ──────────────────────────
 //
 // Mirrors `OpenISDDriver`'s own pattern (openisdDriver.ts): private constructor, static
-// factories, accessors, `copy()`. `ManagedOpenISDProject` holds three of these (ground /
+// factories, accessors, `copy()`. `ManagedProject` holds three of these (ground /
 // committed / what-if) and never touches `OpenISDProjectJson` directly — every read and
 // write goes through this class's own API instead.
 
@@ -501,8 +517,9 @@ function ensurePassiveRadiator(
  *  builds. Every OTHER value is a real default a user could have set; none is a fake value
  *  standing in for a real one. `driver` is REQUIRED: a project cannot exist without one
  *  (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
-function prototypeProject(driver: OpenISDDriver): ProjectLiveState {
+function prototypeProject(driver: OpenISDDriver, uuid: string): ProjectLiveState {
   return {
+    uuid,
     driver,
     box: prototypeBox(),
     // WinISD's direction: volume, diameter and tuning are typed; vent length is returned.
@@ -667,22 +684,27 @@ export class OpenISDProject {
    *  cloned — `openisdProjectCells.test.ts` pins this: a caller that retains `record` and
    *  mutates it past the type system must see that mutation reflected). `record.driver` is data
    *  from an untrusted boundary (a hand-edited file, an old build's share link), so it is
-   *  CHECKED (`OpenISDDriver.fromConformingRecord`) rather than trusted outright — a driver
-   *  record too broken to load safely means the WHOLE record is refused (throws): a project
-   *  cannot exist without a driver, so there is no "load the rest, drop the driver" outcome
-   *  any more (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
+   *  CHECKED (`driverFromConformingRecord`) rather than trusted outright — a driver record too
+   *  broken to load safely means the WHOLE record is refused (throws): a project cannot exist
+   *  without a driver, so there is no "load the rest, drop the driver" outcome any more
+   *  (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
   static fromJsonRecord(record: OpenISDProjectJson): OpenISDProject {
     const { driver, ...rest } = record;
-    const liveDriver = OpenISDDriver.fromConformingRecord(driver);
+    const liveDriver = driverFromConformingRecord(driver);
     if (!liveDriver) throw new Error('project record carries a driver too broken to load');
-    return new OpenISDProject({ ...rest, driver: liveDriver });
+    // A LOAD IS A NEW PROJECT. Identity is in-memory only, so a record carries none and there
+    // is nothing to restore — every load mints (John 2026-08-26: "when loading an owdr we
+    // assign a new uuid").
+    return new OpenISDProject({ ...rest, driver: liveDriver, uuid: crypto.randomUUID() });
   }
 
   /** This project as its wire record — the driver's live object PROJECTED to its own record
    *  (`OpenISDDriver.toJsonRecord()`) here, once, at the moment bytes are actually needed. Paired
    *  with `fromJsonRecord()`. */
   toJsonRecord(): OpenISDProjectJson {
-    const { driver, ...rest } = this.#record;
+    // `uuid` is destructured off and DROPPED: identity is in-memory only and must not reach
+    // any wire — see `ProjectLiveState.uuid`.
+    const { driver, uuid: _uuid, ...rest } = this.#record;
     return { ...rest, driver: driver.toJsonRecord() };
   }
 
@@ -792,12 +814,19 @@ export class OpenISDProject {
   }
 
   /** A project with the given driver and nothing else chosen. `driver` is REQUIRED — a project
-   *  cannot exist without one (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
+   *  cannot exist without one (`docs/design/DRIVER_NON_NULL_INVARIANT.md`).
+   *
+   *  Always mints a fresh identity — there is no way to supply one, because identity never
+   *  leaves the process for a caller to have kept. */
   static empty(driver: OpenISDDriver): OpenISDProject {
-    return new OpenISDProject(prototypeProject(driver));
+    return new OpenISDProject(prototypeProject(driver, crypto.randomUUID()));
   }
 
-  /** An independent copy — how `ManagedOpenISDProject` obtains its ground/committed/what-if
+  /** This project's IN-MEMORY identity — stable across every copy, fresh on every load.
+   *  See `ProjectLiveState.uuid`. */
+  uuid(): string { return this.#record.uuid; }
+
+  /** An independent copy — how `ManagedProject` obtains its ground/committed/what-if
    *  layers without ever touching the JSON itself (`ManagedX` clones `X` by asking `X` for a
    *  copy of itself — never by touching its JSON, ledger QO60/61). */
   copy(): OpenISDProject {
@@ -817,13 +846,82 @@ export class OpenISDProject {
 
   activeAlignment(): AlignmentKind { return this.#record.box.active; }
 
-  /** One field of the ACTIVE alignment's port. */
-  ventField<K extends keyof OpenISDVent>(field: K): OpenISDVent[K] {
+  /** The ACTIVE alignment's own volume. Raw — no provenance mark, no vent-group solve; a
+   *  live user edit goes through `enter('Vb', ...)` instead. */
+  volume_m3(): number { return boxVolume_m3(this.#record.box); }
+  setVolume_m3(value: number): void { setBoxVolume_m3(this.#record.box, value); }
+
+  tuning_Fb_hz(): number { return boxTuning_Fb_hz(this.#record.box); }
+  setTuning_Fb_hz(value: number): void { setBoxTuning_Fb_hz(this.#record.box, value); }
+
+  /** `Vf` — bandpass4's OWN front-chamber volume; unlike `Vb` it has exactly one home. */
+  frontVolume_m3(): number { return this.#record.box.bandpass4.frontVolume_m3; }
+  setFrontVolume_m3(value: number): void { this.#record.box.bandpass4.frontVolume_m3 = value; }
+
+  /** Rear-chamber tuning target for bandpass6/ABC. RELATIONLESS (`enter()` and `set()` are the
+   *  same write here — a stated fact, never solved, always reported Entered). */
+  frcHz(): number { return this.#record.box.frcHz; }
+  setFrcHz(value: number): void { this.#record.box.frcHz = value; }
+
+  /** One field of the ACTIVE alignment's port — PRIVATE. Callers use the named accessors
+   *  below; this stays only as the shared implementation. */
+  #ventField<K extends keyof OpenISDVent>(field: K): OpenISDVent[K] {
     return activeVent(this.#record.box)[field];
   }
-  setVentField<K extends keyof OpenISDVent>(field: K, value: OpenISDVent[K]): void {
+  #setVentField<K extends keyof OpenISDVent>(field: K, value: OpenISDVent[K]): void {
     activeVent(this.#record.box)[field] = value;
   }
+
+  ventDiameter_m(): number { return this.#ventField('diameter_m'); }
+  setVentDiameter_m(value: number): void { this.#setVentField('diameter_m', value); }
+  ventWidth_m(): number { return this.#ventField('width_m'); }
+  setVentWidth_m(value: number): void { this.#setVentField('width_m', value); }
+  ventHeight_m(): number { return this.#ventField('height_m'); }
+  setVentHeight_m(value: number): void { this.#setVentField('height_m', value); }
+  ventLength_m(): number { return this.#ventField('length_m'); }
+  setVentLength_m(value: number): void { this.#setVentField('length_m', value); }
+  ventEndCorrection(): number { return this.#ventField('endCorrection'); }
+  setVentEndCorrection(value: number): void { this.#setVentField('endCorrection', value); }
+
+  // ── Vent-group / PR-group flat enter/clear/provenance pairs — the provenance-marking,
+  //    solve-triggering counterpart to the RAW pairs above. Each delegates to the generic
+  //    `enter()`/`clear()`/`cell()` at its own fixed key, so the actual mark-and-solve logic
+  //    lives in exactly one place. A live user edit uses these; a restore/seed write that must
+  //    NOT mark provenance uses the RAW pair instead (`setVolume_m3` etc.). ────────────────────
+  enterBoxVolume_m3(value: number): void { this.enter('Vb', value); }
+  clearBoxVolume_m3(): void { this.clear('Vb'); }
+  boxVolumeProvenance(): Provenance { return this.cell('Vb').state; }
+
+  enterBoxTuning_Fb_hz(value: number): void { this.enter('Fb', value); }
+  clearBoxTuning_Fb_hz(): void { this.clear('Fb'); }
+  boxTuningProvenance(): Provenance { return this.cell('Fb').state; }
+
+  enterVentDiameter_m(value: number): void { this.enter('ventD', value); }
+  clearVentDiameter_m(): void { this.clear('ventD'); }
+  ventDiameterProvenance(): Provenance { return this.cell('ventD').state; }
+
+  enterVentLength_m(value: number): void { this.enter('ventL', value); }
+  clearVentLength_m(): void { this.clear('ventL'); }
+  ventLengthProvenance(): Provenance { return this.cell('ventL').state; }
+
+  enterVentWidth_m(value: number): void { this.enter('ventW', value); }
+  clearVentWidth_m(): void { this.clear('ventW'); }
+  ventWidthProvenance(): Provenance { return this.cell('ventW').state; }
+
+  enterVentHeight_m(value: number): void { this.enter('ventH', value); }
+  clearVentHeight_m(): void { this.clear('ventH'); }
+  ventHeightProvenance(): Provenance { return this.cell('ventH').state; }
+
+  enterPrFp_hz(value: number): void { this.enter('prFp', value); }
+  clearPrFp_hz(): void { this.clear('prFp'); }
+  prFpProvenance(): Provenance { return this.cell('prFp').state; }
+
+  enterPrAddedMass_kg(value: number): void { this.enter('prMadd', value); }
+  clearPrAddedMass_kg(): void { this.clear('prMadd'); }
+  prAddedMassProvenance(): Provenance { return this.cell('prMadd').state; }
+
+  /** The active vent's cross-sectional area — round or slotted, whichever it currently is. */
+  ventArea_m2(): number { return this.#ventCrossArea(); }
 
   /** The active vent's effective acoustic length — physical length plus the end-correction
    *  term, which needs an equivalent diameter for a slotted vent since the correction is
@@ -836,22 +934,65 @@ export class OpenISDProject {
     return vent.length_m + vent.endCorrection * equivalentDiameter_m;
   }
 
+  /** Enclosure loss factors — leakage (Ql), absorption (Qa), port (Qp). */
+  loss(kind: 'Ql' | 'Qa' | 'Qp'): number { return this.#record.box[kind]; }
+  setLoss(kind: 'Ql' | 'Qa' | 'Qp', value: number): void { this.#record.box[kind] = value; }
+
   // ── Passive radiator ──────────────────────────────────────────────────────────────────────
 
-  /** One intrinsic of the chosen radiator; the prototype default before one is chosen. */
-  prField<K extends keyof OpenISDPassiveRadiatorRef>(field: K): OpenISDPassiveRadiatorRef[K] {
+  /** One intrinsic of the chosen radiator; the prototype default before one is chosen —
+   *  PRIVATE. Callers use the named accessors below; this stays only as the shared
+   *  implementation. */
+  #prField<K extends keyof OpenISDPassiveRadiatorRef>(field: K): OpenISDPassiveRadiatorRef[K] {
     return passiveRadiatorOrDefault(this.#record.box.passiveRadiator)[field];
   }
-  setPrField<K extends keyof OpenISDPassiveRadiatorRef>(field: K, value: OpenISDPassiveRadiatorRef[K]): void {
+  #setPrField<K extends keyof OpenISDPassiveRadiatorRef>(field: K, value: OpenISDPassiveRadiatorRef[K]): void {
     ensurePassiveRadiator(this.#record.box.passiveRadiator)[field] = value;
   }
 
-  /** Has a radiator actually been picked? Reads never allocate one — `prField()` serves
+  prName(): string { return this.#prField('name'); }
+  setPrName(value: string): void { this.#setPrField('name', value); }
+  prSd_m2(): number { return this.#prField('Sd_m2'); }
+  setPrSd_m2(value: number): void { this.#setPrField('Sd_m2', value); }
+  prMmd_kg(): number { return this.#prField('Mmd_kg'); }
+  setPrMmd_kg(value: number): void { this.#setPrField('Mmd_kg', value); }
+  prCms_m_per_N(): number { return this.#prField('Cms_m_per_N'); }
+  setPrCms_m_per_N(value: number): void { this.#setPrField('Cms_m_per_N', value); }
+  prRms_Ns_per_m(): number { return this.#prField('Rms_Ns_per_m'); }
+  setPrRms_Ns_per_m(value: number): void { this.#setPrField('Rms_Ns_per_m', value); }
+  prXmax_m(): number { return this.#prField('Xmax_m'); }
+  setPrXmax_m(value: number): void { this.#setPrField('Xmax_m', value); }
+
+  prCount(): number { return this.#record.box.passiveRadiator.count; }
+  setPrCount(value: number): void { this.#record.box.passiveRadiator.count = value; }
+  prAddedMass_kg(): number { return this.#record.box.passiveRadiator.addedMass_kg; }
+  setPrAddedMass_kg(value: number): void { this.#record.box.passiveRadiator.addedMass_kg = value; }
+  prFp_hz(): number { return this.#record.box.passiveRadiator.Fp_hz; }
+  setPrFp_hz(value: number): void { this.#record.box.passiveRadiator.Fp_hz = value; }
+
+  /** Has a radiator actually been picked? Reads never allocate one — `#prField()` serves
    *  defaults until a write does. */
   prChosen(): boolean { return this.#record.box.passiveRadiator.radiator != null; }
 
+  // ── Datasheet-vocabulary PR views — each a reverse-solve into the canonical fields above,
+  //    not simple storage (see `enter()`'s 'prVas'/'prFs'/'prQms' cases). `prVas_m3` takes SI
+  //    m³ — the litres↔m³ conversion is the UI's own (a display-unit concern), matching the
+  //    generic `enterProjectField('prVas', ...)` contract this replaces. ──────────────────────
+  prVas_m3(): number { return this.cell('prVas').value; }
+  setPrVas_m3(value: number): void { this.enter('prVas', value); }
+  prFs_hz(): number { return this.cell('prFs').value; }
+  setPrFs_hz(value: number): void { this.enter('prFs', value); }
+  prQms(): number { return this.cell('prQms').value; }
+  setPrQms(value: number): void { this.enter('prQms', value); }
+  /** Fs including the added mass — derived, no setter (`enter('prFsMass', ...)` itself throws:
+   *  "enter prFp (the tuning) or prMadd (the mass)"). */
+  prFsMass_hz(): number { return this.cell('prFsMass').value; }
+
   // ── Non-numeric named accessors — survivors of the keyed surface, each with its reason ──
   // (an enum or boolean cannot be a numeric cell; a string field is not a registered field)
+
+  ventShape(): OpenISDVent['shape'] { return activeVent(this.#record.box).shape; }
+  setVentShape(value: OpenISDVent['shape']): void { activeVent(this.#record.box).shape = value; }
 
   wiring(): OpenISDSignal['wiring'] { return this.#record.signal.wiring; }
   setWiring(value: OpenISDSignal['wiring']): void { this.#record.signal.wiring = value; }
@@ -905,17 +1046,17 @@ export class OpenISDProject {
    *  as the entered set. The one producer `serialize()` and the share link read. */
   toUiParams(): UiParams {
     return {
-      Vb: this.cell('Vb').value, Vf: this.cell('Vf').value,
-      ventShape: this.ventField('shape'), ventD: this.ventField('diameter_m'),
-      ventW: this.ventField('width_m'), ventH: this.ventField('height_m'),
-      ventL: this.ventField('length_m'), endCorrection: this.ventField('endCorrection'),
-      Fb: this.cell('Fb').value, Frc: this.cell('frcHz').value,
-      prFp: this.cell('prFp').value, prName: this.prField('name'), prSd: this.prField('Sd_m2'),
-      prNum: this.cell('prNum').value, prMmd: this.prField('Mmd_kg'), prMadd: this.cell('prMadd').value,
-      prCms: this.prField('Cms_m_per_N'), prRms: this.prField('Rms_Ns_per_m'),
-      prXmax: this.prField('Xmax_m'),
+      Vb: this.volume_m3(), Vf: this.frontVolume_m3(),
+      ventShape: this.ventShape(), ventD: this.ventDiameter_m(),
+      ventW: this.ventWidth_m(), ventH: this.ventHeight_m(),
+      ventL: this.ventLength_m(), endCorrection: this.ventEndCorrection(),
+      Fb: this.tuning_Fb_hz(), Frc: this.frcHz(),
+      prFp: this.prFp_hz(), prName: this.prName(), prSd: this.prSd_m2(),
+      prNum: this.prCount(), prMmd: this.prMmd_kg(), prMadd: this.prAddedMass_kg(),
+      prCms: this.prCms_m_per_N(), prRms: this.prRms_Ns_per_m(),
+      prXmax: this.prXmax_m(),
       entered: this.enteredSet(),
-      Ql: this.cell('Ql').value, Qa: this.cell('Qa').value, Qp: this.cell('Qp').value,
+      Ql: this.loss('Ql'), Qa: this.loss('Qa'), Qp: this.loss('Qp'),
       nDrivers: this.cell('nDrivers').value, wiring: this.wiring(),
       Pin: this.cell('Pin').value, Rs: this.cell('Rs').value,
       fmin: this.sweepFmin_hz(), fmax: this.sweepFmax_hz(), N: this.sweepPoints(),
@@ -956,26 +1097,26 @@ export class OpenISDProject {
     const requiredField = <K extends 'tempK' | 'humidityPct' | 'pressurePa' | 'ignoreHumidityAndPressure'>(k: K)
       : NonNullable<UiParams[K]> => field(k)!;
     this.setAlignment(box);
-    this.setVentField('shape', field('ventShape'));
-    this.setVentField('diameter_m', field('ventD'));
-    this.setVentField('width_m', field('ventW'));
-    this.setVentField('height_m', field('ventH'));
-    this.setVentField('length_m', field('ventL'));
-    this.setVentField('endCorrection', field('endCorrection'));
-    this.set('Vb', field('Vb'));
-    this.set('Vf', field('Vf'));
-    this.set('Fb', field('Fb'));
-    this.set('frcHz', field('Frc'));
-    this.set('Ql', field('Ql')); this.set('Qa', field('Qa')); this.set('Qp', field('Qp'));
-    this.setPrField('name', field('prName'));
-    this.setPrField('Sd_m2', field('prSd'));
-    this.setPrField('Mmd_kg', field('prMmd'));
-    this.setPrField('Cms_m_per_N', field('prCms'));
-    this.setPrField('Rms_Ns_per_m', field('prRms'));
-    this.setPrField('Xmax_m', field('prXmax'));
-    this.set('prNum', field('prNum'));
-    this.set('prMadd', field('prMadd'));
-    this.set('prFp', field('prFp'));
+    this.setVentShape(field('ventShape'));
+    this.setVentDiameter_m(field('ventD'));
+    this.setVentWidth_m(field('ventW'));
+    this.setVentHeight_m(field('ventH'));
+    this.setVentLength_m(field('ventL'));
+    this.setVentEndCorrection(field('endCorrection'));
+    this.setVolume_m3(field('Vb'));
+    this.setFrontVolume_m3(field('Vf'));
+    this.setTuning_Fb_hz(field('Fb'));
+    this.setFrcHz(field('Frc'));
+    this.setLoss('Ql', field('Ql')); this.setLoss('Qa', field('Qa')); this.setLoss('Qp', field('Qp'));
+    this.setPrName(field('prName'));
+    this.setPrSd_m2(field('prSd'));
+    this.setPrMmd_kg(field('prMmd'));
+    this.setPrCms_m_per_N(field('prCms'));
+    this.setPrRms_Ns_per_m(field('prRms'));
+    this.setPrXmax_m(field('prXmax'));
+    this.setPrCount(field('prNum'));
+    this.setPrAddedMass_kg(field('prMadd'));
+    this.setPrFp_hz(field('prFp'));
     this.set('advTemp', requiredField('tempK'));
     this.set('advHumidity', requiredField('humidityPct'));
     this.set('advPressure', requiredField('pressurePa'));
@@ -1083,7 +1224,9 @@ export class OpenISDProject {
         : `.wpr states BType=${bType}, which is not a box type OpenISD models (0/1/2/4)`);
     }
 
-    const record = prototypeProject(driver);
+    // A fresh id: a `.wpr` is WinISD's own format and carries no OpenISD identity, so an
+    // import is a genuinely new project, not the return of one this app already stored.
+    const record = prototypeProject(driver, crypto.randomUUID());
     setActiveAlignment(record.box, kind);
 
     const Vr = n('Box', 'Vr');
@@ -1252,8 +1395,8 @@ export class OpenISDProject {
       case 'endCorrection': activeVent(record.box).endCorrection = value; return;
       case 'prFp': record.box.passiveRadiator.Fp_hz = value; return;
       case 'prMadd': record.box.passiveRadiator.addedMass_kg = value; return;
-      case 'prSd': this.setPrField('Sd_m2', value); return;
-      case 'prXmax': this.setPrField('Xmax_m', value); return;
+      case 'prSd': this.#setPrField('Sd_m2', value); return;
+      case 'prXmax': this.#setPrField('Xmax_m', value); return;
       case 'prNum': record.box.passiveRadiator.count = value; return;
       case 'prVas': case 'prFs': case 'prQms': case 'prFsMass':
         throw new Error(`${field} is datasheet vocabulary — enter() it, or set the canonical fields`);
@@ -1289,37 +1432,37 @@ export class OpenISDProject {
       case 'ventH': activeVent(record.box).height_m = value; break;
       case 'prFp': record.box.passiveRadiator.Fp_hz = value; break;
       case 'prMadd': record.box.passiveRadiator.addedMass_kg = value; break;
-      case 'prSd': this.setPrField('Sd_m2', value); break;
-      case 'prXmax': this.setPrField('Xmax_m', value); break;
+      case 'prSd': this.#setPrField('Sd_m2', value); break;
+      case 'prXmax': this.#setPrField('Xmax_m', value); break;
       case 'prNum': record.box.passiveRadiator.count = value; break;
       case 'prFsMass': throw new Error('prFsMass is derived — enter prFp (the tuning) or prMadd (the mass)');
       // Datasheet vocabulary: each entry re-solves the canonical set, holding what the
       // ruled conversions hold (the former prWinIsdFields solves, now owned here).
       case 'prVas': {
         if (!(value > 0)) return;
-        const sd = this.prField('Sd_m2');
+        const sd = this.#prField('Sd_m2');
         const fs = this.cell('prFs').value || 30;
         const qms = this.cell('prQms').value || 5;
         const cms = prCmsFromWinIsdVas(m3ToLitres(value), sd); // engine vocabulary is litres
         const mmd = prMmdFromWinIsdFs(fs, cms);
-        this.setPrField('Cms_m_per_N', cms);
-        this.setPrField('Mmd_kg', mmd);
-        this.setPrField('Rms_Ns_per_m', prRmsFromWinIsdQms(qms, mmd, cms));
+        this.#setPrField('Cms_m_per_N', cms);
+        this.#setPrField('Mmd_kg', mmd);
+        this.#setPrField('Rms_Ns_per_m', prRmsFromWinIsdQms(qms, mmd, cms));
         return; // not an entered-set member; the canonical fields carry the state
       }
       case 'prFs': {
         if (!(value > 0)) return;
         const qms = this.cell('prQms').value || 5;
-        const cms = this.prField('Cms_m_per_N');
+        const cms = this.#prField('Cms_m_per_N');
         const mmd = prMmdFromWinIsdFs(value, cms);
-        this.setPrField('Mmd_kg', mmd);
-        this.setPrField('Rms_Ns_per_m', prRmsFromWinIsdQms(qms, mmd, cms));
+        this.#setPrField('Mmd_kg', mmd);
+        this.#setPrField('Rms_Ns_per_m', prRmsFromWinIsdQms(qms, mmd, cms));
         return;
       }
       case 'prQms': {
         if (!(value > 0)) return;
-        this.setPrField('Rms_Ns_per_m',
-          prRmsFromWinIsdQms(value, this.prField('Mmd_kg'), this.prField('Cms_m_per_N')));
+        this.#setPrField('Rms_Ns_per_m',
+          prRmsFromWinIsdQms(value, this.#prField('Mmd_kg'), this.#prField('Cms_m_per_N')));
         return;
       }
     }
@@ -1452,15 +1595,15 @@ export class OpenISDProject {
       case 'Sp': return this.#ventCrossArea();
       case 'prFp': return record.box.passiveRadiator.Fp_hz;
       case 'prMadd': return record.box.passiveRadiator.addedMass_kg;
-      case 'prSd': return this.prField('Sd_m2');
-      case 'prXmax': return this.prField('Xmax_m');
+      case 'prSd': return this.#prField('Sd_m2');
+      case 'prXmax': return this.#prField('Xmax_m');
       case 'prNum': return record.box.passiveRadiator.count;
       // prVas in SI m³: the engine's prVas contract is litres, so the ÷1000 happens here,
       // at the model boundary — one unit system inside, the registry converts for display.
-      case 'prVas': return litresToM3(prVas(this.prField('Cms_m_per_N'), this.prField('Sd_m2')));
-      case 'prFs': return prFsWithMass(this.prField('Mmd_kg'), 0, this.prField('Cms_m_per_N'));
-      case 'prQms': return prQms(this.prField('Mmd_kg'), this.prField('Cms_m_per_N'), this.prField('Rms_Ns_per_m'));
-      case 'prFsMass': return prFsWithMass(this.prField('Mmd_kg'), this.#record.box.passiveRadiator.addedMass_kg, this.prField('Cms_m_per_N'));
+      case 'prVas': return litresToM3(prVas(this.#prField('Cms_m_per_N'), this.#prField('Sd_m2')));
+      case 'prFs': return prFsWithMass(this.#prField('Mmd_kg'), 0, this.#prField('Cms_m_per_N'));
+      case 'prQms': return prQms(this.#prField('Mmd_kg'), this.#prField('Cms_m_per_N'), this.#prField('Rms_Ns_per_m'));
+      case 'prFsMass': return prFsWithMass(this.#prField('Mmd_kg'), this.#record.box.passiveRadiator.addedMass_kg, this.#prField('Cms_m_per_N'));
     }
   }
 

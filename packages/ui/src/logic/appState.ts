@@ -13,7 +13,7 @@
  * project registry, and bridge notifications into Vue's reactivity system.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { reactive, computed, ref, shallowRef, triggerRef, watch, type ComputedRef, type ShallowRef } from 'vue';
+import { reactive, computed, ref, shallowRef, triggerRef, watch, type ComputedRef, type Ref, type ShallowRef } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
 import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import type { SpecField, OpenISDProject, OpenISDProjectMeta, Cell } from '@openisd/model';
@@ -30,9 +30,8 @@ import {
   solveVentGroup, ventSolveSuspended, suspendVentSolve,
 } from './useVentGroup.js';
 import { solvePrGroup } from './usePrGroup.js';
-// Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
-// written by App.vue's watch and restored by loadLocal() on mount. appState.ts does
-// not persist — it initialises to defaults; App.vue applies any saved state.
+// appState.ts does not persist — it initialises to defaults, and App.vue applies whatever a
+// load door hands over (a share link, or an opened file).
 
 // ---- The project registry: ManagedProject instances, and NOTHING else ---------------------
 // ARCHITECTURE.md §"Approved state stores": each ManagedProject holds ALL its own active/
@@ -86,9 +85,26 @@ export function focusedProject(): ManagedProject | null {
 }
 
 /** Move focus to the project at `index` — called when the user changes the active project in
- *  the UI's project list. Out-of-range indices are ignored. */
+ *  the UI's project list. Out-of-range indices are ignored.
+ *
+ *  Closes Tune and the Driver Editor modal on the project being left, BEFORE moving focus
+ *  (`presentationState.editDriver = false`/`editDriverInfo = false`) — same "any focus-
+ *  changing action closes what was open" pattern as `openDriverPicker()` above. Tune's own
+ *  what-if lifecycle watcher (`OgTune.vue`) reacts to `editDriver` going false and calls
+ *  `cancelWhatIf()` on whichever project it is bound to — flush-deferred, so it must be told
+ *  to close, and the outgoing project's what-if actually cancelled, while `project.value`
+ *  (`useFocusedProject()`) still resolves to the OUTGOING project, not the incoming one; doing
+ *  it here, before `focusedIndex.value` changes, is what keeps that true. Cancelling directly
+ *  here too (not only via the watcher) means the outgoing what-if is gone even if Tune itself
+ *  is not mounted (`BUG_20260825_tune_whatif_stays_open_across_a_project_switch_with_no_
+ *  overlay_on_the_newly_focused_project.md`) — switching focus must never leave a what-if
+ *  live on a project the user has moved away from, no matter which panel is open. */
 export function focusProject(index: number): void {
-  if (index < 0 || index >= projects.value.length) return;
+  if (index < 0 || index >= projects.value.length || index === focusedIndex.value) return;
+  const outgoing = focusedProject();
+  if (outgoing && outgoing.isWhatIfActive()) outgoing.cancelWhatIf();
+  presentationState.editDriver = false;
+  presentationState.editDriverInfo = false;
   focusedIndex.value = index;
 }
 
@@ -178,6 +194,13 @@ const EMPTY_PROJECT_DEFAULTS: ManagedProject = ManagedProject.createEmpty();
 // HMR-singleton, same reasoning as the registry itself: the whole subscription+watch setup is
 // built once inside the `getOrInit` initializer so hot-reload does not create a second,
 // leaked watcher alongside the one that survives via `getOrInit`'s cache.
+// The tick counter behind `projectChanged` (see its export below). Bumped at the SAME two
+// sites that make `live` re-fire, because those are exactly the events the hook must hear.
+// It is a counter, not a derived value: a `computed` only notifies when its VALUE changes, so
+// anything derived from current state goes quiet the moment two consecutive edits leave that
+// derivation equal — which for a change signal is always.
+const changeTicks: Ref<number> = getOrInit('appState', '_ticks', () => ref(0));
+
 const live: ShallowRef<ManagedProject | null> = getOrInit('appState', '_live', () => {
   const liveRef = shallowRef<ManagedProject | null>(null);
   let disposeCurrent: (() => void) | null = null;
@@ -185,7 +208,8 @@ const live: ShallowRef<ManagedProject | null> = getOrInit('appState', '_live', (
     if (disposeCurrent) { disposeCurrent(); disposeCurrent = null; }
     const p = projects.value[focusedIndex.value] ?? null;
     liveRef.value = p;
-    if (p) disposeCurrent = p.subscribe(() => { triggerRef(liveRef); });
+    changeTicks.value++;
+    if (p) disposeCurrent = p.subscribe(() => { triggerRef(liveRef); changeTicks.value++; });
   }
   watch([projects, focusedIndex], resubscribe, { flush: 'sync' });
   resubscribe();
@@ -752,15 +776,20 @@ export function currentProject(): OpenISDProject {
   return requireFocusedProject().projectToPersist();
 }
 
-/** The FOCUSED project's committed snapshot, reactively — what App.vue's autosave watcher
- *  reads (never `currentProject()`/`projectToPersist()`, which cancels an active what-if as a
- *  side effect: correct for an explicit save/export/share action, wrong for a getter re-run on
- *  every reactive tick, `BUG_20260825_whatif_destroyed_by_autosave_watcher.md`). Null when no
- *  project is focused — nothing to autosave. */
-export const committedSnapshot = computed<OpenISDProject | null>(() => {
-  void live.value;
-  return live.value ? live.value.committedSnapshot() : null;
-});
+/** A CHANGE SIGNAL for App.vue's persistence hook — a counter that increments on every change
+ *  to the FOCUSED project and on every focus/open/close, and hands over nothing (QO92).
+ *
+ *  It replaced `committedSnapshot`, which returned the focused project's committed state as an
+ *  `OpenISDProject`. A copy, so a watcher could not mutate the layer — but every value in it
+ *  escaped, and the app ended up holding the domain object the layering doctrine says it must
+ *  never hold, purely so the repo could serialise it. A design for autosave has to hand over
+ *  bytes or a record instead; until then the hook needs to know only THAT something changed.
+ *
+ *  UNFOCUSED PROJECTS ARE SILENT, and any persistence design must fix that rather than lean on
+ *  this: `live` subscribes to the focused project alone, so an open-but-unfocused project's
+ *  edits reach nothing here (QO92 records this as one of the two defects that sank the removed
+ *  autosave). A per-project signal is what a real design needs. */
+export const projectChanged = computed<number>(() => changeTicks.value);
 
 /** The live presentation state as the repo's view shape — read directly by the share-link
  *  doors and by the view-state autosave (QO90 — view/UI preferences persist under their own
@@ -780,7 +809,7 @@ export function currentViewSnapshot(): ViewSnapshot {
 /**
  * Adopt a freshly loaded project as the WHOLE design — driver, box, vents, PR, environment,
  * signal, filters, entered set and meta together, in one coherent operation
- * (`ManagedProject.load()`). The pure-project load doors (`loadLocal`/`readProjectText`,
+ * (`ManagedProject.load()`). The pure-project load door (`readProjectText`,
  * QO90) call this; the view is restored separately, from its own storage key, by
  * `applyViewSnapshot()`.
  *
@@ -830,7 +859,7 @@ export function applyViewSnapshot(v: ViewSnapshot): void {
 
 /** Restore a FULL session — project and view together — for the share-link doors
  *  (`stateToUrl`/`loadFromHash`), which still carry both (human ruling 2026-08-14). The
- *  pure-project doors (`loadLocal`/`readProjectText`) call `applyLoadedProject()` alone. */
+ *  pure-project door (`readProjectText`) calls `applyLoadedProject()` alone. */
 export function applyState(o: { project: OpenISDProject; view: ViewSnapshot }): void {
   applyLoadedProject(o.project);
   applyViewSnapshot(o.view);

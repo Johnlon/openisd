@@ -12,3 +12,4 @@ export {
 } from './openisdProject.js';
 export * from './openisdYamlToWdr.js';
 export * from './driverType.js';
+export * from './driverConformance.js';

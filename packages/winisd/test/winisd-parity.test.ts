@@ -24,6 +24,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { ebp, airFor, RH_REF_PCT, P_REF_PA, sealedFscWinisd, sourceLoadedQts } from '@openisd/engine';
 import { OpenISDDriver, Provenance } from '@openisd/model';
+import type { Cell } from '@openisd/model';
 import { WinISDDriver } from '../src/winisdDriver.js';
 import { POS_TO_WDRKEY } from '../src/parstate.js';
 
@@ -152,11 +153,45 @@ const DRIVER_FIELDS = [
  * A cell's value when it is a finite NUMBER. `cell()` answers for metadata strings too, and
  * `null` here is a real answer — openisd leaves a field absent where it has no route to it.
  */
+/** Dispatch one of `DRIVER_FIELDS`'s names to its flat accessor's `Cell` — `SpecField` never
+ *  appears as a public parameter on `OpenISDDriver` (human ruling 2026-08-24,
+ *  ENCAPSULATION_AND_LAYERING.md); this file's field list is runtime data, so the dispatch
+ *  lives here. */
+function driverFieldCell(d: OpenISDDriver, field: string): Cell {
+  switch (field) {
+    case 'Fs': return d.FsCell();
+    case 'Qts': return d.QtsCell();
+    case 'Qes': return d.QesCell();
+    case 'Qms': return d.QmsCell();
+    case 'Cms': return d.CmsCell();
+    case 'Mms': return d.MmsCell();
+    case 'Rms': return d.RmsCell();
+    case 'BL': return d.BLCell();
+    case 'Sd': return d.SdCell();
+    case 'Vas': return d.VasCell();
+    case 'Dd': return d.DdCell();
+    case 'Vd': return d.VdCell();
+    case 'no': return d.noCell();
+    case 'SPL': return d.SPLCell();
+    case 'USPL': return d.USPLCell();
+    case 'SPLmax': return d.SPLmaxCell();
+    case 'SPLmaxLF': return d.SPLmaxLFCell();
+    case 'gamma': return d.gammaCell();
+    case 'Rme': return d.RmeCell();
+    case 'Mpow': return d.MpowCell();
+    case 'Mcost': return d.McostCell();
+    case 'Gloss': return d.GlossCell();
+    case 'c': return d.cCell();
+    case 'roo': return d.rooCell();
+    default: return { value: null, state: Provenance.NotAvailable };
+  }
+}
+
 function num(drv: OpenISDDriver, field: string): number | null {
   // A field the record can state is read through cell(), so its E/C/N provenance is exercised
   // exactly as the app sees it. Everything else is read from the solved engine bag, which is
   // the only place it exists.
-  const cell = drv.cell(field as Parameters<OpenISDDriver['cell']>[0]);
+  const cell = driverFieldCell(drv, field);
   if (cell.state !== Provenance.NotAvailable) {
     return typeof cell.value === 'number' && Number.isFinite(cell.value) ? cell.value : null;
   }

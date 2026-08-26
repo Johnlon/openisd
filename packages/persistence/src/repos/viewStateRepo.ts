@@ -12,7 +12,7 @@ export const VIEW_STATE_KEY = 'openisd.view';
 
 export interface ViewStateRepo {
   /** Autosave to browser storage. Quota/disabled storage is non-fatal, same as
-   *  `ProjectRepo.saveLocal` — a view-state autosave that cannot happen must not take the
+   *  the project doors — a view-state autosave that cannot happen must not take the
    *  session down. */
   save(v: ViewSnapshot): void;
   /** The saved view, or null when none/unreadable. */

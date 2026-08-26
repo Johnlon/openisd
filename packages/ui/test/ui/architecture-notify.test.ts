@@ -1,5 +1,5 @@
 /**
- * Every public mutator on `ManagedOpenISDProject` notifies (`docs/design/REACTIVITY.md` §"What
+ * Every public mutator on `ManagedProject` notifies (`docs/design/REACTIVITY.md` §"What
  * must be true before objective 2 lands", item 2): "A mutator that forgets is a silently stale
  * UI... worth an architecture gate asserting that every public mutator notifies."
  *
@@ -36,7 +36,7 @@ const project = new TsProject({
 });
 const sourceFile = project.addSourceFileAtPath(MANAGED_PROJECT_FILE);
 
-const classDecl = sourceFile.getClassOrThrow('ManagedOpenISDProject');
+const classDecl = sourceFile.getClassOrThrow('ManagedProject');
 
 /** Every instance method's name (public and private) to member-name text ("notify" for
  *  `#notify`), matching what a `this.foo(...)`/`this.#foo(...)` call site's member name reads
@@ -52,7 +52,7 @@ const instanceMethods = classDecl.getMethods().filter(m => !m.isStatic());
 /** `this.foo(...)` / `this.#foo(...)` call sites inside one method's body, as the called
  *  member's name — the edges of the same-class call graph. A call on anything other than
  *  `this` (e.g. `this.#effective().openIsdDriver?.enter(...)`, a call on the driver instance,
- *  not on `ManagedOpenISDProject` itself) is deliberately not an edge: it leaves this class's
+ *  not on `ManagedProject` itself) is deliberately not an edge: it leaves this class's
  *  own call graph, which is exactly the gap this gate exists to catch. */
 function sameClassCalleesOf(method: Node): Set<string> {
   const callees = new Set<string>();
@@ -89,7 +89,7 @@ function reachesNotify(startMethodName: string): boolean {
 }
 
 /** A "mutator": a public (non-`#`) instance method whose declared return type is `void`. Every
- *  read method on `ManagedOpenISDProject` returns a value (`number`, `boolean`, `Cell`, a driver
+ *  read method on `ManagedProject` returns a value (`number`, `boolean`, `Cell`, a driver
  *  field type, ...); `subscribe` returns `() => void`, a function, not `void` itself. */
 const publicMutators = instanceMethods.filter(m => {
   const name = m.getNameNode().getText();
@@ -97,7 +97,7 @@ const publicMutators = instanceMethods.filter(m => {
   return m.getReturnType().getText() === 'void';
 });
 
-describe('every public mutator on ManagedOpenISDProject notifies', () => {
+describe('every public mutator on ManagedProject notifies', () => {
   it('finds at least one public mutator — a gate over zero mutators would pass vacuously', () => {
     assert.ok(publicMutators.length > 0, 'no public void-returning instance method found');
   });

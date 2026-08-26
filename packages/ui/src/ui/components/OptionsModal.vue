@@ -52,7 +52,7 @@
 import { computed, reactive, ref } from 'vue';
 import { airForEnvironment } from '../../logic/environment.js';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
-import { presentationState, resetUnitTokens } from '../../logic/presentationState.js';
+import { presentationState, resetUnitTokens, airConstantsAppDefaults, AIR_CONSTANTS_APP_DEFAULT } from '../../logic/presentationState.js';
 import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import NumInput from './NumInput.vue';
@@ -79,22 +79,23 @@ const draft = reactive({
 
 const unitsResetPending = ref(false);
 
-// Physical default environment (WinISD's own defaults) — the one literal shared by the
-// Environment fieldset's scoped reset and the whole-modal Defaults reset.
-const DEFAULT_ENV_DEFAULTS = { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 };
-
 function resetUnitsDraft() {
   unitsResetPending.value = true;
   draft.unitTokens = {};
 }
 
 function resetEnvDraft() {
-  draft.envDefaults = { ...DEFAULT_ENV_DEFAULTS };
+  draft.envDefaults = airConstantsAppDefaults();
 }
+
+const envResetTitle = computed(() =>
+  `Reset to factory settings: ${AIR_CONSTANTS_APP_DEFAULT.tempK.toFixed(2)} K, ` +
+  `${AIR_CONSTANTS_APP_DEFAULT.pressurePa.toFixed(0)} Pa, ${AIR_CONSTANTS_APP_DEFAULT.humidityPct.toFixed(0)}%. ` +
+  `Only this fieldset is affected.`);
 
 function restoreDefaults() {
   draft.username = '';
-  draft.envDefaults = { ...DEFAULT_ENV_DEFAULTS };
+  draft.envDefaults = airConstantsAppDefaults();
   draft.chartColors = {};
   draft.unitTokens = {};
   draft.yRanges = {};
@@ -193,8 +194,8 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 
           <fieldset class="opt-group">
             <legend>Environment</legend>
-            <button class="opt-reset-btn" title="Reset temperature, air pressure and humidity back to their default values (293.15 K, 101325 Pa, 30%). Only this fieldset is affected." @click="resetEnvDraft">
-              Reset to defaults
+            <button class="opt-reset-btn" :title="envResetTitle" @click="resetEnvDraft">
+              Reset
             </button>
             <div class="opt-env-grid">
               <div class="opt-fld">

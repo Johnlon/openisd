@@ -401,6 +401,7 @@ The evidence rule above is not limited to external tools. Most damaging mistakes
 
 - **Never assert what this app has, does, or lacks without reading the relevant source in the current conversation.** "OpenISD has no input for X" / "this is only used for Y" / "nothing computes Z" are claims — grep or read the actual file first. A type definition (e.g. `DriverRaw`) is NOT proof of what the whole app can do; the UI, store, and scrapers are separate layers with their own fields.
 - **Search before you build.** Before implementing any mechanism — state tracking, a computation, a mapping, serialization, a formatter — grep the codebase for an existing implementation. If the domain already solves it (e.g. `stateOf()` already tracks entered-vs-calculated), use or extend it. Never reinvent it in another layer.
+- **Before declaring a new interface/type, find the closest existing shape for the same concept and read it side by side with what you're about to write.** Two hand-typed interfaces for one concept that only differ in field optionality is not two types, it's one type with per-field optionality declared once. A wrapper struct that re-declares fields a domain object already exposes is redundant — take/return the domain object instead. State in the commit message why nothing existing satisfies the need before adding a new declaration. (Origin: `ProjectWrite`/`ProjectRead`, then `ProjectPayload`, then a driver field force-stringified by an over-applied private-type rule — the same duplication landed three times in one session because this check ran only after the human caught it, never before a design was accepted.)
 - **A hardcoded literal standing in for data that should vary per record is a correctness bug, not cosmetic.** When you find one, find the intended source of truth and fix it as a bug. Do not label it "maintainability" and defer it.
 - **Serialization to a format defined by someone else (WDR/WinISD, JSON project, etc.) must reflect real state/provenance for every field — never a fixed placeholder.** If you can't source a field's true value, that's a gap to surface, not a constant to invent.
 - **Provenance — which values a human supplied vs the app computed — is sourced where entry happens** (the UI/edit session), not reconstructed downstream from "is it present." Presence cannot distinguish Entered from Calculated.
@@ -457,3 +458,65 @@ don't "simplify" it away.
 **Pull requests:** keep changes focused, describe what and why; if it touches the engine,
 paste the test output. By contributing you agree your work is released under the project's
 MIT license.
+
+---
+
+## 🚫 GLOBAL VARIABLES ARE FORBIDDEN — a high crime against software (John Lonergan, 2026-08-26)
+
+**His words:** *"GLOBAL VARIABLES ARE FORBIDDEN AND A HIGH CRIME AGAINST SOFTWARE"*, approved
+explicitly as a standing rule for this project.
+
+No module-scoped mutable state. No singleton holding application state. No registry a module
+writes to at import time or at startup. No `let` or `var` at module scope. No mutable `const`
+container — a module-level `Map`, `Set`, array or object that anything writes into.
+
+**Why it is a crime and not a style preference.** A global makes ORDER OF OPERATIONS part of the
+API without declaring it: the thing must be installed before it is read, exactly once, and no
+signature says so. It makes a second instance impossible, so tests need a reset backdoor that
+then ships in production code. And it turns "what is the current value" into a question with no
+single answer, because every module can write it.
+
+**Instead: pass it in.** A dependency belongs in a constructor or a parameter, and the
+composition root — which belongs to the APPLICATION, never to a library — decides what exists.
+
+**Precedent (this rule's origin, 2026-08-26).** A `let projectStore` module global was written
+into `packages/design`, with a single-install guard that threw on a second call. Every test then
+failed on the second `beforeEach`: the package could not be composed twice. The global was
+deleted and the store passed to `projectRepo(make)` instead — one argument at the composition
+root, and the entire class of problem gone with it.
+
+### The FRIEND SIDE-TABLE exception — narrow, and argued at every use
+
+A module-scoped `WeakMap` keyed by object identity, giving sibling classes in the SAME module the
+access TypeScript has no `friend` keyword for.
+
+It is not shared state: each entry belongs to ONE object, is unreachable from outside the module,
+and is collected with its key. None of the three failures above can occur — there is no install
+order, no single value, no second-instance problem.
+
+**It qualifies only if ALL of these hold:**
+1. keyed by object identity (`WeakMap`, never `Map`), so entries die with their objects;
+2. the map itself is never exported, and no exported function returns it;
+3. every entry is per-instance — nothing in it is shared between objects;
+4. it exists to express PRIVACY, not to hold application state.
+
+**Anything failing any of those is a global, whatever it is called.** In particular a
+module-level `Map` is not a WeakMap and does not qualify.
+
+**Each use carries a written justification at its declaration** naming whose internals it exposes
+and to which sibling. Current uses in `packages/design/domain/project.ts`, all sibling classes
+reading each other's storage within one module:
+
+| map | whose internals | read by |
+|---|---|---|
+| `projectRecords` | `OpenISDProject`'s record | `OpenISDBox`, `OpenISDDriverEmbedded` (windows onto slices of it), `projectRepo.save()` |
+| `owningManaged` | which `ManagedProject` owns a layer | `writeProjectRecord`, to redirect a write at committed state into an edit layer |
+| `projectListeners` | `OpenISDProject`'s subscribers | `ManagedProject`, re-subscribing when the effective layer changes |
+| `jsonReaders` | a standalone driver's/PR's record | `configurePR`, `update()`, `newProject` — each copies that record elsewhere |
+
+**Why not something else:** `#private` is unreachable by a sibling class; an unexported type is
+unnameable but still reachable by inference; a `unique symbol` key is discoverable via
+`Object.getOwnPropertySymbols`. The WeakMap is the only mechanism that actually restricts.
+
+**Do not widen this exception to justify new code.** If a new global is wanted and it is not a
+per-instance privacy side table, the answer is a parameter.

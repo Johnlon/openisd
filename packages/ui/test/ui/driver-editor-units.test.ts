@@ -125,16 +125,81 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
   for (const u of UNIT_GROUPS[group]) FACTOR_BY_UNIT.set(u.label, u.factor);
 }
 
+/** Dispatch a runtime field name to the driver's flat accessor — `SpecField` never appears
+ *  as a public parameter on `OpenISDDriver` itself (human ruling 2026-08-24,
+ *  ENCAPSULATION_AND_LAYERING.md); this test needs a runtime field name from its own data
+ *  table, so the dispatch lives here. */
+function driverCellOf(d: OpenISDDriver, field: SpecField) {
+  switch (field) {
+    case 'Fs': return d.FsCell();
+    case 'Re': return d.ReCell();
+    case 'Le': return d.LeCell();
+    case 'fLe': return d.fLeCell();
+    case 'KLe': return d.KLeCell();
+    case 'Znom': return d.ZnomCell();
+    case 'Qts': return d.QtsCell();
+    case 'Qes': return d.QesCell();
+    case 'Qms': return d.QmsCell();
+    case 'Vas': return d.VasCell();
+    case 'Sd': return d.SdCell();
+    case 'BL': return d.BLCell();
+    case 'Mms': return d.MmsCell();
+    case 'Cms': return d.CmsCell();
+    case 'Rms': return d.RmsCell();
+    case 'Xmax': return d.XmaxCell();
+    case 'Xlim': return d.XlimCell();
+    case 'SPL': return d.SPLCell();
+    case 'Pe': return d.PeCell();
+    case 'Dd': return d.DdCell();
+    case 'EBP': return d.EBPCell();
+    case 'numVC': return d.numVCCell();
+    case 'VCCon': return d.VCConCell();
+    case 'Dia': return d.DiaCell();
+    case 'Vd': return d.VdCell();
+    case 'no': return d.noCell();
+    case 'SPLmax': return d.SPLmaxCell();
+    case 'SPLmaxLF': return d.SPLmaxLFCell();
+    case 'USPL': return d.USPLCell();
+    case 'alfaVC': return d.alfaVCCell();
+    case 'Rt': return d.RtCell();
+    case 'Ct': return d.CtCell();
+    case 'gamma': return d.gammaCell();
+    case 'Rme': return d.RmeCell();
+    case 'Mpow': return d.MpowCell();
+    case 'Mcost': return d.McostCell();
+    case 'Gloss': return d.GlossCell();
+    case 'c': return d.cCell();
+    case 'roo': return d.rooCell();
+    case 'Vcd': return d.VcdCell();
+    case 'Hg': return d.HgCell();
+    case 'Hc': return d.HcCell();
+    case 'freq_low_hz': return d.freq_low_hzCell();
+    case 'freq_high_hz': return d.freq_high_hzCell();
+    case 'power_peak_W': return d.power_peak_WCell();
+    case 'weight_kg': return d.weight_kgCell();
+    case 'Thick': return d.ThickCell();
+    case 'Depth': return d.DepthCell();
+    case 'MagDepth': return d.MagDepthCell();
+    case 'Magnet': return d.MagnetCell();
+    case 'Basket': return d.BasketCell();
+    case 'Outer': return d.OuterCell();
+    case 'OuterX': return d.OuterXCell();
+    case 'OuterY': return d.OuterYCell();
+    case 'DVol': return d.DVolCell();
+    default: return { value: null, state: Provenance.NotAvailable };
+  }
+}
+
 /** A driver with every core T/S parameter present, in SI. */
 function coreDriver(): OpenISDDriver {
   const d = OpenISDDriver.empty();
-  d.enter('Fs', 37);
-  d.enter('Qes', 0.4);
-  d.enter('Qms', 7.0);
-  d.enter('Vas', 0.03);
-  d.enter('Sd', 0.0133);
-  d.enter('Re', 5.6);
-  d.enter('Xmax', 0.005);
+  d.enterFs(37);
+  d.enterQes(0.4);
+  d.enterQms(7.0);
+  d.enterVas(0.03);
+  d.enterSd(0.0133);
+  d.enterRe(5.6);
+  d.enterXmax(0.005);
   return d;
 }
 
@@ -288,7 +353,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     const text = readFileSync(join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'john-all-noncalc-fields-manually-entered.wdr'), 'utf8');
     const stored = /^Gloss=(.*)$/m.exec(text)?.[1];
     assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
-    const cell = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(text)).cell('Gloss');
+    const cell = OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(text)).GlossCell();
     assert.equal(cell.state, Provenance.Calculated, 'this fixture\'s ParState marks Gloss computed, not entered');
     assert.equal(typeof cell.value, 'number', 'Gloss must be numeric');
     const relError = Math.abs((cell.value as number) - 1.72503712771898) / 1.72503712771898;
@@ -320,7 +385,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     // Advanced-panel ruling QO24: only alfaVC, Rt and Ct are manual. A driver authored in-app
     // has no `Gloss=` line to carry, so the number on the panel can only come from the solver.
     const d = coreDriver();
-    const cell = d.cell('Gloss');
+    const cell = d.GlossCell();
     assert.equal(typeof cell.value, 'number',
       `Gloss binds cellVal('Gloss'), which the driver model leaves ${cell.state} — the field renders blank`);
     // g/((2π·37)²·0.005) for coreDriver's Fs/Xmax.
@@ -374,7 +439,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
     const d = coreDriver();
     for (const label of ['SPL', 'no']) {
       const f = byLabel(label);
-      const cell = d.cell(f.field as SpecField);
+      const cell = driverCellOf(d, f.field as SpecField);
       assert.equal(
         typeof cell.value,
         'number',
@@ -393,7 +458,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
     // on the cell a human is looking at.
     const f = byLabel('Voicecoils');
     const d = coreDriver();
-    const cell = d.cell(f.field as SpecField);
+    const cell = driverCellOf(d, f.field as SpecField);
     assert.equal(cell.state, Provenance.NotAvailable, `Voicecoils cell is ${cell.state} — an unstated field must not read as entered or calculated`);
     assert.equal(cell.value, null, 'an honestly-N cell must not carry a fabricated value');
     assert.equal(d.toDriver()?.numVC, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');

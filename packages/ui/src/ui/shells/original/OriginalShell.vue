@@ -399,7 +399,7 @@ function setRowVisible(p: ManagedProject, v: boolean): void { visibleOf.set(p, v
  *  focused one — recorded, not fixed here). */
 function rowName(p: ManagedProject): string {
   if (p === project.value) return state.project.name || driverName.value;
-  const meta = p.committedSnapshot().projectMeta();
+  const meta = p.committedMeta();
   return meta.name || [p.brand(), p.model()].filter(x => x.length > 0).join(' ').trim();
 }
 

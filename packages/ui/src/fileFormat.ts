@@ -9,6 +9,7 @@
  * label the save picker shows, and the MIME type, all carried ON the member. No caller compares
  * a bare `'wdr'`/`'wpr'` string, which would survive a value change and be invisible to rename.
  */
+import { parse as parseYaml } from 'yaml';
 
 export class DriverFileFormat {
   private constructor(
@@ -109,9 +110,12 @@ export function formatOf(filename: string): FileFormat | undefined {
 }
 
 /** Which format the BYTES actually are, when the name does not say — domain-free content
- *  classification: INI section headers tell `.wdr` from `.wpr`; a JSON object with `specs`
- *  and no `box` is a driver record, any other JSON object is a project payload. Undefined
- *  for bytes that are not valid UTF-8 or match no known shape. */
+ *  classification (this file owns no domain knowledge — `architecture.test.ts`'s QO80 ruling
+ *  forbids it importing `OpenISDDriver`, so this is structural shape-sniffing only, never a
+ *  domain judgement): INI section headers tell `.wdr` from `.wpr`; YAML with a `specs` key and
+ *  no `box` key is a driver record — `.owdr` on disk is YAML, not JSON; a JSON object is
+ *  `.owpr` (`projectRepo.ts`'s localStorage/share-link wire shape). Undefined for bytes that
+ *  are not valid UTF-8 or match no known shape. */
 export function sniff(bytes: Uint8Array): FileFormat | undefined {
   let text: string;
   try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
@@ -128,5 +132,11 @@ export function sniff(bytes: Uint8Array): FileFormat | undefined {
       return ProjectFileFormat.Owpr;
     } catch { return undefined; }
   }
+  try {
+    const parsed: unknown = parseYaml(trimmed);
+    if (parsed && typeof parsed === 'object' && 'specs' in parsed && !('box' in parsed)) {
+      return DriverFileFormat.Owdr;
+    }
+  } catch { /* not YAML either */ }
   return undefined;
 }

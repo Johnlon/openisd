@@ -1,3 +1,31 @@
+// ═══ HUMAN RULING, John Lonergan 2026-08-26 — WHAT THIS DOMAIN MAY COMPUTE ═══════════════════
+//
+//   GEOMETRY IS IN. ACOUSTICS IS ABSOLUTELY OUT.
+//
+// His words: "all calcs MUST be in engine", then the refinement "simple geometric calc like pi r
+// squared are ok in the domain", then "geom is in and accoustic is absolutely out".
+//
+// IN — plain shape arithmetic on dimensions the record already holds. The area of a circle, the
+// area of a rectangle, a volume from three lengths. These have no model behind them and no parity
+// question: πr² is πr² in WinISD, in this app, and in a textbook. Nobody can implement them
+// differently, so nothing is duplicated by doing them here.
+//
+// OUT — ABSOLUTELY, with no exception and no "just this small one": anything involving air,
+// compliance, resonance, damping, an end correction, a transfer function, or a frequency. Those
+// carry a MODEL, the model can differ between implementations, and `@openisd/engine` is the one
+// place this project answers for it. A second implementation here would be a second answer, and
+// the two would drift silently — which is exactly what was found on 2026-08-26: `#sealedResonance`
+// reimplemented `engine/alignments.ts:sealedFc()` over frozen air constants, in the precise way
+// `engine/formulas.ts:prVas()` documents as wrong ("ρ/c are computed live at the reference
+// environment — never a stored constant").
+//
+// THE TEST, when unsure: could two competent implementers disagree about the answer? If yes it is
+// acoustics — it belongs to the engine, and here it calls `noEngine()`. If no, it is geometry.
+// Do not reason your way past this. John's stated fear is precisely that an AI will not respect
+// the rule; the honest move when a calculation feels borderline is to throw and ask, never to
+// write the formula and justify it in a comment.
+// ═════════════════════════════════════════════════════════════════════════════════════════════
+
 import {
   Field,
   focus,
@@ -7,6 +35,23 @@ import {
   type Lens,
   type RawField,
 } from './cell.js';
+import { newUuid } from './newUuid.js';
+
+/**
+ * Refuse a calculation that belongs to `@openisd/engine`. See the ruling at the top of this file.
+ *
+ * THROWS rather than returning null, deliberately. Null is this domain's word for "the value is
+ * not stated", which a caller is entitled to render as a blank — so answering null here would
+ * report a missing INPUT when the truth is a missing IMPLEMENTATION, and the gap would stay
+ * invisible until someone wondered why a figure never appears. A throw is found by whoever calls
+ * it, immediately, and names itself in the message.
+ *
+ * Returns `never`, so a call site satisfies any return type without a cast.
+ */
+function noEngine(what: string): never {
+  throw new Error(
+    `${what}: acoustic calculations belong to @openisd/engine, and this domain is not wired to it yet`);
+}
 import type { Vent, VentShape } from './vent.js';
 import type {
   SealedLosses,
@@ -207,6 +252,27 @@ function emptyBoxJson(): OpenISDBoxJson {
 // shape to anyone, the exact leak these types exist to prevent. Registering the reader here
 // keeps the capability inside the package: the wrapper registers itself on construction, and
 // only code that can import this module (never a consumer, per the header) can read it back.
+// FRIEND SIDE-TABLE 1 of 4 — the one exception to AGENTS.md §"GLOBAL VARIABLES ARE FORBIDDEN",
+// which requires each use to name what it holds and every referee.
+//
+// HOLDS: for one component wrapper (a standalone driver or passive radiator), a closure that
+//   returns THAT wrapper's own `OpenISDDriverJson`. One entry per wrapper; nothing shared.
+// EXPOSES: `OpenISDDriverStandalone`'s / `OpenISDPassiveRadiatorStandalone`'s private record.
+// TO: whichever sibling needs to COPY that record into its own storage.
+//
+// REFEREES — every one, and there are no others:
+//   writers, via `registerJsonReader()`:
+//     `OpenISDDriverStandalone.wrap()`          — registers itself on construction
+//     `OpenISDPassiveRadiatorStandalone.wrap()` — likewise
+//   readers, via `readWrappedJson()`:
+//     `OpenISDBox.configurePR()`  — copies a chosen radiator INTO the box's own storage
+//     `…Standalone.update()`      — adopts an edited copy back over the original
+//     `newProject()`              — seeds the builder from the chosen driver
+//     `PassiveRadiatorProjectBuilder.radiator()` — seeds the box's PR slot
+//
+// WHY NOT A PUBLIC METHOD: a `toJson()` on the class would hand the private record shape to any
+// consumer — the exact leak these types exist to prevent. Registering here keeps the capability
+// inside the module: only code that can import this file can read it back.
 const jsonReaders = new WeakMap<object, () => OpenISDDriverJson>();
 
 function registerJsonReader(wrapper: object, read: () => OpenISDDriverJson): void {
@@ -418,10 +484,15 @@ class VentWindow implements Vent {
     this.length_m = nullableField(lens, 'length_m');
   }
 
-  /** Cross-sectional area, or null when the dimensions this vent's own shape needs are not set.
+  /** Cross-sectional area of the port opening.
+   *
+   *  PLAIN GEOMETRY, and that is why it is allowed to live here (John 2026-08-26: "simple
+   *  geometric calc like pi r squared are ok in the domain"). The line the domain must not cross
+   *  is ACOUSTICS — anything involving air, compliance, resonance or an end correction. The area
+   *  of a circle involves none of those and has no parity question: πr² is πr² in every model.
+   *
    *  Null rather than 0 (a real, if absurd, port area) or NaN — absence is spelled ONE way in
-   *  this domain, the same `null` a `Cell` carries, so a caller checks for it the same way
-   *  everywhere and the compiler makes them. */
+   *  this domain, the same `null` a `Cell` carries. */
   area_m2(): number | null {
     const v = this.#lens.get();
     if (v.shape === 'round') {
@@ -430,16 +501,15 @@ class VentWindow implements Vent {
     return v.width_m === null || v.height_m === null ? null : v.width_m * v.height_m;
   }
 
-  /** Acoustic length — the physical length plus the end correction, applied over the port's
-   *  equivalent radius so a slotted vent and a round vent of equal area correct alike.
-   *  NOT yet verified against WinISD's own convention: the end-correction FACTOR is stored
-   *  (0.85 default, the common one-flanged-end value), but which radius it multiplies is a
-   *  parity question this package has not probed. Flagged rather than asserted. */
+  /** Acoustic length — physical length plus the end correction. ACOUSTICS, not geometry, so it
+   *  belongs to `@openisd/engine` and throws here.
+   *
+   *  The end correction models how air outside the port behaves, which is exactly the kind of
+   *  thing the domain must not decide. Its parity question travels with it and is the engine's to
+   *  settle: the FACTOR is stored (0.85, the common one-flanged-end value), but which radius it
+   *  multiplies has never been probed against real WinISD. */
   effectiveLength_m(): number | null {
-    const v = this.#lens.get();
-    const area = this.area_m2();
-    if (v.length_m === null || area === null) return null;
-    return v.length_m + v.endCorrection_m * Math.sqrt(area / Math.PI);
+    return noEngine('effectiveLength_m');
   }
 }
 
@@ -520,13 +590,6 @@ function prSpec(
   );
 }
 
-// Reference air conditions, used only to turn a driver's stored compliance into the equivalent
-// volume Fc needs. The environment record carries the REAL temperature/humidity/pressure, and
-// deriving c and rho from those is the engine's CIPM-2007 model — not reproduced here. A box
-// resonance computed from reference air is therefore approximate; the engine owns the exact one.
-const RHO_REF = 1.2041;
-const C_REF = 343.684120962152;
-
 /**
  * The box, as a window onto its slice of the project record — AND holding a reference to the
  * containing `OpenISDProject` itself.
@@ -548,7 +611,7 @@ const C_REF = 343.684120962152;
  * through the record — the privacy rule holds inside the module too.
  */
 class OpenISDBox implements Box {
-  readonly #project: OpenISDProject;
+  readonly #project: ProjectRef;
   readonly boxType: RawField<BoxType>;
 
   readonly sealed: SealedBox;
@@ -558,14 +621,14 @@ class OpenISDBox implements Box {
   readonly abc: AbcBox;
   readonly passiveRadiator: PassiveRadiatorBox;
 
-  private constructor(lens: Lens<OpenISDBoxJson>, project: OpenISDProject) {
+  private constructor(lens: Lens<OpenISDBoxJson>, project: ProjectRef) {
     this.#project = project;
     this.boxType = focus(lens, 'boxType');
 
     const sealedLens = focus(lens, 'sealed');
     this.sealed = {
       volume_m3: focus(sealedLens, 'volume_m3'),
-      resonance_hz: () => this.#sealedResonance(sealedLens.get().volume_m3),
+      resonance_hz: () => noEngine('sealed.resonance_hz'),
       losses: new LossesWindow(focus(sealedLens, 'losses')) satisfies SealedLosses,
     };
 
@@ -587,7 +650,7 @@ class OpenISDBox implements Box {
         // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
         rear: {
           volume_m3: requiredField(bp4Rear, 'volume_m3', 'bandpass4.rear.volume_m3'),
-          resonance_hz: () => this.#sealedResonance(bp4Rear.get().volume_m3),
+          resonance_hz: () => noEngine('sealed.resonance_hz'),
           losses: new LossesWindow(focus(bp4Rear, 'losses')) satisfies CoupledSealedLosses,
         },
         // front's volume is RAW — it has exactly one home and is not part of a solved
@@ -647,27 +710,13 @@ class OpenISDBox implements Box {
     };
   }
 
-  /** Takes the PROJECT, not a lens — same reasoning as `OpenISDDriverEmbedded.wrap()`: the
-   *  project owns the slot and supplies it, via the module-private registry. */
-  static wrap(project: OpenISDProject): OpenISDBox {
+  /** Takes a PROJECT REFERENCE, not a lens — same reasoning as `OpenISDDriverEmbedded.wrap()`:
+   *  the project owns the slot and supplies it, via the module-private registry. A reference
+   *  rather than an instance so one box can serve every layer — see `ProjectRef`. */
+  static wrap(project: ProjectRef): OpenISDBox {
     return new OpenISDBox(projectSlot(project, 'box'), project);
   }
 
-  /** Sealed-system resonance, Fc = Fs · √(1 + Vas/Vb), with Vas derived from the driver's own
-   *  stored compliance and cone area (Vas = ρc²·Sd²·Cms). Null when the volume is not set or
-   *  the driver has not stated what this needs — absence is one thing in this domain, spelled
-   *  null wherever it appears. Reads the driver through the project reference, using the
-   *  driver's public field surface. */
-  #sealedResonance(volume_m3: number): number | null {
-    if (!(volume_m3 > 0)) return null;
-    const driver = this.#project.driver;
-    const fs = driver.Fs_hz.get().value;
-    const sd = driver.Sd_m2.get().value;
-    const cms = driver.Cms_m_per_N.get().value;
-    if (fs === null || sd === null || cms === null) return null;
-    const vas_m3 = RHO_REF * C_REF ** 2 * sd ** 2 * cms;
-    return fs * Math.sqrt(1 + vas_m3 / volume_m3);
-  }
 
 }
 
@@ -833,21 +882,26 @@ class OpenISDDriverStandalone extends OpenISDDriver {
  *  has no such reference because it is in no project — which is exactly why these are two
  *  types rather than one with a nullable field. */
 class OpenISDDriverEmbedded extends OpenISDDriver {
-  readonly project: OpenISDProject;
+  readonly #project: ProjectRef;
 
   private constructor(
     record: Lens<OpenISDDriverJson>,
     section: 'woofer' | 'tweeter',
-    project: OpenISDProject,
+    project: ProjectRef,
   ) {
     super(record, section);
-    this.project = project;
+    this.#project = project;
   }
 
-  /** Takes the PROJECT, not a lens — the project owns the slot, so it is the project's business
-   *  to say where the record lives, not the caller's to hand it over. The lens comes from the
-   *  module-private registry the project fills in on construction. */
-  static wrap(project: OpenISDProject): OpenISDDriverEmbedded {
+  /** The project containing this driver — resolved on each access, so it is the layer that is
+   *  effective NOW rather than whichever one happened to be effective at construction. */
+  get project(): OpenISDProject { return this.#project(); }
+
+  /** Takes a PROJECT REFERENCE, not a lens — the project owns the slot, so it is the project's
+   *  business to say where the record lives, not the caller's to hand it over. The lens comes
+   *  from the module-private registry the project fills in on construction. A reference rather
+   *  than an instance so one driver can serve every layer — see `ProjectRef`. */
+  static wrap(project: ProjectRef): OpenISDDriverEmbedded {
     const lens = projectSlot(project, 'driver');
     return new OpenISDDriverEmbedded(lens, OpenISDDriver.sectionOf(lens.get()), project);
   }
@@ -964,12 +1018,34 @@ class OpenISDPassiveRadiatorStandalone {
 interface ProjectFields {
   readonly driver: OpenISDDriverEmbedded;
   readonly box: Box;
+  /** What the user calls this project. A LABEL, not an identity — two projects may share one,
+   *  which is exactly why `uuid()` exists. A `RawField`, like every other stored value with no
+   *  solve relation behind it, so it is read and written with the same two verbs as the rest. */
+  readonly name: RawField<string>;
+  /** The user's own note about this project. Stored, never interpreted. */
+  readonly comment: RawField<string>;
 }
 
 // The real "only ManagedProject reaches this" mechanism (see the file header) — module-scoped,
 // never exported. `OpenISDProject` calls `notifyProject(this)` on every write instead of holding
 // its own listener set, and `ManagedProject` calls `subscribeToProject(project, fn)` instead of a
 // method on `project`. Nothing outside this file can reach either, which is the enforcement.
+// FRIEND SIDE-TABLE 2 of 4 — see AGENTS.md §"GLOBAL VARIABLES ARE FORBIDDEN".
+//
+// HOLDS: for one `OpenISDProject`, the set of callbacks watching THAT project. One entry per
+//   project; no callback is shared between projects.
+// EXPOSES: `OpenISDProject`'s change notification.
+// TO: `ManagedProject`, which must re-subscribe whenever the effective layer changes.
+//
+// REFEREES — every one:
+//   notify, via `notifyProject()`:
+//     `writeProjectRecord()` — twice: after a redirected write, and after a direct one
+//   subscribe, via `subscribeToProject()`:
+//     `ManagedProject` ctor — watches committed, to set `#modified`
+//     `ManagedProject`'s effective-layer rewatch — watches whichever layer is effective now
+//
+// WHY NOT A LISTENER SET ON THE CLASS: a public `subscribe()` on `OpenISDProject` would let a
+// consumer watch a LAYER directly, and the app must only ever hold `ManagedProject`.
 const projectListeners = new WeakMap<OpenISDProject, Set<() => void>>();
 
 /**
@@ -1047,11 +1123,53 @@ function metadataProblems(r: Record<string, unknown>): string[] {
 //
 // A module-scoped WeakMap is the one that actually holds: every class in THIS file can reach any
 // project's record, and nothing outside can, because nothing outside can reach the map.
+// FRIEND SIDE-TABLE 3 of 4 — see AGENTS.md §"GLOBAL VARIABLES ARE FORBIDDEN". THE CENTRAL ONE:
+// it is what makes `OpenISDProjectJson` genuinely private.
+//
+// HOLDS: for one `OpenISDProject`, THAT project's whole record. One entry per project — the
+//   layers of a `ManagedProject` are separate projects with separate entries, which is exactly
+//   what keeps ground/committed/edit/whatif from writing through each other.
+// EXPOSES: `OpenISDProject`'s record.
+// TO: the sibling classes that are WINDOWS onto slices of it, and to the repo that serialises it.
+//
+// REFEREES — every one:
+//   writers:
+//     `OpenISDProject` ctor  — seeds the entry before the components are built
+//     `writeProjectRecord()` — twice: a redirected write, and one landing where it was aimed
+//   readers, via `projectRecord()`:
+//     `projectSlot()`            — the lens every component reads and writes through
+//     `OpenISDProject.copy()`    — clones the record for a new layer
+//     `projectRepo().save()`     — the only place a record leaves for a store
+//   and `projectSlot()` itself is used by:
+//     `OpenISDBox.wrap()` | `OpenISDDriverEmbedded.wrap()`
+//     `OpenISDProject` ctor (meta) | `ManagedProject` ctor (meta, over the effective layer)
+//
+// WHY NOT A `#private` FIELD: `OpenISDBox` and `OpenISDDriverEmbedded` are SEPARATE CLASSES that
+// window slices of the project's record, and TypeScript has no `friend` — `#private` is
+// unreachable by a sibling, an unexported type is unnameable but still reachable by inference,
+// and a `unique symbol` key is discoverable via `Object.getOwnPropertySymbols`.
 const projectRecords = new WeakMap<OpenISDProject, OpenISDProjectJson>();
 
 // Which `ManagedProject` owns a layer. A write has to know whether it is landing on managed
 // committed state — and if so, be redirected into an edit layer — so the layer must be able to
 // find its manager. Module-scoped, like every other friend-access bridge here.
+// FRIEND SIDE-TABLE 4 of 4 — see AGENTS.md §"GLOBAL VARIABLES ARE FORBIDDEN".
+//
+// HOLDS: for one `OpenISDProject` layer, the `ManagedProject` that owns it. One entry per layer.
+// EXPOSES: the layer→owner link.
+// TO: `writeProjectRecord()`, which must know whether a write is landing on MANAGED committed
+//   state — if so it opens an edit layer and lands there instead, so editing a field in a tab
+//   starts an edit session with no component having to call `beginEdit()`.
+//
+// REFEREES — every one:
+//   writers, all in `ManagedProject`, as each layer comes into existence:
+//     ctor (ground + committed) | `load()` | `save()` | `commit()` | `beginEdit()` | `beginWhatif()`
+//   reader:
+//     `editLayerFor()` — the only one, called from `writeProjectRecord()`
+//
+// WHY NOT A FIELD ON THE LAYER: `OpenISDProject` must not know about `ManagedProject` — a plain
+// project has no layers and no owner, and giving it one would put layering into the class the
+// layering exists to wrap.
 const owningManaged = new WeakMap<OpenISDProject, ManagedProject>();
 
 function projectRecord(project: OpenISDProject): OpenISDProjectJson {
@@ -1087,15 +1205,34 @@ function editLayerFor(project: OpenISDProject): OpenISDProject | null {
   return managed.openEditLayer();
 }
 
+/**
+ * WHICH project a component is looking at, resolved on EVERY access rather than fixed when the
+ * component was built.
+ *
+ * A `ManagedProject` has several layers, each its own `OpenISDProject`, and a write can move
+ * which one is effective — writing to committed opens an edit layer and lands there. A component
+ * bound to one layer therefore stops matching the project the instant that happens, and a caller
+ * holding it reads stale values from its own write onwards
+ * (`bugs/BUG_20260826_held_component_handle_goes_stale_when_a_write_opens_the_edit_layer.md`).
+ *
+ * Resolving late fixes that at the root: `ManagedProject` builds ONE driver and ONE box over
+ * `() => this.#effective()`, so the objects it hands out survive every layer transition and stay
+ * correct. A plain `OpenISDProject` passes `() => this`, which never varies.
+ *
+ * Stable component objects are also what let a UI framework memoize on object identity — the
+ * same reasoning that made every `Field` eagerly constructed rather than built per getter call.
+ */
+type ProjectRef = () => OpenISDProject;
+
 /** A lens onto one top-level slot of a project's record — how a contained component reads and
  *  writes its own slice without ever holding the whole record. */
 function projectSlot<K extends keyof OpenISDProjectJson>(
-  project: OpenISDProject,
+  ref: ProjectRef,
   key: K,
 ): Lens<OpenISDProjectJson[K]> {
   return {
-    get: () => projectRecord(project)[key],
-    set: (v) => writeProjectRecord(project, { ...projectRecord(project), [key]: v }),
+    get: () => projectRecord(ref())[key],
+    set: (v) => writeProjectRecord(ref(), { ...projectRecord(ref()), [key]: v }),
   };
 }
 
@@ -1121,18 +1258,67 @@ function notifyProject(project: OpenISDProject): void {
 class OpenISDProject implements ProjectFields {
   readonly driver: OpenISDDriverEmbedded;
   readonly box: Box;
+  readonly name: RawField<string>;
+  readonly comment: RawField<string>;
 
-  private constructor(json: OpenISDProjectJson) {
+  /** THE project's identity, and IN-MEMORY ONLY — deliberately a class field rather than a
+   *  member of `OpenISDProjectJson`, which is what makes "internal only" structural instead of
+   *  a rule someone has to remember: the record is the only thing that is ever serialised, so
+   *  an id that is not in it CANNOT reach a file or a link (John 2026-08-26, QO92: "lets make
+   *  the UUID an internal only feature ... when loading an owdr we assign a new uuid").
+   *
+   *  It exists so the running app can tell two open projects apart when their names collide,
+   *  and so a store — or a focus pointer — can key on something stable. Persisting it would buy
+   *  a problem rather than solve one: a file carrying an id makes re-importing it a collision
+   *  the user must be asked about, over an identity they never knew they had. Unpersisted, a
+   *  load is simply a new project, which is what it looks like to the user anyway. */
+  readonly #uuid: string;
+
+  private constructor(json: OpenISDProjectJson, uuid: string) {
+    this.#uuid = uuid;
     // The record goes into the module-private map BEFORE the components are built — each of
     // them reads its own slot straight out of it. See the FRIEND ACCESS note above.
     projectRecords.set(this, json);
-    this.driver = OpenISDDriverEmbedded.wrap(this);
-    this.box = OpenISDBox.wrap(this);
+    // `() => this` never varies — a plain project is one layer. The indirection exists for
+    // `ManagedProject`, which passes a ref that follows the effective layer.
+    this.driver = OpenISDDriverEmbedded.wrap(() => this);
+    this.box = OpenISDBox.wrap(() => this);
+    const meta = projectSlot(() => this, 'meta');
+    this.name = focus(meta, 'name');
+    this.comment = focus(meta, 'comment');
   }
 
+  /** Wrapping a record is how a project ENTERS the process. A record carries no identity, so
+   *  one is minted — two wraps of one record are two independently editable projects, which is
+   *  what opening a FILE twice should give.
+   *
+   *  `wrapWithIdentity()` is the exception, and the ONLY caller that may use it is a store
+   *  reader: see its own note. */
   static wrap(json: OpenISDProjectJson): OpenISDProject {
-    return new OpenISDProject(json);
+    return new OpenISDProject(json, newUuid());
   }
+
+  /**
+   * Wrap a record under an identity the caller already holds.
+   *
+   * FOR A STORE READ, AND NOTHING ELSE. A store key was minted in this process, by this app —
+   * it IS an in-memory identity, so adopting it back is restoring one, not importing a foreign
+   * one. Without this, a project loaded from the store gets a new identity, its next autosave
+   * writes to a NEW key, and the entry it came from is orphaned: reopening a design silently
+   * duplicates it (`bugs/BUG_20260826_reopening_a_stored_project_duplicates_its_store_entry.md`).
+   *
+   * NOT for a file. A file's id — if it even had one — was minted by some other process and is
+   * provenance, never a key, so a file import mints (the driver precedent, QO81). The split is
+   * on WHERE the record came from, not on whether an id was available.
+   *
+   * Not exported: reachable only inside this module, where the repo lives.
+   */
+  static wrapWithIdentity(json: OpenISDProjectJson, uuid: string): OpenISDProject {
+    return new OpenISDProject(json, uuid);
+  }
+
+  /** This project's in-memory identity. See `#uuid`. */
+  uuid(): string { return this.#uuid; }
 
   /** An independent copy — how `ManagedProject` obtains each layer's own instance. A SHALLOW
    *  copy of the record suffices: every write in this design is copy-on-write (a new wrapper
@@ -1143,7 +1329,9 @@ class OpenISDProject implements ProjectFields {
    *  SAME `OpenISDProject` share one entry and a write through either is visible through both —
    *  exactly what the ground/committed/edit/whatif layers must never do to each other. */
   copy(): OpenISDProject {
-    return new OpenISDProject({ ...projectRecord(this) });
+    // The id CARRIES ACROSS: a copy is another layer of the same project, not another project.
+    // `ManagedProject` would otherwise hold several identities for one thing it wraps.
+    return new OpenISDProject({ ...projectRecord(this) }, this.#uuid);
   }
 }
 
@@ -1167,9 +1355,28 @@ export class ManagedProject implements ProjectFields {
   #unwatchCommitted: (() => void) | null = null;
   #modified = false;
 
+  /** THE identity of the project this wraps — the wrapper is id'd by the same id (John
+   *  2026-08-26). Every layer is a `copy()` of one project and so carries it, which is why
+   *  ground's answer serves for all of them. In-memory only: see `OpenISDProject`'s `#uuid`.
+   *
+   *  This is what a store, or a focus pointer, keys on. A name cannot serve — two open
+   *  projects may share one, and that is precisely what identity exists to make harmless. */
+  uuid(): string { return this.#ground.uuid(); }
+
+  readonly #driver: OpenISDDriverEmbedded;
+  readonly #box: Box;
+  readonly name: RawField<string>;
+  readonly comment: RawField<string>;
+
   private constructor(ground: OpenISDProject, committed: OpenISDProject) {
     this.#ground = ground;
     this.#committed = committed;
+    this.#driver = OpenISDDriverEmbedded.wrap(() => this.#effective());
+    this.#box = OpenISDBox.wrap(() => this.#effective());
+    // Over the EFFECTIVE layer, like `driver`/`box` — one stable handle for the wrapper's life.
+    const meta = projectSlot(() => this.#effective(), 'meta');
+    this.name = focus(meta, 'name');
+    this.comment = focus(meta, 'comment');
     owningManaged.set(ground, this);
     owningManaged.set(committed, this);
     this.#watchEffective();
@@ -1186,8 +1393,23 @@ export class ManagedProject implements ProjectFields {
     return this.#whatif ?? this.#edit ?? this.#committed;
   }
 
-  get driver(): OpenISDDriverEmbedded { return this.#effective().driver; }
-  get box(): Box { return this.#effective().box; }
+  /** ONE driver and ONE box for this managed project's whole life, each resolving the effective
+   *  layer on every read and write (`ProjectRef`).
+   *
+   *  They are NOT the effective layer's own components. Returning those would hand out an object
+   *  bound to one layer, which a write can then move away from — writing to committed opens an
+   *  edit layer, so a caller that did `const d = project.driver` before its first edit would read
+   *  stale values from that edit onwards, and the write would look lost
+   *  (`bugs/BUG_20260826_held_component_handle_goes_stale_when_a_write_opens_the_edit_layer.md`).
+   *  That is the ordinary shape of UI code — bind once in `setup()`, read many times — so the
+   *  handle has to outlive the layer. */
+  get driver(): OpenISDDriverEmbedded { return this.#driver; }
+  get box(): Box { return this.#box; }
+
+  /** @internal The layer persistence must write: the open edit layer if there is one, else
+   *  committed. NEVER a what-if — an exploratory session must not survive the session. Reached
+   *  by `persistableLayerOf()` in this module only; the app has no route to a layer. */
+  layerToPersist(): OpenISDProject { return this.#edit ?? this.#committed; }
 
   /** @internal Is `project` the layer a write would land on when nothing transient is open? */
   committedIs(project: OpenISDProject): boolean { return this.#committed === project; }
@@ -1519,4 +1741,287 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
       },
     };
   }
+}
+
+// ── PERSISTENCE ────────────────────────────────────────────────────────────────────────────
+//
+//     app / UI
+//        │   domain objects only — `ManagedProject`
+//     ProjectRepo     ── peer of the DOMAIN OBJECT, lives HERE
+//        │   `OpenISDProjectJson`, which never appears in any signature below
+//     RecordStore<R>  ── peer of the RECORD, injected, implemented elsewhere
+//        │
+//     IndexedDB (packages/design/browser) / a file / a server
+//
+// The repo is the only code that converts between the two vocabularies, so it is the only code
+// that needs both. It lives in THIS module because converting requires the record type and the
+// module-private `projectRecords` registry, neither of which leaves this file.
+//
+// The store does NOT live here, and does not need to: it is injected as a GENERIC factory
+// (`projectRepo()` takes the factory), so the implementation is parametric in the record type and can neither
+// name nor inspect it. That is what keeps browser code out of a package that otherwise depends
+// on nothing, while `OpenISDProjectJson` stays unexported and unnameable everywhere.
+
+/**
+ * What a stored project is called, for a picker.
+ *
+ * PUBLIC on purpose, unlike the record: it is the label a user reads, so hiding it would only
+ * force the store to invent a shape it cannot see. Carried ALONGSIDE the record rather than read
+ * out of it, because the store is not allowed to look inside.
+ */
+export interface ProjectMeta {
+  /** The project's name. A LABEL, never an identity — two stored projects may share one. */
+  readonly name: string;
+}
+
+/**
+ * Somewhere to keep records, keyed by a string the caller supplies.
+ *
+ * PARAMETRIC IN `R` AND DELIBERATELY IGNORANT OF IT. An implementation stores and returns values
+ * of `R` without ever inspecting them, so it cannot depend on what `R` turns out to be — which
+ * is exactly what lets the record type stay private to this module while the implementation
+ * lives in another package entirely.
+ *
+ * Ignorance costs nothing in practice: IndexedDB declares its indexes with runtime keyPath
+ * strings (`'meta.name'`), so a store can index a value it has no compile-time knowledge of. The
+ * bytes on disk are a real, self-describing JSON document; only the TYPE is opaque.
+ *
+ * ASSUMES the record is kept as a STRUCTURED VALUE, not a serialised string — a string cannot be
+ * indexed, and every listing would then have to deserialise every entry.
+ */
+export interface RecordStore<R> {
+  /**
+   * Keep `record` under `id`, replacing whatever was there, and stamp it as modified now.
+   *
+   * TAKES `meta` SEPARATELY because it may not read the record. Stamping is the STORE's job, not
+   * the caller's: "when this was last written" is a fact about the act of writing, and the store
+   * is the only participant present at the moment it happens.
+   *
+   * WHY IT EXISTS: `ProjectRepo.save()` needs somewhere to put what it extracted, and must not
+   * care whether that is IndexedDB, a file or a server.
+   */
+  put(id: string, record: R, meta: ProjectMeta): void;
+
+  /**
+   * The record under `id`, or null when there is none.
+   *
+   * Null means ABSENT, never "unreadable" — a stored value that cannot be understood is a fault
+   * to report, and collapsing the two is how a corrupt entry becomes a silently missing project.
+   *
+   * WHY IT EXISTS: `ProjectRepo.load()` needs the raw record before it can rebuild a project.
+   */
+  get(id: string): R | null;
+
+  /**
+   * Every entry's key, label and modification time — enough to draw a picker, nothing more.
+   *
+   * DEPENDS ON an index over the stored records. Reading whole records and discarding them would
+   * work and is wrong: it makes showing a picker cost the size of every stored project rather
+   * than the number of them.
+   *
+   * WHY IT EXISTS: it is the only way `ProjectRepo.list()` can be cheap.
+   */
+  list(): { id: string; meta: ProjectMeta; modified: string }[];
+
+  /**
+   * Delete the record under `id`. Deleting an absent id is NOT an error — the postcondition
+   * ("nothing is stored under `id`") already holds, which is what makes deletion safe to retry
+   * after a failure with no caller checking first.
+   *
+   * WHY IT EXISTS: `ProjectRepo.remove()` needs it.
+   */
+  remove(id: string): void;
+}
+
+/**
+ * A store implementation, before it knows what it will hold.
+ *
+ * GENERIC, and that is the whole mechanism. If the registry took a `RecordStore<OpenISDProjectJson>`
+ * directly, an outsider could still satisfy that parameter by inference even without being able to
+ * NAME the type — the standing hole with unexported types. A factory that must work for ANY `R`
+ * cannot depend on which one it gets, so parametricity enforces the boundary instead of a naming
+ * convention, and no cast is needed anywhere.
+ */
+export type RecordStoreFactory = <R>() => RecordStore<R>;
+
+
+/**
+ * The app's delete dialog, as the repo sees it: shown the entry that is really about to be
+ * destroyed, answering whether to proceed.
+ *
+ * Async because a dialog is — the repo waits for a person. `false` is a full stop, not a retry:
+ * the entry is left exactly as it was.
+ */
+export type DeleteChallenge = (entry: ProjectListing) => Promise<boolean>;
+
+/**
+ * How a delete ended. Three outcomes rather than a boolean, because "nothing was deleted" has two
+ * very different causes and a caller reporting to the user must tell them apart: the user
+ * declined, versus the entry was not there at all (already deleted, or a stale row).
+ */
+export type DeleteOutcome = 'deleted' | 'declined' | 'absent';
+
+/**
+ * One row of `ProjectRepo.list()` — plain data for a picker.
+ *
+ * Deliberately NOT a snapshot of the project: a listing exists so the user can CHOOSE, so it
+ * carries only what a chooser needs. Anything more would be a second route to project state that
+ * bypasses `load()`.
+ */
+export interface ProjectListing {
+  /** The STORE KEY — pass it back to `load()` or `remove()`.
+   *
+   *  It IS the project's uuid: `save()` keys on `ManagedProject.uuid()`, and `load()` adopts the
+   *  key back, so an entry and the project opened from it share one identity. That is what lets a
+   *  workspace tell whether a row in the picker is already open, and what stops a reopened design
+   *  autosaving into a second entry. */
+  readonly id: string;
+  /** The project's name. A LABEL, never an identity: two entries may share one. */
+  readonly name: string;
+  /** When the entry was last written, for ordering the picker most-recent-first. */
+  readonly modified: string;
+}
+
+/**
+ * The app's door to stored projects, in DOMAIN vocabulary.
+ *
+ * Every method takes or returns a `ManagedProject` or plain data — never a record — so no caller
+ * can see the stored shape, and a change to that shape cannot reach the app.
+ *
+ * DEPENDS ON the `RecordStore` handed to `projectRepo()`, and on this module's privileged
+ * access to a project's own record. Both are why it lives here rather than in an app package.
+ *
+ * ASSUMES identity comes from the project itself (`ManagedProject.uuid()`) and is in-memory only,
+ * never carried in the record — so the repo supplies the key on every call, and a record on its
+ * own names nothing.
+ */
+export interface ProjectRepo {
+  /**
+   * Write `project`'s current design to the store under its own uuid, replacing any entry there.
+   *
+   * PERSISTS the edit layer if one is open, else committed — never an open what-if, which is
+   * exploratory and must not survive the session. There is no layer parameter, so no call site
+   * can persist the wrong thing.
+   *
+   * WHY IT EXISTS — AUTOSAVE: the user types a box volume, is called away, and the browser
+   * discards the tab. On return the design is still there. Today the app has no answer to that:
+   * work between explicit File → Save actions is simply lost.
+   *
+   * Autosave is this method plus a TRIGGER — `ManagedProject`'s change notification calling it.
+   * The trigger is still undecided (QO92: every change, debounced, or on blur), and the same
+   * method serves an explicit toolbar Save. WHAT is written is settled here; WHEN is not.
+   */
+  save(project: ManagedProject): void;
+
+  /**
+   * Rebuild the project stored under `id` as a fresh `ManagedProject` — ground and committed both
+   * set to what was stored, no overlay open.
+   *
+   * RETURNS the problems rather than throwing, so a caller listing projects can show WHY a row
+   * cannot be opened instead of failing on click.
+   *
+   * ADOPTS `id` AS THE PROJECT'S IDENTITY. A store key was minted in this process, so restoring
+   * it is not importing a foreign id — and it is what makes reopening idempotent: the project's
+   * next save writes back to the entry it came from. Opening one entry twice therefore yields two
+   * handles on the SAME identity, which a workspace should collapse by focusing what is already
+   * open rather than loading a second copy. (A FILE import still mints: a file's id is provenance,
+   * never a key — the driver precedent, QO81.)
+   *
+   * WHY IT EXISTS: the user picks "Ported 8in v3" from the list and expects the design back as
+   * they left it, editable. It is also the reload path.
+   */
+  load(id: string): ManagedProject | string[];
+
+  /**
+   * Everything the store holds, most-recently-modified first.
+   *
+   * WHY IT EXISTS: the picker opens with forty designs stored and must render immediately.
+   * Without a listing the only way to show it is to load all forty — the whole cost of opening
+   * every design, paid to render forty lines of text.
+   */
+  list(): ProjectListing[];
+
+  /**
+   * Delete the stored entry for `id`, but ONLY after `confirm` agrees.
+   *
+   * Deletion is final: no archive, no undo, and once the user has no file there is no copy left
+   * anywhere. So the challenge is a PARAMETER, not a convention — there is no overload without
+   * it and no call site can forget it (John 2026-08-26). What the UI must put in that dialog:
+   *
+   *   1. OFFER EXPORT FIRST, as the default action — deletion is only safe once the design exists
+   *      somewhere else, and the moment to say so is before it is gone.
+   *   2. DEMAND A TYPED 3-DIGIT NUMBER, generated per dialog. A button can be clicked reflexively
+   *      and a checkbox ticked without reading; typing digits cannot be done by muscle memory,
+   *      which forces the user to look at WHICH project the dialog names. Generated rather than
+   *      fixed, or regular users learn it and it decays back into a button.
+   *
+   * `confirm` RECEIVES THE STORED ENTRY, so the dialog names what is really about to be destroyed
+   * rather than what the caller believed it was pointing at. It is called ONLY when the entry is
+   * found: a dialog about a project that is already gone teaches users to dismiss dialogs unread.
+   *
+   * Deliberately harsher than the CLOSE challenge, which offers three named outcomes and no
+   * typing. Closing loses work since the last file save; this destroys the stored copy too.
+   *
+   * WHY IT EXISTS: a store that only ever grows eventually hits its quota, and the first symptom
+   * is saves silently failing. The user needs to throw away the experiments they no longer want.
+   */
+  remove(id: string, confirm: DeleteChallenge): Promise<DeleteOutcome>;
+}
+
+/** The layer a save must write. A free function so the rule lives beside the repo that applies
+ *  it, rather than being restated at each call site. */
+function persistableLayerOf(project: ManagedProject): OpenISDProject {
+  return project.layerToPersist();
+}
+
+/**
+ * Build a repo over the store `make` produces.
+ *
+ * THE FACTORY IS INSTANTIATED HERE, at the private record type. So the caller supplies a store
+ * without ever learning what it will hold, and this module fixes the type without the caller
+ * being able to name it — the boundary is enforced by parametricity, not by a naming rule, and
+ * no cast appears anywhere.
+ *
+ * The store is held by the returned repo, NOT in module scope. A module-scoped store would have
+ * to be installed exactly once, which makes a second repo impossible to create and the package
+ * impossible to test — a test would need a reset backdoor that ships in production code. Passing
+ * it in costs one argument at the composition root and removes the global entirely.
+ *
+ * ASSUMES the composition root builds ONE repo and shares it. Two repos over two factories are
+ * two stores; over IndexedDB they would address the same database, but nothing here enforces
+ * that, and nothing needs to — deciding what exists once is what a composition root is for.
+ */
+export function projectRepo(make: RecordStoreFactory): ProjectRepo {
+  const store = make<OpenISDProjectJson>();
+  return {
+    save(project: ManagedProject): void {
+      const layer = persistableLayerOf(project);
+      const json = projectRecord(layer);
+      store.put(project.uuid(), json, { name: json.meta.name });
+    },
+
+    load(id: string): ManagedProject | string[] {
+      const json = store.get(id);
+      if (!json) return [`no stored project with id ${id}`];
+      // ADOPTS `id` as the project's identity, so its next save writes back to the entry it came
+      // from rather than minting a second one. See `wrapWithIdentity()`.
+      return ManagedProject.load(OpenISDProject.wrapWithIdentity(json, id));
+    },
+
+    list(): ProjectListing[] {
+      return store.list()
+        .map(e => ({ id: e.id, name: e.meta.name, modified: e.modified }))
+        .sort((a, b) => (a.modified < b.modified ? 1 : a.modified > b.modified ? -1 : 0));
+    },
+
+    async remove(id: string, confirm: DeleteChallenge): Promise<DeleteOutcome> {
+      // FOUND FIRST, then challenge: there is nothing to name and nothing to lose when `id`
+      // matches nothing, and the listing is what gives the dialog the real entry to show.
+      const entry = this.list().find(e => e.id === id);
+      if (!entry) return 'absent';
+      if (!await confirm(entry)) return 'declined';
+      store.remove(id);
+      return 'deleted';
+    },
+  };
 }

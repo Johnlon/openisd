@@ -6822,7 +6822,7 @@ questions:
       iniutilise new projects, but the constants c and roo are solely for tb bridge
 - id: QO89
   title: Air settings page needs a reset-to-defaults button (John, 2026-08-23)
-  status: open
+  status: decided
   raised: '2026-08-23'
   body: ''
   notes:
@@ -6830,6 +6830,29 @@ questions:
     text: |-
       John 2026-08-23, verbatim: "there should be a reset button on the air conststst page in settings please log that gap"
       Gap: the air-constants settings pane (temp/humidity/pressure) has no reset-to-defaults control. Once reset, the app's live-calculated c/roo again match the constant pair stamped into bridge-generated wdr files (they only diverge when the user tweaks the settings — which is correct behaviour per QO88's ruling). UI work, not release-blocking; slot with cycle-2 UI items unless pulled forward.
+  answer:
+    at: '2026-08-26'
+    text: |-
+      Refactor complete: DEFAULT_ENV_DEFAULTS/defaultEnvDefaults() added to
+      packages/ui/src/logic/presentationState.ts (buildPresentationState()'s initial
+      ui.envDefaults now shares the same constant). OptionsModal.vue's resetEnvDraft()
+      and restoreDefaults() now call defaultEnvDefaults() instead of an inline duplicate
+      literal. New unit test packages/ui/test/logic/presentationState.test.ts (3 cases:
+      canonical value, fresh-copy/no-aliasing, draft-reset scenario) — GREEN. Existing
+      Playwright coverage in original-skin.browser.spec.ts:1005 ("Environment fieldset
+      has its own reset button...") re-run and passes.
+
+      The reset BUTTON itself was already shipped in commit 980eeb3 (2026-08-23); this
+      change is only the logic/UI-separation refactor (moving the default-value literal
+      out of the .vue component into logic/) plus this ledger close, not a new
+      user-facing feature.
+
+      Note: the full browser spec run surfaced 26 pre-existing failures unrelated to
+      this change (reload/persistence fidelity, sample switching, tune-panel state) —
+      verified by re-running one representative failure (line 905, "Environment default
+      seeds a fresh mount's Advanced-pane Temperature") against the pre-change code via
+      git stash; it fails identically there. Not caused by this refactor, not fixed by
+      it either — left alone per scope guard.
 - id: QO90
   title: Project save API takes the OIP; .owpr/autosave become pure project data
   status: decided
@@ -6877,6 +6900,115 @@ questions:
       is not exposed to the app directly"). It also sat behind BUG_20260825 (the watcher cancelled an
       open what-if on the next tick). CONSEQUENCE OF REMOVAL: a design is lost on refresh unless saved
       to a file or carried in a share link. WHAT A DESIGN MUST SETTLE: what gets persisted (which layer
-      — an open what-if must never reach storage); when (debounced, on blur, on explicit save only);
-      whether the domain exposes bytes/a record rather than the OIP; how it interacts with savedState
-      vs editState and with isModified/Revert, since aggressive autosave makes "revert to saved" useless.'
+      — an open what-if must never reach storage); when (debounced, on blur, on explicit save only); whether
+      the domain exposes bytes/a record rather than the OIP; how it interacts with savedState vs editState
+      and with isModified/Revert, since aggressive autosave makes "revert to saved" useless.'
+  - at: '2026-08-26'
+    text: 'John 2026-08-26 asked whether all open projects can hold unsaved edits — they can, and the
+      removed autosave handled NEITHER case. Verified in the code, not inferred. (1) UNFOCUSED EDITS NEVER
+      PERSISTED: appState.ts:198-207 subscribes the single `live` ref to projects[focusedIndex] only,
+      so a project that is open but not focused emits no notification, committedSnapshot never recomputes,
+      and the watcher never fires for it. (2) FOCUS-SWITCHING CLOBBERED THE STORE: projectRepo.ts:97,332
+      write one key, openisd.state, holding one project; re-subscribing `live` on a focus change fires
+      the watcher, which overwrites that key with the newly focused project, so the previous one is destroyed
+      on the next tab click. The feature only ever worked for the single-project case it predates. THEREFORE
+      A DESIGN MUST ALSO SETTLE: whether persistence is per-project (a key per project) or one session
+      document holding all open projects plus the focus index; and whether the change signal is per-project
+      rather than one global tick.'
+  - at: '2026-08-26'
+    text: 'John 2026-08-26 on being shown those two defects: "ok so it sounds like this is unfit for purpose
+      - delete the whole thing". DELETED: ProjectRepo.saveLocal, ProjectRepo.loadLocal, PROJECT_STATE_KEY
+      (and its re-export from @openisd/persistence); ManagedProject.committedSnapshot(); appState.committedSnapshot;
+      the loadLocal() restore path in App.vue onMounted. KEPT per the earlier ruling ("hooks and integration
+      tests for the hooks = good, impl = bad"): the App.vue watch, now firing on appState.projectChanged
+      — a signal that ticks and hands over NOTHING, so no OpenISDProject crosses into the app. OriginalShell
+      needed a project-list row label, the one honest caller of the old snapshot; it now calls the new
+      narrow ManagedProject.committedMeta(), which returns the meta record only. The persist tests that
+      exercised the local-storage door were rerouted onto the FILE door (saveToFile + readProjectText
+      via a capturing FileStorage), keeping the QO90 no-view assertion and the full UiParams round-trip;
+      the three loadLocal-empty-case tests were deleted with the method. View-state persistence (viewStateRepo,
+      its own key, QO90) is a separate feature and is UNTOUCHED. Verified: tsc clean on @openisd/persistence,
+      vue-tsc clean on @openisd/ui, persist.test.ts 12/12.'
+  - at: '2026-08-26'
+    text: 'John 2026-08-26, the DESIGN DIRECTION for the replacement, which supersedes the projectChanged
+      signal approach: "whats the point of autosave? having any vue dependency at all - why doesnt every
+      change in the ecit layer of the managed driver cause a save to occur? the managed driver can send
+      its internal state object to a autosave store - how will this be keyed though ... did we add the
+      uuid to the projects - if you recall this allows us to have dupe names and so on and not worry
+      about it - additonally the focused project index can become that uuid instead." VERIFIED AGAINST
+      THE CODE, not assumed: (a) managedProject.ts imports NOTHING from vue (zero matches for a vue
+      import) and already owns a notification channel — `#listeners: Set<ManagedProjectListener>` and
+      `#notify()`, called by every mutating method. The removed autosave went #notify() ->
+      triggerRef(liveRef) -> computed -> Vue watch -> repo: four hops through a reactivity framework to
+      deliver a fact the domain already had, and that detour is precisely what routed persistence
+      through `live` (focused project only) and produced the unfocused-projects-are-silent defect.
+      (b) THERE IS NO UUID. Zero occurrences in managedProject.ts or appState.ts; OpenISDProjectMeta
+      (openisdProject.ts:288) is {name, creator, created, modified, description}. A project''s only
+      identity is its INDEX in the `projects` array, and focusedIndex is an integer into it.
+      Corroborating evidence that this already hurts: @openisd/persistence exports uniqueName/
+      copyOfName, helpers that exist only to keep names distinct — a workaround for absent identity.
+      TARGET SHAPE: uuid generated at ManagedProject construction and carried in the project record so
+      it survives a save; #notify() writes to an autosave store keyed by that uuid, with no Vue and no
+      App.vue hook; focusedIndex becomes focusedUuid so focus survives reordering and the close of
+      another project; each open project is its own writer, so the focused/unfocused distinction
+      disappears. STILL NEEDS A RULING: which layer is written (John said the edit layer — but an open
+      what-if must never reach storage, and autosaving edit-layer state forces "Revert" to mean
+      revert-to-committed rather than revert-to-stored); and whether the store receives BYTES/a record
+      rather than an OpenISDProject, since handing over the object is the leak just removed.'
+  - at: '2026-08-26'
+    text: 'RULING TAKEN: the project uuid is INTERNAL ONLY (John 2026-08-26: "lets make the UUID an
+      internal only feature" / "when loading an owdr we assign a new uuid"). IMPLEMENTED in both models.
+      packages/model: uuid moved OFF OpenISDProjectJson (the wire shape) and onto ProjectLiveState (the
+      in-memory shape); toJsonRecord() destructures it away; fromJsonRecord() mints a fresh one; empty()
+      always mints and takes no id parameter. packages/design: a `#uuid` class field on OpenISDProject,
+      deliberately NOT a member of OpenISDProjectJson — the record is the only thing ever serialised, so
+      an id outside it CANNOT reach a file, making "internal only" structural rather than a rule someone
+      must remember; wrap() mints, copy() carries across, ManagedProject.uuid() delegates to ground
+      ("the managed project is a wrapper id''d by same id"). The design package depends on nothing, so
+      `crypto` is not ambient there; domain/newUuid.ts declares exactly randomUUID rather than adding
+      "DOM" to the package lib, which would put document/window in reach of domain code. Schema stays
+      V2 — an earlier V2→V3 step that persisted the id was written and then REVERTED when the ruling
+      landed. Verified: model/persistence/ui compile clean; openisdProjectIdentity.test.ts 6/6, pinning
+      that a copy keeps the id, that the wire record carries none, that a load mints, and that two loads
+      of one record are two projects.
+      DRIVER PRECEDENT, verified against the code after an incorrect claim by the agent that the driver
+      uuid "serves a different purpose" and should be exempt: drivers ALREADY follow this exact rule,
+      ruled as QO81. driverBrowsingState.ts:425-427 calls res.driver.mintFreshUuid() on EVERY file
+      import — "the file''s own uuid is provenance, never the store key — importing twice yields two
+      entries" — backed by openisdDriver.ts:538. The driver''s single uuid (openisdDriver.ts:90) has four
+      consumers: the My Drivers store key (myDriverRepo.ts:179,195,202-206), the driver-browser list key
+      (driverBrowsingState.ts:181), the editor subject (driverSelection.ts:230,242), and the corpus
+      record identity minted upstream by the winisd_tools pipeline. It IS persisted, because it IS the
+      store key — which is the position a project uuid will occupy once QO92 designs a project store.
+      CONSEQUENCE FOR THE IMPORT QUESTION John raised: the precedent is already set — never prompt to
+      overwrite, always mint, two entries.'
+
+  - at: '2026-08-26'
+    text: 'OPEN SERVICE-DESIGN ITEMS, listed after John asked "what still open? file access? storage?
+      - the ui is the client of course but we are current designing the services". Each verified against
+      the code now, not recalled. (A) THE DOMAIN HAS NO PERSISTENCE BOUNDARY. packages/design contains
+      zero serialisation — no toJson/fromJson on OpenISDProject, nothing producing bytes.
+      ManagedProject.load() (project.ts:1244) takes an OpenISDProject, which a consumer deliberately
+      cannot obtain, and save() (:1307) is layer-only (committed->ground), unrelated to storage.
+      domain/index.ts:86 already records the gap. FIRST DECISION, blocking everything else: what crosses
+      the boundary each way — a record the persistence layer owns, or opaque text? (B) STORAGE BACKEND.
+      Today localStorage holds My Drivers and view state. Two forces push off it: localStorage is
+      strings only so it CANNOT hold FileSystemFileHandles, and its ~5MB ceiling is small for a
+      multi-project store carrying full driver records. IndexedDB solves both. Open: does the project
+      store go to IndexedDB, and do the existing buckets move or stay? (C) FILE ACCESS. fileStorage.ts:56
+      already retains a real FileSystemFileHandle, commented "session-only, lost on reload". A handle is
+      structured-cloneable, so persisting it in IndexedDB (never localStorage) is what turns this into a
+      working Open Recent with genuinely re-openable locations; re-opening needs a permission re-prompt,
+      which the user''s click on the recent entry supplies. Chromium only — Firefox/Safari lack the
+      pickers, so there a recent list can hold names but nothing re-openable. Also open: whether to use
+      showDirectoryPicker() so the user nominates a projects folder once, the closest analogue to
+      WinISD''s folder memory. (D) IDENTITY AND LIFECYCLE WIRING, none done: focusedIndex is still an
+      integer index (appState.ts:78) and should become focusedUuid so focus survives reordering and the
+      close of another project; #notify() should write to the store directly per John''s ruling (no Vue,
+      each project its own writer); and CLOSE/RELOAD SEMANTICS ARE UNRULED — closing drops the project
+      from memory entirely (projects array is the only holder; removeProject splices it), so does closing
+      also delete its store entry or leave a recoverable copy, and on reload does the app reopen
+      everything that was open, or start empty? STILL AWAITING A RULING from earlier: which layer is
+      autosaved (John said the edit layer, but an open what-if must never reach storage and autosaving
+      edit state changes what Revert means); and whether a My Drivers entry needs a second, in-app-only
+      id alongside its persisted corpus one.'

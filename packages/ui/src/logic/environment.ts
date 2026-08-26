@@ -1,6 +1,6 @@
 /**
  * Small, stateless engine formulas a component needs directly — not project state, just
- * physics with no home yet in `ManagedOpenISDProject`. Each wraps exactly one `@openisd/engine`
+ * physics with no home yet in `ManagedProject`. Each wraps exactly one `@openisd/engine`
  * export so a component reads its number from here instead of naming the engine itself
  * (architecture.test.ts "a component imports no value from the domain").
  */

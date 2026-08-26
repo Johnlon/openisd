@@ -1,7 +1,7 @@
 /** REPO: the open design as a persisted payload — localStorage autosave, the share-link
  *  hash, and the project file on disk (`.owpr`). Takes the domain object, returns the domain
  *  object; the JSON wire shape stays inside this file. */
-import { OpenISDProject, OpenISDDriver } from '@openisd/model';
+import { OpenISDProject, driverFromConformingRecord } from '@openisd/model';
 import type { AlignmentKind, OpenISDProjectMeta, UiParams } from '@openisd/model';
 import type { BoxType } from '@openisd/engine';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
@@ -94,13 +94,11 @@ export interface ProjectSchema {
   upgrade(blob: Record<string, unknown>): { blob: Record<string, unknown>; from: number; applied: string[] };
 }
 
-export const PROJECT_STATE_KEY = 'openisd.state';
-
 /** The persisted / URL-encoded snapshot shape. INTERNAL: repo callers speak `OpenISDProject`
  *  (+ `ViewSnapshot` for the share-link doors); this is the flat wire shape it becomes on disk
  *  and in links, built from and read back into the project's OWN `toUiParams()`/`loadUiParams()`
  *  surface. `P`/`graphs`/`lossMode`/`ui`/`cursor` are all optional on the wire because a
- *  pure-project save (QO90 — `saveLocal`/`saveToFile`/`saveToNewFile`) never writes the view
+ *  pure-project save (QO90 — `saveToFile`/`saveToNewFile`) never writes the view
  *  fields, while a share link (`stateToUrl`) writes every field. One schema, an optional view
  *  section — not two payload shapes. */
 interface SerializedState {
@@ -155,11 +153,6 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 }
 
 export interface ProjectRepo {
-  /** Autosave to browser storage. Quota/disabled storage is non-fatal — an autosave that
-   *  cannot happen must not take the session down. Pure project data (QO90) — no view. */
-  saveLocal(project: OpenISDProject): void;
-  /** The saved design, brought to the current schema, or null when none/unreadable. */
-  loadLocal(): OpenISDProject | null;
   /** A URL carrying the WHOLE session, stripped of nothing (human ruling 2026-08-14) — `view`
    *  is written to the wire here, unlike the pure-project doors. The one legitimate place a
    *  project and its view are bundled together — a share link is genuinely both at once. */
@@ -171,10 +164,9 @@ export interface ProjectRepo {
    *  arrives (bugs/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md). */
   readProjectText(text: string): OpenISDProject | null;
   /** Write to the previously-picked file (first save prompts). `naming` carries the
-   *  suggested filename and the picker's format bits. Pure project data (QO90), like
-   *  `saveLocal`. */
+   *  suggested filename and the picker's format bits. Pure project data (QO90) — no view. */
   saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
-  /** Always prompt for a new location. Pure project data (QO90), like `saveLocal`. */
+  /** Always prompt for a new location. Pure project data (QO90) — no view. */
   saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
 }
 
@@ -184,7 +176,7 @@ export function createProjectRepo(
   storage: KeyValueStorage, schema: ProjectSchema, fileStorage: FileStorage,
 ): ProjectRepo {
 
-  /** PURE PROJECT DATA (QO90) — `saveLocal`/`saveToFile`/`saveToNewFile`'s wire writer, built
+  /** PURE PROJECT DATA (QO90) — `saveToFile`/`saveToNewFile`'s wire writer, built
    *  from the project's OWN existing serialisation surface (`toUiParams()`/`activeAlignment()`/
    *  `projectMeta()`/`driver()`) rather than a hand-assembled second shape — `OpenISDProject` is
    *  what every caller of this repo already holds; nothing here re-declares its fields. */
@@ -218,7 +210,7 @@ export function createProjectRepo(
    * A saved wire state → a live `OpenISDProject`, via the project's own `loadUiParams()` — the
    * SAME restore surface `OpenISDProject` already exposes, not a second reconstruction path.
    * The driver's text is untrusted (a hand-edited file, an old build's link), so it is CHECKED
-   * (`OpenISDDriver.fromConformingRecord`) rather than trusted outright: a driver too broken to
+   * (`driverFromConformingRecord`) rather than trusted outright: a driver too broken to
    * load safely is quarantined and dropped, while the rest of the project still loads
    * (least-impact refusal — the user loses the driver selection, not the session).
    *
@@ -234,7 +226,7 @@ export function createProjectRepo(
   function projectOf(s: SerializedState): OpenISDProject | null {
     let parsed: unknown;
     try { parsed = JSON.parse(s.driver); } catch { parsed = null; }
-    const driver = parsed != null ? OpenISDDriver.fromConformingRecord(parsed) : null;
+    const driver = parsed != null ? driverFromConformingRecord(parsed) : null;
     if (!driver) {
       console.error('[restore] refused the saved driver record — not a conforming driver record');
       // QUARANTINE BEFORE THE AUTOSAVE EATS IT. Refusing the record leaves nothing to load
@@ -329,29 +321,6 @@ export function createProjectRepo(
   }
 
   return {
-    saveLocal(project: OpenISDProject): void {
-      storage.set(PROJECT_STATE_KEY, JSON.stringify(projectPayloadOf(project)));   // createLocalStorage already guards quota/disabled
-    },
-
-    /**
-     * Read the saved state and bring it to the current schema.
-     *
-     * The upgrade runs HERE, at the door, so nothing downstream ever sees an older shape. A
-     * payload this build cannot upgrade — a future version, or a gap in the chain — is
-     * refused rather than loaded hopefully; `upgrade()` throws and this returns null, leaving
-     * the app on its own defaults with the stored bytes untouched for diagnosis.
-     */
-    loadLocal(): OpenISDProject | null {
-      const raw = storage.get(PROJECT_STATE_KEY);
-      if (!raw) return null;
-      let parsed: unknown;
-      try { parsed = JSON.parse(raw); } catch {
-        console.error('[restore] saved state is not valid JSON — ignored');
-        return null;
-      }
-      return readParsedProject(parsed);
-    },
-
     async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {
       // The URL carries the WHOLE state, stripped of nothing (human ruling 2026-08-14). A
       // share link is a complete description of the session: the recipient lands on exactly

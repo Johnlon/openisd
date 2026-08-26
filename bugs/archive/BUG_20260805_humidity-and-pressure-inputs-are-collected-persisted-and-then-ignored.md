@@ -2,6 +2,20 @@
 
 Status: RESOLVED
 
+## Re-check verdict (2026-08-23, against BUG_20260823_advtemp_advhumidity_advpressure_overwrote_a_loaded_projects_env_on_mount.md)
+
+**Distinct second defect in the same three-field family — NOT a resurfacing of this bug.** This
+bug's claim was that humidity/pressure never reached the engine at all (dangling local refs,
+`Params` missing the fields). That specific defect is STILL FIXED: `managedProject.toUiParams()`
+(`managedProject.ts:723-724`) reads `humidityPct`/`pressurePa` straight from
+`envHumidityPct()`/`envPressurePa()` into the `UiParams` the sweep consumes, and
+`packages/engine/src/air.ts`'s `airFor()`/`moistAirDensity()`/`moistAirSoundVelocity()` consume
+both — verified live in this repo on 2026-08-23, not just cited from the fix-date note above.
+The 2026-08-23 bug is a different mechanism entirely: the pipeline into the engine was intact,
+but `OriginalShell.vue`'s three env inputs were one-way-write shadow refs seeded from an
+unrelated app-level default, so a LOADED PROJECT's own correct values got silently overwritten
+by that default on every mount — a display/edit-binding bug, not a wiring gap.
+
 # Status
 OPEN 2026-08-05 — resolved by 2026-08-20: `Params.humidityPct`/`pressurePa` exist
 (packages/engine/src/types.ts:133,135), `OriginalShell.vue:676-682` wires `advHumidity`/

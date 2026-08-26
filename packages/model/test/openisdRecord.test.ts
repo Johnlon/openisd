@@ -68,11 +68,11 @@ describe('the openisd.yml record shape — constructible against real fixture da
   });
 
   it('a metadata field (ScrapedField) has a flat value, unlike a SpecEntry', () => {
-    assert.equal(driver().metaCell('brand').value, 'Beyma');
+    assert.equal(driver().brandCell().value, 'Beyma');
   });
 
   it('the same fixture is reachable through the driver\'s own cell() API', () => {
-    assert.equal(driver().cell('Fs').value, 29.0);
-    assert.equal(driver().cell('Fs').state, Provenance.Entered);
+    assert.equal(driver().FsCell().value, 29.0);
+    assert.equal(driver().FsCell().state, Provenance.Entered);
   });
 });

@@ -16,11 +16,18 @@
  * `null` for the yml leg; `OpenISDDriver.toWinISDDriver()` drops it to the `.wdr` default for
  * the wdr leg) — proving these are real, reachable detectors, not checks that can never trip;
  * (d) the external contract is unchanged — `value` is still the fresh, correct `.wdr`
- * projection even when both checks report a problem with it.
+ * projection even when both checks report a problem with it; (e) `wdr-round-trip` compares
+ * `Provenance.Calculated` `INI_ROWS` fields too, not only `Entered` ones — see this file's own
+ * docstring for why that is safe (every field that can feed `deriveOpenISDFields` is itself an
+ * `INI_ROWS` member, so the Entered-field agreement already proven is the solver's entire
+ * input set) — confirmed against 1970 real corpus records (`winisd_drivers/db/datasheets`) with
+ * zero `wdr-round-trip` errors from this widened scope.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
+import { parse } from 'yaml';
 import { openisdYamlToWdr } from '../src/openisdYamlToWdr.js';
+import { OpenISDDriver, Provenance } from '../src/openisdDriver.js';
 
 describe('openisdYamlToWdr — baked-in yml-round-trip and wdr-round-trip self-validation', () => {
   it('a real record with both an INI_ROWS-tracked spec field and a non-WDR spec field round-trips ' +
@@ -123,5 +130,31 @@ specs: {woofer: {}}
     assert.notEqual(value, null);
     assert.deepEqual(errors.filter(e => e.field.startsWith('wdr-round-trip')), []);
     assert.deepEqual(errors.filter(e => e.field === 'yml-round-trip'), []);
+  });
+
+  it('a Calculated INI_ROWS field (Rme, derived from entered Fs/Mms/Qes) is actually compared, ' +
+     'not skipped, and round-trips clean — proving the widened scope executes on a genuinely ' +
+     'Calculated field rather than being a no-op change', () => {
+    const record = `
+uuid: {value: u1, definition: d}
+quality: {rating: M, confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}
+manufacturer: {value: Acme, origin: manual, definition: d, dq: []}
+brand: {value: Acme, origin: manual, definition: d, dq: []}
+model: {value: Widget, origin: manual, definition: d, dq: []}
+sku: {value: acme-widget, definition: d, grounds: []}
+driver_type: {value: woofer, origin: manual, definition: d, dq: []}
+data_sources: {value: {}, definition: d}
+authoritative: {value: manual, definition: d}
+specs:
+  woofer:
+    Fs: {origin: manual, readings: {manual: {read_value: 45}}, dq: []}
+    Mms: {origin: manual, readings: {manual: {read_value: 0.012}}, dq: []}
+    Qes: {origin: manual, readings: {manual: {read_value: 0.4}}, dq: []}
+`;
+    const driver = OpenISDDriver.fromJsonRecord(parse(record) as never);
+    assert.equal(driver.RmeCell().state, Provenance.Calculated, 'Rme must actually be Calculated for this test to prove anything');
+
+    const { errors } = openisdYamlToWdr(record);
+    assert.deepEqual(errors.filter(e => e.field.startsWith('wdr-round-trip')), []);
   });
 });

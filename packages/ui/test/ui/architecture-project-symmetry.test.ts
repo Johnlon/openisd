@@ -12,7 +12,13 @@
  * 2. No UI code outside `managedProject.ts` touches the entered set (`target.entered`,
  *    `isEntered(`, `setEntered(`). Without entered-state access no UI code CAN derive a
  *    field's provenance on its own, so every E/C/N the UI shows necessarily resolves through
- *    `projectCell()` — the enforceable shape of "the UI binds through cell()".
+ *    a `ManagedProject` accessor — one flat provenance getter per field
+ *    (`boxVolumeProvenance()`, `ventDiameterProvenance()`, `prFpProvenance()`, …) for vent/PR-
+ *    group fields, a named getter for everything else. `ManagedProject` has no keyed
+ *    dispatch at all — `docs/design/ENCAPSULATION_AND_LAYERING.md` — but the invariant this test
+ *    enforces is the same: no route around the domain object's own provenance. The demo fixture
+ *    below still names `projectCell` as a stand-in shape purely to exercise the detector — it is
+ *    not asserting anything about real `ManagedProject`, which has no such method.
  */
 import { describe, it, vi } from 'vitest';
 import assert from 'node:assert/strict';
@@ -136,7 +142,8 @@ describe('project symmetry — the invariants hold (Lane P5)', () => {
     if (existsSync(SRC)) walk(SRC);
     assert.deepEqual(offences, [],
       'Provenance is the domain object\'s answer. UI code reading or writing the entered set '
-      + 'is deriving E/C/N on its own — route through projectCell()/enterProjectField()/'
-      + 'clearProjectField() instead.');
+      + 'is deriving E/C/N on its own — route through a ManagedProject accessor instead '
+      + '(a flat provenance getter per field — boxVolumeProvenance(), ventDiameterProvenance(), '
+      + 'prFpProvenance(), etc — or a named getter).');
   });
 });

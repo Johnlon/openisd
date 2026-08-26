@@ -55,7 +55,7 @@ export function readDriverFileText(file: File): Promise<WinisdDecodedText> {
 }
 
 /** A driver file's BODY, ready to write. `.wdr` carries its own encoding, so it goes out as
- *  bytes; `.owdr` is JSON and goes out as text. The UI hands over text and a format and never
+ *  bytes; `.owdr` is YAML and goes out as text. The UI hands over text and a format and never
  *  learns which of the two it got. */
 export function driverFileBody(text: string, isWdr: boolean): string | Uint8Array<ArrayBuffer> {
   return isWdr ? winisdTextToBytes(text) : text;

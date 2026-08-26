@@ -106,6 +106,15 @@ export class ManagedProject {
     this.#committed = committed;
   }
 
+  /** THE identity of the project this wraps (John 2026-08-26: "the managed project is a
+   *  wrapper id'd by same id"). Every layer — ground, committed, an open edit or what-if — is a
+   *  COPY of one project and so carries the same id, which is why the wrapper can answer with
+   *  ground's without having to say which layer it asked. Stable for the wrapper's whole life:
+   *  no layer operation mints an id, and `load()` adopts the incoming project's.
+   *
+   *  This is what a store keys on. A name cannot serve: two open projects may share one. */
+  uuid(): string { return this.#ground.project.uuid(); }
+
   /** Adopt `project` as freshly loaded: ground and committed become independent copies of it. */
   static fromProject(project: OpenISDProject): ManagedProject {
     return new ManagedProject(layerOf(project.copy()), layerOf(project.copy()));
@@ -759,9 +768,9 @@ export class ManagedProject {
    * cancels an active what-if first as an observable side effect.
    *
    * That cancellation is STRUCTURAL: this is the only route to a persistable project, so no
-   * call site can forget it. NOT for a read that merely needs to know what committed state
-   * currently looks like without acting on the user's behalf — use `committedSnapshot()` for
-   * that (BUG_20260825: the autosave watcher called this on every reactive tick, silently
+   * call site can forget it. NOT for a read that merely wants to observe committed state
+   * without acting on the user's behalf — ask a narrow question instead, e.g.
+   * `committedMeta()` (BUG_20260825: a watcher called this on every reactive tick, silently
    * cancelling an open what-if moments after the user opened one).
    */
   projectToPersist(): OpenISDProject {
@@ -769,11 +778,11 @@ export class ManagedProject {
     return this.#committed.project.copy();
   }
 
-  /** Committed state, read-only — never cancels an open what-if. For a caller that only needs
-   *  to observe what committed state looks like (e.g. an autosave watcher deciding what to
-   *  write), not one performing an explicit save/export/share action. */
-  committedSnapshot(): OpenISDProject {
-    return this.#committed.project.copy();
+  /** Committed state's project metadata (name, notes) — never cancels an open what-if, and
+   *  hands over a plain record rather than the project, so a caller listing projects gets the
+   *  label it asked for and no access to the layer behind it. */
+  committedMeta(): OpenISDProjectMeta {
+    return this.#committed.project.projectMeta();
   }
 
   isWhatIfActive(): boolean { return this.#overlay?.kind === 'whatif'; }
@@ -847,9 +856,9 @@ export class ManagedProject {
     this.mutate(p => { p.setDriver(driver); });
   }
 
-  /** Adopt a driver from `.owdr` text (the record's own YAML serialisation, BUG_20260826).
-   *  Throws on malformed YAML — for a checked, non-throwing adoption of UNTRUSTED text
-   *  (localStorage, a share link, still JSON) use `loadDriverFromPersistedText`. */
+  /** Adopt a driver from `.owdr` text (the record's own YAML serialisation). Throws on
+   *  malformed YAML — for a checked, non-throwing adoption of UNTRUSTED text (localStorage, a
+   *  share link, still JSON) use `loadDriverFromPersistedText`. */
   loadDriverFromOwdrText(text: string): void {
     const driver = OpenISDDriver.fromOwdrYml(text);
     this.mutate(p => { p.setDriver(driver); });
@@ -904,7 +913,7 @@ export class ManagedProject {
   }
 
   /** The COMMITTED driver as `.owdr` bytes — cannot fail (the record is always representable
-   *  as its own YAML, BUG_20260826). */
+   *  as its own YAML). */
   exportDriverOwdr(): Uint8Array<ArrayBuffer> {
     this.#endWhatIfIfActive();
     return new TextEncoder().encode(this.#committed.openIsdDriver.toOwdrYml()) as Uint8Array<ArrayBuffer>;

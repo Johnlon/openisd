@@ -104,6 +104,32 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 
 ---
 
+# THE RELEASE CUT (2026-08-23, John: "I will let you decide ordering to get original plan
+# closed out" — Fable's cut, binding)
+
+RELEASE SCOPE IS FROZEN at work in flight. IN: A9 landing, P4b, D14-remainder, the
+driverType→model relocation commit, tools 13-plugin migration + pyright gate, B10 sweep +
+sample verification, B11 bundle, plan reconciliation, A10 (live-list grant triage + register),
+frozen-tree full vitest + Playwright, sign-off report. OUT (cycle 2, recorded not scheduled):
+the @openisd/persistence package extraction (John's session STASHES/HOLDS it), the QO84
+precision port (necessity proven, scope ruling whenever), QT71's scenario decision, the
+SPL/Step-7 rename, the favourites-key migration, my-drivers spec envelope residue.
+
+ENDGAME ORDER: (1) relocate session lands driverType as its own commit, holds the package
+extraction; (2) window 1 = winisd-3a's A9 batch; (3) P4b and D14 commits serialized
+first-ready-first, opus2 reviewing each; (4) parallel: tools migration → sweep → sample check
+→ B11; (5) plan reconciliation; (6) FREEZE WINDOW with tree-state acks (HEAD sha + dirty
+count, before/after, HEAD-clean) → full vitest + full Playwright ONCE; (7) A10 —
+CRITERION CHANGED by John's QO80 reframe (2026-08-23, verbatim in the ledger answer): the
+per-export ALLOWED_GLOBALS grant model is RETIRED; A10 passes on LAYERING GATES GREEN —
+orderly layer edges per his ruled matrix, including the upward-import ban (nothing below
+the ui layer imports FROM ui). No grant-list pass will happen. (8) sign-off report.
+No tag, no push.
+
+QT72 ELEVATED (John, 2026-08-23): elimination of duplicated logic is a HIGH-PRIORITY
+standing practice under constant vigilance — every review (opus2's charter included)
+actively polices new duplication; shared helpers over per-vendor/per-file copies, always.
+
 # COMMAND STATE (2026-08-23 ~night — John asleep; Fable supervises ONLY, no toil; every
 # completion claim is adversarially re-verified before it counts)
 
@@ -1316,3 +1342,20 @@ otherwise (HIS decision — the safety pushes he ordered took precedence over th
 row). winisd_tools unpushed: 2 commits, 0 attributions — clean. winisd_drivers unpushed:
 2 commits, BOTH attributed — rewritable at cleanup time (genuinely unpushed). This run's
 own commits are written clean.
+
+# REFERENCE — the precision plan (QO84 ruled 2026-08-23: small fix now, big fix tracked as QO87)
+
+SMALL FIX (ruled, post-B10-re-emission): consistency.ts seeds each field's tolerance from the
+winning reading's `read_precision` where one exists (`precisions[k] ?? halfUlp(resolved[k])`),
+halfUlp as the fallback for fields with no stored precision. Evidence and worked examples:
+docs/design/QO84_PRECISION_NECESSITY.md (corpus-measured: 96.8% of records carry a divergent
+reading; three confirmed Q-group verdict flips; the too-tight imperial-unit class is the
+release-damaging direction). Independently corroborated by
+winisd_tools/brain/PRECISION_DQ_PORT_QO84.md (zero-contact derivation, same mechanism, same
+minimal shape).
+
+BIG FIX (QO87, open, cycle 2+): port the full printed-precision interval model — values carry
+their printed half-width end to end, comparisons are interval overlap, derived values
+propagate widths through the formulas rather than perturbation deltas. The older doc's 5-step
+implementation plan is the starting sketch; its open sub-question (is the symmetric half-width
+model itself right?) is QO87's first design decision.

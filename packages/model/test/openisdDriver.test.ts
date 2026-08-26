@@ -37,18 +37,18 @@ function grs8fr8() {
 describe('OpenISDDriver — enter() writes a manual-origin reading (QO36 ruling B3)', () => {
   it('enter() on a field the record does not carry marks it E with the entered value', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    assert.equal(d.cell('Rms').state, Provenance.Calculated, 'Rms is not in the record — it is solved, so C');
+    assert.equal(d.RmsCell().state, Provenance.Calculated, 'Rms is not in the record — it is solved, so C');
 
-    d.enter('Rms', 2.75);
+    d.enterRms(2.75);
 
-    const c = d.cell('Rms');
+    const c = d.RmsCell();
     assert.equal(c.value, 2.75);
     assert.equal(c.state, Provenance.Entered);
   });
 
   it('the entry it writes carries origin: manual, and the value under readings.manual', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    d.enter('Rms', 2.75);
+    d.enterRms(2.75);
 
     const entry = d.toJsonRecord().specs.woofer?.Rms;
     assert.ok(entry, 'Rms must now be present in specs.woofer');
@@ -59,7 +59,7 @@ describe('OpenISDDriver — enter() writes a manual-origin reading (QO36 ruling 
   it('OMITS read_precision and actual_reading — there was no printed literal to echo and no ' +
      'stated precision, so synthesising either would fabricate provenance (QO36 B3)', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    d.enter('Rms', 2.75);
+    d.enterRms(2.75);
 
     const reading = d.toJsonRecord().specs.woofer?.Rms?.readings.manual;
     assert.ok(reading);
@@ -74,13 +74,13 @@ describe('OpenISDDriver — enter() writes a manual-origin reading (QO36 ruling 
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
     assert.equal(d.toJsonRecord().specs.woofer?.Fs?.origin, 'manufacturer_product_page');
 
-    d.enter('Fs', 41.5);
+    d.enterFs(41.5);
 
     const entry = d.toJsonRecord().specs.woofer?.Fs;
     assert.ok(entry);
     assert.equal(entry.origin, 'manual');
     assert.equal(entry.readings.manual?.read_value, 41.5);
-    assert.equal(d.cell('Fs').value, 41.5);
+    assert.equal(d.FsCell().value, 41.5);
   });
 });
 
@@ -116,7 +116,7 @@ describe('OpenISDDriver — consistencyIssues()', () => {
     // Qts is already entered (0.56); entering a Qes that combines with the stated Qms to a
     // wildly different Qts than the one on file is exactly what checkConsistency exists to catch.
     const d = OpenISDDriver.fromJsonRecord(record);
-    d.enter('Qes', 20.0);
+    d.enterQes(20.0);
     const issues = d.consistencyIssues();
     assert.ok(issues.length > 0, 'Qts=0.56 on file vs. Qes=20/Qms=4.83 implying a very different Qts must be flagged');
   });
@@ -126,18 +126,18 @@ describe('OpenISDDriver — autoCalculate', () => {
   it('defaults to true — a derivable field reads C', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
     assert.equal(d.autoCalculate, true);
-    assert.equal(d.cell('Mms').state, Provenance.Entered, 'Mms is stated on the fixture — E regardless');
-    assert.equal(d.cell('Cms').state, Provenance.Entered, 'Cms is also stated on the fixture — E regardless');
+    assert.equal(d.MmsCell().state, Provenance.Entered, 'Mms is stated on the fixture — E regardless');
+    assert.equal(d.CmsCell().state, Provenance.Entered, 'Cms is also stated on the fixture — E regardless');
   });
 
   it('off: a field that is only derivable (never stated) reads N instead of C', () => {
     const record = grs8fr8();
     delete record.specs.woofer!.Rms;   // Rms is never stated on the fixture — only ever C
     const d = OpenISDDriver.fromJsonRecord(record);
-    assert.equal(d.cell('Rms').state, Provenance.Calculated, 'auto-calculate on (default): Rms solves from Fs/Mms/Qms');
+    assert.equal(d.RmsCell().state, Provenance.Calculated, 'auto-calculate on (default): Rms solves from Fs/Mms/Qms');
 
     d.autoCalculate = false;
-    assert.equal(d.cell('Rms').state, Provenance.NotAvailable, 'auto-calculate off: nothing solves, so an un-stated field is N');
+    assert.equal(d.RmsCell().state, Provenance.NotAvailable, 'auto-calculate off: nothing solves, so an un-stated field is N');
   });
 
   it('toggling back on re-derives — the cache does not stick to the old mode', () => {
@@ -145,9 +145,9 @@ describe('OpenISDDriver — autoCalculate', () => {
     delete record.specs.woofer!.Rms;
     const d = OpenISDDriver.fromJsonRecord(record);
     d.autoCalculate = false;
-    assert.equal(d.cell('Rms').state, Provenance.NotAvailable);
+    assert.equal(d.RmsCell().state, Provenance.NotAvailable);
     d.autoCalculate = true;
-    assert.equal(d.cell('Rms').state, Provenance.Calculated);
+    assert.equal(d.RmsCell().state, Provenance.Calculated);
   });
 });
 
@@ -155,7 +155,7 @@ describe('OpenISDDriver — metaCell()/enterMeta()/clearMeta() (brand/model/manu
   'the ScrapedField envelope — QO36 B3/B4 apply the same way as a SpecEntry)', () => {
   it('metaCell() reads a stated ScrapedField as E, with its origin', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    const c = d.metaCell('brand');
+    const c = d.brandCell();
     assert.equal(c.value, 'GRS');
     assert.equal(c.state, Provenance.Entered);
     assert.equal(c.origin, 'manufacturer_product_page');
@@ -163,8 +163,8 @@ describe('OpenISDDriver — metaCell()/enterMeta()/clearMeta() (brand/model/manu
 
   it('enterMeta() overwrites the value, sets origin: manual, and cell() reflects it', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    d.enterMeta('model', '8FR-8X');
-    const c = d.metaCell('model');
+    d.enterModel('8FR-8X');
+    const c = d.modelCell();
     assert.equal(c.value, '8FR-8X');
     assert.equal(c.state, Provenance.Entered);
     assert.equal(c.origin, 'manual');
@@ -174,8 +174,8 @@ describe('OpenISDDriver — metaCell()/enterMeta()/clearMeta() (brand/model/manu
   it('enterMeta() with an empty string on a field never manually overridden is a no-op — ' +
      'you cannot blank away a stated fact, same as clear() on a non-manual SpecEntry', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    d.enterMeta('model', '');
-    const c = d.metaCell('model');
+    d.enterModel('');
+    const c = d.modelCell();
     assert.equal(c.value, '8FR-8');
     assert.equal(c.state, Provenance.Entered);
     assert.equal(c.origin, 'manufacturer_product_page');
@@ -184,26 +184,26 @@ describe('OpenISDDriver — metaCell()/enterMeta()/clearMeta() (brand/model/manu
   it('enterMeta() with an empty string, after a manual override, routes through clearMeta() ' +
      'and restores the pre-override value', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    d.enterMeta('model', '8FR-8X');
-    d.enterMeta('model', '');
-    const c = d.metaCell('model');
+    d.enterModel('8FR-8X');
+    d.enterModel('');
+    const c = d.modelCell();
     assert.equal(c.value, '8FR-8');
     assert.equal(c.origin, 'manufacturer_product_page');
   });
 
   it('clearMeta() restores the value and origin the field carried before the manual override', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    d.enterMeta('model', '8FR-8X');
-    d.clearMeta('model');
-    const c = d.metaCell('model');
+    d.enterModel('8FR-8X');
+    d.clearModel();
+    const c = d.modelCell();
     assert.equal(c.value, '8FR-8', 'reverts to the datasheet value, not blank');
     assert.equal(c.origin, 'manufacturer_product_page');
   });
 
   it('clearMeta() on a field never entered by hand does nothing', () => {
     const d = OpenISDDriver.fromJsonRecord(grs8fr8());
-    d.clearMeta('brand');
-    const c = d.metaCell('brand');
+    d.clearBrand();
+    const c = d.brandCell();
     assert.equal(c.value, 'GRS');
     assert.equal(c.origin, 'manufacturer_product_page');
   });
@@ -218,7 +218,7 @@ describe('OpenISDDriver — a driver TYPE and a specs SECTION KEY are two vocabu
     record.specs = { 'passive-radiator': { Fs: record.specs.woofer!.Fs } };
     const d = OpenISDDriver.fromJsonRecord(record);
     assert.equal(d.section, 'passive-radiator');
-    assert.equal(d.cell('Fs').value, 45.0);
+    assert.equal(d.FsCell().value, 45.0);
   });
 
   it('driver_type "amt" reads the tweeter section — the emitter files AMT specs under ' +
@@ -230,7 +230,7 @@ describe('OpenISDDriver — a driver TYPE and a specs SECTION KEY are two vocabu
     record.specs = { tweeter: { Re: record.specs.woofer!.Re } };
     const d = OpenISDDriver.fromJsonRecord(record);
     assert.equal(d.section, 'tweeter');
-    assert.equal(d.cell('Re').value, 7.3);
+    assert.equal(d.ReCell().value, 7.3);
   });
 
   it('an undeclared driver_type falls back to the woofer section, so a value stated under ' +
@@ -243,7 +243,7 @@ describe('OpenISDDriver — a driver TYPE and a specs SECTION KEY are two vocabu
     record.specs = { 'passive-radiator': { Fs: record.specs.woofer!.Fs } };
     const d = OpenISDDriver.fromJsonRecord(record);
     assert.equal(d.section, 'woofer');
-    assert.equal(d.cell('Fs').value, null);
+    assert.equal(d.FsCell().value, null);
   });
 });
 
@@ -255,18 +255,18 @@ describe('OpenISDDriver.fromFileText — parses the format it is TOLD, never one
     assert.deepEqual(wdrErrors, []);
     const { value: driver, errors } = OpenISDDriver.fromFileText(wdrText!, 'wdr');
     assert.deepEqual(errors, []);
-    assert.equal(driver!.cell('Fs').value, original.cell('Fs').value);
+    assert.equal(driver!.FsCell().value, original.FsCell().value);
   });
 
-  it('format "owdr" parses .owdr (JSON) text', () => {
+  it('format "owdr" parses .owdr (YAML) text', () => {
     const original = OpenISDDriver.fromJsonRecord(grs8fr8());
-    const { value: driver, errors } = OpenISDDriver.fromFileText(original.toOwdrJson(), 'owdr');
+    const { value: driver, errors } = OpenISDDriver.fromFileText(original.toOwdrYml(), 'owdr');
     assert.deepEqual(errors, []);
-    assert.equal(driver!.cell('Fs').value, original.cell('Fs').value);
+    assert.equal(driver!.FsCell().value, original.FsCell().value);
   });
 
-  it('format "owdr" against text that is not JSON returns an error, never throws', () => {
-    const { value, errors } = OpenISDDriver.fromFileText('not JSON at all', 'owdr');
+  it('format "owdr" against text that is not valid YAML returns an error, never throws', () => {
+    const { value, errors } = OpenISDDriver.fromFileText(': : : not yaml : :', 'owdr');
     assert.equal(value, null);
     assert.ok(errors[0]?.message.length);
   });

@@ -137,3 +137,82 @@ designed to catch.
 
 **VERDICT: the migration STANDS.** One row untestable (6 — no exemplar shape exists yet),
 every other assertion green with quoted evidence.
+
+## VERDICTS — post-sweep sample check, 2026-08-23
+
+Method: mechanical walker over all eleven sample driver.yml files (banned keys anywhere in
+the mapping tree; corroboration/dq_marks shape; EVERY `definition:` text compared in-process
+against the live registries — `FIELD_DEFINITIONS`, the `SpecField` enum, `SCRAPER_META_KEYS`
+in `record_registries.py`; quality block; readings/read_precision), plus targeted reads and
+a real V8 bridge run, evidence quoted per row.
+
+Per-record:
+
+1. `grs/8pf-8` — banned/old keys NONE; no `disposition` anywhere; `quality.missing:
+   [BL, Mms]` (driver.yml:9); 19 spec entries, 19 readings all with `read_precision`;
+   all definitions match the live registry. ✓
+2. `accuton/bd20-5-048` — banned keys NONE; no incomplete/disposition residue; definitions
+   current. ✓
+3. `accuton/c25-6-013` — openisd.yml through the REAL V8 bridge
+   (`python -m scrapers.lib.openisd_js …`): `errors: []`, well-formed populated `[Driver]`
+   .wdr (Fs=1294, Re=6.46, Qts=0.88). ✓
+4. `scan-speak/32w-8878t11` — `corroboration: MATCH` ×7, plain strings, no dq_status;
+   Fs (driver.yml:61–77) carries readings under THREE roles, all 21.0. ✓
+5. `scan-speak/d2908-716000` — `corroboration: MISMATCH` ×2 (Fs :76, Qts :128), plain
+   strings; no `dq_marks`, matching row 5's amended evidence above. ✓
+6. `faitalpro/10fh500-4` — BL (driver.yml:137–145) `actual_reading: 15.5 N/A`,
+   `read_value: 15.5` — still the N/A-unit reading; no value-less rejected-entry exemplar
+   exists in the corpus. ❔ untested (no exemplar shape exists)
+7. `eminence/apt-200` — no `Fs:` key (grep count 0); `quality.missing: [Fs, Re]` gives the
+   derivation its basis; conforms (db-conformance green incl. this file). It has NO
+   openisd.yml/.wdr (one of 95 such dirs), so the "ships" half is ❔ untested. ✓ / ❔
+8. `tang-band/pr01` — `driver_type: value: passive-radiator` (driver.yml:39–40); specs
+   section key `passive-radiator`. ✓
+9. `grs/8fr-8` — Vcd (driver.yml:199–207) `actual_reading: '1.5'` verbatim,
+   `read_value: 0.0381`, `read_precision: 0.00127` — the expected values exactly.
+   `grs/pt2522-4` — OuterX (:155–164) `actual_reading: '3.5'` verbatim but
+   `read_value: 0.0889` = 3.5 in × 25.4 / 1000, NOT this row's pre-registered 0.0035:
+   the carved-out GRS inch bug is marked Fixed 2026-08-22 in
+   `winisd_tools/bugs/BUG_20260822_grs_outer_x_y_store_inches_under_mm_named_fields.md:44`
+   (`plugins/grs/emit.py:230-233`, `unit_when_unprinted="in"`), so the sweep re-scraped
+   with correct inch conversion; OuterY 2.66 → 0.067564 = 2.66 × 25.4 / 1000, consistent.
+   ✓ (row's expected number superseded by the recorded bug fix; arithmetic verified
+   against the fix)
+10. `visaton/gf-200-2-x-4-ohm` — wiring entry intact: `specs.woofer.VCCon`
+    (driver.yml:206–215), reading `'2'`, value 2.0, full definition text; numVC adjacent;
+    definitions current. ✓
+
+Corpus-level:
+
+- Banned keys as keys (`dq_status`, `voice_coil_dia_mm`, `driver_volume_l`, `outer_x_mm`,
+  `outer_y_mm`, `no_ts_published`, `disposition`) grep → 0 files; SUBSTRING sweep for the
+  same names → 0 hits (the 90 parse_errors-prose residuals are gone, refreshed by the
+  scrape sweep).
+- db-conformance: `pytest tests/test_db_conformance.py -q` → 4035 passed, 0 failed in
+  375.64s.
+- Counts: 2064 driver.yml on disk, all 2064 mtime 2026-08-23; 1969 openisd.yml, all
+  2026-08-23. Records-in == records-out is ❔ untested read-only (corpus gitignored, no
+  pre-sweep snapshot).
+- Emit-seam padding absent as required: apt-200/pr01 carry empty specs sections, not
+  padded mandatory entries.
+- New meta fields (`provided_by`/`comment`/`added`): 0 files corpus-wide contain
+  `provided_by`; ordering/ISO assertions ❔ untested (no sourced instance exists).
+
+Observations (routed, not protocol failures):
+
+1. `.wdr` files were NOT re-emitted: 1893 `winisd.wdr` on disk, 0 dated 2026-08-23
+   (e.g. `grs/8pf-8/winisd.wdr` mtime 2026-08-03). The bridge produces correct .wdr live
+   (row 3); the on-disk .wdr set is stale relative to the sweep.
+2. gf-200 carries no `dq_marks`: the 2026-08-22 verdicts above quote
+   `specs.woofer.SPL.dq_marks` as the exemplar; the file now has zero `dq` mentions. The
+   mechanism is alive elsewhere — 14 seas driver.yml files carry `dq_marks`
+   (e.g. `seas/fa22rcz/driver.yml:132`, structured `kind`/`severity` entries). Correct
+   re-derivation vs regression is ❔ untested read-only (no pre-sweep file to diff).
+3. gf-200 SPL parse defect candidate: `read_value: 1.0` (dB) from
+   `actual_reading: (1) 85 dB (1 W/1 m)(2) 88 dB…` (driver.yml:183–184), with
+   `quality.fields_with_issues: []` and no mark — scrape-extraction scope, routes to the
+   extractor owner.
+
+**VERDICT: all testable assertions PASS — 0 failures.** Untested: row 6 (no exemplar),
+records-in/out count, meta-field ordering, apt-200's "ships" half; observations 1–3 above
+routed to their owners.

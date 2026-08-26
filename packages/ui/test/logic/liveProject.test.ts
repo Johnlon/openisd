@@ -2,7 +2,7 @@
  * `createLiveRef` (`docs/design/REACTIVITY.md`) — the delegate-free reactivity adapter.
  *
  * Seam under test: a FAKE subscribable, per the design's own inversion-of-control example. No
- * component mount, no `ManagedOpenISDProject` import — the adapter takes any object shaped
+ * component mount, no `ManagedProject` import — the adapter takes any object shaped
  * `{ subscribe(fn): () => void }` and turns its notifications into a Vue invalidation, so the
  * test proves the adapter's behaviour without any domain object at all.
  */

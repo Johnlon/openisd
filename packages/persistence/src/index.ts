@@ -33,7 +33,7 @@ export { type SaveResult, type FileStorage, createFileStorage } from './storage/
 
 export {
   type UiState, type ViewSnapshot,
-  type ProjectSchema, type ProjectRepo, type FileNaming, PROJECT_STATE_KEY,
+  type ProjectSchema, type ProjectRepo, type FileNaming,
   createProjectRepo,
 } from './repos/projectRepo.js';
 

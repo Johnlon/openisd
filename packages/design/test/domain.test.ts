@@ -62,6 +62,31 @@ describe('the driver — a window, not a copy', () => {
     expect(driver.brand.get().value).toBe('Dayton');
   });
 
+  it('the handle a caller holds survives every layer transition', () => {
+    // The failure this pins: components used to belong to a LAYER, and a write moves which
+    // layer is effective — writing to committed opens an edit layer. A caller that bound the
+    // handle once (the ordinary shape of UI code) then read stale values from its own first
+    // edit onwards, so the write looked lost.
+    const project = newProject(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    })).sealed().volume_m3(0.03).build();
+    const driver = project.driver;      // bound ONCE, before any layer exists
+
+    driver.Fs_hz.set(35);               // opens the edit layer under the caller's feet
+    expect(driver.Fs_hz.get().value).toBe(35);
+
+    project.commit();
+    expect(driver.Fs_hz.get().value).toBe(35);
+
+    project.beginWhatif();
+    driver.Fs_hz.set(40);
+    expect(driver.Fs_hz.get().value).toBe(40);
+
+    project.cancelTransient();
+    expect(driver.Fs_hz.get().value).toBe(35);
+  });
+
   it('gives every field a STABLE identity across accesses', () => {
     const driver = newProject(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
@@ -115,13 +140,32 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   })).sealed().volume_m3(0.03).build();
 
-  it('writes the sealed volume through to the project, and derives Fc above Fs', () => {
+  it('writes the sealed volume through to the project', () => {
     const p = project();
     p.box.sealed.volume_m3.set(0.03);
-
     expect(p.box.sealed.volume_m3.get()).toBe(0.03);
-    // A sealed box always raises resonance above the driver's free-air Fs of 30 Hz.
-    expect(p.box.sealed.resonance_hz()).toBeGreaterThan(30);
+  });
+
+  it('REFUSES to calculate sealed resonance — acoustics belongs to the engine', () => {
+    // John's ruling 2026-08-26: "geom is in and accoustic is absolutely out". The inline version
+    // that used to answer here duplicated the engine's own sealedFc() over frozen air constants.
+    // Throwing keeps the gap visible; returning null would look like a missing input.
+    const p = project();
+    p.box.sealed.volume_m3.set(0.03);
+    expect(() => p.box.sealed.resonance_hz()).toThrow(/engine/);
+  });
+
+  it('STILL computes plain geometry — a port area is πr², which no model can disagree about', () => {
+    const p = project();
+    p.box.vented.vent.diameter_m.set(0.1);
+    expect(p.box.vented.vent.area_m2()).toBeCloseTo(Math.PI * 0.05 ** 2, 12);
+  });
+
+  it('refuses the port\'s ACOUSTIC length, which carries an end-correction model', () => {
+    const p = project();
+    p.box.vented.vent.diameter_m.set(0.1);
+    p.box.vented.vent.length_m.set(0.2);
+    expect(() => p.box.vented.vent.effectiveLength_m()).toThrow(/engine/);
   });
 
   it('reports an unset tuning as not-available rather than zero', () => {
