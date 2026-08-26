@@ -6861,3 +6861,22 @@ questions:
       must show the ANCHORED pair, they should switch to airFor({ignoreHumidityAndPressure:true}) fed
       by envDefaults; if they are physics previews, current state is correct. Needs a ruling; no code
       touched.'
+- id: QO92
+  title: Autosave was ripped out undesigned — persistence needs designing before it comes back
+  status: open
+  raised: '2026-08-26'
+  body: ''
+  notes:
+  - at: '2026-08-26'
+    text: 'John 2026-08-26: "if we want autosave then we need to design it - delete the autosave feature
+      entirely from this app" / "then rip out autosave 100% then as I never designed that". The version
+      removed was a Vue watch in App.vue persisting committed state to localStorage on every reactive
+      tick, plus its restore-on-mount. It was never designed — it accreted, and it forced a real leak:
+      ManagedProject had to hand a whole OpenISDProject out to the app (committedSnapshot()) purely so
+      projectRepo could serialise it, which is the one thing the layering doctrine forbids ("OpenISDProject
+      is not exposed to the app directly"). It also sat behind BUG_20260825 (the watcher cancelled an
+      open what-if on the next tick). CONSEQUENCE OF REMOVAL: a design is lost on refresh unless saved
+      to a file or carried in a share link. WHAT A DESIGN MUST SETTLE: what gets persisted (which layer
+      — an open what-if must never reach storage); when (debounced, on blur, on explicit save only);
+      whether the domain exposes bytes/a record rather than the OIP; how it interacts with savedState
+      vs editState and with isModified/Revert, since aggressive autosave makes "revert to saved" useless.'

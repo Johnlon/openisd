@@ -9,9 +9,10 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint packages/",
-    "typecheck": "npm run typecheck:engine && npm run typecheck:model && npm run typecheck:winisd && npm run typecheck:ui",
+    "typecheck": "npm run typecheck:engine && npm run typecheck:model && npm run typecheck:design && npm run typecheck:winisd && npm run typecheck:ui",
     "typecheck:engine": "tsc -p packages/engine --noEmit",
     "typecheck:model": "tsc -p packages/model --noEmit",
+    "typecheck:design": "tsc -p packages/design --noEmit",
     "typecheck:winisd": "tsc -p packages/winisd --noEmit",
     "typecheck:ui": "vue-tsc -p packages/ui --noEmit",
     "check": "npm run lint && npm run typecheck && npm run test:unit",

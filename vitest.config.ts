@@ -52,6 +52,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: 'design',
+          root: './packages/design',
+          environment: 'node',
+          include: ['test/**/*.test.{mjs,ts}'],
+        },
+      },
+      {
+        test: {
           name: 'ui',
           root: './packages/ui',
           environment: 'node',
