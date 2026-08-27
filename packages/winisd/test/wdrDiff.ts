@@ -11,7 +11,7 @@
  * side is skipped, because there is nothing stated to check.
  */
 import { INI_ROWS, type WinISDDriver } from '../src/winisdDriver.js';
-import type { DriverError } from '@openisd/engine';
+import type { DriverError } from '@openisd/design/engine';
 
 /** Relative tolerance. WinISD writes ~15 significant digits, so anything looser hides real drift. */
 const REL_TOL = 1e-9;

@@ -30,11 +30,10 @@ import type {
   SourceRole, Reading, DqMark, DQStatus, Ground, QualityBlock, CurvesBlock,
 } from './openisdRecord.js';
 import type { StandingEvidence } from './driverStanding.js';
-import { deriveEngineDriver, checkConsistency, moistAirDensity, moistAirSoundVelocity,
-         T_REF_K, RH_REF_PCT, P_REF_PA, ebp as computeEbp } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
 import type {
   DriverError, EngineDriver, ConsistencyIssue, Result,
-} from '@openisd/engine';
+} from '@openisd/design/engine';
 import { WinISDDriver, INI_ROWS } from '@openisd/winisd';
 import { CellState } from '@openisd/winisd';
 import type { WdrCell, WdrHeader } from '@openisd/winisd';
@@ -598,10 +597,12 @@ export class OpenISDDriver {
    *  environment reaches this record, so a missing c/roo is computed live at the reference
    *  environment — never a stored constant (docs/design/WINISD_SCHEMA.md §12). */
   #deriveEnteredOnly(): { fields: Record<string, number>; errors: DriverError[] } {
+    const engine = new Engine();
     const stated = { ...this.#stated() };
-    if (stated.c == null) stated.c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
-    if (stated.roo == null) stated.roo = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
-    const { errors } = deriveEngineDriver(stated);
+    const referenceAir = engine.airFor({});
+    if (stated.c == null) stated.c = referenceAir.c;
+    if (stated.roo == null) stated.roo = referenceAir.rho;
+    const { errors } = engine.deriveEngineDriver(stated);
     return { fields: stated, errors };
   }
 
@@ -632,7 +633,8 @@ export class OpenISDDriver {
   ebp(): number | null {
     const fs = this.Fs();
     const qes = this.Qes();
-    return typeof fs === 'number' && typeof qes === 'number' ? computeEbp({ Fs: fs, Qes: qes }) : null;
+    return typeof fs === 'number' && typeof qes === 'number'
+      ? new Engine().ebp({ Fs: fs, Qes: qes }) : null;
   }
 
   /**
@@ -699,7 +701,7 @@ export class OpenISDDriver {
    * exactly what `errors()`/`toDriver()` also start from. Memoised alongside #cache.
    */
   consistencyIssues(): ConsistencyIssue[] {
-    return this.#issues ??= checkConsistency(this.#stated());
+    return this.#issues ??= new Engine().checkConsistency(this.#stated());
   }
 
   /** Whether a derivable field solves to `C`. Off leaves it `N` — see `#deriveEnteredOnly`. */

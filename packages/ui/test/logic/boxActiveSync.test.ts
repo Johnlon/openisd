@@ -3,7 +3,7 @@
  * every `Vb`/`ventD`/`Fb`/`activeVent` accessor reads — ledger QO54) must be THE SAME FACT,
  * not two independently-writable copies.
  *
- * `BoxType` (@openisd/engine: 'sealed'|'vented'|'pr'|'bandpass4') and `AlignmentKind`
+ * `BoxType` (@openisd/design/engine: 'sealed'|'vented'|'pr'|'bandpass4') and `AlignmentKind`
  * (@openisd/model: 'sealed'|'vented'|'bandpass4'|'passive-radiator') spell the PR case
  * differently — 'pr' vs 'passive-radiator' — so the sync is a translation, not a bare
  * assignment; that translation is what most needs a test, since a typo in either string

@@ -1,7 +1,7 @@
 import { Provenance } from '@openisd/model';
 import type { Cell as FieldCell, SpecField } from '@openisd/model';
-import { isQGroupField } from '@openisd/engine';
-import type { ConsistencyIssue } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
+import type { ConsistencyIssue } from '@openisd/design/engine';
 
 /**
  * Driver provenance PRESENTATION — how a field's `Provenance` becomes a CSS class, and how a
@@ -71,5 +71,5 @@ export function consistencyNote(issues: readonly ConsistencyIssue[], field: stri
 export function fieldIsMandatoryAndUnsatisfied(
   cellOf: (field: SpecField) => FieldCell, field: string,
 ): boolean {
-  return isQGroupField(field) && cellOf('Qts').state === Provenance.NotAvailable;
+  return new Engine().isQGroupField(field) && cellOf('Qts').state === Provenance.NotAvailable;
 }

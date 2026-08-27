@@ -3,12 +3,12 @@
  *  object; the JSON wire shape stays inside this file. */
 import { OpenISDProject, driverFromConformingRecord } from '@openisd/model';
 import type { AlignmentKind, OpenISDProjectMeta, UiParams } from '@openisd/model';
-import type { BoxType } from '@openisd/engine';
+import type { BoxType } from '@openisd/design/engine';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 import type { FileStorage, SaveResult } from '../storage/fileStorage.js';
 
 /** `AlignmentKind` (`@openisd/model`) and this file's own wire field `box: BoxType`
- *  (`@openisd/engine`) name the same four alignments and spell one of them differently
+ *  (`@openisd/design/engine`) name the same four alignments and spell one of them differently
  *  ('passive-radiator' vs 'pr') — the SAME translation `managedProject.ts` makes at its own
  *  seam (ui/logic → engine vocabulary), duplicated here because persistence may not import a
  *  ui/logic module (layering runs one way) and this crossing is needed at this boundary too. */

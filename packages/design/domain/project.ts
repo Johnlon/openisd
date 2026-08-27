@@ -1385,6 +1385,10 @@ abstract class BoxProjectBuilder {
     const project = OpenISDProject.wrap({ ...emptyProjectJson(), box: this.boxRecord() });
     project.driver.update(this.driver);
     if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
+    // Those writes land in `#edited`, because every write does. A project the user has just
+    // created has no UNSAVED changes, though — so the assembled state IS its saved baseline.
+    // Without this a new project is born modified, and Cancel would discard its own driver.
+    project.save();
     return project;
   }
 }

@@ -18,8 +18,8 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveEngineDriver, sweep, maxCurves } from '@openisd/engine';
-import type { SweepParams } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
+import type { SweepParams } from '@openisd/design/engine';
 import { TABS, TAB_META, parseChartTabId, seriesFor } from '../../src/logic/series.js';
 import type { ChartTabId } from '../../src/types.js';
 
@@ -27,7 +27,7 @@ const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
   Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
 };
-const { value: DRV } = deriveEngineDriver(RAW);
+const { value: DRV } = new Engine().deriveEngineDriver(RAW);
 assert.ok(DRV, 'reference driver failed to derive');
 
 const SP: SweepParams = {
@@ -35,8 +35,8 @@ const SP: SweepParams = {
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
-const SW = sweep(DRV, 'vented', SP);
-const MX = maxCurves(DRV, 'vented', SP);
+const SW = new Engine().sweep(DRV, 'vented', SP);
+const MX = new Engine().maxCurves(DRV, 'vented', SP);
 const build = (id: ChartTabId) => seriesFor(id, DRV, 'vented', SP, SW, MX);
 
 const ALL_IDS = Object.keys(TAB_META) as ChartTabId[];
@@ -139,8 +139,9 @@ describe('EQ/filter charts — units, datum and axis', () => {
     // The default project has no filters, so this is what the user sees first: a flat line
     // at unity, which must not collapse the axis to zero height.
     const noFlt = { ...SP, filters: [] };
-    const sw = sweep(DRV, 'vented', noFlt);
-    const mx = maxCurves(DRV, 'vented', noFlt);
+    const engine = new Engine();
+    const sw = engine.sweep(DRV, 'vented', noFlt);
+    const mx = engine.maxCurves(DRV, 'vented', noFlt);
     for (const id of ['FltMag', 'FltPhase', 'FltGD'] as const) {
       const b = seriesFor(id, DRV, 'vented', noFlt, sw, mx);
       assert.ok(b.ymax > b.ymin, `${id}: empty chain collapsed the axis to ${b.ymin}..${b.ymax}`);

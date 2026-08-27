@@ -28,7 +28,7 @@ import assert from 'node:assert/strict';
 import { WinISDDriver, INI_ROWS } from '../src/winisdDriver.js';
 import { CellState } from '../src/parstate.js';
 import { OpenISDDriver, Provenance } from '@openisd/model';
-import { moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
 
 describe('every .wdr field has a home in the OpenISD model', () => {
   it('the key list is real and non-trivial', () => {
@@ -95,8 +95,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     // CIPM-2007 moist-air model at the reference environment when unset, unconditionally
     // marked `C` — there is no stored constant anywhere (AGENTS.md 'Calculation logic —
     // permission gate' sign-off 2026-08-19). `winisd` itself supplies neither value.
-    const refC = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
-    const refRho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const { c: refC, rho: refRho } = new Engine().airFor({});
     const wdr = WinISDDriver.build({}, new Map());
 
     const driver = OpenISDDriver.fromWinISDDriver(wdr);
@@ -110,8 +109,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
   });
 
   it('entering then clearing c/roo on the SAME OpenISDDriver: entered value reads back, cleared reverts to the live reference-environment value', () => {
-    const refC = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
-    const refRho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const { c: refC, rho: refRho } = new Engine().airFor({});
     const driver = OpenISDDriver.fromJsonRecord({
       uuid: { value: 'x', definition: 'd' },
       quality: { rating: 'M', confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: [] },

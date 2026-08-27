@@ -130,7 +130,7 @@ const WINISD_SRC = join(UI_SRC, '..', '..', 'winisd', 'src');
 // The data-access tier (repos/storage) is its own package now, not a ui/src directory
 // (John's ruling: a real 3-tier package boundary, not a directory convention).
 const PERSISTENCE_SRC = join(UI_SRC, '..', '..', 'persistence', 'src');
-const ENGINE_SRC = join(UI_SRC, '..', '..', 'engine', 'src');
+const ENGINE_SRC = join(UI_SRC, '..', '..', 'design', 'engine');
 
 /** Does `file` contain a call expression whose callee text is exactly `expr` (e.g.
  *  `'OpenISDDriver.fromJsonRecord'`)? Used where a gate asserts a specific construction site
@@ -182,7 +182,7 @@ describe('layering — every arrow points downward', () => {
   // Human ruling: "the driver editor needs to work in terms of the existing OpenISDDriver
   // interface, not a facade — put the driver editor into its own module, allow it to access
   // OpenISDDriver directly, other views not allowed." Scoped to this ONE file by name, not to
-  // `ui/**` generally — everything else, including `@openisd/engine` even for this same file,
+  // `ui/**` generally — everything else, including `@openisd/design/engine` even for this same file,
   // stays banned below.
   const DRIVER_EDITOR = join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue');
   const isExemptModelImport = (f: string, s: string) => f === DRIVER_EDITOR && /(^|\/)@openisd\/model(\/|$)/.test(s);
@@ -627,7 +627,7 @@ function specLayer(fromFile: string, spec: string): string | null {
   if (spec.startsWith('@openisd/model')) return 'model';
   if (spec.startsWith('@openisd/persistence')) return 'persistence';
   if (spec.startsWith('@openisd/winisd')) return 'winisd';
-  if (spec.startsWith('@openisd/engine')) return 'engine';
+  if (spec.startsWith('@openisd/design/engine')) return 'engine';
   if (spec.startsWith('@openisd/')) return null;
   if (!spec.startsWith('.')) return null;
   const base = join(dirname(fromFile), spec).replace(/\.js$/, '');
@@ -739,22 +739,6 @@ const EXPORT_STAR_BASELINE: Record<string, Record<string, string[]>> = {
     './winisdProject.js': ['WinISDProject'],
     './winisdDriver.js': ['INI_ROWS', 'WdrCell', 'WdrHeader', 'WinISDDriver'],
     './parstate.js': ['CellState', 'PARSTATE_LEN', 'POS_TO_WDRKEY'],
-  },
-  'engine/src/engine.ts': {
-    './types.js': ['BoxType', 'CircuitModel', 'Complex', 'DriverError', 'EngineDriver', 'Filter', 'FilterType', 'IssueLevel', 'MaxCurvesResult', 'Result', 'Solution', 'SweepParams', 'SweepResult', 'Wiring'],
-    './constants.js': ['FLAT_MAX_BOOST_DB', 'G_STANDARD', 'P0'],
-    './complex.js': ['cAbs', 'cAdd', 'cArg', 'cDiv', 'cInv', 'cMul', 'cPar', 'cScale', 'cSub', 'cTanh', 'cx'],
-    './driver.js': ['deriveEngineDriver', 'driverC', 'driverRho', 'hotRe', 'nominalImpedance', 'solveConsistencyGroup', 'withAddedMass'],
-    './efficiency.js': ['efficiencyConstant', 'efficiencyFromSpl', 'referenceEfficiency', 'splFromEfficiency', 'splReferenceConstantDb'],
-    './consistency.js': ['ConsistencyIssue', 'Q_GROUP_FIELDS', 'checkConsistency', 'isQGroupField', 'qGroupIsIncomplete'],
-    './params.js': ['validateParams'],
-    './circuit.js': ['portImpedance', 'portLoss', 'solve'],
-    './sweep.js': ['classifyFinite', 'classifyFlatClamp', 'classifyMaxFinite', 'groupDelayMs', 'hfPassbandRef', 'maxCurves', 'passbandRef', 'rolloffFreq', 'sweep', 'tfMag', 'unwrap'],
-    './alignments.js': ['ebp', 'findImpedancePeak', 'prMassForFp', 'prTuning', 'sealedFc', 'sealedFromQtc', 'tuningFromLength', 'ventLength', 'ventedAlignment'],
-    './filters.js': ['applyFilters', 'evalFilter', 'highPass', 'highShelf', 'linkwitz', 'lowPass', 'lowShelf', 'peakingEQ'],
-    './formulas.js': ['driveVoltage', 'prCmsFromVas', 'prFs', 'prFsWithMass', 'prMmdFromFs', 'prQms', 'prRmsFromQms', 'prVas'],
-    './lossMode.js': ['LossMode', 'SealedParams', 'sealedFscWinisd', 'sealedResonance', 'sealedResonanceWinisd', 'sourceLoadedQts'],
-    './dvolRelation.js': ['DvolInputs', 'depthFromDims', 'dvolFromDims', 'magDepthFromDims', 'magnetFromDims'],
   },
 };
 /** Every bare `export * from '...'` in a file — no named bindings, no namespace alias — with

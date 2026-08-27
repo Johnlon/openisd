@@ -28,7 +28,7 @@ import { PROVENANCE_MAP } from '../../src/logic/provenance.js';
 vi.setConfig({ testTimeout: 60_000 });
 
 const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const DRIVER_TS = join(UI_PKG, '..', 'engine', 'src', 'driver.ts');
+const DRIVER_TS = join(UI_PKG, '..', 'design', 'engine', 'driver.ts');
 
 let cached: Map<string, Set<string>> | null = null;
 

@@ -22,7 +22,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { ebp, airFor, RH_REF_PCT, P_REF_PA, sealedFscWinisd, sourceLoadedQts } from '@openisd/engine';
+import { Engine, LossMode } from '@openisd/design/engine';
 import { OpenISDDriver, Provenance } from '@openisd/model';
 import type { Cell } from '@openisd/model';
 import { WinISDDriver } from '../src/winisdDriver.js';
@@ -355,7 +355,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
         const winisd = parseFloat(raw);
         const fs = num(drv, 'Fs'), qes = num(drv, 'Qes');
         assert.ok(fs !== null && qes !== null, `${s.id}: openisd has no Fs/Qes to form EBP from`);
-        compare(s.id, 'EBP', winisd, ebp({ Fs: fs, Qes: qes }));
+        compare(s.id, 'EBP', winisd, new Engine().ebp({ Fs: fs, Qes: qes }));
       });
 
       it('air — openisd in WinISD-compatibility mode against the pair WinISD stored', () => {
@@ -370,10 +370,8 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
         // Options environment at factory defaults, so the harness performs the same
         // substitution with the reference values. The project's temperature stays its own —
         // the env-t-303 divergence entry bounds that leg.
-        const air = airFor({
+        const air = new Engine().airFor({
           tempK: s.environment.T,
-          humidityPct: RH_REF_PCT,
-          pressurePa: P_REF_PA,
           ignoreHumidityAndPressure: true,
         });
         for (const [key, got] of [['c', air.c], ['roo', air.rho]] as const) {
@@ -392,11 +390,12 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
           const qes = num(drv, 'Qes'), re = num(drv, 'Re');
           assert.ok(fs !== null && vas !== null && qts !== null && re !== null,
             `${s.id}: openisd cannot form Fsc — Fs/Vas/Qts/Re missing`);
-          const openisd = sealedFscWinisd({
+          const engine = new Engine();
+          const openisd = engine.sealedResonance(LossMode.WinisdLossy, {
             Fs: fs, Vas: vas, Vb: s.box.Vr, Ql: s.box.Qlr, Qa: s.box.Qar,
             // WinISD's readout is Qts recomputed with Re+Rg, not bare Qts (WINE_HARNESS.md).
-            Qts: sourceLoadedQts(qms ?? NaN, qes ?? NaN, re, s.signal.Rg, qts),
-          });
+            Qts: engine.sourceLoadedQts(qms ?? NaN, qes ?? NaN, re, s.signal.Rg, qts),
+          }).Fsc;
           compare(s.id, 'Box.Fr', winisd, openisd);
         });
       }

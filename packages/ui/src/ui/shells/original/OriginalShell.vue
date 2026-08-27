@@ -40,7 +40,7 @@ import type { ManagedProject } from '../../../logic/managedProject.js';
 // focus change (switching tabs), sourced from `appState.ts`'s own focus-aware `live` bridge.
 const project = useFocusedProject();
 import UnitToggle from '../../components/UnitToggle.vue';
-import type { BoxType } from '@openisd/engine';
+import type { BoxType } from '@openisd/design/engine';
 import type { Design } from '../../../types.js';
 import type { PRLibEntry, BundledPR } from '@openisd/persistence';
 import { airForEnvironment, resolveAirEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';

@@ -1,5 +1,5 @@
 import { Provenance as ModelProvenance } from '@openisd/model';
-import type { BoxType } from '@openisd/engine';
+import type { BoxType } from '@openisd/design/engine';
 import type { UnitGroup } from './units.js';
 
 /**

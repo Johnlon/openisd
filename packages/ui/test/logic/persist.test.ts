@@ -23,7 +23,7 @@ import { projectSchema } from '../../src/logic/schemaUpgrade.js';
 import { state, requireFocusedProject, applyLoadedProject, currentProject, currentViewSnapshot } from '../../src/logic/appState.js';
 import { toAlignmentKind } from '../../src/logic/managedProject.js';
 import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
-import type { BoxType } from '@openisd/engine';
+import type { BoxType } from '@openisd/design/engine';
 
 /** A picker that is never reached — these tests exercise the storage/link/text doors only. */
 const noFilePicker: FileStorage = {

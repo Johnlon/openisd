@@ -62,7 +62,7 @@ describe('the driver — a window, not a copy', () => {
     expect(driver.brand.get().value).toBe('Dayton');
   });
 
-  it('the handle a caller holds survives every layer transition', () => {
+  it('the handle a caller holds survives every layer transition', async () => {
     // The failure this pins: components used to belong to a LAYER, and a write moves which
     // layer is effective — writing to committed opens an edit layer. A caller that bound the
     // handle once (the ordinary shape of UI code) then read stale values from its own first
@@ -71,19 +71,18 @@ describe('the driver — a window, not a copy', () => {
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     })).sealed().volume_m3(0.03).build();
-    const driver = project.driver;      // bound ONCE, before any layer exists
+    const driver = project.driver;      // bound ONCE, before the edited state exists
 
-    driver.Fs_hz.set(35);               // opens the edit layer under the caller's feet
+    driver.Fs_hz.set(35);               // creates the edited state under the caller's feet
     expect(driver.Fs_hz.get().value).toBe(35);
 
-    project.commit();
+    project.save();                     // the edited state is promoted; the handle must follow
     expect(driver.Fs_hz.get().value).toBe(35);
 
-    project.beginWhatif();
-    driver.Fs_hz.set(40);
+    driver.Fs_hz.set(40);               // a fresh edited state, again under the caller's feet
     expect(driver.Fs_hz.get().value).toBe(40);
 
-    project.cancelTransient();
+    await project.cancel(async () => true);   // and back to the saved state
     expect(driver.Fs_hz.get().value).toBe(35);
   });
 
@@ -237,22 +236,22 @@ describe('the passive radiator a box holds', () => {
   it('reports nothing chosen, and refuses edits, until configurePR', () => {
     const p = project();
 
-    expect(p.box.passiveRadiator.component.isChosen()).toBe(false);
-    expect(p.box.passiveRadiator.component.brand.get().state).toBe('not-available');
-    expect(() => p.box.passiveRadiator.component.brand.set('SB')).toThrow(/no radiator is chosen/);
+    expect(p.box.passiveRadiator.radiator.isChosen()).toBe(false);
+    expect(p.box.passiveRadiator.radiator.brand.get().state).toBe('not-available');
+    expect(() => p.box.passiveRadiator.radiator.brand.set('SB')).toThrow(/no radiator is chosen/);
   });
 
   it('copies the chosen radiator IN, so later edits do not touch the library entry', () => {
     const p = project();
     const library = passiveRadiatorFromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
-    p.box.passiveRadiator.configurePR(library);
+    p.box.passiveRadiator.radiator.update(library);
 
-    expect(p.box.passiveRadiator.component.isChosen()).toBe(true);
-    expect(p.box.passiveRadiator.component.brand.get().value).toBe('SB Acoustics');
+    expect(p.box.passiveRadiator.radiator.isChosen()).toBe(true);
+    expect(p.box.passiveRadiator.radiator.brand.get().value).toBe('SB Acoustics');
 
-    p.box.passiveRadiator.component.Sd_m2.set(0.031);
-    expect(p.box.passiveRadiator.component.Sd_m2.get().value).toBe(0.031);
+    p.box.passiveRadiator.radiator.Sd_m2.set(0.031);
+    expect(p.box.passiveRadiator.radiator.Sd_m2.get().value).toBe(0.031);
     expect(library.Sd_m2.get().value).toBe(0.025);
   });
 });
@@ -267,88 +266,71 @@ describe('ManagedProject — the layers', () => {
     expect(managed().isModified()).toBe(false);
   });
 
-  it('discards an edit on cancel, and keeps it on commit', () => {
+  it('the first write creates the edited state; Cancel throws it away', () => {
     const mp = managed();
 
-    mp.beginEdit();
     mp.driver.Fs_hz.set(99);
-    expect(mp.isEditing()).toBe(true);
+    expect(mp.isModified()).toBe(true);
     expect(mp.driver.Fs_hz.get().value).toBe(99);
 
-    mp.cancelTransient();
-    expect(mp.driver.Fs_hz.get().value).toBe(30);
-
-    mp.beginEdit();
-    mp.driver.Fs_hz.set(50);
-    mp.commit();
-    expect(mp.driver.Fs_hz.get().value).toBe(50);
-    expect(mp.isEditing()).toBe(false);
+    void mp.cancel(async () => true);
   });
 
-  it('marks modified on commit and clears it on save', () => {
+  it('Cancel restores the last saved values', async () => {
     const mp = managed();
+    mp.driver.Fs_hz.set(99);
 
-    mp.beginEdit();
+    expect(await mp.cancel(async () => true)).toBe(true);
+    expect(mp.driver.Fs_hz.get().value).toBe(30);
+    expect(mp.isModified()).toBe(false);
+  });
+
+  it('Cancel does nothing when the challenge refuses', async () => {
+    const mp = managed();
+    mp.driver.Fs_hz.set(99);
+
+    expect(await mp.cancel(async () => false)).toBe(false);
+    expect(mp.driver.Fs_hz.get().value).toBe(99);
+    expect(mp.isModified()).toBe(true);
+  });
+
+  it('Cancel on an untouched project reports that nothing was discarded', async () => {
+    expect(await managed().cancel(async () => true)).toBe(false);
+  });
+
+  it('Save promotes the edited state and clears the modified flag', () => {
+    const mp = managed();
     mp.driver.Fs_hz.set(50);
-    mp.commit();
     expect(mp.isModified()).toBe(true);
 
     mp.save();
-    expect(mp.isModified()).toBe(false);
-  });
-
-  it('never promotes a what-if, whatever happens in it', () => {
-    const mp = managed();
-
-    mp.beginWhatif();
-    mp.driver.Fs_hz.set(77);
-    expect(mp.isWhatif()).toBe(true);
-    expect(mp.driver.Fs_hz.get().value).toBe(77);
-
-    mp.cancelTransient();
-    expect(mp.driver.Fs_hz.get().value).toBe(30);
-    expect(mp.isModified()).toBe(false);
-  });
-
-  it('reseeds a what-if from committed when reopened — this is Reset', () => {
-    const mp = managed();
-    mp.beginEdit();
-    mp.driver.Fs_hz.set(50);
-    mp.commit();
-
-    mp.beginWhatif();
-    mp.driver.Fs_hz.set(77);
-    mp.beginWhatif();
-
-    // Back to committed's 50, not to the loaded 30 — Reset goes to committed, not ground.
     expect(mp.driver.Fs_hz.get().value).toBe(50);
+    expect(mp.isModified()).toBe(false);
   });
 
-  it('restores the last saved design on revertToSaved', () => {
+  it('Cancel after a Save goes back to what was SAVED, not to what was loaded', async () => {
     const mp = managed();
+    mp.driver.Fs_hz.set(50);
     mp.save();
 
-    mp.beginEdit();
-    mp.driver.Fs_hz.set(50);
-    mp.commit();
-    expect(mp.driver.Fs_hz.get().value).toBe(50);
+    mp.driver.Fs_hz.set(77);
+    await mp.cancel(async () => true);
 
-    mp.revertToSaved();
-    expect(mp.driver.Fs_hz.get().value).toBe(30);
-    expect(mp.isModified()).toBe(false);
+    // 50 — the saved state — not the 30 the project was loaded with.
+    expect(mp.driver.Fs_hz.get().value).toBe(50);
   });
 
-  it('notifies on a layer transition, not only on a field write', () => {
+  it('notifies on entering the edited state, not only on later writes', () => {
     const mp = managed();
     let notifications = 0;
     mp.subscribe(() => { notifications += 1; });
 
-    mp.beginEdit();
+    mp.driver.Fs_hz.set(42);
     expect(notifications).toBeGreaterThan(0);
 
-    const afterBegin = notifications;
-    mp.driver.Fs_hz.set(42);
-    expect(notifications).toBeGreaterThan(afterBegin);
+    const afterFirst = notifications;
+    mp.driver.Fs_hz.set(43);
+    expect(notifications).toBeGreaterThan(afterFirst);
   });
 });
 

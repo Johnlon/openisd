@@ -27,7 +27,7 @@ import { dirname, join } from 'node:path';
 
 import { parse } from 'yaml';
 import { openisdYamlToWdr } from '@openisd/model';
-import type { DriverError } from '@openisd/engine';
+import type { DriverError } from '@openisd/design/engine';
 import { WINISD_NEWLINE_SENTINEL } from '../src/winisdBytes.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');

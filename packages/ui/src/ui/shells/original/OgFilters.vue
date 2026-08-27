@@ -23,7 +23,7 @@
 import { computed, ref } from 'vue';
 import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
 import { limits } from '../../../logic/fields/fieldRegistry.js';
-import type { Filter, FilterType } from '@openisd/engine';
+import type { Filter, FilterType } from '@openisd/design/engine';
 
 const project = useFocusedProject();
 const filters = computed<Filter[]>(() => project.value.filters());

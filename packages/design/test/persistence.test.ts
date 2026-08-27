@@ -97,14 +97,16 @@ describe('save and load', () => {
 });
 
 describe('what gets written', () => {
-  it('an open what-if never reaches the store', () => {
+  it('a cancelled edit never reaches the store', async () => {
+    // There is no separate what-if layer any more: a what-if IS an edit the user throws away
+    // (John 2026-08-27). So the property to hold is that a CANCELLED edit leaves no trace.
     const p = aProject('Exploring');
     p.box.sealed.volume_m3.set(0.030);
-    p.commit();
+    p.save();
     repo.save(p);
 
-    p.beginWhatif();
-    p.box.sealed.volume_m3.set(0.999);   // a what-if value, must not survive
+    p.box.sealed.volume_m3.set(0.999);        // tried, then discarded
+    await p.cancel(async () => true);
     repo.save(p);
 
     const back = repo.load(repo.list()[0].id);
@@ -114,7 +116,7 @@ describe('what gets written', () => {
 
   it('an open EDIT layer does reach the store — a save writes work in progress', () => {
     const p = aProject('Half-typed');
-    p.box.sealed.volume_m3.set(0.077);   // opens the edit layer by writing at committed
+    p.box.sealed.volume_m3.set(0.077);   // creates the edited state, never saved by the user
     repo.save(p);
 
     const back = repo.load(repo.list()[0].id);

@@ -12,7 +12,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { ManagedProject } from '../../src/logic/managedProject.js';
-import type { Filter } from '@openisd/engine';
+import type { Filter } from '@openisd/design/engine';
 
 const hp = (id: string, fc: number): Filter => ({ id, type: 'highpass', enabled: true, fc, Q: 0.7071 });
 

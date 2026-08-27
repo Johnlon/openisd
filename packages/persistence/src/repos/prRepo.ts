@@ -1,5 +1,5 @@
 /** REPO: domain access to the passive-radiator collection. Takes a storage, returns records. */
-import type { SweepParams } from '@openisd/engine';
+import type { SweepParams } from '@openisd/design/engine';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 
 // Passive radiators: the read-only PRs that ship in the driver bundle, plus the ones the user

@@ -32,56 +32,6 @@ interface RequiredParam {
   readonly consequence: string;
 }
 
-const VB: RequiredParam = {
-  field: 'Vb',
-  label: 'Box volume (Vb)',
-  consequence: 'the box compliance Cab = Vb/(ρc²) collapses to zero, which makes the enclosure impedance infinite at every frequency',
-};
-
-const VF: RequiredParam = {
-  field: 'Vf',
-  label: 'Front chamber volume (Vf)',
-  consequence: 'a 4th-order bandpass needs both chambers, and the front compliance Vf/(ρc²) collapses to zero',
-};
-
-const SP: RequiredParam = {
-  field: 'Sp',
-  label: 'Vent area (Sp)',
-  consequence: 'the port mass Map = ρ·Leff/Sp is infinite — enter a vent diameter',
-};
-
-const PR_SD: RequiredParam = {
-  field: 'prSd',
-  label: 'Passive-radiator piston area (prSd)',
-  consequence: 'every PR element is referred to the acoustic domain through prSd², so the whole PR branch is undefined',
-};
-
-const PR_CMS: RequiredParam = {
-  field: 'prCms',
-  label: 'Passive-radiator compliance (prCms)',
-  consequence: 'the PR acoustic compliance Cap = prCms·prSd² collapses to zero, giving it infinite impedance',
-};
-
-const PR_MMD: RequiredParam = {
-  field: 'prMmd',
-  label: 'Passive-radiator moving mass (prMmd)',
-  consequence: 'a massless radiator has no resonance, so there is nothing for the box to tune against',
-};
-
-/**
- * Which parameters each enclosure actually divides by. A TOTAL map over `BoxType`
- * (../AGENTS.md §"A CLOSED SET IS AN ENUM"): adding a box type is a compile error here
- * rather than a silent hole in the precondition.
- *
- * `Sp` is required for `bandpass4` as well as `vented` — the bandpass front chamber calls
- * the same `portImpedance()` (circuit.ts), so it divides by `Sp` identically.
- */
-const REQUIRED_BY_BOX: Record<BoxType, readonly RequiredParam[]> = {
-  sealed:    [VB],
-  vented:    [VB, SP],
-  pr:        [VB, PR_SD, PR_CMS, PR_MMD],
-  bandpass4: [VB, VF, SP],
-};
 
 /**
  * Validate the enclosure parameters for `box`. Returns one blocking `error` per unmet
@@ -95,6 +45,60 @@ const REQUIRED_BY_BOX: Record<BoxType, readonly RequiredParam[]> = {
  * can decide from the inputs alone.
  */
 export function validateParams(box: BoxType, P: SweepParams): DriverError[] {
+  // The tables live INSIDE the function that reads them: a module-scoped `const` object is
+  // shared mutable state however it is declared, because `const` freezes the binding and not
+  // the contents (packages/design/AGENTS.md).
+  const VB: RequiredParam = {
+    field: 'Vb',
+    label: 'Box volume (Vb)',
+    consequence: 'the box compliance Cab = Vb/(ρc²) collapses to zero, which makes the enclosure impedance infinite at every frequency',
+  };
+
+  const VF: RequiredParam = {
+    field: 'Vf',
+    label: 'Front chamber volume (Vf)',
+    consequence: 'a 4th-order bandpass needs both chambers, and the front compliance Vf/(ρc²) collapses to zero',
+  };
+
+  const SP: RequiredParam = {
+    field: 'Sp',
+    label: 'Vent area (Sp)',
+    consequence: 'the port mass Map = ρ·Leff/Sp is infinite — enter a vent diameter',
+  };
+
+  const PR_SD: RequiredParam = {
+    field: 'prSd',
+    label: 'Passive-radiator piston area (prSd)',
+    consequence: 'every PR element is referred to the acoustic domain through prSd², so the whole PR branch is undefined',
+  };
+
+  const PR_CMS: RequiredParam = {
+    field: 'prCms',
+    label: 'Passive-radiator compliance (prCms)',
+    consequence: 'the PR acoustic compliance Cap = prCms·prSd² collapses to zero, giving it infinite impedance',
+  };
+
+  const PR_MMD: RequiredParam = {
+    field: 'prMmd',
+    label: 'Passive-radiator moving mass (prMmd)',
+    consequence: 'a massless radiator has no resonance, so there is nothing for the box to tune against',
+  };
+
+  /**
+   * Which parameters each enclosure actually divides by. A TOTAL map over `BoxType`
+   * (../AGENTS.md §"A CLOSED SET IS AN ENUM"): adding a box type is a compile error here
+   * rather than a silent hole in the precondition.
+   *
+   * `Sp` is required for `bandpass4` as well as `vented` — the bandpass front chamber calls
+   * the same `portImpedance()` (circuit.ts), so it divides by `Sp` identically.
+   */
+  const REQUIRED_BY_BOX: Record<BoxType, readonly RequiredParam[]> = {
+    sealed:    [VB],
+    vented:    [VB, SP],
+    pr:        [VB, PR_SD, PR_CMS, PR_MMD],
+    bandpass4: [VB, VF, SP],
+  };
+
   const errors: DriverError[] = [];
   for (const p of REQUIRED_BY_BOX[box]) {
     const v = P[p.field];

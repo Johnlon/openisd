@@ -23,7 +23,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { sealedFromQtc, tuningFromLength, prTuning } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
 import { SCENARIOS } from './scenarios.js';
 
 const here    = dirname(fileURLToPath(import.meta.url));
@@ -36,7 +36,7 @@ for (const S of SCENARIOS) {
   const drv    = { Fs: S.driver.Fs, Qts: S.driver.Qts, Vas: VAS_M3 };
 
   if (S.box.type === 'sealed' && S.box.Qtc != null) {
-    const Vb    = sealedFromQtc(drv, S.box.Qtc);
+    const Vb    = new Engine().sealedFromQtc(drv, S.box.Qtc);
     if (Vb == null) { console.warn(`  SKIP  ${S.id}: Qtc below driver Qts`); continue; }
     const scale = Math.sqrt(1 + VAS_M3 / Vb);
     S.computed = {
@@ -49,7 +49,7 @@ for (const S of SCENARIOS) {
     const Vb  = S.box.Vb  / 1000;         // litres → m³
     const L   = S.box.ventL / 100;        // cm → m (physical length)
     const Sp  = Math.PI * (S.box.ventD / 200) ** 2;  // cm bore diameter → m² area
-    const fb  = tuningFromLength(Vb, L, Sp);
+    const fb  = new Engine().tuningFromLength(Vb, L, Sp);
     S.computed = {
       // StatBar.vue: fb.toFixed(1)
       Fb: fb.toFixed(1),
@@ -68,7 +68,7 @@ for (const S of SCENARIOS) {
       prCms:  pr.Cms   / 1000,          // mm/N   → m/N
       prRms:  pr.Rms,                   // kg/s   (direct)
     };
-    const fp = prTuning(P);
+    const fp = new Engine().prTuning(P);
     S.computed = {
       // StatBar.vue: fp.toFixed(1)
       Fp: fp.toFixed(1),

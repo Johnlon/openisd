@@ -12,6 +12,10 @@
     "./browser": {
       "types": "./browser/index.ts",
       "default": "./browser/index.ts"
+    },
+    "./engine": {
+      "types": "./engine/index.ts",
+      "default": "./engine/index.ts"
     }
   },
   "scripts": {

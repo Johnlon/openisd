@@ -1,8 +1,8 @@
 /**
  * Shared UI types — the view-layer shapes (plot series, designs, canvas geometry).
- * Engine shapes (Driver, SweepResult, …) are imported from @openisd/engine.
+ * Engine shapes (Driver, SweepResult, …) are imported from @openisd/design/engine.
  */
-import type { EngineDriver, BoxType, SweepParams, SweepResult, MaxCurvesResult } from '@openisd/engine';
+import type { EngineDriver, BoxType, SweepParams, SweepResult, MaxCurvesResult } from '@openisd/design/engine';
 import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
 
 /**

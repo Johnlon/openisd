@@ -1,15 +1,14 @@
 /**
  * Small, stateless engine formulas a component needs directly — not project state, just
- * physics with no home yet in `ManagedProject`. Each wraps exactly one `@openisd/engine`
- * export so a component reads its number from here instead of naming the engine itself
+ * physics with no home yet in `ManagedProject`. Each wraps exactly one `Engine` method
+ * so a component reads its number from here instead of naming the engine itself
  * (architecture.test.ts "a component imports no value from the domain").
  */
-import { airFor, ebp as engineEbp, driveVoltage as engineDriveVoltage, LossMode,
-         T_REF_K, RH_REF_PCT, P_REF_PA, moistAirSoundVelocity, moistAirDensity } from '@openisd/engine';
-import type { Air, AirEnvironment, EngineDriver } from '@openisd/engine';
+import { Engine, LossMode } from '@openisd/design/engine';
+import type { Air, AirEnvironment, EngineDriver } from '@openisd/design/engine';
 
 export function airForEnvironment(env: AirEnvironment): Air {
-    return airFor(env);
+    return new Engine().airFor(env);
 }
 
 /**
@@ -31,13 +30,13 @@ export function resolveAirEnvironment<T extends AirEnvironment>(
 
 /** EBP = Fs/Qes — the vented-alignment suitability figure OgTune.vue's Vents pane shows. */
 export function ebpOf(driver: EngineDriver): number {
-    return engineEbp(driver);
+    return new Engine().ebp(driver);
 }
 
 /** Drive voltage from input power and the driver's DC resistance — OriginalShell.vue's
  *  Signal-source readout. */
 export function driveVoltageFor(inputPowerW: number, reOhm: number): number {
-    return engineDriveVoltage(inputPowerW, reOhm);
+    return new Engine().driveVoltage(inputPowerW, reOhm);
 }
 
 /** Fallback DC resistance for the drive-voltage readout when the driver is too incomplete to
@@ -45,20 +44,20 @@ export function driveVoltageFor(inputPowerW: number, reOhm: number): number {
  *  driver, standing in only until enough of a real one is entered. */
 export const DEFAULT_RE_OHM = 8;
 
-/** Speed of sound / air density at the reference environment (`T_REF_K`/`RH_REF_PCT`/
- *  `P_REF_PA`), computed live — no constant exists, in WinISD or here
+/** Speed of sound / air density at the reference environment — an empty `AirEnvironment`,
+ *  every field of which falls back to the reference condition inside the engine
  *  (`docs/design/WINISD_SCHEMA.md` §12). Functions, not values, so the driver editor's
  *  read-only Environment readout never caches a number that could go stale. */
 export function referenceC(): number {
-    return moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    return new Engine().airFor({}).c;
 }
 
 export function referenceRho(): number {
-    return moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    return new Engine().airFor({}).rho;
 }
 
 /** The string→member boundary for the sealed-box loss model, and the picker's option list —
- *  logic owns both so no component names `@openisd/engine` itself (the layering gate) and no
+ *  logic owns both so no component names `@openisd/design/engine` itself (the layering gate) and no
  *  re-export exists (QO80). Same pattern as `series.ts`'s `parseChartTabId`. */
 export function parseLossMode(token: string): LossMode {
     return LossMode.parse(token);

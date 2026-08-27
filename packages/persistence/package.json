@@ -14,7 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@openisd/engine": "*",
-    "@openisd/model": "*"
+    "@openisd/model": "*",
+    "@openisd/design": "*"
   }
 }

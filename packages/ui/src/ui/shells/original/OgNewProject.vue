@@ -10,7 +10,7 @@
  */
 import { ref, computed } from 'vue';
 import { isModified, newProject, openDriverPicker } from '../../../logic/appState.js';
-import type { BoxType } from '@openisd/engine';
+import type { BoxType } from '@openisd/design/engine';
 
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 

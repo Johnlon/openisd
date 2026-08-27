@@ -14,8 +14,8 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { reactive, computed, ref, shallowRef, triggerRef, watch, type ComputedRef, type Ref, type ShallowRef } from 'vue';
-import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
-import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
+import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
 import type { SpecField, OpenISDProject, OpenISDProjectMeta, Cell } from '@openisd/model';
 import { ManagedProject, toAlignmentKind, fromAlignmentKind } from './managedProject.js';
 import type { AppState, SyncedParams } from '../types.js';
@@ -581,9 +581,10 @@ export const syncedP = computed<SyncedParams>(() => {
 const curves = getOrInit('appState', 'curves', () => ref<SweepResult | null>(null));
 const max    = getOrInit('appState', 'max', () => ref<MaxCurvesResult | null>(null));
 const doSweep = () => {
+  const engine = new Engine();
   const d = engineDriver();
-  curves.value = d ? sweep(d, state.box, syncedP.value) : null;
-  max.value    = d ? maxCurves(d, state.box, syncedP.value) : null;
+  curves.value = d ? engine.sweep(d, state.box, syncedP.value) : null;
+  max.value    = d ? engine.maxCurves(d, state.box, syncedP.value) : null;
 };
 doSweep();
 // Leading-edge throttle (was a pure trailing debounce): the chart curves must
@@ -629,7 +630,8 @@ const curveIssues = computed<DriverError[]>(() => {
   // be non-finite while every sweep array is fine. classifyFlatClamp: force-flat ran out of
   // allowed boost, so the "flat" response is not flat below some frequency — a truncated
   // inverse filter must never look like a design that flattens for free.
-  return [classifyFinite(sw), mx ? classifyMaxFinite(mx) : null, classifyFlatClamp(sw)]
+  const engine = new Engine();
+  return [engine.classifyFinite(sw), mx ? engine.classifyMaxFinite(mx) : null, engine.classifyFlatClamp(sw)]
     .filter((e): e is DriverError => e !== null);
 });
 
@@ -637,7 +639,7 @@ const curveIssues = computed<DriverError[]>(() => {
 // divides by — Vb everywhere, Sp/Vf/PR per box type. The postcondition above does catch
 // the resulting garbage, but only as "no usable values"; this names the field to change.
 // Validated at the same appState boundary, from the same params the sweep is actually run on.
-export const paramIssues = computed<DriverError[]>(() => validateParams(state.box, syncedP.value));
+export const paramIssues = computed<DriverError[]>(() => new Engine().validateParams(state.box, syncedP.value));
 
 // The full issue list the UI shows: driver-derivation issues + box-parameter issues +
 // sweep/max-curve finiteness issues.

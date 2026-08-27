@@ -1,5 +1,5 @@
-import { moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA, passbandRef, rolloffFreq } from '@openisd/engine';
-import type { EngineDriver, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
+import type { EngineDriver, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/design/engine';
 import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
@@ -78,7 +78,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     // Ignore the -200 dB "no output" sentinel (sweep uses it where |p|=0) so it
     // can't drag the scale to nonsense; fit to the real visible curve.
     const real = realDb(ys);
-    const mx2 = passbandRef(ys);
+    const mx2 = new Engine().passbandRef(ys);
     const lo  = real.length ? Math.min(...real) : mx2 - 45;
     const ymax = Math.ceil((mx2 + 3) / 5) * 5;
     // Bring the bottom of the visible curve fully into frame, keeping at least a 45 dB window.
@@ -87,7 +87,8 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     // a bare trace, so the caller passes bare=true to suppress them (also removes the
     // in-plot legend, since only one named series remains).
     if (!bare) {
-      const f3 = rolloffFreq(sw, 3), f6 = rolloffFreq(sw, 6), f10 = rolloffFreq(sw, 10);
+      const engine = new Engine();
+      const f3 = engine.rolloffFreq(sw, 3), f6 = engine.rolloffFreq(sw, 6), f10 = engine.rolloffFreq(sw, 10);
       if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true });
       if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
       if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true });
@@ -128,7 +129,8 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     if (box !== 'vented' && box !== 'bandpass4')
       return { series: [{ xs: sw.fs, ys: sw.fs.map(() => 0), color: meta.color, name: 'n/a' }], ymin: 0, ymax: 1 };
     const series: Series[] = [{ ...pick(sw.pv), color: meta.color, name: 'Port vel' }];
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0.05 * moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA)), color:'#ffb454', name:'17 m/s', dash:true });
+    const machLimit = 0.05 * new Engine().airFor({}).c;
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
     return { series, ymin: 0, ymax: Math.max(20, Math.max(...sw.pv) * 1.1) };
   },
 

@@ -35,7 +35,7 @@ function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 've
 import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
 import assert from 'node:assert/strict';
 import { ManagedProject } from '../../src/logic/managedProject.js';
-import { LossMode } from '@openisd/engine';
+import { LossMode } from '@openisd/design/engine';
 import type { OpenISDDriverJson } from '@openisd/model';
 
 /** A minimal, valid driver record — one stated field, enough to exercise enter()/clear(). */

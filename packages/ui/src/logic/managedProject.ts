@@ -43,20 +43,16 @@ import type {
   OpenISDVent, AlignmentKind, OpenISDProjectMeta,
 } from '@openisd/model';
 import { winisdTextToBytes } from '@openisd/winisd';
-import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/engine';
-import {
-  sealedResonance as computeSealedResonance, sourceLoadedQts, prTuning as computePrTuning,
-  moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA,
-  driveVoltage,
-} from '@openisd/engine';
-import type { LossMode, BoxType } from '@openisd/engine';
+import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/design/engine';
+import { Engine } from '@openisd/design/engine';
+import type { LossMode, BoxType } from '@openisd/design/engine';
 import { decodeDriverFileBytes } from './driverFileText.js';
 import { ProjectFileFormat } from '../fileFormat.js';
 import type { UiParams } from '@openisd/model';
 
 type ManagedProjectListener = () => void;
 
-/** `BoxType` (@openisd/engine) and `AlignmentKind` (@openisd/model) name the same four
+/** `BoxType` (@openisd/design/engine) and `AlignmentKind` (@openisd/model) name the same four
  *  alignments and spell one of them differently — `'pr'` vs `'passive-radiator'`. Both types
  *  are used pervasively under their own names elsewhere, so this is a translation at the one
  *  seam that needs it, not a rename of either. */
@@ -519,11 +515,11 @@ export class ManagedProject {
 
   /** Drive voltage from the project's input power and the EFFECTIVE driver's Re — V = √(Pin·Re),
    *  WinISD's reference-power convention (`bugs/BUG_20260820_syncedp_computes_eg_inside_the_store.md`,
-   *  the fix this getter IS: the formula lives in `@openisd/engine`, read here, never
+   *  the fix this getter IS: the formula lives in `@openisd/design/engine`, read here, never
    *  recomputed at a call site). 1 Ω assumed while the driver is too incomplete to resolve an
    *  `EngineDriver` (`toEngineDriver()` null), matching historic behaviour. */
   driveVoltage_V(): number {
-    return driveVoltage(this.inputPower_W(), this.toEngineDriver()?.Re ?? 1);
+    return new Engine().driveVoltage(this.inputPower_W(), this.toEngineDriver()?.Re ?? 1);
   }
 
   /** Sealed-box (and PR rear-chamber) resonance + system Q via the given loss model. `Rs`/`Ql`/
@@ -535,8 +531,9 @@ export class ManagedProject {
     const d = this.toEngineDriver();
     const Vb = this.boxVolume_m3();
     if (!d || !(Vb > 0)) return null;
-    const qts = sourceLoadedQts(d.Qms, d.Qes, d.Re, Rs, d.Qts);
-    return computeSealedResonance(lossMode, { Fs: d.Fs, Vas: d.Vas, Qts: qts, Vb, Ql, Qa });
+    const engine = new Engine();
+    const qts = engine.sourceLoadedQts(d.Qms, d.Qes, d.Re, Rs, d.Qts);
+    return engine.sealedResonance(lossMode, { Fs: d.Fs, Vas: d.Vas, Qts: qts, Vb, Ql, Qa });
   }
 
   /** WinISD's "Fh" for a PR box: the passive-radiator system tuning, distinct from the sealed
@@ -546,7 +543,7 @@ export class ManagedProject {
     const prSd = this.prSd_m2();
     const prCms = this.prCms_m_per_N();
     if (!(Vb > 0) || !(prSd > 0) || !(prCms > 0)) return null;
-    return computePrTuning({
+    return new Engine().prTuning({
       Vb, prSd, prCms,
       prMmd: this.prMmd_kg(), prMadd: this.prAddedMass_kg(),
     });
@@ -556,7 +553,7 @@ export class ManagedProject {
    *  fundamental c/(2·L) on the PHYSICAL vent length, distinct from the box Helmholtz tuning. */
   portPipeResonance_hz(): number | null {
     const ventL = this.ventLength_m();
-    return ventL > 0 ? moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA) / (2 * ventL) : null;
+    return ventL > 0 ? new Engine().airFor({}).c / (2 * ventL) : null;
   }
 
   /** Passive-radiator derived T/S params, from the stored PR bag. */
@@ -965,7 +962,7 @@ export class ManagedProject {
 
   // ---- UiParams — the flat, engine-facing snapshot ----------------------------------------
   //
-  // `UiParams` (packages/ui/src/types.ts) is the shape `@openisd/engine`'s `sweep()`/
+  // `UiParams` (packages/ui/src/types.ts) is the shape `@openisd/design/engine`'s `sweep()`/
   // `maxCurves()` and the persisted/shared blob (`SerializedState.P`) both need — a superset
   // of `SweepParams`. It is not a second store: every field here is read from, or written to,
   // the project fields above. Gathering them into one plain object is not a CALCULATION (no

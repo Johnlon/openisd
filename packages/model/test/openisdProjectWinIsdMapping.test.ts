@@ -6,12 +6,11 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { LossMode } from '@openisd/engine';
-import type { EngineDriver } from '@openisd/engine';
+import { Engine, LossMode } from '@openisd/design/engine';
+import type { EngineDriver } from '@openisd/design/engine';
 import { OpenISDProject } from '../src/openisdProject.js';
 import { OpenISDDriver } from '../src/openisdDriver.js';
 import { WinISDProject } from '@openisd/winisd';
-import { moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
 
 describe('OpenISDProject.driver()/setDriver() — holds the live driver object', () => {
   it('OpenISDProject.empty() holds the driver it was given', () => {
@@ -160,8 +159,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
     // First principles, independently of every prX helper: Vas = Cms·Sd²·ρ·c², computed here
     // from the record's own derived Cms and the engine's reference air. If the writer ever
     // reverts to litres this is off by 1000×, which is exactly BUG_20260817's failure.
-    const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
-    const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+    const { rho, c } = new Engine().airFor({});
     const firstPrinciples = project.prCms_m_per_N() * project.prSd_m2() ** 2 * rho * c * c;
     const fpErr = Math.abs(vas - firstPrinciples) / firstPrinciples;
     assert.ok(fpErr < 1e-9,

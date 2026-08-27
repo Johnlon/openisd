@@ -65,7 +65,10 @@ export interface ConsistencyIssue {
 
 const TAU = 2 * Math.PI;
 
-const RELATIONS: readonly Relation[] = [
+/** The relation table. A FUNCTION, not a module-scoped `const` array: a shared array is mutable
+ *  however it is declared, and every caller here wants a fresh read anyway. */
+function relations(): readonly Relation[] {
+  return [
   // §4 row 1
   { formula: 'Rms = 2π·Fs·Mms/Qms', target: 'Rms', fields: ['Rms', 'Fs', 'Mms', 'Qms'],
     predict: v => TAU * v.Fs * v.Mms / v.Qms },
@@ -120,14 +123,15 @@ const RELATIONS: readonly Relation[] = [
   { formula: 'DVol = (π/4)·[ (Dd²+Dd·Vcd+Vcd²)·(Depth−MagDepth)/3 + Magnet²·MagDepth ]',
     target: 'DVol', fields: ['DVol', 'Dd', 'Vcd', 'Depth', 'MagDepth', 'Magnet'],
     predict: v => dvolFromDims({ Dd: v.Dd, Vcd: v.Vcd, Depth: v.Depth, MagDepth: v.MagDepth, Magnet: v.Magnet }) ?? NaN },
-];
+  ];
+}
 
 /**
  * §4 row 5's three Q members — the ONE source of truth for which fields form the Qts/Qes/Qms
  * group, reused by the Driver ADT's own group-staleness handling (QO13). Never redeclare this
  * list elsewhere.
  */
-export const Q_GROUP_FIELDS: readonly string[] = RELATIONS.find(r => r.target === 'Qts')!.fields;
+export const Q_GROUP_FIELDS: readonly string[] = relations().find(r => r.target === 'Qts')!.fields;
 
 /** Is this field one of the Q trio? Asked of the list above, never of a second copy. */
 export function isQGroupField(field: string): boolean {
@@ -198,7 +202,7 @@ export function checkConsistency(entered: Values): ConsistencyIssue[] {
   }
 
   const issues: ConsistencyIssue[] = [];
-  for (const rel of RELATIONS) {
+  for (const rel of relations()) {
     if (!rel.fields.every(f => usable(resolved[f]))) continue;
     const expected = rel.predict(resolved);
     if (!isFinite(expected)) continue;

@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { OpenISDProject, OpenISDDriver, VENT_ARITY, Provenance } from '../src/index.js';
 import type { OpenISDProjectJson } from '../src/openisdProject.js';
 import { WinISDProject } from '@openisd/winisd';
-import { ventLength, tuningFromLength } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
 
 
 /** A complete, valid record literal — the by-reference door `fromJsonRecord` adopts, retained
@@ -84,7 +84,7 @@ describe('enter()/clear() — the solve happens inside the domain object', () =>
     p.enter('ventD', 0.06);
     p.enter('Fb', 45);
     const Sp = Math.PI * 0.03 ** 2;
-    const expected = ventLength(0.02, 45, Sp, p.vent(0)!.endCorrection);
+    const expected = new Engine().ventLength(0.02, 45, Sp, p.vent(0)!.endCorrection);
     assert.equal(p.cell('ventL').state, Provenance.Calculated);
     assert.ok(Math.abs(p.cell('ventL').value - expected) / expected < 1e-12,
       `solved length must be the engine's ${expected}, got ${p.cell('ventL').value}`);
@@ -98,7 +98,7 @@ describe('enter()/clear() — the solve happens inside the domain object', () =>
     p.clear('Fb');
     p.enter('ventL', 0.15);
     const Sp = Math.PI * 0.03 ** 2;
-    const expected = tuningFromLength(0.02, 0.15, Sp, p.vent(0)!.endCorrection);
+    const expected = new Engine().tuningFromLength(0.02, 0.15, Sp, p.vent(0)!.endCorrection);
     assert.equal(p.cell('Fb').state, Provenance.Calculated);
     assert.ok(Math.abs(p.cell('Fb').value - expected) / expected < 1e-12);
   });
@@ -123,7 +123,7 @@ describe('enter()/clear() — the solve happens inside the domain object', () =>
     assert.equal(p.cell('Fb').value, 45);
     assert.equal(p.cell('ventL').state, Provenance.Calculated);
     const Sp = Math.PI * 0.025 ** 2;
-    const expected = ventLength(0.02, 45, Sp, p.vent(0)!.endCorrection);
+    const expected = new Engine().ventLength(0.02, 45, Sp, p.vent(0)!.endCorrection);
     assert.ok(Math.abs(p.cell('ventL').value - expected) / expected < 1e-12);
   });
 });

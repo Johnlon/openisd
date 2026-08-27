@@ -33,12 +33,10 @@ import { driverFromConformingRecord } from './driverConformance.js';
 // as opaque data: this file never reads a field off it, only passes it whole to
 // `OpenISDDriver.fromJsonRecord()`/`.toJsonRecord()`.
 import type { OpenISDDriverJson } from './openisdDriver.js';
-import type { Filter } from '@openisd/engine';
-import { prCmsFromVas, prMmdFromFs, prRmsFromQms, prVas, prQms, prFsWithMass,
-         sealedResonance, tuningFromLength, ventLength, prTuning, prMassForFp,
-         findImpedancePeak } from "@openisd/engine";
+import type { Filter } from '@openisd/design/engine';
+import { Engine } from '@openisd/design/engine';
 import { WinISDProject } from "@openisd/winisd";
-import type { Result, EngineDriver, SweepResult, LossMode } from "@openisd/engine";
+import type { Result, EngineDriver, SweepResult, LossMode } from "@openisd/design/engine";
 
 /** The project fields `cell()`/`enter()`/`clear()` speak — the vent group, the PR group, and
  *  the derived port area. */
@@ -559,13 +557,13 @@ function prototypeProject(driver: OpenISDDriver, uuid: string): ProjectLiveState
  * `packages/ui/src/logic/prWinIsdFields.ts` calls these three instead of hand-deriving.
  */
 function prCmsFromWinIsdVas(vasL: number, sdM2: number): number {
-  return prCmsFromVas(vasL, sdM2);
+  return new Engine().prCmsFromVas(vasL, sdM2);
 }
 function prMmdFromWinIsdFs(fsHz: number, cmsSI: number): number {
-  return prMmdFromFs(fsHz, cmsSI);
+  return new Engine().prMmdFromFs(fsHz, cmsSI);
 }
 function prRmsFromWinIsdQms(qms: number, mmdSI: number, cmsSI: number): number {
-  return prRmsFromQms(qms, mmdSI, cmsSI);
+  return new Engine().prRmsFromQms(qms, mmdSI, cmsSI);
 }
 
 /**
@@ -741,10 +739,10 @@ export class OpenISDProject {
     // (bugs/BUG_20260827_wpr_export_writes_a_lossless_Fr_while_the_screen_shows_a_lossy_one.md).
     // Preferred source is the swept impedance peak; the fallback runs the SAME loss model the box
     // panel shows, so file and screen agree by construction.
-    const peak = (driver && curve) ? findImpedancePeak(curve, driver.Re) : null;
+    const peak = (driver && curve) ? new Engine().findImpedancePeak(curve, driver.Re) : null;
     const sealedFr = peak ? peak.Fsc
       : (driver
-          ? sealedResonance(lossMode, {
+          ? new Engine().sealedResonance(lossMode, {
               Fs: driver.Fs, Vas: driver.Vas, Qts: driver.Qts, Vb,
               Ql: record.box.Ql, Qa: record.box.Qa,
             }).Fsc
@@ -805,23 +803,23 @@ export class OpenISDProject {
     } else if (kind === 'bandpass4') {
       box.Fr = sealedFr; // rear: sealed, the driver's own chamber
       const Vf = record.box.bandpass4.frontVolume_m3;
-      const Ff = tuningFromLength(Vf, vent.length_m, Sp, vent.endCorrection); // front: vented
+      const Ff = new Engine().tuningFromLength(Vf, vent.length_m, Sp, vent.endCorrection); // front: vented
       box.Vf = Vf; box.Ff = Ff; box.Sdfport = Sp;
       sections.VentFront = ventKv(Ff, Vf);
     } else {
       const pr = record.box.passiveRadiator;
       const r = pr.radiator;
       if (r) {
-        box.Fr = prTuning({ Vb, prMmd: r.Mmd_kg, prMadd: pr.addedMass_kg,
+        box.Fr = new Engine().prTuning({ Vb, prMmd: r.Mmd_kg, prMadd: pr.addedMass_kg,
                             prSd: r.Sd_m2, prCms: r.Cms_m_per_N });
         box.Npr = pr.count;
         sections.PassiveRadiator = {
-          // prVas() returns LITRES (its own contract); the file's Vas is SI m³ like every
+          // new Engine().prVas() returns LITRES (its own contract); the file's Vas is SI m³ like every
           // other key in the section, so the ÷1000 is load-bearing
           // (BUG_20260817_wpr_passive_radiator_vas_written_in_litres...).
-          Vas: litresToM3(prVas(r.Cms_m_per_N, r.Sd_m2)),
-          Qms: prQms(r.Mmd_kg, r.Cms_m_per_N, r.Rms_Ns_per_m),
-          Fs: prFsWithMass(r.Mmd_kg, pr.addedMass_kg, r.Cms_m_per_N),
+          Vas: litresToM3(new Engine().prVas(r.Cms_m_per_N, r.Sd_m2)),
+          Qms: new Engine().prQms(r.Mmd_kg, r.Cms_m_per_N, r.Rms_Ns_per_m),
+          Fs: new Engine().prFsWithMass(r.Mmd_kg, pr.addedMass_kg, r.Cms_m_per_N),
           Sd: r.Sd_m2, Xmax: r.Xmax_m, Me: pr.addedMass_kg,
         };
       }
@@ -1301,9 +1299,9 @@ export class OpenISDProject {
       }
       // `.wpr`'s [PassiveRadiator].Vas is SI m³ (BUG_20260817); the engine's Vas-vocabulary
       // functions take litres, so the ×1000 happens here, at this one boundary.
-      const cms = prCmsFromVas(m3ToLitres(Vas), Sd);
-      const mmd = prMmdFromFs(Fs, cms);
-      const rms = prRmsFromQms(Qms, mmd, cms);
+      const cms = new Engine().prCmsFromVas(m3ToLitres(Vas), Sd);
+      const mmd = new Engine().prMmdFromFs(Fs, cms);
+      const rms = new Engine().prRmsFromQms(Qms, mmd, cms);
       const radiator = ensurePassiveRadiator(record.box.passiveRadiator);
       radiator.Sd_m2 = Sd;
       radiator.Cms_m_per_N = cms;
@@ -1511,10 +1509,10 @@ export class OpenISDProject {
     const vent = activeVent(record.box);
     if (!this.#isEntered('ventL') && this.#ventDerivable('ventL')) {
       const Fb = boxTuning_Fb_hz(record.box);
-      if (Fb > 0) vent.length_m = ventLength(V, Fb, Sp, vent.endCorrection);
+      if (Fb > 0) vent.length_m = new Engine().ventLength(V, Fb, Sp, vent.endCorrection);
     } else if (!this.#isEntered('Fb') && this.#ventDerivable('Fb')) {
       if (vent.length_m > 0) {
-        setBoxTuning_Fb_hz(record.box, tuningFromLength(V, vent.length_m, Sp, vent.endCorrection));
+        setBoxTuning_Fb_hz(record.box, new Engine().tuningFromLength(V, vent.length_m, Sp, vent.endCorrection));
       }
     }
   }
@@ -1529,10 +1527,10 @@ export class OpenISDProject {
     if (fpEntered && !this.#isEntered('prMadd')) {
       if (pr.Fp_hz > 0) {
         const params = this.#prParams();
-        pr.addedMass_kg = Math.max(0, prMassForFp(params, pr.Fp_hz) - params.prMmd);
+        pr.addedMass_kg = Math.max(0, new Engine().prMassForFp(params, pr.Fp_hz) - params.prMmd);
       }
     } else if (!fpEntered) {
-      pr.Fp_hz = prTuning(this.#prParams());
+      pr.Fp_hz = new Engine().prTuning(this.#prParams());
     }
   }
 
@@ -1542,7 +1540,7 @@ export class OpenISDProject {
     const V = this.#ventVolume();
     const vent = activeVent(this.#record.box);
     if (!(V > 0) || !(Sp > 0) || !(vent.length_m > 0)) return null;
-    return tuningFromLength(V, vent.length_m, Sp, vent.endCorrection);
+    return new Engine().tuningFromLength(V, vent.length_m, Sp, vent.endCorrection);
   }
 
   /** The highest tuning this volume and port area can reach with ANY vent — the tuning at
@@ -1551,7 +1549,7 @@ export class OpenISDProject {
     const Sp = this.#ventCrossArea();
     const V = this.#ventVolume();
     if (!(V > 0) || !(Sp > 0)) return null;
-    return tuningFromLength(V, 0, Sp, activeVent(this.#record.box).endCorrection);
+    return new Engine().tuningFromLength(V, 0, Sp, activeVent(this.#record.box).endCorrection);
   }
 
   /** True when the solver cannot deliver the entered target tuning with this volume and port
@@ -1577,7 +1575,7 @@ export class OpenISDProject {
   prTargetUnreachable(): boolean {
     if (!this.#isEntered('prFp') || !this.#prIsDefined()) return false;
     const params = this.#prParams();
-    return prMassForFp(params, this.#record.box.passiveRadiator.Fp_hz) - params.prMmd < 0;
+    return new Engine().prMassForFp(params, this.#record.box.passiveRadiator.Fp_hz) - params.prMmd < 0;
   }
 
   #isEntered(field: string): boolean { return this.#record.target.entered[field] === true; }
@@ -1617,10 +1615,10 @@ export class OpenISDProject {
       case 'prNum': return record.box.passiveRadiator.count;
       // prVas in SI m³: the engine's prVas contract is litres, so the ÷1000 happens here,
       // at the model boundary — one unit system inside, the registry converts for display.
-      case 'prVas': return litresToM3(prVas(this.#prField('Cms_m_per_N'), this.#prField('Sd_m2')));
-      case 'prFs': return prFsWithMass(this.#prField('Mmd_kg'), 0, this.#prField('Cms_m_per_N'));
-      case 'prQms': return prQms(this.#prField('Mmd_kg'), this.#prField('Cms_m_per_N'), this.#prField('Rms_Ns_per_m'));
-      case 'prFsMass': return prFsWithMass(this.#prField('Mmd_kg'), this.#record.box.passiveRadiator.addedMass_kg, this.#prField('Cms_m_per_N'));
+      case 'prVas': return litresToM3(new Engine().prVas(this.#prField('Cms_m_per_N'), this.#prField('Sd_m2')));
+      case 'prFs': return new Engine().prFsWithMass(this.#prField('Mmd_kg'), 0, this.#prField('Cms_m_per_N'));
+      case 'prQms': return new Engine().prQms(this.#prField('Mmd_kg'), this.#prField('Cms_m_per_N'), this.#prField('Rms_Ns_per_m'));
+      case 'prFsMass': return new Engine().prFsWithMass(this.#prField('Mmd_kg'), this.#record.box.passiveRadiator.addedMass_kg, this.#prField('Cms_m_per_N'));
     }
   }
 

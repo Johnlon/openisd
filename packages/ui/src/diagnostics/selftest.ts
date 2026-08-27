@@ -25,16 +25,13 @@
  *
  * See ARCHITECTURE.md AD-5 for the full rationale.
  */
-import { moistAirDensity, moistAirSoundVelocity, T_REF_K, RH_REF_PCT, P_REF_PA } from '@openisd/engine';
-import { referenceEfficiency, splFromEfficiency } from '@openisd/engine';
-import { deriveEngineDriver } from '@openisd/engine';
-import { sweep } from '@openisd/engine';
-import type { SweepParams } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
+import type { AirEnvironment, SweepParams } from '@openisd/design/engine';
 
-// No environment reaches this diagnostic's own closed-form reference, so ρ/c are computed
-// live at the reference environment — matching production, never a stored constant.
-const refRho = (): number => moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
-const refC = (): number => moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+// No environment reaches this diagnostic's own closed-form reference, so it states the empty
+// environment: every field of `AirEnvironment` is optional and falls back to the reference
+// condition inside the engine — matching production, never a stored constant.
+const REF_ENV: AirEnvironment = {};
 
 declare global {
   interface Window { selfTestDone?: boolean }
@@ -118,7 +115,9 @@ export function createDiagnostics(deps: DiagnosticsDeps): Diagnostics {
 }
 
 function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
-  const { value: d } = deriveEngineDriver(REF_DRIVER);
+  const engine = new Engine();
+  const refAir = engine.airFor(REF_ENV);
+  const { value: d } = engine.deriveEngineDriver(REF_DRIVER);
   if (!d) return [{ label: 'Self-test', pass: false, detail: 'REF_DRIVER failed deriveEngineDriver validation' }];
   const dNoLe = { ...d, Le: 0 }; // Le=0 isolates acoustic response from voice-coil inductance
 
@@ -129,7 +128,7 @@ function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
   const Qtc = d.Qts * Math.sqrt(1 + d.Vas / VB_M3);
   const Psl: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, nDrivers: 1, wiring: 'parallel',
                 eg: EG_V, fmin: FMIN_HZ, fmax: FMAX_HZ, N: N_POINTS };
-  const sw  = sweep(dNoLe, 'sealed', Psl);
+  const sw  = engine.sweep(dNoLe, 'sealed', Psl);
   const passbandRef = sw.spl[sw.spl.length - 1]; // HF asymptote = reference level
   let e1 = 0;
   for (let i = 0; i < sw.fs.length; i++) {
@@ -147,20 +146,20 @@ function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
   // keeping its own copy: it checks the sweep's CIRCUIT solution against the closed-form
   // reference level, so the reference side must be the project's one definition of that
   // level. A second copy here would only ever prove the two copies agree.
-  const eta0    = referenceEfficiency(d.Fs, d.Vas, d.Qes, refC());
-  const sensPredicted = splFromEfficiency(eta0, refRho(), refC()) + 10 * Math.log10(EG_V ** 2 / d.Re);
+  const eta0    = engine.referenceEfficiency(d.Fs, d.Vas, d.Qes, refAir);
+  const sensPredicted = engine.splFromEfficiency(eta0, refAir) + 10 * Math.log10(EG_V ** 2 / d.Re);
   const i300    = sw.fs.findIndex(f => f >= PASSBAND_REF_HZ);
   const pb      = sw.spl[i300];
 
   // --- Gate 3: vented rolloff slope and twin impedance peaks ---
   // Helmholtz: fb = (c/2π)·√(Sp/(Vb·Leff))
   // Ref: https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
-  const Cab  = VB_M3 / (refRho() * refC() * refC());
+  const Cab  = VB_M3 / (refAir.rho * refAir.c * refAir.c);
   const wb   = 2 * Math.PI * VENTED_FB_HZ;
   const Map  = 1 / (wb * wb * Cab);
   const Sp   = Math.PI * VENT_RADIUS_M ** 2;
-  const Pv   = { ...Psl, Ql: VENTED_QL, Sp, Leff: Map * Sp / refRho() };
-  const sv   = sweep(d, 'vented', Pv);
+  const Pv   = { ...Psl, Ql: VENTED_QL, Sp, Leff: Map * Sp / refAir.rho };
+  const sv   = engine.sweep(d, 'vented', Pv);
   const ia   = sv.fs.findIndex(f => f >= ROLLOFF_LOW_HZ);
   const ib   = sv.fs.findIndex(f => f >= ROLLOFF_HIGH_HZ);
   const slope = (sv.spl[ib] - sv.spl[ia]) / Math.log2(sv.fs[ib] / sv.fs[ia]);

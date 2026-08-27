@@ -15,7 +15,7 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { watch } from 'vue';
 import { syncedP, requireFocusedProject } from '../../src/logic/appState.js';
-import type { Filter } from '@openisd/engine';
+import type { Filter } from '@openisd/design/engine';
 
 const hp = (fc: number): Filter => ({ id: 'f-hp', type: 'highpass', enabled: true, fc, Q: 0.7071 });
 

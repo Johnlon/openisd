@@ -14,7 +14,7 @@
  * the consistency-group solve.
  */
 import type { OpenISDDriver } from './openisdDriver.js';
-import { qGroupIsIncomplete } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
 
 function isPositive(v: number | null): boolean {
   return typeof v === 'number' && v > 0;
@@ -36,5 +36,6 @@ export function driverIsSimulatable(driver: OpenISDDriver): boolean {
   const hasFsOk = isPositive(driver.Fs());
   const hasReOk = isPositive(driver.Re());
   const hasSdOk = isPositive(driver.Sd()) || isPositive(driver.Vas());   // Sd or Vas is enough for area
-  return hasFsOk && hasReOk && hasSdOk && !qGroupIsIncomplete(field => qFieldPositive(driver, field));
+  return hasFsOk && hasReOk && hasSdOk
+    && !new Engine().qGroupIsIncomplete(field => qFieldPositive(driver, field));
 }

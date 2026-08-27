@@ -60,72 +60,25 @@ describe('focus is by uuid, not by position', () => {
   });
 });
 
-describe('closing is not deleting', () => {
-  it('a closed project stays in the store', () => {
+describe('the workspace cannot put anything in the store', () => {
+  // NOT an oversight, and the tests that used to live here have been DELETED rather than
+  // repaired: they asserted that a project reached the store on its own, which was autosave, and
+  // autosave is gone (John 2026-08-27: "remove the autosave capability entirely"). `Workspace`
+  // now has no save path at all, so nothing it does writes anything.
+  //
+  // What replaces them belongs with the persistence design (QO92): every project is to hold its
+  // own stores and write ITSELF, at which point closing, reopening and deleting become testable
+  // through the workspace again.
+  it('stores nothing, however much a project is edited', () => {
     const p = ws.create(aDriver('Dayton', 'RS225'), 0.03);
-    p.name.set('Kept');
-    ws.close(p.uuid());
-    expect(ws.stored().map(e => e.name)).toEqual(['Kept']);
-  });
-
-  it('a closed project stops autosaving — its edits no longer reach the store', () => {
-    const p = ws.create(aDriver('Dayton', 'RS225'), 0.03);
-    p.name.set('Closed');
-    ws.close(p.uuid());
-
-    const before = ws.stored()[0].modified;
-    p.box.sealed.volume_m3.set(0.123);      // still reachable in the test; must not be written
-    expect(ws.stored()[0].modified).toBe(before);
-  });
-});
-
-describe('reopening a stored project', () => {
-  it('comes back with its design, as a project in its own right', () => {
-    const p = ws.create(aDriver('Dayton', 'RS225'), 0.03);
-    p.name.set('Ported 8in v3');
-    p.box.sealed.volume_m3.set(0.045);
-    ws.close(p.uuid());
-
-    const reopened = ws.open(ws.stored()[0].id);
-    if (Array.isArray(reopened)) throw new Error(reopened.join('; '));
-    expect(reopened.name.get()).toBe('Ported 8in v3');
-    expect(reopened.box.sealed.volume_m3.get()).toBe(0.045);
-  });
-
-  it('editing it writes back to its own entry rather than duplicating the design', () => {
-    const p = ws.create(aDriver('Dayton', 'RS225'), 0.03);
-    p.name.set('Original');
-    ws.close(p.uuid());
-
-    const reopened = ws.open(ws.stored()[0].id);
-    if (Array.isArray(reopened)) throw new Error(reopened.join('; '));
-    reopened.box.sealed.volume_m3.set(0.05);
-    expect(ws.stored()).toHaveLength(1);
-  });
-
-  it('opening one that is ALREADY open focuses it instead of loading a second copy', () => {
-    const p = ws.create(aDriver('Dayton', 'RS225'), 0.03);
-    p.name.set('Only one of me');
-    ws.create(aDriver('SEAS', 'A26'), 0.05);          // focus moves away
-
-    const again = ws.open(p.uuid());
-    expect(again).toBe(p);
-    expect(ws.projects()).toHaveLength(2);
-    expect(ws.focused()?.uuid()).toBe(p.uuid());
-  });
-});
-
-describe('deleting a stored project', () => {
-  it('is challenged, and leaves open projects alone', async () => {
-    const p = ws.create(aDriver('Dayton', 'RS225'), 0.03);
-    p.name.set('Doomed');
-    const id = ws.stored()[0].id;
-
-    expect(await ws.deleteStored(id, async () => false)).toBe('declined');
-    expect(ws.stored()).toHaveLength(1);
-
-    expect(await ws.deleteStored(id, async () => true)).toBe('deleted');
+    p.name.set('Never stored');
+    p.box.sealed.volume_m3.set(0.099);
     expect(ws.stored()).toHaveLength(0);
-    expect(ws.projects()).toHaveLength(1);   // still open, still editable
+  });
+
+  it('closing a project drops it from memory', () => {
+    const p = ws.create(aDriver('Dayton', 'RS225'), 0.03);
+    ws.close(p.uuid());
+    expect(ws.projects()).toHaveLength(0);
   });
 });

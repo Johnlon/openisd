@@ -20,7 +20,12 @@
 
 import { airFor } from './air.js';
 import type { Air, AirEnvironment } from './air.js';
-import { ebp, prTuning } from './alignments.js';
+import {
+  ebp, prTuning, findImpedancePeak, prMassForFp, sealedFromQtc, tuningFromLength, ventLength,
+} from './alignments.js';
+import {
+  prCmsFromVas, prFsWithMass, prMmdFromFs, prQms, prRmsFromQms, prVas,
+} from './formulas.js';
 import { checkConsistency, isQGroupField, qGroupIsIncomplete } from './consistency.js';
 import { deriveEngineDriver, solveConsistencyGroup } from './driver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
@@ -86,14 +91,21 @@ export class Engine {
     return ebp(drv);
   }
 
-  /** Reference efficiency, in the air the caller states. */
-  referenceEfficiency(Fs: number, Vas: number, Qes: number, env: AirEnvironment): number {
-    return referenceEfficiency(Fs, Vas, Qes, airFor(env).c);
+  /**
+   * Reference efficiency, in the stated air.
+   *
+   * Takes `Air` — the DERIVED pair — rather than an `AirEnvironment`, because a driver record
+   * can state its own ρ and c directly (`.wdr` allows arbitrary values), and no
+   * temperature/humidity/pressure triple reproduces an arbitrary pair. A caller holding an
+   * environment calls `airFor()` first; a caller holding a driver's stated pair passes it.
+   */
+  referenceEfficiency(Fs: number, Vas: number, Qes: number, air: Air): number {
+    return referenceEfficiency(Fs, Vas, Qes, air.c);
   }
 
-  /** SPL for a given efficiency, in the air the caller states. */
-  splFromEfficiency(no: number, env: AirEnvironment): number {
-    const air = airFor(env);
+  /** SPL for a given efficiency, in the stated air. Takes `Air` for the same reason as
+   *  `referenceEfficiency`. */
+  splFromEfficiency(no: number, air: Air): number {
     return splFromEfficiency(no, air.rho, air.c);
   }
 
@@ -117,6 +129,58 @@ export class Engine {
   /** A passive radiator's tuning from its own mass and compliance. */
   prTuning(p: Parameters<typeof prTuning>[0]): number {
     return prTuning(p);
+  }
+
+  // ── THE BOX: vents ────────────────────────────────────────────────────────────────────────
+
+  /** Port length for a target tuning, from the chamber volume and the port's area. */
+  ventLength(Vb: number, fb: number, Sp: number, endCorrection?: number): number {
+    return ventLength(Vb, fb, Sp, endCorrection);
+  }
+
+  /** The tuning a port of that length actually produces — the inverse of `ventLength`. Both
+   *  directions exist because the user may enter either, and the other is then solved. */
+  tuningFromLength(Vb: number, L: number, Sp: number, endCorrection?: number): number {
+    return tuningFromLength(Vb, L, Sp, endCorrection);
+  }
+
+  /** The chamber volume that reaches a target system Q — the alignment picker's solve. */
+  sealedFromQtc(drv: Pick<EngineDriver, 'Qts' | 'Vas'>, Qtc: number): number | null {
+    return sealedFromQtc(drv, Qtc);
+  }
+
+  /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
+  findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null {
+    return findImpedancePeak(result, Re);
+  }
+
+  // ── THE PASSIVE RADIATOR ──────────────────────────────────────────────────────────────────
+
+  /** Added cone mass that tunes a radiator to `fp`. */
+  prMassForFp(P: Parameters<typeof prMassForFp>[0], fp: number): number {
+    return prMassForFp(P, fp);
+  }
+
+  /** Compliance-equivalent volume, in LITRES. */
+  prVas(prCms: number, prSd: number): number { return prVas(prCms, prSd); }
+
+  /** Compliance from Vas (litres) and Sd — the inverse of `prVas`. */
+  prCmsFromVas(prVasL: number, prSd: number): number { return prCmsFromVas(prVasL, prSd); }
+
+  /** Free-air resonance loaded with added cone mass. */
+  prFsWithMass(prMmd: number, prMadd: number, prCms: number): number {
+    return prFsWithMass(prMmd, prMadd, prCms);
+  }
+
+  /** Moving mass from free-air Fs and compliance — the inverse of the resonance. */
+  prMmdFromFs(prFsHz: number, prCms: number): number { return prMmdFromFs(prFsHz, prCms); }
+
+  /** Mechanical Q from mass, compliance and resistance. */
+  prQms(prMmd: number, prCms: number, prRms: number): number { return prQms(prMmd, prCms, prRms); }
+
+  /** Mechanical resistance from Qms — the inverse of `prQms`. */
+  prRmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number {
+    return prRmsFromQms(prQmsValue, prMmd, prCms);
   }
 
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
@@ -160,5 +224,4 @@ export class Engine {
   classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
     return classifyMaxFinite(mx);
   }
-
 }

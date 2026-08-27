@@ -14,8 +14,8 @@
  * GAPS.md §A4 ("E/C/N derivation is one-directional; WinISD's is a group solver") stays
  * open — these two additions are partial coverage, not a full small-system solver.
  */
-import { deriveEngineDriver, solveConsistencyGroup, splFromEfficiency } from '@openisd/engine';
-import type { DriverError } from '@openisd/engine';
+import { Engine } from '@openisd/design/engine';
+import type { DriverError } from '@openisd/design/engine';
 
 export interface OpenISDDerivation {
   /** Every derivable field, SI units — both entered (passed through unchanged) and
@@ -31,6 +31,7 @@ export interface OpenISDDerivation {
  * guarantee `#derive()` makes.
  */
 export function deriveOpenISDFields(entered: Readonly<Record<string, number>>): OpenISDDerivation {
+  const engine = new Engine();
   const filtered: Record<string, number> = {};
   for (const k in entered) {
     const v = entered[k];
@@ -38,7 +39,7 @@ export function deriveOpenISDFields(entered: Readonly<Record<string, number>>): 
   }
   if (filtered.Dia != null && filtered.Dd == null) filtered.Dd = filtered.Dia;
 
-  const r = solveConsistencyGroup(filtered, { full: true }) as Record<string, number>;
+  const r = engine.solveConsistencyGroup(filtered, { full: true }) as Record<string, number>;
 
   if (r.Dia == null && r.Dd != null) r.Dia = r.Dd;
 
@@ -46,9 +47,9 @@ export function deriveOpenISDFields(entered: Readonly<Record<string, number>>): 
   // driver's own air — c/roo are already filled by solveConsistencyGroup above, the same
   // entered-or-computed path as every other derivable field. `no`/`SPLref` are likewise
   // already filled; `SPL` is the `.wdr` spelling of the same quantity.
-  if (r.SPL == null && r.no != null && r.no > 0) r.SPL = splFromEfficiency(r.no, r.roo, r.c);
+  if (r.SPL == null && r.no != null && r.no > 0) r.SPL = engine.splFromEfficiency(r.no, { rho: r.roo, c: r.c });
 
   // Same validation authority #derive() uses.
-  const { errors } = deriveEngineDriver(r);
+  const { errors } = engine.deriveEngineDriver(r);
   return { fields: r, errors };
 }

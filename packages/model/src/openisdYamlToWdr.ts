@@ -87,7 +87,7 @@
  * per instruction.
  */
 import { parse } from 'yaml';
-import type { DriverError, Result } from '@openisd/engine';
+import type { DriverError, Result } from '@openisd/design/engine';
 import { INI_ROWS } from '@openisd/winisd';
 import { OpenISDDriver, Provenance, type Cell } from './openisdDriver.js';
 
