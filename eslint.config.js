@@ -25,8 +25,10 @@ export default [
   ...pluginVue.configs['flat/essential'],
 
   // ── Override: tighten rules for Vue components ───────────────────────────
+  // EVERY package's SFCs, not just packages/ui's — a component is a component wherever it lives,
+  // and a package added later should not silently arrive unlinted.
   {
-    files: ['packages/ui/src/**/*.vue'],
+    files: ['packages/**/*.vue'],
     languageOptions: {
       // vue-eslint-parser stays the outer parser; delegate <script lang="ts"> to
       // the TS parser so TypeScript in SFCs is understood.
@@ -43,15 +45,27 @@ export default [
     },
   },
 
-  // ── Engine package: packages/engine/src/*.{js,ts} ────────────────────────
-  // Pure Node-importable modules — no browser globals or console logging.
+  // ── The Node-importable packages: design, model, persistence, winisd ──────
+  // No console logging: these are libraries, and a library that prints has decided something
+  // about its host that is not its to decide.
+  //
+  // `globals.node` rather than bare es2022 because these are ISOMORPHIC — they run in Node and
+  // in the browser, and the platform features they use (`crypto.randomUUID`, `TextDecoder`,
+  // `fetch`, `Blob`) are standard in both. What that does NOT admit is anything browser-ONLY:
+  // `localStorage`, `document`, `window`, `FileSystemFileHandle`. Those belong to the two
+  // platform directories called out below, and stay `no-undef` errors everywhere else.
   {
-    files: ['packages/engine/src/**/*.{js,ts}'],
+    files: [
+      'packages/design/**/*.{js,ts}',
+      'packages/model/**/*.{js,ts}',
+      'packages/persistence/**/*.{js,ts}',
+      'packages/winisd/**/*.{js,ts}',
+    ],
     languageOptions: {
       parser: tseslint.parser,
       ecmaVersion: 2022,
       sourceType: 'module',
-      globals: { ...globals.es2022 },
+      globals: { ...globals.node, ...globals.es2022 },
     },
     plugins: { '@typescript-eslint': tseslint.plugin },
     rules: {
@@ -89,13 +103,25 @@ export default [
   // which is the channel `faultLog` records into and the fault dialog then shows the user.
   // `console.log` stays banned here: a debug print is not a fault report.
   {
-    files: ['packages/ui/src/logic/persist.ts', 'packages/ui/src/logic/store.ts'],
+    files: [
+      'packages/ui/src/logic/persist.ts',
+      'packages/ui/src/logic/store.ts',
+      // The repos are the same boundary on the other side of the move: each `console.error`
+      // there reports a payload the reader REFUSED — a driver record that will not load, a
+      // quarantined blob — which is a fault the user must be told about, not a debug print.
+      'packages/persistence/src/repos/**/*.ts',
+    ],
     rules: { 'no-console': ['warn', { allow: ['error', 'info'] }] },
   },
 
-  // ── Engine tests: packages/engine/test/*.{mjs,js,ts} ─────────────────────
+  // ── Those packages' TESTS: Node globals, and `console` is how a test reports ──────────────
   {
-    files: ['packages/engine/test/**/*.{mjs,js,ts}'],
+    files: [
+      'packages/design/test/**/*.{mjs,js,ts}',
+      'packages/model/test/**/*.{mjs,js,ts}',
+      'packages/persistence/test/**/*.{mjs,js,ts}',
+      'packages/winisd/test/**/*.{mjs,js,ts}',
+    ],
     languageOptions: {
       parser: tseslint.parser,
       ecmaVersion: 2022,
@@ -106,7 +132,28 @@ export default [
     rules: {
       ...noUnusedVars,
       'no-undef': 'error',
+      'no-console': 'off',
     },
+  },
+
+  // ── The platform directories: browser globals allowed, and ONLY here ───────────────────────
+  // `packages/design/browser` is named for exactly this property (see its own header), and
+  // `packages/persistence/src/storage` is the file/localStorage layer — reaching the browser is
+  // its entire job. Everywhere else a browser-only global stays a `no-undef` error.
+  {
+    files: [
+      'packages/design/browser/**/*.{js,ts}',
+      'packages/persistence/src/storage/**/*.{js,ts}',
+      'packages/persistence/src/repos/**/*.{js,ts}',
+    ],
+    languageOptions: {
+      parser: tseslint.parser,
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.browser, ...globals.es2022 },
+    },
+    plugins: { '@typescript-eslint': tseslint.plugin },
+    rules: { ...noUnusedVars, 'no-undef': 'error', 'no-console': 'error' },
   },
 
   // ── UI unit tests: packages/ui/test/*.{mjs,js,ts} ─────────────────────────
@@ -125,24 +172,24 @@ export default [
     },
   },
 
-  // ── Engine boundary — only store and selftest may call raw physics ──────────
-  // deriveDriver / sweep / maxCurves must go through store (which wraps them
-  // with error handling). selftest is exempt — it tests the raw engine bundle.
+  // ── The engine has ONE door ────────────────────────────────────────────────────────────────
+  // `packages/design/engine/index.ts` exports the `Engine` class and the types its signatures
+  // name. Reaching past it — a deep subpath, or the deleted `@openisd/engine` — gets at a
+  // function meant to be internal. `packages/design/test/architecture-engine-boundary.test.ts`
+  // is the thorough check (it resolves relative paths too); this is the fast one, in the editor.
   {
-    files: ['packages/ui/src/components/**', 'packages/ui/src/utils/**'],
-    ignores: ['packages/ui/src/utils/selftest.js', 'packages/ui/src/utils/selftest.ts'],
+    files: ['packages/**/*.{js,ts,vue}'],
+    ignores: ['packages/design/engine/**'],
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [
           {
-            group: ['@openisd/engine'],
-            importNamePattern: '^deriveDriver$',
-            message: 'Use driver from store — the store wraps deriveDriver with error handling.',
+            group: ['@openisd/design/engine/*'],
+            message: 'The engine has one door: import `@openisd/design/engine` and call a method on `Engine`. If Engine does not offer what you need, that is a missing method — add it there.',
           },
           {
-            group: ['@openisd/engine'],
-            importNamePattern: '^(sweep|maxCurves)$',
-            message: 'Use curvesData/maxData from store — the store wraps sweep/maxCurves with error handling.',
+            group: ['@openisd/engine', '@openisd/engine/*'],
+            message: '`packages/engine` was deleted. Import `@openisd/design/engine` and use the `Engine` class.',
           },
         ],
       }],

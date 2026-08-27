@@ -7,7 +7,7 @@ import type { ProjectMeta, RecordStore, RecordStoreFactory } from '../domain/ind
 
 // Declared narrowly rather than by adding "DOM" to the package's `lib`, which would put the whole
 // browser API within reach of `domain/` too. Only what this file actually uses.
-declare const indexedDB: {
+declare const _indexedDB: {
   open(name: string, version?: number): IDBOpenRequestLike;
 };
 interface IDBOpenRequestLike {
@@ -43,7 +43,7 @@ const STORE = 'projects';
  * label beside it because the store may not read inside, and the timestamp stamped here because
  * "when it was last written" is a fact about the act of writing and this is what performs it.
  */
-export function indexedDbStore(dbName: string, now: () => string): RecordStoreFactory {
+export function indexedDbStore(dbName: string, _now: () => string): RecordStoreFactory {
   // The schema this file owns. `id` is the key; the two indexes answer `list()` without opening
   // a single record.
   function upgrade(db: IDBDatabaseLike): void {

@@ -1118,25 +1118,6 @@ function metadataProblems(r: Record<string, unknown>): string[] {
 // project's record, and nothing outside can, because nothing outside can reach the map.
 
 
-/**
- * WHICH project a component is looking at, resolved on EVERY access rather than fixed when the
- * component was built.
- *
- * A `ManagedProject` has several layers, each its own `OpenISDProject`, and a write can move
- * which one is effective — writing to committed opens an edit layer and lands there. A component
- * bound to one layer therefore stops matching the project the instant that happens, and a caller
- * holding it reads stale values from its own write onwards
- * (`bugs/BUG_20260826_held_component_handle_goes_stale_when_a_write_opens_the_edit_layer.md`).
- *
- * Resolving late fixes that at the root: `ManagedProject` builds ONE driver and ONE box over
- * `() => this.#effective()`, so the objects it hands out survive every layer transition and stay
- * correct. A plain `OpenISDProject` passes `() => this`, which never varies.
- *
- * Stable component objects are also what let a UI framework memoize on object identity — the
- * same reasoning that made every `Field` eagerly constructed rather than built per getter call.
- */
-type ProjectRef = () => OpenISDProject;
-
 
 /**
  * THE PROJECT — the one type the app holds.

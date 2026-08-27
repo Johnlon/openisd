@@ -12,7 +12,7 @@ import { assemble } from '../app/composition.js';
 import { memoryStore } from '@openisd/design/browser';
 import {
   newProject, driverFromConformingRecord,
-  type ProjectRepo, type ManagedProject, type OpenISDDriver,
+  type ProjectRepo, type OpenISDProject, type OpenISDDriver,
 } from '@openisd/design';
 
 /** A conforming driver record, built inline so each test's data is readable where it is used. */
@@ -41,7 +41,7 @@ function tickingClock(): () => string {
 let repo: ProjectRepo;
 beforeEach(() => { repo = assemble(memoryStore, tickingClock()).repo; });
 
-function aProject(name: string, brand = 'Dayton', model = 'RS225'): ManagedProject {
+function aProject(name: string, brand = 'Dayton', model = 'RS225'): OpenISDProject {
   const p = newProject(aDriver(brand, model)).sealed().volume_m3(0.03).build();
   p.name.set(name);
   return p;

@@ -1,7 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2022"]
+    "lib": [
+      "ES2022"
+    ]
   },
-  "include": ["engine/**/*.ts", "domain/**/*.ts", "browser/**/*.ts", "app/**/*.ts"]
+  "include": [
+    "domain/**/*.ts",
+    "engine/**/*.ts",
+    "browser/**/*.ts",
+    "app/**/*.ts",
+    "test/**/*.ts"
+  ]
 }
