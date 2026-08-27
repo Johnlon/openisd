@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { Engine } from '@openisd/design/engine';
 import {
   newProject,
   driverFromConformingRecord,
@@ -54,7 +55,7 @@ describe('the driver — a window, not a copy', () => {
     const driver = newProject(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-    })).sealed().volume_m3(0.03).build().driver;
+    }), new Engine()).sealed().volume_m3(0.03).build().driver;
 
     expect(driver.Fs_hz.get().value).toBe(30);
     driver.Fs_hz.set(35);
@@ -70,7 +71,7 @@ describe('the driver — a window, not a copy', () => {
     const project = newProject(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-    })).sealed().volume_m3(0.03).build();
+    }), new Engine()).sealed().volume_m3(0.03).build();
     const driver = project.driver;      // bound ONCE, before the edited state exists
 
     driver.Fs_hz.set(35);               // creates the edited state under the caller's feet
@@ -90,7 +91,7 @@ describe('the driver — a window, not a copy', () => {
     const driver = newProject(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-    })).sealed().volume_m3(0.03).build().driver;
+    }), new Engine()).sealed().volume_m3(0.03).build().driver;
 
     // Identity must hold, or reference-equality memoization sees every read as a change.
     expect(driver.Fs_hz).toBe(driver.Fs_hz);
@@ -123,7 +124,7 @@ describe('the driver — a window, not a copy', () => {
     const original = newProject(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-    })).sealed().volume_m3(0.03).build().driver;
+    }), new Engine()).sealed().volume_m3(0.03).build().driver;
 
     const copy = original.detach();
     copy.Fs_hz.set(99);
@@ -137,7 +138,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
   const project = () => newProject(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-  })).sealed().volume_m3(0.03).build();
+  }), new Engine()).sealed().volume_m3(0.03).build();
 
   it('writes the sealed volume through to the project', () => {
     const p = project();
@@ -145,13 +146,32 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     expect(p.box.sealed.volume_m3.get()).toBe(0.03);
   });
 
-  it('REFUSES to calculate sealed resonance — acoustics belongs to the engine', () => {
-    // John's ruling 2026-08-26: "geom is in and accoustic is absolutely out". The inline version
-    // that used to answer here duplicated the engine's own sealedFc() over frozen air constants.
-    // Throwing keeps the gap visible; returning null would look like a missing input.
+  it('gets sealed resonance FROM THE INJECTED ENGINE, and it rises above the driver\'s Fs', () => {
+    // The domain does none of this arithmetic — it hands the driver's stored values, the volume,
+    // the losses and the project's environment to the engine and reports what comes back
+    // (John 2026-08-26: "geom is in and accoustic is absolutely out").
     const p = project();
     p.box.sealed.volume_m3.set(0.03);
-    expect(() => p.box.sealed.resonance_hz()).toThrow(/engine/);
+
+    const fc = p.box.sealed.resonance_hz();
+    // A sealed box always raises resonance above the driver's free-air Fs of 30 Hz.
+    expect(fc).not.toBeNull();
+    expect(fc!).toBeGreaterThan(30);
+  });
+
+  it('answers null for sealed resonance when there is no enclosure to resonate', () => {
+    // Absence is null here as everywhere — never NaN, never 0, and never a throw. A zero volume
+    // is not a very small box; it is no box.
+    const p = project();
+    p.box.sealed.volume_m3.set(0);
+    expect(p.box.sealed.resonance_hz()).toBeNull();
+  });
+
+  it('a smaller box raises the resonance further — the engine is really being consulted', () => {
+    // Non-vacuity: a hardcoded or stubbed value would not move with the volume.
+    const big = project();  big.box.sealed.volume_m3.set(0.060);
+    const small = project(); small.box.sealed.volume_m3.set(0.015);
+    expect(small.box.sealed.resonance_hz()!).toBeGreaterThan(big.box.sealed.resonance_hz()!);
   });
 
   it('STILL computes plain geometry — a port area is πr², which no model can disagree about', () => {
@@ -231,7 +251,7 @@ describe('the passive radiator a box holds', () => {
   const project = () => newProject(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-  })).sealed().volume_m3(0.03).build();
+  }), new Engine()).sealed().volume_m3(0.03).build();
 
   it('reports nothing chosen, and refuses edits, until configurePR', () => {
     const p = project();
@@ -260,7 +280,7 @@ describe('ManagedProject — the layers', () => {
   const managed = () => newProject(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-  })).sealed().volume_m3(0.03).build();
+  }), new Engine()).sealed().volume_m3(0.03).build();
 
   it('starts unmodified', () => {
     expect(managed().isModified()).toBe(false);
@@ -341,7 +361,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('leaves the project untouched until the copy is written back', () => {
-    const mp = newProject(wooferDriver()).sealed().volume_m3(0.03).build();
+    const mp = newProject(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
 
     // What an editor does: take a copy, edit THAT, and only then decide.
     const working = mp.driver.detach();
@@ -355,7 +375,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('works identically on a standalone driver — the same two calls, whatever the origin', () => {
-    const original = newProject(wooferDriver()).sealed().volume_m3(0.03).build().driver.detach();
+    const original = newProject(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
 
     const working = original.detach();
     working.Fs_hz.set(200);
@@ -366,7 +386,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('discards an edit by dropping the copy — nothing to roll back', () => {
-    const original = newProject(wooferDriver()).sealed().volume_m3(0.03).build().driver.detach();
+    const original = newProject(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
 
     const working = original.detach();
     working.Fs_hz.set(500);

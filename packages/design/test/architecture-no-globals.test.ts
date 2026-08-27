@@ -53,14 +53,28 @@ function isMutableContainer(stmt: VariableStatement): boolean {
   });
 }
 
-/** Every module-scoped variable statement in the package's shipped source (tests excluded —
- *  a test's own `let fixture` is scaffolding, not application state). */
-function moduleScopedStatements() {
-  const project = new Project({
-    tsConfigFilePath: path.join(packageRoot, 'tsconfig.json'),
-    skipAddingFilesFromTsConfig: false,
-  });
+/**
+ * The package's SHIPPED source, and only that.
+ *
+ * Loaded from explicit globs rather than the tsconfig: the tsconfig also includes `test/`, and
+ * pulling ~18k lines of test into ts-morph made this gate take longer than the test timeout. A
+ * test's own `let fixture` is scaffolding, not application state, so those files were never
+ * wanted here anyway.
+ */
+function shippedSource(): Project {
+  const project = new Project({ skipAddingFilesFromTsConfig: true, skipFileDependencyResolution: true });
+  project.addSourceFilesAtPaths([
+    path.join(packageRoot, 'domain', '**', '*.ts'),
+    path.join(packageRoot, 'engine', '**', '*.ts'),
+    path.join(packageRoot, 'browser', '**', '*.ts'),
+    path.join(packageRoot, 'app', '**', '*.ts'),
+  ]);
+  return project;
+}
 
+/** Every module-scoped variable statement in the package's shipped source. */
+function moduleScopedStatements() {
+  const project = shippedSource();
   const found: { file: string; line: number; text: string; why: string }[] = [];
 
   for (const source of project.getSourceFiles()) {
@@ -108,11 +122,7 @@ describe('packages/design has no global variables', () => {
 
   it('can actually see the source it is meant to guard', () => {
     // A gate that silently scans nothing passes forever. This proves the project loaded.
-    const project = new Project({
-      tsConfigFilePath: path.join(packageRoot, 'tsconfig.json'),
-      skipAddingFilesFromTsConfig: false,
-    });
-    const shipped = project.getSourceFiles()
+    const shipped = shippedSource().getSourceFiles()
       .map((s) => path.relative(packageRoot, s.getFilePath()))
       .filter((f) => !f.startsWith('test/') && !f.startsWith('..'));
 

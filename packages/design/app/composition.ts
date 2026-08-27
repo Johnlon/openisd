@@ -9,6 +9,7 @@
 // a caller that wants two independent apps calls `assemble` twice.
 
 import { projectRepo, type ProjectRepo, type RecordStoreFactory } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
 import { Workspace } from './workspace.js';
 
 /** Reads the current time as an ISO-8601 string. ISO so timestamps sort lexicographically, which
@@ -25,6 +26,9 @@ export const systemClock: Clock = () => new Date().toISOString();
  * never a method — the context holds what exists, it does not do anything itself.
  */
 export interface AppContext {
+  /** The ONE calculation surface. Built here and handed to everything that needs a figure —
+   *  no module-scoped instance, and nothing constructs its own. */
+  readonly engine: Engine;
   /** The clock everything shares, so nothing reads `Date` on its own and a test controls time
    *  from one place. */
   readonly clock: Clock;
@@ -39,6 +43,7 @@ export interface AppContext {
  * and the store cannot end up stamping times from a different source than the rest of the app.
  */
 export function assemble(makeStore: (clock: Clock) => RecordStoreFactory, clock: Clock): AppContext {
-  const repo = projectRepo(makeStore(clock));
-  return { clock, repo, workspace: new Workspace(repo) };
+  const engine = new Engine();
+  const repo = projectRepo(makeStore(clock), engine);
+  return { clock, engine, repo, workspace: new Workspace(repo, engine) };
 }

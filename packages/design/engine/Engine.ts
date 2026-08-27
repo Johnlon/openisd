@@ -121,9 +121,33 @@ export class Engine {
 
   // ── THE BOX ───────────────────────────────────────────────────────────────────────────────
 
-  /** Sealed resonance and Qtc under a chosen loss model. */
+  /** Sealed resonance and Qtc under a chosen loss model. Takes `Vas` directly. */
   sealedResonance(mode: LossMode, p: SealedParams): { Fsc: number; Qtc: number } {
     return sealedResonance(mode, p);
+  }
+
+  /**
+   * Sealed-chamber resonance from the driver's STORED values, in the stated air.
+   *
+   * The domain stores compliance and cone area, never `Vas` — Vas is derived, and deriving it
+   * needs air, which is the engine's business. So a caller that holds a driver record passes
+   * what it has and this works out the rest.
+   *
+   * Null when the volume is not positive — absence is `null` in this system, never NaN or 0.
+   */
+  sealedResonanceFromCompliance(
+    mode: LossMode,
+    input: {
+      Fs_hz: number; Qts: number; Sd_m2: number; Cms_m_per_N: number;
+      volume_m3: number; Ql: number; Qa: number;
+    },
+    air: Air,
+  ): number | null {
+    if (!(input.volume_m3 > 0)) return null;
+    const Vas = input.Cms_m_per_N * input.Sd_m2 ** 2 * air.rho * air.c ** 2;
+    return sealedResonance(mode, {
+      Fs: input.Fs_hz, Qts: input.Qts, Vas, Vb: input.volume_m3, Ql: input.Ql, Qa: input.Qa,
+    }).Fsc;
   }
 
   /** A passive radiator's tuning from its own mass and compliance. */

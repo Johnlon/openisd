@@ -17,6 +17,7 @@ import {
   type DeleteChallenge,
   type DeleteOutcome,
 } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
 
 /**
  * The open projects and the focus, over a repo.
@@ -28,10 +29,13 @@ import {
  */
 export class Workspace {
   readonly #repo: ProjectRepo;
+  /** The one calculation surface, on its way to every project this workspace creates. */
+  readonly #engine: Engine;
   #open: OpenISDProject[] = [];
   #focused: string | null = null;
-  constructor(repo: ProjectRepo) {
+  constructor(repo: ProjectRepo, engine: Engine) {
     this.#repo = repo;
+    this.#engine = engine;
   }
 
   /** Every open project, in the order they were opened. */
@@ -56,7 +60,7 @@ export class Workspace {
    * creation would fill the store with blank entries every time someone clicks New.
    */
   create(driver: OpenISDDriver, volume_m3: number): OpenISDProject {
-    return this.#adopt(newProject(driver).sealed().volume_m3(volume_m3).build());
+    return this.#adopt(newProject(driver, this.#engine).sealed().volume_m3(volume_m3).build());
   }
 
   /** What the store holds, for a picker — most-recently-modified first. */

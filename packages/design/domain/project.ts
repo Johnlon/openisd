@@ -36,6 +36,7 @@ import {
   type RawField,
 } from './cell.js';
 import { newUuid } from './newUuid.js';
+import { Engine, LossMode } from '../engine/index.js';
 
 /**
  * Refuse a calculation that belongs to `@openisd/engine`. See the ruling at the top of this file.
@@ -620,14 +621,33 @@ class OpenISDBox implements Box {
   readonly abc: AbcBox;
   readonly passiveRadiator: PassiveRadiatorBox;
 
-  private constructor(lens: Lens<OpenISDBoxJson>) {
+  /** The driver this box loads, read through its PUBLIC field surface — never its record. A
+   *  chamber's resonance depends on the driver, and this is the only thing the box needs it for. */
+  readonly #driver: OpenISDDriverEmbedded;
+  /** The one calculation surface. Injected, never constructed here. */
+  readonly #engine: Engine;
+  /** The project's own air, resolved at CALL time so a chamber follows the environment the user
+   *  states rather than whichever one happened to be current at construction. */
+  readonly #environment: () => OpenISDEnvironmentJson;
+
+  private constructor(
+    lens: Lens<OpenISDBoxJson>,
+    driver: OpenISDDriverEmbedded,
+    engine: Engine,
+    environment: () => OpenISDEnvironmentJson,
+  ) {
+    this.#driver = driver;
+    this.#engine = engine;
+    this.#environment = environment;
     this.boxType = focus(lens, 'boxType');
 
     const sealedLens = focus(lens, 'sealed');
+    const sealedVolume = focus(sealedLens, 'volume_m3');
+    const sealedLosses = new LossesWindow(focus(sealedLens, 'losses')) satisfies SealedLosses;
     this.sealed = {
-      volume_m3: focus(sealedLens, 'volume_m3'),
-      resonance_hz: () => noEngine('sealed.resonance_hz'),
-      losses: new LossesWindow(focus(sealedLens, 'losses')) satisfies SealedLosses,
+      volume_m3: sealedVolume,
+      resonance_hz: () => this.#sealedResonance_hz(sealedVolume.get(), sealedLosses),
+      losses: sealedLosses,
     };
 
     const ventedLens = focus(lens, 'vented');
@@ -641,6 +661,7 @@ class OpenISDBox implements Box {
 
     const bp4 = focus(lens, 'bandpass4');
     const bp4Rear = focus(bp4, 'rear');
+    const bp4RearLosses = new LossesWindow(focus(bp4Rear, 'losses')) satisfies CoupledSealedLosses;
     const bp4Front = focus(bp4, 'front');
     this.bandpass4 = {
       chambers: {
@@ -648,8 +669,8 @@ class OpenISDBox implements Box {
         // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
         rear: {
           volume_m3: requiredField(bp4Rear, 'volume_m3', 'bandpass4.rear.volume_m3'),
-          resonance_hz: () => noEngine('sealed.resonance_hz'),
-          losses: new LossesWindow(focus(bp4Rear, 'losses')) satisfies CoupledSealedLosses,
+          resonance_hz: () => this.#sealedResonance_hz(focus(bp4Rear, 'volume_m3').get(), bp4RearLosses),
+          losses: bp4RearLosses,
         },
         // front's volume is RAW — it has exactly one home and is not part of a solved
         // relation, unlike its tuning.
@@ -710,8 +731,49 @@ class OpenISDBox implements Box {
 
   /** Takes the lens onto the project's `box` slot. The project owns that slot and builds the
    *  lens, so the box needs no reference back to the project. */
-  static wrap(slot: Lens<OpenISDBoxJson>): OpenISDBox {
-    return new OpenISDBox(slot);
+  static wrap(
+    slot: Lens<OpenISDBoxJson>,
+    driver: OpenISDDriverEmbedded,
+    engine: Engine,
+    environment: () => OpenISDEnvironmentJson,
+  ): OpenISDBox {
+    return new OpenISDBox(slot, driver, engine, environment);
+  }
+
+  /**
+   * A sealed chamber's resonance, through the INJECTED engine and in the PROJECT'S OWN air.
+   *
+   * Null whenever the driver has not stated what the calculation needs, or the volume is not
+   * set — absence is `null` here as everywhere, never 0 and never a throw.
+   *
+   * The domain does none of the physics: it hands over the driver's stored values, the volume,
+   * the chamber's losses and the environment, and the engine derives Vas and the resonance.
+   *
+   * LOSSLESS, and NOT by preference — `SpecSection` stores no `Qts`, and both lossy models need
+   * it (the lossless `Fsc` is the one figure that does not). So this is the only resonance the
+   * domain's own driver record can express today.
+   *
+   * That matters for parity: WinISD displays and saves the LOSSY figure — measured, `Fr` moves
+   * 5.8 Hz for a `Ql` change at fixed volume (`winisd_research` FINDING-007). Matching it needs
+   * `Qts` in the driver record, which is a decision about the record, not about this method.
+   */
+  #sealedResonance_hz(volume_m3: number | null, losses: SealedLosses): number | null {
+    const Fs_hz = this.#driver.Fs_hz.get().value;
+    const Sd_m2 = this.#driver.Sd_m2.get().value;
+    const Cms = this.#driver.Cms_m_per_N.get().value;
+    if (volume_m3 === null || Fs_hz === null || Sd_m2 === null || Cms === null) return null;
+
+    const env = this.#environment();
+    const air = this.#engine.airFor({
+      tempK: env.temperature_K ?? undefined,
+      humidityPct: env.humidity_pct ?? undefined,
+      pressurePa: env.pressure_Pa ?? undefined,
+    });
+    return this.#engine.sealedResonanceFromCompliance(
+      LossMode.Lossless,
+      { Fs_hz, Qts: 0, Sd_m2, Cms_m_per_N: Cms, volume_m3, Ql: losses.Ql.get(), Qa: losses.Qa.get() },
+      air,
+    );
   }
 
 
@@ -1161,11 +1223,19 @@ export class OpenISDProject {
 
   readonly #listeners = new Set<() => void>();
 
-  private constructor(saved: OpenISDProjectJson, uuid: string) {
+  /** The one calculation surface this project uses. INJECTED — never constructed here, never
+   *  reached through a module-scoped instance. Every acoustic figure the project reports comes
+   *  from this reference and from nowhere else. */
+  readonly #engine: Engine;
+
+  private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine) {
     this.#saved = saved;
     this.#uuid = uuid;
+    this.#engine = engine;
     this.driver = OpenISDDriverEmbedded.wrap(this.#slot('driver'));
-    this.box = OpenISDBox.wrap(this.#slot('box'));
+    // The box is handed the DRIVER and the ENGINE: a chamber's resonance depends on the driver
+    // it loads, and the box reads the driver through its PUBLIC field surface, never its record.
+    this.box = OpenISDBox.wrap(this.#slot('box'), this.driver, engine, () => this.#current().environment);
     const meta = this.#slot('meta');
     this.name = focus(meta, 'name');
     this.comment = focus(meta, 'comment');
@@ -1174,8 +1244,8 @@ export class OpenISDProject {
   /** A record ENTERS the process here. A record carries no identity, so one is minted — two
    *  wraps of one record are two independently editable projects, which is what opening a FILE
    *  twice should give. */
-  static wrap(json: OpenISDProjectJson): OpenISDProject {
-    return this.wrapWithIdentity(json, newUuid());
+  static wrap(json: OpenISDProjectJson, engine: Engine): OpenISDProject {
+    return this.wrapWithIdentity(json, newUuid(), engine);
   }
 
   /**
@@ -1188,8 +1258,8 @@ export class OpenISDProject {
    * NOT for a file: a file's id was minted by another process and is provenance, never a key
    * (the driver precedent, QO81).
    */
-  static wrapWithIdentity(json: OpenISDProjectJson, uuid: string): OpenISDProject {
-    return new OpenISDProject(json, uuid);
+  static wrapWithIdentity(json: OpenISDProjectJson, uuid: string, engine: Engine): OpenISDProject {
+    return new OpenISDProject(json, uuid, engine);
   }
 
   /** This project's in-memory identity. */
@@ -1314,24 +1384,26 @@ function emptyProjectJson(): OpenISDProjectJson {
  * afterwards, through the normal `box` surface. `build()` names anything still missing rather
  * than quietly producing a half-formed project.
  */
-export function newProject(driver: OpenISDDriver): ProjectBuilder {
-  return new ProjectBuilder(driver);
+export function newProject(driver: OpenISDDriver, engine: Engine): ProjectBuilder {
+  return new ProjectBuilder(driver, engine);
 }
 
 class ProjectBuilder {
   readonly #driver: OpenISDDriver;
+  readonly #engine: Engine;
 
-  constructor(driver: OpenISDDriver) {
+  constructor(driver: OpenISDDriver, engine: Engine) {
     this.#driver = driver;
+    this.#engine = engine;
   }
 
-  sealed(): SealedProjectBuilder { return new SealedProjectBuilder(this.#driver); }
-  vented(): VentedProjectBuilder { return new VentedProjectBuilder(this.#driver); }
-  bandpass4(): Bandpass4ProjectBuilder { return new Bandpass4ProjectBuilder(this.#driver); }
-  bandpass6(): TwoChamberProjectBuilder { return new TwoChamberProjectBuilder(this.#driver, 'bandpass6'); }
-  abc(): TwoChamberProjectBuilder { return new TwoChamberProjectBuilder(this.#driver, 'abc'); }
+  sealed(): SealedProjectBuilder { return new SealedProjectBuilder(this.#driver, this.#engine); }
+  vented(): VentedProjectBuilder { return new VentedProjectBuilder(this.#driver, this.#engine); }
+  bandpass4(): Bandpass4ProjectBuilder { return new Bandpass4ProjectBuilder(this.#driver, this.#engine); }
+  bandpass6(): TwoChamberProjectBuilder { return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'bandpass6'); }
+  abc(): TwoChamberProjectBuilder { return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'abc'); }
   passiveRadiator(): PassiveRadiatorProjectBuilder {
-    return new PassiveRadiatorProjectBuilder(this.#driver);
+    return new PassiveRadiatorProjectBuilder(this.#driver, this.#engine);
   }
 }
 
@@ -1342,7 +1414,12 @@ abstract class BoxProjectBuilder {
    *  `OpenISDDriver` and its subclasses can reach a driver's storage — and it does not need to
    *  be: `build()` hands the object to the project's own embedded driver, which copies it in. */
   protected readonly driver: OpenISDDriver;
-  protected constructor(driver: OpenISDDriver) { this.driver = driver; }
+  /** The one calculation surface, on its way to the project this builder will assemble. */
+  protected readonly engine: Engine;
+  protected constructor(driver: OpenISDDriver, engine: Engine) {
+    this.driver = driver;
+    this.engine = engine;
+  }
 
   /** The chosen radiator, for the builders that take one. */
   protected radiatorChoice: OpenISDPassiveRadiatorStandalone | null = null;
@@ -1363,7 +1440,7 @@ abstract class BoxProjectBuilder {
    * never handles driver state.
    */
   build(): OpenISDProject {
-    const project = OpenISDProject.wrap({ ...emptyProjectJson(), box: this.boxRecord() });
+    const project = OpenISDProject.wrap({ ...emptyProjectJson(), box: this.boxRecord() }, this.engine);
     project.driver.update(this.driver);
     if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
     // Those writes land in `#edited`, because every write does. A project the user has just
@@ -1376,7 +1453,7 @@ abstract class BoxProjectBuilder {
 
 class SealedProjectBuilder extends BoxProjectBuilder {
   #volume: number | null = null;
-  constructor(driver: OpenISDDriver) { super(driver); }
+  constructor(driver: OpenISDDriver, engine: Engine) { super(driver, engine); }
   volume_m3(v: number): this { this.#volume = v; return this; }
   protected boxRecord(): OpenISDBoxJson {
     const box = emptyBoxJson();
@@ -1391,7 +1468,7 @@ class SealedProjectBuilder extends BoxProjectBuilder {
 class VentedProjectBuilder extends BoxProjectBuilder {
   #volume: number | null = null;
   #tuning: number | null = null;
-  constructor(driver: OpenISDDriver) { super(driver); }
+  constructor(driver: OpenISDDriver, engine: Engine) { super(driver, engine); }
   volume_m3(v: number): this { this.#volume = v; return this; }
   tuning_hz(v: number): this { this.#tuning = v; return this; }
   protected boxRecord(): OpenISDBoxJson {
@@ -1417,7 +1494,7 @@ class Bandpass4ProjectBuilder extends BoxProjectBuilder {
   #rearVolume: number | null = null;
   #frontVolume: number | null = null;
   #frontTuning: number | null = null;
-  constructor(driver: OpenISDDriver) { super(driver); }
+  constructor(driver: OpenISDDriver, engine: Engine) { super(driver, engine); }
   rearVolume_m3(v: number): this { this.#rearVolume = v; return this; }
   frontVolume_m3(v: number): this { this.#frontVolume = v; return this; }
   frontTuning_hz(v: number): this { this.#frontTuning = v; return this; }
@@ -1450,8 +1527,8 @@ class TwoChamberProjectBuilder extends BoxProjectBuilder {
   #frontVolume: number | null = null;
   #frontTuning: number | null = null;
 
-  constructor(driver: OpenISDDriver, kind: 'bandpass6' | 'abc') {
-    super(driver);
+  constructor(driver: OpenISDDriver, engine: Engine, kind: 'bandpass6' | 'abc') {
+    super(driver, engine);
     this.#kind = kind;
   }
 
@@ -1488,7 +1565,7 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
   #count = 1;
   #radiator: OpenISDDriverJson | null = null;
 
-  constructor(driver: OpenISDDriver) { super(driver); }
+  constructor(driver: OpenISDDriver, engine: Engine) { super(driver, engine); }
 
   volume_m3(v: number): this { this.#volume = v; return this; }
   tuning_hz(v: number): this { this.#tuning = v; return this; }
@@ -1759,7 +1836,7 @@ export interface ProjectRepo {
  * two stores; over IndexedDB they would address the same database, but nothing here enforces
  * that, and nothing needs to — deciding what exists once is what a composition root is for.
  */
-export function projectRepo(make: RecordStoreFactory): ProjectRepo {
+export function projectRepo(make: RecordStoreFactory, engine: Engine): ProjectRepo {
   const store = make<OpenISDProjectJson>();
   return {
     save(project: OpenISDProject): void {
@@ -1772,7 +1849,7 @@ export function projectRepo(make: RecordStoreFactory): ProjectRepo {
       if (!json) return [`no stored project with id ${id}`];
       // ADOPTS `id` as the project's identity, so its next save writes back to the entry it came
       // from rather than minting a second one. See `wrapWithIdentity()`.
-      return OpenISDProject.wrapWithIdentity(json, id);
+      return OpenISDProject.wrapWithIdentity(json, id, engine);
     },
 
     list(): ProjectListing[] {

@@ -8,6 +8,7 @@
  * never names a record type, because nothing outside the domain module can.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
+import { Engine } from '@openisd/design/engine';
 import { assemble } from '../app/composition.js';
 import { memoryStore } from '@openisd/design/browser';
 import {
@@ -42,7 +43,7 @@ let repo: ProjectRepo;
 beforeEach(() => { repo = assemble(memoryStore, tickingClock()).repo; });
 
 function aProject(name: string, brand = 'Dayton', model = 'RS225'): OpenISDProject {
-  const p = newProject(aDriver(brand, model)).sealed().volume_m3(0.03).build();
+  const p = newProject(aDriver(brand, model), new Engine()).sealed().volume_m3(0.03).build();
   p.name.set(name);
   return p;
 }
