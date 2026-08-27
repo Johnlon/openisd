@@ -26,6 +26,7 @@ import {
   markProjectSaved, applyLoadedProject, curvesData, currentProject, currentViewSnapshot,
 } from './appState.js';
 import { presentationState } from './presentationState.js';
+import { parseLossMode } from './environment.js';
 import { createFileSave, projectNameFromFilename, projectFilename, copyOfName, type FileStorage, type ProjectRepo, type FileNaming } from '@openisd/persistence';
 import { setShareUrl } from './urlAppState.js';
 import type { Logging } from '../logging/flash.js';
@@ -166,7 +167,8 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
    *  refinement — and the download plumbing. */
   function exportWpr(): void {
     closeTunePanelAfterIO();
-    const { value: bytes, errors } = requireFocusedProject().exportWpr(new Date(), curvesData.value);
+    const { value: bytes, errors } = requireFocusedProject().exportWpr(
+      new Date(), curvesData.value, parseLossMode(presentationState.lossMode));
     if (!bytes) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wpr', bytes, ProjectFileFormat.Wpr.mime);
   }

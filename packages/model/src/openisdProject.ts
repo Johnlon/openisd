@@ -35,10 +35,10 @@ import { driverFromConformingRecord } from './driverConformance.js';
 import type { OpenISDDriverJson } from './openisdDriver.js';
 import type { Filter } from '@openisd/engine';
 import { prCmsFromVas, prMmdFromFs, prRmsFromQms, prVas, prQms, prFsWithMass,
-         sealedFc, tuningFromLength, ventLength, prTuning, prMassForFp,
+         sealedResonance, tuningFromLength, ventLength, prTuning, prMassForFp,
          findImpedancePeak } from "@openisd/engine";
 import { WinISDProject } from "@openisd/winisd";
-import type { Result, EngineDriver, SweepResult } from "@openisd/engine";
+import type { Result, EngineDriver, SweepResult, LossMode } from "@openisd/engine";
 
 /** The project fields `cell()`/`enter()`/`clear()` speak — the vent group, the PR group, and
  *  the derived port area. */
@@ -716,9 +716,15 @@ export class OpenISDProject {
    * project only holds it). `driver` is the engine projection for the sealed-resonance
    * refinement, `curve` the current swept impedance when one exists, and `now` is passed in,
    * never read from the clock, so the same design is byte-reproducible.
+   *
+   * `lossMode` is the model the user has selected, and it reaches the FILE because
+   * `[Box] Fr` is the LOSSY resonance — WinISD writes the same figure it displays, and that
+   * figure moves with the loss model (measured: 5.8 Hz for a `Ql` change at fixed volume;
+   * `winisd_research/PROBE_FINDINGS.md` FINDING-007). The selection is view state today
+   * (`presentationState.lossMode`), so it is passed in rather than read from the record.
    */
   toWinISDProject(driverSection: string, driver: EngineDriver | null, now: Date,
-                  curve: SweepResult | null): WinISDProject {
+                  curve: SweepResult | null, lossMode: LossMode): WinISDProject {
     const record = this.#record;
     const kind = record.box.active;
     const pad2 = (x: number) => String(x).padStart(2, '0');
@@ -730,8 +736,19 @@ export class OpenISDProject {
     const vent = (kind === 'bandpass4' ? record.box.bandpass4.vents : record.box.vented.vents)[0]!;
     const Sp = ventArea_m2(vent);
 
+    // `[Box] Fr` is the LOSSY sealed resonance, mirroring what the app displays — never the
+    // lossless `Fs·√(1+Vas/Vb)`, which is a figure WinISD would not write and the user never saw
+    // (bugs/BUG_20260827_wpr_export_writes_a_lossless_Fr_while_the_screen_shows_a_lossy_one.md).
+    // Preferred source is the swept impedance peak; the fallback runs the SAME loss model the box
+    // panel shows, so file and screen agree by construction.
     const peak = (driver && curve) ? findImpedancePeak(curve, driver.Re) : null;
-    const sealedFr = peak ? peak.Fsc : ((driver && sealedFc(driver, Vb)) ?? 0);
+    const sealedFr = peak ? peak.Fsc
+      : (driver
+          ? sealedResonance(lossMode, {
+              Fs: driver.Fs, Vas: driver.Vas, Qts: driver.Qts, Vb,
+              Ql: record.box.Ql, Qa: record.box.Qa,
+            }).Fsc
+          : 0);
 
     const box: Record<string, string | number> = {
       BType: bTypeOfAlignmentKind(kind),

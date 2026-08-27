@@ -7012,3 +7012,64 @@ questions:
       autosaved (John said the edit layer, but an open what-if must never reach storage and autosaving
       edit state changes what Revert means); and whether a My Drivers entry needs a second, in-app-only
       id alongside its persisted corpus one.'
+  - at: '2026-08-27'
+    text: 'DESIGN CONCLUSIONS from the 2026-08-27 session on packages/design. Every item below is a
+      ruling John gave, not an agent proposal.
+      (1) LAYERS COLLAPSED FROM FOUR TO TWO. `#ground`/`#committed`/`#edit`/`#whatif` are gone.
+      `OpenISDProject` now holds `#saved` (the project as of the last save) and `#edited` (every change
+      since, null until the first write). Reads take `#edited ?? #saved`; the first write copies `#saved`
+      into `#edited` via `#ensureEditing()`, which IS the copy — no `copy()` call, the spread a write
+      performs anyway. `isModified()` is `#edited !== null`, not a record comparison and not a dirty flag.
+      (2) NO SEPARATE WHAT-IF. John: "I''m struggling to see the difference between whatif and an unsaved
+      edit - other than intention". A what-if is now: edit, look at the curves, press Cancel. `commit()`,
+      `beginEdit()`, `beginWhatif()`, `cancelTransient()`, `revertToSaved()`, `isWhatif()`, `isEditing()`
+      all deleted.
+      (3) TWO CANCELS, DIFFERENT SCOPES. Editor Cancel dismisses the modal and drops the detached copy
+      (the project is untouched). App-bar Cancel deletes `#edited` and warns first. The warning is a
+      PER-CALL parameter — `cancel(confirm: DiscardChallenge)` — because the Cancel button already owns
+      the dialog and holds the answer; threading a callback through every construction path would deliver
+      a value the one caller already has.
+      (4) MODAL EDITORS DETACH. Driver and PR editors both work on a detached copy: OK writes it back
+      (creating `#edited`), Cancel drops it. Non-modal surfaces (Tune, the tabs) write straight into
+      `#edited`. Both editors have OK/Cancel; only the bar''s Save reaches the store.
+      (5) ManagedProject DELETED, renamed into `OpenISDProject`, which now wraps `OpenISDProjectJson`
+      directly. The old plain `OpenISDProject` is gone. `ProjectFields` deleted with it — its only purpose
+      was proving two classes carried the same shape, and only one class remains.
+      (6) ALL FOUR MODULE-SCOPED WeakMaps DELETED — `jsonReaders`, `projectListeners`, `projectRecords`,
+      `owningManaged`, plus `registerJsonReader`, `readWrappedJson`, `subscribeToProject`, `notifyProject`,
+      `projectRecord`, `writeProjectRecord`, `projectSlot`, `editLayerFor`, `persistableLayerOf`. John:
+      "GLOBAL VARIABLES ARE FORBIDDEN AND A HIGH CRIME AGAINST SOFTWARE", then "we are going to attempt to
+      build this entire app without a single global var". Rule recorded in packages/design/AGENTS.md;
+      enforced by an AST gate (test/architecture-no-globals.test.ts, ts-morph) that flags any module-scoped
+      `let`/`var` or mutable `const` container. The three approved globals are NO_LOSSES, NO_VENT,
+      NO_CHAMBER — spread at every use, so no project record holds the shared object.
+      (7) HOW CROSS-CLASS RECORD ACCESS WORKS NOW, replacing the WeakMaps: same-class private access.
+      `OpenISDDriver.update(source)` reads `source.record` because `record` is protected and `update` is
+      in the class that declares it. The two PR classes gained a shared base `OpenISDPassiveRadiator`
+      holding a protected `slot`, with `update` protected on the base and republished public on Embedded
+      — John: "you can use protected to keep update private but expose from Embedded".
+      (8) GEOMETRY IN, ACOUSTICS ABSOLUTELY OUT. `#sealedResonance` and its frozen RHO_REF/C_REF deleted;
+      `area_m2()` (pi r squared) stays because no two implementers can disagree about it. The environment
+      defaults 293.15/30/101325 and `power_W: 1` were also deleted — byte-identical duplicates of the
+      engine''s T_REF_K/RH_REF_PCT/P_REF_PA. Those fields are now `number | null`.
+      (9) A NEW `Engine` CLASS. `packages/engine/src` was COPIED (not moved) to `packages/design/engine`;
+      `packages/engine` is untouched. `Engine.ts` is one instantiable class whose public surface is the 21
+      behaviours the app actually imports, measured from every `import ... from ''@openisd/engine''` in the
+      tree (39 symbols: 12 types, 3 constants, 24 functions). The old `engine.ts` barrel was deleted — 21
+      lines of `export *`, banned by QO86.
+      (10) AIR IS A PARAMETER, AS THE ENVIRONMENT, NOT AS rho/c. `sealedResonance_hz`, `referenceEfficiency`
+      and `splFromEfficiency` take an `AirEnvironment` and derive rho/c internally via `airFor()`. John:
+      rho and c are never user-entered, so a signature carrying them lets a caller pair density from one
+      environment with sound speed from another. `airFor({})` returns reference air because every field is
+      optional, so `referenceAir()` was deleted as redundant. Memoisation, if needed, goes on the Engine
+      instance — per-instance, not module-scoped.
+      (11) THE ENGINE IS INJECTED into the project, like the store. NOT YET WRITTEN.
+      (12) AUTOSAVE, AS NOW DESIGNED BUT NOT YET WRITTEN: every project holds `ProjectStores { saved,
+      edited }` and writes ITSELF — no Workspace subscription, no repo.save(project), no recordToPersist().
+      Two stores, write on every keystroke, store interface becomes async (Promise-returning) while field
+      setters stay synchronous by not awaiting. John rejected a message bus and rejected `#notify(record)`
+      (which would hand the private record to every listener — the committedSnapshot leak again).
+      STILL OPEN: out-of-order writes, silent write failures, and load-with-both-records-present.
+      STATE AT THE END OF THE SESSION: packages/design has 2 compile errors, both `readWrappedJson` call
+      sites in ProjectBuilder, awaiting the decision on how the builder gets a driver''s record without a
+      free-function accessor. Tests not yet updated for the two-layer collapse.'

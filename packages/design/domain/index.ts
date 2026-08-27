@@ -34,7 +34,6 @@ export type {
 // no such factory exists yet (see the note below).
 export type {
   OpenISDDriver,
-  ManagedProject,
 } from './project.js';
 
 // Also NOT exported, all for the same reason — a consumer cannot obtain one, so exporting it
@@ -69,22 +68,12 @@ export {
   passiveRadiatorFromConformingRecord,
 } from './project.js';
 
-// `OpenISDProject` is NOT exported — the founding rule of this design: "OpenISDProject is not
-// exposed to the app directly — instead there is ManagedProject, which holds 2 or 3 copies of
-// the project as internal layer state". A consumer holding one would hold a single unlayered
-// project and could edit it with no ground/committed/edit/whatif discipline at all, which is
-// the entire thing ManagedProject exists to prevent. That it has no public constructor is
-// therefore NOT a gap to fill — it is the rule holding.
-//
-// `ProjectFields` goes with it: its only value was letting a caller accept EITHER an
-// `OpenISDProject` or a `ManagedProject`, and the former is exactly what a caller must not have.
+// `OpenISDProject` IS the project a consumer holds: one class wrapping the record and holding
+// both the saved and the edited state. As a TYPE only, like every other class here — the
+// constructor is private, and `newProject()` is the way one comes into existence.
 //
 // `emptyProjectJson` is NOT exported: it takes and returns package-private record types.
-//
-// STILL MISSING, and now visible rather than papered over: `ManagedProject` has no public way to
-// be created. `load()` takes an `OpenISDProject`, which a consumer cannot obtain — correctly. It
-// needs a factory that speaks in whatever a repository actually hands over (serialized text, or
-// a record the persistence layer owns), never in `OpenISDProject`.
+export type { OpenISDProject } from './project.js';
 
 // ── PERSISTENCE ────────────────────────────────────────────────────────────────────────────
 //

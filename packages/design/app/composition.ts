@@ -1,51 +1,44 @@
-// THE COMPOSITION ROOT — and it belongs to the APP, not to the package.
+// THE COMPOSITION ROOT — it belongs to the APP, not to the package.
 //
 //     domain/    pure, platform-free: the private record, the domain objects, the repo
 //     browser/   platform-bound: the stores
 //     app/       THIS and `workspace.ts` — the application, which decides what exists
 //
-// The package publishes PARTS and the app assembles them. Putting the assembly inside the package
-// would be the package deciding on the app's behalf, and would leave any app outside the package
-// unable to assemble anything at all — it could only call whatever pre-baked wiring the package
-// happened to offer.
-//
-// Everywhere else the two halves stay ignorant of each other by construction: the domain takes a
-// GENERIC store factory, so it cannot name a store implementation, and a store is parametric in
-// the record, so it cannot name what it holds. This file is where that ignorance is resolved, and
-// it is the only file importing both entry points.
+// ONE function assembles everything and hands back a context. Nothing here is module-scoped, so
+// there is no global to install, no order to get right, and no second instance to be impossible:
+// a caller that wants two independent apps calls `assemble` twice.
 
-import { projectRepo, type ProjectRepo } from '@openisd/design';
-import { indexedDbStore, memoryStore } from '@openisd/design/browser';
+import { projectRepo, type ProjectRepo, type RecordStoreFactory } from '@openisd/design';
+import { Workspace } from './workspace.js';
 
-/** The clock the store stamps `modified` with. Injected rather than read from `Date` inside the
- *  store so a test can make modification times deterministic and orderings assertable. */
+/** Reads the current time as an ISO-8601 string. ISO so timestamps sort lexicographically, which
+ *  is what lets a listing be ordered most-recent-first with a plain string compare. */
 export type Clock = () => string;
 
-/** A real clock, ISO-8601 so timestamps sort lexicographically — which is what lets the repo
- *  order a listing most-recent-first with a plain string compare and no date parsing. */
+/** The real clock. A test passes its own so orderings are assertable. */
 export const systemClock: Clock = () => new Date().toISOString();
 
 /**
- * Wire the app up: a browser-backed store, and the repo over it.
+ * Everything the app was assembled with, in one object.
  *
- * CALL ONCE, at startup, and share the result. Nothing prevents a second call — the store lives
- * on the repo, not in a global — but two repos would be two stores, and deciding what exists
- * once is exactly what a composition root is for.
- *
- * WHY IT EXISTS: without it, every caller wanting a repo would have to know which store to build,
- * and "which store are we using" would stop having a single answer.
+ * This is what gets passed down instead of a global. Every member is readonly and is a THING,
+ * never a method — the context holds what exists, it does not do anything itself.
  */
-export function composeBrowserApp(dbName: string, clock: Clock = systemClock): ProjectRepo {
-  return projectRepo(indexedDbStore(dbName, clock));
+export interface AppContext {
+  /** The clock everything shares, so nothing reads `Date` on its own and a test controls time
+   *  from one place. */
+  readonly clock: Clock;
+  readonly repo: ProjectRepo;
+  readonly workspace: Workspace;
 }
 
 /**
- * The same wiring over an in-memory store — for tests, and for a browser where IndexedDB is
- * unavailable or blocked.
+ * Build the app.
  *
- * Deliberately the SAME composition path as the real app, differing only in which store is
- * installed. A test that built its own wiring would be exercising a second assembly nobody ships.
+ * `makeStore` takes the clock rather than closing over one, so the clock is supplied ONCE, here,
+ * and the store cannot end up stamping times from a different source than the rest of the app.
  */
-export function composeInMemoryApp(clock: Clock): ProjectRepo {
-  return projectRepo(memoryStore(clock));
+export function assemble(makeStore: (clock: Clock) => RecordStoreFactory, clock: Clock): AppContext {
+  const repo = projectRepo(makeStore(clock));
+  return { clock, repo, workspace: new Workspace(repo) };
 }

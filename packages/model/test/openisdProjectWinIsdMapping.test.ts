@@ -6,6 +6,8 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
+import { LossMode } from '@openisd/engine';
+import type { EngineDriver } from '@openisd/engine';
 import { OpenISDProject } from '../src/openisdProject.js';
 import { OpenISDDriver } from '../src/openisdDriver.js';
 import { WinISDProject } from '@openisd/winisd';
@@ -64,6 +66,38 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
   const NOW = new Date(Date.UTC(2026, 0, 15));
   const DRIVER = '[Driver]\nBrand=x\nParState=EEE';
 
+  it('[Box] Fr is the LOSSY sealed resonance — it MOVES when the loss model changes', () => {
+    // Measured against real WinISD: `Fr` mirrors the on-screen Fsc and shifts 5.8 Hz for a `Ql`
+    // change at fixed volume (winisd_research FINDING-007, from runs/lossy_fsc_campaign.jsonl).
+    // openisd used to write the LOSSLESS `Fs·√(1+Vas/Vb)` whenever no swept curve was available —
+    // a figure WinISD would never write and the user never saw
+    // (bugs/BUG_20260827_wpr_export_writes_a_lossless_Fr_while_the_screen_shows_a_lossy_one.md).
+    //
+    // NO CURVE is passed, so this exercises exactly the fallback that carried the bug.
+    const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni([
+      '[Box]', 'BType=0', 'Vr=0.006', 'Fr=0', 'Qlr=5', 'Qar=10000', 'Qpr=100', '',
+    ].join('\n')), OpenISDDriver.empty());
+
+    const driver = { Fs: 40, Qts: 0.39, Vas: 0.00747, Re: 6 } as unknown as EngineDriver;
+    const frFor = (mode: LossMode): number => {
+      const line = project.toWinISDProject(DRIVER, driver, NOW, null, mode).toWpr()
+        .split('\n').find(l => l.startsWith('Fr='))!;
+      return Number(line.slice(3));
+    };
+
+    const lossless = frFor(LossMode.Lossless);
+    const winisdLossy = frFor(LossMode.WinisdLossy);
+
+    // The lossless figure is the textbook one, and it is NOT what a lossy export writes.
+    assert.ok(Math.abs(lossless - 40 * Math.sqrt(1 + 0.00747 / 0.006)) < 0.01,
+      `lossless Fr should be Fs·√(1+Vas/Vb); got ${lossless}`);
+    assert.notEqual(winisdLossy, lossless);
+
+    // Leakage raises the resonance — the direction real WinISD shows (Ql=5 vs lossless).
+    assert.ok(winisdLossy > lossless,
+      `leakage must raise Fr: winisd-lossy ${winisdLossy} vs lossless ${lossless}`);
+  });
+
   it('entered-area provenance survives a round trip: crosscalc=0 in, crosscalc=0 out', () => {
     // The bug this pins: import used to drop the flag, and re-export wrote crosscalc=1 —
     // flipping the file's own stated provenance with no user action
@@ -73,7 +107,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
       '[Box]', 'BType=1', 'Vr=0.02', 'Fr=45', '',
       '[VentRear]', 'Num=1', 'dia1=0.05', 'len=0.12', 'crosscalc=0', '',
     ].join('\n')), OpenISDDriver.empty());
-    const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
+    const out = project.toWinISDProject(DRIVER, null, NOW, null, LossMode.Default).toWpr();
     assert.match(out, /crosscalc=0/);
     assert.doesNotMatch(out.split('[VentRear]')[1]!.split('[VentIntra]')[0]!, /crosscalc=1/);
   });
@@ -83,7 +117,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
       '[Box]', 'BType=1', 'Vr=0.02', 'Fr=45', '',
       '[VentRear]', 'Num=1', 'dia1=0.05', 'len=0.12', 'crosscalc=1', '',
     ].join('\n')), OpenISDDriver.empty());
-    const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
+    const rear = project.toWinISDProject(DRIVER, null, NOW, null, LossMode.Default).toWpr()
       .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
     assert.match(rear, /crosscalc=1/);
   });
@@ -91,7 +125,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
   it('humidity crosses percent → fraction exactly once, here', () => {
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=0\nVr=0.02\nT=303.15\np=90000\nphi=0.8\n'), OpenISDDriver.empty());
-    const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
+    const out = project.toWinISDProject(DRIVER, null, NOW, null, LossMode.Default).toWpr();
     assert.match(out, /phi=0\.8/);   // record held 80 %; the file gets the fraction back
     assert.doesNotMatch(out, /phi=80/);
   });
@@ -105,7 +139,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
     // (bugs/BUG_20260823_box_model_collapses_per_chamber_losses.md, folded into Lane P).
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=50\nQpr=80\n'), OpenISDDriver.empty());
-    const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
+    const out = project.toWinISDProject(DRIVER, null, NOW, null, LossMode.Default).toWpr();
     for (const line of ['Qlf=7', 'Qlr=7', 'Qaf=50', 'Qar=50', 'Qpf=80', 'Qpr=80']) {
       assert.ok(out.includes(line), `expected ${line}`);
     }
@@ -118,7 +152,7 @@ describe('OpenISDProject.toWinISDProject — the write-side twin, physics on the
       '[Box]', 'BType=4', 'Vr=0.04', 'Npr=1', '',
       '[PassiveRadiator]', 'Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', 'Xmax=0.019', 'Me=0', '',
     ].join('\n')), OpenISDDriver.empty());
-    const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
+    const out = project.toWinISDProject(DRIVER, null, NOW, null, LossMode.Default).toWpr();
     const vas = Number(/Vas=([0-9.eE+-]+)/.exec(out)![1]);
     const relErr = Math.abs(vas - 0.0048) / 0.0048;
     assert.ok(relErr < 1e-6, `Vas must come back in m³ (~0.0048), got ${vas}`);
@@ -185,7 +219,7 @@ describe('crosscalc is AREA provenance, never port shape (opus2 H1, interim ruli
     assert.equal(vent.shape, 'round');
     assert.equal(vent.diameter_m, 0.05);
     const area = Math.PI * (0.05 / 2) ** 2;
-    const out = project.toWinISDProject(DRIVER, null, NOW, null).toWpr();
+    const out = project.toWinISDProject(DRIVER, null, NOW, null, LossMode.Default).toWpr();
     const rear = out.split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
     const carea = Number(/carea=([0-9.eE+-]+)/.exec(rear)![1]);
     assert.ok(Math.abs(carea - area) / area < 1e-9,
@@ -196,7 +230,7 @@ describe('crosscalc is AREA provenance, never port shape (opus2 H1, interim ruli
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=0\n'), OpenISDDriver.empty());
     assert.equal(project.isEntered('ventCrossArea'), true);
-    const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
+    const rear = project.toWinISDProject(DRIVER, null, NOW, null, LossMode.Default).toWpr()
       .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
     assert.match(rear, /crosscalc=0/);
   });
@@ -205,7 +239,7 @@ describe('crosscalc is AREA provenance, never port shape (opus2 H1, interim ruli
     const project = OpenISDProject.fromWinISDProject(WinISDProject.fromWprIni(
       '[Box]\nBType=1\nVr=0.02\nFr=45\n\n[VentRear]\nNum=1\ndia1=0.05\nlen=0.12\ncrosscalc=1\n'), OpenISDDriver.empty());
     assert.equal(project.isEntered('ventCrossArea'), false);
-    const rear = project.toWinISDProject(DRIVER, null, NOW, null).toWpr()
+    const rear = project.toWinISDProject(DRIVER, null, NOW, null, LossMode.Default).toWpr()
       .split('[VentRear]')[1]!.split('[VentIntra]')[0]!;
     assert.match(rear, /crosscalc=1/);
   });

@@ -8,7 +8,8 @@
  * never names a record type, because nothing outside the domain module can.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { composeInMemoryApp } from '../app/composition.js';
+import { assemble } from '../app/composition.js';
+import { memoryStore } from '@openisd/design/browser';
 import {
   newProject, driverFromConformingRecord,
   type ProjectRepo, type ManagedProject, type OpenISDDriver,
@@ -38,7 +39,7 @@ function tickingClock(): () => string {
 }
 
 let repo: ProjectRepo;
-beforeEach(() => { repo = composeInMemoryApp(tickingClock()); });
+beforeEach(() => { repo = assemble(memoryStore, tickingClock()).repo; });
 
 function aProject(name: string, brand = 'Dayton', model = 'RS225'): ManagedProject {
   const p = newProject(aDriver(brand, model)).sealed().volume_m3(0.03).build();
@@ -111,7 +112,7 @@ describe('what gets written', () => {
     expect(back.box.sealed.volume_m3.get()).toBe(0.030);
   });
 
-  it('an open EDIT layer does reach the store — work in progress is what autosave is for', () => {
+  it('an open EDIT layer does reach the store — a save writes work in progress', () => {
     const p = aProject('Half-typed');
     p.box.sealed.volume_m3.set(0.077);   // opens the edit layer by writing at committed
     repo.save(p);

@@ -91,13 +91,23 @@ interface ScrapedField<T> {
   readonly origin: string;
 }
 
+/** The T/S parameters a driver states, in one section.
+ *
+ *  EVERY FIELD IS OPTIONAL — a key is ABSENT when the driver does not state that parameter, not
+ *  present holding a null or a zero. That is what a scraped record actually looks like: a
+ *  datasheet giving four parameters produces four keys. `Cell` already reports `value: null` for
+ *  a key that is not there, so a reader sees absence the same way whichever field is missing.
+ *
+ *  It also means an EMPTY driver is `{ woofer: {} }` — a section present and nothing in it. No
+ *  invented zeros, and `OpenISDDriver.sectionOf()` is satisfied, which is what lets a project be
+ *  constructed before its driver is written in. */
 interface SpecSection {
-  readonly Fs_hz: ScrapedField<number>;
-  readonly Sd_m2: ScrapedField<number>;
-  readonly Cms_m_per_N: ScrapedField<number>;
-  readonly Mmd_kg: ScrapedField<number>;
-  readonly Rms_Ns_per_m: ScrapedField<number>;
-  readonly Xmax_m: ScrapedField<number>;
+  readonly Fs_hz?: ScrapedField<number>;
+  readonly Sd_m2?: ScrapedField<number>;
+  readonly Cms_m_per_N?: ScrapedField<number>;
+  readonly Mmd_kg?: ScrapedField<number>;
+  readonly Rms_Ns_per_m?: ScrapedField<number>;
+  readonly Xmax_m?: ScrapedField<number>;
   // ...one ScrapedField per T/S parameter in that section.
 }
 
@@ -182,14 +192,20 @@ interface OpenISDBoxJson {
   };
 }
 
+/** The air the design sits in, as the USER stated it. Null where the user has stated nothing —
+ *  the domain does not invent air conditions, because reference air belongs to
+ *  `@openisd/engine` (`air.ts`'s `T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) and a second copy here would
+ *  drift from it silently. */
 interface OpenISDEnvironmentJson {
-  readonly temperature_K: number;
-  readonly humidity_pct: number;
-  readonly pressure_Pa: number;
+  readonly temperature_K: number | null;
+  readonly humidity_pct: number | null;
+  readonly pressure_Pa: number | null;
 }
 
+/** What drives the system, as the USER stated it. Null where nothing is stated — 1 W is a
+ *  measurement convention, not a fact about this design, so the domain does not assert it. */
 interface OpenISDSignalJson {
-  readonly power_W: number;
+  readonly power_W: number | null;
   readonly voltage_V: number | null;
 }
 
@@ -206,6 +222,19 @@ interface OpenISDProjectJson {
   readonly meta: OpenISDProjectMetaJson;
 }
 
+// APPROVED GLOBALS — the only three in this package (John Lonergan, 2026-08-27; recorded in
+// packages/design/AGENTS.md, and named in the allowlist of test/architecture-no-globals.test.ts).
+//
+// Three shared const objects, used as the starting values a brand-new box is built from.
+//
+// WHY THE GATE FLAGS THEM ANYWAY: `const` freezes the binding, never the contents. Nothing stops
+// code writing `NO_LOSSES.Ql = 3`, and every project built afterwards would carry the change.
+// `NO_CHAMBER` embeds `NO_LOSSES`, so a single mutation reaches both.
+//
+// WHAT KEEPS THEM SAFE: every use is a SPREAD — `{ ...NO_CHAMBER }` — so the constant supplies
+// values and the record that ends up in a project is always a fresh object. A use that assigned
+// one of these directly, without spreading, would put the shared object into a project's record
+// and is the one thing to watch for.
 const NO_LOSSES: LossesJson = { Ql: 15, Qa: 100, Qp: 100, Qicl: 100 };
 const NO_VENT: VentJson = {
   shape: 'round',
@@ -252,39 +281,6 @@ function emptyBoxJson(): OpenISDBoxJson {
 // shape to anyone, the exact leak these types exist to prevent. Registering the reader here
 // keeps the capability inside the package: the wrapper registers itself on construction, and
 // only code that can import this module (never a consumer, per the header) can read it back.
-// FRIEND SIDE-TABLE 1 of 4 — the one exception to AGENTS.md §"GLOBAL VARIABLES ARE FORBIDDEN",
-// which requires each use to name what it holds and every referee.
-//
-// HOLDS: for one component wrapper (a standalone driver or passive radiator), a closure that
-//   returns THAT wrapper's own `OpenISDDriverJson`. One entry per wrapper; nothing shared.
-// EXPOSES: `OpenISDDriverStandalone`'s / `OpenISDPassiveRadiatorStandalone`'s private record.
-// TO: whichever sibling needs to COPY that record into its own storage.
-//
-// REFEREES — every one, and there are no others:
-//   writers, via `registerJsonReader()`:
-//     `OpenISDDriverStandalone.wrap()`          — registers itself on construction
-//     `OpenISDPassiveRadiatorStandalone.wrap()` — likewise
-//   readers, via `readWrappedJson()`:
-//     `OpenISDBox.configurePR()`  — copies a chosen radiator INTO the box's own storage
-//     `…Standalone.update()`      — adopts an edited copy back over the original
-//     `newProject()`              — seeds the builder from the chosen driver
-//     `PassiveRadiatorProjectBuilder.radiator()` — seeds the box's PR slot
-//
-// WHY NOT A PUBLIC METHOD: a `toJson()` on the class would hand the private record shape to any
-// consumer — the exact leak these types exist to prevent. Registering here keeps the capability
-// inside the module: only code that can import this file can read it back.
-const jsonReaders = new WeakMap<object, () => OpenISDDriverJson>();
-
-function registerJsonReader(wrapper: object, read: () => OpenISDDriverJson): void {
-  jsonReaders.set(wrapper, read);
-}
-
-function readWrappedJson(wrapper: object): OpenISDDriverJson {
-  const read = jsonReaders.get(wrapper);
-  if (!read) throw new Error('readWrappedJson: wrapper did not register a reader');
-  return read();
-}
-
 // ---------------------------------------------------------------------------------------------
 // THE BOX — its public shape, then the window that implements it.
 // ---------------------------------------------------------------------------------------------
@@ -394,6 +390,9 @@ export interface AbcBox {
 /** The passive radiator the box holds, once one has been chosen. */
 export interface PassiveRadiatorComponent {
   isChosen(): boolean;
+  /** Adopt a chosen radiator. The box owns its radiator from here on, so later edits change the
+   *  box and never the library entry the radiator was picked from. */
+  update(source: OpenISDPassiveRadiatorStandalone): void;
   readonly brand: FieldHandle<string>;
   readonly model: FieldHandle<string>;
   readonly manufacturer: FieldHandle<string>;
@@ -421,7 +420,7 @@ export interface PassiveRadiatorBox {
    *  is not a thing you choose from a library. Already validated, via
    *  `passiveRadiatorFromConformingRecord()` — its own seam, enforcing its own shape. */
   configurePR(radiator: OpenISDPassiveRadiatorStandalone): void;
-  readonly component: PassiveRadiatorComponent;
+  readonly radiator: PassiveRadiatorComponent;
 }
 
 /** The enclosure: which box type is active, and every box type's own fields. All six are
@@ -568,7 +567,8 @@ function prSpec(
   return new Field<number>(
     () => {
       const spec = lens.get()?.['passive-radiator'];
-      return spec ? { value: spec[key].value, state: 'entered' } : { value: null, state: 'not-available' };
+      // A key ABSENT from the section means the radiator does not state that parameter.
+      return spec?.[key] ? { value: spec[key]!.value, state: 'entered' } : { value: null, state: 'not-available' };
     },
     (v) => {
       const json = lens.get();
@@ -611,7 +611,6 @@ function prSpec(
  * through the record — the privacy rule holds inside the module too.
  */
 class OpenISDBox implements Box {
-  readonly #project: ProjectRef;
   readonly boxType: RawField<BoxType>;
 
   readonly sealed: SealedBox;
@@ -621,8 +620,7 @@ class OpenISDBox implements Box {
   readonly abc: AbcBox;
   readonly passiveRadiator: PassiveRadiatorBox;
 
-  private constructor(lens: Lens<OpenISDBoxJson>, project: ProjectRef) {
-    this.#project = project;
+  private constructor(lens: Lens<OpenISDBoxJson>) {
     this.boxType = focus(lens, 'boxType');
 
     const sealedLens = focus(lens, 'sealed');
@@ -693,28 +691,27 @@ class OpenISDBox implements Box {
     };
 
     const pr = focus(lens, 'passiveRadiator');
-    const prComponent = focus(pr, 'component');
+    const prSlot = focus(pr, 'component');
+    const radiator = new OpenISDPassiveRadiatorEmbedded(prSlot);
     this.passiveRadiator = {
       volume_m3: focus(pr, 'volume_m3'),
       tuning_hz: nullableField(pr, 'tuning_hz'),
       count: focus(pr, 'count'),
       addedMass_kg: nullableField(pr, 'addedMass_kg'),
       losses: new LossesWindow(focus(pr, 'losses')) satisfies SealedLosses,
-      // Copies the chosen radiator's record INTO the box's own storage — the box owns its PR
-      // from here on, so later edits through `component` below change the box, never the
-      // library entry the radiator was picked from.
-      configurePR: (radiator: OpenISDPassiveRadiatorStandalone) => {
-        prComponent.set({ ...readWrappedJson(radiator) });
+      // The embedded radiator adopts the chosen one — a radiator reading another radiator's
+      // record, legal because both derive from the class that declares `slot`.
+      configurePR: (chosen: OpenISDPassiveRadiatorStandalone) => {
+        radiator.update(chosen);
       },
-      component: new OpenISDPassiveRadiatorEmbedded(prComponent),
+      radiator,
     };
   }
 
-  /** Takes a PROJECT REFERENCE, not a lens — same reasoning as `OpenISDDriverEmbedded.wrap()`:
-   *  the project owns the slot and supplies it, via the module-private registry. A reference
-   *  rather than an instance so one box can serve every layer — see `ProjectRef`. */
-  static wrap(project: ProjectRef): OpenISDBox {
-    return new OpenISDBox(projectSlot(project, 'box'), project);
+  /** Takes the lens onto the project's `box` slot. The project owns that slot and builds the
+   *  lens, so the box needs no reference back to the project. */
+  static wrap(slot: Lens<OpenISDBoxJson>): OpenISDBox {
+    return new OpenISDBox(slot);
   }
 
 
@@ -804,7 +801,6 @@ export abstract class OpenISDDriver {
     this.providedBy = this.#buildMeta('provided_by');
     this.comment = this.#buildMeta('comment');
     this.added = this.#buildMeta('added');
-    registerJsonReader(this, record.get);
   }
 
   /** Which spec section a record carries, or a refusal if it carries neither. */
@@ -828,10 +824,13 @@ export abstract class OpenISDDriver {
 
   /** Replace this driver's whole record with `source`'s current values. The write-back
    *  primitive: a project adopting a different driver, or an edit made on a detached copy being
-   *  put back. Reads `source` through the module-private reader bridge, never a public accessor,
-   *  so the record shape stays unexposed. */
+   *  put back.
+   *
+   *  Reads `source.record` directly. Legal because `record` is PROTECTED and this method belongs
+   *  to the class that declares it, so one driver may read another's — and no consumer can,
+   *  because a protected member is not on the public surface. */
   update(source: OpenISDDriver): void {
-    this.record.set({ ...readWrappedJson(source) });
+    this.record.set({ ...source.record.get() });
   }
 
   // A field freshly read off a record is reported Entered — there is no solver in this package
@@ -847,10 +846,15 @@ export abstract class OpenISDDriver {
 
   #buildSpecField(field: SpecFieldName): Field<number> {
     return new Field<number>(
-      () => ({ value: this.record.get()[this.section]![field].value, state: 'entered' }),
+      // A key ABSENT from the section means the driver does not state that parameter — the
+      // ordinary shape of a scraped record, not a fault.
+      () => {
+        const stated = this.record.get()[this.section]?.[field];
+        return stated ? { value: stated.value, state: 'entered' } : { value: null, state: 'not-available' };
+      },
       (v) => {
         const json = this.record.get();
-        const spec = json[this.section]!;
+        const spec = json[this.section] ?? {};
         this.record.set({ ...json, [this.section]: { ...spec, [field]: { value: v, origin: 'entered' } } });
       },
       () => {
@@ -876,34 +880,17 @@ class OpenISDDriverStandalone extends OpenISDDriver {
   }
 }
 
-/** The driver INSIDE a project — the project's own `driver` slot, plus a reference to the
- *  project containing it. That reference is how a component answers a question spanning
- *  siblings; `OpenISDBox` uses the same idea to reach this driver for Fc. A standalone driver
- *  has no such reference because it is in no project — which is exactly why these are two
- *  types rather than one with a nullable field. */
+/** The driver INSIDE a project — a window onto the project's own `driver` slot. A standalone
+ *  driver windows its own record instead, which is the whole difference between the two. */
 class OpenISDDriverEmbedded extends OpenISDDriver {
-  readonly #project: ProjectRef;
-
-  private constructor(
-    record: Lens<OpenISDDriverJson>,
-    section: 'woofer' | 'tweeter',
-    project: ProjectRef,
-  ) {
+  private constructor(record: Lens<OpenISDDriverJson>, section: 'woofer' | 'tweeter') {
     super(record, section);
-    this.#project = project;
   }
 
-  /** The project containing this driver — resolved on each access, so it is the layer that is
-   *  effective NOW rather than whichever one happened to be effective at construction. */
-  get project(): OpenISDProject { return this.#project(); }
-
-  /** Takes a PROJECT REFERENCE, not a lens — the project owns the slot, so it is the project's
-   *  business to say where the record lives, not the caller's to hand it over. The lens comes
-   *  from the module-private registry the project fills in on construction. A reference rather
-   *  than an instance so one driver can serve every layer — see `ProjectRef`. */
-  static wrap(project: ProjectRef): OpenISDDriverEmbedded {
-    const lens = projectSlot(project, 'driver');
-    return new OpenISDDriverEmbedded(lens, OpenISDDriver.sectionOf(lens.get()), project);
+  /** Takes the lens onto the project's `driver` slot. The project owns that slot and builds the
+   *  lens, so the driver needs no reference back to the project. */
+  static wrap(slot: Lens<OpenISDDriverJson>): OpenISDDriverEmbedded {
+    return new OpenISDDriverEmbedded(slot, OpenISDDriver.sectionOf(slot.get()));
   }
 }
 
@@ -915,12 +902,41 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
  * Has no copy/write-back pair of its own, unlike a driver. The driver editor is a GENERIC
  * component that does not know where its driver came from, so it works on a `detach()`ed copy
  * and writes back with `update()`. The radiator's dedicated tab already knows it is editing a
- * project, so it drives `beginEdit()`/`commit()`/`cancelTransient()` on the `ManagedProject` it
- * holds instead — the project's own edit layer is what makes its Cancel work.
+ * project, so writes from the radiator tab land in the project's own edited layer like any
+ * other field write.
  */
-class OpenISDPassiveRadiatorEmbedded implements PassiveRadiatorComponent {
-  readonly #slot: Lens<OpenISDDriverJson | null>;
+/**
+ * What every radiator has, wherever the radiator lives: a lens onto ITS OWN record.
+ *
+ * The base exists so one radiator can read another's record without any module-scoped bridge.
+ * `slot` is PROTECTED, so `update()` below — a method of the class that declares it — may read
+ * `source.slot`, while nothing outside the class hierarchy can.
+ *
+ * The lens is NULLABLE because an embedded radiator's box may hold no radiator yet. A standalone
+ * radiator refuses construction without a `passive-radiator` section, so its lens never answers
+ * null in practice.
+ */
+abstract class OpenISDPassiveRadiator {
+  protected readonly slot: Lens<OpenISDDriverJson | null>;
 
+  protected constructor(slot: Lens<OpenISDDriverJson | null>) {
+    this.slot = slot;
+  }
+
+  /**
+   * Replace this radiator's record with `source`'s current values.
+   *
+   * PROTECTED: adopting another radiator is meaningless on a standalone, which belongs to no
+   * box, so only the embedded subclass republishes this as public. Declared HERE because `slot`
+   * is declared here, which is what makes reading `source.slot` legal.
+   */
+  protected update(source: OpenISDPassiveRadiator): void {
+    const record = source.slot.get();
+    this.slot.set(record === null ? null : { ...record });
+  }
+}
+
+class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator implements PassiveRadiatorComponent {
   readonly brand: Field<string>;
   readonly model: Field<string>;
   readonly manufacturer: Field<string>;
@@ -934,7 +950,7 @@ class OpenISDPassiveRadiatorEmbedded implements PassiveRadiatorComponent {
   readonly Xmax_m: Field<number>;
 
   constructor(slot: Lens<OpenISDDriverJson | null>) {
-    this.#slot = slot;
+    super(slot);
     this.brand = prMeta(slot, 'brand');
     this.model = prMeta(slot, 'model');
     this.manufacturer = prMeta(slot, 'manufacturer');
@@ -948,7 +964,13 @@ class OpenISDPassiveRadiatorEmbedded implements PassiveRadiatorComponent {
     this.Xmax_m = prSpec(slot, 'Xmax_m');
   }
 
-  isChosen(): boolean { return this.#slot.get() !== null; }
+  isChosen(): boolean { return this.slot.get() !== null; }
+
+  /** Adopt the chosen radiator into this box. The box owns its radiator from here on, so later
+   *  edits change the box and never the library entry the radiator was picked from. */
+  override update(source: OpenISDPassiveRadiatorStandalone): void {
+    super.update(source);
+  }
 }
 
 /** A radiator that belongs to no box — straight out of the bundle, or served from My PRs. The
@@ -956,9 +978,7 @@ class OpenISDPassiveRadiatorEmbedded implements PassiveRadiatorComponent {
  *  accepts. Its record has a `passive-radiator` section. Its
  *  own concept, not "a driver that happens to be a PR": no shared ancestor with `OpenISDDriver`.
  *  Same window-not-copy shape, same construction-time refusal, same eager-built fields. */
-class OpenISDPassiveRadiatorStandalone {
-  readonly #get: () => OpenISDDriverJson;
-  readonly #set: (json: OpenISDDriverJson) => void;
+class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
   readonly section = 'passive-radiator' as const;
 
   readonly Sd_m2: Field<number>;
@@ -968,14 +988,12 @@ class OpenISDPassiveRadiatorStandalone {
   readonly Xmax_m: Field<number>;
 
   private constructor(get: () => OpenISDDriverJson, set: (json: OpenISDDriverJson) => void) {
-    this.#get = get;
-    this.#set = set;
+    super({ get, set: (json) => set(json!) });
     this.Sd_m2 = this.#buildSpecField('Sd_m2');
     this.Cms_m_per_N = this.#buildSpecField('Cms_m_per_N');
     this.Mmd_kg = this.#buildSpecField('Mmd_kg');
     this.Rms_Ns_per_m = this.#buildSpecField('Rms_Ns_per_m');
     this.Xmax_m = this.#buildSpecField('Xmax_m');
-    registerJsonReader(this, get);
   }
 
   static window(
@@ -993,13 +1011,20 @@ class OpenISDPassiveRadiatorStandalone {
     return OpenISDPassiveRadiatorStandalone.window(() => current, (j) => { current = j; });
   }
 
+  /** This radiator's record. Never null — construction refuses a record with no
+   *  `passive-radiator` section, so a standalone always has one. */
+  #record(): OpenISDDriverJson { return this.slot.get()!; }
+
   #buildSpecField(field: SpecFieldName): Field<number> {
     return new Field<number>(
-      () => ({ value: this.#get()['passive-radiator']![field].value, state: 'entered' }),
+      () => {
+        const stated = this.#record()['passive-radiator']?.[field];
+        return stated ? { value: stated.value, state: 'entered' } : { value: null, state: 'not-available' };
+      },
       (v) => {
-        const json = this.#get();
-        const spec = json['passive-radiator']!;
-        this.#set({ ...json, 'passive-radiator': { ...spec, [field]: { value: v, origin: 'entered' } } });
+        const json = this.#record();
+        const spec = json['passive-radiator'] ?? {};
+        this.slot.set({ ...json, 'passive-radiator': { ...spec, [field]: { value: v, origin: 'entered' } } });
       },
       () => {
         throw new Error(
@@ -1011,42 +1036,10 @@ class OpenISDPassiveRadiatorStandalone {
   }
 }
 
-/**
- * The field-accessor surface `OpenISDProject` and `ManagedProject` both provably carry — not two
- * independently-written lookalike shapes, one named interface both reference.
- */
-interface ProjectFields {
-  readonly driver: OpenISDDriverEmbedded;
-  readonly box: Box;
-  /** What the user calls this project. A LABEL, not an identity — two projects may share one,
-   *  which is exactly why `uuid()` exists. A `RawField`, like every other stored value with no
-   *  solve relation behind it, so it is read and written with the same two verbs as the rest. */
-  readonly name: RawField<string>;
-  /** The user's own note about this project. Stored, never interpreted. */
-  readonly comment: RawField<string>;
-}
-
 // The real "only ManagedProject reaches this" mechanism (see the file header) — module-scoped,
 // never exported. `OpenISDProject` calls `notifyProject(this)` on every write instead of holding
 // its own listener set, and `ManagedProject` calls `subscribeToProject(project, fn)` instead of a
 // method on `project`. Nothing outside this file can reach either, which is the enforcement.
-// FRIEND SIDE-TABLE 2 of 4 — see AGENTS.md §"GLOBAL VARIABLES ARE FORBIDDEN".
-//
-// HOLDS: for one `OpenISDProject`, the set of callbacks watching THAT project. One entry per
-//   project; no callback is shared between projects.
-// EXPOSES: `OpenISDProject`'s change notification.
-// TO: `ManagedProject`, which must re-subscribe whenever the effective layer changes.
-//
-// REFEREES — every one:
-//   notify, via `notifyProject()`:
-//     `writeProjectRecord()` — twice: after a redirected write, and after a direct one
-//   subscribe, via `subscribeToProject()`:
-//     `ManagedProject` ctor — watches committed, to set `#modified`
-//     `ManagedProject`'s effective-layer rewatch — watches whichever layer is effective now
-//
-// WHY NOT A LISTENER SET ON THE CLASS: a public `subscribe()` on `OpenISDProject` would let a
-// consumer watch a LAYER directly, and the app must only ever hold `ManagedProject`.
-const projectListeners = new WeakMap<OpenISDProject, Set<() => void>>();
 
 /**
  * An untrusted record from a repository → a live driver, OR the list of everything wrong with
@@ -1123,87 +1116,7 @@ function metadataProblems(r: Record<string, unknown>): string[] {
 //
 // A module-scoped WeakMap is the one that actually holds: every class in THIS file can reach any
 // project's record, and nothing outside can, because nothing outside can reach the map.
-// FRIEND SIDE-TABLE 3 of 4 — see AGENTS.md §"GLOBAL VARIABLES ARE FORBIDDEN". THE CENTRAL ONE:
-// it is what makes `OpenISDProjectJson` genuinely private.
-//
-// HOLDS: for one `OpenISDProject`, THAT project's whole record. One entry per project — the
-//   layers of a `ManagedProject` are separate projects with separate entries, which is exactly
-//   what keeps ground/committed/edit/whatif from writing through each other.
-// EXPOSES: `OpenISDProject`'s record.
-// TO: the sibling classes that are WINDOWS onto slices of it, and to the repo that serialises it.
-//
-// REFEREES — every one:
-//   writers:
-//     `OpenISDProject` ctor  — seeds the entry before the components are built
-//     `writeProjectRecord()` — twice: a redirected write, and one landing where it was aimed
-//   readers, via `projectRecord()`:
-//     `projectSlot()`            — the lens every component reads and writes through
-//     `OpenISDProject.copy()`    — clones the record for a new layer
-//     `projectRepo().save()`     — the only place a record leaves for a store
-//   and `projectSlot()` itself is used by:
-//     `OpenISDBox.wrap()` | `OpenISDDriverEmbedded.wrap()`
-//     `OpenISDProject` ctor (meta) | `ManagedProject` ctor (meta, over the effective layer)
-//
-// WHY NOT A `#private` FIELD: `OpenISDBox` and `OpenISDDriverEmbedded` are SEPARATE CLASSES that
-// window slices of the project's record, and TypeScript has no `friend` — `#private` is
-// unreachable by a sibling, an unexported type is unnameable but still reachable by inference,
-// and a `unique symbol` key is discoverable via `Object.getOwnPropertySymbols`.
-const projectRecords = new WeakMap<OpenISDProject, OpenISDProjectJson>();
 
-// Which `ManagedProject` owns a layer. A write has to know whether it is landing on managed
-// committed state — and if so, be redirected into an edit layer — so the layer must be able to
-// find its manager. Module-scoped, like every other friend-access bridge here.
-// FRIEND SIDE-TABLE 4 of 4 — see AGENTS.md §"GLOBAL VARIABLES ARE FORBIDDEN".
-//
-// HOLDS: for one `OpenISDProject` layer, the `ManagedProject` that owns it. One entry per layer.
-// EXPOSES: the layer→owner link.
-// TO: `writeProjectRecord()`, which must know whether a write is landing on MANAGED committed
-//   state — if so it opens an edit layer and lands there instead, so editing a field in a tab
-//   starts an edit session with no component having to call `beginEdit()`.
-//
-// REFEREES — every one:
-//   writers, all in `ManagedProject`, as each layer comes into existence:
-//     ctor (ground + committed) | `load()` | `save()` | `commit()` | `beginEdit()` | `beginWhatif()`
-//   reader:
-//     `editLayerFor()` — the only one, called from `writeProjectRecord()`
-//
-// WHY NOT A FIELD ON THE LAYER: `OpenISDProject` must not know about `ManagedProject` — a plain
-// project has no layers and no owner, and giving it one would put layering into the class the
-// layering exists to wrap.
-const owningManaged = new WeakMap<OpenISDProject, ManagedProject>();
-
-function projectRecord(project: OpenISDProject): OpenISDProjectJson {
-  const json = projectRecords.get(project);
-  if (!json) throw new Error('projectRecord: not an initialised OpenISDProject');
-  return json;
-}
-
-/** Replace a project's record and tell its listeners. The one write path — every component's
- *  own `set` ends up here, so notification cannot be forgotten at a call site. */
-function writeProjectRecord(project: OpenISDProject, json: OpenISDProjectJson): void {
-  // A write aimed at COMMITTED state opens an edit layer first and lands there instead —
-  // editing a field in a tab starts an edit session by itself, with no component having to
-  // remember to call `beginEdit()`. Redirecting is sound because the edit layer is copied from
-  // committed BEFORE this write is applied, so `json` (committed plus this one change) is
-  // exactly what the new layer should hold.
-  const redirect = editLayerFor(project);
-  if (redirect) {
-    projectRecords.set(redirect, json);
-    notifyProject(redirect);
-    return;
-  }
-  projectRecords.set(project, json);
-  notifyProject(project);
-}
-
-/** The layer a write should really go to, or null when it can go where it was aimed. Only a
- *  write at the COMMITTED layer of a managed project is redirected: ground is never written
- *  through, and an open edit/what-if is already the right target. */
-function editLayerFor(project: OpenISDProject): OpenISDProject | null {
-  const managed = owningManaged.get(project);
-  if (!managed || !managed.committedIs(project) || managed.hasTransientLayer()) return null;
-  return managed.openEditLayer();
-}
 
 /**
  * WHICH project a component is looking at, resolved on EVERY access rather than fixed when the
@@ -1224,325 +1137,188 @@ function editLayerFor(project: OpenISDProject): OpenISDProject | null {
  */
 type ProjectRef = () => OpenISDProject;
 
-/** A lens onto one top-level slot of a project's record — how a contained component reads and
- *  writes its own slice without ever holding the whole record. */
-function projectSlot<K extends keyof OpenISDProjectJson>(
-  ref: ProjectRef,
-  key: K,
-): Lens<OpenISDProjectJson[K]> {
-  return {
-    get: () => projectRecord(ref())[key],
-    set: (v) => writeProjectRecord(ref(), { ...projectRecord(ref()), [key]: v }),
-  };
-}
-
-function subscribeToProject(project: OpenISDProject, fn: () => void): () => void {
-  let set = projectListeners.get(project);
-  if (!set) {
-    set = new Set();
-    projectListeners.set(project, set);
-  }
-  set.add(fn);
-  return () => { set.delete(fn); };
-}
-
-function notifyProject(project: OpenISDProject): void {
-  projectListeners.get(project)?.forEach((fn) => fn());
-}
 
 /**
- * The plain domain object — no layer management, no subscription to arbitrary listeners. Holds
- * its own `OpenISDProjectJson`; `driver` and `box` are live WINDOWS over slices of it, so reads
- * and writes go straight through to the SAME record this class holds, never a disconnected copy.
+ * THE PROJECT — the one type the app holds.
+ *
+ * Wraps an `OpenISDProjectJson` directly and holds TWO records: `#saved` is the project as of the
+ * last save, `#edited` is the project including every change since. `#edited` is null until the
+ * first write, so an untouched project costs one record, not two.
+ *
+ * There is no separate what-if. A what-if and an unsaved edit were the same mechanism differing
+ * only in the user's intention (John 2026-08-27), so a what-if is now: edit, look at the curves,
+ * press Cancel.
+ *
+ * `driver` and `box` are live WINDOWS over slices of whichever record is current — reads and
+ * writes go straight through, never to a disconnected copy.
  */
-class OpenISDProject implements ProjectFields {
+export class OpenISDProject {
   readonly driver: OpenISDDriverEmbedded;
   readonly box: Box;
+  /** What the user calls this project. A LABEL, not an identity — two projects may share one,
+   *  which is exactly why `uuid()` exists. */
   readonly name: RawField<string>;
+
+  /** The user's own note about this project. Stored, never interpreted. */
   readonly comment: RawField<string>;
 
   /** THE project's identity, and IN-MEMORY ONLY — deliberately a class field rather than a
    *  member of `OpenISDProjectJson`, which is what makes "internal only" structural instead of
    *  a rule someone has to remember: the record is the only thing that is ever serialised, so
-   *  an id that is not in it CANNOT reach a file or a link (John 2026-08-26, QO92: "lets make
-   *  the UUID an internal only feature ... when loading an owdr we assign a new uuid").
+   *  an id that is not in it CANNOT reach a file or a link (John 2026-08-26, QO92).
    *
    *  It exists so the running app can tell two open projects apart when their names collide,
-   *  and so a store — or a focus pointer — can key on something stable. Persisting it would buy
-   *  a problem rather than solve one: a file carrying an id makes re-importing it a collision
-   *  the user must be asked about, over an identity they never knew they had. Unpersisted, a
-   *  load is simply a new project, which is what it looks like to the user anyway. */
+   *  and so a store — or a focus pointer — can key on something stable. */
   readonly #uuid: string;
 
-  private constructor(json: OpenISDProjectJson, uuid: string) {
+  /** The project as of the last save. Never mutated: every write builds a new record. */
+  #saved: OpenISDProjectJson;
+
+  /** The project including every change since the last save, or null when no change has been
+   *  made. Always a COMPLETE record, never a partial one. */
+  #edited: OpenISDProjectJson | null = null;
+
+  readonly #listeners = new Set<() => void>();
+
+  private constructor(saved: OpenISDProjectJson, uuid: string) {
+    this.#saved = saved;
     this.#uuid = uuid;
-    // The record goes into the module-private map BEFORE the components are built — each of
-    // them reads its own slot straight out of it. See the FRIEND ACCESS note above.
-    projectRecords.set(this, json);
-    // `() => this` never varies — a plain project is one layer. The indirection exists for
-    // `ManagedProject`, which passes a ref that follows the effective layer.
-    this.driver = OpenISDDriverEmbedded.wrap(() => this);
-    this.box = OpenISDBox.wrap(() => this);
-    const meta = projectSlot(() => this, 'meta');
+    this.driver = OpenISDDriverEmbedded.wrap(this.#slot('driver'));
+    this.box = OpenISDBox.wrap(this.#slot('box'));
+    const meta = this.#slot('meta');
     this.name = focus(meta, 'name');
     this.comment = focus(meta, 'comment');
   }
 
-  /** Wrapping a record is how a project ENTERS the process. A record carries no identity, so
-   *  one is minted — two wraps of one record are two independently editable projects, which is
-   *  what opening a FILE twice should give.
-   *
-   *  `wrapWithIdentity()` is the exception, and the ONLY caller that may use it is a store
-   *  reader: see its own note. */
+  /** A record ENTERS the process here. A record carries no identity, so one is minted — two
+   *  wraps of one record are two independently editable projects, which is what opening a FILE
+   *  twice should give. */
   static wrap(json: OpenISDProjectJson): OpenISDProject {
-    return new OpenISDProject(json, newUuid());
+    return this.wrapWithIdentity(json, newUuid());
   }
 
   /**
-   * Wrap a record under an identity the caller already holds.
+   * Wrap a record under an identity the caller already holds. FOR A STORE READ, AND NOTHING
+   * ELSE: a store key was minted in this process, so adopting it back is restoring an identity,
+   * not importing a foreign one. Without this, a project loaded from the store gets a new
+   * identity and its next save writes to a NEW key, orphaning the entry it came from
+   * (`bugs/BUG_20260826_reopening_a_stored_project_duplicates_its_store_entry.md`).
    *
-   * FOR A STORE READ, AND NOTHING ELSE. A store key was minted in this process, by this app —
-   * it IS an in-memory identity, so adopting it back is restoring one, not importing a foreign
-   * one. Without this, a project loaded from the store gets a new identity, its next autosave
-   * writes to a NEW key, and the entry it came from is orphaned: reopening a design silently
-   * duplicates it (`bugs/BUG_20260826_reopening_a_stored_project_duplicates_its_store_entry.md`).
-   *
-   * NOT for a file. A file's id — if it even had one — was minted by some other process and is
-   * provenance, never a key, so a file import mints (the driver precedent, QO81). The split is
-   * on WHERE the record came from, not on whether an id was available.
-   *
-   * Not exported: reachable only inside this module, where the repo lives.
+   * NOT for a file: a file's id was minted by another process and is provenance, never a key
+   * (the driver precedent, QO81).
    */
   static wrapWithIdentity(json: OpenISDProjectJson, uuid: string): OpenISDProject {
     return new OpenISDProject(json, uuid);
   }
 
-  /** This project's in-memory identity. See `#uuid`. */
+  /** This project's in-memory identity. */
   uuid(): string { return this.#uuid; }
 
-  /** An independent copy — how `ManagedProject` obtains each layer's own instance. A SHALLOW
-   *  copy of the record suffices: every write in this design is copy-on-write (a new wrapper
-   *  object each time, never in-place mutation of a nested one), so this copy and the original
-   *  can briefly share nested references without risk — the first write through EITHER instance
-   *  replaces its own record wholesale, never reaching into the other's. What `copy()` actually
-   *  provides is a SEPARATE IDENTITY: the record is keyed by instance, so two references to the
-   *  SAME `OpenISDProject` share one entry and a write through either is visible through both —
-   *  exactly what the ground/committed/edit/whatif layers must never do to each other. */
-  copy(): OpenISDProject {
-    // The id CARRIES ACROSS: a copy is another layer of the same project, not another project.
-    // `ManagedProject` would otherwise hold several identities for one thing it wraps.
-    return new OpenISDProject({ ...projectRecord(this) }, this.#uuid);
+  /** The record every read goes to. */
+  #current(): OpenISDProjectJson {
+    return this.#edited ?? this.#saved;
   }
-}
 
-/**
- * The layer-management wrapper — the one type the app actually holds. Four layers: `#ground`
- * (the design as loaded/saved), `#committed` (the current confirmed design), and at most one of
- * `#edit` (an in-progress edit, promotable via `commit()`) or `#whatif` (an exploratory session
- * that can NEVER be promoted — there is no `commitWhatif()`, ever: a what-if explores values the
- * app cannot verify against physical reality). `driver`/`box` delegate to whichever is effective
- * — `#whatif` if open, else `#edit` if open, else `#committed`. `subscribe()` re-fires whenever
- * the currently-effective project notifies, and re-subscribes on every layer transition.
- */
-export class ManagedProject implements ProjectFields {
-  // Advanced by `save()`, and read by `isModified()` to answer "are there unsaved changes".
-  #ground: OpenISDProject;
-  #committed: OpenISDProject;
-  #edit: OpenISDProject | null = null;
-  #whatif: OpenISDProject | null = null;
-  readonly #listeners = new Set<() => void>();
-  #unwatchEffective: (() => void) | null = null;
-  #unwatchCommitted: (() => void) | null = null;
-  #modified = false;
+  /** Enter the edited state if not already in it, and answer the record a write must build on.
+   *  The first call copies `#saved`; later calls answer the existing `#edited`. */
+  #ensureEditing(): OpenISDProjectJson {
+    if (!this.#edited) this.#edited = { ...this.#saved };
+    return this.#edited;
+  }
 
-  /** THE identity of the project this wraps — the wrapper is id'd by the same id (John
-   *  2026-08-26). Every layer is a `copy()` of one project and so carries it, which is why
-   *  ground's answer serves for all of them. In-memory only: see `OpenISDProject`'s `#uuid`.
+  /** A get/set pair addressing ONE top-level field of the record. Reads whichever record is
+   *  current; every write lands in `#edited`.
    *
-   *  This is what a store, or a focus pointer, keys on. A name cannot serve — two open
-   *  projects may share one, and that is precisely what identity exists to make harmless. */
-  uuid(): string { return this.#ground.uuid(); }
-
-  readonly #driver: OpenISDDriverEmbedded;
-  readonly #box: Box;
-  readonly name: RawField<string>;
-  readonly comment: RawField<string>;
-
-  private constructor(ground: OpenISDProject, committed: OpenISDProject) {
-    this.#ground = ground;
-    this.#committed = committed;
-    this.#driver = OpenISDDriverEmbedded.wrap(() => this.#effective());
-    this.#box = OpenISDBox.wrap(() => this.#effective());
-    // Over the EFFECTIVE layer, like `driver`/`box` — one stable handle for the wrapper's life.
-    const meta = projectSlot(() => this.#effective(), 'meta');
-    this.name = focus(meta, 'name');
-    this.comment = focus(meta, 'comment');
-    owningManaged.set(ground, this);
-    owningManaged.set(committed, this);
-    this.#watchEffective();
-    this.#watchCommitted();
+   *  The write REPLACES the record rather than mutating one, so a caller holding an earlier
+   *  record sees no change through it — copy-on-write, with the copy being the spread that a
+   *  write performs anyway. */
+  #slot<K extends keyof OpenISDProjectJson>(key: K): Lens<OpenISDProjectJson[K]> {
+    return {
+      get: () => this.#current()[key],
+      set: (value) => {
+        const base = this.#ensureEditing();
+        this.#edited = { ...base, [key]: value };
+        this.#notify();
+      },
+    };
   }
 
-  /** Adopt `project` as the WHOLE design. Ground and committed each become their OWN independent
-   *  copy — never the same instance, so editing one can never be visible through the other. */
-  static load(project: OpenISDProject): ManagedProject {
-    return new ManagedProject(project.copy(), project.copy());
-  }
+  /** @internal The record a save writes. */
+  recordToPersist(): OpenISDProjectJson { return this.#current(); }
 
-  #effective(): OpenISDProject {
-    return this.#whatif ?? this.#edit ?? this.#committed;
-  }
+  /** Whether unsaved changes exist. Answered by the presence of `#edited`: the first write
+   *  creates it, and only `save()` or `cancel()` removes it. */
+  isModified(): boolean { return this.#edited !== null; }
 
-  /** ONE driver and ONE box for this managed project's whole life, each resolving the effective
-   *  layer on every read and write (`ProjectRef`).
-   *
-   *  They are NOT the effective layer's own components. Returning those would hand out an object
-   *  bound to one layer, which a write can then move away from — writing to committed opens an
-   *  edit layer, so a caller that did `const d = project.driver` before its first edit would read
-   *  stale values from that edit onwards, and the write would look lost
-   *  (`bugs/BUG_20260826_held_component_handle_goes_stale_when_a_write_opens_the_edit_layer.md`).
-   *  That is the ordinary shape of UI code — bind once in `setup()`, read many times — so the
-   *  handle has to outlive the layer. */
-  get driver(): OpenISDDriverEmbedded { return this.#driver; }
-  get box(): Box { return this.#box; }
-
-  /** @internal The layer persistence must write: the open edit layer if there is one, else
-   *  committed. NEVER a what-if — an exploratory session must not survive the session. Reached
-   *  by `persistableLayerOf()` in this module only; the app has no route to a layer. */
-  layerToPersist(): OpenISDProject { return this.#edit ?? this.#committed; }
-
-  /** @internal Is `project` the layer a write would land on when nothing transient is open? */
-  committedIs(project: OpenISDProject): boolean { return this.#committed === project; }
-
-  /** @internal Is an edit or what-if already open, making a redirect unnecessary? */
-  hasTransientLayer(): boolean { return this.#edit !== null || this.#whatif !== null; }
-
-  /** @internal Open the edit layer for a write that has just been aimed at committed state.
-   *  Notifies, because the project has just become editable and a Save/Revert bar keys off it. */
-  openEditLayer(): OpenISDProject {
-    this.beginEdit();
-    return this.#edit!;
-  }
-
-  isWhatif(): boolean { return this.#whatif !== null; }
-  isEditing(): boolean { return this.#edit !== null; }
-
-  /** Whether committed state has moved on since the last save — the "unsaved changes" question.
-   *
-   *  Tracked as a FLAG, not by comparing `#ground` and `#committed`. Identity cannot answer it:
-   *  both `load()` and `save()` deliberately build fresh copies, so the two are never the same
-   *  instance and an identity test reads "modified" permanently (caught by the smoke test that
-   *  first exercised this). Value comparison would work but needs a deep walk of the record on
-   *  every ask. The flag is set by any change reaching committed — a direct write when no
-   *  transient layer is open, or a `commit()` — and cleared only by `save()`.
-   *
-   *  A transient edit/what-if does NOT set it: nothing has been promoted into the design yet. */
-  isModified(): boolean { return this.#modified; }
-
-  /** Discard every committed change since the last save, restoring the design as saved. The one
-   *  thing `#ground` is FOR — without it, `save()` would be nothing but a flag reset. Ends any
-   *  open transient layer, which would otherwise be left sitting over state that no longer
-   *  exists. */
-  revertToSaved(): void {
-    this.#committed = this.#ground.copy();
-    owningManaged.set(this.#committed, this);
-    this.#modified = false;
-    this.#watchCommitted();
-    this.cancelTransient();
-  }
-
-  /** Promote committed state into ground — a genuine save. Ends any open edit/what-if first:
-   *  neither should survive a save silently attached to the new ground. */
+  /** Promote the edited record. A no-op when nothing has been edited. */
   save(): void {
-    this.#ground = this.#committed.copy();
-    owningManaged.set(this.#ground, this);
-    this.#modified = false;
-    this.cancelTransient();
-  }
-
-  /** Promote an in-progress edit into committed. A no-op if no edit is open — and correctly
-   *  notifies nothing in that case, because nothing changed. */
-  commit(): void {
-    if (!this.#edit) return;
-    this.#committed = this.#edit.copy();
-    owningManaged.set(this.#committed, this);
-    this.#modified = true;
-    this.#watchCommitted();
-    this.cancelTransient();
-  }
-
-  /** Open an editable working copy of committed state — an in-progress edit, distinct from a
-   *  what-if: THIS one can be promoted, via `commit()`. Mutually exclusive with `beginWhatif()`;
-   *  only one transient layer at a time. */
-  beginEdit(): void {
-    this.cancelTransient();
-    this.#edit = this.#committed.copy();
-    owningManaged.set(this.#edit, this);
-    this.#watchEffective();
+    if (!this.#edited) return;
+    this.#saved = this.#edited;
+    this.#edited = null;
     this.#notify();
   }
 
-  /** Open a what-if over committed state — a working copy that can NEVER be promoted. Also IS
-   *  the Reset operation: reseeding a what-if reseeds from COMMITTED, not ground (corrected
-   *  2026-08-25) — calling this again while one is open discards it and opens a fresh one, which
-   *  is exactly what Reset needs, so there is no separate `resetOverlayToGround()`. */
-  beginWhatif(): void {
-    this.cancelTransient();
-    this.#whatif = this.#committed.copy();
-    owningManaged.set(this.#whatif, this);
-    this.#watchEffective();
+  /**
+   * Discard every change since the last save, after `confirm` agrees.
+   *
+   * The challenge is a PARAMETER because the caller — the Cancel button on the project bar —
+   * already owns the warning dialog and holds the answer at the moment of the call. Threading a
+   * callback through every construction path would deliver a value that one caller already has.
+   *
+   * Answers whether anything was discarded: false when nothing was edited, and false when the
+   * user declined.
+   */
+  async cancel(confirm: DiscardChallenge): Promise<boolean> {
+    if (!this.#edited) return false;
+    if (!await confirm()) return false;
+    this.#edited = null;
     this.#notify();
+    return true;
   }
 
-  /** Discard whichever transient layer is open. The only way either session ends without
-   *  promotion. Safe to call with neither open. */
-  cancelTransient(): void {
-    this.#edit = null;
-    this.#whatif = null;
-    this.#watchEffective();
-    this.#notify();
-  }
-
-  // Committed is watched SEPARATELY from the effective layer: a direct write while no transient
-  // layer is open lands on committed and must set the unsaved-changes flag, and committed is
-  // replaced wholesale by `commit()`/`revertToSaved()`, so the subscription has to follow it.
-  #watchCommitted(): void {
-    this.#unwatchCommitted?.();
-    this.#unwatchCommitted = subscribeToProject(this.#committed, () => { this.#modified = true; });
-  }
-
-  #watchEffective(): void {
-    this.#unwatchEffective?.();
-    this.#unwatchEffective = subscribeToProject(this.#effective(), () => this.#notify());
-  }
-
-  #notify(): void {
-    for (const fn of this.#listeners) fn();
-  }
-
-  /** Register a listener, fired on any change to the effective layer's state, AND on every
-   *  layer transition (the effective layer itself changing is a change). Returns an unsubscribe
-   *  function. THIS is the public subscribe — `OpenISDProject` has none. */
+  /** Register a listener, fired on every change to the current record and on entering or
+   *  leaving the edited state. Returns an unsubscribe function. */
   subscribe(fn: () => void): () => void {
     this.#listeners.add(fn);
     return () => { this.#listeners.delete(fn); };
   }
+
+  #notify(): void {
+    this.#listeners.forEach((fn) => fn());
+  }
 }
 
-/** A project with nothing designed yet — an empty box of every box type, and the driver record
- *  the caller supplies (a project cannot exist without a driver). */
-function emptyProjectJson(driver: OpenISDDriverJson): OpenISDProjectJson {
+/**
+ * The app's warning before unsaved changes are destroyed, as `cancel()` sees it: answers whether
+ * to go ahead. Async because a dialog is — the domain waits for a person.
+ */
+export type DiscardChallenge = () => Promise<boolean>;
+
+/**
+ * A project with nothing designed yet.
+ *
+ * The driver slot holds an EMPTY WOOFER SECTION — a section present, nothing stated. That is
+ * enough for `OpenISDDriver.sectionOf()` to succeed, which is what lets a project be constructed
+ * before its driver has been written in; the real driver arrives immediately afterwards through
+ * `project.driver.update()`. No zeros are invented, because every spec field is optional.
+ */
+function emptyProjectJson(): OpenISDProjectJson {
+  const unstated = { value: '', origin: 'unstated' };
   return {
-    driver,
+    driver: {
+      brand: unstated, model: unstated, manufacturer: unstated,
+      provided_by: unstated, comment: unstated, added: unstated,
+      woofer: {},
+    },
     box: emptyBoxJson(),
-    environment: { temperature_K: 293.15, humidity_pct: 30, pressure_Pa: 101325 },
-    signal: { power_W: 1, voltage_V: null },
+    environment: { temperature_K: null, humidity_pct: null, pressure_Pa: null },
+    signal: { power_W: null, voltage_V: null },
     meta: { name: '', comment: '' },
   };
 }
 
 // ---------------------------------------------------------------------------------------------
-// BUILDING A PROJECT — the wizard's path in, and the only way to make a `ManagedProject`.
+// BUILDING A PROJECT — the wizard's path in, and the only way to make an `OpenISDProject`.
 // ---------------------------------------------------------------------------------------------
 
 /**
@@ -1558,13 +1334,13 @@ function emptyProjectJson(driver: OpenISDDriverJson): OpenISDProjectJson {
  * than quietly producing a half-formed project.
  */
 export function newProject(driver: OpenISDDriver): ProjectBuilder {
-  return new ProjectBuilder({ ...readWrappedJson(driver) });
+  return new ProjectBuilder(driver);
 }
 
 class ProjectBuilder {
-  readonly #driver: OpenISDDriverJson;
+  readonly #driver: OpenISDDriver;
 
-  constructor(driver: OpenISDDriverJson) {
+  constructor(driver: OpenISDDriver) {
     this.#driver = driver;
   }
 
@@ -1581,8 +1357,14 @@ class ProjectBuilder {
 /** Shared assembly. Each specialised builder decides the box record; this turns it into a
  *  managed project, so there is ONE place a project comes into existence. */
 abstract class BoxProjectBuilder {
-  protected readonly driver: OpenISDDriverJson;
-  protected constructor(driver: OpenISDDriverJson) { this.driver = driver; }
+  /** The driver OBJECT, not its record. A record could not be read out of it anyway — only
+   *  `OpenISDDriver` and its subclasses can reach a driver's storage — and it does not need to
+   *  be: `build()` hands the object to the project's own embedded driver, which copies it in. */
+  protected readonly driver: OpenISDDriver;
+  protected constructor(driver: OpenISDDriver) { this.driver = driver; }
+
+  /** The chosen radiator, for the builders that take one. */
+  protected radiatorChoice: OpenISDPassiveRadiatorStandalone | null = null;
 
   protected abstract boxRecord(): OpenISDBoxJson;
 
@@ -1591,18 +1373,25 @@ abstract class BoxProjectBuilder {
     return value;
   }
 
-  build(): ManagedProject {
-    const json: OpenISDProjectJson = {
-      ...emptyProjectJson(this.driver),
-      box: this.boxRecord(),
-    };
-    return ManagedProject.load(OpenISDProject.wrap(json));
+  /**
+   * Assemble the project — the LAST thing, once every part has been collected.
+   *
+   * The project is constructed with an empty driver section, then each component copies ITSELF
+   * in: `project.driver.update()` is one driver reading another, inside the class that declares
+   * the record, and the radiator does the same. So no record crosses a boundary and the project
+   * never handles driver state.
+   */
+  build(): OpenISDProject {
+    const project = OpenISDProject.wrap({ ...emptyProjectJson(), box: this.boxRecord() });
+    project.driver.update(this.driver);
+    if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
+    return project;
   }
 }
 
 class SealedProjectBuilder extends BoxProjectBuilder {
   #volume: number | null = null;
-  constructor(driver: OpenISDDriverJson) { super(driver); }
+  constructor(driver: OpenISDDriver) { super(driver); }
   volume_m3(v: number): this { this.#volume = v; return this; }
   protected boxRecord(): OpenISDBoxJson {
     const box = emptyBoxJson();
@@ -1617,7 +1406,7 @@ class SealedProjectBuilder extends BoxProjectBuilder {
 class VentedProjectBuilder extends BoxProjectBuilder {
   #volume: number | null = null;
   #tuning: number | null = null;
-  constructor(driver: OpenISDDriverJson) { super(driver); }
+  constructor(driver: OpenISDDriver) { super(driver); }
   volume_m3(v: number): this { this.#volume = v; return this; }
   tuning_hz(v: number): this { this.#tuning = v; return this; }
   protected boxRecord(): OpenISDBoxJson {
@@ -1643,7 +1432,7 @@ class Bandpass4ProjectBuilder extends BoxProjectBuilder {
   #rearVolume: number | null = null;
   #frontVolume: number | null = null;
   #frontTuning: number | null = null;
-  constructor(driver: OpenISDDriverJson) { super(driver); }
+  constructor(driver: OpenISDDriver) { super(driver); }
   rearVolume_m3(v: number): this { this.#rearVolume = v; return this; }
   frontVolume_m3(v: number): this { this.#frontVolume = v; return this; }
   frontTuning_hz(v: number): this { this.#frontTuning = v; return this; }
@@ -1676,7 +1465,7 @@ class TwoChamberProjectBuilder extends BoxProjectBuilder {
   #frontVolume: number | null = null;
   #frontTuning: number | null = null;
 
-  constructor(driver: OpenISDDriverJson, kind: 'bandpass6' | 'abc') {
+  constructor(driver: OpenISDDriver, kind: 'bandpass6' | 'abc') {
     super(driver);
     this.#kind = kind;
   }
@@ -1714,14 +1503,15 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
   #count = 1;
   #radiator: OpenISDDriverJson | null = null;
 
-  constructor(driver: OpenISDDriverJson) { super(driver); }
+  constructor(driver: OpenISDDriver) { super(driver); }
 
   volume_m3(v: number): this { this.#volume = v; return this; }
   tuning_hz(v: number): this { this.#tuning = v; return this; }
   count(v: number): this { this.#count = v; return this; }
-  /** Takes an ALREADY-VALIDATED radiator, from `passiveRadiatorFromConformingRecord()`. */
+  /** Takes an ALREADY-VALIDATED radiator, from `passiveRadiatorFromConformingRecord()`. Kept as
+   *  the OBJECT; `build()` has the box's own radiator copy it in. */
   radiator(radiator: OpenISDPassiveRadiatorStandalone): this {
-    this.#radiator = { ...readWrappedJson(radiator) };
+    this.radiatorChoice = radiator;
     return this;
   }
 
@@ -1746,7 +1536,7 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
 // ── PERSISTENCE ────────────────────────────────────────────────────────────────────────────
 //
 //     app / UI
-//        │   domain objects only — `ManagedProject`
+//        │   domain objects only — `OpenISDProject`
 //     ProjectRepo     ── peer of the DOMAIN OBJECT, lives HERE
 //        │   `OpenISDProjectJson`, which never appears in any signature below
 //     RecordStore<R>  ── peer of the RECORD, injected, implemented elsewhere
@@ -1871,7 +1661,7 @@ export type DeleteOutcome = 'deleted' | 'declined' | 'absent';
 export interface ProjectListing {
   /** The STORE KEY — pass it back to `load()` or `remove()`.
    *
-   *  It IS the project's uuid: `save()` keys on `ManagedProject.uuid()`, and `load()` adopts the
+   *  It IS the project's uuid: `save()` keys on `OpenISDProject.uuid()`, and `load()` adopts the
    *  key back, so an entry and the project opened from it share one identity. That is what lets a
    *  workspace tell whether a row in the picker is already open, and what stops a reopened design
    *  autosaving into a second entry. */
@@ -1885,13 +1675,13 @@ export interface ProjectListing {
 /**
  * The app's door to stored projects, in DOMAIN vocabulary.
  *
- * Every method takes or returns a `ManagedProject` or plain data — never a record — so no caller
+ * Every method takes or returns an `OpenISDProject` or plain data — never a record — so no caller
  * can see the stored shape, and a change to that shape cannot reach the app.
  *
  * DEPENDS ON the `RecordStore` handed to `projectRepo()`, and on this module's privileged
  * access to a project's own record. Both are why it lives here rather than in an app package.
  *
- * ASSUMES identity comes from the project itself (`ManagedProject.uuid()`) and is in-memory only,
+ * ASSUMES identity comes from the project itself (`OpenISDProject.uuid()`) and is in-memory only,
  * never carried in the record — so the repo supplies the key on every call, and a record on its
  * own names nothing.
  */
@@ -1907,15 +1697,14 @@ export interface ProjectRepo {
    * discards the tab. On return the design is still there. Today the app has no answer to that:
    * work between explicit File → Save actions is simply lost.
    *
-   * Autosave is this method plus a TRIGGER — `ManagedProject`'s change notification calling it.
+   * Autosave is this method plus a TRIGGER — the project's own change notification calling it.
    * The trigger is still undecided (QO92: every change, debounced, or on blur), and the same
    * method serves an explicit toolbar Save. WHAT is written is settled here; WHEN is not.
    */
-  save(project: ManagedProject): void;
+  save(project: OpenISDProject): void;
 
   /**
-   * Rebuild the project stored under `id` as a fresh `ManagedProject` — ground and committed both
-   * set to what was stored, no overlay open.
+   * Rebuild the project stored under `id` as a fresh `OpenISDProject`, with nothing edited.
    *
    * RETURNS the problems rather than throwing, so a caller listing projects can show WHY a row
    * cannot be opened instead of failing on click.
@@ -1930,7 +1719,7 @@ export interface ProjectRepo {
    * WHY IT EXISTS: the user picks "Ported 8in v3" from the list and expects the design back as
    * they left it, editable. It is also the reload path.
    */
-  load(id: string): ManagedProject | string[];
+  load(id: string): OpenISDProject | string[];
 
   /**
    * Everything the store holds, most-recently-modified first.
@@ -1968,12 +1757,6 @@ export interface ProjectRepo {
   remove(id: string, confirm: DeleteChallenge): Promise<DeleteOutcome>;
 }
 
-/** The layer a save must write. A free function so the rule lives beside the repo that applies
- *  it, rather than being restated at each call site. */
-function persistableLayerOf(project: ManagedProject): OpenISDProject {
-  return project.layerToPersist();
-}
-
 /**
  * Build a repo over the store `make` produces.
  *
@@ -1994,18 +1777,17 @@ function persistableLayerOf(project: ManagedProject): OpenISDProject {
 export function projectRepo(make: RecordStoreFactory): ProjectRepo {
   const store = make<OpenISDProjectJson>();
   return {
-    save(project: ManagedProject): void {
-      const layer = persistableLayerOf(project);
-      const json = projectRecord(layer);
+    save(project: OpenISDProject): void {
+      const json = project.recordToPersist();
       store.put(project.uuid(), json, { name: json.meta.name });
     },
 
-    load(id: string): ManagedProject | string[] {
+    load(id: string): OpenISDProject | string[] {
       const json = store.get(id);
       if (!json) return [`no stored project with id ${id}`];
       // ADOPTS `id` as the project's identity, so its next save writes back to the entry it came
       // from rather than minting a second one. See `wrapWithIdentity()`.
-      return ManagedProject.load(OpenISDProject.wrapWithIdentity(json, id));
+      return OpenISDProject.wrapWithIdentity(json, id);
     },
 
     list(): ProjectListing[] {

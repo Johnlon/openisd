@@ -528,7 +528,7 @@ export class ManagedProject {
 
   /** Sealed-box (and PR rear-chamber) resonance + system Q via the given loss model. `Rs`/`Ql`/
    *  `Qa` are not yet fields of `OpenISDProjectJson` (they live on `UiParams` today), so they
-   *  are taken as parameters rather than read internally — same shape as `sealedFc`'s own
+   *  are taken as parameters rather than read internally — the same shape the engine's own
    *  decoupling in `wprMapping.ts`. Null when the driver is too incomplete to resolve an
    *  `EngineDriver`, or `Vb` isn't set. */
   sealedResonance(lossMode: LossMode, Rs: number, Ql: number, Qa: number): { Fsc: number; Qtc: number } | null {
@@ -927,7 +927,7 @@ export class ManagedProject {
    * (for the sealed-box resonance refinement), or null when none has been computed — only the
    * live sweep pipeline can supply it, so it is a parameter, never fabricated here.
    */
-  exportWpr(now: Date, curve: SweepResult | null): Result<Uint8Array<ArrayBuffer>> {
+  exportWpr(now: Date, curve: SweepResult | null, lossMode: LossMode): Result<Uint8Array<ArrayBuffer>> {
     this.#endWhatIfIfActive();
     const driver = this.#committed.openIsdDriver;
     const { value: driverSection, errors } = driver.toWdrText();
@@ -935,8 +935,9 @@ export class ManagedProject {
 
     // The domain object derives its own box/vent tuning and speaks the file's vocabulary —
     // this layer only supplies what it alone has: the driver's serialisation, the engine
-    // projection, the clock, and the live sweep.
-    const wpr = this.#committed.project.toWinISDProject(driverSection, driver.toDriver(), now, curve);
+    // projection, the clock, the live sweep, and the selected loss model (which reaches the
+    // file because `[Box] Fr` is the LOSSY resonance — FINDING-007).
+    const wpr = this.#committed.project.toWinISDProject(driverSection, driver.toDriver(), now, curve, lossMode);
     return { value: winisdTextToBytes(wpr.toWpr()), errors };
   }
 

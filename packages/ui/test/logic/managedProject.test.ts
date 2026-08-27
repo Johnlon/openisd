@@ -35,6 +35,7 @@ function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 've
 import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
 import assert from 'node:assert/strict';
 import { ManagedProject } from '../../src/logic/managedProject.js';
+import { LossMode } from '@openisd/engine';
 import type { OpenISDDriverJson } from '@openisd/model';
 
 /** A minimal, valid driver record — one stated field, enough to exercise enter()/clear(). */
@@ -336,7 +337,7 @@ describe('ManagedProject — project file IO (.wpr)', () => {
     src.setBoxVolume_m3(777777e-6);
     src.mutate(p => p.setProjectMeta({ ...p.projectMeta(), description: 'probe-description-123456', creator: 'probe-creator' }));
 
-    const { value: bytes, errors } = src.exportWpr(new Date('2026-01-01'), null);
+    const { value: bytes, errors } = src.exportWpr(new Date('2026-01-01'), null, LossMode.Default);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     assert.ok(bytes);
 
@@ -351,7 +352,7 @@ describe('ManagedProject — project file IO (.wpr)', () => {
   });
 
   it('exportWpr succeeds for an empty (unfilled) driver — every field falls back to its WinISD default', () => {
-    const { value, errors } = ManagedProject.createEmpty().exportWpr(new Date(), null);
+    const { value, errors } = ManagedProject.createEmpty().exportWpr(new Date(), null, LossMode.Default);
     assert.ok(value);
     assert.deepEqual(errors, []);
   });

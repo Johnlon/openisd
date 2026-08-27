@@ -1,13 +1,12 @@
 /**
  * The prototype app (`app/workspace.ts`) driven through the published surface only.
  *
- * These are the tests that could not be written before there was an app: autosave firing from a
- * project's own notification, an UNFOCUSED project saving exactly like a focused one, focus
- * surviving a close, and closing leaving the store alone. Each is a behaviour the real app has to
- * have, and each was a QO92 question that a diagram could not settle.
+ * These are the tests that could not be written before there was an app: focus surviving a close,
+ * and closing leaving the store alone.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { composeInMemoryApp } from '../app/composition.js';
+import { assemble } from '../app/composition.js';
+import { memoryStore } from '@openisd/design/browser';
 import { driverFromConformingRecord, type OpenISDDriver } from '@openisd/design';
 import { Workspace } from '../app/workspace.js';
 
@@ -34,34 +33,7 @@ function tickingClock(): () => string {
 }
 
 let ws: Workspace;
-beforeEach(() => { ws = new Workspace(composeInMemoryApp(tickingClock())); });
-
-describe('autosave fires from the project itself', () => {
-  it('a new project is not stored until it is touched', () => {
-    ws.create(aDriver('Dayton', 'RS225'), 0.03);
-    expect(ws.stored()).toHaveLength(0);
-  });
-
-  it('an edit stores it, with no explicit save call anywhere', () => {
-    const p = ws.create(aDriver('Dayton', 'RS225'), 0.03);
-    p.box.sealed.volume_m3.set(0.045);
-    expect(ws.stored()).toHaveLength(1);
-  });
-
-  it('an UNFOCUSED project autosaves exactly like a focused one', () => {
-    // The defect that sank the previous autosave: everything ran through one focused-project
-    // signal, so an open-but-unfocused project's edits reached nothing (QO92).
-    const first = ws.create(aDriver('Dayton', 'RS225'), 0.03);
-    first.name.set('First');
-    ws.create(aDriver('SEAS', 'A26'), 0.05);          // focus moves to the second
-
-    expect(ws.focused()?.uuid()).not.toBe(first.uuid());
-    first.box.sealed.volume_m3.set(0.099);            // edit the UNFOCUSED one
-
-    const stored = ws.stored().find(e => e.name === 'First');
-    expect(stored, 'the unfocused project must have been stored').toBeDefined();
-  });
-});
+beforeEach(() => { ws = assemble(memoryStore, tickingClock()).workspace; });
 
 describe('focus is by uuid, not by position', () => {
   it('closing another project does not change which project is focused', () => {
