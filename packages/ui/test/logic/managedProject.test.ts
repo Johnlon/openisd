@@ -26,9 +26,9 @@
 import { describe, it } from 'vitest';
 
 /** Read one dormant-or-active slot off an INDEPENDENT snapshot: switching the copy's
- *  alignment is safe (it is a copy) and is the public route to a dormant slot's value. */
-function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator') {
-  p.setAlignment(kind);
+ *  box-type accessor is safe (it is a copy) and is the public route to a dormant slot's value. */
+function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 'vented' | 'bandpass4' | 'box-passive-radiator') {
+  p.setBoxType(kind);
   return p;
 }
 
@@ -70,7 +70,7 @@ function driverRecord(): OpenISDDriverJson {
 /** A project with a driver AND a distinctive box, so a box scrub is observable. */
 function projectWithDriver(): OpenISDProject {
   const p = OpenISDProject.empty(OpenISDDriver.fromJsonRecord(driverRecord()));
-  p.setAlignment('vented');
+  p.setBoxType('vented');
   p.set('Vb', 0.030);
   return p;
 }
@@ -250,7 +250,7 @@ describe('ManagedProject — an empty (unfilled) driver', () => {
 
   it('choosing a driver keeps the box — it is not opening a new project', () => {
     const mp = ManagedProject.createEmpty();
-    mp.mutate(p => { p.setAlignment('vented'); p.set('Vb', 0.044); });
+    mp.mutate(p => { p.setBoxType('vented'); p.set('Vb', 0.044); });
 
     mp.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
 
@@ -333,7 +333,7 @@ describe('ManagedProject — project file IO (.wpr)', () => {
   it('exportWpr → importWpr round-trips the box volume, driver Fs and meta', () => {
     const src = ManagedProject.createEmpty();
     src.loadDriverFromOwdrText(JSON.stringify(driverRecord()));
-    src.setActiveAlignment('sealed');
+    src.setActiveBoxType('sealed');
     src.setBoxVolume_m3(777777e-6);
     src.mutate(p => p.setProjectMeta({ ...p.projectMeta(), description: 'probe-description-123456', creator: 'probe-creator' }));
 
@@ -344,7 +344,7 @@ describe('ManagedProject — project file IO (.wpr)', () => {
     const dst = ManagedProject.createEmpty();
     const { value: meta, errors: importErrors } = dst.importWpr(bytes!);
     assert.deepEqual(importErrors, []);
-    assert.equal(dst.activeAlignment(), 'sealed');
+    assert.equal(dst.activeBoxType(), 'sealed');
     assert.ok(Math.abs(dst.boxVolume_m3() - 777777e-6) < 1e-9);
     assert.equal(dst.FsCell().value, 37);
     assert.equal(meta?.description, 'probe-description-123456');

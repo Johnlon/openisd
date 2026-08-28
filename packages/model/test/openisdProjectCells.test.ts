@@ -4,7 +4,7 @@
  * P2). The vent group (Vb/ventD/Fb/ventL, one Helmholtz relation) and the PR group
  * (prFp ↔ prMadd) solve INSIDE the domain object; `target.entered` decides what is held.
  *
- * Also pins P1's public surface (vent(i)/ventCount(), opus2 K1) and the enforced per-alignment
+ * Also pins P1's public surface (vent(i)/ventCount(), opus2 K1) and the enforced per-box-type
  * vent arity (opus2 K2): a wrong-arity record is refused loudly, never silently truncated.
  */
 import { describe, it } from 'vitest';
@@ -43,7 +43,7 @@ function corruptibleRecord(): OpenISDProjectJson {
 
 function ventedProject(): OpenISDProject {
   const p = OpenISDProject.empty(OpenISDDriver.empty());
-  p.setAlignment('vented');
+  p.setBoxType('vented');
   return p;
 }
 
@@ -156,15 +156,15 @@ describe('the PR group — prFp ↔ prMadd on the domain object', () => {
 });
 
 describe('vent(i)/ventCount() — P1 public surface (opus2 K1)', () => {
-  it('ventCount() states each alignment\'s arity', () => {
+  it('ventCount() states each box type\'s arity', () => {
     const p = OpenISDProject.empty(OpenISDDriver.empty());
-    p.setAlignment('sealed');
+    p.setBoxType('sealed');
     assert.equal(p.ventCount(), 0);
-    p.setAlignment('vented');
+    p.setBoxType('vented');
     assert.equal(p.ventCount(), 1);
-    p.setAlignment('bandpass4');
+    p.setBoxType('bandpass4');
     assert.equal(p.ventCount(), 1);
-    p.setAlignment('passive-radiator');
+    p.setBoxType('box-passive-radiator');
     assert.equal(p.ventCount(), 0);
   });
 
@@ -180,21 +180,26 @@ describe('vent(i)/ventCount() — P1 public surface (opus2 K1)', () => {
     const p = ventedProject();
     assert.equal(p.vent(1), undefined);
     assert.equal(p.vent(-1), undefined);
-    p.setAlignment('sealed');
+    p.setBoxType('sealed');
     assert.equal(p.vent(0), undefined);
   });
 });
 
 describe('vent arity is ENFORCED, not commented (opus2 K2)', () => {
   it('the declared arity table matches what the accessors report', () => {
-    assert.deepEqual(VENT_ARITY, { sealed: 0, vented: 1, bandpass4: 1, 'passive-radiator': 0 });
+    // Total over the one `BoxType`. `bandpass6` and `abc` are declared but not constructible
+    // yet (QO85); `abc: 3` is John's own figure, `bandpass6: 2` is the standard two-ported
+    // topology and is flagged in VENT_ARITY's own comment as unconfirmed against real WinISD.
+    assert.deepEqual(VENT_ARITY, {
+      sealed: 0, vented: 1, bandpass4: 1, 'box-passive-radiator': 0, bandpass6: 2, abc: 3,
+    });
   });
 
-  it('a record whose vents array disagrees with its alignment\'s arity is refused loudly', () => {
+  it('a record whose vents array disagrees with its box type\'s arity is refused loudly', () => {
     const record = corruptibleRecord();
     (record.box.vented.vents as unknown as unknown[]).push({ ...record.box.vented.vents[0]! });
     assert.throws(() => OpenISDProject.fromJsonRecord(record),
-      /arity is fixed per alignment \(QO85\)/,
+      /arity is fixed per box type \(QO85\)/,
       'a two-port vented record must refuse, never have vents[1] silently ignored');
   });
 
@@ -219,8 +224,8 @@ describe('the read paths refuse a corrupt record even past the type system (opus
     const record = corruptibleRecord();
     const p = OpenISDProject.fromJsonRecord(record);
     (record.box.vented.vents as unknown as unknown[]).push({ ...record.box.vented.vents[0]! });
-    assert.throws(() => p.ventCount(), /arity is fixed per alignment \(QO85\)/);
-    assert.throws(() => p.vent(0), /arity is fixed per alignment \(QO85\)/);
+    assert.throws(() => p.ventCount(), /arity is fixed per box type \(QO85\)/);
+    assert.throws(() => p.vent(0), /arity is fixed per box type \(QO85\)/);
   });
 });
 

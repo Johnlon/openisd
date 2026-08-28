@@ -28,7 +28,7 @@ function aDriver(brand: string, model: string): OpenISDDriver {
       Mmd_kg: num(0.05), Rms_Ns_per_m: num(2), Xmax_m: num(0.008),
     },
   };
-  const driver = driverFromConformingRecord(record);
+  const driver = driverFromConformingRecord(record, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a conforming driver: ${driver.join('; ')}`);
   return driver;
 }

@@ -5,6 +5,9 @@
 
 export type { Provenance, Cell, FieldHandle, RawField } from './cell.js';
 export type { VentShape, Vent } from './vent.js';
+// A VALUE export, not a type-only one: `VoiceCoilWiring.Series` must be usable at runtime, which
+// is the whole point of it being an enum rather than a bare string literal.
+export { VoiceCoilWiring } from './project.js';
 export type {
   SealedLosses,
   VentedLosses,
@@ -12,7 +15,6 @@ export type {
   CoupledVentedLosses,
 } from './losses.js';
 export type {
-  BoxType,
   Box,
   SealedBox,
   VentedBox,

@@ -15,4 +15,14 @@ export interface Vent {
   area_m2(): number | null;
   /** Acoustic length, or null when the length or the area it depends on is unset. */
   effectiveLength_m(): number | null;
+
+  /** The tuning this port ACTUALLY produces in a chamber of `volume_m3` — the port as built,
+   *  rather than the tuning the user asked for. Null when the port's dimensions or the volume
+   *  are not set. */
+  tuningIn_hz(volume_m3: number | null): number | null;
+
+  /** The physical length this port needs to tune a chamber of `volume_m3` to `fb_hz` — the
+   *  inverse of `tuningIn_hz()`. Both directions exist because the user may enter either, and
+   *  the other is then solved. Null on the same terms. */
+  lengthForTuning_m(volume_m3: number | null, fb_hz: number): number | null;
 }

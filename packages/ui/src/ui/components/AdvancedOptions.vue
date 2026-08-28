@@ -12,6 +12,7 @@
 import { computed } from 'vue';
 import { state, simVcInductance } from '../../logic/appState.js';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
+import { fieldHelp } from '../../logic/fields/fieldRegistry.js';
 
 /** The transmission-line port model only means anything for a box that HAS a vent. */
 const hasVent = computed(() => state.box === 'vented' || state.box === 'bandpass4');
@@ -28,23 +29,20 @@ const project = useFocusedProject();
     <label title="Include voice-coil inductance Le in the acoustic circuit, not just the impedance plot. Off matches WinISD's own circuit (Le shapes impedance only, docs/research/WINISD_PARITY.md §9); on is the full gyrator model. WinISD: Advanced → 'Simulate voice coil inductance'.">
       <input type="checkbox" v-model="simVcInductance"> Simulate voice coil inductance
     </label>
-    <label title="Apply the EQ that lifts the whole response to the passband level, and charge its cost to the excursion, port-velocity and max-SPL curves. Boost is capped at 20 dB; a warning names the frequency where the cap binds. WinISD: Advanced → 'Force flat response'.">
+    <label data-field-key="forceFlatResponse" :title="fieldHelp('forceFlatResponse')">
       <input type="checkbox" :checked="project.forceFlatResponse()" @change="e => project.setForceFlatResponse((e.target as HTMLInputElement).checked)"> Force flat response
     </label>
-    <label
-      :class="{ 'na': !hasVent }"
-      :title="hasVent
-        ? 'Model the vent as an acoustic transmission line rather than a lumped air mass, adding the duct\'s own pipe resonances at c/(2·Leff). The box tuning is unchanged. WinISD: Advanced → \'Use &quot;transmission line&quot;-model for port simulation\'.'
-        : 'Only applies to a box with a vent (vented or 4th-order bandpass) — the current box has no port to model.'">
+    <label data-field-key="tlPortModel" :title="fieldHelp('tlPortModel')"
+      :class="{ 'na': !hasVent }">
       <input type="checkbox" :checked="project.tlPortModel()" @change="e => project.setTlPortModel((e.target as HTMLInputElement).checked)" :disabled="!hasVent"> Use "transmission line"-model for port simulation
     </label>
-    <label title="Put the source resistance Rg in series with each driver rather than as a single Rg at the amplifier. Only changes anything with more than one driver: n in parallel see Rg/n at the driver side but a full Rg at the amp side. WinISD: Advanced → 'Rg is at driver side'.">
+    <label data-field-key="rgAtDriverSide" :title="fieldHelp('rgAtDriverSide')">
       <input type="checkbox" :checked="project.rgAtDriverSide()" @change="e => project.setRgAtDriverSide((e.target as HTMLInputElement).checked)"> Rg is at driver side
     </label>
-    <label title="Plot the SPL chart with the drive backed off wherever the cone would exceed Xmax, shading the limited region. Xmax only — the Maximum SPL chart still applies the Pe thermal limit too. WinISD: Advanced → 'SPL graph is Xmax limited'.">
+    <label data-field-key="splXmaxLimited" :title="fieldHelp('splXmaxLimited')">
       <input type="checkbox" :checked="project.splXmaxLimited()" @change="e => project.setSplXmaxLimited((e.target as HTMLInputElement).checked)"> SPL graph is Xmax limited
     </label>
-    <label title="Derive air density and sound velocity from temperature alone, discarding the relative humidity and air pressure you entered. WinISD stores all three in its project file and reads none of them, so tick this to reproduce its numbers exactly. It costs accuracy: SPL differs by about 0.07 dB at 30 °C.">
+    <label data-field-key="ignoreHumidityAndPressure" :title="fieldHelp('ignoreHumidityAndPressure')">
       <input type="checkbox" :checked="project.envIgnoreHumidityAndPressure()" @change="e => project.setEnvIgnoreHumidityAndPressure((e.target as HTMLInputElement).checked)"> Ignore humidity and air pressure (as WinISD does)
     </label>
   </div>

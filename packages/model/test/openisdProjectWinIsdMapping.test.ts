@@ -1,6 +1,6 @@
 /**
  * `OpenISDProject`'s WinISD-facing surface: the box-type code<->kind mapping (PLAN_QO60_
- * LAYERING_REMEDIATION.md objective 2b — the ONE place `[Box].BType` maps to `AlignmentKind`),
+ * LAYERING_REMEDIATION.md objective 2b — the ONE place `[Box].BType` maps to `BoxType`),
  * the live `.driver` accessor, and `fromWinISDProject` — the ONE place a raw `.wpr` parse
  * becomes a real project (objective 2b/3).
  */
@@ -48,9 +48,9 @@ function wprOf(boxLines: string[]) {
 }
 
 describe('OpenISDProject.fromWinISDProject — the one place raw .wpr data becomes a project', () => {
-  it('sets the active alignment from BType and carries the sealed volume across', () => {
+  it('sets the active box type from BType and carries the sealed volume across', () => {
     const project = OpenISDProject.fromWinISDProject(wprOf(['BType=0', 'Vr=0.222222']), OpenISDDriver.empty());
-    assert.equal(project.activeAlignment(), 'sealed');
+    assert.equal(project.activeBoxType(), 'sealed');
     assert.equal(project.volume_m3(), 222222e-6);
   });
   it('throws when BType is absent — never guesses a box type', () => {

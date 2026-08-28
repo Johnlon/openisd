@@ -38,12 +38,15 @@ import {
 } from './sweep.js';
 import type { ConsistencyIssue } from './consistency.js';
 import type { EngineDriver, Result } from './types.js';
-import type { BoxType, DriverError, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
+import { simulatableBoxType as narrowBoxType } from './types.js';
+import type { BoxType, SimulatableBoxType, DriverError, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
 
-/** The driver's entered values, keyed by field name. Declared here rather than imported: the
- *  implementation modules keep this type local, and the class must name it in its signatures. */
-type DriverFields = Record<string, number | undefined>;
+/** A driver's numbers as a loose bag, keyed by WinISD's own field names. The consistency solver
+ *  works on whatever is present, so a bag is the honest input type: a field the driver does not
+ *  state is simply absent. Exported because `solveConsistencyGroup` and `checkConsistency` name
+ *  it in their signatures, and a caller cannot form an argument for a type it cannot see. */
+export type DriverFields = Record<string, number | undefined>;
 
 export class Engine {
   // ── AIR ───────────────────────────────────────────────────────────────────────────────────
@@ -168,6 +171,19 @@ export class Engine {
     return tuningFromLength(Vb, L, Sp, endCorrection);
   }
 
+  /**
+   * A port's ACOUSTIC length — the physical length plus the end correction, which is what the
+   * sweep's port model actually resonates (`SweepParams.Leff`).
+   *
+   * Takes the port's AREA, not its shape, and derives the equivalent diameter from it —
+   * `2·√(Sp/π)`. That is exact for a round port (`2·√(πr²/π) = 2r = d`) and is the standard
+   * equivalent-diameter substitution for a slotted one, so the end correction, which is
+   * inherently a round-port idea, applies to both with no branch and no shape argument.
+   */
+  ventEffectiveLength(length_m: number, Sp: number, endCorrection: number): number {
+    return length_m + endCorrection * 2 * Math.sqrt(Sp / Math.PI);
+  }
+
   /** The chamber volume that reaches a target system Q — the alignment picker's solve. */
   sealedFromQtc(drv: Pick<EngineDriver, 'Qts' | 'Vas'>, Qtc: number): number | null {
     return sealedFromQtc(drv, Qtc);
@@ -185,11 +201,17 @@ export class Engine {
     return prMassForFp(P, fp);
   }
 
-  /** Compliance-equivalent volume, in LITRES. */
+  /** Which of this engine's topologies a box type is, or null when it has no circuit for it —
+   *  the caller's cue to report a design it cannot simulate rather than draw a wrong curve. */
+  simulatableBoxType(box: BoxType): SimulatableBoxType | null {
+    return narrowBoxType(box);
+  }
+
+  /** Compliance-equivalent volume, in cubic metres. */
   prVas(prCms: number, prSd: number): number { return prVas(prCms, prSd); }
 
-  /** Compliance from Vas (litres) and Sd — the inverse of `prVas`. */
-  prCmsFromVas(prVasL: number, prSd: number): number { return prCmsFromVas(prVasL, prSd); }
+  /** Compliance from Vas (cubic metres) and Sd — the inverse of `prVas`. */
+  prCmsFromVas(prVas_m3: number, prSd: number): number { return prCmsFromVas(prVas_m3, prSd); }
 
   /** Free-air resonance loaded with added cone mass. */
   prFsWithMass(prMmd: number, prMadd: number, prCms: number): number {

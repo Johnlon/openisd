@@ -49,8 +49,8 @@ describe('BoxTypeDiagram.vue', () => {
 
   it('renders the PR box: two driver cutaways (main + passive radiator)', () => {
     const tpl = templateSource();
-    const svg = /<svg[^>]*id="og-box-diagram-pr"[^>]*>[\s\S]*?<\/svg>/.exec(tpl)?.[0];
-    assert.ok(svg, 'no svg with id="og-box-diagram-pr" found');
+    const svg = /<svg[^>]*id="og-box-diagram-passive-radiator"[^>]*>[\s\S]*?<\/svg>/.exec(tpl)?.[0];
+    assert.ok(svg, 'no svg with id="og-box-diagram-passive-radiator" found');
     const cutaways = svg!.match(/path d="M160,\d+ L130,\d+ L130,\d+ L160,\d+"/g) ?? [];
     assert.equal(cutaways.length, 2, 'PR box must show two driver-shaped cutaways');
   });
@@ -85,7 +85,7 @@ describe('BoxTypeDiagram.vue', () => {
     for (const [id, type] of [
       ['og-box-diagram-sealed', 'sealed'],
       ['og-box-diagram-vented', 'vented'],
-      ['og-box-diagram-pr', 'pr'],
+      ['og-box-diagram-passive-radiator', 'box-passive-radiator'],
       ['og-box-diagram-bandpass4', 'bandpass4'],
       ['og-box-diagram-bandpass6', 'bandpass6'],
       ['og-box-diagram-abc', 'abc'],

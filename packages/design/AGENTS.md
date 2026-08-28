@@ -26,6 +26,30 @@ doctrine and hides that nobody agreed to it.
 
 ---
 
+## ⛔ STANDING ORDER — DON'T INVENT (John Lonergan, 2026-08-27)
+
+**His words:** *"standing order - dont invent"*, after *"what is stated: ? never discussed
+'stated' - you are going off pise again"*.
+
+**Build what John specified. Nothing adjacent to it.** When a task names a shape — "add `.spec.woofer`
+and `.spec.tweeter`" — that shape is the whole of the work. An extra member, an extra convenience,
+a "while I'm here" nicety is an INVENTION, and it lands in the design as though it had been agreed.
+
+**Inventing includes CHANGING BEHAVIOUR NOT MENTIONED.** Rewriting a method that threw so it now
+succeeds, widening what an input accepts, adding a fallback — all of it, even inside a file the
+agent was told to edit.
+
+**The tell:** the agent cannot quote the sentence of John's that asked for it.
+
+**When the specified shape leaves a genuine gap, say so and stop.** Do not fill it and explain
+afterwards — see the approval rule above, which this serves.
+
+**Precedent (the rule's origin):** told to add `.spec.woofer` and `.spec.tweeter`, the agent also
+added `.spec.stated`, a third member nobody had discussed, and in the same edit silently changed
+spec-field `clear()` from a refusal into a key deletion.
+
+---
+
 ## NO GLOBAL WITHOUT A RECORDED "OK"
 
 No module-scoped state. Not a `let`, not a `var`, not a mutable `const` container (`Map`, `Set`,

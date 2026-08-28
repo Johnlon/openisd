@@ -1,5 +1,5 @@
 prefix: QO
-next: 92
+next: 99
 questions:
 - id: QO1
   title: UI TODO List
@@ -6934,142 +6934,466 @@ questions:
       signal approach: "whats the point of autosave? having any vue dependency at all - why doesnt every
       change in the ecit layer of the managed driver cause a save to occur? the managed driver can send
       its internal state object to a autosave store - how will this be keyed though ... did we add the
-      uuid to the projects - if you recall this allows us to have dupe names and so on and not worry
-      about it - additonally the focused project index can become that uuid instead." VERIFIED AGAINST
-      THE CODE, not assumed: (a) managedProject.ts imports NOTHING from vue (zero matches for a vue
-      import) and already owns a notification channel — `#listeners: Set<ManagedProjectListener>` and
-      `#notify()`, called by every mutating method. The removed autosave went #notify() ->
-      triggerRef(liveRef) -> computed -> Vue watch -> repo: four hops through a reactivity framework to
-      deliver a fact the domain already had, and that detour is precisely what routed persistence
-      through `live` (focused project only) and produced the unfocused-projects-are-silent defect.
-      (b) THERE IS NO UUID. Zero occurrences in managedProject.ts or appState.ts; OpenISDProjectMeta
-      (openisdProject.ts:288) is {name, creator, created, modified, description}. A project''s only
-      identity is its INDEX in the `projects` array, and focusedIndex is an integer into it.
-      Corroborating evidence that this already hurts: @openisd/persistence exports uniqueName/
-      copyOfName, helpers that exist only to keep names distinct — a workaround for absent identity.
-      TARGET SHAPE: uuid generated at ManagedProject construction and carried in the project record so
-      it survives a save; #notify() writes to an autosave store keyed by that uuid, with no Vue and no
-      App.vue hook; focusedIndex becomes focusedUuid so focus survives reordering and the close of
-      another project; each open project is its own writer, so the focused/unfocused distinction
+      uuid to the projects - if you recall this allows us to have dupe names and so on and not worry about
+      it - additonally the focused project index can become that uuid instead." VERIFIED AGAINST THE CODE,
+      not assumed: (a) managedProject.ts imports NOTHING from vue (zero matches for a vue import) and
+      already owns a notification channel — `#listeners: Set<ManagedProjectListener>` and `#notify()`,
+      called by every mutating method. The removed autosave went #notify() -> triggerRef(liveRef) -> computed
+      -> Vue watch -> repo: four hops through a reactivity framework to deliver a fact the domain already
+      had, and that detour is precisely what routed persistence through `live` (focused project only)
+      and produced the unfocused-projects-are-silent defect. (b) THERE IS NO UUID. Zero occurrences in
+      managedProject.ts or appState.ts; OpenISDProjectMeta (openisdProject.ts:288) is {name, creator,
+      created, modified, description}. A project''s only identity is its INDEX in the `projects` array,
+      and focusedIndex is an integer into it. Corroborating evidence that this already hurts: @openisd/persistence
+      exports uniqueName/ copyOfName, helpers that exist only to keep names distinct — a workaround for
+      absent identity. TARGET SHAPE: uuid generated at ManagedProject construction and carried in the
+      project record so it survives a save; #notify() writes to an autosave store keyed by that uuid,
+      with no Vue and no App.vue hook; focusedIndex becomes focusedUuid so focus survives reordering and
+      the close of another project; each open project is its own writer, so the focused/unfocused distinction
       disappears. STILL NEEDS A RULING: which layer is written (John said the edit layer — but an open
-      what-if must never reach storage, and autosaving edit-layer state forces "Revert" to mean
-      revert-to-committed rather than revert-to-stored); and whether the store receives BYTES/a record
-      rather than an OpenISDProject, since handing over the object is the leak just removed.'
+      what-if must never reach storage, and autosaving edit-layer state forces "Revert" to mean revert-to-committed
+      rather than revert-to-stored); and whether the store receives BYTES/a record rather than an OpenISDProject,
+      since handing over the object is the leak just removed.'
   - at: '2026-08-26'
-    text: 'RULING TAKEN: the project uuid is INTERNAL ONLY (John 2026-08-26: "lets make the UUID an
-      internal only feature" / "when loading an owdr we assign a new uuid"). IMPLEMENTED in both models.
-      packages/model: uuid moved OFF OpenISDProjectJson (the wire shape) and onto ProjectLiveState (the
-      in-memory shape); toJsonRecord() destructures it away; fromJsonRecord() mints a fresh one; empty()
-      always mints and takes no id parameter. packages/design: a `#uuid` class field on OpenISDProject,
-      deliberately NOT a member of OpenISDProjectJson — the record is the only thing ever serialised, so
-      an id outside it CANNOT reach a file, making "internal only" structural rather than a rule someone
-      must remember; wrap() mints, copy() carries across, ManagedProject.uuid() delegates to ground
-      ("the managed project is a wrapper id''d by same id"). The design package depends on nothing, so
-      `crypto` is not ambient there; domain/newUuid.ts declares exactly randomUUID rather than adding
-      "DOM" to the package lib, which would put document/window in reach of domain code. Schema stays
-      V2 — an earlier V2→V3 step that persisted the id was written and then REVERTED when the ruling
-      landed. Verified: model/persistence/ui compile clean; openisdProjectIdentity.test.ts 6/6, pinning
-      that a copy keeps the id, that the wire record carries none, that a load mints, and that two loads
-      of one record are two projects.
-      DRIVER PRECEDENT, verified against the code after an incorrect claim by the agent that the driver
-      uuid "serves a different purpose" and should be exempt: drivers ALREADY follow this exact rule,
-      ruled as QO81. driverBrowsingState.ts:425-427 calls res.driver.mintFreshUuid() on EVERY file
-      import — "the file''s own uuid is provenance, never the store key — importing twice yields two
-      entries" — backed by openisdDriver.ts:538. The driver''s single uuid (openisdDriver.ts:90) has four
-      consumers: the My Drivers store key (myDriverRepo.ts:179,195,202-206), the driver-browser list key
-      (driverBrowsingState.ts:181), the editor subject (driverSelection.ts:230,242), and the corpus
-      record identity minted upstream by the winisd_tools pipeline. It IS persisted, because it IS the
-      store key — which is the position a project uuid will occupy once QO92 designs a project store.
-      CONSEQUENCE FOR THE IMPORT QUESTION John raised: the precedent is already set — never prompt to
-      overwrite, always mint, two entries.'
-
+    text: 'RULING TAKEN: the project uuid is INTERNAL ONLY (John 2026-08-26: "lets make the UUID an internal
+      only feature" / "when loading an owdr we assign a new uuid"). IMPLEMENTED in both models. packages/model:
+      uuid moved OFF OpenISDProjectJson (the wire shape) and onto ProjectLiveState (the in-memory shape);
+      toJsonRecord() destructures it away; fromJsonRecord() mints a fresh one; empty() always mints and
+      takes no id parameter. packages/design: a `#uuid` class field on OpenISDProject, deliberately NOT
+      a member of OpenISDProjectJson — the record is the only thing ever serialised, so an id outside
+      it CANNOT reach a file, making "internal only" structural rather than a rule someone must remember;
+      wrap() mints, copy() carries across, ManagedProject.uuid() delegates to ground ("the managed project
+      is a wrapper id''d by same id"). The design package depends on nothing, so `crypto` is not ambient
+      there; domain/newUuid.ts declares exactly randomUUID rather than adding "DOM" to the package lib,
+      which would put document/window in reach of domain code. Schema stays V2 — an earlier V2→V3 step
+      that persisted the id was written and then REVERTED when the ruling landed. Verified: model/persistence/ui
+      compile clean; openisdProjectIdentity.test.ts 6/6, pinning that a copy keeps the id, that the wire
+      record carries none, that a load mints, and that two loads of one record are two projects. DRIVER
+      PRECEDENT, verified against the code after an incorrect claim by the agent that the driver uuid
+      "serves a different purpose" and should be exempt: drivers ALREADY follow this exact rule, ruled
+      as QO81. driverBrowsingState.ts:425-427 calls res.driver.mintFreshUuid() on EVERY file import —
+      "the file''s own uuid is provenance, never the store key — importing twice yields two entries" —
+      backed by openisdDriver.ts:538. The driver''s single uuid (openisdDriver.ts:90) has four consumers:
+      the My Drivers store key (myDriverRepo.ts:179,195,202-206), the driver-browser list key (driverBrowsingState.ts:181),
+      the editor subject (driverSelection.ts:230,242), and the corpus record identity minted upstream
+      by the winisd_tools pipeline. It IS persisted, because it IS the store key — which is the position
+      a project uuid will occupy once QO92 designs a project store. CONSEQUENCE FOR THE IMPORT QUESTION
+      John raised: the precedent is already set — never prompt to overwrite, always mint, two entries.'
   - at: '2026-08-26'
     text: 'OPEN SERVICE-DESIGN ITEMS, listed after John asked "what still open? file access? storage?
       - the ui is the client of course but we are current designing the services". Each verified against
       the code now, not recalled. (A) THE DOMAIN HAS NO PERSISTENCE BOUNDARY. packages/design contains
-      zero serialisation — no toJson/fromJson on OpenISDProject, nothing producing bytes.
-      ManagedProject.load() (project.ts:1244) takes an OpenISDProject, which a consumer deliberately
-      cannot obtain, and save() (:1307) is layer-only (committed->ground), unrelated to storage.
-      domain/index.ts:86 already records the gap. FIRST DECISION, blocking everything else: what crosses
-      the boundary each way — a record the persistence layer owns, or opaque text? (B) STORAGE BACKEND.
-      Today localStorage holds My Drivers and view state. Two forces push off it: localStorage is
-      strings only so it CANNOT hold FileSystemFileHandles, and its ~5MB ceiling is small for a
-      multi-project store carrying full driver records. IndexedDB solves both. Open: does the project
-      store go to IndexedDB, and do the existing buckets move or stay? (C) FILE ACCESS. fileStorage.ts:56
-      already retains a real FileSystemFileHandle, commented "session-only, lost on reload". A handle is
-      structured-cloneable, so persisting it in IndexedDB (never localStorage) is what turns this into a
-      working Open Recent with genuinely re-openable locations; re-opening needs a permission re-prompt,
-      which the user''s click on the recent entry supplies. Chromium only — Firefox/Safari lack the
-      pickers, so there a recent list can hold names but nothing re-openable. Also open: whether to use
-      showDirectoryPicker() so the user nominates a projects folder once, the closest analogue to
-      WinISD''s folder memory. (D) IDENTITY AND LIFECYCLE WIRING, none done: focusedIndex is still an
-      integer index (appState.ts:78) and should become focusedUuid so focus survives reordering and the
-      close of another project; #notify() should write to the store directly per John''s ruling (no Vue,
-      each project its own writer); and CLOSE/RELOAD SEMANTICS ARE UNRULED — closing drops the project
+      zero serialisation — no toJson/fromJson on OpenISDProject, nothing producing bytes. ManagedProject.load()
+      (project.ts:1244) takes an OpenISDProject, which a consumer deliberately cannot obtain, and save()
+      (:1307) is layer-only (committed->ground), unrelated to storage. domain/index.ts:86 already records
+      the gap. FIRST DECISION, blocking everything else: what crosses the boundary each way — a record
+      the persistence layer owns, or opaque text? (B) STORAGE BACKEND. Today localStorage holds My Drivers
+      and view state. Two forces push off it: localStorage is strings only so it CANNOT hold FileSystemFileHandles,
+      and its ~5MB ceiling is small for a multi-project store carrying full driver records. IndexedDB
+      solves both. Open: does the project store go to IndexedDB, and do the existing buckets move or stay?
+      (C) FILE ACCESS. fileStorage.ts:56 already retains a real FileSystemFileHandle, commented "session-only,
+      lost on reload". A handle is structured-cloneable, so persisting it in IndexedDB (never localStorage)
+      is what turns this into a working Open Recent with genuinely re-openable locations; re-opening needs
+      a permission re-prompt, which the user''s click on the recent entry supplies. Chromium only — Firefox/Safari
+      lack the pickers, so there a recent list can hold names but nothing re-openable. Also open: whether
+      to use showDirectoryPicker() so the user nominates a projects folder once, the closest analogue
+      to WinISD''s folder memory. (D) IDENTITY AND LIFECYCLE WIRING, none done: focusedIndex is still
+      an integer index (appState.ts:78) and should become focusedUuid so focus survives reordering and
+      the close of another project; #notify() should write to the store directly per John''s ruling (no
+      Vue, each project its own writer); and CLOSE/RELOAD SEMANTICS ARE UNRULED — closing drops the project
       from memory entirely (projects array is the only holder; removeProject splices it), so does closing
-      also delete its store entry or leave a recoverable copy, and on reload does the app reopen
-      everything that was open, or start empty? STILL AWAITING A RULING from earlier: which layer is
-      autosaved (John said the edit layer, but an open what-if must never reach storage and autosaving
-      edit state changes what Revert means); and whether a My Drivers entry needs a second, in-app-only
-      id alongside its persisted corpus one.'
+      also delete its store entry or leave a recoverable copy, and on reload does the app reopen everything
+      that was open, or start empty? STILL AWAITING A RULING from earlier: which layer is autosaved (John
+      said the edit layer, but an open what-if must never reach storage and autosaving edit state changes
+      what Revert means); and whether a My Drivers entry needs a second, in-app-only id alongside its
+      persisted corpus one.'
   - at: '2026-08-27'
-    text: 'DESIGN CONCLUSIONS from the 2026-08-27 session on packages/design. Every item below is a
-      ruling John gave, not an agent proposal.
-      (1) LAYERS COLLAPSED FROM FOUR TO TWO. `#ground`/`#committed`/`#edit`/`#whatif` are gone.
-      `OpenISDProject` now holds `#saved` (the project as of the last save) and `#edited` (every change
-      since, null until the first write). Reads take `#edited ?? #saved`; the first write copies `#saved`
-      into `#edited` via `#ensureEditing()`, which IS the copy — no `copy()` call, the spread a write
-      performs anyway. `isModified()` is `#edited !== null`, not a record comparison and not a dirty flag.
-      (2) NO SEPARATE WHAT-IF. John: "I''m struggling to see the difference between whatif and an unsaved
-      edit - other than intention". A what-if is now: edit, look at the curves, press Cancel. `commit()`,
-      `beginEdit()`, `beginWhatif()`, `cancelTransient()`, `revertToSaved()`, `isWhatif()`, `isEditing()`
-      all deleted.
-      (3) TWO CANCELS, DIFFERENT SCOPES. Editor Cancel dismisses the modal and drops the detached copy
-      (the project is untouched). App-bar Cancel deletes `#edited` and warns first. The warning is a
-      PER-CALL parameter — `cancel(confirm: DiscardChallenge)` — because the Cancel button already owns
-      the dialog and holds the answer; threading a callback through every construction path would deliver
-      a value the one caller already has.
-      (4) MODAL EDITORS DETACH. Driver and PR editors both work on a detached copy: OK writes it back
-      (creating `#edited`), Cancel drops it. Non-modal surfaces (Tune, the tabs) write straight into
-      `#edited`. Both editors have OK/Cancel; only the bar''s Save reaches the store.
-      (5) ManagedProject DELETED, renamed into `OpenISDProject`, which now wraps `OpenISDProjectJson`
-      directly. The old plain `OpenISDProject` is gone. `ProjectFields` deleted with it — its only purpose
-      was proving two classes carried the same shape, and only one class remains.
+    text: 'DESIGN CONCLUSIONS from the 2026-08-27 session on packages/design. Every item below is a ruling
+      John gave, not an agent proposal. (1) LAYERS COLLAPSED FROM FOUR TO TWO. `#ground`/`#committed`/`#edit`/`#whatif`
+      are gone. `OpenISDProject` now holds `#saved` (the project as of the last save) and `#edited` (every
+      change since, null until the first write). Reads take `#edited ?? #saved`; the first write copies
+      `#saved` into `#edited` via `#ensureEditing()`, which IS the copy — no `copy()` call, the spread
+      a write performs anyway. `isModified()` is `#edited !== null`, not a record comparison and not a
+      dirty flag. (2) NO SEPARATE WHAT-IF. John: "I''m struggling to see the difference between whatif
+      and an unsaved edit - other than intention". A what-if is now: edit, look at the curves, press Cancel.
+      `commit()`, `beginEdit()`, `beginWhatif()`, `cancelTransient()`, `revertToSaved()`, `isWhatif()`,
+      `isEditing()` all deleted. (3) TWO CANCELS, DIFFERENT SCOPES. Editor Cancel dismisses the modal
+      and drops the detached copy (the project is untouched). App-bar Cancel deletes `#edited` and warns
+      first. The warning is a PER-CALL parameter — `cancel(confirm: DiscardChallenge)` — because the Cancel
+      button already owns the dialog and holds the answer; threading a callback through every construction
+      path would deliver a value the one caller already has. (4) MODAL EDITORS DETACH. Driver and PR editors
+      both work on a detached copy: OK writes it back (creating `#edited`), Cancel drops it. Non-modal
+      surfaces (Tune, the tabs) write straight into `#edited`. Both editors have OK/Cancel; only the bar''s
+      Save reaches the store. (5) ManagedProject DELETED, renamed into `OpenISDProject`, which now wraps
+      `OpenISDProjectJson` directly. The old plain `OpenISDProject` is gone. `ProjectFields` deleted with
+      it — its only purpose was proving two classes carried the same shape, and only one class remains.
       (6) ALL FOUR MODULE-SCOPED WeakMaps DELETED — `jsonReaders`, `projectListeners`, `projectRecords`,
       `owningManaged`, plus `registerJsonReader`, `readWrappedJson`, `subscribeToProject`, `notifyProject`,
       `projectRecord`, `writeProjectRecord`, `projectSlot`, `editLayerFor`, `persistableLayerOf`. John:
-      "GLOBAL VARIABLES ARE FORBIDDEN AND A HIGH CRIME AGAINST SOFTWARE", then "we are going to attempt to
-      build this entire app without a single global var". Rule recorded in packages/design/AGENTS.md;
+      "GLOBAL VARIABLES ARE FORBIDDEN AND A HIGH CRIME AGAINST SOFTWARE", then "we are going to attempt
+      to build this entire app without a single global var". Rule recorded in packages/design/AGENTS.md;
       enforced by an AST gate (test/architecture-no-globals.test.ts, ts-morph) that flags any module-scoped
-      `let`/`var` or mutable `const` container. The three approved globals are NO_LOSSES, NO_VENT,
-      NO_CHAMBER — spread at every use, so no project record holds the shared object.
-      (7) HOW CROSS-CLASS RECORD ACCESS WORKS NOW, replacing the WeakMaps: same-class private access.
-      `OpenISDDriver.update(source)` reads `source.record` because `record` is protected and `update` is
-      in the class that declares it. The two PR classes gained a shared base `OpenISDPassiveRadiator`
-      holding a protected `slot`, with `update` protected on the base and republished public on Embedded
-      — John: "you can use protected to keep update private but expose from Embedded".
-      (8) GEOMETRY IN, ACOUSTICS ABSOLUTELY OUT. `#sealedResonance` and its frozen RHO_REF/C_REF deleted;
-      `area_m2()` (pi r squared) stays because no two implementers can disagree about it. The environment
-      defaults 293.15/30/101325 and `power_W: 1` were also deleted — byte-identical duplicates of the
-      engine''s T_REF_K/RH_REF_PCT/P_REF_PA. Those fields are now `number | null`.
-      (9) A NEW `Engine` CLASS. `packages/engine/src` was COPIED (not moved) to `packages/design/engine`;
-      `packages/engine` is untouched. `Engine.ts` is one instantiable class whose public surface is the 21
-      behaviours the app actually imports, measured from every `import ... from ''@openisd/engine''` in the
-      tree (39 symbols: 12 types, 3 constants, 24 functions). The old `engine.ts` barrel was deleted — 21
-      lines of `export *`, banned by QO86.
-      (10) AIR IS A PARAMETER, AS THE ENVIRONMENT, NOT AS rho/c. `sealedResonance_hz`, `referenceEfficiency`
-      and `splFromEfficiency` take an `AirEnvironment` and derive rho/c internally via `airFor()`. John:
-      rho and c are never user-entered, so a signature carrying them lets a caller pair density from one
-      environment with sound speed from another. `airFor({})` returns reference air because every field is
-      optional, so `referenceAir()` was deleted as redundant. Memoisation, if needed, goes on the Engine
-      instance — per-instance, not module-scoped.
-      (11) THE ENGINE IS INJECTED into the project, like the store. NOT YET WRITTEN.
-      (12) AUTOSAVE, AS NOW DESIGNED BUT NOT YET WRITTEN: every project holds `ProjectStores { saved,
-      edited }` and writes ITSELF — no Workspace subscription, no repo.save(project), no recordToPersist().
-      Two stores, write on every keystroke, store interface becomes async (Promise-returning) while field
-      setters stay synchronous by not awaiting. John rejected a message bus and rejected `#notify(record)`
-      (which would hand the private record to every listener — the committedSnapshot leak again).
-      STILL OPEN: out-of-order writes, silent write failures, and load-with-both-records-present.
-      STATE AT THE END OF THE SESSION: packages/design has 2 compile errors, both `readWrappedJson` call
-      sites in ProjectBuilder, awaiting the decision on how the builder gets a driver''s record without a
-      free-function accessor. Tests not yet updated for the two-layer collapse.'
+      `let`/`var` or mutable `const` container. The three approved globals are NO_LOSSES, NO_VENT, NO_CHAMBER
+      — spread at every use, so no project record holds the shared object. (7) HOW CROSS-CLASS RECORD
+      ACCESS WORKS NOW, replacing the WeakMaps: same-class private access. `OpenISDDriver.update(source)`
+      reads `source.record` because `record` is protected and `update` is in the class that declares it.
+      The two PR classes gained a shared base `OpenISDPassiveRadiator` holding a protected `slot`, with
+      `update` protected on the base and republished public on Embedded — John: "you can use protected
+      to keep update private but expose from Embedded". (8) GEOMETRY IN, ACOUSTICS ABSOLUTELY OUT. `#sealedResonance`
+      and its frozen RHO_REF/C_REF deleted; `area_m2()` (pi r squared) stays because no two implementers
+      can disagree about it. The environment defaults 293.15/30/101325 and `power_W: 1` were also deleted
+      — byte-identical duplicates of the engine''s T_REF_K/RH_REF_PCT/P_REF_PA. Those fields are now `number
+      | null`. (9) A NEW `Engine` CLASS. `packages/engine/src` was COPIED (not moved) to `packages/design/engine`;
+      `packages/engine` is untouched. `Engine.ts` is one instantiable class whose public surface is the
+      21 behaviours the app actually imports, measured from every `import ... from ''@openisd/engine''`
+      in the tree (39 symbols: 12 types, 3 constants, 24 functions). The old `engine.ts` barrel was deleted
+      — 21 lines of `export *`, banned by QO86. (10) AIR IS A PARAMETER, AS THE ENVIRONMENT, NOT AS rho/c.
+      `sealedResonance_hz`, `referenceEfficiency` and `splFromEfficiency` take an `AirEnvironment` and
+      derive rho/c internally via `airFor()`. John: rho and c are never user-entered, so a signature carrying
+      them lets a caller pair density from one environment with sound speed from another. `airFor({})`
+      returns reference air because every field is optional, so `referenceAir()` was deleted as redundant.
+      Memoisation, if needed, goes on the Engine instance — per-instance, not module-scoped. (11) THE
+      ENGINE IS INJECTED into the project, like the store. NOT YET WRITTEN. (12) AUTOSAVE, AS NOW DESIGNED
+      BUT NOT YET WRITTEN: every project holds `ProjectStores { saved, edited }` and writes ITSELF — no
+      Workspace subscription, no repo.save(project), no recordToPersist(). Two stores, write on every
+      keystroke, store interface becomes async (Promise-returning) while field setters stay synchronous
+      by not awaiting. John rejected a message bus and rejected `#notify(record)` (which would hand the
+      private record to every listener — the committedSnapshot leak again). STILL OPEN: out-of-order writes,
+      silent write failures, and load-with-both-records-present. STATE AT THE END OF THE SESSION: packages/design
+      has 2 compile errors, both `readWrappedJson` call sites in ProjectBuilder, awaiting the decision
+      on how the builder gets a driver''s record without a free-function accessor. Tests not yet updated
+      for the two-layer collapse.'
+- id: QO93
+  title: Settle c/roo provenance by controlled probe + debug, not by reading found files
+  status: decided
+  raised: '2026-08-27'
+  body: ''
+  notes:
+  - at: '2026-08-27'
+    text: |-
+      John's ruling on METHOD (2026-08-27): "you cannot look at existing wdr files and compare to the
+      running binary unless those files were created by the process you are debugging or probing - you
+      cannot know the provenance of the file value unless you have controlled the app."
+
+      This invalidates one of the three "independent confirmations" in WINISD_MODEL.md section 8: a
+      found .wdr carries whatever Options the writing machine had, on whatever build. It confirms
+      nothing about the binary under test.
+
+      John defined the two experiments to replace it. Both require CONTROLLED, HIGH-PRECISION inputs:
+
+      1) PROBING. Given a set of high-precision inputs (T, RH, AP), what c/roo get SAVED into the
+         .wpr and .wdr files? Do the two files agree with each other, and do they match the expected
+         result for those controlled inputs?
+
+      2) DEBUGGING. Given the same high-precision inputs -- taken from the application config file
+         (settings.ini) where the UI cannot express the precision -- what is the IN-MEMORY value, does
+         it differ from expected, and when saved does the WRITTEN value match expected?
+
+      Harness support already exists: WineWinISD.write_environment_settings(T, RH, AP) writes
+      settings.ini at full float repr precision (read at process start; no live reload), and
+      set_options_via_ui(T, RH, AP) drives the dialog and reads WinISD's OWN live c label.
+
+      TRAP, found while reading the harness: wine_control.py sets
+      `self.live_options_c = _anchored_sound_velocity(*used)` -- openisd's own anchored-ratio model.
+      Any probe comparing WinISD against that field compares the model to itself. The experiments must
+      read WinISD's value (UI label / memory / saved file), never live_options_c.
+
+      What hangs on the outcome: QO91, and whether WINISD_MEASURED_C_REF/WINISD_MEASURED_RHO_REF plus
+      winisdAir()'s ratio-scaling survive at all. Today the correction factor is justified by a match
+      at ONE settings point; nothing has tested it away from the factory defaults.
+  - at: '2026-08-27'
+    text: |-
+      ANSWERED BY EXPERIMENT, 2026-08-27. Full write-up: winisd_research/PROBE_FINDINGS.md FINDING-008.
+      Data: runs/qo93_air_output/results.jsonl. Six controlled environments, inputs written to
+      settings.ini before launch, outputs read from the .wpr at 15 significant digits.
+
+      1. roo is NOT computed from an air model. roo = 1.4*AP/c^2, holding to 1.3e-15..2.6e-15 across
+         all six -- double precision equality. Five density models were previously checked and all
+         missed by >=8ppm because they were modelling a quantity WinISD never computes.
+
+      2. c IS ideal-gas moist mixing:
+             xv = (RH/100)*psv(T)/P ; M = Md + xv*(Mw-Md) ; c = sqrt(1.4*8.314472*T/M)
+         with Md=0.028964867621, Mw=0.018021599885 fitted at 293.15 K only. Cross-validated at the
+         two temperatures NOT in the fit: 1.3e-7 (313.15 K) and 2.0e-8 (273.15 K). CIPM-2007's own
+         velocity model misses by 4e-6..1.2e-5 -- two orders of magnitude worse.
+
+      3. The fixed multiplier in engine/air.ts is REFUTED. Its ratio (1.0000041402, fitted at the
+         factory point) is not constant and changes sign: 1.0000041 / 0.9999880 / 1.0000087 / 1.0000102
+         across the cases. Applying it away from the factory point is worse than not applying it.
+
+      REMEDY: implement (1) and (2); delete WINISD_MEASURED_C_REF, WINISD_MEASURED_RHO_REF and
+      winisdAir()'s ratio-scaling. That also makes QO91 moot -- with one correct model there is no
+      second thing for the two readouts to disagree with.
+
+      Still open for John: whether to make that change now, and what to do with parity tests that
+      assert the old constants to 15 digits.
+  answer:
+    at: '2026-08-27'
+    text: |-
+      John, 2026-08-27: "fix it now - make sure the docs are up to date ."
+
+      IMPLEMENTED. engine/air.ts winisdAir() now implements WinISD's actual model -- Hyland-Wexler
+      vapour pressure, no enhancement factor, molar-mass mixing, rho = gamma*p/c^2.
+      WINISD_MEASURED_C_REF and WINISD_MEASURED_RHO_REF are DELETED along with the ratio-scaling.
+
+      Guarded by air.test.ts, which now asserts against all SIX measured environments at 50 ppb
+      (twice the worst observed residual), plus the gamma*p/c^2 identity, plus a non-vacuity check
+      that the physical and parity branches have not been quietly merged. 14 tests pass.
+
+      Docs updated: PROBE_FINDINGS.md FINDING-008 (model, worked example, Hyland-Wexler vs CIPM-2007,
+      every reference), PROBE_METHOD.md "PROVENANCE" (the rule and the two experiments),
+      WINISD_MODEL.md section 8 (was "untested away from the factory point", now the resolved model),
+      engine/air.ts module docstring, and the three fieldRegistry.ts descriptions that named the
+      deleted constants.
+
+      CIPM-2007 is untouched and remains the DEFAULT (QO7). The two are a physics/parity pair.
+- id: QO94
+  title: 'Field help: a [?] popover, or keep native title tooltips?'
+  status: open
+  raised: '2026-08-27'
+  body: ''
+  notes:
+  - at: '2026-08-27'
+    text: |-
+      Raised by John, 2026-08-27: "The checkbox needs a detailed help text hover or a [?] popup".
+
+      CURRENT STATE, verified: a native `title` hover already exists on that checkbox and on 192 other
+      places in packages/ui. It was also factually WRONG until today -- it claimed the flag discards
+      humidity and pressure, which it does not (BUG_20260827_ignore_humidity_checkbox_tooltip...,
+      RESOLVED). It is now correct and detailed, using &#10; for line breaks.
+
+      THE DECISION. A native `title` cannot be styled, cannot be kept open, delays ~1s before showing,
+      is invisible on touch, and truncates awkwardly on long text. The new text is at the limit of what
+      it can carry.
+
+      Also relevant: `logic/fields/fieldRegistry.ts` already carries a `description` for EVERY field --
+      substantial, accurate prose -- and it is rendered NOWHERE. Only `min`/`max` are consumed
+      (NumInput.vue:107). So there is an existing, maintained body of help text with no way for a user
+      to see it.
+
+      OPTIONS:
+       (a) Keep native `title`. Zero new code. Accepts the limitations above, and leaves every
+           fieldRegistry `description` unreachable.
+       (b) A [?] affordance next to a field that opens a small panel, sourced from the registry's
+           `description`. One new component, used everywhere, and it makes the existing descriptions
+           visible for the first time. Bigger change: needs a decision on placement, dismissal, and
+           whether it replaces the 193 existing `title` attributes or coexists with them.
+
+      John decides. Nothing built beyond fixing the wrong text.
+- id: QO95
+  title: WinISD air model is now the DEFAULT — QO7 reversed
+  status: open
+  raised: '2026-08-28'
+  body: ''
+  notes:
+  - at: '2026-08-28'
+    text: |-
+      DECIDED by John, 2026-08-28: "id have it do winisd by default and have the cb to go for cipm but
+      yeah say it makes no different and is included only for completeness accuracy and interest",
+      refined to "no measurable difference -> no AUDIBLE difference".
+
+      REVERSES QO7, which ruled that OpenISD does the full physics by DEFAULT and offers WinISD's
+      behaviour as an opt-in. New projects now default ignoreHumidityAndPressure = TRUE.
+
+      BASIS -- measured, not assumed (winisd_research FINDING-008 plus a sweep comparison):
+        air model difference over 0-40 C, 0-100 % RH, 95-105 kPa: 68 ppm in c, 135 ppm in rho
+        propagated through 20 L sealed and vented boxes, Ql=7:
+            worst case  0.0031 dB of SPL, F3 identical to 14 digits
+            typical     0.0000028 dB
+      0.003 dB is roughly a thousandth of the smallest level change a person can detect. It IS
+      measurable with instruments -- the claim in the docs is "no AUDIBLE difference", never "no
+      measurable difference".
+
+      RATIONALE: since accuracy cannot break the tie, the tie is broken by what a user can verify. A
+      project that agrees with WinISD digit-for-digit can be cross-checked against the tool most people
+      already have. CIPM-2007 remains available and is strictly the better physics.
+
+      IMPLEMENTED: default flipped at packages/model/src/openisdProject.ts:535 with the measurement in
+      the comment. Help text rewritten in AdvancedOptions.vue and fieldRegistry.ts to say plainly that
+      it makes no audible difference and exists for completeness and interest, and that NEITHER setting
+      discards an input. 2119 tests pass.
+- id: QO96
+  title: 'Dual voice coil: implement WinISD''s Re/BL conversion, without its silent provenance lie'
+  status: open
+  raised: '2026-08-28'
+  body: ''
+  notes:
+  - at: '2026-08-28'
+    text: |-
+      MECHANISM SETTLED (decompiled, winisd_research/GHIDRA_FINDINGS.md; full write-up in
+      bugs/BUG_20260828_dual_voice_coil_fields_are_carried_but_never_simulated.md):
+
+          parallel -> series :  BL *= numVC     Re *= numVC^2
+          series -> parallel :  BL /= numVC     Re /= numVC^2
+
+      It is NOT a simulation input. WinISD rewrites the driver's stored Re and BL once, on the combo's
+      change event, and nothing reads VCCon during a sweep. OpenISD's engine needs no coil handling; the
+      gap is an EDITOR ACTION.
+
+      JOHN'S RULING 2026-08-28 on WinISD leaving the rewritten value marked Entered: "evil". OpenISD
+      does not copy that.
+
+      DESIGN CONSTRAINT: the clean-looking fix (leave Re alone, apply wiring at sweep time) BREAKS .wdr
+      interop -- WinISD's file stores the EFFECTIVE Re, so an unscaled Re plus a VCCon would be read by
+      WinISD as a driver with a quarter the resistance. Compatibility requires storing the effective
+      value. Therefore: store effective Re/BL as WinISD does, but mark them CALCULATED rather than
+      leaving a typed value falsely marked Entered.
+
+      ALSO: WINISD_PARITY.md section 12 records that WinISD's dropdown always writes VCCon=1 whatever is
+      selected. With the rewrite above that is a real corruption path -- set series (Re x4, file says
+      parallel), reload, set series again (Re x16). OpenISD must not reproduce the save bug.
+
+      UNVERIFIED, needs its own probe: this session observed a hand-edited VCCon=2 DISPLAYING as
+      Parallel, which contradicts section 12's claim that reads are correct. Not treated as a finding --
+      the harness was wrong six times in the same session.
+
+      Open for John: build it now, or backlog it.
+  - at: '2026-08-28'
+    text: |-
+      JOHN'S DESIGN RULING 2026-08-28: "you can do a conversion during wdr/wpr write. dont polute the ui
+      or engine with bugger code."
+
+      SUPERSEDES the previous note's "store the effective Re/BL and mark them Calculated". The
+      conversion is a FILE-FORMAT concern, so it lives at the .wdr/.wpr boundary and nowhere else:
+
+        DOMAIN      holds the honest per-coil Re and BL, plus numVC and the chosen wiring. Nothing is
+                    ever silently multiplied, and no provenance mark is falsified.
+        ENGINE      unchanged. It is handed the effective Re/BL like any other driver and needs no
+                    knowledge of coils.
+        WDR/WPR OUT applies WinISD's scaling on write -- BL *= numVC, Re *= numVC^2 for series -- so the
+                    file is byte-compatible with what WinISD would have written.
+        WDR/WPR IN  inverts it on read, using the file's own numVC/VCCon, to recover per-coil values.
+
+      That keeps WinISD's quirk quarantined in the one place it belongs -- the adapter to WinISD's
+      format -- instead of spreading a destructive rewrite through the editor and the record.
+
+      RISK TO HANDLE IN THE READER, not to be discovered later: WINISD_PARITY.md section 12 records
+      that WinISD's own dropdown always writes VCCon=1 whatever is selected. So a file written by
+      WinISD for a SERIES driver can carry an already-scaled Re alongside VCCon=1, and inverting by the
+      file's stated VCCon would then be a no-op and leave the value scaled. The reader cannot trust the
+      file's VCCon; what it can trust is that the file's Re is the EFFECTIVE value. Decide explicitly
+      what the reader does with that -- it is the only genuinely hard part of this change.
+
+      Still open: build it now, or backlog it.
+  - at: '2026-08-28'
+    text: |-
+      JOHN'S RULING 2026-08-28: "make it two" -- TWO SEPARATE FIELDS, and the docs must explain the
+      deviation from WinISD and why.
+
+      THE SHAPE:
+        Re_per_coil   what the datasheet prints and the user types. ENTERED. Never rewritten, ever.
+        Re_terminal   derived from Re_per_coil, numVC and the wiring. CALCULATED. What the engine
+                      simulates and what the .wdr/.wpr carries.
+        Same split for BL.
+
+        parallel: Re_terminal = Re_per_coil / numVC        BL_terminal = BL_per_coil
+        series  : Re_terminal = Re_per_coil * numVC        BL_terminal = BL_per_coil * numVC
+
+        (WinISD's own factors -- x numVC^2 on Re, x numVC on BL -- are the PARALLEL->SERIES ratio
+        between those two states, which is why they look like squares.)
+
+      WHY THIS DEVIATES FROM WINISD, and it is deliberate:
+        * WinISD has ONE Re, whose meaning silently changes with the wiring, and it rewrites that value
+          in place while leaving the provenance mark at E. The file then claims the user typed a number
+          the app computed. John: "evil".
+        * With two fields nothing is ever destroyed, the typed value survives every wiring change, and
+          the E/C/N marks stay true -- which matters here because OpenISD round-trips and TESTS them.
+        * The conversion lives ONLY in the .wdr/.wpr adapter (John's earlier ruling: "dont polute the ui
+          or engine with bugger code"). The engine still receives one effective Re/BL and knows nothing
+          about coils.
+
+      THE HARD PART, unchanged by this ruling: a .wdr has ONE Re, so the READER must decide what the
+      file's value means. WinISD's dropdown always writes VCCon=1 whatever is selected
+      (WINISD_PARITY.md section 12), so the file's own wiring flag cannot be trusted to tell the reader
+      whether the stored Re is a parallel or series figure. Needs an explicit, documented decision.
+
+      TODO on approval to build:
+        - two fields in the design record + registry, with help text explaining the split
+        - conversion in the .wdr/.wpr reader/writer only
+        - docs: ARCHITECTURE/parity note stating this deviation and its reason
+        - winisd_research: WinISD's own defects recorded (silent unmarked rewrite; VCCon save bug; the
+          compound corruption path they create together)
+  - at: '2026-08-28'
+    text: |-
+      LAYOUT DECIDED, John 2026-08-28: "leave the editor alone and add a readonly to the driver screen".
+
+      DRIVER EDITOR — UNCHANGED. Same grid, same width, same fields as WinISD. It holds Re and BL as
+      the datasheet prints them: PER COIL, entered, never rewritten. The WinISD layout match is
+      preserved, which was the reason for not widening it.
+
+      MAIN WINDOW, Placement panel — two new READ-ONLY readouts under the wiring combo:
+
+          Placement
+            Num. of drivers        [1 v]
+            ( ) Standard  ( ) Iso-Barik
+            Voice coil connection  [Parallel v]
+            As wired:  Re 1.60 ohm   BL 8.0 T.m        <- greyed, read-only, derived
+
+      WHY THERE: the wiring combo already lives on that panel, so cause and effect sit together; and a
+      greyed read-only pair makes the entered-vs-calculated split visible without needing explanation.
+      A fifth column in the editor was rejected -- Re is in column 4 and BL in column 1, so they are not
+      adjacent, and a 5th column would carry two values and seven empty cells.
+
+      KNOWN WART, WinISD's own and deliberately kept: numVC is in the EDITOR while the wiring combo is
+      on the MAIN WINDOW, so the two inputs to one conversion are on different screens. Keeping WinISD's
+      split rather than inventing a third arrangement. Consequence: changing numVC in the editor does
+      not update the readouts until the editor closes. Worth a line in the editor's Re help text, which
+      now comes from the field registry.
+- id: QO97
+  title: 'wdr reader rule for dual-coil Re: trust the file''s VCCon, because simulation is unaffected
+    either way'
+  status: open
+  raised: '2026-08-28'
+  body: ''
+  notes:
+  - at: '2026-08-28'
+    text: |-
+      DECIDED, not blocked. John 2026-08-28: "winisd is broken too so dont block on this - do something
+      sensible and record it as a QOxx."
+
+      THE PROBLEM. A .wdr/.wpr carries ONE Re, which is always the TERMINAL value (what the amplifier
+      sees). OpenISD stores Re PER COIL and derives the terminal value (QO96). To import, the reader
+      must divide by the wiring factor -- and the file's VCCon cannot be trusted, because WinISD's own
+      dropdown always writes VCCon=1 whatever is selected (WINISD_PARITY.md section 12).
+
+      THE RULE: TRUST THE FILE'S STATED VCCon.
+
+          import:    Re_per_coil = Re_file / factor(VCCon_file, numVC_file)
+          simulate:  Re_terminal = Re_per_coil * factor(VCCon, numVC)   ==  Re_file
+          export:    Re_file'    = Re_per_coil * factor(VCCon, numVC)   ==  Re_file
+
+          factor(parallel, N) = 1/N      factor(series, N) = N      factor(anything, 1) = 1
+
+      WHY THIS IS SAFE EVEN WHEN VCCon IS A LIE. The SAME factor is applied on the way in and on the way
+      back out, so it cancels:
+
+        * every SIMULATED number is exact regardless -- the terminal Re reaching the engine is the
+          file's own Re, byte for byte, whatever VCCon claims;
+        * the .wdr round-trip is exact -- a file read and rewritten is unchanged;
+        * the ONLY thing a mis-saved VCCon corrupts is the DISPLAYED per-coil figure, and only for a
+          multi-coil driver. Wrong label on a number nobody simulates from.
+
+      And for numVC = 1 -- which is every driver in the bundled corpus -- the factor is 1 and there is
+      no ambiguity to have.
+
+      WHY NOT THE ALTERNATIVES:
+        - "Assume parallel when numVC > 1": invents information the file does not carry, and breaks the
+          round-trip for a correctly-saved series file, which is worse than the case it fixes.
+        - "Refuse to import multi-coil drivers": punishes the user for WinISD's bug.
+        - "Store terminal, not per-coil": that is WinISD's design and QO96 rejected it -- it is what
+          makes the value get silently rewritten.
+
+      CONSEQUENCE TO SURFACE IN THE UI, not to hide: when numVC > 1 the per-coil figure is only as good
+      as the file's VCCon. Worth a note in the field help, since the user may know the truth when the
+      file does not.
+
+      IMPLEMENTATION NOTE / ownership: the adapter lives in packages/winisd + packages/model, which the
+      coordination split with agent loose-end assigns to it, while ".wdr/.wpr adapter" was assigned to
+      me. That overlap needs settling before either of us edits there -- flagged, not resolved tonight,
+      and NOT a reason to delay the rule above.
+- id: QO98
+  title: 'Coverage include is stale: measures deleted packages/engine, ignores packages/design and packages/persistence
+    — re-setting thresholds is a build-gate decision'
+  status: open
+  raised: '2026-08-28'
+  body: ''

@@ -17,7 +17,7 @@ import { reactive, computed, ref, shallowRef, triggerRef, watch, type ComputedRe
 import { Engine } from '@openisd/design/engine';
 import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
 import type { SpecField, OpenISDProject, OpenISDProjectMeta, Cell } from '@openisd/model';
-import { ManagedProject, toAlignmentKind, fromAlignmentKind } from './managedProject.js';
+import { ManagedProject } from './managedProject.js';
 import type { AppState, SyncedParams } from '../types.js';
 import type { UiParams } from '@openisd/model';
 import { copyOfName, uniqueName, type ViewSnapshot } from '@openisd/persistence';
@@ -254,7 +254,7 @@ function buildState(): AppState {
   });
   // `box` is an accessor property over the FOCUSED project's own `OpenISDBox.active` — not an
   // independent copy — because every `boxVolume_m3()`/`.ventDiameter_m()`/`.boxTuning_Fb_hz()`/
-  // `.prSd_m2()`-family accessor (ledger QO54) picks its storage BY active alignment, so
+  // `.prSd_m2()`-family accessor (ledger QO54) picks its storage BY active box type, so
   // `state.box` must always read the SAME `active` those accessors use, never a second,
   // independently-writable copy of it (packages/ui/test/logic/boxActiveSync.test.ts). Falls
   // back to `EMPTY_PROJECT_DEFAULTS` when nothing is focused (see that constant's own doc) —
@@ -262,8 +262,8 @@ function buildState(): AppState {
   // write can only be issued by gated UI, so that branch is defensive, not a real path.
   Object.defineProperty(s, 'box', {
     enumerable: true, configurable: true,
-    get: () => fromAlignmentKind((focusedProject() ?? EMPTY_PROJECT_DEFAULTS).activeAlignment()),
-    set: (v: BoxType) => { focusedProject()?.setActiveAlignment(toAlignmentKind(v)); },
+    get: () => (focusedProject() ?? EMPTY_PROJECT_DEFAULTS).activeBoxType(),
+    set: (v: BoxType) => { focusedProject()?.setActiveBoxType(v); },
   });
   return s as unknown as AppState;
 }
@@ -695,9 +695,9 @@ export function resetProjectToGround(): void {
   // members and the entered set, so there is nothing to re-solve — and re-solving is exactly
   // what breaks "Cancel means byte-identical" (docs/design/STATE_MODEL.md rule 3): the solver would
   // reproduce the calculated member from a value that was rounded on its way through JSON
-  // and land on a different double. `loadUiParams` sets the active alignment itself, so this
+  // and land on a different double. `loadUiParams` sets the active box type itself, so this
   // is the one call that lands box + every vent/PR/plain field together.
-  suspendVentSolve(() => p.loadUiParams(g.P, toAlignmentKind(g.box)));
+  suspendVentSolve(() => p.loadUiParams(g.P, g.box));
   restoreProblems.value = [];
   // A refusal is REPORTED, never swallowed: dropping it would leave the previous driver in
   // place while the UI showed a successful discard-changes. `g.driver` is always present — a

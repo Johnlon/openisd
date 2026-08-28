@@ -20,7 +20,8 @@
  * This is input validation only: it changes no formula and no computed number.
  */
 
-import type { BoxType, SweepParams, DriverError } from './types.js';
+import type { BoxType, SimulatableBoxType, SweepParams, DriverError } from './types.js';
+import { simulatableBoxType } from './types.js';
 
 /** One enclosure parameter `solve()` divides by, with the human wording for its message. */
 interface RequiredParam {
@@ -84,23 +85,35 @@ export function validateParams(box: BoxType, P: SweepParams): DriverError[] {
     consequence: 'a massless radiator has no resonance, so there is nothing for the box to tune against',
   };
 
+  // A box type the circuit has no model for is refused BY NAME, here, rather than being
+  // inexpressible in the type. The domain can hold such a design; the engine simply declines to
+  // simulate it, and says which one it declined.
+  const simulatable = simulatableBoxType(box);
+  if (simulatable === null) {
+    return [{
+      level: 'error',
+      field: 'Vb',
+      message: `The engine has no circuit model for a ${box} enclosure, so this design cannot be simulated.`,
+    }];
+  }
+
   /**
-   * Which parameters each enclosure actually divides by. A TOTAL map over `BoxType`
-   * (../AGENTS.md §"A CLOSED SET IS AN ENUM"): adding a box type is a compile error here
-   * rather than a silent hole in the precondition.
+   * Which parameters each enclosure actually divides by. A TOTAL map over
+   * `SimulatableBoxType` (../AGENTS.md §"A CLOSED SET IS AN ENUM"): giving the circuit a new
+   * topology is a compile error here rather than a silent hole in the precondition.
    *
    * `Sp` is required for `bandpass4` as well as `vented` — the bandpass front chamber calls
    * the same `portImpedance()` (circuit.ts), so it divides by `Sp` identically.
    */
-  const REQUIRED_BY_BOX: Record<BoxType, readonly RequiredParam[]> = {
-    sealed:    [VB],
-    vented:    [VB, SP],
-    pr:        [VB, PR_SD, PR_CMS, PR_MMD],
-    bandpass4: [VB, VF, SP],
+  const REQUIRED_BY_BOX: Record<SimulatableBoxType, readonly RequiredParam[]> = {
+    sealed:                 [VB],
+    vented:                 [VB, SP],
+    'box-passive-radiator': [VB, PR_SD, PR_CMS, PR_MMD],
+    bandpass4:              [VB, VF, SP],
   };
 
   const errors: DriverError[] = [];
-  for (const p of REQUIRED_BY_BOX[box]) {
+  for (const p of REQUIRED_BY_BOX[simulatable]) {
     const v = P[p.field];
     // Finite as well as positive: `Infinity > 0` is true, so a bare `> 0` would admit a
     // value that is itself already the poison this guard exists to stop.

@@ -913,6 +913,80 @@ Physical dimensions (not currently extracted by scrapers):
 | 5   | ~~Does WinISD account for air load (radiation mass) on the PR separately from Mms?~~ **RESOLVED: No separate term added. `thielesmall.html` defines Mms as "including air load" for all drivers. For PRs, WinISD derives Mms from Fs+Vas via `Mms = 1/((2π·Fs)²·Cms)` — the measured Fs already encodes air-load implicitly. Neither WinISD nor OpenISD adds an extra radiation-mass term. Source: `docs/winisd_helpfiles/help/thielesmall.html`** | Closed   |
 | 6   | ~~Does WinISD's Qms in PR mode mean the same as T/S Qms?~~ **RESOLVED: Yes — standard T/S definition. `aboutequivalentcircuits.html` gives `Ram = 1/(2π·Fs·Qms·Ccas)` applied identically for drivers and PRs. Algebraically equivalent to OpenISD's `Rms = sqrt(Mms/Cms)/Qms`. Source: `docs/winisd_helpfiles/help/aboutequivalentcircuits.html`**                                                                                                | Closed   |
 
+## 11b. Dual voice coils — a DELIBERATE deviation, and why (2026-08-28)
+
+**WinISD's mechanism, decompiled** (`winisd_research/GHIDRA_FINDINGS.md`, `0x461242`): switching
+the wiring combo REWRITES the driver in place — parallel→series multiplies `BL` by `numVC` and
+`Re` by `numVC²`, series→parallel divides by the same. `numVC`/`VCCon` are **not inputs to any
+calculation**; nothing reads them during a sweep. The combo is a converter, fired once on change.
+
+The arithmetic is correct physics: `N` coils of resistance `r` give `r/N` in parallel and `N·r` in
+series, with force factor `bl` and `N·bl` respectively.
+
+**What WinISD gets wrong is the bookkeeping.** The rewritten value keeps its `E` (Entered) mark,
+so the file asserts the user typed a number the app computed. Combined with §12's save bug below
+— the dropdown always writes `VCCon=1` — a user can quadruple their driver twice without warning:
+set series (`Re`×4, file says parallel), reload, set series again (`Re`×16).
+
+**OPENISD DEVIATES, on John's ruling 2026-08-28 ("evil", "make it two"):**
+
+| | WinISD | OpenISD |
+| --- | --- | --- |
+| fields | one `Re`, whose meaning changes silently with the wiring | `Re_per_coil` (entered, never rewritten) and `Re_terminal` (calculated) — same split for `BL` |
+| on a wiring change | rewrites the stored value in place | recomputes the derived field; the typed value is untouched |
+| provenance | rewritten value stays marked `E` | entered stays entered, calculated is marked calculated |
+| where the scaling lives | in the editor | ONLY in the `.wdr`/`.wpr` adapter |
+
+**The files stay byte-compatible** — the writer emits the effective (terminal) values, exactly
+what WinISD would have written. The deviation is in what OpenISD KEEPS, not in what it produces.
+
+Two reasons this is worth diverging over: OpenISD round-trips and TESTS the `E`/`C`/`N` marks, so
+a false `E` corrupts the parity suite itself; and a destructive edit of a typed value is
+unrecoverable — the user cannot get 6.4 back out of 25.6 without knowing what happened to it.
+
+### Reading a `.wdr` back — the rule, and why a known-broken field is safe to trust
+
+A `.wdr`/`.wpr` carries ONE `Re`, and it is always the TERMINAL value — what the amplifier sees.
+OpenISD stores `Re` PER COIL, so the reader must divide by the wiring factor. And the file's
+`VCCon` cannot be trusted, because WinISD's own dropdown always writes `1` whatever was selected
+(§12 below).
+
+**The rule (ledger QO97): trust the file's stated `VCCon` anyway.**
+
+```
+factor(parallel, N) = 1/N     factor(series, N) = N     factor(anything, 1) = 1
+
+import     Re_per_coil = Re_file / factor(VCCon_file, numVC)
+simulate   Re_terminal = Re_per_coil × factor(...)   ==  Re_file
+export     Re_file'    = Re_per_coil × factor(...)   ==  Re_file
+```
+
+**Why trusting it is safe: the same factor is applied inbound and outbound, so it cancels.** Even
+when WinISD lied about the wiring —
+
+* **every simulated number is exact** — the terminal `Re` reaching the engine is the file's own
+  `Re`, byte for byte;
+* **the round-trip is exact** — read and rewrite leaves the file unchanged;
+* the only casualty is the **displayed per-coil figure**, and only for a multi-coil driver: a
+  wrong label on a number nothing simulates from.
+
+For `numVC = 1` — every driver in the bundled corpus — the factor is 1 and there is no ambiguity
+to have.
+
+**Alternatives, and why each is worse:**
+
+| alternative | why not |
+| --- | --- |
+| assume parallel whenever `numVC > 1` | invents information the file does not carry, and breaks the round-trip for a CORRECTLY saved series file — worse than the case it fixes |
+| refuse to import multi-coil drivers | punishes the user for WinISD's bug |
+| store the terminal value, not per-coil | that IS WinISD's design, and §11b rejects it: storing the terminal value is exactly what forces the silent rewrite |
+
+**The one consequence to SURFACE, not hide:** when `numVC > 1`, the per-coil figure is only as
+good as the file's `VCCon`. That belongs in the field help — the user may well know the truth when
+the file does not.
+
+Tracked as ledger QO96 (the two-field design) and QO97 (this reader rule).
+
 ## 12. VCCon — confirmed save bug (verified 2026-06-26)
 
 **VCCon** is the voice coil connection field (parallel vs series). Its WDR encoding is:

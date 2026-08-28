@@ -28,8 +28,8 @@ export default defineConfig({
     projects: [
       {
         test: {
-          name: 'engine',
-          root: './packages/engine',
+          name: 'persistence',
+          root: './packages/persistence',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
         },

@@ -12,7 +12,7 @@ import type { SpecField, Cell } from '@openisd/model';
 import { Provenance } from '@openisd/model';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
-import { precision } from '../../logic/fields/fieldRegistry.js';
+import { precision, fieldHelp } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../logic/useDriverCells.js';
 import { DriverFileFormat } from '../../fileFormat.js';
@@ -729,32 +729,32 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
         <!-- ============================= General ============================= -->
         <div v-if="tab === 'General'" class="de-general">
           <div class="de-row2">
-            <div class="de-fld" data-field-key="manufacturer" title="Manufacturer name — WinISD: Manufacturer">
+            <div class="de-fld" data-field-key="manufacturer" :title="fieldHelp('manufacturer')">
               <label>Manufacturer</label>
               <input type="text" :value="driverRaw.manufacturer || ''" @input="setText('manufacturer', $event)">
             </div>
-            <div class="de-fld" data-field-key="brand" title="Manufacturer/brand name — WinISD: Brand">
+            <div class="de-fld" data-field-key="brand" :title="fieldHelp('brand')">
               <label>Brand</label>
               <input type="text" class="de-brand" :value="driverRaw.brand || ''" @input="setText('brand', $event)"
                      :class="{ 'de-input-mandatory': true, 'de-input-empty': !driverRaw.brand || !driverRaw.brand.trim() }">
             </div>
-            <div class="de-fld" data-field-key="model" title="Model number/name — WinISD: Model">
+            <div class="de-fld" data-field-key="model" :title="fieldHelp('model')">
               <label>Model</label>
               <input type="text" class="de-model" :value="editorModelValue" @input="setText('model', $event)"
                      :class="{ 'de-input-mandatory': true, 'de-input-empty': !editorModelValue || !editorModelValue.trim() }">
             </div>
           </div>
           <div class="de-row2">
-            <div class="de-fld" data-field-key="providedBy" title="Attribution — who supplied this driver's data. WinISD: Data provided by">
+            <div class="de-fld" data-field-key="providedBy" :title="fieldHelp('providedBy')">
               <label>Data provided by</label>
               <input type="text" :value="driverRaw.providedBy || ''" @input="setText('providedBy', $event)">
             </div>
-            <div class="de-fld" data-field-key="added" title="Date added — WinISD: DateAdded">
+            <div class="de-fld" data-field-key="added" :title="fieldHelp('added')">
               <label>Date added</label>
               <input type="text" :value="driverRaw.added || ''" @input="setText('added', $event)">
             </div>
           </div>
-          <div class="de-fld de-comment" data-field-key="comment" title="Free-text note saved with this driver. WinISD: Comment">
+          <div class="de-fld de-comment" data-field-key="comment" :title="fieldHelp('comment')">
             <label>Comment</label>
             <textarea :value="driverRaw.comment || ''" @input="setText('comment', $event)"></textarea>
           </div>
@@ -765,28 +765,28 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Thiele/Small parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" title="Electrical Q factor — motor damping. WinISD: Qes">
+              <div class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" :title="fieldHelp('Qes')">
                 <label>Qes</label>
-                <NumInput :class="cellClass('Qes')" :mandatory="mandatory('Qes')" :model-value="cellVal('Qes')" :scale="1" :precision="3" @update:model-value="v => setNum('Qes', v)">
+                <NumInput :class="cellClass('Qes')" :mandatory="mandatory('Qes')" :model-value="cellVal('Qes')" :precision="3" @update:model-value="v => setNum('Qes', v)">
                 </NumInput><span v-if="dqNote('Qes')" class="de-dq" :title="dqNote('Qes')">&#9888;</span>
               </div>
-              <div class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" title="Mechanical Q factor — suspension damping. WinISD: Qms">
+              <div class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" :title="fieldHelp('Qms')">
                 <label>Qms</label>
-                <NumInput :class="cellClass('Qms')" :mandatory="mandatory('Qms')" :model-value="cellVal('Qms')" :scale="1" :precision="3" @update:model-value="v => setNum('Qms', v)">
+                <NumInput :class="cellClass('Qms')" :mandatory="mandatory('Qms')" :model-value="cellVal('Qms')" :precision="3" @update:model-value="v => setNum('Qms', v)">
                 </NumInput><span v-if="dqNote('Qms')" class="de-dq" :title="dqNote('Qms')">&#9888;</span>
               </div>
-              <div class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" title="Total Q factor = Qes·Qms/(Qes+Qms). WinISD: Qts">
+              <div class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" :title="fieldHelp('Qts')">
                 <label>Qts</label>
-                <NumInput :class="cellClass('Qts')" :mandatory="mandatory('Qts')" :model-value="cellVal('Qts')" :scale="1" :precision="3" @update:model-value="v => setNum('Qts', v)">
+                <NumInput :class="cellClass('Qts')" :mandatory="mandatory('Qts')" :model-value="cellVal('Qts')" :precision="3" @update:model-value="v => setNum('Qts', v)">
                 </NumInput><span v-if="dqNote('Qts')" class="de-dq" :title="dqNote('Qts')">&#9888;</span>
               </div>
-              <div class="de-fld" data-field-key="Fs" :style="getFieldStyle('Fs')" title="Free-air resonance frequency. WinISD: Fs">
+              <div class="de-fld" data-field-key="Fs" :style="getFieldStyle('Fs')" :title="fieldHelp('Fs')">
                 <label>Fs</label>
                 <NumInput :class="cellClass('Fs')" :mandatory="true" :model-value="cellVal('Fs')" field="Fs" group="freq" base="Hz" :precision="2" @update:model-value="v => setNum('Fs', v)">
                 </NumInput><span v-if="dqNote('Fs')" class="de-dq" :title="dqNote('Fs')">&#9888;</span>
                 <UnitToggle field="Fs" group="freq" base="Hz" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Vas" :style="getFieldStyle('Vas')" title="Equivalent compliance volume. WinISD: Vas">
+              <div class="de-fld" data-field-key="Vas" :style="getFieldStyle('Vas')" :title="fieldHelp('Vas')">
                 <label>Vas</label>
                 <NumInput :class="cellClass('Vas')" :mandatory="true" :model-value="cellVal('Vas')" field="Vas" group="volume" base="L" :precision="precision('Vas')" @update:model-value="v => setNum('Vas', v)">
                 </NumInput><span v-if="dqNote('Vas')" class="de-dq" :title="dqNote('Vas')">&#9888;</span>
@@ -798,48 +798,48 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Electro-Mechanical parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="Mms" :style="getFieldStyle('Mms')" title="Derived: Mms = 1 / ((2π·Fs)²·Cms) — total moving mass.">
+              <div class="de-fld" data-field-key="Mms" :style="getFieldStyle('Mms')" :title="fieldHelp('Mms')">
                 <label>Mms</label>
                 <NumInput :class="cellClass('Mms')" :model-value="cellVal('Mms')" field="Mms" group="mass" base="g" :precision="2" @update:model-value="v => setNum('Mms', v)">
                 </NumInput><span v-if="dqNote('Mms')" class="de-dq" :title="dqNote('Mms')">&#9888;</span>
                 <UnitToggle field="Mms" group="mass" base="g" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Cms" :style="getFieldStyle('Cms')" title="Derived: Cms = Vas / (ρc²·Sd²) — suspension compliance.">
+              <div class="de-fld" data-field-key="Cms" :style="getFieldStyle('Cms')" :title="fieldHelp('Cms')">
                 <label>Cms</label>
                 <NumInput :class="cellClass('Cms')" :model-value="cellVal('Cms')" field="Cms" group="compliance" base="mmPerN" :precision="4" @update:model-value="v => setNum('Cms', v)">
                 </NumInput><span v-if="dqNote('Cms')" class="de-dq" :title="dqNote('Cms')">&#9888;</span>
                 <UnitToggle field="Cms" group="compliance" base="mmPerN" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Rms" :style="getFieldStyle('Rms')" title="Derived: Rms = 2π·Fs·Mms/Qms — suspension mechanical resistance.">
+              <div class="de-fld" data-field-key="Rms" :style="getFieldStyle('Rms')" :title="fieldHelp('Rms')">
                 <label>Rms</label>
                 <NumInput :class="cellClass('Rms')" :model-value="cellVal('Rms')" field="Rms" group="resistance" base="nsPerM" :precision="4" @update:model-value="v => setNum('Rms', v)">
                 </NumInput><span v-if="dqNote('Rms')" class="de-dq" :title="dqNote('Rms')">&#9888;</span>
                 <UnitToggle field="Rms" group="resistance" base="nsPerM" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Re" :style="getFieldStyle('Re')" title="DC voice coil resistance. WinISD: Re">
+              <div class="de-fld" data-field-key="Re" :style="getFieldStyle('Re')" :title="fieldHelp('Re')">
                 <label>Re</label>
-                <NumInput :class="cellClass('Re')" :mandatory="true" :model-value="cellVal('Re')" :scale="1" :precision="3" @update:model-value="v => setNum('Re', v)">
+                <NumInput :class="cellClass('Re')" :mandatory="true" :model-value="cellVal('Re')" :precision="3" @update:model-value="v => setNum('Re', v)">
                 </NumInput><span v-if="dqNote('Re')" class="de-dq" :title="dqNote('Re')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
-              <div class="de-fld" data-field-key="BL" :style="getFieldStyle('BL')" title="Derived: BL = √(2π·Fs·Mms·Re / Qes) — motor force factor.">
+              <div class="de-fld" data-field-key="BL" :style="getFieldStyle('BL')" :title="fieldHelp('BL')">
                 <label>BL</label>
-                <NumInput :class="cellClass('BL')" :model-value="cellVal('BL')" :scale="1" :precision="3" @update:model-value="v => setNum('BL', v)">
+                <NumInput :class="cellClass('BL')" :model-value="cellVal('BL')" :precision="3" @update:model-value="v => setNum('BL', v)">
                 </NumInput><span v-if="dqNote('BL')" class="de-dq" :title="dqNote('BL')">&#9888;</span>
                 <span class="u">Tm</span>
               </div>
-              <div class="de-fld" data-field-key="Dd" :style="getFieldStyle('Dd')" title="Diaphragm/dome diameter — WinISD: Dd">
+              <div class="de-fld" data-field-key="Dd" :style="getFieldStyle('Dd')" :title="fieldHelp('Dd')">
                 <label>Dd</label>
                 <NumInput :class="cellClass('Dd')" :model-value="cellVal('Dd')" field="Dd" group="length" base="mm" :precision="precision('Dd')" @update:model-value="v => setNum('Dd', v)"></NumInput><span v-if="dqNote('Dd')" class="de-dq" :title="dqNote('Dd')">&#9888;</span>
                 <UnitToggle field="Dd" group="length" base="mm" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Le" :style="getFieldStyle('Le')" title="Voice coil inductance. 0 = resistive-only model. WinISD: Le">
+              <div class="de-fld" data-field-key="Le" :style="getFieldStyle('Le')" :title="fieldHelp('Le')">
                 <label>Le</label>
                 <NumInput :class="cellClass('Le')" :model-value="cellVal('Le')" field="Le" group="inductance" base="mH" :precision="3" @update:model-value="v => setNum('Le', v)">
                 </NumInput><span v-if="dqNote('Le')" class="de-dq" :title="dqNote('Le')">&#9888;</span>
                 <UnitToggle field="Le" group="inductance" base="mH" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Sd" :style="getFieldStyle('Sd')" title="Effective piston area. WinISD: Sd">
+              <div class="de-fld" data-field-key="Sd" :style="getFieldStyle('Sd')" :title="fieldHelp('Sd')">
                 <label>Sd</label>
                 <NumInput :class="cellClass('Sd')" :mandatory="true" :model-value="cellVal('Sd')" field="Sd" group="area" base="cm2" :precision="precision('Sd')" @update:model-value="v => setNum('Sd', v)">
                 </NumInput><span v-if="dqNote('Sd')" class="de-dq" :title="dqNote('Sd')">&#9888;</span>
@@ -848,12 +848,12 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
                    scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
                    Hz as kHz and put the field out by 1e6. -->
-              <div class="de-fld" data-field-key="fLe" :style="getFieldStyle('fLe')" title="Voice-coil inductance corner frequency — WinISD: fLe">
+              <div class="de-fld" data-field-key="fLe" :style="getFieldStyle('fLe')" :title="fieldHelp('fLe')">
                 <label>fLe</label>
                 <NumInput :class="cellClass('fLe')" :model-value="cellVal('fLe')" field="fLe" group="freq" base="kHz" :precision="precision('fLe')" @update:model-value="v => setNum('fLe', v)"></NumInput><span v-if="dqNote('fLe')" class="de-dq" :title="dqNote('fLe')">&#9888;</span>
                 <UnitToggle field="fLe" group="freq" base="kHz" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Le2" :style="getFieldStyle('Le2')" title="Le semi-inductance coefficient — WinISD: KLe">
+              <div class="de-fld" data-field-key="KLe" :style="getFieldStyle('Le2')" :title="fieldHelp('KLe')">
                 <label>KLe</label>
                 <NumInput :class="cellClass('Le2')" :model-value="cellVal('Le2')" @update:model-value="v => setNum('Le2', v)"></NumInput><span v-if="dqNote('Le2')" class="de-dq" :title="dqNote('Le2')">&#9888;</span>
                 <span class="u">H·√Hz</span>
@@ -864,36 +864,36 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Large-Signal parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="Xmax" :style="getFieldStyle('Xmax')" title="Peak one-way linear excursion. WinISD: Xmax">
+              <div class="de-fld" data-field-key="Xmax" :style="getFieldStyle('Xmax')" :title="fieldHelp('Xmax')">
                 <label>Xmax</label>
                 <NumInput :class="cellClass('Xmax')" :model-value="cellVal('Xmax')" field="Xmax" group="length" base="mm" :precision="3" @update:model-value="v => setNum('Xmax', v)">
                 </NumInput><span v-if="dqNote('Xmax')" class="de-dq" :title="dqNote('Xmax')">&#9888;</span>
                 <UnitToggle field="Xmax" group="length" base="mm" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Hc" :style="getFieldStyle('Hc')" title="Voice coil former height above/below the gap — WinISD: Hc.">
+              <div class="de-fld" data-field-key="Hc" :style="getFieldStyle('Hc')" :title="fieldHelp('Hc')">
                 <label>Hc</label>
                 <NumInput :class="cellClass('Hc')" :model-value="cellVal('Hc')" field="Hc" group="length" base="mm" @update:model-value="v => setNum('Hc', v)"></NumInput><span v-if="dqNote('Hc')" class="de-dq" :title="dqNote('Hc')">&#9888;</span>
                 <UnitToggle field="Hc" group="length" base="mm" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Hg" :style="getFieldStyle('Hg')" title="Magnetic gap height — WinISD: Hg.">
+              <div class="de-fld" data-field-key="Hg" :style="getFieldStyle('Hg')" :title="fieldHelp('Hg')">
                 <label>Hg</label>
                 <NumInput :class="cellClass('Hg')" :model-value="cellVal('Hg')" field="Hg" group="length" base="mm" @update:model-value="v => setNum('Hg', v)"></NumInput><span v-if="dqNote('Hg')" class="de-dq" :title="dqNote('Hg')">&#9888;</span>
                 <UnitToggle field="Hg" group="length" base="mm" unit-class="u" />
               </div>
 
-              <div class="de-fld" data-field-key="Vd" :style="getFieldStyle('Vd')" title="Volume displaced by the cone at Xmax — WinISD: Vd.">
+              <div class="de-fld" data-field-key="Vd" :style="getFieldStyle('Vd')" :title="fieldHelp('Vd')">
                 <label>Vd</label>
                 <NumInput :class="cellClass('Vd')" :model-value="cellVal('Vd')" field="Vd" group="volume" base="cm3" @update:model-value="v => setNum('Vd', v)"></NumInput><span v-if="dqNote('Vd')" class="de-dq" :title="dqNote('Vd')">&#9888;</span>
                 <UnitToggle field="Vd" group="volume" base="cm3" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Xlim" :style="getFieldStyle('Xlim')" title="Mechanical excursion limit before physical damage — WinISD: Xlim.">
+              <div class="de-fld" data-field-key="Xlim" :style="getFieldStyle('Xlim')" :title="fieldHelp('Xlim')">
                 <label>Xlim</label>
                 <NumInput :class="cellClass('Xlim')" :model-value="cellVal('Xlim')" field="Xlim" group="length" base="mm" @update:model-value="v => setNum('Xlim', v)"></NumInput><span v-if="dqNote('Xlim')" class="de-dq" :title="dqNote('Xlim')">&#9888;</span>
                 <UnitToggle field="Xlim" group="length" base="mm" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Pe" :style="getFieldStyle('Pe')" title="Rated continuous power handling. WinISD: Pe">
+              <div class="de-fld" data-field-key="Pe" :style="getFieldStyle('Pe')" :title="fieldHelp('Pe')">
                 <label>Pe</label>
-                <NumInput :class="cellClass('Pe')" :model-value="cellVal('Pe')" :scale="1" :precision="2" @update:model-value="v => setNum('Pe', v)">
+                <NumInput :class="cellClass('Pe')" :model-value="cellVal('Pe')" :precision="2" @update:model-value="v => setNum('Pe', v)">
                 </NumInput><span v-if="dqNote('Pe')" class="de-dq" :title="dqNote('Pe')">&#9888;</span>
                 <span class="u">W</span>
               </div>
@@ -903,32 +903,32 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Miscellaneous parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="no" :style="getFieldStyle('no')" title="Reference efficiency — WinISD: no">
+              <div class="de-fld" data-field-key="no" :style="getFieldStyle('no')" :title="fieldHelp('no')">
                 <label>no</label>
-                <NumInput :class="cellClass('no')" :model-value="cellVal('no')" :scale="100" @update:model-value="v => setNum('no', v)"></NumInput><span v-if="dqNote('no')" class="de-dq" :title="dqNote('no')">&#9888;</span>
-                <span class="u">%</span>
+                <NumInput :class="cellClass('no')" :model-value="cellVal('no')" field="no" group="percent" base="pct" @update:model-value="v => setNum('no', v)"></NumInput><span v-if="dqNote('no')" class="de-dq" :title="dqNote('no')">&#9888;</span>
+                <UnitToggle field="no" group="percent" base="pct" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Znom" :style="getFieldStyle('Znom')" title="Nominal impedance — derived from Re when not entered (Znom = 2 × round_half_to_even(0.75 × Re)); not fed back into the simulation. WinISD: Znom.">
+              <div class="de-fld" data-field-key="Znom" :style="getFieldStyle('Znom')" :title="fieldHelp('Znom')">
                 <label>Znom</label>
-                <NumInput :class="cellClass('Znom')" :model-value="cellVal('Znom')" :scale="1" :precision="3" @update:model-value="v => setNum('Znom', v)">
+                <NumInput :class="cellClass('Znom')" :model-value="cellVal('Znom')" :precision="3" @update:model-value="v => setNum('Znom', v)">
                 </NumInput><span v-if="dqNote('Znom')" class="de-dq" :title="dqNote('Znom')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
-              <div class="de-fld" data-field-key="USPL" :style="getFieldStyle('USPL')" title="Unity SPL — WinISD: USPL">
+              <div class="de-fld" data-field-key="USPL" :style="getFieldStyle('USPL')" :title="fieldHelp('USPL')">
                 <label>USPL</label>
                 <NumInput :class="cellClass('USPL')" :model-value="cellVal('USPL')" @update:model-value="v => setNum('USPL', v)"></NumInput><span v-if="dqNote('USPL')" class="de-dq" :title="dqNote('USPL')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
-              <div class="de-fld" data-field-key="SPL" :style="getFieldStyle('SPL')" title="Rated sensitivity — WinISD: SPL">
+              <div class="de-fld" data-field-key="SPL" :style="getFieldStyle('SPL')" :title="fieldHelp('SPL')">
                 <label>SPL</label>
                 <NumInput :class="cellClass('SPL')" :model-value="cellVal('SPL')" @update:model-value="v => setNum('SPL', v)"></NumInput><span v-if="dqNote('SPL')" class="de-dq" :title="dqNote('SPL')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
-              <div class="de-fld" data-field-key="numVC" :style="getFieldStyle('numVC')" title="Number of voice coils — WinISD: numVC">
+              <div class="de-fld" data-field-key="numVC" :style="getFieldStyle('numVC')" :title="fieldHelp('numVC')">
                 <label>Voicecoils</label>
                 <NumInput :class="cellClass('numVC')" :model-value="cellVal('numVC')" @update:model-value="v => setNum('numVC', v)"></NumInput><span v-if="dqNote('numVC')" class="de-dq" :title="dqNote('numVC')">&#9888;</span>
               </div>
-              <div class="de-fld de-conn" data-field-key="VCCon" title="Dual voice coil wiring — WinISD: Connection">
+              <div class="de-fld de-conn" data-field-key="VCCon" :title="fieldHelp('VCCon')">
                 <label>Connection</label>
                 <select class="de-conn-sel" :value="driverRaw.VCCon ?? 1" @change="e => setNum('VCCon', parseInt((e.target as HTMLSelectElement).value))"><option :value="1">Parallel</option><option :value="2">Series</option></select>
               </div>
@@ -941,17 +941,17 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Thermal parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="tc" :style="getFieldStyle('tc')" title="Voice coil resistance temperature coefficient — WinISD: AlfaVC">
+              <div class="de-fld" data-field-key="alfaVC" :style="getFieldStyle('tc')" :title="fieldHelp('alfaVC')">
                 <label>AlfaVC</label>
-                <NumInput :class="cellClass('tc')" :model-value="cellVal('tc')" field="AlfaVC" group="tempCoeff" base="perMilliK" @update:model-value="v => setNum('tc', v)"></NumInput><span v-if="dqNote('tc')" class="de-dq" :title="dqNote('tc')">&#9888;</span>
-                <UnitToggle field="AlfaVC" group="tempCoeff" base="perMilliK" unit-class="u" />
+                <NumInput :class="cellClass('tc')" :model-value="cellVal('tc')" field="alfaVC" group="tempCoeff" base="perMilliK" @update:model-value="v => setNum('tc', v)"></NumInput><span v-if="dqNote('tc')" class="de-dq" :title="dqNote('tc')">&#9888;</span>
+                <UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Rth" :style="getFieldStyle('Rth')" title="Thermal resistance voice coil→ambient — WinISD: R(t)">
+              <div class="de-fld" data-field-key="Rt" :style="getFieldStyle('Rth')" :title="fieldHelp('Rt')">
                 <label>R(t)</label>
                 <NumInput :class="cellClass('Rth')" :model-value="cellVal('Rth')" @update:model-value="v => setNum('Rth', v)"></NumInput><span v-if="dqNote('Rth')" class="de-dq" :title="dqNote('Rth')">&#9888;</span>
                 <span class="u">K/W</span>
               </div>
-              <div class="de-fld" data-field-key="Cth" :style="getFieldStyle('Cth')" title="Thermal capacitance — WinISD: C(t)">
+              <div class="de-fld" data-field-key="Ct" :style="getFieldStyle('Cth')" :title="fieldHelp('Ct')">
                 <label>C(t)</label>
                 <NumInput :class="cellClass('Cth')" :model-value="cellVal('Cth')" @update:model-value="v => setNum('Cth', v)"></NumInput><span v-if="dqNote('Cth')" class="de-dq" :title="dqNote('Cth')">&#9888;</span>
                 <span class="u">J/K</span>
@@ -962,46 +962,46 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Figure of merits</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="SPLmaxLF" :style="getFieldStyle('SPLmaxLF')" title="Max SPL, low-frequency-limited — WinISD: SPLmaxLF">
+              <div class="de-fld" data-field-key="SPLmaxLF" :style="getFieldStyle('SPLmaxLF')" :title="fieldHelp('SPLmaxLF')">
                 <label>SPLmaxLF</label>
                 <NumInput :class="cellClass('SPLmaxLF')" :model-value="cellVal('SPLmaxLF')" @update:model-value="v => setNum('SPLmaxLF', v)"></NumInput><span v-if="dqNote('SPLmaxLF')" class="de-dq" :title="dqNote('SPLmaxLF')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
-              <div class="de-fld" data-field-key="SPLmax" :style="getFieldStyle('SPLmax')" title="Max SPL — WinISD: SPLmax">
+              <div class="de-fld" data-field-key="SPLmax" :style="getFieldStyle('SPLmax')" :title="fieldHelp('SPLmax')">
                 <label>SPLmax</label>
                 <NumInput :class="cellClass('SPLmax')" :model-value="cellVal('SPLmax')" @update:model-value="v => setNum('SPLmax', v)"></NumInput><span v-if="dqNote('SPLmax')" class="de-dq" :title="dqNote('SPLmax')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
-              <div class="de-fld" data-field-key="Rme" :style="getFieldStyle('Rme')" title="Motional electrical resistance at resonance — WinISD: Rme">
+              <div class="de-fld" data-field-key="Rme" :style="getFieldStyle('Rme')" :title="fieldHelp('Rme')">
                 <label>Rme</label>
                 <NumInput :class="cellClass('Rme')" :model-value="cellVal('Rme')" field="Rme" group="resistance" base="nsPerM" @update:model-value="v => setNum('Rme', v)"></NumInput><span v-if="dqNote('Rme')" class="de-dq" :title="dqNote('Rme')">&#9888;</span>
                 <UnitToggle field="Rme" group="resistance" base="nsPerM" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="gamma" :style="getFieldStyle('gamma')" title="Motor figure of merit — WinISD: gamma">
+              <div class="de-fld" data-field-key="gamma" :style="getFieldStyle('gamma')" :title="fieldHelp('gamma')">
                 <label>gamma</label>
                 <NumInput :class="cellClass('gamma')" :model-value="cellVal('gamma')" @update:model-value="v => setNum('gamma', v)"></NumInput><span v-if="dqNote('gamma')" class="de-dq" :title="dqNote('gamma')">&#9888;</span>
                 <span class="u">N/(A·kg)</span>
               </div>
-              <div class="de-fld" data-field-key="Mpow" :style="getFieldStyle('Mpow')" title="Power-limited motor figure of merit — WinISD: Mpow">
+              <div class="de-fld" data-field-key="Mpow" :style="getFieldStyle('Mpow')" :title="fieldHelp('Mpow')">
                 <label>Mpow</label>
                 <NumInput :class="cellClass('Mpow')" :model-value="cellVal('Mpow')" @update:model-value="v => setNum('Mpow', v)"></NumInput><span v-if="dqNote('Mpow')" class="de-dq" :title="dqNote('Mpow')">&#9888;</span>
                 <span class="u">N/√W</span>
               </div>
-              <div class="de-fld" data-field-key="Mcost" :style="getFieldStyle('Mcost')" title="Cost-normalised motor figure of merit — WinISD: Mcost">
+              <div class="de-fld" data-field-key="Mcost" :style="getFieldStyle('Mcost')" :title="fieldHelp('Mcost')">
                 <label>Mcost</label>
                 <NumInput :class="cellClass('Mcost')" :model-value="cellVal('Mcost')" field="Mcost" group="resistance" base="kgPerS" @update:model-value="v => setNum('Mcost', v)"></NumInput><span v-if="dqNote('Mcost')" class="de-dq" :title="dqNote('Mcost')">&#9888;</span>
                 <UnitToggle field="Mcost" group="resistance" base="kgPerS" unit-class="u" />
               </div>
-              <div class="de-fld value-c" data-field-key="EBP" :style="getFieldStyle('EBP')" title="Derived: EBP = Fs / Qes — Efficiency Bandwidth Product. Read-only, not entered directly. WinISD: EBP">
+              <div class="de-fld value-c" data-field-key="EBP" :style="getFieldStyle('EBP')" :title="fieldHelp('EBP')">
                 <label>EBP</label>
                 <input type="text" readonly :value="ebpVal() != null ? formatInUnit(ebpVal(), 'EBP', 'freq', 'Hz', 1) : ''"><UnitToggle field="EBP" group="freq" base="Hz" unit-class="u" />
               </div>
               <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
-                   percentage. `:scale="100"` is the ONE place that conversion happens. -->
-              <div class="de-fld" data-field-key="Gloss" :style="getFieldStyle('Gloss')" title="Static cone sag under gravity, as a percentage of Xmax — WinISD: Gloss">
+                   percentage. The `percent` unit group is the ONE place that ×100 lives. -->
+              <div class="de-fld" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :title="fieldHelp('Gloss')">
                 <label>Gloss</label>
-                <NumInput :class="cellClass('Gloss')" :model-value="cellVal('Gloss')" :scale="100" :precision="precision('Gloss')" @update:model-value="v => setNum('Gloss', v)"></NumInput><span v-if="dqNote('Gloss')" class="de-dq" :title="dqNote('Gloss')">&#9888;</span>
-                <span class="u">%</span>
+                <NumInput :class="cellClass('Gloss')" :model-value="cellVal('Gloss')" field="Gloss" group="percent" base="pct" :precision="precision('Gloss')" @update:model-value="v => setNum('Gloss', v)"></NumInput><span v-if="dqNote('Gloss')" class="de-dq" :title="dqNote('Gloss')">&#9888;</span>
+                <UnitToggle field="Gloss" group="percent" base="pct" unit-class="u" />
               </div>
             </div>
           </div>
@@ -1009,11 +1009,11 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Environment parameters</div>
             <div class="de-cols">
-              <div class="de-fld value-c" data-field-key="c" title="Speed of sound at OpenISD's reference environment (packages/engine/src/air.ts) — not the driver's own stated value. Not adjustable in this editor.">
+              <div class="de-fld value-c" data-field-key="c" :title="fieldHelp('c')">
                 <label>c</label>
                 <input type="text" readonly :value="formatInUnit(referenceC(), 'c', 'velocity', 'mps', 2)"><UnitToggle field="c" group="velocity" base="mps" unit-class="u" />
               </div>
-              <div class="de-fld value-c" data-field-key="roo" title="Air density at OpenISD's reference environment (packages/engine/src/air.ts) — not the driver's own stated value. Not adjustable in this editor.">
+              <div class="de-fld value-c" data-field-key="roo" :title="fieldHelp('roo')">
                 <label>roo</label>
                 <input type="text" readonly :value="formatInUnit(referenceRho(), 'roo', 'density', 'kgPerM3', 5)"><UnitToggle field="roo" group="density" base="kgPerM3" unit-class="u" />
               </div>
@@ -1025,18 +1025,18 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
         <div v-if="tab === 'Dimensions'" class="de-dims">
           <div class="de-dimlist">
             <div class="de-hdr">Dimensions</div>
-            <!-- Every length below is stored in METRES and shown in MILLIMETRES (:scale=1000),
+            <!-- Every length below is stored in METRES and shown in MILLIMETRES (the length unit group),
                  the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
                  WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
                  Thick read a metre value under an inches label. -->
-            <div class="de-fld" data-field-key="Thick" title="Frame flange thickness — WinISD: Thick"><label>Basket Plate Thickness (Thick)</label><NumInput :class="cellClass('Thick')" :model-value="cellVal('Thick')" field="dimThick" group="length" base="mm" :precision="precision('dimThick')" @update:model-value="v => setNum('Thick', v)"></NumInput><span v-if="dqNote('Thick')" class="de-dq" :title="dqNote('Thick')">&#9888;</span><UnitToggle field="dimThick" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Depth" :style="getFieldStyle('Depth')" title="Overall driver depth — WinISD: Depth"><label>Driver Depth (Depth)</label><NumInput :class="cellClass('Depth')" :model-value="cellVal('Depth')" field="dimDepth" group="length" base="mm" :precision="precision('dimDepth')" @update:model-value="v => setNum('Depth', v)"></NumInput><span v-if="dqNote('Depth')" class="de-dq" :title="dqNote('Depth')">&#9888;</span><UnitToggle field="dimDepth" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="MagDepth" :style="getFieldStyle('MagDepth')" title="Magnet stack depth — WinISD: MagDepth"><label>Magnet Depth (MagDepth)</label><NumInput :class="cellClass('MagDepth')" :model-value="cellVal('MagDepth')" field="dimMagnetDepth" group="length" base="mm" :precision="precision('dimMagnetDepth')" @update:model-value="v => setNum('MagDepth', v)"></NumInput><span v-if="dqNote('MagDepth')" class="de-dq" :title="dqNote('MagDepth')">&#9888;</span><UnitToggle field="dimMagnetDepth" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Magnet" :style="getFieldStyle('Magnet')" title="Magnet diameter — WinISD: Magnet"><label>Magnet Diameter (Magnet)</label><NumInput :class="cellClass('Magnet')" :model-value="cellVal('Magnet')" field="dimMagnet" group="length" base="mm" :precision="precision('dimMagnet')" @update:model-value="v => setNum('Magnet', v)"></NumInput><span v-if="dqNote('Magnet')" class="de-dq" :title="dqNote('Magnet')">&#9888;</span><UnitToggle field="dimMagnet" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Basket" title="Basket/frame diameter — WinISD: Basket"><label>Basket Diameter (Basket)</label><NumInput :class="cellClass('Basket')" :model-value="cellVal('Basket')" field="dimBasket" group="length" base="mm" :precision="precision('dimBasket')" @update:model-value="v => setNum('Basket', v)"></NumInput><span v-if="dqNote('Basket')" class="de-dq" :title="dqNote('Basket')">&#9888;</span><UnitToggle field="dimBasket" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Outer" title="Overall outer frame diameter — WinISD: Outer"><label>Outer Diameter (Outer)</label><NumInput :class="cellClass('Outer')" :model-value="cellVal('Outer')" field="dimOuter" group="length" base="mm" :precision="precision('dimOuter')" @update:model-value="v => setNum('Outer', v)"></NumInput><span v-if="dqNote('Outer')" class="de-dq" :title="dqNote('Outer')">&#9888;</span><UnitToggle field="dimOuter" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Vcd" title="Voice coil diameter — WinISD: Vcd"><label>Voice Coil Dia (Vcd)</label><NumInput :class="cellClass('Vcd')" :model-value="cellVal('Vcd')" field="dimVCd" group="length" base="mm" :precision="precision('dimVCd')" @update:model-value="v => setNum('Vcd', v)"></NumInput><span v-if="dqNote('Vcd')" class="de-dq" :title="dqNote('Vcd')">&#9888;</span><UnitToggle field="dimVCd" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="DVol" :style="getFieldStyle('DVol')" title="Basket displacement volume — WinISD: DVol"><label>Driver Displacement Volume (DVol)</label><NumInput :class="cellClass('DVol')" :model-value="cellVal('DVol')" field="dimDvol" group="volume" base="cm3" :precision="precision('dimDvol')" @update:model-value="v => setNum('DVol', v)"></NumInput><span v-if="dqNote('DVol')" class="de-dq" :title="dqNote('DVol')">&#9888;</span><UnitToggle field="dimDvol" group="volume" base="cm3" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Thick" :title="fieldHelp('Thick')"><label>Basket Plate Thickness (Thick)</label><NumInput :class="cellClass('Thick')" :model-value="cellVal('Thick')" field="Thick" group="length" base="mm" :precision="precision('Thick')" @update:model-value="v => setNum('Thick', v)"></NumInput><span v-if="dqNote('Thick')" class="de-dq" :title="dqNote('Thick')">&#9888;</span><UnitToggle field="Thick" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Depth" :style="getFieldStyle('Depth')" :title="fieldHelp('Depth')"><label>Driver Depth (Depth)</label><NumInput :class="cellClass('Depth')" :model-value="cellVal('Depth')" field="Depth" group="length" base="mm" :precision="precision('Depth')" @update:model-value="v => setNum('Depth', v)"></NumInput><span v-if="dqNote('Depth')" class="de-dq" :title="dqNote('Depth')">&#9888;</span><UnitToggle field="Depth" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="MagDepth" :style="getFieldStyle('MagDepth')" :title="fieldHelp('MagDepth')"><label>Magnet Depth (MagDepth)</label><NumInput :class="cellClass('MagDepth')" :model-value="cellVal('MagDepth')" field="MagDepth" group="length" base="mm" :precision="precision('MagDepth')" @update:model-value="v => setNum('MagDepth', v)"></NumInput><span v-if="dqNote('MagDepth')" class="de-dq" :title="dqNote('MagDepth')">&#9888;</span><UnitToggle field="MagDepth" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Magnet" :style="getFieldStyle('Magnet')" :title="fieldHelp('Magnet')"><label>Magnet Diameter (Magnet)</label><NumInput :class="cellClass('Magnet')" :model-value="cellVal('Magnet')" field="Magnet" group="length" base="mm" :precision="precision('Magnet')" @update:model-value="v => setNum('Magnet', v)"></NumInput><span v-if="dqNote('Magnet')" class="de-dq" :title="dqNote('Magnet')">&#9888;</span><UnitToggle field="Magnet" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Basket" :title="fieldHelp('Basket')"><label>Basket Diameter (Basket)</label><NumInput :class="cellClass('Basket')" :model-value="cellVal('Basket')" field="Basket" group="length" base="mm" :precision="precision('Basket')" @update:model-value="v => setNum('Basket', v)"></NumInput><span v-if="dqNote('Basket')" class="de-dq" :title="dqNote('Basket')">&#9888;</span><UnitToggle field="Basket" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Outer" :title="fieldHelp('Outer')"><label>Outer Diameter (Outer)</label><NumInput :class="cellClass('Outer')" :model-value="cellVal('Outer')" field="Outer" group="length" base="mm" :precision="precision('Outer')" @update:model-value="v => setNum('Outer', v)"></NumInput><span v-if="dqNote('Outer')" class="de-dq" :title="dqNote('Outer')">&#9888;</span><UnitToggle field="Outer" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Vcd" :title="fieldHelp('Vcd')"><label>Voice Coil Dia (Vcd)</label><NumInput :class="cellClass('Vcd')" :model-value="cellVal('Vcd')" field="Vcd" group="length" base="mm" :precision="precision('Vcd')" @update:model-value="v => setNum('Vcd', v)"></NumInput><span v-if="dqNote('Vcd')" class="de-dq" :title="dqNote('Vcd')">&#9888;</span><UnitToggle field="Vcd" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="DVol" :style="getFieldStyle('DVol')" :title="fieldHelp('DVol')"><label>Driver Displacement Volume (DVol)</label><NumInput :class="cellClass('DVol')" :model-value="cellVal('DVol')" field="DVol" group="volume" base="cm3" :precision="precision('DVol')" @update:model-value="v => setNum('DVol', v)"></NumInput><span v-if="dqNote('DVol')" class="de-dq" :title="dqNote('DVol')">&#9888;</span><UnitToggle field="DVol" group="volume" base="cm3" unit-class="u" /></div>
           </div>
 
           <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">

@@ -2,8 +2,18 @@
 import { ref, computed } from 'vue';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
+import { fieldHelp } from '../../logic/fields/fieldRegistry.js';
+import NumInput from './NumInput.vue';
+import UnitToggle from './UnitToggle.vue';
 
 const project = useFocusedProject();
+
+/** Field help from the ONE registry, plus this FORM's own requirement note. The requirement is
+ *  a property of the create-a-PR form, not of the field — a PR already in a design has nothing
+ *  "required" about it — so it is appended here rather than written into the registry. */
+function help(id: string, requirement: string): string {
+  return `${fieldHelp(id)} ${requirement}`.trim();
+}
 
 // Define a brand-new passive radiator — a BLANK, buffered form (mirrors
 // DriverDefineModal: empty string inputs, writes to the live design ONLY on Create,
@@ -14,34 +24,36 @@ const project = useFocusedProject();
 const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, () => emit('close'));
 
-// Empty string buffers — the form comes up blank.
+// Blank buffers — the form comes up empty and writes to the live design only on Create, so an
+// unfinished entry never reaches the project. Every numeric buffer holds SI, because that is
+// what NumInput's model is: the display unit is the field's own (cm², mm, L) and the
+// conversion happens inside the component, from the unit registry. Null IS the blank state —
+// NumInput renders null as an empty field and emits null when one is cleared.
 const nName = ref('');
-const nNum  = ref('');
-const nSd   = ref('');   // cm²
-const nXmax = ref('');   // mm
-const nFs   = ref('');   // Hz
-const nQms  = ref('');
-const nVas  = ref('');   // L
+const nNum  = ref<number | null>(null);
+const nSd   = ref<number | null>(null);   // m²
+const nXmax = ref<number | null>(null);   // m
+const nFs   = ref<number | null>(null);   // Hz
+const nQms  = ref<number | null>(null);
+const nVas  = ref<number | null>(null);   // m³
 
-function num(s: string): number { const v = parseFloat(s); return isFinite(v) ? v : NaN; }
+function stated(v: number | null): boolean { return v != null && isFinite(v) && v > 0; }
 // Required to define a resonant PR: Sd, Fs, Qms, Vas (Xmax/count/name optional).
 const canCreate = computed(() =>
-  num(nSd.value) > 0 && num(nFs.value) > 0 && num(nQms.value) > 0 && num(nVas.value) > 0);
+  stated(nSd.value) && stated(nFs.value) && stated(nQms.value) && stated(nVas.value));
 
 function create() {
   if (!canCreate.value) return;
-  const count = num(nNum.value);
-  const xmaxMm = num(nXmax.value);
   project.value.setPrName(nName.value.trim() || 'New PR');
-  project.value.setPrCount(count > 0 ? count : 1);
-  // The datasheet → canonical conversion lives on the domain object — this form only
-  // converts its own display units (cm², mm, L) to SI at the boundary.
+  project.value.setPrCount(stated(nNum.value) ? nNum.value! : 1);
+  // The datasheet → canonical conversion lives on the domain object, which takes SI throughout —
+  // so this form hands its buffers over untouched and converts nothing.
   project.value.enterPrDatasheet({
-    sdM2: num(nSd.value) / 1e4,
-    xmaxM: isFinite(xmaxMm) && xmaxMm >= 0 ? xmaxMm / 1000 : 0,
-    fsHz: num(nFs.value),
-    qms: num(nQms.value),
-    vasL: num(nVas.value),
+    sdM2: nSd.value!,
+    xmaxM: stated(nXmax.value) ? nXmax.value! : 0,
+    fsHz: nFs.value!,
+    qms: nQms.value!,
+    vasM3: nVas.value!,
   });
   project.value.setPrAddedMass_kg(0);
   emit('close');
@@ -59,35 +71,35 @@ function close() { emit('close'); }
           <label>PR name</label>
           <input style="flex:1" type="text" v-model="nName" placeholder="e.g. Dayton SD270A-88">
         </div>
-        <div class="row" title="Number of passive radiators in parallel (blank = 1)">
+        <div class="row" data-field-key="prNum" :title="help('prNum', 'Blank means 1.')">
           <label>PR count</label>
-          <input style="flex:1" type="number" step="1" v-limits="{ min: 1, max: 16 }" v-model="nNum" placeholder="1">
+          <NumInput style="flex:1" v-model="nNum" field="prNum" :precision="0" step="1" :min="1" :max="16" />
           <span class="u"></span>
         </div>
-        <div class="row" title="Effective piston area (from datasheet). WinISD: Sd. Required.">
+        <div class="row" data-field-key="prSd" :title="help('prSd', 'Required.')">
           <label>Sd</label>
-          <input style="flex:1" type="number" step="any" v-limits="{ min: 0.1, max: 100000 }" v-model="nSd" placeholder="—">
-          <span class="u">cm²</span>
+          <NumInput style="flex:1" v-model="nSd" field="prSd" group="area" base="cm2" :precision="4" />
+          <UnitToggle field="prSd" group="area" base="cm2" unit-class="u" />
         </div>
-        <div class="row" title="Maximum linear one-way excursion (from datasheet). WinISD: Xmax. Optional.">
+        <div class="row" data-field-key="prXmax" :title="help('prXmax', 'Optional.')">
           <label>Xmax</label>
-          <input style="flex:1" type="number" step="any" v-limits="{ min: 0, max: 500 }" v-model="nXmax" placeholder="—">
-          <span class="u">mm</span>
+          <NumInput style="flex:1" v-model="nXmax" field="prXmax" group="length" base="mm" :precision="3" />
+          <UnitToggle field="prXmax" group="length" base="mm" unit-class="u" />
         </div>
-        <div class="row" title="PR free-air resonance (no added mass, no box). WinISD: Fs. Required.">
+        <div class="row" data-field-key="prFs" :title="help('prFs', 'Required.')">
           <label>Fs</label>
-          <input style="flex:1" type="number" step="any" v-limits="{ min: 1, max: 1000 }" v-model="nFs" placeholder="—">
+          <NumInput style="flex:1" v-model="nFs" field="prFs" :precision="4" />
           <span class="u">Hz</span>
         </div>
-        <div class="row" title="Mechanical Q of the PR suspension. WinISD: Qms. Required.">
+        <div class="row" data-field-key="prQms" :title="help('prQms', 'Required.')">
           <label>Qms</label>
-          <input style="flex:1" type="number" step="any" v-limits="{ min: 0.1, max: 100 }" v-model="nQms" placeholder="—">
+          <NumInput style="flex:1" v-model="nQms" field="prQms" :precision="3" />
           <span class="u"></span>
         </div>
-        <div class="row" title="Compliance volume. WinISD: Vas. Required.">
+        <div class="row" data-field-key="prVas" :title="help('prVas', 'Required.')">
           <label>Vas</label>
-          <input style="flex:1" type="number" step="any" v-limits="{ min: 0.01, max: 100000 }" v-model="nVas" placeholder="—">
-          <span class="u">L</span>
+          <NumInput style="flex:1" v-model="nVas" field="prVas" group="volume" base="L" :precision="3" />
+          <UnitToggle field="prVas" group="volume" base="L" unit-class="u" />
         </div>
 
         <div class="btns" style="margin-top:8px">

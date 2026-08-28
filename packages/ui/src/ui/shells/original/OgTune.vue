@@ -18,12 +18,13 @@ import { toDisplay, fromDisplay, type UnitGroup } from '../../../logic/fields/un
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
 import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
+import UnitToggle from '../../components/UnitToggle.vue';
 import type { Cell, SpecField } from '@openisd/model';
 
 const project = useFocusedProject();
 
-// The record's own field names (`BL`, not the engine's `Bl`) — these index OpenISDDriver
-// directly, so they are its field names and nothing else's.
+// WinISD's own field names — these index OpenISDDriver directly, and the field registry now
+// keys by the same names, so there is nothing to cross between.
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe' | 'BL' | 'Mms';
 // Raw driver values are SI (Vas m³, Sd m², Le H, Xmax m, Mms kg); a field with a `group`/
 // `token` displays and accepts input via the one units.ts conversion (`display = SI × factor`);
@@ -60,17 +61,13 @@ const rawVals = reactive<Record<string, string>>({});
 // The CELL, not the entered bag: raw() holds entered fields only, so a Q the app solved from
 // the other two read as blank here. cell() carries the solved value with its C mark, which is
 // what makes the third Q fill itself in as the other two change.
-// The field registry keys the motor force factor by the engine's `Bl`; the record's own
-// field is `BL`. Cross between the two here, at the lookup — the same join the model states
-// in packages/model/src/openisdDriver.ts TO_ENGINE.
-const regId = (key: NumKey): string => (key === 'BL' ? 'Bl' : key);
 
 function disp(key: NumKey, group: UnitGroup | undefined, token: string | undefined): string {
   void project.value;
   const v = driverFieldCell(key).value;
   if (typeof v !== 'number' || !isFinite(v)) return '';
   const d = group && token ? toDisplay(v, group, token) : v;
-  return d.toFixed(fieldDp(regId(key)));
+  return d.toFixed(fieldDp(key));
 }
 function fieldVal(key: NumKey, group: UnitGroup | undefined, token: string | undefined): string {
   return key in rawVals ? rawVals[key] : disp(key, group, token);
@@ -89,7 +86,7 @@ function onBlur(key: NumKey) { delete rawVals[key]; }
 // Registry bounds are SI-space; the input shows the display unit, so the v-limits clamp needs
 // the same conversion (e.g. Vas max 100 m³ → 100000 L).
 function scaledLimits(key: NumKey, group: UnitGroup | undefined, token: string | undefined): { min?: number; max?: number } {
-  const lim = limits(regId(key));
+  const lim = limits(key);
   if (!group || !token) return lim;
   return { min: lim.min === undefined ? undefined : toDisplay(lim.min, group, token),
            max: lim.max === undefined ? undefined : toDisplay(lim.max, group, token) };
@@ -228,8 +225,8 @@ function reset()  { project.value.resetOverlayToGround(); }
       <div class="tune-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. The same box volume the Box tab edits; Cancel puts it back. WinISD: Vb.">
         <label>Vb</label>
         <div class="tune-unit">
-          <NumInput :model-value="project.boxVolume_m3()" @update:model-value="v => project.setBoxVolume_m3(v ?? 0)" :scale="1000" :precision="4" />
-          <span>l</span>
+          <NumInput :model-value="project.boxVolume_m3()" @update:model-value="v => project.setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="4" />
+          <UnitToggle field="Vb" group="volume" base="L" />
         </div>
       </div>
     </div>

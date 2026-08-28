@@ -3,18 +3,18 @@
  * every `Vb`/`ventD`/`Fb`/`activeVent` accessor reads — ledger QO54) must be THE SAME FACT,
  * not two independently-writable copies.
  *
- * `BoxType` (@openisd/design/engine: 'sealed'|'vented'|'pr'|'bandpass4') and `AlignmentKind`
- * (@openisd/model: 'sealed'|'vented'|'bandpass4'|'passive-radiator') spell the PR case
- * differently — 'pr' vs 'passive-radiator' — so the sync is a translation, not a bare
+ * `BoxType` (@openisd/design/engine: 'sealed'|'vented'|'pr'|'bandpass4') and `BoxType`
+ * (@openisd/model: 'sealed'|'vented'|'bandpass4'|'box-passive-radiator') spell the PR case
+ * differently — 'pr' vs 'box-passive-radiator' — so the sync is a translation, not a bare
  * assignment; that translation is what most needs a test, since a typo in either string
  * silently degrades to "the mapping does nothing" rather than a type error.
  */
 import { describe, it } from 'vitest';
 
 /** Read one dormant-or-active slot off an INDEPENDENT snapshot: switching the copy's
- *  alignment is safe (it is a copy) and is the public route to a dormant slot's value. */
-function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator') {
-  p.setAlignment(kind);
+ *  box-type accessor is safe (it is a copy) and is the public route to a dormant slot's value. */
+function slotOf(p: import('@openisd/model').OpenISDProject, kind: 'sealed' | 'vented' | 'bandpass4' | 'box-passive-radiator') {
+  p.setBoxType(kind);
   return p;
 }
 
@@ -26,23 +26,23 @@ import type { UiParams } from '@openisd/model';
 
 /** A project built the same way `applyLoadedProject()`'s caller (the repo) builds one — via
  *  `OpenISDProject`'s own restore surface, not a second construction path. */
-function projectOf(box: 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator', params: Partial<UiParams>): OpenISDProject {
+function projectOf(box: 'sealed' | 'vented' | 'bandpass4' | 'box-passive-radiator', params: Partial<UiParams>): OpenISDProject {
   const project = OpenISDProject.empty(OpenISDDriver.empty());
   project.loadUiParams(params, box);
   project.setProjectMeta({ name: '', creator: '', created: '', modified: '', description: '' });
   return project;
 }
 
-describe('state.box drives the project\'s active alignment', () => {
-  for (const box of ['sealed', 'vented', 'bandpass4', 'pr'] as const) {
-    it(`state.box = '${box}' makes it the project's active alignment`, () => {
+describe('state.box drives the project\'s active box type', () => {
+  for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'] as const) {
+    it(`state.box = '${box}' makes it the project's active box type`, () => {
       state.box = box;
-      const expected = box === 'pr' ? 'passive-radiator' : box;
-      assert.equal(requireFocusedProject().snapshot().activeAlignment(), expected);
+      const expected = box;
+      assert.equal(requireFocusedProject().snapshot().activeBoxType(), expected);
     });
   }
 
-  it('switching box type does not clobber the volume left behind in the other alignment', () => {
+  it('switching box type does not clobber the volume left behind in the other box type', () => {
     state.box = 'vented';
     requireFocusedProject().setBoxVolume_m3(0.041);
     state.box = 'sealed';
@@ -56,10 +56,10 @@ describe('state.box drives the project\'s active alignment', () => {
 });
 
 describe('applyLoadedProject — a restored box type takes effect before the restored P is applied', () => {
-  // `OpenISDProject.loadUiParams` sets the active alignment BEFORE writing the restored params.
-  // That order matters: `Vb`/`ventD`/`Fb` each pick their storage by the ACTIVE alignment
+  // `OpenISDProject.loadUiParams` sets the active box type BEFORE writing the restored params.
+  // That order matters: `Vb`/`ventD`/`Fb` each pick their storage by the ACTIVE box type
   // (ledger QO54), so applying a sealed design's Vb while 'vented' is still active would
-  // silently write it into the vented alignment instead.
+  // silently write it into the vented box type instead.
   it('restoring a sealed design lands Vb in sealed, not in whatever was active before', () => {
     state.box = 'vented';   // simulate a session that was on a different box type
     const saved = projectOf('sealed', { Vb: 0.0275 });
@@ -68,7 +68,7 @@ describe('applyLoadedProject — a restored box type takes effect before the res
 
     assert.equal(state.box, 'sealed');
     assert.equal(slotOf(requireFocusedProject().snapshot(), 'sealed').cell('Vb').value, 0.0275,
-      'the restored Vb must land in the alignment the restored box type just activated');
+      'the restored Vb must land in the box type the restored box type just activated');
   });
 
   it('a restored entered set replaces the previous one, not merges with it', () => {

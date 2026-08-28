@@ -19,12 +19,14 @@ import {
 const scraped = <T,>(value: T) => ({ value, origin: 'scraped' as string });
 
 function specSection(p: {
-  Fs_hz: number; Sd_m2: number; Cms_m_per_N: number;
+  Fs_hz: number; Qts: number; Sd_m2: number; Cms_m_per_N: number;
   Mmd_kg: number; Rms_Ns_per_m: number; Xmax_m: number;
 }) {
+  // A test names the parameter with its unit, the way the public API does; the RECORD's keys are
+  // the unsuffixed ones `openisd.yml` states, which is what this literal has to produce.
   return {
-    Fs_hz: scraped(p.Fs_hz), Sd_m2: scraped(p.Sd_m2), Cms_m_per_N: scraped(p.Cms_m_per_N),
-    Mmd_kg: scraped(p.Mmd_kg), Rms_Ns_per_m: scraped(p.Rms_Ns_per_m), Xmax_m: scraped(p.Xmax_m),
+    Fs: scraped(p.Fs_hz), Qts: scraped(p.Qts), Sd: scraped(p.Sd_m2), Cms: scraped(p.Cms_m_per_N),
+    Mms: scraped(p.Mmd_kg), Rms: scraped(p.Rms_Ns_per_m), Xmax: scraped(p.Xmax_m),
   };
 }
 
@@ -32,7 +34,7 @@ function specSection(p: {
  *  cannot. Tests that expect a VALID record use this; the one that checks refusal calls
  *  `driverFromConformingRecord` directly and inspects the problems. */
 function driverFrom(p: Parameters<typeof driverJson>[0]) {
-  const result = driverFromConformingRecord(driverJson(p));
+  const result = driverFromConformingRecord(driverJson(p), new Engine());
   if (Array.isArray(result)) throw new Error(`fixture is not a valid driver: ${result.join(', ')}`);
   return result;
 }
@@ -54,12 +56,12 @@ describe('the driver — a window, not a copy', () => {
   it('reads and writes through to the record it was given', () => {
     const driver = newProject(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
-      spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), new Engine()).sealed().volume_m3(0.03).build().driver;
 
-    expect(driver.Fs_hz.get().value).toBe(30);
-    driver.Fs_hz.set(35);
-    expect(driver.Fs_hz.get().value).toBe(35);
+    expect(driver.spec.woofer.Fs_hz.get().value).toBe(30);
+    driver.spec.woofer.Fs_hz.set(35);
+    expect(driver.spec.woofer.Fs_hz.get().value).toBe(35);
     expect(driver.brand.get().value).toBe('Dayton');
   });
 
@@ -70,48 +72,48 @@ describe('the driver — a window, not a copy', () => {
     // edit onwards, so the write looked lost.
     const project = newProject(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
-      spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), new Engine()).sealed().volume_m3(0.03).build();
     const driver = project.driver;      // bound ONCE, before the edited state exists
 
-    driver.Fs_hz.set(35);               // creates the edited state under the caller's feet
-    expect(driver.Fs_hz.get().value).toBe(35);
+    driver.spec.woofer.Fs_hz.set(35);               // creates the edited state under the caller's feet
+    expect(driver.spec.woofer.Fs_hz.get().value).toBe(35);
 
     project.save();                     // the edited state is promoted; the handle must follow
-    expect(driver.Fs_hz.get().value).toBe(35);
+    expect(driver.spec.woofer.Fs_hz.get().value).toBe(35);
 
-    driver.Fs_hz.set(40);               // a fresh edited state, again under the caller's feet
-    expect(driver.Fs_hz.get().value).toBe(40);
+    driver.spec.woofer.Fs_hz.set(40);               // a fresh edited state, again under the caller's feet
+    expect(driver.spec.woofer.Fs_hz.get().value).toBe(40);
 
     await project.cancel(async () => true);   // and back to the saved state
-    expect(driver.Fs_hz.get().value).toBe(35);
+    expect(driver.spec.woofer.Fs_hz.get().value).toBe(35);
   });
 
   it('gives every field a STABLE identity across accesses', () => {
     const driver = newProject(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
-      spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), new Engine()).sealed().volume_m3(0.03).build().driver;
 
     // Identity must hold, or reference-equality memoization sees every read as a change.
-    expect(driver.Fs_hz).toBe(driver.Fs_hz);
+    expect(driver.spec.woofer.Fs_hz).toBe(driver.spec.woofer.Fs_hz);
     expect(driver.brand).toBe(driver.brand);
   });
 
   it('reports what is wrong with a record instead of throwing, so a picker can show it', () => {
     const noSection = driverJson({
       brand: 'Dayton', model: 'RS225', section: 'passive-radiator',
-      spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     });
 
-    const result = driverFromConformingRecord(noSection);
+    const result = driverFromConformingRecord(noSection, new Engine());
 
     expect(Array.isArray(result)).toBe(true);
     expect(result).toContain('neither a woofer nor a tweeter section — nothing to simulate');
   });
 
   it('reports EVERY problem at once, not just the first', () => {
-    const result = driverFromConformingRecord({ brand: { value: 'Dayton', origin: 'x' } });
+    const result = driverFromConformingRecord({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
 
     expect(result).toEqual(expect.arrayContaining([
       expect.stringContaining("'model'"),
@@ -123,21 +125,21 @@ describe('the driver — a window, not a copy', () => {
   it('detach() yields an instance that no longer shares storage with the original', () => {
     const original = newProject(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
-      spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), new Engine()).sealed().volume_m3(0.03).build().driver;
 
     const copy = original.detach();
-    copy.Fs_hz.set(99);
+    copy.spec.woofer.Fs_hz.set(99);
 
-    expect(copy.Fs_hz.get().value).toBe(99);
-    expect(original.Fs_hz.get().value).toBe(30);
+    expect(copy.spec.woofer.Fs_hz.get().value).toBe(99);
+    expect(original.spec.woofer.Fs_hz.get().value).toBe(30);
   });
 });
 
 describe('OpenISDBox — every alignment, as a window onto the project record', () => {
   const project = () => newProject(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
-    spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), new Engine()).sealed().volume_m3(0.03).build();
 
   it('writes the sealed volume through to the project', () => {
@@ -174,17 +176,44 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     expect(small.box.sealed.resonance_hz()!).toBeGreaterThan(big.box.sealed.resonance_hz()!);
   });
 
+  it('the sealed resonance is the LOSSY one — it moves when only the leakage changes', () => {
+    // The property that separates lossy from lossless, and the one real WinISD demonstrably has:
+    // at a fixed volume, `Fr` shifts 5.8 Hz between Ql=10000 and Ql=5 (winisd_research
+    // FINDING-007). The lossless formula `Fs·√(1 + Vas/Vb)` cannot see Ql at all, so it returns
+    // the same number for both — which is exactly the defect this pins.
+    const leaky = newProject(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).sealed().volume_m3(0.03).build();
+    const tight = newProject(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).sealed().volume_m3(0.03).build();
+
+    leaky.box.sealed.losses.Ql.set(5);
+    tight.box.sealed.losses.Ql.set(10000);
+
+    expect(leaky.box.sealed.resonance_hz()).not.toBeCloseTo(tight.box.sealed.resonance_hz()!, 3);
+  });
+
   it('STILL computes plain geometry — a port area is πr², which no model can disagree about', () => {
     const p = project();
     p.box.vented.vent.diameter_m.set(0.1);
     expect(p.box.vented.vent.area_m2()).toBeCloseTo(Math.PI * 0.05 ** 2, 12);
   });
 
-  it('refuses the port\'s ACOUSTIC length, which carries an end-correction model', () => {
+  it('gets the port\'s ACOUSTIC length from the engine, end correction and all', () => {
     const p = project();
     p.box.vented.vent.diameter_m.set(0.1);
     p.box.vented.vent.length_m.set(0.2);
-    expect(() => p.box.vented.vent.effectiveLength_m()).toThrow(/engine/);
+
+    const area = Math.PI * 0.05 ** 2;
+    const engine = new Engine();
+    expect(p.box.vented.vent.effectiveLength_m()).toBe(
+      engine.ventEffectiveLength(0.2, area, p.box.vented.vent.endCorrection_m.get()),
+    );
+    // And it is LONGER than the port measures — that is what an end correction does.
+    expect(p.box.vented.vent.effectiveLength_m()!).toBeGreaterThan(0.2);
   });
 
   it('reports an unset tuning as not-available rather than zero', () => {
@@ -246,11 +275,11 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
 describe('the passive radiator a box holds', () => {
   const prJson = () => driverJson({
     brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
-    spec: specSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+    spec: specSection({ Fs_hz: 12, Qts: 0.4, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
   });
   const project = () => newProject(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
-    spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), new Engine()).sealed().volume_m3(0.03).build();
 
   it('reports nothing chosen, and refuses edits, until configurePR', () => {
@@ -263,7 +292,7 @@ describe('the passive radiator a box holds', () => {
 
   it('copies the chosen radiator IN, so later edits do not touch the library entry', () => {
     const p = project();
-    const library = passiveRadiatorFromConformingRecord(prJson());
+    const library = passiveRadiatorFromConformingRecord(prJson(), new Engine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
 
@@ -279,7 +308,7 @@ describe('the passive radiator a box holds', () => {
 describe('ManagedProject — the layers', () => {
   const managed = () => newProject(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
-    spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), new Engine()).sealed().volume_m3(0.03).build();
 
   it('starts unmodified', () => {
@@ -289,28 +318,28 @@ describe('ManagedProject — the layers', () => {
   it('the first write creates the edited state; Cancel throws it away', () => {
     const mp = managed();
 
-    mp.driver.Fs_hz.set(99);
+    mp.driver.spec.woofer.Fs_hz.set(99);
     expect(mp.isModified()).toBe(true);
-    expect(mp.driver.Fs_hz.get().value).toBe(99);
+    expect(mp.driver.spec.woofer.Fs_hz.get().value).toBe(99);
 
     void mp.cancel(async () => true);
   });
 
   it('Cancel restores the last saved values', async () => {
     const mp = managed();
-    mp.driver.Fs_hz.set(99);
+    mp.driver.spec.woofer.Fs_hz.set(99);
 
     expect(await mp.cancel(async () => true)).toBe(true);
-    expect(mp.driver.Fs_hz.get().value).toBe(30);
+    expect(mp.driver.spec.woofer.Fs_hz.get().value).toBe(30);
     expect(mp.isModified()).toBe(false);
   });
 
   it('Cancel does nothing when the challenge refuses', async () => {
     const mp = managed();
-    mp.driver.Fs_hz.set(99);
+    mp.driver.spec.woofer.Fs_hz.set(99);
 
     expect(await mp.cancel(async () => false)).toBe(false);
-    expect(mp.driver.Fs_hz.get().value).toBe(99);
+    expect(mp.driver.spec.woofer.Fs_hz.get().value).toBe(99);
     expect(mp.isModified()).toBe(true);
   });
 
@@ -320,24 +349,24 @@ describe('ManagedProject — the layers', () => {
 
   it('Save promotes the edited state and clears the modified flag', () => {
     const mp = managed();
-    mp.driver.Fs_hz.set(50);
+    mp.driver.spec.woofer.Fs_hz.set(50);
     expect(mp.isModified()).toBe(true);
 
     mp.save();
-    expect(mp.driver.Fs_hz.get().value).toBe(50);
+    expect(mp.driver.spec.woofer.Fs_hz.get().value).toBe(50);
     expect(mp.isModified()).toBe(false);
   });
 
   it('Cancel after a Save goes back to what was SAVED, not to what was loaded', async () => {
     const mp = managed();
-    mp.driver.Fs_hz.set(50);
+    mp.driver.spec.woofer.Fs_hz.set(50);
     mp.save();
 
-    mp.driver.Fs_hz.set(77);
+    mp.driver.spec.woofer.Fs_hz.set(77);
     await mp.cancel(async () => true);
 
     // 50 — the saved state — not the 30 the project was loaded with.
-    expect(mp.driver.Fs_hz.get().value).toBe(50);
+    expect(mp.driver.spec.woofer.Fs_hz.get().value).toBe(50);
   });
 
   it('notifies on entering the edited state, not only on later writes', () => {
@@ -345,11 +374,11 @@ describe('ManagedProject — the layers', () => {
     let notifications = 0;
     mp.subscribe(() => { notifications += 1; });
 
-    mp.driver.Fs_hz.set(42);
+    mp.driver.spec.woofer.Fs_hz.set(42);
     expect(notifications).toBeGreaterThan(0);
 
     const afterFirst = notifications;
-    mp.driver.Fs_hz.set(43);
+    mp.driver.spec.woofer.Fs_hz.set(43);
     expect(notifications).toBeGreaterThan(afterFirst);
   });
 });
@@ -357,7 +386,7 @@ describe('ManagedProject — the layers', () => {
 describe('editing a driver — copy, then update or drop', () => {
   const wooferDriver = () => driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
-    spec: specSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   });
 
   it('leaves the project untouched until the copy is written back', () => {
@@ -365,33 +394,33 @@ describe('editing a driver — copy, then update or drop', () => {
 
     // What an editor does: take a copy, edit THAT, and only then decide.
     const working = mp.driver.detach();
-    working.Fs_hz.set(123);
-    expect(mp.driver.Fs_hz.get().value).toBe(30);   // cancel = just drop `working`
+    working.spec.woofer.Fs_hz.set(123);
+    expect(mp.driver.spec.woofer.Fs_hz.get().value).toBe(30);   // cancel = just drop `working`
 
     const second = mp.driver.detach();
-    second.Fs_hz.set(61);
+    second.spec.woofer.Fs_hz.set(61);
     mp.driver.update(second);                        // ok
-    expect(mp.driver.Fs_hz.get().value).toBe(61);
+    expect(mp.driver.spec.woofer.Fs_hz.get().value).toBe(61);
   });
 
   it('works identically on a standalone driver — the same two calls, whatever the origin', () => {
     const original = newProject(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
 
     const working = original.detach();
-    working.Fs_hz.set(200);
-    expect(original.Fs_hz.get().value).toBe(30);
+    working.spec.woofer.Fs_hz.set(200);
+    expect(original.spec.woofer.Fs_hz.get().value).toBe(30);
 
     original.update(working);
-    expect(original.Fs_hz.get().value).toBe(200);
+    expect(original.spec.woofer.Fs_hz.get().value).toBe(200);
   });
 
   it('discards an edit by dropping the copy — nothing to roll back', () => {
     const original = newProject(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
 
     const working = original.detach();
-    working.Fs_hz.set(500);
+    working.spec.woofer.Fs_hz.set(500);
     // no update() — the copy simply goes out of scope
 
-    expect(original.Fs_hz.get().value).toBe(30);
+    expect(original.spec.woofer.Fs_hz.get().value).toBe(30);
   });
 });

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import type { PRLibEntry } from '@openisd/persistence';
 import NumInput from './NumInput.vue';
+import UnitToggle from './UnitToggle.vue';
 import { useApp } from '../../logic/app.js';
 
 const { prRepo } = useApp();
@@ -12,22 +13,22 @@ const { prRepo } = useApp();
 // parameters" box). Fields here describe the PR unit itself, not the box around it.
 
 import { useEscToClose } from '../../logic/useEscToClose.js';
+import { fieldHelp } from '../../logic/fields/fieldRegistry.js';
 
 const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, close);
 
 const project = useFocusedProject();
 // The datasheet vocabulary is the DOMAIN's own keyed surface now: cells read the derived
-// views (SI — the ×1000 below is the litre display this dialog shows), entries re-solve the
-// canonical Sd/Cms/Mmd/Rms with the ruled holds inside the domain object.
-const prVas = computed(() => project.value.prVas_m3() * 1000);
+// views in SI, entries re-solve the canonical Sd/Cms/Mmd/Rms with the ruled holds inside the
+// domain object. Display units are NumInput's business, through the field's unit group — this
+// dialog holds SI end to end and converts nothing.
 const prFsShown = computed(() => project.value.prFs_hz());
 const prFsWithMassShown = computed(() => project.value.prFsMass_hz());
 const prQmsShown = computed(() => project.value.prQms());
 
 function setWinIsdFs(newFsHz: number) { project.value.setPrFs_hz(newFsHz); }
 function setWinIsdQms(newQms: number) { project.value.setPrQms(newQms); }
-function setWinIsdVas(newVasL: number) { project.value.setPrVas_m3(newVasL / 1000); }
 
 // No per-field computed wrapper for name/count/Sd/Xmax (`docs/design/REACTIVITY.md`) — the
 // template below reads the focused project's own getter directly (reactive via `project`) and
@@ -74,40 +75,40 @@ function close() { emit('close'); }
           <label>PR name</label>
           <input style="flex:1" type="text" :value="project.prName()" @input="e => project.setPrName((e.target as HTMLInputElement).value)" placeholder="e.g. Dayton SD270A-88">
         </div>
-        <div class="row" title="Number of passive radiators in parallel">
+        <div class="row" data-field-key="prNum" :title="fieldHelp('prNum')">
           <label>PR count</label>
-          <NumInput :model-value="project.prCount()" @update:model-value="v => project.setPrCount(v ?? 0)" :scale="1" :precision="2" step="1" :min="1" />
+          <NumInput :model-value="project.prCount()" @update:model-value="v => project.setPrCount(v ?? 0)" field="prNum" :precision="0" step="1" />
           <span class="u"></span>
         </div>
-        <div class="row" title="Effective piston area (from datasheet). WinISD: Sd.">
+        <div class="row" data-field-key="prSd" :title="fieldHelp('prSd')">
           <label>Sd</label>
-          <NumInput :model-value="project.prSd_m2()" @update:model-value="v => project.setPrSd_m2(v ?? 0)" :scale="1e4" :precision="4" />
-          <span class="u">cm²</span>
+          <NumInput :model-value="project.prSd_m2()" @update:model-value="v => project.setPrSd_m2(v ?? 0)" field="prSd" group="area" base="cm2" :precision="4" />
+          <UnitToggle field="prSd" group="area" base="cm2" unit-class="u" />
         </div>
-        <div class="row" title="Maximum linear one-way cone excursion (from datasheet). WinISD: Xmax.">
+        <div class="row" data-field-key="prXmax" :title="fieldHelp('prXmax')">
           <label>Xmax</label>
-          <NumInput :model-value="project.prXmax_m()" @update:model-value="v => project.setPrXmax_m(v ?? 0)" :scale="1000" :precision="3" />
-          <span class="u">mm</span>
+          <NumInput :model-value="project.prXmax_m()" @update:model-value="v => project.setPrXmax_m(v ?? 0)" field="prXmax" group="length" base="mm" :precision="3" />
+          <UnitToggle field="prXmax" group="length" base="mm" unit-class="u" />
         </div>
-        <div class="row" title="PR free-air resonance (no added mass, no box). WinISD: Fs.">
+        <div class="row" data-field-key="prFs" :title="fieldHelp('prFs')">
           <label>Fs</label>
-          <NumInput :model-value="prFsShown" :scale="1" :precision="4" @update:model-value="v => setWinIsdFs(v ?? 0)" />
+          <NumInput :model-value="prFsShown" field="prFs" :precision="4" @update:model-value="v => setWinIsdFs(v ?? 0)" />
           <span class="u">Hz</span>
         </div>
-        <div class="row" title="PR resonance WITH the added mass — the tuned, not free-air, frequency. Depends on the box's added-mass setting; read-only here.">
+        <div class="row" data-field-key="prFsMass" :title="fieldHelp('prFsMass')">
           <label>Fs (with mass)</label>
-          <NumInput :model-value="prFsWithMassShown" :scale="1" :precision="4" readonly />
+          <NumInput :model-value="prFsWithMassShown" field="prFsMass" :precision="4" readonly />
           <span class="u">Hz</span>
         </div>
-        <div class="row" title="Mechanical Q of the PR suspension. WinISD: Qms.">
+        <div class="row" data-field-key="prQms" :title="fieldHelp('prQms')">
           <label>Qms</label>
-          <NumInput :model-value="prQmsShown" :scale="1" :precision="3" @update:model-value="v => setWinIsdQms(v ?? 0)" />
+          <NumInput :model-value="prQmsShown" field="prQms" :precision="3" @update:model-value="v => setWinIsdQms(v ?? 0)" />
           <span class="u"></span>
         </div>
-        <div class="row" title="Compliance volume. WinISD: Vas.">
+        <div class="row" data-field-key="prVas" :title="fieldHelp('prVas')">
           <label>Vas</label>
-          <NumInput :model-value="prVas" :scale="1" :precision="3" @update:model-value="v => setWinIsdVas(v ?? 0)" />
-          <span class="u">L</span>
+          <NumInput :model-value="project.prVas_m3()" @update:model-value="v => project.setPrVas_m3(v ?? 0)" field="prVas" group="volume" base="L" :precision="3" />
+          <UnitToggle field="prVas" group="volume" base="L" unit-class="u" />
         </div>
 
         <div class="btns" style="margin-top:8px">

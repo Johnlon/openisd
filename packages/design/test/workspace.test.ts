@@ -9,6 +9,7 @@ import { assemble } from '../app/composition.js';
 import { memoryStore } from '@openisd/design/browser';
 import { driverFromConformingRecord, type OpenISDDriver } from '@openisd/design';
 import { Workspace } from '../app/workspace.js';
+import { Engine } from '@openisd/design/engine';
 
 /** A conforming driver record, built inline so each test's data is readable where it is used. */
 function aDriver(brand: string, model: string): OpenISDDriver {
@@ -21,7 +22,7 @@ function aDriver(brand: string, model: string): OpenISDDriver {
       Fs_hz: num(30), Sd_m2: num(0.02), Cms_m_per_N: num(0.0005),
       Mmd_kg: num(0.05), Rms_Ns_per_m: num(2), Xmax_m: num(0.008),
     },
-  });
+  }, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture is not conforming: ${driver.join('; ')}`);
   return driver;
 }

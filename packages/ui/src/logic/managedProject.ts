@@ -40,7 +40,7 @@
 import { OpenISDDriver, OpenISDProject, Provenance, driverRecordProblems } from '@openisd/model';
 import type {
   Cell, MetaCell,
-  OpenISDVent, AlignmentKind, OpenISDProjectMeta,
+  OpenISDVent, OpenISDProjectMeta,
 } from '@openisd/model';
 import { winisdTextToBytes } from '@openisd/winisd';
 import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/design/engine';
@@ -51,22 +51,6 @@ import { ProjectFileFormat } from '../fileFormat.js';
 import type { UiParams } from '@openisd/model';
 
 type ManagedProjectListener = () => void;
-
-/** `BoxType` (@openisd/design/engine) and `AlignmentKind` (@openisd/model) name the same four
- *  alignments and spell one of them differently — `'pr'` vs `'passive-radiator'`. Both types
- *  are used pervasively under their own names elsewhere, so this is a translation at the one
- *  seam that needs it, not a rename of either. */
-/** The one alignment the two vocabularies spell differently. `satisfies` keeps the literal
- *  type — a widened `AlignmentKind` annotation would stop the narrowing the two translations
- *  below depend on — while still checking it IS an `AlignmentKind`. */
-const PR_ALIGNMENT = 'passive-radiator' satisfies AlignmentKind;
-
-export function toAlignmentKind(box: BoxType): AlignmentKind {
-  return box === 'pr' ? PR_ALIGNMENT : box;
-}
-export function fromAlignmentKind(active: AlignmentKind): BoxType {
-  return active === PR_ALIGNMENT ? 'pr' : active;
-}
 
 /** One state layer: the project, and its own live driver, read straight off it. `openIsdDriver`
  *  is `project.driver()` — the SAME object, never a re-parse: `OpenISDProject` holds the live
@@ -475,7 +459,7 @@ export class ManagedProject {
   }
 
   /** `Vf` — bandpass4's OWN front-chamber volume. Unconditional: unlike `Vb`, this never
-   *  addresses another alignment's storage, dormant or active — there is only one home. */
+   *  addresses another box type's storage, dormant or active — there is only one home. */
   frontVolume_m3(): number { return this.#effective().project.frontVolume_m3(); }
   setFrontVolume_m3(value: number): void {
     this.mutate(p => p.setFrontVolume_m3(value));
@@ -558,7 +542,7 @@ export class ManagedProject {
 
   /** Passive-radiator derived T/S params, from the stored PR bag. */
   /** Adopt a radiator from its datasheet vocabulary — the one conversion, on the owner. */
-  enterPrDatasheet(d: { vasL: number; fsHz: number; qms: number; sdM2: number; xmaxM?: number }): void {
+  enterPrDatasheet(d: { vasM3: number; fsHz: number; qms: number; sdM2: number; xmaxM?: number }): void {
     this.mutate(p => p.enterPrDatasheet(d));
   }
 
@@ -597,7 +581,7 @@ export class ManagedProject {
   prFp_hz(): number { return this.#effective().project.prFp_hz(); }
   setPrFp_hz(value: number): void { this.mutate(p => p.setPrFp_hz(value)); }
 
-  // ---- box loss factors (leakage/absorption/port), shared by every alignment ------------
+  // ---- box loss factors (leakage/absorption/port), shared by every box type ------------
 
   boxQl(): number { return this.#effective().project.loss('Ql'); }
   setBoxQl(value: number): void { this.mutate(p => p.setLoss('Ql', value)); }
@@ -701,11 +685,11 @@ export class ManagedProject {
     this.mutate(p => p.setFilters(p.filters().filter(f => f.id !== id)));
   }
 
-  /** Which alignment is active, in the domain's own vocabulary (`'passive-radiator'`, not
+  /** Which box type is active, in the domain's own vocabulary (`'box-passive-radiator'`, not
    *  `UiParams`'s `'pr'`). */
-  activeAlignment(): AlignmentKind { return this.#effective().project.activeAlignment(); }
-  setActiveAlignment(value: AlignmentKind): void {
-    this.mutate(p => p.setAlignment(value));
+  activeBoxType(): BoxType { return this.#effective().project.activeBoxType(); }
+  setActiveBoxType(value: BoxType): void {
+    this.mutate(p => p.setBoxType(value));
   }
 
   // ---- entered-set (target provenance), ledger QO54 --------------------------------------
@@ -973,7 +957,7 @@ export class ManagedProject {
 
   /** Adopt a `UiParams` blob — the domain's own restore (`OpenISDProject.loadUiParams`),
    *  wrapped in `mutate` for the single notification every public mutator owes. */
-  loadUiParams(p: Partial<UiParams>, box: AlignmentKind): void {
+  loadUiParams(p: Partial<UiParams>, box: BoxType): void {
     this.mutate(project => project.loadUiParams(p, box));
   }
 

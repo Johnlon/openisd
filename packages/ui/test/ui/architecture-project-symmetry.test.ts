@@ -113,7 +113,7 @@ describe('project symmetry — the invariants hold (Lane P5)', () => {
   it('openisdProject.ts exports no free functions — none, no exemptions', () => {
     const source = project.addSourceFileAtPath(OPENISD_PROJECT_TS);
     assert.deepEqual(exportedFreeFunctions(source), [],
-      'A question about a project\'s state is a METHOD on OpenISDProject (or its alignment '
+      'A question about a project\'s state is a METHOD on OpenISDProject (or its box type '
       + 'surface), never a free function operating on the record from outside — that is the '
       + 'retired getter coming back under another spelling. Move the logic onto the class.');
   });

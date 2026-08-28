@@ -20,7 +20,8 @@
 // environment — never a stored constant").
 //
 // THE TEST, when unsure: could two competent implementers disagree about the answer? If yes it is
-// acoustics — it belongs to the engine, and here it calls `noEngine()`. If no, it is geometry.
+// acoustics — it belongs to the engine, and this domain asks the INJECTED engine for it. If no,
+// it is geometry and may be computed here (`Vent.area_m2()` is the whole of that category).
 // Do not reason your way past this. John's stated fear is precisely that an AI will not respect
 // the rule; the honest move when a calculation feels borderline is to throw and ask, never to
 // write the formula and justify it in a comment.
@@ -37,22 +38,11 @@ import {
 } from './cell.js';
 import { newUuid } from './newUuid.js';
 import { Engine, LossMode } from '../engine/index.js';
+import type {
+  Air, BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, DriverFields, EngineDriver,
+  MaxCurvesResult, Result, SweepParams, SweepResult,
+} from '../engine/index.js';
 
-/**
- * Refuse a calculation that belongs to `@openisd/engine`. See the ruling at the top of this file.
- *
- * THROWS rather than returning null, deliberately. Null is this domain's word for "the value is
- * not stated", which a caller is entitled to render as a blank — so answering null here would
- * report a missing INPUT when the truth is a missing IMPLEMENTATION, and the gap would stay
- * invisible until someone wondered why a figure never appears. A throw is found by whoever calls
- * it, immediately, and names itself in the message.
- *
- * Returns `never`, so a call site satisfies any return type without a cast.
- */
-function noEngine(what: string): never {
-  throw new Error(
-    `${what}: acoustic calculations belong to @openisd/engine, and this domain is not wired to it yet`);
-}
 import type { Vent, VentShape } from './vent.js';
 import type {
   SealedLosses,
@@ -92,30 +82,153 @@ interface ScrapedField<T> {
   readonly origin: string;
 }
 
-/** The T/S parameters a driver states, in one section.
+/** The parameters a driver states, in one section.
+ *  Not just TS parameters, but any parameter we collect off the datasheets.
  *
  *  EVERY FIELD IS OPTIONAL — a key is ABSENT when the driver does not state that parameter, not
  *  present holding a null or a zero. That is what a scraped record actually looks like: a
  *  datasheet giving four parameters produces four keys. `Cell` already reports `value: null` for
  *  a key that is not there, so a reader sees absence the same way whichever field is missing.
  *
+ *  Populates as `woofer: <SpecSection>` and/or `tweeted: <SpecSection>` in OpenIsdDriver.
  *  It also means an EMPTY driver is `{ woofer: {} }` — a section present and nothing in it. No
  *  invented zeros, and `OpenISDDriver.sectionOf()` is satisfied, which is what lets a project be
- *  constructed before its driver is written in. */
+ *  constructed before its driver is written in.
+ *
+ *  KEYS HERE ARE THE RECORD'S OWN, UNSUFFIXED — `openisd.yml` states `Fs`, `Sd`, `Cms`, `Xmax`,
+ *  so this type states them too. Spelling the stored keys differently would make the reader hold
+ *  a translation table to check a record against the type that declares it.
+ *
+ *  THE UNIT LIVES ON THE PUBLIC API, NOT HERE (John 2026-08-27: "please put the unit back on
+ *  api"). `OpenISDDriver.spec.woofer` publishes `Fs_hz`, `Sd_m2`, `Cms_m_per_N` — a caller
+ *  reading a number is the one who can get the unit wrong, and the name is where they will look.
+ *  The record is already SI throughout (`Sd: {actual_reading: '1217 cm2', read_value: 0.1217}`),
+ *  so the suffix reports what the value IS; it never converts. */
 interface SpecSection {
-  readonly Fs_hz?: ScrapedField<number>;
-  readonly Sd_m2?: ScrapedField<number>;
-  readonly Cms_m_per_N?: ScrapedField<number>;
-  readonly Mmd_kg?: ScrapedField<number>;
-  readonly Rms_Ns_per_m?: ScrapedField<number>;
-  readonly Xmax_m?: ScrapedField<number>;
-  // ...one ScrapedField per T/S parameter in that section.
+  // Thiele/Small.
+  readonly Fs?: ScrapedField<number>;
+  readonly Re?: ScrapedField<number>;
+  readonly Le?: ScrapedField<number>;
+  readonly fLe?: ScrapedField<number>;
+  readonly KLe?: ScrapedField<number>;
+  readonly Znom?: ScrapedField<number>;
+  readonly Qts?: ScrapedField<number>;
+  readonly Qes?: ScrapedField<number>;
+  readonly Qms?: ScrapedField<number>;
+  readonly Vas?: ScrapedField<number>;
+  readonly Sd?: ScrapedField<number>;
+  readonly BL?: ScrapedField<number>;
+  readonly Mms?: ScrapedField<number>;
+  readonly Cms?: ScrapedField<number>;
+  readonly Rms?: ScrapedField<number>;
+  readonly Xmax?: ScrapedField<number>;
+  readonly Xlim?: ScrapedField<number>;
+  readonly SPL?: ScrapedField<number>;
+  readonly Pe?: ScrapedField<number>;
+  readonly Dd?: ScrapedField<number>;
+  readonly EBP?: ScrapedField<number>;
+  readonly numVC?: ScrapedField<number>;
+  readonly VCCon?: ScrapedField<VoiceCoilWiring>;
+  // Ordinarily derived, but WinISD lets a human TYPE any of them, and an entered value is a fact.
+  readonly Dia?: ScrapedField<number>;
+  readonly Vd?: ScrapedField<number>;
+  readonly no?: ScrapedField<number>;
+  readonly SPLmax?: ScrapedField<number>;
+  readonly SPLmaxLF?: ScrapedField<number>;
+  readonly USPL?: ScrapedField<number>;
+  readonly alfaVC?: ScrapedField<number>;
+  readonly Rt?: ScrapedField<number>;
+  readonly Ct?: ScrapedField<number>;
+  readonly gamma?: ScrapedField<number>;
+  readonly Rme?: ScrapedField<number>;
+  readonly Mpow?: ScrapedField<number>;
+  readonly Mcost?: ScrapedField<number>;
+  readonly Gloss?: ScrapedField<number>;
+  // `c` and `roo` are the air the DRIVER states — the conditions its own figures were measured
+  // or computed at. `OpenISDEnvironment` on the project is what a simulation runs on; these two
+  // are not that, and the record keeps them per driver because WinISD does.
+  readonly c?: ScrapedField<number>;
+  readonly roo?: ScrapedField<number>;
+  // Descriptive and dimensional.
+  readonly Vcd?: ScrapedField<number>;
+  readonly Hg?: ScrapedField<number>;
+  readonly Hc?: ScrapedField<number>;
+  readonly freq_low_hz?: ScrapedField<number>;
+  readonly freq_high_hz?: ScrapedField<number>;
+  readonly power_peak_W?: ScrapedField<number>;
+  readonly weight_kg?: ScrapedField<number>;
+  readonly Thick?: ScrapedField<number>;
+  readonly Depth?: ScrapedField<number>;
+  readonly MagDepth?: ScrapedField<number>;
+  readonly Magnet?: ScrapedField<number>;
+  readonly Basket?: ScrapedField<number>;
+  readonly Outer?: ScrapedField<number>;
+  readonly OuterX?: ScrapedField<number>;
+  readonly OuterY?: ScrapedField<number>;
+  readonly DVol?: ScrapedField<number>;
 }
 
 type MetaFieldName =
   'brand' | 'model' | 'manufacturer' | 'provided_by' | 'comment' | 'added';
-type SpecFieldName =
-  'Fs_hz' | 'Sd_m2' | 'Cms_m_per_N' | 'Mmd_kg' | 'Rms_Ns_per_m' | 'Xmax_m';
+/** Every numeric key of `SpecSection`, derived FROM it rather than listed again — a hand-kept
+ *  second list would drift, and a field added above with no accessor is caught by the compiler
+ *  instead of being silently unreachable. */
+type SpecFieldName = {
+  [K in keyof SpecSection]-?: SpecSection[K] extends ScrapedField<number> | undefined ? K : never;
+}[keyof SpecSection];
+
+/** The passive-radiator section — A DIFFERENT SCHEMA from a driver's, not a narrowed `SpecSection`
+ *  (John 2026-08-27: "the passive rad has only a few exposed fields not same as driver as no
+ *  electrical", "different schema"). A radiator has no motor and no voice coil, so `Re`, `Le`,
+ *  `Znom`, `Qes`, `BL`, `numVC` and the thermal parameters describe nothing on one. Typing it as
+ *  `SpecSection` would publish every one of them as a readable field. */
+/**
+ * How a multi-coil driver's voice coils are wired.
+ *
+ * NAMED, never WinISD's `1`/`2` (John, 2026-08-28: "encoding in openisd is 'series' not '2' —
+ * convert to '2' on serialisation to wpr/wdr", and "same principle applies to other numeric
+ * enums"). A magic number in the record forces every reader to hold a translation table, and a
+ * mis-set 1 reads as valid data rather than as the mistake it is. The numeric encoding is a
+ * property of WinISD's file format and belongs in the `.wdr`/`.wpr` adapter alone.
+ *
+ * The domain already works this way for the enums it inherited — `BoxType` and `VentShape` are
+ * names here and numbers only in the file.
+ */
+export const VoiceCoilWiring = {
+  Parallel: 'parallel',
+  Series: 'series',
+} as const;
+
+/** The wiring values, as a type. Declared from the object above rather than as a second literal
+ *  union, so there is exactly ONE place the members are written and a new member cannot be added
+ *  to one and forgotten in the other. */
+export type VoiceCoilWiring = typeof VoiceCoilWiring[keyof typeof VoiceCoilWiring];
+
+interface PassiveRadiatorSection {
+  readonly Fs?: ScrapedField<number>;
+  readonly Qms?: ScrapedField<number>;
+  readonly Cms?: ScrapedField<number>;
+  readonly Mms?: ScrapedField<number>;
+  readonly Rms?: ScrapedField<number>;
+  readonly Sd?: ScrapedField<number>;
+  readonly Vas?: ScrapedField<number>;
+  readonly Vd?: ScrapedField<number>;
+  readonly Xmax?: ScrapedField<number>;
+  readonly Xlim?: ScrapedField<number>;
+  readonly Dia?: ScrapedField<number>;
+  readonly Dd?: ScrapedField<number>;
+  readonly DVol?: ScrapedField<number>;
+  // Mounting dimensions — a radiator sits on a baffle exactly as a driver does (John 2026-08-27).
+  readonly Thick?: ScrapedField<number>;
+  readonly Depth?: ScrapedField<number>;
+  readonly Basket?: ScrapedField<number>;
+  readonly Outer?: ScrapedField<number>;
+  readonly OuterX?: ScrapedField<number>;
+  readonly OuterY?: ScrapedField<number>;
+  readonly weight_kg?: ScrapedField<number>;
+}
+
+type PassiveRadiatorFieldName = keyof PassiveRadiatorSection;
 
 interface OpenISDDriverJson {
   readonly brand: ScrapedField<string>;
@@ -126,7 +239,7 @@ interface OpenISDDriverJson {
   readonly added: ScrapedField<string>;
   readonly woofer?: SpecSection;
   readonly tweeter?: SpecSection;
-  readonly 'passive-radiator'?: SpecSection;
+  readonly 'passive-radiator'?: PassiveRadiatorSection;
 }
 
 /** One port's stored geometry. `diameter_m` applies to a round vent, `width_m`/`height_m` to a
@@ -286,10 +399,13 @@ function emptyBoxJson(): OpenISDBoxJson {
 // THE BOX — its public shape, then the window that implements it.
 // ---------------------------------------------------------------------------------------------
 
-// 'bandpass6' and 'abc' confirmed real, working box types in WinISD (BUG_20260824,
-// 2026-08-24/25 live probe) — its wizard warns no one-click alignment SUGGESTION exists for
-// either, not that the box type itself doesn't work.
-export type BoxType = 'sealed' | 'vented' | 'bandpass4' | 'bandpass6' | 'passive-radiator' | 'abc';
+// The box types are declared ONCE, by the engine (engine/types.ts), and imported here — this
+// domain adds no second enumeration of them.
+//
+// 'bandpass6' and 'abc' are confirmed real, working box types in WinISD (BUG_20260824,
+// 2026-08-24/25 live probe): its wizard warns that no one-click alignment SUGGESTION exists for
+// either, not that the box type itself doesn't work. The engine has no circuit model for them
+// yet, which simulatableBoxType() states in the one place that decides it.
 
 // Every box type gets its OWN NAMED type. `OpenISDBox` then declares `readonly sealed:
 // SealedBox` rather than `readonly sealed: Box['sealed']` — an indexed-access type, which
@@ -400,11 +516,26 @@ export interface PassiveRadiatorComponent {
   readonly providedBy: FieldHandle<string>;
   readonly comment: FieldHandle<string>;
   readonly added: FieldHandle<string>;
-  readonly Sd_m2: FieldHandle<number>;
-  readonly Mmd_kg: FieldHandle<number>;
+  readonly Fs_hz: FieldHandle<number>;
+  readonly Qms: FieldHandle<number>;
   readonly Cms_m_per_N: FieldHandle<number>;
-  readonly Rms_Ns_per_m: FieldHandle<number>;
+  readonly Mms_kg: FieldHandle<number>;
+  readonly Rms_kg_per_s: FieldHandle<number>;
+  readonly Sd_m2: FieldHandle<number>;
+  readonly Vas_m3: FieldHandle<number>;
+  readonly Vd_m3: FieldHandle<number>;
   readonly Xmax_m: FieldHandle<number>;
+  readonly Xlim_m: FieldHandle<number>;
+  readonly Dia_m: FieldHandle<number>;
+  readonly Dd_m: FieldHandle<number>;
+  readonly DVol_m3: FieldHandle<number>;
+  readonly Thick_m: FieldHandle<number>;
+  readonly Depth_m: FieldHandle<number>;
+  readonly Basket_m: FieldHandle<number>;
+  readonly Outer_m: FieldHandle<number>;
+  readonly OuterX_m: FieldHandle<number>;
+  readonly OuterY_m: FieldHandle<number>;
+  readonly weight_kg: FieldHandle<number>;
 }
 
 export interface PassiveRadiatorBox {
@@ -422,6 +553,17 @@ export interface PassiveRadiatorBox {
    *  `passiveRadiatorFromConformingRecord()` — its own seam, enforcing its own shape. */
   configurePR(radiator: OpenISDPassiveRadiatorStandalone): void;
   readonly radiator: PassiveRadiatorComponent;
+
+  /** WinISD's "Fp" — the tuning this box and this radiator ACTUALLY produce together, which is
+   *  a different thing from the `tuning_hz` field above: that is the target the user asked for,
+   *  this is what the chosen radiator delivers in this volume. Null until a radiator is chosen
+   *  and the volume is set. A CALCULATION, so a method, not a handle. */
+  systemTuning_hz(): number | null;
+
+  /** The tuning mass this radiator needs to hit `fp_hz` in this box — the inverse of
+   *  `systemTuning_hz()`, and the number a PR design is actually dialled in with. Null on the
+   *  same terms. */
+  addedMassForTuning_kg(fp_hz: number): number | null;
 }
 
 /** The enclosure: which box type is active, and every box type's own fields. All six are
@@ -466,6 +608,7 @@ class LossesWindow implements CoupledVentedLosses {
  *  value having to be recomputed or migrated. */
 class VentWindow implements Vent {
   readonly #lens: Lens<VentJson>;
+  readonly #engine: Engine;
   readonly shape: RawField<VentShape>;
   readonly endCorrection_m: RawField<number>;
 
@@ -474,8 +617,9 @@ class VentWindow implements Vent {
   readonly height_m: FieldHandle<number>;
   readonly length_m: FieldHandle<number>;
 
-  constructor(lens: Lens<VentJson>) {
+  constructor(lens: Lens<VentJson>, engine: Engine) {
     this.#lens = lens;
+    this.#engine = engine;
     this.shape = focus(lens, 'shape');
     this.endCorrection_m = focus(lens, 'endCorrection_m');
     this.diameter_m = nullableField(lens, 'diameter_m');
@@ -501,15 +645,30 @@ class VentWindow implements Vent {
     return v.width_m === null || v.height_m === null ? null : v.width_m * v.height_m;
   }
 
-  /** Acoustic length — physical length plus the end correction. ACOUSTICS, not geometry, so it
-   *  belongs to `@openisd/engine` and throws here.
+  /** Acoustic length — the physical length plus the end correction, which is what the sweep's
+   *  port model actually resonates (`SweepParams.Leff`).
    *
-   *  The end correction models how air outside the port behaves, which is exactly the kind of
-   *  thing the domain must not decide. Its parity question travels with it and is the engine's to
-   *  settle: the FACTOR is stored (0.85, the common one-flanged-end value), but which radius it
-   *  multiplies has never been probed against real WinISD. */
+   *  The end correction models how air outside the port behaves, so it is ACOUSTICS and the
+   *  engine owns it. The domain supplies the port's own geometry — its length and its area, both
+   *  of which it legitimately knows — and reports what comes back. */
   effectiveLength_m(): number | null {
-    return noEngine('effectiveLength_m');
+    const length_m = this.#lens.get().length_m;
+    const Sp = this.area_m2();
+    if (length_m === null || Sp === null) return null;
+    return this.#engine.ventEffectiveLength(length_m, Sp, this.#lens.get().endCorrection_m);
+  }
+
+  tuningIn_hz(volume_m3: number | null): number | null {
+    const length_m = this.#lens.get().length_m;
+    const Sp = this.area_m2();
+    if (volume_m3 === null || !(volume_m3 > 0) || length_m === null || Sp === null) return null;
+    return this.#engine.tuningFromLength(volume_m3, length_m, Sp, this.#lens.get().endCorrection_m);
+  }
+
+  lengthForTuning_m(volume_m3: number | null, fb_hz: number): number | null {
+    const Sp = this.area_m2();
+    if (volume_m3 === null || !(volume_m3 > 0) || !(fb_hz > 0) || Sp === null) return null;
+    return this.#engine.ventLength(volume_m3, fb_hz, Sp, this.#lens.get().endCorrection_m);
   }
 }
 
@@ -525,6 +684,40 @@ class VentedChamberWindow {
     this.tuning_hz = nullableField(lens, 'tuning_hz');
     this.losses = new LossesWindow(focus(lens, 'losses'));
   }
+}
+
+/** One field of an embedded radiator's section. The slot is NULLABLE — an embedded radiator has
+ *  no record until one is chosen — so a read before then reports `not-available` and a write is
+ *  refused: there is nothing to write into, and inventing a record would fabricate a radiator the
+ *  user never picked. */
+function prSpec(
+  lens: Lens<OpenISDDriverJson | null>,
+  key: PassiveRadiatorFieldName,
+): Field<number> {
+  return new Field<number>(
+    () => {
+      const spec = lens.get()?.['passive-radiator'];
+      // A key ABSENT from the section means the radiator does not state that parameter.
+      return spec?.[key] ? { value: spec[key]!.value, state: 'entered' } : { value: null, state: 'not-available' };
+    },
+    (v) => {
+      const json = lens.get();
+      const spec = json?.['passive-radiator'];
+      if (!json || !spec) {
+        throw new Error(
+          `passiveRadiator.radiator.${key} cannot be written: no radiator is chosen yet — ` +
+          'call configurePR() first.',
+        );
+      }
+      lens.set({ ...json, 'passive-radiator': { ...spec, [key]: { value: v, origin: 'entered' } } });
+    },
+    () => {
+      throw new Error(
+        `${key} cannot be cleared: a chosen radiator's spec section always exists — there is ` +
+        'no "not entered" state for a field within it in this design.',
+      );
+    },
+  );
 }
 
 /** A metadata field of the CHOSEN passive radiator. Until one is chosen there is nothing to
@@ -561,35 +754,6 @@ function prMeta(
  *  Same not-chosen handling as `prMeta`, plus the section invariant `OpenISDPassiveRadiator`
  *  already guarantees: a record that reached `configurePR()` came through that class, which
  *  refuses to construct without the section, so it is present whenever a component is. */
-function prSpec(
-  lens: Lens<OpenISDDriverJson | null>,
-  key: SpecFieldName,
-): Field<number> {
-  return new Field<number>(
-    () => {
-      const spec = lens.get()?.['passive-radiator'];
-      // A key ABSENT from the section means the radiator does not state that parameter.
-      return spec?.[key] ? { value: spec[key]!.value, state: 'entered' } : { value: null, state: 'not-available' };
-    },
-    (v) => {
-      const json = lens.get();
-      const spec = json?.['passive-radiator'];
-      if (!json || !spec) {
-        throw new Error(
-          `passiveRadiator.component.${key} cannot be written: no radiator is chosen yet — ` +
-          'call configurePR() first.',
-        );
-      }
-      lens.set({ ...json, 'passive-radiator': { ...spec, [key]: { value: v, origin: 'entered' } } });
-    },
-    () => {
-      throw new Error(
-        `${key} cannot be cleared: a chosen radiator's spec section always exists — there is ` +
-        'no "not entered" state for a field within it in this design.',
-      );
-    },
-  );
-}
 
 /**
  * The box, as a window onto its slice of the project record — AND holding a reference to the
@@ -655,7 +819,7 @@ class OpenISDBox implements Box {
     this.vented = {
       volume_m3: requiredField(ventedChamber, 'volume_m3', 'vented.volume_m3'),
       tuning_hz: nullableField(ventedChamber, 'tuning_hz'),
-      vent: new VentWindow(focus(ventedLens, 'vent')),
+      vent: new VentWindow(focus(ventedLens, 'vent'), engine),
       losses: new LossesWindow(focus(ventedChamber, 'losses')) satisfies VentedLosses,
     };
 
@@ -680,7 +844,7 @@ class OpenISDBox implements Box {
           losses: new LossesWindow(focus(bp4Front, 'losses')) satisfies CoupledVentedLosses,
         },
       },
-      vents: { front: new VentWindow(focus(bp4, 'frontVent')) },
+      vents: { front: new VentWindow(focus(bp4, 'frontVent'), engine) },
     };
 
     const bp6 = focus(lens, 'bandpass6');
@@ -690,8 +854,8 @@ class OpenISDBox implements Box {
         front: new VentedChamberWindow(focus(bp6, 'front')),
       },
       vents: {
-        rear: new VentWindow(focus(bp6, 'rearVent')),
-        front: new VentWindow(focus(bp6, 'frontVent')),
+        rear: new VentWindow(focus(bp6, 'rearVent'), engine),
+        front: new VentWindow(focus(bp6, 'frontVent'), engine),
       },
     };
 
@@ -705,20 +869,22 @@ class OpenISDBox implements Box {
       // connecting port between the chambers — owned by neither, which is why it sits here and
       // not inside a chamber.
       vents: {
-        rear: new VentWindow(focus(abc, 'rearVent')),
-        front: new VentWindow(focus(abc, 'frontVent')),
-        intra: new VentWindow(focus(abc, 'intraVent')),
+        rear: new VentWindow(focus(abc, 'rearVent'), engine),
+        front: new VentWindow(focus(abc, 'frontVent'), engine),
+        intra: new VentWindow(focus(abc, 'intraVent'), engine),
       },
     };
 
     const pr = focus(lens, 'passiveRadiator');
     const prSlot = focus(pr, 'component');
-    const radiator = new OpenISDPassiveRadiatorEmbedded(prSlot);
+    const radiator = new OpenISDPassiveRadiatorEmbedded(prSlot, engine);
+    const prVolume = focus(pr, 'volume_m3');
+    const prAddedMass = nullableField(pr, 'addedMass_kg');
     this.passiveRadiator = {
-      volume_m3: focus(pr, 'volume_m3'),
+      volume_m3: prVolume,
       tuning_hz: nullableField(pr, 'tuning_hz'),
       count: focus(pr, 'count'),
-      addedMass_kg: nullableField(pr, 'addedMass_kg'),
+      addedMass_kg: prAddedMass,
       losses: new LossesWindow(focus(pr, 'losses')) satisfies SealedLosses,
       // The embedded radiator adopts the chosen one — a radiator reading another radiator's
       // record, legal because both derive from the class that declares `slot`.
@@ -726,6 +892,14 @@ class OpenISDBox implements Box {
         radiator.update(chosen);
       },
       radiator,
+      systemTuning_hz: () => {
+        const P = this.#prParams(prVolume.get(), prAddedMass.get().value, radiator);
+        return P === null ? null : engine.prTuning(P);
+      },
+      addedMassForTuning_kg: (fp_hz: number) => {
+        const P = this.#prParams(prVolume.get(), prAddedMass.get().value, radiator);
+        return P === null || !(fp_hz > 0) ? null : engine.prMassForFp(P, fp_hz);
+      },
     };
   }
 
@@ -757,10 +931,30 @@ class OpenISDBox implements Box {
    * 5.8 Hz for a `Ql` change at fixed volume (`winisd_research` FINDING-007). Matching it needs
    * `Qts` in the driver record, which is a decision about the record, not about this method.
    */
+  /** The five numbers the engine's PR relations read, or null when any is missing.
+   *
+   *  Gathered ONCE for both directions: the tuning and the mass-for-a-tuning are the same
+   *  relation solved each way, so they must never disagree about their inputs. `prMadd` is 0
+   *  when no tuning mass has been added — that IS the stated condition, not a missing value. */
+  #prParams(
+    volume_m3: number,
+    addedMass_kg: number | null,
+    radiator: OpenISDPassiveRadiatorEmbedded,
+  ): { Vb: number; prMmd: number; prMadd: number; prSd: number; prCms: number } | null {
+    // Read through the radiator's OWN PUBLIC SURFACE — the box never touches a radiator's
+    // record. Everything it needs, the radiator already publishes.
+    const prMmd = radiator.Mms_kg.get().value;
+    const prSd = radiator.Sd_m2.get().value;
+    const prCms = radiator.Cms_m_per_N.get().value;
+    if (prMmd === null || prSd === null || prCms === null || !(volume_m3 > 0)) return null;
+    return { Vb: volume_m3, prMmd, prMadd: addedMass_kg ?? 0, prSd, prCms };
+  }
+
   #sealedResonance_hz(volume_m3: number | null, losses: SealedLosses): number | null {
-    const Fs_hz = this.#driver.Fs_hz.get().value;
-    const Sd_m2 = this.#driver.Sd_m2.get().value;
-    const Cms = this.#driver.Cms_m_per_N.get().value;
+    const spec = this.#driver.spec[this.#driver.section];
+    const Fs_hz = spec.Fs_hz.get().value;
+    const Sd_m2 = spec.Sd_m2.get().value;
+    const Cms = spec.Cms_m_per_N.get().value;
     if (volume_m3 === null || Fs_hz === null || Sd_m2 === null || Cms === null) return null;
 
     const env = this.#environment();
@@ -769,9 +963,14 @@ class OpenISDBox implements Box {
       humidityPct: env.humidity_pct ?? undefined,
       pressurePa: env.pressure_Pa ?? undefined,
     });
+    const Qts = spec.Qts.get().value;
+    if (Qts === null) return null;
+    // `LossMode.Default` IS `WinisdLossy` — John 2026-08-27: "default is winisd = Lossy". WinISD
+    // displays and saves the LOSSY figure, and it MOVES with the chamber's losses: measured, `Fr`
+    // shifts 5.8 Hz for a `Ql` change at fixed volume (winisd_research FINDING-007).
     return this.#engine.sealedResonanceFromCompliance(
-      LossMode.Lossless,
-      { Fs_hz, Qts: 0, Sd_m2, Cms_m_per_N: Cms, volume_m3, Ql: losses.Ql.get(), Qa: losses.Qa.get() },
+      LossMode.Default,
+      { Fs_hz, Qts, Sd_m2, Cms_m_per_N: Cms, volume_m3, Ql: losses.Ql.get(), Qa: losses.Qa.get() },
       air,
     );
   }
@@ -828,6 +1027,204 @@ class OpenISDBox implements Box {
  * time, never a json snapshot, which is what makes eager construction safe even though
  * `write()` REASSIGNS the record.
  */
+/**
+ * ONE SPEC SECTION, PUBLISHED.
+ *
+ * The reusable component John asked for: a window onto a single `SpecSection` of a driver record,
+ * with every parameter that section can carry. `OpenISDDriver` holds one of these per section it
+ * has, so `driver.spec.woofer.Fs_hz` and `driver.spec.tweeter.Fs_hz` are the same class over
+ * different keys — a tweeter is not a different kind of thing to read.
+ *
+ * THE NAMES CARRY THE UNIT and the record's keys do not (John 2026-08-27: "on design/domain the
+ * private json object we follow Winisd names Fs but on the public wrapping domain object we use
+ * united names Fs_hz"). No conversion happens at this boundary in either direction — the record
+ * is SI already and each suffix REPORTS the unit the stored number is in. `Rms_kg_per_s`, not
+ * `Rms_Ns_per_m`, because kg/s is what the record's own definition states, and the two spellings
+ * of that one dimension would otherwise be a second name for the field.
+ *
+ * The dimensionless parameters take no suffix — `Qts`, `Qes`, `Qms`, `no`, `Gloss`, `numVC`,
+ * `VCCon` (John 2026-08-27: "dimensionless measure DO NOT have a unit - by definition").
+ * `Gloss` earns its place there by its own formula, `g/((2π·Fs)²·Xmax)`, which cancels to a pure
+ * ratio and is displayed as a percentage.
+ *
+ * Every `Field` is built ONCE in the constructor, for the identity reason `OpenISDDriver`'s own
+ * header gives: a lazy getter would allocate per access and make every read look like a change.
+ */
+export class DriverSpec {
+  // Thiele/Small.
+  readonly Fs_hz: Field<number>;
+  readonly Re_ohm: Field<number>;
+  readonly Le_H: Field<number>;
+  readonly fLe_hz: Field<number>;
+  /** `Le·√(2π·fLe)` — the Vanderkooy lossy-inductance coefficient (`WINISD_PARITY.md:1009`,
+   *  `GHIDRA_FINDINGS.md:1039`). Henries times the square root of hertz; not dimensionless. */
+  readonly KLe_H_sqrtHz: Field<number>;
+  readonly Znom_ohm: Field<number>;
+  readonly Qts: Field<number>;
+  readonly Qes: Field<number>;
+  readonly Qms: Field<number>;
+  readonly Vas_m3: Field<number>;
+  readonly Sd_m2: Field<number>;
+  readonly BL_Tm: Field<number>;
+  readonly Mms_kg: Field<number>;
+  readonly Cms_m_per_N: Field<number>;
+  readonly Rms_kg_per_s: Field<number>;
+  readonly Xmax_m: Field<number>;
+  readonly Xlim_m: Field<number>;
+  readonly SPL_dB: Field<number>;
+  readonly Pe_W: Field<number>;
+  readonly Dd_m: Field<number>;
+  readonly EBP_hz: Field<number>;
+  readonly numVC: Field<number>;
+  /** How the coils are wired. A NAME, not WinISD's 1/2 — see `VoiceCoilWiring`. */
+  readonly VCCon: Field<VoiceCoilWiring>;
+  // Ordinarily derived, but WinISD lets a human type any of them, and an entered value is a fact.
+  readonly Dia_m: Field<number>;
+  readonly Vd_m3: Field<number>;
+  readonly no: Field<number>;
+  readonly SPLmax_dB: Field<number>;
+  readonly SPLmaxLF_dB: Field<number>;
+  readonly USPL_dB: Field<number>;
+  readonly alfaVC_per_K: Field<number>;
+  readonly Rt_K_per_W: Field<number>;
+  readonly Ct_J_per_K: Field<number>;
+  /** `Bxl/Mms` — the acceleration factor, acceleration per ampere. NOT dimensionless: WinISD's
+   *  own UI prints `N/(A*kg)`, which is the same dimension as cfuttrup's `m/(s²·A)`. */
+  readonly gamma_m_per_s2_A: Field<number>;
+  readonly Rme_kg_per_s: Field<number>;
+  /** `Bxl/√Re` — the motor power factor, newtons per square-root watt. */
+  readonly Mpow_N_per_sqrtW: Field<number>;
+  /** `Rme·(1 + Xmax/min(Hc, Hg))` — the motor COST factor: how powerful the motor is, penalised
+   *  by how far the coil is overhung or underhung. It IS meant as an indicator of what the driver
+   *  costs to build, but the unit is not currency — the ratio is dimensionless, so the figure
+   *  carries `Rme`'s kg/s. WinISD's own help: "an indicator on the price of the driver, but
+   *  please forget about the unit". (Formula decompiled and reproduced exactly on 10 live WinISD
+   *  runs: `winisd_research/GHIDRA_FINDINGS.md` §"Four advanced-panel formulas".) */
+  readonly Mcost_kg_per_s: Field<number>;
+  readonly Gloss: Field<number>;
+  /** The air THIS DRIVER states — the conditions its own figures were measured or computed at.
+   *  Not the environment a simulation runs on; `OpenISDEnvironment` on the project is that. */
+  readonly c_m_per_s: Field<number>;
+  readonly roo_kg_per_m3: Field<number>;
+  // Descriptive and dimensional.
+  readonly Vcd_m: Field<number>;
+  readonly Hg_m: Field<number>;
+  readonly Hc_m: Field<number>;
+  readonly freq_low_hz: Field<number>;
+  readonly freq_high_hz: Field<number>;
+  readonly power_peak_W: Field<number>;
+  readonly weight_kg: Field<number>;
+  readonly Thick_m: Field<number>;
+  readonly Depth_m: Field<number>;
+  readonly MagDepth_m: Field<number>;
+  readonly Magnet_m: Field<number>;
+  readonly Basket_m: Field<number>;
+  readonly Outer_m: Field<number>;
+  readonly OuterX_m: Field<number>;
+  readonly OuterY_m: Field<number>;
+  readonly DVol_m3: Field<number>;
+
+  constructor(record: Lens<OpenISDDriverJson>, section: 'woofer' | 'tweeter') {
+    /** The wiring field. Its own builder because it carries a NAME, not a number, so it is not
+     *  one of `SpecFieldName`'s numeric keys and cannot go through `f()`. */
+    const wiring = (): Field<VoiceCoilWiring> => new Field<VoiceCoilWiring>(
+      () => {
+        const stated = record.get()[section]?.VCCon;
+        return stated
+          ? { value: stated.value, state: 'entered' }
+          : { value: null, state: 'not-available' };
+      },
+      (v) => {
+        const json = record.get();
+        const spec = json[section] ?? {};
+        record.set({ ...json, [section]: { ...spec, VCCon: { value: v, origin: 'entered' } } });
+      },
+      () => {
+        throw new Error(
+          'VCCon cannot be cleared: this section always exists once constructed — there is no ' +
+          '"not entered" state for a field within it in this design.',
+        );
+      },
+    );
+
+    const f = (key: SpecFieldName): Field<number> => new Field<number>(
+      // A key ABSENT from the section means the driver does not state that parameter — the
+      // ordinary shape of a scraped record, not a fault.
+      () => {
+        const stated = record.get()[section]?.[key];
+        return stated ? { value: stated.value, state: 'entered' } : { value: null, state: 'not-available' };
+      },
+      (v) => {
+        const json = record.get();
+        const spec = json[section] ?? {};
+        record.set({ ...json, [section]: { ...spec, [key]: { value: v, origin: 'entered' } } });
+      },
+      () => {
+        throw new Error(
+          `${key} cannot be cleared: this ${section} section always exists once constructed — ` +
+          'there is no "not entered" state for a field within it in this design.',
+        );
+      },
+    );
+
+    this.Fs_hz = f('Fs');
+    this.Re_ohm = f('Re');
+    this.Le_H = f('Le');
+    this.fLe_hz = f('fLe');
+    this.KLe_H_sqrtHz = f('KLe');
+    this.Znom_ohm = f('Znom');
+    this.Qts = f('Qts');
+    this.Qes = f('Qes');
+    this.Qms = f('Qms');
+    this.Vas_m3 = f('Vas');
+    this.Sd_m2 = f('Sd');
+    this.BL_Tm = f('BL');
+    this.Mms_kg = f('Mms');
+    this.Cms_m_per_N = f('Cms');
+    this.Rms_kg_per_s = f('Rms');
+    this.Xmax_m = f('Xmax');
+    this.Xlim_m = f('Xlim');
+    this.SPL_dB = f('SPL');
+    this.Pe_W = f('Pe');
+    this.Dd_m = f('Dd');
+    this.EBP_hz = f('EBP');
+    this.numVC = f('numVC');
+    this.VCCon = wiring();
+    this.Dia_m = f('Dia');
+    this.Vd_m3 = f('Vd');
+    this.no = f('no');
+    this.SPLmax_dB = f('SPLmax');
+    this.SPLmaxLF_dB = f('SPLmaxLF');
+    this.USPL_dB = f('USPL');
+    this.alfaVC_per_K = f('alfaVC');
+    this.Rt_K_per_W = f('Rt');
+    this.Ct_J_per_K = f('Ct');
+    this.gamma_m_per_s2_A = f('gamma');
+    this.Rme_kg_per_s = f('Rme');
+    this.Mpow_N_per_sqrtW = f('Mpow');
+    this.Mcost_kg_per_s = f('Mcost');
+    this.Gloss = f('Gloss');
+    this.c_m_per_s = f('c');
+    this.roo_kg_per_m3 = f('roo');
+    this.Vcd_m = f('Vcd');
+    this.Hg_m = f('Hg');
+    this.Hc_m = f('Hc');
+    this.freq_low_hz = f('freq_low_hz');
+    this.freq_high_hz = f('freq_high_hz');
+    this.power_peak_W = f('power_peak_W');
+    this.weight_kg = f('weight_kg');
+    this.Thick_m = f('Thick');
+    this.Depth_m = f('Depth');
+    this.MagDepth_m = f('MagDepth');
+    this.Magnet_m = f('Magnet');
+    this.Basket_m = f('Basket');
+    this.Outer_m = f('Outer');
+    this.OuterX_m = f('OuterX');
+    this.OuterY_m = f('OuterY');
+    this.DVol_m3 = f('DVol');
+  }
+}
+
 export abstract class OpenISDDriver {
   /** Protected, not `#private`: the subclasses below are the ONLY things that need it, and
    *  `protected` is exactly the tool for that — this is a real inheritance relationship, unlike
@@ -835,12 +1232,13 @@ export abstract class OpenISDDriver {
   protected readonly record: Lens<OpenISDDriverJson>;
   readonly section: 'woofer' | 'tweeter';
 
-  readonly Fs_hz: Field<number>;
-  readonly Sd_m2: Field<number>;
-  readonly Cms_m_per_N: Field<number>;
-  readonly Mmd_kg: Field<number>;
-  readonly Rms_Ns_per_m: Field<number>;
-  readonly Xmax_m: Field<number>;
+  /** The driver's spec sections. A caller that does not care which kind of driver it holds reads
+   *  `driver.spec[driver.section]`. */
+  readonly spec: {
+    readonly woofer: DriverSpec;
+    readonly tweeter: DriverSpec;
+  };
+
   readonly brand: Field<string>;
   readonly model: Field<string>;
   readonly manufacturer: Field<string>;
@@ -848,15 +1246,24 @@ export abstract class OpenISDDriver {
   readonly comment: Field<string>;
   readonly added: Field<string>;
 
-  protected constructor(record: Lens<OpenISDDriverJson>, section: 'woofer' | 'tweeter') {
+  /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a driver reports
+   *  derived figures, and every one of them comes from here and nowhere else. */
+  protected readonly engine: Engine;
+
+  protected constructor(record: Lens<OpenISDDriverJson>, section: 'woofer' | 'tweeter', engine: Engine) {
     this.record = record;
     this.section = section;
-    this.Fs_hz = this.#buildSpecField('Fs_hz');
-    this.Sd_m2 = this.#buildSpecField('Sd_m2');
-    this.Cms_m_per_N = this.#buildSpecField('Cms_m_per_N');
-    this.Mmd_kg = this.#buildSpecField('Mmd_kg');
-    this.Rms_Ns_per_m = this.#buildSpecField('Rms_Ns_per_m');
-    this.Xmax_m = this.#buildSpecField('Xmax_m');
+    this.engine = engine;
+    // Both are built unconditionally, and NEITHER reads the record here. A `DriverSpec` is a
+    // WINDOW: it dereferences at call time, so a section the record does not carry reads
+    // `not-available` on every field and starts carrying values the moment one is set. Deciding
+    // in this constructor which sections "exist" would snapshot the record — and `update()`
+    // REPLACES it, so a driver updated from a tweeter record would keep reporting no tweeter.
+    // `section` already answers "which kind of driver is this"; presence is not a second answer.
+    this.spec = {
+      woofer: new DriverSpec(record, 'woofer'),
+      tweeter: new DriverSpec(record, 'tweeter'),
+    };
     this.brand = this.#buildMeta('brand');
     this.model = this.#buildMeta('model');
     this.manufacturer = this.#buildMeta('manufacturer');
@@ -872,6 +1279,169 @@ export abstract class OpenISDDriver {
     throw new Error('OpenISDDriver: record has neither a woofer nor a tweeter section');
   }
 
+  // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
+
+  /**
+   * This driver's stated numbers as the engine's loose field bag.
+   *
+   * The engine's driver calls all take `DriverFields`, and building it is the driver's own job:
+   * nothing else knows which section this driver has, and nothing else may read the record. A
+   * parameter the driver does not state is ABSENT from the bag, which is exactly what the
+   * consistency solver expects — it fills in what the present values imply and leaves the rest.
+   *
+   * Every entry is a real number because THIS FILTER MAKES IT SO, not because the record only
+   * holds numbers — a distinction worth stating, because reading it the other way is what caused
+   * a shipped bug. A non-numeric section field is DROPPED here, deliberately and silently, and
+   * anything that then reads the key off the solved bag gets `undefined` while still compiling
+   * (`DriverFields` is `Record<string, number | undefined>`). `VCCon` was exactly that casualty;
+   * it is now read from its Field instead, and
+   * `test/architecture-spec-section-is-numeric.test.ts` fails the moment another non-numeric
+   * field is declared, so the next one cannot be lost the same way.
+   *
+   * The stricter `Record<string, number>` is what `checkConsistency` requires, and it still
+   * satisfies `DriverFields` wherever that is asked for, so one builder serves every engine call
+   * below.
+   */
+  fields(): Record<string, number> {
+    const spec = this.record.get()[this.section];
+    if (!spec) return {};
+    const bag: Record<string, number> = {};
+    for (const [key, stated] of Object.entries(spec)) {
+      if (stated && typeof stated.value === 'number') bag[key] = stated.value;
+    }
+    return bag;
+  }
+
+  /** Everything this driver's stated values imply, filled in. Does NOT write back — a solved
+   *  value is a derivation, and the record holds only what was actually stated. */
+  solveConsistencyGroup(options?: { full?: boolean }): DriverFields {
+    return this.engine.solveConsistencyGroup(this.fields(), options);
+  }
+
+  /** Everything this driver's stated values disagree about — an over-specified driver whose
+   *  numbers cannot all be true at once. Empty when consistent. */
+  checkConsistency(): ConsistencyIssue[] {
+    return this.engine.checkConsistency(this.fields());
+  }
+
+  /** The driver a sweep can actually run on, or what is missing from it. */
+  toEngineDriver(): Result<EngineDriver> {
+    return this.engine.deriveEngineDriver(this.terminalFields());
+  }
+
+  // ── VOICE COILS — the driver states PER-COIL values; the system simulates TERMINAL ones ────
+  //
+  // A dual-voice-coil driver's datasheet prints ONE coil's Re and BL. What the amplifier sees
+  // depends on how the coils are wired: N coils of resistance r are r/N in parallel and N·r in
+  // series, with force factor bl and N·bl respectively.
+  //
+  // THIS DIFFERS FROM WINISD DELIBERATELY (John, 2026-08-28: "evil", "make it two"). WinISD keeps
+  // ONE `Re`, rewrites it in place when the wiring combo changes — ×numVC² — and leaves the value
+  // still marked ENTERED, so its file claims the user typed a number the app computed
+  // (`docs/research/WINISD_PARITY.md` §11b; decompiled at `0x461242`). Here the stated value is
+  // never touched and the terminal pair is DERIVED, so a typed number survives every wiring
+  // change and the entered/calculated distinction stays true.
+  //
+  // The engine is unaffected: it receives one effective Re/BL like any other driver and knows
+  // nothing about coils.
+
+  /**
+   * How the coils are wired. Absent means parallel, which is what a single coil always is.
+   *
+   * READ FROM THE FIELD, never from `fields()`/`solveConsistencyGroup()`. Those carry the
+   * driver's NUMERIC parameters — the bag the consistency solver works on — and a wiring is a
+   * name, not a quantity. Routing it through a numeric bag to get it back out again is the
+   * smell, and it was also a live bug: `fields()` keeps only `typeof value === 'number'`, so once
+   * `VCCon` became `'parallel' | 'series'` it was silently dropped, and the old test
+   * `solveConsistencyGroup().VCCon === 2` compared `undefined` to a dead file-format encoding.
+   * That made this ALWAYS false, so a series-wired driver got the parallel factors and its `Re`
+   * was wrong by `numVC²` — silently, past the type checker and past eight passing tests.
+   * (Found by agent `loose-end` in review, 2026-08-28.)
+   */
+  #wiredInSeries(): boolean {
+    return this.spec[this.section].VCCon.get().value === VoiceCoilWiring.Series;
+  }
+
+  /** Voice-coil count, floored at 1: a driver has at least one coil, and a record stating 0 or
+   *  nothing must not scale anything to zero or infinity. */
+  #coilCount(): number {
+    const n = this.solveConsistencyGroup().numVC;
+    return n !== undefined && n >= 1 ? n : 1;
+  }
+
+  /**
+   * The driver's numbers with `Re` and `BL` as the AMPLIFIER sees them, not as one coil states
+   * them. Everything else passes through untouched.
+   *
+   * With one coil, or with the coils in parallel and `numVC` absent, this is identical to
+   * `solveConsistencyGroup()` — the overwhelmingly common case costs nothing.
+   */
+  terminalFields(): Record<string, number> {
+    const solved = this.solveConsistencyGroup() as Record<string, number>;
+    const n = this.#coilCount();
+    if (n === 1) return solved;
+    const scaleRe = this.#wiredInSeries() ? n : 1 / n;
+    const scaleBL = this.#wiredInSeries() ? n : 1;
+    const out = { ...solved };
+    if (solved.Re !== undefined) out.Re = solved.Re * scaleRe;
+    if (solved.BL !== undefined) out.BL = solved.BL * scaleBL;
+    return out;
+  }
+
+  /** Terminal resistance — what the amplifier drives. Null when the driver states no `Re`. */
+  terminalRe_ohm(): number | null {
+    const v = this.terminalFields().Re;
+    return v === undefined ? null : v;
+  }
+
+  /** Terminal force factor. Null when the driver states no `BL`. */
+  terminalBL_Tm(): number | null {
+    const v = this.terminalFields().BL;
+    return v === undefined ? null : v;
+  }
+
+  /** Whether `field` is one of the interdependent Q values, so that entering it constrains the
+   *  others. The editor asks before deciding whether a keystroke re-solves the group. */
+  isQGroupField(field: string): boolean {
+    return this.engine.isQGroupField(field);
+  }
+
+  /** Whether too few of this driver's Q group are stated for the rest to follow. */
+  qGroupIsIncomplete(): boolean {
+    const bag = this.fields();
+    return this.engine.qGroupIsIncomplete((field) => bag[field] !== undefined);
+  }
+
+  /** Efficiency bandwidth product, `Fs/Qes` — the rough sealed-versus-vented indicator. Null
+   *  when either term is unknown, here and in every derived figure below: absence is `null`. */
+  ebp_hz(): number | null {
+    const { Fs, Qes } = this.solveConsistencyGroup();
+    return Fs === undefined || Qes === undefined ? null : this.engine.ebp({ Fs, Qes });
+  }
+
+  /**
+   * Reference efficiency η₀ in the stated air.
+   *
+   * Takes `Air`, not a temperature/humidity/pressure triple, for the engine's own reason: a
+   * `.wdr` may state arbitrary ρ and c that no such triple reproduces. A caller holding an
+   * environment calls `Engine.airFor()` first.
+   */
+  referenceEfficiency(air: Air): number | null {
+    const { Fs, Vas, Qes } = this.solveConsistencyGroup();
+    return Fs === undefined || Vas === undefined || Qes === undefined
+      ? null : this.engine.referenceEfficiency(Fs, Vas, Qes, air);
+  }
+
+  /** Sensitivity in dB, from this driver's efficiency in the stated air. Uses the STATED `no`
+   *  when the record has one and falls back to deriving it — the same order
+   *  `deriveOpenISDFields()` uses, where an entered value is never overwritten by a computed
+   *  one. */
+  spl_dB(air: Air): number | null {
+    const stated = this.solveConsistencyGroup().no;
+    const no = stated !== undefined && stated > 0 ? stated : this.referenceEfficiency(air);
+    return no === null || !(no > 0) ? null : this.engine.splFromEfficiency(no, air);
+  }
+
   /** An INDEPENDENT driver carrying this one's current values — and, with `update()`, the whole
    *  of how an editor works: take a copy, let the user edit THAT, and on OK write it back with
    *  `update()`; on Cancel simply drop it. The original never sees an intermediate value, so
@@ -881,7 +1451,7 @@ export abstract class OpenISDDriver {
    *  storage this window points at. Always STANDALONE — a copy belongs to nothing until
    *  something adopts it (via `OpenISDDriverEmbedded.update()`, or a repo save). */
   detach(): OpenISDDriverStandalone {
-    return OpenISDDriverStandalone.wrap({ ...this.record.get() });
+    return OpenISDDriverStandalone.wrap({ ...this.record.get() }, this.engine);
   }
 
   /** Replace this driver's whole record with `source`'s current values. The write-back
@@ -906,53 +1476,32 @@ export abstract class OpenISDDriver {
     );
   }
 
-  #buildSpecField(field: SpecFieldName): Field<number> {
-    return new Field<number>(
-      // A key ABSENT from the section means the driver does not state that parameter — the
-      // ordinary shape of a scraped record, not a fault.
-      () => {
-        const stated = this.record.get()[this.section]?.[field];
-        return stated ? { value: stated.value, state: 'entered' } : { value: null, state: 'not-available' };
-      },
-      (v) => {
-        const json = this.record.get();
-        const spec = json[this.section] ?? {};
-        this.record.set({ ...json, [this.section]: { ...spec, [field]: { value: v, origin: 'entered' } } });
-      },
-      () => {
-        throw new Error(
-          `${field} cannot be cleared: this driver's ${this.section} section always exists once ` +
-          'constructed — there is no "not entered" state for a field within it in this design.',
-        );
-      },
-    );
-  }
 }
 
 /** A driver that belongs to no project — a My Drivers entry, a bundle row, a detached copy.
  *  `wrap()` windows onto a record the caller owns; the record is not copied, it is referenced. */
 class OpenISDDriverStandalone extends OpenISDDriver {
-  static wrap(json: OpenISDDriverJson): OpenISDDriverStandalone {
+  static wrap(json: OpenISDDriverJson, engine: Engine): OpenISDDriverStandalone {
     let current = json;
     const record: Lens<OpenISDDriverJson> = {
       get: () => current,
       set: (j) => { current = j; },
     };
-    return new OpenISDDriverStandalone(record, OpenISDDriver.sectionOf(json));
+    return new OpenISDDriverStandalone(record, OpenISDDriver.sectionOf(json), engine);
   }
 }
 
 /** The driver INSIDE a project — a window onto the project's own `driver` slot. A standalone
  *  driver windows its own record instead, which is the whole difference between the two. */
 class OpenISDDriverEmbedded extends OpenISDDriver {
-  private constructor(record: Lens<OpenISDDriverJson>, section: 'woofer' | 'tweeter') {
-    super(record, section);
+  private constructor(record: Lens<OpenISDDriverJson>, section: 'woofer' | 'tweeter', engine: Engine) {
+    super(record, section, engine);
   }
 
   /** Takes the lens onto the project's `driver` slot. The project owns that slot and builds the
    *  lens, so the driver needs no reference back to the project. */
-  static wrap(slot: Lens<OpenISDDriverJson>): OpenISDDriverEmbedded {
-    return new OpenISDDriverEmbedded(slot, OpenISDDriver.sectionOf(slot.get()));
+  static wrap(slot: Lens<OpenISDDriverJson>, engine: Engine): OpenISDDriverEmbedded {
+    return new OpenISDDriverEmbedded(slot, OpenISDDriver.sectionOf(slot.get()), engine);
   }
 }
 
@@ -980,9 +1529,67 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
  */
 abstract class OpenISDPassiveRadiator {
   protected readonly slot: Lens<OpenISDDriverJson | null>;
+  /** The one calculation surface, injected exactly as the driver's and the project's are. */
+  protected readonly engine: Engine;
 
-  protected constructor(slot: Lens<OpenISDDriverJson | null>) {
+  protected constructor(slot: Lens<OpenISDDriverJson | null>, engine: Engine) {
     this.slot = slot;
+    this.engine = engine;
+  }
+
+  // ── DERIVED FIGURES — every one from the engine ───────────────────────────────────────────
+  //
+  // A radiator's parameters are interdependent the way a driver's are: state any two of mass,
+  // compliance and resonance and the third follows. WinISD lets the user enter whichever pair
+  // they have, so BOTH directions of each relation exist here, and every one is the engine's.
+
+  /** This radiator's stated `Cms`, `Mms`, `Rms`, `Sd`, as plain numbers. Null entries where the
+   *  radiator does not state that parameter, or where no radiator is chosen at all. */
+  #stated(): { Cms: number | null; Mms: number | null; Rms: number | null; Sd: number | null } {
+    const spec = this.slot.get()?.['passive-radiator'];
+    const read = (k: 'Cms' | 'Mms' | 'Rms' | 'Sd') => spec?.[k]?.value ?? null;
+    return { Cms: read('Cms'), Mms: read('Mms'), Rms: read('Rms'), Sd: read('Sd') };
+  }
+
+  /** Compliance-equivalent volume, in cubic metres. Null until both compliance and cone area
+   *  are stated. */
+  vas_m3(): number | null {
+    const { Cms, Sd } = this.#stated();
+    return Cms === null || Sd === null ? null : this.engine.prVas(Cms, Sd);
+  }
+
+  /** The compliance that WOULD give a stated Vas — the inverse of `vas_m3()`, for a user who has
+   *  the radiator's Vas rather than its compliance. Null until cone area is stated. */
+  cmsForVas_m_per_N(vas_m3: number): number | null {
+    const { Sd } = this.#stated();
+    return Sd === null ? null : this.engine.prCmsFromVas(vas_m3, Sd);
+  }
+
+  /** Free-air resonance once `added_kg` of tuning mass is bolted on — the knob a PR design is
+   *  actually tuned with. Null until mass and compliance are stated. */
+  fsWithAddedMass_hz(added_kg: number): number | null {
+    const { Mms, Cms } = this.#stated();
+    return Mms === null || Cms === null ? null : this.engine.prFsWithMass(Mms, added_kg, Cms);
+  }
+
+  /** The moving mass that would put this radiator's free-air resonance at `fs_hz` — the inverse
+   *  of the unloaded resonance. Null until compliance is stated. */
+  mmdForFs_kg(fs_hz: number): number | null {
+    const { Cms } = this.#stated();
+    return Cms === null ? null : this.engine.prMmdFromFs(fs_hz, Cms);
+  }
+
+  /** Mechanical Q. Null until mass, compliance and resistance are all stated. */
+  qms(): number | null {
+    const { Mms, Cms, Rms } = this.#stated();
+    return Mms === null || Cms === null || Rms === null
+      ? null : this.engine.prQms(Mms, Cms, Rms);
+  }
+
+  /** The mechanical resistance that would give a stated `Qms` — the inverse of `qms()`. */
+  rmsForQms_kg_per_s(qms: number): number | null {
+    const { Mms, Cms } = this.#stated();
+    return Mms === null || Cms === null ? null : this.engine.prRmsFromQms(qms, Mms, Cms);
   }
 
   /**
@@ -1005,25 +1612,55 @@ class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator implements P
   readonly providedBy: Field<string>;
   readonly comment: Field<string>;
   readonly added: Field<string>;
-  readonly Sd_m2: Field<number>;
-  readonly Mmd_kg: Field<number>;
+  readonly Fs_hz: Field<number>;
+  readonly Qms: Field<number>;
   readonly Cms_m_per_N: Field<number>;
-  readonly Rms_Ns_per_m: Field<number>;
+  readonly Mms_kg: Field<number>;
+  readonly Rms_kg_per_s: Field<number>;
+  readonly Sd_m2: Field<number>;
+  readonly Vas_m3: Field<number>;
+  readonly Vd_m3: Field<number>;
   readonly Xmax_m: Field<number>;
+  readonly Xlim_m: Field<number>;
+  readonly Dia_m: Field<number>;
+  readonly Dd_m: Field<number>;
+  readonly DVol_m3: Field<number>;
+  readonly Thick_m: Field<number>;
+  readonly Depth_m: Field<number>;
+  readonly Basket_m: Field<number>;
+  readonly Outer_m: Field<number>;
+  readonly OuterX_m: Field<number>;
+  readonly OuterY_m: Field<number>;
+  readonly weight_kg: Field<number>;
 
-  constructor(slot: Lens<OpenISDDriverJson | null>) {
-    super(slot);
+  constructor(slot: Lens<OpenISDDriverJson | null>, engine: Engine) {
+    super(slot, engine);
     this.brand = prMeta(slot, 'brand');
     this.model = prMeta(slot, 'model');
     this.manufacturer = prMeta(slot, 'manufacturer');
     this.providedBy = prMeta(slot, 'provided_by');
     this.comment = prMeta(slot, 'comment');
     this.added = prMeta(slot, 'added');
-    this.Sd_m2 = prSpec(slot, 'Sd_m2');
-    this.Mmd_kg = prSpec(slot, 'Mmd_kg');
-    this.Cms_m_per_N = prSpec(slot, 'Cms_m_per_N');
-    this.Rms_Ns_per_m = prSpec(slot, 'Rms_Ns_per_m');
-    this.Xmax_m = prSpec(slot, 'Xmax_m');
+    this.Fs_hz = prSpec(slot, 'Fs');
+    this.Qms = prSpec(slot, 'Qms');
+    this.Cms_m_per_N = prSpec(slot, 'Cms');
+    this.Mms_kg = prSpec(slot, 'Mms');
+    this.Rms_kg_per_s = prSpec(slot, 'Rms');
+    this.Sd_m2 = prSpec(slot, 'Sd');
+    this.Vas_m3 = prSpec(slot, 'Vas');
+    this.Vd_m3 = prSpec(slot, 'Vd');
+    this.Xmax_m = prSpec(slot, 'Xmax');
+    this.Xlim_m = prSpec(slot, 'Xlim');
+    this.Dia_m = prSpec(slot, 'Dia');
+    this.Dd_m = prSpec(slot, 'Dd');
+    this.DVol_m3 = prSpec(slot, 'DVol');
+    this.Thick_m = prSpec(slot, 'Thick');
+    this.Depth_m = prSpec(slot, 'Depth');
+    this.Basket_m = prSpec(slot, 'Basket');
+    this.Outer_m = prSpec(slot, 'Outer');
+    this.OuterX_m = prSpec(slot, 'OuterX');
+    this.OuterY_m = prSpec(slot, 'OuterY');
+    this.weight_kg = prSpec(slot, 'weight_kg');
   }
 
   isChosen(): boolean { return this.slot.get() !== null; }
@@ -1043,59 +1680,77 @@ class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator implements P
 class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
   readonly section = 'passive-radiator' as const;
 
-  readonly Sd_m2: Field<number>;
+  readonly brand: Field<string>;
+  readonly model: Field<string>;
+  readonly Fs_hz: Field<number>;
+  readonly Qms: Field<number>;
   readonly Cms_m_per_N: Field<number>;
-  readonly Mmd_kg: Field<number>;
-  readonly Rms_Ns_per_m: Field<number>;
+  readonly Mms_kg: Field<number>;
+  readonly Rms_kg_per_s: Field<number>;
+  readonly Sd_m2: Field<number>;
+  readonly Vas_m3: Field<number>;
+  readonly Vd_m3: Field<number>;
   readonly Xmax_m: Field<number>;
+  readonly Xlim_m: Field<number>;
+  readonly Dia_m: Field<number>;
+  readonly Dd_m: Field<number>;
+  readonly DVol_m3: Field<number>;
+  readonly Thick_m: Field<number>;
+  readonly Depth_m: Field<number>;
+  readonly Basket_m: Field<number>;
+  readonly Outer_m: Field<number>;
+  readonly OuterX_m: Field<number>;
+  readonly OuterY_m: Field<number>;
+  readonly weight_kg: Field<number>;
 
-  private constructor(get: () => OpenISDDriverJson, set: (json: OpenISDDriverJson) => void) {
-    super({ get, set: (json) => set(json!) });
-    this.Sd_m2 = this.#buildSpecField('Sd_m2');
-    this.Cms_m_per_N = this.#buildSpecField('Cms_m_per_N');
-    this.Mmd_kg = this.#buildSpecField('Mmd_kg');
-    this.Rms_Ns_per_m = this.#buildSpecField('Rms_Ns_per_m');
-    this.Xmax_m = this.#buildSpecField('Xmax_m');
+  private constructor(
+    get: () => OpenISDDriverJson,
+    set: (json: OpenISDDriverJson) => void,
+    engine: Engine,
+  ) {
+    super({ get, set: (json) => set(json!) }, engine);
+    // The refusal in `prSpec` can never fire here: `window()` rejects a record with no
+    // `passive-radiator` section, so a standalone always has one.
+    this.brand = prMeta(this.slot, 'brand');
+    this.model = prMeta(this.slot, 'model');
+    this.Fs_hz = prSpec(this.slot, 'Fs');
+    this.Qms = prSpec(this.slot, 'Qms');
+    this.Cms_m_per_N = prSpec(this.slot, 'Cms');
+    this.Mms_kg = prSpec(this.slot, 'Mms');
+    this.Rms_kg_per_s = prSpec(this.slot, 'Rms');
+    this.Sd_m2 = prSpec(this.slot, 'Sd');
+    this.Vas_m3 = prSpec(this.slot, 'Vas');
+    this.Vd_m3 = prSpec(this.slot, 'Vd');
+    this.Xmax_m = prSpec(this.slot, 'Xmax');
+    this.Xlim_m = prSpec(this.slot, 'Xlim');
+    this.Dia_m = prSpec(this.slot, 'Dia');
+    this.Dd_m = prSpec(this.slot, 'Dd');
+    this.DVol_m3 = prSpec(this.slot, 'DVol');
+    this.Thick_m = prSpec(this.slot, 'Thick');
+    this.Depth_m = prSpec(this.slot, 'Depth');
+    this.Basket_m = prSpec(this.slot, 'Basket');
+    this.Outer_m = prSpec(this.slot, 'Outer');
+    this.OuterX_m = prSpec(this.slot, 'OuterX');
+    this.OuterY_m = prSpec(this.slot, 'OuterY');
+    this.weight_kg = prSpec(this.slot, 'weight_kg');
   }
 
   static window(
     get: () => OpenISDDriverJson,
     set: (json: OpenISDDriverJson) => void,
+    engine: Engine,
   ): OpenISDPassiveRadiatorStandalone {
     if (!get()['passive-radiator']) {
       throw new Error('OpenISDPassiveRadiatorStandalone.window: record has no passive-radiator section');
     }
-    return new OpenISDPassiveRadiatorStandalone(get, set);
+    return new OpenISDPassiveRadiatorStandalone(get, set, engine);
   }
 
-  static wrap(json: OpenISDDriverJson): OpenISDPassiveRadiatorStandalone {
+  static wrap(json: OpenISDDriverJson, engine: Engine): OpenISDPassiveRadiatorStandalone {
     let current = json;
-    return OpenISDPassiveRadiatorStandalone.window(() => current, (j) => { current = j; });
+    return OpenISDPassiveRadiatorStandalone.window(() => current, (j) => { current = j; }, engine);
   }
 
-  /** This radiator's record. Never null — construction refuses a record with no
-   *  `passive-radiator` section, so a standalone always has one. */
-  #record(): OpenISDDriverJson { return this.slot.get()!; }
-
-  #buildSpecField(field: SpecFieldName): Field<number> {
-    return new Field<number>(
-      () => {
-        const stated = this.#record()['passive-radiator']?.[field];
-        return stated ? { value: stated.value, state: 'entered' } : { value: null, state: 'not-available' };
-      },
-      (v) => {
-        const json = this.#record();
-        const spec = json['passive-radiator'] ?? {};
-        this.slot.set({ ...json, 'passive-radiator': { ...spec, [field]: { value: v, origin: 'entered' } } });
-      },
-      () => {
-        throw new Error(
-          `${field} cannot be cleared: this passive radiator's section always exists once ` +
-          'constructed — there is no "not entered" state for a field within it in this design.',
-        );
-      },
-    );
-  }
 }
 
 // The real "only ManagedProject reaches this" mechanism (see the file header) — module-scoped,
@@ -1116,7 +1771,7 @@ class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
  *
  * Only this function casts to the record type; no caller with an untrusted value casts itself.
  */
-export function driverFromConformingRecord(record: unknown): OpenISDDriver | string[] {
+export function driverFromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | string[] {
   if (typeof record !== 'object' || record === null) return ['not an object'];
   const r = record as Record<string, unknown>;
 
@@ -1124,7 +1779,7 @@ export function driverFromConformingRecord(record: unknown): OpenISDDriver | str
   if (!r.woofer && !r.tweeter) {
     problems.push('neither a woofer nor a tweeter section — nothing to simulate');
   }
-  return problems.length > 0 ? problems : OpenISDDriverStandalone.wrap(record as OpenISDDriverJson);
+  return problems.length > 0 ? problems : OpenISDDriverStandalone.wrap(record as OpenISDDriverJson, engine);
 }
 
 /**
@@ -1138,6 +1793,7 @@ export function driverFromConformingRecord(record: unknown): OpenISDDriver | str
  */
 export function passiveRadiatorFromConformingRecord(
   record: unknown,
+  engine: Engine,
 ): OpenISDPassiveRadiatorStandalone | string[] {
   if (typeof record !== 'object' || record === null) return ['not an object'];
   const r = record as Record<string, unknown>;
@@ -1148,7 +1804,7 @@ export function passiveRadiatorFromConformingRecord(
   }
   return problems.length > 0
     ? problems
-    : OpenISDPassiveRadiatorStandalone.wrap(record as OpenISDDriverJson);
+    : OpenISDPassiveRadiatorStandalone.wrap(record as OpenISDDriverJson, engine);
 }
 
 /** The metadata every purchasable component carries, driver or radiator alike — the one part of
@@ -1232,7 +1888,7 @@ export class OpenISDProject {
     this.#saved = saved;
     this.#uuid = uuid;
     this.#engine = engine;
-    this.driver = OpenISDDriverEmbedded.wrap(this.#slot('driver'));
+    this.driver = OpenISDDriverEmbedded.wrap(this.#slot('driver'), engine);
     // The box is handed the DRIVER and the ENGINE: a chamber's resonance depends on the driver
     // it loads, and the box reads the driver through its PUBLIC field surface, never its record.
     this.box = OpenISDBox.wrap(this.#slot('box'), this.driver, engine, () => this.#current().environment);
@@ -1300,6 +1956,114 @@ export class OpenISDProject {
   /** Whether unsaved changes exist. Answered by the presence of `#edited`: the first write
    *  creates it, and only `save()` or `cancel()` removes it. */
   isModified(): boolean { return this.#edited !== null; }
+
+  // ── THE SIGNAL ────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * The voltage that delivers this project's stated drive power into its driver — `√(Pin·Re)`,
+   * WinISD's reference-power convention, and the `eg` every sweep is run at.
+   *
+   * Null when no power is stated or the driver has no usable `Re`. Never a substituted default:
+   * a project that has not been told its drive level does not have one.
+   */
+  driveVoltage_V(): number | null {
+    const power_W = this.#current().signal.power_W;
+    const Re = this.driver.solveConsistencyGroup().Re;
+    return power_W === null || Re === undefined ? null : this.#engine.driveVoltage(power_W, Re);
+  }
+
+  /**
+   * Qts as the amplifier's source impedance actually loads it.
+   *
+   * `Rs` is a PARAMETER rather than a record field because the record has no home for it — the
+   * same decision `packages/model`'s `sealedResonance()` made and for the same reason. When the
+   * amplifier's output impedance gets a home, this reads it instead.
+   *
+   * Null when the driver's Q group is too incomplete to resolve.
+   */
+  sourceLoadedQts(Rs: number): number | null {
+    const { Qms, Qes, Re, Qts } = this.driver.solveConsistencyGroup();
+    if (Qms === undefined || Qes === undefined || Re === undefined || Qts === undefined) return null;
+    return this.#engine.sourceLoadedQts(Qms, Qes, Re, Rs, Qts);
+  }
+
+  // ── SIMULATION — the engine's sweep, run on THIS project's driver and box ──────────────────
+  //
+  // The project supplies what only it knows — the driver and which enclosure topology is active
+  // — and the caller supplies the sweep's own parameters. It does NOT assemble `SweepParams`
+  // from the record: that assembly is a policy decision (which losses, which grid, how many
+  // drivers) that belongs to whoever is asking for the sweep, not to the project.
+
+  /**
+   * Which of the engine's simulable topologies this project is, or null.
+   *
+   * There is ONE box-type vocabulary now, so this translates nothing — it asks the engine which
+   * of its own types it can model. Null for `bandpass6` and `abc`, which it has no circuit for,
+   * and that null is the reason every simulation method below can return null: not a failure, a
+   * topology the engine does not yet cover.
+   */
+  #engineBoxType(): SimulatableBoxType | null {
+    return this.#engine.simulatableBoxType(this.box.boxType.get());
+  }
+
+  /** The frequency response, impedance and excursion this design produces. Null when the driver
+   *  is too incomplete to simulate, or the active topology is one the engine has no model for. */
+  sweep(P: SweepParams): SweepResult | null {
+    const drv = this.driver.toEngineDriver().value;
+    const box = this.#engineBoxType();
+    return drv && box ? this.#engine.sweep(drv, box, P) : null;
+  }
+
+  /** The excursion- and power-limited maximum SPL curves. Null on the same terms as `sweep`. */
+  maxCurves(P: SweepParams): MaxCurvesResult | null {
+    const drv = this.driver.toEngineDriver().value;
+    const box = this.#engineBoxType();
+    return drv && box ? this.#engine.maxCurves(drv, box, P) : null;
+  }
+
+  /** What is wrong with these sweep parameters for this project's topology — checked BEFORE a
+   *  sweep, so a caller can refuse rather than plot nonsense. Empty when nothing is wrong. */
+  validateParams(P: SweepParams): DriverError[] {
+    const box = this.#engineBoxType();
+    return box ? this.#engine.validateParams(box, P) : [];
+  }
+
+  /** The passband level a response is measured against — the reference every dB figure below is
+   *  relative to. */
+  passbandRef(spl: number[]): number { return this.#engine.passbandRef(spl); }
+
+  /** The frequency where the response has fallen `dropDb` below its passband — F3 at 3 dB, F6 at
+   *  6, and so on. Null when the response never falls that far inside the swept range. */
+  rolloffFreq(sw: SweepResult, dropDb: number): number | null {
+    return this.#engine.rolloffFreq(sw, dropDb);
+  }
+
+  /** A non-finite value anywhere in the response, or null. A sweep that produced NaN is a fault
+   *  to report, never a curve to draw. */
+  classifyFinite(sw: SweepResult): DriverError | null { return this.#engine.classifyFinite(sw); }
+
+  /** A response clamped flat against a limit, or null — a shape that looks like a valid answer
+   *  and is not. */
+  classifyFlatClamp(sw: SweepResult): DriverError | null {
+    return this.#engine.classifyFlatClamp(sw);
+  }
+
+  /** The same finiteness check for the max-SPL curves. */
+  classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
+    return this.#engine.classifyMaxFinite(mx);
+  }
+
+  /**
+   * The impedance peak of a swept response — the resonance the design ACTUALLY exhibits, read
+   * off the curve rather than predicted from a formula.
+   *
+   * Reads `Re` off this project's own driver, which is why it lives here and not on the caller.
+   * Null when the driver has no usable `Re`, or the curve has no peak.
+   */
+  impedancePeak(sw: SweepResult | null): { Fsc: number; Qtc: number } | null {
+    const Re = this.driver.solveConsistencyGroup().Re;
+    return Re === undefined ? null : this.#engine.findImpedancePeak(sw, Re);
+  }
 
   /** Promote the edited record. A no-op when nothing has been edited. */
   save(): void {
@@ -1563,7 +2327,6 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
   #volume: number | null = null;
   #tuning: number | null = null;
   #count = 1;
-  #radiator: OpenISDDriverJson | null = null;
 
   constructor(driver: OpenISDDriver, engine: Engine) { super(driver, engine); }
 
@@ -1580,16 +2343,18 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
   protected boxRecord(): OpenISDBoxJson {
     const box = emptyBoxJson();
     const R = BoxProjectBuilder.required;
-    if (!this.#radiator) throw new Error('build(): a passive-radiator box requires a radiator');
+    if (!this.radiatorChoice) throw new Error('build(): a passive-radiator box requires a radiator');
+    // `component` stays null HERE and is filled by `build()`, which has the box's own radiator
+    // adopt the chosen one — the record is private to the radiator, so the builder cannot copy
+    // it across itself.
     return {
       ...box,
-      boxType: 'passive-radiator',
+      boxType: 'box-passive-radiator',
       passiveRadiator: {
         ...box.passiveRadiator,
         volume_m3: R(this.#volume, 'passive-radiator volume_m3'),
         tuning_hz: R(this.#tuning, 'passive-radiator tuning_hz'),
         count: this.#count,
-        component: this.#radiator,
       },
     };
   }

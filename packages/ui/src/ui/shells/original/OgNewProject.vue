@@ -20,7 +20,7 @@ useEscToClose(() => true, () => emit('close'));
 const BOX_OPTIONS: { id: BoxType; label: string }[] = [
   { id: 'sealed',    label: 'Closed' },
   { id: 'vented',    label: 'Vented' },
-  { id: 'pr',        label: 'Passive Radiator' },
+  { id: 'box-passive-radiator', label: 'Passive Radiator' },
   { id: 'bandpass4', label: '4th Order Bandpass' },
 ];
 

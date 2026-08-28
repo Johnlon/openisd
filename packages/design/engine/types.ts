@@ -61,8 +61,48 @@ export interface EngineDriver {
   numVC?: number;
 }
 
-/** Enclosure types the circuit solver handles. */
-export type BoxType = 'sealed' | 'vented' | 'pr' | 'bandpass4';
+/**
+ * THE box types. One declaration, imported by the engine, the domain, the model and the UI —
+ * there is no second enumeration of this concept anywhere (John's canon, 2026-08-28).
+ *
+ * `box-passive-radiator` carries the `box-` prefix because `passive-radiator` already names a
+ * DRIVER type — a driver that IS a passive radiator (ruling D7). One enclosure loaded by such a
+ * driver, one driver that is one: two concepts, and they must not share a spelling. The other
+ * five need no prefix: nothing else answers to those names.
+ *
+ * `bandpass6` and `abc` are declared here and are NOT simulated — `simulatableBoxType()` is the
+ * one place that decides, and every engine entry point refuses them by name rather than by
+ * being unable to express them.
+ */
+export type BoxType =
+  | 'sealed'
+  | 'vented'
+  | 'bandpass4'
+  | 'bandpass6'
+  | 'box-passive-radiator'
+  | 'abc';
+
+/** The box types the circuit solver actually models. */
+export type SimulatableBoxType = 'sealed' | 'vented' | 'bandpass4' | 'box-passive-radiator';
+
+/**
+ * Narrow a box type to one the circuit models, or null when it has none. The ONE place that
+ * distinction is made, so a caller gets either a simulatable type or an explicit refusal — never
+ * a silent fall-through into another topology's maths.
+ *
+ * INTERNAL to this package: `Engine.simulatableBoxType()` is the public way to ask, and the
+ * engine door exports no loose functions (`test/architecture-engine-boundary.test.ts`).
+ *
+ * The list is built inside the function rather than at module scope: a shared array or Set is
+ * mutable state however it is declared, since `const` freezes the binding and not the contents
+ * (packages/design/AGENTS.md, and `test/architecture-no-globals.test.ts`).
+ */
+export function simulatableBoxType(box: BoxType): SimulatableBoxType | null {
+  const simulatable: readonly SimulatableBoxType[] = [
+    'sealed', 'vented', 'bandpass4', 'box-passive-radiator',
+  ];
+  return simulatable.includes(box as SimulatableBoxType) ? (box as SimulatableBoxType) : null;
+}
 
 /** Driver wiring for multi-driver setups. */
 export type Wiring = 'series' | 'parallel';

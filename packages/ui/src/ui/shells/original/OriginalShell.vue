@@ -88,16 +88,16 @@ function fmt(n: number | null | undefined, dp: number): string {
 // fmtU (calculated-value-in-selected-unit) is the shared store.formatInUnit, imported above.
 
 // ---- Box types -----------------------------------------------------------------
-type OgBox = 'sealed' | 'vented' | 'pr' | 'bandpass4' | 'bandpass6' | 'abc';
+type OgBox = 'sealed' | 'vented' | 'box-passive-radiator' | 'bandpass4' | 'bandpass6' | 'abc';
 const BOX_OPTIONS: { id: OgBox; label: string }[] = [
   { id: 'sealed',    label: 'Closed' },
   { id: 'vented',    label: 'Vented' },
-  { id: 'pr',        label: 'Passive Radiator' },
+  { id: 'box-passive-radiator', label: 'Passive Radiator' },
   { id: 'bandpass4', label: '4th Order Bandpass' },
   { id: 'bandpass6', label: '6th Order Bandpass' },
   { id: 'abc',       label: 'ABC (Aperiodic Bi-Chamber)' },
 ];
-const SUPPORTED_BOX = new Set<OgBox>(['sealed', 'vented', 'pr', 'bandpass4']);
+const SUPPORTED_BOX = new Set<OgBox>(['sealed', 'vented', 'box-passive-radiator', 'bandpass4']);
 const DUAL_CHAMBER = new Set<OgBox>(['bandpass4', 'bandpass6', 'abc']);
 
 // selectedBox is the Box tab's source of truth: it can hold values (bandpass6/abc) the
@@ -117,7 +117,7 @@ const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
 const boxLabel = computed(() => BOX_OPTIONS.find(o => o.id === selectedBox.value)?.label ?? 'Box');
 // The 3rd nav tab (id 'enclosure') tracks the box type, WinISD-style.
 const enclosureNavLabel = computed(() =>
-  selectedBox.value === 'pr' ? 'Passive Radiator'
+  selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
     : selectedBox.value === 'sealed' ? 'Closed'
       : boxLabel.value);
 // A Closed box has no vents/PR — its enclosure tab would only duplicate the Box tab's
@@ -145,7 +145,7 @@ const rearQtc = computed<number | null>(() => sealedRes.value?.Qtc ?? null);
 /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
 const boxResonance = computed<number | null>(() => {
   void project.value;
-  return selectedBox.value === 'pr' ? project.value.prSystemTuning_hz() : rearResonance.value;
+  return selectedBox.value === 'box-passive-radiator' ? project.value.prSystemTuning_hz() : rearResonance.value;
 });
 // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber
 // tunes on its own front volume Vf. Same closed form the engine's circuit uses.
@@ -898,7 +898,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               <p class="hint"><b>Rear chamber</b> is the chamber behind the driver, <b>front chamber</b> the one in front of it. Closed, vented and PR have a rear chamber only.</p>
               <p v-if="selectedBox === 'sealed'" class="hint"><b>Sealed (Fsc):</b> System resonance frequency where the speaker impedance peaks and below which the response rolls off at 12 dB/octave. Solved from the box volume Vb.</p>
               <p v-if="selectedBox === 'vented'" class="hint"><b>Vented (Fb):</b> Helmholtz resonance of the box volume and port. At Fb, port output is maximized and driver cone excursion is minimized.</p>
-              <p v-if="selectedBox === 'pr'" class="hint"><b>PR (Fp):</b> Helmholtz-like tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
+              <p v-if="selectedBox === 'box-passive-radiator'" class="hint"><b>PR (Fp):</b> Helmholtz-like tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
               <p v-if="selectedBox === 'bandpass4'" class="hint"><b>Bandpass 4th order:</b> Uses sealed rear chamber resonance (Frc) for low-end control, and front chamber port tuning (Fb) to bandpass-filter the output.</p>
               <p v-if="selectedBox === 'bandpass6'" class="hint"><b>Bandpass 6th order:</b> Dual-tuned bandpass filter. Front and rear chambers are both tuned to separate port frequencies to shape the passband.</p>
               <p v-if="selectedBox === 'abc'" class="hint">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
@@ -940,7 +940,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               <div class="beside-hint">
                 <div>
                   <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput :model-value="project.vcTempRise()" @update:model-value="v => project.setVcTempRise(v ?? 0)" field="vcTempRise" group="tempDiff" base="K" :precision="fieldDp('vcTempRise')" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
-                  <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput :model-value="project.alfaVC()" @update:model-value="v => project.setAlfaVC(v ?? 0)" field="alfaVC" group="tempCoeff" base="perMilliK" :precision="fieldDp('AlfaVC')" /><UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput :model-value="project.alfaVC()" @update:model-value="v => project.setAlfaVC(v ?? 0)" field="alfaVC" group="tempCoeff" base="perMilliK" :precision="fieldDp('alfaVC')" /><UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
                   <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput :model-value="project.driverAddedMass()" @update:model-value="v => project.setDriverAddedMass(v ?? 0)" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
                 </div>
                 <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
@@ -1049,7 +1049,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                   </div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(project.ventArea_m2(), 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
+                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(project.ventArea_m2(), 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventCrossArea" group="area" base="m2" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
                   <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(project.portPipeResonance_hz(), 'portResonance', 'freq', 'Hz', fieldDp('portResonance'))" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
@@ -1061,7 +1061,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
           </div>
 
           <!-- passive radiator -->
-          <div v-else-if="selectedBox === 'pr'">
+          <div v-else-if="selectedBox === 'box-passive-radiator'">
             <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
               <div class="field tight"><label>PR</label><input type="text" style="width:220px" :value="(project.prName()) || 'Custom PR'" readonly></div>
               <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select PR</button>
@@ -1094,7 +1094,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               </div>
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
-                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="project.prCount()" @update:model-value="v => project.setPrCount(v ?? 0)" field="prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="project.prCount()" @update:model-value="v => project.setPrCount(v ?? 0)" field="prNum" :precision="fieldDp('prNum')" /></div></div>
                 <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.prAddedMass_kg()" @update:model-value="v => project.setPrAddedMass_kg(v ?? 0)" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
                 <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(project.prFsMass_hz(), 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
@@ -1154,9 +1154,9 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
             </div>
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
-              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput :model-value="project.inputPower_W()" @update:model-value="v => project.setInputPower_W(v ?? 0)" :scale="1" :precision="fieldDp('Pin')" /><span class="unit">W</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Driver input voltage (each)</label><NumInput v-model="driveV" :scale="1" :precision="fieldDp('driveV')" /><span class="unit">V</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput :model-value="project.seriesResistance_ohm()" @update:model-value="v => project.setSeriesResistance_ohm(v ?? 0)" :scale="1" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
+              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput :model-value="project.inputPower_W()" @update:model-value="v => project.setInputPower_W(v ?? 0)" :precision="fieldDp('Pin')" /><span class="unit">W</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Driver input voltage (each)</label><NumInput v-model="driveV" :precision="fieldDp('driveV')" /><span class="unit">V</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput :model-value="project.seriesResistance_ohm()" @update:model-value="v => project.setSeriesResistance_ohm(v ?? 0)" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
             </div>
           </div>
         </section>
@@ -1214,9 +1214,9 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
           <div class="win-controls"><span class="close-btn" @click="boxLossesOpen = false">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="project.boxQl()" @update:model-value="v => project.setBoxQl(v ?? 0)" :scale="1" :precision="fieldDp('Ql')" /></div></div>
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="project.boxQa()" @update:model-value="v => project.setBoxQa(v ?? 0)" :scale="1" :precision="fieldDp('Qa')" /></div></div>
-          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="project.boxQp()" @update:model-value="v => project.setBoxQp(v ?? 0)" :scale="1" :precision="fieldDp('Qp')" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="project.boxQl()" @update:model-value="v => project.setBoxQl(v ?? 0)" :precision="fieldDp('Ql')" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="project.boxQa()" @update:model-value="v => project.setBoxQa(v ?? 0)" :precision="fieldDp('Qa')" /></div></div>
+          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="project.boxQp()" @update:model-value="v => project.setBoxQp(v ?? 0)" :precision="fieldDp('Qp')" /></div></div>
           <p class="hint">100 = no stuffing · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
         </div>
         <div class="modal-footer">

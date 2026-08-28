@@ -9,15 +9,14 @@
 import { T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
 
 /**
- * Passive-radiator compliance-equivalent volume Vas, in LITRES.
- * Vas = Cms · Sd² · ρ · c²  (×1000 converts the m³ result to litres). No environment reaches
- * this call site, so ρ/c are computed live at the reference environment — never a stored
- * constant.
+ * Passive-radiator compliance-equivalent volume Vas, in CUBIC METRES.
+ * Vas = Cms · Sd² · ρ · c². No environment reaches this call site, so ρ/c are computed live at
+ * the reference environment — never a stored constant.
  */
 export function prVas(prCms: number, prSd: number): number {
   const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
   const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
-  return prCms * prSd * prSd * rho * c * c * 1000;
+  return prCms * prSd * prSd * rho * c * c;
 }
 
 /**
@@ -53,14 +52,14 @@ export function driveVoltage(pin: number, re: number): number {
 }
 
 /**
- * Passive-radiator compliance from Vas (litres) and Sd — the inverse of `prVas`:
- * Cms = (Vas/1000) / (Sd² · ρ · c²). Returns 0 when Sd is non-positive (undefined compliance).
+ * Passive-radiator compliance from Vas (cubic metres) and Sd — the inverse of `prVas`:
+ * Cms = Vas / (Sd² · ρ · c²). Returns 0 when Sd is non-positive (undefined compliance).
  */
-export function prCmsFromVas(prVasL: number, prSd: number): number {
+export function prCmsFromVas(prVas_m3: number, prSd: number): number {
   if (!(prSd > 0)) return 0;
   const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
   const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
-  return (prVasL / 1000) / (prSd * prSd * rho * c * c);
+  return prVas_m3 / (prSd * prSd * rho * c * c);
 }
 
 /**

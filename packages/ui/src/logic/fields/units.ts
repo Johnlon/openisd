@@ -6,7 +6,7 @@
  * changes the factor + precision only — never the stored value. This is what makes the
  * clickable unit a real conversion instead of a decorative label.
  *
- * `factor` = display value per one SI unit (exactly the old `NumInput :scale`). The first unit
+ * `factor` = display value per one SI unit. The first unit
  * in each group is the group's canonical default, but a FIELD may start on a different token
  * (e.g. Xmax defaults to mm, vent length to cm) — that base token is supplied at the call site,
  * and precision is derived relative to it so resolution is preserved across a switch.
@@ -29,7 +29,8 @@ export type UnitGroup =
   | 'compliance'
   | 'velocity'
   | 'density'
-  | 'resistance';
+  | 'resistance'
+  | 'percent';
 
 /** Never show more than this many decimals in any unit — the resolution-preserving derivation
  *  (displayPrecision) would otherwise pile up meaningless trailing zeros for a much-coarser unit
@@ -130,6 +131,13 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = {
   resistance: [
     { token: 'nsPerM', label: 'Ns/m', factor: 1 },
     { token: 'kgPerS', label: 'kg/s', factor: 1 },
+  ],
+  // A stored FRACTION shown as a percentage (η₀, Gloss). One unit, so the toggle has nowhere to
+  // rotate: the group exists to put the ×100 in the same registry as every other conversion,
+  // not to offer a choice. Keeping it here is what stops the ×100 being re-typed per call site —
+  // the `no/100` class of bug that measured 20 dB out.
+  percent: [
+    { token: 'pct', label: '%', factor: 100 },
   ],
 };
 

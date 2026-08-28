@@ -4,7 +4,7 @@
  * Box tab and the New Project wizard draw the exact same art for a given box type,
  * instead of each carrying its own copy of the SVG markup.
  */
-export type BoxDiagramType = 'sealed' | 'vented' | 'pr' | 'bandpass4' | 'bandpass6' | 'abc';
+export type BoxDiagramType = 'sealed' | 'vented' | 'box-passive-radiator' | 'bandpass4' | 'bandpass6' | 'abc';
 
 defineProps<{ boxType: BoxDiagramType }>();
 </script>
@@ -27,7 +27,7 @@ defineProps<{ boxType: BoxDiagramType }>();
     <path d="M160,70 L130,90 L130,130 L160,150" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
     <rect x="110" y="100" width="20" height="20" fill="#0F4761"/>
   </svg>
-  <svg v-show="boxType === 'pr'" id="og-box-diagram-pr" viewBox="0 30 200 240" height="126">
+  <svg v-show="boxType === 'box-passive-radiator'" id="og-box-diagram-passive-radiator" viewBox="0 30 200 240" height="126">
     <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
     <line x1="160" y1="40" x2="160" y2="60" stroke="#0F4761" stroke-width="4"/>
     <line x1="160" y1="130" x2="160" y2="170" stroke="#0F4761" stroke-width="4"/>

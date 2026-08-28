@@ -251,7 +251,7 @@ describe('Passive radiator box simulation', () => {
   };
   const { value: d }  = engine.deriveEngineDriver(REF_DRIVER);
   assert.ok(d);
-  const sw = engine.sweep(d, 'pr', PR_PARAMS);
+  const sw = engine.sweep(d, 'box-passive-radiator', PR_PARAMS);
 
   it('produces a non-zero excursion curve for the PR cone alongside the main driver curve', () => {
     // The PR is acoustically coupled to the box; at resonance it moves significantly.

@@ -163,7 +163,7 @@ export function solve(f: number, drv: EngineDriver, box: BoxType, P: SweepParams
     UP = cMul(UD, cDiv(Zbox, Zport));
     U0 = cSub(UD, UP);
 
-  } else if (box === 'pr') {
+  } else if (box === 'box-passive-radiator') {
     // Passive radiator: mechanical elements referred to acoustical domain
     // https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
     // n_pr PRs in parallel → combined acoustic impedance = Zpr_single / n_pr

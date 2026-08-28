@@ -116,7 +116,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     const xm = drv.Xmax! > 0 ? drv.Xmax! * 1000 : null;
     if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
     let top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
-    if (box === 'pr') {
+    if (box === 'box-passive-radiator') {
       series.push({ xs: sw.fs, ys: sw.excPR, color:'#5ad17a', name:'PR' });
       const xmp = (P.prXmax || 0.01) * 1000;
       series.push({ xs: sw.fs, ys: sw.fs.map(() => xmp), color:'#9ad17a', name:'PR Xmax', dash:true });

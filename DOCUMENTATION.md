@@ -32,6 +32,7 @@ Mermaid diagrams.
 |---|---|
 | [docs/spec/SPEC_ENGINE.md](http://localhost:8000/openisd/docs/spec/SPEC_ENGINE.md?html) | What `@openisd/engine` computes, and the formulas it owns |
 | [docs/spec/SPEC_UI.md](http://localhost:8000/openisd/docs/spec/SPEC_UI.md?html) | What the UI presents |
+| [docs/FIELD_REFERENCE.md](http://localhost:8000/openisd/docs/FIELD_REFERENCE.md?html) | **The help page.** Every driver, radiator, box, loss, vent and environment field — meaning, unit, and where the definition comes from (WinISD's own help, Claus Futtrup's DPC formulas, and our decompilation) |
 
 ## Design
 

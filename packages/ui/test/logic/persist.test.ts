@@ -21,7 +21,6 @@ import { WinISDDriver } from '@openisd/winisd';
 import { createProjectRepo, createMemoryStorage, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
 import { projectSchema } from '../../src/logic/schemaUpgrade.js';
 import { state, requireFocusedProject, applyLoadedProject, currentProject, currentViewSnapshot } from '../../src/logic/appState.js';
-import { toAlignmentKind } from '../../src/logic/managedProject.js';
 import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
 import type { BoxType } from '@openisd/design/engine';
 
@@ -61,7 +60,7 @@ async function savedFileText(project: OpenISDProject): Promise<string> {
 function projectOf(box: BoxType, meta: OpenISDProjectMeta,
   driverText: string, params: Partial<UiParams>): OpenISDProject {
   const project = OpenISDProject.empty(OpenISDDriver.fromOwdrJson(driverText));
-  project.loadUiParams(params, toAlignmentKind(box));
+  project.loadUiParams(params, box);
   project.setProjectMeta(meta);
   return project;
 }
@@ -280,7 +279,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
  */
 describe('UiParams round-trips losslessly through the repo and applyLoadedProject', () => {
   it('every field of a fully-specified design survives a save/restore cycle unchanged', async () => {
-    requireFocusedProject().setActiveAlignment('vented');
+    requireFocusedProject().setActiveBoxType('vented');
     requireFocusedProject().setBoxVolume_m3(0.028);
     requireFocusedProject().setFrontVolume_m3(0.011);
     requireFocusedProject().setVentShape('slotted');

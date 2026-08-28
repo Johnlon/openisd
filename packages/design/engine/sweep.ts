@@ -149,7 +149,7 @@ export function sweep(drv: EngineDriver, box: BoxType, P: SweepParams): SweepRes
     const UP  = cMul(s.UP, Hf);
     const pm  = cAbs(Hc);
     const Sdt = d.Sd * (P.nDrivers || 1); // d.Sd === drv.Sd (withAddedMass leaves Sd untouched)
-    const area = box === 'pr' ? P.prSd! : P.Sp!;
+    const area = box === 'box-passive-radiator' ? P.prSd! : P.Sp!;
     fs.push(f); H.push(Hc);
     // SPL = 20·log10(|p|/P0)  https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
     spl.push(pm > 0 ? 20 * Math.log10(pm / P0) : -200);
@@ -158,7 +158,7 @@ export function sweep(drv: EngineDriver, box: BoxType, P: SweepParams): SweepRes
     exc.push(Math.SQRT2 * cAbs(UD) / (w * Sdt) * 1000);
     pv.push(area ? Math.SQRT2 * cAbs(UP) / area : 0);
     // UP is total volume velocity from all PRs; divide by prNum for per-PR excursion
-    excPR.push(box === 'pr' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd! * (P.prNum || 1)) * 1000 : 0);
+    excPR.push(box === 'box-passive-radiator' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd! * (P.prNum || 1)) * 1000 : 0);
     zmag.push(cAbs(s.Zel));
     zph.push(cArg(s.Zel) * 180 / Math.PI);
   }

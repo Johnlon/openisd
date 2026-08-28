@@ -83,15 +83,61 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
     assert.ok(low.rho < dry.rho, 'pressure must change ρ');
   });
 
-  it('ignoreHumidityAndPressure reproduces WinISD exactly at the reference conditions (QO88): the bridge-stamped constant', () => {
-    const atRef = engine.airFor({ ignoreHumidityAndPressure: true, tempK: T0, humidityPct: RH0, pressurePa: P_ATM });
-    assert.equal(atRef.rho, WINISD_RHO);
-    assert.equal(atRef.c,   WINISD_C);
-    // Absent fields default to the same reference conditions, so the bare call matches too —
-    // this IS the invariant QO88 requires: live-calculated-at-defaults === bridge-stamped-constant.
-    const bare = engine.airFor({ ignoreHumidityAndPressure: true });
-    assert.equal(bare.rho, WINISD_RHO);
-    assert.equal(bare.c,   WINISD_C);
+  // EVERY ROW HERE WAS MEASURED, not derived. `winisd_research` FINDING-008: the app-level
+  // environment was written into WinISD's own settings.ini before the launch that observed it,
+  // and c/roo were read out of the .wpr it wrote, at 15 significant digits
+  // (runs/qo93_air_output/results.jsonl, toys/qo93_air_output_probe.py).
+  //
+  // Six environments, each moving ONE input away from the factory point, so a model that gets
+  // one input's dependence wrong cannot pass by getting another's right.
+  const MEASURED = [
+    { T: 293.15, RH: 30, P: 101325, c: 343.684120962153, rho: 1.20095217714682 },
+    { T: 313.15, RH: 30, P: 101325, c: 356.223844028178, rho: 1.11788898381182 },
+    { T: 273.15, RH: 30, P: 101325, c: 331.432207160196, rho: 1.29138349092275 },
+    { T: 293.15, RH: 80, P: 101325, c: 344.437969001986, rho: 1.19570104456042 },
+    { T: 293.15, RH:  0, P: 101325, c: 343.234181075929, rho: 1.20410285669867 },
+    { T: 293.15, RH: 30, P:  95000, c: 343.714140348792, rho: 1.12578858900353 },
+  ];
+
+  it('ignoreHumidityAndPressure reproduces REAL WinISD at every measured environment, EXACTLY', () => {
+    // 1e-6 ppm is 1e-12 relative. Not a tolerance chosen to let the implementation through: the
+    // worst residual across all six is 2.5e-15, so there are nearly three orders of magnitude of
+    // headroom, and anything that actually changes the model fails.
+    //
+    // Two earlier implementations fail this by a wide margin, which is the point of the bar:
+    // the constant-multiplier version is out by up to 12 ppm, and using Hyland-Wexler's LIQUID
+    // constants at 273.15 K instead of its ICE set is out by 23 ppb.
+    for (const m of MEASURED) {
+      const air = engine.airFor({
+        ignoreHumidityAndPressure: true, tempK: m.T, humidityPct: m.RH, pressurePa: m.P,
+      });
+      assert.ok(ppm(air.c, m.c) < 1e-6,
+        `c at T=${m.T} RH=${m.RH} P=${m.P} is ${air.c} — ${ppm(air.c, m.c).toFixed(4)} ppm from the measured ${m.c}`);
+      assert.ok(ppm(air.rho, m.rho) < 1e-6,
+        `rho at T=${m.T} RH=${m.RH} P=${m.P} is ${air.rho} — ${ppm(air.rho, m.rho).toFixed(4)} ppm from the measured ${m.rho}`);
+    }
+  });
+
+  it('in WinISD-parity mode density is derived from c by gamma*p/c^2, not from an air model', () => {
+    // The structural finding, and the reason five candidate DENSITY models were all rejected:
+    // WinISD never computes density from air at all. Real WinISD's own saved pairs satisfy this
+    // to ~2e-15, so the implementation must satisfy it exactly rather than approximately.
+    for (const m of MEASURED) {
+      const air = engine.airFor({
+        ignoreHumidityAndPressure: true, tempK: m.T, humidityPct: m.RH, pressurePa: m.P,
+      });
+      assert.ok(ppm(air.rho, 1.4 * m.P / (air.c * air.c)) < 1e-6,
+        `rho at T=${m.T} is ${air.rho}, but gamma*p/c^2 gives ${1.4 * m.P / (air.c * air.c)}`);
+    }
+  });
+
+  it('the PHYSICAL model is NOT the WinISD one — they must not have been quietly merged', () => {
+    // Non-vacuity for the pair of tests above: if both branches returned the same thing, every
+    // parity assertion here would pass while the default mode silently stopped doing CIPM-2007.
+    const physics = engine.airFor({ tempK: T0, humidityPct: RH0, pressurePa: P_ATM });
+    const winisd = engine.airFor({ ignoreHumidityAndPressure: true, tempK: T0, humidityPct: RH0, pressurePa: P_ATM });
+    assert.notEqual(physics.c, winisd.c);
+    assert.notEqual(physics.rho, winisd.rho);
   });
 
   it('ignoreHumidityAndPressure still varies with humidity, pressure AND temperature away from the reference conditions — the engine computes from whatever environment the caller supplies (the UI supplies its app-level Options-equivalent in this mode, §12/§13), and divergence from the bridge constant off-defaults is ruled correct, not a defect (QO88)', () => {

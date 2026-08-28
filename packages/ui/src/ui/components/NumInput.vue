@@ -2,11 +2,10 @@
 import { ref, watch, computed } from 'vue';
 import { unitToken } from '../../logic/presentationState.js';
 import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from '../../logic/fields/units.js';
-import { fieldById } from '../../logic/fields/fieldRegistry.js';
+import { fieldById, fieldHelp } from '../../logic/fields/fieldRegistry.js';
 
 const props = withDefaults(defineProps<{
   modelValue: number | null | undefined;
-  scale?: number;       // display = SI value × scale
   precision?: number;
   step?: string;
   // Explicit SI-space bounds. When omitted, a `field` id pulls the registry's enforced
@@ -14,10 +13,11 @@ const props = withDefaults(defineProps<{
   // (physical quantities are non-negative by default) and max is unbounded.
   min?: number;
   max?: number;
-  // Optional unit binding: when group + field + base are all given, the display scale and
-  // precision come from the field's SELECTED unit (fields/units.ts) instead of the fixed
-  // `scale`/`precision` props, so a paired <UnitToggle> rescales this field live. `precision`
-  // is then the BASE-unit dp; the shown dp is derived per unit. Omit all three → unchanged.
+  // Unit binding: when group + field + base are all given, the display factor and precision
+  // come from the field's SELECTED unit (fields/units.ts), so a paired <UnitToggle> rescales
+  // this field live. `precision` is then the BASE-unit dp; the shown dp is derived per unit.
+  // Omit all three and the field shows its SI value unconverted — there is no other way to
+  // scale a number here, so a display unit can only ever come from the unit registry.
   // `field` MAY also be given alone (no group/base) purely to bind the registry constraints.
   group?: UnitGroup;
   field?: string;
@@ -25,7 +25,6 @@ const props = withDefaults(defineProps<{
   mandatory?: boolean;
 }>(), {
   modelValue: null,
-  scale: 1,
   precision: 2,   // decimal places (fixed); WinISD's most common field width
   step: 'any',
   mandatory: false,
@@ -37,13 +36,13 @@ const emit = defineEmits<{ 'update:modelValue': [value: number | null] }>();
 const unitized = computed(() => props.group != null && props.field != null && props.base != null);
 const token = computed(() => (unitized.value ? unitToken(props.field!, props.base!) : ''));
 // SI ↔ display. Unit-bound mode uses the affine registry conversion (handles temperature's
-// offset); otherwise the fixed `scale` multiply. Both keep the model in SI.
+// offset); unbound, the field IS its SI value. The model holds SI either way.
 function toDisp(si: number | null): number {
   if (si == null) return 0;
-  return unitized.value ? toDisplay(si, props.group!, token.value) : si * props.scale;
+  return unitized.value ? toDisplay(si, props.group!, token.value) : si;
 }
 function fromDisp(disp: number): number {
-  return unitized.value ? fromDisplay(disp, props.group!, token.value) : disp / props.scale;
+  return unitized.value ? fromDisplay(disp, props.group!, token.value) : disp;
 }
 // Decimal places: derived per selected unit when bound, else the fixed prop (min 2 dp).
 const eprec = computed(() =>
@@ -62,8 +61,8 @@ const badEntry = ref(false);
 
 // Fixed-decimal display (WinISD convention): `precision` is the number of DECIMAL
 // places, so the field width doesn't jump as the value changes (e.g. Vb always
-// "6.00", never "6" then "6.003"). Was toPrecision (significant figures) which gave
-// variable decimals.
+// "6.00", never "6" then "6.003"). Decimal places, NOT significant figures — toPrecision
+// gives a variable number of decimals and makes the width jump.
 function fmt(v: number | null | undefined): string {
   if (v == null) return '';
   const s = toDisp(v);
@@ -102,9 +101,28 @@ function onPointerDown() { typing.value = false; }
 
 // Effective SI-space bounds: explicit props win; else the bound field's registry limits
 // (fieldRegistry is the constraints SSOT — bounds there are in SI/model space); else the
-// non-negative default floor and no ceiling. Lookup is tolerant of a registry-id case
-// difference (e.g. field="alfaVC" vs registry id 'AlfaVC').
-const regSpec = computed(() => props.field ? (fieldById(props.field) ?? fieldById(props.field[0].toUpperCase() + props.field.slice(1))) : undefined);
+// non-negative default floor and no ceiling.
+//
+// EXACT lookup, deliberately — do not add case-tolerance here. Both the `field` bindings and the
+// registry ids carry WinISD's own spelling, so a lookup that misses is a real drift between the
+// two, and it must surface as a missing help text rather than resolve quietly to the wrong entry.
+const regSpec = computed(() => props.field ? fieldById(props.field) : undefined);
+/**
+ * The field's help text, from the ONE registry, on every NumInput that names a field.
+ *
+ * Bound on the component rather than written onto each call site: that is what makes help
+ * CONSISTENT (one text per field, wherever the field appears) and COMPLETE (a field gains help
+ * by existing in the registry, not by someone remembering to add a hover). A wrapper may still
+ * set its own `title` — Vue's fallthrough puts the parent's attribute last, so an explicit one
+ * wins where a pane genuinely needs to say something the field itself cannot.
+ *
+ * Undefined, not '', when there is nothing to say: an empty `title` renders an empty tooltip.
+ */
+const helpText = computed<string | undefined>(() => {
+  const t = props.field ? fieldHelp(props.field) : '';
+  return t === '' ? undefined : t;
+});
+
 const effMin = computed<number>(() => props.min ?? regSpec.value?.min ?? 0);
 const effMax = computed<number | undefined>(() => props.max ?? regSpec.value?.max);
 
@@ -218,7 +236,7 @@ const stepAttr = computed<string | number>(() => {
 
 <template>
   <input type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
-    :class="classes"
+    :class="classes" :title="helpText"
     @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
 </template>
 

@@ -26,7 +26,7 @@ import { WinISDDriver } from '@openisd/winisd';
 import { OpenISDDriver, Provenance } from '@openisd/model';
 import type { SpecField } from '@openisd/model';
 import { precision, fieldById } from '../../src/logic/fields/fieldRegistry.js';
-import { UNIT_GROUPS, unitDef, toDisplay, type UnitGroup } from '../../src/logic/fields/units.js';
+import { UNIT_GROUPS, unitDef, toDisplay, nextToken, type UnitGroup } from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const EDITOR = join(here, '..', '..', 'src', 'ui', 'components', 'DriverEditorModal.vue');
@@ -325,6 +325,38 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
   });
 });
 
+describe('percent unit group — one unit, the ONE place a fraction becomes a percentage', () => {
+  it('units.ts defines a percent group holding exactly one unit, "%", at SI × 100', () => {
+    const defs = UNIT_GROUPS.percent;
+    assert.ok(defs, 'no "percent" group in UNIT_GROUPS');
+    assert.equal(defs.length, 1, 'a percentage has one spelling — a second entry would imply a conversion that does not exist');
+    assert.equal(defs[0].label, '%');
+    assert.equal(defs[0].factor, 100, 'a stored FRACTION renders as a percentage: 0.0231… → 2.31…');
+    assert.equal(defs[0].offset ?? 0, 0, 'a percentage is purely multiplicative — an offset here would bend every value');
+  });
+
+  it('rotating a one-unit group is a no-op, so the toggle cannot change the number', () => {
+    const only = UNIT_GROUPS.percent[0].token;
+    assert.equal(nextToken('percent', only), only,
+      'nextToken must return the same token — a single-unit group has nowhere to rotate to');
+  });
+
+  it('no and Gloss declare the percent unitGroup in the field registry', () => {
+    for (const id of ['no', 'Gloss']) {
+      const spec = fieldById(id);
+      assert.ok(spec, `fieldRegistry has no "${id}"`);
+      assert.equal(spec!.unitGroup, 'percent', `${id} does not carry unitGroup: 'percent'`);
+    }
+  });
+
+  it('no and Gloss render through the group, not a hand-bound :scale', () => {
+    for (const label of ['no', 'Gloss']) {
+      assert.equal(byLabel(label).toggleable, true,
+        `${label} still binds a fixed :scale — the ×100 must come from the percent group`);
+    }
+  });
+});
+
 describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
   /**
    * The one boundary this field has. `Gloss = g/((2π·Fs)²·Xmax)` is the static cone sag as a
@@ -402,14 +434,14 @@ describe('driver editor — precision comes from the field registry', () => {
     fLe: 'fLe',
     // Mechanical fields carry "Full Name (Short)" labels, taken from WinISD's own help
     // (docs/winisd_helpfiles/help/thielesmall.html). Keys here are the rendered label text.
-    'Basket Plate Thickness (Thick)': 'dimThick',
-    'Driver Depth (Depth)': 'dimDepth',
-    'Magnet Depth (MagDepth)': 'dimMagnetDepth',
-    'Magnet Diameter (Magnet)': 'dimMagnet',
-    'Basket Diameter (Basket)': 'dimBasket',
-    'Outer Diameter (Outer)': 'dimOuter',
-    'Voice Coil Dia (Vcd)': 'dimVCd',
-    'Driver Displacement Volume (DVol)': 'dimDvol',
+    'Basket Plate Thickness (Thick)': 'Thick',
+    'Driver Depth (Depth)': 'Depth',
+    'Magnet Depth (MagDepth)': 'MagDepth',
+    'Magnet Diameter (Magnet)': 'Magnet',
+    'Basket Diameter (Basket)': 'Basket',
+    'Outer Diameter (Outer)': 'Outer',
+    'Voice Coil Dia (Vcd)': 'Vcd',
+    'Driver Displacement Volume (DVol)': 'DVol',
   };
 
   for (const [label, id] of Object.entries(REGISTRY_ID)) {

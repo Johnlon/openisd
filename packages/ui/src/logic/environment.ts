@@ -28,7 +28,7 @@ export function resolveAirEnvironment<T extends AirEnvironment>(
     return { ...env, humidityPct: appLevel.humidityPct, pressurePa: appLevel.pressurePa };
 }
 
-/** EBP = Fs/Qes — the vented-alignment suitability figure OgTune.vue's Vents pane shows. */
+/** EBP = Fs/Qes — the vented-box suitability figure OgTune.vue's Vents pane shows. */
 export function ebpOf(driver: EngineDriver): number {
     return new Engine().ebp(driver);
 }

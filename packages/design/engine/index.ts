@@ -13,6 +13,7 @@
 // a caller cannot use the class without being able to name it. A type that stops appearing in a
 // signature comes off this list.
 export { Engine } from './Engine.js';
+export type { DriverFields } from './Engine.js';
 // A VALUE, not just a type: `LossMode` is a class whose static members ARE the modes
 // (`LossMode.WinisdLossy`, `LossMode.Default`), so a caller cannot pass one without it.
 export { LossMode } from './lossMode.js';
@@ -20,6 +21,6 @@ export type { SealedParams } from './lossMode.js';
 export type { Air, AirEnvironment } from './air.js';
 export type { ConsistencyIssue } from './consistency.js';
 export type {
-  BoxType, DriverError, EngineDriver, Filter, FilterType, MaxCurvesResult, Result,
-  SweepParams, SweepResult,
+  BoxType, SimulatableBoxType, DriverError, EngineDriver, Filter, FilterType, MaxCurvesResult,
+  Result, SweepParams, SweepResult,
 } from './types.js';

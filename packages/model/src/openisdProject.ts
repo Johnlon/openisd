@@ -11,11 +11,11 @@
  * to what WinISD understands. The project never trims itself to suit a foreign format.
  *
  * ── Switching box type DELETES NOTHING ──
- * `OpenISDBox` holds every alignment at once and names which is ACTIVE. Flip a ported box to
+ * `OpenISDBox` holds every box type at once and names which is ACTIVE. Flip a ported box to
  * sealed and its port data stays, dormant; flip back and it is intact. Only the `.wpr` writer
  * drops dormant data, because the file format cannot express it — and dropping on the way OUT
  * is not the same as discarding from the model. Anything that clears a field on a box-type
- * change is a defect: the user asked to look at a different alignment, not to lose their work.
+ * change is a defect: the user asked to look at a different box type, not to lose their work.
  *
  * ── COMPONENT vs CONFIGURATION ──
  * `OpenISDDriver` and `OpenISDPassiveRadiator` are COMPONENTS: real, purchasable parts with
@@ -36,7 +36,7 @@ import type { OpenISDDriverJson } from './openisdDriver.js';
 import type { Filter } from '@openisd/design/engine';
 import { Engine } from '@openisd/design/engine';
 import { WinISDProject } from "@openisd/winisd";
-import type { Result, EngineDriver, SweepResult, LossMode } from "@openisd/design/engine";
+import type { Result, EngineDriver, SweepResult, LossMode, BoxType } from "@openisd/design/engine";
 
 /** The project fields `cell()`/`enter()`/`clear()` speak — the vent group, the PR group, and
  *  the derived port area. */
@@ -53,20 +53,27 @@ export type ProjectFieldId =
   // the ruled holds. All values SI (prVas in m³ — display units are the registry's job).
   | 'prSd' | 'prXmax' | 'prNum' | 'prVas' | 'prFs' | 'prQms' | 'prFsMass';
 
-/** How many ports each alignment HAS — the enforced fact behind `vents[]`, not a comment.
- *  A future multi-port alignment (ABC needs three, QO85) changes ONE row here. */
-export const VENT_ARITY: Readonly<Record<AlignmentKind, number>> = {
-  sealed: 0, vented: 1, bandpass4: 1, 'passive-radiator': 0,
+/** How many ports each box type HAS — the enforced fact behind `vents[]`, not a comment.
+ *
+ *  TOTAL over the one `BoxType`, so a new box type is a compile error here rather than a silent
+ *  hole. `bandpass6` and `abc` are declared because the type declares them; neither is
+ *  constructible through the UI yet and the engine has no circuit for either.
+ *
+ *  `abc: 3` is John's own figure (QO85, 2026-08-23: "ABC needs 3 ports, not 1").
+ *  `bandpass6: 2` is the standard two-ported-chamber topology and is NOT confirmed against real
+ *  WinISD — raised as a ledger question rather than left as a silent assumption. */
+export const VENT_ARITY: Readonly<Record<BoxType, number>> = {
+  sealed: 0, vented: 1, bandpass4: 1, 'box-passive-radiator': 0, bandpass6: 2, abc: 3,
 };
 
-/** Throws when a record's vents arrays do not match their alignments' declared arity — a
+/** Throws when a record's vents arrays do not match their box types' declared arity — a
  *  wrong-arity record must refuse loudly, never have vents silently ignored by `[0]` reads
  *  (the silent-drop class QO85's shape decision exists to prevent). */
 function assertVentArity(box: OpenISDBox): void {
   const check = (kind: 'vented' | 'bandpass4', vents: readonly OpenISDVent[]) => {
     if (vents.length !== VENT_ARITY[kind]) {
       throw new Error(`${kind} declares ${VENT_ARITY[kind]} port(s) but the record carries `
-        + `${vents.length} — arity is fixed per alignment (QO85) and a mismatch is refused, `
+        + `${vents.length} — arity is fixed per box type (QO85) and a mismatch is refused, `
         + 'never truncated');
     }
   };
@@ -74,23 +81,14 @@ function assertVentArity(box: OpenISDBox): void {
   check('bandpass4', box.bandpass4.vents);
 }
 
-/**
- * THE litres↔m³ crossing — one place, because the engine's PR-Vas vocabulary is litres while
- * this model is SI throughout, and a hand-typed 1000 at each call site is exactly how the
- * silent-×1000 class shipped twice before (BUG_20260817's litres-into-the-m³-field,
- * BUG_20260818's truncated duplicate constants).
- */
-const litresToM3 = (litres: number): number => litres / 1000;
-const m3ToLitres = (m3: number): number => m3 * 1000;
-
 const RELATIONLESS: ReadonlySet<string> = new Set(['Vf','Ql','Qa','Qp','endCorrection','frcHz','advTemp','advHumidity','advPressure','Pin','Rs','nDrivers','vcTempRise','driverAddedMass']);
 
-/** Which alignment is ACTIVE. The others stay populated and dormant. */
-export type AlignmentKind = 'sealed' | 'vented' | 'bandpass4' | 'passive-radiator';
+// `BoxType` is declared ONCE, by `@openisd/design/engine`, and imported at the top of this file.
+// This model adds no second enumeration of it.
 
 /** WinISD's own `[Box].BType` numeric code — a raw file-format discriminator, never a bare
- *  int at a call site that interprets it. `alignmentKindOfBType`/`bTypeOfAlignmentKind` below
- *  are the ONE place this vocabulary meets `AlignmentKind` — every reader/writer of a `.wpr`
+ *  int at a call site that interprets it. `boxTypeOfBType`/`bTypeOfBoxType` below
+ *  are the ONE place this vocabulary meets `BoxType` — every reader/writer of a `.wpr`
  *  box type goes through them rather than keeping its own switch. */
 export enum WinIsdBType {
   Sealed = 0,
@@ -99,27 +97,38 @@ export enum WinIsdBType {
   PassiveRadiator = 4,
 }
 
-/** WinISD's raw BType code → this app's AlignmentKind. `undefined` when `code` is nullish (a
+/** WinISD's raw BType code → this app's BoxType. `undefined` when `code` is nullish (a
  *  `.wpr` that never states BType) or not one of WinISD's four modelled box types — the
  *  caller decides how to report that, since those are different errors this pure mapping does
  *  not itself choose between. */
-function alignmentKindOfBType(code: number | undefined): AlignmentKind | undefined {
+function boxTypeOfBType(code: number | undefined): BoxType | undefined {
   switch (code) {
     case WinIsdBType.Sealed: return 'sealed';
     case WinIsdBType.Vented: return 'vented';
     case WinIsdBType.Bandpass4: return 'bandpass4';
-    case WinIsdBType.PassiveRadiator: return 'passive-radiator';
+    case WinIsdBType.PassiveRadiator: return 'box-passive-radiator';
     default: return undefined;
   }
 }
 
-/** This app's AlignmentKind → WinISD's raw BType code — the reverse of `alignmentKindOfBType`. */
-function bTypeOfAlignmentKind(kind: AlignmentKind): WinIsdBType {
+/** This app's BoxType → WinISD's raw BType code — the reverse of `boxTypeOfBType`.
+ *
+ *  `bandpass6` and `abc` REFUSE rather than return a code. WinISD does support both box types
+ *  (BUG_20260824, live probe), but which `BType` integer it writes for them has never been
+ *  measured — the four codes above are the measured ones. Guessing here would write a `.wpr`
+ *  that names the wrong enclosure, which is worse than declining to write one. */
+function bTypeOfBoxType(kind: BoxType): WinIsdBType {
   switch (kind) {
     case 'sealed': return WinIsdBType.Sealed;
     case 'vented': return WinIsdBType.Vented;
     case 'bandpass4': return WinIsdBType.Bandpass4;
-    case 'passive-radiator': return WinIsdBType.PassiveRadiator;
+    case 'box-passive-radiator': return WinIsdBType.PassiveRadiator;
+    case 'bandpass6':
+    case 'abc':
+      throw new Error(
+        `Cannot write a WinISD project for a ${kind} enclosure: WinISD's own BType code for it `
+        + 'has not been measured, and writing a guessed code would name a different box type.',
+      );
   }
 }
 
@@ -139,36 +148,36 @@ export interface OpenISDVent {
 }
 
 /** A sealed box: no vent, no radiator. */
-export interface OpenISDSealedAlignment {
+export interface OpenISDSealedBox {
   volume_m3: number;
 }
 
 /** A vented box OWNS its vent — a sealed box has no vent to configure, and the model says so
  *  rather than leaving an ignored field lying about. */
-export interface OpenISDVentedAlignment {
+export interface OpenISDVentedBox {
   volume_m3: number;
   /** System tuning. */
   Fb_hz: number;
-  /** The alignment's ports, arity fixed by the alignment: vented has exactly one. An array
-   *  from day one so a multi-port alignment (ABC needs three, QO85) adds no new shape.
+  /** The box type's ports, arity fixed by the box type: vented has exactly one. An array
+   *  from day one so a multi-port box type (ABC needs three, QO85) adds no new shape.
    *  READONLY: growing or shrinking it is refused at compile time; arity changes only with a
-   *  new alignment definition. */
+   *  new box-type definition. */
   vents: readonly OpenISDVent[];
 }
 
 /** 4th-order bandpass: a sealed rear chamber and a vented front one. */
-export interface OpenISDBandpass4Alignment {
+export interface OpenISDBandpass4Box {
   rearVolume_m3: number;
   frontVolume_m3: number;
   /** Front-chamber tuning. */
   Ff_hz: number;
-  /** The front chamber's ports — bandpass4 has exactly one. Same arity-by-alignment array as
-   *  `OpenISDVentedAlignment.vents` (QO85), and readonly for the same reason. */
+  /** The front chamber's ports — bandpass4 has exactly one. Same arity-by-box-type array as
+   *  `OpenISDVentedBox.vents` (QO85), and readonly for the same reason. */
   vents: readonly OpenISDVent[];
 }
 
 /** A passive-radiator box OWNS its radiator, for the same reason a vented box owns its vent. */
-export interface OpenISDPassiveRadiatorAlignment {
+export interface OpenISDPassiveRadiatorBox {
   volume_m3: number;
   /** System tuning (WinISD: Fp). Tied to the radiator's added mass by one relation. */
   Fp_hz: number;
@@ -177,13 +186,13 @@ export interface OpenISDPassiveRadiatorAlignment {
   /** Mass added to the radiator's own Mmd to move the tuning. */
   addedMass_kg: number;
   /** The radiator itself — a COMPONENT, so it carries its own record. Absent until one is
-   *  chosen; the alignment can be configured before a part is picked. */
+   *  chosen; the box type can be configured before a part is picked. */
   radiator?: OpenISDPassiveRadiatorRef;
 }
 
 /** Placeholder for the passive-radiator component (Plan 1 step 5 replaces this with the real
  *  `OpenISDPassiveRadiator`). Named rather than inlined so the swap is one edit, and so the
- *  alignment above already expresses that a radiator is a COMPONENT and not loose fields. */
+ *  box type above already expresses that a radiator is a COMPONENT and not loose fields. */
 export interface OpenISDPassiveRadiatorRef {
   Sd_m2: number;
   Mmd_kg: number;
@@ -194,25 +203,25 @@ export interface OpenISDPassiveRadiatorRef {
 }
 
 /**
- * The enclosure. Holds EVERY alignment at once and names which is active — that is the
+ * The enclosure. Holds EVERY box type at once and names which is active — that is the
  * dormant-data rule expressed in the type, rather than left to callers to honour.
  *
  * 6th-order bandpass and ABC are not here: neither exists in the codebase, and ABC has no field
  * specification anywhere (ledger QO44). Adding an empty member would claim otherwise.
  */
 export interface OpenISDBox {
-  active: AlignmentKind;
-  sealed: OpenISDSealedAlignment;
-  vented: OpenISDVentedAlignment;
-  bandpass4: OpenISDBandpass4Alignment;
-  passiveRadiator: OpenISDPassiveRadiatorAlignment;
-  /** Enclosure losses: leakage, absorption, port. Shared by every alignment. */
+  active: BoxType;
+  sealed: OpenISDSealedBox;
+  vented: OpenISDVentedBox;
+  bandpass4: OpenISDBandpass4Box;
+  passiveRadiator: OpenISDPassiveRadiatorBox;
+  /** Enclosure losses: leakage, absorption, port. Shared by every box type. */
   Ql: number;
   Qa: number;
   Qp: number;
   /** Rear-chamber tuning target (WinISD: Frc) — read/written by 6th-order bandpass and ABC's
    *  Box tab (both unbuilt, ledger QO44/QO85). Box-level like Ql/Qa/Qp: stored regardless of
-   *  which alignment is active, because nothing about it depends on one existing. */
+   *  which box type is active, because nothing about it depends on one existing. */
   frcHz: number;
 }
 
@@ -347,7 +356,7 @@ interface ProjectLiveState extends Omit<OpenISDProjectJson, 'driver'> {
   uuid: string;
 }
 
-// ── Construction and the one legal way to switch alignment ────────────────────────────────
+// ── Construction and the one legal way to switch box type ────────────────────────────────
 
 /**
  * A vent with NOTHING chosen. Every dimension is 0 — this codebase's unset marker — until the
@@ -372,9 +381,9 @@ function prototypeVent(): OpenISDVent {
 }
 
 /**
- * A box with EVERY alignment present from the start, and NOTHING sized.
+ * A box with EVERY box type present from the start, and NOTHING sized.
  *
- * None is created lazily on first switch: a lazily-created alignment gets DEFAULTS, and a
+ * None is created lazily on first switch: a lazily-created box type gets DEFAULTS, and a
  * default written over a value restored from a file is the silent-data-loss this whole design
  * exists to prevent. They all exist, one is active, and none carries a number nobody chose.
  *
@@ -398,7 +407,7 @@ function prototypeBox(): OpenISDBox {
     // TODO(box-wizard): PR volume, tuning, count and added mass, calculated from driver + PR +
     //   alignment. Unset until then.
     passiveRadiator: { volume_m3: 0, Fp_hz: 0, count: 0, addedMass_kg: 0 },
-    // Enclosure losses: leakage, absorption, port. They describe the BOX, not one alignment,
+    // Enclosure losses: leakage, absorption, port. They describe the BOX, not one box type,
     // so they sit here and survive every switch. These three are NOT invented: WinISD itself
     // writes Ql=10, Qa=100, Qp=100 — see test/fixtures/winisd-parity/goldens/bandpass4.wpr:69.
     Ql: 10, Qa: 100, Qp: 100,
@@ -410,14 +419,14 @@ function prototypeBox(): OpenISDBox {
 }
 
 /**
- * Make one alignment active. **This writes exactly one field and nothing else.**
+ * Make one box type active. **This writes exactly one field and nothing else.**
  *
  * It is a function rather than a bare assignment so that the rule has somewhere to be
- * enforced and tested: every dormant alignment keeps its values, so flipping a ported box to
+ * enforced and tested: every dormant box type keeps its values, so flipping a ported box to
  * sealed and back returns it intact. If this ever needs to do more than one write, that is the
  * moment to ask what is being cleared and why.
  */
-function setActiveAlignment(box: OpenISDBox, kind: AlignmentKind): void {
+function setActiveBoxType(box: OpenISDBox, kind: BoxType): void {
   box.active = kind;
 }
 
@@ -429,8 +438,8 @@ function setActiveAlignment(box: OpenISDBox, kind: AlignmentKind): void {
 // functions are what those flat fields are defined in terms of.
 //
 // The rule, uniform across all of them: a field addresses bandpass4's OWN storage only while
-// bandpass4 is active; every other active alignment (sealed, vented, passive-radiator) still
-// addresses the VENTED alignment's storage, dormant or not — a vent or tuning typed in before
+// bandpass4 is active; every other active box type (sealed, vented, passive-radiator) still
+// addresses the VENTED box type's storage, dormant or not — a vent or tuning typed in before
 // switching away from vented must stay reachable through the same flat field, matching
 // "switching box type deletes nothing." PR fields never depend on `active` at all.
 
@@ -453,14 +462,28 @@ function ventArea_m2(vent: OpenISDVent): number {
     : Math.PI * (vent.diameter_m / 2) ** 2;
 }
 
-/** `Vb` — the rear/primary chamber volume, per active alignment. Bandpass4's FRONT chamber is
+/** Why a box type the record has no slot for cannot be read or written.
+ *
+ *  `BoxType` names six enclosures; `OpenISDBox` stores four. `bandpass6` and `abc` are real
+ *  WinISD box types (BUG_20260824) with no field specification here yet (QO85), so a project
+ *  cannot currently BE one — no UI path constructs it. Should one ever arrive, it says so by
+ *  name instead of silently reading another chamber's volume. */
+function noStorageFor(kind: 'bandpass6' | 'abc'): string {
+  return `This project is a ${kind} enclosure, which has no stored fields yet (QO85) — `
+    + 'its volume cannot be read or written until that box type is specified.';
+}
+
+/** `Vb` — the rear/primary chamber volume, per active box type. Bandpass4's FRONT chamber is
  *  the separate `Vf` field (`bandpass4.frontVolume_m3`), untouched by this. */
 function boxVolume_m3(box: OpenISDBox): number {
   switch (box.active) {
     case 'sealed': return box.sealed.volume_m3;
     case 'vented': return box.vented.volume_m3;
     case 'bandpass4': return box.bandpass4.rearVolume_m3;
-    case 'passive-radiator': return box.passiveRadiator.volume_m3;
+    case 'box-passive-radiator': return box.passiveRadiator.volume_m3;
+    case 'bandpass6':
+    case 'abc':
+      throw new Error(noStorageFor(box.active));
   }
 }
 function setBoxVolume_m3(box: OpenISDBox, value: number): void {
@@ -468,12 +491,15 @@ function setBoxVolume_m3(box: OpenISDBox, value: number): void {
     case 'sealed': box.sealed.volume_m3 = value; break;
     case 'vented': box.vented.volume_m3 = value; break;
     case 'bandpass4': box.bandpass4.rearVolume_m3 = value; break;
-    case 'passive-radiator': box.passiveRadiator.volume_m3 = value; break;
+    case 'box-passive-radiator': box.passiveRadiator.volume_m3 = value; break;
+    case 'bandpass6':
+    case 'abc':
+      throw new Error(noStorageFor(box.active));
   }
 }
 
 /** `Fb` — system tuning. Bandpass4's `Ff_hz` (front-chamber tuning) IS `Fb` while bandpass4 is
- *  active; every other alignment reads/writes the vented alignment's `Fb_hz`, dormant or not. */
+ *  active; every other box type reads/writes the vented box type's `Fb_hz`, dormant or not. */
 function boxTuning_Fb_hz(box: OpenISDBox): number {
   return box.active === 'bandpass4' ? box.bandpass4.Ff_hz : box.vented.Fb_hz;
 }
@@ -490,18 +516,18 @@ const NO_RADIATOR: Readonly<OpenISDPassiveRadiatorRef> =
 /** The radiator's own fields (Sd/Mmd/Cms/Rms/Xmax/name) for READING — zeros when none is
  *  chosen yet. Never creates one; see `ensurePassiveRadiator` for writing. */
 function passiveRadiatorOrDefault(
-  alignment: OpenISDPassiveRadiatorAlignment,
+  box: OpenISDPassiveRadiatorBox,
 ): Readonly<OpenISDPassiveRadiatorRef> {
-  return alignment.radiator ?? NO_RADIATOR;
+  return box.radiator ?? NO_RADIATOR;
 }
 
 /** The radiator's own fields for WRITING — creates one on first write if none exists yet, and
  *  returns the SAME object on every later call so a second field written right after the first
  *  lands on it rather than silently starting over. */
 function ensurePassiveRadiator(
-  alignment: OpenISDPassiveRadiatorAlignment,
+  box: OpenISDPassiveRadiatorBox,
 ): OpenISDPassiveRadiatorRef {
-  return alignment.radiator ??= { Sd_m2: 0, Mmd_kg: 0, Cms_m_per_N: 0, Rms_Ns_per_m: 0, Xmax_m: 0, name: '' };
+  return box.radiator ??= { Sd_m2: 0, Mmd_kg: 0, Cms_m_per_N: 0, Rms_Ns_per_m: 0, Xmax_m: 0, name: '' };
 }
 
 // ── OpenISDProject — the class facade over `OpenISDProjectJson` ──────────────────────────
@@ -532,7 +558,13 @@ function prototypeProject(driver: OpenISDDriver, uuid: string): ProjectLiveState
     } },
     filters: [],
     environment: {
-      tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false,
+      // DEFAULTS TO TRUE: a new project matches WinISD out of the box (John, 2026-08-28,
+      // overriding QO7's physics-by-default). Which air model is used has NO AUDIBLE
+      // consequence — worst case across 0-40 C, 0-100 % RH and 95-105 kPa is 0.003 dB of SPL
+      // and no change to F3 at all (winisd_research FINDING-008). It IS measurable with
+      // instruments; it is a thousandth of the smallest level change a person can detect. So
+      // the tie is broken by which numbers a user can check against another tool.
+      tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: true,
     },
     signal: {
       inputPower_W: 1, seriesResistance_ohm: 0.1, driverCount: 1,
@@ -556,8 +588,8 @@ function prototypeProject(driver: OpenISDDriver, uuid: string): ProjectLiveState
  * (bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_outside_engine.md).
  * `packages/ui/src/logic/prWinIsdFields.ts` calls these three instead of hand-deriving.
  */
-function prCmsFromWinIsdVas(vasL: number, sdM2: number): number {
-  return new Engine().prCmsFromVas(vasL, sdM2);
+function prCmsFromWinIsdVas(vas_m3: number, sdM2: number): number {
+  return new Engine().prCmsFromVas(vas_m3, sdM2);
 }
 function prMmdFromWinIsdFs(fsHz: number, cmsSI: number): number {
   return new Engine().prMmdFromFs(fsHz, cmsSI);
@@ -749,7 +781,7 @@ export class OpenISDProject {
           : 0);
 
     const box: Record<string, string | number> = {
-      BType: bTypeOfAlignmentKind(kind),
+      BType: bTypeOfBoxType(kind),
       Vr: Vb, Fr: 0,
       // ONE loss triple describes the enclosure; the file wants one per chamber, so both
       // chambers are written from it rather than one discarding the user's losses.
@@ -814,10 +846,7 @@ export class OpenISDProject {
                             prSd: r.Sd_m2, prCms: r.Cms_m_per_N });
         box.Npr = pr.count;
         sections.PassiveRadiator = {
-          // new Engine().prVas() returns LITRES (its own contract); the file's Vas is SI m³ like every
-          // other key in the section, so the ÷1000 is load-bearing
-          // (BUG_20260817_wpr_passive_radiator_vas_written_in_litres...).
-          Vas: litresToM3(new Engine().prVas(r.Cms_m_per_N, r.Sd_m2)),
+          Vas: new Engine().prVas(r.Cms_m_per_N, r.Sd_m2),
           Qms: new Engine().prQms(r.Mmd_kg, r.Cms_m_per_N, r.Rms_Ns_per_m),
           Fs: new Engine().prFsWithMass(r.Mmd_kg, pr.addedMass_kg, r.Cms_m_per_N),
           Sd: r.Sd_m2, Xmax: r.Xmax_m, Me: pr.addedMass_kg,
@@ -826,6 +855,38 @@ export class OpenISDProject {
     }
 
     return WinISDProject.build(driverSection, sections);
+  }
+
+  /**
+   * Whether a project RECORD can hold this box type at all.
+   *
+   * `BoxType` names six enclosures; the stored box has fields for four. `bandpass6` and `abc`
+   * are real WinISD box types with no field specification here yet (QO85), so a project cannot
+   * BE one — there is nowhere to put its volume or its ports.
+   *
+   * A caller adopting a box type from OUTSIDE — a `.owpr`, a share link, an import — asks this
+   * FIRST and refuses the payload, rather than constructing a project whose accessors then
+   * throw. `boxVolume_m3`'s throw is the last-resort guard for a value that got past every such
+   * check; this is the question to ask before it fires.
+   *
+   * A STATIC, not a free function: it answers for the class, and this module exports no floating
+   * functions that augment the project (Lane P5, `architecture-project-symmetry.test.ts`).
+   *
+   * Distinct from `Engine.simulatableBoxType()`, which asks whether the CIRCUIT can model it.
+   * The same two are missing from both today, and that is a coincidence of what has been built,
+   * not one fact: a box type could be storable long before it is simulatable.
+   */
+  static canHold(box: BoxType): boolean {
+    switch (box) {
+      case 'sealed':
+      case 'vented':
+      case 'bandpass4':
+      case 'box-passive-radiator':
+        return true;
+      case 'bandpass6':
+      case 'abc':
+        return false;
+    }
   }
 
   /** A project with the given driver and nothing else chosen. `driver` is REQUIRED — a project
@@ -852,16 +913,16 @@ export class OpenISDProject {
     return new OpenISDProject({ ...structuredClone(rest), driver: driver.copy() });
   }
 
-  /** Switch the ACTIVE alignment — the others stay populated and dormant. */
-  setAlignment(kind: AlignmentKind): void {
-    setActiveAlignment(this.#record.box, kind);
+  /** Switch the ACTIVE box type — the others stay populated and dormant. */
+  setBoxType(kind: BoxType): void {
+    setActiveBoxType(this.#record.box, kind);
   }
 
   // ── Named box questions — the getter-free surface (M2: no interior value ever crosses) ───
 
-  activeAlignment(): AlignmentKind { return this.#record.box.active; }
+  activeBoxType(): BoxType { return this.#record.box.active; }
 
-  /** The ACTIVE alignment's own volume. Raw — no provenance mark, no vent-group solve; a
+  /** The ACTIVE box type's own volume. Raw — no provenance mark, no vent-group solve; a
    *  live user edit goes through `enter('Vb', ...)` instead. */
   volume_m3(): number { return boxVolume_m3(this.#record.box); }
   setVolume_m3(value: number): void { setBoxVolume_m3(this.#record.box, value); }
@@ -878,7 +939,7 @@ export class OpenISDProject {
   frcHz(): number { return this.#record.box.frcHz; }
   setFrcHz(value: number): void { this.#record.box.frcHz = value; }
 
-  /** One field of the ACTIVE alignment's port — PRIVATE. Callers use the named accessors
+  /** One field of the ACTIVE box type's port — PRIVATE. Callers use the named accessors
    *  below; this stays only as the shared implementation. */
   #ventField<K extends keyof OpenISDVent>(field: K): OpenISDVent[K] {
     return activeVent(this.#record.box)[field];
@@ -943,10 +1004,7 @@ export class OpenISDProject {
    *  inherently a round-port concept. */
   ventEffectiveLength_m(): number {
     const vent = activeVent(this.#record.box);
-    const equivalentDiameter_m = vent.shape === 'slotted'
-      ? 2 * Math.sqrt(this.#ventCrossArea() / Math.PI)
-      : vent.diameter_m;
-    return vent.length_m + vent.endCorrection * equivalentDiameter_m;
+    return new Engine().ventEffectiveLength(vent.length_m, this.#ventCrossArea(), vent.endCorrection);
   }
 
   /** Enclosure loss factors — leakage (Ql), absorption (Qa), port (Qp). */
@@ -1089,8 +1147,8 @@ export class OpenISDProject {
   /**
    * Adopt a `UiParams` blob — a restore (local save, share link, ground checkpoint) that must
    * land byte-identical on every field IT SUPPLIES, with nothing re-solved
-   * (`docs/design/STATE_MODEL.md` rule 3). `box` is set first so every alignment-relative
-   * write (`Vb`, the vent fields) lands on the alignment the snapshot was taken from.
+   * (`docs/design/STATE_MODEL.md` rule 3). `box` is set first so every box-type-relative
+   * write (`Vb`, the vent fields) lands on the box type the snapshot was taken from.
    *
    * `p` is `Partial<UiParams>` because every real caller's blob can genuinely be partial — a
    * caller restoring only the entered set, or a serialised blob missing fields this build
@@ -1099,7 +1157,7 @@ export class OpenISDProject {
    * one field must not silently reset every other one, and no field gets a special-cased
    * fallback the rest don't have.
    */
-  loadUiParams(p: Partial<UiParams>, box: AlignmentKind): void {
+  loadUiParams(p: Partial<UiParams>, box: BoxType): void {
     const current = this.toUiParams();
     const field = <K extends keyof UiParams>(k: K): UiParams[K] => (p[k] !== undefined ? p[k]! : current[k]);
     // `tempK`/`humidityPct`/`pressurePa`/`ignoreHumidityAndPressure` are the only FOUR fields
@@ -1111,7 +1169,7 @@ export class OpenISDProject {
     // `T | undefined` back to `T` without inventing a fallback value.
     const requiredField = <K extends 'tempK' | 'humidityPct' | 'pressurePa' | 'ignoreHumidityAndPressure'>(k: K)
       : NonNullable<UiParams[K]> => field(k)!;
-    this.setAlignment(box);
+    this.setBoxType(box);
     this.setVentShape(field('ventShape'));
     this.setVentDiameter_m(field('ventD'));
     this.setVentWidth_m(field('ventW'));
@@ -1150,11 +1208,11 @@ export class OpenISDProject {
     this.replaceEnteredSet({ ...field('entered') });
   }
 
-  /** Adopt a radiator from its DATASHEET vocabulary (Vas litres, Fs, Qms, Sd, Xmax) — the
-   *  one conversion into canonical Cms/Mmd/Rms, on the owner. The datasheet↔canonical
+  /** Adopt a radiator from its DATASHEET vocabulary (Vas, Fs, Qms, Sd, Xmax — SI throughout) —
+   *  the one conversion into canonical Cms/Mmd/Rms, on the owner. The datasheet↔canonical
    *  converters are not reachable any other way. */
-  enterPrDatasheet(d: { vasL: number; fsHz: number; qms: number; sdM2: number; xmaxM?: number }): void {
-    const cms = prCmsFromWinIsdVas(d.vasL, d.sdM2);
+  enterPrDatasheet(d: { vasM3: number; fsHz: number; qms: number; sdM2: number; xmaxM?: number }): void {
+    const cms = prCmsFromWinIsdVas(d.vasM3, d.sdM2);
     const mmd = prMmdFromWinIsdFs(d.fsHz, cms);
     const rms = prRmsFromWinIsdQms(d.qms, mmd, cms);
     const radiator = ensurePassiveRadiator(this.#record.box.passiveRadiator);
@@ -1231,7 +1289,7 @@ export class OpenISDProject {
     const n = (sec: string, key: string) => wpr.number(sec, key);
     const t = (sec: string, key: string) => wpr.value(sec, key);
 
-    const kind = alignmentKindOfBType(n('Box', 'BType'));
+    const kind = boxTypeOfBType(n('Box', 'BType'));
     if (kind == null) {
       const bType = n('Box', 'BType');
       throw new Error(bType == null
@@ -1242,7 +1300,7 @@ export class OpenISDProject {
     // A fresh id: a `.wpr` is WinISD's own format and carries no OpenISD identity, so an
     // import is a genuinely new project, not the return of one this app already stored.
     const record = prototypeProject(driver, crypto.randomUUID());
-    setActiveAlignment(record.box, kind);
+    setActiveBoxType(record.box, kind);
 
     const Vr = n('Box', 'Vr');
     if (Vr != null) {
@@ -1250,7 +1308,7 @@ export class OpenISDProject {
         case 'sealed': record.box.sealed.volume_m3 = Vr; break;
         case 'vented': record.box.vented.volume_m3 = Vr; break;
         case 'bandpass4': record.box.bandpass4.rearVolume_m3 = Vr; break;
-        case 'passive-radiator': record.box.passiveRadiator.volume_m3 = Vr; break;
+        case 'box-passive-radiator': record.box.passiveRadiator.volume_m3 = Vr; break;
       }
     }
     const Vf = n('Box', 'Vf');
@@ -1289,7 +1347,7 @@ export class OpenISDProject {
     // whose area computes to zero while the file states a nonzero diameter.
     if (n(ventSec, 'crosscalc') === 0) record.target.entered['ventCrossArea'] = true;
 
-    if (kind === 'passive-radiator') {
+    if (kind === 'box-passive-radiator') {
       const Sd = n('PassiveRadiator', 'Sd'), Vas = n('PassiveRadiator', 'Vas');
       const Fs = n('PassiveRadiator', 'Fs'), Qms = n('PassiveRadiator', 'Qms');
       const hasPr = Sd != null && Sd > 0 && Vas != null && Fs != null && Fs > 0 && Qms != null && Qms > 0;
@@ -1297,9 +1355,7 @@ export class OpenISDProject {
         throw new Error('.wpr states BType=4 (passive radiator) but [PassiveRadiator] does not '
           + 'carry Sd, Vas, Fs and Qms — the radiator cannot be reconstructed and will not be invented');
       }
-      // `.wpr`'s [PassiveRadiator].Vas is SI m³ (BUG_20260817); the engine's Vas-vocabulary
-      // functions take litres, so the ×1000 happens here, at this one boundary.
-      const cms = new Engine().prCmsFromVas(m3ToLitres(Vas), Sd);
+      const cms = new Engine().prCmsFromVas(Vas, Sd);
       const mmd = new Engine().prMmdFromFs(Fs, cms);
       const rms = new Engine().prRmsFromQms(Qms, mmd, cms);
       const radiator = ensurePassiveRadiator(record.box.passiveRadiator);
@@ -1345,7 +1401,7 @@ export class OpenISDProject {
   // live reference does not hand out the record shape. --------------------
 
 
-  /** How many ports the ACTIVE alignment has (sealed and PR: 0). */
+  /** How many ports the ACTIVE box type has (sealed and PR: 0). */
   ventCount(): number {
     assertVentArity(this.#record.box); // readonly is erased at runtime — never report a corrupt state as fact
     const box = this.#record.box;
@@ -1354,8 +1410,8 @@ export class OpenISDProject {
       : 0;
   }
 
-  /** One port of the active alignment, as an independent copy — mutating it changes nothing.
-   *  Index-based from day one so a multi-port alignment (QO85) adds no new accessor shape. */
+  /** One port of the active box type, as an independent copy — mutating it changes nothing.
+   *  Index-based from day one so a multi-port box type (QO85) adds no new accessor shape. */
   vent(i: number): OpenISDVent | undefined {
     assertVentArity(this.#record.box); // readonly is erased at runtime — never report a corrupt state as fact
     const box = this.#record.box;
@@ -1458,7 +1514,7 @@ export class OpenISDProject {
         const sd = this.#prField('Sd_m2');
         const fs = this.cell('prFs').value || 30;
         const qms = this.cell('prQms').value || 5;
-        const cms = prCmsFromWinIsdVas(m3ToLitres(value), sd); // engine vocabulary is litres
+        const cms = prCmsFromWinIsdVas(value, sd);
         const mmd = prMmdFromWinIsdFs(fs, cms);
         this.#setPrField('Cms_m_per_N', cms);
         this.#setPrField('Mmd_kg', mmd);
@@ -1584,7 +1640,7 @@ export class OpenISDProject {
     const record = this.#record;
     const vent = activeVent(record.box);
     switch (field) {
-      // Registry semantics: the ACTIVE alignment's own volume (bandpass4: the REAR chamber —
+      // Registry semantics: the ACTIVE box type's own volume (bandpass4: the REAR chamber —
       // its front chamber is 'Vf'). The Helmholtz solver's per-chamber volume is the internal
       // #ventVolume(), which is NOT this field.
       case 'Vb': return boxVolume_m3(record.box);
@@ -1613,9 +1669,7 @@ export class OpenISDProject {
       case 'prSd': return this.#prField('Sd_m2');
       case 'prXmax': return this.#prField('Xmax_m');
       case 'prNum': return record.box.passiveRadiator.count;
-      // prVas in SI m³: the engine's prVas contract is litres, so the ÷1000 happens here,
-      // at the model boundary — one unit system inside, the registry converts for display.
-      case 'prVas': return litresToM3(new Engine().prVas(this.#prField('Cms_m_per_N'), this.#prField('Sd_m2')));
+      case 'prVas': return new Engine().prVas(this.#prField('Cms_m_per_N'), this.#prField('Sd_m2'));
       case 'prFs': return new Engine().prFsWithMass(this.#prField('Mmd_kg'), 0, this.#prField('Cms_m_per_N'));
       case 'prQms': return new Engine().prQms(this.#prField('Mmd_kg'), this.#prField('Cms_m_per_N'), this.#prField('Rms_Ns_per_m'));
       case 'prFsMass': return new Engine().prFsWithMass(this.#prField('Mmd_kg'), this.#record.box.passiveRadiator.addedMass_kg, this.#prField('Cms_m_per_N'));

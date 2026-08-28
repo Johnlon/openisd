@@ -2,22 +2,45 @@
  *  hash, and the project file on disk (`.owpr`). Takes the domain object, returns the domain
  *  object; the JSON wire shape stays inside this file. */
 import { OpenISDProject, driverFromConformingRecord } from '@openisd/model';
-import type { AlignmentKind, OpenISDProjectMeta, UiParams } from '@openisd/model';
+import type { OpenISDProjectMeta, UiParams } from '@openisd/model';
 import type { BoxType } from '@openisd/design/engine';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 import type { FileStorage, SaveResult } from '../storage/fileStorage.js';
 
-/** `AlignmentKind` (`@openisd/model`) and this file's own wire field `box: BoxType`
- *  (`@openisd/design/engine`) name the same four alignments and spell one of them differently
- *  ('passive-radiator' vs 'pr') — the SAME translation `managedProject.ts` makes at its own
- *  seam (ui/logic → engine vocabulary), duplicated here because persistence may not import a
- *  ui/logic module (layering runs one way) and this crossing is needed at this boundary too. */
-const PR_ALIGNMENT = 'passive-radiator' satisfies AlignmentKind;
-function wireBoxOf(kind: AlignmentKind): BoxType {
-  return kind === PR_ALIGNMENT ? 'pr' : kind;
+/** The STORED spelling of the passive-radiator box type.
+ *
+ *  Every `.owpr` already written to disk, every autosave in localStorage and every share link
+ *  in circulation carries `box: "pr"`. That is a file format in the wild, so it is read and
+ *  written exactly as it is — the same way this package parses any other external byte. The
+ *  crossing is confined to the two functions below, at the one boundary where our records meet
+ *  someone else's bytes; nothing above this file ever sees the stored spelling.
+ *
+ *  Retiring it means a format version bump plus an upgrade step (the QO81 chain), not a change
+ *  here: bug BUG_20260823_box_type_has_three_enumerations_and_two_spellings_of_pr.md. */
+const STORED_PR = 'pr';
+function wireBoxOf(kind: BoxType): string {
+  return kind === 'box-passive-radiator' ? STORED_PR : kind;
 }
-function alignmentOfWireBox(box: BoxType): AlignmentKind {
-  return box === 'pr' ? PR_ALIGNMENT : box;
+
+/**
+ * PARSE a stored box type, or null when the file does not name one this build knows.
+ *
+ * A parse and not a cast, deliberately. `box` is external input — a file on disk, a share link,
+ * a payload from another build — so asserting `as BoxType` would hand an arbitrary string to
+ * code whose switches are exhaustive only over the DECLARED members. An unknown value then
+ * matches no case, falls off the end as `undefined`, and reaches a chart as NaN with nothing
+ * raised; the type checker cannot object, because the assertion already told it the value was
+ * valid. That is the exact defect this replaced
+ * (bugs/BUG_20260828_stored_box_type_is_cast_not_parsed_so_an_unknown_string_reaches_the_simulation.md).
+ *
+ * `'pr'` is accepted as the stored spelling of `box-passive-radiator` — see STORED_PR above.
+ */
+function boxTypeOfWireBox(box: string): BoxType | null {
+  if (box === STORED_PR) return 'box-passive-radiator';
+  const known: readonly BoxType[] = [
+    'sealed', 'vented', 'bandpass4', 'bandpass6', 'box-passive-radiator', 'abc',
+  ];
+  return known.includes(box as BoxType) ? (box as BoxType) : null;
 }
 
 /** UI-only preferences (not part of a design). Persisted across refresh and carried by a
@@ -113,7 +136,8 @@ interface SerializedState {
   // cannot exist without a driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`) — a payload
   // with no driver is refused on load, never repaired by inventing one.
   driver: string;
-  box: BoxType;
+  // The STORED spelling — see STORED_PR above; 'pr' here, never the canon 'box-passive-radiator'.
+  box: string;
   lossMode?: string;
   P?: UiParams;
   graphs?: string[];
@@ -177,7 +201,7 @@ export function createProjectRepo(
 ): ProjectRepo {
 
   /** PURE PROJECT DATA (QO90) — `saveToFile`/`saveToNewFile`'s wire writer, built
-   *  from the project's OWN existing serialisation surface (`toUiParams()`/`activeAlignment()`/
+   *  from the project's OWN existing serialisation surface (`toUiParams()`/`activeBoxType()`/
    *  `projectMeta()`/`driver()`) rather than a hand-assembled second shape — `OpenISDProject` is
    *  what every caller of this repo already holds; nothing here re-declares its fields. */
   function projectPayloadOf(project: OpenISDProject): SerializedState {
@@ -189,7 +213,7 @@ export function createProjectRepo(
       schema: schema.current,
       v: 2,
       driver: project.driver().toOwdrJson(),
-      box: wireBoxOf(project.activeAlignment()),
+      box: wireBoxOf(project.activeBoxType()),
       P: project.toUiParams(),
       project: project.projectMeta(),
     };
@@ -237,6 +261,18 @@ export function createProjectRepo(
       return null;
     }
 
+    // The box type is refused the same way the driver record is, and for the same reason: a
+    // project whose enclosure this build cannot name is not repairable by guessing one. Loading
+    // it anyway would put an unknown string where every switch expects a declared member.
+    const box = boxTypeOfWireBox(s.box);
+    if (box === null || !OpenISDProject.canHold(box)) {
+      const why = box === null ? 'unknown box type' : 'box type this build cannot store (QO85)';
+      console.error(`[restore] refused the saved project — ${why} ${JSON.stringify(s.box)}`);
+      try { storage.set('openisd.quarantine.project', JSON.stringify(s)); }
+      catch { /* storage full or disabled — the refusal still stands */ }
+      return null;
+    }
+
     const incoming: Partial<UiParams> = { ...(s.P ?? {}) };
     if (incoming.ventShape === undefined) incoming.ventShape = 'round';
     if (incoming.ventW === undefined) incoming.ventW = 0.10;
@@ -245,7 +281,7 @@ export function createProjectRepo(
     if (!hadEntered) incoming.entered = { Vb: true, ventD: true, ventW: true, ventH: true, ventL: true };
 
     const project = OpenISDProject.empty(driver);
-    project.loadUiParams(incoming, alignmentOfWireBox(s.box));
+    project.loadUiParams(incoming, box);
     if (!hadEntered) project.solveVentGroup();
     project.setProjectMeta(s.project!);   // guaranteed present — carriesStateShape refuses a blob without it
     return project;

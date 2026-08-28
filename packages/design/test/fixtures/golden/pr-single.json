@@ -13,7 +13,7 @@
       "Pe": 60,
       "Znom": 8
     },
-    "box": "pr",
+    "box": "box-passive-radiator",
     "P": {
       "tempK": 293.15,
       "humidityPct": 30,

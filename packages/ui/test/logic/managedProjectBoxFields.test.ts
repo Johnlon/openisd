@@ -14,9 +14,9 @@ import assert from 'node:assert/strict';
 import { ManagedProject } from '../../src/logic/managedProject.js';
 
 describe('ManagedProject — box field read/write', () => {
-  it('boxVolume_m3 reads and writes through to the active alignment', () => {
+  it('boxVolume_m3 reads and writes through to the active box type', () => {
     const mp = ManagedProject.createEmpty();
-    mp.mutate(p => p.setAlignment('vented'));
+    mp.mutate(p => p.setBoxType('vented'));
     assert.equal(mp.boxVolume_m3(), mp.snapshot().volume_m3());
     mp.setBoxVolume_m3(0.045);
     assert.equal(mp.snapshot().volume_m3(), 0.045);
@@ -25,7 +25,7 @@ describe('ManagedProject — box field read/write', () => {
 
   it('boxTuning_Fb_hz reads and writes vented.Fb_hz when vented is active', () => {
     const mp = ManagedProject.createEmpty();
-    mp.mutate(p => p.setAlignment('vented'));
+    mp.mutate(p => p.setBoxType('vented'));
     mp.setBoxTuning_Fb_hz(31);
     assert.equal(mp.snapshot().tuning_Fb_hz(), 31);
     assert.equal(mp.boxTuning_Fb_hz(), 31);
@@ -33,7 +33,7 @@ describe('ManagedProject — box field read/write', () => {
 
   it('ventDiameter_m reads/writes the diameter of the active vent', () => {
     const mp = ManagedProject.createEmpty();
-    mp.mutate(p => p.setAlignment('vented'));
+    mp.mutate(p => p.setBoxType('vented'));
     mp.setVentDiameter_m(0.08);
     assert.equal(mp.snapshot().ventDiameter_m(), 0.08);
     assert.equal(mp.ventDiameter_m(), 0.08);
@@ -51,9 +51,9 @@ describe('ManagedProject — box field read/write', () => {
 });
 
 describe('ManagedProject — bandpass4 front chamber (Vf)', () => {
-  it('frontVolume_m3 always addresses bandpass4.frontVolume_m3, regardless of active alignment', () => {
+  it('frontVolume_m3 always addresses bandpass4.frontVolume_m3, regardless of active box type', () => {
     const mp = ManagedProject.createEmpty();
-    mp.mutate(p => p.setAlignment('sealed'));   // Vf must stay reachable while dormant
+    mp.mutate(p => p.setBoxType('sealed'));   // Vf must stay reachable while dormant
     mp.setFrontVolume_m3(0.017);
     assert.equal(mp.snapshot().frontVolume_m3(), 0.017);
     assert.equal(mp.frontVolume_m3(), 0.017);
@@ -77,7 +77,7 @@ describe('ManagedProject — PR field read/write', () => {
     assert.equal(snap.prMmd_kg(), 0.02, 'a second field write must land on the SAME radiator');
   });
 
-  it('prCount and prAddedMass_kg live on the alignment, settable with no radiator chosen', () => {
+  it('prCount and prAddedMass_kg live on the box type, settable with no radiator chosen', () => {
     const mp = ManagedProject.createEmpty();
     mp.setPrCount(2);
     mp.setPrAddedMass_kg(0.011);

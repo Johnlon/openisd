@@ -31,6 +31,12 @@
  * CIPM-2007 density including Z lands 381 ppm away, so both fit WinISD's pair markedly worse.
  * `air.test.ts` pins the agreement.
  *
+ * That residual ppm gap is not a defect in THIS model — it is the difference between two
+ * vapour-pressure curves. WinISD uses Hyland-Wexler and no enhancement factor; `winisdAir()`
+ * below implements that exactly, and reproduces real WinISD to 25 ppb. This model stays
+ * CIPM-2007 because CIPM-2007 is the metrological standard and the better description of real
+ * air — the two models are a physics/parity pair, not a right/wrong pair.
+ *
  * ## There is no frozen ρ/c constant, in WinISD or here
  *
  * Machine-verified against real WinISD 2026-08-20 (`docs/design/WINISD_SCHEMA.md` §12): a
@@ -47,11 +53,11 @@
  * they ever read). This module still computes live from whatever temperature, humidity and
  * pressure the caller supplies — the UI substitutes its app-level Options-equivalent
  * (`presentationState.ui.envDefaults`, via `logic/environment.ts`'s `resolveAirEnvironment`)
- * before calling in — anchored to `WINISD_MEASURED_C_REF`/`WINISD_MEASURED_RHO_REF` (QO88)
- * so it reproduces
- * WinISD's own value exactly at the reference conditions and diverges from the physical model
- * off them by design (a real, ruled behaviour, not the fidelity gap this constant closes).
- * Ledger QO7 rules openisd uses the full physical model by DEFAULT and offers this as an opt-in.
+ * before calling in — through `winisdAir()` below, which is WinISD's ACTUAL model: its own
+ * Hyland-Wexler vapour-pressure curve, and density from `gamma·p/c²` rather than from air at
+ * all. Identified by controlled probe, six environments, worst error 2.5e-8
+ * (`winisd_research` FINDING-008). Ledger QO7 rules openisd uses the full physical model by
+ * DEFAULT and offers this as an opt-in.
  */
 
 /** Ratio of specific heats for air. */
@@ -68,25 +74,6 @@ export const T_REF_K   = 293.15;
 export const RH_REF_PCT = 30;
 export const P_REF_PA  = 101325;
 
-/**
- * WinISD's own measured air pair at the reference conditions above. The raw IEEE-754 double
- * WinISD holds internally, captured live via gdb breakpoint on the write instruction
- * (`winisd_research/RE_GHIDRA_FINDINGS.md`, "LIVE DEBUGGER CAPTURE"): `c=343.6841209621523`,
- * `rho=1.200952177146823` — rounded here to 15 significant figures. NOTE: WinISD's saved
- * `.wpr` TEXT serializes `c` as `...153` (one ULP off the raw double, per
- * `CALC_FINDINGS_FOR_REVIEW.md` env_sample7) — the raw double is used here, not the text
- * form, per BUG_20260819's explicit ban on substituting one digit for the other; do not
- * "correct" this constant to `...153` without re-reading that bug first. No closed-form
- * reproduction of WinISD's internal live calculation has been recovered: five physically-
- * motivated candidates (this module's own CIPM-2007 model, Cramer's polynomial, full
- * CIPM+compressibility, the classical Rd=287.058/Magnus-Tetens meteorological formula,
- * dry-air-only) were checked against this exact point and every one missed by 8 ppm or more.
- * These two are measured ground truth, not derived — QO88 (John, 2026-08-23): the live-
- * calculated pair at these exact conditions must equal the constant the bridge stamps into
- * generated files.
- */
-export const WINISD_MEASURED_C_REF   = 343.684120962152;
-export const WINISD_MEASURED_RHO_REF = 1.20095217714682;
 
 /** Molar gas constant, J/(mol·K) — CIPM-2007. */
 const R_MOLAR = 8.314472;
@@ -155,27 +142,84 @@ export function moistAirSoundVelocity(tempK: number, humidityPct: number, pressu
 }
 
 /**
- * WinISD's air: computed live from the caller's temperature, humidity AND pressure
- * (`docs/design/WINISD_SCHEMA.md` §12/§13: `ignoreHumidityAndPressure` means "ignore the
- * PROJECT's stored `.wpr` [Box] environment", never "ignore these three live inputs" — the
- * UI passes its app-level Options-equivalent values here in that mode) — anchored to
- * `WINISD_MEASURED_C_REF`/
- * `WINISD_MEASURED_RHO_REF` by the ratio this module's own moist-air model gives between the
- * caller's conditions and the reference conditions. At exactly the reference conditions the
- * ratio is 1 and this returns the measured pair exactly; away from it, the result varies
- * continuously and physically, anchored to the one point that is actually verified — matching
- * every physically-motivated candidate this module's docstring above already tried and
- * matching none of them well enough on its own to use unanchored.
+ * WinISD'S OWN AIR MODEL. Not an approximation of it, and NOTHING here is fitted: every constant
+ * below is quoted from the document WinISD names as its source.
+ *
+ * PROVENANCE. WinISD's help: "Calculation of sound velocity and air density is derived from
+ * Claus Futtrup's excellent documentation of Driver Parameter Calculator (DPC)"
+ * (`docs/winisd_helpfiles/help/boxdesign.html`). DPC ships that documentation as `air.htm` and
+ * `airmodel.htm`, also published at https://www.cfuttrup.com/dpc/air.htm — which states, in its
+ * own words:
+ *
+ *   "MH = 18.020 is the molar mass for water"
+ *   "ML = 28.965 is the molar mass for dry air"
+ *   "RL = R = 8.314510, R is the gas constant 8.314510 J/(mol K)"
+ *   "c = sqrt(gamma*p/rho) = sqrt(gamma*RT/M)"
+ *   "For dry air gamma = 1.40 is a good estimate"
+ *
+ * TWO THINGS DIFFER FROM THE CIPM-2007 MODEL ABOVE, and both were MEASURED before being
+ * explained (`winisd_research` FINDING-008 — six controlled environments, `c`/`roo` read out of
+ * the `.wpr` at 15 significant digits):
+ *
+ *  1. DENSITY IS NOT COMPUTED FROM AIR AT ALL. WinISD computes `c`, then takes `rho` from
+ *     `gamma·p/c²`. Verified to between 1.3e-15 and 2.6e-15 on all six. This is why five
+ *     candidate DENSITY models were rejected in an earlier pass: they modelled a quantity
+ *     WinISD never computes.
+ *  2. THE VAPOUR-PRESSURE CURVE IS HYLAND-WEXLER (DPC's `airmodel.htm`), and there is NO
+ *     enhancement factor. CIPM's curve and this one describe the same physical quantity but
+ *     disagree by ~1.5e-4 at 20 °C, which dilutes through the ~0.7 % water content to the ~1e-5
+ *     gap in `c` that nothing else could close.
+ *
+ * ACCURACY: worst 3.3e-15 across all six — DOUBLE-PRECISION EQUALITY, over a 40 K span, 0-80 %
+ * humidity and 6 kPa of pressure. Within the limits of a double this is not a model OF WinISD's
+ * calculation; it IS the calculation.
+ *
+ * THIS IS PARITY, NEVER PHYSICS. CIPM-2007 above is the metrological standard and the better
+ * description of real air; DPC's model is a 1996 ideal-gas treatment that omits the enhancement
+ * factor and rounds the molar masses, so it is the cruder of the two. It exists to reproduce
+ * WinISD's numbers, which is why `openisd` uses the physical model by DEFAULT and offers this
+ * only as an opt-in (QO7).
  */
+
+/** Molar mass of dry air, kg/mol — DPC `air.htm`: "ML = 28.965 is the molar mass for dry air".
+ *  Deliberately NOT `M_AIR` above: CIPM's 28.96546 carries a CO₂ correction DPC rounds away. */
+const M_DRY_DPC = 28.965e-3;
+/** Molar mass of water, kg/mol — DPC `air.htm`: "MH = 18.020 is the molar mass for water". */
+const M_WATER_DPC = 18.020e-3;
+/** Molar gas constant, J/(mol·K) — DPC `air.htm`: "R is the gas constant 8.314510 J/(mol K)".
+ *  The 1986 CODATA value; CIPM-2007's `R_MOLAR` above is the newer 8.314472. The difference is
+ *  4.6 ppm and it is the whole reason these molar masses cannot be used with `R_MOLAR`. */
+const R_MOLAR_DPC = 8.314510;
+
+/**
+ * Saturation vapour pressure of water, Pa — Hyland & Wexler (1983), ASHRAE Transactions
+ * 89(2A):500-519, as published by DPC (`airmodel.htm`, https://www.cfuttrup.com/dpc/airmodel.htm).
+ *
+ * TWO CONSTANT SETS, and the boundary is at exactly 0 °C. Over ice for -100 °C..0 °C, over
+ * liquid water for 0 °C..200 °C. BOTH are needed even though nothing simulates below freezing:
+ * 273.15 K itself is a measured environment, it takes the ICE set, and using the liquid set
+ * there is wrong by 23 ppb — seven orders of magnitude worse than this model's actual accuracy.
+ */
+function hylandWexlerVapourPressure(tempK: number): number {
+  if (tempK <= 273.15) {
+    const C1 = -5.6745359e3, C2 = 6.3925247, C3 = -9.6778430e-3, C4 = 6.2215701e-7;
+    const C5 = 2.0747825e-9, C6 = -9.4840240e-13, C7 = 4.1635019;
+    return Math.exp(C1 / tempK + C2 + C3 * tempK + C4 * tempK ** 2
+      + C5 * tempK ** 3 + C6 * tempK ** 4 + C7 * Math.log(tempK));
+  }
+  const C8 = -5.8002206e3, C9 = 1.3914993, C10 = -4.8640239e-2;
+  const C11 = 4.1764768e-5, C12 = -1.4452093e-8, C13 = 6.5459673;
+  return Math.exp(C8 / tempK + C9 + C10 * tempK + C11 * tempK ** 2
+    + C12 * tempK ** 3 + C13 * Math.log(tempK));
+}
+
 function winisdAir(tempK: number, humidityPct: number, pressurePa: number): Air {
-  const modelRho    = moistAirDensity(tempK, humidityPct, pressurePa);
-  const modelC       = moistAirSoundVelocity(tempK, humidityPct, pressurePa);
-  const modelRhoRef  = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
-  const modelCRef     = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
-  return {
-    rho: WINISD_MEASURED_RHO_REF * (modelRho / modelRhoRef),
-    c:   WINISD_MEASURED_C_REF   * (modelC   / modelCRef),
-  };
+  // No enhancement factor: WinISD's mole fraction is the bare ratio, and adding CIPM's
+  // correction here would be reintroducing the very difference this model exists to capture.
+  const xv = (humidityPct / 100) * hylandWexlerVapourPressure(tempK) / pressurePa;
+  const molarMass = M_DRY_DPC + xv * (M_WATER_DPC - M_DRY_DPC);
+  const c = Math.sqrt(GAMMA * R_MOLAR_DPC * tempK / molarMass);
+  return { rho: GAMMA * pressurePa / (c * c), c };
 }
 
 /**
