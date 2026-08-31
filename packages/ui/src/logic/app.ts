@@ -2,7 +2,7 @@ import { inject, type App, type InjectionKey } from 'vue';
 import type { DriverBrowsingState } from './driverBrowsingState.js';
 import type { DriverSelection } from './driverSelection.js';
 import type { DesignIO } from './useDesignIO.js';
-import type { PrRepo, MyDriverRepo, FileStorage, ProjectRepo, ViewStateRepo } from '@openisd/persistence';
+import type { BundledPassiveRadiator, MyPassiveRadiatorRepo, MyDriverRepo, FileStorage, ProjectRepo, ViewStateRepo } from '@openisd/persistence';
 import type { Logging } from '../logging/flash.js';
 import type { Diagnostics } from '../diagnostics/selftest.js';
 import type { FaultLog } from '../diagnostics/faultLog.js';
@@ -15,7 +15,7 @@ import type { FaultLog } from '../diagnostics/faultLog.js';
  * composition root (`main.ts`) — no component reaches for a ready-made instance, so a test
  * can mount the same tree over substitutes.
  *
- * `prRepo` and `myDrivers` are repositories the UI is handed directly: the PR browser and
+ * `myPassiveRadiators` and `myDrivers` are repositories the UI is handed directly: the PR browser and
  * the driver editor read and write records without any workflow in between, so wrapping them
  * in a logic module would add a layer that decides nothing. `driverFileStorage` is the same
  * direct-handoff shape for a STORAGE port: the driver editor's `.wdr`/`.owdr` export is a
@@ -28,7 +28,8 @@ export interface AppLogic {
   driverBrowsing: DriverBrowsingState;
   selection: DriverSelection;
   designIO: DesignIO;
-  prRepo: PrRepo;
+  myPassiveRadiators: MyPassiveRadiatorRepo;
+  bundledPassiveRadiators: BundledPassiveRadiator[];
   myDrivers: MyDriverRepo;
   driverFileStorage: FileStorage;
   projectRepo: ProjectRepo;

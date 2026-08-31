@@ -47,17 +47,19 @@
  *
  * ## The WinISD-parity mode
  *
- * `ignoreHumidityAndPressure` reproduces WinISD's behaviour of never reading the PROJECT's
- * `.wpr` `[Box]` section's stored T/RH/AP (confirmed inert there — §12): real WinISD computes
- * `c`/`roo` live from its APP-LEVEL Options dialog instead (§13, the only environment source
- * they ever read). This module still computes live from whatever temperature, humidity and
- * pressure the caller supplies — the UI substitutes its app-level Options-equivalent
- * (`presentationState.ui.envDefaults`, via `logic/environment.ts`'s `resolveAirEnvironment`)
- * before calling in — through `winisdAir()` below, which is WinISD's ACTUAL model: its own
- * Hyland-Wexler vapour-pressure curve, and density from `gamma·p/c²` rather than from air at
- * all. Identified by controlled probe, six environments, worst error 2.5e-8
- * (`winisd_research` FINDING-008). Ledger QO7 rules openisd uses the full physical model by
- * DEFAULT and offers this as an opt-in.
+ * When `useWinisdAirModel` is enabled, openisd switches to WinISD's parity air model. The
+ * model choice is separate from the environment-source choice: `useAppLevelAirEnvironment`
+ * decides whether the parity run takes `T`/`RH`/`p` from the app-level Options environment or
+ * from this project's own box settings. Real WinISD computes `c`/`rho` live from its APP-LEVEL
+ * Options dialog (§13, the only environment source it ever reads), so the app-level override
+ * matches that source of truth when the parity model is selected. The UI resolves its
+ * app-level environment equivalent (`presentationState.ui.envDefaults`, via
+ * `logic/environment.ts`'s `resolveAirEnvironment`) before handing control to `winisdAir()`,
+ * which implements WinISD's Hyland-Wexler vapour-pressure curve and derives density from
+ * `gamma·p/c²`. Identified by controlled probe across six environments, the worst error is
+ * 2.5e-8 (`winisd_research` FINDING-008). `useWinisdAirModel` defaults to true (QO95, reversing
+ * QO7) so a new project matches WinISD out of the box; `useAppLevelAirEnvironment` defaults to
+ * false.
  */
 
 /** Ratio of specific heats for air. */
@@ -70,10 +72,10 @@ export const GAMMA = 1.4;
 export const END_CORRECTION = 0.732;
 
 /** Reference conditions — WinISD's Advanced-pane defaults, and openisd's own. */
-export const T_REF_K   = 293.15;
-export const RH_REF_PCT = 30;
-export const P_REF_PA  = 101325;
-
+export const DEFAULT_T_REF_K   = 293.15;
+export const DEFAULT_RH_REF_PCT = 30;
+export const DEFAULT_P_REF_PA  = 101325;
+export const ZERO_C_IN_K = 273.15;
 
 /** Molar gas constant, J/(mol·K) — CIPM-2007. */
 const R_MOLAR = 8.314472;
@@ -101,8 +103,10 @@ export interface AirEnvironment {
   humidityPct?: number;
   /** Static air pressure, Pa. Absent → `P_REF_PA`. */
   pressurePa?: number;
-  /** Opt in to WinISD's behaviour of ignoring humidity and pressure. Absent/false → the physical model. */
-  ignoreHumidityAndPressure?: boolean;
+  /** Use WinISD's parity air model instead of the physical model. Absent/false → the physical model. */
+  useWinisdAirModel?: boolean;
+  /** When the parity model is active, use the app-level environment values instead of this project's own `tempK` / `humidityPct` / `pressurePa`. */
+  useAppLevelAirEnvironment?: boolean;
 }
 
 /**
@@ -127,7 +131,7 @@ function enhancementFactor(pressurePa: number, tempC: number): number {
  * Linear in relative humidity, and exactly 0 in dry air.
  */
 export function waterVapourMoleFraction(tempK: number, humidityPct: number, pressurePa: number): number {
-  return (humidityPct / 100) * enhancementFactor(pressurePa, tempK - 273.15) * saturationVapourPressure(tempK) / pressurePa;
+  return (humidityPct / 100) * enhancementFactor(pressurePa, tempK - ZERO_C_IN_K) * saturationVapourPressure(tempK) / pressurePa;
 }
 
 /** Moist-air density, kg/m³ — CIPM-2007 composition as an ideal gas (see the module docstring). */
@@ -224,13 +228,17 @@ function winisdAir(tempK: number, humidityPct: number, pressurePa: number): Air 
 
 /**
  * The air for an environment — the single dispatch. Absent fields take the reference
- * conditions; `ignoreHumidityAndPressure` selects WinISD's behaviour instead of the physics.
+ * conditions; `useWinisdAirModel` selects WinISD's behaviour instead of the physics.
  */
 export function airFor(env: AirEnvironment): Air {
-  const tempK = env.tempK ?? T_REF_K;
-  const humidityPct = env.humidityPct ?? RH_REF_PCT;
-  const pressurePa  = env.pressurePa  ?? P_REF_PA;
-  if (env.ignoreHumidityAndPressure) return winisdAir(tempK, humidityPct, pressurePa);
+  const tempK = env.tempK ?? DEFAULT_T_REF_K;
+  const humidityPct = env.humidityPct ?? DEFAULT_RH_REF_PCT;
+  const pressurePa  = env.pressurePa  ?? DEFAULT_P_REF_PA;
+  if (env.useWinisdAirModel) {
+    // switches the calculation to the WinISD
+    // equation set instead of the physical moist-air model.
+    return winisdAir(tempK, humidityPct, pressurePa);
+  }
   return {
     rho: moistAirDensity(tempK, humidityPct, pressurePa),
     c:   moistAirSoundVelocity(tempK, humidityPct, pressurePa),

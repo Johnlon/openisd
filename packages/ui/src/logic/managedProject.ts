@@ -598,11 +598,17 @@ export class ManagedProject {
   setEnvHumidityPct(value: number): void { this.mutate(p => p.enter('advHumidity', value)); }
   envPressurePa(): number { return this.#effective().project.cell('advPressure').value; }
   setEnvPressurePa(value: number): void { this.mutate(p => p.enter('advPressure', value)); }
-  envIgnoreHumidityAndPressure(): boolean {
-    return this.#effective().project.ignoreHumidityAndPressure();
+  envUseWinisdAirModel(): boolean {
+    return this.#effective().project.useWinisdAirModel();
   }
-  setEnvIgnoreHumidityAndPressure(value: boolean): void {
-    this.mutate(p => p.setIgnoreHumidityAndPressure(value));
+  setEnvUseWinisdAirModel(value: boolean): void {
+    this.mutate(p => p.setUseWinisdAirModel(value));
+  }
+  envUseAppLevelAirEnvironment(): boolean {
+    return this.#effective().project.useAppLevelAirEnvironment();
+  }
+  setEnvUseAppLevelAirEnvironment(value: boolean): void {
+    this.mutate(p => p.setUseAppLevelAirEnvironment(value));
   }
 
   // ---- signal ------------------------------------------------------------------------------

@@ -102,7 +102,8 @@ made, no thematic grouping.
     - `prName()` / `setPrName(value)`, `prSd_m2()` / `setPrSd_m2(value)`, `prMmd_kg()` / `setPrMmd_kg(value)`, `prCms_m_per_N()` / `setPrCms_m_per_N(value)`, `prRms_Ns_per_m()` / `setPrRms_Ns_per_m(value)`, `prXmax_m()` / `setPrXmax_m(value)` — one passive-radiator intrinsic, each named (no `keyof OpenISDPassiveRadiatorRef` generic).
     - `prCount(): number` / `setPrCount(value: number): void`, `prAddedMass_kg()` / `setPrAddedMass_kg(value)`, `prFp_hz()` / `setPrFp_hz(value)` — RAW.
     - `envTempK(): number` / `setEnvTempK(value: number): void`, `envHumidityPct()` / `setEnvHumidityPct(value)`, `envPressurePa()` / `setEnvPressurePa(value)` — the project's environment fields (via `enter()`, held as Entered — `BUG_20260823_managed_user_setters_route_set_instead_of_enter.md`).
-    - `envIgnoreHumidityAndPressure(): boolean` / `setEnvIgnoreHumidityAndPressure(value: boolean): void` — the WinISD-parity ignore flag.
+    - `envUseWinisdAirModel(): boolean` / `setEnvUseWinisdAirModel(value: boolean): void` — which air formula (CIPM-2007 vs WinISD's own).
+    - `envUseAppLevelAirEnvironment(): boolean` / `setEnvUseAppLevelAirEnvironment(value: boolean): void` — which environment source (this project's own vs the app-level Options dialog).
     - `driverCount(): number` / `setDriverCount(value: number): void` — number of drivers (via `enter()`).
     - `wiring(): 'series' | 'parallel'` / `setWiring(value: 'series' | 'parallel'): void` — driver wiring.
     - `inputPower_W(): number` / `setInputPower_W(value: number): void`, `seriesResistance_ohm()` / `setSeriesResistance_ohm(value)` — drive power / Rs (via `enter()`).

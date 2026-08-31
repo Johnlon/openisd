@@ -22,12 +22,12 @@ import { airFor } from './air.js';
 import type { Air, AirEnvironment } from './air.js';
 import {
   ebp, prTuning, findImpedancePeak, prMassForFp, sealedFromQtc, tuningFromLength, ventLength,
-} from './alignments.js';
+} from './boxDesign.js';
 import {
   prCmsFromVas, prFsWithMass, prMmdFromFs, prQms, prRmsFromQms, prVas,
 } from './formulas.js';
 import { checkConsistency, isQGroupField, qGroupIsIncomplete } from './consistency.js';
-import { deriveEngineDriver, solveConsistencyGroup } from './driver.js';
+import { solveConsistencyGroup } from './driver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { driveVoltage } from './formulas.js';
 import { sealedResonance, sourceLoadedQts } from './lossMode.js';
@@ -37,16 +37,11 @@ import {
   maxCurves, passbandRef, rolloffFreq, sweep,
 } from './sweep.js';
 import type { ConsistencyIssue } from './consistency.js';
-import type { EngineDriver, Result } from './types.js';
+import type { Result } from './types.js';
+import type { EngineQuantities } from './engineQuantities.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
-
-/** A driver's numbers as a loose bag, keyed by WinISD's own field names. The consistency solver
- *  works on whatever is present, so a bag is the honest input type: a field the driver does not
- *  state is simply absent. Exported because `solveConsistencyGroup` and `checkConsistency` name
- *  it in their signatures, and a caller cannot form an argument for a type it cannot see. */
-export type DriverFields = Record<string, number | undefined>;
 
 export class Engine {
   // ── AIR ───────────────────────────────────────────────────────────────────────────────────
@@ -65,13 +60,8 @@ export class Engine {
   // ── THE DRIVER ────────────────────────────────────────────────────────────────────────────
 
   /** Fill in whatever the entered driver values imply, leaving what they do not. */
-  solveConsistencyGroup(d: DriverFields, options?: { full?: boolean }): DriverFields {
-    return solveConsistencyGroup(d, options);
-  }
-
-  /** The driver a sweep can run on, or what is missing. */
-  deriveEngineDriver(d: DriverFields): Result<EngineDriver> {
-    return deriveEngineDriver(d);
+  solveConsistencyGroup(d: Readonly<EngineQuantities>): EngineQuantities {
+    return solveConsistencyGroup(d);
   }
 
   /** Everything the entered values disagree about. */
@@ -90,8 +80,8 @@ export class Engine {
   }
 
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
-  ebp(drv: Pick<EngineDriver, 'Fs' | 'Qes'>): number {
-    return ebp(drv);
+  ebp(Fs_hz: number, Qes: number): number {
+    return ebp(Fs_hz, Qes);
   }
 
   /**
@@ -185,8 +175,8 @@ export class Engine {
   }
 
   /** The chamber volume that reaches a target system Q — the alignment picker's solve. */
-  sealedFromQtc(drv: Pick<EngineDriver, 'Qts' | 'Vas'>, Qtc: number): number | null {
-    return sealedFromQtc(drv, Qtc);
+  sealedFromQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
+    return sealedFromQtc(Qts, Vas_m3, Qtc);
   }
 
   /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
@@ -232,13 +222,13 @@ export class Engine {
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
 
   /** The response, one complex value per frequency. */
-  sweep(drv: EngineDriver, box: BoxType, P: SweepParams): SweepResult {
-    return sweep(drv, box, P);
+  sweep(drv: Readonly<EngineQuantities>, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
+    return sweep(drv, Le_H, box, P);
   }
 
   /** The limit curves — how loud before excursion or port velocity gives out. */
-  maxCurves(drv: EngineDriver, box: BoxType, P: SweepParams): MaxCurvesResult {
-    return maxCurves(drv, box, P);
+  maxCurves(drv: Readonly<EngineQuantities>, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
+    return maxCurves(drv, Le_H, box, P);
   }
 
   /** Whether the parameters can be swept at all, and what is wrong if not. */

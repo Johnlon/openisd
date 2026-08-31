@@ -1,11 +1,31 @@
+// THIS GATE EXISTS TO CATCH THE AI. THAT IS ITS WHOLE PURPOSE.
+//
+// There is no other author here. Every failure it reports is the agent's own mistake, caught by a
+// check the agent could not run in its own head. A red result IS the finding — never an obstacle
+// standing in front of one.
+//
+// Two permitted responses when it goes red. ONE: name the defect in a sentence — what is actually
+// wrong with the code, that would still be wrong if this gate did not exist — and then repair it.
+// If no defect can be named, that option is not available. TWO: STOP and report what it found.
+// "Make it pass" is not one of the two, and is what the word "fix" quietly permits. Casting
+// past it, renaming so a matcher stops firing, adding an exemption, loosening the assertion or
+// deleting the test are one act under different names — making the red go away instead of making
+// the code right. After ANY edit to this file, break what it guards and watch it fail, or it is
+// not known to test anything. See AGENTS.md "Every architecture test exists to catch the AI".
+
 /**
  * EVERY FIELD IN A SPEC SECTION IS A NUMBER, or it is named here and its route to the
  * calculation is decided deliberately.
  *
  * `OpenISDDriver.fields()` builds the bag the engine's consistency solver works on, and it keeps
- * only what is numeric:
+ * only what resolves to a number:
  *
- *     if (stated && typeof stated.value === 'number') bag[key] = stated.value;
+ *     const value = winningValue(stated);
+ *     if (value !== null) bag[key] = value;
+ *
+ * `winningValue` reads `readings[origin].read_value` — the ONE legal way to read a spec entry's
+ * number. A member that is not a `SpecEntry` has no such reading, so it cannot resolve, and it
+ * is skipped in the same silence.
  *
  * That filter cannot tell "this field is not a driver parameter" from "this field is broken". It
  * silently skips both. Nothing throws, nothing warns, and `DriverFields` is
@@ -38,11 +58,12 @@ const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)
  * numeric bag. Adding a name here is a DECISION, which is the point: it cannot be done by
  * accident, and the reason has to be written down.
  */
-const NON_NUMERIC_BY_DESIGN: Readonly<Record<string, string>> = {
-  // A wiring is a name, not a quantity. `#wiredInSeries()` reads the domain Field directly and
-  // never goes through `fields()`, so routing it through a numeric bag would be pointless as
-  // well as lossy.
-  VCCon: 'VoiceCoilWiring — read from the Field, deliberately not a solver parameter',
+const NOT_A_SPEC_ENTRY_BY_DESIGN: Readonly<Record<string, string>> = {
+  // EMPTY, and that is the current truth. `VCCon` was here while it was a
+  // `ScrapedField<VoiceCoilWiring>`; it is now a `SpecEntry` like every other member, holding
+  // the encoding the corpus stores (1 parallel, 2 series) and mapped to the enum at the field
+  // boundary. So it reaches `fields()` as a number — which is exactly what the bug it caused
+  // needed it to do.
 };
 
 function specSectionMembers() {
@@ -66,17 +87,18 @@ describe('a spec section carries numbers, or says why not', () => {
     expect(members.map((m) => m.name)).toContain('Fs');
   });
 
-  it('every member is ScrapedField<number> unless it is named as non-numeric by design', () => {
+  it('every member is a SpecEntry unless it is named as something else by design', () => {
     const offenders = specSectionMembers()
-      .filter((m) => !/^ScrapedField<number>$/.test(m.type))
-      .filter((m) => !(m.name in NON_NUMERIC_BY_DESIGN))
+      .filter((m) => !/^SpecEntry$/.test(m.type))
+      .filter((m) => !(m.name in NOT_A_SPEC_ENTRY_BY_DESIGN))
       .map((m) => `${m.name}: ${m.type}`);
 
     expect(offenders, [
-      'A non-numeric field in SpecSection is DROPPED by OpenISDDriver.fields(), silently, and',
-      'anything reading it back off the solved bag gets `undefined` while still compiling.',
-      'Decide how this field reaches the calculation, then either make it numeric or add it to',
-      'NON_NUMERIC_BY_DESIGN in this file with the reason.',
+      'A member that is not a SpecEntry has no `readings[origin]`, so `winningValue()` cannot',
+      'resolve it and `OpenISDDriver.fields()` DROPS it — silently, while anything reading it',
+      'back off the solved bag gets `undefined` and still compiles. Decide how this field',
+      'reaches the calculation, then either make it a SpecEntry or add it to',
+      'NOT_A_SPEC_ENTRY_BY_DESIGN in this file with the reason.',
     ].join(' ')).toEqual([]);
   });
 
@@ -84,7 +106,7 @@ describe('a spec section carries numbers, or says why not', () => {
     // A stale entry would quietly excuse a field that no longer exists, and would hide a real
     // offender if the name were ever reused.
     const declared = new Set(specSectionMembers().map((m) => m.name));
-    for (const name of Object.keys(NON_NUMERIC_BY_DESIGN)) {
+    for (const name of Object.keys(NOT_A_SPEC_ENTRY_BY_DESIGN)) {
       expect(declared.has(name), `${name} is allow-listed but not declared in SpecSection`).toBe(true);
     }
   });

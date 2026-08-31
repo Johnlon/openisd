@@ -31,37 +31,6 @@ export interface Result<T> {
 }
 
 /**
- * A fully-derived driver — the non-null `value` returned by deriveEngineDriver.
- * Required fields are those deriveEngineDriver validates (Fs/Re/Sd/Vas) or derives (the Q
- * trio + Cms/Mms/Rms/Bl). Optional fields are set only when the source data supplied them.
- */
-export interface EngineDriver {
-  Fs: number;
-  Re: number;
-  Sd: number;
-  Vas: number;
-  Qts: number;
-  Qes: number;
-  Qms: number;
-  Cms: number;
-  Mms: number;
-  Rms: number;
-  BL: number;
-  /** Voice-coil inductance, H — affects only the impedance plot; absent means "no inductor
-   *  specified" (0 H), not unknown. */
-  Le?: number;
-  /** Peak linear excursion, m — affects only the Excursion and Max-SPL charts; absent means
-   *  the Xmax limit line is omitted from both. */
-  Xmax?: number;
-  /** Rated power, W — affects only the Max-SPL and Max-power charts; absent means the
-   *  thermal-limit line is omitted from both. */
-  Pe?: number;
-  /** Voice-coil count. WinISD's default is 1, not absent (`OpenISDDriver.toDriver()`
-   *  supplies it) — no consumer in this package reads it yet. */
-  numVC?: number;
-}
-
-/**
  * THE box types. One declaration, imported by the engine, the domain, the model and the UI —
  * there is no second enumeration of this concept anywhere (John's canon, 2026-08-28).
  *
@@ -174,12 +143,11 @@ export interface SweepParams {
   /** Static air pressure, Pa. Absent → `P_REF_PA` (101325). */
   pressurePa?: number;
   /**
-   * Opt in to WinISD's behaviour of storing humidity and pressure but never reading them
-   * (ledger QO7). Absent/false — openisd's default — derives ρ and c from T, RH and p, and
-   * thence K in `SPL = K + 10·log₁₀(η₀)`. True computes ρ and c live from temperature alone,
-   * at the reference humidity/pressure. Worth about 0.077 dB of SPL at 30 °C. See air.ts.
+   * Selects the FORMULA for ρ/c: absent/false uses OpenISD's own CIPM-2007 moist-air model;
+   * true uses WinISD's own simpler formula instead. Neither setting discards humidity or
+   * pressure — both still fully affect the result either way. See air.ts's WinISD-parity doc.
    */
-  ignoreHumidityAndPressure?: boolean;
+  useWinisdAirModel?: boolean;
   // Driver-side added mass to cone (kg) — raises Mms, lowers Fs. 0/absent = no-op. docs/research/WINISD_PARITY.md.
   driverAddedMass?: number;
   // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.

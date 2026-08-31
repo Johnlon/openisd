@@ -14,13 +14,17 @@ import { Engine } from '@openisd/design/engine';
 /** A conforming driver record, built inline so each test's data is readable where it is used. */
 function aDriver(brand: string, model: string): OpenISDDriver {
   const scraped = (value: string) => ({ value, origin: 'test' });
-  const num = (value: number) => ({ value, origin: 'test' });
+  // A spec entry states no value of its own — the number lives on the reading `origin` names,
+  // exactly as the corpus writes it.
+  const num = (read_value: number) => ({ origin: 'test', readings: { test: { read_value } } });
   const driver = driverFromConformingRecord({
     brand: scraped(brand), model: scraped(model), manufacturer: scraped(brand),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
-    woofer: {
-      Fs_hz: num(30), Sd_m2: num(0.02), Cms_m_per_N: num(0.0005),
-      Mmd_kg: num(0.05), Rms_Ns_per_m: num(2), Xmax_m: num(0.008),
+    specs: {
+      woofer: {
+        Fs: num(30), Sd: num(0.02), Cms: num(0.0005),
+        Mms: num(0.05), Rms: num(2), Xmax: num(0.008),
+      },
     },
   }, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture is not conforming: ${driver.join('; ')}`);

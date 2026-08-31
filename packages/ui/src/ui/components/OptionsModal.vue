@@ -121,8 +121,8 @@ function fmt(n: number | null | undefined, dp: number): string {
   return n != null && isFinite(n) ? n.toFixed(dp) : '—';
 }
 /* Sound velocity and air density for the DEFAULT environment. All three inputs feed them
- * (engine air.ts); "Ignore humidity and air pressure" is per project, not an app default, so
- * this readout always shows the physics. */
+ * (engine air.ts); `useWinisdAirModel` is per project, not an app default, so this readout
+ * always shows the physical model. */
 const defaultAir = computed(() => airForEnvironment({
   tempK: draft.envDefaults.tempK,
   humidityPct: draft.envDefaults.humidityPct,
@@ -212,6 +212,12 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
                 <label>Relative humidity</label>
                 <input class="opt-num" type="number" v-limits="limits('advHumidity')" v-model.number="draft.envDefaults.humidityPct" />
                 <span class="opt-unit">%</span>
+              </div>
+              <div class="opt-fld opt-checkbox-row">
+                <label class="opt-check-label">
+                  <input type="checkbox" :checked="project.envUseAppLevelAirEnvironment()" @change="e => project.setEnvUseAppLevelAirEnvironment((e.target as HTMLInputElement).checked)" />
+                  Use app-level environment for WinISD parity
+                </label>
               </div>
               <div class="opt-fld">
                 <label>Sound velocity</label>
@@ -335,6 +341,8 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 .opt-env-grid { display: flex; flex-direction: column; gap: 8px; }
 .opt-fld { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 .opt-fld label { flex: 0 0 120px; color: var(--mut); }
+.opt-checkbox-row { grid-column: 1 / -1; }
+.opt-check-label { display: flex; align-items: center; gap: 6px; color: var(--mut); }
 .opt-num,
 .opt-body :deep(.opt-num) { width: 150px; padding: 3px 5px; }
 .opt-greyed { color: var(--mut); }

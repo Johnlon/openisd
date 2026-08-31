@@ -26,6 +26,40 @@ doctrine and hides that nobody agreed to it.
 
 ---
 
+## ⛔ STANDING ORDER — DUPLICATE, MIGRATE, DELETE (John Lonergan, 2026-08-29)
+
+**His words:** *"STANDING ODER FOR NOW - we are duplicating then we will migrate then we will
+delete"*.
+
+The `packages/model` → `packages/design` migration runs in three phases, in this order:
+
+1. **DUPLICATE** — copy the capability into `packages/design`. The original stays where it is
+   and keeps working. Its consumers are not touched.
+2. **MIGRATE** — move consumers onto the design copy, one at a time.
+3. **DELETE** — remove the original once nothing imports it.
+
+**A COPY IS THE INTENDED STATE DURING PHASE 1, NOT A DEFECT.** While this order stands, the
+global rule in `~/.claude/behavioral_instructions.md` §"ONE model version exists" does NOT
+authorise deleting a design-side copy, a model-side original, or the duplication between them.
+That rule bans a second SHAPE of one concept living behind version-supporting code — branching
+on which shape it got, coercing one into the other, falling back between them. It does not ban
+an identical copy that exists to be migrated onto and then removed.
+
+**The test for what is still banned, unchanged:** does anything read BOTH the model copy and
+the design copy and choose? Does anything translate between them? Does either accept the
+other's shape? Any "yes" is the real violation and is deleted on sight. Two identical
+declarations, each with its own consumers, is phase 1 working.
+
+**Duplicates carry no marker.** No `// duplicated from`, no `@deprecated`, no phase comment —
+`~/.claude/behavioral_instructions.md` §"No Useless Text" and §"Never comment on what the code
+used to be" both still apply in full. What is duplicated is tracked in the migration's own
+records, never in the artifact.
+
+**Phase 3 is not optional and not indefinite.** A capability left duplicated after its
+consumers have moved is the failure this order exists to pass THROUGH, not to stop at.
+
+---
+
 ## ⛔ STANDING ORDER — DON'T INVENT (John Lonergan, 2026-08-27)
 
 **His words:** *"standing order - dont invent"*, after *"what is stated: ? never discussed
@@ -54,6 +88,22 @@ spec-field `clear()` from a refusal into a key deletion.
 
 No module-scoped state. Not a `let`, not a `var`, not a mutable `const` container (`Map`, `Set`,
 `WeakMap`, array, object), not a registry, not a singleton, not a cache.
+
+**ENUMERATIONS ARE PERMITTED. GLOBAL COLLECTIONS AND VARIABLES ARE NOT** (John 2026-08-29:
+*"enumeration are permitted / global collections and vars are not permitted"*).
+
+An ENUMERATION names a closed set of constants and is reached BY NAME —
+`SourceRole.ManufacturerDatasheet`, `VoiceCoilWiring.Series`. Its members are part of the
+vocabulary, not data the program looks things up in, and there is nothing to mutate or to hold
+a value that differs between reads.
+
+A COLLECTION is indexed by a runtime key — `TABLE[name]`, `SET.has(x)`, `MAP.get(k)`. That is
+shared lookup state whatever it is declared as, and `as const` does not change it: the same
+object serves every caller, and what it answers is a fact about the module rather than about
+the arguments. Write a `switch`, or pass the table in.
+
+**The test is HOW IT IS REACHED, not how it is declared.** `const T = {...} as const` indexed
+as `T[key]` is a collection. A `switch` over the same cases is not.
 
 **Recorded means written below**, naming the variable and the date. If it is not written here it
 is not approved, and the agent deletes it rather than asking again.

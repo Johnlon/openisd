@@ -18,6 +18,12 @@ import {
 // that test, so an `it()` block reads top to bottom without opening anything else.
 const scraped = <T,>(value: T) => ({ value, origin: 'scraped' as string });
 
+// A SPEC field is a different envelope from a metadata one: it states no value of its own, and
+// the number lives on the reading `origin` names. Building fixtures through this is what makes
+// them the shape a real record has.
+const spec = (read_value: number) =>
+  ({ origin: 'scraped', readings: { scraped: { read_value } } });
+
 function specSection(p: {
   Fs_hz: number; Qts: number; Sd_m2: number; Cms_m_per_N: number;
   Mmd_kg: number; Rms_Ns_per_m: number; Xmax_m: number;
@@ -25,8 +31,8 @@ function specSection(p: {
   // A test names the parameter with its unit, the way the public API does; the RECORD's keys are
   // the unsuffixed ones `openisd.yml` states, which is what this literal has to produce.
   return {
-    Fs: scraped(p.Fs_hz), Qts: scraped(p.Qts), Sd: scraped(p.Sd_m2), Cms: scraped(p.Cms_m_per_N),
-    Mms: scraped(p.Mmd_kg), Rms: scraped(p.Rms_Ns_per_m), Xmax: scraped(p.Xmax_m),
+    Fs: spec(p.Fs_hz), Qts: spec(p.Qts), Sd: spec(p.Sd_m2), Cms: spec(p.Cms_m_per_N),
+    Mms: spec(p.Mmd_kg), Rms: spec(p.Rms_Ns_per_m), Xmax: spec(p.Xmax_m),
   };
 }
 
@@ -47,9 +53,9 @@ function driverJson(p: {
     brand: scraped(p.brand), model: scraped(p.model), manufacturer: scraped(p.brand),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
   };
-  if (p.section === 'woofer') return { ...meta, woofer: p.spec };
-  if (p.section === 'tweeter') return { ...meta, tweeter: p.spec };
-  return { ...meta, 'passive-radiator': p.spec };
+  if (p.section === 'woofer') return { ...meta, specs: { woofer: p.spec } };
+  if (p.section === 'tweeter') return { ...meta, specs: { tweeter: p.spec } };
+  return { ...meta, specs: { 'passive-radiator': p.spec } };
 }
 
 describe('the driver — a window, not a copy', () => {

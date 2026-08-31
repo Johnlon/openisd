@@ -1,10 +1,11 @@
 /**
  * The Original skin's Advanced pane: temperature, relative humidity and air pressure all feed
- * the sound-velocity and air-density readouts, and the "Ignore humidity and air pressure
- * (as WinISD does)" checkbox turns the last two off (ledger QO7 / QO24.8).
+ * the sound-velocity and air-density readouts, and the "Use WinISD air model" checkbox
+ * switches the air calculation to WinISD's parity model instead of the physical one (ledger
+ * QO7 / QO24.8).
  *
  * A browser test rather than a unit one because the claim being made is about the RENDERED
- * pane — two of these three inputs were visibly live and computationally inert for a long time,
+ * pane — the model switch was visibly conflated with the environment inputs for a long time,
  * which is exactly the failure a green unit test cannot catch.
  */
 import { test, expect } from '../fixtures.js';
@@ -35,18 +36,18 @@ test('relative humidity moves both readouts — the input is not inert', async (
   await expect(soundVelocity(page)).toHaveValue('344.74');
 });
 
-test('ticking "Ignore humidity and air pressure" pins the readouts to WinISD\'s constants', async ({ page }) => {
-  const ignore = page.locator('label', { hasText: 'Ignore humidity and air pressure' }).locator('input[type=checkbox]');
-  await expect(ignore).not.toBeChecked();   // openisd does the physics by default (QO7)
+test('ticking "Use WinISD air model" pins the readouts to WinISD\'s constants', async ({ page }) => {
+  const useWinisd = page.locator('label', { hasText: 'Use WinISD air model' }).locator('input[type=checkbox]');
+  await expect(useWinisd).not.toBeChecked();   // openisd does the physics by default (QO7)
 
   await humidity(page).fill('100');
   await humidity(page).blur();
-  await ignore.check();
+  await useWinisd.check();
 
   await expect(soundVelocity(page)).toHaveValue('343.68');
   await expect(airDensity(page)).toHaveValue('1.20095');
 
-  // And humidity is then genuinely ignored, not merely reset.
+  // Humidity is still a live input in the resolved environment; the switch changes the model.
   await humidity(page).fill('0');
   await humidity(page).blur();
   await expect(airDensity(page)).toHaveValue('1.20095');

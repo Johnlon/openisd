@@ -90,7 +90,6 @@ export type { OpenISDProject } from './project.js';
 export type {
   ProjectRepo,
   ProjectListing,
-  ProjectMeta,
   RecordStore,
   RecordStoreFactory,
   DeleteChallenge,

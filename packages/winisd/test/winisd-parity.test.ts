@@ -359,20 +359,19 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
       });
 
       it('air — openisd in WinISD-compatibility mode against the pair WinISD stored', () => {
-        // QO7: the parity suite runs with "Ignore humidity and air pressure (as WinISD does)"
-        // ON. With it OFF, openisd derives rho and c from T/RH/p — physically right, and a
+        // QO7: the parity suite runs with `useWinisdAirModel: true`, i.e. WinISD's own air model.
+        // With it false, openisd derives rho and c from T/RH/p — physically right, and a
         // permanent ~0.07 dB divergence that would teach everyone to ignore this suite.
         //
-        // In that mode the app swaps the PROJECT's humidity/pressure for its app-level
-        // Options environment before the engine sees them (logic/environment.ts
-        // resolveAirEnvironment — §12/§13: WinISD never reads the project [Box] env, which is
-        // why every env-* golden stores the same pair). The goldens were captured with the
-        // Options environment at factory defaults, so the harness performs the same
-        // substitution with the reference values. The project's temperature stays its own —
+        // In that mode the app supplies the app-level Options environment before the engine sees
+        // them (logic/environment.ts resolveAirEnvironment — §12/§13: WinISD's parity model is fed
+        // from the active Options values, not from the project's box environment). The goldens
+        // were captured with the Options environment at factory defaults, so the harness performs
+        // the same substitution with the reference values. The project's temperature stays its own —
         // the env-t-303 divergence entry bounds that leg.
         const air = new Engine().airFor({
           tempK: s.environment.T,
-          ignoreHumidityAndPressure: true,
+          useWinisdAirModel: true,
         });
         for (const [key, got] of [['c', air.c], ['roo', air.rho]] as const) {
           compare(s.id, `air.${key}`, parseFloat(golden.Driver[key]), got);

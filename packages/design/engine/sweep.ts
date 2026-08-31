@@ -16,10 +16,12 @@ import { P0, FLAT_MAX_BOOST_DB } from './constants.js';
 import { airFor } from './air.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
-import { withAddedMass } from './driver.js';
+import { withAddedMass, solveConsistencyGroup } from './driver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { applyFilters } from './filters.js';
-import type { EngineDriver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
+import type { BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError, Result } from './types.js';
+import { EngineQuantities } from './engineQuantities.js';
+import type { CircuitQuantities } from './circuit.js';
 
 /** SPL below this is the "no output" sentinel sweep() writes where |p| = 0, not a real level. */
 const SILENCE_DB = -190;
@@ -122,10 +124,127 @@ export function groupDelayMs(fs: number[], phaseUnwrapped: number[]): number[] {
  * Group delay τg = −dφ/dω
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  */
-export function sweep(drv: EngineDriver, box: BoxType, P: SweepParams): SweepResult {
+/**
+ * The six quantities the circuit cannot run without, or the issues naming what is missing.
+ *
+ * These six are what `circuit.ts` reads unguarded; every OTHER quantity a curve wants is
+ * optional and gated at its own use below, because a driver states what its datasheet printed
+ * and each chart decides for itself what it can still draw. `Number.isFinite` is part of the
+ * check: a subnormal `Sd_m2` yields an infinite `Cms_m_per_N`, which is not a driver.
+ */
+function usableQuantity(v: number | undefined): v is number {
+  return v != null && Number.isFinite(v) && v > 0;
+}
+
+/**
+ * A physically plausible value for a quantity, used ONLY to ask "would stating this one let the
+ * sweep run?" — never in a result. A `switch` rather than a table, per packages/design/AGENTS.md.
+ *
+ * The magnitudes are a mid-range 6.5" mid-woofer's. They matter only in that they are positive
+ * and finite, which is what the solver's own `setVal` requires before it will write a derived
+ * field; the ANSWER this produces is structural — which relations can close — not numeric.
+ */
+function plausibleValue(name: keyof EngineQuantities): number {
+  switch (name) {
+    case 'Fs_hz': return 37;            case 'Re_ohm': return 5.6;
+    case 'Znom_ohm': return 8;          case 'Qes': return 0.40;
+    case 'Qms': return 7.0;             case 'Qts': return 0.38;
+    case 'Vas_m3': return 0.030;        case 'Sd_m2': return 0.0133;
+    case 'Dd_m': return 0.13;           case 'BL_Tm': return 8.87;
+    case 'Mms_kg': return 0.0234;       case 'Cms_m_per_N': return 7.4e-4;
+    case 'Rms_kg_per_s': return 0.80;   case 'EBP_hz': return 92;
+    case 'Xmax_m': return 0.005;        case 'Vd_m3': return 6.65e-5;
+    case 'Hc_m': return 0.012;          case 'Hg_m': return 0.006;
+    case 'Pe_W': return 60;             case 'no': return 0.0035;
+    case 'SPLref_dB': return 88;        case 'SPL_dB': return 88;
+    case 'USPL_dB': return 89;          case 'SPLmax_dB': return 105;
+    case 'SPLmaxLF_dB': return 95;      case 'Rme_kg_per_s': return 14;
+    case 'Mpow_N_per_sqrtW': return 3.7; case 'Mcost_kg_per_s': return 20;
+    case 'gamma_m_per_s2_A': return 379; case 'Gloss': return 0.02;
+    case 'Vcd_m': return 0.038;         case 'Depth_m': return 0.075;
+    case 'MagDepth_m': return 0.020;    case 'Magnet_m': return 0.090;
+    case 'DVol_m3': return 4.0e-4;      case 'c_m_per_s': return 344;
+    case 'roo_kg_per_m3': return 1.2;
+  }
+  const unhandled: never = name;
+  return unhandled;
+}
+
+/**
+ * Every quantity that, stated ON ITS OWN, would let this driver simulate.
+ *
+ * Asked by handing each candidate to the REAL solver and re-testing the circuit's six, so the
+ * answer can never disagree with what the engine actually does and no second copy of the
+ * relation table exists. A driver missing only `Vas` gets back
+ * `Vas, Cms, Mms, Rms, BL, no, SPL` — seven ways to unblock it, all of them true.
+ *
+ * Empty means no single field is enough: more than one thing is missing.
+ */
+function singleFieldUnblockers(q: Readonly<EngineQuantities>): (keyof EngineQuantities)[] {
+  const out: (keyof EngineQuantities)[] = [];
+  for (const name of EngineQuantities.NAMES) {
+    if (q[name] !== undefined) continue;
+    const solved = solveConsistencyGroup(
+      Object.assign(new EngineQuantities(), q, { [name]: plausibleValue(name) }));
+    if (usableQuantity(solved.Sd_m2) && usableQuantity(solved.Re_ohm) && usableQuantity(solved.BL_Tm)
+        && usableQuantity(solved.Cms_m_per_N) && usableQuantity(solved.Mms_kg)
+        && usableQuantity(solved.Rms_kg_per_s)) out.push(name);
+  }
+  return out;
+}
+
+function circuitQuantities(q: Readonly<EngineQuantities>, Le_H: number | undefined): Result<CircuitQuantities> {
+  const bad: string[] = [];
+  const errors: DriverError[] = [];
+  const physical = (field: keyof EngineQuantities, v: number | undefined): v is number => {
+    if (v != null && (!Number.isFinite(v) || v <= 0)) {
+      // A stated-but-impossible value is its own fault and its own message: naming an
+      // alternative field would be wrong, because nothing is missing.
+      errors.push({ level: 'error', field, message: `${field} is ${v}, which is not a physical value.` });
+      return false;
+    }
+    if (v == null) { bad.push(field); return false; }
+    return true;
+  };
+  // Every check runs before the bail-out, so nothing is reported one field at a time.
+  const Sd_m2 = physical('Sd_m2', q.Sd_m2), Re_ohm = physical('Re_ohm', q.Re_ohm);
+  const BL_Tm = physical('BL_Tm', q.BL_Tm), Cms_m_per_N = physical('Cms_m_per_N', q.Cms_m_per_N);
+  const Mms_kg = physical('Mms_kg', q.Mms_kg), Rms_kg_per_s = physical('Rms_kg_per_s', q.Rms_kg_per_s);
+  if (!Sd_m2 || !Re_ohm || !BL_Tm || !Cms_m_per_N || !Mms_kg || !Rms_kg_per_s) {
+    const first = bad[0];
+    if (first !== undefined) {
+      // The six above are what the CIRCUIT reads, and four of them are ordinarily derived — a
+      // datasheet prints none of `Cms`, `Mms`, `Rms`, `BL`. Naming them tells the reader to
+      // enter numbers they do not have. What they can act on is a field that, stated on its own,
+      // would close the gap — so that is what the message carries.
+      const options = singleFieldUnblockers(q);
+      errors.push({
+        level: 'error',
+        field: first,
+        message: options.length
+          ? `This driver cannot be simulated yet. State any ONE of: ${options.join(', ')}.`
+          : 'This driver cannot be simulated: more than one parameter is missing, and no single '
+            + 'value completes it.',
+      });
+    }
+    return { value: null, errors };
+  }
+  return {
+    value: {
+      Sd_m2: q.Sd_m2, Re_ohm: q.Re_ohm, BL_Tm: q.BL_Tm,
+      Cms_m_per_N: q.Cms_m_per_N, Mms_kg: q.Mms_kg, Rms_kg_per_s: q.Rms_kg_per_s, Le_H,
+    },
+    errors,
+  };
+}
+
+export function sweep(drv: Readonly<EngineQuantities>, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
   // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
   // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
   const d = withAddedMass(drv, P.driverAddedMass ?? 0);
+  const circuit = circuitQuantities(d, Le_H);
+  if (circuit.value === null) return { value: null, errors: circuit.errors };
+  const cq = circuit.value;
   const { rho, c } = airFor(P);
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
@@ -134,7 +253,7 @@ export function sweep(drv: EngineDriver, box: BoxType, P: SweepParams): SweepRes
   const fltMag: number[] = [], fltPhaseWrapped: number[] = [];
   for (let i = 0; i <= N; i++) {
     const f   = f0 * Math.pow(f1 / f0, i / N);
-    const s   = solve(f, d, box, P);
+    const s   = solve(f, cq, box, P);
     const w   = 2 * Math.PI * f;
     // p = ρ·ω·U₀/(2π·r)  https://en.wikipedia.org/wiki/Acoustic_impedance#Radiation_impedance
     // Filters are line-level (upstream of amp) — multiply Hc, UD, UP; Zel is unaffected.
@@ -148,7 +267,7 @@ export function sweep(drv: EngineDriver, box: BoxType, P: SweepParams): SweepRes
     const UD  = cMul(s.UD, Hf);
     const UP  = cMul(s.UP, Hf);
     const pm  = cAbs(Hc);
-    const Sdt = d.Sd * (P.nDrivers || 1); // d.Sd === drv.Sd (withAddedMass leaves Sd untouched)
+    const Sdt = cq.Sd_m2 * (P.nDrivers || 1); // withAddedMass leaves Sd untouched
     const area = box === 'box-passive-radiator' ? P.prSd! : P.Sp!;
     fs.push(f); H.push(Hc);
     // SPL = 20·log10(|p|/P0)  https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
@@ -195,7 +314,7 @@ export function sweep(drv: EngineDriver, box: BoxType, P: SweepParams): SweepRes
   // frequency before the cone runs out of linear travel. Computed unconditionally as its
   // OWN curve: `spl` still feeds the transfer-function chart, the F3/F6/F10 read-outs and
   // every compare trace, so it must never be clamped in place.
-  const Xmax = (drv.Xmax != null && Number.isFinite(drv.Xmax) && drv.Xmax > 0) ? drv.Xmax : null;
+  const Xmax = (drv.Xmax_m != null && Number.isFinite(drv.Xmax_m) && drv.Xmax_m > 0) ? drv.Xmax_m : null;
   const splXlim: number[] = [], xlimited: boolean[] = [];
   for (let i = 0; i < fs.length; i++) {
     const xPeak = exc[i] / 1000;                                  // exc is mm; Xmax is metres
@@ -206,19 +325,20 @@ export function sweep(drv: EngineDriver, box: BoxType, P: SweepParams): SweepRes
 
   // Reference SPL limit from first principles (high-frequency asymptote)
   let splRefLimit: number | undefined = undefined;
-  if (d.Fs > 0 && d.Vas > 0 && d.Qes > 0 && d.Re > 0 && P.eg > 0) {
+  if (d.Fs_hz != null && d.Vas_m3 != null && d.Qes != null
+      && d.Fs_hz > 0 && d.Vas_m3 > 0 && d.Qes > 0 && cq.Re_ohm > 0 && P.eg > 0) {
     const np = (P.wiring || 'parallel') === 'parallel' ? (P.nDrivers || 1) : 1;
     // η₀ and the SPL constant come from the ONE implementation (efficiency.ts), evaluated at
     // the ρ and c this sweep is actually running on — the eg²/Re and n² terms are this
     // caller's own drive conditions, not part of the reference formula.
-    const eta0 = referenceEfficiency(d.Fs, d.Vas, d.Qes, c);
+    const eta0 = referenceEfficiency(d.Fs_hz, d.Vas_m3, d.Qes, c);
     splRefLimit = splFromEfficiency(eta0, rho, c)
-                + 10 * Math.log10(P.eg * P.eg / d.Re)
+                + 10 * Math.log10(P.eg * P.eg / cq.Re_ohm)
                 + 20 * Math.log10(np);
   }
 
-  return { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlim, xlimited, flatClamped,
-           fltMag, fltPhase, fltGd };
+  return { value: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlim, xlimited, flatClamped,
+                    fltMag, fltPhase, fltGd }, errors: [] };
 }
 
 /**
@@ -244,28 +364,30 @@ export function classifyFlatClamp(sw: SweepResult): DriverError | null {
  * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
  *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function maxCurves(drv: EngineDriver, box: BoxType, P: SweepParams): MaxCurvesResult {
-  const base = sweep(drv, box, Object.assign({}, P, { eg: 2.83 }));
-  const Pe   = (drv.Pe != null && drv.Pe > 0) ? drv.Pe * (P.nDrivers || 1) : null;
-  const Re   = drv.Re;                  // T/S power reference is always Re, not Znom
+export function maxCurves(drv: Readonly<EngineQuantities>, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
+  const swept = sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83 }));
+  if (swept.value === null) return { value: null, errors: swept.errors };
+  const base = swept.value;
+  const Pe   = (drv.Pe_W != null && drv.Pe_W > 0) ? drv.Pe_W * (P.nDrivers || 1) : null;
+  const Re   = drv.Re_ohm!;             // T/S power reference is always Re, not Znom
   const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];
   for (let i = 0; i < base.fs.length; i++) {
     const excAt283 = base.exc[i] / 1000;
-    const vXmax = (excAt283 > 0 && drv.Xmax! > 0) ? 2.83 * (drv.Xmax! / excAt283) : Infinity;
+    const vXmax = (excAt283 > 0 && drv.Xmax_m != null && drv.Xmax_m > 0) ? 2.83 * (drv.Xmax_m / excAt283) : Infinity;
     const vPe   = Pe != null ? Math.sqrt(Pe * Re) : Infinity;
     const vUse  = Math.min(vXmax, vPe);
     maxspl.push(base.spl[i] + 20 * Math.log10(vUse / 2.83));
     maxpwr.push(vUse * vUse / Re);
     xlim.push(vXmax < vPe);
   }
-  return { fs: base.fs, maxspl, maxpwr, xlim, peAbsent: Pe == null };
+  return { value: { fs: base.fs, maxspl, maxpwr, xlim, peAbsent: Pe == null }, errors: [] };
 }
 
 /**
  * Postcondition: classify a sweep result's finiteness so a degenerate design is
  * never a silently blank chart. A precondition on inputs can't foresee a
  * frequency-dependent singularity, so this is the belt-and-braces at the exit.
- * Returns a DriverError-shaped issue (same channel as deriveEngineDriver), or null — see
+ * Returns a DriverError-shaped issue (the same channel `sweep` itself reports on), or null — see
  * `classifyArrays` below for the three-way rule the two postconditions share.
  */
 export function classifyFinite(sw: SweepResult): DriverError | null {
@@ -285,8 +407,8 @@ export function classifyFinite(sw: SweepResult): DriverError | null {
  * reachable case is a driver with NEITHER `Pe` NOR `Xmax`: `maxCurves` then has no limit
  * to apply, `vUse = min(Infinity, Infinity)`, and `maxspl`/`maxpwr` are `Infinity` at
  * every frequency — which propagates into the chart's own `ymax` scaling and takes the
- * axis with it. `deriveEngineDriver` warns that each limit LINE is missing; that is a different
- * statement from "these two charts have no drawable value at all".
+ * axis with it. `maxCurves` reports `peAbsent` when the power line alone is missing; that is a
+ * different statement from "these two charts have no drawable value at all".
  */
 export function classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
   return classifyArrays(mx.fs, [mx.maxspl, mx.maxpwr], 'maxCurves',

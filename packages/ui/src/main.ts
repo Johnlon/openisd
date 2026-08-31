@@ -2,8 +2,8 @@ import { createApp } from 'vue';
 import App from './ui/App.vue';
 import { vExpoStep } from './ui/directives/expoStep.js';
 import { vLimits } from './ui/directives/limits.js';
-import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRepo, createPrRepo, createFileStorage, createProjectRepo, createViewStateRepo } from '@openisd/persistence';
-import type { BundleRecord, BundledPR } from '@openisd/persistence';
+import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRepo, createMyPassiveRadiatorRepo, createBundledPassiveRadiatorRepo, createFileStorage, createProjectRepo, createViewStateRepo } from '@openisd/persistence';
+import type { BundleRecord } from '@openisd/persistence';
 import { myDriversSchema, projectSchema } from './logic/schemaUpgrade.js';
 import { createLogging } from './logging/flash.js';
 import { createDiagnostics } from './diagnostics/selftest.js';
@@ -30,7 +30,7 @@ import './style.css';
 
 const bundle = bundleJson as {
   sources?: Array<{ key: string; files: BundleRecord[] }>;
-  passiveRadiators?: BundledPR[];
+  passiveRadiators?: BundleRecord[];
 };
 
 // --- services: arguments in, data out, no app state ---
@@ -44,7 +44,8 @@ const logging = createLogging();
 const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle });
 const myDriverRepo = createMyDriverRepo(storage, myDriversSchema);
 const prefs = createPrefsRepo(storage);
-const prRepo = createPrRepo(storage, bundle);
+const myPassiveRadiators = createMyPassiveRadiatorRepo(storage);
+const bundledPRs = createBundledPassiveRadiatorRepo(bundle).list();
 const diagnostics = createDiagnostics({ report: logging.flash });
 // STORAGE (port): the interactive file-save destination. Two SEPARATE instances — one for
 // the project (retains the open project's file handle), one for the driver editor's one-shot
@@ -67,7 +68,8 @@ const app = createApp(App)
   .directive('limits', vLimits);
 
 provideApp(app, {
-  logging, driverBrowsing, selection, designIO, prRepo, myDrivers: myDriverRepo,
+  logging, driverBrowsing, selection, designIO, myPassiveRadiators,
+  bundledPassiveRadiators: bundledPRs, myDrivers: myDriverRepo,
   driverFileStorage, diagnostics, faultLog, projectRepo, viewStateRepo,
 });
 

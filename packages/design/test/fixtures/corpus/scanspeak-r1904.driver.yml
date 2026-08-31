@@ -1,0 +1,272 @@
+uuid:
+  value: b6429c26-a599-4160-9142-db9135815fa4
+  definition: stable record identity, minted by the pipeline at first emit and never
+    re-derived
+quality:
+  rating: L
+  confirmed_fields: [BL, Fs, Qts, SPL, Sd]
+  fields_with_issues: [Re]
+  missing: []
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: Scan-Speak
+  origin: manufacturer_product_page
+  definition: the company that makes the driver; a second-order descriptive field,
+    shown only when it differs from the brand
+brand:
+  value: Scan-Speak
+  origin: manufacturer_product_page
+  definition: the selling brand; equals the manufacturer except for house brands
+model:
+  value: R1904/613001
+  origin: manufacturer_datasheet
+  definition: the vendor's exact designation including the impedance variant — unique
+    within a brand, and the name shown in the driver browser
+sku:
+  value: r1904-613001
+  definition: the canonical identity code — the vendor designation slugified, impedance
+    variant included; names the record directory (guard-enforced equal) and is unique
+    within the manufacturer
+  grounds:
+  - origin: manufacturer_datasheet
+    reading: R1904/613001
+    definition: the printed designation the code was derived from
+  - origin: manufacturer_product_page
+    reading: https://www.scan-speak.dk/product/r1904-613001/
+    definition: the source URL that corroborated the derivation
+driver_type:
+  value: tweeter
+  origin: manufacturer_product_page
+  definition: what kind of driver this is (closed vocabulary); decides which specs
+    section applies
+data_sources:
+  value:
+    manufacturer_datasheet: https://www.scan-speak.dk/datasheet/pdf/r1904-613001.pdf
+    manufacturer_listing_page: https://www.scan-speak.dk/product-tag/tweeter/?fwp_paged=4
+    manufacturer_product_page: https://www.scan-speak.dk/product/r1904-613001/
+  definition: the record-wide provenance index — every source role used anywhere in
+    this file resolves to a URL here
+authoritative:
+  value: manufacturer_datasheet
+  definition: which indexed source wins the datasheet waterfall for this record —
+    the document the specs are extracted from; other sources only corroborate
+product_image:
+  value: https://www.scan-speak.dk/wp-content/uploads/2019/01/R1904-613001-1200x800.jpg
+  origin: manufacturer_product_page
+  definition: the manufacturer's product photo for this driver
+specs:
+  tweeter:
+    Fs:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 1000 Hz
+          read_value: 1000.0
+          read_precision: 0.5
+        manufacturer_listing_page:
+          actual_reading: 1000 Hz
+          read_value: 1000.0
+          read_precision: 0.5
+        manufacturer_product_page:
+          actual_reading: 1000 Hz
+          read_value: 1000.0
+          read_precision: 0.5
+      corroboration: MATCH
+      definition: free-air resonance frequency (Hz)
+    Re:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 77 Ω
+          read_value: 77.0
+          read_precision: 0.5
+        manufacturer_listing_page:
+          actual_reading: 2.7 Ω
+          read_value: 2.7
+          read_precision: 0.05
+        manufacturer_product_page:
+          actual_reading: 2.7 Ω
+          read_value: 2.7
+          read_precision: 0.05
+      corroboration: MISMATCH
+      definition: DC voice coil resistance (Ω)
+      dq_scraper:
+      - kind: range
+        severity: error
+        rule: range-above-max
+        params: {field: Re, value: 77.0, limit: 64.0, unit: ''}
+        detail: Re=77 above max 64
+    Le:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.02 mH
+          read_value: 2.0e-05
+          read_precision: 5.0e-06
+      corroboration: UNMATCHED
+      definition: voice-coil inductance (H)
+    Znom:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 4 Ω
+          read_value: 4.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: nominal impedance (Ω)
+    Qts:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: '1.61'
+          read_value: 1.61
+          read_precision: 0.005
+        manufacturer_listing_page:
+          actual_reading: '1.61'
+          read_value: 1.61
+          read_precision: 0.005
+        manufacturer_product_page:
+          actual_reading: '1.61'
+          read_value: 1.61
+          read_precision: 0.005
+      corroboration: MATCH
+      definition: total Q factor at Fs (dimensionless)
+    Qes:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: '2.02'
+          read_value: 2.02
+          read_precision: 0.005
+      corroboration: UNMATCHED
+      definition: electrical Q factor at Fs (dimensionless)
+    Qms:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: '8.03'
+          read_value: 8.03
+          read_precision: 0.005
+      corroboration: UNMATCHED
+      definition: mechanical Q factor at Fs (dimensionless)
+    Vas:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.002 l
+          read_value: 2.0e-06
+          read_precision: 5.0e-07
+      corroboration: UNMATCHED
+      definition: equivalent compliance volume — stored in m³, not litres
+    Sd:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 3.8 cm2
+          read_value: 0.00038
+          read_precision: 5.0e-06
+        manufacturer_listing_page:
+          actual_reading: 3.8 cm²
+          read_value: 0.00038
+          read_precision: 5.0e-06
+        manufacturer_product_page:
+          actual_reading: 3.8 cm²
+          read_value: 0.00038
+          read_precision: 5.0e-06
+      corroboration: MATCH
+      definition: effective piston area — stored in m², not cm²
+    BL:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 1.4 Tm
+          read_value: 1.4
+          read_precision: 0.05
+        manufacturer_listing_page:
+          actual_reading: 1.4 Tm
+          read_value: 1.4
+          read_precision: 0.05
+        manufacturer_product_page:
+          actual_reading: 1.4 Tm
+          read_value: 1.4
+          read_precision: 0.05
+      corroboration: MATCH
+      definition: motor force factor (T·m)
+    Mms:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.23 g
+          read_value: 0.00023
+          read_precision: 5.0e-06
+      corroboration: UNMATCHED
+      definition: moving mass including air load — stored in kg, not g
+    Cms:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.11 mm/N
+          read_value: 0.00011
+          read_precision: 5.0e-06
+      corroboration: UNMATCHED
+      definition: suspension compliance (m/N)
+    Rms:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.18 kg/s
+          read_value: 0.18
+          read_precision: 0.005
+      corroboration: UNMATCHED
+      definition: mechanical suspension resistance (kg/s)
+    Xmax:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.1 mm
+          read_value: 0.0001
+          read_precision: 5.0e-05
+      corroboration: UNMATCHED
+      definition: one-way linear excursion limit — stored in m, not mm
+    SPL:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          note: 2.83V/1m
+          actual_reading: 87 dB
+          read_value: 87.0
+          read_precision: 0.5
+        manufacturer_listing_page:
+          actual_reading: 87 dB
+          read_value: 87.0
+          read_precision: 0.5
+        manufacturer_product_page:
+          actual_reading: 87 dB
+          read_value: 87.0
+          read_precision: 0.5
+      corroboration: MATCH
+      definition: sensitivity (dB)
+    Vcd:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 19 mm
+          read_value: 0.019
+          read_precision: 0.0005
+      corroboration: UNMATCHED
+      definition: voice coil diameter — stored in m, not mm
+    weight_kg:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.05 kg
+          read_value: 0.05
+          read_precision: 0.005
+      corroboration: UNMATCHED
+      definition: net driver weight (kg)
+scraper_meta:
+  scraper:
+    value: scanspeak_ocr_extractor
+    definition: the vendor scraper/extraction method that produced this record

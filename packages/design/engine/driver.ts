@@ -13,15 +13,11 @@
  */
 
 import { P0, G_STANDARD } from './constants.js';
-import { GAMMA, T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
+import { GAMMA, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
 import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
-import { ebp } from './alignments.js';
+import { ebp } from './boxDesign.js';
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
-import type { EngineDriver, DriverError, Result } from './types.js';
-
-/** A driver's fields by name, before validation — every value present or absent, nothing
- *  else. `parseWdr` drops absent fields, so a partial driver is a valid intermediate state. */
-type DriverFields = Record<string, number | undefined>;
+import { EngineQuantities } from './engineQuantities.js';
 
 /**
  * A driver record's own speed of sound — matches WinISD's own resolution rule
@@ -29,18 +25,18 @@ type DriverFields = Record<string, number | undefined>;
  * stated `roo` via `c = √(γ·p/roo)`; else the live physical model at the reference
  * environment. Never a stored constant — WinISD has none either.
  */
-export function driverC(r: Readonly<Record<string, number | undefined>>): number {
-  if (r.c != null && r.c > 0) return r.c;
-  if (r.roo != null && r.roo > 0) return Math.sqrt(GAMMA * P_REF_PA / r.roo);
-  return moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+export function driverC(r: Readonly<EngineQuantities>): number {
+  if (r.c_m_per_s != null && r.c_m_per_s > 0) return r.c_m_per_s;
+  if (r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0) return Math.sqrt(GAMMA * DEFAULT_P_REF_PA / r.roo_kg_per_m3);
+  return moistAirSoundVelocity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
 }
 
 /**
  * A driver record's own air density — its stated `roo`, else the live physical model at the
  * reference environment. WinISD never recomputes a missing `roo` from `c` — matched here.
  */
-export function driverRho(r: Readonly<Record<string, number | undefined>>): number {
-  return r.roo != null && r.roo > 0 ? r.roo : moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
+export function driverRho(r: Readonly<EngineQuantities>): number {
+  return r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0 ? r.roo_kg_per_m3 : moistAirDensity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
 }
 
 /**
@@ -87,10 +83,9 @@ export function nominalImpedance(Re: number): number {
  * Solve every derivable Thiele/Small field from whatever is already present in `d`,
  * without requiring a complete set — an entered (non-null) value is NEVER overwritten
  * (WinISD's fixed-E override semantics). This is the ONE place these formulas exist;
- * `deriveEngineDriver` layers required-field validation on top of it for the "ready to
- * simulate" case below. Callers that need partial/progressive derivation (an
- * in-progress edit, not yet complete enough to simulate — e.g. the live driver editor)
- * call this directly instead of reimplementing any of it.
+ * Callers that need partial/progressive derivation (an in-progress edit, not yet complete
+ * enough to simulate — e.g. the live driver editor) call this directly instead of
+ * reimplementing any of it.
  *
  * All equations: https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  *
@@ -108,41 +103,56 @@ export function nominalImpedance(Re: number): number {
  * the air in use (`driverC`/`driverRho`). η₀ is a FRACTION throughout; the percent lives in
  * the display layer only.
  */
-export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolean }): DriverFields {
-  const r: DriverFields = { ...d };
+export function solveConsistencyGroup({
+  Fs_hz, Re_ohm, Znom_ohm, Qes, Qms, Qts, Vas_m3, Sd_m2, Dd_m, BL_Tm, Mms_kg, Cms_m_per_N,
+  Rms_kg_per_s, EBP_hz, Xmax_m, Vd_m3, Hc_m, Hg_m, Pe_W, no, SPLref_dB, SPL_dB, USPL_dB,
+  SPLmax_dB, SPLmaxLF_dB, Rme_kg_per_s, Mpow_N_per_sqrtW, Mcost_kg_per_s, gamma_m_per_s2_A,
+  Gloss, Vcd_m, Depth_m, MagDepth_m, Magnet_m, DVol_m3, c_m_per_s, roo_kg_per_m3,
+}: Readonly<EngineQuantities>): EngineQuantities {
+  // Destructured, so every quantity this function depends on is NAMED in the signature and the
+  // order it is written in binds nothing — object destructuring matches by name. The body below
+  // rebuilds the record it works on, because the solver writes fields in place until nothing
+  // changes and the parameters themselves are not the thing being mutated.
+  const r = new EngineQuantities();
+  r.Fs_hz = Fs_hz;
+  r.Re_ohm = Re_ohm;
+  r.Znom_ohm = Znom_ohm;
+  r.Qes = Qes;
+  r.Qms = Qms;
+  r.Qts = Qts;
+  r.Vas_m3 = Vas_m3;
+  r.Sd_m2 = Sd_m2;
+  r.Dd_m = Dd_m;
+  r.BL_Tm = BL_Tm;
+  r.Mms_kg = Mms_kg;
+  r.Cms_m_per_N = Cms_m_per_N;
+  r.Rms_kg_per_s = Rms_kg_per_s;
+  r.EBP_hz = EBP_hz;
+  r.Xmax_m = Xmax_m;
+  r.Vd_m3 = Vd_m3;
+  r.Hc_m = Hc_m;
+  r.Hg_m = Hg_m;
+  r.Pe_W = Pe_W;
+  r.no = no;
+  r.SPLref_dB = SPLref_dB;
+  r.SPL_dB = SPL_dB;
+  r.USPL_dB = USPL_dB;
+  r.SPLmax_dB = SPLmax_dB;
+  r.SPLmaxLF_dB = SPLmaxLF_dB;
+  r.Rme_kg_per_s = Rme_kg_per_s;
+  r.Mpow_N_per_sqrtW = Mpow_N_per_sqrtW;
+  r.Mcost_kg_per_s = Mcost_kg_per_s;
+  r.gamma_m_per_s2_A = gamma_m_per_s2_A;
+  r.Gloss = Gloss;
+  r.Vcd_m = Vcd_m;
+  r.Depth_m = Depth_m;
+  r.MagDepth_m = MagDepth_m;
+  r.Magnet_m = Magnet_m;
+  r.DVol_m3 = DVol_m3;
+  r.c_m_per_s = c_m_per_s;
+  r.roo_kg_per_m3 = roo_kg_per_m3;
 
   const TAU = 2 * Math.PI;
-
-  // Run full solver ONLY when explicitly requested, otherwise run classic path to avoid test drift/failures
-  if (!options?.full) {
-    if (r.Sd == null && r.Dd! > 0) r.Sd = Math.PI * (r.Dd! / 2) ** 2;
-    if (r.Dd == null && r.Sd! > 0) r.Dd = 2 * Math.sqrt(r.Sd! / Math.PI);
-
-    if (r.Qts == null && r.Qes != null && r.Qms != null) r.Qts = r.Qes * r.Qms / (r.Qes + r.Qms);
-    if (r.Qes == null && r.Qts != null && r.Qms != null && r.Qms > r.Qts) r.Qes = r.Qts * r.Qms / (r.Qms - r.Qts);
-    if (r.Qms == null && r.Qts != null && r.Qes != null && r.Qes > r.Qts) r.Qms = r.Qts * r.Qes / (r.Qes - r.Qts);
-
-    if (r.Fs != null && r.Vas != null && r.Sd != null) {
-      const Cas = r.Vas / (driverRho(r) * driverC(r) * driverC(r));
-      if (r.Cms == null) r.Cms = Cas / (r.Sd * r.Sd);
-      if (r.Mms == null && r.Cms != null) r.Mms = 1 / ((2 * Math.PI * r.Fs) ** 2 * r.Cms);
-      if (r.Rms == null && r.Qms != null && r.Mms != null) r.Rms = 2 * Math.PI * r.Fs * r.Mms / r.Qms;
-      if (r.BL == null && r.Re != null && r.Qes != null && r.Mms != null) {
-        r.BL = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
-      }
-    }
-
-    if (r.Vd == null && r.Sd != null && r.Xmax != null) r.Vd = r.Sd * r.Xmax;
-
-    if (r.Fs == null && r.Mms != null && r.Cms != null) {
-      r.Fs = 1 / (2 * Math.PI * Math.sqrt(r.Mms * r.Cms));
-    }
-    if (r.Re == null && r.Qes != null && r.BL != null && r.Fs != null && r.Mms != null) {
-      r.Re = r.Qes * r.BL * r.BL / (2 * Math.PI * r.Fs * r.Mms);
-    }
-
-    return r;
-  }
 
 
   let changed = true;
@@ -151,7 +161,7 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
   while (changed && iterations < 10) {
     changed = false;
 
-    const setVal = (key: string, val: number) => {
+    const setVal = (key: keyof EngineQuantities, val: number) => {
       if (r[key] == null && isFinite(val) && val > 0) {
         r[key] = val;
         changed = true;
@@ -159,8 +169,8 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     };
 
     // 1. Sd <-> Dd
-    if (r.Sd == null && r.Dd != null && r.Dd > 0) setVal('Sd', Math.PI * (r.Dd / 2) ** 2);
-    if (r.Dd == null && r.Sd != null && r.Sd > 0) setVal('Dd', 2 * Math.sqrt(r.Sd / Math.PI));
+    if (r.Sd_m2 == null && r.Dd_m != null && r.Dd_m > 0) setVal('Sd_m2', Math.PI * (r.Dd_m / 2) ** 2);
+    if (r.Dd_m == null && r.Sd_m2 != null && r.Sd_m2 > 0) setVal('Dd_m', 2 * Math.sqrt(r.Sd_m2 / Math.PI));
 
     // 2. Qts, Qes, Qms parallel
     if (r.Qts == null && r.Qes != null && r.Qms != null) setVal('Qts', r.Qes * r.Qms / (r.Qes + r.Qms));
@@ -187,68 +197,68 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // order, and pinned here by the "rel 2 locks out a not-yet-ready rel 11" test below.
     // WinISD has no route deriving Fs from Rms/Qms/Mms; that direction is deliberately
     // absent (see block 5 below).
-    if (r.Fs == null && r.Mms != null && r.Cms != null) {
-      setVal('Fs', 1 / (TAU * Math.sqrt(r.Mms * r.Cms)));                                  // rel 11
+    if (r.Fs_hz == null && r.Mms_kg != null && r.Cms_m_per_N != null) {
+      setVal('Fs_hz', 1 / (TAU * Math.sqrt(r.Mms_kg * r.Cms_m_per_N)));                                  // rel 11
     }
-    if (r.Fs == null && r.no != null && r.Qes != null && r.Vas != null && r.Vas > 0 && r.no > 0) {
-      setVal('Fs', Math.pow((r.no * r.Qes) / (efficiencyConstant(driverC(r)) * r.Vas), 1 / 3)); // rel 14
+    if (r.Fs_hz == null && r.no != null && r.Qes != null && r.Vas_m3 != null && r.Vas_m3 > 0 && r.no > 0) {
+      setVal('Fs_hz', Math.pow((r.no * r.Qes) / (efficiencyConstant(driverC(r)) * r.Vas_m3), 1 / 3)); // rel 14
     }
-    if (r.Fs == null && r.Qes != null && r.BL != null && r.Mms != null && r.Re != null && r.Mms > 0 && r.Re > 0) {
-      setVal('Fs', r.Qes * r.BL * r.BL / (TAU * r.Mms * r.Re));                            // rel 2
+    if (r.Fs_hz == null && r.Qes != null && r.BL_Tm != null && r.Mms_kg != null && r.Re_ohm != null && r.Mms_kg > 0 && r.Re_ohm > 0) {
+      setVal('Fs_hz', r.Qes * r.BL_Tm * r.BL_Tm / (TAU * r.Mms_kg * r.Re_ohm));                            // rel 2
     }
-    if (r.Fs == null && r.Rme != null && r.Qes != null && r.Mms != null && r.Mms > 0) {
-      setVal('Fs', r.Rme * r.Qes / (TAU * r.Mms));                                         // rel 4
+    if (r.Fs_hz == null && r.Rme_kg_per_s != null && r.Qes != null && r.Mms_kg != null && r.Mms_kg > 0) {
+      setVal('Fs_hz', r.Rme_kg_per_s * r.Qes / (TAU * r.Mms_kg));                                         // rel 4
     }
-    if (r.Fs == null && r.EBP != null && r.Qes != null) {
-      setVal('Fs', r.EBP * r.Qes);                                                         // rel 12
+    if (r.Fs_hz == null && r.EBP_hz != null && r.Qes != null) {
+      setVal('Fs_hz', r.EBP_hz * r.Qes);                                                         // rel 12
     }
 
     // 3b. Mms, Cms from Fs — the reverse directions, unaffected by which Fs route fired.
-    if (r.Mms == null && r.Fs != null && r.Cms != null) setVal('Mms', 1 / ((TAU * r.Fs) ** 2 * r.Cms));
-    if (r.Cms == null && r.Fs != null && r.Mms != null) setVal('Cms', 1 / ((TAU * r.Fs) ** 2 * r.Mms));
+    if (r.Mms_kg == null && r.Fs_hz != null && r.Cms_m_per_N != null) setVal('Mms_kg', 1 / ((TAU * r.Fs_hz) ** 2 * r.Cms_m_per_N));
+    if (r.Cms_m_per_N == null && r.Fs_hz != null && r.Mms_kg != null) setVal('Cms_m_per_N', 1 / ((TAU * r.Fs_hz) ** 2 * r.Mms_kg));
 
     // 4. Vas, Cms, Sd
-    if (r.Vas == null && r.Cms != null && r.Sd != null) setVal('Vas', driverRho(r) * driverC(r) * driverC(r) * r.Sd * r.Sd * r.Cms);
-    if (r.Cms == null && r.Vas != null && r.Sd != null && r.Sd > 0) setVal('Cms', r.Vas / (driverRho(r) * driverC(r) * driverC(r) * r.Sd * r.Sd));
-    if (r.Sd == null && r.Vas != null && r.Cms != null && r.Cms > 0) setVal('Sd', Math.sqrt(r.Vas / (driverRho(r) * driverC(r) * driverC(r) * r.Cms)));
+    if (r.Vas_m3 == null && r.Cms_m_per_N != null && r.Sd_m2 != null) setVal('Vas_m3', driverRho(r) * driverC(r) * driverC(r) * r.Sd_m2 * r.Sd_m2 * r.Cms_m_per_N);
+    if (r.Cms_m_per_N == null && r.Vas_m3 != null && r.Sd_m2 != null && r.Sd_m2 > 0) setVal('Cms_m_per_N', r.Vas_m3 / (driverRho(r) * driverC(r) * driverC(r) * r.Sd_m2 * r.Sd_m2));
+    if (r.Sd_m2 == null && r.Vas_m3 != null && r.Cms_m_per_N != null && r.Cms_m_per_N > 0) setVal('Sd_m2', Math.sqrt(r.Vas_m3 / (driverRho(r) * driverC(r) * driverC(r) * r.Cms_m_per_N)));
 
     // 5. Rms, Fs, Mms, Qms — WinISD has no route deriving Fs from this triple (see block 3).
-    if (r.Rms == null && r.Fs != null && r.Mms != null && r.Qms != null) setVal('Rms', TAU * r.Fs * r.Mms / r.Qms);
-    if (r.Qms == null && r.Fs != null && r.Mms != null && r.Rms != null) setVal('Qms', TAU * r.Fs * r.Mms / r.Rms);
-    if (r.Mms == null && r.Fs != null && r.Qms != null && r.Rms != null && r.Fs > 0) setVal('Mms', r.Rms * r.Qms / (TAU * r.Fs));
+    if (r.Rms_kg_per_s == null && r.Fs_hz != null && r.Mms_kg != null && r.Qms != null) setVal('Rms_kg_per_s', TAU * r.Fs_hz * r.Mms_kg / r.Qms);
+    if (r.Qms == null && r.Fs_hz != null && r.Mms_kg != null && r.Rms_kg_per_s != null) setVal('Qms', TAU * r.Fs_hz * r.Mms_kg / r.Rms_kg_per_s);
+    if (r.Mms_kg == null && r.Fs_hz != null && r.Qms != null && r.Rms_kg_per_s != null && r.Fs_hz > 0) setVal('Mms_kg', r.Rms_kg_per_s * r.Qms / (TAU * r.Fs_hz));
 
     // 6. Qes, Bl, Fs, Mms, Re — Fs-from-this-quartet is rel 2, tried in block 3 above.
-    if (r.Qes == null && r.Fs != null && r.Mms != null && r.Re != null && r.BL != null) setVal('Qes', TAU * r.Fs * r.Mms * r.Re / (r.BL * r.BL));
-    if (r.Re == null && r.Qes != null && r.BL != null && r.Fs != null && r.Mms != null) setVal('Re', r.Qes * r.BL * r.BL / (TAU * r.Fs * r.Mms));
-    if (r.BL == null && r.Qes != null && r.Re != null && r.Fs != null && r.Mms != null && r.Qes > 0) setVal('BL', Math.sqrt(TAU * r.Fs * r.Mms * r.Re / r.Qes));
-    if (r.Mms == null && r.Qes != null && r.BL != null && r.Fs != null && r.Re != null && r.Fs > 0 && r.Re > 0) setVal('Mms', r.Qes * r.BL * r.BL / (TAU * r.Fs * r.Re));
+    if (r.Qes == null && r.Fs_hz != null && r.Mms_kg != null && r.Re_ohm != null && r.BL_Tm != null) setVal('Qes', TAU * r.Fs_hz * r.Mms_kg * r.Re_ohm / (r.BL_Tm * r.BL_Tm));
+    if (r.Re_ohm == null && r.Qes != null && r.BL_Tm != null && r.Fs_hz != null && r.Mms_kg != null) setVal('Re_ohm', r.Qes * r.BL_Tm * r.BL_Tm / (TAU * r.Fs_hz * r.Mms_kg));
+    if (r.BL_Tm == null && r.Qes != null && r.Re_ohm != null && r.Fs_hz != null && r.Mms_kg != null && r.Qes > 0) setVal('BL_Tm', Math.sqrt(TAU * r.Fs_hz * r.Mms_kg * r.Re_ohm / r.Qes));
+    if (r.Mms_kg == null && r.Qes != null && r.BL_Tm != null && r.Fs_hz != null && r.Re_ohm != null && r.Fs_hz > 0 && r.Re_ohm > 0) setVal('Mms_kg', r.Qes * r.BL_Tm * r.BL_Tm / (TAU * r.Fs_hz * r.Re_ohm));
 
     // 7. Xmax / Hc / Hg relations
     // Precedence between the two Xmax routes is on the RESULT, not the route: WinISD prefers
     // abs(Hc-Hg)/2, but an equal overhang gives 0 — not an excursion limit — and it falls
     // through to Vd/Sd below. Probe case G, ledger QO39/QO40.
-    if (r.Xmax == null && r.Hc != null && r.Hg != null && r.Hc !== r.Hg) {
-      setVal('Xmax', Math.abs(r.Hc - r.Hg) / 2);
+    if (r.Xmax_m == null && r.Hc_m != null && r.Hg_m != null && r.Hc_m !== r.Hg_m) {
+      setVal('Xmax_m', Math.abs(r.Hc_m - r.Hg_m) / 2);
     }
-    if (r.Hc == null && r.Xmax != null && r.Hg != null) {
-      setVal('Hc', r.Hg > 2 * r.Xmax ? r.Hg - 2 * r.Xmax : r.Hg + 2 * r.Xmax);
+    if (r.Hc_m == null && r.Xmax_m != null && r.Hg_m != null) {
+      setVal('Hc_m', r.Hg_m > 2 * r.Xmax_m ? r.Hg_m - 2 * r.Xmax_m : r.Hg_m + 2 * r.Xmax_m);
     }
-    if (r.Hg == null && r.Xmax != null && r.Hc != null) {
-      setVal('Hg', r.Hc > 2 * r.Xmax ? r.Hc - 2 * r.Xmax : r.Hc + 2 * r.Xmax);
+    if (r.Hg_m == null && r.Xmax_m != null && r.Hc_m != null) {
+      setVal('Hg_m', r.Hc_m > 2 * r.Xmax_m ? r.Hc_m - 2 * r.Xmax_m : r.Hc_m + 2 * r.Xmax_m);
     }
-    if (r.Xmax == null && r.Vd != null && r.Sd != null && r.Sd > 0) {
-      setVal('Xmax', r.Vd / r.Sd);
+    if (r.Xmax_m == null && r.Vd_m3 != null && r.Sd_m2 != null && r.Sd_m2 > 0) {
+      setVal('Xmax_m', r.Vd_m3 / r.Sd_m2);
     }
 
 
     // 8. Sd fallback from Vd/Xmax
-    if (r.Sd == null && r.Vd != null && r.Xmax != null && r.Xmax > 0) {
-      setVal('Sd', r.Vd / r.Xmax);
+    if (r.Sd_m2 == null && r.Vd_m3 != null && r.Xmax_m != null && r.Xmax_m > 0) {
+      setVal('Sd_m2', r.Vd_m3 / r.Xmax_m);
     }
 
     // 9. Vd
-    if (r.Vd == null && r.Sd != null && r.Xmax != null) {
-      setVal('Vd', r.Sd * r.Xmax);
+    if (r.Vd_m3 == null && r.Sd_m2 != null && r.Xmax_m != null) {
+      setVal('Vd_m3', r.Sd_m2 * r.Xmax_m);
     }
 
     // 9b. The DVol/Depth/MagDepth/Magnet geometry lock (WINISD_SCHEMA.md §3.10.1): the four
@@ -256,40 +266,40 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // The formulas own their domain checks and return null on a degenerate geometry
     // (dvolRelation.ts); `setVal` is only reached with a real value, so an entered member is
     // never overwritten and junk is never invented — same contract as blocks 7 and 9.
-    if (r.DVol == null && r.Dd != null && r.Vcd != null && r.Depth != null && r.MagDepth != null && r.Magnet != null) {
-      const v = dvolFromDims({ Dd: r.Dd, Vcd: r.Vcd, Depth: r.Depth, MagDepth: r.MagDepth, Magnet: r.Magnet });
-      if (v != null) setVal('DVol', v);
+    if (r.DVol_m3 == null && r.Dd_m != null && r.Vcd_m != null && r.Depth_m != null && r.MagDepth_m != null && r.Magnet_m != null) {
+      const v = dvolFromDims({ Dd: r.Dd_m, Vcd: r.Vcd_m, Depth: r.Depth_m, MagDepth: r.MagDepth_m, Magnet: r.Magnet_m });
+      if (v != null) setVal('DVol_m3', v);
     }
-    if (r.Depth == null && r.Dd != null && r.Vcd != null && r.DVol != null && r.MagDepth != null && r.Magnet != null) {
-      const v = depthFromDims({ Dd: r.Dd, Vcd: r.Vcd, DVol: r.DVol, MagDepth: r.MagDepth, Magnet: r.Magnet });
-      if (v != null) setVal('Depth', v);
+    if (r.Depth_m == null && r.Dd_m != null && r.Vcd_m != null && r.DVol_m3 != null && r.MagDepth_m != null && r.Magnet_m != null) {
+      const v = depthFromDims({ Dd: r.Dd_m, Vcd: r.Vcd_m, DVol: r.DVol_m3, MagDepth: r.MagDepth_m, Magnet: r.Magnet_m });
+      if (v != null) setVal('Depth_m', v);
     }
-    if (r.MagDepth == null && r.Dd != null && r.Vcd != null && r.DVol != null && r.Depth != null && r.Magnet != null) {
-      const v = magDepthFromDims({ Dd: r.Dd, Vcd: r.Vcd, DVol: r.DVol, Depth: r.Depth, Magnet: r.Magnet });
-      if (v != null) setVal('MagDepth', v);
+    if (r.MagDepth_m == null && r.Dd_m != null && r.Vcd_m != null && r.DVol_m3 != null && r.Depth_m != null && r.Magnet_m != null) {
+      const v = magDepthFromDims({ Dd: r.Dd_m, Vcd: r.Vcd_m, DVol: r.DVol_m3, Depth: r.Depth_m, Magnet: r.Magnet_m });
+      if (v != null) setVal('MagDepth_m', v);
     }
-    if (r.Magnet == null && r.Dd != null && r.Vcd != null && r.DVol != null && r.Depth != null && r.MagDepth != null) {
-      const v = magnetFromDims({ Dd: r.Dd, Vcd: r.Vcd, DVol: r.DVol, Depth: r.Depth, MagDepth: r.MagDepth });
-      if (v != null) setVal('Magnet', v);
+    if (r.Magnet_m == null && r.Dd_m != null && r.Vcd_m != null && r.DVol_m3 != null && r.Depth_m != null && r.MagDepth_m != null) {
+      const v = magnetFromDims({ Dd: r.Dd_m, Vcd: r.Vcd_m, DVol: r.DVol_m3, Depth: r.Depth_m, MagDepth: r.MagDepth_m });
+      if (v != null) setVal('Magnet_m', v);
     }
 
     // 10. no, Fs, Qes, Vas — Fs-from-this-triple is rel 14, tried in block 3 above.
-    if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null) {
-      setVal('no', referenceEfficiency(r.Fs, r.Vas, r.Qes, driverC(r)));
+    if (r.no == null && r.Fs_hz != null && r.Vas_m3 != null && r.Qes != null) {
+      setVal('no', referenceEfficiency(r.Fs_hz, r.Vas_m3, r.Qes, driverC(r)));
     }
-    if (r.Vas == null && r.no != null && r.Qes != null && r.Fs != null && r.Fs > 0) {
-      setVal('Vas', r.no * r.Qes / (efficiencyConstant(driverC(r)) * (r.Fs ** 3)));
+    if (r.Vas_m3 == null && r.no != null && r.Qes != null && r.Fs_hz != null && r.Fs_hz > 0) {
+      setVal('Vas_m3', r.no * r.Qes / (efficiencyConstant(driverC(r)) * (r.Fs_hz ** 3)));
     }
-    if (r.Qes == null && r.no != null && r.Fs != null && r.Vas != null && r.no > 0) {
-      setVal('Qes', efficiencyConstant(driverC(r)) * (r.Fs ** 3) * r.Vas / r.no);
+    if (r.Qes == null && r.no != null && r.Fs_hz != null && r.Vas_m3 != null && r.no > 0) {
+      setVal('Qes', efficiencyConstant(driverC(r)) * (r.Fs_hz ** 3) * r.Vas_m3 / r.no);
     }
 
     // 11. SPLref <-> no
-    if (r.SPLref == null && r.no != null && r.no > 0) {
-      setVal('SPLref', splFromEfficiency(r.no, driverRho(r), driverC(r)));
+    if (r.SPLref_dB == null && r.no != null && r.no > 0) {
+      setVal('SPLref_dB', splFromEfficiency(r.no, driverRho(r), driverC(r)));
     }
-    if (r.no == null && r.SPLref != null) {
-      setVal('no', efficiencyFromSpl(r.SPLref, driverRho(r), driverC(r)));
+    if (r.no == null && r.SPLref_dB != null) {
+      setVal('no', efficiencyFromSpl(r.SPLref_dB, driverRho(r), driverC(r)));
     }
 
     // 12. USPL, SPLref, Re
@@ -310,15 +320,15 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md
     // and docs/spec/SPEC_ENGINE.md "USPL / SPLmax — the 2.83 V reference and the 3 dB derating".
     const V283_SQ = 2.83 * 2.83;
-    const uSplBase = r.SPL ?? r.SPLref;
-    if (r.USPL == null && uSplBase != null && r.Re != null && r.Re > 0) {
-      setVal('USPL', uSplBase + 10 * Math.log10(V283_SQ / r.Re));
+    const uSplBase = r.SPL_dB ?? r.SPLref_dB;
+    if (r.USPL_dB == null && uSplBase != null && r.Re_ohm != null && r.Re_ohm > 0) {
+      setVal('USPL_dB', uSplBase + 10 * Math.log10(V283_SQ / r.Re_ohm));
     }
-    if (r.Re == null && r.USPL != null && uSplBase != null) {
-      setVal('Re', V283_SQ / Math.pow(10, (r.USPL - uSplBase) / 10));
+    if (r.Re_ohm == null && r.USPL_dB != null && uSplBase != null) {
+      setVal('Re_ohm', V283_SQ / Math.pow(10, (r.USPL_dB - uSplBase) / 10));
     }
-    if (r.SPLref == null && r.USPL != null && r.Re != null && r.Re > 0) {
-      setVal('SPLref', r.USPL - 10 * Math.log10(V283_SQ / r.Re));
+    if (r.SPLref_dB == null && r.USPL_dB != null && r.Re_ohm != null && r.Re_ohm > 0) {
+      setVal('SPLref_dB', r.USPL_dB - 10 * Math.log10(V283_SQ / r.Re_ohm));
     }
 
     // 13. WinISD's Advanced-pane figures of merit (KNOWLEDGE_REPORT.md §4). Everything on
@@ -331,11 +341,11 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // fixture the motional route gives 18.22124 and Bl²/Re gives 18.27846, and WinISD's own
     // value is the first: the motional route WINS, and Bl²/Re is only the fallback for a
     // record that cannot evaluate it.
-    if (r.Rme == null && r.Fs != null && r.Mms != null && r.Qes != null && r.Qes > 0) {
-      setVal('Rme', TAU * r.Fs * r.Mms / r.Qes);
+    if (r.Rme_kg_per_s == null && r.Fs_hz != null && r.Mms_kg != null && r.Qes != null && r.Qes > 0) {
+      setVal('Rme_kg_per_s', TAU * r.Fs_hz * r.Mms_kg / r.Qes);
     }
-    if (r.Rme == null && r.BL != null && r.Re != null && r.Re > 0) {
-      setVal('Rme', r.BL * r.BL / r.Re);
+    if (r.Rme_kg_per_s == null && r.BL_Tm != null && r.Re_ohm != null && r.Re_ohm > 0) {
+      setVal('Rme_kg_per_s', r.BL_Tm * r.BL_Tm / r.Re_ohm);
     }
     // Mpow = Bl/√Re — WinISD's OWN route, not √Rme. Verified from the `inconsistent-fs`
     // parity golden (packages/winisd/test/fixtures/winisd-parity/goldens/inconsistent-fs.wpr):
@@ -350,10 +360,10 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // `√Rme` is retained only as the fallback for a record with no `Bl` (e.g. `Bl` itself
     // absent but `Rme` derivable from Fs/Mms/Qes). See
     // bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
-    if (r.Mpow == null && r.BL != null && r.Re != null && r.Re > 0) setVal('Mpow', r.BL / Math.sqrt(r.Re));
-    if (r.Mpow == null && r.Rme != null && r.Rme > 0) setVal('Mpow', Math.sqrt(r.Rme));
+    if (r.Mpow_N_per_sqrtW == null && r.BL_Tm != null && r.Re_ohm != null && r.Re_ohm > 0) setVal('Mpow_N_per_sqrtW', r.BL_Tm / Math.sqrt(r.Re_ohm));
+    if (r.Mpow_N_per_sqrtW == null && r.Rme_kg_per_s != null && r.Rme_kg_per_s > 0) setVal('Mpow_N_per_sqrtW', Math.sqrt(r.Rme_kg_per_s));
     // gamma = Bl/Mms — one route only.
-    if (r.gamma == null && r.BL != null && r.Mms != null && r.Mms > 0) setVal('gamma', r.BL / r.Mms);
+    if (r.gamma_m_per_s2_A == null && r.BL_Tm != null && r.Mms_kg != null && r.Mms_kg > 0) setVal('gamma_m_per_s2_A', r.BL_Tm / r.Mms_kg);
     // SPLmax = SPL_stated + 10·log₁₀(Pe) − 3 dB: the thermal-limit offset from the SAME base
     // USPL offsets from (`uSplBase`, block 12 above — stated SPL, else the η₀-derived
     // SPLref). The flat 3 dB derating is measured exactly (not 10·log₁₀(2) = 3.0103 — the two
@@ -363,8 +373,8 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // winisd_research/ — the WHAT (exactly −3 dB) is proven, the WHY is not. See
     // bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md
     // and docs/spec/SPEC_ENGINE.md "USPL / SPLmax — the 2.83 V reference and the 3 dB derating".
-    if (r.SPLmax == null && uSplBase != null && r.Pe != null && r.Pe > 0) {
-      setVal('SPLmax', uSplBase + 10 * Math.log10(r.Pe) - 3);
+    if (r.SPLmax_dB == null && uSplBase != null && r.Pe_W != null && r.Pe_W > 0) {
+      setVal('SPLmax_dB', uSplBase + 10 * Math.log10(r.Pe_W) - 3);
     }
     // Gloss — the static gravitational cone sag as a FRACTION of Xmax: g/((2π·Fs)²·Xmax)
     // (winisd_research/SOLVER_GAPS.md §2.4 — 41 live samples, worst relative residual 3.6e-15).
@@ -374,17 +384,17 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // not merely ranked. `Gloss` is the record's ONE name for the quantity, and what goes in
     // it is the fraction the file carries; the percent WinISD's pane shows is the display
     // layer's ×100 and exists nowhere in this module.
-    if (r.Gloss == null && r.Fs != null && r.Fs > 0 && r.Xmax != null && r.Xmax > 0) {
-      setVal('Gloss', G_STANDARD / ((TAU * r.Fs) ** 2 * r.Xmax));
+    if (r.Gloss == null && r.Fs_hz != null && r.Fs_hz > 0 && r.Xmax_m != null && r.Xmax_m > 0) {
+      setVal('Gloss', G_STANDARD / ((TAU * r.Fs_hz) ** 2 * r.Xmax_m));
     }
     // SPLmaxLF — the excursion-limited half-space SPL at 20 Hz, 1 m, as dB re 20 µPa. The
     // bracket is the far-field RMS pressure of a piston of volume displacement Vd,
     // p = ρ₀·ω²·Vd/(2π·r·√2) at r = 1 m, ω = 2π·20. ρ₀ is the air the RECORD carries
     // (`driverRho` above — a .wdr's own `roo`, else the live physical model), never a
     // literal: WinISD moves SPLmaxLF by exactly 20·log₁₀(ρ ratio) when `roo` alone is changed.
-    if (r.SPLmaxLF == null && r.Vd != null && r.Vd > 0) {
-      const p20 = driverRho(r) * (TAU * 20) ** 2 * r.Vd / (TAU * Math.SQRT2);
-      setVal('SPLmaxLF', 20 * Math.log10(p20 / P0));
+    if (r.SPLmaxLF_dB == null && r.Vd_m3 != null && r.Vd_m3 > 0) {
+      const p20 = driverRho(r) * (TAU * 20) ** 2 * r.Vd_m3 / (TAU * Math.SQRT2);
+      setVal('SPLmaxLF_dB', 20 * Math.log10(p20 / P0));
     }
     // Mcost — Rme scaled by how far the coil leaves the gap: Rme·(1 + Xmax/min(Hc,Hg)). It
     // carries Rme's unit and reduces to Rme exactly when the coil never leaves. It reads Xmax
@@ -394,9 +404,9 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // no second Rme here. min(Hc,Hg) is the DIVISOR and both are 0 on essentially every real
     // record, which is the whole reason WinISD's own files read Mcost=0; when it is zero or
     // missing the field stays ABSENT, because neither 0 nor Infinity is a number this driver has.
-    const minHeight = r.Hc != null && r.Hg != null ? Math.min(r.Hc, r.Hg) : 0;
-    if (r.Mcost == null && r.Rme != null && r.Xmax != null && minHeight > 0) {
-      setVal('Mcost', r.Rme * (1 + r.Xmax / minHeight));
+    const minHeight = r.Hc_m != null && r.Hg_m != null ? Math.min(r.Hc_m, r.Hg_m) : 0;
+    if (r.Mcost_kg_per_s == null && r.Rme_kg_per_s != null && r.Xmax_m != null && minHeight > 0) {
+      setVal('Mcost_kg_per_s', r.Rme_kg_per_s * (1 + r.Xmax_m / minHeight));
     }
 
     // 14. Znom from Re — `nominalImpedance` above. Placed after every block that can PRODUCE
@@ -404,8 +414,8 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
     // go through `setVal`: that refuses a non-positive result, and Re < 2/3 legitimately yields
     // a COMPUTED zero (probe Z_tie_re0.6 — Znom=0 marked C, not the unset Znom=0/N of a blank
     // driver). An entered Znom is never touched, so a Znom contradicting its own Re stays pinned.
-    if (r.Znom == null && r.Re != null && r.Re > 0) {
-      r.Znom = nominalImpedance(r.Re);
+    if (r.Znom_ohm == null && r.Re_ohm != null && r.Re_ohm > 0) {
+      r.Znom_ohm = nominalImpedance(r.Re_ohm);
       changed = true;
     }
 
@@ -416,95 +426,17 @@ export function solveConsistencyGroup(d: DriverFields, options?: { full?: boolea
   // (a .wdr's own c/roo) wins, else recomputed exactly as `driverC`/`driverRho` do above —
   // surfacing it here in the output record is what lets every caller treat c/roo through the
   // SAME entered-or-computed path as Fs/Qes/EBP, with no special case anywhere above this module.
-  if (r.c == null) r.c = driverC(r);
-  if (r.roo == null) r.roo = driverRho(r);
+  if (r.c_m_per_s == null) r.c_m_per_s = driverC(r);
+  if (r.roo_kg_per_m3 == null) r.roo_kg_per_m3 = driverRho(r);
 
   // EBP (Fs/Qes) likewise: a real derivable field, computed once every input it needs is
-  // available, through the SAME formula `alignments.ts` exports for every other caller —
+  // available, through the SAME formula `boxDesign.ts` exports for every other caller —
   // never recomputed ad hoc downstream.
-  if (r.EBP == null && r.Fs != null && r.Qes != null && r.Qes > 0) {
-    r.EBP = ebp({ Fs: r.Fs, Qes: r.Qes });
+  if (r.EBP_hz == null && r.Fs_hz != null && r.Qes != null && r.Qes > 0) {
+    r.EBP_hz = ebp(r.Fs_hz, r.Qes);
   }
 
   return r;
-}
-
-export function deriveEngineDriver(d: DriverFields): Result<EngineDriver> {
-  const errors: DriverError[] = [];
-  // The working copy stays in DriverFields shape through validation and derivation —
-  // guarded reads (r.Fs! > 0) tolerate the pre-validation undefined values fine — and is
-  // cast to EngineDriver only once every required field is confirmed present, at return.
-  const r: DriverFields = { ...d };
-
-  // Auto-derive Sd from Dd if Dd is entered but Sd is not
-  if (!(r.Sd! > 0) && r.Dd! > 0) {
-    r.Sd = Math.PI * (r.Dd! / 2) ** 2;
-  }
-  // Auto-derive Dd from Sd if Sd is entered but Dd is not
-  if (!(r.Dd! > 0) && r.Sd! > 0) {
-    r.Dd = 2 * Math.sqrt(r.Sd! / Math.PI);
-  }
-
-  // Required fields — each missing one is a blocking error
-  if (!(r.Fs! > 0))  errors.push({ level: 'error', field: 'Fs',  message: 'Resonant frequency (Fs) is required and must be greater than zero' });
-  if (!(r.Re! > 0))  errors.push({ level: 'error', field: 'Re',  message: 'DC resistance (Re) is required and must be greater than zero' });
-  if (!(r.Sd! > 0))  errors.push({ level: 'error', field: 'Sd',  message: 'Piston area (Sd) is required — enter Sd or cone diameter' });
-  if (!(r.Vas! > 0)) errors.push({ level: 'error', field: 'Vas', message: 'Acoustic compliance volume (Vas) is required for moving-mass derivation' });
-
-  // A usable Q is FINITE as well as positive. `Infinity > 0` is true, so a bare `> 0` test
-  // accepts a Q that is itself already poison — and a caller that ran solveConsistencyGroup
-  // first (the Driver ADT does, before handing the result here) could present exactly that.
-  const qOk = (v: number | undefined): boolean => v != null && Number.isFinite(v) && v > 0;
-
-  // Q completeness — need at least two of {Qts, Qes, Qms} to solve the third
-  const qCount = [r.Qts, r.Qes, r.Qms].filter(qOk).length;
-  if (qCount < 2) errors.push({ level: 'error', field: 'Qts', message: 'At least two Q parameters (Qts, Qes, Qms) are required — enter any two to derive the third' });
-
-  // Qts is the parallel combination of Qes and Qms, so physically Qms > Qts and Qes > Qts.
-  // Equal or inverted values are inconsistent data, not a second-best input: the derivation
-  // Qes = Qts·Qms/(Qms−Qts) divides by zero or flips sign, which would poison Bl and the
-  // whole circuit. Checked whenever BOTH members of a pair are given — not only when the
-  // third is absent, because an already-present third does not make the pair consistent.
-  if (qOk(r.Qts) && qOk(r.Qms) && r.Qms! <= r.Qts!)
-    errors.push({ level: 'error', field: 'Qms', message: 'Qms must be greater than Qts (Qts is the parallel combination of Qes and Qms)' });
-  if (qOk(r.Qts) && qOk(r.Qes) && r.Qes! <= r.Qts!)
-    errors.push({ level: 'error', field: 'Qes', message: 'Qes must be greater than Qts (Qts is the parallel combination of Qes and Qms)' });
-
-  // Optional fields — absence does NOT block derivation; it only drops one reference
-  // line from a chart. Reported as warnings so the UI can list them (dismissable) and
-  // still draw the reliable curve.
-  if (!(r.Pe! > 0))   errors.push({ level: 'warn', field: 'Pe',   message: 'Rated power (Pe) is not set — the thermal-limit line is omitted from the Max-SPL and Max-power charts' });
-  if (!(r.Xmax! > 0)) errors.push({ level: 'warn', field: 'Xmax', message: 'Peak excursion (Xmax) is not set — the Xmax limit line is omitted from the Excursion and Max-SPL charts' });
-
-  if (errors.some(e => e.level === 'error')) return { value: null, errors };
-
-  // Q-resolution, Cms/Mms/Rms/Bl, Xmax(Hc,Hg), Vd — the shared consistency-group
-  // solver, single copy (see its docstring for what's deliberately excluded).
-  Object.assign(r, solveConsistencyGroup(r));
-
-  // Calculated sensitivity / efficiency (WinISD equivalents), through the single
-  // implementation in efficiency.ts. η₀ is a FRACTION, so nothing here divides by 100.
-  // `solveConsistencyGroup` above already resolved r.c/r.roo (entered, or computed) — reused
-  // here rather than re-derived, so there is exactly one air resolution per record.
-  r.no = referenceEfficiency(r.Fs!, r.Vas!, r.Qes!, r.c!);
-  if (r.no > 0) {
-    r.SPLref = splFromEfficiency(r.no, r.roo!, r.c!);
-    // 2.83² (WinISD's own 1 W/8 Ω test-voltage reference, squared), NOT the bare 8 this used to
-    // read — same fix, same evidence, as `solveConsistencyGroup` block 12 above. `Driver`
-    // carries no stated `SPL` of its own (this function's documented boundary — the working
-    // copy built above from `d`, before the consistency-group solve), so the base stays
-    // `SPLref` here.
-    if (r.Re! > 0) {
-      r.USPL = r.SPLref + 10 * Math.log10(2.83 * 2.83 / r.Re!);
-    }
-    // SPLmax = SPLref + 10·log₁₀(Pe) − 3 dB — the flat 3 dB derating measured exactly on the
-    // `winisd-parity` goldens (same evidence as `solveConsistencyGroup`'s SPLmax block).
-    if (r.Pe! > 0) {
-      r.SPLmax = r.SPLref + 10 * Math.log10(r.Pe!) - 3;
-    }
-  }
-
-  return { value: r as unknown as EngineDriver, errors };
 }
 
 /**
@@ -526,13 +458,20 @@ export function hotRe(Re: number, alfaVC: number, dT: number): number {
  *   Qms' = ωs'·Mms'/Rms,  Qes' = ωs'·Mms'·Re/Bl²,  Qts' = Qes'·Qms'/(Qes'+Qms').
  * `MaddKg ≤ 0` returns an equivalent driver (exact no-op) so existing goldens never move.
  */
-export function withAddedMass(drv: EngineDriver, MaddKg: number): EngineDriver {
-  if (!(MaddKg > 0)) return { ...drv };
-  const Mms = drv.Mms + MaddKg;
-  const ws  = 1 / Math.sqrt(Mms * drv.Cms);          // ωs = 1/√(Mms·Cms)
-  const Fs  = ws / (2 * Math.PI);
-  const Qms = ws * Mms / drv.Rms;                    // ωs·Mms/Rms
-  const Qes = ws * Mms * drv.Re / (drv.BL * drv.BL); // ωs·Mms·Re/Bl²
-  const Qts = (Qes * Qms) / (Qes + Qms);
-  return { ...drv, Mms, Fs, Qms, Qes, Qts };
+export function withAddedMass(drv: Readonly<EngineQuantities>, MaddKg: number): EngineQuantities {
+  const out = Object.assign(new EngineQuantities(), drv);
+  if (!(MaddKg > 0)) return out;
+  const { Cms_m_per_N, Rms_kg_per_s, Re_ohm, BL_Tm } = drv;
+  if (drv.Mms_kg == null || Cms_m_per_N == null || Rms_kg_per_s == null
+      || Re_ohm == null || BL_Tm == null) return out;
+  const Mms = drv.Mms_kg + MaddKg;
+  const ws  = 1 / Math.sqrt(Mms * Cms_m_per_N);      // ωs = 1/√(Mms·Cms)
+  const Qms = ws * Mms / Rms_kg_per_s;               // ωs·Mms/Rms
+  const Qes = ws * Mms * Re_ohm / (BL_Tm * BL_Tm);   // ωs·Mms·Re/Bl²
+  out.Mms_kg = Mms;
+  out.Fs_hz  = ws / (2 * Math.PI);
+  out.Qms    = Qms;
+  out.Qes    = Qes;
+  out.Qts    = (Qes * Qms) / (Qes + Qms);
+  return out;
 }

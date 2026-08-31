@@ -10,7 +10,11 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
+import { Engine, EngineQuantities } from '../../engine/index.js';
+
+/** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
+ *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
+const LE_H = 0.7e-3;
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
@@ -89,14 +93,14 @@ describe('Sealed box simulation', () => {
     // We set Le = 0 to isolate the acoustic response from voice-coil inductance.
     // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
     const Vb_m3 = 0.020; // 20 L enclosure volume in m³
-    const { value: d } = engine.deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
+    const { value: d } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...REF_DRIVER, Le_H: 0 }));
     assert.ok(d);
-    const fc  = d.Fs  * Math.sqrt(1 + d.Vas / Vb_m3);
-    const Qtc = d.Qts * Math.sqrt(1 + d.Vas / Vb_m3);
-    const { fs, spl } = engine.sweep(d, 'sealed', {
+    const fc  = d.Fs_hz  * Math.sqrt(1 + d.Vas_m3 / Vb_m3);
+    const Qtc = d.Qts * Math.sqrt(1 + d.Vas_m3 / Vb_m3);
+    const { fs, spl } = engine.sweep(d, LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6, // Ql -> ∞ = lossless box (isolates acoustic response)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300,
-    });
+    }).value!;
     const passbandRef = spl.at(-1)!; // HF asymptote — reference level
     let maxError = 0;
     for (let i = 0; i < fs.length; i++) {
@@ -118,14 +122,14 @@ describe('Sealed box simulation', () => {
     //
     // The reference side uses the engine's own efficiency functions — the project's single
     // definition of that level — so what this gate actually tests is the CIRCUIT solution
-    // in engine.sweep() against the closed form, not one copy of a constant against another.
+    // in engine.sweep().value! against the closed form, not one copy of a constant against another.
     const Vb_m3 = 0.020;
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
-    const { value: d }     = engine.deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
+    const { value: d }     = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...REF_DRIVER, Le_H: 0 }));
     assert.ok(d);
-    const eta0  = engine.referenceEfficiency(d.Fs, d.Vas, d.Qes, engine.airFor({}));
-    const predicted = engine.splFromEfficiency(eta0, engine.airFor({})) + 10 * Math.log10(EG ** 2 / d.Re);
-    const { fs, spl } = engine.sweep(d, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 });
+    const eta0  = engine.referenceEfficiency(d.Fs_hz, d.Vas_m3, d.Qes, engine.airFor({}));
+    const predicted = engine.splFromEfficiency(eta0, engine.airFor({})) + 10 * Math.log10(EG ** 2 / d.Re_ohm);
+    const { fs, spl } = engine.sweep(d, LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 }).value!;
     const passbandSPL = spl[idxGe(fs, 300)]; // 300 Hz — well above Fs, in the flat passband
     assert.ok(Math.abs(passbandSPL - predicted) < SPL_FORMULA_TOLERANCE_DB,
       `passband ${passbandSPL.toFixed(2)} dB vs predicted ${predicted.toFixed(2)} dB ` +
@@ -147,12 +151,12 @@ describe('Sealed box simulation', () => {
     const F3_QSPEAKERS_HZ = 70.72; // Hz — f3 from QSpeakers formula, REF_DRIVER, 20 L, lossless
 
     const Vb_m3 = 0.020;
-    const { value: d } = engine.deriveEngineDriver({ ...REF_DRIVER, Le: 0 });
+    const { value: d } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...REF_DRIVER, Le_H: 0 }));
     assert.ok(d);
-    const { fs, spl } = engine.sweep(d, 'sealed', {
+    const { fs, spl } = engine.sweep(d, LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300,
-    });
+    }).value!;
     // Use the high-frequency SPL as the passband reference (same method as QSpeakers normalises to 0 dB)
     const passbandRef = spl.at(-1)!;
     // Scan high→low for the first point below -3 dB, then linearly interpolate
@@ -193,9 +197,9 @@ describe('Vented (bass-reflex) box simulation', () => {
   const Leff   = Map * Sp_m2 / refRho();  // effective duct length (including end correction)
   const { value: d }      = engine.deriveEngineDriver(REF_DRIVER);
   assert.ok(d);
-  const { fs, spl, zmag } = engine.sweep(d, 'vented', {
+  const { fs, spl, zmag } = engine.sweep(d, LE_H, 'vented', {
     Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
-  });
+  }).value!;
 
   it('rolls off at approximately 24 dB/octave below tuning — the 4th-order Butterworth slope', () => {
     // Theory: below Fb, a vented box is a 4th-order high-pass with 24 dB/oct rolloff.
@@ -213,7 +217,7 @@ describe('Vented (bass-reflex) box simulation', () => {
     // one below and one above Fb.  This is the acoustic signature of a tuned reflex cabinet.
     // Ref: Small, R.H. "Vented-Box Loudspeaker Systems — Part I." JAES 21(5) 1973.
     //   https://aes.org/e-lib/browse.cfm?elib=2149
-    const Re = d.Re; // driver DC resistance — peaks must be well above this
+    const Re = d.Re_ohm; // driver DC resistance — peaks must be well above this
     const peaks = [];
     for (let i = 1; i < zmag.length - 1; i++) {
       if (zmag[i] > zmag[i - 1] && zmag[i] > zmag[i + 1] && zmag[i] > Re * 1.5) {
@@ -251,7 +255,7 @@ describe('Passive radiator box simulation', () => {
   };
   const { value: d }  = engine.deriveEngineDriver(REF_DRIVER);
   assert.ok(d);
-  const sw = engine.sweep(d, 'box-passive-radiator', PR_PARAMS);
+  const sw = engine.sweep(d, LE_H, 'box-passive-radiator', PR_PARAMS).value!;
 
   it('produces a non-zero excursion curve for the PR cone alongside the main driver curve', () => {
     // The PR is acoustically coupled to the box; at resonance it moves significantly.
@@ -265,7 +269,7 @@ describe('Passive radiator box simulation', () => {
     // Like a vented box, the PR system shows two impedance peaks straddling the tuning freq Fp.
     // Ref: Small, R.H. "Passive-Radiator Loudspeaker Systems — Part I." JAES 22(8) 1974.
     //   https://aes.org/e-lib/browse.cfm?elib=2223
-    const Re = d.Re;
+    const Re = d.Re_ohm;
     const peaks = [];
     for (let i = 1; i < sw.zmag.length - 1; i++) {
       if (sw.zmag[i] > sw.zmag[i - 1] && sw.zmag[i] > sw.zmag[i + 1] && sw.zmag[i] > Re * 1.5) {

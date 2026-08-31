@@ -8,8 +8,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { Engine } from '../../engine/index.js';
+import { Engine, EngineQuantities } from '../../engine/index.js';
 import type { SweepResult, MaxCurvesResult } from '../../engine/index.js';
+
 
 const here        = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, '..', 'fixtures', 'golden');
@@ -31,17 +32,17 @@ const cmpArray = (label: string, got: unknown, exp: unknown[]) => {
 };
 
 describe('golden-master — engine reproduces committed fixtures exactly', () => {
-  /* ρ and c follow temperature, humidity and pressure (air.ts), and `ignoreHumidityAndPressure`
-   * switches to WinISD's frozen pair instead — so a fixture that does not name its environment
-   * does not say what it is a snapshot OF. Every one must carry all four, explicitly, rather
-   * than inheriting whatever the engine's defaults happen to be on the day. */
+  /* ρ and c follow temperature, humidity and pressure (air.ts), and `useWinisdAirModel`
+   * switches to WinISD's parity model instead of the physical one — so a fixture that does not
+   * name its environment does not say what it is a snapshot OF. Every one must carry all four,
+   * explicitly, rather than inheriting whatever the engine's defaults happen to be on the day. */
   for (const name of NAMES) {
     it(`${name} — states the air it was produced in`, () => {
       const { design: { P } } = JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
       assert.equal(P.tempK, 293.15, `${name}: fixture does not state its temperature`);
       assert.equal(P.humidityPct, 30, `${name}: fixture does not state its relative humidity`);
       assert.equal(P.pressurePa, 101325, `${name}: fixture does not state its air pressure`);
-      assert.equal(P.ignoreHumidityAndPressure, false,
+      assert.equal(P.useWinisdAirModel, false,
         `${name}: fixture does not state whether it was produced in openisd's physical air or WinISD's`);
     });
   }
@@ -52,10 +53,21 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
       const { design: { driverRaw, box, P }, sweep: expSw, maxCurves: expMx } =
         JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
 
-      const { value: drv, errors } = engine.deriveEngineDriver(driverRaw);
-      assert.ok(drv, `${name}: driver failed to derive — ${errors.map(e => e.message).join('; ')}`);
-      const sw = engine.sweep(drv, box, P);
-      const mx = engine.maxCurves(drv, box, P);
+      // The fixture states the driver in RECORD names (`Fs`, `Vas`, `Cms`); the engine takes
+      // unit-suffixed ones. `Le` is not a solver quantity, so it travels to `sweep` separately —
+      // and it must come from THIS fixture, not a shared constant, or the impedance curve is
+      // computed for a driver the fixture does not describe.
+      const q = Object.assign(new EngineQuantities(), {
+        Fs_hz: driverRaw.Fs, Re_ohm: driverRaw.Re, Znom_ohm: driverRaw.Znom,
+        Qts: driverRaw.Qts, Qes: driverRaw.Qes, Qms: driverRaw.Qms,
+        Vas_m3: driverRaw.Vas, Sd_m2: driverRaw.Sd, Dd_m: driverRaw.Dd,
+        BL_Tm: driverRaw.BL, Mms_kg: driverRaw.Mms, Cms_m_per_N: driverRaw.Cms,
+        Rms_kg_per_s: driverRaw.Rms, Xmax_m: driverRaw.Xmax, Pe_W: driverRaw.Pe,
+      });
+      const drv = engine.solveConsistencyGroup(q);
+      const sw = engine.sweep(drv, driverRaw.Le, box, P).value;
+      const mx = engine.maxCurves(drv, driverRaw.Le, box, P).value;
+      assert.ok(sw && mx, `${name}: the engine refused this fixture`);
 
       for (const k of ['fs', 'spl', 'phase', 'exc', 'excPR', 'pv', 'zmag', 'zph', 'gd'] as const)
         cmpArray(`${name} sweep.${k}`, sw[k as keyof SweepResult], expSw[k]);

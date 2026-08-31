@@ -321,7 +321,7 @@ describe('UiParams round-trips losslessly through the repo and applyLoadedProjec
     requireFocusedProject().setEnvTempK(300);
     requireFocusedProject().setEnvHumidityPct(45);
     requireFocusedProject().setEnvPressurePa(99000);
-    requireFocusedProject().setEnvIgnoreHumidityAndPressure(true);
+    requireFocusedProject().setEnvUseWinisdAirModel(true);
     requireFocusedProject().setEnteredSet({ Vb: true, ventD: true, Fb: true, prMadd: true });
     state.box = 'vented';
 

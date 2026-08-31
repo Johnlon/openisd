@@ -8,7 +8,7 @@ import { DriverScope } from '../driverScope.js';
 import type { Logging } from '../logging/flash.js';
 import {
   driverKey as keyOf, myDriverEntry, myDriverName, matchesCriteria, previewOf,
-  normaliseDate, fmtHz, shortSource, driverHasDqIssues, parseRepoInput,
+  normaliseDate, fmtHz, shortSource, driverHasDqIssues,
   type DriverRepo, type FileEntry, type Preview,
   type MyDriverRepo, type MyDriversRead, type BrokenEntry, type PrefsRepo,
 } from '@openisd/persistence';
@@ -87,8 +87,6 @@ export interface DriverBrowsingState {
   reloadMyDrivers(): void;
   deleteMyDriver(id: string): void;
   clearMyDrivers(): void;
-  customUrl: Ref<string>;
-  loadCustom(): Promise<void>;
   previewFile: Ref<FileEntry | null>;
   previewData: ComputedRef<Preview | null>;
   pickFile(f: FileEntry | null): void;
@@ -125,7 +123,6 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const filterQ = ref('');
   const statusMsg = ref('');
   const statusErr = ref(false);
-  const customUrl = ref('');
   const initialized = ref(false);
   const typeHelpOpen = ref(false);
   const typeStates = ref<Record<string, string>>({});   // id → 'include' | 'exclude'
@@ -342,24 +339,6 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
 
   // ---- sources ---------------------------------------------------------------------------
 
-  function absorb(fetched: { sourceName: string; entries: FileEntry[] | null; error: string | null }): void {
-    if (fetched.error) { statusErr.value = true; statusMsg.value = fetched.error; return; }
-    if (!fetched.entries) return;   // a source that will not list is reported by its absence
-    allFiles.value = [
-      ...allFiles.value.filter(f => f.sourceName !== fetched.sourceName),
-      ...fetched.entries,
-    ];
-    statusMsg.value = '';
-  }
-
-  async function loadCustom(): Promise<void> {
-    const src = parseRepoInput(customUrl.value);
-    if (!src) { statusErr.value = true; statusMsg.value = 'Enter owner/repo or a github.com URL'; return; }
-    statusErr.value = false; statusMsg.value = `Loading ${src.name}…`;
-    absorb(await driverRepo.fetchSource(src));
-    customUrl.value = '';
-  }
-
   async function init(): Promise<void> {
     if (initialized.value) return;
     initialized.value = true;
@@ -370,12 +349,6 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     allFiles.value = [...allFiles.value, ...driverRepo.bundledEntries()];
 
     statusMsg.value = '';   // a count is not a message — the pickers render `listedCount`
-
-    // 2. Fetch any non-bundled source from GitHub in the background
-    const live = driverRepo.liveSources();
-    if (live.length) (await Promise.all(live.map(s => driverRepo.fetchSource(s)))).forEach(absorb);
-
-    statusMsg.value = allFiles.value.length ? '' : 'No drivers loaded — check network';
   }
 
   // ---- preview ---------------------------------------------------------------------------
@@ -516,7 +489,6 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     editOverviewDriver: selection.editOverviewDriver,
     reloadMyDrivers, deleteMyDriver, clearMyDrivers,
     // custom sources
-    customUrl, loadCustom,
     // preview + selection
     previewFile, previewData, pickFile, chooseDriver, loadFromDisk, cloneDriver,
     // lifecycle

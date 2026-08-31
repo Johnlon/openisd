@@ -17,6 +17,10 @@ import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
 import type { SweepParams } from '../../engine/index.js';
 
+/** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
+ *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
+const LE_H = 0.70e-3;
+
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
 
@@ -53,7 +57,7 @@ describe('absent Le — the impedance plot must stay finite (BUG)', () => {
   });
 
   it('sweep produces a finite impedance curve when Le is absent', () => {
-    const sw = engine.sweep(derive(rawNoLe), 'sealed', { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 });
+    const sw = engine.sweep(derive(rawNoLe), 'sealed', { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 }).value!;
     for (let i = 0; i < sw.fs.length; i++) {
       assert.ok(Number.isFinite(sw.zmag[i]), `zmag[${i}] must be finite at ${sw.fs[i]} Hz, got ${sw.zmag[i]}`);
       assert.ok(Number.isFinite(sw.zph[i]),  `zph[${i}] must be finite at ${sw.fs[i]} Hz, got ${sw.zph[i]}`);
@@ -62,8 +66,8 @@ describe('absent Le — the impedance plot must stay finite (BUG)', () => {
 
   it('absent Le is exactly equivalent to Le = 0 (it is a missing inductor, not a missing driver)', () => {
     const P: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 };
-    const noLe   = engine.sweep(derive(rawNoLe),           'sealed', P);
-    const zeroLe = engine.sweep(derive({ ...RAW, Le: 0 }), 'sealed', P);
+    const noLe   = engine.sweep(derive(rawNoLe),           'sealed', P).value!;
+    const zeroLe = engine.sweep(derive({ ...RAW, Le: 0 }), 'sealed', P).value!;
     for (let i = 0; i < noLe.fs.length; i++)
       assert.equal(noLe.zmag[i], zeroLe.zmag[i], `zmag[${i}] must match the explicit Le=0 driver`);
   });
@@ -74,8 +78,8 @@ describe("Rg placement — 'Rg is at driver side' (WinISD Advanced)", () => {
     ({ Vb: 0.030, eg: 2.83, Rs: 1.0, fmin: 20, fmax: 200, N: 16, ...over });
 
   it('is an exact no-op for a single driver — one Rg in series is one Rg in series', () => {
-    const atDriver = engine.sweep(DRV, 'sealed', base({ nDrivers: 1, rgAtDriverSide: true }));
-    const atAmp    = engine.sweep(DRV, 'sealed', base({ nDrivers: 1, rgAtDriverSide: false }));
+    const atDriver = engine.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 1, rgAtDriverSide: true })).value!;
+    const atAmp    = engine.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 1, rgAtDriverSide: false })).value!;
     for (let i = 0; i < atDriver.fs.length; i++) {
       assert.equal(atDriver.spl[i],  atAmp.spl[i],  `spl[${i}] must be bit-identical at nDrivers=1`);
       assert.equal(atDriver.zmag[i], atAmp.zmag[i], `zmag[${i}] must be bit-identical at nDrivers=1`);
@@ -86,16 +90,16 @@ describe("Rg placement — 'Rg is at driver side' (WinISD Advanced)", () => {
     // At the driver side each driver carries its own Rg, so the array's series resistance
     // is Rg/2. At the amplifier one Rg carries the whole current — 2× the series resistance.
     const P = { nDrivers: 2, wiring: 'parallel' as const };
-    const atDriver = engine.sweep(DRV, 'sealed', base({ ...P, rgAtDriverSide: true }));
-    const atAmp    = engine.sweep(DRV, 'sealed', base({ ...P, rgAtDriverSide: false }));
+    const atDriver = engine.sweep(DRV, LE_H, 'sealed', base({ ...P, rgAtDriverSide: true })).value!;
+    const atAmp    = engine.sweep(DRV, LE_H, 'sealed', base({ ...P, rgAtDriverSide: false })).value!;
     for (let i = 0; i < atDriver.fs.length; i++)
       assert.ok(atAmp.spl[i] < atDriver.spl[i],
         `at ${atDriver.fs[i].toFixed(1)} Hz: amp-side SPL ${atAmp.spl[i]} should be below driver-side ${atDriver.spl[i]}`);
   });
 
   it('defaults to the driver side when unspecified (backward compatible)', () => {
-    const dflt    = engine.sweep(DRV, 'sealed', base({ nDrivers: 2 }));
-    const explicit = engine.sweep(DRV, 'sealed', base({ nDrivers: 2, rgAtDriverSide: true }));
+    const dflt    = engine.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 2 })).value!;
+    const explicit = engine.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 2, rgAtDriverSide: true })).value!;
     for (let i = 0; i < dflt.fs.length; i++)
       assert.equal(dflt.spl[i], explicit.spl[i], `spl[${i}] default must equal rgAtDriverSide:true`);
   });
@@ -109,8 +113,8 @@ describe('transmission-line port model (WinISD Advanced: TLPorts)', () => {
     // The collapsed port impedance dumps volume velocity through the duct, so the port air
     // velocity is where the difference is unmistakable; the far-field SPL effect is smaller
     // because the driver dominates the total output that far above the passband.
-    const lumped = engine.sweep(DRV, 'vented', { ...VENTED, tlPortModel: false });
-    const tl     = engine.sweep(DRV, 'vented', { ...VENTED, tlPortModel: true  });
+    const lumped = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, tlPortModel: false }).value!;
+    const tl     = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, tlPortModel: true  }).value!;
     let worstSpl = 0, worstPv = 0;
     for (let i = 0; i < lumped.fs.length; i++)
       if (lumped.fs[i] > F_PIPE * 0.6 && lumped.fs[i] < F_PIPE * 1.6) {
@@ -124,8 +128,8 @@ describe('transmission-line port model (WinISD Advanced: TLPorts)', () => {
   });
 
   it('is off by default — an unspecified flag reproduces the lumped model exactly', () => {
-    const dflt   = engine.sweep(DRV, 'vented', VENTED);
-    const lumped = engine.sweep(DRV, 'vented', { ...VENTED, tlPortModel: false });
+    const dflt   = engine.sweep(DRV, LE_H, 'vented', VENTED).value!;
+    const lumped = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, tlPortModel: false }).value!;
     for (let i = 0; i < dflt.fs.length; i++)
       assert.equal(dflt.spl[i], lumped.spl[i], `spl[${i}] default must equal tlPortModel:false`);
   });
@@ -135,16 +139,16 @@ describe('force flat response (WinISD Advanced: FlatResponse)', () => {
   const FLAT: SweepParams = { ...VENTED, forceFlatResponse: true, flatMaxBoostDb: 60 };
 
   it('flattens the SPL curve to the passband reference wherever the clamp does not bind', () => {
-    const flat = engine.sweep(DRV, 'vented', FLAT);
-    const ref  = engine.passbandRef(engine.sweep(DRV, 'vented', VENTED).spl);
+    const flat = engine.sweep(DRV, LE_H, 'vented', FLAT).value!;
+    const ref  = engine.passbandRef(engine.sweep(DRV, LE_H, 'vented', VENTED).value!.spl);
     for (let i = 0; i < flat.fs.length; i++)
       assert.ok(Math.abs(flat.spl[i] - ref) < 1e-9,
         `at ${flat.fs[i].toFixed(1)} Hz: SPL ${flat.spl[i]} should equal the reference ${ref}`);
   });
 
   it('charges the EQ boost to the excursion — flattening a rolloff is not free', () => {
-    const plain = engine.sweep(DRV, 'vented', VENTED);
-    const flat  = engine.sweep(DRV, 'vented', FLAT);
+    const plain = engine.sweep(DRV, LE_H, 'vented', VENTED).value!;
+    const flat  = engine.sweep(DRV, LE_H, 'vented', FLAT).value!;
     let boosted = 0;
     for (let i = 0; i < plain.fs.length; i++) {
       assert.ok(flat.exc[i] >= plain.exc[i] - 1e-12,
@@ -155,15 +159,15 @@ describe('force flat response (WinISD Advanced: FlatResponse)', () => {
   });
 
   it('leaves the electrical impedance untouched — the EQ is line-level, upstream of the amp', () => {
-    const plain = engine.sweep(DRV, 'vented', VENTED);
-    const flat  = engine.sweep(DRV, 'vented', FLAT);
+    const plain = engine.sweep(DRV, LE_H, 'vented', VENTED).value!;
+    const flat  = engine.sweep(DRV, LE_H, 'vented', FLAT).value!;
     for (let i = 0; i < plain.fs.length; i++)
       assert.equal(flat.zmag[i], plain.zmag[i], `zmag[${i}] must be unchanged by a line-level gain`);
   });
 
   it('clamps the boost and reports the frequency where the clamp binds', () => {
-    const clamped = engine.sweep(DRV, 'vented', { ...VENTED, forceFlatResponse: true, flatMaxBoostDb: 6 });
-    const plain   = engine.sweep(DRV, 'vented', VENTED);
+    const clamped = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, forceFlatResponse: true, flatMaxBoostDb: 6 }).value!;
+    const plain   = engine.sweep(DRV, LE_H, 'vented', VENTED).value!;
     const ref     = engine.passbandRef(plain.spl);
     for (let i = 0; i < clamped.fs.length; i++)
       assert.ok(clamped.spl[i] <= plain.spl[i] + 6 + 1e-9,
@@ -175,8 +179,8 @@ describe('force flat response (WinISD Advanced: FlatResponse)', () => {
   });
 
   it('is off by default — an unspecified flag changes nothing', () => {
-    const dflt  = engine.sweep(DRV, 'vented', VENTED);
-    const plain = engine.sweep(DRV, 'vented', { ...VENTED, forceFlatResponse: false });
+    const dflt  = engine.sweep(DRV, LE_H, 'vented', VENTED).value!;
+    const plain = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, forceFlatResponse: false }).value!;
     for (let i = 0; i < dflt.fs.length; i++)
       assert.equal(dflt.spl[i], plain.spl[i], `spl[${i}] default must equal forceFlatResponse:false`);
     assert.equal(dflt.flatClamped, null, 'no clamp without the flag');
@@ -186,7 +190,7 @@ describe('force flat response (WinISD Advanced: FlatResponse)', () => {
 
 describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => {
   it('equals the plain SPL when the drive never reaches Xmax', () => {
-    const quiet = engine.sweep(DRV, 'vented', { ...VENTED, eg: 0.01 });
+    const quiet = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, eg: 0.01 }).value!;
     for (let i = 0; i < quiet.fs.length; i++) {
       assert.equal(quiet.splXlim[i], quiet.spl[i], `splXlim[${i}] must equal spl[${i}] below Xmax`);
       assert.equal(quiet.xlimited[i], false, `xlimited[${i}] must be false below Xmax`);
@@ -194,7 +198,7 @@ describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => 
   });
 
   it('clamps exactly to the excursion overshoot where Xmax is exceeded', () => {
-    const loud = engine.sweep(DRV, 'vented', { ...VENTED, eg: 40 });
+    const loud = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, eg: 40 }).value!;
     let clamped = 0;
     for (let i = 0; i < loud.fs.length; i++) {
       const xPeak = loud.exc[i] / 1000;                 // exc is mm, Xmax is m
@@ -215,7 +219,7 @@ describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => 
 
   it('never limits a driver with no Xmax — an unknown limit is not a zero limit', () => {
     const noXmax = { ...RAW }; delete noXmax.Xmax;
-    const sw = engine.sweep(derive(noXmax), 'vented', { ...VENTED, eg: 40 });
+    const sw = engine.sweep(derive(noXmax), 'vented', { ...VENTED, eg: 40 }).value!;
     for (let i = 0; i < sw.fs.length; i++) {
       assert.equal(sw.splXlim[i], sw.spl[i], `splXlim[${i}] must equal spl[${i}] with no Xmax`);
       assert.equal(sw.xlimited[i], false);

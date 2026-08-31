@@ -15,8 +15,12 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
+import { Engine, EngineQuantities } from '../../engine/index.js';
 import type { SimulatableBoxType, SweepParams } from '../../engine/index.js';
+
+/** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
+ *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
+const LE_H = 0.7e-3;
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
@@ -61,7 +65,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   });
 
   it('adding the second Q makes the same driver derive — the guard rejects the gap, not the driver', () => {
-    const { value } = engine.deriveEngineDriver({ ...VAS_AND_QTS_ONLY, Qms: 7.0 });
+    const { value } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...VAS_AND_QTS_ONLY, Qms: 7.0 }));
     assert.ok(value, 'Qts + Qms is two of three: the driver must now derive');
     assert.ok(Number.isFinite(value.Qes) && value.Qes > 0, 'Qes must be derived as a finite positive number');
   });
@@ -69,13 +73,13 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   it('Qms equal to Qts is rejected instead of deriving Qes = Infinity', () => {
     // Qes = Qts·Qms/(Qms−Qts): equal values divide by zero. Infinity here would go on to
     // make Bl = √(2π·Fs·Mms·Re/Qes) = 0 and a flat −200 dB sweep with no error at all.
-    const { value, errors } = engine.deriveEngineDriver({ ...VAS_AND_QTS_ONLY, Qms: 0.38 });
+    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...VAS_AND_QTS_ONLY, Qms: 0.38 }));
     assert.equal(value, null, 'Qms == Qts must block');
     assert.ok(errorFields(errors).includes('Qms'), 'the error must name Qms');
   });
 
   it('Qms below Qts is rejected — the derived Qes would be negative, not merely large', () => {
-    const { value, errors } = engine.deriveEngineDriver({ ...VAS_AND_QTS_ONLY, Qms: 0.2 });
+    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...VAS_AND_QTS_ONLY, Qms: 0.2 }));
     assert.equal(value, null, 'Qms < Qts must block');
     assert.ok(errorFields(errors).includes('Qms'), 'the error must name Qms');
   });
@@ -83,7 +87,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   it('an inconsistent Q pair is rejected even when the third Q is also supplied', () => {
     // With all three present nothing divides, so the old guard let this through — but the
     // trio is still inconsistent: Qts is the PARALLEL combination, so Qts < min(Qes, Qms).
-    const { value, errors } = engine.deriveEngineDriver({ ...RAW_COMPLETE, Qts: 0.5, Qes: 0.4, Qms: 0.5 });
+    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...RAW_COMPLETE, Qts: 0.5, Qes: 0.4, Qms: 0.5 }));
     assert.equal(value, null, 'Qms == Qts must block whether or not Qes is present');
     assert.ok(errorFields(errors).includes('Qms'), 'the error must name Qms');
   });
@@ -91,7 +95,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   it('a Q of Infinity is not accepted as a present Q parameter', () => {
     // `Infinity > 0` is true, so a bare positivity test counts it as supplied. It then
     // derives Bl = 0 and a silent flat curve — the exact failure the guard exists to stop.
-    const { value, errors } = engine.deriveEngineDriver({ ...VAS_AND_QTS_ONLY, Qes: Infinity });
+    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...VAS_AND_QTS_ONLY, Qes: Infinity }));
     assert.equal(value, null, 'Qes = Infinity must not satisfy the two-of-three requirement');
     assert.ok(errorFields(errors).includes('Qts'), 'the completeness error must still be raised');
   });
@@ -183,7 +187,7 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
 // ── Criterion 3 ──────────────────────────────────────────────────────────────
 describe('an isolated mid-sweep singularity keeps the curve and explains the gap', () => {
   const singularSweep = () => {
-    const sw = engine.sweep(validDriver(), 'sealed', P_SEALED);
+    const sw = engine.sweep(validDriver(), 'sealed', P_SEALED).value!;
     sw.spl[10] = NaN;   // one grid point landing on a pole
     return sw;
   };
@@ -219,7 +223,7 @@ describe('an isolated mid-sweep singularity keeps the curve and explains the gap
   });
 
   it('a −200 dB silence sentinel is finite data and is never reported as a singularity', () => {
-    const sw = engine.sweep(validDriver(), 'sealed', { ...P_SEALED, eg: 0 });
+    const sw = engine.sweep(validDriver(), 'sealed', { ...P_SEALED, eg: 0 }).value!;
     assert.equal(engine.classifyFinite(sw), null, 'silence is a real answer, not a numerical failure');
   });
 });
@@ -232,19 +236,19 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
   ] as const;
 
   it('a clean sweep of a valid design reports nothing — the guard does not cry wolf', () => {
-    assert.equal(engine.classifyFinite(engine.sweep(validDriver(), 'sealed', P_SEALED)), null);
+    assert.equal(engine.classifyFinite(engine.sweep(validDriver(), 'sealed', P_SEALED).value!), null);
   });
 
   it('poisoning any single plotted sweep series is detected', () => {
     for (const key of PLOTTED_SWEEP_SERIES) {
-      const sw = engine.sweep(validDriver(), 'sealed', P_SEALED);
+      const sw = engine.sweep(validDriver(), 'sealed', P_SEALED).value!;
       sw[key][5] = NaN;
       assert.ok(engine.classifyFinite(sw), `a NaN in sweep.${key} reaches a chart and must be reported`);
     }
   });
 
   it('an Infinity is caught as well as a NaN — both break an axis the same way', () => {
-    const sw = engine.sweep(validDriver(), 'sealed', P_SEALED);
+    const sw = engine.sweep(validDriver(), 'sealed', P_SEALED).value!;
     sw.zmag[7] = Infinity;
     assert.ok(engine.classifyFinite(sw), 'Number.isFinite must be the test, not Number.isNaN');
   });
@@ -252,7 +256,7 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
   it('a breakdown at every frequency is an error even where spl holds the finite −200 sentinel', () => {
     // Vb = 0 in the circuit: exc/zmag go NaN while spl stays at the finite sentinel, so
     // testing the headline series alone would call total garbage a mere warn.
-    const sw = engine.sweep(validDriver(), 'sealed', { ...P_SEALED, Vb: 0 });
+    const sw = engine.sweep(validDriver(), 'sealed', { ...P_SEALED, Vb: 0 }).value!;
     const issue = engine.classifyFinite(sw);
     assert.ok(issue, 'a fully broken sweep must be reported');
     assert.equal(issue.level, 'error', 'nothing usable came out, so no chart should be drawn');
@@ -262,10 +266,10 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
     // A driver with neither Pe nor Xmax has no limit to apply, so maxCurves is Infinity
     // everywhere — while the sweep it derives from is entirely finite. classifyFinite
     // cannot see this; it is a separate output with its own postcondition.
-    const { value: noLimits } = engine.deriveEngineDriver({ Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6 });
+    const { value: noLimits } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 }));
     assert.ok(noLimits, 'a driver without Pe/Xmax is valid — those are warns, not errors');
-    const sw = engine.sweep(noLimits, 'sealed', P_SEALED);
-    const mx = engine.maxCurves(noLimits, 'sealed', P_SEALED);
+    const sw = engine.sweep(noLimits, LE_H, 'sealed', P_SEALED).value!;
+    const mx = engine.maxCurves(noLimits, LE_H, 'sealed', P_SEALED).value!;
 
     assert.equal(engine.classifyFinite(sw), null, 'the sweep itself is fine — this is why a second check is needed');
     assert.ok(mx.maxspl.every(v => !Number.isFinite(v)), 'precondition of this test: maxspl is unbounded');
@@ -277,12 +281,12 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
   });
 
   it('max curves of a driver with both limits are clean', () => {
-    assert.equal(engine.classifyMaxFinite(engine.maxCurves(validDriver(), 'sealed', P_SEALED)), null,
+    assert.equal(engine.classifyMaxFinite(engine.maxCurves(validDriver(), 'sealed', P_SEALED).value!), null,
       'Pe and Xmax both present bounds the curve; reporting an issue here would be a false positive');
   });
 
   it('an isolated non-finite max-curve point is a warn naming the frequency, same rule as the sweep', () => {
-    const mx = engine.maxCurves(validDriver(), 'sealed', P_SEALED);
+    const mx = engine.maxCurves(validDriver(), 'sealed', P_SEALED).value!;
     mx.maxpwr[12] = NaN;
     const issue = engine.classifyMaxFinite(mx);
     assert.ok(issue && issue.level === 'warn', 'one bad point is a gap, not an unusable chart');
@@ -290,10 +294,10 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
   });
 
   it('classification never throws, whatever it is handed — failure travels as a value', () => {
-    const sw = engine.sweep(validDriver(), 'sealed', P_SEALED);
+    const sw = engine.sweep(validDriver(), 'sealed', P_SEALED).value!;
     for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
     assert.doesNotThrow(() => engine.classifyFinite(sw), 'the engine communicates by Result, never by exception');
-    assert.doesNotThrow(() => engine.classifyMaxFinite(engine.maxCurves(validDriver(), 'sealed', P_SEALED)));
+    assert.doesNotThrow(() => engine.classifyMaxFinite(engine.maxCurves(validDriver(), 'sealed', P_SEALED).value!));
     assert.doesNotThrow(() => engine.validateParams('box-passive-radiator', {} as SweepParams));
   });
 });

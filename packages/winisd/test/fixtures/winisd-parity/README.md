@@ -213,11 +213,12 @@ decimal round-trip as a defect.
 
 ## Environment mode — the suite runs WinISD-compatible
 
-openisd **uses** humidity and pressure by default; WinISD stores them and never reads them
-(ledger QO7, settled against seven human-produced sample projects). The comparison therefore
-runs openisd with **"Ignore humidity and air pressure (as WinISD does)" ON**. With it off, the
-suite would report a permanent ~0.07 dB divergence at 30 °C and teach everyone to ignore it.
+openisd **uses** humidity and pressure by default; WinISD's parity mode swaps in its own air
+model from the active app-level Options values (ledger QO7, settled against seven
+human-produced sample projects). The comparison therefore runs openisd with
+`useWinisdAirModel: true`. With it off, the suite would report a permanent ~0.07 dB divergence
+at 30 °C and teach everyone to ignore it.
 
-That switch covers humidity and pressure only. openisd still scales ρ and c with temperature
-in that mode, and WinISD does not scale them with anything — see `divergences.json` for the
+That switch covers the air model only. openisd still scales ρ and c with temperature in that
+mode, and WinISD does not scale them with anything — see `divergences.json` for the
 temperature leg.

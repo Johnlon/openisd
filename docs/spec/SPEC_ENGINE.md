@@ -209,7 +209,7 @@ behaviour change) — see `npm run gen-golden`.
 ⚠ **`winisdAir()`'s temperature scaling of this pair is a SEPARATE, still-open divergence** —
 WinISD's own frozen compatibility air does not move with a record's stated temperature at all
 (`goldens/env-t-303.wpr` and its 293.15 K twin `env-rh-30.wpr` carry byte-identical `c`/`roo`),
-but `airFor({ ignoreHumidityAndPressure: true, tempK })` currently scales both by `tempK`. See
+but `airFor({ useWinisdAirModel: true, tempK })` currently scales both by `tempK`. See
 `bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md`
 (not fixed — awaiting a human ruling, same permission gate).
 

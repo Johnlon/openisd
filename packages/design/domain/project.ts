@@ -15,7 +15,7 @@
 // carry a MODEL, the model can differ between implementations, and `@openisd/engine` is the one
 // place this project answers for it. A second implementation here would be a second answer, and
 // the two would drift silently — which is exactly what was found on 2026-08-26: `#sealedResonance`
-// reimplemented `engine/alignments.ts:sealedFc()` over frozen air constants, in the precise way
+// reimplemented `engine/boxDesign.ts:sealedFc()` over frozen air constants, in the precise way
 // `engine/formulas.ts:prVas()` documents as wrong ("ρ/c are computed live at the reference
 // environment — never a stored constant").
 //
@@ -39,9 +39,10 @@ import {
 import { newUuid } from './newUuid.js';
 import { Engine, LossMode } from '../engine/index.js';
 import type {
-  Air, BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, DriverFields, EngineDriver,
+  Air, BoxType, SimulatableBoxType, ConsistencyIssue, DriverError,
   MaxCurvesResult, Result, SweepParams, SweepResult,
 } from '../engine/index.js';
+import { EngineQuantities } from '../engine/index.js';
 
 import type { Vent, VentShape } from './vent.js';
 import type {
@@ -77,9 +78,76 @@ import type {
 // THE STORED RECORD — private to this module.
 // ---------------------------------------------------------------------------------------------
 
+/** One data-quality mark. `kind` says who found it and how: `calc` and `range` are computed,
+ *  `corroboration` is the scraper's cross-source verdict. Shape follows the corpus. */
+interface DqMark {
+  readonly kind: string;
+  readonly severity: string;
+  readonly rule: string;
+  readonly params: Readonly<Record<string, unknown>>;
+  readonly detail: string;
+}
+
+/**
+ * One SOURCE'S READING of one field, as the scraper recorded it. Names are the corpus's own.
+ *
+ * `actual_reading` is the literal the document printed; `read_value` is its SI parse. Neither is
+ * derived from the other — both come from one parse of the literal, so a record shows what was
+ * printed AND what it meant.
+ */
+interface Reading {
+  readonly actual_reading?: string;
+  readonly read_value: number;
+  readonly read_precision?: number;
+}
+
+/**
+ * One SPEC field — a T/S parameter, and every source's reading of it.
+ *
+ * IT STATES NO VALUE OF ITS OWN. The number is `readings[origin].read_value`, and `origin` names
+ * which source won. That decision is made upstream by `crosscheck.py` — impossible readings
+ * excluded, then majority, then document precedence — and nothing downstream re-takes it. A
+ * top-level `value` here would store one fact twice and need a validator to keep the copies in
+ * step (Q31).
+ *
+ * TWO DQ FIELDS, SPLIT BY PRODUCER (John 2026-08-29). `dq_scraper` holds what only a scraper can
+ * find — structural, parse and source problems. `dq_calculated` holds what only the calculation
+ * can find, and is written by the bridge, never trusted from a file it did not produce. One
+ * field would make "who says so" unanswerable, and the two age differently: a calculated mark is
+ * only as current as the engine that produced it.
+ */
+interface SpecEntry {
+  readonly origin: string;
+  readonly readings: Readonly<Record<string, Reading>>;
+  /** The scraper's cross-source verdict: MATCH, MISMATCH, NOT_MATCHABLE, UNMATCHED. */
+  readonly corroboration?: string;
+  readonly definition?: string;
+  readonly dq_scraper?: readonly DqMark[];
+  readonly dq_calculated?: readonly DqMark[];
+}
+
+/**
+ * One RECORD-LEVEL field — brand, model, driver_type and the rest.
+ *
+ * A different envelope from `SpecEntry`, because it answers a different question. These come
+ * from ONE source and are not contested, so there is nothing to keep alternatives for and the
+ * value sits directly on the field. The corpus bears that out: no metadata field anywhere
+ * carries a `readings` map.
+ */
 interface ScrapedField<T> {
   readonly value: T;
-  readonly origin: string;
+  readonly origin?: string;
+  readonly definition?: string;
+  readonly dq_scraper?: readonly DqMark[];
+  readonly dq_calculated?: readonly DqMark[];
+}
+
+/** `sku`'s envelope — a derived identity, with the readings it was derived FROM. A third shape
+ *  because the corpus has three; mirroring means declaring what is there. */
+interface DerivedField<T> {
+  readonly value: T;
+  readonly definition?: string;
+  readonly grounds?: readonly { origin: string; reading: string; definition?: string }[];
 }
 
 /** The parameters a driver states, in one section.
@@ -104,68 +172,130 @@ interface ScrapedField<T> {
  *  reading a number is the one who can get the unit wrong, and the name is where they will look.
  *  The record is already SI throughout (`Sd: {actual_reading: '1217 cm2', read_value: 0.1217}`),
  *  so the suffix reports what the value IS; it never converts. */
+/**
+ * The record's own name for a quantity — WinISD's (`Fs`, `Re`, `Cms`), which is what a stored
+ * `openisd.yml` and a `.wdr` both carry. The engine's public name adds the unit (`Fs_hz`,
+ * `Re_ohm`, `Cms_m_per_N`), because a caller reading a raw number is the one who can get the unit
+ * wrong. This is the one crossing between the two.
+ *
+ * A `switch`, not a lookup table: `packages/design/AGENTS.md` permits an enumeration reached by
+ * name and bans a module-level object indexed by a runtime key. It also fails LOUDLY — add a
+ * quantity to `EngineQuantities` and this stops compiling, naming the case it lacks, where a
+ * hand-written list of assignments would silently read `undefined` forever.
+ *
+ * `null` means the record has no such field, so nothing can be read for it.
+ */
+function recordName(q: keyof EngineQuantities): keyof SpecSection | null {
+  switch (q) {
+    case 'Fs_hz':            return 'Fs';
+    case 'Re_ohm':           return 'Re';
+    case 'Znom_ohm':         return 'Znom';
+    case 'Qes':              return 'Qes';
+    case 'Qms':              return 'Qms';
+    case 'Qts':              return 'Qts';
+    case 'Vas_m3':           return 'Vas';
+    case 'Sd_m2':            return 'Sd';
+    case 'Dd_m':             return 'Dd';
+    case 'BL_Tm':            return 'BL';
+    case 'Mms_kg':           return 'Mms';
+    case 'Cms_m_per_N':      return 'Cms';
+    case 'Rms_kg_per_s':     return 'Rms';
+    case 'EBP_hz':           return 'EBP';
+    case 'Xmax_m':           return 'Xmax';
+    case 'Vd_m3':            return 'Vd';
+    case 'Hc_m':             return 'Hc';
+    case 'Hg_m':             return 'Hg';
+    case 'Pe_W':             return 'Pe';
+    case 'no':               return 'no';
+    // The ONE quantity with no record name: `SPLref` is the reference sensitivity the solver
+    // derives from eta-zero. No datasheet prints it and `SpecSection` has no member for it, so it
+    // can only ever be CALCULATED — there is nothing for `fields()` to read.
+    case 'SPLref_dB':        return null;
+    case 'SPL_dB':           return 'SPL';
+    case 'USPL_dB':          return 'USPL';
+    case 'SPLmax_dB':        return 'SPLmax';
+    case 'SPLmaxLF_dB':      return 'SPLmaxLF';
+    case 'Rme_kg_per_s':     return 'Rme';
+    case 'Mpow_N_per_sqrtW': return 'Mpow';
+    case 'Mcost_kg_per_s':   return 'Mcost';
+    case 'gamma_m_per_s2_A': return 'gamma';
+    case 'Gloss':            return 'Gloss';
+    case 'Vcd_m':            return 'Vcd';
+    case 'Depth_m':          return 'Depth';
+    case 'MagDepth_m':       return 'MagDepth';
+    case 'Magnet_m':         return 'Magnet';
+    case 'DVol_m3':          return 'DVol';
+    case 'c_m_per_s':        return 'c';
+    case 'roo_kg_per_m3':    return 'roo';
+  }
+  // Exhaustiveness. Without it a new quantity gives only "function lacks ending return
+  // statement", which does not say WHICH; assigning to `never` makes the error name it.
+  const unhandled: never = q;
+  return unhandled;
+}
+
 interface SpecSection {
   // Thiele/Small.
-  readonly Fs?: ScrapedField<number>;
-  readonly Re?: ScrapedField<number>;
-  readonly Le?: ScrapedField<number>;
-  readonly fLe?: ScrapedField<number>;
-  readonly KLe?: ScrapedField<number>;
-  readonly Znom?: ScrapedField<number>;
-  readonly Qts?: ScrapedField<number>;
-  readonly Qes?: ScrapedField<number>;
-  readonly Qms?: ScrapedField<number>;
-  readonly Vas?: ScrapedField<number>;
-  readonly Sd?: ScrapedField<number>;
-  readonly BL?: ScrapedField<number>;
-  readonly Mms?: ScrapedField<number>;
-  readonly Cms?: ScrapedField<number>;
-  readonly Rms?: ScrapedField<number>;
-  readonly Xmax?: ScrapedField<number>;
-  readonly Xlim?: ScrapedField<number>;
-  readonly SPL?: ScrapedField<number>;
-  readonly Pe?: ScrapedField<number>;
-  readonly Dd?: ScrapedField<number>;
-  readonly EBP?: ScrapedField<number>;
-  readonly numVC?: ScrapedField<number>;
-  readonly VCCon?: ScrapedField<VoiceCoilWiring>;
+  readonly Fs?: SpecEntry;
+  readonly Re?: SpecEntry;
+  readonly Le?: SpecEntry;
+  readonly fLe?: SpecEntry;
+  readonly KLe?: SpecEntry;
+  readonly Znom?: SpecEntry;
+  readonly Qts?: SpecEntry;
+  readonly Qes?: SpecEntry;
+  readonly Qms?: SpecEntry;
+  readonly Vas?: SpecEntry;
+  readonly Sd?: SpecEntry;
+  readonly BL?: SpecEntry;
+  readonly Mms?: SpecEntry;
+  readonly Cms?: SpecEntry;
+  readonly Rms?: SpecEntry;
+  readonly Xmax?: SpecEntry;
+  readonly Xlim?: SpecEntry;
+  readonly SPL?: SpecEntry;
+  readonly Pe?: SpecEntry;
+  readonly Dd?: SpecEntry;
+  readonly EBP?: SpecEntry;
+  readonly numVC?: SpecEntry;
+  readonly VCCon?: SpecEntry;
   // Ordinarily derived, but WinISD lets a human TYPE any of them, and an entered value is a fact.
-  readonly Dia?: ScrapedField<number>;
-  readonly Vd?: ScrapedField<number>;
-  readonly no?: ScrapedField<number>;
-  readonly SPLmax?: ScrapedField<number>;
-  readonly SPLmaxLF?: ScrapedField<number>;
-  readonly USPL?: ScrapedField<number>;
-  readonly alfaVC?: ScrapedField<number>;
-  readonly Rt?: ScrapedField<number>;
-  readonly Ct?: ScrapedField<number>;
-  readonly gamma?: ScrapedField<number>;
-  readonly Rme?: ScrapedField<number>;
-  readonly Mpow?: ScrapedField<number>;
-  readonly Mcost?: ScrapedField<number>;
-  readonly Gloss?: ScrapedField<number>;
+  readonly Dia?: SpecEntry;
+  readonly Vd?: SpecEntry;
+  readonly no?: SpecEntry;
+  readonly SPLmax?: SpecEntry;
+  readonly SPLmaxLF?: SpecEntry;
+  readonly USPL?: SpecEntry;
+  readonly alfaVC?: SpecEntry;
+  readonly Rt?: SpecEntry;
+  readonly Ct?: SpecEntry;
+  readonly gamma?: SpecEntry;
+  readonly Rme?: SpecEntry;
+  readonly Mpow?: SpecEntry;
+  readonly Mcost?: SpecEntry;
+  readonly Gloss?: SpecEntry;
   // `c` and `roo` are the air the DRIVER states — the conditions its own figures were measured
   // or computed at. `OpenISDEnvironment` on the project is what a simulation runs on; these two
   // are not that, and the record keeps them per driver because WinISD does.
-  readonly c?: ScrapedField<number>;
-  readonly roo?: ScrapedField<number>;
+  readonly c?: SpecEntry;
+  readonly roo?: SpecEntry;
   // Descriptive and dimensional.
-  readonly Vcd?: ScrapedField<number>;
-  readonly Hg?: ScrapedField<number>;
-  readonly Hc?: ScrapedField<number>;
-  readonly freq_low_hz?: ScrapedField<number>;
-  readonly freq_high_hz?: ScrapedField<number>;
-  readonly power_peak_W?: ScrapedField<number>;
-  readonly weight_kg?: ScrapedField<number>;
-  readonly Thick?: ScrapedField<number>;
-  readonly Depth?: ScrapedField<number>;
-  readonly MagDepth?: ScrapedField<number>;
-  readonly Magnet?: ScrapedField<number>;
-  readonly Basket?: ScrapedField<number>;
-  readonly Outer?: ScrapedField<number>;
-  readonly OuterX?: ScrapedField<number>;
-  readonly OuterY?: ScrapedField<number>;
-  readonly DVol?: ScrapedField<number>;
+  readonly Vcd?: SpecEntry;
+  readonly Hg?: SpecEntry;
+  readonly Hc?: SpecEntry;
+  readonly freq_low_hz?: SpecEntry;
+  readonly freq_high_hz?: SpecEntry;
+  readonly power_peak_W?: SpecEntry;
+  readonly weight_kg?: SpecEntry;
+  readonly Thick?: SpecEntry;
+  readonly Depth?: SpecEntry;
+  readonly MagDepth?: SpecEntry;
+  readonly Magnet?: SpecEntry;
+  readonly Basket?: SpecEntry;
+  readonly Outer?: SpecEntry;
+  readonly OuterX?: SpecEntry;
+  readonly OuterY?: SpecEntry;
+  readonly DVol?: SpecEntry;
 }
 
 type MetaFieldName =
@@ -173,8 +303,49 @@ type MetaFieldName =
 /** Every numeric key of `SpecSection`, derived FROM it rather than listed again — a hand-kept
  *  second list would drift, and a field added above with no accessor is caught by the compiler
  *  instead of being silently unreachable. */
+/** `VCCon` as the CORPUS stores it, and back.
+ *
+ *  The record holds a NUMBER — `1 = parallel, 2 = series`, which is the record's own definition
+ *  text and WinISD's encoding. The API holds a NAME, because a caller writing `2` cannot be
+ *  checked and a caller writing `VoiceCoilWiring.Series` can. Both directions live here, next to
+ *  each other, so the encoding is stated once rather than assumed at each end.
+ *
+ *  A number the encoding does not define reads as absence: an unknown wiring is not a wiring. */
+function wiringFromRecord(value: number | null): VoiceCoilWiring | null {
+  if (value === 1) return VoiceCoilWiring.Parallel;
+  if (value === 2) return VoiceCoilWiring.Series;
+  return null;
+}
+
+function enteredWiring(value: VoiceCoilWiring): SpecEntry {
+  return {
+    origin: 'entered',
+    readings: { entered: { read_value: value === VoiceCoilWiring.Series ? 2 : 1 } },
+  };
+}
+
+/** A hand-entered value as a `SpecEntry`.
+ *
+ *  ONE reading, under the `entered` role, carrying the number alone: there was no printed
+ *  literal to echo and nothing stated a precision, so writing `actual_reading` or
+ *  `read_precision` would fabricate provenance. One entry shape for scraped and typed values —
+ *  not a second envelope for hand entry. */
+function enteredEntry(value: number): SpecEntry {
+  return { origin: 'entered', readings: { entered: { read_value: value } } };
+}
+
+/** The ONE legal way to read a spec entry's number: the reading `origin` names.
+ *
+ *  Null when the entry names an origin it has no reading for — a broken record, reported as
+ *  absence rather than guessed at from some other source's reading. */
+function winningValue(entry: SpecEntry | undefined): number | null {
+  if (!entry) return null;
+  const reading = entry.readings?.[entry.origin];
+  return typeof reading?.read_value === 'number' ? reading.read_value : null;
+}
+
 type SpecFieldName = {
-  [K in keyof SpecSection]-?: SpecSection[K] extends ScrapedField<number> | undefined ? K : never;
+  [K in keyof SpecSection]-?: SpecSection[K] extends SpecEntry | undefined ? K : never;
 }[keyof SpecSection];
 
 /** The passive-radiator section — A DIFFERENT SCHEMA from a driver's, not a narrowed `SpecSection`
@@ -205,30 +376,38 @@ export const VoiceCoilWiring = {
 export type VoiceCoilWiring = typeof VoiceCoilWiring[keyof typeof VoiceCoilWiring];
 
 interface PassiveRadiatorSection {
-  readonly Fs?: ScrapedField<number>;
-  readonly Qms?: ScrapedField<number>;
-  readonly Cms?: ScrapedField<number>;
-  readonly Mms?: ScrapedField<number>;
-  readonly Rms?: ScrapedField<number>;
-  readonly Sd?: ScrapedField<number>;
-  readonly Vas?: ScrapedField<number>;
-  readonly Vd?: ScrapedField<number>;
-  readonly Xmax?: ScrapedField<number>;
-  readonly Xlim?: ScrapedField<number>;
-  readonly Dia?: ScrapedField<number>;
-  readonly Dd?: ScrapedField<number>;
-  readonly DVol?: ScrapedField<number>;
+  readonly Fs?: SpecEntry;
+  readonly Qms?: SpecEntry;
+  readonly Cms?: SpecEntry;
+  readonly Mms?: SpecEntry;
+  readonly Rms?: SpecEntry;
+  readonly Sd?: SpecEntry;
+  readonly Vas?: SpecEntry;
+  readonly Vd?: SpecEntry;
+  readonly Xmax?: SpecEntry;
+  readonly Xlim?: SpecEntry;
+  readonly Dia?: SpecEntry;
+  readonly Dd?: SpecEntry;
+  readonly DVol?: SpecEntry;
   // Mounting dimensions — a radiator sits on a baffle exactly as a driver does (John 2026-08-27).
-  readonly Thick?: ScrapedField<number>;
-  readonly Depth?: ScrapedField<number>;
-  readonly Basket?: ScrapedField<number>;
-  readonly Outer?: ScrapedField<number>;
-  readonly OuterX?: ScrapedField<number>;
-  readonly OuterY?: ScrapedField<number>;
-  readonly weight_kg?: ScrapedField<number>;
+  readonly Thick?: SpecEntry;
+  readonly Depth?: SpecEntry;
+  readonly Basket?: SpecEntry;
+  readonly Outer?: SpecEntry;
+  readonly OuterX?: SpecEntry;
+  readonly OuterY?: SpecEntry;
+  readonly weight_kg?: SpecEntry;
 }
 
 type PassiveRadiatorFieldName = keyof PassiveRadiatorSection;
+
+/** The sections a record can carry, under `specs` (John 2026-08-30: "sections must sit under
+ *  specs"). A record states the ONE its driver_type calls for; the others are absent. */
+interface SpecsJson {
+  readonly woofer?: SpecSection;
+  readonly tweeter?: SpecSection;
+  readonly 'passive-radiator'?: PassiveRadiatorSection;
+}
 
 interface OpenISDDriverJson {
   readonly brand: ScrapedField<string>;
@@ -237,9 +416,7 @@ interface OpenISDDriverJson {
   readonly provided_by: ScrapedField<string>;
   readonly comment: ScrapedField<string>;
   readonly added: ScrapedField<string>;
-  readonly woofer?: SpecSection;
-  readonly tweeter?: SpecSection;
-  readonly 'passive-radiator'?: PassiveRadiatorSection;
+  readonly specs: SpecsJson;
 }
 
 /** One port's stored geometry. `diameter_m` applies to a round vent, `width_m`/`height_m` to a
@@ -696,20 +873,24 @@ function prSpec(
 ): Field<number> {
   return new Field<number>(
     () => {
-      const spec = lens.get()?.['passive-radiator'];
+      const spec = lens.get()?.specs['passive-radiator'];
       // A key ABSENT from the section means the radiator does not state that parameter.
-      return spec?.[key] ? { value: spec[key]!.value, state: 'entered' } : { value: null, state: 'not-available' };
+      const v = winningValue(spec?.[key]);
+      return v === null ? { value: null, state: 'not-available' } : { value: v, state: 'entered' };
     },
     (v) => {
       const json = lens.get();
-      const spec = json?.['passive-radiator'];
+      const spec = json?.specs['passive-radiator'];
       if (!json || !spec) {
         throw new Error(
           `passiveRadiator.radiator.${key} cannot be written: no radiator is chosen yet — ` +
           'call configurePR() first.',
         );
       }
-      lens.set({ ...json, 'passive-radiator': { ...spec, [key]: { value: v, origin: 'entered' } } });
+      lens.set({
+        ...json,
+        specs: { ...json.specs, 'passive-radiator': { ...spec, [key]: enteredEntry(v) } },
+      });
     },
     () => {
       throw new Error(
@@ -1129,15 +1310,18 @@ export class DriverSpec {
      *  one of `SpecFieldName`'s numeric keys and cannot go through `f()`. */
     const wiring = (): Field<VoiceCoilWiring> => new Field<VoiceCoilWiring>(
       () => {
-        const stated = record.get()[section]?.VCCon;
-        return stated
-          ? { value: stated.value, state: 'entered' }
-          : { value: null, state: 'not-available' };
+        const wiring = wiringFromRecord(winningValue(record.get().specs[section]?.VCCon));
+        return wiring === null
+          ? { value: null, state: 'not-available' }
+          : { value: wiring, state: 'entered' };
       },
       (v) => {
         const json = record.get();
-        const spec = json[section] ?? {};
-        record.set({ ...json, [section]: { ...spec, VCCon: { value: v, origin: 'entered' } } });
+        const spec = json.specs[section] ?? {};
+        record.set({
+          ...json,
+          specs: { ...json.specs, [section]: { ...spec, VCCon: enteredWiring(v) } },
+        });
       },
       () => {
         throw new Error(
@@ -1151,13 +1335,17 @@ export class DriverSpec {
       // A key ABSENT from the section means the driver does not state that parameter — the
       // ordinary shape of a scraped record, not a fault.
       () => {
-        const stated = record.get()[section]?.[key];
-        return stated ? { value: stated.value, state: 'entered' } : { value: null, state: 'not-available' };
+        const stated = record.get().specs[section]?.[key];
+        const v = winningValue(stated);
+        return v === null ? { value: null, state: 'not-available' } : { value: v, state: 'entered' };
       },
       (v) => {
         const json = record.get();
-        const spec = json[section] ?? {};
-        record.set({ ...json, [section]: { ...spec, [key]: { value: v, origin: 'entered' } } });
+        const spec = json.specs[section] ?? {};
+        record.set({
+          ...json,
+          specs: { ...json.specs, [section]: { ...spec, [key]: enteredEntry(v) } },
+        });
       },
       () => {
         throw new Error(
@@ -1274,8 +1462,8 @@ export abstract class OpenISDDriver {
 
   /** Which spec section a record carries, or a refusal if it carries neither. */
   protected static sectionOf(json: OpenISDDriverJson): 'woofer' | 'tweeter' {
-    if (json.woofer) return 'woofer';
-    if (json.tweeter) return 'tweeter';
+    if (json.specs.woofer) return 'woofer';
+    if (json.specs.tweeter) return 'tweeter';
     throw new Error('OpenISDDriver: record has neither a woofer nor a tweeter section');
   }
 
@@ -1302,31 +1490,31 @@ export abstract class OpenISDDriver {
    * satisfies `DriverFields` wherever that is asked for, so one builder serves every engine call
    * below.
    */
-  fields(): Record<string, number> {
-    const spec = this.record.get()[this.section];
-    if (!spec) return {};
-    const bag: Record<string, number> = {};
-    for (const [key, stated] of Object.entries(spec)) {
-      if (stated && typeof stated.value === 'number') bag[key] = stated.value;
+  fields(): EngineQuantities {
+    const q = new EngineQuantities();
+    const spec = this.record.get().specs[this.section];
+    if (!spec) return q;
+    for (const name of EngineQuantities.NAMES) {
+      const key = recordName(name);
+      if (key === null) continue;
+      const stated = spec[key];
+      if (stated === undefined) continue;
+      const value = winningValue(stated);
+      if (value !== null) q[name] = value;
     }
-    return bag;
+    return q;
   }
 
   /** Everything this driver's stated values imply, filled in. Does NOT write back — a solved
    *  value is a derivation, and the record holds only what was actually stated. */
-  solveConsistencyGroup(options?: { full?: boolean }): DriverFields {
-    return this.engine.solveConsistencyGroup(this.fields(), options);
+  solveConsistencyGroup(): EngineQuantities {
+    return this.engine.solveConsistencyGroup(this.fields());
   }
 
   /** Everything this driver's stated values disagree about — an over-specified driver whose
    *  numbers cannot all be true at once. Empty when consistent. */
   checkConsistency(): ConsistencyIssue[] {
     return this.engine.checkConsistency(this.fields());
-  }
-
-  /** The driver a sweep can actually run on, or what is missing from it. */
-  toEngineDriver(): Result<EngineDriver> {
-    return this.engine.deriveEngineDriver(this.terminalFields());
   }
 
   // ── VOICE COILS — the driver states PER-COIL values; the system simulates TERMINAL ones ────
@@ -1365,8 +1553,8 @@ export abstract class OpenISDDriver {
   /** Voice-coil count, floored at 1: a driver has at least one coil, and a record stating 0 or
    *  nothing must not scale anything to zero or infinity. */
   #coilCount(): number {
-    const n = this.solveConsistencyGroup().numVC;
-    return n !== undefined && n >= 1 ? n : 1;
+    const n = this.spec[this.section].numVC.get().value;
+    return n !== null && n >= 1 ? n : 1;
   }
 
   /**
@@ -1376,28 +1564,30 @@ export abstract class OpenISDDriver {
    * With one coil, or with the coils in parallel and `numVC` absent, this is identical to
    * `solveConsistencyGroup()` — the overwhelmingly common case costs nothing.
    */
-  terminalFields(): Record<string, number> {
-    const solved = this.solveConsistencyGroup() as Record<string, number>;
+  terminalFields(): EngineQuantities {
+    const solved = this.solveConsistencyGroup();
     const n = this.#coilCount();
     if (n === 1) return solved;
-    const scaleRe = this.#wiredInSeries() ? n : 1 / n;
-    const scaleBL = this.#wiredInSeries() ? n : 1;
-    const out = { ...solved };
-    if (solved.Re !== undefined) out.Re = solved.Re * scaleRe;
-    if (solved.BL !== undefined) out.BL = solved.BL * scaleBL;
+    const out = Object.assign(new EngineQuantities(), solved);
+    if (solved.Re_ohm !== undefined) out.Re_ohm = solved.Re_ohm * (this.#wiredInSeries() ? n : 1 / n);
+    if (solved.BL_Tm !== undefined && this.#wiredInSeries()) out.BL_Tm = solved.BL_Tm * n;
     return out;
+  }
+
+  /** Voice-coil inductance, as the record states it. Not a solver quantity — nothing derives it
+   *  — so it travels to `sweep` on its own, for the impedance plot alone. */
+  Le_H(): number | undefined {
+    return winningValue(this.record.get().specs[this.section]?.Le ?? undefined) ?? undefined;
   }
 
   /** Terminal resistance — what the amplifier drives. Null when the driver states no `Re`. */
   terminalRe_ohm(): number | null {
-    const v = this.terminalFields().Re;
-    return v === undefined ? null : v;
+    return this.terminalFields().Re_ohm ?? null;
   }
 
   /** Terminal force factor. Null when the driver states no `BL`. */
   terminalBL_Tm(): number | null {
-    const v = this.terminalFields().BL;
-    return v === undefined ? null : v;
+    return this.terminalFields().BL_Tm ?? null;
   }
 
   /** Whether `field` is one of the interdependent Q values, so that entering it constrains the
@@ -1408,15 +1598,19 @@ export abstract class OpenISDDriver {
 
   /** Whether too few of this driver's Q group are stated for the rest to follow. */
   qGroupIsIncomplete(): boolean {
-    const bag = this.fields();
-    return this.engine.qGroupIsIncomplete((field) => bag[field] !== undefined);
+    const q = this.fields();
+    return this.engine.qGroupIsIncomplete((field) =>
+      field === 'Qts' ? q.Qts !== undefined
+      : field === 'Qes' ? q.Qes !== undefined
+      : field === 'Qms' ? q.Qms !== undefined
+      : false);
   }
 
   /** Efficiency bandwidth product, `Fs/Qes` — the rough sealed-versus-vented indicator. Null
    *  when either term is unknown, here and in every derived figure below: absence is `null`. */
   ebp_hz(): number | null {
-    const { Fs, Qes } = this.solveConsistencyGroup();
-    return Fs === undefined || Qes === undefined ? null : this.engine.ebp({ Fs, Qes });
+    const { Fs_hz, Qes } = this.solveConsistencyGroup();
+    return Fs_hz === undefined || Qes === undefined ? null : this.engine.ebp(Fs_hz, Qes);
   }
 
   /**
@@ -1427,9 +1621,9 @@ export abstract class OpenISDDriver {
    * environment calls `Engine.airFor()` first.
    */
   referenceEfficiency(air: Air): number | null {
-    const { Fs, Vas, Qes } = this.solveConsistencyGroup();
-    return Fs === undefined || Vas === undefined || Qes === undefined
-      ? null : this.engine.referenceEfficiency(Fs, Vas, Qes, air);
+    const { Fs_hz, Vas_m3, Qes } = this.solveConsistencyGroup();
+    return Fs_hz === undefined || Vas_m3 === undefined || Qes === undefined
+      ? null : this.engine.referenceEfficiency(Fs_hz, Vas_m3, Qes, air);
   }
 
   /** Sensitivity in dB, from this driver's efficiency in the stated air. Uses the STATED `no`
@@ -1546,8 +1740,8 @@ abstract class OpenISDPassiveRadiator {
   /** This radiator's stated `Cms`, `Mms`, `Rms`, `Sd`, as plain numbers. Null entries where the
    *  radiator does not state that parameter, or where no radiator is chosen at all. */
   #stated(): { Cms: number | null; Mms: number | null; Rms: number | null; Sd: number | null } {
-    const spec = this.slot.get()?.['passive-radiator'];
-    const read = (k: 'Cms' | 'Mms' | 'Rms' | 'Sd') => spec?.[k]?.value ?? null;
+    const spec = this.slot.get()?.specs['passive-radiator'];
+    const read = (k: 'Cms' | 'Mms' | 'Rms' | 'Sd') => winningValue(spec?.[k]);
     return { Cms: read('Cms'), Mms: read('Mms'), Rms: read('Rms'), Sd: read('Sd') };
   }
 
@@ -1740,7 +1934,7 @@ class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
     set: (json: OpenISDDriverJson) => void,
     engine: Engine,
   ): OpenISDPassiveRadiatorStandalone {
-    if (!get()['passive-radiator']) {
+    if (!get().specs['passive-radiator']) {
       throw new Error('OpenISDPassiveRadiatorStandalone.window: record has no passive-radiator section');
     }
     return new OpenISDPassiveRadiatorStandalone(get, set, engine);
@@ -1776,7 +1970,9 @@ export function driverFromConformingRecord(record: unknown, engine: Engine): Ope
   const r = record as Record<string, unknown>;
 
   const problems = metadataProblems(r);
-  if (!r.woofer && !r.tweeter) {
+  const specs = r.specs;
+  const sections = typeof specs === 'object' && specs !== null ? specs as Record<string, unknown> : {};
+  if (!sections.woofer && !sections.tweeter) {
     problems.push('neither a woofer nor a tweeter section — nothing to simulate');
   }
   return problems.length > 0 ? problems : OpenISDDriverStandalone.wrap(record as OpenISDDriverJson, engine);
@@ -1799,7 +1995,10 @@ export function passiveRadiatorFromConformingRecord(
   const r = record as Record<string, unknown>;
 
   const problems = metadataProblems(r);
-  if (!r['passive-radiator']) {
+  const prSpecs = r.specs;
+  const prSections = typeof prSpecs === 'object' && prSpecs !== null
+    ? prSpecs as Record<string, unknown> : {};
+  if (!prSections['passive-radiator']) {
     problems.push('no passive-radiator section — this record is not a radiator');
   }
   return problems.length > 0
@@ -1968,8 +2167,8 @@ export class OpenISDProject {
    */
   driveVoltage_V(): number | null {
     const power_W = this.#current().signal.power_W;
-    const Re = this.driver.solveConsistencyGroup().Re;
-    return power_W === null || Re === undefined ? null : this.#engine.driveVoltage(power_W, Re);
+    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+    return power_W === null || Re_ohm === undefined ? null : this.#engine.driveVoltage(power_W, Re_ohm);
   }
 
   /**
@@ -1982,9 +2181,9 @@ export class OpenISDProject {
    * Null when the driver's Q group is too incomplete to resolve.
    */
   sourceLoadedQts(Rs: number): number | null {
-    const { Qms, Qes, Re, Qts } = this.driver.solveConsistencyGroup();
-    if (Qms === undefined || Qes === undefined || Re === undefined || Qts === undefined) return null;
-    return this.#engine.sourceLoadedQts(Qms, Qes, Re, Rs, Qts);
+    const { Qms, Qes, Re_ohm, Qts } = this.driver.solveConsistencyGroup();
+    if (Qms === undefined || Qes === undefined || Re_ohm === undefined || Qts === undefined) return null;
+    return this.#engine.sourceLoadedQts(Qms, Qes, Re_ohm, Rs, Qts);
   }
 
   // ── SIMULATION — the engine's sweep, run on THIS project's driver and box ──────────────────
@@ -2006,19 +2205,21 @@ export class OpenISDProject {
     return this.#engine.simulatableBoxType(this.box.boxType.get());
   }
 
-  /** The frequency response, impedance and excursion this design produces. Null when the driver
-   *  is too incomplete to simulate, or the active topology is one the engine has no model for. */
-  sweep(P: SweepParams): SweepResult | null {
-    const drv = this.driver.toEngineDriver().value;
+  /** The frequency response, impedance and excursion this design produces — or the issues that
+   *  stopped it, each NAMING the quantity the driver does not state. A bare null would say only
+   *  "cannot simulate", which is what a caller cannot act on. `value` is null with an empty
+   *  `errors` when the active topology is one the engine has no model for. */
+  sweep(P: SweepParams): Result<SweepResult> {
     const box = this.#engineBoxType();
-    return drv && box ? this.#engine.sweep(drv, box, P) : null;
+    if (!box) return { value: null, errors: [] };
+    return this.#engine.sweep(this.driver.terminalFields(), this.driver.Le_H(), box, P);
   }
 
-  /** The excursion- and power-limited maximum SPL curves. Null on the same terms as `sweep`. */
-  maxCurves(P: SweepParams): MaxCurvesResult | null {
-    const drv = this.driver.toEngineDriver().value;
+  /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`. */
+  maxCurves(P: SweepParams): Result<MaxCurvesResult> {
     const box = this.#engineBoxType();
-    return drv && box ? this.#engine.maxCurves(drv, box, P) : null;
+    if (!box) return { value: null, errors: [] };
+    return this.#engine.maxCurves(this.driver.terminalFields(), this.driver.Le_H(), box, P);
   }
 
   /** What is wrong with these sweep parameters for this project's topology — checked BEFORE a
@@ -2061,8 +2262,8 @@ export class OpenISDProject {
    * Null when the driver has no usable `Re`, or the curve has no peak.
    */
   impedancePeak(sw: SweepResult | null): { Fsc: number; Qtc: number } | null {
-    const Re = this.driver.solveConsistencyGroup().Re;
-    return Re === undefined ? null : this.#engine.findImpedancePeak(sw, Re);
+    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+    return Re_ohm === undefined ? null : this.#engine.findImpedancePeak(sw, Re_ohm);
   }
 
   /** Promote the edited record. A no-op when nothing has been edited. */
@@ -2123,7 +2324,7 @@ function emptyProjectJson(): OpenISDProjectJson {
     driver: {
       brand: unstated, model: unstated, manufacturer: unstated,
       provided_by: unstated, comment: unstated, added: unstated,
-      woofer: {},
+      specs: { woofer: {} },
     },
     box: emptyBoxJson(),
     environment: { temperature_K: null, humidity_pct: null, pressure_Pa: null },
@@ -2386,11 +2587,6 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
  * force the store to invent a shape it cannot see. Carried ALONGSIDE the record rather than read
  * out of it, because the store is not allowed to look inside.
  */
-export interface ProjectMeta {
-  /** The project's name. A LABEL, never an identity — two stored projects may share one. */
-  readonly name: string;
-}
-
 /**
  * Somewhere to keep records, keyed by a string the caller supplies.
  *
@@ -2417,7 +2613,7 @@ export interface RecordStore<R> {
    * WHY IT EXISTS: `ProjectRepo.save()` needs somewhere to put what it extracted, and must not
    * care whether that is IndexedDB, a file or a server.
    */
-  put(id: string, record: R, meta: ProjectMeta): void;
+  put(id: string, record: R): void;
 
   /**
    * The record under `id`, or null when there is none.
@@ -2438,7 +2634,7 @@ export interface RecordStore<R> {
    *
    * WHY IT EXISTS: it is the only way `ProjectRepo.list()` can be cheap.
    */
-  list(): { id: string; meta: ProjectMeta; modified: string }[];
+  list(): { id: string; label: string; modified: string }[];
 
   /**
    * Delete the record under `id`. Deleting an absent id is NOT an error — the postcondition
@@ -2459,7 +2655,7 @@ export interface RecordStore<R> {
  * cannot depend on which one it gets, so parametricity enforces the boundary instead of a naming
  * convention, and no cast is needed anywhere.
  */
-export type RecordStoreFactory = <R>() => RecordStore<R>;
+export type RecordStoreFactory = <R>(labelPath: string) => RecordStore<R>;
 
 
 /**
@@ -2602,11 +2798,11 @@ export interface ProjectRepo {
  * that, and nothing needs to — deciding what exists once is what a composition root is for.
  */
 export function projectRepo(make: RecordStoreFactory, engine: Engine): ProjectRepo {
-  const store = make<OpenISDProjectJson>();
+  const store = make<OpenISDProjectJson>('meta.name');
   return {
     save(project: OpenISDProject): void {
       const json = project.recordToPersist();
-      store.put(project.uuid(), json, { name: json.meta.name });
+      store.put(project.uuid(), json);
     },
 
     load(id: string): OpenISDProject | string[] {
@@ -2619,7 +2815,7 @@ export function projectRepo(make: RecordStoreFactory, engine: Engine): ProjectRe
 
     list(): ProjectListing[] {
       return store.list()
-        .map(e => ({ id: e.id, name: e.meta.name, modified: e.modified }))
+        .map(e => ({ id: e.id, name: e.label, modified: e.modified }))
         .sort((a, b) => (a.modified < b.modified ? 1 : a.modified > b.modified ? -1 : 0));
     },
 

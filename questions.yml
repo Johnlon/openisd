@@ -1,5 +1,5 @@
 prefix: QO
-next: 99
+next: 102
 questions:
 - id: QO1
   title: UI TODO List
@@ -7396,4 +7396,192 @@ questions:
     — re-setting thresholds is a build-gate decision'
   status: open
   raised: '2026-08-28'
+  body: ''
+- id: QO99
+  title: The OpenISD app owns openisd.yml and winisd.wdr; driver.yml is scraper-only; DQ splits into scraper
+    findings and calculated marks in separate fields
+  status: open
+  raised: '2026-08-29'
+  body: ''
+  notes:
+  - at: '2026-08-29'
+    text: |-
+      John's words, 2026-08-29:
+
+        "ok the driver.yml contains only scraper dqs not calcs, the OpenIsd.yml and WinIsd.wdr
+         should be created by the OpenIsd app, not python, abd the OpenIsd file should contain
+         calculated dqs, but driver ynl contails only scraper discoverjss like structural or
+         whatever is possible, then the OpenIsd contains both s etc s in different fields please"
+
+      and, on where calculated marks are computed:
+
+        "recompute at bundling time to save startup cost, we show a dq flag on the driver list
+         before even opening the driver"
+
+      WHAT THIS SETTLES
+
+      - driver.yml  — the SCRAPER's record. Only findings a scraper can make: structural, parse,
+        and source issues. No calculated marks.
+      - openisd.yml — produced by the OPENISD APP, not by Python. Carries BOTH kinds, in SEPARATE
+        FIELDS: the scraper's findings, and the calculated marks.
+      - winisd.wdr  — likewise produced by the OpenISD app, not by Python.
+      - Calculated marks are computed at BUNDLING time, not at app startup, because the driver
+        list shows a DQ flag before a driver is opened.
+
+      CURRENT STATE THIS CHANGES (verified 2026-08-29, not quoted from an earlier note)
+
+      Python writes all three today. `openisd.yml` is written from
+      scrapers/scrapers/lib/{model_openisd,openisd_js,model_driver,project_ui,record_registries}.py;
+      `winisd.wdr` from {spec_emit,model_driver,openisd_js,precision,atomic_write,project_ui}.py.
+      A driver directory holds driver.yml, openisd.yml and winisd.wdr side by side (checked:
+      winisd_drivers/db/datasheets/dayton-audio/e150he-44/).
+
+      The corpus carries 140 marks on 137 spec entries — 103 kind:calc, 37 kind:range — under the
+      wire key `dq_marks`, while the app's type declares `dq`, so none of them is read today
+      (bugs/BUG_20260829_the_app_calls_the_field_dq_while_the_scraper_writes_dq_marks.md). Every
+      mark in the corpus is calc or range, i.e. exactly the class this ruling moves OUT of the
+      scraper's output and into bundling-time computation.
+
+      NOT YET DECIDED, and needed before implementation
+      - the two field names in openisd.yml (scraper findings vs calculated marks)
+      - whether the bundler computes marks from the app's engine (checkConsistency for calc,
+        fieldRegistry min/max for range) or from a dedicated rule set
+      - what happens to the scraper's existing dq_marks output during the transition
+  - at: '2026-08-29'
+    text: |-
+      CORRECTION 2026-08-29 — the note above misread this. John's clarification, verbatim:
+
+        "python writers all the files true but what I mean it openisd and wdr shoi be calculated
+         by the OpenIsd app like wdr is today and scraper writes two files not one"
+
+      and, asked which two files:
+
+        "so it's driverYmlToOpenisdAndWdr  driver in and two fuels and error out"
+
+      WHAT IT ACTUALLY MEANS
+
+      Not "move file writing out of Python". Python already CALCULATES the .wdr by calling the
+      OpenISD app's own TypeScript: `scrapers/scrapers/lib/openisd_js.py` embeds V8
+      (py_mini_racer), evaluates the openisd bundle, and calls `openisdYamlToWdr` from
+      `@openisd/model`. Strings cross the boundary; Python parses neither the yaml nor the wdr.
+      "like wdr is today" names THAT pattern.
+
+      The change is to the BRIDGE'S SIGNATURE — it derives TWO files instead of one:
+
+        today:  openisdYamlToWdr(openisdYmlText)
+                  -> { wdr: <ini text|null>, errors: [...] }
+
+        ruled:  driverYmlToOpenisdAndWdr(driverYmlText)
+                  -> { openisd: <yaml text|null>, wdr: <ini text|null>, errors: [...] }
+
+      So openisd.yml stops being authored by Python and becomes app-calculated, exactly as the
+      .wdr already is. Python keeps orchestrating and writing bytes to disk; the CALCULATION is
+      the app's, in one place, in TypeScript.
+
+      FILE ROLES THAT FOLLOW
+
+        driver.yml   AUTHORED by the scraper. Only findings a scraper can make — structural,
+                     parse and source issues. No calculated marks.
+        openisd.yml  DERIVED by the app from driver.yml. Carries BOTH dq kinds in SEPARATE
+                     FIELDS: the scraper's findings, and the calculated marks.
+        winisd.wdr   DERIVED by the app, as today.
+
+      Calculated marks are computed at BUNDLING time, not app startup — the driver list shows a
+      DQ flag before a driver is opened.
+
+      CONSEQUENCE FOR THE DESIGN MIGRATION
+
+      `openisdYamlToWdr` IS the bridge boundary (`_BOUNDARY_FN` in openisd_js.py, pinned to
+      openisd commit 48f817e). A copy already sits unwired at
+      `packages/design/domain/openisdYamlToWdr.ts`. Whenever the function moves to
+      `@openisd/design`, winisd_tools' bundle reference must move in the SAME change — the same
+      discipline the driverType parity gate needs. John expressed no preference on timing; the
+      safe default is to leave the bridge served by `@openisd/model` until this question lands,
+      then move signature and package together.
+
+      STILL UNDECIDED
+      - the two field names in openisd.yml (scraper findings vs calculated marks)
+      - whether the bundler computes calculated marks from the app's engine
+        (checkConsistency for `calc`, fieldRegistry min/max for `range`) or a dedicated rule set
+      - what happens to the scraper's existing `dq_marks` output during the transition
+      - whether winisd.wdr stays stored in the corpus or is produced only on export
+  - at: '2026-08-29'
+    text: |-
+      CORRECTION 2026-08-29 — the previous note wrongly listed the .wdr's storage as undecided.
+      John had already settled it and said so:
+
+        "I told you OpenIsd bridge creates two files worth of data and the scraper saves those
+         two files as per today - decidwd"
+
+      DECIDED: both derived files stay on disk in the corpus, written by the scraper stage exactly
+      as today. The bridge returns two files' worth of data plus errors; Python writes the bytes.
+      Nothing about where the files live changes — only WHO CALCULATES their content.
+
+        driver.yml   authored by the scraper
+        openisd.yml  bridge output, written by the scraper stage   <- as today, still stored
+        winisd.wdr   bridge output, written by the scraper stage   <- as today, still stored
+
+      STILL UNDECIDED (revised list — three, not four)
+      - the two field names in openisd.yml (scraper findings vs calculated marks)
+      - whether the bundler computes calculated marks from the app's engine
+        (checkConsistency for `calc`, fieldRegistry min/max for `range`) or a dedicated rule set
+      - what happens to the scraper's existing `dq_marks` output during the transition
+- id: QO100
+  title: DOM element casts in .vue files — 'as HTMLInputElement' and friends still bypass the type system
+  status: open
+  raised: '2026-08-30'
+  body: ''
+  notes:
+  - at: '2026-08-30'
+    text: |-
+      John, 2026-08-30: "Vue files must be scanned if they contain js or ts" and
+      "as HTMLInputElement gets a pass for now - add a qo** to followup".
+
+      WHAT IS PASSED, AND WHY IT IS STILL A CAST
+
+      `architecture-no-casts.test.ts` now scans `<script>` blocks in `.vue` files, and fails on every
+      cast there EXCEPT assertions to a DOM element type — `e.target as HTMLInputElement`,
+      `e.currentTarget as HTMLElement`, and the same shapes. Those are exempt for now.
+
+      They are exempt because there are many of them and removing them needs a DECISION about event
+      typing, not because they are safe. `e.target` is genuinely `EventTarget | null`, so every one
+      of these asserts something the compiler cannot see: that the element firing the event is the
+      one the handler expects. A handler bound to the wrong element, or a listener that bubbles from
+      a child, reads `.value` off something that has none — `undefined` into a field, silently.
+
+      THE FIX WHEN IT COMES
+
+      The shape is the same as every other cast removal: narrow with a guard instead of asserting.
+      `if (!(e.target instanceof HTMLInputElement)) return;` is a real narrowing the compiler
+      verifies, and it makes the "wrong element" case explicit instead of undefined. Vue's own typed
+      event helpers cover part of it; the rest is per-handler.
+
+      Alternatively a single typed helper — `inputValue(e): string | null` — declared once and used
+      everywhere, so the narrowing exists in ONE place rather than at ~30 call sites.
+
+      SCOPE, measured 2026-08-30: the exemption is only for DOM element target types. Any other cast
+      in a `.vue` script block fails the gate today.
+  - at: '2026-08-30'
+    text: |-
+      John's reason, 2026-08-30: "the special case of Dom events gets a pass because the events are
+      internationally [inherently] untypable generic events" and "no other passes for now".
+
+      So this is not a debt item of the same kind as the other 102 casts. A DOM event's `target` is
+      `EventTarget | null` BY THE DOM SPECIFICATION — the event type carries no knowledge of which
+      element it came from, and no amount of local typing changes that. The assertion is standing in
+      for information the platform does not provide, rather than for a check the author skipped.
+
+      That makes it the ONE exemption, and it stays narrow: only assertions to a DOM element type
+      (`HTML*Element`, `Element`, `EventTarget`). Every other cast in a `.vue` script block fails the
+      gate today, exactly as in a `.ts` file.
+
+      WHAT WOULD CLOSE IT: narrowing with `instanceof` rather than asserting —
+      `if (!(e.target instanceof HTMLInputElement)) return;` — which the compiler verifies and which
+      makes the wrong-element case explicit instead of `undefined`. Best done once as a typed helper
+      (`inputValue(e): string | null`) rather than at ~13 call sites.
+- id: QO101
+  title: 'Decommission useWinisdAirModel: the flag cannot change a chart, so document the two air models
+    instead -'
+  status: open
+  raised: '2026-08-31'
   body: ''

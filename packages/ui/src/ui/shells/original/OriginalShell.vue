@@ -42,7 +42,7 @@ const project = useFocusedProject();
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType } from '@openisd/design/engine';
 import type { Design } from '../../../types.js';
-import type { PRLibEntry, BundledPR } from '@openisd/persistence';
+import type { PRLibEntry, BundledPassiveRadiator } from '@openisd/persistence';
 import { airForEnvironment, resolveAirEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../types.js';
@@ -525,8 +525,8 @@ const driveV = computed<number>({
 
 // ---- Advanced tab: environment. All three inputs drive the real sweep: ρ and c come from
 // temperature, relative humidity and static pressure (engine air.ts), and thence the SPL
-// constant K. The "Ignore humidity and air pressure (as WinISD does)" checkbox in the shared
-// AdvancedOptions column opts back out of the last two. ------------------------------
+// constant K. The shared AdvancedOptions checkbox switches the model to WinISD's air parity
+// mode rather than turning the last two inputs off. -------------------------------------
 // The environment is PER PROJECT (WinISD keeps T/p/phi in the .wpr [Box] section) — these
 // read and write straight through to project.value, so a loaded project's own values show
 // immediately rather than being overwritten by the Options → General defaults on mount.
@@ -547,7 +547,7 @@ const advAir = computed(() => {
   void project.value;
   return airForEnvironment(resolveAirEnvironment({
     tempK: advTemp.value, humidityPct: advHumidity.value, pressurePa: advPressure.value,
-    ignoreHumidityAndPressure: project.value.envIgnoreHumidityAndPressure(),
+    useWinisdAirModel: project.value.envUseWinisdAirModel(),
   }, presentationState.ui.envDefaults));
 });
 
@@ -580,8 +580,8 @@ function loadPREntry(entry: PRLibEntry) {
   prBrowseOpen.value = false;
 }
 // Bundled PRs publish only Sd/Cms — blank the unpublished fields and open the editor so
-// the user supplies them (mirrors PRPanel.loadBundledPR; never leaves stale values).
-function loadBundledPREntry(pr: BundledPR) {
+// the user supplies them (mirrors PRPanel.loadBundledPassiveRadiator; never leaves stale values).
+function loadBundledPassiveRadiatorEntry(pr: BundledPassiveRadiator) {
   project.value.setPrName(pr.name);
   if (pr.Sd  != null) project.value.setPrSd_m2(pr.Sd);
   if (pr.Cms != null) project.value.setPrCms_m_per_N(pr.Cms);
@@ -1068,7 +1068,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               <button class="edit-btn" title="Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax." @click="prEditOpen = true">&#9998; Edit</button>
             </div>
             <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
-              @load="loadPREntry" @load-bundled="loadBundledPREntry" @define="defineNewPREntry" />
+              @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
             <PREditModal v-if="prEditOpen" @close="prEditOpen = false" />
             <PRDefineModal v-if="prDefineOpen" @close="prDefineOpen = false" />
             <div class="two-col">

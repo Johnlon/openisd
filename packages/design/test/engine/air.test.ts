@@ -1,6 +1,7 @@
 /**
  * Moist-air properties — the ONE model of ρ and c from temperature, relative humidity and
- * static pressure, and the WinISD-parity mode that ignores the last two (ledger QO7/QO24.8).
+ * static pressure, and the WinISD-parity mode that swaps in WinISD's air equation set
+ * for the parity calculation (ledger QO7/QO24.8).
  *
  * 🔒 ORACLE: WinISD's own stored pair, `c = 343.684120962152 m/s` and
  * `roo = 1.20095217714682 kg/m³` (winisd_research/CALC_FINDINGS_FOR_REVIEW.md §"WinISD
@@ -16,6 +17,10 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
 import type { SweepParams } from '../../engine/index.js';
+
+/** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
+ *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
+const LE_H = undefined;
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
@@ -99,7 +104,7 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
     { T: 293.15, RH: 30, P:  95000, c: 343.714140348792, rho: 1.12578858900353 },
   ];
 
-  it('ignoreHumidityAndPressure reproduces REAL WinISD at every measured environment, EXACTLY', () => {
+  it('useWinisdAirModel reproduces REAL WinISD at every measured environment, EXACTLY', () => {
     // 1e-6 ppm is 1e-12 relative. Not a tolerance chosen to let the implementation through: the
     // worst residual across all six is 2.5e-15, so there are nearly three orders of magnitude of
     // headroom, and anything that actually changes the model fails.
@@ -109,7 +114,7 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
     // constants at 273.15 K instead of its ICE set is out by 23 ppb.
     for (const m of MEASURED) {
       const air = engine.airFor({
-        ignoreHumidityAndPressure: true, tempK: m.T, humidityPct: m.RH, pressurePa: m.P,
+        useWinisdAirModel: true, tempK: m.T, humidityPct: m.RH, pressurePa: m.P,
       });
       assert.ok(ppm(air.c, m.c) < 1e-6,
         `c at T=${m.T} RH=${m.RH} P=${m.P} is ${air.c} — ${ppm(air.c, m.c).toFixed(4)} ppm from the measured ${m.c}`);
@@ -124,7 +129,7 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
     // to ~2e-15, so the implementation must satisfy it exactly rather than approximately.
     for (const m of MEASURED) {
       const air = engine.airFor({
-        ignoreHumidityAndPressure: true, tempK: m.T, humidityPct: m.RH, pressurePa: m.P,
+        useWinisdAirModel: true, tempK: m.T, humidityPct: m.RH, pressurePa: m.P,
       });
       assert.ok(ppm(air.rho, 1.4 * m.P / (air.c * air.c)) < 1e-6,
         `rho at T=${m.T} is ${air.rho}, but gamma*p/c^2 gives ${1.4 * m.P / (air.c * air.c)}`);
@@ -135,17 +140,17 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
     // Non-vacuity for the pair of tests above: if both branches returned the same thing, every
     // parity assertion here would pass while the default mode silently stopped doing CIPM-2007.
     const physics = engine.airFor({ tempK: T0, humidityPct: RH0, pressurePa: P_ATM });
-    const winisd = engine.airFor({ ignoreHumidityAndPressure: true, tempK: T0, humidityPct: RH0, pressurePa: P_ATM });
+    const winisd = engine.airFor({ useWinisdAirModel: true, tempK: T0, humidityPct: RH0, pressurePa: P_ATM });
     assert.notEqual(physics.c, winisd.c);
     assert.notEqual(physics.rho, winisd.rho);
   });
 
-  it('ignoreHumidityAndPressure still varies with humidity, pressure AND temperature away from the reference conditions — the engine computes from whatever environment the caller supplies (the UI supplies its app-level Options-equivalent in this mode, §12/§13), and divergence from the bridge constant off-defaults is ruled correct, not a defect (QO88)', () => {
-    const atRef = engine.airFor({ ignoreHumidityAndPressure: true });
-    const humid = engine.airFor({ ignoreHumidityAndPressure: true, humidityPct: 95, pressurePa: 88000 });
-    assert.notEqual(humid.rho, atRef.rho, 'humidity/pressure must move the ignore-mode result away from the reference conditions');
+  it('useWinisdAirModel still varies with humidity, pressure AND temperature away from the reference conditions — the engine computes from whatever environment the caller supplies (the UI supplies its app-level Options-equivalent in this mode, §12/§13), and divergence from the bridge constant off-defaults is ruled correct, not a defect (QO88)', () => {
+    const atRef = engine.airFor({ useWinisdAirModel: true });
+    const humid = engine.airFor({ useWinisdAirModel: true, humidityPct: 95, pressurePa: 88000 });
+    assert.notEqual(humid.rho, atRef.rho, 'humidity/pressure must move the WinISD parity result away from the reference conditions');
     assert.notEqual(humid.c,   atRef.c);
-    const hot = engine.airFor({ ignoreHumidityAndPressure: true, tempK: 303.15 });
+    const hot = engine.airFor({ useWinisdAirModel: true, tempK: 303.15 });
     assert.ok(hot.rho < atRef.rho && hot.c > atRef.c);
   });
 });
@@ -154,7 +159,7 @@ describe('the sweep actually consumes humidity and pressure', () => {
   const RAW = { Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6, Xmax: 0.005, Pe: 60 };
   const BASE: SweepParams = { Vb: 0.020, Ql: 7, eg: 2.83, fmin: 20, fmax: 200, N: 40 };
   const drv = engine.deriveEngineDriver(RAW).value!;
-  const splAt = (P: SweepParams) => engine.sweep(drv, 'sealed', P).spl;
+  const splAt = (P: SweepParams) => engine.sweep(drv, LE_H, 'sealed', P).value!.spl;
   const maxAbsDelta = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i]!)));
 
   it('changing relative humidity changes SPL — the input is not inert', () => {
@@ -168,15 +173,15 @@ describe('the sweep actually consumes humidity and pressure', () => {
   });
 
   it('with the WinISD toggle on, the humidity and pressure the sweep is HANDED still move SPL (QO88) — the engine ignores nothing itself; the UI decides which environment (app-level Options-equivalent) reaches it in this mode', () => {
-    const a = splAt({ ...BASE, ignoreHumidityAndPressure: true, humidityPct: 0,   pressurePa: 90000 });
-    const b = splAt({ ...BASE, ignoreHumidityAndPressure: true, humidityPct: 100, pressurePa: 105000 });
+    const a = splAt({ ...BASE, useWinisdAirModel: true, humidityPct: 0,   pressurePa: 90000 });
+    const b = splAt({ ...BASE, useWinisdAirModel: true, humidityPct: 100, pressurePa: 105000 });
     const d = maxAbsDelta(a, b);
     assert.ok(d > 0, `humidity/pressure moved SPL by ${d} dB under the toggle — an inert input moves it by exactly 0`);
   });
 
   it('the cost of the toggle is the ~0.073 dB order the ledger predicts, at 30 °C', () => {
     const hot  = { ...BASE, tempK: 303.15 };
-    const d = maxAbsDelta(splAt(hot), splAt({ ...hot, ignoreHumidityAndPressure: true }));
+    const d = maxAbsDelta(splAt(hot), splAt({ ...hot, useWinisdAirModel: true }));
     assert.ok(d < 0.15, `physical vs WinISD air differ by ${d} dB at 30 °C — far more than the predicted 0.073 dB`);
   });
 });

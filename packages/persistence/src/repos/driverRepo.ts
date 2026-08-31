@@ -1,43 +1,43 @@
-/** REPO: domain access to the driver collection (bundled + federated sources). Takes a
+/** REPO: domain access to the bundled driver collection. Takes a
  *  storage/bundle, returns domain objects. */
 import { OpenISDDriver } from '@openisd/model';
 import type { OpenISDDriverJson, MetaField } from '@openisd/model';
 import { recordStandingIsOk } from '@openisd/model/driverStanding';
 import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
 import { DriverType, Chip } from '@openisd/model';
-
-/** The fixed field set the driver-summary/preview panel shows — `SpecField` never crosses this
- *  file's boundary (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md); this is the one
- *  place a small closed field list needs generic dispatch, so it lives here as a switch, not as
- *  a keyed method on `OpenISDDriver`. */
-export type DriverSummaryField = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Re' | 'Le' | 'Vas' | 'Sd' | 'Xmax' | 'Pe' | 'Znom';
-
-function driverFieldValue(driver: OpenISDDriver, field: DriverSummaryField): number | null {
-  switch (field) {
-    case 'Fs': return driver.Fs();
-    case 'Qts': return driver.Qts();
-    case 'Qes': return driver.Qes();
-    case 'Qms': return driver.Qms();
-    case 'Re': return driver.Re();
-    case 'Le': return driver.Le();
-    case 'Vas': return driver.Vas();
-    case 'Sd': return driver.Sd();
-    case 'Xmax': return driver.Xmax();
-    case 'Pe': return driver.Pe();
-    case 'Znom': return driver.Znom();
-  }
-}
-
-function driverFieldMeta(driver: OpenISDDriver, field: MetaField): string {
-  switch (field) {
-    case 'brand': return driver.brand();
-    case 'model': return driver.model();
-    case 'manufacturer': return driver.manufacturer();
-    case 'provided_by': return driver.providedBy();
-    case 'comment': return driver.comment();
-    case 'added': return driver.added();
-  }
-}
+// // //
+// // // /** The fixed field set the driver-summary/preview panel shows — `SpecField` never crosses this
+// // //  *  file's boundary (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md); this is the one
+// // //  *  place a small closed field list needs generic dispatch, so it lives here as a switch, not as
+// // //  *  a keyed method on `OpenISDDriver`. */
+// // // export type DriverSummaryField = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Re' | 'Le' | 'Vas' | 'Sd' | 'Xmax' | 'Pe' | 'Znom';
+// //
+// // function driverFieldValue(driver: OpenISDDriver, field: DriverSummaryField): number | null {
+// //   switch (field) {
+// //     case 'Fs': return driver.Fs();
+// //     case 'Qts': return driver.Qts();
+// //     case 'Qes': return driver.Qes();
+// //     case 'Qms': return driver.Qms();
+// //     case 'Re': return driver.Re();
+// //     case 'Le': return driver.Le();
+// //     case 'Vas': return driver.Vas();
+// //     case 'Sd': return driver.Sd();
+// //     case 'Xmax': return driver.Xmax();
+// //     case 'Pe': return driver.Pe();
+// //     case 'Znom': return driver.Znom();
+// //   }
+// // }
+//
+// function driverFieldMeta(driver: OpenISDDriver, field: MetaField): string {
+//   switch (field) {
+//     case 'brand': return driver.brand();
+//     case 'model': return driver.model();
+//     case 'manufacturer': return driver.manufacturer();
+//     case 'provided_by': return driver.providedBy();
+//     case 'comment': return driver.comment();
+//     case 'added': return driver.added();
+//   }
+// }
 
 // The driver commons — index, search, filter, lookup.
 //
@@ -96,25 +96,25 @@ export interface BundleRecord {
   driverType?: string;
   record: OpenISDDriverJson;
 }
-
-/**
- * A row's identity — what a star is hung on, and what keys the list's `v-for`.
- *
- * NOT the display name. A saved driver IS its `<brand>/<model>` (`driverId()` in
- * myDrivers.ts), which is also the scheme the driver database uses for its folders; a pool
- * row is its source plus the path it was bundled from. Editing a saved driver's brand or
- * model therefore produces a DIFFERENT driver, by design — Clone ("Copy of …") is the
- * deliberate way to fork one — so a star follows the identity, not the row it was clicked on.
- *
- * Every route into My Drivers supplies a brand and a model, so a saved driver always has an
- * identity: the editor's OK is disabled without both, Clone forks to "Copy of …", and a file
- * loaded from disk takes its model from the file name when the file itself names none.
- */
-export function driverKey(f: FileEntry, identityOf: (d: OpenISDDriver) => string): string {
-  const my = f.myDriverData;
-  if (my) return `my:${identityOf(my)}`;
-  return `${f.sourceKey || f.sourceName || ''}/${f.path || f.fileName || f.name}`;
-}
+//
+// /**
+//  * A row's identity — what a star is hung on, and what keys the list's `v-for`.
+//  *
+//  * NOT the display name. A saved driver IS its `<brand>/<model>` (`driverId()` in
+//  * myDrivers.ts), which is also the scheme the driver database uses for its folders; a pool
+//  * row is its source plus the path it was bundled from. Editing a saved driver's brand or
+//  * model therefore produces a DIFFERENT driver, by design — Clone ("Copy of …") is the
+//  * deliberate way to fork one — so a star follows the identity, not the row it was clicked on.
+//  *
+//  * Every route into My Drivers supplies a brand and a model, so a saved driver always has an
+//  * identity: the editor's OK is disabled without both, Clone forks to "Copy of …", and a file
+//  * loaded from disk takes its model from the file name when the file itself names none.
+//  */
+// export function driverKey(f: FileEntry, identityOf: (d: OpenISDDriver) => string): string {
+//   const my = f.myDriverData;
+//   if (my) return `my:${identityOf(my)}`;
+//   return `${f.sourceKey || f.sourceName || ''}/${f.path || f.fileName || f.name}`;
+// }
 
 // ---- classification -------------------------------------------------------------------
 // Name-based matching takes priority over T/S params.
@@ -181,13 +181,13 @@ export function classifyTypes(
   if (Fs != null && Fs < 40)       return of(DriverType.Subwoofer);
   return { types: [], canonical: DriverType.Unclassified.display };
 }
-
-export function fmtHz(hz: number | string | null | undefined): string | null {
-  if (hz == null) return null;
-  const v = parseFloat(String(hz));
-  if (!isFinite(v)) return null;
-  return v >= 1000 ? (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'kHz' : Math.round(v) + 'Hz';
-}
+//
+// export function fmtHz(hz: number | string | null | undefined): string | null {
+//   if (hz == null) return null;
+//   const v = parseFloat(String(hz));
+//   if (!isFinite(v)) return null;
+//   return v >= 1000 ? (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'kHz' : Math.round(v) + 'Hz';
+// }
 
 /** Normalise any date string to YYYY-MM-DD for comparison and display. */
 export function normaliseDate(raw: string | undefined): string {
@@ -211,11 +211,11 @@ function parseWdrLoose(content: string | undefined): Record<string, string> {
   }
   return raw;
 }
-
-/** Shorter source label for the list; the full name stays in the hover tooltip. */
-export function shortSource(name: string | undefined): string {
-  return (name || '').replace(/\s*\([^)]*bundled[^)]*\)/gi, '').trim();
-}
+//
+// /** Shorter source label for the list; the full name stays in the hover tooltip. */
+// export function shortSource(name: string | undefined): string {
+//   return (name || '').replace(/\s*\([^)]*bundled[^)]*\)/gi, '').trim();
+// }
 
 /**
  * What a saved driver is called on screen. A My Driver need not carry a `name` — one
@@ -228,273 +228,247 @@ export function shortSource(name: string | undefined): string {
  * the same on screen, and neither may then be undeletable or delete the other.
  */
 export function myDriverName(d: OpenISDDriver): string { return d.displayName(); }
-
-/**
- * A saved driver as a pool row — the shape selection takes.
- *
- * It carries the SAME derived columns a bundled row does (`Fs`, `Sd`, `Znom`, `types`,
- * …), classified by the one `classifyTypes` the pool uses, because the filter bar reads
- * those columns and a row that cannot answer them cannot be filtered — which is precisely
- * how My Drivers came to ignore the type chips and the Fs/Sd/Znom bounds.
- */
-export function myDriverEntry(d: OpenISDDriver): FileEntry {
-  const name = myDriverName(d);
-  // Read the summary columns through the driver's own accessors, so a value the record STATES
-  // and one the solver DERIVES are both available — the filter bar asks "what is this driver's
-  // Fs", not "did someone type an Fs".
-  const ct = classifyTypes(d.Fs(), d.Sd(), name, d.previewField('driver_type'));
-  return {
-    name, myDriverData: d,
-    Fs: d.Fs(), Sd: d.Sd(), Re: d.Re(),
-    Znom: d.Znom(), Pe: d.Pe(),
-    types: ct.types, canonical: ct.canonical,
-  };
-}
-
-/**
- * True when a FileEntry is not simulatable (`driverIsSimulatable`,
- * `packages/model/src/driverSimulatability.ts` — Fs, Re, Sd-or-Vas, and at least 2 of
- * {Qts, Qes, Qms}) or the driver's own standing (`recordStandingIsOk`,
- * `packages/model/src/driverStanding.ts`, derived from `quality.missing`/`quality.parse_errors`
- * via `OpenISDDriver.standingEvidence()`) is not OK. THIS is the ⚠ health-warning badge — the
- * ONLY consumer of both predicates. Neither gates bundling or listing (QO79/QO81, John, final
- * ruling: no driver is ever excluded for missing spec params — every structurally readable
- * record bundles and lists; a record missing Fs, or every T/S field, still ships, and this is
- * the flag that surfaces it).
- *
- * For domain objects (bundled or My Drivers, the SAME shape) both checks run directly against
- * the driver. Every driver reaching this function was already constructed at its own read seam
- * — `myDriverRepo.ts`'s `readFull()` (`OpenISDDriver.upgrade()`) for browser storage,
- * `bundledEntry()` above (`OpenISDDriver.fromJsonRecord()`) for the driver corpus (see
- * `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`) — so `quality`
- * is guaranteed present. For federated rows (content not yet fetched) the summary `Fs` / `Re` /
- * `Sd` pre-computed fields are the available proxy — no quality block exists yet to check
- * standing against.
- */
-export function driverHasDqIssues(f: FileEntry): boolean {
-  // A saved driver and a bundled record are the SAME shape, so one path reads both.
-  const driver = f.myDriverData ?? f.record;
-  if (driver) {
-    return !driverIsSimulatable(driver) || !recordStandingIsOk(driver.standingEvidence());
-  }
-  // Federated row (content not yet fetched): fall back to pre-computed summary fields.
-  const pos2 = (v: number | null | undefined) => typeof v === 'number' && v > 0;
-  if (!pos2(f.Fs) || !pos2(f.Re)) return true;
-  // Sd summary is in SI (m²); treat null as missing
-  if (f.Sd != null && !pos2(f.Sd)) return true;
-  return false;
-}
-
-// ---- search ----------------------------------------------------------------------------
-
-/** Everything the filter bar can ask of a row, as data. The controls holding these values
- *  live in `logic`; the question they add up to is answered here. */
-export interface SearchCriteria {
-  /** Space-separated tokens, all of which must appear in the row's name. */
-  query: string;
-  /** chip id → 'include' | 'exclude'. */
-  typeStates: Record<string, string>;
-  fsMin: string; fsMax: string;
-  /** cm² */
-  sdMin: string; sdMax: string;
-  /** Nominal impedances to admit, as strings: '4', '8', '16'. */
-  selZ: string[];
-  /** When true only rows whose key is in `favorites` are admitted. */
-  favoritesOnly: boolean;
-  favorites: readonly string[];
-  /** How a row's identity is minted, so a favourite can be recognised. */
-  keyOf: (f: FileEntry) => string;
-}
-
-/**
- * The filter bar, as ONE predicate over a pool row — every control at the top of the browser,
- * in one place.
- *
- * It is shared by the bundled pool and by My Drivers because a filter that skips a section is
- * not a filter: a query matching nothing must not leave unrelated saved drivers on screen
- * (`_agent_files/rules/openisd-ui-design.md` §"Filters apply to every list"). Two copies of
- * this logic is how the sections drifted apart in the first place — My Drivers honoured the
- * text search and Favorites and silently ignored type, Fs, Sd and Znom.
- *
- * The scope chip is what selects between the two halves of the library; everything in here
- * narrows whichever halves it admits.
- */
-export function matchesCriteria(f: FileEntry, c: SearchCriteria): boolean {
-  const tokens = c.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
-  if (tokens.length && !tokens.every(t => f.name.toLowerCase().includes(t))) return false;
-
-  const included = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'include');
-  const excluded = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'exclude');
-  // `unclassified` is derived, never carried in types — a driver is unclassified
-  // exactly when it got no chips at all, so it is filtered separately from the rest.
-  const UNCLASSIFIED = Chip.Unclassified.value;
-  const isUnclassified = !f.types?.length;
-  if (included.length &&
-      !((included.includes(UNCLASSIFIED) && isUnclassified) ||
-        included.filter(t => t !== UNCLASSIFIED).some(t => f.types?.includes(t)))) return false;
-  if (excluded.includes(UNCLASSIFIED) && isUnclassified) return false;
-  if (excluded.filter(t => t !== UNCLASSIFIED).some(t => f.types?.includes(t))) return false;
-
-  const fsMinV = parseFloat(c.fsMin), fsMaxV = parseFloat(c.fsMax);
-  const sdMinV = parseFloat(c.sdMin), sdMaxV = parseFloat(c.sdMax);
-  if (isFinite(fsMinV) && !(f.Fs != null && f.Fs >= fsMinV)) return false;
-  if (isFinite(fsMaxV) && !(f.Fs != null && f.Fs <= fsMaxV)) return false;
-  if (isFinite(sdMinV) && !(f.Sd != null && f.Sd * 1e4 >= sdMinV)) return false;
-  if (isFinite(sdMaxV) && !(f.Sd != null && f.Sd * 1e4 <= sdMaxV)) return false;
-  if (c.selZ.length &&
-      !c.selZ.some(oz => f.Znom != null && Math.abs(f.Znom - parseFloat(oz)) < 1.5)) return false;
-
-  if (c.favoritesOnly && !c.favorites.includes(c.keyOf(f))) return false;
-  return true;
-}
-
-// ---- preview ---------------------------------------------------------------------------
-
-export interface PreviewSpec { label: string; value?: string | null; unit?: string }
-export interface Preview {
-  name: string;
-  source?: string;
-  sourceUrl: string;
-  providedBy: string | null;
-  brand: string | null;
-  model: string | null;
-  sku?: string | null;
-  series?: string | null;
-  description?: string | null;
-  productImage?: string | null;
-  manufacturer: string | null;
-  notes: string | null;
-  added: string | null;
-  links: Array<{ href: string; label: string }>;
-  specs: PreviewSpec[];
-}
-
-/** Everything the summary pane shows about one row, read straight off the record. */
-export function previewOf(f: FileEntry): Preview {
-  const links = [];
-  if (f.datasheet) links.push({ href: f.datasheet, label: 'Datasheet (PDF)' });
-  if (f.manupage) links.push({ href: f.manupage, label: 'Manufacturer page' });
-  if (f.vendorpage && f.vendorpage !== f.manupage) links.push({ href: f.vendorpage, label: 'Vendor page' });
-  if (f.frd) links.push({ href: f.frd, label: 'FRD / ZMA data' });
-
-  // A saved My Driver and a bundled openisd record are the SAME shape, so one path reads both.
-  // Only a federated `.wdr` needs the text parse below.
-  const driver = f.myDriverData ?? f.record;
-  if (driver) {
-    const scaled = (v: number | null, scale = 1): number | null =>
-      (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
-    const n = (field: DriverSummaryField, scale = 1): number | null => scaled(driverFieldValue(driver, field), scale);
-    const meta = (field: MetaField): string | null =>
-      driverFieldMeta(driver, field) || null;
-    const Fs = n('Fs'), Qes = n('Qes');
-    const pathSku = f.path ? f.path.split('/')[1] : null;
-
-    return {
-      name: myDriverName(driver) !== 'Driver' ? myDriverName(driver) : (f.name || 'My Driver'),
-      source: f.myDriverData ? 'My Drivers' : f.sourceName,
-      sourceUrl: f.sourceUrl || '',
-      providedBy: meta('provided_by') ?? '',
-      brand: meta('brand'),
-      model: meta('model'),
-      sku: driver.sku() || pathSku || null,
-      series: driver.previewField('series') || null,
-      description: driver.description() || null,
-      productImage: driver.previewField('product_image') || null,
-      manufacturer: meta('manufacturer'),
-      notes: meta('comment'),
-      added: meta('added'),
-      links,
-      specs: [
-        { label: 'Fs',   value: Fs?.toFixed(1),                            unit: 'Hz'  },
-        { label: 'Qts',  value: n('Qts')?.toFixed(3) },
-        { label: 'Qes',  value: Qes?.toFixed(3) },
-        { label: 'Qms',  value: n('Qms')?.toFixed(3) },
-        { label: 'Re',   value: n('Re')?.toFixed(2),                       unit: 'Ω'   },
-        { label: 'Le',   value: n('Le', 1000)?.toFixed(3),                 unit: 'mH'  },
-        { label: 'Vas',  value: n('Vas', 1000)?.toFixed(2),                unit: 'L'   },
-        { label: 'Sd',   value: n('Sd', 1e4)?.toFixed(1),                  unit: 'cm²' },
-        { label: 'Xmax', value: n('Xmax', 1000)?.toFixed(1),               unit: 'mm'  },
-        { label: 'Pe',   value: n('Pe')?.toFixed(0),                       unit: 'W'   },
-        { label: 'Znom', value: n('Znom')?.toFixed(0),                     unit: 'Ω'   },
-        { label: 'Type', value: f.canonical && f.canonical !== 'Unclassified' ? f.canonical : null },
-        { label: 'EBP',  value: (Fs && Qes) ? (Fs / Qes).toFixed(0) : null },
-      ].filter(s => s.value != null),
-    };
-  }
-
-  const raw = parseWdrLoose(f.content);
-  const n = (k: string): number | null => { const v = parseFloat(raw[k]); return isFinite(v) && v !== 0 ? v : null; };
-  const str = (k: string): string | null => (raw[k] || '').trim() || null;
-  const Fs = n('Fs'), Qes = n('Qes'), Le = n('Le'), Vas = n('Vas'), Sd = n('Sd'), Xmax = n('Xmax');
-  const Mms = n('Mms'), Cms = n('Cms'), Rms = n('Rms'), Vd = n('Vd'), Dia = n('Dia'), noEff = n('no');
-  return {
-    name: f.name,
-    source: f.sourceName,
-    sourceUrl: f.sourceUrl || '',
-    providedBy: str('ProvidedBy'),
-    brand: str('Brand'),
-    model: str('Model'),
-    manufacturer: str('Manufacturer'),
-    notes: str('Comment'),
-    added: str('DateAdded'),
-    links,
-    specs: [
-      { label: 'Fs',     value: Fs?.toFixed(1),                          unit: 'Hz'    },
-      { label: 'Qts',    value: n('Qts')?.toFixed(3) },
-      { label: 'Qes',    value: Qes?.toFixed(3) },
-      { label: 'Qms',    value: n('Qms')?.toFixed(3) },
-      { label: 'Re',     value: n('Re')?.toFixed(2),                     unit: 'Ω'     },
-      { label: 'Znom',   value: n('Znom')?.toFixed(0),                   unit: 'Ω'     },
-      { label: 'Le',     value: Le ? (Le * 1000).toFixed(3) : null,      unit: 'mH'    },
-      { label: 'Bl',     value: n('BL')?.toFixed(2),                     unit: 'T·m'   },
-      { label: 'Vas',    value: Vas ? (Vas * 1000).toFixed(2) : null,    unit: 'L'     },
-      { label: 'Sd',     value: Sd ? (Sd * 1e4).toFixed(1) : null,       unit: 'cm²'   },
-      { label: 'Xmax',   value: Xmax ? (Xmax * 1000).toFixed(1) : null,  unit: 'mm'    },
-      { label: 'Pe',     value: n('Pe')?.toFixed(0),                     unit: 'W'     },
-      { label: 'SPL',    value: n('SPL')?.toFixed(1),                    unit: 'dB'    },
-      { label: 'SPLmax', value: n('SPLmax')?.toFixed(1),                 unit: 'dB'    },
-      { label: 'Mms',    value: Mms ? (Mms * 1000).toFixed(1) : null,    unit: 'g'     },
-      { label: 'Cms',    value: Cms ? (Cms * 1000).toFixed(3) : null,    unit: 'mm/N'  },
-      { label: 'Rms',    value: Rms?.toFixed(2),                         unit: 'N·s/m' },
-      { label: 'Vd',     value: Vd ? (Vd * 1e6).toFixed(1) : null,       unit: 'cm³'   },
-      { label: 'Dia',    value: Dia ? (Dia * 1000).toFixed(0) : null,    unit: 'mm'    },
-      { label: 'η₀',     value: noEff ? (noEff * 100).toFixed(3) : null, unit: '%'     },
-      { label: 'Type',   value: f.canonical && f.canonical !== 'Unclassified' ? f.canonical : null },
-      { label: 'Freq',   value: f.freqRange ? fmtHz(f.freqRange.lo) + '–' + fmtHz(f.freqRange.hi) : null },
-      { label: 'EBP',    value: (Fs && Qes) ? (Fs / Qes).toFixed(0) : null },
-    ].filter(sp => sp.value != null),
-  };
-}
-
-// ---- federated GitHub sources ----------------------------------------------------------
-
-/** owner/repo, or a github.com URL with an optional branch and subfolder. */
-export function parseRepoInput(s: string): SourceEntry | null {
-  s = s.trim(); if (!s) return null;
-  let m = s.match(/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?(?:\/tree\/([^/]+)(?:\/(.*))?)?$/i);
-  if (m) return { key: m[1] + '/' + m[2], name: m[1] + '/' + m[2], type: 'github', repo: m[1] + '/' + m[2], branch: m[3] || '', path: m[4] || '' };
-  m = s.match(/^([\w.-]+)\/([\w.-]+)$/);
-  if (m) return { key: s, name: s, type: 'github', repo: s, branch: '', path: '' };
-  return null;
-}
-
-/** What one source contributed, and anything the caller should tell the user. */
-export interface SourceFetch {
-  sourceName: string;
-  /** The rows this source contributes, or null when it could not be listed at all — a
-   *  source that will not list is reported by its absence, not by a crash. */
-  entries: FileEntry[] | null;
-  /** A message the caller should show, or null when there is nothing to say. */
-  error: string | null;
-}
+// // // // // // //
+// // // // // // // /**
+// // // // // // //  * A saved driver as a pool row — the shape selection takes.
+// // // // // // //  *
+// // // // // // //  * It carries the SAME derived columns a bundled row does (`Fs`, `Sd`, `Znom`, `types`,
+// // // // // // //  * …), classified by the one `classifyTypes` the pool uses, because the filter bar reads
+// // // // // // //  * those columns and a row that cannot answer them cannot be filtered — which is precisely
+// // // // // // //  * how My Drivers came to ignore the type chips and the Fs/Sd/Znom bounds.
+// // // // // // //  */
+// // // // // // // export function myDriverEntry(d: OpenISDDriver): FileEntry {
+// // // // // // //   const name = myDriverName(d);
+// // // // // // //   // Read the summary columns through the driver's own accessors, so a value the record STATES
+// // // // // // //   // and one the solver DERIVES are both available — the filter bar asks "what is this driver's
+// // // // // // //   // Fs", not "did someone type an Fs".
+// // // // // // //   const ct = classifyTypes(d.Fs(), d.Sd(), name, d.previewField('driver_type'));
+// // // // // // //   return {
+// // // // // // //     name, myDriverData: d,
+// // // // // // //     Fs: d.Fs(), Sd: d.Sd(), Re: d.Re(),
+// // // // // // //     Znom: d.Znom(), Pe: d.Pe(),
+// // // // // // //     types: ct.types, canonical: ct.canonical,
+// // // // // // //   };
+// // // // // // // }
+// // // // // //
+// // // // // // /**
+// // // // // //  * True when a FileEntry is not simulatable (`driverIsSimulatable`,
+// // // // // //  * `packages/model/src/driverSimulatability.ts` — Fs, Re, Sd-or-Vas, and at least 2 of
+// // // // // //  * {Qts, Qes, Qms}) or the driver's own standing (`recordStandingIsOk`,
+// // // // // //  * `packages/model/src/driverStanding.ts`, derived from `quality.missing`/`quality.parse_errors`
+// // // // // //  * via `OpenISDDriver.standingEvidence()`) is not OK. THIS is the ⚠ health-warning badge — the
+// // // // // //  * ONLY consumer of both predicates. Neither gates bundling or listing (QO79/QO81, John, final
+// // // // // //  * ruling: no driver is ever excluded for missing spec params — every structurally readable
+// // // // // //  * record bundles and lists; a record missing Fs, or every T/S field, still ships, and this is
+// // // // // //  * the flag that surfaces it).
+// // // // // //  *
+// // // // // //  * For domain objects (bundled or My Drivers, the SAME shape) both checks run directly against
+// // // // // //  * the driver. Every driver reaching this function was already constructed at its own read seam
+// // // // // //  * — `myDriverRepo.ts`'s `readFull()` (`OpenISDDriver.upgrade()`) for browser storage,
+// // // // // //  * `bundledEntry()` above (`OpenISDDriver.fromJsonRecord()`) for the driver corpus (see
+// // // // // //  * `bugs/BUG_20260822_driverstanding_throws_on_a_record_with_no_quality_block.md`) — so `quality`
+// // // // // //  * is guaranteed present. For federated rows (content not yet fetched) the summary `Fs` / `Re` /
+// // // // // //  * `Sd` pre-computed fields are the available proxy — no quality block exists yet to check
+// // // // // //  * standing against.
+// // // // // //  */
+// // // // // // export function driverHasDqIssues(f: FileEntry): boolean {
+// // // // // //   // A saved driver and a bundled record are the SAME shape, so one path reads both.
+// // // // // //   const driver = f.myDriverData ?? f.record;
+// // // // // //   if (driver) {
+// // // // // //     return !driverIsSimulatable(driver) || !recordStandingIsOk(driver.standingEvidence());
+// // // // // //   }
+// // // // // //   // Federated row (content not yet fetched): fall back to pre-computed summary fields.
+// // // // // //   const pos2 = (v: number | null | undefined) => typeof v === 'number' && v > 0;
+// // // // // //   if (!pos2(f.Fs) || !pos2(f.Re)) return true;
+// // // // // //   // Sd summary is in SI (m²); treat null as missing
+// // // // // //   if (f.Sd != null && !pos2(f.Sd)) return true;
+// // // // // //   return false;
+// // // // // // }
+// // // // //
+// // // // // // ---- search ----------------------------------------------------------------------------
+// // // // //
+// // // // // /** Everything the filter bar can ask of a row, as data. The controls holding these values
+// // // // //  *  live in `logic`; the question they add up to is answered here. */
+// // // // // export interface SearchCriteria {
+// // // // //   /** Space-separated tokens, all of which must appear in the row's name. */
+// // // // //   query: string;
+// // // // //   /** chip id → 'include' | 'exclude'. */
+// // // // //   typeStates: Record<string, string>;
+// // // // //   fsMin: string; fsMax: string;
+// // // // //   /** cm² */
+// // // // //   sdMin: string; sdMax: string;
+// // // // //   /** Nominal impedances to admit, as strings: '4', '8', '16'. */
+// // // // //   selZ: string[];
+// // // // //   /** When true only rows whose key is in `favorites` are admitted. */
+// // // // //   favoritesOnly: boolean;
+// // // // //   favorites: readonly string[];
+// // // // //   /** How a row's identity is minted, so a favourite can be recognised. */
+// // // // //   keyOf: (f: FileEntry) => string;
+// // // // // }
+// // // //
+// // // // /**
+// // // //  * The filter bar, as ONE predicate over a pool row — every control at the top of the browser,
+// // // //  * in one place.
+// // // //  *
+// // // //  * It is shared by the bundled pool and by My Drivers because a filter that skips a section is
+// // // //  * not a filter: a query matching nothing must not leave unrelated saved drivers on screen
+// // // //  * (`_agent_files/rules/openisd-ui-design.md` §"Filters apply to every list"). Two copies of
+// // // //  * this logic is how the sections drifted apart in the first place — My Drivers honoured the
+// // // //  * text search and Favorites and silently ignored type, Fs, Sd and Znom.
+// // // //  *
+// // // //  * The scope chip is what selects between the two halves of the library; everything in here
+// // // //  * narrows whichever halves it admits.
+// // // //  */
+// // // // export function matchesCriteria(f: FileEntry, c: SearchCriteria): boolean {
+// // // //   const tokens = c.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+// // // //   if (tokens.length && !tokens.every(t => f.name.toLowerCase().includes(t))) return false;
+// // // //
+// // // //   const included = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'include');
+// // // //   const excluded = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'exclude');
+// // // //   // `unclassified` is derived, never carried in types — a driver is unclassified
+// // // //   // exactly when it got no chips at all, so it is filtered separately from the rest.
+// // // //   const UNCLASSIFIED = Chip.Unclassified.value;
+// // // //   const isUnclassified = !f.types?.length;
+// // // //   if (included.length &&
+// // // //       !((included.includes(UNCLASSIFIED) && isUnclassified) ||
+// // // //         included.filter(t => t !== UNCLASSIFIED).some(t => f.types?.includes(t)))) return false;
+// // // //   if (excluded.includes(UNCLASSIFIED) && isUnclassified) return false;
+// // // //   if (excluded.filter(t => t !== UNCLASSIFIED).some(t => f.types?.includes(t))) return false;
+// // // //
+// // // //   const fsMinV = parseFloat(c.fsMin), fsMaxV = parseFloat(c.fsMax);
+// // // //   const sdMinV = parseFloat(c.sdMin), sdMaxV = parseFloat(c.sdMax);
+// // // //   if (isFinite(fsMinV) && !(f.Fs != null && f.Fs >= fsMinV)) return false;
+// // // //   if (isFinite(fsMaxV) && !(f.Fs != null && f.Fs <= fsMaxV)) return false;
+// // // //   if (isFinite(sdMinV) && !(f.Sd != null && f.Sd * 1e4 >= sdMinV)) return false;
+// // // //   if (isFinite(sdMaxV) && !(f.Sd != null && f.Sd * 1e4 <= sdMaxV)) return false;
+// // // //   if (c.selZ.length &&
+// // // //       !c.selZ.some(oz => f.Znom != null && Math.abs(f.Znom - parseFloat(oz)) < 1.5)) return false;
+// // // //
+// // // //   if (c.favoritesOnly && !c.favorites.includes(c.keyOf(f))) return false;
+// // // //   return true;
+// // // // }
+// // //
+// // // // ---- preview ---------------------------------------------------------------------------
+// // //
+// // // export interface PreviewSpec { label: string; value?: string | null; unit?: string }
+// // export interface Preview {
+// //   name: string;
+// //   source?: string;
+// //   sourceUrl: string;
+// //   providedBy: string | null;
+// //   brand: string | null;
+// //   model: string | null;
+// //   sku?: string | null;
+// //   series?: string | null;
+// //   description?: string | null;
+// //   productImage?: string | null;
+// //   manufacturer: string | null;
+// //   notes: string | null;
+// //   added: string | null;
+// //   links: Array<{ href: string; label: string }>;
+// //   specs: PreviewSpec[];
+// // }
+//
+// /** Everything the summary pane shows about one row, read straight off the record. */
+// export function previewOf(f: FileEntry): Preview {
+//   const links = [];
+//   if (f.datasheet) links.push({ href: f.datasheet, label: 'Datasheet (PDF)' });
+//   if (f.manupage) links.push({ href: f.manupage, label: 'Manufacturer page' });
+//   if (f.vendorpage && f.vendorpage !== f.manupage) links.push({ href: f.vendorpage, label: 'Vendor page' });
+//   if (f.frd) links.push({ href: f.frd, label: 'FRD / ZMA data' });
+//
+//   // A saved My Driver and a bundled openisd record are the SAME shape, so one path reads both.
+//   // Only a federated `.wdr` needs the text parse below.
+//   const driver = f.myDriverData ?? f.record;
+//   if (driver) {
+//     const scaled = (v: number | null, scale = 1): number | null =>
+//       (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
+//     const n = (field: DriverSummaryField, scale = 1): number | null => scaled(driverFieldValue(driver, field), scale);
+//     const meta = (field: MetaField): string | null =>
+//       driverFieldMeta(driver, field) || null;
+//     const Fs = n('Fs'), Qes = n('Qes');
+//     const pathSku = f.path ? f.path.split('/')[1] : null;
+//
+//     return {
+//       name: myDriverName(driver) !== 'Driver' ? myDriverName(driver) : (f.name || 'My Driver'),
+//       source: f.myDriverData ? 'My Drivers' : f.sourceName,
+//       sourceUrl: f.sourceUrl || '',
+//       providedBy: meta('provided_by') ?? '',
+//       brand: meta('brand'),
+//       model: meta('model'),
+//       sku: driver.sku() || pathSku || null,
+//       series: driver.previewField('series') || null,
+//       description: driver.description() || null,
+//       productImage: driver.previewField('product_image') || null,
+//       manufacturer: meta('manufacturer'),
+//       notes: meta('comment'),
+//       added: meta('added'),
+//       links,
+//       specs: [
+//         { label: 'Fs',   value: Fs?.toFixed(1),                            unit: 'Hz'  },
+//         { label: 'Qts',  value: n('Qts')?.toFixed(3) },
+//         { label: 'Qes',  value: Qes?.toFixed(3) },
+//         { label: 'Qms',  value: n('Qms')?.toFixed(3) },
+//         { label: 'Re',   value: n('Re')?.toFixed(2),                       unit: 'Ω'   },
+//         { label: 'Le',   value: n('Le', 1000)?.toFixed(3),                 unit: 'mH'  },
+//         { label: 'Vas',  value: n('Vas', 1000)?.toFixed(2),                unit: 'L'   },
+//         { label: 'Sd',   value: n('Sd', 1e4)?.toFixed(1),                  unit: 'cm²' },
+//         { label: 'Xmax', value: n('Xmax', 1000)?.toFixed(1),               unit: 'mm'  },
+//         { label: 'Pe',   value: n('Pe')?.toFixed(0),                       unit: 'W'   },
+//         { label: 'Znom', value: n('Znom')?.toFixed(0),                     unit: 'Ω'   },
+//         { label: 'Type', value: f.canonical && f.canonical !== 'Unclassified' ? f.canonical : null },
+//         { label: 'EBP',  value: (Fs && Qes) ? (Fs / Qes).toFixed(0) : null },
+//       ].filter(s => s.value != null),
+//     };
+//   }
+//
+//   const raw = parseWdrLoose(f.content);
+//   const n = (k: string): number | null => { const v = parseFloat(raw[k]); return isFinite(v) && v !== 0 ? v : null; };
+//   const str = (k: string): string | null => (raw[k] || '').trim() || null;
+//   const Fs = n('Fs'), Qes = n('Qes'), Le = n('Le'), Vas = n('Vas'), Sd = n('Sd'), Xmax = n('Xmax');
+//   const Mms = n('Mms'), Cms = n('Cms'), Rms = n('Rms'), Vd = n('Vd'), Dia = n('Dia'), noEff = n('no');
+//   return {
+//     name: f.name,
+//     source: f.sourceName,
+//     sourceUrl: f.sourceUrl || '',
+//     providedBy: str('ProvidedBy'),
+//     brand: str('Brand'),
+//     model: str('Model'),
+//     manufacturer: str('Manufacturer'),
+//     notes: str('Comment'),
+//     added: str('DateAdded'),
+//     links,
+//     specs: [
+//       { label: 'Fs',     value: Fs?.toFixed(1),                          unit: 'Hz'    },
+//       { label: 'Qts',    value: n('Qts')?.toFixed(3) },
+//       { label: 'Qes',    value: Qes?.toFixed(3) },
+//       { label: 'Qms',    value: n('Qms')?.toFixed(3) },
+//       { label: 'Re',     value: n('Re')?.toFixed(2),                     unit: 'Ω'     },
+//       { label: 'Znom',   value: n('Znom')?.toFixed(0),                   unit: 'Ω'     },
+//       { label: 'Le',     value: Le ? (Le * 1000).toFixed(3) : null,      unit: 'mH'    },
+//       { label: 'Bl',     value: n('BL')?.toFixed(2),                     unit: 'T·m'   },
+//       { label: 'Vas',    value: Vas ? (Vas * 1000).toFixed(2) : null,    unit: 'L'     },
+//       { label: 'Sd',     value: Sd ? (Sd * 1e4).toFixed(1) : null,       unit: 'cm²'   },
+//       { label: 'Xmax',   value: Xmax ? (Xmax * 1000).toFixed(1) : null,  unit: 'mm'    },
+//       { label: 'Pe',     value: n('Pe')?.toFixed(0),                     unit: 'W'     },
+//       { label: 'SPL',    value: n('SPL')?.toFixed(1),                    unit: 'dB'    },
+//       { label: 'SPLmax', value: n('SPLmax')?.toFixed(1),                 unit: 'dB'    },
+//       { label: 'Mms',    value: Mms ? (Mms * 1000).toFixed(1) : null,    unit: 'g'     },
+//       { label: 'Cms',    value: Cms ? (Cms * 1000).toFixed(3) : null,    unit: 'mm/N'  },
+//       { label: 'Rms',    value: Rms?.toFixed(2),                         unit: 'N·s/m' },
+//       { label: 'Vd',     value: Vd ? (Vd * 1e6).toFixed(1) : null,       unit: 'cm³'   },
+//       { label: 'Dia',    value: Dia ? (Dia * 1000).toFixed(0) : null,    unit: 'mm'    },
+//       { label: 'η₀',     value: noEff ? (noEff * 100).toFixed(3) : null, unit: '%'     },
+//       { label: 'Type',   value: f.canonical && f.canonical !== 'Unclassified' ? f.canonical : null },
+//       { label: 'Freq',   value: f.freqRange ? fmtHz(f.freqRange.lo) + '–' + fmtHz(f.freqRange.hi) : null },
+//       { label: 'EBP',    value: (Fs && Qes) ? (Fs / Qes).toFixed(0) : null },
+//     ].filter(sp => sp.value != null),
+//   };
+// }
 
 export interface DriverRepo {
   /** Every driver in the pre-built bundle, as pool rows. No network, no file parsing. */
   bundledEntries(): FileEntry[];
-  /** The declared sources that are NOT bundled, resolved to owner/repo/branch/path. */
-  liveSources(): SourceEntry[];
-  /** List one GitHub source's `.wdr` files as pool rows. */
-  fetchSource(src: SourceEntry): Promise<SourceFetch>;
 }
 
 export interface DriverRepoDeps {
@@ -510,8 +484,7 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
 
   // The sources this repo ships inside its own build output, by key. Each file is an
   // `openisd.yml` record (ARCHITECTURE.md AD-8) — the app's own driver shape, already parsed
-  // by the bundler, so nothing here parses a file format. A source that is bundled is not
-  // fetched from GitHub: bundled and federated are exclusive.
+  // by the bundler, so nothing here parses a file format.
   const bundledByKey: Record<string, BundleRecord[]> = Object.fromEntries(
     (deps.bundle.sources ?? []).map(s => [s.key, s.files]),
   );
@@ -557,12 +530,6 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
     };
   }
 
-  async function ghDefaultBranch(repo: string): Promise<string> {
-    const r = await fetch(`https://api.github.com/repos/${repo}`);
-    if (!r.ok) throw new Error('repo not found (' + r.status + ')');
-    return (await r.json()).default_branch || 'main';
-  }
-
   return {
     bundledEntries() {
       const out: FileEntry[] = [];
@@ -572,55 +539,6 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
         for (const f of files) out.push(bundledEntry(f, src));
       }
       return out;
-    },
-
-    liveSources() {
-      return sources
-        .filter(src => !bundledByKey[src.key])
-        .map(src => {
-          const m = src.url?.match(/github\.com\/([^/]+\/[^/]+?)(?:\/tree\/([^/]+)(?:\/(.*?))?)?(?:\.git)?$/i);
-          return m ? { ...src, repo: m[1], branch: m[2] || '', path: m[3] || '' } : src;
-        })
-        .filter(s => s.repo);
-    },
-
-    async fetchSource(src) {
-      try {
-        const branch = src.branch || await ghDefaultBranch(src.repo!);
-        const r = await fetch(`https://api.github.com/repos/${src.repo}/git/trees/${branch}?recursive=1`);
-        if (!r.ok) return { sourceName: src.name, entries: null, error: null };
-        const result = await r.json();
-        if (result.truncated) {
-          return {
-            sourceName: src.name,
-            entries: null,
-            error: `Repo "${src.name}" is too large to list fully. Specify a direct subfolder in the URL — e.g. github.com/${src.repo}/tree/main/drivers — so only that folder is scanned.`,
-          };
-        }
-        const tree: Array<{ path: string; type: string }> = result.tree || [];
-        const base = (src.path || '').replace(/^\/|\/$/g, '');
-        const entries = tree
-          .filter(t => t.type === 'blob' && t.path.toLowerCase().endsWith('.wdr')
-            && (!base || t.path.toLowerCase().startsWith(base.toLowerCase() + '/')))
-          .map(t => {
-            const nm = t.path.split('/').pop()!.replace(/\.wdr$/i, '');
-            const ct = classifyTypes(null, null, nm);
-            return {
-              path: t.path, branch, repo: src.repo,
-              name: nm,
-              sourceKey: src.key,
-              sourceName: src.name,
-              sourceUrl: src.url || '',
-              sourceDesc: src.description || '',
-              // These summary fields are computed at client runtime from WDR content — not in the bundle JSON
-              Fs: null, Sd: null, Re: null, Znom: null, Pe: null,
-              types: ct.types, canonical: ct.canonical,
-            } satisfies FileEntry;
-          });
-        return { sourceName: src.name, entries, error: null };
-      } catch {
-        return { sourceName: src.name, entries: null, error: null };
-      }
     },
   };
 }

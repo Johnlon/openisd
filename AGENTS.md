@@ -25,6 +25,54 @@ When a TDD turn begin NEVER start by editing a main source file, always create a
 
 ## Quality gates — non-negotiable
 
+### Every architecture test exists to catch the AI, and the AI is the one that hacks around it
+
+**John, 2026-08-29:** *"it is only you who would try and get around it and these checks are there
+to detect when you screw up"* — and *"the problem is that you hit the block and instead of
+respecting it you hack around it"*.
+
+**100% of the architecture gates in this repo exist for one reason: to catch the agent's own
+mistakes.** There is no other author and no adversary. A red gate is not an obstacle between the
+agent and a finished task — it IS the finding, and it is the one the agent could not see for
+itself.
+
+**When a gate goes red there are exactly TWO permitted responses:**
+
+1. **NAME THE DEFECT, THEN REPAIR IT.** State in one sentence what is actually wrong with the
+   code — the thing that would still be wrong if this gate did not exist — then change the code
+   so the gate's property is genuinely true. **The word "fix" is avoided deliberately: to an
+   agent "fix" can mean "make it pass", and making it pass is the hack** (John 2026-08-29). If no
+   defect can be named, this option is not available.
+2. **STOP AND REPORT** — what the gate found, and what satisfying it honestly would cost.
+
+**Everything else is hacking around the block**, including all of these, whatever the
+justification:
+
+- casting past it — `as any`, `as unknown as X`, widening a type until the check no longer applies
+- renaming an identifier, comment or test so a matcher stops firing
+- adding the offending file to an allow-list, exemption list or ignore glob
+- narrowing the gate's scope, loosening its assertion, or deleting the test
+- writing the value the gate wants while leaving the thing it guards broken
+
+**The tell is a change whose PURPOSE is to make the red go away**, rather than to make the code
+right. If the agent cannot state what was actually wrong with the code, it is hacking.
+
+**Precedents, all the agent's own, all in one day (2026-08-29):**
+
+- Hit a type error on the bundle import and wrote `as unknown as` to silence it. The real finding
+  was that `ScrapedField.dq` is declared required and no record has ever carried it —
+  `bugs/BUG_20260829_the_app_calls_the_field_dq_while_the_scraper_writes_dq_marks.md`.
+- Hit the no-globals gate on a lookup table and, on the first attempt at a fix, wrote
+  `(NAMES as Record<string, string>)[code]` — a cast whose only function was to make the index
+  typecheck. The gate now walks out through casts for exactly that reason.
+- The 2026-07-26 precedent in `~/.claude/behavioral_instructions.md`: an agent renamed a parameter
+  and a heading so a gate went green, changed no behaviour, and reported success.
+
+**A gate the agent has just edited is not evidence of anything until it has been made to FAIL on
+purpose.** Break what it guards, watch it go red, restore. Under a minute, and it is the only
+proof the gate still tests what its name claims.
+
+
 **Never claim success, "done", "fixed", or "ready to check" until every relevant gate is 100% green — run them, do not assume.** Before any "done" claim, run the COMPLETE gate `bash scripts/health-check.sh` (lint + typecheck + unit + browser) — not a hand-picked subset. A subset that passes is not evidence the suite passes.
 
 **Concurrent and isolated test execution:**

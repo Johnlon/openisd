@@ -6,7 +6,7 @@
  * Air properties (ρ, c) are NOT here: they belong to `air.ts`, which the UI, the sweep and
  * the circuit all call through `airFor`.
  */
-import { T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
+import { DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
 
 /**
  * Passive-radiator compliance-equivalent volume Vas, in CUBIC METRES.
@@ -14,8 +14,8 @@ import { T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity }
  * the reference environment — never a stored constant.
  */
 export function prVas(prCms: number, prSd: number): number {
-  const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
-  const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  const rho = moistAirDensity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
+  const c = moistAirSoundVelocity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
   return prCms * prSd * prSd * rho * c * c;
 }
 
@@ -57,8 +57,8 @@ export function driveVoltage(pin: number, re: number): number {
  */
 export function prCmsFromVas(prVas_m3: number, prSd: number): number {
   if (!(prSd > 0)) return 0;
-  const rho = moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
-  const c = moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+  const rho = moistAirDensity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
+  const c = moistAirSoundVelocity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
   return prVas_m3 / (prSd * prSd * rho * c * c);
 }
 

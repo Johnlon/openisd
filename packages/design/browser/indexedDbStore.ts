@@ -3,7 +3,7 @@
 // touching a platform API lives out here, where the name says so. A Node or CLI store would sit
 // beside this as `node/`, not inside `domain/`.
 
-import type { ProjectMeta, RecordStore, RecordStoreFactory } from '../domain/index.js';
+import type { RecordStore, RecordStoreFactory } from '../domain/index.js';
 
 // Declared narrowly rather than by adding "DOM" to the package's `lib`, which would put the whole
 // browser API within reach of `domain/` too. Only what this file actually uses.
@@ -54,14 +54,14 @@ export function indexedDbStore(dbName: string, _now: () => string): RecordStoreF
   }
   void dbName; void upgrade;   // wired when the async plumbing lands — see the note below
 
-  return <R>(): RecordStore<R> => ({
-    put(_id: string, _record: R, _meta: ProjectMeta): void {
+  return <R>(_labelPath: string): RecordStore<R> => ({
+    put(_id: string, _record: R): void {
       throw new Error('indexedDbStore: not implemented yet');
     },
     get(_id: string): R | null {
       throw new Error('indexedDbStore: not implemented yet');
     },
-    list(): { id: string; meta: ProjectMeta; modified: string }[] {
+    list(): { id: string; label: string; modified: string }[] {
       throw new Error('indexedDbStore: not implemented yet');
     },
     remove(_id: string): void {
@@ -78,18 +78,30 @@ export function indexedDbStore(dbName: string, _now: () => string): RecordStoreF
  * depends on. `now` is injected rather than read from a clock here, so a test can make
  * modification times deterministic.
  */
+/** The value at a dotted path (`'meta.name'`), or `''` when the path does not resolve. A store
+ *  reads a LABEL out of a record it is otherwise ignorant of — the same runtime-keyPath move
+ *  IndexedDB makes with `createIndex`, which is why neither store needs to know `R`. */
+function valueAt(record: unknown, path: string): string {
+  let v: unknown = record;
+  for (const key of path.split('.')) {
+    if (typeof v !== 'object' || v === null) return '';
+    v = (v as Record<string, unknown>)[key];
+  }
+  return typeof v === 'string' ? v : '';
+}
+
 export function memoryStore(now: () => string): RecordStoreFactory {
-  const entries = new Map<string, { record: unknown; meta: ProjectMeta; modified: string }>();
-  return <R>(): RecordStore<R> => ({
-    put(id: string, record: R, meta: ProjectMeta): void {
-      entries.set(id, { record, meta, modified: now() });
+  const entries = new Map<string, { record: unknown; label: string; modified: string }>();
+  return <R>(labelPath: string): RecordStore<R> => ({
+    put(id: string, record: R): void {
+      entries.set(id, { record, label: valueAt(record, labelPath), modified: now() });
     },
     get(id: string): R | null {
       const e = entries.get(id);
       return e ? (e.record as R) : null;
     },
-    list(): { id: string; meta: ProjectMeta; modified: string }[] {
-      return [...entries.entries()].map(([id, e]) => ({ id, meta: e.meta, modified: e.modified }));
+    list(): { id: string; label: string; modified: string }[] {
+      return [...entries.entries()].map(([id, e]) => ({ id, label: e.label, modified: e.modified }));
     },
     remove(id: string): void {
       entries.delete(id);

@@ -1,6 +1,6 @@
 /**
- * Enclosure-parameter precondition — the box-side counterpart to `deriveEngineDriver`'s
- * driver-side precondition (CODE_REVIEW.md §18, ENGINE_HARDENING.md "Residual input
+ * Enclosure-parameter precondition — the box-side counterpart to `sweep`'s own driver-side
+ * precondition, `circuitQuantities` (CODE_REVIEW.md §18, ENGINE_HARDENING.md "Residual input
  * guards").
  *
  * `solve()` divides by these values without guarding, once per frequency:
@@ -14,8 +14,8 @@
  * — it cannot know WHICH field caused it. Validating the inputs here names the field, so
  * the message points at the box volume the user actually has to change.
  *
- * Communicated through the same `DriverError` channel as `deriveEngineDriver` — no throw
- * (.claude/rules/openisd-result-contract.md).
+ * Communicated through the same `DriverError` channel as every other engine precondition — no
+ * throw (.claude/rules/openisd-result-contract.md).
  *
  * This is input validation only: it changes no formula and no computed number.
  */

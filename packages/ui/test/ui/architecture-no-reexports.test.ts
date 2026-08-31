@@ -1,3 +1,18 @@
+// THIS GATE EXISTS TO CATCH THE AI. THAT IS ITS WHOLE PURPOSE.
+//
+// There is no other author here. Every failure it reports is the agent's own mistake, caught by a
+// check the agent could not run in its own head. A red result IS the finding — never an obstacle
+// standing in front of one.
+//
+// Two permitted responses when it goes red. ONE: name the defect in a sentence — what is actually
+// wrong with the code, that would still be wrong if this gate did not exist — and then repair it.
+// If no defect can be named, that option is not available. TWO: STOP and report what it found.
+// "Make it pass" is not one of the two, and is what the word "fix" quietly permits. Casting
+// past it, renaming so a matcher stops firing, adding an exemption, loosening the assertion or
+// deleting the test are one act under different names — making the red go away instead of making
+// the code right. After ANY edit to this file, break what it guards and watch it fail, or it is
+// not known to test anything. See AGENTS.md "Every architecture test exists to catch the AI".
+
 /**
  * Re-export statements are forbidden (human ruling, QO80: "rexports are expreslly
  * forbideen"). A re-export relabels a value or type across a module boundary, laundering a

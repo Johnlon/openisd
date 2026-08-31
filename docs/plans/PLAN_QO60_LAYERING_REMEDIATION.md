@@ -14,7 +14,7 @@ Outcome: every gate green, so the pending checkpoint commit can land.
 
 **John, 2026-08-20: "this is why I keep telling you that no one at all should see the underlying
 state."** Visibility of the shape is what allowed a second copy of it to grow. `state.P` holds
-`Ql`/`Qa`/`Qp`, `tempK`/`humidityPct`/`pressurePa`/`ignoreHumidityAndPressure`,
+`Ql`/`Qa`/`Qp`, `tempK`/`humidityPct`/`pressurePa`/`useWinisdAirModel`/`useAppLevelAirEnvironment`,
 `nDrivers`/`wiring`/`Pin`/`Rs`/`rgAtDriverSide`, the seven `simOptions`, `fmin`/`fmax`/`N`,
 `filters` and `entered` — and `_OpenISDProjectJson` already declares a home for every one of
 them (`box`, `environment`, `signal`, `simOptions`, `sweep`, `filters`, `target`, `meta`). Had
@@ -182,7 +182,7 @@ Zero behaviour change; typecheck is the proof.
 | `state.P` | goes to |
 |---|---|
 | `Ql`, `Qa`, `Qp` | `box: OpenISDBox` |
-| `tempK`, `humidityPct`, `pressurePa`, `ignoreHumidityAndPressure` | `environment: OpenISDEnvironment` |
+| `tempK`, `humidityPct`, `pressurePa`, `useWinisdAirModel`, `useAppLevelAirEnvironment` | `environment: OpenISDEnvironment` |
 | `nDrivers`, `wiring`, `Pin`, `Rs`, `rgAtDriverSide` | `signal: OpenISDSignal` |
 | `circuitModel`, `tlPortModel`, `forceFlatResponse`, `splXmaxLimited`, `vcTempRise`, `alfaVC`, `driverAddedMass` | `simOptions: OpenISDSimOptions` |
 | `fmin`, `fmax`, `N` | `sweep: OpenISDSweepRange` |

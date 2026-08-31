@@ -1,5 +1,5 @@
 /**
- * Direct unit tests for src/core/alignments.js
+ * Direct unit tests for engine/boxDesign.ts
  *
  * Each test describes the physical scenario and the expected outcome in terms
  * a loudspeaker designer would recognise.  All numeric constants are named
@@ -22,6 +22,10 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
+
+/** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
+ *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
+const LE_H = undefined;
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
@@ -394,8 +398,8 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       fmax: 200,
       N: 2000,
     };
-    const result = engine.sweep(drv, 'sealed', P);
-    const peak = engine.findImpedancePeak(result, drv.Re);
+    const result = engine.sweep(drv, LE_H, 'sealed', P).value!;
+    const peak = engine.findImpedancePeak(result, drv.Re_ohm);
     assert.ok(peak !== null);
     // Assert peak frequency is near 54.81 Hz
     assert.ok(Math.abs(peak.Fsc - 54.81) < 0.1, `Expected Fsc near 54.81 Hz, got ${peak.Fsc}`);

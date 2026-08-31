@@ -42,8 +42,11 @@ const project = useFocusedProject();
     <label data-field-key="splXmaxLimited" :title="fieldHelp('splXmaxLimited')">
       <input type="checkbox" :checked="project.splXmaxLimited()" @change="e => project.setSplXmaxLimited((e.target as HTMLInputElement).checked)"> SPL graph is Xmax limited
     </label>
-    <label data-field-key="ignoreHumidityAndPressure" :title="fieldHelp('ignoreHumidityAndPressure')">
-      <input type="checkbox" :checked="project.envIgnoreHumidityAndPressure()" @change="e => project.setEnvIgnoreHumidityAndPressure((e.target as HTMLInputElement).checked)"> Ignore humidity and air pressure (as WinISD does)
+    <label data-field-key="useWinisdAirModel" :title="fieldHelp('useWinisdAirModel')">
+      <input type="checkbox" :checked="project.envUseWinisdAirModel()" @change="e => project.setEnvUseWinisdAirModel((e.target as HTMLInputElement).checked)"> Use WinISD air model
+    </label>
+    <label data-field-key="useAppLevelAirEnvironment" :title="fieldHelp('useAppLevelAirEnvironment')">
+      <input type="checkbox" :checked="project.envUseAppLevelAirEnvironment()" @change="e => project.setEnvUseAppLevelAirEnvironment((e.target as HTMLInputElement).checked)"> Use app-level environment for WinISD parity
     </label>
   </div>
 </template>

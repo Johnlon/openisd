@@ -18,7 +18,7 @@
       "tempK": 293.15,
       "humidityPct": 30,
       "pressurePa": 101325,
-      "ignoreHumidityAndPressure": false,
+      "useWinisdAirModel": false,
       "Vb": 0.015,
       "Vf": 0.02,
       "Ql": 7,

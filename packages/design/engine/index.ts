@@ -13,7 +13,6 @@
 // a caller cannot use the class without being able to name it. A type that stops appearing in a
 // signature comes off this list.
 export { Engine } from './Engine.js';
-export type { DriverFields } from './Engine.js';
 // A VALUE, not just a type: `LossMode` is a class whose static members ARE the modes
 // (`LossMode.WinisdLossy`, `LossMode.Default`), so a caller cannot pass one without it.
 export { LossMode } from './lossMode.js';
@@ -21,6 +20,11 @@ export type { SealedParams } from './lossMode.js';
 export type { Air, AirEnvironment } from './air.js';
 export type { ConsistencyIssue } from './consistency.js';
 export type {
-  BoxType, SimulatableBoxType, DriverError, EngineDriver, Filter, FilterType, MaxCurvesResult,
+  BoxType, SimulatableBoxType, DriverError, Filter, FilterType, MaxCurvesResult,
   Result, SweepParams, SweepResult,
 } from './types.js';
+// A VALUE, not just a type: callers build one with `new EngineQuantities()` before handing it to
+// `solveConsistencyGroup`/`sweep`. `EngineQuantities.NAMES` comes with it because a caller that walks the
+// quantities cannot do so type-safely without it — `Object.keys` yields `string`, which cannot
+// index the class, and the only other way past that is the cast this project bans.
+export { EngineQuantities } from './engineQuantities.js';

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import type { PRLibEntry, BundledPR } from '@openisd/persistence';
+import type { PRLibEntry, BundledPassiveRadiator } from '@openisd/persistence';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { useApp } from '../../logic/app.js';
 import { toDisplay } from '../../logic/fields/units.js';
 
-const { prRepo } = useApp();
+const { myPassiveRadiators, bundledPassiveRadiators } = useApp();
 
 // PR browser — a popup mirroring the driver browser (DriverBrowserMd.vue): two
 // sections, "Saved" (your localStorage PR library) and "Bundled" (passive radiators
@@ -15,12 +15,12 @@ const { prRepo } = useApp();
 const emit = defineEmits<{
   close: [];
   load: [PRLibEntry];
-  loadBundled: [BundledPR];
+  loadBundled: [BundledPassiveRadiator];
   define: [];
 }>();
 
-const saved = ref(prRepo.list());
-const bundled = prRepo.bundled();
+const saved = ref(myPassiveRadiators.list());
+const bundled = bundledPassiveRadiators;
 const filter = ref('');
 
 const fSaved = computed(() => {
@@ -33,8 +33,8 @@ const fBundled = computed(() => {
 });
 
 function loadSaved(e: PRLibEntry) { emit('load', e); }
-function loadBundledPR(p: BundledPR) { emit('loadBundled', p); }
-function remove(id: number) { saved.value = prRepo.remove(id); }
+function loadBundledPassiveRadiator(p: BundledPassiveRadiator) { emit('loadBundled', p); }
+function remove(id: number) { saved.value = myPassiveRadiators.remove(id); }
 function define() { emit('define'); }
 function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
@@ -65,8 +65,8 @@ useEscToClose(() => true, close);
           <div v-if="!fBundled.length" style="color:var(--mut);font-size:11px;padding:4px 8px">
             {{ filter ? 'No bundled PRs match.' : 'No bundled passive radiators in the current collection.' }}
           </div>
-          <div v-for="p in fBundled" :key="p.key + '/' + p.path" class="pr-lib-item">
-            <span class="pr-lib-name" @click="loadBundledPR(p)"
+          <div v-for="p in fBundled" :key="p.path" class="pr-lib-item">
+            <span class="pr-lib-name" @click="loadBundledPassiveRadiator(p)"
               :title="'Load ' + p.name + ' — Sd/Cms/Vas from the datasheet; Fs/Mms/Rms/Xmax not published, left blank'">{{ p.name }}</span>
           </div>
         </div>

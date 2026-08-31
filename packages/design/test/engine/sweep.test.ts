@@ -4,7 +4,7 @@
  *   - Line 53: fmin/fmax/N parameter defaults (10, 1000, 400)
  *   - Line 70: spl fallback to -200 when pm = 0 (eg = 0 → no acoustic output)
  *   - Line 85: group-delay dw = 0 fallback (N = 0 → single frequency point)
- *   - Line 98: drv.Pe default to 50 W in maxCurves when Pe absent
+ *   - Line 98: drv.Pe_W default to 50 W in maxCurves when Pe absent
  *
  * Note on line 103 (excAt283 = 0 → vXmax = 1e9):
  *   excAt283 = |UD|·√2 / (ω·Sd) at 2.83 V. Since UD = pg / (ZaE+ZaD+Zbox) and pg ≠ 0
@@ -16,25 +16,29 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
+import { Engine, EngineQuantities } from '../../engine/index.js';
+
+/** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
+ *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
+const LE_H = 0.7e-3;
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
 
 // Reference driver: same synthetic 6.5" mid-woofer as engine.test.mjs
-const { value: DRV, errors: drvErrors } = engine.deriveEngineDriver({
-  Fs:   37,      // Hz
+const { value: DRV, errors: drvErrors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), {
+  Fs_hz:   37,      // Hz
   Qts:  0.38,
   Qes:  0.40,
   Qms:  7.0,
-  Vas:  0.030,   // m³
-  Sd:   0.0133,  // m²
-  Re:   5.6,     // Ω
-  Le:   0.7e-3,  // H
-  Xmax: 0.005,   // m
-  Pe:   60,      // W
-  Znom:    8,       // Ω
-});
+  Vas_m3:  0.030,   // m³
+  Sd_m2:   0.0133,  // m²
+  Re_ohm:   5.6,     // Ω
+  Le_H:   0.7e-3,  // H
+  Xmax_m: 0.005,   // m
+  Pe_W:   60,      // W
+  Znom_ohm:    8,       // Ω
+}));
 if (!DRV) throw new Error('Test fixture driver is invalid: ' + drvErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
 // Sealed box — lossless, 30 L
@@ -57,7 +61,7 @@ describe('sweep — parameter defaults when fmin / fmax / N are absent', () => {
    + 'verifies P.fmin||10, P.fmax||1000, P.N||400 fallbacks', () => {
     // Call sweep without fmin, fmax, or N.  The returned fs array must span 10–1000 Hz
     // with 401 points (steps 0…400 inclusive).
-    const { fs } = engine.sweep(DRV, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD });
+    const { fs } = engine.sweep(DRV, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD }).value!;
 
     // N+1 = 401 points
     assert.equal(fs.length, DEFAULT_N + 1,
@@ -80,7 +84,7 @@ describe('sweep — zero-excitation (eg=0) produces -200 dB SPL for all frequenc
     // With eg=0: pg = cx(0·Bl, 0) = cx(0,0) → UD = 0 → U0 = 0 → pm = |Hc| = 0.
     // The guard `pm > 0 ? 20·log10(pm/P0) : -200` takes the -200 branch.
     const SPL_SILENCE_DB = -200;  // sentinel value for zero-excitation, defined in sweep.js
-    const { spl } = engine.sweep(DRV, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 });
+    const { spl } = engine.sweep(DRV, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).value!;
     assert(spl.length > 0, 'spl array must be non-empty');
     for (let i = 0; i < spl.length; i++) {
       assert.equal(spl[i], SPL_SILENCE_DB,
@@ -101,10 +105,10 @@ describe('sweep — fmin=fmax produces constant-frequency sweep where dw=0', () 
     const N_STEPS = 5;        // need >1 so the loop has multiple iterations
     const GD_ZERO_MS = 0;     // fallback group delay when dw=0
 
-    const { fs, gd } = engine.sweep(DRV, BOX, {
+    const { fs, gd } = engine.sweep(DRV, LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
       fmin: FREQ_HZ, fmax: FREQ_HZ, N: N_STEPS,
-    });
+    }).value!;
 
     // All frequencies must be identical (fmin = fmax collapse to one point)
     assert(fs.every(f => f === FREQ_HZ),
@@ -118,21 +122,21 @@ describe('sweep — fmin=fmax produces constant-frequency sweep where dw=0', () 
   });
 });
 
-// ── Line 98: drv.Pe default in maxCurves ──────────────────────────────────────
+// ── Line 98: drv.Pe_W default in maxCurves ──────────────────────────────────────
 
 describe('maxCurves — one limit absent falls back to the other (never poisons the curve)', () => {
   it('driver without Pe → curve is Xmax-limited and finite (no thermal limit, no fabricated default)', () => {
     // Pe absent → vPe = Infinity; the excursion (Xmax) limit alone bounds the curve.
-    const { value: drvNoPe, errors: noPeErrors } = engine.deriveEngineDriver({
-      Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
-      Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005,
+    const { value: drvNoPe, errors: noPeErrors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), {
+      Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
+      Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.7e-3, Xmax_m: 0.005,
       // Pe intentionally absent — deriveEngineDriver returns warn (not error); Xmax-limited max curves
-    });
+    }));
     if (!drvNoPe) throw new Error('Test fixture invalid: ' + noPeErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
-    const { fs, maxspl } = engine.maxCurves(drvNoPe, BOX, {
+    const { fs, maxspl } = engine.maxCurves(drvNoPe, LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
-    });
+    }).value!;
 
     assert(fs.length > 0, 'maxCurves must return non-empty fs array');
     assert(maxspl.every(v => isFinite(v)),
@@ -148,15 +152,15 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
     // Regression: Xmax=0 used to make vXmax=0 → vUse=0 → maxspl=-Infinity, maxpwr=0
     // (blank Max-SPL/Max-power charts). Xmax=0 must be treated as "no excursion limit"
     // so the Pe (thermal) limit alone bounds the curve.
-    const { value: drvXmax0, errors: xmax0Errors } = engine.deriveEngineDriver({
-      Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
-      Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Pe: 60, Xmax: 0,
-    });
+    const { value: drvXmax0, errors: xmax0Errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), {
+      Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
+      Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.7e-3, Pe_W: 60, Xmax_m: 0,
+    }));
     if (!drvXmax0) throw new Error('Test fixture invalid: ' + xmax0Errors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
-    const { maxspl, maxpwr } = engine.maxCurves(drvXmax0, BOX, {
+    const { maxspl, maxpwr } = engine.maxCurves(drvXmax0, LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
-    });
+    }).value!;
 
     assert(maxspl.every(Number.isFinite),
       'Xmax=0 must not poison Max-SPL with -Infinity — Pe limit must apply');
@@ -174,17 +178,17 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   const P = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
 
   it('returns null for an all-finite sweep', () => {
-    const sw = engine.sweep(DRV, BOX, P);
+    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
     assert.equal(engine.classifyFinite(sw), null, 'a healthy sweep has no finiteness issue');
   });
 
   it('an all-finite sweep with -200 dB silence sentinels is still null (sentinels are finite)', () => {
-    const sw = engine.sweep(DRV, BOX, { ...P, eg: 0 }); // eg=0 → spl all -200 (finite sentinel)
+    const sw = engine.sweep(DRV, LE_H, BOX, { ...P, eg: 0 }).value!; // eg=0 → spl all -200 (finite sentinel)
     assert.equal(engine.classifyFinite(sw), null, '-200 dB sentinels must not be flagged as non-finite');
   });
 
   it('flags an isolated non-finite point as a warn that names the frequency', () => {
-    const sw = engine.sweep(DRV, BOX, P);
+    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
     sw.spl[10] = NaN; // inject a lone singularity
     const r = engine.classifyFinite(sw);
     assert.ok(r && r.level === 'warn', 'an isolated NaN is a warn, not a block');
@@ -192,7 +196,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('flags an entirely non-finite primary curve as a blocking error', () => {
-    const sw = engine.sweep(DRV, BOX, P);
+    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
     for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
     const r = engine.classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'no finite spl point at all → blocking error');
@@ -202,7 +206,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
     // Vb=0 makes cInv(0) poison exc/zmag with NaN, but spl stays −200 (finite) via
     // the pm>0 guard. Classifying on spl alone would call this a "warn"; it is total
     // garbage → error. Every frequency is affected, so it must be a blocking error.
-    const sw = engine.sweep(DRV, BOX, P);
+    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
     for (let i = 0; i < sw.exc.length; i++) sw.exc[i] = NaN;
     const r = engine.classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'every-frequency breakdown → error, not warn, despite finite spl');
@@ -224,7 +228,7 @@ describe('rolloffFreq — Encapsulated Engine Physics Calculations', () => {
    * Spec Link: docs/spec/SPEC_ENGINE.md §3.2 "Cutoff Frequency Readouts (F3, F6, F10)"
    */
   it('rolloffFreq derives F3 (-3 dB), F6 (-6 dB), and F10 (-10 dB) cutoff frequencies inside engine', () => {
-    const sw = engine.sweep(DRV, BOX, P);
+    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
     const f3 = engine.rolloffFreq(sw, 3);
     const f6 = engine.rolloffFreq(sw, 6);
     const f10 = engine.rolloffFreq(sw, 10);

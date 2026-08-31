@@ -1,0 +1,362 @@
+uuid:
+  value: b302e04d-c42e-48b3-b90e-ac61a277f2a7
+  definition: stable record identity, minted by the pipeline at first emit and never
+    re-derived
+quality:
+  rating: L
+  confirmed_fields: [BL, Fs, Le, Pe, Qes, Qms, Qts, Re, SPL, Sd, Vas, Xmax, Znom]
+  fields_with_issues: [Mms]
+  missing: [Cms]
+  invalid: []
+  parse_errors: []
+  cross_source_only:
+  - field: Cms
+    origin: manufacturer_datasheet
+    reading:
+      actual_reading: 0.42 mm/N
+      read_value: 0.00042
+      read_precision: 5.0e-06
+manufacturer:
+  value: Dayton Audio
+  origin: manufacturer_product_page
+  definition: the company that makes the driver; a second-order descriptive field,
+    shown only when it differs from the brand
+brand:
+  value: Dayton Audio
+  origin: manufacturer_product_page
+  definition: the selling brand; equals the manufacturer except for house brands
+model:
+  value: CE28N-4 1" Neo Extended Range Speaker Driver 2W 4 Ohm
+  origin: manufacturer_product_page
+  definition: the vendor's exact designation including the impedance variant — unique
+    within a brand, and the name shown in the driver browser
+sku:
+  value: ce28n-4
+  definition: the canonical identity code — the vendor designation slugified, impedance
+    variant included; names the record directory (guard-enforced equal) and is unique
+    within the manufacturer
+  grounds:
+  - origin: manufacturer_product_page
+    reading: CE28N-4 1" Neo Extended Range Speaker Driver 2W 4 Ohm
+    definition: the printed designation the code was derived from
+  - origin: manufacturer_product_page
+    reading: https://daytonaudio.com/product/1917/ce28n-4-1-neo-extended-range-speaker-driver-2w-4-ohm
+    definition: the source URL that corroborated the derivation
+driver_type:
+  value: full-range
+  origin: manufacturer_product_page
+  definition: what kind of driver this is (closed vocabulary); decides which specs
+    section applies
+series:
+  value: CE Series
+  origin: manufacturer_product_page
+  definition: the vendor's product line this driver belongs to
+nominal_size_cm:
+  value: 2.54
+  origin: manufacturer_product_page
+  definition: nominal (marketing) diameter in cm
+data_sources:
+  value:
+    manufacturer_datasheet: https://daytonaudio.com/images/resources/285-149--dayton-audio-ce28n-4-specification-sheet.pdf
+    manufacturer_product_page: https://daytonaudio.com/product/1917/ce28n-4-1-neo-extended-range-speaker-driver-2w-4-ohm
+  definition: the record-wide provenance index — every source role used anywhere in
+    this file resolves to a URL here
+authoritative:
+  value: manufacturer_product_page
+  definition: which indexed source wins the datasheet waterfall for this record —
+    the document the specs are extracted from; other sources only corroborate
+product_image:
+  value: https://www.daytonaudio.com/images/product/large/1917.jpg
+  origin: manufacturer_product_page
+  definition: the manufacturer's product photo for this driver
+description:
+  value: Engineered specifically with manufacturers and DIY enthusiasts in mind, these
+    economically priced speakers deliver impressive performance without breaking the
+    bank. Though compact in size, they pack a powerful punch! Whether you're a manufacturer
+    seeking reliable components or a DIY project lover looking for the perfect sound
+    solution, our CE Series drivers offer an optimal blend of size, price, and performance
+    that's hard to resist.Product HighlightsHigh economic valueDelivers crisp, clear
+    audio, ensuring an immersive listening experienceHigh-quality audio solutions
+    without breaking the bank, ideal for budget-conscious projectsSuitable for commercial
+    use, DIY projects, art exhibits, and moreProduct Manuals / Spec Sheets / DownloadsDayton
+    Audio CE28N-4 Specification SheetDayton Audio CE28N-4 Data FilesDayton Audio CE28N-4
+    3D FileBuying OptionsBuy on Parts ExpressBuy Internationally
+  origin: manufacturer_product_page
+  definition: the manufacturer's own product blurb, page chrome stripped
+specs:
+  woofer:
+    Fs:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 456 Hz
+          read_value: 456.0
+          read_precision: 0.5
+        manufacturer_product_page:
+          actual_reading: 456 Hz
+          read_value: 456.0
+          read_precision: 0.5
+      corroboration: MATCH
+      definition: free-air resonance frequency (Hz)
+    Re:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 3.79 ohms
+          read_value: 3.79
+          read_precision: 0.005
+        manufacturer_product_page:
+          actual_reading: 3.79 ohms
+          read_value: 3.79
+          read_precision: 0.005
+      corroboration: MATCH
+      definition: DC voice coil resistance (Ω)
+    Le:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.06 mH @ 10kHz
+          read_value: 6.0e-05
+          read_precision: 5.0e-06
+        manufacturer_product_page:
+          actual_reading: .06 mH
+          read_value: 6.0e-05
+          read_precision: 5.0e-06
+      corroboration: MATCH
+      definition: voice-coil inductance (H)
+    Znom:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 4 ohms
+          read_value: 4.0
+          read_precision: 0.5
+        manufacturer_product_page:
+          actual_reading: 4 ohms
+          read_value: 4.0
+          read_precision: 0.5
+      corroboration: MATCH
+      definition: nominal impedance (Ω)
+    Qts:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: '0.85'
+          read_value: 0.85
+          read_precision: 0.005
+        manufacturer_product_page:
+          actual_reading: '0.85'
+          read_value: 0.85
+          read_precision: 0.005
+      corroboration: MATCH
+      definition: total Q factor at Fs (dimensionless)
+    Qes:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: '1.24'
+          read_value: 1.24
+          read_precision: 0.005
+        manufacturer_product_page:
+          actual_reading: '1.24'
+          read_value: 1.24
+          read_precision: 0.005
+      corroboration: MATCH
+      definition: electrical Q factor at Fs (dimensionless)
+    Qms:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: '2.73'
+          read_value: 2.73
+          read_precision: 0.005
+        manufacturer_product_page:
+          actual_reading: '2.73'
+          read_value: 2.73
+          read_precision: 0.005
+      corroboration: MATCH
+      definition: mechanical Q factor at Fs (dimensionless)
+    Vas:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.006 liters
+          read_value: 6.0e-06
+          read_precision: 5.0e-07
+        manufacturer_product_page:
+          actual_reading: 0.006 liters
+          read_value: 6.0e-06
+          read_precision: 5.0e-07
+      corroboration: MATCH
+      definition: equivalent compliance volume — stored in m³, not litres
+    Sd:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 3.1 cm²
+          read_value: 0.00031
+          read_precision: 5.0e-06
+        manufacturer_product_page:
+          actual_reading: 3.1 cm²
+          read_value: 0.00031
+          read_precision: 5.0e-06
+      corroboration: MATCH
+      definition: effective piston area — stored in m², not cm²
+    BL:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 1.56 Tm
+          read_value: 1.56
+          read_precision: 0.005
+        manufacturer_product_page:
+          actual_reading: 1.56 Tm
+          read_value: 1.56
+          read_precision: 0.005
+      corroboration: MATCH
+      definition: motor force factor (T·m)
+    Mms:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.29 g
+          read_value: 0.00029
+          read_precision: 5.0e-06
+        manufacturer_product_page:
+          actual_reading: 0.42g
+          read_value: 0.00042
+          read_precision: 5.0e-06
+      corroboration: MISMATCH
+      definition: moving mass including air load — stored in kg, not g
+    Xmax:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.35 mm
+          read_value: 0.00035
+          read_precision: 5.0e-06
+        manufacturer_product_page:
+          actual_reading: 0.35 mm
+          read_value: 0.00035
+          read_precision: 5.0e-06
+      corroboration: MATCH
+      definition: one-way linear excursion limit — stored in m, not mm
+    SPL:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          note: 2.83V/1m
+          actual_reading: 81 dB @ 2.83V/1m
+          read_value: 81.0
+          read_precision: 0.5
+        manufacturer_product_page:
+          note: 2.83V/1m
+          actual_reading: 81 dB @ 2.83V/1m
+          read_value: 81.0
+          read_precision: 0.5
+      corroboration: MATCH
+      definition: sensitivity (dB)
+    Pe:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 2 watts
+          read_value: 2.0
+          read_precision: 0.5
+        manufacturer_product_page:
+          actual_reading: 2 watts
+          read_value: 2.0
+          read_precision: 0.5
+      corroboration: MATCH
+      definition: rated thermal power handling (W, IEC 268-5)
+    numVC:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '1'
+          read_value: 1.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: number of voice coils; 2 marks a dual-voice-coil driver
+    VCCon:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '1'
+          read_value: 1.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: dual-coil wiring the published T/S was measured in (1 = parallel,
+        2 = series)
+    Vcd:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 16 mm
+          read_value: 0.016
+          read_precision: 0.0005
+      corroboration: UNMATCHED
+      definition: voice coil diameter — stored in m, not mm
+    freq_low_hz:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '400'
+          read_value: 400.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: usable/recommended frequency range, low end (Hz)
+    freq_high_hz:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 20,000 Hz
+          read_value: 20000.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: usable/recommended frequency range, high end (Hz)
+    power_peak_W:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 4 watts
+          read_value: 4.0
+          read_precision: 0.5
+      corroboration: UNMATCHED
+      definition: short-term/peak power handling (W)
+    weight_kg:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: 0.05 lbs.
+          read_value: 0.0226796
+          read_precision: 0.00226796
+      corroboration: UNMATCHED
+      definition: net driver weight (kg)
+curves:
+  frequency_response:
+    value:
+      type: FILE
+      local_path: response_data/response.frd
+      data_format: frd
+    origin: manufacturer_datasheet
+    definition: the published SPL/impedance chart; the document is the origin's indexed
+      URL (no separate source_url copy); numeric digitisation pending
+  impedance:
+    value:
+      type: FILE
+      local_path: response_data/response.zma
+      data_format: zma
+    origin: manufacturer_datasheet
+    definition: the published impedance magnitude curve; the document is the origin's
+      indexed URL (no separate source_url copy); numeric digitisation pending
+scraper_meta:
+  scraper:
+    value: da_multi_method_extractor
+    definition: the vendor scraper/extraction method that produced this record
+  pdf_corroboration:
+    value:
+      pymupdf: 14
+      pymupdf4llm: 0
+      pypdf: 14
+    definition: the extract-stage HTML↔PDF field comparison record

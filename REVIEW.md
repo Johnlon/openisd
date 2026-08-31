@@ -357,7 +357,7 @@ get stuck" list above.
   `OpenISDSignal`'s `driverCount/wiring/seriesResistance_ohm/inputPower_W`; `circuitModel/
   tlPortModel/forceFlatResponse/splXmaxLimited/vcTempRise/alfaVC/driverAddedMass` ↔
   `OpenISDSimOptions` (exact field names); `tempK/humidityPct/pressurePa/
-  ignoreHumidityAndPressure` ↔ `OpenISDEnvironment` (exact field names); `fmin/fmax/N` ↔
+  useWinisdAirModel/useAppLevelAirEnvironment` ↔ `OpenISDEnvironment` (exact field names); `fmin/fmax/N` ↔
   `OpenISDSweepRange`'s `fmin_hz/fmax_hz/points`; `Vb/ventD/ventW/ventH/ventL/Fb/Frc/prFp/
   entered/Ql/Qa/Qp` ↔ `OpenISDBox`/vent/PR-alignment fields; `filters` ↔
   `OpenISDProject.filters` directly. Every `UiParams` field gets a home on the real domain

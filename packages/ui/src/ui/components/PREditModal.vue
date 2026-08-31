@@ -6,7 +6,7 @@ import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import { useApp } from '../../logic/app.js';
 
-const { prRepo } = useApp();
+const { myPassiveRadiators } = useApp();
 
 // PR "Edit" — a real popup (unlike the driver What-If, this doesn't need the graph
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
@@ -34,11 +34,11 @@ function setWinIsdQms(newQms: number) { project.value.setPrQms(newQms); }
 // template below reads the focused project's own getter directly (reactive via `project`) and
 // writes through its own setter directly.
 
-const prLib = ref(prRepo.list());
+const prLib = ref(myPassiveRadiators.list());
 const showPRLib = ref(false);
 function saveCurrentPR() {
   const name = (project.value.prName() || '').trim() || 'Custom PR';
-  prLib.value = prRepo.save(name, project.value.toUiParams());
+  prLib.value = myPassiveRadiators.save(name, project.value.toUiParams());
 }
 function loadPR(entry: PRLibEntry) {
   project.value.setPrName(entry.name);
@@ -49,7 +49,7 @@ function loadPR(entry: PRLibEntry) {
   project.value.setPrXmax_m(entry.prXmax);
   showPRLib.value = false;
 }
-function removePR(id: number) { prLib.value = prRepo.remove(id); }
+function removePR(id: number) { prLib.value = myPassiveRadiators.remove(id); }
 
 function close() { emit('close'); }
 </script>

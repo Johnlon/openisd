@@ -31,12 +31,19 @@ const scraped = <T,>(value: T) => ({ value, origin: 'scraped' as string });
  *  write the numbers 1 and 2 for the wiring and still compile, which kept eight tests green while
  *  the series path was unreachable. */
 function aDriver(engine: Engine, spec: Record<string, number | VoiceCoilWiring>): OpenISDDriver {
-  const woofer: Record<string, { value: number | VoiceCoilWiring; origin: string }> = {};
-  for (const [k, v] of Object.entries(spec)) woofer[k] = scraped(v);
+  // A spec entry states no value of its own: the number lives on the reading `origin` names.
+  // `VCCon` is the record's WIRING ENCODING — 1 parallel, 2 series — which is what the corpus
+  // stores and what the domain maps to the enum at the field boundary. Writing the enum's NAME
+  // here would build a record no scraper produces, and the fixture would stop being evidence.
+  const woofer: Record<string, { origin: string; readings: Record<string, { read_value: number }> }> = {};
+  for (const [k, v] of Object.entries(spec)) {
+    const read_value = typeof v === 'number' ? v : (v === VoiceCoilWiring.Series ? 2 : 1);
+    woofer[k] = { origin: 'scraped', readings: { scraped: { read_value } } };
+  }
   const result = driverFromConformingRecord({
     brand: scraped('Dayton'), model: scraped('RS225'), manufacturer: scraped('Dayton'),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
-    woofer,
+    specs: { woofer },
   }, engine);
   if (Array.isArray(result)) throw new Error(`fixture is not a valid driver: ${result.join(', ')}`);
   return result;
@@ -211,7 +218,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const P = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 100 };
 
     const mine = project.sweep(P);
-    const theirs = engine.sweep(project.driver.toEngineDriver().value!, 'sealed', P);
+    const theirs = engine.sweep(project.driver.toEngineDriver().value!, 'sealed', P).value!;
 
     expect(mine).not.toBeNull();
     expect(mine!.spl).toEqual(theirs.spl);
@@ -260,7 +267,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     };
     const mine = project.sweep(P);
     expect(mine).not.toBeNull();
-    expect(mine!.spl).toEqual(engine.sweep(project.driver.toEngineDriver().value!, 'box-passive-radiator', P).spl);
+    expect(mine!.spl).toEqual(engine.sweep(project.driver.toEngineDriver().value!, 'box-passive-radiator', P).value!.spl);
   });
 
   it('maxCurves() and its finiteness check come from the engine', () => {
@@ -320,13 +327,15 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 describe('C — the passive radiator and its box', () => {
   /** A conforming passive-radiator record. */
   function aRadiator(engine: Engine, spec: Record<string, number>) {
-    const section: Record<string, { value: number; origin: string }> = {};
-    for (const [k, v] of Object.entries(spec)) section[k] = scraped(v);
+    const section: Record<string, { origin: string; readings: Record<string, { read_value: number }> }> = {};
+    for (const [k, v] of Object.entries(spec)) {
+      section[k] = { origin: 'scraped', readings: { scraped: { read_value: v } } };
+    }
     const result = passiveRadiatorFromConformingRecord({
       brand: scraped('SB Acoustics'), model: scraped('SB23PACS'),
       manufacturer: scraped('SB Acoustics'), provided_by: scraped('test'),
       comment: scraped(''), added: scraped('2026-01-01'),
-      'passive-radiator': section,
+      specs: { 'passive-radiator': section },
     }, engine);
     if (Array.isArray(result)) throw new Error(`fixture is not a radiator: ${result.join(', ')}`);
     return result;

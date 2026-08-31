@@ -38,7 +38,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { Engine } from '../../engine/index.js';
+import { Engine, EngineQuantities } from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
@@ -47,7 +47,7 @@ const engine = new Engine();
 const BEYMA = { Fs: 29.0, Mms: 0.044, Cms: 0.000693, Rms: 2.4, BL: 10.9, Re: 6.5, Qes: 0.44, Qms: 3.3, Sd: 0.038 };
 
 const solve = (d: Record<string, number>) =>
-  engine.solveConsistencyGroup(d, { full: true }) as Record<string, number>;
+  engine.solveConsistencyGroup(d) as Record<string, number>;
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
@@ -78,13 +78,13 @@ const rel = (got: number, want: number): number => Math.abs(got - want) / Math.a
 describe('Rme — the two routes, and which one wins', () => {
   it('takes 2π·Fs·Mms/Qes (18.22124), NOT Bl²/Re (18.27846), when both are available', () => {
     const r = solve({ ...BEYMA });
-    assert.ok(Math.abs(r.Rme - 18.2212373908208) < 1e-9, `Rme = ${r.Rme}`);
-    assert.ok(Math.abs(r.Rme - 18.27846153846154) > 0.05, 'Rme must not have come from Bl²/Re');
+    assert.ok(Math.abs(r.Rme_kg_per_s - 18.2212373908208) < 1e-9, `Rme = ${r.Rme_kg_per_s}`);
+    assert.ok(Math.abs(r.Rme_kg_per_s - 18.27846153846154) > 0.05, 'Rme must not have come from Bl²/Re');
   });
 
   it('falls back to Bl²/Re when the motional route is short of an input', () => {
     const r = solve({ BL: BEYMA.BL, Re: BEYMA.Re });
-    assert.ok(Math.abs(r.Rme - 18.27846153846154) < 1e-9, `Rme = ${r.Rme}`);
+    assert.ok(Math.abs(r.Rme_kg_per_s - 18.27846153846154) < 1e-9, `Rme = ${r.Rme_kg_per_s}`);
   });
 
   it('is absent when neither route can be evaluated', () => {
@@ -106,33 +106,33 @@ describe('Mpow, gamma', () => {
   // bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
   it('Mpow is Bl/√Re, NOT √Rme — the two happen to agree on BEYMA, so this only pins the value', () => {
     const r = solve({ ...BEYMA });
-    assert.ok(Math.abs(r.Mpow - BEYMA.BL / Math.sqrt(BEYMA.Re)) < 1e-12, `Mpow = ${r.Mpow}`);
-    assert.ok(Math.abs(r.Mpow - 4.275331746012412) < 1e-9);
+    assert.ok(Math.abs(r.Mpow_N_per_sqrtW - BEYMA.BL / Math.sqrt(BEYMA.Re)) < 1e-12, `Mpow = ${r.Mpow_N_per_sqrtW}`);
+    assert.ok(Math.abs(r.Mpow_N_per_sqrtW - 4.275331746012412) < 1e-9);
   });
 
   it('Mpow = Bl/√Re disagrees with √Rme on a record whose stored Fs contradicts Mms·Cms', () => {
     // The `inconsistent-fs` discriminator, transcribed: Fs stored at 2×true, Bl=7.5, Re=6.4,
     // Qes=0.41220376440829154, Mms=0.0155 — WinISD's own Rme/Mpow pair for this record.
     const r = solve({ Fs: 74.4, Mms: 0.0155, Qes: 0.41220376440829154, BL: 7.5, Re: 6.4 });
-    assert.ok(Math.abs(r.Rme - 17.578125) < 1e-9, `Rme = ${r.Rme}`);
-    assert.ok(Math.abs(r.Mpow - 2.96463530640786) < 1e-9, `Mpow = ${r.Mpow}`);
-    assert.ok(Math.abs(r.Mpow - Math.sqrt(r.Rme)) > 1, '√Rme must NOT be the answer here');
+    assert.ok(Math.abs(r.Rme_kg_per_s - 17.578125) < 1e-9, `Rme = ${r.Rme_kg_per_s}`);
+    assert.ok(Math.abs(r.Mpow_N_per_sqrtW - 2.96463530640786) < 1e-9, `Mpow = ${r.Mpow_N_per_sqrtW}`);
+    assert.ok(Math.abs(r.Mpow_N_per_sqrtW - Math.sqrt(r.Rme_kg_per_s)) > 1, '√Rme must NOT be the answer here');
   });
 
   it('falls back to √Rme when Bl is absent', () => {
     const r = solve({ Fs: BEYMA.Fs, Mms: BEYMA.Mms, Qes: BEYMA.Qes });
-    assert.ok(Math.abs(r.Mpow - Math.sqrt(r.Rme)) < 1e-12, `Mpow = ${r.Mpow}, √Rme = ${Math.sqrt(r.Rme)}`);
+    assert.ok(Math.abs(r.Mpow_N_per_sqrtW - Math.sqrt(r.Rme_kg_per_s)) < 1e-12, `Mpow = ${r.Mpow_N_per_sqrtW}, √Rme = ${Math.sqrt(r.Rme_kg_per_s)}`);
   });
 
   it('gamma = Bl/Mms', () => {
     const r = solve({ ...BEYMA });
-    assert.ok(Math.abs(r.gamma - 10.9 / 0.044) < 1e-9, `gamma = ${r.gamma}`);
+    assert.ok(Math.abs(r.gamma_m_per_s2_A - 10.9 / 0.044) < 1e-9, `gamma = ${r.gamma_m_per_s2_A}`);
   });
 
   it('neither overwrites an entered value', () => {
     const r = solve({ ...BEYMA, Mpow: 7, gamma: 11 });
-    assert.equal(r.Mpow, 7);
-    assert.equal(r.gamma, 11);
+    assert.equal(r.Mpow_N_per_sqrtW, 7);
+    assert.equal(r.gamma_m_per_s2_A, 11);
   });
 });
 
@@ -150,16 +150,16 @@ describe('SPLmax and USPL — both offsets from the ONE reference base', () => {
   // bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md.
   it('SPLmax = SPLref + 10·log₁₀(Pe) − 3 dB', () => {
     const r = solve({ ...FULL });
-    assert.ok(r.SPLref > 0, 'the reference sensitivity must have been derived first');
-    assert.ok(Math.abs((r.SPLmax - r.SPLref) - (10 * Math.log10(300) - 3)) < 1e-12, `SPLmax = ${r.SPLmax}`);
+    assert.ok(r.SPLref_dB > 0, 'the reference sensitivity must have been derived first');
+    assert.ok(Math.abs((r.SPLmax_dB - r.SPLref_dB) - (10 * Math.log10(300) - 3)) < 1e-12, `SPLmax = ${r.SPLmax_dB}`);
   });
 
   it('USPL = SPLref + 10·log₁₀(2.83²/Re) — 2.83² = 8.0089, NOT the bare 8', () => {
     const r = solve({ ...FULL });
-    assert.ok(Math.abs((r.USPL - r.SPLref) - 10 * Math.log10(2.83 * 2.83 / BEYMA.Re)) < 1e-12, `USPL = ${r.USPL}`);
+    assert.ok(Math.abs((r.USPL_dB - r.SPLref_dB) - 10 * Math.log10(2.83 * 2.83 / BEYMA.Re)) < 1e-12, `USPL = ${r.USPL_dB}`);
     // The two constants are close enough to look interchangeable but are not: on this
     // record the bare-8 formula would be off by 0.0048 dB, well outside float noise.
-    assert.ok(Math.abs((r.USPL - r.SPLref) - 10 * Math.log10(8 / BEYMA.Re)) > 1e-4,
+    assert.ok(Math.abs((r.USPL_dB - r.SPLref_dB) - 10 * Math.log10(8 / BEYMA.Re)) > 1e-4,
       'USPL must not have come from the bare-8 formula');
   });
 
@@ -226,8 +226,8 @@ describe('SPLmaxLF — the excursion-limited 20 Hz SPL, at the record\'s own air
   it('reproduces the WinISD-authored file at WinISD\'s own ρ₀', () => {
     const r = solve({ ...ORACLE_INPUTS });
     assert.equal(ORACLE.roo, 1.20095217714682, 'the oracle must carry WinISD\'s own air density');
-    assert.ok(rel(r.SPLmaxLF, ORACLE.SPLmaxLF) < 1e-12,
-      `SPLmaxLF = ${r.SPLmaxLF}, WinISD wrote ${ORACLE.SPLmaxLF} (relative ${rel(r.SPLmaxLF, ORACLE.SPLmaxLF)})`);
+    assert.ok(rel(r.SPLmaxLF_dB, ORACLE.SPLmaxLF) < 1e-12,
+      `SPLmaxLF = ${r.SPLmaxLF_dB}, WinISD wrote ${ORACLE.SPLmaxLF} (relative ${rel(r.SPLmaxLF_dB, ORACLE.SPLmaxLF)})`);
   });
 
   it('tracks the ρ₀ the record carries — it is not a hardcoded 1.20095', () => {
@@ -259,9 +259,9 @@ describe('SPLmaxLF — the excursion-limited 20 Hz SPL, at the record\'s own air
 describe('Mcost — Rme scaled by how far the coil leaves the gap', () => {
   it('reproduces the WinISD-authored file, on the Rme that precedence produced', () => {
     const r = solve({ ...ORACLE_INPUTS });
-    assert.ok(rel(r.Rme, ORACLE.Rme) < 1e-12, `Rme = ${r.Rme}, WinISD wrote ${ORACLE.Rme}`);
-    assert.ok(rel(r.Mcost, ORACLE.Mcost) < 1e-12,
-      `Mcost = ${r.Mcost}, WinISD wrote ${ORACLE.Mcost} (relative ${rel(r.Mcost, ORACLE.Mcost)})`);
+    assert.ok(rel(r.Rme_kg_per_s, ORACLE.Rme) < 1e-12, `Rme = ${r.Rme_kg_per_s}, WinISD wrote ${ORACLE.Rme}`);
+    assert.ok(rel(r.Mcost_kg_per_s, ORACLE.Mcost) < 1e-12,
+      `Mcost = ${r.Mcost_kg_per_s}, WinISD wrote ${ORACLE.Mcost} (relative ${rel(r.Mcost_kg_per_s, ORACLE.Mcost)})`);
   });
 
   it('reads Xmax itself, not the excursion the gap geometry implies', () => {
@@ -273,14 +273,14 @@ describe('Mcost — Rme scaled by how far the coil leaves the gap', () => {
       Qes: 0.19251724527664, Re: 14.1525718647402, BL: 6, Sd: 0.022,
       roo: 1.20095217714682, c: 343.684120962153,
     });
-    assert.ok(rel(r.Mcost, 6.35926818532726) < 1e-12, `Mcost = ${r.Mcost}, WinISD gave 6.35926818532726`);
-    const rival = r.Rme * (0.012 + 0.006) / (2 * 0.006);
-    assert.ok(rel(r.Mcost, rival) > 0.2, `Mcost must not have come from Rme·(Hc+Hg)/(2·min) (${rival})`);
+    assert.ok(rel(r.Mcost_kg_per_s, 6.35926818532726) < 1e-12, `Mcost = ${r.Mcost_kg_per_s}, WinISD gave 6.35926818532726`);
+    const rival = r.Rme_kg_per_s * (0.012 + 0.006) / (2 * 0.006);
+    assert.ok(rel(r.Mcost_kg_per_s, rival) > 0.2, `Mcost must not have come from Rme·(Hc+Hg)/(2·min) (${rival})`);
   });
 
   it('reduces to Rme when the coil never leaves the gap', () => {
     const r = solve({ Fs: 40, Mms: 0.002, Qes: 0.4, Xmax: 0, Hc: 0.012, Hg: 0.006 });
-    assert.equal(r.Mcost, r.Rme);
+    assert.equal(r.Mcost_kg_per_s, r.Rme_kg_per_s);
   });
 
   it('is ABSENT — not 0, not Infinity — when min(Hc, Hg) is zero', () => {
@@ -290,8 +290,8 @@ describe('Mcost — Rme scaled by how far the coil leaves the gap', () => {
     const gaps: Record<string, number>[] = [{ Hc: 0, Hg: 0 }, { Hc: 0.012, Hg: 0 }, { Hc: 0, Hg: 0.006 }, {}];
     for (const gap of gaps) {
       const r = solve({ Fs: 40, Mms: 0.002, Qes: 0.4, Xmax: 0.005, ...gap });
-      assert.ok(r.Rme > 0, 'the Rme this scales must have been derived');
-      assert.equal(r.Mcost, undefined, `Mcost = ${r.Mcost} for ${JSON.stringify(gap)}`);
+      assert.ok(r.Rme_kg_per_s > 0, 'the Rme this scales must have been derived');
+      assert.equal(r.Mcost_kg_per_s, undefined, `Mcost = ${r.Mcost_kg_per_s} for ${JSON.stringify(gap)}`);
     }
   });
 
@@ -304,18 +304,12 @@ describe('Xmax route precedence is on the RESULT, not the route (QO39 probe case
   it('an equal overhang is not an excursion limit — it falls through to Vd/Sd', () => {
     // Hc === Hg makes abs(Hc-Hg)/2 zero. WinISD does not accept that as Xmax; it uses the
     // other route. Expected value is independent of the code: 140e-6 / 0.0095.
-    const r = engine.solveConsistencyGroup(
-      { Hc: 0.012, Hg: 0.012, Vd: 140e-6, Sd: 0.0095 } as Record<string, number>,
-      { full: true },
-    ) as Record<string, number>;
-    assert.ok(Math.abs(r.Xmax - 140e-6 / 0.0095) < 1e-15, `Xmax was ${r.Xmax}`);
+    const r = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Hc_m: 0.012, Hg_m: 0.012, Vd_m3: 140e-6, Sd_m2: 0.0095 })) as Record<string, number>;
+    assert.ok(Math.abs(r.Xmax_m - 140e-6 / 0.0095) < 1e-15, `Xmax was ${r.Xmax_m}`);
   });
 
   it('an unequal overhang wins over Vd/Sd', () => {
-    const r = engine.solveConsistencyGroup(
-      { Hc: 0.0176, Hg: 0.006, Vd: 140e-6, Sd: 0.0095 } as Record<string, number>,
-      { full: true },
-    ) as Record<string, number>;
-    assert.ok(Math.abs(r.Xmax - 0.0058) < 1e-15, `Xmax was ${r.Xmax}`);
+    const r = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Hc_m: 0.0176, Hg_m: 0.006, Vd_m3: 140e-6, Sd_m2: 0.0095 })) as Record<string, number>;
+    assert.ok(Math.abs(r.Xmax_m - 0.0058) < 1e-15, `Xmax was ${r.Xmax_m}`);
   });
 });

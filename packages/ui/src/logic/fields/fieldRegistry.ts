@@ -267,14 +267,14 @@ const FIELDS: FieldSpec[] = [
     id: 'advSoundVelocity', label: 'Sound velocity', pane: 'Advanced', kind: 'number', unit: 'm/s', precision: 2, min: 0, max: 1000,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'c = √(γ·p/ρ), γ = 1.4', dependsOn: ['advTemp', 'advHumidity', 'advPressure'],
-    description: 'Speed of sound, calculated from this pane\'s temperature, humidity and pressure. WinISD shows 2 dp (343.68 m/s). Ticking [ignoreHumidityAndPressure] answers from WinISD\'s own model instead, fed by the app-level Options environment rather than this pane. Both models live in engine air.ts; this description does not restate them.',
+    description: 'Speed of sound, calculated from this pane\'s temperature, humidity and pressure. WinISD shows 2 dp (343.68 m/s). Ticking [useWinisdAirModel] answers from WinISD\'s own model instead, fed by the app-level Options environment rather than this pane. Both models live in engine air.ts; this description does not restate them.',
   },
   {
     id: 'advAirDensity', label: 'Air density', pane: 'Advanced', kind: 'number', unit: 'kg/m³', precision: 5, min: 0, max: 10,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'ρ = p·Ma/(R·T)·[1 − xv(1 − Mv/Ma)] — CIPM-2007 moist air',
     dependsOn: ['advTemp', 'advHumidity', 'advPressure'],
-    description: 'Air density, calculated from this pane\'s temperature, humidity and pressure. WinISD shows 5 dp (1.20095 kg/m³). Ticking [ignoreHumidityAndPressure] answers from WinISD\'s own model instead, fed by the app-level Options environment rather than this pane. Both models live in engine air.ts.',
+    description: 'Air density, calculated from this pane\'s temperature, humidity and pressure. WinISD shows 5 dp (1.20095 kg/m³). Ticking [useWinisdAirModel] answers from WinISD\'s own model instead, fed by the app-level Options environment rather than this pane. Both models live in engine air.ts.',
   },
 
   // ---- Advanced pane: the five simulation-fidelity toggles --------------------------------
@@ -311,9 +311,14 @@ const FIELDS: FieldSpec[] = [
     description: 'Plot the SPL chart with the drive backed off wherever peak excursion would exceed Xmax, and shade the limited region. Xmax only — the separate Maximum SPL chart keeps applying the Pe thermal limit as well. The unclamped curve still feeds the transfer-function chart, the F3/F6/F10 read-outs and every compare trace (engine sweep().splXlim is its own array). WinISD: Advanced → "SPL graph is Xmax limited"; no known .wpr key.',
   },
   {
-    id: 'ignoreHumidityAndPressure', label: 'Ignore humidity and air pressure (as WinISD does)', pane: 'Advanced', kind: 'toggle', unit: '',
+    id: 'useWinisdAirModel', label: 'Use WinISD air model', pane: 'Advanced', kind: 'toggle', unit: '',
     provenance: 'entered', appliesTo: 'all',
-    description: 'Use WinISD\'s air model, or OpenISD\'s own. DEFAULTS ON (John, 2026-08-28), so a new project agrees with WinISD out of the box. ON: WinISD\'s model, fed from the app-level Options environment — WinISD stores T/p/phi in the .wpr [Box] section and reads NONE of them, taking all three from its own Options dialog (WINISD_SCHEMA.md §12/§13). OFF: CIPM-2007, the metrological standard, using this project\'s own [advHumidity]/[advPressure]. NO AUDIBLE DIFFERENCE EITHER WAY — worst case over 0-40 °C, 0-100 % RH and 95-105 kPa is 0.003 dB of SPL with F3 unmoved (winisd_research FINDING-008); measurable with instruments, a thousandth of what a person can hear. Offered for completeness and interest. Neither setting discards an input: all three still affect the answer. PER PROJECT, because T/p/phi are per project in WinISD too. The models live in engine air.ts.',
+    description: 'Choose the air equation set. ON: WinISD parity model, matching WinISD’s own air calculations for the same environment. OFF: OpenISD’s standard CIPM-based physical model, which uses the project’s own temperature, humidity and pressure values. The difference is small but measurable, and the choice is kept per project so the design can match WinISD or the standard physical model. The model lives in engine air.ts.',
+  },
+  {
+    id: 'useAppLevelAirEnvironment', label: 'Use app-level environment for WinISD parity', pane: 'Advanced', kind: 'toggle', unit: '',
+    provenance: 'entered', appliesTo: 'all',
+    description: 'Use the app-level Options environment for T/RH/p instead of this project’s own Advanced-pane values, matching real WinISD’s app-level source of truth. Independent of [useWinisdAirModel]: this setting picks the environment SOURCE, that one picks the FORMULA, and either can be on or off regardless of the other.',
   },
 
   // ============================ DRIVER EDITOR — T/S (Parameters tab) ============================

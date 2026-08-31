@@ -22,15 +22,16 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2223
  */
 
-import { END_CORRECTION, T_REF_K, RH_REF_PCT, P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
-import type { EngineDriver, SweepParams, SweepResult } from './types.js';
+import { END_CORRECTION, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
+import type { SweepParams, SweepResult } from './types.js';
 
 // None of the box/vent/PR geometry callers below carry a project environment (T/RH/AP) --
 // computed live at the reference environment, same basis `driver.ts`'s fallback uses. Never
 // a stored constant.
-const refRho = (): number => moistAirDensity(T_REF_K, RH_REF_PCT, P_REF_PA);
-const refC = (): number => moistAirSoundVelocity(T_REF_K, RH_REF_PCT, P_REF_PA);
+const refRho = (): number => moistAirDensity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
+const refC = (): number => moistAirSoundVelocity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
 
+// JL: FIXME - suspect - why not the params from the DS or why specicla pr params needed for this
 /** The subset of params the PR helpers read — lets callers pass any params object
  *  (engine SweepParams, or the UI's UiParams/SyncedParams) that carries these fields. */
 type PRParams = Pick<SweepParams, 'Vb' | 'prMmd' | 'prMadd' | 'prSd' | 'prCms'>;
@@ -43,16 +44,16 @@ type PRParams = Pick<SweepParams, 'Vb' | 'prMmd' | 'prMadd' | 'prSd' | 'prCms'>;
  * EBP = Fs / Qes.  EBP < 50 → sealed preferred; EBP > 100 → vented preferred.
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function ebp(drv: Pick<EngineDriver, 'Fs' | 'Qes'>): number { return drv.Fs / drv.Qes; }
+export function ebp(Fs_hz: number, Qes: number): number { return Fs_hz / Qes; }
 
 /**
  * Sealed box volume for a target system Q (Qtc).
  * Qtc = Qts · √(1 + Vas/Vb)  →  Vb = Vas / ((Qtc/Qts)² − 1)
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  */
-export function sealedFromQtc(drv: Pick<EngineDriver, 'Qts' | 'Vas'>, Qtc: number): number | null {
-  const ratio = (Qtc / drv.Qts) ** 2 - 1;
-  return ratio <= 0 ? null : drv.Vas / ratio;
+export function sealedFromQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
+  const ratio = (Qtc / Qts) ** 2 - 1;
+  return ratio <= 0 ? null : Vas_m3 / ratio;
 }
 
 /**
@@ -61,9 +62,9 @@ export function sealedFromQtc(drv: Pick<EngineDriver, 'Qts' | 'Vas'>, Qtc: numbe
  * fb = Fs · √(Vas / Vb)
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  */
-export function ventedAlignment(drv: Pick<EngineDriver, 'Fs' | 'Qts' | 'Vas'>): { Vb: number; Fb: number } {
-  const Vb = 15 * drv.Vas * Math.pow(drv.Qts, 2.87);
-  return { Vb, Fb: drv.Fs * Math.pow(drv.Vas / Vb, 0.5) };
+export function ventedAlignment(Fs_hz: number, Qts: number, Vas_m3: number): { Vb: number; Fb: number } {
+  const Vb = 15 * Vas_m3 * Math.pow(Qts, 2.87);
+  return { Vb, Fb: Fs_hz * Math.pow(Vas_m3 / Vb, 0.5) };
 }
 
 /**

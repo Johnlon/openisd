@@ -31,17 +31,20 @@
 
 import { referenceEfficiency } from './efficiency.js';
 import { solveConsistencyGroup, driverC, driverRho } from './driver.js';
+import { EngineQuantities } from './engineQuantities.js';
 import { dvolFromDims } from './dvolRelation.js';
 
 /** Field values by name, SI, as the solver produces them. */
-type Values = Readonly<Record<string, number>>;
+type Values = Readonly<EngineQuantities>;
 
 /** One §4 group: every member, and the relation that predicts `target` from the others. */
 interface Relation {
   readonly formula: string;
-  readonly target: string;
-  readonly fields: readonly string[];
-  readonly predict: (v: Values) => number;
+  readonly target: keyof EngineQuantities;
+  readonly fields: readonly (keyof EngineQuantities)[];
+  /** Reads members through `g`, which the caller only supplies once every member of
+   *  `fields` has been checked usable — so a formula can never read an absent quantity. */
+  readonly predict: (g: (f: keyof EngineQuantities) => number, q: Values) => number;
 }
 
 /**
@@ -52,9 +55,9 @@ export interface ConsistencyIssue {
   /** The relation as WINISD_SCHEMA.md §4 states it. */
   readonly formula: string;
   /** Every member of the group. */
-  readonly fields: readonly string[];
+  readonly fields: readonly (keyof EngineQuantities)[];
   /** The member the relation predicts. */
-  readonly target: string;
+  readonly target: keyof EngineQuantities;
   /** What the other members imply for `target`, SI. */
   readonly expected: number;
   /** What `target` actually holds, SI. */
@@ -70,59 +73,57 @@ const TAU = 2 * Math.PI;
 function relations(): readonly Relation[] {
   return [
   // §4 row 1
-  { formula: 'Rms = 2π·Fs·Mms/Qms', target: 'Rms', fields: ['Rms', 'Fs', 'Mms', 'Qms'],
-    predict: v => TAU * v.Fs * v.Mms / v.Qms },
+  { formula: 'Rms = 2π·Fs·Mms/Qms', target: 'Rms_kg_per_s', fields: ['Rms_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qms'],
+    predict: (g, q) => TAU * g('Fs_hz') * g('Mms_kg') / g('Qms') },
   // §4 row 2
-  { formula: 'Qes = 2π·Fs·Mms·Re/Bl²', target: 'Qes', fields: ['Qes', 'BL', 'Fs', 'Mms', 'Re'],
-    predict: v => TAU * v.Fs * v.Mms * v.Re / (v.BL * v.BL) },
+  { formula: 'Qes = 2π·Fs·Mms·Re/Bl²', target: 'Qes', fields: ['Qes', 'BL_Tm', 'Fs_hz', 'Mms_kg', 'Re_ohm'],
+    predict: (g, q) => TAU * g('Fs_hz') * g('Mms_kg') * g('Re_ohm') / (g('BL_Tm') * g('BL_Tm')) },
   // §4 row 3
-  { formula: 'Rme = Bl²/Re', target: 'Rme', fields: ['Rme', 'BL', 'Re'],
-    predict: v => v.BL * v.BL / v.Re },
+  { formula: 'Rme = Bl²/Re', target: 'Rme_kg_per_s', fields: ['Rme_kg_per_s', 'BL_Tm', 'Re_ohm'],
+    predict: (g, q) => g('BL_Tm') * g('BL_Tm') / g('Re_ohm') },
   // §4 row 4
-  { formula: 'Rme = 2π·Fs·Mms/Qes', target: 'Rme', fields: ['Rme', 'Fs', 'Mms', 'Qes'],
-    predict: v => TAU * v.Fs * v.Mms / v.Qes },
+  { formula: 'Rme = 2π·Fs·Mms/Qes', target: 'Rme_kg_per_s', fields: ['Rme_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qes'],
+    predict: (g, q) => TAU * g('Fs_hz') * g('Mms_kg') / g('Qes') },
   // §4 row 5
   { formula: 'Qts = Qes·Qms/(Qes+Qms)', target: 'Qts', fields: ['Qts', 'Qes', 'Qms'],
-    predict: v => v.Qes * v.Qms / (v.Qes + v.Qms) },
+    predict: (g, q) => g('Qes') * g('Qms') / (g('Qes') + g('Qms')) },
   // §4 row 6
-  { formula: 'Dd = 2·√(Sd/π)', target: 'Dd', fields: ['Dd', 'Sd'],
-    predict: v => 2 * Math.sqrt(v.Sd / Math.PI) },
+  { formula: 'Dd = 2·√(Sd/π)', target: 'Dd_m', fields: ['Dd_m', 'Sd_m2'],
+    predict: (g, q) => 2 * Math.sqrt(g('Sd_m2') / Math.PI) },
   // §4 row 8
-  { formula: 'Mpow = Bl/√Re', target: 'Mpow', fields: ['Mpow', 'BL', 'Re'],
-    predict: v => v.BL / Math.sqrt(v.Re) },
+  { formula: 'Mpow = Bl/√Re', target: 'Mpow_N_per_sqrtW', fields: ['Mpow_N_per_sqrtW', 'BL_Tm', 'Re_ohm'],
+    predict: (g, q) => g('BL_Tm') / Math.sqrt(g('Re_ohm')) },
   // §4 row 9
-  { formula: 'Mpow = √Rme', target: 'Mpow', fields: ['Mpow', 'Rme'],
-    predict: v => Math.sqrt(v.Rme) },
-  // §4 row 10 -- `v.roo`/`v.c` are NOT guaranteed present: `checkConsistency` below calls
-  // `solveConsistencyGroup` on the classic (non-full) path, which never backfills them.
-  // Resolve them the same way `driver.ts` itself does, directly.
-  { formula: 'Vas = ρ₀·c²·Sd²·Cms', target: 'Vas', fields: ['Vas', 'Cms', 'Sd'],
-    predict: v => driverRho(v) * driverC(v) * driverC(v) * v.Sd * v.Sd * v.Cms },
+  { formula: 'Mpow = √Rme', target: 'Mpow_N_per_sqrtW', fields: ['Mpow_N_per_sqrtW', 'Rme_kg_per_s'],
+    predict: (g, q) => Math.sqrt(g('Rme_kg_per_s')) },
+  // §4 row 10 -- `g('roo_kg_per_m3')`/`g('c_m_per_s')` are NOT guaranteed present: `checkConsistency` below calls
+  { formula: 'Vas = ρ₀·c²·Sd²·Cms', target: 'Vas_m3', fields: ['Vas_m3', 'Cms_m_per_N', 'Sd_m2'],
+    predict: (g, q) => driverRho(q) * driverC(q) * driverC(q) * g('Sd_m2') * g('Sd_m2') * g('Cms_m_per_N') },
   // §4 row 11
-  { formula: 'Fs = 1/(2π·√(Mms·Cms))', target: 'Fs', fields: ['Fs', 'Mms', 'Cms'],
-    predict: v => 1 / (TAU * Math.sqrt(v.Mms * v.Cms)) },
+  { formula: 'Fs = 1/(2π·√(Mms·Cms))', target: 'Fs_hz', fields: ['Fs_hz', 'Mms_kg', 'Cms_m_per_N'],
+    predict: (g, q) => 1 / (TAU * Math.sqrt(g('Mms_kg') * g('Cms_m_per_N'))) },
   // §4 row 13
-  { formula: 'gamma = Bl/Mms', target: 'gamma', fields: ['gamma', 'BL', 'Mms'],
-    predict: v => v.BL / v.Mms },
+  { formula: 'gamma = Bl/Mms', target: 'gamma_m_per_s2_A', fields: ['gamma_m_per_s2_A', 'BL_Tm', 'Mms_kg'],
+    predict: (g, q) => g('BL_Tm') / g('Mms_kg') },
   // §4 row 20
-  { formula: 'Vd = Sd·Xmax', target: 'Vd', fields: ['Vd', 'Sd', 'Xmax'],
-    predict: v => v.Sd * v.Xmax },
+  { formula: 'Vd = Sd·Xmax', target: 'Vd_m3', fields: ['Vd_m3', 'Sd_m2', 'Xmax_m'],
+    predict: (g, q) => g('Sd_m2') * g('Xmax_m') },
   // §4 row 12 (BUG_20260821): EBP against the driver's own Fs/Qes — the same route
   // driver.ts rel 12 derives Fs from (Fs = EBP·Qes), stated in EBP-target form.
-  { formula: 'EBP = Fs/Qes', target: 'EBP', fields: ['EBP', 'Fs', 'Qes'],
-    predict: v => v.Fs / v.Qes },
+  { formula: 'EBP = Fs/Qes', target: 'EBP_hz', fields: ['EBP_hz', 'Fs_hz', 'Qes'],
+    predict: (g, q) => g('Fs_hz') / g('Qes') },
   // §4 rows 14-18's η₀ core (D18): the reference-efficiency route WinISD itself uses —
   // verified against real WinISD's own saved `no` to 0.000000% (winisd_research
   // scripts/probe_rme_beyma.py). `c` resolves the same way row 10 resolves air.
-  { formula: 'no = (4π²/c³)·Fs³·Vas/Qes', target: 'no', fields: ['no', 'Fs', 'Vas', 'Qes'],
-    predict: v => referenceEfficiency(v.Fs, v.Vas, v.Qes, driverC(v)) },
+  { formula: 'no = (4π²/c³)·Fs³·Vas/Qes', target: 'no', fields: ['no', 'Fs_hz', 'Vas_m3', 'Qes'],
+    predict: (g, q) => referenceEfficiency(g('Fs_hz'), g('Vas_m3'), g('Qes'), driverC(q)) },
   // §4 rel-25 (WINISD_SCHEMA.md §3.10.1): the truncated-cone-plus-cylinder geometry lock.
   // Reuses dvolFromDims's own domain guards (all five inputs positive, Depth > MagDepth) —
   // a degenerate geometry returns null, mapped to NaN so the `isFinite(expected)` check below
   // skips it exactly like any other unpredictable relation, never a junk `expected`.
   { formula: 'DVol = (π/4)·[ (Dd²+Dd·Vcd+Vcd²)·(Depth−MagDepth)/3 + Magnet²·MagDepth ]',
-    target: 'DVol', fields: ['DVol', 'Dd', 'Vcd', 'Depth', 'MagDepth', 'Magnet'],
-    predict: v => dvolFromDims({ Dd: v.Dd, Vcd: v.Vcd, Depth: v.Depth, MagDepth: v.MagDepth, Magnet: v.Magnet }) ?? NaN },
+    target: 'DVol_m3', fields: ['DVol_m3', 'Dd_m', 'Vcd_m', 'Depth_m', 'MagDepth_m', 'Magnet_m'],
+    predict: (g, q) => dvolFromDims({ Dd: g('Dd_m'), Vcd: g('Vcd_m'), Depth: g('Depth_m'), MagDepth: g('MagDepth_m'), Magnet: g('Magnet_m') }) ?? NaN },
   ];
 }
 
@@ -181,40 +182,46 @@ const FLOAT_NOISE = 1e-9;
  * Driver ADT hands `solveConsistencyGroup`.
  */
 export function checkConsistency(entered: Values): ConsistencyIssue[] {
-  const resolved = solveConsistencyGroup(entered) as Record<string, number>;
+  const resolved = solveConsistencyGroup(entered);
 
-  const usable = (x: number | undefined): boolean => typeof x === 'number' && isFinite(x) && x > 0;
+  const usable = (x: number | undefined): x is number => typeof x === 'number' && isFinite(x) && x > 0;
 
   // Entered fields carry their own literal's precision; computed fields start at the float
   // floor and accumulate however far the entered roundings can move them.
-  const delta: Record<string, number> = {};
-  for (const k of Object.keys(resolved)) {
-    if (!usable(resolved[k])) continue;
-    delta[k] = k in entered ? halfUlp(resolved[k]) : Math.abs(resolved[k]) * FLOAT_NOISE;
+  const delta: Partial<Record<keyof EngineQuantities, number>> = {};
+  for (const k of EngineQuantities.NAMES) {
+    const v = resolved[k];
+    if (!usable(v)) continue;
+    delta[k] = entered[k] !== undefined ? halfUlp(v) : Math.abs(v) * FLOAT_NOISE;
   }
-  for (const k of Object.keys(entered)) {
-    if (!(delta[k] > 0)) continue;
-    const bumped = solveConsistencyGroup({ ...entered, [k]: entered[k] + delta[k] }) as Record<string, number>;
-    for (const j of Object.keys(delta)) {
-      if (j in entered) continue;
-      if (usable(bumped[j])) delta[j] += Math.abs(bumped[j] - resolved[j]);
+  for (const k of EngineQuantities.NAMES) {
+    if (entered[k] === undefined || !(delta[k]! > 0)) continue;
+    const bumped = solveConsistencyGroup(
+      Object.assign(new EngineQuantities(), entered, { [k]: entered[k]! + delta[k]! }));
+    for (const j of EngineQuantities.NAMES) {
+      if (entered[j] !== undefined || delta[j] === undefined) continue;
+      const b = bumped[j];
+      if (usable(b)) delta[j]! += Math.abs(b - resolved[j]!);
     }
   }
 
   const issues: ConsistencyIssue[] = [];
   for (const rel of relations()) {
     if (!rel.fields.every(f => usable(resolved[f]))) continue;
-    const expected = rel.predict(resolved);
+    const expected = rel.predict(f => resolved[f]!, resolved);
     if (!isFinite(expected)) continue;
 
-    let tolerance = delta[rel.target];
+    const actual = resolved[rel.target];
+    if (!usable(actual)) continue;
+
+    let tolerance = delta[rel.target] ?? 0;
     for (const f of rel.fields) {
-      if (f === rel.target || !(delta[f] > 0)) continue;
-      const moved = rel.predict({ ...resolved, [f]: resolved[f] + delta[f] });
+      const df = delta[f];
+      if (f === rel.target || df === undefined || !(df > 0)) continue;
+      const moved = rel.predict(j => (j === f ? resolved[f]! + df : resolved[j]!), resolved);
       if (isFinite(moved)) tolerance += Math.abs(moved - expected);
     }
 
-    const actual = resolved[rel.target];
     const residual = Math.abs(expected - actual);
     if (residual > tolerance) {
       issues.push({ formula: rel.formula, fields: rel.fields, target: rel.target,
