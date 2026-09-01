@@ -15,7 +15,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine, EngineQuantities } from '../../engine/index.js';
+import { Engine } from '../../engine/index.js';
 import type { SimulatableBoxType, SweepParams } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
@@ -65,7 +65,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   });
 
   it('adding the second Q makes the same driver derive — the guard rejects the gap, not the driver', () => {
-    const { value } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...VAS_AND_QTS_ONLY, Qms: 7.0 }));
+    const { value } = engine.solveConsistencyGroup({ ...VAS_AND_QTS_ONLY, Qms: 7.0 });
     assert.ok(value, 'Qts + Qms is two of three: the driver must now derive');
     assert.ok(Number.isFinite(value.Qes) && value.Qes > 0, 'Qes must be derived as a finite positive number');
   });
@@ -73,13 +73,13 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   it('Qms equal to Qts is rejected instead of deriving Qes = Infinity', () => {
     // Qes = Qts·Qms/(Qms−Qts): equal values divide by zero. Infinity here would go on to
     // make Bl = √(2π·Fs·Mms·Re/Qes) = 0 and a flat −200 dB sweep with no error at all.
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...VAS_AND_QTS_ONLY, Qms: 0.38 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...VAS_AND_QTS_ONLY, Qms: 0.38 });
     assert.equal(value, null, 'Qms == Qts must block');
     assert.ok(errorFields(errors).includes('Qms'), 'the error must name Qms');
   });
 
   it('Qms below Qts is rejected — the derived Qes would be negative, not merely large', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...VAS_AND_QTS_ONLY, Qms: 0.2 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...VAS_AND_QTS_ONLY, Qms: 0.2 });
     assert.equal(value, null, 'Qms < Qts must block');
     assert.ok(errorFields(errors).includes('Qms'), 'the error must name Qms');
   });
@@ -87,7 +87,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   it('an inconsistent Q pair is rejected even when the third Q is also supplied', () => {
     // With all three present nothing divides, so the old guard let this through — but the
     // trio is still inconsistent: Qts is the PARALLEL combination, so Qts < min(Qes, Qms).
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...RAW_COMPLETE, Qts: 0.5, Qes: 0.4, Qms: 0.5 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...RAW_COMPLETE, Qts: 0.5, Qes: 0.4, Qms: 0.5 });
     assert.equal(value, null, 'Qms == Qts must block whether or not Qes is present');
     assert.ok(errorFields(errors).includes('Qms'), 'the error must name Qms');
   });
@@ -95,7 +95,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   it('a Q of Infinity is not accepted as a present Q parameter', () => {
     // `Infinity > 0` is true, so a bare positivity test counts it as supplied. It then
     // derives Bl = 0 and a silent flat curve — the exact failure the guard exists to stop.
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...VAS_AND_QTS_ONLY, Qes: Infinity }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...VAS_AND_QTS_ONLY, Qes: Infinity });
     assert.equal(value, null, 'Qes = Infinity must not satisfy the two-of-three requirement');
     assert.ok(errorFields(errors).includes('Qts'), 'the completeness error must still be raised');
   });
@@ -266,7 +266,7 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
     // A driver with neither Pe nor Xmax has no limit to apply, so maxCurves is Infinity
     // everywhere — while the sweep it derives from is entirely finite. classifyFinite
     // cannot see this; it is a separate output with its own postcondition.
-    const { value: noLimits } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 }));
+    const { value: noLimits } = engine.solveConsistencyGroup({ Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 });
     assert.ok(noLimits, 'a driver without Pe/Xmax is valid — those are warns, not errors');
     const sw = engine.sweep(noLimits, LE_H, 'sealed', P_SEALED).value!;
     const mx = engine.maxCurves(noLimits, LE_H, 'sealed', P_SEALED).value!;

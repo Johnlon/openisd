@@ -16,7 +16,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine, EngineQuantities } from '../../engine/index.js';
+import { Engine } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -26,7 +26,7 @@ const LE_H = 0.7e-3;
 const engine = new Engine();
 
 // Reference driver: same synthetic 6.5" mid-woofer as engine.test.mjs
-const { value: DRV, errors: drvErrors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), {
+const { value: DRV, errors: drvErrors } = engine.solveConsistencyGroup({
   Fs_hz:   37,      // Hz
   Qts:  0.38,
   Qes:  0.40,
@@ -38,7 +38,7 @@ const { value: DRV, errors: drvErrors } = engine.solveConsistencyGroup(Object.as
   Xmax_m: 0.005,   // m
   Pe_W:   60,      // W
   Znom_ohm:    8,       // Ω
-}));
+});
 if (!DRV) throw new Error('Test fixture driver is invalid: ' + drvErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
 // Sealed box — lossless, 30 L
@@ -127,11 +127,11 @@ describe('sweep — fmin=fmax produces constant-frequency sweep where dw=0', () 
 describe('maxCurves — one limit absent falls back to the other (never poisons the curve)', () => {
   it('driver without Pe → curve is Xmax-limited and finite (no thermal limit, no fabricated default)', () => {
     // Pe absent → vPe = Infinity; the excursion (Xmax) limit alone bounds the curve.
-    const { value: drvNoPe, errors: noPeErrors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), {
+    const { value: drvNoPe, errors: noPeErrors } = engine.solveConsistencyGroup({
       Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
       Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.7e-3, Xmax_m: 0.005,
       // Pe intentionally absent — deriveEngineDriver returns warn (not error); Xmax-limited max curves
-    }));
+    });
     if (!drvNoPe) throw new Error('Test fixture invalid: ' + noPeErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
     const { fs, maxspl } = engine.maxCurves(drvNoPe, LE_H, BOX, {
@@ -152,10 +152,10 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
     // Regression: Xmax=0 used to make vXmax=0 → vUse=0 → maxspl=-Infinity, maxpwr=0
     // (blank Max-SPL/Max-power charts). Xmax=0 must be treated as "no excursion limit"
     // so the Pe (thermal) limit alone bounds the curve.
-    const { value: drvXmax0, errors: xmax0Errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), {
+    const { value: drvXmax0, errors: xmax0Errors } = engine.solveConsistencyGroup({
       Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
       Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.7e-3, Pe_W: 60, Xmax_m: 0,
-    }));
+    });
     if (!drvXmax0) throw new Error('Test fixture invalid: ' + xmax0Errors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
     const { maxspl, maxpwr } = engine.maxCurves(drvXmax0, LE_H, BOX, {

@@ -7,7 +7,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { decodeDriverFileBytes } from '../../src/logic/driverFileText.js';
-import { WinisdEncoding } from '@openisd/winisd';
+import { WinisdEncoding } from '@openisd/design/winisd';
 import { DriverFileFormat, ProjectFileFormat } from '../../src/fileFormat.js';
 
 describe('decodeDriverFileBytes format gate (QO62)', () => {

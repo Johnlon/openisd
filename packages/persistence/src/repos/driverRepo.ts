@@ -1,9 +1,9 @@
 /** REPO: domain access to the bundled driver collection. Takes a
  *  storage/bundle, returns domain objects. */
 import { OpenISDDriver } from '@openisd/model';
-import type { OpenISDDriverJson, MetaField } from '@openisd/model';
-import { recordStandingIsOk } from '@openisd/model/driverStanding';
-import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
+// import type { OpenISDDriverJson, MetaField } from '@openisd/model';
+// import { recordStandingIsOk } from '@openisd/model/driverStanding';
+// import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
 import { DriverType, Chip } from '@openisd/model';
 // // //
 // // // /** The fixed field set the driver-summary/preview panel shows — `SpecField` never crosses this
@@ -94,7 +94,9 @@ export interface BundleRecord {
   name: string;
   /** Canonical driver_type as the record states it — authoritative for the chips. */
   driverType?: string;
-  record: OpenISDDriverJson;
+  /** The device record, unopened. Its shape is private to `@openisd/design`; this row only
+   *  carries it as far as the seam that validates it. */
+  record: unknown;
 }
 //
 // /**
@@ -202,15 +204,15 @@ export function normaliseDate(raw: string | undefined): string {
 }
 
 /** Lightweight WDR reader for the preview pane — returns whatever it finds, never throws. */
-function parseWdrLoose(content: string | undefined): Record<string, string> {
-  const raw: Record<string, string> = {};
-  for (const line of (content || '').split(/\r?\n/)) {
-    const i = line.indexOf('=');
-    if (i < 0 || line.startsWith('[')) continue;
-    raw[line.slice(0, i).trim()] = line.slice(i + 1).trim();
-  }
-  return raw;
-}
+// function parseWdrLoose(content: string | undefined): Record<string, string> {
+//   const raw: Record<string, string> = {};
+//   for (const line of (content || '').split(/\r?\n/)) {
+//     const i = line.indexOf('=');
+//     if (i < 0 || line.startsWith('[')) continue;
+//     raw[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+//   }
+//   return raw;
+// }
 //
 // /** Shorter source label for the list; the full name stays in the hover tooltip. */
 // export function shortSource(name: string | undefined): string {

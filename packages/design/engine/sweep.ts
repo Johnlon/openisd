@@ -16,11 +16,12 @@ import { P0, FLAT_MAX_BOOST_DB } from './constants.js';
 import { airFor } from './air.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
-import { withAddedMass, solveConsistencyGroup } from './driver.js';
+import { withAddedMass, solveConsistencyGroup } from './solver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { applyFilters } from './filters.js';
 import type { BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError, Result } from './types.js';
-import { EngineQuantities } from './engineQuantities.js';
+import { QUANTITY_NAMES } from './solverQuantities.js';
+import type { SolverQuantities, QuantityName } from './solverQuantities.js';
 import type { CircuitQuantities } from './circuit.js';
 
 /** SPL below this is the "no output" sentinel sweep() writes where |p| = 0, not a real level. */
@@ -144,13 +145,14 @@ function usableQuantity(v: number | undefined): v is number {
  * and finite, which is what the solver's own `setVal` requires before it will write a derived
  * field; the ANSWER this produces is structural — which relations can close — not numeric.
  */
-function plausibleValue(name: keyof EngineQuantities): number {
+function plausibleValue(name: QuantityName): number {
   switch (name) {
     case 'Fs_hz': return 37;            case 'Re_ohm': return 5.6;
     case 'Znom_ohm': return 8;          case 'Qes': return 0.40;
     case 'Qms': return 7.0;             case 'Qts': return 0.38;
     case 'Vas_m3': return 0.030;        case 'Sd_m2': return 0.0133;
     case 'Dd_m': return 0.13;           case 'BL_Tm': return 8.87;
+    case 'Re_terminal_ohm': return 5.6; case 'BL_terminal_Tm': return 8.87;
     case 'Mms_kg': return 0.0234;       case 'Cms_m_per_N': return 7.4e-4;
     case 'Rms_kg_per_s': return 0.80;   case 'EBP_hz': return 92;
     case 'Xmax_m': return 0.005;        case 'Vd_m3': return 6.65e-5;
@@ -180,37 +182,47 @@ function plausibleValue(name: keyof EngineQuantities): number {
  *
  * Empty means no single field is enough: more than one thing is missing.
  */
-function singleFieldUnblockers(q: Readonly<EngineQuantities>): (keyof EngineQuantities)[] {
-  const out: (keyof EngineQuantities)[] = [];
-  for (const name of EngineQuantities.NAMES) {
+function singleFieldUnblockers(q: SolverQuantities): (QuantityName)[] {
+  const out: (QuantityName)[] = [];
+  for (const name of QUANTITY_NAMES) {
+    // A terminal value cannot be STATED — it is derived from the per-coil value and the wiring —
+    // so offering it as a way to unblock the sweep would be advice a user cannot act on.
+    if (name === 'Re_terminal_ohm' || name === 'BL_terminal_Tm') continue;
     if (q[name] !== undefined) continue;
     const solved = solveConsistencyGroup(
-      Object.assign(new EngineQuantities(), q, { [name]: plausibleValue(name) }));
-    if (usableQuantity(solved.Sd_m2) && usableQuantity(solved.Re_ohm) && usableQuantity(solved.BL_Tm)
+      Object.assign({}, q, { [name]: plausibleValue(name) }));
+    if (usableQuantity(solved.Sd_m2) && usableQuantity(solved.Re_terminal_ohm) && usableQuantity(solved.BL_terminal_Tm)
         && usableQuantity(solved.Cms_m_per_N) && usableQuantity(solved.Mms_kg)
         && usableQuantity(solved.Rms_kg_per_s)) out.push(name);
   }
   return out;
 }
 
-function circuitQuantities(q: Readonly<EngineQuantities>, Le_H: number | undefined): Result<CircuitQuantities> {
+function circuitQuantities(q: SolverQuantities, Le_H: number | undefined): Result<CircuitQuantities> {
   const bad: string[] = [];
   const errors: DriverError[] = [];
-  const physical = (field: keyof EngineQuantities, v: number | undefined): v is number => {
-    if (v != null && (!Number.isFinite(v) || v <= 0)) {
+  // Returns the VALUE, not a verdict: a boolean stored in a const narrows nothing, so the object
+  // built below would still see `number | undefined`. Handing back the number lets one
+  // `=== undefined` check per name do the narrowing, with no assertion anywhere.
+  const need = (field: QuantityName, v: number | undefined): number | undefined => {
+    if (v == null) { bad.push(field); return undefined; }
+    if (!Number.isFinite(v) || v <= 0) {
       // A stated-but-impossible value is its own fault and its own message: naming an
       // alternative field would be wrong, because nothing is missing.
       errors.push({ level: 'error', field, message: `${field} is ${v}, which is not a physical value.` });
-      return false;
+      return undefined;
     }
-    if (v == null) { bad.push(field); return false; }
-    return true;
+    return v;
   };
   // Every check runs before the bail-out, so nothing is reported one field at a time.
-  const Sd_m2 = physical('Sd_m2', q.Sd_m2), Re_ohm = physical('Re_ohm', q.Re_ohm);
-  const BL_Tm = physical('BL_Tm', q.BL_Tm), Cms_m_per_N = physical('Cms_m_per_N', q.Cms_m_per_N);
-  const Mms_kg = physical('Mms_kg', q.Mms_kg), Rms_kg_per_s = physical('Rms_kg_per_s', q.Rms_kg_per_s);
-  if (!Sd_m2 || !Re_ohm || !BL_Tm || !Cms_m_per_N || !Mms_kg || !Rms_kg_per_s) {
+  const Sd_m2 = need('Sd_m2', q.Sd_m2);
+  const Re_terminal_ohm = need('Re_terminal_ohm', q.Re_terminal_ohm);
+  const BL_terminal_Tm = need('BL_terminal_Tm', q.BL_terminal_Tm);
+  const Cms_m_per_N = need('Cms_m_per_N', q.Cms_m_per_N);
+  const Mms_kg = need('Mms_kg', q.Mms_kg);
+  const Rms_kg_per_s = need('Rms_kg_per_s', q.Rms_kg_per_s);
+  if (Sd_m2 === undefined || Re_terminal_ohm === undefined || BL_terminal_Tm === undefined
+      || Cms_m_per_N === undefined || Mms_kg === undefined || Rms_kg_per_s === undefined) {
     const first = bad[0];
     if (first !== undefined) {
       // The six above are what the CIRCUIT reads, and four of them are ordinarily derived — a
@@ -231,14 +243,13 @@ function circuitQuantities(q: Readonly<EngineQuantities>, Le_H: number | undefin
   }
   return {
     value: {
-      Sd_m2: q.Sd_m2, Re_ohm: q.Re_ohm, BL_Tm: q.BL_Tm,
-      Cms_m_per_N: q.Cms_m_per_N, Mms_kg: q.Mms_kg, Rms_kg_per_s: q.Rms_kg_per_s, Le_H,
+      Sd_m2, Re_terminal_ohm, BL_terminal_Tm, Cms_m_per_N, Mms_kg, Rms_kg_per_s, Le_H,
     },
     errors,
   };
 }
 
-export function sweep(drv: Readonly<EngineQuantities>, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
+export function sweep(drv: SolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
   // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
   // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
   const d = withAddedMass(drv, P.driverAddedMass ?? 0);
@@ -326,14 +337,14 @@ export function sweep(drv: Readonly<EngineQuantities>, Le_H: number | undefined,
   // Reference SPL limit from first principles (high-frequency asymptote)
   let splRefLimit: number | undefined = undefined;
   if (d.Fs_hz != null && d.Vas_m3 != null && d.Qes != null
-      && d.Fs_hz > 0 && d.Vas_m3 > 0 && d.Qes > 0 && cq.Re_ohm > 0 && P.eg > 0) {
+      && d.Fs_hz > 0 && d.Vas_m3 > 0 && d.Qes > 0 && cq.Re_terminal_ohm > 0 && P.eg > 0) {
     const np = (P.wiring || 'parallel') === 'parallel' ? (P.nDrivers || 1) : 1;
     // η₀ and the SPL constant come from the ONE implementation (efficiency.ts), evaluated at
     // the ρ and c this sweep is actually running on — the eg²/Re and n² terms are this
     // caller's own drive conditions, not part of the reference formula.
     const eta0 = referenceEfficiency(d.Fs_hz, d.Vas_m3, d.Qes, c);
     splRefLimit = splFromEfficiency(eta0, rho, c)
-                + 10 * Math.log10(P.eg * P.eg / cq.Re_ohm)
+                + 10 * Math.log10(P.eg * P.eg / cq.Re_terminal_ohm)
                 + 20 * Math.log10(np);
   }
 
@@ -364,12 +375,16 @@ export function classifyFlatClamp(sw: SweepResult): DriverError | null {
  * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
  *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function maxCurves(drv: Readonly<EngineQuantities>, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
+export function maxCurves(drv: SolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
   const swept = sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83 }));
   if (swept.value === null) return { value: null, errors: swept.errors };
   const base = swept.value;
   const Pe   = (drv.Pe_W != null && drv.Pe_W > 0) ? drv.Pe_W * (P.nDrivers || 1) : null;
-  const Re   = drv.Re_ohm!;             // T/S power reference is always Re, not Znom
+  // The power reference is Re, not Znom — and the TERMINAL Re, because the amplifier drives the
+  // coils as they are wired. `sweep` above already refused a driver without it, so this is a
+  // narrowing, not an assumption.
+  const Re   = drv.Re_terminal_ohm;
+  if (Re === undefined) return { value: null, errors: swept.errors };
   const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];
   for (let i = 0; i < base.fs.length; i++) {
     const excAt283 = base.exc[i] / 1000;

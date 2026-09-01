@@ -10,6 +10,7 @@
     "engine/**/*.ts",
     "browser/**/*.ts",
     "app/**/*.ts",
+    "winisd/**/*.ts",
     "test/**/*.ts"
   ]
 }

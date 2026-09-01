@@ -30,21 +30,22 @@
  */
 
 import { referenceEfficiency } from './efficiency.js';
-import { solveConsistencyGroup, driverC, driverRho } from './driver.js';
-import { EngineQuantities } from './engineQuantities.js';
+import { solveConsistencyGroup, driverC, driverRho } from './solver.js';
+import { QUANTITY_NAMES } from './solverQuantities.js';
+import type { SolverQuantities, QuantityName } from './solverQuantities.js';
 import { dvolFromDims } from './dvolRelation.js';
 
 /** Field values by name, SI, as the solver produces them. */
-type Values = Readonly<EngineQuantities>;
+type Values = SolverQuantities;
 
 /** One §4 group: every member, and the relation that predicts `target` from the others. */
 interface Relation {
   readonly formula: string;
-  readonly target: keyof EngineQuantities;
-  readonly fields: readonly (keyof EngineQuantities)[];
+  readonly target: QuantityName;
+  readonly fields: readonly (QuantityName)[];
   /** Reads members through `g`, which the caller only supplies once every member of
    *  `fields` has been checked usable — so a formula can never read an absent quantity. */
-  readonly predict: (g: (f: keyof EngineQuantities) => number, q: Values) => number;
+  readonly predict: (g: (f: QuantityName) => number, q: Values) => number;
 }
 
 /**
@@ -55,9 +56,9 @@ export interface ConsistencyIssue {
   /** The relation as WINISD_SCHEMA.md §4 states it. */
   readonly formula: string;
   /** Every member of the group. */
-  readonly fields: readonly (keyof EngineQuantities)[];
+  readonly fields: readonly (QuantityName)[];
   /** The member the relation predicts. */
-  readonly target: keyof EngineQuantities;
+  readonly target: QuantityName;
   /** What the other members imply for `target`, SI. */
   readonly expected: number;
   /** What `target` actually holds, SI. */
@@ -74,44 +75,44 @@ function relations(): readonly Relation[] {
   return [
   // §4 row 1
   { formula: 'Rms = 2π·Fs·Mms/Qms', target: 'Rms_kg_per_s', fields: ['Rms_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qms'],
-    predict: (g, q) => TAU * g('Fs_hz') * g('Mms_kg') / g('Qms') },
+    predict: (g) => TAU * g('Fs_hz') * g('Mms_kg') / g('Qms') },
   // §4 row 2
   { formula: 'Qes = 2π·Fs·Mms·Re/Bl²', target: 'Qes', fields: ['Qes', 'BL_Tm', 'Fs_hz', 'Mms_kg', 'Re_ohm'],
-    predict: (g, q) => TAU * g('Fs_hz') * g('Mms_kg') * g('Re_ohm') / (g('BL_Tm') * g('BL_Tm')) },
+    predict: (g) => TAU * g('Fs_hz') * g('Mms_kg') * g('Re_ohm') / (g('BL_Tm') * g('BL_Tm')) },
   // §4 row 3
   { formula: 'Rme = Bl²/Re', target: 'Rme_kg_per_s', fields: ['Rme_kg_per_s', 'BL_Tm', 'Re_ohm'],
-    predict: (g, q) => g('BL_Tm') * g('BL_Tm') / g('Re_ohm') },
+    predict: (g) => g('BL_Tm') * g('BL_Tm') / g('Re_ohm') },
   // §4 row 4
   { formula: 'Rme = 2π·Fs·Mms/Qes', target: 'Rme_kg_per_s', fields: ['Rme_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qes'],
-    predict: (g, q) => TAU * g('Fs_hz') * g('Mms_kg') / g('Qes') },
+    predict: (g) => TAU * g('Fs_hz') * g('Mms_kg') / g('Qes') },
   // §4 row 5
   { formula: 'Qts = Qes·Qms/(Qes+Qms)', target: 'Qts', fields: ['Qts', 'Qes', 'Qms'],
-    predict: (g, q) => g('Qes') * g('Qms') / (g('Qes') + g('Qms')) },
+    predict: (g) => g('Qes') * g('Qms') / (g('Qes') + g('Qms')) },
   // §4 row 6
   { formula: 'Dd = 2·√(Sd/π)', target: 'Dd_m', fields: ['Dd_m', 'Sd_m2'],
-    predict: (g, q) => 2 * Math.sqrt(g('Sd_m2') / Math.PI) },
+    predict: (g) => 2 * Math.sqrt(g('Sd_m2') / Math.PI) },
   // §4 row 8
   { formula: 'Mpow = Bl/√Re', target: 'Mpow_N_per_sqrtW', fields: ['Mpow_N_per_sqrtW', 'BL_Tm', 'Re_ohm'],
-    predict: (g, q) => g('BL_Tm') / Math.sqrt(g('Re_ohm')) },
+    predict: (g) => g('BL_Tm') / Math.sqrt(g('Re_ohm')) },
   // §4 row 9
   { formula: 'Mpow = √Rme', target: 'Mpow_N_per_sqrtW', fields: ['Mpow_N_per_sqrtW', 'Rme_kg_per_s'],
-    predict: (g, q) => Math.sqrt(g('Rme_kg_per_s')) },
+    predict: (g) => Math.sqrt(g('Rme_kg_per_s')) },
   // §4 row 10 -- `g('roo_kg_per_m3')`/`g('c_m_per_s')` are NOT guaranteed present: `checkConsistency` below calls
   { formula: 'Vas = ρ₀·c²·Sd²·Cms', target: 'Vas_m3', fields: ['Vas_m3', 'Cms_m_per_N', 'Sd_m2'],
     predict: (g, q) => driverRho(q) * driverC(q) * driverC(q) * g('Sd_m2') * g('Sd_m2') * g('Cms_m_per_N') },
   // §4 row 11
   { formula: 'Fs = 1/(2π·√(Mms·Cms))', target: 'Fs_hz', fields: ['Fs_hz', 'Mms_kg', 'Cms_m_per_N'],
-    predict: (g, q) => 1 / (TAU * Math.sqrt(g('Mms_kg') * g('Cms_m_per_N'))) },
+    predict: (g) => 1 / (TAU * Math.sqrt(g('Mms_kg') * g('Cms_m_per_N'))) },
   // §4 row 13
   { formula: 'gamma = Bl/Mms', target: 'gamma_m_per_s2_A', fields: ['gamma_m_per_s2_A', 'BL_Tm', 'Mms_kg'],
-    predict: (g, q) => g('BL_Tm') / g('Mms_kg') },
+    predict: (g) => g('BL_Tm') / g('Mms_kg') },
   // §4 row 20
   { formula: 'Vd = Sd·Xmax', target: 'Vd_m3', fields: ['Vd_m3', 'Sd_m2', 'Xmax_m'],
-    predict: (g, q) => g('Sd_m2') * g('Xmax_m') },
+    predict: (g) => g('Sd_m2') * g('Xmax_m') },
   // §4 row 12 (BUG_20260821): EBP against the driver's own Fs/Qes — the same route
-  // driver.ts rel 12 derives Fs from (Fs = EBP·Qes), stated in EBP-target form.
+  // solver.ts rel 12 derives Fs from (Fs = EBP·Qes), stated in EBP-target form.
   { formula: 'EBP = Fs/Qes', target: 'EBP_hz', fields: ['EBP_hz', 'Fs_hz', 'Qes'],
-    predict: (g, q) => g('Fs_hz') / g('Qes') },
+    predict: (g) => g('Fs_hz') / g('Qes') },
   // §4 rows 14-18's η₀ core (D18): the reference-efficiency route WinISD itself uses —
   // verified against real WinISD's own saved `no` to 0.000000% (winisd_research
   // scripts/probe_rme_beyma.py). `c` resolves the same way row 10 resolves air.
@@ -123,7 +124,7 @@ function relations(): readonly Relation[] {
   // skips it exactly like any other unpredictable relation, never a junk `expected`.
   { formula: 'DVol = (π/4)·[ (Dd²+Dd·Vcd+Vcd²)·(Depth−MagDepth)/3 + Magnet²·MagDepth ]',
     target: 'DVol_m3', fields: ['DVol_m3', 'Dd_m', 'Vcd_m', 'Depth_m', 'MagDepth_m', 'Magnet_m'],
-    predict: (g, q) => dvolFromDims({ Dd: g('Dd_m'), Vcd: g('Vcd_m'), Depth: g('Depth_m'), MagDepth: g('MagDepth_m'), Magnet: g('Magnet_m') }) ?? NaN },
+    predict: (g) => dvolFromDims({ Dd: g('Dd_m'), Vcd: g('Vcd_m'), Depth: g('Depth_m'), MagDepth: g('MagDepth_m'), Magnet: g('Magnet_m') }) ?? NaN },
   ];
 }
 
@@ -188,17 +189,17 @@ export function checkConsistency(entered: Values): ConsistencyIssue[] {
 
   // Entered fields carry their own literal's precision; computed fields start at the float
   // floor and accumulate however far the entered roundings can move them.
-  const delta: Partial<Record<keyof EngineQuantities, number>> = {};
-  for (const k of EngineQuantities.NAMES) {
+  const delta: Partial<Record<QuantityName, number>> = {};
+  for (const k of QUANTITY_NAMES) {
     const v = resolved[k];
     if (!usable(v)) continue;
     delta[k] = entered[k] !== undefined ? halfUlp(v) : Math.abs(v) * FLOAT_NOISE;
   }
-  for (const k of EngineQuantities.NAMES) {
+  for (const k of QUANTITY_NAMES) {
     if (entered[k] === undefined || !(delta[k]! > 0)) continue;
     const bumped = solveConsistencyGroup(
-      Object.assign(new EngineQuantities(), entered, { [k]: entered[k]! + delta[k]! }));
-    for (const j of EngineQuantities.NAMES) {
+      Object.assign({}, entered, { [k]: entered[k]! + delta[k]! }));
+    for (const j of QUANTITY_NAMES) {
       if (entered[j] !== undefined || delta[j] === undefined) continue;
       const b = bumped[j];
       if (usable(b)) delta[j]! += Math.abs(b - resolved[j]!);

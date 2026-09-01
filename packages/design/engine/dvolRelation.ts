@@ -4,7 +4,7 @@
  * `winisd_research/RE_GHIDRA_FINDINGS.md` "The DVol geometry relation — recovered formulas".
  * bugs/BUG_20260817_dvol_depth_magdepth_magnet_relation_is_documented_but_never_implemented.md.
  *
- * Built and tested standalone, alongside `driver.ts`'s own solver, rather than inside it — a
+ * Built and tested standalone, alongside `solver.ts`'s own solver, rather than inside it — a
  * new file carries no risk of colliding with concurrent edits to that hot file. Wiring into
  * `solveConsistencyGroup` is a separate, later change.
  *

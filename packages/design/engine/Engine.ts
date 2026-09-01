@@ -27,7 +27,7 @@ import {
   prCmsFromVas, prFsWithMass, prMmdFromFs, prQms, prRmsFromQms, prVas,
 } from './formulas.js';
 import { checkConsistency, isQGroupField, qGroupIsIncomplete } from './consistency.js';
-import { solveConsistencyGroup } from './driver.js';
+import { solveConsistencyGroup, terminalRe_ohm, terminalBL_Tm } from './solver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { driveVoltage } from './formulas.js';
 import { sealedResonance, sourceLoadedQts } from './lossMode.js';
@@ -37,8 +37,8 @@ import {
   maxCurves, passbandRef, rolloffFreq, sweep,
 } from './sweep.js';
 import type { ConsistencyIssue } from './consistency.js';
-import type { Result } from './types.js';
-import type { EngineQuantities } from './engineQuantities.js';
+import type { Result, Wiring } from './types.js';
+import type { SolverQuantities } from './solverQuantities.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
@@ -60,7 +60,20 @@ export class Engine {
   // ── THE DRIVER ────────────────────────────────────────────────────────────────────────────
 
   /** Fill in whatever the entered driver values imply, leaving what they do not. */
-  solveConsistencyGroup(d: Readonly<EngineQuantities>): EngineQuantities {
+  /** Re as the amplifier sees it: N coils of resistance r are r/N in parallel, N·r in series.
+   *  A separate answer from `Re_ohm`, never a replacement for it. */
+  terminalRe_ohm(Re_ohm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
+    return terminalRe_ohm(Re_ohm, numVC, wiring);
+  }
+
+  /** BL as the amplifier sees it — `bl` per coil, `N·bl` in series, unchanged in parallel. */
+  terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
+    return terminalBL_Tm(BL_Tm, numVC, wiring);
+  }
+
+  /** Everything the stated quantities imply, filled in. The answer is READONLY: a caller wanting
+   *  different numbers asks again, and nothing can overwrite a stated value with a derived one. */
+  solveConsistencyGroup(d: Readonly<SolverQuantities>): Readonly<SolverQuantities> {
     return solveConsistencyGroup(d);
   }
 
@@ -222,12 +235,12 @@ export class Engine {
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
 
   /** The response, one complex value per frequency. */
-  sweep(drv: Readonly<EngineQuantities>, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
+  sweep(drv: SolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
     return sweep(drv, Le_H, box, P);
   }
 
   /** The limit curves — how loud before excursion or port velocity gives out. */
-  maxCurves(drv: Readonly<EngineQuantities>, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
+  maxCurves(drv: SolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
     return maxCurves(drv, Le_H, box, P);
   }
 

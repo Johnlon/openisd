@@ -197,7 +197,7 @@ describe('checkConsistency — the η₀ reference-efficiency relation (D18)', (
 });
 
 describe('checkConsistency — the EBP relation (§4 row 12, BUG_20260821)', () => {
-  // EBP = Fs/Qes — the derivation route driver.ts rel 12 already uses (Fs = EBP·Qes).
+  // EBP = Fs/Qes — the derivation route solver.ts rel 12 already uses (Fs = EBP·Qes).
   it('a consistent EBP/Fs/Qes group is silent', () => {
     assert.deepEqual(engine.checkConsistency({ Fs: 28, Qes: 0.4, EBP: 70 }), []);
   });

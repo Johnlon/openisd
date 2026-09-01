@@ -38,7 +38,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { Engine, EngineQuantities } from '../../engine/index.js';
+import { Engine } from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
@@ -98,7 +98,7 @@ describe('Rme — the two routes, and which one wins', () => {
 
 describe('Mpow, gamma', () => {
   // Mpow = Bl/√Re, NOT √Rme — recovered from the `inconsistent-fs` parity golden
-  // (packages/winisd/test/fixtures/winisd-parity/goldens/inconsistent-fs.wpr), whose stored
+  // (packages/design/test/winisd/fixtures/winisd-parity/goldens/inconsistent-fs.wpr), whose stored
   // `Fs` is written at exactly twice its true value, separating the two routes (they agree on
   // every self-consistent record, including BEYMA below — which is why this needs its own
   // discriminator). WinISD wrote `Rme=17.578125`, `Mpow=2.96463530640786` on that record;
@@ -304,12 +304,12 @@ describe('Xmax route precedence is on the RESULT, not the route (QO39 probe case
   it('an equal overhang is not an excursion limit — it falls through to Vd/Sd', () => {
     // Hc === Hg makes abs(Hc-Hg)/2 zero. WinISD does not accept that as Xmax; it uses the
     // other route. Expected value is independent of the code: 140e-6 / 0.0095.
-    const r = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Hc_m: 0.012, Hg_m: 0.012, Vd_m3: 140e-6, Sd_m2: 0.0095 })) as Record<string, number>;
+    const r = engine.solveConsistencyGroup({ Hc_m: 0.012, Hg_m: 0.012, Vd_m3: 140e-6, Sd_m2: 0.0095 }) as Record<string, number>;
     assert.ok(Math.abs(r.Xmax_m - 140e-6 / 0.0095) < 1e-15, `Xmax was ${r.Xmax_m}`);
   });
 
   it('an unequal overhang wins over Vd/Sd', () => {
-    const r = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Hc_m: 0.0176, Hg_m: 0.006, Vd_m3: 140e-6, Sd_m2: 0.0095 })) as Record<string, number>;
+    const r = engine.solveConsistencyGroup({ Hc_m: 0.0176, Hg_m: 0.006, Vd_m3: 140e-6, Sd_m2: 0.0095 }) as Record<string, number>;
     assert.ok(Math.abs(r.Xmax_m - 0.0058) < 1e-15, `Xmax was ${r.Xmax_m}`);
   });
 });

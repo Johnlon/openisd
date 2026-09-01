@@ -20,11 +20,11 @@ export type { SealedParams } from './lossMode.js';
 export type { Air, AirEnvironment } from './air.js';
 export type { ConsistencyIssue } from './consistency.js';
 export type {
-  BoxType, SimulatableBoxType, DriverError, Filter, FilterType, MaxCurvesResult,
+  BoxType, SimulatableBoxType, DriverError, Filter, FilterType, MaxCurvesResult, Wiring,
   Result, SweepParams, SweepResult,
 } from './types.js';
-// A VALUE, not just a type: callers build one with `new EngineQuantities()` before handing it to
-// `solveConsistencyGroup`/`sweep`. `EngineQuantities.NAMES` comes with it because a caller that walks the
-// quantities cannot do so type-safely without it — `Object.keys` yields `string`, which cannot
-// index the class, and the only other way past that is the cast this project bans.
-export { EngineQuantities } from './engineQuantities.js';
+// The solver's two shapes: what it is GIVEN and what it RETURNS. Types only — there is nothing
+// to construct, because `SolverQuantities` is an object literal a caller writes out and
+// `SolverQuantities` is what comes back. The quantity-name list stays inside the engine: it exists
+// for the two internal loops, not for consumers.
+export { SolverQuantities } from './solverQuantities.js';

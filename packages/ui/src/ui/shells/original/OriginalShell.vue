@@ -9,11 +9,11 @@ declare const __PLATFORM_USER__: string | undefined;
  * value and every `.entered` field is v-model-bound to the store — nothing on screen is a
  * literal standing in for physics.
  *
- * Box-type scope: the engine solver (packages/engine/src/circuit.ts) models four types
- * (sealed, vented, pr, bandpass4). 6th-order bandpass and ABC are ported as UI (diagram +
- * chamber/vent fields) but have no engine model yet, so they show an explicit "response
- * model pending" state instead of a fabricated curve. When the engine gains those
- * branches, add them to `SUPPORTED_BOX` and the pending state clears.
+ * Box-type scope: `Engine.simulatableBoxType()` is the ONE place that decides which types the
+ * circuit models. 6th-order bandpass and ABC are ported as UI (diagram + chamber/vent fields)
+ * but the solver refuses them, so they show an explicit "response model pending" state instead
+ * of a fabricated curve. The pending state clears by itself when the engine starts accepting
+ * them — this shell keeps no second list to update.
  */
 import { ref, shallowRef, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
@@ -40,7 +40,7 @@ import type { ManagedProject } from '../../../logic/managedProject.js';
 // focus change (switching tabs), sourced from `appState.ts`'s own focus-aware `live` bridge.
 const project = useFocusedProject();
 import UnitToggle from '../../components/UnitToggle.vue';
-import type { BoxType } from '@openisd/design/engine';
+import { Engine, type BoxType } from '@openisd/design/engine';
 import type { Design } from '../../../types.js';
 import type { PRLibEntry, BundledPassiveRadiator } from '@openisd/persistence';
 import { airForEnvironment, resolveAirEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
@@ -88,8 +88,7 @@ function fmt(n: number | null | undefined, dp: number): string {
 // fmtU (calculated-value-in-selected-unit) is the shared store.formatInUnit, imported above.
 
 // ---- Box types -----------------------------------------------------------------
-type OgBox = 'sealed' | 'vented' | 'box-passive-radiator' | 'bandpass4' | 'bandpass6' | 'abc';
-const BOX_OPTIONS: { id: OgBox; label: string }[] = [
+const BOX_OPTIONS: { id: BoxType; label: string }[] = [
   { id: 'sealed',    label: 'Closed' },
   { id: 'vented',    label: 'Vented' },
   { id: 'box-passive-radiator', label: 'Passive Radiator' },
@@ -97,14 +96,18 @@ const BOX_OPTIONS: { id: OgBox; label: string }[] = [
   { id: 'bandpass6', label: '6th Order Bandpass' },
   { id: 'abc',       label: 'ABC (Aperiodic Bi-Chamber)' },
 ];
-const SUPPORTED_BOX = new Set<OgBox>(['sealed', 'vented', 'box-passive-radiator', 'bandpass4']);
-const DUAL_CHAMBER = new Set<OgBox>(['bandpass4', 'bandpass6', 'abc']);
+// Whether the circuit models this type is the DOMAIN's answer, not a list held here — a second
+// enumeration is what let a UI-only box type reach the solver as an assertion.
+const isSimulatable = (b: BoxType) => new Engine().simulatableBoxType(b) !== null;
+// A presentation fact with no domain counterpart: these three draw two chambers, so the tuning
+// field is labelled Ffc rather than Fb.
+const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
 
-// selectedBox is the Box tab's source of truth: it can hold values (bandpass6/abc) the
-// engine BoxType cannot yet represent. Supported selections mirror into the shared store;
-// unsupported ones leave state.box on its last valid value and raise `pending`.
-const selectedBox = ref<OgBox>(state.box);
-watch(selectedBox, (b) => { if (SUPPORTED_BOX.has(b)) state.box = b as BoxType; });
+// selectedBox is the Box tab's source of truth: it can hold types the solver refuses.
+// Simulatable selections mirror into the shared store; the rest leave state.box on its last
+// valid value and raise `pending`.
+const selectedBox = ref<BoxType>(state.box);
+watch(selectedBox, (b) => { if (isSimulatable(b)) state.box = b; });
 // Follow any EXTERNAL change to the store's box — e.g. a design loaded via App.vue's
 // hashchange path (`state.box = o.box`) — even while a pending type is selected. Fires only
 // on a real store change; the watcher above only writes state.box when it differs, so the
@@ -112,7 +115,7 @@ watch(selectedBox, (b) => { if (SUPPORTED_BOX.has(b)) state.box = b as BoxType; 
 // behind a stale pending view.
 watch(() => state.box, (b) => { if (selectedBox.value !== b) selectedBox.value = b; });
 
-const pending = computed(() => !SUPPORTED_BOX.has(selectedBox.value));
+const pending = computed(() => !isSimulatable(selectedBox.value));
 const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
 const boxLabel = computed(() => BOX_OPTIONS.find(o => o.id === selectedBox.value)?.label ?? 'Box');
 // The 3rd nav tab (id 'enclosure') tracks the box type, WinISD-style.

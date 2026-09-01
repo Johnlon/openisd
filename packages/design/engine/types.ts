@@ -73,6 +73,10 @@ export function simulatableBoxType(box: BoxType): SimulatableBoxType | null {
   return simulatable.includes(box as SimulatableBoxType) ? (box as SimulatableBoxType) : null;
 }
 
+// FIXNE dupe here ... export const VoiceCoilWiring = {
+//   Parallel: 'parallel',
+//   Series: 'series',
+// } as const;
 /** Driver wiring for multi-driver setups. */
 export type Wiring = 'series' | 'parallel';
 

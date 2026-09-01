@@ -16,6 +16,10 @@
     "./engine": {
       "types": "./engine/index.ts",
       "default": "./engine/index.ts"
+    },
+    "./winisd": {
+      "types": "./winisd/index.ts",
+      "default": "./winisd/index.ts"
     }
   },
   "scripts": {

@@ -15,7 +15,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine, EngineQuantities } from '../../engine/index.js';
+import { Engine } from '../../engine/index.js';
 import type { SweepParams, Filter } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
@@ -112,7 +112,7 @@ describe('EQ/filter chain charts — the chain is electrical, so driver and box 
   it('a different driver leaves the chain response untouched', () => {
     // Vary only params that are free of the Q identity 1/Qts = 1/Qes + 1/Qms — changing
     // Qts alone contradicts Qes/Qms and deriveEngineDriver rejects it, as it should.
-    const { value: other } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...RAW, Fs_hz: 55, Vas_m3: 0.012, Sd_m2: 0.0090 }));
+    const { value: other } = engine.solveConsistencyGroup({ ...RAW, Fs_hz: 55, Vas_m3: 0.012, Sd_m2: 0.0090 });
     assert.ok(other, 'comparison driver failed to derive');
     const a = engine.sweep(DRV, LE_H,   'sealed', { ...SEALED, filters }).value!;
     const b = engine.sweep(other, LE_H, 'sealed', { ...SEALED, filters }).value!;

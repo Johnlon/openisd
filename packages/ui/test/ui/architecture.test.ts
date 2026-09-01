@@ -413,8 +413,8 @@ describe('what-if exists ONLY inside ManagedProject', () => {
 });
 
 /**
- * ARCHITECTURE.md §3: `OpenISDDriver` is the app's ONE driver model, and `@openisd/winisd`
- * is "solely a serialisation device". The classic `Driver` ADT (`packages/winisd/src/driver.ts`)
+ * ARCHITECTURE.md §3: `OpenISDDriver` is the app's ONE driver model, and `@openisd/design/winisd`
+ * is "solely a serialisation device". The classic `Driver` ADT (`packages/design/winisd/driver.ts`)
  * with its `DriverJSON`/`DriverRaw` shapes is the model it replaces — its own header condemns
  * it and forbids extending it.
  *
@@ -432,8 +432,8 @@ describe('one driver model — the classic Driver ADT is not part of the app', (
           .map(n => `${rel(f)} imports ${n} from ${vi.spec}`)));
 
     assert.deepEqual(offences, [],
-      'The classic `Driver` ADT (packages/winisd/src/driver.ts) is the model `OpenISDDriver` ' +
-      'REPLACES, and `@openisd/winisd` is a serialisation device only. Every import above is ' +
+      'The classic `Driver` ADT (packages/design/winisd/driver.ts) is the model `OpenISDDriver` ' +
+      'REPLACES, and `@openisd/design/winisd` is a serialisation device only. Every import above is ' +
       'a second, competing driver model inside the application — with its own provenance, ' +
       'derivation and JSON shape, free to disagree with OpenISDDriver about the same driver. ' +
       'Migrate the call site onto ManagedProject/OpenISDDriver and delete the import; never ' +
@@ -641,7 +641,7 @@ function fileLayer(file: string): string {
 function specLayer(fromFile: string, spec: string): string | null {
   if (spec.startsWith('@openisd/model')) return 'model';
   if (spec.startsWith('@openisd/persistence')) return 'persistence';
-  if (spec.startsWith('@openisd/winisd')) return 'winisd';
+  if (spec.startsWith('@openisd/design/winisd')) return 'winisd';
   if (spec.startsWith('@openisd/design/engine')) return 'engine';
   if (spec.startsWith('@openisd/')) return null;
   if (!spec.startsWith('.')) return null;

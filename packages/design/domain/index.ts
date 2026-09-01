@@ -22,7 +22,7 @@ export type {
   Bandpass6Box,
   AbcBox,
   PassiveRadiatorBox,
-  PassiveRadiatorComponent,
+  PassiveRadiatorSpec,
   VentedChamber,
 } from './project.js';
 // `export type`, not `export` — DELIBERATE, and the general rule here: a consumer gets the TYPE

@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { OpenISDDriver } from '@openisd/model';
-import { PARSTATE_LEN, POS_TO_WDRKEY } from '@openisd/winisd';
+import { PARSTATE_LEN, POS_TO_WDRKEY } from '@openisd/design/winisd';
 import { checkOpenisdRoundTrip, checkWdrRoundTrip } from '../../../../scripts/roundTripGate.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));

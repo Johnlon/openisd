@@ -1,0 +1,167 @@
+{
+  "about": "Differences the parity suite EXPECTS rather than flags. Each entry is a BOUND, not an exemption: the test fails if the field comes back into agreement (the entry is stale — delete it) and fails if the difference grows past what the stated cause can account for. `scenario: \"*\"` means the difference is a property of the code rather than of the case. `maxRelative` is the measured difference rounded up to one significant figure.",
+  "divergences": [
+    {
+      "scenario": "*",
+      "field": "ParState[23]",
+      "cause": "numVC: openisd's Driver#derive() autofills numVC = 1 for a record that omits it, so slot 23 reads C (the app supplied it). WinISD pins that slot E, asserting a human entered a value nobody typed. Ruled 2026-08-13 'there was a winisd bug here - obviously dont replicate that', so a red row here would be the suite being wrong, not the app.",
+      "reference": "ledger QO28; BACKLOG.md 'Quality / infrastructure'; packages/design/winisd/driver.ts #derive()"
+    },
+    {
+      "scenario": "env-t-303",
+      "field": "air.c",
+      "maxRelative": 2e-2,
+      "cause": "packages/engine/src/air.ts winisdAir() anchors WinISD's measured pair (WINISD_MEASURED_C_REF) to the caller's tempK via the moist-air model's ratio (QO88), so it moves with temperature; the harness passes each scenario's own env. WinISD's compatibility pair comes from its app-level Options environment, which these project-env scenarios never touch — env-t-303's stored c/roo are byte-identical to its 293.15 K twin env-rh-30. Measured 1.81e-2 relative at 303.15 K.",
+      "reference": "bugs/BUG_20260823_winisdair_recomputes_moist_air_instead_of_winisds_stored_constants.md; ledger QO88"
+    },
+    {
+      "scenario": "env-t-303",
+      "field": "air.roo",
+      "maxRelative": 4e-2,
+      "cause": "Same mechanism as air.c: winisdAir() scales WINISD_MEASURED_RHO_REF by the moist-air density ratio at the scenario's tempK; WinISD's app-level pair does not move with a project's temperature. Measured 3.51e-2 relative at 303.15 K.",
+      "reference": "bugs/BUG_20260823_winisdair_recomputes_moist_air_instead_of_winisds_stored_constants.md; ledger QO88"
+    },
+    {
+      "scenario": "*",
+      "field": "c",
+      "maxRelative": 5e-6,
+      "cause": "The driver's own [Driver].c field, filled by OpenISDDriver's #deriveEnteredOnly() when unentered: the pure CIPM-2007 moist-air value at the reference environment, 4.1e-6 relative from WinISD's stored literal (343.684120962153 m/s). Driver derivation does not use winisdAir()'s anchored model, so this leg still differs where the harness's own air.c/air.roo (which do) now agree.",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
+    },
+    {
+      "scenario": "*",
+      "field": "roo",
+      "maxRelative": 9e-6,
+      "cause": "Same mechanism as the 'c' entry, for [Driver].roo.",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
+    },
+    {
+      "scenario": "*",
+      "field": "SPLmaxLF",
+      "maxRelative": 1e-6,
+      "cause": "SPLmaxLF's p20 term is driven by driverC()/driverRho(), so the live-CIPM-vs-stored-literal c/roo difference propagates into it at a much smaller relative magnitude (SPLmaxLF depends on c/roo only weakly).",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
+    },
+    {
+      "scenario": "*",
+      "field": "no",
+      "maxRelative": 2e-5,
+      "cause": "Reference efficiency no = (4π²/c³)·Fs³·Vas/Qes is cubic in c, so the live-CIPM-vs-stored-literal difference in c (≈4.14e-6) is amplified roughly 3x here.",
+      "reference": "bugs/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[6]",
+      "cause": "fLe has no route from a scenario's 22-key .wdr: openisd never computes it (no formula takes fLe from the T/S set) and no scenario ever enters it, so cell() reads N. Every golden marks the slot E with fLe=0 regardless — WinISD's own 'declined-but-defaulted' convention for a field it opened from a foreign file rather than its own New dialog (contrast drivers/sample/winisd/john-all-defaults.wdr, a real New->Save, which marks the same class of field N). Confirmed on every golden with a ParState (all but solve-from-mms-cms, which has none) — see bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md 'Reverified 2026-08-14'.",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[7]",
+      "cause": "KLe — same mechanism as ParState[6] (fLe): no scenario enters it, nothing derives it, WinISD's declined-but-defaulted convention marks it E anyway.",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[10]",
+      "cause": "Xlim has no WDR key at all (ParState-only slot, packages/design/winisd/parstate.ts) and no scenario states it, so openisd's writer never has a route to mark it. Same declined-but-defaulted WinISD convention as ParState[6].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[20]",
+      "cause": "Slot 20 has no identified WDR key (packages/design/winisd/parstate.ts POS_TO_WDRKEY[20] = null) — openisd has no field to mark E or C for it under any circumstance. WinISD's declined-but-defaulted convention marks it E anyway.",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[29]",
+      "cause": "alfaVC (thermal coefficient) is carried metadata only — no scenario enters it and no formula derives it from the T/S set. Same declined-but-defaulted WinISD convention as ParState[6].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[30]",
+      "cause": "Rt (thermal resistance) — same mechanism as ParState[29]: carried-only, never entered by a scenario, never derived.",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[31]",
+      "cause": "Ct (thermal capacitance) — same mechanism as ParState[29]: carried-only, never entered by a scenario, never derived.",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[36]",
+      "cause": "Mcost = Rme*(1 + Xmax/min(Hc,Hg)) is undefined at Hc=Hg=0 (14 of 15 scenarios), so cell() correctly reads N there while WinISD's declined-but-defaulted convention marks it E. gap-geometry (Hc=12mm, Hg=6mm) is the control: both sides mark it C there, so this entry is never consulted for that scenario.",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[38]",
+      "cause": "Thick (cone thickness) — carried dimension metadata, never entered by a scenario, never derived. Same declined-but-defaulted WinISD convention as ParState[6].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[39]",
+      "cause": "Depth — same mechanism as ParState[38]: carried dimension metadata, never entered, never derived.",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[40]",
+      "cause": "MagDepth — same mechanism as ParState[38].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[41]",
+      "cause": "Magnet (magnet diameter) — same mechanism as ParState[38].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[42]",
+      "cause": "Basket — same mechanism as ParState[38].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[43]",
+      "cause": "Outer — same mechanism as ParState[38].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[44]",
+      "cause": "Vcd (voice-coil diameter) — same mechanism as ParState[38].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[45]",
+      "cause": "DVol (basket displacement) — same mechanism as ParState[38].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[46]",
+      "cause": "Slot 46 has no identified WDR key (packages/design/winisd/parstate.ts POS_TO_WDRKEY[46] = null), same as slot 20 — openisd has no field to mark for it under any circumstance.",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[47]",
+      "cause": "c (speed of sound) — drivers/sample/winisd/john-all-defaults.wdr (a real New->Save with nothing typed) marks this slot C, matching openisd's own autofill-to-the-engine-constant. Every parity golden instead marks it E: these goldens were produced by opening a foreign 22-key .wdr with no ParState line and letting WinISD solve+save, not New->Save, and WinISD's declined-but-defaulted convention treats the frozen air pair as 'entered' on that path. The VALUE agrees exactly (compared separately as air.c); only the mark differs.",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    },
+    {
+      "scenario": "*",
+      "field": "ParState[48]",
+      "cause": "roo (air density) — same mechanism as ParState[47].",
+      "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
+    }
+  ]
+}

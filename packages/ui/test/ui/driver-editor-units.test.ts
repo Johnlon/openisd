@@ -22,7 +22,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { WinISDDriver } from '@openisd/winisd';
+import { WinISDDriver } from '@openisd/design/winisd';
 import { OpenISDDriver, Provenance } from '@openisd/model';
 import type { SpecField } from '@openisd/model';
 import { precision, fieldById } from '../../src/logic/fields/fieldRegistry.js';

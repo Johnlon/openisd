@@ -13,9 +13,9 @@ export {
   type DriverRepo, type DriverRepoDeps, createDriverRepo,
 } from './repos/driverRepo.js';
 
-export {
-  type BundledPassiveRadiator, type BundledPassiveRadiatorRepo, createBundledPassiveRadiatorRepo,
-} from './repos/bundledPassiveRadiatorRepo.js';
+// export {
+//   type BundledPassiveRadiator, type BundledPassiveRadiatorRepo, createBundledPassiveRadiatorRepo,
+// } from './repos/bundledPassiveRadiatorRepo.js';
 
 // export {
 //   type StoredEntry, type MyDriversSchema, MY_DRIVERS_KEY,

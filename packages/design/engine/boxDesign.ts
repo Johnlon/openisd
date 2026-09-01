@@ -26,7 +26,7 @@ import { END_CORRECTION, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, 
 import type { SweepParams, SweepResult } from './types.js';
 
 // None of the box/vent/PR geometry callers below carry a project environment (T/RH/AP) --
-// computed live at the reference environment, same basis `driver.ts`'s fallback uses. Never
+// computed live at the reference environment, same basis `solver.ts`'s fallback uses. Never
 // a stored constant.
 const refRho = (): number => moistAirDensity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
 const refC = (): number => moistAirSoundVelocity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);

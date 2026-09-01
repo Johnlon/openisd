@@ -2,8 +2,8 @@
  * Unit tests for packages/engine/src/driver.ts
  *
  * Covers: deriveEngineDriver {value,errors} contract and Q-derivation branches.
- * WDR interop (parseWdr, toWdr, parstate) is tested in @openisd/winisd — see
- * packages/winisd/test/wdr.test.ts.
+ * WDR interop (parseWdr, toWdr, parstate) is tested in @openisd/design/winisd — see
+ * packages/design/test/winisd/wdr.test.ts.
  *
  * Q-factor formulas: https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  *   Qts = (Qes · Qms) / (Qes + Qms)
@@ -13,7 +13,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine, EngineQuantities } from '../../engine/index.js';
+import { Engine } from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
@@ -51,24 +51,24 @@ const BASE = {
 
 describe('deriveEngineDriver — {value, errors} contract', () => {
   it('returns an object with value and errors properties — never a bare driver or a throw', () => {
-    const result = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS }));
+    const result = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS });
     assert.ok('value' in result, 'must have value property');
     assert.ok('errors' in result, 'must have errors property');
     assert.ok(Array.isArray(result.errors), 'errors must be an array');
   });
 
   it('errors is empty for a complete valid driver — no spurious warnings on good input', () => {
-    const { errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS }));
+    const { errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS });
     assert.deepEqual(errors, [], 'no errors expected for complete valid driver');
   });
 
   it('value is non-null for a complete valid driver — all T/S fields present means usable result', () => {
-    const { value } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS }));
+    const { value } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS });
     assert.ok(value != null, 'value must not be null for complete input');
   });
 
   it('returns value:null and field-level error for Fs when Fs is missing', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Fs_hz: undefined }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Fs_hz: undefined });
     assert.equal(value, null, 'value must be null when Fs is missing');
     const e = errors.find(e => e.field === 'Fs');
     assert.ok(e, 'must have an error entry for field Fs');
@@ -77,21 +77,21 @@ describe('deriveEngineDriver — {value, errors} contract', () => {
   });
 
   it('returns value:null and field-level error for Re when Re is missing', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Re_ohm: undefined }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Re_ohm: undefined });
     assert.equal(value, null);
     const e = errors.find(e => e.field === 'Re');
     assert.ok(e && e.level === 'error', 'must have level:error entry for Re');
   });
 
   it('returns value:null and field-level error for Sd when Sd is missing', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Sd_m2: undefined }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Sd_m2: undefined });
     assert.equal(value, null);
     const e = errors.find(e => e.field === 'Sd');
     assert.ok(e && e.level === 'error', 'must have level:error entry for Sd');
   });
 
   it('returns value:null and field-level error for Vas when Vas is missing', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Vas_m3: undefined }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Vas_m3: undefined });
     assert.equal(value, null);
     const e = errors.find(e => e.field === 'Vas');
     assert.ok(e && e.level === 'error', 'must have level:error entry for Vas');
@@ -99,19 +99,19 @@ describe('deriveEngineDriver — {value, errors} contract', () => {
 
   it('returns value:null and error when fewer than two Q parameters are present', () => {
     // Qts alone cannot resolve Qes or Qms — underdetermined system
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qts: QTS_DERIVED }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qts: QTS_DERIVED });
     assert.equal(value, null, 'value must be null when Q system is underdetermined');
     assert.ok(errors.some(e => e.level === 'error'), 'must have at least one error');
   });
 
   it('returns value:null when Fs is zero — zero frequency is not physically valid', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Fs_hz: 0 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Fs_hz: 0 });
     assert.equal(value, null);
     assert.ok(errors.some(e => e.field === 'Fs'), 'must have Fs error entry');
   });
 
   it('returns non-null value and a warn for Pe when Pe is absent — Pe is optional, driver is still usable', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Pe_W: undefined }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Pe_W: undefined });
     assert.ok(value != null, 'value must not be null — Pe absence does not block derivation');
     const w = errors.find(e => e.field === 'Pe' && e.level === 'warn');
     assert.ok(w, 'must have a level:warn entry for Pe when absent');
@@ -119,7 +119,7 @@ describe('deriveEngineDriver — {value, errors} contract', () => {
   });
 
   it('returns non-null value and a warn for Pe when Pe is zero — zero Pe same treatment as absent', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Pe_W: 0 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Pe_W: 0 });
     assert.ok(value != null, 'value must not be null for Pe=0');
     const w = errors.find(e => e.field === 'Pe' && e.level === 'warn');
     assert.ok(w, 'must have a level:warn entry for Pe=0');
@@ -129,32 +129,32 @@ describe('deriveEngineDriver — {value, errors} contract', () => {
 
   it('a Pe warn alone (all required fields present) does not block the value — warn ≠ error', () => {
     // The critical distinction: warn-level entries must NOT null the value.
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Pe_W: 0 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Pe_W: 0 });
     assert.ok(value != null, 'warn-only result must keep a usable value');
     assert.ok(!errors.some(e => e.level === 'error'), 'Pe=0 alone produces no error-level entry');
   });
 
   it('negative Fs is rejected the same as zero/absent — Fs must be strictly positive', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Fs_hz: -37 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Fs_hz: -37 });
     assert.equal(value, null);
     assert.ok(errors.some(e => e.field === 'Fs' && e.level === 'error'), 'negative Fs must be an error');
   });
 
   it('negative Re is rejected — resistance must be strictly positive', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Re_ohm: -5.6 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Re_ohm: -5.6 });
     assert.equal(value, null);
     assert.ok(errors.some(e => e.field === 'Re' && e.level === 'error'));
   });
 
   it('NaN Fs is rejected — NaN must not slip through the > 0 guard', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS, Fs_hz: NaN }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS, Fs_hz: NaN });
     assert.equal(value, null);
     assert.ok(errors.some(e => e.field === 'Fs' && e.level === 'error'));
   });
 
   it('multiple missing required fields accumulate one error entry per field — not just the first', () => {
     // Fs, Re, Sd, Vas all absent → four distinct error entries, all fields named.
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Qes: QES, Qms: QMS }));
+    const { value, errors } = engine.solveConsistencyGroup({ Qes: QES, Qms: QMS });
     assert.equal(value, null);
     const errFields = new Set(errors.filter(e => e.level === 'error').map(e => e.field));
     for (const f of ['Fs', 'Re', 'Sd', 'Vas']) {
@@ -163,7 +163,7 @@ describe('deriveEngineDriver — {value, errors} contract', () => {
   });
 
   it('a completely empty driver produces errors but never throws and never returns undefined', () => {
-    const result = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), {}));
+    const result = engine.solveConsistencyGroup({});
     assert.ok(result && Array.isArray(result.errors), 'must return {value, errors} even for {}');
     assert.equal(result.value, null);
     assert.ok(result.errors.length > 0, 'empty driver must report at least one error');
@@ -171,7 +171,7 @@ describe('deriveEngineDriver — {value, errors} contract', () => {
 
   it('every error entry has field, level, and a non-empty human-readable message', () => {
     // Contract guarantee the UI relies on to render per-field messages.
-    const { errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), {}));
+    const { errors } = engine.solveConsistencyGroup({});
     for (const e of errors) {
       assert.ok(typeof e.field === 'string' && e.field.length > 0, 'field must be a non-empty string');
       assert.ok(e.level === 'error' || e.level === 'warn', `level must be error|warn, got ${e.level}`);
@@ -185,7 +185,7 @@ describe('deriveEngineDriver — {value, errors} contract', () => {
 describe('deriveEngineDriver — Q-factor derivation branches', () => {
   it('derives Qts from Qes and Qms when Qts is absent — '
    + 'standard scenario where Qes and Qms are measured separately', () => {
-    const { value: d } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qes: QES, Qms: QMS }));
+    const { value: d } = engine.solveConsistencyGroup({ ...BASE, Qes: QES, Qms: QMS });
     assert.ok(d);
     assert(
       Math.abs(d.Qts - QTS_DERIVED) < Q_TOL,
@@ -196,7 +196,7 @@ describe('deriveEngineDriver — Q-factor derivation branches', () => {
   it('derives Qes from Qts and Qms when Qes is absent — '
    + 'inverse combination formula Qes = Qts·Qms / (Qms − Qts)', () => {
     const expectedQes = (QTS_DERIVED * QMS) / (QMS - QTS_DERIVED);
-    const { value: d } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qts: QTS_DERIVED, Qms: QMS }));
+    const { value: d } = engine.solveConsistencyGroup({ ...BASE, Qts: QTS_DERIVED, Qms: QMS });
     assert.ok(d);
     assert(
       Math.abs(d.Qes - expectedQes) < Q_TOL,
@@ -207,7 +207,7 @@ describe('deriveEngineDriver — Q-factor derivation branches', () => {
   it('derives Qms from Qts and Qes when Qms is absent — '
    + 'inverse combination formula Qms = Qts·Qes / (Qes − Qts)', () => {
     const expectedQms = (QTS_DERIVED * QES) / (QES - QTS_DERIVED);
-    const { value: d } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qts: QTS_DERIVED, Qes: QES }));
+    const { value: d } = engine.solveConsistencyGroup({ ...BASE, Qts: QTS_DERIVED, Qes: QES });
     assert.ok(d);
     assert(
       Math.abs(d.Qms - expectedQms) < Q_TOL,
@@ -220,7 +220,7 @@ describe('deriveEngineDriver — Q-factor derivation branches', () => {
   // silently. Qts is the parallel combination of Qes and Qms, so Qms > Qts is a
   // physical invariant; violating it must be a blocking error, not a NaN curve.
   it('rejects Qms == Qts (Qes absent) with a blocking error instead of deriving Qes = Infinity', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qts: 0.5, Qms: 0.5 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qts: 0.5, Qms: 0.5 });
     assert.equal(value, null, 'a degenerate Qms == Qts driver must not derive');
     assert.ok(
       errors.some(e => e.level === 'error' && /Qms/.test(e.field + e.message)),
@@ -229,13 +229,13 @@ describe('deriveEngineDriver — Q-factor derivation branches', () => {
   });
 
   it('rejects Qms < Qts (Qes absent) — Qes = Qts·Qms/(Qms−Qts) would go negative', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qts: 0.6, Qms: 0.4 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qts: 0.6, Qms: 0.4 });
     assert.equal(value, null, 'Qms < Qts is physically impossible; must not derive');
     assert.ok(errors.some(e => e.level === 'error'), 'must report a blocking error');
   });
 
   it('rejects Qes == Qts (Qms absent) — the symmetric divide-by-zero deriving Qms', () => {
-    const { value, errors } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...BASE, Qts: 0.5, Qes: 0.5 }));
+    const { value, errors } = engine.solveConsistencyGroup({ ...BASE, Qts: 0.5, Qes: 0.5 });
     assert.equal(value, null, 'a degenerate Qes == Qts driver must not derive');
     assert.ok(
       errors.some(e => e.level === 'error' && /Qes/.test(e.field + e.message)),
@@ -286,31 +286,31 @@ describe('solveConsistencyGroup — full fixpoint solver mode', () => {
   });
 
   it('solves Hc bi-directionally when Hg and Xmax are provided (underhung default)', () => {
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Hg_m: 0.008, Xmax_m: 0.003 })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Hg_m: 0.008, Xmax_m: 0.003 }) as Record<string, number>;
     assert.equal(res.Hc_m, 0.002, 'Hc must solve to Hg - 2*Xmax = 0.002 m');
   });
 
   it('solves Hg bi-directionally when Hc and Xmax are provided', () => {
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Hc_m: 0.015, Xmax_m: 0.005 })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Hc_m: 0.015, Xmax_m: 0.005 }) as Record<string, number>;
     assert.ok(Math.abs(res.Hg_m - 0.005) < 1e-6, `Hg must solve to Hc - 2*Xmax = 0.005 m, got ${res.Hg_m}`);
   });
 
 
   it('prioritizes Row 6 (Dd -> Sd) over Row 20 (Vd/Xmax -> Sd)', () => {
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Dd_m: 0.200, Vd_m3: 0.0001, Xmax_m: 0.005 })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Dd_m: 0.200, Vd_m3: 0.0001, Xmax_m: 0.005 }) as Record<string, number>;
     const expectedSd = Math.PI * 0.100 ** 2; // ~0.0314159
     assert.ok(Math.abs(res.Sd_m2 - expectedSd) < 1e-6, `expected Row 6 Sd ~${expectedSd}, got ${res.Sd_m2}`);
   });
 
   it('executes a 4-hop multi-cascade derivation from minimal 6-input set', () => {
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), {
+    const res = engine.solveConsistencyGroup({
       Fs_hz: 35.0,
       Qes: 0.40,
       Qms: 4.50,
       Vas_m3: 0.045,
       Re_ohm: 6.0,
       Dd_m: 0.210,
-    })) as Record<string, number>;
+    }) as Record<string, number>;
 
     assert.ok(res.Sd_m2 > 0, 'Sd must be calculated (Hop 1)');
     assert.ok(res.Cms_m_per_N > 0, 'Cms must be calculated (Hop 2)');
@@ -333,19 +333,19 @@ describe('solveConsistencyGroup — full fixpoint solver mode', () => {
 // WinISD has no route deriving Fs from Rms/Qms/Mms — that direction must stay unfilled.
 describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)', () => {
   it('derives Fs from EBP + Qes (rel 12)', () => {
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { EBP_hz: 207.77, Qes: 0.1925 })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ EBP_hz: 207.77, Qes: 0.1925 }) as Record<string, number>;
     assert.ok(res.Fs_hz != null, 'Fs must be derived from EBP+Qes');
     assert.ok(Math.abs(res.Fs_hz - 40) < 0.01, `expected Fs ~40 from rel 12, got ${res.Fs_hz}`);
   });
 
   it('derives Fs from Rme + Qes + Mms (rel 4)', () => {
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Rme_kg_per_s: 2.54371, Qes: 0.1925, Mms_kg: 0.00195 })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Rme_kg_per_s: 2.54371, Qes: 0.1925, Mms_kg: 0.00195 }) as Record<string, number>;
     assert.ok(res.Fs_hz != null, 'Fs must be derived from Rme+Qes+Mms');
     assert.ok(Math.abs(res.Fs_hz - 40) < 0.05, `expected Fs ~40 from rel 4, got ${res.Fs_hz}`);
   });
 
   it('leaves Fs blank from Rms + Qms + Mms alone — WinISD has no such route', () => {
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Rms_kg_per_s: 0.2332, Qms: 2.1, Mms_kg: 0.00195 })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Rms_kg_per_s: 0.2332, Qms: 2.1, Mms_kg: 0.00195 }) as Record<string, number>;
     assert.equal(res.Fs_hz, undefined, 'engine must not invent an Fs WinISD would leave blank');
   });
 
@@ -361,7 +361,7 @@ describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)',
     const Re = 6;
     const BL = Math.sqrt(2 * Math.PI * fs2 * Mms * Re / Qes);
 
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Qes, Vas, no, Mms, Re, BL })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Qes, Vas, no, Mms, Re, BL }) as Record<string, number>;
     assert.ok(Math.abs(res.Fs_hz - fs14) < 1e-6, `rel 14 must win over rel 2, expected ${fs14}, got ${res.Fs_hz}`);
   });
 
@@ -376,7 +376,7 @@ describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)',
     const fs14 = fs11 * 1.5;
     const no = engine.referenceEfficiency(fs14, Vas, Qes, engine.airFor({}));
 
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Mms, Cms, Qes, Vas, no })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Mms, Cms, Qes, Vas, no }) as Record<string, number>;
     assert.ok(Math.abs(res.Fs_hz - fs11) < 1e-6, `rel 11 must win over rel 14, expected ${fs11}, got ${res.Fs_hz}`);
   });
 
@@ -391,7 +391,7 @@ describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)',
     const fs4 = 40;
     const Rme = (2 * Math.PI * fs4 * Mms) / Qes;
 
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Qes, Mms, Re, BL, Rme })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Qes, Mms, Re, BL, Rme }) as Record<string, number>;
     assert.ok(Math.abs(res.Fs_hz - fs2) < 1e-6, `rel 2 must win over rel 4, expected ${fs2}, got ${res.Fs_hz}`);
   });
 
@@ -405,7 +405,7 @@ describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)',
     const fs12 = 50;
     const EBP = fs12 / Qes;
 
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Qes, Mms, Rme, EBP })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Qes, Mms, Rme, EBP }) as Record<string, number>;
     assert.ok(Math.abs(res.Fs_hz - fs4) < 1e-6, `rel 4 must win over rel 12, expected ${fs4}, got ${res.Fs_hz}`);
   });
 
@@ -428,7 +428,7 @@ describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)',
     const c = driverC();
     const Vas = Cms * rho * c * c * Sd * Sd;
 
-    const res = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Mms, Re, Qes, Sd, BL, Vas })) as Record<string, number>;
+    const res = engine.solveConsistencyGroup({ Mms, Re, Qes, Sd, BL, Vas }) as Record<string, number>;
     assert.ok(Math.abs(res.Fs_hz - fs2) < 1e-6, `rel 2 must lock Fs at ${fs2} before rel 11's Cms is ready, got ${res.Fs_hz}`);
     assert.notEqual(Math.round(res.Fs_hz), fs11, 'rel 11 must NOT win merely because it has the higher static priority');
   });

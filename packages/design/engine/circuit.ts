@@ -28,10 +28,10 @@
 
 
 import { airFor } from './air.js';
-import { hotRe } from './driver.js';
+import { hotRe } from './solver.js';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cScale, cPar, cTanh } from './complex.js';
 import type { Complex, BoxType, SweepParams, Solution } from './types.js';
-import type { EngineQuantities } from './engineQuantities.js';
+import type { SolverQuantities } from './solverQuantities.js';
 
 export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): number {
   return w * Map / (P.Qp || 100);
@@ -89,9 +89,9 @@ export function portImpedance(w: number, P: SweepParams): Complex {
  */
 /** The quantities the circuit CANNOT run without, every one required — measured, not declared:
  *  each is read unguarded below. `Le_H` is the only optional one, and absent means 0 H (no
- *  inductor specified), never unknown. Built from `EngineQuantities` so the two cannot drift. */
+ *  inductor specified), never unknown. Built from `SolverQuantities` so the two cannot drift. */
 export type CircuitQuantities =
-  Required<Pick<EngineQuantities, 'Sd_m2' | 'Re_ohm' | 'BL_Tm' | 'Cms_m_per_N' | 'Mms_kg' | 'Rms_kg_per_s'>>
+  Required<Pick<SolverQuantities, 'Sd_m2' | 'Re_terminal_ohm' | 'BL_terminal_Tm' | 'Cms_m_per_N' | 'Mms_kg' | 'Rms_kg_per_s'>>
   & {
     /** Voice-coil inductance. The ONLY optional member, and the only quantity here that is not a
      *  solver quantity — absent means no inductor specified, i.e. 0 H, never unknown. It affects
@@ -115,7 +115,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   //   "Ze = Re + jω·Le + Zem" — Le added back only for impedance, not for acoustic simulation
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
   // Thermal power compression (docs/research/WINISD_PARITY.md): the coil's DC resistance rises with temperature.
-  // vcTempRise=0/absent → hotRe returns drv.Re_ohm exactly, so the circuit is unchanged (golden-safe).
+  // vcTempRise=0/absent → hotRe returns drv.Re_terminal_ohm exactly, so the circuit is unchanged (golden-safe).
   // Le is optional on a Driver (many datasheets omit it). Absent means "no inductor
   // specified", i.e. 0 H — NOT an unknown that should poison Zel with NaN.
   const Le = drv.Le_H ?? 0;
@@ -124,12 +124,12 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   // amplifier a single Rg sits in series with the whole array. Identical when n = 1.
   const Rg  = P.Rs || 0;
   const rgAtDriver = P.rgAtDriverSide !== false;
-  const Rdc1 = hotRe(drv.Re_ohm, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (rgAtDriver ? Rg : 0);
+  const Rdc1 = hotRe(drv.Re_terminal_ohm, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (rgAtDriver ? Rg : 0);
   const Zcoil1AC = cx(Rdc1, 0);
   const Zcoil1   = cAdd(cx(Rdc1, 0), cx(0, w * Le));
   let ZcoilAC: Complex, Zcoil: Complex, Bl: number;
-  if (wiring === 'series') { ZcoilAC = cScale(Zcoil1AC, n); Zcoil = cScale(Zcoil1, n);     Bl = drv.BL_Tm * n; }
-  else                     { ZcoilAC = cScale(Zcoil1AC, 1/n); Zcoil = cScale(Zcoil1, 1/n); Bl = drv.BL_Tm; }
+  if (wiring === 'series') { ZcoilAC = cScale(Zcoil1AC, n); Zcoil = cScale(Zcoil1, n);     Bl = drv.BL_terminal_Tm * n; }
+  else                     { ZcoilAC = cScale(Zcoil1AC, 1/n); Zcoil = cScale(Zcoil1, 1/n); Bl = drv.BL_terminal_Tm; }
   if (!rgAtDriver) { ZcoilAC = cAdd(ZcoilAC, cx(Rg, 0)); Zcoil = cAdd(Zcoil, cx(Rg, 0)); }
 
   // Acoustic pressure source and electrical damping.

@@ -42,7 +42,7 @@ import type {
   Cell, MetaCell,
   OpenISDVent, OpenISDProjectMeta,
 } from '@openisd/model';
-import { winisdTextToBytes } from '@openisd/winisd';
+import { winisdTextToBytes } from '@openisd/design/winisd';
 import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/design/engine';
 import { Engine } from '@openisd/design/engine';
 import type { LossMode, BoxType } from '@openisd/design/engine';

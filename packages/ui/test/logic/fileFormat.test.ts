@@ -5,7 +5,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { DriverFileFormat, ProjectFileFormat, formatOf, sniff } from '../../src/fileFormat.js';
-import { winisdTextToBytes } from '@openisd/winisd';
+import { winisdTextToBytes } from '@openisd/design/winisd';
 
 describe('formatOf — file-name classification across both format families', () => {
   it('identifies every known driver and project extension', () => {

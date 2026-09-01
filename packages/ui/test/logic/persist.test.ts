@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
-import { WinISDDriver } from '@openisd/winisd';
+import { WinISDDriver } from '@openisd/design/winisd';
 import { createProjectRepo, createMemoryStorage, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
 import { projectSchema } from '../../src/logic/schemaUpgrade.js';
 import { state, requireFocusedProject, applyLoadedProject, currentProject, currentViewSnapshot } from '../../src/logic/appState.js';

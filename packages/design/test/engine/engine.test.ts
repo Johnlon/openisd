@@ -10,7 +10,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine, EngineQuantities } from '../../engine/index.js';
+import { Engine } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -93,7 +93,7 @@ describe('Sealed box simulation', () => {
     // We set Le = 0 to isolate the acoustic response from voice-coil inductance.
     // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
     const Vb_m3 = 0.020; // 20 L enclosure volume in m³
-    const { value: d } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...REF_DRIVER, Le_H: 0 }));
+    const { value: d } = engine.solveConsistencyGroup({ ...REF_DRIVER, Le_H: 0 });
     assert.ok(d);
     const fc  = d.Fs_hz  * Math.sqrt(1 + d.Vas_m3 / Vb_m3);
     const Qtc = d.Qts * Math.sqrt(1 + d.Vas_m3 / Vb_m3);
@@ -125,7 +125,7 @@ describe('Sealed box simulation', () => {
     // in engine.sweep().value! against the closed form, not one copy of a constant against another.
     const Vb_m3 = 0.020;
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
-    const { value: d }     = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...REF_DRIVER, Le_H: 0 }));
+    const { value: d }     = engine.solveConsistencyGroup({ ...REF_DRIVER, Le_H: 0 });
     assert.ok(d);
     const eta0  = engine.referenceEfficiency(d.Fs_hz, d.Vas_m3, d.Qes, engine.airFor({}));
     const predicted = engine.splFromEfficiency(eta0, engine.airFor({})) + 10 * Math.log10(EG ** 2 / d.Re_ohm);
@@ -151,7 +151,7 @@ describe('Sealed box simulation', () => {
     const F3_QSPEAKERS_HZ = 70.72; // Hz — f3 from QSpeakers formula, REF_DRIVER, 20 L, lossless
 
     const Vb_m3 = 0.020;
-    const { value: d } = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { ...REF_DRIVER, Le_H: 0 }));
+    const { value: d } = engine.solveConsistencyGroup({ ...REF_DRIVER, Le_H: 0 });
     assert.ok(d);
     const { fs, spl } = engine.sweep(d, LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)

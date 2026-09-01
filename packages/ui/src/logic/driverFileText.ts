@@ -14,7 +14,7 @@
  * result there means the file is corrupt, not legacy, so `decodeDriverFileBytes` rejects it
  * rather than handing back a lossy re-decode.
  */
-import { winisdBytesToText, WinisdEncoding, winisdTextToBytes, type WinisdDecodedText } from '@openisd/winisd';
+import { winisdBytesToText, WinisdEncoding, winisdTextToBytes, type WinisdDecodedText } from '@openisd/design/winisd';
 import { DriverFileFormat, ProjectFileFormat, isLegacyWinisdFormat, type FileFormat } from '../fileFormat.js';
 
 /** `bytes` decoded to text, gated by `format`: `.wdr`/`.wpr` may legitimately fall back to

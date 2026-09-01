@@ -6,8 +6,8 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine, EngineQuantities } from '../../engine/index.js';
-import type { EngineDriver, SweepResult } from '../../engine/index.js';
+import { Engine } from '../../engine/index.js';
+import type { SweepResult } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -16,8 +16,8 @@ const LE_H = 0.5e-3;
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
 
-function drv(): EngineDriver {
-  const r = engine.solveConsistencyGroup(Object.assign(new EngineQuantities(), { Fs_hz: 40, Qes: 0.45, Qms: 4, Vas_m3: 0.03, Sd_m2: 0.0133, Re_ohm: 6, Le_H: 0.5e-3 }));
+function drv() {
+  const r = engine.solveConsistencyGroup({ Fs_hz: 40, Qes: 0.45, Qms: 4, Vas_m3: 0.03, Sd_m2: 0.0133, Re_ohm: 6, Le_H: 0.5e-3 });
   assert.ok(r.value, `fixture derives: ${JSON.stringify(r.errors)}`);
   return r.value;
 }
