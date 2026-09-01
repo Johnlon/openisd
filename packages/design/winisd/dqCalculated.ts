@@ -20,7 +20,7 @@
  * Adding a rule is a REVIEWED SCHEMA CHANGE in that registry first, then here. There is no way to
  * introduce one from this side.
  */
-import type { ConsistencyIssue } from '@openisd/design/engine';
+import type { ConsistencyIssue } from '../engine/index.js';
 
 /** One data-quality mark, in the shape a record stores. `severity` is `'error'` for every rule
  *  this file can produce: the registry fixes severity per rule, and both `calc` and `range`
@@ -103,7 +103,8 @@ function roundSignificant(digits: string, exp: number, precision: number):
 /**
  * `format(x, f'.{precision}g')` as CPython renders it — the exact bytes a `detail` must contain.
  *
- * Three differences from anything JavaScript offers, all of them load-bearing:
+ * Three differences from anything JavaScript offers, and getting any of them wrong makes the
+ * `detail` string differ from Python's, which the record model then refuses:
  *   - the switch to scientific form happens at `exp < -4`, where `Number.toPrecision` uses -6, so
  *     `1e-5` prints as `1e-05` and not `0.0000100000`;
  *   - the exponent carries a sign and AT LEAST TWO digits — `e-07`, never JavaScript's `e-7`;
@@ -378,7 +379,13 @@ export function dqCalculated(
   }
   for (const issue of issues) {
     const finding = calcMark(issue);
-    for (const member of finding.members) add(member, finding.mark);
+    // A COPY PER MEMBER, so every entry states the finding in full. Handing the same object to
+    // three entries makes the YAML writer emit it once with an anchor and refer to it by alias
+    // everywhere else, and an entry whose whole content is `*a1` carries no legible finding of
+    // its own — a corpus file is read by people.
+    for (const member of finding.members) {
+      add(member, { ...finding.mark, params: { ...finding.mark.params } });
+    }
   }
   return byField;
 }

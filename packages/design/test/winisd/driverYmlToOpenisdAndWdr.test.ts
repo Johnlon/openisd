@@ -105,16 +105,26 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     assert.equal(stated(null), 'VCCon=1', 'the row is present even when the record states no wiring');
   });
 
-  it('projects an APP-AUTHORED record, which carries none of the scraper-only keys', () => {
-    // Only brand/model/manufacturer/specs are required. uuid, sku, data_sources, authoritative,
-    // quality and product_image describe where a SCRAPE came from, so a driver the app itself
-    // authored has none of them — requiring any would force the app to fabricate a scrape that
-    // never happened. Every other test here uses a corpus record, which carries all six, so this
-    // is the only one that would catch the projection assuming their presence.
+  it('projects an APP-AUTHORED record — every field marked entered, none scraped', () => {
+    // A driver a person typed into the app. It is still a RECORD: openisd.yml is driver.yml minus
+    // `scraper_meta` and `definition`, plus `dq_calculated` (John, 2026-09-01), so the ten fields
+    // `DriverFile` requires are required of it too. What differs is PROVENANCE — every origin is
+    // `entered`, nothing claims a datasheet said it — and that `scraper_meta` was never there to
+    // drop. This is the only test here not using a corpus record, so it is the one that would
+    // catch the projection assuming a scrape happened.
     const appAuthored = [
+      'uuid: {value: 00000000-0000-4000-8000-000000000000}',
       'brand: {value: Acme, origin: entered}',
       'model: {value: A1, origin: entered}',
       'manufacturer: {value: Acme, origin: entered}',
+      'sku: {value: A1-8, grounds: [{origin: entered, reading: A1-8}]}',
+      'driver_type: {value: woofer, origin: entered}',
+      'authoritative: {value: entered}',
+      'data_sources: {value: {}}',
+      'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
+      "provided_by: {value: 'A Community Contributor', origin: entered}",
+      "comment: {value: '', origin: entered}",
+      "added: {value: '2026-09-01', origin: entered}",
       'specs:',
       '  woofer:',
       '    Fs:',
@@ -128,6 +138,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     assert.ok(openisd !== null, 'openisd.yml is produced');
     assert.ok(wdr !== null, '.wdr is produced');
     assert.ok(wdr.includes('Fs=42'), 'the stated value reaches the .wdr');
+    assert.ok(!openisd.includes('scraper_meta'), 'nothing invents a scrape that never happened');
   });
 
   it('STRIPS definition — dead in openisd, and only this bridge removes it', () => {
@@ -164,6 +175,42 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     assert.ok(openisd !== null, 'openisd.yml is produced');
     assert.equal(/(^|\s)definition:/m.test(openisd), false,
       'definition reached the emitted openisd.yml');
+  });
+
+  it('projects a PASSIVE RADIATOR: openisd.yml yes, wdr null, and NOT an error', () => {
+    // `drivers.md` Part C: "A passive radiator returns `wdr: null` with no error — WinISD has no
+    // PR format — but MUST still get `dq_calculated`." A radiator refused as "neither a woofer nor
+    // a tweeter" is the driver seam answering a question nobody asked of it: 78 of the corpus's
+    // records are radiators, and every one of them needs its openisd.yml.
+    const radiator = [
+      'uuid: {value: 00000000-0000-4000-8000-000000000001}',
+      'brand: {value: Dayton Audio, origin: manufacturer_datasheet}',
+      'model: {value: DSA175-PR, origin: manufacturer_datasheet}',
+      'manufacturer: {value: Dayton Audio, origin: manufacturer_datasheet}',
+      'sku: {value: DSA175-PR, grounds: [{origin: manufacturer_datasheet, reading: DSA175-PR}]}',
+      'driver_type: {value: passive-radiator, origin: manufacturer_datasheet}',
+      'authoritative: {value: manufacturer_datasheet}',
+      "data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}}",
+      'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
+      "provided_by: {value: '', origin: manufacturer_datasheet}",
+      "comment: {value: '', origin: manufacturer_datasheet}",
+      "added: {value: '2026-09-01', origin: manufacturer_datasheet}",
+      'specs:',
+      '  passive-radiator:',
+      '    Fs:',
+      '      origin: manufacturer_datasheet',
+      '      readings: {manufacturer_datasheet: {actual_reading: "24 Hz", read_value: 24, read_precision: 0.5}}',
+      '    Sd:',
+      '      origin: manufacturer_datasheet',
+      '      readings: {manufacturer_datasheet: {actual_reading: "137 cm2", read_value: 0.0137, read_precision: 0.5}}',
+    ].join('\n');
+
+    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(radiator);
+
+    assert.deepEqual(errors.filter(e => e.level === 'error'), [],
+      'a radiator having no .wdr is the CONTRACT, not a failure');
+    assert.ok(openisd !== null, 'the radiator still gets its openisd.yml');
+    assert.equal(wdr, null, 'WinISD has no passive-radiator format');
   });
 
   it('reports a parse failure as an error rather than throwing', () => {

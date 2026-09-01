@@ -3,7 +3,18 @@
  * metadata for one `openisd.yml` record and whether it belongs in the bundle. No filesystem
  * read or write, so a test (or another script) can import it directly with no CLI run.
  */
-import { recordConforms } from '@openisd/model/driverConformance';
+import { driverFromConformingRecord, passiveRadiatorFromConformingRecord } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
+
+/** Whether a record is READABLE as a device — a driver or a passive radiator. Asked of the
+ *  domain's own seams, which are the only things that decide what an openisd record is; a bundle
+ *  built on a second opinion would ship rows the app then refuses. Both seams are tried because
+ *  the bundle carries both kinds. */
+const recordConforms = record => {
+  const engine = new Engine();
+  return !Array.isArray(driverFromConformingRecord(record, engine))
+    || !Array.isArray(passiveRadiatorFromConformingRecord(record, engine));
+};
 
 /** A record-level `{ value, origin, definition }` wrapper's value. */
 const valueOf = node => (node && typeof node === 'object' && 'value' in node ? node.value : undefined);
@@ -20,7 +31,7 @@ const valueOf = node => (node && typeof node === 'object' && 'value' in node ? n
  *  fields left blank, and `driverRepo.ts::driverHasDqIssues` (not this gate) is what flags
  *  it.
  *
- *  `recordConforms` (`packages/model/src/driverConformance.ts`) is checked FIRST, before any
+ *  `recordConforms` (the domain's own seams) is checked FIRST, before any
  *  field is read off `record` — a record failing it may not even be an object. It catches TWO
  *  throw classes: an absent or non-object `specs` (`readCell`/`OpenISDDriver#specs()`), and an
  *  absent `quality`/`quality.missing`/`quality.parse_errors` (`recordStandingIsOk`, which

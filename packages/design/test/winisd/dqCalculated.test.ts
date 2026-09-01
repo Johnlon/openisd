@@ -6,9 +6,12 @@
  * That is the whole point of these tests: `DqMark._guard_against_invention` re-renders the
  * registered template on load and REFUSES any mark whose `detail` differs by a single character,
  * so a record we emit with a hand-typed string is a record `winisd_tools` can never read back.
- * The Unicode is load-bearing: ρ, ·, ², √, π, and an EM DASH before the percentage.
+ * The Unicode must match byte for byte — ρ, ·, ², √, π, and an EM DASH before the percentage —
+ * because the record model compares `detail` against the template's own rendering.
  */
 import { describe, it, expect } from 'vitest';
+
+import { stringify } from 'yaml';
 
 import { calcMark, dqCalculated, rangeMark, withDqCalculated } from '../../winisd/dqCalculated.js';
 
@@ -181,6 +184,28 @@ describe('collecting a device\'s marks', () => {
         params: { computed: 0.3899999, stored: 0.41, off_pct: 5.1 },
         detail: 'Qts from Qes·Qms/(Qes+Qms) = 0.39 vs stored 0.41 — 5.1% apart' },
     ]);
+  });
+
+  it('gives each member its own mark object, so the YAML writer emits no alias', () => {
+    // A `yaml` writer emits `&a1`/`*a1` for any object it reaches twice, and an entry whose whole
+    // content is `*a1` states no finding a reader can see without going to look elsewhere.
+    const collected = dqCalculated([], [{
+      formula: 'Qts = Qes·Qms/(Qes+Qms)', fields: ['Qts', 'Qes', 'Qms'],
+      target: 'Qts', expected: 0.3899999, actual: 0.41, relative: 0.05,
+    }]);
+
+    const text = stringify(withDqCalculated({
+      specs: { woofer: {
+        Qts: { origin: 'ds', readings: { ds: { read_value: 0.41 } } },
+        Qes: { origin: 'ds', readings: { ds: { read_value: 0.44 } } },
+        Qms: { origin: 'ds', readings: { ds: { read_value: 3.4 } } },
+      } },
+    }, 'woofer', collected));
+
+    expect(text).not.toContain('&');
+    expect(text).not.toContain('*');
+    expect(text.match(/rule: qts-consistency/g)).toHaveLength(3);
+    expect(text.match(/detail: Qts from Qes·Qms\/\(Qes\+Qms\)/g)).toHaveLength(3);
   });
 
   it('finds nothing for a device whose stated values agree and sit in range', () => {

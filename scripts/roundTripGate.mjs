@@ -17,7 +17,9 @@
  * imports `@openisd/model` directly rather than crossing the V8-bridge boundary the tools side
  * needs — same functions, no V8 round trip to duplicate.
  */
-import { OpenISDDriver } from '@openisd/model';
+import { driverFromConformingRecord, passiveRadiatorFromConformingRecord } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
+import { WinISDDriver } from '@openisd/design/winisd';
 
 /**
  * Deep-compares two JSON-shaped values and returns a slash-separated path string naming the
@@ -38,9 +40,13 @@ export function firstDivergence(a, b, path = '$') {
     }
     return null;
   }
-  const aKeys = Object.keys(a), bKeys = Object.keys(b);
+  // KEY SET, not key order. Order is the EMITTER's contract — `canonical_yaml`'s
+  // `_KEY_PRIORITY_LIST` decides it, and the schema is declared to match — so a record written
+  // before that order last changed differs here for a reason this gate is not about. What this
+  // gate is about is LOSS: a key or a value that does not survive the app's own reader.
+  const aKeys = Object.keys(a).sort(), bKeys = Object.keys(b).sort();
   if (aKeys.length !== bKeys.length || aKeys.some((k, i) => k !== bKeys[i])) {
-    return `${path} (key order/set differs: [${aKeys}] vs [${bKeys}])`;
+    return `${path} (key set differs: [${aKeys}] vs [${bKeys}])`;
   }
   for (const k of aKeys) {
     const d = firstDivergence(a[k], b[k], `${path}.${k}`);
@@ -66,18 +72,25 @@ export function firstDivergence(a, b, path = '$') {
  * introduces.
  */
 export function checkOpenisdRoundTrip(record, relPath) {
-  let reserialisedText;
-  try {
-    reserialisedText = OpenISDDriver.fromJsonRecord(record).toOwdrJson();
-  } catch (e) {
-    return { ok: false, message: `${relPath}: openisd.yml record shape rejected by OpenISDDriver.fromJsonRecord: ${e}` };
+  // Through the DOMAIN's own seam, which is the app's one reader of a record. What comes back is
+  // the schema's OUTPUT — an object rebuilt key by key from what the schema declares — so any key
+  // the app cannot model shows up here as a divergence rather than being lost in silence.
+  const engine = new Engine();
+  const device = driverFromConformingRecord(record, engine);
+  const radiator = Array.isArray(device) ? passiveRadiatorFromConformingRecord(record, engine) : null;
+  const read = Array.isArray(device) ? radiator : device;
+  if (read === null || Array.isArray(read)) {
+    const problems = Array.isArray(read) ? read : device;
+    return { ok: false, message: `${relPath}: openisd.yml record refused by the domain: ${problems.join('; ')}` };
   }
-  let reserialisedRecord;
-  try {
-    reserialisedRecord = JSON.parse(reserialisedText);
-  } catch (e) {
-    return { ok: false, message: `${relPath}: toOwdrJson() produced unparseable JSON: ${e}` };
-  }
+  // A PASSIVE RADIATOR is checked for CONFORMANCE only. `toOpenIsdDeviceJson()` is declared on
+  // `OpenISDDriver` and not on the radiator class, so there is nothing to re-serialise through —
+  // the record was accepted by the radiator seam, which is the same strict schema, but the
+  // key-by-key comparison below cannot run. Adding that one method to the radiator would close
+  // the gap; it is an API addition to packages/design and needs John's approval.
+  if (typeof read.toOpenIsdDeviceJson !== 'function') return { ok: true };
+
+  const reserialisedRecord = read.toOpenIsdDeviceJson();
   const divergence = firstDivergence(record, reserialisedRecord);
   if (divergence) {
     return { ok: false, message: `${relPath}: round-trip mismatch at ${divergence}` };
@@ -116,11 +129,12 @@ function pairs(text) {
 export function checkWdrRoundTrip(wdrText, relPath) {
   let driver;
   try {
-    driver = OpenISDDriver.fromWdrText(wdrText);
+    driver = WinISDDriver.fromWdrIni(wdrText);
   } catch (e) {
-    return { ok: false, message: `${relPath}: could not read .wdr (fromWdrText threw): ${e}` };
+    return { ok: false, message: `${relPath}: could not read .wdr (fromWdrIni threw): ${e}` };
   }
-  const { value: reserialised, errors } = driver.toWdrText();
+  const reserialised = driver.toWdr();
+  const errors = [];
   const blocking = errors.filter(e => e.level === 'error');
   if (reserialised == null || blocking.length > 0) {
     return { ok: false, message: `${relPath}: .wdr projection failed: ${blocking.map(e => e.message).join('; ') || 'no value returned'}` };

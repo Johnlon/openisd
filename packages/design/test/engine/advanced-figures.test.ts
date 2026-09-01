@@ -18,7 +18,7 @@
  *     SPLmaxLF = 20·log₁₀(ρ₀·(2π·20)²·Vd/(2π·√2)/20 µPa)
  *     Mcost    = Rme·(1 + Xmax/min(Hc, Hg))
  *
- * 🔒 The Rme PRECEDENCE is the load-bearing part. The two routes are algebraically identical
+ * 🔒 The Rme PRECEDENCE is what this test exists for. The two routes are algebraically identical
  * whenever `Bl = √(2π·Fs·Mms·Re/Qes)` holds, so they only diverge on a record whose stored Bl
  * does not agree with its own Fs/Mms/Re/Qes — and real records do diverge. On the Beyma
  * 10BR60/V2 fixture (winisd_research/CALC_FINDINGS_FOR_REVIEW.md, the batch-recompute session)

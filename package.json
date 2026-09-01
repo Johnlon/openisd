@@ -20,7 +20,7 @@
     "dev": "vite",
     "prebuild": "npx vite-node scripts/bundle-drivers.mjs && npm run lint",
     "build": "vite build",
-    "build:bridge": "vite build --config packages/winisd/vite.bridge.config.ts",
+    "build:bridge": "vite build --config packages/design/vite.bridge.config.ts",
     "preview": "vite preview",
     "test": "bash scripts/test.sh",
     "test:unit": "vitest run",

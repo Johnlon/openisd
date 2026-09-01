@@ -17,15 +17,18 @@
  * `Sd=0.00177545544983551`). So this file converts no units, and a unit conversion appearing here
  * later would be a bug, not a missing feature.
  */
-import { parse, stringify } from 'yaml';
+import {parse as parseYmlToJs, stringify} from 'yaml';
 
-import { driverFromConformingRecord, type OpenISDDriver } from '@openisd/design';
-import { Engine, type DriverError } from '@openisd/design/engine';
-import type { FieldHandle, Provenance } from '@openisd/design';
+import {
+    driverFromConformingRecord, passiveRadiatorFromConformingRecord,
+    type OpenISDDriver
+} from '@openisd/design';
+import {Engine, type DriverError} from '@openisd/design/engine';
+import type {FieldHandle, Provenance} from '@openisd/design';
 
-import { WinISDDriver, type WdrCell, type WdrHeader } from './winisdDriver.js';
-import { CellState } from './parstate.js';
-import { dqCalculated, withDqCalculated } from './dqCalculated.js';
+import {WinISDDriver, type WdrCell, type WdrHeader} from './winisdDriver.js';
+import {CellState} from './parstate.js';
+import {dqCalculated, withDqCalculated} from './dqCalculated.js';
 
 /**
  * The spec section of a driver, named through `OpenISDDriver`'s own PUBLIC `spec` property rather
@@ -37,9 +40,9 @@ type DriverSpec = OpenISDDriver['spec']['woofer'];
 /** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
  *  blocking failure stopped that artefact being produced; `errors` is always an array. */
 export interface DriverYmlProjection {
-  openisd: string | null;
-  wdr: string | null;
-  errors: DriverError[];
+    openisd: string | null;
+    wdr: string | null;
+    errors: DriverError[];
 }
 
 /** The scraper-only section. It is named ONCE, here, because this is the only place that drops
@@ -60,23 +63,23 @@ const DEAD_KEY = 'definition';
 /** The same value with every `definition` removed, at any depth. Rebuilt rather than deleted from,
  *  for the reason `openisdRecordFrom` gives: the parsed object is the round-trip's reference and
  *  must not be mutated by the thing it is checking. */
-function withoutDefinitions(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(withoutDefinitions);
-  if (value === null || typeof value !== 'object') return value;
-  const out: Record<string, unknown> = {};
-  for (const [key, v] of Object.entries(value)) {
-    if (key === DEAD_KEY) continue;
-    out[key] = withoutDefinitions(v);
-  }
-  return out;
+function stripDefinitionField(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(stripDefinitionField);
+    if (value === null || typeof value !== 'object') return value;
+    const out: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value)) {
+        if (key === DEAD_KEY) continue;
+        out[key] = stripDefinitionField(v);
+    }
+    return out;
 }
 
 /** `.wdr` provenance marks, from the domain's own three-state provenance. WinISD's format has
  *  exactly these three, so the mapping is total and needs no fallback. */
 const WDR_MARK: Record<Provenance, CellState> = {
-  entered: CellState.Entered,
-  calculated: CellState.Computed,
-  'not-available': CellState.Absent,
+    entered: CellState.Entered,
+    calculated: CellState.Computed,
+    'not-available': CellState.Absent,
 };
 
 /**
@@ -85,13 +88,13 @@ const WDR_MARK: Record<Provenance, CellState> = {
  * Rebuilt as a fresh object rather than `delete`d from the parsed one: the parsed object is the
  * round-trip's reference (step 4 below) and must not be mutated by the thing it is checking.
  */
-function openisdRecordFrom(driverYml: object): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(driverYml)) {
-    if (key === SCRAPER_ONLY_KEY) continue;
-    out[key] = withoutDefinitions(value);
-  }
-  return out;
+function stripScraperOnlyFieldsFromJavascriptObject(driverYml: object): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(driverYml)) {
+        if (key === SCRAPER_ONLY_KEY) continue;
+        out[key] = stripDefinitionField(value);
+    }
+    return out;
 }
 
 /**
@@ -108,22 +111,22 @@ function openisdRecordFrom(driverYml: object): Record<string, unknown> {
  * `wdrVCCon()` below projects it, and it is MANDATORY in the file (John, 2026-08-31).
  */
 function wdrFields(spec: DriverSpec): ReadonlyArray<readonly [string, FieldHandle<number>]> {
-  return [
-    ['Qts', spec.Qts], ['Znom', spec.Znom_ohm], ['Fs', spec.Fs_hz], ['Pe', spec.Pe_W],
-    ['SPL', spec.SPL_dB], ['Re', spec.Re_ohm], ['Le', spec.Le_H], ['fLe', spec.fLe_hz],
-    ['KLe', spec.KLe_H_sqrtHz], ['BL', spec.BL_Tm], ['Xmax', spec.Xmax_m],
-    ['Cms', spec.Cms_m_per_N], ['Qms', spec.Qms], ['Qes', spec.Qes], ['Rms', spec.Rms_kg_per_s],
-    ['Mms', spec.Mms_kg], ['Sd', spec.Sd_m2], ['Vas', spec.Vas_m3], ['Dia', spec.Dia_m],
-    ['Vd', spec.Vd_m3], ['no', spec.no], ['Dd', spec.Dd_m], ['EBP', spec.EBP_hz],
-    ['numVC', spec.numVC], ['Hc', spec.Hc_m], ['Hg', spec.Hg_m], ['SPLmax', spec.SPLmax_dB],
-    ['SPLmaxLF', spec.SPLmaxLF_dB], ['USPL', spec.USPL_dB], ['alfaVC', spec.alfaVC_per_K],
-    ['Rt', spec.Rt_K_per_W], ['Ct', spec.Ct_J_per_K], ['gamma', spec.gamma_m_per_s2_A],
-    ['Rme', spec.Rme_kg_per_s], ['Mpow', spec.Mpow_N_per_sqrtW], ['Mcost', spec.Mcost_kg_per_s],
-    ['Gloss', spec.Gloss], ['c', spec.c_m_per_s],
-    ['roo', spec.roo_kg_per_m3], ['Thick', spec.Thick_m], ['Depth', spec.Depth_m],
-    ['MagDepth', spec.MagDepth_m], ['Magnet', spec.Magnet_m], ['Basket', spec.Basket_m],
-    ['Outer', spec.Outer_m], ['Vcd', spec.Vcd_m], ['DVol', spec.DVol_m3],
-  ];
+    return [
+        ['Qts', spec.Qts], ['Znom', spec.Znom_ohm], ['Fs', spec.Fs_hz], ['Pe', spec.Pe_W],
+        ['SPL', spec.SPL_dB], ['Re', spec.Re_ohm], ['Le', spec.Le_H], ['fLe', spec.fLe_hz],
+        ['KLe', spec.KLe_H_sqrtHz], ['BL', spec.BL_Tm], ['Xmax', spec.Xmax_m],
+        ['Cms', spec.Cms_m_per_N], ['Qms', spec.Qms], ['Qes', spec.Qes], ['Rms', spec.Rms_kg_per_s],
+        ['Mms', spec.Mms_kg], ['Sd', spec.Sd_m2], ['Vas', spec.Vas_m3], ['Dia', spec.Dia_m],
+        ['Vd', spec.Vd_m3], ['no', spec.no], ['Dd', spec.Dd_m], ['EBP', spec.EBP_hz],
+        ['numVC', spec.numVC], ['Hc', spec.Hc_m], ['Hg', spec.Hg_m], ['SPLmax', spec.SPLmax_dB],
+        ['SPLmaxLF', spec.SPLmaxLF_dB], ['USPL', spec.USPL_dB], ['alfaVC', spec.alfaVC_per_K],
+        ['Rt', spec.Rt_K_per_W], ['Ct', spec.Ct_J_per_K], ['gamma', spec.gamma_m_per_s2_A],
+        ['Rme', spec.Rme_kg_per_s], ['Mpow', spec.Mpow_N_per_sqrtW], ['Mcost', spec.Mcost_kg_per_s],
+        ['Gloss', spec.Gloss], ['c', spec.c_m_per_s],
+        ['roo', spec.roo_kg_per_m3], ['Thick', spec.Thick_m], ['Depth', spec.Depth_m],
+        ['MagDepth', spec.MagDepth_m], ['Magnet', spec.Magnet_m], ['Basket', spec.Basket_m],
+        ['Outer', spec.Outer_m], ['Vcd', spec.Vcd_m], ['DVol', spec.DVol_m3],
+    ];
 }
 
 /**
@@ -150,12 +153,14 @@ function wdrFields(spec: DriverSpec): ReadonlyArray<readonly [string, FieldHandl
  * name — the save bug, captured in a fixture. Matching that file would mean copying the bug.
  */
 function wdrVCCon(spec: DriverSpec): WdrCell {
-  const cell = spec.VCCon.get();
-  if (cell.value == null) return { value: '1', state: CellState.Absent };
-  return {
-    value: cell.value === 'series' ? '2' : '1',
-    state: WDR_MARK[cell.state],
-  };
+    const cell = spec.VCCon.get();
+    if (cell.value == null)
+      return {value: '1', state: CellState.Absent};
+
+    return {
+        value: cell.value === 'series' ? '2' : '1',
+        state: WDR_MARK[cell.state],
+    };
 }
 
 /**
@@ -171,42 +176,46 @@ function wdrVCCon(spec: DriverSpec): WdrCell {
  * keys `openisd.yml` states, so a field renamed there is a build error in one place.
  */
 function statedValues(spec: DriverSpec): Array<readonly [string, number]> {
-  const stated: Array<readonly [string, number]> = [];
-  for (const [key, field] of wdrFields(spec)) {
-    const cell = field.get();
-    if (cell.state === 'entered' && cell.value != null && isFinite(cell.value)) {
-      stated.push([key, cell.value]);
+    const stated: Array<readonly [string, number]> = [];
+    for (const [key, field] of wdrFields(spec)) {
+        const cell = field.get();
+        if (cell.state === 'entered' && cell.value != null && isFinite(cell.value)) {
+            stated.push([key, cell.value]);
+        }
     }
-  }
-  return stated;
+    return stated;
 }
 
 /** Every `.wdr` cell the driver can answer for, each carrying its own E/C/N mark. */
 function cellsFrom(driver: OpenISDDriver, errors: DriverError[]): Map<string, WdrCell> {
-  const cells = new Map<string, WdrCell>();
-  cells.set('VCCon', wdrVCCon(driver.spec[driver.section]));
+    const cells = new Map<string, WdrCell>();
+    cells.set('VCCon', wdrVCCon(driver.spec[driver.section]));
 
-  for (const [key, field] of wdrFields(driver.spec[driver.section])) {
-    const cell = field.get();
-    if (cell.value == null) continue;
+    for (const [key, field] of wdrFields(driver.spec[driver.section])) {
+        const cell = field.get();
+        if (cell.value == null) continue;
 
-    if (!isFinite(cell.value)) {
-      errors.push({ level: 'warn', field: key,
-        message: `${key}: value is not finite — field dropped, WinISD's own default applies` });
-      continue;
+        if (!isFinite(cell.value)) {
+            errors.push({
+                level: 'warn', field: key,
+                message: `${key}: value is not finite — field dropped, WinISD's own default applies`
+            });
+            continue;
+        }
+        // An ENTERED zero is written through as an entered zero, and flagged. A scraper that failed to
+        // read a number frequently yields 0, and 0 is a legitimate value for several of these fields,
+        // so nothing downstream can tell the two apart from the file alone. Corpus generation is the
+        // last point that still knows the value was *stated* rather than defaulted.
+        if (cell.state === 'entered' && cell.value === 0) {
+            errors.push({
+                level: 'warn', field: key,
+                message: `${key}: entered value is 0 — written as an entered 0; verify this is real and ` +
+                    `not a failed extraction`
+            });
+        }
+        cells.set(key, {value: String(cell.value), state: WDR_MARK[cell.state]});
     }
-    // An ENTERED zero is written through as an entered zero, and flagged. A scraper that failed to
-    // read a number frequently yields 0, and 0 is a legitimate value for several of these fields,
-    // so nothing downstream can tell the two apart from the file alone. Corpus generation is the
-    // last point that still knows the value was *stated* rather than defaulted.
-    if (cell.state === 'entered' && cell.value === 0) {
-      errors.push({ level: 'warn', field: key,
-        message: `${key}: entered value is 0 — written as an entered 0; verify this is real and ` +
-          `not a failed extraction` });
-    }
-    cells.set(key, { value: String(cell.value), state: WDR_MARK[cell.state] });
-  }
-  return cells;
+    return cells;
 }
 
 /**
@@ -218,52 +227,72 @@ function cellsFrom(driver: OpenISDDriver, errors: DriverError[]): Map<string, Wd
  * different matter and is left to throw.
  */
 export function driverYmlToOpenisdAndWdr(driverYmlText: string): DriverYmlProjection {
-  const errors: DriverError[] = [];
+    const errors: DriverError[] = [];
 
-  let parsed: unknown;
-  try {
-    parsed = parse(driverYmlText);
-  } catch (err) {
-    return { openisd: null, wdr: null, errors: [{ level: 'error', field: 'driver.yml',
-      message: 'could not parse as YAML: ' + (err instanceof Error ? err.message : String(err)) }] };
-  }
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-    return { openisd: null, wdr: null, errors: [{ level: 'error', field: 'driver.yml',
-      message: 'parsed to ' + (parsed === null ? 'null' : typeof parsed) + ', not a record' }] };
-  }
-
-  const record = openisdRecordFrom(parsed);
-
-  // The record seam is the ONE place an untrusted record becomes a driver, and it reports every
-  // problem rather than the first. A record that cannot be read still yields its `openisd.yml`:
-  // the scraper section is dropped by key, which needs no domain object. That file carries NO
-  // `dq_calculated` at all — the calculation never ran on it, and an empty list would say it ran
-  // and found nothing.
-  const driver = driverFromConformingRecord(record, new Engine());
-  if (Array.isArray(driver)) {
-    for (const problem of driver) {
-      errors.push({ level: 'error', field: 'record', message: problem });
+    let javascriptThing: unknown;
+    try {
+        javascriptThing = parseYmlToJs(driverYmlText);
+    } catch (err) {
+        return {
+            openisd: null, wdr: null, errors: [{
+                level: 'error', field: 'driver.yml',
+                message: 'could not parse as YAML: ' + (err instanceof Error ? err.message : String(err))
+            }]
+        };
     }
-    return { openisd: stringify(record), wdr: null, errors };
-  }
 
-  const openisd = stringify(withDqCalculated(record, driver.section,
-    dqCalculated(statedValues(driver.spec[driver.section]), driver.checkConsistency())));
+    if (typeof javascriptThing !== 'object' || javascriptThing === null || Array.isArray(javascriptThing)) {
+        return {
+            openisd: null, wdr: null, errors: [{
+                level: 'error', field: 'driver.yml',
+                message: 'parsed to ' + (javascriptThing === null ? 'null' : typeof javascriptThing) + ', not a record'
+            }]
+        };
+    }
 
-  const header: WdrHeader = {
-    brand: driver.brand.get().value ?? '',
-    model: driver.model.get().value ?? '',
-    manufacturer: driver.manufacturer.get().value ?? '',
-    providedBy: driver.providedBy.get().value ?? '',
-    comment: driver.comment.get().value ?? '',
-    dateAdded: driver.added.get().value ?? '',
-  };
+    const openisdJson = stripScraperOnlyFieldsFromJavascriptObject(javascriptThing);
 
-  const wdrDriver = WinISDDriver.build(header, cellsFrom(driver, errors));
-  for (const key of wdrDriver.missingKeys()) {
-    errors.push({ level: 'warn', field: key,
-      message: `${key}: no value produced for this .wdr key — written as a filler` });
-  }
+    // The record seam is the ONE place an untrusted record becomes a driver, and it reports every
+    // problem rather than the first. A record that cannot be read still yields its `openisd.yml`:
+    // the scraper section is dropped by key, which needs no domain object. That file carries NO
+    // `dq_calculated` at all — the calculation never ran on it, and an empty list would say it ran
+    // and found nothing.
+    const driver = driverFromConformingRecord(openisdJson, new Engine());
+    if (Array.isArray(driver)) {
+        // A PASSIVE RADIATOR reaches here because the driver seam, correctly, refuses it: it carries
+        // no woofer and no tweeter section. That is not a defect in the record — WinISD simply has no
+        // format for one, so `wdr: null` with NO error is the contract (`drivers.md` Part C), and the
+        // radiator still gets its `openisd.yml`. Asked of the RADIATOR seam, which is the one that
+        // can answer, rather than reported as the driver seam's complaint.
+        const radiator = passiveRadiatorFromConformingRecord(openisdJson, new Engine());
+        if (!Array.isArray(radiator)) {
+            return {openisd: stringify(openisdJson), wdr: null, errors};
+        }
+        for (const problem of driver) {
+            errors.push({level: 'error', field: 'record', message: problem});
+        }
+        return {openisd: stringify(openisdJson), wdr: null, errors};
+    }
 
-  return { openisd, wdr: wdrDriver.toWdr(), errors };
+    const openisd = stringify(withDqCalculated(openisdJson, driver.section,
+        dqCalculated(statedValues(driver.spec[driver.section]), driver.checkConsistency())));
+
+    const header: WdrHeader = {
+        brand: driver.brand.get().value ?? '',
+        model: driver.model.get().value ?? '',
+        manufacturer: driver.manufacturer.get().value ?? '',
+        providedBy: driver.providedBy.get().value ?? '',
+        comment: driver.comment.get().value ?? '',
+        dateAdded: driver.added.get().value ?? '',
+    };
+
+    const wdrDriver = WinISDDriver.build(header, cellsFrom(driver, errors));
+    for (const key of wdrDriver.missingKeys()) {
+        errors.push({
+            level: 'warn', field: key,
+            message: `${key}: no value produced for this .wdr key — written as a filler`
+        });
+    }
+
+    return {openisd, wdr: wdrDriver.toWdr(), errors};
 }

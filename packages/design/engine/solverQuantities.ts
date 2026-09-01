@@ -138,7 +138,7 @@ export class SolverQuantities {
  * new member here with nothing to keep in step by hand.
  *
  * `wiring` drops out on its own, being a string. `numVC` does NOT — it is a number — so it is
- * excluded BY NAME, and that exclusion is load-bearing: this list drives `consistency.ts`'s
+ * excluded BY NAME, and dropping that exclusion would change behaviour: this list drives `consistency.ts`'s
  * uncertainty propagation and `sweep.ts`'s "which value would unblock this driver" search.
  * Propagating a tolerance through a coil count, or telling a user to type a numVC to make their
  * driver simulate, would both be wrong. A coil count is a FACT about the driver, not a measurement

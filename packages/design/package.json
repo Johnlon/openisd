@@ -20,6 +20,10 @@
     "./filter": {
       "types": "./filter/index.ts",
       "default": "./filter/index.ts"
+    },
+    "./winisd": {
+      "types": "./winisd/index.ts",
+      "default": "./winisd/index.ts"
     }
   },
   "scripts": {

@@ -7,7 +7,7 @@
  * That is the point of storing provenance rather than picking a direction: WinISD's default
  * (tuning entered, length solved) and the reverse come from the same solver.
  *
- * Two tests here are load-bearing and would each pass a WRONG implementation of the other:
+ * Two tests here each catch what the other would miss — either alone passes a WRONG implementation:
  *
  *   - "changing vent diameter holds the tuning" fails any implementation that stores `ventL`
  *     as the authoritative fact and derives `Fb` for display.

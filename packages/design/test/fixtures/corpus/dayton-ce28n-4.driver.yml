@@ -3,7 +3,6 @@ uuid:
   definition: stable record identity, minted by the pipeline at first emit and never
     re-derived
 quality:
-  rating: L
   confirmed_fields: [BL, Fs, Le, Pe, Qes, Qms, Qts, Re, SPL, Sd, Vas, Xmax, Znom]
   fields_with_issues: [Mms]
   missing: [Cms]

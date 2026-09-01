@@ -42,10 +42,10 @@
  * docstring. This bridge only serialises the result to JSON at the V8 boundary; the
  * field-for-field shape of `errors` is passed through unchanged.
  */
-import { driverYmlToOpenisdAndWdr as project } from './driverYmlToOpenisdAndWdr.js';
+import { driverYmlToOpenisdAndWdr } from './driverYmlToOpenisdAndWdr.js';
 
 function driverYmlToOpenisdAndWdrBridge(driverYmlText: string): string {
-  const { openisd, wdr, errors } = project(driverYmlText);
+  const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(driverYmlText);
   return JSON.stringify({ openisd, wdr, errors });
 }
 
