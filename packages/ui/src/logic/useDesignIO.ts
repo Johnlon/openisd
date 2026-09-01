@@ -216,7 +216,7 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
         }
         deps.fileStorage.forget();
         flash('Opened ' + f.name);
-      } catch (err) { alert('Could not read "' + f.name + '": ' + (err as Error).message); }
+      } catch (err) { alert('Could not read "' + f.name + '": ' + (err instanceof Error ? err.message : String(err))); }
     }, (err: Error) => { alert('Could not read "' + f.name + '": ' + err.message); });
   }
 

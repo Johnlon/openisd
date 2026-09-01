@@ -40,7 +40,7 @@
  * the numbers 1 and 2 for the wiring. Found in review by agent `loose-end`, 2026-08-28.
  *
  * The fix removed that victim. This removes the TRAP: the next non-numeric field added to
- * `SpecSection` fails here, loudly, and whoever adds it has to say how it reaches the
+ * `DriverSpecsSection` fails here, loudly, and whoever adds it has to say how it reaches the
  * calculation instead of discovering months later that it never did.
  *
  * STRUCTURAL, not a value assertion — it reads the declaration, so it fires when the field is
@@ -60,7 +60,7 @@ const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)
  */
 const NOT_A_SPEC_ENTRY_BY_DESIGN: Readonly<Record<string, string>> = {
   // EMPTY, and that is the current truth. `VCCon` was here while it was a
-  // `ScrapedField<VoiceCoilWiring>`; it is now a `SpecEntry` like every other member, holding
+  // `ScrapedField<VoiceCoilWiring>`; it is now a `SpecEntryJson` like every other member, holding
   // the encoding the corpus stores (1 parallel, 2 series) and mapped to the enum at the field
   // boundary. So it reaches `fields()` as a number — which is exactly what the bug it caused
   // needed it to do.
@@ -69,8 +69,8 @@ const NOT_A_SPEC_ENTRY_BY_DESIGN: Readonly<Record<string, string>> = {
 function specSectionMembers() {
   const project = new Project({ skipAddingFilesFromTsConfig: true });
   const file = project.addSourceFileAtPath(path.join(packageRoot, 'domain', 'project.ts'));
-  const decl = file.getInterface('SpecSection');
-  expect(decl, 'SpecSection must exist in domain/project.ts — this guard has no subject without it')
+  const decl = file.getInterface('DriverSpecsSection');
+  expect(decl, 'DriverSpecsSection must exist in domain/project.ts — this guard has no subject without it')
     .toBeDefined();
   return decl!.getProperties().map((p) => ({
     name: p.getName(),
@@ -89,25 +89,25 @@ describe('a spec section carries numbers, or says why not', () => {
 
   it('every member is a SpecEntry unless it is named as something else by design', () => {
     const offenders = specSectionMembers()
-      .filter((m) => !/^SpecEntry$/.test(m.type))
+      .filter((m) => !/^SpecEntryJson$/.test(m.type))
       .filter((m) => !(m.name in NOT_A_SPEC_ENTRY_BY_DESIGN))
       .map((m) => `${m.name}: ${m.type}`);
 
     expect(offenders, [
-      'A member that is not a SpecEntry has no `readings[origin]`, so `winningValue()` cannot',
+      'A member that is not a SpecEntryJson has no `readings[origin]`, so `winningValue()` cannot',
       'resolve it and `OpenISDDriver.fields()` DROPS it — silently, while anything reading it',
       'back off the solved bag gets `undefined` and still compiles. Decide how this field',
-      'reaches the calculation, then either make it a SpecEntry or add it to',
+      'reaches the calculation, then either make it a SpecEntryJson or add it to',
       'NOT_A_SPEC_ENTRY_BY_DESIGN in this file with the reason.',
     ].join(' ')).toEqual([]);
   });
 
-  it('the allow-list is honest — every name on it is really in SpecSection', () => {
+  it('the allow-list is honest — every name on it is really in DriverSpecsSection', () => {
     // A stale entry would quietly excuse a field that no longer exists, and would hide a real
     // offender if the name were ever reused.
     const declared = new Set(specSectionMembers().map((m) => m.name));
     for (const name of Object.keys(NOT_A_SPEC_ENTRY_BY_DESIGN)) {
-      expect(declared.has(name), `${name} is allow-listed but not declared in SpecSection`).toBe(true);
+      expect(declared.has(name), `${name} is allow-listed but not declared in DriverSpecsSection`).toBe(true);
     }
   });
 });

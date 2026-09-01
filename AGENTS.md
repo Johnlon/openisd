@@ -142,6 +142,32 @@ arrives too late.
 
 ---
 
+## WE DO NOT REPLICATE WinISD's BUGS — hard rule (John Lonergan, 2026-08-31)
+
+**His words:** _"we are not trying to replicate WinISD bugs"_, and _"openisd MUST not have same
+bug — openisd writes correct value to all files inc wdr"_.
+
+OpenISD reads WinISD's FORMAT faithfully and writes CORRECT VALUES into it. Where WinISD's own
+behaviour is defective, OpenISD does the right thing instead — including in the `.wdr` it emits.
+
+**The trap this rule exists to stop:** an oracle file in `drivers/sample/winisd/` is a recording of
+what WinISD DID, which is evidence of the format and NOT a specification of correct values. When
+our output differs from an oracle, the question is _which of us is wrong_ — never an automatic
+instruction to match the file. Reconciling our writer to an oracle that captured a bug imports the
+bug and makes it look sanctioned.
+
+**Worked example, live in the tree:** WinISD always writes `VCCon=1` on save whatever the UI shows
+(`docs/design/WINISD_SCHEMA.md` §3.2), so `s-connection-serial-2vc.wdr` reads `1` despite being
+series-wired. `packages/winisd/src/driverYmlToOpenisdAndWdr.ts` writes `2` for a series record, and
+its test asserts that precisely so nobody "fixes" the difference away.
+
+**So:** when a divergence from WinISD is found, record which behaviour is correct and why. A
+deliberate divergence gets a comment saying it is deliberate — otherwise the next agent reads it as
+a defect and closes the gap. Bug-for-bug compatibility is never the goal; the human decides any
+case where matching WinISD's defect is actually wanted.
+
+---
+
 ## Linting — hard rule
 
 **Never work around the linter:**

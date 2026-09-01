@@ -62,15 +62,22 @@ export type SimulatableBoxType = 'sealed' | 'vented' | 'bandpass4' | 'box-passiv
  * INTERNAL to this package: `Engine.simulatableBoxType()` is the public way to ask, and the
  * engine door exports no loose functions (`test/architecture-engine-boundary.test.ts`).
  *
- * The list is built inside the function rather than at module scope: a shared array or Set is
- * mutable state however it is declared, since `const` freezes the binding and not the contents
- * (packages/design/AGENTS.md, and `test/architecture-no-globals.test.ts`).
+ * A SWITCH, not a list. The case labels NARROW `box` to exactly those four literals, which is
+ * `SimulatableBoxType`, so `return box` needs no assertion — where `array.includes(box)` cannot
+ * narrow at all and took one cast to ask the question and a second to answer it. It also leaves
+ * no array to be mutable state, which is what `packages/design/AGENTS.md` and
+ * `test/architecture-no-globals.test.ts` are about.
  */
 export function simulatableBoxType(box: BoxType): SimulatableBoxType | null {
-  const simulatable: readonly SimulatableBoxType[] = [
-    'sealed', 'vented', 'bandpass4', 'box-passive-radiator',
-  ];
-  return simulatable.includes(box as SimulatableBoxType) ? (box as SimulatableBoxType) : null;
+  switch (box) {
+    case 'sealed':
+    case 'vented':
+    case 'bandpass4':
+    case 'box-passive-radiator':
+      return box;
+    default:
+      return null;
+  }
 }
 
 // FIXNE dupe here ... export const VoiceCoilWiring = {

@@ -17,7 +17,7 @@ import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/design/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLES = join(here, '..', '..', '..', 'drivers', 'sample', 'winisd');
+const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
 
 const files = readdirSync(SAMPLES)
   .filter(f => f.endsWith('.wdr'))

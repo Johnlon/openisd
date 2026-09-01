@@ -14,6 +14,7 @@ const { myPassiveRadiators } = useApp();
 
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { fieldHelp } from '../../logic/fields/fieldRegistry.js';
+import { inputValue } from '../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, close);
@@ -73,7 +74,7 @@ function close() { emit('close'); }
 
         <div class="row" title="Name for this passive radiator">
           <label>PR name</label>
-          <input style="flex:1" type="text" :value="project.prName()" @input="e => project.setPrName((e.target as HTMLInputElement).value)" placeholder="e.g. Dayton SD270A-88">
+          <input style="flex:1" type="text" :value="project.prName()" @input="e => project.setPrName(inputValue(e))" placeholder="e.g. Dayton SD270A-88">
         </div>
         <div class="row" data-field-key="prNum" :title="fieldHelp('prNum')">
           <label>PR count</label>

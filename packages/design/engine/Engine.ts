@@ -77,7 +77,9 @@ export class Engine {
     return solveConsistencyGroup(d);
   }
 
-  /** Everything the entered values disagree about. */
+  /** Everything the entered values disagree about.
+   *  The argument type is taken from the function being called, so the two cannot drift apart —
+   *  the same trick appears on several methods below. */
   checkConsistency(entered: Parameters<typeof checkConsistency>[0]): ConsistencyIssue[] {
     return checkConsistency(entered);
   }
@@ -115,7 +117,8 @@ export class Engine {
     return splFromEfficiency(no, air.rho, air.c);
   }
 
-  /** Qts as the amplifier's source impedance loads it. */
+  /** Qts as the amplifier's source impedance loads it. Takes and returns exactly what the
+   *  underlying function does. */
   sourceLoadedQts(...args: Parameters<typeof sourceLoadedQts>): ReturnType<typeof sourceLoadedQts> {
     return sourceLoadedQts(...args);
   }

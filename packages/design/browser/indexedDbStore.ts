@@ -82,29 +82,41 @@ export function indexedDbStore(dbName: string, _now: () => string): RecordStoreF
  *  reads a LABEL out of a record it is otherwise ignorant of — the same runtime-keyPath move
  *  IndexedDB makes with `createIndex`, which is why neither store needs to know `R`. */
 function valueAt(record: unknown, path: string): string {
+  // The predicate says what the `typeof` test already established. Without it the narrowed type
+  // is `object`, which cannot be indexed by a string — so the check proved the fact and the
+  // compiler still would not use it.
+  const isRecord = (x: unknown): x is Record<string, unknown> =>
+    typeof x === 'object' && x !== null;
+
   let v: unknown = record;
   for (const key of path.split('.')) {
-    if (typeof v !== 'object' || v === null) return '';
-    v = (v as Record<string, unknown>)[key];
+    if (!isRecord(v)) return '';
+    v = v[key];
   }
   return typeof v === 'string' ? v : '';
 }
 
 export function memoryStore(now: () => string): RecordStoreFactory {
-  const entries = new Map<string, { record: unknown; label: string; modified: string }>();
-  return <R>(labelPath: string): RecordStore<R> => ({
-    put(id: string, record: R): void {
-      entries.set(id, { record, label: valueAt(record, labelPath), modified: now() });
-    },
-    get(id: string): R | null {
-      const e = entries.get(id);
-      return e ? (e.record as R) : null;
-    },
-    list(): { id: string; label: string; modified: string }[] {
-      return [...entries.entries()].map(([id, e]) => ({ id, label: e.label, modified: e.modified }));
-    },
-    remove(id: string): void {
-      entries.delete(id);
-    },
-  });
+  return <R>(labelPath: string): RecordStore<R> => {
+    // ONE MAP PER STORE, created here rather than shared across every store the factory hands
+    // out. That is what a store IS — its own storage — and it is also what makes the map's type
+    // `R` instead of `unknown`, so `get` returns what it holds with nothing asserted. A shared
+    // map served stores of different record types from one keyspace, where two of them using the
+    // same id meant `get` handed back the other one's record and the type said otherwise.
+    const entries = new Map<string, { record: R; label: string; modified: string }>();
+    return {
+      put(id: string, record: R): void {
+        entries.set(id, { record, label: valueAt(record, labelPath), modified: now() });
+      },
+      get(id: string): R | null {
+        return entries.get(id)?.record ?? null;
+      },
+      list(): { id: string; label: string; modified: string }[] {
+        return [...entries.entries()].map(([id, e]) => ({ id, label: e.label, modified: e.modified }));
+      },
+      remove(id: string): void {
+        entries.delete(id);
+      },
+    };
+  };
 }

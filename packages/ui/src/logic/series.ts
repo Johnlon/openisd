@@ -33,7 +33,10 @@ export const TAB_META: Record<ChartTabId, TabMeta> = {
   FltGD:     { id:'FltGD',     name:'Filter group delay', unit:'ms', color:'#c08bff' },
 };
 
-export const TABS: TabMeta[] = (Object.keys(TAB_META) as ChartTabId[]).map(id => TAB_META[id]);
+// `Object.values`, not `Object.keys().map()`: `Object.keys` answers `string[]` whatever it is
+// given, so getting back to `TabMeta` took an assertion about what the keys are. The values
+// ARE `TabMeta` by the declared type of `TAB_META`, and both preserve declaration order.
+export const TABS: TabMeta[] = Object.values(TAB_META);
 
 /**
  * The one string→member boundary. Anything the set does not declare is invalid data —
@@ -41,7 +44,10 @@ export const TABS: TabMeta[] = (Object.keys(TAB_META) as ChartTabId[]).map(id =>
  * the default chart, never as a second spelling to tolerate.
  */
 export function parseChartTabId(v: string | null | undefined): ChartTabId {
-  return (v != null && Object.prototype.hasOwnProperty.call(TAB_META, v)) ? v as ChartTabId : 'SPL';
+  // The id comes back off the MEMBER that matched, so it is a `ChartTabId` because `TabMeta.id`
+  // is one — nothing asserts it. `hasOwnProperty` answered the same question correctly but
+  // returns a boolean, which cannot narrow a `string`, so using its answer needed a cast.
+  return TABS.find(t => t.id === v)?.id ?? 'SPL';
 }
 
 /** SPL/filter-magnitude values at or below this are the engine's "no output" sentinel. */
@@ -57,7 +63,12 @@ interface CurveCtx {
   box: BoxType;
   P: PlotParams;
   sw: SweepResult;
-  mx: MaxCurvesResult;
+  /** ABSENT when this design's max curves have not been produced — a compare overlay whose sweep
+   *  has not run, say. Optional here rather than defaulted at the caller: a stand-in empty object
+   *  is not a default, it is a value with no `fs` and no `maxspl`, so the two builders that read
+   *  it crash instead of drawing nothing. Only those two touch it, and each says below what it
+   *  does without one. */
+  mx: MaxCurvesResult | undefined;
   bare: boolean;
   pick: (arr: number[]) => { xs: number[]; ys: number[] };
 }
@@ -161,6 +172,9 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
   },
 
   MaxSPL: ({ meta, mx }) => {
+    // Nothing to draw, and nothing wrong: this design has no max curves, so it contributes no
+    // trace to this chart while every other design still draws its own.
+    if (!mx) return { series: [], ymin: 0, ymax: 0 };
     const series: Series[] = [{ xs: mx.fs, ys: mx.maxspl, color: meta.color, name: 'Max SPL', xlim: mx.xlim }];
     const real = realDb(mx.maxspl);
     const mx2 = real.length ? Math.max(...real) : 0;
@@ -177,10 +191,12 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     return { series, ymin, ymax };
   },
 
-  MaxPwr: ({ meta, mx }) => ({
-    series: [{ xs: mx.fs, ys: mx.maxpwr, color: meta.color, name: 'Max power' }],
-    logy: true, ymin: 1, ymax: Math.max(...mx.maxpwr) * 1.2,
-  }),
+  MaxPwr: ({ meta, mx }) => mx === undefined
+    ? { series: [], logy: true, ymin: 1, ymax: 1 }
+    : {
+      series: [{ xs: mx.fs, ys: mx.maxpwr, color: meta.color, name: 'Max power' }],
+      logy: true, ymin: 1, ymax: Math.max(...mx.maxpwr) * 1.2,
+    },
 
   // ---- The EQ/filter chain's own response (WinISD's three "(EQ/Filter)" charts) --------
   // The chain is an ELECTRICAL block ahead of the driver, so all three are properties of
@@ -227,7 +243,13 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
   },
 };
 
-export function seriesFor(tabId: ChartTabId, drv: EngineDriver, box: BoxType, P: PlotParams, sw: SweepResult, mx: MaxCurvesResult, bare = false): SeriesBundle {
+export function seriesFor(tabId: ChartTabId,
+                          drv: EngineDriver,
+                          box: BoxType,
+                          P: PlotParams,
+                          sw: SweepResult,
+                          mx: MaxCurvesResult | undefined,
+                          bare = false): SeriesBundle {
   const meta = TAB_META[tabId];
   const built = CURVE_BUILDERS[tabId]({
     meta, drv, box, P, sw, mx, bare,
@@ -264,7 +286,7 @@ export function buildPlotData(
   const multi = designs.length > 1;
   let out: PlotData | null = null;
   designs.forEach((d, di) => {
-    const pd = seriesFor(tabId, d.driver!, d.box, d.P, d.curves!, d.maxCurves || ({} as MaxCurvesResult), opts.bare);
+    const pd = seriesFor(tabId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare);
     if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit, fmin, fmax };
     const prim: Series = { ...pd.series[0] };
     if (multi) {

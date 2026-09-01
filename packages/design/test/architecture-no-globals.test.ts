@@ -49,54 +49,79 @@ function isMutableBinding(stmt: VariableStatement): boolean {
 }
 
 /**
- * A `const` whose VALUE is mutable: an object, array, Map/Set/WeakMap/WeakSet, or a `new` of
- * anything. `const` freezes the binding, never the contents, so a module-level container is
- * shared mutable state however it is declared — the whole class of bug this gate is about.
+ * A `const` whose VALUE is mutable.
  *
- * A `const` bound to a string, number, boolean, arrow function or type-only construct is not
- * state and is not flagged.
+ * MUTABILITY IS THE WHOLE TEST, not how the value is reached (John, 2026-09-01: "relax it to key
+ * on mutability rather than on indexing — global mutable state is the only problem with globals").
+ * A frozen table indexed by a runtime key causes none of the three harms this rule exists to
+ * prevent: there is no install order, no second-instance problem, and "what is the current value"
+ * has one answer forever. What makes a global dangerous is that it VARIES.
  *
- * ENUMERATIONS ARE PERMITTED, COLLECTIONS ARE NOT (John 2026-08-29, AGENTS.md). Both are object
- * literals, so the declaration cannot tell them apart — what separates them is HOW THEY ARE
- * REACHED. An enumeration is read by name (`SourceRole.Manual`); a collection is indexed by a
- * runtime key (`TABLE[name]`). So an `as const` object is allowed until something indexes it
- * with a computed key, at which point it is a lookup table and is flagged.
+ * So a module-scoped `const` is flagged unless it is provably immutable:
+ *
+ *   - `Object.freeze({...})` / `Object.freeze([...])` — immutable at RUNTIME, the strongest form,
+ *     and the one to use for a lookup table;
+ *   - `{...} as const` / `[...] as const` — readonly to the compiler, which in a package with no
+ *     casts (`architecture-no-casts.test.ts`) is enforcement, not decoration;
+ *   - a primitive, an arrow function, or a call returning neither a container nor a `new`.
+ *
+ * A BARE object or array literal is still state: its members are assignable, so `const` buys
+ * nothing. `new Map()`/`new Set()`/`new` anything is still state.
+ *
+ * SEPARATELY, and regardless of the initializer, a module-scoped binding that anything WRITES to
+ * is state — see `isWrittenTo`.
  */
 function isMutableContainer(stmt: VariableStatement): boolean {
   return stmt.getDeclarations().some((decl) => {
     const init = decl.getInitializer();
     if (!init) return false;
+    if (isFrozen(init)) return false;
     const kind = init.getKind();
     if (kind === SyntaxKind.ArrayLiteralExpression) return true;
     if (kind === SyntaxKind.NewExpression) return true;
-    // A BARE object literal is a mutable bag — its members can be reassigned, so it is state
-    // whatever it holds. Only `as const` makes the members readonly, and only then is it a
-    // candidate for being an enumeration rather than a collection.
     if (kind === SyntaxKind.ObjectLiteralExpression) return true;
     if (kind === SyntaxKind.AsExpression) {
-      const inner = (init as AsExpression).getExpression();
-      if (inner.getKind() === SyntaxKind.ArrayLiteralExpression) return true;
-      if (inner.getKind() === SyntaxKind.ObjectLiteralExpression) return !isEnumeration(decl);
+      // `as const` makes every member readonly, so the value cannot vary and it is not state.
+      // Any OTHER cast is just a label on a mutable literal and is flagged as one.
+      const as = init as AsExpression;
+      const isConstAssertion = as.getTypeNode()?.getText() === 'const';
+      const inner = as.getExpression();
+      const isLiteral = inner.getKind() === SyntaxKind.ArrayLiteralExpression
+        || inner.getKind() === SyntaxKind.ObjectLiteralExpression;
+      return isLiteral && !isConstAssertion;
     }
     return false;
   });
 }
 
+/** `Object.freeze(x)` — the runtime guarantee. Nested freezes count, so a `freeze` wrapping a
+ *  `freeze` is still frozen. */
+function isFrozen(init: Node): boolean {
+  if (!Node.isCallExpression(init)) return false;
+  return init.getExpression().getText() === 'Object.freeze';
+}
+
 /**
- * Whether this `as const` object is an ENUMERATION rather than a lookup table.
+ * Whether anything WRITES to this module-scoped binding — the actual definition of global mutable
+ * state, and the one an initializer cannot reveal on its own.
  *
- * It is, when it is read by name everywhere and never indexed with a computed key. `T.Member`
- * is a name; `T[k]` is a lookup, and ONE such use makes the whole declaration a collection —
- * `as const` does not change that, because the same object still answers every caller.
+ * Three shapes, all of them a write: assignment to the name or through it (`T = x`, `T.k = x`,
+ * `T[k] = x`), a mutating method call (`push`, `set`, `delete`, `clear`, …), and `delete T.k`.
+ * A frozen object makes the first two throw at runtime, so this is belt AND braces: it names the
+ * offence at build time rather than leaving it to a production TypeError.
  */
-function isEnumeration(decl: VariableDeclaration): boolean {
+const MUTATORS = new Set([
+  'push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin',
+  'set', 'delete', 'clear', 'add',
+]);
+
+function isWrittenTo(decl: VariableDeclaration): boolean {
   const name = decl.getNameNode();
   if (!Node.isIdentifier(name)) return false;
   for (const ref of name.findReferencesAsNodes()) {
-    // Walk out through casts and parentheses first: `(T as Record<string, string>)[k]` is the
-    // same lookup as `T[k]`. The cast is what gets written when the enum's narrow type will not
-    // index — so a gate reading only the identifier's immediate parent misses exactly the case
-    // where the author had to fight the types, which is where the mistake is likeliest.
+    if (ref === name) continue;
+    // Walk out through parentheses, casts and non-null assertions: `(T as any).k = 1` is the
+    // same write as `T.k = 1`, and the cast is exactly what gets written when the types refuse.
     let node: Node = ref;
     let parent = node.getParent();
     while (parent && (Node.isParenthesizedExpression(parent) || Node.isAsExpression(parent)
@@ -104,13 +129,27 @@ function isEnumeration(decl: VariableDeclaration): boolean {
       node = parent;
       parent = node.getParent();
     }
-    if (parent && Node.isElementAccessExpression(parent) && parent.getExpression() === node) {
-      const arg = parent.getArgumentExpression();
-      // `T['Literal']` is still a name. `T[k]` is a lookup.
-      if (arg && !Node.isStringLiteral(arg) && !Node.isNumericLiteral(arg)) return false;
+    if (!parent) continue;
+
+    // `T.k` / `T[k]` — a write only if it is the target of an assignment or a `delete`.
+    if ((Node.isPropertyAccessExpression(parent) || Node.isElementAccessExpression(parent))
+        && parent.getExpression() === node) {
+      const outer = parent.getParent();
+      if (outer && Node.isBinaryExpression(outer) && outer.getLeft() === parent
+          && outer.getOperatorToken().getText().endsWith('=')) return true;
+      if (outer && Node.isDeleteExpression(outer)) return true;
+      // `T.push(...)` — the mutating-method case.
+      if (Node.isPropertyAccessExpression(parent) && MUTATORS.has(parent.getName())
+          && outer && Node.isCallExpression(outer)) return true;
+      continue;
     }
+
+    // `T = x` — reassignment of the binding itself (a `const` makes this a compile error, but a
+    // `let` that slipped past `isMutableBinding` would not).
+    if (Node.isBinaryExpression(parent) && parent.getLeft() === node
+        && parent.getOperatorToken().getText().endsWith('=')) return true;
   }
-  return true;
+  return false;
 }
 
 /**
@@ -151,7 +190,9 @@ function moduleScopedStatements() {
     // `getVariableStatements()` returns TOP-LEVEL statements only — one inside a function or a
     // class body is a local, which is exactly what this rule wants people to use instead.
     for (const stmt of source.getVariableStatements()) {
+      const written = stmt.getDeclarations().some(isWrittenTo);
       const why = isMutableBinding(stmt) ? `\`${stmt.getDeclarationKind()}\` binding can be reassigned`
+        : written ? 'written to after declaration — shared MUTABLE state'
         : isMutableContainer(stmt) ? '`const` binding, but the VALUE is mutable and shared'
         : '';
       if (!why) continue;
@@ -171,11 +212,10 @@ function moduleScopedStatements() {
 }
 
 describe('packages/design has no global variables', () => {
-  // 30s, not the 5s default. `isEnumeration` asks the language service for every reference to
-  // each `as const` object — the only way to tell an enumeration (read by name) from a lookup
-  // table (indexed by a runtime key), which is the distinction the rule turns on. That walk is
-  // what makes this gate slow, and a gate that fails on the clock instead of on a finding
-  // teaches a reader to ignore it.
+  // 30s, not the 5s default. `isWrittenTo` asks the language service for every reference to every
+  // module-scoped binding — the only way to tell an immutable constant from one something mutates
+  // elsewhere, which is the distinction the rule turns on. That walk is what makes this gate slow,
+  // and a gate that fails on the clock instead of on a finding teaches a reader to ignore it.
   it('declares no module-scoped mutable state anywhere in its shipped source', () => {
     const offences = moduleScopedStatements();
     const report = offences.map((o) =>
@@ -202,24 +242,54 @@ describe('packages/design has no global variables', () => {
     expect(shipped).toContain('domain/project.ts');
   });
 
-  it('flags a mutable const container, not only let and var', () => {
-    // Non-vacuity: the `const x = new Map()` case is the one people reach for when told "no let",
-    // so the gate is proved able to catch it rather than trusted to.
+  it('flags what is MUTABLE and passes what is frozen, however it is reached', () => {
+    // Non-vacuity, and the whole point of the rule as John restated it on 2026-09-01: a frozen
+    // table indexed by a runtime key is NOT state and must pass; a bag anyone can write to is
+    // state and must fail, even when it is never indexed at all.
     const project = new Project({ useInMemoryFileSystem: true });
     const probe = project.createSourceFile('probe.ts', [
+      // state — flagged
       'const aMap = new Map<string, number>();',
       'const aBag = { count: 0 };',
       'const aList: string[] = [];',
       'let aBinding = 1;',
+      // immutable — permitted, INCLUDING the runtime-key lookup that the old rule banned
+      'const FROZEN_LIMITS = Object.freeze({ Fs: 5000, Re: 64 });',
+      'const CONST_LIMITS = { Fs: 5000, Re: 64 } as const;',
       'const aNumber = 42;',
       'const aString = "fine";',
       'const aFn = (x: number) => x + 1;',
+      'export function limitOf(field: string) {',
+      '  return FROZEN_LIMITS[field as keyof typeof FROZEN_LIMITS]',
+      '    ?? CONST_LIMITS[field as keyof typeof CONST_LIMITS];',
+      '}',
     ].join('\n'));
 
     const flagged = probe.getVariableStatements()
-      .filter((s) => isMutableBinding(s) || isMutableContainer(s))
+      .filter((s) => isMutableBinding(s) || s.getDeclarations().some(isWrittenTo)
+        || isMutableContainer(s))
       .flatMap((s) => s.getDeclarations().map((d) => d.getName()));
 
     expect(flagged.sort()).toEqual(['aBag', 'aBinding', 'aList', 'aMap']);
+  });
+
+  it('flags a frozen-looking table that something actually WRITES to', () => {
+    // The case the initializer cannot reveal: immutable on the face of it, mutated elsewhere.
+    // Without this, `as const` becomes a way to smuggle a global past the gate.
+    const project = new Project({ useInMemoryFileSystem: true });
+    const probe = project.createSourceFile('probe.ts', [
+      'const CACHE = { hits: 0 } as const;',
+      'const SEEN = Object.freeze(new Set<string>());',
+      'export function record(k: string) {',
+      '  (CACHE as { hits: number }).hits += 1;',
+      '  SEEN.add(k);',
+      '}',
+    ].join('\n'));
+
+    const flagged = probe.getVariableStatements()
+      .filter((s) => s.getDeclarations().some(isWrittenTo))
+      .flatMap((s) => s.getDeclarations().map((d) => d.getName()));
+
+    expect(flagged.sort()).toEqual(['CACHE', 'SEEN']);
   });
 });

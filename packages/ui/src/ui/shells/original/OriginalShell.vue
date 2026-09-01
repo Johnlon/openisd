@@ -64,6 +64,7 @@ import PRDefineModal from '../../components/PRDefineModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import { inputChecked, inputFrom, inputValue, listeningElement, selectValue } from '../../../logic/domEvents.js';
 
 // Fixed set, not per-render data — hoisted so the template doesn't allocate a fresh array
 // on every re-render.
@@ -264,7 +265,8 @@ onUnmounted(() => document.removeEventListener('click', onDocClick));
 const fileInput = ref<HTMLInputElement | null>(null);
 function openClick() { fileInput.value!.click(); }
 function onFile(e: Event) {
-  const input = e.target as HTMLInputElement;
+  const input = inputFrom(e);
+  if (input === null) return;
   const f = input.files?.[0];
   if (f) {
     // Open the file as a project of its own. The project already open keeps its own row
@@ -317,7 +319,7 @@ function spinHz(dir: number, factor = 1.02) {
 
 function onHzKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
-    (e.target as HTMLInputElement).blur();
+    inputFrom(e)?.blur();
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     spinHz(1, e.shiftKey ? 1.05 : 1.02);
@@ -332,6 +334,7 @@ function onHzWheel(e: WheelEvent) {
   spinHz(dir, e.shiftKey ? 1.05 : 1.02);
 }
 
+// Whatever handles this platform's timers hand back.
 let holdTimer: ReturnType<typeof setTimeout> | null = null, holdInterval: ReturnType<typeof setInterval> | null = null;
 function startNudge(dir: number) {
   spinHz(dir, 1.02);
@@ -489,7 +492,7 @@ const mainStyle = computed(() => chartMax.value ? {} : {
   gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (presentationState.ui.originalBottomH ?? DEFAULT_BOTTOM_H) + 'px'),
 });
 function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {
-  const el = e.currentTarget as HTMLElement;
+  const el = listeningElement(e);
   const rect = mainEl.value!.getBoundingClientRect();
   el.setPointerCapture(e.pointerId);
   const move = (ev: PointerEvent) => apply(rect, ev);
@@ -698,7 +701,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
           <input class="ro-hz-input"
                  type="text"
                  :value="hzInputText"
-                 @input="hzInputText = ($event.target as HTMLInputElement).value"
+                 @input="hzInputText = inputValue($event)"
                  @focus="onHzInputFocus"
                  @blur="onHzInputBlur"
                  @keydown="onHzKeydown"
@@ -736,7 +739,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                  @click="selectProject(p)">
               <input type="checkbox" :checked="isRowVisible(p)"
                      @click.stop
-                     @change.stop="setRowVisible(p, ($event.target as HTMLInputElement).checked)"
+                     @change.stop="setRowVisible(p, inputChecked($event))"
                      title="Show/hide this project's trace on the graph">
               <span>{{ rowName(p) }}</span>
             </div>
@@ -924,7 +927,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               <div class="section-header">Placement</div>
               <div class="field-row">
                 <div class="field"><label>Num. of drivers</label>
-                  <select :value="project.driverCount()" @change="e => project.setDriverCount(Number((e.target as HTMLSelectElement).value))"><option v-for="n in 8" :key="n" :value="n">{{ n }}</option></select>
+                  <select :value="project.driverCount()" @change="e => project.setDriverCount(Number(selectValue(e)))"><option v-for="n in 8" :key="n" :value="n">{{ n }}</option></select>
                   <span>driver(s)</span>
                 </div>
               </div>
@@ -934,7 +937,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               </div>
               <div class="field-row">
                 <div class="field"><label>Voice coil connection</label>
-                  <select :value="project.wiring()" @change="e => project.setWiring((e.target as HTMLSelectElement).value as 'series' | 'parallel')"><option value="parallel">Parallel</option><option value="series">Series</option></select>
+                  <select :value="project.wiring()" @change="e => project.setWiring(selectValue(e) as 'series' | 'parallel')"><option value="parallel">Parallel</option><option value="series">Series</option></select>
                 </div>
               </div>
             </div>
@@ -966,7 +969,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div class="field">
                     <label>Shape</label>
-                    <select :value="project.ventShape()" @change="e => project.setVentShape((e.target as HTMLSelectElement).value as 'round' | 'slotted')">
+                    <select :value="project.ventShape()" @change="e => project.setVentShape(selectValue(e) as 'round' | 'slotted')">
                       <option value="round">round</option>
                       <option value="slotted">slotted</option>
                     </select>
@@ -975,7 +978,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                 <div class="field-row">
                   <div class="field entered">
                     <label>End Correction</label>
-                    <select :value="project.ventEndCorrection()" @change="e => project.setVentEndCorrection(Number((e.target as HTMLSelectElement).value))" style="width:190px">
+                    <select :value="project.ventEndCorrection()" @change="e => project.setVentEndCorrection(Number(selectValue(e)))" style="width:190px">
                       <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
                     </select>
                   </div>

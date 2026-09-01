@@ -15,6 +15,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
+import type { SolverQuantities } from '../../engine/index.js';
 import type { SweepParams } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
@@ -30,11 +31,12 @@ const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
   Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
 };
-const derive = (raw: Record<string, number>) => {
-  const { value, errors } = engine.deriveEngineDriver(raw);
-  if (!value) throw new Error('driver derivation failed: ' + errors.map(e => e.message).join('; '));
-  return value;
-};
+/** The solver never refuses — an underdetermined driver simply has fewer known values, and
+ *  `sweep` is what reports that it cannot be simulated. */
+const derive = (raw: Record<string, number>): SolverQuantities => engine.solveConsistencyGroup({
+  Fs_hz: raw.Fs, Qts: raw.Qts, Qes: raw.Qes, Qms: raw.Qms, Vas_m3: raw.Vas,
+  Sd_m2: raw.Sd, Re_ohm: raw.Re, Xmax_m: raw.Xmax, Pe_W: raw.Pe, Znom_ohm: raw.Znom,
+});
 const DRV = derive(RAW);
 
 // A vented box tuned near the driver's Fs, with a long-ish port so its pipe
@@ -50,14 +52,18 @@ describe('absent Le — the impedance plot must stay finite (BUG)', () => {
   const rawNoLe = { ...RAW };
   delete rawNoLe.Le;
 
-  it('deriveEngineDriver accepts a driver with no Le (Le is optional, not required)', () => {
-    const { value, errors } = engine.deriveEngineDriver(rawNoLe);
-    assert.ok(value, 'driver with no Le should still derive');
+  it('a driver with no Le still simulates — Le is optional, not required', () => {
+    // `sweep` is where this is answered. There is no separate derive-and-validate step: the
+    // validation lives in the method that does the work, so the sweep's own Result says both
+    // whether a curve came out and what stopped it if none did.
+    const { value, errors } = engine.sweep(
+      derive(rawNoLe), undefined, 'sealed', { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 });
+    assert.ok(value, 'driver with no Le should still sweep');
     assert.equal(errors.filter(e => e.level === 'error').length, 0);
   });
 
   it('sweep produces a finite impedance curve when Le is absent', () => {
-    const sw = engine.sweep(derive(rawNoLe), 'sealed', { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 }).value!;
+    const sw = engine.sweep(derive(rawNoLe), undefined, 'sealed', { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 }).value!;
     for (let i = 0; i < sw.fs.length; i++) {
       assert.ok(Number.isFinite(sw.zmag[i]), `zmag[${i}] must be finite at ${sw.fs[i]} Hz, got ${sw.zmag[i]}`);
       assert.ok(Number.isFinite(sw.zph[i]),  `zph[${i}] must be finite at ${sw.fs[i]} Hz, got ${sw.zph[i]}`);
@@ -66,8 +72,8 @@ describe('absent Le — the impedance plot must stay finite (BUG)', () => {
 
   it('absent Le is exactly equivalent to Le = 0 (it is a missing inductor, not a missing driver)', () => {
     const P: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 };
-    const noLe   = engine.sweep(derive(rawNoLe),           'sealed', P).value!;
-    const zeroLe = engine.sweep(derive({ ...RAW, Le: 0 }), 'sealed', P).value!;
+    const noLe   = engine.sweep(derive(rawNoLe), undefined, 'sealed', P).value!;
+    const zeroLe = engine.sweep(derive(RAW), 0, 'sealed', P).value!;
     for (let i = 0; i < noLe.fs.length; i++)
       assert.equal(noLe.zmag[i], zeroLe.zmag[i], `zmag[${i}] must match the explicit Le=0 driver`);
   });
@@ -202,10 +208,10 @@ describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => 
     let clamped = 0;
     for (let i = 0; i < loud.fs.length; i++) {
       const xPeak = loud.exc[i] / 1000;                 // exc is mm, Xmax is m
-      if (xPeak > DRV.Xmax!) {
+      if (xPeak > DRV.Xmax_m!) {
         clamped++;
         assert.equal(loud.xlimited[i], true, `xlimited[${i}] must be true at ${loud.fs[i].toFixed(1)} Hz`);
-        const expected = loud.spl[i] + 20 * Math.log10(DRV.Xmax! / xPeak);
+        const expected = loud.spl[i] + 20 * Math.log10(DRV.Xmax_m! / xPeak);
         assert.ok(Math.abs(loud.splXlim[i] - expected) < 1e-9,
           `at ${loud.fs[i].toFixed(1)} Hz: splXlim ${loud.splXlim[i]} should be ${expected}`);
         assert.ok(loud.splXlim[i] < loud.spl[i], 'a clamped point must sit below the unclamped SPL');
@@ -219,7 +225,7 @@ describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => 
 
   it('never limits a driver with no Xmax — an unknown limit is not a zero limit', () => {
     const noXmax = { ...RAW }; delete noXmax.Xmax;
-    const sw = engine.sweep(derive(noXmax), 'vented', { ...VENTED, eg: 40 }).value!;
+    const sw = engine.sweep(derive(noXmax), LE_H, 'vented', { ...VENTED, eg: 40 }).value!;
     for (let i = 0; i < sw.fs.length; i++) {
       assert.equal(sw.splXlim[i], sw.spl[i], `splXlim[${i}] must equal spl[${i}] with no Xmax`);
       assert.equal(sw.xlimited[i], false);

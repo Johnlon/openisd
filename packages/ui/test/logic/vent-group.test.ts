@@ -27,7 +27,6 @@ import {
   ventFieldState as ventFieldStateOn,
 } from '../../src/logic/useVentGroup.js';
 import { createProjectRepo, createMemoryStorage, type FileStorage } from '@openisd/persistence';
-import { projectSchema } from '../../src/logic/schemaUpgrade.js';
 import { OpenISDDriver } from '@openisd/model';
 
 /** A real repo, memory-backed — the restore tests below go through its actual read pipeline
@@ -39,8 +38,9 @@ const neverPicksAFile: FileStorage = {
   openFileName: () => null,
   forget: () => {},
 };
-const restoreRepo = createProjectRepo(createMemoryStorage(), projectSchema, neverPicksAFile);
+const restoreRepo = createProjectRepo(createMemoryStorage(), neverPicksAFile);
 
+// Each wrapper takes the same field name its underlying `…On` function does.
 function enterVentField(field: Parameters<typeof enterVentFieldOn>[1], value: number): void {
   enterVentFieldOn(requireFocusedProject(), field, value);
 }

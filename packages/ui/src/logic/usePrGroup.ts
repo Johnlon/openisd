@@ -10,6 +10,7 @@ import { suspendVentSolve } from './useVentGroup.js';
 
 /** The two members tied by the tuning relation. */
 export const PR_GROUP = ['prFp', 'prMadd'] as const;
+/** One of the two names listed above. */
 export type PrField = typeof PR_GROUP[number];
 
 const LETTER: Record<Provenance, 'E' | 'C' | 'N'> = {

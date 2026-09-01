@@ -59,6 +59,7 @@ function triggerFileLoad() { fileInputEl.value?.click(); }
 // choice, so the user can check a driver before it lands in their project. The parameter type
 // is derived from the already-injected `pickFile` rather than imported from `persistence/` —
 // this component takes its facade by injection and never names the persistence layer itself.
+// Takes whatever `pickFile` takes.
 function handleItemClick(f: Parameters<typeof pickFile>[0]) { pickFile(f); }
 
 function close() { closeLibrary(); }

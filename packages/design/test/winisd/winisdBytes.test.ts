@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 import { winisdBytesToText, winisdTextToBytes, WINISD_NEWLINE_SENTINEL, WinisdEncoding } from '../../winisd/winisdBytes.js';
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const UNICODE_WDR = join(ROOT, 'drivers', 'sample', 'winisd', 'driver-with-unicode-text.wdr');
 const BUNDLED_WINISD_DIR = join(ROOT, 'drivers', 'winisd');
 const SELENIUM_SW108_WDR = join(BUNDLED_WINISD_DIR, 'Selenium SW108 .wdr');

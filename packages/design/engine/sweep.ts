@@ -167,6 +167,12 @@ function plausibleValue(name: QuantityName): number {
     case 'MagDepth_m': return 0.020;    case 'Magnet_m': return 0.090;
     case 'DVol_m3': return 4.0e-4;      case 'c_m_per_s': return 344;
     case 'roo_kg_per_m3': return 1.2;
+    // Voice-coil inductance and its two semi-inductance partners (relation 24). Representative
+    // of the corpus, and only ever used as a PROBE — this function asks "would this quantity,
+    // stated on its own, let the driver simulate", so the magnitude has to be plausible and
+    // nothing more. KLe is Le·√(2π·fLe) at these two, so the three agree with each other.
+    case 'Le_H': return 5.0e-4;         case 'fLe_hz': return 1000;
+    case 'KLe_H_sqrtHz': return 5.0e-4 * Math.sqrt(2 * Math.PI * 1000);
   }
   const unhandled: never = name;
   return unhandled;

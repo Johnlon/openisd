@@ -219,7 +219,7 @@ not true of any code that currently exists — it's a future-tense design intent
 present tense. **This needs the user's decision, not an assumption:** is `openisd.yml` meant to
 become the actual `.owdr` (i.e. same file, and the current `DriverJSON`/`.owdr` shape is
 provisional), or are they intentionally two different artifacts (Python's full-provenance
-sidecar vs. the app's slim edit-session file) that need an explicit sync step? Either answer is
+openisd.yml vs. the app's slim edit-session file) that need an explicit sync step? Either answer is
 consistent with everything found this session; nothing found here decides it.
 
 ---

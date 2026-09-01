@@ -27,6 +27,8 @@
 // write the formula and justify it in a comment.
 // ═════════════════════════════════════════════════════════════════════════════════════════════
 
+import { z } from 'zod';
+import { parse as parseYaml } from 'yaml';
 import {
     Field,
     focus,
@@ -40,9 +42,8 @@ import {newUuid} from './newUuid.js';
 import {Engine, LossMode} from '../engine/index.js';
 import type {
     BoxType, SimulatableBoxType, ConsistencyIssue, DriverError,
-    MaxCurvesResult, Result, SweepParams, SweepResult, Wiring,
+    MaxCurvesResult, Result, SweepParams, SweepResult, SolverQuantities,
 } from '../engine/index.js';
-import { SolverQuantities } from '../engine/index.js';
 
 import type {Vent, VentShape} from './vent.js';
 import type {
@@ -121,23 +122,6 @@ interface SpecEntryJson {
     readonly readings: Readonly<Record<string, Reading>>;
     /** The scraper's cross-source verdict: MATCH, MISMATCH, NOT_MATCHABLE, UNMATCHED. */
     readonly corroboration?: string;
-    readonly definition?: string;
-    readonly dq_scraper?: readonly DqMark[];
-    readonly dq_calculated?: readonly DqMark[];
-}
-
-/**
- * One RECORD-LEVEL field — brand, model, driver_type and the rest.
- *
- * A different envelope from `SpecEntryJson`, because it answers a different question. These come
- * from ONE source and are not contested, so there is nothing to keep alternatives for and the
- * value sits directly on the field. The corpus bears that out: no metadata field anywhere
- * carries a `readings` map.
- */
-interface ScrapedFieldJson<T> {
-    readonly value: T;
-    readonly origin?: string;
-    readonly definition?: string;
     readonly dq_scraper?: readonly DqMark[];
     readonly dq_calculated?: readonly DqMark[];
 }
@@ -277,15 +261,13 @@ function winningValue(entry: SpecEntryJson | undefined): number | null {
     return typeof reading?.read_value === 'number' ? reading.read_value : null;
 }
 
+/** The names of `DriverSpecsSection`'s spec-entry fields. */
 type SpecFieldName = {
+    // Go through every field. Keep its name if it holds a spec entry, else throw it away.
     [K in keyof DriverSpecsSection]-?: DriverSpecsSection[K] extends SpecEntryJson | undefined ? K : never;
+    // Collect the names that were kept.
 }[keyof DriverSpecsSection];
 
-/** The passive-radiator section — A DIFFERENT SCHEMA from a driver's, not a narrowed `DriverSpecsSection`
- *  (John 2026-08-27: "the passive rad has only a few exposed fields not same as driver as no
- *  electrical", "different schema"). A radiator has no motor and no voice coil, so `Re`, `Le`,
- *  `Znom`, `Qes`, `BL`, `numVC` and the thermal parameters describe nothing on one. Typing it as
- *  `DriverSpecsSection` would publish every one of them as a readable field. */
 /**
  * How a multi-coil driver's voice coils are wired.
  *
@@ -308,6 +290,11 @@ export const VoiceCoilWiring = {
  *  to one and forgotten in the other. */
 export type VoiceCoilWiring = typeof VoiceCoilWiring[keyof typeof VoiceCoilWiring];
 
+/** The passive-radiator section — A DIFFERENT SCHEMA from a driver's, not a narrowed `DriverSpecsSection`
+ *  (John 2026-08-27: "the passive rad has only a few exposed fields not same as driver as no
+ *  electrical", "different schema"). A radiator has no motor and no voice coil, so `Re`, `Le`,
+ *  `Znom`, `Qes`, `BL`, `numVC` and the thermal parameters describe nothing on one. Typing it as
+ *  `DriverSpecsSection` would publish every one of them as a readable field. */
 interface PassiveRadiatorSpecsSection {
     readonly Fs?: SpecEntryJson;
     readonly Qms?: SpecEntryJson;
@@ -334,23 +321,20 @@ interface PassiveRadiatorSpecsSection {
 
 type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
 
-/** The sections a record can carry, under `specs` (John 2026-08-30: "sections must sit under
- *  specs"). A record states the ONE its driver_type calls for; the others are absent. */
-interface SpecsJson {
-    readonly woofer?: DriverSpecsSection;
-    readonly tweeter?: DriverSpecsSection;
-    readonly 'passive-radiator'?: PassiveRadiatorSpecsSection;
-}
+/**
+ * THE openisd.yml RECORD, declared as a type — every key one carries, and no key it does not.
+ *
+ * Required versus optional follows the model that WRITES the file — `OpenIsdYmlFile` in
+ * winisd_tools `scrapers/scrapers/lib/model_openisd.py:55-73`, which is `extra="forbid"`. A field
+ * declared there without a `= None` default is required here. Counting the corpus agrees on
+ * these ten but cannot tell "the schema requires it" from "every record we hold happens to have
+ * it", so the schema is the authority.
+ * `test/architecture-record-matches-openisd-yml.test.ts` holds the two in agreement, because a
+ * type that models a SUBSET of the file is silent — it does not fail, it just cannot carry what
+ * it left out.
+ */
+type OpenISDDeviceJson = z.infer<typeof openISDDeviceJsonSchema>;
 
-interface OpenISDDeviceJson {
-    readonly brand: ScrapedFieldJson<string>;
-    readonly model: ScrapedFieldJson<string>;
-    readonly manufacturer: ScrapedFieldJson<string>;
-    readonly provided_by: ScrapedFieldJson<string>;
-    readonly comment: ScrapedFieldJson<string>;
-    readonly added: ScrapedFieldJson<string>;
-    readonly specs: SpecsJson;
-}
 
 /** One port's stored geometry. `diameter_m` applies to a round vent, `width_m`/`height_m` to a
  *  slotted one — which pair is meaningful follows `shape`, and the other stays null rather than
@@ -1343,10 +1327,13 @@ export abstract class OpenISDDevice {
         };
         return new Field<string>(
             () => {
-                const json = this.#slot.get();
-                return json === null
+                // An ABSENT key answers exactly as an absent record does. `provided_by`, `comment`
+                // and `added` are optional, so this is the ordinary case rather than an edge —
+                // reading `json[key].value` unguarded threw on every corpus record.
+                const stated = this.#slot.get()?.[key];
+                return stated === undefined
                     ? {value: null, state: 'not-available'}
-                    : {value: json[key].value, state: 'entered'};
+                    : {value: stated.value, state: 'entered'};
             },
             (v) => {
                 this.#slot.set({...requirePresent(), [key]: {value: v, origin: 'entered'}});
@@ -1432,13 +1419,19 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         // the two halves of that pairing in different files, and the engine's own name list exists
         // only where the code genuinely loops.
         //
-        // `SPLref_dB` is absent BY CONSTRUCTION: no record states it. `numVC` and `VCCon` are
-        // absent too — a coil count and a wiring name are not quantities, and the solver neither
-        // takes nor returns them; `solveConsistencyGroup()` below reads them off their own fields.
+        // THIS LIST IS NOT SELF-CERTIFYING. A quantity missing from it is never given to the
+        // solver, so every relation needing it is dead from the app while still passing in a direct
+        // engine call. Exactly three are left out on purpose: `SPLref_dB`, which no record states,
+        // and `numVC`/`VCCon`, which are a coil count and a wiring name rather than quantities —
+        // `solveConsistencyGroup()` below reads those two off their own fields. Anything else
+        // absent is an oversight.
         return {
             Fs_hz: read('Fs'),
             Re_ohm: read('Re'),
             Znom_ohm: read('Znom'),
+            Le_H: read('Le'),
+            fLe_hz: read('fLe'),
+            KLe_H_sqrtHz: read('KLe'),
             Qes: read('Qes'),
             Qms: read('Qms'),
             Qts: read('Qts'),
@@ -1478,22 +1471,16 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** Everything this driver's stated values imply, filled in. Does NOT write back — a solved
      *  value is a derivation, and the record holds only what was actually stated. */
     solveConsistencyGroup(): Readonly<SolverQuantities> {
-        const solved = this.engine.solveConsistencyGroup(this.fields());
-        // AFTER the solve, not before: `Re_ohm` and `BL_Tm` are themselves derivable, so a driver
-        // stating neither still has both by now. Their own fields, never a rewrite — WinISD
-        // overwrites the stated value in place and leaves it marked entered, so its file claims
-        // the user typed a number the app computed.
-        // The coil facts are the DRIVER's, read from its own fields — they are not quantities and
-        // the solver neither takes nor returns them.
-        const numVC = this.spec[this.section].numVC.get().value ?? undefined;
-        const wiring: Wiring = this.spec[this.section].VCCon.get().value === VoiceCoilWiring.Series
-            ? 'series' : 'parallel';
-        const { Re_ohm, BL_Tm } = solved;
-        return {
-            ...solved,
-            Re_terminal_ohm: Re_ohm === undefined ? undefined : this.engine.terminalRe_ohm(Re_ohm, numVC, wiring),
-            BL_terminal_Tm: BL_Tm === undefined ? undefined : this.engine.terminalBL_Tm(BL_Tm, numVC, wiring),
-        };
+        // The coil facts go IN with the quantities, so the solver finishes its own output: the
+        // terminal Re and BL come back derived, and a caller can hand the result straight to
+        // `sweep`. They are read from the driver's own fields because they are the DRIVER's, not
+        // the simulation's.
+        return this.engine.solveConsistencyGroup({
+            ...this.fields(),
+            numVC: this.spec[this.section].numVC.get().value ?? undefined,
+            wiring: this.spec[this.section].VCCon.get().value === VoiceCoilWiring.Series
+                ? 'series' : 'parallel',
+        });
     }
 
     /** Everything this driver's stated values disagree about — an over-specified driver whose
@@ -1732,78 +1719,274 @@ class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
 
 }
 
-// The real "only ManagedProject reaches this" mechanism (see the file header) — module-scoped,
-// never exported. `OpenISDProject` calls `notifyProject(this)` on every write instead of holding
-// its own listener set, and `ManagedProject` calls `subscribeToProject(project, fn)` instead of a
-// method on `project`. Nothing outside this file can reach either, which is the enforcement.
-
-/**
- * An untrusted record from a repository → a live driver, OR the list of everything wrong with
- * it. THE one seam a driver record enters this package through: the bundle, My Drivers, a file
- * and a project's own driver slot all arrive here, so no entry point can enforce a shape another
- * does not.
- *
- * Returns problems rather than throwing, and returns them ALL rather than the first: a driver
- * picker has to SHOW why a row is unselectable, which one exception cannot express. The union
- * also means a caller cannot forget to check — reaching the driver requires narrowing past the
- * `string[]`.
- *
- * Only this function casts to the record type; no caller with an untrusted value casts itself.
- */
-export function driverFromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | string[] {
-    if (typeof record !== 'object' || record === null) return ['not an object'];
-    const r = record as Record<string, unknown>;
-
-    const problems = metadataProblems(r);
-    const specs = r.specs;
-    const sections = typeof specs === 'object' && specs !== null ? specs as Record<string, unknown> : {};
-    if (!sections.woofer && !sections.tweeter) {
-        problems.push('neither a woofer nor a tweeter section — nothing to simulate');
+function driverSectionProblems(json: OpenISDDeviceJson): string[] {
+    const specs = json.specs;
+    if (specs.woofer === undefined && specs.tweeter === undefined) {
+        return ['neither a woofer nor a tweeter section — nothing to simulate'];
     }
-    return problems.length > 0 ? problems : OpenISDDriverStandalone.wrap(record as OpenISDDeviceJson, engine);
+    if (specs['passive-radiator'] !== undefined) {
+        return ['both a driver section and a passive-radiator section — this record is two things at once'];
+    }
+    return [];
 }
 
-/**
- * The same seam for a PASSIVE RADIATOR — its own function because a radiator is its own concept,
- * not a kind of driver. What differs is the section its record must carry: a radiator needs
- * `passive-radiator`, and a driver needs `woofer` or `tweeter`. Sharing one validator would mean
- * one of the two accepting a record the other's type could never model.
- *
- * Same contract as the driver seam: every problem at once, never an exception, so a radiator
- * picker can show why a row is unselectable.
- */
+function radiatorSectionProblems(json: OpenISDDeviceJson): string[] {
+    const specs = json.specs;
+    if (specs['passive-radiator'] === undefined) {
+        return ['no passive-radiator section — this record is not a radiator'];
+    }
+    if (specs.woofer !== undefined || specs.tweeter !== undefined) {
+        return ['both a passive-radiator section and a driver section — this record is two things at once'];
+    }
+    return [];
+}
+
+export function driverFromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | string[] {
+    const conformed = conformingRecord(record);
+    if ('problems' in conformed) return conformed.problems;
+
+    const sectionProblems = driverSectionProblems(conformed.json);
+    if (sectionProblems.length > 0) return sectionProblems;
+    return OpenISDDriverStandalone.wrap(conformed.json, engine);
+}
+
 export function passiveRadiatorFromConformingRecord(
     record: unknown,
     engine: Engine,
 ): OpenISDPassiveRadiatorStandalone | string[] {
-    if (typeof record !== 'object' || record === null) return ['not an object'];
-    const r = record as Record<string, unknown>;
+    const conformed = conformingRecord(record);
+    if ('problems' in conformed) return conformed.problems;
 
-    const problems = metadataProblems(r);
-    const prSpecs = r.specs;
-    const prSections = typeof prSpecs === 'object' && prSpecs !== null
-        ? prSpecs as Record<string, unknown> : {};
-    if (!prSections['passive-radiator']) {
-        problems.push('no passive-radiator section — this record is not a radiator');
-    }
-    return problems.length > 0
-        ? problems
-        : OpenISDPassiveRadiatorStandalone.wrap(record as OpenISDDeviceJson, engine);
+    const sectionProblems = radiatorSectionProblems(conformed.json);
+    if (sectionProblems.length > 0) return sectionProblems;
+    return OpenISDPassiveRadiatorStandalone.wrap(conformed.json, engine);
 }
 
-/** The metadata every purchasable component carries, driver or radiator alike — the one part of
- *  the two seams that IS genuinely shared, so it is written once. */
-function metadataProblems(r: Record<string, unknown>): string[] {
-    const problems: string[] = [];
-    for (const key of ['brand', 'model', 'manufacturer', 'provided_by', 'comment', 'added']) {
-        const field = r[key];
-        if (typeof field !== 'object' || field === null
-            || typeof (field as { value?: unknown }).value !== 'string') {
-            problems.push(`'${key}' is missing or is not a stated value`);
-        }
-    }
-    return problems;
+/**
+ * THE RECORD, DECLARED ONCE, AS A SCHEMA.
+ */
+
+/** DQ marks. A function, not a shared object: a module-scoped literal would be state, and each
+ *  schema gets its own. */
+const dqMarks = () => z.strictObject({
+    kind: z.string(), severity: z.string(), rule: z.string(), detail: z.string(),
+    params: z.record(z.string(), z.unknown()),
+}).array().optional();
+
+/** One source's reading of one parameter. `read_value` is the number; the rest annotate it. */
+const readingJsonSchema = z.strictObject({
+    read_value: z.number(),
+    actual_reading: z.string().optional(),
+    read_precision: z.number().optional(),
+});
+
+/** A spec field: which source won, and every source's reading. It states no value of its own.
+ *  `readings` carries AT LEAST ONE — `SpecEntry.readings` is `Field(min_length=1)`, because an
+ *  entry naming a winning origin with nothing under it is a field with no value.
+ *  `dq_scraper` and `dq_calculated` are split BY PRODUCER: a scraper finds structural, parse and
+ *  source problems; only the calculation finds T/S parameters that disagree with each other. */
+const specEntryJsonSchema = z.strictObject({
+    origin: z.string(),
+    readings: z.record(z.string(), readingJsonSchema).refine(
+        r => Object.keys(r).length > 0, 'expected at least one reading'),
+    corroboration: z.string().optional(),
+    dq_scraper: dqMarks(),
+    dq_calculated: dqMarks(),
+});
+
+// ── THE THREE FIELD ENVELOPES ─────────────────────────────────────────────────────────────────
+//
+// A record never stores a bare value: it stores the value with the provenance that answers where
+// it came from. THREE different answers, so three envelopes (`model_driver.py`, `FieldEnvelope`
+// and its subclasses).
+//
+// `definition` — what a field MEANS — is on all three in the scraper and appears on NONE of them
+// here. It is driver.yml's, and never reaches an openisd.yml or a .wdr (John, 2026-09-01). A
+// consumer of this record already knows what `Fs` is.
+
+/** READ off a source. `origin` names which source won; `readings` keeps what each one said.
+ *  (`ScrapedField`, model_driver.py:155.) */
+const scrapedFieldOf = <T extends z.ZodTypeAny>(value: T) => z.strictObject({
+    value,
+    origin: z.string(),
+    readings: z.record(z.string(), value).optional(),
+    dq_scraper: dqMarks(),
+    note: z.unknown().optional(),
+});
+
+/** COMPUTED from other fields. No origin — nothing was read — but `grounds` carries the evidence,
+ *  and there is always at least one. (`DerivedField`, model_driver.py:193.) */
+const derivedFieldOf = <T extends z.ZodTypeAny>(value: T) => z.strictObject({
+    value,
+    grounds: z.strictObject({
+        origin: z.string(), reading: z.string(),
+    }).array().min(1),
+});
+
+/** A fact about the RECORD, not about the driver — a uuid, where its sources were. Nothing was
+ *  read and nothing was derived, so neither origin nor grounds. (`BookkeepingField`,
+ *  model_driver.py:202.) */
+const bookkeepingFieldOf = <T extends z.ZodTypeAny>(value: T) => z.strictObject({
+    value,
+});
+
+const textField = scrapedFieldOf(z.string());
+
+
+// ── THE SPEC SECTIONS, BY NAME ────────────────────────────────────────────────────────────────
+//
+// Named sections and named fields, not `record(string, record(string, …))`. `SpecSection` in the
+// scraper forbids extra keys and its field set is asserted against the registry, so a section
+// carrying a field nobody declared is a record the pipeline could not have written. A loose
+// record accepts it and the app then reads a field no code knows about.
+//
+// A FUNCTION, not a shared object: a module-scoped literal would be state, and each schema gets
+// its own (`test/architecture-no-globals.test.ts`).
+const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strictObject({
+    Fs: e, Re: e, Le: e, fLe: e, KLe: e, Znom: e,
+    Qts: e, Qes: e, Qms: e, Vas: e, Sd: e, BL: e,
+    Mms: e, Cms: e, Rms: e, Xmax: e, Xlim: e, SPL: e,
+    Pe: e, Dd: e, EBP: e, numVC: e, VCCon: e, Dia: e,
+    Vd: e, no: e, SPLmax: e, SPLmaxLF: e, USPL: e, alfaVC: e,
+    Rt: e, Ct: e, gamma: e, Rme: e, Mpow: e, Mcost: e,
+    Gloss: e, c: e, roo: e, Vcd: e, Hg: e, Hc: e,
+    freq_low_hz: e, freq_high_hz: e, power_peak_W: e, weight_kg: e, Thick: e, Depth: e,
+    MagDepth: e, Magnet: e, Basket: e, Outer: e, OuterX: e, OuterY: e,
+    DVol: e,
+}).partial();
+
+/** A radiator has no motor and no voice coil, so `Re`, `Le`, `Znom`, `Qes`, `BL`, `numVC` and the
+ *  thermal parameters describe nothing on one — a DIFFERENT schema, not a narrowed driver's. */
+const passiveRadiatorSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strictObject({
+    Fs: e, Qms: e, Cms: e, Mms: e, Rms: e, Sd: e,
+    Vas: e, Vd: e, Xmax: e, Xlim: e, Dia: e, Dd: e,
+    DVol: e, Thick: e, Depth: e, Basket: e, Outer: e, OuterX: e,
+    OuterY: e, weight_kg: e,
+}).partial();
+
+const specsJsonSchema = z.strictObject({
+    woofer: driverSpecsSectionJsonSchema(specEntryJsonSchema).optional(),
+    tweeter: driverSpecsSectionJsonSchema(specEntryJsonSchema).optional(),
+    'passive-radiator': passiveRadiatorSpecsSectionJsonSchema(specEntryJsonSchema).optional(),
+});
+
+const openISDDeviceJsonSchema = z.strictObject({
+    // REQUIRED. The six beyond brand/model/manufacturer/specs describe where the record's figures
+    // were scraped from (`model_openisd.py:55-73`, which is extra="forbid").
+    // Which envelope each field gets is not a style choice — it is what `OpenIsdYmlFile`
+    // (model_openisd.py:55-73) declares, and it says how the value came to be there.
+    brand: textField,
+    model: textField,
+    manufacturer: textField,
+    driver_type: textField,
+    sku: derivedFieldOf(z.string()),
+    uuid: bookkeepingFieldOf(z.string()),
+    authoritative: bookkeepingFieldOf(z.string()),
+    data_sources: bookkeepingFieldOf(z.strictObject({
+        manufacturer_datasheet: z.string().optional(),
+        manufacturer_product_page: z.string().optional(),
+        manufacturer_listing_page: z.string().optional(),
+    })),
+    quality: z.strictObject({
+        issue: z.string().optional(),
+        confirmed_fields: z.string().array(),
+        fields_with_issues: z.string().array(),
+        missing: z.string().array(),
+        invalid: z.string().array(),
+        parse_errors: z.string().array(),
+        cross_source_only: z.unknown().array(),
+    }),
+    specs: specsJsonSchema,
+
+    // OPTIONAL: absent is fine, present-but-malformed is not.
+    product_image: textField.optional(),
+    description: textField.optional(),
+    series: textField.optional(),
+    surround_material: textField.optional(),
+    provided_by: textField.optional(),
+    comment: textField.optional(),
+    added: textField.optional(),
+    nominal_size_cm: scrapedFieldOf(z.number()).optional(),
+    // A curve is a `CurveEntry` — value and origin — and its payload names where the
+    // data is. `local_path` is absent when the datasheet only PLOTS the curve and nothing
+    // extracted the numbers (`CurvePayload`, model_driver.py:1079).
+    curves: z.record(z.string(), z.strictObject({
+        value: z.strictObject({
+            type: z.string(),
+            data_format: z.string().optional(),
+            local_path: z.string().optional(),
+            extracted_data_path: z.string().optional(),
+        }),
+        origin: z.string(),
+    })).optional(),
+});
+
+/**
+ * THE ONE VALIDATOR: an untrusted value → the record it conforms to, or everything wrong with it.
+ *
+ * The schema's OUTPUT is what comes back, never the value handed in. `safeParse` returns a new
+ * object built from the keys the schema declares, and that is the record the domain then holds —
+ * so nothing the schema does not know about can ride along inside a value typed as though it had
+ * been checked.
+ *
+ * Every issue at once, not the first: two bad readings in one spec field produce two messages,
+ * each naming its own path, so a picker can show a reader why a row is unusable.
+ */
+function conformingRecord(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
+    const result = openISDDeviceJsonSchema.safeParse(record);
+    if (result.success) return {json: result.data};
+    return {
+        problems: result.error.issues.map(issue => issue.path.length === 0
+            ? issue.message
+            : `'${issue.path.join('.')}': ${issue.message}`),
+    };
 }
+
+/**
+ * A driver.yml, as text, becomes an openisd record.
+ *
+ * THREE STEPS, and the middle one is the whole point:
+ *
+ *   1. parse the YAML;
+ *   2. delete the TWO things a driver.yml carries that an openisd record does not — the `scraper`
+ *      section, and every `definition`, at every depth;
+ *   3. validate what is left, strictly.
+ *
+ * Step 2 is an EXPLICIT, NAMED removal rather than a lenient schema that quietly drops whatever it
+ * does not recognise. The difference is what happens to a key nobody planned for: a lenient schema
+ * discards it in silence, so a record could gain a field and the app would never hear about it.
+ * Here exactly two things are removed by name, and anything else unexpected is REFUSED by the
+ * strict schema, at its own path.
+ */
+export function driverYmlToOpenIsdRecord(
+    text: string,
+): { json: OpenISDDeviceJson } | { problems: string[] } {
+    let parsed: unknown;
+    try {
+        parsed = parseYaml(text);
+    } catch (e) {
+        return {problems: [`not valid YAML: ${e instanceof Error ? e.message : String(e)}`]};
+    }
+    return conformingRecord(withoutDriverYmlOnlyFields(parsed));
+}
+
+/** The two things driver.yml carries and an openisd record does not. Returns a COPY: the caller's
+ *  value is never mutated, so the same text can be read again and still be a driver.yml. */
+function withoutDriverYmlOnlyFields(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(withoutDriverYmlOnlyFields);
+    if (typeof value !== 'object' || value === null) return value;
+
+    const out: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value)) {
+        // `definition` says what a field MEANS — the scraper's working note, at any depth.
+        // `scraper`/`scraper_meta` is how the record was obtained: telemetry about the pipeline,
+        // not a fact about the driver.
+        if (key === 'definition' || key === 'scraper' || key === 'scraper_meta') continue;
+        out[key] = withoutDriverYmlOnlyFields(v);
+    }
+    return out;
+}
+
 
 // FRIEND ACCESS. Every project's record lives here rather than in a `#json` field, because the
 // components a project contains — its embedded driver, its box — legitimately need to reach it,
@@ -2107,21 +2290,17 @@ export class OpenISDProject {
 export type DiscardChallenge = () => Promise<boolean>;
 
 /**
- * A project with nothing designed yet.
+ * A new project's record: the chosen driver, the box being built, and defaults for everything a
+ * project has not been told yet.
  *
- * The driver slot holds an EMPTY WOOFER SECTION — a section present, nothing stated. That is
- * enough for `OpenISDDriver.sectionOf()` to succeed, which is what lets a project be constructed
- * before its driver has been written in; the real driver arrives immediately afterwards through
- * `project.driver.update()`. No zeros are invented, because every spec field is optional.
+ * THE DRIVER IS A PARAMETER because a project cannot exist without one — `newProject()` takes a
+ * validated `OpenISDDriver` before a builder is even returned. Copied on the way in (`{...}`), so
+ * the project owns its own record and later edits do not reach back into a My Drivers entry or a
+ * bundle row.
  */
-function emptyProjectJson(): OpenISDProjectJson {
-    const unstated = {value: '', origin: 'unstated'};
+function projectJson(driver: OpenISDDeviceJson): OpenISDProjectJson {
     return {
-        driver: {
-            brand: unstated, model: unstated, manufacturer: unstated,
-            provided_by: unstated, comment: unstated, added: unstated,
-            specs: {woofer: {}},
-        },
+        driver: {...driver},
         box: emptyBoxJson(),
         environment: {temperature_K: null, humidity_pct: null, pressure_Pa: null},
         signal: {power_W: null, voltage_V: null},
@@ -2211,14 +2390,16 @@ abstract class BoxProjectBuilder {
     /**
      * Assemble the project — the LAST thing, once every part has been collected.
      *
-     * The project is constructed with an empty driver section, then each component copies ITSELF
-     * in: `project.driver.update()` is one driver reading another, inside the class that declares
-     * the record, and the radiator does the same. So no record crosses a boundary and the project
-     * never handles driver state.
+     * The driver goes in AS THE RECORD IS BUILT. A builder and a driver are sibling domain classes
+     * in this module, so reading the driver's record here is friend access, which this module has
+     * and uses; there is no boundary to cross. Constructing a blank driver first and overwriting
+     * it one line later invented a record for a driver that was already in hand.
      */
     build(): OpenISDProject {
-        const project = OpenISDProject.wrap({...emptyProjectJson(), box: this.boxRecord()}, this.engine);
-        project.driver.update(this.driver);
+        const project = OpenISDProject.wrap(
+            {...projectJson(this.driver.toOpenIsdDeviceJson()), box: this.boxRecord()},
+            this.engine,
+        );
         if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
         // Those writes land in `#edited`, because every write does. A project the user has just
         // created has no UNSAVED changes, though — so the assembled state IS its saved baseline.

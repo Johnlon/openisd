@@ -28,6 +28,8 @@ function driverWithFields(fields: Partial<Record<SpecField, number>>): OpenISDDr
     driver_type: { value: 'woofer', origin: 'manual', definition: 'what kind of driver this is', dq: [] },
     data_sources: { value: {}, definition: 'the record-wide provenance index' },
     authoritative: { value: 'manual', definition: 'which indexed source wins the datasheet waterfall' },
+    // Whatever type the record declares for its `woofer` section — read off the record type
+    // rather than named here, so this fixture cannot drift from it.
     specs: { woofer: woofer as OpenISDDriverJson['specs'] extends { woofer?: infer W } ? W : never },
   };
   return OpenISDDriver.fromJsonRecord(record);

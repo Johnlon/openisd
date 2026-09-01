@@ -15,7 +15,7 @@ export default [
   // ── Ignore generated and dependency directories ──────────────────────────
   // dist-electron/ is the optional desktop shell's build output — same minified bundle as
   // dist/, so it is ignored for the same reason: it is emitted, not authored.
-  { ignores: ['**/dist/**', '**/dist-electron/**', '**/node_modules/**', 'packages/ui/public/**'] },
+  { ignores: ['**/dist/**', '**/dist-electron/**', '**/node_modules/**', 'packages/ui/public/**', 'build/**', 'coverage/**'] },
 
   // ── typescript-eslint recommended (registers plugin + rules for .ts) ──────
   ...tseslint.configs.recommended,

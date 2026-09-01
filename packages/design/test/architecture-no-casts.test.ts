@@ -7,6 +7,10 @@
 // Two permitted responses when it goes red. ONE: name the defect in a sentence — what is actually
 // wrong with the code, that would still be wrong if this gate did not exist — and then repair it.
 // If no defect can be named, that option is not available. TWO: STOP and report what it found.
+//
+// For a CAST specifically, response TWO is the default: casts are not banned outright, they are
+// a decision the human makes. Report what the cast asserts, what the compiler cannot prove, and
+// what the alternative costs — then wait.
 // "Make it pass" is not one of the two, and is what the word "fix" quietly permits. Casting
 // past it, renaming so a matcher stops firing, adding an exemption, loosening the assertion or
 // deleting the test are one act under different names — making the red go away instead of making
@@ -14,8 +18,23 @@
 // not known to test anything. See AGENTS.md "Every architecture test exists to catch the AI".
 
 /**
- * NO CASTS. John, 2026-08-30: "I told you to use the fucking type system and a cast is a fucking
- * hack", "all casts are fails", "use the type system and the only trust is the compiler".
+ * A CAST IS A CONVERSATION, NOT A CRIME. John, 2026-08-31:
+ *
+ *   "when you find the need to add a cast then you MUST discuss with the human — it isn't
+ *    necessarily evil so discuss with the human ... aim is to speak to human not prevent 100% as
+ *    sometimes it's needed"
+ *
+ * So this gate does NOT exist to make casts impossible. It exists to make one IMPOSSIBLE TO ADD
+ * QUIETLY. A red result here is an instruction to the agent: STOP, and put the cast to John with
+ * what it is asserting and why the type system cannot prove it. He decides. An approved cast is
+ * fine; an unapproved one is the agent making a type-safety decision that was never its to make.
+ *
+ * The agent's failure mode this catches is not "wrote a cast" — it is "wrote a cast INSTEAD of
+ * asking", which is how every one of the examples below arrived.
+ *
+ * The earlier rulings still describe why the bar is high (John, 2026-08-30): "I told you to use
+ * the fucking type system and a cast is a fucking hack", "all casts are fails", "use the type
+ * system and the only trust is the compiler". What changed is the remedy, not the suspicion.
  *
  * A cast is the agent telling the compiler to stop checking. Everything the type system could
  * have proven at that point is replaced by an assertion nobody verifies, and the failure surfaces
@@ -151,7 +170,11 @@ describe('no casts — the compiler is the only thing trusted', () => {
   });
 
   it('finds no cast anywhere in shipped source', () => {
+    // Every entry is a cast that has NOT been put to John. Red does not mean "delete it" — it
+    // means the list below has something on it that nobody agreed to. Take it to him.
     const all = casts();
-    expect(all.map((c) => `${c.file}:${c.line}  ${c.text}`)).toEqual([]);
+    expect(all.map((c) => `${c.file}:${c.line}  ${c.text}`),
+      'each of these is a cast awaiting a human decision — discuss before removing OR keeping')
+      .toEqual([]);
   });
 });

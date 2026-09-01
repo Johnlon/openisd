@@ -84,7 +84,7 @@
 ## 2026-08-03 — Scraping stack removed; `_meta.yml` gone; bundle reads `openisd.yml`
 
 - **One project owns scraping again.** openisd carried a second, unused scraping pipeline — six vendor scrapers, a scraper library, a pydantic schema module and a DQ CLI, none of them reachable from any script, hook or workflow. Deleted; winisd_tools is the only scraper, as the workspace architecture says.
-- **The dead sidecar format is fully gone.** `_meta.yml` had been superseded by `openisd.yml` but survived in ~90 references across 20 documents plus 438 orphaned data files. All removed. A reader now finds one answer to "where does provenance live", not two.
+- **The dead openisd.yml format is fully gone.** `_meta.yml` had been superseded by `openisd.yml` but survived in ~90 references across 20 documents plus 438 orphaned data files. All removed. A reader now finds one answer to "where does provenance live", not two.
 - **The driver bundle matches the architecture.** `bundle-drivers.mjs` reads `openisd.yml` records only — never `.wdr`, never `.owdr` — so the bundle can no longer disagree with AD-8 about what a driver record is. `.wdr` stays what it always was: a WinISD import/export format the app converts in memory.
 - **The health check is honest about what it runs.** It listed six gates including two Python steps; one scanned zero files and the other only kept deleted code importable. Four real gates now: lint, typecheck, unit, browser.
 - **Transient files have one home.** `build/` is the scratch space, enforced by tests over `.gitignore` and Vite's watcher, replacing a cache-directory convention that existed only for the deleted scrapers.

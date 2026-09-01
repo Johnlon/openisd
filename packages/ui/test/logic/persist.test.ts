@@ -17,9 +17,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { OpenISDDriver, OpenISDProject, Provenance } from '@openisd/model';
-import { WinISDDriver } from '@openisd/design/winisd';
+import { WinISDDriver } from '@openisd/winisd';
 import { createProjectRepo, createMemoryStorage, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
-import { projectSchema } from '../../src/logic/schemaUpgrade.js';
 import { state, requireFocusedProject, applyLoadedProject, currentProject, currentViewSnapshot } from '../../src/logic/appState.js';
 import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
 import type { BoxType } from '@openisd/design/engine';
@@ -32,7 +31,7 @@ const noFilePicker: FileStorage = {
   forget: () => {},
 };
 const mem = createMemoryStorage();
-const repo = createProjectRepo(mem, projectSchema, noFilePicker);
+const repo = createProjectRepo(mem, noFilePicker);
 
 /** A picker that KEEPS what was written, so a test can decode the file door's own bytes. */
 let written: string | null = null;
@@ -42,7 +41,7 @@ const capturingPicker: FileStorage = {
   openFileName: () => 'p.owpr',
   forget: () => {},
 };
-const fileRepo = createProjectRepo(createMemoryStorage(), projectSchema, capturingPicker);
+const fileRepo = createProjectRepo(createMemoryStorage(), capturingPicker);
 const owprNaming = { suggestedName: 'p.owpr', mime: 'application/json', label: 'OpenISD project', ext: '.owpr' };
 
 /** The bytes the FILE door writes, decoded independently. */
@@ -67,12 +66,14 @@ function projectOf(box: BoxType, meta: OpenISDProjectMeta,
 
 /** The saved-FILE payload, decoded independently. Pure project data (QO90): no view ever
  *  reaches this wire. */
+// Parsed JSON, so untyped — a test reads whatever fields it is checking.
 async function storedPayload(project: OpenISDProject): Promise<ReturnType<typeof JSON.parse>> {
   return JSON.parse(await savedFileText(project));
 }
 
 /** The share-link payload, decoded independently of the app's own `stateToUrl`/gzip path —
  *  what a real browser would decode a link to. */
+// Parsed JSON, so untyped.
 function decodeShare(url: string): ReturnType<typeof JSON.parse> {
   const b64 = url.match(/[#&]s=([^&]+)/)![1].replace(/-/g, '+').replace(/_/g, '/');
   return JSON.parse(gunzipSync(Buffer.from(b64, 'base64')).toString('utf8'));
@@ -109,6 +110,7 @@ describe('persistence — provenance survives a file-save round trip', () => {
      *  appears as a public parameter (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md);
      *  this test needs the same field checked on two driver instances, so the dispatch lives
      *  here. */
+    // `field` is one of the names listed above.
     function stateOf(d: OpenISDDriver, field: typeof CHECKED_FIELDS[number]) {
       switch (field) {
         case 'Fs': return d.FsCell().state;

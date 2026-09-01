@@ -42,7 +42,7 @@ import type {
   Cell, MetaCell,
   OpenISDVent, OpenISDProjectMeta,
 } from '@openisd/model';
-import { winisdTextToBytes } from '@openisd/design/winisd';
+import { winisdTextToBytes } from '@openisd/winisd';
 import type { DriverError, ConsistencyIssue, EngineDriver as EngineDriver, Filter, Result, SweepResult } from '@openisd/design/engine';
 import { Engine } from '@openisd/design/engine';
 import type { LossMode, BoxType } from '@openisd/design/engine';
@@ -860,7 +860,7 @@ export class ManagedProject {
    */
   loadDriverFromPersistedText(text: string): string[] {
     let parsed: unknown;
-    try { parsed = JSON.parse(text); } catch (err) { return [(err as Error).message]; }
+    try { parsed = JSON.parse(text); } catch (err) { return [(err instanceof Error ? err.message : String(err))]; }
     const problems = driverRecordProblems(parsed);
     if (problems.length) return problems;
     const driver = OpenISDDriver.fromOwdrJson(text);
@@ -939,7 +939,7 @@ export class ManagedProject {
   importWpr(bytes: Uint8Array): Result<OpenISDProjectMeta> {
     let text: string;
     try { text = decodeDriverFileBytes(bytes, ProjectFileFormat.Wpr).text; }
-    catch (err) { return { value: null, errors: [{ level: 'error', field: 'wpr', message: (err as Error).message }] }; }
+    catch (err) { return { value: null, errors: [{ level: 'error', field: 'wpr', message: (err instanceof Error ? err.message : String(err)) }] }; }
 
     // The MODEL parses its own format — box-type mapping, PR conversion and the embedded
     // [Driver] block all happen inside `OpenISDProject`/`OpenISDDriver` (QO83). This method

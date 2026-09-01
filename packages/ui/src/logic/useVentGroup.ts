@@ -12,6 +12,7 @@ import { Provenance } from '@openisd/model';
 
 /** The four members tied by the Helmholtz relation — the set the solver solves WITHIN. */
 export const VENT_GROUP = ['Vb', 'ventD', 'Fb', 'ventL'] as const;
+/** One of the four names listed above. */
 export type VentField = typeof VENT_GROUP[number];
 
 /**
@@ -19,6 +20,7 @@ export type VentField = typeof VENT_GROUP[number];
  * its cross-section as width × height where a round one states a diameter.
  */
 export const VENT_ENTRY_FIELDS = [...VENT_GROUP, 'ventW', 'ventH'] as const;
+/** One of the names listed above. */
 export type VentEntryField = typeof VENT_ENTRY_FIELDS[number];
 
 const LETTER: Record<Provenance, 'E' | 'C' | 'N'> = {

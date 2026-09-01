@@ -11,6 +11,7 @@ export {
   type SourceEntry, type FileEntry, type BundleRecord,
   classifyTypes, normaliseDate, myDriverName,
   type DriverRepo, type DriverRepoDeps, createDriverRepo,
+  type DriverBundle, readBundle,
 } from './repos/driverRepo.js';
 
 // export {

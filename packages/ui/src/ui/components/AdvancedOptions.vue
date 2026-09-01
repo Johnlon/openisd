@@ -13,6 +13,7 @@ import { computed } from 'vue';
 import { state, simVcInductance } from '../../logic/appState.js';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { fieldHelp } from '../../logic/fields/fieldRegistry.js';
+import { inputChecked } from '../../logic/domEvents.js';
 
 /** The transmission-line port model only means anything for a box that HAS a vent. */
 const hasVent = computed(() => state.box === 'vented' || state.box === 'bandpass4');
@@ -30,23 +31,23 @@ const project = useFocusedProject();
       <input type="checkbox" v-model="simVcInductance"> Simulate voice coil inductance
     </label>
     <label data-field-key="forceFlatResponse" :title="fieldHelp('forceFlatResponse')">
-      <input type="checkbox" :checked="project.forceFlatResponse()" @change="e => project.setForceFlatResponse((e.target as HTMLInputElement).checked)"> Force flat response
+      <input type="checkbox" :checked="project.forceFlatResponse()" @change="e => project.setForceFlatResponse(inputChecked(e))"> Force flat response
     </label>
     <label data-field-key="tlPortModel" :title="fieldHelp('tlPortModel')"
       :class="{ 'na': !hasVent }">
-      <input type="checkbox" :checked="project.tlPortModel()" @change="e => project.setTlPortModel((e.target as HTMLInputElement).checked)" :disabled="!hasVent"> Use "transmission line"-model for port simulation
+      <input type="checkbox" :checked="project.tlPortModel()" @change="e => project.setTlPortModel(inputChecked(e))" :disabled="!hasVent"> Use "transmission line"-model for port simulation
     </label>
     <label data-field-key="rgAtDriverSide" :title="fieldHelp('rgAtDriverSide')">
-      <input type="checkbox" :checked="project.rgAtDriverSide()" @change="e => project.setRgAtDriverSide((e.target as HTMLInputElement).checked)"> Rg is at driver side
+      <input type="checkbox" :checked="project.rgAtDriverSide()" @change="e => project.setRgAtDriverSide(inputChecked(e))"> Rg is at driver side
     </label>
     <label data-field-key="splXmaxLimited" :title="fieldHelp('splXmaxLimited')">
-      <input type="checkbox" :checked="project.splXmaxLimited()" @change="e => project.setSplXmaxLimited((e.target as HTMLInputElement).checked)"> SPL graph is Xmax limited
+      <input type="checkbox" :checked="project.splXmaxLimited()" @change="e => project.setSplXmaxLimited(inputChecked(e))"> SPL graph is Xmax limited
     </label>
     <label data-field-key="useWinisdAirModel" :title="fieldHelp('useWinisdAirModel')">
-      <input type="checkbox" :checked="project.envUseWinisdAirModel()" @change="e => project.setEnvUseWinisdAirModel((e.target as HTMLInputElement).checked)"> Use WinISD air model
+      <input type="checkbox" :checked="project.envUseWinisdAirModel()" @change="e => project.setEnvUseWinisdAirModel(inputChecked(e))"> Use WinISD air model
     </label>
     <label data-field-key="useAppLevelAirEnvironment" :title="fieldHelp('useAppLevelAirEnvironment')">
-      <input type="checkbox" :checked="project.envUseAppLevelAirEnvironment()" @change="e => project.setEnvUseAppLevelAirEnvironment((e.target as HTMLInputElement).checked)"> Use app-level environment for WinISD parity
+      <input type="checkbox" :checked="project.envUseAppLevelAirEnvironment()" @change="e => project.setEnvUseAppLevelAirEnvironment(inputChecked(e))"> Use app-level environment for WinISD parity
     </label>
   </div>
 </template>

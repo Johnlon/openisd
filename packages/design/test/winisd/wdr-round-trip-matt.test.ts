@@ -19,7 +19,7 @@ import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/design/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const CORPUS = join(here, '..', '..', '..', 'drivers', 'matt');
+const CORPUS = join(here, '..', '..', '..', '..', 'drivers', 'matt');
 
 const files = readdirSync(CORPUS).filter(f => f.endsWith('.wdr'));
 

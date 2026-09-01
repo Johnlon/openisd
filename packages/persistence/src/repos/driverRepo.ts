@@ -4,7 +4,7 @@ import { OpenISDDriver } from '@openisd/model';
 // import type { OpenISDDriverJson, MetaField } from '@openisd/model';
 // import { recordStandingIsOk } from '@openisd/model/driverStanding';
 // import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
-import { DriverType, Chip } from '@openisd/model';
+import { DriverType, Chip } from '@openisd/design/filter';
 // // //
 // // // /** The fixed field set the driver-summary/preview panel shows — `SpecField` never crosses this
 // // //  *  file's boundary (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md); this is the one
@@ -97,6 +97,82 @@ export interface BundleRecord {
   /** The device record, unopened. Its shape is private to `@openisd/design`; this row only
    *  carries it as far as the seam that validates it. */
   record: unknown;
+}
+
+/** The whole artifact `scripts/bundle-drivers.mjs` writes to `packages/ui/src/drivers-bundle.json`. */
+export interface DriverBundle {
+  readonly sources: ReadonlyArray<{ readonly key: string; readonly files: readonly BundleRecord[] }>;
+  readonly passiveRadiators: readonly BundleRecord[];
+}
+
+/**
+ * The ONE description of the bundle's shape, and the only way a value becomes a `DriverBundle`.
+ *
+ * The bundle is a BUILD ARTIFACT: it does not exist when this code is compiled, so no compile-time
+ * type can know what is in it and asserting one would be a guess. This looks at the value instead,
+ * and it is a COMPLETE proof rather than a partial one — `BundleRecord.record` is `unknown`, so
+ * every member of the type is checked here and nothing is left claimed-but-untested.
+ *
+ * Called from BOTH ends, which is why it lives here rather than in either of them: the bundler
+ * runs it over what it assembled and refuses to write a bundle that fails (`bundle-drivers.mjs`
+ * runs under vite-node, so it imports this same function), and the app runs it over what it
+ * loaded. The build gate is what stops a bad bundle shipping; the startup check is what stops one
+ * that shipped anyway from being read as if it were data.
+ *
+ * Answers EITHER the bundle or everything wrong with it — the same shape as the domain's own
+ * record seam — so a caller that reads `.bundle` has been narrowed to a checked value by the
+ * compiler, with no assertion anywhere on the path.
+ */
+export function readBundle(json: unknown): { bundle: DriverBundle } | { problems: string[] } {
+  const problems: string[] = [];
+
+  function record(v: unknown, where: string): BundleRecord | null {
+    if (typeof v !== 'object' || v === null) {
+      problems.push(`${where}: expected an object, got ${v === null ? 'null' : typeof v}`);
+      return null;
+    }
+    const row: { path?: unknown; name?: unknown; driverType?: unknown; record?: unknown } = v;
+    if (typeof row.path !== 'string') { problems.push(`${where}.path: expected a string`); return null; }
+    if (typeof row.name !== 'string') { problems.push(`${where}.name: expected a string`); return null; }
+    if (row.driverType !== undefined && typeof row.driverType !== 'string') {
+      problems.push(`${where}.driverType: expected a string when present`);
+      return null;
+    }
+    // `.record` is `unknown` — carried, never opened here. The seam that opens it
+    // (`driverFromConformingRecord`) is what says whether it is a usable device.
+    return row.driverType === undefined
+      ? { path: row.path, name: row.name, record: row.record }
+      : { path: row.path, name: row.name, driverType: row.driverType, record: row.record };
+  }
+
+  function rows(v: unknown, where: string): BundleRecord[] {
+    if (!Array.isArray(v)) { problems.push(`${where}: expected an array`); return []; }
+    const out: BundleRecord[] = [];
+    v.forEach((r, i) => { const row = record(r, `${where}[${i}]`); if (row !== null) out.push(row); });
+    return out;
+  }
+
+  if (typeof json !== 'object' || json === null) {
+    return { problems: [`the bundle: expected an object, got ${json === null ? 'null' : typeof json}`] };
+  }
+  const top: { sources?: unknown; passiveRadiators?: unknown } = json;
+
+  const sources: Array<{ key: string; files: BundleRecord[] }> = [];
+  if (top.sources !== undefined) {
+    if (!Array.isArray(top.sources)) problems.push('sources: expected an array when present');
+    else top.sources.forEach((s, i) => {
+      if (typeof s !== 'object' || s === null) { problems.push(`sources[${i}]: expected an object`); return; }
+      const src: { key?: unknown; files?: unknown } = s;
+      if (typeof src.key !== 'string') { problems.push(`sources[${i}].key: expected a string`); return; }
+      sources.push({ key: src.key, files: rows(src.files, `sources[${i}].files`) });
+    });
+  }
+
+  const passiveRadiators = top.passiveRadiators === undefined
+    ? []
+    : rows(top.passiveRadiators, 'passiveRadiators');
+
+  return problems.length > 0 ? { problems } : { bundle: { sources, passiveRadiators } };
 }
 //
 // /**
@@ -476,8 +552,8 @@ export interface DriverRepo {
 export interface DriverRepoDeps {
   /** The declared sources, keyed by their short stable id (`drivers/sources.json` v2). */
   sources: Record<string, Omit<SourceEntry, 'key'>>;
-  /** The pre-built driver bundle: `{ sources: [{ key, files }] }`. */
-  bundle: { sources?: Array<{ key: string; files: BundleRecord[] }> };
+  /** The pre-built driver bundle, already checked by `readBundle` — the only way to obtain one. */
+  bundle: DriverBundle;
 }
 
 export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
@@ -487,8 +563,8 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
   // The sources this repo ships inside its own build output, by key. Each file is an
   // `openisd.yml` record (ARCHITECTURE.md AD-8) — the app's own driver shape, already parsed
   // by the bundler, so nothing here parses a file format.
-  const bundledByKey: Record<string, BundleRecord[]> = Object.fromEntries(
-    (deps.bundle.sources ?? []).map(s => [s.key, s.files]),
+  const bundledByKey: Record<string, readonly BundleRecord[]> = Object.fromEntries(
+    deps.bundle.sources.map(s => [s.key, s.files]),
   );
 
   /**

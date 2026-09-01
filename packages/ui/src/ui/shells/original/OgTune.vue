@@ -20,6 +20,7 @@ import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '.
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { Cell, SpecField } from '@openisd/model';
+import { inputValue, listeningElement } from '../../../logic/domEvents.js';
 
 const project = useFocusedProject();
 
@@ -73,7 +74,7 @@ function fieldVal(key: NumKey, group: UnitGroup | undefined, token: string | und
   return key in rawVals ? rawVals[key] : disp(key, group, token);
 }
 function onField(key: NumKey, group: UnitGroup | undefined, token: string | undefined, e: Event) {
-  const raw = (e.target as HTMLInputElement).value;
+  const raw = inputValue(e);
   rawVals[key] = raw;
   const v = parseFloat(raw);
   // Emptying a field RELEASES it back to Calculated — the override is withdrawn, not set to
@@ -112,7 +113,7 @@ const pinnedTooltip = ref<string | null>(null);
 const tooltipStyles = reactive<Record<string, { position: 'absolute'; top: string; left: string; bottom: string; right: string; transform: string }>>({});
 
 function updateTooltipPos(key: string, event: Event) {
-  const target = event.currentTarget as HTMLElement;
+  const target = listeningElement(event);
   if (!target) return;
   const rect = target.getBoundingClientRect();
   const top = rect.top + window.scrollY - 6;

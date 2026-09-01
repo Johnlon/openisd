@@ -30,12 +30,13 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
+import type { SolverQuantities } from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
 
-const solve = (d: Record<string, number>) =>
-  engine.solveConsistencyGroup(d) as Record<string, number>;
+// TYPED, so a name the solver does not have is a build error rather than a silent `undefined`.
+const solve = (d: SolverQuantities): Readonly<SolverQuantities> => engine.solveConsistencyGroup(d);
 
 /**
  * The probe's Re-swept cases, transcribed from `runs/znom_state.jsonl` by label: the `Re` typed
@@ -64,25 +65,28 @@ const PROBE: ReadonlyArray<readonly [label: string, Re: number, Znom: number]> =
  * A driver complete enough for the full solver, minus `Re` and `Znom` — the probe's own entered
  * set for `Z_absent_re*` with those two removed.
  */
-const BASE = { Fs: 40.0, Mms: 0.00194848430081419, Cms: 0.008124999999999992, Sd: 0.022, Qms: 2.1, BL: 6.0, Xmax: 0.0067, Pe: 100 };
+const BASE: SolverQuantities = {
+  Fs_hz: 40.0, Mms_kg: 0.00194848430081419, Cms_m_per_N: 0.008124999999999992,
+  Sd_m2: 0.022, Qms: 2.1, BL_Tm: 6.0, Xmax_m: 0.0067, Pe_W: 100,
+};
 
 describe('Znom in the consistency solver', () => {
   it('derives Z from Re for every probe row', () => {
     for (const [label, Re, Znom] of PROBE) {
-      const r = solve({ ...BASE, Re });
+      const r = solve({ ...BASE, Re_ohm: Re });
       assert.equal(r.Znom_ohm, Znom, `${label}: solver must fill Z=${Znom} from Re=${Re}`);
     }
   });
 
   it('never corrects an entered Znom that contradicts Re', () => {
     // Z_entered_znom4_re6: Znom=4 typed beside Re=6 (whose rule gives 8) stays 4, marked E.
-    const r = solve({ ...BASE, Re: 6, Znom: 4 });
+    const r = solve({ ...BASE, Re_ohm: 6, Znom_ohm: 4 });
     assert.equal(r.Znom_ohm, 4, 'an entered Z is pinned — the rule never overwrites it');
   });
 
   it('follows Re, not the damping factors', () => {
     // Z_incon_re8_qes27: Re=8 written beside Qes/Qts/Rms describing a driver with Re=27.
-    const r = solve({ ...BASE, Re: 8, Qes: 0.3654, Qts: 0.3113, Rms: 0.2332 });
+    const r = solve({ ...BASE, Re_ohm: 8, Qes: 0.3654, Qts: 0.3113, Rms_kg_per_s: 0.2332 });
     assert.equal(r.Znom_ohm, 12, '2·round(0.75·8) = 12, not the 40 that Re=27 would give');
   });
 
@@ -94,7 +98,7 @@ describe('Znom in the consistency solver', () => {
   });
 
   it('leaves Z absent when Re is unknown', () => {
-    const r = solve({ Fs: 40, Mms: 0.00194848430081419, Cms: 0.008124999999999992, Sd: 0.022 });
+    const r = solve({ Fs_hz: 40, Mms_kg: 0.00194848430081419, Cms_m_per_N: 0.008124999999999992, Sd_m2: 0.022 });
     assert.equal(r.Re_ohm, undefined, 'guard: this record cannot derive Re');
     assert.equal(r.Znom_ohm, undefined, 'no Re → no Znom (slot 0 stays N)');
   });

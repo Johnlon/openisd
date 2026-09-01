@@ -64,6 +64,8 @@ export interface Lens<T> {
   set(v: T): void;
 }
 
+/** `key` must name a real property of the parent, and the lens you get back is over
+ *  whatever that property holds. */
 export function focus<P, K extends keyof P>(parent: Lens<P>, key: K): Lens<P[K]> {
   return {
     get: () => parent.get()[key],
@@ -73,10 +75,18 @@ export function focus<P, K extends keyof P>(parent: Lens<P>, key: K): Lens<P[K]>
 
 /** A `FieldHandle` over a nullable numeric slot — absent reads as `not-available`, and `clear()`
  *  returns it to absent rather than to a fabricated zero. */
-export function nullableField<T extends object>(lens: Lens<T>, key: NullableNumberKey<T>): Field<number> {
+export function nullableField<K extends PropertyKey, T extends Record<K, number | null>>(
+  lens: Lens<T>,
+  key: K,
+): Field<number> {
+  // The CONSTRAINT carries the proof: `T` is declared to hold `number | null` at `K`, so
+  // `lens.get()[key]` is that type directly and nothing is asserted. Filtering the keys instead
+  // (`key: NullableNumberKey<T>`) proved the same thing at one remove, but TypeScript will not
+  // reduce `T[NullableNumberKey<T>]` for a generic `T`, so it took a cast to use what the type
+  // already knew.
   return new Field<number>(
     () => {
-      const v = lens.get()[key] as number | null;
+      const v = lens.get()[key];
       return { value: v, state: v === null ? 'not-available' : 'entered' };
     },
     (v) => lens.set({ ...lens.get(), [key]: v }),
@@ -84,19 +94,19 @@ export function nullableField<T extends object>(lens: Lens<T>, key: NullableNumb
   );
 }
 
-type NullableNumberKey<T> = {
-  [K in keyof T]: T[K] extends number | null ? K : never;
-}[keyof T];
-
 /** A `FieldHandle` over a non-nullable numeric slot — always present, so always `entered`, and
  *  `clear()` is a real error rather than a silent no-op: there is no absent state to return to. */
-export function requiredField<T extends object>(
+export function requiredField<K extends PropertyKey, T extends Record<K, number>>(
   lens: Lens<T>,
-  key: keyof T,
+  key: K,
   label: string,
 ): Field<number> {
+  // `key: keyof T` placed no constraint on the VALUE, so the old cast to `number` claimed
+  // something nothing had proven: a key holding a string produced a `Field<number>` that handed
+  // out a string. The constraint says what is required, and a caller passing a non-numeric key
+  // now fails to compile.
   return new Field<number>(
-    () => ({ value: lens.get()[key] as number, state: 'entered' }),
+    () => ({ value: lens.get()[key], state: 'entered' }),
     (v) => lens.set({ ...lens.get(), [key]: v }),
     () => {
       throw new Error(

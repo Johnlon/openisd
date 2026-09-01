@@ -1,5 +1,5 @@
 prefix: QO
-next: 102
+next: 113
 questions:
 - id: QO1
   title: UI TODO List
@@ -7585,3 +7585,499 @@ questions:
   status: open
   raised: '2026-08-31'
   body: ''
+- id: QO102
+  title: 'Bundler self-check (emit, reload via the app path, compare sets) is blocked: driverRepo still
+    loads via the dead @openisd/model -'
+  status: decided
+  raised: '2026-08-31'
+  body: ''
+  answer:
+    at: '2026-08-31'
+    text: |-
+      PLAN_DELETE_PACKAGES_MODEL.md is being exec by session "other" - ask it to add whatever is needed
+      to read the bundle
+- id: QO103
+  title: drivers.md Part C cannot live in packages/design — design -> winisd would close a dependency
+    cycle; where does the bridge entry go?
+  status: decided
+  raised: '2026-08-31'
+  body: |-
+    BLOCKS: the V8 bridge (packages/winisd/src/bridge.ts), which is dead today — bridge-bundle.test.ts
+    is 9/9 skipped because the build fails on `openisdYamlToWdr is not exported by
+    packages/model/src/index.ts`. TDD red is in place at
+    packages/design/test/driverYmlToOpenisdAndWdr.test.ts (5 failing, "not a function") as the spec.
+
+    THE CONTRADICTION. drivers.md Part C (approved by John 2026-08-30) says "Files: the entry in
+    packages/design, exposed through packages/winisd/src/bridge.ts". That is not implementable:
+
+      packages/winisd/package.json:17  declares {"@openisd/design": "*"}
+      packages/design/package.json     declares NO dependencies and NO peerDependencies at all
+      WinISDDriver (the .wdr transformer) lives in packages/winisd/src/winisdDriver.ts
+
+    So a design-side entry that builds .wdr text must import @openisd/winisd, closing
+    design -> winisd -> design. The commented-out packages/design/domain/openisdYamlToWdr.ts:102 is
+    literally `import { INI_ROWS } from '@openisd/winisd'` — uncommenting that file creates the cycle.
+    Confirmed independently by session api-design.
+
+    EVIDENCE SOMEONE HIT THIS BEFORE: packages/design/winisd/iniRows.ts, mtime 2026-08-29, first
+    committed in 63c1956. Verified by two sessions separately: a 48-key VERBATIM duplicate of
+    winisdDriver.ts:69, same order, and NOTHING in the tree imports it. A byte-identical copy, in the
+    one package that cannot import the original, wired to nothing.
+
+    OPTIONS (none taken):
+      1. RECOMMENDED, and backed by api-design — put the entry in packages/winisd. It already depends
+         on design so there is no cycle, bridge.ts is already there, and it needs ZERO change to
+         packages/design, which matters under that package's approval rule. It is also the only option
+         that preserves design's zero-dependency state, which looks deliberate.
+      2. Move WinISDDriver/INI_ROWS into packages/design (finishing what iniRows.ts started) and delete
+         packages/winisd. A package-boundary change; costs a second INI_ROWS that must agree forever
+         with nothing checking it.
+      3. Split: design emits the record, winisd does the .wdr half, the bridge composes.
+
+    SEPARATE, DO NOT FOLD IN: deleting the dead packages/design/winisd/iniRows.ts is itself a change to
+    packages/design, so it needs its own approval. Not tidy-up. Neither session has touched it.
+
+    Two facts that make the build cheap once ruled, both measured 2026-08-31:
+      - .wdr stores SI directly (Xmax=0.009 m, Vas=0.1416 m3, Sd=0.00178 m2 in
+        drivers/sample/winisd/John-all-manu-populated.wdr) — same units as the record's read_value, so
+        the projection needs no unit conversion.
+      - Engine.solveConsistencyGroup (packages/design/engine/Engine.ts:76) is on the engine's public
+        door, so the computed-value half of the .wdr needs no new export. A real WinISD ParState is
+        mostly C (CEECEEECCEECEEEC...), so computed values must be written, not just stated ones.
+  answer:
+    at: '2026-08-31'
+    text: |-
+      John, 2026-08-31: "opt 1".
+
+      So the bridge entry lives in packages/winisd, NOT packages/design. winisd already depends on
+      @openisd/design, so there is no cycle; bridge.ts is already there; and packages/design needs no
+      change at all, which keeps its zero-dependency state intact.
+
+      drivers.md Part C's "Files: the entry in packages/design" is corrected to packages/winisd.
+
+      STILL SEPARATE AND STILL OPEN: the dead packages/design/winisd/iniRows.ts (48-key verbatim
+      duplicate of winisdDriver.ts:69, imported by nothing). Deleting it is a change to
+      packages/design and needs its own approval — it was NOT covered by this ruling.
+- id: QO104
+  title: OpenISDDeviceJson models 4 of the 13 keys every corpus record carries — data_sources and driver_type
+    are what block driverRepo -
+  status: decided
+  raised: '2026-08-31'
+  body: ''
+  answer:
+    at: '2026-08-31'
+    text: |-
+      OpenISDDeviceJson - fir it then - this isn't complex stuff is it - we are trying to match the
+      openisd.ymkl file - so just get on with it - not hard - tell the 'other' session to just fix these
+      obvious issues - but DO NOT ADD loads fo convencie fucnmtins
+- id: QO105
+  title: The blank project is an AI invention and must not survive into packages/design — a project always
+    has a chosen driver -
+  status: decided
+  raised: '2026-08-31'
+  body: ''
+  answer:
+    at: '2026-08-31'
+    text: blank project is your idea no mine
+  notes:
+  - at: '2026-08-31'
+    text: |-
+      John, 2026-08-31, specifying the behaviour that replaces the blank project: "when no proj open -
+      the charts are a holding page as is the tab section".
+
+      So there is no fake project to stand in. Zero projects open is a UI STATE: the chart area renders
+      a holding page, and the tab strip renders one too. Nothing constructs a ManagedProject or an
+      OpenISDProject to make the layout resolve.
+
+      This is what `EMPTY_PROJECT_DEFAULTS` (appState.ts:187) was invented to avoid, and it is the
+      better answer: that constant exists only so Vue's unconditionally-evaluated computeds have
+      something to read while the gated UI is unmounted. Under this ruling those computeds answer for
+      "no project" directly instead of reading a fabricated one.
+  - at: '2026-08-31'
+    text: |-
+      John, 2026-08-31, on what the holding page offers: "make it so 'open or create new projects'".
+
+      So the no-project holding page carries TWO actions, and neither of them fabricates a project:
+        - OPEN an existing project (a saved project file);
+        - CREATE a new one, which means choosing a driver first — `newProject(driver)` takes a
+          validated OpenISDDriver before it will even return a builder.
+
+      WHAT THIS NEEDS THAT DOES NOT EXIST YET, both consequences of the gate:
+        1. The driver browser (`DriverBrowserWinisd`) is INSIDE the null gate — `App.vue:75`,
+           `<template v-if="project">`. With no project open there is no way to reach a driver picker,
+           so "create new" has nothing to call. The picker (or a create-project flow that contains it)
+           has to be reachable from outside the gate.
+        2. "Open" needs the project file path, and `createFileStorage` / `createProjectRepo` are
+           currently commented out in `packages/persistence/src/index.ts`, so nothing can load a
+           project file today.
+
+      Neither is a blocker for the ruling; both are work items for when the UI moves onto
+      packages/design. Recorded so the holding page is built to this shape rather than rediscovering
+      the blank project.
+- id: QO106
+  title: Terminal Re/BL are declared on SolverQuantities but the solver never writes them — restructure
+    to SolverValues{q, coils}
+  status: decided
+  raised: '2026-08-31'
+  body: |-
+    `Re_terminal_ohm` and `BL_terminal_Tm` are members of `SolverQuantities` and listed in
+    `QUANTITY_NAMES`, but `solveConsistencyGroup` NEVER writes either. They need the coil count and
+    the wiring, which that all-numeric class cannot carry, so the domain fills them after the solve
+    (`project.ts:1568-1576`).
+
+    MEASURED CONSEQUENCES, 2026-08-31:
+
+    - `Engine.sweep` REQUIRES both, so a caller that solves and sweeps the result gets a refusal
+      naming `Re_terminal_ohm` — which reads as a missing driver value and is really this split.
+      This was the cause of all 25 hardening/sweep failures (found by session api-design).
+    - `sweep.ts:192-196`, the engine's own "which field would unblock this driver" advice, calls
+      `solveConsistencyGroup` then tests `solved.Re_terminal_ohm`. It works ONLY because callers
+      pre-fill terminals and `Object.assign` carries them through — accidental correctness that
+      breaks for any solver-only bag.
+    - `sweep.ts:188-190` says a terminal "cannot be STATED — it is derived from the per-coil value
+      and the wiring", so the engine knows the derivation and merely lacks the wiring to do it.
+    - `numVC` and `wiring` are NOT declared fields on `SolverQuantities` — only comments claim they
+      are. `solver.ts:110-112` ("numVC and wiring ride along untouched … dropping them would make
+      re-solving a result lossy") is FALSE: the type has no such members.
+  answer:
+    at: '2026-08-31'
+    text: |-
+      John, 2026-08-31, after seeing api-design's 92->23 report: fix the DESIGN, not the callers.
+
+          interface SolverValues { q: SolverQuantities; coils: CoilFacts }
+          solveConsistencyGroup(v: SolverValues): SolverValues
+
+      `SolverQuantities` stays all-numeric so `setVal`'s `keyof` union still compiles — that
+      constraint is what forced the split. With the coil facts inside, the solver computes the
+      terminals itself in a final pass AFTER the fixpoint (must be after: `Re_ohm` is itself
+      derivable), so its output is sweep-ready by construction.
+
+      Return `SolverValues`, not bare `SolverQuantities`, or re-solving drops the coil facts — the
+      exact lossy re-solve `solver.ts:110` claims to prevent.
+
+      Repairing the 25 tests by making each take the second step (done by api-design) confirmed the
+      diagnosis but spread the workaround to every caller. The restructure removes the cause: no
+      caller needs a second step again. Any test that still does means it is incomplete.
+
+      Assigned to session api-design. Sequence AFTER boxDesign/znom so the fixtures are not
+      rewritten twice.
+- id: QO107
+  title: No written rule governs which DIRECTION a solver relation runs — WinISD parity and mathematical
+    necessity are being conflated
+  status: decided
+  raised: '2026-08-31'
+  body: |-
+    Some relations are bidirectional, some are one-way, and nothing states the rule. Each relation
+    documents its own direction, and the REASONS turn out to be of different kinds:
+
+      1. MATHEMATICALLY FORCED. `Znom = 2·round_half_even(0.75·Re)` (WINISD_SCHEMA.md §4.2) —
+         rounding destroys information, so `Re` genuinely cannot be recovered. Not a choice.
+      2. WINISD PARITY ONLY. rel-24, `KLe = Le·√(2π·fLe)` (§3.2, and now implemented in
+         solver.ts) — perfectly invertible as `Le = KLe/√(2π·fLe)`. We do not derive `Le` because
+         WinISD does not. A copied choice, not a fact about the maths.
+      3. BIDIRECTIONAL. `Sd`<->`Dd`, the Qts/Qes/Qms trio all three ways, `Hc`<->`Hg`.
+
+    So the operative rule is "implement the routes WinISD implements", and only category 1 is
+    actually forced. That distinction is written down nowhere, so every one-way relation gets
+    re-litigated on contact — this session included: the agent asserted rel-24's one-directionality
+    as necessary when it is a parity choice, and justified it on provenance grounds ("a derived Le
+    would claim knowledge no datasheet stated") that prove far too much, since the same argument
+    would forbid deriving `Fs` or `Cms`.
+
+    WHAT A RULING WOULD SETTLE: whether a mathematically-invertible relation that WinISD runs one
+    way may ever be run both ways by us; and whether each relation should record WHICH of the three
+    categories its direction falls into, so the reason is checkable rather than re-argued.
+
+    Corpus note, measured 2026-08-31, which bounds the practical stakes for rel-24 specifically:
+    `Le` is stated in 1745 records, `fLe` in 0, `KLe` in 0. rel-24 can only fire on an `fLe` typed
+    by hand in the editor; it never fires on corpus data as it stands.
+  answer:
+    at: '2026-08-31'
+    text: |-
+      PROVISIONAL RULING (John, 2026-08-31, explicitly marked provisional): "if we can do better
+      than winisd on direction then I dont see a reason to hold back — winisd parity is the
+      MINIMUM not the goal."
+
+      So the three categories get different treatment:
+
+        1. MATHEMATICALLY FORCED (e.g. Znom from Re, where rounding is lossy) — stays one-way.
+           Not a choice, and no ruling can change it.
+        2. WINISD PARITY ONLY (e.g. rel-24's Le/fLe) — the inverse is PERMITTED where it is
+           mathematically sound. WinISD not implementing a route is no longer, by itself, a
+           reason for us not to.
+        3. BIDIRECTIONAL — unchanged.
+
+      This retires the argument the agent used earlier in this session, that a derived value would
+      "claim knowledge no datasheet stated". That reasoning proves too much: it would equally
+      forbid deriving Fs or Cms, which the app does. Provenance is carried by the E/C/N mark, which
+      is what already distinguishes a computed value from a stated one.
+
+      CONSTRAINTS THAT SURVIVE THE RULING, and must be respected by any new inverse:
+
+      - A derived value is marked CALCULATED, never ENTERED. WinISD's own defect is writing a
+        computed number back over a stated one and leaving it marked entered; AGENTS.md
+        "WE DO NOT REPLICATE WinISD's BUGS" already forbids copying that.
+      - Adding an inverse changes which value WINS for a partially-specified driver, so each new
+        route needs its own test showing what it now derives that it did not before.
+      - A `.wdr` we emit may now carry a CALCULATED value where WinISD would write an absent one.
+        That is the ruling working, not a regression — but oracle-based tests compare against files
+        WinISD wrote, so any such test must be read as a FORMAT authority, never as a statement
+        that our value set should match WinISD's.
+
+      NOT APPLIED TO rel-24 YET, and the agent's recommendation is that rel-24 is a poor first
+      application: measured 2026-08-31, the corpus states `Le` in 1745 records and `fLe`/`KLe` in
+      ZERO, so `Le = KLe/√(2π·fLe)` could only ever fire on a hand-typed `fLe`. The ruling is
+      right; this is not where it pays. A survey of which one-way relations would actually benefit
+      users is the sensible next step, and has not been done.
+- id: QO108
+  title: Replace the hand-written isOpenISDDeviceJson walk with a zod schema in packages/design?
+  status: decided
+  raised: '2026-09-01'
+  body: |-
+    packages/design/domain/project.ts:1910 hand-walks the whole device record (~105 lines, nine
+    nested closures, a captured `problems` array, verdict decided by `problems.length === before`).
+    The same shape is ALSO written as the OpenISDDeviceJson interface, and nothing keeps the two in
+    step.
+
+    A zod schema declares the shape once and yields both the TypeScript type (z.infer) and the
+    runtime check (safeParse), with per-field paths and every problem at once — which the current
+    walk does not deliver, since each helper returns false on its first fault.
+
+    COST: a new runtime dependency in packages/design (zod is in NEITHER package.json today,
+    verified 2026-09-01) and a precedent — once one record is declared this way, the others should
+    be too or the codebase carries two idioms.
+
+    John said "ok that looks good" to a three-field zod example on 2026-09-01.
+  answer:
+    at: '2026-09-01'
+    text: |-
+      RULING (John, 2026-09-01): "add zod".
+
+      zod becomes a dependency of packages/design; isOpenISDDeviceJson's hand-written walk is
+      replaced by a schema, with conformingRecord keeping its {json} | {problems} return so no
+      caller changes.
+- id: QO109
+  title: 'drivers-bundle.json is STALE: it carries quality.rating and dq_marks that ZERO records on disk
+    have, and 1893 records where disk has 2064'
+  status: open
+  raised: '2026-09-01'
+  body: |-
+    MEASURED 2026-09-01 over all 1970 records in packages/ui/src/drivers-bundle.json, by counting
+    keys present in the data but absent from the schema now declared in
+    packages/design/domain/project.ts:
+
+      record.sku.grounds        1970 records
+      record.quality.rating     1970 records
+      readings.*.note           1606 records
+      specEntry.dq_marks         137 records
+      readings.*.conformed_reading / conformed_by   45 records
+      readings.*.rejected         10 records
+
+    HARMLESS TODAY: the conformance seam validates with a type predicate and returns the ORIGINAL
+    object, so nothing is stripped and no data is lost. It would STOP being harmless the moment
+    anyone returns zod's `result.data` instead — that is a pruned clone, and all seven keys vanish
+    from every driver the app then holds. A comment now says so at the predicate.
+
+    TWO OF THEM LOOK LIKE KNOWN DISAGREEMENTS, not new news:
+      - `quality.rating` — QualityJson's doc comment says rating was deliberately dropped as a
+        stored summary of missing/invalid/parse_errors. The scraper still writes it.
+      - `specEntry.dq_marks` — the app names the field dq_scraper/dq_calculated (John 2026-08-29,
+        split by producer). 137 records still carry the old single `dq_marks`.
+
+    CORRECTED 2026-09-01 BY SCANNING THE DISK, which the original entry did not do — its counts
+    came from packages/ui/src/drivers-bundle.json alone. Scanning all 2064 driver.yml under
+    /home/john/work/winisd/winisd_drivers/db/datasheets:
+
+      key                                   ON DISK (2064)   IN BUNDLE (1893)
+      quality.rating                             0                1893
+      specEntry.dq_marks                         0                 123
+      sku.grounds                             2064                1970-ish
+      readings.*.note                         1511
+      readings.*.conformed_reading/_by          38
+      readings.*.rejected                       10
+
+    So NEITHER rating NOR dq_marks is a gap in OpenISDDeviceJson — no current record has them.
+    AppQuality drops `rating` deliberately (John, 2026-08-31: "we can derive it at runtime anyway",
+    quoted in its own docstring) and dq_marks was replaced by dq_scraper/dq_calculated (John,
+    2026-08-29). The BUNDLE predates both, and holds 1893 records where disk holds 2064.
+
+    ALSO MEASURED: all ten keys OpenIsdYmlFile/DriverFile require are present in 2064/2064 records
+    on disk, and no top-level key outside the model appears anywhere — extra="forbid" is holding.
+    Only 5 openisd.yml exist on disk against 2064 driver.yml.
+
+    WHAT REMAINS A REAL GAP in the app's type, all present on disk and unmodelled: sku.grounds
+    (2064), readings.*.note (1511), readings.*.conformed_reading/conformed_by (38),
+    readings.*.rejected (10). Harmless while the seam validates with a predicate and returns the
+    original object; they would be deleted if anyone returned zod's parsed copy.
+
+    THE QUESTION, in two parts: (a) rebuild drivers-bundle.json from the current corpus? (b) for
+    the four keys above, is the record right and the type incomplete? Nothing changed either way.
+- id: QO110
+  title: zod injects two globals into the V8 bridge sandbox — bridge-bundle.test.ts "adds exactly one
+    global" now fails
+  status: decided
+  raised: '2026-09-01'
+  body: |-
+    OBSERVED 2026-09-01, running `npm run test:unit`:
+
+      FAIL |winisd| test/bridge-bundle.test.ts > adds exactly one global: driverYmlToOpenisdAndWdr
+        + '__zod_globalConfig'
+        + '__zod_globalRegistry'
+          'driverYmlToOpenisdAndWdr'
+
+    CAUSE, verified not inferred: QO108 added zod as a dependency of packages/design, whose
+    conformance seam the bridge bundles. zod keeps its config and its schema registry on
+    globalThis, so the bundle now installs two names in the mini-racer-shaped sandbox.
+    packages/winisd/test/bridge-bundle.test.ts:156 asserts
+    `assert.deepEqual(added.sort(), ['driverYmlToOpenisdAndWdr'])` — QT69.1, John 2026-08-25:
+    the bridge exposes exactly one function.
+
+    Zod did not exist in this tree before 2026-09-01, so this failure cannot pre-date the change.
+
+    THE QUESTION IS NOT "does the gate need updating". It is: DO WE ACCEPT THAT THE BUNDLE NOW
+    LEAKS TWO ZOD GLOBALS INTO THE SANDBOX? The gate guards a property — the bundle installs its
+    entry point and NOTHING else — and that property is now false. Widening the assertion would
+    make the test green while leaving the leak in place, which is the shape AGENTS.md
+    §"a failing gate is a finding" exists to stop.
+
+    THREE WAYS, none taken:
+      1. Accept the leak as harmless, on the ground that the Python caller only ever reads the one
+         function and zod's registry is inert to it — then the gate is rewritten to state the
+         WEAKER property it would now be testing, and says so in its own text.
+      2. Keep the sandbox clean — the conformance seam does not use zod, or the bridge does not
+         bundle the seam.
+      3. Revert zod and flatten the hand-written validator instead (the Option B shape: helpers
+         that return string[] and compose, no captured problems array).
+
+    RAISED BY A PEER SESSION (openisd-65) against this agent's first wording of this entry, which
+    put option 1 as "amend the gate" and so buried the leak behind a maintenance-sounding fix.
+  answer:
+    at: '2026-09-01'
+    text: |-
+      RULING (John, 2026-09-01), asked as "do we accept that the bridge bundle leaks two zod
+      globals into the sandbox?": "yes absolutely".
+
+      Option 1. The gate is rewritten to state the property it now actually tests — the bundle adds
+      exactly one FUNCTION, plus the two names zod keeps on globalThis, and those two are named
+      explicitly so a leak from any OTHER library still fails it.
+
+      NOTE: bridge.ts and bridge-bundle.test.ts are a PEER session's in-flight work (modified/
+      untracked in the shared tree), so any change to them needs coordinating with that session.
+- id: QO111
+  title: Bridge gate's `process` check is a word match, and zod's own local function named `process` trips
+    it — 21 false positives
+  status: decided
+  raised: '2026-09-01'
+  body: |-
+    OBSERVED 2026-09-01 after QO108 added zod:
+
+      FAIL |winisd| test/bridge-bundle.test.ts > carries no real reference to a global mini-racer
+           0.14.1 does not have
+        process referenced 21 time(s) in the bundle
+
+    DIAGNOSED, not assumed: all 21 occurrences are zod's OWN LOCAL FUNCTION named `process` — its
+    JSON-Schema converter, `function process(e,t,n={path:[],schemaPath:[]}){...}` and its call
+    sites. None is a reference to Node's `process` global. Read out of a fresh bundle built from
+    packages/winisd/vite.bridge.config.ts.
+
+    PROOF IT IS HARMLESS: the behavioural tests in the same file PASS. They execute the bundle in
+    the mini-racer-shaped vm context, which asserts `process` is absent, and it converts a real
+    driver.yml to .wdr in there without throwing. A bundle touching the global would fail there.
+
+    SO THE DEFECT IS IN THE CHECK: bridge-bundle.test.ts:102 matches the bare word
+    (`new RegExp('\\b' + name + '\\b','g')`) and cannot tell a free global reference from a local
+    declaration. Its own comment concedes this and says the results are "eyeballed" — which works
+    only while a human is eyeballing. It already carries a hand-written exception for `Buffer` for
+    the same reason.
+
+    THREE WAYS, none taken — and NOT "add zod's process to the exception list", which is the
+    allow-list move AGENTS.md forbids:
+      1. Ask the question behaviourally instead: the bundle already runs in a sandbox where these
+         globals are absent, so a real reference throws. That is strictly stronger than a text
+         match and needs no exception list.
+      2. Parse the bundle and look for an UNRESOLVED free identifier (acorn/ts-morph over the
+         built IIFE). Precise, and kills the Buffer exception too.
+      3. Leave the text check and accept it will keep firing on any dependency that names a local
+         `process`, `module` or `window`.
+
+    BUNDLE SIZE IS NOT A CONCERN HERE (John, 2026-09-01: "I dont care about the size").
+
+    NOTE: bridge-bundle.test.ts is a PEER session's in-flight work.
+  answer:
+    at: '2026-09-01'
+    text: |-
+      RULING (John, 2026-09-01): "fix".
+
+      Option 1 taken — the check is now BEHAVIOURAL. Each global mini-racer lacks (process, fetch,
+      Buffer, window, require, module) is installed in the sandbox as an accessor that throws when
+      READ; the bundle is then loaded and driven end to end. A real reference detonates; a name
+      that only appears in the text does not. The `Buffer` hand-written exception is gone with it,
+      and no new exception was added.
+
+      PROVEN TO FAIL ON PURPOSE: with `;void process;` appended to the bundle the test goes red
+      with "the bundle read globalThis.process"; restored, 9/9 green.
+- id: QO112
+  title: z.ZodType<T> catches a LOOSER schema but not a STRICTER one — the annotation is a one-way check
+  status: open
+  raised: '2026-09-01'
+  body: |-
+    VERIFIED 2026-09-01 by breaking the schema in packages/design/domain/project.ts five ways and
+    running `npx tsc -p packages/design --noEmit` after each:
+
+      change to the schema only                              tsc
+      brand: z.number()            (wrong value type)        CAUGHT  (TS2322)
+      model: textField.optional()  (required -> optional)    CAUGHT
+      invented_key: z.string()     (key not in the type)     NOT caught
+      series: textField            (optional -> required)    NOT caught
+      z.literal('x') for z.string()(narrowed value)          NOT caught
+
+    MECHANISM: `const schema: z.ZodType<OpenISDDeviceJson>` asserts the schema's OUTPUT TYPE is
+    ASSIGNABLE TO the interface. A stricter output is still assignable, so it type-checks while
+    rejecting data the interface says is valid. Case "optional -> required" is the damaging one: a
+    schema requiring `series` would refuse 1804 of the 2064 driver.yml on disk, silently, with the
+    compiler content.
+
+    THIS CONTRADICTS WHAT THIS AGENT TOLD JOHN EARLIER and what the comment above the schema still
+    says — "a schema that stops matching the interface fails to compile, so neither can drift from
+    the other unnoticed". True only of a LOOSER schema.
+
+    TWO FIXES, neither taken (packages/design — approval required):
+      1. A compile-time EXACTNESS assertion beside the schema, replacing the one-way annotation:
+           type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+           const _schemaMatchesType: Exact<z.infer<typeof openISDDeviceSchema>, OpenISDDeviceJson> = true;
+         Mutual assignability, so both directions bite. NOTE: the interface's `readonly` modifiers
+         and z.infer's mutable output may make this fail as written — it needs a readonly-stripping
+         helper, which is real work, not a one-liner.
+      2. An arch test in the repo's own style: read the SCHEMA's keys and optionality (the way
+         architecture-record-matches-openisd-yml.test.ts already reads the INTERFACE's) and hold
+         both against the same pydantic-derived ALWAYS/SOMETIMES lists. Catches drift on either
+         side without fighting TS variance, and keeps the pydantic model as the single authority.
+
+    The comment above the schema overstates the guarantee and should be corrected whichever fix is
+    taken.
+- id: QO113
+  title: 'The zod schema REQUIRES provided_by, comment and added; the pydantic model and the arch gate both say optional'
+  status: open
+  raised: '2026-09-01'
+  body: |-
+    OBSERVED 2026-09-01 while making the bridge bundle green: a record without provided_by,
+    comment and added is refused by packages/design's schema —
+
+      [error] record: 'provided_by' is missing or is not a stated value
+      [error] record: 'comment' is missing or is not a stated value
+      [error] record: 'added' is missing or is not a stated value
+
+    THE THREE AUTHORITIES DISAGREE:
+      - model_driver.py / model_openisd.py declare all three `Optional[ScrapedField[str]] = None`.
+      - packages/design/test/architecture-record-matches-openisd-yml.test.ts lists them in
+        SOMETIMES, and asserts the INTERFACE marks them optional. It passes.
+      - The zod schema demands them. Nothing catches that, which is QO112 exactly: the
+        `z.ZodType<OpenISDDeviceJson>` annotation only bites when a schema is LOOSER than the
+        type, never when it is STRICTER. A live instance, not a hypothetical.
+
+    HARMLESS ON THE CORPUS TODAY: all 2064 driver.yml carry all three (measured 2026-09-01), so
+    no real record is refused. It bites an APP-AUTHORED record, and it bit a bridge test fixture.
+
+    THE QUESTION: make the schema optional for the three, matching the pydantic model and the
+    interface — or is the app deliberately stricter than the scraper here? Nothing changed either
+    way; the bridge test fixture now states all three so it can go green.

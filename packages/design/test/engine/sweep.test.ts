@@ -17,6 +17,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
+import type { SweepParams } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -26,20 +27,20 @@ const LE_H = 0.7e-3;
 const engine = new Engine();
 
 // Reference driver: same synthetic 6.5" mid-woofer as engine.test.mjs
-const { value: DRV, errors: drvErrors } = engine.solveConsistencyGroup({
+
+
+const DRV = engine.solveConsistencyGroup({
   Fs_hz:   37,      // Hz
   Qts:  0.38,
   Qes:  0.40,
   Qms:  7.0,
   Vas_m3:  0.030,   // m³
   Sd_m2:   0.0133,  // m²
-  Re_ohm:   5.6,     // Ω
-  Le_H:   0.7e-3,  // H
+  Re_ohm:   5.6,     // Ω  // H
   Xmax_m: 0.005,   // m
   Pe_W:   60,      // W
   Znom_ohm:    8,       // Ω
 });
-if (!DRV) throw new Error('Test fixture driver is invalid: ' + drvErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
 // Sealed box — lossless, 30 L
 const BOX = 'sealed';
@@ -127,12 +128,10 @@ describe('sweep — fmin=fmax produces constant-frequency sweep where dw=0', () 
 describe('maxCurves — one limit absent falls back to the other (never poisons the curve)', () => {
   it('driver without Pe → curve is Xmax-limited and finite (no thermal limit, no fabricated default)', () => {
     // Pe absent → vPe = Infinity; the excursion (Xmax) limit alone bounds the curve.
-    const { value: drvNoPe, errors: noPeErrors } = engine.solveConsistencyGroup({
+    const drvNoPe = engine.solveConsistencyGroup({
       Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
-      Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.7e-3, Xmax_m: 0.005,
-      // Pe intentionally absent — deriveEngineDriver returns warn (not error); Xmax-limited max curves
+      Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.005,
     });
-    if (!drvNoPe) throw new Error('Test fixture invalid: ' + noPeErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
     const { fs, maxspl } = engine.maxCurves(drvNoPe, LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
@@ -152,11 +151,10 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
     // Regression: Xmax=0 used to make vXmax=0 → vUse=0 → maxspl=-Infinity, maxpwr=0
     // (blank Max-SPL/Max-power charts). Xmax=0 must be treated as "no excursion limit"
     // so the Pe (thermal) limit alone bounds the curve.
-    const { value: drvXmax0, errors: xmax0Errors } = engine.solveConsistencyGroup({
+    const drvXmax0 = engine.solveConsistencyGroup({
       Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
-      Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.7e-3, Pe_W: 60, Xmax_m: 0,
+      Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Pe_W: 60, Xmax_m: 0,
     });
-    if (!drvXmax0) throw new Error('Test fixture invalid: ' + xmax0Errors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
     const { maxspl, maxpwr } = engine.maxCurves(drvXmax0, LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
@@ -175,7 +173,7 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
 // warn (the curve still draws with a gap); an entirely non-finite primary curve
 // → error (nothing usable). Sentinels like -200 dB are finite and never flagged.
 describe('classifyFinite — non-finite sweep results are surfaced, never silently blank', () => {
-  const P = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
+  const P: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
 
   it('returns null for an all-finite sweep', () => {
     const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
@@ -222,7 +220,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
  * Specification: docs/spec/SPEC_ENGINE.md §3.2
  */
 describe('rolloffFreq — Encapsulated Engine Physics Calculations', () => {
-  const P = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 100 };
+  const P: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 100 };
 
   /**
    * Spec Link: docs/spec/SPEC_ENGINE.md §3.2 "Cutoff Frequency Readouts (F3, F6, F10)"

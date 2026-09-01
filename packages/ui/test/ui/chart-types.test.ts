@@ -27,16 +27,23 @@ const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
   Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
 };
-const { value: DRV } = new Engine().deriveEngineDriver(RAW);
-assert.ok(DRV, 'reference driver failed to derive');
+// The solver derives what the stated values imply, terminal Re/BL included — there is no
+// separate derive-and-validate step, and `sweep` is what reports a driver it cannot use.
+const DRV = new Engine().solveConsistencyGroup({
+  Fs_hz: RAW.Fs, Qts: RAW.Qts, Qes: RAW.Qes, Qms: RAW.Qms, Vas_m3: RAW.Vas,
+  Sd_m2: RAW.Sd, Re_ohm: RAW.Re, Xmax_m: RAW.Xmax, Pe_W: RAW.Pe, Znom_ohm: RAW.Znom,
+});
+const LE_H = 0.70e-3;
 
 const SP: SweepParams = {
   Vb: 0.030, eg: 2.83, Sp: Math.PI * (0.05 / 2) ** 2, Leff: 0.30 + 0.732 * 0.05,
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
-const SW = new Engine().sweep(DRV, 'vented', SP);
-const MX = new Engine().maxCurves(DRV, 'vented', SP);
+const SW = new Engine().sweep(DRV, LE_H, 'vented', SP).value;
+assert.ok(SW, 'reference sweep produced nothing');
+const MX = new Engine().maxCurves(DRV, LE_H, 'vented', SP).value;
+assert.ok(MX, 'reference max curves produced nothing');
 const build = (id: ChartTabId) => seriesFor(id, DRV, 'vented', SP, SW, MX);
 
 const ALL_IDS = Object.keys(TAB_META) as ChartTabId[];
@@ -147,6 +154,30 @@ describe('EQ/filter charts — units, datum and axis', () => {
       assert.ok(b.ymax > b.ymin, `${id}: empty chain collapsed the axis to ${b.ymin}..${b.ymax}`);
       assert.ok(b.series[0].ys.every(v => v === 0), `${id}: an empty chain is not flat at unity`);
       assert.ok(b.ymin < 0 && b.ymax > 0, `${id}: the flat unity line sits on the axis edge`);
+    }
+  });
+});
+
+describe('a design with no max curves draws nothing, rather than crashing', () => {
+  // A compare overlay whose sweep has not produced max curves reaches these two charts with
+  // none. `Design.maxCurves` is declared nullable, so this is an ordinary state, not an edge.
+  // It used to arrive as `{} as MaxCurvesResult` — an object with no `fs` and no `maxspl` — and
+  // both builders read straight through it: `realDb(mx.maxspl)` is `undefined.filter(...)`, and
+  // `Math.max(...mx.maxpwr)` spreads `undefined`. Both throw.
+  it('MaxSPL contributes no series when the max curves are absent', () => {
+    const bundle = seriesFor('MaxSPL', DRV, 'vented', SP, SW, undefined);
+    assert.deepEqual(bundle.series, []);
+  });
+
+  it('MaxPwr contributes no series when the max curves are absent', () => {
+    const bundle = seriesFor('MaxPwr', DRV, 'vented', SP, SW, undefined);
+    assert.deepEqual(bundle.series, []);
+  });
+
+  it('every OTHER chart is unaffected — they never read the max curves', () => {
+    for (const id of ALL_IDS.filter(i => i !== 'MaxSPL' && i !== 'MaxPwr')) {
+      const bundle = seriesFor(id, DRV, 'vented', SP, SW, undefined);
+      assert.ok(bundle.series.length > 0, `${id} drew nothing without max curves`);
     }
   });
 });

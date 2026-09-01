@@ -36,9 +36,23 @@ function specSection(p: {
   };
 }
 
+/** A RADIATOR's spec section. Not a narrowed driver's: a radiator has no motor and no voice coil,
+ *  so `Qts` describes nothing on one — there is no `Qes` for it to combine with. The strict schema
+ *  refuses a `Qts` here, which is how this builder came to exist. */
+function prSpecSection(p: {
+  Fs_hz: number; Sd_m2: number; Cms_m_per_N: number;
+  Mmd_kg: number; Rms_Ns_per_m: number; Xmax_m: number;
+}) {
+  return {
+    Fs: spec(p.Fs_hz), Sd: spec(p.Sd_m2), Cms: spec(p.Cms_m_per_N),
+    Mms: spec(p.Mmd_kg), Rms: spec(p.Rms_Ns_per_m), Xmax: spec(p.Xmax_m),
+  };
+}
+
 /** The client's own boundary step: an untrusted record becomes a driver, or the reasons it
  *  cannot. Tests that expect a VALID record use this; the one that checks refusal calls
  *  `driverFromConformingRecord` directly and inspects the problems. */
+// Takes whatever `driverJson` below takes.
 function driverFrom(p: Parameters<typeof driverJson>[0]) {
   const result = driverFromConformingRecord(driverJson(p), new Engine());
   if (Array.isArray(result)) throw new Error(`fixture is not a valid driver: ${result.join(', ')}`);
@@ -47,11 +61,25 @@ function driverFrom(p: Parameters<typeof driverJson>[0]) {
 
 function driverJson(p: {
   brand: string; model: string; section: 'woofer' | 'tweeter' | 'passive-radiator';
+  // Whatever `specSection` above builds.
   spec: ReturnType<typeof specSection>;
 }) {
   const meta = {
     brand: scraped(p.brand), model: scraped(p.model), manufacturer: scraped(p.brand),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+    // The scrape provenance every openisd.yml record carries (`model_openisd.py:55-73`). A
+    // fixture without them is not a record, and the conformance guard says so.
+    uuid: { value: '00000000-0000-4000-8000-000000000000' },
+    // `sku` is a DERIVED field: no origin, but `grounds` carrying the evidence it was
+    // derived from, at least one entry.
+    sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
+    driver_type: scraped('woofer'),
+    data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
+    authoritative: { value: 'manufacturer_datasheet' },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
   };
   if (p.section === 'woofer') return { ...meta, specs: { woofer: p.spec } };
   if (p.section === 'tweeter') return { ...meta, specs: { tweeter: p.spec } };
@@ -109,7 +137,7 @@ describe('the driver — a window, not a copy', () => {
   it('reports what is wrong with a record instead of throwing, so a picker can show it', () => {
     const noSection = driverJson({
       brand: 'Dayton', model: 'RS225', section: 'passive-radiator',
-      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+      spec: prSpecSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     });
 
     const result = driverFromConformingRecord(noSection, new Engine());
@@ -124,7 +152,57 @@ describe('the driver — a window, not a copy', () => {
     expect(result).toEqual(expect.arrayContaining([
       expect.stringContaining("'model'"),
       expect.stringContaining("'manufacturer'"),
+      expect.stringContaining("'uuid'"),
+    ]));
+  });
+
+  it('says nothing about SECTIONS of a record that is not a record', () => {
+    // A section fault is a statement about a device's specs. This value has no specs and is not
+    // a record at all, so "neither a woofer nor a tweeter" would be a second-hand restatement of
+    // "'specs' is missing" — the same fault, worded as if it were another one.
+    const result = driverFromConformingRecord({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
+
+    expect(result).toEqual(expect.arrayContaining([expect.stringContaining("'specs'")]));
+    expect(result).not.toEqual(expect.arrayContaining([
       expect.stringContaining('neither a woofer nor a tweeter'),
+    ]));
+  });
+
+  it('names EVERY bad reading inside one spec field, not just the first', () => {
+    // Two faults in ONE field's readings. A walk that returns on its first fault reports the
+    // datasheet reading and stops, so the picker shows a reader one problem, they fix it, and
+    // are then shown the next — which is what "every problem at once" is supposed to prevent.
+    const record = {
+      brand: { value: 'Dayton', origin: 'scraped' },
+      model: { value: 'RS225', origin: 'scraped' },
+      manufacturer: { value: 'Dayton', origin: 'scraped' },
+      uuid: { value: '00000000-0000-4000-8000-000000000000', origin: 'scraped' },
+      sku: { value: 'TEST-SKU', origin: 'scraped' },
+      driver_type: { value: 'woofer', origin: 'scraped' },
+      data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' }, origin: 'scraped' },
+      authoritative: { value: 'manufacturer_datasheet', origin: 'scraped' },
+      quality: {
+        confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+        parse_errors: [], cross_source_only: [],
+      },
+      specs: {
+        woofer: {
+          Fs: {
+            origin: 'datasheet',
+            readings: {
+              datasheet: { read_value: 'thirty' },
+              measured: { read_value: null },
+            },
+          },
+        },
+      },
+    };
+
+    const result = driverFromConformingRecord(record, new Engine());
+
+    expect(result).toEqual(expect.arrayContaining([
+      expect.stringContaining('specs.woofer.Fs.readings.datasheet.read_value'),
+      expect.stringContaining('specs.woofer.Fs.readings.measured.read_value'),
     ]));
   });
 
@@ -281,7 +359,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
 describe('the passive radiator a box holds', () => {
   const prJson = () => driverJson({
     brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
-    spec: specSection({ Fs_hz: 12, Qts: 0.4, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+    spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
   });
   const project = () => newProject(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
@@ -291,9 +369,8 @@ describe('the passive radiator a box holds', () => {
   it('reports nothing chosen, and refuses edits, until configurePR', () => {
     const p = project();
 
-    expect(p.box.passiveRadiator.radiator.isChosen()).toBe(false);
     expect(p.box.passiveRadiator.radiator.brand.get().state).toBe('not-available');
-    expect(() => p.box.passiveRadiator.radiator.brand.set('SB')).toThrow(/no radiator is chosen/);
+    expect(() => p.box.passiveRadiator.radiator.brand.set('SB')).toThrow(/radiator slot is empty/);
   });
 
   it('copies the chosen radiator IN, so later edits do not touch the library entry', () => {
@@ -302,12 +379,11 @@ describe('the passive radiator a box holds', () => {
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
 
-    expect(p.box.passiveRadiator.radiator.isChosen()).toBe(true);
     expect(p.box.passiveRadiator.radiator.brand.get().value).toBe('SB Acoustics');
 
-    p.box.passiveRadiator.radiator.Sd_m2.set(0.031);
-    expect(p.box.passiveRadiator.radiator.Sd_m2.get().value).toBe(0.031);
-    expect(library.Sd_m2.get().value).toBe(0.025);
+    p.box.passiveRadiator.radiator.spec.Sd_m2.set(0.031);
+    expect(p.box.passiveRadiator.radiator.spec.Sd_m2.get().value).toBe(0.031);
+    expect(library.spec.Sd_m2.get().value).toBe(0.025);
   });
 });
 

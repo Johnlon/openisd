@@ -1,6 +1,6 @@
 import { ref, shallowRef, computed, watch, type Ref, type ComputedRef } from 'vue';
 import type { OpenISDDriver } from '@openisd/model';
-import { Chip } from '@openisd/model';
+import { Chip } from '@openisd/design/filter';
 import { presentationState } from './presentationState.js';
 import { readDriverFileText } from './driverFileText.js';
 import { DriverFileFormat, sniff } from '../fileFormat.js';
@@ -13,6 +13,7 @@ import {
   type MyDriverRepo, type MyDriversRead, type BrokenEntry, type PrefsRepo,
 } from '@openisd/persistence';
 import { type DriverSelection, driverFromFileText } from './driverSelection.js';
+import { inputFrom } from './domEvents.js';
 
 // The row and summary shapes the presentation layer is handed. A component names them with a
 // TYPE-ONLY import straight from `@openisd/persistence` — exempt from the presentation-depends-
@@ -378,7 +379,8 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
    * row. So saving a driver to disk and loading it back returns it to My Drivers, nowhere else.
    */
   function loadFromDisk(e: Event): void {
-    const input = e.target as HTMLInputElement;
+    const input = inputFrom(e);
+    if (input === null) return;
     const file = input.files?.[0];
     if (!file) return;
     void readDriverFileText(file).then(({ text }) => {

@@ -16,7 +16,6 @@ import { dirname, join } from 'node:path';
 import { createLogging } from '../../src/logging/flash.js';
 import { createDesignIO } from '../../src/logic/useDesignIO.js';
 import { createFileStorage, createProjectRepo, createMemoryStorage } from '@openisd/persistence';
-import { projectSchema } from '../../src/logic/schemaUpgrade.js';
 import { requireFocusedProject, state } from '../../src/logic/appState.js';
 
 beforeAll(() => {
@@ -30,7 +29,7 @@ beforeAll(() => {
 
 describe('shareLink() cancels an active what-if before serialising the driver', () => {
   it('an active what-if is gone after shareLink() returns', async () => {
-    const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createMemoryStorage(), projectSchema, createFileStorage()) });
+    const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createMemoryStorage(), createFileStorage()) });
     requireFocusedProject().beginWhatIf();
     assert.equal(requireFocusedProject().isWhatIfActive(), true, 'precondition: a what-if is open');
 
@@ -48,7 +47,7 @@ describe('shareLink() cancels an active what-if before serialising the driver', 
  * values (name from the filename, per the name↔file rule); a following export must emit the
  * file's own `[ProjectInfo]`, never the pre-import project's.
  *
- * The fixture is a REAL WinISD-written golden (`packages/design/test/winisd/fixtures/winisd-parity/
+ * The fixture is a REAL WinISD-written golden (`packages/winisd/test/fixtures/winisd-parity/
  * goldens/sealed-small.wpr` — an independent oracle, not this codebase's own writer), with its
  * empty `Description=` line patched to a probe value so a stale-empty field cannot pass as a
  * synced one.
@@ -86,7 +85,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       }
     });
     try {
-      const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createMemoryStorage(), projectSchema, createFileStorage()) });
+      const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createMemoryStorage(), createFileStorage()) });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone after.
       state.project.name = 'stale-name-999999';

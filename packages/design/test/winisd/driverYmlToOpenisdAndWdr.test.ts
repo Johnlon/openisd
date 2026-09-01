@@ -29,8 +29,7 @@ import { parse, stringify as stringifyYaml } from 'yaml';
 
 import { driverYmlToOpenisdAndWdr } from '../../winisd/driverYmlToOpenisdAndWdr.js';
 
-const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..',
-  'design', 'test', 'fixtures', 'corpus');
+const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
 /** A real `driver.yml`: Dayton CE28N-4, a woofer-section record carrying `scraper_meta`. */
 function daytonDriverYml(): string {
@@ -144,6 +143,10 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       'sku: {value: A1-8, grounds: [{origin: manufacturer_datasheet, reading: "A1-8", definition: "how the sku was formed"}]}',
       'driver_type: {value: woofer, origin: manufacturer_datasheet, definition: "the kind"}',
       'authoritative: {value: manufacturer_datasheet}',
+      // Required by the schema though the pydantic model calls all three optional — QO113.
+      "provided_by: {value: '', origin: manufacturer_datasheet, definition: \"who supplied it\"}",
+      "comment: {value: '', origin: manufacturer_datasheet}",
+      "added: {value: '2026-09-01', origin: manufacturer_datasheet}",
       'data_sources: {value: {manufacturer_datasheet: "https://example.invalid/ds.pdf"}}',
       'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
       'specs:',

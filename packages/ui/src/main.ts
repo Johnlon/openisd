@@ -3,8 +3,7 @@ import App from './ui/App.vue';
 import { vExpoStep } from './ui/directives/expoStep.js';
 import { vLimits } from './ui/directives/limits.js';
 import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRepo, createMyPassiveRadiatorRepo, createBundledPassiveRadiatorRepo, createFileStorage, createProjectRepo, createViewStateRepo } from '@openisd/persistence';
-import type { BundleRecord } from '@openisd/persistence';
-import { myDriversSchema, projectSchema } from './logic/schemaUpgrade.js';
+import { readBundle } from '@openisd/persistence';
 import { createLogging } from './logging/flash.js';
 import { createDiagnostics } from './diagnostics/selftest.js';
 import { createFaultLog } from './diagnostics/faultLog.js';
@@ -28,21 +27,29 @@ import './style.css';
 // this file reaches for a ready-made instance, which is what lets any of it be exercised in
 // a test over substitutes.
 
-const bundle = bundleJson as {
-  sources?: Array<{ key: string; files: BundleRecord[] }>;
-  passiveRadiators?: BundleRecord[];
-};
-
 // --- services: arguments in, data out, no app state ---
 // FIRST: a fault that fires while the rest of this file runs must still be caught.
 const faultLog = createFaultLog();
 faultLog.install();
 
+// The bundle is a BUILD ARTIFACT, so its contents are not knowable when this file is compiled.
+// `readBundle` looks at the value instead of asserting a shape over it, and it runs AFTER
+// `faultLog.install()` so a bundle that fails is a reported fault rather than a blank page with
+// nothing in the log.
+const loaded = readBundle(bundleJson);
+if ('problems' in loaded) {
+  throw new Error(
+    `drivers-bundle.json is not a usable bundle — rebuild it with scripts/bundle-drivers.mjs:\n` +
+    loaded.problems.map(m => `  - ${m}`).join('\n'),
+  );
+}
+const bundle = loaded.bundle;
+
 // STORAGE (port): the browser's own key-value storage.
 const storage = createLocalStorage();
 const logging = createLogging();
 const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle });
-const myDriverRepo = createMyDriverRepo(storage, myDriversSchema);
+const myDriverRepo = createMyDriverRepo(storage);
 const prefs = createPrefsRepo(storage);
 const myPassiveRadiators = createMyPassiveRadiatorRepo(storage);
 const bundledPRs = createBundledPassiveRadiatorRepo(bundle).list();
@@ -59,7 +66,7 @@ const driverBrowsing = createDriverBrowsingState({
   driverRepo, myDriverRepo, prefs, logging, selection,
   confirmReset: (question) => confirm(question),
 });
-const projectRepo = createProjectRepo(storage, projectSchema, fileStorage);
+const projectRepo = createProjectRepo(storage, fileStorage);
 const viewStateRepo = createViewStateRepo(storage);
 const designIO = createDesignIO({ logging, fileStorage, projectRepo });
 

@@ -2,7 +2,7 @@
   "name": "@openisd/design",
   "version": "0.1.0",
   "type": "module",
-  "description": "The OpenISD domain model \u2014 OpenISDDriver/OpenISDPassiveRadiator/OpenISDBox as windows onto a stored record, OpenISDProject holding it, and ManagedProject layering committed, edit and what-if state over it. Replaces packages/model; nothing here depends on it.",
+  "description": "The OpenISD domain model — OpenISDDriver/OpenISDPassiveRadiator/OpenISDBox as windows onto a stored record, OpenISDProject holding it, and ManagedProject layering committed, edit and what-if state over it. Replaces packages/model; nothing here depends on it.",
   "license": "MIT",
   "exports": {
     ".": {
@@ -17,12 +17,16 @@
       "types": "./engine/index.ts",
       "default": "./engine/index.ts"
     },
-    "./winisd": {
-      "types": "./winisd/index.ts",
-      "default": "./winisd/index.ts"
+    "./filter": {
+      "types": "./filter/index.ts",
+      "default": "./filter/index.ts"
     }
   },
   "scripts": {
     "test": "vitest run"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1",
+    "zod": "^4.5.4"
   }
 }

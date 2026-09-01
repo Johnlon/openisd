@@ -68,7 +68,7 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
       // The terminal pair is the CALLER's, and it is derived AFTER the solve: `Re_ohm`/`BL_Tm`
       // are themselves derivable, so a fixture stating neither still has both by now. The solver
       // no longer does this, so that a stated per-coil value can never be overwritten.
-      const drv = {
+      const drv: SolverQuantities = {
         ...solved,
         Re_terminal_ohm: solved.Re_ohm === undefined ? undefined
           : engine.terminalRe_ohm(solved.Re_ohm, solved.numVC, solved.wiring),

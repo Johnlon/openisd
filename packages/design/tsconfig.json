@@ -8,9 +8,9 @@
   "include": [
     "domain/**/*.ts",
     "engine/**/*.ts",
+    "filter/**/*.ts",
     "browser/**/*.ts",
     "app/**/*.ts",
-    "winisd/**/*.ts",
     "test/**/*.ts"
   ]
 }

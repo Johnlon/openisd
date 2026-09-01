@@ -30,7 +30,7 @@ import { openisdYamlToWdr } from '@openisd/model';
 import type { DriverError } from '@openisd/design/engine';
 import { WINISD_NEWLINE_SENTINEL } from '../../winisd/winisdBytes.js';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const ORACLE = join(ROOT, 'drivers', 'sample', 'winisd', 'john-all-defaults.wdr');
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'openisd');
 

@@ -1,18 +1,22 @@
 /**
- * WHAT THE SOLVER IS GIVEN.
+ * THE QUANTITIES `solveConsistencyGroup` WORKS OVER — every one it can be given, and every one it
+ * can derive. Membership means a quantity takes part in at least one relation; a quantity in no
+ * relation would only be copied through untouched, so it has no reason to be here.
  *
- * Every quantity a device can STATE, plus the two facts about its voice coils that are not
- * quantities at all: how many there are and how they are wired. Wiring is a NAME, which is why
- * this is its own type — `EngineQuantities` is all-numeric, and the solver's `setVal` writes a
- * `number` through a `keyof` union, which compiles only while that stays true.
+ * Not every member is a quantity. `numVC` and `wiring` are FACTS ABOUT THE COIL: they take part
+ * in no relation and cannot be solved for, but the terminal values cannot be derived without them,
+ * so they are carried here. `QuantityName` — not `keyof SolverQuantities` — is what the solver's
+ * `setVal` ranges over, and it excludes those two, which is why a coil count never acquires a
+ * tolerance.
  *
- * The terminal values are absent here BY CONSTRUCTION: they are always derived, never stated, so
- * there is no way to hand the solver one.
+ * **A quantity missing from this class is a MISSING RELATION, not a considered exclusion.** Before
+ * concluding some quantity is rightly absent, look for a relation naming it in
+ * `docs/design/WINISD_SCHEMA.md` §5. Relation 24 (`KLe = Le·√(2π·fLe)`) went unimplemented for
+ * exactly as long as `Le_H`/`fLe_hz`/`KLe_H_sqrtHz` were missing from here, and WinISD computes it
+ * — `bugs/BUG_20260831_the_solver_omits_relation_24_so_KLe_is_never_computed_from_Le_and_fLe.md`.
  */
-/**
- * The name of one NUMERIC quantity. Called `QuantityName` rather than `SolverQuantity` so it
- * cannot be mistaken for `SolverQuantities`, which is the whole set a caller hands in.
- */
+import type { Wiring } from './types.js';
+
 export class SolverQuantities {
     // Thiele/Small
     /** Free-air resonance frequency of the driver. */
@@ -21,6 +25,15 @@ export class SolverQuantities {
   Re_ohm?: number;
     /** Nominal impedance. Not a simulation input. */
   Znom_ohm?: number;
+    /** Voice-coil inductance. Shapes the impedance curve, not the acoustic path
+     *  (`circuit.ts`: `Zcoil = Rdc + jωLe`). Never derived — WinISD calculates no route to it. */
+  Le_H?: number;
+    /** The frequency at which `Le` and `KLe` were measured. Never derived; `0` means the
+     *  semi-inductance model is off. Input to relation 24 only. */
+  fLe_hz?: number;
+    /** Vanderkooy semi-inductance, `Le·√(2π·fLe)` — henries times the square root of hertz, not
+     *  dimensionless. Relation 24, and the only one of these three that is ever computed. */
+  KLe_H_sqrtHz?: number;
     /** Electrical Q — how readily the driver resonates at Fs by electrical means. */
   Qes?: number;
     /** Mechanical Q — the same, by mechanical means. */
@@ -106,16 +119,39 @@ export class SolverQuantities {
   /** BL as the amplifier sees it — the same rule as `Re_terminal_ohm`. */
   BL_terminal_Tm?: number;
 
+  // ── THE COIL, which is what turns a per-coil value into a terminal one ────────────────────
+  //
+  // Not quantities: they take part in no relation, carry no uncertainty, and cannot be solved
+  // for. They are here because the terminal values CANNOT be derived without them, and a solver
+  // that cannot finish its own output makes every caller finish it instead.
+
+  /** How many voice coils. Absent means one. */
+  numVC?: number;
+  /** How the coils are wired. Absent means the single-coil case, where it does not matter. */
+  wiring?: Wiring;
 }
 
 
 /**
- * A NUMERIC quantity's name — derived from `SolverQuantities`, so a new numeric field IS a new member
- * here with nothing to keep in step by hand.
-
+ * The name of a QUANTITY — something that takes part in at least one relation, carries an
+ * uncertainty, and can be solved for. Derived from `SolverQuantities`, so a new numeric field is a
+ * new member here with nothing to keep in step by hand.
+ *
+ * `wiring` drops out on its own, being a string. `numVC` does NOT — it is a number — so it is
+ * excluded BY NAME, and that exclusion is load-bearing: this list drives `consistency.ts`'s
+ * uncertainty propagation and `sweep.ts`'s "which value would unblock this driver" search.
+ * Propagating a tolerance through a coil count, or telling a user to type a numVC to make their
+ * driver simulate, would both be wrong. A coil count is a FACT about the driver, not a measurement
+ * of it.
  */
-export type QuantityName =
-  { [K in keyof SolverQuantities]-?: SolverQuantities[K] extends number | undefined ? K : never }[keyof SolverQuantities];
+type NotAQuantity = 'numVC' | 'wiring';
+
+/** The numeric field names of `SolverQuantities`, less `NotAQuantity`. */
+export type QuantityName = Exclude<
+  // Go through every field, keep the name of each one holding a number, collect those names.
+  { [K in keyof SolverQuantities]-?: SolverQuantities[K] extends number | undefined ? K : never }[keyof SolverQuantities],
+  // Then drop the two that are not quantities.
+  NotAQuantity>;
 
 /**
  * Every quantity name, for the two places that genuinely LOOP over the whole set —
@@ -133,7 +169,7 @@ export type QuantityName =
  * `Engine` and the types its signatures name.
  */
 export const QUANTITY_NAMES = [
-  'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Qes', 'Qms',
+  'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms',
   'Qts', 'Vas_m3', 'Sd_m2', 'Dd_m', 'BL_Tm',
   'Re_terminal_ohm', 'BL_terminal_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s',
   'EBP_hz', 'Xmax_m', 'Vd_m3', 'Hc_m', 'Hg_m',
@@ -143,8 +179,11 @@ export const QUANTITY_NAMES = [
   'Magnet_m', 'DVol_m3', 'c_m_per_s', 'roo_kg_per_m3',
 ] as const satisfies readonly QuantityName[];
 
-/** `never` when `QUANTITY_NAMES` is complete; otherwise the quantity it forgot. */
+/** Every quantity name, minus the ones the list above actually contains — so nothing
+ *  when the list is complete, and the forgotten name when it is not. */
 type MissingQuantity = Exclude<QuantityName, typeof QUANTITY_NAMES[number]>;
+/** Nothing missing, so this is just `true`. Something missing, and the compiler complains
+ *  that `true` is not the missing name — which is how the name gets reported. */
 const _everyQuantityIsListed: MissingQuantity extends never ? true : MissingQuantity = true;
 void _everyQuantityIsListed;
 

@@ -14,7 +14,7 @@
  * result there means the file is corrupt, not legacy, so `decodeDriverFileBytes` rejects it
  * rather than handing back a lossy re-decode.
  */
-import { winisdBytesToText, WinisdEncoding, winisdTextToBytes, type WinisdDecodedText } from '@openisd/design/winisd';
+import { winisdBytesToText, WinisdEncoding, winisdTextToBytes, type WinisdDecodedText } from '@openisd/winisd';
 import { DriverFileFormat, ProjectFileFormat, isLegacyWinisdFormat, type FileFormat } from '../fileFormat.js';
 
 /** `bytes` decoded to text, gated by `format`: `.wdr`/`.wpr` may legitimately fall back to
@@ -47,7 +47,7 @@ export function readDriverFileText(file: File): Promise<WinisdDecodedText> {
         const format = DriverFileFormat.ofFileName(file.name) ?? ProjectFileFormat.ofFileName(file.name) ?? undefined;
         resolve(decodeDriverFileBytes(new Uint8Array(reader.result as ArrayBuffer), format));
       } catch (err) {
-        reject(err as Error);
+        reject(err instanceof Error ? err : new Error(String(err)));
       }
     };
     reader.readAsArrayBuffer(file);

@@ -887,10 +887,15 @@ test('Original skin: Options dialog → "Reset to Metric" reverts a toggled unit
   await expect(unit).toHaveText('kg');
 
 
-  const readMadd = () => page.evaluate(() => {
-    return (window as any).__store_instances[0].P.driverAddedMass;
-  });
-  const siBefore = await readMadd();
+  // Read the STORED value through the UI, not out of the app's internals. `kg` is the SI unit for
+  // this field, so while the unit reads `kg` the input IS the stored number — no backdoor needed,
+  // and the assertion goes through the same surface a user does.
+  const readMaddSi = async () => {
+    if (await unit.textContent() !== 'kg') await unit.click();
+    await expect(unit).toHaveText('kg');
+    return Number(await amc.inputValue());
+  };
+  const siBefore = await readMaddSi();
   expect(siBefore).toBeCloseTo(0.075, 6);
 
   await page.locator('.tb-btn[title="Options"]').click();
@@ -899,7 +904,9 @@ test('Original skin: Options dialog → "Reset to Metric" reverts a toggled unit
   await page.locator('.opt-modal .opt-ok').click();
 
   await expect(unit).toHaveText('g');             // reverted to the field's default unit
-  expect(await readMadd()).toBeCloseTo(siBefore, 9); // the stored SI value is untouched
+  // The stored value is untouched by the unit switch and the metric reset: flip back to kg and the
+  // same number is there. A reset changes which unit is SHOWN, never what is held.
+  expect(await readMaddSi()).toBeCloseTo(siBefore, 6);
 });
 
 test('Original skin: Options → General → Environment default seeds a fresh mount\'s Advanced-pane Temperature (not a hardcoded literal)', async ({ page }) => {

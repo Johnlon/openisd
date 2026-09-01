@@ -18,6 +18,7 @@ import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '.
 import { DriverFileFormat } from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
 import { getProvenanceInfo, LABEL_TO_FIELD_KEY } from '../../logic/provenance.js';
+import { editableFrom, elementFrom, inputFrom, selectValue } from '../../logic/domEvents.js';
 
 const { selection, myDrivers, logging, driverFileStorage } = useApp();
 
@@ -141,7 +142,9 @@ const editorModelValue = computed(() => {
 function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufacturer' | 'added', e: Event) {
   // Metadata is a ScrapedField, a different envelope from a SpecEntry, so it has its own
   // entry point. Routing a string through enter() would put it in the wrong envelope.
-  const value = (e.target as HTMLInputElement | HTMLTextAreaElement).value;
+  const edited = editableFrom(e);
+  if (edited === null) return;
+  const value = edited.value;
   const d = draftDriver.value;
   switch (field) {
     case 'brand': d.enterBrand(value); break;
@@ -446,7 +449,8 @@ function getFieldStyle(fieldKey: string) {
 
 function handleBodyClickOrFocus(e: Event) {
   if (!inspectProvenance.value) return;
-  const target = e.target as HTMLElement;
+  const target = elementFrom(e);
+  if (target === null) return;
   const fld = target?.closest('.de-fld');
   if (!fld) return;
   const labelText = fld.querySelector('label')?.textContent?.trim();
@@ -651,7 +655,8 @@ function triggerLoad() {
 }
 
 function handleFileLoaded(e: Event) {
-  const input = e.target as HTMLInputElement;
+  const input = inputFrom(e);
+  if (input === null) return;
   const file = input.files?.[0];
   if (!file) return;
 
@@ -673,7 +678,7 @@ function handleFileLoaded(e: Event) {
         : OpenISDDriver.fromOwdrYml(text));
       forceUpdate();
     } catch (err) {
-      alert('Failed to parse file: ' + (err as Error).message);
+      alert('Failed to parse file: ' + (err instanceof Error ? err.message : String(err)));
     }
   }, (err: Error) => { alert('Failed to read file: ' + err.message); });
 }
@@ -930,7 +935,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld de-conn" data-field-key="VCCon" :title="fieldHelp('VCCon')">
                 <label>Connection</label>
-                <select class="de-conn-sel" :value="driverRaw.VCCon ?? 1" @change="e => setNum('VCCon', parseInt((e.target as HTMLSelectElement).value))"><option :value="1">Parallel</option><option :value="2">Series</option></select>
+                <select class="de-conn-sel" :value="driverRaw.VCCon ?? 1" @change="e => setNum('VCCon', parseInt(selectValue(e)))"><option :value="1">Parallel</option><option :value="2">Series</option></select>
               </div>
             </div>
           </div>

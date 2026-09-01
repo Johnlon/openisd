@@ -23,8 +23,9 @@ export type {
   BoxType, SimulatableBoxType, DriverError, Filter, FilterType, MaxCurvesResult, Wiring,
   Result, SweepParams, SweepResult,
 } from './types.js';
-// The solver's two shapes: what it is GIVEN and what it RETURNS. Types only — there is nothing
-// to construct, because `SolverQuantities` is an object literal a caller writes out and
-// `SolverQuantities` is what comes back. The quantity-name list stays inside the engine: it exists
-// for the two internal loops, not for consumers.
-export { SolverQuantities } from './solverQuantities.js';
+// What the solver is GIVEN and what it RETURNS, which are one shape. A TYPE export: nothing
+// constructs a `SolverQuantities` — a caller writes an object literal and the solver hands one
+// back — so exporting the class as a VALUE would put a constructor on the engine's surface that
+// no consumer has ever called. The quantity-name list stays inside the engine: it exists for the
+// two internal loops, not for consumers.
+export type { SolverQuantities } from './solverQuantities.js';

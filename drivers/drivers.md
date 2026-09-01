@@ -86,15 +86,30 @@ Mark shape follows the corpus `DqMark`: `kind`, `severity`, `rule`, `params`, `d
 3. compute and attach `dq_calculated` (Part B) — this is X
 4. serialise X → the `openisd.yml` text
 5. run X through the `.wdr` transformer
-6. run every round-trip check, folding divergence into the SAME `errors` array
+6. round-trip both texts against the ORIGINAL `driver.yml` object read in step 1, not against `X`
+   — comparing against `X` only proves the text writer/reader pair is lossless for whatever
+   object it's handed, and says nothing about whether step 1's own parse or step 3's `dq_calculated`
+   attachment silently dropped something. Comparing against the true original makes a dropped key,
+   at any depth, a mismatch by construction — no separate "did every key make it into the text"
+   check is needed on top. Within that one comparison: a key entirely ABSENT from the reparsed
+   side is a serialiser defect and throws, uncaught, in the bridge (the same bug on every record,
+   not a per-record finding worth a soft warning); a key PRESENT but changed (rounding, a unit
+   conversion) is a real data-quality finding and folds into the SAME `errors` array as everything
+   else in this list.
 7. return both texts and the errors
 
 A passive radiator returns `wdr: null` with no error — WinISD has no PR format — but MUST still
 get `dq_calculated`. Today's `project_ui.py:119` returns early for radiators, before the bridge;
 that early return goes, or radiators silently lose their marks.
 
-Files: the entry in `packages/design`, exposed through `packages/winisd/src/bridge.ts` as the
+Files: the entry in `packages/winisd`, exposed through `packages/winisd/src/bridge.ts` as the
 one global the V8 caller sees.
+
+**Why winisd and not design (John, 2026-08-31, QO103 "opt 1").** `packages/winisd` depends on
+`@openisd/design`; `packages/design` declares no dependencies at all. The `.wdr` transformer
+(`WinISDDriver`) lives in winisd, so a design-side entry building `.wdr` text would import
+`@openisd/winisd` and close a design → winisd → design cycle. Siting it in winisd needs no change
+to `packages/design`, and keeps that package's zero-dependency state.
 
 ## Part D — Python
 

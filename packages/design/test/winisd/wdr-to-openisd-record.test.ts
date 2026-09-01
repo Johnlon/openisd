@@ -24,7 +24,7 @@ import { OpenISDDriver, Provenance } from '@openisd/model';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WDR_TEXT = readFileSync(
-  join(here, '..', '..', '..', 'drivers', 'sample', 'winisd', 'inconsistency-test-qts-C.wdr'),
+  join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'inconsistency-test-qts-C.wdr'),
   'utf8',
 );
 

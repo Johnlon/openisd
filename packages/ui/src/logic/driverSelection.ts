@@ -86,7 +86,7 @@ async function modelOf(f: PoolEntry): Promise<{ ok: true; driver: OpenISDDriver 
     try {
       res = await fetch(rawUrlOf(f));
     } catch (err) {
-      return { ok: false, error: 'Could not load: ' + (err as Error).message };
+      return { ok: false, error: 'Could not load: ' + (err instanceof Error ? err.message : String(err)) };
     }
     if (!res.ok) return { ok: false, error: 'Could not load: fetch failed (' + res.status + ')' };
     text = await res.text();
@@ -95,7 +95,7 @@ async function modelOf(f: PoolEntry): Promise<{ ok: true; driver: OpenISDDriver 
   try {
     return { ok: true, driver: OpenISDDriver.fromWdrText(text) };
   } catch (err) {
-    return { ok: false, error: 'Could not load: ' + (err as Error).message };
+    return { ok: false, error: 'Could not load: ' + (err instanceof Error ? err.message : String(err)) };
   }
 }
 

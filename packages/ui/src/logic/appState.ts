@@ -16,16 +16,16 @@
 import { reactive, computed, ref, shallowRef, triggerRef, watch, type ComputedRef, type Ref, type ShallowRef } from 'vue';
 import { Engine } from '@openisd/design/engine';
 import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
-import type { SpecField, OpenISDProject, OpenISDProjectMeta, Cell } from '@openisd/model';
+import type { SpecField, OpenISDProject, Cell } from '@openisd/model';
 import { ManagedProject } from './managedProject.js';
-import type { AppState, SyncedParams } from '../types.js';
+import {type AppState, AppStateImpl, type SyncedParams} from '../types.js';
 import type { UiParams } from '@openisd/model';
 import { copyOfName, uniqueName, type ViewSnapshot } from '@openisd/persistence';
 import { presentationState, unitToken } from './presentationState.js';
 import { resolveAirEnvironment } from './environment.js';
 import { parseChartTabId } from './series.js';
 import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
-import { getOrInit } from './hmrSingleton.js';
+import { getOrInit, hmrSlots } from './hmrSingleton.js';
 import {
   solveVentGroup, ventSolveSuspended, suspendVentSolve,
 } from './useVentGroup.js';
@@ -46,6 +46,27 @@ import { solvePrGroup } from './usePrGroup.js';
 // what-if overlay fires live), and the computeds below touch `live.value` so they re-derive
 // exactly then. @openisd/model stays Vue-free — the arrow points up, never down.
 
+/** This module's hot-reload-surviving singletons, one typed member each (`hmrSingleton.ts`).
+ *  Each member's declared type is what its `getOrInit` call site gets back. */
+interface AppStateSingletons {
+  seedProject: ManagedProject;
+  projects: ShallowRef<ManagedProject[]>;
+  focusedIndex: Ref<number>;
+  changeTicks: Ref<number>;
+  live: ShallowRef<ManagedProject | null>;
+  state: AppState;
+  curves: Ref<SweepResult | null>;
+  max: Ref<MaxCurvesResult | null>;
+  groundByProject: WeakMap<ManagedProject, string>;
+}
+declare global {
+  var __openisd_appState: Partial<AppStateSingletons> | undefined;
+}
+const slots = hmrSlots<AppStateSingletons>(
+  () => globalThis.__openisd_appState,
+  s => { globalThis.__openisd_appState = s; },
+);
+
 /**
  * `ManagedProject` (`logic/managedProject.ts`) is the facade over ground, committed and the
  * edit-or-what-if overlay, and the domain object for ONE project in the registry below.
@@ -62,7 +83,7 @@ import { solvePrGroup } from './usePrGroup.js';
  * never starts with zero projects open — and is otherwise indistinguishable from any project
  * opened later; nothing about it is special once the app is running.
  */
-const seedProject: ManagedProject = getOrInit('appState', '_managed', () => {
+const seedProject: ManagedProject = getOrInit(slots, 'seedProject', () => {
   return ManagedProject.createEmpty();
 });
 
@@ -73,8 +94,8 @@ const seedProject: ManagedProject = getOrInit('appState', '_managed', () => {
  * focused" lives. `projects[0]` starts as `seedProject` — one project open, matching the
  * app's starting state.
  */
-const projects = getOrInit('appState', 'projects', () => shallowRef<ManagedProject[]>([seedProject]));
-const focusedIndex = getOrInit('appState', 'focusedIndex', () => ref(0));
+const projects = getOrInit(slots, 'projects', () => shallowRef<ManagedProject[]>([seedProject]));
+const focusedIndex = getOrInit(slots, 'focusedIndex', () => ref(0));
 
 /** Every open project. Empty array if none are open. */
 export function openProjects(): ManagedProject[] { return projects.value; }
@@ -199,9 +220,9 @@ const EMPTY_PROJECT_DEFAULTS: ManagedProject = ManagedProject.createEmpty();
 // It is a counter, not a derived value: a `computed` only notifies when its VALUE changes, so
 // anything derived from current state goes quiet the moment two consecutive edits leave that
 // derivation equal — which for a change signal is always.
-const changeTicks: Ref<number> = getOrInit('appState', '_ticks', () => ref(0));
+const changeTicks: Ref<number> = getOrInit(slots, 'changeTicks', () => ref(0));
 
-const live: ShallowRef<ManagedProject | null> = getOrInit('appState', '_live', () => {
+const live: ShallowRef<ManagedProject | null> = getOrInit(slots, 'live', () => {
   const liveRef = shallowRef<ManagedProject | null>(null);
   let disposeCurrent: (() => void) | null = null;
   function resubscribe(): void {
@@ -223,52 +244,30 @@ const live: ShallowRef<ManagedProject | null> = getOrInit('appState', '_live', (
 // focused BEFORE the switch — found and fixed while wiring the multi-project registry
 // (PROMPT_RELEASE_HARDENING plan). Reads fall back to `EMPTY_PROJECT_DEFAULTS` when nothing is
 // focused; writes no-op then (defensive — the gated UI that could write is unmounted).
-const PROJECT_META_FIELDS = ['name', 'creator', 'created', 'modified', 'description'] as const;
-function buildProjectMetaAccessor(): OpenISDProjectMeta {
-  const obj = {} as OpenISDProjectMeta;
-  for (const key of PROJECT_META_FIELDS) {
-    Object.defineProperty(obj, key, {
-      enumerable: true, configurable: true,
-      get: () => (focusedProject() ?? EMPTY_PROJECT_DEFAULTS).snapshot().projectMeta()[key],
-      set: (v: string) => {
-        const p = focusedProject();
-        if (!p) return;
-        p.mutate(proj => proj.setProjectMeta({ ...proj.projectMeta(), [key]: v }));
-      },
-    });
-  }
-  return obj;
-}
+// const PROJECT_META_FIELDS = ['name', 'creator', 'created', 'modified', 'description'] as const;
+// function buildProjectMetaAccessor(): OpenISDProjectMeta {
+//   const obj = {} as OpenISDProjectMeta;
+//   for (const key of PROJECT_META_FIELDS) {
+//     Object.defineProperty(obj, key, {
+//       enumerable: true, configurable: true,
+//       get: () => (focusedProject() ?? EMPTY_PROJECT_DEFAULTS).snapshot().projectMeta()[key],
+//       set: (v: string) => {
+//         const p = focusedProject();
+//         if (!p) return;
+//         p.mutate(proj => proj.setProjectMeta({ ...proj.projectMeta(), [key]: v }));
+//       },
+//     });
+//   }
+//   return obj;
+// }
 
 function buildState(): AppState {
-  const s = {};
-  const projectMeta = buildProjectMetaAccessor();
-  Object.defineProperty(s, 'project', {
-    enumerable: true, configurable: true,
-    get: () => projectMeta,
-    set: (v: OpenISDProjectMeta) => {
-      const p = focusedProject();
-      if (!p) return;
-      p.mutate(proj => proj.setProjectMeta({ ...v }));
-    },
-  });
-  // `box` is an accessor property over the FOCUSED project's own `OpenISDBox.active` — not an
-  // independent copy — because every `boxVolume_m3()`/`.ventDiameter_m()`/`.boxTuning_Fb_hz()`/
-  // `.prSd_m2()`-family accessor (ledger QO54) picks its storage BY active box type, so
-  // `state.box` must always read the SAME `active` those accessors use, never a second,
-  // independently-writable copy of it (packages/ui/test/logic/boxActiveSync.test.ts). Falls
-  // back to `EMPTY_PROJECT_DEFAULTS` when nothing is focused (see that constant's own doc) —
-  // read-only, never observed by any mounted component. The setter no-ops when unfocused: a
-  // write can only be issued by gated UI, so that branch is defensive, not a real path.
-  Object.defineProperty(s, 'box', {
-    enumerable: true, configurable: true,
-    get: () => (focusedProject() ?? EMPTY_PROJECT_DEFAULTS).activeBoxType(),
-    set: (v: BoxType) => { focusedProject()?.setActiveBoxType(v); },
-  });
-  return s as unknown as AppState;
+  const p = (focusedProject() ?? EMPTY_PROJECT_DEFAULTS)
+  const s = new AppStateImpl(p.activeBoxType(), p)
+  return s;
 }
 
-export const state: AppState = getOrInit('appState', 'state', () => reactive(buildState()));
+export const state: AppState = getOrInit(slots, 'state', () => reactive(buildState()));
 
 // ---- Vent group: keep the calculated member solved while the user edits ------------------
 // `live` (above) already fires on every focused-project mutation — box/vent/PR fields
@@ -316,13 +315,6 @@ watch(
   },
   { flush: 'sync', immediate: true },
 );
-
-if (typeof window !== 'undefined') {
-  if (!(window as any).__store_instances) (window as any).__store_instances = [];
-  if (!(window as any).__store_instances.includes(state)) {
-    (window as any).__store_instances.push(state);
-  }
-}
 
 /** Route one per-field edit to whichever layer ManagedProject says is effective. */
 /** One driver field's value and provenance — dispatch lives here, not as a keyed method on
@@ -578,8 +570,8 @@ export const syncedP = computed<SyncedParams>(() => {
   return resolveAirEnvironment(p, presentationState.ui.envDefaults);
 });
 
-const curves = getOrInit('appState', 'curves', () => ref<SweepResult | null>(null));
-const max    = getOrInit('appState', 'max', () => ref<MaxCurvesResult | null>(null));
+const curves = getOrInit(slots, 'curves', () => ref<SweepResult | null>(null));
+const max    = getOrInit(slots, 'max', () => ref<MaxCurvesResult | null>(null));
 const doSweep = () => {
   const engine = new Engine();
   const d = engineDriver();
@@ -596,6 +588,7 @@ doSweep();
 // most once per SWEEP_MS while changes keep coming, with a trailing run to catch
 // the final value.
 const SWEEP_MS = 32;   // ~30 fps — live-feeling without resweeping every event
+// Whatever handle this platform's setTimeout hands back — a number in the browser, an object in Node.
 let sweepTimer: ReturnType<typeof setTimeout> | null = null;
 let lastSweep = 0;
 function scheduleSweep(): void {
@@ -664,7 +657,7 @@ function projectFingerprint(): string {
 // One ground checkpoint PER open project (keyed by instance identity), not one shared string —
 // each `ManagedProject` in the registry is independently live, so switching focus must never
 // overwrite another project's ground.
-const groundByProject = getOrInit('appState', 'groundByProject', () => new WeakMap<ManagedProject, string>());
+const groundByProject = getOrInit(slots, 'groundByProject', () => new WeakMap<ManagedProject, string>());
 function currentGround(): string {
   const p = focusedProject();
   if (!p) return '';

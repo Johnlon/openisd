@@ -57,6 +57,7 @@ import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.j
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
+import { inputValue, inputChecked } from '../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
 function close() { emit('close'); }
@@ -141,7 +142,7 @@ function colorValue(key: ColorKey): string {
   return draft.chartColors?.[key] ?? '#888888';
 }
 function setColor(key: ColorKey, e: Event) {
-  const v = (e.target as HTMLInputElement).value;
+  const v = inputValue(e);
   draft.chartColors[key] = v;
 }
 function clearColor(key: ColorKey) {
@@ -161,7 +162,7 @@ const LIMIT_ROWS: { tab: string; label: string; start: number; end: number; unit
   { tab: 'Port',      label: 'Air velocity',          start: 0.00, end: 40.00, unit: 'm/s peak' },
 ];
 function setLimit(tabId: string, key: 'min' | 'max', e: Event) {
-  const v = parseFloat((e.target as HTMLInputElement).value);
+  const v = parseFloat(inputValue(e));
   const cur = draft.yRanges[tabId] ?? { min: NaN, max: NaN };
   draft.yRanges[tabId] = { ...cur, [key]: v };
 }
@@ -215,7 +216,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
               </div>
               <div class="opt-fld opt-checkbox-row">
                 <label class="opt-check-label">
-                  <input type="checkbox" :checked="project.envUseAppLevelAirEnvironment()" @change="e => project.setEnvUseAppLevelAirEnvironment((e.target as HTMLInputElement).checked)" />
+                  <input type="checkbox" :checked="project.envUseAppLevelAirEnvironment()" @change="e => project.setEnvUseAppLevelAirEnvironment(inputChecked(e))" />
                   Use app-level environment for WinISD parity
                 </label>
               </div>

@@ -24,7 +24,7 @@
 //  *
 //  * Returns a STRING. The V8 boundary carries strings, not bytes — a caller that needs to write
 //  * `.wdr` file bytes (the `0xA4` `Comment=` newline sentinel, CP1252/UTF-8 discrimination) must
-//  * go through `winisdTextToBytes`/`winisdBytesToText` in `@openisd/design/winisd`'s `winisdBytes.ts`; this
+//  * go through `winisdTextToBytes`/`winisdBytesToText` in `@openisd/winisd`'s `winisdBytes.ts`; this
 //  * function does not touch that boundary at all.
 //  *
 //  * ── This is the ONE production entry point — self-validating, so `winisd_tools`'s entire job
@@ -47,14 +47,14 @@
 //  *
 //  *   2. **`wdr-round-trip`** — `toWdrText() -> fromWdrText()`, re-reading the very `.wdr` text
 //  *      this function is about to return, compared against the ORIGINAL driver at the `cell()`
-//  *      level for every `@openisd/design/winisd` `INI_ROWS` field the original record STATED
+//  *      level for every `@openisd/winisd` `INI_ROWS` field the original record STATED
 //  *      (`Provenance.Entered`). `.wdr` is a minimal 49-slot numeric format
 //  *      (`docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md` Step 8): it carries no `uuid`, no
 //  *      provenance, no `dq`, no `data_sources`, no `product_image`, no `description`, no
 //  *      driver-type discriminator (a passive-radiator or full-range record reads back as a
 //  *      plain `woofer` section), and no spec field outside `INI_ROWS` (`freq_low_hz`,
 //  *      `freq_high_hz`, `power_peak_W`, `voice_coil_dia_mm`, `weight_kg` observed lost in real
-//  *      corpus fixtures, `packages/design/test/winisd/fixtures/openisd/{e150he-44,w5-1138smf}.openisd.yml`).
+//  *      corpus fixtures, `packages/winisd/test/fixtures/openisd/{e150he-44,w5-1138smf}.openisd.yml`).
 //  *      Comparing the full record here would fail on nearly every field of nearly every record —
 //  *      not because the projection is wrong, but because `.wdr` was never designed to carry that
 //  *      data (`bugs/BUG_20260824_wdr_round_trip_always_loses_the_original_comment_field.md` in
@@ -67,7 +67,7 @@
 //  *      fields is that same bar applied here: the set of things `.wdr` actually promises to
 //  *      carry, checked against what it actually carried — every such field survived exactly,
 //  *      byte-for-value, in every fixture this was checked against (both
-//  *      `packages/design/test/winisd/fixtures/openisd/` samples and real corpus records `grs/8fr-8`,
+//  *      `packages/winisd/test/fixtures/openisd/` samples and real corpus records `grs/8fr-8`,
 //  *      `tang-band/pr01`, `accuton/asp190` — the last two passive-radiator). Both
 //  *      `Provenance.Entered` AND `Provenance.Calculated` `INI_ROWS` fields are compared — NOT
 //  *      only Entered ones: every field that can feed `solveConsistencyGroup`/
@@ -99,7 +99,7 @@
 //  */
 // import { parse } from 'yaml';
 // import type { DriverError, Result } from '@openisd/design/engine';
-// import { INI_ROWS } from '@openisd/design/winisd';
+// import { INI_ROWS } from '@openisd/winisd';
 // import { OpenISDDriver } from './project.js';
 //
 // /** Deep-compares two JSON-shaped values; returns a slash-separated path naming the FIRST point

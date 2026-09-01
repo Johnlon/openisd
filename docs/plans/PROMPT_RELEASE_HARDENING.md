@@ -332,7 +332,7 @@ Symmetry is highly valued - consistency is highly valued - encapsulation etc etc
   projection, no V8 objection. Single-record diff vs golden classified: 16 known-missing =
   correction; model-name = golden stale; c/roo = D19 ruling working (computed airFor, not
   constants — differential classifies as expected); Comment divergence = KNOWN-OPEN, bug
-  4111d7b4 (winisd_tools), tied to the QO81 Comment-sidecar idea, John's queue.
+  4111d7b4 (winisd_tools), tied to the QO81 Comment-openisd.yml idea, John's queue.
 - (superseded state below)
  — for resume-after-restart; re-verify, don't trust)
 
@@ -530,7 +530,7 @@ never improvise around it.
       `passive-radiator` (kebab, not snake — the 2026-08-23 human ruling collapsed both the
       `driver_type` value AND the `specs:` section key onto hyphen, superseding QO65's original
       underscore choice) is the ONLY spelling, in **78 PR records (154 files: 78 `driver.yml` +
-      76 `openisd.yml` — 2 records have no `openisd.yml` sidecar)** migrated by
+      76 `openisd.yml` — 2 records have no `openisd.yml` openisd.yml)** migrated by
       `scrapers/bin/fix_passive_radiator_spelling.py` then `fix_passive_radiator_type_value.py`
       (idempotent, archive untouched, both
       record kinds validated), openisd dual-accept deleted. Spin-out:

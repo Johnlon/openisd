@@ -306,7 +306,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
         it(`has no golden and none is obtainable — ${uncapturable.reference}`, () => {
           assert.ok(!existsSync(join(goldensDir, `${s.id}.wpr`)),
             `${s.id} now has a golden on disk — remove it from UNCAPTURABLE, this assertion is stale`);
-          assert.ok(existsSync(join(here, '..', '..', '..', uncapturable.reference)),
+          assert.ok(existsSync(join(here, '..', '..', '..', '..', uncapturable.reference)),
             `${uncapturable.reference} does not exist — UNCAPTURABLE cites a bug record that is gone`);
         });
       });

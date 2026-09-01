@@ -12,7 +12,7 @@
 import { reactive } from 'vue';
 import type { ChartTabId, DragRange, YRange } from '../types.js';
 import type { UiState } from '@openisd/persistence';
-import { getOrInit } from './hmrSingleton.js';
+import { getOrInit, hmrSlots } from './hmrSingleton.js';
 import { nextToken, type UnitGroup } from './fields/units.js';
 
 export const AIR_CONSTANTS_APP_DEFAULT: UiState['envDefaults'] =
@@ -59,8 +59,20 @@ function buildPresentationState(): PresentationState {
   return s;
 }
 
+/** This module's hot-reload-surviving singletons, one typed member each (`hmrSingleton.ts`). */
+interface PresentationSingletons {
+  state: PresentationState;
+}
+declare global {
+  var __openisd_presentationState: Partial<PresentationSingletons> | undefined;
+}
+const slots = hmrSlots<PresentationSingletons>(
+  () => globalThis.__openisd_presentationState,
+  s => { globalThis.__openisd_presentationState = s; },
+);
+
 export const presentationState: PresentationState =
-  getOrInit('presentationState', 'state', () => reactive(buildPresentationState()));
+  getOrInit(slots, 'state', () => reactive(buildPresentationState()));
 
 // ---- Per-field display units (fields/units.ts) ------------------------------------
 // The design store stays SI; these only choose how a field is shown/entered. A shell pairs a

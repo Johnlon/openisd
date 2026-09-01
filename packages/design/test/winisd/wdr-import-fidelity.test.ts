@@ -36,7 +36,7 @@ function driverOf(wdr: string): OpenISDDriver {
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLES = join(here, '..', '..', '..', 'drivers', 'sample', 'winisd');
+const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
 
 /**
  * The `sealed-small` parity scenario as `.wdr` text — 22 keys and no `ParState`, which is the

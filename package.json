@@ -9,9 +9,10 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint packages/",
-    "typecheck": "npm run typecheck:design && npm run typecheck:persistence && npm run typecheck:ui",
+    "typecheck": "npm run typecheck:design && npm run typecheck:persistence && npm run typecheck:winisd && npm run typecheck:ui",
     "typecheck:persistence": "tsc -p packages/persistence --noEmit",
     "typecheck:design": "tsc -p packages/design --noEmit",
+    "typecheck:winisd": "tsc -p packages/winisd --noEmit",
     "typecheck:ui": "vue-tsc -p packages/ui --noEmit",
     "check": "npm run lint && npm run typecheck && npm run test:unit",
     "ci": "npm run lint && npm run typecheck && npm run test",
@@ -19,7 +20,7 @@
     "dev": "vite",
     "prebuild": "npx vite-node scripts/bundle-drivers.mjs && npm run lint",
     "build": "vite build",
-    "build:bridge": "vite build --config packages/design/vite.bridge.config.ts",
+    "build:bridge": "vite build --config packages/winisd/vite.bridge.config.ts",
     "preview": "vite preview",
     "test": "bash scripts/test.sh",
     "test:unit": "vitest run",
@@ -66,6 +67,7 @@
   "dependencies": {
     "@openisd/engine": "*",
     "@openisd/model": "*",
+    "@openisd/winisd": "*",
     "vue": "^3.5.38"
   }
 }

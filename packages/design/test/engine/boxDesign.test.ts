@@ -22,6 +22,8 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
+import type { SweepParams } from '../../engine/index.js';
+import type { SolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -80,13 +82,13 @@ describe('Efficiency Bandwidth Product (EBP = Fs / Qes)', () => {
     // Ref: [Wiki-TS]
     // For our test driver: Fs=37 Hz, Qes=0.40 → EBP = 92.5
     const EXPECTED_EBP = 37 / 0.40; // = 92.5
-    assert.ok(Math.abs(engine.ebp(DRIVER) - EXPECTED_EBP) < EXACT,
-      `EBP should be Fs/Qes = ${EXPECTED_EBP}, got ${engine.ebp(DRIVER)}`);
+    assert.ok(Math.abs(engine.ebp(DRIVER.Fs, DRIVER.Qes) - EXPECTED_EBP) < EXACT,
+      `EBP should be Fs/Qes = ${EXPECTED_EBP}, got ${engine.ebp(DRIVER.Fs, DRIVER.Qes)}`);
   });
 
   it('a driver with EBP = 37/0.40 = 92.5 sits in the borderline zone (50 < EBP < 100)', () => {
     // This is a sanity check that the result is physically meaningful.
-    const result = engine.ebp(DRIVER);
+    const result = engine.ebp(DRIVER.Fs, DRIVER.Qes);
     assert.ok(result > 50 && result < 100,
       `EBP ${result.toFixed(1)} should be in the 50–100 borderline zone for this driver`);
   });
@@ -94,7 +96,7 @@ describe('Efficiency Bandwidth Product (EBP = Fs / Qes)', () => {
   it('a woofer with very low Qes (high Bl) has a high EBP — strongly vented-preferred', () => {
     // Very high Bl → very low Qes → very high EBP → strong vented preference.
     const highBlDriver = { ...DRIVER, Qes: 0.10 }; // Qes=0.10 is very high Bl
-    const result = engine.ebp(highBlDriver);
+    const result = engine.ebp(highBlDriver.Fs, highBlDriver.Qes);
     assert.ok(result > 100,
       `High-Bl driver EBP ${result.toFixed(1)} should exceed 100 (vented preferred)`);
   });
@@ -116,7 +118,7 @@ describe('Sealed box volume for a target system Q (sealedFromQtc)', () => {
     //   Vb = 0.030 / ((0.707/0.38)² − 1)
     //      = 0.030 / (3.4636 − 1)  ≈ 0.01217 m³ ≈ 12.17 L
     const QTC_BUTTERWORTH = Math.SQRT1_2; // 1/√2 = 0.7071
-    const Vb = engine.sealedFromQtc(DRIVER, QTC_BUTTERWORTH);
+    const Vb = engine.sealedFromQtc(DRIVER.Qts, DRIVER.Vas, QTC_BUTTERWORTH);
     assert.ok(Vb !== null,
       'Butterworth alignment should be physically realisable for this driver');
     // Verify by rounding: Qtc from resulting Vb should equal 0.7071
@@ -128,8 +130,8 @@ describe('Sealed box volume for a target system Q (sealedFromQtc)', () => {
   it('a higher Qtc target gives a smaller enclosure (less box compliance needed)', () => {
     // Higher Qtc = more boost = smaller box.
     // Qtc 0.9 > 0.707, so Vb(0.9) < Vb(0.707).
-    const Vb_707 = engine.sealedFromQtc(DRIVER, Math.SQRT1_2);
-    const Vb_090 = engine.sealedFromQtc(DRIVER, 0.9);
+    const Vb_707 = engine.sealedFromQtc(DRIVER.Qts, DRIVER.Vas, Math.SQRT1_2);
+    const Vb_090 = engine.sealedFromQtc(DRIVER.Qts, DRIVER.Vas, 0.9);
     assert.ok(Vb_707 !== null && Vb_090 !== null);
     assert.ok(Vb_090 < Vb_707,
       `Vb for Qtc=0.9 (${(Vb_090 * 1000).toFixed(1)} L) should be less than Vb for Qtc=0.707 (${(Vb_707 * 1000).toFixed(1)} L)`);
@@ -139,14 +141,14 @@ describe('Sealed box volume for a target system Q (sealedFromQtc)', () => {
     // Qtc < Qts is not realisable — any finite box raises Qtc, not lowers it.
     // The formula gives (Qtc/Qts)² < 1, so the denominator is negative → null.
     const QTC_BELOW_QTS = DRIVER.Qts - 0.01; // just below Qts
-    const result = engine.sealedFromQtc(DRIVER, QTC_BELOW_QTS);
+    const result = engine.sealedFromQtc(DRIVER.Qts, DRIVER.Vas, QTC_BELOW_QTS);
     assert.equal(result, null,
       `Qtc=${QTC_BELOW_QTS} < Qts=${DRIVER.Qts} should return null (unrealisable)`);
   });
 
   it('returns null when the target Qtc equals the driver Qts (infinite box — open baffle)', () => {
     // At Qtc = Qts exactly, the formula gives Vb = Vas / 0 → undefined (infinite box).
-    const result = engine.sealedFromQtc(DRIVER, DRIVER.Qts);
+    const result = engine.sealedFromQtc(DRIVER.Qts, DRIVER.Vas, DRIVER.Qts);
     assert.equal(result, null,
       `Qtc = Qts should return null (would require infinite box)`);
   });
@@ -370,22 +372,26 @@ describe('PR added-mass auto-tune (prMassForFp)', () => {
 
 describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () => {
   it('calculates lossy Fsc and Qtc from the impedance curve peak', () => {
-    const drv = {
-      Fs: 40,
-      Vas: 0.010,
+    // Stated in full, so no relation has to run — but the TERMINAL Re and BL still have to be
+    // derived beside the stated per-coil values, because that pair is what `sweep` reads. One
+    // coil here, so terminal equals per-coil.
+    const drv: SolverQuantities = {
+      Fs_hz: 40,
+      Vas_m3: 0.010,
       Qts: 0.4,
       Qes: 0.444,
       Qms: 4.0,
-      Re: 6.0,
-      Sd: 0.010,
-      Mms: 0.026,
-      Cms: 0.0006,
-      Rms: 1.5,
-      BL: 10.0,
-      Pe: 100,
-      numVC: 1,
+      Re_ohm: 6.0,
+      Sd_m2: 0.010,
+      Mms_kg: 0.026,
+      Cms_m_per_N: 0.0006,
+      Rms_kg_per_s: 1.5,
+      BL_Tm: 10.0,
+      Pe_W: 100,
+      Re_terminal_ohm: engine.terminalRe_ohm(6.0, 1, undefined),
+      BL_terminal_Tm: engine.terminalBL_Tm(10.0, 1, undefined),
     };
-    const P = {
+    const P: SweepParams = {
       Vb: 0.010,
       Ql: 10,
       Qa: 100,

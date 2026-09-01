@@ -74,7 +74,7 @@ export {
 // both the saved and the edited state. As a TYPE only, like every other class here — the
 // constructor is private, and `newProject()` is the way one comes into existence.
 //
-// `emptyProjectJson` is NOT exported: it takes and returns package-private record types.
+// `projectJson` is NOT exported: it takes and returns package-private record types.
 export type { OpenISDProject } from './project.js';
 
 // ── PERSISTENCE ────────────────────────────────────────────────────────────────────────────

@@ -72,7 +72,7 @@ wasted work.
 | `consistencyIssues()` | design has `checkConsistency()` — rename at the call sites |
 | `toDriver()` | **deleted.** Callers pass `terminalFields()` + `Le_H()` straight to `sweep` |
 | `ebp()` | resolve with `bugs/BUG_20260830_two_ebp_methods_disagree…` — `ebp()` and `EBP()` return different numbers on 42 of 209 corpus records. ONE accessor, through the cell |
-| `toWdrText()` | `domain/openisdYamlToWdr.ts` exists design-side; wire the call sites to it |
+| `toWdrText()` | superseded by §4d — `toOpenIsdYml()`/`toWdrIni()` on `domain/openisdYamlToWdr.ts` |
 | `toOwdrJson()`, `toOwdrYml()` | serialisation, not driver behaviour — needs a home that is not the driver |
 | `standingEvidence()`, `sku()`, `description()`, `dataSourceUrl()`, `withDataSourceLinks()` | record identity/provenance; no design-side home yet |
 | `mintFreshUuid()`, `previewField()` | editor mechanics; check the UI still needs them at all before porting |
@@ -155,17 +155,44 @@ So a corrupt share link or a hand-edited `.owdr` raises an exception at exactly 
 the seam promises _"returns problems rather than throwing"_. The contract holds for records and is
 defeated for text — and text is the untrusted half.
 
-**So design gets two seams, not one widened one:**
+**So design gets three seams, not one combined one (John, 2026-08-31: _"in the call site why
+don't we know which kind of file it is expected to be?"_ — checked, and it does):**
 
 ```ts
-driverFromText(text: string, format: DriverFileFormat): OpenISDDriver | string[]
+driverFromWdrIni(text: string): OpenISDDriver | string[]
+driverFromOpenIsdYml(text: string): OpenISDDriver | string[]
 driverFromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | string[]
 ```
 
-`driverFromText` parses INSIDE, in a `try`, and a parse failure becomes one more entry in the same
-`string[]` before handing off to the record seam. That makes the boundary type exact, reports a
-malformed file the same way as a malformed record, and collapses five scattered `try/catch` blocks
-into one.
+**All three are free functions in `domain/project.ts`, not statics on a class** —
+`driverFromConformingRecord` already lives there (`:1759`, alongside `passiveRadiatorFromConformingRecord`
+at `:1782`), and the two new ones join it. Neither `OpenISDDriver.fromWdrIni()` nor any other
+class-static form exists in this design — unlike `packages/model`'s old `OpenISDDriver.fromX()`
+statics and `packages/winisd`'s `WinISDDriver.fromWdrIni()`/`WinISDProject.fromWprIni()` (both
+untouched, WinISD-format code, statics on their own classes, no part of this migration).
+
+**No combined `driverFromWdrIniOrOpenIsdYml(text, format)`.** Verified against the two real
+call sites that classify a file before reading it — `driverBrowsingState.ts:392-398` and
+`useDesignIO.ts:181-198` — both already run `DriverFileFormat.ofFileName(file.name) ??
+sniff(bytes)` and branch on the result BEFORE calling anything. `useDesignIO.ts` already calls
+two separate format-specific methods from that branch (`loadDriverFromWdrText` /
+`loadDriverFromOwdrText` today). Only the old `OpenISDDriver.fromFileText(text, format)` /
+`driverFromFileText(text, format, fileName)` pointlessly undo that: the caller turns its
+already-known format into a `'wdr' | 'owdr'` string, hands it to a "combined" function, which
+re-branches on the string to reach the real single-format code — two dispatches to do one job.
+A `format` parameter passed in by a caller that already knows the answer is not a reason for a
+combined name; it is evidence the combination is unnecessary. Each call site keeps its own
+`if (format === DriverFileFormat.Wdr) { ... } else { ... }` (it already has one) and calls
+`driverFromWdrIni`/`driverFromOpenIsdYml` directly from each branch — matching the pattern
+`useDesignIO.ts` already uses, not the one `driverFromFileText` uses.
+
+The persisted/share-link JSON blob is `loadDriverFromPersistedJson` (§4c), a separate function
+outside these two formats.
+
+Each of `driverFromWdrIni`/`driverFromOpenIsdYml` parses INSIDE, in a `try`, and a parse failure
+becomes one more entry in the same `string[]` before handing off to the record seam. That makes
+the boundary type exact, reports a malformed file the same way as a malformed record, and
+collapses five scattered `try/catch` blocks into two (one per format, not one per call site).
 
 **Document the reasoning where an agent will meet it before narrowing the signature** — the
 `unknown` rationale is currently in NO docstring, NO rule file and NO architecture doc (grepped
@@ -180,6 +207,170 @@ cast — it multiplies it by every call site.
 
 Both are creation, not import, so the seam does not cover them. `newProject(driver, engine)`
 exists design-side and covers the second half once a blank driver can be made.
+
+## 4c. `ManagedProject` is DELETED, not ported (John, 2026-08-31)
+
+**John:** *"managedProject in logic is defunct ... its useless now that the OpenISDProject itself
+manages layer state"*. Verified: `domain/project.ts:1857-1861` —
+
+```ts
+#saved: OpenISDProjectJson;
+#edited: OpenISDProjectJson | null = null;   // null until the first write
+```
+
+with `#current()` answering `#edited ?? #saved`, `#mutable()` copying on first write, and
+modified-ness answered by the presence of `#edited`. Save, Cancel and the modified flag are the
+domain's.
+
+`packages/ui/src/logic/managedProject.ts` is **980 lines** implementing the same two-layer scheme
+in the UI. It is the single largest thing the migration removes, and it is a DELETION rather than
+a port — every consumer moves to the project itself.
+
+Its consumers: `logic/appState.ts`, `logic/useVentGroup.ts`, `logic/usePrGroup.ts`,
+`logic/presentationState.ts`, `ui/shells/original/OriginalShell.vue`, plus five tests.
+
+Two things it does that the domain does NOT, and which therefore need homes before it goes:
+
+- **the driver-editor seam** — `committedDriverText()`/`persistedDriverText()`, which serialise the
+  driver so `DriverEditorModal` can re-parse it into a draft. Design has `driver.detach()`, which
+  gives a detached copy with no text round trip and no model import; that is the replacement.
+- **file adoption** — no ported/renamed wrapper (John, 2026-08-31: _"get rid of the useless
+  wrapper"_). Today's `loadDriverFromWdrText`/`loadDriverFromOwdrText`/`loadDriverFromPersistedText`
+  (`managedProject.ts:841,849,861`) are each exactly `const driver = fromX(text);
+  this.mutate(p => p.setDriver(driver))` — a name that adds nothing once §4b's
+  `driverFromWdrIni`/`driverFromOpenIsdYml` already parse AND validate, and once the persisted-JSON
+  case is just `driverFromConformingRecord(JSON.parse(text), engine)` (same substitution as the
+  `fromOwdrJson` row in §4b's own table — no third wrapper needed for it either). Since
+  `ManagedProject` itself is deleted, not ported, there is no object left to hang a one-line
+  wrapper method on. Each caller (`driverBrowsingState.ts:398`, `useDesignIO.ts:184,198,204`)
+  calls the seam function directly and sets the result on the project itself:
+  `project.setDriver(driverFromWdrIni(text))` (or the `string[]`-checking
+  equivalent for the two that can fail), inline, no intermediate method.
+
+## 4d. The WDR export pipeline — see `drivers/drivers.md`, not this section
+
+**Consolidated 2026-08-31.** This section used to duplicate a design that already exists,
+approved, at `drivers/drivers.md` (John, 2026-08-30) — `OpenISDDeviceJson`, the
+`driverYmlToOpenisdAndWdr(driverYmlText) → { openisd, wdr, errors }` bridge, and the
+`dq_scraper`/`dq_calculated` split. Verified 2026-08-31 that nothing has drifted: `OpenISDDeviceJson`
+(`domain/project.ts:345`) and `SpecEntryJson`/`ScrapedFieldJson`'s paired `dq_scraper?`/
+`dq_calculated?` (`:125-142`, PER SPEC ENTRY, not a top-level record field — an earlier draft of
+this section wrongly placed `dq_calculated` after the top-level `quality` key) are already live
+code, matching `drivers.md` Part A. Only `drivers.md`'s Part C bridge function itself is still
+unbuilt — confirmed by grep, zero hits for `driverYmlToOpenisdAndWdr` anywhere in the tree.
+
+The one addition this section's drafting produced that `drivers.md` didn't already have — round-tripping
+against the TRUE ORIGINAL `driver.yml` object rather than an intermediate, with an absent key
+throwing and a changed key joining `errors[]` — is now folded into `drivers.md` Part C step 6
+directly. Read it there.
+
+This supersedes the WDR-only contract in §4b: `driverFromWdrIni`/`driverFromOpenIsdYml`/
+`driverFromConformingRecord` stay the UI's file-import record-shape boundary — a separate
+pipeline from `drivers.md`'s corpus-generation bridge, not the same one under a different name.
+`packages/winisd/src/bridge.ts`'s JSON envelope and docstring need updating to carry `openisd`
+alongside `wdr` once `drivers.md` Part C lands — its current contract (`{ wdr, errors }`)
+predates that design.
+
+## 4d-bis. ⛔ `drivers.md` Part C cannot live in `packages/design` — dependency cycle
+
+**Found 2026-08-31 while building Part C, TDD red in place
+(`packages/design/test/driverYmlToOpenisdAndWdr.test.ts`, 5 tests failing on "not a function").**
+
+`drivers.md` Part C says _"Files: the entry in `packages/design`, exposed through
+`packages/winisd/src/bridge.ts`"_. That is not implementable as written:
+
+| fact | evidence |
+| --- | --- |
+| `packages/winisd` depends on `@openisd/design` | `packages/winisd/package.json:17` |
+| `packages/design` declares NO dependencies, and imports nothing from winisd | its `package.json`; grep finds zero live `@openisd/winisd` imports in `packages/design` |
+| the `.wdr` transformer lives in winisd | `WinISDDriver`, `packages/winisd/src/winisdDriver.ts` |
+
+So an entry point in `packages/design` that builds `.wdr` text must import `WinISDDriver` from
+`@openisd/winisd`, and **design → winisd → design is a cycle**. The commented-out
+`packages/design/domain/openisdYamlToWdr.ts:102` is literally `import { INI_ROWS } from
+'@openisd/winisd'` — uncommenting that file as-is creates the cycle.
+
+**Corroborating evidence that this was already hit once:** `packages/design/winisd/iniRows.ts`
+exists (created 2026-08-29), a second copy of `INI_ROWS` inside design, and **nothing imports
+it** — an orphaned start on duplicating the key list to dodge this exact cycle.
+
+**RULED (John, 2026-08-31, QO103): _"opt 1"_ — the entry lives in `packages/winisd`.**
+
+It already depends on design, so there is no cycle; `bridge.ts` — the V8 door — is already there;
+and it needs NO change to `packages/design`, keeping that package's zero-dependency state.
+`drivers.md` Part C is corrected to match.
+
+Rejected: moving `WinISDDriver`/`INI_ROWS` into design (a package-boundary change that would cost
+a second `INI_ROWS` list with nothing checking the two agree), and splitting the job across both
+packages.
+
+**Still open, deliberately NOT folded into that ruling:** the dead
+`packages/design/winisd/iniRows.ts` — a 48-key verbatim duplicate of `winisdDriver.ts:69`,
+imported by nothing, verified independently by two sessions. Deleting it is itself a change to
+`packages/design` and needs its own approval.
+
+## 4e. The bundler self-check (QO102) — BLOCKED on one file, and on one ruling
+
+**What John asked for (2026-08-31):** _"bundler shoud emit bundle then try loading the entire
+bundle using same code path app uses and then compare the two sets"_, and earlier _"the bundle
+shoud get checked during bundling, and the startup should implicetely check it"_.
+
+**Why it cannot run today.** `scripts/bundle-drivers.mjs:43` imports `./roundTripGate.mjs`, whose
+line 20 is `import { OpenISDDriver } from '@openisd/model'` — a module that now exports nothing.
+The bundler therefore cannot start at all. The same dead import sits in
+`packages/persistence/src/repos/driverRepo.ts` lines 3 and 7 (`OpenISDDriver`, then
+`DriverType, Chip`), which is the app's own load path — so "reload through the code path the app
+uses" has no working path to reload through. (A pre-existing TS7006 at `driverRepo.ts:219`,
+param `c` implicitly `any`, is downstream of the dead `Chip` import and clears with it.)
+
+**Everything `bundledEntry()` calls on a driver** — `driverRepo.ts:579-608`, read 2026-08-31:
+
+```
+OpenISDDriver.fromJsonRecord(record)
+driver.Fs()  driver.Sd()  driver.Re()  driver.Znom()  driver.Pe()
+driver.added()
+driver.dataSourceUrl('manufacturer_datasheet' | 'manufacturer_product_page' | 'distributor_product_page')
+```
+
+plus `myDriverName(driver)` and `classifyTypes(driver.Fs(), driver.Sd(), …)` in the same file.
+
+### ⛔ The blocking ruling — do NOT resolve this by re-adding accessors
+
+**Design has none of `Fs()`, `Sd()`, `Re()`, `Znom()`, `Pe()`, `dataSourceUrl()`** — verified by
+grep 2026-08-31, zero hits in `domain/project.ts`. They are absent **because John removed them**
+(2026-08-31: _"and why are there accessors on OpenISDDriver"_, then _"kill them all"_). `added` is
+a `Field<string>` on `OpenISDDevice`, not the `added()` method `driverRepo` calls. There is no
+`DriverType`/`Chip` design-side either.
+
+So the obvious repair — put the accessors back so `driverRepo` compiles — **silently reverses a
+decision John made the same day**, and `packages/design/AGENTS.md` makes adding any API there his
+call regardless. The likely shape is `driverRepo` reading through `fields()`/`spec.woofer` rather
+than accessors returning, but that is a ruling, not an inference. **PROPOSE AND STOP.**
+
+### The strictness change this introduces, which must not arrive as a surprise
+
+The model path built bundled rows with **no conformance check at all** — `driverRepo.ts:84-88`
+states it outright: _"bundled drivers ship inside this build's own dist and are always current, so
+no conformance check runs against them"_. `driverFromConformingRecord` validates every record. So
+reloading the bundle through design is a **stronger gate than the app has ever had**, and it
+should be expected to reject records the old path accepted silently. That is the gate working, not
+a regression — but it lands during a build, so it needs saying in advance.
+
+### Already landed (`api-design`, uncommitted; verified 2026-08-31, do not rebuild)
+
+- `readBundle(json)` — `driverRepo.ts:126`, returning `{bundle}` or `{problems: string[]}`, with
+  `BundleRecord.record` typed `unknown` so no member goes unchecked. `DriverBundle` at `:103`.
+- Both exported from `packages/persistence/src/index.ts:14`.
+- `DriverRepoDeps.bundle` is now `DriverBundle`, so the check is the only way to obtain one.
+- `packages/ui/src/main.ts` calls `readBundle` instead of casting; the `main.ts:30` cast is gone.
+
+**So the "check during bundling" half is one line** once the load path is alive: import
+`readBundle` from `@openisd/persistence` in `bundle-drivers.mjs` (it runs under vite-node, so TS
+imports resolve) and refuse to write when it returns problems. **The emit/reload/compare half is
+what needs the migrated `driverRepo`** — and therefore the accessor ruling above.
+
+**Ownership:** `driverRepo.ts` is `api-design`'s working file right now. These edits are theirs to
+make once John rules, not this session's.
 
 ## 5. The codemod — 228 call sites
 

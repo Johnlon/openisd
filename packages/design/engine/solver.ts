@@ -8,7 +8,7 @@
  *   Small, R.H. "Direct-Radiator Loudspeaker System Analysis." JAES 20(5) 1972.
  *   https://aes.org/e-lib/browse.cfm?elib=2008
  *
- * WinISD .wdr parse/serialise and ParState provenance live in @openisd/design/winisd, not
+ * WinISD .wdr parse/serialise and ParState provenance live in @openisd/winisd, not
  * here — this module is pure physics with no file-format concern (ARCHITECTURE.md AD-6).
  */
 
@@ -108,8 +108,9 @@ export function nominalImpedance(Re: number): number {
  */
 export function solveConsistencyGroup(p: SolverQuantities): SolverQuantities {
   // The result is a SUPERSET of the input: every quantity handed in comes back out, plus what
-  // the solver derived. `numVC` and `wiring` ride along untouched — the solver reads them and
-  // never consumes them, and dropping them would make re-solving a result lossy.
+  // the solver derived. `numVC` and `wiring` ride along untouched — the solver READS them, to
+  // finish the terminal values below, and never consumes them; dropping them would make
+  // re-solving a result lossy.
   const r: SolverQuantities = { ...p };
 
 
@@ -174,13 +175,23 @@ export function solveConsistencyGroup(p: SolverQuantities): SolverQuantities {
       setVal('Fs_hz', r.EBP_hz * r.Qes);                                                         // rel 12
     }
 
-    // 3b. Mms, Cms from Fs — the reverse directions, unaffected by which Fs route fired.
+    // 3b. Mms from Fs and Cms — the reverse direction, unaffected by which Fs route fired.
     if (r.Mms_kg == null && r.Fs_hz != null && r.Cms_m_per_N != null) setVal('Mms_kg', 1 / ((TAU * r.Fs_hz) ** 2 * r.Cms_m_per_N));
-    if (r.Cms_m_per_N == null && r.Fs_hz != null && r.Mms_kg != null) setVal('Cms_m_per_N', 1 / ((TAU * r.Fs_hz) ** 2 * r.Mms_kg));
 
     // 4. Vas, Cms, Sd
     if (r.Vas_m3 == null && r.Cms_m_per_N != null && r.Sd_m2 != null) setVal('Vas_m3', driverRho(r) * driverC(r) * driverC(r) * r.Sd_m2 * r.Sd_m2 * r.Cms_m_per_N);
+
+    // 🔒 Cms has TWO routes, and the ORDER matters — the same shape as the Rme precedence below.
+    // The GEOMETRY route wins: Cms from Vas and Sd, not from Fs and Mms. John tested this against
+    // real WinISD (2026-09-01) and it prefers Sd/Vas.
+    //
+    // It decides who gets blamed for a contradiction, which is the point. A driver whose stated
+    // Mms cannot be true resolves its compliance from the geometry, so the impossible Mms then
+    // disagrees with the Fs/Mms/Cms group — the fields the user actually typed. Letting Fs/Mms
+    // win instead would rewrite Cms from the bad value and report the contradiction against Vas,
+    // Cms and Sd, three fields nobody touched.
     if (r.Cms_m_per_N == null && r.Vas_m3 != null && r.Sd_m2 != null && r.Sd_m2 > 0) setVal('Cms_m_per_N', r.Vas_m3 / (driverRho(r) * driverC(r) * driverC(r) * r.Sd_m2 * r.Sd_m2));
+    if (r.Cms_m_per_N == null && r.Fs_hz != null && r.Mms_kg != null) setVal('Cms_m_per_N', 1 / ((TAU * r.Fs_hz) ** 2 * r.Mms_kg));
     if (r.Sd_m2 == null && r.Vas_m3 != null && r.Cms_m_per_N != null && r.Cms_m_per_N > 0) setVal('Sd_m2', Math.sqrt(r.Vas_m3 / (driverRho(r) * driverC(r) * driverC(r) * r.Cms_m_per_N)));
 
     // 5. Rms, Fs, Mms, Qms — WinISD has no route deriving Fs from this triple (see block 3).
@@ -309,7 +320,7 @@ export function solveConsistencyGroup(p: SolverQuantities): SolverQuantities {
       setVal('Rme_kg_per_s', r.BL_Tm * r.BL_Tm / r.Re_ohm);
     }
     // Mpow = Bl/√Re — WinISD's OWN route, not √Rme. Verified from the `inconsistent-fs`
-    // parity golden (packages/design/test/winisd/fixtures/winisd-parity/goldens/inconsistent-fs.wpr):
+    // parity golden (packages/winisd/test/fixtures/winisd-parity/goldens/inconsistent-fs.wpr):
     // that record's stored `Fs` is written at exactly twice its true 1/(2π√(Mms·Cms)), which
     // separates the two candidate routes (they agree on every self-consistent record, which is
     // why 14 of the 15 parity goldens couldn't distinguish them). On that record WinISD wrote
@@ -380,6 +391,17 @@ export function solveConsistencyGroup(p: SolverQuantities): SolverQuantities {
       changed = true;
     }
 
+    // 24. Semi-inductance — `KLe = Le·√(2π·fLe)` (WINISD_SCHEMA.md §rel-24, read from WinISD's
+    // own calculation engine; John confirmed the behaviour by hand against WinISD 2026-08-31).
+    //
+    // ONE DIRECTION ONLY, and deliberately so: WinISD calculates no route to `Le` or `fLe`, which
+    // is why both are always either typed in or absent. Adding the inverse would manufacture
+    // provenance WinISD never claims — a driver would start reporting a CALCULATED `Le` that no
+    // datasheet stated and no measurement produced.
+    if (r.KLe_H_sqrtHz == null && r.Le_H != null && r.fLe_hz != null && r.fLe_hz > 0) {
+      setVal('KLe_H_sqrtHz', r.Le_H * Math.sqrt(TAU * r.fLe_hz));
+    }
+
     iterations++;
   }
 
@@ -397,6 +419,21 @@ export function solveConsistencyGroup(p: SolverQuantities): SolverQuantities {
     r.EBP_hz = ebp(r.Fs_hz, r.Qes);
   }
 
+  // THE TERMINAL VALUES, LAST. Not a relation — nothing else in the group constrains them, and
+  // they answer a question about the WIRING rather than about the driver's parameters. So they
+  // are computed once, after the fixpoint, from whatever `Re_ohm` and `BL_Tm` finally are:
+  // `Re_ohm` is itself derivable, so computing these earlier would fix them to a value the solve
+  // then moved.
+  //
+  // Here rather than at the caller because `sweep` REQUIRES this pair. A solver that stopped short
+  // of it left every caller to finish the job, and a caller that forgot got a driver the engine
+  // refused with a message naming a field it had never been able to supply.
+  if (r.Re_terminal_ohm == null && r.Re_ohm != null) {
+    r.Re_terminal_ohm = terminalRe_ohm(r.Re_ohm, r.numVC, r.wiring);
+  }
+  if (r.BL_terminal_Tm == null && r.BL_Tm != null) {
+    r.BL_terminal_Tm = terminalBL_Tm(r.BL_Tm, r.numVC, r.wiring);
+  }
 
   return r;
 }

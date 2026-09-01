@@ -24,6 +24,7 @@ import { computed, ref } from 'vue';
 import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
 import { limits } from '../../../logic/fields/fieldRegistry.js';
 import type { Filter, FilterType } from '@openisd/design/engine';
+import { inputValue, inputChecked } from '../../../logic/domEvents.js';
 
 const project = useFocusedProject();
 const filters = computed<Filter[]>(() => project.value.filters());
@@ -67,7 +68,7 @@ function patch(id: string | undefined, field: keyof Filter, value: number | bool
   if (!id) return;
   project.value.setFilter(id, { [field]: value } as Partial<Filter>);
 }
-function numFrom(e: Event): number { return Number((e.target as HTMLInputElement).value); }
+function numFrom(e: Event): number { return Number(inputValue(e)); }
 
 function fnum(v: number | undefined, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 function summary(f: Filter): string {
@@ -90,7 +91,7 @@ function summary(f: Filter): string {
            class="filter-row-inline" :class="{ editing: editing === f.id, 'filter-disabled': !f.enabled }">
         <div class="filter-row-head">
           <input type="checkbox" :checked="f.enabled" title="Bypass / enable this filter" @click.stop
-                 @change="patch(f.id, 'enabled', ($event.target as HTMLInputElement).checked)">
+                 @change="patch(f.id, 'enabled', inputChecked($event))">
           <span class="filter-type-badge">{{ BADGE[f.type] }}</span>
           <span class="filter-summary" @click="toggleEdit(f.id)">{{ summary(f) }}</span>
           <span class="filter-edit-hint" @click="toggleEdit(f.id)">✎ edit</span>

@@ -125,6 +125,13 @@ function relations(): readonly Relation[] {
   { formula: 'DVol = (π/4)·[ (Dd²+Dd·Vcd+Vcd²)·(Depth−MagDepth)/3 + Magnet²·MagDepth ]',
     target: 'DVol_m3', fields: ['DVol_m3', 'Dd_m', 'Vcd_m', 'Depth_m', 'MagDepth_m', 'Magnet_m'],
     predict: (g) => dvolFromDims({ Dd: g('Dd_m'), Vcd: g('Vcd_m'), Depth: g('Depth_m'), MagDepth: g('MagDepth_m'), Magnet: g('Magnet_m') }) ?? NaN },
+  // §4 rel-24 (WINISD_SCHEMA.md §3.2): the semi-inductance lock, stated in KLe-target form —
+  // the same route solver.ts rel 24 derives KLe by. WinISD itself does NOT check this trio, and
+  // we do anyway (John, 2026-08-31: "yes if things dont add up we want the screen to [carry] a
+  // mark"), because a relation the solver can COMPUTE is one a record can CONTRADICT, and an
+  // unreported contradiction is a driver simulating on numbers that disagree with each other.
+  { formula: 'KLe = Le·√(2π·fLe)', target: 'KLe_H_sqrtHz', fields: ['KLe_H_sqrtHz', 'Le_H', 'fLe_hz'],
+    predict: (g) => g('Le_H') * Math.sqrt(TAU * g('fLe_hz')) },
   ];
 }
 

@@ -3,6 +3,7 @@ import { ref, watch, computed } from 'vue';
 import { unitToken } from '../../logic/presentationState.js';
 import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from '../../logic/fields/units.js';
 import { fieldById, fieldHelp } from '../../logic/fields/fieldRegistry.js';
+import { inputFrom } from '../../logic/domEvents.js';
 
 const props = withDefaults(defineProps<{
   modelValue: number | null | undefined;
@@ -139,7 +140,8 @@ const dispMin = computed(() => toDisp(effMin.value));
 const dispMax = computed<number | undefined>(() => effMax.value === undefined ? undefined : toDisp(effMax.value));
 
 function onInput(e: Event) {
-  const t = e.target as HTMLInputElement;
+  const t = inputFrom(e);
+  if (t === null) return;
   if (t.value === '') {
     // `<input type="number">` reports value === '' for TWO different things: a field the user
     // actually emptied, and a field holding characters it cannot parse as a number — the "-"
@@ -193,7 +195,8 @@ function onBlur(e: Event) {
   // An unparseable entry left `display` untouched (see onInput), so Vue's :value diff sees no
   // change and would leave the rejected characters on screen. Push the resting value into the
   // DOM directly. Safe here and only here — focus has already left, so no caret to disturb.
-  const t = e.target as HTMLInputElement;
+  const t = inputFrom(e);
+  if (t === null) return;
   if (t.value !== display.value) t.value = display.value;
 }
 

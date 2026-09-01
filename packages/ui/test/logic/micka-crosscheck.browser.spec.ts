@@ -25,6 +25,7 @@ const TEMP_C = 20; // air temperature — micka's default; matches OpenISD's c =
 /** The box inputs micka's form needs for this scenario, as `[input name, value]` pairs. Which
  *  ones those are is fixed by the scenario table, so it is decided here rather than in the
  *  test body — the run itself has nothing to choose. */
+// `box` is the box half of one entry in the scenario table.
 function boxFields(box: (typeof SCENARIOS)[number]['box']): Array<[string, string]> {
   if (box.type === 'sealed' && box.Qtc != null) return [['qtc', String(box.Qtc)]];
   // "Your own Box" (red curve) — arbitrary user-specified enclosure + vent dimensions

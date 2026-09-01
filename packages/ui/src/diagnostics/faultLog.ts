@@ -56,13 +56,39 @@ export interface QuickFix {
   apply: () => string;
 }
 
-function readState(): Record<string, unknown> | null {
+/**
+ * Read one stored blob as an object, REPORTING anything wrong with it.
+ *
+ * The two readers below used to `catch { return null }`, so a corrupt blob and an absent one were
+ * indistinguishable: the fault log — the very thing whose job is to explain a broken machine —
+ * silently pretended the state was not there. Now the reason reaches the console, which is where
+ * a browser test can see it (`packages/ui/test/fixtures.js`'s `browserLog` asserts on console
+ * errors, so a corrupt blob FAILS a test rather than vanishing).
+ *
+ * `console.error` rather than `warn`: if this fires, stored state that the app will act on is
+ * unreadable, and that is not a detail to scroll past.
+ */
+function readStoredObject(key: string): Record<string, unknown> | null {
+  const raw = localStorage.getItem(key);
+  if (raw === null) return null;                 // absent is not a fault — nothing was saved yet
+  let parsed: unknown;
   try {
-    const raw = localStorage.getItem(STATE_KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : null;
-  } catch { return null; }
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    console.error(`faultLog: localStorage['${key}'] is not valid JSON, so it is being ignored.`, err);
+    return null;
+  }
+  if (parsed === null || typeof parsed !== 'object') {
+    console.error(
+      `faultLog: localStorage['${key}'] parsed to ${parsed === null ? 'null' : typeof parsed}, `
+      + 'not an object, so it is being ignored.');
+    return null;
+  }
+  return parsed as Record<string, unknown>;
+}
+
+function readState(): Record<string, unknown> | null {
+  return readStoredObject(STATE_KEY);
 }
 
 function writeState(state: Record<string, unknown>): void {
@@ -77,12 +103,7 @@ function savedDriver(): Record<string, unknown> | null {
 
 /** The record `applyState` refused, if one is set aside. */
 function quarantinedDriver(): Record<string, unknown> | null {
-  try {
-    const raw = localStorage.getItem(QUARANTINE_KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : null;
-  } catch { return null; }
+  return readStoredObject(QUARANTINE_KEY);
 }
 
 /**
@@ -236,7 +257,7 @@ export function createFaultLog(): FaultLog {
       const original = console.error.bind(console);
       console.error = (...args: unknown[]) => {
         original(...args);
-        const err = args.find(a => a instanceof Error) as Error | undefined;
+        const err = args.filter((a): a is Error => a instanceof Error)[0];
         record('console', err ? err.message : args.map(a => String(a)).join(' '), err?.stack);
       };
     },

@@ -196,6 +196,76 @@ extended/ported to the new shape; full health-check green.
 
 ---
 
+## Rulings that shape the record type
+
+### openisd.yml is NOT driver.yml — three deltas (John, 2026-09-01)
+
+**His words:** _"origin is cool - but openisd.yml will omit the definition field as its only for
+driver.yml"_, and _"none of the definitions here are required at all for openisd.yml despite being
+in driver.yml - so openisd.yml omits the scraper section and the definition field and adds the
+dq_calculation"_.
+
+The app's record is a DIFFERENT SHAPE from the scraper's, not a subset of it. Three deltas, and
+the app's type must express all three:
+
+|                             | driver.yml                     | openisd.yml                                                |
+| --------------------------- | ------------------------------ | ---------------------------------------------------------- |
+| `scraper_meta`              | present — pipeline telemetry   | **omitted**                                                |
+| `definition` on every field | present — what the field MEANS | **omitted — never present, in either openisd.yml or .wdr** |
+| `dq_calculated`             | present but empty              | **added** — the ENGINE's marks, attached by the bridge     |
+
+**Why each:**
+
+- **`scraper_meta`** is how the record was obtained: method bags, per-source attempts. Telemetry
+  about the pipeline, not a fact about the driver. `OpenIsdYmlFile`'s docstring already states this
+  ("the record minus `scraper_meta`").
+- **`definition`** explains what a field means. That is the scraper's working note; the app knows
+  what `Fs` is. Carrying it would ship a paragraph of prose per field to a consumer that never
+  reads it.
+- **`dq_calculated`** goes the OTHER WAY: it does not exist in the scraped record in any meaningful
+  sense, because only the calculation can find a group of T/S parameters that disagree with each
+  other. A scraper finds structural, parse and source problems (`dq_scraper`); the engine finds
+  contradictions. Split by PRODUCER (John, 2026-08-29), because one field would make "who says so"
+  unanswerable, and the two age differently.
+
+**Consequences for the app's schema:**
+
+- `origin` stays REQUIRED on a scraped field — the app resolves a value at `readings[origin]`, so
+  without it there is no value.
+- `definition` is **EXCLUDED FROM THE SCHEMA ENTIRELY** — not optional (John, 2026-09-01: _"no
+  definition is excluded from the schema and will never be in the oid or thw wdr"_). It appears on
+  no envelope, not on `Ground`, not on `SpecEntry`, not on `CurveEntry`. The app's record type has
+  no such field, so nothing can read one and a strict schema rejects one.
+- `dq_calculated` is expected on a spec entry and is the app's own to write.
+- Nothing should look for `scraper_meta`, and a strict schema should REJECT it — its presence means
+  the file is a driver.yml, not an openisd.yml.
+
+### The three envelopes are three shapes, not one (derived 2026-09-01)
+
+`model_driver.py` declares a base `FieldEnvelope` and three subclasses, and which one a field gets
+says how its value came to be there:
+
+| envelope           | carries                                               | used by                                                                     |
+| ------------------ | ----------------------------------------------------- | --------------------------------------------------------------------------- |
+| `ScrapedField`     | `value`, `origin`, `readings?`, `dq_scraper`, `note?` | `brand`, `model`, `manufacturer`, `driver_type`, `series`, `description`, … |
+| `DerivedField`     | `value`, `grounds` (≥1) — no `origin`                 | `sku`                                                                       |
+| `BookkeepingField` | `value` — no `origin`, no `grounds`                   | `uuid`, `data_sources`, `authoritative`                                     |
+
+A single loose envelope for all three cannot express that a derived value has evidence and a
+bookkeeping value has no source at all.
+
+### openisd.yml carries NO record-level constraints (derived 2026-09-01)
+
+`OpenIsdYmlFile` has no model validator. Every record-level rule — uuid format, http(s) URLs, an
+ISO date on `added`, and `authoritative` naming a role actually present in `data_sources` — lives
+on `DriverFile` and does not travel with the projection. Its docstring says this is deliberate
+("the record-level constraints were already enforced on the DriverFile this projects from").
+
+So for a record arriving at the app, the app's own schema is the ONLY thing that can check any of
+them.
+
+---
+
 ## Non-goals
 
 - No new UI features. Behavior visible to the user is unchanged, except where this fixes an

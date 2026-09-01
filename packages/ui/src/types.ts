@@ -59,7 +59,7 @@ export interface Design {
   box: BoxType;
   P: PlotParams;
   curves: SweepResult | null;
-  maxCurves: MaxCurvesResult | null;
+  maxCurves: MaxCurvesResult | undefined;
   name?: string;
   color?: string;
   /** Trace visibility for compare overlays. Absent/true = shown; false = hidden from
@@ -118,3 +118,13 @@ export interface AppState {
   project: OpenISDProjectMeta;
 }
 
+export class AppStateImpl implements AppState {
+  constructor(boxType: BoxType, project: OpenISDProjectMeta) {
+    this.box = boxType;
+    this.project = project;
+  }
+
+  readonly box: BoxType;
+  /** Project-level metadata — WinISD Project tab (Creator/Created/Modified/Description). */
+  readonly project: OpenISDProjectMeta;
+}

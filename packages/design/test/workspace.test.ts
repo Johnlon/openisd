@@ -13,13 +13,26 @@ import { Engine } from '@openisd/design/engine';
 
 /** A conforming driver record, built inline so each test's data is readable where it is used. */
 function aDriver(brand: string, model: string): OpenISDDriver {
-  const scraped = (value: string) => ({ value, origin: 'test' });
+  const scraped = <T,>(value: T) => ({ value, origin: 'test' });
   // A spec entry states no value of its own — the number lives on the reading `origin` names,
   // exactly as the corpus writes it.
   const num = (read_value: number) => ({ origin: 'test', readings: { test: { read_value } } });
   const driver = driverFromConformingRecord({
     brand: scraped(brand), model: scraped(model), manufacturer: scraped(brand),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+    // The scrape provenance every openisd.yml record carries (`model_openisd.py:55-73`). A
+    // fixture without them is not a record, and the conformance guard says so.
+    uuid: { value: '00000000-0000-4000-8000-000000000000' },
+    // `sku` is a DERIVED field: no origin, but `grounds` carrying the evidence it was
+    // derived from, at least one entry.
+    sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
+    driver_type: scraped('woofer'),
+    data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
+    authoritative: { value: 'manufacturer_datasheet' },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
     specs: {
       woofer: {
         Fs: num(30), Sd: num(0.02), Cms: num(0.0005),

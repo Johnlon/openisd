@@ -20,6 +20,7 @@ export interface Logging {
  */
 export function createLogging(): Logging {
   const message = ref('');
+  // Whatever handle this platform's setTimeout hands back.
   let timer: ReturnType<typeof setTimeout> | undefined;
   return {
     message,
