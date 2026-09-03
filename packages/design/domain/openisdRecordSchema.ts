@@ -17,7 +17,12 @@
  * quietly dropped, so a record that gains a field the app does not model is a loud failure instead
  * of a silent loss.
  */
-import { z } from 'zod';
+import {z} from 'zod';
+import {WinISDDriver, INI_ROWS} from '../winisd';
+import {newUuid} from './newUuid.js';
+import type {FieldHandle} from './cell.js';
+import type {OpenISDDriver} from './project.js';
+import type {DriverError} from '../engine/index.js';
 
 /** DQ marks. A function, not a shared object: a module-scoped literal would be state, and each
  *  schema gets its own. */
@@ -211,3 +216,201 @@ export const openISDDeviceJsonSchema = z.strictObject({
  * it left out.
  */
 export type OpenISDDeviceJson = z.infer<typeof openISDDeviceJsonSchema>;
+
+
+/**
+ * `.wdr` (read by `WinISDDriver.fromWdrIni`) -> an `OpenISDDeviceJson` record.
+ * Decision table (ParState mark × value in file):
+ *
+ *   E + 0        → entered, value 0  (warn on export — may be a failed scrape)
+ *   E + nonzero  → entered, value
+ *   C + any      → nothing  (derived, never stored; re-derived from entered fields)
+ *   N + 0        → nothing
+ *   N + nonzero  → entered, value
+ *   key absent   → nothing
+ *
+ * `Xlim` is excluded even when marked entered: its cell always carries an empty value
+ * (`WinISDDriver`'s own doc — `.wdr` has no key for it), so there is no real number to store.
+ *
+ * There is no source document, so every field this record can source is marked `manual`
+ * (`SourceRole.MANUAL` — "a hand-entered value", `record_registries.py`).
+ *
+ * `authoritative` is required by the schema below but has no honest value for a `.wdr` import:
+ * there is no document to name, and `manual` is barred from `data_sources` in the format this
+ * field describes (winisd_tools `model_driver.py`). `openisd` is the pipeline's own role,
+ * declared for exactly this case (`record_registries.py`: "a record's own provenance"). This is
+ * a placeholder, not a considered choice — `authoritative`'s future is unsettled (John,
+ * 2026-09-01: "it's total crap").
+ */
+/**
+ * /**
+ * `VCCon` as a record entry, read on PRESENCE rather than on its ParState mark.
+ *
+ * WinISD writes no instruction to slot 46, so it leaves `N` there while the `VCCon=` row still
+ * states a wiring — 520 of the 524 corpus files (`drivers/sample/PARSTATE-FINDINGS.md`). Reading
+ * this row on its mark, as every other row is read, loses every series wiring in the corpus.
+ *
+ * `1` and `2` are the whole encoding. Anything else is read as `1`, parallel, with the number the
+ * file carried kept as `actual_reading`. A warning is pushed — NOT a `dq_calculated` mark on the
+ * record; coercion is a parse event and the record stays clean.
+ */
+function wdrVCConEntry(
+    cell: { value: string },
+    warnings: DriverError[],
+): z.infer<typeof specEntryJsonSchema> | undefined {
+    const raw = cell.value.trim();
+    if (raw.length === 0) return undefined;
+    const stated = Number(raw);
+    if (!isFinite(stated)) return undefined;
+
+    if (stated === 1 || stated === 2) {
+        return {
+            origin: 'manual',
+            readings: {manual: {actual_reading: raw, read_value: stated}},
+        };
+    }
+    warnings.push({
+        level: 'warn', field: 'VCCon',
+        message: `VCCon=${stated} is not 1 (parallel) or 2 (series) — read as 1`,
+    });
+    return {
+        origin: 'manual',
+        readings: {manual: {actual_reading: raw, read_value: 1}},
+    };
+}
+
+/**
+ * `numVC` coil count must be integer 1..4. Outside that, read as 1. 
+ * Coercion is a parse event — warning emitted, no dq_calculated on the record.
+ */
+function wdrNumVCEntry(
+    cell: { value: string },
+    warnings: DriverError[],
+): z.infer<typeof specEntryJsonSchema> {
+    const stated = Number(cell.value);
+    if (Number.isInteger(stated) && stated >= 1 && stated <= 4) {
+        return {
+            origin: 'manual',
+            readings: {manual: {actual_reading: cell.value, read_value: stated}},
+        };
+    }
+    warnings.push({
+        level: 'warn', field: 'numVC',
+        message: `numVC=${stated} is not a coil count between 1 and 4 — read as 1`,
+    });
+    return {
+        origin: 'manual',
+        readings: {manual: {actual_reading: cell.value, read_value: 1}},
+    };
+}
+
+export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
+    { record: OpenISDDeviceJson; warnings: DriverError[] } {
+
+    const warnings: DriverError[] = [];
+    const named = (text: string | undefined) => text && text.length > 0 ? text : 'n/a';
+    const brand = named(wdr.headerField('brand'));
+    const model = named(wdr.headerField('model'));
+    const manufacturer = named(wdr.headerField('manufacturer'));
+
+    const specEntries: Record<string, z.infer<typeof specEntryJsonSchema>> = {};
+    for (const key of INI_ROWS) {
+        let entry: z.infer<typeof specEntryJsonSchema> | undefined;
+        const cell = wdr.cell(key);
+        const numValue = Number(cell.value);
+
+        // C (derived) is always skipped.
+        // N (blank) is skipped unless it carries a non-zero value (3rd-party writers have broken parstate).
+        // VCCon reads strictly on presence.
+        const shouldImport =
+            cell.state === 'entered'
+            || (cell.state === 'not-available' && isFinite(numValue) && numValue !== 0)
+            || key === 'VCCon';
+
+        if (shouldImport) {
+            if (key === 'VCCon') {
+                entry = wdrVCConEntry(cell, warnings);
+            } else if (key === 'numVC') {
+                entry = wdrNumVCEntry(cell, warnings);
+            } else {
+                entry = {
+                    origin: 'manual',
+                    readings: {manual: {actual_reading: cell.value, read_value: numValue}},
+                };
+            }
+        }
+
+        if (entry !== undefined) {
+            specEntries[key] = entry;
+        }
+    }
+
+    // Optional: present only when the header line is non-blank, so a `.wdr` that never states
+    // one produces no field — not an empty string standing in for "unstated"
+    // (bugs/BUG_20260903_wdr_reader_drops_providedby_comment_dateadded_on_every_round_trip.md).
+    const stated = (text: string | undefined) =>
+        text && text.length > 0 ? {value: text, origin: 'manual' as const} : undefined;
+    const providedBy = stated(wdr.headerField('providedBy'));
+    const comment = stated(wdr.headerField('comment'));
+    const added = stated(wdr.headerField('dateAdded'));
+
+    const record: OpenISDDeviceJson = {
+        uuid: {value: newUuid()},
+        quality: {
+            confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+            parse_errors: [], cross_source_only: [],
+        },
+        manufacturer: {value: manufacturer, origin: 'manual'},
+        brand: {value: brand, origin: 'manual'},
+        model: {value: model, origin: 'manual'},
+        sku: {value: model, grounds: [{origin: 'manual', reading: model}]},
+        driver_type: {value: 'woofer', origin: 'manual'},
+        data_sources: {value: {}},
+        authoritative: {value: 'openisd'},
+        ...(providedBy ? {provided_by: providedBy} : {}),
+        ...(comment ? {comment} : {}),
+        ...(added ? {added} : {}),
+        specs: {woofer: specEntries},
+    };
+    return {record, warnings};
+}
+
+
+/**
+ * The spec section of a driver, named through `OpenISDDriver`'s own PUBLIC `spec` property rather
+ * than by importing the class behind it — that class is deliberately unexported, and this needs a
+ * name for a parameter, not access to anything design keeps private.
+ */
+export type DriverSpec = OpenISDDriver['spec']['woofer'];
+
+/**
+ * Each `.wdr` key paired with the `DriverSpec` field that answers it — `Fs` → `Fs_hz`,
+ * `Cms` → `Cms_m_per_N`.
+ *
+ * WRITTEN OUT, not derived by matching member names at runtime. The name-matching version of this
+ * needed `spec` cast to a string-indexed record, which erases the type: a `DriverSpec` member
+ * renamed or removed then becomes a field SILENTLY missing from every generated `.wdr`, found only
+ * by someone diffing the corpus. Naming both halves makes the compiler check the pairing, so the
+ * same rename is a build error here instead.
+ *
+ * `VCCon` is not here because it is not numeric — it is `Field<VoiceCoilWiring>`, a wiring NAME.
+ * `wdrVCCon()` below projects it, and it is MANDATORY in the file (John, 2026-08-31).
+ */
+export function wdrFields(spec: DriverSpec): ReadonlyArray<readonly [string, FieldHandle<number>]> {
+    return [
+        ['Qts', spec.Qts], ['Znom', spec.Znom_ohm], ['Fs', spec.Fs_hz], ['Pe', spec.Pe_W],
+        ['SPL', spec.SPL_dB], ['Re', spec.Re_ohm], ['Le', spec.Le_H], ['fLe', spec.fLe_hz],
+        ['KLe', spec.KLe_H_sqrtHz], ['BL', spec.BL_Tm], ['Xmax', spec.Xmax_m],
+        ['Cms', spec.Cms_m_per_N], ['Qms', spec.Qms], ['Qes', spec.Qes], ['Rms', spec.Rms_kg_per_s],
+        ['Mms', spec.Mms_kg], ['Sd', spec.Sd_m2], ['Vas', spec.Vas_m3], ['Dia', spec.Dia_m],
+        ['Vd', spec.Vd_m3], ['no', spec.no], ['Dd', spec.Dd_m], ['EBP', spec.EBP_hz],
+        ['numVC', spec.numVC], ['Hc', spec.Hc_m], ['Hg', spec.Hg_m], ['SPLmax', spec.SPLmax_dB],
+        ['SPLmaxLF', spec.SPLmaxLF_dB], ['USPL', spec.USPL_dB], ['alfaVC', spec.alfaVC_per_K],
+        ['Rt', spec.Rt_K_per_W], ['Ct', spec.Ct_J_per_K], ['gamma', spec.gamma_m_per_s2_A],
+        ['Rme', spec.Rme_kg_per_s], ['Mpow', spec.Mpow_N_per_sqrtW], ['Mcost', spec.Mcost_kg_per_s],
+        ['Gloss', spec.Gloss], ['c', spec.c_m_per_s],
+        ['roo', spec.roo_kg_per_m3], ['Thick', spec.Thick_m], ['Depth', spec.Depth_m],
+        ['MagDepth', spec.MagDepth_m], ['Magnet', spec.Magnet_m], ['Basket', spec.Basket_m],
+        ['Outer', spec.Outer_m], ['Vcd', spec.Vcd_m], ['DVol', spec.DVol_m3],
+    ];
+}

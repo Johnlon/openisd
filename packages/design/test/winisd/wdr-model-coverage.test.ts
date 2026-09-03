@@ -170,7 +170,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     assert.ok(wdr.missingKeys().length > 40, 'every key but Fs is missing from this deliberately incomplete build');
     assert.ok(wdr.missingKeys().includes('roo'), 'roo specifically must be reported missing, not silently defaulted');
 
-    const text = wdr.toWdr();
+    const text = wdr.toWdrIni();
     assert.match(text, /^Fs=40$/m, 'the one key that was supplied still exports correctly');
     assert.match(text, /^roo=0$/m, 'a missing key still exports gracefully, as the format placeholder 0 — not thrown, not omitted');
   });

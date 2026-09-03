@@ -66,8 +66,8 @@ export type {
  *  be expressed. */
 export {
   newProject,
-  driverFromConformingRecord,
-  passiveRadiatorFromConformingRecord,
+  conformingRecordToDriver,
+  conformingRecordToPassiveRadiator,
 } from './project.js';
 
 // `OpenISDProject` IS the project a consumer holds: one class wrapping the record and holding

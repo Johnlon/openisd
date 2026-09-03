@@ -41,7 +41,7 @@ describe('the Matt corpus round-trips without corruption', () => {
   for (const file of files) {
     it(`${file}`, () => {
       const src = readFileSync(join(CORPUS, file), 'utf8');
-      const out = WinISDDriver.fromWdrIni(src).toWdr();
+      const out = WinISDDriver.fromWdrIni(src).toWdrIni();
       if (out === src) return;
 
       // Not byte-identical. The ONLY difference allowed is keys the source predates: four of

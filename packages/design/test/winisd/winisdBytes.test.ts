@@ -12,7 +12,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { winisdBytesToText, winisdTextToBytes, WINISD_NEWLINE_SENTINEL, WinisdEncoding } from '../../winisd/winisdBytes.js';
-import { WinISDDriver } from '../../winisd/winisdDriver.js';
+import { WinISDDriver, INI_ROWS } from '../../winisd/winisdDriver.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const UNICODE_WDR = join(ROOT, 'drivers', 'sample', 'winisd', 'driver-with-unicode-text.wdr');
@@ -53,7 +53,7 @@ describe('the 0xA4 newline sentinel in a .wdr string field', () => {
     assert.equal(driver.headerField('comment'), 'Euro €\nKanji 漢字\n',
       'the parser hands the caller REAL newlines — the sentinel is a file-format detail');
 
-    const written = driver.toWdr();
+    const written = driver.toWdrIni();
     const commentLines = written.split(/\r\n/).filter(l => l.startsWith('Comment='));
     assert.equal(commentLines.length, 1, 'the comment occupies exactly one physical line');
     assert.equal(commentLines[0],
@@ -61,11 +61,15 @@ describe('the 0xA4 newline sentinel in a .wdr string field', () => {
   });
 
   it('appended [DQ] lines are encoded too — they are newlines in the comment like any other', () => {
+    // build() requires all 48 keys; this test is about the Comment/DQ line, so every other
+    // key is filled with an arbitrary distinct entered value.
+    const cells = new Map(INI_ROWS.map((key, i) =>
+      [key, { value: String(i), state: 'entered' as const }]));
     const driver = WinISDDriver.build(
-      { brand: 'B', model: 'M', comment: 'a driver' }, new Map(),
+      { brand: 'B', model: 'M', comment: 'a driver' }, cells,
       ['[DQ] Qts=1.5: above max 0.8'],
     );
-    const line = driver.toWdr().split(/\r\n/).find(l => l.startsWith('Comment='));
+    const line = driver.toWdrIni().split(/\r\n/).find(l => l.startsWith('Comment='));
 
     assert.equal(line, `Comment=a driver${WINISD_NEWLINE_SENTINEL}[DQ] Qts=1.5: above max 0.8`);
   });

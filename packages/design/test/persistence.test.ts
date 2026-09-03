@@ -12,7 +12,7 @@ import { Engine } from '@openisd/design/engine';
 import { assemble } from '../app/composition.js';
 import { memoryStore } from '@openisd/design/browser';
 import {
-  newProject, driverFromConformingRecord,
+  newProject, conformingRecordToDriver,
   type ProjectRepo, type OpenISDProject, type OpenISDDriver,
 } from '@openisd/design';
 
@@ -45,7 +45,7 @@ function aDriver(brand: string, model: string): OpenISDDriver {
       },
     },
   };
-  const driver = driverFromConformingRecord(record, new Engine());
+  const driver = conformingRecordToDriver(record, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a conforming driver: ${driver.join('; ')}`);
   return driver;
 }

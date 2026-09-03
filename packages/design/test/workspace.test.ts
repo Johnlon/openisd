@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { assemble } from '../app/composition.js';
 import { memoryStore } from '@openisd/design/browser';
-import { driverFromConformingRecord, type OpenISDDriver } from '@openisd/design';
+import { conformingRecordToDriver, type OpenISDDriver } from '@openisd/design';
 import { Workspace } from '../app/workspace.js';
 import { Engine } from '@openisd/design/engine';
 
@@ -17,7 +17,7 @@ function aDriver(brand: string, model: string): OpenISDDriver {
   // A spec entry states no value of its own — the number lives on the reading `origin` names,
   // exactly as the corpus writes it.
   const num = (read_value: number) => ({ origin: 'test', readings: { test: { read_value } } });
-  const driver = driverFromConformingRecord({
+  const driver = conformingRecordToDriver({
     brand: scraped(brand), model: scraped(model), manufacturer: scraped(brand),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     // The scrape provenance every openisd.yml record carries (`model_openisd.py:55-73`). A

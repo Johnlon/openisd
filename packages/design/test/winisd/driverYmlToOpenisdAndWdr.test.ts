@@ -213,6 +213,159 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     assert.equal(wdr, null, 'WinISD has no passive-radiator format');
   });
 
+  it('a PASSIVE RADIATOR gets dq_calculated too — Part C says it must', () => {
+    // `drivers.md` Part C: a radiator "returns `wdr: null` with no error … but MUST still get
+    // `dq_calculated`". The bridge conformed the record and threw the radiator away, so all 78
+    // radiators in the corpus carried no marks at all
+    // (bugs/BUG_20260902_the_bridge_derived_nothing…). Sd of 9 m² is far outside any real
+    // radiator, so a range mark is the expected finding.
+    const radiator = [
+      'uuid: {value: 00000000-0000-4000-8000-000000000002}',
+      'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
+      'manufacturer: {value: Dayton Audio, origin: entered}',
+      'brand: {value: Dayton Audio, origin: entered}',
+      'model: {value: DSA175-PR, origin: entered}',
+      'sku: {value: DSA175-PR, grounds: [{origin: entered, reading: DSA175-PR}]}',
+      'driver_type: {value: passive-radiator, origin: entered}',
+      'data_sources: {value: {}}',
+      'authoritative: {value: entered}',
+      "provided_by: {value: '', origin: entered}",
+      "comment: {value: '', origin: entered}",
+      "added: {value: '2026-09-01', origin: entered}",
+      'specs:',
+      '  passive-radiator:',
+      '    Sd:',
+      '      origin: entered',
+      '      readings: {entered: {read_value: 9}}',
+    ].join('\n');
+
+    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(radiator);
+
+    assert.deepEqual(errors.filter(e => e.level === 'error'), [], 'a radiator is not an error');
+    assert.equal(wdr, null, 'WinISD has no passive-radiator format');
+    assert.ok(openisd !== null && openisd.includes('dq_calculated'),
+      'the radiator was conformed and then discarded — no marks reached its openisd.yml');
+  });
+
+  it('the emitted openisd.yml survives its own text round trip — A1 === A2, I1 === I2', () => {
+    // drivers.md Part C step 6. The bridge writes TEXT, and a reader of that text must get back
+    // what the bridge held. Parse the emitted yaml and re-serialise it: any difference means the
+    // writer and the reader disagree, and every openisd.yml on disk is then a lossy copy of a
+    // record nobody can reconstruct.
+    const { openisd } = driverYmlToOpenisdAndWdr(daytonDriverYml());
+    assert.ok(openisd !== null);
+
+    const I2 = parse(openisd);                 // text A1 -> record I2
+    const A2 = stringifyYaml(I2);              // record I2 -> text A2
+    assert.deepEqual(I2, parse(A2), 'I2 !== the record A2 parses back to');
+    assert.equal(A2, openisd, 'A1 !== A2 — the yaml writer and reader disagree');
+  });
+
+  it('the emitted openisd.yml differs from driver.yml ONLY by the keys we drop', () => {
+    // The most basic check there is: openisd.yml IS driver.yml minus `scraper_meta`, minus every
+    // `definition`, plus `dq_calculated` (John, 2026-09-01). Anything else that changed is a
+    // silent loss, and this is the assertion that names it.
+    const source = daytonDriverYml();
+    const { openisd } = driverYmlToOpenisdAndWdr(source);
+    assert.ok(openisd !== null);
+
+    const strip = (v: unknown): unknown => {
+      if (Array.isArray(v)) return v.map(strip);
+      if (v === null || typeof v !== 'object') return v;
+      return Object.fromEntries(Object.entries(v as Record<string, unknown>)
+        .filter(([k]) => k !== 'definition' && k !== 'scraper_meta' && k !== 'dq_calculated')
+        .map(([k, x]) => [k, strip(x)]));
+    };
+
+    assert.deepEqual(strip(parse(openisd)), strip(parse(source)),
+      'openisd.yml differs from driver.yml by something other than the three keys');
+  });
+
+  it('a record with NO device section reports BOTH seams\' refusals, not just the driver\'s', () => {
+    // `specs: {}` is neither a driver nor a radiator, so both seams refuse it. Reporting only the
+    // driver seam's complaint tells a reader half of why the record is unusable: it names the
+    // missing woofer/tweeter and stays silent about the missing passive-radiator section.
+    const noSection = [
+      'uuid: {value: 00000000-0000-4000-8000-000000000003}',
+      'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
+      'manufacturer: {value: Dayton Audio, origin: entered}',
+      'brand: {value: Dayton Audio, origin: entered}',
+      'model: {value: NOTHING, origin: entered}',
+      'sku: {value: NOTHING, grounds: [{origin: entered, reading: NOTHING}]}',
+      'driver_type: {value: woofer, origin: entered}',
+      'data_sources: {value: {}}',
+      'authoritative: {value: entered}',
+      "provided_by: {value: '', origin: entered}",
+      "comment: {value: '', origin: entered}",
+      "added: {value: '2026-09-01', origin: entered}",
+      'specs: {}',
+    ].join('\n');
+
+    const { wdr, errors } = driverYmlToOpenisdAndWdr(noSection);
+    const messages = errors.filter(e => e.level === 'error').map(e => e.message);
+
+    assert.equal(wdr, null, 'nothing to simulate, so no .wdr');
+    assert.ok(messages.some(m => m.includes('neither a woofer nor a tweeter')),
+      'the driver seam\'s refusal reaches the caller');
+    assert.ok(messages.some(m => m.includes('not a radiator')),
+      'the radiator seam\'s refusal was thrown away');
+  });
+
+  it('a record that is TWO THINGS AT ONCE reports that once, not twice', () => {
+    // Both seams produce the same sentence for this shape, so concatenating them without
+    // de-duplicating would show a reader the identical complaint twice.
+    const both = [
+      'uuid: {value: 00000000-0000-4000-8000-000000000004}',
+      'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
+      'manufacturer: {value: Dayton Audio, origin: entered}',
+      'brand: {value: Dayton Audio, origin: entered}',
+      'model: {value: BOTH, origin: entered}',
+      'sku: {value: BOTH, grounds: [{origin: entered, reading: BOTH}]}',
+      'driver_type: {value: woofer, origin: entered}',
+      'data_sources: {value: {}}',
+      'authoritative: {value: entered}',
+      "provided_by: {value: '', origin: entered}",
+      "comment: {value: '', origin: entered}",
+      "added: {value: '2026-09-01', origin: entered}",
+      'specs:',
+      '  woofer:',
+      '    Sd:',
+      '      origin: entered',
+      '      readings: {entered: {read_value: 0.0137}}',
+      '  passive-radiator:',
+      '    Sd:',
+      '      origin: entered',
+      '      readings: {entered: {read_value: 0.0137}}',
+    ].join('\n');
+
+    const { errors } = driverYmlToOpenisdAndWdr(both);
+    const twoThings = errors.filter(e => e.message.includes('two things at once'));
+
+    assert.equal(twoThings.length, 1, 'the identical refusal was reported by both seams');
+  });
+
+  it('the .wdr survives text -> WinISDDriver -> record -> driver -> WinISDDriver -> text', () => {
+    // The extended .wdr round trip John asked for: T1 -> W2 -> I3 -> W3 -> T2. Read our own
+    // output back into a WinISDDriver (W2), project THAT into a record (I3) and a domain driver,
+    // rebuild a WinISDDriver from it (W3), and re-serialise (T2). W2 and W3 must agree — going
+    // out to a record and back must not lose or invent anything W2 already stated.
+    //
+    // Asserted here on the ERROR the bridge itself must raise on this path — a field named
+    // `wdr-record-round-trip`, distinct from the simpler text-only `wdr-round-trip` check, so a
+    // reader of the errors array can tell which leg of the round trip broke.
+    const { wdr, errors } = driverYmlToOpenisdAndWdr(daytonDriverYml());
+    assert.ok(wdr !== null);
+    const rtErrors = errors.filter(e => e.field === 'wdr-record-round-trip');
+    assert.deepEqual(rtErrors, [], `unexpected: ${JSON.stringify(rtErrors)}`);
+    // Non-vacuity: the field name itself must be one the bridge actually emits somewhere, or this
+    // assertion passes for the wrong reason (nothing ever produces that field, ever).
+    assert.ok(
+      readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'winisd', 'driverYmlToOpenisdAndWdr.ts'), 'utf8')
+        .includes("'wdr-record-round-trip'"),
+      'the bridge source does not mention this field at all — the check does not exist yet',
+    );
+  });
+
   it('reports a parse failure as an error rather than throwing', () => {
     const result = driverYmlToOpenisdAndWdr(': : : not yaml : :');
 

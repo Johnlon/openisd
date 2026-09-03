@@ -1,29 +1,28 @@
 /**
- * The no-drop guarantee, exercised red-first: a key the format classes do not know survives a
- * round trip instead of being silently destroyed. This was the root cause behind
- * bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md — the old readers
- * kept only the keys their narrow types named.
+ * `WinISDDriver`'s scope is exactly the 48 `INI_ROWS` keys plus the 7 header lines — nothing
+ * else. A key outside that set is discarded on read (John, 2026-09-02): `.wdr` has no
+ * extension mechanism, so a foreign key is evidence of a corrupt or non-WinISD file, not a
+ * field to preserve. This SUPERSEDES the class's older no-drop guarantee.
  *
- * Scope stated precisely: no-drop holds for a FILE-READ instance (which returns the file
- * verbatim) and for unknown keys SUPPLIED to build(). The DOMAIN path narrows to what OpenISD
- * models — a .wpr exported from OpenISDProject is a projection of the model, exactly as WinISD
- * itself rewrites files from its own model.
+ * `WinISDProject` (`.wpr`) is unrelated and keeps its own no-drop guarantee — see
+ * `bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md` — because `.wpr`
+ * sections have no fixed key count the way a `.wdr`'s 48 numeric rows do.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { WinISDDriver, WinISDProject } from '@openisd/design/winisd';
 
-describe('WinISDDriver — an unknown key read from a file is written back by toWdr()', () => {
-  it('carries a key it does not know through read → write', () => {
+describe('WinISDDriver — a key outside INI_ROWS and the header lines is discarded on read', () => {
+  it('a foreign key does not survive read -> write', () => {
     const text = [
       '[Driver]', 'Brand=x', 'Model=y', 'Manufacturer=', 'ProvidedBy=', 'Comment=',
       'DateAdded=', 'DateModified=', 'Qts=0.4', 'FutureKey=42',
       'ParState=' + 'N'.repeat(49), '',
     ].join('\r\n');
-    const out = WinISDDriver.fromWdrIni(text).toWdr();
-    assert.ok(out.includes('FutureKey=42'),
-      'a key this class does not know must survive to the written file, never be dropped');
-    // and the known key still round-trips beside it
+    const out = WinISDDriver.fromWdrIni(text).toWdrIni();
+    assert.ok(!out.includes('FutureKey'),
+      'a key outside the 48 .wdr keys and the 7 header lines is discarded, not carried through');
+    // the known key still round-trips
     assert.ok(out.includes('Qts=0.4'));
   });
 });

@@ -17,7 +17,7 @@ import { describe, it, expect } from 'vitest';
 import { Engine } from '@openisd/design/engine';
 import type { SweepParams } from '@openisd/design/engine';
 import {
-  newProject, driverFromConformingRecord,
+  newProject, conformingRecordToDriver,
   VoiceCoilWiring,
   type OpenISDDriver,
 } from '../domain/index.js';
@@ -41,7 +41,7 @@ function aDriver(engine: Engine, spec: Record<string, number | VoiceCoilWiring>)
     const read_value = typeof v === 'number' ? v : (v === VoiceCoilWiring.Series ? 2 : 1);
     woofer[k] = { origin: 'scraped', readings: { scraped: { read_value } } };
   }
-  const result = driverFromConformingRecord({
+  const result = conformingRecordToDriver({
     brand: scraped('Dayton'), model: scraped('RS225'), manufacturer: scraped('Dayton'),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     // The scrape provenance every openisd.yml record carries (`model_openisd.py:55-73`). A

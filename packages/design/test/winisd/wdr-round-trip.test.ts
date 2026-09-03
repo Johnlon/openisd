@@ -32,7 +32,7 @@ describe('a .wdr survives fromWdrIni → toWdr byte for byte', () => {
   for (const file of files) {
     it(`${file} round-trips unchanged`, () => {
       const src = readFileSync(join(SAMPLES, file), 'utf8');
-      const out = WinISDDriver.fromWdrIni(src).toWdr();
+      const out = WinISDDriver.fromWdrIni(src).toWdrIni();
 
       if (out === src) return;
 
@@ -78,7 +78,7 @@ describe('an Xlim= line is not part of the format', () => {
       t.split(/\r?\n/).find(l => l.startsWith('ParState='))!.slice('ParState='.length);
 
     assert.equal(parState(src)[10], 'E', 'precondition: the source marks Xlim entered');
-    const out = WinISDDriver.fromWdrIni(src).toWdr();
+    const out = WinISDDriver.fromWdrIni(src).toWdrIni();
     assert.equal(parState(out)[10], 'E');
     assert.equal(/^Xlim=/m.test(out), false, 'and no value line is invented to go with it');
   });

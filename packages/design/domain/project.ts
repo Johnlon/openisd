@@ -27,8 +27,8 @@
 // write the formula and justify it in a comment.
 // ═════════════════════════════════════════════════════════════════════════════════════════════
 
-import { openISDDeviceJsonSchema, type OpenISDDeviceJson } from './openisdRecordSchema.js';
-import { parse as parseYaml } from 'yaml';
+import {openISDDeviceJsonSchema, type OpenISDDeviceJson} from './openisdRecordSchema.js';
+import {parse as parseYaml} from 'yaml';
 import {
     Field,
     focus,
@@ -52,6 +52,7 @@ import type {
     CoupledSealedLosses,
     CoupledVentedLosses,
 } from './losses.js';
+import type {WinISDDriver} from "../winisd/winisdDriver.js";
 
 // EVERYTHING the domain owns is declared in this ONE file, on purpose.
 //
@@ -320,7 +321,6 @@ interface PassiveRadiatorSpecsSection {
 }
 
 type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
-
 
 
 /** One port's stored geometry. `diameter_m` applies to a round vent, `width_m`/`height_m` to a
@@ -1505,11 +1505,9 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.record.set({...source.record.get()});
     }
 
-    toOpenIsdDeviceJson(): OpenISDDeviceJson { return this.record.get(); }
-
-    // A field freshly read off a record is reported Entered — there is no solver in this package
-    // to distinguish Entered from Calculated; that distinction is the engine's to implement
-    // against this contract.
+    toOpenIsdDeviceJson(): OpenISDDeviceJson {
+        return this.record.get();
+    }
 }
 
 /** A driver that belongs to no project — a My Drivers entry, a bundle row, a detached copy.
@@ -1525,6 +1523,7 @@ class OpenISDDriverStandalone extends OpenISDDriver {
         };
         return new OpenISDDriverStandalone(record, OpenISDDriver.sectionOf(json), engine);
     }
+
 }
 
 /** The driver INSIDE a project — a window onto the project's own `driver` slot. A standalone
@@ -1706,13 +1705,21 @@ class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
 
 }
 
+/**
+ * The ONE wording for the shape both seams refuse identically. A caller that asks both seams and
+ * merges their findings de-duplicates by value, so two paraphrases of this one condition reach a
+ * reader as two separate complaints about the same record.
+ */
+const TWO_THINGS_AT_ONCE =
+    'both a driver section and a passive-radiator section — this record is two things at once';
+
 function driverSectionProblems(json: OpenISDDeviceJson): string[] {
     const specs = json.specs;
     if (specs.woofer === undefined && specs.tweeter === undefined) {
         return ['neither a woofer nor a tweeter section — nothing to simulate'];
     }
     if (specs['passive-radiator'] !== undefined) {
-        return ['both a driver section and a passive-radiator section — this record is two things at once'];
+        return [TWO_THINGS_AT_ONCE];
     }
     return [];
 }
@@ -1723,12 +1730,12 @@ function radiatorSectionProblems(json: OpenISDDeviceJson): string[] {
         return ['no passive-radiator section — this record is not a radiator'];
     }
     if (specs.woofer !== undefined || specs.tweeter !== undefined) {
-        return ['both a passive-radiator section and a driver section — this record is two things at once'];
+        return [TWO_THINGS_AT_ONCE];
     }
     return [];
 }
 
-export function driverFromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | string[] {
+export function conformingRecordToDriver(record: unknown, engine: Engine): OpenISDDriver | string[] {
     const conformed = conformingRecord(record);
     if ('problems' in conformed) return conformed.problems;
 
@@ -1737,7 +1744,7 @@ export function driverFromConformingRecord(record: unknown, engine: Engine): Ope
     return OpenISDDriverStandalone.wrap(conformed.json, engine);
 }
 
-export function passiveRadiatorFromConformingRecord(
+export function conformingRecordToPassiveRadiator(
     record: unknown,
     engine: Engine,
 ): OpenISDPassiveRadiatorStandalone | string[] {

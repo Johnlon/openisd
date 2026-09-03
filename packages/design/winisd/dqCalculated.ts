@@ -6,25 +6,19 @@
  * source disagreement, structure. Here: a value outside physical bounds (`range`), and a group of
  * values that cannot all be true at once (`calc`).
  *
- * ── WHY EVERY STRING HERE IS FIXED, AND WHY IT MAY NOT BE IMPROVED ──────────────────────────
+ * ── THE DETAIL STRINGS ──────────────────────────────────────────────────────────────────────
  *
- * A mark we emit is read back by `winisd_tools`, whose `DqMark` model RE-RENDERS the registered
- * template from `rule` + `params` on every load and refuses the record when the stored `detail`
- * differs — "dq mark detail is not the registered template's rendering — free prose is banned"
- * (`scrapers/lib/record_registries.py`). The rule name is checked against `DQ_RULES` the same way.
- * So the templates below are TRANSCRIPTIONS of that registry, down to ρ, ·, ², √, π and the em
- * dash, and the numbers are formatted by Python's own `format(x, 'g')` rules rather than
- * JavaScript's. Rewording a message here does not improve a message; it makes every record
- * carrying it unreadable.
+ * `detail` is the rendering of a fixed template from `rule` + `params`, never free prose, so two
+ * records carrying the same rule and params carry the same sentence. Numbers are formatted by
+ * CPython's `format(x, 'g')` rules rather than JavaScript's, which differ at a rounding tie.
  *
- * Adding a rule is a REVIEWED SCHEMA CHANGE in that registry first, then here. There is no way to
- * introduce one from this side.
+ * This file is the authority for `dq_calculated`: adding or changing a rule is a change here.
  */
 import type { ConsistencyIssue } from '../engine/index.js';
 
 /** One data-quality mark, in the shape a record stores. `severity` is `'error'` for every rule
- *  this file can produce: the registry fixes severity per rule, and both `calc` and `range`
- *  policies are `ERROR`. */
+ *  this file can produce: severity is fixed per rule, and both `calc` and `range` policies are
+ *  `ERROR`. */
 export interface DqMarkJson {
   readonly kind: 'calc' | 'range';
   readonly severity: 'error';
@@ -55,9 +49,8 @@ function stripTrailingZeros(digits: string): string {
  * Exact, via the IEEE-754 bits and `BigInt`, because ROUNDING DIRECTION AT A TIE depends on it.
  * Every JavaScript formatter — `toPrecision`, `toExponential`, `toFixed` — breaks a tie upward,
  * while CPython breaks it to even, so `format(1.8125, '.4g')` is `1.812` in Python and `1.813`
- * from `toExponential(3)`. A `detail` carrying the wrong one is a record `winisd_tools` refuses,
- * and the difference is invisible until a value lands exactly on a half — which the quarters and
- * eighths that come out of real T/S arithmetic do often enough to matter.
+ * from `toExponential(3)`. The difference is invisible until a value lands exactly on a half —
+ * which the quarters and eighths that come out of real T/S arithmetic do often enough to matter.
  *
  * A binary double is always a finite decimal: `significand · 2^e` is `significand · 5^-e / 10^-e`
  * for negative `e`, so the digits below are the value itself and not an approximation of it.
@@ -151,9 +144,8 @@ function roundHalfEven1(x: number): number {
   return x < 0 ? -rounded : rounded;
 }
 
-/** How far apart the two figures are, as the percentage the registry's templates print.
- *  The COMPUTED value is the denominator — `semantic_dq.py` divides by `expected`, not by the
- *  stored value, and a mark rendered against the other denominator is refused on load. */
+/** How far apart the two figures are, as the percentage the templates print. The COMPUTED value
+ *  is the denominator, not the stored one. */
 function offPct(computed: number, stored: number): number {
   return roundHalfEven1(Math.abs(stored - computed) / Math.abs(computed) * 100);
 }
@@ -162,14 +154,12 @@ function offPct(computed: number, stored: number): number {
 
 /**
  * The physical/simulation sanity bounds on one field's SI value, or `undefined` for a field that
- * asserts none. Transcribed from `SpecField`'s `range_lo`/`range_hi` members in
- * `scrapers/lib/record_registries.py`, which is where the scraper's own range check reads them.
+ * asserts none.
  *
  * A SWITCH, so the bounds are reached by a call and there is no module-scoped binding at all.
  *
- * `VCCon` has bounds in the registry (1..2) and is absent here on purpose: the app holds voice-coil
- * wiring as a `VoiceCoilWiring` NAME, so there is no number on this side to compare, and a value
- * outside 1..2 cannot survive the record seam that turns it into a name.
+ * `VCCon` is absent on purpose: the app holds voice-coil wiring as a `VoiceCoilWiring` name, so
+ * there is no number here to compare against bounds.
  */
 function rangeLimits(field: string): { readonly lo?: number; readonly hi?: number } | undefined {
   switch (field) {
@@ -204,7 +194,7 @@ function rangeLimits(field: string): { readonly lo?: number; readonly hi?: numbe
  * The mark for one field's stated value being outside its bounds, or `undefined` when it is inside
  * them, has no bounds, or is zero.
  *
- * ZERO IS SKIPPED, exactly as `semantic_dq.py` skips it. A scraper that failed to read a number
+ * ZERO IS SKIPPED. A scraper that failed to read a number
  * frequently yields 0, so a zero is treated as an absent reading rather than a value below every
  * floor — which would otherwise put a range mark on most of the corpus and say nothing.
  */
@@ -228,6 +218,40 @@ export function rangeMark(field: string, value: number): DqMarkJson | undefined 
     };
   }
   return undefined;
+}
+
+/**
+ * The mark for a `VCCon` the `.wdr` states that the encoding does not define.
+ *
+ * `1` = parallel and `2` = series are the whole vocabulary (`WINISD_SCHEMA.md` §3.2). A file
+ * carrying anything else is read as parallel rather than refused, and this mark is what says so —
+ * the reading keeps the number the file actually carried, and this names it.
+ *
+ * Zero is NOT skipped the way `rangeMark` skips it: `VCCon=` is a mandatory row every `.wdr`
+ * carries, so a `0` there is a stated value, not a reading that failed.
+ */
+export function vcconCoercedMark(value: number): DqMarkJson {
+  return {
+    kind: 'range', severity: 'error', rule: 'vccon-coerced',
+    params: { field: 'VCCon', value, substitute: 1 },
+    detail: `VCCon=${formatG(value, 6)} is not 1 (parallel) or 2 (series) — read as 1`,
+  };
+}
+
+/**
+ * The mark for a `numVC` the `.wdr` states that is not a coil count.
+ *
+ * One to four: a driver has at least one voice coil, and four is the most any real one carries.
+ * A file stating anything else is read as one coil rather than refused, and this mark names what
+ * it actually said. Zero is a stated value here, not a failed reading — `numVC=` is a mandatory
+ * row every `.wdr` carries.
+ */
+export function numVCCoercedMark(value: number): DqMarkJson {
+  return {
+    kind: 'range', severity: 'error', rule: 'numvc-coerced',
+    params: { field: 'numVC', value, substitute: 1 },
+    detail: `numVC=${formatG(value, 6)} is not a coil count between 1 and 4 — read as 1`,
+  };
 }
 
 // ── THE CONSISTENCY FINDINGS ──────────────────────────────────────────────────────────────────
@@ -300,11 +324,9 @@ function rightHandSide(formula: string): string {
 /**
  * One engine consistency finding as a record-side mark.
  *
- * `Vas` and `Qts` have DEDICATED rules in the registry, with their formula written into the
- * template; every other relation goes through the generic `calc-consistency`, which carries the
- * field and formula as params. That split is the registry's, not a choice made here — emitting a
- * Vas disagreement as `calc-consistency` would render a different `detail` from the one the
- * scraper's own check produces for the same finding.
+ * `Vas` and `Qts` have DEDICATED rules, with their formula written into the template; every
+ * other relation goes through the generic `calc-consistency`, which carries the field and formula
+ * as params.
  */
 export function calcMark(issue: ConsistencyIssue): CalcFinding {
   const target = recordKey(issue.target);
@@ -371,8 +393,7 @@ export function dqCalculated(
     else already.push(found);
   };
 
-  // Range first, then consistency — the order `semantic_dq.py` stamps them in, so a field carrying
-  // both lists them the same way on both sides.
+  // Range first, then consistency, so a field carrying both always lists them in that order.
   for (const [field, value] of stated) {
     const outOfRange = rangeMark(field, value);
     if (outOfRange !== undefined) add(field, outOfRange);

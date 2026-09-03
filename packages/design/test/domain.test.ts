@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { Engine } from '@openisd/design/engine';
 import {
   newProject,
-  driverFromConformingRecord,
-  passiveRadiatorFromConformingRecord,
+  conformingRecordToDriver,
+  conformingRecordToPassiveRadiator,
 } from '../domain/index.js';
 
 // This test is the package's PROXY CONSUMER: it imports from `index.js` only, exactly what the
@@ -54,7 +54,7 @@ function prSpecSection(p: {
  *  `driverFromConformingRecord` directly and inspects the problems. */
 // Takes whatever `driverJson` below takes.
 function driverFrom(p: Parameters<typeof driverJson>[0]) {
-  const result = driverFromConformingRecord(driverJson(p), new Engine());
+  const result = conformingRecordToDriver(driverJson(p), new Engine());
   if (Array.isArray(result)) throw new Error(`fixture is not a valid driver: ${result.join(', ')}`);
   return result;
 }
@@ -140,14 +140,14 @@ describe('the driver — a window, not a copy', () => {
       spec: prSpecSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     });
 
-    const result = driverFromConformingRecord(noSection, new Engine());
+    const result = conformingRecordToDriver(noSection, new Engine());
 
     expect(Array.isArray(result)).toBe(true);
     expect(result).toContain('neither a woofer nor a tweeter section — nothing to simulate');
   });
 
   it('reports EVERY problem at once, not just the first', () => {
-    const result = driverFromConformingRecord({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
+    const result = conformingRecordToDriver({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
 
     expect(result).toEqual(expect.arrayContaining([
       expect.stringContaining("'model'"),
@@ -160,7 +160,7 @@ describe('the driver — a window, not a copy', () => {
     // A section fault is a statement about a device's specs. This value has no specs and is not
     // a record at all, so "neither a woofer nor a tweeter" would be a second-hand restatement of
     // "'specs' is missing" — the same fault, worded as if it were another one.
-    const result = driverFromConformingRecord({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
+    const result = conformingRecordToDriver({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
 
     expect(result).toEqual(expect.arrayContaining([expect.stringContaining("'specs'")]));
     expect(result).not.toEqual(expect.arrayContaining([
@@ -198,7 +198,7 @@ describe('the driver — a window, not a copy', () => {
       },
     };
 
-    const result = driverFromConformingRecord(record, new Engine());
+    const result = conformingRecordToDriver(record, new Engine());
 
     expect(result).toEqual(expect.arrayContaining([
       expect.stringContaining('specs.woofer.Fs.readings.datasheet.read_value'),
@@ -375,7 +375,7 @@ describe('the passive radiator a box holds', () => {
 
   it('copies the chosen radiator IN, so later edits do not touch the library entry', () => {
     const p = project();
-    const library = passiveRadiatorFromConformingRecord(prJson(), new Engine());
+    const library = conformingRecordToPassiveRadiator(prJson(), new Engine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
 

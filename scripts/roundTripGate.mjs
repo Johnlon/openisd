@@ -17,7 +17,7 @@
  * imports `@openisd/model` directly rather than crossing the V8-bridge boundary the tools side
  * needs — same functions, no V8 round trip to duplicate.
  */
-import { driverFromConformingRecord, passiveRadiatorFromConformingRecord } from '@openisd/design';
+import { conformingRecordToDriver, conformingRecordToPassiveRadiator } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import { WinISDDriver } from '@openisd/design/winisd';
 
@@ -76,8 +76,8 @@ export function checkOpenisdRoundTrip(record, relPath) {
   // the schema's OUTPUT — an object rebuilt key by key from what the schema declares — so any key
   // the app cannot model shows up here as a divergence rather than being lost in silence.
   const engine = new Engine();
-  const device = driverFromConformingRecord(record, engine);
-  const radiator = Array.isArray(device) ? passiveRadiatorFromConformingRecord(record, engine) : null;
+  const device = conformingRecordToDriver(record, engine);
+  const radiator = Array.isArray(device) ? conformingRecordToPassiveRadiator(record, engine) : null;
   const read = Array.isArray(device) ? radiator : device;
   if (read === null || Array.isArray(read)) {
     const problems = Array.isArray(read) ? read : device;
@@ -133,7 +133,7 @@ export function checkWdrRoundTrip(wdrText, relPath) {
   } catch (e) {
     return { ok: false, message: `${relPath}: could not read .wdr (fromWdrIni threw): ${e}` };
   }
-  const reserialised = driver.toWdr();
+  const reserialised = driver.toWdrIni();
   const errors = [];
   const blocking = errors.filter(e => e.level === 'error');
   if (reserialised == null || blocking.length > 0) {

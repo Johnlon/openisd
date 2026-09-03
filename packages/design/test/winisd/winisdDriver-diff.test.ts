@@ -44,7 +44,7 @@ function recordDriver(): WinISDDriver {
 describe('WinISDDriver.diffAgainst — as-read values vs the independently-derived record', () => {
   it('reports no mismatch when the .wdr states exactly what the record derives', () => {
     const derived = recordDriver();
-    const asRead = WinISDDriver.fromWdrIni(derived.toWdr());
+    const asRead = WinISDDriver.fromWdrIni(derived.toWdrIni());
     const mismatches = diffWdrValues(asRead, derived);
     assert.deepEqual(mismatches, []);
   });
@@ -52,7 +52,7 @@ describe('WinISDDriver.diffAgainst — as-read values vs the independently-deriv
   it('surfaces a stated value that disagrees with the record as a data-quality signal, not a silent overwrite', () => {
     const derived = recordDriver();
     // Hand-edit Fs in the .wdr text as if WinISD's own editor changed it after export.
-    const edited = derived.toWdr().replace(/^Fs=40$/m, 'Fs=41.5');
+    const edited = derived.toWdrIni().replace(/^Fs=40$/m, 'Fs=41.5');
     const asRead = WinISDDriver.fromWdrIni(edited);
 
     // The mismatch is REPORTED, not silently applied — diffAgainst never mutates either side.
@@ -71,7 +71,7 @@ describe('WinISDDriver.diffAgainst — as-read values vs the independently-deriv
     const derived = recordDriver();
     // A .wdr the writer never touched Le on — Le is 0 by WinISD's own default, state N, and
     // must not be treated as an asserted "0" that then falsely disagrees with anything.
-    const asRead = WinISDDriver.fromWdrIni(derived.toWdr());
+    const asRead = WinISDDriver.fromWdrIni(derived.toWdrIni());
     assert.equal(asRead.cell('Le').state, 'N');
     const mismatches = diffWdrValues(asRead, derived);
     assert.equal(mismatches.some(m => m.field === 'Le'), false);

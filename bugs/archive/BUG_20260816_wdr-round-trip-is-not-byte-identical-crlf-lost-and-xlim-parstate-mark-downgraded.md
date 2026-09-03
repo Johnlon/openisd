@@ -64,7 +64,7 @@ that WinISD's own file contradicts.
 ## Fix
 
 1. Join with `\r\n` in `WinISDDriver.toWdr()`.
-2. Carry the source ParState's slot-10 mark through `fromWdr` → record → `toWdr`. It has no
+2. Carry the source ParState's slot-10 mark through `fromWdr` → record → `toWdrIni`. It has no
    `.wdr` key, so it needs somewhere to live on the record, or `WinISDDriver` must retain the
    as-read ParState for the slots it cannot otherwise reconstruct.
 

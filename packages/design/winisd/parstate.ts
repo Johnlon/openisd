@@ -1,47 +1,66 @@
 import { z } from 'zod';
 
+import type { Provenance } from '../domain/cell.js';
+
 /**
  * WinISD ParState — the fixed 49-slot edit-state table.
  *
  * ParState is always exactly 49 chars mapped to WinISD's internal parameter list, which
  * is NOT the WDR file's key order (e.g. Qts is slot 14 though the WDR writes it first).
- * Positions are probe-confirmed via single-parameter files in drivers/sample/ — see
- * drivers/sample/README.md "Confirmed ParState position map" and scripts/scraper_lib.py.
+ * Every position except 20 and 46 is probe-confirmed via single-parameter files in
+ * drivers/sample/ — see drivers/sample/README.md "Confirmed ParState position map" and
+ * scripts/scraper_lib.py. Those two are covered by the note on POS_TO_WDRKEY below.
  *
  * E = the human/source entered the value · C = WinISD computed it · N = not in play.
  */
 
-/** E/C/N edit-state of one field, WinISD's own vocabulary — the one declaration both
- *  `driver.ts` (the Driver ADT) and `winisdDriver.ts` (the `.wdr` format layer) share.
+/**
+ * E/C/N — WinISD's ENCODING of a provenance, and NOT A SECOND TYPE.
  *
- *  The three letters are declared ONCE, in the schema, and the type is read back off it. A
- *  separate `type CellState = 'E' | 'C' | 'N'` beside the schema would be a second enumeration
- *  of the same closed set, free to drift from the thing that actually validates. */
-const CellStateSchema = z.enum(['E', 'C', 'N']);
-export type CellState = z.infer<typeof CellStateSchema>;
+ * The three letters exist nowhere else in the codebase. They are what this one file format writes
+ * on disk; the app's vocabulary is `Provenance` (`domain/cell.ts`), and every caller of this
+ * module hands one in and gets one back (John, 2026-09-01: hide the letters "entirely inside the
+ * WinISD i/o code"). Neither the table nor the schema below is exported — `markOf` and
+ * `provenanceOf` are the whole surface, and neither of them can be called with a letter.
+ */
+const WDR_MARK: Record<Provenance, string> = {
+  entered: 'E',
+  calculated: 'C',
+  'not-available': 'N',
+};
 
-/** Named members for `CellState`, so a call site can write `CellState.Entered` instead of a
- *  bare `'E' as const` cast wearing an enum's clothes without an enum's discoverability or
- *  typo-safety. Not a TS `enum` — a `const` object plays the same role without the numeric-enum
- *  footguns, and every member is already the exact string WinISD's own format uses, so no
- *  translation layer sits between this and the `.wdr` bytes. */
-export const CellState = { Entered: 'E', Computed: 'C', Absent: 'N' } as const satisfies Record<string, CellState>;
+/** One ParState letter → the provenance it encodes. A letter the format does not define is a
+ *  corrupt file, not a fourth state, so this REFUSES rather than defaulting. */
+const WdrMarkSchema = z.enum(['E', 'C', 'N']).transform(
+  letter => ({ E: 'entered', C: 'calculated', N: 'not-available' } as const)[letter],
+);
+
+/** The `.wdr` byte that encodes this provenance. Total by construction — `Record<Provenance,…>`
+ *  means a fourth provenance is a compile error here, never a silently missing mark. */
+export function markOf(state: Provenance): string {
+  return WDR_MARK[state];
+}
+
+/** The provenance a `.wdr` byte states. Throws on anything else. */
+export function provenanceOf(letter: string): Provenance {
+  return WdrMarkSchema.parse(letter);
+}
 
 /**
  * Slot → WDR file key. Exactly ONE slot is null: 10 (`Xlim`), which has a live editor field
  * and a mark but no key in the writer's literal pool — WinISD discards its value on save.
  *
- * Slots 20 (`Dia`) and 46 (`VCCon`) are real keys, recovered from `winisd.exe` rather than
- * from probing: the driver editor's field-registration blocks at `0x449e6e` and the stride
- * 38-46 run over `D+0x188`…`D+0x1C8` bind them to the controls `eddia` and `edConMode`.
- * See `winisd_research/PARSTATE_DECOMPILED.md`.
- *
- * Black-box probing could not reach either, and both look inert for a reason that is NOT that
- * the slot is unused:
- *  - slot 20 is `N` in every WinISD-authored file because nothing COMPUTES `Dia` and its field
- *    is off the default tab, so nobody enters one either;
- *  - **no instruction in `.text` writes slot 46 at all**, so it only ever holds the `N` from a
- *    blank driver's `FillChar` or whatever a loaded file supplied.
+ * Slots 20 and 46 are real keys that black-box probing could not reach, and the two rest on
+ * different strength of evidence (`winisd_research/GHIDRA_FINDINGS.md`):
+ *  - slot 20 = `Dia` is PROVEN: the registration block at `0x449e6e` binds `D+0x1E0` to the
+ *    control `eddia`. It reads `N` in every WinISD-authored file because nothing computes `Dia`
+ *    and its field is off the default tab, so nobody enters one either.
+ *  - slot 46 = `VCCon` is INFERRED, not proven. `VCCon` is NOT bound in the editor's
+ *    registration loop; the slot is assigned by elimination — `D+0x1C8` is the next cell in the
+ *    stride-8 run that covers slots 38-45, and `VCCon` is the only parameter left once every
+ *    other slot is accounted for. No instruction in `.text` writes slot 46 at all, so it only
+ *    ever holds the `N` from a blank driver's `FillChar` or whatever a loaded file supplied,
+ *    which is also why no probe can confirm the pairing.
  *
  * Which is why a hand-authored `E` in either slot round-trips through WinISD untouched —
  * `drivers/sample/winisd/inconsistency-test-saved.wdr` carries `E` in both and WinISD
@@ -94,7 +113,7 @@ export const POS_TO_WDRKEY: readonly (string | null)[] = [
   'Outer',  // 43
   'Vcd',    // 44
   'DVol',   // 45
-  'VCCon',  // 46  editor combo `edConMode`, value at D+0x1C8
+  'VCCon',  // 46  INFERRED — editor combo `edConMode`, value at D+0x1C8
   'c',      // 47
   'roo',    // 48
 ];
@@ -102,7 +121,7 @@ export const POS_TO_WDRKEY: readonly (string | null)[] = [
 export const PARSTATE_LEN = POS_TO_WDRKEY.length;
 
 /** A ParState row: exactly one mark per slot, each one a mark WinISD writes. */
-const ParStateRowSchema = z.array(CellStateSchema).length(PARSTATE_LEN);
+const ParStateRowSchema = z.array(WdrMarkSchema).length(PARSTATE_LEN);
 
 /**
  * A `.wdr` whose ParState row cannot be believed. Thrown, not swallowed: ParState is the only
@@ -124,7 +143,7 @@ export class ParStateError extends Error {
  * scraper-authored `.wdr`, a shape we write ourselves, and `fromWdrIni` reads presence ⇒ E for
  * it. This function is only ever asked about a row the file DOES carry.
  */
-export function parseParState(row: string): readonly CellState[] {
+export function parseParState(row: string): readonly Provenance[] {
   const marks = [...row];
   if (marks.length !== PARSTATE_LEN) {
     throw new ParStateError(

@@ -1,96 +1,76 @@
 uuid:
   value: 9df5e461-49fc-44d4-909d-ab0019b484e8
-  definition: stable record identity, minted by the pipeline at first emit and never
-    re-derived
 quality:
-  disposition:
-    value: ok
-    definition: 'the record''s standing — one of: ok, no-ts-published, incomplete'
-    detail: nothing unusual about this one — the datasheet was found, the specs came
-      out cleanly, and every output file was generated
-  rating: L
   confirmed_fields: []
   fields_with_issues: []
   missing: []
   invalid: []
-  parse_errors: ['quality=None: HTML spec table Model Number ''E180HE-44'' (SKU ''e180he-44'')
-      does not match product SKU ''e150he-44''; HTML spec table T/S parameters ignored']
+  parse_errors:
+    - "quality=None: HTML spec table Model Number 'E180HE-44' (SKU 'e180he-44')
+      does not match product SKU 'e150he-44'; HTML spec table T/S parameters
+      ignored"
   cross_source_only: []
 manufacturer:
   value: Dayton Audio
   origin: manufacturer_product_page
-  definition: the company that makes the driver; also decides the record's folder
 brand:
   value: Dayton Audio
   origin: manufacturer_product_page
-  definition: the selling brand; equals the manufacturer except for house brands
 model:
-  value: Epique Series E150HE-44 5-1/2" DVC MMAG Extended Range Subwoofer 4 Ohms per
-    Coil
+  value: E150HE-44 5-1/2" DVC MMAG Extended Range Subwoofer 4 Ohms per Coil
   origin: manufacturer_product_page
-  definition: the vendor's exact designation including the impedance variant — unique
-    within a brand, and the name shown in the driver browser
 sku:
   value: e150he-44
-  definition: the canonical identity code — the vendor designation slugified, impedance
-    variant included; names the record directory (guard-enforced equal) and is unique
-    within the manufacturer
   grounds:
-  - origin: manufacturer_product_page
-    reading: E150HE-44 5-1/2" DVC MMAG Extended Range Subwoofer 4 Ohms per Coil
-    definition: the printed designation the code was derived from
-  - origin: manufacturer_product_page
-    reading: https://daytonaudio.com/product/1911/e150he-44-5-1-2-dvc-mmag-extended-range-subwoofer-4-ohms-per-coil
-    definition: the source URL that corroborated the derivation
+    - origin: manufacturer_product_page
+      reading: E150HE-44 5-1/2" DVC MMAG Extended Range Subwoofer 4 Ohms per Coil
+    - origin: manufacturer_product_page
+      reading: https://daytonaudio.com/product/1911/e150he-44-5-1-2-dvc-mmag-extended-range-subwoofer-4-ohms-per-coil
 driver_type:
   value: woofer
   origin: manufacturer_product_page
-  definition: what kind of driver this is (closed vocabulary); decides which specs
-    section applies
-series:
-  value: Epique Series
-  origin: manufacturer_product_page
-  definition: the vendor's product line this driver belongs to
 data_sources:
   value:
     manufacturer_datasheet: https://daytonaudio.com/images/resources/295-102--epique-e150he-44-spec-sheet.pdf
     manufacturer_product_page: https://daytonaudio.com/product/1911/e150he-44-5-1-2-dvc-mmag-extended-range-subwoofer-4-ohms-per-coil
-  definition: the record-wide provenance index — every source role used anywhere in
-    this file resolves to a URL here
 authoritative:
   value: manufacturer_product_page
-  definition: which indexed source wins the datasheet waterfall for this record —
-    the document the specs are extracted from; other sources only corroborate
 product_image:
   value: https://www.daytonaudio.com/images/product/large/1911.jpg
   origin: manufacturer_product_page
-  definition: the manufacturer's product photo for this driver
 description:
-  value: Dayton Audio’s ground breaking Epique E150HE-44 5-1/2” with a carbon fiber
-    cone and dual voice coils, introduces the world to a new class of speaker driver
-    . . . anExtendedRangeSubwoofer (ERS). It was engineered to produce premium controlled
-    subwoofer performance, while simultaneously achieving a smooth extended high frequency
-    response. Thanks to its revolutionary MMAG dual gap motor, the motor force is
-    nearly constant even when driven to the limits of its 14 mm Xmax. Capable of unheard-of
-    excursion for its size while delivering smooth midrange response with low distortion,
-    the E150HE-44 woofer gives you the opportunity to create systems that provide
-    extraordinary accuracy and fidelity.Product HighlightsPatented dual gap MMAG motor
-    design allows exceptional linearity for minimal distortionLightweight damped carbon
-    fiber cone delivers remarkably smooth response up to 45 degrees off axisIncredibly
-    linear 14 mm excursion to produce class leading low frequency extension and controlExtensive
-    inductance control extends frequency response, lowers distortion, reduces compression,
-    and increases power handlingSubstantial venting keeps the voice coil cool to minimize
-    power compressionDual 4 ohm voice coils enable a variety wiring configurations
-    and flexibilityIncredible versatility, premium performance as a subwoofer or woofer
-    in 2-way designsProduct Manuals / Spec Sheets / DownloadsEpique E150HE-44 Specification
-    SheetEpique E150HE-44 Mechanical DrawingEpique E150HE-44 Data FilesBuying OptionsBuy
-    on Parts ExpressBuy Internationally
+  value: Dayton Audio’s ground breaking Epique E150HE-44 5-1/2” with a carbon
+    fiber cone and dual voice coils, introduces the world to a new class of
+    speaker driver . . . anExtendedRangeSubwoofer (ERS). It was engineered to
+    produce premium controlled subwoofer performance, while simultaneously
+    achieving a smooth extended high frequency response. Thanks to its
+    revolutionary MMAG dual gap motor, the motor force is nearly constant even
+    when driven to the limits of its 14 mm Xmax. Capable of unheard-of excursion
+    for its size while delivering smooth midrange response with low distortion,
+    the E150HE-44 woofer gives you the opportunity to create systems that
+    provide extraordinary accuracy and fidelity.Product HighlightsPatented dual
+    gap MMAG motor design allows exceptional linearity for minimal
+    distortionLightweight damped carbon fiber cone delivers remarkably smooth
+    response up to 45 degrees off axisIncredibly linear 14 mm excursion to
+    produce class leading low frequency extension and controlExtensive
+    inductance control extends frequency response, lowers distortion, reduces
+    compression, and increases power handlingSubstantial venting keeps the voice
+    coil cool to minimize power compressionDual 4 ohm voice coils enable a
+    variety wiring configurations and flexibilityIncredible versatility, premium
+    performance as a subwoofer or woofer in 2-way designsProduct Manuals / Spec
+    Sheets / DownloadsEpique E150HE-44 Specification SheetEpique E150HE-44
+    Mechanical DrawingEpique E150HE-44 Data FilesBuying OptionsBuy on Parts
+    ExpressBuy Internationally
   origin: manufacturer_product_page
-  definition: the manufacturer's own product blurb, page chrome stripped
-surround_material:
-  value: Rubber
-  origin: manufacturer_product_page
-  definition: surround material (controlled vocabulary; unknown values DQ-flagged)
+provided_by:
+  value: OpenIsd
+  origin: openisd
+comment:
+  value: Generated by OpenIsd
+  origin: openisd
+added:
+  value: 2026-09-01
+  origin: openisd
 specs:
   woofer:
     Fs:
@@ -98,10 +78,9 @@ specs:
       readings:
         manufacturer_datasheet:
           actual_reading: 40 Hz
-          read_value: 40.0
+          read_value: 40
           read_precision: 0.5
-      dq_status: UNMATCHED
-      definition: free-air resonance frequency (Hz)
+      corroboration: UNMATCHED
     Re:
       origin: manufacturer_datasheet
       readings:
@@ -109,53 +88,47 @@ specs:
           actual_reading: 6.6 ohms
           read_value: 6.6
           read_precision: 0.05
-      dq_status: UNMATCHED
-      definition: DC voice coil resistance (Ω)
+      corroboration: UNMATCHED
     Le:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
           actual_reading: 1.6 mH @ 1 kHz
           read_value: 0.0016
-          read_precision: 5.0e-05
-      dq_status: UNMATCHED
-      definition: voice-coil inductance (H)
+          read_precision: 0.00005
+      corroboration: UNMATCHED
     Znom:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
           actual_reading: 8 ohms
-          read_value: 8.0
+          read_value: 8
           read_precision: 0.5
-      dq_status: UNMATCHED
-      definition: nominal impedance (Ω)
+      corroboration: UNMATCHED
     Qts:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
-          actual_reading: '0.39'
+          actual_reading: "0.39"
           read_value: 0.39
           read_precision: 0.005
-      dq_status: UNMATCHED
-      definition: total Q factor at Fs (dimensionless)
+      corroboration: UNMATCHED
     Qes:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
-          actual_reading: '0.45'
+          actual_reading: "0.45"
           read_value: 0.45
           read_precision: 0.005
-      dq_status: UNMATCHED
-      definition: electrical Q factor at Fs (dimensionless)
+      corroboration: UNMATCHED
     Qms:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
-          actual_reading: '2.94'
+          actual_reading: "2.94"
           read_value: 2.94
           read_precision: 0.005
-      dq_status: UNMATCHED
-      definition: mechanical Q factor at Fs (dimensionless)
+      corroboration: UNMATCHED
     Vas:
       origin: manufacturer_datasheet
       readings:
@@ -163,17 +136,15 @@ specs:
           actual_reading: 0.27 ft3
           read_value: 0.007645536
           read_precision: 0.000141584
-      dq_status: UNMATCHED
-      definition: equivalent compliance volume — stored in m³, not litres
+      corroboration: UNMATCHED
     Sd:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
           actual_reading: 95.03 cm2
           read_value: 0.009503
-          read_precision: 5.0e-07
-      dq_status: UNMATCHED
-      definition: effective piston area — stored in m², not cm²
+          read_precision: 5e-7
+      corroboration: UNMATCHED
     BL:
       origin: manufacturer_datasheet
       readings:
@@ -181,35 +152,31 @@ specs:
           actual_reading: 9.8 Tm
           read_value: 9.8
           read_precision: 0.05
-      dq_status: UNMATCHED
-      definition: motor force factor (T·m)
+      corroboration: UNMATCHED
     Mms:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
           actual_reading: 26.6 g
           read_value: 0.0266
-          read_precision: 5.0e-05
-      dq_status: UNMATCHED
-      definition: moving mass including air load — stored in kg, not g
+          read_precision: 0.00005
+      corroboration: UNMATCHED
     Cms:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
           actual_reading: 0.60 mm/N
           read_value: 0.0006
-          read_precision: 5.0e-06
-      dq_status: UNMATCHED
-      definition: suspension compliance (m/N)
+          read_precision: 0.000005
+      corroboration: UNMATCHED
     Xmax:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
           actual_reading: 14.7 mm
           read_value: 0.0147
-          read_precision: 5.0e-05
-      dq_status: UNMATCHED
-      definition: one-way linear excursion limit — stored in m, not mm
+          read_precision: 0.00005
+      corroboration: UNMATCHED
     SPL:
       origin: manufacturer_datasheet
       readings:
@@ -218,72 +185,47 @@ specs:
           actual_reading: 83.3 dB @ 2.83V/1m
           read_value: 83.3
           read_precision: 0.05
-      dq_status: UNMATCHED
-      definition: sensitivity (dB)
+      corroboration: UNMATCHED
     Pe:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
           actual_reading: 200 watts
-          read_value: 200.0
+          read_value: 200
           read_precision: 0.5
-      dq_status: UNMATCHED
-      definition: rated thermal power handling (W, IEC 268-5)
+      corroboration: UNMATCHED
     numVC:
       origin: manufacturer_product_page
       readings:
         manufacturer_product_page:
-          actual_reading: '2'
-          read_value: 2.0
+          actual_reading: "2"
+          read_value: 2
           read_precision: 0.5
-      dq_status: UNMATCHED
-      definition: number of voice coils; 2 marks a dual-voice-coil driver
-    VCCon:
-      origin: manufacturer_product_page
+      corroboration: UNMATCHED
+    Vcd:
+      origin: manufacturer_datasheet
       readings:
-        manufacturer_product_page:
-          actual_reading: '2'
-          read_value: 2.0
-          read_precision: 0.5
-      dq_status: UNMATCHED
-      definition: dual-coil wiring the published T/S was measured in (1 = parallel,
-        2 = series)
-    voice_coil_dia_mm:
-      origin: manufacturer_product_page
-      readings:
-        manufacturer_product_page:
+        manufacturer_datasheet:
           actual_reading: 38 mm
-          read_value: 38.0
-          read_precision: 0.5
-      dq_status: UNMATCHED
-      definition: voice coil diameter (mm)
+          read_value: 0.038
+          read_precision: 0.0005
+      corroboration: UNMATCHED
     freq_low_hz:
-      origin: manufacturer_product_page
+      origin: manufacturer_datasheet
       readings:
-        manufacturer_product_page:
-          actual_reading: '25'
-          read_value: 25.0
+        manufacturer_datasheet:
+          actual_reading: "30"
+          read_value: 30
           read_precision: 0.5
-      dq_status: UNMATCHED
-      definition: usable/recommended frequency range, low end (Hz)
+      corroboration: UNMATCHED
     freq_high_hz:
-      origin: manufacturer_product_page
+      origin: manufacturer_datasheet
       readings:
-        manufacturer_product_page:
-          actual_reading: 3,000 Hz
-          read_value: 3000.0
+        manufacturer_datasheet:
+          actual_reading: 4,000 Hz
+          read_value: 4000
           read_precision: 0.5
-      dq_status: UNMATCHED
-      definition: usable/recommended frequency range, high end (Hz)
-    weight_kg:
-      origin: manufacturer_product_page
-      readings:
-        manufacturer_product_page:
-          actual_reading: 8.6 lbs.
-          read_value: 3.9008912
-          read_precision: 0.0226796
-      dq_status: UNMATCHED
-      definition: net driver weight (kg)
+      corroboration: UNMATCHED
 curves:
   frequency_response:
     value:
@@ -291,13 +233,9 @@ curves:
       local_path: response_data/response.frd
       data_format: frd
     origin: manufacturer_datasheet
-    definition: the published SPL/impedance chart; the document is the origin's indexed
-      URL (no separate source_url copy); numeric digitisation pending
   impedance:
     value:
       type: FILE
       local_path: response_data/response.zma
       data_format: zma
     origin: manufacturer_datasheet
-    definition: the published impedance magnitude curve; the document is the origin's
-      indexed URL (no separate source_url copy); numeric digitisation pending

@@ -248,7 +248,7 @@ Symmetry is highly valued - consistency is highly valued - encapsulation etc etc
   checked every value). Tools-side remainder: differential + B10 emit sweep (yaml-divergence,
   pinged).
 - **★ openisd `38bd5cd` LANDED AND PUSHED — the doctrine wave**: D22 complete (repos speak
-  OpenISDDriver; injected `driverFromConformingRecord` factories via main.ts; editor owns its
+  OpenISDDriver; injected `conformingRecordToDriver` factories via main.ts; editor owns its
   draft via `committedDriverText()`/`OpenISDDriver.empty()`; driverSelection loses
   editorDraft/editorSeed/acceptDriverEdit; toJsonRecord gone from the UI), D15 re-export wave
   (checklist 8→0), D18 η₀ + EBP relations in consistency.ts. 2038/2043 through the pre-commit

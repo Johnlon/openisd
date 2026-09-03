@@ -194,7 +194,7 @@ or whatever a loaded file supplied. Both were recovered by decompiling `winisd.e
 (`winisd_research/PARSTATE_DECOMPILED.md`).
 
 They are ordinary mapped keys now: `POS_TO_WDRKEY` names them, `fromWdr` reads each mark from
-its own slot, and `toWdr` writes it back from the cell. The as-read ParState no longer has to be
+its own slot, and `toWdrIni` writes it back from the cell. The as-read ParState no longer has to be
 retained to echo them.
 
 ### `c` and `roo` are DRIVER fields, and `.wpr` confirms it

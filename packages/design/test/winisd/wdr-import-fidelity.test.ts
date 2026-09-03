@@ -31,8 +31,8 @@ import { OpenISDDriver, Provenance } from '@openisd/model';
 
 /** The app's view of a `.wdr`: read as-read by the serialiser, projected into the record,
  *  then asked through the driver's own accessors — the exact path the app itself takes. */
-function driverOf(wdr: string): OpenISDDriver {
-  return OpenISDDriver.fromWinISDDriver(WinISDDriver.fromWdrIni(wdr));
+function driverOf(wdr: string): OpenISDDriverJson {
+  return OpenISDDriverJson.fromWinISDDriver(WinISDDriver.fromWdrIni(wdr));
 }
 
 const here = dirname(fileURLToPath(import.meta.url));

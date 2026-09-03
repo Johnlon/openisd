@@ -70,7 +70,7 @@ from the unset `Znom=0`/`N` of a blank driver.
 mode. The Driver ADT hands it every entered field
 (`packages/winisd/src/driver.ts:426`) and marks a slot `C` only when the solver filled it, so
 `cell('Z').state` falls through to `N`. `classic/wdr.ts:78`'s `s[0] = num(raw.Z) ? 'E' : 'C'` has
-the right SHAPE but no formula behind it, which is why `toWdr` writes `Re` in place of `Znom`.
+the right SHAPE but no formula behind it, which is why `toWdrIni` writes `Re` in place of `Znom`.
 
 ## Fix
 

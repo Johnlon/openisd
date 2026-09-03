@@ -92,7 +92,7 @@ Some of these (`SpecField`, `SpecSection`, `SpecEntry`) exist inside `domain/pro
 the design copy hides them on purpose, and a consumer wanting one is a consumer doing something
 the design says it should not.
 
-## 4b. Construction and import — RULED: everything goes through `driverFromConformingRecord`
+## 4b. Construction and import — RULED: everything goes through `conformingRecordToDriver`
 
 **John, 2026-08-31: _"ok use driverFromConformingRecord"_.**
 
@@ -165,7 +165,7 @@ driverFromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | str
 ```
 
 **All three are free functions in `domain/project.ts`, not statics on a class** —
-`driverFromConformingRecord` already lives there (`:1759`, alongside `passiveRadiatorFromConformingRecord`
+`conformingRecordToDriver` already lives there (`:1759`, alongside `conformingRecordToPassiveRadiator`
 at `:1782`), and the two new ones join it. Neither `OpenISDDriver.fromWdrIni()` nor any other
 class-static form exists in this design — unlike `packages/model`'s old `OpenISDDriver.fromX()`
 statics and `packages/winisd`'s `WinISDDriver.fromWdrIni()`/`WinISDProject.fromWprIni()` (both
@@ -265,7 +265,7 @@ throwing and a changed key joining `errors[]` — is now folded into `drivers.md
 directly. Read it there.
 
 This supersedes the WDR-only contract in §4b: `driverFromWdrIni`/`driverFromOpenIsdYml`/
-`driverFromConformingRecord` stay the UI's file-import record-shape boundary — a separate
+`conformingRecordToDriver` stay the UI's file-import record-shape boundary — a separate
 pipeline from `drivers.md`'s corpus-generation bridge, not the same one under a different name.
 `packages/winisd/src/bridge.ts`'s JSON envelope and docstring need updating to carry `openisd`
 alongside `wdr` once `drivers.md` Part C lands — its current contract (`{ wdr, errors }`)
@@ -351,7 +351,7 @@ than accessors returning, but that is a ruling, not an inference. **PROPOSE AND 
 
 The model path built bundled rows with **no conformance check at all** — `driverRepo.ts:84-88`
 states it outright: _"bundled drivers ship inside this build's own dist and are always current, so
-no conformance check runs against them"_. `driverFromConformingRecord` validates every record. So
+no conformance check runs against them"_. `conformingRecordToDriver` validates every record. So
 reloading the bundle through design is a **stronger gate than the app has ever had**, and it
 should be expected to reject records the old path accepted silently. That is the gate working, not
 a regression — but it lands during a build, so it needs saying in advance.

@@ -16,10 +16,10 @@ grep excluding their own declaration lines, and separately by their absence from
 
 `git log -p` on the file that used to import them shows the real consumer: the earlier
 `Driver.fromWdr`/`Driver.toWdr` implementation replayed `E` marks for exactly `MODELED_SLOTS`'
-15 fields, and `toWdr` looked up each key's internal field name via `MODELED_BY_WDRKEY` before
+15 fields, and `toWdrIni` looked up each key's internal field name via `MODELED_BY_WDRKEY` before
 writing it.
 
-The current `WinISDDriver.fromWdrIni`/`toWdr` (this session's `winisdDriver.ts`) does not work
+The current `WinISDDriver.fromWdrIni`/`toWdrIni` (this session's `winisdDriver.ts`) does not work
 that way. It iterates the full 48-key `INI_ROWS` list, resolves each key's ParState slot via
 `keyPos()`/`POS_TO_WDRKEY`, and keys every `WdrCell` directly by its WDR key — there is no
 internal field-name layer left to translate into. The rewrite superseded the narrower

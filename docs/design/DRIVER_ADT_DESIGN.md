@@ -20,7 +20,7 @@ string encodes, and WinISD's own editor shows it as green/blue/black.
 
 Today OpenISD gets this wrong in two ways:
 
-1. **The exporter fabricates provenance.** `toWdr` cannot know which fields the
+1. **The exporter fabricates provenance.** `toWdrIni` cannot know which fields the
    human entered, so it guesses (originally a single hardcoded ParState string;
    now a raw-vs-derived heuristic). Both are guesses — neither can see an
    _override_ (typing over a derived field), and both read a loaded file's fields
@@ -119,7 +119,7 @@ call sites, not the concept:
   collapse into `driver.enter/clear` + `driver.state()`. The modal stops owning
   provenance — it just drives the Driver.
 - **Engine:** `deriveDriver` becomes the Driver's internal derivation; `parstate`
-  becomes `state()`; `parseWdr`/`toWdr` become `fromWdr`/`toWdr`.
+  becomes `state()`; `parseWdr`/`toWdrIni` become `fromWdr`/`toWdrIni`.
 - **Persistence / URL / project JSON:** serialize the entered-marks alongside the
   values (or reconstruct them from the embedded ParState) so provenance round-trips
   through localStorage, the share link, and saved projects too — not just WDR files.
