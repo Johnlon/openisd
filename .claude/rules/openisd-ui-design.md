@@ -18,7 +18,7 @@ before changing a panel layout or writing a tooltip.
   / not simulated. The "what each graph needs" legend tooltips read the same `desc` strings via
   `tokPurpose`, so there is no second copy; never add a parallel field-description map. When
   adding or changing a field, verify its purpose against `WINISD.md §13.1` **and** the actual
-  engine usage in `packages/engine`, and keep the chart-role clause accurate.
+  engine usage in `packages/design/engine`, and keep the chart-role clause accurate.
 
 - **Escape dismisses modals:** every modal and overlay closes on the Escape key. Wire it with
   the `useEscToClose(isOpen, onClose)` composable (`src/composables/useEscToClose.ts`) — never

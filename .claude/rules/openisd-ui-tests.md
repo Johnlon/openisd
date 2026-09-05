@@ -110,7 +110,7 @@ bash scripts/test-browser.sh packages/ui/test/logic/micka-crosscheck.browser.spe
 ```
 
 Run it deliberately when adding a scenario to `scenarios.ts`, or when changing a formula in
-`packages/engine/src/` to re-validate the frozen expected values.
+`packages/design/engine/` to re-validate the frozen expected values.
 
 Adding a test case:
 

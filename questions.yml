@@ -1,5 +1,5 @@
 prefix: QO
-next: 116
+next: 119
 questions:
 - id: QO1
   title: UI TODO List
@@ -8361,3 +8361,76 @@ questions:
       none newly caused by this session's origin or rejected-reading changes. No missing API was
       implemented - those failures are left as pre-existing, per John's instruction not to add APIs
       the app doesn't use.
+- id: QO116
+  title: OpenISDBoxJson and OpenISDProjectJson have no zod schema — only OpenISDDeviceJson is runtime-validated
+  status: open
+  raised: '2026-09-05'
+  body: ''
+  notes:
+  - at: '2026-09-05'
+    text: |-
+      Every JSON-shaped object crossing a boundary in this app is meant to have a zod schema —
+      confirmed only `openISDDeviceJsonSchema` exists (packages/design/domain/openisdRecordSchema.ts:145),
+      covering `OpenISDDeviceJson`. `OpenISDBoxJson` (packages/design/domain/project.ts:~369) and
+      `OpenISDProjectJson` (~:411) have NO zod schema anywhere in the repo — both are validated only
+      by TypeScript's structural typing at compile time, never checked at runtime. Confirmed by
+      grepping the whole packages/design tree for `z.object`/`z.strictObject`/`Schema =` referencing
+      either type: no hits outside openisdRecordSchema.ts's device schema.
+
+      Found while scoping a split of domain/project.ts (2750+ lines) into driver/passiveRadiator/box/
+      project/projectRepo files — the split was blocked by OpenISDDeviceJson's deliberate
+      non-export (project.ts's own header, lines ~56-77: "nothing outside this module can name them
+      at all... that is what forces colocation"), which raised the question of whether the OTHER two
+      private record types (Box/Project) have the same runtime-validation story as the Device type
+      does. They don't — only Device is schema-backed; Box and Project are not.
+
+      Ruling needed: should OpenISDBoxJson and OpenISDProjectJson get zod schemas (parity with
+      OpenISDDeviceJson), and if so where do those schemas live given the same colocation/privacy
+      constraint that blocks the file split?
+- id: QO117
+  title: Comments/rule-globs drifted after packages/engine deletion
+  status: open
+  raised: '2026-09-05'
+  body: ''
+  notes:
+  - at: '2026-09-05'
+    text: '4 rule files (.claude/rules/openisd-result-contract.md, engine.md, openisd-engine-source.md,
+      openisd-engine-tests.md) glob paths:[packages/engine/**] which is deleted -> rule never auto-loads.
+      openisd-ui-design.md:21 and ui.md:8 have stale prose paths too. Code comments citing dead packages/engine/src/*.ts:
+      DriverEditorModal.vue:511, OgFilters.vue:19. scripts/test.sh comment examples cite packages/engine/test/sealed-fc.test.ts
+      which does not exist. Fix: repoint globs/paths to packages/design (winisd/engine subdirs) or delete
+      rule files if superseded; fix comment paths; fix scripts/test.sh example.'
+  - at: '2026-09-05'
+    text: 'Also found: package.json ''gen-golden'' script (line 30) runs vite-node packages/engine/test/gen-golden.ts
+      - file deleted, target gone. package.json dependencies list @openisd/engine and @openisd/winisd
+      (lines 68-70) - unclear if these resolve via workspace anymore. BACKLOG.md:425 and SPEC_ENGINE.md:207
+      both cite ''npm run gen-golden'' as the golden-fixture regen command. Need a ruling: is golden-fixture
+      regen still a live workflow (repoint gen-golden.ts under packages/design), or is it dead (delete
+      the script + its BACKLOG/SPEC mentions)?'
+- id: QO118
+  title: SPEC_ENGINE.md R3's N-mark table conflicts with inconsistency-test-qts-N.wdr's real WinISD output
+    -
+  status: decided
+  raised: '2026-09-05'
+  body: ''
+  answer:
+    at: '2026-09-05'
+    text: |-
+      John's final ruling: the value's magnitude is ground truth, not the mark. N means ONLY "the
+      numeric default 0, because nothing is stated." A nonzero value present in the file is real data
+      — either E or C — regardless of what ParState says; it is illogical to distrust or drop a
+      nonzero value just because its mark says N. N vs non-N exists solely to distinguish a numeric
+      default from a defined E or C zero.
+
+      This means openisdRecordSchema.ts:654-660's existing "N + nonzero -> entered" promotion was
+      correct all along for ordinary numeric fields (Qts included) — my bug record
+      (BUG_20260905_n_marked_wdr_field_with_leftover_value_imports_as_entered.md) misdiagnosed this as
+      a defect; it is the documented, correct behavior (WDR_LOGIC.md:36-38 already states it). Closing
+      as NOT A BUG.
+
+      wdr-openisd-round-trip.test.ts's remaining "N -> E" failures on inconsistency-test-qts-N.wdr and
+      s-dia-roundtrip-123.wdr are not production defects — both source files are confirmed non-golden
+      (hand-fabricated experiment / hand-inserted value, now marked as such in their own Comment=
+      fields). The test's blanket "N -> E is never legitimate" rule needs its own exception for this
+      class of field (any nonzero N reads as data), matching the Sd exception already added, or these
+      two fixtures need excluding from that specific check since they were never real oracle evidence.

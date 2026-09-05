@@ -5,7 +5,7 @@ paths:
 
 # UI
 
-There is ONE skin: Original. `packages/ui/src/shells/` holds `original/` and nothing else.
+There is ONE skin: Original. `packages/ui/src/ui/shells/` holds `original/` and nothing else.
 
 Layers: `ui/` `logic/` `db/` `diagnostics/` `logging/`.
 

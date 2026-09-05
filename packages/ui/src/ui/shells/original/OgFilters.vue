@@ -16,7 +16,7 @@
  * and there is nothing to pull back.
  *
  * Honesty note: the engine models exactly four filter types (highpass, lowpass, linkwitz,
- * peaking — packages/engine/src/types.ts FilterType). The other four quick-add buttons
+ * peaking — @openisd/design/engine FilterType). The other four quick-add buttons
  * WinISD offers (Allpass, DLP, Static gain, Peaking-2nd-order-HP) have no engine model, so
  * they are intentionally omitted rather than added as controls that do nothing.
  */

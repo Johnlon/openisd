@@ -507,9 +507,9 @@ const identityReasons = computed<string[]>(() => {
   return out;
 });
 
-// Mandatory for the SIMULATION, not for saving. The rules are not restated here: the engine
-// owns them (packages/engine/src/driver.ts) and the ADT exposes its verdict, so this reads
-// that rather than keeping a second copy to drift. It is also how the GROUP rules arrive
+// Mandatory for the SIMULATION, not for saving. The rules are not restated here: the design
+// package's driver ADT owns them and exposes its verdict, so this reads that rather than
+// keeping a second copy to drift. It is also how the GROUP rules arrive
 // ("any two of Qts/Qes/Qms", "Qms must exceed Qts"), which no per-field check can express.
 const chartBlockingReasons = computed<string[]>(() => {
   const _ = trigger.value;

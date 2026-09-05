@@ -2,7 +2,7 @@
 # `npm test` — the project's test entry point.
 #
 #   npm test                                       full gate: unit suite, then browser suite
-#   npm test packages/engine/test/sealed-fc.test.ts        ONE vitest file
+#   npm test packages/design/test/domain.test.ts           ONE vitest file
 #   npm test packages/ui/test/ui/visual.browser.spec.ts    ONE playwright spec
 #
 # WHY THIS SCRIPT EXISTS. The entry point used to be the literal string
@@ -48,7 +48,7 @@ Running the full suite is not a safe reading of that. Put the flags after a bare
 is what stops npm claiming them:
 
   npm test -- packages/ui/test/ui/visual.browser.spec.ts --workers=1
-  npm test -- packages/engine/test/sealed-fc.test.ts
+  npm test -- packages/design/test/domain.test.ts
 
 Or call the runner directly. \`npm test\` with genuinely no arguments is the full gate.
 EOF
@@ -83,7 +83,7 @@ ERROR: no test target in the arguments: $*
 An argument list with no file, directory or spec in it is not a narrow run, and this script
 will not silently expand it into the full suite. Name a target:
 
-  npm test packages/engine/test/sealed-fc.test.ts        one vitest file
+  npm test packages/design/test/domain.test.ts           one vitest file
   npm test packages/ui/test/ui/visual.browser.spec.ts    one playwright spec (add --workers=1)
   npm test                                               the full gate, both suites
 
