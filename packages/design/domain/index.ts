@@ -1,13 +1,15 @@
-// This package's PUBLIC surface. The raw record shapes (`OpenISDDriverJson`, `OpenISDBoxJson`,
-// `OpenISDProjectJson`) are absent because they are never exported AT ALL — they are declared
-// privately inside `project.ts`, so no file can name them, let alone a consumer. See that
-// file's header.
+// This package's PUBLIC surface. The raw record shapes (`OpenISDDeviceJson`, `OpenISDBoxJson`,
+// `OpenISDProjectJson`) are absent from THIS FILE'S exports — `openisdRecordSchema.ts` exports
+// them so files inside `packages/design/domain/` can share them, but this barrel never
+// re-exports any of them, so no consumer outside `domain/` can name them
+// (`packages/design/AGENTS.md` "INTERNAL JSON RECORD TYPES — NEVER RE-EXPORTED FROM
+// domain/index.ts").
 
 export type { Provenance, Cell, FieldHandle, RawField } from './cell.js';
 export type { VentShape, Vent } from './vent.js';
 // A VALUE export, not a type-only one: `VoiceCoilWiring.Series` must be usable at runtime, which
 // is the whole point of it being an enum rather than a bare string literal.
-export { VoiceCoilWiring } from './project.js';
+export { VoiceCoilWiring } from './openisdRecordSchema.js';
 export type {
   SealedLosses,
   VentedLosses,

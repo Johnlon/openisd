@@ -160,3 +160,29 @@ tells the compiler that one type is another.
 
 Enforced by `test/architecture-no-casts.test.ts`, whose red result means "take this list to John",
 not "make it green".
+
+---
+
+## ⛔ INTERNAL JSON RECORD TYPES — NEVER RE-EXPORTED FROM `domain/index.ts` (John Lonergan, 2026-09-05)
+
+**His words:** _"I am permitting reuse within the domain folder not exports form it"_.
+
+`OpenISDDeviceJson`, `OpenISDBoxJson`, `OpenISDProjectJson` and every JSON-shape type
+declared alongside them (`ChamberJson`, `VentJson`, `OpenISDEnvironmentJson`,
+`SpecEntryJson`, `Reading`, `DqMark` and the rest) may carry `export` so files inside
+`packages/design/domain/` can import them from each other — that is the whole point of
+consolidating them in one schema file rather than declaring them once per class file.
+
+**`packages/design/domain/index.ts` — the package's public surface — must never re-export
+any of them.** Not as a type, not as a value, not through a wrapper type that carries the
+same shape under a different name. A consumer outside `domain/` (the UI, a test importing
+`@openisd/design`, another package) gets `OpenISDDriver`, `OpenISDProject` and the other
+class/interface surface those files already publish — never the raw record shape
+underneath.
+
+**The test is what `domain/index.ts` exports, not where a type is declared.** Exporting a
+JSON record type from that one file is the same violation whether it is spelled as the
+type itself, `Pick<>`/`Omit<>` of it, or a structural alias that reproduces its shape.
+
+Enforced by whichever architecture test checks `domain/index.ts`'s export list — add one
+if none currently does.
