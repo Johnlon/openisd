@@ -5,43 +5,46 @@
  * — a value hand-edited in WinISD, for instance — as a data-quality signal rather than
  * silently overwriting").
  *
- * Seam under test: `WinISDDriver.fromWdrIni(text).diffAgainst(WinISDDriver.fromOpenISDDriver(driver))`.
+ * Seam under test: `WinISDDriver.fromWdrIni(text)` vs. `openIsdDriverToWinIsdDriver(driver, ...)`,
+ * compared with `diffWdrValues`.
  */
 import { describe, it } from 'vitest';
 import { diffWdrValues } from './wdrDiff.js';
 import assert from 'node:assert/strict';
-import { parse } from 'yaml';
-import { WinISDDriver } from '../../winisd/winisdDriver.js';
-import { OpenISDDriver } from '@openisd/model';
+import { WinISDDriver } from '@openisd/design/winisd';
+import { conformingRecordToDriver } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
+import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
 
-const RECORD = `
-uuid: {value: u1, definition: d}
-quality: {rating: M, confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}
-manufacturer: {value: Acme, origin: manual, definition: d, dq: []}
-brand: {value: Acme, origin: manual, definition: d, dq: []}
-model: {value: Widget, origin: manual, definition: d, dq: []}
-sku: {value: acme-widget, definition: d, grounds: []}
-driver_type: {value: woofer, origin: manual, definition: d, dq: []}
-disposition: {value: ok, definition: d, detail: ''}
-data_sources: {value: {}, definition: d}
-authoritative: {value: manual, definition: d}
-specs:
-  woofer:
-    Fs: {origin: manual, readings: {manual: {read_value: 40}}, dq: []}
-    Re: {origin: manual, readings: {manual: {read_value: 6}}, dq: []}
-    Sd: {origin: manual, readings: {manual: {read_value: 0.0133}}, dq: []}
-    Vas: {origin: manual, readings: {manual: {read_value: 0.03}}, dq: []}
-    Qts: {origin: manual, readings: {manual: {read_value: 0.4}}, dq: []}
-    Qes: {origin: manual, readings: {manual: {read_value: 0.45}}, dq: []}
-`;
+const scraped = <T,>(value: T) => ({ value });
+const spec = (read_value: number) => ({ origin: 'manual', readings: { manual: { read_value } } });
 
-function recordDriver(): WinISDDriver {
-  const { value } = OpenISDDriver.fromJsonRecord(parse(RECORD)).toWinISDDriver();
-  if (!value) throw new Error('fixture record failed to project');
-  return value;
+function recordDriver() {
+  const record = {
+    uuid: { value: '00000000-0000-4000-8000-000000000000' },
+    manufacturer: scraped('Acme'), brand: scraped('Acme'), model: scraped('Widget'),
+    provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+    sku: { value: 'ACME-WIDGET', grounds: [{ origin: 'manufacturer_datasheet', reading: 'ACME-WIDGET' }] },
+    driver_type: scraped('woofer'),
+    data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
+    authoritative: { value: 'manufacturer_datasheet' },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
+    specs: {
+      woofer: {
+        Fs: spec(40), Re: spec(6), Sd: spec(0.0133), Vas: spec(0.03),
+        Qts: spec(0.4), Qes: spec(0.45),
+      },
+    },
+  };
+  const driver = conformingRecordToDriver(record, new Engine());
+  if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
+  return openIsdDriverToWinIsdDriver(driver, new Engine(), []);
 }
 
-describe('WinISDDriver.diffAgainst — as-read values vs the independently-derived record', () => {
+describe('diffWdrValues — as-read values vs the independently-derived record', () => {
   it('reports no mismatch when the .wdr states exactly what the record derives', () => {
     const derived = recordDriver();
     const asRead = WinISDDriver.fromWdrIni(derived.toWdrIni());
@@ -55,7 +58,7 @@ describe('WinISDDriver.diffAgainst — as-read values vs the independently-deriv
     const edited = derived.toWdrIni().replace(/^Fs=40$/m, 'Fs=41.5');
     const asRead = WinISDDriver.fromWdrIni(edited);
 
-    // The mismatch is REPORTED, not silently applied — diffAgainst never mutates either side.
+    // The mismatch is REPORTED, not silently applied — diffWdrValues never mutates either side.
     const mismatches = diffWdrValues(asRead, derived);
     assert.equal(mismatches.length, 1);
     assert.equal(mismatches[0].field, 'Fs');
@@ -67,12 +70,12 @@ describe('WinISDDriver.diffAgainst — as-read values vs the independently-deriv
     assert.equal(derived.cell('Fs').value, '40');
   });
 
-  it('does not compare a field the .wdr never stated (state N) — only what it asserts (E)', () => {
+  it('does not compare a field the .wdr never stated — only what it asserts', () => {
     const derived = recordDriver();
-    // A .wdr the writer never touched Le on — Le is 0 by WinISD's own default, state N, and
-    // must not be treated as an asserted "0" that then falsely disagrees with anything.
+    // A .wdr the writer never touched Le on — Le is 0 by WinISD's own default, not-available,
+    // and must not be treated as an asserted "0" that then falsely disagrees with anything.
     const asRead = WinISDDriver.fromWdrIni(derived.toWdrIni());
-    assert.equal(asRead.cell('Le').state, 'N');
+    assert.equal(asRead.cell('Le').state, 'not-available');
     const mismatches = diffWdrValues(asRead, derived);
     assert.equal(mismatches.some(m => m.field === 'Le'), false);
   });

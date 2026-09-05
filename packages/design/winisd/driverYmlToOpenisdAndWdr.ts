@@ -430,13 +430,13 @@ function driverYmlToOpenisdRecord(driverYmlText: string): Record<string, unknown
  */
 function wdrVCCon(spec: DriverSpec): WdrCell {
     const cell = spec.VCCon.get();
-    if (cell.value == null)
-        // this is the WinIsd default
-        return {value: '1', state: 'not-available'};
-
+    // `cell.value` is never null: an unstated wiring reads back as the driver's own calculated
+    // default (`calcVCCon()`), not absence — the exporter asks the driver, it does not decide
+    // this fact itself. The .wdr mark still follows WinISD's own observed behaviour (comment
+    // above): entered stays E, the calculated default is written N, never C.
     return {
         value: cell.value === 'series' ? '2' : '1',
-        state: 'entered',
+        state: cell.state === 'entered' ? 'entered' : 'not-available',
     };
 }
 

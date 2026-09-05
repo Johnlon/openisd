@@ -234,6 +234,20 @@ function wiringFromRecord(value: number | null): VoiceCoilWiring | null {
     return null;
 }
 
+/** WinISD's own default when a driver states no wiring — `docs/spec/SPEC_ENGINE.md:424`,
+ *  "Defaults are 0, except numVC=1, VCCon=1". Not a computation: a documented constant, the
+ *  same fact `calcNumVC()` states for coil count. The ONE place either is written down, so
+ *  `DriverSpecsSection`'s getter and the `.wdr` exporter (which reads the getter, not this
+ *  function, directly) agree instead of each stating '1' on its own. */
+function calcVCCon(): VoiceCoilWiring {
+    return VoiceCoilWiring.Parallel;
+}
+
+/** WinISD's own default when a driver states no coil count — same source as `calcVCCon()`. */
+function calcNumVC(): number {
+    return 1;
+}
+
 function enteredWiring(value: VoiceCoilWiring): SpecEntryJson {
     return {
         origin: 'entered',
@@ -766,10 +780,19 @@ function prSpec(
             });
         },
         () => {
-            throw new Error(
-                `${key} cannot be cleared: a chosen radiator's spec section always exists — there is ` +
-                'no "not entered" state for a field within it in this design.',
-            );
+            const json = lens.get();
+            const spec = json?.specs['passive-radiator'];
+            if (!json || !spec) {
+                throw new Error(
+                    `passiveRadiator.radiator.${key} cannot be cleared: no radiator is chosen yet — ` +
+                    'call configurePR() first.',
+                );
+            }
+            const {[key]: _removed, ...rest} = spec;
+            lens.set({
+                ...json,
+                specs: {...json.specs, 'passive-radiator': rest},
+            });
         },
     );
 }
@@ -1155,7 +1178,7 @@ export class DriverSpec {
             () => {
                 const wiring = wiringFromRecord(winningValue(record.get().specs[section]?.VCCon));
                 return wiring === null
-                    ? {value: null, state: 'not-available'}
+                    ? {value: calcVCCon(), state: 'calculated'}
                     : {value: wiring, state: 'entered'};
             },
             (v) => {
@@ -1167,10 +1190,13 @@ export class DriverSpec {
                 });
             },
             () => {
-                throw new Error(
-                    'VCCon cannot be cleared: this section always exists once constructed — there is no ' +
-                    '"not entered" state for a field within it in this design.',
-                );
+                const json = record.get();
+                const spec = json.specs[section] ?? {};
+                const {VCCon: _removed, ...rest} = spec;
+                record.set({
+                    ...json,
+                    specs: {...json.specs, [section]: rest},
+                });
             },
         );
 
@@ -1191,10 +1217,13 @@ export class DriverSpec {
                 });
             },
             () => {
-                throw new Error(
-                    `${key} cannot be cleared: this ${section} section always exists once constructed — ` +
-                    'there is no "not entered" state for a field within it in this design.',
-                );
+                const json = record.get();
+                const spec = json.specs[section] ?? {};
+                const {[key]: _removed, ...rest} = spec;
+                record.set({
+                    ...json,
+                    specs: {...json.specs, [section]: rest},
+                });
             },
         );
 
@@ -1219,7 +1248,30 @@ export class DriverSpec {
         this.Pe_W = f('Pe');
         this.Dd_m = f('Dd');
         this.EBP_hz = f('EBP');
-        this.numVC = f('numVC');
+        this.numVC = new Field<number>(
+            () => {
+                const stated = record.get().specs[section]?.numVC;
+                const v = winningValue(stated);
+                return v === null ? {value: calcNumVC(), state: 'calculated'} : {value: v, state: 'entered'};
+            },
+            (v) => {
+                const json = record.get();
+                const spec = json.specs[section] ?? {};
+                record.set({
+                    ...json,
+                    specs: {...json.specs, [section]: {...spec, numVC: enteredEntry(v)}},
+                });
+            },
+            () => {
+                const json = record.get();
+                const spec = json.specs[section] ?? {};
+                const {numVC: _removed, ...rest} = spec;
+                record.set({
+                    ...json,
+                    specs: {...json.specs, [section]: rest},
+                });
+            },
+        );
         this.VCCon = wiring();
         this.Dia_m = f('Dia');
         this.Vd_m3 = f('Vd');
