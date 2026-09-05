@@ -113,6 +113,9 @@ function stripRejectedReadings(specs: unknown): unknown {
                 fields[field] = entry;
                 continue;
             }
+            // Permitted by human intent (John, 2026-09-05): this function runs on the raw YAML
+            // parse, before conformingRecordToDriver validates it into an OpenISDDeviceJson —
+            // there is no typed object yet for this cast to bypass.
             const e = entry as Record<string, unknown>;
             const readings = e.readings as Record<string, unknown>;
             const keptReadings = Object.fromEntries(

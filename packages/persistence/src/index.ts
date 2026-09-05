@@ -9,7 +9,7 @@
 
 export {
   type SourceEntry, type FileEntry, type BundleRecord,
-  classifyTypes, normaliseDate, myDriverName,
+  classifyTypes, normaliseDate,
   type DriverRepo, type DriverRepoDeps, createDriverRepo,
   type DriverBundle, readBundle,
 } from './repos/driverRepo.js';

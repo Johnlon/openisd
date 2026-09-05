@@ -4,6 +4,7 @@ import { vExpoStep } from './ui/directives/expoStep.js';
 import { vLimits } from './ui/directives/limits.js';
 import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRepo, createMyPassiveRadiatorRepo, createBundledPassiveRadiatorRepo, createFileStorage, createProjectRepo, createViewStateRepo } from '@openisd/persistence';
 import { readBundle } from '@openisd/persistence';
+import { Engine } from '@openisd/design/engine';
 import { createLogging } from './logging/flash.js';
 import { createDiagnostics } from './diagnostics/selftest.js';
 import { createFaultLog } from './diagnostics/faultLog.js';
@@ -48,7 +49,7 @@ const bundle = loaded.bundle;
 // STORAGE (port): the browser's own key-value storage.
 const storage = createLocalStorage();
 const logging = createLogging();
-const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle });
+const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle, engine: new Engine() });
 const myDriverRepo = createMyDriverRepo(storage);
 const prefs = createPrefsRepo(storage);
 const myPassiveRadiators = createMyPassiveRadiatorRepo(storage);

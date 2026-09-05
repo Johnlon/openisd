@@ -1,7 +1,8 @@
 /** REPO: domain access to the bundled driver collection. Takes a
  *  storage/bundle, returns domain objects. */
-import { OpenISDDriver } from '@openisd/model';
-// import type { OpenISDDriverJson, MetaField } from '@openisd/model';
+import { conformingRecordToDriver, type OpenISDDriver } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
+// import type { MetaField } from '@openisd/model';
 // import { recordStandingIsOk } from '@openisd/model/driverStanding';
 // import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
 import { DriverType, Chip } from '@openisd/design/filter';
@@ -295,17 +296,6 @@ export function normaliseDate(raw: string | undefined): string {
 //   return (name || '').replace(/\s*\([^)]*bundled[^)]*\)/gi, '').trim();
 // }
 
-/**
- * What a saved driver is called on screen. A My Driver need not carry a `name` — one
- * saved from a record whose brand/model are known has those instead — so the label is
- * derived by the same `driverShort()` the rest of the app displays, never read raw off
- * `.name`.
- *
- * The label is for READING. A driver is IDENTIFIED by `driverId()` (`<brand>/<model>`),
- * which is what the list key and deletion use — two saved drivers may legitimately read
- * the same on screen, and neither may then be undeletable or delete the other.
- */
-export function myDriverName(d: OpenISDDriver): string { return d.displayName(); }
 // // // // // // //
 // // // // // // // /**
 // // // // // // //  * A saved driver as a pool row — the shape selection takes.
@@ -554,6 +544,9 @@ export interface DriverRepoDeps {
   sources: Record<string, Omit<SourceEntry, 'key'>>;
   /** The pre-built driver bundle, already checked by `readBundle` — the only way to obtain one. */
   bundle: DriverBundle;
+  /** Handed to the domain seam that validates each bundled record — injected, never constructed
+   *  here (ARCHITECTURE.md §2, the composition root). */
+  engine: Engine;
 }
 
 export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
@@ -569,42 +562,33 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
 
   /**
    * A bundled openisd record as a pool row. THE composition-root seam
-   * (SERIALIZATION_DOCTRINE.md edge 2): the bundle's raw JSON is passed through the model
-   * ONCE, right here, into a domain object — every downstream reader (the filter bar, the
+   * (SERIALIZATION_DOCTRINE.md edge 2): the bundle's raw JSON is passed through the domain
+   * seam ONCE, right here, into a domain object — every downstream reader (the filter bar, the
    * preview pane, the DQ badge) sees `FileEntry.record` as an `OpenISDDriver`, never as data.
    *
-   * `f.record` is already typed `OpenISDDriverJson` — the bundler wrote it, so `fromJsonRecord`
-   * constructs directly with no conformance check and no `null` outcome.
+   * THE REPO NEVER READS A DRIVER FIELD (John, 2026-09-05 ruling). It constructs the driver and
+   * hands it out; any summary column a caller needs (`Fs`, `Sd`, `types`, a display name…) is
+   * that caller's job, reading the SAME domain object this function returns — not a second copy
+   * this function pre-computes from field calls of its own.
+   *
+   * `f.record` is validated here — the bundler wrote it, but nothing downstream trusts that
+   * blindly; a malformed record is refused with the reasons named, same as any other untrusted
+   * value crossing this boundary.
    */
   function bundledEntry(f: BundleRecord, src: SourceEntry): FileEntry {
-    const driver = OpenISDDriver.fromJsonRecord(f.record);
-    // `myDriverName()` is the ONE place that decides what a driver is called. A bundled row must
-    // read exactly as the same driver reads everywhere else, so it asks rather than rebuilding
-    // the rule. The bundler's own path is the only fallback, for a record nothing else names.
-    const short = myDriverName(driver);
-    const displayName = short === 'Driver' ? f.name : short;
-
-    const ct = classifyTypes(driver.Fs(), driver.Sd(), displayName + ' ' + f.name, f.driverType);
+    const driver = conformingRecordToDriver(f.record, deps.engine);
+    if (Array.isArray(driver)) {
+      throw new Error(`${f.path}: not a valid driver — ${driver.join(', ')}`);
+    }
     return {
-      name: displayName,
+      name: f.name,
       fileName: f.name,
       record: driver,
-      date: normaliseDate(driver.added()),
-      // Source links live in the record's own provenance index, keyed by SourceRole — a URL is
-      // not a driver field.
-      datasheet: driver.dataSourceUrl('manufacturer_datasheet'),
-      manupage: driver.dataSourceUrl('manufacturer_product_page'),
-      vendorpage: driver.dataSourceUrl('distributor_product_page'),
-      frd: '',
-      impedance: '',
       path: f.path, repo: null, branch: null,
       sourceKey: src.key,
       sourceName: src.name,
       sourceUrl: src.url || '',
       sourceDesc: src.description || '',
-      Fs: driver.Fs(), Sd: driver.Sd(), Re: driver.Re(),
-      Znom: driver.Znom(), Pe: driver.Pe(),
-      types: ct.types, canonical: ct.canonical,
     };
   }
 
