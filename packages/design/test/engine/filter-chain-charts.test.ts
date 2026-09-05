@@ -16,7 +16,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SweepParams, Filter } from '../../engine/index.js';
+import type { SweepParams, Filter, SolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -27,12 +27,11 @@ const engine = new Engine();
 
 // Same reference driver as the other engine tests, so a failure here is about the filter
 // chain and not about the driver.
-const RAW: Record<string, number> = {
-  Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
-  Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
+const RAW: SolverQuantities = {
+  Fs_hz: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas_m3: 0.0300,
+  Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.70e-3, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8,
 };
-const { value: DRV } = engine.deriveEngineDriver(RAW);
-assert.ok(DRV, 'reference driver failed to derive');
+const DRV = engine.solveConsistencyGroup(RAW);
 
 const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 400 };
 const SP     = Math.PI * (0.05 / 2) ** 2;

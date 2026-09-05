@@ -16,7 +16,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SweepParams } from '../../engine/index.js';
+import type { SweepParams, SolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -156,9 +156,12 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
 });
 
 describe('the sweep actually consumes humidity and pressure', () => {
-  const RAW = { Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6, Xmax: 0.005, Pe: 60 };
+  const RAW: SolverQuantities = {
+    Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133,
+    Re_ohm: 5.6, Xmax_m: 0.005, Pe_W: 60,
+  };
   const BASE: SweepParams = { Vb: 0.020, Ql: 7, eg: 2.83, fmin: 20, fmax: 200, N: 40 };
-  const drv = engine.deriveEngineDriver(RAW).value!;
+  const drv = engine.solveConsistencyGroup(RAW);
   const splAt = (P: SweepParams) => engine.sweep(drv, LE_H, 'sealed', P).value!.spl;
   const maxAbsDelta = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i]!)));
 

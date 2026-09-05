@@ -11,7 +11,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SweepParams } from '../../engine/index.js';
+import type { SweepParams, SolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -30,18 +30,18 @@ const refC = (): number => engine.airFor({}).c;
 // Values chosen to be representative of a real driver without depending on
 // any specific commercial product.  All parameters are in SI units.
 // ---------------------------------------------------------------------------
-const REF_DRIVER = {
-  Fs:   37,      // Hz  — free-air resonance
+const REF_DRIVER: SolverQuantities = {
+  Fs_hz:   37,      // Hz  — free-air resonance
   Qts:  0.38,    // —   — total Q at Fs
   Qes:  0.40,    // —   — electrical Q at Fs
   Qms:  7.0,     // —   — mechanical Q at Fs
-  Vas:  0.030,   // m³  — equivalent compliance volume (= 30 L)
-  Sd:   0.0133,  // m²  — effective piston area (~130 cm²)
-  Re:   5.6,     // Ω   — voice-coil DC resistance
-  Le:   0.7e-3,  // H   — voice-coil inductance
-  Xmax: 0.005,   // m   — maximum linear one-way excursion (= 5 mm)
-  Pe:   60,      // W   — rated power
-  Znom:    8,       // Ω   — nominal impedance
+  Vas_m3:  0.030,   // m³  — equivalent compliance volume (= 30 L)
+  Sd_m2:   0.0133,  // m²  — effective piston area (~130 cm²)
+  Re_ohm:   5.6,     // Ω   — voice-coil DC resistance
+  Le_H:   0.7e-3,  // H   — voice-coil inductance
+  Xmax_m: 0.005,   // m   — maximum linear one-way excursion (= 5 mm)
+  Pe_W:   60,      // W   — rated power
+  Znom_ohm:    8,       // Ω   — nominal impedance
 };
 
 // ---------------------------------------------------------------------------
@@ -196,8 +196,7 @@ describe('Vented (bass-reflex) box simulation', () => {
   const wb     = 2 * Math.PI * Fb_Hz;
   const Map    = 1 / (wb * wb * Cab); // acoustic mass for Fb
   const Leff   = Map * Sp_m2 / refRho();  // effective duct length (including end correction)
-  const { value: d }      = engine.deriveEngineDriver(REF_DRIVER);
-  assert.ok(d);
+  const d = engine.solveConsistencyGroup(REF_DRIVER);
   const { fs, spl, zmag } = engine.sweep(d, LE_H, 'vented', {
     Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
   }).value!;
@@ -254,8 +253,7 @@ describe('Passive radiator box simulation', () => {
     prXmax: 0.012,  // m  — PR linear excursion limit (12 mm)
     fmin: 10, fmax: 1000, N: 300,
   };
-  const { value: d }  = engine.deriveEngineDriver(REF_DRIVER);
-  assert.ok(d);
+  const d = engine.solveConsistencyGroup(REF_DRIVER);
   const sw = engine.sweep(d, LE_H, 'box-passive-radiator', PR_PARAMS).value!;
 
   it('produces a non-zero excursion curve for the PR cone alongside the main driver curve', () => {
