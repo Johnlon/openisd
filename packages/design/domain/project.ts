@@ -58,7 +58,7 @@ import {
     type RawField,
 } from './cell.js';
 import {newUuid} from './newUuid.js';
-import {Engine, LossMode} from '../engine/index.js';
+import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/index.js';
 import type {
     BoxType, SimulatableBoxType, ConsistencyIssue, DriverError,
     MaxCurvesResult, Result, SweepParams, SweepResult, SolverQuantities,
@@ -841,7 +841,12 @@ export class DriverSpec {
     readonly OuterY_m: Field<number>;
     readonly DVol_m3: Field<number>;
 
-    constructor(record: Lens<OpenISDDeviceJson>, section: 'woofer' | 'tweeter') {
+    constructor(
+        record: Lens<OpenISDDeviceJson>,
+        section: 'woofer' | 'tweeter',
+        engine: Engine,
+        airProvider: () => AirConstantProvider,
+    ) {
         /** The wiring field. Its own builder because it carries a NAME, not a number, so it is not
          *  one of `SpecFieldName`'s numeric keys and cannot go through `f()`. */
         const wiring = (): Field<VoiceCoilWiring> => new Field<VoiceCoilWiring>(
@@ -957,8 +962,39 @@ export class DriverSpec {
         this.Mpow_N_per_sqrtW = f('Mpow');
         this.Mcost_kg_per_s = f('Mcost');
         this.Gloss = f('Gloss');
-        this.c_m_per_s = f('c');
-        this.roo_kg_per_m3 = f('roo');
+
+        /** The air field builder. Its own builder, not `f()`: unlike every other numeric field,
+         *  an unstated `c`/`roo` reads back as the live air model at this driver's own environment
+         *  — the calculated default `openIsdDriverToWinIsdDriver` used to compute only at `.wdr`
+         *  export time, now available on the driver's own getter (see `AirConstantProvider`). */
+        const air = (key: 'c' | 'roo', pick: (a: Air) => number): Field<number> => new Field<number>(
+            () => {
+                const stated = record.get().specs[section]?.[key];
+                const v = winningValue(stated);
+                return v === null
+                    ? {value: pick(engine.airFor(airProvider())), state: 'calculated'}
+                    : {value: v, state: 'entered'};
+            },
+            (v) => {
+                const json = record.get();
+                const spec = json.specs[section] ?? {};
+                record.set({
+                    ...json,
+                    specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
+                });
+            },
+            () => {
+                const json = record.get();
+                const spec = json.specs[section] ?? {};
+                const {[key]: _removed, ...rest} = spec;
+                record.set({
+                    ...json,
+                    specs: {...json.specs, [section]: rest},
+                });
+            },
+        );
+        this.c_m_per_s = air('c', (a) => a.c);
+        this.roo_kg_per_m3 = air('roo', (a) => a.rho);
         this.Vcd_m = f('Vcd');
         this.Hg_m = f('Hg');
         this.Hc_m = f('Hc');
@@ -1066,7 +1102,12 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** A driver's record is never absent, so this stays non-null for everything below. */
     protected readonly record: Lens<OpenISDDeviceJson>;
 
-    protected constructor(record: Lens<OpenISDDeviceJson>, section: 'woofer' | 'tweeter', engine: Engine) {
+    protected constructor(
+        record: Lens<OpenISDDeviceJson>,
+        section: 'woofer' | 'tweeter',
+        engine: Engine,
+        airProvider: () => AirConstantProvider = () => ({}),
+    ) {
         super({
             get: () => record.get(), set: (json) => {
                 if (json) record.set(json);
@@ -1081,8 +1122,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         // REPLACES it, so a driver updated from a tweeter record would keep reporting no tweeter.
         // `section` already answers "which kind of driver is this"; presence is not a second answer.
         this.spec = {
-            woofer: new DriverSpec(record, 'woofer'),
-            tweeter: new DriverSpec(record, 'tweeter'),
+            woofer: new DriverSpec(record, 'woofer', engine, airProvider),
+            tweeter: new DriverSpec(record, 'tweeter', engine, airProvider),
         };
     }
 
@@ -1234,7 +1275,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 /** A driver that belongs to no project — a My Drivers entry, a bundle row, a detached copy.
  *  `wrap()` windows onto a record the caller owns; the record is not copied, it is referenced. */
 class OpenISDDriverStandalone extends OpenISDDriver {
-    static wrap(json: OpenISDDeviceJson, engine: Engine): OpenISDDriverStandalone {
+    /** `airProvider` defaults to the reference environment — every existing caller
+     *  (`conformingRecordToDriver`, tests, `driverYmlToOpenisdAndWdr.ts`) passes none. A caller
+     *  holding an app-level environment (the UI, constructing a My Drivers row) passes its own. */
+    static wrap(
+        json: OpenISDDeviceJson,
+        engine: Engine,
+        airProvider: () => AirConstantProvider = () => ({}),
+    ): OpenISDDriverStandalone {
         let current = json;
         const record: Lens<OpenISDDeviceJson> = {
             get: () => current,
@@ -1242,7 +1290,7 @@ class OpenISDDriverStandalone extends OpenISDDriver {
                 current = j;
             },
         };
-        return new OpenISDDriverStandalone(record, OpenISDDriver.sectionOf(json), engine);
+        return new OpenISDDriverStandalone(record, OpenISDDriver.sectionOf(json), engine, airProvider);
     }
 
 }
@@ -1250,14 +1298,33 @@ class OpenISDDriverStandalone extends OpenISDDriver {
 /** The driver INSIDE a project — a window onto the project's own `driver` slot. A standalone
  *  driver windows its own record instead, which is the whole difference between the two. */
 class OpenISDDriverEmbedded extends OpenISDDriver {
-    private constructor(record: Lens<OpenISDDeviceJson>, section: 'woofer' | 'tweeter', engine: Engine) {
-        super(record, section, engine);
+    private constructor(
+        record: Lens<OpenISDDeviceJson>,
+        section: 'woofer' | 'tweeter',
+        engine: Engine,
+        airProvider: () => AirConstantProvider,
+    ) {
+        super(record, section, engine, airProvider);
     }
 
-    /** Takes the lens onto the project's `driver` slot. The project owns that slot and builds the
-     *  lens, so the driver needs no reference back to the project. */
-    static wrap(slot: Lens<OpenISDDeviceJson>, engine: Engine): OpenISDDriverEmbedded {
-        return new OpenISDDriverEmbedded(slot, OpenISDDriver.sectionOf(slot.get()), engine);
+    /** Takes the lens onto the project's `driver` slot and the project's own environment — the
+     *  air this driver falls back to when it states no `c`/`roo` of its own. The project owns
+     *  both slots and builds the lens/environment reader, so the driver needs no reference back
+     *  to the project itself. */
+    static wrap(
+        slot: Lens<OpenISDDeviceJson>,
+        engine: Engine,
+        environment: () => OpenISDEnvironmentJson,
+    ): OpenISDDriverEmbedded {
+        const airProvider = (): AirConstantProvider => {
+            const env = environment();
+            return {
+                tempK: env.temperature_K ?? undefined,
+                humidityPct: env.humidity_pct ?? undefined,
+                pressurePa: env.pressure_Pa ?? undefined,
+            };
+        };
+        return new OpenISDDriverEmbedded(slot, OpenISDDriver.sectionOf(slot.get()), engine, airProvider);
     }
 }
 
@@ -1610,7 +1677,7 @@ export class OpenISDProject {
         this.#saved = saved;
         this.#uuid = uuid;
         this.#engine = engine;
-        this.driver = OpenISDDriverEmbedded.wrap(this.#slot('driver'), engine);
+        this.driver = OpenISDDriverEmbedded.wrap(this.#slot('driver'), engine, () => this.#current().environment);
         // The box is handed the DRIVER and the ENGINE: a chamber's resonance depends on the driver
         // it loads, and the box reads the driver through its PUBLIC field surface, never its record.
         this.box = OpenISDBox.wrap(this.#slot('box'), this.driver, engine, () => this.#current().environment);

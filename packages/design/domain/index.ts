@@ -51,7 +51,7 @@ export type {
 //                               to pass to `configurePR()`. See the construction gap below.
 //
 // `OpenISDDriverEmbedded`/`OpenISDDriverStandalone` are NOT exported either. Neither is usable
-// from outside: `OpenISDDriverStandalone.wrap()` needs an `OpenISDDriverJson`, which is private,
+// from outside: `OpenISDDriverStandalone.wrap()` needs an `OpenISDDeviceJson`, which is private,
 // and an embedded driver is only ever produced by `OpenISDProject` itself. Exporting them would
 // advertise a capability a consumer does not have. `OpenISDDriver` — the base both share — IS
 // exported, because that is the type a consumer actually holds (via `project.driver`, or from

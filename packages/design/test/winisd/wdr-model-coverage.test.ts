@@ -160,7 +160,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     assert.equal(Number(wdr.cell('roo').value), refRho, "unentered roo must default to the live reference-environment air density");
   });
 
-  it('entering then clearing c/roo on the SAME driver: entered value reads back, cleared reverts to the live reference-environment value', () => {
+  it('entering then clearing c/roo on the SAME driver: entered value reads back, cleared reverts to the live reference-environment value on the driver itself', () => {
     const { c: refC, rho: refRho } = new Engine().airFor({});
     const record = {
       uuid: { value: '00000000-0000-4000-8000-000000000000' },
@@ -188,15 +188,14 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     assert.deepEqual(section.roo_kg_per_m3.get(), { value: 1.5, state: 'entered' },
       'roo must read back exactly what was just entered, on the same object');
 
-    // CLEAR: same object, both fields. c/roo resolve through the SAME entered-or-computed
-    // path as any other spec field — no export step is needed to see the engine constant.
+    // CLEAR: same object, both fields. The driver's OWN getter reports the calculated air-model
+    // default immediately — no export step is needed to see the engine constant.
     section.c_m_per_s.clear();
     section.roo_kg_per_m3.clear();
-    assert.deepEqual(section.c_m_per_s.get(), { value: null, state: 'not-available' },
-      'a cleared c reverts to not-available on the driver itself — the engine default only ' +
-      'appears on export, same as any other clearable field');
-    assert.deepEqual(section.roo_kg_per_m3.get(), { value: null, state: 'not-available' },
-      'a cleared roo reverts to not-available on the driver itself');
+    assert.deepEqual(section.c_m_per_s.get(), { value: refC, state: 'calculated' },
+      'a cleared c reverts to the calculated reference-air default on the driver itself');
+    assert.deepEqual(section.roo_kg_per_m3.get(), { value: refRho, state: 'calculated' },
+      'a cleared roo reverts to the calculated reference-air default on the driver itself');
 
     const wdr = openIsdDriverToWinIsdDriver(driver, new Engine(), []);
     assert.equal(wdr.cell('c').state, 'calculated', 'the cleared c carries through to .wdr export as calculated');
@@ -232,15 +231,17 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
     return driver.spec[driver.section];
   }
 
-  // `numVC` and `VCCon` are excluded here — both have a WinISD-documented calculated default
-  // when unset (`docs/spec/SPEC_ENGINE.md:424`, "numVC=1, VCCon=1"), so "not-available when
-  // unset" does not hold for them. Each gets its own test below instead.
+  // `numVC`, `VCCon`, `c_m_per_s` and `roo_kg_per_m3` are excluded here — all four have a
+  // documented calculated default when unset (`numVC`/`VCCon`: `docs/spec/SPEC_ENGINE.md:424`,
+  // "numVC=1, VCCon=1"; `c_m_per_s`/`roo_kg_per_m3`: the live air model at reference conditions,
+  // `engine/air.ts`'s `airFor`), so "not-available when unset" does not hold for them. Each gets
+  // its own test below instead.
   const NUMERIC_FIELD_NAMES = [
     'Fs_hz', 'Re_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Znom_ohm', 'Qts', 'Qes', 'Qms',
     'Vas_m3', 'Sd_m2', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s', 'Xmax_m', 'Xlim_m',
     'SPL_dB', 'Pe_W', 'Dd_m', 'EBP_hz', 'Dia_m', 'Vd_m3', 'no', 'SPLmax_dB',
     'SPLmaxLF_dB', 'USPL_dB', 'alfaVC_per_K', 'Rt_K_per_W', 'Ct_J_per_K', 'gamma_m_per_s2_A',
-    'Rme_kg_per_s', 'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'Gloss', 'c_m_per_s', 'roo_kg_per_m3',
+    'Rme_kg_per_s', 'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'Gloss',
     'Vcd_m', 'Hg_m', 'Hc_m', 'Thick_m', 'Depth_m', 'MagDepth_m', 'Magnet_m', 'Basket_m',
     'Outer_m', 'DVol_m3',
   ] as const;
@@ -292,5 +293,37 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
     section.VCCon.clear();
     assert.deepEqual(section.VCCon.get(), { value: 'parallel', state: 'calculated' },
       'VCCon must revert to the calculated default parallel after clear() — clear() must not throw');
+  });
+
+  it('c_m_per_s: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
+    const section = freshSection();
+    const referenceC = new Engine().airFor({}).c;
+
+    assert.deepEqual(section.c_m_per_s.get(), { value: referenceC, state: 'calculated' },
+      'c_m_per_s must start at the live reference-air speed of sound on a fresh section, not absent');
+
+    section.c_m_per_s.set(340);
+    assert.deepEqual(section.c_m_per_s.get(), { value: 340, state: 'entered' },
+      'c_m_per_s must read back exactly what was just set');
+
+    section.c_m_per_s.clear();
+    assert.deepEqual(section.c_m_per_s.get(), { value: referenceC, state: 'calculated' },
+      'c_m_per_s must revert to the calculated reference-air default after clear() — clear() must not throw');
+  });
+
+  it('roo_kg_per_m3: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
+    const section = freshSection();
+    const referenceRho = new Engine().airFor({}).rho;
+
+    assert.deepEqual(section.roo_kg_per_m3.get(), { value: referenceRho, state: 'calculated' },
+      'roo_kg_per_m3 must start at the live reference-air density on a fresh section, not absent');
+
+    section.roo_kg_per_m3.set(1.25);
+    assert.deepEqual(section.roo_kg_per_m3.get(), { value: 1.25, state: 'entered' },
+      'roo_kg_per_m3 must read back exactly what was just set');
+
+    section.roo_kg_per_m3.clear();
+    assert.deepEqual(section.roo_kg_per_m3.get(), { value: referenceRho, state: 'calculated' },
+      'roo_kg_per_m3 must revert to the calculated reference-air default after clear() — clear() must not throw');
   });
 });

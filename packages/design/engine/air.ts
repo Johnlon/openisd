@@ -93,6 +93,17 @@ export interface Air {
 }
 
 /**
+ * Ambient conditions a driver or project may hold, structurally compatible with `AirEnvironment`
+ * minus its two model-selection flags — a provider hands over WHAT the air is, never which model
+ * to compute it with. `airFor(provider ?? {})` accepts one directly.
+ */
+export interface AirConstantProvider {
+  tempK?: number;
+  humidityPct?: number;
+  pressurePa?: number;
+}
+
+/**
  * The environment fields a caller may supply. `SweepParams` satisfies this structurally, so
  * the sweep and the circuit pass themselves straight to `airFor`.
  */

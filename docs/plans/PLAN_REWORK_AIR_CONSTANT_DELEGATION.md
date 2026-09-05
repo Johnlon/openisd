@@ -87,17 +87,33 @@ state behaviour, not something the driver's own getter does.
 
 ### The structural question this needs a ruling on
 
-`OpenISDDriverEmbedded.wrap()` (`domain/project.ts:1550-1554`) currently takes only a `Lens`
+`OpenISDDriverEmbedded.wrap()` (`domain/project.ts:1259-1261`) currently takes only a `Lens`
 onto the project's driver slot, by deliberate choice — its own comment: _"The project owns that
 slot and builds the lens, so the driver needs no reference back to the project."_ That was a
 local implementation choice, not an architectural constraint (`ARCHITECTURE.md` does not forbid
 a driver knowing its project) — confirmed 2026-09-05, giving `OpenISDDriverEmbedded` a project
 reference does not violate layering.
 
-`OpenISDDriverStandalone` (`:1529-1541`) has no project because there is none to have; it needs
+`OpenISDDriverStandalone` (`:1236-1248`) has no project because there is none to have; it needs
 the app-level provider instead, and `packages/design` has no import path to
 `packages/ui`'s `presentationState.ts` — that provider must be handed in from the UI side, not
 reached for from inside the domain.
+
+**Where `DriverSpec` is actually built:** `OpenISDDriver`'s shared `protected constructor`
+(`:1069-1087`) builds `this.spec.woofer`/`this.spec.tweeter` — both `DriverSpec` instances —
+unconditionally, in the base class, not in either subclass's `wrap()`. `wrap()` on each
+subclass constructs the whole `OpenISDDriver` (base constructor included) from an
+`OpenISDDeviceJson`; there is no separate step that builds "just the record body" before the
+wrapper exists. So a provider `DriverSpec` needs at construction time must be a parameter on
+`OpenISDDriver`'s constructor itself, supplied differently by each subclass's `wrap()` — not
+something patched onto an already-built `DriverSpec` from outside.
+
+`conformingRecordToDriver` (`:1459-1466`) calls `OpenISDDriverStandalone.wrap(conformed.json,
+engine)` directly — it is a thin validate-then-wrap, not a separate builder of `DriverSpec`.
+Ruled 2026-09-05: its signature does NOT grow a provider parameter. Every existing call site
+(tests, `driverYmlToOpenisdAndWdr.ts`) keeps working with no provider, falling back to
+`airFor({})` inside `DriverSpec` when none was supplied — the provider is a property of the
+`OpenISDDriver` object being built via `wrap()`, not of parsing the record.
 
 ### Proposed shape (subject to sign-off before implementation)
 
@@ -105,15 +121,16 @@ reached for from inside the domain.
    `{tempK, humidityPct, pressurePa}` or equivalent — that both a project and the app-level
    Options state can satisfy structurally, without `packages/design` importing anything from
    `packages/ui`.
-2. `OpenISDDriverEmbedded.wrap()` takes an `AirConstantProvider` sourced from the project's own
-   environment (reversing the current "no reference back" comment).
-3. `OpenISDDriverStandalone.wrap()` takes an `AirConstantProvider` the caller supplies —
+2. `OpenISDDriver`'s constructor gains an optional provider parameter (default: none, meaning
+   "use `airFor({})`"), passed through to the `DriverSpec` instances it builds.
+3. `OpenISDDriverEmbedded.wrap()` supplies a provider sourced from the project's own environment
+   (reversing the current "no reference back" comment).
+4. `OpenISDDriverStandalone.wrap()` takes an optional provider the caller supplies —
    `packages/ui` passes the app-level `envDefaults` when constructing a standalone driver from
-   UI code (My Drivers list, bundle browsing).
-4. `c_m_per_s`/`roo_kg_per_m3`'s field builders in `DriverSpecsSection` gain access to whichever
-   provider their owning `OpenISDDriver` holds, and call `engine.airFor(provider)` instead of
-   reporting `not-available` when the record states nothing.
-5. Project-level refill-on-clear: whatever owns the project's environment fields (the Options
+   UI code (My Drivers list, bundle browsing); `conformingRecordToDriver` passes none.
+5. `c_m_per_s`/`roo_kg_per_m3`'s field builders in `DriverSpec` call `engine.airFor(provider ??
+{})` instead of reporting `not-available` when the record states nothing.
+6. Project-level refill-on-clear: whatever owns the project's environment fields (the Options
    dialog / project settings UI) watches for a field going `null` and repopulates it from
    `presentationState.ui.envDefaults` — implemented in `packages/ui`, not `packages/design`.
 
@@ -122,12 +139,6 @@ reached for from inside the domain.
 - Exact shape/name of the provider abstraction, and which package declares its interface
   (`packages/design` should declare the interface; `packages/ui` supplies the app-level
   implementation).
-- Whether `OpenISDDriver` (the base class) gains the provider, or only the two subclasses —
-  affects whether `c_m_per_s`/`roo_kg_per_m3`'s builders live in the base constructor or are
-  overridden per subclass.
-- Whether `conformingRecordToDriver`'s signature needs to grow a provider parameter, and what
-  every existing call site (tests, `driverYmlToOpenisdAndWdr.ts`, the UI) passes when it has no
-  natural provider to hand (a bare fixture, an export path with no live UI).
 
 ## 5. Sequencing
 

@@ -492,20 +492,25 @@ export function openIsdDriverToWinIsdDriver(
     // not a driver measured in a vacuum — it is one measured in ordinary air — so writing 0 would
     // publish a claim no record makes and no physics allows.
     //
-    // Taken from the engine at REFERENCE conditions, and marked `calculated`, which is what they
-    // are. A record stating its own `c`/`roo` overwrites these in the loop below.
-    const air = engine.airFor({});
-    cells.set('c', {value: String(air.c), state: 'calculated'});
-    cells.set('roo', {value: String(air.rho), state: 'calculated'});
+    // Read from the driver's own getter, which already reports the live air model at reference
+    // conditions when unstated — the exporter asks the driver, it does not decide this fact
+    // itself. A record stating its own `c`/`roo` reads back `entered` from the same getter.
+    const c = driver.spec[driver.section].c_m_per_s.get();
+    const roo = driver.spec[driver.section].roo_kg_per_m3.get();
+    cells.set('c', {value: String(c.value), state: c.state === 'entered' ? 'entered' : 'calculated'});
+    cells.set('roo', {value: String(roo.value), state: roo.state === 'entered' ? 'entered' : 'calculated'});
 
-    // A record stating no coil count is not a record stating one coil. OpenISD supplies the 1
-    // itself, so it is written `calculated` — the same reasoning as `c`/`roo` above. WinISD's own
-    // New -> Save writes E here from a hardcoded store in its blank-driver init; that claims a
-    // reading nobody supplied, and this is the one slot where the writer parts company with it.
+    // `cell.value` is never null: an unstated coil count reads back as the driver's own
+    // calculated default (`calcNumVC()`), not absence — the exporter asks the driver, it does
+    // not decide this fact itself. WinISD's own New -> Save writes E here from a hardcoded store
+    // in its blank-driver init; that claims a reading nobody supplied, and this is the one slot
+    // where the writer parts company with it (SPEC_ENGINE.md "openisd writes C in the numVC
+    // slot, not E").
     const numVC = driver.spec[driver.section].numVC.get();
-    cells.set('numVC', numVC.value == null
-        ? {value: '1', state: 'calculated'}
-        : {value: String(numVC.value), state: 'entered'});
+    cells.set('numVC', {
+        value: String(numVC.value),
+        state: numVC.state === 'entered' ? 'entered' : 'calculated',
+    });
 
     for (const [key, field] of wdrFields(driver.spec[driver.section])) {
         const cell = field.get();

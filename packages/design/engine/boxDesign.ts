@@ -22,14 +22,14 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2223
  */
 
-import { END_CORRECTION, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
+import { END_CORRECTION, airFor } from './air.js';
 import type { SweepParams, SweepResult } from './types.js';
 
 // None of the box/vent/PR geometry callers below carry a project environment (T/RH/AP) --
 // computed live at the reference environment, same basis `solver.ts`'s fallback uses. Never
 // a stored constant.
-const refRho = (): number => moistAirDensity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
-const refC = (): number => moistAirSoundVelocity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
+const refRho = (): number => airFor({}).rho;
+const refC = (): number => airFor({}).c;
 
 // JL: FIXME - suspect - why not the params from the DS or why specicla pr params needed for this
 /** The subset of params the PR helpers read — lets callers pass any params object

@@ -14,7 +14,7 @@
 
 import { P0, G_STANDARD } from './constants.js';
 import type { Wiring } from './types.js';
-import { GAMMA, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, moistAirDensity, moistAirSoundVelocity } from './air.js';
+import { GAMMA, DEFAULT_P_REF_PA, airFor } from './air.js';
 import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
 import { ebp } from './boxDesign.js';
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
@@ -31,7 +31,7 @@ import type { SolverQuantities, QuantityName } from './solverQuantities.js';
 export function driverC(r: Readonly<SolverQuantities>): number {
   if (r.c_m_per_s != null && r.c_m_per_s > 0) return r.c_m_per_s;
   if (r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0) return Math.sqrt(GAMMA * DEFAULT_P_REF_PA / r.roo_kg_per_m3);
-  return moistAirSoundVelocity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
+  return airFor({}).c;
 }
 
 /**
@@ -39,7 +39,7 @@ export function driverC(r: Readonly<SolverQuantities>): number {
  * reference environment. WinISD never recomputes a missing `roo` from `c` — matched here.
  */
 export function driverRho(r: Readonly<SolverQuantities>): number {
-  return r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0 ? r.roo_kg_per_m3 : moistAirDensity(DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA);
+  return r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0 ? r.roo_kg_per_m3 : airFor({}).rho;
 }
 
 /**
