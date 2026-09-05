@@ -1,7 +1,7 @@
 # WinISD parity goldens
 
 Every file in `goldens/` is a WinISD project file **WinISD itself saved**, copied out
-unmodified. Nothing in openisd produced any number in them. `../../winisd-parity.test.ts`
+unmodified. Nothing in openisd produced any number in them. `../../winisd-parity-functional.test.ts`
 runs openisd over the same scenarios and diffs against these.
 
 ---
@@ -98,7 +98,7 @@ Then run the comparison:
 
 ```bash
 cd /home/john/work/winisd/openisd
-npx vitest run --project winisd packages/design/test/winisd/winisd-parity.test.ts
+npx vitest run --project winisd packages/design/test/winisd/winisd-parity-functional.test.ts
 ```
 
 **One WinISD at a time.** The harness attaches to the app by window title, so a second

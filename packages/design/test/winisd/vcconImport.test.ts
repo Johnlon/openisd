@@ -6,9 +6,13 @@
  * (`drivers/sample/PARSTATE-FINDINGS.md`). Dropping the row on its mark loses every Series in the
  * corpus.
  *
- * `1` and `2` are the whole encoding (`WINISD_SCHEMA.md` §3.2). Anything else is coerced to `1`,
- * parallel, with the original kept as `actual_reading` and a warning emitted — NOT a `dq_calculated`
- * mark on the record. Coercion is a parse event; the record stays clean.
+ * `1` and `2` are the whole encoding (`WINISD_SCHEMA.md` §3.2) — the only two positions WinISD's
+ * own dropdown can write. Anything else is not a value a human could have entered from that UI,
+ * so it is OMITTED rather than coerced into an entered fact — no `SpecEntry` at all, a warning
+ * naming the out-of-range value, and the driver's own `VCCon` getter then reports the calculated
+ * default (parallel) the same way an absent key does (John, 2026-09-05: "when reading back a
+ * zero or absent then it should [be] recorded as C in openisd and the default calculated 1 comes
+ * thru").
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
@@ -44,26 +48,24 @@ describe('.wdr VCCon import', () => {
     assert.equal(vcconOf(wdrStating('2', 'E'))!.readings.manual!.read_value, 2);
   });
 
-  it('VCCon=3 is coerced to parallel — warning emitted, no dq mark on the record', () => {
+  it('VCCon=3 is out of range for the dropdown — omitted, warning emitted, reads as the calculated default', () => {
     const wdr = wdrStating('3', 'E');
     const entry = vcconOf(wdr);
     const warnings = vcconWarningsOf(wdr);
-    assert.equal(entry!.readings.manual!.read_value, 1);
-    assert.equal(entry!.readings.manual!.actual_reading, '3');
-    assert.equal(entry!.dq_calculated, undefined);
+    assert.equal(entry, undefined,
+      'VCCon=3 is not a value WinISD\'s UI can write — no SpecEntry, not a coerced entered fact');
     assert.equal(warnings.length, 1);
     assert.equal(warnings[0]!.level, 'warn');
     assert.equal(warnings[0]!.field, 'VCCon');
     assert.match(warnings[0]!.message, /3.*not.*1.*parallel.*2.*series/i);
   });
 
-  it('VCCon=0 is coerced too — zero is not an absent reading for a mandatory row', () => {
+  it('VCCon=0 is out of range too — zero is not a value the dropdown can write, omitted the same way', () => {
     const wdr = wdrStating('0', 'N');
     const entry = vcconOf(wdr);
     const warnings = vcconWarningsOf(wdr);
-    assert.equal(entry!.readings.manual!.read_value, 1);
-    assert.equal(entry!.readings.manual!.actual_reading, '0');
-    assert.equal(entry!.dq_calculated, undefined);
+    assert.equal(entry, undefined,
+      'VCCon=0 is out of range — no SpecEntry, the driver\'s own getter reports the calculated default');
     assert.equal(warnings.length, 1);
     assert.equal(warnings[0]!.field, 'VCCon');
   });

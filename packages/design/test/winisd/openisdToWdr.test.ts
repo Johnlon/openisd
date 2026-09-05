@@ -136,7 +136,7 @@ describe('openisd.yml → winisd.wdr — format conformance (oracle: drivers/sam
     // environment (packages/engine/src/air.ts) rather than holding WinISD's stored literal —
     // there is no frozen constant anywhere (AGENTS.md 'Calculation logic — permission gate'
     // sign-off 2026-08-19). Bounded agreement instead of byte equality; same mechanism as
-    // divergences.json's "*"/c and "*"/roo entries in winisd-parity.test.ts.
+    // divergences.json's "*"/c and "*"/roo entries in winisd-parity-functional.test.ts.
     const LIVE_COMPUTED_REL_TOL: Record<string, number> = { c: 5e-6, roo: 9e-6 };
     for (const k of keysOf(oracleText)) {
       if (HEADER.has(k)) continue;

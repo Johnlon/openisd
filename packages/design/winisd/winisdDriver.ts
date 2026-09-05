@@ -84,6 +84,12 @@ export const INI_ROWS_META = [
     {key: 'Qes', calculable: true},
     {key: 'Rms', calculable: true},
     {key: 'Mms', calculable: true},
+    // Deliberately `false`, unlike Dd (below) which derives it back: real WinISD never derives
+    // either of Sd/Dd from the other (`drivers/sample/winisd/s-dd.wdr` states only Dd, leaves Sd
+    // at N; `s-sd.wdr` states only Sd, leaves Dd at N) — openisd derives Sd from Dd anyway,
+    // going beyond WinISD, and that derived value is written marked E, never C (John, 2026-09-05:
+    // "use E for Sd when E or C in openisd"). Whether WinISD's own file loader trusts a C-marked
+    // Sd on read was not probed; this is a recorded ruling, not a measured WinISD behavior.
     {key: 'Sd', calculable: false},
     {key: 'Vas', calculable: true},
     {key: 'Dia', calculable: true},

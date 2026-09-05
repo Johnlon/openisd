@@ -14,7 +14,7 @@
  *   - a C value is WinISD's ARITHMETIC. It is recomputed from scratch, so the test of
  *     compatibility is whether our number agrees with WinISD's — the strongest parity check
  *     in the suite, because it runs over every computed field of every real file rather than
- *     the hand-picked cases in `winisd-parity.test.ts`.
+ *     the hand-picked cases in `winisd-parity-functional.test.ts`.
  *   - an N slot stays N. `N` means "not in play"; inventing a value there is a claim the
  *     source contradicts.
  *
@@ -43,7 +43,7 @@ const files = readdirSync(SAMPLES)
 /**
  * Agreement band for a RECOMPUTED value against WinISD's own.
  *
- * Not the 1e-9 of `winisd-parity.test.ts`: that compares two calculations, this compares our
+ * Not the 1e-9 of `winisd-parity-functional.test.ts`: that compares two calculations, this compares our
  * calculation against a DECIMAL STRING WinISD rounded for the file. `Qts=0.358` states the
  * value to 3 places, so it pins the true number no closer than ±5e-4 whatever either side
  * computes. The band therefore has to cover the file's own precision, and 1e-4 relative does
@@ -184,17 +184,33 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
     });
 
     /**
-     * An `N` slot may be promoted, but only by a derivation that actually ran.
+     * An `N` slot may be promoted, but only by an actual derivation OR a nonzero value already
+     * sitting in the source.
      *
      * `N` -> `C` is legitimate on its own: our solver is more complete than WinISD's, and it
-     * fills slots WinISD left alone — `s-dd.wdr` derives `Sd = π·(Dd/2)²` from an entered
-     * `Dd`, `s-sd.wdr` derives `Dd` back from an entered `Sd`, both correctly. Forbidding that
-     * would forbid solving.
+     * fills slots WinISD left alone. Forbidding that would forbid solving.
      *
-     * What is forbidden is the mark WITHOUT the derivation. `C` claims a computation produced
-     * this number; if the value is byte-for-byte what the source already had, no computation
-     * produced anything, and the claim is false. `N` -> `E` is never legitimate at all: `E`
-     * means a human stated it, and no cycle can turn a blank into a statement.
+     * `N` -> `E` on an UNCHANGED value is legitimate exactly when that value is nonzero (John,
+     * 2026-09-05: "if a value is non zero then it isn't a hallucination, it's a real value that
+     * is either C or E... N vs non-N is solely to distinguish a numeric default from a defined E
+     * or C zero"). `N` means WinISD's own numeric default, and that default is always `0`
+     * (confirmed empirically: every genuine WinISD-written `.wdr` in this corpus with an
+     * `N`-marked field carries `0` there, with no exception among ordinary numeric fields) — so
+     * a nonzero value under an `N` mark is real data the mark itself got wrong, not something to
+     * distrust or drop. `openisdRecordSchema.ts`'s `shouldImport` already reads it this way on
+     * import; this is that same rule, checked again on the way back out.
+     *
+     * What is still forbidden is the mark WITHOUT the derivation on a value that WAS `0`: `C`
+     * claims a computation produced this number, and `0 -> 0` unchanged proves none did.
+     *
+     * `Sd` is the one exception needing its OWN mark, not this general rule: real WinISD never
+     * derives `Sd` from `Dd` or vice versa (`s-dd.wdr` states only `Dd`, leaves `Sd` at `N`, value
+     * `0`; `s-sd.wdr` states only `Sd`, leaves `Dd` at `N`, value `0`) — but openisd's solver
+     * does derive `Sd` from `Dd`, going beyond WinISD, and the exporter marks that derived `Sd`
+     * `E`, never `C` (John, 2026-09-05: "old Sd e and c go to e, old n goes to n"). `Dd`'s own
+     * reverse derivation IS marked `C` (`calculable: true`, `winisd/winisdDriver.ts:87`'s
+     * comment): the two directions are deliberately asymmetric, and `Sd`'s `0 -> nonzero`
+     * transition would otherwise trip "N -> C on an unchanged value" for the wrong reason.
      */
     it(`${file} — N slots stay N unless something was actually derived`, () => {
       const out = cycle(src);
@@ -204,16 +220,15 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
 
       const invented: string[] = [];
       for (let pos = 0; pos < PARSTATE_LEN; pos++) {
-        // Slot 23 is numVC, which WinISD marks E in every file it writes and the projection
-        // sets unconditionally — it is a count, always in play, never solved for.
-        //
-        // Slot 46 is VCCon, whose ParState is unproven (`WDR_LOGIC.md` "VCCon exception — read
-        // on presence, not mark"): a reader trusts the value over the mark, so an unstated
-        // wiring saved as the .wdr default `1`/mark `N` reads back `entered`. A documented,
-        // one-time gain of certainty on round-trip, not an invented value.
-        if (state[pos] !== 'N' || outState[pos] === 'N' || pos === 23 || pos === 46) continue;
+        // Slot 17 is Sd — see the comment above the `it` block.
+        if (pos === 17) continue;
+        if (state[pos] !== 'N' || outState[pos] === 'N') continue;
         const key = POS_TO_WDRKEY[pos];
-        const derived = key != null && Number(after.get(key)) !== Number(before.get(key));
+        const sourceValue = key != null ? Number(before.get(key)) : NaN;
+        const derived = key != null && Number(after.get(key)) !== sourceValue;
+        // A nonzero value already in the source is real data under a stale N mark, not
+        // something openisd invented — legitimate at E or C, unchanged or not.
+        if (isFinite(sourceValue) && sourceValue !== 0) continue;
         if (outState[pos] === 'C' && derived) continue;
         invented.push(`slot ${pos} (${key ?? 'no key'}): N -> ${outState[pos]}` +
           (derived ? '' : `, value unchanged at "${before.get(key ?? '')}"`));

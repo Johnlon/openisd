@@ -3,7 +3,7 @@ Brand=
 Model=
 Manufacturer=
 ProvidedBy=johnl
-Comment=Dia is not enterable from the WinIsd UI (bug) but if its present then WinIsd preserves in in a Load/Save cycle for manually added it here as 123
+Comment=NOT A GOLDEN — Dia=123 was hand-inserted into this file's text; WinISD's UI has no control to enter Dia so this state cannot arise from real WinISD use. Dia is not enterable from the WinIsd UI (bug) but if its present then WinIsd preserves in in a Load/Save cycle for manually added it here as 123
 DateAdded=20260626
 DateModified=20260626
 Qts=0

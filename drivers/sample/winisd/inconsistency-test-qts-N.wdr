@@ -3,7 +3,7 @@ Brand=TEST
 Model=Inconsistency Test - Qts ParState=N
 Manufacturer=
 ProvidedBy=WDR_SCHEMA.md consistency-check experiment 2026-06-28
-Comment=Qts=0.500 stored but ParState marks it N (not entered). Correct value ~0.358. Does WinISD recalculate on load?
+Comment=NOT A GOLDEN — hand-fabricated, never loaded into real WinISD, no confirmed answer. Qts=0.500 stored but ParState marks it N (not entered). Correct value ~0.358. Does WinISD recalculate on load?
 DateAdded=20260628
 DateModified=20260628
 Qts=0.500

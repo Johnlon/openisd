@@ -601,14 +601,17 @@ function wdrVCConEntry(
             readings: {manual: {actual_reading: raw, read_value: stated}},
         };
     }
+    // Out of range for the two-position dropdown WinISD's own UI offers (1 parallel, 2 series)
+    // — not a value a human could have entered, so it is omitted rather than coerced into an
+    // entered fact. The driver's own VCCon getter then reports the calculated default
+    // (`calcVCCon()`, parallel) the same way an absent key does (John, 2026-09-05: "when reading
+    // back a zero or absent then it should recorded as C in openisd and the default calculated 1
+    // comes thru").
     warnings.push({
         level: 'warn', field: 'VCCon',
-        message: `VCCon=${stated} is not 1 (parallel) or 2 (series) — read as 1`,
+        message: `VCCon=${stated} is not 1 (parallel) or 2 (series) — omitted, reads as the calculated default`,
     });
-    return {
-        origin: 'manual',
-        readings: {manual: {actual_reading: raw, read_value: 1}},
-    };
+    return undefined;
 }
 
 /**
