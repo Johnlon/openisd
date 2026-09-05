@@ -185,7 +185,7 @@ describe('SPLmax and USPL — both offsets from the ONE reference base', () => {
     // A stated SPL (the record's own `SPL` key, entered — as a WDR's `SPL=` line arrives) is
     // WinISD's own base, and disagrees with the η₀-derived SPLref on a real record exactly
     // the way `sealed-small`'s golden does (SPL=90 stated vs SPLref=87.65068346041753 derived).
-    const withStated = solve({ ...FULL, SPL_dB: 90 } as Record<string, number>);
+    const withStated = solve({ ...FULL, SPL_dB: 90 });
     assert.ok(Math.abs(derived(withStated.SPLref_dB, 'SPLref_dB') - 90) > 0.1, 'SPLref must stay the η₀-derived value, not 90');
     assert.ok(Math.abs((derived(withStated.USPL_dB, 'USPL_dB') - 90) - 10 * Math.log10(2.83 * 2.83 / derived(BEYMA.Re_ohm, 'Re_ohm'))) < 1e-12,
       `USPL = ${withStated.USPL_dB}, must be based on the stated SPL (90), not SPLref`);

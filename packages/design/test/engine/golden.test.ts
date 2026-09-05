@@ -8,8 +8,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { Engine, SolverQuantities } from '../../engine/index.js';
-import type { SweepResult, MaxCurvesResult } from '../../engine/index.js';
+import { Engine } from '../../engine/index.js';
+import type { SweepResult, MaxCurvesResult, SolverQuantities } from '../../engine/index.js';
 
 
 const here        = dirname(fileURLToPath(import.meta.url));

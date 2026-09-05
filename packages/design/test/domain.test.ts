@@ -61,8 +61,9 @@ function driverFrom(p: Parameters<typeof driverJson>[0]) {
 
 function driverJson(p: {
   brand: string; model: string; section: 'woofer' | 'tweeter' | 'passive-radiator';
-  // Whatever `specSection` above builds.
-  spec: ReturnType<typeof specSection>;
+  // A driver's own section (`specSection`) or a radiator's (`prSpecSection`, no `Qts`) —
+  // whichever matches `section` above.
+  spec: ReturnType<typeof specSection> | ReturnType<typeof prSpecSection>;
 }) {
   const meta = {
     brand: scraped(p.brand), model: scraped(p.model), manufacturer: scraped(p.brand),

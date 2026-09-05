@@ -25,7 +25,7 @@ export function diffWdrValues(
 
   for (const key of INI_ROWS) {
     const cell = a.cell(key);
-    if (cell.state === 'N') continue;
+    if (cell.state === 'not-available') continue;
 
     const stated = Number(cell.value);
     const derived = Number(b.cell(key).value);

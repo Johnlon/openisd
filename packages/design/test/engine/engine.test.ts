@@ -96,8 +96,8 @@ describe('Sealed box simulation', () => {
     const Vb_m3 = 0.020; // 20 L enclosure volume in m³
     const d = engine.solveConsistencyGroup({ ...REF_DRIVER});
     assert.ok(d);
-    const fc  = d.Fs_hz  * Math.sqrt(1 + d.Vas_m3 / Vb_m3);
-    const Qtc = d.Qts * Math.sqrt(1 + d.Vas_m3 / Vb_m3);
+    const fc  = d.Fs_hz!  * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
+    const Qtc = d.Qts! * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
     const { fs, spl } = engine.sweep(d, LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6, // Ql -> ∞ = lossless box (isolates acoustic response)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300,
@@ -128,8 +128,8 @@ describe('Sealed box simulation', () => {
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
     const d = engine.solveConsistencyGroup({ ...REF_DRIVER});
     assert.ok(d);
-    const eta0  = engine.referenceEfficiency(d.Fs_hz, d.Vas_m3, d.Qes, engine.airFor({}));
-    const predicted = engine.splFromEfficiency(eta0, engine.airFor({})) + 10 * Math.log10(EG ** 2 / d.Re_ohm);
+    const eta0  = engine.referenceEfficiency(d.Fs_hz!, d.Vas_m3!, d.Qes!, engine.airFor({}));
+    const predicted = engine.splFromEfficiency(eta0, engine.airFor({})) + 10 * Math.log10(EG ** 2 / d.Re_ohm!);
     const { fs, spl } = engine.sweep(d, LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 }).value!;
     const passbandSPL = spl[idxGe(fs, 300)]; // 300 Hz — well above Fs, in the flat passband
     assert.ok(Math.abs(passbandSPL - predicted) < SPL_FORMULA_TOLERANCE_DB,
@@ -217,7 +217,7 @@ describe('Vented (bass-reflex) box simulation', () => {
     // one below and one above Fb.  This is the acoustic signature of a tuned reflex cabinet.
     // Ref: Small, R.H. "Vented-Box Loudspeaker Systems — Part I." JAES 21(5) 1973.
     //   https://aes.org/e-lib/browse.cfm?elib=2149
-    const Re = d.Re_ohm; // driver DC resistance — peaks must be well above this
+    const Re = d.Re_ohm!; // driver DC resistance — peaks must be well above this
     const peaks = [];
     for (let i = 1; i < zmag.length - 1; i++) {
       if (zmag[i] > zmag[i - 1] && zmag[i] > zmag[i + 1] && zmag[i] > Re * 1.5) {
@@ -268,7 +268,7 @@ describe('Passive radiator box simulation', () => {
     // Like a vented box, the PR system shows two impedance peaks straddling the tuning freq Fp.
     // Ref: Small, R.H. "Passive-Radiator Loudspeaker Systems — Part I." JAES 22(8) 1974.
     //   https://aes.org/e-lib/browse.cfm?elib=2223
-    const Re = d.Re_ohm;
+    const Re = d.Re_ohm!;
     const peaks = [];
     for (let i = 1; i < sw.zmag.length - 1; i++) {
       if (sw.zmag[i] > sw.zmag[i - 1] && sw.zmag[i] > sw.zmag[i + 1] && sw.zmag[i] > Re * 1.5) {
@@ -286,7 +286,7 @@ describe('Passive radiator box simulation', () => {
     // engine.prMassForFp() inverts the Fp formula.  We verify the inversion is accurate.
     const TARGET_FP_HZ = 42; // Hz — a typical low bass tuning
     const totalMass    = engine.prMassForFp(PR_PARAMS, TARGET_FP_HZ);
-    const addedMass    = totalMass - PR_PARAMS.prMmd;
+    const addedMass    = totalMass - PR_PARAMS.prMmd!;
     const achievedFp   = engine.prTuning({ ...PR_PARAMS, prMadd: addedMass });
     assert.ok(Math.abs(achievedFp - TARGET_FP_HZ) < TUNING_FREQ_TOLERANCE_HZ,
       `target ${TARGET_FP_HZ} Hz → added ${(addedMass * 1000).toFixed(1)} g → Fp ${achievedFp.toFixed(2)} Hz ` +
