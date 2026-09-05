@@ -133,17 +133,24 @@ function scenarioWdr(s: Scenario): string {
  * The `[Driver]` keys compared on every scenario: the T/S consistency group, the geometry
  * WinISD derives from it, and the whole Advanced-parameters pane. `EBP` is handled
  * separately (the Driver class does not carry it; `ebp()` in the engine does).
+ *
+ * Shared with `winisd-parity-field-dispatch.test.ts` via `fixtures/wdr-ini-driver-fields.json` —
+ * a plain data file with no domain-meaningful assertion of its own, so sharing it is not the
+ * "tests construct their own data" violation sharing a lookup/computation would be. Each file
+ * still writes its own dispatch and its own assertions against this same name list.
  */
-const DRIVER_FIELDS = [
-  'Fs', 'Qts', 'Qes', 'Qms', 'Cms', 'Mms', 'Rms', 'BL', 'Sd', 'Vas',
-  'Dd', 'Vd', 'no', 'SPL', 'USPL', 'SPLmax', 'SPLmaxLF',
-  'gamma', 'Rme', 'Mpow', 'Mcost', 'Gloss', 'c', 'roo',
-] as const;
+const WDR_INI_DRIVER_FIELDS: readonly string[] =
+  JSON.parse(readFileSync(join(here, 'fixtures', 'wdr-ini-driver-fields.json'), 'utf8'));
 
-/** Dispatch one of `DRIVER_FIELDS`'s `.wdr`-spelled names to its own `DriverSpec` field's `Cell`
- *  — `DriverSpec`'s fields never appear as a public parameter on `OpenISDDriver` (human ruling
- *  2026-08-24, ENCAPSULATION_AND_LAYERING.md); this file's field list is runtime data, so the
- *  dispatch lives here, matching the pattern `driverYmlToOpenisdAndWdr.ts`'s `wdrFields()` uses. */
+/** Dispatch one of `WDR_INI_DRIVER_FIELDS`'s `.wdr`-spelled names to its own `DriverSpec` field's `Cell`
+ *  — `DriverSpec`'s fields never appear as
+ *  a public parameter on `OpenISDDriver` (human ruling 2026-08-24,
+ *  ENCAPSULATION_AND_LAYERING.md); this file's field list is runtime data, so the dispatch lives
+ *  here, written out long-form per field — this test is the independent arbiter of what each
+ *  name means and must not borrow the mapping from production code (human ruling 2026-09-05:
+ *  "tests must be an independent arbitar... it must have its own opinion"). The coverage test in
+ *  the suite below calls this and `solvedFieldValue` against a real fixture for every name in
+ *  `WDR_INI_DRIVER_FIELDS`/`Re`, so a name with no case here fails loudly instead of reading as absent. */
 function driverFieldCell(d: OpenISDDriver, field: string): Cell<number> | undefined {
   const spec = d.spec[d.section];
   switch (field) {
@@ -176,10 +183,10 @@ function driverFieldCell(d: OpenISDDriver, field: string): Cell<number> | undefi
   }
 }
 
-/** Dispatch one of `DRIVER_FIELDS`'s `.wdr`-spelled names to its own field on the solved engine
- *  bag `OpenISDDriver.solveConsistencyGroup()` returns — the route for a field the spec itself
- *  cannot state, or one the driver left not-available. Same dispatch shape as
- *  `driverFieldCell` above, for the same layering reason. */
+/** Dispatch one of the same `.wdr`-spelled names to its own field on the solved engine bag
+ *  `OpenISDDriver.solveConsistencyGroup()` returns — the route for a field the spec itself
+ *  cannot state, or one the driver left not-available. Same dispatch shape and the same
+ *  independent-arbiter reasoning as `driverFieldCell` above. */
 function solvedFieldValue(solved: ReturnType<OpenISDDriver['solveConsistencyGroup']>, field: string): number | undefined {
   switch (field) {
     case 'Fs': return solved.Fs_hz;
@@ -288,7 +295,7 @@ function compare(scenarioId: string, field: string, winisd: number, openisd: num
     `at most ${known.maxRelative.toExponential(3)}. The difference has GROWN beyond its explanation.`);
 }
 
-describe('WinISD parity — field calculations against goldens WinISD itself wrote', () => {
+describe('WinISD parity (functional) — field calculations against goldens WinISD itself wrote', () => {
   it('every scenario has a golden, and every golden names the scenario it came from', () => {
     const missing = scenarios
       .filter(s => !uncapturableIds.has(s.id))
@@ -357,10 +364,12 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
         assert.ok(golden.Box, `${s.id}: the golden has no [Box] section`);
       });
 
-      for (const key of DRIVER_FIELDS) {
+      for (const key of WDR_INI_DRIVER_FIELDS) {
         it(`${key}`, () => {
-          const raw = golden.Driver?.[key];
-          assert.ok(raw != null, `${s.id}: WinISD wrote no ${key} — the golden cannot answer for it`);
+          const raw = golden.Driver[key];
+          assert.ok(raw != null, `${s.id}: the real WinISD app wrote no entry for field ${key} into ` +
+            'the golden file — this indicates a bug in WinISD or a corrupt golden file — either way ' +
+            'this is a test case failure and needs investigation');
           const winisd = parseFloat(raw);
           const openisd = num(drv, key);
 
@@ -369,7 +378,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
             // answer, not a number, so it is only acceptable when WinISD had no route either
             // (its ParState slot says the value was echoed, not calculated) or when the
             // difference is recorded as deliberate.
-            if (winisdDeclined(s, golden.Driver?.ParState, key)) return;
+            if (winisdDeclined(s, golden.Driver.ParState, key)) return;
             assert.ok(findDivergence(s.id, key),
               `${s.id}: openisd produced no ${key} at all, but WinISD wrote ${winisd}. ` +
               'Either openisd is missing a route or this belongs in divergences.json with its cause.');
@@ -380,8 +389,10 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
       }
 
       it('EBP', () => {
-        const raw = golden.Driver?.EBP;
-        assert.ok(raw != null, `${s.id}: WinISD wrote no EBP`);
+        const raw = golden.Driver.EBP;
+        assert.ok(raw != null, `${s.id}: the real WinISD app wrote no entry for field EBP into the ` +
+          'golden file — this indicates a bug in WinISD or a corrupt golden file — either way this ' +
+          'is a test case failure and needs investigation');
         const winisd = parseFloat(raw);
         const fs = num(drv, 'Fs'), qes = num(drv, 'Qes');
         assert.ok(fs !== null && qes !== null, `${s.id}: openisd has no Fs/Qes to form EBP from`);
