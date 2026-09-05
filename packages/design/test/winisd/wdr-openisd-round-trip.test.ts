@@ -27,7 +27,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/design/winisd';
-import { OpenISDDriver } from '@openisd/model';
+import { conformingRecordToDriver } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
+import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchema.js';
+import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from '../../winisd/parstate.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -119,6 +122,10 @@ function lostEntered(file: string, src: string): string[] {
   for (let pos = 0; pos < PARSTATE_LEN; pos++) {
     const key = POS_TO_WDRKEY[pos];
     if (key == null || state[pos] !== 'E' || !before.has(key)) continue;
+    // numVC outside 1..4 is coerced to 1 and flagged `numvc-coerced` — `WDR_LOGIC.md`
+    // "numVC — read on mark, value checked". Not a loss: the original survives as
+    // `actual_reading`, and this check only sees the two round-tripped .wdr keys.
+    if (key === 'numVC' && !['1', '2', '3', '4'].includes((before.get(key) ?? '').trim())) continue;
     if (Number(after.get(key)) !== Number(before.get(key))) {
       lost.push(`${file} ${key}: "${before.get(key)}" -> "${after.get(key)}"`);
     }
@@ -129,10 +136,13 @@ function lostEntered(file: string, src: string): string[] {
 /** text → WinISDDriver → OpenISDDriver → WinISDDriver → text. */
 function cycle(src: string): string {
   const asRead = WinISDDriver.fromWdrIni(src);
-  const driver = OpenISDDriver.fromWinISDDriver(asRead);
-  const { value, errors } = driver.toWinISDDriver();
-  assert.ok(value, `projection failed: ${errors.map(e => e.message).join('; ')}`);
-  return value.toWdr();
+  const { record } = winISDDriverToOpenISDDeviceJson(asRead);
+  const driver = conformingRecordToDriver(record, new Engine());
+  if (Array.isArray(driver)) {
+    assert.fail(`record rejected: ${driver.join('; ')}`);
+  }
+  const rebuilt = openIsdDriverToWinIsdDriver(driver, new Engine(), []);
+  return rebuilt.toWdrIni();
 }
 
 describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
@@ -196,7 +206,12 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
       for (let pos = 0; pos < PARSTATE_LEN; pos++) {
         // Slot 23 is numVC, which WinISD marks E in every file it writes and the projection
         // sets unconditionally — it is a count, always in play, never solved for.
-        if (state[pos] !== 'N' || outState[pos] === 'N' || pos === 23) continue;
+        //
+        // Slot 46 is VCCon, whose ParState is unproven (`WDR_LOGIC.md` "VCCon exception — read
+        // on presence, not mark"): a reader trusts the value over the mark, so an unstated
+        // wiring saved as the .wdr default `1`/mark `N` reads back `entered`. A documented,
+        // one-time gain of certainty on round-trip, not an invented value.
+        if (state[pos] !== 'N' || outState[pos] === 'N' || pos === 23 || pos === 46) continue;
         const key = POS_TO_WDRKEY[pos];
         const derived = key != null && Number(after.get(key)) !== Number(before.get(key));
         if (outState[pos] === 'C' && derived) continue;

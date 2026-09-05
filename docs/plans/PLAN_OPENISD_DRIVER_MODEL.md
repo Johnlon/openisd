@@ -138,6 +138,23 @@ Serializer only — no held state between calls, per AD-8's explicit constraint.
   **never silently overwrite** an existing `OpenISDDriver` field from an imported `.wdr`
   value that disagrees. Write the red test first: import a `.wdr` whose Qts contradicts its
   own Qes/Qms → assert a DQ mark appears, not a silent value change.
+- **Dual voice coil (QO96/QO97 ruling, John 2026-08-28):** `OpenISDDriver` holds `Re`/`BL`
+  per coil, entered, never rewritten. `numVC` and the wiring (parallel/series) live alongside
+  them. The conversion to WinISD's single terminal `Re`/`BL` happens only in this class, not
+  in the engine or the editor:
+  - export: `Re_terminal = Re_per_coil * numVC` (series) or `Re_per_coil / numVC` (parallel);
+    `BL_terminal = BL_per_coil * numVC` (series) or `BL_per_coil` (parallel).
+  - import: same factor applied in reverse, trusting the file's own stated `VCCon`/`numVC`
+    even though WinISD's dropdown always writes `VCCon=1` regardless of the true wiring
+    (`WINISD_PARITY.md` §12) — the same factor cancels on export, so a round-tripped file is
+    byte-identical and every simulated value is exact regardless of whether `VCCon` lied; only
+    the _displayed_ per-coil figure for a multi-coil driver can be wrong.
+  - `numVC = 1` (the entire bundled corpus today) makes the factor 1 and the ambiguity moot.
+  - UI: the driver editor keeps WinISD's per-coil layout unchanged. The main window's
+    Placement panel gains a read-only "As wired: Re _ohm BL _T·m" readout under the wiring
+    combo, showing the derived terminal values.
+  - Write the red test first: a `.wdr` for a series 2-coil driver with `VCCon=1` (the WinISD
+    save bug) imports without VCCon changing on the next export.
 
 **Gate:** new tests green; existing `packages/winisd/test/classic/wdr.test.ts` /
 `driver-roundtrip.test.ts` either migrate to target `WinISDDriver` or are confirmed still

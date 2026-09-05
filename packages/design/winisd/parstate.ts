@@ -55,12 +55,10 @@ export function provenanceOf(letter: string): Provenance {
  *  - slot 20 = `Dia` is PROVEN: the registration block at `0x449e6e` binds `D+0x1E0` to the
  *    control `eddia`. It reads `N` in every WinISD-authored file because nothing computes `Dia`
  *    and its field is off the default tab, so nobody enters one either.
- *  - slot 46 = `VCCon` is INFERRED, not proven. `VCCon` is NOT bound in the editor's
- *    registration loop; the slot is assigned by elimination — `D+0x1C8` is the next cell in the
- *    stride-8 run that covers slots 38-45, and `VCCon` is the only parameter left once every
- *    other slot is accounted for. No instruction in `.text` writes slot 46 at all, so it only
- *    ever holds the `N` from a blank driver's `FillChar` or whatever a loaded file supplied,
- *    which is also why no probe can confirm the pairing.
+ *  - slot 46 = `VCCon` is UNPROVEN and we have no concrete evidence that this slot is related.
+ *    None of our probing causes slot 46 to change. No instruction in `.text` writes slot 46 at all,
+ *    so it only ever holds the `N` from a blank driver's `FillChar` or whatever a loaded file supplied.
+ *    Because the slot pairing cannot be proven, we must never rely on ParState for `VCCon`.
  *
  * Which is why a hand-authored `E` in either slot round-trips through WinISD untouched —
  * `drivers/sample/winisd/inconsistency-test-saved.wdr` carries `E` in both and WinISD

@@ -67,9 +67,59 @@ const XLIM_PARSTATE_SLOT = 10;
  * writes when nothing is set. Source of truth: `drivers/sample/winisd/john-all-defaults.wdr`
  * (New → Save, nothing typed).
  */
-export const INI_ROWS: ReadonlyArray<string> = ['Qts', 'Znom', 'Fs', 'Pe', 'SPL', 'Re', 'Le', 'fLe', 'KLe', 'BL', 'Xmax', 'Cms', 'Qms', 'Qes', 'Rms', 'Mms', 'Sd', 'Vas', 'Dia', 'Vd', 'no', 'Dd', 'EBP', 'numVC', 'Hc', 'Hg',
-    'SPLmax', 'SPLmaxLF', 'USPL', 'alfaVC', 'Rt', 'Ct', 'gamma', 'Rme', 'Mpow', 'Mcost', 'Gloss', 'VCCon', 'c', 'roo', 'Thick', 'Depth', 'MagDepth', 'Magnet', 'Basket', 'Outer',
-    'Vcd', 'DVol'];
+export const INI_ROWS_META = [
+    {key: 'Qts', calculable: true},
+    {key: 'Znom', calculable: true},
+    {key: 'Fs', calculable: true},
+    {key: 'Pe', calculable: true},
+    {key: 'SPL', calculable: true},
+    {key: 'Re', calculable: true},
+    {key: 'Le', calculable: false},
+    {key: 'fLe', calculable: false},
+    {key: 'KLe', calculable: true},
+    {key: 'BL', calculable: true},
+    {key: 'Xmax', calculable: false},
+    {key: 'Cms', calculable: true},
+    {key: 'Qms', calculable: true},
+    {key: 'Qes', calculable: true},
+    {key: 'Rms', calculable: true},
+    {key: 'Mms', calculable: true},
+    {key: 'Sd', calculable: false},
+    {key: 'Vas', calculable: true},
+    {key: 'Dia', calculable: true},
+    {key: 'Vd', calculable: true},
+    {key: 'no', calculable: true},
+    {key: 'Dd', calculable: true},
+    {key: 'EBP', calculable: true},
+    {key: 'numVC', calculable: false},
+    {key: 'Hc', calculable: true},
+    {key: 'Hg', calculable: true},
+    {key: 'SPLmax', calculable: true},
+    {key: 'SPLmaxLF', calculable: true},
+    {key: 'USPL', calculable: true},
+    {key: 'alfaVC', calculable: false},
+    {key: 'Rt', calculable: false},
+    {key: 'Ct', calculable: false},
+    {key: 'gamma', calculable: true},
+    {key: 'Rme', calculable: false},
+    {key: 'Mpow', calculable: true},
+    {key: 'Mcost', calculable: true},
+    {key: 'Gloss', calculable: true},
+    {key: 'VCCon', calculable: false},
+    {key: 'c', calculable: true},
+    {key: 'roo', calculable: true},
+    {key: 'Thick', calculable: false},
+    {key: 'Depth', calculable: true},
+    {key: 'MagDepth', calculable: true},
+    {key: 'Magnet', calculable: true},
+    {key: 'Basket', calculable: false},
+    {key: 'Outer', calculable: false},
+    {key: 'Vcd', calculable: false},
+    {key: 'DVol', calculable: true},
+] as const;
+
+export const INI_ROWS: ReadonlyArray<string> = INI_ROWS_META.map(m => m.key);
+export const WINISD_CALCULABLE: ReadonlyArray<string> = INI_ROWS_META.filter(m => m.calculable).map(m => m.key);
 
 
 /**

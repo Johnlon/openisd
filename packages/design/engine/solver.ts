@@ -273,6 +273,9 @@ export function solveConsistencyGroup(p: SolverQuantities): SolverQuantities {
     if (r.no == null && r.SPLref_dB != null) {
       setVal('no', efficiencyFromSpl(r.SPLref_dB, driverRho(r), driverC(r)));
     }
+    if (r.SPL_dB == null && r.no != null && r.no > 0) {
+      setVal('SPL_dB', splFromEfficiency(r.no, driverRho(r), driverC(r)));
+    }
 
     // 12. USPL, SPLref, Re
     //

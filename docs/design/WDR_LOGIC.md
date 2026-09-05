@@ -29,7 +29,9 @@ Decision table — `ParState mark × value in file`:
 | `E`            | entered, value 0 _(warn on export — may be a failed scrape)_ | entered, value                            | — nothing            |
 | `C`            | — nothing                                                    | — nothing _(derived value, never stored)_ | — nothing            |
 | `N`            | — nothing                                                    | **entered, value**                        | — nothing            |
-| _(row absent)_ | `C` if calculable by WinISD, else nothing                    | entered, value                            | — nothing            |
+| ParState absent| entered, value 0 _(warn on export — may be a failed scrape)_ | entered, value                            | — nothing            |
+
+ParState row absent causes a conservative view during parsing such that all values are entered. This is evidenced by WinISD itself: loading a `.wdr` with no ParState and resaving it recreates the ParState string with `E` marks for present values.
 
 `N` + nonzero is treated as entered. Third-party writers copy WinISD's blank-driver `FillChar`
 discipline (N for un-touched fields) but do not track edits — real values sit under N marks
@@ -44,14 +46,15 @@ there is calculable, a field reading "never — entered or absent" is not.
 
 ### `VCCon` exception — read on presence, not mark
 
-WinISD writes no instruction to slot 46, so `VCCon` is `N` in 520 of the 524 corpus files while
-the `VCCon=` row still states a wiring. Reading it on its mark loses every series wiring.
+We have no concrete evidence that WinISD assigns a ParState slot to `VCCon` (slot 46 is unproven, and no probing causes it to change). Because its ParState is unreliable, reading it on its mark loses every series wiring (since WinISD just leaves it `N`). 
 
 | `VCCon=` value | Result                                                                                    |
 | -------------- | ----------------------------------------------------------------------------------------- |
 | `1` or `2`     | entered, value                                                                            |
 | anything else  | entered, value `1`, original kept as `actual_reading`, `vccon-coerced` in `dq_calculated` |
 | key absent     | — nothing                                                                                 |
+
+Because a reader trusts the value over the mark, when an unstated wiring (`not-available`) is saved to `.wdr` as a default `1`, reading that `.wdr` back promotes it to `entered`. This is a documented, one-time gain of certainty on round-trip.
 
 ### `numVC` — read on mark, value checked
 
@@ -69,12 +72,13 @@ split two ways: 48 ParState fields and 7 non-ParState fields.
 
 ### ParState fields — decision table
 
-| OID cell state | Solver derives it? | WDR value            | WDR ParState mark |
-| -------------- | ------------------ | -------------------- | ----------------- |
-| entered        | —                  | stated value         | `E`               |
-| calculated     | —                  | cell's derived value | `C`               |
-| not-available  | yes                | solver's value       | `C`               |
-| not-available  | no                 | `0`                  | `N`               |
+| WinISD can calculate? | OID state / Engine       | WDR value            | WDR ParState mark |
+| --------------------- | ------------------------ | -------------------- | ----------------- |
+| yes / no              | entered (non-0)          | stated value         | `E`               |
+| yes / no              | entered (0)              | `0` _(warn)_         | `E`               |
+| yes                   | OpenISD derived it       | derived value        | `C`               |
+| no                    | OpenISD derived it       | derived value        | `E`               |
+| yes / no              | not present              | `0`                  | `N`               |
 
 ### ParState field exceptions
 
@@ -90,16 +94,13 @@ split two ways: 48 ParState fields and 7 non-ParState fields.
 | `c`, `roo` | —                  | air model value    | `C`                 |
 
 `VCCon` not-stated is `N` rather than the `E` WinISD itself would write, because the loading rules
-above keep only `E` cells — an `N` would drop a stated Series on re-import, and the wiring would
-be lost. WinISD preserves whatever mark a file carries, so the `E` survives a WinISD save.
+above keep only `E` cells. 
 
 `numVC` not-stated is `C` because the `1` is OpenISD's default, not the record's. WinISD's own
 New → Save writes `E` here from a hardcoded store in its blank-driver init, claiming a reading
 nobody supplied; ParState slot 23 is the one slot where this writer parts company with the oracle.
 
-`Xlim` has no key. Even though Xlim cannot be written into a `.wdr` file, ParState slot 10 tracks
-the E/N value in OpenISD. Writing OpenISD to `.wdr` (and classic WinISD itself) discards its
-value on save.
+Parstate slot 10 reflects the N/E state of Xlim in memory, however because there is no Xlim key in the WDR files (winisd bug) then this value is immaterial. Writing OpenISD to `.wdr` (and classic WinISD itself) discards its value on save.
 
 ### Non-ParState fields
 
