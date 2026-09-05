@@ -22,7 +22,7 @@ describe('a ParState the file carries must be one WinISD could have written', ()
     const parState = 'N'.repeat(PARSTATE_LEN).split('');
     parState[1] = 'C';
     const drv = WinISDDriver.fromWdrIni(wdrWithParState(parState.join('')));
-    assert.equal(drv.cell('Fs').state, 'C');
+    assert.equal(drv.cell('Fs').state, 'calculated');
   });
 
   it('a mark WinISD never writes is refused, and the message names the slot and field', () => {
@@ -61,6 +61,6 @@ describe('a ParState the file carries must be one WinISD could have written', ()
     // The scraper writes `.wdr` without a ParState row. That is a shape we author ourselves,
     // not a corrupt WinISD file, so it keeps its own documented reading.
     const drv = WinISDDriver.fromWdrIni(['[Driver]', 'Brand=Acme', 'Model=Probe', 'Fs=37'].join('\r\n'));
-    assert.equal(drv.cell('Fs').state, 'E');
+    assert.equal(drv.cell('Fs').state, 'entered');
   });
 });

@@ -103,18 +103,18 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const engine = new Engine();
     const project = newProject(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
 
-    expect(project.sweep({ Vb: 0.03, eg: 2.83 })).toBeNull();
+    expect(project.sweep({ Vb: 0.03, eg: 2.83 }).value).toBeNull();
   });
 
   it('sweep() is null for a topology the engine has no model for, and NOT for one it has', () => {
     const engine = new Engine();
     const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
 
-    expect(project.sweep({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 50 })).not.toBeNull();
+    expect(project.sweep({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 50 }).value).not.toBeNull();
 
     // bandpass6 is a topology the domain names and the engine does not simulate.
     project.box.boxType.set('bandpass6');
-    expect(project.sweep({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 50 })).toBeNull();
+    expect(project.sweep({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 50 }).value).toBeNull();
   });
 
   it('a passive-radiator box simulates, under the ONE box vocabulary', () => {

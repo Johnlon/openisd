@@ -138,7 +138,7 @@ describe('no duplicate implementation survives', () => {
   const SCANNED = [
     join(REPO, 'packages', 'design', 'engine'),
     join(REPO, 'packages', 'design', 'domain'),
-    join(REPO, 'packages', 'winisd', 'src'),
+    join(REPO, 'packages', 'design', 'winisd'),
     join(REPO, 'packages', 'ui', 'src'),
   ];
 
