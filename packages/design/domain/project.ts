@@ -52,7 +52,6 @@ import type {
     CoupledSealedLosses,
     CoupledVentedLosses,
 } from './losses.js';
-import type {WinISDDriver} from "../winisd/winisdDriver.js";
 
 // EVERYTHING the domain owns is declared in this ONE file, on purpose.
 //

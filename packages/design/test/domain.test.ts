@@ -16,7 +16,7 @@ import {
 //
 // Structural boilerplate only: every DOMAIN-MEANINGFUL number a test depends on is passed in by
 // that test, so an `it()` block reads top to bottom without opening anything else.
-const scraped = <T,>(value: T) => ({ value, origin: 'scraped' as string });
+const scraped = <T,>(value: T) => ({ value });
 
 // A SPEC field is a different envelope from a metadata one: it states no value of its own, and
 // the number lives on the reading `origin` names. Building fixtures through this is what makes

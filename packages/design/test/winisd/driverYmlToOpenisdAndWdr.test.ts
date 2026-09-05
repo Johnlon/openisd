@@ -68,6 +68,33 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       'deterministic ordering: openisd.yml follows driver.yml, per John 2026-08-31');
   });
 
+  it('drops a rejected reading from a multi-source spec entry (John, 2026-09-05)', () => {
+    // Real record: Scan-Speak 15W/4424G00. Re has three sources; the datasheet's own OCR
+    // misread the ohm glyph as a digit, so that ONE reading is `rejected:
+    // ohm-glyph-merged-as-digit` while the listing and product pages agree on the true value.
+    // A rejected reading is scraper diagnostic evidence for `driver.yml` — never a value the
+    // app should see, so it must not survive into openisd.yml at all.
+    const source = readFileSync(
+      join(FIXTURES, 'scanspeak-15w-4424g00.driver.yml'), 'utf8');
+    assert.ok(source.includes('rejected: ohm-glyph-merged-as-digit'),
+      'the fixture must carry a rejected reading, or this proves nothing');
+
+    const { openisd } = driverYmlToOpenisdAndWdr(source);
+    assert.ok(openisd !== null, 'a readable record produces openisd.yml');
+
+    assert.ok(!openisd.includes('rejected'),
+      'a rejected reading must not survive into openisd.yml');
+    assert.ok(!openisd.includes('ohm-glyph-merged-as-digit'),
+      'the rejected reading\'s own entry must be dropped entirely, not just its `rejected` key');
+
+    const reEntry = (parse(openisd) as {
+      specs: { woofer: { Re: { readings: Record<string, unknown> } } }
+    }).specs.woofer.Re;
+    assert.deepEqual(Object.keys(reEntry.readings).sort(),
+      ['manufacturer_listing_page', 'manufacturer_product_page'],
+      'the two USABLE readings survive; only the rejected one is removed');
+  });
+
   it('emits a .wdr whose [Driver] section carries the record brand and model', () => {
     const source = daytonDriverYml();
     const record = parse(source) as { brand: { value: string }; model: { value: string } };
@@ -263,22 +290,40 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
 
   it('the emitted openisd.yml differs from driver.yml ONLY by the keys we drop', () => {
     // The most basic check there is: openisd.yml IS driver.yml minus `scraper_meta`, minus every
-    // `definition`, plus `dq_calculated` (John, 2026-09-01). Anything else that changed is a
-    // silent loss, and this is the assertion that names it.
+    // `definition`, minus `origin` on a top-level metadata field, plus `dq_calculated` (John,
+    // 2026-08-31, 2026-09-01, 2026-09-05). Anything else that changed is a silent loss, and this
+    // is the assertion that names it.
     const source = daytonDriverYml();
     const { openisd } = driverYmlToOpenisdAndWdr(source);
     assert.ok(openisd !== null);
 
-    const strip = (v: unknown): unknown => {
-      if (Array.isArray(v)) return v.map(strip);
+    // metadata field `origin` is dropped, but a spec entry's `origin` (which says which source
+    // won) and `sku.grounds[].origin` are NOT — so this can't be a blind key filter, it has to
+    // walk the same shape `stripMetadataOrigin` does.
+    const METADATA_FIELDS = new Set([
+      'manufacturer', 'brand', 'model', 'driver_type', 'series', 'nominal_size_cm',
+      'product_image', 'description', 'surround_material', 'provided_by', 'comment', 'added',
+    ]);
+    const stripDeep = (v: unknown): unknown => {
+      if (Array.isArray(v)) return v.map(stripDeep);
       if (v === null || typeof v !== 'object') return v;
       return Object.fromEntries(Object.entries(v as Record<string, unknown>)
         .filter(([k]) => k !== 'definition' && k !== 'scraper_meta' && k !== 'dq_calculated')
-        .map(([k, x]) => [k, strip(x)]));
+        .map(([k, x]) => [k, stripDeep(x)]));
     };
+    const stripMetadataOriginForTest = (record: Record<string, unknown>): Record<string, unknown> =>
+      Object.fromEntries(Object.entries(record).map(([k, v]) => {
+        if (!METADATA_FIELDS.has(k) || typeof v !== 'object' || v === null) return [k, v];
+        const { origin: _origin, ...rest } = v as Record<string, unknown>;
+        return [k, rest];
+      }));
 
-    assert.deepEqual(strip(parse(openisd)), strip(parse(source)),
-      'openisd.yml differs from driver.yml by something other than the three keys');
+    const openisdRecord = stripDeep(parse(openisd)) as Record<string, unknown>;
+    const sourceRecord = stripMetadataOriginForTest(
+      stripDeep(parse(source)) as Record<string, unknown>);
+
+    assert.deepEqual(openisdRecord, sourceRecord,
+      'openisd.yml differs from driver.yml by something other than the documented drops');
   });
 
   it('a record with NO device section reports BOTH seams\' refusals, not just the driver\'s', () => {

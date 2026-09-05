@@ -22,7 +22,7 @@ import {
   type OpenISDDriver,
 } from '../domain/index.js';
 
-const scraped = <T,>(value: T) => ({ value, origin: 'scraped' as string });
+const scraped = <T,>(value: T) => ({ value });
 
 /** A conforming driver record. Structural plumbing only — every meaningful value is passed in
  *  by the scenario that depends on it.

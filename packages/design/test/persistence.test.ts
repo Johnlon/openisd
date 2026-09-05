@@ -18,7 +18,7 @@ import {
 
 /** A conforming driver record, built inline so each test's data is readable where it is used. */
 function aDriver(brand: string, model: string): OpenISDDriver {
-  const scraped = <T,>(value: T) => ({ value, origin: 'test' });
+  const scraped = <T,>(value: T) => ({ value });
   // A spec entry states no value of its own — the number lives on the reading `origin` names,
   // exactly as the corpus writes it.
   const num = (read_value: number) => ({ origin: 'test', readings: { test: { read_value } } });

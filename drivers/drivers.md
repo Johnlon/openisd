@@ -58,9 +58,23 @@ authoritative, description?, series?, product_image?, surround_material?, curves
 specs: { woofer? | tweeter? | 'passive-radiator'? }
 ```
 
-Names are the corpus's own — `read_precision`, `corroboration`, never a renamed variant. Three
-envelope types, because `driver.yml` genuinely has three: `SpecEntry` (readings map, no value),
-`ScrapedField<T>` (value + origin), and the `sku` grounds shape.
+Names are the corpus's own — `read_precision`, `corroboration`, never a renamed variant. Two
+envelope types, because `driver.yml` genuinely has two: `SpecEntry` (readings map, no value) and
+`ScrapedField<T>` (value only, on a metadata field).
+
+`conformed_by`, `sku.grounds`, metadata's `origin`, and a REJECTED reading are deliberate
+exclusions, not gaps (John, 2026-09-05): `conformed_by` names which scraper heuristic corrected a
+misread reading, `grounds` is the raw source citations the `sku` value was derived from, `origin`
+on a metadata field (`manufacturer`, `brand`, `model`, `driver_type`, `series`, `nominal_size_cm`,
+`product_image`, `description`, `surround_material`, `provided_by`, `comment`, `added`) is
+redundant with the field's own name and value, and a reading marked `rejected` (`RejectedRead`,
+`model_driver.py`) is a source's number the scraper determined must not be used — kept in
+`driver.yml` as evidence for a human, but the app must never see it at all. All four are
+scraper-internal provenance with no meaning to an openisd record, the same reasoning that drops
+`scraper_meta`; the bridge (`driverYmlToOpenisdAndWdr.ts`) drops the entire rejected reading from
+a spec entry's `readings` map before emitting `openisd.yml`, leaving that field's other, usable
+readings untouched. Spec-entry `readings` stays keyed by origin — a reading needs its source to
+disambiguate multiple sources for one value; a metadata field does not.
 
 Each entry gains `dq_calculated?: DqMark[]` beside `dq_scraper?`. Absent, not empty, when the
 engine has not run: an empty list claims "checked, found nothing".

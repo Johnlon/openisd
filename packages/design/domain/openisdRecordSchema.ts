@@ -78,11 +78,9 @@ const specEntryJsonSchema = z.strictObject({
 // here. It is driver.yml's, and never reaches an openisd.yml or a .wdr (John, 2026-09-01). A
 // consumer of this record already knows what `Fs` is.
 
-/** READ off a source. `origin` names which source won; `readings` keeps what each one said.
- *  (`ScrapedField`, model_driver.py:155.) */
+/** READ off a source. `readings` keeps what each one said. (`ScrapedField`, model_driver.py:155.) */
 const scrapedFieldOf = <T extends z.ZodTypeAny>(value: T) => z.strictObject({
     value,
-    origin: z.string(),
     readings: z.record(z.string(), value).optional(),
     dq_scraper: dqMarks(),
     note: z.unknown().optional(),
@@ -349,7 +347,7 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     // one produces no field — not an empty string standing in for "unstated"
     // (bugs/BUG_20260903_wdr_reader_drops_providedby_comment_dateadded_on_every_round_trip.md).
     const stated = (text: string | undefined) =>
-        text && text.length > 0 ? {value: text, origin: 'manual' as const} : undefined;
+        text && text.length > 0 ? {value: text} : undefined;
     const providedBy = stated(wdr.headerField('providedBy'));
     const comment = stated(wdr.headerField('comment'));
     const added = stated(wdr.headerField('dateAdded'));
@@ -360,11 +358,11 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
             confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
             parse_errors: [], cross_source_only: [],
         },
-        manufacturer: {value: manufacturer, origin: 'manual'},
-        brand: {value: brand, origin: 'manual'},
-        model: {value: model, origin: 'manual'},
+        manufacturer: {value: manufacturer},
+        brand: {value: brand},
+        model: {value: model},
         sku: {value: model, grounds: [{origin: 'manual', reading: model}]},
-        driver_type: {value: 'woofer', origin: 'manual'},
+        driver_type: {value: 'woofer'},
         data_sources: {value: {}},
         authoritative: {value: 'openisd'},
         ...(providedBy ? {provided_by: providedBy} : {}),

@@ -24,7 +24,7 @@ import {conformingRecordToDriver, type OpenISDDriver, conformingRecordToPassiveR
 import {type DriverError, Engine} from '@openisd/design/engine';
 
 import {dqCalculated, withDqCalculated} from './dqCalculated.js';
-import {INI_ROWS, type WdrCell, type WdrHeader, WinISDDriver} from './winisdDriver.js';
+import {INI_ROWS, WINISD_CALCULABLE, type WdrCell, type WdrHeader, WinISDDriver} from './winisdDriver.js';
 import {type DriverSpec, wdrFields, winISDDriverToOpenISDDeviceJson} from '../domain/openisdRecordSchema.js';
 
 /** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
@@ -64,6 +64,67 @@ function stripDefinitionField(value: unknown): unknown {
     return out;
 }
 
+/** The record's TOP-LEVEL metadata fields — `ScrapedField<T>` envelopes that carry `origin` in
+ *  `driver.yml` but not in `OpenISDDeviceJson` (John, 2026-09-05: "manu is in the model - whats
+ *  the problem" — the field's own name already says what it is; `origin` there is redundant with
+ *  the field name, unlike a spec entry's `readings`, which genuinely needs `origin` to say which
+ *  of several sources won). Named explicitly, not walked structurally: a spec entry ALSO has an
+ *  `origin` key, on a shape this strip must never touch. */
+const METADATA_FIELDS_WITH_DEAD_ORIGIN = new Set([
+    'manufacturer', 'brand', 'model', 'driver_type', 'series', 'nominal_size_cm',
+    'product_image', 'description', 'surround_material', 'provided_by', 'comment', 'added',
+]);
+
+/** The record with `origin` dropped from each named metadata field's own envelope — never from
+ *  `specs`, `curves`, or `sku.grounds`, which keep it. */
+function stripMetadataOrigin(record: Record<string, unknown>): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(record)) {
+        if (!METADATA_FIELDS_WITH_DEAD_ORIGIN.has(key) || typeof value !== 'object' || value === null) {
+            out[key] = value;
+            continue;
+        }
+        const field: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(value)) {
+            if (k === 'origin') continue;
+            field[k] = v;
+        }
+        out[key] = field;
+    }
+    return out;
+}
+
+/** A spec entry's `readings` with every REJECTED reading removed (John, 2026-09-05): `rejected`
+ *  marks a reading a scraper must not use — evidence for a human auditing `driver.yml`, never a
+ *  value the app should see. `origin` may not name a rejected reading (the pydantic record
+ *  guard already enforces that), so dropping it here can never remove the entry's winning value —
+ *  only a reading that was already excluded from winning. */
+function stripRejectedReadings(specs: unknown): unknown {
+    if (specs === null || typeof specs !== 'object') return specs;
+    const sections: Record<string, unknown> = {};
+    for (const [sectionKey, section] of Object.entries(specs)) {
+        if (typeof section !== 'object' || section === null) {
+            sections[sectionKey] = section;
+            continue;
+        }
+        const fields: Record<string, unknown> = {};
+        for (const [field, entry] of Object.entries(section)) {
+            if (typeof entry !== 'object' || entry === null || !('readings' in entry)) {
+                fields[field] = entry;
+                continue;
+            }
+            const e = entry as Record<string, unknown>;
+            const readings = e.readings as Record<string, unknown>;
+            const keptReadings = Object.fromEntries(
+                Object.entries(readings).filter(([, reading]) =>
+                    typeof reading !== 'object' || reading === null || !('rejected' in reading)));
+            fields[field] = { ...e, readings: keptReadings };
+        }
+        sections[sectionKey] = fields;
+    }
+    return sections;
+}
+
 /** `.wdr` provenance marks, from the domain's own three-state provenance. WinISD's format has
  *  exactly these three, so the mapping is total and needs no fallback. */
 
@@ -77,9 +138,11 @@ function stripScraperOnlyFieldsFromJavascriptObject(driverYml: object): Record<s
     const out: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(driverYml)) {
         if (key === SCRAPER_ONLY_KEY) continue;
-        out[key] = stripDefinitionField(value);
+        out[key] = key === 'specs'
+            ? stripRejectedReadings(stripDefinitionField(value))
+            : stripDefinitionField(value);
     }
-    return out;
+    return stripMetadataOrigin(out);
 }
 
 /** A RADIATOR's stated values, keyed the way its record keys them.
@@ -172,11 +235,13 @@ function dqCommentLines(record: Record<string, unknown>): string[] {
  * expected" list (John, 2026-09-02: "do i1/2 match or different only where we expect them to").
  *
  * ONE EXCEPTION, and it is named in `WDR_LOGIC.md` "VCCon exception — read on presence, not
- * mark": WinISD never marks `VCCon` meaningfully, so a reader trusts the VALUE over the mark. Our
- * own writer marks an UNSTATED wiring `not-available` (`wdrVCCon`); reading that `.wdr` back then
- * promotes it to `entered`, because that is what the documented exception requires of any reader.
- * A second round trip is stable at `entered` — this is a one-time, DOCUMENTED gain of certainty,
- * not a loss, and not a coding error, so it is the one field compared by value only.
+ * mark": VCCon's ParState slot (46) is UNPROVEN — no probing shows WinISD ever writing it — so a
+ * reader never consults the mark for this field at all, only whether `VCCon=` is present
+ * (`wdrVCConEntry`). Our own writer marks an UNSTATED wiring `not-available` (`wdrVCCon`);
+ * reading that `.wdr` back then reads the `1` it finds as entered, because presence is the only
+ * thing this field is ever read on. A second round trip is stable at `entered` — this is a
+ * one-time, DOCUMENTED gain of certainty, not a loss, and not a coding error, so it is the one
+ * field compared by value only.
  *
  * A SECOND EXCEPTION, same reasoning: `Xlim`. `WDR_LOGIC.md`: "Xlim has no key... Writing
  * OpenISD to `.wdr`... discards its value on save." `w2`'s Xlim mark is a residue of the
@@ -395,7 +460,7 @@ function wdrVCCon(spec: DriverSpec): WdrCell {
  *   Xlim  not-available      →  no key written, mark N on slot 10 only
  *   c, roo (any)             →  air model value,  mark C
  */
-function openIsdDriverToWinIsdDriver(
+export function openIsdDriverToWinIsdDriver(
     driver: OpenISDDriver,
     engine: Engine,
     errors: DriverError[],
@@ -485,7 +550,8 @@ function openIsdDriverToWinIsdDriver(
         // a quantity whose bare name is not a `.wdr` key simply has no row to write.
         const key = quantity.split('_')[0];
         if (cells.has(key) || !INI_ROWS.includes(key)) continue;
-        cells.set(key, {value: String(value), state: 'calculated'});
+        const mark = WINISD_CALCULABLE.includes(key) ? 'calculated' : 'entered';
+        cells.set(key, {value: String(value), state: mark});
     }
 
     // `otherwise -> 0, mark N` (WDR_LOGIC.md, above): entered and derivable are both tried above,

@@ -1,5 +1,5 @@
 prefix: QO
-next: 113
+next: 116
 questions:
 - id: QO1
   title: UI TODO List
@@ -6754,12 +6754,30 @@ questions:
     and whether Sp/Leff on SyncedParams/UiParams/SweepParams (currently single optional scalars) become
     per-port arrays or stay scalars with a box-type-specific meaning. Explicitly deferred: John said do
     not add bandpass6/abc yet.'
-  status: deferred
+  status: decided
   raised: '2026-08-23'
   body: ''
   answer:
-    at: '2026-08-23'
-    text: stays deferred / don't add bandpass6/abc yet
+    at: '2026-09-04'
+    text: |-
+      RECONFIRMED 2026-09-04 against the tree — this question is answered BY THE CODE, not by a ruling.
+
+      Both structural choices it asked for are made in packages/design/domain/project.ts:
+        - AbcBox (line ~578) carries exactly the three ports John specified: vents.rear, vents.front
+          and vents.intra, the connecting port a flat sibling owned by neither chamber.
+        - Bandpass6Box (line 554) carries vents.rear + vents.front.
+        - The shape chosen is NAMED FIELDS on a `vents` object, not `vents: OpenISDVent[]`.
+
+      The premise the question rests on is gone: no alignment carries a single `vent: OpenISDVent`
+      field any more. "OpenISDVentedAlignment"/"OpenISDBandpass4Alignment" no longer exist under those
+      names; Bandpass4Box has `vents: {front: Vent}`.
+
+      The deferral ("don't add bandpass6/abc yet") has been overtaken — both types are declared and
+      wired into the box union (project.ts:628, 809) and the focus helpers (project.ts:875).
+
+      Closing as answered by construction. If the Sp/Leff-per-port question is still live it is a
+      separate matter about SyncedParams/UiParams/SweepParams, not about the box shape.
+  tag: ABC box
 - id: QO86
   title: 'Export discipline: nothing public by default; export * banned outright'
   status: decided
@@ -6779,7 +6797,7 @@ questions:
       So: a RATCHET gate. (1) NOW: baseline every existing `export *` site WITH the exact symbol list it currently re-exports, recorded in the gate; test passes on the baseline, fails on any NEW wildcard or any growth of an existing one. (2) Non-blocking work unit: convert wildcards to named exports one by one, deleting each from the baseline as it converts, until the baseline is empty and the ban is absolute. (3) Later, separate: trim unjustified exports / relocate code where misplacement is the root cause. None of it blocks the release.
 - id: QO87
   title: 'Big precision fix: port the full printed-precision interval model into consistency checking'
-  status: open
+  status: deferred
   raised: '2026-08-23'
   body: ''
   notes:
@@ -6792,6 +6810,10 @@ questions:
       is the symmetric half-width interval model itself right; should derived values propagate interval
       widths through formulas (full interval arithmetic) rather than the current perturbation-based delta
       accumulation; and what the UI shows when a verdict is precision-marginal. Cycle 2+; no schedule.'
+  tag: precision
+  answer:
+    at: '2026-09-04'
+    text: not now
 - id: QO88
   title: 'winisdAir ignore-mode: four conflicting sources on what c/rho should be - needs your ruling,
     blocks the Playwright gate'
@@ -6871,7 +6893,7 @@ questions:
 - id: QO91
   title: OptionsModal preview and driver-editor reference c/roo still show the pure moist model (1.20096),
     not the WinISD-anchored pair
-  status: open
+  status: decided
   raised: '2026-08-23'
   body: ''
   notes:
@@ -6884,9 +6906,14 @@ questions:
       must show the ANCHORED pair, they should switch to airFor({ignoreHumidityAndPressure:true}) fed
       by envDefaults; if they are physics previews, current state is correct. Needs a ruling; no code
       touched.'
+  answer:
+    at: '2026-09-04'
+    text: Follow useWinisdAirModel. Both OptionsModal's default-air preview and DriverEditorModal's Environment
+      readout should respect the project's WinISD-model setting, same as every other computed air value
+      in the app, instead of always using plain CIPM-2007 physics.
 - id: QO92
   title: Autosave was ripped out undesigned — persistence needs designing before it comes back
-  status: open
+  status: decided
   raised: '2026-08-26'
   body: ''
   notes:
@@ -7063,6 +7090,12 @@ questions:
       has 2 compile errors, both `readWrappedJson` call sites in ProjectBuilder, awaiting the decision
       on how the builder gets a driver''s record without a free-function accessor. Tests not yet updated
       for the two-layer collapse.'
+  answer:
+    at: '2026-09-04'
+    text: 'Design content moved to docs/plans/PLAN_PROJECT_PERSISTENCE.md. Settled: two-layer saved/edited
+      model, internal-only project uuid, each project writes itself via #notify, no Vue in the write path.
+      Open items (storage backend, autosave layer, close/reload semantics, write-failure handling) carried
+      forward in the plan doc, not the ledger.'
 - id: QO93
   title: Settle c/roo provenance by controlled probe + debug, not by reading found files
   status: decided
@@ -7149,7 +7182,7 @@ questions:
       CIPM-2007 is untouched and remains the DEFAULT (QO7). The two are a physics/parity pair.
 - id: QO94
   title: 'Field help: a [?] popover, or keep native title tooltips?'
-  status: open
+  status: decided
   raised: '2026-08-27'
   body: ''
   notes:
@@ -7180,9 +7213,13 @@ questions:
            whether it replaces the 193 existing `title` attributes or coexists with them.
 
       John decides. Nothing built beyond fixing the wrong text.
+  answer:
+    at: '2026-09-04'
+    text: Build a [?] popover. Works on touch devices, can be styled and hold richer content than the
+      native title tooltip.
 - id: QO95
   title: WinISD air model is now the DEFAULT — QO7 reversed
-  status: open
+  status: decided
   raised: '2026-08-28'
   body: ''
   notes:
@@ -7212,9 +7249,13 @@ questions:
       the comment. Help text rewritten in AdvancedOptions.vue and fieldRegistry.ts to say plainly that
       it makes no audible difference and exists for completeness and interest, and that NEITHER setting
       discards an input. 2119 tests pass.
+  answer:
+    at: '2026-09-04'
+    text: 'Already implemented and ruled 2026-08-28: WinISD default, CIPM-2007 checkbox opt-in, difference
+      is inaudible not zero.'
 - id: QO96
   title: 'Dual voice coil: implement WinISD''s Re/BL conversion, without its silent provenance lie'
-  status: open
+  status: decided
   raised: '2026-08-28'
   body: ''
   notes:
@@ -7339,10 +7380,15 @@ questions:
       split rather than inventing a third arrangement. Consequence: changing numVC in the editor does
       not update the readouts until the editor closes. Worth a line in the editor's Re help text, which
       now comes from the field registry.
+  answer:
+    at: '2026-09-04'
+    text: Ruling fully recorded, no remaining decision. Added as a Phase 2 sub-item in docs/plans/PLAN_OPENISD_DRIVER_MODEL.md
+      — the WinISDDriver serializer owns the per-coil/terminal conversion, per-coil fields stay entered/never
+      rewritten, main-window Placement panel gets a read-only 'As wired' readout.
 - id: QO97
   title: 'wdr reader rule for dual-coil Re: trust the file''s VCCon, because simulation is unaffected
     either way'
-  status: open
+  status: decided
   raised: '2026-08-28'
   body: ''
   notes:
@@ -7391,6 +7437,12 @@ questions:
       coordination split with agent loose-end assigns to it, while ".wdr/.wpr adapter" was assigned to
       me. That overlap needs settling before either of us edits there -- flagged, not resolved tonight,
       and NOT a reason to delay the rule above.
+  answer:
+    at: '2026-09-04'
+    text: 'Ruling fully recorded, no remaining decision. Already captured in docs/plans/PLAN_OPENISD_DRIVER_MODEL.md
+      Phase 2''s dual-voice-coil bullet (tagged QO96/QO97): import trusts the file''s stated VCCon/numVC
+      even though WinISD''s own dropdown always writes VCCon=1, because the same factor cancels on export
+      -- every simulated value stays exact and the round-trip is byte-identical regardless.'
 - id: QO98
   title: 'Coverage include is stale: measures deleted packages/engine, ignores packages/design and packages/persistence
     — re-setting thresholds is a build-gate decision'
@@ -7582,9 +7634,15 @@ questions:
 - id: QO101
   title: 'Decommission useWinisdAirModel: the flag cannot change a chart, so document the two air models
     instead -'
-  status: open
+  status: decided
   raised: '2026-08-31'
   body: ''
+  answer:
+    at: '2026-09-04'
+    text: |-
+      the switch in air model is merely for completeness and there will be help text to explain it makes no difference practically
+
+      Keep useWinisdAirModel. Not decommissioned: it stays as a completeness/transparency control, with help text explaining that the two air models make no practical difference to a simulation. This is consistent with QO91 (both readouts follow the flag) and QO94 (the [?] popover is where the help text lives).
 - id: QO102
   title: 'Bundler self-check (emit, reload via the app path, compare sets) is blocked: driverRepo still
     loads via the dead @openisd/model -'
@@ -7859,7 +7917,7 @@ questions:
 - id: QO109
   title: 'drivers-bundle.json is STALE: it carries quality.rating and dq_marks that ZERO records on disk
     have, and 1893 records where disk has 2064'
-  status: open
+  status: decided
   raised: '2026-09-01'
   body: |-
     MEASURED 2026-09-01 over all 1970 records in packages/ui/src/drivers-bundle.json, by counting
@@ -7912,6 +7970,57 @@ questions:
 
     THE QUESTION, in two parts: (a) rebuild drivers-bundle.json from the current corpus? (b) for
     the four keys above, is the record right and the type incomplete? Nothing changed either way.
+  notes:
+  - at: '2026-09-04'
+    text: 'Re-checked 2026-09-04: drivers-bundle.json has changed shape since this was raised — now {sources:[{files:[...]}],
+      passiveRadiators:[...]}, sources[0].files has 1986 entries (was 1893 flat records). The rebuild-vs-type-gap
+      question is still unanswered; numbers in the body are stale and need re-measuring against the new
+      shape before acting.'
+  - at: '2026-09-05'
+    text: |-
+      CORRECTED 2026-09-05 by measuring the live bundle directly, not by re-reading old notes.
+
+      quality.rating: 0 occurrences across all 1986 files in packages/ui/src/drivers-bundle.json
+      (python json.load, counting 'rating' key inside record.quality). Every record's quality object
+      now has exactly {confirmed_fields, fields_with_issues, missing, invalid, parse_errors,
+      cross_source_only} - no rating field anywhere.
+
+      dq_marks: 0 occurrences anywhere in the bundle (grep -c on the raw file, and a full-record
+      JSON string search per file). Also 0 occurrences in any driver.yml, and 0 occurrences in any
+      .py or .ts source file under openisd, winisd_drivers, winisd_tools - the field is gone from
+      the corpus and from source, not just renamed.
+
+      Both fields this question was raised about are gone. The bundle has been rebuilt since the
+      2026-09-04 note (1986 files here vs 1986 already noted then, but content now clean). The
+      titled premise "carries quality.rating and dq_marks that ZERO records on disk have" no longer
+      describes the bundle - it describes a bundle generation that predates this measurement.
+
+      STILL LIVE, unaffected by this correction: the "1893 records where disk has 2064" count is
+      now "1986 in bundle vs 2064 driver.yml on disk" - still a real gap, not yet explained (some
+      combination of passiveRadiators being counted separately, and/or records not yet re-emitted -
+      not investigated this pass).
+
+      The rebuild-vs-type-gap question (part b of the original: are sku.grounds, readings.*.note,
+      readings.*.conformed_reading/_by, readings.*.rejected still unmodelled in the app's type) was
+      not re-measured this pass.
+  - at: '2026-09-05'
+    text: |-
+      CORRECTED 2026-09-05 - the 1986-vs-2064 gap flagged in the prior note is not a gap. Measured
+      directly: packages/ui/src/drivers-bundle.json has sources[0].files (drivers) = 1986 entries
+      and passiveRadiators = 78 entries, summing to exactly 2064 - matching the 2064 driver.yml
+      files on disk exactly. The count mismatch was from comparing drivers-only against
+      drivers+passive-radiators; it is a miscount, not a bundle staleness finding. Strike any prior
+      claim that the bundle is missing records by count.
+  answer:
+    at: '2026-09-05'
+    text: |-
+      CLOSED 2026-09-05: the claims this question was raised on are stale/wrong.
+      - quality.rating and dq_marks: both confirmed absent from the bundle, disk corpus, and all
+        source (0 occurrences everywhere) - not a gap.
+      - 1893-vs-2064 / 1986-vs-2064 count mismatch: not a gap. Bundle has 1986 drivers +
+        78 passiveRadiators = 2064, exactly matching driver.yml count on disk. The comparison was
+        a miscount (drivers-only vs drivers+passive-radiators).
+      Remaining real question split out to a new QO (unmodelled fields in the app's type).
 - id: QO110
   title: zod injects two globals into the V8 bridge sandbox — bridge-bundle.test.ts "adds exactly one
     global" now fails
@@ -8018,7 +8127,7 @@ questions:
       with "the bundle read globalThis.process"; restored, 9/9 green.
 - id: QO112
   title: z.ZodType<T> catches a LOOSER schema but not a STRICTER one — the annotation is a one-way check
-  status: open
+  status: decided
   raised: '2026-09-01'
   body: |-
     VERIFIED 2026-09-01 by breaking the schema in packages/design/domain/project.ts five ways and
@@ -8055,9 +8164,32 @@ questions:
 
     The comment above the schema overstates the guarantee and should be corrected whichever fix is
     taken.
+  answer:
+    at: '2026-09-04'
+    text: |-
+      RECONFIRMED 2026-09-04 — DISSOLVED by a structural change, not by a ruling.
+
+      The one-way annotation this question is about no longer exists. The schema moved out of
+      packages/design/domain/project.ts into packages/design/domain/openisdRecordSchema.ts, and the
+      DIRECTION INVERTED:
+
+        was:  const schema: z.ZodType<OpenISDDeviceJson> = ...   (schema asserted assignable TO the type)
+        now:  export const openISDDeviceJsonSchema = z.strictObject({...});   (line 147)
+              export type OpenISDDeviceJson = z.infer<typeof openISDDeviceJsonSchema>;   (line 218)
+
+      The type is now DERIVED FROM the schema. There is no second declaration for the schema to drift
+      from, so the failure mode described here — a STRICTER schema type-checking while refusing valid
+      data — has no way to occur: the type simply is whatever the schema accepts.
+
+      `z.ZodType` survives in the file only as `z.ZodTypeAny` generic bounds on three field-builder
+      helpers (lines 83, 93, 103), which is unrelated.
+
+      Neither proposed fix is needed. The misleading comment this question flagged went with the old
+      declaration.
 - id: QO113
-  title: 'The zod schema REQUIRES provided_by, comment and added; the pydantic model and the arch gate both say optional'
-  status: open
+  title: The zod schema REQUIRES provided_by, comment and added; the pydantic model and the arch gate
+    both say optional
+  status: decided
   raised: '2026-09-01'
   body: |-
     OBSERVED 2026-09-01 while making the bridge bundle green: a record without provided_by,
@@ -8081,3 +8213,151 @@ questions:
     THE QUESTION: make the schema optional for the three, matching the pydantic model and the
     interface — or is the app deliberately stricter than the scraper here? Nothing changed either
     way; the bridge test fixture now states all three so it can go green.
+  answer:
+    at: '2026-09-05'
+    text: |-
+      RESOLVED IN CODE, confirmed 2026-09-05. packages/design/domain/openisdRecordSchema.ts:
+      provided_by, comment, added are all textField.optional() (matching the pydantic model's
+      Optional[ScrapedField[str]] = None and the interface). No change needed - the schema already
+      agreed with the other two authorities when checked this session. Also noted: the pydantic
+      model_openisd.py has no bearing on openisd.yml/winisd.wdr at all per QO99's ruling, so any
+      future disagreement there is moot for this file's validation.
+- id: QO114
+  title: 'unmodelled fields in the app''s schema: sku.grounds, readings.*.note, conformed_reading/conformed_by,
+    rejected'
+  status: decided
+  raised: '2026-09-05'
+  body: ''
+  notes:
+  - at: '2026-09-05'
+    text: |-
+      Measured 2026-09-01 (from QO109's original body) over the corpus at
+      /home/john/work/winisd/winisd_drivers/db/datasheets: driver.yml on disk carries these keys
+      that OpenISDDeviceJson does not model:
+
+        sku.grounds                                  2064 records (all of them)
+        readings.*.note                              1511 records
+        readings.*.conformed_reading / conformed_by    38 records
+        readings.*.rejected                            10 records
+
+      Harmless today only because the conformance seam validates with a type predicate and returns
+      the ORIGINAL object - nothing is stripped. Would stop being harmless if anyone switches to
+      returning zod's parsed/pruned result instead.
+
+      THE QUESTION: for these four keys, is the type incomplete (should model them) or is disk
+      carrying data the app deliberately ignores? Not yet re-measured against the current schema
+      (packages/design/domain/openisdRecordSchema.ts) or current bundle - the counts above are from
+      2026-09-01.
+  - at: '2026-09-05'
+    text: |-
+      RULED 2026-09-05: conformed_by is a deliberate exclusion, not a gap. John's words: it "contains
+      'scraper' meta that means nothing in openisd" - same reasoning as scraper_meta. Documented in
+      drivers/drivers.md Part A, alongside the sku-grounds-shape line.
+
+      sku.grounds, readings.*.note, conformed_reading, and rejected: John explicitly declined to
+      extend the same reasoning to these three this pass - "only conformed_by named". They remain
+      open, undocumented exclusions/gaps pending a separate ruling.
+  - at: '2026-09-05'
+    text: |-
+      RULED 2026-09-05: sku.grounds also a deliberate exclusion, same reasoning as conformed_by -
+      raw scraper-source citations for how the sku value was derived, no meaning in an openisd
+      record. Documented in drivers/drivers.md Part A; the envelope-types line corrected from three
+      to two since sku.grounds is no longer counted as a modelled shape.
+
+      Remaining open: readings.*.note, conformed_reading, rejected - not yet ruled.
+  - at: '2026-09-05'
+    text: |-
+      RULED 2026-09-05: origin excluded from metadata fields too (manufacturer, brand, model,
+      driver_type, series, nominal_size_cm, product_image, description, surround_material,
+      provided_by, comment, added) - same reasoning as scraper_meta/conformed_by/sku.grounds:
+      redundant scraper provenance, no meaning in an openisd record. John: "manu is in the model -
+      whats the problem" - the field name already says what it is.
+
+      IMPLEMENTED: packages/design/domain/openisdRecordSchema.ts - scrapedFieldOf no longer declares
+      origin; the four construction sites (stated/manufacturer/brand/model/driver_type in
+      winISDDriverToOpenISDDeviceJson) no longer pass it. curves.*.origin and spec-entry
+      readings-keyed-by-origin are UNCHANGED - readings needs origin to disambiguate multiple
+      sources for one value, a metadata field does not. sku.grounds' own internal origin (inside the
+      excluded grounds array) also unchanged - that whole structure is already excluded.
+
+      Documented in drivers/drivers.md Part A.
+
+      tsc --noEmit -p packages/design shows only pre-existing unrelated errors (Qts missing,
+      deriveEngineDriver, broken packages/model imports - all predate this change, commit 34abffb).
+
+      Remaining open in QO114: readings.*.note, conformed_reading, rejected - not yet ruled.
+  - at: '2026-09-05'
+    text: |-
+      CORRECTED 2026-09-05: readings.*.note, conformed_reading, conformed_by (the reading-level one,
+      distinct from the earlier sku.grounds.origin discussion), and rejected are ALREADY modelled in
+      packages/design/domain/openisdRecordSchema.ts - not gaps at all:
+
+        readingJsonSchema (line 35-55): actual_reading, conformed_reading, conformed_by, read_value,
+        read_precision, rejected, note - all present, matching Reading in model_driver.py field for
+        field. The note field (line 51-54) already carries a comment explaining it's the
+        MeasurementNote condition, qualifying SPL specifically.
+
+        scrapedFieldOf (line 81-87): note also present (line 86).
+
+      This was mis-scoped in the original QO109 measurement, which only checked OpenISDDeviceJson's
+      TOP-LEVEL keys against disk, not readingJsonSchema's nested shape. On investigation with John
+      2026-09-05, the WIDER question of whether the winisd_tools field name `note` should change was
+      raised (it's SPL-specific and lives on a generic envelope every field carries) - considered
+      renaming to measurement_condition, tried moving it to a top-level record field, both rejected:
+      per-source disagreement detection (unlike_conditions(), TODO.md Q25(b)/Q30) needs the condition
+      attached to each Reading individually, not collapsed to one record-level value. RESOLUTION:
+      keep the name `note` and the existing per-reading location; document what it means with a
+      code comment on ScrapedField.note and Reading.note in model_driver.py (done, this session).
+
+      QO114 is now FULLY RESOLVED - every field originally listed (sku.grounds, conformed_by,
+      metadata origin, readings.*.note, conformed_reading, rejected) has been ruled on or found
+      already modelled. Nothing remains open.
+  answer:
+    at: '2026-09-05'
+    text: |-
+      All fields resolved: sku.grounds and metadata origin excluded (documented in
+      drivers/drivers.md), conformed_by excluded, readings.*.note/conformed_reading/rejected already
+      modelled in openisdRecordSchema.ts - no code change needed there. note stays named note in
+      model_driver.py, now with an explanatory comment.
+- id: QO115
+  title: rejected readings must not survive into openisd.yml
+  status: decided
+  raised: '2026-09-05'
+  body: ''
+  answer:
+    at: '2026-09-05'
+    text: |-
+      RULED AND IMPLEMENTED 2026-09-05. John: "rejected sholdj exclude the value from openisd I
+      think - what do you think?" -> confirmed: "if the reading is rejected then why load into
+      openisd?" A RejectedRead-marked reading (model_driver.py) is a source's number the scraper
+      determined must not be used - kept in driver.yml as evidence for a human, never a value the
+      app should see.
+
+      IMPLEMENTED in packages/design/winisd/driverYmlToOpenisdAndWdr.ts:
+      stripRejectedReadings() drops the entire rejected reading from a spec entry's `readings` map
+      before openisd.yml is emitted - not just its `rejected` key. The entry's OTHER, usable
+      readings (from other sources) are untouched. origin may never name a rejected reading (the
+      pydantic record guard already enforces that), so this can never remove a field's winning
+      value - only a reading already excluded from winning.
+
+      Real fixture added: packages/design/test/fixtures/corpus/scanspeak-15w-4424g00.driver.yml
+      (copied from the live corpus) - a genuine 3-source Re reading where the datasheet's OCR
+      misread the ohm glyph, one reading rejected, two agree. Test in
+      driverYmlToOpenisdAndWdr.test.ts proves the rejected reading and its detail string are both
+      absent from the output, and the two usable readings survive.
+
+      Documented in drivers/drivers.md Part A alongside the other three exclusions
+      (conformed_by, sku.grounds, metadata origin).
+
+      Side effect caught and fixed: the earlier metadata-origin removal (this session) broke ~90
+      pre-existing tests across domain.test.ts, persistence.test.ts, workspace.test.ts,
+      engine-wiring.test.ts - all built fixture records with {value, origin} literals for
+      manufacturer/brand/etc, calling openISDDeviceJsonSchema directly (bypassing the bridge's
+      strip). Fixed by removing origin from each file's shared `scraped()` metadata helper (4
+      files, 1-line fix each) - none of these touch the origin still required on spec-entry
+      readings, which is untouched. Full packages/design suite: 91 failures -> 30, all 30 confirmed
+      pre-existing (missing fromWinISDDriver/fromJsonRecord/OpenISDDriverJson/deriveEngineDriver
+      APIs, a stale cast inventory, one ParState value mismatch, one Result-shape mismatch) and
+      none newly caused by this session's origin or rejected-reading changes. No missing API was
+      implemented - those failures are left as pre-existing, per John's instruction not to add APIs
+      the app doesn't use.
