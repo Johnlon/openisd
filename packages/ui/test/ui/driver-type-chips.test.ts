@@ -17,8 +17,10 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
-import { DriverType, Chip } from '@openisd/model';
-import { classifyTypes } from '@openisd/persistence';
+import { DriverType, Chip } from '@openisd/design/filter';
+import { conformingRecordToDriver } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
+import { chipsOf } from '../../src/logic/driverDisplay.js';
 import { DRIVER_TYPES } from '../../src/logic/driverBrowsingState.js';
 
 const CHIP_VALUES = new Set(Chip.ALL.map(c => c.value));
@@ -76,11 +78,35 @@ describe('driver_type -> chip projection', () => {
   });
 });
 
-describe('classifyTypes honours every canonical driver_type', () => {
+const scraped = <T,>(value: T) => ({ value });
+
+/** A driver stating only brand/model/driver_type — no T/S values — matching what these tests
+ *  need: chipsOf() falling through driver_type -> name -> T/S, in that order. */
+function driverOf(name: string, driverType: string): import('@openisd/design').OpenISDDriver {
+  const record = {
+    uuid: { value: '00000000-0000-4000-8000-000000000000' },
+    manufacturer: scraped(''), brand: scraped(''), model: scraped(name),
+    provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+    sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
+    driver_type: scraped(driverType),
+    data_sources: { value: {} },
+    authoritative: { value: 'manual' },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
+    specs: { woofer: {} },
+  };
+  const driver = conformingRecordToDriver(record, new Engine());
+  if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
+  return driver;
+}
+
+describe('chipsOf honours every canonical driver_type', () => {
   it('classifies each member from its wire value alone, with no name or T/S help', () => {
     for (const dt of DriverType.ALL) {
       if (dt === DriverType.Unclassified) continue;
-      const got = classifyTypes(null, null, '', dt.value);
+      const got = chipsOf(driverOf('', dt.value));
       assert.deepEqual([...got.types].sort(), [...chipValues(dt)].sort(),
         `driver_type "${dt.value}" did not classify from its wire value — the projection has drifted from the enum`);
       assert.equal(got.canonical, dt.display);
@@ -92,7 +118,7 @@ describe('classifyTypes honours every canonical driver_type', () => {
   });
 
   it('takes the leading token of a compound value and ignores qualifiers', () => {
-    const got = classifyTypes(null, null, '', `${DriverType.Subwoofer.value}, automotive`);
+    const got = chipsOf(driverOf('', `${DriverType.Subwoofer.value}, automotive`));
     assert.deepEqual([...got.types].sort(), [...chipValues(DriverType.Subwoofer)].sort());
   });
 
@@ -100,14 +126,14 @@ describe('classifyTypes honours every canonical driver_type', () => {
     // 'fullrange' is NOT a DriverType value ('full-range' is) — an off-contract
     // record must not classify off it; the name is what carries it.
     assert.equal(DriverType.parse('fullrange'), null);
-    assert.equal(classifyTypes(null, null, '', 'fullrange').types.length, 0);
-    assert.ok(classifyTypes(null, null, 'Tang Band W5-1880 5in fullrange', 'fullrange')
+    assert.equal(chipsOf(driverOf('', 'fullrange')).types.length, 0);
+    assert.ok(chipsOf(driverOf('Tang Band W5-1880 5in fullrange', 'fullrange'))
       .types.includes(Chip.FullRange.value));
   });
 
   it('reports unclassified as an empty chip collection', () => {
-    assert.deepEqual(classifyTypes(null, null, '', DriverType.Unclassified.value).types, []);
-    assert.deepEqual(classifyTypes(null, null, '').types, []);
+    assert.deepEqual(chipsOf(driverOf('', DriverType.Unclassified.value)).types, []);
+    assert.deepEqual(chipsOf(driverOf('', '')).types, []);
   });
 });
 

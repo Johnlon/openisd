@@ -116,32 +116,6 @@ describe('OpenISDDriver.recordToPersist() — the persistence layer\'s one seam 
   });
 });
 
-describe('OpenISDDriver.displayName() — what this record is called, single-driver contexts only', () => {
-  it('joins brand and model with a space', () => {
-    const driver = driverFrom({
-      brand: 'Dayton', model: 'RS225', section: 'woofer',
-      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-    });
-    expect(driver.displayName()).toBe('Dayton RS225');
-  });
-
-  it('falls back to "Driver" when both brand and model are empty', () => {
-    const driver = driverFrom({
-      brand: '', model: '', section: 'woofer',
-      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-    });
-    expect(driver.displayName()).toBe('Driver');
-  });
-
-  it('uses whichever of brand/model is present, alone, when the other is empty', () => {
-    const driver = driverFrom({
-      brand: 'Dayton', model: '', section: 'woofer',
-      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-    });
-    expect(driver.displayName()).toBe('Dayton');
-  });
-});
-
 describe('the driver — a window, not a copy', () => {
   it('reads and writes through to the record it was given', () => {
     const driver = newProject(driverFrom({

@@ -61,16 +61,27 @@ because that's the wrapper it has today.
 No new design capability needed. `enterBoxVolume_m3(value)` becomes `project.box.volume_m3.set(value)`,
 the same mechanical substitution as everything else in §7.
 
-## 6. Driver display name and browser-list filtering — a genuine gap, its own scoped work
+## 6. Driver display name and classification chips — display/search logic, not domain logic
 
 Found removing `myDriverName()` (`driverRepo.ts`, called `d.displayName()`, which does not exist
-on the current `OpenISDDriver`). Two distinct needs, deliberately not the same shape:
+on the current `OpenISDDriver`). Ruled (John, 2026-09-05): **display name and chip
+classification are not domain facts** — `OpenISDDriver` states T/S parameters and a stated
+`driver_type`; turning those into a display string or a chip set is display/search logic and
+does not belong on the driver.
 
-1. **Done (2026-09-05).** `OpenISDDriver.displayName()` — brand + model, space-joined, `'Driver'`
-   fallback when both are empty. For the editor and other single-driver contexts.
-2. **Still open.** A list of names and filterable attributes across many drivers, for the
-   browser/search list — a flat, queryable structure across the whole collection, not one
-   driver's own method called per row. Its own scoped design work.
+**Done (2026-09-05).** `packages/ui/src/logic/driverDisplay.ts`:
+
+- `displayNameOf(driver)` — brand + model, space-joined, `'Driver'` fallback when both are
+  empty. Reads `driver.brand`/`driver.model` directly.
+- `chipsOf(driver)` — the classification logic that lived in `driverRepo.ts`'s `classifyTypes()`
+  (deleted from there), now reading `driver.spec[section].Fs_hz`/`Sd_m2`,
+  `displayNameOf(driver)` and `driver.recordToPersist().driver_type.value` instead of taking
+  four loose parameters.
+
+`driver-type-chips.test.ts` rewritten onto `chipsOf(driver)`. The list-across-many-drivers case
+(the browser/search list) reads `chipsOf`/`displayNameOf` per row on the same domain object
+`bundledEntry()` already constructs — no separate flattened data structure needed; sequentially
+wrapping each bundle record in the same domain wrapper serves the list view.
 
 ## 7. The 23 files with a live import — disposition
 

@@ -5,7 +5,6 @@ import { Engine } from '@openisd/design/engine';
 // import type { MetaField } from '@openisd/model';
 // import { recordStandingIsOk } from '@openisd/model/driverStanding';
 // import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
-import { DriverType, Chip } from '@openisd/design/filter';
 // // //
 // // // /** The fixed field set the driver-summary/preview panel shows — `SpecField` never crosses this
 // // //  *  file's boundary (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md); this is the one
@@ -195,71 +194,8 @@ export function readBundle(json: unknown): { bundle: DriverBundle } | { problems
 //   return `${f.sourceKey || f.sourceName || ''}/${f.path || f.fileName || f.name}`;
 // }
 
-// ---- classification -------------------------------------------------------------------
-// Name-based matching takes priority over T/S params.
-//   sub ⊂ woofer ⊂ bass · mid-bass ⊂ woofer + mid · full-range = woofer + mid + tweet + bass
-//   BMR = mid + tweet · PR = orthogonal
-const TWEET_PAT     = /\btweet(er)?\b|dome.tweeter|ribbon.tweeter|\bplanar\b|\bAMT\b|air.motion/i;
-const SUB_PAT       = /\bsub(woofer)?\b|sub[-_ ]/i;
-const WOOFER_PAT    = /\bwoofer\b/i;
-const MIDBASS_PAT   = /\bmid[-_ ]?(bass|woof(er)?)\b|\bmidbass\b/i;
-const MIDRANGE_PAT  = /\bmid[-_ ]?range\b|\bmidrange\b/i;
-const FULLRANGE_PAT = /\bfull[-_ ]?range\b|\bfullrange\b/i;
-const BMR_PAT       = /\bBMR\b|balanced.mode/i;
-const PR_PAT        = /\bpassive.radiator\b|\bP\.?R\.?\b/i;
-const COAX_PAT      = /\bcoax(ial)?\b|coaxial/i;
-
-// Returns chip `.value` strings, not Chip members: the result is stored in a Vue ref,
-// and the reactive proxy would break `===` identity on a member held there. `.value`
-// is the serialised form, exactly as for the driver_type wire string.
-export function classifyTypes(
-  Fs: number | null, Sd: number | null, nameStr: string, driverType?: string,
-): { types: string[]; canonical: string } {
-  const nm = nameStr || '';
-
-  const of = (t: DriverType) => ({ types: t.chips.map(c => c.value), canonical: t.display });
-
-  // 1. The scraper-written `driver_type` is authoritative when it is a canonical
-  //    DriverType — project it onto the chips the member itself carries and stop.
-  //    Never compare against a bare string; DriverType.parse is the one boundary.
-  const dt = DriverType.parse(driverType);
-  if (dt !== null && dt !== DriverType.Unclassified) return of(dt);
-
-  // 2. No usable driver_type — most bundled records carry `driver_type: null` — so
-  //    fall back to the product name, then to T/S parameters.
-  const types = new Set<Chip>();
-  const canonical: string[] = [];
-
-  if (PR_PAT.test(nm))   return of(DriverType.PassiveRadiator);
-  if (COAX_PAT.test(nm)) return of(DriverType.Coaxial);
-
-  if (TWEET_PAT.test(nm)) {
-    types.add(Chip.Tweet);
-    // Name-only refinement: the wire contract has no ribbon/planar member, so these
-    // labels are display detail the enum deliberately does not carry.
-    if (/\bAMT\b|air.motion/i.test(nm))  canonical.push(DriverType.Amt.display);
-    else if (/\bribbon\b/i.test(nm))     canonical.push('Ribbon Tweeter');
-    else if (/\bplanar\b/i.test(nm))     canonical.push('Planar Tweeter');
-    else                                 canonical.push(DriverType.Tweeter.display);
-  }
-  const add = (t: DriverType) => {
-    for (const c of t.chips) types.add(c);
-    canonical.push(t.display);
-  };
-  if (SUB_PAT.test(nm))                              add(DriverType.Subwoofer);
-  if (MIDBASS_PAT.test(nm))                          add(DriverType.MidBass);
-  if (WOOFER_PAT.test(nm) && !MIDBASS_PAT.test(nm))  add(DriverType.Woofer);
-  if (MIDRANGE_PAT.test(nm))                         add(DriverType.Midrange);
-  if (FULLRANGE_PAT.test(nm))                        add(DriverType.FullRange);
-  if (BMR_PAT.test(nm))                              add(DriverType.Bmr);
-
-  if (types.size > 0) return { types: [...types].map(c => c.value), canonical: canonical.join(' / ') };
-
-  const SdCm2 = Sd != null ? Sd * 1e4 : null;
-  if (SdCm2 != null && SdCm2 < 12) return of(DriverType.Tweeter);
-  if (Fs != null && Fs < 40)       return of(DriverType.Subwoofer);
-  return { types: [], canonical: DriverType.Unclassified.display };
-}
+// Classification (was `classifyTypes` here) moved to `packages/ui/src/logic/driverDisplay.ts`'s
+// `chipsOf()` — display/search logic, not a repo's job (John, 2026-09-05).
 //
 // export function fmtHz(hz: number | string | null | undefined): string | null {
 //   if (hz == null) return null;

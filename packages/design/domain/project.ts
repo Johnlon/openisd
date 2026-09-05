@@ -1263,16 +1263,6 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return this.record.get();
     }
 
-    /** What this record is CALLED: `<brand> <model>`, the identity a saved driver is filed under
-     *  and the name it reads by everywhere — the editor and other SINGLE-driver contexts.
-     *  `'Driver'` when it states neither. A list across many drivers (the browser) needs a
-     *  different, flat shape — see `docs/plans/PLAN_DECOMMISSION_PACKAGES_MODEL.md` §6. */
-    displayName(): string {
-        const brand = this.brand.get().value ?? '';
-        const model = this.model.get().value ?? '';
-        return [brand, model].filter(s => s.length > 0).join(' ').trim() || 'Driver';
-    }
-
     /** Replace this driver's whole record with `source`'s current values. The write-back
      *  primitive: a project adopting a different driver, or an edit made on a detached copy being
      *  put back.
