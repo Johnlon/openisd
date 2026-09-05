@@ -101,7 +101,7 @@ export const INI_ROWS_META = [
     {key: 'Rt', calculable: false},
     {key: 'Ct', calculable: false},
     {key: 'gamma', calculable: true},
-    {key: 'Rme', calculable: false},
+    {key: 'Rme', calculable: true},
     {key: 'Mpow', calculable: true},
     {key: 'Mcost', calculable: true},
     {key: 'Gloss', calculable: true},

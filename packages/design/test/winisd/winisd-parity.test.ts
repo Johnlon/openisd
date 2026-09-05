@@ -23,8 +23,9 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Engine, LossMode } from '@openisd/design/engine';
-import { OpenISDDriver, Provenance } from '@openisd/model';
-import type { Cell } from '@openisd/model';
+import { conformingRecordToDriver, type OpenISDDriver, type Cell } from '@openisd/design';
+import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchema.js';
+import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
 import { POS_TO_WDRKEY } from '../../winisd/parstate.js';
 
@@ -129,16 +130,6 @@ function scenarioWdr(s: Scenario): string {
 }
 
 /**
- * A WinISD `[Driver]` key whose value openisd reaches through the SOLVED engine bag rather
- * than through a stated record field. `Vd`, `no`, `USPL`, `SPLmax`, `gamma`, `Rme`, `Mpow`,
- * `Mcost` and `Gloss` have no `SpecEntry` of their own — nothing in openisd.yml asserts them
- * — so the record cannot answer for them and the derivation must.
- */
-const ENGINE_ONLY: Readonly<Record<string, string>> = {
-  Dd: 'Dia',
-};
-
-/**
  * The `[Driver]` keys compared on every scenario: the T/S consistency group, the geometry
  * WinISD derives from it, and the whole Advanced-parameters pane. `EBP` is handled
  * separately (the Driver class does not carry it; `ebp()` in the engine does).
@@ -149,54 +140,90 @@ const DRIVER_FIELDS = [
   'gamma', 'Rme', 'Mpow', 'Mcost', 'Gloss', 'c', 'roo',
 ] as const;
 
-/**
- * A cell's value when it is a finite NUMBER. `cell()` answers for metadata strings too, and
- * `null` here is a real answer — openisd leaves a field absent where it has no route to it.
- */
-/** Dispatch one of `DRIVER_FIELDS`'s names to its flat accessor's `Cell` — `SpecField` never
- *  appears as a public parameter on `OpenISDDriver` (human ruling 2026-08-24,
- *  ENCAPSULATION_AND_LAYERING.md); this file's field list is runtime data, so the dispatch
- *  lives here. */
-function driverFieldCell(d: OpenISDDriver, field: string): Cell {
+/** Dispatch one of `DRIVER_FIELDS`'s `.wdr`-spelled names to its own `DriverSpec` field's `Cell`
+ *  — `DriverSpec`'s fields never appear as a public parameter on `OpenISDDriver` (human ruling
+ *  2026-08-24, ENCAPSULATION_AND_LAYERING.md); this file's field list is runtime data, so the
+ *  dispatch lives here, matching the pattern `driverYmlToOpenisdAndWdr.ts`'s `wdrFields()` uses. */
+function driverFieldCell(d: OpenISDDriver, field: string): Cell<number> | undefined {
+  const spec = d.spec[d.section];
   switch (field) {
-    case 'Fs': return d.FsCell();
-    case 'Qts': return d.QtsCell();
-    case 'Qes': return d.QesCell();
-    case 'Qms': return d.QmsCell();
-    case 'Cms': return d.CmsCell();
-    case 'Mms': return d.MmsCell();
-    case 'Rms': return d.RmsCell();
-    case 'BL': return d.BLCell();
-    case 'Sd': return d.SdCell();
-    case 'Vas': return d.VasCell();
-    case 'Dd': return d.DdCell();
-    case 'Vd': return d.VdCell();
-    case 'no': return d.noCell();
-    case 'SPL': return d.SPLCell();
-    case 'USPL': return d.USPLCell();
-    case 'SPLmax': return d.SPLmaxCell();
-    case 'SPLmaxLF': return d.SPLmaxLFCell();
-    case 'gamma': return d.gammaCell();
-    case 'Rme': return d.RmeCell();
-    case 'Mpow': return d.MpowCell();
-    case 'Mcost': return d.McostCell();
-    case 'Gloss': return d.GlossCell();
-    case 'c': return d.cCell();
-    case 'roo': return d.rooCell();
-    default: return { value: null, state: Provenance.NotAvailable };
+    case 'Fs': return spec.Fs_hz.get();
+    case 'Re': return spec.Re_ohm.get();
+    case 'Qts': return spec.Qts.get();
+    case 'Qes': return spec.Qes.get();
+    case 'Qms': return spec.Qms.get();
+    case 'Cms': return spec.Cms_m_per_N.get();
+    case 'Mms': return spec.Mms_kg.get();
+    case 'Rms': return spec.Rms_kg_per_s.get();
+    case 'BL': return spec.BL_Tm.get();
+    case 'Sd': return spec.Sd_m2.get();
+    case 'Vas': return spec.Vas_m3.get();
+    case 'Dd': return spec.Dd_m.get();
+    case 'Vd': return spec.Vd_m3.get();
+    case 'no': return spec.no.get();
+    case 'SPL': return spec.SPL_dB.get();
+    case 'USPL': return spec.USPL_dB.get();
+    case 'SPLmax': return spec.SPLmax_dB.get();
+    case 'SPLmaxLF': return spec.SPLmaxLF_dB.get();
+    case 'gamma': return spec.gamma_m_per_s2_A.get();
+    case 'Rme': return spec.Rme_kg_per_s.get();
+    case 'Mpow': return spec.Mpow_N_per_sqrtW.get();
+    case 'Mcost': return spec.Mcost_kg_per_s.get();
+    case 'Gloss': return spec.Gloss.get();
+    case 'c': return spec.c_m_per_s.get();
+    case 'roo': return spec.roo_kg_per_m3.get();
+    default: return undefined;
   }
 }
 
+/** Dispatch one of `DRIVER_FIELDS`'s `.wdr`-spelled names to its own field on the solved engine
+ *  bag `OpenISDDriver.solveConsistencyGroup()` returns — the route for a field the spec itself
+ *  cannot state, or one the driver left not-available. Same dispatch shape as
+ *  `driverFieldCell` above, for the same layering reason. */
+function solvedFieldValue(solved: ReturnType<OpenISDDriver['solveConsistencyGroup']>, field: string): number | undefined {
+  switch (field) {
+    case 'Fs': return solved.Fs_hz;
+    case 'Re': return solved.Re_ohm;
+    case 'Qts': return solved.Qts;
+    case 'Qes': return solved.Qes;
+    case 'Qms': return solved.Qms;
+    case 'Cms': return solved.Cms_m_per_N;
+    case 'Mms': return solved.Mms_kg;
+    case 'Rms': return solved.Rms_kg_per_s;
+    case 'BL': return solved.BL_Tm;
+    case 'Sd': return solved.Sd_m2;
+    case 'Vas': return solved.Vas_m3;
+    case 'Dd': return solved.Dd_m;
+    case 'Vd': return solved.Vd_m3;
+    case 'no': return solved.no;
+    case 'SPL': return solved.SPL_dB;
+    case 'USPL': return solved.USPL_dB;
+    case 'SPLmax': return solved.SPLmax_dB;
+    case 'SPLmaxLF': return solved.SPLmaxLF_dB;
+    case 'gamma': return solved.gamma_m_per_s2_A;
+    case 'Rme': return solved.Rme_kg_per_s;
+    case 'Mpow': return solved.Mpow_N_per_sqrtW;
+    case 'Mcost': return solved.Mcost_kg_per_s;
+    case 'Gloss': return solved.Gloss;
+    case 'c': return solved.c_m_per_s;
+    case 'roo': return solved.roo_kg_per_m3;
+    default: return undefined;
+  }
+}
+
+/**
+ * A field's value when it is a finite NUMBER. `null` here is a real answer — openisd leaves a
+ * field absent where it has no route to it.
+ */
 function num(drv: OpenISDDriver, field: string): number | null {
-  // A field the record can state is read through cell(), so its E/C/N provenance is exercised
-  // exactly as the app sees it. Everything else is read from the solved engine bag, which is
-  // the only place it exists.
+  // A field the record can state is read through its own spec field, so its E/C/N provenance is
+  // exercised exactly as the app sees it. Everything else is read from the solved engine bag,
+  // which is the only place it exists.
   const cell = driverFieldCell(drv, field);
-  if (cell.state !== Provenance.NotAvailable) {
+  if (cell && cell.state !== 'not-available') {
     return typeof cell.value === 'number' && Number.isFinite(cell.value) ? cell.value : null;
   }
-  const solved = drv.toDriver() as Record<string, number> | null;
-  const v = solved?.[ENGINE_ONLY[field] ?? field];
+  const v = solvedFieldValue(drv.solveConsistencyGroup(), field);
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
@@ -320,7 +347,10 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
         ? parseIni(readFileSync(path, 'utf8'))
         : ({} as Record<string, Record<string, string>>);
       const asRead = WinISDDriver.fromWdrIni(scenarioWdr(s));
-      const drv = OpenISDDriver.fromWinISDDriver(asRead);
+      const { record } = winISDDriverToOpenISDDeviceJson(asRead);
+      const conformed = conformingRecordToDriver(record, new Engine());
+      if (Array.isArray(conformed)) throw new Error(`${s.id}: not a valid driver: ${conformed.join(', ')}`);
+      const drv = conformed;
 
       it('WinISD accepted the scenario and wrote a driver block back', () => {
         assert.ok(golden.Driver, `${s.id}: the golden has no [Driver] section`);
@@ -355,7 +385,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
         const winisd = parseFloat(raw);
         const fs = num(drv, 'Fs'), qes = num(drv, 'Qes');
         assert.ok(fs !== null && qes !== null, `${s.id}: openisd has no Fs/Qes to form EBP from`);
-        compare(s.id, 'EBP', winisd, new Engine().ebp({ Fs: fs, Qes: qes }));
+        compare(s.id, 'EBP', winisd, new Engine().ebp(fs, qes));
       });
 
       it('air — openisd in WinISD-compatibility mode against the pair WinISD stored', () => {
@@ -402,9 +432,8 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
       it('ParState — the per-field E/C/N marks WinISD assigned', () => {
         const winisd = golden.Driver.ParState;
         assert.ok(winisd, `${s.id}: the golden carries no ParState`);
-        const { value: written } = drv.toWinISDDriver();
-        assert.ok(written, `${s.id}: openisd could not write a .wdr for this driver`);
-        const openisd = parseIni(written.toWdr()).Driver.ParState;
+        const written = openIsdDriverToWinIsdDriver(drv, new Engine(), []);
+        const openisd = parseIni(written.toWdrIni()).Driver.ParState;
         assert.ok(openisd, `${s.id}: openisd produced no ParState`);
         assert.equal(openisd.length, winisd.length,
           `${s.id}: ParState length ${openisd.length} vs WinISD's ${winisd.length}`);
