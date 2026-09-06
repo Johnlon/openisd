@@ -217,8 +217,8 @@ export interface SweepResult {
    * read-outs and every compare trace. Equals `spl` where the driver stays within Xmax,
    * and where the driver publishes no Xmax at all.
    */
-  splXlim: number[];
-  /** `true` at each frequency where `splXlim` had to back the drive off. */
+  splXlimCurve: number[];
+  /** `true` at each frequency where `splXlimCurve` had to back the drive off. */
   xlimited: boolean[];
   /**
    * Lowest frequency (Hz) at which force-flat's boost hit `flatMaxBoostDb`, or null if

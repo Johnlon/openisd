@@ -60,7 +60,7 @@ import {
 import {newUuid} from './newUuid.js';
 import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/index.js';
 import type {
-    BoxType, SimulatableBoxType, ConsistencyIssue, DriverError,
+    BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, Filter,
     MaxCurvesResult, Result, SweepParams, SweepResult, SolverQuantities,
 } from '../engine/index.js';
 
@@ -1648,15 +1648,6 @@ function withoutDriverYmlOnlyFields(value: unknown): unknown {
  * writes go straight through, never to a disconnected copy.
  */
 export class OpenISDProject {
-    readonly driver: OpenISDDriverEmbedded;
-    readonly box: Box;
-    /** What the user calls this project. A LABEL, not an identity — two projects may share one,
-     *  which is exactly why `uuid()` exists. */
-    readonly name: RawField<string>;
-
-    /** The user's own note about this project. Stored, never interpreted. */
-    readonly comment: RawField<string>;
-
     /** THE project's identity, and IN-MEMORY ONLY — deliberately a class field rather than a
      *  member of `OpenISDProjectJson`, which is what makes "internal only" structural instead of
      *  a rule someone has to remember: the record is the only thing that is ever serialised, so
@@ -1684,13 +1675,107 @@ export class OpenISDProject {
         this.#saved = saved;
         this.#uuid = uuid;
         this.#engine = engine;
-        this.driver = OpenISDDriverEmbedded.wrap(this.#slot('driver'), engine, () => this.#current().environment);
-        // The box is handed the DRIVER and the ENGINE: a chamber's resonance depends on the driver
-        // it loads, and the box reads the driver through its PUBLIC field surface, never its record.
-        this.box = OpenISDBox.wrap(this.#slot('box'), this.driver, engine, () => this.#current().environment);
-        const meta = this.#slot('meta');
-        this.name = focus(meta, 'name');
-        this.comment = focus(meta, 'comment');
+    }
+
+    /** The embedded driver — built fresh from the current record on every access, never held: the
+     *  project has exactly three stored fields (`#saved`/`#edited`/`#engine`, John 2026-09-06),
+     *  and every other public member is a getter mirroring the record's own structure. */
+    get driver(): OpenISDDriverEmbedded {
+        return OpenISDDriverEmbedded.wrap(
+            focus(this.#slot('driverEmbedding'), 'device'),
+            this.#engine,
+            () => this.#current().environment,
+        );
+    }
+
+    /** How many units of the embedded driver this project's array uses, and how they're wired
+     *  together — array-level facts, not facts about the driver itself (John 2026-09-06). */
+    get nDrivers(): RawField<number> {
+        return focus(this.#slot('driverEmbedding'), 'nDrivers');
+    }
+
+    get wiring(): RawField<'series' | 'parallel'> {
+        return focus(this.#slot('driverEmbedding'), 'wiring');
+    }
+
+    /** Thermal power compression: coil temperature rise under drive, Kelvin. */
+    get vcTempRise_K(): RawField<number> {
+        return focus(this.#slot('driverEmbedding'), 'vcTempRise_K');
+    }
+
+    /** The amplifier's own source/output resistance loading this array. */
+    get Rs_ohm(): RawField<number> {
+        return focus(this.#slot('driverEmbedding'), 'Rs_ohm');
+    }
+
+    /** Mass this project's array adds to the driver — its own hardware, not a fact about the
+     *  driver itself. */
+    get driverAddedMass_kg(): RawField<number> {
+        return focus(this.#slot('driverEmbedding'), 'driverAddedMass_kg');
+    }
+
+    /** This array's own voice-coil resistance temperature coefficient, SI 1/K — independent of
+     *  the driver's own datasheet `driver.alfaVC_per_K` (WinISD stores these separately, and
+     *  they can diverge). */
+    get alfaVC_per_K(): RawField<number> {
+        return focus(this.#slot('driverEmbedding'), 'alfaVC_per_K');
+    }
+
+    /** WinISD Driver tab "Standard" / "Iso-Barik" radio. */
+    get loading(): RawField<'standard' | 'isobaric'> {
+        return focus(this.#slot('driverEmbedding'), 'loading');
+    }
+
+    /** The box — handed the DRIVER and the ENGINE: a chamber's resonance depends on the driver it
+     *  loads, and the box reads the driver through its PUBLIC field surface, never its record.
+     *  Built fresh on every access, same reasoning as `driver`. */
+    get box(): Box {
+        return OpenISDBox.wrap(this.#slot('box'), this.driver, this.#engine, () => this.#current().environment);
+    }
+
+    /** What the user calls this project. A LABEL, not an identity — two projects may share one,
+     *  which is exactly why `uuid()` exists. */
+    get name(): RawField<string> {
+        return focus(this.#slot('meta'), 'name');
+    }
+
+    /** The user's own note about this project. Stored, never interpreted. */
+    get comment(): RawField<string> {
+        return focus(this.#slot('meta'), 'comment');
+    }
+
+    /** The signal-chain filter list. */
+    get filters(): RawField<readonly Filter[]> {
+        return focus(this.#slot('filters'), 'filters');
+    }
+
+    /** Force-flat auto-EQ — WinISD Advanced "Force flat response". */
+    get forceFlatResponse(): RawField<boolean> {
+        return focus(this.#slot('advanced'), 'forceFlatResponse');
+    }
+
+    /** Model ports as a lossy transmission line instead of a lumped mass — WinISD Advanced
+     *  "Use transmission line-model for port simulation". */
+    get useTransmissionLinePortModel(): RawField<boolean> {
+        return focus(this.#slot('advanced'), 'useTransmissionLinePortModel');
+    }
+
+    /** WinISD Advanced "Rg is at driver side" — whether the amplifier's source resistance
+     *  (`Rs_ohm`) is applied per driver or once across the whole array. */
+    get rgAtDriverSide(): RawField<boolean> {
+        return focus(this.#slot('advanced'), 'rgAtDriverSide');
+    }
+
+    /** WinISD Advanced "Simulate voice coil inductance" — includes Le in the acoustic circuit
+     *  model (gyrator) rather than just the impedance plot (winisd). */
+    get circuitModel(): RawField<'winisd' | 'gyrator'> {
+        return focus(this.#slot('advanced'), 'circuitModel');
+    }
+
+    /** WinISD Advanced "SPL graph is Xmax limited" — whether the SPL chart shows the
+     *  Xmax-backed-off curve instead of the unclamped one. Display only. */
+    get splGraphIsXmaxLimited(): RawField<boolean> {
+        return focus(this.#slot('advanced'), 'splGraphIsXmaxLimited');
     }
 
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
@@ -1748,7 +1833,9 @@ export class OpenISDProject {
         };
     }
 
-    /** @internal The record a save writes. */
+    /** @internal The record a save writes — `projectRepo()`'s one way to reach it, never field
+     *  by field. Returns this project's own current value, not a copy; the caller copies before
+     *  writing. No code outside `packages/design` may call this. */
     recordToPersist(): OpenISDProjectJson {
         return this.#current();
     }
@@ -1899,6 +1986,43 @@ export class OpenISDProject {
         return true;
     }
 
+    // ── vent-group / PR-group solve, ledger 2026-09-06 — STUBS, not yet implemented ───────────
+    //
+    // The Helmholtz group-solve and reachability logic these six answer never existed on this
+    // class; only the raw volume_m3/tuning_hz FieldHandles do. Stubbed to unblock migrating
+    // useVentGroup.ts/usePrGroup.ts off ManagedProject onto this type — real logic is a separate
+    // follow-up.
+
+    /** @stub not yet implemented */
+    solveVentGroup(): void {
+        throw new Error('OpenISDProject.solveVentGroup(): not implemented');
+    }
+
+    /** @stub not yet implemented */
+    ventAchievedFb(): number | null {
+        throw new Error('OpenISDProject.ventAchievedFb(): not implemented');
+    }
+
+    /** @stub not yet implemented */
+    ventMaxReachableFb(): number | null {
+        throw new Error('OpenISDProject.ventMaxReachableFb(): not implemented');
+    }
+
+    /** @stub not yet implemented */
+    ventTargetUnreachable(): boolean {
+        throw new Error('OpenISDProject.ventTargetUnreachable(): not implemented');
+    }
+
+    /** @stub not yet implemented */
+    solvePrGroup(): void {
+        throw new Error('OpenISDProject.solvePrGroup(): not implemented');
+    }
+
+    /** @stub not yet implemented */
+    prTargetUnreachable(): boolean {
+        throw new Error('OpenISDProject.prTargetUnreachable(): not implemented');
+    }
+
     /** Register a listener, fired on every change to the current record and on entering or
      *  leaving the edited state. Returns an unsubscribe function. */
     subscribe(fn: () => void): () => void {
@@ -1930,11 +2054,28 @@ export type DiscardChallenge = () => Promise<boolean>;
  */
 function projectJson(driver: OpenISDDeviceJson): OpenISDProjectJson {
     return {
-        driver: {...driver},
+        driverEmbedding: {
+            device: {...driver},
+            nDrivers: 1,
+            wiring: 'parallel',
+            vcTempRise_K: 0,
+            Rs_ohm: 0,
+            driverAddedMass_kg: 0,
+            alfaVC_per_K: 0,
+            loading: 'standard',
+        },
         box: emptyBoxJson(),
         environment: {temperature_K: null, humidity_pct: null, pressure_Pa: null},
         signal: {power_W: null, voltage_V: null},
         meta: {name: '', comment: ''},
+        filters: {filters: []},
+        advanced: {
+            forceFlatResponse: false,
+            useTransmissionLinePortModel: false,
+            rgAtDriverSide: false,
+            circuitModel: 'winisd',
+            splGraphIsXmaxLimited: false,
+        },
     };
 }
 

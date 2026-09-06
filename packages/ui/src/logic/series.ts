@@ -82,7 +82,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     // actually reach before the cone runs out of travel. The raw curve is drawn alongside
     // it, dashed, wherever the two differ — the whole point of the option is seeing the gap.
     const limited = !!P.splXmaxLimited && sw.xlimited.some(Boolean);
-    const ys = P.splXmaxLimited ? sw.splXlim : sw.spl;
+    const ys = P.splXmaxLimited ? sw.splXlimCurve : sw.spl;
     const series: Series[] = [{ ...pick(ys), color: meta.color, name: limited ? 'SPL (Xmax limited)' : 'SPL' }];
     if (limited)
       series.push({ ...pick(sw.spl), color: '#8a99ab', name: 'Unlimited', dash: true });

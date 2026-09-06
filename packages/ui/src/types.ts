@@ -48,7 +48,7 @@ export interface PlotData {
 
 /**
  * Sweep parameters plus the DISPLAY-only flags the plot builder reads. `splXmaxLimited`
- * chooses which SPL array to draw (`sw.splXlim` vs `sw.spl`) — it changes nothing the
+ * chooses which SPL array to draw (`sw.splXlimCurve` vs `sw.spl`) — it changes nothing the
  * engine computes, so it stays out of the engine's SweepParams.
  */
 export type PlotParams = SweepParams & { splXmaxLimited?: boolean };

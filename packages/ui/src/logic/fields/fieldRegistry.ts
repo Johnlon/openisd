@@ -308,7 +308,7 @@ const FIELDS: FieldSpec[] = [
   {
     id: 'splXmaxLimited', label: 'SPL graph is Xmax limited', pane: 'Advanced', kind: 'toggle', unit: '',
     provenance: 'entered', appliesTo: 'all',
-    description: 'Plot the SPL chart with the drive backed off wherever peak excursion would exceed Xmax, and shade the limited region. Xmax only — the separate Maximum SPL chart keeps applying the Pe thermal limit as well. The unclamped curve still feeds the transfer-function chart, the F3/F6/F10 read-outs and every compare trace (engine sweep().splXlim is its own array). WinISD: Advanced → "SPL graph is Xmax limited"; no known .wpr key.',
+    description: 'Plot the SPL chart with the drive backed off wherever peak excursion would exceed Xmax, and shade the limited region. Xmax only — the separate Maximum SPL chart keeps applying the Pe thermal limit as well. The unclamped curve still feeds the transfer-function chart, the F3/F6/F10 read-outs and every compare trace (engine sweep().splXlimCurve is its own array). WinISD: Advanced → "SPL graph is Xmax limited"; no known .wpr key.',
   },
   {
     id: 'useWinisdAirModel', label: 'Use WinISD air model', pane: 'Advanced', kind: 'toggle', unit: '',

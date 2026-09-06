@@ -22,7 +22,7 @@ import {WinISDDriver, INI_ROWS} from '../winisd';
 import {newUuid} from './newUuid.js';
 import type {FieldHandle} from './cell.js';
 import type {OpenISDDriver} from './project.js';
-import type {DriverError, BoxType} from '../engine/index.js';
+import type {DriverError, BoxType, Filter} from '../engine/index.js';
 import type {VentShape} from './vent.js';
 
 /** DQ marks. A function, not a shared object: a module-scoped literal would be state, and each
@@ -357,12 +357,64 @@ export interface OpenISDProjectMetaJson {
     readonly comment: string;
 }
 
+/** The signal-chain filter list. */
+export interface FiltersJson {
+    readonly filters: readonly Filter[];
+}
+
+/** WinISD's top-level Advanced pane settings that are not project-array facts about the driver:
+ *  force-flat auto-EQ, and the port simulation model. */
+export interface OpenISDAdvancedJson {
+    /** WinISD Advanced tab: "Force flat response". */
+    readonly forceFlatResponse: boolean;
+    /** WinISD Advanced tab: "Use transmission line-model for port simulation". */
+    readonly useTransmissionLinePortModel: boolean;
+    /** WinISD Advanced tab: "Rg is at driver side" — whether the amplifier's source resistance
+     *  (`OpenISDDriverEmbeddingJson.Rs_ohm`) is applied per driver or once across the whole
+     *  array. */
+    readonly rgAtDriverSide: boolean;
+    /** WinISD Advanced tab: "Simulate voice coil inductance" — includes Le in the acoustic
+     *  circuit model (gyrator) rather than just the impedance plot (winisd). */
+    readonly circuitModel: 'winisd' | 'gyrator';
+    /** WinISD Advanced tab: "SPL graph is Xmax limited" — whether the SPL chart shows the
+     *  drive backed off wherever peak excursion exceeds Xmax (`splXlimCurve`) instead of the
+     *  unclamped `spl` curve. Display only: the unclamped curve still feeds the
+     *  transfer-function chart, the F3/F6/F10 read-outs and every compare trace regardless. */
+    readonly splGraphIsXmaxLimited: boolean;
+}
+
+/** The embedded driver, plus the settings that describe how it sits in THIS project's array —
+ *  how many units, how they're wired together, the amplifier's source resistance loading them,
+ *  the coil's thermal rise under drive, and the added mass on the driver from this array's own
+ *  hardware. These are project-array facts, not facts about the driver itself, so they live
+ *  beside `device` rather than inside `OpenISDDeviceJson` (John 2026-09-06). */
+export interface OpenISDDriverEmbeddingJson {
+    readonly device: OpenISDDeviceJson;
+    /** WinISD Driver tab: "Num. of drivers". */
+    readonly nDrivers: number;
+    /** WinISD Driver tab: "Voice coil connection". */
+    readonly wiring: 'series' | 'parallel';
+    /** WinISD Driver tab: "Voice coil temp rise". */
+    readonly vcTempRise_K: number;
+    readonly Rs_ohm: number;
+    /** WinISD Driver tab: "Added mass to cone". */
+    readonly driverAddedMass_kg: number;
+    /** WinISD Driver tab: "Standard" / "Iso-Barik" radio. */
+    readonly loading: 'standard' | 'isobaric';
+    /** WinISD Driver tab: "Voice coil resistance TC" — a project-level value independent of the
+     *  driver's own datasheet `alfaVC_per_K` (WinISD stores these as two separate fields,
+     *  `[Box] alfaVC` vs `[Driver] alfaVC`, that can and do diverge). */
+    readonly alfaVC_per_K: number;
+}
+
 export interface OpenISDProjectJson {
-    readonly driver: OpenISDDeviceJson;
+    readonly driverEmbedding: OpenISDDriverEmbeddingJson;
     readonly box: OpenISDBoxJson;
     readonly environment: OpenISDEnvironmentJson;
     readonly signal: OpenISDSignalJson;
     readonly meta: OpenISDProjectMetaJson;
+    readonly filters: FiltersJson;
+    readonly advanced: OpenISDAdvancedJson;
 }
 
 /** One source's reading of one parameter. `read_value` is the number; the rest annotate it. */

@@ -332,12 +332,12 @@ export function sweep(drv: SolverQuantities, Le_H: number | undefined, box: BoxT
   // OWN curve: `spl` still feeds the transfer-function chart, the F3/F6/F10 read-outs and
   // every compare trace, so it must never be clamped in place.
   const Xmax = (drv.Xmax_m != null && Number.isFinite(drv.Xmax_m) && drv.Xmax_m > 0) ? drv.Xmax_m : null;
-  const splXlim: number[] = [], xlimited: boolean[] = [];
+  const splXlimCurve: number[] = [], xlimited: boolean[] = [];
   for (let i = 0; i < fs.length; i++) {
     const xPeak = exc[i] / 1000;                                  // exc is mm; Xmax is metres
     const over  = Xmax !== null && Number.isFinite(xPeak) && xPeak > Xmax;
     xlimited.push(over);
-    splXlim.push(over ? spl[i] + 20 * Math.log10(Xmax / xPeak) : spl[i]);
+    splXlimCurve.push(over ? spl[i] + 20 * Math.log10(Xmax / xPeak) : spl[i]);
   }
 
   // Reference SPL limit from first principles (high-frequency asymptote)
@@ -354,7 +354,7 @@ export function sweep(drv: SolverQuantities, Le_H: number | undefined, box: BoxT
                 + 20 * Math.log10(np);
   }
 
-  return { value: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlim, xlimited, flatClamped,
+  return { value: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlimCurve, xlimited, flatClamped,
                     fltMag, fltPhase, fltGd }, errors: [] };
 }
 

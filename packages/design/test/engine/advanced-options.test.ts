@@ -198,7 +198,7 @@ describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => 
   it('equals the plain SPL when the drive never reaches Xmax', () => {
     const quiet = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, eg: 0.01 }).value!;
     for (let i = 0; i < quiet.fs.length; i++) {
-      assert.equal(quiet.splXlim[i], quiet.spl[i], `splXlim[${i}] must equal spl[${i}] below Xmax`);
+      assert.equal(quiet.splXlimCurve[i], quiet.spl[i], `splXlim[${i}] must equal spl[${i}] below Xmax`);
       assert.equal(quiet.xlimited[i], false, `xlimited[${i}] must be false below Xmax`);
     }
   });
@@ -212,11 +212,11 @@ describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => 
         clamped++;
         assert.equal(loud.xlimited[i], true, `xlimited[${i}] must be true at ${loud.fs[i].toFixed(1)} Hz`);
         const expected = loud.spl[i] + 20 * Math.log10(DRV.Xmax_m! / xPeak);
-        assert.ok(Math.abs(loud.splXlim[i] - expected) < 1e-9,
-          `at ${loud.fs[i].toFixed(1)} Hz: splXlim ${loud.splXlim[i]} should be ${expected}`);
-        assert.ok(loud.splXlim[i] < loud.spl[i], 'a clamped point must sit below the unclamped SPL');
+        assert.ok(Math.abs(loud.splXlimCurve[i] - expected) < 1e-9,
+          `at ${loud.fs[i].toFixed(1)} Hz: splXlim ${loud.splXlimCurve[i]} should be ${expected}`);
+        assert.ok(loud.splXlimCurve[i] < loud.spl[i], 'a clamped point must sit below the unclamped SPL');
       } else {
-        assert.equal(loud.splXlim[i], loud.spl[i], `splXlim[${i}] must be untouched below Xmax`);
+        assert.equal(loud.splXlimCurve[i], loud.spl[i], `splXlim[${i}] must be untouched below Xmax`);
         assert.equal(loud.xlimited[i], false);
       }
     }
@@ -227,9 +227,9 @@ describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => 
     const noXmax = { ...RAW }; delete noXmax.Xmax;
     const sw = engine.sweep(derive(noXmax), LE_H, 'vented', { ...VENTED, eg: 40 }).value!;
     for (let i = 0; i < sw.fs.length; i++) {
-      assert.equal(sw.splXlim[i], sw.spl[i], `splXlim[${i}] must equal spl[${i}] with no Xmax`);
+      assert.equal(sw.splXlimCurve[i], sw.spl[i], `splXlim[${i}] must equal spl[${i}] with no Xmax`);
       assert.equal(sw.xlimited[i], false);
-      assert.ok(Number.isFinite(sw.splXlim[i]), `splXlim[${i}] must be finite, got ${sw.splXlim[i]}`);
+      assert.ok(Number.isFinite(sw.splXlimCurve[i]), `splXlim[${i}] must be finite, got ${sw.splXlimCurve[i]}`);
     }
   });
 });
