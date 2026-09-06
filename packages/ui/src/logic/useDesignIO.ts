@@ -39,11 +39,8 @@ function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
 }
 
-// A live what-if is an uncommitted preview that can never be saved, exported or shared
-// (ARCHITECTURE.md §3). The guard lives in the managed layer's own persist/export methods
-// (`persistedDriverText()`, `exportDriverWdr()`, `exportWpr()`, …) — each cancels an active
-// what-if as its first act, so no call-site ordering here can observe uncommitted values.
-// Closing the Tune panel is the only part left to the caller, since the panel is UI, not state.
+// Closing the Tune panel after a save/export/share is UI cleanup, not state — the design itself
+// is already whatever the panel last wrote, so there is nothing else to settle here.
 function closeTunePanelAfterIO(): void {
   presentationState.editDriver = false;
 }

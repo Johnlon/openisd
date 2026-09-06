@@ -348,11 +348,10 @@ describe('ManagedProject is the only holder of OpenISDDriver', () => {
 
     assert.deepEqual(offences, [],
       '`ManagedProject` (packages/ui/src/logic/managedProject.ts) is the ONLY facade over a ' +
-      "driver's ground/modified/edit-or-whatif state, and `driverSelection.ts` is the only other " +
+      "driver's ground/modified state, and `driverSelection.ts` is the only other " +
       'licensed constructor, for driver file IO not bound to a project. A further import of the ' +
-      'OpenISDDriver class is an uncontrolled path into that state — it bypasses the edit/what-if ' +
-      'overlay, the single-channel notification asymmetry, and the what-if-never-leaks ' +
-      'cancellation guard `ManagedProject` exists to enforce.');
+      'OpenISDDriver class is an uncontrolled path into that state — it bypasses the edit ' +
+      'lifecycle and the single-channel notification asymmetry `ManagedProject` exists to enforce.');
   });
 
   it('managedProject.ts itself is the one file that constructs an OpenISDDriver', () => {
@@ -362,53 +361,6 @@ describe('ManagedProject is the only holder of OpenISDDriver', () => {
       'exempt. Update both together, never widen the exemption alone. (It materialises each ' +
       "layer's driver from the project's stored TEXT — QO83: the project holds the driver's " +
       'own serialisation, never its record — which is why the probe names fromOwdrJson.)');
-  });
-});
-
-/**
- * ARCHITECTURE.md §3: `ManagedProject` wraps ground state, committed state, and an
- * edit-or-what-if overlay, and NOTHING outside it may hold, name, or reason about a
- * what-if. A component asks `ManagedProject` whether a what-if is effective; it never
- * keeps its own flag, its own copy, or its own lifecycle.
- *
- * A second what-if implementation is the same defect as a second model version: two
- * places that can disagree about whether unverified, never-committable values are on
- * screen. That is exactly how `shareLink()` came to serialise an active what-if while
- * every sibling I/O function cancelled it first.
- */
-describe('what-if exists ONLY inside ManagedProject', () => {
-  const MANAGED_DRIVER_FILE = join(UI_SRC, 'logic', 'managedProject.ts');
-
-  /** An IDENTIFIER naming what-if — a declaration, a call, a property. Walking the AST's
-   *  Identifier/PrivateIdentifier nodes means comments and string/template literals are never
-   *  visited at all, so prose may name the concept freely (that is how it gets discussed and
-   *  deleted) with no risk of a false positive from a docstring. */
-  const WHATIF_IDENTIFIER = /^\w*[wW]hat[_]?[iI]f\w*$/;
-  const SANCTIONED = new Set(['isWhatIfActive', 'beginWhatIf', 'cancelWhatIf']);
-
-  it('no file outside managedProject.ts declares its own what-if state or lifecycle', () => {
-    const files = filesUnder(UI_SRC).filter(f => f !== MANAGED_DRIVER_FILE);
-    const offences: string[] = [];
-    for (const f of files) {
-      const source = sourceFileOf(f);
-      const found = new Set<string>();
-      source.forEachDescendant(node => {
-        if (!Node.isIdentifier(node) && !Node.isPrivateIdentifier(node)) return;
-        const name = node.getText().replace(/^#/, '');
-        if (WHATIF_IDENTIFIER.test(name)) found.add(name);
-      });
-      // Reading ManagedProject's OWN published API is the sanctioned way to ask "is a what-if
-      // effective?" — that is what the facade is FOR. Anything else is a second implementation.
-      for (const name of found) {
-        if (!SANCTIONED.has(name)) offences.push(`${rel(f)}: ${name}`);
-      }
-    }
-    assert.deepEqual(offences, [],
-      'What-if is ManagedProject\'s concept and nothing else may hold it. Every identifier ' +
-      'listed above is a SECOND what-if implementation — its own copy, flag, snapshot, ' +
-      'subscription or lifecycle function — living outside the one facade that is allowed to ' +
-      'know a what-if exists. Delete it and call ManagedProject: beginWhatIf() / cancelWhatIf() ' +
-      'to drive the session, isWhatIfActive() to paint the UI. Nothing else.');
   });
 });
 
@@ -444,13 +396,12 @@ describe('one driver model — the classic Driver ADT is not part of the app', (
 /**
  * ARCHITECTURE.md §"Approved state stores — there are THREE, and no others".
  *
- * The store holds persistent design state; `ManagedProject` holds active/edit/what-if driver
+ * The store holds persistent design state; `ManagedProject` holds active/edit driver
  * state; `ViewState` holds presentation state and the visible URL. EVERY other component is a
  * slave to those three — it reads and writes through them and holds nothing of its own.
  *
  * A local copy of state one of the three already holds is a SECOND ANSWER to the same question,
- * and two answers are free to disagree. That is not a hypothetical: it is how a parallel what-if
- * implementation grew inside the store while `ManagedProject` existed beside it.
+ * and two answers are free to disagree.
  */
 describe('only the three approved stores hold state', () => {
   const APPROVED = [
@@ -492,7 +443,7 @@ describe('only the three approved stores hold state', () => {
 
     assert.deepEqual(offences, [],
       'Only the approved stores may hold state: the store (persistent design), ManagedProject ' +
-      '(active/edit/what-if driver), PresentationState (presentation, browser-backed), ' +
+      '(active/edit driver), PresentationState (presentation, browser-backed), ' +
       'UrlAppState (the URL that encapsulates the app state). Each binding ' +
       'above is a fourth store — module-level, outliving every component, reachable by import, ' +
       'and free to disagree with whichever approved store already answers the same question. ' +
@@ -507,8 +458,8 @@ describe('only the three approved stores hold state', () => {
  *
  * Each arrow is the ONLY way through. `OpenISDDriver` is private state inside `ManagedProject`;
  * `ManagedProject` is reached through the store. A single leak makes the whole chain advisory:
- * one caller holding the driver directly can mutate it with no notification and no what-if
- * guard, which is the exact defect this architecture exists to make impossible.
+ * one caller holding the driver directly can mutate it with no notification, which is the exact
+ * defect this architecture exists to make impossible.
  */
 describe('containment is total: store -> ManagedProject -> OpenISDDriver', () => {
   const MANAGED = join(UI_SRC, 'logic', 'managedProject.ts');
@@ -539,7 +490,7 @@ describe('containment is total: store -> ManagedProject -> OpenISDDriver', () =>
       'OpenISDDriver is ManagedProject\'s private state (the human\'s ruling: it "sits behind ' +
       'ManagedProject as private internal state MAPPED to the openisd.yml file"). A public ' +
       'member returning one hands the internal driver to the caller, who can then mutate it ' +
-      'behind the facade with no notification and no what-if cancellation. Return the DATA the ' +
+      'behind the facade with no notification. Return the DATA the ' +
       'caller needs — a Cell, a record, an engine driver — never the object.');
   });
 

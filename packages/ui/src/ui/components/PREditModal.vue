@@ -8,7 +8,7 @@ import { useApp } from '../../logic/app.js';
 
 const { myPassiveRadiators } = useApp();
 
-// PR "Edit" — a real popup (unlike the driver What-If, this doesn't need the graph
+// PR "Edit" — a real popup (unlike Tune, this doesn't need the graph
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
 // parameters" box). Fields here describe the PR unit itself, not the box around it.
 

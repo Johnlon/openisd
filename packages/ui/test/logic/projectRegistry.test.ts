@@ -70,29 +70,22 @@ describe('project registry', () => {
     assert.equal(openProjects().length, before);
   });
 
-  it('focusProject(index) cancels an active what-if on the project being left, and closes Tune, '
-    + 'without ever starting a what-if on the newly-focused project '
-    + '(BUG_20260825_tune_whatif_stays_open_across_a_project_switch_with_no_overlay_on_the_newly_focused_project)',
-    () => {
-      const a = ManagedProject.createEmpty();
-      const b = ManagedProject.createEmpty();
-      addProject(a);
-      addProject(b);
-      const iA = openProjects().indexOf(a);
-      const iB = openProjects().indexOf(b);
+  it('focusProject(index) closes Tune on the project being left', () => {
+    const a = ManagedProject.createEmpty();
+    const b = ManagedProject.createEmpty();
+    addProject(a);
+    addProject(b);
+    const iA = openProjects().indexOf(a);
+    const iB = openProjects().indexOf(b);
 
-      focusProject(iA);
-      presentationState.editDriver = true;
-      a.beginWhatIf();
-      assert.ok(a.isWhatIfActive(), 'precondition: A has an open what-if');
+    focusProject(iA);
+    presentationState.editDriver = true;
 
-      focusProject(iB);
+    focusProject(iB);
 
-      assert.equal(focusedProject(), b);
-      assert.equal(presentationState.editDriver, false, 'Tune closes on focus switch');
-      assert.equal(a.isWhatIfActive(), false, "A's what-if is cancelled, not left dangling");
-      assert.equal(b.isWhatIfActive(), false, 'B never had a what-if started on it');
-    });
+    assert.equal(focusedProject(), b);
+    assert.equal(presentationState.editDriver, false, 'Tune closes on focus switch');
+  });
 
   it('focusProject(index) closes the Driver Editor modal on focus switch', () => {
     const a = ManagedProject.createEmpty();

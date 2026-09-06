@@ -40,9 +40,8 @@ let saveReady = false;
 // `ManagedProject` to hand a whole `OpenISDProject` out to the app purely so the repo could
 // serialise it — the one thing the layering doctrine forbids.
 //
-// A design has to settle which layer is persisted (an open what-if must never reach storage —
-// BUG_20260825), on what trigger, and whether the domain hands over bytes rather than the
-// project object. Until then this fires and does nothing.
+// A design has to settle which layer is persisted, on what trigger, and whether the domain
+// hands over bytes rather than the project object. Until then this fires and does nothing.
 watch(projectChanged, () => {
   if (!saveReady) return;
   // no persistence — see above

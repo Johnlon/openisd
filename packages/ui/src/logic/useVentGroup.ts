@@ -7,8 +7,7 @@
  * so one user action produces one solve (and a wholesale restore is adopted verbatim,
  * byte-identical — docs/design/STATE_MODEL.md rule 3).
  */
-import type { ManagedProject } from './managedProject.js';
-import { Provenance } from '@openisd/model';
+import type { OpenISDProject, Provenance } from '@openisd/design';
 
 /** The four members tied by the Helmholtz relation — the set the solver solves WITHIN. */
 export const VENT_GROUP = ['Vb', 'ventD', 'Fb', 'ventL'] as const;
@@ -24,68 +23,68 @@ export const VENT_ENTRY_FIELDS = [...VENT_GROUP, 'ventW', 'ventH'] as const;
 export type VentEntryField = typeof VENT_ENTRY_FIELDS[number];
 
 const LETTER: Record<Provenance, 'E' | 'C' | 'N'> = {
-  [Provenance.Entered]: 'E', [Provenance.Calculated]: 'C', [Provenance.NotAvailable]: 'N',
+  entered: 'E', calculated: 'C', 'not-available': 'N',
 };
 
 /** Re-solve every CALCULATED member from the ENTERED ones — the domain's own solver. */
-export function solveVentGroup(mp: ManagedProject): void {
-  mp.solveVentGroup();
+export function solveVentGroup(p: OpenISDProject): void {
+  p.solveVentGroup();
 }
 
 /** Enter a vent-group field — held until an explicit `clearVentField`. One user action, one
  *  solve: the domain solves inside `enter()`, and the suspension parks the auto-solve watch.
- *  `ManagedProject` has no keyed accessor — this switch is the field-id dispatch,
+ *  `OpenISDProject` has no keyed accessor — this switch is the field-id dispatch,
  *  living here in the UI seam rather than as a generic method on the domain facade. */
-export function enterVentField(mp: ManagedProject, field: VentEntryField, value: number): void {
+export function enterVentField(p: OpenISDProject, field: VentEntryField, value: number): void {
   suspendVentSolve(() => {
     switch (field) {
-      case 'Vb': mp.enterBoxVolume_m3(value); return;
-      case 'Fb': mp.enterBoxTuning_Fb_hz(value); return;
-      case 'ventD': mp.enterVentDiameter_m(value); return;
-      case 'ventL': mp.enterVentLength_m(value); return;
-      case 'ventW': mp.enterVentWidth_m(value); return;
-      case 'ventH': mp.enterVentHeight_m(value); return;
+      case 'Vb': p.box.vented.volume_m3.set(value); return;
+      case 'Fb': p.box.vented.tuning_hz.set(value); return;
+      case 'ventD': p.box.vented.vent.diameter_m.set(value); return;
+      case 'ventL': p.box.vented.vent.length_m.set(value); return;
+      case 'ventW': p.box.vented.vent.width_m.set(value); return;
+      case 'ventH': p.box.vented.vent.height_m.set(value); return;
     }
   });
 }
 
 /** Clear a vent-group field — it becomes `C` if the remaining entered set determines it, `N`
  *  if nothing can. */
-export function clearVentField(mp: ManagedProject, field: VentField): void {
+export function clearVentField(p: OpenISDProject, field: VentField): void {
   suspendVentSolve(() => {
     switch (field) {
-      case 'Vb': mp.clearBoxVolume_m3(); return;
-      case 'Fb': mp.clearBoxTuning_Fb_hz(); return;
-      case 'ventD': mp.clearVentDiameter_m(); return;
-      case 'ventL': mp.clearVentLength_m(); return;
+      case 'Vb': p.box.vented.volume_m3.clear(); return;
+      case 'Fb': p.box.vented.tuning_hz.clear(); return;
+      case 'ventD': p.box.vented.vent.diameter_m.clear(); return;
+      case 'ventL': p.box.vented.vent.length_m.clear(); return;
     }
   });
 }
 
 /** `E` entered and locked · `C` calculated · `N` not available — the badge letter for the
  *  domain's own provenance. */
-export function ventFieldState(mp: ManagedProject, field: VentField): 'E' | 'C' | 'N' {
+export function ventFieldState(p: OpenISDProject, field: VentField): 'E' | 'C' | 'N' {
   switch (field) {
-    case 'Vb': return LETTER[mp.boxVolumeProvenance()];
-    case 'Fb': return LETTER[mp.boxTuningProvenance()];
-    case 'ventD': return LETTER[mp.ventDiameterProvenance()];
-    case 'ventL': return LETTER[mp.ventLengthProvenance()];
+    case 'Vb': return LETTER[p.box.vented.volume_m3.get().state];
+    case 'Fb': return LETTER[p.box.vented.tuning_hz.get().state];
+    case 'ventD': return LETTER[p.box.vented.vent.diameter_m.get().state];
+    case 'ventL': return LETTER[p.box.vented.vent.length_m.get().state];
   }
 }
 
 /** The tuning the CURRENT vent length actually delivers. */
-export function ventAchievedFb(mp: ManagedProject): number | null {
-  return mp.ventAchievedFb();
+export function ventAchievedFb(p: OpenISDProject): number | null {
+  return p.ventAchievedFb();
 }
 
 /** The highest tuning this volume and port area can reach with ANY vent (L = 0). */
-export function ventMaxReachableFb(mp: ManagedProject): number | null {
-  return mp.ventMaxReachableFb();
+export function ventMaxReachableFb(p: OpenISDProject): number | null {
+  return p.ventMaxReachableFb();
 }
 
 /** True when the solver cannot deliver the entered target tuning — see the domain method. */
-export function ventTargetUnreachable(mp: ManagedProject): boolean {
-  return mp.ventTargetUnreachable();
+export function ventTargetUnreachable(p: OpenISDProject): boolean {
+  return p.ventTargetUnreachable();
 }
 
 // ---- Restore suspension (docs/design/STATE_MODEL.md rule 3: "Cancel means byte-identical") -----------

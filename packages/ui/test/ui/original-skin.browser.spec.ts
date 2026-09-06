@@ -265,13 +265,11 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
   await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(0);
 });
 
-test('the Tune what-if panel previews live and Cancel reverts — no Keep/commit path exists', async ({ page }) => {
+test('the Tune panel edits live and Cancel discards everything since the last save', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const tune = page.locator('.tune-panel');
   await expect(tune).toBeVisible();
-  // A what-if is exploration-only — it can never become real driver data, so there is no
-  // "Keep"/commit control at all. cancel (✕ / Cancel) is the only way the panel closes.
   await expect(tune.locator('button', { hasText: 'Keep' })).toHaveCount(0);
   await expect(tune.locator('button', { hasText: 'Cancel' })).toBeVisible();
 
@@ -285,20 +283,17 @@ test('the Tune what-if panel previews live and Cancel reverts — no Keep/commit
   const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
   await fsInput.fill(String(before + 6));
   await fsInput.dispatchEvent('input');
-  expect(await readFs()).toBeCloseTo(before + 6, 1); // live preview updated the shared store
+  expect(await readFs()).toBeCloseTo(before + 6, 1); // the edit lands immediately
 
   await tune.locator('button', { hasText: 'Cancel' }).click();
   await expect(tune).toBeHidden();
-  expect(await readFs()).toBeCloseTo(before, 1); // Cancel reverted the what-if
+  expect(await readFs()).toBeCloseTo(before, 1); // Cancel discarded it
 });
 
-test('a Tune what-if can never dirty the project, however it closes (STATE_MODEL: what-if never commits)', async ({ page }) => {
+test('closing Tune via the titlebar ✕ also discards the edit, same as Cancel', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-
-  const unsaved = page.locator('.unsaved-label');
-  await expect(unsaved).toBeHidden(); // fresh load = ground = clean
 
   const readFs = () => page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
@@ -312,16 +307,13 @@ test('a Tune what-if can never dirty the project, however it closes (STATE_MODEL
   const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
   await fsInput.fill(String(before + 6));
   await fsInput.dispatchEvent('input');
+  expect(await readFs()).toBeCloseTo(before + 6, 1);
 
-  expect(await readFs()).toBeCloseTo(before + 6, 1); // effective driver previews the what-if live
-  await expect(unsaved).toBeHidden();                // ...but the project is NOT dirtied
-
-  // Closing via the titlebar ✕ (the only other close path besides Cancel) must discard the
-  // what-if exactly like Cancel does — there is no path that keeps it.
+  // Closing via the titlebar ✕ (the only other close path besides Cancel) discards the edit
+  // exactly like Cancel does.
   await tune.locator('.tune-titlebar .close-btn').click();
   await expect(tune).toBeHidden();
-  await expect(unsaved).toBeHidden();                // still clean — nothing to commit, ever
-  expect(await readFs()).toBeCloseTo(before, 1);      // reverted to the pre-what-if value
+  expect(await readFs()).toBeCloseTo(before, 1);
 });
 
 test('the Tune fields accept multi-character typing (no reformat-while-typing clobber)', async ({ page }) => {
@@ -431,7 +423,7 @@ test('field constraints: negative/out-of-range entry is rejected or clamped ever
   await expect(rh).toHaveValue('0');
   await rh.fill('250');
   await expect(rh).toHaveValue('100');     // ceiling too, not just the floor
-  // 3. Tune what-if panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor.
+  // 3. Tune panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor.
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const fs = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).first().locator('input');
@@ -695,24 +687,17 @@ test('R1: an open Driver Editor is reopened after a reload', async ({ page }) =>
   await expect(page.locator('.overlay.on')).toContainText("Edit Project's Driver"); // reopened after refresh
 });
 
-test('R1: an open Tune with uncommitted what-if values is preserved across a reload', async ({ page }) => {
+test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
-  const fsInput = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).locator('input');
-  const before = Number(await fsInput.inputValue());
-  await fsInput.fill(String(before + 7));
-  await fsInput.dispatchEvent('input');
 
   await page.waitForFunction(() => (localStorage.getItem('openisd.state') || '').includes('originalTuneOpen'),
-    undefined, { timeout: 5000 }); // the open Tune + overlay get persisted
+    undefined, { timeout: 5000 }); // the open-panel flag is persisted
   await page.reload();
 
-  const fs2 = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).locator('input');
   await expect(page.locator('.tune-panel')).toBeVisible();          // Tune reopened
-  await expect(fs2).toHaveValue((before + 7).toFixed(2));           // with the pending what-if value (Fs shows 2 dp)
-  await expect(page.locator('.unsaved-label')).toBeHidden();        // still uncommitted → project not dirtied
 });
 
 test('R1 refresh fidelity: box type, active tab, and selected chart survive a reload', async ({ page }) => {
@@ -1130,9 +1115,7 @@ test('Original skin: Revert/reset button resets modifications correctly', async 
 // These three exercise the plan's own verification list: opening a second project routes
 // edits to the correct one and the chart/tab UI reflects whichever is focused; closing the
 // last open project shows the explicit empty state (chart AND tab section both gone); and
-// switching focus between two open projects never disturbs an open what-if on either one
-// (regression guard for BUG_20260825_whatif_destroyed_by_autosave_watcher.md, extended to the
-// multi-project case the single-project R1 reload test above does not cover).
+// switching focus between two open projects never disturbs an edit in progress on either one.
 
 test('opening a second project: edits land on the correct one, and the Project tab reflects whichever is focused', async ({ page }) => {
   // Name the original project so the two open tabs are distinguishable from the start.
@@ -1185,14 +1168,14 @@ test('closing the last open project shows the explicit empty state, with a worki
   await expect(page.locator('.projects-list .project-row')).toHaveCount(1);
 });
 
-test('switching focus between two open projects preserves an open what-if on the originally focused one', async ({ page }) => {
+test('switching focus between two open projects preserves an edit in progress on the originally focused one', async ({ page }) => {
   // Name the project so it is recognisable as the one to switch back to.
   await page.locator('.project-nav li', { hasText: 'Project' }).click();
   const nameInput = page.locator('.tab-section.active .field', { hasText: 'Name' }).locator('input');
-  await nameInput.fill('Has The Whatif');
+  await nameInput.fill('Has The Edit');
   await nameInput.blur();
 
-  // Open a Tune what-if on it and change Fs without closing it. `.blur()`, not just
+  // Open Tune on it and change Fs without closing it. `.blur()`, not just
   // `dispatchEvent('input')`: the field only reformats to its display precision once it
   // stops being the raw, mid-typing echo (`OgTune.vue`'s own "no reformat while typing"
   // rule) — checking the value immediately after typing (no blur) would assert against
@@ -1207,15 +1190,13 @@ test('switching focus between two open projects preserves an open what-if on the
   const settled = await fsInput.inputValue();
 
   // "+ Copy" opens a second, independent project and focuses it — this must not touch the
-  // first project's what-if.
+  // first project's edit.
   await page.locator('.link-btn', { hasText: 'Copy' }).click();
   const rows = page.locator('.projects-list .project-row');
   await expect(rows).toHaveCount(2);
 
-  // Switch back to the first project — its Tune panel still shows the what-if value, not
-  // reverted or destroyed by autosave running while the second project was focused
-  // (BUG_20260825_whatif_destroyed_by_autosave_watcher.md, multi-project case).
-  await rows.filter({ hasText: /^Has The Whatif$/ }).click();
+  // Switch back to the first project — its Tune panel still shows the edited value.
+  await rows.filter({ hasText: /^Has The Edit$/ }).click();
   await expect(tune).toBeVisible();
   await expect(fsInput).toHaveValue(settled);
 

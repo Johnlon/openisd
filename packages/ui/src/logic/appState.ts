@@ -16,11 +16,20 @@
 import { reactive, computed, ref, shallowRef, triggerRef, watch, type ComputedRef, type Ref, type ShallowRef } from 'vue';
 import { Engine } from '@openisd/design/engine';
 import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
-import type { SpecField, OpenISDProject, Cell } from '@openisd/model';
 import { ManagedProject } from './managedProject.js';
 import {type AppState, AppStateImpl, type SyncedParams} from '../types.js';
 import type { UiParams } from '@openisd/model';
 import { copyOfName, uniqueName, type ViewSnapshot } from '@openisd/persistence';
+
+/** The 53 driver spec fields the app's UI reads/writes by name — the driver editor's own field
+ *  table. Matches `DriverSpec`'s field names in `@openisd/design`, without their unit suffixes. */
+export type SpecField =
+  | 'Fs' | 'Re' | 'Le' | 'fLe' | 'KLe' | 'Znom' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'BL'
+  | 'Mms' | 'Cms' | 'Rms' | 'Xmax' | 'Xlim' | 'SPL' | 'Pe' | 'Dd' | 'EBP' | 'numVC' | 'VCCon'
+  | 'Dia' | 'Vd' | 'no' | 'SPLmax' | 'SPLmaxLF' | 'USPL' | 'alfaVC' | 'Rt' | 'Ct' | 'gamma'
+  | 'Rme' | 'Mpow' | 'Mcost' | 'Gloss' | 'c' | 'roo' | 'Vcd' | 'Hg' | 'Hc' | 'freq_low_hz'
+  | 'freq_high_hz' | 'power_peak_W' | 'weight_kg' | 'Thick' | 'Depth' | 'MagDepth' | 'Magnet'
+  | 'Basket' | 'Outer' | 'OuterX' | 'OuterY' | 'DVol';
 import { presentationState, unitToken } from './presentationState.js';
 import { resolveAirEnvironment } from './environment.js';
 import { parseChartTabId } from './series.js';
@@ -68,16 +77,13 @@ const slots = hmrSlots<AppStateSingletons>(
 );
 
 /**
- * `ManagedProject` (`logic/managedProject.ts`) is the facade over ground, committed and the
- * edit-or-what-if overlay, and the domain object for ONE project in the registry below.
+ * `ManagedProject` (`logic/managedProject.ts`) is the facade over ground and committed state,
+ * and the domain object for ONE project in the registry below.
  *
  * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
- * `.toEngineDriver()`/`.errors()`/`.snapshot()` to read; `.enter()`/`.clear()`/`.mutate()` to write;
- * `.beginWhatIf()`/`.cancelWhatIf()`/`.isWhatIfActive()` to manage a what-if. `.projectToPersist()`
- * is separate again — it is what anything saved/exported/shared reads, and it never hands out a
- * live what-if: it cancels one first, so nothing unverified can reach disk. The
- * `OpenISDProjectJson` it wraps — and the `OpenISDDriver` inside that — are private to it and
- * never leave.
+ * `.toEngineDriver()`/`.errors()`/`.snapshot()` to read; `.enter()`/`.clear()`/`.mutate()` to write.
+ * `.projectToPersist()` is what anything saved/exported/shared reads. The `OpenISDProjectJson`
+ * it wraps — and the `OpenISDDriver` inside that — are private to it and never leave.
  *
  * `seedProject` is the one always seeded into the registry below at module load — the app
  * never starts with zero projects open — and is otherwise indistinguishable from any project
@@ -110,20 +116,9 @@ export function focusedProject(): ManagedProject | null {
  *
  *  Closes Tune and the Driver Editor modal on the project being left, BEFORE moving focus
  *  (`presentationState.editDriver = false`/`editDriverInfo = false`) — same "any focus-
- *  changing action closes what was open" pattern as `openDriverPicker()` above. Tune's own
- *  what-if lifecycle watcher (`OgTune.vue`) reacts to `editDriver` going false and calls
- *  `cancelWhatIf()` on whichever project it is bound to — flush-deferred, so it must be told
- *  to close, and the outgoing project's what-if actually cancelled, while `project.value`
- *  (`useFocusedProject()`) still resolves to the OUTGOING project, not the incoming one; doing
- *  it here, before `focusedIndex.value` changes, is what keeps that true. Cancelling directly
- *  here too (not only via the watcher) means the outgoing what-if is gone even if Tune itself
- *  is not mounted (`BUG_20260825_tune_whatif_stays_open_across_a_project_switch_with_no_
- *  overlay_on_the_newly_focused_project.md`) — switching focus must never leave a what-if
- *  live on a project the user has moved away from, no matter which panel is open. */
+ *  changing action closes what was open" pattern as `openDriverPicker()` above. */
 export function focusProject(index: number): void {
   if (index < 0 || index >= projects.value.length || index === focusedIndex.value) return;
-  const outgoing = focusedProject();
-  if (outgoing && outgoing.isWhatIfActive()) outgoing.cancelWhatIf();
   presentationState.editDriver = false;
   presentationState.editDriverInfo = false;
   focusedIndex.value = index;
@@ -316,191 +311,6 @@ watch(
   { flush: 'sync', immediate: true },
 );
 
-/** Route one per-field edit to whichever layer ManagedProject says is effective. */
-/** One driver field's value and provenance — dispatch lives here, not as a keyed method on
- *  `ManagedProject` (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md). */
-export function driverFieldCell(field: SpecField): Cell {
-  const p = requireFocusedProject();
-  switch (field) {
-    case 'Fs': return p.FsCell();
-    case 'Re': return p.ReCell();
-    case 'Le': return p.LeCell();
-    case 'fLe': return p.fLeCell();
-    case 'KLe': return p.KLeCell();
-    case 'Znom': return p.ZnomCell();
-    case 'Qts': return p.QtsCell();
-    case 'Qes': return p.QesCell();
-    case 'Qms': return p.QmsCell();
-    case 'Vas': return p.VasCell();
-    case 'Sd': return p.SdCell();
-    case 'BL': return p.BLCell();
-    case 'Mms': return p.MmsCell();
-    case 'Cms': return p.CmsCell();
-    case 'Rms': return p.RmsCell();
-    case 'Xmax': return p.XmaxCell();
-    case 'Xlim': return p.XlimCell();
-    case 'SPL': return p.SPLCell();
-    case 'Pe': return p.PeCell();
-    case 'Dd': return p.DdCell();
-    case 'EBP': return p.EBPCell();
-    case 'numVC': return p.numVCCell();
-    case 'VCCon': return p.VCConCell();
-    case 'Dia': return p.DiaCell();
-    case 'Vd': return p.VdCell();
-    case 'no': return p.noCell();
-    case 'SPLmax': return p.SPLmaxCell();
-    case 'SPLmaxLF': return p.SPLmaxLFCell();
-    case 'USPL': return p.USPLCell();
-    case 'alfaVC': return p.driverAlfaVCCell();
-    case 'Rt': return p.RtCell();
-    case 'Ct': return p.CtCell();
-    case 'gamma': return p.gammaCell();
-    case 'Rme': return p.RmeCell();
-    case 'Mpow': return p.MpowCell();
-    case 'Mcost': return p.McostCell();
-    case 'Gloss': return p.GlossCell();
-    case 'c': return p.cCell();
-    case 'roo': return p.rooCell();
-    case 'Vcd': return p.VcdCell();
-    case 'Hg': return p.HgCell();
-    case 'Hc': return p.HcCell();
-    case 'freq_low_hz': return p.freq_low_hzCell();
-    case 'freq_high_hz': return p.freq_high_hzCell();
-    case 'power_peak_W': return p.power_peak_WCell();
-    case 'weight_kg': return p.weight_kgCell();
-    case 'Thick': return p.ThickCell();
-    case 'Depth': return p.DepthCell();
-    case 'MagDepth': return p.MagDepthCell();
-    case 'Magnet': return p.MagnetCell();
-    case 'Basket': return p.BasketCell();
-    case 'Outer': return p.OuterCell();
-    case 'OuterX': return p.OuterXCell();
-    case 'OuterY': return p.OuterYCell();
-    case 'DVol': return p.DVolCell();
-  }
-}
-
-export function enterDriverField(field: SpecField, value: number): void {
-  const p = requireFocusedProject();
-  switch (field) {
-    case 'Fs': p.enterFs(value); return;
-    case 'Re': p.enterRe(value); return;
-    case 'Le': p.enterLe(value); return;
-    case 'fLe': p.enterFLe(value); return;
-    case 'KLe': p.enterKLe(value); return;
-    case 'Znom': p.enterZnom(value); return;
-    case 'Qts': p.enterQts(value); return;
-    case 'Qes': p.enterQes(value); return;
-    case 'Qms': p.enterQms(value); return;
-    case 'Vas': p.enterVas(value); return;
-    case 'Sd': p.enterSd(value); return;
-    case 'BL': p.enterBL(value); return;
-    case 'Mms': p.enterMms(value); return;
-    case 'Cms': p.enterCms(value); return;
-    case 'Rms': p.enterRms(value); return;
-    case 'Xmax': p.enterXmax(value); return;
-    case 'Xlim': p.enterXlim(value); return;
-    case 'SPL': p.enterSPL(value); return;
-    case 'Pe': p.enterPe(value); return;
-    case 'Dd': p.enterDd(value); return;
-    case 'EBP': p.enterEBP(value); return;
-    case 'numVC': p.enterNumVC(value); return;
-    case 'VCCon': p.enterVCCon(value); return;
-    case 'Dia': p.enterDia(value); return;
-    case 'Vd': p.enterVd(value); return;
-    case 'no': p.enterNo(value); return;
-    case 'SPLmax': p.enterSPLmax(value); return;
-    case 'SPLmaxLF': p.enterSPLmaxLF(value); return;
-    case 'USPL': p.enterUSPL(value); return;
-    case 'alfaVC': p.enterDriverAlfaVC(value); return;
-    case 'Rt': p.enterRt(value); return;
-    case 'Ct': p.enterCt(value); return;
-    case 'gamma': p.enterGamma(value); return;
-    case 'Rme': p.enterRme(value); return;
-    case 'Mpow': p.enterMpow(value); return;
-    case 'Mcost': p.enterMcost(value); return;
-    case 'Gloss': p.enterGloss(value); return;
-    case 'c': p.enterC(value); return;
-    case 'roo': p.enterRoo(value); return;
-    case 'Vcd': p.enterVcd(value); return;
-    case 'Hg': p.enterHg(value); return;
-    case 'Hc': p.enterHc(value); return;
-    case 'freq_low_hz': p.enterFreq_low_hz(value); return;
-    case 'freq_high_hz': p.enterFreq_high_hz(value); return;
-    case 'power_peak_W': p.enterPower_peak_W(value); return;
-    case 'weight_kg': p.enterWeight_kg(value); return;
-    case 'Thick': p.enterThick(value); return;
-    case 'Depth': p.enterDepth(value); return;
-    case 'MagDepth': p.enterMagDepth(value); return;
-    case 'Magnet': p.enterMagnet(value); return;
-    case 'Basket': p.enterBasket(value); return;
-    case 'Outer': p.enterOuter(value); return;
-    case 'OuterX': p.enterOuterX(value); return;
-    case 'OuterY': p.enterOuterY(value); return;
-    case 'DVol': p.enterDVol(value); return;
-  }
-}
-export function clearDriverField(field: SpecField): void {
-  const p = requireFocusedProject();
-  switch (field) {
-    case 'Fs': p.clearFs(); return;
-    case 'Re': p.clearRe(); return;
-    case 'Le': p.clearLe(); return;
-    case 'fLe': p.clearFLe(); return;
-    case 'KLe': p.clearKLe(); return;
-    case 'Znom': p.clearZnom(); return;
-    case 'Qts': p.clearQts(); return;
-    case 'Qes': p.clearQes(); return;
-    case 'Qms': p.clearQms(); return;
-    case 'Vas': p.clearVas(); return;
-    case 'Sd': p.clearSd(); return;
-    case 'BL': p.clearBL(); return;
-    case 'Mms': p.clearMms(); return;
-    case 'Cms': p.clearCms(); return;
-    case 'Rms': p.clearRms(); return;
-    case 'Xmax': p.clearXmax(); return;
-    case 'Xlim': p.clearXlim(); return;
-    case 'SPL': p.clearSPL(); return;
-    case 'Pe': p.clearPe(); return;
-    case 'Dd': p.clearDd(); return;
-    case 'EBP': p.clearEBP(); return;
-    case 'numVC': p.clearNumVC(); return;
-    case 'VCCon': p.clearVCCon(); return;
-    case 'Dia': p.clearDia(); return;
-    case 'Vd': p.clearVd(); return;
-    case 'no': p.clearNo(); return;
-    case 'SPLmax': p.clearSPLmax(); return;
-    case 'SPLmaxLF': p.clearSPLmaxLF(); return;
-    case 'USPL': p.clearUSPL(); return;
-    case 'alfaVC': p.clearDriverAlfaVC(); return;
-    case 'Rt': p.clearRt(); return;
-    case 'Ct': p.clearCt(); return;
-    case 'gamma': p.clearGamma(); return;
-    case 'Rme': p.clearRme(); return;
-    case 'Mpow': p.clearMpow(); return;
-    case 'Mcost': p.clearMcost(); return;
-    case 'Gloss': p.clearGloss(); return;
-    case 'c': p.clearC(); return;
-    case 'roo': p.clearRoo(); return;
-    case 'Vcd': p.clearVcd(); return;
-    case 'Hg': p.clearHg(); return;
-    case 'Hc': p.clearHc(); return;
-    case 'freq_low_hz': p.clearFreq_low_hz(); return;
-    case 'freq_high_hz': p.clearFreq_high_hz(); return;
-    case 'power_peak_W': p.clearPower_peak_W(); return;
-    case 'weight_kg': p.clearWeight_kg(); return;
-    case 'Thick': p.clearThick(); return;
-    case 'Depth': p.clearDepth(); return;
-    case 'MagDepth': p.clearMagDepth(); return;
-    case 'Magnet': p.clearMagnet(); return;
-    case 'Basket': p.clearBasket(); return;
-    case 'Outer': p.clearOuter(); return;
-    case 'OuterX': p.clearOuterX(); return;
-    case 'OuterY': p.clearOuterY(); return;
-    case 'DVol': p.clearDVol(); return;
-  }
-}
-
 // The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
 // PRIVATE to this file's own sweep; every outside caller reads the focused project's own
 // `.toEngineDriver()` directly through `logic/liveProject.ts`'s reactivity adapter instead of
@@ -531,16 +341,12 @@ export const driverName = computed<string>(() => {
 });
 
 /**
- * Open the driver picker — the ONE governed entry point. Cancels any active what-if first: an
- * uncommitted preview must never be left dangling once the user has moved on to picking a
- * different driver. Every "Select Driver"/"Browse…" trigger calls this, never a raw
- * `presentationState.browseOpen = true`. ManagedProject owns the cancellation; this only asks
- * for it. No-ops when no project is focused — there is nothing to pick a driver for.
+ * Open the driver picker — the ONE governed entry point. Every "Select Driver"/"Browse…"
+ * trigger calls this, never a raw `presentationState.browseOpen = true`. No-ops when no
+ * project is focused — there is nothing to pick a driver for.
  */
 export function openDriverPicker(): void {
-  const p = focusedProject();
-  if (!p) return;
-  if (p.isWhatIfActive()) { p.cancelWhatIf(); presentationState.editDriver = false; }
+  if (!focusedProject()) return;
   presentationState.browseOpen = true;
 }
 

@@ -1,12 +1,12 @@
-import { Provenance } from '@openisd/model';
-import type { Cell as FieldCell, SpecField } from '@openisd/model';
+import type { Cell as FieldCell, Provenance } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import type { ConsistencyIssue } from '@openisd/design/engine';
+import type { SpecField } from './appState.js';
 
 /**
  * Driver provenance PRESENTATION — how a field's `Provenance` becomes a CSS class, and how a
- * consistency issue becomes tooltip text. The driver editor and every what-if panel read it, so
- * a panel cannot style the same driver differently from the dialog.
+ * consistency issue becomes tooltip text. The driver editor and Tune both read it, so Tune
+ * cannot style the same driver differently from the dialog.
  *
  * Presentation only: whether a value is entered, calculated or absent is decided by the domain
  * object (`OpenISDDriver.cell()`), never here.

@@ -1,13 +1,3 @@
-/**
- * `bugs/BUG_20260814_sharelink-does-not-cancel-an-active-what-if-before-serialising-the-driver.md`
- *
- * Every I/O action in `useDesignIO.ts` must cancel an active driver what-if before it reads
- * committed state (`ARCHITECTURE.md` §3 "A what-if never leaks into anything persistent") — an
- * uncommitted, unverified overlay must never be left open once the user has generated an
- * artifact from the committed design. `saveProject`/`saveProjectAs`/`exportWdr`/`exportWpr`/
- * `exportOwdr` already do this via `endAnyActiveWhatIfBeforeIO()`; `shareLink()` was the one
- * that did not.
- */
 import { describe, it, beforeAll, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -16,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { createLogging } from '../../src/logging/flash.js';
 import { createDesignIO } from '../../src/logic/useDesignIO.js';
 import { createFileStorage, createProjectRepo, createMemoryStorage } from '@openisd/persistence';
-import { requireFocusedProject, state } from '../../src/logic/appState.js';
+import { state } from '../../src/logic/appState.js';
 
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
@@ -25,19 +15,6 @@ beforeAll(() => {
   vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
   vi.stubGlobal('history', { replaceState: () => {} });
   vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
-});
-
-describe('shareLink() cancels an active what-if before serialising the driver', () => {
-  it('an active what-if is gone after shareLink() returns', async () => {
-    const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createMemoryStorage(), createFileStorage()) });
-    requireFocusedProject().beginWhatIf();
-    assert.equal(requireFocusedProject().isWhatIfActive(), true, 'precondition: a what-if is open');
-
-    await io.shareLink();
-
-    assert.equal(requireFocusedProject().isWhatIfActive(), false,
-      'shareLink() must cancel the what-if itself, like every sibling export/save function');
-  });
 });
 
 /**

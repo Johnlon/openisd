@@ -9,7 +9,7 @@
  *
  * Presentation only: the what-if logic is single-sourced in the store/ADT.
  */
-import { computed, reactive, watch, ref, onMounted, onUnmounted } from 'vue';
+import { computed, reactive, ref, onMounted, onUnmounted } from 'vue';
 import { enterDriverField, clearDriverField, driverFieldCell } from '../../../logic/appState.js';
 import { presentationState } from '../../../logic/presentationState.js';
 import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
@@ -171,37 +171,23 @@ const dqNote = (key: NumKey): string => {
 const ebpVal = computed(() => { void project.value; const d = project.value.toEngineDriver(); return d ? ebpOf(d) : null; });
 function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 
-// Open the what-if overlay as Tune opens: edits go to a live COPY, so the charts preview
-// live but the committed project stays clean — a what-if can never dirty it, by any path
-// (STATE_MODEL what-if ≠ committed, and never becomes committed). The watch (immediate)
-// survives a future switch from v-if to v-show.
-// On EVERY close path (✕ or Cancel — there is no other), discard the overlay so a stray
-// close can never strand the charts on an abandoned what-if.
-// Box volume is BOX state, not driver state, so the driver what-if overlay does not cover it —
-// a Vb scrubbed here writes straight through to project.value.boxVolume_m3() (the SAME
-// binding the Box panel uses; there is no second copy). Cancel must therefore put Vb back
-// itself, or a panel whose Cancel reverts the driver would silently keep a box change made in
-// the same session.
-let vbSnapshot = project.value.boxVolume_m3();
-watch(() => presentationState.editDriver, (open) => {
-  if (open) { vbSnapshot = project.value.boxVolume_m3(); project.value.beginWhatIf(); }
-  else project.value.cancelWhatIf();
-}, { immediate: true });
+// Tune edits the project directly — a write here is the same write the Box/driver panels make,
+// through the same OpenISDProject. Cancel/Reset both discard everything edited since the last
+// save (OpenISDProject.cancel()); Tune asks no confirmation of its own, since nothing it holds
+// is ever a decision the user has not already made by typing it.
+const discardWithoutAsking = async () => true;
 
-function cancel() { project.value.cancelWhatIf(); project.value.setBoxVolume_m3(vbSnapshot); presentationState.editDriver = false; }
-// Reset the overlay to the driver as loaded: end this session and start a fresh one from
-// ground. ManagedProject owns both halves; the panel does not reach past it. Vb is a box value,
-// not a driver value, so it is untouched here.
-function reset()  { project.value.resetOverlayToGround(); }
+function cancel() { void project.value.cancel(discardWithoutAsking); presentationState.editDriver = false; }
+function reset()  { void project.value.cancel(discardWithoutAsking); }
 </script>
 
 <template>
   <div class="tune-panel">
     <div class="tune-titlebar">
-      <span>Tune — What-if</span>
-      <span class="close-btn" role="button" tabindex="0" title="Cancel — discard these what-if changes" @click="cancel" @keydown.enter="cancel">✕</span>
+      <span>Tune</span>
+      <span class="close-btn" role="button" tabindex="0" title="Cancel — discard changes since the last save" @click="cancel" @keydown.enter="cancel">✕</span>
     </div>
-    <p class="tune-hint">Live what-if: the charts update as you scrub, but nothing here is ever saved — <b>Cancel</b> reverts. To make a value real, use <b>Edit</b> instead.</p>
+    <p class="tune-hint">The charts update as you scrub. <b>Cancel</b> discards everything since the last save.</p>
 
     <div class="tune-grid">
       <div v-for="f in MAIN" :key="f.key" class="tune-fld">
@@ -276,8 +262,8 @@ function reset()  { project.value.resetOverlayToGround(); }
     </div>
 
     <div class="tune-btns">
-      <button title="Reset — back to the library driver's values" @click="reset">Reset</button>
-      <button class="cancel footer-buttons-pri" title="Cancel — discard these what-if changes; the charts revert to how they were before Tune" @click="cancel">Cancel</button>
+      <button title="Reset — discard changes since the last save" @click="reset">Reset</button>
+      <button class="cancel footer-buttons-pri" title="Cancel — discard changes since the last save; the charts revert" @click="cancel">Cancel</button>
     </div>
   </div>
 </template>

@@ -1,16 +1,11 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/bugs/BUG_20260825_tune_whatif_stays_open_across_a_project_switch_with_no_overlay_on_the_newly_focused_project.md
- *
- * Switching focus to a different open project is a focus-changing action, matching the
- * existing "any focus-changing action auto-cancels an open what-if" pattern already covered
- * for export/driver-picker/editor in `whatif-auto-cancel-on-export.browser.spec.ts`
- * (`appState.ts`'s `openDriverPicker()`). Tune (a live what-if overlay on the FOCUSED project)
- * and the Driver Editor modal must both close when focus moves to a different project, so
- * neither stays silently rebound to a project it was never opened for.
+ * Switching focus to a different open project is a focus-changing action: Tune and the Driver
+ * Editor modal both close when focus moves to a different project (`appState.ts`'s
+ * `focusProject()`), so neither stays open on a project the user has moved away from.
  */
 import { test, expect } from '../fixtures.js';
 
-test('switching focus to a different open project auto-cancels an active Tune what-if', async ({ page }) => {
+test('switching focus to a different open project closes an open Tune panel', async ({ page }) => {
   await page.goto('/');
 
   await page.locator('button.link-btn', { hasText: '＋ Copy' }).click();

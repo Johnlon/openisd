@@ -284,9 +284,9 @@ function setNum(field: string, v: number | null) {
   forceUpdate();
 }
 
-// One reach into the DRAFT model (layer 3) — the what-if panels pass the store's effective
+// One reach into the DRAFT model (layer 3) — Tune passes the store's effective
 // model to the same helpers instead, so the provenance marks and the Q-group rule cannot
-// disagree between this dialog and a panel showing the same driver.
+// disagree between this dialog and Tune showing the same driver.
 function cellOf(field: string): Cell {
   const _ = trigger.value;
   const d = draftDriver.value;
@@ -1533,7 +1533,7 @@ input.value-n, .de-fld.value-n input { color: var(--mut); }
   border-color: #d9381e !important;
   box-shadow: 0 0 0 1px rgba(217, 56, 30, .25) !important;
 }
-/* `.de-dq`, the field-level DQ mark, is styled in style.css — the what-if panels wear the same
+/* `.de-dq`, the field-level DQ mark, is styled in style.css — Tune wears the same
    mark, so one driver's data quality cannot look different in two places. */
 
 /* One strip, above the footer, naming everything that stops the driver simulating. It never

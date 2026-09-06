@@ -9,7 +9,7 @@
  *   → Fsc: 63.1762 Hz   Qtc: 0.5995
  *
  * openisd must reproduce this THROUGH THE UI: a clean project, driver entered via the
- * What-If editor, sealed box + losses set on the Box tab, series resistance (Rg) set on the
+ * Tune panel, sealed box + losses set on the Box tab, series resistance (Rg) set on the
  * Signal tab, and the Box tab's own Fsc/Qtc readout showing the WinISD value — not a unit test
  * of the underlying engine function, which proves nothing about whether it is actually wired in.
  *
@@ -44,12 +44,12 @@ test('sealed box WinISD golden: Fs=40 Vas=7.65L Qes=0.45 Qms=2.94 Re=6.6 Rg=0.1 
   // Driver: enter Fs/Qes/Qms/Vas/Re via the "Tune" panel (OgTune.vue).
   await page.locator('li', { hasText: 'Driver' }).click();
   await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
-  const whatIf = page.locator('.tune-panel');
-  await setField(page, 'Fs', 40, whatIf);
-  await setField(page, 'Qes', 0.450, whatIf);
-  await setField(page, 'Qms', 2.940, whatIf);
-  await setField(page, 'Vas', 7.65, whatIf);   // scale=1000: litres in, m³ stored
-  await setField(page, 'Re', 6.6, whatIf);
+  const tune = page.locator('.tune-panel');
+  await setField(page, 'Fs', 40, tune);
+  await setField(page, 'Qes', 0.450, tune);
+  await setField(page, 'Qms', 2.940, tune);
+  await setField(page, 'Vas', 7.65, tune);   // scale=1000: litres in, m³ stored
+  await setField(page, 'Re', 6.6, tune);
 
   // Box tab: sealed, Vb=6L, then leakage/absorption losses via the Advanced-> popup.
   await page.locator('li', { hasText: 'Box' }).click();

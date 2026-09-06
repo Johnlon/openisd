@@ -44,7 +44,6 @@ canvas { display:block; width:100%; height:100% }
 .ds { white-space:nowrap; }
 .drvspecs b { color:var(--acc2) }
 .drvsource { font-size:10px; color:var(--mut); padding:2px 8px 4px; opacity:0.7; word-break:break-all }
-.whatif-hint { font-size:10.5px; color:var(--acc2); background:rgba(255,180,84,.08); border:1px solid rgba(255,180,84,.3); border-radius:4px; padding:5px 8px; margin-bottom:6px; line-height:1.4 }
 .drv-issues { background:rgba(255,180,84,.12); border:1px solid var(--acc2); border-radius:5px; padding:5px 8px; margin-bottom:6px; font-size:10.5px; line-height:1.4 }
 .drv-issues.is-error { background:rgba(255,107,107,.12); border-color:var(--bad) }
 .drv-issues-head { display:flex; align-items:flex-start; gap:6px; color:var(--acc2); font-weight:600 }
@@ -68,7 +67,7 @@ legend { color:var(--acc); font-weight:600; font-size:11px; text-transform:upper
 .row select { text-align:left; width:auto; flex:1 }
 .row .u { width:34px; color:var(--mut); font-size:11px; text-align:left }
 /* Driver provenance marks — the CellClass values from composables/useDriverCells.ts, styled
-   ONCE so the driver editor and a what-if panel can never disagree about what
+   ONCE so the driver editor and Tune can never disagree about what
    Entered / Calculated / Not-entered looks like. Two selector shapes: the class lands on the
    <input> itself (NumInput fallthrough) or on a wrapper around it. */
 input.value-e, .value-e input { color:var(--good) }
@@ -83,7 +82,7 @@ input.de-input-mandatory { border-width:2px !important }
 input.de-input-empty { border-color:var(--bad) !important; box-shadow:0 0 0 1px color-mix(in srgb, var(--bad) 25%, transparent) !important }
 /* Field-level DQ mark — a value that is recorded and wrong (not physical, or contradicting the
    other members of its consistency group). Styled ONCE, like the provenance marks above, so the
-   driver editor and a what-if panel show one driver's data quality the same way. Amber: a
+   driver editor and Tune show one driver's data quality the same way. Amber: a
    warning about data, not an alert that stops anything. The title attribute carries the reason,
    hence the help cursor. */
 .de-dq { font-size:11px; color:var(--acc2); flex-shrink:0; cursor:help }

@@ -1,7 +1,7 @@
 /**
- * The non-modal What-If panel — the docked "Tune" (shells/original/OgTune.vue).
+ * The docked Tune panel (shells/original/OgTune.vue).
  *
- * It is a live what-if editor, so what it shows has to be as complete and as honest as the
+ * It edits the project directly, so what it shows has to be as complete and as honest as the
  * driver editor dialog: a field the app CALCULATED must be visible and marked as calculated,
  * every field must be overridable, and a field that is required-but-missing must say so.
  * These tests pin the five behaviours the human asked for by name.

@@ -600,24 +600,17 @@ function loadBundledPassiveRadiatorEntry(pr: BundledPassiveRadiator) {
 function defineNewPREntry() { prBrowseOpen.value = false; prDefineOpen.value = true; }
 function startEdit() { editProjectDriver(); }
 
-// R1 refresh fidelity — preserve an open Tune (what-if) / Driver Editor across a reload.
+// R1 refresh fidelity — preserve an open Tune / Driver Editor across a reload.
 // `originalTuneOpen`/`originalEditorOpen` live in presentationState.ui, so they persist to
 // localStorage (refresh) AND travel in a share link (human ruling 2026-08-14: a link is a
-// complete description of the session, stripped of nothing — persist.ts). The what-if VALUES
-// themselves are never carried by either path — see the next comment.
-// Only whether the panel is OPEN is remembered. The what-if VALUES are not: a what-if is
-// unverified and can never commit, so persisting it would bring an uncommitted value back
-// after a refresh looking like a decision the user made. ManagedProject owns what-if state and
-// nothing else may hold a copy (ARCHITECTURE.md §"Approved state stores").
-watch(() => project.value.isWhatIfActive(), (active) => {
+// complete description of the session, stripped of nothing — persist.ts).
+watch(() => presentationState.editDriver, (active) => {
   presentationState.ui.originalTuneOpen = active;
 });
 // App.vue applies persisted presentationState.ui AFTER this child mounts, so react when originalTuneOpen
-// lands: re-open the Tune panel. Opening it starts a FRESH what-if from the committed driver
-// (OgTune's own watch does that) — the previous session's scrubbed values are deliberately
-// not restored.
+// lands: re-open the Tune panel.
 watch(() => presentationState.ui.originalTuneOpen, (open) => {
-  if (open && !project.value.isWhatIfActive()) presentationState.editDriver = true;
+  if (open) presentationState.editDriver = true;
 }, { immediate: true });
 
 watch(isModified, (val) => {

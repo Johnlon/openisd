@@ -1,5 +1,5 @@
 import { inject, provide, type InjectionKey, type ComputedRef } from 'vue';
-import type { ManagedProject } from './managedProject.js';
+import type { OpenISDProject } from '@openisd/design';
 
 /**
  * The one place a gated component tree receives WHICH project is focused, reactively.
@@ -12,17 +12,17 @@ import type { ManagedProject } from './managedProject.js';
  * `useApp()`/`provideApp()` convention this codebase already uses for the composition root's
  * `AppLogic` facade.
  */
-const FOCUSED_PROJECT: InjectionKey<ComputedRef<ManagedProject>> = Symbol('openisd.focusedProject');
+const FOCUSED_PROJECT: InjectionKey<ComputedRef<OpenISDProject>> = Symbol('openisd.focusedProject');
 
 /** Provide the guaranteed-non-null focused project to this component's whole subtree. Called
  *  once, by the gate, inside its non-null branch. */
-export function provideFocusedProject(project: ComputedRef<ManagedProject>): void {
+export function provideFocusedProject(project: ComputedRef<OpenISDProject>): void {
   provide(FOCUSED_PROJECT, project);
 }
 
 /** How a gated component reaches the focused project. Throws rather than defaulting: a
  *  component rendered outside the gate is a wiring bug, and a silent fallback would hide it. */
-export function useFocusedProject(): ComputedRef<ManagedProject> {
+export function useFocusedProject(): ComputedRef<OpenISDProject> {
   const project = inject(FOCUSED_PROJECT);
   if (!project) throw new Error('useFocusedProject(): no focused project provided — rendered outside the top-level gate');
   return project;

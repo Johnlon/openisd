@@ -21,7 +21,7 @@ export const AIR_CONSTANTS_APP_DEFAULT: UiState['envDefaults'] =
 export interface PresentationState {
   /** The Browse Drivers modal is open. */
   browseOpen: boolean;
-  /** The Tune (what-if) panel is open. */
+  /** The Tune panel is open. */
   editDriver: boolean;
   /** The Driver Editor modal (Brand/Model/Comment/Provided by) is open. */
   editDriverInfo: boolean;

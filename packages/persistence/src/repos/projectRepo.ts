@@ -62,7 +62,7 @@
 //   originalChartTab?: string;
 //   /** The chosen chart menu label (may name an engine-unavailable chart). */
 //   originalChartLabel?: string;
-//   /** A Tune (what-if) panel is open. Persisted so a refresh reopens it. */
+//   /** The Tune panel is open. Persisted so a refresh reopens it. */
 //   originalTuneOpen?: boolean;
 //   /** The Driver Editor modal is open. Persisted so a refresh reopens it. */
 //   originalEditorOpen?: boolean;

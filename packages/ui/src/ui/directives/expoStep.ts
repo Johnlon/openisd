@@ -1,7 +1,7 @@
 import type { Directive } from 'vue';
 
 // v-expo-step — proportional ("exponential") spinner stepping for LIVE-graph number
-// inputs (left-nav + What-If controls). It keeps the element's native `step` at a power
+// inputs (left-nav + Tune controls). It keeps the element's native `step` at a power
 // of ten one decade below the current |value|, so the up/down arrows (and ArrowUp/Down
 // keys, and wheel) move the value proportionally across scales — ~10–100 steps per decade
 // — instead of by a fixed absolute amount too coarse for milli-scale values and too fine

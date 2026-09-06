@@ -1,5 +1,5 @@
 /**
- * Layout-review screenshots for the two non-modal What-If panels. Saved to docs/winisd_screenshots/ per
+ * Layout-review screenshots for the Tune panel. Saved to docs/winisd_screenshots/ per
  * the "save every screenshot" rule — a shot that is only looked at is one that has to be
  * retaken.
  *
@@ -26,13 +26,13 @@ async function original(page: Page) {
   return tune;
 }
 
-test('shots: Original Tune what-if panel', async ({ page }) => {
+test('shots: Original Tune panel', async ({ page }) => {
   const tune = await original(page);
   // The subject has to be on screen for the shot to be worth anything — a screenshot of a panel
   // that never opened is still a valid PNG.
   await expect(tune).toBeVisible();
 
-  await tune.screenshot({ path: `${SHOTS}/view_1_driver_tune_whatif_after.png` });
+  await tune.screenshot({ path: `${SHOTS}/view_1_driver_tune_after.png` });
 
   // The Q trio short of two usable members — every one of the three flagged together.
   const fld = (label: string) =>
@@ -47,12 +47,12 @@ test('shots: Original Tune what-if panel', async ({ page }) => {
   // The point of this second shot: with Qts unsolvable, all three of the trio are marked, not
   // just the two that were emptied.
   for (const q of ['Qts', 'Qes', 'Qms']) await expect(fld(q)).toHaveClass(/de-input-mandatory/);
-  await tune.screenshot({ path: `${SHOTS}/view_1_driver_tune_whatif_qtrio_alert.png` });
+  await tune.screenshot({ path: `${SHOTS}/view_1_driver_tune_qtrio_alert.png` });
 });
 
-test('shots: Original Tune what-if panel — previous field width', async ({ page }) => {
+test('shots: Original Tune panel — previous field width', async ({ page }) => {
   const tune = await original(page);
   await expect(tune).toBeVisible();
   await page.addStyleTag({ content: '.tune-unit input, .tune-roval { width: 100% !important }' });
-  await tune.screenshot({ path: `${SHOTS}/view_1_driver_tune_whatif_before_width.png` });
+  await tune.screenshot({ path: `${SHOTS}/view_1_driver_tune_before_width.png` });
 });

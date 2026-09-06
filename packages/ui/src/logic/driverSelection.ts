@@ -246,11 +246,8 @@ export function createDriverSelection(): DriverSelection {
       return { ok: true };
     },
 
-    /** Open the editor on the project's own driver. Auto-cancels any active Tune what-if first —
-     *  the editor always seeds from the project's committed driver, so a live preview left
-     *  open would silently disagree with what the editor shows. */
+    /** Open the editor on the project's own driver. */
     editProjectDriver() {
-      if (requireFocusedProject().isWhatIfActive()) { requireFocusedProject().cancelWhatIf(); presentationState.editDriver = false; }
       subject = { kind: 'project' };
       editSeed = null;
       presentationState.editDriverInfo = true;
