@@ -12,7 +12,7 @@ import { Engine } from '@openisd/design/engine';
 import { assemble } from '../app/composition.js';
 import { memoryStore } from '@openisd/design/browser';
 import {
-  newProject, conformingRecordToDriver,
+  newProject, conformingRecordToDriver, projectRepo,
   type ProjectRepo, type OpenISDProject, type OpenISDDriver,
 } from '@openisd/design';
 
@@ -80,6 +80,32 @@ describe('save and load', () => {
   it('loading an id nothing is stored under reports the problem rather than throwing', () => {
     const back = repo.load('no-such-id');
     expect(Array.isArray(back)).toBe(true);
+  });
+
+  it('a corrupt stored record is rejected at load, never reaches the project (QO116)', () => {
+    // `memoryStore`'s map is typed `R`, but that is a compile-time fiction over whatever bytes a
+    // real store actually holds — nothing at runtime stops a corrupt value sitting under a known
+    // id. This drives that case by wiring `projectRepo()` over a factory whose FIRST call is
+    // captured, then writing a value missing a whole required section through that same store —
+    // `projectRepo()` itself calls `make('meta.name')` once and reuses the store it gets back.
+    const engine = new Engine();
+    const baseFactory = memoryStore(() => '2026-01-01T00:00:00.000Z');
+    // `projectRepo()` calls `make('meta.name')` exactly once, at its own private record type —
+    // a corrupt value has to enter through THAT SAME store, which this factory wrapper captures.
+    // The write itself asserts past `R` deliberately: it exists to prove `load()` catches a value
+    // that was never validated going in, which cannot be expressed without breaking `R` on purpose.
+    let corruptWrite: ((id: string, record: unknown) => void) | undefined;
+    function spyingFactory<R>(labelPath: string) {
+      const store = baseFactory<R>(labelPath);
+      corruptWrite = (id, record) => store.put(id, record as R);
+      return store;
+    }
+    const corruptRepo = projectRepo(spyingFactory, engine);
+    corruptWrite!('corrupt-id', { meta: { name: 'Half a project' } });
+
+    const back = corruptRepo.load('corrupt-id');
+    if (!Array.isArray(back)) throw new Error('corrupt record was accepted as a valid project');
+    expect(back.join('; ')).toMatch(/box/);
   });
 
   it('a loaded project ADOPTS the store key as its identity', () => {

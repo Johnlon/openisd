@@ -29,6 +29,7 @@
 
 import {
     openISDDeviceJsonSchema,
+    openISDProjectJsonSchema,
     type OpenISDDeviceJson,
     type SpecEntryJson,
     type DriverSpecsSection,
@@ -2780,11 +2781,22 @@ export function projectRepo(make: RecordStoreFactory, engine: Engine): ProjectRe
         },
 
         load(id: string): OpenISDProject | string[] {
-            const json = store.get(id);
-            if (!json) return [`no stored project with id ${id}`];
+            const stored = store.get(id);
+            if (!stored) return [`no stored project with id ${id}`];
+            // THE LOAD BOUNDARY (QO116): `stored` is `R` only by the store's own type parameter, a
+            // compile-time promise nothing at runtime enforced on whatever is actually behind it.
+            // One `.safeParse()` here validates the WHOLE project record before anything downstream
+            // ever sees it — never a per-section check, per QO116 ("validate the whole project in
+            // a single .parse() at the load boundary. Not three standalone schemas").
+            const result = openISDProjectJsonSchema.safeParse(stored);
+            if (!result.success) {
+                return result.error.issues.map(issue => issue.path.length === 0
+                    ? issue.message
+                    : `'${issue.path.join('.')}': ${issue.message}`);
+            }
             // ADOPTS `id` as the project's identity, so its next save writes back to the entry it came
             // from rather than minting a second one. See `wrapWithIdentity()`.
-            return OpenISDProject.wrapWithIdentity(json, id, engine);
+            return OpenISDProject.wrapWithIdentity(result.data, id, engine);
         },
 
         list(): ProjectListing[] {

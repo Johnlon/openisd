@@ -22,7 +22,7 @@ import {WinISDDriver, INI_ROWS} from '../winisd';
 import {newUuid} from './newUuid.js';
 import type {FieldHandle} from './cell.js';
 import type {OpenISDDriver} from './project.js';
-import type {DriverError, BoxType, Filter} from '../engine/index.js';
+import type {DriverError, BoxType, Filter, FilterType} from '../engine/index.js';
 import type {VentShape} from './vent.js';
 
 /** DQ marks. A function, not a shared object: a module-scoped literal would be state, and each
@@ -271,151 +271,6 @@ export interface PassiveRadiatorSpecsSection {
     readonly weight_kg?: SpecEntryJson;
 }
 
-/** One port's stored geometry. `diameter_m` applies to a round vent, `width_m`/`height_m` to a
- *  slotted one — which pair is meaningful follows `shape`, and the other stays null rather than
- *  carrying a stale number from a shape the user has since switched away from. */
-export interface VentJson {
-    readonly shape: VentShape;
-    readonly diameter_m: number | null;
-    readonly width_m: number | null;
-    readonly height_m: number | null;
-    readonly length_m: number | null;
-    readonly endCorrection_m: number;
-}
-
-/** Every loss factor a chamber COULD carry. Which ones are actually surfaced is decided by the
- *  `*Losses` interface the owning chamber exposes (`SealedLosses` has no `Qp`, and so on —
- *  BUG_20260824's live-confirmed per-chamber shapes), not by presence/absence here: storing a
- *  field the API never surfaces is inert, whereas an optional field would make every reader
- *  handle an absence the box type has already ruled out. */
-export interface LossesJson {
-    readonly Ql: number;
-    readonly Qa: number;
-    readonly Qp: number;
-    readonly Qicl: number;
-}
-
-export interface ChamberJson {
-    readonly volume_m3: number;
-    readonly tuning_hz: number | null;
-    readonly losses: LossesJson;
-}
-
-export interface OpenISDBoxJson {
-    readonly boxType: BoxType;
-    readonly sealed: { readonly volume_m3: number; readonly losses: LossesJson };
-    readonly vented: { readonly chamber: ChamberJson; readonly vent: VentJson };
-    readonly bandpass4: {
-        readonly rear: ChamberJson;
-        readonly front: ChamberJson;
-        readonly frontVent: VentJson;
-    };
-    readonly bandpass6: {
-        readonly rear: ChamberJson;
-        readonly front: ChamberJson;
-        readonly rearVent: VentJson;
-        readonly frontVent: VentJson;
-    };
-    readonly abc: {
-        readonly rear: ChamberJson;
-        readonly front: ChamberJson;
-        readonly rearVent: VentJson;
-        readonly frontVent: VentJson;
-        readonly intraVent: VentJson;
-    };
-    readonly passiveRadiator: {
-        readonly volume_m3: number;
-        readonly tuning_hz: number | null;
-        readonly count: number;
-        readonly addedMass_kg: number | null;
-        readonly losses: LossesJson;
-        /** The chosen PR, stored as a full driver record (a PR IS a purchasable component, same as
-         *  a driver) — null until `configurePR()` picks one. */
-        readonly component: OpenISDDeviceJson | null;
-    };
-}
-
-/** The air the design sits in, as the USER stated it. Null where the user has stated nothing —
- *  the domain does not invent air conditions, because reference air belongs to
- *  `@openisd/engine` (`air.ts`'s `T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) and a second copy here would
- *  drift from it silently. */
-export interface OpenISDEnvironmentJson {
-    readonly temperature_K: number | null;
-    readonly humidity_pct: number | null;
-    readonly pressure_Pa: number | null;
-}
-
-/** What drives the system, as the USER stated it. Null where nothing is stated — 1 W is a
- *  measurement convention, not a fact about this design, so the domain does not assert it. */
-export interface OpenISDSignalJson {
-    readonly power_W: number | null;
-    readonly voltage_V: number | null;
-}
-
-export interface OpenISDProjectMetaJson {
-    readonly name: string;
-    readonly comment: string;
-}
-
-/** The signal-chain filter list. */
-export interface FiltersJson {
-    readonly filters: readonly Filter[];
-}
-
-/** WinISD's top-level Advanced pane settings that are not project-array facts about the driver:
- *  force-flat auto-EQ, and the port simulation model. */
-export interface OpenISDAdvancedJson {
-    /** WinISD Advanced tab: "Force flat response". */
-    readonly forceFlatResponse: boolean;
-    /** WinISD Advanced tab: "Use transmission line-model for port simulation". */
-    readonly useTransmissionLinePortModel: boolean;
-    /** WinISD Advanced tab: "Rg is at driver side" — whether the amplifier's source resistance
-     *  (`OpenISDDriverEmbeddingJson.Rs_ohm`) is applied per driver or once across the whole
-     *  array. */
-    readonly rgAtDriverSide: boolean;
-    /** WinISD Advanced tab: "Simulate voice coil inductance" — includes Le in the acoustic
-     *  circuit model (gyrator) rather than just the impedance plot (winisd). */
-    readonly circuitModel: 'winisd' | 'gyrator';
-    /** WinISD Advanced tab: "SPL graph is Xmax limited" — whether the SPL chart shows the
-     *  drive backed off wherever peak excursion exceeds Xmax (`splXlimCurve`) instead of the
-     *  unclamped `spl` curve. Display only: the unclamped curve still feeds the
-     *  transfer-function chart, the F3/F6/F10 read-outs and every compare trace regardless. */
-    readonly splGraphIsXmaxLimited: boolean;
-}
-
-/** The embedded driver, plus the settings that describe how it sits in THIS project's array —
- *  how many units, how they're wired together, the amplifier's source resistance loading them,
- *  the coil's thermal rise under drive, and the added mass on the driver from this array's own
- *  hardware. These are project-array facts, not facts about the driver itself, so they live
- *  beside `device` rather than inside `OpenISDDeviceJson` (John 2026-09-06). */
-export interface OpenISDDriverEmbeddingJson {
-    readonly device: OpenISDDeviceJson;
-    /** WinISD Driver tab: "Num. of drivers". */
-    readonly nDrivers: number;
-    /** WinISD Driver tab: "Voice coil connection". */
-    readonly wiring: 'series' | 'parallel';
-    /** WinISD Driver tab: "Voice coil temp rise". */
-    readonly vcTempRise_K: number;
-    readonly Rs_ohm: number;
-    /** WinISD Driver tab: "Added mass to cone". */
-    readonly driverAddedMass_kg: number;
-    /** WinISD Driver tab: "Standard" / "Iso-Barik" radio. */
-    readonly loading: 'standard' | 'isobaric';
-    /** WinISD Driver tab: "Voice coil resistance TC" — a project-level value independent of the
-     *  driver's own datasheet `alfaVC_per_K` (WinISD stores these as two separate fields,
-     *  `[Box] alfaVC` vs `[Driver] alfaVC`, that can and do diverge). */
-    readonly alfaVC_per_K: number;
-}
-
-export interface OpenISDProjectJson {
-    readonly driverEmbedding: OpenISDDriverEmbeddingJson;
-    readonly box: OpenISDBoxJson;
-    readonly environment: OpenISDEnvironmentJson;
-    readonly signal: OpenISDSignalJson;
-    readonly meta: OpenISDProjectMetaJson;
-    readonly filters: FiltersJson;
-    readonly advanced: OpenISDAdvancedJson;
-}
 
 /** One source's reading of one parameter. `read_value` is the number; the rest annotate it. */
 const readingJsonSchema = z.strictObject({
@@ -600,6 +455,192 @@ export const openISDDeviceJsonSchema = z.strictObject({
  * it left out.
  */
 export type OpenISDDeviceJson = z.infer<typeof openISDDeviceJsonSchema>;
+
+
+/** One port's stored geometry. `diameter_m` applies to a round vent, `width_m`/`height_m` to a
+ *  slotted one — which pair is meaningful follows `shape`, and the other stays null rather than
+ *  carrying a stale number from a shape the user has since switched away from. */
+const ventJsonSchema = z.strictObject({
+    shape: z.enum(['round', 'slotted'] satisfies readonly VentShape[]),
+    diameter_m: z.number().nullable(),
+    width_m: z.number().nullable(),
+    height_m: z.number().nullable(),
+    length_m: z.number().nullable(),
+    endCorrection_m: z.number(),
+});
+export type VentJson = z.infer<typeof ventJsonSchema>;
+
+/** Every loss factor a chamber COULD carry. Which ones are actually surfaced is decided by the
+ *  `*Losses` interface the owning chamber exposes (`SealedLosses` has no `Qp`, and so on —
+ *  BUG_20260824's live-confirmed per-chamber shapes), not by presence/absence here: storing a
+ *  field the API never surfaces is inert, whereas an optional field would make every reader
+ *  handle an absence the box type has already ruled out. */
+const lossesJsonSchema = z.strictObject({
+    Ql: z.number(),
+    Qa: z.number(),
+    Qp: z.number(),
+    Qicl: z.number(),
+});
+export type LossesJson = z.infer<typeof lossesJsonSchema>;
+
+const chamberJsonSchema = z.strictObject({
+    volume_m3: z.number(),
+    tuning_hz: z.number().nullable(),
+    losses: lossesJsonSchema,
+});
+export type ChamberJson = z.infer<typeof chamberJsonSchema>;
+
+/** The project schema, nested throughout (QO116, John: "box and environment as nested
+ *  strictObjects... Validate the whole project in a single .parse() at the load boundary. Not
+ *  three standalone schemas."). `openISDBoxJsonSchema`, `openISDEnvironmentJsonSchema` and the
+ *  rest below exist only to be composed into `openISDProjectJsonSchema` — none is a second
+ *  standalone entry point. */
+const openISDBoxJsonSchema = z.strictObject({
+    boxType: z.enum([
+        'sealed', 'vented', 'bandpass4', 'bandpass6', 'box-passive-radiator', 'abc',
+    ] satisfies readonly BoxType[]),
+    sealed: z.strictObject({ volume_m3: z.number(), losses: lossesJsonSchema }),
+    vented: z.strictObject({ chamber: chamberJsonSchema, vent: ventJsonSchema }),
+    bandpass4: z.strictObject({
+        rear: chamberJsonSchema,
+        front: chamberJsonSchema,
+        frontVent: ventJsonSchema,
+    }),
+    bandpass6: z.strictObject({
+        rear: chamberJsonSchema,
+        front: chamberJsonSchema,
+        rearVent: ventJsonSchema,
+        frontVent: ventJsonSchema,
+    }),
+    abc: z.strictObject({
+        rear: chamberJsonSchema,
+        front: chamberJsonSchema,
+        rearVent: ventJsonSchema,
+        frontVent: ventJsonSchema,
+        intraVent: ventJsonSchema,
+    }),
+    passiveRadiator: z.strictObject({
+        volume_m3: z.number(),
+        tuning_hz: z.number().nullable(),
+        count: z.number(),
+        addedMass_kg: z.number().nullable(),
+        losses: lossesJsonSchema,
+        // The chosen PR, stored as a full driver record (a PR IS a purchasable component, same as
+        // a driver) — null until `configurePR()` picks one. Reuses `openISDDeviceJsonSchema`
+        // rather than a second driver schema, per QO116.
+        component: openISDDeviceJsonSchema.nullable(),
+    }),
+});
+export type OpenISDBoxJson = z.infer<typeof openISDBoxJsonSchema>;
+
+/** The air the design sits in, as the USER stated it. Null where the user has stated nothing —
+ *  the domain does not invent air conditions, because reference air belongs to
+ *  `@openisd/engine` (`air.ts`'s `T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) and a second copy here would
+ *  drift from it silently. */
+const openISDEnvironmentJsonSchema = z.strictObject({
+    temperature_K: z.number().nullable(),
+    humidity_pct: z.number().nullable(),
+    pressure_Pa: z.number().nullable(),
+});
+export type OpenISDEnvironmentJson = z.infer<typeof openISDEnvironmentJsonSchema>;
+
+/** What drives the system, as the USER stated it. Null where nothing is stated — 1 W is a
+ *  measurement convention, not a fact about this design, so the domain does not assert it. */
+const openISDSignalJsonSchema = z.strictObject({
+    power_W: z.number().nullable(),
+    voltage_V: z.number().nullable(),
+});
+export type OpenISDSignalJson = z.infer<typeof openISDSignalJsonSchema>;
+
+const openISDProjectMetaJsonSchema = z.strictObject({
+    name: z.string(),
+    comment: z.string(),
+});
+export type OpenISDProjectMetaJson = z.infer<typeof openISDProjectMetaJsonSchema>;
+
+/** One signal-chain filter. `id` and the per-type fields are all optional on the engine's own
+ *  `Filter` type, so the schema follows suit rather than asserting a shape the engine does not
+ *  require. */
+const filterJsonSchema = z.strictObject({
+    id: z.string().optional(),
+    type: z.enum([
+        'highpass', 'lowpass', 'linkwitz', 'peaking', 'lowshelf', 'highshelf',
+    ] satisfies readonly FilterType[]),
+    enabled: z.boolean(),
+    fc: z.number().optional(),
+    Q: z.number().optional(),
+    f0: z.number().optional(),
+    Q0: z.number().optional(),
+    fp: z.number().optional(),
+    Qp: z.number().optional(),
+    gain: z.number().optional(),
+}) satisfies z.ZodType<Filter>;
+
+/** The signal-chain filter list. */
+const filtersJsonSchema = z.strictObject({
+    filters: filterJsonSchema.array(),
+});
+export type FiltersJson = z.infer<typeof filtersJsonSchema>;
+
+/** WinISD's top-level Advanced pane settings that are not project-array facts about the driver:
+ *  force-flat auto-EQ, and the port simulation model. */
+const openISDAdvancedJsonSchema = z.strictObject({
+    // WinISD Advanced tab: "Force flat response".
+    forceFlatResponse: z.boolean(),
+    // WinISD Advanced tab: "Use transmission line-model for port simulation".
+    useTransmissionLinePortModel: z.boolean(),
+    // WinISD Advanced tab: "Rg is at driver side" — whether the amplifier's source resistance
+    // (`OpenISDDriverEmbeddingJson.Rs_ohm`) is applied per driver or once across the whole array.
+    rgAtDriverSide: z.boolean(),
+    // WinISD Advanced tab: "Simulate voice coil inductance" — includes Le in the acoustic circuit
+    // model (gyrator) rather than just the impedance plot (winisd).
+    circuitModel: z.enum(['winisd', 'gyrator']),
+    // WinISD Advanced tab: "SPL graph is Xmax limited" — whether the SPL chart shows the drive
+    // backed off wherever peak excursion exceeds Xmax (`splXlimCurve`) instead of the unclamped
+    // `spl` curve. Display only: the unclamped curve still feeds the transfer-function chart, the
+    // F3/F6/F10 read-outs and every compare trace regardless.
+    splGraphIsXmaxLimited: z.boolean(),
+});
+export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
+
+/** The embedded driver, plus the settings that describe how it sits in THIS project's array —
+ *  how many units, how they're wired together, the amplifier's source resistance loading them,
+ *  the coil's thermal rise under drive, and the added mass on the driver from this array's own
+ *  hardware. These are project-array facts, not facts about the driver itself, so they live
+ *  beside `device` rather than inside `OpenISDDeviceJson` (John 2026-09-06). */
+const openISDDriverEmbeddingJsonSchema = z.strictObject({
+    device: openISDDeviceJsonSchema,
+    // WinISD Driver tab: "Num. of drivers".
+    nDrivers: z.number(),
+    // WinISD Driver tab: "Voice coil connection".
+    wiring: z.enum(['series', 'parallel']),
+    // WinISD Driver tab: "Voice coil temp rise".
+    vcTempRise_K: z.number(),
+    Rs_ohm: z.number(),
+    // WinISD Driver tab: "Added mass to cone".
+    driverAddedMass_kg: z.number(),
+    // WinISD Driver tab: "Standard" / "Iso-Barik" radio.
+    loading: z.enum(['standard', 'isobaric']),
+    // WinISD Driver tab: "Voice coil resistance TC" — a project-level value independent of the
+    // driver's own datasheet `alfaVC_per_K` (WinISD stores these as two separate fields,
+    // `[Box] alfaVC` vs `[Driver] alfaVC`, that can and do diverge).
+    alfaVC_per_K: z.number(),
+});
+export type OpenISDDriverEmbeddingJson = z.infer<typeof openISDDriverEmbeddingJsonSchema>;
+
+/** THE project record, as ONE schema (QO116) — every nested section above exists only to build
+ *  this. `openISDProjectJsonSchema.parse()`/`.safeParse()` is the one validator for the whole
+ *  project at the load boundary; nothing downstream re-checks a section on its own. */
+export const openISDProjectJsonSchema = z.strictObject({
+    driverEmbedding: openISDDriverEmbeddingJsonSchema,
+    box: openISDBoxJsonSchema,
+    environment: openISDEnvironmentJsonSchema,
+    signal: openISDSignalJsonSchema,
+    meta: openISDProjectMetaJsonSchema,
+    filters: filtersJsonSchema,
+    advanced: openISDAdvancedJsonSchema,
+});
+export type OpenISDProjectJson = z.infer<typeof openISDProjectJsonSchema>;
 
 
 /**
