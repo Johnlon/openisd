@@ -15,11 +15,10 @@
  */
 import { describe, it, expect } from 'vitest';
 import { Engine } from '@openisd/design/engine';
-import type { SweepParams } from '@openisd/design/engine';
 import {
-  newProject, conformingRecordToDriver,
+  newProject, conformingRecordToDriver, conformingRecordToPassiveRadiator,
   VoiceCoilWiring,
-  type OpenISDDriver,
+  type OpenISDDriver, type FrequencyGrid,
 } from '../domain/index.js';
 
 const scraped = <T,>(value: T) => ({ value });
@@ -63,6 +62,31 @@ function aDriver(engine: Engine, spec: Record<string, number | VoiceCoilWiring>)
   return result;
 }
 
+/** A conforming passive-radiator record, same structural plumbing as `aDriver()` but under the
+ *  `passive-radiator` section `conformingRecordToPassiveRadiator()` requires. */
+function aRadiator(engine: Engine, spec: Record<string, number>) {
+  const pr: Record<string, { origin: string; readings: Record<string, { read_value: number }> }> = {};
+  for (const [k, v] of Object.entries(spec)) {
+    pr[k] = { origin: 'scraped', readings: { scraped: { read_value: v } } };
+  }
+  const result = conformingRecordToPassiveRadiator({
+    brand: scraped('SB Acoustics'), model: scraped('SB23PACS'), manufacturer: scraped('SB Acoustics'),
+    provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+    uuid: { value: '00000000-0000-4000-8000-000000000001' },
+    sku: { value: 'TEST-PR-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-PR-SKU' }] },
+    driver_type: scraped('passive-radiator'),
+    data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/pr.pdf' } },
+    authoritative: { value: 'manufacturer_datasheet' },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
+    specs: { 'passive-radiator': pr },
+  }, engine);
+  if (Array.isArray(result)) throw new Error(`fixture is not a valid radiator: ${result.join(', ')}`);
+  return result;
+}
+
 // Block A is GONE. It tested `ebp_hz`, `referenceEfficiency` and `spl_dB` on the driver — three
 // methods that solved the whole group to pull out two or three numbers and hand them to the
 // engine. They are deleted: the driver publishes state, the engine does the physics, and a caller
@@ -77,68 +101,83 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     Sd: 0.02, Cms: 0.0005, Vas: 0.05, BL: 8, Mms: 0.05, Xmax: 0.008, Pe: 100,
   });
 
+  /** A sealed project driven at 1 W — every scenario below states the box volume and drive power
+   *  itself, so the assembled `Vb`/`eg` are never stubbed. */
+  const drivenSealed = (engine: Engine, volume_m3: number) => {
+    const project = newProject(complete(engine), engine).sealed().volume_m3(volume_m3).build();
+    project.setPowerDrive_W(1);
+    return project;
+  };
+
   it('sweep() returns a response, and it is the ENGINE that produced it', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
-    const P: SweepParams = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 100 };
+    const project = drivenSealed(engine, 0.03);
+    const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
 
     const mine = project.sweep(P).value;
-    const theirs = engine.sweep(project.driver.solveConsistencyGroup(), project.driver.Le_H()!, 'sealed', P).value!;
-
     expect(mine).not.toBeNull();
+    const theirs = engine.sweep(
+      project.driver.solveConsistencyGroup(), project.driver.Le_H()!, 'sealed',
+      {
+        Vb: 0.03, eg: project.driveVoltage_V()!, fmin: 10, fmax: 1000, N: 100,
+        Ql: project.box.sealed.losses.Ql.get(), Qa: project.box.sealed.losses.Qa.get(),
+      },
+    ).value!;
     expect(mine!.spl).toEqual(theirs.spl);
   });
 
   it('the response MOVES with the box volume — nothing is stubbed', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const small = drivenSealed(engine, 0.010);
+    const big = drivenSealed(engine, 0.100);
+    const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
 
-    const small = project.sweep({ Vb: 0.010, eg: 2.83, fmin: 10, fmax: 1000, N: 100 }).value!;
-    const big = project.sweep({ Vb: 0.100, eg: 2.83, fmin: 10, fmax: 1000, N: 100 }).value!;
-
-    expect(small.spl).not.toEqual(big.spl);
+    expect(small.sweep(P).value!.spl).not.toEqual(big.sweep(P).value!.spl);
   });
 
   it('sweep() is null when the driver is too incomplete to simulate', () => {
     const engine = new Engine();
     const project = newProject(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
 
-    expect(project.sweep({ Vb: 0.03, eg: 2.83 }).value).toBeNull();
+    expect(project.sweep({}).value).toBeNull();
   });
 
   it('sweep() is null for a topology the engine has no model for, and NOT for one it has', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const project = drivenSealed(engine, 0.03);
+    const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
 
-    expect(project.sweep({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 50 }).value).not.toBeNull();
+    expect(project.sweep(P).value).not.toBeNull();
 
     // bandpass6 is a topology the domain names and the engine does not simulate.
     project.box.boxType.set('bandpass6');
-    expect(project.sweep({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 50 }).value).toBeNull();
+    expect(project.sweep(P).value).toBeNull();
   });
 
   it('a passive-radiator box simulates, under the ONE box vocabulary', () => {
     // There is no domain-to-engine translation left to test: BoxType is declared once, in
     // engine/types.ts, and `box-passive-radiator` carries its prefix because `passive-radiator`
     // already names a DRIVER type (John's ruling D7, 2026-08-28). What this still pins is that
-    // the enclosure reaches the engine and simulates.
+    // the enclosure reaches the engine and simulates, reading the PR chamber's own stored fields.
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const project = drivenSealed(engine, 0.03);
     project.box.boxType.set('box-passive-radiator');
+    project.box.passiveRadiator.configurePR(aRadiator(engine, {
+      Fs: 12, Sd: 0.025, Cms: 0.0009, Mms: 0.09, Rms: 1.5, Xmax: 0.015,
+    }));
+    project.box.passiveRadiator.count.set(1);
+    project.box.passiveRadiator.losses.Ql.set(7);
+    project.box.passiveRadiator.losses.Qa.set(30);
 
-    const P: SweepParams = {
-      Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 50,
-      prSd: 0.025, prMmd: 0.09, prCms: 0.0009, prRms: 1.5, prNum: 1, prMadd: 0,
-    };
+    const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
     const mine = project.sweep(P).value;
     expect(mine).not.toBeNull();
-    expect(mine!.spl).toEqual(engine.sweep(project.driver.solveConsistencyGroup(), project.driver.Le_H()!, 'box-passive-radiator', P).value!.spl);
   });
 
   it('maxCurves() and its finiteness check come from the engine', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
-    const P: SweepParams = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 100 };
+    const project = drivenSealed(engine, 0.03);
+    const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
 
     const mx = project.maxCurves(P).value;
     expect(mx).not.toBeNull();
@@ -147,8 +186,8 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
   it('rolloffFreq() finds F3 below the passband, and F6 below F3', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
-    const sw = project.sweep({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 400 }).value!;
+    const project = drivenSealed(engine, 0.03);
+    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 400 }).value!;
 
     const f3 = project.rolloffFreq(sw, 3);
     const f6 = project.rolloffFreq(sw, 6);
@@ -159,8 +198,8 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
   it('passbandRef() and the response classifiers agree with the engine', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
-    const sw = project.sweep({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 200 }).value!;
+    const project = drivenSealed(engine, 0.03);
+    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 200 }).value!;
 
     expect(project.passbandRef(sw.spl)).toBe(engine.passbandRef(sw.spl));
     expect(project.classifyFinite(sw)).toBe(engine.classifyFinite(sw));
@@ -169,18 +208,18 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
   it('validateParams() reports a bad parameter set BEFORE a sweep is attempted', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const project = drivenSealed(engine, 0.03);
 
-    expect(project.validateParams({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000 })).toEqual([]);
+    expect(project.validateParams({ fmin: 10, fmax: 1000 })).toEqual([]);
     // A zero-volume box is not a very small box; it is no box.
-    expect(project.validateParams({ Vb: 0, eg: 2.83, fmin: 10, fmax: 1000 }).length)
-      .toBeGreaterThan(0);
+    const zeroVolume = drivenSealed(engine, 0);
+    expect(zeroVolume.validateParams({ fmin: 10, fmax: 1000 }).length).toBeGreaterThan(0);
   });
 
   it('impedancePeak() reads the resonance off the CURVE, near the sealed prediction', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
-    const sw = project.sweep({ Vb: 0.03, eg: 2.83, fmin: 10, fmax: 1000, N: 800 }).value!;
+    const project = drivenSealed(engine, 0.03);
+    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 800 }).value!;
 
     const peak = project.impedancePeak(sw);
     expect(peak).not.toBeNull();

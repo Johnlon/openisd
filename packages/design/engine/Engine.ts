@@ -29,7 +29,7 @@ import {
 import { checkConsistency, isQGroupField, qGroupIsIncomplete } from './consistency.js';
 import { solveConsistencyGroup, terminalRe_ohm, terminalBL_Tm } from './solver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
-import { driveVoltage } from './formulas.js';
+import { driveVoltage, driveFromVoltage } from './formulas.js';
 import { sealedResonance, sourceLoadedQts } from './lossMode.js';
 import { validateParams } from './params.js';
 import {
@@ -126,6 +126,11 @@ export class Engine {
   /** The voltage that delivers `pin` watts into `re` ohms. */
   driveVoltage(pin: number, re: number): number {
     return driveVoltage(pin, re);
+  }
+
+  /** The reference power that `eg` volts delivers into `re` ohms — the inverse of `driveVoltage`. */
+  driveFromVoltage(eg: number, re: number): number {
+    return driveFromVoltage(eg, re);
   }
 
   // ── THE BOX ───────────────────────────────────────────────────────────────────────────────

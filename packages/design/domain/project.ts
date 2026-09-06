@@ -183,6 +183,11 @@ function emptyBoxJson(): OpenISDBoxJson {
 // is the naming defect recorded in BUG_20260824.
 
 /** A chamber with both a volume and a tuning of its own — bandpass6's and ABC's. */
+/** The frequency grid a sweep runs over — the only thing about a sweep `OpenISDProject` does not
+ *  already know about itself; everything else `SweepParams` needs comes off the project's own
+ *  record. */
+export type FrequencyGrid = {fmin?: number; fmax?: number; N?: number};
+
 export interface VentedChamber {
     readonly volume_m3: FieldHandle<number>;
     readonly tuning_hz: FieldHandle<number>;
@@ -1861,6 +1866,42 @@ export class OpenISDProject {
         return power_W === null || Re_ohm === undefined ? null : this.#engine.driveVoltage(power_W, Re_ohm);
     }
 
+    /** This project's stated reference power — WinISD's Signal-tab "Input Power". Null until
+     *  stated: 1 W is a measurement convention, not a fact about this design. */
+    powerDrive_W(): number | null {
+        return this.#current().signal.power_W;
+    }
+
+    /** This project's stated drive voltage, WHEN IT WAS THE VOLTAGE THAT WAS STATED rather than
+     *  derived from power — WinISD's Signal-tab "Input Voltage". Null until stated. */
+    statedVoltage_V(): number | null {
+        return this.#current().signal.voltage_V;
+    }
+
+    /** State the drive level as a power, in watts — solves and stores the matching voltage too
+     *  (`√(Pin·Re)`), so `driveVoltage_V()`/`statedVoltage_V()` never disagree with what was just
+     *  set. Requires the driver to have a usable `Re`; a caller with an incomplete driver cannot
+     *  state a drive level in these terms yet. */
+    setPowerDrive_W(power_W: number): void {
+        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+        if (Re_ohm === undefined) {
+            throw new Error('setPowerDrive_W cannot solve a voltage: the driver has no usable Re_ohm yet.');
+        }
+        const voltage_V = this.#engine.driveVoltage(power_W, Re_ohm);
+        this.#slot('signal').set({power_W, voltage_V});
+    }
+
+    /** State the drive level as a voltage — solves and stores the matching power too
+     *  (`V²/Re`), the inverse of `setPowerDrive_W`. Same `Re` requirement. */
+    setDriveVoltage_V(voltage_V: number): void {
+        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+        if (Re_ohm === undefined) {
+            throw new Error('setDriveVoltage_V cannot solve a power: the driver has no usable Re_ohm yet.');
+        }
+        const power_W = this.#engine.driveFromVoltage(voltage_V, Re_ohm);
+        this.#slot('signal').set({power_W, voltage_V});
+    }
+
     /**
      * Qts as the amplifier's source impedance actually loads it.
      *
@@ -1878,10 +1919,109 @@ export class OpenISDProject {
 
     // ── SIMULATION — the engine's sweep, run on THIS project's driver and box ──────────────────
     //
-    // The project supplies what only it knows — the driver and which enclosure topology is active
-    // — and the caller supplies the sweep's own parameters. It does NOT assemble `SweepParams`
-    // from the record: that assembly is a policy decision (which losses, which grid, how many
-    // drivers) that belongs to whoever is asking for the sweep, not to the project.
+    // Everything the engine's `SweepParams` needs beyond the frequency grid is already stored
+    // somewhere on this project's own record — the box's volume/vent/losses/PR-chamber fields,
+    // the driver embedding's wiring/count/thermal fields, the Advanced-tab settings. A caller
+    // asking for a sweep supplies only what it actually decides: the grid to sweep over. Passing
+    // any of the rest back in would let a caller override a fact the project already states about
+    // itself, which is the thing John's 2026-09-06 ruling rules out.
+
+    /** The frequency grid a sweep runs over — the only thing about a sweep this project does not
+     *  already know about itself. */
+    #sweepParams(P: FrequencyGrid): SweepParams | null {
+        const Vb = this.#boxVolume_m3();
+        const eg = this.driveVoltage_V();
+        if (Vb === null || eg === null) return null;
+
+        const box = this.box;
+        const boxType = box.boxType.get();
+        const losses = this.#boxLosses(boxType);
+
+        return {
+            Vb, eg,
+            fmin: P.fmin, fmax: P.fmax, N: P.N,
+            nDrivers: this.nDrivers.get(),
+            wiring: this.wiring.get(),
+            Rs: this.Rs_ohm.get(),
+            circuitModel: this.circuitModel.get(),
+            Ql: losses?.Ql, Qa: losses?.Qa, Qp: losses?.Qp,
+            ...this.#boxSpecificParams(boxType),
+            tempK: this.#current().environment.temperature_K ?? undefined,
+            humidityPct: this.#current().environment.humidity_pct ?? undefined,
+            pressurePa: this.#current().environment.pressure_Pa ?? undefined,
+            driverAddedMass: this.driverAddedMass_kg.get(),
+            vcTempRise: this.vcTempRise_K.get(),
+            alfaVC: this.alfaVC_per_K.get(),
+            rgAtDriverSide: this.rgAtDriverSide.get(),
+            tlPortModel: this.useTransmissionLinePortModel.get(),
+            forceFlatResponse: this.forceFlatResponse.get(),
+            filters: [...this.filters.get()],
+        };
+    }
+
+    /** This project's box volume, WHICHEVER topology is active — `Vb` in `SweepParams` is always
+     *  the driver-side chamber's own volume, sealed or the equivalent for every other topology. */
+    #boxVolume_m3(): number | null {
+        const box = this.box;
+        switch (box.boxType.get()) {
+            case 'sealed': return box.sealed.volume_m3.get();
+            case 'vented': return box.vented.volume_m3.get().value;
+            case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3.get().value;
+            case 'box-passive-radiator': return box.passiveRadiator.volume_m3.get();
+            default: return null;
+        }
+    }
+
+    /** This project's box losses, for whichever topology is active — null for a topology the
+     *  engine does not simulate, which the caller already treats as "no sweep" before this is
+     *  ever read. */
+    #boxLosses(boxType: BoxType): {Ql: number; Qa: number; Qp?: number} | null {
+        const box = this.box;
+        switch (boxType) {
+            case 'sealed': return {Ql: box.sealed.losses.Ql.get(), Qa: box.sealed.losses.Qa.get()};
+            case 'vented': return {
+                Ql: box.vented.losses.Ql.get(), Qa: box.vented.losses.Qa.get(), Qp: box.vented.losses.Qp.get(),
+            };
+            case 'bandpass4': return {
+                Ql: box.bandpass4.chambers.rear.losses.Ql.get(), Qa: box.bandpass4.chambers.rear.losses.Qa.get(),
+            };
+            case 'box-passive-radiator': return {
+                Ql: box.passiveRadiator.losses.Ql.get(), Qa: box.passiveRadiator.losses.Qa.get(),
+            };
+            default: return null;
+        }
+    }
+
+    /** The fields only one box topology reads — the vent's `Sp`/`Leff` for `vented`/`bandpass4`,
+     *  the passive radiator's five for `box-passive-radiator`. Geometry only (`area_m2()`,
+     *  `effectiveLength_m()`), never acoustics, per this file's header ruling. */
+    #boxSpecificParams(boxType: BoxType): Partial<SweepParams> {
+        const box = this.box;
+        switch (boxType) {
+            case 'vented': {
+                const Sp = box.vented.vent.area_m2();
+                const Leff = box.vented.vent.effectiveLength_m();
+                return {Sp: Sp ?? undefined, Leff: Leff ?? undefined};
+            }
+            case 'bandpass4': {
+                const Sp = box.bandpass4.vents.front.area_m2();
+                const Leff = box.bandpass4.vents.front.effectiveLength_m();
+                return {Vf: box.bandpass4.chambers.front.volume_m3.get(), Sp: Sp ?? undefined, Leff: Leff ?? undefined};
+            }
+            case 'box-passive-radiator': {
+                const r = box.passiveRadiator.radiator.spec;
+                return {
+                    prSd: r.Sd_m2.get().value ?? undefined,
+                    prNum: box.passiveRadiator.count.get(),
+                    prMmd: r.Mms_kg.get().value ?? undefined,
+                    prMadd: box.passiveRadiator.addedMass_kg.get().value ?? undefined,
+                    prCms: r.Cms_m_per_N.get().value ?? undefined,
+                    prRms: r.Rms_kg_per_s.get().value ?? undefined,
+                };
+            }
+            default: return {};
+        }
+    }
 
     /**
      * Which of the engine's simulable topologies this project is, or null.
@@ -1898,25 +2038,30 @@ export class OpenISDProject {
     /** The frequency response, impedance and excursion this design produces — or the issues that
      *  stopped it, each NAMING the quantity the driver does not state. A bare null would say only
      *  "cannot simulate", which is what a caller cannot act on. `value` is null with an empty
-     *  `errors` when the active topology is one the engine has no model for. */
-    sweep(P: SweepParams): Result<SweepResult> {
+     *  `errors` when the active topology is one the engine has no model for, or a field this
+     *  project itself needs to sweep (its box volume, its drive voltage) is not yet stated. */
+    sweep(P: FrequencyGrid): Result<SweepResult> {
         const box = this.#engineBoxType();
-        if (!box) return {value: null, errors: []};
-        return this.#engine.sweep(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, P);
+        const params = box ? this.#sweepParams(P) : null;
+        if (!box || !params) return {value: null, errors: []};
+        return this.#engine.sweep(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`. */
-    maxCurves(P: SweepParams): Result<MaxCurvesResult> {
+    maxCurves(P: FrequencyGrid): Result<MaxCurvesResult> {
         const box = this.#engineBoxType();
-        if (!box) return {value: null, errors: []};
-        return this.#engine.maxCurves(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, P);
+        const params = box ? this.#sweepParams(P) : null;
+        if (!box || !params) return {value: null, errors: []};
+        return this.#engine.maxCurves(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
 
     /** What is wrong with these sweep parameters for this project's topology — checked BEFORE a
-     *  sweep, so a caller can refuse rather than plot nonsense. Empty when nothing is wrong. */
-    validateParams(P: SweepParams): DriverError[] {
+     *  sweep, so a caller can refuse rather than plot nonsense. Empty when nothing is wrong, and
+     *  also empty (rather than a false accusation) when the topology cannot be simulated at all. */
+    validateParams(P: FrequencyGrid): DriverError[] {
         const box = this.#engineBoxType();
-        return box ? this.#engine.validateParams(box, P) : [];
+        const params = box ? this.#sweepParams(P) : null;
+        return box && params ? this.#engine.validateParams(box, params) : [];
     }
 
     /** The passband level a response is measured against — the reference every dB figure below is

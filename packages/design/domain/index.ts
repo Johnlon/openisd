@@ -26,6 +26,7 @@ export type {
   PassiveRadiatorBox,
   PassiveRadiatorSpec,
   VentedChamber,
+  FrequencyGrid,
 } from './project.js';
 // `export type`, not `export` — DELIBERATE, and the general rule here: a consumer gets the TYPE
 // to annotate with, never the class VALUE. `export type` omits the runtime binding entirely, so

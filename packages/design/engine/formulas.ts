@@ -51,6 +51,14 @@ export function driveVoltage(pin: number, re: number): number {
 }
 
 /**
+ * Reference power from drive voltage and voice-coil resistance — the inverse of `driveVoltage`:
+ * P = V² / Re.
+ */
+export function driveFromVoltage(eg: number, re: number): number {
+  return (eg * eg) / re;
+}
+
+/**
  * Passive-radiator compliance from Vas (cubic metres) and Sd — the inverse of `prVas`:
  * Cms = Vas / (Sd² · ρ · c²). Returns 0 when Sd is non-positive (undefined compliance).
  */
