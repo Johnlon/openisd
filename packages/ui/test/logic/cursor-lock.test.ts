@@ -8,8 +8,6 @@ describe('Cursor lock & frequency click state transitions', () => {
     presentationState.cursorF = null;
     presentationState.pinnedF = null;
     presentationState.cursorLocked = false;
-    requireFocusedProject().setSweepFmin_hz(1);
-    requireFocusedProject().setSweepFmax_hz(20000);
   });
 
   it('clicking an unlocked chart locks the cursor at that frequency', () => {
@@ -120,7 +118,7 @@ describe('Cursor lock & frequency click state transitions', () => {
   });
 
   it('verifies that rgAtDriverSide is unchecked (false) by default', () => {
-    assert.equal(requireFocusedProject().rgAtDriverSide(), false, 'Rg is at driver side must be unchecked (false) by default');
+    assert.equal(requireFocusedProject().rgAtDriverSide.get(), false, 'Rg is at driver side must be unchecked (false) by default');
   });
 
   it('verifies that the de-comment box has a full-width layout constraint', () => {

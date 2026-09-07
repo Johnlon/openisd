@@ -5,8 +5,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createLogging } from '../../src/logging/flash.js';
 import { createDesignIO } from '../../src/logic/useDesignIO.js';
-import { createFileStorage, createProjectRepo, createMemoryStorage } from '@openisd/persistence';
+import { createFileStorage, createProjectRepo } from '@openisd/persistence';
 import { state } from '../../src/logic/appState.js';
+import { Engine } from '@openisd/design/engine';
 
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
@@ -62,7 +63,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       }
     });
     try {
-      const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createMemoryStorage(), createFileStorage()) });
+      const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage()) });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone after.
       state.project.name = 'stale-name-999999';

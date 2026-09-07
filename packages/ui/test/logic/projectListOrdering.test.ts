@@ -10,15 +10,16 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  openProjects, addProject, removeProject, focusProject, focusedProject,
+  openProjects, removeProject, focusProject, focusedProject, openBlankProject,
 } from '../../src/logic/appState.js';
-import { ManagedProject } from '../../src/logic/managedProject.js';
+import type { OpenISDProject } from '@openisd/design';
 
 /** Two independent projects, both named identically, so any name-keyed storage would collapse
  *  them into one. */
-function namedProject(name: string): ManagedProject {
-  const p = ManagedProject.createEmpty();
-  p.mutate(project => project.setProjectMeta({ ...project.projectMeta(), name }));
+function namedProject(name: string): OpenISDProject {
+  openBlankProject();
+  const p = openProjects()[openProjects().length - 1];
+  p.name.set(name);
   return p;
 }
 
@@ -31,9 +32,7 @@ describe('the project registry is an ordered array, not a name-keyed map', () =>
     const before = openProjects().length;
     const a = namedProject('Untitled');
     const b = namedProject('Untitled');
-    addProject(a);
-    addProject(b);
-    const names = openProjects().slice(before).map(p => p.snapshot().projectMeta().name);
+    const names = openProjects().slice(before).map(p => p.name.get());
     assert.deepEqual(names, ['Untitled', 'Untitled'],
       'a name-keyed store would have silently dropped one of these two');
     assert.equal(openProjects().length, before + 2, 'both entries must be present, not merged');
@@ -47,8 +46,6 @@ describe('the project registry is an ordered array, not a name-keyed map', () =>
     const before = openProjects().length;
     const a = namedProject('Same Name');
     const b = namedProject('Same Name');
-    addProject(a);
-    addProject(b);
     const indexOfA = openProjects().indexOf(a);
     focusProject(indexOfA);
     assert.equal(focusedProject(), a, 'focusing by index must land on the SPECIFIC instance, ' +

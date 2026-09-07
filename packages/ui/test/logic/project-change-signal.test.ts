@@ -14,9 +14,8 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { watch, nextTick } from 'vue';
 import {
-  projectChanged, requireFocusedProject, addProject, focusProject, removeProject,
+  projectChanged, requireFocusedProject, focusProject, removeProject, openBlankProject, openProjects,
 } from '../../src/logic/appState.js';
-import { ManagedProject } from '../../src/logic/managedProject.js';
 
 /** Count how many times a real watcher on the signal wakes while `body` runs. */
 async function firingsDuring(body: () => void): Promise<number> {
@@ -34,7 +33,7 @@ async function firingsDuring(body: () => void): Promise<number> {
 describe('projectChanged fires on a change to the focused project', () => {
   it('an edit to the focused project wakes a watcher', async () => {
     const fired = await firingsDuring(() => {
-      requireFocusedProject().setBoxQl(11);
+      requireFocusedProject().box.sealed.losses.Ql.set(11);
     });
     assert.ok(fired > 0, 'an edit to the focused project must wake the persistence hook');
   });
@@ -43,23 +42,23 @@ describe('projectChanged fires on a change to the focused project', () => {
     // The trap this guards: a signal derived from current state (e.g. "is a project open")
     // recomputes on both edits, compares equal to itself, and notifies on NEITHER.
     const fired = await firingsDuring(() => {
-      requireFocusedProject().setBoxQl(21);
-      requireFocusedProject().setBoxQa(31);
+      requireFocusedProject().box.sealed.losses.Ql.set(21);
+      requireFocusedProject().box.sealed.losses.Qa.set(31);
     });
     assert.ok(fired > 0, 'a second edit that leaves derived state unchanged must still signal');
   });
 
   it('opening a second project wakes a watcher', async () => {
-    const fired = await firingsDuring(() => { addProject(ManagedProject.createEmpty()); });
+    const fired = await firingsDuring(() => { openBlankProject(); });
     assert.ok(fired > 0, 'a newly opened project changes what the hook would persist');
-    removeProject(1);
+    removeProject(openProjects().length - 1);
   });
 
   it('switching focus wakes a watcher', async () => {
-    addProject(ManagedProject.createEmpty());   // focuses the new one, at index 1
+    openBlankProject();   // focuses the new one, at the last index
     const fired = await firingsDuring(() => { focusProject(0); });
     assert.ok(fired > 0, 'focus moving to a different project changes what the hook would persist');
-    removeProject(1);
+    removeProject(openProjects().length - 1);
   });
 });
 

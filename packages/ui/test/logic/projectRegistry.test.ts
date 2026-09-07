@@ -10,9 +10,8 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  openProjects, focusedProject, focusProject, removeProject, addProject,
+  openProjects, focusedProject, focusProject, removeProject, addProject, openBlankProject,
 } from '../../src/logic/appState.js';
-import { ManagedProject } from '../../src/logic/managedProject.js';
 import { presentationState } from '../../src/logic/presentationState.js';
 
 describe('project registry', () => {
@@ -23,20 +22,17 @@ describe('project registry', () => {
 
   it('addProject() appends and focuses the new project', () => {
     const before = openProjects().length;
-    const p = ManagedProject.createEmpty();
 
-    addProject(p);
+    openBlankProject();
 
     assert.equal(openProjects().length, before + 1);
-    assert.equal(openProjects()[before], p);
-    assert.equal(focusedProject(), p, 'the newly added project becomes focused');
+    assert.equal(focusedProject(), openProjects()[before], 'the newly added project becomes focused');
   });
 
   it('focusProject(index) moves focus; an out-of-range index is ignored', () => {
-    const p1 = ManagedProject.createEmpty();
-    const p2 = ManagedProject.createEmpty();
-    addProject(p1);
-    addProject(p2);
+    openBlankProject();
+    openBlankProject();
+    const p1 = openProjects()[openProjects().length - 2];
     const i1 = openProjects().indexOf(p1);
 
     focusProject(i1);
@@ -50,10 +46,9 @@ describe('project registry', () => {
   });
 
   it('removeProject(index) clamps focus to the new last project when it was past the end', () => {
-    const p1 = ManagedProject.createEmpty();
-    const p2 = ManagedProject.createEmpty();
-    addProject(p1);
-    addProject(p2);
+    openBlankProject();
+    openBlankProject();
+    const p2 = openProjects()[openProjects().length - 1];
     const iLast = openProjects().length - 1;
     assert.equal(focusedProject(), p2, 'addProject focused it');
 
@@ -71,10 +66,10 @@ describe('project registry', () => {
   });
 
   it('focusProject(index) closes Tune on the project being left', () => {
-    const a = ManagedProject.createEmpty();
-    const b = ManagedProject.createEmpty();
-    addProject(a);
-    addProject(b);
+    openBlankProject();
+    openBlankProject();
+    const a = openProjects()[openProjects().length - 2];
+    const b = openProjects()[openProjects().length - 1];
     const iA = openProjects().indexOf(a);
     const iB = openProjects().indexOf(b);
 
@@ -88,10 +83,10 @@ describe('project registry', () => {
   });
 
   it('focusProject(index) closes the Driver Editor modal on focus switch', () => {
-    const a = ManagedProject.createEmpty();
-    const b = ManagedProject.createEmpty();
-    addProject(a);
-    addProject(b);
+    openBlankProject();
+    openBlankProject();
+    const a = openProjects()[openProjects().length - 2];
+    const b = openProjects()[openProjects().length - 1];
     const iA = openProjects().indexOf(a);
     const iB = openProjects().indexOf(b);
 

@@ -1,46 +1,49 @@
 /**
  * Filter edits must drive a re-sweep.
  *
- * The sweep is re-run by `watch([driver, syncedP, box], …)` in store.ts. `syncedP` reads
- * `requireFocusedProject().toUiParams()` (which includes `filters()`, a fresh copy on every call) and
- * depends on `live` — the store's Vue bridge onto the domain's own change-notification channel
- * (`docs/design/REACTIVITY.md`) — so any edit that goes through `requireFocusedProject().setFilters()`
- * must recompute it; a caller that mutated an array in place, bypassing `setFilters()`, would
- * change nothing `syncedP` can see.
- *
- * These assert that writing the filters array through `setFilters()` recomputes `syncedP`.
- * Sync flush makes it deterministic without a component/tick.
+ * The sweep is re-run by `watch(live, scheduleSweep)` in appState.ts, where `live` is the
+ * store's Vue bridge onto the focused project's own change-notification channel
+ * (`docs/design/REACTIVITY.md`). `scheduleSweep` throttles (leading-edge, `SWEEP_MS`), so this
+ * asserts the deterministic half of that chain instead: writing `filters` through the project's
+ * own `RawField` fires `projectChanged`, the same signal `live`'s subscription bumps on every
+ * mutation and the one the persistence hook watches.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { watch } from 'vue';
-import { syncedP, requireFocusedProject } from '../../src/logic/appState.js';
+import { watch, nextTick } from 'vue';
+import { projectChanged, requireFocusedProject } from '../../src/logic/appState.js';
 import type { Filter } from '@openisd/design/engine';
 
 const hp = (fc: number): Filter => ({ id: 'f-hp', type: 'highpass', enabled: true, fc, Q: 0.7071 });
 
-describe('filter edits re-trigger the sweep params (syncedP reactivity)', () => {
-  it('editing a filter field recomputes syncedP', () => {
-    requireFocusedProject().setFilters([hp(80)]);
-    let fires = 0;
-    const stop = watch(syncedP, () => { fires++; }, { flush: 'sync' });
-    void syncedP.value;                 // ensure it's tracked
-    fires = 0;
-    const edited = requireFocusedProject().filters();
-    edited[0].fc = 120;
-    requireFocusedProject().setFilters(edited);  // edit — must re-trigger the sweep params
+/** Count how many times a real watcher on the signal wakes while `body` runs. */
+async function firingsDuring(body: () => void): Promise<number> {
+  let fired = 0;
+  const stop = watch(projectChanged, () => { fired++; });
+  try {
+    body();
+    await nextTick();
+    return fired;
+  } finally {
     stop();
-    assert.ok(fires > 0, 'editing a filter field must recompute syncedP (drives the re-sweep)');
+  }
+}
+
+describe('filter edits re-trigger project change notification (drives the re-sweep)', () => {
+  it('editing a filter field wakes projectChanged', async () => {
+    requireFocusedProject().filters.set([hp(80)]);
+    const fired = await firingsDuring(() => {
+      const edited = requireFocusedProject().filters.get().map(f => ({ ...f, fc: 120 }));
+      requireFocusedProject().filters.set(edited);
+    });
+    assert.ok(fired > 0, 'editing a filter field must wake projectChanged (drives the re-sweep)');
   });
 
-  it('adding a filter recomputes syncedP', () => {
-    requireFocusedProject().setFilters([]);
-    let fires = 0;
-    const stop = watch(syncedP, () => { fires++; }, { flush: 'sync' });
-    void syncedP.value;
-    fires = 0;
-    requireFocusedProject().setFilters([...requireFocusedProject().filters(), hp(60)]);   // add — must re-trigger
-    stop();
-    assert.ok(fires > 0, 'adding a filter must recompute syncedP');
+  it('adding a filter wakes projectChanged', async () => {
+    requireFocusedProject().filters.set([]);
+    const fired = await firingsDuring(() => {
+      requireFocusedProject().filters.set([...requireFocusedProject().filters.get(), hp(60)]);
+    });
+    assert.ok(fired > 0, 'adding a filter must wake projectChanged');
   });
 });
