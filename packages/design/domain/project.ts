@@ -1967,6 +1967,48 @@ export class OpenISDProject {
         this.#slot('signal').set({power_W, voltage_V});
     }
 
+    // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
+
+    /** This project's stated air temperature, WinISD Advanced "Temperature". Null until stated —
+     *  the reference value lives in `@openisd/engine` (`air.ts`), never duplicated here. */
+    envTempK(): number | null {
+        return this.#current().environment.temperature_K;
+    }
+
+    setEnvTempK(tempK: number): void {
+        this.#slot('environment').set({...this.#current().environment, temperature_K: tempK});
+    }
+
+    /** This project's stated relative humidity, WinISD Advanced "Humidity". Null until stated. */
+    envHumidityPct(): number | null {
+        return this.#current().environment.humidity_pct;
+    }
+
+    setEnvHumidityPct(humidityPct: number): void {
+        this.#slot('environment').set({...this.#current().environment, humidity_pct: humidityPct});
+    }
+
+    /** This project's stated atmospheric pressure, WinISD Advanced "Pressure". Null until
+     *  stated. */
+    envPressurePa(): number | null {
+        return this.#current().environment.pressure_Pa;
+    }
+
+    setEnvPressurePa(pressurePa: number): void {
+        this.#slot('environment').set({...this.#current().environment, pressure_Pa: pressurePa});
+    }
+
+    /** Which air formula this project's sweeps use — WinISD's parity model when true, OpenISD's
+     *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
+     *  WinISD out of the box. See `engine/air.ts` for the two models. */
+    envUseWinisdAirModel(): boolean {
+        return this.#current().environment.useWinisdAirModel ?? true;
+    }
+
+    setEnvUseWinisdAirModel(useWinisdAirModel: boolean): void {
+        this.#slot('environment').set({...this.#current().environment, useWinisdAirModel});
+    }
+
     /**
      * Qts as the amplifier's source impedance actually loads it.
      *
@@ -2014,6 +2056,7 @@ export class OpenISDProject {
             tempK: this.#current().environment.temperature_K ?? undefined,
             humidityPct: this.#current().environment.humidity_pct ?? undefined,
             pressurePa: this.#current().environment.pressure_Pa ?? undefined,
+            useWinisdAirModel: this.#current().environment.useWinisdAirModel ?? true,
             driverAddedMass: this.driverAddedMass_kg.get(),
             vcTempRise: this.vcTempRise_K.get(),
             alfaVC: this.alfaVC_per_K.get(),
@@ -2275,7 +2318,7 @@ function projectJson(driver: OpenISDDeviceJson): OpenISDProjectJson {
             loading: 'standard',
         },
         box: emptyBoxJson(),
-        environment: {temperature_K: null, humidity_pct: null, pressure_Pa: null},
+        environment: {temperature_K: null, humidity_pct: null, pressure_Pa: null, useWinisdAirModel: null},
         signal: {power_W: null, voltage_V: null},
         meta: {name: '', creator: '', created: '', modified: '', description: ''},
         filters: {filters: []},

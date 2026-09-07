@@ -572,6 +572,8 @@ const openISDEnvironmentJsonSchema = z.strictObject({
     temperature_K: z.number().nullable(),
     humidity_pct: z.number().nullable(),
     pressure_Pa: z.number().nullable(),
+    // Null reads as true (QO95): a new project matches WinISD's own air model out of the box.
+    useWinisdAirModel: z.boolean().nullable(),
 });
 export type OpenISDEnvironmentJson = z.infer<typeof openISDEnvironmentJsonSchema>;
 

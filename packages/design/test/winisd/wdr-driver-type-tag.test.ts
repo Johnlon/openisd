@@ -15,7 +15,7 @@ import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchem
 import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
 import { conformingRecordToDriver } from '../../domain/index.js';
 import { Engine } from '../../engine/index.js';
-import type { DriverError } from '../../engine/types.js';
+import type { DriverError } from '@openisd/design/engine';
 
 function allZeroCells(): Map<string, WdrCell> {
   const cells = new Map<string, WdrCell>();
