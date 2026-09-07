@@ -817,6 +817,14 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     const comment = stated(wdr.headerField('comment'));
     const added = stated(wdr.headerField('dateAdded'));
 
+    // A driver-only `.wdr` has no field for OID's `driver_type` — WinISD's format never had one
+    // to lose. `[DRIVERTYPE ...]` in `Comment=` is OpenISD's own tag for it (same mechanism as
+    // `[DQ]`/`[ENV]`; see
+    // bugs/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md).
+    // A file with no tag — every real WinISD file — falls back to `woofer`, today's behaviour.
+    const taggedType = wdr.driverType();
+    const driverType: 'woofer' | 'tweeter' = taggedType === 'tweeter' ? 'tweeter' : 'woofer';
+
     const record: OpenISDDeviceJson = {
         uuid: {value: newUuid()},
         quality: {
@@ -827,13 +835,13 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
         brand: {value: brand},
         model: {value: model},
         sku: {value: model, grounds: [{origin: 'manual', reading: model}]},
-        driver_type: {value: 'woofer'},
+        driver_type: {value: driverType},
         data_sources: {value: {}},
         authoritative: {value: 'openisd'},
         ...(providedBy ? {provided_by: providedBy} : {}),
         ...(comment ? {comment} : {}),
         ...(added ? {added} : {}),
-        specs: {woofer: specEntries},
+        specs: {[driverType]: specEntries},
     };
     return {record, warnings};
 }

@@ -570,7 +570,15 @@ export function openIsdDriverToWinIsdDriver(
         if (!cells.has(key)) cells.set(key, {value: '0', state: 'not-available'});
     }
 
-    return WinISDDriver.build(header, cells, dqLines);
+    // `driver.section` is the OID record's real type discriminator (`sectionOf()` in
+    // `project.ts`), so it is what must survive the round trip — not a separate `driver_type`
+    // string. A driver-only `.wdr` has no field for it (bugs/
+    // BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md), so it
+    // rides in `Comment=` the same way as `[DQ]` and `[ENV]`. `woofer` is the read side's own
+    // fallback, so a woofer record needs no tag and `Comment=` stays byte-identical to a plain
+    // writer (ARCHITECTURE.md §3) — only a non-default type is worth spending a tag on.
+    const driverType = driver.section === 'woofer' ? undefined : driver.section;
+    return WinISDDriver.build(header, cells, dqLines, undefined, driverType);
 }
 
 /**

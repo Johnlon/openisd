@@ -184,6 +184,27 @@ function envFromComment(comment: string | undefined): WdrEnv | undefined {
     return { tempK: Number(m[1]), pressurePa: Number(m[2]), humidityPct: Number(m[3]) };
 }
 
+/** The OID `driver_type` a driver-only `.wdr` has no field for — see
+ *  `bugs/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md`.
+ *  Real WinISD never writes or reads this tag. */
+const DRIVERTYPE_TAG = /\[DRIVERTYPE ([^\]]+)\]/;
+
+/** `Comment=` with a `[DRIVERTYPE ...]` line appended, same shape as `commentWithEnv`. Absent
+ *  `driverType`, or `base` already carrying the tag, leaves the text byte-identical. */
+function commentWithDriverType(base: string, driverType: string | undefined): string {
+    if (driverType === undefined || DRIVERTYPE_TAG.test(base)) return base;
+    const tag = `[DRIVERTYPE ${driverType}]`;
+    return [base, tag].filter(l => l.length > 0).join('\n');
+}
+
+/** `[DRIVERTYPE ...]` parsed out of a `Comment=` value, or `undefined` if the value carries
+ *  none. */
+function driverTypeFromComment(comment: string | undefined): string | undefined {
+    if (comment === undefined) return undefined;
+    const m = DRIVERTYPE_TAG.exec(comment);
+    return m ? m[1] : undefined;
+}
+
 /** A string field's value as one PHYSICAL line: every newline becomes the sentinel the format
  *  reserves for exactly this, so `Comment=` cannot break the line structure around it. */
 function oneLine(value: string): string {
@@ -199,13 +220,17 @@ export class WinISDDriver {
 
     readonly #env: WdrEnv | undefined;
 
+    readonly #driverType: string | undefined;
+
     private constructor(
         header: WdrHeader, cells: WdrCells, dqLines: readonly string[], env?: WdrEnv,
+        driverType?: string,
     ) {
         this.#header = header;
         this.#cells = cells;
         this.#dqLines = dqLines;
         this.#env = env;
+        this.#driverType = driverType;
     }
 
     /**
@@ -218,6 +243,7 @@ export class WinISDDriver {
      */
     static build(
         header: WdrHeader, cells: WdrCells, dqLines: readonly string[] = [], env?: WdrEnv,
+        driverType?: string,
     ): WinISDDriver {
         const missing = INI_ROWS.filter(key => !cells.has(key));
         if (missing.length > 0) {
@@ -225,7 +251,7 @@ export class WinISDDriver {
                 + `${missing.join(', ')} — the caller and WinISDDriver have drifted out of sync about `
                 + 'the .wdr key set.');
         }
-        return new WinISDDriver(header, cells, dqLines, env);
+        return new WinISDDriver(header, cells, dqLines, env, driverType);
     }
 
     // ── IMPORT — `.wdr` text → WinISDDriver, as read (no derivation) ─────────────────────
@@ -290,7 +316,9 @@ export class WinISDDriver {
         // A key the file states that is neither an `INI_ROWS` key nor a header line is discarded
         // (John, 2026-09-02): `.wdr` has no extension mechanism, so a foreign key is a corrupt or
         // non-WinISD file, not a field to preserve.
-        return new WinISDDriver(header, cells, [], envFromComment(header.comment));
+        return new WinISDDriver(
+            header, cells, [], envFromComment(header.comment), driverTypeFromComment(header.comment),
+        );
     }
 
     // ── Serialise ──────────────────────────────────────────────────────────────────────
@@ -312,7 +340,10 @@ export class WinISDDriver {
             Model: oneLine(h.model ?? ''),
             Manufacturer: oneLine(h.manufacturer ?? ''),
             ProvidedBy: oneLine(h.providedBy ?? ''),
-            Comment: oneLine(commentWithEnv(commentWithDq(h.comment ?? '', this.#dqLines), this.#env)),
+            Comment: oneLine(commentWithDriverType(
+                commentWithEnv(commentWithDq(h.comment ?? '', this.#dqLines), this.#env),
+                this.#driverType,
+            )),
             DateAdded: oneLine(h.dateAdded ?? ''),
             DateModified: oneLine(h.dateModified ?? ''),
         };
@@ -338,6 +369,12 @@ export class WinISDDriver {
     /** The `[ENV ...]` environment `c`/`roo` were computed under, if `Comment=` carries one. */
     env(): WdrEnv | undefined {
         return this.#env;
+    }
+
+    /** The OID `driver_type` this `.wdr` was written from, if `Comment=` carries a
+     *  `[DRIVERTYPE ...]` tag. */
+    driverType(): string | undefined {
+        return this.#driverType;
     }
 
     #parState(): string {

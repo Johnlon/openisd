@@ -1,6 +1,6 @@
 # A driver's `driverType` has no `.wdr` slot, so loading any `.wdr` always yields `woofer`
 
-**Status:** OPEN — not fixed.
+**Status:** RESOLVED.
 **Found:** 2026-09-07, John.
 
 ## Symptom
@@ -40,13 +40,41 @@ drops anything it doesn't recognize. `Comment=` is the only field genuinely opaq
 it is the only field that survives a real-WinISD-mediated round trip (OID write → WinISD load →
 WinISD save → OID read).
 
-## Verification when fixed
+## Fix
 
-A round trip test: build an OID record with `driverType: 'tweeter'`, write to `.wdr`, read it back,
-assert `driverType === 'tweeter'`. Add a second case for a `.wdr` with no such comment tag,
-asserting it still falls back to `'woofer'` rather than erroring.
+`WinISDDriver` (`packages/design/winisd/winisdDriver.ts`) carries the tag itself, alongside `env`:
+
+- `WinISDDriver.build(header, cells, dqLines, env?, driverType?)` takes an optional
+  `driverType` string and appends `[DRIVERTYPE <type>]` to `Comment=` on `toWdrIni()`. No
+  `driverType`, or a `base` comment already carrying the tag, leaves the text unchanged.
+- `WinISDDriver.fromWdrIni()` parses `[DRIVERTYPE ...]` out of `Comment=` into `.driverType()`.
+- `openIsdDriverToWinIsdDriver()` (`packages/design/winisd/driverYmlToOpenisdAndWdr.ts`) passes
+  `driver.section` — the OID record's real type discriminator, not a separate `driver_type`
+  string — as `driverType`, but only when it is not `'woofer'`: `'woofer'` is the read side's own
+  default, so an ordinary woofer record needs no tag and `Comment=` stays byte-identical to a
+  plain writer (ARCHITECTURE.md §3).
+- `winISDDriverToOpenISDDeviceJson()` (`packages/design/domain/openisdRecordSchema.ts`) reads
+  `wdr.driverType()`, uses it for both `driver_type` and the `specs` key (`specs.woofer` /
+  `specs.tweeter` — the field `sectionOf()` actually keys the driver's type on), and falls back to
+  `'woofer'` when absent or when the tag holds anything other than `'tweeter'`.
+
+## Verification
+
+- `test/winisd/wdr-driver-type-tag.test.ts` — 4 tests: a `.wdr` tagged `[DRIVERTYPE tweeter]`
+  reads back as a tweeter with `specs.tweeter` populated and `specs.woofer` absent; an untagged
+  file falls back to woofer; a full `OpenISDDriver` → `.wdr` → OID record round trip for a
+  tweeter record preserves its type; a tag already in `Comment=` is not duplicated by a further
+  `fromWdrIni -> toWdrIni`.
+- `test/winisd/` — 1413/1413, including `openisdToWdr.test.ts`'s existing byte-exact `Comment=`
+  assertions for woofer records, confirming the tag is only written for a non-default type.
+- Made the guard fail on purpose: removed the `DRIVERTYPE_TAG.test(base)` check in
+  `commentWithDriverType`, confirmed the duplication test in `wdr-driver-type-tag.test.ts` went
+  red with a doubled `[DRIVERTYPE tweeter]` tag, restored, confirmed green (1413/1413).
 
 ## Related gap: `#driverSection` has no production populator
+
+Unchanged by this fix. The fix above round-trips a standalone `.wdr`; whether it also survives
+inside a `.wpr`'s `[Driver]` section depends on this gap, not on anything changed here.
 
 `WinISDProject` (`packages/design/winisd/winisdProject.ts:69`) holds the `[Driver]` block as
 opaque `.wdr` text in `#driverSection`, marked with a standing `// FIXME: why is this here?`. It
