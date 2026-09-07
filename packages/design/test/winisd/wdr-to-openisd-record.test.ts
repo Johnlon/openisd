@@ -22,9 +22,9 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/design/winisd';
-import { conformingRecordToDriver, type OpenISDDriver } from '@openisd/design';
+import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchema.js';
+import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
 import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -35,7 +35,7 @@ const WDR_TEXT = readFileSync(
 
 function driverOf(wdr: string): OpenISDDriver {
   const { record } = winISDDriverToOpenISDDeviceJson(WinISDDriver.fromWdrIni(wdr));
-  const driver = conformingRecordToDriver(record, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
   return driver;
 }

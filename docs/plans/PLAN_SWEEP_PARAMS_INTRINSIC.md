@@ -81,7 +81,7 @@ themselves are the public surface, matching `box`/`driver`'s shape.
 `sweep(P)`/`maxCurves(P)`/`validateParams(P)` take only `FrequencyGrid` (`{fmin?, fmax?, N?}`,
 exported from `domain/index.ts`); `#sweepParams()` assembles the full `SweepParams` from the
 project's own record. `packages/design/test/engine-wiring.test.ts` builds real driver and
-passive-radiator fixtures via `conformingRecordToDriver`/`conformingRecordToPassiveRadiator` and
+passive-radiator fixtures via `conformingRecordToOpenIsdDriver`/`conformingRecordToOpenIsdPassiveRadiatorStandalone` and
 compares `project.sweep()` against a manual `engine.sweep()` call with matching `Ql`/`Qa`.
 `useWinisdAirModel` stays an app-level (`presentationState.ts`) `sweep()` input alongside
 `fmin`/`fmax`/`N`, per the row above.

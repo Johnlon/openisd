@@ -68,9 +68,9 @@ const NOT_A_SPEC_ENTRY_BY_DESIGN: Readonly<Record<string, string>> = {
 
 function specSectionMembers() {
   const project = new Project({ skipAddingFilesFromTsConfig: true });
-  const file = project.addSourceFileAtPath(path.join(packageRoot, 'domain', 'openisdRecordSchema.ts'));
+  const file = project.addSourceFileAtPath(path.join(packageRoot, 'domain', 'openisdSchema.ts'));
   const decl = file.getInterface('DriverSpecsSection');
-  expect(decl, 'DriverSpecsSection must exist in domain/openisdRecordSchema.ts — this guard has no subject without it')
+  expect(decl, 'DriverSpecsSection must exist in domain/openisdSchema.ts — this guard has no subject without it')
     .toBeDefined();
   return decl!.getProperties().map((p) => ({
     name: p.getName(),

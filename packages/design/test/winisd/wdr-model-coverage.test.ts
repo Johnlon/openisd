@@ -26,7 +26,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { INI_ROWS } from '../../winisd/winisdDriver.js';
-import { conformingRecordToDriver } from '@openisd/design';
+import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
 
@@ -83,7 +83,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     // equality check — c and roo included — because neither is special-cased anywhere in the
     // entered-value path.
     const { record, expected } = recordWithEveryKeyEntered();
-    const driver = conformingRecordToDriver(record, new Engine());
+    const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
     if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
     const wdr = openIsdDriverToWinIsdDriver(driver, new Engine(), []);
@@ -119,7 +119,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
       },
       specs: { woofer: { c: spec(111111), roo: spec(222222) } },
     };
-    const driver = conformingRecordToDriver(record, new Engine());
+    const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
     if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
     const wdr = openIsdDriverToWinIsdDriver(driver, new Engine(), []);
@@ -150,7 +150,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
       },
       specs: { woofer: {} },
     };
-    const driver = conformingRecordToDriver(record, new Engine());
+    const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
     if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
     const wdr = openIsdDriverToWinIsdDriver(driver, new Engine(), []);
@@ -176,7 +176,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
       },
       specs: { woofer: {} },
     };
-    const driver = conformingRecordToDriver(record, new Engine());
+    const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
     if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
     const section = driver.spec[driver.section];
 
@@ -226,7 +226,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
       },
       specs: { woofer: {} },
     };
-    const driver = conformingRecordToDriver(record, new Engine());
+    const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
     if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
     return driver.spec[driver.section];
   }

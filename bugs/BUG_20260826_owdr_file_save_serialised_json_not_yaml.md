@@ -32,7 +32,7 @@ The `text` handed to `driverFileBody` for a non-`.wdr` format came from
 (`toOwdrYml`/`fromOwdrYml`, same record shape, `yaml` package `stringify`/`parse`). The UI's
 `.owdr` export/import was wired to the JSON pair. The YAML pair had no real caller anywhere in
 the app or the bundler at the time (confirmed by grep of `packages/` and `scripts/`: only
-`openisdYamlToWdr.ts`'s own `ymlRoundTripErrors` called it, self-referentially).
+`COMMENTED_openisdYamlToWdr.ts`'s own `ymlRoundTripErrors` called it, self-referentially).
 
 ## Scope (John, 2026-08-26)
 

@@ -13,7 +13,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine';
+import { Engine } from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();

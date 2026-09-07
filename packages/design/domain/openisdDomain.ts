@@ -1,36 +1,13 @@
-// ═══ HUMAN RULING, John Lonergan 2026-08-26 — WHAT THIS DOMAIN MAY COMPUTE ═══════════════════
-//
-//   GEOMETRY IS IN. ACOUSTICS IS ABSOLUTELY OUT.
-//
-// His words: "all calcs MUST be in engine", then the refinement "simple geometric calc like pi r
-// squared are ok in the domain", then "geom is in and accoustic is absolutely out".
-//
-// IN — plain shape arithmetic on dimensions the record already holds. The area of a circle, the
-// area of a rectangle, a volume from three lengths. These have no model behind them and no parity
-// question: πr² is πr² in WinISD, in this app, and in a textbook. Nobody can implement them
-// differently, so nothing is duplicated by doing them here.
-//
-// OUT — ABSOLUTELY, with no exception and no "just this small one": anything involving air,
-// compliance, resonance, damping, an end correction, a transfer function, or a frequency. Those
-// carry a MODEL, the model can differ between implementations, and `@openisd/engine` is the one
-// place this project answers for it. A second implementation here would be a second answer, and
-// the two would drift silently — which is exactly what was found on 2026-08-26: `#sealedResonance`
-// reimplemented `engine/boxDesign.ts:sealedFc()` over frozen air constants, in the precise way
-// `engine/formulas.ts:prVas()` documents as wrong ("ρ/c are computed live at the reference
-// environment — never a stored constant").
-//
-// THE TEST, when unsure: could two competent implementers disagree about the answer? If yes it is
-// acoustics — it belongs to the engine, and this domain asks the INJECTED engine for it. If no,
-// it is geometry and may be computed here (`Vent.area_m2()` is the whole of that category).
-// Do not reason your way past this. John's stated fear is precisely that an AI will not respect
-// the rule; the honest move when a calculation feels borderline is to throw and ask, never to
-// write the formula and justify it in a comment.
-// ═════════════════════════════════════════════════════════════════════════════════════════════
+
+import { driverSectionProblems, radiatorSectionProblems, ProjectBuilder } from './openisdTransforms.js';
+// HUMAN RULING (2026-08-26): GEOMETRY IS IN. ACOUSTICS IS OUT.
+// IN: pure geometry (e.g., Vent.area_m2).
+// OUT: anything involving air, compliance, resonance, or frequency. Engine handles all acoustics.
+// TEST: If two implementers could disagree on the model, it belongs in the engine.
 
 import {
-    openISDDeviceJsonSchema,
     openISDProjectJsonSchema,
-    type OpenISDDeviceJson,
+    OpenISDDeviceJson,
     type SpecEntryJson,
     type DriverSpecsSection,
     type PassiveRadiatorSpecsSection,
@@ -39,10 +16,10 @@ import {
     type VentedLossesJson,
     type CoupledSealedLossesJson,
     type CoupledVentedLossesJson,
-    type ChamberJson,
     type OpenISDBoxJson,
     type OpenISDEnvironmentJson,
     type OpenISDProjectJson,
+    type OpenISDProjectSessionJson,
     VoiceCoilWiring,
     wiringFromRecord,
     calcVCCon,
@@ -50,8 +27,7 @@ import {
     enteredWiring,
     enteredEntry,
     winningValue,
-} from './openisdRecordSchema.js';
-import {parse as parseYaml} from 'yaml';
+} from './openisdSchema.js';
 import {
     Field,
     focus,
@@ -76,21 +52,12 @@ import type {
     CoupledVentedLosses,
 } from './losses.js';
 
-// EVERYTHING the domain owns is declared in this ONE file, save the JSON record shapes
-// themselves, which are colocated in `openisdRecordSchema.ts` instead (they are used by driver,
-// passive-radiator and box code alike, and none of it can name them without that colocation —
-// `OpenISDBoxJson.passiveRadiator.component` IS an `OpenISDDeviceJson`, a passive radiator being
-// a driver record). `domain/index.ts` re-exports NONE of them — only files inside
-// `packages/design/domain/` may import them directly, per `packages/design/AGENTS.md` "INTERNAL
-// JSON RECORD TYPES — NEVER RE-EXPORTED FROM domain/index.ts".
+// The domain declares its state here. JSON shapes live in `openisdSchema.ts`.
+// Internal JSON types are never re-exported from `domain/index.ts`.
 //
-// `ManagedProject` needs to be told when the EFFECTIVE `OpenISDProject` (whichever of
-// ground/committed/edit/whatif is active) changes internally, so it can fire ITS OWN public
-// `subscribe()` listeners. TypeScript `protected` CANNOT do this — confirmed by the compiler:
-// `protected` only reaches SUBCLASSES, and `ManagedProject` COMPOSES four independent
-// `OpenISDProject` instances rather than extending one. The module-scoped
-// `notifyProject()`/`subscribeToProject()` WeakMap bridge below is the real mechanism, and being
-// module-scoped is exactly what keeps it out of everyone else's reach.
+// A module-scoped WeakMap bridge (`notifyProject`/`subscribeToProject`) lets
+// `ManagedProject` observe internal `OpenISDProject` changes without exposing
+// state publicly.
 
 type MetaFieldName =
     'brand' | 'model' | 'manufacturer' | 'provided_by' | 'comment' | 'added';
@@ -104,97 +71,20 @@ type SpecFieldName = {
 
 type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
 
-// Shared const objects, the starting values a brand-new box is built from. Values are WinISD's
-// own defaults for a freshly-created box (packages/design/winisd/winisdProject.ts TEMPLATE:
-// Ql=10, Qa=100, Qp=100, Qiclfr=100, endcorrection=0.6) — not invented numbers.
-//
-// Each is `Object.freeze`d so no assignment or mutating call on it can compile or run — see
-// packages/design/AGENTS.md "Keep module-scoped state immutable". Every use still SPREADS the
-// value (`{ ...NO_VENTED_CHAMBER }`) so the object reaching a project record is always a fresh
-// copy, never the shared one.
-const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: 10, Qa: 100});
-const NO_VENTED_LOSSES: VentedLossesJson = Object.freeze({Ql: 10, Qa: 100, Qp: 100});
-const NO_COUPLED_SEALED_LOSSES: CoupledSealedLossesJson =
-    Object.freeze({Ql: 10, Qa: 100, Qicl: 100});
-const NO_COUPLED_VENTED_LOSSES: CoupledVentedLossesJson =
-    Object.freeze({Ql: 10, Qa: 100, Qp: 100, Qicl: 100});
-const NO_VENT: VentJson = Object.freeze({
-    shape: 'round',
-    diameter_m: null,
-    width_m: null,
-    height_m: null,
-    length_m: null,
-    endCorrection_m: 0.6,
-});
-const NO_VENTED_CHAMBER: ChamberJson =
-    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_VENTED_LOSSES});
-const NO_COUPLED_SEALED_CHAMBER =
-    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_COUPLED_SEALED_LOSSES});
-const NO_COUPLED_VENTED_CHAMBER =
-    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_COUPLED_VENTED_LOSSES});
 
-/** A box with nothing designed yet — every box type present and inert, matching the
- *  dormant-data rule (the box holds EVERY box type at once and names which is active, rather
- *  than leaving callers to honour that themselves). */
-function emptyBoxJson(): OpenISDBoxJson {
-    return {
-        boxType: 'sealed',
-        sealed: {volume_m3: 0, losses: NO_SEALED_LOSSES},
-        vented: {chamber: NO_VENTED_CHAMBER, vent: NO_VENT},
-        bandpass4: {rear: NO_COUPLED_SEALED_CHAMBER, front: NO_COUPLED_VENTED_CHAMBER, frontVent: NO_VENT},
-        bandpass6: {
-            rear: NO_COUPLED_VENTED_CHAMBER,
-            front: NO_COUPLED_VENTED_CHAMBER,
-            rearVent: NO_VENT,
-            frontVent: NO_VENT,
-        },
-        abc: {
-            rear: NO_COUPLED_VENTED_CHAMBER,
-            front: NO_COUPLED_VENTED_CHAMBER,
-            rearVent: NO_VENT,
-            frontVent: NO_VENT,
-            intraVent: NO_VENT,
-        },
-        passiveRadiator: {
-            volume_m3: 0,
-            tuning_hz: null,
-            count: 1,
-            addedMass_kg: null,
-            losses: NO_SEALED_LOSSES,
-            component: null,
-        },
-    };
-}
-
-// A package-private bridge for reading a component's record back OUT of a live wrapper, the
-// same WeakMap technique `project.ts` uses for change notification. `configurePR()` has to copy
-// the chosen passive radiator's record into the box's own storage, but that record is private
-// to the wrapper holding it — and a public `toJson()` on the class would hand the internal
-// shape to anyone, the exact leak these types exist to prevent. Registering the reader here
-// keeps the capability inside the package: the wrapper registers itself on construction, and
-// only code that can import this module (never a consumer, per the header) can read it back.
+// A package-private WeakMap bridge lets a wrapper read a component's internal
+// JSON record without exposing it via a public `toJson()` method.
+// This preserves encapsulation while allowing necessary internal state copies.
 // ---------------------------------------------------------------------------------------------
 // THE BOX — its public shape, then the window that implements it.
 // ---------------------------------------------------------------------------------------------
 
-// The box types are declared ONCE, by the engine (engine/types.ts), and imported here — this
-// domain adds no second enumeration of them.
+// Box types are imported from engine (engine/types.ts).
+// Note: 'bandpass6' and 'abc' are valid WinISD box types (see BUG_20260824),
+// but lack circuit models in the engine (`simulatableBoxType()`).
 //
-// 'bandpass6' and 'abc' are confirmed real, working box types in WinISD (BUG_20260824,
-// 2026-08-24/25 live probe): its wizard warns that no one-click alignment SUGGESTION exists for
-// either, not that the box type itself doesn't work. The engine has no circuit model for them
-// yet, which simulatableBoxType() states in the one place that decides it.
-
-// Every box type gets its OWN NAMED type. `OpenISDBox` then declares `readonly sealed:
-// SealedBox` rather than `readonly sealed: Box['sealed']` — an indexed-access type, which
-// couples one public declaration to another's internal structure and is the pattern already
-// ruled out for `OpenISDVent['shape']`. Naming each one also lets a caller hold one box type on
-// its own (`function render(b: Bandpass4Box)`), which indexing never allowed.
-//
-// They are named `...Box`, NOT `...Alignment`. An ALIGNMENT is the tuning/damping curve (QB3,
-// Butterworth, and so on) — a concept this model does not carry at all yet. What these are is
-// the enclosure TOPOLOGY, which is what WinISD itself calls Box Type. Calling them alignments
-// is the naming defect recorded in BUG_20260824.
+// Types are named `...Box` (topology), NOT `...Alignment` (tuning curve).
+// Each box type has its own distinct interface rather than relying on index access.
 
 /** A chamber with both a volume and a tuning of its own — bandpass6's and ABC's. */
 /** The frequency grid a sweep runs over — the only thing about a sweep `OpenISDProject` does not
@@ -756,24 +646,9 @@ class OpenISDBox implements Box {
 // THE DRIVER, THE PROJECT, AND THE LAYERS OVER THEM.
 // ---------------------------------------------------------------------------------------------
 
-// `OpenISDDriver`, `OpenISDPassiveRadiator`, `OpenISDProject`, `ManagedProject` and
-// are declared TOGETHER, in this one file — on purpose:
-//
-// `ManagedProject` needs to be told when the EFFECTIVE `OpenISDProject` (whichever of
-// ground/committed/edit/whatif is currently active) changes internally (a field write, a solve
-// pass), so it can fire ITS OWN public `subscribe()` listeners. TypeScript `protected` CANNOT
-// do this — tried it, confirmed by the compiler: `protected` only reaches SUBCLASSES, and
-// `ManagedProject` COMPOSES up to four independent `OpenISDProject` instances rather than
-// extending one, so a `protected subscribe()` compiles but `ManagedProject` genuinely cannot
-// call it. The real mechanism is the module-scoped `notifyProject()`/`subscribeToProject()`
-// WeakMap bridge below — never exported, so nothing outside this file can reach it either,
-// which is what actually enforces "only `ManagedProject` reaches into an `OpenISDProject`'s
-// notifications," not the `protected` keyword.
-//
-// The RECORD shapes these classes window onto live in `storage.ts` — module-exported so the
-// box's storage and the driver's can share one declaration (a PR component IS a driver
-// record), but deliberately absent from `index.ts`, so no consumer can name them. See that
-// file's header.
+// The main domain models are declared together in this file to share the package-private
+// `notifyProject`/`subscribeToProject` WeakMap bridge for reactivity.
+// Record shapes are defined in `storage.ts` to share between driver and box logic.
 
 /**
  * A real, playable driver — its record has a `woofer` or `tweeter` section.
@@ -802,27 +677,12 @@ class OpenISDBox implements Box {
  * `write()` REASSIGNS the record.
  */
 /**
- * ONE SPEC SECTION, PUBLISHED.
- *
- * The reusable component John asked for: a window onto a single `DriverSpecsSection` of a driver record,
- * with every parameter that section can carry. `OpenISDDriver` holds one of these per section it
- * has, so `driver.spec.woofer.Fs_hz` and `driver.spec.tweeter.Fs_hz` are the same class over
- * different keys — a tweeter is not a different kind of thing to read.
- *
- * THE NAMES CARRY THE UNIT and the record's keys do not (John 2026-08-27: "on design/domain the
- * private json object we follow Winisd names Fs but on the public wrapping domain object we use
- * united names Fs_hz"). No conversion happens at this boundary in either direction — the record
- * is SI already and each suffix REPORTS the unit the stored number is in. `Rms_kg_per_s`, not
- * `Rms_Ns_per_m`, because kg/s is what the record's own definition states, and the two spellings
- * of that one dimension would otherwise be a second name for the field.
- *
- * The dimensionless parameters take no suffix — `Qts`, `Qes`, `Qms`, `no`, `Gloss`, `numVC`,
- * `VCCon` (John 2026-08-27: "dimensionless measure DO NOT have a unit - by definition").
- * `Gloss` earns its place there by its own formula, `g/((2π·Fs)²·Xmax)`, which cancels to a pure
- * ratio and is displayed as a percentage.
- *
- * Every `Field` is built ONCE in the constructor, for the identity reason `OpenISDDriver`'s own
- * header gives: a lazy getter would allocate per access and make every read look like a change.
+ * Window onto a single `DriverSpecsSection` of a driver record.
+ * 
+ * Field names carry their unit suffix (e.g. `Fs_hz`, `Rms_kg_per_s`) to report the stored SI unit.
+ * Dimensionless parameters (`Qts`, `Qes`, etc.) have no suffix.
+ * 
+ * Fields are constructed eagerly to preserve object identity for reactivity.
  */
 export class OpenIsdDriverSpec {
     // Thiele/Small.
@@ -1147,6 +1007,24 @@ export abstract class OpenISDDevice {
 }
 
 export abstract class OpenISDDriver extends OpenISDDevice {
+    static fromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | string[] {
+        const conformed = OpenISDDeviceJson.fromConformingRecord(record);
+        if ('problems' in conformed) return conformed.problems;
+
+        const sectionProblems = driverSectionProblems(conformed.json);
+        if (sectionProblems.length > 0) return sectionProblems;
+        return OpenISDDriverStandalone.wrap(conformed.json, engine);
+    }
+
+    static fromYml(text: string, engine: Engine): OpenISDDriver | string[] {
+        const parsed = OpenISDDeviceJson.fromOpenisdDriverYml(text);
+        if ('problems' in parsed) return parsed.problems;
+
+        const sectionProblems = driverSectionProblems(parsed.json);
+        if (sectionProblems.length > 0) return sectionProblems;
+        return OpenISDDriverStandalone.wrap(parsed.json, engine);
+    }
+
     readonly section: 'woofer' | 'tweeter';
 
     /** The driver's spec sections. A caller that does not care which kind of driver it holds reads
@@ -1361,8 +1239,11 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 }
 
 /** A driver that belongs to no project — a My Drivers entry, a bundle row, a detached copy.
- *  `wrap()` windows onto a record the caller owns; the record is not copied, it is referenced. */
-class OpenISDDriverStandalone extends OpenISDDriver {
+ *  `wrap()` windows onto a record the caller owns; the record is not copied, it is referenced.
+ *
+ *  `export`ed for `openisdTransforms.ts` (`conformingRecordToOpenIsdDriver` calls `wrap()`);
+ *  `domain/index.ts` does not re-export it, so no consumer outside `packages/design` sees it. */
+export class OpenISDDriverStandalone extends OpenISDDriver {
     /** `airProvider` defaults to the reference environment — every existing caller
      *  (`conformingRecordToDriver`, tests, `driverYmlToOpenisdAndWdr.ts`) passes none. A caller
      *  holding an app-level environment (the UI, constructing a My Drivers row) passes its own. */
@@ -1547,8 +1428,20 @@ class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
  *  ONLY radiator type the selector popup and the PR editor ever see, and what `configurePR()`
  *  accepts. Its record has a `passive-radiator` section. Its
  *  own concept, not "a driver that happens to be a PR": no shared ancestor with `OpenISDDriver`.
- *  Same window-not-copy shape, same construction-time refusal, same eager-built fields. */
-class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
+ *  Same window-not-copy shape, same construction-time refusal, same eager-built fields.
+ *
+ *  `export`ed for `openisdTransforms.ts` (`conformingRecordToOpenIsdPassiveRadiatorStandalone`
+ *  and the PR builder call `wrap()`); `domain/index.ts` does not re-export it. */
+export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
+    static fromConformingRecord(record: unknown, engine: Engine): OpenISDPassiveRadiatorStandalone | string[] {
+        const conformed = OpenISDDeviceJson.fromConformingRecord(record);
+        if ('problems' in conformed) return conformed.problems;
+
+        const sectionProblems = radiatorSectionProblems(conformed.json);
+        if (sectionProblems.length > 0) return sectionProblems;
+        return OpenISDPassiveRadiatorStandalone.wrap(conformed.json, engine);
+    }
+
 
 
     private constructor(
@@ -1581,135 +1474,6 @@ class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
 
 }
 
-/**
- * The ONE wording for the shape both seams refuse identically. A caller that asks both seams and
- * merges their findings de-duplicates by value, so two paraphrases of this one condition reach a
- * reader as two separate complaints about the same record.
- */
-const TWO_THINGS_AT_ONCE =
-    'both a driver section and a passive-radiator section — this record is two things at once';
-
-function driverSectionProblems(json: OpenISDDeviceJson): string[] {
-    const specs = json.specs;
-    if (specs.woofer === undefined && specs.tweeter === undefined) {
-        return ['neither a woofer nor a tweeter section — nothing to simulate'];
-    }
-    if (specs['passive-radiator'] !== undefined) {
-        return [TWO_THINGS_AT_ONCE];
-    }
-    return [];
-}
-
-function radiatorSectionProblems(json: OpenISDDeviceJson): string[] {
-    const specs = json.specs;
-    if (specs['passive-radiator'] === undefined) {
-        return ['no passive-radiator section — this record is not a radiator'];
-    }
-    if (specs.woofer !== undefined || specs.tweeter !== undefined) {
-        return [TWO_THINGS_AT_ONCE];
-    }
-    return [];
-}
-
-export function conformingRecordToOpenIsdDriver(record: unknown, engine: Engine): OpenISDDriver | string[] {
-    const conformed = conformingRecordToOpenIsdDeviceJson(record);
-    if ('problems' in conformed) return conformed.problems;
-
-    const sectionProblems = driverSectionProblems(conformed.json);
-    if (sectionProblems.length > 0) return sectionProblems;
-    return OpenISDDriverStandalone.wrap(conformed.json, engine);
-}
-
-/** A driver.yml, as text, straight to a driver — parses and validates in one step (`driverYmlToOpenIsdRecord`
- *  then `conformingRecordToDriver`'s own section check), for a caller holding text rather than an
- *  already-parsed record (an uploaded `.owdr`/driver.yml file, a My Drivers entry read off disk). */
-export function openIsdDriverYmlToOpenIsdDriver(text: string, engine: Engine): OpenISDDriver | string[] {
-    const parsed = openIsdDriverYmlToOpenIsdDeviceJson(text);
-    if ('problems' in parsed) return parsed.problems;
-
-    const sectionProblems = driverSectionProblems(parsed.json);
-    if (sectionProblems.length > 0) return sectionProblems;
-    return OpenISDDriverStandalone.wrap(parsed.json, engine);
-}
-
-export function conformingRecordToOpenIsdPassiveRadiatorStandalone(
-    record: unknown,
-    engine: Engine,
-): OpenISDPassiveRadiatorStandalone | string[] {
-    const conformed = conformingRecordToOpenIsdDeviceJson(record);
-    if ('problems' in conformed) return conformed.problems;
-
-    const sectionProblems = radiatorSectionProblems(conformed.json);
-    if (sectionProblems.length > 0) return sectionProblems;
-    return OpenISDPassiveRadiatorStandalone.wrap(conformed.json, engine);
-}
-
-/**
- * THE ONE VALIDATOR: an untrusted value → the record it conforms to, or everything wrong with it.
- *
- * The schema's OUTPUT is what comes back, never the value handed in. `safeParse` returns a new
- * object built from the keys the schema declares, and that is the record the domain then holds —
- * so nothing the schema does not know about can ride along inside a value typed as though it had
- * been checked.
- *
- * Every issue at once, not the first: two bad readings in one spec field produce two messages,
- * each naming its own path, so a picker can show a reader why a row is unusable.
- */
-function conformingRecordToOpenIsdDeviceJson(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
-    const result = openISDDeviceJsonSchema.safeParse(record);
-    if (result.success) return {json: result.data};
-    return {
-        problems: result.error.issues.map(issue => issue.path.length === 0
-            ? issue.message
-            : `'${issue.path.join('.')}': ${issue.message}`),
-    };
-}
-
-/**
- * A driver.yml, as text, becomes an openisd record.
- *
- * THREE STEPS, and the middle one is the whole point:
- *
- *   1. parse the YAML;
- *   2. delete the TWO things a driver.yml carries that an openisd record does not — the `scraper`
- *      section, and every `definition`, at every depth;
- *   3. validate what is left, strictly.
- *
- * Step 2 is an EXPLICIT, NAMED removal rather than a lenient schema that quietly drops whatever it
- * does not recognise. The difference is what happens to a key nobody planned for: a lenient schema
- * discards it in silence, so a record could gain a field and the app would never hear about it.
- * Here exactly two things are removed by name, and anything else unexpected is REFUSED by the
- * strict schema, at its own path.
- */
-export function openIsdDriverYmlToOpenIsdDeviceJson(
-    ymlText: string,
-): { json: OpenISDDeviceJson } | { problems: string[] } {
-    let parsed: unknown;
-    try {
-        parsed = parseYaml(ymlText);
-    } catch (e) {
-        return {problems: [`not valid YAML: ${e instanceof Error ? e.message : String(e)}`]};
-    }
-    return conformingRecordToOpenIsdDeviceJson(stripDriverYmlOnlyFields(parsed));
-}
-
-/** The two things driver.yml carries and an openisd record does not. Returns a COPY: the caller's
- *  value is never mutated, so the same text can be read again and still be a driver.yml.
- *  USes 'unknown' because called recursively and visits all Json types. */
-function stripDriverYmlOnlyFields(value: unknown): unknown {
-    if (Array.isArray(value)) return value.map(stripDriverYmlOnlyFields);
-    if (typeof value !== 'object' || value === null) return value;
-
-    const out: Record<string, unknown> = {};
-    for (const [key, v] of Object.entries(value)) {
-        // `definition` says what a field MEANS — the scraper's working note, at any depth.
-        // `scraper`/`scraper_meta` is how the record was obtained: telemetry about the pipeline,
-        // not a fact about the driver.
-        if (key === 'definition' || key === 'scraper' || key === 'scraper_meta') continue;
-        out[key] = stripDriverYmlOnlyFields(v);
-    }
-    return out;
-}
 
 
 // FRIEND ACCESS. Every project's record lives here rather than in a `#json` field, because the
@@ -1742,6 +1506,10 @@ function stripDriverYmlOnlyFields(value: unknown): unknown {
  * writes go straight through, never to a disconnected copy.
  */
 export class OpenISDProject {
+    static builder(driver: OpenISDDriver, engine: Engine): ProjectBuilder {
+        return new ProjectBuilder(driver, engine);
+    }
+
     /** THE project's identity, and IN-MEMORY ONLY — deliberately a class field rather than a
      *  member of `OpenISDProjectJson`, which is what makes "internal only" structural instead of
      *  a rule someone has to remember: the record is the only thing that is ever serialised, so
@@ -1951,6 +1719,16 @@ export class OpenISDProject {
         return new OpenISDProject(json, uuid, engine);
     }
 
+    /** Wrap a stored session (saved and edited states) under an adopted identity. */
+    static wrapSession(session: OpenISDProjectSessionJson, uuid: string, engine: Engine): OpenISDProject {
+        const project = new OpenISDProject(session.saved, uuid, engine);
+        if (session.edited) {
+            project.#edited = session.edited;
+        }
+        return project;
+    }
+
+
     /** This project's in-memory identity. */
     uuid(): string {
         return this.#uuid;
@@ -1997,6 +1775,16 @@ export class OpenISDProject {
     cloneSavedProject(): OpenISDProjectJson {
         return structuredClone(this.#saved);
     }
+
+    /** Serialises both saved and edited states for persistence. */
+    cloneSession(): OpenISDProjectSessionJson {
+        return {
+            label: this.name.get(),
+            saved: structuredClone(this.#saved),
+            edited: this.#edited ? structuredClone(this.#edited) : null,
+        };
+    }
+
 
     /** Whether unsaved changes exist. `charts` (chart zoom/sweep range) is excluded: dragging a
      *  chart axis writes through the same `#slot().set()` path as every other field, but it is
@@ -2390,638 +2178,4 @@ export class OpenISDProject {
 export type DiscardChallenge = () => Promise<boolean>;
 
 
-// ---------------------------------------------------------------------------------------------
-// BUILDING A PROJECT — the wizard's path in, and the only way to make an `OpenISDProject`.
-// ---------------------------------------------------------------------------------------------
 
-/**
- * A project is not valid until it has a driver AND a box type, and each box type needs different
- * things — so choosing the box type hands back a builder SPECIALISED to it. A sealed builder has
- * no tuning to set; a passive-radiator builder demands a radiator; a bandpass builder asks about
- * two chambers. None of them can be reached without a driver, because that is where the chain
- * starts.
- *
- * What is required to BUILD is only what defines the enclosure — volumes, tunings, and the PR's
- * own radiator. Vents, losses and the rest have real defaults and are what the user fills in
- * afterwards, through the normal `box` surface. `build()` names anything still missing rather
- * than quietly producing a half-formed project.
- */
-export function newProject(driver: OpenISDDriver, engine: Engine): ProjectBuilder {
-    return new ProjectBuilder(driver, engine);
-}
-
-class ProjectBuilder {
-    readonly #driver: OpenISDDriver;
-    readonly #engine: Engine;
-
-    constructor(driver: OpenISDDriver, engine: Engine) {
-        this.#driver = driver;
-        this.#engine = engine;
-    }
-
-    sealed(): SealedProjectBuilder {
-        return new SealedProjectBuilder(this.#driver, this.#engine);
-    }
-
-    vented(): VentedProjectBuilder {
-        return new VentedProjectBuilder(this.#driver, this.#engine);
-    }
-
-    bandpass4(): Bandpass4ProjectBuilder {
-        return new Bandpass4ProjectBuilder(this.#driver, this.#engine);
-    }
-
-    bandpass6(): TwoChamberProjectBuilder {
-        return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'bandpass6');
-    }
-
-    abc(): TwoChamberProjectBuilder {
-        return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'abc');
-    }
-
-    passiveRadiator(): PassiveRadiatorProjectBuilder {
-        return new PassiveRadiatorProjectBuilder(this.#driver, this.#engine);
-    }
-}
-
-/** Shared assembly. Each specialised builder decides the box record; this turns it into a
- *  managed project, so there is ONE place a project comes into existence. */
-abstract class BoxProjectBuilder {
-    /** The driver OBJECT, not its record. A record could not be read out of it anyway — only
-     *  `OpenISDDriver` and its subclasses can reach a driver's storage — and it does not need to
-     *  be: `build()` hands the object to the project's own embedded driver, which copies it in. */
-    protected readonly driver: OpenISDDriver;
-    /** The one calculation surface, on its way to the project this builder will assemble. */
-    protected readonly engine: Engine;
-
-    protected constructor(driver: OpenISDDriver, engine: Engine) {
-        this.driver = driver;
-        this.engine = engine;
-    }
-
-    /** The chosen radiator, for the builders that take one. */
-    protected radiatorChoice: OpenISDPassiveRadiatorStandalone | null = null;
-
-    protected abstract boxRecord(): OpenISDBoxJson;
-
-    protected static required(value: number | null, what: string): number {
-        if (value === null) throw new Error(`build(): ${what} is required`);
-        return value;
-    }
-
-    /**
-     * Assemble the project — the LAST thing, once every part has been collected.
-     *
-     * The driver goes in AS THE RECORD IS BUILT. A builder and a driver are sibling domain classes
-     * in this module, so reading the driver's record here is friend access, which this module has
-     * and uses; there is no boundary to cross. Constructing a blank driver first and overwriting
-     * it one line later invented a record for a driver that was already in hand.
-     */
-    build(): OpenISDProject {
-        const project = OpenISDProject.wrap(
-            {...this.prototypeProjectJson(this.driver.toOpenIsdDeviceJson()), box: this.boxRecord()},
-            this.engine,
-        );
-        if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
-        // Those writes land in `#edited`, because every write does. A project the user has just
-        // created has no UNSAVED changes, though — so the assembled state IS its saved baseline.
-        // Without this a new project is born modified, and Cancel would discard its own driver.
-        project.save();
-        return project;
-    }
-
-    /**
-     * A new project's record: the chosen driver, the box being built, and defaults for everything a
-     * project has not been told yet.
-     *
-     * THE DRIVER IS A PARAMETER because a project cannot exist without one — `newProject()` takes a
-     * validated `OpenISDDriver` before a builder is even returned. Copied on the way in (`{...}`), so
-     * the project owns its own record and later edits do not reach back into a My Drivers entry or a
-     * bundle row.
-     *
-     * NOTE TO AGENT - JL Hates this function which creates a half baked project from a driver, but leaves all the fields with crappy values
-     * like null and I really struggle to understand why so bad given its actually called from the builder
-     * and the builder should really be constructing a finished project not this crap - John things it should DIE.
-     * And in the builder we have crappy things like this following which instantly overwrites bits of it...
-     * if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
-     */
-    prototypeProjectJson(driver: OpenISDDeviceJson): OpenISDProjectJson {
-        return {
-            driverEmbedding: {
-                device: {...driver},
-                nDrivers: 1,
-                wiring: 'parallel',
-                vcTempRise_K: 0,
-                Rs_ohm: 0,
-                driverAddedMass_kg: 0,
-                alfaVC_per_K: 0,
-                loading: 'standard',
-            },
-            box: emptyBoxJson(),
-            environment: {temperature_K: null, humidity_pct: null, pressure_Pa: null, useWinisdAirModel: null},
-            signal: {power_W: null, voltage_V: null},
-            meta: {name: '', creator: '', created: '', modified: '', description: ''},
-            filters: {filters: []},
-            advanced: {
-                forceFlatResponse: false,
-                useTransmissionLinePortModel: false,
-                rgAtDriverSide: false,
-                circuitModel: 'winisd',
-                splGraphIsXmaxLimited: false,
-            },
-            charts: {perTab: {}},
-        };
-    }
-}
-
-class SealedProjectBuilder extends BoxProjectBuilder {
-    #volume: number | null = null;
-
-    constructor(driver: OpenISDDriver, engine: Engine) {
-        super(driver, engine);
-    }
-
-    volume_m3(v: number): this {
-        this.#volume = v;
-        return this;
-    }
-
-    protected boxRecord(): OpenISDBoxJson {
-        const box = emptyBoxJson();
-        return {
-            ...box,
-            boxType: 'sealed',
-            sealed: {...box.sealed, volume_m3: BoxProjectBuilder.required(this.#volume, 'sealed volume_m3')},
-        };
-    }
-}
-
-class VentedProjectBuilder extends BoxProjectBuilder {
-    #volume: number | null = null;
-    #tuning: number | null = null;
-
-    constructor(driver: OpenISDDriver, engine: Engine) {
-        super(driver, engine);
-    }
-
-    volume_m3(v: number): this {
-        this.#volume = v;
-        return this;
-    }
-
-    tuning_hz(v: number): this {
-        this.#tuning = v;
-        return this;
-    }
-
-    protected boxRecord(): OpenISDBoxJson {
-        const box = emptyBoxJson();
-        return {
-            ...box,
-            boxType: 'vented',
-            vented: {
-                ...box.vented,
-                chamber: {
-                    ...box.vented.chamber,
-                    volume_m3: BoxProjectBuilder.required(this.#volume, 'vented volume_m3'),
-                    tuning_hz: BoxProjectBuilder.required(this.#tuning, 'vented tuning_hz'),
-                },
-            },
-        };
-    }
-}
-
-/** Bandpass 4th order: a SEALED rear chamber (no tuning of its own — its resonance is
- *  calculated) and a vented front one. */
-class Bandpass4ProjectBuilder extends BoxProjectBuilder {
-    #rearVolume: number | null = null;
-    #frontVolume: number | null = null;
-    #frontTuning: number | null = null;
-
-    constructor(driver: OpenISDDriver, engine: Engine) {
-        super(driver, engine);
-    }
-
-    rearVolume_m3(v: number): this {
-        this.#rearVolume = v;
-        return this;
-    }
-
-    frontVolume_m3(v: number): this {
-        this.#frontVolume = v;
-        return this;
-    }
-
-    frontTuning_hz(v: number): this {
-        this.#frontTuning = v;
-        return this;
-    }
-
-    protected boxRecord(): OpenISDBoxJson {
-        const box = emptyBoxJson();
-        const R = BoxProjectBuilder.required;
-        return {
-            ...box,
-            boxType: 'bandpass4',
-            bandpass4: {
-                ...box.bandpass4,
-                rear: {...box.bandpass4.rear, volume_m3: R(this.#rearVolume, 'bandpass4 rearVolume_m3')},
-                front: {
-                    ...box.bandpass4.front,
-                    volume_m3: R(this.#frontVolume, 'bandpass4 frontVolume_m3'),
-                    tuning_hz: R(this.#frontTuning, 'bandpass4 frontTuning_hz'),
-                },
-            },
-        };
-    }
-}
-
-/** Bandpass 6th order and ABC: two INDEPENDENTLY tunable chambers. Identical to build — they
- *  differ in their ports (ABC adds a third, connecting one), which is set afterwards through
- *  the box surface, not here. */
-class TwoChamberProjectBuilder extends BoxProjectBuilder {
-    readonly #kind: 'bandpass6' | 'abc';
-    #rearVolume: number | null = null;
-    #rearTuning: number | null = null;
-    #frontVolume: number | null = null;
-    #frontTuning: number | null = null;
-
-    constructor(driver: OpenISDDriver, engine: Engine, kind: 'bandpass6' | 'abc') {
-        super(driver, engine);
-        this.#kind = kind;
-    }
-
-    rearVolume_m3(v: number): this {
-        this.#rearVolume = v;
-        return this;
-    }
-
-    rearTuning_hz(v: number): this {
-        this.#rearTuning = v;
-        return this;
-    }
-
-    frontVolume_m3(v: number): this {
-        this.#frontVolume = v;
-        return this;
-    }
-
-    frontTuning_hz(v: number): this {
-        this.#frontTuning = v;
-        return this;
-    }
-
-    protected boxRecord(): OpenISDBoxJson {
-        const box = emptyBoxJson();
-        const R = BoxProjectBuilder.required;
-        const k = this.#kind;
-        const chambers = {
-            rear: {
-                ...box[k].rear,
-                volume_m3: R(this.#rearVolume, `${k} rearVolume_m3`),
-                tuning_hz: R(this.#rearTuning, `${k} rearTuning_hz`),
-            },
-            front: {
-                ...box[k].front,
-                volume_m3: R(this.#frontVolume, `${k} frontVolume_m3`),
-                tuning_hz: R(this.#frontTuning, `${k} frontTuning_hz`),
-            },
-        };
-        return {...box, boxType: k, [k]: {...box[k], ...chambers}};
-    }
-}
-
-/** A passive-radiator box cannot be valid without a RADIATOR — the one box type whose builder
- *  demands a second component, which is exactly why it has a builder of its own. */
-class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
-    #volume: number | null = null;
-    #tuning: number | null = null;
-    #count = 1;
-
-    constructor(driver: OpenISDDriver, engine: Engine) {
-        super(driver, engine);
-    }
-
-    volume_m3(v: number): this {
-        this.#volume = v;
-        return this;
-    }
-
-    tuning_hz(v: number): this {
-        this.#tuning = v;
-        return this;
-    }
-
-    count(v: number): this {
-        this.#count = v;
-        return this;
-    }
-
-    /** Takes an ALREADY-VALIDATED radiator, from `passiveRadiatorFromConformingRecord()`. Kept as
-     *  the OBJECT; `build()` has the box's own radiator copy it in. */
-    radiator(radiator: OpenISDPassiveRadiatorStandalone): this {
-        this.radiatorChoice = radiator;
-        return this;
-    }
-
-    protected boxRecord(): OpenISDBoxJson {
-        const box = emptyBoxJson();
-        const R = BoxProjectBuilder.required;
-        if (!this.radiatorChoice) throw new Error('build(): a passive-radiator box requires a radiator');
-        // `component` stays null HERE and is filled by `build()`, which has the box's own radiator
-        // adopt the chosen one — the record is private to the radiator, so the builder cannot copy
-        // it across itself.
-        return {
-            ...box,
-            boxType: 'box-passive-radiator',
-            passiveRadiator: {
-                ...box.passiveRadiator,
-                volume_m3: R(this.#volume, 'passive-radiator volume_m3'),
-                tuning_hz: R(this.#tuning, 'passive-radiator tuning_hz'),
-                count: this.#count,
-            },
-        };
-    }
-}
-
-// ── PERSISTENCE ────────────────────────────────────────────────────────────────────────────
-//
-//     app / UI
-//        │   domain objects only — `OpenISDProject`
-//     ProjectRepo     ── peer of the DOMAIN OBJECT, lives HERE
-//        │   `OpenISDProjectJson`, which never appears in any signature below
-//     RecordStore<R>  ── peer of the RECORD, injected, implemented elsewhere
-//        │
-//     IndexedDB (packages/design/browser) / a file / a server
-//
-// The repo is the only code that converts between the two vocabularies, so it is the only code
-// that needs both. It lives in THIS module because converting requires the record type and the
-// module-private `projectRecords` registry, neither of which leaves this file.
-//
-// The store does NOT live here, and does not need to: it is injected as a GENERIC factory
-// (`projectRepo()` takes the factory), so the implementation is parametric in the record type and can neither
-// name nor inspect it. That is what keeps browser code out of a package that otherwise depends
-// on nothing, while `OpenISDProjectJson` stays unexported and unnameable everywhere.
-
-/**
- * What a stored project is called, for a picker.
- *
- * PUBLIC on purpose, unlike the record: it is the label a user reads, so hiding it would only
- * force the store to invent a shape it cannot see. Carried ALONGSIDE the record rather than read
- * out of it, because the store is not allowed to look inside.
- */
-/**
- * Somewhere to keep records, keyed by a string the caller supplies.
- *
- * PARAMETRIC IN `R` AND DELIBERATELY IGNORANT OF IT. An implementation stores and returns values
- * of `R` without ever inspecting them, so it cannot depend on what `R` turns out to be — which
- * is exactly what lets the record type stay private to this module while the implementation
- * lives in another package entirely.
- *
- * Ignorance costs nothing in practice: IndexedDB declares its indexes with runtime keyPath
- * strings (`'meta.name'`), so a store can index a value it has no compile-time knowledge of. The
- * bytes on disk are a real, self-describing JSON document; only the TYPE is opaque.
- *
- * ASSUMES the record is kept as a STRUCTURED VALUE, not a serialised string — a string cannot be
- * indexed, and every listing would then have to deserialise every entry.
- */
-export interface RecordStore<R> {
-    /**
-     * Keep `record` under `id`, replacing whatever was there, and stamp it as modified now.
-     *
-     * TAKES `meta` SEPARATELY because it may not read the record. Stamping is the STORE's job, not
-     * the caller's: "when this was last written" is a fact about the act of writing, and the store
-     * is the only participant present at the moment it happens.
-     *
-     * WHY IT EXISTS: `ProjectRepo.save()` needs somewhere to put what it extracted, and must not
-     * care whether that is IndexedDB, a file or a server.
-     */
-    put(id: string, record: R): void;
-
-    /**
-     * The record under `id`, or null when there is none.
-     *
-     * Null means ABSENT, never "unreadable" — a stored value that cannot be understood is a fault
-     * to report, and collapsing the two is how a corrupt entry becomes a silently missing project.
-     *
-     * WHY IT EXISTS: `ProjectRepo.load()` needs the raw record before it can rebuild a project.
-     */
-    get(id: string): R | null;
-
-    /**
-     * Every entry's key, label and modification time — enough to draw a picker, nothing more.
-     *
-     * DEPENDS ON an index over the stored records. Reading whole records and discarding them would
-     * work and is wrong: it makes showing a picker cost the size of every stored project rather
-     * than the number of them.
-     *
-     * WHY IT EXISTS: it is the only way `ProjectRepo.list()` can be cheap.
-     */
-    list(): { id: string; label: string; modified: string }[];
-
-    /**
-     * Delete the record under `id`. Deleting an absent id is NOT an error — the postcondition
-     * ("nothing is stored under `id`") already holds, which is what makes deletion safe to retry
-     * after a failure with no caller checking first.
-     *
-     * WHY IT EXISTS: `ProjectRepo.remove()` needs it.
-     */
-    remove(id: string): void;
-}
-
-/**
- * A store implementation, before it knows what it will hold.
- *
- * GENERIC, and that is the whole mechanism. If the registry took a `RecordStore<OpenISDProjectJson>`
- * directly, an outsider could still satisfy that parameter by inference even without being able to
- * NAME the type — the standing hole with unexported types. A factory that must work for ANY `R`
- * cannot depend on which one it gets, so parametricity enforces the boundary instead of a naming
- * convention, and no cast is needed anywhere.
- */
-export type RecordStoreFactory = <R>(labelPath: string) => RecordStore<R>;
-
-
-/**
- * The app's delete dialog, as the repo sees it: shown the entry that is really about to be
- * destroyed, answering whether to proceed.
- *
- * Async because a dialog is — the repo waits for a person. `false` is a full stop, not a retry:
- * the entry is left exactly as it was.
- */
-export type DeleteChallenge = (entry: ProjectListing) => Promise<boolean>;
-
-/**
- * How a delete ended. Three outcomes rather than a boolean, because "nothing was deleted" has two
- * very different causes and a caller reporting to the user must tell them apart: the user
- * declined, versus the entry was not there at all (already deleted, or a stale row).
- */
-export type DeleteOutcome = 'deleted' | 'declined' | 'absent';
-
-/**
- * One row of `ProjectRepo.list()` — plain data for a picker.
- *
- * Deliberately NOT a snapshot of the project: a listing exists so the user can CHOOSE, so it
- * carries only what a chooser needs. Anything more would be a second route to project state that
- * bypasses `load()`.
- */
-export interface ProjectListing {
-    /** The STORE KEY — pass it back to `load()` or `remove()`.
-     *
-     *  It IS the project's uuid: `save()` keys on `OpenISDProject.uuid()`, and `load()` adopts the
-     *  key back, so an entry and the project opened from it share one identity. That is what lets a
-     *  workspace tell whether a row in the picker is already open, and what stops a reopened design
-     *  autosaving into a second entry. */
-    readonly id: string;
-    /** The project's name. A LABEL, never an identity: two entries may share one. */
-    readonly name: string;
-    /** When the entry was last written, for ordering the picker most-recent-first. */
-    readonly modified: string;
-}
-
-/**
- * The app's door to stored projects, in DOMAIN vocabulary.
- *
- * Every method takes or returns an `OpenISDProject` or plain data — never a record — so no caller
- * can see the stored shape, and a change to that shape cannot reach the app.
- *
- * DEPENDS ON the `RecordStore` handed to `projectRepo()`, and on this module's privileged
- * access to a project's own record. Both are why it lives here rather than in an app package.
- *
- * ASSUMES identity comes from the project itself (`OpenISDProject.uuid()`) and is in-memory only,
- * never carried in the record — so the repo supplies the key on every call, and a record on its
- * own names nothing.
- */
-export interface ProjectRepo {
-    /**
-     * Write `project`'s current design to the store under its own uuid, replacing any entry there.
-     *
-     * PERSISTS the edit layer if one is open, else committed — never an open what-if, which is
-     * exploratory and must not survive the session. There is no layer parameter, so no call site
-     * can persist the wrong thing.
-     *
-     * WHY IT EXISTS — AUTOSAVE: the user types a box volume, is called away, and the browser
-     * discards the tab. On return the design is still there. Today the app has no answer to that:
-     * work between explicit File → Save actions is simply lost.
-     *
-     * Autosave is this method plus a TRIGGER — the project's own change notification calling it.
-     * The trigger is still undecided (QO92: every change, debounced, or on blur), and the same
-     * method serves an explicit toolbar Save. WHAT is written is settled here; WHEN is not.
-     */
-    save(project: OpenISDProject): void;
-
-    /**
-     * Rebuild the project stored under `id` as a fresh `OpenISDProject`, with nothing edited.
-     *
-     * RETURNS the problems rather than throwing, so a caller listing projects can show WHY a row
-     * cannot be opened instead of failing on click.
-     *
-     * ADOPTS `id` AS THE PROJECT'S IDENTITY. A store key was minted in this process, so restoring
-     * it is not importing a foreign id — and it is what makes reopening idempotent: the project's
-     * next save writes back to the entry it came from. Opening one entry twice therefore yields two
-     * handles on the SAME identity, which a workspace should collapse by focusing what is already
-     * open rather than loading a second copy. (A FILE import still mints: a file's id is provenance,
-     * never a key — the driver precedent, QO81.)
-     *
-     * WHY IT EXISTS: the user picks "Ported 8in v3" from the list and expects the design back as
-     * they left it, editable. It is also the reload path.
-     */
-    load(id: string): OpenISDProject | string[];
-
-    /**
-     * Everything the store holds, most-recently-modified first.
-     *
-     * WHY IT EXISTS: the picker opens with forty designs stored and must render immediately.
-     * Without a listing the only way to show it is to load all forty — the whole cost of opening
-     * every design, paid to render forty lines of text.
-     */
-    list(): ProjectListing[];
-
-    /**
-     * Delete the stored entry for `id`, but ONLY after `confirm` agrees.
-     *
-     * Deletion is final: no archive, no undo, and once the user has no file there is no copy left
-     * anywhere. So the challenge is a PARAMETER, not a convention — there is no overload without
-     * it and no call site can forget it (John 2026-08-26). What the UI must put in that dialog:
-     *
-     *   1. OFFER EXPORT FIRST, as the default action — deletion is only safe once the design exists
-     *      somewhere else, and the moment to say so is before it is gone.
-     *   2. DEMAND A TYPED 3-DIGIT NUMBER, generated per dialog. A button can be clicked reflexively
-     *      and a checkbox ticked without reading; typing digits cannot be done by muscle memory,
-     *      which forces the user to look at WHICH project the dialog names. Generated rather than
-     *      fixed, or regular users learn it and it decays back into a button.
-     *
-     * `confirm` RECEIVES THE STORED ENTRY, so the dialog names what is really about to be destroyed
-     * rather than what the caller believed it was pointing at. It is called ONLY when the entry is
-     * found: a dialog about a project that is already gone teaches users to dismiss dialogs unread.
-     *
-     * Deliberately harsher than the CLOSE challenge, which offers three named outcomes and no
-     * typing. Closing loses work since the last file save; this destroys the stored copy too.
-     *
-     * WHY IT EXISTS: a store that only ever grows eventually hits its quota, and the first symptom
-     * is saves silently failing. The user needs to throw away the experiments they no longer want.
-     */
-    remove(id: string, confirm: DeleteChallenge): Promise<DeleteOutcome>;
-}
-
-/**
- * Build a repo over the store `make` produces.
- *
- * THE FACTORY IS INSTANTIATED HERE, at the private record type. So the caller supplies a store
- * without ever learning what it will hold, and this module fixes the type without the caller
- * being able to name it — the boundary is enforced by parametricity, not by a naming rule, and
- * no cast appears anywhere.
- *
- * The store is held by the returned repo, NOT in module scope. A module-scoped store would have
- * to be installed exactly once, which makes a second repo impossible to create and the package
- * impossible to test — a test would need a reset backdoor that ships in production code. Passing
- * it in costs one argument at the composition root and removes the global entirely.
- *
- * ASSUMES the composition root builds ONE repo and shares it. Two repos over two factories are
- * two stores; over IndexedDB they would address the same database, but nothing here enforces
- * that, and nothing needs to — deciding what exists once is what a composition root is for.
- */
-export function projectRepo(make: RecordStoreFactory, engine: Engine): ProjectRepo {
-    const store = make<OpenISDProjectJson>('meta.name');
-    return {
-        save(project: OpenISDProject): void {
-            project.save();
-            const json = project.cloneSavedProject();
-            store.put(project.uuid(), json);
-        },
-
-        load(id: string): OpenISDProject | string[] {
-            const stored = store.get(id);
-            if (!stored) return [`no stored project with id ${id}`];
-            // THE LOAD BOUNDARY (QO116): `stored` is `R` only by the store's own type parameter, a
-            // compile-time promise nothing at runtime enforced on whatever is actually behind it.
-            // One `.safeParse()` here validates the WHOLE project record before anything downstream
-            // ever sees it — never a per-section check, per QO116 ("validate the whole project in
-            // a single .parse() at the load boundary. Not three standalone schemas").
-            const result = openISDProjectJsonSchema.safeParse(stored);
-            if (!result.success) {
-                return result.error.issues.map(issue => issue.path.length === 0
-                    ? issue.message
-                    : `'${issue.path.join('.')}': ${issue.message}`);
-            }
-            // ADOPTS `id` as the project's identity, so its next save writes back to the entry it came
-            // from rather than minting a second one. See `wrapWithIdentity()`.
-            return OpenISDProject.wrapWithIdentity(result.data, id, engine);
-        },
-
-        list(): ProjectListing[] {
-            return store.list()
-                .map(e => ({id: e.id, name: e.label, modified: e.modified}))
-                .sort((a, b) => (a.modified < b.modified ? 1 : a.modified > b.modified ? -1 : 0));
-        },
-
-        async remove(id: string, confirm: DeleteChallenge): Promise<DeleteOutcome> {
-            // FOUND FIRST, then challenge: there is nothing to name and nothing to lose when `id`
-            // matches nothing, and the listing is what gives the dialog the real entry to show.
-            const entry = this.list().find(e => e.id === id);
-            if (!entry) return 'absent';
-            if (!await confirm(entry)) return 'declined';
-            store.remove(id);
-            return 'deleted';
-        },
-    };
-}

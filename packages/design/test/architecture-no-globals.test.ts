@@ -244,7 +244,7 @@ describe('packages/design has no global variables', () => {
       .filter((f) => !f.startsWith('test/') && !f.startsWith('..'));
 
     expect(shipped.length).toBeGreaterThan(3);
-    expect(shipped).toContain('domain/project.ts');
+    expect(shipped).toContain('domain/openisdDomain.ts');
   });
 
   it('flags what is MUTABLE and passes what is frozen, however it is reached', () => {

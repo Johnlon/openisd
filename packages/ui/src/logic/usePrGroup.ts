@@ -4,7 +4,7 @@
  * `solvePrGroup()`), the owner of the state. This module keeps the field vocabulary, the
  * badge letter, and the same one-action-one-solve suspension as the vent group.
  */
-import type { OpenISDProject, Provenance } from '@openisd/design';
+import type { OpenISDProject, CellState } from '@openisd/design';
 import { suspendVentSolve } from './useVentGroup.js';
 
 /** The two members tied by the tuning relation. */
@@ -12,7 +12,7 @@ export const PR_GROUP = ['prFp', 'prMadd'] as const;
 /** One of the two names listed above. */
 export type PrField = typeof PR_GROUP[number];
 
-const LETTER: Record<Provenance, 'E' | 'C' | 'N'> = {
+const LETTER: Record<CellState, 'E' | 'C' | 'N'> = {
   entered: 'E', calculated: 'C', 'not-available': 'N',
 };
 

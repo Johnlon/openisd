@@ -44,7 +44,7 @@ alone settles it.
 272 unit failures at session start, of which 246 come from one missing API:
 `wdr-openisd-round-trip.test.ts:132` calls `OpenISDDriver.fromWinISDDriver(...)`, which does not
 exist in source — the only hits are two mentions inside comments in commented-out code in
-`openisdYamlToWdr.ts`. Three more gates fail with `ENOENT: scandir 'packages/winisd/src'`,
+`COMMENTED_openisdYamlToWdr.ts`. Three more gates fail with `ENOENT: scandir 'packages/winisd/src'`,
 scanning the directory that the `packages/design/winisd/` move deleted. Not investigated further
 and not this session's stream.
 

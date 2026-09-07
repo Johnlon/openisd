@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Engine } from '@openisd/design/engine';
-import { newProject, conformingRecordToDriver } from '../domain/index.js';
+import { OpenISDProject, OpenISDDriver } from '../domain/index.js';
 
 // This test is the package's PROXY CONSUMER: it imports from `index.js` only.
 const scraped = <T,>(value: T) => ({ value });
@@ -27,9 +27,9 @@ function ventedProject() {
       },
     },
   };
-  const driver = conformingRecordToDriver(record, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
-  return newProject(driver, new Engine()).vented().volume_m3(0.03).tuning_hz(35).build();
+  return OpenISDProject.builder(driver, new Engine()).vented().volume_m3(0.03).tuning_hz(35).build();
 }
 
 describe('vent-group solve/reachability — stubbed, not yet implemented', () => {

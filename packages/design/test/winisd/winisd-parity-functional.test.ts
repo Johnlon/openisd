@@ -23,8 +23,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Engine, LossMode } from '@openisd/design/engine';
-import { conformingRecordToDriver, type OpenISDDriver, type Cell } from '@openisd/design';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchema.js';
+import { OpenISDDriver, type Cell } from '@openisd/design';
+import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
 import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
 import { POS_TO_WDRKEY } from '../../winisd/parstate.js';
@@ -355,7 +355,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         : ({} as Record<string, Record<string, string>>);
       const asRead = WinISDDriver.fromWdrIni(scenarioWdr(s));
       const { record } = winISDDriverToOpenISDDeviceJson(asRead);
-      const conformed = conformingRecordToDriver(record, new Engine());
+      const conformed = OpenISDDriver.fromConformingRecord(record, new Engine());
       if (Array.isArray(conformed)) throw new Error(`${s.id}: not a valid driver: ${conformed.join(', ')}`);
       const drv = conformed;
 

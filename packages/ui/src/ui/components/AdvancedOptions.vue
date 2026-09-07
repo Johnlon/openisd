@@ -31,17 +31,17 @@ const project = useFocusedProject();
       <input type="checkbox" v-model="simVcInductance"> Simulate voice coil inductance
     </label>
     <label data-field-key="forceFlatResponse" :title="fieldHelp('forceFlatResponse')">
-      <input type="checkbox" :checked="project.forceFlatResponse()" @change="e => project.setForceFlatResponse(inputChecked(e))"> Force flat response
+      <input type="checkbox" :checked="project.forceFlatResponse.get()" @change="e => project.forceFlatResponse.set(inputChecked(e))"> Force flat response
     </label>
     <label data-field-key="tlPortModel" :title="fieldHelp('tlPortModel')"
       :class="{ 'na': !hasVent }">
-      <input type="checkbox" :checked="project.tlPortModel()" @change="e => project.setTlPortModel(inputChecked(e))" :disabled="!hasVent"> Use "transmission line"-model for port simulation
+      <input type="checkbox" :checked="project.useTransmissionLinePortModel.get()" @change="e => project.useTransmissionLinePortModel.set(inputChecked(e))" :disabled="!hasVent"> Use "transmission line"-model for port simulation
     </label>
     <label data-field-key="rgAtDriverSide" :title="fieldHelp('rgAtDriverSide')">
-      <input type="checkbox" :checked="project.rgAtDriverSide()" @change="e => project.setRgAtDriverSide(inputChecked(e))"> Rg is at driver side
+      <input type="checkbox" :checked="project.rgAtDriverSide.get()" @change="e => project.rgAtDriverSide.set(inputChecked(e))"> Rg is at driver side
     </label>
     <label data-field-key="splXmaxLimited" :title="fieldHelp('splXmaxLimited')">
-      <input type="checkbox" :checked="project.splXmaxLimited()" @change="e => project.setSplXmaxLimited(inputChecked(e))"> SPL graph is Xmax limited
+      <input type="checkbox" :checked="project.splGraphIsXmaxLimited.get()" @change="e => project.splGraphIsXmaxLimited.set(inputChecked(e))"> SPL graph is Xmax limited
     </label>
     <label data-field-key="useWinisdAirModel" :title="fieldHelp('useWinisdAirModel')">
       <input type="checkbox" :checked="project.envUseWinisdAirModel()" @change="e => project.setEnvUseWinisdAirModel(inputChecked(e))"> Use WinISD air model

@@ -142,7 +142,7 @@ describe('the engine is reachable only through its door', () => {
 
   it('recognises a bypass however it is spelled', () => {
     // Non-vacuity: the gate is proved able to catch each shape, rather than trusted to.
-    const someDomainFile = path.join(packageRoot, 'domain', 'project.ts');
+    const someDomainFile = path.join(packageRoot, 'domain', 'openisdDomain.ts');
     expect(bypassesTheDoor(someDomainFile, '../engine/sweep.js')).toBe(true);
     expect(bypassesTheDoor(someDomainFile, '@openisd/design/engine/air.js')).toBe(true);
 

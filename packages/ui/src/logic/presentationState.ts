@@ -11,9 +11,31 @@
  */
 import { reactive } from 'vue';
 import type { ChartTabId, DragRange, YRange } from '../types.js';
-import type { UiState } from '@openisd/persistence';
 import { getOrInit, hmrSlots } from './hmrSingleton.js';
 import { nextToken, type UnitGroup } from './fields/units.js';
+
+/** A user-chosen colour override for one chart element; absent key = default colour
+ *  (`OptionsModal.vue`'s "Plot Window" tab). */
+export interface ChartColors {
+  background?: string;
+  otherLines?: string;
+  labels?: string;
+  xmaxLimit?: string;
+  cursor?: string;
+  [key: string]: string | undefined;
+}
+
+/** Shape of `ViewSnapshot.ui` (`@openisd/persistence`'s `ui: Record<string, unknown>`) that
+ *  this module actually reads and writes. */
+interface UiState {
+  [key: string]: unknown;
+  username?: string;
+  unitTokens?: Record<string, string>;
+  envDefaults: { tempK: number; pressurePa: number; humidityPct: number };
+  chartColors?: ChartColors;
+  originalChartTab?: string;
+  originalChartLabel?: string;
+}
 
 export const AIR_CONSTANTS_APP_DEFAULT: UiState['envDefaults'] =
   { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 };

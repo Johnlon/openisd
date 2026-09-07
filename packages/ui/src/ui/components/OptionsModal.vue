@@ -75,7 +75,7 @@ const draft = reactive({
   chartColors: JSON.parse(JSON.stringify(presentationState.ui.chartColors ?? {})),
   unitTokens: JSON.parse(JSON.stringify(presentationState.ui.unitTokens ?? {})),
   yRanges: JSON.parse(JSON.stringify(presentationState.yRanges)),
-  P: { fmin: project.value.sweepFmin_hz(), fmax: project.value.sweepFmax_hz() }
+  P: { fmin: project.value.sweepFmin_hz.get() ?? 10, fmax: project.value.sweepFmax_hz.get() ?? 1000 }
 });
 
 const unitsResetPending = ref(false);
@@ -110,8 +110,8 @@ function saveAndClose() {
   presentationState.ui.chartColors = { ...draft.chartColors };
   presentationState.ui.unitTokens = { ...draft.unitTokens };
   presentationState.yRanges = { ...draft.yRanges };
-  project.value.setSweepFmin_hz(draft.P.fmin);
-  project.value.setSweepFmax_hz(draft.P.fmax);
+  project.value.sweepFmin_hz.set(draft.P.fmin);
+  project.value.sweepFmax_hz.set(draft.P.fmax);
   if (unitsResetPending.value) {
     resetUnitTokens();
   }

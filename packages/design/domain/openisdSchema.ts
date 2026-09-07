@@ -2,11 +2,15 @@
  * THE openisd RECORD, DECLARED ONCE, AS A SCHEMA — the ONLY description of what an openisd record
  * is, and the only thing that decides whether an untrusted value is one.
  *
- * ITS OWN FILE because it is a different kind of thing from the domain objects in `project.ts`:
- * those are behaviour over a record that has already been checked, this is the check itself, and
- * the boundary between "untrusted value" and "record" is exactly the line the two sit either side
- * of. It also keeps the record's SHAPE readable in one screenful, which it was not when buried in
- * the middle of 2900 lines of domain code.
+ * ITS OWN FILE because it is a different kind of thing from the domain objects in
+ * `openisdDomain.ts`: those are behaviour over a record that has already been checked, this is
+ * the check itself, and the boundary between "untrusted value" and "record" is exactly the line
+ * the two sit either side of. It also keeps the record's SHAPE readable on its own, apart from
+ * the domain code.
+ *
+ * `emptyBoxJson()` and the `NO_*` frozen defaults live here too: they build an `OpenISDBoxJson`
+ * from nothing but JSON, no class involved, so the record's blank shape sits with the record's
+ * schema. `openisdTransforms.ts`'s builders spread them into a new project.
  *
  * PRIVATE TO THE DOMAIN. `domain/index.ts` does not re-export it: a caller that wants to know
  * whether a value is a record asks `driverFromConformingRecord` or `driverYmlToOpenIsdRecord`,
@@ -18,10 +22,10 @@
  * of a silent loss.
  */
 import {z} from 'zod';
-import {WinISDDriver, INI_ROWS} from '../winisd';
+import {WinISDDriver, INI_ROWS} from '../winisd/index.js';
 import {newUuid} from './newUuid.js';
 import type {FieldHandle} from './cell.js';
-import type {OpenISDDriver} from './project.js';
+import type {OpenISDDriver} from './openisdDomain.js';
 import type {DriverError, BoxType, Filter, FilterType} from '../engine/index.js';
 import type {VentShape} from './vent.js';
 
@@ -384,20 +388,9 @@ const specsJsonSchema = z.strictObject({
 });
 
 export const openISDDeviceJsonSchema = z.strictObject({
-    // THE ORDER IS THE RECORD'S OWN, and changing it changes every file we write. These members
-    // are declared in
-    // `_KEY_PRIORITY_LIST` order (`model_driver.py:1509`), which is the order `canonical_yaml` writes
-    // and therefore the order every driver.yml on disk states its keys in (John, 2026-09-01: "I
-    // asked for the order to be the constant order that driver.yml emits").
-    //
-    // It matters because `safeParse` returns an object built key by key IN DECLARATION ORDER, and
-    // that object is what the domain then holds and re-serialises. Declared in any other order,
-    // every record would come back reordered and every regenerated openisd.yml would diff against
-    // its predecessor for no reason at all.
-    //
-    // Which ENVELOPE each field gets is not a style choice either — it is what `OpenIsdYmlFile`
-    // declares, and it says how the value came to be there: read from a document (scraped),
-    // computed from other fields (derived), or a fact about the record itself (bookkeeping).
+    // DO NOT REORDER. Field order matches `_KEY_PRIORITY_LIST` (`model_driver.py:1509`) and `driver.yml`.
+    // Zod's `safeParse` preserves this declaration order; reordering here causes diff noise on save.
+    // Envelope types (scraped/derived/bookkeeping) exactly match `OpenIsdYmlFile` definitions.
     uuid: bookkeepingFieldOf(z.string()),
     quality: z.strictObject({
         issue: z.string().optional(),
@@ -640,6 +633,27 @@ const openISDAdvancedJsonSchema = z.strictObject({
 });
 export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 
+/** A saved Y-axis zoom override for one chart tab — absent means auto-scale to fit the data. */
+const chartYRangeJsonSchema = z.strictObject({
+    ymin: z.number(),
+    ymax: z.number(),
+});
+export type ChartYRangeJson = z.infer<typeof chartYRangeJsonSchema>;
+
+/** The chart panels' own view state: the frequency range every chart sweeps and is plotted
+ *  over (shared — one X axis across all panels, John 2026-09-07), and each panel's own Y-axis
+ *  zoom (`perTab`, keyed by the UI's `ChartTabId` as a plain string — that type is
+ *  `packages/ui`'s, so this schema cannot reference it directly). Per-project: two projects
+ *  legitimately want different ranges. `fmin_hz`/`fmax_hz`/`N` absent means the engine's own
+ *  sweep defaults (`sweep.ts`: 10 Hz, 1000 Hz, 400 points). */
+const openISDChartsJsonSchema = z.strictObject({
+    fmin_hz: z.number().optional(),
+    fmax_hz: z.number().optional(),
+    N: z.number().optional(),
+    perTab: z.record(z.string(), chartYRangeJsonSchema),
+});
+export type OpenISDChartsJson = z.infer<typeof openISDChartsJsonSchema>;
+
 /** The embedded driver, plus the settings that describe how it sits in THIS project's array —
  *  how many units, how they're wired together, the amplifier's source resistance loading them,
  *  the coil's thermal rise under drive, and the added mass on the driver from this array's own
@@ -676,8 +690,16 @@ export const openISDProjectJsonSchema = z.strictObject({
     meta: openISDProjectMetaJsonSchema,
     filters: filtersJsonSchema,
     advanced: openISDAdvancedJsonSchema,
+    charts: openISDChartsJsonSchema,
 });
 export type OpenISDProjectJson = z.infer<typeof openISDProjectJsonSchema>;
+
+export const openISDProjectSessionJsonSchema = z.strictObject({
+    label: z.string(),
+    saved: openISDProjectJsonSchema,
+    edited: openISDProjectJsonSchema.nullable(),
+});
+export type OpenISDProjectSessionJson = z.infer<typeof openISDProjectSessionJsonSchema>;
 
 
 /**
@@ -887,3 +909,107 @@ export function wdrFields(spec: DriverSpec): ReadonlyArray<readonly [string, Fie
         ['Outer', spec.Outer_m], ['Vcd', spec.Vcd_m], ['DVol', spec.DVol_m3],
     ];
 }
+
+// Shared const objects, the starting values a brand-new box is built from. Values are WinISD's
+// own defaults for a freshly-created box (packages/design/winisd/winisdProject.ts TEMPLATE:
+// Ql=10, Qa=100, Qp=100, Qiclfr=100, endcorrection=0.6) — not invented numbers.
+//
+// Each is `Object.freeze`d so no assignment or mutating call on it can compile or run — see
+// packages/design/AGENTS.md "Keep module-scoped state immutable". Every use still SPREADS the
+// value (`{ ...NO_VENTED_CHAMBER }`) so the object reaching a project record is always a fresh
+// copy, never the shared one.
+const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: 10, Qa: 100});
+const NO_VENTED_LOSSES: VentedLossesJson = Object.freeze({Ql: 10, Qa: 100, Qp: 100});
+const NO_COUPLED_SEALED_LOSSES: CoupledSealedLossesJson =
+    Object.freeze({Ql: 10, Qa: 100, Qicl: 100});
+const NO_COUPLED_VENTED_LOSSES: CoupledVentedLossesJson =
+    Object.freeze({Ql: 10, Qa: 100, Qp: 100, Qicl: 100});
+const NO_VENT: VentJson = Object.freeze({
+    shape: 'round',
+    diameter_m: null,
+    width_m: null,
+    height_m: null,
+    length_m: null,
+    endCorrection_m: 0.6,
+});
+const NO_VENTED_CHAMBER: ChamberJson =
+    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_VENTED_LOSSES});
+const NO_COUPLED_SEALED_CHAMBER =
+    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_COUPLED_SEALED_LOSSES});
+const NO_COUPLED_VENTED_CHAMBER =
+    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_COUPLED_VENTED_LOSSES});
+
+/** A box with nothing designed yet — every box type present and inert, matching the
+ *  dormant-data rule (the box holds EVERY box type at once and names which is active, rather
+ *  than leaving callers to honour that themselves). */
+export function emptyBoxJson(): OpenISDBoxJson {
+    return {
+        boxType: 'sealed',
+        sealed: {volume_m3: 0, losses: NO_SEALED_LOSSES},
+        vented: {chamber: NO_VENTED_CHAMBER, vent: NO_VENT},
+        bandpass4: {rear: NO_COUPLED_SEALED_CHAMBER, front: NO_COUPLED_VENTED_CHAMBER, frontVent: NO_VENT},
+        bandpass6: {
+            rear: NO_COUPLED_VENTED_CHAMBER,
+            front: NO_COUPLED_VENTED_CHAMBER,
+            rearVent: NO_VENT,
+            frontVent: NO_VENT,
+        },
+        abc: {
+            rear: NO_COUPLED_VENTED_CHAMBER,
+            front: NO_COUPLED_VENTED_CHAMBER,
+            rearVent: NO_VENT,
+            frontVent: NO_VENT,
+            intraVent: NO_VENT,
+        },
+        passiveRadiator: {
+            volume_m3: 0,
+            tuning_hz: null,
+            count: 1,
+            addedMass_kg: null,
+            losses: NO_SEALED_LOSSES,
+            component: null,
+        },
+    };
+}
+
+
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
+import { driverSectionProblems, radiatorSectionProblems } from './openisdTransforms.js';
+
+export const OpenISDDeviceJson = Object.freeze({
+    fromOpenisdDriverYml(ymlText: string): { json: OpenISDDeviceJson } | { problems: string[] } {
+        let parsed: unknown;
+        try {
+            parsed = parseYaml(ymlText);
+        } catch (e) {
+            return {problems: [`not valid YAML: ${e instanceof Error ? e.message : String(e)}`]};
+        }
+        return OpenISDDeviceJson.fromConformingRecord(OpenISDDeviceJson.stripDriverYmlOnlyFields(parsed));
+    },
+
+    toOpenisdDriverYml(json: OpenISDDeviceJson): string {
+        return stringifyYaml(json);
+    },
+
+    fromConformingRecord(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
+        const result = openISDDeviceJsonSchema.safeParse(record);
+        if (result.success) return {json: result.data};
+        return {
+            problems: result.error.issues.map(issue => issue.path.length === 0
+                ? issue.message
+                : `'${issue.path.join('.')}': ${issue.message}`),
+        };
+    },
+
+    stripDriverYmlOnlyFields(value: unknown): unknown {
+        if (Array.isArray(value)) return value.map(OpenISDDeviceJson.stripDriverYmlOnlyFields);
+        if (typeof value !== 'object' || value === null) return value;
+
+        const out: Record<string, unknown> = {};
+        for (const [key, v] of Object.entries(value)) {
+            if (key === 'definition' || key === 'scraper' || key === 'scraper_meta') continue;
+            out[key] = OpenISDDeviceJson.stripDriverYmlOnlyFields(v);
+        }
+        return out;
+    }
+});

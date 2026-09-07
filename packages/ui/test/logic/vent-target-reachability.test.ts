@@ -1,7 +1,7 @@
 /**
  * A TARGET TUNING THE PORT CANNOT REACH MUST BE REPORTED, NOT ABSORBED.
  *
- * `lengthForTuning_m()` (`box.vented.vent`, `packages/design/domain/project.ts`) returns the
+ * `lengthForTuning_m()` (`box.vented.vent`, `packages/design/domain/openisdDomain.ts`) returns the
  * raw signed root of L = c²·Sp/(4π²·Fb²·V) − k·d, so a target above the ceiling comes back
  * NEGATIVE. The ceiling is the tuning at L = 0: the end correction alone supplies acoustic
  * mass, so a zero-length aperture in this volume through this area already resonates
@@ -9,7 +9,7 @@
  *
  * The reachability wrappers (`ventAchievedFb`/`ventMaxReachableFb`/`ventTargetUnreachable` on
  * `OpenISDProject`) are documented stubs that throw `not implemented`
- * (`packages/design/domain/project.ts` "ledger 2026-09-06"); this file asserts directly against
+ * (`packages/design/domain/openisdDomain.ts` "ledger 2026-09-06"); this file asserts directly against
  * the real, working `lengthForTuning_m()`/`tuningIn_hz()` physics instead, and skips the block
  * that needs the stubs themselves.
  *
@@ -18,7 +18,7 @@
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { newProject, conformingRecordToDriver } from '@openisd/design';
+import { OpenISDProject, OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import {
   ventAchievedFb, ventTargetUnreachable, ventMaxReachableFb,
@@ -49,9 +49,9 @@ function blankDriverRecord(): unknown {
 /** Vb = 30 L, round 5 cm vent, k = 0.6, tuning entered. */
 function trial(targetFb: number) {
   const engine = new Engine();
-  const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-  const p = newProject(driver, engine).vented().volume_m3(0.03).tuning_hz(targetFb).build();
+  const p = OpenISDProject.builder(driver, engine).vented().volume_m3(0.03).tuning_hz(targetFb).build();
   p.box.vented.vent.shape.set('round');
   p.box.vented.vent.diameter_m.set(0.05);
   p.box.vented.vent.endCorrection_m.set(0.6);
@@ -99,9 +99,9 @@ describe('vent target reachability — an unreachable tuning must surface, not h
 
   it('the bandpass front chamber is judged on its OWN volume, not the whole box', () => {
     const engine = new Engine();
-    const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+    const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
     if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-    const p = newProject(driver, engine).bandpass4().rearVolume_m3(0.03).frontVolume_m3(0.002)
+    const p = OpenISDProject.builder(driver, engine).bandpass4().rearVolume_m3(0.03).frontVolume_m3(0.002)
       .frontTuning_hz(40).build();
     p.box.bandpass4.chambers.front.volume_m3.set(0.002); // small front chamber → 40 Hz is far easier
     p.box.bandpass4.vents.front.shape.set('round');

@@ -7,7 +7,7 @@
  * so one user action produces one solve (and a wholesale restore is adopted verbatim,
  * byte-identical — docs/design/STATE_MODEL.md rule 3).
  */
-import type { OpenISDProject, Provenance } from '@openisd/design';
+import type { OpenISDProject, CellState } from '@openisd/design';
 
 /** The four members tied by the Helmholtz relation — the set the solver solves WITHIN. */
 export const VENT_GROUP = ['Vb', 'ventD', 'Fb', 'ventL'] as const;
@@ -22,7 +22,7 @@ export const VENT_ENTRY_FIELDS = [...VENT_GROUP, 'ventW', 'ventH'] as const;
 /** One of the names listed above. */
 export type VentEntryField = typeof VENT_ENTRY_FIELDS[number];
 
-const LETTER: Record<Provenance, 'E' | 'C' | 'N'> = {
+const LETTER: Record<CellState, 'E' | 'C' | 'N'> = {
   entered: 'E', calculated: 'C', 'not-available': 'N',
 };
 

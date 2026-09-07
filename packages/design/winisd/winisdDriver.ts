@@ -20,13 +20,13 @@
 import {parseIni, stringifyIni} from '../ini/index.js';
 import {PARSTATE_LEN, POS_TO_WDRKEY, parseParState} from './parstate.js';
 import {WINISD_NEWLINE_SENTINEL} from './winisdBytes.js';
-import type {Provenance} from '../domain/cell.js';
+import type {CellState} from '../domain/cell.js';
 import {markOf} from './parstate.js';
 
 /** One `.wdr` field: the text that will be written, and its provenance mark. */
 export interface WdrCell {
     value: string;
-    state: Provenance;
+    state: CellState;
 }
 
 /** Every `.wdr` field WinISDDriver knows about, keyed by WinISD's OWN spelling (`Fs`, `BL`,
@@ -296,7 +296,7 @@ export class WinISDDriver {
         for (const key of INI_ROWS) {
             if (!(key in raw)) continue;
             const pos = keyPos(key);
-            const state: Provenance = marks && pos != null ? marks[pos] : 'entered';
+            const state: CellState = marks && pos != null ? marks[pos] : 'entered';
             cells.set(key, {value: raw[key], state});
         }
 

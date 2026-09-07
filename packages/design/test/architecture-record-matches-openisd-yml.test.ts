@@ -36,10 +36,10 @@ describe('OpenISDDeviceJson matches the openisd.yml record', () => {
   const members = (): Map<string, boolean> => {
     const project = new Project({ skipAddingFilesFromTsConfig: true, skipFileDependencyResolution: true });
     const file = project.addSourceFileAtPath(
-      fileURLToPath(new URL('../domain/openisdRecordSchema.ts', import.meta.url)));
+      fileURLToPath(new URL('../domain/openisdSchema.ts', import.meta.url)));
 
     const decl = file.getVariableDeclaration('openISDDeviceJsonSchema');
-    expect(decl, 'openISDDeviceJsonSchema not found in domain/openisdRecordSchema.ts').toBeDefined();
+    expect(decl, 'openISDDeviceJsonSchema not found in domain/openisdSchema.ts').toBeDefined();
 
     // `z.strictObject({ ... })` — the one object literal argument holds every member.
     const call = decl!.getInitializerIfKindOrThrow(SyntaxKind.CallExpression);

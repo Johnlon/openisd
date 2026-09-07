@@ -6,7 +6,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { newProject, conformingRecordToDriver } from '@openisd/design';
+import { OpenISDProject, OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import type { Filter } from '@openisd/design/engine';
 
@@ -31,9 +31,9 @@ function blankDriverRecord(): unknown {
 
 function sealedProject() {
   const engine = new Engine();
-  const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-  return newProject(driver, engine).sealed().volume_m3(0.02).build();
+  return OpenISDProject.builder(driver, engine).sealed().volume_m3(0.02).build();
 }
 
 describe('OpenISDProject.filters — whole-array read/write', () => {

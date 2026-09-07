@@ -98,7 +98,7 @@ Engine, then domain, then contradiction — each measured, not assumed:
 | check | result |
 | --- | --- |
 | `solveConsistencyGroup({Le_H: 0.0007, fLe_hz: 1000})` | `KLe = 0.055486582166484145` = `0.0007·√(2π·1000)` |
-| the same via `conformingRecordToDriver` + `driver.solveConsistencyGroup()` | identical value, so the app path is live |
+| the same via `conformingRecordToOpenIsdDriver` + `driver.solveConsistencyGroup()` | identical value, so the app path is live |
 | stated `KLe` at twice its true value | flagged by `checkConsistency`, naming `KLe_H_sqrtHz` |
 | `Le`/`fLe` from a stated `KLe` | never derived — one-directionality holds |
 

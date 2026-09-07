@@ -38,7 +38,7 @@ TypeError: Cannot read properties of undefined (reading 'undefined')
  ❯ OpenISDDriver.cell ../model/src/openisdDriver.ts:549:20
  ❯ OpenISDDriver.toWinISDDriver ../model/src/openisdDriver.ts:374:22
  ❯ OpenISDDriver.toWdrText ../model/src/openisdDriver.ts:480:36
- ❯ openisdYamlToWdr ../model/src/openisdYamlToWdr.ts:32:69
+ ❯ openisdYamlToWdr ../model/src/COMMENTED_openisdYamlToWdr.ts:32:69
 ```
 
 ```

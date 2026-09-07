@@ -6,7 +6,7 @@ import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import {
-  focusedProject, requireFocusedProject, projectChanged, newProject,
+  focusedProject, requireFocusedProject, projectChanged, OpenISDProject,
   applyState, applyViewSnapshot,
   markProjectSaved,
 } from '../logic/appState.js';
@@ -14,7 +14,7 @@ import { presentationState } from '../logic/presentationState.js';
 import { provideFocusedProject } from '../logic/focusedProjectContext.js';
 import { useApp } from '../logic/app.js';
 
-const { diagnostics, projectRepo, viewStateRepo } = useApp();
+const { diagnostics, projectRepo, viewStateRepo, logging } = useApp();
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash / self-test)
 // and the global overlays, AND is the app's ONE top-level null gate (PROMPT_RELEASE_
@@ -29,7 +29,8 @@ provideFocusedProject(computed(() => requireFocusedProject()));
 
 async function handleHashChange() {
   const saved = await projectRepo.loadFromHash();
-  if (saved) applyState(saved);
+  if (Array.isArray(saved)) logging.flash('Could not load shared link: ' + saved.join('; '));
+  else if (saved) applyState(saved);
 }
 
 let saveReady = false;
@@ -49,7 +50,9 @@ watch(projectChanged, () => {
 
 onMounted(async () => {
   const fromUrl = await projectRepo.loadFromHash();
-  if (!fromUrl) {
+  if (Array.isArray(fromUrl)) {
+    logging.flash('Could not load shared link: ' + fromUrl.join('; '));
+  } else if (!fromUrl) {
     // No project is restored: autosave is gone, so nothing was written for a reload to find.
     // View/UI preferences are a SEPARATE feature under their own storage key (QO90) and are
     // unaffected.
@@ -81,12 +84,12 @@ onUnmounted(() => {
   <!-- The top-level null gate's empty state (PROMPT_RELEASE_HARDENING plan): no project is
        open, so neither the chart views nor the tab section render with empty/default data —
        this message replaces both. The one recovery action opens a fresh blank project
-       (`newProject()`, which self-heals from the empty registry) — every other affordance
+       (`OpenISDProject.builder()`, which self-heals from the empty registry) — every other affordance
        (File → Open, the New Project wizard) lives on `OriginalShell`'s own toolbar, which is
        itself inside the gate and so only reachable once a project is open. -->
   <div v-else class="no-project-open">
     <p>No project is open.</p>
-    <button type="button" @click="newProject()">Start a new project</button>
+    <button type="button" @click="OpenISDProject.builder()">Start a new project</button>
   </div>
   <Flash />
   <!-- Raises itself on the first uncaught error, rejection or console.error. -->

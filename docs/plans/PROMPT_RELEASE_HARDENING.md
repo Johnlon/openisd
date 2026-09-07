@@ -248,7 +248,7 @@ Symmetry is highly valued - consistency is highly valued - encapsulation etc etc
   checked every value). Tools-side remainder: differential + B10 emit sweep (yaml-divergence,
   pinged).
 - **★ openisd `38bd5cd` LANDED AND PUSHED — the doctrine wave**: D22 complete (repos speak
-  OpenISDDriver; injected `conformingRecordToDriver` factories via main.ts; editor owns its
+  OpenISDDriver; injected `conformingRecordToOpenIsdDriver` factories via main.ts; editor owns its
   draft via `committedDriverText()`/`OpenISDDriver.empty()`; driverSelection loses
   editorDraft/editorSeed/acceptDriverEdit; toJsonRecord gone from the UI), D15 re-export wave
   (checklist 8→0), D18 η₀ + EBP relations in consistency.ts. 2038/2043 through the pre-commit
@@ -415,7 +415,7 @@ Symmetry is highly valued - consistency is highly valued - encapsulation etc etc
   cycles done: cycle-3's verify pass BLOCKed on 3 comment/doc findings, all fixed by the
   orchestrator directly and verified (grep 0, suites 13/13, typecheck clean): ARCHITECTURE.md
   `.owpr` self-contradiction resolved at :519/:950-table/:982 (current shape = SerializedState,
-  A8 decides narrowing), openisdYamlToWdr.ts task-scope narration removed (constraint kept),
+  A8 decides narrowing), COMMENTED_openisdYamlToWdr.ts task-scope narration removed (constraint kept),
   useDesignIO what-if ordering made structural (snapshot/record hoisted to first statement in
   projectJsonText + shareLink; header comment states the real mechanism), purity-test comment
   scoped to what the regex actually guards. `as unknown as FileSystemFileHandle` in

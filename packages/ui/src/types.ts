@@ -2,7 +2,7 @@
  * Shared UI types — the view-layer shapes (plot series, designs, canvas geometry).
  * Engine shapes (Driver, SweepResult, …) are imported from @openisd/design/engine.
  */
-import type { SolverQuantities, BoxType, SweepParams, SweepResult, MaxCurvesResult } from '@openisd/design/engine';
+import type { SolverQuantities, BoxType, SweepResult, MaxCurvesResult } from '@openisd/design/engine';
 
 /** A project's WinISD Project-tab fields — `OpenISDProject`'s `name`/`creator`/`created`/
  *  `modified`/`description`, each its own `RawField<string>` there, read together here for the
@@ -57,11 +57,18 @@ export interface PlotData {
 }
 
 /**
- * Sweep parameters plus the DISPLAY-only flags the plot builder reads. `splXmaxLimited`
- * chooses which SPL array to draw (`sw.splXlimCurve` vs `sw.spl`) — it changes nothing the
- * engine computes, so it stays out of the engine's SweepParams.
+ * The sweep-range/display fields a chart panel and the Options dialog actually read — the rest
+ * of the engine's `SweepParams` (Vb, eg, losses, …) comes off the project itself
+ * (`OpenISDProject.sweep()`/`maxCurves()`) and is never read back out through a `Design`.
+ * `splXmaxLimited` chooses which SPL array to draw (`sw.splXlimCurve` vs `sw.spl`); `prXmax`
+ * is the passive radiator's own excursion limit, used only by the Excursion chart's PR trace.
  */
-export type PlotParams = SweepParams & { splXmaxLimited?: boolean };
+export type PlotParams = {
+  fmin: number;
+  fmax: number;
+  splXmaxLimited?: boolean;
+  prXmax?: number;
+};
 
 /** A design shown on a chart — the current design plus any pinned comparisons. */
 export interface Design {
@@ -106,11 +113,6 @@ export interface Geo {
   f0: number;
   f1: number;
 }
-
-/** What `syncedP` produces: the engine's own `SweepParams`, with `eg` filled from the
- *  project's drive voltage and, for vented/bandpass, `Sp`/`Leff` filled from the vent
- *  geometry — everything a sweep needs, already resolved from the focused project. */
-export type SyncedParams = SweepParams;
 
 /** Per-chart Y-axis override; absent entry = auto-scale. */
 export interface YRange { min: number; max: number }

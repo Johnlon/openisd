@@ -20,7 +20,7 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
 import { winISDDriverToOpenISDDeviceJson, openISDDeviceJsonSchema }
-  from '../../domain/openisdRecordSchema.js';
+  from '../../domain/openisdSchema.js';
 
 /** A 49-char ParState row, 'N' everywhere except the given slot. */
 function parState(slot: number, mark: 'E' | 'C' | 'N'): string {

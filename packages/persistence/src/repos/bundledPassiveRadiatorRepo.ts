@@ -4,7 +4,7 @@
  *  other's rows. Read through `conformingRecordToPassiveRadiator` — the one seam for a
  *  passive-radiator record, refusing anything with a driver's woofer/tweeter section instead
  *  of quietly reading it as if it were a radiator. */
-import { conformingRecordToPassiveRadiator } from '@openisd/design';
+import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import type { Engine } from '@openisd/design/engine';
 import type { BundleRecord } from './driverRepo.js';
 
@@ -39,7 +39,7 @@ export function createBundledPassiveRadiatorRepo(
   engine: Engine,
 ): BundledPassiveRadiatorRepo {
   const rows = (bundle.passiveRadiators ?? []).flatMap((f): BundledPassiveRadiator[] => {
-    const pr = conformingRecordToPassiveRadiator(f.record, engine);
+    const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(f.record, engine);
     if (Array.isArray(pr)) return []; // a record the seam refuses is dropped, not surfaced broken — the bundle is build-time, already validated by the codemod that produced it
     return [{
       path: f.path,

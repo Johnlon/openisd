@@ -8,7 +8,7 @@
 // directory once that plan is finished.
 
 // /**
-//  * `openisdYamlToWdr`'s baked-in self-validation — `packages/model/src/openisdYamlToWdr.ts`'s
+//  * `openisdYamlToWdr`'s baked-in self-validation — `packages/model/src/COMMENTED_openisdYamlToWdr.ts`'s
 //  * `ymlRoundTripErrors` and `wdrRoundTripErrors`, run on every call in addition to the normal
 //  * `.wdr` projection: this is the ONE function `winisd_tools` calls per corpus record, and its
 //  * `errors` array is the caller's ENTIRE signal — no separate comparison happens outside this

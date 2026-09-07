@@ -36,7 +36,7 @@ const ALLOWED_FIELDS = new Set(['#saved', '#edited', '#engine', '#uuid', '#liste
 describe('OpenISDProject holds only #saved/#edited/#engine as stored fields', () => {
   it('declares no property beyond the allowed set', () => {
     const project = new Project({ tsConfigFilePath: path.join(packageRoot, 'tsconfig.json') });
-    const sourceFile = project.getSourceFileOrThrow(path.join(packageRoot, 'domain', 'project.ts'));
+    const sourceFile = project.getSourceFileOrThrow(path.join(packageRoot, 'domain', 'openisdDomain.ts'));
     const classDecl = sourceFile.getClassOrThrow('OpenISDProject');
 
     const propertyNames = classDecl

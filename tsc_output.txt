@@ -1,0 +1,48 @@
+packages/design/app/workspace.ts(12,3): error TS2300: Duplicate identifier 'OpenISDProject'.
+packages/design/app/workspace.ts(13,8): error TS2300: Duplicate identifier 'OpenISDProject'.
+packages/design/domain/openisdDomain.ts(2,10): error TS2300: Duplicate identifier 'OpenISDDeviceJson'.
+packages/design/domain/openisdDomain.ts(11,10): error TS2300: Duplicate identifier 'OpenISDDeviceJson'.
+packages/design/domain/openisdTransforms.ts(88,10): error TS1029: 'export' modifier must precede 'abstract' modifier.
+packages/design/test/domain.test.ts(57,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/domain.test.ts(173,34): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/domain.test.ts(180,34): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/domain.test.ts(193,34): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/domain.test.ts(231,34): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/engine-wiring.test.ts(19,19): error TS2300: Duplicate identifier 'OpenISDDriver'.
+packages/design/test/engine-wiring.test.ts(21,8): error TS2300: Duplicate identifier 'OpenISDDriver'.
+packages/design/test/engine-wiring.test.ts(43,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/persistence.test.ts(15,3): error TS2300: Duplicate identifier 'OpenISDProject'.
+packages/design/test/persistence.test.ts(15,19): error TS2300: Duplicate identifier 'OpenISDDriver'.
+packages/design/test/persistence.test.ts(16,26): error TS2300: Duplicate identifier 'OpenISDProject'.
+packages/design/test/persistence.test.ts(16,47): error TS2300: Duplicate identifier 'OpenISDDriver'.
+packages/design/test/persistence.test.ts(48,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/vent-pr-group-stubs.test.ts(30,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts(19,3): error TS2300: Duplicate identifier 'OpenISDProject'.
+packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts(19,19): error TS2300: Duplicate identifier 'OpenISDDriver'.
+packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts(20,8): error TS2300: Duplicate identifier 'OpenISDDriver'.
+packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts(20,28): error TS2300: Duplicate identifier 'OpenISDProject'.
+packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts(63,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts(68,46): error TS2552: Cannot find name 'newProject'. Did you mean 'aProject'?
+packages/design/test/winisd/wdr-driver-type-tag.test.ts(66,44): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/wdr-import-fidelity.test.ts(39,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/wdr-model-coverage.test.ts(86,34): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/wdr-model-coverage.test.ts(122,34): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/wdr-model-coverage.test.ts(153,34): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/wdr-model-coverage.test.ts(179,34): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/wdr-model-coverage.test.ts(229,34): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/wdr-openisd-round-trip.test.ts(154,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/wdr-to-openisd-record.test.ts(38,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/winisd-parity-field-dispatch.test.ts(111,31): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/winisd-parity-functional.test.ts(358,39): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/winisd/winisdDriver-diff.test.ts(42,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/test/workspace.test.ts(20,32): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/winisd/driverYmlToOpenisdAndWdr.ts(350,47): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/winisd/driverYmlToOpenisdAndWdr.ts(598,42): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/winisd/driverYmlToOpenisdAndWdr.ts(621,42): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/winisd/openIsdProjectToWinIsdProject.ts(21,8): error TS2300: Duplicate identifier 'OpenISDDriver'.
+packages/design/winisd/openIsdProjectToWinIsdProject.ts(21,23): error TS2300: Duplicate identifier 'OpenISDProject'.
+packages/design/winisd/openIsdProjectToWinIsdProject.ts(23,9): error TS2300: Duplicate identifier 'OpenISDDriver'.
+packages/design/winisd/openIsdProjectToWinIsdProject.ts(23,58): error TS2300: Duplicate identifier 'OpenISDProject'.
+packages/design/winisd/openIsdProjectToWinIsdProject.ts(223,26): error TS1361: 'OpenISDDriver' cannot be used as a value because it was imported using 'import type'.
+packages/design/winisd/openIsdProjectToWinIsdProject.ts(223,40): error TS2339: Property 'fromConformingRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/design/winisd/openIsdProjectToWinIsdProject.ts(231,19): error TS1361: 'OpenISDProject' cannot be used as a value because it was imported using 'import type'.

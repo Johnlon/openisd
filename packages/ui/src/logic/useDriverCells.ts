@@ -1,10 +1,10 @@
-import type { Cell as FieldCell, Provenance } from '@openisd/design';
+import type { Cell as FieldCell, CellState } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import type { ConsistencyIssue } from '@openisd/design/engine';
 import type { SpecField } from './appState.js';
 
 /**
- * Driver provenance PRESENTATION — how a field's `Provenance` becomes a CSS class, and how a
+ * Driver provenance PRESENTATION — how a field's `CellState` becomes a CSS class, and how a
  * consistency issue becomes tooltip text. The driver editor and Tune both read it, so Tune
  * cannot style the same driver differently from the dialog.
  *
@@ -19,12 +19,12 @@ export enum CellClass {
   NotAvailable = 'value-n',
 }
 
-/** TOTAL map: a new Provenance member becomes a compile error here rather than an unstyled
+/** TOTAL map: a new CellState member becomes a compile error here rather than an unstyled
  *  field. */
-const CELL_CLASS: Record<Provenance, CellClass> = {
-  [Provenance.Entered]: CellClass.Entered,
-  [Provenance.Calculated]: CellClass.Calculated,
-  [Provenance.NotAvailable]: CellClass.NotAvailable,
+const CELL_CLASS: Record<CellState, CellClass> = {
+  entered: CellClass.Entered,
+  calculated: CellClass.Calculated,
+  'not-available': CellClass.NotAvailable,
 };
 
 /**
@@ -33,7 +33,7 @@ const CELL_CLASS: Record<Provenance, CellClass> = {
  * value never enters a component. A component naming or holding a domain value is what the
  * layering rule forbids; handing one through is the same leak the gate cannot see.
  */
-export function cellClassFor(cellOf: (field: SpecField) => FieldCell, field: SpecField): CellClass {
+export function cellClassFor(cellOf: (field: SpecField) => FieldCell<number>, field: SpecField): CellClass {
   return CELL_CLASS[cellOf(field).state];
 }
 
@@ -49,7 +49,7 @@ function pct(relative: number): string {
  * and by how much it is out — "inconsistent" on its own tells the human nothing to act on.
  */
 export function consistencyNote(issues: readonly ConsistencyIssue[], field: string): string {
-  const mine = issues.filter(i => i.fields.includes(field));
+  const mine = issues.filter(i => i.fields.some(f => f === field));
   if (mine.length === 0) return '';
   return mine.map(i =>
     `${i.fields.join(', ')} disagree by ${pct(i.relative)}: ${i.formula}. `
@@ -66,10 +66,10 @@ export function consistencyNote(issues: readonly ConsistencyIssue[], field: stri
  * usable. Neither is restated here.
  *
  * A component asks THIS rather than the two parts, so the composition is unit-testable without
- * mounting anything, and no component imports the engine or holds a `Provenance`.
+ * mounting anything, and no component imports the engine or holds a `CellState`.
  */
 export function fieldIsMandatoryAndUnsatisfied(
-  cellOf: (field: SpecField) => FieldCell, field: string,
+  cellOf: (field: SpecField) => FieldCell<number>, field: string,
 ): boolean {
-  return new Engine().isQGroupField(field) && cellOf('Qts').state === Provenance.NotAvailable;
+  return new Engine().isQGroupField(field) && cellOf('Qts').state === 'not-available';
 }

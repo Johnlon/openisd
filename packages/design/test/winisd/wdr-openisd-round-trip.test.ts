@@ -27,9 +27,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/design/winisd';
-import { conformingRecordToDriver } from '@openisd/design';
+import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchema.js';
+import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
 import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from '../../winisd/parstate.js';
 
@@ -151,7 +151,7 @@ function lostEntered(file: string, src: string): string[] {
 function cycle(src: string): string {
   const asRead = WinISDDriver.fromWdrIni(src);
   const { record } = winISDDriverToOpenISDDeviceJson(asRead);
-  const driver = conformingRecordToDriver(record, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
   if (Array.isArray(driver)) {
     assert.fail(`record rejected: ${driver.join('; ')}`);
   }
@@ -218,7 +218,7 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
      * (confirmed empirically: every genuine WinISD-written `.wdr` in this corpus with an
      * `N`-marked field carries `0` there, with no exception among ordinary numeric fields) — so
      * a nonzero value under an `N` mark is real data the mark itself got wrong, not something to
-     * distrust or drop. `openisdRecordSchema.ts`'s `shouldImport` already reads it this way on
+     * distrust or drop. `openisdSchema.ts`'s `shouldImport` already reads it this way on
      * import; this is that same rule, checked again on the way back out.
      *
      * What is still forbidden is the mark WITHOUT the derivation on a value that WAS `0`: `C`

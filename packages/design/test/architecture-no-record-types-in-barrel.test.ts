@@ -19,14 +19,14 @@
  * `packages/design/AGENTS.md` "INTERNAL JSON RECORD TYPES — NEVER RE-EXPORTED FROM
  * domain/index.ts" (John Lonergan, 2026-09-05): `OpenISDDeviceJson`, `OpenISDBoxJson`,
  * `OpenISDProjectJson` and every JSON-shape type declared alongside them in
- * `domain/openisdRecordSchema.ts` may be exported FROM THAT FILE so other files inside
+ * `domain/openisdSchema.ts` may be exported FROM THAT FILE so other files inside
  * `packages/design/domain/` can import them — that is what makes colocating them there useful
- * instead of leaving them locked inside `project.ts`. But `domain/index.ts` must never re-export
+ * instead of leaving them locked inside `openisdDomain.ts`. But `domain/index.ts` must never re-export
  * any of them: a consumer outside `domain/` gets the class/interface surface those files already
  * publish (`OpenISDDriver`, `OpenISDProject`, `Box`, and so on), never the raw record shape.
  *
  * STRUCTURAL: reads `domain/index.ts`'s own export specifiers via the AST, rather than trusting a
- * hand-maintained list to stay in sync with what `openisdRecordSchema.ts` actually declares.
+ * hand-maintained list to stay in sync with what `openisdSchema.ts` actually declares.
  */
 import { describe, it, expect } from 'vitest';
 import { Project } from 'ts-morph';
@@ -37,7 +37,7 @@ const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)
 
 /**
  * The private JSON record shapes `domain/index.ts` must never re-export — named explicitly,
- * not inferred from every exported declaration in the file: `openisdRecordSchema.ts` also
+ * not inferred from every exported declaration in the file: `openisdSchema.ts` also
  * exports genuinely public names (`VoiceCoilWiring`, the enum; `DriverSpec`, a type alias onto
  * `OpenISDDriver`'s own public `spec` property) that are NOT record shapes and are deliberately
  * re-exported from the barrel today. A declaration-scan would flag those as false positives.
@@ -49,12 +49,12 @@ const RECORD_SHAPE_NAMES = [
   'OpenISDSignalJson', 'OpenISDProjectMetaJson', 'OpenISDProjectJson', 'OpenISDDeviceJson',
 ] as const;
 
-/** Every one of `RECORD_SHAPE_NAMES` is actually declared in `openisdRecordSchema.ts` — a name
+/** Every one of `RECORD_SHAPE_NAMES` is actually declared in `openisdSchema.ts` — a name
  *  in the list that no longer exists there would hide a real rename instead of catching it. */
 function recordShapeNames(): string[] {
   const project = new Project({ skipAddingFilesFromTsConfig: true });
   const file = project.addSourceFileAtPath(
-    path.join(packageRoot, 'domain', 'openisdRecordSchema.ts'));
+    path.join(packageRoot, 'domain', 'openisdSchema.ts'));
 
   const declared = new Set([
     ...file.getInterfaces().map((d) => d.getName()),
@@ -62,7 +62,7 @@ function recordShapeNames(): string[] {
   ]);
   for (const name of RECORD_SHAPE_NAMES) {
     expect(declared.has(name), `${name} is listed as a record shape but is no longer declared ` +
-      'in domain/openisdRecordSchema.ts — update RECORD_SHAPE_NAMES').toBe(true);
+      'in domain/openisdSchema.ts — update RECORD_SHAPE_NAMES').toBe(true);
   }
   return [...RECORD_SHAPE_NAMES];
 }
@@ -90,13 +90,13 @@ describe('domain/index.ts never re-exports a private JSON record type', () => {
     expect(shapes).toContain('OpenISDProjectJson');
   });
 
-  it('none of openisdRecordSchema.ts\'s record shapes appear in the barrel\'s export list', () => {
+  it('none of openisdSchema.ts\'s record shapes appear in the barrel\'s export list', () => {
     const shapes = new Set(recordShapeNames());
     const leaked = barrelExportNames().filter((name) => shapes.has(name));
 
     expect(leaked, [
       'domain/index.ts re-exports a name also declared as a JSON record shape in',
-      'openisdRecordSchema.ts. That publishes the private record shape to every consumer of',
+      'openisdSchema.ts. That publishes the private record shape to every consumer of',
       '@openisd/design — the exact leak packages/design/AGENTS.md\'s "INTERNAL JSON RECORD',
       'TYPES" ruling exists to prevent. Remove the re-export, or expose the caller\'s actual',
       'question through a real method/factory instead.',

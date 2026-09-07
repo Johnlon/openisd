@@ -157,7 +157,7 @@ describe('no casts — the compiler is the only thing trusted', () => {
       .map((s) => path.relative(repoRoot, s.getFilePath()))
       .filter((f) => !f.includes('/test/') && !f.startsWith('..'));
     expect(files.length).toBeGreaterThan(40);
-    expect(files).toContain('packages/design/domain/project.ts');
+    expect(files).toContain('packages/design/domain/openisdDomain.ts');
     expect(files).toContain('packages/model/src/openisdDriver.ts');
   });
 

@@ -11,9 +11,9 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { WinISDDriver, INI_ROWS } from '../../winisd/winisdDriver.js';
 import type { WdrCell } from '../../winisd/winisdDriver.js';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchema.js';
+import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
 import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
-import { conformingRecordToDriver } from '../../domain/index.js';
+import { OpenISDDriver } from '../../domain/index.js';
 import { Engine } from '../../engine/index.js';
 import type { DriverError } from '@openisd/design/engine';
 
@@ -63,7 +63,7 @@ describe('full round trip: OID tweeter record -> .wdr -> OID record', () => {
       specs: { tweeter: {} },
     };
 
-    const driverOrProblems = conformingRecordToDriver(tweeterRecord, engine);
+    const driverOrProblems = OpenISDDriver.fromConformingRecord(tweeterRecord, engine);
     if (Array.isArray(driverOrProblems)) {
       throw new Error(`Test fixture invalid: ${driverOrProblems.join('; ')}`);
     }

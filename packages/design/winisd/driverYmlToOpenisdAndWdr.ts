@@ -19,13 +19,13 @@
  */
 import {parse as parseYmlToJs, stringify} from 'yaml';
 
-import type {FieldHandle, PassiveRadiatorSpec} from '@openisd/design';
-import {conformingRecordToDriver, type OpenISDDriver, conformingRecordToPassiveRadiator,} from '@openisd/design';
+import type {FieldHandle, OpenIsdPassiveRadiatorSpec} from '@openisd/design';
+import { OpenISDDriver, OpenISDPassiveRadiatorStandalone,} from '@openisd/design';
 import {type DriverError, Engine} from '@openisd/design/engine';
 
 import {dqCalculated, withDqCalculated} from './dqCalculated.js';
 import {INI_ROWS, WINISD_CALCULABLE, type WdrCell, type WdrHeader, WinISDDriver} from './winisdDriver.js';
-import {type DriverSpec, wdrFields, winISDDriverToOpenISDDeviceJson} from '../domain/openisdRecordSchema.js';
+import {type DriverSpec, wdrFields, winISDDriverToOpenISDDeviceJson} from '../domain/openisdSchema.js';
 
 /** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
  *  blocking failure stopped that artefact being produced; `errors` is always an array. */
@@ -155,7 +155,7 @@ function stripScraperOnlyFieldsFromJavascriptObject(driverYml: object): Record<s
  *  "different schema"). Naming the pairs here makes a renamed field a build error, exactly as
  *  `wdrFields` does for a driver.
  */
-function radiatorStatedValues(spec: PassiveRadiatorSpec): Array<readonly [string, number]> {
+function radiatorStatedValues(spec: OpenIsdPassiveRadiatorSpec): Array<readonly [string, number]> {
     const pairs: ReadonlyArray<readonly [string, FieldHandle<number>]> = [
         ['Fs', spec.Fs_hz], ['Qms', spec.Qms], ['Cms', spec.Cms_m_per_N], ['Mms', spec.Mms_kg],
         ['Rms', spec.Rms_kg_per_s], ['Sd', spec.Sd_m2], ['Vas', spec.Vas_m3], ['Vd', spec.Vd_m3],
@@ -347,7 +347,7 @@ function roundTripProblems(openisd: string, wdr: string | null, engine: Engine):
         if (w2 !== undefined) {
             try {
                 const {record: i3} = winISDDriverToOpenISDDeviceJson(w2);
-                const driver3 = conformingRecordToDriver(i3, engine);
+                const driver3 = OpenISDDriver.fromConformingRecord(i3, engine);
                 if (Array.isArray(driver3)) {
                     found.push({
                         level: 'error', field: 'wdr-record-round-trip',
@@ -581,6 +581,28 @@ export function openIsdDriverToWinIsdDriver(
     return WinISDDriver.build(header, cells, dqLines, undefined, driverType);
 }
 
+/** `.wdr` text -> `OpenISDDriver` — the reverse of `openIsdDriverToWinIsdDriver`, for a caller
+ *  (a `.wdr`/`.owdr` file import) holding raw `.wdr` text rather than an already-parsed
+ *  `WinISDDriver`. Three steps, same chain `winIsdProjectToOpenIsdProject` uses for the driver
+ *  embedded in a `.wpr`'s `[Driver]` section: parse the INI, read it into an openisd record
+ *  (`winISDDriverToOpenISDDeviceJson` — recovers `driverType` from the `[DRIVERTYPE ...]` tag in
+ *  `Comment=` when present, `'woofer'` otherwise), then validate that record into a driver. */
+export function winIsdDriverTextToOpenIsdDriver(
+    text: string, engine: Engine,
+): { value: OpenISDDriver | null; errors: DriverError[] } {
+    const errors: DriverError[] = [];
+    const wdrDriver = WinISDDriver.fromWdrIni(text);
+    const {record, warnings} = winISDDriverToOpenISDDeviceJson(wdrDriver);
+    errors.push(...warnings);
+
+    const driverOrErrors = OpenISDDriver.fromConformingRecord(record, engine);
+    if (Array.isArray(driverOrErrors)) {
+        for (const problem of driverOrErrors) errors.push({level: 'error', field: 'driver', message: problem});
+        return {value: null, errors};
+    }
+    return {value: driverOrErrors, errors};
+}
+
 /**
  * `driver.yml` text in; `openisd.yml` text, `.wdr` text and every problem out.
  * Never throws for bad INPUT: a record the caller could not have known was malformed comes back as
@@ -596,10 +618,10 @@ export function driverYmlToOpenisdAndWdr(driverYmlText: string): DriverYmlProjec
 
     const engine = new Engine();
 
-    const driverOrErrors = conformingRecordToDriver(openisdJson, engine);
+    const driverOrErrors = OpenISDDriver.fromConformingRecord(openisdJson, engine);
     if (Array.isArray(driverOrErrors)) {
         // its an array of errors not a driver
-        const radiatorOrErrors = conformingRecordToPassiveRadiator(openisdJson, engine);
+        const radiatorOrErrors = OpenISDPassiveRadiatorStandalone.fromConformingRecord(openisdJson, engine);
         if (!Array.isArray(radiatorOrErrors)) {
             // not an array so its the PR
             const radiatorMarks = dqCalculated(radiatorStatedValues(radiatorOrErrors.spec), []);

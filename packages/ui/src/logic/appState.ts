@@ -13,15 +13,15 @@
  * project registry, and bridge notifications into Vue's reactivity system.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { reactive, computed, ref, shallowRef, triggerRef, watch, type ComputedRef, type Ref, type ShallowRef } from 'vue';
+import { reactive, computed, ref, shallowRef, triggerRef, watch, type Ref, type ShallowRef } from 'vue';
 import { Engine } from '@openisd/design/engine';
 import type { DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
 import {
-  newProject as buildProject, conformingRecordToDriver, projectRepo,
+  newProject as buildProject, OpenISDDriver, projectRepo,
   type OpenISDProject, type RecordStore, type RecordStoreFactory, type DiscardChallenge,
   type FrequencyGrid,
 } from '@openisd/design';
-import {type AppState, AppStateImpl, type ProjectMeta} from '../types.js';
+import {type AppState, AppStateImpl, type ProjectMeta, type PlotParams} from '../types.js';
 import { copyOfName, uniqueName, type ViewSnapshot } from '@openisd/persistence';
 
 /** The 53 driver spec fields the app's UI reads/writes by name — the driver editor's own field
@@ -86,7 +86,6 @@ const slots = hmrSlots<AppStateSingletons>(
  * same way any untrusted record is validated, rather than a second construction path.
  */
 function blankDriverRecord(): unknown {
-  const bookkeeping = { value: '' };
   return {
     uuid: { value: crypto.randomUUID() },
     quality: {
@@ -95,10 +94,10 @@ function blankDriverRecord(): unknown {
     },
     manufacturer: { value: '' }, brand: { value: '' }, model: { value: '' },
     sku: { value: '', grounds: [{ origin: 'entered', reading: '' }] },
-    driver_type: { value: '' },
-    data_sources: bookkeeping,
-    authoritative: bookkeeping,
-    specs: {},
+    driver_type: { value: 'woofer' },
+    data_sources: { value: {} },
+    authoritative: { value: '' },
+    specs: { woofer: {} },
   };
 }
 
@@ -106,7 +105,7 @@ function blankDriverRecord(): unknown {
  *  construction path. `newProject.js` (`@openisd/design`) refuses to build without a driver
  *  and a box type, so a blank driver always comes first. */
 function createEmptyProject(engine: Engine): OpenISDProject {
-  const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) {
     throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
   }
@@ -210,7 +209,7 @@ export function openBlankProject(): void {
 
 /** A store holding exactly the one record most recently `put()` — lets this file borrow
  *  `projectRepo()`'s own save/load round trip to clone a project without ever touching
- *  `OpenISDProject.recordToPersist()`, which is `@internal` to `packages/design`. Same pattern
+ *  `OpenISDProject.cloneSavedProject()`, which is `@internal` to `packages/design`. Same pattern
  *  as `@openisd/persistence`'s `projectRepo.ts` `singleSlotStore()`. */
 function singleSlotStore<R>(): RecordStore<R> & { current(): R | null } {
   let held: R | null = null;
@@ -379,10 +378,31 @@ export function openDriverPicker(): void {
   presentationState.browseOpen = true;
 }
 
-// A single, empty grid — sweep()/maxCurves()/validateParams() default fmin/fmax/N internally
-// (sweep.ts: `P.fmin || 10, P.fmax || 1000, P.N || 400`) when the grid names none, so this file
-// never re-states those defaults itself.
+// A single, empty grid — sweep()/maxCurves()/validateParams() fall back to the FOCUSED
+// PROJECT's own stored fmin/fmax/N (`OpenISDProject.sweepFmin_hz` etc.), or the engine's
+// defaults when the project has none either (sweep.ts: `P.fmin || 10, P.fmax || 1000,
+// P.N || 400`) — so this file never re-states or overrides either set of defaults itself.
 const GRID: FrequencyGrid = {};
+
+/** The chart panels' shared X-axis range plus the display-only flags `series.ts` reads —
+ *  everything a `Design.P` needs, resolved from the FOCUSED project. `fmin`/`fmax` are the
+ *  project's own saved range (`sweepFmin_hz`/`sweepFmax_hz`) rather than the engine's internal
+ *  defaults, so the Options dialog and the axis-drag zoom (`GraphPanel.vue`) have a real value
+ *  to read and write — `undefined` here means "use the engine default", not "no project". */
+export const syncedP = computed<PlotParams>(() => {
+  const p = live.value;
+  if (!p) return {fmin: 10, fmax: 1000};
+  const box = p.box.boxType.get();
+  const prXmax = box === 'box-passive-radiator'
+    ? (p.box.passiveRadiator.radiator.spec.Xmax_m.get().value ?? undefined)
+    : undefined;
+  return {
+    fmin: p.sweepFmin_hz.get() ?? 10,
+    fmax: p.sweepFmax_hz.get() ?? 1000,
+    splXmaxLimited: p.splGraphIsXmaxLimited.get(),
+    prXmax,
+  };
+});
 
 const curves = getOrInit(slots, 'curves', () => ref<SweepResult | null>(null));
 const max    = getOrInit(slots, 'max', () => ref<MaxCurvesResult | null>(null));
@@ -500,16 +520,16 @@ export interface NewProjectSpec {
  *  project) this OPENS a new one via `addProject()` rather than throwing — the empty state's
  *  own recovery action, and every other "New Project" trigger, are the same call. Otherwise it
  *  resets the FOCUSED project's own content in place, preserving its tab identity. */
-export function newProject(spec?: NewProjectSpec): void {
+export function OpenISDProject.builder(spec?: NewProjectSpec): void {
   presentationState.yRanges = {};
-  const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) {
     throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
   }
   const volume_m3 = fromDisplay(spec?.volumeL ?? 20, 'volume', 'L');
   // Only sealed is buildable from what NewProjectSpec carries today: `vented()`/`bandpass4()`
   // require a tuning frequency (`.tuning_hz()`/`.frontTuning_hz()`) the wizard never collects
-  // (packages/design/domain/project.ts's `VentedProjectBuilder`/`Bandpass4ProjectBuilder`), so
+  // (packages/design/domain/openisdTransforms.ts's `VentedProjectBuilder`/`Bandpass4ProjectBuilder`), so
   // a non-sealed spec builds sealed at the same volume until the wizard is extended to ask.
   const p = buildProject(driver, engine).sealed().volume_m3(volume_m3).build();
   p.name.set(spec?.name ?? '');

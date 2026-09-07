@@ -31,7 +31,7 @@ Zero overlap because the two express the same thing differently:
 
 - **model** publishes a flat accessor quartet per field — `Fs()`, `FsCell()`, `enterFs()`,
   `clearFs()`.
-- **design** publishes `DriverSpec` (`domain/project.ts:1234`), a class of **56 `Field<T>`
+- **design** publishes `OpenIsdDriverSpec` (`domain/project.ts:1234`), a class of **56 `Field<T>`
   members**, reached as `driver.spec[driver.section].Fs_hz`, each with:
 
 ```ts
@@ -92,7 +92,7 @@ Some of these (`SpecField`, `SpecSection`, `SpecEntry`) exist inside `domain/pro
 the design copy hides them on purpose, and a consumer wanting one is a consumer doing something
 the design says it should not.
 
-## 4b. Construction and import — RULED: everything goes through `conformingRecordToDriver`
+## 4b. Construction and import — RULED: everything goes through `conformingRecordToOpenIsdDriver`
 
 **John, 2026-08-31: _"ok use driverFromConformingRecord"_.**
 
@@ -165,7 +165,7 @@ driverFromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | str
 ```
 
 **All three are free functions in `domain/project.ts`, not statics on a class** —
-`conformingRecordToDriver` already lives there (`:1759`, alongside `conformingRecordToPassiveRadiator`
+`conformingRecordToOpenIsdDriver` already lives there (`:1759`, alongside `conformingRecordToOpenIsdPassiveRadiatorStandalone`
 at `:1782`), and the two new ones join it. Neither `OpenISDDriver.fromWdrIni()` nor any other
 class-static form exists in this design — unlike `packages/model`'s old `OpenISDDriver.fromX()`
 statics and `packages/winisd`'s `WinISDDriver.fromWdrIni()`/`WinISDProject.fromWprIni()` (both
@@ -183,13 +183,13 @@ re-branches on the string to reach the real single-format code — two dispatche
 A `format` parameter passed in by a caller that already knows the answer is not a reason for a
 combined name; it is evidence the combination is unnecessary. Each call site keeps its own
 `if (format === DriverFileFormat.Wdr) { ... } else { ... }` (it already has one) and calls
-`driverFromWdrIni`/`driverFromOpenIsdYml` directly from each branch — matching the pattern
+`driverFromWdrIni`/`openIsdDriverYmlToOpenIsdDriver` directly from each branch — matching the pattern
 `useDesignIO.ts` already uses, not the one `driverFromFileText` uses.
 
 The persisted/share-link JSON blob is `loadDriverFromPersistedJson` (§4c), a separate function
 outside these two formats.
 
-Each of `driverFromWdrIni`/`driverFromOpenIsdYml` parses INSIDE, in a `try`, and a parse failure
+Each of `driverFromWdrIni`/`openIsdDriverYmlToOpenIsdDriver` parses INSIDE, in a `try`, and a parse failure
 becomes one more entry in the same `string[]` before handing off to the record seam. That makes
 the boundary type exact, reports a malformed file the same way as a malformed record, and
 collapses five scattered `try/catch` blocks into two (one per format, not one per call site).
@@ -238,7 +238,7 @@ Two things it does that the domain does NOT, and which therefore need homes befo
   wrapper"_). Today's `loadDriverFromWdrText`/`loadDriverFromOwdrText`/`loadDriverFromPersistedText`
   (`managedProject.ts:841,849,861`) are each exactly `const driver = fromX(text);
   this.mutate(p => p.setDriver(driver))` — a name that adds nothing once §4b's
-  `driverFromWdrIni`/`driverFromOpenIsdYml` already parse AND validate, and once the persisted-JSON
+  `driverFromWdrIni`/`openIsdDriverYmlToOpenIsdDriver` already parse AND validate, and once the persisted-JSON
   case is just `driverFromConformingRecord(JSON.parse(text), engine)` (same substitution as the
   `fromOwdrJson` row in §4b's own table — no third wrapper needed for it either). Since
   `ManagedProject` itself is deleted, not ported, there is no object left to hang a one-line
@@ -264,8 +264,8 @@ against the TRUE ORIGINAL `driver.yml` object rather than an intermediate, with 
 throwing and a changed key joining `errors[]` — is now folded into `drivers.md` Part C step 6
 directly. Read it there.
 
-This supersedes the WDR-only contract in §4b: `driverFromWdrIni`/`driverFromOpenIsdYml`/
-`conformingRecordToDriver` stay the UI's file-import record-shape boundary — a separate
+This supersedes the WDR-only contract in §4b: `driverFromWdrIni`/`openIsdDriverYmlToOpenIsdDriver`/
+`conformingRecordToOpenIsdDriver` stay the UI's file-import record-shape boundary — a separate
 pipeline from `drivers.md`'s corpus-generation bridge, not the same one under a different name.
 `packages/winisd/src/bridge.ts`'s JSON envelope and docstring need updating to carry `openisd`
 alongside `wdr` once `drivers.md` Part C lands — its current contract (`{ wdr, errors }`)
@@ -351,7 +351,7 @@ than accessors returning, but that is a ruling, not an inference. **PROPOSE AND 
 
 The model path built bundled rows with **no conformance check at all** — `driverRepo.ts:84-88`
 states it outright: _"bundled drivers ship inside this build's own dist and are always current, so
-no conformance check runs against them"_. `conformingRecordToDriver` validates every record. So
+no conformance check runs against them"_. `conformingRecordToOpenIsdDriver` validates every record. So
 reloading the bundle through design is a **stronger gate than the app has ever had**, and it
 should be expected to reject records the old path accepted silently. That is the gate working, not
 a regression — but it lands during a build, so it needs saying in advance.
@@ -374,7 +374,7 @@ make once John rules, not this session's.
 
 ## 5. The codemod — 228 call sites
 
-One script, four rules, driven by `DriverSpec`'s own declared members read with **ts-morph**, so a
+One script, four rules, driven by `OpenIsdDriverSpec`'s own declared members read with **ts-morph**, so a
 name it cannot resolve is a hard error and never a silent skip:
 
 ```
@@ -430,3 +430,58 @@ The record-name → unit-name mapping already exists: `recordName()` in `domain/
   asking the real solver, so the message cannot disagree with the engine.
 - **`alignments.ts` → `boxDesign.ts`** — 1 of its 8 exports was an alignment.
 - **12 goldens pass**: the physics did not move.
+
+## 9. Chart view state — `OpenISDProjectJson.charts` (John, 2026-09-07)
+
+`OriginalShell.vue`/`GraphPanel.vue` need a place to read/write the frequency-sweep range and
+each chart's Y-axis zoom. `appState.ts` (session-only) was rejected:
+
+**John:** _"hang on correction,, the options settings are default X and y settings for a new
+project for each chart, the live values must be on the project object in a sub unit
+OpenisdChartsJson not the app"_ — then, confirming the full per-chart shape over a minimal one:
+_"needs to be first one because each project has different ranges"_.
+
+So chart view state is a normal section of `OpenISDProjectJson`, per-project like every other
+field, not app/session state:
+
+```ts
+const openISDChartsJsonSchema = z.strictObject({
+  fmin_hz: z.number().optional(),
+  fmax_hz: z.number().optional(),
+  N: z.number().optional(),
+  perTab: z.record(z.string(), chartYRangeJsonSchema),   // {ymin, ymax} per ChartTabId
+});
+```
+
+- **X range (`fmin_hz`/`fmax_hz`/`N`) is shared across every chart panel** — one sweep, one
+  frequency axis. **Y range is per chart**, keyed by `ChartTabId` carried as a plain string
+  (`domain/index.ts`'s "no packages/ui types" rule — `packages/design` cannot import
+  `ChartTabId`). Absent means the engine's own sweep defaults (`sweep.ts`: 10 Hz, 1000 Hz, 400
+  points).
+- `OpenISDProject` accessors: `sweepFmin_hz`/`sweepFmax_hz`/`sweepN` (`RawField<number |
+  undefined>`, same `focus(this.#slot('charts'), key)` pattern as every other scalar field),
+  `yRangeForChart(chartId)`/`setYRangeForChart(chartId, range | null)` for the per-chart Y zoom,
+  and `resetCharts()` (clears all of it back to defaults — the chart top bar's Reset button).
+- `#sweepParams()` falls back to the project's own stored range when the caller passes nothing:
+  `fmin: P.fmin ?? this.sweepFmin_hz.get()`.
+- `appState.ts`'s `syncedP` resolves `fmin`/`fmax` to concrete numbers (`?? 10`, `?? 1000`) before
+  handing them to chart code, since drag-math and `buildPlotData` need definite numbers, not
+  "maybe unset."
+
+### Dirty-tracking exclusion
+
+Dragging a chart axis writes through the same `#slot('charts').set(...)` path as every other
+field, which would otherwise flip `isModified()` true — but chart zoom is view state, not a
+change the user should be asked to save. `isModified()` (`project.ts`) now compares `#edited`
+against `#saved` **excluding the `charts` key**, so axis drags never mark the project unsaved;
+every other field still does. `save()`/`cancel()` are untouched — chart state still round-trips
+through them (harmless), it just doesn't gate the dirty flag.
+
+### Not done
+
+- **Not round-tripped through `.owpr` export/import today** — `charts` stays local to the running
+  session's project object; sharing/exporting a project does not carry the reader's zoom to
+  whoever opens the file. Backlogged: `BACKLOG.md` "Storage & sharing" §"Round-trip chart view
+  state".
+- **Autosave** — a future autosave will persist this whole structure (including live view state)
+  as it changes; not built yet (John, 2026-09-07).

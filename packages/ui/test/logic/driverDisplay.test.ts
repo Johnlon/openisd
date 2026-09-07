@@ -6,7 +6,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { conformingRecordToDriver } from '@openisd/design';
+import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import { displayNameOf, chipsOf } from '../../src/logic/driverDisplay.js';
 
@@ -36,7 +36,7 @@ function driverOf(p: {
       },
     },
   };
-  const driver = conformingRecordToDriver(record, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
   return driver;
 }

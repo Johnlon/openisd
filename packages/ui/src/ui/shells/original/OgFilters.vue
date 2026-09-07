@@ -27,7 +27,7 @@ import type { Filter, FilterType } from '@openisd/design/engine';
 import { inputValue, inputChecked } from '../../../logic/domEvents.js';
 
 const project = useFocusedProject();
-const filters = computed<Filter[]>(() => project.value.filters());
+const filters = computed<readonly Filter[]>(() => project.value.filters.get());
 
 // Order: LP, HP, …, LT, …, PEQ, with the four engine-unsupported types (AP, Peak, DLP,
 // Gain) omitted — see honesty note above.
@@ -53,12 +53,12 @@ const editing = ref<string | null>(null);
 
 function addFilter(type: FilterType) {
   const flt: Filter = { id: crypto.randomUUID(), type, enabled: true, ...DEFAULTS[type] };
-  project.value.addFilter(flt);
+  project.value.filters.set([...project.value.filters.get(), flt]);
   editing.value = flt.id ?? null;
 }
 function removeFilter(id: string | undefined) {
   if (!id) return;
-  project.value.removeFilter(id);
+  project.value.filters.set(project.value.filters.get().filter(f => f.id !== id));
   if (editing.value === id) editing.value = null;
 }
 function toggleEdit(id: string | undefined) { editing.value = editing.value === id ? null : (id ?? null); }
@@ -66,7 +66,8 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
 /** One input's `@input`/`@change` handler: patches exactly this filter's named field. */
 function patch(id: string | undefined, field: keyof Filter, value: number | boolean) {
   if (!id) return;
-  project.value.setFilter(id, { [field]: value } as Partial<Filter>);
+  project.value.filters.set(
+    project.value.filters.get().map(f => f.id === id ? { ...f, [field]: value } as Filter : f));
 }
 function numFrom(e: Event): number { return Number(inputValue(e)); }
 

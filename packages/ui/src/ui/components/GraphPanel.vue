@@ -25,8 +25,8 @@ const readEl   = ref<HTMLElement | null>(null);
 const meta     = computed(() => TAB_META[props.tabId]);
 
 const currentDesign = computed(() => ({
-  driver: project.value.toEngineDriver(), box: state.box, P: syncedP.value,
-  curves: curvesData.value, maxCurves: maxData.value,
+  driver: project.value.driver.solveConsistencyGroup(), box: state.box, P: syncedP.value,
+  curves: curvesData.value, maxCurves: maxData.value ?? undefined,
   name: 'Current', color: props.primaryColor || DPAL[0],
 }));
 
@@ -216,8 +216,8 @@ function applyXDrag(e: PointerEvent) {
   a = Math.max(0, Math.min(a, X_LMAX - 0.1));   // 0 = log10(1 Hz)
   b = Math.min(X_LMAX, Math.max(b, a + 0.1));
   if (b - a < 0.1) return;                        // keep at least ~0.1 decade
-  project.value.setSweepFmin_hz(Math.pow(10, a));
-  project.value.setSweepFmax_hz(Math.pow(10, b));
+  project.value.sweepFmin_hz.set(Math.pow(10, a));
+  project.value.sweepFmax_hz.set(Math.pow(10, b));
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -282,7 +282,7 @@ function onPointerUp(e: PointerEvent) {
 // the X-axis strip resets the frequency range to the 1–20 kHz default.
 function onDblClick(e: MouseEvent) {
   if (yAxisZone(e)) resetY();
-  else if (xAxisZone(e)) { project.value.setSweepFmin_hz(1); project.value.setSweepFmax_hz(20000); }
+  else if (xAxisZone(e)) { project.value.sweepFmin_hz.set(1); project.value.sweepFmax_hz.set(20000); }
 }
 
 function onPointerLeave() {

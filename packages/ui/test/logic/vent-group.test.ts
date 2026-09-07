@@ -8,7 +8,7 @@
  * `enterVentField`/`clearVentField`/`ventFieldState` (`useVentGroup.ts`) exercise the
  * provenance directly through `box.vented.*`'s `FieldHandle`s — real, working code. The actual
  * Helmholtz solve that would recompute the calculated member (`solveVentGroup()` on
- * `OpenISDProject`, `packages/design/domain/project.ts`) is a documented stub that throws
+ * `OpenISDProject`, `packages/design/domain/openisdDomain.ts`) is a documented stub that throws
  * `not implemented`; tests that need it to run are skipped below rather than forced to pass.
  *
  * Numbers come from WinISD 0.7.0.950 itself, Vents tab, Vb=0.02 m³ / Fb=40 Hz / k=0.6:
@@ -16,7 +16,7 @@
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { newProject, conformingRecordToDriver } from '@openisd/design';
+import { OpenISDProject, OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import {
   solveVentGroup, enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
@@ -43,9 +43,9 @@ function blankDriverRecord(): unknown {
 /** Vb=0.02 m³, round 5 cm vent, k=0.6 — WinISD's own Vents-tab trial. */
 function ventedProject() {
   const engine = new Engine();
-  const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-  const p = newProject(driver, engine).vented().volume_m3(0.02).tuning_hz(40).build();
+  const p = OpenISDProject.builder(driver, engine).vented().volume_m3(0.02).tuning_hz(40).build();
   p.box.vented.vent.shape.set('round');
   p.box.vented.vent.diameter_m.set(0.05);
   p.box.vented.vent.endCorrection_m.set(0.6);
@@ -94,7 +94,7 @@ describe('vent group — the entered set decides the direction', () => {
 });
 
 // The following behavior needs `OpenISDProject.solveVentGroup()`, a documented stub
-// (`packages/design/domain/project.ts` "ledger 2026-09-06 — STUBS, not yet implemented") that
+// (`packages/design/domain/openisdDomain.ts` "ledger 2026-09-06 — STUBS, not yet implemented") that
 // throws `not implemented`. Skipped rather than forced to pass — implementing the solver is a
 // physics/design decision reserved for the human.
 describe.skip('vent group — solveVentGroup() re-derives the calculated member (BLOCKED: stub)', () => {

@@ -1,5 +1,5 @@
 /** REPO: domain access to the My Drivers collection. Takes a storage, returns domain objects. */
-import { conformingRecordToDriver, type OpenISDDriver } from '@openisd/design';
+import { OpenISDDriver } from '@openisd/design';
 import type { Engine } from '@openisd/design/engine';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 
@@ -176,7 +176,7 @@ export function createMyDriverRepo(
         brokenRaw.push(blob);
         continue;
       }
-      const result = conformingRecordToDriver(blob.record, engine);
+      const result = OpenISDDriver.fromConformingRecord(blob.record, engine);
       if (Array.isArray(result)) {
         broken.push({ key: brokenRaw.length, label: labelOf(blob.record), raw: JSON.stringify(blob) });
         brokenRaw.push(blob);
@@ -207,7 +207,7 @@ export function createMyDriverRepo(
     replaceAll(next) {
       const { state } = readFull();
       if (state.kind === 'unreadable') return false; // read-only: the string is the only copy
-      return writeBack(next.map(d => ({ uuid: newUuid(), record: d.recordToPersist() })), []);
+      return writeBack(next.map(d => ({ uuid: newUuid(), record: d.cloneDriver() })), []);
     },
     upsert(d, uuid) {
       const { state, slots, brokenRaw } = readFull();
@@ -215,8 +215,8 @@ export function createMyDriverRepo(
       const id = uuid ?? newUuid();
       const idx = slots.findIndex(s => s.uuid === id);
       const nextSlots = [...slots];
-      if (idx >= 0) nextSlots[idx] = { uuid: id, record: d.recordToPersist() };
-      else nextSlots.push({ uuid: id, record: d.recordToPersist() });
+      if (idx >= 0) nextSlots[idx] = { uuid: id, record: d.cloneDriver() };
+      else nextSlots.push({ uuid: id, record: d.cloneDriver() });
       writeBack(nextSlots, brokenRaw);
       return { uuid: id, overwrote: idx >= 0 };
     },

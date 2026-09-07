@@ -211,8 +211,8 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
   });
 
   it('returns a warn entry ALONGSIDE a good wdr for an entered-zero field', () => {
-    // openisdDriver.ts's toWinISDDriver() pushes a 'warn' (not 'error') when a Provenance
-    // .Entered field's value is 0 — a successful conversion that still carries a warning,
+    // openisdDriver.ts's toWinISDDriver() pushes a 'warn' (not 'error') when an
+    // entered field's value is 0 — a successful conversion that still carries a warning,
     // which is exactly the case the JSON envelope (over a bare-string return) exists to keep
     // visible to the Python caller.
     const yamlText = `

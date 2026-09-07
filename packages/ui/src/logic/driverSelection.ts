@@ -1,6 +1,13 @@
-import { OpenISDDriver } from '@openisd/model';
+import type { OpenISDDriver } from '@openisd/design';
+import { OpenISDDriver } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
 import { requireFocusedProject } from './appState.js';
 import { presentationState } from './presentationState.js';
+
+// A driver-file/YAML parse needs an `Engine` to build the resulting `OpenISDDriver` against
+// (`driverFromOpenIsdYml`'s own signature) — cheap and stateless (`Engine.ts`: no constructor
+// args, no I/O), so a fresh instance per module is the same pattern `appState.ts` uses.
+const engine = new Engine();
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
 //
@@ -56,20 +63,16 @@ const LINK_ROLES: ReadonlyArray<readonly [keyof PoolEntry, 'manufacturer_datashe
 ];
 
 /** Carry the library row's source links onto the driver. They belong in the record's own
- *  provenance index — not as driver FIELDS: a datasheet URL is not a T/S value. */
-function withLinks(driver: OpenISDDriver, f: PoolEntry): OpenISDDriver {
-  const links: Partial<Record<'manufacturer_datasheet' | 'manufacturer_product_page' | 'distributor_product_page', string>> = {};
-  for (const [entryKey, role] of LINK_ROLES) {
-    const url = f[entryKey];
-    if (typeof url === 'string' && url) links[role] = url;
-  }
-  driver.withDataSourceLinks(links);
+ *  provenance index — not as driver FIELDS: a datasheet URL is not a T/S value.
+ *
+ * GAP (fork investigation 2026-09-07, PLAN_DELETE_PACKAGES_MODEL.md §4b/§4c/§4e): `@openisd/
+ * design`'s `OpenISDDriver` carries no `.withDataSourceLinks()` — the accessor was deliberately
+ * removed (John: "and why are there accessors on OpenISDDriver" / "kill them all") and no
+ * replacement for attaching catalogue-row provenance links exists yet. Until one does, this is a
+ * no-op passthrough — a selected driver keeps its own record's data-source links (if any) but
+ * does not pick up the library row's datasheet/manufacturer/vendor links. */
+function withLinks(driver: OpenISDDriver, _f: PoolEntry): OpenISDDriver {
   return driver;
-}
-
-function rawUrlOf(f: PoolEntry): string {
-  const path = (f.path ?? '').split('/').map(encodeURIComponent).join('/');
-  return `https://raw.githubusercontent.com/${f.repo}/${f.branch}/${path}`;
 }
 
 /** Outcome of a selection. `error` is a message the picker shows in its own status line. */
@@ -78,25 +81,17 @@ export interface SelectionResult {
   error?: string;
 }
 
-/** Fetch and parse a federated `.wdr` row, or say why it could not be read. */
-async function modelOf(f: PoolEntry): Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
-  let text = f.content;
-  if (!text) {
-    let res: Response;
-    try {
-      res = await fetch(rawUrlOf(f));
-    } catch (err) {
-      return { ok: false, error: 'Could not load: ' + (err instanceof Error ? err.message : String(err)) };
-    }
-    if (!res.ok) return { ok: false, error: 'Could not load: fetch failed (' + res.status + ')' };
-    text = await res.text();
-  }
-  if (!/\[Driver\]/.test(text)) return { ok: false, error: 'Could not load: file did not parse as a WDR' };
-  try {
-    return { ok: true, driver: OpenISDDriver.fromWdrText(text) };
-  } catch (err) {
-    return { ok: false, error: 'Could not load: ' + (err instanceof Error ? err.message : String(err)) };
-  }
+/** Fetch and parse a federated `.wdr` row, or say why it could not be read.
+ *
+ * GAP (fork investigation 2026-09-07, PLAN_DELETE_PACKAGES_MODEL.md §4b/§4c/§4e): there is no
+ * function anywhere in `@openisd/design` converting a `.wdr` file (`WinISDDriver.fromWdrIni`,
+ * `packages/design/winisd/winisdDriver.ts:265`) into an `OpenISDDeviceJson`/`OpenISDDriver`. The
+ * intended per-field E/C/N decision table is documented but unimplemented
+ * (`packages/design/domain/openisdSchema.ts:705-727`) — building it is a real mapper, not
+ * a mechanical fix, so this function cannot honestly be ported yet. Every federated `.wdr` row
+ * now fails closed with this message rather than being silently mis-converted. */
+async function modelOf(_f: PoolEntry): Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
+  return { ok: false, error: 'Loading a .wdr driver is not supported yet (no WDR-to-OpenISD conversion exists)' };
 }
 
 // ---- reading a driver file off the user's own disk -------------------------------------
@@ -122,15 +117,22 @@ export type FileReadResult =
  * invented value.
  */
 export function driverFromFileText(text: string, format: 'wdr' | 'owdr', fileName: string): FileReadResult {
-  const { value: driver, errors } = OpenISDDriver.fromFileText(text, format);
-  if (!driver) return { ok: false, error: errors[0]?.message ?? `${fileName} could not be read` };
+  // GAP (fork investigation 2026-09-07, PLAN_DELETE_PACKAGES_MODEL.md §4b/§4c/§4e): `.wdr` has
+  // no conversion to an `OpenISDDeviceJson`/`OpenISDDriver` yet — same blocker as `modelOf()`
+  // above. Only `.owdr` (OpenISD YAML) can be read here until that mapper exists.
+  if (format === 'wdr') {
+    return { ok: false, error: `${fileName}: reading a .wdr file is not supported yet (no WDR-to-OpenISD conversion exists)` };
+  }
+
+  const driver = OpenISDDriver.fromYml(text, engine);
+  if (Array.isArray(driver)) return { ok: false, error: driver[0] ?? `${fileName} could not be read` };
 
   // A driver IS its <brand>/<model>, so one with neither cannot be filed. The file name is the
   // last thing that can name it; if that is empty too, say so rather than saving it nameless.
-  if (!driver.brand() && !driver.model()) {
+  if (!driver.brand.get().value && !driver.model.get().value) {
     const base = fileName.replace(/\.[^.]*$/, '').trim();
     if (!base) return { ok: false, error: `${fileName} carries no brand or model, and its name gives none` };
-    driver.enterModel(base);
+    driver.model.set(base);
   }
   return { ok: true, driver };
 }
@@ -184,9 +186,7 @@ export function createDriverSelection(): DriverSelection {
    * that copy alone. Editing is a separate act, from the Driver panel's Edit button.
    */
   function adoptIntoProject(driver: OpenISDDriver): void {
-    // The managed layer adopts drivers as SERIALISED TEXT, never as the record value (QO73) —
-    // the round-trip is the boundary crossing, made explicit.
-    requireFocusedProject().loadDriverFromOwdrText(driver.toOwdrYml());
+    requireFocusedProject().setDriver(driver);
   }
 
   function embedInProject(driver: OpenISDDriver): void {
@@ -199,8 +199,8 @@ export function createDriverSelection(): DriverSelection {
    *  bundled one are both already domain objects; only a federated `.wdr` needs fetching. */
   async function driverOf(f: PoolEntry):
       Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
-    if (f.myDriverData) return { ok: true, driver: f.myDriverData.copy() };
-    if (f.record) return { ok: true, driver: f.record.copy() };
+    if (f.myDriverData) return { ok: true, driver: f.myDriverData.detach() };
+    if (f.record) return { ok: true, driver: f.record.detach() };
     return modelOf(f);
   }
 
@@ -225,10 +225,16 @@ export function createDriverSelection(): DriverSelection {
       return { ok: true };
     },
 
+    // GAP (fork investigation 2026-09-07, PLAN_DELETE_PACKAGES_MODEL.md §4b/§4c/§4e):
+    // `@openisd/design`'s `OpenISDDriver` has no `.uuid()` — deliberately removed with the rest
+    // of the killed accessor surface, and no replacement identity for a My Drivers entry has
+    // been decided. `openedAs` is left `''` below rather than inventing an identity scheme (a
+    // hash, a brand/model key, ...); until John rules on what identifies a My Drivers row, OK
+    // on this editor files every save as a NEW entry rather than replacing the one opened.
     /** Open the editor on a saved driver. Its OK writes to My Drivers, never to the project. */
     editMyDriver(d) {
-      subject = { kind: 'myDriver', openedAs: d.uuid() };
-      editSeed = d.copy();
+      subject = { kind: 'myDriver', openedAs: '' };
+      editSeed = d.detach();
       presentationState.editDriverInfo = true;
     },
 
@@ -236,11 +242,9 @@ export function createDriverSelection(): DriverSelection {
     async editOverviewDriver(f) {
       const read = await driverOf(f);
       if (!read.ok) return { ok: false, error: read.error };
-      // A saved driver is opened AS ITSELF, so OK replaces that entry. Anything else opens as
-      // a new My Driver, so OK files it under whatever identity the user gives it.
-      subject = f.myDriverData
-        ? { kind: 'myDriver', openedAs: f.myDriverData.uuid() }
-        : { kind: 'myDriver', openedAs: '' };
+      // See the GAP note on `editMyDriver` above — `.uuid()` no longer exists, so a saved
+      // driver cannot be reopened "as itself"; every OK from here also files as a new entry.
+      subject = { kind: 'myDriver', openedAs: '' };
       editSeed = withLinks(read.driver, f);
       presentationState.editDriverInfo = true;
       return { ok: true };

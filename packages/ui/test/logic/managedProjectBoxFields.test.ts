@@ -5,7 +5,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { newProject, conformingRecordToDriver } from '@openisd/design';
+import { OpenISDProject, OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 
 function blankDriverRecord(): unknown {
@@ -27,16 +27,16 @@ function blankDriverRecord(): unknown {
 
 function ventedProject() {
   const engine = new Engine();
-  const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-  return newProject(driver, engine).vented().volume_m3(0.03).tuning_hz(30).build();
+  return OpenISDProject.builder(driver, engine).vented().volume_m3(0.03).tuning_hz(30).build();
 }
 
 function sealedProject() {
   const engine = new Engine();
-  const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-  return newProject(driver, engine).sealed().volume_m3(0.02).build();
+  return OpenISDProject.builder(driver, engine).sealed().volume_m3(0.02).build();
 }
 
 describe('OpenISDProject — box field read/write', () => {

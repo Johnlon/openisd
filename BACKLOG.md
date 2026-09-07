@@ -515,6 +515,10 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
 ## UX & platform
 
 - [x] [ ] **P1** Save / restore graph layout (which graphs, sizes, positions) — graph selection persisted in localStorage
+- [ ] **P2** Round-trip chart view state (`OpenISDProjectJson.charts` — shared sweep
+      fmin/fmax/N, per-chart Y-axis zoom) through `.owpr` export/import. Today `charts` is
+      part of `OpenISDProjectJson` but stays local-only; exporting/sharing a project does not
+      carry the reader's chart zoom to whoever opens the file.
 - [ ] **P2** Interactive schematic / lumped-model view of the signal path
 - [ ] **P2** Keyboard nudge (arrow keys) on numeric inputs
 - [ ] **P2** Mobile / small-screen layout pass

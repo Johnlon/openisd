@@ -99,20 +99,20 @@ the app-level provider instead, and `packages/design` has no import path to
 `packages/ui`'s `presentationState.ts` — that provider must be handed in from the UI side, not
 reached for from inside the domain.
 
-**Where `DriverSpec` is actually built:** `OpenISDDriver`'s shared `protected constructor`
-(`:1069-1087`) builds `this.spec.woofer`/`this.spec.tweeter` — both `DriverSpec` instances —
+**Where `OpenIsdDriverSpec` is actually built:** `OpenISDDriver`'s shared `protected constructor`
+(`:1069-1087`) builds `this.spec.woofer`/`this.spec.tweeter` — both `OpenIsdDriverSpec` instances —
 unconditionally, in the base class, not in either subclass's `wrap()`. `wrap()` on each
 subclass constructs the whole `OpenISDDriver` (base constructor included) from an
 `OpenISDDeviceJson`; there is no separate step that builds "just the record body" before the
-wrapper exists. So a provider `DriverSpec` needs at construction time must be a parameter on
+wrapper exists. So a provider `OpenIsdDriverSpec` needs at construction time must be a parameter on
 `OpenISDDriver`'s constructor itself, supplied differently by each subclass's `wrap()` — not
-something patched onto an already-built `DriverSpec` from outside.
+something patched onto an already-built `OpenIsdDriverSpec` from outside.
 
-`conformingRecordToDriver` (`:1459-1466`) calls `OpenISDDriverStandalone.wrap(conformed.json,
-engine)` directly — it is a thin validate-then-wrap, not a separate builder of `DriverSpec`.
+`conformingRecordToOpenIsdDriver` (`:1459-1466`) calls `OpenISDDriverStandalone.wrap(conformed.json,
+engine)` directly — it is a thin validate-then-wrap, not a separate builder of `OpenIsdDriverSpec`.
 Ruled 2026-09-05: its signature does NOT grow a provider parameter. Every existing call site
 (tests, `driverYmlToOpenisdAndWdr.ts`) keeps working with no provider, falling back to
-`airFor({})` inside `DriverSpec` when none was supplied — the provider is a property of the
+`airFor({})` inside `OpenIsdDriverSpec` when none was supplied — the provider is a property of the
 `OpenISDDriver` object being built via `wrap()`, not of parsing the record.
 
 ### Proposed shape (subject to sign-off before implementation)
@@ -122,13 +122,13 @@ Ruled 2026-09-05: its signature does NOT grow a provider parameter. Every existi
    Options state can satisfy structurally, without `packages/design` importing anything from
    `packages/ui`.
 2. `OpenISDDriver`'s constructor gains an optional provider parameter (default: none, meaning
-   "use `airFor({})`"), passed through to the `DriverSpec` instances it builds.
+   "use `airFor({})`"), passed through to the `OpenIsdDriverSpec` instances it builds.
 3. `OpenISDDriverEmbedded.wrap()` supplies a provider sourced from the project's own environment
    (reversing the current "no reference back" comment).
 4. `OpenISDDriverStandalone.wrap()` takes an optional provider the caller supplies —
    `packages/ui` passes the app-level `envDefaults` when constructing a standalone driver from
-   UI code (My Drivers list, bundle browsing); `conformingRecordToDriver` passes none.
-5. `c_m_per_s`/`roo_kg_per_m3`'s field builders in `DriverSpec` call `engine.airFor(provider ??
+   UI code (My Drivers list, bundle browsing); `conformingRecordToOpenIsdDriver` passes none.
+5. `c_m_per_s`/`roo_kg_per_m3`'s field builders in `OpenIsdDriverSpec` call `engine.airFor(provider ??
 {})` instead of reporting `not-available` when the record states nothing.
 6. Project-level refill-on-clear: whatever owns the project's environment fields (the Options
    dialog / project settings UI) watches for a field going `null` and repopulates it from

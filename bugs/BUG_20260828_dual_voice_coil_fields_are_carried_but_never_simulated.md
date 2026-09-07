@@ -118,7 +118,7 @@ Its own docstring already admits it: *"Voice-coil count. WinISD's default is 1, 
 (`OpenISDDriver.toDriver()` supplies it) — no consumer in this package reads it yet."*
 
 **`VCCon` never reaches the engine at all.** Every mention is `.wdr` serialisation
-(`openisdYamlToWdr.ts`, `openisdDriver.ts`) — the wiring choice is written to file and read back,
+(`COMMENTED_openisdYamlToWdr.ts`, `openisdDriver.ts`) — the wiring choice is written to file and read back,
 and nothing between those two points consumes it.
 
 ## SETTLED BY PROBE, 2026-08-28 — WinISD does not simulate them either

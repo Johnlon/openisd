@@ -1,4 +1,4 @@
-import { Provenance as ModelProvenance } from '@openisd/model';
+import type { CellState } from '@openisd/design';
 // The DOMAIN's box vocabulary, not the engine's. `appliesTo` says which enclosures a field is
 // shown for, and the UI offers six; the engine's own `BoxType` names only the four it can
 // simulate, so using it here made `bandpass6`/`abc` inexpressible — which is what stopped [Frc]
@@ -28,10 +28,9 @@ import type { UnitGroup } from './units.js';
 /** Kind of field — only 'number' carries a `precision`. */
 export type FieldKind = 'number' | 'enum' | 'text' | 'toggle' | 'date' | 'control';
 /** Whether a field's value is supplied by the human or derived by the app. A registry entry
- *  declares an AUTHORING kind, so `NotAvailable` can never appear here — the type is the
- *  narrower union derived from the model's own `Provenance` enum, never a second
- *  declaration of the concept. */
-type FieldProvenance = `${ModelProvenance.Entered}` | `${ModelProvenance.Calculated}`;
+ *  declares an AUTHORING kind, so `'not-available'` can never appear here — the type is the
+ *  narrower union of design's own `CellState`, never a second declaration of the concept. */
+type Provenance = Exclude<CellState, 'not-available'>;
 
 export interface FieldSpec {
   /** Stable field id — the key the UI and tests reference. */
@@ -62,7 +61,7 @@ export interface FieldSpec {
    *  (or not) on the same terms. REQUIRED for every numeric field. */
   max?: number;
   /** Entered by the human, or Calculated by the app. */
-  provenance: FieldProvenance;
+  provenance: Provenance;
   /** Box types the field applies to, or 'all' when it is box-type-independent. */
   appliesTo: BoxType[] | 'all';
   /** For calculated fields: the closed form (derivation), for documentation and traceability. */

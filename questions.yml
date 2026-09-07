@@ -1,5 +1,5 @@
 prefix: QO
-next: 119
+next: 121
 questions:
 - id: QO1
   title: UI TODO List
@@ -8479,3 +8479,70 @@ questions:
       fields). The test's blanket "N -> E is never legitimate" rule needs its own exception for this
       class of field (any nonzero N reads as data), matching the Sd exception already added, or these
       two fixtures need excluding from that specific check since they were never real oracle evidence.
+- id: QO119
+  title: Review OpenISDProject file-I/O surface (loadDriver + wdr/owdr text wrappers + designFileIo module)
+    for duplication and complexity
+  status: open
+  raised: '2026-09-07'
+  body: ''
+  notes:
+  - at: '2026-09-07'
+    text: |-
+      Context: mid model->design migration, useDesignIO.ts referenced 6 non-existent OpenISDProject
+      methods. Ruling 2026-09-07:
+       - Add OpenISDProject.loadDriver(driver: OpenISDDriver): void, mirroring setDriver() (deep-clone
+         via update()), loading only from a STANDALONE driver, never an embedded one. Public param
+         type is the exported OpenISDDriver base class (OpenISDDriverStandalone is not exported).
+       - KEEP loadDriverFromWdrText(text) / loadDriverFromOwdrText(text) as THIN wrappers that parse
+         text -> OpenISDDriver then call loadDriver().
+       - File encode/decode (wdr/owdr/wpr) lives in a NEW useDesignIO-owned logic module
+         (logic/designFileIo.ts or similar), NOT as methods on OpenISDProject. It wraps the existing
+         packages/design/winisd free functions (openIsdDriverToWinIsdDriver,
+         winIsdDriverTextToOpenIsdDriver, winIsdProjectToOpenIsdProject, ...).
+
+      To inspect later:
+       1. loadDriver vs setDriver vs OpenISDDriver.update() vs OpenISDDriverEmbedded.update() -
+          are we now carrying 3-4 near-identical write-back paths? Should loadDriver just BE setDriver
+          with a standalone-only guard?
+       2. loadDriverFromWdrText / loadDriverFromOwdrText wrappers - do both still earn their place,
+          or should useDesignIO call loadDriver(parse(text)) inline and delete the wrappers?
+       3. designFileIo module vs the winisd free functions - is the module adding real value or just
+          a passthrough layer? exportWpr still needs the live swept-impedance curve + lossMode, which
+          only the UI has - confirm that is the only reason the module exists.
+       4. exportDriverWdr / exportDriverOwdr error contract (Result vs throw) - owdr "always succeeds"
+          per DRIVER_NON_NULL_INVARIANT.md; wdr returns {value,errors}. Consistent?
+- id: QO120
+  title: 'Manual review: driver display/summary/search helpers moved from driverRepo.ts into logic/driverDisplay.ts
+    during model decommission'
+  status: open
+  raised: '2026-09-07'
+  body: ''
+  notes:
+  - at: '2026-09-07'
+    text: |-
+      Context: 8 helpers were commented out in packages/persistence driverRepo.ts at HEAD during the
+      packages/model decommission, still imported by packages/ui driverBrowsingState.ts. Ruling
+      2026-09-07:
+       - Display/summary/search helpers -> packages/ui logic/driverDisplay.ts:
+           myDriverName, matchesCriteria (+ SearchCriteria type), previewOf (+ Preview / PreviewSpec
+           types), fmtHz, shortSource, driverHasDqIssues
+       - Pure repo-identity helpers STAY in packages/persistence:
+           driverKey, myDriverEntry
+       - All rewritten to read fields through OpenISDDriver's own accessors (driver.Fs(), driver.Sd(),
+         driver.Znom(), driver.driverType(), driver.standingEvidence(), ...) instead of the old
+         packages/model helpers (driverIsSimulatable, recordStandingIsOk, classifyTypes).
+
+      To inspect later:
+       1. driverHasDqIssues depended on driverIsSimulatable (model/driverSimulatability.ts) and
+          recordStandingIsOk (model/driverStanding.ts). Confirm the design-side equivalents exist and
+          say the SAME thing - or that the check was reimplemented faithfully. This gates the health
+          badge; a wrong port silently hides or invents DQ warnings.
+       2. previewOf / Preview - big shape (name, source, links, specs[]). Does packages/design already
+          have something like it (OpenISDDriver has displayName() per commit 21a0bcd)? Check for a
+          second preview/summary shape before this one lands.
+       3. matchesCriteria classifies types via Chip / DriverType. Confirm it uses
+          packages/design/filter (UI/search-only, correct here) and NOT the domain driver_type.
+       4. myDriverName vs driver.displayName() vs driverDisplay.ts's existing name logic - likely
+          duplication.
+       5. classifyTypes (was in model) - where did it land? myDriverEntry and matchesCriteria both
+          used it.

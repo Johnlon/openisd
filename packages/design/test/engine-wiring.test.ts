@@ -16,9 +16,9 @@
 import { describe, it, expect } from 'vitest';
 import { Engine } from '@openisd/design/engine';
 import {
-  newProject, conformingRecordToDriver, conformingRecordToPassiveRadiator,
+  OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone,
   VoiceCoilWiring,
-  type OpenISDDriver, type FrequencyGrid,
+   type FrequencyGrid,
 } from '../domain/index.js';
 
 const scraped = <T,>(value: T) => ({ value });
@@ -40,7 +40,7 @@ function aDriver(engine: Engine, spec: Record<string, number | VoiceCoilWiring>)
     const read_value = typeof v === 'number' ? v : (v === VoiceCoilWiring.Series ? 2 : 1);
     woofer[k] = { origin: 'scraped', readings: { scraped: { read_value } } };
   }
-  const result = conformingRecordToDriver({
+  const result = OpenISDDriver.fromConformingRecord({
     brand: scraped('Dayton'), model: scraped('RS225'), manufacturer: scraped('Dayton'),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     // The scrape provenance every openisd.yml record carries (`model_openisd.py:55-73`). A
@@ -69,7 +69,7 @@ function aRadiator(engine: Engine, spec: Record<string, number>) {
   for (const [k, v] of Object.entries(spec)) {
     pr[k] = { origin: 'scraped', readings: { scraped: { read_value: v } } };
   }
-  const result = conformingRecordToPassiveRadiator({
+  const result = OpenISDPassiveRadiatorStandalone.fromConformingRecord({
     brand: scraped('SB Acoustics'), model: scraped('SB23PACS'), manufacturer: scraped('SB Acoustics'),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     uuid: { value: '00000000-0000-4000-8000-000000000001' },
@@ -104,7 +104,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   /** A sealed project driven at 1 W — every scenario below states the box volume and drive power
    *  itself, so the assembled `Vb`/`eg` are never stubbed. */
   const drivenSealed = (engine: Engine, volume_m3: number) => {
-    const project = newProject(complete(engine), engine).sealed().volume_m3(volume_m3).build();
+    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(volume_m3).build();
     project.setPowerDrive_W(1);
     return project;
   };
@@ -138,7 +138,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
   it('sweep() is null when the driver is too incomplete to simulate', () => {
     const engine = new Engine();
-    const project = newProject(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.sweep({}).value).toBeNull();
   });
@@ -236,7 +236,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
 
 describe('D — the vent', () => {
-  const project = (engine: Engine) => newProject(
+  const project = (engine: Engine) => OpenISDProject.builder(
     aDriver(engine, { Fs: 30, Qes: 0.4, Qms: 4, Sd: 0.02, Cms: 0.0005 }), engine)
     .vented().volume_m3(0.03).tuning_hz(30).build();
 
@@ -311,14 +311,14 @@ describe('E — the signal', () => {
 
   it('driveVoltage_V() is null until a drive power is stated — no invented default', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
 
     expect(project.driveVoltage_V()).toBeNull();
   });
 
   it('sourceLoadedQts() RAISES Qts as the source impedance grows, and matches the engine', () => {
     const engine = new Engine();
-    const project = newProject(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
     const Qts = 1 / (1 / 4 + 1 / 0.4);
 
     // A perfect voltage source (Rs = 0) leaves Qts alone.
@@ -329,7 +329,7 @@ describe('E — the signal', () => {
 
   it('sourceLoadedQts() is null when the driver\'s Q group cannot be resolved', () => {
     const engine = new Engine();
-    const project = newProject(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.sourceLoadedQts(2)).toBeNull();
   });

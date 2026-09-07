@@ -48,7 +48,7 @@
 //  *   2. **`wdr-round-trip`** — `toWdrText() -> fromWdrText()`, re-reading the very `.wdr` text
 //  *      this function is about to return, compared against the ORIGINAL driver at the `cell()`
 //  *      level for every `@openisd/winisd` `INI_ROWS` field the original record STATED
-//  *      (`Provenance.Entered`). `.wdr` is a minimal 49-slot numeric format
+//  *      (`CellState.Entered`). `.wdr` is a minimal 49-slot numeric format
 //  *      (`docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md` Step 8): it carries no `uuid`, no
 //  *      provenance, no `dq`, no `data_sources`, no `product_image`, no `description`, no
 //  *      driver-type discriminator (a passive-radiator or full-range record reads back as a
@@ -69,7 +69,7 @@
 //  *      byte-for-value, in every fixture this was checked against (both
 //  *      `packages/winisd/test/fixtures/openisd/` samples and real corpus records `grs/8fr-8`,
 //  *      `tang-band/pr01`, `accuton/asp190` — the last two passive-radiator). Both
-//  *      `Provenance.Entered` AND `Provenance.Calculated` `INI_ROWS` fields are compared — NOT
+//  *      `CellState.Entered` AND `CellState.Calculated` `INI_ROWS` fields are compared — NOT
 //  *      only Entered ones: every field that can feed `solveConsistencyGroup`/
 //  *      `deriveOpenISDFields` is itself an `INI_ROWS` member (confirmed: `Xlim`, `OuterX`,
 //  *      `OuterY`, `freq_low_hz`, `freq_high_hz`, `power_peak_W`, `weight_kg` — the only
@@ -100,7 +100,7 @@
 // import { parse } from 'yaml';
 // import type { DriverError, Result } from '@openisd/design/engine';
 // import { INI_ROWS } from '@openisd/winisd';
-// import { OpenISDDriver } from './project.js';
+// import { OpenISDDriver } from './openisdDomain.js';
 //
 // /** Deep-compares two JSON-shaped values; returns a slash-separated path naming the FIRST point
 //  *  they diverge, or `null` if identical. Same idea as `scripts/roundTripGate.mjs`'s
@@ -157,7 +157,7 @@
 // }
 //
 // /** Re-reads `wdrText` (the `.wdr` this function is about to return, projected from `driver`)
-//  *  and reports any `INI_ROWS` field `driver` STATED (`Provenance.Entered`) that did not survive
+//  *  and reports any `INI_ROWS` field `driver` STATED (`CellState.Entered`) that did not survive
 //  *  the round trip unchanged. See this file's own docstring for what is and is not in scope and
 //  *  why. Never throws: `OpenISDDriver.fromWdrText` is built on `WinISDDriver.fromWdrIni`, which
 //  *  is documented never to throw on malformed `.wdr` text, but this function is still the LAST
@@ -217,7 +217,7 @@
 //     case 'Outer': return driver.OuterCell();
 //     case 'Vcd': return driver.VcdCell();
 //     case 'DVol': return driver.DVolCell();
-//     default: return { value: null, state: Provenance.NotAvailable };
+//     default: return { value: null, state: CellState.NotAvailable };
 //   }
 // }
 //
@@ -248,7 +248,7 @@
 //     // neither is a `solveConsistencyGroup` output (confirmed: not referenced in
 //     // `@openisd/engine`'s `solver.ts`), so `before.state` for either is always `Entered` or
 //     // `NotAvailable`, never `Calculated`.
-//     if (before.state === Provenance.NotAvailable) continue;
+//     if (before.state === CellState.NotAvailable) continue;
 //     const after = driverFieldCell(reread, key);
 //     // ParState (`.wdr`'s E/C/N letter) is checked too, not just the number: a `C` field must
 //     // come back `C`, not merely carry the same value by coincidence while its provenance
@@ -257,7 +257,7 @@
 //     // re-deriving it fresh (openisdDriver.ts:472), never as a stated reading, so `Calculated`
 //     // is the only state that mismatch could hide behind a value coincidence.
 //     if (after.value !== before.value || after.state !== before.state) {
-//       const kind = before.state === Provenance.Entered ? 'stated' : 'derived';
+//       const kind = before.state === CellState.Entered ? 'stated' : 'derived';
 //       const stateNote = after.state !== before.state
 //         ? ` [state ${before.state} -> ${after.state}]` : '';
 //       errors.push({

@@ -7,7 +7,7 @@ The one V8-bridge production call (`packages/winisd/src/bridge.ts:globalThis.ope
 sequenceDiagram
     participant Py as winisd_tools (Python)
     participant Bridge as bridge.ts:openisdYamlToWdrBridge
-    participant Fn as openisdYamlToWdr.ts:openisdYamlToWdr
+    participant Fn as COMMENTED_openisdYamlToWdr.ts:openisdYamlToWdr
     participant D1 as OpenISDDriver (driver)
     participant Yml as ymlRoundTripErrors()
     participant Wdr as wdrRoundTripErrors()

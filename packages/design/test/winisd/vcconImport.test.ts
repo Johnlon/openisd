@@ -18,7 +18,7 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchema.js';
+import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
 
 /** A `.wdr` whose only stated field is `VCCon`, with the ParState mark under test on slot 46. */
 function wdrStating(vccon: string, mark: 'E' | 'C' | 'N'): WinISDDriver {

@@ -1,6 +1,6 @@
 /** REPO: domain access to the bundled driver collection. Takes a
  *  storage/bundle, returns domain objects. */
-import { conformingRecordToDriver, type OpenISDDriver } from '@openisd/design';
+import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 // import type { MetaField } from '@openisd/model';
 // import { recordStandingIsOk } from '@openisd/model/driverStanding';
@@ -512,7 +512,7 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
    * value crossing this boundary.
    */
   function bundledEntry(f: BundleRecord, src: SourceEntry): FileEntry {
-    const driver = conformingRecordToDriver(f.record, deps.engine);
+    const driver = OpenISDDriver.fromConformingRecord(f.record, deps.engine);
     if (Array.isArray(driver)) {
       throw new Error(`${f.path}: not a valid driver — ${driver.join(', ')}`);
     }

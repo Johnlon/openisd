@@ -12,8 +12,8 @@ import { Engine } from '@openisd/design/engine';
 import { assemble } from '../app/composition.js';
 import { memoryStore } from '@openisd/design/browser';
 import {
-  newProject, conformingRecordToDriver, projectRepo,
-  type ProjectRepo, type OpenISDProject, type OpenISDDriver,
+  OpenISDProject, OpenISDDriver, projectRepo,
+  type ProjectRepo,  
 } from '@openisd/design';
 
 /** A conforming driver record, built inline so each test's data is readable where it is used. */
@@ -45,7 +45,7 @@ function aDriver(brand: string, model: string): OpenISDDriver {
       },
     },
   };
-  const driver = conformingRecordToDriver(record, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a conforming driver: ${driver.join('; ')}`);
   return driver;
 }
@@ -60,7 +60,7 @@ let repo: ProjectRepo;
 beforeEach(() => { repo = assemble(memoryStore, tickingClock()).repo; });
 
 function aProject(name: string, brand = 'Dayton', model = 'RS225'): OpenISDProject {
-  const p = newProject(aDriver(brand, model), new Engine()).sealed().volume_m3(0.03).build();
+  const p = OpenISDProject.builder(aDriver(brand, model), new Engine()).sealed().volume_m3(0.03).build();
   p.name.set(name);
   return p;
 }
@@ -101,7 +101,7 @@ describe('save and load', () => {
       return store;
     }
     const corruptRepo = projectRepo(spyingFactory, engine);
-    corruptWrite!('corrupt-id', { meta: { name: 'Half a project' } });
+    corruptWrite!('corrupt-id', { label: 'corrupt', saved: { meta: { name: 'Half a project' } }, edited: null });
 
     const back = corruptRepo.load('corrupt-id');
     if (!Array.isArray(back)) throw new Error('corrupt record was accepted as a valid project');

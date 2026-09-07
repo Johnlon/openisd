@@ -145,6 +145,8 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
 
   function exportWdr(): void {
     closeTunePanelAfterIO();
+    const exportProject = requireFocusedProject();
+    const exportYml = exportProject.
     const { value: bytes, errors } = requireFocusedProject().exportDriverWdr();
     if (!bytes) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wdr', bytes, DriverFileFormat.Wdr.mime);

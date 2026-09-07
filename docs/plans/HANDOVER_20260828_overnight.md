@@ -38,7 +38,7 @@ does not own all of their content:
 
 | file | api-design's hunks | this session's hunks |
 |---|---|---|
-| `design/domain/project.ts` | QO96 voice-coil, `SpecSection`, `DriverSpec` (~37 sites) | `SimulatableBoxType`, `#engineBoxType()`, `prCmsFromVas` SI, `'box-passive-radiator'` (4 sites) |
+| `design/domain/project.ts` | QO96 voice-coil, `SpecSection`, `OpenIsdDriverSpec` (~37 sites) | `SimulatableBoxType`, `#engineBoxType()`, `prCmsFromVas` SI, `'box-passive-radiator'` (4 sites) |
 | `ui/src/logic/fields/fieldRegistry.ts` | WinISD field renames, `numVC`/`VCCon`/`alfaVC` entries | `appliesTo` → `BoxType[]`, `box-passive-radiator`, the `tempCoeff` unit group |
 | `design/domain/index.ts` | `export { VoiceCoilWiring }` (runtime VALUE export) | removing `BoxType` from the barrel (QO86) |
 | `questions.yml` | QO96, QO97 | QO98 |

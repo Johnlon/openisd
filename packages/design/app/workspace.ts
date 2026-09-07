@@ -9,9 +9,9 @@
 // It is a WORKSPACE: the set of projects a user has open, and which one is focused.
 
 import {
-  newProject,
-  type OpenISDProject,
-  type OpenISDDriver,
+  OpenISDProject, OpenISDDriver,
+  
+  
   type ProjectRepo,
   type ProjectListing,
   type DeleteChallenge,
@@ -60,7 +60,7 @@ export class Workspace {
    * creation would fill the store with blank entries every time someone clicks New.
    */
   create(driver: OpenISDDriver, volume_m3: number): OpenISDProject {
-    return this.#adopt(newProject(driver, this.#engine).sealed().volume_m3(volume_m3).build());
+    return this.#adopt(OpenISDProject.builder(driver, this.#engine).sealed().volume_m3(volume_m3).build());
   }
 
   /** What the store holds, for a picker — most-recently-modified first. */

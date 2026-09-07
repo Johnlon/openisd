@@ -9,7 +9,7 @@
  * simulate (6th-order bandpass / ABC are pending everywhere), same rule as elsewhere.
  */
 import { ref, computed } from 'vue';
-import { isModified, newProject, openDriverPicker } from '../../../logic/appState.js';
+import { isModified, OpenISDProject, openDriverPicker } from '../../../logic/appState.js';
 import type { BoxType } from '@openisd/design/engine';
 
 import { useEscToClose } from '../../../logic/useEscToClose.js';
@@ -41,7 +41,7 @@ function back() { if (step.value > 1) step.value--; }
 const hadUnsaved = computed(() => isModified.value);
 
 function create() {
-  newProject({
+  OpenISDProject.builder({
     name: projName.value.trim(),
     box: boxType.value,
     volumeL: isDual.value ? rearVol.value : vol.value,

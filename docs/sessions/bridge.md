@@ -14,7 +14,7 @@ Session `33d3ea3a-c73c-4482-a883-e33bd3ed4b56`, branch `dev`, working on the V8 
   from `no` against the `John-all-manu-populated.wdr` oracle.
 - `packages/design/test/winisd/wdr-openisd-round-trip.test.ts`:
   - Ported `cycle()` off the dead `OpenISDDriver.fromWinISDDriver`/`.toWinISDDriver()` API
-    onto the live `winISDDriverToOpenISDDeviceJson` / `conformingRecordToDriver` /
+    onto the live `winISDDriverToOpenISDDeviceJson` / `conformingRecordToOpenIsdDriver` /
     `openIsdDriverToWinIsdDriver` functions.
   - Added a `numVC` exception to `lostEntered()`: an out-of-range `numVC` (not 1-4) coerces
     to `1` per `WDR_LOGIC.md` "`numVC` — read on mark, value checked" — not a lost value.

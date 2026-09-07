@@ -16,7 +16,7 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { createProjectRepo } from '../src/repos/projectRepo.js';
 import type { FileStorage } from '../src/storage/fileStorage.js';
-import { newProject, conformingRecordToDriver } from '@openisd/design';
+import { OpenISDProject, OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 
 const engine = new Engine();
@@ -61,10 +61,11 @@ function driverJson() {
 /** A valid record, sealed box, then a payload with `box.boxType` swapped for an arbitrary
  *  string — every OTHER field stays valid, so a refusal can only be about the box type. */
 function payloadWithBoxType(boxType: string): unknown {
-  const driver = conformingRecordToDriver(driverJson(), engine);
+  const driver = OpenISDDriver.fromConformingRecord(driverJson(), engine);
   if (Array.isArray(driver)) throw new Error('fixture driver record must conform: ' + driver.join('; '));
-  const project = newProject(driver, engine).sealed().volume_m3(0.03).build();
-  const record = JSON.parse(JSON.stringify(project.recordToPersist()));
+  const project = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+  project.save();
+  const record = JSON.parse(JSON.stringify(project.cloneSavedProject()));
   record.box.boxType = boxType;
   return record;
 }

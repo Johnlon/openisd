@@ -147,7 +147,7 @@ disk it would replace the 1893+77 bundle with 5.
 ## Verification
 
 - **The acceptance test**: a real corpus `driver.yml` through the bridge, and the resulting
-  record read back by design's own `conformingRecordToDriver` — accepted, `Fs` readable,
+  record read back by design's own `conformingRecordToOpenIsdDriver` — accepted, `Fs` readable,
   `toEngineDriver()` returns a driver. Design has NEVER read a real record; this is the proof
   that changes.
 - **Round-trip via production code only** — `OpenISDDriver.fromJsonRecord` / `toWdrText`, no
@@ -167,5 +167,5 @@ disk it would replace the 1893+77 bundle with 5.
   (stage 5), not on projection — `scan-speak/r1904-613001` still carries `Re: 77`.
 - `driverType.ts`'s stale cross-repo parity path.
 - The `any`/double-cast AST gate.
-- Design's remaining tsc error: `openisdYamlToWdr.ts`, the model-shaped copy, superseded by
+- Design's remaining tsc error: `COMMENTED_openisdYamlToWdr.ts`, the model-shaped copy, superseded by
   Part C and to be deleted with it.

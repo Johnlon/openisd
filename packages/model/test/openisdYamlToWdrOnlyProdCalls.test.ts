@@ -23,7 +23,7 @@
 // // not known to test anything. See AGENTS.md "Every architecture test exists to catch the AI".
 //
 // /**
-//  * Mechanical enforcement (AST, not prose): every call inside `openisdYamlToWdr.ts`'s
+//  * Mechanical enforcement (AST, not prose): every call inside `COMMENTED_openisdYamlToWdr.ts`'s
 //  * validation functions — `ymlRoundTripErrors`, `wdrRoundTripErrors`, `driverFieldCell`,
 //  * `firstDivergence` — resolves to either a real declaration inside `@openisd/model`'s own
 //  * source (`packages/model/src/`), the `yaml` package, or a JS/TS language builtin. No
@@ -38,16 +38,16 @@
 //
 // const here = dirname(fileURLToPath(import.meta.url));
 //
-// describe('openisdYamlToWdr.ts — validation functions call ONLY real @openisd/model / yaml declarations', () => {
+// describe('COMMENTED_openisdYamlToWdr.ts — validation functions call ONLY real @openisd/model / yaml declarations', () => {
 //   it('every call inside ymlRoundTripErrors, wdrRoundTripErrors, driverFieldCell, firstDivergence ' +
 //      'resolves to a declaration in packages/model/src/, the yaml package, or a language builtin', () => {
 //     const project = new Project({ tsConfigFilePath: join(here, '..', 'tsconfig.json') });
-//     const sf = project.getSourceFileOrThrow(join(here, '..', 'src', 'openisdYamlToWdr.ts'));
+//     const sf = project.getSourceFileOrThrow(join(here, '..', 'src', 'COMMENTED_openisdYamlToWdr.ts'));
 //
 //     const targetNames = ['ymlRoundTripErrors', 'wdrRoundTripErrors', 'driverFieldCell', 'firstDivergence'];
 //     const fns = sf.getFunctions().filter(f => targetNames.includes(f.getName() ?? ''));
 //     assert.deepEqual(fns.map(f => f.getName()).sort(), [...targetNames].sort(),
-//       'expected all four validation functions to exist as top-level function declarations in openisdYamlToWdr.ts');
+//       'expected all four validation functions to exist as top-level function declarations in COMMENTED_openisdYamlToWdr.ts');
 //
 //     // Language/runtime builtins the validation glue legitimately needs — comparison and
 //     // error-shaping, never data transformation.

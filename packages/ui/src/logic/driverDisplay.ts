@@ -43,7 +43,7 @@ export function chipsOf(driver: OpenISDDriver): { types: string[]; canonical: st
   const spec = driver.spec[driver.section];
   const Fs = spec.Fs_hz.get().value;
   const Sd = spec.Sd_m2.get().value;
-  const driverType = driver.recordToPersist().driver_type.value;
+  const driverType = driver.driverType();
 
   const of = (t: DriverType) => ({ types: t.chips.map(c => c.value), canonical: t.display });
 
