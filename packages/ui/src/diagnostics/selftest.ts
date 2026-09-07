@@ -26,7 +26,7 @@
  * See ARCHITECTURE.md AD-5 for the full rationale.
  */
 import { Engine } from '@openisd/design/engine';
-import type { AirEnvironment, SweepParams } from '@openisd/design/engine';
+import type { AirEnvironment, SweepParams, SolverQuantities } from '@openisd/design/engine';
 
 // No environment reaches this diagnostic's own closed-form reference, so it states the empty
 // environment: every field of `AirEnvironment` is optional and falls back to the reference
@@ -58,19 +58,17 @@ export interface DiagnosticsDeps {
 // Reference test driver — synthetic 6.5" mid-woofer, 8 Ω nominal.
 // Must stay in sync with REF_DRIVER in test/engine.test.mjs.
 // ---------------------------------------------------------------------------
-const REF_DRIVER = {
-  Fs:   37,      // Hz  — free-air resonance
-  Qts:  0.38,    // —   — total Q at Fs
-  Qes:  0.40,    // —   — electrical Q at Fs
-  Qms:  7.0,     // —   — mechanical Q at Fs
-  Vas:  0.030,   // m³  — equivalent compliance volume (30 L)
-  Sd:   0.0133,  // m²  — effective piston area (~130 cm²)
-  Re:   5.6,     // Ω   — voice-coil DC resistance
-  Le:   0.7e-3,  // H   — voice-coil inductance
-  Xmax: 0.005,   // m   — max one-way linear excursion (5 mm)
-  Pe:   60,      // W   — rated power
-  Znom:    8,       // Ω   — nominal impedance
-};
+const REF_FS_HZ   = 37;      // Hz  — free-air resonance
+const REF_QTS     = 0.38;    // —   — total Q at Fs
+const REF_QES     = 0.40;    // —   — electrical Q at Fs
+const REF_QMS     = 7.0;     // —   — mechanical Q at Fs
+const REF_VAS_M3  = 0.030;   // m³  — equivalent compliance volume (30 L)
+const REF_SD_M2   = 0.0133;  // m²  — effective piston area (~130 cm²)
+const REF_RE_OHM  = 5.6;     // Ω   — voice-coil DC resistance
+const REF_LE_H    = 0.7e-3;  // H   — voice-coil inductance
+const REF_XMAX_M  = 0.005;   // m   — max one-way linear excursion (5 mm)
+const REF_PE_W    = 60;      // W   — rated power
+const REF_ZNOM_OHM = 8;      // Ω   — nominal impedance
 
 // ---------------------------------------------------------------------------
 // Tolerance constants — must stay in sync with test/engine.test.mjs.
@@ -117,18 +115,32 @@ export function createDiagnostics(deps: DiagnosticsDeps): Diagnostics {
 function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
   const engine = new Engine();
   const refAir = engine.airFor(REF_ENV);
-  const { value: d } = engine.deriveEngineDriver(REF_DRIVER);
-  if (!d) return [{ label: 'Self-test', pass: false, detail: 'REF_DRIVER failed deriveEngineDriver validation' }];
-  const dNoLe = { ...d, Le: 0 }; // Le=0 isolates acoustic response from voice-coil inductance
+  const q: SolverQuantities = {
+    Fs_hz: REF_FS_HZ, Re_ohm: REF_RE_OHM, Znom_ohm: REF_ZNOM_OHM,
+    Qts: REF_QTS, Qes: REF_QES, Qms: REF_QMS,
+    Vas_m3: REF_VAS_M3, Sd_m2: REF_SD_M2,
+    Xmax_m: REF_XMAX_M, Pe_W: REF_PE_W,
+  };
+  const solved = engine.solveConsistencyGroup(q);
+  const d: SolverQuantities = {
+    ...solved,
+    Re_terminal_ohm: solved.Re_ohm === undefined ? undefined
+      : engine.terminalRe_ohm(solved.Re_ohm, solved.numVC, solved.wiring),
+    BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
+      : engine.terminalBL_Tm(solved.BL_Tm, solved.numVC, solved.wiring),
+  };
+  if (d.Fs_hz === undefined || d.Vas_m3 === undefined || d.Qts === undefined || d.Re_ohm === undefined)
+    return [{ label: 'Self-test', pass: false, detail: 'REF_DRIVER failed solveConsistencyGroup' }];
 
   // --- Gate 1: sealed SPL vs closed-form Thiele/Small transfer function ---
   // G²(x) = x⁴ / ((1−x²)² + x²/Qtc²),  x = f/fc
   // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
-  const fc  = d.Fs  * Math.sqrt(1 + d.Vas / VB_M3);
-  const Qtc = d.Qts * Math.sqrt(1 + d.Vas / VB_M3);
+  const fc  = d.Fs_hz  * Math.sqrt(1 + d.Vas_m3 / VB_M3);
+  const Qtc = d.Qts * Math.sqrt(1 + d.Vas_m3 / VB_M3);
   const Psl: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, nDrivers: 1, wiring: 'parallel',
                 eg: EG_V, fmin: FMIN_HZ, fmax: FMAX_HZ, N: N_POINTS };
-  const sw  = engine.sweep(dNoLe, 'sealed', Psl);
+  const { value: sw } = engine.sweep(d, 0, 'sealed', Psl); // Le=0 isolates acoustic response from voice-coil inductance
+  if (!sw) return [{ label: 'Self-test', pass: false, detail: 'sealed sweep failed' }];
   const passbandRef = sw.spl[sw.spl.length - 1]; // HF asymptote = reference level
   let e1 = 0;
   for (let i = 0; i < sw.fs.length; i++) {
@@ -146,8 +158,8 @@ function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
   // keeping its own copy: it checks the sweep's CIRCUIT solution against the closed-form
   // reference level, so the reference side must be the project's one definition of that
   // level. A second copy here would only ever prove the two copies agree.
-  const eta0    = engine.referenceEfficiency(d.Fs, d.Vas, d.Qes, refAir);
-  const sensPredicted = engine.splFromEfficiency(eta0, refAir) + 10 * Math.log10(EG_V ** 2 / d.Re);
+  const eta0    = engine.referenceEfficiency(d.Fs_hz, d.Vas_m3, d.Qes ?? REF_QES, refAir);
+  const sensPredicted = engine.splFromEfficiency(eta0, refAir) + 10 * Math.log10(EG_V ** 2 / d.Re_ohm);
   const i300    = sw.fs.findIndex(f => f >= PASSBAND_REF_HZ);
   const pb      = sw.spl[i300];
 
@@ -159,7 +171,8 @@ function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
   const Map  = 1 / (wb * wb * Cab);
   const Sp   = Math.PI * VENT_RADIUS_M ** 2;
   const Pv   = { ...Psl, Ql: VENTED_QL, Sp, Leff: Map * Sp / refAir.rho };
-  const sv   = engine.sweep(d, 'vented', Pv);
+  const { value: sv } = engine.sweep(d, REF_LE_H, 'vented', Pv);
+  if (!sv) return [{ label: 'Self-test', pass: false, detail: 'vented sweep failed' }];
   const ia   = sv.fs.findIndex(f => f >= ROLLOFF_LOW_HZ);
   const ib   = sv.fs.findIndex(f => f >= ROLLOFF_HIGH_HZ);
   const slope = (sv.spl[ib] - sv.spl[ia]) / Math.log2(sv.fs[ib] / sv.fs[ia]);
@@ -167,7 +180,7 @@ function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
   for (let i = 1; i < sv.zmag.length - 1; i++) {
     if (sv.zmag[i] > sv.zmag[i - 1] &&
         sv.zmag[i] > sv.zmag[i + 1] &&
-        sv.zmag[i] > d.Re * Z_PEAK_THRESHOLD) {
+        sv.zmag[i] > d.Re_ohm * Z_PEAK_THRESHOLD) {
       peaks.push(+sv.fs[i].toFixed(1));
     }
   }
