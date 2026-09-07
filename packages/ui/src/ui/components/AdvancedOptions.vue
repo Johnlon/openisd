@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * WinISD's Advanced-pane checkbox column — the five simulation-fidelity toggles
+ * WinISD's Advanced-pane checkbox column — the simulation-fidelity toggles
  * (docs/winisd_screenshots/info/view_6_advanced.md). ONE implementation, embedded in the Advanced pane.
  * `inert-control-gate.test.ts` asserts this file binds every modeled toggle
  * in the field registry, so a checkbox here can never go back to being decorative.
@@ -45,9 +45,6 @@ const project = useFocusedProject();
     </label>
     <label data-field-key="useWinisdAirModel" :title="fieldHelp('useWinisdAirModel')">
       <input type="checkbox" :checked="project.envUseWinisdAirModel()" @change="e => project.setEnvUseWinisdAirModel(inputChecked(e))"> Use WinISD air model
-    </label>
-    <label data-field-key="useAppLevelAirEnvironment" :title="fieldHelp('useAppLevelAirEnvironment')">
-      <input type="checkbox" :checked="project.envUseAppLevelAirEnvironment()" @change="e => project.setEnvUseAppLevelAirEnvironment(inputChecked(e))"> Use app-level environment for WinISD parity
     </label>
   </div>
 </template>

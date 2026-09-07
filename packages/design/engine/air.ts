@@ -47,19 +47,12 @@
  *
  * ## The WinISD-parity mode
  *
- * When `useWinisdAirModel` is enabled, openisd switches to WinISD's parity air model. The
- * model choice is separate from the environment-source choice: `useAppLevelAirEnvironment`
- * decides whether the parity run takes `T`/`RH`/`p` from the app-level Options environment or
- * from this project's own box settings. Real WinISD computes `c`/`rho` live from its APP-LEVEL
- * Options dialog (§13, the only environment source it ever reads), so the app-level override
- * matches that source of truth when the parity model is selected. The UI resolves its
- * app-level environment equivalent (`presentationState.ui.envDefaults`, via
- * `logic/environment.ts`'s `resolveAirEnvironment`) before handing control to `winisdAir()`,
- * which implements WinISD's Hyland-Wexler vapour-pressure curve and derives density from
- * `gamma·p/c²`. Identified by controlled probe across six environments, the worst error is
- * 2.5e-8 (`winisd_research` FINDING-008). `useWinisdAirModel` defaults to true (QO95, reversing
- * QO7) so a new project matches WinISD out of the box; `useAppLevelAirEnvironment` defaults to
- * false.
+ * When `useWinisdAirModel` is enabled, openisd switches to WinISD's parity air model, taking
+ * `T`/`RH`/`p` from this project's own box settings and implementing WinISD's Hyland-Wexler
+ * vapour-pressure curve, deriving density from `gamma·p/c²`. Identified by controlled probe
+ * across six environments, the worst error is 2.5e-8 (`winisd_research` FINDING-008).
+ * `useWinisdAirModel` defaults to true (QO95, reversing QO7) so a new project matches WinISD
+ * out of the box.
  */
 
 /** Ratio of specific heats for air. */
@@ -116,8 +109,6 @@ export interface AirEnvironment {
   pressurePa?: number;
   /** Use WinISD's parity air model instead of the physical model. Absent/false → the physical model. */
   useWinisdAirModel?: boolean;
-  /** When the parity model is active, use the app-level environment values instead of this project's own `tempK` / `humidityPct` / `pressurePa`. */
-  useAppLevelAirEnvironment?: boolean;
 }
 
 /**

@@ -313,12 +313,7 @@ const FIELDS: FieldSpec[] = [
   {
     id: 'useWinisdAirModel', label: 'Use WinISD air model', pane: 'Advanced', kind: 'toggle', unit: '',
     provenance: 'entered', appliesTo: 'all',
-    description: 'Choose the air equation set. ON: WinISD parity model, matching WinISD’s own air calculations for the same environment. OFF: OpenISD’s standard CIPM-based physical model, which uses the project’s own temperature, humidity and pressure values. The difference is small but measurable, and the choice is kept per project so the design can match WinISD or the standard physical model. The model lives in engine air.ts.',
-  },
-  {
-    id: 'useAppLevelAirEnvironment', label: 'Use app-level environment for WinISD parity', pane: 'Advanced', kind: 'toggle', unit: '',
-    provenance: 'entered', appliesTo: 'all',
-    description: 'Use the app-level Options environment for T/RH/p instead of this project’s own Advanced-pane values, matching real WinISD’s app-level source of truth. Independent of [useWinisdAirModel]: this setting picks the environment SOURCE, that one picks the FORMULA, and either can be on or off regardless of the other.',
+    description: 'Choose the air equation set. ON: WinISD parity model, matching WinISD’s own air calculations for the same environment. OFF: OpenISD’s standard CIPM-based physical model, which uses the project’s own temperature, humidity and pressure values. Both read the environment from this project’s own Advanced-pane T/RH/p — there is no app-level substitute. The difference is small but measurable, and the choice is kept per project so the design can match WinISD or the standard physical model. The model lives in engine air.ts.',
   },
 
   // ============================ DRIVER EDITOR — T/S (Parameters tab) ============================

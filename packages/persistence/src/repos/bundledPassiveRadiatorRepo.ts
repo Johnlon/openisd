@@ -1,75 +1,60 @@
-// COMMENTED OUT — John Lonergan, 2026-08-31: "also evil - comment it".
-//
-// TWO defects, both structural:
-//
-// 1. It reads a PASSIVE RADIATOR through `OpenISDDriver` — a class carrying `Re`, `BL`, `Qes`,
-//    `Znom`, `Pe` and the whole motor surface a radiator does not have. Those accessors answer
-//    null forever, indistinguishable from a radiator whose datasheet omitted them. A radiator is
-//    its own concept, and `packages/design` already says so: `passiveRadiatorFromConformingRecord`
-//    returns `OpenISDPassiveRadiatorStandalone | string[]`, refusing a record the other's type
-//    could never model.
-//
-// 2. `BundledPassiveRadiator` flattens the record into eight bare `number | null` fields. It opens
-//    a record into a domain object, reads values off it, throws the object away, and hands back
-//    strictly less — losing the provenance every `Cell` carries.
-//
-// The replacement reads the bundle's radiator records through the design seam and hands back the
-// radiator itself, with the bundle-level facts (`path`, `name`) beside it rather than inside it.
-// See docs/plans/PLAN_DELETE_PACKAGES_MODEL.md.
+/** REPO: the read-only passive radiators that ship in the build's driver bundle.
+ *
+ *  The radiator half of the bundle, kept as its OWN collection so neither browser scans the
+ *  other's rows. Read through `conformingRecordToPassiveRadiator` — the one seam for a
+ *  passive-radiator record, refusing anything with a driver's woofer/tweeter section instead
+ *  of quietly reading it as if it were a radiator. */
+import { conformingRecordToPassiveRadiator } from '@openisd/design';
+import type { Engine } from '@openisd/design/engine';
+import type { BundleRecord } from './driverRepo.js';
 
-// /** REPO: the read-only passive radiators that ship in the build's driver bundle.
-//  *
-//  *  The radiator half of the bundle, kept as its OWN collection so neither browser scans the
-//  *  other's rows. A radiator row carries the same `BundleRecord` shape a driver row does — a
-//  *  radiator record is a record — and is read here through the SAME `OpenISDDriver` reader the
-//  *  driver rows use, which handles a `passive-radiator` specs section natively
-//  *  (`openisdDriver.ts::sectionFor`). One shape, one reader, two collections. */
-// import { OpenISDDriver } from '@openisd/model';
-// import type { BundleRecord } from './driverRepo.js';
-//
-// /** One bundled radiator, as the PR browser and the PR editor need it.
-//  *
-//  *  Every field is read off the record, and a field the datasheet does not publish stays null —
-//  *  never zero, which would read as a measured value. */
-// export interface BundledPassiveRadiator {
-//   /** Path within the source, forward-slashed — the row's identity. */
-//   path: string;
-//   name: string;
-//   brand: string;
-//   model: string;
-//   Sd: number | null;
-//   Cms: number | null;
-//   Vas: number | null;
-//   Fs: number | null;
-//   Mms: number | null;
-//   Qms: number | null;
-//   Rms: number | null;
-//   Xmax: number | null;
-//   datasheet: string;
-//   manupage: string;
-// }
-//
-// export interface BundledPassiveRadiatorRepo {
-//   /** Every radiator in the bundle. No network, no file parsing. */
-//   list(): BundledPassiveRadiator[];
-// }
-//
-// export function createBundledPassiveRadiatorRepo(
-//   bundle: { passiveRadiators?: BundleRecord[] },
-// ): BundledPassiveRadiatorRepo {
-//   const rows = (bundle.passiveRadiators ?? []).map((f): BundledPassiveRadiator => {
-//     const pr = OpenISDDriver.fromJsonRecord(f.record);
-//     return {
-//       path: f.path,
-//       name: f.name,
-//       brand: pr.brand(),
-//       model: pr.model(),
-//       Sd: pr.Sd(), Cms: pr.Cms(), Vas: pr.Vas(), Fs: pr.Fs(),
-//       Mms: pr.Mms(), Qms: pr.Qms(), Rms: pr.Rms(), Xmax: pr.Xmax(),
-//       datasheet: pr.dataSourceUrl('manufacturer_datasheet'),
-//       manupage: pr.dataSourceUrl('manufacturer_product_page'),
-//     };
-//   });
-//   return { list: () => rows };
-// }
-//
+/** One bundled radiator, as the PR browser and the PR editor need it.
+ *
+ *  Every field is read off the record, and a field the datasheet does not publish stays null —
+ *  never zero, which would read as a measured value. SI units throughout, matching
+ *  `PassiveRadiatorSpec`'s own field names. */
+export interface BundledPassiveRadiator {
+  /** Path within the source, forward-slashed — the row's identity. */
+  path: string;
+  name: string;
+  brand: string;
+  model: string;
+  Sd_m2: number | null;
+  Cms_m_per_N: number | null;
+  Vas_m3: number | null;
+  Fs_hz: number | null;
+  Mms_kg: number | null;
+  Qms: number | null;
+  Rms_kg_per_s: number | null;
+  Xmax_m: number | null;
+}
+
+export interface BundledPassiveRadiatorRepo {
+  /** Every radiator in the bundle. No network, no file parsing. */
+  list(): BundledPassiveRadiator[];
+}
+
+export function createBundledPassiveRadiatorRepo(
+  bundle: { passiveRadiators?: readonly BundleRecord[] },
+  engine: Engine,
+): BundledPassiveRadiatorRepo {
+  const rows = (bundle.passiveRadiators ?? []).flatMap((f): BundledPassiveRadiator[] => {
+    const pr = conformingRecordToPassiveRadiator(f.record, engine);
+    if (Array.isArray(pr)) return []; // a record the seam refuses is dropped, not surfaced broken — the bundle is build-time, already validated by the codemod that produced it
+    return [{
+      path: f.path,
+      name: f.name,
+      brand: pr.brand.get().value ?? '',
+      model: pr.model.get().value ?? '',
+      Sd_m2: pr.spec.Sd_m2.get().value,
+      Cms_m_per_N: pr.spec.Cms_m_per_N.get().value,
+      Vas_m3: pr.spec.Vas_m3.get().value,
+      Fs_hz: pr.spec.Fs_hz.get().value,
+      Mms_kg: pr.spec.Mms_kg.get().value,
+      Qms: pr.spec.Qms.get().value,
+      Rms_kg_per_s: pr.spec.Rms_kg_per_s.get().value,
+      Xmax_m: pr.spec.Xmax_m.get().value,
+    }];
+  });
+  return { list: () => rows };
+}

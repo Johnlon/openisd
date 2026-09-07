@@ -3,7 +3,17 @@
  * Engine shapes (Driver, SweepResult, …) are imported from @openisd/design/engine.
  */
 import type { SolverQuantities, BoxType, SweepParams, SweepResult, MaxCurvesResult } from '@openisd/design/engine';
-import type { UiParams, OpenISDProjectMeta } from '@openisd/model';
+
+/** A project's WinISD Project-tab fields — `OpenISDProject`'s `name`/`creator`/`created`/
+ *  `modified`/`description`, each its own `RawField<string>` there, read together here for the
+ *  UI's own display/edit convenience. */
+export interface ProjectMeta {
+  name: string;
+  creator: string;
+  created: string;
+  modified: string;
+  description: string;
+}
 
 /**
  * The closed set of chart curves the engine can draw. Every member MUST appear in
@@ -97,12 +107,10 @@ export interface Geo {
   f1: number;
 }
 
-/**
- * What syncedP produces: the full UiParams (so consumers can still read ventD/
- * ventL/Pin) plus the derived drive voltage eg and, for vented/bandpass, Sp/Leff.
- * Assignable to the engine's SweepParams (it has Vb + eg + the rest).
- */
-export type SyncedParams = UiParams & { eg: number; Sp?: number; Leff?: number };
+/** What `syncedP` produces: the engine's own `SweepParams`, with `eg` filled from the
+ *  project's drive voltage and, for vented/bandpass, `Sp`/`Leff` filled from the vent
+ *  geometry — everything a sweep needs, already resolved from the focused project. */
+export type SyncedParams = SweepParams;
 
 /** Per-chart Y-axis override; absent entry = auto-scale. */
 export interface YRange { min: number; max: number }
@@ -115,16 +123,16 @@ export interface YRange { min: number; max: number }
 export interface AppState {
   box: BoxType;
   /** Project-level metadata — WinISD Project tab (Creator/Created/Modified/Description). */
-  project: OpenISDProjectMeta;
+  project: ProjectMeta;
 }
 
 export class AppStateImpl implements AppState {
-  constructor(boxType: BoxType, project: OpenISDProjectMeta) {
+  constructor(boxType: BoxType, project: ProjectMeta) {
     this.box = boxType;
     this.project = project;
   }
 
   readonly box: BoxType;
   /** Project-level metadata — WinISD Project tab (Creator/Created/Modified/Description). */
-  readonly project: OpenISDProjectMeta;
+  readonly project: ProjectMeta;
 }

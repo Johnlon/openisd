@@ -404,12 +404,9 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         // With it false, openisd derives rho and c from T/RH/p — physically right, and a
         // permanent ~0.07 dB divergence that would teach everyone to ignore this suite.
         //
-        // In that mode the app supplies the app-level Options environment before the engine sees
-        // them (logic/environment.ts resolveAirEnvironment — §12/§13: WinISD's parity model is fed
-        // from the active Options values, not from the project's box environment). The goldens
-        // were captured with the Options environment at factory defaults, so the harness performs
-        // the same substitution with the reference values. The project's temperature stays its own —
-        // the env-t-303 divergence entry bounds that leg.
+        // The goldens were captured with the environment at factory defaults, so the harness
+        // feeds the reference values directly into the engine. The project's temperature stays
+        // its own — the env-t-303 divergence entry bounds that leg.
         const air = new Engine().airFor({
           tempK: s.environment.T,
           useWinisdAirModel: true,

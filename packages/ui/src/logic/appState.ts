@@ -15,10 +15,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { reactive, computed, ref, shallowRef, triggerRef, watch, type ComputedRef, type Ref, type ShallowRef } from 'vue';
 import { Engine } from '@openisd/design/engine';
-import type { EngineDriver, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
-import { ManagedProject } from './managedProject.js';
-import {type AppState, AppStateImpl, type SyncedParams} from '../types.js';
-import type { UiParams } from '@openisd/model';
+import type { DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
+import {
+  newProject as buildProject, conformingRecordToDriver, projectRepo,
+  type OpenISDProject, type RecordStore, type RecordStoreFactory, type DiscardChallenge,
+  type FrequencyGrid,
+} from '@openisd/design';
+import {type AppState, AppStateImpl, type ProjectMeta} from '../types.js';
 import { copyOfName, uniqueName, type ViewSnapshot } from '@openisd/persistence';
 
 /** The 53 driver spec fields the app's UI reads/writes by name — the driver editor's own field
@@ -31,12 +34,11 @@ export type SpecField =
   | 'freq_high_hz' | 'power_peak_W' | 'weight_kg' | 'Thick' | 'Depth' | 'MagDepth' | 'Magnet'
   | 'Basket' | 'Outer' | 'OuterX' | 'OuterY' | 'DVol';
 import { presentationState, unitToken } from './presentationState.js';
-import { resolveAirEnvironment } from './environment.js';
 import { parseChartTabId } from './series.js';
 import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
 import { getOrInit, hmrSlots } from './hmrSingleton.js';
 import {
-  solveVentGroup, ventSolveSuspended, suspendVentSolve,
+  solveVentGroup, ventSolveSuspended,
 } from './useVentGroup.js';
 import { solvePrGroup } from './usePrGroup.js';
 // appState.ts does not persist — it initialises to defaults, and App.vue applies whatever a
@@ -58,15 +60,15 @@ import { solvePrGroup } from './usePrGroup.js';
 /** This module's hot-reload-surviving singletons, one typed member each (`hmrSingleton.ts`).
  *  Each member's declared type is what its `getOrInit` call site gets back. */
 interface AppStateSingletons {
-  seedProject: ManagedProject;
-  projects: ShallowRef<ManagedProject[]>;
+  engine: Engine;
+  seedProject: OpenISDProject;
+  projects: ShallowRef<OpenISDProject[]>;
   focusedIndex: Ref<number>;
   changeTicks: Ref<number>;
-  live: ShallowRef<ManagedProject | null>;
+  live: ShallowRef<OpenISDProject | null>;
   state: AppState;
   curves: Ref<SweepResult | null>;
   max: Ref<MaxCurvesResult | null>;
-  groundByProject: WeakMap<ManagedProject, string>;
 }
 declare global {
   var __openisd_appState: Partial<AppStateSingletons> | undefined;
@@ -77,20 +79,53 @@ const slots = hmrSlots<AppStateSingletons>(
 );
 
 /**
- * `ManagedProject` (`logic/managedProject.ts`) is the facade over ground and committed state,
- * and the domain object for ONE project in the registry below.
- *
- * Every read and every write of a project's state goes through it: `.cell()`/`.metaCell()`/
- * `.toEngineDriver()`/`.errors()`/`.snapshot()` to read; `.enter()`/`.clear()`/`.mutate()` to write.
- * `.projectToPersist()` is what anything saved/exported/shared reads. The `OpenISDProjectJson`
- * it wraps — and the `OpenISDDriver` inside that — are private to it and never leave.
+ * A driver record with no readings on any spec field — every field's `Field<T>.get()` answers
+ * `not-available`. `@openisd/design` has no `OpenISDDriver.empty()`/`OpenISDProject.empty()`
+ * yet (flagged to John as a design-side gap, `docs/plans/PLAN_DELETE_PACKAGES_MODEL.md` §4b);
+ * this is the stopgap until one exists — a genuinely blank, schema-conforming record built the
+ * same way any untrusted record is validated, rather than a second construction path.
+ */
+function blankDriverRecord(): unknown {
+  const bookkeeping = { value: '' };
+  return {
+    uuid: { value: crypto.randomUUID() },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
+    manufacturer: { value: '' }, brand: { value: '' }, model: { value: '' },
+    sku: { value: '', grounds: [{ origin: 'entered', reading: '' }] },
+    driver_type: { value: '' },
+    data_sources: bookkeeping,
+    authoritative: bookkeeping,
+    specs: {},
+  };
+}
+
+/** A brand-new, empty sealed project around a blank driver — the store's one seed/reset
+ *  construction path. `newProject.js` (`@openisd/design`) refuses to build without a driver
+ *  and a box type, so a blank driver always comes first. */
+function createEmptyProject(engine: Engine): OpenISDProject {
+  const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+  if (Array.isArray(driver)) {
+    throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
+  }
+  return buildProject(driver, engine).sealed().volume_m3(0.02).build();
+}
+
+const engine = getOrInit(slots, 'engine', () => new Engine());
+
+/**
+ * `OpenISDProject` (`@openisd/design`) is the domain object for ONE project in the registry
+ * below, owning its own ground/edited layers (`isModified()`/`save()`/`cancel()`) and its own
+ * driver, box, params and meta together.
  *
  * `seedProject` is the one always seeded into the registry below at module load — the app
  * never starts with zero projects open — and is otherwise indistinguishable from any project
  * opened later; nothing about it is special once the app is running.
  */
-const seedProject: ManagedProject = getOrInit(slots, 'seedProject', () => {
-  return ManagedProject.createEmpty();
+const seedProject: OpenISDProject = getOrInit(slots, 'seedProject', () => {
+  return createEmptyProject(engine);
 });
 
 /**
@@ -100,14 +135,14 @@ const seedProject: ManagedProject = getOrInit(slots, 'seedProject', () => {
  * focused" lives. `projects[0]` starts as `seedProject` — one project open, matching the
  * app's starting state.
  */
-const projects = getOrInit(slots, 'projects', () => shallowRef<ManagedProject[]>([seedProject]));
+const projects = getOrInit(slots, 'projects', () => shallowRef<OpenISDProject[]>([seedProject]));
 const focusedIndex = getOrInit(slots, 'focusedIndex', () => ref(0));
 
 /** Every open project. Empty array if none are open. */
-export function openProjects(): ManagedProject[] { return projects.value; }
+export function openProjects(): OpenISDProject[] { return projects.value; }
 
 /** The project currently focused in the UI's project list, or null if none are open. */
-export function focusedProject(): ManagedProject | null {
+export function focusedProject(): OpenISDProject | null {
   return projects.value[focusedIndex.value] ?? null;
 }
 
@@ -140,7 +175,7 @@ export function removeProject(index: number): void {
 }
 
 /** Add a newly-created or re-imported project to the registry and focus it. */
-export function addProject(project: ManagedProject): void {
+export function addProject(project: OpenISDProject): void {
   projects.value = [...projects.value, project];
   focusedIndex.value = projects.value.length - 1;
 }
@@ -158,40 +193,58 @@ export class NoFocusedProjectError extends Error {
  *  a real project (the gate's own provide, or any write path only ever reached from inside
  *  the gate). The gate's own null-check for deciding whether to render the empty state stays
  *  `focusedProject() === null` — that path is expected, not an error. */
-export function requireFocusedProject(): ManagedProject {
+export function requireFocusedProject(): OpenISDProject {
   const p = focusedProject();
   if (!p) throw new NoFocusedProjectError();
   return p;
 }
 
 /** Open a brand-new, blank, independent project tab and focus it — the store is the ONE
- *  logic module licensed to construct a `ManagedProject`
- *  (`architecture.test.ts` "the store is the only logic module that holds the ManagedProject
- *  instance"), so a UI file that wants a new tab calls this rather than importing the class
- *  itself. */
+ *  logic module licensed to construct an `OpenISDProject`
+ *  (`architecture.test.ts` "the store is the only logic module that holds the project
+ *  instance"), so a UI file that wants a new tab calls this rather than importing the domain
+ *  package itself. */
 export function openBlankProject(): void {
-  addProject(ManagedProject.createEmpty());
+  addProject(createEmptyProject(engine));
 }
 
-/** Duplicate the FOCUSED project's committed design into a brand-new, independent tab under
- *  `newName`, and focus it. `ManagedProject.fromProject` makes a genuinely separate copy (its
- *  own ground/committed layers) — editing the copy can never touch the original. Same
- *  construction-licensing reason as `openBlankProject()`. */
+/** A store holding exactly the one record most recently `put()` — lets this file borrow
+ *  `projectRepo()`'s own save/load round trip to clone a project without ever touching
+ *  `OpenISDProject.recordToPersist()`, which is `@internal` to `packages/design`. Same pattern
+ *  as `@openisd/persistence`'s `projectRepo.ts` `singleSlotStore()`. */
+function singleSlotStore<R>(): RecordStore<R> & { current(): R | null } {
+  let held: R | null = null;
+  return {
+    put(_id, record) { held = record; },
+    get(_id) { return held; },
+    list() { return []; },
+    remove() { /* nothing to remove: no listing exists through this door */ },
+    current: () => held,
+  };
+}
+
+/** Duplicate the FOCUSED project's own design into a brand-new, independent tab under
+ *  `newName`, and focus it. Round-trips through `projectRepo().save()`/`.load()` over a
+ *  throwaway single-slot store — the public save/validate/reconstruct path every persistence
+ *  door already uses — so the copy is a genuinely separate `OpenISDProject` with its own edit
+ *  layer, never a second reference to the source's. */
 export function duplicateFocusedProject(newName: string): void {
   const source = requireFocusedProject();
-  // Read BEFORE `addProject()` moves focus to the copy — this is the SOURCE's own ground
-  // (lazily seeded if it had none yet).
-  const sourceGround = currentGround();
-  const copy = ManagedProject.fromProject(source.projectToPersist());
-  addProject(copy);
-  // A copy has never itself been saved, so it must start "modified" even when duplicating an
-  // already-clean source — `newName` never matches `sourceGround`'s own (still-original) name,
-  // exactly the property that makes `isModified` read true immediately. Seeding from the
-  // source's ground rather than some invented sentinel also means Revert on a still-identical
-  // copy is coherent (parses the SAME real fingerprint the source would revert to) instead of
-  // risking an unparseable placeholder.
-  groundByProject.set(copy, sourceGround);
-  copy.mutate(p => p.setProjectMeta({ ...p.projectMeta(), name: newName }));
+  const slot = singleSlotStore<unknown>();
+  const make: RecordStoreFactory = <R,>() => slot as unknown as RecordStore<R>;
+  const repo = projectRepo(make, engine);
+  repo.save(source);
+  // `load(id)` adopts `id` as the loaded project's own identity (its doc comment: "ADOPTS `id`
+  // AS THE PROJECT'S IDENTITY") — this store is single-slot and ignores the id it is `put`
+  // with, so loading under a freshly minted id (rather than `source.uuid()`) gives the copy a
+  // genuinely new identity instead of the source's.
+  const loaded = repo.load(crypto.randomUUID());
+  if (Array.isArray(loaded)) {
+    throw new Error(`duplicateFocusedProject: round trip refused its own project: ${loaded.join('; ')}`);
+  }
+  addProject(loaded);
+  loaded.name.set(newName);
+  loaded.save();
 }
 
 /** A private, read-only source of safe defaults for the handful of module-scope reactive
@@ -200,7 +253,7 @@ export function duplicateFocusedProject(newName: string): void {
  *  focused — e.g. right after the last open project is closed. Never registered in
  *  `projects`, never mutated, never exposed: nothing downstream ever reads its values for
  *  real, because the gated UI that would is unmounted whenever `focusedProject()` is null. */
-const EMPTY_PROJECT_DEFAULTS: ManagedProject = ManagedProject.createEmpty();
+const EMPTY_PROJECT_DEFAULTS: OpenISDProject = createEmptyProject(engine);
 
 // The one Vue bridge onto WHICHEVER project is currently focused. Re-subscribes on every
 // focus change or open/close of a project (the `watch([projects, focusedIndex], ...)` inside
@@ -217,8 +270,8 @@ const EMPTY_PROJECT_DEFAULTS: ManagedProject = ManagedProject.createEmpty();
 // derivation equal — which for a change signal is always.
 const changeTicks: Ref<number> = getOrInit(slots, 'changeTicks', () => ref(0));
 
-const live: ShallowRef<ManagedProject | null> = getOrInit(slots, 'live', () => {
-  const liveRef = shallowRef<ManagedProject | null>(null);
+const live: ShallowRef<OpenISDProject | null> = getOrInit(slots, 'live', () => {
+  const liveRef = shallowRef<OpenISDProject | null>(null);
   let disposeCurrent: (() => void) | null = null;
   function resubscribe(): void {
     if (disposeCurrent) { disposeCurrent(); disposeCurrent = null; }
@@ -232,34 +285,29 @@ const live: ShallowRef<ManagedProject | null> = getOrInit(slots, 'live', () => {
   return liveRef;
 });
 
-// `state.project`'s five fields, each an accessor onto the FOCUSED project's own meta — never
-// an independent copy. A plain mutable mirror (this file's earlier shape) went stale the
+// `state.project`'s five fields, each an accessor onto the FOCUSED project's own meta field —
+// never an independent copy. A plain mutable mirror (this file's earlier shape) went stale the
 // instant focus moved to a DIFFERENT already-open project via `focusProject()` alone (no load
 // call to refresh it), so the Project tab and titlebar kept showing whichever project was
 // focused BEFORE the switch — found and fixed while wiring the multi-project registry
 // (PROMPT_RELEASE_HARDENING plan). Reads fall back to `EMPTY_PROJECT_DEFAULTS` when nothing is
 // focused; writes no-op then (defensive — the gated UI that could write is unmounted).
-// const PROJECT_META_FIELDS = ['name', 'creator', 'created', 'modified', 'description'] as const;
-// function buildProjectMetaAccessor(): OpenISDProjectMeta {
-//   const obj = {} as OpenISDProjectMeta;
-//   for (const key of PROJECT_META_FIELDS) {
-//     Object.defineProperty(obj, key, {
-//       enumerable: true, configurable: true,
-//       get: () => (focusedProject() ?? EMPTY_PROJECT_DEFAULTS).snapshot().projectMeta()[key],
-//       set: (v: string) => {
-//         const p = focusedProject();
-//         if (!p) return;
-//         p.mutate(proj => proj.setProjectMeta({ ...proj.projectMeta(), [key]: v }));
-//       },
-//     });
-//   }
-//   return obj;
-// }
+const PROJECT_META_FIELDS = ['name', 'creator', 'created', 'modified', 'description'] as const;
+function buildProjectMetaAccessor(): ProjectMeta {
+  const obj = {} as ProjectMeta;
+  for (const key of PROJECT_META_FIELDS) {
+    Object.defineProperty(obj, key, {
+      enumerable: true, configurable: true,
+      get: () => (focusedProject() ?? EMPTY_PROJECT_DEFAULTS)[key].get(),
+      set: (v: string) => { focusedProject()?.[key].set(v); },
+    });
+  }
+  return obj;
+}
 
 function buildState(): AppState {
-  const p = (focusedProject() ?? EMPTY_PROJECT_DEFAULTS)
-  const s = new AppStateImpl(p.activeBoxType(), p)
-  return s;
+  const p = (focusedProject() ?? EMPTY_PROJECT_DEFAULTS);
+  return new AppStateImpl(p.box.boxType.get(), buildProjectMetaAccessor());
 }
 
 export const state: AppState = getOrInit(slots, 'state', () => reactive(buildState()));
@@ -311,33 +359,14 @@ watch(
   { flush: 'sync', immediate: true },
 );
 
-// The resolved, engine-ready driver — EFFECTIVE, so a live what-if is what the charts draw.
-// PRIVATE to this file's own sweep; every outside caller reads the focused project's own
-// `.toEngineDriver()` directly through `logic/liveProject.ts`'s reactivity adapter instead of
-// an appState wrapper. Null when no project is focused (registry empty), same as an
-// incomplete driver — nothing to sweep either way.
-function engineDriver(): EngineDriver | null {
-  void live.value;
-  return live.value ? live.value.toEngineDriver() : null;
-}
-
-/** The COMMITTED driver as the managed layer's own persisted TEXT — what a save, a share
- *  link, or a ground fingerprint embeds. Never the record value: the UI carries only this
- *  serialisation (QO73). Cancels an active what-if (the managed method's own structural
- *  guard). Always a real string for a focused project: a project cannot exist without a
- *  driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`) — an unfilled one still serialises. ''
- *  when no project is focused — there is no project to have a driver. */
-export const persistedDriver: ComputedRef<string> =
-  computed(() => { void live.value; return live.value ? live.value.persistedDriverText() : ''; });
-
-/** What this driver is CALLED — brand and model as the record states them, from the EFFECTIVE
- *  driver. '' when nothing names it (no driver chosen, or no project focused), so a caller can
- *  fall back. */
+/** What this driver is CALLED — brand and model as the record states them, from the FOCUSED
+ *  project's driver. '' when nothing names it (no driver chosen, or no project focused), so a
+ *  caller can fall back. */
 export const driverName = computed<string>(() => {
   void live.value;
   if (!live.value) return '';
-  return [live.value.brand(), live.value.model()]
-    .filter(x => x.length > 0).join(' ').trim();
+  return [live.value.driver.brand.get().value, live.value.driver.model.get().value]
+    .filter((x): x is string => !!x && x.length > 0).join(' ').trim();
 });
 
 /**
@@ -350,39 +379,17 @@ export function openDriverPicker(): void {
   presentationState.browseOpen = true;
 }
 
-function driverErrors(): DriverError[] {
-  void live.value;
-  return live.value ? live.value.errors() : [];
-}
-
-export const syncedP = computed<SyncedParams>(() => {
-  // The dependency: `toUiParams()`/`driveVoltage_V()` read the effective project directly and
-  // touch no Vue ref themselves (`ManagedProject` stays framework-free), so this computed
-  // re-derives on every project mutation via `live`, the same bridge every other read in
-  // this file uses. Falls back to `EMPTY_PROJECT_DEFAULTS` when nothing is focused — Vue
-  // evaluates this computed's sources unconditionally as part of the sweep-scheduler watch
-  // below even while the gate hides the UI that would otherwise read it.
-  void live.value;
-  const src = live.value ?? EMPTY_PROJECT_DEFAULTS;
-  const p: SyncedParams = { ...src.toUiParams(), eg: src.driveVoltage_V() };
-  if (state.box === 'vented' || state.box === 'bandpass4') {
-    p.Sp = src.ventArea_m2();
-    p.Leff = src.ventEffectiveLength_m();
-  }
-  // The WinISD toggle swaps the PROJECT's humidity/pressure for the app-level Options
-  // environment before the engine sees them (resolveAirEnvironment's docstring) — sweep and
-  // readouts honour the toggle identically. Persistence is untouched: the autosave/share
-  // writers read `toUiParams()` directly, so a saved project keeps its own environment.
-  return resolveAirEnvironment(p, presentationState.ui.envDefaults);
-});
+// A single, empty grid — sweep()/maxCurves()/validateParams() default fmin/fmax/N internally
+// (sweep.ts: `P.fmin || 10, P.fmax || 1000, P.N || 400`) when the grid names none, so this file
+// never re-states those defaults itself.
+const GRID: FrequencyGrid = {};
 
 const curves = getOrInit(slots, 'curves', () => ref<SweepResult | null>(null));
 const max    = getOrInit(slots, 'max', () => ref<MaxCurvesResult | null>(null));
 const doSweep = () => {
-  const engine = new Engine();
-  const d = engineDriver();
-  curves.value = d ? engine.sweep(d, state.box, syncedP.value) : null;
-  max.value    = d ? engine.maxCurves(d, state.box, syncedP.value) : null;
+  const p = live.value;
+  curves.value = p ? p.sweep(GRID).value : null;
+  max.value    = p ? p.maxCurves(GRID).value : null;
 };
 doSweep();
 // Leading-edge throttle (was a pure trailing debounce): the chart curves must
@@ -412,14 +419,14 @@ function scheduleSweep(): void {
     }, wait);
   }
 }
-watch([engineDriver, syncedP, () => state.box], scheduleSweep);
+watch(live, scheduleSweep);
 export const curvesData = curves;
 export const maxData    = max;
 
 // Postcondition (hardening): a valid driver can still yield a non-finite sweep at
 // some frequency (a numerical singularity the input guards can't foresee). Classify
 // the sweep output so it's never a silently blank chart — surfaced through the same
-// issue channel as deriveEngineDriver's errors. Empty when the driver is invalid (no sweep)
+// issue channel as the project's own errors. Empty when the driver is invalid (no sweep)
 // or the sweep is clean.
 const curveIssues = computed<DriverError[]>(() => {
   const sw = curves.value, mx = max.value;
@@ -429,87 +436,45 @@ const curveIssues = computed<DriverError[]>(() => {
   // be non-finite while every sweep array is fine. classifyFlatClamp: force-flat ran out of
   // allowed boost, so the "flat" response is not flat below some frequency — a truncated
   // inverse filter must never look like a design that flattens for free.
-  const engine = new Engine();
-  return [engine.classifyFinite(sw), mx ? engine.classifyMaxFinite(mx) : null, engine.classifyFlatClamp(sw)]
+  const eng = new Engine();
+  return [eng.classifyFinite(sw), mx ? eng.classifyMaxFinite(mx) : null, eng.classifyFlatClamp(sw)]
     .filter((e): e is DriverError => e !== null);
 });
 
 // Precondition (hardening, CODE_REVIEW.md §18): the enclosure parameters the circuit
 // divides by — Vb everywhere, Sp/Vf/PR per box type. The postcondition above does catch
 // the resulting garbage, but only as "no usable values"; this names the field to change.
-// Validated at the same appState boundary, from the same params the sweep is actually run on.
-export const paramIssues = computed<DriverError[]>(() => new Engine().validateParams(state.box, syncedP.value));
+// Validated at the same boundary, on the same project the sweep is actually run on.
+export const paramIssues = computed<DriverError[]>(() => {
+  void live.value;
+  return live.value ? live.value.validateParams(GRID) : [];
+});
 
-// The full issue list the UI shows: driver-derivation issues + box-parameter issues +
-// sweep/max-curve finiteness issues.
+// The full issue list the UI shows: box-parameter issues + sweep/max-curve finiteness issues.
+// `sweep(GRID).errors`/`maxCurves(GRID).errors` would duplicate `paramIssues` (both come from
+// the same `validateParams` call inside the project's own sweep/maxCurves), so this reads only
+// the postcondition classifications on top of it.
 export const allIssues = computed<DriverError[]>(
-  () => [...driverErrors(), ...paramIssues.value, ...curveIssues.value]);
+  () => [...paramIssues.value, ...curveIssues.value]);
 
-// ---- Project state: ground ↔ modified layer (docs/design/STATE_MODEL.md) ----------------------
-// A project fingerprint captures the whole design (box + params + driver). "Ground" is
-// the last loaded/saved fingerprint; the project is "modified" when the live design
-// differs from it. This is the ground↔committed layer of docs/design/STATE_MODEL.md; the what-if/edit
-// priorityState proxy layers are built on top of it separately. Additive — components keep
-// reading state.box/the focused project directly; this only observes and can restore them.
-function projectFingerprint(): string {
-  // Order-deterministic: toUiParams() gathers fields in the same fixed order on every call,
-  // and the ADT's toJSON() preserves input insertion order, so JSON.stringify yields a stable
-  // string to diff.
-  const src = live.value ?? EMPTY_PROJECT_DEFAULTS;
-  return JSON.stringify({
-    box: state.box, P: src.toUiParams(), driver: persistedDriver.value, project: state.project,
-  });
-}
-// One ground checkpoint PER open project (keyed by instance identity), not one shared string —
-// each `ManagedProject` in the registry is independently live, so switching focus must never
-// overwrite another project's ground.
-const groundByProject = getOrInit(slots, 'groundByProject', () => new WeakMap<ManagedProject, string>());
-function currentGround(): string {
-  const p = focusedProject();
-  if (!p) return '';
-  const g = groundByProject.get(p);
-  if (g !== undefined) return g;
-  const fresh = projectFingerprint();
-  groundByProject.set(p, fresh);
-  return fresh;
-}
-/** True when the live design differs from the last loaded/saved (ground) state. False when no
- *  project is focused — nothing is "modified" if nothing is open. */
+/** True when the focused project has unsaved changes (`OpenISDProject.isModified()`). False
+ *  when no project is focused — nothing is "modified" if nothing is open. */
 export const isModified = computed<boolean>(() => {
   void live.value;
-  return focusedProject() !== null && currentGround() !== projectFingerprint();
+  return live.value?.isModified() ?? false;
 });
-/** Adopt the current design as ground (call after load, and after a successful save). No-ops
- *  when no project is focused. */
+/** Commit the focused project's edits (`OpenISDProject.save()`). No-op when no project is
+ *  focused. */
 export function markProjectSaved(): void {
-  const p = focusedProject();
-  if (!p) return;
-  groundByProject.set(p, projectFingerprint());
+  focusedProject()?.save();
 }
-/** Discard unsaved changes: restore the focused project's design to its ground state. */
-export function resetProjectToGround(): void {
-  const p = requireFocusedProject();
-  const g = JSON.parse(currentGround()) as { box: BoxType; P: UiParams; driver: string; project?: any };
-  // Adopt the stored params verbatim. The ground snapshot already holds BOTH vent-group
-  // members and the entered set, so there is nothing to re-solve — and re-solving is exactly
-  // what breaks "Cancel means byte-identical" (docs/design/STATE_MODEL.md rule 3): the solver would
-  // reproduce the calculated member from a value that was rounded on its way through JSON
-  // and land on a different double. `loadUiParams` sets the active box type itself, so this
-  // is the one call that lands box + every vent/PR/plain field together.
-  suspendVentSolve(() => p.loadUiParams(g.P, g.box));
-  restoreProblems.value = [];
-  // A refusal is REPORTED, never swallowed: dropping it would leave the previous driver in
-  // place while the UI showed a successful discard-changes. `g.driver` is always present — a
-  // ground checkpoint is a fingerprint of a live project, and a project cannot exist without
-  // a driver (docs/design/DRIVER_NON_NULL_INVARIANT.md).
-  const problems = p.loadDriverFromPersistedText(g.driver);
-  if (problems.length) {
-    restoreProblems.value = problems.map(msg => `the checkpoint's driver was not restored: ${msg}`);
-    console.error(`[reset] refused the checkpoint's driver record — ${problems.join('; ')}`);
-  }
-  if (g.project) {
-    Object.assign(state.project, g.project);
-  }
+/** Discard unsaved changes: revert the focused project to its last saved state
+ *  (`OpenISDProject.cancel()`). `confirm` is the caller's own "are you sure" dialog — `cancel()`
+ *  is async and asks it before discarding anything. No-op (resolves false) when no project is
+ *  focused. */
+export function resetProjectToGround(confirm: DiscardChallenge): Promise<boolean> {
+  const p = focusedProject();
+  return p ? p.cancel(confirm) : Promise.resolve(false);
 }
 /** The New Project wizard's starting choices — name, box type, and its starting volume(s) in
  *  LITRES (the wizard's own display unit; converted to SI here, the one place that owns the
@@ -537,20 +502,22 @@ export interface NewProjectSpec {
  *  resets the FOCUSED project's own content in place, preserving its tab identity. */
 export function newProject(spec?: NewProjectSpec): void {
   presentationState.yRanges = {};
-  if (!focusedProject()) addProject(ManagedProject.createEmpty());
-  const p = requireFocusedProject();
-  p.loadEmpty();                                              // an unfilled driver — the user picks one
-  // AFTER loadEmpty(), not before: loadEmpty() replaces the whole design (`ManagedProject.
-  // load()`), which would silently wipe a meta write made ahead of it — `state.project` is now
-  // a live accessor onto the focused project's own meta, not an independent bag a caller could
-  // pre-fill and have survive a subsequent full reset.
-  state.project = { name: spec?.name ?? '', creator: '', created: '', modified: '', description: '' }; // blank meta
-  if (spec) {
-    state.box = spec.box;
-    p.setBoxVolume_m3(fromDisplay(spec.volumeL, 'volume', 'L'));
-    if (spec.frontVolumeL != null) p.setFrontVolume_m3(fromDisplay(spec.frontVolumeL, 'volume', 'L'));
+  const driver = conformingRecordToDriver(blankDriverRecord(), engine);
+  if (Array.isArray(driver)) {
+    throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
   }
-  markProjectSaved();                                       // the fresh design is the new clean ground
+  const volume_m3 = fromDisplay(spec?.volumeL ?? 20, 'volume', 'L');
+  // Only sealed is buildable from what NewProjectSpec carries today: `vented()`/`bandpass4()`
+  // require a tuning frequency (`.tuning_hz()`/`.frontTuning_hz()`) the wizard never collects
+  // (packages/design/domain/project.ts's `VentedProjectBuilder`/`Bandpass4ProjectBuilder`), so
+  // a non-sealed spec builds sealed at the same volume until the wizard is extended to ask.
+  const p = buildProject(driver, engine).sealed().volume_m3(volume_m3).build();
+  p.name.set(spec?.name ?? '');
+  if (!focusedProject()) {
+    addProject(p);
+  } else {
+    projects.value = projects.value.map((existing, i) => (i === focusedIndex.value ? p : existing));
+  }
 }
 
 /**
@@ -568,13 +535,13 @@ export function copyProjectName(taken: readonly string[]): string {
   return uniqueName(copyOfName(state.project.name || driverName.value), taken);
 }
 
-/** The open design, as the domain object every save/share door persists — the managed layer's
- *  own persist-safe copy (`projectToPersist()`, which cancels an active what-if itself). No
- *  field is re-gathered by hand: `OpenISDProject` already IS params + box + meta + driver
- *  together, so a second, parallel struct duplicating those fields would be a second answer to
- *  the same question. */
+/** The open design, as the live domain object every save/share door persists
+ *  (`@openisd/persistence`'s `ProjectRepo` takes and returns real `OpenISDProject` objects, never
+ *  a serialised copy — QO90). No field is re-gathered by hand: `OpenISDProject` already IS
+ *  params + box + meta + driver together, so a second, parallel struct duplicating those fields
+ *  would be a second answer to the same question. */
 export function currentProject(): OpenISDProject {
-  return requireFocusedProject().projectToPersist();
+  return requireFocusedProject();
 }
 
 /** A CHANGE SIGNAL for App.vue's persistence hook — a counter that increments on every change
@@ -620,23 +587,21 @@ export function currentViewSnapshot(): ViewSnapshot {
  * boundary (`@openisd/persistence`'s `projectRepo.ts`) that produced `project` — this only
  * adopts the result.
  *
- * Every load path must land the WHOLE project: a second, hand-rolled subset loader is how
- * File → Open… silently dropped the project name, the comparison overlays and the graph
- * cursor while appearing to succeed. `project-load-gate.test.ts` fails the suite if a field
- * `currentProject()` carries is not restored here.
+ * Every load path lands the WHOLE project — `project` already carries params, box, driver and
+ * meta together (it came back from `@openisd/persistence`'s `ProjectRepo`, which reconstructs an
+ * `OpenISDProject` from its own validated record), so there is no per-field copy to get wrong.
  */
 export function applyLoadedProject(project: OpenISDProject): void {
-  // `suspendVentSolve`: a restore must land byte-identical (`docs/design/STATE_MODEL.md` rule
-  // 3), and `.load()` notifies — which would otherwise let the reactive vent-group watcher
-  // re-solve a member the load already set, landing a rounded-through-JSON double instead of
-  // the persisted one. Lands on WHICHEVER project is currently focused — every load-path
+  // A loaded project is a distinct `OpenISDProject` instance, not a patch onto the focused one
+  // (`OpenISDProject` exposes no "replace my own record" method — swapping the registry entry is
+  // the whole operation). Lands on WHICHEVER project is currently focused — every load-path
   // caller (`App.vue`'s hash/local restore, `OriginalShell.vue`'s File → Open, which opens a
   // fresh tab first) already ensures a project is focused before calling this.
-  const p = requireFocusedProject();
-  suspendVentSolve(() => p.load(project));
-  // No further meta write needed: `p.load(project)` already landed `project`'s own meta on
-  // the domain object, and `state.project` (an accessor onto the focused project, not an
-  // independent copy) already reads it straight through.
+  if (!focusedProject()) {
+    addProject(project);
+    return;
+  }
+  projects.value = projects.value.map((existing, i) => (i === focusedIndex.value ? project : existing));
 }
 
 /** Restore view/UI preferences — loss-model choice, open charts, panel/unit preferences, the
@@ -702,8 +667,8 @@ export function formatInUnit(
  * current behaviour). Every `.wpr` in the corpus has VCInd=0, so no observation settles it.
  */
 export const simVcInductance = computed<boolean>({
-  get: () => { void live.value; return live.value?.circuitModel() === 'gyrator'; },
-  set: (on) => { focusedProject()?.setCircuitModel(on ? 'gyrator' : 'winisd'); },
+  get: () => { void live.value; return live.value?.circuitModel.get() === 'gyrator'; },
+  set: (on) => { focusedProject()?.circuitModel.set(on ? 'gyrator' : 'winisd'); },
 });
 
 

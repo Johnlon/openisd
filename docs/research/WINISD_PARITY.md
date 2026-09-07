@@ -164,19 +164,19 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 
 See [`BACKLOG.md`](../../BACKLOG.md) to claim one or discuss prioritisation.
 
-| Feature                                   | Notes                                                                                                                                                                       |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 6th-order bandpass                        | Good first issue — template already exists as 4th-order                                                                                                                     |
-| Isobaric / compound loading               | Good first issue — acoustic circuit extension                                                                                                                               |
-| Baffle-step / diffraction correction      | Well-understood model; needs a curve and a UI toggle                                                                                                                        |
-| Step response curve                       | Inverse FFT of transfer function; rendering work only                                                                                                                       |
+| Feature                                   | Notes                                                                                                                                                                                   |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 6th-order bandpass                        | Good first issue — template already exists as 4th-order                                                                                                                                 |
+| Isobaric / compound loading               | Good first issue — acoustic circuit extension                                                                                                                                           |
+| Baffle-step / diffraction correction      | Well-understood model; needs a curve and a UI toggle                                                                                                                                    |
+| Step response curve                       | Inverse FFT of transfer function; rendering work only                                                                                                                                   |
 | `.wpr` WinISD project import              | Reader only — plain INI text, schema documented, writer already ships (`winisd/src/classic/wpr.ts:128` `toWpr()`); sample in `docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr` |
-| Mobile / small-screen layout              | Responsive CSS pass; no new physics                                                                                                                                         |
-| Measurement import (REW `.mdat`, FRD)     | Would allow measured response overlay alongside simulation                                                                                                                  |
-| Impedance measurement → T/S extraction    | Closed-box or added-mass method; valuable for DIY builders                                                                                                                  |
-| Multi-way SPL summation (with crossovers) | Large feature; needs crossover design first                                                                                                                                 |
-| Crossover design                          | Out of scope for v1; see VituixCAD for now                                                                                                                                  |
-| Polar response / directivity              | Out of scope for v1                                                                                                                                                         |
+| Mobile / small-screen layout              | Responsive CSS pass; no new physics                                                                                                                                                     |
+| Measurement import (REW `.mdat`, FRD)     | Would allow measured response overlay alongside simulation                                                                                                                              |
+| Impedance measurement → T/S extraction    | Closed-box or added-mass method; valuable for DIY builders                                                                                                                              |
+| Multi-way SPL summation (with crossovers) | Large feature; needs crossover design first                                                                                                                                             |
+| Crossover design                          | Out of scope for v1; see VituixCAD for now                                                                                                                                              |
+| Polar response / directivity              | Out of scope for v1                                                                                                                                                                     |
 
 ---
 
@@ -320,11 +320,12 @@ project creation (`:271-274`, `:316-321`) and stamped on save (`:780`).
 
 ## App Options (`options_general.png`)
 
-| WinISD                                                         | OpenISD                                                                                                                                                                                                                             |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Environment defaults (Temp/Humidity/Pressure → Sound velocity) | ⚠️ exists but calc-incomplete — `OptionsModal.vue:182-192` has the full `envDefaults.{tempK,pressurePa,humidityPct}` section; only `tempK` reaches `circuit.ts` (corrected 2026-08-13 — a first draft said ❌ doesn't exist at all) |
-| **Units: metric ↔ imperial**                                   | ⚠️ imperial units throughout (cu ft, cu in, in, in², oz, °F) via per-field toggles; no single global metric↔imperial mode (confirmed 2026-08-13 — no global toggle found anywhere, only per-field `UnitToggle` components)          |
-| Plot Window options (`options_plot_window.png`)                | not detailed here                                                                                                                                                                                                                   |
+| WinISD                                                                         | OpenISD                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Environment defaults (Temp/Humidity/Pressure → Sound velocity)                 | ⚠️ exists but calc-incomplete — `OptionsModal.vue:182-192` has the full `envDefaults.{tempK,pressurePa,humidityPct}` section; only `tempK` reaches `circuit.ts` (corrected 2026-08-13 — a first draft said ❌ doesn't exist at all)                                                                                                                                                                                                                                                 |
+| App-level environment silently overriding a project's own Advanced-pane T/RH/p | **Fixed.** WinISD lets its app-level Options environment substitute for a project's own stated temperature/humidity/pressure, so two projects with identical Advanced-pane values can simulate differently depending on global app state. OpenISD has no such override: a project's air always comes from that project's own environment fields. `useWinisdAirModel` (which formula computes the air — WinISD's or the physical CIPM-2007 model) is a separate, unaffected setting. |
+| **Units: metric ↔ imperial**                                                   | ⚠️ imperial units throughout (cu ft, cu in, in, in², oz, °F) via per-field toggles; no single global metric↔imperial mode (confirmed 2026-08-13 — no global toggle found anywhere, only per-field `UnitToggle` components)                                                                                                                                                                                                                                                          |
+| Plot Window options (`options_plot_window.png`)                                | not detailed here                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
 ---
 
@@ -904,12 +905,12 @@ Physical dimensions (not currently extracted by scrapers):
 
 ## 11. Open questions
 
-| #   | Question                                                                                                                                                                                                                                                                                                                                                                                                                                     | Priority |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| 1   | ~~Does WinISD use 2.83 V fixed or `sqrt(Pin × Z_nom)`?~~ **RESOLVED: uses `Eg = sqrt(P × Re)`** — confirmed in WinISD help file                                                                                                                                                                                                                                                                                                              | Closed   |
-| 2   | ~~Does WinISD include Le in its acoustic circuit model?~~ **RESOLVED: No. Le only for impedance. Source: aboutequivalentcircuits.html**                                                                                                                                                                                                                                                                                                      | Closed   |
-| 3   | ~~Does WinISD model box leakage (Ql)?~~ **RESOLVED: Ql=10, Qa=100, Qp=100; entry via "Advanced->" button in the Box tab panel (not the top-level Advanced tab). Confirmed by help file text + screenshots boxdes05/06.**                                                                                                                                                                                                                     | Closed   |
-| 4   | ~~What radiation model does WinISD use?~~ **RESOLVED: half-space (infinite baffle). Formula `p(r) = ρ·ω·U0/(2π·r)` confirmed in `aboutequivalentcircuits.html`. OpenISD uses identical formula.**                                                                                                                                                                                                                                            | Closed   |
+| #   | Question                                                                                                                                                                                                                                                                                                                                                                                                                                           | Priority |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | ~~Does WinISD use 2.83 V fixed or `sqrt(Pin × Z_nom)`?~~ **RESOLVED: uses `Eg = sqrt(P × Re)`** — confirmed in WinISD help file                                                                                                                                                                                                                                                                                                                    | Closed   |
+| 2   | ~~Does WinISD include Le in its acoustic circuit model?~~ **RESOLVED: No. Le only for impedance. Source: aboutequivalentcircuits.html**                                                                                                                                                                                                                                                                                                            | Closed   |
+| 3   | ~~Does WinISD model box leakage (Ql)?~~ **RESOLVED: Ql=10, Qa=100, Qp=100; entry via "Advanced->" button in the Box tab panel (not the top-level Advanced tab). Confirmed by help file text + screenshots boxdes05/06.**                                                                                                                                                                                                                           | Closed   |
+| 4   | ~~What radiation model does WinISD use?~~ **RESOLVED: half-space (infinite baffle). Formula `p(r) = ρ·ω·U0/(2π·r)` confirmed in `aboutequivalentcircuits.html`. OpenISD uses identical formula.**                                                                                                                                                                                                                                                  | Closed   |
 | 5   | ~~Does WinISD account for air load (radiation mass) on the PR separately from Mms?~~ **RESOLVED: No separate term added. `thielesmall.html` defines Mms as "including air load" for all drivers. For PRs, WinISD derives Mms from Fs+Vas via `Mms = 1/((2π·Fs)²·Cms)` — the measured Fs already encodes air-load implicitly. Neither WinISD nor OpenISD adds an extra radiation-mass term. Source: `docs/winisd_helpfiles/help/thielesmall.html`** | Closed   |
 | 6   | ~~Does WinISD's Qms in PR mode mean the same as T/S Qms?~~ **RESOLVED: Yes — standard T/S definition. `aboutequivalentcircuits.html` gives `Ram = 1/(2π·Fs·Qms·Ccas)` applied identically for drivers and PRs. Algebraically equivalent to OpenISD's `Rms = sqrt(Mms/Cms)/Qms`. Source: `docs/winisd_helpfiles/help/aboutequivalentcircuits.html`**                                                                                                | Closed   |
 
@@ -930,12 +931,12 @@ set series (`Re`×4, file says parallel), reload, set series again (`Re`×16).
 
 **OPENISD DEVIATES, on John's ruling 2026-08-28 ("evil", "make it two"):**
 
-| | WinISD | OpenISD |
-| --- | --- | --- |
-| fields | one `Re`, whose meaning changes silently with the wiring | `Re_per_coil` (entered, never rewritten) and `Re_terminal` (calculated) — same split for `BL` |
-| on a wiring change | rewrites the stored value in place | recomputes the derived field; the typed value is untouched |
-| provenance | rewritten value stays marked `E` | entered stays entered, calculated is marked calculated |
-| where the scaling lives | in the editor | ONLY in the `.wdr`/`.wpr` adapter |
+|                         | WinISD                                                   | OpenISD                                                                                       |
+| ----------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| fields                  | one `Re`, whose meaning changes silently with the wiring | `Re_per_coil` (entered, never rewritten) and `Re_terminal` (calculated) — same split for `BL` |
+| on a wiring change      | rewrites the stored value in place                       | recomputes the derived field; the typed value is untouched                                    |
+| provenance              | rewritten value stays marked `E`                         | entered stays entered, calculated is marked calculated                                        |
+| where the scaling lives | in the editor                                            | ONLY in the `.wdr`/`.wpr` adapter                                                             |
 
 **The files stay byte-compatible** — the writer emits the effective (terminal) values, exactly
 what WinISD would have written. The deviation is in what OpenISD KEEPS, not in what it produces.
@@ -964,10 +965,10 @@ export     Re_file'    = Re_per_coil × factor(...)   ==  Re_file
 **Why trusting it is safe: the same factor is applied inbound and outbound, so it cancels.** Even
 when WinISD lied about the wiring —
 
-* **every simulated number is exact** — the terminal `Re` reaching the engine is the file's own
+- **every simulated number is exact** — the terminal `Re` reaching the engine is the file's own
   `Re`, byte for byte;
-* **the round-trip is exact** — read and rewrite leaves the file unchanged;
-* the only casualty is the **displayed per-coil figure**, and only for a multi-coil driver: a
+- **the round-trip is exact** — read and rewrite leaves the file unchanged;
+- the only casualty is the **displayed per-coil figure**, and only for a multi-coil driver: a
   wrong label on a number nothing simulates from.
 
 For `numVC = 1` — every driver in the bundled corpus — the factor is 1 and there is no ambiguity
@@ -975,11 +976,11 @@ to have.
 
 **Alternatives, and why each is worse:**
 
-| alternative | why not |
-| --- | --- |
-| assume parallel whenever `numVC > 1` | invents information the file does not carry, and breaks the round-trip for a CORRECTLY saved series file — worse than the case it fixes |
-| refuse to import multi-coil drivers | punishes the user for WinISD's bug |
-| store the terminal value, not per-coil | that IS WinISD's design, and §11b rejects it: storing the terminal value is exactly what forces the silent rewrite |
+| alternative                            | why not                                                                                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| assume parallel whenever `numVC > 1`   | invents information the file does not carry, and breaks the round-trip for a CORRECTLY saved series file — worse than the case it fixes |
+| refuse to import multi-coil drivers    | punishes the user for WinISD's bug                                                                                                      |
+| store the terminal value, not per-coil | that IS WinISD's design, and §11b rejects it: storing the terminal value is exactly what forces the silent rewrite                      |
 
 **The one consequence to SURFACE, not hide:** when `numVC > 1`, the per-coil figure is only as
 good as the file's `VCCon`. That belongs in the field help — the user may well know the truth when

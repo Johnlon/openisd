@@ -5,31 +5,15 @@
  * (architecture.test.ts "a component imports no value from the domain").
  */
 import { Engine, LossMode } from '@openisd/design/engine';
-import type { Air, AirEnvironment, EngineDriver } from '@openisd/design/engine';
+import type { Air, AirEnvironment } from '@openisd/design/engine';
 
 export function airForEnvironment(env: AirEnvironment): Air {
     return new Engine().airFor(env);
 }
 
-/**
- * The environment `airFor` actually runs in, independent of which formula it will use.
- * `useAppLevelAirEnvironment` alone decides whether `T`/`RH`/`p` come from the app-level Options
- * defaults or from this project's own Advanced-pane environment — it does not depend on
- * `useWinisdAirModel`; a caller can combine either environment source with either formula. Real
- * WinISD computes `c`/`rho` from its APP-LEVEL Options dialog
- * (`docs/design/WINISD_SCHEMA.md` §12/§13), so turning this on reproduces that source of truth
- * regardless of the formula in use. At the default conditions with both settings on, this route
- * lands on WinISD's measured pair (engine `WINISD_MEASURED_*`, ledger QO88).
- */
-export function resolveAirEnvironment<T extends AirEnvironment>(
-    env: T, appLevel: { humidityPct: number; pressurePa: number }): T {
-   if (!env.useAppLevelAirEnvironment) return env;
-    return { ...env, humidityPct: appLevel.humidityPct, pressurePa: appLevel.pressurePa };
-}
-
 /** EBP = Fs/Qes — the vented-box suitability figure OgTune.vue's Vents pane shows. */
-export function ebpOf(driver: EngineDriver): number {
-    return new Engine().ebp(driver);
+export function ebpOf(Fs_hz: number, Qes: number): number {
+    return new Engine().ebp(Fs_hz, Qes);
 }
 
 /** Drive voltage from input power and the driver's DC resistance — OriginalShell.vue's

@@ -11,6 +11,7 @@ import { createFaultLog } from './diagnostics/faultLog.js';
 import { createDriverSelection } from './logic/driverSelection.js';
 import { createDriverBrowsingState } from './logic/driverBrowsingState.js';
 import { createDesignIO } from './logic/useDesignIO.js';
+import { createMyDriversSchema } from './logic/schemaUpgrade.js';
 import { provideApp } from './logic/app.js';
 import { NoFocusedProjectError } from './logic/appState.js';
 import sourcesJson from '../../../drivers/sources.json';
@@ -45,15 +46,16 @@ if ('problems' in loaded) {
   );
 }
 const bundle = loaded.bundle;
+const engine = new Engine();
 
 // STORAGE (port): the browser's own key-value storage.
 const storage = createLocalStorage();
 const logging = createLogging();
-const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle, engine: new Engine() });
-const myDriverRepo = createMyDriverRepo(storage);
+const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle, engine });
+const myDriverRepo = createMyDriverRepo(storage, createMyDriversSchema(), engine);
 const prefs = createPrefsRepo(storage);
 const myPassiveRadiators = createMyPassiveRadiatorRepo(storage);
-const bundledPRs = createBundledPassiveRadiatorRepo(bundle).list();
+const bundledPRs = createBundledPassiveRadiatorRepo(bundle, engine).list();
 const diagnostics = createDiagnostics({ report: logging.flash });
 // STORAGE (port): the interactive file-save destination. Two SEPARATE instances — one for
 // the project (retains the open project's file handle), one for the driver editor's one-shot
@@ -67,7 +69,7 @@ const driverBrowsing = createDriverBrowsingState({
   driverRepo, myDriverRepo, prefs, logging, selection,
   confirmReset: (question) => confirm(question),
 });
-const projectRepo = createProjectRepo(storage, fileStorage);
+const projectRepo = createProjectRepo(engine, fileStorage);
 const viewStateRepo = createViewStateRepo(storage);
 const designIO = createDesignIO({ logging, fileStorage, projectRepo });
 

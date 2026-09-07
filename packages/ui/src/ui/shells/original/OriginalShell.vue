@@ -43,7 +43,7 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import { Engine, type BoxType } from '@openisd/design/engine';
 import type { Design } from '../../../types.js';
 import type { PRLibEntry, BundledPassiveRadiator } from '@openisd/persistence';
-import { airForEnvironment, resolveAirEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
+import { airForEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../types.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
@@ -551,10 +551,10 @@ const advPressure = computed<number>({
 /** The air the sweep is actually running in — one call, both readouts. */
 const advAir = computed(() => {
   void project.value;
-  return airForEnvironment(resolveAirEnvironment({
+  return airForEnvironment({
     tempK: advTemp.value, humidityPct: advHumidity.value, pressurePa: advPressure.value,
     useWinisdAirModel: project.value.envUseWinisdAirModel(),
-  }, presentationState.ui.envDefaults));
+  });
 });
 
 // ---- Placement (Signal path multipliers already in the store) ------------------

@@ -97,6 +97,7 @@ export type {
   RecordStoreFactory,
   DeleteChallenge,
   DeleteOutcome,
+  DiscardChallenge,
 } from './project.js';
 // `projectRepo()` IS exported: this package publishes parts, and the APP assembles them. A
 // composition root belongs to the application — it is the thing that decides what exists — so a

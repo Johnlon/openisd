@@ -57,7 +57,7 @@ import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.j
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
-import { inputValue, inputChecked } from '../../logic/domEvents.js';
+import { inputValue } from '../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
 function close() { emit('close'); }
@@ -213,12 +213,6 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
                 <label>Relative humidity</label>
                 <input class="opt-num" type="number" v-limits="limits('advHumidity')" v-model.number="draft.envDefaults.humidityPct" />
                 <span class="opt-unit">%</span>
-              </div>
-              <div class="opt-fld opt-checkbox-row">
-                <label class="opt-check-label">
-                  <input type="checkbox" :checked="project.envUseAppLevelAirEnvironment()" @change="e => project.setEnvUseAppLevelAirEnvironment(inputChecked(e))" />
-                  Use app-level environment for WinISD parity
-                </label>
               </div>
               <div class="opt-fld">
                 <label>Sound velocity</label>
