@@ -824,7 +824,7 @@ class OpenISDBox implements Box {
  * Every `Field` is built ONCE in the constructor, for the identity reason `OpenISDDriver`'s own
  * header gives: a lazy getter would allocate per access and make every read look like a change.
  */
-export class DriverSpec {
+export class OpenIsdDriverSpec {
     // Thiele/Small.
     readonly Fs_hz: Field<number>;
     readonly Re_ohm: Field<number>;
@@ -1152,9 +1152,27 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** The driver's spec sections. A caller that does not care which kind of driver it holds reads
      *  `driver.spec[driver.section]`. */
     readonly spec: {
-        readonly woofer: DriverSpec;
-        readonly tweeter: DriverSpec;
+        readonly woofer: OpenIsdDriverSpec;
+        readonly tweeter: OpenIsdDriverSpec;
     };
+
+    /** The scraper-stated classification string — driver only, so it lives here rather than on
+     *  `OpenISDDevice` alongside `brand`/`model`, which a box or radiator also carries. Read-only:
+     *  a plain accessor, not a `Field`, because nothing writes this — it is scraper-owned data
+     *  (`scrapedFieldOf`), not a value an editor enters.
+     *
+     *  Every value seen across the driver.yml corpus: "woofer", "subwoofer", "midrange",
+     *  "mid-bass", "mid-woofer", "full-range", "coaxial", "tweeter", "amt", "passive-radiator".
+     *
+     *  TODO(bugs/BUG_20260907_driver_type_has_no_closed_set_shared_with_python.md): this is a
+     *  closed vocabulary (`driver.yml`'s own field comment says so) with no enum backing it on
+     *  either side of the scraper/domain boundary. Once one exists, shared with the Python
+     *  scraper the way `filter/driverType.ts` keeps `DriverType`/`Chip` in parity with
+     *  `test_driver_type_enum_parity.py`, this method returns that domain type instead of the raw
+     *  string — not `packages/design/filter`'s `DriverType`, which is a UI/search-only concept. */
+    driverType(): string {
+        return this.record.get().driver_type.value;
+    }
 
     /** A driver's record is never absent, so this stays non-null for everything below. */
     protected readonly record: Lens<OpenISDDeviceJson>;
@@ -1179,8 +1197,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         // REPLACES it, so a driver updated from a tweeter record would keep reporting no tweeter.
         // `section` already answers "which kind of driver is this"; presence is not a second answer.
         this.spec = {
-            woofer: new DriverSpec(record, 'woofer', engine, airProvider),
-            tweeter: new DriverSpec(record, 'tweeter', engine, airProvider),
+            woofer: new OpenIsdDriverSpec(record, 'woofer', engine, airProvider),
+            tweeter: new OpenIsdDriverSpec(record, 'tweeter', engine, airProvider),
         };
     }
 
@@ -1310,14 +1328,17 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  storage this window points at. Always STANDALONE — a copy belongs to nothing until
      *  something adopts it (via `OpenISDDriverEmbedded.update()`, or a repo save). */
     detach(): OpenISDDriverStandalone {
-        return OpenISDDriverStandalone.wrap({...this.record.get()}, this.engine);
+        return OpenISDDriverStandalone.wrap(structuredClone(this.record.get()), this.engine);
     }
 
-    /** @internal The record a save writes. Same seam as `OpenISDProject.recordToPersist()` — the
-     *  persistence layer's one way to reach the raw record it stores, never field by field. The
-     *  caller copies before writing; this returns the driver's own current value, not a copy. */
-    recordToPersist(): OpenISDDeviceJson {
-        return this.record.get();
+    /** @internal The record a save writes, deep-cloned. Same seam as
+     *  `OpenISDProject.cloneProject()` — the persistence layer's one way to reach the raw record
+     *  it stores, never field by field. Clones before handing it out, so the caller can store or
+     *  hand the result elsewhere without aliasing this driver's own live record — a shallow
+     *  `{...}` spread is not enough, since every nested field object (`brand`, `driver_type`,
+     *  `specs.woofer.Fs`, …) would still be the same reference as the live record. */
+    cloneDriver(): OpenISDDeviceJson {
+        return structuredClone(this.record.get());
     }
 
     /** Replace this driver's whole record with `source`'s current values. The write-back
@@ -1326,9 +1347,12 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *
      *  Reads `source.record` directly. Legal because `record` is PROTECTED and this method belongs
      *  to the class that declares it, so one driver may read another's — and no consumer can,
-     *  because a protected member is not on the public surface. */
+     *  because a protected member is not on the public surface.
+     *
+     *  Deep-cloned: after this call the two records share no nested object, so neither driver's
+     *  later edits reach the other regardless of how the storage layer applies writes. */
     update(source: OpenISDDriver): void {
-        this.record.set({...source.record.get()});
+        this.record.set(structuredClone(source.record.get()));
     }
 
     toOpenIsdDeviceJson(): OpenISDDeviceJson {
@@ -1424,7 +1448,7 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
  * `Qes`, `Znom`, `Pe` and the thermal parameters are not absent from it, they are meaningless to
  * it, and one shared class would have to model one of the two dishonestly.
  */
-export class PassiveRadiatorSpec {
+export class OpenIsdPassiveRadiatorSpec {
     readonly Fs_hz: Field<number>;
     readonly Qms: Field<number>;
     readonly Cms_m_per_N: Field<number>;
@@ -1478,7 +1502,7 @@ abstract class OpenISDPassiveRadiator extends OpenISDDevice {
     readonly section = 'passive-radiator' as const;
 
     /** This radiator's spec section, exactly as a driver publishes `spec[section]`. */
-    readonly spec: PassiveRadiatorSpec;
+    readonly spec: OpenIsdPassiveRadiatorSpec;
 
 
     // Every SPEC field a radiator can state, declared and built ONCE for both kinds. An embedded
@@ -1489,7 +1513,7 @@ abstract class OpenISDPassiveRadiator extends OpenISDDevice {
     protected constructor(slot: Lens<OpenISDDeviceJson | null>, engine: Engine) {
         super(slot, engine);
         this.slot = slot;
-        this.spec = new PassiveRadiatorSpec(slot);
+        this.spec = new OpenIsdPassiveRadiatorSpec(slot);
     }
 
     /**
@@ -1587,8 +1611,8 @@ function radiatorSectionProblems(json: OpenISDDeviceJson): string[] {
     return [];
 }
 
-export function conformingRecordToDriver(record: unknown, engine: Engine): OpenISDDriver | string[] {
-    const conformed = conformingRecord(record);
+export function conformingRecordToOpenIsdDriver(record: unknown, engine: Engine): OpenISDDriver | string[] {
+    const conformed = conformingRecordToOpenIsdDeviceJson(record);
     if ('problems' in conformed) return conformed.problems;
 
     const sectionProblems = driverSectionProblems(conformed.json);
@@ -1596,11 +1620,23 @@ export function conformingRecordToDriver(record: unknown, engine: Engine): OpenI
     return OpenISDDriverStandalone.wrap(conformed.json, engine);
 }
 
-export function conformingRecordToPassiveRadiator(
+/** A driver.yml, as text, straight to a driver — parses and validates in one step (`driverYmlToOpenIsdRecord`
+ *  then `conformingRecordToDriver`'s own section check), for a caller holding text rather than an
+ *  already-parsed record (an uploaded `.owdr`/driver.yml file, a My Drivers entry read off disk). */
+export function openIsdDriverYmlToOpenIsdDriver(text: string, engine: Engine): OpenISDDriver | string[] {
+    const parsed = openIsdDriverYmlToOpenIsdDeviceJson(text);
+    if ('problems' in parsed) return parsed.problems;
+
+    const sectionProblems = driverSectionProblems(parsed.json);
+    if (sectionProblems.length > 0) return sectionProblems;
+    return OpenISDDriverStandalone.wrap(parsed.json, engine);
+}
+
+export function conformingRecordToOpenIsdPassiveRadiatorStandalone(
     record: unknown,
     engine: Engine,
 ): OpenISDPassiveRadiatorStandalone | string[] {
-    const conformed = conformingRecord(record);
+    const conformed = conformingRecordToOpenIsdDeviceJson(record);
     if ('problems' in conformed) return conformed.problems;
 
     const sectionProblems = radiatorSectionProblems(conformed.json);
@@ -1619,7 +1655,7 @@ export function conformingRecordToPassiveRadiator(
  * Every issue at once, not the first: two bad readings in one spec field produce two messages,
  * each naming its own path, so a picker can show a reader why a row is unusable.
  */
-function conformingRecord(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
+function conformingRecordToOpenIsdDeviceJson(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
     const result = openISDDeviceJsonSchema.safeParse(record);
     if (result.success) return {json: result.data};
     return {
@@ -1645,22 +1681,23 @@ function conformingRecord(record: unknown): { json: OpenISDDeviceJson } | { prob
  * Here exactly two things are removed by name, and anything else unexpected is REFUSED by the
  * strict schema, at its own path.
  */
-export function driverYmlToOpenIsdRecord(
-    text: string,
+export function openIsdDriverYmlToOpenIsdDeviceJson(
+    ymlText: string,
 ): { json: OpenISDDeviceJson } | { problems: string[] } {
     let parsed: unknown;
     try {
-        parsed = parseYaml(text);
+        parsed = parseYaml(ymlText);
     } catch (e) {
         return {problems: [`not valid YAML: ${e instanceof Error ? e.message : String(e)}`]};
     }
-    return conformingRecord(withoutDriverYmlOnlyFields(parsed));
+    return conformingRecordToOpenIsdDeviceJson(stripDriverYmlOnlyFields(parsed));
 }
 
 /** The two things driver.yml carries and an openisd record does not. Returns a COPY: the caller's
- *  value is never mutated, so the same text can be read again and still be a driver.yml. */
-function withoutDriverYmlOnlyFields(value: unknown): unknown {
-    if (Array.isArray(value)) return value.map(withoutDriverYmlOnlyFields);
+ *  value is never mutated, so the same text can be read again and still be a driver.yml.
+ *  USes 'unknown' because called recursively and visits all Json types. */
+function stripDriverYmlOnlyFields(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(stripDriverYmlOnlyFields);
     if (typeof value !== 'object' || value === null) return value;
 
     const out: Record<string, unknown> = {};
@@ -1669,7 +1706,7 @@ function withoutDriverYmlOnlyFields(value: unknown): unknown {
         // `scraper`/`scraper_meta` is how the record was obtained: telemetry about the pipeline,
         // not a fact about the driver.
         if (key === 'definition' || key === 'scraper' || key === 'scraper_meta') continue;
-        out[key] = withoutDriverYmlOnlyFields(v);
+        out[key] = stripDriverYmlOnlyFields(v);
     }
     return out;
 }
@@ -1743,6 +1780,14 @@ export class OpenISDProject {
             this.#engine,
             () => this.#current().environment,
         );
+    }
+
+    /** Replace the embedded driver's whole record with `source`'s — the project adopting a
+     *  different driver (choosing one from the library, loading a `.wdr`/`.owdr` file).
+     *  Array-level facts (`nDrivers`, `wiring`, ...) are untouched; only `driverEmbedding.device`
+     *  changes. */
+    setDriver(source: OpenISDDriver): void {
+        this.driver.update(source);
     }
 
     /** How many units of the embedded driver this project's array uses, and how they're wired
@@ -1848,6 +1893,43 @@ export class OpenISDProject {
         return focus(this.#slot('advanced'), 'splGraphIsXmaxLimited');
     }
 
+    /** The frequency range every chart panel sweeps and is plotted over — shared across all
+     *  panels (John 2026-09-07), unlike each panel's own Y-axis zoom (`yRangeForChart`/
+     *  `setYRangeForChart` below). Absent means the engine's own sweep defaults. */
+    get sweepFmin_hz(): RawField<number | undefined> {
+        return focus(this.#slot('charts'), 'fmin_hz');
+    }
+
+    get sweepFmax_hz(): RawField<number | undefined> {
+        return focus(this.#slot('charts'), 'fmax_hz');
+    }
+
+    get sweepN(): RawField<number | undefined> {
+        return focus(this.#slot('charts'), 'N');
+    }
+
+    /** This project's saved Y-axis zoom for one chart (`chartId` is the UI's `ChartTabId`,
+     *  carried here as a plain string per `domain/index.ts`'s "no packages/ui types" rule) —
+     *  null when that panel is on auto-scale. */
+    yRangeForChart(chartId: string): {ymin: number; ymax: number} | null {
+        return this.#current().charts.perTab[chartId] ?? null;
+    }
+
+    /** Sets (or, passing null, clears back to auto-scale) the saved Y-axis zoom for one
+     *  chart. */
+    setYRangeForChart(chartId: string, range: {ymin: number; ymax: number} | null): void {
+        const charts = this.#current().charts;
+        const perTab = {...charts.perTab};
+        if (range) perTab[chartId] = range; else delete perTab[chartId];
+        this.#slot('charts').set({...charts, perTab});
+    }
+
+    /** Clears the shared sweep range and every chart's Y-axis zoom back to auto/engine
+     *  defaults — the chart top bar's Reset button. */
+    resetCharts(): void {
+        this.#slot('charts').set({perTab: {}});
+    }
+
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
      *  wraps of one record are two independently editable projects, which is what opening a FILE
      *  twice should give. */
@@ -1903,17 +1985,28 @@ export class OpenISDProject {
         };
     }
 
-    /** @internal The record a save writes — `projectRepo()`'s one way to reach it, never field
-     *  by field. Returns this project's own current value, not a copy; the caller copies before
-     *  writing. No code outside `packages/design` may call this. */
-    recordToPersist(): OpenISDProjectJson {
-        return this.#current();
+    /** @internal The record a save writes, deep-cloned — `projectRepo()`'s one way to reach it,
+     *  never field by field. Reads `#saved`, NEVER `#edited`: a file/share write must never
+     *  persist unsaved changes on its own — `save()` is a distinct, explicit user action (the
+     *  Save button), and this method must not promote `#edited` to `#saved` as a side effect of
+     *  being called. A caller writing out an edited project calls `save()` first, itself, in
+     *  response to the user's own action. Clones before handing it out, so the stored copy
+     *  cannot drift when this project is edited afterward — a shallow `{...}` spread is not
+     *  enough, since every nested field object (`box`, `driver`, `environment`, …) would still be
+     *  the same reference as the live record. No code outside `packages/design` may call this. */
+    cloneSavedProject(): OpenISDProjectJson {
+        return structuredClone(this.#saved);
     }
 
-    /** Whether unsaved changes exist. Answered by the presence of `#edited`: the first write
-     *  creates it, and only `save()` or `cancel()` removes it. */
+    /** Whether unsaved changes exist. `charts` (chart zoom/sweep range) is excluded: dragging a
+     *  chart axis writes through the same `#slot().set()` path as every other field, but it is
+     *  view state, not a change the user should be asked to save — see BACKLOG.md "Round-trip
+     *  chart view state". Every other field still counts. */
     isModified(): boolean {
-        return this.#edited !== null;
+        if (!this.#edited) return false;
+        const {charts: _editedCharts, ...editedRest} = this.#edited;
+        const {charts: _savedCharts, ...savedRest} = this.#saved;
+        return JSON.stringify(editedRest) !== JSON.stringify(savedRest);
     }
 
     // ── THE SIGNAL ────────────────────────────────────────────────────────────────────────────
@@ -2046,7 +2139,7 @@ export class OpenISDProject {
 
         return {
             Vb, eg,
-            fmin: P.fmin, fmax: P.fmax, N: P.N,
+            fmin: P.fmin ?? this.sweepFmin_hz.get(), fmax: P.fmax ?? this.sweepFmax_hz.get(), N: P.N ?? this.sweepN.get(),
             nDrivers: this.nDrivers.get(),
             wiring: this.wiring.get(),
             Rs: this.Rs_ohm.get(),
@@ -2296,41 +2389,6 @@ export class OpenISDProject {
  */
 export type DiscardChallenge = () => Promise<boolean>;
 
-/**
- * A new project's record: the chosen driver, the box being built, and defaults for everything a
- * project has not been told yet.
- *
- * THE DRIVER IS A PARAMETER because a project cannot exist without one — `newProject()` takes a
- * validated `OpenISDDriver` before a builder is even returned. Copied on the way in (`{...}`), so
- * the project owns its own record and later edits do not reach back into a My Drivers entry or a
- * bundle row.
- */
-function projectJson(driver: OpenISDDeviceJson): OpenISDProjectJson {
-    return {
-        driverEmbedding: {
-            device: {...driver},
-            nDrivers: 1,
-            wiring: 'parallel',
-            vcTempRise_K: 0,
-            Rs_ohm: 0,
-            driverAddedMass_kg: 0,
-            alfaVC_per_K: 0,
-            loading: 'standard',
-        },
-        box: emptyBoxJson(),
-        environment: {temperature_K: null, humidity_pct: null, pressure_Pa: null, useWinisdAirModel: null},
-        signal: {power_W: null, voltage_V: null},
-        meta: {name: '', creator: '', created: '', modified: '', description: ''},
-        filters: {filters: []},
-        advanced: {
-            forceFlatResponse: false,
-            useTransmissionLinePortModel: false,
-            rgAtDriverSide: false,
-            circuitModel: 'winisd',
-            splGraphIsXmaxLimited: false,
-        },
-    };
-}
 
 // ---------------------------------------------------------------------------------------------
 // BUILDING A PROJECT — the wizard's path in, and the only way to make an `OpenISDProject`.
@@ -2421,7 +2479,7 @@ abstract class BoxProjectBuilder {
      */
     build(): OpenISDProject {
         const project = OpenISDProject.wrap(
-            {...projectJson(this.driver.toOpenIsdDeviceJson()), box: this.boxRecord()},
+            {...this.prototypeProjectJson(this.driver.toOpenIsdDeviceJson()), box: this.boxRecord()},
             this.engine,
         );
         if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
@@ -2430,6 +2488,49 @@ abstract class BoxProjectBuilder {
         // Without this a new project is born modified, and Cancel would discard its own driver.
         project.save();
         return project;
+    }
+
+    /**
+     * A new project's record: the chosen driver, the box being built, and defaults for everything a
+     * project has not been told yet.
+     *
+     * THE DRIVER IS A PARAMETER because a project cannot exist without one — `newProject()` takes a
+     * validated `OpenISDDriver` before a builder is even returned. Copied on the way in (`{...}`), so
+     * the project owns its own record and later edits do not reach back into a My Drivers entry or a
+     * bundle row.
+     *
+     * NOTE TO AGENT - JL Hates this function which creates a half baked project from a driver, but leaves all the fields with crappy values
+     * like null and I really struggle to understand why so bad given its actually called from the builder
+     * and the builder should really be constructing a finished project not this crap - John things it should DIE.
+     * And in the builder we have crappy things like this following which instantly overwrites bits of it...
+     * if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
+     */
+    prototypeProjectJson(driver: OpenISDDeviceJson): OpenISDProjectJson {
+        return {
+            driverEmbedding: {
+                device: {...driver},
+                nDrivers: 1,
+                wiring: 'parallel',
+                vcTempRise_K: 0,
+                Rs_ohm: 0,
+                driverAddedMass_kg: 0,
+                alfaVC_per_K: 0,
+                loading: 'standard',
+            },
+            box: emptyBoxJson(),
+            environment: {temperature_K: null, humidity_pct: null, pressure_Pa: null, useWinisdAirModel: null},
+            signal: {power_W: null, voltage_V: null},
+            meta: {name: '', creator: '', created: '', modified: '', description: ''},
+            filters: {filters: []},
+            advanced: {
+                forceFlatResponse: false,
+                useTransmissionLinePortModel: false,
+                rgAtDriverSide: false,
+                circuitModel: 'winisd',
+                splGraphIsXmaxLimited: false,
+            },
+            charts: {perTab: {}},
+        };
     }
 }
 
@@ -2883,7 +2984,8 @@ export function projectRepo(make: RecordStoreFactory, engine: Engine): ProjectRe
     const store = make<OpenISDProjectJson>('meta.name');
     return {
         save(project: OpenISDProject): void {
-            const json = project.recordToPersist();
+            project.save();
+            const json = project.cloneSavedProject();
             store.put(project.uuid(), json);
         },
 

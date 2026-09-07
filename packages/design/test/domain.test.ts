@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { Engine } from '@openisd/design/engine';
 import {
   newProject,
-  conformingRecordToDriver,
-  conformingRecordToPassiveRadiator,
+  conformingRecordToOpenIsdDriver,
+  conformingRecordToOpenIsdPassiveRadiatorStandalone,
 } from '../domain/index.js';
 
 // This test is the package's PROXY CONSUMER: it imports from `index.js` only, exactly what the
@@ -54,7 +54,7 @@ function prSpecSection(p: {
  *  `driverFromConformingRecord` directly and inspects the problems. */
 // Takes whatever `driverJson` below takes.
 function driverFrom(p: Parameters<typeof driverJson>[0]) {
-  const result = conformingRecordToDriver(driverJson(p), new Engine());
+  const result = conformingRecordToOpenIsdDriver(driverJson(p), new Engine());
   if (Array.isArray(result)) throw new Error(`fixture is not a valid driver: ${result.join(', ')}`);
   return result;
 }
@@ -87,14 +87,14 @@ function driverJson(p: {
   return { ...meta, specs: { 'passive-radiator': p.spec } };
 }
 
-describe('OpenISDDriver.recordToPersist() — the persistence layer\'s one seam onto the raw record', () => {
+describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto the raw record', () => {
   it('returns the record the driver holds, readable by a repo without any field access', () => {
     const driver = driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     });
 
-    const record = driver.recordToPersist();
+    const record = driver.cloneDriver();
     expect(record.brand.value).toBe('Dayton');
     expect(record.specs.woofer?.Fs?.origin).toBeDefined();
   });
@@ -105,7 +105,7 @@ describe('OpenISDDriver.recordToPersist() — the persistence layer\'s one seam 
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     });
 
-    const before = driver.recordToPersist();
+    const before = driver.cloneDriver();
     driver.spec.woofer.Fs_hz.set(99);
     const fsBeforeStr = JSON.stringify(before.specs.woofer?.Fs);
     const afterFs = driver.spec.woofer.Fs_hz.get().value;
@@ -170,14 +170,14 @@ describe('the driver — a window, not a copy', () => {
       spec: prSpecSection({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     });
 
-    const result = conformingRecordToDriver(noSection, new Engine());
+    const result = conformingRecordToOpenIsdDriver(noSection, new Engine());
 
     expect(Array.isArray(result)).toBe(true);
     expect(result).toContain('neither a woofer nor a tweeter section — nothing to simulate');
   });
 
   it('reports EVERY problem at once, not just the first', () => {
-    const result = conformingRecordToDriver({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
+    const result = conformingRecordToOpenIsdDriver({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
 
     expect(result).toEqual(expect.arrayContaining([
       expect.stringContaining("'model'"),
@@ -190,7 +190,7 @@ describe('the driver — a window, not a copy', () => {
     // A section fault is a statement about a device's specs. This value has no specs and is not
     // a record at all, so "neither a woofer nor a tweeter" would be a second-hand restatement of
     // "'specs' is missing" — the same fault, worded as if it were another one.
-    const result = conformingRecordToDriver({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
+    const result = conformingRecordToOpenIsdDriver({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
 
     expect(result).toEqual(expect.arrayContaining([expect.stringContaining("'specs'")]));
     expect(result).not.toEqual(expect.arrayContaining([
@@ -228,7 +228,7 @@ describe('the driver — a window, not a copy', () => {
       },
     };
 
-    const result = conformingRecordToDriver(record, new Engine());
+    const result = conformingRecordToOpenIsdDriver(record, new Engine());
 
     expect(result).toEqual(expect.arrayContaining([
       expect.stringContaining('specs.woofer.Fs.readings.datasheet.read_value'),
@@ -405,7 +405,7 @@ describe('the passive radiator a box holds', () => {
 
   it('copies the chosen radiator IN, so later edits do not touch the library entry', () => {
     const p = project();
-    const library = conformingRecordToPassiveRadiator(prJson(), new Engine());
+    const library = conformingRecordToOpenIsdPassiveRadiatorStandalone(prJson(), new Engine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
 
@@ -524,6 +524,31 @@ describe('editing a driver — copy, then update or drop', () => {
 
     original.update(working);
     expect(original.spec.woofer.Fs_hz.get().value).toBe(200);
+  });
+
+  it('update() takes a deep copy — a later edit on the source does not reach the target', () => {
+    const target = newProject(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
+    const source = target.detach();
+    source.spec.woofer.Fs_hz.set(111111);
+
+    target.update(source);
+    expect(target.spec.woofer.Fs_hz.get().value).toBe(111111);
+
+    // The source's nested spec object must not still be shared with the target.
+    source.spec.woofer.Fs_hz.set(222222);
+    expect(target.spec.woofer.Fs_hz.get().value).toBe(111111);
+  });
+
+  it('setDriver() takes a deep copy — a later edit on the source does not reach the project', () => {
+    const project = newProject(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    const source = project.driver.detach();
+    source.spec.woofer.Fs_hz.set(333333);
+
+    project.setDriver(source);
+    expect(project.driver.spec.woofer.Fs_hz.get().value).toBe(333333);
+
+    source.spec.woofer.Fs_hz.set(444444);
+    expect(project.driver.spec.woofer.Fs_hz.get().value).toBe(333333);
   });
 
   it('discards an edit by dropping the copy — nothing to roll back', () => {
