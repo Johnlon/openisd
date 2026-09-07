@@ -320,7 +320,7 @@ const specEntryJsonSchema = z.strictObject({
 // consumer of this record already knows what `Fs` is.
 
 /** READ off a source. `readings` keeps what each one said. (`ScrapedField`, model_driver.py:155.) */
-const scrapedFieldOf = <T extends z.ZodTypeAny>(value: T) => z.strictObject({
+const scrapedFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
     value,
     readings: z.record(z.string(), value).optional(),
     dq_scraper: dqMarks(),
@@ -329,7 +329,7 @@ const scrapedFieldOf = <T extends z.ZodTypeAny>(value: T) => z.strictObject({
 
 /** COMPUTED from other fields. No origin — nothing was read — but `grounds` carries the evidence,
  *  and there is always at least one. (`DerivedField`, model_driver.py:193.) */
-const derivedFieldOf = <T extends z.ZodTypeAny>(value: T) => z.strictObject({
+const derivedFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
     value,
     grounds: z.strictObject({
         origin: z.string(), reading: z.string(),
@@ -339,7 +339,7 @@ const derivedFieldOf = <T extends z.ZodTypeAny>(value: T) => z.strictObject({
 /** A fact about the RECORD, not about the driver — a uuid, where its sources were. Nothing was
  *  read and nothing was derived, so neither origin nor grounds. (`BookkeepingField`,
  *  model_driver.py:202.) */
-const bookkeepingFieldOf = <T extends z.ZodTypeAny>(value: T) => z.strictObject({
+const bookkeepingFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
     value,
 });
 
@@ -470,25 +470,51 @@ const ventJsonSchema = z.strictObject({
 });
 export type VentJson = z.infer<typeof ventJsonSchema>;
 
-/** Every loss factor a chamber COULD carry. Which ones are actually surfaced is decided by the
- *  `*Losses` interface the owning chamber exposes (`SealedLosses` has no `Qp`, and so on —
- *  BUG_20260824's live-confirmed per-chamber shapes), not by presence/absence here: storing a
- *  field the API never surfaces is inert, whereas an optional field would make every reader
- *  handle an absence the box type has already ruled out. */
-const lossesJsonSchema = z.strictObject({
+/** The four loss shapes a chamber can actually have, matching `losses.ts`'s four `*Losses` read
+ *  interfaces field-for-field (BUG_20260824's live-confirmed per-box-type/chamber-role shapes):
+ *  no port on the chamber means no `Qp`; no coupling to another chamber means no `Qicl`. Each box
+ *  type's chamber in `openISDBoxJsonSchema` below stores exactly the shape it has — there is no
+ *  shared superset schema, because the superset was never real: WinISD itself never shows `Qp`
+ *  or `Qicl` controls for a sealed box. */
+const sealedLossesJsonSchema = z.strictObject({
+    Ql: z.number(),
+    Qa: z.number(),
+});
+export type SealedLossesJson = z.infer<typeof sealedLossesJsonSchema>;
+
+const ventedLossesJsonSchema = z.strictObject({
+    Ql: z.number(),
+    Qa: z.number(),
+    Qp: z.number(),
+});
+export type VentedLossesJson = z.infer<typeof ventedLossesJsonSchema>;
+
+const coupledSealedLossesJsonSchema = z.strictObject({
+    Ql: z.number(),
+    Qa: z.number(),
+    Qicl: z.number(),
+});
+export type CoupledSealedLossesJson = z.infer<typeof coupledSealedLossesJsonSchema>;
+
+const coupledVentedLossesJsonSchema = z.strictObject({
     Ql: z.number(),
     Qa: z.number(),
     Qp: z.number(),
     Qicl: z.number(),
 });
-export type LossesJson = z.infer<typeof lossesJsonSchema>;
+export type CoupledVentedLossesJson = z.infer<typeof coupledVentedLossesJsonSchema>;
 
-const chamberJsonSchema = z.strictObject({
+/** A chamber with its own volume and tuning, parameterised by which loss shape it has — bandpass4's
+ *  rear (sealed, coupled) and front (vented, coupled) need different shapes from the same box. */
+const chamberJsonSchemaOf = <L extends z.ZodType>(losses: L) => z.strictObject({
     volume_m3: z.number(),
     tuning_hz: z.number().nullable(),
-    losses: lossesJsonSchema,
+    losses,
 });
-export type ChamberJson = z.infer<typeof chamberJsonSchema>;
+const ventedChamberJsonSchema = chamberJsonSchemaOf(ventedLossesJsonSchema);
+export type ChamberJson = z.infer<typeof ventedChamberJsonSchema>;
+const coupledSealedChamberJsonSchema = chamberJsonSchemaOf(coupledSealedLossesJsonSchema);
+const coupledVentedChamberJsonSchema = chamberJsonSchemaOf(coupledVentedLossesJsonSchema);
 
 /** The project schema, nested throughout (QO116, John: "box and environment as nested
  *  strictObjects... Validate the whole project in a single .parse() at the load boundary. Not
@@ -499,24 +525,29 @@ const openISDBoxJsonSchema = z.strictObject({
     boxType: z.enum([
         'sealed', 'vented', 'bandpass4', 'bandpass6', 'box-passive-radiator', 'abc',
     ] satisfies readonly BoxType[]),
-    sealed: z.strictObject({ volume_m3: z.number(), losses: lossesJsonSchema }),
-    vented: z.strictObject({ chamber: chamberJsonSchema, vent: ventJsonSchema }),
+    sealed: z.strictObject({ volume_m3: z.number(), losses: sealedLossesJsonSchema }),
+    vented: z.strictObject({ chamber: ventedChamberJsonSchema, vent: ventJsonSchema }),
     bandpass4: z.strictObject({
-        rear: chamberJsonSchema,
-        front: chamberJsonSchema,
+        // rear is sealed but coupled to front through the shared wall — Qicl, no Qp.
+        rear: coupledSealedChamberJsonSchema,
+        // front is vented and coupled — both Qp and Qicl.
+        front: coupledVentedChamberJsonSchema,
         frontVent: ventJsonSchema,
     }),
     bandpass6: z.strictObject({
-        rear: chamberJsonSchema,
-        front: chamberJsonSchema,
+        rear: coupledVentedChamberJsonSchema,
+        front: coupledVentedChamberJsonSchema,
         rearVent: ventJsonSchema,
         frontVent: ventJsonSchema,
     }),
     abc: z.strictObject({
-        rear: chamberJsonSchema,
-        front: chamberJsonSchema,
+        rear: coupledVentedChamberJsonSchema,
+        front: coupledVentedChamberJsonSchema,
         rearVent: ventJsonSchema,
         frontVent: ventJsonSchema,
+        // The connecting port between rear and front. No live WinISD evidence was ever captured
+        // for its own loss controls (BUG_20260824) — it stores no losses of its own here, and
+        // none should be invented without that evidence.
         intraVent: ventJsonSchema,
     }),
     passiveRadiator: z.strictObject({
@@ -524,7 +555,7 @@ const openISDBoxJsonSchema = z.strictObject({
         tuning_hz: z.number().nullable(),
         count: z.number(),
         addedMass_kg: z.number().nullable(),
-        losses: lossesJsonSchema,
+        losses: sealedLossesJsonSchema,
         // The chosen PR, stored as a full driver record (a PR IS a purchasable component, same as
         // a driver) — null until `configurePR()` picks one. Reuses `openISDDeviceJsonSchema`
         // rather than a second driver schema, per QO116.
@@ -552,9 +583,13 @@ const openISDSignalJsonSchema = z.strictObject({
 });
 export type OpenISDSignalJson = z.infer<typeof openISDSignalJsonSchema>;
 
+/** WinISD Project tab: Creator/Created/Modified/Description, plus the project's own name. */
 const openISDProjectMetaJsonSchema = z.strictObject({
     name: z.string(),
-    comment: z.string(),
+    creator: z.string(),
+    created: z.string(),
+    modified: z.string(),
+    description: z.string(),
 });
 export type OpenISDProjectMetaJson = z.infer<typeof openISDProjectMetaJsonSchema>;
 

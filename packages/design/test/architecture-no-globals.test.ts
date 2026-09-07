@@ -14,11 +14,27 @@
 // not known to test anything. See AGENTS.md "Every architecture test exists to catch the AI".
 
 /**
- * NO GLOBAL VARIABLES IN packages/design. Enforced by AST, not by grep.
+ * NO SHARED MUTABLE STATE AT MODULE SCOPE IN packages/design. Enforced by AST, not by grep.
  *
  * John's standing order, 2026-08-26: "we are going to attempt to build this entire app without a
- * single global var", and no global exists here unless he has recorded a definite OK for that
- * specific one in `packages/design/AGENTS.md`. The approved list is currently EMPTY.
+ * single global var" — restated 2026-09-01 to key on MUTABILITY, not on the mere existence of a
+ * module-scoped binding (see `isMutableContainer`), and restated again 2026-09-07: a constant is
+ * not the thing this rule bans. What is banned is state at module scope that can vary after the
+ * module loads — a `let`/`var`, a bare object/array/`new` literal nothing freezes, or anything
+ * (however declared) that something later writes to.
+ *
+ * A module-scoped `const` is fine on its own merits, with no per-name approval needed, once it is
+ * genuinely immutable:
+ *
+ *   - `Object.freeze({...})` / `Object.freeze([...])` — immutable at RUNTIME, the strongest form,
+ *     and the one to use for a lookup table;
+ *   - `{...} as const` / `[...] as const` — readonly to the compiler, which in a package with no
+ *     casts (`architecture-no-casts.test.ts`) is enforcement, not decoration;
+ *   - a primitive, an arrow function, or a call returning neither a container nor a `new`.
+ *
+ * There is no allowlist to add a name to. A binding either provably cannot vary — and passes —
+ * or it can, and is a defect to fix by freezing it, moving it to `as const`, or passing it as a
+ * parameter instead of holding it at module scope.
  *
  * Why an AST and not a regex: a regex over source text matches the word `let` inside a comment,
  * a string, or a variable named `letter`, and misses a declaration wrapped over two lines. The
@@ -31,17 +47,6 @@ import * as path from 'node:path';
 import * as url from 'node:url';
 
 const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
-
-/**
- * Globals John has explicitly approved, by name.
- *
- * An entry belongs here ONLY once John has recorded a definite OK in `packages/design/AGENTS.md`.
- * Adding a name here without one is the exact offence this gate exists to stop.
- *
- * The three below are the starting values a brand-new box is built from, approved 2026-08-27.
- * Every use spreads them, so no project's record ever holds the shared object itself.
- */
-const APPROVED: readonly string[] = ['NO_LOSSES', 'NO_VENT', 'NO_CHAMBER'];
 
 /** A module-scoped declaration that can be reassigned — `let` or `var` at the top level. */
 function isMutableBinding(stmt: VariableStatement): boolean {
@@ -198,8 +203,6 @@ function moduleScopedStatements() {
       if (!why) continue;
 
       const names = stmt.getDeclarations().map((d) => d.getName());
-      if (names.every((n) => APPROVED.includes(n))) continue;
-
       found.push({
         file,
         line: stmt.getStartLineNumber(),
@@ -223,12 +226,14 @@ describe('packages/design has no global variables', () => {
       `    http://localhost:8000/openisd/packages/design/${o.file}#L${o.line}`);
 
     expect(report, [
-      'A module-scoped variable is a global (packages/design/AGENTS.md, John 2026-08-26).',
-      'It makes order-of-operations part of the API without declaring it, makes a second instance',
-      'impossible, and gives "what is the current value" more than one answer.',
-      'Pass it in instead — a dependency belongs in a constructor or a parameter.',
-      'If a global genuinely cannot be avoided, that means the DESIGN is wrong: say so and stop.',
-      'Never add a name to APPROVED without John recording a definite OK in AGENTS.md.',
+      'Shared MUTABLE state at module scope is banned (packages/design/AGENTS.md, John 2026-08-26,',
+      'restated 2026-09-01 and 2026-09-07). It makes order-of-operations part of the API without',
+      'declaring it, makes a second instance impossible, and gives "what is the current value"',
+      'more than one answer.',
+      'A genuinely immutable constant is not this — freeze it (`Object.freeze`), assert it',
+      '(`as const`), or use a primitive/arrow function, and it passes on its own merits.',
+      'A binding that still cannot be made immutable is a design that needs a parameter instead:',
+      'say so and stop.',
     ].join(' ')).toEqual([]);
   }, 30_000);
 

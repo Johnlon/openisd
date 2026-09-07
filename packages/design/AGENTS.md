@@ -12,28 +12,28 @@ in a file you were told to edit.
 When the specified shape leaves a genuine gap, say so and stop for John's decision. Leave the
 gap open rather than fill it and explain afterwards.
 
-## Keep module-scoped state immutable
+## Shared mutable state at module scope is prohibited
 
-Every module-scoped binding stays immutable for its whole life. Use `Object.freeze({...})`
-for a lookup table (it may be indexed by a runtime key), `{...} as const` for a readonly
-literal, or a primitive or arrow function. A frozen table is safe because its value never
-varies.
+No module-scoped binding may vary after the module loads. Banned: a top-level `let`/`var`, a
+bare object/array literal or `new X()` that nothing freezes, a registry, singleton or cache —
+and, regardless of how it was declared, any module-scoped binding that something later writes
+to (an assignment, or a mutating call like `push`/`set`/`delete`/`add`).
 
 Anything that varies at runtime lives on an object a caller holds, passed in and returned —
 never at module scope. When a module-level `let`, `Map`, `Set`, registry, singleton or cache
 looks necessary, the design is wrong: say so and stop.
 
-John approves an exception by writing it under Approved globals below with the variable name
-and date; you may then add it. `test/architecture-no-globals.test.ts` enforces this and its
-`APPROVED` list must match.
+A module-scoped `const` is a different thing and is not banned by this rule. It is fine on its
+own merits, with no approval needed, once it is genuinely immutable:
 
-### Approved globals
+- `Object.freeze({...})` / `Object.freeze([...])` for a lookup table (it may be indexed by a
+  runtime key — indexing is not the problem, mutability is);
+- `{...} as const` / `[...] as const` for a readonly literal;
+- a primitive, an arrow function, or a call returning neither a container nor a `new`.
 
-`NO_LOSSES`, `NO_VENT`, `NO_CHAMBER` — 2026-08-27. Shared const objects in
-`domain/project.ts`, the starting values a new box is built from. Every use spreads them
-(`{ ...NO_CHAMBER }`) so the object reaching a record is always fresh.
-
-Nothing else is approved.
+`test/architecture-no-globals.test.ts` enforces this by checking mutability directly (AST-level:
+is the binding reassignable, is its initializer an unfrozen container, is it written to anywhere
+in the file) — there is no separate name-by-name allowlist to maintain.
 
 ## Preserve type information so casts stay unnecessary
 

@@ -44,7 +44,8 @@ const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)
  */
 const RECORD_SHAPE_NAMES = [
   'DqMark', 'Reading', 'SpecEntryJson', 'DriverSpecsSection', 'PassiveRadiatorSpecsSection',
-  'VentJson', 'LossesJson', 'ChamberJson', 'OpenISDBoxJson', 'OpenISDEnvironmentJson',
+  'VentJson', 'SealedLossesJson', 'VentedLossesJson', 'CoupledSealedLossesJson',
+  'CoupledVentedLossesJson', 'ChamberJson', 'OpenISDBoxJson', 'OpenISDEnvironmentJson',
   'OpenISDSignalJson', 'OpenISDProjectMetaJson', 'OpenISDProjectJson', 'OpenISDDeviceJson',
 ] as const;
 

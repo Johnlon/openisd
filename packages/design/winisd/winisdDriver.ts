@@ -17,6 +17,7 @@
  * outside that set is discarded: `.wdr` has no extension mechanism, so a foreign key is
  * evidence of a corrupt or non-WinISD file, not a field to preserve.
  */
+import {parseIni, stringifyIni} from '../ini/index.js';
 import {PARSTATE_LEN, POS_TO_WDRKEY, parseParState} from './parstate.js';
 import {WINISD_NEWLINE_SENTINEL} from './winisdBytes.js';
 import type {Provenance} from '../domain/cell.js';
@@ -155,6 +156,34 @@ function commentWithDq(base: string, dqLines: readonly string[]): string {
     return [base, ...dqLines].filter(l => l.length > 0).join('\n');
 }
 
+/** The environment `c`/`roo` were computed under, for a driver-only `.wdr` (no `[Box]` section,
+ *  so no other field can carry it). Real WinISD never writes or reads this — see
+ *  `bugs/BUG_20260907_wdr_c_roo_environment_not_recoverable_on_round_trip.md`. */
+export interface WdrEnv {
+    tempK: number;
+    pressurePa: number;
+    humidityPct: number;
+}
+
+const ENV_TAG = /\[ENV T=([^ \]]+) p=([^ \]]+) RH=([^\]]+)\]/;
+
+/** `Comment=` with an `[ENV ...]` line appended, same shape as `commentWithDq`. Absent `env`,
+ *  or `base` already carrying the tag (a file read with one and written back unchanged), leaves
+ *  the text byte-identical. */
+function commentWithEnv(base: string, env: WdrEnv | undefined): string {
+    if (env === undefined || ENV_TAG.test(base)) return base;
+    const tag = `[ENV T=${env.tempK} p=${env.pressurePa} RH=${env.humidityPct}]`;
+    return [base, tag].filter(l => l.length > 0).join('\n');
+}
+
+/** `[ENV ...]` parsed out of a `Comment=` value, or `undefined` if the value carries none. */
+function envFromComment(comment: string | undefined): WdrEnv | undefined {
+    if (comment === undefined) return undefined;
+    const m = ENV_TAG.exec(comment);
+    if (!m) return undefined;
+    return { tempK: Number(m[1]), pressurePa: Number(m[2]), humidityPct: Number(m[3]) };
+}
+
 /** A string field's value as one PHYSICAL line: every newline becomes the sentinel the format
  *  reserves for exactly this, so `Comment=` cannot break the line structure around it. */
 function oneLine(value: string): string {
@@ -168,10 +197,15 @@ export class WinISDDriver {
 
     readonly #dqLines: readonly string[];
 
-    private constructor(header: WdrHeader, cells: WdrCells, dqLines: readonly string[]) {
+    readonly #env: WdrEnv | undefined;
+
+    private constructor(
+        header: WdrHeader, cells: WdrCells, dqLines: readonly string[], env?: WdrEnv,
+    ) {
         this.#header = header;
         this.#cells = cells;
         this.#dqLines = dqLines;
+        this.#env = env;
     }
 
     /**
@@ -182,14 +216,16 @@ export class WinISDDriver {
      * `state: 'not-available'`, a PRESENT cell with no value). Thrown here, at construction,
      * rather than reported and silently filled by `toWdrIni()` — the drift is a defect, not data.
      */
-    static build(header: WdrHeader, cells: WdrCells, dqLines: readonly string[] = []): WinISDDriver {
+    static build(
+        header: WdrHeader, cells: WdrCells, dqLines: readonly string[] = [], env?: WdrEnv,
+    ): WinISDDriver {
         const missing = INI_ROWS.filter(key => !cells.has(key));
         if (missing.length > 0) {
             throw new Error(`WinISDDriver.build() is missing ${missing.length} of the 48 .wdr keys: `
                 + `${missing.join(', ')} — the caller and WinISDDriver have drifted out of sync about `
                 + 'the .wdr key set.');
         }
-        return new WinISDDriver(header, cells, dqLines);
+        return new WinISDDriver(header, cells, dqLines, env);
     }
 
     // ── IMPORT — `.wdr` text → WinISDDriver, as read (no derivation) ─────────────────────
@@ -201,21 +237,22 @@ export class WinISDDriver {
      * no ParState line). This performs NO derivation.
      */
     static fromWdrIni(text: string): WinISDDriver {
+        // `parseIni` gives every `key=value` of the `[Driver]` section (the only section a `.wdr`
+        // carries), split on the first `=`, VALUE verbatim — trimming it would destroy real
+        // content in the free-text header fields (`s-xlim-123.wdr` carries `Comment=…written `
+        // with a trailing space WinISD wrote and reads back); `Number(' 0 ')` is 0 so numeric
+        // parsing is unaffected. `''` is where `parseIni` files any lines before the `[Driver]`
+        // header, so a block passed without its header still reads.
+        const parsed = parseIni(text);
+        const section = parsed.Driver ?? parsed[''] ?? {};
         const raw: Record<string, string> = {};
         let parState: string | undefined;
-        for (const line of text.split(/\r?\n/)) {
-            const i = line.indexOf('=');
-            if (i < 0 || line[0] === '[') continue;
-            const key = line.slice(0, i).trim();
-            // The VALUE is taken verbatim. Trimming it destroys real content in the free-text
-            // header fields — `s-xlim-123.wdr` carries `Comment=xlim set to 123 in UI but not
-            // written ` with a trailing space WinISD wrote and reads back. Numeric parsing is
-            // unaffected: `Number(' 0 ')` is 0.
+        for (const [key, rawVal] of Object.entries(section)) {
             // A newline embedded in a string field arrives as WINISD_NEWLINE_SENTINEL (the file's
-            // single 0xA4 byte, re-expanded by `winisdBytesToText`). Decoding it HERE — per value,
-            // after the line split — is what keeps a comment's newlines from being mistaken for
-            // line structure while the file is being parsed.
-            const val = line.slice(i + 1).replaceAll(WINISD_NEWLINE_SENTINEL, '\n');
+            // single 0xA4 byte, re-expanded by `winisdBytesToText`). Decoding it per value, after
+            // the section is parsed, keeps a comment's newlines from being mistaken for line
+            // structure while the file is being read.
+            const val = rawVal.replaceAll(WINISD_NEWLINE_SENTINEL, '\n');
             if (key === 'ParState') {
                 parState = val;
                 continue;
@@ -253,7 +290,7 @@ export class WinISDDriver {
         // A key the file states that is neither an `INI_ROWS` key nor a header line is discarded
         // (John, 2026-09-02): `.wdr` has no extension mechanism, so a foreign key is a corrupt or
         // non-WinISD file, not a field to preserve.
-        return new WinISDDriver(header, cells, []);
+        return new WinISDDriver(header, cells, [], envFromComment(header.comment));
     }
 
     // ── Serialise ──────────────────────────────────────────────────────────────────────
@@ -265,28 +302,27 @@ export class WinISDDriver {
      *  WinISD's own default for that key, and its ParState slot reads `N`. */
     toWdrIni(): string {
         const h = this.#header;
-        const lines: string[] = [
-            '[Driver]',
-            'Brand=' + oneLine(h.brand ?? ''),
-            'Model=' + oneLine(h.model ?? ''),
-            'Manufacturer=' + oneLine(h.manufacturer ?? ''),
-            'ProvidedBy=' + oneLine(h.providedBy ?? ''),
-            'Comment=' + oneLine(commentWithDq(h.comment ?? '', this.#dqLines)),
-            'DateAdded=' + oneLine(h.dateAdded ?? ''),
-            'DateModified=' + oneLine(h.dateModified ?? ''),
-        ];
+        // One `[Driver]` section, keys in WinISD's own file order: the seven free-text header
+        // lines, then the 48 tracked keys, then ParState. Insertion order into this object IS
+        // the written order — `stringifyIni` iterates it as given and emits CRLF throughout with
+        // a single trailing CRLF, which is the exact shape every `.wdr` WinISD writes has (LF
+        // would differ on every line and defeat the byte comparison against a WinISD oracle).
+        const driver: Record<string, string> = {
+            Brand: oneLine(h.brand ?? ''),
+            Model: oneLine(h.model ?? ''),
+            Manufacturer: oneLine(h.manufacturer ?? ''),
+            ProvidedBy: oneLine(h.providedBy ?? ''),
+            Comment: oneLine(commentWithEnv(commentWithDq(h.comment ?? '', this.#dqLines), this.#env)),
+            DateAdded: oneLine(h.dateAdded ?? ''),
+            DateModified: oneLine(h.dateModified ?? ''),
+        };
         for (const key of INI_ROWS) {
-            lines.push(`${key}=${this.#cells.get(key)?.value ?? wdrDefault(key)}`);
+            driver[key] = this.#cells.get(key)?.value ?? wdrDefault(key);
         }
         // No `Xlim=` line: WinISD writes none, and `.wdr` has no extension mechanism to add one
         // (XLIM_PARSTATE_SLOT). Xlim crosses as its slot-10 mark and nothing else.
-        lines.push('ParState=' + this.#parState());
-        lines.push('');
-        // CRLF, because `.wdr` is a Windows INI and every file WinISD writes uses it. LF would
-        // differ from WinISD's own output on every single line, which makes a byte comparison
-        // against a WinISD-written oracle impossible — and that comparison is how the projection
-        // in Plan 2 is checked. `fromWdrIni` already accepts either (`split(/\r?\n/)`).
-        return lines.join('\r\n');
+        driver.ParState = this.#parState();
+        return stringifyIni({Driver: driver});
     }
 
     /** One field, by WinISD's own key spelling. Never throws — an unknown key reads N/absent. */
@@ -297,6 +333,11 @@ export class WinISDDriver {
     /** One header field, by name. */
     headerField(field: keyof WdrHeader): string | undefined {
         return this.#header[field];
+    }
+
+    /** The `[ENV ...]` environment `c`/`roo` were computed under, if `Comment=` carries one. */
+    env(): WdrEnv | undefined {
+        return this.#env;
     }
 
     #parState(): string {

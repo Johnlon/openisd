@@ -35,7 +35,10 @@ import {
     type DriverSpecsSection,
     type PassiveRadiatorSpecsSection,
     type VentJson,
-    type LossesJson,
+    type SealedLossesJson,
+    type VentedLossesJson,
+    type CoupledSealedLossesJson,
+    type CoupledVentedLossesJson,
     type ChamberJson,
     type OpenISDBoxJson,
     type OpenISDEnvironmentJson,
@@ -101,29 +104,34 @@ type SpecFieldName = {
 
 type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
 
-// APPROVED GLOBALS — the only three in this package (John Lonergan, 2026-08-27; recorded in
-// packages/design/AGENTS.md, and named in the allowlist of test/architecture-no-globals.test.ts).
+// Shared const objects, the starting values a brand-new box is built from. Values are WinISD's
+// own defaults for a freshly-created box (packages/design/winisd/winisdProject.ts TEMPLATE:
+// Ql=10, Qa=100, Qp=100, Qiclfr=100, endcorrection=0.6) — not invented numbers.
 //
-// Three shared const objects, used as the starting values a brand-new box is built from.
-//
-// WHY THE GATE FLAGS THEM ANYWAY: `const` freezes the binding, never the contents. Nothing stops
-// code writing `NO_LOSSES.Ql = 3`, and every project built afterwards would carry the change.
-// `NO_CHAMBER` embeds `NO_LOSSES`, so a single mutation reaches both.
-//
-// WHAT KEEPS THEM SAFE: every use is a SPREAD — `{ ...NO_CHAMBER }` — so the constant supplies
-// values and the record that ends up in a project is always a fresh object. A use that assigned
-// one of these directly, without spreading, would put the shared object into a project's record
-// and is the one thing to watch for.
-const NO_LOSSES: LossesJson = {Ql: 15, Qa: 100, Qp: 100, Qicl: 100};
-const NO_VENT: VentJson = {
+// Each is `Object.freeze`d so no assignment or mutating call on it can compile or run — see
+// packages/design/AGENTS.md "Keep module-scoped state immutable". Every use still SPREADS the
+// value (`{ ...NO_VENTED_CHAMBER }`) so the object reaching a project record is always a fresh
+// copy, never the shared one.
+const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: 10, Qa: 100});
+const NO_VENTED_LOSSES: VentedLossesJson = Object.freeze({Ql: 10, Qa: 100, Qp: 100});
+const NO_COUPLED_SEALED_LOSSES: CoupledSealedLossesJson =
+    Object.freeze({Ql: 10, Qa: 100, Qicl: 100});
+const NO_COUPLED_VENTED_LOSSES: CoupledVentedLossesJson =
+    Object.freeze({Ql: 10, Qa: 100, Qp: 100, Qicl: 100});
+const NO_VENT: VentJson = Object.freeze({
     shape: 'round',
     diameter_m: null,
     width_m: null,
     height_m: null,
     length_m: null,
-    endCorrection_m: 0.85,
-};
-const NO_CHAMBER: ChamberJson = {volume_m3: 0, tuning_hz: null, losses: NO_LOSSES};
+    endCorrection_m: 0.6,
+});
+const NO_VENTED_CHAMBER: ChamberJson =
+    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_VENTED_LOSSES});
+const NO_COUPLED_SEALED_CHAMBER =
+    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_COUPLED_SEALED_LOSSES});
+const NO_COUPLED_VENTED_CHAMBER =
+    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_COUPLED_VENTED_LOSSES});
 
 /** A box with nothing designed yet — every box type present and inert, matching the
  *  dormant-data rule (the box holds EVERY box type at once and names which is active, rather
@@ -131,13 +139,18 @@ const NO_CHAMBER: ChamberJson = {volume_m3: 0, tuning_hz: null, losses: NO_LOSSE
 function emptyBoxJson(): OpenISDBoxJson {
     return {
         boxType: 'sealed',
-        sealed: {volume_m3: 0, losses: NO_LOSSES},
-        vented: {chamber: NO_CHAMBER, vent: NO_VENT},
-        bandpass4: {rear: NO_CHAMBER, front: NO_CHAMBER, frontVent: NO_VENT},
-        bandpass6: {rear: NO_CHAMBER, front: NO_CHAMBER, rearVent: NO_VENT, frontVent: NO_VENT},
+        sealed: {volume_m3: 0, losses: NO_SEALED_LOSSES},
+        vented: {chamber: NO_VENTED_CHAMBER, vent: NO_VENT},
+        bandpass4: {rear: NO_COUPLED_SEALED_CHAMBER, front: NO_COUPLED_VENTED_CHAMBER, frontVent: NO_VENT},
+        bandpass6: {
+            rear: NO_COUPLED_VENTED_CHAMBER,
+            front: NO_COUPLED_VENTED_CHAMBER,
+            rearVent: NO_VENT,
+            frontVent: NO_VENT,
+        },
         abc: {
-            rear: NO_CHAMBER,
-            front: NO_CHAMBER,
+            rear: NO_COUPLED_VENTED_CHAMBER,
+            front: NO_COUPLED_VENTED_CHAMBER,
             rearVent: NO_VENT,
             frontVent: NO_VENT,
             intraVent: NO_VENT,
@@ -147,7 +160,7 @@ function emptyBoxJson(): OpenISDBoxJson {
             tuning_hz: null,
             count: 1,
             addedMass_kg: null,
-            losses: NO_LOSSES,
+            losses: NO_SEALED_LOSSES,
             component: null,
         },
     };
@@ -323,19 +336,57 @@ export interface Box {
 // THE BOX WINDOW — the implementation of the shapes above, over the stored record.
 // ---------------------------------------------------------------------------------------------
 
-/** Every loss factor, over one stored `LossesJson`. The four `*Losses` interfaces are narrower
- *  VIEWS of this one implementation — a chamber exposes whichever of them its own shape allows
- *  (BUG_20260824's live-confirmed per-box-type sets), and the fields it does not expose are
- *  simply unreachable through that chamber, not absent from storage. */
-class LossesWindow implements CoupledVentedLosses {
+/** A sealed chamber's two loss factors, over its stored `SealedLossesJson` — no port, so no
+ *  `Qp`; no coupling to another chamber, so no `Qicl` (BUG_20260824's live-confirmed shape). */
+class SealedLossesWindow implements SealedLosses {
+    readonly Ql: RawField<number>;
+    readonly Qa: RawField<number>;
+
+    constructor(lens: Lens<SealedLossesJson>) {
+        // A `Lens` already IS a `RawField` — same two methods, same meaning — so each loss factor
+        // is simply its own lens, with no wrapper in between.
+        this.Ql = focus(lens, 'Ql');
+        this.Qa = focus(lens, 'Qa');
+    }
+}
+
+/** A standalone vented chamber's three loss factors, over its stored `VentedLossesJson` — has a
+ *  port (`Qp`), no coupling to another chamber (no `Qicl`). */
+class VentedLossesWindow implements VentedLosses {
+    readonly Ql: RawField<number>;
+    readonly Qa: RawField<number>;
+    readonly Qp: RawField<number>;
+
+    constructor(lens: Lens<VentedLossesJson>) {
+        this.Ql = focus(lens, 'Ql');
+        this.Qa = focus(lens, 'Qa');
+        this.Qp = focus(lens, 'Qp');
+    }
+}
+
+/** A sealed chamber coupled to another (bandpass4's rear), over its stored
+ *  `CoupledSealedLossesJson` — no port (no `Qp`), coupled to the other chamber (`Qicl`). */
+class CoupledSealedLossesWindow implements CoupledSealedLosses {
+    readonly Ql: RawField<number>;
+    readonly Qa: RawField<number>;
+    readonly Qicl: RawField<number>;
+
+    constructor(lens: Lens<CoupledSealedLossesJson>) {
+        this.Ql = focus(lens, 'Ql');
+        this.Qa = focus(lens, 'Qa');
+        this.Qicl = focus(lens, 'Qicl');
+    }
+}
+
+/** A vented chamber coupled to another (bandpass4's front, bandpass6's and ABC's rear/front),
+ *  over its stored `CoupledVentedLossesJson` — has a port AND a coupling, all four factors. */
+class CoupledVentedLossesWindow implements CoupledVentedLosses {
     readonly Ql: RawField<number>;
     readonly Qa: RawField<number>;
     readonly Qp: RawField<number>;
     readonly Qicl: RawField<number>;
 
-    constructor(lens: Lens<LossesJson>) {
-        // A `Lens` already IS a `RawField` — same two methods, same meaning — so each loss factor
-        // is simply its own lens, with no wrapper in between.
+    constructor(lens: Lens<CoupledVentedLossesJson>) {
         this.Ql = focus(lens, 'Ql');
         this.Qa = focus(lens, 'Qa');
         this.Qp = focus(lens, 'Qp');
@@ -419,10 +470,10 @@ class VentedChamberWindow {
     readonly tuning_hz: FieldHandle<number>;
     readonly losses: CoupledVentedLosses;
 
-    constructor(lens: Lens<ChamberJson>) {
+    constructor(lens: Lens<{volume_m3: number; tuning_hz: number | null; losses: CoupledVentedLossesJson}>) {
         this.volume_m3 = requiredField(lens, 'volume_m3', 'volume_m3');
         this.tuning_hz = nullableField(lens, 'tuning_hz');
-        this.losses = new LossesWindow(focus(lens, 'losses'));
+        this.losses = new CoupledVentedLossesWindow(focus(lens, 'losses'));
     }
 }
 
@@ -530,7 +581,7 @@ class OpenISDBox implements Box {
 
         const sealedLens = focus(lens, 'sealed');
         const sealedVolume = focus(sealedLens, 'volume_m3');
-        const sealedLosses = new LossesWindow(focus(sealedLens, 'losses')) satisfies SealedLosses;
+        const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
         this.sealed = {
             volume_m3: sealedVolume,
             resonance_hz: () => this.#sealedResonance_hz(sealedVolume.get(), sealedLosses),
@@ -543,12 +594,12 @@ class OpenISDBox implements Box {
             volume_m3: requiredField(ventedChamber, 'volume_m3', 'vented.volume_m3'),
             tuning_hz: nullableField(ventedChamber, 'tuning_hz'),
             vent: new VentWindow(focus(ventedLens, 'vent'), engine),
-            losses: new LossesWindow(focus(ventedChamber, 'losses')) satisfies VentedLosses,
+            losses: new VentedLossesWindow(focus(ventedChamber, 'losses')),
         };
 
         const bp4 = focus(lens, 'bandpass4');
         const bp4Rear = focus(bp4, 'rear');
-        const bp4RearLosses = new LossesWindow(focus(bp4Rear, 'losses')) satisfies CoupledSealedLosses;
+        const bp4RearLosses = new CoupledSealedLossesWindow(focus(bp4Rear, 'losses'));
         const bp4Front = focus(bp4, 'front');
         this.bandpass4 = {
             chambers: {
@@ -564,7 +615,7 @@ class OpenISDBox implements Box {
                 front: {
                     volume_m3: focus(bp4Front, 'volume_m3'),
                     tuning_hz: nullableField(bp4Front, 'tuning_hz'),
-                    losses: new LossesWindow(focus(bp4Front, 'losses')) satisfies CoupledVentedLosses,
+                    losses: new CoupledVentedLossesWindow(focus(bp4Front, 'losses')),
                 },
             },
             vents: {front: new VentWindow(focus(bp4, 'frontVent'), engine)},
@@ -608,7 +659,7 @@ class OpenISDBox implements Box {
             tuning_hz: nullableField(pr, 'tuning_hz'),
             count: focus(pr, 'count'),
             addedMass_kg: prAddedMass,
-            losses: new LossesWindow(focus(pr, 'losses')) satisfies SealedLosses,
+            losses: new SealedLossesWindow(focus(pr, 'losses')),
             // The embedded radiator adopts the chosen one — a radiator reading another radiator's
             // record, legal because both derive from the class that declares `slot`.
             configurePR: (chosen: OpenISDPassiveRadiatorStandalone) => {
@@ -1745,9 +1796,22 @@ export class OpenISDProject {
         return focus(this.#slot('meta'), 'name');
     }
 
-    /** The user's own note about this project. Stored, never interpreted. */
-    get comment(): RawField<string> {
-        return focus(this.#slot('meta'), 'comment');
+    /** WinISD Project tab: who made this project, and when. */
+    get creator(): RawField<string> {
+        return focus(this.#slot('meta'), 'creator');
+    }
+
+    get created(): RawField<string> {
+        return focus(this.#slot('meta'), 'created');
+    }
+
+    get modified(): RawField<string> {
+        return focus(this.#slot('meta'), 'modified');
+    }
+
+    /** WinISD Project tab: the user's own note about this project. Stored, never interpreted. */
+    get description(): RawField<string> {
+        return focus(this.#slot('meta'), 'description');
     }
 
     /** The signal-chain filter list. */
@@ -2213,7 +2277,7 @@ function projectJson(driver: OpenISDDeviceJson): OpenISDProjectJson {
         box: emptyBoxJson(),
         environment: {temperature_K: null, humidity_pct: null, pressure_Pa: null},
         signal: {power_W: null, voltage_V: null},
-        meta: {name: '', comment: ''},
+        meta: {name: '', creator: '', created: '', modified: '', description: ''},
         filters: {filters: []},
         advanced: {
             forceFlatResponse: false,

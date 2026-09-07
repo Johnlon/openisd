@@ -7446,13 +7446,18 @@ questions:
 - id: QO98
   title: 'Coverage include is stale: measures deleted packages/engine, ignores packages/design and packages/persistence
     — re-setting thresholds is a build-gate decision'
-  status: open
+  status: decided
   raised: '2026-08-28'
   body: ''
+  answer:
+    at: '2026-09-06'
+    text: Disable coverage entirely until the build is clean — no value in coverage without a green build.
+      Re-enable and re-baseline thresholds against packages/design + packages/persistence once the build
+      is clean.
 - id: QO99
   title: The OpenISD app owns openisd.yml and winisd.wdr; driver.yml is scraper-only; DQ splits into scraper
     findings and calculated marks in separate fields
-  status: open
+  status: decided
   raised: '2026-08-29'
   body: ''
   notes:
@@ -7578,9 +7583,16 @@ questions:
       - whether the bundler computes calculated marks from the app's engine
         (checkConsistency for `calc`, fieldRegistry min/max for `range`) or a dedicated rule set
       - what happens to the scraper's existing `dq_marks` output during the transition
+  answer:
+    at: '2026-09-06'
+    text: 'Close as decided. File roles and storage settled: bridge becomes driverYmlToOpenisdAndWdr(driverYmlText)
+      -> {openisd, wdr, errors}; scraper writes both derived files to the corpus as today; app calculates
+      their content. The three remaining sub-points (field names in openisd.yml, engine-vs-ruleset for
+      calculated marks, transition of existing dq_marks output) are implementation detail, not blocking
+      rulings.'
 - id: QO100
   title: DOM element casts in .vue files — 'as HTMLInputElement' and friends still bypass the type system
-  status: open
+  status: decided
   raised: '2026-08-30'
   body: ''
   notes:
@@ -7631,6 +7643,10 @@ questions:
       `if (!(e.target instanceof HTMLInputElement)) return;` — which the compiler verifies and which
       makes the wrong-element case explicit instead of `undefined`. Best done once as a typed helper
       (`inputValue(e): string | null`) rather than at ~13 call sites.
+  answer:
+    at: '2026-09-06'
+    text: Out of date — close. DOM-event target casts in .vue script blocks are the standing single exemption
+      to the no-casts gate; no follow-up removal tracked.
 - id: QO101
   title: 'Decommission useWinisdAirModel: the flag cannot change a chart, so document the two air models
     instead -'
@@ -8363,7 +8379,7 @@ questions:
       the app doesn't use.
 - id: QO116
   title: OpenISDBoxJson and OpenISDProjectJson have no zod schema — only OpenISDDeviceJson is runtime-validated
-  status: open
+  status: decided
   raised: '2026-09-05'
   body: ''
   notes:
@@ -8387,9 +8403,29 @@ questions:
       Ruling needed: should OpenISDBoxJson and OpenISDProjectJson get zod schemas (parity with
       OpenISDDeviceJson), and if so where do those schemas live given the same colocation/privacy
       constraint that blocks the file split?
+  - at: '2026-09-06'
+    text: 'Re-confirmed 2026-09-06: still true. OpenISDBoxJson (openisdRecordSchema.ts:304), OpenISDEnvironmentJson
+      (:342), OpenISDProjectJson (:410) are plain `export interface` — no zod schema. Only openISDDeviceJsonSchema
+      (:531) exists; grep for BoxJson/ProjectJson/EnvironmentJson schema across domain/ and src/ returns
+      nothing. NOTE: the question''s colocation/privacy premise is stale — all four record types now live
+      in openisdRecordSchema.ts and are exported, so a Box/Project schema has no privacy obstacle; it
+      would sit next to openISDDeviceJsonSchema in that same file.'
+  - at: '2026-09-06'
+    text: 'John 2026-09-06: OpenISDBoxJson, OpenISDEnvironmentJson and OpenISDDeviceJson are all nested
+      inside OpenISDProjectJson (project.box, project.environment, box.passiveRadiator.component). It''s
+      one boundary object. The schema to add is a single openISDProjectJsonSchema — nested z.strictObject
+      for box and environment, reusing openISDDeviceJsonSchema for the component — validated in one .parse()
+      where the project loads. Not three standalone schemas.'
+  answer:
+    at: '2026-09-06'
+    text: 'Ruling (John 2026-09-06): they are all parts of the project schema. Add ONE openISDProjectJsonSchema
+      (z.strictObject) with box and environment as nested strictObjects and openISDDeviceJsonSchema reused
+      for box.passiveRadiator.component. Validate the whole project in one .parse() at the load boundary.
+      Not three standalone schemas. OpenISDProjectJson/BoxJson/EnvironmentJson become z.infer of the nested
+      schema, as OpenISDDeviceJson already is.'
 - id: QO117
   title: Comments/rule-globs drifted after packages/engine deletion
-  status: open
+  status: decided
   raised: '2026-09-05'
   body: ''
   notes:
@@ -8407,6 +8443,15 @@ questions:
       both cite ''npm run gen-golden'' as the golden-fixture regen command. Need a ruling: is golden-fixture
       regen still a live workflow (repoint gen-golden.ts under packages/design), or is it dead (delete
       the script + its BACKLOG/SPEC mentions)?'
+  answer:
+    at: '2026-09-06'
+    text: 'Ruling (John 2026-09-06): golden-fixture regen is still needed occasionally — PORT it. Recreate
+      gen-golden under packages/design/test/engine/ producing test/fixtures/golden/*.json for the six
+      NAMES in golden.test.ts, repoint the package.json ''gen-golden'' script, keep the BACKLOG.md:425
+      and SPEC_ENGINE.md:207 mentions. Separately (mechanical, no further ruling): repoint the 4 stale
+      rule-file globs and prose paths packages/engine -> packages/design, fix dead comment paths in DriverEditorModal.vue:511
+      and OgFilters.vue:19, fix the scripts/test.sh example, and resolve the @openisd/engine / @openisd/winisd
+      package.json deps.'
 - id: QO118
   title: SPEC_ENGINE.md R3's N-mark table conflicts with inconsistency-test-qts-N.wdr's real WinISD output
     -

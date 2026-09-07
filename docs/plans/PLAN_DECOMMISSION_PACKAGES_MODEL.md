@@ -121,3 +121,47 @@ wrapping each bundle record in the same domain wrapper serves the list view.
 - `npx playwright test` green.
 - `bash scripts/health-check.sh` before any "done" claim.
 - On port 4000: a driver-editor field still shows its Entered/Calculated state.
+
+## 10. `appState.ts`'s `ManagedProject` calls, resolved one at a time against real callers
+
+§7's row calls this file "mechanical." It is not a rename: every call site was traced to its
+actual caller (never inferred from `managedProject.ts`'s own surface, which has no live callers
+of most of its methods) and resolved individually.
+
+| Old call, old object                                                                                                                                                      | Resolution                                                                                                                                             | Purpose                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `groundByProject.set(p, projectFingerprint())` in `markProjectSaved()`, `WeakMap`                                                                                         | `p.save()` on `OpenISDProject`                                                                                                                         | commit edits as the new clean baseline after save                                                                                                                                                   |
+| `currentGround() !== projectFingerprint()`, JSON strings                                                                                                                  | `p.isModified()` on `OpenISDProject`                                                                                                                   | drives the dirty indicator                                                                                                                                                                          |
+| `resetProjectToGround()`'s `JSON.parse` + `loadUiParams`/`loadDriverFromPersistedText` replay                                                                             | `await p.cancel(confirm)` on `OpenISDProject`                                                                                                          | discard unsaved edits, restore last save                                                                                                                                                            |
+| `p.loadEmpty()` in `appState.ts`'s `newProject()`                                                                                                                         | deleted — no replacement                                                                                                                               | there is no empty-driver project state; delete the whole dead body                                                                                                                                  |
+| `live.value.brand()`/`.model()` (`driverName`, appState.ts) and `project.value.model()` (`OriginalShell.vue:514`)                                                         | `displayNameOf(p.driver)` from `logic/driverDisplay.ts` (§6)                                                                                           | tab labels and download filenames — reuses the already-agreed display-name function, `p.driver` is `OpenISDProject`'s existing getter                                                               |
+| `live.value.errors()` (`driverErrors()`, appState.ts)                                                                                                                     | deleted, folded into `sweep()`/`maxCurves()` themselves — see `bugs/BUG_20260906_appstate_reimplements_sweep_instead_of_calling_project_sweep.md`      | the engine's own sweep/maxCurves postconditions (`classifyFinite`/`classifyFlatClamp`/`classifyMaxFinite`) become private to `engine/sweep.ts`; no caller validates sweep input/output from outside |
+| `new Engine().validateParams(...)` (`paramIssues`, appState.ts) and `OpenISDProject.validateParams(P)`                                                                    | deleted — no replacement                                                                                                                               | redundant with the sweep/maxCurves postconditions above; a bad param combination already shows up as a non-finite or clamped sweep result                                                           |
+| `live.value.persistedDriverText()` (`persistedDriver`, appState.ts)                                                                                                       | deleted — no replacement                                                                                                                               | only fed the ground-snapshot JSON `p.cancel(confirm)` already replaces; exposing the driver's persisted text was itself an encapsulation leak                                                       |
+| `resetProjectToGround()`'s `loadDriverFromPersistedText(g.driver)`                                                                                                        | deleted, superseded by `p.cancel(confirm)` (already resolved above)                                                                                    | same ground/edited apparatus as the first three rows                                                                                                                                                |
+| `ManagedProject.fromProject(source.projectToPersist())` + `groundByProject.set(...)` + `copy.mutate(p => p.setProjectMeta(...))` (`duplicateFocusedProject`, appState.ts) | new instance method `p.duplicate(newName): OpenISDProject`, built from `OpenISDProject.wrap(this.#current(), this.#engine)` + `copy.name.set(newName)` | "+ Copy" toolbar button — an independent project with a new UUID (via `wrap`'s own `newUuid()`), not a hand-assembled snapshot copy in the UI layer                                                 |
+
+`groundByProject`, `projectFingerprint()`, `currentGround()` are a second, parallel
+ground/edited tracker duplicating `OpenISDProject`'s own native `#saved`/`#edited`/
+`isModified()`/`save()`/`cancel()`. Delete the duplicate apparatus in `appState.ts`; do not port
+it.
+
+"New Project" never mutates a focused project and never creates a driver-less placeholder. The
+wizard (`OgNewProject.vue`) holds `name`/`box`/`volumeL`/`frontVolumeL` in local `ref`s across
+its steps; only once a driver is chosen (bundle, My Drivers, or the current project's own
+driver, edited) does the real build happen: `newProject(driver, engine)` from `@openisd/design`,
+`.volume_m3(...)`/`.frontVolume_m3(...)`, `.build()`, then `repo.save()` and `addProject()` with
+focus. `appState.ts` never holds or builds a project in progress.
+
+| `openNewProject()` (`OriginalShell.vue`) + `openBlankProject()`/`ManagedProject.createEmpty()` (`appState.ts`), called from `onFile()` before `importFile(f)` | deleted, both functions, every call site | a project exists only three ways — built via the wizard, reopened from storage, or reopened from disk; there is no fourth "blank tab, fill in later" path |
+| `onFile()`'s `.wpr`/`.owpr` branches inside `importFile` (`useDesignIO.ts`), which mutate the already-open blank project in place | parse the file into a project record, `OpenISDProject.wrap(json, engine)`, then `addProject()` — one project, built once | opening a project file is the same "reopen from disk" path as reopening from storage, never a mutate-an-existing-tab step |
+| `p.subscribe(...)` (`appState.ts`'s `resubscribe()`) | unchanged — `OpenISDProject.subscribe(fn)` already exists with the same signature | fires the Vue `live` bridge whenever the focused project mutates |
+
+Remaining call sites: `p.load(project)`, `requireFocusedProject().projectToPersist()` — still
+being traced to their real callers one at a time before any new `OpenISDProject` method is
+built.
+
+`loadDriverFromWdrText`/`loadDriverFromOwdrText` on `OpenISDProject` are unchanged and correct as
+called from `driverSelection.ts` (choosing a driver embeds it into the focused project — the
+project already exists) and from `importFile`'s `.wdr`/`.owdr` branches (loading a bare driver
+file, no project construction involved).

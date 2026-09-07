@@ -24,6 +24,10 @@
     "./winisd": {
       "types": "./winisd/index.ts",
       "default": "./winisd/index.ts"
+    },
+    "./ini": {
+      "types": "./ini/index.ts",
+      "default": "./ini/index.ts"
     }
   },
   "scripts": {

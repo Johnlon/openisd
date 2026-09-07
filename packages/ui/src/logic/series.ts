@@ -1,5 +1,5 @@
 import { Engine } from '@openisd/design/engine';
-import type { EngineDriver, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/design/engine';
+import type { SolverQuantities, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/design/engine';
 import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
@@ -59,7 +59,7 @@ interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boo
 /** Everything a curve builder may read. */
 interface CurveCtx {
   meta: TabMeta;
-  drv: EngineDriver;
+  drv: SolverQuantities;
   box: BoxType;
   P: PlotParams;
   sw: SweepResult;
@@ -124,7 +124,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     const series: Series[] = [{ ...pick(sw.exc), color: meta.color, name: 'Cone' }];
     // Xmax limit line — omitted when Xmax is absent (the cone curve stays reliable;
     // the missing line is surfaced to the user as a dismissable issue elsewhere).
-    const xm = drv.Xmax! > 0 ? drv.Xmax! * 1000 : null;
+    const xm = drv.Xmax_m! > 0 ? drv.Xmax_m! * 1000 : null;
     if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
     let top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
     if (box === 'box-passive-radiator') {
@@ -244,7 +244,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
 };
 
 export function seriesFor(tabId: ChartTabId,
-                          drv: EngineDriver,
+                          drv: SolverQuantities,
                           box: BoxType,
                           P: PlotParams,
                           sw: SweepResult,
