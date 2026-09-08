@@ -32,7 +32,7 @@ beforeAll(() => {
  */
 describe('.wpr import syncs state.project from the file, and export round-trips it', () => {
   const here = dirname(fileURLToPath(import.meta.url));
-  const GOLDEN = join(here, '..', '..', '..', 'winisd', 'test', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+  const GOLDEN = join(here, '..', '..', '..', 'design', 'test', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
 
   it('meta flows file → state.project on import, and state → [ProjectInfo] on export', async () => {
     const wprText = readFileSync(GOLDEN, 'utf8')

@@ -140,8 +140,8 @@ function valueImportsOf(file: string): { spec: string; names: string[] }[] {
 
 const rel = (f: string) => relative(UI_SRC, f);
 
-const MODEL_SRC = join(UI_SRC, '..', '..', 'model', 'src');
-const WINISD_SRC = join(UI_SRC, '..', '..', 'winisd', 'src');
+const MODEL_SRC = join(UI_SRC, '..', '..', 'design', 'domain');
+const WINISD_SRC = join(UI_SRC, '..', '..', 'design', 'winisd');
 // The data-access tier (repos/storage) is its own package now, not a ui/src directory
 // (John's ruling: a real 3-tier package boundary, not a directory convention).
 const PERSISTENCE_SRC = join(UI_SRC, '..', '..', 'persistence', 'src');

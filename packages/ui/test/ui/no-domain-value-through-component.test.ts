@@ -15,7 +15,7 @@
 
 /**
  * A `.vue` component's props and emits carry primitives, view models and callbacks — never a
- * domain object (A9). `packages/model` owns the driver record and the project; a component that
+ * domain object (A9). `packages/design/domain` owns the driver record and the project; a component that
  * accepts one binds the presentation layer to the domain's own shape, so every later change to
  * that shape reaches into template code, and the component can no longer be mounted over a
  * substitute in a test.
@@ -23,7 +23,7 @@
  * The check runs through the TYPE, not the spelling. A prop's declared type is resolved and its
  * whole graph walked — type arguments, union and intersection members, array elements, tuple
  * elements (an emit payload is a tuple), and alias targets — then every symbol reached is asked
- * where it is declared. A hit anywhere under `packages/model/src` is the offence. Walking the
+ * where it is declared. A hit anywhere under `packages/design/domain` is the offence. Walking the
  * resolved type rather than the written text is what closes the indirections a name-match misses:
  * a local `type Row = OpenISDDriver` alias, an `OpenISDDriver[]`, an `OpenISDDriver | null`, and
  * a generic parameterised over one all resolve back to the same declaration.
@@ -49,7 +49,7 @@ vi.setConfig({ testTimeout: 120_000 });
 const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PACKAGES = join(UI_PKG, '..');
 const REPO_ROOT = join(PACKAGES, '..');
-const DOMAIN_ROOT = join(PACKAGES, 'model', 'src');
+const DOMAIN_ROOT = join(PACKAGES, 'design', 'domain');
 
 /** Empty by ruling. A component needing a domain object is a finding for the human. */
 const EXEMPT_COMPONENTS: readonly string[] = [];

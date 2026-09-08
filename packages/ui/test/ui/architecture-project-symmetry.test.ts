@@ -46,7 +46,7 @@ vi.setConfig({ testTimeout: 60_000 });
 
 const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const REPO_ROOT = join(UI_PKG, '..', '..');
-const OPENISD_PROJECT_TS = join(REPO_ROOT, 'packages', 'model', 'src', 'openisdProject.ts');
+const OPENISD_PROJECT_TS = join(REPO_ROOT, 'packages', 'design', 'domain', 'openisdDomain.ts');
 
 const project = new TsProject({
   tsConfigFilePath: join(UI_PKG, 'tsconfig.json'),
