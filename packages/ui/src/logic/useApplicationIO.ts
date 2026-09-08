@@ -1,6 +1,7 @@
-import { stringify } from 'yaml';
-import { openIsdDriverToWinIsdDriver, openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject, winIsdDriverTextToOpenIsdDriver, WinISDProject, WinISDDriver } from '@openisd/design/winisd';
-import { engine } from './appState.js';
+import {
+  driverToWdrBytes, driverToOwdrBytes, projectToWprBytes,
+  wdrTextToDriver, owdrTextToDriver, wprTextToProject, owprTextToProject,
+} from './fileImportExport.js';
 /**
  * Design file I/O orchestration — Save/Save As the project (.openisd.json) to the filesystem,
  * export a WinISD .wpr project or a .wdr driver, copy a share link, import a .wdr/.wpr/.owdr/
@@ -26,10 +27,9 @@ import { engine } from './appState.js';
 import { watch } from 'vue';
 import {
   state, driverName, requireFocusedProject,
-  markProjectSaved, applyLoadedProject, curvesData, currentProject, currentViewSnapshot,
+  markProjectSaved, applyLoadedProject, currentProject, currentViewSnapshot,
 } from './appState.js';
 import { presentationState } from './presentationState.js';
-import { parseLossMode } from './environment.js';
 import { createFileSave, projectNameFromFilename, projectFilename, copyOfName, type FileStorage, type ProjectRepo, type FileNaming } from '@openisd/persistence';
 import { setShareUrl } from './urlAppState.js';
 import type { Logging } from '../logging/flash.js';
@@ -148,32 +148,22 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
 
   function exportWdr(): void {
     closeTunePanelAfterIO();
-    const p = requireFocusedProject();
-    const errors: any[] = [];
-    const wd = openIsdDriverToWinIsdDriver(p.driver, engine, errors);
-    if (!wd) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'incomplete'}`); return; }
-    const bytes = new TextEncoder().encode(wd.toWdrIni());
+    const { value: bytes, errors } = driverToWdrBytes(requireFocusedProject().driver);
+    if (!bytes) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wdr', bytes, DriverFileFormat.Wdr.mime);
   }
 
   function exportOwdr(): void {
     closeTunePanelAfterIO();
-    const p = requireFocusedProject();
-    const txt = stringify(p.driver.toOpenIsdDeviceJson());
-    const bytes = new TextEncoder().encode(txt);
+    const bytes = driverToOwdrBytes(requireFocusedProject().driver);
     download(sanitizeFilename(driverName.value) + '.owdr', bytes, DriverFileFormat.Owdr.mime);
   }
 
-  /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). The
-   *  managed layer is the ONE `.wpr` writer; this supplies the one thing only the live sweep
-   *  pipeline has — the current swept impedance curve, for the sealed-box resonance
-   *  refinement — and the download plumbing. */
+  /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
     closeTunePanelAfterIO();
-    const p = requireFocusedProject();
-    const { value: wp, errors } = openIsdProjectToWinIsdProject(p, engine);
-    if (!wp) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'incomplete'}`); return; }
-    const bytes = new TextEncoder().encode(wp.toWpr());
+    const { value: bytes, errors } = projectToWprBytes(requireFocusedProject());
+    if (!bytes) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wpr', bytes, ProjectFileFormat.Wpr.mime);
   }
 
@@ -181,29 +171,26 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   function importFile(f: File): void {
     void readDriverFileText(f).then(({ text }) => {
       try {
-        const bytes = new TextEncoder().encode(text);
-        const format = formatOf(f.name) ?? sniff(bytes);
+        const format = formatOf(f.name) ?? sniff(new TextEncoder().encode(text));
 
         if (format === DriverFileFormat.Wdr) {
-          const { value: driver, errors } = winIsdDriverTextToOpenIsdDriver(text, engine);
+          const { value: driver, errors } = wdrTextToDriver(text);
           if (!driver) throw new Error(errors[0]?.message ?? 'could not read .wdr');
-          requireFocusedProject().setDriver(driver);
-        } else if (format === ProjectFileFormat.Wpr) {
-          const { value: loadedProj, errors } = winIsdProjectToOpenIsdProject(text, engine);
-          if (!loadedProj) throw new Error(errors[0]?.message ?? 'could not read .wpr');
-          applyLoadedProject(loadedProj);
-          state.project.name = projectNameFromFilename(f.name);
+          requireFocusedProject().loadDriver(driver);
         } else if (format === DriverFileFormat.Owdr) {
-          requireFocusedProject().setDriver(winIsdDriverTextToOpenIsdDriver(text, engine).value as any);
+          const { value: driver, errors } = owdrTextToDriver(text);
+          if (!driver) throw new Error(errors[0]?.message ?? 'could not read .owdr');
+          requireFocusedProject().loadDriver(driver);
+        } else if (format === ProjectFileFormat.Wpr) {
+          const { value: project, errors } = wprTextToProject(text);
+          if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
+          applyLoadedProject(project);
+          state.project.name = projectNameFromFilename(f.name);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
-          if (sniff(bytes) === DriverFileFormat.Owdr) {
-            requireFocusedProject().setDriver(winIsdDriverTextToOpenIsdDriver(text, engine).value as any);
-          } else {
-            const upgraded = deps.projectRepo.readProjectText(text);
-            if (!upgraded) throw new Error('the file could not be brought to the current schema');
-            applyLoadedProject(upgraded as any);
-            state.project.name = projectNameFromFilename(f.name);
-          }
+          const { value: project, errors } = owprTextToProject(deps.projectRepo, text);
+          if (!project) throw new Error(errors[0]?.message ?? 'could not read the project file');
+          applyLoadedProject(project);
+          state.project.name = projectNameFromFilename(f.name);
         } else {
           throw new Error('Unsupported or unrecognized file format');
         }

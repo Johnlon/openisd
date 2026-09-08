@@ -65,7 +65,6 @@
   },
   "dependencies": {
     "@openisd/engine": "*",
-    "@openisd/model": "*",
     "@openisd/winisd": "*",
     "vue": "^3.5.38"
   }

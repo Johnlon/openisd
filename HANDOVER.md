@@ -227,7 +227,7 @@ Commits, newest last: `39e081d`, `7aad7cf`, `d014ac4`, `2135b6c`, `9a1768d`, `23
 `eb1b51f`, `43bc50e`, `919f3d7`, `3448754`.
 
 - **The parallel what-if is GONE.** Deleted from `store.ts` (211 lines replaced by 77 that delegate
-  and hold nothing), `driverSelection.ts`, `useDesignIO.ts`, `OgTune.vue`, `OriginalShell.vue`, and
+  and hold nothing), `driverSelection.ts`, `useApplicationIO.ts`, `OgTune.vue`, `OriginalShell.vue`, and
   `state.ui.originalWhatIf` deleted from `persist.ts`/`types.ts`. The gate that listed 20 offences
   lists zero.
 - **`OpenISDDriver` is private inside `ManagedDriver`.** `read()`/`readModified()`/`readGround()`
@@ -421,7 +421,7 @@ speculative; each has a concrete location.
 
 | # | Loose end | Where |
 |---|-----------|-------|
-| L1 | **`createFileIO` does not exist.** The target diagram and module table name a `fileIO` SERVICE; what exists is `logic/useDesignIO.ts`, a composable. The as-built diagram shows the stand-in. Either build the service or correct the target. | `packages/ui/src/logic/useDesignIO.ts` |
+| L1 | **`createFileIO` does not exist.** The target diagram and module table name a `fileIO` SERVICE; what exists is `logic/useApplicationIO.ts`, a composable. The as-built diagram shows the stand-in. Either build the service or correct the target. | `packages/ui/src/logic/useApplicationIO.ts` |
 | L2 | **`useDriverCells.ts` `consistencyNote(issues, field: string)`** still takes an open `string` while its sibling `useQGroupIncomplete` now takes `SpecField`. Inconsistent, and `string` cannot be checked. | `packages/ui/src/logic/useDriverCells.ts` |
 | L3 | **`packages/ui/src/logic/model/OpenISDProject.ts` and `model/workspace.ts`** are UNPLACED in the as-built table and were never examined this session. A `model/` directory inside `logic/` may be a fourth home for state — check against R1. | `packages/ui/src/logic/model/` |
 | L4 | **`state.driverSource`** — "snapshot of the last driver loaded from the library — used for reset". `ManagedDriver`'s ground state now answers for reset. Probably dead; verify and delete. | `store.ts` `state` |
@@ -433,7 +433,7 @@ speculative; each has a concrete location.
 | L10 | **`solve-from-mms-cms` has no golden and never will** — WinISD crashes unrecoverably opening it. Now explicitly excluded via an `UNCAPTURABLE` list with two self-checking guards. Do not "fix" it by regenerating. | `packages/winisd/test/winisd-parity.test.ts` |
 | L11 | **`winisdAir()` temperature-scaling bug** is recorded and unfixed, blocked on calc-logic authorisation. | `bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md` |
 | L12 | **`revertDriverTo` was deleted as dead** (zero callers, verified by grep). `STATE_MODEL.md` rule 3 still cites it as the Cancel mechanism. If a Cancel path ever needed it, `ManagedDriver.cancelEdit()` is the replacement. | see L8 |
-| L13 | **The `.wpr` `[Driver]` block parse** in `useDesignIO.ts` previously reflected over the ADT's constructor (`(getDriverModel().constructor as unknown) as {...}`). Replaced with `WinISDDriver.fromWdr().toOpenISDRecord()`. Mentioned here because that reflection trick may exist elsewhere. | `useDesignIO.ts` |
+| L13 | **The `.wpr` `[Driver]` block parse** in `useApplicationIO.ts` previously reflected over the ADT's constructor (`(getDriverModel().constructor as unknown) as {...}`). Replaced with `WinISDDriver.fromWdr().toOpenISDRecord()`. Mentioned here because that reflection trick may exist elsewhere. | `useApplicationIO.ts` |
 | L14 | **Store pass-throughs** — see §5.7, awaiting the human's ruling. | `store.ts` |
 | L15 | **`packages/ui/test/logic/openisd-project.test.ts` and `persist.test.ts`** still construct `{ inputs: ... }`, the old `DriverJSON` shape. They fail typecheck now. Part of §5.1. | those two files |
 

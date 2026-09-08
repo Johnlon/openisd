@@ -159,7 +159,7 @@ graph TD
         DRIVERREPO["<b>driverRepo</b><br/>db/driverRepo.ts<br/>index · search · lookup"]
         MYREPO["<b>myDriverRepo</b><br/>db/myDrivers.ts"]
         PREFS["<b>prefsStore</b><br/>db/prefs.ts"]
-        FILEIO["<b>file IO</b><br/>ManagedOpenISDProject + logic/managedDriver.ts<br/>(the codecs, QO78) · logic/fileStore.ts<br/>(the destination port, injected into createDesignIO)"]
+        FILEIO["<b>file IO</b><br/>ManagedOpenISDProject + logic/managedDriver.ts<br/>(the codecs, QO78) · logic/fileStore.ts<br/>(the destination port, injected into createApplicationIO)"]
         DIAG["<b>diagnostics</b><br/>diagnostics/selftest.ts"]
         LOGGING["<b>logging</b><br/>logging/flash.ts"]
         PROJSVC["<b>project service</b><br/><i>NOT BUILT — the wrapper QO60 needs:</i><br/>the only caller of STORE/WSPACE/MANAGED"]
@@ -431,7 +431,7 @@ belongs where it is, or at all.
 
 | Module                                                                  | What it does                            |
 |-------------------------------------------------------------------------|-----------------------------------------|
-| `logic/useDesignIO.ts`                                                  | open · save · export · share            |
+| `logic/useApplicationIO.ts`                                                  | open · save · export · share            |
 | `logic/driverSelection.ts`                                              | the driver-picker / editor workflow     |
 | `logic/driverBrowsingState.ts`                                          | driver-browsing reactive state          |
 | `logic/persist.ts`                                                      | localStorage + share-link encode/decode |
@@ -471,8 +471,8 @@ belongs where it is, or at all.
 `logic/` box, so it cannot say whether any of them is in the right place or should exist at all. File IO lives in the
 MANAGED LAYER (QO78's ruling — the file-IO code moves into the domain module that owns what it reads/writes):
 `ManagedOpenISDProject`'s own export/import/persist methods plus `logic/managedDriver.ts` for driver file IO not bound
-to a project, with `createFileStore` (`logic/fileStore.ts`, constructed in `main.ts` and injected into `createDesignIO`)
-as the destination port and `useDesignIO.ts` shrunk to the orchestration composable that calls them. `winisd/driver.ts`
+to a project, with `createFileStore` (`logic/fileStore.ts`, constructed in `main.ts` and injected into `createApplicationIO`)
+as the destination port and `useApplicationIO.ts` shrunk to the orchestration composable that calls them. `winisd/driver.ts`
 is amber: condemned, scheduled for deletion, still imported.
 
 ### Modules, purpose, and injected dependencies

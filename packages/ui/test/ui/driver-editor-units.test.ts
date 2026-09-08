@@ -394,13 +394,13 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     const stored = /^Gloss=(.*)$/m.exec(text)?.[1];
     assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
     const wd = WinISDDriver.fromWdrIni(text);
-    // Gloss is not directly exposed on OpenISDDriver in packages/design — skip this assertion
-    assert.ok(wd, 'fromWdrIni succeeded'); // placeholder
-    assert.equal(cell.get().state, 'calculated' as CellState, 'this fixture\'s ParState marks Gloss computed, not entered');
-    assert.equal(typeof cell.get().value, 'number', 'Gloss must be numeric');
-    const relError = Math.abs((cell.get().value as number) - 1.72503712771898) / 1.72503712771898;
+    const cell = wd.cell('Gloss');
+    assert.equal(cell.state, 'calculated' as CellState, 'this fixture\'s ParState marks Gloss computed, not entered');
+    const parsed = Number(cell.value);
+    assert.ok(Number.isFinite(parsed), 'Gloss must parse to a number');
+    const relError = Math.abs(parsed - 1.72503712771898) / 1.72503712771898;
     assert.ok(relError < 1e-9,
-      `the parser must not scale — got ${cell.get().value}, file holds 1.72503712771898 ` +
+      `the parser must not scale — got ${cell.value}, file holds 1.72503712771898 ` +
       `(relative error ${relError}); a real ×100/÷100 bug would show as ~1 or ~0.01, not this`);
   });
 

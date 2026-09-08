@@ -78,39 +78,6 @@ const slots = hmrSlots<AppStateSingletons>(
   s => { globalThis.__openisd_appState = s; },
 );
 
-/**
- * A driver record with no readings on any spec field — every field's `Field<T>.get()` answers
- * `not-available`. `@openisd/design` has no `OpenISDDriver.empty()`/`OpenISDProject.empty()`
- * yet (flagged to John as a design-side gap, `docs/plans/PLAN_DELETE_PACKAGES_MODEL.md` §4b);
- * this is the stopgap until one exists — a genuinely blank, schema-conforming record built the
- * same way any untrusted record is validated, rather than a second construction path.
- */
-function blankDriverRecord(): unknown {
-  return {
-    uuid: { value: crypto.randomUUID() },
-    quality: {
-      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
-      parse_errors: [], cross_source_only: [],
-    },
-    manufacturer: { value: '' }, brand: { value: '' }, model: { value: '' },
-    sku: { value: '', grounds: [{ origin: 'entered', reading: '' }] },
-    driver_type: { value: 'woofer' },
-    data_sources: { value: {} },
-    authoritative: { value: '' },
-    specs: { woofer: {} },
-  };
-}
-
-/** A brand-new, empty sealed project around a blank driver — the store's one seed/reset
- *  construction path. `newProject.js` (`@openisd/design`) refuses to build without a driver
- *  and a box type, so a blank driver always comes first. */
-function createEmptyProject(engine: Engine): OpenISDProject {
-  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
-  if (Array.isArray(driver)) {
-    throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-  }
-  return OpenISDProject.builder(driver, engine).sealed().volume_m3(0.02).build();
-}
 
 export const engine = getOrInit(slots, 'engine', () => new Engine());
 

@@ -177,10 +177,10 @@ rule, awaiting implementation.
    calcs, a structural transform from OpenISD's shape to the WinISD file format, nothing else.**
 8. `bugs/BUG_20260818_pr_formulas_and_air_constants_duplicated_outside_engine.md` — 3 PR T/S
    formulas (Mmd-from-Fs/Cms, Rms-from-Mmd/Cms/Qms, Cms-from-Vas/Sd) duplicated 3-5× each across
-   `prWinIsdFields.ts`/`useDesignIO.ts`, same class of violation as blocker #3. Worse:
-   `useDesignIO.ts:242-243` re-declares `RHO`/`C` locally, **truncated** (`1.20095`/`343.68`)
+   `prWinIsdFields.ts`/`useApplicationIO.ts`, same class of violation as blocker #3. Worse:
+   `useApplicationIO.ts:242-243` re-declares `RHO`/`C` locally, **truncated** (`1.20095`/`343.68`)
    instead of importing the engine's full-precision values (`constants.ts:19-20`) — a real
-   numeric-drift risk between `useDesignIO.ts`'s computations and everything else in the app.
+   numeric-drift risk between `useApplicationIO.ts`'s computations and everything else in the app.
 9. **New `_OpenISDDriverJson`-encapsulation violators found in a follow-up sweep, not previously
    counted:** `DriverEditorModal.vue` calls `.toRecord()` on a live `OpenISDDriver` 4 times
    (lines 69, 340, 346, 394) — reading a field for display, persisting to My Drivers storage,
@@ -202,7 +202,7 @@ rule, awaiting implementation.
     `prFs_hz()`, `prFsWithMass_hz()`, `prQms()`); component reads are one-liners now. Full
     31-item list reviewed — the rest is legitimate UI-only state. No typecheck/test regressions.
 11. `bugs/BUG_20260818_exportDriver_called_with_a_plain_driverRecord_not_the_live_OpenISDDriver.md`
-    — `useDesignIO.ts`'s `exportWdr()`/`exportWpr()` pass `driverRecord.value`
+    — `useApplicationIO.ts`'s `exportWdr()`/`exportWpr()` pass `driverRecord.value`
     (`_OpenISDDriverJson`) to `WinIsdDriverFileIo.exportDriver(driver: OpenISDDriver)`, which
     declares and needs the live class. Pre-existing, found via `vue-tsc` during this sweep, not
     introduced this session. Needs either a new narrow `PrivateAllow` entry (human decision) or
@@ -510,7 +510,7 @@ checklist — cross-check against Phase 0's red test output, which is authoritat
 Lowest call-site-count first: `NumInput.vue`, `UnitToggle.vue`, `PRDefineModal.vue`/
 `PREditModal.vue`/`DriverBrowserWinisd.vue`/`OgFilters.vue`, `AdvancedOptions.vue`,
 `OptionsModal.vue`, `DriverEditorModal.vue` (also fixes B8's 4 violators while here),
-`OgNewProject.vue`, `App.vue`, `driverLibrary.ts`, `driverSelection.ts`, `useDesignIO.ts`
+`OgNewProject.vue`, `App.vue`, `driverLibrary.ts`, `driverSelection.ts`, `useApplicationIO.ts`
 (also fixes B5's PR/RHO/C duplication while here), `GraphPanel.vue`, `OgTune.vue`,
 `OriginalShell.vue` (largest, last — 208 `state` call sites alone). Each file's own tests run
 after that file's migration, not deferred to the end.
@@ -637,7 +637,7 @@ Every Driver/Project/PR carrier found across all 4 packages, including unnamed c
 - `MyDriverRepo` — Driver — `db/myDrivers.ts` — IndexedDB repo over `_OpenISDDriverJson`. **REC:** keep.
 
 `openIsdDriverFileIo.ts`/`winIsdDriverFileIo.ts` declare no carrier types of their own (pure
-functions over `_OpenISDDriverJson`). `useDesignIO.ts`'s `DesignIO` is a function-bag, not a
+functions over `_OpenISDDriverJson`). `useApplicationIO.ts`'s `DesignIO` is a function-bag, not a
 carrier, omitted.
 
 ---

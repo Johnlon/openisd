@@ -65,8 +65,10 @@ function payloadWithBoxType(boxType: string): unknown {
   if (Array.isArray(driver)) throw new Error('fixture driver record must conform: ' + driver.join('; '));
   const project = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
   project.save();
-  const record = JSON.parse(JSON.stringify(project.cloneSavedProject()));
-  record.box.boxType = boxType;
+  // `readProjectText` validates the session wrapper `{ label, saved, edited }`; the box type
+  // lives on `saved`.
+  const record = JSON.parse(JSON.stringify(project.cloneSession()));
+  record.saved.box.boxType = boxType;
   return record;
 }
 

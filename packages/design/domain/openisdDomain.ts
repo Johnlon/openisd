@@ -1233,8 +1233,45 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.record.set(structuredClone(source.record.get()));
     }
 
+    /** Make this driver a copy: its `model` states so, so `<brand>/<model>` differs from the
+     *  driver it was copied from and the two stand side by side rather than one replacing the
+     *  other. Called on a detached copy, before it is saved. */
+    renameToCopy(): void {
+        this.model.set('Copy of ' + (this.model.get().value ?? ''));
+    }
+
+    /** The catalogue URL recorded for one source role — datasheet, product page, listing page —
+     *  or null when the record carries none. The picker shows these as the preview's links; a
+     *  URL is provenance, not a driver parameter, so it is read here rather than off `spec`. */
+    dataSource(role: 'manufacturer_datasheet' | 'manufacturer_product_page' | 'manufacturer_listing_page'): string | null {
+        return this.record.get().data_sources.value[role] ?? null;
+    }
+
+    /** The product series this driver belongs to (e.g. "Reference Series"), or null. Descriptive
+     *  only — the picker's preview text, never a simulated quantity. */
+    get series(): string | null {
+        return this.record.get().series?.value ?? null;
+    }
+
+    /** The manufacturer's own catalogue number, derived by the scraper from brand/model. */
+    get sku(): string | null {
+        return this.record.get().sku.value ?? null;
+    }
+
+    /** Free-text description from the datasheet, or null. Preview text only. */
+    get description(): string | null {
+        return this.record.get().description?.value ?? null;
+    }
+
     toOpenIsdDeviceJson(): OpenISDDeviceJson {
         return this.record.get();
+    }
+
+    /** This driver as `.owdr` text — openisd driver YAML, the form `OpenISDDriver.fromYml` reads
+     *  back. The serialisation stays inside the domain so the record type never crosses the
+     *  package boundary. */
+    toOwdrText(): string {
+        return OpenISDDeviceJson.toOpenisdDriverYml(this.record.get());
     }
 }
 
@@ -1555,6 +1592,14 @@ export class OpenISDProject {
      *  Array-level facts (`nDrivers`, `wiring`, ...) are untouched; only `driverEmbedding.device`
      *  changes. */
     setDriver(source: OpenISDDriver): void {
+        this.driver.update(source);
+    }
+
+    /** Adopt a driver that came from outside this project — a library pick, or a `.wdr`/`.owdr`
+     *  file just parsed. Same write as `setDriver`, with a name that says where the driver came
+     *  from. Deep-clones — the file's/library's driver and this project's share no nested object
+     *  afterward. */
+    loadDriver(source: OpenISDDriver): void {
         this.driver.update(source);
     }
 

@@ -21,17 +21,17 @@ const { openNewDriver } = selection;
 // on the composable because DriverBrowserMd.vue still offers all three.
 const {
   DRIVER_TYPES, DRIVER_SCOPES,
-  allFiles, statusMsg, statusErr,
+  allDrivers, statusMsg, statusErr,
   filterQ, typeHelpOpen, typeStates,
   fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
   toggleType, toggleZ, clearParamFilters,
-  filteredFiles, displayedFiles, listTruncated, listedCount,
-  filteredMyDrivers, myDriverName, myDriverEntry, driverId, editMyDriver, editOverviewDriver, deleteMyDriver,
-  favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly, driverKey,
+  filteredDrivers, displayedDrivers, listTruncated, listedCount,
+  filteredMyDrivers, displayNameOf, driverId, editMyDriver, editOverviewDriver, deleteMyDriver,
+  favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly,
   driverScope, cycleDriverScope,
-  previewFile, previewData, pickFile, chooseDriver, loadFromDisk, cloneDriver,
+  previewDriver, previewData, pickDriver, chooseDriver, loadFromDisk, cloneDriver,
   openedLibrary, closeLibrary,
-  shortSource, driverHasDqIssues,
+  driverHasDqIssues,
   myDriversRead, exportedThisSession, exportMyDriversRaw, exportBrokenEntry,
   deleteAllMyDrivers, removeBrokenEntry,
 } = driverBrowsing;
@@ -56,11 +56,8 @@ const fileInputEl = ref<HTMLInputElement | null>(null);
 function triggerFileLoad() { fileInputEl.value?.click(); }
 
 // A row click SUMMARISES; "Use" is what chooses. The summary is a reading step in front of the
-// choice, so the user can check a driver before it lands in their project. The parameter type
-// is derived from the already-injected `pickFile` rather than imported from `persistence/` —
-// this component takes its facade by injection and never names the persistence layer itself.
-// Takes whatever `pickFile` takes.
-function handleItemClick(f: Parameters<typeof pickFile>[0]) { pickFile(f); }
+// choice, so the user can check a driver before it lands in their project.
+function handleItemClick(d: Parameters<typeof pickDriver>[0]) { pickDriver(d); }
 
 function close() { closeLibrary(); }
 useEscToClose(() => presentationState.browseOpen, close);
@@ -75,7 +72,7 @@ function openNew() { openNewDriver(); }
 
 // Closing the picker drops any open summary, so reopening lands on the list rather than on
 // whatever was last being read.
-watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); else pickFile(null); }, { immediate: true });
+watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); else pickDriver(null); }, { immediate: true });
 </script>
 
 <template>
@@ -113,11 +110,11 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
   <div class="overlay" :class="{ on: presentationState.browseOpen }">
     <div class="modal wb-modal" v-if="presentationState.browseOpen">
       <h2>
-        {{ previewFile ? previewData?.name : 'Driver database' }}
+        {{ previewDriver ? previewData?.name : 'Driver database' }}
         <span class="x" @click="close" title="Close the driver library browser">✕</span>
       </h2>
       <div class="body">
-        <template v-if="!previewFile">
+        <template v-if="!previewDriver">
         <input class="filter" v-model="filterQ" placeholder="Search drivers…" autofocus>
         
         <div class="type-row">
@@ -229,50 +226,44 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
           </template>
           <template v-if="filteredMyDrivers.length">
             <div class="dlist-section">My Drivers</div>
-            <div v-for="d in filteredMyDrivers" :key="driverId(d) || myDriverName(d)"
+            <div v-for="row in filteredMyDrivers" :key="row.uuid"
                  class="ditem my-ditem"
-                 @click="handleItemClick(myDriverEntry(d))">
-              <b>{{ myDriverName(d) }}</b>
-              <span v-if="driverHasDqIssues(myDriverEntry(d))" class="dq-flag" title="Data quality issues detected on this driver — some fields may be missing or have suspicious values">⚠</span>
-              <button class="fav-btn" :class="{ on: isFavorite(myDriverEntry(d)) }"
-                      :title="isFavorite(myDriverEntry(d)) ? 'Remove from favourites' : 'Add to favourites'"
-                      @click.stop="toggleFavorite(myDriverEntry(d))">★</button>
-              <button class="my-edit" @click.stop="editMyDriver(d)"
+                 @click="handleItemClick(row.driver)">
+              <b>{{ displayNameOf(row.driver) }}</b>
+              <span v-if="driverHasDqIssues(row.driver)" class="dq-flag" title="Data quality issues detected on this driver — some fields may be missing or have suspicious values">⚠</span>
+              <button class="fav-btn" :class="{ on: isFavorite(row.driver) }"
+                      :title="isFavorite(row.driver) ? 'Remove from favourites' : 'Add to favourites'"
+                      @click.stop="toggleFavorite(row.driver)">★</button>
+              <button class="my-edit" @click.stop="editMyDriver(row.driver)"
                       title="Edit this saved driver — changes the My Drivers entry, not the project">&#9998;</button>
-              <button class="my-del" @click.stop="deleteMyDriver(driverId(d))" title="Remove from My Drivers">✕</button>
+              <button class="my-del" @click.stop="deleteMyDriver(row.uuid)" title="Remove from My Drivers">✕</button>
             </div>
             <div class="dlist-sep"></div>
           </template>
-          
-          <div v-for="f in displayedFiles" :key="driverKey(f)"
-               :class="['ditem', f.isLatest && 'ditem-latest', f.isOlder && 'ditem-older']"
-               @click="handleItemClick(f)">
-            <b>{{ f.name }}</b>
-            <span v-if="driverHasDqIssues(f)" class="dq-flag" title="Data quality issues detected — some core fields may be missing or have suspicious values (e.g. Fs=0). Open to review.">⚠</span>
+
+          <div v-for="d in displayedDrivers" :key="driverId(d)"
+               class="ditem"
+               @click="handleItemClick(d)">
+            <b>{{ displayNameOf(d) }}</b>
+            <span v-if="driverHasDqIssues(d)" class="dq-flag" title="Data quality issues detected — some core fields may be missing or have suspicious values (e.g. Fs=0). Open to review.">⚠</span>
             <span class="dmeta">
-              <span v-if="f.normalisedDate" :class="['ddate', f.isLatest && 'ddate-latest', f.isOlder && 'ddate-older']">{{ f.normalisedDate }}</span>
-              <a v-if="f.datasheet" class="dpdf"
-                 :href="f.datasheet" target="_blank" rel="noopener"
+              <a v-if="d.dataSource('manufacturer_datasheet')" class="dpdf"
+                 :href="d.dataSource('manufacturer_datasheet')!" target="_blank" rel="noopener"
                  title="Open manufacturer datasheet (PDF)" @click.stop>PDF</a>
-              <a v-if="f.manupage" class="dpdf"
-                 :href="f.manupage" target="_blank" rel="noopener"
+              <a v-if="d.dataSource('manufacturer_product_page')" class="dpdf"
+                 :href="d.dataSource('manufacturer_product_page')!" target="_blank" rel="noopener"
                  title="Open manufacturer product page" @click.stop>Manu ↗</a>
-              <a v-if="f.vendorpage && f.vendorpage !== f.manupage" class="dpdf"
-                 :href="f.vendorpage" target="_blank" rel="noopener"
-                 title="Open vendor/retailer product listing" @click.stop>Vendor ↗</a>
-              <a v-if="f.frd" class="dpdf"
-                 :href="f.frd" target="_blank" rel="noopener"
-                 title="Download frequency response & impedance data (FRD/ZMA)" @click.stop>FRD ↗</a>
-              <span v-if="f.canonical" :class="['dtype', f.canonical === 'Unclassified' && 'unk']">{{ f.canonical }}</span>
-              <span class="stag" :title="f.sourceName + (f.sourceDesc ? ' — ' + f.sourceDesc : '')">{{ shortSource(f.sourceName) }}</span>
-              <button class="fav-btn" :class="{ on: isFavorite(f) }"
-                      :title="isFavorite(f) ? 'Remove from favourites' : 'Add to favourites'"
-                      @click.stop="toggleFavorite(f)">★</button>
+              <a v-if="d.dataSource('manufacturer_listing_page') && d.dataSource('manufacturer_listing_page') !== d.dataSource('manufacturer_product_page')" class="dpdf"
+                 :href="d.dataSource('manufacturer_listing_page')!" target="_blank" rel="noopener"
+                 title="Open retailer product listing" @click.stop>Listing ↗</a>
+              <button class="fav-btn" :class="{ on: isFavorite(d) }"
+                      :title="isFavorite(d) ? 'Remove from favourites' : 'Add to favourites'"
+                      @click.stop="toggleFavorite(d)">★</button>
             </span>
           </div>
-          
+
           <div v-if="listTruncated" class="dlist-more">
-            Showing {{ displayLimit }} of {{ filteredFiles.length }} —
+            Showing {{ displayLimit }} of {{ filteredDrivers.length }} —
             <button class="dlist-more-btn" @click="displayLimit += 200"
                     title="Show 200 more drivers">show more</button>
             or type to search
@@ -282,26 +273,26 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
                still loading is likewise the pool itself, not the absence of a search term —
                a type chip that matches nothing said "Loading…" forever. -->
           <div v-if="!listedCount && !statusMsg" class="status loading">
-            {{ allFiles.length ? 'No matching drivers.' : 'Loading…' }}
+            {{ allDrivers.length ? 'No matching drivers.' : 'Loading…' }}
           </div>
         </div>
 
-        </template><!-- end !previewFile: the list and its controls -->
+        </template><!-- end !previewDriver: the list and its controls -->
 
         <!-- The summary: what we know about one driver. Reading, not choosing — Use is the
              only thing here that selects, and even that only opens the editor on a draft. -->
-        <div v-if="previewFile && previewData" class="preview">
+        <div v-if="previewDriver && previewData" class="preview">
           <div class="prev-nav">
-            <button class="cancel-btn" @click="pickFile(null)"
+            <button class="cancel-btn" @click="pickDriver(null)"
                     title="Back to the driver list — nothing is changed">Cancel</button>
-            <button class="fav-btn" :class="{ on: isFavorite(previewFile) }"
-                    :title="isFavorite(previewFile) ? 'Remove from favourites' : 'Add to favourites'"
-                    @click="toggleFavorite(previewFile)">★</button>
-            <button class="clone-btn" @click="cloneDriver(previewFile)"
+            <button class="fav-btn" :class="{ on: isFavorite(previewDriver) }"
+                    :title="isFavorite(previewDriver) ? 'Remove from favourites' : 'Add to favourites'"
+                    @click="toggleFavorite(previewDriver)">★</button>
+            <button class="clone-btn" @click="cloneDriver(previewDriver)"
                     title="Copy this driver into My Drivers as &quot;Copy of …&quot; — an independent driver you can then edit">Clone driver</button>
-            <button class="edit-btn" @click="editOverviewDriver(previewFile)"
+            <button class="edit-btn" @click="editOverviewDriver(previewDriver)"
                     title="Edit this driver's parameters — saving will add or update in My Drivers">Edit</button>
-            <button class="use-btn" @click="chooseDriver(previewFile)"
+            <button class="use-btn" @click="chooseDriver(previewDriver)"
                     title="Open this driver in the editor — it replaces the design only when you press OK">Use</button>
           </div>
           <div class="prev-body">
@@ -316,7 +307,7 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
                  :href="lnk.href" target="_blank" rel="noopener"
                  class="prev-link">{{ lnk.label }} ↗</a>
             </div>
-            <div v-if="previewData.brand || previewData.model || previewData.sku || previewData.series || previewData.manufacturer || previewData.description || previewData.notes || previewData.added || previewData.providedBy"
+            <div v-if="previewData.brand || previewData.model || previewData.sku || previewData.series || previewData.manufacturer || previewData.description || previewData.comment || previewData.added || previewData.providedBy"
                  class="prev-textinfo">
               <div v-if="previewData.brand" class="prev-textrow">
                 <span class="prev-src-lbl">Brand</span> {{ previewData.brand }}
@@ -342,21 +333,15 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
               <div v-if="previewData.description" class="prev-textrow prev-desc">
                 <span class="prev-src-lbl">Description</span> {{ previewData.description }}
               </div>
-              <div v-if="previewData.notes" class="prev-textrow prev-notes">
-                <span class="prev-src-lbl">Notes</span> {{ previewData.notes }}
+              <div v-if="previewData.comment" class="prev-textrow prev-notes">
+                <span class="prev-src-lbl">Notes</span> {{ previewData.comment }}
               </div>
-            </div>
-            <div v-if="previewData.source" class="prev-source">
-              <span class="prev-src-lbl">Source</span>
-              <a v-if="previewData.sourceUrl" :href="previewData.sourceUrl" target="_blank" rel="noopener"
-                 :title="previewData.sourceUrl">{{ previewData.source }} ↗</a>
-              <span v-else>{{ previewData.source }}</span>
             </div>
           </div>
         </div>
 
         <div class="browser-footer">
-          <div v-if="!previewFile" style="display: flex; gap: 8px;">
+          <div v-if="!previewDriver" style="display: flex; gap: 8px;">
             <button @click="openNew" title="Create a new custom driver — opens the driver editor">Add new Driver</button>
             <button @click="triggerFileLoad" title="Load a .wdr or .owdr file from disk">Load File…</button>
             <input type="file" ref="fileInputEl" style="display:none" @change="loadFromDisk" :accept="DriverFileFormat.ACCEPT">
@@ -620,7 +605,7 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
 .wb-modal .prev-link:hover {
   text-decoration: underline;
 }
-.wb-modal .prev-textinfo, .wb-modal .prev-source {
+.wb-modal .prev-textinfo {
   font-size: 11px;
   color: #333;
 }
@@ -631,11 +616,6 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
   display: inline-block;
   min-width: 92px;
   color: #666;
-}
-.wb-modal .prev-source {
-  margin-top: 8px;
-  padding-top: 6px;
-  border-top: 1px solid #e0e0e0;
 }
 .wb-modal .fav-row {
   display: flex;
@@ -738,30 +718,11 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
 .wb-modal .ditem:hover b {
   color: #000 !important;
 }
-.wb-modal .ditem:hover .ddate,
-.wb-modal .ditem:hover .dtype {
-  color: #888 !important;
-}
 .wb-modal .dmeta {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-}
-.wb-modal .ddate {
-  font-size: 10px;
-  color: #666;
-  white-space: nowrap;
-}
-.wb-modal .ditem-latest .ddate {
-  font-weight: 600;
-  color: #2b7a3e;
-}
-.wb-modal .ditem-older {
-  opacity: 0.65;
-}
-.wb-modal .ditem-older .ddate {
-  color: #c07000;
 }
 .wb-modal .dpdf {
   font-size: 9px;
@@ -776,24 +737,6 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
 }
 .wb-modal .dpdf:hover {
   background: #ddd;
-}
-.wb-modal .dtype {
-  font-size: 9px;
-  color: #555;
-  white-space: nowrap;
-  border: 1px solid #ccc;
-  border-radius: 2px;
-  padding: 0 3px;
-  line-height: 1.6;
-}
-.wb-modal .dtype.unk {
-  color: #888;
-  border-color: #ddd;
-}
-.wb-modal .stag {
-  font-size: 10px;
-  color: #888;
-  white-space: nowrap;
 }
 .wb-modal .status.loading {
   padding: 8px 10px;

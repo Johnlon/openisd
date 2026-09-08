@@ -36,61 +36,10 @@ const engine = new Engine();
 // The pickers own markup and CSS. They must not parse, fetch, commit, or decide what a
 // selection means — they call this.
 
-/** A row in the driver pool, as the pickers build it. Only the fields selection needs. */
-export interface PoolEntry {
-  name: string;
-  content?: string;
-  /** A bundled record, already constructed by the model. */
-  record?: OpenISDDriver;
-  path?: string;
-  repo?: string | null;
-  branch?: string | null;
-  datasheet?: string;
-  manupage?: string;
-  vendorpage?: string;
-  frd?: string;
-  impedance?: string;
-  myDriverData?: OpenISDDriver;
-}
-
-/** Catalogue link fields live in the library index, not in the .wdr — overlay them on load. */
-/** Library-row link → the SourceRole it is recorded under. */
-const LINK_ROLES: ReadonlyArray<readonly [keyof PoolEntry, 'manufacturer_datasheet' | 'manufacturer_product_page' | 'distributor_product_page']> = [
-  ['datasheet', 'manufacturer_datasheet'],
-  ['manupage', 'manufacturer_product_page'],
-  ['vendorpage', 'distributor_product_page'],
-];
-
-/** Carry the library row's source links onto the driver. They belong in the record's own
- *  provenance index — not as driver FIELDS: a datasheet URL is not a T/S value.
- *
- * GAP (fork investigation 2026-09-07, PLAN_DELETE_PACKAGES_MODEL.md §4b/§4c/§4e): `@openisd/
- * design`'s `OpenISDDriver` carries no `.withDataSourceLinks()` — the accessor was deliberately
- * removed (John: "and why are there accessors on OpenISDDriver" / "kill them all") and no
- * replacement for attaching catalogue-row provenance links exists yet. Until one does, this is a
- * no-op passthrough — a selected driver keeps its own record's data-source links (if any) but
- * does not pick up the library row's datasheet/manufacturer/vendor links. */
-function withLinks(driver: OpenISDDriver, _f: PoolEntry): OpenISDDriver {
-  return driver;
-}
-
 /** Outcome of a selection. `error` is a message the picker shows in its own status line. */
 export interface SelectionResult {
   ok: boolean;
   error?: string;
-}
-
-/** Fetch and parse a federated `.wdr` row, or say why it could not be read.
- *
- * GAP (fork investigation 2026-09-07, PLAN_DELETE_PACKAGES_MODEL.md §4b/§4c/§4e): there is no
- * function anywhere in `@openisd/design` converting a `.wdr` file (`WinISDDriver.fromWdrIni`,
- * `packages/design/winisd/winisdDriver.ts:265`) into an `OpenISDDeviceJson`/`OpenISDDriver`. The
- * intended per-field E/C/N decision table is documented but unimplemented
- * (`packages/design/domain/openisdSchema.ts:705-727`) — building it is a real mapper, not
- * a mechanical fix, so this function cannot honestly be ported yet. Every federated `.wdr` row
- * now fails closed with this message rather than being silently mis-converted. */
-async function modelOf(_f: PoolEntry): Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
-  return { ok: false, error: 'Loading a .wdr driver is not supported yet (no WDR-to-OpenISD conversion exists)' };
 }
 
 // ---- reading a driver file off the user's own disk -------------------------------------
@@ -160,9 +109,9 @@ export type EditorDraftSeed =
   | { kind: 'myDriver'; openedAs: string; seed: OpenISDDriver | null };
 
 export interface DriverSelection {
-  selectDriver(f: PoolEntry): Promise<SelectionResult>;
+  selectDriver(d: OpenISDDriver): Promise<SelectionResult>;
   editMyDriver(d: OpenISDDriver): void;
-  editOverviewDriver(f: PoolEntry): Promise<SelectionResult>;
+  editOverviewDriver(d: OpenISDDriver): Promise<SelectionResult>;
   editProjectDriver(): void;
   openNewDriver(): void;
   /** What the editor is open on right now, and what to seed its own draft from. */
@@ -193,16 +142,6 @@ export function createDriverSelection(): DriverSelection {
     presentationState.browseOpen = false;
   }
 
-  /** The driver behind a library row, whatever kind of row it is — a DETACHED copy, so the
-   *  caller can edit it freely without mutating the row still on screen. A saved driver and a
-   *  bundled one are both already domain objects; only a federated `.wdr` needs fetching. */
-  async function driverOf(f: PoolEntry):
-      Promise<{ ok: true; driver: OpenISDDriver } | { ok: false; error: string }> {
-    if (f.myDriverData) return { ok: true, driver: f.myDriverData.detach() };
-    if (f.record) return { ok: true, driver: f.record.detach() };
-    return modelOf(f);
-  }
-
   function closeEditor(): void {
     subject = { kind: 'project' };
     editSeed = null;
@@ -211,16 +150,12 @@ export function createDriverSelection(): DriverSelection {
 
   return {
     /**
-     * The user chose a driver from the library. Builds it (from a saved My Driver, a bundled
-     * record, or a `.wdr` fetched from a federated source) and embeds it in the project.
-     *
-     * The picker closes and the user is back in the project. The source is left exactly as it
-     * was — the project took a copy.
+     * The user chose a driver from the library. Takes a detached copy and embeds it in the
+     * project. The picker closes and the user is back in the project; the source driver — a
+     * bundled row or a saved My Driver — is left exactly as it was.
      */
-    async selectDriver(f) {
-      const read = await driverOf(f);
-      if (!read.ok) return { ok: false, error: read.error };
-      embedInProject(withLinks(read.driver, f));
+    async selectDriver(d) {
+      embedInProject(d.detach());
       return { ok: true };
     },
 
@@ -238,13 +173,11 @@ export function createDriverSelection(): DriverSelection {
     },
 
     /** Open the editor on a driver selected in the library overview. Its OK/Save writes to My Drivers. */
-    async editOverviewDriver(f) {
-      const read = await driverOf(f);
-      if (!read.ok) return { ok: false, error: read.error };
+    async editOverviewDriver(d) {
       // See the GAP note on `editMyDriver` above — `.uuid()` no longer exists, so a saved
       // driver cannot be reopened "as itself"; every OK from here also files as a new entry.
       subject = { kind: 'myDriver', openedAs: '' };
-      editSeed = withLinks(read.driver, f);
+      editSeed = d.detach();
       presentationState.editDriverInfo = true;
       return { ok: true };
     },

@@ -1,0 +1,73 @@
+packages/ui/src/logic/driverBrowsingState.ts(38,35): error TS2304: Cannot find name 'Preview'.
+packages/ui/src/logic/driverBrowsingState.ts(80,96): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+packages/ui/src/logic/driverBrowsingState.ts(82,94): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+packages/ui/src/logic/driverBrowsingState.ts(182,28): error TS2304: Cannot find name 'Preview'.
+packages/ui/src/logic/driverBrowsingState.ts(447,32): error TS2304: Cannot find name 'Preview'.
+packages/ui/src/logic/driverBrowsingState.ts(527,30): error TS2349: This expression is not callable.
+  Type 'Field<string>' has no call signatures.
+packages/ui/src/logic/driverBrowsingState.ts(528,10): error TS2339: Property 'enterModel' does not exist on type 'OpenISDDriver'.
+packages/ui/src/logic/driverBrowsingState.ts(532,10): error TS2339: Property 'resetDerivedIdentity' does not exist on type 'OpenISDDriver'.
+packages/ui/src/logic/driverBrowsingState.ts(533,10): error TS2339: Property 'mintFreshUuid' does not exist on type 'OpenISDDriver'.
+packages/ui/src/main.ts(2,17): error TS2307: Cannot find module './ui/App.vue' or its corresponding type declarations.
+packages/ui/test/gen-scenarios.ts(39,32): error TS2554: Expected 3 arguments, but got 2.
+packages/ui/test/logic/vent-group-solve-coalescing.test.ts(106,44): error TS2339: Property 'prAddedMass_kg' does not exist on type 'OpenISDProject'.
+packages/ui/test/logic/vent-group-solve-coalescing.test.ts(110,43): error TS2339: Property 'prAddedMass_kg' does not exist on type 'OpenISDProject'.
+packages/ui/test/persistence/bundle-drivers-disposition.test.ts(19,10): error TS2305: Module '"@openisd/persistence"' has no exported member 'driverHasDqIssues'.
+packages/ui/test/persistence/bundle-drivers-disposition.test.ts(76,60): error TS2339: Property 'fromJsonRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/ui/test/persistence/driver-has-dq-issues.test.ts(7,10): error TS2305: Module '"@openisd/persistence"' has no exported member 'driverHasDqIssues'.
+packages/ui/test/persistence/driver-has-dq-issues.test.ts(9,15): error TS2724: '"@openisd/design"' has no exported member named 'OpenISDDriverJson'. Did you mean 'OpenISDDriver'?
+packages/ui/test/persistence/driver-has-dq-issues.test.ts(9,34): error TS2305: Module '"@openisd/design"' has no exported member 'SpecField'.
+packages/ui/test/persistence/driver-has-dq-issues.test.ts(16,59): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+packages/ui/test/persistence/driver-has-dq-issues.test.ts(35,24): error TS2339: Property 'fromJsonRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/ui/test/persistence/driver-has-dq-issues.test.ts(126,61): error TS2339: Property 'fromJsonRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/ui/test/persistence/driver-has-dq-issues.test.ts(154,61): error TS2339: Property 'fromJsonRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/ui/test/persistence/round-trip-gate.test.ts(55,54): error TS2339: Property 'fromJsonRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/ui/test/persistence/round-trip-gate.test.ts(56,30): error TS7006: Parameter 'e' implicitly has an 'any' type.
+packages/ui/test/persistence/round-trip-gate.test.ts(88,46): error TS2339: Property 'fromJsonRecord' does not exist on type 'typeof OpenISDDriver'.
+packages/ui/test/persistence/round-trip-gate.test.ts(93,37): error TS7006: Parameter 'l' implicitly has an 'any' type.
+packages/ui/test/persistence/round-trip-gate.test.ts(105,29): error TS7006: Parameter 'l' implicitly has an 'any' type.
+packages/ui/test/persistence/round-trip-gate.test.ts(112,38): error TS7006: Parameter 'l' implicitly has an 'any' type.
+packages/ui/test/ui/chart-types.test.ts(47,64): error TS2345: Argument of type 'SweepParams' is not assignable to parameter of type 'PlotParams'.
+  Types of property 'fmin' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+packages/ui/test/ui/chart-types.test.ts(117,53): error TS2345: Argument of type 'SweepParams' is not assignable to parameter of type 'PlotParams'.
+  Types of property 'fmin' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+packages/ui/test/ui/chart-types.test.ts(150,23): error TS2554: Expected 4 arguments, but got 3.
+packages/ui/test/ui/chart-types.test.ts(151,23): error TS2554: Expected 4 arguments, but got 3.
+packages/ui/test/ui/chart-types.test.ts(153,46): error TS2345: Argument of type '{ filters: never[]; Vb: number; eg: number; fmin?: number; fmax?: number; N?: number; nDrivers?: number; wiring?: Wiring; Rs?: number; circuitModel?: CircuitModel; ... 23 more ...; flatMaxBoostDb?: number; }' is not assignable to parameter of type 'PlotParams'.
+  Types of property 'fmin' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+packages/ui/test/ui/chart-types.test.ts(168,55): error TS2345: Argument of type 'SweepParams' is not assignable to parameter of type 'PlotParams'.
+  Types of property 'fmin' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+packages/ui/test/ui/chart-types.test.ts(173,55): error TS2345: Argument of type 'SweepParams' is not assignable to parameter of type 'PlotParams'.
+  Types of property 'fmin' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+packages/ui/test/ui/chart-types.test.ts(179,51): error TS2345: Argument of type 'SweepParams' is not assignable to parameter of type 'PlotParams'.
+  Types of property 'fmin' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+packages/ui/test/ui/driver-editor-units.test.ts(26,25): error TS2305: Module '"@openisd/design"' has no exported member 'Provenance'.
+packages/ui/test/ui/driver-editor-units.test.ts(27,15): error TS2305: Module '"@openisd/design"' has no exported member 'SpecField'.
+packages/ui/test/ui/driver-editor-units.test.ts(195,27): error TS2339: Property 'empty' does not exist on type 'typeof OpenISDDriver'.
+packages/ui/test/ui/driver-editor-units.test.ts(388,32): error TS2339: Property 'fromWinISDDriver' does not exist on type 'typeof OpenISDDriver'.
+packages/ui/test/ui/driver-editor-units.test.ts(476,21): error TS2339: Property 'get' does not exist on type 'Field<number> | Field<VoiceCoilWiring> | { value: null; state: any; }'.
+  Property 'get' does not exist on type '{ value: null; state: any; }'.
+packages/ui/test/ui/driver-editor-units.test.ts(478,85): error TS2339: Property 'get' does not exist on type 'Field<number> | Field<VoiceCoilWiring> | { value: null; state: any; }'.
+  Property 'get' does not exist on type '{ value: null; state: any; }'.
+packages/ui/test/ui/driver-editor-units.test.ts(494,23): error TS2339: Property 'get' does not exist on type 'Field<number> | Field<VoiceCoilWiring> | { value: null; state: any; }'.
+  Property 'get' does not exist on type '{ value: null; state: any; }'.
+packages/ui/test/ui/driver-editor-units.test.ts(494,88): error TS2339: Property 'get' does not exist on type 'Field<number> | Field<VoiceCoilWiring> | { value: null; state: any; }'.
+  Property 'get' does not exist on type '{ value: null; state: any; }'.
+packages/ui/test/ui/driver-editor-units.test.ts(495,23): error TS2339: Property 'get' does not exist on type 'Field<number> | Field<VoiceCoilWiring> | { value: null; state: any; }'.
+  Property 'get' does not exist on type '{ value: null; state: any; }'.
+packages/ui/test/ui/driver-editor-units.test.ts(496,20): error TS2339: Property 'toDriver' does not exist on type 'OpenISDDriver'.
+packages/ui/test/ui/driver-type-chips.browser.spec.ts(2,10): error TS2305: Module '"@openisd/design"' has no exported member 'Chip'.
+packages/ui/test/ui/driver-type-chips.browser.spec.ts(47,58): error TS7006: Parameter 'c' implicitly has an 'any' type.

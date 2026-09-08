@@ -560,4 +560,81 @@ describe('editing a driver — copy, then update or drop', () => {
 
     expect(original.spec.woofer.Fs_hz.get().value).toBe(30);
   });
+
+  it('loadDriver() takes a deep copy — a later edit on the source does not reach the project', () => {
+    const project = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    const source = project.driver.detach();
+    source.spec.woofer.Fs_hz.set(555555);
+
+    project.loadDriver(source);
+    expect(project.driver.spec.woofer.Fs_hz.get().value).toBe(555555);
+
+    source.spec.woofer.Fs_hz.set(666666);
+    expect(project.driver.spec.woofer.Fs_hz.get().value).toBe(555555);
+  });
+
+  it('renameToCopy() prefixes the model so the copy is a distinct brand/model', () => {
+    const driver = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
+    expect(driver.model.get().value).toBe('RS225');
+
+    driver.renameToCopy();
+    expect(driver.model.get().value).toBe('Copy of RS225');
+  });
+
+  it('toOwdrText() then OpenISDDriver.fromYml() round-trips a driver through .owdr text', () => {
+    const driver = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
+    driver.spec.woofer.Fs_hz.set(41.5);
+
+    const text = driver.toOwdrText();
+    expect(typeof text).toBe('string');
+
+    const back = OpenISDDriver.fromYml(text, new Engine());
+    if (Array.isArray(back)) throw new Error('fromYml returned problems: ' + back.join(', '));
+    expect(back.spec.woofer.Fs_hz.get().value).toBe(41.5);
+    expect(back.model.get().value).toBe('RS225');
+  });
+});
+
+describe('OpenISDDriver — provenance the driver picker reads', () => {
+  const driverWithProvenance = () => {
+    const base = driverJson({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    });
+    const record = {
+      ...base,
+      series: scraped('Reference Series'),
+      description: scraped('an 8 inch reference woofer'),
+      data_sources: { value: {
+        manufacturer_datasheet: 'https://example.invalid/ds.pdf',
+        manufacturer_product_page: 'https://example.invalid/product',
+      } },
+    };
+    const result = OpenISDDriver.fromConformingRecord(record, new Engine());
+    if (Array.isArray(result)) throw new Error(`fixture invalid: ${result.join(', ')}`);
+    return result;
+  };
+
+  it('dataSource(role) returns the recorded URL for that role, or null when absent', () => {
+    const driver = driverWithProvenance();
+    expect(driver.dataSource('manufacturer_datasheet')).toBe('https://example.invalid/ds.pdf');
+    expect(driver.dataSource('manufacturer_product_page')).toBe('https://example.invalid/product');
+    expect(driver.dataSource('manufacturer_listing_page')).toBeNull();
+  });
+
+  it('series / description / sku read straight off the record', () => {
+    const driver = driverWithProvenance();
+    expect(driver.series).toBe('Reference Series');
+    expect(driver.description).toBe('an 8 inch reference woofer');
+    expect(driver.sku).toBe('TEST-SKU');
+  });
+
+  it('series and description are null when the record omits them', () => {
+    const driver = driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    });
+    expect(driver.series).toBeNull();
+    expect(driver.description).toBeNull();
+  });
 });
