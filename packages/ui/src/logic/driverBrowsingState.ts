@@ -133,6 +133,9 @@ export interface DriverBrowsingState {
   previewData: ComputedRef<PreviewVM | null>;
   pickDriver(d: OpenISDDriver | null): void;
   chooseDriver(d: OpenISDDriver): Promise<void>;
+  /** Open the picker as the New Project wizard's driver step — the next "Use" hands the driver
+   *  to `cb` instead of embedding it in a project. */
+  openPickerFor(cb: (d: OpenISDDriver) => void): void;
   loadFromDisk(e: Event): void;
   cloneDriver(d: OpenISDDriver): void;
   openedLibrary(): void;
@@ -177,6 +180,13 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   /** True once the user has exported the raw bucket this session — the Delete challenge. */
   const exportedThisSession = ref(false);
   const previewDriver = shallowRef<OpenISDDriver | null>(null);
+
+  // When set, the NEXT "Use" hands the chosen driver to this callback instead of embedding it
+  // in the focused project — the New Project wizard's driver step (there is no project yet).
+  // One-shot: cleared as soon as it fires or the picker closes. Per-composable-instance, not
+  // module scope.
+  let onChoose: ((d: OpenISDDriver) => void) | null = null;
+
   const favorites = ref<string[]>(prefs.favorites());
   const favoritesOnly = ref(false);   // the Favorites button: an on/off filter, like a type chip
 
@@ -362,9 +372,27 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
 
   async function chooseDriver(d: OpenISDDriver): Promise<void> {
     statusErr.value = false;
+    // New Project wizard's driver step: no project to embed into — hand the driver back and
+    // let the wizard build the project. `d.detach()` so the wizard owns an independent copy,
+    // matching what `selectDriver` gives the normal path.
+    if (onChoose) {
+      const cb = onChoose;
+      onChoose = null;
+      statusMsg.value = '';
+      presentationState.browseOpen = false;
+      cb(d.detach());
+      return;
+    }
     const res = await selection.selectDriver(d);
     if (!res.ok) { statusErr.value = true; statusMsg.value = res.error!; return; }
     statusMsg.value = '';
+  }
+
+  /** Open the picker as a sub-step of the New Project wizard: the next "Use" calls `cb` with
+   *  the chosen driver (a detached copy) instead of embedding it in a project. */
+  function openPickerFor(cb: (d: OpenISDDriver) => void): void {
+    onChoose = cb;
+    presentationState.browseOpen = true;
   }
 
   /**
@@ -427,9 +455,11 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     previewDriver.value = copy;
   }
 
-  /** Closing the picker: the preview resets. Nothing is pending — choosing already committed. */
+  /** Closing the picker: the preview resets, and any pending wizard handoff is dropped —
+   *  cancelling the picker cancels that step of the wizard. */
   function closeLibrary(): void {
     previewDriver.value = null;
+    onChoose = null;
     presentationState.browseOpen = false;
   }
 
@@ -464,7 +494,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     editOverviewDriver: selection.editOverviewDriver,
     reloadMyDrivers, deleteMyDriver, clearMyDrivers,
     // preview + selection
-    previewDriver, previewData, pickDriver, chooseDriver, loadFromDisk, cloneDriver,
+    previewDriver, previewData, pickDriver, chooseDriver, openPickerFor, loadFromDisk, cloneDriver,
     // lifecycle
     openedLibrary, closeLibrary,
     // DQ

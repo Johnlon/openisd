@@ -323,9 +323,18 @@ const specEntryJsonSchema = z.strictObject({
 // here. It is driver.yml's, and never reaches an openisd.yml or a .wdr (John, 2026-09-01). A
 // consumer of this record already knows what `Fs` is.
 
-/** READ off a source. `readings` keeps what each one said. (`ScrapedField`, model_driver.py:155.) */
+/** READ off a source. `origin` names the source the value came from and `readings` keeps what each
+ *  one said. (`ScrapedField`, model_driver.py:155.)
+ *
+ *  `origin` is a plain string, not an enum of source roles: the scraper owns that list
+ *  (`SourceRole`, model_driver.py) and nothing else here mirrors it, so a copy would be a second
+ *  source of truth free to drift from the one that writes these records.
+ *
+ *  Optional, where the scraper has it required, because this schema also reads records the APP
+ *  wrote: a driver the user typed was read off no source and has no role to name. */
 const scrapedFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
     value,
+    origin: z.string().optional(),
     readings: z.record(z.string(), value).optional(),
     dq_scraper: dqMarks(),
     note: z.unknown().optional(),

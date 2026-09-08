@@ -17,13 +17,13 @@ declare const __PLATFORM_USER__: string | undefined;
  */
 import { ref, shallowRef, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
-  state, driverName,
+  driverName,
   curvesData, maxData, allIssues,
   isModified, resetProjectToGround, markProjectSaved,
-  openProjects, focusProject, removeProject, openBlankProject, duplicateFocusedProject,
+  openProjects, focusProject, removeProject, duplicateFocusedProject,
   formatInUnit as fmtU,
   copyProjectName,
-  syncedP,
+  syncedP, projectChanged, engine,
 } from '../../../logic/appState.js';
 import { presentationState } from '../../../logic/presentationState.js';
 import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
@@ -32,7 +32,7 @@ import {
   ventFieldState as ventFieldStateOn, ventMaxReachableFb as ventMaxReachableFbOn,
   ventTargetUnreachable as ventTargetUnreachableOn,
 } from '../../../logic/useVentGroup.js';
-import type { OpenISDProject } from '@openisd/design';
+import { OpenISDPassiveRadiatorStandalone, type OpenISDProject } from '@openisd/design';
 
 // The delegate-free reactivity adapter (`docs/design/REACTIVITY.md`): touching `project.value`
 // inside a computed/watch registers a dependency that invalidates on every focused-project
@@ -58,10 +58,8 @@ import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import { precision as fieldDp, limits, END_CORRECTION_OPTIONS } from '../../../logic/fields/fieldRegistry.js';
 import OgFilters from './OgFilters.vue';
 import OgTune from './OgTune.vue';
-import OgNewProject from './OgNewProject.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
 import PREditModal from '../../components/PREditModal.vue';
-import PRDefineModal from '../../components/PRDefineModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -111,16 +109,20 @@ const isSimulatable = (b: BoxType) => new Engine().simulatableBoxType(b) !== nul
 const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
 
 // selectedBox is the Box tab's source of truth: it can hold types the solver refuses.
-// Simulatable selections mirror into the shared store; the rest leave state.box on its last
-// valid value and raise `pending`.
-const selectedBox = ref<BoxType>(state.box);
-watch(selectedBox, (b) => { if (isSimulatable(b)) state.box = b; });
-// Follow any EXTERNAL change to the store's box — e.g. a design loaded via App.vue's
-// hashchange path (`state.box = o.box`) — even while a pending type is selected. Fires only
-// on a real store change; the watcher above only writes state.box when it differs, so the
-// two never ping-pong. Fixes the desync where a loaded, curve-producing box was hidden
-// behind a stale pending view.
-watch(() => state.box, (b) => { if (selectedBox.value !== b) selectedBox.value = b; });
+// A simulatable pick is written straight onto the focused project's own `box.boxType` field;
+// an unsimulatable one leaves the project on its last valid type and raises `pending`.
+const selectedBox = ref<BoxType>(project.value.box.boxType.get());
+watch(selectedBox, (b) => {
+  if (isSimulatable(b) && project.value.box.boxType.get() !== b) project.value.box.boxType.set(b);
+});
+// Follow any EXTERNAL change to the project's box type — a design loaded via App.vue's
+// hashchange path, or a focus switch to another open project — even while a pending type is
+// selected. `changeTicks`-driven `projectChanged` fires on both; the watcher above only writes
+// when the value differs, so the two never ping-pong.
+watch(
+  () => { void projectChanged.value; return project.value.box.boxType.get(); },
+  (b) => { if (selectedBox.value !== b) selectedBox.value = b; },
+);
 
 const pending = computed(() => !isSimulatable(selectedBox.value));
 const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
@@ -298,12 +300,10 @@ const portPipeResonance_hz = computed<number | null>(() => {
   if (L == null || L <= 0) return null;
   return advAir.value.c / (2 * L);
 });
-// Fpr (with added mass) — the passive-radiator's own free-air resonance recomputed with the
-// user's added mass folded into Mms: 1/(2π√((Mms+Madd)·Cms)), the same closed form `Fpr` above
-// uses without the mass term. No public accessor exists for this on OpenISDProject or
-// PassiveRadiatorBox — genuine domain gap, matching `rearQtc` above; left null rather than
-// duplicating engine formula logic in the UI.
-const prFsMass_hz = computed<number | null>(() => null);
+const prFsMass_hz = computed<number | null>(() => {
+  void projectChanged.value;
+  return project.value.box.passiveRadiator.resonanceWithAddedMass_hz();
+});
 // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber
 // tunes on its own front volume Vf. Same closed form the engine's circuit uses.
 //
@@ -401,11 +401,12 @@ function onDocClick() { closeDropdown(); }
 onMounted(() => {
   document.addEventListener('click', onDocClick);
   const nowStr = new Date().toISOString().slice(0, 10);
+  const meta = project.value;
   let changed = false;
-  if (!state.project.created) { state.project.created = nowStr; changed = true; }
-  if (!state.project.modified) { state.project.modified = nowStr; changed = true; }
-  if (!state.project.creator) {
-    state.project.creator = typeof __PLATFORM_USER__ !== 'undefined' ? __PLATFORM_USER__ : 'john';
+  if (!meta.created.get()) { meta.created.set(nowStr); changed = true; }
+  if (!meta.modified.get()) { meta.modified.set(nowStr); changed = true; }
+  if (!meta.creator.get()) {
+    meta.creator.set(typeof __PLATFORM_USER__ !== 'undefined' ? __PLATFORM_USER__ : 'john');
     changed = true;
   }
   if (changed) {
@@ -421,12 +422,9 @@ function onFile(e: Event) {
   const input = inputFrom(e);
   if (input === null) return;
   const f = input.files?.[0];
-  if (f) {
-    // Open the file as a project of its own. The project already open keeps its own row
-    // and its own contents — opening one project must not fold another into it.
-    openNewProject();
-    importFile(f);
-  }
+  // `importFile` opens the file as a project of its own (project files always land in a new
+  // tab; a driver file with a project open swaps that project's driver, else opens a project).
+  if (f) importFile(f);
   input.value = '';
 }
 
@@ -500,7 +498,7 @@ function stopNudge() {
 }
 onUnmounted(stopNudge);
 const currentDesign = computed(() => ({
-  driver: project.value.driver.solveConsistencyGroup(), box: state.box, P: syncedP.value,
+  driver: project.value.driver.solveConsistencyGroup(), box: project.value.box.boxType.get(), P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value ?? undefined, name: 'Current', color: WINISD_TRACE.value,
   // Visibility is the project row's own fact — read it, never keep a second copy.
   visible: isRowVisible(project.value),
@@ -549,15 +547,10 @@ const visibleOf = reactive(new WeakMap<OpenISDProject, boolean>());
 function isRowVisible(p: OpenISDProject): boolean { return visibleOf.get(p) ?? true; }
 function setRowVisible(p: OpenISDProject, v: boolean): void { visibleOf.set(p, v); }
 
-/** Each row's display name. The FOCUSED project reads the live (possibly just-typed) name so
- *  editing the Project tab's Name field is reflected immediately; every other open project
- *  reads its own last-committed name — a typed-but-not-yet-persisted name on a project you
- *  are not looking at was already lost before this rewrite too
- *  (`BUG_20260825_project_meta_edits_never_reach_the_domain_object_or_save.md`, found while
- *  building this: `state.project` edits never reach `OpenISDProject` at all, not even the
- *  focused one — recorded, not fixed here). */
+/** Each row's display name — the project's own `name` field, falling back to the driver name
+ *  when it is blank. */
 function rowName(p: OpenISDProject): string {
-  if (p === project.value) return state.project.name || driverName.value;
+  if (p === project.value) return project.value.name.get() || driverName.value;
   const name = p.name.get();
   if (name) return name;
   const brand = p.driver.brand.get().value ?? '';
@@ -587,11 +580,6 @@ const overlays = computed<Design[]>(() => []);
 function copyCurrentProject() {
   const taken = projectList.value.map(rowName);
   duplicateFocusedProject(copyProjectName(taken));
-}
-
-/** Open a brand-new, blank project tab and focus it. */
-function openNewProject() {
-  openBlankProject();
 }
 
 // ---- Closing a project ---------------------------------------------------------
@@ -670,6 +658,21 @@ function onBottomSplitDown(e: PointerEvent): void {
 // ---- Driver identity + placement ----------------------------------------------
 const model = computed(() => project.value.driver.model.get().value || driverName.value);
 
+// The Project tab's text fields bind here. Each `RawField<string>` on `OpenISDProject` is not
+// itself `v-model`-able, so this is a thin get/set bridge onto `.get()`/`.set()` — reading
+// `projectChanged` in the getter re-derives it on every focused-project mutation.
+function metaField(read: () => string, write: (v: string) => void) {
+  return computed<string>({
+    get: () => { void projectChanged.value; return read(); },
+    set: write,
+  });
+}
+const projectName = metaField(() => project.value.name.get(), (v) => project.value.name.set(v));
+const projectCreator = metaField(() => project.value.creator.get(), (v) => project.value.creator.set(v));
+const projectCreated = metaField(() => project.value.created.get(), (v) => project.value.created.set(v));
+const projectModified = metaField(() => project.value.modified.get(), (v) => project.value.modified.set(v));
+const projectDescription = metaField(() => project.value.description.get(), (v) => project.value.description.set(v));
+
 // ---- Signal Generator (real audio-out tone) ------------------------------------
 const genOn = ref(false);
 const genHz = ref(1000);
@@ -720,7 +723,6 @@ const placement = ref<'standard' | 'iso'>('standard');
 
 // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
 const boxLossesOpen = ref(false);
-const newProjectOpen = ref(false);
 const optionsOpen = ref(false);
 
 // Tune (inline What-If) and Edit (full editor modal) both need the driver-source snapshot
@@ -729,10 +731,9 @@ function startTune() { presentationState.editDriver = true; }
 
 // ---- PR selection header (Enclosure tab, PR box type) — mirrors the Driver tab's
 // Brand/Model + Select Driver header, but for the passive radiator. The load handlers
-// mirror PRPanel.vue's (shared PRBrowser/PRDefineModal components, same store writes).
+// mirror PRPanel.vue's (shared PRBrowser component, same store writes).
 const prBrowseOpen = ref(false);
 const prEditOpen = ref(false);
-const prDefineOpen = ref(false);
 function loadPREntry(entry: PRLibEntry) {
   const radiator = project.value.box.passiveRadiator.radiator;
   radiator.model.set(entry.name);
@@ -756,7 +757,14 @@ function loadBundledPassiveRadiatorEntry(pr: BundledPassiveRadiator) {
   prBrowseOpen.value = false;
   prEditOpen.value = true;
 }
-function defineNewPREntry() { prBrowseOpen.value = false; prDefineOpen.value = true; }
+// A brand-new PR is a BLANK one, opened in the same editor an existing PR uses — the driver
+// side works the same way, and a second form stating the same fields would be a second place
+// to keep them right.
+function defineNewPREntry() {
+  project.value.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty(engine));
+  prBrowseOpen.value = false;
+  prEditOpen.value = true;
+}
 function startEdit() { editProjectDriver(); }
 
 // R1 refresh fidelity — preserve an open Tune / Driver Editor across a reload.
@@ -774,7 +782,7 @@ watch(() => presentationState.ui.originalTuneOpen, (open) => {
 
 watch(isModified, (val) => {
   if (val) {
-    state.project.modified = new Date().toISOString().slice(0, 10);
+    project.value.modified.set(new Date().toISOString().slice(0, 10));
   }
 });
 
@@ -804,7 +812,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
             <div class="menu-item" title="Import a .wdr driver or .json design." @click="openClick(); closeDropdown()">Open...</div>
           </div>
         </div>
-        <div class="tb-btn" title="New project — choose box type + starting volume, then a driver." @click="newProjectOpen = true">
+        <div class="tb-btn" title="New project — choose box type + starting volume, then a driver." @click="presentationState.newProjectOpen = true">
           <ToolbarIcon name="new" />
         </div>
         <div class="tb-btn" :class="{ dirty: isModified }" title="Save — write the design as an OpenISD .json project to the file you picked (or pick one now)." @click="saveProject">
@@ -1230,7 +1238,6 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
             <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
               @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
             <PREditModal v-if="prEditOpen" @close="prEditOpen = false" />
-            <PRDefineModal v-if="prDefineOpen" @close="prDefineOpen = false" />
             <div class="two-col">
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
@@ -1345,14 +1352,14 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
         <section v-show="activeTab === 'project'" class="tab-section project-tab" :class="{ active: activeTab === 'project' }">
           <div class="two-col">
             <div>
-              <div class="field-row"><div class="field"><label>Name</label><input type="text" style="width:200px" v-model="state.project.name"></div></div>
-              <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="state.project.creator"></div></div>
-              <div class="field-row"><div class="field"><label>Created</label><input type="text" style="width:120px" v-model="state.project.created"></div></div>
-              <div class="field-row"><div class="field"><label>Modified</label><input type="text" style="width:120px" v-model="state.project.modified"></div></div>
+              <div class="field-row"><div class="field"><label>Name</label><input type="text" style="width:200px" v-model="projectName"></div></div>
+              <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="projectCreator"></div></div>
+              <div class="field-row"><div class="field"><label>Created</label><input type="text" style="width:120px" v-model="projectCreated"></div></div>
+              <div class="field-row"><div class="field"><label>Modified</label><input type="text" style="width:120px" v-model="projectModified"></div></div>
             </div>
             <div class="description-col">
               <label>Description</label>
-              <textarea class="description" rows="6" v-model="state.project.description"></textarea>
+              <textarea class="description" rows="6" v-model="projectDescription"></textarea>
             </div>
           </div>
         </section>
@@ -1409,7 +1416,6 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
     <!-- ===== Tune (docked What-If) + full Driver editor ===== -->
     <OgTune v-if="presentationState.editDriver" />
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
-    <OgNewProject v-if="newProjectOpen" @close="newProjectOpen = false" />
 
     <input ref="fileInput" type="file" accept=".owpr,.wpr,.owdr,.wdr,.json" style="display:none" @change="onFile">
   </div>

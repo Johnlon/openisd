@@ -9,28 +9,24 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { parse as parseYaml } from 'yaml';
+import { parse as parseYaml, stringify as yamlStringify } from 'yaml';
 import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { openIsdDriverToWinIsdDriver } from '@openisd/design/winisd';
-import { stringify as yamlStringify } from 'yaml';
-
-const _engine = new Engine();
-function fromJsonRecord(record: unknown) {
-  const yml = yamlStringify(record);
-  const driver = OpenISDDriver.fromYml(yml, _engine);
-  if (Array.isArray(driver)) throw new Error('fromYml failed: ' + driver.join(', '));
-  return {
-    toWdrText(): { value: string | null; errors: Array<{level: string; message: string}> } {
-      const result = openIsdDriverToWinIsdDriver(driver, undefined, undefined, _engine);
-      if (Array.isArray(result) || !result) return { value: null, errors: [{ level: 'error', message: 'conversion failed' }] };
-      const wd = (result as any).value ?? result;
-      if (!wd) return { value: null, errors: (result as any).errors ?? [] };
-      return { value: wd.toWdrIni(), errors: (result as any).errors ?? [] };
-    }
-  };
-}
+import type { DriverError } from '@openisd/design/engine';
+import { driverToWdrBytes } from '../../src/logic/fileImportExport.js';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from '@openisd/design/winisd';
+
+/**
+ * A driver record as the `.wdr` text the app's own export button would write — the same
+ * `driverToWdrBytes` the Export `.wdr` path calls, so the gate is checked against what the
+ * pipeline actually produces rather than against a conversion assembled here.
+ */
+function wdrTextFor(record: unknown): { value: string | null; errors: DriverError[] } {
+  const driver = OpenISDDriver.fromYml(yamlStringify(record), new Engine());
+  if (Array.isArray(driver)) throw new Error('fixture record is invalid: ' + driver.join(', '));
+  const { value, errors } = driverToWdrBytes(driver);
+  return { value: value === null ? null : new TextDecoder().decode(value), errors };
+}
 import { checkOpenisdRoundTrip, checkWdrRoundTrip } from '../../../../scripts/roundTripGate.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -47,8 +43,8 @@ describe('checkOpenisdRoundTrip', () => {
   });
 
   it('a value JSON cannot represent losslessly (YAML .nan) fails the gate, naming the divergence', () => {
-    // `OpenISDDriver.fromJsonRecord` does not validate its input (it just stores the
-    // reference), so the ONE real way this leg's round trip can diverge is a value that
+    // This leg compares the record against itself through a JSON text cycle and does not
+    // validate it, so the ONE real way its round trip can diverge is a value that
     // survives YAML parsing but does NOT survive a JSON.stringify/JSON.parse cycle — exactly
     // what `.owdr`'s JSON-text export IS. YAML's `.nan` is real, valid YAML that parses to a
     // JS NaN; `JSON.stringify(NaN)` silently becomes `null` — a genuine, real divergence class
@@ -67,25 +63,27 @@ describe('checkWdrRoundTrip', () => {
     // key set than `toWdr()`'s fixed INI_ROWS table, so it fails this bar by construction — see
     // the dedicated test below, which documents that as a real corpus finding, not a gate bug.
     // This test proves the gate is CORRECT against a .wdr the current pipeline would actually
-    // produce, using the exact same real function (`OpenISDDriver.fromJsonRecord(...).toWdrText()`)
-    // `checkOpenisdRoundTrip`/the bridge use.
+    // produce, using the exact function the app's Export `.wdr` button calls
+    // (`fileImportExport.ts::driverToWdrBytes`).
     assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
     const record = parseYaml(readFileSync(REAL_OPENISD_YML, 'utf8'), { logLevel: 'error' });
-    const { value: wdrText, errors } = fromJsonRecord(record).toWdrText();
-    assert.equal(errors.some((e: any) => e.level === 'error'), false, JSON.stringify(errors));
+    const { value: wdrText, errors } = wdrTextFor(record);
+    assert.equal(errors.some(e => e.level === 'error'), false, JSON.stringify(errors));
     assert.equal(typeof wdrText, 'string');
 
     const result = checkWdrRoundTrip(wdrText, 'accuton/bd90-6-727/winisd.wdr (bridge-generated)');
     assert.deepEqual(result, { ok: true });
   });
 
-  it('REAL CORPUS FINDING: the on-disk winisd.wdr (pre-bridge, F4-era Python writer) fails the ' +
-     'QT60 bar against the app\'s own writer — a smaller key set, not a projection bug', () => {
+  it('the on-disk corpus winisd.wdr round-trips clean — a real file the app did not write', () => {
+    // The bridge-generated fixture above proves the gate against the app's OWN output, which
+    // cannot show whether the app agrees with a file it did not produce. This one is the real
+    // `.wdr` sitting in the corpus: it carries the full 48-key table plus header and ParState, and
+    // survives read-and-rewrite with every value and mark intact.
     assert.equal(existsSync(REAL_WDR), true, `fixture missing: ${REAL_WDR}`);
     const wdrText = readFileSync(REAL_WDR, 'utf8');
     const result = checkWdrRoundTrip(wdrText, 'accuton/bd90-6-727/winisd.wdr');
-    assert.equal(result.ok, false);
-    assert.equal((result.message ?? '').includes('key-order mismatch'), true, result.message);
+    assert.deepEqual(result, { ok: true });
   });
 
   it('junk text with no key=value lines at all fails the gate (before is empty, the app\'s ' +
@@ -104,7 +102,7 @@ describe('checkWdrRoundTrip', () => {
     // the one this test deliberately introduces.
     assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
     const record = parseYaml(readFileSync(REAL_OPENISD_YML, 'utf8'), { logLevel: 'error' });
-    const { value: wdrText } = fromJsonRecord(record).toWdrText();
+    const { value: wdrText } = wdrTextFor(record);
     assert.equal(typeof wdrText, 'string');
     if (wdrText == null) throw new Error('unreachable: asserted above');
 

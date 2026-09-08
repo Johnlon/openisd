@@ -10,30 +10,13 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { requireFocusedProject, applyLoadedProject, openBlankProject, openProjects } from '../../src/logic/appState.js';
+import { requireFocusedProject, applyLoadedProject, newProject, openProjects } from '../../src/logic/appState.js';
 import { OpenISDProject, OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 
-function blankDriverRecord(): unknown {
-  const bookkeeping = { value: '' };
-  return {
-    uuid: { value: crypto.randomUUID() },
-    quality: {
-      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
-      parse_errors: [], cross_source_only: [],
-    },
-    manufacturer: { value: '' }, brand: { value: '' }, model: { value: '' },
-    sku: { value: '', grounds: [{ origin: 'entered', reading: '' }] },
-    driver_type: { value: '' },
-    data_sources: bookkeeping,
-    authoritative: bookkeeping,
-    specs: {},
-  };
-}
-
 describe('OpenISDProject.box — each box type keeps its own fields independently of which is active', () => {
   it('switching boxType does not clobber the volume left behind in the other box type', () => {
-    openBlankProject();
+    newProject();
     const p = requireFocusedProject();
 
     p.box.boxType.set('vented');
@@ -51,16 +34,17 @@ describe('OpenISDProject.box — each box type keeps its own fields independentl
     removeCleanup(p);
   });
 
-  function removeCleanup(_p: unknown): void { /* no registry cleanup needed: openBlankProject leaves the tab open for later tests to reuse the registry state */ }
+  function removeCleanup(_p: unknown): void { /* no registry cleanup needed: newProject leaves the tab open for later tests to reuse the registry state */ }
 });
 
 describe('applyLoadedProject — the loaded project replaces the focused one wholesale', () => {
   it('a loaded project\'s active box type and fields both take effect on the focused tab', () => {
-    openBlankProject();
+    newProject();
     const engine = new Engine();
-    const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
-    if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-    const loaded = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.0275).build();
+    // This test is about which project is FOCUSED, not about any driver's contents, so the
+    // driver states nothing — the domain's own blank rather than a record assembled here.
+    const loaded = OpenISDProject.builder(OpenISDDriver.empty(engine), engine)
+      .sealed().volume_m3(0.0275).build();
 
     applyLoadedProject(loaded);
 

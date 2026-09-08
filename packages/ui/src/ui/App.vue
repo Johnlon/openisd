@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, watch } from 'vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
+import OgNewProject from './shells/original/OgNewProject.vue';
 import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import {
-  focusedProject, requireFocusedProject, projectChanged, OpenISDProject,
+  focusedProject, requireFocusedProject, projectChanged,
   applyState, applyViewSnapshot,
   markProjectSaved,
 } from '../logic/appState.js';
@@ -83,14 +84,15 @@ onUnmounted(() => {
   </template>
   <!-- The top-level null gate's empty state (PROMPT_RELEASE_HARDENING plan): no project is
        open, so neither the chart views nor the tab section render with empty/default data —
-       this message replaces both. The one recovery action opens a fresh blank project
-       (`OpenISDProject.builder()`, which self-heals from the empty registry) — every other affordance
-       (File → Open, the New Project wizard) lives on `OriginalShell`'s own toolbar, which is
-       itself inside the gate and so only reachable once a project is open. -->
+       this message replaces both. Its one recovery action opens the New Project wizard, which
+       is rendered below OUTSIDE the gate so it is reachable both here and from the shell's own
+       toolbar (which is inside the gate). -->
   <div v-else class="no-project-open">
     <p>No project is open.</p>
-    <button type="button" @click="OpenISDProject.builder()">Start a new project</button>
+    <button type="button" @click="presentationState.newProjectOpen = true">Start a new project</button>
   </div>
+  <OgNewProject v-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
+  <DriverBrowserWinisd v-if="!project && presentationState.browseOpen" />
   <Flash />
   <!-- Raises itself on the first uncaught error, rejection or console.error. -->
   <DiagnosticsModal />

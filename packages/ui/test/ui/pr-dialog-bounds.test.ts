@@ -1,14 +1,14 @@
 /**
- * The two passive-radiator dialogs enforce their entry bounds, and enforce them from ONE place.
+ * The passive-radiator dialog enforces its entry bounds, and enforces them from ONE place.
  *
- * Both dialogs used to declare bounds twice: a `v-limits="{ min, max }"` on the raw input AND
+ * The dialog used to declare bounds twice: a `v-limits="{ min, max }"` on the raw input AND
  * the same field's `min`/`max` in fieldRegistry. Two declarations of one rule is the state this
  * suite exists to prevent — when the raw inputs became <NumInput field="…">, the `v-limits`
  * went with them, and any bound the registry did not already carry was silently lost. A lost
  * lower bound is invisible: the field simply starts accepting Fs = 0 Hz, and nothing on screen
  * says so.
  *
- * The rule pinned here: every numeric input in either dialog binds a registry `field`, and that
+ * The rule pinned here: every numeric input in the dialog binds a registry `field`, and that
  * registry entry carries a finite min AND max. The registry is then the single enforcing
  * source (NumInput's `effMin`/`effMax` read it), so a bound can only be changed in the one
  * place that declares it.
@@ -35,7 +35,7 @@ function boundFieldIds(file: string): string[] {
 }
 
 describe('PR dialogs — every numeric entry is bounded by the registry', () => {
-  for (const file of ['PRDefineModal.vue', 'PREditModal.vue']) {
+  for (const file of ['PREditModal.vue']) {
     it(`${file}: every NumInput binds a registry field`, () => {
       const src = readFileSync(join(components, file), 'utf8');
       const inputs = [...src.matchAll(/<NumInput[\s\S]*?\/>/g)].map((m) => m[0]);

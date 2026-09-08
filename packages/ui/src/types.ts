@@ -4,17 +4,6 @@
  */
 import type { SolverQuantities, BoxType, SweepResult, MaxCurvesResult } from '@openisd/design/engine';
 
-/** A project's WinISD Project-tab fields — `OpenISDProject`'s `name`/`creator`/`created`/
- *  `modified`/`description`, each its own `RawField<string>` there, read together here for the
- *  UI's own display/edit convenience. */
-export interface ProjectMeta {
-  name: string;
-  creator: string;
-  created: string;
-  modified: string;
-  description: string;
-}
-
 /**
  * The closed set of chart curves the engine can draw. Every member MUST appear in
  * `TAB_META` and in `CURVE_BUILDERS` in `utils/series.ts` — both are
@@ -116,25 +105,3 @@ export interface Geo {
 
 /** Per-chart Y-axis override; absent entry = auto-scale. */
 export interface YRange { min: number; max: number }
-
-/**
- * The reactive application state held in the store — PERSISTENT DESIGN state only. View state
- * (dialog flags, chart cursor/selection, display prefs) lives in `logic/presentationState.ts`'s
- * `PresentationState` instead (ARCHITECTURE.md §"Approved state stores").
- */
-export interface AppState {
-  box: BoxType;
-  /** Project-level metadata — WinISD Project tab (Creator/Created/Modified/Description). */
-  project: ProjectMeta;
-}
-
-export class AppStateImpl implements AppState {
-  constructor(boxType: BoxType, project: ProjectMeta) {
-    this.box = boxType;
-    this.project = project;
-  }
-
-  readonly box: BoxType;
-  /** Project-level metadata — WinISD Project tab (Creator/Created/Modified/Description). */
-  readonly project: ProjectMeta;
-}

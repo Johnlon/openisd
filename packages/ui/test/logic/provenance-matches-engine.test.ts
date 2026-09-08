@@ -15,12 +15,12 @@
 
 /**
  * The provenance panel tells a user WHICH formula produced a value. `PROVENANCE_MAP` is a
- * hand-written list and the solver's routes are `setVal(...)` calls in `driver.ts` control flow,
+ * hand-written list and the solver's routes are `setVal(...)` calls in `solver.ts` control flow,
  * so the two are separate statements of one fact and drift apart silently. When they drift the
  * panel does not merely go quiet — it names a derivation that did not happen, which is worse than
  * showing nothing.
  *
- * The engine side is read from `driver.ts`'s AST, never from a number copied into this file: a
+ * The engine side is read from `solver.ts`'s AST, never from a number copied into this file: a
  * hand-maintained count here would be the same defect relocated, and would go stale the same way.
  *
  * `Fs` is pinned from BOTH sides against the same five input signatures: what the panel declares,
@@ -43,7 +43,7 @@ import { PROVENANCE_MAP } from '../../src/logic/provenance.js';
 vi.setConfig({ testTimeout: 60_000 });
 
 const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const DRIVER_TS = join(UI_PKG, '..', 'design', 'engine', 'driver.ts');
+const SOLVER_TS = join(UI_PKG, '..', 'design', 'engine', 'solver.ts');
 
 let cached: Map<string, Set<string>> | null = null;
 
@@ -68,8 +68,16 @@ function engineRoutes(): Map<string, Set<string>> {
   if (cached) return cached;
 
   const project = new TsProject({ skipAddingFilesFromTsConfig: true });
-  const source = project.addSourceFileAtPath(DRIVER_TS);
+  const source = project.addSourceFileAtPath(SOLVER_TS);
   const routes = new Map<string, Set<string>>();
+
+  /** The record's name for an engine quantity: `Fs_hz` → `Fs`, `Cms_m_per_N` → `Cms`.
+   *
+   *  The engine carries the SI unit in the identifier and the provenance panel names its fields
+   *  as the record does, so the two sides are not comparable until one is translated. The suffix
+   *  is everything from the first `_`, which is unambiguous because no record spec key contains
+   *  one — verified below by the assertion that the walk finds the expected route set. */
+  const recordName = (quantity: string): string => quantity.split('_')[0];
 
   /** The `r.X != null` names in the `if` guard enclosing this assignment, minus the target. */
   function guardInputs(node: Node, field: string): string | null {
@@ -78,7 +86,7 @@ function engineRoutes(): Map<string, Set<string>> {
       const names = new Set<string>();
       for (const d of n.getExpression().getDescendants()) {
         if (Node.isPropertyAccessExpression(d) && d.getExpression().getText() === 'r') {
-          names.add(d.getName());
+          names.add(recordName(d.getName()));
         }
       }
       names.delete(field);
@@ -87,7 +95,8 @@ function engineRoutes(): Map<string, Set<string>> {
     return null;
   }
 
-  const add = (field: string, node: Node) => {
+  const add = (quantity: string, node: Node) => {
+    const field = recordName(quantity);
     const signature = guardInputs(node, field);
     if (signature === null) return;
     if (!routes.has(field)) routes.set(field, new Set());
@@ -116,7 +125,7 @@ describe('the provenance panel declares the routes the engine actually has', () 
   it('finds the solver assignments it reads from', () => {
     const routes = engineRoutes();
     assert.ok(routes.size > 10,
-      `only ${routes.size} derived fields found in driver.ts — the AST read is broken, and a ` +
+      `only ${routes.size} derived fields found in solver.ts — the AST read is broken, and a ` +
       'broken read would make every assertion below pass vacuously');
   });
 

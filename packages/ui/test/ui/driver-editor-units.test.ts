@@ -192,10 +192,10 @@ function driverCellOf(d: OpenISDDriver, field: string): FieldHandle<any> {
 }
 
 const _engine = new Engine();
+/** A driver stating nothing — the domain's own blank, not a record assembled here. These tests
+ *  are about which cells the editor binds, not about any driver's contents. */
 function blankDriver(): OpenISDDriver {
-  const d = OpenISDDriver.fromConformingRecord({ section: 'woofer', woofer: {} }, _engine);
-  if (Array.isArray(d)) throw new Error('blankDriver() failed: ' + d.join(', '));
-  return d;
+  return OpenISDDriver.empty(_engine);
 }
 
 /** A driver with every core T/S parameter present, in SI. */
@@ -490,19 +490,17 @@ describe('driver editor — every bound cell is one the driver model answers', (
     }
   });
 
-  it('Voicecoils cell stays honestly N until stated; the engine gets the default of 1, not the display', () => {
-    // openisdDriver.ts's own comment on toDriver() (~line 337): "numVC defaults to 1 here
-    // ONLY ... cell('numVC') stays honestly N when nothing stated it; this is the one place a
-    // default is owed to the physics, not to the field's own display." So the EDITOR field
-    // (which binds cellVal, i.e. cell()) is correctly blank on an unstated driver — WinISD's
-    // own blank-driver screen (docs/winisd_screenshots/edit_driver_pg2_parameters.png) shows 1 there, but
-    // that is the ENGINE's default, applied at toDriver(), never faked as ENTERED/CALCULATED
-    // on the cell a human is looking at.
+  it('Voicecoils reads WinISD\'s default of 1, marked calculated so it is not mistaken for entered', () => {
+    // John, 2026-09-08: "use the existing WinIsd default values - but some of these are
+    // functions like calcVcCon() ... which isn't really a calc but plays that role if the VCCon
+    // isn't yet stated". WinISD's own blank-driver screen
+    // (docs/winisd_screenshots/edit_driver_pg2_parameters.png) shows 1 there, and `calculated`
+    // is exactly how the panel distinguishes that from a number the user typed.
     const f = byLabel('Voicecoils');
     const d = coreDriver();
     const cell = driverCellOf(d, f.field as string);
-    assert.equal(cell.get().state, 'not-available' as CellState, `Voicecoils cell is ${cell.get().state} — an unstated field must not read as entered or calculated`);
-    assert.equal(cell.get().value, null, 'an honestly-N cell must not carry a fabricated value');
+    assert.equal(cell.get().state, 'calculated' as CellState, `Voicecoils cell is ${cell.get().state} — an unstated coil count reads as the default, derived`);
+    assert.equal(cell.get().value, 1, 'and the default is WinISD\'s 1');
     assert.equal(d.fields().numVC ?? 1, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');
   });
 });

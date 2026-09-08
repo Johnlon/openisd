@@ -36,7 +36,7 @@ for (const S of SCENARIOS) {
   const drv    = { Fs: S.driver.Fs, Qts: S.driver.Qts, Vas: VAS_M3 };
 
   if (S.box.type === 'sealed' && S.box.Qtc != null) {
-    const Vb    = new Engine().sealedFromQtc(drv, S.box.Qtc);
+    const Vb    = new Engine().sealedFromQtc(drv.Qts, drv.Vas, S.box.Qtc);
     if (Vb == null) { console.warn(`  SKIP  ${S.id}: Qtc below driver Qts`); continue; }
     const scale = Math.sqrt(1 + VAS_M3 / Vb);
     S.computed = {

@@ -15,7 +15,7 @@
  */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { state, requireFocusedProject } from '../../src/logic/appState.js';
+import { newProject, requireFocusedProject } from '../../src/logic/appState.js';
 import { enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn } from '../../src/logic/useVentGroup.js';
 import { enterPrField as enterPrFieldOn, clearPrField as clearPrFieldOn } from '../../src/logic/usePrGroup.js';
 
@@ -28,7 +28,9 @@ function countNotifications(fn: () => void): number {
 
 describe('vent/PR group writes coalesce to exactly the writes made, never an extra store-triggered re-solve', () => {
   beforeEach(() => {
-    state.box = 'vented';
+    // The app starts with NO project (QO121), so each run opens its own and tunes it to vented.
+    newProject();
+    requireFocusedProject().box.boxType.set('vented');
     requireFocusedProject().box.vented.volume_m3.set(0.02);
     requireFocusedProject().box.vented.vent.diameter_m.set(0.05);
     requireFocusedProject().box.vented.vent.endCorrection_m.set(0.6);

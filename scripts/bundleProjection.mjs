@@ -3,7 +3,7 @@
  * metadata for one `openisd.yml` record and whether it belongs in the bundle. No filesystem
  * read or write, so a test (or another script) can import it directly with no CLI run.
  */
-import { conformingRecordToOpenIsdDriver, conformingRecordToOpenIsdPassiveRadiatorStandalone } from '@openisd/design';
+import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 
 /** Whether a record is READABLE as a device — a driver or a passive radiator. Asked of the
@@ -12,8 +12,8 @@ import { Engine } from '@openisd/design/engine';
  *  the bundle carries both kinds. */
 const recordConforms = record => {
   const engine = new Engine();
-  return !Array.isArray(conformingRecordToOpenIsdDriver(record, engine))
-    || !Array.isArray(conformingRecordToOpenIsdPassiveRadiatorStandalone(record, engine));
+  return !Array.isArray(OpenISDDriver.fromConformingRecord(record, engine))
+    || !Array.isArray(OpenISDPassiveRadiatorStandalone.fromConformingRecord(record, engine));
 };
 
 /** A record-level `{ value, origin, definition }` wrapper's value. */

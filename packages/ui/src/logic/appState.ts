@@ -13,7 +13,7 @@
  * project registry, and bridge notifications into Vue's reactivity system.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { reactive, computed, ref, shallowRef, triggerRef, watch, type Ref, type ShallowRef } from 'vue';
+import { computed, ref, shallowRef, triggerRef, watch, type Ref, type ShallowRef } from 'vue';
 import { Engine } from '@openisd/design/engine';
 import type { DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
 import {
@@ -21,7 +21,7 @@ import {
   OpenISDProject, type RecordStore, type RecordStoreFactory, type DiscardChallenge,
   type FrequencyGrid,
 } from '@openisd/design';
-import {type AppState, AppStateImpl, type ProjectMeta, type PlotParams} from '../types.js';
+import type { PlotParams } from '../types.js';
 import { copyOfName, uniqueName, type ViewSnapshot } from '@openisd/persistence';
 
 /** The 53 driver spec fields the app's UI reads/writes by name — the driver editor's own field
@@ -61,12 +61,10 @@ import { solvePrGroup } from './usePrGroup.js';
  *  Each member's declared type is what its `getOrInit` call site gets back. */
 interface AppStateSingletons {
   engine: Engine;
-  seedProject: OpenISDProject;
   projects: ShallowRef<OpenISDProject[]>;
   focusedIndex: Ref<number>;
   changeTicks: Ref<number>;
   live: ShallowRef<OpenISDProject | null>;
-  state: AppState;
   curves: Ref<SweepResult | null>;
   max: Ref<MaxCurvesResult | null>;
 }
@@ -82,26 +80,16 @@ const slots = hmrSlots<AppStateSingletons>(
 export const engine = getOrInit(slots, 'engine', () => new Engine());
 
 /**
- * `OpenISDProject` (`@openisd/design`) is the domain object for ONE project in the registry
- * below, owning its own ground/edited layers (`isModified()`/`save()`/`cancel()`) and its own
- * driver, box, params and meta together.
- *
- * `seedProject` is the one always seeded into the registry below at module load — the app
- * never starts with zero projects open — and is otherwise indistinguishable from any project
- * opened later; nothing about it is special once the app is running.
- */
-const seedProject: OpenISDProject = getOrInit(slots, 'seedProject', () => {
-  return createEmptyProject(engine);
-});
-
-/**
  * The multi-project registry (human ruling, 2026-08-18) — replaces `workspace.ts`'s ad-hoc
  * `WorkspaceEntry`/`OpenProject` and `OriginalShell.vue`'s own former local `openProjects`/
  * `activeProjectId` reimplementation as the ONE place "which projects are open, which is
- * focused" lives. `projects[0]` starts as `seedProject` — one project open, matching the
- * app's starting state.
+ * focused" lives.
+ *
+ * Starts EMPTY — the app has no project until one is opened or created (John, 2026-09-08:
+ * "there is either selected project or not selected project"). `App.vue`'s top-level
+ * `v-if="project"` gate renders the empty state while `focusedProject()` is null.
  */
-const projects = getOrInit(slots, 'projects', () => shallowRef<OpenISDProject[]>([seedProject]));
+const projects = getOrInit(slots, 'projects', () => shallowRef<OpenISDProject[]>([]));
 const focusedIndex = getOrInit(slots, 'focusedIndex', () => ref(0));
 
 /** Every open project. Empty array if none are open. */
@@ -165,15 +153,6 @@ export function requireFocusedProject(): OpenISDProject {
   return p;
 }
 
-/** Open a brand-new, blank, independent project tab and focus it — the store is the ONE
- *  logic module licensed to construct an `OpenISDProject`
- *  (`architecture.test.ts` "the store is the only logic module that holds the project
- *  instance"), so a UI file that wants a new tab calls this rather than importing the domain
- *  package itself. */
-export function openBlankProject(): void {
-  addProject(createEmptyProject(engine));
-}
-
 /** A store holding exactly the one record most recently `put()` — lets this file borrow
  *  `projectRepo()`'s own save/load round trip to clone a project without ever touching
  *  `OpenISDProject.cloneSavedProject()`, which is `@internal` to `packages/design`. Same pattern
@@ -213,14 +192,6 @@ export function duplicateFocusedProject(newName: string): void {
   loaded.save();
 }
 
-/** A private, read-only source of safe defaults for the handful of module-scope reactive
- *  computeds below (`state.box`, `syncedP`, the sweep scheduler's watch sources) that Vue
- *  evaluates unconditionally on every reactive flush regardless of whether any project is
- *  focused — e.g. right after the last open project is closed. Never registered in
- *  `projects`, never mutated, never exposed: nothing downstream ever reads its values for
- *  real, because the gated UI that would is unmounted whenever `focusedProject()` is null. */
-const EMPTY_PROJECT_DEFAULTS: OpenISDProject = createEmptyProject(engine);
-
 // The one Vue bridge onto WHICHEVER project is currently focused. Re-subscribes on every
 // focus change or open/close of a project (the `watch([projects, focusedIndex], ...)` inside
 // the initializer below), so every reader touching `live.value` sees the newly focused
@@ -251,32 +222,6 @@ const live: ShallowRef<OpenISDProject | null> = getOrInit(slots, 'live', () => {
   return liveRef;
 });
 
-// `state.project`'s five fields, each an accessor onto the FOCUSED project's own meta field —
-// never an independent copy. A plain mutable mirror (this file's earlier shape) went stale the
-// instant focus moved to a DIFFERENT already-open project via `focusProject()` alone (no load
-// call to refresh it), so the Project tab and titlebar kept showing whichever project was
-// focused BEFORE the switch — found and fixed while wiring the multi-project registry
-// (PROMPT_RELEASE_HARDENING plan). Reads fall back to `EMPTY_PROJECT_DEFAULTS` when nothing is
-// focused; writes no-op then (defensive — the gated UI that could write is unmounted).
-const PROJECT_META_FIELDS = ['name', 'creator', 'created', 'modified', 'description'] as const;
-function buildProjectMetaAccessor(): ProjectMeta {
-  const obj = {} as ProjectMeta;
-  for (const key of PROJECT_META_FIELDS) {
-    Object.defineProperty(obj, key, {
-      enumerable: true, configurable: true,
-      get: () => (focusedProject() ?? EMPTY_PROJECT_DEFAULTS)[key].get(),
-      set: (v: string) => { focusedProject()?.[key].set(v); },
-    });
-  }
-  return obj;
-}
-
-function buildState(): AppState {
-  const p = (focusedProject() ?? EMPTY_PROJECT_DEFAULTS);
-  return new AppStateImpl(p.box.boxType.get(), buildProjectMetaAccessor());
-}
-
-export const state: AppState = getOrInit(slots, 'state', () => reactive(buildState()));
 
 // ---- Vent group: keep the calculated member solved while the user edits ------------------
 // `live` (above) already fires on every focused-project mutation — box/vent/PR fields
@@ -287,15 +232,15 @@ export const state: AppState = getOrInit(slots, 'state', () => reactive(buildSta
 //   ventSolveSuspended() — a restore assigns a whole persisted snapshot and must be adopted
 //                   verbatim (docs/design/STATE_MODEL.md rule 3, "Cancel means byte-identical").
 // `live` is a shallow ref whose `.value` is the SAME focused-project reference on every
-// notification, so both watches below pass `live` itself (or inside the sources array), never
-// a getter that reads `live.value` — a getter source is gated on Vue's
-// `hasChanged(newValue, oldValue)`, which an invariant reference always fails, so the
-// callback would never run. Passing the ref directly sets `forceTrigger`, which fires on every
-// `triggerRef` unconditionally, matching the "run on every notification" intent
+// notification, so the watch below passes `live` itself, never a getter that reads
+// `live.value` — a getter source is gated on Vue's `hasChanged(newValue, oldValue)`, which an
+// invariant reference always fails, so the callback would never run. Passing the ref directly
+// sets `forceTrigger`, which fires on every `triggerRef` unconditionally, matching the "run on
+// every notification" intent
 // (`BUG_20260822_pr_group_auto_solve_watch_never_fires_after_the_live_repoint.md`).
 let solvingVent = false;
 watch(
-  [live, () => state.box],
+  live,
   () => {
     if (solvingVent || ventSolveSuspended()) return;
     const p = live.value;
@@ -466,7 +411,8 @@ export function resetProjectToGround(confirm: DiscardChallenge): Promise<boolean
 /** The New Project wizard's starting choices — name, box type, and its starting volume(s) in
  *  LITRES (the wizard's own display unit; converted to SI here, the one place that owns the
  *  litres↔m³ factor, rather than the wizard hand-rolling `/1000`). `frontVolumeL` only applies
- *  to a dual-chamber box (bandpass4). */
+ *  to a dual-chamber box (bandpass4). The driver comes separately — the wizard collects this
+ *  spec, then the driver picker chooses the driver, and only then is the project built. */
 export interface NewProjectSpec {
   name: string;
   box: BoxType;
@@ -474,52 +420,46 @@ export interface NewProjectSpec {
   frontVolumeL?: number;
 }
 
-/** Start a brand-new project from the app's initial defaults — NOT the ground state. Clears
- *  the whole design (params incl. filters, compare traces, per-chart zoom, driver source) so
- *  a "new" project never inherits the previous one, then adopts the fresh design as ground.
- *  `spec`, when given, is the New Project wizard's chosen name/box/volume, applied atomically
- *  as part of the same reset — the wizard has nothing left to write onto `state` by hand.
- *  `loadEmpty()` already resets box/vent/PR/environment/signal/simOptions/sweep/filters/entered
- *  to the app's initial defaults — there is nothing left for this function to reset on the
- *  params side.
- *
- *  When no project is currently focused (the registry was emptied by closing the last open
- *  project) this OPENS a new one via `addProject()` rather than throwing — the empty state's
- *  own recovery action, and every other "New Project" trigger, are the same call. Otherwise it
- *  resets the FOCUSED project's own content in place, preserving its tab identity. */
-export function newProject(spec?: NewProjectSpec): void {
-  presentationState.yRanges = {};
-  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
-  if (Array.isArray(driver)) {
-    throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-  }
-  const volume_m3 = fromDisplay(spec?.volumeL ?? 20, 'volume', 'L');
-  // Only sealed is buildable from what NewProjectSpec carries today: `vented()`/`bandpass4()`
-  // require a tuning frequency (`.tuning_hz()`/`.frontTuning_hz()`) the wizard never collects
-  // (packages/design/domain/openisdTransforms.ts's `VentedProjectBuilder`/`Bandpass4ProjectBuilder`), so
-  // a non-sealed spec builds sealed at the same volume until the wizard is extended to ask.
-  const p = OpenISDProject.builder(driver, engine).sealed().volume_m3(volume_m3).build();
-  p.name.set(spec?.name ?? '');
-  if (!focusedProject()) {
-    addProject(p);
-  } else {
-    projects.value = projects.value.map((existing, i) => (i === focusedIndex.value ? p : existing));
-  }
-}
+/** A sealed box's starting volume, litres — the New Project wizard's own default, and the
+ *  volume a project opened straight from a bare `.wdr`/`.owdr` driver file starts at (the user
+ *  refines it on the Box tab). */
+export const DEFAULT_SEALED_VOLUME_L = 6;
 
 /**
- * Why the last restore refused something, empty when it took everything.
+ * A new project with nothing chosen yet — added to the registry, focused, and RETURNED so the
+ * caller can fill it in.
  *
- * A refusal that only reaches the console is a silent data loss the user discovers later, so
- * it is surfaced: the app is running, and it says what it would not load and why.
+ * The New Project wizard EDITS this rather than collecting a spec and building at the end
+ * (QO125, John 2026-09-08: "The new project starts with all sections filled out with defaults -
+ * including the driver and pr"), so a project exists from the first step and every later choice —
+ * name, box type, volume, the driver, the radiator — is a write to a live project.
+ *
+ * The defaults are the DOMAIN's (`OpenISDProject.empty`), which states no physical value of its
+ * own: the driver and the radiator are blank, and the wizard repopulates them from what the user
+ * picks. This function only puts the result in the registry, which is the store's own job — the
+ * store is the only module licensed to construct an `OpenISDProject` (`architecture.test.ts`).
  */
-const restoreProblems = ref<string[]>([]);
+export function newProject(): OpenISDProject {
+  presentationState.yRanges = {};
+  const p = OpenISDProject.empty(engine);
+  addProject(p);
+  return p;
+}
 
+/** Open a driver file (`.wdr`/`.owdr`) as a project of its own — a default sealed box around
+ *  `driver`, focused, with `name` for the tab. Used by File → Open when no project is focused;
+ *  when one IS focused the caller swaps the driver in place instead (`loadDriver`). */
+export function openProjectFromDriver(driver: OpenISDDriver, name: string): void {
+  const p = newProject();
+  p.setDriver(driver);
+  p.box.sealed.volume_m3.set(fromDisplay(DEFAULT_SEALED_VOLUME_L, 'volume', 'L'));
+  p.name.set(name);
+}
 
 /** The name for a copy of the open project — "Copy of <name>", made unique among `taken`.
  *  Falls back to the driver's name when the project has none, same as the project list rows. */
 export function copyProjectName(taken: readonly string[]): string {
-  return uniqueName(copyOfName(state.project.name || driverName.value), taken);
+  return uniqueName(copyOfName(requireFocusedProject().name.get() || driverName.value), taken);
 }
 
 /** The open design, as the live domain object every save/share door persists

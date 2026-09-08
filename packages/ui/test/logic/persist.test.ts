@@ -12,15 +12,11 @@
  */
 import { describe, it, beforeAll, afterAll, vi } from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 import { gunzipSync, gzipSync } from 'node:zlib';
-import { OpenISDDriver, OpenISDProject, type CellState } from '@openisd/design';
-import { WinISDDriver } from '@openisd/design/winisd';
+import { OpenISDDriver, OpenISDProject } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { createProjectRepo, createMemoryStorage, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
-import { state, requireFocusedProject, applyLoadedProject, currentProject, currentViewSnapshot } from '../../src/logic/appState.js';
+import { createProjectRepo, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
+import { currentViewSnapshot } from '../../src/logic/appState.js';
 
 import type { BoxType } from '@openisd/design/engine';
 
@@ -31,7 +27,6 @@ const noFilePicker: FileStorage = {
   openFileName: () => null,
   forget: () => {},
 };
-const mem = createMemoryStorage();
 const repo = createProjectRepo(new Engine(), noFilePicker);
 
 /** A picker that KEEPS what was written, so a test can decode the file door's own bytes. */
@@ -53,32 +48,47 @@ async function savedFileText(project: OpenISDProject): Promise<string> {
   return written!;
 }
 
-/** The project every door takes, from the same pieces the old positional call passed —
- *  `OpenISDProject`'s own restore surface (`loadUiParams()`/`setProjectMeta()`/`setDriver()`),
- *  not a second, hand-rolled construction path. `driverText` is REQUIRED: a project cannot
- *  exist without a driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
+/** The project every door takes, built through `OpenISDProject.builder` rather than a second,
+ *  hand-rolled construction path. `driverRecord` is REQUIRED: a project cannot exist without a
+ *  driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
 function projectOf(box: BoxType, meta: any,
-  driverRecord: any, params: any): OpenISDProject {
+  driverRecord: any): OpenISDProject {
   const driver = OpenISDDriver.fromConformingRecord(driverRecord, new Engine());
-  if (Array.isArray(driver)) throw new Error('Bad driver');
+  if (Array.isArray(driver)) throw new Error(`fixture record does not conform: ${driver.join('; ')}`);
   
   const builder = OpenISDProject.builder(driver, new Engine());
   let project: OpenISDProject;
-  if (box === 'sealed') project = builder.sealed().build();
-  else if (box === 'vented') project = builder.vented().build();
-  else if (box === 'bandpass4') project = builder.bandpass4().build();
-  else project = builder.sealed().build(); // fallback
+  // Each box type requires its own volume before `build()`; these tests are about what crosses
+  // the wire, so any stated size does.
+  if (box === 'vented') project = builder.vented().volume_m3(0.03).tuning_hz(35).build();
+  else if (box === 'bandpass4') project = builder.bandpass4().rearVolume_m3(0.03).frontVolume_m3(0.02).build();
+  else project = builder.sealed().volume_m3(0.03).build();
   
   project.name.set(meta.name);
   project.creator.set(meta.creator);
+  project.created.set(meta.created);
+  project.modified.set(meta.modified);
+  project.description.set(meta.description);
+  // A file/share write serialises the SAVED record, never the edited one
+  // (`openisdDomain.ts` `#slot`/`save()`), so the meta set above reaches the wire only once it is
+  // committed. That the app itself never commits before writing is
+  // bugs/BUG_20260908_saving_a_project_drops_its_name_creator_and_all_metadata.md; these tests
+  // commit here so they exercise the WIRE rather than restating that bug.
+  project.save();
   return project;
 }
 
-/** The saved-FILE payload, decoded independently. Pure project data (QO90): no view ever
- *  reaches this wire. */
+/** The saved-FILE payload's PROJECT half, decoded independently. Pure project data (QO90): no
+ *  view ever reaches this wire.
+ *
+ *  A `.owpr` file holds the session wrapper `{label, saved, edited}`
+ *  (`openISDProjectSessionJsonSchema`), so the project itself is `saved` — every assertion below
+ *  is about the project, and reading the wrapper instead would make each one vacuously true. */
 // Parsed JSON, so untyped — a test reads whatever fields it is checking.
 async function storedPayload(project: OpenISDProject): Promise<ReturnType<typeof JSON.parse>> {
-  return JSON.parse(await savedFileText(project));
+  const session = JSON.parse(await savedFileText(project));
+  assert.ok(session.saved, 'the file must carry a saved project');
+  return session.saved;
 }
 
 /** The share-link payload, decoded independently of the app's own `stateToUrl`/gzip path —
@@ -89,37 +99,50 @@ function decodeShare(url: string): ReturnType<typeof JSON.parse> {
   return JSON.parse(gunzipSync(Buffer.from(b64, 'base64')).toString('utf8'));
 }
 
-const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLE = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'John-all-manu-populated.wdr');
-const wdrText = readFileSync(SAMPLE, 'utf8');
-
-/** The sample `.wdr`, read as-read by the serialiser, as the driver's own persisted TEXT —
- *  the only form the driver takes in a serialised payload (QO73: the UI carries the managed
- *  layer's serialisation, never the record value). */
-function sampleDriverText(): any {
+/** A conforming driver RECORD — the form a driver takes inside a serialised payload. Every key
+ *  the schema requires is present; the values are deliberately synthetic, since these tests are
+ *  about what survives the wire, not about any driver's physics. */
+function sampleDriverRecord(): any {
   return {
-    brand: {value: 'test'}, model: {value: 'test'}, manufacturer: {value: 'test'}, 
-    uuid: {value: '00000000-0000-4000-8000-000000000000'}, driver_type: {value: 'woofer'}, 
-    specs: { woofer: { Fs: { origin: 'entered', readings: { manual: { read_value: 30 } } } } }
+    brand: {value: 'test'}, model: {value: 'test'}, manufacturer: {value: 'test'},
+    uuid: {value: '00000000-0000-4000-8000-000000000000'}, driver_type: {value: 'woofer'},
+    sku: {value: 'test', grounds: [{origin: 'manual', reading: 'test'}]},
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
+    data_sources: {value: {}},
+    authoritative: {value: 'openisd'},
+    specs: { woofer: {
+      Fs:  { origin: 'entered', readings: { entered: { read_value: 30 } } },
+      Vas: { origin: 'entered', readings: { entered: { read_value: 0.05 } } },
+      Sd:  { origin: 'entered', readings: { entered: { read_value: 0.02 } } },
+    } }
   };
 }
 
 describe('persistence — provenance survives a file-save round trip', () => {
   it('E stays E and C stays C across save → JSON → restore', async () => {
-    const srcOrErr = OpenISDDriver.fromConformingRecord(sampleDriverText(), new Engine());
-    const src = Array.isArray(srcOrErr) ? null : srcOrErr;
-    if (!src) throw new Error('Bad driver');
-    // Clear a derivable field so the fixture carries a genuine C (Cms recomputes from
-    // Fs/Vas/Sd) alongside the E fields the WinISD save marks entered.
+    const srcOrErr = OpenISDDriver.fromConformingRecord(sampleDriverRecord(), new Engine());
+    if (Array.isArray(srcOrErr)) throw new Error(`fixture record does not conform: ${srcOrErr.join('; ')}`);
+    const src = srcOrErr;
+    // Clear a derivable field so the fixture carries a genuine C (Cms derives from Vas and Sd)
+    // alongside the E fields.
     src.spec[src.section].Cms_m_per_N.clear();
 
-    // The fixture must actually contain both an E and a C field, or the test is vacuous.
     assert.equal(src.spec[src.section].Fs_hz.get().state, 'entered', 'fixture precondition: Fs entered');
-    assert.equal(src.spec[src.section].Cms_m_per_N.get().state, 'calculated', 'fixture precondition: Cms now computed');
+    // The fixture must actually carry both an E and a C field, or the test is vacuous. Cms is
+    // unstated and the record states Vas and Sd, so it reads back derived.
+    assert.equal(src.spec[src.section].Cms_m_per_N.get().state, 'calculated',
+      'fixture precondition: Cms now computed');
 
-    const wire = await storedPayload(projectOf('sealed', { name: 'John-all-manu-populated', creator: 'John',
-      created: '2026-01-01', modified: '2026-01-02', description: '' }, src, {}));
-    const backOrErr = OpenISDDriver.fromConformingRecord(wire.driver, new Engine());
+    const project = projectOf('sealed', { name: 'John-all-manu-populated', creator: 'John',
+      created: '2026-01-01', modified: '2026-01-02', description: '' }, sampleDriverRecord());
+    // The cleared Cms is the whole point of the fixture, so the MODIFIED driver is the one that
+    // must travel — not a fresh one rebuilt from the untouched record.
+    project.setDriver(src);
+    const wire = await storedPayload(project);
+    const backOrErr = OpenISDDriver.fromConformingRecord(wire.driverEmbedding.device, new Engine());
     const back = Array.isArray(backOrErr) ? null : backOrErr;
     if (!back) throw new Error('Bad back driver');
 
@@ -151,18 +174,18 @@ describe('persistence — provenance survives a file-save round trip', () => {
 
   it('the payload is the RECORD, so `specs` and its readings travel', async () => {
     const ser = await storedPayload(projectOf('sealed', { name: 'Provenance sample', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, sampleDriverText(), {}));
-    assert.ok(ser.driver, 'the driver payload travels');
-    const record = JSON.parse(ser.driver!);
-    assert.ok(record.specs, 'the driver payload is the openisd.yml record, serialised');
+      modified: '2026-01-02', description: '' }, sampleDriverRecord()));
+    const record = ser.driverEmbedding?.device;
+    assert.ok(record, 'the driver payload travels');
+    assert.ok(record.specs, 'the driver payload is the openisd.yml record');
     assert.ok(record.specs.woofer?.Fs?.readings,
       'each field carries its readings, not a bare number — that is what makes E/C survivable');
   });
 
   it('the driver always travels — a project cannot exist without one', async () => {
     const ser = await storedPayload(projectOf('sealed', { name: 'Has a driver', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, OpenISDDriver.fromConformingRecord({}, new Engine()), {}));
-    assert.equal(typeof ser.driver, 'string',
+      modified: '2026-01-02', description: '' }, sampleDriverRecord()));
+    assert.equal(typeof ser.driverEmbedding?.device, 'object',
       'driver is REQUIRED on the wire (docs/design/DRIVER_NON_NULL_INVARIANT.md) — never absent');
   });
 });
@@ -175,13 +198,16 @@ describe('persistence — provenance survives a file-save round trip', () => {
 describe('file save carries PURE PROJECT DATA — no view (QO90)', () => {
   it('the stored payload carries no ui/cursor/graphs/lossMode', async () => {
     const ser = await storedPayload(projectOf('sealed', { name: 'View-free save', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: '' }, OpenISDDriver.fromConformingRecord({}, new Engine()), {}));
-    assert.equal(ser.lossMode, undefined, 'the file wire writer must not emit a lossMode');
-    assert.equal(ser.graphs, undefined, 'the file wire writer must not emit open charts');
-    assert.equal(ser.ui, undefined, 'the file wire writer must not emit UI preferences');
-    assert.equal(ser.cursor, undefined, 'the file wire writer must not emit the graph cursor');
+      modified: '2026-01-02', description: '' }, sampleDriverRecord()));
+    // The whole key set, not four named absences: a view field arriving under a name nobody
+    // predicted is exactly the leak this test exists to catch, and asserting `ser.ui ===
+    // undefined` cannot see it. Any key added to the project wire must be added here
+    // DELIBERATELY, which is the point.
+    assert.deepEqual(Object.keys(ser).sort(),
+      ['advanced', 'box', 'charts', 'driverEmbedding', 'environment', 'filters', 'meta', 'signal'],
+      'the file wire carries project data only — no ui, cursor, graphs or lossMode (QO90)');
     // The project itself still travels.
-    assert.equal(ser.project?.name, 'View-free save');
+    assert.equal(ser.meta?.name, 'View-free save');
   });
 });
 
@@ -204,7 +230,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
       chartColors: { background: '#ffffff' },
     },
   };
-  const drv = sampleDriverText();
+  const drv = sampleDriverRecord();
 
   // stateToUrl reads location.{origin,pathname}; stub it (no jsdom needed) for the URL test.
   beforeAll(() => vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' }));
@@ -215,17 +241,22 @@ describe('share link carries the whole state, stripped of nothing', () => {
       name: 'Kick bin', creator: 'John Lonergan', created: '2026-08-01T00:00:00.000Z',
       modified: '2026-08-14T12:30:00.000Z', description: 'PA subwoofer for the shed',
     };
-    const urlOrErr = await repo.stateToUrl(projectOf('sealed', meta, drv, {} as any), uiView);
+    const urlOrErr = await repo.stateToUrl(projectOf('sealed', meta, drv), uiView);
     if (Array.isArray(urlOrErr)) throw new Error('fail');
     const shared = decodeShare(urlOrErr as string);
-    const ui = (shared as any).ui as Record<string, unknown> | undefined;
+    // A share link is `{project, view}` — the design and where the sender was looking, kept
+    // apart. The ui fields are the view's; the metadata is the project's.
+    const ui = (shared as any).view?.ui as Record<string, unknown> | undefined;
     assert.ok(ui, 'the view context travels');
 
     // Project-level metadata is part of the session too — a share link that dropped it would
     // hand the recipient an anonymous, undated design.
-    assert.equal((shared as any).project?.name, 'Kick bin');
-    assert.equal((shared as any).project?.creator, 'John Lonergan');
-    assert.equal((shared as any).project?.modified, '2026-08-14T12:30:00.000Z');
+    // `project` here is the same session wrapper a `.owpr` file carries — `{label, saved,
+    // edited}` — so the design itself is under `saved`.
+    const saved = (shared as any).project?.saved;
+    assert.equal(saved?.meta?.name, 'Kick bin');
+    assert.equal(saved?.meta?.creator, 'John Lonergan');
+    assert.equal(saved?.meta?.modified, '2026-08-14T12:30:00.000Z');
 
     // Where the sender was looking.
     assert.equal(ui!.originalProjectTab, 'signal');
@@ -244,7 +275,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
     assert.equal(ui!.username, 'johnl');
     assert.deepEqual(ui!.chartColors, { background: '#ffffff' });
 
-    assert.equal((shared as any).box, 'sealed', 'and the design itself');
+    assert.equal(saved?.box?.boxType, 'sealed', 'and the design itself');
   });
 
   it('gzip actually shrinks the link vs plain base64 of the same JSON', async () => {
@@ -253,7 +284,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
     const meta: any = { name: 'Gzip fixture', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: drv };
     // Two driver texts in one payload gives the JSON the repetition gzip exploits.
-    const shareUrlOrErr = await repo.stateToUrl(projectOf('sealed', meta, drv, {} as any), uiView);
+    const shareUrlOrErr = await repo.stateToUrl(projectOf('sealed', meta, drv), uiView);
     if (Array.isArray(shareUrlOrErr)) throw new Error('fail');
     const shareUrl = shareUrlOrErr;
     // Compare like-for-like: plain base64 of the EXACT session JSON that was gzipped, not of
@@ -270,8 +301,8 @@ describe('share link carries the whole state, stripped of nothing', () => {
     const withCursor: ViewSnapshot = { ...uiView, cursor: { f: 123.4, pinnedF: 500, locked: true, range: null } };
     const meta: any = { name: 'Cursor fixture', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' };
-    const project = projectOf('sealed', meta, drv, {} as any);
-    assert.deepEqual(decodeShare((await repo.stateToUrl(project, withCursor)) as string).cursor,
+    const project = projectOf('sealed', meta, drv);
+    assert.deepEqual(decodeShare((await repo.stateToUrl(project, withCursor)) as string).view.cursor,
       { f: 123.4, pinnedF: 500, locked: true, range: null });
   });
 
@@ -281,8 +312,9 @@ describe('share link carries the whole state, stripped of nothing', () => {
     const withBand: ViewSnapshot = { ...uiView, cursor: { f: null, pinnedF: null, locked: false, range: { fLo: 31.6, fHi: 100 } } };
     const meta: any = { name: 'Band fixture', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' };
-    const project = projectOf('sealed', meta, drv, {} as any);
-    assert.deepEqual(decodeShare((await repo.stateToUrl(project, uiView)) as string).cursor.range, { fLo: 31.6, fHi: 100 });
+    const project = projectOf('sealed', meta, drv);
+    assert.deepEqual(decodeShare((await repo.stateToUrl(project, withBand)) as string).view.cursor.range,
+      { fLo: 31.6, fHi: 100 });
   });
 
   it('an unset cursor serialises as all-null/false, not omitted — via the live gatherer', () => {
@@ -314,7 +346,7 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
     const v1 = {
       schema: 1, v: 2, box: 'sealed', P: {}, graphs: [],
       project: { name: 'v1-fixture', creator: '', created: '', modified: '', description: '' },
-      driver: JSON.parse(sampleDriverText()),
+      driver: sampleDriverRecord(),
     };
     // Encoded with Node's zlib, independent of the app's own CompressionStream path — this
     // checks what a real browser-produced link would decode to, not the app agreeing with itself.
@@ -323,7 +355,7 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
     vi.stubGlobal('location', { hash: '#s=' + encoded, origin: 'https://openisd.test', pathname: '/' });
 
     const loaded = await repo.loadFromHash();
-    if (Array.isArray(loaded)) throw new Error('fail');
+    if (Array.isArray(loaded)) throw new Error(`the V1 payload was refused: ${loaded.join('; ')}`);
     assert.ok(loaded, 'a V1 payload must load, upgraded — not be refused');
     assert.ok((loaded as any)!.project.driver(), 'the V1→V2 step serialises the driver slot, and the repo adopts it');
     assert.equal((loaded as any)!.project.driver.Fs_hz.get().state, 'entered',
@@ -334,9 +366,9 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
     const upgraded = repo.readProjectText(JSON.stringify({
       schema: 1, v: 2, box: 'sealed', P: {}, graphs: [],
       project: { name: 'v1-file', creator: '', created: '', modified: '', description: '' },
-      driver: JSON.parse(sampleDriverText()),
+      driver: sampleDriverRecord(),
     }));
-    if (Array.isArray(upgraded)) throw new Error('fail');
+    if (Array.isArray(upgraded)) throw new Error(`the V1 payload was refused: ${upgraded.join('; ')}`);
     assert.ok(upgraded);
     assert.ok(upgraded!.driver);
   });

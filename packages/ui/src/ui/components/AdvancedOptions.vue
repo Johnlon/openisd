@@ -10,19 +10,22 @@
  * short form of the same text. Design: PLAN_ADVANCED_SIM_OPTIONS.md.
  */
 import { computed } from 'vue';
-import { state, simVcInductance } from '../../logic/appState.js';
+import { simVcInductance } from '../../logic/appState.js';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { fieldHelp } from '../../logic/fields/fieldRegistry.js';
 import { inputChecked } from '../../logic/domEvents.js';
-
-/** The transmission-line port model only means anything for a box that HAS a vent. */
-const hasVent = computed(() => state.box === 'vented' || state.box === 'bandpass4');
 
 // No per-toggle computed wrapper (`docs/design/REACTIVITY.md`): each checkbox below reads the
 // focused project's own getter directly, reactive via `project`, and writes through its own
 // setter directly on `@change` — `simVcInductance` above is the one exception, a store-level
 // alias over `circuitModel` (two WORDINGS of one setting, not a per-field mirror of it).
 const project = useFocusedProject();
+
+/** The transmission-line port model only means anything for a box that HAS a vent. */
+const hasVent = computed(() => {
+  const b = project.value.box.boxType.get();
+  return b === 'vented' || b === 'bandpass4';
+});
 </script>
 
 <template>

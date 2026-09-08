@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { createLogging } from '../../src/logging/flash.js';
 import { createApplicationIO } from '../../src/logic/useApplicationIO.js';
 import { createFileStorage, createProjectRepo } from '@openisd/persistence';
-import { state } from '../../src/logic/appState.js';
+import { requireFocusedProject, newProject } from '../../src/logic/appState.js';
 import { Engine } from '@openisd/design/engine';
 
 beforeAll(() => {
@@ -65,11 +65,13 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     try {
       const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage()) });
 
-      // A DIFFERENT project is open before the import — these exact values must all be gone after.
-      state.project.name = 'stale-name-999999';
-      state.project.description = 'stale-description-999999';
-      state.project.creator = 'stale-creator-999999';
-      state.project.created = 'stale-created-999999';
+      // A DIFFERENT project is open before the import — these exact values must all be gone
+      // after. The app starts with NO project (QO121), so this opens the one it then dirties.
+      newProject();
+      requireFocusedProject().name.set('stale-name-999999');
+      requireFocusedProject().description.set('stale-description-999999');
+      requireFocusedProject().creator.set('stale-creator-999999');
+      requireFocusedProject().created.set('stale-created-999999');
 
       const fakeFile = new File([new TextEncoder().encode(wprText)], 'imported-design.wpr');
       io.importFile(fakeFile);
@@ -79,10 +81,10 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       assert.deepEqual(alerts, [], 'the import must succeed');
       // `projectNameFromFilename` strips only OpenISD's own extensions (.owpr/.json) — a
       // foreign `.wpr` keeps its extension in the derived name.
-      assert.equal(state.project.name, 'imported-design.wpr', 'name comes from the FILE NAME');
-      assert.equal(state.project.description, 'probe-description-123456');
-      assert.equal(state.project.creator, 'winisd_research overnight harness');
-      assert.equal(state.project.created, '20260813');
+      assert.equal(requireFocusedProject().name.get(), 'imported-design.wpr', 'name comes from the FILE NAME');
+      assert.equal(requireFocusedProject().description.get(), 'probe-description-123456');
+      assert.equal(requireFocusedProject().creator.get(), 'winisd_research overnight harness');
+      assert.equal(requireFocusedProject().created.get(), '20260813');
 
       io.exportWpr();
       assert.equal(downloadedBodies.length, 1, 'exportWpr must produce exactly one download');

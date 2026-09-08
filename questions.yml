@@ -1,5 +1,5 @@
 prefix: QO
-next: 121
+next: 128
 questions:
 - id: QO1
   title: UI TODO List
@@ -8546,3 +8546,164 @@ questions:
           duplication.
        5. classifyTypes (was in model) - where did it land? myDriverEntry and matchesCriteria both
           used it.
+- id: QO121
+  title: Delete appState.ts state/state.box/state.project — app is project-or-no-project
+  status: open
+  raised: '2026-09-08'
+  body: ''
+- id: QO122
+  title: PR editor drops datasheet-vocabulary re-solve; binds canonical spec fields directly
+  status: decided
+  raised: '2026-09-08'
+  body: ''
+  answer:
+    at: '2026-09-08'
+    text: |-
+      John, 2026-09-08: "no calcs outside the engine", "we don't need it for drivers so why is it
+      needed for pr", "just set the fields you have and let the solver work it out".
+
+      NO datasheet->canonical conversion layer, anywhere. Not in the modal, not on
+      PassiveRadiatorBox, not on OpenISDProject. The radiator's spec fields (Fs_hz, Qms,
+      Cms_m_per_N, Mms_kg, Rms_kg_per_s, Sd_m2, Vas_m3, Xmax_m) are PEERS, exactly as the
+      driver's are - the driver editor sets Fs/Qts/Vas/Sd directly and the consistency solver
+      derives the rest. The radiator gets the same treatment.
+
+      PREditModal.vue and PRDefineModal.vue set the fields WinISD asks for -
+      Vas, Fs, Qms, Sd, Xmax (screenshots: new_project_wizard_4_pr_params.png,
+      view_3_passive_radiator.png) - straight onto
+      project.box.passiveRadiator.radiator.spec.<Field>.set(). Plus count ->
+      passiveRadiator.count and added mass -> passiveRadiator.addedMass_kg. "Fs (with added
+      mass)" is read-only and comes from the engine.
+
+      The deleted OpenISDProject.setPrFs_hz/setPrQms/setPrSd_m2/enterPrDatasheet re-solve layer
+      is NOT restored in any form.
+
+      SEPARATE, still open: the New Project wizard must be extended to cover the PR box type -
+      WinISD asks its PR parameters as a wizard step (after the driver is selected). A PR box
+      with no radiator is illegal (ProjectBuilder throws; radiator.spec.<Field>.set() throws on a
+      null slot), so a PR project cannot be created without one.
+- id: QO123
+  title: Added mass is a box configuration, never a device field
+  status: decided
+  raised: '2026-09-08'
+  body: ''
+  answer:
+    at: '2026-09-08'
+    text: |-
+      John, 2026-09-08: "no it's a box thing, because it's not intrinsic to the driver or pr, the
+      added mass is a box configuration thingy" and "separate is ok, no new concept".
+
+      Added mass is NOT a field on OpenISDDevice and never becomes one. It is a CONFIGURATION -
+      what this design glues to the cone - not a datasheet fact about the part, so it must not
+      travel with an exported device record. The code already places it correctly:
+
+        - the PR's:     PassiveRadiatorBox.addedMass_kg          (openisdDomain.ts:186)
+        - the driver's: OpenISDProject.driverAddedMass_kg        (openisdDomain.ts:1642,
+                        on the project's driverEmbedding slot)
+
+      The DERIVED resonance-with-added-mass is likewise kept separate per owner rather than
+      unified: PassiveRadiatorBox.resonanceWithAddedMass_hz() exists now; a driver equivalent goes
+      on OpenISDProject if and when a driver readout needs it. No shared accessor, because the only
+      home above both owners is the device, which this ruling excludes.
+- id: QO124
+  title: 'New Project wizard PR path: wizard collects the radiator params, Fp follows'
+  status: decided
+  raised: '2026-09-08'
+  body: ''
+  answer:
+    at: '2026-09-08'
+    text: |-
+      Wizard asks the radiator params, Fp follows.
+
+      Add a wizard step collecting Vas/Fs/Qms/Sd/Xmax onto a blank radiator (matching WinISD's
+      own PR wizard step), then set tuning_hz from the box's own systemTuning_hz() once the
+      radiator states its parameters. No number the user didn't give.
+- id: QO125
+  title: 'newProject(engine): a defaulted project, every section filled; wizard edits it'
+  status: decided
+  raised: '2026-09-08'
+  body: ''
+  answer:
+    at: '2026-09-08'
+    text: |-
+      John, 2026-09-08: "I've changed my mind on new project too - if newProject(engine) makes
+      everything simpler then we should allow it. The new project starts with all sections filled
+      out with defaults - including the driver and pr, and all the other types too."
+
+      Wizard role: "Wizard edits the defaulted project" — newProject(engine) builds a fully-defaulted
+      project immediately and focuses it. The wizard's steps then set name/box type/volume on that
+      live project. No NewProjectSpec, no deferred build, no driver-picker callback.
+
+      QO121 unchanged: "focusedProject() is still nullable - but we've just talking about how to
+      build project and drivers etc NOT the focused thing". The app still starts with no project;
+      a defaulted project is a real project with real values, not the banned "empty project".
+  notes:
+  - at: '2026-09-08'
+    text: |-
+      Defaults source (John, 2026-09-08): "The data structure in emptyProject(eng) calls
+      emptyDriver(eng) and empty pr(eng) and then UI proceeds to fill it out in the wizard screens
+      including picking a real driver to repopulate the embedded driver section from and if it's a
+      pr box then the pr gets repopulated from a picked pr."
+
+      So: no invented physics values. emptyProject(engine) assembles blank devices via the existing
+      OpenISDDriver.empty(engine) / OpenISDPassiveRadiatorStandalone.empty(engine), every box section
+      structurally present including a radiator. The wizard repopulates driver and (for a PR box) the
+      radiator from the user's library picks.
+- id: QO126
+  title: 'PR/vented tuning <-> paired quantity: one solved pair, unreachable target marks the input'
+  status: deferred
+  raised: '2026-09-08'
+  body: ''
+  answer:
+    at: '2026-09-08'
+    text: |-
+      DEFERRED for build, ruling stands. John, 2026-09-08: "Log as an inbox / bug and carry on with
+      migration - do something simple to make it work ok for now - but if there are compromises then
+      add to the bug/inbox and leave FIXME in code so its not forgotten".
+
+      Full ruling and scope in
+      bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md. FIXME markers at
+      both pairs in openisdDomain.ts name that file. Picked up once the packages/model →
+      packages/design migration lands and the tree compiles.
+  notes:
+  - at: '2026-09-08'
+    text: |-
+      Blame placement refined (John, 2026-09-08): "B is better - in cases where two CmX lead to an
+      impossible third Cmx then both inputs need labelling".
+
+      So the mark goes on EVERY input that contributed to the impossible result, not on one nominated
+      field. Where two stated values together make a third unreachable, both carry the mark; the
+      derived field stays blank and unmarked.
+
+      This is closer to the existing ConsistencyIssue than "one field at fault" — that already marks
+      every member of a group ("no member is more at fault than another", consistency.ts:52). The
+      difference stays that the DERIVED field is excluded from the marking, because it holds no value
+      to be wrong: the contributing inputs are marked, the empty output is not.
+  - at: '2026-09-08'
+    text: |-
+      Further refinement (John, 2026-09-08): "but also some inputs to a multi input may be obviously
+      crap - so dont ignore that".
+
+      So marking is not a flat "blame every contributing input". Where one input is independently
+      wrong — outside its own legal range, or otherwise bad on its own terms, without reference to the
+      relation — that input is named as the culprit rather than the whole group being marked equally.
+
+      Two distinct cases, and the mark must say which:
+        1. one input is bad ON ITS OWN (negative Sd, a zero volume, a Q of 0) — mark THAT input, and
+           say what is wrong with it. Blaming its innocent peers would send the user to the wrong field.
+        2. every input is individually plausible, but TOGETHER they make the target unreachable — mark
+           every contributing input, since none is at fault alone.
+
+      Only case 2 gets the group treatment. Case 1 outranks it: check each input's own validity first,
+      and only fall through to the group mark when they all pass.
+- id: QO127
+  title: 'DECIDED: a spec field with no stated value reads THROUGH the solver — nothing calls the solver
+    independently and writes back -'
+  status: decided
+  raised: '2026-09-08'
+  body: ''
+  answer:
+    at: '2026-09-08'
+    text: '"yes a field whose value is nto provided in the domain is obvipously not-available BUT if any
+      such fielf is calculable then reading it should hit the solver automativally - NOTHING is supposed
+      to call the solver indepencenly and write to the domain THAT WOUDK BE A BUG"'

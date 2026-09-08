@@ -1,16 +1,11 @@
 <script setup lang="ts">
 /**
- * Tune panel — the docked `.tune-panel`. This is a WHAT-IF editor:
- * changes preview LIVE on the charts (via the shared driver ADT's enterDriverField, the
- * same path the graph's reactive chain reads). A what-if is exploration-only and can never
- * become real driver data (docs/design/STATE_MODEL.md rule 4) — there is no commit/"Keep" control.
- * Cancel is the only way the panel closes, and it always reverts to how the driver was
- * when Tune opened.
- *
- * Presentation only: the what-if logic is single-sourced in the store/ADT.
+ * Tune panel — the docked `.tune-panel`. A live editor: every field writes straight onto the
+ * focused project's driver, the same slot the Driver/Box panels write, so the charts update as
+ * you scrub. Cancel/Reset discard everything typed since the last save (`OpenISDProject.cancel()`).
  */
 import { computed, reactive, ref, onMounted, onUnmounted } from 'vue';
-import { enterDriverField, clearDriverField, driverFieldCell } from '../../../logic/appState.js';
+import type { SpecField } from '../../../logic/appState.js';
 import { presentationState } from '../../../logic/presentationState.js';
 import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
 import { ebpOf } from '../../../logic/environment.js';
@@ -19,14 +14,38 @@ import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistr
 import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
-import type { Cell, SpecField } from '@openisd/design';
+import type { Cell, FieldHandle } from '@openisd/design';
 import { inputValue, listeningElement } from '../../../logic/domEvents.js';
 
 const project = useFocusedProject();
 
-// WinISD's own field names — these index OpenISDDriver directly, and the field registry now
-// keys by the same names, so there is nothing to cross between.
+// WinISD's own field names — the registry keys by these; the driver's spec section carries the
+// SI-suffixed name (`Fs_hz`, `Vas_m3`), so `SPEC` maps the twelve this panel edits to their
+// `Field` on the focused project's driver.
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe' | 'BL' | 'Mms';
+
+/** The field handle for one of this panel's keys, on the FOCUSED project's driver — the write
+ *  goes straight onto the project, the same slot the Box/Driver panels write. */
+function specField(key: NumKey): FieldHandle<number> {
+  const s = project.value.driver.spec[project.value.driver.section];
+  switch (key) {
+    case 'Fs':   return s.Fs_hz;
+    case 'Qts':  return s.Qts;
+    case 'Qes':  return s.Qes;
+    case 'Qms':  return s.Qms;
+    case 'Vas':  return s.Vas_m3;
+    case 'Sd':   return s.Sd_m2;
+    case 'Re':   return s.Re_ohm;
+    case 'Le':   return s.Le_H;
+    case 'Xmax': return s.Xmax_m;
+    case 'Pe':   return s.Pe_W;
+    case 'BL':   return s.BL_Tm;
+    case 'Mms':  return s.Mms_kg;
+  }
+}
+function fieldCell(key: NumKey): Cell<number> { return specField(key).get(); }
+function enterField(key: NumKey, v: number): void { specField(key).set(v); }
+function clearField(key: NumKey): void { specField(key).clear(); }
 // Raw driver values are SI (Vas m³, Sd m², Le H, Xmax m, Mms kg); a field with a `group`/
 // `token` displays and accepts input via the one units.ts conversion (`display = SI × factor`);
 // a field with neither is already shown in its SI unit (Hz, Ω, W, T·m, dimensionless Q).
@@ -65,7 +84,7 @@ const rawVals = reactive<Record<string, string>>({});
 
 function disp(key: NumKey, group: UnitGroup | undefined, token: string | undefined): string {
   void project.value;
-  const v = driverFieldCell(key).value;
+  const v = fieldCell(key).value;
   if (typeof v !== 'number' || !isFinite(v)) return '';
   const d = group && token ? toDisplay(v, group, token) : v;
   return d.toFixed(fieldDp(key));
@@ -79,8 +98,8 @@ function onField(key: NumKey, group: UnitGroup | undefined, token: string | unde
   const v = parseFloat(raw);
   // Emptying a field RELEASES it back to Calculated — the override is withdrawn, not set to
   // nothing. Without this a cleared field would keep its last entered value invisibly.
-  if (raw.trim() === '') clearDriverField(key);
-  else if (isFinite(v)) enterDriverField(key, group && token ? fromDisplay(v, group, token) : v);
+  if (raw.trim() === '') clearField(key);
+  else if (isFinite(v)) enterField(key, group && token ? fromDisplay(v, group, token) : v);
 }
 function onBlur(key: NumKey) { delete rawVals[key]; }
 
@@ -99,7 +118,7 @@ function scaledLimits(key: NumKey, group: UnitGroup | undefined, token: string |
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
 function fieldClasses(key: NumKey, group: UnitGroup | undefined, token: string | undefined): Record<string, boolean> {
   void project.value;
-  const cellOf = (f: SpecField): Cell => driverFieldCell(f);
+  const cellOf = (f: SpecField): Cell<number> => fieldCell(f as NumKey);
   const mandatory = fieldIsMandatoryAndUnsatisfied(cellOf, key);
   return {
     [cellClassFor(cellOf, key)]: true,
@@ -156,7 +175,7 @@ onUnmounted(() => {
 
 function isBadValue(key: NumKey): boolean {
   void project.value;
-  const v = driverFieldCell(key).value;
+  const v = fieldCell(key).value;
   return typeof v === 'number' && !(v > 0);
 }
 
@@ -165,10 +184,42 @@ const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It 
 const dqNote = (key: NumKey): string => {
   if (isBadValue(key)) return BAD_VALUE_NOTE;
   void project.value;
-  return consistencyNote(project.value.consistencyIssues(), key);
+  return consistencyNote(project.value.driver.checkConsistency(), key);
 };
 
-const ebpVal = computed(() => { void project.value; const d = project.value.toEngineDriver(); return d ? ebpOf(d) : null; });
+const ebpVal = computed(() => {
+  void project.value;
+  const { Fs_hz, Qes } = project.value.driver.solveConsistencyGroup();
+  return Fs_hz != null && Qes != null && Qes !== 0 ? ebpOf(Fs_hz, Qes) : null;
+});
+
+// WinISD "Vb" — the rear/primary chamber volume. Each box type keeps its own volume slot under
+// its own `box.<type>` slice (there is no flat cross-type accessor), so this dispatches on the
+// active type, the same way the Box tab's own Volume field does in OriginalShell.
+const vb_m3 = computed<number | null>(() => {
+  void project.value;
+  const box = project.value.box;
+  switch (box.boxType.get()) {
+    case 'sealed': return box.sealed.volume_m3.get();
+    case 'vented': return box.vented.volume_m3.get().value;
+    case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3.get().value;
+    case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3.get().value;
+    case 'abc': return box.abc.chambers.rear.volume_m3.get().value;
+    case 'box-passive-radiator': return box.passiveRadiator.volume_m3.get();
+    default: return null;
+  }
+});
+function setVb_m3(v: number): void {
+  const box = project.value.box;
+  switch (box.boxType.get()) {
+    case 'sealed': box.sealed.volume_m3.set(v); break;
+    case 'vented': box.vented.volume_m3.set(v); break;
+    case 'bandpass4': box.bandpass4.chambers.rear.volume_m3.set(v); break;
+    case 'bandpass6': box.bandpass6.chambers.rear.volume_m3.set(v); break;
+    case 'abc': box.abc.chambers.rear.volume_m3.set(v); break;
+    case 'box-passive-radiator': box.passiveRadiator.volume_m3.set(v); break;
+  }
+}
 function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 
 // Tune edits the project directly — a write here is the same write the Box/driver panels make,
@@ -212,7 +263,7 @@ function reset()  { void project.value.cancel(discardWithoutAsking); }
       <div class="tune-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. The same box volume the Box tab edits; Cancel puts it back. WinISD: Vb.">
         <label>Vb</label>
         <div class="tune-unit">
-          <NumInput :model-value="project.boxVolume_m3()" @update:model-value="v => project.setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="4" />
+          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="4" />
           <UnitToggle field="Vb" group="volume" base="L" />
         </div>
       </div>

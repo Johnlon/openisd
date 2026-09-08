@@ -41,6 +41,9 @@ export const AIR_CONSTANTS_APP_DEFAULT: UiState['envDefaults'] =
   { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 };
 
 export interface PresentationState {
+  /** The New Project wizard is open. Lives here, not on a shell, because the empty-state
+   *  screen (no project open) also needs to open it and the shell is inside the null gate. */
+  newProjectOpen: boolean;
   /** The Browse Drivers modal is open. */
   browseOpen: boolean;
   /** The Tune panel is open. */
@@ -63,6 +66,7 @@ export interface PresentationState {
 
 function buildPresentationState(): PresentationState {
   const s: PresentationState = {
+    newProjectOpen: false,
     browseOpen: false,
     editDriver: false,
     editDriverInfo: false,

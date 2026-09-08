@@ -11,7 +11,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { watch, nextTick } from 'vue';
-import { projectChanged, requireFocusedProject } from '../../src/logic/appState.js';
+import { projectChanged, requireFocusedProject, newProject } from '../../src/logic/appState.js';
 import type { Filter } from '@openisd/design/engine';
 
 const hp = (fc: number): Filter => ({ id: 'f-hp', type: 'highpass', enabled: true, fc, Q: 0.7071 });
@@ -31,6 +31,7 @@ async function firingsDuring(body: () => void): Promise<number> {
 
 describe('filter edits re-trigger project change notification (drives the re-sweep)', () => {
   it('editing a filter field wakes projectChanged', async () => {
+    newProject();   // the app starts with NO project (QO121), so this test opens its own
     requireFocusedProject().filters.set([hp(80)]);
     const fired = await firingsDuring(() => {
       const edited = requireFocusedProject().filters.get().map(f => ({ ...f, fc: 120 }));
@@ -40,6 +41,7 @@ describe('filter edits re-trigger project change notification (drives the re-swe
   });
 
   it('adding a filter wakes projectChanged', async () => {
+    newProject();
     requireFocusedProject().filters.set([]);
     const fired = await firingsDuring(() => {
       requireFocusedProject().filters.set([...requireFocusedProject().filters.get(), hp(60)]);

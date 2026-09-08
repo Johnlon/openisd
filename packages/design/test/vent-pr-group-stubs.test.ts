@@ -32,30 +32,59 @@ function ventedProject() {
   return OpenISDProject.builder(driver, new Engine()).vented().volume_m3(0.03).tuning_hz(35).build();
 }
 
-describe('vent-group solve/reachability — stubbed, not yet implemented', () => {
-  it('solveVentGroup() is not yet implemented', () => {
-    expect(() => ventedProject().solveVentGroup()).toThrow(/not implemented/);
+/**
+ * The six vent/PR group-solve methods report "nothing solved, nothing known".
+ *
+ * They answer the tuning ↔ paired-quantity relation — vent length on a vented box, added cone mass
+ * on a passive-radiator one — which is NOT WIRED: `tuning_hz` is a stored value no calculation
+ * consumes, and the forward/inverse methods that would close the loop have no callers. That
+ * feature is ruled and scoped in QO126
+ * (`bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md`).
+ *
+ * What is pinned here is the INTERIM contract, and specifically that these do not THROW:
+ * `solveVentGroup()` runs on every project change (`packages/ui/src/logic/appState.ts`), so a
+ * throw means no project can be opened at all. Doing nothing is what the app did before the
+ * migration, when neither direction had a caller.
+ *
+ * These assertions are expected to CHANGE when QO126 lands — a solved pair makes
+ * `ventAchievedFb()` return a real frequency. This file pins today's behaviour so that change is
+ * deliberate and visible, not a silent drift.
+ */
+describe('vent-group solve/reachability — nothing wired, so nothing solved', () => {
+  it('solveVentGroup() runs without throwing — the store calls it on every project change', () => {
+    expect(() => ventedProject().solveVentGroup()).not.toThrow();
   });
 
-  it('ventAchievedFb() is not yet implemented', () => {
-    expect(() => ventedProject().ventAchievedFb()).toThrow(/not implemented/);
+  it('solveVentGroup() rewrites nothing, since no relation exists to solve through', () => {
+    const p = ventedProject();
+    const lengthBefore = p.box.vented.vent.length_m.get();
+    const tuningBefore = p.box.vented.tuning_hz.get();
+
+    p.solveVentGroup();
+
+    expect(p.box.vented.vent.length_m.get()).toEqual(lengthBefore);
+    expect(p.box.vented.tuning_hz.get()).toEqual(tuningBefore);
   });
 
-  it('ventMaxReachableFb() is not yet implemented', () => {
-    expect(() => ventedProject().ventMaxReachableFb()).toThrow(/not implemented/);
+  it('ventAchievedFb() reports no frequency', () => {
+    expect(ventedProject().ventAchievedFb()).toBeNull();
   });
 
-  it('ventTargetUnreachable() is not yet implemented', () => {
-    expect(() => ventedProject().ventTargetUnreachable()).toThrow(/not implemented/);
+  it('ventMaxReachableFb() reports no ceiling', () => {
+    expect(ventedProject().ventMaxReachableFb()).toBeNull();
+  });
+
+  it('ventTargetUnreachable() claims nothing is unreachable, rather than warning with nothing behind it', () => {
+    expect(ventedProject().ventTargetUnreachable()).toBe(false);
   });
 });
 
-describe('PR-group solve/reachability — stubbed, not yet implemented', () => {
-  it('solvePrGroup() is not yet implemented', () => {
-    expect(() => ventedProject().solvePrGroup()).toThrow(/not implemented/);
+describe('PR-group solve/reachability — nothing wired, so nothing solved', () => {
+  it('solvePrGroup() runs without throwing', () => {
+    expect(() => ventedProject().solvePrGroup()).not.toThrow();
   });
 
-  it('prTargetUnreachable() is not yet implemented', () => {
-    expect(() => ventedProject().prTargetUnreachable()).toThrow(/not implemented/);
+  it('prTargetUnreachable() claims nothing is unreachable', () => {
+    expect(ventedProject().prTargetUnreachable()).toBe(false);
   });
 });

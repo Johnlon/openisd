@@ -6,10 +6,12 @@ import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { useApp } from '../../logic/app.js';
 import { referenceRho, referenceC } from '../../logic/environment.js';
-import { OpenISDDriver } from '@openisd/design';
-import { readDriverFileText, driverFileBody } from '../../logic/driverFileText.js';
-import type { SpecField, Cell } from '@openisd/design';
-import { Provenance } from '@openisd/design';
+import { OpenISDDriver, VoiceCoilWiring } from '@openisd/design';
+import { engine } from '../../logic/appState.js';
+import { readDriverFileText } from '../../logic/driverFileText.js';
+import { driverToWdrBytes, driverToOwdrBytes, wdrTextToDriver, owdrTextToDriver } from '../../logic/fileImportExport.js';
+import type { Cell, FieldHandle } from '@openisd/design';
+import type { SpecField } from '../../logic/appState.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import { precision, fieldHelp } from '../../logic/fields/fieldRegistry.js';
@@ -58,8 +60,8 @@ const editorTitle = subject.kind === 'myDriver' ? 'Edit My Driver' : "Edit Proje
  *  subject; the picked driver `selection` handed over for an existing My Driver; a blank one
  *  for a fresh My Driver (`openNewDriver()` — `subject.seed` is null exactly then). */
 function seedDraft(): OpenISDDriver {
-  if (subject.kind === 'project') return OpenISDDriver.fromOwdrJson(project.value.committedDriverText());
-  return subject.seed ? subject.seed.copy() : OpenISDDriver.empty();
+  if (subject.kind === 'project') return project.value.driver.detach();
+  return subject.seed ? subject.seed.detach() : OpenISDDriver.empty(engine);
 }
 
 // markRaw + shallowRef: Driver is a class with private fields, and a Vue reactive proxy
@@ -83,15 +85,18 @@ function commitToMyDrivers(driver: OpenISDDriver): void {
  *  for the rename question. Null when the subject is new or storage is not readable. */
 function savedEntryForSubject(): OpenISDDriver | null {
   if (subject.kind !== 'myDriver' || !subject.openedAs) return null;
-  return myDrivers.list().find(d => d.uuid() === subject.openedAs) ?? null;
+  // The uuid is the REPOSITORY's key, held beside the driver rather than on it — a driver
+  // carries no identity of its own (John: "the id is not on the driver, it is the key into the
+  // open driver map").
+  return myDrivers.list().find(e => e.uuid === subject.openedAs)?.driver ?? null;
 }
 
 /** A save is a RENAME when the draft's brand/model differ from the SAVED entry's. */
 function saveWouldRename(): boolean {
   const saved = savedEntryForSubject();
   if (!saved) return false;
-  return saved.brand() !== draftDriver.value.brand()
-    || saved.model() !== draftDriver.value.model();
+  return saved.brand.get().value !== draftDriver.value.brand.get().value
+    || saved.model.get().value !== draftDriver.value.model.get().value;
 }
 
 // The ONE question (QO81 rename ruling, "option 3"): rename this driver in place (same uuid),
@@ -108,7 +113,6 @@ function saveRenameInPlace(): void {
 
 function saveAsCopy(): void {
   renameQuestionOpen.value = false;
-  draftDriver.value.mintFreshUuid();
   commitToMyDrivers(draftDriver.value);
   selection.closeEditor();
   emit('close');
@@ -122,13 +126,13 @@ const driverRaw = computed(() => {
   const _ = trigger.value;
   const d = draftDriver.value;
   return {
-    brand: d.brand(),
-    model: d.model(),
-    manufacturer: d.manufacturer(),
-    providedBy: d.providedBy(),
-    comment: d.comment(),
-    added: d.added(),
-    sku: d.sku(),
+    brand: d.brand.get().value,
+    model: d.model.get().value,
+    manufacturer: d.manufacturer.get().value,
+    providedBy: d.providedBy.get().value,
+    comment: d.comment.get().value,
+    added: d.added.get().value,
+    sku: d.sku,
     VCCon: d.spec[d.section].VCCon.get().value,
   };
 });
@@ -147,12 +151,12 @@ function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufact
   const value = edited.value;
   const d = draftDriver.value;
   switch (field) {
-    case 'brand': d.enterBrand(value); break;
-    case 'model': d.enterModel(value); break;
-    case 'manufacturer': d.enterManufacturer(value); break;
-    case 'providedBy': d.enterProvidedBy(value); break;
-    case 'comment': d.enterComment(value); break;
-    case 'added': d.enterAdded(value); break;
+    case 'brand': d.brand.set(value); break;
+    case 'model': d.model.set(value); break;
+    case 'manufacturer': d.manufacturer.set(value); break;
+    case 'providedBy': d.providedBy.set(value); break;
+    case 'comment': d.comment.set(value); break;
+    case 'added': d.added.set(value); break;
   }
   forceUpdate();
 }
@@ -168,7 +172,7 @@ function setNum(field: string, v: number | null) {
     case 'Fs': d.spec[d.section].Fs_hz.clear(); return;
     case 'Re': d.spec[d.section].Re_ohm.clear(); return;
     case 'Le': d.spec[d.section].Le_H.clear(); return;
-    case 'fLe': d.clearFLe(); return;
+    case 'fLe': d.spec[d.section].fLe_hz.clear(); return;
     case 'KLe': d.spec[d.section].KLe_H_sqrtHz.clear(); return;
     case 'Znom': d.spec[d.section].Znom_ohm.clear(); return;
     case 'Qts': d.spec[d.section].Qts.clear(); return;
@@ -186,31 +190,30 @@ function setNum(field: string, v: number | null) {
     case 'Pe': d.spec[d.section].Pe_W.clear(); return;
     case 'Dd': d.spec[d.section].Dd_m.clear(); return;
     case 'EBP': d.spec[d.section].EBP_hz.clear(); return;
-    case 'numVC': d.clearNumVC(); return;
-    case 'VCCon': d.spec[d.section].VCCon.clear(); return;
+    case 'numVC': d.spec[d.section].numVC.clear(); return;
     case 'Dia': d.spec[d.section].Dia_m.clear(); return;
     case 'Vd': d.spec[d.section].Vd_m3.clear(); return;
-    case 'no': d.clearNo(); return;
+    case 'no': d.spec[d.section].no.clear(); return;
     case 'SPLmax': d.spec[d.section].SPLmax_dB.clear(); return;
     case 'SPLmaxLF': d.spec[d.section].SPLmaxLF_dB.clear(); return;
     case 'USPL': d.spec[d.section].USPL_dB.clear(); return;
-    case 'alfaVC': d.clearAlfaVC(); return;
+    case 'alfaVC': d.spec[d.section].alfaVC_per_K.clear(); return;
     case 'Rt': d.spec[d.section].Rt_K_per_W.clear(); return;
     case 'Ct': d.spec[d.section].Ct_J_per_K.clear(); return;
-    case 'gamma': d.clearGamma(); return;
+    case 'gamma': d.spec[d.section].gamma_m_per_s2_A.clear(); return;
     case 'Rme': d.spec[d.section].Rme_kg_per_s.clear(); return;
     case 'Mpow': d.spec[d.section].Mpow_N_per_sqrtW.clear(); return;
     case 'Mcost': d.spec[d.section].Mcost_kg_per_s.clear(); return;
     case 'Gloss': d.spec[d.section].Gloss.clear(); return;
-    case 'c': d.clearC(); return;
-    case 'roo': d.clearRoo(); return;
+    case 'c': d.spec[d.section].c_m_per_s.clear(); return;
+    case 'roo': d.spec[d.section].roo_kg_per_m3.clear(); return;
     case 'Vcd': d.spec[d.section].Vcd_m.clear(); return;
     case 'Hg': d.spec[d.section].Hg_m.clear(); return;
     case 'Hc': d.spec[d.section].Hc_m.clear(); return;
-    case 'freq_low_hz': d.clearFreq_low_hz(); return;
-    case 'freq_high_hz': d.clearFreq_high_hz(); return;
-    case 'power_peak_W': d.clearPower_peak_W(); return;
-    case 'weight_kg': d.clearWeight_kg(); return;
+    case 'freq_low_hz': d.spec[d.section].freq_low_hz.clear(); return;
+    case 'freq_high_hz': d.spec[d.section].freq_high_hz.clear(); return;
+    case 'power_peak_W': d.spec[d.section].power_peak_W.clear(); return;
+    case 'weight_kg': d.spec[d.section].weight_kg.clear(); return;
     case 'Thick': d.spec[d.section].Thick_m.clear(); return;
     case 'Depth': d.spec[d.section].Depth_m.clear(); return;
     case 'MagDepth': d.spec[d.section].MagDepth_m.clear(); return;
@@ -227,7 +230,7 @@ function setNum(field: string, v: number | null) {
     case 'Fs': d.spec[d.section].Fs_hz.set(value); return;
     case 'Re': d.spec[d.section].Re_ohm.set(value); return;
     case 'Le': d.spec[d.section].Le_H.set(value); return;
-    case 'fLe': d.enterFLe(value); return;
+    case 'fLe': d.spec[d.section].fLe_hz.set(value); return;
     case 'KLe': d.spec[d.section].KLe_H_sqrtHz.set(value); return;
     case 'Znom': d.spec[d.section].Znom_ohm.set(value); return;
     case 'Qts': d.spec[d.section].Qts.set(value); return;
@@ -245,31 +248,30 @@ function setNum(field: string, v: number | null) {
     case 'Pe': d.spec[d.section].Pe_W.set(value); return;
     case 'Dd': d.spec[d.section].Dd_m.set(value); return;
     case 'EBP': d.spec[d.section].EBP_hz.set(value); return;
-    case 'numVC': d.enterNumVC(value); return;
-    case 'VCCon': d.spec[d.section].VCCon.set(value); return;
+    case 'numVC': d.spec[d.section].numVC.set(value); return;
     case 'Dia': d.spec[d.section].Dia_m.set(value); return;
     case 'Vd': d.spec[d.section].Vd_m3.set(value); return;
-    case 'no': d.enterNo(value); return;
+    case 'no': d.spec[d.section].no.set(value); return;
     case 'SPLmax': d.spec[d.section].SPLmax_dB.set(value); return;
     case 'SPLmaxLF': d.spec[d.section].SPLmaxLF_dB.set(value); return;
     case 'USPL': d.spec[d.section].USPL_dB.set(value); return;
-    case 'alfaVC': d.enterAlfaVC(value); return;
+    case 'alfaVC': d.spec[d.section].alfaVC_per_K.set(value); return;
     case 'Rt': d.spec[d.section].Rt_K_per_W.set(value); return;
     case 'Ct': d.spec[d.section].Ct_J_per_K.set(value); return;
-    case 'gamma': d.enterGamma(value); return;
+    case 'gamma': d.spec[d.section].gamma_m_per_s2_A.set(value); return;
     case 'Rme': d.spec[d.section].Rme_kg_per_s.set(value); return;
     case 'Mpow': d.spec[d.section].Mpow_N_per_sqrtW.set(value); return;
     case 'Mcost': d.spec[d.section].Mcost_kg_per_s.set(value); return;
     case 'Gloss': d.spec[d.section].Gloss.set(value); return;
-    case 'c': d.enterC(value); return;
-    case 'roo': d.enterRoo(value); return;
+    case 'c': d.spec[d.section].c_m_per_s.set(value); return;
+    case 'roo': d.spec[d.section].roo_kg_per_m3.set(value); return;
     case 'Vcd': d.spec[d.section].Vcd_m.set(value); return;
     case 'Hg': d.spec[d.section].Hg_m.set(value); return;
     case 'Hc': d.spec[d.section].Hc_m.set(value); return;
-    case 'freq_low_hz': d.enterFreq_low_hz(value); return;
-    case 'freq_high_hz': d.enterFreq_high_hz(value); return;
-    case 'power_peak_W': d.enterPower_peak_W(value); return;
-    case 'weight_kg': d.enterWeight_kg(value); return;
+    case 'freq_low_hz': d.spec[d.section].freq_low_hz.set(value); return;
+    case 'freq_high_hz': d.spec[d.section].freq_high_hz.set(value); return;
+    case 'power_peak_W': d.spec[d.section].power_peak_W.set(value); return;
+    case 'weight_kg': d.spec[d.section].weight_kg.set(value); return;
     case 'Thick': d.spec[d.section].Thick_m.set(value); return;
     case 'Depth': d.spec[d.section].Depth_m.set(value); return;
     case 'MagDepth': d.spec[d.section].MagDepth_m.set(value); return;
@@ -284,10 +286,28 @@ function setNum(field: string, v: number | null) {
   forceUpdate();
 }
 
+/** The voice-coil wiring, which is a NAME rather than a number and so has its own entry point —
+ *  `setNum`'s table is numeric, and routing a wiring through it would put a 1 or a 2 where the
+ *  domain expects 'parallel'/'series'. */
+function setWiring(e: Event) {
+  const d = draftDriver.value;
+  d.spec[d.section].VCCon.set(selectValue(e) === 'series' ? VoiceCoilWiring.Series : VoiceCoilWiring.Parallel);
+  forceUpdate();
+}
+
 // One reach into the DRAFT model (layer 3) — Tune passes the store's effective
 // model to the same helpers instead, so the provenance marks and the Q-group rule cannot
 // disagree between this dialog and Tune showing the same driver.
-function cellOf(field: string): Cell {
+function cellOf(field: string): Cell<number> {
+  return fieldOf(field)?.get() ?? { value: null, state: 'not-available' };
+}
+
+/** The draft's HANDLE for one field, or null for a name this editor's numeric table does not
+ *  own. `VCCon` is deliberately absent: it is the one spec field holding a wiring NAME rather
+ *  than a number, so it cannot be read as a numeric cell and the template binds it through
+ *  `driverRaw.VCCon` instead. Returning null rather than asserting a type keeps the compiler
+ *  proving the numeric reads, which is what a cast here would have switched off. */
+function fieldOf(field: string): FieldHandle<number> | null {
   const _ = trigger.value;
   const d = draftDriver.value;
   switch (field as SpecField) {
@@ -313,7 +333,6 @@ function cellOf(field: string): Cell {
     case 'Dd': return d.spec[d.section].Dd_m;
     case 'EBP': return d.spec[d.section].EBP_hz;
     case 'numVC': return d.spec[d.section].numVC;
-    case 'VCCon': return d.spec[d.section].VCCon;
     case 'Dia': return d.spec[d.section].Dia_m;
     case 'Vd': return d.spec[d.section].Vd_m3;
     case 'no': return d.spec[d.section].no;
@@ -346,7 +365,7 @@ function cellOf(field: string): Cell {
     case 'OuterX': return d.spec[d.section].OuterX_m;
     case 'OuterY': return d.spec[d.section].OuterY_m;
     case 'DVol': return d.spec[d.section].DVol_m3;
-    default: return { value: null, state: Provenance.NotAvailable };
+    default: return null;
   }
 }
 
@@ -360,13 +379,11 @@ function cellVal(field: string): number | null {
 }
 
 // ── Auto-calculate & Provenance Inspector ──────────────────────────────────────
-const autoCalculate = computed({
-  get: () => draftDriver.value.autoCalculate,
-  set: (val: boolean) => {
-    draftDriver.value.autoCalculate = val;
-    forceUpdate();
-  }
-});
+// FIXME(bugs/BUG_20260908_driver_editor_autocalculate_checkbox_controls_nothing.md): the domain
+// has no auto-calculate setting — the consistency solver always derives — so this holds the
+// checkbox's own state and drives nothing. The control is inert; it is bound here only so the
+// component compiles. Delete the checkbox, or give the domain a real setting, per that bug.
+const autoCalculate = ref(true);
 
 const inspectProvenance = ref(false);
 const inspectedField = ref<string | null>(null);
@@ -483,7 +500,7 @@ const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It 
 // contradict each other beyond their own precision. The ADT decides; every member of the
 // group is marked, because none of them is more wrong than the others. Like every other DQ
 // state here it blocks nothing: the driver still simulates, saves and exports.
-const issues = computed(() => { const _ = trigger.value; return draftDriver.value.consistencyIssues(); });
+const issues = computed(() => { const _ = trigger.value; return draftDriver.value.checkConsistency(); });
 
 /** The one DQ mark per field: its reason, or '' when there is nothing to say. */
 function dqNote(field: string): string {
@@ -513,7 +530,12 @@ const identityReasons = computed<string[]>(() => {
 // ("any two of Qts/Qes/Qms", "Qms must exceed Qts"), which no per-field check can express.
 const chartBlockingReasons = computed<string[]>(() => {
   const _ = trigger.value;
-  return draftDriver.value.errors().filter(e => e.level === 'error').map(e => e.message);
+  // FIXME(BUG_20260908_driver_editor_autocalculate_checkbox_controls_nothing sibling): the
+  // domain no longer separates "blocks the chart" from "is inconsistent" — `errors()` is gone and
+  // `checkConsistency()` is what remains, so every inconsistency reads as chart-blocking here.
+  // Whether any of them should actually block a chart is a product question, not a rename.
+  return draftDriver.value.checkConsistency()
+    .map(i => `${i.formula}: ${i.target} is ${i.actual}, the others imply ${i.expected}`);
 });
 
 // The domain object already answers this — see OgTune.vue.
@@ -521,7 +543,7 @@ const mandatory = (field: string) => fieldIsMandatoryAndUnsatisfied(cellOf, fiel
 
 function ebpVal(): number | null {
   const _ = trigger.value;
-  return draftDriver.value.ebp();
+  return draftDriver.value.spec[draftDriver.value.section].EBP_hz.get().value;
 }
 
 /**
@@ -559,13 +581,13 @@ function openSaveMyDialog(forCopy: boolean = false) {
 
 function confirmSaveToMyDrivers() {
   if (!saveBrand.value.trim() || !saveModel.value.trim()) return;
-  draftDriver.value.enterBrand(saveBrand.value.trim());
-  draftDriver.value.enterModel(saveModel.value.trim());
+  draftDriver.value.brand.set(saveBrand.value.trim());
+  draftDriver.value.model.set(saveModel.value.trim());
   forceUpdate();
 
   if (isCopyAction.value) {
-    // A copy is a DIFFERENT driver: fresh identity, never an overwrite (QO81).
-    draftDriver.value.mintFreshUuid();
+    // A copy is a DIFFERENT driver: fresh identity, never an overwrite (QO81). The identity is
+    // the repository's key, minted by `upsert` when no uuid is given — a driver carries none.
     const saved = myDrivers.upsert(draftDriver.value);
     saveMyDialogOpen.value = false;
     copiedMsg.value = saved ? 'Copied to My Drivers' : 'Saved drivers are read-only — copy not stored';
@@ -624,7 +646,7 @@ function close() {
   if (subject.kind === 'myDriver') {
     openSaveMyDialog(false);
   } else {
-    project.value.loadDriverFromOwdrText(draftDriver.value.toOwdrYml());
+    project.value.setDriver(draftDriver.value);
     selection.closeEditor();
     emit('close');
   }
@@ -673,9 +695,11 @@ function handleFileLoaded(e: Event) {
     try {
       // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
       // an `.owdr` IS that record already. One reader each, and no second parse invented here.
-      draftDriver.value = markRaw(format === DriverFileFormat.Wdr
-        ? OpenISDDriver.fromWdrText(text)
-        : OpenISDDriver.fromOwdrYml(text));
+      const { value: read, errors } = format === DriverFileFormat.Wdr
+        ? wdrTextToDriver(text)
+        : owdrTextToDriver(text);
+      if (!read) { alert('Failed to parse file: ' + (errors[0]?.message ?? 'unreadable')); return; }
+      draftDriver.value = markRaw(read);
       forceUpdate();
     } catch (err) {
       alert('Failed to parse file: ' + (err instanceof Error ? err.message : String(err)));
@@ -694,15 +718,14 @@ async function writeDriver(format: DriverFileFormat) {
   // `<brand> <model>` — the same name the driver reads by everywhere else, and what WinISD's
   // Save-Driver defaults to. It is also what makes the file load back under its own identity.
   const base = [driverRaw.value.brand, driverRaw.value.model]
-    .filter(x => x.length > 0).join(' ').trim() || 'Driver';
+    .filter((x): x is string => !!x && x.length > 0).join(' ').trim() || 'Driver';
   // `.owdr` IS the record. A `.wdr` is that record projected by the serialiser — the one place
   // that knows the format — and a driver too incomplete to project says so rather than writing
   // a file WinISD would refuse.
-  const { value: text, errors } = format === DriverFileFormat.Owdr
-    ? { value: draftDriver.value.toOwdrYml(), errors: [] }
-    : draftDriver.value.toWdrText();
-  if (!text) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
-  const body = driverFileBody(text, format !== DriverFileFormat.Owdr);
+  const { value: body, errors } = format === DriverFileFormat.Owdr
+    ? { value: driverToOwdrBytes(draftDriver.value), errors: [] }
+    : driverToWdrBytes(draftDriver.value);
+  if (!body) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
   // Then the SYSTEM save dialog — the user picks folder and name, as a desktop app would.
   // The MIME must be a CUSTOM type, not application/json or text/plain. The picker unions the
   // extensions we list with every extension registered to that MIME, so `application/json`
@@ -935,7 +958,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld de-conn" data-field-key="VCCon" :title="fieldHelp('VCCon')">
                 <label>Connection</label>
-                <select class="de-conn-sel" :value="driverRaw.VCCon ?? 1" @change="e => setNum('VCCon', parseInt(selectValue(e)))"><option :value="1">Parallel</option><option :value="2">Series</option></select>
+                <select class="de-conn-sel" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option value="parallel">Parallel</option><option value="series">Series</option></select>
               </div>
             </div>
           </div>

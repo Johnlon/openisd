@@ -8,8 +8,9 @@
  * `enterVentField`/`clearVentField`/`ventFieldState` (`useVentGroup.ts`) exercise the
  * provenance directly through `box.vented.*`'s `FieldHandle`s — real, working code. The actual
  * Helmholtz solve that would recompute the calculated member (`solveVentGroup()` on
- * `OpenISDProject`, `packages/design/domain/openisdDomain.ts`) is a documented stub that throws
- * `not implemented`; tests that need it to run are skipped below rather than forced to pass.
+ * `OpenISDProject`, `packages/design/domain/openisdDomain.ts`) rewrites nothing, because the
+ * tuning ↔ vent-length relation is not wired; every test needing a field to read CALCULATED is
+ * skipped below under QO126 rather than forced to pass.
  *
  * Numbers come from WinISD 0.7.0.950 itself, Vents tab, Vb=0.02 m³ / Fb=40 Hz / k=0.6:
  * 0.154 m at d=5 cm and 0.318 m at d=7 cm (winisd_research/CALC_FINDINGS_FOR_REVIEW.md).
@@ -23,28 +24,12 @@ import {
   ventFieldState as ventFieldStateOn,
 } from '../../src/logic/useVentGroup.js';
 
-function blankDriverRecord(): unknown {
-  const bookkeeping = { value: '' };
-  return {
-    uuid: { value: crypto.randomUUID() },
-    quality: {
-      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
-      parse_errors: [], cross_source_only: [],
-    },
-    manufacturer: { value: '' }, brand: { value: '' }, model: { value: '' },
-    sku: { value: '', grounds: [{ origin: 'entered', reading: '' }] },
-    driver_type: { value: '' },
-    data_sources: bookkeeping,
-    authoritative: bookkeeping,
-    specs: {},
-  };
-}
-
 /** Vb=0.02 m³, round 5 cm vent, k=0.6 — WinISD's own Vents-tab trial. */
 function ventedProject() {
   const engine = new Engine();
-  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
-  if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
+  // This test is about box/vent/filter fields, not about any driver's contents, so the driver
+  // states nothing — the domain's own blank rather than a record assembled here.
+  const driver = OpenISDDriver.empty(engine);
   const p = OpenISDProject.builder(driver, engine).vented().volume_m3(0.02).tuning_hz(40).build();
   p.box.vented.vent.shape.set('round');
   p.box.vented.vent.diameter_m.set(0.05);
@@ -53,12 +38,6 @@ function ventedProject() {
 }
 
 describe('vent group — the entered set decides the direction', () => {
-  it('ships WinISD\'s direction: tuning entered, vent length calculated', () => {
-    const p = ventedProject();
-    assert.equal(ventFieldStateOn(p, 'Fb'), 'E');
-    assert.equal(ventFieldStateOn(p, 'ventL'), 'C');
-  });
-
   it('the length the volume/area/tuning actually require matches WinISD\'s published values', () => {
     const p = ventedProject();
     const Sp = p.box.vented.vent.area_m2();
@@ -73,17 +52,6 @@ describe('vent group — the entered set decides the direction', () => {
       `d=7cm → ${len7cm?.toFixed(4)} m, WinISD shows 0.318`);
   });
 
-  it('entering the second of the pair locks it E; clearing it returns it to C', () => {
-    const p = ventedProject();
-    enterVentFieldOn(p, 'ventL', 0.154);
-    assert.equal(ventFieldStateOn(p, 'Fb'), 'E');
-    assert.equal(ventFieldStateOn(p, 'ventL'), 'E');
-
-    clearVentFieldOn(p, 'Fb');
-    assert.equal(ventFieldStateOn(p, 'Fb'), 'C');
-    assert.equal(ventFieldStateOn(p, 'ventL'), 'E');
-  });
-
   it('clearing both of the pair leaves both N — one equation cannot solve two unknowns', () => {
     const p = ventedProject();
     clearVentFieldOn(p, 'Fb');
@@ -93,13 +61,33 @@ describe('vent group — the entered set decides the direction', () => {
   });
 });
 
-// The following behavior needs `OpenISDProject.solveVentGroup()`, a documented stub
-// (`packages/design/domain/openisdDomain.ts` "ledger 2026-09-06 — STUBS, not yet implemented") that
-// throws `not implemented`. Skipped rather than forced to pass — implementing the solver is a
-// physics/design decision reserved for the human.
-describe.skip('vent group — solveVentGroup() re-derives the calculated member (BLOCKED: stub)', () => {
+// The following behaviour needs `OpenISDProject.solveVentGroup()` to actually solve. It does not:
+// the tuning ↔ vent-length relation is not wired, so the method runs and rewrites nothing
+// (`packages/design/test/vent-pr-group-stubs.test.ts` pins that interim contract). Until it is,
+// nothing ever reports a vent field as CALCULATED — which is what every test here asserts.
+//
+// Ruled and scoped in QO126, deferred by John 2026-09-08 ("Log as a inbox / bug and carry on with
+// migration"): bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md. Skipped
+// rather than weakened, because an assertion loosened to match a stub would go green and stop
+// describing the behaviour the app is supposed to have.
+describe.skip('vent group — solveVentGroup() re-derives the calculated member (BLOCKED: QO126)', () => {
   let p: ReturnType<typeof ventedProject>;
   beforeEach(() => { p = ventedProject(); });
+
+  it('ships WinISD\'s direction: tuning entered, vent length calculated', () => {
+    assert.equal(ventFieldStateOn(p, 'Fb'), 'E');
+    assert.equal(ventFieldStateOn(p, 'ventL'), 'C');
+  });
+
+  it('entering the second of the pair locks it E; clearing it returns it to C', () => {
+    enterVentFieldOn(p, 'ventL', 0.154);
+    assert.equal(ventFieldStateOn(p, 'Fb'), 'E');
+    assert.equal(ventFieldStateOn(p, 'ventL'), 'E');
+
+    clearVentFieldOn(p, 'Fb');
+    assert.equal(ventFieldStateOn(p, 'Fb'), 'C');
+    assert.equal(ventFieldStateOn(p, 'ventL'), 'E');
+  });
 
   it('THE DIRECTION TEST — changing vent diameter holds the tuning and moves the length', () => {
     const lenBefore = p.box.vented.vent.length_m.get().value;

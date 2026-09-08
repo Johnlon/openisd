@@ -190,14 +190,12 @@ export function createDriverSelection(): DriverSelection {
     },
 
     /**
-     * Open the editor to CREATE a new driver from scratch — a completely blank driver, with no
-     * placeholder brand or model. The editor's OK stays disabled until the user supplies both,
-     * so the driver cannot be saved without the `<brand>/<model>` identity it will be filed under.
+     * Open the editor to CREATE a new driver from scratch. The editor's OK stays disabled until
+     * the user supplies brand and model, so the driver cannot be saved without the
+     * `<brand>/<model>` identity it will be filed under.
      *
      * Uses the myDriver subject, so OK saves it into My Drivers and leaves the open project's
-     * driver alone. `openedAs` is empty: there is no existing entry this one replaces. `seed`
-     * is null — this module is not a licensed `OpenISDDriver` constructor, so the editor builds
-     * its own blank via `OpenISDDriver.empty()`.
+     * driver alone.
      */
     openNewDriver() {
       subject = { kind: 'myDriver', openedAs: '' };

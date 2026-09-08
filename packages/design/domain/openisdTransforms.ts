@@ -98,8 +98,22 @@ export abstract class BoxProjectBuilder {
         this.engine = engine;
     }
 
-    /** The chosen radiator, for the builders that take one. */
+    /** The chosen radiator. */
     protected radiatorChoice: OpenISDPassiveRadiatorStandalone | null = null;
+
+    /**
+     * Selects the radiator this project's passive-radiator box holds. Available on EVERY builder,
+     * not just the passive-radiator one: a project carries its radiator whatever box type is
+     * active, so a design can be switched to a passive-radiator box without the slot being null
+     * and the first write to a radiator field throwing.
+     *
+     * Takes an ALREADY-VALIDATED radiator. Kept as the OBJECT; `build()` has the box's own
+     * radiator copy it in, since the record is private to the radiator.
+     */
+    radiator(radiator: OpenISDPassiveRadiatorStandalone): this {
+        this.radiatorChoice = radiator;
+        return this;
+    }
 
     protected abstract boxRecord(): OpenISDBoxJson;
 
@@ -353,13 +367,6 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
 
     count(v: number): this {
         this.#count = v;
-        return this;
-    }
-
-    /** Takes an ALREADY-VALIDATED radiator, from `passiveRadiatorFromConformingRecord()`. Kept as
-     *  the OBJECT; `build()` has the box's own radiator copy it in. */
-    radiator(radiator: OpenISDPassiveRadiatorStandalone): this {
-        this.radiatorChoice = radiator;
         return this;
     }
 

@@ -26,8 +26,9 @@ import {
  */
 import { watch } from 'vue';
 import {
-  state, driverName, requireFocusedProject,
-  markProjectSaved, applyLoadedProject, currentProject, currentViewSnapshot,
+  driverName, focusedProject, requireFocusedProject,
+  markProjectSaved, addProject, currentProject, currentViewSnapshot,
+  openProjectFromDriver,
 } from './appState.js';
 import { presentationState } from './presentationState.js';
 import { createFileSave, projectNameFromFilename, projectFilename, copyOfName, type FileStorage, type ProjectRepo, type FileNaming } from '@openisd/persistence';
@@ -75,7 +76,8 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   // location, with the new name already filled in. Without this, renaming would keep silently
   // overwriting the file that still carries the OLD name — the one thing the name↔file rule
   // forbids. `FileStorage` retains the handle itself; this only asks it to forget.
-  watch(() => state.project.name, (name) => {
+  watch(() => focusedProject()?.name.get() ?? null, (name) => {
+    if (name === null) return;
     const openName = deps.fileStorage.openFileName();
     if (openName && projectNameFromFilename(openName) !== name) deps.fileStorage.forget();
   });
@@ -86,7 +88,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
 
   /** Adopt the picked file's name as the project name — the file names the project. */
   function adoptFileName(fileName: string | null, fallbackFilename: string): void {
-    state.project.name = projectNameFromFilename(fileName || fallbackFilename);
+    requireFocusedProject().name.set(projectNameFromFilename(fileName || fallbackFilename));
   }
 
   /** Save — overwrites the previously-picked file in place; first save behaves like Save As. */
@@ -94,7 +96,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
    *  dialog — a caller doing "save, then close" must not close on a cancelled save. */
   async function saveProject(): Promise<boolean> {
     closeTunePanelAfterIO();
-    const suggested = projectFilename(state.project.name);
+    const suggested = projectFilename(currentProject().name.get());
     const result = await deps.projectRepo.saveToFile(currentProject(), owprNaming(suggested));
     if (result.cancelled) return false;
     adoptFileName(result.name, suggested);
@@ -119,7 +121,8 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   async function saveProjectAs(): Promise<void> {
     closeTunePanelAfterIO();
     const hadOpenFile = deps.fileStorage.openFileName() != null;
-    const suggested = projectFilename(hadOpenFile ? copyOfName(state.project.name) : state.project.name);
+    const currentName = currentProject().name.get();
+    const suggested = projectFilename(hadOpenFile ? copyOfName(currentName) : currentName);
     const result = await deps.projectRepo.saveToNewFile(currentProject(), owprNaming(suggested));
     if (result.cancelled) return;
     adoptFileName(result.name, suggested);
@@ -173,24 +176,27 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
       try {
         const format = formatOf(f.name) ?? sniff(new TextEncoder().encode(text));
 
-        if (format === DriverFileFormat.Wdr) {
-          const { value: driver, errors } = wdrTextToDriver(text);
-          if (!driver) throw new Error(errors[0]?.message ?? 'could not read .wdr');
-          requireFocusedProject().loadDriver(driver);
-        } else if (format === DriverFileFormat.Owdr) {
-          const { value: driver, errors } = owdrTextToDriver(text);
-          if (!driver) throw new Error(errors[0]?.message ?? 'could not read .owdr');
-          requireFocusedProject().loadDriver(driver);
+        if (format === DriverFileFormat.Wdr || format === DriverFileFormat.Owdr) {
+          const { value: driver, errors } = format === DriverFileFormat.Wdr
+            ? wdrTextToDriver(text) : owdrTextToDriver(text);
+          if (!driver) throw new Error(errors[0]?.message ?? `could not read ${format.value}`);
+          // A driver file with a project open SWAPS the driver in place; with none open it
+          // opens as a project of its own (a default sealed box the user then refines).
+          const open = focusedProject();
+          if (open) open.loadDriver(driver);
+          else openProjectFromDriver(driver, projectNameFromFilename(f.name));
         } else if (format === ProjectFileFormat.Wpr) {
           const { value: project, errors } = wprTextToProject(text);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
-          applyLoadedProject(project);
-          state.project.name = projectNameFromFilename(f.name);
+          // Opening a project file is opening a NEW project — it never folds into whatever is
+          // already open (a project already open keeps its own tab and contents).
+          project.name.set(projectNameFromFilename(f.name));
+          addProject(project);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
           const { value: project, errors } = owprTextToProject(deps.projectRepo, text);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read the project file');
-          applyLoadedProject(project);
-          state.project.name = projectNameFromFilename(f.name);
+          project.name.set(projectNameFromFilename(f.name));
+          addProject(project);
         } else {
           throw new Error('Unsupported or unrecognized file format');
         }

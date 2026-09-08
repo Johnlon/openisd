@@ -71,6 +71,35 @@ type SpecFieldName = {
 
 type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
 
+/** The solver quantity a record spec key names, for the fields the solver can derive.
+ *
+ * A key ABSENT here is one the solver has no relation for, so an unstated value stays
+ * `not-available` — `Xmax`, the dimensions, the thermal parameters. Adding a key here makes that
+ * field readable as `calculated` the moment the solver can reach it; it does not, on its own,
+ * teach the solver anything.
+ *
+ * `numVC`/`VCCon` are absent deliberately: they are a coil count and a wiring name, not
+ * quantities, and each has its own getter carrying WinISD's default. `c`/`roo` are absent for the
+ * same kind of reason — an unstated air constant reads off the driver's environment, not off a
+ * relation. */
+/** The solver quantities that are NUMBERS. `SolverQuantities` also carries the coil facts
+ *  (`wiring`, a name), which no numeric spec field maps to — naming that here is what keeps
+ *  `f()`'s lookup typed as a number without asserting anything. */
+type NumericQuantity = {
+    [K in keyof SolverQuantities]-?: NonNullable<SolverQuantities[K]> extends number ? K : never;
+}[keyof SolverQuantities];
+
+const SOLVED_BY: Readonly<Partial<Record<SpecFieldName, NumericQuantity>>> = Object.freeze({
+    Fs: 'Fs_hz', Re: 'Re_ohm', Znom: 'Znom_ohm', Le: 'Le_H', fLe: 'fLe_hz', KLe: 'KLe_H_sqrtHz',
+    Qes: 'Qes', Qms: 'Qms', Qts: 'Qts', Vas: 'Vas_m3', Sd: 'Sd_m2', Dd: 'Dd_m', BL: 'BL_Tm',
+    Mms: 'Mms_kg', Cms: 'Cms_m_per_N', Rms: 'Rms_kg_per_s', EBP: 'EBP_hz',
+    Xmax: 'Xmax_m', Vd: 'Vd_m3', Hc: 'Hc_m', Hg: 'Hg_m',
+    Pe: 'Pe_W', no: 'no', SPL: 'SPL_dB', USPL: 'USPL_dB', SPLmax: 'SPLmax_dB',
+    SPLmaxLF: 'SPLmaxLF_dB', Rme: 'Rme_kg_per_s', Mpow: 'Mpow_N_per_sqrtW',
+    Mcost: 'Mcost_kg_per_s', gamma: 'gamma_m_per_s2_A', Gloss: 'Gloss',
+    Vcd: 'Vcd_m', Depth: 'Depth_m', MagDepth: 'MagDepth_m', Magnet: 'Magnet_m', DVol: 'DVol_m3',
+} as const);
+
 
 // A package-private WeakMap bridge lets a wrapper read a component's internal
 // JSON record without exposing it via a public `toJson()` method.
@@ -205,8 +234,22 @@ export interface PassiveRadiatorBox {
 
     /** The tuning mass this radiator needs to hit `fp_hz` in this box — the inverse of
      *  `systemTuning_hz()`, and the number a PR design is actually dialled in with. Null on the
-     *  same terms. */
+     *  same terms, and null when `fp_hz` is above the tuning a bare cone already reaches, since
+     *  that asks for mass to be taken off a cone carrying none. */
     addedMassForTuning_kg(fp_hz: number): number | null;
+
+    // FIXME(QO126): `tuning_hz` above is a stored value NOTHING consumes, and neither this method
+    // nor `systemTuning_hz()` is called by anything — so typing a target changes no design.
+    // `tuning_hz` and `addedMass_kg` are one relation seen from two ends and must become a solved
+    // pair, both read/write/calculated, stating either deriving the other. Ruled and scoped in
+    // bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md; deferred until
+    // the packages/model → packages/design migration lands.
+
+    /** WinISD's "Fs (with added mass)" — the RADIATOR'S OWN resonance carrying whatever tuning
+     *  mass is on its cone, with no box in it. A different quantity from `systemTuning_hz()`,
+     *  which is this radiator loaded by this box's air. Null until a radiator is chosen and
+     *  states the mass and compliance the resonance is made of. */
+    resonanceWithAddedMass_hz(): number | null;
 }
 
 /** The enclosure: which box type is active, and every box type's own fields. All six are
@@ -562,7 +605,21 @@ class OpenISDBox implements Box {
             },
             addedMassForTuning_kg: (fp_hz: number) => {
                 const P = this.#prParams(prVolume.get(), prAddedMass.get().value, radiator);
-                return P === null || !(fp_hz > 0) ? null : engine.prMassForFp(P, fp_hz);
+                if (P === null || !(fp_hz > 0)) return null;
+                // The engine answers with the TOTAL moving mass the tuning needs, since that is
+                // what `prTuning()` takes; what goes ON the cone is that less the radiator's own.
+                const added_kg = engine.prMassForFp(P, fp_hz) - P.prMmd;
+                // A tuning above the one this radiator reaches with a bare cone needs mass taken
+                // OFF it, which is not a smaller answer — it is no answer.
+                return added_kg < 0 ? null : added_kg;
+            },
+            resonanceWithAddedMass_hz: () => {
+                // The radiator alone, so the box's volume is not one of the inputs — read the two
+                // figures the resonance is made of straight off the radiator's own surface.
+                const Mms_kg = radiator.spec.Mms_kg.get().value;
+                const Cms = radiator.spec.Cms_m_per_N.get().value;
+                if (Mms_kg === null || Cms === null) return null;
+                return engine.prFsWithMass(Mms_kg, prAddedMass.get().value ?? 0, Cms);
             },
         };
     }
@@ -792,13 +849,53 @@ export class OpenIsdDriverSpec {
             },
         );
 
+        /** Everything this section's STATED values imply, and nothing it does not.
+         *
+         *  Memoised against the record's current value, because a solve is a full fixpoint over
+         *  every relation and `get()` is called per field, per render. The cache is a pure
+         *  function of the record, so a `record.set` anywhere — including one from another window
+         *  onto the same driver — invalidates it by identity, and nothing has to remember to.
+         *
+         *  Nothing here writes back: the record holds what was stated, and a derived value is
+         *  reported at the getter and never stored (John, 2026-09-08, QO127 — "NOTHING is supposed
+         *  to call the solver independently and write to the domain"). */
+        let solvedFor: OpenISDDeviceJson | null = null;
+        let solved: Readonly<SolverQuantities> = {};
+        const solvedNow = (): Readonly<SolverQuantities> => {
+            const json = record.get();
+            if (json === solvedFor) return solved;
+            const stated = json.specs[section];
+            const statedValue = (k: keyof DriverSpecsSection): number | undefined =>
+                (stated === undefined ? null : winningValue(stated[k])) ?? undefined;
+            const input: SolverQuantities = {};
+            for (const [recordKey, quantity] of Object.entries(SOLVED_BY)) {
+                const v = statedValue(recordKey as keyof DriverSpecsSection);
+                if (v !== undefined) input[quantity] = v;
+            }
+            // The driver's own air, which every geometry relation needs and no record has to
+            // state — the same constants `c_m_per_s`/`roo_kg_per_m3` report through `air()`.
+            const air = engine.airFor(airProvider());
+            input.c_m_per_s = statedValue('c') ?? air.c;
+            input.roo_kg_per_m3 = statedValue('roo') ?? air.rho;
+            solved = engine.solveConsistencyGroup(input);
+            solvedFor = json;
+            return solved;
+        };
+
         const f = (key: SpecFieldName): Field<number> => new Field<number>(
             // A key ABSENT from the section means the driver does not state that parameter — the
-            // ordinary shape of a scraped record, not a fault.
+            // ordinary shape of a scraped record, not a fault. Unstated is not the same as
+            // unknowable: if the solver can derive it from what IS stated, that is what the field
+            // reports, marked `calculated` so a reader can still tell derived from entered.
             () => {
                 const stated = record.get().specs[section]?.[key];
                 const v = winningValue(stated);
-                return v === null ? {value: null, state: 'not-available'} : {value: v, state: 'entered'};
+                if (v !== null) return {value: v, state: 'entered'};
+                const quantity = SOLVED_BY[key];
+                const derived = quantity === undefined ? undefined : solvedNow()[quantity];
+                return derived === undefined
+                    ? {value: null, state: 'not-available'}
+                    : {value: derived, state: 'calculated'};
             },
             (v) => {
                 const json = record.get();
@@ -932,6 +1029,39 @@ export class OpenIsdDriverSpec {
 }
 
 /**
+ * A device record stating NOTHING but its own bookkeeping — what `empty()` hands an editor.
+ *
+ * Every spec section is absent, so each field reads `not-available` and the editor's own
+ * "not entered" rendering is what the user sees. The bookkeeping fields cannot be absent: the
+ * conformance guard requires them, so a record without them is not a record and could never be
+ * saved. They are minted the way a `.wdr` import mints them (`openisdSchema.ts`
+ * `wdrToOpenIsdRecord`), which faces the same problem — a record with no source document
+ * behind it.
+ */
+function blankDeviceRecord(section: 'woofer' | 'tweeter' | 'passive-radiator'): OpenISDDeviceJson {
+    return {
+        uuid: {value: newUuid()},
+        quality: {
+            confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+            parse_errors: [], cross_source_only: [],
+        },
+        // Stated as empty rather than omitted: the guard requires all three, and an editor
+        // overwrites them the moment the user types. `Field`'s own reader reports an empty
+        // string as `not-available`, so a blank still renders blank.
+        manufacturer: {value: ''},
+        brand: {value: ''},
+        model: {value: ''},
+        sku: {value: '', grounds: [{origin: 'manual', reading: ''}]},
+        driver_type: {value: section},
+        data_sources: {value: {}},
+        // No document to name — `openisd`, the pipeline's own role, exactly as the `.wdr`
+        // import uses it for the same reason.
+        authoritative: {value: 'openisd'},
+        specs: {[section]: {}},
+    };
+}
+
+/**
  * A DEVICE — a record describing one physical thing, with its identity and its provenance.
  *
  * A driver and a passive radiator are both devices. What they share is everything at this level:
@@ -1014,6 +1144,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         const sectionProblems = driverSectionProblems(conformed.json);
         if (sectionProblems.length > 0) return sectionProblems;
         return OpenISDDriverStandalone.wrap(conformed.json, engine);
+    }
+
+    /** A driver stating nothing — what the editor opens on "create a new driver from scratch".
+     *  Every spec field reads `not-available`, so the editor renders it blank and the consistency
+     *  solver has nothing to work from until the user types. No conformance check: this record is
+     *  minted here, not received from outside, so there is no untrusted input to refuse. */
+    static empty(engine: Engine): OpenISDDriver {
+        return OpenISDDriverStandalone.wrap(blankDeviceRecord('woofer'), engine);
     }
 
     static fromYml(text: string, engine: Engine): OpenISDDriver | string[] {
@@ -1470,6 +1608,13 @@ class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
  *  `export`ed for `openisdTransforms.ts` (`conformingRecordToOpenIsdPassiveRadiatorStandalone`
  *  and the PR builder call `wrap()`); `domain/index.ts` does not re-export it. */
 export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
+    /** A radiator stating nothing — the counterpart of `OpenISDDriver.empty()`, and how a PR
+     *  comes into existence before anyone has typed its parameters. `configurePR()` accepts it,
+     *  so a box can adopt one and the editor fills it in from there. */
+    static empty(engine: Engine): OpenISDPassiveRadiatorStandalone {
+        return OpenISDPassiveRadiatorStandalone.wrap(blankDeviceRecord('passive-radiator'), engine);
+    }
+
     static fromConformingRecord(record: unknown, engine: Engine): OpenISDPassiveRadiatorStandalone | string[] {
         const conformed = OpenISDDeviceJson.fromConformingRecord(record);
         if ('problems' in conformed) return conformed.problems;
@@ -1545,6 +1690,28 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
 export class OpenISDProject {
     static builder(driver: OpenISDDriver, engine: Engine): ProjectBuilder {
         return new ProjectBuilder(driver, engine);
+    }
+
+    /**
+     * A new project with every section present and nothing stated — what the New Project wizard
+     * opens on and writes into, rather than collecting a spec and building at the end.
+     *
+     * The driver and the radiator are blank devices (`OpenISDDriver.empty()`,
+     * `OpenISDPassiveRadiatorStandalone.empty()`), so no physical value here was invented: the
+     * wizard repopulates the driver from the one the user picks, and the radiator from the one
+     * they pick when they choose a passive-radiator box.
+     *
+     * The radiator is present FROM THE START, in every project, whatever its box type. A radiator
+     * slot that is null until someone calls `configurePR()` makes switching to a passive-radiator
+     * box throw on the first write to a radiator field, which is the box type being unreachable
+     * rather than unconfigured.
+     */
+    static empty(engine: Engine): OpenISDProject {
+        return OpenISDProject.builder(OpenISDDriver.empty(engine), engine)
+            .sealed()
+            .volume_m3(0)
+            .radiator(OpenISDPassiveRadiatorStandalone.empty(engine))
+            .build();
     }
 
     /** THE project's identity, and IN-MEMORY ONLY — deliberately a class field rather than a
@@ -2165,41 +2332,52 @@ export class OpenISDProject {
         return true;
     }
 
-    // ── vent-group / PR-group solve, ledger 2026-09-06 — STUBS, not yet implemented ───────────
+    // ── vent-group / PR-group solve ───────────────────────────────────────────────────────────
     //
-    // The Helmholtz group-solve and reachability logic these six answer never existed on this
-    // class; only the raw volume_m3/tuning_hz FieldHandles do. Stubbed to unblock migrating
-    // useVentGroup.ts/usePrGroup.ts off ManagedProject onto this type — real logic is a separate
-    // follow-up.
+    // FIXME(QO126, bugs/BUG_20260908_six_vent_and_pr_group_solve_methods_are_throwing_stubs.md):
+    // these six answer the tuning ↔ paired-quantity relation — vent length on a vented box, added
+    // cone mass on a passive-radiator one — which is NOT WIRED. `tuning_hz` is a stored value no
+    // calculation consumes, and the forward/inverse methods that would close the loop
+    // (`Vent.tuningIn_hz`/`lengthForTuning_m`, `PassiveRadiatorBox.systemTuning_hz`/
+    // `addedMassForTuning_kg`) have no callers.
+    //
+    // Until that relation exists, these report "nothing solved, nothing known" rather than
+    // throwing: `solveVentGroup` runs on EVERY project change (`appState.ts`), so a throw here
+    // means no project can be opened at all. Doing nothing is what the app did before the
+    // migration, when neither direction had a caller — this is the pre-existing behaviour, not
+    // a new one, and the feature is ruled and scoped in QO126.
 
-    /** @stub not yet implemented */
+    /** Derives whichever of the vented box's tuning/vent-length the user did not state.
+     *  Does nothing until that relation is wired — see the FIXME above. */
     solveVentGroup(): void {
-        throw new Error('OpenISDProject.solveVentGroup(): not implemented');
     }
 
-    /** @stub not yet implemented */
+    /** The tuning the vent as built actually produces. Null until the relation is wired. */
     ventAchievedFb(): number | null {
-        throw new Error('OpenISDProject.ventAchievedFb(): not implemented');
+        return null;
     }
 
-    /** @stub not yet implemented */
+    /** The highest tuning this vent can reach in this volume. Null until the relation is wired. */
     ventMaxReachableFb(): number | null {
-        throw new Error('OpenISDProject.ventMaxReachableFb(): not implemented');
+        return null;
     }
 
-    /** @stub not yet implemented */
+    /** Whether the stated tuning is beyond what this vent can reach. False until the relation is
+     *  wired: nothing is KNOWN to be unreachable, and a warning with nothing behind it is worse
+     *  than none. */
     ventTargetUnreachable(): boolean {
-        throw new Error('OpenISDProject.ventTargetUnreachable(): not implemented');
+        return false;
     }
 
-    /** @stub not yet implemented */
+    /** Derives whichever of the passive-radiator box's tuning/added-mass the user did not state.
+     *  Does nothing until that relation is wired — see the FIXME above. */
     solvePrGroup(): void {
-        throw new Error('OpenISDProject.solvePrGroup(): not implemented');
     }
 
-    /** @stub not yet implemented */
+    /** Whether the stated tuning is beyond what this radiator can reach. False on the same terms
+     *  as `ventTargetUnreachable()`. */
     prTargetUnreachable(): boolean {
-        throw new Error('OpenISDProject.prTargetUnreachable(): not implemented');
+        return false;
     }
 
     /** Register a listener, fired on every change to the current record and on entering or

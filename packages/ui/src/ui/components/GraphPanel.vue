@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { state, allIssues, syncedP, curvesData, maxData } from '../../logic/appState.js';
+import { allIssues, syncedP, curvesData, maxData } from '../../logic/appState.js';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { TAB_META, buildPlotData, DPAL, rangeStatsOf } from '../../logic/series.js';
@@ -25,7 +25,7 @@ const readEl   = ref<HTMLElement | null>(null);
 const meta     = computed(() => TAB_META[props.tabId]);
 
 const currentDesign = computed(() => ({
-  driver: project.value.driver.solveConsistencyGroup(), box: state.box, P: syncedP.value,
+  driver: project.value.driver.solveConsistencyGroup(), box: project.value.box.boxType.get(), P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value ?? undefined,
   name: 'Current', color: props.primaryColor || DPAL[0],
 }));

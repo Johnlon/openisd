@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
-import { requireFocusedProject } from '../../src/logic/appState.js';
+import { requireFocusedProject, newProject } from '../../src/logic/appState.js';
 import { presentationState } from '../../src/logic/presentationState.js';
 
 describe('Cursor lock & frequency click state transitions', () => {
@@ -118,6 +118,7 @@ describe('Cursor lock & frequency click state transitions', () => {
   });
 
   it('verifies that rgAtDriverSide is unchecked (false) by default', () => {
+    newProject();   // the app starts with NO project (QO121), so this test opens its own
     assert.equal(requireFocusedProject().rgAtDriverSide.get(), false, 'Rg is at driver side must be unchecked (false) by default');
   });
 

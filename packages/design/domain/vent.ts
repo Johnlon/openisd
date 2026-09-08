@@ -22,7 +22,17 @@ export interface Vent {
   tuningIn_hz(volume_m3: number | null): number | null;
 
   /** The physical length this port needs to tune a chamber of `volume_m3` to `fb_hz` — the
-   *  inverse of `tuningIn_hz()`. Both directions exist because the user may enter either, and
-   *  the other is then solved. Null on the same terms. */
+   *  inverse of `tuningIn_hz()`. Null on the same terms. */
   lengthForTuning_m(volume_m3: number | null, fb_hz: number): number | null;
+
+  // FIXME(QO126): neither direction has a caller, so `VentedBox.tuning_hz` is a stored value that
+  // changes no design — the user may enter either end and NOTHING is solved from it. The vented
+  // box's tuning ↔ vent length is the same relation the passive-radiator box has as tuning ↔
+  // added mass, and both must become solved pairs through one mechanism. Ruled and scoped in
+  // bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md; deferred until
+  // the packages/model → packages/design migration lands.
+  //
+  // Audit `lengthForTuning_m` against BUG_20260908_addedMassForTuning_returns_total_mass_not_
+  // added_mass.md BEFORE wiring it: the passive-radiator inverse returned the TOTAL quantity
+  // where the caller needed the delta, and this one has not been checked for the same defect.
 }

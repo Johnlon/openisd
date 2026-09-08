@@ -9,9 +9,6 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: [
-        'packages/engine/src/**/*.ts',
-        'packages/model/src/**/*.ts',
-        'packages/winisd/src/**/*.ts',
         'packages/ui/src/**/*.{ts,vue}',
       ],
       exclude: [
@@ -30,22 +27,6 @@ export default defineConfig({
         test: {
           name: 'persistence',
           root: './packages/persistence',
-          environment: 'node',
-          include: ['test/**/*.test.{mjs,ts}'],
-        },
-      },
-      {
-        test: {
-          name: 'model',
-          root: './packages/model',
-          environment: 'node',
-          include: ['test/**/*.test.{mjs,ts}'],
-        },
-      },
-      {
-        test: {
-          name: 'winisd',
-          root: './packages/winisd',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
         },

@@ -12,27 +12,11 @@ import type { Filter } from '@openisd/design/engine';
 
 const hp = (id: string, fc: number): Filter => ({ id, type: 'highpass', enabled: true, fc, Q: 0.7071 });
 
-function blankDriverRecord(): unknown {
-  const bookkeeping = { value: '' };
-  return {
-    uuid: { value: crypto.randomUUID() },
-    quality: {
-      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
-      parse_errors: [], cross_source_only: [],
-    },
-    manufacturer: { value: '' }, brand: { value: '' }, model: { value: '' },
-    sku: { value: '', grounds: [{ origin: 'entered', reading: '' }] },
-    driver_type: { value: '' },
-    data_sources: bookkeeping,
-    authoritative: bookkeeping,
-    specs: {},
-  };
-}
-
 function sealedProject() {
   const engine = new Engine();
-  const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
-  if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
+  // This test is about box/vent/filter fields, not about any driver's contents, so the driver
+  // states nothing — the domain's own blank rather than a record assembled here.
+  const driver = OpenISDDriver.empty(engine);
   return OpenISDProject.builder(driver, engine).sealed().volume_m3(0.02).build();
 }
 

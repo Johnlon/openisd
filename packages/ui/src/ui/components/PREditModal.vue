@@ -20,34 +20,38 @@ const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, close);
 
 const project = useFocusedProject();
-// The datasheet vocabulary is the DOMAIN's own keyed surface now: cells read the derived
-// views in SI, entries re-solve the canonical Sd/Cms/Mmd/Rms with the ruled holds inside the
-// domain object. Display units are NumInput's business, through the field's unit group — this
-// dialog holds SI end to end and converts nothing.
-const prFsShown = computed(() => project.value.prFs_hz());
-const prFsWithMassShown = computed(() => project.value.prFsMass_hz());
-const prQmsShown = computed(() => project.value.prQms());
+// The fields WinISD's own passive-radiator pane asks for — Vas, Fs, Qms, Sd, Xmax
+// (docs/winisd_screenshots/view_3_passive_radiator.png) — set straight onto the radiator's
+// spec, exactly as the driver editor sets the driver's. They are peers, and the consistency
+// solver works out what the rest of the radiator's parameters must be; nothing here converts.
+// Display units are NumInput's business, through the field's unit group — this dialog holds
+// SI end to end.
+const radiator = computed(() => project.value.box.passiveRadiator.radiator);
 
-function setWinIsdFs(newFsHz: number) { project.value.setPrFs_hz(newFsHz); }
-function setWinIsdQms(newQms: number) { project.value.setPrQms(newQms); }
-
-// No per-field computed wrapper for name/count/Sd/Xmax (`docs/design/REACTIVITY.md`) — the
-// template below reads the focused project's own getter directly (reactive via `project`) and
-// writes through its own setter directly.
+/** Fs with the tuning mass on the cone — read-only, and the domain's own figure. */
+const prFsWithMassShown = computed(() => project.value.box.passiveRadiator.resonanceWithAddedMass_hz());
 
 const prLib = ref(myPassiveRadiators.list());
 const showPRLib = ref(false);
 function saveCurrentPR() {
-  const name = (project.value.prName() || '').trim() || 'Custom PR';
-  prLib.value = myPassiveRadiators.save(name, project.value.toUiParams());
+  const spec = radiator.value.spec;
+  const name = (radiator.value.model.get().value || '').trim() || 'Custom PR';
+  prLib.value = myPassiveRadiators.save(name, {
+    prSd: spec.Sd_m2.get().value ?? undefined,
+    prMmd: spec.Mms_kg.get().value ?? undefined,
+    prCms: spec.Cms_m_per_N.get().value ?? undefined,
+    prRms: spec.Rms_kg_per_s.get().value ?? undefined,
+    prXmax: spec.Xmax_m.get().value ?? undefined,
+  });
 }
 function loadPR(entry: PRLibEntry) {
-  project.value.setPrName(entry.name);
-  project.value.setPrSd_m2(entry.prSd);
-  project.value.setPrMmd_kg(entry.prMmd);
-  project.value.setPrCms_m_per_N(entry.prCms);
-  project.value.setPrRms_Ns_per_m(entry.prRms);
-  project.value.setPrXmax_m(entry.prXmax);
+  const spec = radiator.value.spec;
+  radiator.value.model.set(entry.name);
+  spec.Sd_m2.set(entry.prSd);
+  spec.Mms_kg.set(entry.prMmd);
+  spec.Cms_m_per_N.set(entry.prCms);
+  spec.Rms_kg_per_s.set(entry.prRms);
+  spec.Xmax_m.set(entry.prXmax);
   showPRLib.value = false;
 }
 function removePR(id: number) { prLib.value = myPassiveRadiators.remove(id); }
@@ -74,26 +78,26 @@ function close() { emit('close'); }
 
         <div class="row" title="Name for this passive radiator">
           <label>PR name</label>
-          <input style="flex:1" type="text" :value="project.prName()" @input="e => project.setPrName(inputValue(e))" placeholder="e.g. Dayton SD270A-88">
+          <input style="flex:1" type="text" :value="radiator.model.get().value ?? ''" @input="e => radiator.model.set(inputValue(e))" placeholder="e.g. Dayton SD270A-88">
         </div>
         <div class="row" data-field-key="prNum" :title="fieldHelp('prNum')">
           <label>PR count</label>
-          <NumInput :model-value="project.prCount()" @update:model-value="v => project.setPrCount(v ?? 0)" field="prNum" :precision="0" step="1" />
+          <NumInput :model-value="project.box.passiveRadiator.count.get()" @update:model-value="v => project.box.passiveRadiator.count.set(v ?? 0)" field="prNum" :precision="0" step="1" />
           <span class="u"></span>
         </div>
         <div class="row" data-field-key="prSd" :title="fieldHelp('prSd')">
           <label>Sd</label>
-          <NumInput :model-value="project.prSd_m2()" @update:model-value="v => project.setPrSd_m2(v ?? 0)" field="prSd" group="area" base="cm2" :precision="4" />
+          <NumInput :model-value="radiator.spec.Sd_m2.get().value" @update:model-value="v => radiator.spec.Sd_m2.set(v ?? 0)" field="prSd" group="area" base="cm2" :precision="4" />
           <UnitToggle field="prSd" group="area" base="cm2" unit-class="u" />
         </div>
         <div class="row" data-field-key="prXmax" :title="fieldHelp('prXmax')">
           <label>Xmax</label>
-          <NumInput :model-value="project.prXmax_m()" @update:model-value="v => project.setPrXmax_m(v ?? 0)" field="prXmax" group="length" base="mm" :precision="3" />
+          <NumInput :model-value="radiator.spec.Xmax_m.get().value" @update:model-value="v => radiator.spec.Xmax_m.set(v ?? 0)" field="prXmax" group="length" base="mm" :precision="3" />
           <UnitToggle field="prXmax" group="length" base="mm" unit-class="u" />
         </div>
         <div class="row" data-field-key="prFs" :title="fieldHelp('prFs')">
           <label>Fs</label>
-          <NumInput :model-value="prFsShown" field="prFs" :precision="4" @update:model-value="v => setWinIsdFs(v ?? 0)" />
+          <NumInput :model-value="radiator.spec.Fs_hz.get().value" field="prFs" :precision="4" @update:model-value="v => radiator.spec.Fs_hz.set(v ?? 0)" />
           <span class="u">Hz</span>
         </div>
         <div class="row" data-field-key="prFsMass" :title="fieldHelp('prFsMass')">
@@ -103,12 +107,12 @@ function close() { emit('close'); }
         </div>
         <div class="row" data-field-key="prQms" :title="fieldHelp('prQms')">
           <label>Qms</label>
-          <NumInput :model-value="prQmsShown" field="prQms" :precision="3" @update:model-value="v => setWinIsdQms(v ?? 0)" />
+          <NumInput :model-value="radiator.spec.Qms.get().value" field="prQms" :precision="3" @update:model-value="v => radiator.spec.Qms.set(v ?? 0)" />
           <span class="u"></span>
         </div>
         <div class="row" data-field-key="prVas" :title="fieldHelp('prVas')">
           <label>Vas</label>
-          <NumInput :model-value="project.prVas_m3()" @update:model-value="v => project.setPrVas_m3(v ?? 0)" field="prVas" group="volume" base="L" :precision="3" />
+          <NumInput :model-value="radiator.spec.Vas_m3.get().value" @update:model-value="v => radiator.spec.Vas_m3.set(v ?? 0)" field="prVas" group="volume" base="L" :precision="3" />
           <UnitToggle field="prVas" group="volume" base="L" unit-class="u" />
         </div>
 

@@ -152,6 +152,7 @@ describe('EQ/filter charts — units, datum and axis', () => {
     const sw = engine.sweep(DRV, LE_H, 'vented', noFlt).value;
     assert.ok(sw, 'sweep produced nothing');
     const mx = engine.maxCurves(DRV, LE_H, 'vented', noFlt).value;
+    assert.ok(mx, 'maxCurves produced nothing');
     for (const id of ['FltMag', 'FltPhase', 'FltGD'] as const) {
       const b = seriesFor(id, DRV, 'vented', noFltP, sw, mx);
       assert.ok(b.ymax > b.ymin, `${id}: empty chain collapsed the axis to ${b.ymin}..${b.ymax}`);

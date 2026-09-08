@@ -4,6 +4,7 @@ import {
   OpenISDProject,
   OpenISDDriver,
   OpenISDPassiveRadiatorStandalone,
+  VoiceCoilWiring,
 } from '../domain/index.js';
 
 // This test is the package's PROXY CONSUMER: it imports from `index.js` only, exactly what the
@@ -162,6 +163,37 @@ describe('the driver — a window, not a copy', () => {
     // Identity must hold, or reference-equality memoization sees every read as a change.
     expect(driver.spec.woofer.Fs_hz).toBe(driver.spec.woofer.Fs_hz);
     expect(driver.brand).toBe(driver.brand);
+  });
+
+  it('makes a blank driver an editor can fill in, stating no specs at all', () => {
+    const blank = OpenISDDriver.empty(new Engine());
+
+    // The record's own bookkeeping (uuid, quality, the three name fields) is required by the
+    // conformance guard, so a blank record carries empty names rather than absent ones.
+    expect(blank.brand.get().value).toBe('');
+    expect(blank.model.get().value).toBe('');
+    // Every SPEC field, by contrast, is genuinely unstated — nothing to render, nothing to solve.
+    expect(blank.spec.woofer.Fs_hz.get().state).toBe('not-available');
+    expect(blank.spec.woofer.Fs_hz.get().value).toBeNull();
+    expect(blank.spec.woofer.Qts.get().value).toBeNull();
+  });
+
+  it('a blank driver accepts edits, and the solver derives from what was stated', () => {
+    const blank = OpenISDDriver.empty(new Engine());
+    blank.brand.set('Dayton');
+    blank.spec.woofer.Fs_hz.set(30);
+
+    expect(blank.brand.get().value).toBe('Dayton');
+    expect(blank.spec.woofer.Fs_hz.get().value).toBe(30);
+  });
+
+  it('gives each blank driver its own record, so editing one leaves the next untouched', () => {
+    const engine = new Engine();
+    const one = OpenISDDriver.empty(engine);
+    const two = OpenISDDriver.empty(engine);
+    one.model.set('RS225');
+
+    expect(two.model.get().value).toBe('');
   });
 
   it('reports what is wrong with a record instead of throwing, so a picker can show it', () => {
@@ -415,6 +447,83 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.radiator.spec.Sd_m2.get().value).toBe(0.031);
     expect(library.spec.Sd_m2.get().value).toBe(0.025);
   });
+
+  it('makes a blank radiator an editor can fill in, and a box can adopt', () => {
+    const blank = OpenISDPassiveRadiatorStandalone.empty(new Engine());
+
+    expect(blank.model.get().value).toBe('');
+    expect(blank.spec.Fs_hz.get().state).toBe('not-available');
+
+    const p = project();
+    p.box.passiveRadiator.configurePR(blank);
+    p.box.passiveRadiator.radiator.spec.Fs_hz.set(12);
+
+    expect(p.box.passiveRadiator.radiator.spec.Fs_hz.get().value).toBe(12);
+  });
+
+  it('answers the mass to ADD for a target tuning, not the total moving mass', () => {
+    // BUG_20260908_addedMassForTuning_returns_total_mass_not_added_mass: the engine's
+    // `prMassForFp` inverts `prTuning`, whose input is (Mmd + Madd) — so it returns the TOTAL.
+    // What the user must put ON the cone is that total less the radiator's own moving mass.
+    const p = project();
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
+    if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
+    p.box.passiveRadiator.radiator.update(library);
+    // The fixture project is sealed-built, so the PR box's own volume starts at 0 and every
+    // passive-radiator calculation reports null until it is set.
+    p.box.passiveRadiator.volume_m3.set(0.03);
+    p.box.passiveRadiator.addedMass_kg.set(0);
+
+    const added = p.box.passiveRadiator.addedMassForTuning_kg(15);
+
+    // Applying the answer must actually produce the target — the property that makes it the
+    // right quantity, checked through the box's own forward calculation rather than a literal.
+    p.box.passiveRadiator.addedMass_kg.set(added!);
+    expect(p.box.passiveRadiator.systemTuning_hz()).toBeCloseTo(15, 6);
+  });
+
+  it('reports no mass for a tuning this radiator cannot reach in this box', () => {
+    // The highest tuning reachable is the one produced with NO added mass; above that the
+    // arithmetic asks for negative mass, and mass cannot come off a cone carrying none.
+    const p = project();
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
+    if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
+    p.box.passiveRadiator.radiator.update(library);
+    p.box.passiveRadiator.volume_m3.set(0.03);
+    p.box.passiveRadiator.addedMass_kg.set(0);
+
+    const ceiling = p.box.passiveRadiator.systemTuning_hz()!;
+
+    expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling * 1.5)).toBeNull();
+    // At the ceiling itself the answer is zero added mass, not null — reachable, just barely.
+    expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling)).toBeCloseTo(0, 9);
+  });
+
+  it('reports no resonance-with-added-mass until a radiator is chosen', () => {
+    expect(project().box.passiveRadiator.resonanceWithAddedMass_hz()).toBeNull();
+  });
+
+  it('resonates at the radiator own Fs when no mass has been added', () => {
+    const p = project();
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
+    if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
+    p.box.passiveRadiator.radiator.update(library);
+    p.box.passiveRadiator.addedMass_kg.set(0);
+
+    // Mms 0.09 kg on Cms 0.0009 m/N: 1/(2π·√(0.09·0.0009)) = 17.6838… Hz.
+    expect(p.box.passiveRadiator.resonanceWithAddedMass_hz()).toBeCloseTo(17.6838, 3);
+  });
+
+  it('falls as tuning mass goes onto the cone', () => {
+    const p = project();
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
+    if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
+    p.box.passiveRadiator.radiator.update(library);
+    p.box.passiveRadiator.addedMass_kg.set(0.111111);
+
+    // (0.09 + 0.111111) kg on the same compliance: 1/(2π·√(0.201111·0.0009)) = 11.8298… Hz.
+    expect(p.box.passiveRadiator.resonanceWithAddedMass_hz()).toBeCloseTo(11.8299, 3);
+  });
 });
 
 describe('ManagedProject — the layers', () => {
@@ -636,5 +745,150 @@ describe('OpenISDDriver — provenance the driver picker reads', () => {
     });
     expect(driver.series).toBeNull();
     expect(driver.description).toBeNull();
+  });
+});
+
+describe('a new project, every section present and nothing stated', () => {
+  // QO125 (John, 2026-09-08): "The data structure in emptyProject(eng) calls emptyDriver(eng)
+  // and empty pr(eng) and then UI proceeds to fill it out in the wizard screens including
+  // picking a real driver to repopulate the embedded driver section from and if it's a pr box
+  // then the pr gets repopulated from a picked pr."
+  //
+  // So a new project invents no physics. Every section EXISTS — the wizard writes into a live
+  // project rather than assembling a spec and building at the end — and every stated value is
+  // one the user supplied.
+
+  it('builds without a driver, since the wizard picks one afterwards', () => {
+    const p = OpenISDProject.empty(new Engine());
+    expect(p.driver.brand.get().value).toBe('');
+    expect(p.driver.spec.woofer.Fs_hz.get().state).toBe('not-available');
+  });
+
+  it('starts sealed, the box type the wizard opens on', () => {
+    expect(OpenISDProject.empty(new Engine()).box.boxType.get()).toBe('sealed');
+  });
+
+  it('holds a radiator already, so a switch to a PR box is legal with no further setup', () => {
+    const p = OpenISDProject.empty(new Engine());
+    // Writing a radiator spec field is what throws when the slot is null, so it is the test
+    // that a radiator is genuinely present rather than merely reported as one.
+    p.box.passiveRadiator.radiator.spec.Fs_hz.set(12);
+    expect(p.box.passiveRadiator.radiator.spec.Fs_hz.get().value).toBe(12);
+  });
+
+  it('states no radiator parameters of its own', () => {
+    const p = OpenISDProject.empty(new Engine());
+    expect(p.box.passiveRadiator.radiator.spec.Fs_hz.get().state).toBe('not-available');
+    expect(p.box.passiveRadiator.systemTuning_hz()).toBeNull();
+  });
+
+  it('gives each new project its own records, so editing one leaves the next untouched', () => {
+    const engine = new Engine();
+    const one = OpenISDProject.empty(engine);
+    const two = OpenISDProject.empty(engine);
+    one.driver.model.set('RS225');
+    expect(two.driver.model.get().value).toBe('');
+  });
+
+  it('accepts a real driver afterwards, which is how the wizard fills it in', () => {
+    const p = OpenISDProject.empty(new Engine());
+    const picked = OpenISDDriver.empty(new Engine());
+    picked.brand.set('Dayton');
+    picked.model.set('RS225');
+    p.setDriver(picked);
+    expect(p.driver.brand.get().value).toBe('Dayton');
+  });
+
+  it('accepts a real radiator afterwards, which is how the wizard fills a PR box in', () => {
+    const p = OpenISDProject.empty(new Engine());
+    const picked = OpenISDPassiveRadiatorStandalone.empty(new Engine());
+    picked.model.set('SB23PACS');
+    p.box.passiveRadiator.configurePR(picked);
+    expect(p.box.passiveRadiator.radiator.model.get().value).toBe('SB23PACS');
+  });
+});
+
+describe("a blank device reports WinISD's own defaults without stating them", () => {
+  // John, 2026-09-08: "use the existing WinIsd default values - but some of these are functions
+  // like calcVcCon() ... which isn't really a calc but plays that role if the VCCon isn't yet
+  // stated". Those defaults arrive through the GETTERS, so a blank record carries none of them.
+  // Stamping them in would report `entered` and falsely claim the user stated the value.
+
+  it('reads the default wiring as calculated, not as something the user entered', () => {
+    const blank = OpenISDDriver.empty(new Engine());
+    const wiring = blank.spec.woofer.VCCon.get();
+    expect(wiring.value).toBe(VoiceCoilWiring.Parallel);
+    expect(wiring.state).toBe('calculated');
+  });
+
+  it('reads the default coil count the same way', () => {
+    const numVC = OpenISDDriver.empty(new Engine()).spec.woofer.numVC.get();
+    expect(numVC.value).toBe(1);
+    expect(numVC.state).toBe('calculated');
+  });
+
+  it('a field with no WinISD default stays genuinely unstated', () => {
+    // The defaults are specific facts, not a blanket "fill everything in" — SPEC_ENGINE.md:424
+    // says "Defaults are 0, except numVC=1, VCCon=1", and Fs is not among the exceptions.
+    expect(OpenISDDriver.empty(new Engine()).spec.woofer.Fs_hz.get().state).toBe('not-available');
+  });
+});
+
+describe('a spec field the record does not state reads through the solver', () => {
+  // John, 2026-09-08 (QO127): "a field whose value is not provided in the domain is obviously
+  // not-available BUT if any such field is calculable then reading it should hit the solver
+  // automatically - NOTHING is supposed to call the solver independently and write to the
+  // domain THAT WOULD BE A BUG".
+
+  /** A driver stating Vas and Sd and nothing else derivable — the solver's geometry route to
+   *  Cms (`solver.ts` block 4) needs exactly those two plus the air constants, which a driver
+   *  always has. */
+  function vasAndSd(): OpenISDDriver {
+    const d = OpenISDDriver.empty(new Engine());
+    d.spec.woofer.Vas_m3.set(0.05);
+    d.spec.woofer.Sd_m2.set(0.02);
+    return d;
+  }
+
+  it('Cms comes back calculated from the stated Vas and Sd', () => {
+    const cms = vasAndSd().spec.woofer.Cms_m_per_N.get();
+    expect(cms.state).toBe('calculated');
+    // Cms = Vas / (ρ·c²·Sd²) — the same relation, evaluated here from the driver's own air
+    // constants rather than from a constant copied into this test.
+    const air = vasAndSd().spec.woofer;
+    const rho = air.roo_kg_per_m3.get().value!;
+    const c = air.c_m_per_s.get().value!;
+    expect(cms.value).toBeCloseTo(0.05 / (rho * c * c * 0.02 * 0.02), 12);
+  });
+
+  it('a stated value still reads entered — the solver never overrides what the record says', () => {
+    const d = vasAndSd();
+    d.spec.woofer.Cms_m_per_N.set(0.000123);
+    const cms = d.spec.woofer.Cms_m_per_N.get();
+    expect(cms.state).toBe('entered');
+    expect(cms.value).toBe(0.000123);
+  });
+
+  it('a field the solver cannot reach stays not-available', () => {
+    // Nothing in the record implies Xmax, so the distinction between "absent" and "derived"
+    // survives — a solver that answered everything would be no better than a blank.
+    expect(vasAndSd().spec.woofer.Xmax_m.get().state).toBe('not-available');
+  });
+
+  it('the solved value is NOT written into the record, so only stated values are saved', () => {
+    // The whole point of the ruling: reading a derived field must not turn it into something
+    // the driver claims to state. A save writes the record, so a write-back here would forge
+    // provenance on the wire.
+    const d = vasAndSd();
+    d.spec.woofer.Cms_m_per_N.get();
+    expect(d.cloneDriver().specs.woofer?.Cms).toBeUndefined();
+  });
+
+  it('changing a stated input changes what the derived field reports', () => {
+    // A cached solve that never invalidated would pass every test above and still be wrong.
+    const d = vasAndSd();
+    const before = d.spec.woofer.Cms_m_per_N.get().value!;
+    d.spec.woofer.Vas_m3.set(0.10);
+    expect(d.spec.woofer.Cms_m_per_N.get().value!).toBeCloseTo(before * 2, 12);
   });
 });

@@ -10,14 +10,14 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  openProjects, removeProject, focusProject, focusedProject, openBlankProject,
+  openProjects, removeProject, focusProject, focusedProject, newProject,
 } from '../../src/logic/appState.js';
 import type { OpenISDProject } from '@openisd/design';
 
 /** Two independent projects, both named identically, so any name-keyed storage would collapse
  *  them into one. */
 function namedProject(name: string): OpenISDProject {
-  openBlankProject();
+  newProject();
   const p = openProjects()[openProjects().length - 1];
   p.name.set(name);
   return p;

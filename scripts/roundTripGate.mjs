@@ -9,17 +9,18 @@
  * inline with the record it already parsed, and a test can call either function directly with
  * no fixture files.
  *
- * Calls ONLY the app's real functions — `OpenISDDriver.fromJsonRecord`/`.toOwdrJson()` for the
- * openisd.yml leg (`checkOpenisdRoundTrip` takes the already-parsed record, since
- * `bundle-drivers.mjs`'s own loop needs that same parsed object for other purposes too), and
- * `OpenISDDriver.fromWdrText`/`.toWdrText()` for the .wdr leg.
+ * Calls ONLY the app's real functions — `OpenISDDriver.fromConformingRecord`/
+ * `.toOpenIsdDeviceJson()` for the openisd.yml leg (`checkOpenisdRoundTrip` takes the
+ * already-parsed record, since `bundle-drivers.mjs`'s own loop needs that same parsed object for
+ * other purposes too), and `winIsdDriverTextToOpenIsdDriver`/`openIsdDriverToWinIsdDriver` for
+ * the .wdr leg.
  * This script runs inside the same Node/vite-node process as the rest of the bundler, so it
- * imports `@openisd/model` directly rather than crossing the V8-bridge boundary the tools side
+ * imports `@openisd/design` directly rather than crossing the V8-bridge boundary the tools side
  * needs — same functions, no V8 round trip to duplicate.
  */
-import { conformingRecordToOpenIsdDriver, conformingRecordToOpenIsdPassiveRadiatorStandalone } from '@openisd/design';
+import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { WinISDDriver } from '@openisd/design/winisd';
+import { openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver } from '@openisd/design/winisd';
 
 /**
  * Deep-compares two JSON-shaped values and returns a slash-separated path string naming the
@@ -76,8 +77,8 @@ export function checkOpenisdRoundTrip(record, relPath) {
   // the schema's OUTPUT — an object rebuilt key by key from what the schema declares — so any key
   // the app cannot model shows up here as a divergence rather than being lost in silence.
   const engine = new Engine();
-  const device = conformingRecordToOpenIsdDriver(record, engine);
-  const radiator = Array.isArray(device) ? conformingRecordToOpenIsdPassiveRadiatorStandalone(record, engine) : null;
+  const device = OpenISDDriver.fromConformingRecord(record, engine);
+  const radiator = Array.isArray(device) ? OpenISDPassiveRadiatorStandalone.fromConformingRecord(record, engine) : null;
   const read = Array.isArray(device) ? radiator : device;
   if (read === null || Array.isArray(read)) {
     const problems = Array.isArray(read) ? read : device;
@@ -110,6 +111,24 @@ export function checkOpenisdRoundTrip(record, relPath) {
  */
 const ONE_WAY_HEADER_LINES = new Set(['Comment', 'ProvidedBy', 'DateAdded', 'DateModified']);
 
+/** ParState slot 46 — `VCCon`. */
+const VCCON_SLOT = 46;
+
+/**
+ * ParState with the `VCCon` slot masked out, so a round trip is compared on every other slot.
+ *
+ * `VCCon` is the one field a reader consults by PRESENCE rather than by its mark: slot 46 is
+ * unproven — no probing shows WinISD ever writing it — so reading back a `VCCon=` row our writer
+ * marked `N` yields `entered`, and the slot moves `N` -> `E` once and is then stable. That is
+ * documented at `packages/design/winisd/driverYmlToOpenisdAndWdr.ts:240-247` as a one-time gain of
+ * certainty rather than a loss, and `wdrDriverDiffs` in that same file already excludes the field
+ * for it; this gate makes the same exception rather than reporting the intended flip as a defect.
+ */
+function maskVCCon(parState) {
+  if (typeof parState !== 'string' || parState.length <= VCCON_SLOT) return parState;
+  return parState.slice(0, VCCON_SLOT) + '?' + parState.slice(VCCON_SLOT + 1);
+}
+
 /** `Key=value` pairs from `.wdr`/INI text, in file order — the QT60 "re-parse-equal" unit:
  *  values and key order after parsing, not raw bytes (WinISD itself renormalises decimals, so
  *  demanding byte equality would fail on formatting while catching no actual loss). */
@@ -127,16 +146,22 @@ function pairs(text) {
  * parsed as numbers where both sides parse as numbers, else same string.
  */
 export function checkWdrRoundTrip(wdrText, relPath) {
-  let driver;
-  try {
-    driver = WinISDDriver.fromWdrIni(wdrText);
-  } catch (e) {
-    return { ok: false, message: `${relPath}: could not read .wdr (fromWdrIni threw): ${e}` };
+  // Through the DOMAIN, not through a raw INI parse-and-print. `WinISDDriver.fromWdrIni().toWdrIni()`
+  // echoes the cells it parsed, so every value would be compared against itself and a stated C
+  // (computed) value disagreeing with its own inputs would pass. Reading into an `OpenISDDriver`
+  // and writing back out re-derives the computed fields from the entered ones, which is the
+  // divergence this gate exists to catch — and is the exact pair the app's own import/export runs
+  // (`packages/ui/src/logic/fileImportExport.ts`).
+  const engine = new Engine();
+  const { value: driver, errors: readErrors } = winIsdDriverTextToOpenIsdDriver(wdrText, engine);
+  if (driver === null) {
+    return { ok: false, message: `${relPath}: could not read .wdr: ${readErrors.map(e => e.message).join('; ') || 'no driver returned'}` };
   }
-  const reserialised = driver.toWdrIni();
   const errors = [];
+  const written = openIsdDriverToWinIsdDriver(driver, engine, errors);
   const blocking = errors.filter(e => e.level === 'error');
-  if (reserialised == null || blocking.length > 0) {
+  const reserialised = blocking.length > 0 ? null : written.toWdrIni();
+  if (reserialised == null) {
     return { ok: false, message: `${relPath}: .wdr projection failed: ${blocking.map(e => e.message).join('; ') || 'no value returned'}` };
   }
 
@@ -146,7 +171,8 @@ export function checkWdrRoundTrip(wdrText, relPath) {
     return { ok: false, message: `${relPath}: re-parse-equal (QT60) key-order mismatch — before [${beforeKeys}], after [${afterKeys}]` };
   }
   for (const key of beforeKeys) {
-    const b = before.get(key), a = after.get(key);
+    const b = key === 'ParState' ? maskVCCon(before.get(key)) : before.get(key);
+    const a = key === 'ParState' ? maskVCCon(after.get(key)) : after.get(key);
     const bNum = Number(b), aNum = Number(a);
     const equal = isFinite(bNum) && isFinite(aNum) ? bNum === aNum : b === a;
     if (!equal) {

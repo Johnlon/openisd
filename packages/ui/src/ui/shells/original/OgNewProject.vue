@@ -1,21 +1,24 @@
 <script setup lang="ts">
 /**
- * New Project wizard — two steps, box type → starting volume, wired to the store. On
- * Create it applies the box type + volume and hands off to the driver picker
- * (presentationState.browseOpen) to choose the driver.
+ * New Project wizard — name → box type → starting volume → driver. The wizard owns every
+ * choice in its own component state; nothing is written to the store until the driver picker's
+ * "Use" fires, at which point `newProject(spec, driver)` builds the one project in a single
+ * call. There is no "empty project" — the app has no project at all until this completes.
  *
- * Honesty note: only the four
- * engine-modelled box types are offered — you can't "create" a design the engine can't
- * simulate (6th-order bandpass / ABC are pending everywhere), same rule as elsewhere.
+ * Only the four engine-modelled box types are offered — you can't create a design the engine
+ * can't simulate.
  */
 import { ref, computed } from 'vue';
-import { isModified, OpenISDProject, openDriverPicker } from '../../../logic/appState.js';
+import { isModified, newProject } from '../../../logic/appState.js';
+import { fromDisplay } from '../../../logic/fields/units.js';
+import { useApp } from '../../../logic/app.js';
 import type { BoxType } from '@openisd/design/engine';
-
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 
 const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, () => emit('close'));
+
+const { driverBrowsing } = useApp();
 
 const BOX_OPTIONS: { id: BoxType; label: string }[] = [
   { id: 'sealed',    label: 'Closed' },
@@ -28,27 +31,47 @@ const step = ref(1);
 const STEP_LABELS = ['Project name', 'Box type', 'Starting volume'];
 const projName = ref('');
 const boxType = ref<BoxType>('sealed');
-// Per-box-type starting defaults: single-chamber 6 l, bandpass rear 8 l + front 10 l.
 const vol = ref(6);        // single-chamber volume, litres
-const rearVol = ref(8);    // bandpass rear chamber, litres
 const frontVol = ref(10);  // bandpass front chamber, litres
 const isDual = computed(() => boxType.value === 'bandpass4');
 
 function next() { if (step.value < 3) step.value++; }
 function back() { if (step.value > 1) step.value--; }
 
-// Warn (data-loss guard) if the current project has unsaved changes — Create discards them.
+/** Warn (data-loss guard) if a project is open with unsaved changes — a new one takes focus. */
 const hadUnsaved = computed(() => isModified.value);
 
-function create() {
-  OpenISDProject.builder({
-    name: projName.value.trim(),
-    box: boxType.value,
-    volumeL: isDual.value ? rearVol.value : vol.value,
-    frontVolumeL: isDual.value ? frontVol.value : undefined,
-  });
+/**
+ * The last step: open the driver picker, and on "Use" create the project and write every choice
+ * into it.
+ *
+ * The project is created HERE rather than when the wizard opens, so Cancel at any earlier step
+ * leaves the registry untouched — there is no half-made project to clean up. `newProject()` hands
+ * back a project with every section already present (QO125), so each step below is an ordinary
+ * write to a live project rather than a field in a spec object that has to be carried around.
+ */
+function pickDriver() {
+  const name = projName.value.trim();
+  const box = boxType.value;
+  const volume_m3 = fromDisplay(vol.value, 'volume', 'L');
+  const frontVolume_m3 = fromDisplay(frontVol.value, 'volume', 'L');
   emit('close');
-  openDriverPicker();                              // hand off to the driver picker
+  driverBrowsing.openPickerFor((driver) => {
+    const p = newProject();
+    p.setDriver(driver);
+    p.name.set(name);
+    p.box.boxType.set(box);
+    // Each box type owns its own volume, so the wizard's number goes to the one it chose.
+    switch (box) {
+      case 'sealed': p.box.sealed.volume_m3.set(volume_m3); break;
+      case 'vented': p.box.vented.volume_m3.set(volume_m3); break;
+      case 'box-passive-radiator': p.box.passiveRadiator.volume_m3.set(volume_m3); break;
+      case 'bandpass4':
+        p.box.bandpass4.chambers.rear.volume_m3.set(volume_m3);
+        p.box.bandpass4.chambers.front.volume_m3.set(frontVolume_m3);
+        break;
+    }
+  });
 }
 </script>
 
@@ -61,7 +84,7 @@ function create() {
       </div>
 
       <div class="modal-body">
-        <p v-if="hadUnsaved" class="np-warn" title="Creating a new project discards the current design.">⚠ You have unsaved changes — creating a new project will discard them.</p>
+        <p v-if="hadUnsaved" class="np-warn" title="The open project has unsaved changes.">⚠ The open project has unsaved changes — they are not lost, but the new project takes focus.</p>
         <p class="np-step">Step {{ step }} of 3 — {{ STEP_LABELS[step - 1] }}</p>
 
         <div v-if="step === 1">
@@ -89,7 +112,7 @@ function create() {
             <div class="field-row"><div class="field"><label>Volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="vol"><span class="unit">l</span></div></div>
           </template>
           <template v-else>
-            <div class="field-row"><div class="field"><label>Rear chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="rearVol"><span class="unit">l</span></div></div>
+            <div class="field-row"><div class="field"><label>Rear chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="vol"><span class="unit">l</span></div></div>
             <div class="field-row"><div class="field"><label>Front chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="frontVol"><span class="unit">l</span></div></div>
           </template>
           <p class="hint">Optional — starting volume, refine later once you've picked a driver.</p>
@@ -100,8 +123,8 @@ function create() {
         <div class="footer-buttons">
           <button v-if="step > 1" class="cancel-btn" title="Back to the previous step" @click="back">&lt; Back</button>
           <button v-if="step < 3" class="ok-btn" title="Next step" @click="next">Next &gt;</button>
-          <button v-else class="ok-btn" title="Create the design and pick a driver" @click="create">Pick Driver &gt;</button>
-          <button class="cancel-btn" title="Cancel — discard, keep the current design" @click="emit('close')">Cancel</button>
+          <button v-else class="ok-btn" title="Choose the driver for this project" @click="pickDriver">Pick Driver &gt;</button>
+          <button class="cancel-btn" title="Cancel" @click="emit('close')">Cancel</button>
         </div>
       </div>
     </div>
