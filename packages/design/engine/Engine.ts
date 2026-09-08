@@ -40,7 +40,7 @@ import type { ConsistencyIssue } from './consistency.js';
 import type { Result, Wiring } from './types.js';
 import type { SolverQuantities } from './solverQuantities.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
-import type { BoxType, SimulatableBoxType, DriverError, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
+import type { BoxType, SimulatableBoxType, DriverError, EnclosureParams, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
 
 export class Engine {
@@ -253,7 +253,7 @@ export class Engine {
   }
 
   /** Whether the parameters can be swept at all, and what is wrong if not. */
-  validateParams(box: BoxType, P: SweepParams): DriverError[] {
+  validateParams(box: BoxType, P: EnclosureParams): DriverError[] {
     return validateParams(box, P);
   }
 

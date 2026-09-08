@@ -7,13 +7,10 @@
 import {
   projectRepo as designProjectRepo,
   type OpenISDProject, type ProjectRepo as DesignProjectRepo,
-  type RecordStore, type RecordStoreFactory, type ProjectListing,
-  type DeleteChallenge, type DeleteOutcome,
+  type RecordStore, type RecordStoreFactory,
 } from '@openisd/design';
 import type { Engine } from '@openisd/design/engine';
 import type { FileStorage, SaveResult } from '../storage/fileStorage.js';
-
-export type { ProjectListing, DeleteChallenge, DeleteOutcome };
 
 /** A store holding exactly the one record most recently `put()` — the adapter every one-shot
  *  door (a file, a URL hash) uses to borrow design's own save/validate/load logic without

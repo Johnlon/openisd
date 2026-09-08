@@ -52,17 +52,18 @@ const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PACKAGES = join(UI_PKG, '..');
 const REPO_ROOT = join(PACKAGES, '..');
 
-const SRC_ROOTS = readdirSync(PACKAGES)
-  .map(pkg => join(PACKAGES, pkg, 'src'))
-  .filter(dir => existsSync(dir) && statSync(dir).isDirectory());
+/** Every package directory holding code, from each package.json's own `exports` map rather
+ *  than from an assumed `src/`. `packages/design` keeps its code in `domain/`, `engine/`,
+ *  `winisd/`, `filter/`, `browser/` and `ini/` with no `src/` at all, so a `src`-shaped search
+ *  yields nothing for it — and a sweep that finds no files reports no offences, which reads
+ *  exactly like a pass. */
+const PKG_DIRS = readdirSync(PACKAGES)
+  .map(pkg => join(PACKAGES, pkg))
+  .filter(dir => existsSync(join(dir, 'package.json')));
 
-/** The sanctioned barrel entry points — one per package, resolved from each package.json's
- *  OWN exports map (falling back to src/index.ts when a package declares no map). Reading
- *  the map rather than hardcoding a filename is what makes a barrel rename (D17:
- *  engine/src/index.ts → engine.ts) safe: the gate follows the package's declared entry
- *  point instead of silently exempting a file that no longer exists. */
-const BARRELS = new Set(SRC_ROOTS.flatMap(root => {
-  const pkgDir = dirname(root);
+/** The entry points a package declares, absolute. Falls back to `src/index.ts` for a package
+ *  with no exports map. */
+function entryPointsOf(pkgDir: string): string[] {
   try {
     const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')) as
       { exports?: Record<string, { default?: string } | string> };
@@ -72,18 +73,29 @@ const BARRELS = new Set(SRC_ROOTS.flatMap(root => {
       .map(rel => join(pkgDir, rel));
     if (entries.length) return entries;
   } catch { /* no package.json or no map — fall back */ }
-  return [join(root, 'index.ts')];
-}));
+  return [join(pkgDir, 'src', 'index.ts')];
+}
 
-/** Every BARRELS entry keyed by something other than the package root ('.') — e.g. model's
- *  ./driverStanding, ./driverSimulatability, ./driverConformance. The exemption above grants
+/** The directories actually scanned: where each package's entry points live. */
+const SRC_ROOTS = [...new Set(
+  PKG_DIRS.flatMap(dir => entryPointsOf(dir).map(dirname)),
+)].filter(dir => existsSync(dir) && statSync(dir).isDirectory());
+
+/** The sanctioned barrel entry points — one per package, resolved from each package.json's
+ *  OWN exports map (falling back to src/index.ts when a package declares no map). Reading
+ *  the map rather than hardcoding a filename is what makes a barrel rename (D17:
+ *  engine/src/index.ts → engine.ts) safe: the gate follows the package's declared entry
+ *  point instead of silently exempting a file that no longer exists. */
+const BARRELS = new Set(PKG_DIRS.flatMap(entryPointsOf));
+
+/** Every BARRELS entry keyed by something other than the package root ('.') — e.g. design's
+ *  ./engine, ./winisd, ./filter, ./browser, ./ini. The exemption above grants
  *  these the SAME re-export licence as a root barrel, unconditionally — an empty socket today
  *  (all three currently contain zero re-exports), but a dormant permission is not harmless
  *  (John's by_alias precedent: an unused grant is not a safe grant, it is a grant nobody has
  *  tested yet). Kept separate from BARRELS so the guard below can assert these specific files
  *  stay re-export-free without touching the root-barrel exemption. */
-const SUBPATH_BARRELS = new Set(SRC_ROOTS.flatMap(root => {
-  const pkgDir = dirname(root);
+const SUBPATH_BARRELS = new Set(PKG_DIRS.flatMap(pkgDir => {
   try {
     const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')) as
       { exports?: Record<string, { default?: string } | string> };
@@ -183,17 +195,17 @@ checklistDescribe('no re-exports — a name is declared where it is exported (QO
       're-export site). Delete the re-export; migrate its consumers to the declaring module.');
   });
 
-  it('the detector fires on a real barrel (positive control): the model root barrel is all re-exports', () => {
-    // packages/model/src/index.ts re-exports its whole surface (`export ... from` lines) —
+  it('the detector fires on a real barrel (positive control): the design root barrel is all re-exports', () => {
+    // packages/design/domain/index.ts re-exports its whole surface (`export ... from` lines) —
     // a live positive control proving `reExportOffencesIn` detects the shape, and pinning in
     // code WHY root barrels are excluded from the sweep above: they would all be offences.
-    const modelBarrel = join(PACKAGES, 'model', 'src', 'index.ts');
-    assert.ok(BARRELS.has(modelBarrel), 'precondition: the model barrel is a sanctioned barrel');
-    assert.ok(reExportOffencesIn(modelBarrel).length > 0,
+    const designBarrel = join(PACKAGES, 'design', 'domain', 'index.ts');
+    assert.ok(BARRELS.has(designBarrel), 'precondition: the design barrel is a sanctioned barrel');
+    assert.ok(reExportOffencesIn(designBarrel).length > 0,
       'the detector must flag a file that genuinely re-exports — if this is zero the sweep above is blind');
   });
 
-  it('a subpath barrel (e.g. model/./driverStanding) is exempt from the gate but not from scrutiny — none currently re-exports', () => {
+  it('a subpath barrel (e.g. design/./engine) is exempt from the gate but not from scrutiny — none currently re-exports', () => {
     assert.ok(SUBPATH_BARRELS.size > 0, 'no subpath barrels found — this guard would pass vacuously');
     const offences = [...SUBPATH_BARRELS].flatMap(reExportOffencesIn);
 

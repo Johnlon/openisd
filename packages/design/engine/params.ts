@@ -20,13 +20,13 @@
  * This is input validation only: it changes no formula and no computed number.
  */
 
-import type { BoxType, SimulatableBoxType, SweepParams, DriverError } from './types.js';
+import type { BoxType, SimulatableBoxType, EnclosureParams, DriverError } from './types.js';
 import { simulatableBoxType } from './types.js';
 
 /** One enclosure parameter `solve()` divides by, with the human wording for its message. */
 interface RequiredParam {
   /** The `SweepParams` key — also the `DriverError.field`, so the UI can point at the input. */
-  readonly field: keyof SweepParams;
+  readonly field: keyof EnclosureParams;
   /** How the field is named to a human, matching the UI's own label. */
   readonly label: string;
   /** What goes wrong in the circuit when it is absent or non-positive. */
@@ -45,7 +45,7 @@ interface RequiredParam {
  * rejects values that break the solve at EVERY frequency, which is the class a precondition
  * can decide from the inputs alone.
  */
-export function validateParams(box: BoxType, P: SweepParams): DriverError[] {
+export function validateParams(box: BoxType, P: EnclosureParams): DriverError[] {
   // The tables live INSIDE the function that reads them: a module-scoped `const` object is
   // shared mutable state however it is declared, because `const` freezes the binding and not
   // the contents (packages/design/AGENTS.md).

@@ -109,6 +109,15 @@ export interface Filter {
  * pr*) are optional because a given box type only reads its own; the solver
  * accesses them within the matching branch where they are guaranteed present.
  */
+/** The enclosure fields this check reads — every parameter some box type divides by, all
+ *  optional because "absent" is one of the states it exists to report.
+ *
+ *  A subset of `SweepParams` rather than `SweepParams` itself: validating an enclosure needs no
+ *  drive level and no frequency grid, and demanding them would mean a project that cannot yet be
+ *  swept could not be checked either — which is precisely the project whose box parameters are
+ *  most likely to be wrong. */
+export type EnclosureParams = Partial<Pick<SweepParams, 'Vb' | 'Vf' | 'Sp' | 'prSd' | 'prCms' | 'prMmd'>>;
+
 export interface SweepParams {
   Vb: number;
   eg: number;

@@ -19,6 +19,7 @@ import { allIssues, paramIssues, requireFocusedProject, newProject } from '../..
 describe('the store unions every hardening layer into one issue list', () => {
   it('a fully specified design is clean — no layer reports a false positive', () => {
     newProject();
+    requireFocusedProject().box.boxType.set('vented');
     requireFocusedProject().driver.spec.woofer.Fs_hz.set(37);
     requireFocusedProject().driver.spec.woofer.Qts.set(0.378);
     requireFocusedProject().driver.spec.woofer.Qes.set(0.40);
@@ -40,6 +41,9 @@ describe('the store unions every hardening layer into one issue list', () => {
 
   it('a zero box volume surfaces a Vb error through allIssues, naming the field', () => {
     newProject();
+    // A new project opens SEALED, and these tests configure a vented box — the vent fields
+    // below are dormant until the box type names them.
+    requireFocusedProject().box.boxType.set('vented');
     requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
     requireFocusedProject().box.vented.volume_m3.set(0);
 
@@ -50,6 +54,9 @@ describe('the store unions every hardening layer into one issue list', () => {
 
   it('the box-parameter layer is reachable independently as paramIssues', () => {
     newProject();
+    // A new project opens SEALED, and these tests configure a vented box — the vent fields
+    // below are dormant until the box type names them.
+    requireFocusedProject().box.boxType.set('vented');
     requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
     requireFocusedProject().box.vented.volume_m3.set(0);
 
@@ -59,6 +66,9 @@ describe('the store unions every hardening layer into one issue list', () => {
 
   it('an unsized new project reports BOTH preconditions — Vb and the vent area', () => {
     newProject();
+    // A new project opens SEALED, and these tests configure a vented box — the vent fields
+    // below are dormant until the box type names them.
+    requireFocusedProject().box.boxType.set('vented');
     requireFocusedProject().box.vented.volume_m3.set(0);
     requireFocusedProject().box.vented.vent.diameter_m.set(0);
 
@@ -68,6 +78,9 @@ describe('the store unions every hardening layer into one issue list', () => {
 
   it('clearing the bad value clears the issue — the channel is live, not latched', () => {
     newProject();
+    // A new project opens SEALED, and these tests configure a vented box — the vent fields
+    // below are dormant until the box type names them.
+    requireFocusedProject().box.boxType.set('vented');
     requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
     requireFocusedProject().box.vented.volume_m3.set(0);
     assert.ok(paramIssues.value.length > 0, 'precondition of this test');

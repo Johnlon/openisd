@@ -21,7 +21,7 @@ export type { Air, AirEnvironment, AirConstantProvider } from './air.js';
 export type { ConsistencyIssue } from './consistency.js';
 export type {
   BoxType, SimulatableBoxType, DriverError, Filter, FilterType, MaxCurvesResult, Wiring,
-  Result, SweepParams, SweepResult,
+  EnclosureParams, Result, SweepParams, SweepResult,
 } from './types.js';
 // What the solver is GIVEN and what it RETURNS, which are one shape. A TYPE export: nothing
 // constructs a `SolverQuantities` — a caller writes an object literal and the solver hands one

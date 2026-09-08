@@ -41,7 +41,7 @@ import {newUuid} from './newUuid.js';
 import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/index.js';
 import type {
     BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, Filter,
-    MaxCurvesResult, Result, SweepParams, SweepResult, SolverQuantities,
+    EnclosureParams, MaxCurvesResult, Result, SweepParams, SweepResult, SolverQuantities,
 } from '../engine/index.js';
 
 import type {Vent, VentShape} from './vent.js';
@@ -2128,6 +2128,23 @@ export class OpenISDProject {
 
     /** The frequency grid a sweep runs over — the only thing about a sweep this project does not
      *  already know about itself. */
+    /** The ENCLOSURE parameters alone — what `validateParams` reads (`engine/params.ts`: `Vb`,
+     *  `Vf`, `Sp`, `prSd`, `prCms`, `prMmd`), with no drive level and no sweep settings.
+     *
+     *  Separate from `#sweepParams` because the two answer different questions. Sweeping needs a
+     *  drive voltage, which needs the driver's `Re`; checking that a box volume is a usable number
+     *  does not. Building the validation input through the sweep's guard made an absent `Re`
+     *  silence every enclosure complaint on exactly the half-finished projects that most need
+     *  them.
+     *
+     *  An unstated volume is passed through as-is rather than short-circuiting to "no issues":
+     *  "you have not sized the box" is the complaint, not a reason to stay quiet. */
+    #enclosureParams(): EnclosureParams {
+        const boxType = this.box.boxType.get();
+        const {Vf, Sp, prSd, prCms, prMmd} = this.#boxSpecificParams(boxType);
+        return {Vb: this.#boxVolume_m3() ?? undefined, Vf, Sp, prSd, prCms, prMmd};
+    }
+
     #sweepParams(P: FrequencyGrid): SweepParams | null {
         const Vb = this.#boxVolume_m3();
         const eg = this.driveVoltage_V();
@@ -2259,10 +2276,9 @@ export class OpenISDProject {
     /** What is wrong with these sweep parameters for this project's topology — checked BEFORE a
      *  sweep, so a caller can refuse rather than plot nonsense. Empty when nothing is wrong, and
      *  also empty (rather than a false accusation) when the topology cannot be simulated at all. */
-    validateParams(P: FrequencyGrid): DriverError[] {
+    validateParams(_P: FrequencyGrid): DriverError[] {
         const box = this.#engineBoxType();
-        const params = box ? this.#sweepParams(P) : null;
-        return box && params ? this.#engine.validateParams(box, params) : [];
+        return box ? this.#engine.validateParams(box, this.#enclosureParams()) : [];
     }
 
     /** The passband level a response is measured against — the reference every dB figure below is

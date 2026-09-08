@@ -1,5 +1,5 @@
 prefix: QO
-next: 128
+next: 129
 questions:
 - id: QO1
   title: UI TODO List
@@ -8707,3 +8707,9 @@ questions:
     text: '"yes a field whose value is nto provided in the domain is obvipously not-available BUT if any
       such fielf is calculable then reading it should hit the solver automativally - NOTHING is supposed
       to call the solver indepencenly and write to the domain THAT WOUDK BE A BUG"'
+- id: QO128
+  title: Subpath barrels (design/./engine, ./winisd, ./filter, ./browser, ./ini) re-export — widen the
+    QO80 exemption, or restructure? -
+  status: open
+  raised: '2026-09-08'
+  body: ''
