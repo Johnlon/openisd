@@ -11,7 +11,7 @@ knows nothing about it:
 - **EXPORT** — `WinISDDriver.toWdr()` writes real `\n` line breaks inside `Comment=`
   (`commentWithDq`, `winisdDriver.ts:90-93`). The result is a `.wdr` WinISD cannot read as
   written: everything after the first newline becomes stray lines in the `[Driver]` section.
-- **IMPORT** — the file is read with `FileReader.readAsText()` (`useDesignIO.ts:376`,
+- **IMPORT** — the file is read with `FileReader.readAsText()` (`useApplicationIO.ts:376`,
   `driverLibrary.ts:363`), i.e. UTF-8. `0xA4` is not valid UTF-8 on its own, so it decodes to
   U+FFFD and the newline is **unrecoverable** — the byte is gone before `fromWdrIni` ever sees
   the string.
@@ -99,7 +99,7 @@ It is implemented the strict way because the cost is nil and the failure would b
 App wiring, so the fix actually reaches the user:
 
 - `logic/driverFileText.ts` — new `readDriverFileText(file)`: `readAsArrayBuffer` then
-  `wdrBytesToText`. Replaces `readAsText` in `driverLibrary.ts`, `useDesignIO.ts` and
+  `wdrBytesToText`. Replaces `readAsText` in `driverLibrary.ts`, `useApplicationIO.ts` and
   `DriverEditorModal.vue`. Applied to EVERY driver/project file, not just `.wdr`, because a
   `.wpr` embeds its `[Driver]` block verbatim and carries sentinels too; for a file with none
   the decode is the identity.

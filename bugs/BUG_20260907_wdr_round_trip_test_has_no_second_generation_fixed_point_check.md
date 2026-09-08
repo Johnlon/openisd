@@ -2,7 +2,7 @@
 
 **Status:** OPEN
 **Found:** 2026-09-07, specifying the `.wpr` bridge round-trip tests for the
-`OpenISDProject`↔`WinISDProject` work (`file_io.ts`/`useDesignIO.ts` migration) and comparing
+`OpenISDProject`↔`WinISDProject` work (`file_io.ts`/`useApplicationIO.ts` migration) and comparing
 the requested `.wpr` test shape against the existing `.wdr` one.
 
 ## Symptom

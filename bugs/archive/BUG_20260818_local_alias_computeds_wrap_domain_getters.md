@@ -29,7 +29,7 @@ const ventArea = computed<number>(() => {
 
 | lines | code | aliases | use sites |
 |---|---|---|---|
-| 400-403 | `export const driver = computed<Driver \| null>(() => { void _version.value; return managedProject.toDriver(); });` | `managedProject.toDriver()` | many: `App.vue`, `OgTune.vue`, `OriginalShell.vue`, `useDesignIO.ts`, `GraphPanel.vue`, `driverFigures.ts`, others |
+| 400-403 | `export const driver = computed<Driver \| null>(() => { void _version.value; return managedProject.toDriver(); });` | `managedProject.toDriver()` | many: `App.vue`, `OgTune.vue`, `OriginalShell.vue`, `useApplicationIO.ts`, `GraphPanel.vue`, `driverFigures.ts`, others |
 | 406-409 | `export const projectToPersist = computed(() => { void _version.value; return managedProject.recordToPersist(); });` | `managedProject.recordToPersist()` | `store.ts` internally only (`driverRecord`, line 419) |
 | 435-438 | `export const driverErrors = computed<DriverError[]>(() => { void _version.value; return managedProject.errors(); });` | `managedProject.errors()` | `GraphPanel.vue`, `store.ts` (`driverWarnings`), `OriginalShell.vue` |
 | 439-442 | `export const driverConsistencyIssues = computed<ConsistencyIssue[]>(() => { void _version.value; return managedProject.consistencyIssues(); });` | `managedProject.consistencyIssues()` | `OgTune.vue`, `store.ts` |
@@ -96,7 +96,7 @@ function still registers as a dependency of whichever computed/render effect cal
 synchronously, so no caller loses reactivity.
 
 All ~13 call sites updated (`.value` → `()`): `OriginalShell.vue`, `GraphPanel.vue`,
-`OgTune.vue`, `useDesignIO.ts`, `store.ts` internally (`driverWarnings`, `syncedP`, `_doSweep`,
+`OgTune.vue`, `useApplicationIO.ts`, `store.ts` internally (`driverWarnings`, `syncedP`, `_doSweep`,
 `allIssues`, `driverRecord`), `original-skin.browser.spec.ts`,
 `store-issue-channel.test.ts`. One real bug caught by this: `OgTune.vue`'s
 `ebpVal = computed(() => (driver() ? ebp(driver()) : null))` called `driver()` TWICE — with the

@@ -2,7 +2,7 @@
 
 ## Status
 FIXED — in `parseWprRaw` (`packages/winisd/src/classic/wpr.ts`), the successor to
-`useDesignIO.ts`'s `parseWprToState` written for task A6 (FileIO/useDesignIO remediation).
+`useApplicationIO.ts`'s `parseWprToState` written for task A6 (FileIO/useApplicationIO remediation).
 
 ## Symptom
 Importing a `.wpr` that has "Simulate voice coil inductance" / "Force flat response" /
@@ -22,7 +22,7 @@ VCInd=0
 FlatResponse=0
 TLPorts=0
 ```
-`useDesignIO.ts`'s `parseWprToState` (the READ side, now deleted) read:
+`useApplicationIO.ts`'s `parseWprToState` (the READ side, now deleted) read:
 ```ts
 const vcInductance = simOptSec['vcInductance'] === '1';
 const flatResponse = simOptSec['flatResponse'] === '1';

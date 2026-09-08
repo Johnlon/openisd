@@ -2,19 +2,19 @@
 
 ## Status
 FIXED (superseded 2026-08-21) — the cited `exportDriver()` call site no longer exists in
-`useDesignIO.ts` at all (`grep -n "exportDriver(" packages/ui/src/logic/useDesignIO.ts` — zero
+`useApplicationIO.ts` at all (`grep -n "exportDriver(" packages/ui/src/logic/useApplicationIO.ts` — zero
 hits).
 
 ## Symptom
 
 ```
-packages/ui/src/logic/useDesignIO.ts(142,68): error TS2345: Argument of type '_OpenISDDriverJson'
+packages/ui/src/logic/useApplicationIO.ts(142,68): error TS2345: Argument of type '_OpenISDDriverJson'
 is not assignable to parameter of type 'OpenISDDriver'.
-packages/ui/src/logic/useDesignIO.ts(159,68): error TS2345: Argument of type '_OpenISDDriverJson'
+packages/ui/src/logic/useApplicationIO.ts(159,68): error TS2345: Argument of type '_OpenISDDriverJson'
 is not assignable to parameter of type 'OpenISDDriver'.
 ```
 
-`useDesignIO.ts`'s `exportWdr()`/`exportWpr()` read `driverRecord.value` (`store.ts:416`, typed
+`useApplicationIO.ts`'s `exportWdr()`/`exportWpr()` read `driverRecord.value` (`store.ts:416`, typed
 `_OpenISDDriverJson | undefined` — the plain record) and pass it straight to
 `WinIsdDriverFileIo.exportDriver(driver: OpenISDDriver)` (`winIsdDriverFileIo.ts:34`), which
 declares and needs the live class instance (`driver.toRecord()`, `driver.ebp()` internally).

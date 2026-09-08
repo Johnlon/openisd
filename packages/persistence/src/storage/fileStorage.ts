@@ -9,12 +9,12 @@
  * The port RETAINS the picked `FileSystemFileHandle` itself (session-only, lost on reload) —
  * `save()` writes in place to it, prompting only the first time; the caller never threads a
  * handle through its own calls. `openFileName()`/`forget()` are the caller's only way to
- * observe or drop it: `useDesignIO.ts`'s rename-retargets-the-file watch calls `forget()` when
+ * observe or drop it: `useApplicationIO.ts`'s rename-retargets-the-file watch calls `forget()` when
  * the project name no longer matches the retained file's name, rather than reaching into this
  * module's own state.
  *
  * WRITE-side only: file READS reach the app through a plain `<input type="file">` element,
- * which hands `useDesignIO.ts` a `File` directly — no picker this module drives.
+ * which hands `useApplicationIO.ts` a `File` directly — no picker this module drives.
  */
 import { createFileSave } from './fileSave.js';
 

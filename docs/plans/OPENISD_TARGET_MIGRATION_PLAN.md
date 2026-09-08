@@ -41,7 +41,7 @@ npx vue-tsc -p packages/ui --noEmit
 | no app file imports the condemned `Driver` ADT | RED — `driverSelection.ts`, `DriverEditorModal.vue` |
 
 Six files still import from `@openisd/winisd`: `db/driverRepo.ts`, `logic/store.ts`,
-`logic/useDesignIO.ts`, `logic/wprMapping.ts`, `logic/driverSelection.ts`,
+`logic/useApplicationIO.ts`, `logic/wprMapping.ts`, `logic/driverSelection.ts`,
 `ui/components/DriverEditorModal.vue`.
 
 **Does not exist at all:** `OpenISDProject`, `ManagedProject`, `OpenISDPassiveRadiator`, the four

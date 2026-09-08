@@ -160,9 +160,9 @@ something unlisted, STOP, record it here, re-sequence — never improvise around
       split, serialize's named inputs, the `OpenISDProject` class facade, `_version` deletion.
       All landed and reviewed.
 - [x] **A6 (FileIO) — CLOSED, done-criteria met or moot** (verified 2026-08-28). The composable
-      is `createDesignIO` (`packages/ui/src/logic/useDesignIO.ts:69`); the plan's `createFileIO`
+      is `createApplicationIO` (`packages/ui/src/logic/useApplicationIO.ts:69`); the plan's `createFileIO`
       name never existed and `FileIO` greps to zero — that criterion was written against a name
-      the implementation didn't adopt. `useDesignIO.ts` imports **no** `OpenISDDriver` (value or
+      the implementation didn't adopt. `useApplicationIO.ts` imports **no** `OpenISDDriver` (value or
       type) — it takes `createFileSave` + the `FileStorage`/`ProjectRepo`/`FileNaming` types
       from `@openisd/persistence`. Residue carved out as A6b.
 - [ ] **A6b — delete `isLegacyWinisdFormat` (QO67).** Still present in three files:
@@ -258,7 +258,7 @@ something unlisted, STOP, record it here, re-sequence — never improvise around
 - [ ] **E1 — nearly closed.** Swept in `8cfc8e9`; a fresh grep over `packages/ui/src` +
       `packages/model/src` for "used to / previously / no longer / was renamed / replaces the
       old / formerly" now returns only **7 hits, of which 5 are legitimate** — they describe
-      present-tense runtime or domain state, not code history (`useDesignIO.ts:92`
+      present-tense runtime or domain state, not code history (`useApplicationIO.ts:92`
       "previously-picked file"; `OriginalShell.vue:217/:476/:1475`; `DriverBrowserWinisd.vue:89`).
       **Two are genuine historic-code narration and should go:**
       `packages/ui/src/ui/components/NumInput.vue:107` ("A case-tolerant fallback used to live

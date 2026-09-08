@@ -17,9 +17,9 @@ yml project not json." The sibling `.owdr` (driver) case is fixed —
 return fileStorage.save(JSON.stringify(projectPayloadOf(project), null, 2), ...);
 return fileStorage.saveAs(JSON.stringify(projectPayloadOf(project), null, 2), ...);
 ```
-Reached via `useDesignIO.ts:97/122` (`deps.projectRepo.saveToFile`/`saveToNewFile`).
+Reached via `useApplicationIO.ts:97/122` (`deps.projectRepo.saveToFile`/`saveToNewFile`).
 
-**`.owpr` project import sniffing assumes JSON** — `useDesignIO.ts:197`:
+**`.owpr` project import sniffing assumes JSON** — `useApplicationIO.ts:197`:
 ```ts
 } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
 ```

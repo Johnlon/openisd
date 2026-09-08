@@ -67,7 +67,7 @@ actually passes it.
 | The file's unit is **m³**                                                          | O-C line 151 `Vas=0.0048`; WinISD's own PR pane shows that project as **`Vas 4.80 l`** (S-4). 0.0048 × 1000 = 4.80.                                                                                                                                                                                                              |
 | Every other `[PassiveRadiator]` key IS SI, so this is not a per-section convention | O-C `Sd=0.0095` → S-4 shows `95.0 cm^2` (×1e4, m²); `Xmax=19` → S-4 shows `19000.0 mm` (×1000, metres); `Fs=30` → `30.00 Hz`.                                                                                                                                                                                                    |
 | The default design exports a wrong number today                                    | `P_DEFAULTS.prCms=0.0008`, `prSd=0.0133` (`packages/ui/src/logic/store.ts:42`) ⇒ `prVas` = **20.074**, written as `Vas=20.074…`. WinISD will read 20 m³. Correct value: `0.020074`.                                                                                                                                              |
-| The export is reachable from the UI                                                | `packages/ui/src/ui/components/ExportMenu.vue:29` "Save As WinISD project (.wpr)" → `exportWpr()` → `packages/ui/src/logic/useDesignIO.ts:151`.                                                                                                                                                                                  |
+| The export is reachable from the UI                                                | `packages/ui/src/ui/components/ExportMenu.vue:29` "Save As WinISD project (.wpr)" → `exportWpr()` → `packages/ui/src/logic/useApplicationIO.ts:151`.                                                                                                                                                                                  |
 | **Why no test caught it**                                                          | `packages/winisd/test/classic/wpr.test.ts:130` asserts the `[PassiveRadiator]` block with `Vas: 0.0048` **fed in by hand** (line 31) — it proves the _serialiser_, and the mapping that feeds it is unexercised. `command grep -rn 'buildWprInput' packages/ui/test/` returns **zero hits**: `wprMapping.ts` has no test at all. |
 
 ### ❌ F2 — driver-editor edits to 11 fields are silently discarded on `.wdr` save
@@ -305,7 +305,7 @@ All eight are **metres** in the file (m³ for `DVol`), **metres** in the store, 
 ## 4. The sweep — `.wpr` project file
 
 Written by `packages/winisd/src/classic/wpr.ts`, fed by `packages/ui/src/logic/wprMapping.ts`.
-**Read-back is not implemented** — `.wpr` is export-only (`useDesignIO.ts:284` only branches on
+**Read-back is not implemented** — `.wpr` is export-only (`useApplicationIO.ts:284` only branches on
 the extension for the _driver_ block), so every row below is a write-side risk.
 
 ### 4.1 `[Box]`

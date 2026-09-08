@@ -416,7 +416,7 @@ Symmetry is highly valued - consistency is highly valued - encapsulation etc etc
   orchestrator directly and verified (grep 0, suites 13/13, typecheck clean): ARCHITECTURE.md
   `.owpr` self-contradiction resolved at :519/:950-table/:982 (current shape = SerializedState,
   A8 decides narrowing), COMMENTED_openisdYamlToWdr.ts task-scope narration removed (constraint kept),
-  useDesignIO what-if ordering made structural (snapshot/record hoisted to first statement in
+  useApplicationIO what-if ordering made structural (snapshot/record hoisted to first statement in
   projectJsonText + shareLink; header comment states the real mechanism), purity-test comment
   scoped to what the regex actually guards. `as unknown as FileSystemFileHandle` in
   fileStore.test.ts adjudicated ACCEPTED (test fake of wide DOM interface, repo precedent).
@@ -477,7 +477,7 @@ never improvise around it.
 - [x] **R2** DONE 2026-08-21: the coax question is `QO65`, the wizard build request `QO64`;
       every QO id verified unique.
 - [x] **R4** DONE 2026-08-21: QO56-hazard clause struck from PLAN_QO60_LAYERING_REMEDIATION.md;
-      useDesignIO.ts QO55-citing comment deleted (QO57 pointer kept, one line). Both greps empty.
+      useApplicationIO.ts QO55-citing comment deleted (QO57 pointer kept, one line). Both greps empty.
 - [x] **R5** DONE 2026-08-21, review PASS after one fix cycle. All 21 appendix rows applied
       with fresh evidence; review spot-checks corrected two (q_group REOPENED — a second
       `['Qts','Qes','Qms']` declaration survives at `driverRepo.ts:226`, now task D6;
@@ -569,11 +569,11 @@ never improvise around it.
       driver path uses; combine into ONE fileformat file and dedupe to the greatest extent;
       one [Driver]-block serialiser for .wdr and .wpr; DELETE isLegacyWinisdFormat in the
       same change — closing QO67). Implement `FileIO` per Proposal B + the `FileStore` destination port
-      (`docs/design/FILEIO_API_PROPOSALS.md`); split `useDesignIO.ts` accordingly; PR inverse
+      (`docs/design/FILEIO_API_PROPOSALS.md`); split `useApplicationIO.ts` accordingly; PR inverse
       formulas to `@openisd/engine`; `.wpr` parsing raw-only in `@openisd/winisd`; apply the
       three `ARCHITECTURE.md` corrections. Blocked-by: A5, C1. Done: `createFileIO` exists and
-      is constructed only in `main.ts`; useDesignIO's `OpenISDDriver` value import gone;
-      wpr/useDesignIO suites green.
+      is constructed only in `main.ts`; useApplicationIO's `OpenISDDriver` value import gone;
+      wpr/useApplicationIO suites green.
 - [ ] **A7** NOW ALSO CARRIES (2026-08-22):
       bugs/BUG_20260822_openisd_reads_disposition_which_post_b10_records_no_longer_carry.md —
       post-B10 records carry NO quality.disposition/no_ts_published (John's REWORK ruling);

@@ -4,7 +4,7 @@ Status: OPEN
 
 ## Symptom
 
-`packages/ui/src/logic/useDesignIO.ts:164-176` builds a `.wpr` by gathering pieces from the
+`packages/ui/src/logic/useApplicationIO.ts:164-176` builds a `.wpr` by gathering pieces from the
 store, the managed project, the clock and a rendered `.wdr` string, because no project object
 exists to ask.
 

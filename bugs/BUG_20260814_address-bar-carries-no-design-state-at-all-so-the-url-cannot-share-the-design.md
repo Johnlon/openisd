@@ -28,7 +28,7 @@ CAUSE").
 ## Where to start when this is picked up
 
 - The share-link encoder is `stateToUrl(...)` in `packages/ui/src/logic/persist.ts`, called from
-  `shareLink()` in `packages/ui/src/logic/useDesignIO.ts`.
+  `shareLink()` in `packages/ui/src/logic/useApplicationIO.ts`.
 - What keeps the address bar in step with live state is a separate concern from generating a link
   on demand — establish which of the two is failing before touching either.
 - The architectural rule this sits under is ARCHITECTURE.md §"Approved state stores": UI/display

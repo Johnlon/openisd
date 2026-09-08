@@ -38,7 +38,7 @@ compiler check that both were updated, and no test that would fail if they diver
 `packages/persistence/src/repos/projectRepo.ts` (pre-fix, git history at
 `8f1d7f1`): `ProjectWrite` at the old line ~74, `ProjectRead` at the old line ~84 — same file,
 21 lines apart, both exported and both consumed across `packages/ui/src/logic/appState.ts`
-(`currentProjectWrite()` / `applyState()`), `useDesignIO.ts`, and `App.vue`.
+(`currentProjectWrite()` / `applyState()`), `useApplicationIO.ts`, and `App.vue`.
 
 ## Cause
 
@@ -70,6 +70,6 @@ vs. full session) — see `packages/persistence/src/repos/projectRepo.ts` and
 (`ProjectPayload`); `grep -rn "ProjectWrite\|ProjectRead\b" packages/` (excluding this bug file)
 finds nothing. `packages/persistence` and `packages/ui` both typecheck 0 errors
 (`npx tsc --noEmit` / `npx vue-tsc --noEmit`). `packages/ui/test/logic/persist.test.ts`,
-`boxActiveSync.test.ts` and `useDesignIO.test.ts` — 21 tests — pass against the single type,
+`boxActiveSync.test.ts` and `useApplicationIO.test.ts` — 21 tests — pass against the single type,
 including a new test asserting the local-save wire carries no view fields even when the
 `ProjectPayload` handed to `saveLocal` carries a real `view` (QO90).

@@ -5,12 +5,12 @@ FIXED 2026-08-14
 
 
 **Status:** FIXED in the same turn this file was written (Step 10, `ManagedDriver`). Proven by
-`packages/ui/test/logic/useDesignIO.test.ts` — red (what-if still active after `shareLink()`)
+`packages/ui/test/logic/useApplicationIO.test.ts` — red (what-if still active after `shareLink()`)
 before the one-line fix, green after.
 
 ## Symptom
 
-`useDesignIO.ts`'s `shareLink()` builds the share URL from `driverJSON.value` without first
+`useApplicationIO.ts`'s `shareLink()` builds the share URL from `driverJSON.value` without first
 cancelling an active driver what-if. Every sibling I/O function in the same module
 (`saveProject`, `saveProjectAs`, `exportWdr`, `exportWpr`, `exportOwdr`) calls
 `endAnyActiveWhatIfBeforeIO()` first; `shareLink()` is the one that does not. `driverJSON` is
@@ -22,14 +22,14 @@ persistent" names this exact function as the origin of the rule.
 
 ## The code
 
-`packages/ui/src/logic/useDesignIO.ts:129-137`
+`packages/ui/src/logic/useApplicationIO.ts:129-137`
 
     async function shareLink(): Promise<void> {
       const url = await stateToUrl(serialize(state, driverJSON.value));
       ...
     }
 
-Compare `exportWdr` two lines later, `packages/ui/src/logic/useDesignIO.ts:139-143`:
+Compare `exportWdr` two lines later, `packages/ui/src/logic/useApplicationIO.ts:139-143`:
 
     function exportWdr(): void {
       endAnyActiveWhatIfBeforeIO();
@@ -39,13 +39,13 @@ Compare `exportWdr` two lines later, `packages/ui/src/logic/useDesignIO.ts:139-1
 ## Fix
 
 Add the missing `endAnyActiveWhatIfBeforeIO();` call at the top of `shareLink()`, matching
-every sibling I/O function. `packages/ui/test/logic/useDesignIO.test.ts` gains a test: with a
+every sibling I/O function. `packages/ui/test/logic/useApplicationIO.test.ts` gains a test: with a
 what-if active, `shareLink()` cancels it (`isDriverWhatIfActive.value` false afterward) — proven
 red first, then green.
 
 This is a narrow, evidenced fix; `ManagedDriver` (this Step's main deliverable) closes the
 *class* of bug structurally by making `readModified()` — the one path any future save/export
 must use — cancel the what-if itself, so no future sibling function can forget the guard the
-way this one did. `useDesignIO.ts` itself is not rewired onto `ManagedDriver` in this pass (see
+way this one did. `useApplicationIO.ts` itself is not rewired onto `ManagedDriver` in this pass (see
 the Step 10 report for why), so today's fix stays the scattered-guard shape until that rewire
 happens.

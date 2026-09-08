@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createLogging } from '../../src/logging/flash.js';
-import { createDesignIO } from '../../src/logic/useDesignIO.js';
+import { createApplicationIO } from '../../src/logic/useApplicationIO.js';
 import { createFileStorage, createProjectRepo } from '@openisd/persistence';
 import { state } from '../../src/logic/appState.js';
 import { Engine } from '@openisd/design/engine';
@@ -63,7 +63,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       }
     });
     try {
-      const io = createDesignIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage()) });
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage()) });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone after.
       state.project.name = 'stale-name-999999';

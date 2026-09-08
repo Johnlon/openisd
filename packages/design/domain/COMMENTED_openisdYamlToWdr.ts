@@ -169,54 +169,54 @@
 //  *  here rather than as a keyed method on the class. */
 // function driverFieldCell(driver: OpenISDDriver, key: string): Cell {
 //   switch (key) {
-//     case 'Qts': return driver.QtsCell();
-//     case 'Znom': return driver.ZnomCell();
-//     case 'Fs': return driver.FsCell();
-//     case 'Pe': return driver.PeCell();
-//     case 'SPL': return driver.SPLCell();
-//     case 'Re': return driver.ReCell();
-//     case 'Le': return driver.LeCell();
-//     case 'fLe': return driver.fLeCell();
-//     case 'KLe': return driver.KLeCell();
-//     case 'BL': return driver.BLCell();
-//     case 'Xmax': return driver.XmaxCell();
-//     case 'Cms': return driver.CmsCell();
-//     case 'Qms': return driver.QmsCell();
-//     case 'Qes': return driver.QesCell();
-//     case 'Rms': return driver.RmsCell();
-//     case 'Mms': return driver.MmsCell();
-//     case 'Sd': return driver.SdCell();
-//     case 'Vas': return driver.VasCell();
-//     case 'Dia': return driver.DiaCell();
-//     case 'Vd': return driver.VdCell();
-//     case 'no': return driver.noCell();
-//     case 'Dd': return driver.DdCell();
-//     case 'EBP': return driver.EBPCell();
-//     case 'numVC': return driver.numVCCell();
-//     case 'Hc': return driver.HcCell();
-//     case 'Hg': return driver.HgCell();
-//     case 'SPLmax': return driver.SPLmaxCell();
-//     case 'SPLmaxLF': return driver.SPLmaxLFCell();
-//     case 'USPL': return driver.USPLCell();
-//     case 'alfaVC': return driver.alfaVCCell();
-//     case 'Rt': return driver.RtCell();
-//     case 'Ct': return driver.CtCell();
-//     case 'gamma': return driver.gammaCell();
-//     case 'Rme': return driver.RmeCell();
-//     case 'Mpow': return driver.MpowCell();
-//     case 'Mcost': return driver.McostCell();
-//     case 'Gloss': return driver.GlossCell();
-//     case 'VCCon': return driver.VCConCell();
-//     case 'c': return driver.cCell();
-//     case 'roo': return driver.rooCell();
-//     case 'Thick': return driver.ThickCell();
-//     case 'Depth': return driver.DepthCell();
-//     case 'MagDepth': return driver.MagDepthCell();
-//     case 'Magnet': return driver.MagnetCell();
-//     case 'Basket': return driver.BasketCell();
-//     case 'Outer': return driver.OuterCell();
-//     case 'Vcd': return driver.VcdCell();
-//     case 'DVol': return driver.DVolCell();
+//     case 'Qts': return driver.spec[driver.section].Qts;
+//     case 'Znom': return driver.spec[driver.section].Znom_ohm;
+//     case 'Fs': return driver.spec[driver.section].Fs_hz;
+//     case 'Pe': return driver.spec[driver.section].Pe_W;
+//     case 'SPL': return driver.spec[driver.section].SPL_dB;
+//     case 'Re': return driver.spec[driver.section].Re_ohm;
+//     case 'Le': return driver.spec[driver.section].Le_H;
+//     case 'fLe': return driver.spec[driver.section].fLe_hz;
+//     case 'KLe': return driver.spec[driver.section].KLe_H_sqrtHz;
+//     case 'BL': return driver.spec[driver.section].BL_Tm;
+//     case 'Xmax': return driver.spec[driver.section].Xmax_m;
+//     case 'Cms': return driver.spec[driver.section].Cms_m_per_N;
+//     case 'Qms': return driver.spec[driver.section].Qms;
+//     case 'Qes': return driver.spec[driver.section].Qes;
+//     case 'Rms': return driver.spec[driver.section].Rms_kg_per_s;
+//     case 'Mms': return driver.spec[driver.section].Mms_kg;
+//     case 'Sd': return driver.spec[driver.section].Sd_m2;
+//     case 'Vas': return driver.spec[driver.section].Vas_m3;
+//     case 'Dia': return driver.spec[driver.section].Dia_m;
+//     case 'Vd': return driver.spec[driver.section].Vd_m3;
+//     case 'no': return driver.spec[driver.section].no;
+//     case 'Dd': return driver.spec[driver.section].Dd_m;
+//     case 'EBP': return driver.spec[driver.section].EBP_hz;
+//     case 'numVC': return driver.spec[driver.section].numVC;
+//     case 'Hc': return driver.spec[driver.section].Hc_m;
+//     case 'Hg': return driver.spec[driver.section].Hg_m;
+//     case 'SPLmax': return driver.spec[driver.section].SPLmax_dB;
+//     case 'SPLmaxLF': return driver.spec[driver.section].SPLmaxLF_dB;
+//     case 'USPL': return driver.spec[driver.section].USPL_dB;
+//     case 'alfaVC': return driver.spec[driver.section].alfaVC_per_K;
+//     case 'Rt': return driver.spec[driver.section].Rt_K_per_W;
+//     case 'Ct': return driver.spec[driver.section].Ct_J_per_K;
+//     case 'gamma': return driver.spec[driver.section].gamma_m_per_s2_A;
+//     case 'Rme': return driver.spec[driver.section].Rme_kg_per_s;
+//     case 'Mpow': return driver.spec[driver.section].Mpow_N_per_sqrtW;
+//     case 'Mcost': return driver.spec[driver.section].Mcost_kg_per_s;
+//     case 'Gloss': return driver.spec[driver.section].Gloss;
+//     case 'VCCon': return driver.spec[driver.section].VCCon;
+//     case 'c': return driver.spec[driver.section].c_m_per_s;
+//     case 'roo': return driver.spec[driver.section].roo_kg_per_m3;
+//     case 'Thick': return driver.spec[driver.section].Thick_m;
+//     case 'Depth': return driver.spec[driver.section].Depth_m;
+//     case 'MagDepth': return driver.spec[driver.section].MagDepth_m;
+//     case 'Magnet': return driver.spec[driver.section].Magnet_m;
+//     case 'Basket': return driver.spec[driver.section].Basket_m;
+//     case 'Outer': return driver.spec[driver.section].Outer_m;
+//     case 'Vcd': return driver.spec[driver.section].Vcd_m;
+//     case 'DVol': return driver.spec[driver.section].DVol_m3;
 //     default: return { value: null, state: CellState.NotAvailable };
 //   }
 // }
@@ -293,7 +293,7 @@
 //   // whose `specs` interior is not the `SpecEntry` shape (`specs: {woofer: {fs: 12}}` — a
 //   // plausible V8-bridge input). The right fix is `fromJsonRecord` refusing that shape itself
 //   // (`Result<OpenISDDriver>`), which reaches its callers in `@openisd/model` and
-//   // `packages/ui/src/logic` (managedProject.ts, useDesignIO.ts); this catch is the
+//   // `packages/ui/src/logic` (managedProject.ts, useApplicationIO.ts); this catch is the
 //   // acknowledged interim — the bug stays OPEN.
 //   let driver: OpenISDDriver;
 //   let projection: Result<string>;

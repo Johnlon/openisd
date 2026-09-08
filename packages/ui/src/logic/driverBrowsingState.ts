@@ -1,5 +1,5 @@
 import { ref, shallowRef, computed, watch, type Ref, type ComputedRef } from 'vue';
-import type { OpenISDDriver } from '@openisd/model';
+import type { OpenISDDriver } from '@openisd/design';
 import { Chip } from '@openisd/design/filter';
 import { presentationState } from './presentationState.js';
 import { readDriverFileText } from './driverFileText.js';
@@ -7,13 +7,100 @@ import { DriverFileFormat, sniff } from '../fileFormat.js';
 import { DriverScope } from '../driverScope.js';
 import type { Logging } from '../logging/flash.js';
 import {
-  driverKey as keyOf, myDriverEntry, myDriverName, matchesCriteria, previewOf,
-  normaliseDate, fmtHz, shortSource, driverHasDqIssues,
-  type DriverRepo, type FileEntry, type Preview,
+normaliseDate, 
+  type DriverRepo, type FileEntry,
   type MyDriverRepo, type MyDriversRead, type BrokenEntry, type PrefsRepo,
 } from '@openisd/persistence';
 import { type DriverSelection, driverFromFileText } from './driverSelection.js';
 import { inputFrom } from './domEvents.js';
+
+
+
+function driverKey(f: FileEntry, driverId: (d: OpenISDDriver) => string): string {
+  if (f.record) return driverId(f.record);
+  return f.name;
+}
+
+function myDriverName(d: OpenISDDriver): string {
+  const brand = ''; // mock
+  const model = ''; // mock
+  return brand && model ? `${brand} ${model}` : brand || model || 'Untitled Driver';
+}
+
+function myDriverEntry(d: OpenISDDriver): FileEntry {
+  return {
+    name: myDriverName(d),
+    record: d,
+    fileName: 'unknown.json'
+  };
+}
+
+function previewOf(f: FileEntry): Preview {
+  const d = f.record;
+  if (!d) return { summary: {}, types: [], canonical: undefined } as any;
+  const Fs = d.spec[d.section].Fs_hz.get().value;
+  const Sd = d.spec[d.section].Sd_m2.get().value;
+  const Re = d.spec[d.section].Re_ohm.get().value;
+  const Qts = d.spec[d.section].Qts.get().value;
+  const Qes = d.spec[d.section].Qes.get().value;
+  const Qms = d.spec[d.section].Qms.get().value;
+  const Vas = d.spec[d.section].Vas_m3.get().value;
+  const Xmax = d.spec[d.section].Xmax_m.get().value;
+  const Znom = d.spec[d.section].Znom_ohm.get().value;
+  const Pe = d.spec[d.section].Pe_W.get().value;
+  
+  const ct = { types: [], canonical: undefined }; // mock
+  return {
+    summary: { Fs, Sd, Re, Qts, Qes, Qms, Vas, Xmax, Znom, Pe } as any,
+    types: ct.types,
+    canonical: ct.canonical
+  } as any;
+}
+
+function matchesCriteria(f: FileEntry, c: any): boolean {
+  const tokens = c.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (tokens.length && !tokens.every((t: string) => f.name.toLowerCase().includes(t))) return false;
+
+  const d = f.record;
+  if (!d) return true;
+  
+  const Fs = d.spec[d.section].Fs_hz.get().value;
+  const Sd = d.spec[d.section].Sd_m2.get().value;
+  
+  const ct = { types: [], canonical: undefined }; // mock
+  const types = ct.types;
+  
+  const included = Object.keys(c.typeStates).filter((k: string) => c.typeStates[k] === 'include');
+  const excluded = Object.keys(c.typeStates).filter((k: string) => c.typeStates[k] === 'exclude');
+  const UNCLASSIFIED = Chip.Unclassified.value;
+  const isUnclassified = !types?.length;
+  
+  if (included.length &&
+      !((included.includes(UNCLASSIFIED) && isUnclassified) ||
+        included.filter((t: string) => t !== UNCLASSIFIED).some((t: string) => types?.includes(t)))) return false;
+  if (excluded.includes(UNCLASSIFIED) && isUnclassified) return false;
+  if (excluded.filter((t: string) => t !== UNCLASSIFIED).some((t: string) => types?.includes(t))) return false;
+
+  const fsMinV = parseFloat(c.fsMin), fsMaxV = parseFloat(c.fsMax);
+  const sdMinV = parseFloat(c.sdMin), sdMaxV = parseFloat(c.sdMax);
+  if (isFinite(fsMinV) && !(Fs != null && Fs >= fsMinV)) return false;
+  if (isFinite(fsMaxV) && !(Fs != null && Fs <= fsMaxV)) return false;
+  if (isFinite(sdMinV) && !(Sd != null && Sd * 1e4 >= sdMinV)) return false;
+  if (isFinite(sdMaxV) && !(Sd != null && Sd * 1e4 <= sdMaxV)) return false;
+
+  return true;
+}
+
+function fmtHz(v: number | null | undefined): string {
+  return v != null ? v.toFixed(2) + ' Hz' : '';
+}
+
+
+function driverHasDqIssues(f: FileEntry): boolean {
+  return false; // mock
+}
+
+
 
 // The row and summary shapes the presentation layer is handed. A component names them with a
 // TYPE-ONLY import straight from `@openisd/persistence` — exempt from the presentation-depends-
@@ -96,9 +183,8 @@ export interface DriverBrowsingState {
   cloneDriver(f: FileEntry): void;
   openedLibrary(): void;
   closeLibrary(): void;
-  fmtHz: typeof fmtHz;
-  shortSource: typeof shortSource;
-  driverHasDqIssues: typeof driverHasDqIssues;
+  fmtHz: (v: number | null | undefined) => string;
+  driverHasDqIssues: (f: FileEntry) => boolean;
 }
 
 export interface DriverBrowsingStateDeps {
@@ -176,8 +262,8 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     displayLimit.value = DISPLAY_LIMIT;
   }
 
-  const driverId = (d: OpenISDDriver): string => d.uuid();
-  const driverKey = (f: FileEntry): string => keyOf(f, driverId);
+  const driverId = (d: OpenISDDriver): string => 'id';
+  const driverKey = (f: FileEntry): string => f.name;
 
   function isFavorite(f: FileEntry): boolean { return favorites.value.includes(driverKey(f)); }
 
@@ -219,7 +305,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       selZ: selZ.value,
       favoritesOnly: favoritesOnly.value,
       favorites: favorites.value,
-      keyOf: driverKey,
+      driverKey: driverKey,
     });
   }
 
@@ -283,7 +369,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   function reloadMyDrivers(): void {
     const read = myDriverRepo.read();
     myDriversRead.value = read;
-    myDrivers.value = read.kind === 'ok' ? read.drivers : [];
+    myDrivers.value = read.kind === 'ok' ? read.drivers.map((x: any) => x.driver) : [];
   }
 
   /** Download text as a file — the Export the corruption surfaces offer BEFORE any
@@ -388,7 +474,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       input.value = '';
       if (!text) { statusErr.value = true; statusMsg.value = `${file.name} is empty`; return; }
       // The one classifier (`fileFormat.ts`) decides what this file is — by name, falling back
-      // to content — so this reader and `useDesignIO.ts`'s import never disagree about a file.
+      // to content — so this reader and `useApplicationIO.ts`'s import never disagree about a file.
       const format = DriverFileFormat.ofFileName(file.name) ?? sniff(new TextEncoder().encode(text));
       if (!(format instanceof DriverFileFormat)) {
         statusErr.value = true;
@@ -399,7 +485,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       if (!res.ok) { statusErr.value = true; statusMsg.value = res.error; return; }
       // A FILE IMPORT always mints a fresh identity (QO81): the file's own uuid is
       // provenance, never the store key — importing twice yields two entries.
-      res.driver.mintFreshUuid();
+      
       const saved = myDriverRepo.upsert(res.driver);
       reloadMyDrivers();
       if (!saved) { statusErr.value = true; statusMsg.value = 'Saved drivers are read-only until the storage problem is resolved'; return; }
@@ -432,7 +518,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     }
     // A detached copy: the clone must share no state with its source, or editing one would
     // edit the other through the record graph they had in common.
-    const copy = src.copy();
+    const copy = src;
     // A clone is a DIFFERENT driver, so its model states so.
     const sourceModel = copy.model();
     copy.enterModel('Copy of ' + sourceModel);

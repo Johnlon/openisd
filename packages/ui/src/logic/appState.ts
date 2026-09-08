@@ -17,8 +17,8 @@ import { reactive, computed, ref, shallowRef, triggerRef, watch, type Ref, type 
 import { Engine } from '@openisd/design/engine';
 import type { DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
 import {
-  newProject as buildProject, OpenISDDriver, projectRepo,
-  type OpenISDProject, type RecordStore, type RecordStoreFactory, type DiscardChallenge,
+  OpenISDDriver, projectRepo,
+  OpenISDProject, type RecordStore, type RecordStoreFactory, type DiscardChallenge,
   type FrequencyGrid,
 } from '@openisd/design';
 import {type AppState, AppStateImpl, type ProjectMeta, type PlotParams} from '../types.js';
@@ -109,10 +109,10 @@ function createEmptyProject(engine: Engine): OpenISDProject {
   if (Array.isArray(driver)) {
     throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
   }
-  return buildProject(driver, engine).sealed().volume_m3(0.02).build();
+  return OpenISDProject.builder(driver, engine).sealed().volume_m3(0.02).build();
 }
 
-const engine = getOrInit(slots, 'engine', () => new Engine());
+export const engine = getOrInit(slots, 'engine', () => new Engine());
 
 /**
  * `OpenISDProject` (`@openisd/design`) is the domain object for ONE project in the registry
@@ -520,7 +520,7 @@ export interface NewProjectSpec {
  *  project) this OPENS a new one via `addProject()` rather than throwing — the empty state's
  *  own recovery action, and every other "New Project" trigger, are the same call. Otherwise it
  *  resets the FOCUSED project's own content in place, preserving its tab identity. */
-export function OpenISDProject.builder(spec?: NewProjectSpec): void {
+export function newProject(spec?: NewProjectSpec): void {
   presentationState.yRanges = {};
   const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) {
@@ -531,7 +531,7 @@ export function OpenISDProject.builder(spec?: NewProjectSpec): void {
   // require a tuning frequency (`.tuning_hz()`/`.frontTuning_hz()`) the wizard never collects
   // (packages/design/domain/openisdTransforms.ts's `VentedProjectBuilder`/`Bandpass4ProjectBuilder`), so
   // a non-sealed spec builds sealed at the same volume until the wizard is extended to ask.
-  const p = buildProject(driver, engine).sealed().volume_m3(volume_m3).build();
+  const p = OpenISDProject.builder(driver, engine).sealed().volume_m3(volume_m3).build();
   p.name.set(spec?.name ?? '');
   if (!focusedProject()) {
     addProject(p);

@@ -8,13 +8,13 @@ through `upgrade()` before `applyState`, same as `loadLocal` always has.
 A payload saved by an older build loads correctly from localStorage but NOT from a share link
 or a `File → Open` of the same content: `loadLocal()` runs `upgrade()` (schemaUpgrade.ts) on
 the parsed blob, while `loadFromHash()` (persist.ts) and `importFile`'s SerializedState branch
-(useDesignIO.ts) hand the raw parse straight to `applyState`.
+(useApplicationIO.ts) hand the raw parse straight to `applyState`.
 
 ## Evidence
 
 Found during the QO73/QO78 reshape (2026-08-22, working tree): `persist.ts:74-77`
 (`loadFromHash`) is `JSON.parse(await gzipDecodeBase64Url(m[1]))` with no `upgrade()` call;
-`useDesignIO.ts`'s import branch is `applyState(JSON.parse(text) as SerializedState)` with no
+`useApplicationIO.ts`'s import branch is `applyState(JSON.parse(text) as SerializedState)` with no
 `upgrade()` call; `persist.ts:105` (`loadLocal`) calls `upgrade(parsed as StoredBlob)`.
 ARCHITECTURE.md §"EVERY STORED PAYLOAD CARRIES THE SCHEMA VERSION": *every reader upgrades
 from it* — two of the three readers did not.

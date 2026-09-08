@@ -13,15 +13,15 @@ setup-bound, so the name misdescribes the file and a reader cannot tell what it 
 | File | Exports | Actually a composable? |
 |---|---|---|
 | `packages/ui/src/logic/useDriverCells.ts` | `CellClass` (enum), `cellClassOf()`, `Q_GROUP` (const), `useQGroupIncomplete()`, `consistencyNote()` | 1 of 5 |
-| `packages/ui/src/logic/useDesignIO.ts` | `createDesignIO(deps)` returning 8 methods | 0 — it is a FACTORY, and its own export is named `create*` |
+| `packages/ui/src/logic/useApplicationIO.ts` | `createApplicationIO(deps)` returning 8 methods | 0 — it is a FACTORY, and its own export is named `create*` |
 | `packages/ui/src/logic/useVentGroup.ts` | `enterVentFieldOn(P, field, value, box)` etc. | 0 — plain functions over explicit arguments |
 | `packages/ui/src/logic/usePrGroup.ts` | `enterPrFieldOn(P, field, value)` etc. | 0 — same |
 
-`useDesignIO.ts` is the sharpest case: the prefix promises a composable while the module's only
-export is `createDesignIO`, a factory. Two conventions in one filename, contradicting each other.
+`useApplicationIO.ts` is the sharpest case: the prefix promises a composable while the module's only
+export is `createApplicationIO`, a factory. Two conventions in one filename, contradicting each other.
 
 John, 2026-08-21, on being unable to tell what `useDriverCells` was: *"what even is that class"*.
-Earlier, on `useDesignIO`: *"what does useDesignIO mean anyway — horrible"*.
+Earlier, on `useApplicationIO`: *"what does useApplicationIO mean anyway — horrible"*.
 
 ## Cause
 
@@ -35,7 +35,7 @@ not honour.
 Not fixed. Rename by subject, not mechanism, and reserve `use*` for functions that genuinely
 return reactive state and must be called in setup:
 
-- `useDesignIO.ts` → `createFileIO.ts` — already planned as objective 6 of
+- `useApplicationIO.ts` → `createFileIO.ts` — already planned as objective 6 of
   `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`, and matches the `createFileIO` factory name
   `ARCHITECTURE.md:517` already specifies.
 - `useDriverCells.ts` — mostly dissolves: `Q_GROUP`/`useQGroupIncomplete` leave for the engine

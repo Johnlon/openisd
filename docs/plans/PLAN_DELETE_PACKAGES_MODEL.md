@@ -173,8 +173,8 @@ untouched, WinISD-format code, statics on their own classes, no part of this mig
 
 **No combined `driverFromWdrIniOrOpenIsdYml(text, format)`.** Verified against the two real
 call sites that classify a file before reading it — `driverBrowsingState.ts:392-398` and
-`useDesignIO.ts:181-198` — both already run `DriverFileFormat.ofFileName(file.name) ??
-sniff(bytes)` and branch on the result BEFORE calling anything. `useDesignIO.ts` already calls
+`useApplicationIO.ts:181-198` — both already run `DriverFileFormat.ofFileName(file.name) ??
+sniff(bytes)` and branch on the result BEFORE calling anything. `useApplicationIO.ts` already calls
 two separate format-specific methods from that branch (`loadDriverFromWdrText` /
 `loadDriverFromOwdrText` today). Only the old `OpenISDDriver.fromFileText(text, format)` /
 `driverFromFileText(text, format, fileName)` pointlessly undo that: the caller turns its
@@ -184,7 +184,7 @@ A `format` parameter passed in by a caller that already knows the answer is not 
 combined name; it is evidence the combination is unnecessary. Each call site keeps its own
 `if (format === DriverFileFormat.Wdr) { ... } else { ... }` (it already has one) and calls
 `driverFromWdrIni`/`openIsdDriverYmlToOpenIsdDriver` directly from each branch — matching the pattern
-`useDesignIO.ts` already uses, not the one `driverFromFileText` uses.
+`useApplicationIO.ts` already uses, not the one `driverFromFileText` uses.
 
 The persisted/share-link JSON blob is `loadDriverFromPersistedJson` (§4c), a separate function
 outside these two formats.
@@ -242,7 +242,7 @@ Two things it does that the domain does NOT, and which therefore need homes befo
   case is just `driverFromConformingRecord(JSON.parse(text), engine)` (same substitution as the
   `fromOwdrJson` row in §4b's own table — no third wrapper needed for it either). Since
   `ManagedProject` itself is deleted, not ported, there is no object left to hang a one-line
-  wrapper method on. Each caller (`driverBrowsingState.ts:398`, `useDesignIO.ts:184,198,204`)
+  wrapper method on. Each caller (`driverBrowsingState.ts:398`, `useApplicationIO.ts:184,198,204`)
   calls the seam function directly and sets the result on the project itself:
   `project.setDriver(driverFromWdrIni(text))` (or the `string[]`-checking
   equivalent for the two that can fail), inline, no intermediate method.

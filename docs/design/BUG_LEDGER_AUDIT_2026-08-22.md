@@ -39,7 +39,7 @@ Marked unverified rather than green: a mark without a test is a guess.
 - `pr_group_auto_solve_watch_never_fires_after_the_live_repoint` — the module it names is gone
   under the persistence rename; the successor watch was not located. Routed to the rename's author.
 - `wpr_import_leaves_previous_projects_meta_in_state` — `state.project` syncing found in
-  `useDesignIO.ts`, but not on the `.wpr` import path specifically.
+  `useApplicationIO.ts`, but not on the `.wpr` import path specifically.
 - `archive_sweep_moved_a_partially_open_bug` — `bugs/` 59 vs `archive/` 68; the specific restored
   file was not confirmed.
 

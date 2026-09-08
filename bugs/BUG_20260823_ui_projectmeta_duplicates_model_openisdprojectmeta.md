@@ -35,13 +35,13 @@ the one-model rule bans: two declarations of one concept, held equal only by luc
 
 Delete `ProjectMeta` from `packages/ui/src/types.ts`. Every ui site
 (`AppState.project`, `SerializedState.project`, `serialize()`, `appState.ts`,
-`useDesignIO.ts` meta mirroring) imports `OpenISDProjectMeta` from `@openisd/model`.
+`useApplicationIO.ts` meta mirroring) imports `OpenISDProjectMeta` from `@openisd/model`.
 No serialized byte changes: the field names are already identical.
 
 ## Verification
 
 Fixed 2026-08-23 in the project-repo move: `ProjectMeta` deleted from ui/types.ts; every ui
-site (`AppState.project`, the payload's `project` slot, `appState.ts`, `useDesignIO.ts`,
+site (`AppState.project`, the payload's `project` slot, `appState.ts`, `useApplicationIO.ts`,
 `OriginalShell.vue`, tests) now imports `OpenISDProjectMeta` from `@openisd/model`.
 `grep -rn "\bProjectMeta\b" packages/ui/src packages/persistence/src` finds only
 `OpenISDProjectMeta`; all three typechecks 0; persistence round-trip tests green with the

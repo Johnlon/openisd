@@ -1,4 +1,4 @@
-# useDesignIO.ts remediation plan (QO61)
+# useApplicationIO.ts remediation plan (QO61)
 
 > **This plan is one objective of a larger one.** The QO61 work below is objective 6 of
 > [`PLAN_QO60_LAYERING_REMEDIATION.md`](http://localhost:8000/openisd/docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md?html),
@@ -12,7 +12,7 @@ in `ARCHITECTURE.md`'s diagram (`UI -> LOGIC -> SERVICE -> domain/STORAGE/io`).
 
 ## Verdict
 
-Not a wholesale delete. `useDesignIO.ts` (369 lines) mixes three things that belong in three
+Not a wholesale delete. `useApplicationIO.ts` (369 lines) mixes three things that belong in three
 different layers, and fixing it properly requires promoting `OpenISDProject` to a class facade
 first — the same shape `OpenISDDriver` already has. Split it; a thin `FileIO` SERVICE remnant
 survives.
@@ -23,7 +23,7 @@ survives.
 |---|---|---|---|
 | Inline PR physics (Vas→Cms, Fs→Mmd, Qms→Rms) | 255–262 | `@openisd/engine` | `logic/` "May not contain: Maths" ([ARCHITECTURE.md:546](http://localhost:8000/openisd/ARCHITECTURE.md?html#L546)). Each formula's FORWARD direction already exists in `@openisd/engine` (`prVas`, `prFs`, `prQms`) — this code hand-derives the INVERSE instead of the engine exporting it. |
 | `.wpr` text parsing (raw section/key/value only) | 179–254, 264–316 | `@openisd/winisd` | That package owns ".wdr, .wpr, ParState" serialisation ([ARCHITECTURE.md:545](http://localhost:8000/openisd/ARCHITECTURE.md?html#L545)). Returns raw values only — box-type comes back as WinISD's own raw code, not interpreted. |
-| Box-type → box-kind mapping (sealed/vented/bandpass/PR) | scattered | `OpenISDProject`, ONE place | Box type is the focused project's own responsibility, not a parser's. Currently duplicated THREE times (`wpr.ts`, `wprMapping.ts`, `useDesignIO.ts`) — no fourth copy permitted. |
+| Box-type → box-kind mapping (sealed/vented/bandpass/PR) | scattered | `OpenISDProject`, ONE place | Box type is the focused project's own responsibility, not a parser's. Currently duplicated THREE times (`wpr.ts`, `wprMapping.ts`, `useApplicationIO.ts`) — no fourth copy permitted. |
 | Save/Save-As/Share/import orchestration, filename↔handle watch | 63–177, 319–366 | `FileIO` SERVICE (target interface already specified, [ARCHITECTURE.md:627](http://localhost:8000/openisd/ARCHITECTURE.md?html#L627)) | Legitimate — this is what a `FileIO` service is for. Currently a `logic/` composable standing in for it, by ARCHITECTURE.md's own admission ([:456](http://localhost:8000/openisd/ARCHITECTURE.md?html#L456)). |
 | `OpenISDDriver.fromRecord(...)` construction inside this file | 152, 170 | not in scope here | Tracked separately, QO55/QO57 — entangled with the in-flight `WinISDDriver` rewrite. |
 | Direct `state.project.name =` / `state.editDriver =` writes | throughout | not in scope here | Tracked separately, QO60 (`logic/` isn't meant to touch `STORE` directly). |
@@ -76,7 +76,7 @@ outside `OpenISDProject` may call them directly. Objective 1's three engine func
 called from EXACTLY ONE place: a getter on `OpenISDProject`'s PR accessor (added as part of
 objective 0), which implements the same entered-or-computed pattern `OpenISDDriver.cell()`
 already uses elsewhere — a manually-entered value on the record wins; absent that, the getter
-calls the engine function and the result reads as `C` (computed), never `E`. `useDesignIO.ts`'s
+calls the engine function and the result reads as `C` (computed), never `E`. `useApplicationIO.ts`'s
 successor AND `prWinIsdFields.ts` (see the second duplicate site below) both delete their
 inline formulas and call the getter — not the engine function — same as any other derived PR
 field. This closes BUG_20260818 as written: the engine holds the math, one domain getter holds
@@ -88,9 +88,9 @@ duplicated in
 (`setPrFsFromWinIsd`, `setPrQmsFromWinIsd`, `setPrVasFromWinIsd`, `prCanonicalFromDatasheet`) —
 created 2026-08-14 during the QO38 layering pass, moving the math out of `.vue` components but
 only as far as `logic/`, not into the engine. The plan's "What's wrong" table above names only
-`useDesignIO.ts` as carrying this duplication; fixing only that file leaves `prWinIsdFields.ts`'s
+`useApplicationIO.ts` as carrying this duplication; fixing only that file leaves `prWinIsdFields.ts`'s
 copy in place and the underlying bug still open. Whichever shape objective 1 lands on, both
-files must be updated to call it — not just `useDesignIO.ts`'s successor.
+files must be updated to call it — not just `useApplicationIO.ts`'s successor.
 
 **2. Move `.wpr` parsing into `@openisd/winisd`, RAW only.** New function, e.g.
 `WinISDDriver.fromWprText(text)` or a sibling `parseWpr()`, mirroring `toWpr()`'s existing
@@ -106,10 +106,10 @@ pattern `DriverType`/`Chip` already use, `packages/ui/src/driverType.ts`), the o
 bare string-literal union, not that pattern — flag as a separate, smaller finding, not expanded
 in scope here). The mapping function lives as a plain exported function in `@openisd/model`
 (method on nothing — pure, stateless), and all three existing sites (`wpr.ts`, `wprMapping.ts`,
-`useDesignIO.ts`'s successor) **import and call it directly** — no wrapper, no facade
+`useApplicationIO.ts`'s successor) **import and call it directly** — no wrapper, no facade
 re-exposing it, each site's own switch/if-chain deleted outright.
 
-**3. Shrink `useDesignIO.ts` to the `FileIO` SERVICE shape.** What remains: `saveProject`,
+**3. Shrink `useApplicationIO.ts` to the `FileIO` SERVICE shape.** What remains: `saveProject`,
 `saveProjectAs`, `shareLink`, `exportWdr`, `exportOwdr`, `exportWpr`, `importFile`, `about`,
 the filename/handle `watch`. These call objective 2's parser + objective 0's PR-getter (never
 objective 1's engine functions directly — see objective 1's resolution above) instead of doing
@@ -136,8 +136,8 @@ correct ARCHITECTURE.md's interface in the same PR to match what actually ships.
 as "the target interface already specified" is not accurate as written — the two are different
 interfaces.
 
-**4. Rename to match what it now is**, once shrunk — `useDesignIO.ts` never explained itself
-("what does useDesignIO mean anyway" — your words). `createFileIO.ts` matches the target
+**4. Rename to match what it now is**, once shrunk — `useApplicationIO.ts` never explained itself
+("what does useApplicationIO mean anyway" — your words). `createFileIO.ts` matches the target
 FACTORY name ARCHITECTURE.md already specifies
 ([ARCHITECTURE.md:517](http://localhost:8000/openisd/ARCHITECTURE.md?html#L517)), so the file
 name is not new — but see objective 3's flag above: the METHOD shape it will export still needs
@@ -158,7 +158,7 @@ own internal derivation logic, which is the substance of what QO55/QO57 still co
   sitting in
   [wprMapping.test.ts](http://localhost:8000/openisd/packages/ui/test/logic/wprMapping.test.ts?html)
   right now. Confirm no other session is mid-edit on `managedProject.ts`/`wprMapping.ts`/
-  `openisdProject.ts`/`useDesignIO.ts` before starting objective 0, 2b or 3.
+  `openisdProject.ts`/`useApplicationIO.ts` before starting objective 0, 2b or 3.
 - **QO59 (decided, not implemented) — same file as objective 0.** Ruling:
   `ManagedOpenISDProject.snapshot`/`recordToPersist`/`groundRecord` in `managedProject.ts`
   "should not be returning the json" (the private `_OpenISDProjectJson`). Objective 0 already
@@ -198,7 +198,7 @@ own internal derivation logic, which is the substance of what QO55/QO57 still co
   not a clone).
 - `npx vitest run packages/engine/test/formulas.test.ts` — new inverse-function tests.
 - `npx vitest run packages/winisd/test` — new `.wpr`-parse tests, existing suite stays green.
-- `npx vitest run packages/ui/test/logic/useDesignIO.test.ts` (or its renamed successor) — the
+- `npx vitest run packages/ui/test/logic/useApplicationIO.test.ts` (or its renamed successor) — the
   existing what-if-cancellation test on `shareLink()` still passes unchanged.
 - Manual: Save/Save As/Export .wdr/.wpr/.owdr/Share/Import, one round each, in the running app —
   this file's output reaches disk/clipboard, not just unit-test mocks.

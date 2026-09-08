@@ -106,7 +106,7 @@ narrow suites above.
    declared once and read by both the Python scraper and the TypeScript domain, kept in parity
    the way `filter/driverType.ts` and `test_driver_type_enum_parity.py` already do for the
    UI-only `DriverType`. Lives in `packages/design/domain/`, NOT `packages/design/filter/`.
-2. **`useDesignIO.ts`'s dead `loadDriverFromWdrText`/`loadDriverFromOwdrText` calls** — these
+2. **`useApplicationIO.ts`'s dead `loadDriverFromWdrText`/`loadDriverFromOwdrText` calls** — these
    don't exist anywhere in `packages/design` (confirmed via grep). Replacement per John's
    steer: `OpenISDProject.loadDriver(driver: OpenISDDriver): void`, mirroring `setDriver()`,
    loading only from a standalone driver (file, driver bundle, or My Drivers) — never from an
@@ -114,7 +114,7 @@ narrow suites above.
    the public parameter type has to be the exported `OpenISDDriver` base class, not the
    standalone subclass.
 3. **`packages/ui` typecheck backlog** — pre-existing, untouched this session:
-   `driverBrowsingState.ts`, `useDesignIO.ts` (`exportDriverWdr`, `exportDriverOwdr`,
+   `driverBrowsingState.ts`, `useApplicationIO.ts` (`exportDriverWdr`, `exportDriverOwdr`,
    `exportWpr`, `importWpr` also missing, on top of the load methods above), `main.ts`,
    `gen-scenarios.ts`, `persist.test.ts` (missing `OpenISDProject` setters: `setActiveBoxType`,
    `setBoxVolume_m3`, `setFrontVolume_m3`, `setVentShape`, etc.).

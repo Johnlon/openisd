@@ -43,7 +43,7 @@ No assertion values changed.
 
 - `grep -n 'state\.P' packages/ui/test/ui/original-skin.browser.spec.ts` → zero matches.
 - `npx vue-tsc --noEmit -p tsconfig.json` in `packages/ui` → clean of this file (pre-existing,
-  unrelated errors remain in `openisdDriver.ts`, `useDesignIO.ts`, `App.vue`, `persist.test.ts`).
+  unrelated errors remain in `openisdDriver.ts`, `useApplicationIO.ts`, `App.vue`, `persist.test.ts`).
 - `npx eslint test/ui/original-skin.browser.spec.ts` → clean, no output.
 - `npx playwright test test/ui/original-skin.browser.spec.ts --workers=1` (no other
   Playwright/Chromium process running at the time) → see run output recorded in the release

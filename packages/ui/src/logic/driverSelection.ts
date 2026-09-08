@@ -1,4 +1,3 @@
-import type { OpenISDDriver } from '@openisd/design';
 import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import { requireFocusedProject } from './appState.js';

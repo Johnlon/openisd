@@ -10,7 +10,7 @@ import { createDiagnostics } from './diagnostics/selftest.js';
 import { createFaultLog } from './diagnostics/faultLog.js';
 import { createDriverSelection } from './logic/driverSelection.js';
 import { createDriverBrowsingState } from './logic/driverBrowsingState.js';
-import { createDesignIO } from './logic/useDesignIO.js';
+import { createApplicationIO } from './logic/useApplicationIO.js';
 import { createMyDriversSchema } from './logic/schemaUpgrade.js';
 import { provideApp } from './logic/app.js';
 import { NoFocusedProjectError } from './logic/appState.js';
@@ -71,7 +71,7 @@ const driverBrowsing = createDriverBrowsingState({
 });
 const projectRepo = createProjectRepo(engine, fileStorage);
 const viewStateRepo = createViewStateRepo(storage);
-const designIO = createDesignIO({ logging, fileStorage, projectRepo });
+const designIO = createApplicationIO({ logging, fileStorage, projectRepo });
 
 const app = createApp(App)
   .directive('expo-step', vExpoStep)

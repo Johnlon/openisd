@@ -3,7 +3,7 @@
 Decides QO61's open sub-question: does `FileIO` expose GENERIC methods carrying a format
 discriminator, or one method per format? Objective 6 of
 [`PLAN_QO60_LAYERING_REMEDIATION.md`](../plans/PLAN_QO60_LAYERING_REMEDIATION.md) cannot land until this is
-settled, because it is the interface `useDesignIO.ts` is being split into.
+settled, because it is the interface `useApplicationIO.ts` is being split into.
 
 Both proposals below are complete: every method the current composable performs, typed.
 

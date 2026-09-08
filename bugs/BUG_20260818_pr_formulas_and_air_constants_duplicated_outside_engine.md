@@ -23,7 +23,7 @@ with the free function moved one package over.
 
 The math itself lives in `@openisd/engine/src/formulas.ts` and nowhere else.
 `grep -n "Math.sqrt\|Math.PI" packages/ui/src/logic/prWinIsdFields.ts` returns nothing, and
-`grep -n "1.20095\|343.68" packages/ui/src/logic/useDesignIO.ts` returns nothing, so the
+`grep -n "1.20095\|343.68" packages/ui/src/logic/useApplicationIO.ts` returns nothing, so the
 duplicated copies and the truncated `RHO`/`C` literals are gone.
 
 ## Why the getter form was not built

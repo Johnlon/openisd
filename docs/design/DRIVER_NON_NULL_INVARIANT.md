@@ -73,7 +73,7 @@ in its own right, distinct from the wizard.
 ## UI (ruled + open)
 
 - 3 genuine user-facing "no driver has been chosen" strings
-  (`useDesignIO.ts:158`, `managedProject.ts:629,656`) become dead code —
+  (`useApplicationIO.ts:158`, `managedProject.ts:629,656`) become dead code —
   delete, don't leave unreachable.
 - `OgNewProject.vue`'s CURRENT box-then-driver sequencing (create a shell
   project, THEN hand off to the driver picker) is being replaced wholesale

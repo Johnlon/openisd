@@ -19,7 +19,7 @@ import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistr
 import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
-import type { Cell, SpecField } from '@openisd/model';
+import type { Cell, SpecField } from '@openisd/design';
 import { inputValue, listeningElement } from '../../../logic/domEvents.js';
 
 const project = useFocusedProject();

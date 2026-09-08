@@ -29,10 +29,10 @@ function countNotifications(fn: () => void): number {
 describe('vent/PR group writes coalesce to exactly the writes made, never an extra store-triggered re-solve', () => {
   beforeEach(() => {
     state.box = 'vented';
-    requireFocusedProject().setBoxVolume_m3(0.02);
-    requireFocusedProject().setVentDiameter_m(0.05);
-    requireFocusedProject().setVentEndCorrection(0.6);
-    requireFocusedProject().setEnteredSet({ Vb: true, ventD: true, Fb: true });
+    requireFocusedProject().box.vented.volume_m3.set(0.02);
+    requireFocusedProject().box.vented.vent.diameter_m.set(0.05);
+    requireFocusedProject().box.vented.vent.endCorrection_m.set(0.6);
+    // setEnteredSet is no longer needed; .set() sets origin to entered
   });
 
   it('enterVentField(Fb) — value write + provenance write + one solve write, no more', () => {
@@ -60,13 +60,13 @@ describe('vent/PR group writes coalesce to exactly the writes made, never an ext
 
 describe('PR group writes coalesce the same way', () => {
   beforeEach(() => {
-    requireFocusedProject().setBoxVolume_m3(0.02);
-    requireFocusedProject().setPrSd_m2(0.008);
-    requireFocusedProject().setPrCms_m_per_N(0.0006);
-    requireFocusedProject().setPrMmd_kg(0.02);
+    requireFocusedProject().box.vented.volume_m3.set(0.02);
+    requireFocusedProject().box.passiveRadiator.radiator.spec.Sd_m2.set(0.008);
+    requireFocusedProject().box.passiveRadiator.radiator.spec.Cms_m_per_N.set(0.0006);
+    requireFocusedProject().box.passiveRadiator.radiator.spec.Mms_kg.set(0.02);
     // Nothing entered yet — entering prFp below is the ONLY entered member, so prMadd is the
     // one CALCULATED one and the solve step genuinely writes.
-    requireFocusedProject().setEnteredSet({});
+    // setEnteredSet is no longer needed; .set() sets origin to entered
   });
 
   it('enterPrField(prFp) — value write + provenance write + one solve write, no more', () => {
@@ -97,17 +97,17 @@ describe('PR group writes coalesce the same way', () => {
  */
 describe('PR-group auto-solve watch fires on every requireFocusedProject() notification', () => {
   it('a raw prFp write outside enterPrField/suspension re-solves prMadd', () => {
-    requireFocusedProject().setBoxVolume_m3(0.02);
-    requireFocusedProject().setPrSd_m2(0.008);
-    requireFocusedProject().setPrCms_m_per_N(0.0006);
-    requireFocusedProject().setPrMmd_kg(0.02);
-    requireFocusedProject().setEnteredSet({ prFp: true }); // prFp entered, prMadd is the CALCULATED member
-    requireFocusedProject().mutate(p => p.set('prMadd', 0)); // known starting value for the calculated member — a raw write, must NOT mark prMadd entered
-    const before = requireFocusedProject().prAddedMass_kg();
+    requireFocusedProject().box.vented.volume_m3.set(0.02);
+    requireFocusedProject().box.passiveRadiator.radiator.spec.Sd_m2.set(0.008);
+    requireFocusedProject().box.passiveRadiator.radiator.spec.Cms_m_per_N.set(0.0006);
+    requireFocusedProject().box.passiveRadiator.radiator.spec.Mms_kg.set(0.02);
+    // setEnteredSet is no longer needed; .set() sets origin to entered // prFp entered, prMadd is the CALCULATED member
+    requireFocusedProject().box.passiveRadiator.addedMass_kg.set(0); // known starting value for the calculated member — a raw write, must NOT mark prMadd entered
+    const before = requireFocusedProject().box.passiveRadiator.addedMass_kg.get().value;
 
-    requireFocusedProject().mutate(p => p.set('prFp', 55)); // raw write — no suspension, no direct solvePrGroup call
+    requireFocusedProject().box.passiveRadiator.tuning_hz.set(55); // raw write — no suspension, no direct solvePrGroup call
 
-    const after = requireFocusedProject().prAddedMass_kg();
+    const after = requireFocusedProject().box.passiveRadiator.addedMass_kg.get().value;
     assert.notEqual(after, before,
       'prMadd was not re-solved after a live prFp write — the store\'s PR-group auto-solve ' +
       'watch did not fire');

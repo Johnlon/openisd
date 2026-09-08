@@ -37,7 +37,7 @@ partially-tested groundwork with no live caller anywhere in the app.
 2. `WinISDDriver` — the serializer-only class. Does not exist. Today's `Driver.toWdr()`/
    `fromWdr()` still do this job, coupled to the class AD-8 retires.
 3. Migrating every call site off `@openisd/winisd`'s `Driver` onto `OpenISDDriver`. 8 files
-   currently import it: `logic/store.ts`, `logic/useDesignIO.ts`, `logic/useDriverCells.ts`,
+   currently import it: `logic/store.ts`, `logic/useApplicationIO.ts`, `logic/useDriverCells.ts`,
    `logic/wprMapping.ts`, `db/useDriverSelection.ts`, `db/useDriverLibrary.ts`,
    `ui/components/DriverEditorModal.vue`, `types.ts`.
 
@@ -175,7 +175,7 @@ against the old wiring removed, green against the new):
 - `db/useDriverSelection.ts`, `db/useDriverLibrary.ts` — build `OpenISDDriver.fromRecord(...)`
   instead of `Driver.fromJSON`/`fromRaw`/`fromWdr`. A `.wdr` picked from the library goes
   through `WinISDDriver.fromWdr()` → diffed/imported into a fresh `OpenISDDriver`, per Phase 2.
-- `logic/useDesignIO.ts` — export routes through `WinISDDriver.fromOpenISDDriver(...).toWdr()`;
+- `logic/useApplicationIO.ts` — export routes through `WinISDDriver.fromOpenISDDriver(...).toWdr()`;
   `.owdr`/project-JSON export routes through `toYaml(driver.toRecord())`.
 - `logic/useDriverCells.ts`, `logic/wprMapping.ts`, `types.ts` — update type imports; no
   behavior change expected here (they consume `CellState`/`FieldCell`, which keep the same

@@ -21,7 +21,7 @@ import assert from 'node:assert/strict';
 import { Engine } from '@openisd/design/engine';
 import type { SweepParams } from '@openisd/design/engine';
 import { TABS, TAB_META, parseChartTabId, seriesFor } from '../../src/logic/series.js';
-import type { ChartTabId } from '../../src/types.js';
+import type { ChartTabId, PlotParams } from '../../src/types.js';
 
 const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
@@ -40,11 +40,12 @@ const SP: SweepParams = {
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
+const PP = SP as unknown as PlotParams;
 const SW = new Engine().sweep(DRV, LE_H, 'vented', SP).value;
 assert.ok(SW, 'reference sweep produced nothing');
 const MX = new Engine().maxCurves(DRV, LE_H, 'vented', SP).value;
 assert.ok(MX, 'reference max curves produced nothing');
-const build = (id: ChartTabId) => seriesFor(id, DRV, 'vented', SP, SW, MX);
+const build = (id: ChartTabId) => seriesFor(id, DRV, 'vented', PP, SW, MX);
 
 const ALL_IDS = Object.keys(TAB_META) as ChartTabId[];
 
@@ -114,7 +115,7 @@ describe('EQ/filter charts — units, datum and axis', () => {
   it('FltMag draws the 0 dB datum in bare/classic mode too', () => {
     // Unlike SPL's F3/F6/F10 annotations, unity is the chart's DEFINING datum, so `bare`
     // must not strip it.
-    const bare = seriesFor('FltMag', DRV, 'vented', SP, SW, MX, true);
+    const bare = seriesFor('FltMag', DRV, 'vented', PP, SW, MX, true);
     assert.ok(bare.series.some(s => s.name === '0 dB'), 'bare mode dropped the unity datum');
   });
 
@@ -146,11 +147,13 @@ describe('EQ/filter charts — units, datum and axis', () => {
     // The default project has no filters, so this is what the user sees first: a flat line
     // at unity, which must not collapse the axis to zero height.
     const noFlt = { ...SP, filters: [] };
+    const noFltP = noFlt as unknown as PlotParams;
     const engine = new Engine();
-    const sw = engine.sweep(DRV, 'vented', noFlt);
-    const mx = engine.maxCurves(DRV, 'vented', noFlt);
+    const sw = engine.sweep(DRV, LE_H, 'vented', noFlt).value;
+    assert.ok(sw, 'sweep produced nothing');
+    const mx = engine.maxCurves(DRV, LE_H, 'vented', noFlt).value;
     for (const id of ['FltMag', 'FltPhase', 'FltGD'] as const) {
-      const b = seriesFor(id, DRV, 'vented', noFlt, sw, mx);
+      const b = seriesFor(id, DRV, 'vented', noFltP, sw, mx);
       assert.ok(b.ymax > b.ymin, `${id}: empty chain collapsed the axis to ${b.ymin}..${b.ymax}`);
       assert.ok(b.series[0].ys.every(v => v === 0), `${id}: an empty chain is not flat at unity`);
       assert.ok(b.ymin < 0 && b.ymax > 0, `${id}: the flat unity line sits on the axis edge`);
@@ -165,18 +168,18 @@ describe('a design with no max curves draws nothing, rather than crashing', () =
   // both builders read straight through it: `realDb(mx.maxspl)` is `undefined.filter(...)`, and
   // `Math.max(...mx.maxpwr)` spreads `undefined`. Both throw.
   it('MaxSPL contributes no series when the max curves are absent', () => {
-    const bundle = seriesFor('MaxSPL', DRV, 'vented', SP, SW, undefined);
+    const bundle = seriesFor('MaxSPL', DRV, 'vented', PP, SW, undefined);
     assert.deepEqual(bundle.series, []);
   });
 
   it('MaxPwr contributes no series when the max curves are absent', () => {
-    const bundle = seriesFor('MaxPwr', DRV, 'vented', SP, SW, undefined);
+    const bundle = seriesFor('MaxPwr', DRV, 'vented', PP, SW, undefined);
     assert.deepEqual(bundle.series, []);
   });
 
   it('every OTHER chart is unaffected — they never read the max curves', () => {
     for (const id of ALL_IDS.filter(i => i !== 'MaxSPL' && i !== 'MaxPwr')) {
-      const bundle = seriesFor(id, DRV, 'vented', SP, SW, undefined);
+      const bundle = seriesFor(id, DRV, 'vented', PP, SW, undefined);
       assert.ok(bundle.series.length > 0, `${id} drew nothing without max curves`);
     }
   });

@@ -154,7 +154,7 @@ driver, edited) does the real build happen: `newProject(driver, engine)` from `@
 focus. `appState.ts` never holds or builds a project in progress.
 
 | `openNewProject()` (`OriginalShell.vue`) + `openBlankProject()`/`ManagedProject.createEmpty()` (`appState.ts`), called from `onFile()` before `importFile(f)` | deleted, both functions, every call site | a project exists only three ways — built via the wizard, reopened from storage, or reopened from disk; there is no fourth "blank tab, fill in later" path |
-| `onFile()`'s `.wpr`/`.owpr` branches inside `importFile` (`useDesignIO.ts`), which mutate the already-open blank project in place | parse the file into a project record, `OpenISDProject.wrap(json, engine)`, then `addProject()` — one project, built once | opening a project file is the same "reopen from disk" path as reopening from storage, never a mutate-an-existing-tab step |
+| `onFile()`'s `.wpr`/`.owpr` branches inside `importFile` (`useApplicationIO.ts`), which mutate the already-open blank project in place | parse the file into a project record, `OpenISDProject.wrap(json, engine)`, then `addProject()` — one project, built once | opening a project file is the same "reopen from disk" path as reopening from storage, never a mutate-an-existing-tab step |
 | `p.subscribe(...)` (`appState.ts`'s `resubscribe()`) | unchanged — `OpenISDProject.subscribe(fn)` already exists with the same signature | fires the Vue `live` bridge whenever the focused project mutates |
 
 Remaining call sites: `p.load(project)`, `requireFocusedProject().projectToPersist()` — still

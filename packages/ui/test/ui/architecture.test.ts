@@ -590,7 +590,7 @@ function fileLayer(file: string): string {
  *  `fileLayer()`, same as the file it points at. Returns null for an npm package (irrelevant
  *  to the app's own layering) or a specifier that cannot be resolved to a file on disk. */
 function specLayer(fromFile: string, spec: string): string | null {
-  if (spec.startsWith('@openisd/model')) return 'model';
+  if (spec.startsWith('@openisd/design')) return 'model';
   if (spec.startsWith('@openisd/persistence')) return 'persistence';
   if (spec.startsWith('@openisd/design/winisd')) return 'winisd';
   if (spec.startsWith('@openisd/design/engine')) return 'engine';

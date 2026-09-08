@@ -2,7 +2,7 @@
  *  storage/bundle, returns domain objects. */
 import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-// import type { MetaField } from '@openisd/model';
+// import type { MetaField } from '@openisd/design';
 // import { recordStandingIsOk } from '@openisd/model/driverStanding';
 // import { driverIsSimulatable } from '@openisd/model/driverSimulatability';
 // // //
@@ -14,17 +14,17 @@ import { Engine } from '@openisd/design/engine';
 // //
 // // function driverFieldValue(driver: OpenISDDriver, field: DriverSummaryField): number | null {
 // //   switch (field) {
-// //     case 'Fs': return driver.Fs();
-// //     case 'Qts': return driver.Qts();
-// //     case 'Qes': return driver.Qes();
-// //     case 'Qms': return driver.Qms();
-// //     case 'Re': return driver.Re();
-// //     case 'Le': return driver.Le();
-// //     case 'Vas': return driver.Vas();
-// //     case 'Sd': return driver.Sd();
-// //     case 'Xmax': return driver.Xmax();
-// //     case 'Pe': return driver.Pe();
-// //     case 'Znom': return driver.Znom();
+// //     case 'Fs': return driver.spec[driver.section].Fs_hz.get().value;
+// //     case 'Qts': return driver.spec[driver.section].Qts.get().value;
+// //     case 'Qes': return driver.spec[driver.section].Qes.get().value;
+// //     case 'Qms': return driver.spec[driver.section].Qms.get().value;
+// //     case 'Re': return driver.spec[driver.section].Re_ohm.get().value;
+// //     case 'Le': return driver.spec[driver.section].Le_H.get().value;
+// //     case 'Vas': return driver.spec[driver.section].Vas_m3.get().value;
+// //     case 'Sd': return driver.spec[driver.section].Sd_m2.get().value;
+// //     case 'Xmax': return driver.spec[driver.section].Xmax_m.get().value;
+// //     case 'Pe': return driver.spec[driver.section].Pe_W.get().value;
+// //     case 'Znom': return driver.spec[driver.section].Znom_ohm.get().value;
 // //   }
 // // }
 //
@@ -63,7 +63,6 @@ export interface FileEntry {
    *  OBJECT; nothing downstream of that seam sees record data (SERIALIZATION_DOCTRINE.md edge 2). */
   record?: OpenISDDriver;
   path?: string; repo?: string | null; branch?: string | null;
-  sourceKey?: string; sourceName?: string; sourceUrl?: string; sourceDesc?: string;
   Fs?: number | null; Sd?: number | null; Re?: number | null; Znom?: number | null; Pe?: number | null;
   types?: string[]; canonical?: string;
   freqRange?: { lo: number; hi: number } | null;
@@ -246,11 +245,11 @@ export function normaliseDate(raw: string | undefined): string {
 // // // // // // //   // Read the summary columns through the driver's own accessors, so a value the record STATES
 // // // // // // //   // and one the solver DERIVES are both available — the filter bar asks "what is this driver's
 // // // // // // //   // Fs", not "did someone type an Fs".
-// // // // // // //   const ct = classifyTypes(d.Fs(), d.Sd(), name, d.previewField('driver_type'));
+// // // // // // //   const ct = classifyTypes(d.spec[d.section].Fs_hz.get().value, d.spec[d.section].Sd_m2.get().value, name, d.previewField('driver_type'));
 // // // // // // //   return {
 // // // // // // //     name, myDriverData: d,
-// // // // // // //     Fs: d.Fs(), Sd: d.Sd(), Re: d.Re(),
-// // // // // // //     Znom: d.Znom(), Pe: d.Pe(),
+// // // // // // //     Fs: d.spec[d.section].Fs_hz.get().value, Sd: d.spec[d.section].Sd_m2.get().value, Re: d.spec[d.section].Re_ohm.get().value,
+// // // // // // //     Znom: d.spec[d.section].Znom_ohm.get().value, Pe: d.spec[d.section].Pe_W.get().value,
 // // // // // // //     types: ct.types, canonical: ct.canonical,
 // // // // // // //   };
 // // // // // // // }
@@ -521,10 +520,6 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
       fileName: f.name,
       record: driver,
       path: f.path, repo: null, branch: null,
-      sourceKey: src.key,
-      sourceName: src.name,
-      sourceUrl: src.url || '',
-      sourceDesc: src.description || '',
     };
   }
 

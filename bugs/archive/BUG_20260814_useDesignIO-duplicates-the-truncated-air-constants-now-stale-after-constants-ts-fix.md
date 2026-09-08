@@ -1,7 +1,7 @@
-# `useDesignIO.ts` duplicates the (now-corrected) air constants as bare, still-truncated literals
+# `useApplicationIO.ts` duplicates the (now-corrected) air constants as bare, still-truncated literals
 
 # Status
-FIXED (superseded 2026-08-21) — `useDesignIO.ts` no longer contains any `RHO`/`C` literals at
+FIXED (superseded 2026-08-21) — `useApplicationIO.ts` no longer contains any `RHO`/`C` literals at
 all; superseded by the air-model redesign (`packages/engine/src/air.ts`'s CIPM-2007 physical
 model replaced the bare constants entirely).
 
@@ -16,7 +16,7 @@ UI-owning agent.
 
 ## Symptom
 
-`packages/ui/src/logic/useDesignIO.ts:234-235`:
+`packages/ui/src/logic/useApplicationIO.ts:234-235`:
 
     const RHO = 1.20095;
     const C = 343.68;
@@ -30,7 +30,7 @@ sweep because it lives in `packages/ui/src`, outside that agent's scope.
 
 Until 2026-08-14 the two copies agreed (both truncated to 1.20095/343.68). They no longer do:
 `constants.ts` now exports `RHO = 1.20095217714682`, `C = 343.684120962153` (full WinISD
-precision, verified against the `winisd-parity` goldens). `useDesignIO.ts`'s passive-radiator
+precision, verified against the `winisd-parity` goldens). `useApplicationIO.ts`'s passive-radiator
 `Cms` derived from an imported `.wpr` is now off by the same ~1.2e-5 relative this session
 measured and fixed everywhere else in the engine — silently, because nothing imports the shared
 constant here to keep the two in step.

@@ -6,7 +6,7 @@ Four `architecture.test.ts` gates are red, blocking every commit under the "no c
 all errors and warnings fixed" rule. They are red for one reason: the UI reaches directly into
 storage and into private JSON shapes instead of going through domain wrappers. QO60 (store as
 STORAGE behind a service), QO52 (module globals), QO58/QO57 (private-shape leaks) and QO61
-(`useDesignIO.ts` mixing I/O with physics) are all facets of that single defect.
+(`useApplicationIO.ts` mixing I/O with physics) are all facets of that single defect.
 
 Outcome: every gate green, so the pending checkpoint commit can land.
 
@@ -214,7 +214,7 @@ The three formerly-uncertain fields are settled:
   `AppState`; nothing read or wrote it.
 - **`prMode` — DELETE with `state.P`.** Declared `prMode: string` (`types.ts:199`), written to
   the literal `'winisd'` in three places (`store.ts:171`, `PRDefineModal.vue:49`,
-  `useDesignIO.ts:284`), READ NOWHERE. A discriminator that discriminates nothing — and a bare
+  `useApplicationIO.ts:284`), READ NOWHERE. A discriminator that discriminates nothing — and a bare
   `string`, which the discriminator rule bans anyway.
 - **`Frc` — STUB IT** (John's ruling 2026-08-20: "if Frc is a box type we don't support yet
   then just stub the UI call to the domain and wait until we build it"). Verified: the editable
@@ -238,7 +238,7 @@ no-op forwards are deleted outright. Use **ts-morph** for the repointing, not te
 
 **2c. Share links stop going through the store; browser history moves to `urlAppState.ts`.**
 
-`serialize(state, driverRecord.value)` (`persist.ts:26`, called from `useDesignIO.ts:130`) takes
+`serialize(state, driverRecord.value)` (`persist.ts:26`, called from `useApplicationIO.ts:130`) takes
 the WHOLE `AppState` — necessary only because the project's fields currently live there. Sharing
 never needed the store; it needed the project, and the project's state had ended up in the store.
 The same duplication defect, in its serialisation form.
@@ -247,7 +247,7 @@ A share link IS a serialised project. Once `state.P` is gone: `moiProject` → s
 The store's only remaining involvement is identifying WHICH project is focused, and that is
 `focusedProject()`, not `state`.
 
-`history.replaceState(null, '', url)` (`useDesignIO.ts:131`) is browser-history manipulation done
+`history.replaceState(null, '', url)` (`useApplicationIO.ts:131`) is browser-history manipulation done
 inline in the file-IO composable. That belongs in **`logic/urlAppState.ts`** — already on
 `architecture.test.ts:452`'s APPROVED store list, marked "not built yet", exactly as
 `presentationState.ts` is. So `urlAppState.ts` is not an extra thing invented for this plan:
@@ -364,7 +364,7 @@ off the driver JSON". That module was DELETED as redundant, along with its twin
 described now belongs to objective 6's `FileIO` (see `docs/design/FILEIO_API_PROPOSALS.md`), so
 there is nothing separate to do here.
 
-**6. QO61 — `useDesignIO.ts`.** Per `docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md`, revised
+**6. QO61 — `useApplicationIO.ts`.** Per `docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md`, revised
 against these rules: engine gains the PR inverse formulas, reached ONLY via the objective-3 PR
 getter; `.wpr` parsing moves to `@openisd/winisd` raw-only; box-type mapping consolidates to one
 enum-typed function; the file shrinks to a `FileIO` service and is renamed.
@@ -401,10 +401,10 @@ Two defects, both recorded 2026-08-21:
   Record: `bugs/BUG_20260821_q_group_redeclared_in_ui_against_the_engines_explicit_ban.md`.
 
 - **`use` names four modules that are not composables.** `useDriverCells` (1 of 5 exports),
-  `useDesignIO` (0 — its only export is the FACTORY `createDesignIO`), `useVentGroup`,
+  `useApplicationIO` (0 — its only export is the FACTORY `createApplicationIO`), `useVentGroup`,
   `usePrGroup` (0 — plain functions over explicit arguments). The prefix names the MECHANISM,
   not the subject, and implies a reactivity contract the files do not honour. Rename by subject;
-  reserve `use*` for functions that genuinely return reactive state. `useDesignIO.ts` →
+  reserve `use*` for functions that genuinely return reactive state. `useApplicationIO.ts` →
   `createFileIO.ts` is already objective 6.
   Record: `bugs/BUG_20260821_use_prefix_names_modules_that_are_not_composables.md`.
 
@@ -470,7 +470,7 @@ independent of all of them. 5 is small. 7 is last, and largest.
 
 `npm run lint` 0 warnings · `npm run typecheck` clean · `npx vitest run` all green including all
 four `architecture.test.ts` gates. Per objective: typecheck after 1–2, model suite after 3,
-picker browser spec after 4, `winisd` suite after 5, `useDesignIO`/`wpr` suites after 6, full
+picker browser spec after 4, `winisd` suite after 5, `useApplicationIO`/`wpr` suites after 6, full
 Playwright run after 7.
 
 ## Already landed this session

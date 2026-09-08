@@ -9,7 +9,7 @@ compiles — 173 type errors.
 
 Two files carry almost all of it:
 
-- **`useDesignIO.ts`** — the code behind the **Save**, **Save As**, **Export**, **Open**
+- **`useApplicationIO.ts`** — the code behind the **Save**, **Save As**, **Export**, **Open**
   buttons. It handles _which file, what filename, show a "saved" message_ and hands off the
   actual file-format work to other code. That other code (the `.wdr`/`.wpr` converters) is now
   missing the methods this file calls.
@@ -38,7 +38,7 @@ Each issue: what's broken → why you care → the options → the recommendatio
 
 ### Broken
 
-`useDesignIO.ts` calls, on the current project object:
+`useApplicationIO.ts` calls, on the current project object:
 
 - `exportDriverWdr()` — give me the driver as `.wdr` bytes
 - `exportDriverOwdr()` — give me the driver as `.owdr` bytes
@@ -60,7 +60,7 @@ app right now.
 | Option                                  | What it means                                                                                                                                                                             |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A. Put the six methods on the project   | Add `exportDriverWdr()` etc. as methods on the project object; each one calls the converter function. Button code stays as-is. Downside: the project object now knows about file formats. |
-| B. Button code calls the converters raw | `useDesignIO.ts` imports the converter functions directly and does the wiring itself. No new methods anywhere. Downside: file-format knowledge spreads into the button code.              |
+| B. Button code calls the converters raw | `useApplicationIO.ts` imports the converter functions directly and does the wiring itself. No new methods anywhere. Downside: file-format knowledge spreads into the button code.              |
 | C. One new glue file in the middle      | A new file (name below) holds the six operations, each wrapping a converter. The button code calls that file; the project object stays clean.                                             |
 
 ### Recommendation

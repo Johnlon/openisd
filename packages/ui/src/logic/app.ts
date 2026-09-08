@@ -1,7 +1,7 @@
 import { inject, type App, type InjectionKey } from 'vue';
 import type { DriverBrowsingState } from './driverBrowsingState.js';
 import type { DriverSelection } from './driverSelection.js';
-import type { DesignIO } from './useDesignIO.js';
+import type { DesignIO } from './useApplicationIO.js';
 import type { BundledPassiveRadiator, MyPassiveRadiatorRepo, MyDriverRepo, FileStorage, ProjectRepo, ViewStateRepo } from '@openisd/persistence';
 import type { Logging } from '../logging/flash.js';
 import type { Diagnostics } from '../diagnostics/selftest.js';

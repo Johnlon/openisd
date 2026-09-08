@@ -10,7 +10,26 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
-import { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver } from '@openisd/design';
+import { Engine } from '@openisd/design/engine';
+import { openIsdDriverToWinIsdDriver } from '@openisd/design/winisd';
+import { stringify as yamlStringify } from 'yaml';
+
+const _engine = new Engine();
+function fromJsonRecord(record: unknown) {
+  const yml = yamlStringify(record);
+  const driver = OpenISDDriver.fromYml(yml, _engine);
+  if (Array.isArray(driver)) throw new Error('fromYml failed: ' + driver.join(', '));
+  return {
+    toWdrText(): { value: string | null; errors: Array<{level: string; message: string}> } {
+      const result = openIsdDriverToWinIsdDriver(driver, undefined, undefined, _engine);
+      if (Array.isArray(result) || !result) return { value: null, errors: [{ level: 'error', message: 'conversion failed' }] };
+      const wd = (result as any).value ?? result;
+      if (!wd) return { value: null, errors: (result as any).errors ?? [] };
+      return { value: wd.toWdrIni(), errors: (result as any).errors ?? [] };
+    }
+  };
+}
 import { PARSTATE_LEN, POS_TO_WDRKEY } from '@openisd/design/winisd';
 import { checkOpenisdRoundTrip, checkWdrRoundTrip } from '../../../../scripts/roundTripGate.mjs';
 
@@ -52,8 +71,8 @@ describe('checkWdrRoundTrip', () => {
     // `checkOpenisdRoundTrip`/the bridge use.
     assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
     const record = parseYaml(readFileSync(REAL_OPENISD_YML, 'utf8'), { logLevel: 'error' });
-    const { value: wdrText, errors } = OpenISDDriver.fromJsonRecord(record).toWdrText();
-    assert.equal(errors.some(e => e.level === 'error'), false, JSON.stringify(errors));
+    const { value: wdrText, errors } = fromJsonRecord(record).toWdrText();
+    assert.equal(errors.some((e: any) => e.level === 'error'), false, JSON.stringify(errors));
     assert.equal(typeof wdrText, 'string');
 
     const result = checkWdrRoundTrip(wdrText, 'accuton/bd90-6-727/winisd.wdr (bridge-generated)');
@@ -85,7 +104,7 @@ describe('checkWdrRoundTrip', () => {
     // the one this test deliberately introduces.
     assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
     const record = parseYaml(readFileSync(REAL_OPENISD_YML, 'utf8'), { logLevel: 'error' });
-    const { value: wdrText } = OpenISDDriver.fromJsonRecord(record).toWdrText();
+    const { value: wdrText } = fromJsonRecord(record).toWdrText();
     assert.equal(typeof wdrText, 'string');
     if (wdrText == null) throw new Error('unreachable: asserted above');
 

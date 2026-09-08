@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { parse as parseYaml } from 'yaml';
 import { project, isBundlable } from '../../../../scripts/bundleProjection.mjs';
 import { driverHasDqIssues } from '@openisd/persistence';
-import { OpenISDDriver } from '@openisd/model';
+import { OpenISDDriver } from '@openisd/design';
 
 describe('bundle-drivers — bundling gates on structural readability alone', () => {
   it('bundles a fully simulatable, structurally sound record', () => {

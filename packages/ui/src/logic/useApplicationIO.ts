@@ -1,3 +1,6 @@
+import { stringify } from 'yaml';
+import { openIsdDriverToWinIsdDriver, openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject, winIsdDriverTextToOpenIsdDriver, WinISDProject, WinISDDriver } from '@openisd/design/winisd';
+import { engine } from './appState.js';
 /**
  * Design file I/O orchestration — Save/Save As the project (.openisd.json) to the filesystem,
  * export a WinISD .wpr project or a .wdr driver, copy a share link, import a .wdr/.wpr/.owdr/
@@ -63,7 +66,7 @@ export interface DesignIO {
  * Save in the toolbar would track different files. Session-only either way — the File System
  * Access API does not persist handles across a page load.
  */
-export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorage; projectRepo: ProjectRepo }): DesignIO {
+export function createApplicationIO(deps: { logging: Logging; fileStorage: FileStorage; projectRepo: ProjectRepo }): DesignIO {
   const flash = (msg: string) => deps.logging.flash(msg);
   const { download } = createFileSave();
 
@@ -145,18 +148,19 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
 
   function exportWdr(): void {
     closeTunePanelAfterIO();
-    const exportProject = requireFocusedProject();
-    const exportYml = exportProject.
-    const { value: bytes, errors } = requireFocusedProject().exportDriverWdr();
-    if (!bytes) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+    const p = requireFocusedProject();
+    const errors: any[] = [];
+    const wd = openIsdDriverToWinIsdDriver(p.driver, engine, errors);
+    if (!wd) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'incomplete'}`); return; }
+    const bytes = new TextEncoder().encode(wd.toWdrIni());
     download(sanitizeFilename(driverName.value) + '.wdr', bytes, DriverFileFormat.Wdr.mime);
   }
 
   function exportOwdr(): void {
     closeTunePanelAfterIO();
-    // Always succeeds: a driver is always present (docs/design/DRIVER_NON_NULL_INVARIANT.md)
-    // and .owdr is the record's own JSON, always representable.
-    const bytes = requireFocusedProject().exportDriverOwdr();
+    const p = requireFocusedProject();
+    const txt = stringify(p.driver.toOpenIsdDeviceJson());
+    const bytes = new TextEncoder().encode(txt);
     download(sanitizeFilename(driverName.value) + '.owdr', bytes, DriverFileFormat.Owdr.mime);
   }
 
@@ -166,9 +170,10 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
    *  refinement — and the download plumbing. */
   function exportWpr(): void {
     closeTunePanelAfterIO();
-    const { value: bytes, errors } = requireFocusedProject().exportWpr(
-      new Date(), curvesData.value, parseLossMode(presentationState.lossMode));
-    if (!bytes) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+    const p = requireFocusedProject();
+    const { value: wp, errors } = openIsdProjectToWinIsdProject(p, engine);
+    if (!wp) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'incomplete'}`); return; }
+    const bytes = new TextEncoder().encode(wp.toWpr());
     download(sanitizeFilename(driverName.value) + '.wpr', bytes, ProjectFileFormat.Wpr.mime);
   }
 
@@ -180,34 +185,23 @@ export function createDesignIO(deps: { logging: Logging; fileStorage: FileStorag
         const format = formatOf(f.name) ?? sniff(bytes);
 
         if (format === DriverFileFormat.Wdr) {
-          requireFocusedProject().loadDriverFromWdrText(text);
+          const { value: driver, errors } = winIsdDriverTextToOpenIsdDriver(text, engine);
+          if (!driver) throw new Error(errors[0]?.message ?? 'could not read .wdr');
+          requireFocusedProject().setDriver(driver);
         } else if (format === ProjectFileFormat.Wpr) {
-          const { value: meta, errors } = requireFocusedProject().importWpr(bytes);
-          if (!meta) throw new Error(errors[0]?.message ?? 'could not read .wpr');
-          // `state.project` mirrors the loaded project's own meta — leaving the PREVIOUS
-          // project's creator/description in place re-exports them into the next .wpr
-          // (bugs/BUG_20260822_wpr_import_leaves_previous_projects_meta_in_state_and_
-          // reexports_it.md). The name alone comes from the FILE, per the name↔file rule.
-          state.project.description = meta.description;
-          state.project.creator = meta.creator;
-          state.project.created = meta.created;
-          state.project.modified = meta.modified;
+          const { value: loadedProj, errors } = winIsdProjectToOpenIsdProject(text, engine);
+          if (!loadedProj) throw new Error(errors[0]?.message ?? 'could not read .wpr');
+          applyLoadedProject(loadedProj);
           state.project.name = projectNameFromFilename(f.name);
         } else if (format === DriverFileFormat.Owdr) {
-          requireFocusedProject().loadDriverFromOwdrText(text);
+          requireFocusedProject().setDriver(winIsdDriverTextToOpenIsdDriver(text, engine).value as any);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
-          // A `.owpr`-NAMED file can still contain a bare driver record — `sniff` is the one
-          // content classifier (the same rule `formatOf`-by-extension cannot see), so the
-          // JSON-content dispatch asks it rather than keeping a second copy of the rule.
           if (sniff(bytes) === DriverFileFormat.Owdr) {
-            requireFocusedProject().loadDriverFromOwdrText(text);
+            requireFocusedProject().setDriver(winIsdDriverTextToOpenIsdDriver(text, engine).value as any);
           } else {
-            // An opened file is a persisted payload like any other — it goes through the same
-            // schema upgrade as localStorage and the share-link hash
-            // (bugs/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md).
             const upgraded = deps.projectRepo.readProjectText(text);
             if (!upgraded) throw new Error('the file could not be brought to the current schema');
-            applyLoadedProject(upgraded);
+            applyLoadedProject(upgraded as any);
             state.project.name = projectNameFromFilename(f.name);
           }
         } else {

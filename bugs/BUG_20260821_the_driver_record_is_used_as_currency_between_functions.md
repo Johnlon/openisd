@@ -15,11 +15,11 @@ Every production call, 2026-08-21:
 
 | Site | What it does | Serialising? |
 |---|---|---|
-| `logic/useDesignIO.ts:160` | `JSON.stringify(record)` into a `.owdr` download | **yes** — legitimate |
+| `logic/useApplicationIO.ts:160` | `JSON.stringify(record)` into a `.owdr` download | **yes** — legitimate |
 | `logic/driverSelection.ts:117` | `return { ok: true, record: driver.toJsonRecord() }` | no — a resolved driver returned as its record |
 | `logic/driverSelection.ts:135` | `OpenISDDriver.fromWdrText(text).toJsonRecord()` | no — parse then immediately flatten |
 | `logic/store.ts:405` | `managedProject.loadDriverRecord(OpenISDDriver.fromWdrText(text).toJsonRecord())` | no — construct a driver, discard it, pass its record |
-| `logic/useDesignIO.ts:218` | `.wdr` inside a `.wpr` → `toJsonRecord()` | no — same pattern |
+| `logic/useApplicationIO.ts:218` | `.wdr` inside a `.wpr` → `toJsonRecord()` | no — same pattern |
 | `ui/components/DriverEditorModal.vue:333` | `myDrivers.upsert(draftDriver.value.toJsonRecord())` | no — repository takes a record |
 | `ui/components/DriverEditorModal.vue:339,387` | `acceptDriverEdit(draftDriver.value.toJsonRecord())` | no — accept path takes a record |
 

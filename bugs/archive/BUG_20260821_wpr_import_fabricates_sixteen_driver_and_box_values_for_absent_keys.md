@@ -1,4 +1,4 @@
-Status: RESOLVED — `useDesignIO.ts:220` defines `numOrAbsent()` (returns `number | undefined`,
+Status: RESOLVED — `useApplicationIO.ts:220` defines `numOrAbsent()` (returns `number | undefined`,
 never a literal default) and all sixteen sites (`bType`, `Vr`, `Vf`, `npr`, vent `dia`/`len`/
 `endCorrection`, PR `Sd`/`Xmax`/`Me`/`Vas`/`Fs`/`Qms`, `Ql`/`Qa`/`Qp`, `P`, `Rg`) now call it
 instead of `parseFloat(x || '<literal>')`.
@@ -13,7 +13,7 @@ one WinISD actually wrote. The design then simulates, plots and exports on value
 
 ## Evidence
 
-`packages/ui/src/logic/useDesignIO.ts`, all sixteen:
+`packages/ui/src/logic/useApplicationIO.ts`, all sixteen:
 
 | Line | Code | Invented |
 |---|---|---|
@@ -65,7 +65,7 @@ before anyone can act on it.
 
 Applied. `numOrAbsent()` returns `undefined` for a key the file does not carry or carries
 empty; every former fabrication site now calls it. Per-field handling matches the fix's own
-prescription: `BType` (`useDesignIO.ts:227`) throws loudly when absent or unrecognised rather
+prescription: `BType` (`useApplicationIO.ts:227`) throws loudly when absent or unrecognised rather
 than defaulting to vented; the passive radiator is built only when all four of
 `Sd`/`Vas`/`Fs`/`Qms` are present (`hasPr`, line ~255) and throws if `BType=4` claims one but
 the data is missing; every other field (`Vb`/`Vf`/`Ql`/`Qa`/`Qp`/`Pin`/`Rs`/`ventD`/`ventL`/
@@ -78,8 +78,8 @@ blocking, since the raw-or-absent behaviour this bug required is already in plac
 
 ## Verification
 
-`useDesignIO.ts:227-233` throws `'.wpr has no [Box] BType...'` when `bType` is `undefined`, and
-throws on an unrecognised `BType` value. `useDesignIO.ts:255-258` throws when `BType=4` but
+`useApplicationIO.ts:227-233` throws `'.wpr has no [Box] BType...'` when `bType` is `undefined`, and
+throws on an unrecognised `BType` value. `useApplicationIO.ts:255-258` throws when `BType=4` but
 `hasPr` is false (Sd/Vas/Fs/Qms not all present) — a `.wpr` with `[PassiveRadiator]` removed
 does not produce a radiator. Not run under vitest this session (a full run was in progress);
 verified by direct code inspection.

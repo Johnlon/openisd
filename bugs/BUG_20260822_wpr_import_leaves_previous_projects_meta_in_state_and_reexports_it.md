@@ -2,7 +2,7 @@
 
 Status: FIXED — import syncs `state.project` from `project.meta` (name from the filename); the
 export-side state→meta copy is deleted. Verified by
-`packages/ui/test/logic/useDesignIO.test.ts::".wpr import syncs state.project from the file,
+`packages/ui/test/logic/useApplicationIO.test.ts::".wpr import syncs state.project from the file,
 and export round-trips it"` — the round-trip this file's Verification section specifies,
 against the real `sealed-small.wpr` golden with a patched probe Description.
 
@@ -17,11 +17,11 @@ open BEFORE the import, not the imported file's values.
 Adversarial review of the A6 rework working tree (2026-08-22, uncommitted):
 - `OpenISDProject.fromWinISDProject` (`packages/model/src/openisdProject.ts:558-564`)
   correctly populates `record.meta` from the file's `[ProjectInfo]`.
-- The import branch (`packages/ui/src/logic/useDesignIO.ts:216-222`) does
+- The import branch (`packages/ui/src/logic/useApplicationIO.ts:216-222`) does
   `managedProject.load(project)` then sets only `state.project.name`; `state.project` is a
   plain reactive object (`store.ts:140`), not an accessor over the project, so
   `description`/`creator`/`created` keep the prior project's values.
-- The export-side copy (`useDesignIO.ts:199-203`) then writes `state.project.*` INTO
+- The export-side copy (`useApplicationIO.ts:199-203`) then writes `state.project.*` INTO
   `project.meta.*` — the stale values overwrite the correct ones on the way out.
 
 ## Cause
@@ -34,7 +34,7 @@ The A6 rework deleted the old `Object.assign(state.project, o.project)` restore 
 
 After `managedProject.load(project)`, sync `state.project` FROM `project.meta`
 (name still overridden by the filename, per the name↔file rule). With state kept in sync at
-load, the export-side state→meta copy at `useDesignIO.ts:199-203` becomes unnecessary and
+load, the export-side state→meta copy at `useApplicationIO.ts:199-203` becomes unnecessary and
 is deleted.
 
 ## Verification
