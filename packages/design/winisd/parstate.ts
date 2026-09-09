@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import type {CellState} from "./cellState.js";
 
-import type { CellState } from '../domain/cell.js';
 
 /**
  * WinISD ParState — the fixed 49-slot edit-state table.
@@ -18,7 +18,7 @@ import type { CellState } from '../domain/cell.js';
  * E/C/N — WinISD's ENCODING of a provenance, and NOT A SECOND TYPE.
  *
  * The three letters exist nowhere else in the codebase. They are what this one file format writes
- * on disk; the app's vocabulary is `CellState` (`domain/cell.ts`), and every caller of this
+ * on disk; the app's vocabulary is `CellState` (`domain/cellState.ts`), and every caller of this
  * module hands one in and gets one back (John, 2026-09-01: hide the letters "entirely inside the
  * WinISD i/o code"). Neither the table nor the schema below is exported — `markOf` and
  * `provenanceOf` are the whole surface, and neither of them can be called with a letter.

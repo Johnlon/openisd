@@ -2,7 +2,7 @@
 
 ## Done, committed (`fbcc905`)
 
-Bridge (`packages/design/winisd/driverYmlToOpenisdAndWdr.ts`) now strips two more things
+Bridge (`../../packages/design/domain/driverYmlToOpenisdAndWdr.ts`) now strips two more things
 before emitting `openisd.yml`, on top of the pre-existing `scraper_meta`/`definition` strips:
 
 - **`origin` from named metadata fields** (`manufacturer`, `brand`, `model`, `driver_type`,

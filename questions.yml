@@ -1,5 +1,5 @@
 prefix: QO
-next: 129
+next: 131
 questions:
 - id: QO1
   title: UI TODO List
@@ -8713,3 +8713,128 @@ questions:
   status: open
   raised: '2026-09-08'
   body: ''
+- id: QO129
+  title: 'UI layering: .vue files hold no logic — composables in src/stripped/ own state and domain calls'
+  status: open
+  raised: '2026-09-08'
+  body: ''
+- id: QO130
+  title: Which of ViewSnapshot's fields belong to the project and which to the user
+  status: decided
+  raised: '2026-09-09'
+  body: ''
+  answer:
+    at: '2026-09-09'
+    text: |-
+      John, 2026-09-09.
+
+      PROJECT: lossMode, graphs, cursor.f, cursor.pinnedF, cursor.locked, cursor.range.
+
+      John on graphs: "this is project".
+      John on the cursor fields: "all project BUT when saving a project I dont think anyone really
+      cares abojt the sleectopm window. harmless thoiugh" — they go with the project because they
+      belong to the design, not because anyone will miss them.
+
+      USER (stays out of the project): username, unitTokens, envDefaults, chartColors,
+      originalChartTab, originalChartLabel.
+
+      This reverses QO90 for these six fields: a saved .owpr now carries them.
+
+      Still unruled: yRanges (per-chart Y-axis override) is persisted nowhere today and is silently
+      lost on reload. It looks per-project on the same reasoning. Starting to persist it is a
+      behaviour change and needs its own ruling.
+  notes:
+  - at: '2026-09-09'
+    text: |-
+      John, 2026-09-09 — completing the split. TWO homes, not three (there is no "env").
+
+      PROJECT:
+        lossMode
+        graphs                (which chart tabs are open)
+        cursor.f / .pinnedF / .locked / .range
+        chartColors           "they apply to a specific chart"
+        selectedChart         (was ui.originalChartTab — the "original" prefix is the dead skin name)
+        selectedProjectTab    (was ui.originalProjectTab)
+        per-chart axis ranges, stored PER CHART TYPE alongside the selected chart:
+            chartFreqMin, chartFreqMax, chartYMin, chartYMax
+          John: "yRanges = definitaly stored in project per chart type alog with the selected chart
+          chartFreqMin chartFreqMax  yRanges -> chartYMin chartYMax"
+          NOTE: yRanges is persisted NOWHERE today and is lost on reload; this starts persisting it,
+          and adds the frequency pair beside it.
+
+      APP (own storage key, not the project):
+        username    defaults to the OS user
+        unitTokens
+        envDefaults (default temp/pressure/humidity for a NEW project; the project has its own)
+
+      DELETED:
+        originalChartLabel — John: "junk". Redundant: it is the display label of selectedChart.
+
+      RENAMES: originalChartTab -> selectedChart, originalProjectTab -> selectedProjectTab.
+
+      This reverses QO90 for everything in the PROJECT list: a saved .owpr now carries it.
+  - at: '2026-09-09'
+    text: |-
+      John, 2026-09-09 — FINAL field list. Supersedes the two notes above where they differ.
+
+      PROJECT (saved in the .owpr):
+        lossMode              which formula gives a sealed box's Fsc/Qtc. Type it as the engine's
+                              LossMode enum, not a bare string.
+        graphs                which chart tabs are OPEN, ordered.
+        cursor.f              frequency under the pointer now (Hz), null when off-plot.
+        cursor.pinnedF        frequency clicked to pin (Hz); survives mouse-out.
+        cursor.locked         pinned frequency held against hover.
+        cursor.range          dragged frequency band {fLo,fHi}. John: "harmless though".
+        chartColors           per-line colour overrides. John: "they apply to a specific chart".
+        selectedChart         which chart tab is on top   (was ui.originalChartTab).
+        selectedProjectTab    which left-panel tab shows  (was ui.originalProjectTab; today undeclared,
+                              riding UiState's index signature).
+        chartYMin/chartYMax   per chart type. Was `yRanges`, persisted NOWHERE and lost on reload.
+        chartFreqMin/chartFreqMax  per chart type. NEW state — no such field exists today; dragRange
+                              is a selection, not an axis range. Needs confirming as a new feature.
+
+      APP (own storage key):
+        username     defaults to the OS user — UNRESOLVED: no browser API supplies an OS username.
+        unitTokens   preferred display unit per field.
+        envDefaults  temp/pressure/humidity a NEW project starts from; the project has its own live values.
+
+      NOT PERSISTED — transient view state, stays live-only. John: "these are views - why persist them":
+        newProjectOpen, browseOpen, editDriver, editDriverInfo
+
+      DELETED:
+        originalChartLabel — John: "junk". It is the display label of selectedChart.
+
+      UNAFFECTED, already app-scoped under their own keys:
+        openisd_my_drivers, openisd_pr_lib, openisd_favorite_drivers
+
+      This reverses QO90 for everything in the PROJECT list.
+  - at: '2026-09-09'
+    text: |-
+      John, 2026-09-09 — remaining rulings.
+
+      CURSOR (cursorF, pinnedF, cursorLocked, dragRange): "keep in project". All four go into the
+      .owpr, cursorLocked included (pinnedF without it is ambiguous on restore).
+
+      USERNAME: "leave as app level - if when user first fills in their name then update the store
+      and then used as default for anything new". So there is NO OS-user lookup — the app has no
+      username until the user types one; from then on the stored value is the default for anything
+      new. The "defaults to the OS user" note in the earlier entry is withdrawn.
+
+      MODAL-OPEN FLAGS (newProjectOpen, browseOpen, editDriver, editDriverInfo): "ONLY NEED TO STORE
+      IF IT HELPS WITH A PAGE REFRESH OR CRASH". None qualify: the dialogs' in-progress input is not
+      stored either, so restoring the flag alone reopens an empty dialog. Stay live-only on
+      presentationState, unchanged.
+
+      STORAGE KEY MIGRATION: "no migration - as there is no user". Renamed keys simply orphan
+      whatever is in a developer's browser.
+  - at: '2026-09-09'
+    text: |-
+      John, 2026-09-09 — storage key separator: UNDERSCORE.
+
+        openisd_my_drivers                      (unchanged)
+        openisd_my_passive_radiators            (was openisd_pr_lib)
+        openisd_my_favourite_drivers            (was openisd_favorite_drivers)
+        openisd_my_favourite_passive_radiators  (new — does not exist today)
+        openisd_app                             (was openisd.view, now the app half only)
+
+      No migration.

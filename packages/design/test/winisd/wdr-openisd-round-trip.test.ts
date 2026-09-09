@@ -30,7 +30,7 @@ import { WinISDDriver } from '@openisd/design/winisd';
 import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
-import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
+import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from '../../winisd/parstate.js';
 
 const here = dirname(fileURLToPath(import.meta.url));

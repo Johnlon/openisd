@@ -1,7 +1,7 @@
 # Session handover — bridge
 
 Session `33d3ea3a-c73c-4482-a883-e33bd3ed4b56`, branch `dev`, working on the V8 bridge
-(`packages/design/winisd/driverYmlToOpenisdAndWdr.ts`) and the round-trip test suite.
+(`../../packages/design/domain/driverYmlToOpenisdAndWdr.ts`) and the round-trip test suite.
 
 ## Uncommitted changes
 
@@ -22,7 +22,7 @@ Session `33d3ea3a-c73c-4482-a883-e33bd3ed4b56`, branch `dev`, working on the V8 
     unproven, so a reader trusts the value over the mark (`WDR_LOGIC.md` "`VCCon` exception
     — read on presence, not mark"). An unstated wiring saved as the `.wdr` default `1`/mark
     `N` reads back `entered` — documented, not invented.
-- `packages/design/winisd/driverYmlToOpenisdAndWdr.ts` — exported `openIsdDriverToWinIsdDriver`
+- `../../packages/design/domain/driverYmlToOpenisdAndWdr.ts` — exported `openIsdDriverToWinIsdDriver`
   (was module-private) so the round-trip test can call it directly.
 
 Result: `wdr-openisd-round-trip.test.ts` went from 160/247 to 244/247 passing.

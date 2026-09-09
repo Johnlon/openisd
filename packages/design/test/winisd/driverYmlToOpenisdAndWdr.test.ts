@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { parse, stringify as stringifyYaml } from 'yaml';
 
-import { driverYmlToOpenisdAndWdr } from '../../winisd/driverYmlToOpenisdAndWdr.js';
+import { driverYmlToOpenisdAndWdr } from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
@@ -405,7 +405,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     // Non-vacuity: the field name itself must be one the bridge actually emits somewhere, or this
     // assertion passes for the wrong reason (nothing ever produces that field, ever).
     assert.ok(
-      readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'winisd', 'driverYmlToOpenisdAndWdr.ts'), 'utf8')
+      readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'domain', 'driverYmlToOpenisdAndWdr.ts'), 'utf8')
         .includes("'wdr-record-round-trip'"),
       'the bridge source does not mention this field at all — the check does not exist yet',
     );

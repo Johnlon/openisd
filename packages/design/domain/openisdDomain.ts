@@ -6,7 +6,6 @@ import { driverSectionProblems, radiatorSectionProblems, ProjectBuilder } from '
 // TEST: If two implementers could disagree on the model, it belongs in the engine.
 
 import {
-    openISDProjectJsonSchema,
     OpenISDDeviceJson,
     type SpecEntryJson,
     type DriverSpecsSection,
@@ -20,6 +19,7 @@ import {
     type OpenISDEnvironmentJson,
     type OpenISDProjectJson,
     type OpenISDProjectSessionJson,
+    openISDProjectSessionJsonSchema,
     VoiceCoilWiring,
     wiringFromRecord,
     calcVCCon,
@@ -39,6 +39,10 @@ import {
 } from './cell.js';
 import {newUuid} from './newUuid.js';
 import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/index.js';
+// The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two
+// converter modules, so importing it here would pull them in whichever name was asked for.
+import {openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver} from './driverYmlToOpenisdAndWdr.js';
+import {openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject} from './openIsdProjectToWinIsdProject.js';
 import type {
     BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, Filter,
     EnclosureParams, MaxCurvesResult, Result, SweepParams, SweepResult, SolverQuantities,
@@ -89,16 +93,21 @@ type NumericQuantity = {
     [K in keyof SolverQuantities]-?: NonNullable<SolverQuantities[K]> extends number ? K : never;
 }[keyof SolverQuantities];
 
-const SOLVED_BY: Readonly<Partial<Record<SpecFieldName, NumericQuantity>>> = Object.freeze({
-    Fs: 'Fs_hz', Re: 'Re_ohm', Znom: 'Znom_ohm', Le: 'Le_H', fLe: 'fLe_hz', KLe: 'KLe_H_sqrtHz',
-    Qes: 'Qes', Qms: 'Qms', Qts: 'Qts', Vas: 'Vas_m3', Sd: 'Sd_m2', Dd: 'Dd_m', BL: 'BL_Tm',
-    Mms: 'Mms_kg', Cms: 'Cms_m_per_N', Rms: 'Rms_kg_per_s', EBP: 'EBP_hz',
-    Xmax: 'Xmax_m', Vd: 'Vd_m3', Hc: 'Hc_m', Hg: 'Hg_m',
-    Pe: 'Pe_W', no: 'no', SPL: 'SPL_dB', USPL: 'USPL_dB', SPLmax: 'SPLmax_dB',
-    SPLmaxLF: 'SPLmaxLF_dB', Rme: 'Rme_kg_per_s', Mpow: 'Mpow_N_per_sqrtW',
-    Mcost: 'Mcost_kg_per_s', gamma: 'gamma_m_per_s2_A', Gloss: 'Gloss',
-    Vcd: 'Vcd_m', Depth: 'Depth_m', MagDepth: 'MagDepth_m', Magnet: 'Magnet_m', DVol: 'DVol_m3',
-} as const);
+const SOLVED_BY_PAIRS: readonly (readonly [SpecFieldName, NumericQuantity])[] = Object.freeze([
+    ['Fs', 'Fs_hz'], ['Re', 'Re_ohm'], ['Znom', 'Znom_ohm'], ['Le', 'Le_H'], ['fLe', 'fLe_hz'],
+    ['KLe', 'KLe_H_sqrtHz'], ['Qes', 'Qes'], ['Qms', 'Qms'], ['Qts', 'Qts'], ['Vas', 'Vas_m3'],
+    ['Sd', 'Sd_m2'], ['Dd', 'Dd_m'], ['BL', 'BL_Tm'], ['Mms', 'Mms_kg'], ['Cms', 'Cms_m_per_N'],
+    ['Rms', 'Rms_kg_per_s'], ['EBP', 'EBP_hz'], ['Xmax', 'Xmax_m'], ['Vd', 'Vd_m3'],
+    ['Hc', 'Hc_m'], ['Hg', 'Hg_m'], ['Pe', 'Pe_W'], ['no', 'no'], ['SPL', 'SPL_dB'],
+    ['USPL', 'USPL_dB'], ['SPLmax', 'SPLmax_dB'], ['SPLmaxLF', 'SPLmaxLF_dB'],
+    ['Rme', 'Rme_kg_per_s'], ['Mpow', 'Mpow_N_per_sqrtW'], ['Mcost', 'Mcost_kg_per_s'],
+    ['gamma', 'gamma_m_per_s2_A'], ['Gloss', 'Gloss'], ['Vcd', 'Vcd_m'], ['Depth', 'Depth_m'],
+    ['MagDepth', 'MagDepth_m'], ['Magnet', 'Magnet_m'], ['DVol', 'DVol_m3'],
+] as const);
+
+/** The same mapping keyed for lookup, built from the pair list so the two cannot disagree. */
+const SOLVED_BY: Readonly<Partial<Record<SpecFieldName, NumericQuantity>>> =
+    Object.freeze(Object.fromEntries(SOLVED_BY_PAIRS));
 
 
 // A package-private WeakMap bridge lets a wrapper read a component's internal
@@ -868,8 +877,11 @@ export class OpenIsdDriverSpec {
             const statedValue = (k: keyof DriverSpecsSection): number | undefined =>
                 (stated === undefined ? null : winningValue(stated[k])) ?? undefined;
             const input: SolverQuantities = {};
-            for (const [recordKey, quantity] of Object.entries(SOLVED_BY)) {
-                const v = statedValue(recordKey as keyof DriverSpecsSection);
+            // Iterating the PAIR LIST rather than the lookup table is what keeps the key typed:
+            // `Object.keys`/`for...in` widen a key to `string` (a JS object may carry more keys
+            // than its type declares), whereas each pair's element type survives the loop.
+            for (const [recordKey, quantity] of SOLVED_BY_PAIRS) {
+                const v = statedValue(recordKey);
                 if (v !== undefined) input[quantity] = v;
             }
             // The driver's own air, which every geometry relation needs and no record has to
@@ -1154,7 +1166,9 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return OpenISDDriverStandalone.wrap(blankDeviceRecord('woofer'), engine);
     }
 
-    static fromYml(text: string, engine: Engine): OpenISDDriver | string[] {
+    /** `.owdr` text — openisd driver YAML — back to a driver, or the reasons it could not be
+     *  read. The inverse of `toOwdrText()`. */
+    static fromOwdrText(text: string, engine: Engine): OpenISDDriver | string[] {
         const parsed = OpenISDDeviceJson.fromOpenisdDriverYml(text);
         if ('problems' in parsed) return parsed.problems;
 
@@ -1405,11 +1419,28 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return this.record.get();
     }
 
-    /** This driver as `.owdr` text — openisd driver YAML, the form `OpenISDDriver.fromYml` reads
+    /** This driver as `.owdr` text — openisd driver YAML, the form `OpenISDDriver.fromOwdrText` reads
      *  back. The serialisation stays inside the domain so the record type never crosses the
      *  package boundary. */
     toOwdrText(): string {
         return OpenISDDeviceJson.toOpenisdDriverYml(this.record.get());
+    }
+
+    /** This driver as WinISD `.wdr` text — the form `OpenISDDriver.fromWdrIniText` reads back.
+     *
+     *  `.wdr` states far less than an openisd record does: a field WinISD has no key for is
+     *  dropped, so this is a lossy write and the round trip is not an identity. `errors` carries
+     *  every such loss the converter reported. */
+    toWdrIniText(engine: Engine): { value: string | null; errors: DriverError[] } {
+        const errors: DriverError[] = [];
+        const wdr = openIsdDriverToWinIsdDriver(this, engine, errors);
+        return {value: wdr.toWdrIni(), errors};
+    }
+
+    /** WinISD `.wdr` text back to a driver. The inverse of `toWdrIniText()`, as far as a format
+     *  carrying fewer fields allows. */
+    static fromWdrIniText(text: string, engine: Engine): { value: OpenISDDriver | null; errors: DriverError[] } {
+        return winIsdDriverTextToOpenIsdDriver(text, engine);
     }
 }
 
@@ -1986,6 +2017,56 @@ export class OpenISDProject {
      *  the same reference as the live record. No code outside `packages/design` may call this. */
     cloneSavedProject(): OpenISDProjectJson {
         return structuredClone(this.#saved);
+    }
+
+    /** This project as WinISD `.wpr` text — the form `OpenISDProject.fromWprText` reads back.
+     *
+     *  Writing is a SNAPSHOT: the converter reads this project and renders text, and keeps no
+     *  hold on it afterwards, so saving a file never changes what is on screen.
+     *
+     *  `.wpr` models fewer box types and fewer fields than openisd does, so this is a lossy
+     *  write and `value` is null when the box cannot be expressed at all (a `bandpass6`, say).
+     *  `errors` carries the reason and every field dropped along the way. */
+    toWprText(engine: Engine): { value: string | null; errors: DriverError[] } {
+        const {value: wpr, errors} = openIsdProjectToWinIsdProject(this, engine);
+        return {value: wpr ? wpr.toWpr() : null, errors};
+    }
+
+    /** WinISD `.wpr` text back to a project. The inverse of `toWprText()`, as far as a format
+     *  carrying fewer box types and fields allows. */
+    static fromWprText(text: string, engine: Engine): { value: OpenISDProject | null; errors: DriverError[] } {
+        return winIsdProjectToOpenIsdProject(text, engine);
+    }
+
+    /** This project as `.owpr` text — openisd project JSON, the form
+     *  `OpenISDProject.fromOwprText` reads back. Carries the saved state, the edited state and
+     *  the name, so reopening the file restores unsaved edits exactly as they were.
+     *
+     *  Lossless, unlike `toWprText()`: this is openisd's own format, so there is nothing to drop
+     *  and no error to report. */
+    toOwprText(): string {
+        return JSON.stringify(this.cloneSession(), null, 2);
+    }
+
+    /** `.owpr` text back to a project, or everything wrong with the text. The inverse of
+     *  `toOwprText()`.
+     *
+     *  The project takes a FRESH identity: a file's contents are provenance, not a store key
+     *  (QO81), so opening the same file twice yields two independently addressable projects. */
+    static fromOwprText(text: string, engine: Engine): OpenISDProject | string[] {
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(text);
+        } catch {
+            return ['not valid JSON'];
+        }
+        const result = openISDProjectSessionJsonSchema.safeParse(parsed);
+        if (!result.success) {
+            return result.error.issues.map(issue => issue.path.length === 0
+                ? issue.message
+                : `'${issue.path.join('.')}': ${issue.message}`);
+        }
+        return OpenISDProject.wrapSession(result.data, newUuid(), engine);
     }
 
     /** Serialises both saved and edited states for persistence. */

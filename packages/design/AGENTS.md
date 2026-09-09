@@ -12,28 +12,36 @@ in a file you were told to edit.
 When the specified shape leaves a genuine gap, say so and stop for John's decision. Leave the
 gap open rather than fill it and explain afterwards.
 
-## Shared mutable state at module scope is prohibited
+## Mutable state at module scope is prohibited
 
-No module-scoped binding may vary after the module loads. Banned: a top-level `let`/`var`, a
-bare object/array literal or `new X()` that nothing freezes, a registry, singleton or cache —
-and, regardless of how it was declared, any module-scoped binding that something later writes
-to (an assignment, or a mutating call like `push`/`set`/`delete`/`add`).
+**Mutable module-scoped state is banned. Immutable module-scoped state is fine.**
 
-Anything that varies at runtime lives on an object a caller holds, passed in and returned —
-never at module scope. When a module-level `let`, `Map`, `Set`, registry, singleton or cache
-looks necessary, the design is wrong: say so and stop.
+Banned — the value can change:
 
-A module-scoped `const` is a different thing and is not banned by this rule. It is fine on its
-own merits, with no approval needed, once it is genuinely immutable:
+- `let` / `var` at module scope
+- an unfrozen object, array, `Map` or `Set`
+- any binding something writes to (assignment, or `push`/`set`/`delete`/`add`)
+- a cache, or a registry something registers into
 
-- `Object.freeze({...})` / `Object.freeze([...])` for a lookup table (it may be indexed by a
-  runtime key — indexing is not the problem, mutability is);
-- `{...} as const` / `[...] as const` for a readonly literal;
-- a primitive, an arrow function, or a call returning neither a container nor a `new`.
+Fine — the value cannot change:
 
-`test/architecture-no-globals.test.ts` enforces this by checking mutability directly (AST-level:
-is the binding reassignable, is its initializer an unfrozen container, is it written to anywhere
-in the file) — there is no separate name-by-name allowlist to maintain.
+- `Object.freeze({...})` / `Object.freeze([...])`, provided every member is itself immutable
+- `{...} as const` / `[...] as const` of primitives only
+- a primitive or an arrow function
+- an immutable singleton
+
+Immutability must hold all the way down. `Object.freeze` is shallow and `as const` is
+compile-time only, so a nested object or array inside either one is still mutable — freeze
+each level, or hold only primitives.
+
+`Object.freeze` does NOT work on a `Map` or `Set` — `.set()`/`.add()` still mutate one. Use a
+frozen object or array instead.
+
+Anything that genuinely varies at runtime lives on an object a caller holds, passed in and
+returned. When mutable module state looks necessary, the design is wrong: say so and stop.
+
+`test/architecture-no-globals.test.ts` enforces this at AST level: is the binding reassignable,
+is its initializer an unfrozen container, is it written to anywhere in the file.
 
 ## Preserve type information so casts stay unnecessary
 

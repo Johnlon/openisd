@@ -17,14 +17,14 @@
  * comment and call sites in `project.ts`) — the ÷100/×100 conversion happens ONLY here, never
  * inside `WinISDProject` or `OpenISDProject` themselves.
  */
-import type { Box } from '../domain/index.js';
-import { OpenISDDriver, OpenISDProject, OpenISDPassiveRadiatorStandalone } from '../domain/index.js';
+import type { Box } from './index.js';
+import { OpenISDDriver, OpenISDProject, OpenISDPassiveRadiatorStandalone } from './index.js';
 import {type DriverError, Engine} from '../engine/index.js';
 
 import {openIsdDriverToWinIsdDriver} from './driverYmlToOpenisdAndWdr.js';
-import {WinISDDriver} from './winisdDriver.js';
-import {WinISDProject} from './winisdProject.js';
-import {winISDDriverToOpenISDDeviceJson} from '../domain/openisdSchema.js';
+import {WinISDDriver} from '../winisd/winisdDriver.js';
+import {WinISDProject} from '../winisd/winisdProject.js';
+import {winISDDriverToOpenISDDeviceJson} from './openisdSchema.js';
 
 /** `WinISDProject.build()`'s value shape: section name -> key -> value. */
 type WprValues = Record<string, Record<string, string | number>>;

@@ -1,4 +1,4 @@
-# The ts-morph architecture gate times out under full-suite load, so it reports a false failure
+# A check passes on its own but times out when the whole suite runs, so it reports a false failure
 
 Status: OPEN
 

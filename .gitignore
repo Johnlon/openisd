@@ -1,4 +1,5 @@
 node_modules/
+electron/
 dist/
 dist-electron/
 test-results/

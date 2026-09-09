@@ -2,7 +2,7 @@
 /**
  * The combined Save-As / Export menu — every project output that isn't the in-place
  * "Save" action, so the four actions stay identical everywhere:
- * Save As (native .openisd.json, via the File System Access API), Save as a WinISD .wpr
+ * Save As (native .owpr, via the File System Access API), Save as a WinISD .wpr
  * project, export the driver as .wdr, and copy a share link. Self-contained: styled off
  * the app's shared CSS vars (--panel/--fg/--line/--acc), so this adapts automatically
  * without bespoke styling.

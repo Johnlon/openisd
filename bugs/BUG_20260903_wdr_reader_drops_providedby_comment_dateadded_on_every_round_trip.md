@@ -5,7 +5,7 @@ read at lines 353-355). Verified 2026-09-04: `npx vitest run
 packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts` — 15/15.
 **Found:** 2026-09-03, running the T1 -> W2 -> I3 -> driver -> W3 -> T2 chain John asked for
 (`docs/design/WDR_LOGIC.md`-style round trip, implemented in `roundTripProblems`/`wdrDriverDiffs`,
-`packages/design/winisd/driverYmlToOpenisdAndWdr.ts`).
+`../packages/design/domain/driverYmlToOpenisdAndWdr.ts`).
 
 ## Symptom
 

@@ -19,13 +19,15 @@
  */
 import {parse as parseYmlToJs, stringify} from 'yaml';
 
-import type {FieldHandle, OpenIsdPassiveRadiatorSpec} from '@openisd/design';
-import { OpenISDDriver, OpenISDPassiveRadiatorStandalone,} from '@openisd/design';
-import {type DriverError, Engine} from '@openisd/design/engine';
+import type {FieldHandle, OpenIsdPassiveRadiatorSpec} from './index.js';
+import { OpenISDDriver, OpenISDPassiveRadiatorStandalone,} from './index.js';
+import {type DriverError, Engine} from '../engine/index.js';
 
-import {dqCalculated, withDqCalculated} from './dqCalculated.js';
-import {INI_ROWS, WINISD_CALCULABLE, type WdrCell, type WdrHeader, WinISDDriver} from './winisdDriver.js';
-import {type DriverSpec, wdrFields, winISDDriverToOpenISDDeviceJson} from '../domain/openisdSchema.js';
+import {dqCalculated, withDqCalculated} from '../winisd/dqCalculated.js';
+import {INI_ROWS, WINISD_CALCULABLE, type WdrCell, type WdrHeader, WinISDDriver} from '../winisd/winisdDriver.js';
+import {
+    type DriverSpec, type SpecEntryJson, specEntryJsonSchema, wdrFields, winISDDriverToOpenISDDeviceJson,
+} from './openisdSchema.js';
 
 /** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
  *  blocking failure stopped that artefact being produced; `errors` is always an array. */
@@ -70,7 +72,7 @@ function stripDefinitionField(value: unknown): unknown {
  *  the field name, unlike a spec entry's `readings`, which genuinely needs `origin` to say which
  *  of several sources won). Named explicitly, not walked structurally: a spec entry ALSO has an
  *  `origin` key, on a shape this strip must never touch. */
-const METADATA_FIELDS_WITH_DEAD_ORIGIN = new Set([
+const METADATA_FIELDS_WITH_DEAD_ORIGIN: readonly string[] = Object.freeze([
     'manufacturer', 'brand', 'model', 'driver_type', 'series', 'nominal_size_cm',
     'product_image', 'description', 'surround_material', 'provided_by', 'comment', 'added',
 ]);
@@ -80,7 +82,7 @@ const METADATA_FIELDS_WITH_DEAD_ORIGIN = new Set([
 function stripMetadataOrigin(record: Record<string, unknown>): Record<string, unknown> {
     const out: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(record)) {
-        if (!METADATA_FIELDS_WITH_DEAD_ORIGIN.has(key) || typeof value !== 'object' || value === null) {
+        if (!METADATA_FIELDS_WITH_DEAD_ORIGIN.includes(key) || typeof value !== 'object' || value === null) {
             out[key] = value;
             continue;
         }
@@ -99,29 +101,32 @@ function stripMetadataOrigin(record: Record<string, unknown>): Record<string, un
  *  value the app should see. `origin` may not name a rejected reading (the pydantic record
  *  guard already enforces that), so dropping it here can never remove the entry's winning value —
  *  only a reading that was already excluded from winning. */
+/** A plain keyed object — what `Object.entries` yields for any non-null object value. Written as
+ *  a guard rather than a cast so the compiler PROVES the shape instead of being told it. */
+function isKeyedObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+}
+
+/** One spec entry with its rejected readings dropped. Returns the entry unchanged when it carries
+ *  no `readings` object — the shape this walk makes no claim about. */
+function entryWithoutRejectedReadings(entry: unknown): unknown {
+    if (!isKeyedObject(entry) || !isKeyedObject(entry.readings)) return entry;
+    const kept = Object.entries(entry.readings).filter(
+        ([, reading]) => !isKeyedObject(reading) || !('rejected' in reading));
+    return { ...entry, readings: Object.fromEntries(kept) };
+}
+
 function stripRejectedReadings(specs: unknown): unknown {
-    if (specs === null || typeof specs !== 'object') return specs;
+    if (!isKeyedObject(specs)) return specs;
     const sections: Record<string, unknown> = {};
     for (const [sectionKey, section] of Object.entries(specs)) {
-        if (typeof section !== 'object' || section === null) {
+        if (!isKeyedObject(section)) {
             sections[sectionKey] = section;
             continue;
         }
         const fields: Record<string, unknown> = {};
         for (const [field, entry] of Object.entries(section)) {
-            if (typeof entry !== 'object' || entry === null || !('readings' in entry)) {
-                fields[field] = entry;
-                continue;
-            }
-            // Permitted by human intent (John, 2026-09-05): this function runs on the raw YAML
-            // parse, before conformingRecordToDriver validates it into an OpenISDDeviceJson —
-            // there is no typed object yet for this cast to bypass.
-            const e = entry as Record<string, unknown>;
-            const readings = e.readings as Record<string, unknown>;
-            const keptReadings = Object.fromEntries(
-                Object.entries(readings).filter(([, reading]) =>
-                    typeof reading !== 'object' || reading === null || !('rejected' in reading)));
-            fields[field] = { ...e, readings: keptReadings };
+            fields[field] = entryWithoutRejectedReadings(entry);
         }
         sections[sectionKey] = fields;
     }
@@ -215,17 +220,16 @@ function dqCommentLines(record: Record<string, unknown>): string[] {
 
     for (const section of Object.values(specs)) {
         if (typeof section !== 'object' || section === null) continue;
-        for (const [field, entry] of Object.entries(section)) {
-            if (typeof entry !== 'object' || entry === null) continue;
-            const e = entry as {
-                origin?: string;
-                readings?: Record<string, { read_value?: unknown }>;
-                dq_scraper?: { detail?: string }[];
-                dq_calculated?: { detail?: string }[];
-            };
-            const value = e.origin != null ? e.readings?.[e.origin]?.read_value : undefined;
-            for (const mark of [...(e.dq_scraper ?? []), ...(e.dq_calculated ?? [])]) {
-                lines.push(`[DQ] ${field}=${String(value)}: ${mark.detail ?? ''}`);
+        for (const [field, rawEntry] of Object.entries(section)) {
+            // Validated into the record's OWN type, so every read below is a typed field access:
+            // `read_value` is a number, `detail` is a string, and neither needs a guard.
+            const parsed = specEntryJsonSchema.safeParse(rawEntry);
+            if (!parsed.success) continue;
+            const entry: SpecEntryJson = parsed.data;
+
+            const value = entry.readings[entry.origin]?.read_value;
+            for (const mark of [...(entry.dq_scraper ?? []), ...(entry.dq_calculated ?? [])]) {
+                lines.push(`[DQ] ${field}=${String(value)}: ${mark.detail}`);
             }
         }
     }

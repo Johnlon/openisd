@@ -20,8 +20,8 @@
 import {parseIni, stringifyIni} from '../ini/index.js';
 import {PARSTATE_LEN, POS_TO_WDRKEY, parseParState} from './parstate.js';
 import {WINISD_NEWLINE_SENTINEL} from './winisdBytes.js';
-import type {CellState} from '../domain/cell.js';
 import {markOf} from './parstate.js';
+import type {CellState} from "./cellState.js";
 
 /** One `.wdr` field: the text that will be written, and its provenance mark. */
 export interface WdrCell {

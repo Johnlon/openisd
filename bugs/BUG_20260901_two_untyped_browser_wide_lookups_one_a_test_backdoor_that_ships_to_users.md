@@ -1,4 +1,4 @@
-# Two `window` registries typed `any` — one behind a file-wide eslint suppression, one a test backdoor that ships
+# Two untyped browser-wide lookups: one hidden by switching lint off for the file, one a test backdoor that ships to users
 
 Status: OPEN
 

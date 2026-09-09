@@ -48,7 +48,7 @@ WinISD save → OID read).
   `driverType` string and appends `[DRIVERTYPE <type>]` to `Comment=` on `toWdrIni()`. No
   `driverType`, or a `base` comment already carrying the tag, leaves the text unchanged.
 - `WinISDDriver.fromWdrIni()` parses `[DRIVERTYPE ...]` out of `Comment=` into `.driverType()`.
-- `openIsdDriverToWinIsdDriver()` (`packages/design/winisd/driverYmlToOpenisdAndWdr.ts`) passes
+- `openIsdDriverToWinIsdDriver()` (`../packages/design/domain/driverYmlToOpenisdAndWdr.ts`) passes
   `driver.section` — the OID record's real type discriminator, not a separate `driver_type`
   string — as `driverType`, but only when it is not `'woofer'`: `'woofer'` is the read side's own
   default, so an ordinary woofer record needs no tag and `Comment=` stays byte-identical to a

@@ -1,7 +1,26 @@
 # Share links and file imports bypass the schema upgrade
 
-Status: FIXED — `loadFromHash` and `importFile`'s JSON branch now route parsed payloads
-through `upgrade()` before `applyState`, same as `loadLocal` always has.
+Status: OPEN — REGRESSED. The `packages/model` → `packages/design` migration removed the
+project upgrade seam entirely; no project load path upgrades anything any more, so the defect is
+now WIDER than when first recorded (localStorage no longer upgrades either).
+
+Re-verified 2026-09-09:
+
+- `packages/ui/src/logic/schemaUpgrade.ts` declares exactly one function,
+  `createMyDriversSchema()` — the DRIVER LIBRARY's chain. There is no project upgrader left, and
+  a repo-wide search for `schemaUpgrade` / `upgradePayload` / `upgradeTo` finds no other
+  definition and no project-path caller.
+- Every project reader now goes straight to `openISDProjectSessionJsonSchema.safeParse`, which
+  requires `label`/`saved`/`edited`. A V1 payload (`{schema, v, box, P, graphs, project, driver}`)
+  has none of them and is refused outright.
+- The three guard tests in `packages/ui/test/logic/persist.test.ts` (the `describe` block
+  "persisted-payload readers upgrade the schema (V1 driver-object → V2 driver-text)") FAIL, with
+  `'label': Invalid input: expected string, received undefined; … Unrecognized keys: "schema",
+  "v", "box", "P", "graphs", "project", "driver"`.
+- Confirmed pre-existing, not caused by the current `.owpr`-text work: `git show
+  HEAD:packages/persistence/src/repos/projectRepo.ts` shows the previous `readProjectText` also
+  went `JSON.parse` → `projectOf` → `repo.load` → the same session schema, refusing a V1 payload
+  identically.
 
 ## Symptom
 

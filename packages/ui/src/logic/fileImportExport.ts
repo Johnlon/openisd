@@ -2,7 +2,7 @@
  * Every driver/project file the app reads or writes: WinISD's `.wdr`/`.wpr`, our own
  * `.owdr`/`.owpr`. One function per operation, each calling whatever that format needs — the
  * `@openisd/design/winisd` converters for the WinISD formats, `OpenISDDriver.toOwdrText()` /
- * `OpenISDDriver.fromYml()` for `.owdr`, the injected project repo for `.owpr`.
+ * `OpenISDDriver.fromOwdrText()` for `.owdr`, the injected project repo for `.owpr`.
  *
  * `useApplicationIO.ts` is the only caller: it owns filename bookkeeping and the flash
  * messages; this module owns the format conversion. Nothing here touches app state or the
@@ -56,7 +56,7 @@ export function wdrTextToDriver(text: string): { value: OpenISDDriver | null; er
 
 /** `.owdr` text → a standalone driver, or the reasons it could not be read. */
 export function owdrTextToDriver(text: string): { value: OpenISDDriver | null; errors: DriverError[] } {
-  const result = OpenISDDriver.fromYml(text, engine);
+  const result = OpenISDDriver.fromOwdrText(text, engine);
   if (Array.isArray(result)) {
     return { value: null, errors: result.map(message => ({ level: 'error', field: 'driver', message })) };
   }

@@ -1,4 +1,4 @@
-# store.ts's exports vs `ALLOWED_GLOBALS` — the review list, with TEN of them dead
+# store.ts shares 34 values with the whole app, and nobody has reviewed whether they should be
 
 # Status
 OPEN — the ten dead exports are removed from `store.ts` (task A1, 2026-08-21: eight deleted,

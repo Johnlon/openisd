@@ -29,7 +29,7 @@ import { dirname, join } from 'node:path';
 import { parse } from 'yaml';
 import type { DriverError } from '@openisd/design/engine';
 import { WINISD_NEWLINE_SENTINEL } from '../../winisd/index.js';
-import { driverYmlToOpenisdAndWdr } from '../../winisd/driverYmlToOpenisdAndWdr.js';
+import { driverYmlToOpenisdAndWdr } from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const ORACLE = join(ROOT, 'drivers', 'sample', 'winisd', 'john-all-defaults.wdr');

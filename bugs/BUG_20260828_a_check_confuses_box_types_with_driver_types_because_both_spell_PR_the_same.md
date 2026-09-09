@@ -1,4 +1,4 @@
-# The driver_type gate flags box-type comparisons, because both now spell PR the same way
+# A check confuses box types with driver types, because both now spell passive-radiator the same way
 
 **Where:** `packages/ui/test/ui/driver-type-chips.test.ts`, the
 `no raw driver_type string literals in comparisons` gate.

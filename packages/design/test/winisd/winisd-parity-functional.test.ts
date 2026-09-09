@@ -25,7 +25,7 @@ import { dirname, join } from 'node:path';
 import { Engine, LossMode } from '@openisd/design/engine';
 import { OpenISDDriver, type Cell } from '@openisd/design';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
-import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
+import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
 import { POS_TO_WDRKEY } from '../../winisd/parstate.js';
 

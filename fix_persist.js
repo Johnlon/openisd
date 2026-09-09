@@ -47,7 +47,7 @@ code = code.replace(/Provenance\.NotAvailable/g, "'not-available'");
 // Wait, I will leave it as is if it's `.get().value` or change `.get().value` to `.value`? 
 // No, the prompt: "Many errors revolve around ... accessing .value/.state directly instead of .get().value"
 // Let's replace `.get().state` with `.state`? No, if it was `.get().state`, maybe it changed to `.state` directly? 
-// Wait! `packages/design/domain/cell.ts` has:
+// Wait! `packages/design/domain/cellState.ts` has:
 // `export interface FieldHandle<T> { get(): Cell<T>; set(v: T): void; clear(): void; }`
 // `Cell<T>` has `readonly value: T | null; readonly state: CellState;`
 // So `.get().state` is correct for `FieldHandle`.

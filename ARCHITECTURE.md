@@ -540,16 +540,74 @@ module cannot fail it.
 
 | Rule                                                                                                                                                                                                       | Enforced by                                           |
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------|
-| `@openisd/engine` depends on nothing (zero runtime dependencies)                                                                                                                                           | `packages/engine/package.json` — empty `dependencies` |
-| `@openisd/model` depends on `@openisd/engine` and `@openisd/winisd` — it projects itself into WinISD's format via `toWinISDDriver()`                                                                       | `packages/model/package.json`                         |
-| `@openisd/winisd` depends only on `@openisd/engine`. It imports NOTHING from `@openisd/model` and must never learn OpenISD exists                                                                          | `packages/winisd/package.json`                        |
+| `@openisd/design/engine` depends on nothing outside itself (the physics is standalone)                                                                                                                     | the gate                                              |
+| `@openisd/design` (the domain, `domain/`) may use the engine — it computes against the engine's types                                                                                                      | the gate                                              |
+| `@openisd/design/winisd` reads and writes WinISD's file format and never learns the domain exists — it constructs no domain object and no live domain object passes through it. Naming a domain TYPE, or calling a pure schema function, is vocabulary and does not breach this | the gate                                              |
 | `ui` imports `logic` and nothing below it — no service, no engine, no serialiser                                                                                                                           | the gate                                              |
+| a `.vue` file contains no logic and names no domain or engine type — see "What a `.vue` file may contain"                                                                                                  | the gate                                              |
 | No service exports a pre-built instance or a mutable binding                                                                                                                                               | the gate                                              |
 | Every service module offers one `create<Name>(deps)` factory                                                                                                                                               | the gate                                              |
 
 **There is ONE user interface**, under `packages/ui/src/ui/`. Behaviour beyond pure presentation — a commit boundary, a
 derivation, a load/save flow — is written once as a composable under
 `packages/ui/src/logic/` and called from the view. A component that re-implements it is a defect.
+
+### What a `.vue` file may contain
+
+John, 2026-09-08: *"the ui components code is meant to be interactons and callbacks only and all
+the logic and refs to the domain go in the logic"*, and *"the vue files should do no more than
+make simple calls to the logic and be called back by simple hooks"*.
+
+A component is a template, its styles, and the thinnest glue that connects them to one
+composable. Reading a `.vue` top to bottom, you cannot tell what a driver IS.
+
+**Allowed in a `.vue`:**
+
+| | |
+|---|---|
+| `<template>` and `<style>` | the component's whole reason to exist |
+| one composable, bound in one line | `const vm = useDriverEditor();` |
+| pass-through handlers | `@click="vm.reset()"`, `@input="vm.setFs($event)"` |
+| `defineProps` / `defineEmits` | primitives, view models and callbacks only |
+| lifecycle hooks that only call in | `onMounted(vm.start)`, `onBeforeUnmount(vm.stop)` |
+| a purely presentational `computed` | a CSS class from a prop; nothing that reads the domain |
+
+**Never in a `.vue`:**
+
+- an import of `@openisd/design` or `@openisd/design/engine` — no domain or engine name appears
+  in a component at all, value or type;
+- `ref`/`reactive`/`computed` holding application state — the draft being edited, the current
+  selection, anything that outlives a render;
+- a function containing a branch, a calculation, a loop, or a domain call;
+- `markRaw` or a manual `forceUpdate()` — both exist only to keep a domain object somewhere Vue
+  cannot track it, so both disappear once the state moves;
+- file I/O, validation, formatting, unit conversion, sorting or filtering.
+
+The shape:
+
+```vue
+<script setup lang="ts">
+import { useDriverEditor } from '../../stripped/driverEditor.js';
+const vm = useDriverEditor();
+</script>
+
+<template>
+  <input :value="vm.fs" @input="vm.setFs($event)" />
+  <button @click="vm.reset()">Reset</button>
+</template>
+```
+
+Everything the composable exposes is already-formatted values and callbacks.
+
+**The test:** if a line in a `.vue` makes a decision, it belongs in a composable.
+
+`packages/ui/src/stripped/` is a STAGING directory holding logic lifted out of components
+(QO129), organised into coherent modules. What of it moves into `logic/`, merges with an existing
+module, or is deleted is decided after the lift, not during it.
+
+Enforced by `packages/ui/test/ui/architecture.test.ts` ("a component imports no value from the
+domain") and `packages/ui/test/ui/no-domain-value-through-component.test.ts` ("a component API
+carries no domain value").
 
 ### Service interfaces
 

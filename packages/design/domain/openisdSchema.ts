@@ -303,7 +303,7 @@ const readingJsonSchema = z.strictObject({
  *  entry naming a winning origin with nothing under it is a field with no value.
  *  `dq_scraper` and `dq_calculated` are split BY PRODUCER: a scraper finds structural, parse and
  *  source problems; only the calculation finds T/S parameters that disagree with each other. */
-const specEntryJsonSchema = z.strictObject({
+export const specEntryJsonSchema = z.strictObject({
     // `_KEY_PRIORITY_LIST` order (`model_driver.py:1509`) — see the note on the record schema below.
     origin: z.string(),
     readings: z.record(z.string(), readingJsonSchema).refine(
@@ -985,6 +985,35 @@ export function emptyBoxJson(): OpenISDBoxJson {
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { driverSectionProblems, radiatorSectionProblems } from './openisdTransforms.js';
 
+/** The keys `driver.yml` carries that an openisd record does not. `definition` sits at EVERY
+ *  depth — on each metadata envelope, each `sku.grounds` entry and each spec entry — so removing
+ *  them is a walk, not a top-level filter. */
+const DRIVER_YML_ONLY_KEYS: readonly string[] = Object.freeze(['definition', 'scraper', 'scraper_meta']);
+
+/** The same value with every `driver.yml`-only key removed, at any depth.
+ *
+ *  `unknown` IN AND OUT IS APPROVED HERE, AND ONLY BECAUSE THIS FUNCTION IS PRIVATE (John,
+ *  2026-09-09). It runs between the YAML parse and the strict schema, where the value genuinely
+ *  has no type yet: the strip must happen first, because `z.strictObject` REFUSES an undeclared
+ *  key rather than dropping it, and zod 4's loose mode passes unknown keys through instead of
+ *  removing them. Because the function is not exported and `fromDriverYmlRecord` is the only way
+ *  to reach it, no caller ever holds the untyped value — they get a validated
+ *  `OpenISDDeviceJson`. Export this and the approval no longer holds.
+ *
+ *  Rebuilt rather than deleted from: the parsed object is the caller's own reference and must not
+ *  be mutated by the thing reading it. */
+function stripDriverYmlOnlyFields(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(stripDriverYmlOnlyFields);
+    if (typeof value !== 'object' || value === null) return value;
+
+    const out: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value)) {
+        if (DRIVER_YML_ONLY_KEYS.includes(key)) continue;
+        out[key] = stripDriverYmlOnlyFields(v);
+    }
+    return out;
+}
+
 export const OpenISDDeviceJson = Object.freeze({
     fromOpenisdDriverYml(ymlText: string): { json: OpenISDDeviceJson } | { problems: string[] } {
         let parsed: unknown;
@@ -993,7 +1022,7 @@ export const OpenISDDeviceJson = Object.freeze({
         } catch (e) {
             return {problems: [`not valid YAML: ${e instanceof Error ? e.message : String(e)}`]};
         }
-        return OpenISDDeviceJson.fromConformingRecord(OpenISDDeviceJson.stripDriverYmlOnlyFields(parsed));
+        return OpenISDDeviceJson.fromDriverYmlRecord(parsed);
     },
 
     toOpenisdDriverYml(json: OpenISDDeviceJson): string {
@@ -1010,15 +1039,15 @@ export const OpenISDDeviceJson = Object.freeze({
         };
     },
 
-    stripDriverYmlOnlyFields(value: unknown): unknown {
-        if (Array.isArray(value)) return value.map(OpenISDDeviceJson.stripDriverYmlOnlyFields);
-        if (typeof value !== 'object' || value === null) return value;
-
-        const out: Record<string, unknown> = {};
-        for (const [key, v] of Object.entries(value)) {
-            if (key === 'definition' || key === 'scraper' || key === 'scraper_meta') continue;
-            out[key] = OpenISDDeviceJson.stripDriverYmlOnlyFields(v);
-        }
-        return out;
+    /** A `driver.yml` record as an openisd one: drop the keys `driver.yml` carries and an openisd
+     *  record does not, then validate what is left against the strict schema.
+     *
+     *  STRIP FIRST, THEN STRICT. The two cannot be one step: `z.strictObject` REFUSES an
+     *  undeclared key rather than dropping it, so `scraper_meta`/`scraper`/`definition` have to be
+     *  gone before the schema sees the record. Loosening the schema to strip them instead is not
+     *  the alternative it looks like — zod 4's loose mode PASSES unknown keys through rather than
+     *  removing them. */
+    fromDriverYmlRecord(value: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
+        return OpenISDDeviceJson.fromConformingRecord(stripDriverYmlOnlyFields(value));
     }
 });

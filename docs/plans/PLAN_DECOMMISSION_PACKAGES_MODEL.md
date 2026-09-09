@@ -24,7 +24,7 @@ prose-only. Confirm on sight, delete the dead line, no migration required:
 | `packages/model/test/openisdDriver.test.ts`, `openisdRecord.test.ts`, `openisdYamlToWdrOnlyProdCalls.test.ts` | import already commented                                                              |
 | `packages/persistence/src/repos/bundledPassiveRadiatorRepo.ts`, `projectRepo.ts`, `myDriverRepo.ts`           | import already commented                                                              |
 | `packages/persistence/test/projectRepo-boxtype.test.ts`                                                       | import already commented                                                              |
-| `../../packages/design/domain/COMMENTED_openisdYamlToWdr.ts`                                                                  | file is 100% dead, superseded by `packages/design/winisd/driverYmlToOpenisdAndWdr.ts` |
+| `../../packages/design/domain/COMMENTED_openisdYamlToWdr.ts`                                                                  | file is 100% dead, superseded by `../../packages/design/domain/driverYmlToOpenisdAndWdr.ts` |
 
 All of these die with `packages/model/` itself — no separate migration step.
 

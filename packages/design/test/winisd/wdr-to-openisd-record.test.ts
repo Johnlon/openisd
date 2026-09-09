@@ -25,7 +25,7 @@ import { WinISDDriver } from '@openisd/design/winisd';
 import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
-import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
+import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WDR_TEXT = readFileSync(

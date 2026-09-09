@@ -21,7 +21,7 @@ import {
 } from '@openisd/design';
 import {
   openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject,
-} from '../../winisd/openIsdProjectToWinIsdProject.js';
+} from '../../domain/openIsdProjectToWinIsdProject.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const goldensDir = join(here, 'fixtures', 'winisd-parity', 'goldens');

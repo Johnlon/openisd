@@ -590,10 +590,12 @@ function fileLayer(file: string): string {
  *  `fileLayer()`, same as the file it points at. Returns null for an npm package (irrelevant
  *  to the app's own layering) or a specifier that cannot be resolved to a file on disk. */
 function specLayer(fromFile: string, spec: string): string | null {
-  if (spec.startsWith('@openisd/design')) return 'model';
-  if (spec.startsWith('@openisd/persistence')) return 'persistence';
+  // Most specific first: the domain, the engine and the converters are subpaths of ONE package,
+  // so the bare specifier is a text prefix of every subpath and must be tested last.
   if (spec.startsWith('@openisd/design/winisd')) return 'winisd';
   if (spec.startsWith('@openisd/design/engine')) return 'engine';
+  if (spec.startsWith('@openisd/design')) return 'model';
+  if (spec.startsWith('@openisd/persistence')) return 'persistence';
   if (spec.startsWith('@openisd/')) return null;
   if (!spec.startsWith('.')) return null;
   const base = join(dirname(fromFile), spec).replace(/\.js$/, '');
@@ -667,6 +669,20 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
     // any edge not on the matrix will do — replace if this one is ever ruled.
     assert.equal(ALLOWED_EDGES.has('ui/components->winisd'), false,
       'an edge nobody ruled legal must be absent from the matrix, proving it is not vacuously permissive');
+  });
+
+  it('classifies each @openisd/design subpath as its own layer, not as the domain', () => {
+    // The domain, the engine and the WinISD converters are three SUBPATHS of one package, so
+    // `@openisd/design` is a text prefix of `@openisd/design/engine`. A specifier must be
+    // judged by the deepest subpath it names: classifying an engine import as the domain makes
+    // a physics dependency indistinguishable from a record dependency, and ALLOWED_EDGES then
+    // judges each against the other's rules.
+    const anyUiFile = join(UI_SRC, 'main.ts');
+
+    assert.equal(specLayer(anyUiFile, '@openisd/design/engine'), 'engine');
+    assert.equal(specLayer(anyUiFile, '@openisd/design/winisd'), 'winisd');
+    assert.equal(specLayer(anyUiFile, '@openisd/design'), 'model');
+    assert.equal(specLayer(anyUiFile, '@openisd/persistence'), 'persistence');
   });
 });
 

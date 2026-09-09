@@ -72,7 +72,7 @@ export function driverFromFileText(text: string, format: 'wdr' | 'owdr', fileNam
     return { ok: false, error: `${fileName}: reading a .wdr file is not supported yet (no WDR-to-OpenISD conversion exists)` };
   }
 
-  const driver = OpenISDDriver.fromYml(text, engine);
+  const driver = OpenISDDriver.fromOwdrText(text, engine);
   if (Array.isArray(driver)) return { ok: false, error: driver[0] ?? `${fileName} could not be read` };
 
   // A driver IS its <brand>/<model>, so one with neither cannot be filed. The file name is the

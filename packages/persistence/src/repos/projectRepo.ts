@@ -1,31 +1,12 @@
 /** REPO: the open design as a persisted payload — localStorage autosave, the share-link
  *  hash, and the project file on disk (`.owpr`). Takes the domain object, returns the domain
- *  object; validation and reconstruction are entirely `@openisd/design`'s (`projectRepo()`,
- *  `openISDProjectJsonSchema` — QO116: one whole-record `.safeParse()` at the load boundary).
- *  This file supplies no shape of its own: it is a `RecordStoreFactory` per door (file, URL
- *  hash, browser storage) feeding that one validator, never a second wire format. */
-import {
-  projectRepo as designProjectRepo,
-  type OpenISDProject, type ProjectRepo as DesignProjectRepo,
-  type RecordStore, type RecordStoreFactory,
-} from '@openisd/design';
+ *  object; every door carries the SAME bytes, `OpenISDProject.toOwprText()`'s `.owpr` text, and
+ *  validation and reconstruction are entirely `@openisd/design`'s
+ *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
+ *  boundary). This file supplies no shape of its own and never holds the project's record. */
+import { OpenISDProject } from '@openisd/design';
 import type { Engine } from '@openisd/design/engine';
 import type { FileStorage, SaveResult } from '../storage/fileStorage.js';
-
-/** A store holding exactly the one record most recently `put()` — the adapter every one-shot
- *  door (a file, a URL hash) uses to borrow design's own save/validate/load logic without
- *  actually keeping a second copy anywhere. `list()`/`remove()` are unreachable through these
- *  doors (there is no browsing a file or a link), so they refuse rather than pretend to work. */
-function singleSlotStore<R>(): RecordStore<R> & { current(): R | null } {
-  let held: R | null = null;
-  return {
-    put(_id, record) { held = record; },
-    get(_id) { return held; },
-    list() { return []; },
-    remove() { /* nothing to remove: this door holds no listing */ },
-    current: () => held,
-  };
-}
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
 
@@ -85,37 +66,14 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
   return new TextDecoder().decode(buf);
 }
 
-/** One door, one throwaway design-`ProjectRepo` over a single-slot store — `save()` extracts
- *  the validated JSON; `load()` re-validates and reconstructs. Neither keeps state past the
- *  call: a fresh slot per operation, since each door (file, hash) already holds its own bytes. */
-function doorRepo(engine: Engine): { repo: DesignProjectRepo; slot: RecordStore<unknown> & { current(): unknown } } {
-  const slot = singleSlotStore<unknown>();
-  const make: RecordStoreFactory = <R,>() => slot as unknown as RecordStore<R>;
-  return { repo: designProjectRepo(make, engine), slot };
-}
-
 export function createProjectRepo(
   engine: Engine, fileStorage: FileStorage,
 ): ProjectRepo {
-  function payloadOf(project: OpenISDProject): unknown {
-    const { repo, slot } = doorRepo(engine);
-    repo.save(project);
-    return slot.current();
-  }
-
-  function projectOf(payload: unknown): OpenISDProject | string[] {
-    const { repo, slot } = doorRepo(engine);
-    slot.put(project_id_placeholder(payload), payload);
-    return repo.load(project_id_placeholder(payload));
-  }
-
-  // The single-slot store ignores the id it is given (there is only ever one record in it), so
-  // any stable string satisfies `put`/`load`'s signature without meaning anything.
-  function project_id_placeholder(_payload: unknown): string { return 'door'; }
-
   return {
     async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {
-      const payload = { project: payloadOf(project), view };
+      // The project travels as `.owpr` TEXT, exactly as it does to a file — one serialised form
+      // for every door, so a share link and a saved file hold the same bytes for the same design.
+      const payload: SharePayload = { project: project.toOwprText(), view };
       const encoded = await gzipEncodeBase64Url(JSON.stringify(payload));
       return location.origin + location.pathname + '#s=' + encoded;
     },
@@ -125,44 +83,95 @@ export function createProjectRepo(
       if (!m) return null;
       let parsed: unknown;
       try { parsed = JSON.parse(await gzipDecodeBase64Url(m[1])); } catch { return null; }
-      if (!parsed || typeof parsed !== 'object' || !('project' in parsed) || !('view' in parsed)) {
-        return ['share link is not a recognised session payload'];
-      }
-      const { project, view } = parsed as { project: unknown; view: ViewSnapshot };
-      const result = projectOf(project);
-      return Array.isArray(result) ? result : { project: result, view };
+      const payload = sharePayload(parsed);
+      if (!payload) return ['share link is not a recognised session payload'];
+
+      const result = OpenISDProject.fromOwprText(payload.project, engine);
+      return Array.isArray(result) ? result : { project: result, view: payload.view };
     },
 
     readProjectText(text: string): OpenISDProject | string[] {
-      let parsed: unknown;
-      try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
-      return projectOf(parsed);
+      return OpenISDProject.fromOwprText(text, engine);
     },
 
     saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
-      return fileStorage.save(JSON.stringify(payloadOf(project), null, 2),
+      return fileStorage.save(project.toOwprText(),
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
 
     saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
-      return fileStorage.saveAs(JSON.stringify(payloadOf(project), null, 2),
+      return fileStorage.saveAs(project.toOwprText(),
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
   };
 }
 
+/** What a share link carries: the project as `.owpr` text, plus the chart view it was shared
+ *  showing. The view is this package's own concern — the domain has no opinion on it — which is
+ *  why the link is a wrapper around the project text rather than the project text itself. */
+interface SharePayload { project: string; view: ViewSnapshot }
+
+/** `value` as a `SharePayload`, or null when it is not one. A narrowing GUARD rather than a
+ *  cast: the link's bytes came off a URL a stranger may have written, so every field is checked
+ *  before any is read, and each is rebuilt at its own declared type rather than asserted. */
+function sharePayload(value: unknown): SharePayload | null {
+  if (!value || typeof value !== 'object') return null;
+  if (!('project' in value) || typeof value.project !== 'string') return null;
+  if (!('view' in value)) return null;
+  const view = viewSnapshot(value.view);
+  if (!view) return null;
+  return { project: value.project, view };
+}
+
+/** `value` as a `ViewSnapshot`, or null when it is not one. Every required field is checked and
+ *  copied out at its own type; the optional ones are taken only when present and well-shaped, so
+ *  a link carrying junk in one of them loses that preference rather than the whole session. */
+function viewSnapshot(value: unknown): ViewSnapshot | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const graphs = 'graphs' in value ? value.graphs : null;
+  if (!Array.isArray(graphs) || !graphs.every((g): g is string => typeof g === 'string')) return null;
+
+  const ui = 'ui' in value ? value.ui : null;
+  if (!ui || typeof ui !== 'object') return null;
+
+  const cursor = 'cursor' in value ? cursorOf(value.cursor) : null;
+  if (!cursor) return null;
+
+  const lossMode = 'lossMode' in value && typeof value.lossMode === 'string' ? value.lossMode : undefined;
+  return { lossMode, graphs, ui: {...ui}, cursor };
+}
+
+/** The cursor half of a `ViewSnapshot`, or null when it is not one. */
+function cursorOf(value: unknown): ViewSnapshot['cursor'] | null {
+  if (!value || typeof value !== 'object') return null;
+  const f = 'f' in value && typeof value.f === 'number' ? value.f : null;
+  const pinnedF = 'pinnedF' in value && typeof value.pinnedF === 'number' ? value.pinnedF : null;
+  const locked = 'locked' in value && value.locked === true;
+  const range = 'range' in value ? rangeOf(value.range) : null;
+  return { f, pinnedF, locked, range };
+}
+
+/** The dragged frequency band, or null when absent or malformed. */
+function rangeOf(value: unknown): { fLo: number; fHi: number } | null {
+  if (!value || typeof value !== 'object') return null;
+  if (!('fLo' in value) || typeof value.fLo !== 'number') return null;
+  if (!('fHi' in value) || typeof value.fHi !== 'number') return null;
+  return { fLo: value.fLo, fHi: value.fHi };
+}
+
 /**
  * Project name ↔ file name.
  *
- * The FILE NAME is the source of truth for a project's name. Opening `glob 3.openisd.json`
- * gives the project `glob 3`; saving the project `glob 3` writes `glob 3.openisd.json`. The
- * two are one string, so a user reading their file list is reading their project list.
+ * The FILE NAME is the source of truth for a project's name: the name is the filename minus
+ * `.owpr`, and saving writes the name back unchanged. The two are one string, so a user
+ * reading their file list is reading their project list.
  *
  * The only transformation on the way to disk is dropping characters a filename genuinely
  * cannot hold — `<>:"/\|?*`, control characters, and a leading/trailing dot or space (all
  * illegal on Windows). Spaces, apostrophes, dashes and interior dots are ordinary name
- * characters and are kept verbatim; anything stricter breaks the equivalence on everyday
- * names (the historic `[^\w.-]+ → _` rule silently turned `glob 3` into `glob_3`).
+ * characters and are kept verbatim: substituting them would break the equivalence above on
+ * everyday names.
  */
 
 /** The project file extension. A bare `.json` is also accepted on the way in. */

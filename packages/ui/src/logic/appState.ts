@@ -12,13 +12,13 @@
  * jobs are: hold Vue-reactive references, delegate reads/writes to the focused project/the
  * project registry, and bridge notifications into Vue's reactivity system.
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { computed, ref, shallowRef, triggerRef, watch, type Ref, type ShallowRef } from 'vue';
 import { Engine } from '@openisd/design/engine';
 import type { DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
 import {
-  OpenISDDriver, projectRepo,
-  OpenISDProject, type RecordStore, type RecordStoreFactory, type DiscardChallenge,
+  OpenISDDriver,
+  OpenISDProject, type DiscardChallenge,
   type FrequencyGrid,
 } from '@openisd/design';
 import type { PlotParams } from '../types.js';
@@ -153,37 +153,14 @@ export function requireFocusedProject(): OpenISDProject {
   return p;
 }
 
-/** A store holding exactly the one record most recently `put()` — lets this file borrow
- *  `projectRepo()`'s own save/load round trip to clone a project without ever touching
- *  `OpenISDProject.cloneSavedProject()`, which is `@internal` to `packages/design`. Same pattern
- *  as `@openisd/persistence`'s `projectRepo.ts` `singleSlotStore()`. */
-function singleSlotStore<R>(): RecordStore<R> & { current(): R | null } {
-  let held: R | null = null;
-  return {
-    put(_id, record) { held = record; },
-    get(_id) { return held; },
-    list() { return []; },
-    remove() { /* nothing to remove: no listing exists through this door */ },
-    current: () => held,
-  };
-}
-
 /** Duplicate the FOCUSED project's own design into a brand-new, independent tab under
- *  `newName`, and focus it. Round-trips through `projectRepo().save()`/`.load()` over a
- *  throwaway single-slot store — the public save/validate/reconstruct path every persistence
- *  door already uses — so the copy is a genuinely separate `OpenISDProject` with its own edit
- *  layer, never a second reference to the source's. */
+ *  `newName`, and focus it. Round-trips through the project's own `.owpr` text — the same
+ *  serialised form every persistence door carries — so the copy is a genuinely separate
+ *  `OpenISDProject` with its own edit layer, never a second reference to the source's, and
+ *  `fromOwprText` mints it a fresh identity rather than inheriting the source's. */
 export function duplicateFocusedProject(newName: string): void {
   const source = requireFocusedProject();
-  const slot = singleSlotStore<unknown>();
-  const make: RecordStoreFactory = <R,>() => slot as unknown as RecordStore<R>;
-  const repo = projectRepo(make, engine);
-  repo.save(source);
-  // `load(id)` adopts `id` as the loaded project's own identity (its doc comment: "ADOPTS `id`
-  // AS THE PROJECT'S IDENTITY") — this store is single-slot and ignores the id it is `put`
-  // with, so loading under a freshly minted id (rather than `source.uuid()`) gives the copy a
-  // genuinely new identity instead of the source's.
-  const loaded = repo.load(crypto.randomUUID());
+  const loaded = OpenISDProject.fromOwprText(source.toOwprText(), engine);
   if (Array.isArray(loaded)) {
     throw new Error(`duplicateFocusedProject: round trip refused its own project: ${loaded.join('; ')}`);
   }

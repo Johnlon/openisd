@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Engine } from '@openisd/design/engine';
+import { Engine, type DriverError } from '@openisd/design/engine';
 import {
   OpenISDProject,
   OpenISDDriver,
@@ -690,18 +690,86 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(driver.model.get().value).toBe('Copy of RS225');
   });
 
-  it('toOwdrText() then OpenISDDriver.fromYml() round-trips a driver through .owdr text', () => {
+  it('toOwdrText() then OpenISDDriver.fromOwdrText() round-trips a driver through .owdr text', () => {
     const driver = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
     driver.spec.woofer.Fs_hz.set(41.5);
 
     const text = driver.toOwdrText();
     expect(typeof text).toBe('string');
 
-    const back = OpenISDDriver.fromYml(text, new Engine());
-    if (Array.isArray(back)) throw new Error('fromYml returned problems: ' + back.join(', '));
+    const back = OpenISDDriver.fromOwdrText(text, new Engine());
+    if (Array.isArray(back)) throw new Error('fromOwdrText returned problems: ' + back.join(', '));
     expect(back.spec.woofer.Fs_hz.get().value).toBe(41.5);
     expect(back.model.get().value).toBe('RS225');
   });
+
+  it('toWdrIniText() then OpenISDDriver.fromWdrIniText() round-trips a driver through WinISD .wdr text', () => {
+    const driver = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
+    driver.spec.woofer.Fs_hz.set(41.5);
+
+    const { value: text, errors } = driver.toWdrIniText(new Engine());
+    expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
+    if (text === null) throw new Error('toWdrIniText produced no text');
+
+    const back = OpenISDDriver.fromWdrIniText(text, new Engine());
+    if (back.value === null) throw new Error('fromWdrIniText returned problems: ' + JSON.stringify(back.errors));
+    expect(back.value.spec.woofer.Fs_hz.get().value).toBeCloseTo(41.5, 3);
+    expect(back.value.model.get().value).toBe('RS225');
+  });
+
+  it('toWprText() then OpenISDProject.fromWprText() round-trips a project through WinISD .wpr text', () => {
+    const project = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+
+    const { value: text, errors } = project.toWprText(new Engine());
+    expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
+    if (text === null) throw new Error('toWprText produced no text');
+
+    const back = OpenISDProject.fromWprText(text, new Engine());
+    if (back.value === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(back.errors));
+    expect(back.value.box.boxType.get()).toBe('sealed');
+    expect(back.value.driver.model.get().value).toBe('RS225');
+  });
+
+  it('toOwprText() then OpenISDProject.fromOwprText() round-trips a project through .owpr text', () => {
+    const project = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    project.name.set('Kitchen sub');
+    project.description.set('111111');
+
+    const text = project.toOwprText();
+    expect(typeof text).toBe('string');
+
+    const back = OpenISDProject.fromOwprText(text, new Engine());
+    if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
+    expect(back.name.get()).toBe('Kitchen sub');
+    expect(back.description.get()).toBe('111111');
+    expect(back.box.boxType.get()).toBe('sealed');
+  });
+
+  it('OpenISDProject.fromOwprText() answers with problems rather than throwing on text that is not a project', () => {
+    const back = OpenISDProject.fromOwprText('{"nope":1}', new Engine());
+    if (!Array.isArray(back)) throw new Error('expected problems, got a project');
+    expect(back.length).toBeGreaterThan(0);
+  });
+
+  it('OpenISDProject.fromOwprText() answers with problems rather than throwing on text that is not JSON', () => {
+    const back = OpenISDProject.fromOwprText('not json at all', new Engine());
+    if (!Array.isArray(back)) throw new Error('expected problems, got a project');
+    expect(back.length).toBeGreaterThan(0);
+  });
+
+  it('toWprText() takes a SNAPSHOT — the project it was called on is not held by the converter', () => {
+    // The whole point of the method form: the domain passes ITSELF to the WinISD converter, so a
+    // live project never crosses out of the domain into a format package. Writing the file must
+    // therefore leave the project exactly as it was.
+    const project = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    project.description.set('before');
+
+    project.toWprText(new Engine());
+
+    expect(project.description.get()).toBe('before');
+    expect(project.box.boxType.get()).toBe('sealed');
+  });
+
 });
 
 describe('OpenISDDriver — provenance the driver picker reads', () => {

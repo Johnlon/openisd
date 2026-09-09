@@ -1,4 +1,4 @@
-# `sealed-fsc-winisd-golden.browser.spec.ts` locator matches two `Fsc` inputs, strict-mode failure
+# A browser test finds two Fsc boxes on screen and refuses to pick one, so the test errors
 
 ## Status
 OPEN 2026-08-18 — found while verifying an unrelated change (local-alias computed removal);

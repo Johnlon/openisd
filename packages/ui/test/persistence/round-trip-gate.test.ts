@@ -22,7 +22,7 @@ import { PARSTATE_LEN, POS_TO_WDRKEY } from '@openisd/design/winisd';
  * pipeline actually produces rather than against a conversion assembled here.
  */
 function wdrTextFor(record: unknown): { value: string | null; errors: DriverError[] } {
-  const driver = OpenISDDriver.fromYml(yamlStringify(record), new Engine());
+  const driver = OpenISDDriver.fromOwdrText(yamlStringify(record), new Engine());
   if (Array.isArray(driver)) throw new Error('fixture record is invalid: ' + driver.join(', '));
   const { value, errors } = driverToWdrBytes(driver);
   return { value: value === null ? null : new TextDecoder().decode(value), errors };

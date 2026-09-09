@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /**
  * The shell — WinISD 0.7.0.950's window, wired to the store/engine. These tests assert
  * the WinISD-fidelity regions: toolbar icons, chart-select dropdown, all 7 tabs, the

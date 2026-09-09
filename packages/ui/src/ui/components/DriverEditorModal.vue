@@ -25,7 +25,7 @@ import { editableFrom, elementFrom, inputFrom, selectValue } from '../../logic/d
 const { selection, myDrivers, logging, driverFileStorage } = useApp();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
-// 4 tabs — General / Parameters / Advanced parameters / Dimensions.
+// 4 tabs — General / Parameters / Advanced parameters / Dimension
 //
 // Layered Memory architecture:
 // - Layer 1: Disk/File/Library (WDR, OWDR)

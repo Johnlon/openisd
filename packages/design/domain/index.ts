@@ -5,7 +5,7 @@
 // (`packages/design/AGENTS.md` "INTERNAL JSON RECORD TYPES — NEVER RE-EXPORTED FROM
 // domain/index.ts").
 
-export type { CellState, Cell, FieldHandle, RawField } from './cell.js';
+export type { Cell, FieldHandle, RawField } from './cell.js';
 export type { VentShape, Vent } from './vent.js';
 // A VALUE export, not a type-only one: `VoiceCoilWiring.Series` must be usable at runtime, which
 // is the whole point of it being an enum rather than a bare string literal.

@@ -3,9 +3,9 @@ import {
   wdrTextToDriver, owdrTextToDriver, wprTextToProject, owprTextToProject,
 } from './fileImportExport.js';
 /**
- * Design file I/O orchestration — Save/Save As the project (.openisd.json) to the filesystem,
+ * Design file I/O orchestration — Save/Save As the project (.owpr) to the filesystem,
  * export a WinISD .wpr project or a .wdr driver, copy a share link, import a .wdr/.wpr/.owdr/
- * JSON file, and the About text. Lives in a composable, not in the shell, so the toolbar and
+ * .owpr file, and the About text. Lives in a composable, not in the shell, so the toolbar and
  * the export menu reuse ONE implementation — no duplication.
  *
  * This file is ORCHESTRATION ONLY: filename bookkeeping and flashing messages, calling the
