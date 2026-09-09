@@ -448,6 +448,37 @@ describe('the passive radiator a box holds', () => {
     expect(library.spec.Sd_m2.get().value).toBe(0.025);
   });
 
+  it('detaches the box radiator into a standalone the library can hold, sharing no storage', () => {
+    const p = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).sealed().volume_m3(0.03).build();
+    const chosen = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
+    if (Array.isArray(chosen)) throw new Error(`fixture radiator is invalid: ${chosen.join(', ')}`);
+    p.box.passiveRadiator.configurePR(chosen);
+    p.box.passiveRadiator.radiator.spec.Sd_m2.set(0.031);
+
+    const saved = p.box.passiveRadiator.radiator.detach();
+
+    expect(saved.brand.get().value).toBe('SB Acoustics');
+    expect(saved.spec.Sd_m2.get().value).toBe(0.031);
+
+    // Storage is not shared in either direction.
+    p.box.passiveRadiator.radiator.spec.Sd_m2.set(0.099);
+    expect(saved.spec.Sd_m2.get().value).toBe(0.031);
+    saved.spec.Sd_m2.set(0.011);
+    expect(p.box.passiveRadiator.radiator.spec.Sd_m2.get().value).toBe(0.099);
+  });
+
+  it('refuses to detach an empty radiator slot', () => {
+    const p = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).sealed().volume_m3(0.03).build();
+
+    expect(() => p.box.passiveRadiator.radiator.detach()).toThrow(/no radiator is chosen/);
+  });
+
   it('makes a blank radiator an editor can fill in, and a box can adopt', () => {
     const blank = OpenISDPassiveRadiatorStandalone.empty(new Engine());
 
@@ -602,6 +633,24 @@ describe('ManagedProject — the layers', () => {
     mp.driver.spec.woofer.Fs_hz.set(43);
     expect(notifications).toBeGreaterThan(afterFirst);
   });
+
+  it('notifies when setDriver replaces the whole driver record', () => {
+    const mp = managed();
+    let notifications = 0;
+    mp.subscribe(() => { notifications += 1; });
+
+    mp.setDriver(OpenISDDriver.empty(new Engine()));
+    expect(notifications).toBeGreaterThan(0);
+  });
+
+  it('notifies when loadDriver adopts a driver from outside the project', () => {
+    const mp = managed();
+    let notifications = 0;
+    mp.subscribe(() => { notifications += 1; });
+
+    mp.loadDriver(OpenISDDriver.empty(new Engine()));
+    expect(notifications).toBeGreaterThan(0);
+  });
 });
 
 describe('editing a driver — copy, then update or drop', () => {
@@ -680,6 +729,8 @@ describe('editing a driver — copy, then update or drop', () => {
 
     source.spec.woofer.Fs_hz.set(666666);
     expect(project.driver.spec.woofer.Fs_hz.get().value).toBe(555555);
+
+    expect(() => project.loadDriver(project.driver)).toThrow(/standalone/i);
   });
 
   it('renameToCopy() prefixes the model so the copy is a distinct brand/model', () => {
@@ -728,6 +779,21 @@ describe('editing a driver — copy, then update or drop', () => {
     if (back.value === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(back.errors));
     expect(back.value.box.boxType.get()).toBe('sealed');
     expect(back.value.driver.model.get().value).toBe('RS225');
+  });
+
+  it('clonePassiveRadiator() gives the record back, deep-cloned so an edit after the call cannot reach it', () => {
+    const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverJson({
+      brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
+      spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+    }), new Engine());
+    if (Array.isArray(pr)) throw new Error('fixture radiator must conform: ' + pr.join('; '));
+
+    const stored = pr.clonePassiveRadiator();
+    pr.model.set('changed after the clone');
+
+    const back = OpenISDPassiveRadiatorStandalone.fromConformingRecord(stored, new Engine());
+    if (Array.isArray(back)) throw new Error('the cloned record must conform: ' + back.join('; '));
+    expect(back.model.get().value).toBe('SB23PACS');
   });
 
   it('toOwprText() then OpenISDProject.fromOwprText() round-trips a project through .owpr text', () => {

@@ -983,7 +983,6 @@ export function emptyBoxJson(): OpenISDBoxJson {
 
 
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
-import { driverSectionProblems, radiatorSectionProblems } from './openisdTransforms.js';
 
 /** The keys `driver.yml` carries that an openisd record does not. `definition` sits at EVERY
  *  depth — on each metadata envelope, each `sku.grounds` entry and each spec entry — so removing

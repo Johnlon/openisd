@@ -12,7 +12,7 @@
  * Calls ONLY the app's real functions — `OpenISDDriver.fromConformingRecord`/
  * `.toOpenIsdDeviceJson()` for the openisd.yml leg (`checkOpenisdRoundTrip` takes the
  * already-parsed record, since `bundle-drivers.mjs`'s own loop needs that same parsed object for
- * other purposes too), and `winIsdDriverTextToOpenIsdDriver`/`openIsdDriverToWinIsdDriver` for
+ * other purposes too), and `OpenISDDriver.fromWdrIniText`/`toWdrIniText` for
  * the .wdr leg.
  * This script runs inside the same Node/vite-node process as the rest of the bundler, so it
  * imports `@openisd/design` directly rather than crossing the V8-bridge boundary the tools side
@@ -20,7 +20,6 @@
  */
 import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver } from '@openisd/design/winisd';
 
 /**
  * Deep-compares two JSON-shaped values and returns a slash-separated path string naming the
@@ -153,15 +152,13 @@ export function checkWdrRoundTrip(wdrText, relPath) {
   // divergence this gate exists to catch — and is the exact pair the app's own import/export runs
   // (`packages/ui/src/logic/fileImportExport.ts`).
   const engine = new Engine();
-  const { value: driver, errors: readErrors } = winIsdDriverTextToOpenIsdDriver(wdrText, engine);
+  const { value: driver, errors: readErrors } = OpenISDDriver.fromWdrIniText(wdrText, engine);
   if (driver === null) {
     return { ok: false, message: `${relPath}: could not read .wdr: ${readErrors.map(e => e.message).join('; ') || 'no driver returned'}` };
   }
-  const errors = [];
-  const written = openIsdDriverToWinIsdDriver(driver, engine, errors);
-  const blocking = errors.filter(e => e.level === 'error');
-  const reserialised = blocking.length > 0 ? null : written.toWdrIni();
+  const { value: reserialised, errors } = driver.toWdrIniText(engine);
   if (reserialised == null) {
+    const blocking = errors.filter(e => e.level === 'error');
     return { ok: false, message: `${relPath}: .wdr projection failed: ${blocking.map(e => e.message).join('; ') || 'no value returned'}` };
   }
 

@@ -35,8 +35,14 @@ const ALLOWED_FIELDS = new Set(['#saved', '#edited', '#engine', '#uuid', '#liste
 
 describe('OpenISDProject holds only #saved/#edited/#engine as stored fields', () => {
   it('declares no property beyond the allowed set', () => {
-    const project = new Project({ tsConfigFilePath: path.join(packageRoot, 'tsconfig.json') });
-    const sourceFile = project.getSourceFileOrThrow(path.join(packageRoot, 'domain', 'openisdDomain.ts'));
+    // `skipAddingFilesFromTsConfig` — this gate reads ONE class out of ONE file, so adding and
+    // type-checking every file the tsconfig names costs the whole program's parse for nothing,
+    // and overruns vitest's 5s limit. The timeout is indistinguishable from a real failure.
+    const project = new Project({
+      tsConfigFilePath: path.join(packageRoot, 'tsconfig.json'),
+      skipAddingFilesFromTsConfig: true,
+    });
+    const sourceFile = project.addSourceFileAtPath(path.join(packageRoot, 'domain', 'openisdDomain.ts'));
     const classDecl = sourceFile.getClassOrThrow('OpenISDProject');
 
     const propertyNames = classDecl

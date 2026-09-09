@@ -75,11 +75,32 @@ What must change is the documentation that contradicts it:
    `tsc -p packages/model` clean; `vitest run packages/winisd/test packages/model/test`
    1297 passed.
 
-**Still open, separate question:** `CellState` is declared in `@openisd/winisd` and re-exported
-by `@openisd/model` (`openisdDriver.ts:36`), so every consumer reading provenance from the model
-transitively depends on the format package. Under the ruled direction that is not a layering
-breach, but it does mean OpenISD's own entered/calculated/absent concept is owned by the WinISD
-package. Needs a decision: leave it, or declare it in `@openisd/model` and have WinISD import it.
+**Still open, separate question**, and now blocking a typecheck. `CellState` is declared in
+`packages/design/winisd/cellState.ts`, and `packages/design/domain/cell.ts:1` imports it from
+`../winisd/index.js` to type `Cell.state` — so the domain's provenance vocabulary is owned by the
+`.wdr` format code.
+
+`domain/index.ts` exports `Cell` and `FieldHandle` but NOT `CellState`, so a consumer can hold a
+`Cell` and read `.state` but cannot name that value's type. Five UI sites need it and do not
+compile:
+
+```
+packages/ui/src/logic/fields/fieldRegistry.ts(1,15): error TS2305: Module '"@openisd/design"' has no exported member 'CellState'.
+packages/ui/src/logic/useDriverCells.ts(1,34): same
+packages/ui/src/logic/usePrGroup.ts(7,31): same
+packages/ui/src/logic/useVentGroup.ts(10,31): same
+packages/ui/test/ui/driver-editor-units.test.ts(27,15): same
+```
+
+Three of those build a TOTAL `Record<CellState, …>` — the map that turns provenance into a CSS
+class or an E/C/N letter — so they need the type by name, not a widened stand-in.
+
+**RULED (John, 2026-09-09):** "domain is allowed to import winisd as winisd is merely a format",
+and "CellState is part of winisd - no reexports please".
+
+So neither half of the earlier question stands: the import direction is fine, and `CellState`
+stays declared in `packages/design/winisd/cellState.ts` with `domain/index.ts` re-exporting
+nothing. The five UI sites import it from `@openisd/design/winisd`, the package that owns it.
 
 ## Verification
 

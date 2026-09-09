@@ -44,8 +44,12 @@ export function readDriverFileText(file: File): Promise<WinisdDecodedText> {
     reader.onerror = () => reject(new Error(`could not read ${file.name}`));
     reader.onload = () => {
       try {
+        if (!(reader.result instanceof ArrayBuffer)) {
+          reject(new Error(`could not read ${file.name}: result is not an ArrayBuffer`));
+          return;
+        }
         const format = DriverFileFormat.ofFileName(file.name) ?? ProjectFileFormat.ofFileName(file.name) ?? undefined;
-        resolve(decodeDriverFileBytes(new Uint8Array(reader.result as ArrayBuffer), format));
+        resolve(decodeDriverFileBytes(new Uint8Array(reader.result), format));
       } catch (err) {
         reject(err instanceof Error ? err : new Error(String(err)));
       }

@@ -1,3 +1,4 @@
+
 /**
  * Original (WinISD) skin — narrow-window rendering.
  *
@@ -13,7 +14,7 @@
  * Assertion is geometric, not CSS-specific — any future layout that reintroduces the class
  * fails here regardless of which property caused it.
  */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
 /** Widths a browser window realistically reaches; all must clip/scroll, never overlap. */
@@ -49,7 +50,7 @@ async function overlappingControls(page: Page): Promise<Overlap[]> {
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.original-root')).toBeVisible();
+  await openAProject(page);
 });
 
 for (const width of WIDTHS) {

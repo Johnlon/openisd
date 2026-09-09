@@ -10,7 +10,7 @@ import type {
   DriverRepo, MyDriverRepo, MyDriversRead, BrokenEntry, PrefsRepo,
 } from '@openisd/persistence';
 import {
-  displayNameOf, matchesCriteria, previewSpecsOf, previewTextOf,
+  displayNameOf, matchesCriteria, previewSpecsOf, previewTextOf, driverHasDqIssues,
   type PreviewSpec, type SearchCriteria,
 } from './driverDisplay.js';
 import { type DriverSelection, driverFromFileText } from './driverSelection.js';
@@ -61,9 +61,7 @@ function previewVMOf(d: OpenISDDriver): PreviewVM {
   };
 }
 
-function driverHasDqIssues(d: OpenISDDriver): boolean {
-  return d.checkConsistency().length > 0;
-}
+
 
 // The driver library, as the picker experiences it — the ONE implementation of the picker's
 // behaviour, shared by every component (ARCHITECTURE.md AD-7). The picker components own

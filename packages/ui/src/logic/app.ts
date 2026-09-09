@@ -2,7 +2,8 @@ import { inject, type App, type InjectionKey } from 'vue';
 import type { DriverBrowsingState } from './driverBrowsingState.js';
 import type { DriverSelection } from './driverSelection.js';
 import type { DesignIO } from './useApplicationIO.js';
-import type { BundledPassiveRadiator, MyPassiveRadiatorRepo, MyDriverRepo, FileStorage, ProjectRepo, ViewStateRepo } from '@openisd/persistence';
+import type { MyPassiveRadiatorRepo, MyDriverRepo, FileStorage, ProjectRepo, ViewStateRepo } from '@openisd/persistence';
+import type { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import type { Logging } from '../logging/flash.js';
 import type { Diagnostics } from '../diagnostics/selftest.js';
 import type { FaultLog } from '../diagnostics/faultLog.js';
@@ -29,7 +30,7 @@ export interface AppLogic {
   selection: DriverSelection;
   designIO: DesignIO;
   myPassiveRadiators: MyPassiveRadiatorRepo;
-  bundledPassiveRadiators: BundledPassiveRadiator[];
+  bundledPassiveRadiators: OpenISDPassiveRadiatorStandalone[];
   myDrivers: MyDriverRepo;
   driverFileStorage: FileStorage;
   projectRepo: ProjectRepo;

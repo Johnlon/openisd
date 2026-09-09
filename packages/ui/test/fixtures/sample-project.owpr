@@ -1,0 +1,284 @@
+{
+  "label": "Fixture Project",
+  "saved": {
+    "driverEmbedding": {
+      "device": {
+        "uuid": {
+          "value": "02bf7364-1f65-41e4-9357-03c47fb52181"
+        },
+        "quality": {
+          "confirmed_fields": [],
+          "fields_with_issues": [],
+          "missing": [],
+          "invalid": [],
+          "parse_errors": [],
+          "cross_source_only": []
+        },
+        "manufacturer": {
+          "value": ""
+        },
+        "brand": {
+          "value": "Fixture",
+          "origin": "entered"
+        },
+        "model": {
+          "value": "Test Driver",
+          "origin": "entered"
+        },
+        "sku": {
+          "value": "",
+          "grounds": [
+            {
+              "origin": "manual",
+              "reading": ""
+            }
+          ]
+        },
+        "driver_type": {
+          "value": "woofer"
+        },
+        "data_sources": {
+          "value": {}
+        },
+        "authoritative": {
+          "value": "openisd"
+        },
+        "specs": {
+          "woofer": {
+            "Fs": {
+              "origin": "entered",
+              "readings": {
+                "entered": {
+                  "read_value": 37
+                }
+              }
+            },
+            "Qts": {
+              "origin": "entered",
+              "readings": {
+                "entered": {
+                  "read_value": 0.38
+                }
+              }
+            },
+            "Vas": {
+              "origin": "entered",
+              "readings": {
+                "entered": {
+                  "read_value": 0.03
+                }
+              }
+            },
+            "Re": {
+              "origin": "entered",
+              "readings": {
+                "entered": {
+                  "read_value": 6.6
+                }
+              }
+            },
+            "Sd": {
+              "origin": "entered",
+              "readings": {
+                "entered": {
+                  "read_value": 0.0212
+                }
+              }
+            }
+          }
+        }
+      },
+      "nDrivers": 1,
+      "wiring": "parallel",
+      "vcTempRise_K": 0,
+      "Rs_ohm": 0,
+      "driverAddedMass_kg": 0,
+      "alfaVC_per_K": 0,
+      "loading": "standard"
+    },
+    "box": {
+      "boxType": "sealed",
+      "sealed": {
+        "volume_m3": 0.03,
+        "losses": {
+          "Ql": 10,
+          "Qa": 100
+        }
+      },
+      "vented": {
+        "chamber": {
+          "volume_m3": 0,
+          "tuning_hz": null,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100
+          }
+        },
+        "vent": {
+          "shape": "round",
+          "diameter_m": null,
+          "width_m": null,
+          "height_m": null,
+          "length_m": null,
+          "endCorrection_m": 0.6
+        }
+      },
+      "bandpass4": {
+        "rear": {
+          "volume_m3": 0,
+          "tuning_hz": null,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qicl": 100
+          }
+        },
+        "front": {
+          "volume_m3": 0,
+          "tuning_hz": null,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100,
+            "Qicl": 100
+          }
+        },
+        "frontVent": {
+          "shape": "round",
+          "diameter_m": null,
+          "width_m": null,
+          "height_m": null,
+          "length_m": null,
+          "endCorrection_m": 0.6
+        }
+      },
+      "bandpass6": {
+        "rear": {
+          "volume_m3": 0,
+          "tuning_hz": null,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100,
+            "Qicl": 100
+          }
+        },
+        "front": {
+          "volume_m3": 0,
+          "tuning_hz": null,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100,
+            "Qicl": 100
+          }
+        },
+        "rearVent": {
+          "shape": "round",
+          "diameter_m": null,
+          "width_m": null,
+          "height_m": null,
+          "length_m": null,
+          "endCorrection_m": 0.6
+        },
+        "frontVent": {
+          "shape": "round",
+          "diameter_m": null,
+          "width_m": null,
+          "height_m": null,
+          "length_m": null,
+          "endCorrection_m": 0.6
+        }
+      },
+      "abc": {
+        "rear": {
+          "volume_m3": 0,
+          "tuning_hz": null,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100,
+            "Qicl": 100
+          }
+        },
+        "front": {
+          "volume_m3": 0,
+          "tuning_hz": null,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100,
+            "Qicl": 100
+          }
+        },
+        "rearVent": {
+          "shape": "round",
+          "diameter_m": null,
+          "width_m": null,
+          "height_m": null,
+          "length_m": null,
+          "endCorrection_m": 0.6
+        },
+        "frontVent": {
+          "shape": "round",
+          "diameter_m": null,
+          "width_m": null,
+          "height_m": null,
+          "length_m": null,
+          "endCorrection_m": 0.6
+        },
+        "intraVent": {
+          "shape": "round",
+          "diameter_m": null,
+          "width_m": null,
+          "height_m": null,
+          "length_m": null,
+          "endCorrection_m": 0.6
+        }
+      },
+      "passiveRadiator": {
+        "volume_m3": 0,
+        "tuning_hz": null,
+        "count": 1,
+        "addedMass_kg": null,
+        "losses": {
+          "Ql": 10,
+          "Qa": 100
+        },
+        "component": null
+      }
+    },
+    "environment": {
+      "temperature_K": null,
+      "humidity_pct": null,
+      "pressure_Pa": null,
+      "useWinisdAirModel": null
+    },
+    "signal": {
+      "power_W": null,
+      "voltage_V": null
+    },
+    "meta": {
+      "name": "Fixture Project",
+      "creator": "",
+      "created": "",
+      "modified": "",
+      "description": ""
+    },
+    "filters": {
+      "filters": []
+    },
+    "advanced": {
+      "forceFlatResponse": false,
+      "useTransmissionLinePortModel": false,
+      "rgAtDriverSide": false,
+      "circuitModel": "winisd",
+      "splGraphIsXmaxLimited": false
+    },
+    "charts": {
+      "perTab": {}
+    }
+  },
+  "edited": null
+}

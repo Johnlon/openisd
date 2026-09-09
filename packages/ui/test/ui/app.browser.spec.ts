@@ -1,8 +1,9 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await openAProject(page);
 });
 
 test('app shell renders — project nav and graph are populated', async ({ page }) => {

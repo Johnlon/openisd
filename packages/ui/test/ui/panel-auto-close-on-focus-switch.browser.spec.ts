@@ -1,13 +1,10 @@
-/**
- * Switching focus to a different open project is a focus-changing action: Tune and the Driver
- * Editor modal both close when focus moves to a different project (`appState.ts`'s
- * `focusProject()`), so neither stays open on a project the user has moved away from.
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import type { Page } from '@playwright/test';
 
 test('switching focus to a different open project closes an open Tune panel', async ({ page }) => {
   await page.goto('/');
 
+  await openAProject(page);
   await page.locator('button.link-btn', { hasText: '＋ Copy' }).click();
 
   await page.locator('li', { hasText: 'Driver' }).click();
@@ -25,6 +22,7 @@ test('switching focus to a different open project closes an open Tune panel', as
 test('switching focus to a different open project closes the Driver Editor modal', async ({ page }) => {
   await page.goto('/');
 
+  await openAProject(page);
   await page.locator('button.link-btn', { hasText: '＋ Copy' }).click();
 
   await page.locator('li', { hasText: 'Driver' }).click();

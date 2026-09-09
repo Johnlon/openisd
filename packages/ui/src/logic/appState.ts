@@ -17,9 +17,10 @@ import { computed, ref, shallowRef, triggerRef, watch, type Ref, type ShallowRef
 import { Engine } from '@openisd/design/engine';
 import type { DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
 import {
-  OpenISDDriver,
+  OpenISDPassiveRadiatorStandalone,
   OpenISDProject, type DiscardChallenge,
   type FrequencyGrid,
+  type OpenISDDriver,
 } from '@openisd/design';
 import type { PlotParams } from '../types.js';
 import { copyOfName, uniqueName, type ViewSnapshot } from '@openisd/persistence';
@@ -421,6 +422,22 @@ export function newProject(): OpenISDProject {
   const p = OpenISDProject.empty(engine);
   addProject(p);
   return p;
+}
+
+/** Whether the circuit models this enclosure type. The DOMAIN's answer, asked here rather than
+ *  re-enumerated in a view: a second list of "types that work" is what let a UI-only box type
+ *  reach the solver as an assertion. */
+export function boxTypeIsSimulatable(boxType: BoxType): boolean {
+  return engine.simulatableBoxType(boxType) !== null;
+}
+
+/** Put a brand-new, blank passive radiator in the focused project's box — what "Define new PR"
+ *  does. A blank one rather than a form of its own: the editor that fills in an existing
+ *  radiator is the same editor, and a second form stating the same fields would be a second
+ *  place to keep them right. */
+export function definePassiveRadiator(): void {
+  requireFocusedProject().box.passiveRadiator.configurePR(
+    OpenISDPassiveRadiatorStandalone.empty(engine));
 }
 
 /** Open a driver file (`.wdr`/`.owdr`) as a project of its own — a default sealed box around

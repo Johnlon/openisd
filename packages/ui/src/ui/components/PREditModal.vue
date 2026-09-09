@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
-import type { PRLibEntry } from '@openisd/persistence';
+import { passiveRadiatorRows } from '../../logic/driverDisplay.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import { useApp } from '../../logic/app.js';
@@ -31,30 +31,29 @@ const radiator = computed(() => project.value.box.passiveRadiator.radiator);
 /** Fs with the tuning mass on the cone — read-only, and the domain's own figure. */
 const prFsWithMassShown = computed(() => project.value.box.passiveRadiator.resonanceWithAddedMass_hz());
 
-const prLib = ref(myPassiveRadiators.list());
+// The list holds ROWS of strings, never radiators: a row's `uuid` is the handle, and the
+// radiator is looked up again when one is chosen (A9 — no domain value in view state).
+const libRows = () => passiveRadiatorRows(
+  myPassiveRadiators.list().map(e => ({ id: e.uuid, radiator: e.passiveRadiator })));
+const prLib = ref(libRows());
 const showPRLib = ref(false);
+
 function saveCurrentPR() {
-  const spec = radiator.value.spec;
-  const name = (radiator.value.model.get().value || '').trim() || 'Custom PR';
-  prLib.value = myPassiveRadiators.save(name, {
-    prSd: spec.Sd_m2.get().value ?? undefined,
-    prMmd: spec.Mms_kg.get().value ?? undefined,
-    prCms: spec.Cms_m_per_N.get().value ?? undefined,
-    prRms: spec.Rms_kg_per_s.get().value ?? undefined,
-    prXmax: spec.Xmax_m.get().value ?? undefined,
-  });
+  myPassiveRadiators.upsert(radiator.value.detach());
+  prLib.value = libRows();
 }
-function loadPR(entry: PRLibEntry) {
-  const spec = radiator.value.spec;
-  radiator.value.model.set(entry.name);
-  spec.Sd_m2.set(entry.prSd);
-  spec.Mms_kg.set(entry.prMmd);
-  spec.Cms_m_per_N.set(entry.prCms);
-  spec.Rms_kg_per_s.set(entry.prRms);
-  spec.Xmax_m.set(entry.prXmax);
+/** Adopt a library radiator into the box. The box takes its own copy, so editing it here never
+ *  reaches the library entry it came from. */
+function loadPR(uuid: string) {
+  const entry = myPassiveRadiators.list().find(e => e.uuid === uuid);
+  if (!entry) return;
+  project.value.box.passiveRadiator.configurePR(entry.passiveRadiator);
   showPRLib.value = false;
 }
-function removePR(id: number) { prLib.value = myPassiveRadiators.remove(id); }
+function removePR(uuid: string) {
+  myPassiveRadiators.remove(uuid);
+  prLib.value = libRows();
+}
 
 function close() { emit('close'); }
 </script>
@@ -71,7 +70,8 @@ function close() { emit('close'); }
         <div v-if="showPRLib" class="pr-lib" style="margin:6px 0">
           <div v-if="!prLib.length" style="color:var(--mut);font-size:11px;padding:4px 0">No saved PRs yet — fill in the fields below and click Save.</div>
           <div v-for="e in prLib" :key="e.id" class="pr-lib-item">
-            <span class="pr-lib-name" @click="loadPR(e)">{{ e.name }}</span>
+            <span class="pr-lib-name" @click="loadPR(e.id)"
+              :title="`Load ${e.name} — Sd=${e.sd} Mms=${e.mms} Cms=${e.cms}`">{{ e.name }}</span>
             <button class="pr-lib-del" @click="removePR(e.id)" title="Remove this PR from the library">✕</button>
           </div>
         </div>

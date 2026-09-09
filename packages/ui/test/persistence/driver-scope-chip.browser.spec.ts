@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // The scope control — which POOL the WinISD picker lists. All three scopes are on screen at
 // once, exactly one highlighted, and a click anywhere on the control rotates the highlight:
@@ -21,8 +22,8 @@ const SCOPE_LABELS = ['Bundled', 'My Drivers', 'All'];
 // Two saved drivers, so "My Drivers" can be narrowed to one by a star and the difference
 // between "the section is filtered" and "the section is hidden" is visible.
 const MY_DRIVERS = [
-  { brand: 'Scope Test', model: 'Alpha', Fs: 40, Re: 6.2, Sd: 0.02, Qts: 0.4, Qes: 0.5, Qms: 3 },
-  { brand: 'Scope Test', model: 'Beta', Fs: 55, Re: 6.4, Sd: 0.015, Qts: 0.42, Qes: 0.52, Qms: 3.2 },
+  { brand: 'Scope Test', model: 'Alpha', specs: { Fs: 40, Re: 6.2, Sd: 0.02, Qts: 0.4, Qes: 0.5, Qms: 3 } },
+  { brand: 'Scope Test', model: 'Beta', specs: { Fs: 55, Re: 6.4, Sd: 0.015, Qts: 0.42, Qes: 0.52, Qms: 3.2 } },
 ];
 
 // Clicks needed to reach each scope from the chip's starting position, `All`. Declaring the
@@ -31,10 +32,11 @@ const MY_DRIVERS = [
 const CLICKS_TO: Record<string, number> = { All: 0, Bundled: 1, 'My Drivers': 2 };
 
 async function openPicker(page: Page): Promise<void> {
-  await page.addInitScript((drivers) => {
-    localStorage.setItem('openisd_my_drivers', JSON.stringify(drivers));
-  }, MY_DRIVERS);
+  await page.addInitScript(([key, json]) => {
+    localStorage.setItem(key, json);
+  }, [MY_DRIVERS_KEY, myDriversJson(MY_DRIVERS)] as const);
   await page.goto('/');
+  await openAProject(page);
   await page.locator('[title*="librar" i]').first().click();
   await expect(page.locator('.dlist')).toBeVisible();
 }

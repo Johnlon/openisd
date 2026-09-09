@@ -549,7 +549,15 @@ class OpenISDBox implements Box {
                 // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
                 rear: {
                     volume_m3: requiredField(bp4Rear, 'volume_m3', 'bandpass4.rear.volume_m3'),
-                    resonance_hz: () => this.#sealedResonance_hz(focus(bp4Rear, 'volume_m3').get(), bp4RearLosses),
+                    // LOSSLESS here, unlike the plain sealed box above, because that is what
+                    // WinISD itself writes for a bandpass4 rear chamber. Two goldens written by
+                    // the same winisd.exe 89 seconds apart with the identical driver, identical
+                    // Vr=0.02 and identical Qlr/Qar, differing only in BType: sealed-small.wpr
+                    // carries the LOSSY Fr=61.267…, bandpass4.wpr the LOSSLESS Fr=58.3392371416399
+                    // (= Fs·√(1+Vas/Vr), matched to 13 significant figures). The rear chamber's
+                    // damping is already carried by Qlr/Qar in the bandpass circuit.
+                    resonance_hz: () => this.#sealedResonance_hz(
+                        focus(bp4Rear, 'volume_m3').get(), bp4RearLosses, LossMode.Lossless),
                     losses: bp4RearLosses,
                 },
                 // front's volume is RAW — it has exactly one home and is not part of a solved
@@ -680,7 +688,8 @@ class OpenISDBox implements Box {
         return {Vb: volume_m3, prMmd, prMadd: addedMass_kg ?? 0, prSd, prCms};
     }
 
-    #sealedResonance_hz(volume_m3: number | null, losses: SealedLosses): number | null {
+    #sealedResonance_hz(volume_m3: number | null, losses: SealedLosses,
+                        mode: LossMode = LossMode.Default): number | null {
         const spec = this.#driver.spec[this.#driver.section];
         const Fs_hz = spec.Fs_hz.get().value;
         const Sd_m2 = spec.Sd_m2.get().value;
@@ -699,7 +708,7 @@ class OpenISDBox implements Box {
         // displays and saves the LOSSY figure, and it MOVES with the chamber's losses: measured, `Fr`
         // shifts 5.8 Hz for a `Ql` change at fixed volume (winisd_research FINDING-007).
         return this.#engine.sealedResonanceFromCompliance(
-            LossMode.Default,
+            mode,
             {Fs_hz, Qts, Sd_m2, Cms_m_per_N: Cms, volume_m3, Ql: losses.Ql.get(), Qa: losses.Qa.get()},
             air,
         );
@@ -1628,6 +1637,19 @@ class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
     override update(source: OpenISDPassiveRadiatorStandalone): void {
         super.update(source);
     }
+
+    /** This radiator as one belonging to no box — the copy My Passive Radiators holds, and the
+     *  inverse of `update()`. Deep-copies, so editing the box afterwards leaves the saved
+     *  radiator alone, exactly as `OpenISDDriver.detach()` does for a driver.
+     *
+     *  Throws on an empty slot: a box with no radiator chosen has nothing to save. */
+    detach(): OpenISDPassiveRadiatorStandalone {
+        const record = this.slot.get();
+        if (record === null) {
+            throw new Error('OpenISDPassiveRadiator.detach: no radiator is chosen yet — call configurePR() first.');
+        }
+        return OpenISDPassiveRadiatorStandalone.wrap(structuredClone(record), this.engine);
+    }
 }
 
 /** A radiator that belongs to no box — straight out of the bundle, or served from My PRs. The
@@ -1683,6 +1705,20 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
         return OpenISDPassiveRadiatorStandalone.window(() => current, (j) => {
             current = j;
         }, engine);
+    }
+
+    /** @internal The record a save writes, deep-cloned — the radiator's counterpart to
+     *  `OpenISDDriver.cloneDriver()`, and the persistence layer's one way to reach the raw
+     *  record it stores, never field by field. Clones before handing it out, so the caller can
+     *  store the result without aliasing this radiator's own live record.
+     *
+     *  On the STANDALONE only: `window()` refuses a record with no `passive-radiator` section,
+     *  so a standalone always has one. An embedded radiator's slot can be null (an empty PR
+     *  slot), which is a different question with a different answer. */
+    clonePassiveRadiator(): OpenISDDeviceJson {
+        const record = this.slot.get();
+        if (record === null) throw new Error('OpenISDPassiveRadiatorStandalone: a standalone radiator always has a record');
+        return structuredClone(record);
     }
 
 }
@@ -1798,6 +1834,9 @@ export class OpenISDProject {
      *  from. Deep-clones — the file's/library's driver and this project's share no nested object
      *  afterward. */
     loadDriver(source: OpenISDDriver): void {
+        if (source instanceof OpenISDDriverEmbedded) {
+            throw new Error('loadDriver(): source must be a standalone OpenISDDriver, not an embedded project driver');
+        }
         this.driver.update(source);
     }
 

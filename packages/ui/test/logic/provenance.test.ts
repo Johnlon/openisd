@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { getProvenanceInfo, PROVENANCE_MAP } from '../../src/logic/provenance.js';
+import { getProvenanceInfo, PROVENANCE_MAP, LABEL_TO_FIELD_KEY } from '../../src/logic/provenance.js';
 
 describe('Driver Field Provenance Inspector Engine', () => {
   it('defines provenance mapping for core T/S parameters', () => {
@@ -48,5 +48,16 @@ describe('Driver Field Provenance Inspector Engine', () => {
     const sub = info.paths[0].substitutedText ?? '';
     assert.match(sub, /0.4/);
     assert.match(sub, /4/);
+  });
+
+  it('LABEL_TO_FIELD_KEY maps labels to valid field keys', () => {
+    for (const [label, key] of Object.entries(LABEL_TO_FIELD_KEY)) {
+      const info = getProvenanceInfo(key);
+      if (key in PROVENANCE_MAP) {
+        assert.ok(info, `Expected provenance info for key "${key}" (from label "${label}")`);
+      } else {
+        assert.equal(info, null, `Expected null provenance info for non-derived key "${key}"`);
+      }
+    }
   });
 });

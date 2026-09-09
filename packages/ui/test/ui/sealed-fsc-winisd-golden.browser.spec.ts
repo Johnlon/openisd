@@ -1,3 +1,4 @@
+
 /**
  * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
  * Requirement: "Sealed-Box Resonance Loss Models"
@@ -22,7 +23,7 @@
  * Skin: 'original' — the WinISD-parity shell (OriginalShell.vue) with dedicated Fsc/Qtc box
  * fields. NOT 'classic', which is a different, mothballed skin (SkinPicker.vue / skins.ts).
  */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Locator, Page } from '@playwright/test';
 
 function numInputByLabel(page: Page, labelText: string, scope: Locator = page.locator('body')) {
@@ -41,6 +42,7 @@ async function setField(page: Page, label: string, value: number, scope?: Locato
 test('sealed box WinISD golden: Fs=40 Vas=7.65L Qes=0.45 Qms=2.94 Re=6.6 Rg=0.1 Vb=6L Ql=10 Qa=100 → Fsc=63.1762Hz Qtc=0.5995', async ({ page }) => {
   await page.goto('/');
 
+  await openAProject(page);
   // Driver: enter Fs/Qes/Qms/Vas/Re via the "Tune" panel (OgTune.vue).
   await page.locator('li', { hasText: 'Driver' }).click();
   await page.locator('button.edit-btn', { hasText: 'Tune' }).click();

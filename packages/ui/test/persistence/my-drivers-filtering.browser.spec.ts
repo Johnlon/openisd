@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import { myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // EVERY control in the filter bar reaches My Drivers, not just the text box.
 //
@@ -15,17 +16,18 @@ const MY_ROWS = '.dlist .my-ditem';
 // Two saved drivers that differ in every axis the filter bar can ask about: name, Fs, Sd
 // and nominal impedance — and whose NAMES classify them into different type chips.
 const SAVED = [
-  { brand: 'Bench', model: 'Deep Subwoofer', Fs: 22, Qts: 0.4, Qes: 0.44, Qms: 5,
-    Vas: 0.09, Sd: 0.052, Re: 3.4, Xmax: 0.012, Pe: 300, Znom: 4 },
-  { brand: 'Bench', model: 'Silk Dome Tweeter', Fs: 900, Qts: 0.5, Qes: 0.6, Qms: 3,
-    Vas: 0.0002, Sd: 0.0009, Re: 5.6, Xmax: 0.0005, Pe: 40, Znom: 8 },
+  { brand: 'Bench', model: 'Deep Subwoofer', specs: { Fs: 22, Qts: 0.4, Qes: 0.44, Qms: 5,
+    Vas: 0.09, Sd: 0.052, Re: 3.4, Xmax: 0.012, Pe: 300, Znom: 4 } },
+  { brand: 'Bench', model: 'Silk Dome Tweeter', specs: { Fs: 900, Qts: 0.5, Qes: 0.6, Qms: 3,
+    Vas: 0.0002, Sd: 0.0009, Re: 5.6, Xmax: 0.0005, Pe: 40, Znom: 8 } },
 ];
 
 async function open(page: Page): Promise<void> {
-  await page.addInitScript(([drivers, key]) => {
-    localStorage.setItem(key as string, JSON.stringify(drivers));
-  }, [SAVED, MY_DRIVERS_KEY] as const);
+  await page.addInitScript(([json, key]) => {
+    localStorage.setItem(key as string, json as string);
+  }, [myDriversJson(SAVED), MY_DRIVERS_KEY] as const);
   await page.goto('/');
+  await openAProject(page);
   await page.locator('[title*="librar" i]').first().click();
   await expect(page.locator('.dlist')).toBeVisible();
 }

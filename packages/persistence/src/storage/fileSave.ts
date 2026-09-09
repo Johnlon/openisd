@@ -58,7 +58,7 @@ export interface FileSave {
 }
 
 function fileSystemAccessSupported(): boolean {
-  return typeof (globalThis as { showSaveFilePicker?: unknown }).showSaveFilePicker === 'function';
+  return 'showSaveFilePicker' in globalThis && typeof globalThis.showSaveFilePicker === 'function';
 }
 
 export function createFileSave(): FileSave {
@@ -89,7 +89,7 @@ export function createFileSave(): FileSave {
       await writeToHandle(handle, text);
       return { handle, cancelled: false, written: true };
     } catch (err) {
-      if ((err as Error)?.name === 'AbortError') return { handle: null, cancelled: true, written: false };
+      if (err instanceof Error && err.name === 'AbortError') return { handle: null, cancelled: true, written: false };
       throw err;
     }
   }

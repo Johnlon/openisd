@@ -70,27 +70,6 @@ run all four steps:
 
 Never say "it should work now — please check" without completing all four.
 
-## Visual regression — SPL canvas
-
-`test/ui/visual.browser.spec.ts` takes pixel-exact screenshots of the SPL graph panel for all
-four box types (sealed, vented, bandpass4, passive radiator) and compares them against the
-committed baselines in `test/ui/visual.browser.spec.ts-snapshots/` — the location
-`playwright.config.js` `snapshotPathTemplate` resolves to. Run:
-
-```
-bash scripts/test-browser.sh packages/ui/test/ui/visual.browser.spec.ts
-```
-
-Regenerate baselines only for an intentional visual change (CSS, layout, curve styling):
-
-```
-bash scripts/test-browser.sh packages/ui/test/ui/visual.browser.spec.ts --update-snapshots
-```
-
-Review with `git diff` to confirm only the intended panels changed, then commit the new PNGs.
-**Do not regenerate** to paper over a test failing because of a physics or engine change —
-investigate the cause first.
-
 ## micka.de oracle tests
 
 `test/scenarios.ts` is the source of truth for the micka.de crosscheck cases. Each scenario

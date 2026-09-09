@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // ui-todo.md "Single click opens a driver summary, not the editor" — the picker
 // (DriverBrowserWinisd.vue) previews before it selects.
@@ -12,30 +13,34 @@ import { test, expect } from '../fixtures.js';
 // The driver is seeded into My Drivers rather than taken from the bundled catalogue, so the
 // spec does not depend on how many records the bundler currently ships.
 
-const PICKED = 'Summary Fixture Driver';
+// The row's name is the driver's own Brand + Model (displayNameOf), so the fixture's identity
+// IS "Summary Fixture" — there is no separate stored name field.
+const PICKED = 'Summary Fixture';
 const EDITOR = '.de-modal';
 const SUMMARY = '.preview';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(name => {
-    localStorage.setItem('openisd_my_drivers', JSON.stringify([{
-      name, brand: 'Summary', model: 'Fixture',
+  await openAProject(page);
+  await page.evaluate(([key, json]) => {
+    localStorage.setItem(key, json);
+  }, [MY_DRIVERS_KEY, myDriversJson([{
+    brand: 'Summary', model: 'Fixture',
+    specs: {
       Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
-      Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8, _savedAt: 1,
-    }]));
-  }, PICKED);
+      Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8,
+    },
+  }])] as const);
   await page.goto('/');
+  await openAProject(page);
 });
 
-// "The design is untouched" is asserted against the DESIGN, not a shell widget: the driver
-// carried in the persisted state. The name element differs per shell, and reading one of
-// those would tie this spec to a layout it is not about.
+// The project's own driver, read off the Original shell's read-only Brand/Model pair — the
+// same pair `my-drivers.browser.spec.ts` reads. It reflects the PROJECT's embedded driver, so
+// a change here IS a change to the design; there is no separate persisted-state key to read.
 async function currentDriver(page: Page): Promise<string> {
-  return page.evaluate(() => {
-    const raw = localStorage.getItem('openisd.state');
-    return raw ? JSON.stringify(JSON.parse(raw).driver ?? null) : 'no-state';
-  });
+  const row = page.locator('.driver-id-row').first();
+  return `${await row.locator('input').nth(0).inputValue()}/${await row.locator('input').nth(1).inputValue()}`;
 }
 
 async function openSummary(page: Page): Promise<void> {

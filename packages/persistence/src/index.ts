@@ -5,17 +5,20 @@ export {
 } from './repos/driverRepo.js';
 
 export {
-  type BundledPassiveRadiator, type BundledPassiveRadiatorRepo, createBundledPassiveRadiatorRepo,
+  type BundledPassiveRadiatorRepo, createBundledPassiveRadiatorRepo,
 } from './repos/bundledPassiveRadiatorRepo.js';
 
+// The envelope both saved libraries share. A consumer names `BrokenEntry` (the unreadable-entry
+// surface); the envelope itself is storage's own business and is not exported.
+export type { BrokenEntry } from './repos/savedEntries.js';
+
 export {
-  type StoredEntry, type MyDriversSchema, MY_DRIVERS_KEY,
-  type BrokenEntry, type MyDriversRead,
+  MY_DRIVERS_KEY, type MyDriversRead,
   type MyDriverRepo, createMyDriverRepo,
 } from './repos/myDriverRepo.js';
 
 export {
-  MY_PASSIVE_RADIATORS_KEY, type PRLibEntry,
+  MY_PASSIVE_RADIATORS_KEY, type MyPassiveRadiatorsRead,
   type MyPassiveRadiatorRepo, createMyPassiveRadiatorRepo,
 } from './repos/myPassiveRadiatorRepo.js';
 

@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // docs/design/STATE_MODEL.md rule 1: choosing a driver EMBEDS it in the project. The pick copies the
 // driver in, closes the picker, and returns the user to the project — there is no editor in
@@ -11,40 +12,35 @@ import { test, expect } from '../fixtures.js';
 // catalogue: what is being tested is the choose → embed flow, which must not depend on how
 // many records the bundler currently ships (see scripts/bundle-drivers.mjs).
 
-const PICKED = 'Spec Fixture Driver';
+// The row's name is the driver's own Brand + Model (displayNameOf) — there is no stored name.
+const PICKED = 'Spec Fixture';
 const EDITOR = '.de-modal';
 const PICKER = '.modal:not(.de-modal)';   // the library dialog
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(name => {
-    // The CURRENT bucket shape: a { schema, drivers } envelope of conforming records
-    // (BUG_20260822_driver_selection_spec_seeds_a_flat_shape — the old flat seed was a
-    // shape myDrivers refuses, so the spec exercised the broken-row path, not selection).
-    const spec = (v: number) => ({ origin: 'manual', readings: { manual: { read_value: v } }, dq: [] });
-    localStorage.setItem('openisd_my_drivers', JSON.stringify({
-      schema: 2,
-      drivers: [{
-        uuid: { value: 'spec-fixture-uuid', definition: 'stable record identity' },
-        quality: { rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [],
-          invalid: [], parse_errors: [], cross_source_only: [] },
-        manufacturer: { value: 'Spec', origin: 'manual', definition: 'x', dq: [] },
-        brand: { value: 'Spec', origin: 'manual', definition: 'x', dq: [] },
-        model: { value: 'Fixture', origin: 'manual', definition: 'x', dq: [] },
-        sku: { value: name, definition: 'x', grounds: [] },
-        driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-        data_sources: { value: {}, definition: 'x' },
-        authoritative: { value: 'manual', definition: 'x' },
-        specs: { woofer: {
-          Fs: spec(41), Qts: spec(0.35), Qes: spec(0.38), Qms: spec(4.5), Vas: spec(0.028),
-          Sd: spec(0.0132), Re: spec(5.4), Le: spec(0.5e-3), Xmax: spec(0.0055),
-          Pe: spec(70), Znom: spec(8),
-        } },
-      }],
-    }));
-  }, PICKED);
+  await openAProject(page);
+  await page.evaluate(([key, json]) => {
+    localStorage.setItem(key, json);
+  }, [MY_DRIVERS_KEY, myDriversJson([{
+    brand: 'Spec', model: 'Fixture', uuid: 'spec-fixture-uuid',
+    specs: {
+      Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028,
+      Sd: 0.0132, Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8,
+    },
+  }])] as const);
   await page.goto('/');
+  await openAProject(page);
 });
+
+/** The model of every driver in My Drivers, out of the stored envelope. */
+async function savedModels(page: Page): Promise<string[]> {
+  return page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    const env = raw ? JSON.parse(raw) as { entries?: { record?: { model?: { value?: string } } }[] } : { entries: [] };
+    return (env.entries ?? []).map(e => e.record?.model?.value ?? '');
+  }, MY_DRIVERS_KEY);
+}
 
 /** Open the library — the toolbar's Manage Drivers button, visible on every tab. */
 function openPicker(page: Page) {
@@ -129,8 +125,8 @@ test('Copy to My Drivers writes the edited driver into the saved list', async ({
   await page.locator('.save-confirm-btn').click();
 
   // A new identity (spec/fixture-copy) means a new saved driver beside the original.
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('openisd_my_drivers') ?? '[]'));
-  expect(saved.map((d: { model: string }) => d.model).sort()).toEqual(['Fixture', 'Fixture Copy']);
+  const savedM = await savedModels(page);
+  expect(savedM.sort()).toEqual(['Fixture', 'Fixture Copy']);
 });
 
 test('Escape closes the editor and leaves the project driver as it was', async ({ page }) => {
@@ -178,8 +174,8 @@ test('editing a saved driver rewrites its entry and leaves the project alone', a
   await expect(page.locator(EDITOR)).toBeHidden();
 
   // The rename MOVES the entry — one saved driver, under its new identity, no stale twin.
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('openisd_my_drivers') ?? '[]'));
-  expect(saved.map((d: { model: string }) => d.model)).toEqual(['Fixture Mk2']);
+  const savedM = await savedModels(page);
+  expect(savedM).toEqual(['Fixture Mk2']);
 
   // The project's driver never entered into it.
   expect(await projectDriverName(page)).toBe(beforeProject);
@@ -208,6 +204,6 @@ test('Cancel on a saved driver writes nothing', async ({ page }) => {
   await page.locator(`${EDITOR} .de-footer button:has-text("Cancel")`).click();
   await expect(page.locator(EDITOR)).toBeHidden();
 
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('openisd_my_drivers') ?? '[]'));
-  expect(saved.map((d: { model: string }) => d.model)).toEqual(['Fixture']);
+  const savedM = await savedModels(page);
+  expect(savedM).toEqual(['Fixture']);
 });

@@ -1,26 +1,6 @@
 # Share links and file imports bypass the schema upgrade
 
-Status: OPEN — REGRESSED. The `packages/model` → `packages/design` migration removed the
-project upgrade seam entirely; no project load path upgrades anything any more, so the defect is
-now WIDER than when first recorded (localStorage no longer upgrades either).
-
-Re-verified 2026-09-09:
-
-- `packages/ui/src/logic/schemaUpgrade.ts` declares exactly one function,
-  `createMyDriversSchema()` — the DRIVER LIBRARY's chain. There is no project upgrader left, and
-  a repo-wide search for `schemaUpgrade` / `upgradePayload` / `upgradeTo` finds no other
-  definition and no project-path caller.
-- Every project reader now goes straight to `openISDProjectSessionJsonSchema.safeParse`, which
-  requires `label`/`saved`/`edited`. A V1 payload (`{schema, v, box, P, graphs, project, driver}`)
-  has none of them and is refused outright.
-- The three guard tests in `packages/ui/test/logic/persist.test.ts` (the `describe` block
-  "persisted-payload readers upgrade the schema (V1 driver-object → V2 driver-text)") FAIL, with
-  `'label': Invalid input: expected string, received undefined; … Unrecognized keys: "schema",
-  "v", "box", "P", "graphs", "project", "driver"`.
-- Confirmed pre-existing, not caused by the current `.owpr`-text work: `git show
-  HEAD:packages/persistence/src/repos/projectRepo.ts` shows the previous `readProjectText` also
-  went `JSON.parse` → `projectOf` → `repo.load` → the same session schema, refusing a V1 payload
-  identically.
+Status: RESOLVED 2026-09-09
 
 ## Symptom
 
@@ -45,12 +25,36 @@ the other two readers of the same payload shape were not routed through it.
 
 ## Fix
 
-`loadFromHash` applies `upgrade()` to the parsed blob exactly as `loadLocal` does (refusing,
-with a console error, a payload it cannot bring to the current schema). `importFile`'s
-SerializedState branch routes through a shared exported helper (`upgradeParsedState`) so all
-three readers upgrade identically.
+The project upgrade seam was rebuilt as `packages/persistence/src/repos/projectSchemaUpgrade.ts`
+— the data-access tier owns wire formats, and `packages/design` owns no format history.
+
+| Export | Does |
+|---|---|
+| `upgradeProjectPayload(parsed, engine)` | a V1 payload → current-schema `.owpr` TEXT; a current payload passes through as its own text |
+| `upgradeSharePayload(parsed, engine)` | a whole V1 share link → `{project, view}`; a current payload is returned unchanged |
+
+Both `loadFromHash` and `readProjectText` in `projectRepo.ts` now run the upgrade before
+validation, so the hash, `File → Open` and localStorage accept the same set of payloads.
+
+The upgrade rebuilds the project through `OpenISDProject.builder(...)` and asks it for
+`.owprText()`, so this file states no record shape of its own — the encapsulation rule holds.
+Two behaviours are stated in the code rather than inferred: a V1 payload states no box volume
+(the field did not travel), so the upgraded project takes the builder's sealed default; and it
+arrives SAVED, not edited, because it is a design the sender had already committed.
 
 ## Verification
 
 `packages/ui/test/logic/persist.test.ts` — a V1 payload (driver as an object) loaded via the
 hash path comes back upgraded to the current schema (driver as serialised text).
+
+```
+npx vitest run packages/ui/test/logic/persist.test.ts
+  11 passed (was: 3 failed)
+```
+
+Made to fail on purpose: short-circuiting both `isV1` guards so no payload is ever upgraded
+turned exactly the two guard tests red, then restored.
+
+Two stale API reads in the same file were corrected alongside — `project.driver()` called as a
+function (it is a getter) and `driver.Fs_hz` (spec fields live under `driver.spec[section]`, as
+every other site in the file already had it). The assertions themselves are unchanged.

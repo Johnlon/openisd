@@ -30,6 +30,18 @@ const VENTED_SMALL_WPR = join(goldensDir, 'vented-small.wpr');
 const BANDPASS4_WPR = join(goldensDir, 'bandpass4.wpr');
 const PASSIVE_RADIATOR_WPR = join(goldensDir, 'passive-radiator.wpr');
 
+/** One `KEY=value` from a golden `.wpr`'s named section, as written by WinISD itself. The
+ *  goldens ARE the oracle for these tests: an expected value transcribed into the test by hand
+ *  is a value that can drift from the file without anything noticing. */
+function goldenField(file: string, section: string, key: string): string {
+  const text = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const block = text.match(new RegExp(`\\[${section}\\]\\n([\\s\\S]*?)(?=\\n\\[|$)`));
+  if (!block) throw new Error(`golden ${file} has no [${section}] section`);
+  const line = block[1].match(new RegExp(`^${key}=(.*)$`, 'm'));
+  if (!line) throw new Error(`golden ${file}'s [${section}] has no ${key}= line`);
+  return line[1];
+}
+
 const scraped = <T,>(value: T) => ({ value });
 const num = (read_value: number) => ({ origin: 'test', readings: { test: { read_value } } });
 
@@ -110,8 +122,9 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
   });
 
   it('vented box: BType=1, rear chamber volume/tuning match vented-small.wpr', () => {
-    const VENTED_VOLUME_M3 = 0.02;
-    const VENTED_TUNING_HZ = 45;
+    // Both read from vented-small.wpr's own [Box], never transcribed.
+    const VENTED_VOLUME_M3 = Number(goldenField(VENTED_SMALL_WPR, 'Box', 'Vr'));
+    const VENTED_TUNING_HZ = Number(goldenField(VENTED_SMALL_WPR, 'Box', 'Fr'));
     const project = aProject((p) => p.vented().volume_m3(VENTED_VOLUME_M3).tuning_hz(VENTED_TUNING_HZ).build());
     project.setPowerDrive_W(1);
 
@@ -121,14 +134,16 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
 
     assert.match(text, /\[Box\]\nBType=1\n/);
-    assert.ok(text.includes('Vr=0.02'), 'rear chamber volume');
-    assert.ok(text.includes('Fr=45'), 'rear chamber tuning target');
+    assert.equal(goldenField(VENTED_SMALL_WPR, 'Box', 'BType'), '1', 'ground truth: the golden is a vented box');
+    assert.ok(text.includes(`Vr=${VENTED_VOLUME_M3}`), 'rear chamber volume matches the golden\'s own Vr');
+    assert.ok(text.includes(`Fr=${VENTED_TUNING_HZ}`), 'rear chamber tuning matches the golden\'s own Fr');
   });
 
   it('bandpass4 box: BType=2, rear (sealed) and front (vented) volumes/tuning match bandpass4.wpr', () => {
-    const REAR_VOLUME_M3 = 0.02;
-    const FRONT_VOLUME_M3 = 0.035;
-    const FRONT_TUNING_HZ = 60;
+    // All three read from bandpass4.wpr's own [Box], never transcribed.
+    const REAR_VOLUME_M3 = Number(goldenField(BANDPASS4_WPR, 'Box', 'Vr'));
+    const FRONT_VOLUME_M3 = Number(goldenField(BANDPASS4_WPR, 'Box', 'Vf'));
+    const FRONT_TUNING_HZ = Number(goldenField(BANDPASS4_WPR, 'Box', 'Ff'));
     const project = aProject((p) => p.bandpass4()
       .rearVolume_m3(REAR_VOLUME_M3).frontVolume_m3(FRONT_VOLUME_M3).frontTuning_hz(FRONT_TUNING_HZ).build());
     project.setPowerDrive_W(1);
@@ -139,14 +154,28 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
 
     assert.match(text, /\[Box\]\nBType=2\n/);
-    assert.ok(text.includes('Vr=0.02'), 'rear (sealed) chamber volume');
-    assert.ok(text.includes('Vf=0.035'), 'front (vented) chamber volume');
-    assert.ok(text.includes('Ff=60'), 'front chamber tuning target');
+    assert.equal(goldenField(BANDPASS4_WPR, 'Box', 'BType'), '2', 'ground truth: the golden is a bandpass4 box');
+    assert.ok(text.includes(`Vr=${REAR_VOLUME_M3}`), 'rear (sealed) chamber volume matches the golden');
+    assert.ok(text.includes(`Vf=${FRONT_VOLUME_M3}`), 'front (vented) chamber volume matches the golden');
+    assert.ok(text.includes(`Ff=${FRONT_TUNING_HZ}`), 'front chamber tuning matches the golden');
+
+    // The one value in this golden WinISD COMPUTED rather than was given: the rear (sealed)
+    // chamber's resonance. Volumes and Ff are inputs echoed back, so they agree with the golden
+    // whatever the bridge does; Fr is the only field here that can disagree, which makes it the
+    // actual parity assertion. Tolerance for the same air-model gap the sealed case documents
+    // (bugs/BUG_20260907_sealed_resonance_ignores_envUseWinisdAirModel.md).
+    const FR_TOLERANCE_HZ = 0.05;
+    const goldenRearFr = Number(goldenField(BANDPASS4_WPR, 'Box', 'Fr'));
+    const bridgeRearFr = Number(text.match(/\[Box\][\s\S]*?\nFr=([\d.]+)\n/)![1]);
+    assert.ok(Math.abs(bridgeRearFr - goldenRearFr) < FR_TOLERANCE_HZ,
+      `bridge rear Fr=${bridgeRearFr} should be within ${FR_TOLERANCE_HZ} Hz of WinISD's own `
+      + `Fr=${goldenRearFr}`);
   });
 
   it('passive-radiator box: BType=4, [PassiveRadiator] matches passive-radiator.wpr exactly', () => {
-    const PR_VOLUME_M3 = 0.04;
-    const PR_TUNING_HZ = 31.7490157327751; // passive-radiator.wpr's own Fr — the golden's target
+    // Both read from passive-radiator.wpr's own [Box], never transcribed.
+    const PR_VOLUME_M3 = Number(goldenField(PASSIVE_RADIATOR_WPR, 'Box', 'Vr'));
+    const PR_TUNING_HZ = Number(goldenField(PASSIVE_RADIATOR_WPR, 'Box', 'Fr'));
     const engine = new Engine();
     const radiatorRecord = {
       brand: scraped('SB Acoustics'), model: scraped('test-pr'), manufacturer: scraped('SB Acoustics'),
@@ -162,8 +191,12 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
       },
       specs: {
         'passive-radiator': {
-          // Values read straight out of passive-radiator.wpr's own [PassiveRadiator] block.
-          Vas: num(0.0048), Qms: num(3.3), Fs: num(30), Sd: num(0.0095), Xmax: num(0.019),
+          // Read out of passive-radiator.wpr's own [PassiveRadiator] block, not transcribed.
+          Vas: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Vas'))),
+          Qms: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Qms'))),
+          Fs: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Fs'))),
+          Sd: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Sd'))),
+          Xmax: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Xmax'))),
         },
       },
     };
@@ -181,9 +214,11 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
 
     assert.match(text, /\[Box\]\nBType=4\n/);
-    assert.ok(text.includes('Vr=0.04'), 'rear chamber volume matches the golden\'s own Vr');
-    assert.ok(text.includes(
-      '[PassiveRadiator]\nVas=0.0048\nQms=3.3\nFs=30\nSd=0.0095\nXmax=0.019\nMe=0'),
+    assert.equal(goldenField(PASSIVE_RADIATOR_WPR, 'Box', 'BType'), '4', 'ground truth: the golden is a PR box');
+    assert.ok(text.includes(`Vr=${PR_VOLUME_M3}`), 'rear chamber volume matches the golden\'s own Vr');
+    const goldenPr = ['Vas', 'Qms', 'Fs', 'Sd', 'Xmax']
+      .map(k => `${k}=${goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', k)}`).join('\n');
+    assert.ok(text.includes(`[PassiveRadiator]\n${goldenPr}\nMe=0`),
       '[PassiveRadiator] block matches the golden byte for byte on every T/S value');
   });
 });

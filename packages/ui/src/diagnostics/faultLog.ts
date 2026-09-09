@@ -68,23 +68,28 @@ export interface QuickFix {
  * `console.error` rather than `warn`: if this fires, stored state that the app will act on is
  * unreadable, and that is not a detail to scroll past.
  */
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 function readStoredObject(key: string): Record<string, unknown> | null {
   const raw = localStorage.getItem(key);
-  if (raw === null) return null;                 // absent is not a fault — nothing was saved yet
+  if (!raw) return null;
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
-  } catch (err) {
-    console.error(`faultLog: localStorage['${key}'] is not valid JSON, so it is being ignored.`, err);
+  } catch {
+    console.error(`faultLog: localStorage['${key}'] is not valid JSON, ignoring.`);
     return null;
   }
-  if (parsed === null || typeof parsed !== 'object') {
+  if (!isRecord(parsed)) {
     console.error(
       `faultLog: localStorage['${key}'] parsed to ${parsed === null ? 'null' : typeof parsed}, `
       + 'not an object, so it is being ignored.');
     return null;
   }
-  return parsed as Record<string, unknown>;
+  return parsed;
 }
 
 function readState(): Record<string, unknown> | null {
@@ -98,7 +103,7 @@ function writeState(state: Record<string, unknown>): void {
 /** The saved driver record, or null where there is none to inspect. */
 function savedDriver(): Record<string, unknown> | null {
   const d = readState()?.driver;
-  return d && typeof d === 'object' ? d as Record<string, unknown> : null;
+  return isRecord(d) ? d : null;
 }
 
 /** The record `applyState` refused, if one is set aside. */
@@ -234,7 +239,7 @@ export function createFaultLog(): FaultLog {
         '',
         'saved driver record:',
         driver
-          ? `  keys: ${Object.keys(driver).join(', ')}\n  specs: ${driver.specs == null ? 'MISSING' : Object.keys(driver.specs as object).join(', ')}`
+          ? `  keys: ${Object.keys(driver).join(', ')}\n  specs: ${isRecord(driver.specs) ? Object.keys(driver.specs).join(', ') : 'MISSING'}`
           : '  (none saved)',
       ].join('\n');
     },

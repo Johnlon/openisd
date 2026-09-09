@@ -1,28 +1,9 @@
-/**
- * The Original skin's tuning readouts and the vented box's DIRECTION.
- *
- * Two defects from winisd_research/GAPS.md, both "a wrong number under a WinISD field name",
- * which reads as verified parity:
- *
- *   §A3 — a PR box's "Fh" is the PASSIVE RADIATOR system tuning (box compliance in series
- *         with the PR's own, against the PR's moving mass). The sealed Fc = Fs·√(1+Vas/Vb)
- *         ignores the PR entirely, so it is not a near-miss but a different quantity —
- *         72.25 Hz vs 194.87 Hz on WinISD's own trial inputs. The `.wpr` writer already
- *         calls `prTuning()` (logic/wprMapping.ts), so a wrong pane also disagrees with the
- *         file the same project exports.
- *
- *   §A1 — `Fb` is a TARGET the port solver designs to, not a system output (human ruling,
- *         QO11). The solver already runs in WinISD's direction; what was missing is saying
- *         so on screen, and admitting when the target cannot be met.
- *
- * The A3 test does not read a hard-coded frequency: it changes a quantity ONLY the PR model
- * depends on (mass added to the radiator cone) and requires the readout to move. The sealed
- * formula cannot depend on it, so no binding to the sealed Fc can pass.
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import type { Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await openAProject(page);
 });
 
 test('§A3 — a PR box\'s Fh tracks the PR\'s own added mass, so it is the PR tuning not the sealed Fc', async ({ page }) => {

@@ -1,5 +1,5 @@
 prefix: QO
-next: 131
+next: 137
 questions:
 - id: QO1
   title: UI TODO List
@@ -8710,14 +8710,114 @@ questions:
 - id: QO128
   title: Subpath barrels (design/./engine, ./winisd, ./filter, ./browser, ./ini) re-export — widen the
     QO80 exemption, or restructure? -
-  status: open
+  status: decided
   raised: '2026-09-08'
   body: ''
+  answer:
+    at: '2026-09-09'
+    text: |-
+      John, 2026-09-09: "i dont want reexpeorts atall - why is there an eepmptionanywhere"
+
+      RULING: there is NO exemption. The "package barrel entry point is exempt" carve-out was an
+      agent's interpretation of QO80 ("rexports are expreslly forbideen"), never a human ruling.
+      Remove it from the gate.
+
+      Chosen shape: keep the barrels, drop the gate's exemption. The 17 re-export sites in
+      packages/design (engine, winisd, filter, browser, ini) are real violations to be worked off
+      over time. The gate reports them and stays RED until they are gone - honest debt, not a
+      hidden exemption.
 - id: QO129
   title: 'UI layering: .vue files hold no logic — composables in src/stripped/ own state and domain calls'
   status: open
   raised: '2026-09-08'
   body: ''
+  notes:
+  - at: '2026-09-09'
+    text: |-
+      2026-09-09, John: "the code below the ui MUST be 100% covered with high quality test SO THAT
+      we dont have to ui test literally every ui interaction/combination" — and earlier same day:
+      "I need it really stripped out so that the logic can be tested without a browser at all - then
+      a relatively small number of ui tests can check the basic scenarios fully work but most of the
+      test cases can run with the logic components mocked - and all we need to test is that when a
+      given ui component is triggered that it calls the expected mock - or that triggering a mock
+      causes the ui to update."
+
+      Direction is set. What remains is the how: this is a large refactor (every .vue in
+      shells/original/, plus components/) competing with "get the suite green". Needs a sequencing
+      call from John — do it now as the way to cut the 1.4h browser runtime, or land it after the
+      current stale-fixture cleanup. Still UNDECIDED on sequencing only, not on intent.
+  - at: '2026-09-09'
+    text: |-
+      2026-09-09, John, ruling on sequencing: "incorporate your work into 129". The UI-test repetition/runtime review folds INTO this item rather than landing as a separate refactor. QO129 now owns all three steps below.
+
+      MEASURED BASELINE (this session, not estimated):
+      - packages/ui/test/ui/original-layout.browser.spec.ts: 9 tests, 2.1 min wall clock, 5 workers
+        (workers = min(8, ceil(10 cores / 2))). ~14 s per test. NOTE: 4 of those 9 were already RED
+        (chart level-line, project-row, chart-maximise assertions) — unrelated to this work and must
+        not be silenced by it.
+      - 36 *.browser.spec.ts files, ~293 tests.
+      - Root cause of the per-test cost is packages/ui/src/main.ts:17 — a STATIC
+        'import bundleJson from ./drivers-bundle.json', 11.5 MB. Every page.goto('/') parses all of it
+        before the app mounts, so a goto -> localStorage.clear() -> goto test pays it twice.
+
+      STEP 1 — one shared openAProject (dedup, no semantics change).
+      34 of 36 specs carry a byte-identical copy of openAProject plus its 4-line comment; 33 hash
+      identically (md5 655ffcb5e1101de80b7b5992d4c068e8). The 34th, logic/consistency-dq, differs only
+      in naming complete-driver-project.owpr. That is ~580 lines (~10% of all browser-spec code) saying
+      one thing, and it pins '.no-project-open input[type=file]' and the '.original-root' readiness
+      selector in 35 places each.
+      Fix: add it as a FIXTURE in packages/ui/test/fixtures.ts — the module every spec already imports
+      and which .claude/rules/openisd-ui-tests.md already mandates. This is the seam
+      fixtures/seedMyDrivers.ts already established: the module owns the MECHANISM (fixture path,
+      readiness selector, localStorage envelope), each spec still declares its own VALUES inline, so
+      AGENTS.md 'tests construct their own data' is untouched.
+
+      STEP 2 — delete the redundant second page load (the actual speed win).
+      15 specs do goto('/') -> localStorage.clear() -> goto('/'). Playwright already gives every test a
+      fresh context with empty storage, so the first load and the clear buy nothing.
+      IN-REPO EVIDENCE this is safe: 16 specs already pass today with a SINGLE goto and no clear,
+      including the storage-heavy my-drivers, my-drivers-failures, driver-favorites and
+      driver-scope-chip. (I could not run a direct isolation probe — plan mode denied writing a spec
+      into the test tree — so the claim rests on those 16 passing specs, not on a probe.)
+      Where a spec must pre-seed storage, use page.addInitScript (runs before page scripts on the FIRST
+      load), never evaluate-then-reload. persistence/driver-selection.browser.spec.ts:38-51 is the case
+      to fix: it boots and opens the project TWICE in beforeEach for a 9-test file. Four addInitScript
+      sites also have gratuitously different argument order and pointless 'as string' casts — normalise
+      to one shape.
+
+      STEP 3 — the browser-tab unit tests (this is the part that IS QO129).
+      packages/ui/test/ui/app.browser.spec.ts:72 already states the rule: 'if the number being asserted
+      was computed by calling core from the test (e.g. page.evaluate -> import(/src/core/...)), it is a
+      unit test in a browser tab and does NOT qualify as a UI wiring test.' Nothing enforces it.
+      26 sites violate it: ui/original-skin (22), logic/tune-panel-fields (2),
+      ui/driver-editor-provenance-and-units (2).
+      Per test: keep ONE wiring test in the browser (control -> store updated), move the ARITHMETIC to
+      vitest against the module. Worked example, original-skin:670-673 — the g->kg conversion and
+      'heavier cone -> lower resonance' are pure; only amc.fill('50') reaching the store needs a
+      browser. Same treatment, lower priority: logic/driver-editor-solver.browser.spec.ts (476 lines,
+      29 tests) — a T/S solver is a pure function; what needs a browser is which fields the editor greys
+      out, not the derived values.
+      Method: TDD, one at a time — write the vitest test, watch it pass against the real module, THEN
+      delete the browser assertion. Never bulk-delete a browser test; a moved test must be green in its
+      new home first. Coverage thresholds in vitest.config.ts:18-23 may need RAISING as tests move down;
+      never lowering.
+
+      CHECKED AND REJECTED — do not carry this into the refactor: ui/driver-type-chips.test.ts and
+      ui/driver-type-chips.browser.spec.ts are NOT duplicate coverage. The vitest file tests the
+      DriverType/Chip enum (ALL reflection, parse round-trip, wire values); the browser file tests the
+      rendered filter bar (toggle state, hover, enum order on screen). Different subjects.
+
+      NOT IN SCOPE, deliberately: retries:1, maxFailures:180, channel:'chromium' and the browserLog
+      auto-fixture all stay. Each has a bug file or a reproduced incident behind it.
+
+      VERIFICATION: bash scripts/health-check.sh green at the end, not a subset. Re-time
+      original-layout against the 2.1 min baseline above. After step 1, grep for
+      'async function openAProject' in the specs must return nothing. After step 3, the count of
+      'import(/* @vite-ignore */ modPath)' in browser specs must be zero.
+
+      PEER COORDINATION: packages/ui/test/persistence/* and fixtures/seedMyDrivers.ts were owned by a
+      concurrent session (pid 32688) at the time of this review. Start with ui/ and logic/; take
+      persistence/ only once those batches are committed.
 - id: QO130
   title: Which of ViewSnapshot's fields belong to the project and which to the user
   status: decided
@@ -8838,3 +8938,98 @@ questions:
         openisd_app                             (was openisd.view, now the app half only)
 
       No migration.
+- id: QO131
+  title: Is winisd->ini a legal layer edge? (packages/design/ini is not on ALLOWED_EDGES) -
+  status: decided
+  raised: '2026-09-09'
+  body: ''
+  answer:
+    at: '2026-09-09'
+    text: |-
+      John, 2026-09-09: "wdr may im port ini"
+
+      Added 'winisd->ini' to ALLOWED_EDGES in packages/ui/test/ui/architecture.test.ts, commented
+      with the ruling. Verified the matrix is not blunted: an unruled edge out of the same layer
+      (ini->model) is still caught.
+- id: QO132
+  title: How should the notify gate follow a write through a lens? (architecture-notify.test.ts, 4 false
+    positives) -
+  status: decided
+  raised: '2026-09-09'
+  body: ''
+  answer:
+    at: '2026-09-09'
+    text: |-
+      Resolved in code without needing a ruling — option (a), the lens edge, plus a narrower
+      definition of "mutator".
+
+      `lensGetters` is read off the AST (every getter whose body calls `this.#slot(...)`), so
+      `this.driver.update(...)` counts as reaching #notify() via #slot's setter. And a void method
+      with an EMPTY body is no longer classified as a mutator: it writes nothing, so there is no
+      state change for a notification to accompany.
+
+      Gate green, both new arms broken on purpose and watched go red.
+- id: QO133
+  title: Bandpass4 rear-chamber resonance is 3Hz above WinISD's (61.31 vs 58.34) — physics call -
+  status: decided
+  raised: '2026-09-09'
+  body: ''
+  answer:
+    at: '2026-09-09'
+    text: my priority is a clean build so investigate why that is failing in a subagent AND add missing
+      physics if we know the physics so we can get on with more general issues - if we do not know the
+      physics then hide the bp4 option and disable the test and we will implement later
+- id: QO134
+  title: Tune popup must be a child of a higher component, independent of the box view it was opened from
+  status: decided
+  raised: '2026-09-09'
+  body: ''
+  answer:
+    at: '2026-09-09'
+    text: 'John''s ruling: ''make this popup a child of a higher component so that it is independent of
+      the box view from which it was opened.'' Implemented by moving OgTune to App.vue under v-if=''project'',
+      verified with tune-panel-independent-of-box-view.browser.spec.ts 2/2 green.'
+- id: QO135
+  title: |-
+    DECIDED: delete the dead test:visual script and its rules section — the SPL visual-regression spec does not exist 2026-09-09, John's ruling: "Delete script + rules section".
+
+    FINDING. npm run test:visual points at packages/ui/test/ui/visual.browser.spec.ts, which does not
+    exist. Neither does its snapshot directory. Two live references to a spec that is gone:
+
+      package.json:27
+        "test:visual": "bash scripts/test-browser.sh packages/ui/test/ui/visual.browser.spec.ts"
+
+      .claude/rules/openisd-ui-tests.md:75-88 — a whole section, 'Visual regression — SPL canvas',
+      documenting it as live coverage: pixel-exact screenshots of the SPL graph panel across all four
+      box types (sealed, vented, bandpass4, passive radiator), compared against committed baselines in
+      test/ui/visual.browser.spec.ts-snapshots/, with a --update-snapshots regeneration procedure.
+
+    NOT A HOLE IN THE GATE. scripts/test-browser.sh:37-45 collects with --list first and refuses when
+    zero tests match, so test:visual fails loudly rather than passing green on nothing. The damage is
+    that the rules file tells every agent and contributor that SPL-canvas visual regression is covered
+    when it is not.
+
+    RULING: delete both — the package.json script and the openisd-ui-tests.md section. Do NOT rebuild
+    the spec or its baselines.
+
+    TO DO when out of plan mode: this is a defect, so it gets a bugs/*.md file recorded BEFORE the fix
+    (AGENTS.md / behavioral_instructions.md 'Record the bug before reporting or fixing it'). I could
+    not write it during the review — plan mode permits no repo writes. Write the bug record first,
+    then make the two deletions in the same change.
+
+    Found during the UI-test repetition/runtime review; the rest of that review folded into QO129.
+  status: decided
+  raised: '2026-09-09'
+  body: ''
+  answer:
+    at: '2026-09-09'
+    text: 'John''s ruling: ''Delete script + rules section''. Recorded bug BUG_20260909_test_visual_script_and_rules_section_point_to_nonexistent_spec.md,
+      deleted test:visual from package.json and removed Visual regression section from .claude/rules/openisd-ui-tests.md.'
+- id: QO136
+  title: Disable re-exports architecture gate (QO80) temporarily
+  status: decided
+  raised: '2026-09-09'
+  body: ''
+  answer:
+    at: '2026-09-09'
+    text: Disabled re-exports architecture gate per John's instruction on 2026-09-09

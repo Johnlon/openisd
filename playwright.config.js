@@ -24,6 +24,16 @@ export default defineConfig({
   // here: every such run showed a transport or launch error and ZERO assertion mismatches.
   // One retry absorbs it; a test that genuinely fails still fails on the retry.
   retries: 1,
+  // STOP a collapsed run rather than let it manufacture a total. `reuseExistingServer` means a
+  // vite that dies mid-run is never restarted, so every remaining test fails identically on
+  // ERR_CONNECTION_REFUSED — once turning one server death into "210 failed", an hour spent
+  // producing a number that measured nothing about the code.
+  // bugs/BUG_20260909_the_playwright_vite_server_dies_mid_run_and_fakes_hundreds_of_failures.md
+  //
+  // Set well ABOVE any plausible real red so it never truncates a genuine result: the suite's
+  // worst honest run to date was 161. This bites only when the run has stopped measuring the
+  // code at all.
+  maxFailures: 180,
   // Runs tests within a single file in parallel.
   fullyParallel: true,
   // Scale workers based on cores (up to 8) to speed up local runs, but capped to avoid renderer death under heavy WSL load.

@@ -1,12 +1,9 @@
-/**
- * The sealed-box Box tab exposes the Fsc-model loss-mode selector (Lossless / Conventional
- * Lossy / WinISD Lossy). The calculation reads presentationState.lossMode (OriginalShell.vue's
- * sealedRes), so without a control the model would be pinned to the default.
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import type { Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await openAProject(page);
   await page.locator('select#og-box-type').selectOption('sealed');
 });
 

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.original-root').waitFor({ state: 'visible' });
+  await openAProject(page);
 });
 
 async function checkScrollbars(page: Page) {

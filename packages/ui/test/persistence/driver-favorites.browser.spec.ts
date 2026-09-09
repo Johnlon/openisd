@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 
 // ui-todo.md "Favorites" — a star toggle on every row, and a Favorites button in the slot
 // the All Sources dropdown vacated, behaving as an on/off filter over the same list exactly
@@ -9,6 +9,7 @@ import { test, expect } from '../fixtures.js';
 
 async function openPicker(page: Page): Promise<void> {
   await page.goto('/');
+  await openAProject(page);
   await page.locator('[title*="librar" i]').first().click();
   await expect(page.locator('.dlist')).toBeVisible();
 }

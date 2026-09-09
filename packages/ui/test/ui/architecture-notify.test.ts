@@ -14,7 +14,7 @@
 // not known to test anything. See AGENTS.md "Every architecture test exists to catch the AI".
 
 /**
- * Every public mutator on `ManagedProject` notifies (`docs/design/REACTIVITY.md` §"What
+ * Every public mutator on `OpenISDProject` notifies (`docs/design/REACTIVITY.md` §"What
  * must be true before objective 2 lands", item 2): "A mutator that forgets is a silently stale
  * UI... worth an architecture gate asserting that every public mutator notifies."
  *
@@ -29,7 +29,7 @@
  *
  * Known limit of the `void`-return mutator definition: a mutator that returns a VALUE (e.g. a
  * builder-style method returning `this`, or one returning the field it just wrote) would not be
- * classified as a mutator at all and would evade this gate entirely. `projectToPersist()` IS
+ * classified as a mutator at all and would evade this gate entirely. `cloneSavedProject()` IS
  * such a method today — it returns `OpenISDProjectJson`, and mutates: it cancels an active
  * what-if (`#endWhatIfIfActive()`), which reaches `#notify()`. The gate's void-only filter skips
  * it, so its own reachability check never runs on it; it happens to notify anyway (traced above),
@@ -42,16 +42,16 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Project as TsProject, Node, SyntaxKind } from 'ts-morph';
 
-const UI_SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
-const MANAGED_PROJECT_FILE = join(UI_SRC, 'logic', 'managedProject.ts');
+const DESIGN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'design');
+const DOMAIN_FILE = join(DESIGN, 'domain', 'openisdDomain.ts');
 
 const project = new TsProject({
-  tsConfigFilePath: join(UI_SRC, '..', 'tsconfig.json'),
+  tsConfigFilePath: join(DESIGN, 'tsconfig.json'),
   skipAddingFilesFromTsConfig: true,
 });
-const sourceFile = project.addSourceFileAtPath(MANAGED_PROJECT_FILE);
+const sourceFile = project.addSourceFileAtPath(DOMAIN_FILE);
 
-const classDecl = sourceFile.getClassOrThrow('ManagedProject');
+const classDecl = sourceFile.getClassOrThrow('OpenISDProject');
 
 /** Every instance method's name (public and private) to member-name text ("notify" for
  *  `#notify`), matching what a `this.foo(...)`/`this.#foo(...)` call site's member name reads
@@ -64,19 +64,37 @@ function memberNameOf(nameNode: Node): string {
 
 const instanceMethods = classDecl.getMethods().filter(m => !m.isStatic());
 
+/** Every getter whose body returns a window built over `this.#slot(...)` — `driver`, `box`,
+ *  `nDrivers` and their siblings. Writing through such a window runs `#slot()`'s own setter,
+ *  which calls `#notify()`, so a mutator whose only write is `this.driver.update(...)` DOES
+ *  notify even though the call leaves the class. Detected from the getter's own body, not from
+ *  a hand-kept list, so a getter that stops going through `#slot` stops conferring the edge. */
+const lensGetters = new Set(
+  classDecl.getGetAccessors()
+    .filter(g => /this\.#slot\(/.test(g.getText()))
+    .map(g => memberNameOf(g.getNameNode())),
+);
+
 /** `this.foo(...)` / `this.#foo(...)` call sites inside one method's body, as the called
- *  member's name — the edges of the same-class call graph. A call on anything other than
- *  `this` (e.g. `this.#effective().openIsdDriver?.enter(...)`, a call on the driver instance,
- *  not on `ManagedProject` itself) is deliberately not an edge: it leaves this class's
- *  own call graph, which is exactly the gap this gate exists to catch. */
+ *  member's name — the edges of the same-class call graph — plus `this.<lensGetter>.foo(...)`,
+ *  which reaches `#notify()` through `#slot()`'s setter (see `lensGetters`). A call on anything
+ *  else (e.g. a call on a value handed in as a parameter) is deliberately not an edge: it leaves
+ *  this class's own call graph, which is exactly the gap this gate exists to catch. */
 function sameClassCalleesOf(method: Node): Set<string> {
   const callees = new Set<string>();
   method.forEachDescendant(node => {
     if (!Node.isCallExpression(node)) return;
     const callee = node.getExpression();
     if (!Node.isPropertyAccessExpression(callee)) return;
-    if (callee.getExpression().getKind() !== SyntaxKind.ThisKeyword) return;
-    callees.add(memberNameOf(callee.getNameNode()));
+    const target = callee.getExpression();
+    if (target.getKind() === SyntaxKind.ThisKeyword) {
+      callees.add(memberNameOf(callee.getNameNode()));
+      return;
+    }
+    // `this.driver.update(...)` — a call on a lens window. The write runs #slot()'s setter.
+    if (!Node.isPropertyAccessExpression(target)) return;
+    if (target.getExpression().getKind() !== SyntaxKind.ThisKeyword) return;
+    if (lensGetters.has(memberNameOf(target.getNameNode()))) callees.add('notify');
   });
   return callees;
 }
@@ -103,16 +121,23 @@ function reachesNotify(startMethodName: string): boolean {
   return false;
 }
 
-/** A "mutator": a public (non-`#`) instance method whose declared return type is `void`. Every
- *  read method on `ManagedProject` returns a value (`number`, `boolean`, `Cell`, a driver
- *  field type, ...); `subscribe` returns `() => void`, a function, not `void` itself. */
+/** A "mutator": a public (non-`#`) instance method that returns `void` AND whose body contains
+ *  at least one statement. Every read method on `OpenISDProject` returns a value (`number`,
+ *  `boolean`, `Cell`, a driver field type, ...); `subscribe` returns `() => void`, a function,
+ *  not `void` itself.
+ *
+ *  An EMPTY body is excluded because it writes nothing — there is no state change for a
+ *  notification to accompany, so demanding one would report a defect that does not exist.
+ *  `solveVentGroup`/`solvePrGroup` are such stubs today (QO126). The moment either grows a body
+ *  it becomes a mutator again and must reach `#notify()` like every other. */
 const publicMutators = instanceMethods.filter(m => {
   const name = m.getNameNode().getText();
   if (name.startsWith('#')) return false;
-  return m.getReturnType().getText() === 'void';
+  if (m.getReturnType().getText() !== 'void') return false;
+  return (m.getBody()?.getDescendantStatements().length ?? 0) > 0;
 });
 
-describe('every public mutator on ManagedProject notifies', () => {
+describe('every public mutator on OpenISDProject notifies', () => {
   it('finds at least one public mutator — a gate over zero mutators would pass vacuously', () => {
     assert.ok(publicMutators.length > 0, 'no public void-returning instance method found');
   });

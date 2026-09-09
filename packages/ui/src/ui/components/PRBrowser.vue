@@ -1,41 +1,42 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import type { PRLibEntry, BundledPassiveRadiator } from '@openisd/persistence';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { useApp } from '../../logic/app.js';
-import { toDisplay } from '../../logic/fields/units.js';
+import { passiveRadiatorRows } from '../../logic/driverDisplay.js';
 
 const { myPassiveRadiators, bundledPassiveRadiators } = useApp();
 
 // PR browser — a popup mirroring the driver browser (DriverBrowserMd.vue): two
 // sections, "Saved" (your localStorage PR library) and "Bundled" (passive radiators
-// pulled from the driver collections), plus a "Define new PR" affordance. Replaces
-// PRPanel's old inline saved-only list, which never surfaced the bundled PRs.
+// pulled from the driver collections), plus a "Define new PR" affordance.
 
+// A row's `id` is all that crosses the boundary: the storage uuid for a saved radiator, the
+// list position for a bundled one. The shell resolves it back to a radiator (A9 — a component
+// carries no domain value).
 const emit = defineEmits<{
   close: [];
-  load: [PRLibEntry];
-  loadBundled: [BundledPassiveRadiator];
+  load: [string];
+  loadBundled: [string];
   define: [];
 }>();
 
-const saved = ref(myPassiveRadiators.list());
-const bundled = bundledPassiveRadiators;
+const savedRows = ref(passiveRadiatorRows(
+  myPassiveRadiators.list().map(e => ({ id: e.uuid, radiator: e.passiveRadiator }))));
+const bundledRows = passiveRadiatorRows(
+  bundledPassiveRadiators.map((radiator, i) => ({ id: String(i), radiator })));
 const filter = ref('');
 
-const fSaved = computed(() => {
-  const q = filter.value.trim().toLowerCase();
-  return q ? saved.value.filter(e => e.name.toLowerCase().includes(q)) : saved.value;
-});
-const fBundled = computed(() => {
-  const q = filter.value.trim().toLowerCase();
-  return q ? bundled.filter(p => p.name.toLowerCase().includes(q)) : bundled;
-});
+const matching = <T extends { name: string }>(rows: readonly T[], q: string): readonly T[] =>
+  q ? rows.filter(r => r.name.toLowerCase().includes(q)) : rows;
 
-function loadSaved(e: PRLibEntry) { emit('load', e); }
-function loadBundledPassiveRadiator(p: BundledPassiveRadiator) { emit('loadBundled', p); }
-function remove(id: number) { saved.value = myPassiveRadiators.remove(id); }
-function define() { emit('define'); }
+const fSaved = computed(() => matching(savedRows.value, filter.value.trim().toLowerCase()));
+const fBundled = computed(() => matching(bundledRows, filter.value.trim().toLowerCase()));
+
+function remove(uuid: string) {
+  myPassiveRadiators.remove(uuid);
+  savedRows.value = passiveRadiatorRows(
+    myPassiveRadiators.list().map(e => ({ id: e.uuid, radiator: e.passiveRadiator })));
+}
 function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
 useEscToClose(() => true, close);
@@ -55,8 +56,8 @@ useEscToClose(() => true, close);
             {{ filter ? 'No saved PRs match.' : 'No saved PRs yet — define one below, or Save from the PR editor.' }}
           </div>
           <div v-for="e in fSaved" :key="e.id" class="pr-lib-item">
-            <span class="pr-lib-name" @click="loadSaved(e)"
-              :title="`Load ${e.name} — Sd=${toDisplay(e.prSd, 'area', 'cm2').toFixed(0)}cm² Mms=${toDisplay(e.prMmd, 'mass', 'g').toFixed(1)}g Cms=${toDisplay(e.prCms, 'compliance', 'mmPerN').toFixed(2)}mm/N`">{{ e.name }}</span>
+            <span class="pr-lib-name" @click="emit('load', e.id)"
+              :title="`Load ${e.name} — Sd=${e.sd} Mms=${e.mms} Cms=${e.cms}`">{{ e.name }}</span>
             <button class="pr-lib-del" @click="remove(e.id)" title="Remove this PR from your library">✕</button>
           </div>
 
@@ -65,14 +66,14 @@ useEscToClose(() => true, close);
           <div v-if="!fBundled.length" style="color:var(--mut);font-size:11px;padding:4px 8px">
             {{ filter ? 'No bundled PRs match.' : 'No bundled passive radiators in the current collection.' }}
           </div>
-          <div v-for="p in fBundled" :key="p.path" class="pr-lib-item">
-            <span class="pr-lib-name" @click="loadBundledPassiveRadiator(p)"
+          <div v-for="p in fBundled" :key="p.id" class="pr-lib-item">
+            <span class="pr-lib-name" @click="emit('loadBundled', p.id)"
               :title="'Load ' + p.name + ' — Sd/Cms/Vas from the datasheet; Fs/Mms/Rms/Xmax not published, left blank'">{{ p.name }}</span>
           </div>
         </div>
 
         <div class="btns" style="margin-top:10px">
-          <button @click="define" title="Define a brand-new passive radiator from scratch">＋ Define new PR</button>
+          <button @click="emit('define')" title="Define a brand-new passive radiator from scratch">＋ Define new PR</button>
           <button class="pri" @click="close" title="Close">Done</button>
         </div>
       </div>

@@ -7,6 +7,7 @@
 import { OpenISDProject } from '@openisd/design';
 import type { Engine } from '@openisd/design/engine';
 import type { FileStorage, SaveResult } from '../storage/fileStorage.js';
+import { createProjectSchemaUpgrade } from './projectSchemaUpgrade.js';
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
 
@@ -69,6 +70,7 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 export function createProjectRepo(
   engine: Engine, fileStorage: FileStorage,
 ): ProjectRepo {
+  const upgrade = createProjectSchemaUpgrade(engine);
   return {
     async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {
       // The project travels as `.owpr` TEXT, exactly as it does to a file — one serialised form
@@ -83,7 +85,13 @@ export function createProjectRepo(
       if (!m) return null;
       let parsed: unknown;
       try { parsed = JSON.parse(await gzipDecodeBase64Url(m[1])); } catch { return null; }
-      const payload = sharePayload(parsed);
+      // Every reader upgrades (bugs/BUG_20260822_share_links_and_file_imports_bypass_the_
+      // schema_upgrade.md). A payload already at the current schema passes through unchanged,
+      // so `sharePayload()` below stays the one validator for the current shape.
+      const current = upgrade.sharePayload(parsed);
+      if (Array.isArray(current)) return current;
+
+      const payload = sharePayload(current);
       if (!payload) return ['share link is not a recognised session payload'];
 
       const result = OpenISDProject.fromOwprText(payload.project, engine);
@@ -91,7 +99,13 @@ export function createProjectRepo(
     },
 
     readProjectText(text: string): OpenISDProject | string[] {
-      return OpenISDProject.fromOwprText(text, engine);
+      let parsed: unknown;
+      try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
+      // The same upgrade the hash path applies — File → Open and a share link accept the same
+      // set of payloads, or a design saved by an older build opens through one door only.
+      const current = upgrade.projectPayload(parsed);
+      if (Array.isArray(current)) return current;
+      return OpenISDProject.fromOwprText(current, engine);
     },
 
     saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {

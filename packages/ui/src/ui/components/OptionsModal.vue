@@ -67,7 +67,7 @@ useEscToClose(() => true, close);
 const project = useFocusedProject();
 
 type Tab = 'General' | 'Plot Window';
-const tab = reactive({ v: 'General' as Tab });
+const tab = reactive<{ v: Tab }>({ v: 'General' });
 
 const draft = reactive({
   username: presentationState.ui.username,

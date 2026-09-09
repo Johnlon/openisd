@@ -1,12 +1,4 @@
-/**
- * The docked Tune panel (shells/original/OgTune.vue).
- *
- * It edits the project directly, so what it shows has to be as complete and as honest as the
- * driver editor dialog: a field the app CALCULATED must be visible and marked as calculated,
- * every field must be overridable, and a field that is required-but-missing must say so.
- * These tests pin the five behaviours the human asked for by name.
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
 /** appState's own verdict for one field — the model, not the pixels. */
@@ -32,7 +24,7 @@ async function openTune(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.original-root').waitFor({ state: 'visible' });
+  await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
   const tune = page.locator('.tune-panel');
@@ -160,7 +152,7 @@ test('QO11.5 NumInput: an out-of-range value typed character-by-character goes r
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.original-root').waitFor({ state: 'visible' });
+  await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
 
   const vb = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
@@ -194,7 +186,7 @@ test('QO11.5 NumInput: a full-precision value survives typing and blur — dp is
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.original-root').waitFor({ state: 'visible' });
+  await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
 
   const vb = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();

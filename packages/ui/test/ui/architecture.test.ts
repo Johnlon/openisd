@@ -29,7 +29,7 @@
  */
 import { describe, it, vi } from 'vitest';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { Project as TsProject, Node, SyntaxKind, type SourceFile } from 'ts-morph';
@@ -144,21 +144,9 @@ const MODEL_SRC = join(UI_SRC, '..', '..', 'design', 'domain');
 const WINISD_SRC = join(UI_SRC, '..', '..', 'design', 'winisd');
 // The data-access tier (repos/storage) is its own package now, not a ui/src directory
 // (John's ruling: a real 3-tier package boundary, not a directory convention).
+const INI_SRC = join(UI_SRC, '..', '..', 'design', 'ini');
 const PERSISTENCE_SRC = join(UI_SRC, '..', '..', 'persistence', 'src');
 const ENGINE_SRC = join(UI_SRC, '..', '..', 'design', 'engine');
-
-/** Does `file` contain a call expression whose callee text is exactly `expr` (e.g.
- *  `'OpenISDDriver.fromJsonRecord'`)? Used where a gate asserts a specific construction site
- *  still exists, rather than scanning imports or declarations. */
-function callsExpression(file: string, expr: string): boolean {
-  const source = sourceFileOf(file);
-  let found = false;
-  source.forEachDescendant(node => {
-    if (found) return;
-    if (Node.isCallExpression(node) && node.getExpression().getText() === expr) found = true;
-  });
-  return found;
-}
 
 describe('layering — every arrow points downward', () => {
   it('a service never imports the application state or the logic layer', () => {
@@ -191,34 +179,22 @@ describe('layering — every arrow points downward', () => {
     assert.deepEqual(offences, [], 'Services are siblings; one may not depend on another.');
   });
 
-  // The driver editor's sanctioned exemption: `@openisd/model` (the `OpenISDDriver` record and
-  // its own class) is the domain's ONE data type, not a service — a component that constructs
-  // and edits it directly is not skipping a layer the way a component computing physics would.
-  // Human ruling: "the driver editor needs to work in terms of the existing OpenISDDriver
-  // interface, not a facade — put the driver editor into its own module, allow it to access
-  // OpenISDDriver directly, other views not allowed." Scoped to this ONE file by name, not to
-  // `ui/**` generally — everything else, including `@openisd/design/engine` even for this same file,
-  // stays banned below.
-  const DRIVER_EDITOR = join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue');
-  const isExemptModelImport = (f: string, s: string) => f === DRIVER_EDITOR && /(^|\/)@openisd\/model(\/|$)/.test(s);
-
   it('the presentation layer depends on logic and nothing below it', () => {
     const offences = filesUnder(join(UI_SRC, 'ui')).flatMap(f =>
       importsOf(f)
-        .filter(s => (layerOf(s) === 'service' || layerOf(s) === 'domain') && !isExemptModelImport(f, s))
+        .filter(s => layerOf(s) === 'service' || layerOf(s) === 'domain')
         .map(s => `${rel(f)} imports ${s}`));
 
     assert.deepEqual(offences, [],
       'ui depends on logic and nothing else. Reaching past it — into a service, into the ' +
       'engine, or into the serialiser — skips a layer, and a second front-end would have to ' +
-      're-wire those calls rather than only re-skinning. (DriverEditorModal.vue is exempt for ' +
-      '@openisd/model only — see the ruling above.)');
+      're-wire those calls rather than only re-skinning.');
   });
 
   it('a component imports no value from the domain — a type-only import is not a dependency', () => {
     const offences = filesUnder(join(UI_SRC, 'ui')).flatMap(f =>
       importsOf(f)
-        .filter(s => layerOf(s) === 'domain' && !isExemptModelImport(f, s))
+        .filter(s => layerOf(s) === 'domain')
         .map(s => `${rel(f)} imports ${s}`));
 
     assert.deepEqual(offences, [],
@@ -299,68 +275,49 @@ describe('inversion of control — collaborators are injected, never reached for
 });
 
 /**
- * ARCHITECTURE.md §3 "`ManagedProject` — the one facade over every state layer", and the
- * dependency-rules table (§2): only `ManagedProject` reaches `OpenISDProjectJson`, and only
- * `OpenISDProjectJson` reaches its members — the driver, the radiator, the box, the vent.
- * Everything else goes through the facade alone.
+ * ARCHITECTURE.md §3 and the dependency-rules table (§2): a driver's state lives inside
+ * `OpenISDProject` (`packages/design`), and `packages/ui` reaches it through the project.
+ * Constructing an `OpenISDDriver` from nothing — an empty driver, or one parsed out of file
+ * text — is the one thing the ui still does for itself, and it is confined to the three
+ * `logic/` modules that own driver file IO and the editor's draft.
  */
-describe('ManagedProject is the only holder of OpenISDDriver', () => {
-  const MANAGED_DRIVER_FILE = join(UI_SRC, 'logic', 'managedProject.ts');
-
+describe('only the licensed logic modules construct an OpenISDDriver', () => {
   /**
-   * The ONE exemption, and it is narrow.
+   * The three licensed constructors, listed rather than pattern-matched so a fourth file
+   * cannot quietly join them.
    *
-   * The driver editor holds a live `OpenISDDriver` as its DRAFT. It cannot use the pure record
-   * readers instead, and the reason is specific: `clear()` restores the origin that a manual
-   * edit displaced, and it does so from `#displaced` — state accumulated across that instance's
-   * lifetime. A per-call pure function creates a new instance each time and has no such memory,
-   * so "clear this field" would forget what the field said before the user typed over it.
-   *
-   * The draft is bounded: it belongs to one open modal, nothing else can reach it, it is
-   * discarded on cancel, and on OK it leaves as a RECORD. It is never app state.
-   *
-   * It is listed here rather than pattern-matched so that a second file cannot quietly join it.
+   * - `driverDraft.ts` seeds the driver editor's draft — a blank driver for a new My Driver,
+   *   or a detached copy of an existing one. It is the editing session's own state, held
+   *   outside the component per the "a component holds no domain value" rule.
+   * - `driverSelection.ts` turns a picker row or a file read off disk into a driver.
+   * - `fileImportExport.ts` parses `.wdr` and `.owdr` text.
    */
-  const DRAFT_HOLDER = join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue');
+  const LICENSED = [
+    join(UI_SRC, 'logic', 'driverDraft.ts'),
+    join(UI_SRC, 'logic', 'driverSelection.ts'),
+    join(UI_SRC, 'logic', 'fileImportExport.ts'),
+  ];
 
-  /**
-   * The driver-selection module — driver file IO that is not bound to a project (disk/library
-   * rows → records for the pickers and the editor) constructs its transient drivers HERE,
-   * rather than through a wrapper seam in the model or an exemption for a service file.
-   */
-  const MANAGED_DRIVER_IO_FILE = join(UI_SRC, 'logic', 'driverSelection.ts');
-
-  it('the draft exemption names a file that still exists and still holds a draft', () => {
-    assert.ok(callsExpression(DRAFT_HOLDER, 'OpenISDDriver.fromOwdrJson'),
-      'DriverEditorModal.vue no longer holds a live draft — delete this exemption rather than ' +
-      'leaving a hole in the containment rule for the next file to fall through. (It seeds the ' +
-      'draft from the editor-seed TEXT the managed layer hands it, which is why the probe names ' +
-      'fromOwdrJson: nothing between the project and the editor parses a driver record.)');
+  it('each licensed file still exists and still constructs a driver', () => {
+    const inert = LICENSED.filter(f => !existsSync(f) || !/OpenISDDriver\.\w+\s*\(/.test(readFileSync(f, 'utf8')));
+    assert.deepEqual(inert.map(rel), [],
+      'A file on the licensed list no longer constructs an OpenISDDriver — delete it from the ' +
+      'list rather than leaving a hole in the containment rule for the next file to fall through.');
   });
 
-  it('nothing outside managedProject.ts imports the OpenISDDriver value', () => {
-    const files = filesUnder(UI_SRC)
-      .filter(f => f !== MANAGED_DRIVER_FILE && f !== DRAFT_HOLDER && f !== MANAGED_DRIVER_IO_FILE);
+  it('nothing outside the licensed files imports the OpenISDDriver value', () => {
+    const files = filesUnder(UI_SRC).filter(f => !LICENSED.includes(f));
     const offences = files.flatMap(f =>
       valueImportsOf(f)
-        .filter(vi => /(^|\/)@openisd\/model(\/|$)/.test(vi.spec) && vi.names.includes('OpenISDDriver'))
+        .filter(vi => /(^|\/)@openisd\/design(\/|$)/.test(vi.spec) && vi.names.includes('OpenISDDriver'))
         .map(vi => `${rel(f)} imports OpenISDDriver from ${vi.spec}`));
 
     assert.deepEqual(offences, [],
-      '`ManagedProject` (packages/ui/src/logic/managedProject.ts) is the ONLY facade over a ' +
-      "driver's ground/modified state, and `driverSelection.ts` is the only other " +
-      'licensed constructor, for driver file IO not bound to a project. A further import of the ' +
-      'OpenISDDriver class is an uncontrolled path into that state — it bypasses the edit ' +
-      'lifecycle and the single-channel notification asymmetry `ManagedProject` exists to enforce.');
-  });
-
-  it('managedProject.ts itself is the one file that constructs an OpenISDDriver', () => {
-    assert.ok(callsExpression(MANAGED_DRIVER_FILE, 'OpenISDDriver.fromOwdrJson'),
-      'managedProject.ts no longer constructs an OpenISDDriver — either the facade was ' +
-      'gutted, or construction moved to a helper file the previous assertion also needs to ' +
-      'exempt. Update both together, never widen the exemption alone. (It materialises each ' +
-      "layer's driver from the project's stored TEXT — QO83: the project holds the driver's " +
-      'own serialisation, never its record — which is why the probe names fromOwdrJson.)');
+      "A driver's state belongs to `OpenISDProject`; the ui reads it through the project. The " +
+      'three licensed logic modules construct drivers only because file IO and the editor draft ' +
+      'genuinely start from nothing. A further value import of the class is an uncontrolled path ' +
+      'into driver state — it bypasses the project and the notifications it fires. A type-only ' +
+      'import is fine: it erases, so it cannot reach the object.');
   });
 });
 
@@ -396,17 +353,16 @@ describe('one driver model — the classic Driver ADT is not part of the app', (
 /**
  * ARCHITECTURE.md §"Approved state stores — there are THREE, and no others".
  *
- * The store holds persistent design state; `ManagedProject` holds active/edit driver
- * state; `ViewState` holds presentation state and the visible URL. EVERY other component is a
- * slave to those three — it reads and writes through them and holds nothing of its own.
+ * The store holds which projects are open and which is focused; each `OpenISDProject` holds its
+ * own driver, box and edit state; `presentationState` and `urlAppState` hold presentation state
+ * and the visible URL. EVERY other component is a slave to those — it reads and writes through them and holds nothing of its own.
  *
  * A local copy of state one of the three already holds is a SECOND ANSWER to the same question,
  * and two answers are free to disagree.
  */
-describe('only the three approved stores hold state', () => {
+describe('only the approved stores hold state', () => {
   const APPROVED = [
     join(UI_SRC, 'logic', 'appState.ts'),
-    join(UI_SRC, 'logic', 'managedProject.ts'),
     join(UI_SRC, 'logic', 'presentationState.ts'),   // not built yet — see ARCHITECTURE.md
     join(UI_SRC, 'logic', 'urlAppState.ts'),
   ];
@@ -442,9 +398,9 @@ describe('only the three approved stores hold state', () => {
     }
 
     assert.deepEqual(offences, [],
-      'Only the approved stores may hold state: the store (persistent design), ManagedProject ' +
-      '(active/edit driver), PresentationState (presentation, browser-backed), ' +
-      'UrlAppState (the URL that encapsulates the app state). Each binding ' +
+      'Only the approved stores may hold state: appState (which projects are open and which is ' +
+      'focused), presentationState (presentation, browser-backed), urlAppState (the URL that ' +
+      'encapsulates the app state). A driver or box belongs to its OpenISDProject. Each binding ' +
       'above is a fourth store — module-level, outliving every component, reachable by import, ' +
       'and free to disagree with whichever approved store already answers the same question. ' +
       'Delete it and call the approved store, every time; never cache a copy for convenience.');
@@ -454,76 +410,51 @@ describe('only the three approved stores hold state', () => {
 /**
  * ARCHITECTURE.md §"Approved state stores" and §3: the containment must be TOTAL.
  *
- *     everything  ->  store  ->  ManagedProject  ->  OpenISDDriver
+ *     everything  ->  appState  ->  OpenISDProject  ->  OpenISDDriver
  *
- * Each arrow is the ONLY way through. `OpenISDDriver` is private state inside `ManagedProject`;
- * `ManagedProject` is reached through the store. A single leak makes the whole chain advisory:
- * one caller holding the driver directly can mutate it with no notification, which is the exact
+ * Each arrow is the ONLY way through. `appState.ts` holds which projects are open and which is
+ * focused; the project owns its driver. A single leak makes the whole chain advisory: one
+ * caller holding the driver directly can mutate it with no notification, which is the exact
  * defect this architecture exists to make impossible.
  */
-describe('containment is total: store -> ManagedProject -> OpenISDDriver', () => {
-  const MANAGED = join(UI_SRC, 'logic', 'managedProject.ts');
+describe('containment is total: appState -> OpenISDProject -> OpenISDDriver', () => {
   const STORE = join(UI_SRC, 'logic', 'appState.ts');
 
-  it('ManagedProject never hands an OpenISDDriver out — every public member returns data', () => {
-    // AST-driven (ts-morph), not text-pattern: a private-field/method (#name or `private`) is
-    // exempt — it cannot be reached from outside the class — but every other method, getter, or
-    // arrow-function property whose declared return type names OpenISDDriver is a leak,
-    // regardless of indentation or getter-vs-method syntax a regex could miss.
+  it('appState never hands an OpenISDDriver out — every exported function returns data', () => {
+    // AST-driven (ts-morph), not text-pattern: every exported function whose declared return
+    // type names OpenISDDriver is a leak, regardless of how it is written.
     const localProject = new TsProject({ tsConfigFilePath: join(UI_SRC, '..', 'tsconfig.json'), skipAddingFilesFromTsConfig: true });
-    const sf = localProject.addSourceFileAtPath(MANAGED);
+    const sf = localProject.addSourceFileAtPath(STORE);
     const offences: string[] = [];
-    for (const cls of sf.getClasses()) {
-      const members = [
-        ...cls.getMethods(), ...cls.getGetAccessors(), ...cls.getProperties(),
-      ];
-      for (const m of members) {
-        if (m.hasModifier?.('private') || /^#/.test(m.getName())) continue;
-        const type = 'getReturnType' in m ? m.getReturnType() : m.getType();
-        if (type.getText().includes('OpenISDDriver')) {
-          offences.push(`${m.getName()}() returns ${type.getText()}`);
-        }
-      }
+    for (const fn of sf.getFunctions()) {
+      if (!fn.isExported()) continue;
+      const text = fn.getReturnType().getText();
+      if (text.includes('OpenISDDriver')) offences.push(`${fn.getName()}() returns ${text}`);
     }
 
     assert.deepEqual(offences, [],
-      'OpenISDDriver is ManagedProject\'s private state (the human\'s ruling: it "sits behind ' +
-      'ManagedProject as private internal state MAPPED to the openisd.yml file"). A public ' +
-      'member returning one hands the internal driver to the caller, who can then mutate it ' +
-      'behind the facade with no notification. Return the DATA the ' +
-      'caller needs — a Cell, a record, an engine driver — never the object.');
+      'A driver is `OpenISDProject`\'s state, not the store\'s. A store function returning one ' +
+      'hands the project\'s driver to the caller, who can then mutate it behind the project with ' +
+      'no notification. Return the DATA the caller needs — a Cell, a display row, an engine ' +
+      'driver — never the object.');
   });
 
-  it('the store is the only logic module that holds the ManagedProject instance', () => {
+  /** File IO is the one other place a project is built from nothing — `.wpr`/`.owpr` text
+   *  parsed off disk, before any registry exists to hand it to. Named, not pattern-matched. */
+  const PROJECT_FILE_IO = join(UI_SRC, 'logic', 'fileImportExport.ts');
+
+  it('the store is the only logic module that holds the project registry', () => {
     const offences = filesUnder(UI_SRC)
-      .filter(f => f !== STORE && f !== MANAGED)
+      .filter(f => f !== STORE && f !== PROJECT_FILE_IO)
       .flatMap(f => valueImportsOf(f)
-        .filter(vi => /managedProject(\.js)?$/.test(vi.spec) && vi.names.includes('ManagedProject'))
-        .map(() => `${rel(f)} imports the ManagedProject CLASS`));
+        .filter(vi => /(^|\/)@openisd\/design(\/|$)/.test(vi.spec) && vi.names.includes('OpenISDProject'))
+        .map(() => `${rel(f)} imports the OpenISDProject CLASS`));
 
     assert.deepEqual(offences, [],
-      'The store constructs and holds the one ManagedProject; everything else reaches it as ' +
-      '`managedProject` from the store. Importing the class elsewhere is how a SECOND driver ' +
-      'state appears - two ManagedProjects are two answers to "what is the driver".');
-  });
-
-  it('nothing reaches past ManagedProject into the model package for a driver value', () => {
-    const offences = filesUnder(UI_SRC)
-      .filter(f => f !== MANAGED
-        && f !== join(UI_SRC, 'logic', 'driverSelection.ts')
-        && f !== join(UI_SRC, 'ui', 'components', 'DriverEditorModal.vue'))
-      .flatMap(f => valueImportsOf(f)
-        .filter(vi => /(^|\/)@openisd\/model(\/|$)/.test(vi.spec))
-        .flatMap(vi => vi.names
-          .filter(n => n === 'OpenISDDriver' || n === 'ManagedProject')
-          .map(n => `${rel(f)} imports ${n} as a VALUE from ${vi.spec}`)));
-
-    assert.deepEqual(offences, [],
-      'Only the managed layer may name OpenISDDriver as a value: managedProject.ts, and ' +
-      'driverSelection.ts for driver file IO not bound to a project — picker rows, a fetched ' +
-      '.wdr, and a file read off disk. DriverEditorModal.vue carries its own narrow, ruled ' +
-      'draft exemption — see the comment at its own construction site. A type-only import is ' +
-      'fine — it erases, so it cannot reach the object.');
+      'The store constructs and holds the open projects; everything else reaches them as ' +
+      '`focusedProject()`/`openProjects()` from the store. Importing the class elsewhere is how a ' +
+      'SECOND project state appears — two registries are two answers to "which project is open". ' +
+      'fileImportExport.ts is licensed because it parses a project out of file text.');
   });
 
   it('NO ui file may name WinISDDriver as a value', () => {
@@ -543,7 +474,7 @@ describe('containment is total: store -> ManagedProject -> OpenISDDriver', () =>
   });
 });
 
-const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC), ...filesUnder(PERSISTENCE_SRC), ...filesUnder(ENGINE_SRC)];
+const ALL_SRC_FILES = [...filesUnder(UI_SRC), ...filesUnder(MODEL_SRC), ...filesUnder(WINISD_SRC), ...filesUnder(INI_SRC), ...filesUnder(PERSISTENCE_SRC), ...filesUnder(ENGINE_SRC)];
 const REPO_ROOT = join(UI_SRC, '..', '..');
 
 /**
@@ -566,6 +497,7 @@ const REPO_ROOT = join(UI_SRC, '..', '..');
 function fileLayer(file: string): string {
   if (file.startsWith(MODEL_SRC)) return 'model';
   if (file.startsWith(WINISD_SRC)) return 'winisd';
+  if (file.startsWith(INI_SRC)) return 'ini';
   if (file.startsWith(ENGINE_SRC)) return 'engine';
   if (file.startsWith(PERSISTENCE_SRC)) {
     const pr = relative(PERSISTENCE_SRC, file).replace(/\\/g, '/');
@@ -633,6 +565,8 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
     'persistence-repos->model', 'persistence-repos->engine', 'persistence-storage->model',
     'model->winisd', // human-approved 2026-08-23: toWinISDDriver/toWinISDProject/fromWinISDProject
     'winisd->model', // the correct-direction bridge (winisd/src/bridge.ts)
+    'winisd->ini', // human-approved 2026-09-09 ("wdr may import ini"): .wdr/.wpr ARE Windows INI files
+
     'ui/diagnostics->ui/root', 'ui/logging->ui/root',
     'ui/diagnostics->engine', // selftest.ts exercises the engine to self-check it's callable
     'model->engine', // the domain layer computes against engine's calc types (e.g. driverSimulatability)
@@ -698,7 +632,7 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
  * baseline, but not as a release blocker."
  *
  * A RATCHET, not a born-red checklist: `EXPORT_STAR_BASELINE` below is the exact symbol set
- * every pre-existing `export * from X` site re-exported at baseline time (2026-08-23),
+ * every pre-existing `export * from X` site re-exports (re-recorded 2026-09-09 for packages/design),
  * generated mechanically from the AST, not hand-typed. The gate passes on this snapshot and
  * fails on (a) any `export *` anywhere not in the baseline — a brand-new violation, or
  * (b) a baselined site whose CURRENTLY-resolved symbol set is a superset of its baseline — a
@@ -709,18 +643,15 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
  * — not this gate's job.
  */
 const EXPORT_STAR_BASELINE: Record<string, Record<string, string[]>> = {
-  'model/src/index.ts': {
-    './openisdRecord.js': ['CrossSourceReading', 'CurveEntry', 'CurvesBlock', 'DQStatus', 'DqKind', 'DqMark', 'DqSeverity', 'Ground', 'QualityBlock', 'Rating', 'Reading', 'SourceRole'],
-    './openisdDerive.js': ['OpenISDDerivation', 'deriveOpenISDFields'],
-    './openisdDriver.js': ['Cell', 'MetaCell', 'MetaField', 'OpenISDDriver', 'Provenance', 'SpecField', 'BookkeepingField', 'DerivedField', 'OpenISDDriverJson', 'ScrapedField', 'SpecEntry', 'SpecSection', 'Specs', 'driverRecordProblems', 'winningReading'],
-    './openisdYamlToWdr.js': ['openisdYamlToWdr'],
-    './driverType.js': ['Chip', 'DriverType'],
+  'design/ini/index.ts': {
+    './ini.js': ['Ini', 'parseIni', 'stringifyIni'],
   },
-  'winisd/src/index.ts': {
+  'design/winisd/index.ts': {
+    './cellState.js': ['CellState', 'CellStateSchema'],
     './winisdBytes.js': ['WINISD_NEWLINE_SENTINEL', 'WinisdDecodedText', 'WinisdEncoding', 'winisdBytesToText', 'winisdTextToBytes'],
     './winisdProject.js': ['WinISDProject'],
-    './winisdDriver.js': ['INI_ROWS', 'WdrCell', 'WdrHeader', 'WinISDDriver'],
-    './parstate.js': ['CellState', 'PARSTATE_LEN', 'POS_TO_WDRKEY'],
+    './winisdDriver.js': ['INI_ROWS', 'INI_ROWS_META', 'WINISD_CALCULABLE', 'WdrCell', 'WdrEnv', 'WdrHeader', 'WinISDDriver'],
+    './parstate.js': ['PARSTATE_LEN', 'POS_TO_WDRKEY', 'ParStateError', 'markOf', 'parseParState', 'provenanceOf'],
   },
 };
 /** Every bare `export * from '...'` in a file — no named bindings, no namespace alias — with

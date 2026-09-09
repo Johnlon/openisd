@@ -1,4 +1,5 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import type { Page } from '@playwright/test';
 
 // ui-todo.md "Remove UI Elements" — four controls come out of the driver picker
 // (DriverBrowserWinisd.vue).
@@ -12,6 +13,7 @@ const CONTROLS = {
 
 test('the picker no longer carries the four removed controls', async ({ page }) => {
   await page.goto('/');
+  await openAProject(page);
   await page.locator('[title*="librar" i]').first().click();
   await expect(page.locator('.dlist'), 'the picker did not open').toBeVisible();
 

@@ -23,7 +23,7 @@ import {
   openProjects, focusProject, removeProject, duplicateFocusedProject,
   formatInUnit as fmtU,
   copyProjectName,
-  syncedP, projectChanged, engine,
+  syncedP, projectChanged, definePassiveRadiator, boxTypeIsSimulatable,
 } from '../../../logic/appState.js';
 import { presentationState } from '../../../logic/presentationState.js';
 import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
@@ -32,7 +32,7 @@ import {
   ventFieldState as ventFieldStateOn, ventMaxReachableFb as ventMaxReachableFbOn,
   ventTargetUnreachable as ventTargetUnreachableOn,
 } from '../../../logic/useVentGroup.js';
-import { OpenISDPassiveRadiatorStandalone, type OpenISDProject } from '@openisd/design';
+import type { OpenISDProject } from '@openisd/design';
 
 // The delegate-free reactivity adapter (`docs/design/REACTIVITY.md`): touching `project.value`
 // inside a computed/watch registers a dependency that invalidates on every focused-project
@@ -41,10 +41,9 @@ import { OpenISDPassiveRadiatorStandalone, type OpenISDProject } from '@openisd/
 // focus change (switching tabs), sourced from `appState.ts`'s own focus-aware `live` bridge.
 const project = useFocusedProject();
 import UnitToggle from '../../components/UnitToggle.vue';
-import { Engine, type BoxType } from '@openisd/design/engine';
+import type { BoxType } from '@openisd/design/engine';
 import type { Design } from '../../../types.js';
-import type { PRLibEntry, BundledPassiveRadiator } from '@openisd/persistence';
-import { airForEnvironment, driveVoltageFor, parseLossMode, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
+import { airForEnvironment, driveVoltageFor, lossModeOptions, DEFAULT_RE_OHM } from '../../../logic/environment.js';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../types.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
@@ -57,7 +56,6 @@ import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import { precision as fieldDp, limits, END_CORRECTION_OPTIONS } from '../../../logic/fields/fieldRegistry.js';
 import OgFilters from './OgFilters.vue';
-import OgTune from './OgTune.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
@@ -69,7 +67,7 @@ import { inputChecked, inputFrom, inputValue, listeningElement, selectValue } fr
 // on every re-render.
 const LOSS_MODE_OPTIONS = lossModeOptions();
 
-const { designIO, selection } = useApp();
+const { designIO, selection, myPassiveRadiators, bundledPassiveRadiators } = useApp();
 const { saveProject, importFile, about } = designIO;
 const { editProjectDriver } = selection;
 
@@ -101,9 +99,9 @@ const BOX_OPTIONS: { id: BoxType; label: string }[] = [
   { id: 'bandpass6', label: '6th Order Bandpass' },
   { id: 'abc',       label: 'ABC (Aperiodic Bi-Chamber)' },
 ];
-// Whether the circuit models this type is the DOMAIN's answer, not a list held here — a second
+// Whether the circuit models this type is the DOMAIN's answer, asked through logic/ — a second
 // enumeration is what let a UI-only box type reach the solver as an assertion.
-const isSimulatable = (b: BoxType) => new Engine().simulatableBoxType(b) !== null;
+const isSimulatable = boxTypeIsSimulatable;
 // A presentation fact with no domain counterpart: these three draw two chambers, so the tuning
 // field is labelled Ffc rather than Fb.
 const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
@@ -515,9 +513,11 @@ const cursorVal = computed<number | null>(() => {
 });
 
 // ---- Tab rail (persisted) ------------------------------------------------------
-type TabId = 'box' | 'driver' | 'enclosure' | 'filters' | 'signal' | 'advanced' | 'project';
+function isTabId(v: unknown): v is TabId {
+  return v === 'box' || v === 'driver' || v === 'enclosure' || v === 'filters' || v === 'signal' || v === 'advanced' || v === 'project';
+}
 const activeTab = computed<TabId>({
-  get: () => (presentationState.ui.originalProjectTab as TabId) ?? 'box',
+  get: () => { const t = presentationState.ui.originalProjectTab; return isTabId(t) ? t : 'box'; },
   set: (v: TabId) => { presentationState.ui.originalProjectTab = v; },
 });
 // If the enclosure tab is dropped (Closed box) while it's active, fall back to the Box tab.
@@ -656,7 +656,7 @@ function onBottomSplitDown(e: PointerEvent): void {
 }
 
 // ---- Driver identity + placement ----------------------------------------------
-const model = computed(() => project.value.driver.model.get().value || driverName.value);
+const model = computed(() => { void projectChanged.value; return project.value.driver.model.get().value || driverName.value; });
 
 // The Project tab's text fields bind here. Each `RawField<string>` on `OpenISDProject` is not
 // itself `v-model`-able, so this is a thin get/set bridge onto `.get()`/`.set()` — reading
@@ -734,26 +734,20 @@ function startTune() { presentationState.editDriver = true; }
 // mirror PRPanel.vue's (shared PRBrowser component, same store writes).
 const prBrowseOpen = ref(false);
 const prEditOpen = ref(false);
-function loadPREntry(entry: PRLibEntry) {
-  const radiator = project.value.box.passiveRadiator.radiator;
-  radiator.model.set(entry.name);
-  radiator.spec.Sd_m2.set(entry.prSd);
-  radiator.spec.Mms_kg.set(entry.prMmd);
-  radiator.spec.Cms_m_per_N.set(entry.prCms);
-  radiator.spec.Rms_kg_per_s.set(entry.prRms);
-  radiator.spec.Xmax_m.set(entry.prXmax);
+// The browser emits the row id it was given, never the radiator (A9). Saved rows are keyed by
+// the storage uuid; bundled rows by their position in the bundle list.
+function loadPREntry(uuid: string) {
+  const entry = myPassiveRadiators.list().find(e => e.uuid === uuid);
+  if (!entry) return;
+  project.value.box.passiveRadiator.configurePR(entry.passiveRadiator);
   prBrowseOpen.value = false;
 }
-// Bundled PRs publish only Sd/Cms — blank the unpublished fields and open the editor so
-// the user supplies them (mirrors PRPanel.loadBundledPassiveRadiator; never leaves stale values).
-function loadBundledPassiveRadiatorEntry(pr: BundledPassiveRadiator) {
-  const radiator = project.value.box.passiveRadiator.radiator;
-  radiator.model.set(pr.name);
-  if (pr.Sd_m2  != null) radiator.spec.Sd_m2.set(pr.Sd_m2);
-  if (pr.Cms_m_per_N != null) radiator.spec.Cms_m_per_N.set(pr.Cms_m_per_N);
-  radiator.spec.Mms_kg.set(0);
-  radiator.spec.Rms_kg_per_s.set(0);
-  radiator.spec.Xmax_m.set(0);
+// Bundled PRs publish only Sd/Cms — the rest of the record states nothing, so the editor
+// opens for the user to supply them.
+function loadBundledPassiveRadiatorEntry(id: string) {
+  const pr = bundledPassiveRadiators[Number(id)];
+  if (!pr) return;
+  project.value.box.passiveRadiator.configurePR(pr);
   prBrowseOpen.value = false;
   prEditOpen.value = true;
 }
@@ -761,7 +755,7 @@ function loadBundledPassiveRadiatorEntry(pr: BundledPassiveRadiator) {
 // side works the same way, and a second form stating the same fields would be a second place
 // to keep them right.
 function defineNewPREntry() {
-  project.value.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty(engine));
+  definePassiveRadiator();
   prBrowseOpen.value = false;
   prEditOpen.value = true;
 }
@@ -1413,8 +1407,9 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
       </div>
     </div>
 
-    <!-- ===== Tune (docked What-If) + full Driver editor ===== -->
-    <OgTune v-if="presentationState.editDriver" />
+    <!-- The Tune panel (`<OgTune>`) is rendered by App.vue, not here, so it survives a box-type
+         change that re-renders this shell's enclosure pane (QO134). Its open/close state and
+         refresh persistence stay on `presentationState.editDriver`, watched below. -->
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
 
     <input ref="fileInput" type="file" accept=".owpr,.wpr,.owdr,.wdr,.json" style="display:none" @change="onFile">

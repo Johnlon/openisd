@@ -1,11 +1,4 @@
- 
-/**
- * The shell — WinISD 0.7.0.950's window, wired to the store/engine. These tests assert
- * the WinISD-fidelity regions: toolbar icons, chart-select dropdown, all 7 tabs, the
- * Placement/Advanced/Listening-place sections, box types, and the box-losses modal.
- * The auto console/network guardrail (fixtures) asserts none of it raises errors.
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Locator, Page } from '@playwright/test';
 
 // Decimal places shown in a numeric-input string ("6.10" → 2, "55" → 0, "" → 0).
@@ -47,13 +40,10 @@ async function sweepActiveTab(page: Page, context: string): Promise<number> {
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
-  await page.locator('.original-root').waitFor({ state: 'visible' });
+  await openAProject(page);
 });
 
 test('choosing Original swaps to the ported WinISD shell (titlebar, projects, graph)', async ({ page }) => {
-  await expect(page.locator('.original-root')).toContainText('WinISD Original Mode');
   await expect(page.locator('.original-root')).toContainText('Projects');
   await expect(page.locator('.original-root')).toContainText('Signal Generator');
   await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();

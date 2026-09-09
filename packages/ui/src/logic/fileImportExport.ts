@@ -1,20 +1,16 @@
 /**
  * Every driver/project file the app reads or writes: WinISD's `.wdr`/`.wpr`, our own
- * `.owdr`/`.owpr`. One function per operation, each calling whatever that format needs — the
- * `@openisd/design/winisd` converters for the WinISD formats, `OpenISDDriver.toOwdrText()` /
- * `OpenISDDriver.fromOwdrText()` for `.owdr`, the injected project repo for `.owpr`.
+ * `.owdr`/`.owpr`. One function per operation, and each one is the domain's own text method for
+ * that format — `toWdrIniText`/`fromWdrIniText`, `toWprText`/`fromWprText`,
+ * `toOwdrText`/`fromOwdrText` — except `.owpr` reading, which goes through the injected project
+ * repo. This module converts text to bytes and problems to `DriverError`s; it never assembles a
+ * format object itself.
  *
  * `useApplicationIO.ts` is the only caller: it owns filename bookkeeping and the flash
  * messages; this module owns the format conversion. Nothing here touches app state or the
  * DOM.
  */
-import {
-  openIsdDriverToWinIsdDriver,
-  openIsdProjectToWinIsdProject,
-  winIsdDriverTextToOpenIsdDriver,
-  winIsdProjectToOpenIsdProject,
-} from '@openisd/design/winisd';
-import { OpenISDDriver, type OpenISDProject } from '@openisd/design';
+import { OpenISDDriver, OpenISDProject } from '@openisd/design';
 import type { DriverError } from '@openisd/design/engine';
 import type { ProjectRepo } from '@openisd/persistence';
 import { engine } from './appState.js';
@@ -29,10 +25,8 @@ const utf8 = (text: string): Uint8Array<ArrayBuffer> => new TextEncoder().encode
 /** The current driver as WinISD `.wdr` bytes. `value` is null when the driver is too
  *  incomplete for WinISD's format — the first `errors` entry says which field. */
 export function driverToWdrBytes(driver: OpenISDDriver): Bytes {
-  const errors: DriverError[] = [];
-  const wdr = openIsdDriverToWinIsdDriver(driver, engine, errors);
-  if (errors.some(e => e.level === 'error')) return { value: null, errors };
-  return { value: utf8(wdr.toWdrIni()), errors };
+  const { value, errors } = driver.toWdrIniText(engine);
+  return { value: value === null ? null : utf8(value), errors };
 }
 
 /** The current driver as `.owdr` bytes (openisd driver YAML). Always succeeds — a driver
@@ -44,14 +38,13 @@ export function driverToOwdrBytes(driver: OpenISDDriver): Uint8Array<ArrayBuffer
 /** The whole project as WinISD `.wpr` bytes. `value` is null when the project cannot be
  *  expressed in WinISD's format. */
 export function projectToWprBytes(project: OpenISDProject): Bytes {
-  const { value, errors } = openIsdProjectToWinIsdProject(project, engine);
-  if (!value) return { value: null, errors };
-  return { value: utf8(value.toWpr()), errors };
+  const { value, errors } = project.toWprText(engine);
+  return { value: value === null ? null : utf8(value), errors };
 }
 
 /** `.wdr` text → a standalone driver, or the reasons it could not be read. */
 export function wdrTextToDriver(text: string): { value: OpenISDDriver | null; errors: DriverError[] } {
-  return winIsdDriverTextToOpenIsdDriver(text, engine);
+  return OpenISDDriver.fromWdrIniText(text, engine);
 }
 
 /** `.owdr` text → a standalone driver, or the reasons it could not be read. */
@@ -65,7 +58,7 @@ export function owdrTextToDriver(text: string): { value: OpenISDDriver | null; e
 
 /** `.wpr` text → a new project, or the reasons it could not be read. */
 export function wprTextToProject(text: string): { value: OpenISDProject | null; errors: DriverError[] } {
-  return winIsdProjectToOpenIsdProject(text, engine);
+  return OpenISDProject.fromWprText(text, engine);
 }
 
 /** `.owpr` text → a project, brought up to the current schema by the persistence layer. */

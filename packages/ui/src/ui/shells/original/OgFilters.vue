@@ -67,7 +67,7 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
 function patch(id: string | undefined, field: keyof Filter, value: number | boolean) {
   if (!id) return;
   project.value.filters.set(
-    project.value.filters.get().map(f => f.id === id ? { ...f, [field]: value } as Filter : f));
+    project.value.filters.get().map(f => f.id === id ? Object.assign({}, f, { [field]: value }) : f));
 }
 function numFrom(e: Event): number { return Number(inputValue(e)); }
 

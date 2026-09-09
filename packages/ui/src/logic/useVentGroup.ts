@@ -7,7 +7,8 @@
  * so one user action produces one solve (and a wholesale restore is adopted verbatim,
  * byte-identical — docs/design/STATE_MODEL.md rule 3).
  */
-import type { OpenISDProject, CellState } from '@openisd/design';
+import type { OpenISDProject } from '@openisd/design';
+import type { CellState } from '@openisd/design/winisd';
 
 /** The four members tied by the Helmholtz relation — the set the solver solves WITHIN. */
 export const VENT_GROUP = ['Vb', 'ventD', 'Fb', 'ventL'] as const;

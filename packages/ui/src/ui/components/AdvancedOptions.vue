@@ -24,7 +24,7 @@ const project = useFocusedProject();
 /** The transmission-line port model only means anything for a box that HAS a vent. */
 const hasVent = computed(() => {
   const b = project.value.box.boxType.get();
-  return b === 'vented' || b === 'bandpass4';
+  return b === 'vented' || b === 'bandpass4'; // FIXME - add other vented box types - ABC and 6thorder and 4thorder
 });
 </script>
 

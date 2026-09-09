@@ -19,6 +19,10 @@ export interface ViewStateRepo {
   load(): ViewSnapshot | null;
 }
 
+function isViewSnapshot(obj: unknown): obj is ViewSnapshot {
+  return typeof obj === 'object' && obj !== null && 'graphs' in obj && Array.isArray(obj.graphs);
+}
+
 export function createViewStateRepo(storage: KeyValueStorage): ViewStateRepo {
   return {
     save(v: ViewSnapshot): void {
@@ -29,11 +33,11 @@ export function createViewStateRepo(storage: KeyValueStorage): ViewStateRepo {
       if (!raw) return null;
       try {
         const parsed: unknown = JSON.parse(raw);
-        if (!parsed || typeof parsed !== 'object' || !Array.isArray((parsed as { graphs?: unknown }).graphs)) {
+        if (!isViewSnapshot(parsed)) {
           console.error('[restore] saved view state carries no graphs list — refused');
           return null;
         }
-        return parsed as ViewSnapshot;
+        return parsed;
       } catch {
         console.error('[restore] saved view state is not valid JSON — ignored');
         return null;

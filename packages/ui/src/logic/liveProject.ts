@@ -42,7 +42,7 @@ export interface LiveRef<T> {
 }
 
 export function createLiveRef<T extends Subscribable>(obj: T): LiveRef<T> {
-  const live = shallowRef(obj) as ShallowRef<T>;
+  const live = shallowRef<T>(obj);
   const stop = obj.subscribe(() => { triggerRef(live); });
   if (getCurrentScope()) onScopeDispose(stop);
   return { live, dispose: stop };

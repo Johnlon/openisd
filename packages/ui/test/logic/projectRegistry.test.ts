@@ -11,7 +11,9 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   openProjects, focusedProject, focusProject, removeProject, addProject, newProject,
+  engine,
 } from '../../src/logic/appState.js';
+import { OpenISDDriver, OpenISDProject } from '@openisd/design';
 import { presentationState } from '../../src/logic/presentationState.js';
 
 describe('project registry', () => {
@@ -27,13 +29,19 @@ describe('project registry', () => {
     assert.equal(focusedProject(), openProjects()[before]);
   });
 
-  it('addProject() appends and focuses the new project', () => {
+  it('addProject() appends the project it was handed, and focuses it', () => {
+    // `addProject` is the door for a project built ELSEWHERE — a `.owpr` opened from disk, a
+    // share link, a `.wpr` import. Distinct from `newProject()`, which builds a blank one, so it
+    // is handed a project here rather than asserted through its caller.
+    const adopted = OpenISDProject.builder(OpenISDDriver.empty(engine), engine)
+      .sealed().volume_m3(0.03).build();
     const before = openProjects().length;
 
-    newProject();
+    addProject(adopted);
 
     assert.equal(openProjects().length, before + 1);
-    assert.equal(focusedProject(), openProjects()[before], 'the newly added project becomes focused');
+    assert.equal(openProjects()[before], adopted, 'the registry holds the project it was handed');
+    assert.equal(focusedProject(), adopted, 'the newly added project becomes focused');
   });
 
   it('focusProject(index) moves focus; an out-of-range index is ignored', () => {

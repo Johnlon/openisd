@@ -1,4 +1,4 @@
-import type { CellState } from '@openisd/design';
+import type { CellState } from '@openisd/design/winisd';
 // The DOMAIN's box vocabulary, not the engine's. `appliesTo` says which enclosures a field is
 // shown for, and the UI offers six; the engine's own `BoxType` names only the four it can
 // simulate, so using it here made `bandpass6`/`abc` inexpressible — which is what stopped [Frc]

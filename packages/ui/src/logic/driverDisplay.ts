@@ -7,6 +7,7 @@
  */
 import type { OpenISDDriver } from '@openisd/design';
 import { DriverType, Chip } from '@openisd/design/filter';
+import { toDisplay } from './fields/units.js';
 
 /** One row of the preview pane's spec table. `value` is already formatted for display. */
 export interface PreviewSpec { label: string; value: string | null; unit?: string }
@@ -129,13 +130,71 @@ export function matchesCriteria(driver: OpenISDDriver, c: SearchCriteria): boole
   return true;
 }
 
-/** What this driver is called on screen: `<brand> <model>`, or `'Driver'` when it states
- *  neither. Single-driver contexts (the editor, a preview pane) — a list across many drivers
- *  reads this per row, not a separate flattened field. */
-export function displayNameOf(driver: OpenISDDriver): string {
+/** Whether a driver has missing core T/S fields or non-positive values that indicate DQ issues. */
+export function driverHasDqIssues(driver: OpenISDDriver): boolean {
+  const s = specSummaryOf(driver);
+  return s.Fs === null || s.Fs <= 0 || s.Qts === null || s.Qts <= 0 || s.Vas === null || s.Vas <= 0;
+}
+
+/** A device that states a brand and a model — what naming one on screen needs, and all it
+ *  needs. Structural rather than `OpenISDDevice`, which `domain/index.ts` does not export: a
+ *  driver and a passive radiator both satisfy it, and neither has to be named here. */
+interface NameableDevice {
+  readonly brand: { get(): { value: string | null } };
+  readonly model: { get(): { value: string | null } };
+}
+
+/** What this device is called on screen: `<brand> <model>`, or `'Driver'` when it states
+ *  neither. Single-device contexts (the editor, a preview pane) — a list across many devices
+ *  reads this per row, not a separate flattened field. Serves passive radiators too: a radiator
+ *  is named exactly as a driver is. */
+export function displayNameOf(driver: NameableDevice): string {
   const brand = driver.brand.get().value ?? '';
   const model = driver.model.get().value ?? '';
   return [brand, model].filter(s => s.length > 0).join(' ').trim() || 'Driver';
+}
+
+/** One passive-radiator row, as the PR browser renders it: strings only. The radiator itself
+ *  stops here — a component holding the domain object would bind its template to the record's
+ *  shape and could not be mounted over a substitute (A9), so the row carries the `id` the
+ *  component emits back and this layer looks the radiator up again. */
+export interface PassiveRadiatorRow {
+  /** What the caller identifies this radiator by, and what a click emits: a storage uuid for a
+   *  saved radiator, the list position for a bundled one. */
+  id: string;
+  name: string;
+  /** The three numbers the row's tooltip quotes, formatted with their unit. `'—'` when the
+   *  radiator states nothing — a datasheet publishes Sd/Cms and routinely leaves Mms blank. */
+  sd: string;
+  mms: string;
+  cms: string;
+}
+
+interface SummarisableRadiator extends NameableDevice {
+  readonly spec: {
+    readonly Sd_m2: { get(): { value: number | null } };
+    readonly Mms_kg: { get(): { value: number | null } };
+    readonly Cms_m_per_N: { get(): { value: number | null } };
+  };
+}
+
+/** The PR browser's rows. Takes each radiator with the id its caller knows it by, and returns
+ *  what the list renders — no radiator on the way out. */
+export function passiveRadiatorRows(
+  entries: readonly { id: string; radiator: SummarisableRadiator }[],
+): PassiveRadiatorRow[] {
+  return entries.map(({ id, radiator }) => {
+    const sd = radiator.spec.Sd_m2.get().value;
+    const mms = radiator.spec.Mms_kg.get().value;
+    const cms = radiator.spec.Cms_m_per_N.get().value;
+    return {
+      id,
+      name: displayNameOf(radiator),
+      sd: sd === null ? '—' : toDisplay(sd, 'area', 'cm2').toFixed(0) + 'cm²',
+      mms: mms === null ? '—' : toDisplay(mms, 'mass', 'g').toFixed(1) + 'g',
+      cms: cms === null ? '—' : toDisplay(cms, 'compliance', 'mmPerN').toFixed(2) + 'mm/N',
+    };
+  });
 }
 
 // Name-based matching takes priority over T/S params.

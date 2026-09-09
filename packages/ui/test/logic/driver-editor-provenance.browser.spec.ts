@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -38,6 +38,7 @@ test.describe('Driver Editor E/C/N Provenance Class Audit', () => {
     await page.goto('/');
     await page.evaluate(() => localStorage.clear());
     await page.goto('/');
+    await openAProject(page);
 
     // Open the Driver Editor the way a user does. Services are constructed by the composition
     // root and injected, so there is no module-level instance to import and call.

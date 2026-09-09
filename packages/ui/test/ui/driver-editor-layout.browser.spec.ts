@@ -1,17 +1,8 @@
-/**
- * Driver editor LAYOUT — facts only a rendered browser can state.
- *
- * Every assertion here is a measurement, not a class name. A label that overflows its box still
- * has the right text and the right classes; the markup looks perfect and the panel is unusable.
- * The faults these pin were all shipped past a green suite:
- * `bugs/BUG_20260817_driver_editor_labels_overflow_a_fixed_62px_column.md`.
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
+  await openAProject(page);
 });
 
 async function openEditor(page: import('@playwright/test').Page, tab: string) {

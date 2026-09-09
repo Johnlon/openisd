@@ -1,4 +1,5 @@
-import type { Cell as FieldCell, CellState } from '@openisd/design';
+import type { Cell as FieldCell } from '@openisd/design';
+import type { CellState } from '@openisd/design/winisd';
 import { Engine } from '@openisd/design/engine';
 import type { ConsistencyIssue } from '@openisd/design/engine';
 import type { SpecField } from './appState.js';

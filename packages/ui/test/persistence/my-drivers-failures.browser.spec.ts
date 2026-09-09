@@ -1,32 +1,25 @@
-/**
- * The QO81 failure surfaces (docs/design/MY_DRIVERS_STORAGE_FAILURES.md, D21):
- * the corrupted-bucket BLOCKING modal (no cancel, Export + challenged Delete), the broken-row
- * treatment (preserved, surfaced by name, per-entry Export + challenged Delete), and the
- * rename question on a name-changing save.
- *
- * Written under the one-suite rule to EXECUTE in the endgame frozen-tree Playwright batch.
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import { deviceRecord } from '../fixtures/seedMyDrivers.js';
 import type { Page } from '@playwright/test';
 
 const MY_DRIVERS_KEY = 'openisd_my_drivers';
 
-/** A conforming record with a chosen uuid, in the CURRENT envelope's vocabulary. */
-function record(uuid: string, brand: string, model: string): Record<string, unknown> {
-  const spec = (v: number) => ({ origin: 'manual', readings: { manual: { read_value: v } }, dq: [] });
+/** One stored slot in the CURRENT envelope: { uuid, record }, the record a conforming
+ *  OpenISDDeviceJson. Built through the shared `deviceRecord` so it stays a shape the repo
+ *  actually opens, and the record's own uuid matches the slot uuid. */
+function slot(uuid: string, brand: string, model: string): { uuid: string; record: unknown } {
   return {
-    uuid: { value: uuid, definition: 'stable record identity' },
-    quality: { rating: 'L', confirmed_fields: [], fields_with_issues: [], missing: [],
-      invalid: [], parse_errors: [], cross_source_only: [] },
-    manufacturer: { value: brand, origin: 'manual', definition: 'x', dq: [] },
-    brand: { value: brand, origin: 'manual', definition: 'x', dq: [] },
-    model: { value: model, origin: 'manual', definition: 'x', dq: [] },
-    sku: { value: `${brand}-${model}`.toLowerCase(), definition: 'x', grounds: [] },
-    driver_type: { value: 'woofer', origin: 'manual', definition: 'x', dq: [] },
-    data_sources: { value: {}, definition: 'x' },
-    authoritative: { value: 'manual', definition: 'x' },
-    specs: { woofer: { Fs: spec(41), Re: spec(5.4), Sd: spec(0.0132), Qts: spec(0.35), Qes: spec(0.38) } },
+    uuid,
+    record: deviceRecord(
+      { brand, model, specs: { Fs: 41, Re: 5.4, Sd: 0.0132, Qts: 0.35, Qes: 0.38 } },
+      uuid,
+    ),
   };
+}
+
+/** The current-shape envelope string for a set of good slots. */
+function bucket(...slots: { uuid: string; record: unknown }[]): string {
+  return JSON.stringify({ schema: 1, entries: slots });
 }
 
 async function seedRaw(page: Page, raw: string): Promise<void> {
@@ -34,6 +27,7 @@ async function seedRaw(page: Page, raw: string): Promise<void> {
     localStorage.setItem(key as string, value as string);
   }, [raw, MY_DRIVERS_KEY] as const);
   await page.goto('/');
+  await openAProject(page);
 }
 
 async function openPicker(page: Page): Promise<void> {
@@ -63,7 +57,7 @@ test('a corrupted bucket raises the blocking modal: no cancel, Export, challenge
   await modal.locator('.my-delete-all').click();
   await expect(modal).toBeHidden();
   const after = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
-  expect(after).toContain('"drivers":[]');
+  expect(after).toContain('"entries":[]');
 });
 
 test('Export downloads the raw string verbatim and disarms the delete challenge', async ({ page }) => {
@@ -86,7 +80,7 @@ test('Export downloads the raw string verbatim and disarms the delete challenge'
 
 test('a broken entry is preserved, surfaced by name, and its Delete removes only it', async ({ page }) => {
   const broken = { brand: { value: 'Ghost' }, model: { value: 'Blob' }, halfARecord: true };
-  await seedRaw(page, JSON.stringify({ schema: 2, drivers: [broken, record('u-ok', 'Good', 'One')] }));
+  await seedRaw(page, JSON.stringify({ schema: 1, entries: [broken, slot('u-ok', 'Good', 'One')] }));
   await openPicker(page);
 
   const row = page.locator('.my-broken-row');
@@ -106,7 +100,7 @@ test('a broken entry is preserved, surfaced by name, and its Delete removes only
 });
 
 test('a name-changing save asks the ONE question; Save as a copy keeps the original', async ({ page }) => {
-  await seedRaw(page, JSON.stringify({ schema: 2, drivers: [record('u-edit', 'Orig', 'Name')] }));
+  await seedRaw(page, bucket(slot('u-edit', 'Orig', 'Name')));
   await openPicker(page);
 
   await page.locator('.my-ditem .my-edit').click();
@@ -124,16 +118,16 @@ test('a name-changing save asks the ONE question; Save as a copy keeps the origi
   await question.locator('.save-as-copy-btn').click();
 
   const stored = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
-  const parsed = JSON.parse(stored!) as { drivers: { model: { value: string } }[] };
-  expect(parsed.drivers).toHaveLength(2);
-  const models = parsed.drivers.map(d => d.model.value).sort();
+  const parsed = JSON.parse(stored!) as { entries: { record: { model: { value: string } } }[] };
+  expect(parsed.entries).toHaveLength(2);
+  const models = parsed.entries.map(e => e.record.model.value).sort();
   expect(models).toEqual(['Name', 'Renamed']);
 });
 
 test('importing the same driver file twice through the real path yields two entries (S1)', async ({ page }) => {
   // The mint-fresh rule LIVES in driverBrowsingState.loadFromDisk — this exercises it
   // through the actual file input, not the repo given a correct caller.
-  await seedRaw(page, JSON.stringify({ schema: 2, drivers: [] }));
+  await seedRaw(page, bucket());
   await openPicker(page);
 
   const wdr = [
@@ -149,7 +143,7 @@ test('importing the same driver file twice through the real path yields two entr
   }
 
   const stored = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
-  const parsed = JSON.parse(stored!) as { drivers: { uuid: { value: string } }[] };
-  expect(parsed.drivers).toHaveLength(2);
-  expect(parsed.drivers[0]!.uuid.value).not.toBe(parsed.drivers[1]!.uuid.value);
+  const parsed = JSON.parse(stored!) as { entries: { uuid: string }[] };
+  expect(parsed.entries).toHaveLength(2);
+  expect(parsed.entries[0]!.uuid).not.toBe(parsed.entries[1]!.uuid);
 });

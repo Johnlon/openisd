@@ -51,8 +51,8 @@ async function savedFileText(project: OpenISDProject): Promise<string> {
 /** The project every door takes, built through `OpenISDProject.builder` rather than a second,
  *  hand-rolled construction path. `driverRecord` is REQUIRED: a project cannot exist without a
  *  driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
-function projectOf(box: BoxType, meta: any,
-  driverRecord: any): OpenISDProject {
+function projectOf(box: BoxType, meta: FixtureMeta,
+  driverRecord: unknown): OpenISDProject {
   const driver = OpenISDDriver.fromConformingRecord(driverRecord, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture record does not conform: ${driver.join('; ')}`);
   
@@ -93,16 +93,24 @@ async function storedPayload(project: OpenISDProject): Promise<ReturnType<typeof
 
 /** The share-link payload, decoded independently of the app's own `stateToUrl`/gzip path —
  *  what a real browser would decode a link to. */
-// Parsed JSON, so untyped.
-function decodeShare(url: string): ReturnType<typeof JSON.parse> {
+/** What a decoded share link holds: the project as `.owpr` text (parsed further where a test
+ *  reaches into the record) beside the view the link was carrying. */
+interface DecodedShare { project: string; view: ViewSnapshot }
+function decodeShare(url: string): DecodedShare {
   const b64 = url.match(/[#&]s=([^&]+)/)![1].replace(/-/g, '+').replace(/_/g, '/');
   return JSON.parse(gunzipSync(Buffer.from(b64, 'base64')).toString('utf8'));
+}
+
+/** The project metadata a fixture states — the five fields `projectOf` writes onto a project
+ *  before saving it. */
+interface FixtureMeta {
+  name: string; creator: string; created: string; modified: string; description: string;
 }
 
 /** A conforming driver RECORD — the form a driver takes inside a serialised payload. Every key
  *  the schema requires is present; the values are deliberately synthetic, since these tests are
  *  about what survives the wire, not about any driver's physics. */
-function sampleDriverRecord(): any {
+function sampleDriverRecord(): unknown {
   return {
     brand: {value: 'test'}, model: {value: 'test'}, manufacturer: {value: 'test'},
     uuid: {value: '00000000-0000-4000-8000-000000000000'}, driver_type: {value: 'woofer'},
@@ -152,7 +160,7 @@ describe('persistence — provenance survives a file-save round trip', () => {
      *  this test needs the same field checked on two driver instances, so the dispatch lives
      *  here. */
     // `field` is one of the names listed above.
-    function stateOf(d: any, field: typeof CHECKED_FIELDS[number]) {
+    function stateOf(d: OpenISDDriver, field: typeof CHECKED_FIELDS[number]) {
       switch (field) {
         case 'Fs': return d.spec[d.section].Fs_hz.get().state;
         case 'Qts': return d.spec[d.section].Qts.get().state;
@@ -237,7 +245,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
   afterAll(() => vi.unstubAllGlobals());
 
   it('every ui field travels — view context, open panels, local preferences and project meta alike', async () => {
-    const meta: any = {
+    const meta: FixtureMeta = {
       name: 'Kick bin', creator: 'John Lonergan', created: '2026-08-01T00:00:00.000Z',
       modified: '2026-08-14T12:30:00.000Z', description: 'PA subwoofer for the shed',
     };
@@ -246,14 +254,15 @@ describe('share link carries the whole state, stripped of nothing', () => {
     const shared = decodeShare(urlOrErr as string);
     // A share link is `{project, view}` — the design and where the sender was looking, kept
     // apart. The ui fields are the view's; the metadata is the project's.
-    const ui = (shared as any).view?.ui as Record<string, unknown> | undefined;
+    const ui: Record<string, unknown> | undefined = shared.view?.ui;
     assert.ok(ui, 'the view context travels');
 
     // Project-level metadata is part of the session too — a share link that dropped it would
     // hand the recipient an anonymous, undated design.
-    // `project` here is the same session wrapper a `.owpr` file carries — `{label, saved,
-    // edited}` — so the design itself is under `saved`.
-    const saved = (shared as any).project?.saved;
+    // The project travels as `.owpr` TEXT — the same bytes a saved file holds, one serialised
+    // form for every door (`projectRepo.stateToUrl`) — so it is parsed to reach the record. The
+    // parsed shape is the session wrapper `{label, saved, edited}`; the design is under `saved`.
+    const saved = JSON.parse(shared.project)?.saved;
     assert.equal(saved?.meta?.name, 'Kick bin');
     assert.equal(saved?.meta?.creator, 'John Lonergan');
     assert.equal(saved?.meta?.modified, '2026-08-14T12:30:00.000Z');
@@ -281,8 +290,10 @@ describe('share link carries the whole state, stripped of nothing', () => {
   it('gzip actually shrinks the link vs plain base64 of the same JSON', async () => {
     // A realistic payload — a real record plus two comparison overlays, so the JSON has the
     // repetition gzip exploits. A round-trip alone would not prove compression happened.
-    const meta: any = { name: 'Gzip fixture', creator: 'John', created: '2026-01-01',
-      modified: '2026-01-02', description: drv };
+    // A long, repetitive description gives the JSON the repetition gzip exploits, on top of
+    // the driver record itself.
+    const meta: FixtureMeta = { name: 'Gzip fixture', creator: 'John', created: '2026-01-01',
+      modified: '2026-01-02', description: 'repetition '.repeat(200) };
     // Two driver texts in one payload gives the JSON the repetition gzip exploits.
     const shareUrlOrErr = await repo.stateToUrl(projectOf('sealed', meta, drv), uiView);
     if (Array.isArray(shareUrlOrErr)) throw new Error('fail');
@@ -299,7 +310,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
 
   it('carries the graph cursor — live hover and locked/pinned, both if both are set', async () => {
     const withCursor: ViewSnapshot = { ...uiView, cursor: { f: 123.4, pinnedF: 500, locked: true, range: null } };
-    const meta: any = { name: 'Cursor fixture', creator: 'John', created: '2026-01-01',
+    const meta: FixtureMeta = { name: 'Cursor fixture', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' };
     const project = projectOf('sealed', meta, drv);
     assert.deepEqual(decodeShare((await repo.stateToUrl(project, withCursor)) as string).view.cursor,
@@ -310,7 +321,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
     // The stats-stripping itself happens in `currentViewSnapshot()` (appState.ts), which reads
     // the live presentation state; at the repo door the band is already bare.
     const withBand: ViewSnapshot = { ...uiView, cursor: { f: null, pinnedF: null, locked: false, range: { fLo: 31.6, fHi: 100 } } };
-    const meta: any = { name: 'Band fixture', creator: 'John', created: '2026-01-01',
+    const meta: FixtureMeta = { name: 'Band fixture', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' };
     const project = projectOf('sealed', meta, drv);
     assert.deepEqual(decodeShare((await repo.stateToUrl(project, withBand)) as string).view.cursor.range,
@@ -357,8 +368,9 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
     const loaded = await repo.loadFromHash();
     if (Array.isArray(loaded)) throw new Error(`the V1 payload was refused: ${loaded.join('; ')}`);
     assert.ok(loaded, 'a V1 payload must load, upgraded — not be refused');
-    assert.ok((loaded as any)!.project.driver(), 'the V1→V2 step serialises the driver slot, and the repo adopts it');
-    assert.equal((loaded as any)!.project.driver.Fs_hz.get().state, 'entered',
+    assert.ok(loaded.project.driver, 'the V1→V2 step serialises the driver slot, and the repo adopts it');
+    const d = loaded.project.driver;
+    assert.equal(d.spec[d.section].Fs_hz.get().state, 'entered',
       'the upgraded driver is the same record — provenance intact');
   });
 

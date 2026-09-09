@@ -1,4 +1,5 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import type { Page } from '@playwright/test';
 import { Chip } from '@openisd/design/filter';
 
 // The filter chips are rendered straight from the Chip enum (`DRIVER_TYPES = Chip.ALL`),
@@ -19,6 +20,7 @@ const CHIPS = '.type-row .type-chip:not(.type-clear):not(.fav-filter)';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await openAProject(page);
   await page.getByRole('button', { name: /Browse \/ Select/ }).click();
 });
 

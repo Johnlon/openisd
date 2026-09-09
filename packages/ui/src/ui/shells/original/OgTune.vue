@@ -115,10 +115,13 @@ function scaledLimits(key: NumKey, group: UnitGroup | undefined, token: string |
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than
 // two are usable. The rule itself lives in useDriverCells — the driver editor reads the same
 // one, against its own draft model.
+function isNumKey(f: string): f is NumKey {
+  return ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Le', 'Xmax', 'Pe', 'BL', 'Mms'].includes(f);
+}
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
 function fieldClasses(key: NumKey, group: UnitGroup | undefined, token: string | undefined): Record<string, boolean> {
   void project.value;
-  const cellOf = (f: SpecField): Cell<number> => fieldCell(f as NumKey);
+  const cellOf = (f: SpecField): Cell<number> => fieldCell(isNumKey(f) ? f : 'Fs');
   const mandatory = fieldIsMandatoryAndUnsatisfied(cellOf, key);
   return {
     [cellClassFor(cellOf, key)]: true,

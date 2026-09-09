@@ -1,14 +1,5 @@
-/**
- * The Original skin's Advanced pane: temperature, relative humidity and air pressure all feed
- * the sound-velocity and air-density readouts, and the "Use WinISD air model" checkbox
- * switches the air calculation to WinISD's parity model instead of the physical one (ledger
- * QO7 / QO24.8).
- *
- * A browser test rather than a unit one because the claim being made is about the RENDERED
- * pane — the model switch was visibly conflated with the environment inputs for a long time,
- * which is exactly the failure a green unit test cannot catch.
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import type { Page } from '@playwright/test';
 
 const soundVelocity = (page: import('@playwright/test').Page) =>
   page.locator('.field', { hasText: 'Sound velocity' }).locator('input');
@@ -19,6 +10,7 @@ const humidity = (page: import('@playwright/test').Page) =>
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await openAProject(page);
   await page.locator('li', { hasText: /^Advanced$/ }).click();
 });
 

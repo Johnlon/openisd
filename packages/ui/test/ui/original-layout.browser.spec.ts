@@ -1,19 +1,9 @@
-/**
- * Original (WinISD) skin — layout ergonomics + chart cursor level-lines.
- *
- * Covers: the ＋ Copy button naming, the ✕ overlay-remove control sitting LEFT
- * of the overlay name (always visible), the resizable/collapsible left panel and bottom
- * section (drag splitters + collapse toggles), the chart maximise/restore toggle (the
- * toolbar stays usable while maximised), and the horizontal level-line the shared canvas
- * draws where the cursor's frequency crosses the current design's curve (one line on
- * hover, one per selection edge during a drag-select).
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.original-root')).toBeVisible();
+  await openAProject(page);
 });
 
 // Count horizontal dark line clusters on the graph canvas (the level lines are drawn in

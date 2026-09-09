@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { inputFrom } from '../logic/domEvents.js';
 import OriginalShell from './shells/original/OriginalShell.vue';
 import OgNewProject from './shells/original/OgNewProject.vue';
+import OgTune from './shells/original/OgTune.vue';
 import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
@@ -15,7 +17,20 @@ import { presentationState } from '../logic/presentationState.js';
 import { provideFocusedProject } from '../logic/focusedProjectContext.js';
 import { useApp } from '../logic/app.js';
 
-const { diagnostics, projectRepo, viewStateRepo, logging } = useApp();
+const { diagnostics, projectRepo, viewStateRepo, logging, designIO } = useApp();
+
+// Opening a saved project when none is open. Every other file input in the app lives inside the
+// shell, which only renders once a project exists, so without this a cold start could not open
+// a `.owpr` at all — the ordinary "carry on with yesterday's work" path.
+// bugs/BUG_20260909_no_project_can_be_opened_from_a_file_when_none_is_open.md
+const emptyStateFileInput = ref<HTMLInputElement | null>(null);
+function openFileFromEmptyState(e: Event) {
+  const input = inputFrom(e);
+  if (input === null) return;
+  const f = input.files?.[0];
+  if (f) designIO.importFile(f);
+  input.value = '';
+}
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash / self-test)
 // and the global overlays, AND is the app's ONE top-level null gate (PROMPT_RELEASE_
@@ -81,6 +96,9 @@ onUnmounted(() => {
     <!-- The driver editor is global, so a driver picked from the library is always
          reviewed before it reaches the design. -->
     <DriverEditorModal v-if="presentationState.editDriverInfo" @close="presentationState.editDriverInfo = false" />
+    <!-- The Tune panel is a child of the app, not of the box view it is opened from (QO134):
+         changing the box type re-renders the enclosure pane, and the panel must not go with it. -->
+    <OgTune v-if="presentationState.editDriver" />
   </template>
   <!-- The top-level null gate's empty state (PROMPT_RELEASE_HARDENING plan): no project is
        open, so neither the chart views nor the tab section render with empty/default data —
@@ -90,6 +108,10 @@ onUnmounted(() => {
   <div v-else class="no-project-open">
     <p>No project is open.</p>
     <button type="button" @click="presentationState.newProjectOpen = true">Start a new project</button>
+    <button type="button" title="Open a saved project or driver file."
+            @click="emptyStateFileInput?.click()">Open a project file…</button>
+    <input ref="emptyStateFileInput" type="file" accept=".owpr,.wpr,.owdr,.wdr,.json"
+           style="display:none" @change="openFileFromEmptyState">
   </div>
   <OgNewProject v-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
   <DriverBrowserWinisd v-if="!project && presentationState.browseOpen" />

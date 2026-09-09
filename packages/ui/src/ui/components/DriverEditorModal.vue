@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
-import { ref, shallowRef, markRaw, computed, nextTick, watch, onBeforeUnmount } from 'vue';
+import { ref, computed, nextTick, watch, onBeforeUnmount } from 'vue';
 import { formatInUnit } from '../../logic/appState.js';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { useApp } from '../../logic/app.js';
 import { referenceRho, referenceC } from '../../logic/environment.js';
-import { OpenISDDriver, VoiceCoilWiring } from '@openisd/design';
-import { engine } from '../../logic/appState.js';
+import { openDriverDraft } from '../../logic/driverDraft.js';
+import { specFieldHandle } from '../../logic/driverSpecFields.js';
 import { readDriverFileText } from '../../logic/driverFileText.js';
 import { driverToWdrBytes, driverToOwdrBytes, wdrTextToDriver, owdrTextToDriver } from '../../logic/fileImportExport.js';
 import type { Cell, FieldHandle } from '@openisd/design';
@@ -55,26 +55,18 @@ const project = useFocusedProject();
 // changes that My Drivers entry and leaves the design alone.
 const editorTitle = subject.kind === 'myDriver' ? 'Edit My Driver' : "Edit Project's Driver";
 
-/** A fresh, detached draft to start or reset from — the project's committed driver (seeded via
- *  TEXT, since `ManagedProject` never hands an `OpenISDDriver` out) for the project
- *  subject; the picked driver `selection` handed over for an existing My Driver; a blank one
- *  for a fresh My Driver (`openNewDriver()` — `subject.seed` is null exactly then). */
-function seedDraft(): OpenISDDriver {
-  if (subject.kind === 'project') return project.value.driver.detach();
-  return subject.seed ? subject.seed.detach() : OpenISDDriver.empty(engine);
-}
-
-// markRaw + shallowRef: Driver is a class with private fields, and a Vue reactive proxy
-// makes every method call on it throw. Redraws are driven by `trigger` below, so the
-// instance never needs to be deeply reactive.
-const draftDriver = shallowRef(markRaw(seedDraft()));
+// The editing session lives in logic/: it constructs and detaches the driver, and this dialog
+// only reads and writes fields through the handle. `draftDriver` is the handle's current
+// driver, re-read on every redraw so a reset() or a file load is picked up.
+const draft = openDriverDraft(subject, () => project.value.driver);
 const trigger = ref(0);
 function forceUpdate() { trigger.value++; }
+const draftDriver = computed(() => { const _ = trigger.value; return draft.driver; });
 
 /** OK on a myDriver subject: save the draft under its uuid — in place, same identity. A save
  *  that would CHANGE the driver's brand/model first asks the ONE ruled question (rename in
  *  place vs save as copy) via `renameQuestionOpen`; by the time this runs, that is decided. */
-function commitToMyDrivers(driver: OpenISDDriver): void {
+function commitToMyDrivers(driver: typeof draft.driver): void {
   if (subject.kind !== 'myDriver') throw new Error('commitToMyDrivers called on a project subject');
   if (myDrivers.upsert(driver) == null) {
     alert('Saved drivers are read-only until the storage problem is resolved');
@@ -83,7 +75,7 @@ function commitToMyDrivers(driver: OpenISDDriver): void {
 
 /** The saved entry this editor session opened, as it stands in storage — the comparison base
  *  for the rename question. Null when the subject is new or storage is not readable. */
-function savedEntryForSubject(): OpenISDDriver | null {
+function savedEntryForSubject(): typeof draft.driver | null {
   if (subject.kind !== 'myDriver' || !subject.openedAs) return null;
   // The uuid is the REPOSITORY's key, held beside the driver rather than on it — a driver
   // carries no identity of its own (John: "the id is not on the driver, it is the key into the
@@ -166,123 +158,9 @@ function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufact
  *  ENCAPSULATION_AND_LAYERING.md); this is the one UI-layer dispatch point for the editor's
  *  data-driven field table. */
 function setNum(field: string, v: number | null) {
-  const d = draftDriver.value;
-  if (v == null) {
-    switch (field as SpecField) {
-    case 'Fs': d.spec[d.section].Fs_hz.clear(); return;
-    case 'Re': d.spec[d.section].Re_ohm.clear(); return;
-    case 'Le': d.spec[d.section].Le_H.clear(); return;
-    case 'fLe': d.spec[d.section].fLe_hz.clear(); return;
-    case 'KLe': d.spec[d.section].KLe_H_sqrtHz.clear(); return;
-    case 'Znom': d.spec[d.section].Znom_ohm.clear(); return;
-    case 'Qts': d.spec[d.section].Qts.clear(); return;
-    case 'Qes': d.spec[d.section].Qes.clear(); return;
-    case 'Qms': d.spec[d.section].Qms.clear(); return;
-    case 'Vas': d.spec[d.section].Vas_m3.clear(); return;
-    case 'Sd': d.spec[d.section].Sd_m2.clear(); return;
-    case 'BL': d.spec[d.section].BL_Tm.clear(); return;
-    case 'Mms': d.spec[d.section].Mms_kg.clear(); return;
-    case 'Cms': d.spec[d.section].Cms_m_per_N.clear(); return;
-    case 'Rms': d.spec[d.section].Rms_kg_per_s.clear(); return;
-    case 'Xmax': d.spec[d.section].Xmax_m.clear(); return;
-    case 'Xlim': d.spec[d.section].Xlim_m.clear(); return;
-    case 'SPL': d.spec[d.section].SPL_dB.clear(); return;
-    case 'Pe': d.spec[d.section].Pe_W.clear(); return;
-    case 'Dd': d.spec[d.section].Dd_m.clear(); return;
-    case 'EBP': d.spec[d.section].EBP_hz.clear(); return;
-    case 'numVC': d.spec[d.section].numVC.clear(); return;
-    case 'Dia': d.spec[d.section].Dia_m.clear(); return;
-    case 'Vd': d.spec[d.section].Vd_m3.clear(); return;
-    case 'no': d.spec[d.section].no.clear(); return;
-    case 'SPLmax': d.spec[d.section].SPLmax_dB.clear(); return;
-    case 'SPLmaxLF': d.spec[d.section].SPLmaxLF_dB.clear(); return;
-    case 'USPL': d.spec[d.section].USPL_dB.clear(); return;
-    case 'alfaVC': d.spec[d.section].alfaVC_per_K.clear(); return;
-    case 'Rt': d.spec[d.section].Rt_K_per_W.clear(); return;
-    case 'Ct': d.spec[d.section].Ct_J_per_K.clear(); return;
-    case 'gamma': d.spec[d.section].gamma_m_per_s2_A.clear(); return;
-    case 'Rme': d.spec[d.section].Rme_kg_per_s.clear(); return;
-    case 'Mpow': d.spec[d.section].Mpow_N_per_sqrtW.clear(); return;
-    case 'Mcost': d.spec[d.section].Mcost_kg_per_s.clear(); return;
-    case 'Gloss': d.spec[d.section].Gloss.clear(); return;
-    case 'c': d.spec[d.section].c_m_per_s.clear(); return;
-    case 'roo': d.spec[d.section].roo_kg_per_m3.clear(); return;
-    case 'Vcd': d.spec[d.section].Vcd_m.clear(); return;
-    case 'Hg': d.spec[d.section].Hg_m.clear(); return;
-    case 'Hc': d.spec[d.section].Hc_m.clear(); return;
-    case 'freq_low_hz': d.spec[d.section].freq_low_hz.clear(); return;
-    case 'freq_high_hz': d.spec[d.section].freq_high_hz.clear(); return;
-    case 'power_peak_W': d.spec[d.section].power_peak_W.clear(); return;
-    case 'weight_kg': d.spec[d.section].weight_kg.clear(); return;
-    case 'Thick': d.spec[d.section].Thick_m.clear(); return;
-    case 'Depth': d.spec[d.section].Depth_m.clear(); return;
-    case 'MagDepth': d.spec[d.section].MagDepth_m.clear(); return;
-    case 'Magnet': d.spec[d.section].Magnet_m.clear(); return;
-    case 'Basket': d.spec[d.section].Basket_m.clear(); return;
-    case 'Outer': d.spec[d.section].Outer_m.clear(); return;
-    case 'OuterX': d.spec[d.section].OuterX_m.clear(); return;
-    case 'OuterY': d.spec[d.section].OuterY_m.clear(); return;
-    case 'DVol': d.spec[d.section].DVol_m3.clear(); return;
-    }
-  } else {
-    const value = v;
-    switch (field as SpecField) {
-    case 'Fs': d.spec[d.section].Fs_hz.set(value); return;
-    case 'Re': d.spec[d.section].Re_ohm.set(value); return;
-    case 'Le': d.spec[d.section].Le_H.set(value); return;
-    case 'fLe': d.spec[d.section].fLe_hz.set(value); return;
-    case 'KLe': d.spec[d.section].KLe_H_sqrtHz.set(value); return;
-    case 'Znom': d.spec[d.section].Znom_ohm.set(value); return;
-    case 'Qts': d.spec[d.section].Qts.set(value); return;
-    case 'Qes': d.spec[d.section].Qes.set(value); return;
-    case 'Qms': d.spec[d.section].Qms.set(value); return;
-    case 'Vas': d.spec[d.section].Vas_m3.set(value); return;
-    case 'Sd': d.spec[d.section].Sd_m2.set(value); return;
-    case 'BL': d.spec[d.section].BL_Tm.set(value); return;
-    case 'Mms': d.spec[d.section].Mms_kg.set(value); return;
-    case 'Cms': d.spec[d.section].Cms_m_per_N.set(value); return;
-    case 'Rms': d.spec[d.section].Rms_kg_per_s.set(value); return;
-    case 'Xmax': d.spec[d.section].Xmax_m.set(value); return;
-    case 'Xlim': d.spec[d.section].Xlim_m.set(value); return;
-    case 'SPL': d.spec[d.section].SPL_dB.set(value); return;
-    case 'Pe': d.spec[d.section].Pe_W.set(value); return;
-    case 'Dd': d.spec[d.section].Dd_m.set(value); return;
-    case 'EBP': d.spec[d.section].EBP_hz.set(value); return;
-    case 'numVC': d.spec[d.section].numVC.set(value); return;
-    case 'Dia': d.spec[d.section].Dia_m.set(value); return;
-    case 'Vd': d.spec[d.section].Vd_m3.set(value); return;
-    case 'no': d.spec[d.section].no.set(value); return;
-    case 'SPLmax': d.spec[d.section].SPLmax_dB.set(value); return;
-    case 'SPLmaxLF': d.spec[d.section].SPLmaxLF_dB.set(value); return;
-    case 'USPL': d.spec[d.section].USPL_dB.set(value); return;
-    case 'alfaVC': d.spec[d.section].alfaVC_per_K.set(value); return;
-    case 'Rt': d.spec[d.section].Rt_K_per_W.set(value); return;
-    case 'Ct': d.spec[d.section].Ct_J_per_K.set(value); return;
-    case 'gamma': d.spec[d.section].gamma_m_per_s2_A.set(value); return;
-    case 'Rme': d.spec[d.section].Rme_kg_per_s.set(value); return;
-    case 'Mpow': d.spec[d.section].Mpow_N_per_sqrtW.set(value); return;
-    case 'Mcost': d.spec[d.section].Mcost_kg_per_s.set(value); return;
-    case 'Gloss': d.spec[d.section].Gloss.set(value); return;
-    case 'c': d.spec[d.section].c_m_per_s.set(value); return;
-    case 'roo': d.spec[d.section].roo_kg_per_m3.set(value); return;
-    case 'Vcd': d.spec[d.section].Vcd_m.set(value); return;
-    case 'Hg': d.spec[d.section].Hg_m.set(value); return;
-    case 'Hc': d.spec[d.section].Hc_m.set(value); return;
-    case 'freq_low_hz': d.spec[d.section].freq_low_hz.set(value); return;
-    case 'freq_high_hz': d.spec[d.section].freq_high_hz.set(value); return;
-    case 'power_peak_W': d.spec[d.section].power_peak_W.set(value); return;
-    case 'weight_kg': d.spec[d.section].weight_kg.set(value); return;
-    case 'Thick': d.spec[d.section].Thick_m.set(value); return;
-    case 'Depth': d.spec[d.section].Depth_m.set(value); return;
-    case 'MagDepth': d.spec[d.section].MagDepth_m.set(value); return;
-    case 'Magnet': d.spec[d.section].Magnet_m.set(value); return;
-    case 'Basket': d.spec[d.section].Basket_m.set(value); return;
-    case 'Outer': d.spec[d.section].Outer_m.set(value); return;
-    case 'OuterX': d.spec[d.section].OuterX_m.set(value); return;
-    case 'OuterY': d.spec[d.section].OuterY_m.set(value); return;
-    case 'DVol': d.spec[d.section].DVol_m3.set(value); return;
-    }
-  }
+  const handle = fieldOf(field);
+  if (!handle) return;
+  if (v == null) handle.clear(); else handle.set(v);
   forceUpdate();
 }
 
@@ -290,8 +168,7 @@ function setNum(field: string, v: number | null) {
  *  `setNum`'s table is numeric, and routing a wiring through it would put a 1 or a 2 where the
  *  domain expects 'parallel'/'series'. */
 function setWiring(e: Event) {
-  const d = draftDriver.value;
-  d.spec[d.section].VCCon.set(selectValue(e) === 'series' ? VoiceCoilWiring.Series : VoiceCoilWiring.Parallel);
+  draft.setWiring(selectValue(e) === 'series' ? 'series' : 'parallel');
   forceUpdate();
 }
 
@@ -309,68 +186,11 @@ function cellOf(field: string): Cell<number> {
  *  proving the numeric reads, which is what a cast here would have switched off. */
 function fieldOf(field: string): FieldHandle<number> | null {
   const _ = trigger.value;
-  const d = draftDriver.value;
-  switch (field as SpecField) {
-    case 'Fs': return d.spec[d.section].Fs_hz;
-    case 'Re': return d.spec[d.section].Re_ohm;
-    case 'Le': return d.spec[d.section].Le_H;
-    case 'fLe': return d.spec[d.section].fLe_hz;
-    case 'KLe': return d.spec[d.section].KLe_H_sqrtHz;
-    case 'Znom': return d.spec[d.section].Znom_ohm;
-    case 'Qts': return d.spec[d.section].Qts;
-    case 'Qes': return d.spec[d.section].Qes;
-    case 'Qms': return d.spec[d.section].Qms;
-    case 'Vas': return d.spec[d.section].Vas_m3;
-    case 'Sd': return d.spec[d.section].Sd_m2;
-    case 'BL': return d.spec[d.section].BL_Tm;
-    case 'Mms': return d.spec[d.section].Mms_kg;
-    case 'Cms': return d.spec[d.section].Cms_m_per_N;
-    case 'Rms': return d.spec[d.section].Rms_kg_per_s;
-    case 'Xmax': return d.spec[d.section].Xmax_m;
-    case 'Xlim': return d.spec[d.section].Xlim_m;
-    case 'SPL': return d.spec[d.section].SPL_dB;
-    case 'Pe': return d.spec[d.section].Pe_W;
-    case 'Dd': return d.spec[d.section].Dd_m;
-    case 'EBP': return d.spec[d.section].EBP_hz;
-    case 'numVC': return d.spec[d.section].numVC;
-    case 'Dia': return d.spec[d.section].Dia_m;
-    case 'Vd': return d.spec[d.section].Vd_m3;
-    case 'no': return d.spec[d.section].no;
-    case 'SPLmax': return d.spec[d.section].SPLmax_dB;
-    case 'SPLmaxLF': return d.spec[d.section].SPLmaxLF_dB;
-    case 'USPL': return d.spec[d.section].USPL_dB;
-    case 'alfaVC': return d.spec[d.section].alfaVC_per_K;
-    case 'Rt': return d.spec[d.section].Rt_K_per_W;
-    case 'Ct': return d.spec[d.section].Ct_J_per_K;
-    case 'gamma': return d.spec[d.section].gamma_m_per_s2_A;
-    case 'Rme': return d.spec[d.section].Rme_kg_per_s;
-    case 'Mpow': return d.spec[d.section].Mpow_N_per_sqrtW;
-    case 'Mcost': return d.spec[d.section].Mcost_kg_per_s;
-    case 'Gloss': return d.spec[d.section].Gloss;
-    case 'c': return d.spec[d.section].c_m_per_s;
-    case 'roo': return d.spec[d.section].roo_kg_per_m3;
-    case 'Vcd': return d.spec[d.section].Vcd_m;
-    case 'Hg': return d.spec[d.section].Hg_m;
-    case 'Hc': return d.spec[d.section].Hc_m;
-    case 'freq_low_hz': return d.spec[d.section].freq_low_hz;
-    case 'freq_high_hz': return d.spec[d.section].freq_high_hz;
-    case 'power_peak_W': return d.spec[d.section].power_peak_W;
-    case 'weight_kg': return d.spec[d.section].weight_kg;
-    case 'Thick': return d.spec[d.section].Thick_m;
-    case 'Depth': return d.spec[d.section].Depth_m;
-    case 'MagDepth': return d.spec[d.section].MagDepth_m;
-    case 'Magnet': return d.spec[d.section].Magnet_m;
-    case 'Basket': return d.spec[d.section].Basket_m;
-    case 'Outer': return d.spec[d.section].Outer_m;
-    case 'OuterX': return d.spec[d.section].OuterX_m;
-    case 'OuterY': return d.spec[d.section].OuterY_m;
-    case 'DVol': return d.spec[d.section].DVol_m3;
-    default: return null;
-  }
+  return specFieldHandle(draftDriver.value, field);
 }
 
-function cellClass(field: string): string {
-  return cellClassFor(cellOf, field as SpecField);
+function cellClass(field: SpecField): string {
+  return cellClassFor(cellOf, field);
 }
 
 function cellVal(field: string): number | null {
@@ -429,7 +249,7 @@ const provenanceInfo = computed(() => {
   // `cellVal` is the same accessor every NumInput on this modal reads through, and it is
   // reactive to `trigger` — a Proxy lets `getProvenanceInfo` pull any SpecField id it names
   // without this file hand-listing every input every formula might use.
-  const currentValues = new Proxy({} as Record<string, number | null>, {
+  const currentValues: Record<string, number | null> = new Proxy({}, {
     get: (_target, key) => cellVal(String(key)),
   });
   return getProvenanceInfo(inspectedField.value, currentValues);
@@ -667,7 +487,7 @@ function cancel() {
 
 // Reset — draft back to what it was seeded from (the picked driver, or the design).
 function reset() {
-  draftDriver.value = markRaw(seedDraft());
+  draft.reset();
   forceUpdate();
 }
 
@@ -699,7 +519,7 @@ function handleFileLoaded(e: Event) {
         ? wdrTextToDriver(text)
         : owdrTextToDriver(text);
       if (!read) { alert('Failed to parse file: ' + (errors[0]?.message ?? 'unreadable')); return; }
-      draftDriver.value = markRaw(read);
+      draft.replace(read);
       forceUpdate();
     } catch (err) {
       alert('Failed to parse file: ' + (err instanceof Error ? err.message : String(err)));

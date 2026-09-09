@@ -1,14 +1,4 @@
-/**
- * The Original skin's Projects list. Open projects are INDEPENDENT documents: one never
- * carries, rebuilds or hides another (ARCHITECTURE.md AD-7 / docs/design/STATE_MODEL.md). These tests
- * pin the three ways that independence used to break —
- *   1. a row's show/hide checkbox being re-derived from a second copy of the same fact,
- *   2. the other open projects being written into the active design's state.compare
- *      (which is what gets saved to its file and share link),
- *   3. a project you cannot close, and unsaved work discarded without being asked.
- * The auto console/network guardrail (fixtures) covers errors raised along the way.
- */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
 // The store's debug handle, typed to just the parts these tests read. Avoids `any` casts
@@ -22,7 +12,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.original-root').waitFor({ state: 'visible' });
+  await openAProject(page);
 });
 
 const rowStates = (page: Page) =>

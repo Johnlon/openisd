@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import { myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // My Drivers is the ONE destination for every user-created driver. Four routes reach it and
 // nothing else does: Add new Driver, Clone driver, Load File…, and saving a driver to a file
@@ -16,14 +17,16 @@ const EDITOR = '.de-modal';
 const POOL_ROWS = '.dlist .ditem:not(.my-ditem)';
 const MY_ROWS = '.dlist .my-ditem';
 
-interface SavedDriver { brand?: string; model?: string; Fs?: number }
+interface SavedDriver { brand: string; model: string; specs: Record<string, number> }
 
 /** One saved driver, so every test starts with a My Drivers section that exists. */
 const SEEDED: SavedDriver = {
   brand: SEEDED_BRAND, model: SEEDED_MODEL,
-  Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
-  Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8,
-} as SavedDriver;
+  specs: {
+    Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
+    Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8,
+  },
+};
 
 /** A minimal WinISD driver file, as a user's own `.wdr` on disk would read. */
 const DISK_WDR = [
@@ -73,10 +76,11 @@ async function captureSavedFiles(page: Page): Promise<void> {
 }
 
 async function seed(page: Page, myDrivers: SavedDriver[] = [SEEDED]): Promise<void> {
-  await page.addInitScript(([drivers, key]) => {
-    localStorage.setItem(key as string, JSON.stringify(drivers));
-  }, [myDrivers, MY_DRIVERS_KEY] as const);
+  await page.addInitScript(([json, key]) => {
+    localStorage.setItem(key as string, json as string);
+  }, [myDriversJson(myDrivers), MY_DRIVERS_KEY] as const);
   await page.goto('/');
+  await openAProject(page);
 }
 
 async function openPicker(page: Page): Promise<void> {
@@ -84,13 +88,22 @@ async function openPicker(page: Page): Promise<void> {
   await expect(page.locator('.dlist')).toBeVisible();
 }
 
-/** What is in My Drivers right now. */
-async function savedDrivers(page: Page): Promise<SavedDriver[]> {
-  return page.evaluate(key => JSON.parse(localStorage.getItem(key as string) ?? '[]'), MY_DRIVERS_KEY);
+/** The brand/model of every driver in My Drivers right now, read out of the stored envelope
+ *  ({ schema, entries: [{ uuid, record }] }) the app writes. */
+async function savedNames(page: Page): Promise<{ brand: string; model: string }[]> {
+  return page.evaluate((key) => {
+    const raw = localStorage.getItem(key as string);
+    if (!raw) return [];
+    const env = JSON.parse(raw) as { entries?: { record?: { brand?: { value?: string }; model?: { value?: string } } }[] };
+    return (env.entries ?? []).map(e => ({
+      brand: e.record?.brand?.value ?? '',
+      model: e.record?.model?.value ?? '',
+    }));
+  }, MY_DRIVERS_KEY);
 }
 
 async function savedIds(page: Page): Promise<string[]> {
-  return (await savedDrivers(page)).map(d => `${d.brand}/${d.model}`).sort();
+  return (await savedNames(page)).map(d => `${d.brand}/${d.model}`).sort();
 }
 
 /** The project's own driver, read off the Original shell's read-only Brand/Model pair. */
@@ -160,7 +173,7 @@ test('Clone driver forks a saved driver into My Drivers as "Copy of …"', async
   await page.locator(MY_ROWS, { hasText: SEEDED_MODEL }).click();
   await page.locator('.wb-modal .clone-btn').click();
 
-  const saved = await savedDrivers(page);
+  const saved = await savedNames(page);
   expect(saved.map(d => d.model).sort()).toEqual(['Copy of Fixture', 'Fixture']);
   expect(saved.find(d => d.model === 'Copy of Fixture')?.brand,
     'the clone changed the brand — only the model forks').toBe(SEEDED_BRAND);
@@ -179,7 +192,7 @@ test('Clone driver copies a LIBRARY driver into My Drivers too', async ({ page }
   await row.click();
   await page.locator('.wb-modal .clone-btn').click();
 
-  const saved = await savedDrivers(page);
+  const saved = await savedNames(page);
   expect(saved, 'the library clone did not reach My Drivers').toHaveLength(2);
   expect(saved.filter(d => d.model?.startsWith('Copy of '))).toHaveLength(1);
 });
@@ -210,8 +223,8 @@ test('a file that names no brand or model takes its identity from the file name'
     name: 'my nameless driver.wdr', mimeType: 'application/x-winisd-driver', buffer: Buffer.from(NAMELESS_WDR),
   });
 
-  await expect.poll(async () => (await savedDrivers(page)).length).toBe(2);
-  const loaded = (await savedDrivers(page)).find(d => d.model !== SEEDED_MODEL);
+  await expect.poll(async () => (await savedNames(page)).length).toBe(2);
+  const loaded = (await savedNames(page)).find(d => d.model !== SEEDED_MODEL);
   expect(loaded?.model, 'an unidentifiable driver was saved with no identity').toBe('my nameless driver');
 });
 
@@ -235,7 +248,7 @@ test('a driver saved to .wdr and loaded back lands in My Drivers', async ({ page
 
   // 2. Remove it, so its reappearance can only come from the file.
   await page.locator(MY_ROWS, { hasText: SEEDED_MODEL }).locator('.my-del').click();
-  expect(await savedDrivers(page), 'the saved driver was not removed').toEqual([]);
+  expect(await savedNames(page), 'the saved driver was not removed').toEqual([]);
 
   // 3. Load the file back — My Drivers, nowhere else.
   await page.locator('.wb-modal input[type=file]').setInputFiles({

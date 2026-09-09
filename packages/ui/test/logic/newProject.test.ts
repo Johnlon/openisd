@@ -10,7 +10,7 @@
  * a run, so these assert DELTAS from whatever the registry already holds, never absolute counts.
  */
 import { describe, it, expect } from 'vitest';
-import { newProject, openProjects, focusedProject } from '../../src/logic/appState.js';
+import { newProject, openProjects, focusedProject, definePassiveRadiator, boxTypeIsSimulatable } from '../../src/logic/appState.js';
 
 describe('newProject', () => {
   it('adds one project and focuses it', () => {
@@ -45,5 +45,42 @@ describe('newProject', () => {
     one.driver.model.set('RS225');
 
     expect(two.driver.model.get().value).toBe('');
+  });
+});
+
+describe('definePassiveRadiator', () => {
+  it('puts a blank radiator in the focused project, so the editor has one to fill in', () => {
+    newProject();
+    const project = focusedProject();
+    if (!project) throw new Error('newProject must focus the project it created');
+
+    definePassiveRadiator();
+
+    // A blank radiator states nothing, but the slot is no longer empty — writing to it is
+    // exactly what the editor does next, and an empty slot refuses a write.
+    project.box.passiveRadiator.radiator.spec.Fs_hz.set(11);
+    expect(project.box.passiveRadiator.radiator.spec.Fs_hz.get().value).toBe(11);
+  });
+
+  it('replaces whatever radiator was there, so Define is not an edit of the old one', () => {
+    newProject();
+    const project = focusedProject();
+    if (!project) throw new Error('newProject must focus the project it created');
+    definePassiveRadiator();
+    project.box.passiveRadiator.radiator.model.set('Old PR');
+
+    definePassiveRadiator();
+
+    expect(project.box.passiveRadiator.radiator.model.get().value).toBe('');
+  });
+});
+
+describe('boxTypeIsSimulatable', () => {
+  it('accepts a box type the circuit models', () => {
+    expect(boxTypeIsSimulatable('sealed')).toBe(true);
+  });
+
+  it('refuses one it does not, which is what puts the Box tab in its pending state', () => {
+    expect(boxTypeIsSimulatable('bandpass6')).toBe(false);
   });
 });

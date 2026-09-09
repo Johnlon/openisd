@@ -4,7 +4,8 @@
  * `solvePrGroup()`), the owner of the state. This module keeps the field vocabulary, the
  * badge letter, and the same one-action-one-solve suspension as the vent group.
  */
-import type { OpenISDProject, CellState } from '@openisd/design';
+import type { OpenISDProject } from '@openisd/design';
+import type { CellState } from '@openisd/design/winisd';
 import { suspendVentSolve } from './useVentGroup.js';
 
 /** The two members tied by the tuning relation. */

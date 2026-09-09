@@ -1,4 +1,5 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import type { Page } from '@playwright/test';
 
 // The count above the driver list must always mean ONE thing: how many rows are listed right
 // now. It used to mean the size of the whole pool, because init() writes the pool total into
@@ -9,6 +10,7 @@ import { test, expect } from '../fixtures.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await openAProject(page);
   await page.locator('[title*="librar" i]').first().click();
   await expect(page.locator('.dlist')).toBeVisible();
 });

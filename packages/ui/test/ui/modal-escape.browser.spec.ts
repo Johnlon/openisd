@@ -1,10 +1,12 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
+import type { Page } from '@playwright/test';
 
 // Design rule (.claude/rules/openisd-ui-design.md): pressing Escape dismisses any open modal.
 // The browserLog auto-fixture also asserts a clean console + network throughout.
 
 test('Escape dismisses the driver library modal', async ({ page }) => {
   await page.goto('/');
+  await openAProject(page);
   await page.getByRole('button', { name: /Browse \/ Select/ }).click();
   await expect(page.locator('.modal')).toBeVisible();
 
@@ -14,6 +16,7 @@ test('Escape dismisses the driver library modal', async ({ page }) => {
 
 test('Escape dismisses the Define Driver modal', async ({ page }) => {
   await page.goto('/');
+  await openAProject(page);
   await page.getByRole('button', { name: /Define new/ }).click();
   await expect(page.locator('.dd-overlay')).toBeVisible();
 

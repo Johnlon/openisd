@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 /**
  * The consistency-group DQ mark — workspace ledger QP18 and openisd ledger QO13's sibling
  * QO12, one mechanism for both rulings:
@@ -9,8 +12,10 @@
  * naming the group and the size of the disagreement, a consistent driver has none, and it
  * blocks nothing.
  */
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
+
+const COMPLETE_OWPR = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'complete-driver-project.owpr');
 
 // Mms typed as 30 g on the demo driver — the exact repro recorded in QO12. Fs stays entered
 // at 37 Hz, Cms stays computed from Vas and Sd, and the three can no longer be reconciled:
@@ -21,7 +26,7 @@ async function openTune(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
-  await page.locator('.original-root').waitFor({ state: 'visible' });
+  await openAProject(page, COMPLETE_OWPR);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
   await expect(page.locator('.tune-panel')).toBeVisible();
@@ -34,6 +39,7 @@ async function openEditorParameters(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
+  await openAProject(page, COMPLETE_OWPR);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Edit' }).click();
   await expect(page.locator('.de-modal')).toBeVisible();

@@ -1,4 +1,7 @@
-import { test as base, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { test as base, expect, type Page } from '@playwright/test';
 
 /**
  * Shared Playwright fixtures for all UI/browser tests.
@@ -81,6 +84,27 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
       console.error(`\n[browser diagnostics — "${testInfo.title}"${failed ? ' (test FAILED)' : ''}]\n${JSON.stringify(dump, null, 2)}\n`);
     }
 
+    // THE DEV SERVER IS GONE — not a test failure, and never to be counted as one.
+    // `playwright.config.js` sets `reuseExistingServer: true`, so if vite on 4100 dies
+    // mid-run nothing restarts it and every remaining test fails identically on
+    // ERR_CONNECTION_REFUSED. That once turned one infrastructure death into "210 failed",
+    // a number that measured how far the run got rather than anything about the code.
+    // bugs/BUG_20260909_the_playwright_vite_server_dies_mid_run_and_fakes_hundreds_of_failures.md
+    //
+    // Raised FIRST and on its own, so the message says what actually happened rather than
+    // burying it among the diagnostics categories below.
+    const serverDown = log.networkErrors.filter(e => /ERR_CONNECTION_REFUSED/.test(e));
+    if (serverDown.length) {
+      throw new Error(
+        'DEV SERVER UNREACHABLE — this is NOT a test failure.\n' +
+        `The base URL refused the connection (${serverDown.length} request(s)):\n    ` +
+        serverDown.join('\n    ') + '\n' +
+        'The vite server on 4100 has died, so every test after this point fails the same way ' +
+        'regardless of the code. TREAT THIS RUN AS VOID and restart the suite — do not read ' +
+        'its pass/fail totals as a result.',
+      );
+    }
+
     // NO opt-out, NO skip-on-failure. EVERY check runs every time — each is wrapped
     // in try/catch so an early failure never prevents the later checks from running.
     // Their failures are aggregated into ONE error listing every category, so a
@@ -104,5 +128,16 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
     }
   }, { auto: true }],
 });
+
+const DEFAULT_SAMPLE_OWPR = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'sample-project.owpr');
+
+export async function openAProject(page: Page, owprPath: string = DEFAULT_SAMPLE_OWPR): Promise<void> {
+  await page.locator('.no-project-open input[type=file]').setInputFiles({
+    name: 'sample-project.owpr',
+    mimeType: 'application/json',
+    buffer: readFileSync(owprPath),
+  });
+  await page.locator('.original-root').waitFor({ state: 'visible' });
+}
 
 export { expect };

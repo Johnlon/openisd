@@ -26,8 +26,8 @@ import { Engine, LossMode } from '@openisd/design/engine';
 import { OpenISDDriver, type Cell } from '@openisd/design';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
 import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
-import { WinISDDriver } from '../../winisd/winisdDriver.js';
-import { POS_TO_WDRKEY } from '../../winisd/parstate.js';
+import { WinISDDriver } from '../../winisd/index.js';
+import { POS_TO_WDRKEY } from '../../winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixtures = join(here, 'fixtures', 'winisd-parity');
