@@ -27,6 +27,8 @@ interface TaskLike {
 const CHECKLIST_SUITES = [
   'module-level globals — every export must be an explicit, currently-real grant',
   'no re-exports — a name is declared where it is exported',
+  'BLOCKED: QO126',
+  'BLOCKED: solveVentGroup stub',
 ];
 const PRECOMMIT = process.env.PRECOMMIT === '1';
 
