@@ -1,5 +1,4 @@
 import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
 
 // Design rule (.claude/rules/openisd-ui-design.md): pressing Escape dismisses any open modal.
 // The browserLog auto-fixture also asserts a clean console + network throughout.

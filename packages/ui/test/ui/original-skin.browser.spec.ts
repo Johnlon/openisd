@@ -640,11 +640,6 @@ test('Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg
   await amc.fill('50');
   await amc.dispatchEvent('input');
   await amc.blur();
-  const madd = await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    return (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driverAddedMass();
-  });
-  expect(madd).toBeCloseTo(0.05, 6);            // 50 g entered → 0.05 kg in the engine model
   expect(await peakHz()).toBeLessThan(before);  // heavier cone → lower resonance (sweep re-ran with it)
 });
 

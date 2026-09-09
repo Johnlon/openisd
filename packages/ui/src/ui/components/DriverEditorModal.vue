@@ -701,9 +701,9 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                 <NumInput :class="cellClass('fLe')" :model-value="cellVal('fLe')" field="fLe" group="freq" base="kHz" :precision="precision('fLe')" @update:model-value="v => setNum('fLe', v)"></NumInput><span v-if="dqNote('fLe')" class="de-dq" :title="dqNote('fLe')">&#9888;</span>
                 <UnitToggle field="fLe" group="freq" base="kHz" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="KLe" :style="getFieldStyle('Le2')" :title="fieldHelp('KLe')">
+              <div class="de-fld" data-field-key="KLe" :style="getFieldStyle('KLe')" :title="fieldHelp('KLe')">
                 <label>KLe</label>
-                <NumInput :class="cellClass('Le2')" :model-value="cellVal('Le2')" @update:model-value="v => setNum('Le2', v)"></NumInput><span v-if="dqNote('Le2')" class="de-dq" :title="dqNote('Le2')">&#9888;</span>
+                <NumInput :class="cellClass('KLe')" :model-value="cellVal('KLe')" @update:model-value="v => setNum('KLe', v)"></NumInput><span v-if="dqNote('KLe')" class="de-dq" :title="dqNote('KLe')">&#9888;</span>
                 <span class="u">H·√Hz</span>
               </div>
             </div>
@@ -789,19 +789,19 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           <div class="de-group">
             <div class="de-hdr">Thermal parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="alfaVC" :style="getFieldStyle('tc')" :title="fieldHelp('alfaVC')">
+              <div class="de-fld" data-field-key="alfaVC" :style="getFieldStyle('alfaVC')" :title="fieldHelp('alfaVC')">
                 <label>AlfaVC</label>
-                <NumInput :class="cellClass('tc')" :model-value="cellVal('tc')" field="alfaVC" group="tempCoeff" base="perMilliK" @update:model-value="v => setNum('tc', v)"></NumInput><span v-if="dqNote('tc')" class="de-dq" :title="dqNote('tc')">&#9888;</span>
+                <NumInput :class="cellClass('alfaVC')" :model-value="cellVal('alfaVC')" field="alfaVC" group="tempCoeff" base="perMilliK" @update:model-value="v => setNum('alfaVC', v)"></NumInput><span v-if="dqNote('alfaVC')" class="de-dq" :title="dqNote('alfaVC')">&#9888;</span>
                 <UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="u" />
               </div>
-              <div class="de-fld" data-field-key="Rt" :style="getFieldStyle('Rth')" :title="fieldHelp('Rt')">
+              <div class="de-fld" data-field-key="Rt" :style="getFieldStyle('Rt')" :title="fieldHelp('Rt')">
                 <label>R(t)</label>
-                <NumInput :class="cellClass('Rth')" :model-value="cellVal('Rth')" @update:model-value="v => setNum('Rth', v)"></NumInput><span v-if="dqNote('Rth')" class="de-dq" :title="dqNote('Rth')">&#9888;</span>
+                <NumInput :class="cellClass('Rt')" :model-value="cellVal('Rt')" @update:model-value="v => setNum('Rt', v)"></NumInput><span v-if="dqNote('Rt')" class="de-dq" :title="dqNote('Rt')">&#9888;</span>
                 <span class="u">K/W</span>
               </div>
-              <div class="de-fld" data-field-key="Ct" :style="getFieldStyle('Cth')" :title="fieldHelp('Ct')">
+              <div class="de-fld" data-field-key="Ct" :style="getFieldStyle('Ct')" :title="fieldHelp('Ct')">
                 <label>C(t)</label>
-                <NumInput :class="cellClass('Cth')" :model-value="cellVal('Cth')" @update:model-value="v => setNum('Cth', v)"></NumInput><span v-if="dqNote('Cth')" class="de-dq" :title="dqNote('Cth')">&#9888;</span>
+                <NumInput :class="cellClass('Ct')" :model-value="cellVal('Ct')" @update:model-value="v => setNum('Ct', v)"></NumInput><span v-if="dqNote('Ct')" class="de-dq" :title="dqNote('Ct')">&#9888;</span>
                 <span class="u">J/K</span>
               </div>
             </div>

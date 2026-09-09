@@ -1,5 +1,4 @@
 import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
 
 /**
  * Exhaustive Playwright Browser Test Suite for OpenISD Driver Editor UI Parameter Solver

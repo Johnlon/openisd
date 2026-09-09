@@ -1,5 +1,4 @@
 import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
 
 // The count above the driver list must always mean ONE thing: how many rows are listed right
 // now. It used to mean the size of the whole pool, because init() writes the pool total into

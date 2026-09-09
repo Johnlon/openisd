@@ -513,6 +513,7 @@ const cursorVal = computed<number | null>(() => {
 });
 
 // ---- Tab rail (persisted) ------------------------------------------------------
+type TabId = 'box' | 'driver' | 'enclosure' | 'filters' | 'signal' | 'advanced' | 'project';
 function isTabId(v: unknown): v is TabId {
   return v === 'box' || v === 'driver' || v === 'enclosure' || v === 'filters' || v === 'signal' || v === 'advanced' || v === 'project';
 }

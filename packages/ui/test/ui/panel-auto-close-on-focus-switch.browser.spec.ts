@@ -1,5 +1,4 @@
 import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
 
 test('switching focus to a different open project closes an open Tune panel', async ({ page }) => {
   await page.goto('/');

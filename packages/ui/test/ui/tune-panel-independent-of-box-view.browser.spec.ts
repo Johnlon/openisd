@@ -7,7 +7,6 @@
  * entirely — must not disturb it.
  */
 import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
 
 test('the Tune panel stays open when the box type changes underneath it', async ({ page }) => {
   await page.goto('/');

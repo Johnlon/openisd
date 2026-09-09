@@ -170,7 +170,7 @@ function reExportOffencesIn(f: string): string[] {
 // DISABLED per John's ruling 2026-09-09 (QO136)
 describe('no re-exports — a name is declared where it is exported (QO80) [DISABLED QO136]', () => {
   it('re-exports rule is disabled per QO136 ruling', () => {
-    // Disabled per John's instruction (QO136)
+    void SRC_ROOTS; void filesUnder; void checklistDescribe; void reExportOffencesIn;
     assert.ok(true);
   });
 });

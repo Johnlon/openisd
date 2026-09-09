@@ -85,32 +85,24 @@ async function forEachTab(page: Page, visit: (tab: string, labels: string[]) => 
   }
 }
 
-/** The editor's own label→key table and the set of keys the provenance map can explain, read
- *  from the modules so this test cannot drift from them. */
-const provenanceTables = (page: Page) =>
-  page.evaluate(async () => {
-    const modPath = '/src/logic/provenance.ts';
-    const m = await import(/* @vite-ignore */ modPath);
-    return { map: m.LABEL_TO_FIELD_KEY as Record<string, string>, explained: Object.keys(m.PROVENANCE_MAP) };
-  });
+import { LABEL_TO_FIELD_KEY, PROVENANCE_MAP } from '../../src/logic/provenance.js';
+import { UNIT_GROUPS } from '../../src/logic/fields/units.js';
 
-/** unit LABEL → its group and token, plus the label one click rotates to. Derived from the
- *  unit registry itself, so adding a unit to a group immediately widens what test 4 demands. */
-const unitTable = (page: Page) =>
-  page.evaluate(async () => {
-    const modPath = '/src/logic/fields/units.ts';
-    const u = await import(/* @vite-ignore */ modPath);
-    const groups = u.UNIT_GROUPS as Record<string, { token: string; label: string; factor: number }[]>;
-    const byLabel: Record<string, { group: string; token: string; next: string; ratio: number }> = {};
-    for (const [group, units] of Object.entries(groups)) {
-      if (units.length < 2) continue;
-      units.forEach((def, i) => {
-        const next = units[(i + 1) % units.length];
-        byLabel[def.label] ??= { group, token: def.token, next: next.label, ratio: next.factor / def.factor };
-      });
-    }
-    return byLabel;
-  });
+function provenanceTables() {
+  return { map: LABEL_TO_FIELD_KEY, explained: Object.keys(PROVENANCE_MAP) };
+}
+
+function unitTable() {
+  const byLabel: Record<string, { group: string; token: string; next: string; ratio: number }> = {};
+  for (const [group, units] of Object.entries(UNIT_GROUPS)) {
+    if (units.length < 2) continue;
+    units.forEach((def, i) => {
+      const next = units[(i + 1) % units.length];
+      byLabel[def.label] ??= { group, token: def.token, next: next.label, ratio: next.factor / def.factor };
+    });
+  }
+  return byLabel;
+}
 
 // ── 0. The label→key map cannot silently drift from what the editor actually renders ────
 //
@@ -129,7 +121,7 @@ const unitTable = (page: Page) =>
  *  which fields might drift — every field this system can ever explain stays covered. */
 test('LABEL_TO_FIELD_KEY resolves every simulation field to the key it is actually bound to', async ({ page }) => {
   await openEditor(page);
-  const { map } = await provenanceTables(page);
+  const { map } = provenanceTables();
 
   const drift: string[] = [];
   const untagged: string[] = [];
@@ -155,7 +147,7 @@ test('LABEL_TO_FIELD_KEY resolves every simulation field to the key it is actual
 
 test('every field the provenance map explains takes the inspected highlight', async ({ page }) => {
   await openEditor(page);
-  const { map, explained } = await provenanceTables(page);
+  const { map, explained } = provenanceTables();
   await page.locator('.de-provenance-chk', { hasText: 'Inspect Provenance' }).locator('input').check();
 
   const dark: string[] = [];
@@ -193,7 +185,7 @@ const NO_FORMULA = new Set(['c', 'roo']);
 test('every field the solver calculated has a provenance formula', async ({ page }) => {
   await openEditor(page);
   await seedDriver(page);
-  const { map, explained } = await provenanceTables(page);
+  const { map, explained } = provenanceTables();
 
   const unexplained: string[] = [];
   await forEachTab(page, async (tab, labels) => {
@@ -249,7 +241,7 @@ const SINGLE_UNIT = new Set([
 test('every unit with alternates is a working toggle, and every other unit is a plain label', async ({ page }) => {
   await openEditor(page);
   await seedDriver(page);
-  const convertible = await unitTable(page);
+  const convertible = unitTable();
 
   const problems: string[] = [];
   await forEachTab(page, async (tab, labels) => {

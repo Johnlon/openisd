@@ -1,5 +1,4 @@
 import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
 import { Chip } from '@openisd/design/filter';
 
 // The filter chips are rendered straight from the Chip enum (`DRIVER_TYPES = Chip.ALL`),

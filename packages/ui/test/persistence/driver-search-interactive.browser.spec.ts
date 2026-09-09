@@ -1,5 +1,4 @@
 import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
 import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // A saved driver need not carry a `name` — one saved from a record whose brand and model are

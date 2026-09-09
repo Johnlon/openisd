@@ -1,15 +1,13 @@
+import { fileURLToPath } from 'node:url';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
 
 test('record UI browser automation frames in Original WinISD skin', async ({ page }) => {
   // Repo-local build/, never an OS temp path — AGENTS.md §"Scratch files".
   const framesDir = fileURLToPath(new URL('../../../../build/ui_frames', import.meta.url));
   fs.mkdirSync(framesDir, { recursive: true });  // recursive:true already tolerates an existing dir
 
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
   await page.goto('/');
   await openAProject(page);
 
@@ -23,7 +21,6 @@ test('record UI browser automation frames in Original WinISD skin', async ({ pag
 
   await page.locator('.de-body').waitFor({ state: 'visible' });
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();
-  await page.waitForTimeout(500);
 
   // Frame 0: Initial state in Original skin
   await page.screenshot({ path: path.join(framesDir, 'frame_00.png') });
@@ -35,18 +32,18 @@ test('record UI browser automation frames in Original WinISD skin', async ({ pag
 
   await hcf.fill('');
   await hgf.fill('8.0');
-  await page.waitForTimeout(400);
+  await expect(hgf).toHaveValue('8.0');
   await page.screenshot({ path: path.join(framesDir, 'frame_01.png') });
 
   // Frame 2: Enter Xmax = 3.0 (Hc calculates to 2.00 mm green)
   await xmaxf.fill('3.0');
-  await page.waitForTimeout(500);
+  await expect(xmaxf).toHaveValue('3.0');
   await page.screenshot({ path: path.join(framesDir, 'frame_02.png') });
 
   // Frame 3: Enter Dd = 210.0 (Sd calculates to 346.4 cm² green)
   const ddf = page.locator('.de-fld:has-text("Dd") input');
   await ddf.fill('210.0');
-  await page.waitForTimeout(500);
+  await expect(ddf).toHaveValue('210.0');
   await page.screenshot({ path: path.join(framesDir, 'frame_03.png') });
 
   // Frame 4: Enter Fs=35, Qes=0.4, Qms=4.5, Vas=45, Re=6 (Multi-hop cascade)
@@ -54,8 +51,9 @@ test('record UI browser automation frames in Original WinISD skin', async ({ pag
   await page.locator('.de-fld:has-text("Qes") input').fill('0.400');
   await page.locator('.de-fld:has-text("Qms") input').fill('4.500');
   await page.locator('.de-fld:has-text("Vas") input').fill('45.0');
-  await page.locator('.de-fld:has-text("Re") input').fill('6.0');
-  await page.waitForTimeout(800);
+  const reInput = page.locator('.de-fld:has-text("Re") input');
+  await reInput.fill('6.0');
+  await expect(reInput).toHaveValue('6.0');
   await page.screenshot({ path: path.join(framesDir, 'frame_04.png') });
 
   // A recorder that photographed a closed editor would write five useless frames and still

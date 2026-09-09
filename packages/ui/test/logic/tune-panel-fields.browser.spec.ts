@@ -22,8 +22,6 @@ async function readVb(page: Page): Promise<number> {
 /** Open the Original skin's docked Tune panel on a clean slate. */
 async function openTune(page: Page) {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
   await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
@@ -150,8 +148,6 @@ test('QO11.4 Tune: box volume is on the panel, drives the same state, and Cancel
 // ── QO11.5 — an invalid entry is red while typing, before blur ────────────────────────────
 test('QO11.5 NumInput: an out-of-range value typed character-by-character goes red before blur', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
   await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
 
@@ -183,8 +179,6 @@ test('QO11.5 NumInput: an out-of-range value typed character-by-character goes r
 });
 
 test('QO11.5 NumInput: a full-precision value survives typing and blur — dp is presentation only', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
   await page.goto('/');
   await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
