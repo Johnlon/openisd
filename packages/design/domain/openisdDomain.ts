@@ -435,12 +435,7 @@ function prSpec(
             return v === null ? {value: null, state: 'not-available'} : {value: v, state: 'entered'};
         },
         (v) => {
-            const existingJson = lens.get();
-            const json = existingJson ?? {
-                name: 'Default PR',
-                manufacturer: null,
-                specs: { 'passive-radiator': {} },
-            };
+            const json = lens.get() ?? blankDeviceRecord('passive-radiator');
             const spec = json.specs['passive-radiator'] ?? {};
             lens.set({
                 ...json,
@@ -673,7 +668,7 @@ class OpenISDBox implements Box {
      *  relation solved each way, so they must never disagree about their inputs. `prMadd` is 0
      *  when no tuning mass has been added — that IS the stated condition, not a missing value. */
     #prParams(
-        volume_m3: number,
+        volume_m3: number | null,
         addedMass_kg: number | null,
         radiator: OpenISDPassiveRadiatorEmbedded,
     ): { Vb: number; prMmd: number; prMadd: number; prSd: number; prCms: number } | null {
@@ -682,7 +677,7 @@ class OpenISDBox implements Box {
         const prMmd = radiator.spec.Mms_kg.get().value;
         const prSd = radiator.spec.Sd_m2.get().value;
         const prCms = radiator.spec.Cms_m_per_N.get().value;
-        if (prMmd === null || prSd === null || prCms === null || !(volume_m3 > 0)) return null;
+        if (volume_m3 === null || !(volume_m3 > 0) || prMmd === null || prSd === null || prCms === null) return null;
         return {Vb: volume_m3, prMmd, prMadd: addedMass_kg ?? 0, prSd, prCms};
     }
 
@@ -2567,7 +2562,7 @@ export class OpenISDProject {
     /** Whether the stated tuning is beyond what this radiator can reach. False on the same terms
      *  as `ventTargetUnreachable()`. */
     prTargetUnreachable(): boolean {
-        if (this.box.boxType.get() !== 'passiveRadiator') return false;
+        if (this.box.boxType.get() !== 'box-passive-radiator') return false;
         const fp = this.box.passiveRadiator.tuning_hz.get().value;
         if (fp === null || !(fp > 0)) return false;
         const m = this.box.passiveRadiator.addedMassForTuning_kg(fp);

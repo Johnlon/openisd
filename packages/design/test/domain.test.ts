@@ -529,7 +529,7 @@ describe('the passive radiator a box holds', () => {
     // At the ceiling itself the answer is zero added mass, not null — reachable, just barely.
     expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling)).toBeCloseTo(0, 9);
 
-    p.box.boxType.set('passiveRadiator');
+    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
     p.solvePrGroup();
 
