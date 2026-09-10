@@ -16,9 +16,10 @@ import { P0, G_STANDARD } from './constants.js';
 import type { Wiring } from './types.js';
 import { GAMMA, DEFAULT_P_REF_PA, airFor } from './air.js';
 import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
-import { ebp } from './boxDesign.js';
+import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp } from './boxDesign.js';
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
-import type { SolverQuantities, QuantityName } from './solverQuantities.js';
+import type { SolverQuantities, DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, QuantityName } from './solverQuantities.js';
+import type { ConsistencyIssue } from './consistency.js';
 
 
 
@@ -497,4 +498,93 @@ export function terminalRe_ohm(Re_ohm: number, numVC: number | undefined, wiring
 export function terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
   const coils = numVC != null && numVC >= 1 ? numVC : 1;
   return wiring === 'series' ? BL_Tm * coils : BL_Tm;
+}
+
+export function solveDriverConsistencyGroup(p: DriverSolverQuantities): DriverSolverQuantities {
+  return solveConsistencyGroup(p);
+}
+
+export function solvePrConsistencyGroup(p: PrSolverQuantities): PrSolverQuantities {
+  const out: PrSolverQuantities = { ...p };
+  const { addedMass_kg, tuning_hz, Vb_m3, prMmd_kg, prSd_m2, prCms_m_per_N } = p;
+  
+  if (addedMass_kg != null && tuning_hz == null) {
+    if (Vb_m3 != null && Vb_m3 > 0 && prMmd_kg != null && prSd_m2 != null && prCms_m_per_N != null) {
+      const prParams = { Vb: Vb_m3, prMmd: prMmd_kg, prMadd: addedMass_kg, prSd: prSd_m2, prCms: prCms_m_per_N };
+      out.tuning_hz = prTuning(prParams);
+    }
+  } else if (tuning_hz != null && addedMass_kg == null) {
+    if (Vb_m3 != null && Vb_m3 > 0 && prMmd_kg != null && prSd_m2 != null && prCms_m_per_N != null && tuning_hz > 0) {
+      const prParams = { Vb: Vb_m3, prMmd: prMmd_kg, prMadd: 0, prSd: prSd_m2, prCms: prCms_m_per_N };
+      const totalMass = prMassForFp(prParams, tuning_hz);
+      out.addedMass_kg = totalMass - prMmd_kg;
+    }
+  }
+  return out;
+}
+
+export function checkPrConsistency(p: PrSolverQuantities): ConsistencyIssue[] {
+  const issues: ConsistencyIssue[] = [];
+  if (p.tuning_hz != null && p.tuning_hz <= 0) {
+    issues.push({
+      formula: 'Tuning frequency must be greater than zero',
+      fields: ['tuning_hz'],
+      target: 'tuning_hz',
+      expected: 0,
+      actual: p.tuning_hz,
+      relative: 1,
+    });
+  }
+  if (p.addedMass_kg != null && p.addedMass_kg < 0) {
+    issues.push({
+      formula: 'Target tuning is above maximum passive radiator tuning',
+      fields: ['addedMass_kg', 'tuning_hz'],
+      target: 'addedMass_kg',
+      expected: 0,
+      actual: p.addedMass_kg,
+      relative: 1,
+    });
+  }
+  return issues;
+}
+
+export function solveVentConsistencyGroup(p: VentSolverQuantities): VentSolverQuantities {
+  const out: VentSolverQuantities = { ...p };
+  const { tuning_hz, length_m, Vb_m3, area_m2, endCorrection_m } = p;
+
+  if (tuning_hz != null && length_m == null) {
+    if (Vb_m3 != null && Vb_m3 > 0 && area_m2 != null && area_m2 > 0 && tuning_hz > 0) {
+      out.length_m = ventLength(Vb_m3, tuning_hz, area_m2, endCorrection_m ?? 0.732);
+    }
+  } else if (length_m != null && tuning_hz == null) {
+    if (Vb_m3 != null && Vb_m3 > 0 && area_m2 != null && area_m2 > 0) {
+      out.tuning_hz = tuningFromLength(Vb_m3, length_m, area_m2, endCorrection_m ?? 0.732);
+    }
+  }
+  return out;
+}
+
+export function checkVentConsistency(p: VentSolverQuantities): ConsistencyIssue[] {
+  const issues: ConsistencyIssue[] = [];
+  if (p.tuning_hz != null && p.tuning_hz <= 0) {
+    issues.push({
+      formula: 'Tuning frequency must be greater than zero',
+      fields: ['tuning_hz'],
+      target: 'tuning_hz',
+      expected: 0,
+      actual: p.tuning_hz,
+      relative: 1,
+    });
+  }
+  if (p.length_m != null && p.length_m < 0) {
+    issues.push({
+      formula: 'Target tuning is unreachable for vent geometry',
+      fields: ['length_m', 'tuning_hz'],
+      target: 'length_m',
+      expected: 0,
+      actual: p.length_m,
+      relative: 1,
+    });
+  }
+  return issues;
 }

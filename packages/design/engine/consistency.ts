@@ -56,9 +56,9 @@ export interface ConsistencyIssue {
   /** The relation as WINISD_SCHEMA.md §4 states it. */
   readonly formula: string;
   /** Every member of the group. */
-  readonly fields: readonly (QuantityName)[];
+  readonly fields: readonly (QuantityName | string)[];
   /** The member the relation predicts. */
-  readonly target: QuantityName;
+  readonly target: QuantityName | string;
   /** What the other members imply for `target`, SI. */
   readonly expected: number;
   /** What `target` actually holds, SI. */

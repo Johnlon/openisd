@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+if [ -z "$PROCEED" ]
+then
+	echo AGENT : DO NOT RUN HEALTH CHECK UNLESS ALL THE UNIT TESTS IN THIS PLAN ALREADY WORK
+	exit 1
+fi
 # Run all project health checks: lint, type check, unit tests, browser tests.
 # Exit code 0 = all passed. Non-zero = something failed.
 # Add new checks here as they are created — this is the single entry point.

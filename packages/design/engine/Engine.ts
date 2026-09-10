@@ -27,7 +27,12 @@ import {
   prCmsFromVas, prFsWithMass, prMmdFromFs, prQms, prRmsFromQms, prVas,
 } from './formulas.js';
 import { checkConsistency, isQGroupField, qGroupIsIncomplete } from './consistency.js';
-import { solveConsistencyGroup, terminalRe_ohm, terminalBL_Tm } from './solver.js';
+import {
+  solveConsistencyGroup, solveDriverConsistencyGroup,
+  solvePrConsistencyGroup, checkPrConsistency,
+  solveVentConsistencyGroup, checkVentConsistency,
+  terminalRe_ohm, terminalBL_Tm,
+} from './solver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { driveVoltage, driveFromVoltage } from './formulas.js';
 import { sealedResonance, sourceLoadedQts } from './lossMode.js';
@@ -38,7 +43,7 @@ import {
 } from './sweep.js';
 import type { ConsistencyIssue } from './consistency.js';
 import type { Result, Wiring } from './types.js';
-import type { SolverQuantities } from './solverQuantities.js';
+import type { SolverQuantities, DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, EnclosureParams, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
@@ -75,6 +80,26 @@ export class Engine {
    *  different numbers asks again, and nothing can overwrite a stated value with a derived one. */
   solveConsistencyGroup(d: Readonly<SolverQuantities>): Readonly<SolverQuantities> {
     return solveConsistencyGroup(d);
+  }
+
+  solveDriverConsistencyGroup(d: Readonly<DriverSolverQuantities>): Readonly<DriverSolverQuantities> {
+    return solveDriverConsistencyGroup(d);
+  }
+
+  solvePrConsistencyGroup(p: Readonly<PrSolverQuantities>): Readonly<PrSolverQuantities> {
+    return solvePrConsistencyGroup(p);
+  }
+
+  checkPrConsistency(p: Readonly<PrSolverQuantities>): ConsistencyIssue[] {
+    return checkPrConsistency(p);
+  }
+
+  solveVentConsistencyGroup(p: Readonly<VentSolverQuantities>): Readonly<VentSolverQuantities> {
+    return solveVentConsistencyGroup(p);
+  }
+
+  checkVentConsistency(p: Readonly<VentSolverQuantities>): ConsistencyIssue[] {
+    return checkVentConsistency(p);
   }
 
   /** Everything the entered values disagree about.

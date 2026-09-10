@@ -363,26 +363,29 @@ class VentWindow implements Vent {
         this.length_m = new Field<number>(
             () => {
                 const rawL = rawLengthLens.get();
+                const ventContextFb = ventContext?.getTuningHz() ?? null;
+                const ventContextVb = ventContext?.getVb() ?? null;
+                const solved = this.#engine.solveVentConsistencyGroup({
+                    tuning_hz: ventContextFb,
+                    length_m: rawL,
+                    Vb_m3: ventContextVb,
+                    area_m2: this.area_m2(),
+                    endCorrection_m: this.endCorrection_m.get(),
+                });
+                const issues = this.#engine.checkVentConsistency(solved);
+                const issue = issues.find(i => i.fields.includes('length_m') || i.fields.includes('tuning_hz'));
+                const dq = issue ? issue.formula : null;
+
                 if (rawL !== null) {
-                    const dq = rawL < 0 ? 'Target tuning is unreachable for vent geometry' : null;
                     return createCell<number>(rawL, 'entered', dq);
                 }
-                if (ventContext) {
-                    const Vb = ventContext.getVb();
-                    const fb = ventContext.getTuningHz();
-                    if (Vb !== null && Vb > 0 && fb !== null) {
-                        const l = this.lengthForTuning_m(Vb, fb);
-                        const dq = (fb <= 0) ? 'Tuning frequency must be greater than zero'
-                                 : (l !== null && l < 0) ? 'Target tuning is unreachable for vent geometry'
-                                 : null;
-                        return createCell<number>(l, l === null ? 'not-available' : 'calculated', dq);
-                    }
+                if (solved.length_m != null) {
+                    return createCell<number>(solved.length_m, 'calculated', dq);
                 }
                 return createCell<number>(null, 'not-available');
             },
             (v) => {
                 rawLengthLens.set(v);
-                if (ventContext?.clearTuningHz) ventContext.clearTuningHz();
             },
             () => rawLengthLens.set(null),
         );
@@ -564,28 +567,28 @@ class OpenISDBox implements Box {
             () => {
                 const rawFb = rawVentedTuningLens.get();
                 const rawL = rawVentLengthLens.get();
+                const Vb = this.vented.volume_m3.get().value;
+                const solved = engine.solveVentConsistencyGroup({
+                    tuning_hz: rawFb,
+                    length_m: rawL,
+                    Vb_m3: Vb,
+                    area_m2: ventWindow.area_m2(),
+                    endCorrection_m: ventWindow.endCorrection_m.get(),
+                });
+                const issues = engine.checkVentConsistency(solved);
+                const issue = issues.find(i => i.fields.includes('tuning_hz') || i.fields.includes('length_m'));
+                const dq = issue ? issue.formula : null;
+
                 if (rawFb !== null) {
-                    const Vb = this.vented.volume_m3.get().value;
-                    const l = ventWindow.lengthForTuning_m(Vb, rawFb);
-                    const dq = (rawFb <= 0) ? 'Tuning frequency must be greater than zero'
-                             : (l !== null && l < 0) ? 'Target tuning is unreachable for vent geometry'
-                             : null;
                     return createCell<number>(rawFb, 'entered', dq);
                 }
-                if (rawL !== null) {
-                    const Vb = this.vented.volume_m3.get().value;
-                    const fb = ventWindow.tuningIn_hz(Vb);
-                    return createCell<number>(fb, fb === null ? 'not-available' : 'calculated');
+                if (solved.tuning_hz != null) {
+                    return createCell<number>(solved.tuning_hz, 'calculated', dq);
                 }
                 return createCell<number>(null, 'not-available');
             },
             (v) => {
-                const cur = ventedLens.get();
-                ventedLens.set({
-                    ...cur,
-                    chamber: { ...cur.chamber, tuning_hz: v },
-                    vent: { ...cur.vent, length_m: null },
-                });
+                rawVentedTuningLens.set(v);
             },
             () => rawVentedTuningLens.set(null),
         );
@@ -666,16 +669,25 @@ class OpenISDBox implements Box {
             () => {
                 const rawMass = rawPrAddedMassLens.get();
                 const rawTuning = rawPrTuningLens.get();
+                const Vb = prVolume.get() || this.vented.volume_m3.get().value;
+                const solved = engine.solvePrConsistencyGroup({
+                    tuning_hz: rawTuning,
+                    addedMass_kg: rawMass,
+                    Vb_m3: Vb,
+                    prMmd_kg: radiator.spec.Mms_kg.get().value,
+                    prSd_m2: radiator.spec.Sd_m2.get().value,
+                    prCms_m_per_N: radiator.spec.Cms_m_per_N.get().value,
+                    prNum: focus(pr, 'count').get(),
+                });
+                const issues = engine.checkPrConsistency(solved);
+                const issue = issues.find(i => i.fields.includes('addedMass_kg') || i.fields.includes('tuning_hz'));
+                const dq = issue ? issue.formula : null;
+
                 if (rawMass !== null) {
-                    const dq = rawMass < 0 ? 'Target tuning is above maximum passive radiator tuning' : null;
                     return createCell<number>(rawMass, 'entered', dq);
                 }
-                if (rawTuning !== null) {
-                    const m = this.passiveRadiator?.addedMassForTuning_kg(rawTuning) ?? null;
-                    const dq = (rawTuning <= 0) ? 'Tuning frequency must be greater than zero'
-                             : (m !== null && m < 0) ? 'Target tuning is above maximum passive radiator tuning'
-                             : null;
-                    return createCell<number>(m, m === null ? 'not-available' : 'calculated', dq);
+                if (solved.addedMass_kg != null) {
+                    return createCell<number>(solved.addedMass_kg, 'calculated', dq);
                 }
                 return createCell<number>(null, 'not-available');
             },
@@ -689,17 +701,25 @@ class OpenISDBox implements Box {
             () => {
                 const rawTuning = rawPrTuningLens.get();
                 const rawMass = rawPrAddedMassLens.get();
+                const Vb = prVolume.get() || this.vented.volume_m3.get().value;
+                const solved = engine.solvePrConsistencyGroup({
+                    tuning_hz: rawTuning,
+                    addedMass_kg: rawMass,
+                    Vb_m3: Vb,
+                    prMmd_kg: radiator.spec.Mms_kg.get().value,
+                    prSd_m2: radiator.spec.Sd_m2.get().value,
+                    prCms_m_per_N: radiator.spec.Cms_m_per_N.get().value,
+                    prNum: focus(pr, 'count').get(),
+                });
+                const issues = engine.checkPrConsistency(solved);
+                const issue = issues.find(i => i.fields.includes('tuning_hz') || i.fields.includes('addedMass_kg'));
+                const dq = issue ? issue.formula : null;
+
                 if (rawTuning !== null) {
-                    const m = this.passiveRadiator?.addedMassForTuning_kg(rawTuning) ?? null;
-                    const dq = (rawTuning <= 0) ? 'Tuning frequency must be greater than zero'
-                             : (m !== null && m < 0) ? 'Target tuning is above maximum passive radiator tuning'
-                             : null;
                     return createCell<number>(rawTuning, 'entered', dq);
                 }
-                if (rawMass !== null) {
-                    const fp = this.passiveRadiator?.systemTuning_hz() ?? null;
-                    const dq = rawMass < 0 ? 'Target tuning is above maximum passive radiator tuning' : null;
-                    return createCell<number>(fp, fp === null ? 'not-available' : 'calculated', dq);
+                if (solved.tuning_hz != null) {
+                    return createCell<number>(solved.tuning_hz, 'calculated', dq);
                 }
                 return createCell<number>(null, 'not-available');
             },
@@ -1448,6 +1468,10 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             wiring: this.spec[this.section].VCCon.get().value === VoiceCoilWiring.Series
                 ? 'series' : 'parallel',
         });
+    }
+
+    solveDriverConsistencyGroup(): Readonly<SolverQuantities> {
+        return this.solveConsistencyGroup();
     }
 
     /** Everything this driver's stated values disagree about — an over-specified driver whose
@@ -2592,6 +2616,10 @@ export class OpenISDProject {
         this.#notify();
     }
 
+    solveVentConsistencyGroup(): void {
+        this.solveVentGroup();
+    }
+
     /** The tuning the vent as built actually produces. */
     ventAchievedFb(): number | null {
         if (this.box.boxType.get() !== 'vented') return null;
@@ -2627,6 +2655,14 @@ export class OpenISDProject {
     /** Derives whichever of the passive-radiator box's tuning/added-mass the user did not state. */
     solvePrGroup(): void {
         this.#notify();
+    }
+
+    solvePrConsistencyGroup(): void {
+        this.solvePrGroup();
+    }
+
+    solveDriverConsistencyGroup(): Readonly<SolverQuantities> {
+        return this.driver.solveDriverConsistencyGroup();
     }
 
     /** Whether the stated tuning is beyond what this radiator can reach. False on the same terms

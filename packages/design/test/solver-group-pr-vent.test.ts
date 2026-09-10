@@ -81,7 +81,7 @@ describe('PR and Vent Solver Groups', () => {
     p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.addedMass_kg.clear();
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
-    p.solvePrGroup();
+    p.solvePrConsistencyGroup();
 
     const massCell = p.box.passiveRadiator.addedMass_kg.get();
     const tuningCell = p.box.passiveRadiator.tuning_hz.get();
@@ -102,7 +102,7 @@ describe('PR and Vent Solver Groups', () => {
     p.box.vented.vent.endCorrection_m.set(0.6);
     p.box.vented.vent.length_m.clear();
     p.box.vented.tuning_hz.set(35);
-    p.solveVentGroup();
+    p.solveVentConsistencyGroup();
 
     const lenCell = p.box.vented.vent.length_m.get();
     const tuningCell = p.box.vented.tuning_hz.get();
@@ -112,5 +112,26 @@ describe('PR and Vent Solver Groups', () => {
     expect(lenCell.value).toBeGreaterThan(0);
     expect(lenCell.dq()).toBeNull();
     expect(tuningCell.dq()).toBeNull();
+  });
+
+  it('Engine exposes pure solveDriverConsistencyGroup, solvePrConsistencyGroup, and solveVentConsistencyGroup', () => {
+    const engine = new Engine();
+    const prSolved = engine.solvePrConsistencyGroup({
+      tuning_hz: 50,
+      Vb_m3: 0.03,
+      prMmd_kg: 0.09,
+      prSd_m2: 0.025,
+      prCms_m_per_N: 0.0009,
+      prNum: 1,
+    });
+    expect(prSolved.addedMass_kg).toBeDefined();
+
+    const ventSolved = engine.solveVentConsistencyGroup({
+      tuning_hz: 35,
+      Vb_m3: 0.03,
+      area_m2: 0.002,
+      endCorrection_m: 0.6,
+    });
+    expect(ventSolved.length_m).toBeGreaterThan(0);
   });
 });

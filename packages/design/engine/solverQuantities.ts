@@ -17,7 +17,7 @@
  */
 import type { Wiring } from './types.js';
 
-export class SolverQuantities {
+export class DriverSolverQuantities {
     // Thiele/Small
     /** Free-air resonance frequency of the driver. */
   Fs_hz?: number;
@@ -129,6 +129,38 @@ export class SolverQuantities {
   numVC?: number;
   /** How the coils are wired. Absent means the single-coil case, where it does not matter. */
   wiring?: Wiring;
+}
+
+export type SolverQuantities = DriverSolverQuantities;
+
+export interface PrSolverQuantities {
+    /** Stated or derived added mass on the passive radiator cone. */
+    addedMass_kg?: number | null;
+    /** Stated or derived system tuning frequency. */
+    tuning_hz?: number | null;
+    /** Driver-side box volume. */
+    Vb_m3?: number | null;
+    /** Passive radiator moving mass without added mass. */
+    prMmd_kg?: number | null;
+    /** Passive radiator cone area. */
+    prSd_m2?: number | null;
+    /** Passive radiator compliance. */
+    prCms_m_per_N?: number | null;
+    /** Number of passive radiators. */
+    prNum?: number | null;
+}
+
+export interface VentSolverQuantities {
+    /** Stated or derived system tuning frequency. */
+    tuning_hz?: number | null;
+    /** Stated or derived physical vent length. */
+    length_m?: number | null;
+    /** Driver-side box volume. */
+    Vb_m3?: number | null;
+    /** Vent cross-sectional area. */
+    area_m2?: number | null;
+    /** Vent end correction length. */
+    endCorrection_m?: number | null;
 }
 
 
