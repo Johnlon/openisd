@@ -160,6 +160,7 @@ describe('both saved libraries return live domain objects', () => {
 
     const repo = createMyPassiveRadiatorRepo(storage, engine);
     const listed = repo.list();
+    assert.ok(saved);
     assert.equal(listed[0].uuid, saved.uuid, 'the uuid is adopted on read, never re-minted');
 
     repo.remove(saved.uuid);

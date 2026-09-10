@@ -510,6 +510,7 @@ function fileLayer(file: string): string {
   if (/(^|\/)test\//.test(r) || file.includes(`${sep}test${sep}`)) return 'ui/test';
   if (file === join(UI_SRC, 'main.ts')) return 'ui/entrypoint';
   if (r.startsWith('logic/')) return 'ui/logic';
+  if (r.startsWith('hooks/')) return 'ui/hooks';
   if (r.startsWith('diagnostics/')) return 'ui/diagnostics';
   if (r.startsWith('logging/')) return 'ui/logging';
   if (r.startsWith('ui/')) return 'ui/components';
@@ -560,7 +561,8 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
   // gates above (ui/components -> ui/logic, ui/logic -> model, etc.). `ui/entrypoint`
   // (main.ts, the composition root) is exempt below — it legitimately wires every layer.
   const ALLOWED_EDGES = new Set([
-    'ui/components->ui/logic', 'ui/components->model', 'ui/components->ui/root',
+    'ui/components->ui/logic', 'ui/components->model', 'ui/components->ui/root', 'ui/components->ui/hooks',
+    'ui/hooks->ui/logic', 'ui/hooks->model', 'ui/hooks->ui/root',
     'ui/logic->model', 'ui/logic->persistence', 'ui/logic->ui/root', 'ui/logic->winisd', 'ui/logic->engine',
     'persistence-repos->model', 'persistence-repos->engine', 'persistence-storage->model',
     'model->winisd', // human-approved 2026-08-23: toWinISDDriver/toWinISDProject/fromWinISDProject

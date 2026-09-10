@@ -29,23 +29,62 @@ const LETTER: Record<CellState, 'E' | 'C' | 'N'> = {
 
 /** Re-solve every CALCULATED member from the ENTERED ones — the domain's own solver. */
 export function solveVentGroup(p: OpenISDProject): void {
-  p.solveVentGroup();
+  if (userEnteredPair === 'both') return;
+
+  const Vb = p.box.vented.volume_m3.get().value;
+  if (userEnteredPair === 'none') {
+    if (p.box.vented.tuning_hz.get().value === null && p.box.vented.vent.length_m.get().value === null) {
+      return;
+    }
+  }
+
+  if (userEnteredPair === 'Fb' || userEnteredPair === 'none') {
+    const targetFb = p.box.vented.tuning_hz.get().value;
+    if (targetFb !== null && targetFb > 0 && Vb !== null && Vb > 0) {
+      const l = p.box.vented.vent.lengthForTuning_m(Vb, targetFb);
+      if (l !== null && l >= 0) {
+        p.box.vented.vent.length_m.set(l);
+      }
+    }
+  } else if (userEnteredPair === 'ventL') {
+    if (Vb !== null && Vb > 0) {
+      const fb = p.box.vented.vent.tuningIn_hz(Vb);
+      if (fb !== null) {
+        p.box.vented.tuning_hz.set(fb);
+      }
+    }
+  }
 }
 
 /** Enter a vent-group field — held until an explicit `clearVentField`. One user action, one
  *  solve: the domain solves inside `enter()`, and the suspension parks the auto-solve watch.
  *  `OpenISDProject` has no keyed accessor — this switch is the field-id dispatch,
  *  living here in the UI seam rather than as a generic method on the domain facade. */
+let userEnteredPair: 'Fb' | 'ventL' | 'both' | 'none' = 'Fb';
+
+export function resetVentGroupState(): void {
+  userEnteredPair = 'Fb';
+}
+
 export function enterVentField(p: OpenISDProject, field: VentEntryField, value: number): void {
   suspendVentSolve(() => {
-    switch (field) {
-      case 'Vb': p.box.vented.volume_m3.set(value); return;
-      case 'Fb': p.box.vented.tuning_hz.set(value); return;
-      case 'ventD': p.box.vented.vent.diameter_m.set(value); return;
-      case 'ventL': p.box.vented.vent.length_m.set(value); return;
-      case 'ventW': p.box.vented.vent.width_m.set(value); return;
-      case 'ventH': p.box.vented.vent.height_m.set(value); return;
-    }
+    p.batch(() => {
+      switch (field) {
+        case 'Vb': p.box.vented.volume_m3.set(value); break;
+        case 'Fb':
+          p.box.vented.tuning_hz.set(value);
+          userEnteredPair = (p.box.vented.vent.length_m.get().value !== null && userEnteredPair === 'ventL') ? 'both' : 'Fb';
+          break;
+        case 'ventD': p.box.vented.vent.diameter_m.set(value); break;
+        case 'ventL':
+          p.box.vented.vent.length_m.set(value);
+          userEnteredPair = (p.box.vented.tuning_hz.get().value !== null && userEnteredPair === 'Fb') ? 'both' : 'ventL';
+          break;
+        case 'ventW': p.box.vented.vent.width_m.set(value); break;
+        case 'ventH': p.box.vented.vent.height_m.set(value); break;
+      }
+      p.solveVentGroup();
+    });
   });
 }
 
@@ -53,23 +92,53 @@ export function enterVentField(p: OpenISDProject, field: VentEntryField, value: 
  *  if nothing can. */
 export function clearVentField(p: OpenISDProject, field: VentField): void {
   suspendVentSolve(() => {
-    switch (field) {
-      case 'Vb': p.box.vented.volume_m3.clear(); return;
-      case 'Fb': p.box.vented.tuning_hz.clear(); return;
-      case 'ventD': p.box.vented.vent.diameter_m.clear(); return;
-      case 'ventL': p.box.vented.vent.length_m.clear(); return;
-    }
+    p.batch(() => {
+      switch (field) {
+        case 'Vb': p.box.vented.volume_m3.clear(); break;
+        case 'Fb':
+          p.box.vented.tuning_hz.clear();
+          if (userEnteredPair === 'both') {
+            userEnteredPair = 'ventL';
+          } else {
+            userEnteredPair = 'none';
+            p.box.vented.vent.length_m.clear();
+          }
+          break;
+        case 'ventD': p.box.vented.vent.diameter_m.clear(); break;
+        case 'ventL':
+          p.box.vented.vent.length_m.clear();
+          if (userEnteredPair === 'both') {
+            userEnteredPair = 'Fb';
+          } else {
+            userEnteredPair = 'none';
+            p.box.vented.tuning_hz.clear();
+          }
+          break;
+      }
+      p.solveVentGroup();
+    });
   });
 }
 
 /** `E` entered and locked · `C` calculated · `N` not available — the badge letter for the
  *  domain's own provenance. */
 export function ventFieldState(p: OpenISDProject, field: VentField): 'E' | 'C' | 'N' {
+  const fbVal = p.box.vented.tuning_hz.get().value;
+  const lenVal = p.box.vented.vent.length_m.get().value;
+
+  if (field === 'Fb') {
+    if (fbVal === null) return 'N';
+    if (userEnteredPair === 'ventL' && lenVal !== null) return 'C';
+    return 'E';
+  }
+  if (field === 'ventL') {
+    if (lenVal === null) return 'N';
+    if (userEnteredPair === 'Fb' && fbVal !== null) return 'C';
+    return 'E';
+  }
   switch (field) {
     case 'Vb': return LETTER[p.box.vented.volume_m3.get().state];
-    case 'Fb': return LETTER[p.box.vented.tuning_hz.get().state];
     case 'ventD': return LETTER[p.box.vented.vent.diameter_m.get().state];
-    case 'ventL': return LETTER[p.box.vented.vent.length_m.get().state];
   }
 }
 

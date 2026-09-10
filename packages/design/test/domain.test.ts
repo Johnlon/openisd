@@ -513,7 +513,7 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.systemTuning_hz()).toBeCloseTo(15, 6);
   });
 
-  it('reports no mass for a tuning this radiator cannot reach in this box', () => {
+  it('reports impossible calculated mass for an unreachable tuning target and shows dq on the related fields', () => {
     // The highest tuning reachable is the one produced with NO added mass; above that the
     // arithmetic asks for negative mass, and mass cannot come off a cone carrying none.
     const p = project();
@@ -525,9 +525,22 @@ describe('the passive radiator a box holds', () => {
 
     const ceiling = p.box.passiveRadiator.systemTuning_hz()!;
 
-    expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling * 1.5)).toBeNull();
+    expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling * 1.5)).toBeLessThan(0);
     // At the ceiling itself the answer is zero added mass, not null — reachable, just barely.
     expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling)).toBeCloseTo(0, 9);
+
+    p.box.boxType.set('passiveRadiator');
+    p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
+    p.solvePrGroup();
+
+    expect(p.box.passiveRadiator.addedMass_kg.get().value).toBeLessThan(0);
+    expect(p.prTargetUnreachable()).toBe(true);
+
+    p.box.passiveRadiator.tuning_hz.set(ceiling);
+    p.solvePrGroup();
+
+    expect(p.box.passiveRadiator.addedMass_kg.get().value).toBeCloseTo(0, 9);
+    expect(p.prTargetUnreachable()).toBe(false);
   });
 
   it('reports no resonance-with-added-mass until a radiator is chosen', () => {

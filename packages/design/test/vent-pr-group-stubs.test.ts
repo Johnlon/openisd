@@ -50,32 +50,55 @@ function ventedProject() {
  * `ventAchievedFb()` return a real frequency. This file pins today's behaviour so that change is
  * deliberate and visible, not a silent drift.
  */
-describe('vent-group solve/reachability — nothing wired, so nothing solved', () => {
+describe('vent-group solve/reachability — Helmholtz solver implementations', () => {
   it('solveVentGroup() runs without throwing — the store calls it on every project change', () => {
     expect(() => ventedProject().solveVentGroup()).not.toThrow();
   });
 
-  it('solveVentGroup() rewrites nothing, since no relation exists to solve through', () => {
+  it('solveVentGroup() derives vent length when tuning_hz is entered', () => {
     const p = ventedProject();
-    const lengthBefore = p.box.vented.vent.length_m.get();
-    const tuningBefore = p.box.vented.tuning_hz.get();
-
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
     p.solveVentGroup();
 
-    expect(p.box.vented.vent.length_m.get()).toEqual(lengthBefore);
-    expect(p.box.vented.tuning_hz.get()).toEqual(tuningBefore);
+    const len = p.box.vented.vent.length_m.get().value;
+    expect(len).not.toBeNull();
+    expect(len!).toBeGreaterThan(0);
   });
 
-  it('ventAchievedFb() reports no frequency', () => {
-    expect(ventedProject().ventAchievedFb()).toBeNull();
+  it('ventAchievedFb() reports the actual tuning frequency', () => {
+    const p = ventedProject();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
+    p.solveVentGroup();
+
+    const fb = p.ventAchievedFb();
+    expect(fb).not.toBeNull();
+    expect(Math.round(fb!)).toBe(35);
   });
 
-  it('ventMaxReachableFb() reports no ceiling', () => {
-    expect(ventedProject().ventMaxReachableFb()).toBeNull();
+  it('ventMaxReachableFb() reports the L=0 tuning ceiling', () => {
+    const p = ventedProject();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
+
+    const maxFb = p.ventMaxReachableFb();
+    expect(maxFb).not.toBeNull();
+    expect(maxFb!).toBeGreaterThan(35);
   });
 
-  it('ventTargetUnreachable() claims nothing is unreachable, rather than warning with nothing behind it', () => {
-    expect(ventedProject().ventTargetUnreachable()).toBe(false);
+  it('ventTargetUnreachable() returns true for unachievable tuning targets', () => {
+    const p = ventedProject();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
+    p.box.vented.tuning_hz.set(500); // impossible high target
+    p.solveVentGroup();
+
+    expect(p.ventTargetUnreachable()).toBe(true);
   });
 });
 

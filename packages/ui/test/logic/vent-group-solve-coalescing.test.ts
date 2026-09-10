@@ -102,7 +102,7 @@ describe('PR group writes coalesce the same way', () => {
 // what it calls, `OpenISDProject.solvePrGroup()`, is an empty stub until the tuning <-> added-mass
 // relation is wired. The assertion is kept as written rather than weakened — one loosened to
 // match a stub would go green and stop describing the behaviour the app is supposed to have.
-describe.skip('PR-group auto-solve watch fires on every requireFocusedProject() notification (BLOCKED: QO126)', () => {
+describe('PR-group auto-solve watch fires on every requireFocusedProject() notification (BLOCKED: QO126)', () => {
   it('a raw prFp write outside enterPrField/suspension re-solves prMadd', () => {
     requireFocusedProject().box.vented.volume_m3.set(0.02);
     requireFocusedProject().box.passiveRadiator.radiator.spec.Sd_m2.set(0.008);

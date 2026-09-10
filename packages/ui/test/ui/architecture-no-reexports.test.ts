@@ -136,7 +136,7 @@ function importBindingsOf(source: SourceFile): Set<string> {
 /** Born-red checklist gate (offences die with D15/D22/A6). Skips ONLY under `PRECOMMIT=1`
  *  (scripts/hooks-local/pre-commit) so a standing checklist cannot block every commit; runs
  *  red in ci/health-check/A10 until the list is worked off. Assertions unchanged. */
-const checklistDescribe = process.env.PRECOMMIT === '1' ? describe.skip : describe;
+const checklistDescribe = describe;
 
 /** Every re-export offence in one file, by the same detection this gate has always used:
  *  a specifier-bearing export declaration, or a specifier-less `export { X }` naming a local

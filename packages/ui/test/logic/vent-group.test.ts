@@ -21,7 +21,7 @@ import { OpenISDProject, OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import {
   solveVentGroup, enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
-  ventFieldState as ventFieldStateOn,
+  ventFieldState as ventFieldStateOn, resetVentGroupState,
 } from '../../src/logic/useVentGroup.js';
 
 /** Vb=0.02 m³, round 5 cm vent, k=0.6 — WinISD's own Vents-tab trial. */
@@ -34,6 +34,7 @@ function ventedProject() {
   p.box.vented.vent.shape.set('round');
   p.box.vented.vent.diameter_m.set(0.05);
   p.box.vented.vent.endCorrection_m.set(0.6);
+  p.solveVentGroup();
   return p;
 }
 
@@ -70,9 +71,9 @@ describe('vent group — the entered set decides the direction', () => {
 // migration"): bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md. Skipped
 // rather than weakened, because an assertion loosened to match a stub would go green and stop
 // describing the behaviour the app is supposed to have.
-describe.skip('vent group — solveVentGroup() re-derives the calculated member (BLOCKED: QO126)', () => {
+describe('vent group — solveVentGroup() re-derives the calculated member (BLOCKED: QO126)', () => {
   let p: ReturnType<typeof ventedProject>;
-  beforeEach(() => { p = ventedProject(); });
+  beforeEach(() => { resetVentGroupState(); p = ventedProject(); });
 
   it('ships WinISD\'s direction: tuning entered, vent length calculated', () => {
     assert.equal(ventFieldStateOn(p, 'Fb'), 'E');

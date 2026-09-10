@@ -37,7 +37,7 @@ export type {
 // visible, usable `OpenISDDriver`, while MAKING one stays the project's business. Creating any
 // of these is a factory's job — a function, exported as a value, speaking in public types — and
 // no such factory exists yet (see the note below).
-export { OpenISDDriver } from './openisdDomain.js';
+export { OpenISDDriver, OpenISDDriverStandalone } from './openisdDomain.js';
 
 // Also NOT exported (consumers cannot construct these directly):
 //   `Field` — use `FieldHandle`/`RawField` interface.

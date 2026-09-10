@@ -34,6 +34,10 @@ export type SpecField =
   | 'Rme' | 'Mpow' | 'Mcost' | 'Gloss' | 'c' | 'roo' | 'Vcd' | 'Hg' | 'Hc' | 'freq_low_hz'
   | 'freq_high_hz' | 'power_peak_W' | 'weight_kg' | 'Thick' | 'Depth' | 'MagDepth' | 'Magnet'
   | 'Basket' | 'Outer' | 'OuterX' | 'OuterY' | 'DVol';
+
+/** The subset of SpecField that represent numeric quantities (all except non-numeric VCCon). */
+export type NumSpecField = Exclude<SpecField, 'VCCon'>;
+
 import { presentationState, unitToken } from './presentationState.js';
 import { parseChartTabId } from './series.js';
 import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from './fields/units.js';

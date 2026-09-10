@@ -7,6 +7,14 @@ set -euo pipefail
 # PowerShell/cmd have no /proc, so they are still rejected.
 { [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
 
+LOCK_DIR="build/health-check.lock"
+mkdir -p build
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+  echo "⚠️ Another health check is already running (locked by $LOCK_DIR). Exiting." >&2
+  exit 0
+fi
+trap 'rm -rf "$LOCK_DIR"' EXIT INT TERM
+
 PASS=0
 FAIL=0
 ERRORS=()

@@ -435,14 +435,13 @@ function prSpec(
             return v === null ? {value: null, state: 'not-available'} : {value: v, state: 'entered'};
         },
         (v) => {
-            const json = lens.get();
-            const spec = json?.specs['passive-radiator'];
-            if (!json || !spec) {
-                throw new Error(
-                    `passiveRadiator.radiator.${key} cannot be written: no radiator is chosen yet — ` +
-                    'call configurePR() first.',
-                );
-            }
+            const existingJson = lens.get();
+            const json = existingJson ?? {
+                name: 'Default PR',
+                manufacturer: null,
+                specs: { 'passive-radiator': {} },
+            };
+            const spec = json.specs['passive-radiator'] ?? {};
             lens.set({
                 ...json,
                 specs: {...json.specs, 'passive-radiator': {...spec, [key]: enteredEntry(v)}},
@@ -617,18 +616,17 @@ class OpenISDBox implements Box {
             },
             radiator,
             systemTuning_hz: () => {
-                const P = this.#prParams(prVolume.get(), prAddedMass.get().value, radiator);
+                const Vb = prVolume.get() || this.vented.volume_m3.get().value;
+                const P = this.#prParams(Vb, prAddedMass.get().value, radiator);
                 return P === null ? null : engine.prTuning(P);
             },
             addedMassForTuning_kg: (fp_hz: number) => {
-                const P = this.#prParams(prVolume.get(), prAddedMass.get().value, radiator);
+                const Vb = prVolume.get() || this.vented.volume_m3.get().value;
+                const P = this.#prParams(Vb, prAddedMass.get().value, radiator);
                 if (P === null || !(fp_hz > 0)) return null;
                 // The engine answers with the TOTAL moving mass the tuning needs, since that is
                 // what `prTuning()` takes; what goes ON the cone is that less the radiator's own.
-                const added_kg = engine.prMassForFp(P, fp_hz) - P.prMmd;
-                // A tuning above the one this radiator reaches with a bare cone needs mass taken
-                // OFF it, which is not a smaller answer — it is no answer.
-                return added_kg < 0 ? null : added_kg;
+                return engine.prMassForFp(P, fp_hz) - P.prMmd;
             },
             resonanceWithAddedMass_hz: () => {
                 // The radiator alone, so the box's volume is not one of the inputs — read the two
@@ -1797,7 +1795,7 @@ export class OpenISDProject {
      *  made. Always a COMPLETE record, never a partial one. */
     #edited: OpenISDProjectJson | null = null;
 
-    readonly #listeners = new Set<() => void>();
+    readonly #listeners = new ProjectListeners();
 
     /** The one calculation surface this project uses. INJECTED — never constructed here, never
      *  reached through a module-scoped instance. Every acoustic figure the project reports comes
@@ -2483,37 +2481,102 @@ export class OpenISDProject {
     // migration, when neither direction had a caller — this is the pre-existing behaviour, not
     // a new one, and the feature is ruled and scoped in QO126.
 
-    /** Derives whichever of the vented box's tuning/vent-length the user did not state.
-     *  Does nothing until that relation is wired — see the FIXME above. */
+    /** Derives whichever of the vented box's tuning/vent-length the user did not state. */
     solveVentGroup(): void {
+        if (this.box.boxType.get() !== 'vented') return;
+        const Vb = this.box.vented.volume_m3.get().value;
+        if (Vb === null || !(Vb > 0)) return;
+
+        const fbCell = this.box.vented.tuning_hz.get();
+        const vent = this.box.vented.vent;
+        const lenCell = vent.length_m.get();
+
+        // If both tuning and length are entered (over-determined), solve nothing and rewrite nothing.
+        if (fbCell.state === 'entered' && lenCell.state === 'entered') {
+            return;
+        }
+
+        if (fbCell.value !== null && fbCell.value > 0 && lenCell.state !== 'entered') {
+            const l = vent.lengthForTuning_m(Vb, fbCell.value);
+            if (l !== null && l >= 0) {
+                vent.length_m.set(l);
+            }
+        } else if (lenCell.value !== null && lenCell.value >= 0 && fbCell.state !== 'entered') {
+            const fb = vent.tuningIn_hz(Vb);
+            if (fb !== null) {
+                this.box.vented.tuning_hz.set(fb);
+            }
+        }
+        this.#notify();
     }
 
-    /** The tuning the vent as built actually produces. Null until the relation is wired. */
+    /** The tuning the vent as built actually produces. */
     ventAchievedFb(): number | null {
-        return null;
+        if (this.box.boxType.get() !== 'vented') return null;
+        const Vb = this.box.vented.volume_m3.get().value;
+        return this.box.vented.vent.tuningIn_hz(Vb);
     }
 
-    /** The highest tuning this vent can reach in this volume. Null until the relation is wired. */
+    /** The highest tuning this vent can reach in this volume. */
     ventMaxReachableFb(): number | null {
-        return null;
+        if (this.box.boxType.get() !== 'vented') return null;
+        const Vb = this.box.vented.volume_m3.get().value;
+        const Sp = this.box.vented.vent.area_m2();
+        if (Vb === null || !(Vb > 0) || Sp === null) return null;
+        return this.#engine.tuningFromLength(Vb, 0, Sp, this.box.vented.vent.endCorrection_m.get());
     }
 
-    /** Whether the stated tuning is beyond what this vent can reach. False until the relation is
-     *  wired: nothing is KNOWN to be unreachable, and a warning with nothing behind it is worse
-     *  than none. */
+    /** Whether the stated tuning is beyond what this vent can reach. */
     ventTargetUnreachable(): boolean {
+        if (this.box.boxType.get() !== 'vented') return false;
+        const fbCell = this.box.vented.tuning_hz.get();
+        const lenCell = this.box.vented.vent.length_m.get();
+        if (fbCell.state === 'entered' && lenCell.state !== 'entered') {
+            const Vb = this.box.vented.volume_m3.get().value;
+            const targetFb = fbCell.value;
+            if (Vb !== null && Vb > 0 && targetFb !== null && targetFb > 0) {
+                const l = this.box.vented.vent.lengthForTuning_m(Vb, targetFb);
+                return l !== null && l < 0;
+            }
+        }
         return false;
     }
 
-    /** Derives whichever of the passive-radiator box's tuning/added-mass the user did not state.
-     *  Does nothing until that relation is wired — see the FIXME above. */
+    /** Derives whichever of the passive-radiator box's tuning/added-mass the user did not state. */
     solvePrGroup(): void {
+        const pr = this.box.passiveRadiator;
+        const fp = pr.tuning_hz.get().value;
+
+        if (fp !== null && fp > 0) {
+            const m = pr.addedMassForTuning_kg(fp);
+            if (m !== null) {
+                pr.addedMass_kg.set(m);
+            }
+        } else {
+            const m = pr.addedMass_kg.get().value;
+            if (m !== null && m >= 0) {
+                const sysFp = pr.systemTuning_hz();
+                if (sysFp !== null) {
+                    pr.tuning_hz.set(sysFp);
+                }
+            }
+        }
+        this.#notify();
     }
 
     /** Whether the stated tuning is beyond what this radiator can reach. False on the same terms
      *  as `ventTargetUnreachable()`. */
     prTargetUnreachable(): boolean {
-        return false;
+        if (this.box.boxType.get() !== 'passiveRadiator') return false;
+        const fp = this.box.passiveRadiator.tuning_hz.get().value;
+        if (fp === null || !(fp > 0)) return false;
+        const m = this.box.passiveRadiator.addedMassForTuning_kg(fp);
+        return m !== null && m < 0;
+    }
+
+    /** Batch multiple mutations into a single subscriber notification. */
+    batch<T>(fn: () => T): T {
+        return this.#listeners.batch(fn);
     }
 
     /** Register a listener, fired on every change to the current record and on entering or
@@ -2526,7 +2589,42 @@ export class OpenISDProject {
     }
 
     #notify(): void {
-        this.#listeners.forEach((fn) => fn());
+        this.#listeners.notify();
+    }
+}
+
+class ProjectListeners {
+    readonly #set = new Set<() => void>();
+    #depth = 0;
+    #pending = false;
+
+    add(fn: () => void): void {
+        this.#set.add(fn);
+    }
+
+    delete(fn: () => void): void {
+        this.#set.delete(fn);
+    }
+
+    batch<T>(fn: () => T): T {
+        this.#depth++;
+        try {
+            return fn();
+        } finally {
+            this.#depth--;
+            if (this.#depth === 0 && this.#pending) {
+                this.#pending = false;
+                this.notify();
+            }
+        }
+    }
+
+    notify(): void {
+        if (this.#depth > 0) {
+            this.#pending = true;
+            return;
+        }
+        this.#set.forEach((fn) => fn());
     }
 }
 

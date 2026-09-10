@@ -34,7 +34,7 @@ const CELL_CLASS: Record<CellState, CellClass> = {
  * value never enters a component. A component naming or holding a domain value is what the
  * layering rule forbids; handing one through is the same leak the gate cannot see.
  */
-export function cellClassFor(cellOf: (field: SpecField) => FieldCell<number>, field: SpecField): CellClass {
+export function cellClassFor<K extends string = SpecField>(cellOf: (field: K) => FieldCell<number>, field: K): CellClass {
   return CELL_CLASS[cellOf(field).state];
 }
 
