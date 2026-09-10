@@ -4,6 +4,7 @@ import { useFocusedProject } from '../logic/focusedProjectContext.js';
 import { ebpOf } from '../logic/environment.js';
 import { cellClassFor, consistencyNote } from '../logic/useDriverCells.js';
 import type { Cell, FieldHandle } from '@openisd/design';
+import { createCell } from '@openisd/design';
 import type { NumSpecField } from '../logic/appState.js';
 import { specFieldHandle } from '../logic/driverSpecFields.js';
 
@@ -50,13 +51,13 @@ export function useOgTune(): OgTuneAPI {
     return cellClassFor(fieldCell, key);
   }
 
+  function dqNote(key: NumSpecField): string | null {
+    return consistencyNote(project.value.driver.checkConsistency(), key);
+  }
+
   function cellVal(key: NumSpecField): number | null {
     const v = fieldCell(key).value;
     return typeof v === 'number' ? v : null;
-  }
-
-  function dqNote(key: NumSpecField): string | null {
-    return consistencyNote(project.value.driver.checkConsistency(), key);
   }
 
   function enterField(key: NumSpecField, v: number): void {
@@ -81,14 +82,14 @@ export function useOgTune(): OgTuneAPI {
 
 export function createMockOgTuneAPI(overrides?: Partial<OgTuneAPI>): OgTuneAPI {
   const dummyHandle: FieldHandle<number> = {
-    get: () => ({ value: 30, state: 'entered' }),
+    get: () => createCell(30, 'entered'),
     set: () => {},
     clear: () => {},
   };
   return {
     ebp: ref(50),
     specField: () => dummyHandle,
-    fieldCell: () => ({ value: 30, state: 'entered' }),
+    fieldCell: () => createCell(30, 'entered'),
     cellClass: () => 'cell-ok',
     cellVal: () => 30,
     dqNote: () => null,

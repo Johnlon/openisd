@@ -5,6 +5,27 @@ import type {CellState} from "../winisd/index.js";
 export interface Cell<T> {
   readonly value: T | null;
   readonly state: CellState;
+  dq(): string | null;
+}
+
+export function createCell<T>(
+  value: T | null,
+  state: CellState,
+  dq?: string | null | (() => string | null),
+): Cell<T> {
+  const getDq = typeof dq === 'function' ? dq : () => dq ?? null;
+  const cell: Cell<T> = {
+    value,
+    state,
+    dq: getDq,
+  };
+  Object.defineProperty(cell, 'dq', {
+    value: getDq,
+    writable: true,
+    configurable: true,
+    enumerable: false,
+  });
+  return cell;
 }
 
 /** A stored field that IS part of a solve relation, so it carries provenance.
@@ -78,16 +99,16 @@ export function focus<P, K extends keyof P>(parent: Lens<P>, key: K): Lens<P[K]>
 export function nullableField<K extends PropertyKey, T extends Record<K, number | null>>(
   lens: Lens<T>,
   key: K,
+  getDq?: (value: number | null) => string | null,
 ): Field<number> {
-  // The CONSTRAINT carries the proof: `T` is declared to hold `number | null` at `K`, so
-  // `lens.get()[key]` is that type directly and nothing is asserted. Filtering the keys instead
-  // (`key: NullableNumberKey<T>`) proved the same thing at one remove, but TypeScript will not
-  // reduce `T[NullableNumberKey<T>]` for a generic `T`, so it took a cast to use what the type
-  // already knew.
   return new Field<number>(
     () => {
       const v = lens.get()[key];
-      return { value: v, state: v === null ? 'not-available' : 'entered' };
+      return createCell<number>(
+        v,
+        v === null ? 'not-available' : 'entered',
+        getDq ? () => getDq(v) : undefined,
+      );
     },
     (v) => lens.set({ ...lens.get(), [key]: v }),
     () => lens.set({ ...lens.get(), [key]: null }),
@@ -100,13 +121,17 @@ export function requiredField<K extends PropertyKey, T extends Record<K, number>
   lens: Lens<T>,
   key: K,
   label: string,
+  getDq?: (value: number) => string | null,
 ): Field<number> {
-  // `key: keyof T` placed no constraint on the VALUE, so the old cast to `number` claimed
-  // something nothing had proven: a key holding a string produced a `Field<number>` that handed
-  // out a string. The constraint says what is required, and a caller passing a non-numeric key
-  // now fails to compile.
   return new Field<number>(
-    () => ({ value: lens.get()[key], state: 'entered' }),
+    () => {
+      const v = lens.get()[key];
+      return createCell<number>(
+        v,
+        'entered',
+        getDq ? () => getDq(v) : undefined,
+      );
+    },
     (v) => lens.set({ ...lens.get(), [key]: v }),
     () => {
       throw new Error(

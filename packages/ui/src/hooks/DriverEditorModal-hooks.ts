@@ -1,6 +1,6 @@
 import type { InjectionKey, Ref } from 'vue';
 import { ref, computed } from 'vue';
-import { OpenISDDriverStandalone, type Cell, type FieldHandle } from '@openisd/design';
+import { OpenISDDriverStandalone, createCell, type Cell, type FieldHandle } from '@openisd/design';
 import { engine, type SpecField } from '../logic/appState.js';
 import { useFocusedProject } from '../logic/focusedProjectContext.js';
 import { useApp } from '../logic/app.js';
@@ -129,7 +129,7 @@ export function useDriverEditorModal(onClose?: () => void): DriverEditorModalAPI
   }
 
   function cellOf(field: string): Cell<number> {
-    return fieldOf(field)?.get() ?? { value: null, state: 'not-available' };
+    return fieldOf(field)?.get() ?? createCell<number>(null, 'not-available');
   }
 
   function cellClass(field: SpecField): string {

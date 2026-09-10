@@ -29,6 +29,7 @@ import {
     winningValue,
 } from './openisdSchema.js';
 import {
+    createCell,
     Field,
     focus,
     nullableField,
@@ -350,7 +351,7 @@ class VentWindow implements Vent {
     readonly height_m: FieldHandle<number>;
     readonly length_m: FieldHandle<number>;
 
-    constructor(lens: Lens<VentJson>, engine: Engine) {
+    constructor(lens: Lens<VentJson>, engine: Engine, ventContext?: { getVb: () => number | null; getTuningHz: () => number | null; clearTuningHz?: () => void }) {
         this.#lens = lens;
         this.#engine = engine;
         this.shape = focus(lens, 'shape');
@@ -358,7 +359,33 @@ class VentWindow implements Vent {
         this.diameter_m = nullableField(lens, 'diameter_m');
         this.width_m = nullableField(lens, 'width_m');
         this.height_m = nullableField(lens, 'height_m');
-        this.length_m = nullableField(lens, 'length_m');
+        const rawLengthLens = focus(lens, 'length_m');
+        this.length_m = new Field<number>(
+            () => {
+                const rawL = rawLengthLens.get();
+                if (rawL !== null) {
+                    const dq = rawL < 0 ? 'Target tuning is unreachable for vent geometry' : null;
+                    return createCell<number>(rawL, 'entered', dq);
+                }
+                if (ventContext) {
+                    const Vb = ventContext.getVb();
+                    const fb = ventContext.getTuningHz();
+                    if (Vb !== null && Vb > 0 && fb !== null) {
+                        const l = this.lengthForTuning_m(Vb, fb);
+                        const dq = (fb <= 0) ? 'Tuning frequency must be greater than zero'
+                                 : (l !== null && l < 0) ? 'Target tuning is unreachable for vent geometry'
+                                 : null;
+                        return createCell<number>(l, l === null ? 'not-available' : 'calculated', dq);
+                    }
+                }
+                return createCell<number>(null, 'not-available');
+            },
+            (v) => {
+                rawLengthLens.set(v);
+                if (ventContext?.clearTuningHz) ventContext.clearTuningHz();
+            },
+            () => rawLengthLens.set(null),
+        );
     }
 
     /** Cross-sectional area of the port opening.
@@ -385,14 +412,14 @@ class VentWindow implements Vent {
      *  engine owns it. The domain supplies the port's own geometry — its length and its area, both
      *  of which it legitimately knows — and reports what comes back. */
     effectiveLength_m(): number | null {
-        const length_m = this.#lens.get().length_m;
+        const length_m = this.length_m.get().value;
         const Sp = this.area_m2();
         if (length_m === null || Sp === null) return null;
         return this.#engine.ventEffectiveLength(length_m, Sp, this.#lens.get().endCorrection_m);
     }
 
     tuningIn_hz(volume_m3: number | null): number | null {
-        const length_m = this.#lens.get().length_m;
+        const length_m = this.length_m.get().value;
         const Sp = this.area_m2();
         if (volume_m3 === null || !(volume_m3 > 0) || length_m === null || Sp === null) return null;
         return this.#engine.tuningFromLength(volume_m3, length_m, Sp, this.#lens.get().endCorrection_m);
@@ -432,7 +459,7 @@ function prSpec(
             const spec = lens.get()?.specs['passive-radiator'];
             // A key ABSENT from the section means the radiator does not state that parameter.
             const v = winningValue(spec?.[key]);
-            return v === null ? {value: null, state: 'not-available'} : {value: v, state: 'entered'};
+            return createCell(v, v === null ? 'not-available' : 'entered');
         },
         (v) => {
             const json = lens.get() ?? blankDeviceRecord('passive-radiator');
@@ -526,10 +553,46 @@ class OpenISDBox implements Box {
 
         const ventedLens = focus(lens, 'vented');
         const ventedChamber = focus(ventedLens, 'chamber');
+        const rawVentedTuningLens = focus(ventedChamber, 'tuning_hz');
+        const rawVentLengthLens = focus(focus(ventedLens, 'vent'), 'length_m');
+        const ventWindow = new VentWindow(focus(ventedLens, 'vent'), engine, {
+            getVb: () => this.vented.volume_m3.get().value,
+            getTuningHz: () => rawVentedTuningLens.get(),
+            clearTuningHz: () => rawVentedTuningLens.set(null),
+        });
+        const ventedTuning = new Field<number>(
+            () => {
+                const rawFb = rawVentedTuningLens.get();
+                const rawL = rawVentLengthLens.get();
+                if (rawFb !== null) {
+                    const Vb = this.vented.volume_m3.get().value;
+                    const l = ventWindow.lengthForTuning_m(Vb, rawFb);
+                    const dq = (rawFb <= 0) ? 'Tuning frequency must be greater than zero'
+                             : (l !== null && l < 0) ? 'Target tuning is unreachable for vent geometry'
+                             : null;
+                    return createCell<number>(rawFb, 'entered', dq);
+                }
+                if (rawL !== null) {
+                    const Vb = this.vented.volume_m3.get().value;
+                    const fb = ventWindow.tuningIn_hz(Vb);
+                    return createCell<number>(fb, fb === null ? 'not-available' : 'calculated');
+                }
+                return createCell<number>(null, 'not-available');
+            },
+            (v) => {
+                const cur = ventedLens.get();
+                ventedLens.set({
+                    ...cur,
+                    chamber: { ...cur.chamber, tuning_hz: v },
+                    vent: { ...cur.vent, length_m: null },
+                });
+            },
+            () => rawVentedTuningLens.set(null),
+        );
         this.vented = {
             volume_m3: requiredField(ventedChamber, 'volume_m3', 'vented.volume_m3'),
-            tuning_hz: nullableField(ventedChamber, 'tuning_hz'),
-            vent: new VentWindow(focus(ventedLens, 'vent'), engine),
+            tuning_hz: ventedTuning,
+            vent: ventWindow,
             losses: new VentedLossesWindow(focus(ventedChamber, 'losses')),
         };
 
@@ -597,10 +660,58 @@ class OpenISDBox implements Box {
         const prSlot = focus(pr, 'component');
         const radiator = new OpenISDPassiveRadiatorEmbedded(prSlot, engine);
         const prVolume = focus(pr, 'volume_m3');
-        const prAddedMass = nullableField(pr, 'addedMass_kg');
+        const rawPrAddedMassLens = focus(pr, 'addedMass_kg');
+        const rawPrTuningLens = focus(pr, 'tuning_hz');
+        const prAddedMass = new Field<number>(
+            () => {
+                const rawMass = rawPrAddedMassLens.get();
+                const rawTuning = rawPrTuningLens.get();
+                if (rawMass !== null) {
+                    const dq = rawMass < 0 ? 'Target tuning is above maximum passive radiator tuning' : null;
+                    return createCell<number>(rawMass, 'entered', dq);
+                }
+                if (rawTuning !== null) {
+                    const m = this.passiveRadiator?.addedMassForTuning_kg(rawTuning) ?? null;
+                    const dq = (rawTuning <= 0) ? 'Tuning frequency must be greater than zero'
+                             : (m !== null && m < 0) ? 'Target tuning is above maximum passive radiator tuning'
+                             : null;
+                    return createCell<number>(m, m === null ? 'not-available' : 'calculated', dq);
+                }
+                return createCell<number>(null, 'not-available');
+            },
+            (v) => {
+                const cur = pr.get();
+                pr.set({ ...cur, addedMass_kg: v, tuning_hz: null });
+            },
+            () => rawPrAddedMassLens.set(null),
+        );
+        const prTuning = new Field<number>(
+            () => {
+                const rawTuning = rawPrTuningLens.get();
+                const rawMass = rawPrAddedMassLens.get();
+                if (rawTuning !== null) {
+                    const m = this.passiveRadiator?.addedMassForTuning_kg(rawTuning) ?? null;
+                    const dq = (rawTuning <= 0) ? 'Tuning frequency must be greater than zero'
+                             : (m !== null && m < 0) ? 'Target tuning is above maximum passive radiator tuning'
+                             : null;
+                    return createCell<number>(rawTuning, 'entered', dq);
+                }
+                if (rawMass !== null) {
+                    const fp = this.passiveRadiator?.systemTuning_hz() ?? null;
+                    const dq = rawMass < 0 ? 'Target tuning is above maximum passive radiator tuning' : null;
+                    return createCell<number>(fp, fp === null ? 'not-available' : 'calculated', dq);
+                }
+                return createCell<number>(null, 'not-available');
+            },
+            (v) => {
+                const cur = pr.get();
+                pr.set({ ...cur, tuning_hz: v, addedMass_kg: null });
+            },
+            () => rawPrTuningLens.set(null),
+        );
         this.passiveRadiator = {
             volume_m3: prVolume,
-            tuning_hz: nullableField(pr, 'tuning_hz'),
+            tuning_hz: prTuning,
             count: focus(pr, 'count'),
             addedMass_kg: prAddedMass,
             losses: new SealedLossesWindow(focus(pr, 'losses')),
@@ -612,12 +723,12 @@ class OpenISDBox implements Box {
             radiator,
             systemTuning_hz: () => {
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const P = this.#prParams(Vb, prAddedMass.get().value, radiator);
+                const P = this.#prParams(Vb, rawPrAddedMassLens.get(), radiator);
                 return P === null ? null : engine.prTuning(P);
             },
             addedMassForTuning_kg: (fp_hz: number) => {
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const P = this.#prParams(Vb, prAddedMass.get().value, radiator);
+                const P = this.#prParams(Vb, rawPrAddedMassLens.get(), radiator);
                 if (P === null || !(fp_hz > 0)) return null;
                 // The engine answers with the TOTAL moving mass the tuning needs, since that is
                 // what `prTuning()` takes; what goes ON the cone is that less the radiator's own.
@@ -629,7 +740,7 @@ class OpenISDBox implements Box {
                 const Mms_kg = radiator.spec.Mms_kg.get().value;
                 const Cms = radiator.spec.Cms_m_per_N.get().value;
                 if (Mms_kg === null || Cms === null) return null;
-                return engine.prFsWithMass(Mms_kg, prAddedMass.get().value ?? 0, Cms);
+                return engine.prFsWithMass(Mms_kg, rawPrAddedMassLens.get() ?? 0, Cms);
             },
         };
     }
@@ -838,8 +949,8 @@ export class OpenIsdDriverSpec {
             () => {
                 const wiring = wiringFromRecord(winningValue(record.get().specs[section]?.VCCon));
                 return wiring === null
-                    ? {value: calcVCCon(), state: 'calculated'}
-                    : {value: wiring, state: 'entered'};
+                    ? createCell(calcVCCon(), 'calculated')
+                    : createCell(wiring, 'entered');
             },
             (v) => {
                 const json = record.get();
@@ -904,12 +1015,12 @@ export class OpenIsdDriverSpec {
             () => {
                 const stated = record.get().specs[section]?.[key];
                 const v = winningValue(stated);
-                if (v !== null) return {value: v, state: 'entered'};
+                if (v !== null) return createCell<number>(v, 'entered');
                 const quantity = SOLVED_BY[key];
                 const derived = quantity === undefined ? undefined : solvedNow()[quantity];
                 return derived === undefined
-                    ? {value: null, state: 'not-available'}
-                    : {value: derived, state: 'calculated'};
+                    ? createCell<number>(null, 'not-available')
+                    : createCell<number>(derived, 'calculated');
             },
             (v) => {
                 const json = record.get();
@@ -955,7 +1066,7 @@ export class OpenIsdDriverSpec {
             () => {
                 const stated = record.get().specs[section]?.numVC;
                 const v = winningValue(stated);
-                return v === null ? {value: calcNumVC(), state: 'calculated'} : {value: v, state: 'entered'};
+                return v === null ? createCell(calcNumVC(), 'calculated') : createCell(v, 'entered');
             },
             (v) => {
                 const json = record.get();
@@ -1000,8 +1111,8 @@ export class OpenIsdDriverSpec {
                 const stated = record.get().specs[section]?.[key];
                 const v = winningValue(stated);
                 return v === null
-                    ? {value: pick(engine.airFor(airProvider())), state: 'calculated'}
-                    : {value: v, state: 'entered'};
+                    ? createCell(pick(engine.airFor(airProvider())), 'calculated')
+                    : createCell(v, 'entered');
             },
             (v) => {
                 const json = record.get();
@@ -1137,8 +1248,8 @@ export abstract class OpenISDDevice {
                 // reading `json[key].value` unguarded threw on every corpus record.
                 const stated = this.#slot.get()?.[key];
                 return stated === undefined
-                    ? {value: null, state: 'not-available'}
-                    : {value: stated.value, state: 'entered'};
+                    ? createCell<string>(null, 'not-available')
+                    : createCell<string>(stated.value, 'entered');
             },
             (v) => {
                 this.#slot.set({...requirePresent(), [key]: {value: v, origin: 'entered'}});
@@ -2478,30 +2589,6 @@ export class OpenISDProject {
 
     /** Derives whichever of the vented box's tuning/vent-length the user did not state. */
     solveVentGroup(): void {
-        if (this.box.boxType.get() !== 'vented') return;
-        const Vb = this.box.vented.volume_m3.get().value;
-        if (Vb === null || !(Vb > 0)) return;
-
-        const fbCell = this.box.vented.tuning_hz.get();
-        const vent = this.box.vented.vent;
-        const lenCell = vent.length_m.get();
-
-        // If both tuning and length are entered (over-determined), solve nothing and rewrite nothing.
-        if (fbCell.state === 'entered' && lenCell.state === 'entered') {
-            return;
-        }
-
-        if (fbCell.value !== null && fbCell.value > 0 && lenCell.state !== 'entered') {
-            const l = vent.lengthForTuning_m(Vb, fbCell.value);
-            if (l !== null && l >= 0) {
-                vent.length_m.set(l);
-            }
-        } else if (lenCell.value !== null && lenCell.value >= 0 && fbCell.state !== 'entered') {
-            const fb = vent.tuningIn_hz(Vb);
-            if (fb !== null) {
-                this.box.vented.tuning_hz.set(fb);
-            }
-        }
         this.#notify();
     }
 
@@ -2539,23 +2626,6 @@ export class OpenISDProject {
 
     /** Derives whichever of the passive-radiator box's tuning/added-mass the user did not state. */
     solvePrGroup(): void {
-        const pr = this.box.passiveRadiator;
-        const fp = pr.tuning_hz.get().value;
-
-        if (fp !== null && fp > 0) {
-            const m = pr.addedMassForTuning_kg(fp);
-            if (m !== null) {
-                pr.addedMass_kg.set(m);
-            }
-        } else {
-            const m = pr.addedMass_kg.get().value;
-            if (m !== null && m >= 0) {
-                const sysFp = pr.systemTuning_hz();
-                if (sysFp !== null) {
-                    pr.tuning_hz.set(sysFp);
-                }
-            }
-        }
         this.#notify();
     }
 

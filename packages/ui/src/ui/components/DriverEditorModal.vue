@@ -11,6 +11,10 @@ import { specFieldHandle } from '../../logic/driverSpecFields.js';
 import { readDriverFileText } from '../../logic/driverFileText.js';
 import { driverToWdrBytes, driverToOwdrBytes, wdrTextToDriver, owdrTextToDriver } from '../../logic/fileImportExport.js';
 import type { Cell, FieldHandle } from '@openisd/design';
+
+function cellOf(field: string): Cell<number> {
+  return fieldOf(field)?.get() ?? { value: null, state: 'not-available', dq: () => null };
+}
 import type { SpecField } from '../../logic/appState.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
@@ -175,9 +179,7 @@ function setWiring(e: Event) {
 // One reach into the DRAFT model (layer 3) — Tune passes the store's effective
 // model to the same helpers instead, so the provenance marks and the Q-group rule cannot
 // disagree between this dialog and Tune showing the same driver.
-function cellOf(field: string): Cell<number> {
-  return fieldOf(field)?.get() ?? { value: null, state: 'not-available' };
-}
+
 
 /** The draft's HANDLE for one field, or null for a name this editor's numeric table does not
  *  own. `VCCon` is deliberately absent: it is the one spec field holding a wiring NAME rather
