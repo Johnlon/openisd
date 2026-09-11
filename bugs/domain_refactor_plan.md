@@ -232,7 +232,7 @@ export interface VentedChamber {
     readonly losses: CoupledVentedLosses;
 }
 
-// [ ] STRATEGY (interface SealedBox):
+// [ ] TASK 1 (interface SealedBox):
 //     ROLE: Sealed enclosure topology contract.
 //     STATUS: UPGRADE.
 //     DECISION: volume_m3 upgraded to Field<number>; resonance_hz upgraded from method to N-way Field<number>.
@@ -246,8 +246,8 @@ export interface SealedBox {
 
     /** The resulting system Fc, calculated from the volume and the driver — null when either is
      *  not yet known. A CALCULATION, not a stored field, so a plain method, not a handle. */
-    // [ ] STRATEGY (resonance_hz):
-    //     ROLE: Closed-box system resonant frequency (Fc / Frc) in Hz.
+    // [ ] TASK 3 (SealedBox.resonance_hz):
+    //     UPGRADE from method to ReadOnlyCalculatedField<number> (pure precomputed read). (Fc / Frc) in Hz.
     //     STATUS: UPGRADE from method to N-way Field<number>.
     //     MECHANICS: .get() reads precomputed Fc from graph. .set(fc) calculates required chamber volume_m3 and updates it.
     resonance_hz(): number | null;
@@ -286,7 +286,7 @@ export interface VentedBox {
 // other. `chambers.rear`/`chambers.front` carry ONLY volume/tuning/losses, never a vent; every
 // port is a flat sibling under `vents` instead, matching the Vents tab's own three-column
 // layout ("Rear chamber"/"Front chamber"/"Intrachamber").
-// [ ] STRATEGY (interface Bandpass4Box):
+// [ ] TASK 4 (interface Bandpass4Box):
 //     ROLE: 4th-order bandpass topology contract.
 //     STATUS: UPGRADE.
 //     DECISION: chambers.rear.resonance_hz upgraded to Field<number> (solves rear volume_m3); chambers.front.volume_m3 upgraded to Field<number>.
@@ -305,9 +305,8 @@ export interface Bandpass4Box {
             //     ROLE: Internal member of enclosure/device/project.
             //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
             readonly volume_m3: Field<number>;
-            // [ ] STRATEGY (resonance_hz):
-            //     ROLE: Closed-box system resonant frequency (Fc / Frc) in Hz.
-            //     STATUS: UPGRADE from method to N-way Field<number>.
+            // [ ] TASK 5 (Bandpass4Box.chambers.rear.resonance_hz):
+            //     UPGRADE from method to ReadOnlyCalculatedField<number>.
             //     MECHANICS: .get() reads precomputed Fc from graph. .set(fc) calculates required chamber volume_m3 and updates it.
             resonance_hz(): number | null;
             // [x] STRATEGY (losses):
@@ -321,9 +320,8 @@ export interface Bandpass4Box {
         //     ROLE: Internal member of enclosure/device/project.
         //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
         readonly front: {
-            // [ ] STRATEGY (volume_m3):
-            //     ROLE: Chamber acoustic net air volume in cubic meters.
-            //     STATUS: UPGRADE from RawField<number> to Field<number>.
+            // [ ] TASK 6 (Bandpass4Box.chambers.front.volume_m3):
+            //     UPGRADE to Field<number> for consistent chamber solving.
             //     MECHANICS: Becomes an N-way solvable node in the graph so target resonance/tuning can back-calculate chamber volume.
             readonly volume_m3: RawField<number>;
             // [x] STRATEGY (tuning_hz):
@@ -429,7 +427,7 @@ export interface AbcBox {
     };
 }
 
-// [ ] STRATEGY (interface PassiveRadiatorBox):
+// [ ] TASK 7 (interface PassiveRadiatorBox):
 //     ROLE: Passive radiator enclosure topology contract.
 //     STATUS: UPGRADE.
 //     DECISION: volume_m3 upgraded to Field<number>; systemTuning_hz and addedMassForTuning_kg upgraded to precomputed Field models, eradicating lazy getter closures.
@@ -492,7 +490,7 @@ export interface PassiveRadiatorBox {
      *  `systemTuning_hz()`, and the number a PR design is actually dialled in with. Null on the
      *  same terms, and null when `fp_hz` is above the tuning a bare cone already reaches, since
      *  that asks for mass to be taken off a cone carrying none. */
-    // [ ] STRATEGY (addedMassForTuning_kg):
+    // [ ] TASK 9 (PassiveRadiatorBox.addedMassForTuning_kg):
     //     ROLE: Parameterized query for cone mass required to hit target fp in current box.
     //     STATUS: UPGRADE from ReadOnlyCalculatedField factory to N-way Field factory.
     //     MECHANICS: Captured closure over fp. .get() reads mass. .set(mass) solves and updates radiator addedMass_kg.
@@ -509,7 +507,7 @@ export interface PassiveRadiatorBox {
      *  mass is on its cone, with no box in it. A different quantity from `systemTuning_hz()`,
      *  which is this radiator loaded by this box's air. Null until a radiator is chosen and
      *  states the mass and compliance the resonance is made of. */
-    // [ ] STRATEGY (resonanceWithAddedMass_hz):
+    // [ ] TASK 10 (PassiveRadiatorBox.resonanceWithAddedMass_hz):
     //     ROLE: Radiator free-air resonance carrying current added cone mass in Hz.
     //     STATUS: REVISE.
     //     MECHANICS: Eradicate lazy evaluation closure. Directly read precomputed value pushed by PR solver.
@@ -753,7 +751,7 @@ class VentWindow implements Vent {
      *
      *  Null rather than 0 (a real, if absurd, port area) or NaN — absence is spelled ONE way in
      *  this domain, the same `null` a `Cell` carries. */
-    // [ ] STRATEGY (area_m2):
+    // [ ] TASK 11 (VentWindow.area_m2):
     //     ROLE: Port cross-sectional opening area in square meters.
     //     STATUS: UPGRADE from method to N-way Field<number>.
     //     MECHANICS: Pure read on .get(). .set(area) derives round diameter or solves slotted rectangular dimensions (preserving aspect ratio or defaulting to square).
@@ -771,7 +769,7 @@ class VentWindow implements Vent {
      *  The end correction models how air outside the port behaves, so it is ACOUSTICS and the
      *  engine owns it. The domain supplies the port's own geometry — its length and its area, both
      *  of which it legitimately knows — and reports what comes back. */
-    // [ ] STRATEGY (effectiveLength_m):
+    // [ ] TASK 12 (VentWindow.effectiveLength_m):
     //     ROLE: Port acoustic length including end-corrections in meters.
     //     STATUS: UPGRADE from method to N-way Field<number>.
     //     MECHANICS: Pure read of Leff on .get(). .set(leff) sets physical length_m = leff - endCorrection.
@@ -782,7 +780,7 @@ class VentWindow implements Vent {
         return this.#engine.ventEffectiveLength(length_m, Sp, this.#lens.get().endCorrection_m);
     }
 
-    // [ ] STRATEGY (tuningIn_hz):
+    // [ ] TASK 13 (VentWindow.tuningIn_hz):
     //     ROLE: Parameterized port tuning query for a given chamber volume.
     //     STATUS: UPGRADE from method returning number|null to Field factory returning Field<number>.
     //     MECHANICS: Captured closure over Vb. .get() returns tuning in Vb. .set(fb) solves required port length_m in Vb and updates length_m.
@@ -793,7 +791,7 @@ class VentWindow implements Vent {
         return this.#engine.tuningFromLength(volume_m3, length_m, Sp, this.#lens.get().endCorrection_m);
     }
 
-    // [ ] STRATEGY (lengthForTuning_m):
+    // [ ] TASK 14 (VentWindow.lengthForTuning_m):
     //     ROLE: Parameterized physical port length query for a given Vb and target Fb.
     //     STATUS: UPGRADE from method returning number|null to Field factory returning Field<number>.
     //     MECHANICS: Captured closure over Vb, Fb. .get() returns length. .set(len) solves required port area_m2 and updates dimensions.
@@ -1201,7 +1199,7 @@ class OpenISDBox implements Box {
             get radiator() {
                 return getRadiator();
             },
-            // [ ] STRATEGY (systemTuning_hz):
+            // [ ] TASK 15 (OpenISDBox.passiveRadiator.systemTuning_hz):
             //     ROLE: Actual delivered PR system tuning (Fp) in Hz.
             //     STATUS: REVISE.
             //     MECHANICS: Eradicate lazy getter closure. Pure read of precomputed solver graph. .set(fp) updates target tuning_hz.
@@ -1247,8 +1245,8 @@ class OpenISDBox implements Box {
                     return createCell('addedMassForTuning_kg', null, 'not-available');
                 });
             },
-            // [ ] STRATEGY (resonanceWithAddedMass_hz):
-            //     ROLE: Radiator free-air resonance carrying current added cone mass in Hz.
+            // [ ] TASK 16 (OpenISDBox.passiveRadiator.resonanceWithAddedMass_hz):
+            //     REVISE implementation to pure read of precomputed state. carrying current added cone mass in Hz.
             //     STATUS: REVISE.
             //     MECHANICS: Eradicate lazy evaluation closure. Directly read precomputed value pushed by PR solver.
             get resonanceWithAddedMass_hz() {
@@ -2199,7 +2197,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     /** The product series this driver belongs to (e.g. "Reference Series"), or null. Descriptive
      *  only — the picker's preview text, never a simulated quantity. */
-    // [ ] STRATEGY (series):
+    // [ ] TASK 17 (OpenISDDriver.series):
     //     ROLE: Descriptive metadata attribute on driver record.
     //     STATUS: UPGRADE from raw getter to ReadOnlyCalculatedField<string>.
     //     MECHANICS: Wraps string in Cell shape carrying name and entered/calculated provenance across package boundaries.
@@ -2208,7 +2206,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     }
 
     /** The manufacturer's own catalogue number, derived by the scraper from brand/model. */
-    // [ ] STRATEGY (sku):
+    // [ ] TASK 18 (OpenISDDriver.sku):
     //     ROLE: Descriptive metadata attribute on driver record.
     //     STATUS: UPGRADE from raw getter to ReadOnlyCalculatedField<string>.
     //     MECHANICS: Wraps string in Cell shape carrying name and entered/calculated provenance across package boundaries.
@@ -2217,8 +2215,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     }
 
     /** Free-text description from the datasheet, or null. Preview text only. */
-    // [ ] STRATEGY (description):
-    //     ROLE: Descriptive metadata attribute on driver record.
+    // [ ] TASK 19 (OpenISDDriver.description):
     //     STATUS: UPGRADE from raw getter to ReadOnlyCalculatedField<string>.
     //     MECHANICS: Wraps string in Cell shape carrying name and entered/calculated provenance across package boundaries.
     get description(): string | null {
@@ -3218,7 +3215,7 @@ export class OpenISDProject {
      * Null when no power is stated or the driver has no usable `Re`. Never a substituted default:
      * a project that has not been told its drive level does not have one.
      */
-    // [ ] STRATEGY (driveVoltage_V):
+    // [ ] TASK 21 (OpenISDProject.driveVoltage_V):
     //     ROLE: Applied generator drive level voltage (eg) in Volts.
     //     STATUS: UPGRADE from method to N-way Field<number>.
     //     MECHANICS: .get() reads precomputed voltage. .set(v) calculates power_W = v^2 / Re and updates signal state.
@@ -3230,7 +3227,7 @@ export class OpenISDProject {
 
     /** This project's stated reference power — WinISD's Signal-tab "Input Power". Null until
      *  stated: 1 W is a measurement convention, not a fact about this design. */
-    // [ ] STRATEGY (powerDrive_W):
+    // [ ] TASK 22 (OpenISDProject.powerDrive_W):
     //     ROLE: Stated generator reference power (Pin) in Watts.
     //     STATUS: UPGRADE from method to N-way Field<number>.
     //     MECHANICS: .get() reads power. .set(w) calculates driveVoltage_V = sqrt(w * Re) and updates signal state.
@@ -3240,7 +3237,7 @@ export class OpenISDProject {
 
     /** This project's stated drive voltage, WHEN IT WAS THE VOLTAGE THAT WAS STATED rather than
      *  derived from power — WinISD's Signal-tab "Input Voltage". Null until stated. */
-    // [ ] STRATEGY (statedVoltage_V):
+    // [ ] TASK 23 (OpenISDProject.statedVoltage_V):
     //     ROLE: Stated drive voltage recorded when voltage was the primary entered quantity.
     //     STATUS: UPGRADE from method to Field<number> backed by signal.voltage_V.
     statedVoltage_V(): number | null {
@@ -3251,7 +3248,7 @@ export class OpenISDProject {
      *  (`√(Pin·Re)`), so `driveVoltage_V()`/`statedVoltage_V()` never disagree with what was just
      *  set. Requires the driver to have a usable `Re`; a caller with an incomplete driver cannot
      *  state a drive level in these terms yet. */
-    // [ ] STRATEGY (setPowerDrive_W):
+    // [ ] TASK 24 (OpenISDProject.setPowerDrive_W):
     //     ROLE: Legacy mutation method for drive level.
     //     STATUS: DEPRECATE / ALIAS.
     //     DECISION: Forward directly to new Field.set() method to preserve backward compatibility.
@@ -3266,7 +3263,7 @@ export class OpenISDProject {
 
     /** State the drive level as a voltage — solves and stores the matching power too
      *  (`V²/Re`), the inverse of `setPowerDrive_W`. Same `Re` requirement. */
-    // [ ] STRATEGY (setDriveVoltage_V):
+    // [ ] TASK 25 (OpenISDProject.setDriveVoltage_V):
     //     ROLE: Legacy mutation method for drive level.
     //     STATUS: DEPRECATE / ALIAS.
     //     DECISION: Forward directly to new Field.set() method to preserve backward compatibility.
@@ -3283,7 +3280,7 @@ export class OpenISDProject {
 
     /** This project's stated air temperature, WinISD Advanced "Temperature". Null until stated —
      *  the reference value lives in `@openisd/engine` (`air.ts`), never duplicated here. */
-    // [ ] STRATEGY (envTempK):
+    // [ ] TASK 26 (OpenISDProject.envTempK):
     //     ROLE: Environmental atmospheric condition parameter.
     //     STATUS: UPGRADE from getter/setter pair to pure state Field<number>.
     //     MECHANICS: Pure axiomatic input. Direct read/write to environment JSON slice; triggers recalc on .set().
@@ -3291,7 +3288,7 @@ export class OpenISDProject {
         return this.#current().environment.temperature_K;
     }
 
-    // [ ] STRATEGY (setEnvTempK):
+    // [ ] TASK 27 (OpenISDProject.setEnvTempK):
     //     ROLE: Legacy environment setter.
     //     STATUS: DEPRECATE / ALIAS. Forward directly to field.set().
     setEnvTempK(tempK: number): void {
@@ -3299,7 +3296,7 @@ export class OpenISDProject {
     }
 
     /** This project's stated relative humidity, WinISD Advanced "Humidity". Null until stated. */
-    // [ ] STRATEGY (envHumidityPct):
+    // [ ] TASK 28 (OpenISDProject.envHumidityPct):
     //     ROLE: Environmental atmospheric condition parameter.
     //     STATUS: UPGRADE from getter/setter pair to pure state Field<number>.
     //     MECHANICS: Pure axiomatic input. Direct read/write to environment JSON slice; triggers recalc on .set().
@@ -3307,7 +3304,7 @@ export class OpenISDProject {
         return this.#current().environment.humidity_pct;
     }
 
-    // [ ] STRATEGY (setEnvHumidityPct):
+    // [ ] TASK 29 (OpenISDProject.setEnvHumidityPct):
     //     ROLE: Legacy environment setter.
     //     STATUS: DEPRECATE / ALIAS. Forward directly to field.set().
     setEnvHumidityPct(humidityPct: number): void {
@@ -3316,7 +3313,7 @@ export class OpenISDProject {
 
     /** This project's stated atmospheric pressure, WinISD Advanced "Pressure". Null until
      *  stated. */
-    // [ ] STRATEGY (envPressurePa):
+    // [ ] TASK 30 (OpenISDProject.envPressurePa):
     //     ROLE: Environmental atmospheric condition parameter.
     //     STATUS: UPGRADE from getter/setter pair to pure state Field<number>.
     //     MECHANICS: Pure axiomatic input. Direct read/write to environment JSON slice; triggers recalc on .set().
@@ -3324,7 +3321,7 @@ export class OpenISDProject {
         return this.#current().environment.pressure_Pa;
     }
 
-    // [ ] STRATEGY (setEnvPressurePa):
+    // [ ] TASK 31 (OpenISDProject.setEnvPressurePa):
     //     ROLE: Legacy environment setter.
     //     STATUS: DEPRECATE / ALIAS. Forward directly to field.set().
     setEnvPressurePa(pressurePa: number): void {
@@ -3334,14 +3331,14 @@ export class OpenISDProject {
     /** Which air formula this project's sweeps use — WinISD's parity model when true, OpenISD's
      *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
      *  WinISD out of the box. See `engine/air.ts` for the two models. */
-    // [ ] STRATEGY (envUseWinisdAirModel):
+    // [ ] TASK 32 (OpenISDProject.envUseWinisdAirModel):
     //     ROLE: Air model selector (WinISD parity vs CIPM-2007).
     //     STATUS: UPGRADE from getter/setter pair to RawField<boolean> backed by environment.useWinisdAirModel.
     envUseWinisdAirModel(): boolean {
         return this.#current().environment.useWinisdAirModel ?? true;
     }
 
-    // [ ] STRATEGY (setEnvUseWinisdAirModel):
+    // [ ] TASK 33 (OpenISDProject.setEnvUseWinisdAirModel):
     //     ROLE: Legacy air model setter.
     //     STATUS: DEPRECATE / ALIAS. Forward to envUseWinisdAirModel.set().
     setEnvUseWinisdAirModel(useWinisdAirModel: boolean): void {
@@ -3644,7 +3641,7 @@ export class OpenISDProject {
     // a new one, and the feature is ruled and scoped in QO126.
 
     /** Derives whichever of the vented box's tuning/vent-length the user did not state. */
-    // [ ] STRATEGY (notifyVentChanged):
+    // [ ] TASK 34 (OpenISDProject.notifyVentChanged):
     //     ROLE: Vent mutation listener trigger.
     //     STATUS: UPGRADE / EXPAND into recalc(): void.
     //     MECHANICS: Serves as the manual Recalc diagnostic safety net that triggers force-solve across the entire graph.
@@ -3654,7 +3651,7 @@ export class OpenISDProject {
 
 
     /** The tuning the vent as built actually produces. */
-    // [ ] STRATEGY (ventAchievedFb):
+    // [ ] TASK 35 (OpenISDProject.ventAchievedFb):
     //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
     //     STATUS: UPGRADE from method to ReadOnlyCalculatedField.
     //     MECHANICS: Precomputed by vent/PR consistency solver; pure synchronous read on .get().
@@ -3665,7 +3662,7 @@ export class OpenISDProject {
     }
 
     /** The highest tuning this vent can reach in this volume. */
-    // [ ] STRATEGY (ventMaxReachableFb):
+    // [ ] TASK 36 (OpenISDProject.ventMaxReachableFb):
     //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
     //     STATUS: UPGRADE from method to ReadOnlyCalculatedField.
     //     MECHANICS: Precomputed by vent/PR consistency solver; pure synchronous read on .get().
@@ -3678,7 +3675,7 @@ export class OpenISDProject {
     }
 
     /** Whether the stated tuning is beyond what this vent can reach. */
-    // [ ] STRATEGY (ventTargetUnreachable):
+    // [ ] TASK 37 (OpenISDProject.ventTargetUnreachable):
     //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
     //     STATUS: UPGRADE from method to ReadOnlyCalculatedField.
     //     MECHANICS: Precomputed by vent/PR consistency solver; pure synchronous read on .get().
@@ -3715,7 +3712,7 @@ export class OpenISDProject {
 
     /** Whether the stated tuning is beyond what this radiator can reach. False on the same terms
      *  as `ventTargetUnreachable()`. */
-    // [ ] STRATEGY (prTargetUnreachable):
+    // [ ] TASK 38 (OpenISDProject.prTargetUnreachable):
     //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
     //     STATUS: UPGRADE from method to ReadOnlyCalculatedField.
     //     MECHANICS: Precomputed by vent/PR consistency solver; pure synchronous read on .get().
