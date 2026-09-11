@@ -39,10 +39,10 @@ describe('vent/PR group writes coalesce to exactly the writes made, never an ext
 
   it('enterVentField(Fb) — value write + provenance write + one solve write, no more', () => {
     const count = countNotifications(() => enterVentFieldOn(requireFocusedProject(), 'Fb', 40));
-    // setBoxTuning_Fb_hz + setEntered('Fb') + solveVentGroup's own ventL write = 3.
+    // setBoxTuning_Fb_hz + setEntered('Fb') + notifyVentChanged's own ventL write = 3.
     // Before the fix (trailing solve outside suspension) this counted 4: the store's
     // auto-solve watch, unsuspended by the time the solve's own write landed, ran a second,
-    // fully redundant `solveVentGroup`.
+    // fully redundant `notifyVentChanged`.
     assert.equal(count, 1,
       `expected exactly 1 notification (one domain transaction) — got ${count}; extra writes ` +
       `mean the store's auto-solve watch re-ran the solver a second time for one user action`);
@@ -93,13 +93,13 @@ describe('PR group writes coalesce the same way', () => {
  * pass identically whether the store's PR-group auto-solve watch fires or is permanently dead
  * (`BUG_20260822_pr_group_auto_solve_watch_never_fires_after_the_live_repoint.md`). This proves
  * the watch itself actually re-solves — writing `prFp` directly through `requireFocusedProject()`, never
- * through `enterPrField` (which calls `solvePrGroup` itself inside its own suspension and so
+ * through `enterPrField` (which calls `notifyPrChanged` itself inside its own suspension and so
  * would pass even with a dead store watch), outside any `suspendVentSolve` — so the only thing
  * that can write `prMadd` here is the store's own watch reacting to the live notification.
  */
 // BLOCKED: QO126, like the eight cases in vent-group.test.ts. The store's watch DOES fire
 // (BUG_20260822_pr_group_auto_solve_watch_never_fires_after_the_live_repoint.md is RESOLVED);
-// what it calls, `OpenISDProject.solvePrGroup()`, is an empty stub until the tuning <-> added-mass
+// what it calls, `OpenISDProject.notifyPrChanged()`, is an empty stub until the tuning <-> added-mass
 // relation is wired. The assertion is kept as written rather than weakened — one loosened to
 // match a stub would go green and stop describing the behaviour the app is supposed to have.
 describe('PR-group auto-solve watch fires on every requireFocusedProject() notification (BLOCKED: QO126)', () => {
@@ -112,12 +112,12 @@ describe('PR-group auto-solve watch fires on every requireFocusedProject() notif
     requireFocusedProject().box.passiveRadiator.addedMass_kg.set(0); // known starting value for the calculated member — a raw write, must NOT mark prMadd entered
     const before = requireFocusedProject().box.passiveRadiator.addedMass_kg.get().value;
 
-    requireFocusedProject().box.passiveRadiator.tuning_hz.set(55); // raw write — no suspension, no direct solvePrGroup call
+    requireFocusedProject().box.passiveRadiator.tuning_hz.set(55); // raw write — no suspension, no direct notifyPrChanged call
 
     const after = requireFocusedProject().box.passiveRadiator.addedMass_kg.get().value;
     assert.notEqual(after, before,
       'prMadd was not re-solved after a live prFp write. The store\'s watch fires; ' +
-      'OpenISDProject.solvePrGroup() is an empty stub until QO126 wires the tuning <-> ' +
+      'OpenISDProject.notifyPrChanged() is an empty stub until QO126 wires the tuning <-> ' +
       'added-mass relation.');
   });
 });

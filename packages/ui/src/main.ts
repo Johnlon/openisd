@@ -6,7 +6,6 @@ import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRe
 import { readBundle } from '@openisd/persistence';
 import { Engine } from '@openisd/design/engine';
 import { createLogging } from './logging/flash.js';
-import { createDiagnostics } from './diagnostics/selftest.js';
 import { createFaultLog } from './diagnostics/faultLog.js';
 import { createDriverSelection } from './logic/driverSelection.js';
 import { createDriverBrowsingState } from './logic/driverBrowsingState.js';
@@ -55,7 +54,6 @@ const myDriverRepo = createMyDriverRepo(storage, engine);
 const prefs = createPrefsRepo(storage);
 const myPassiveRadiators = createMyPassiveRadiatorRepo(storage, engine);
 const bundledPRs = createBundledPassiveRadiatorRepo(bundle, engine).list();
-const diagnostics = createDiagnostics({ report: logging.flash });
 // STORAGE (port): the interactive file-save destination. Two SEPARATE instances — one for
 // the project (retains the open project's file handle), one for the driver editor's one-shot
 // .wdr/.owdr export — so exporting a driver cannot silently retarget the project Save button.
@@ -79,7 +77,7 @@ const app = createApp(App)
 provideApp(app, {
   logging, driverBrowsing, selection, designIO, myPassiveRadiators,
   bundledPassiveRadiators: bundledPRs, myDrivers: myDriverRepo,
-  driverFileStorage, diagnostics, faultLog, projectRepo, viewStateRepo,
+  driverFileStorage, faultLog, projectRepo, viewStateRepo,
 });
 
 // Visibility only, not a recovery mechanism (PROMPT_RELEASE_HARDENING plan): a

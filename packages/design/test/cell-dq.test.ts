@@ -88,7 +88,7 @@ describe('structural DQ on Cell<T>', () => {
     p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.addedMass_kg.clear();
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
-    p.solvePrGroup();
+    p.notifyPrChanged();
 
     const massCell = p.box.passiveRadiator.addedMass_kg.get();
     const tuningCell = p.box.passiveRadiator.tuning_hz.get();
@@ -100,7 +100,7 @@ describe('structural DQ on Cell<T>', () => {
 
     // Reset to reachable tuning
     p.box.passiveRadiator.tuning_hz.set(ceiling);
-    p.solvePrGroup();
+    p.notifyPrChanged();
 
     expect(p.box.passiveRadiator.addedMass_kg.get().dq()).toBeNull();
     expect(p.box.passiveRadiator.tuning_hz.get().dq()).toBeNull();

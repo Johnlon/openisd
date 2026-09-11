@@ -128,7 +128,7 @@ function reachesNotify(startMethodName: string): boolean {
  *
  *  An EMPTY body is excluded because it writes nothing — there is no state change for a
  *  notification to accompany, so demanding one would report a defect that does not exist.
- *  `solveVentGroup`/`solvePrGroup` are such stubs today (QO126). The moment either grows a body
+ *  `notifyVentChanged`/`notifyPrChanged` are such stubs today (QO126). The moment either grows a body
  *  it becomes a mutator again and must reach `#notify()` like every other. */
 const publicMutators = instanceMethods.filter(m => {
   const name = m.getNameNode().getText();

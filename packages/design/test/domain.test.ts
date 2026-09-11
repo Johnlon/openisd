@@ -530,13 +530,13 @@ describe('the passive radiator a box holds', () => {
 
     p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
-    p.solvePrGroup();
+    p.notifyPrChanged();
 
     expect(p.box.passiveRadiator.addedMass_kg.get().value).toBeLessThan(0);
     expect(p.prTargetUnreachable()).toBe(true);
 
     p.box.passiveRadiator.tuning_hz.set(ceiling);
-    p.solvePrGroup();
+    p.notifyPrChanged();
 
     expect(p.box.passiveRadiator.addedMass_kg.get().value).toBeCloseTo(0, 9);
     expect(p.prTargetUnreachable()).toBe(false);

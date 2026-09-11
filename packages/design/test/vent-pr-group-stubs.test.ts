@@ -42,7 +42,7 @@ function ventedProject() {
  * (`bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md`).
  *
  * What is pinned here is the INTERIM contract, and specifically that these do not THROW:
- * `solveVentGroup()` runs on every project change (`packages/ui/src/logic/appState.ts`), so a
+ * `notifyVentChanged()` runs on every project change (`packages/ui/src/logic/appState.ts`), so a
  * throw means no project can be opened at all. Doing nothing is what the app did before the
  * migration, when neither direction had a caller.
  *
@@ -51,16 +51,16 @@ function ventedProject() {
  * deliberate and visible, not a silent drift.
  */
 describe('vent-group solve/reachability — Helmholtz solver implementations', () => {
-  it('solveVentGroup() runs without throwing — the store calls it on every project change', () => {
-    expect(() => ventedProject().solveVentGroup()).not.toThrow();
+  it('notifyVentChanged() runs without throwing — the store calls it on every project change', () => {
+    expect(() => ventedProject().notifyVentChanged()).not.toThrow();
   });
 
-  it('solveVentGroup() derives vent length when tuning_hz is entered', () => {
+  it('notifyVentChanged() derives vent length when tuning_hz is entered', () => {
     const p = ventedProject();
     p.box.vented.vent.shape.set('round');
     p.box.vented.vent.diameter_m.set(0.05);
     p.box.vented.vent.endCorrection_m.set(0.6);
-    p.solveVentGroup();
+    p.notifyVentChanged();
 
     const len = p.box.vented.vent.length_m.get().value;
     expect(len).not.toBeNull();
@@ -72,7 +72,7 @@ describe('vent-group solve/reachability — Helmholtz solver implementations', (
     p.box.vented.vent.shape.set('round');
     p.box.vented.vent.diameter_m.set(0.05);
     p.box.vented.vent.endCorrection_m.set(0.6);
-    p.solveVentGroup();
+    p.notifyVentChanged();
 
     const fb = p.ventAchievedFb();
     expect(fb).not.toBeNull();
@@ -96,15 +96,15 @@ describe('vent-group solve/reachability — Helmholtz solver implementations', (
     p.box.vented.vent.diameter_m.set(0.05);
     p.box.vented.vent.endCorrection_m.set(0.6);
     p.box.vented.tuning_hz.set(500); // impossible high target
-    p.solveVentGroup();
+    p.notifyVentChanged();
 
     expect(p.ventTargetUnreachable()).toBe(true);
   });
 });
 
 describe('PR-group solve/reachability — nothing wired, so nothing solved', () => {
-  it('solvePrGroup() runs without throwing', () => {
-    expect(() => ventedProject().solvePrGroup()).not.toThrow();
+  it('notifyPrChanged() runs without throwing', () => {
+    expect(() => ventedProject().notifyPrChanged()).not.toThrow();
   });
 
   it('prTargetUnreachable() claims nothing is unreachable', () => {

@@ -68,12 +68,12 @@ describe('calc marks', () => {
       formula: 'Vas = ρ₀·c²·Sd²·Cms', fields: ['Vas_m3', 'Cms_m_per_N', 'Sd_m2'],
       target: 'Vas_m3', expected: 51.2, actual: 48, relative: 0.0666,
     })).toEqual({
-      target: 'Vas',
-      members: ['Vas', 'Cms', 'Sd'],
+      target: 'Vas_m3',
+      members: ['Vas_m3', 'Cms_m_per_N', 'Sd_m2'],
       mark: {
         kind: 'calc', severity: 'error', rule: 'vas-consistency',
         params: { computed: 51.2, stored: 48, off_pct: 6.3 },
-        detail: 'Vas from ρ·c²·Sd²·Cms = 51.2 vs stored 48 — 6.3% apart',
+        detail: 'Vas_m3 from ρ·c²·Sd_m2²·Cms_m_per_N = 51.2 vs stored 48 — 6.3% apart',
       },
     });
   });
@@ -98,12 +98,12 @@ describe('calc marks', () => {
       formula: 'Rms = 2π·Fs·Mms/Qms', fields: ['Rms_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qms'],
       target: 'Rms_kg_per_s', expected: 1234567, actual: 999999.5, relative: 0.23,
     })).toEqual({
-      target: 'Rms',
-      members: ['Rms', 'Fs', 'Mms', 'Qms'],
+      target: 'Rms_kg_per_s',
+      members: ['Rms_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qms'],
       mark: {
         kind: 'calc', severity: 'error', rule: 'calc-consistency',
-        params: { field: 'Rms', formula: '2π·Fs·Mms/Qms', computed: 1234567, stored: 999999.5, off_pct: 19 },
-        detail: 'Rms from 2π·Fs·Mms/Qms = 1.235e+06 vs stored 1e+06 — 19% apart',
+        params: { field: 'Rms_kg_per_s', formula: '2π·Fs·Mms/Qms', computed: 1234567, stored: 999999.5, off_pct: 19 },
+        detail: 'Rms_kg_per_s from 2π·Fs·Mms/Qms = 1.235e+06 vs stored 1e+06 — 19% apart',
       },
     });
   });
@@ -117,8 +117,8 @@ describe('calc marks', () => {
       target: 'Dd_m', expected: 1.8125, actual: 2.0625, relative: 0.138,
     }).mark).toEqual({
       kind: 'calc', severity: 'error', rule: 'calc-consistency',
-      params: { field: 'Dd', formula: '2·√(Sd/π)', computed: 1.8125, stored: 2.0625, off_pct: 13.8 },
-      detail: 'Dd from 2·√(Sd/π) = 1.812 vs stored 2.062 — 13.8% apart',
+      params: { field: 'Dd_m', formula: '2·√(Sd/π)', computed: 1.8125, stored: 2.0625, off_pct: 13.8 },
+      detail: 'Dd_m from 2·√(Sd/π) = 1.812 vs stored 2.062 — 13.8% apart',
     });
   });
 
@@ -126,12 +126,12 @@ describe('calc marks', () => {
     expect(calcMark({
       formula: 'Dd = 2·√(Sd/π)', fields: ['Dd_m', 'Sd_m2'],
       target: 'Dd_m', expected: 100, actual: 100.25, relative: 0.0025,
-    }).mark.detail).toBe('Dd from 2·√(Sd/π) = 100 vs stored 100.2 — 0.2% apart');
+    }).mark.detail).toBe('Dd_m from 2·√(Sd/π) = 100 vs stored 100.2 — 0.2% apart');
 
     expect(calcMark({
       formula: 'Dd = 2·√(Sd/π)', fields: ['Dd_m', 'Sd_m2'],
       target: 'Dd_m', expected: 100, actual: 100.75, relative: 0.0075,
-    }).mark.detail).toBe('Dd from 2·√(Sd/π) = 100 vs stored 100.8 — 0.8% apart');
+    }).mark.detail).toBe('Dd_m from 2·√(Sd/π) = 100 vs stored 100.8 — 0.8% apart');
   });
 
   it('rounds a percentage whose decimal only LOOKS like a tie by the true value of the double', () => {
@@ -140,16 +140,17 @@ describe('calc marks', () => {
     expect(calcMark({
       formula: 'Dd = 2·√(Sd/π)', fields: ['Dd_m', 'Sd_m2'],
       target: 'Dd_m', expected: 100, actual: 1215.55, relative: 11.1555,
-    }).mark.detail).toBe('Dd from 2·√(Sd/π) = 100 vs stored 1216 — 1115.5% apart');
+    }).mark.detail).toBe('Dd_m from 2·√(Sd/π) = 100 vs stored 1216 — 1115.5% apart');
   });
 
-  it('drops a group member that no record key corresponds to', () => {
+  it('includes all issue fields as members — withDqCalculated silently drops marks for keys absent from the spec', () => {
     // `Re_terminal_ohm` is derived from Re, numVC and wiring; no record stores it, so there is
-    // no spec entry for a mark to land on.
+    // no spec entry for a mark to land on. `calcMark` returns it as a member, but `withDqCalculated`
+    // silently drops it because the spec entry does not exist.
     expect(calcMark({
       formula: 'Rme = Bl²/Re', fields: ['Rme_kg_per_s', 'BL_Tm', 'Re_terminal_ohm'],
       target: 'Rme_kg_per_s', expected: 12.5, actual: 10, relative: 0.25,
-    }).members).toEqual(['Rme', 'BL']);
+    }).members).toEqual(['Rme_kg_per_s', 'BL_Tm', 'Re_terminal_ohm']);
   });
 });
 

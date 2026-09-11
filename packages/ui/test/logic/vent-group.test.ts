@@ -7,7 +7,7 @@
  *
  * `enterVentField`/`clearVentField`/`ventFieldState` (`useVentGroup.ts`) exercise the
  * provenance directly through `box.vented.*`'s `FieldHandle`s — real, working code. The actual
- * Helmholtz solve that would recompute the calculated member (`solveVentGroup()` on
+ * Helmholtz solve that would recompute the calculated member (`notifyVentChanged()` on
  * `OpenISDProject`, `packages/design/domain/openisdDomain.ts`) rewrites nothing, because the
  * tuning ↔ vent-length relation is not wired; every test needing a field to read CALCULATED is
  * skipped below under QO126 rather than forced to pass.
@@ -20,7 +20,7 @@ import assert from 'node:assert/strict';
 import { OpenISDProject, OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import {
-  solveVentGroup, enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
+  notifyVentChanged, enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
   ventFieldState as ventFieldStateOn, resetVentGroupState,
 } from '../../src/logic/useVentGroup.js';
 
@@ -34,7 +34,7 @@ function ventedProject() {
   p.box.vented.vent.shape.set('round');
   p.box.vented.vent.diameter_m.set(0.05);
   p.box.vented.vent.endCorrection_m.set(0.6);
-  p.solveVentGroup();
+  p.notifyVentChanged();
   return p;
 }
 
@@ -62,7 +62,7 @@ describe('vent group — the entered set decides the direction', () => {
   });
 });
 
-// The following behaviour needs `OpenISDProject.solveVentGroup()` to actually solve. It does not:
+// The following behaviour needs `OpenISDProject.notifyVentChanged()` to actually solve. It does not:
 // the tuning ↔ vent-length relation is not wired, so the method runs and rewrites nothing
 // (`packages/design/test/vent-pr-group-stubs.test.ts` pins that interim contract). Until it is,
 // nothing ever reports a vent field as CALCULATED — which is what every test here asserts.
@@ -71,7 +71,7 @@ describe('vent group — the entered set decides the direction', () => {
 // migration"): bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md. Skipped
 // rather than weakened, because an assertion loosened to match a stub would go green and stop
 // describing the behaviour the app is supposed to have.
-describe('vent group — solveVentGroup() re-derives the calculated member (BLOCKED: QO126)', () => {
+describe('vent group — notifyVentChanged() re-derives the calculated member (BLOCKED: QO126)', () => {
   let p: ReturnType<typeof ventedProject>;
   beforeEach(() => { resetVentGroupState(); p = ventedProject(); });
 
@@ -93,7 +93,7 @@ describe('vent group — solveVentGroup() re-derives the calculated member (BLOC
   it('THE DIRECTION TEST — changing vent diameter holds the tuning and moves the length', () => {
     const lenBefore = p.box.vented.vent.length_m.get().value;
     p.box.vented.vent.diameter_m.set(0.07);
-    solveVentGroup(p);
+    notifyVentChanged(p);
     assert.equal(p.box.vented.tuning_hz.get().value, 40, 'an entered tuning must never be rewritten by the solver');
     assert.notEqual(p.box.vented.vent.length_m.get().value, lenBefore, 'the length must absorb the diameter change');
   });
@@ -102,7 +102,7 @@ describe('vent group — solveVentGroup() re-derives the calculated member (BLOC
     clearVentFieldOn(p, 'Fb');
     enterVentFieldOn(p, 'ventL', 0.154);
     p.box.vented.vent.diameter_m.set(0.07);
-    solveVentGroup(p);
+    notifyVentChanged(p);
     assert.equal(p.box.vented.vent.length_m.get().value, 0.154, 'an entered length must never be rewritten');
     assert.notEqual(p.box.vented.tuning_hz.get().value, 40, 'now the TUNING absorbs the diameter change');
   });
@@ -110,7 +110,7 @@ describe('vent group — solveVentGroup() re-derives the calculated member (BLOC
   it('an over-determined set solves nothing and rewrites nothing', () => {
     enterVentFieldOn(p, 'ventL', 0.999);
     p.box.vented.vent.diameter_m.set(0.07);
-    solveVentGroup(p);
+    notifyVentChanged(p);
     assert.equal(p.box.vented.tuning_hz.get().value, 40, 'entered values are held even when they contradict');
     assert.equal(p.box.vented.vent.length_m.get().value, 0.999);
   });

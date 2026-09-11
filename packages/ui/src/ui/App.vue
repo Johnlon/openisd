@@ -17,7 +17,7 @@ import { presentationState } from '../logic/presentationState.js';
 import { provideFocusedProject } from '../logic/focusedProjectContext.js';
 import { useApp } from '../logic/app.js';
 
-const { diagnostics, projectRepo, viewStateRepo, logging, designIO } = useApp();
+const { projectRepo, viewStateRepo, logging, designIO } = useApp();
 
 // Opening a saved project when none is open. Every other file input in the app lives inside the
 // shell, which only renders once a project exists, so without this a cold start could not open

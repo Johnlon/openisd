@@ -120,7 +120,7 @@ describe('vent target reachability — an unreachable tuning must surface, not h
 // The reachability wrappers themselves (`ventAchievedFb`/`ventMaxReachableFb`/
 // `ventTargetUnreachable`, `useVentGroup.ts`) call the documented `OpenISDProject` stubs that
 // throw `not implemented`. Skipped rather than forced to pass.
-describe('vent target reachability — via the store wrappers (BLOCKED: solveVentGroup stub)', () => {
+describe('vent target reachability — via the store wrappers (BLOCKED: notifyVentChanged stub)', () => {
   beforeEach(() => {});
 
   it('a reachable target is delivered exactly by the solved length', () => {

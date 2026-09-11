@@ -1,4 +1,4 @@
-import { solvePrConsistencyGroup, solveVentConsistencyGroup, solveConsistencyGroup } from './engine/testSolver.js';
+import { notifyPrChanged, notifyVentChanged, solveConsistencyGroup } from './engine/testSolver.js';
 import { describe, it, expect } from 'vitest';
 import { OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '../domain/openisdDomain.js';
 import { Engine } from '../engine/index.js';
@@ -82,7 +82,7 @@ describe('PR and Vent Solver Groups', () => {
     p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.addedMass_kg.clear();
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
-    p.solvePrConsistencyGroup();
+    p.notifyPrChanged();
 
     const massCell = p.box.passiveRadiator.addedMass_kg.get();
     const tuningCell = p.box.passiveRadiator.tuning_hz.get();
@@ -103,7 +103,7 @@ describe('PR and Vent Solver Groups', () => {
     p.box.vented.vent.endCorrection_m.set(0.6);
     p.box.vented.vent.length_m.clear();
     p.box.vented.tuning_hz.set(35);
-    p.solveVentConsistencyGroup();
+    p.notifyVentChanged();
 
     const lenCell = p.box.vented.vent.length_m.get();
     const tuningCell = p.box.vented.tuning_hz.get();
@@ -115,8 +115,8 @@ describe('PR and Vent Solver Groups', () => {
     expect(tuningCell.dq()).toBeNull();
   });
 
-  it('Engine exposes pure solveDriverConsistencyGroup, and solveVentConsistencyGroup', () => {
-    const prSolved = solvePrConsistencyGroup({
+  it('Engine exposes pure solveDriverConsistencyGroup, and notifyVentChanged', () => {
+    const prSolved = notifyPrChanged({
       tuning_hz: 50,
       Vb_m3: 0.03,
       prMmd_kg: 0.09,
@@ -126,7 +126,7 @@ describe('PR and Vent Solver Groups', () => {
     });
     expect(prSolved.addedMass_kg).toBeDefined();
 
-    const ventSolved = solveVentConsistencyGroup({
+    const ventSolved = notifyVentChanged({
       tuning_hz: 35,
       Vb_m3: 0.03,
       area_m2: 0.002,
@@ -146,7 +146,7 @@ describe('PR and Vent Solver Groups', () => {
     p.box.vented.vent.length_m.set(0.15);
     p.box.vented.tuning_hz.clear();
 
-    p.solveVentConsistencyGroup();
+    p.notifyVentChanged();
 
     // length_m must remain entered (E) and untouched by solver
     expect(p.box.vented.vent.length_m.get().state).toBe('entered');
@@ -165,12 +165,12 @@ describe('PR and Vent Solver Groups', () => {
     p.box.vented.vent.endCorrection_m.set(0.6);
     p.box.vented.tuning_hz.set(35);
 
-    p.solveVentConsistencyGroup();
+    p.notifyVentChanged();
     expect(p.box.vented.vent.length_m.get().state).toBe('calculated');
 
     // Clear required input (tuning_hz)
     p.box.vented.tuning_hz.clear();
-    p.solveVentConsistencyGroup();
+    p.notifyVentChanged();
 
     // length_m should transition from C -> N (not-available)
     expect(p.box.vented.vent.length_m.get().state).toBe('not-available');

@@ -521,6 +521,19 @@ export function solvePrConsistencyGroup(p: PrSolverQuantities): PrSolverQuantiti
       out.addedMass_kg = totalMass - prMmd_kg;
     }
   }
+  
+  const resolvedMass = out.addedMass_kg ?? p.addedMass_kg;
+  if (resolvedMass != null && prMmd_kg != null && prCms_m_per_N != null) {
+      // prMmd_kg + added mass is Mms for PRs? No, prFsWithMass takes (Mms_kg, addedMass_kg, Cms_m_per_N)
+      // Actually, prFsWithMass signature is (Mms: number, Madd: number, Cms: number)
+      out.resonanceWithAddedMass_hz = prFsWithMass(prMmd_kg, resolvedMass, prCms_m_per_N);
+  }
+  
+  if (resolvedMass != null && Vb_m3 != null && Vb_m3 > 0 && prMmd_kg != null && prSd_m2 != null && prCms_m_per_N != null) {
+      const prParams = { Vb: Vb_m3, prMmd: prMmd_kg, prMadd: resolvedMass, prSd: prSd_m2, prCms: prCms_m_per_N };
+      out.systemTuning_hz = prTuning(prParams);
+  }
+  
   return out;
 }
 

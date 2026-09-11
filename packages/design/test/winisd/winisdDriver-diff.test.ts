@@ -34,7 +34,7 @@ function recordDriver() {
     },
     specs: {
       woofer: {
-        Fs: spec(40), Re: spec(6), Sd: spec(0.0133), Vas: spec(0.03),
+        Fs_hz: spec(40), Re_ohm: spec(6), Sd_m2: spec(0.0133), Vas_m3: spec(0.03),
         Qts: spec(0.4), Qes: spec(0.45),
       },
     },

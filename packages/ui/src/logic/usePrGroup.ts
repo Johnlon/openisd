@@ -1,7 +1,7 @@
 /**
  * The passive-radiator tuning group's UI seam. The relation — `prFp` ↔ `prMadd`, pinning
  * either solves the other — lives on `OpenISDProject` (`cell()`/`enter()`/`clear()`/
- * `solvePrGroup()`), the owner of the state. This module keeps the field vocabulary, the
+ * `notifyPrChanged()`), the owner of the state. This module keeps the field vocabulary, the
  * badge letter, and the same one-action-one-solve suspension as the vent group.
  */
 import type { OpenISDProject } from '@openisd/design';
@@ -18,8 +18,8 @@ const LETTER: Record<CellState, 'E' | 'C' | 'N'> = {
 };
 
 /** Re-solve whichever member is CALCULATED from the entered one — the domain's own solver. */
-export function solvePrGroup(p: OpenISDProject): void {
-  p.solvePrGroup();
+export function notifyPrChanged(p: OpenISDProject): void {
+  p.notifyPrChanged();
 }
 
 /** Enter a PR-group field — held until explicitly cleared. One user action, one solve.

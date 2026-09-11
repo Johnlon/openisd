@@ -1,7 +1,7 @@
 /**
  * The vent group's UI seam. The physics — which of `Vb`, `ventD`, `Fb`, `ventL` is HELD and
  * which is SOLVED, the Helmholtz relation itself, reachability — lives on `OpenISDProject`
- * (`cell()`/`enter()`/`clear()`/`solveVentGroup()`), the owner of the state. This module keeps
+ * (`cell()`/`enter()`/`clear()`/`notifyVentChanged()`), the owner of the state. This module keeps
  * only what is genuinely a UI concern: the field vocabulary the shells bind, the E/C/N letter
  * the badges show, and the solve-suspension that parks `appState.ts`'s coarse auto-solve watch
  * so one user action produces one solve (and a wholesale restore is adopted verbatim,
@@ -28,7 +28,7 @@ const LETTER: Record<CellState, 'E' | 'C' | 'N'> = {
 };
 
 /** Re-solve every CALCULATED member from the ENTERED ones — the domain's own solver. */
-export function solveVentGroup(p: OpenISDProject): void {
+export function notifyVentChanged(p: OpenISDProject): void {
   if (userEnteredPair === 'both') return;
 
   const Vb = p.box.vented.volume_m3.get().value;
@@ -83,7 +83,7 @@ export function enterVentField(p: OpenISDProject, field: VentEntryField, value: 
         case 'ventW': p.box.vented.vent.width_m.set(value); break;
         case 'ventH': p.box.vented.vent.height_m.set(value); break;
       }
-      p.solveVentGroup();
+      p.notifyVentChanged();
     });
   });
 }
@@ -115,7 +115,7 @@ export function clearVentField(p: OpenISDProject, field: VentField): void {
           }
           break;
       }
-      p.solveVentGroup();
+      p.notifyVentChanged();
     });
   });
 }

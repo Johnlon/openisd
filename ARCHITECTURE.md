@@ -1099,6 +1099,10 @@ store.
 
 These hold everywhere, across every module.
 
+### `.get()` never does a calc
+
+All fields are computable if mathematically possible, but the computation never happens on read. `.get()` accesses the pre-calculated result of a directed graph based on human inputs and intermediate calculated values. The solver fires strictly when a human stimulus occurs (a `.set()` mutation) to update part of the directed graph. Any exceptions for trivial cases are decided by the human alone. Consistency demands this.
+
 **Failure travels as a value.** Every function that performs I/O, validation, or a calculation that can partially fail
 returns `{ value, errors }`. `errors` is always an array; empty means clean. **Nothing in the engine throws.** A parser
 handed malformed input returns `{ value: null, errors:

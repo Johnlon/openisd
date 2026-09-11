@@ -5,7 +5,6 @@ import type { DesignIO } from './useApplicationIO.js';
 import type { MyPassiveRadiatorRepo, MyDriverRepo, FileStorage, ProjectRepo, ViewStateRepo } from '@openisd/persistence';
 import type { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import type { Logging } from '../logging/flash.js';
-import type { Diagnostics } from '../diagnostics/selftest.js';
 import type { FaultLog } from '../diagnostics/faultLog.js';
 
 /**
@@ -35,7 +34,6 @@ export interface AppLogic {
   driverFileStorage: FileStorage;
   projectRepo: ProjectRepo;
   viewStateRepo: ViewStateRepo;
-  diagnostics: Diagnostics;
   faultLog: FaultLog;
 }
 

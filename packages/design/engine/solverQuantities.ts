@@ -20,6 +20,8 @@ export interface PrSolverQuantities {
     prSd_m2?: number;
     prCms_m_per_N?: number;
     prNum?: number;
+    resonanceWithAddedMass_hz?: number;
+    systemTuning_hz?: number;
 }
 
 export interface VentSolverQuantities {

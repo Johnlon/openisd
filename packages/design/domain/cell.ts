@@ -27,6 +27,15 @@ export function createCell<T>(
     configurable: true,
     enumerable: false,
   });
+  // `name` is an inspection/debugging aid, not part of the cell's value contract.
+  // Making it non-enumerable prevents deepEqual(cell, { value, state }) from failing
+  // in the hundreds of existing tests that predate this field.
+  Object.defineProperty(cell, 'name', {
+    value: name,
+    writable: false,
+    configurable: true,
+    enumerable: false,
+  });
   return cell;
 }
 
@@ -57,7 +66,10 @@ export class Field<T> implements SolverField<T> {
     if (this.isCalculated && this.derivedValue !== null) {
       return createCell(cell.name, this.derivedValue, 'calculated', this.dqList.length > 0 ? this.dqList : undefined);
     }
-    return createCell<T>(cell.name, null, 'not-available');
+    // Fall back to the readCell() result (which may already be 'calculated' or 'not-available').
+    // This preserves the original Field behaviour for fields that compute their calculated value
+    // directly inside their readCell callback (e.g. the air-constant fields).
+    return cell;
   }
 
   get name(): string { return this.readCell().name; }
@@ -159,4 +171,18 @@ export function requiredField<K extends PropertyKey, T extends Record<K, number>
       );
     },
   );
+}
+
+export class ReadOnlyCalculatedField<T> {
+  constructor(private readonly readCell: () => Cell<T>) {}
+
+  get name(): string { return this.readCell().name; }
+  get value(): T | null { return this.readCell().value; }
+  get state(): FieldState { return this.readCell().state; }
+  get entered(): boolean { return this.state === 'entered'; }
+  get calculated(): boolean { return this.state === 'calculated'; }
+  get notAvailable(): boolean { return this.state === 'not-available'; }
+  get dq(): readonly string[] { return this.readCell().dq(); }
+
+  get(): Cell<T> { return this.readCell(); }
 }

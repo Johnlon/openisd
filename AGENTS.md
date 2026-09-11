@@ -197,6 +197,7 @@ skill is the reference — and add it to `.claude/settings.json`.
 
 Before starting work:
 
+- **Mandatory Skills**: Load `typescript-pro`, `typescript-best-practices`, and `principle-type-system-discipline` for all TypeScript work.
 - `BACKLOG.md` — P0 gates all feature work
 - `ARCHITECTURE.md` — hard decisions, component diagram, dependency rules, §3 the driver model
 - `docs/spec/SPEC_ENGINE.md`, `docs/spec/SPEC_UI.md` — engine and UI contracts

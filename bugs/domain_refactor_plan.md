@@ -1,51 +1,135 @@
+# Domain Refactor Plan: Annotated `openisdDomain.ts`
+
+Every single symbol without exception—including imported schemas, types, functions, classes, interfaces, getters, setters, methods, and properties—is annotated with a strategy slot:
+`// [ ] STRATEGY (<symbol>): <MULTILINE STRATEGY STATEMENT>`
+
+```typescript
 
 import { driverSectionProblems, radiatorSectionProblems, ProjectBuilder } from './openisdTransforms.js';
+// [x] STRATEGY (imported symbol // HUMAN RULING (2026-08-26): GEOMETRY IS IN. ACOUSTICS IS OUT.):
+//     Imported dependency from schema/engine/losses; verified as correct dependency.
 // HUMAN RULING (2026-08-26): GEOMETRY IS IN. ACOUSTICS IS OUT.
+// [x] STRATEGY (imported symbol // IN: pure geometry (e.g., Vent.area_m2).):
+//     Imported dependency from schema/engine/losses; verified as correct dependency.
 // IN: pure geometry (e.g., Vent.area_m2).
+// [x] STRATEGY (imported symbol // OUT: anything involving air, compliance, resonance, or frequency. Engine handles all acoustics.):
+//     Imported dependency from schema/engine/losses; verified as correct dependency.
 // OUT: anything involving air, compliance, resonance, or frequency. Engine handles all acoustics.
+// [x] STRATEGY (imported symbol // TEST: If two implementers could disagree on the model, it belongs in the engine.):
+//     Imported dependency from schema/engine/losses; verified as correct dependency.
 // TEST: If two implementers could disagree on the model, it belongs in the engine.
 
+// [x] STRATEGY (imported symbol ):
+
+//     Imported dependency from schema/engine/losses; verified as correct dependency.
+
 import {
+    // [x] STRATEGY (imported symbol OpenISDDeviceJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     OpenISDDeviceJson,
+    // [x] STRATEGY (imported type DriverSpecsSection):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type DriverSpecsSection,
+    // [x] STRATEGY (imported type PassiveRadiatorSpecsSection):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type PassiveRadiatorSpecsSection,
+    // [x] STRATEGY (imported type VentJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type VentJson,
+    // [x] STRATEGY (imported type SealedLossesJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type SealedLossesJson,
+    // [x] STRATEGY (imported type VentedLossesJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type VentedLossesJson,
+    // [x] STRATEGY (imported type CoupledSealedLossesJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type CoupledSealedLossesJson,
+    // [x] STRATEGY (imported type CoupledVentedLossesJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type CoupledVentedLossesJson,
+    // [x] STRATEGY (imported type CoupledVentedChamberJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type CoupledVentedChamberJson,
+    // [x] STRATEGY (imported type OpenISDBoxJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type OpenISDBoxJson,
+    // [x] STRATEGY (imported type OpenISDEnvironmentJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type OpenISDEnvironmentJson,
+    // [x] STRATEGY (imported type OpenISDProjectJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type OpenISDProjectJson,
+    // [x] STRATEGY (imported type OpenISDProjectSessionJson):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type OpenISDProjectSessionJson,
+    // [x] STRATEGY (imported symbol openISDProjectSessionJsonSchema):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     openISDProjectSessionJsonSchema,
+    // [x] STRATEGY (imported symbol VoiceCoilWiring):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     VoiceCoilWiring,
+    // [x] STRATEGY (imported symbol wiringFromRecord):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     wiringFromRecord,
+    // [x] STRATEGY (imported symbol calcVCCon):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     calcVCCon,
+    // [x] STRATEGY (imported symbol calcNumVC):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     calcNumVC,
+    // [x] STRATEGY (imported symbol enteredWiring):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     enteredWiring,
+    // [x] STRATEGY (imported symbol enteredEntry):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     enteredEntry,
+    // [x] STRATEGY (imported symbol winningValue):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     winningValue,
 } from './openisdSchema.js';
 import {
+    // [x] STRATEGY (imported symbol createCell):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     createCell,
+    // [x] STRATEGY (imported symbol focus):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     focus,
+    // [x] STRATEGY (imported symbol nullableField):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     nullableField,
+    // [x] STRATEGY (imported symbol requiredField):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     requiredField,
+    // [x] STRATEGY (imported symbol Field):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     Field,
+    // [x] STRATEGY (imported type Lens):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type Lens,
+    // [x] STRATEGY (imported type RawField):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     type RawField,
 } from './cell.js';
 import {newUuid} from './newUuid.js';
 import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/index.js';
 import { solveDriverConsistencyGroup as solveConsistencyGroup, solveVentConsistencyGroup, checkVentConsistency, solvePrConsistencyGroup, checkPrConsistency } from '../engine/solver.js';
+// [x] STRATEGY (imported symbol // The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two):
+//     Imported dependency from schema/engine/losses; verified as correct dependency.
 // The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two
+// [x] STRATEGY (imported symbol // converter modules, so importing it here would pull them in whichever name was asked for.):
+//     Imported dependency from schema/engine/losses; verified as correct dependency.
 // converter modules, so importing it here would pull them in whichever name was asked for.
 import {openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver} from './driverYmlToOpenisdAndWdr.js';
 import {openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject} from './openIsdProjectToWinIsdProject.js';
+// [x] STRATEGY (imported symbol import type {):
+//     Imported dependency from schema/engine/losses; verified as correct dependency.
 import type {
+    // [x] STRATEGY (imported symbol BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, Filter):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, Filter,
+    // [x] STRATEGY (imported symbol EnclosureParams, MaxCurvesResult, Result, SweepParams, SweepResult, DriverSolverQuantities):
+    //     Imported dependency from schema/engine/losses; verified as correct dependency.
     EnclosureParams, MaxCurvesResult, Result, SweepParams, SweepResult, DriverSolverQuantities,
 } from '../engine/index.js';
 
@@ -64,10 +148,14 @@ import type {
 // `ManagedProject` observe internal `OpenISDProject` changes without exposing
 // state publicly.
 
+// [ ] STRATEGY (type MetaFieldName):
+//     Comprehensive strategy for MetaFieldName.
 type MetaFieldName =
     'brand' | 'model' | 'manufacturer' | 'provided_by' | 'comment' | 'added';
 
 /** The names of `DriverSpecsSection`'s spec-entry fields. */
+// [ ] STRATEGY (type PassiveRadiatorFieldName):
+//     Comprehensive strategy for PassiveRadiatorFieldName.
 type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
 
 
@@ -89,33 +177,61 @@ type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
 /** The frequency grid a sweep runs over — the only thing about a sweep `OpenISDProject` does not
  *  already know about itself; everything else `SweepParams` needs comes off the project's own
  *  record. */
+// [ ] STRATEGY (interface FrequencyGrid):
+//     Comprehensive strategy for FrequencyGrid.
 export interface FrequencyGrid {
     fmin?: number;
     fmax?: number;
     N?: number;
 }
 
+// [ ] STRATEGY (interface VentedChamber):
+//     Comprehensive strategy for VentedChamber.
 export interface VentedChamber {
+    // [ ] STRATEGY (volume_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly volume_m3: Field<number>;
+    // [ ] STRATEGY (tuning_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly tuning_hz: Field<number>;
+    // [ ] STRATEGY (losses):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly losses: CoupledVentedLosses;
 }
 
+// [ ] STRATEGY (interface SealedBox):
+//     Comprehensive strategy for SealedBox.
 export interface SealedBox {
+    // [ ] STRATEGY (volume_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly volume_m3: RawField<number>;
 
     /** The resulting system Fc, calculated from the volume and the driver — null when either is
      *  not yet known. A CALCULATION, not a stored field, so a plain method, not a handle. */
+    // [ ] STRATEGY (resonance_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     resonance_hz(): number | null;
 
+    // [ ] STRATEGY (losses):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly losses: SealedLosses;
 }
 
+// [ ] STRATEGY (interface VentedBox):
+//     Comprehensive strategy for VentedBox.
 export interface VentedBox {
+    // [ ] STRATEGY (volume_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly volume_m3: Field<number>;
     /** WinISD: Fb — the target frequency, which drives `vent`'s dimensions (or vice versa). */
+    // [ ] STRATEGY (tuning_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly tuning_hz: Field<number>;
+    // [ ] STRATEGY (vent):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly vent: Vent;
+    // [ ] STRATEGY (losses):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly losses: VentedLosses;
 }
 
@@ -123,36 +239,74 @@ export interface VentedBox {
 // other. `chambers.rear`/`chambers.front` carry ONLY volume/tuning/losses, never a vent; every
 // port is a flat sibling under `vents` instead, matching the Vents tab's own three-column
 // layout ("Rear chamber"/"Front chamber"/"Intrachamber").
+// [ ] STRATEGY (interface Bandpass4Box):
+//     Comprehensive strategy for Bandpass4Box.
 export interface Bandpass4Box {
+    // [ ] STRATEGY (chambers):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly chambers: {
         /** rear = the chamber the driver protrudes into, SEALED — no port, so no `vents.rear`, and
          *  a read-only calculated `resonance_hz()` (WinISD's "Frc") instead of a tuning to enter. */
+        // [ ] STRATEGY (rear):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly rear: {
+            // [ ] STRATEGY (volume_m3):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             readonly volume_m3: Field<number>;
+            // [ ] STRATEGY (resonance_hz):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             resonance_hz(): number | null;
+            // [ ] STRATEGY (losses):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             readonly losses: CoupledSealedLosses;
         };
         /** front = vented; its volume (`Vf`) has exactly one home — RAW, no Entered/Calculated
          *  distinction, unlike `tuning_hz`, which is part of a solved relation. */
+        // [ ] STRATEGY (front):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly front: {
+            // [ ] STRATEGY (volume_m3):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             readonly volume_m3: RawField<number>;
+            // [ ] STRATEGY (tuning_hz):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             readonly tuning_hz: Field<number>;
+            // [ ] STRATEGY (losses):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             readonly losses: CoupledVentedLosses;
         };
     };
+    // [ ] STRATEGY (vents):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly vents: {
+        // [ ] STRATEGY (front):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly front: Vent;
     };
 }
 
 /** UNLIKE bandpass4: BOTH chambers are vented and independently tunable. */
+// [ ] STRATEGY (interface Bandpass6Box):
+//     Comprehensive strategy for Bandpass6Box.
 export interface Bandpass6Box {
+    // [ ] STRATEGY (chambers):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly chambers: {
+        // [ ] STRATEGY (rear):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly rear: VentedChamber;
+        // [ ] STRATEGY (front):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly front: VentedChamber;
     };
+    // [ ] STRATEGY (vents):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly vents: {
+        // [ ] STRATEGY (rear):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly rear: Vent;
+        // [ ] STRATEGY (front):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly front: Vent;
     };
 }
@@ -170,23 +324,51 @@ export interface Bandpass6Box {
  * live probe (BUG_20260824) never captured an Advanced popup for it, if one even exists. A
  * field with no evidence behind it is a fabrication, so it is gone until a probe finds one.
  */
+// [ ] STRATEGY (interface AbcBox):
+//     Comprehensive strategy for AbcBox.
 export interface AbcBox {
+    // [ ] STRATEGY (chambers):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly chambers: {
+        // [ ] STRATEGY (rear):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly rear: VentedChamber;
+        // [ ] STRATEGY (front):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly front: VentedChamber;
     };
+    // [ ] STRATEGY (vents):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly vents: {
+        // [ ] STRATEGY (rear):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly rear: Vent;
+        // [ ] STRATEGY (front):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly front: Vent;
+        // [ ] STRATEGY (intra):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly intra: Vent;
     };
 }
 
+// [ ] STRATEGY (interface PassiveRadiatorBox):
+//     Comprehensive strategy for PassiveRadiatorBox.
 export interface PassiveRadiatorBox {
+    // [ ] STRATEGY (volume_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly volume_m3: RawField<number>;        // no solve relation
+    // [ ] STRATEGY (tuning_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly tuning_hz: Field<number>;     // WinISD: Fp
+    // [ ] STRATEGY (count):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly count: RawField<number>;            // no solve relation, dimensionless
+    // [ ] STRATEGY (addedMass_kg):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly addedMass_kg: Field<number>;
+    // [ ] STRATEGY (losses):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly losses: SealedLosses;
 
     /** Selects or replaces the radiator this box holds — callable any time the user changes their
@@ -195,22 +377,32 @@ export interface PassiveRadiatorBox {
      *  their record carries, so a driver cannot be passed here and a radiator cannot be passed
      *  where a driver belongs. STANDALONE specifically — a radiator already embedded in some box
      *  is not a thing you choose from a library. Already validated, via
+    // [ ] STRATEGY (sealed):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly sealed: SealedBox;
      *  `passiveRadiatorFromConformingRecord()` — its own seam, enforcing its own shape. */
+    // [ ] STRATEGY (configurePR):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     configurePR(radiator: OpenISDPassiveRadiatorStandalone): void;
 
+    // [ ] STRATEGY (radiator):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly radiator: OpenISDPassiveRadiatorEmbedded;
 
     /** WinISD's "Fp" — the tuning this box and this radiator ACTUALLY produce together, which is
      *  a different thing from the `tuning_hz` field above: that is the target the user asked for,
      *  this is what the chosen radiator delivers in this volume. Null until a radiator is chosen
      *  and the volume is set. A CALCULATION, so a method, not a handle. */
+    // [ ] STRATEGY (systemTuning_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly systemTuning_hz: ReadOnlyCalculatedField<number>;
 
     /** The tuning mass this radiator needs to hit `fp_hz` in this box — the inverse of
      *  `systemTuning_hz()`, and the number a PR design is actually dialled in with. Null on the
      *  same terms, and null when `fp_hz` is above the tuning a bare cone already reaches, since
      *  that asks for mass to be taken off a cone carrying none. */
+    // [ ] STRATEGY (addedMassForTuning_kg):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     addedMassForTuning_kg(fp_hz: number): ReadOnlyCalculatedField<number>;
 
     // FIXME(QO126): `tuning_hz` above is a stored value NOTHING consumes, and neither this method
@@ -224,19 +416,37 @@ export interface PassiveRadiatorBox {
      *  mass is on its cone, with no box in it. A different quantity from `systemTuning_hz()`,
      *  which is this radiator loaded by this box's air. Null until a radiator is chosen and
      *  states the mass and compliance the resonance is made of. */
+    // [ ] STRATEGY (resonanceWithAddedMass_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly resonanceWithAddedMass_hz: ReadOnlyCalculatedField<number>;
 }
 
 /** The enclosure: which box type is active, and every box type's own fields. All six are
  *  present at once and dormant unless `boxType` names them — the dormant-data rule expressed in
  *  the type, rather than left to callers to honour. */
+// [ ] STRATEGY (interface Box):
+//     Comprehensive strategy for Box.
 export interface Box {
+    // [ ] STRATEGY (boxType):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly boxType: RawField<BoxType>;
+    // [ ] STRATEGY (sealed):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly sealed: SealedBox;
+    // [ ] STRATEGY (vented):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly vented: VentedBox;
+    // [ ] STRATEGY (bandpass4):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly bandpass4: Bandpass4Box;
+    // [ ] STRATEGY (bandpass6):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly bandpass6: Bandpass6Box;
+    // [ ] STRATEGY (abc):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly abc: AbcBox;
+    // [ ] STRATEGY (passiveRadiator):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly passiveRadiator: PassiveRadiatorBox;
 }
 
@@ -246,10 +456,18 @@ export interface Box {
 
 /** A sealed chamber's two loss factors, over its stored `SealedLossesJson` — no port, so no
  *  `Qp`; no coupling to another chamber, so no `Qicl` (BUG_20260824's live-confirmed shape). */
+// [ ] STRATEGY (class SealedLossesWindow):
+//     Comprehensive strategy for SealedLossesWindow.
 class SealedLossesWindow implements SealedLosses {
+    // [ ] STRATEGY (Ql):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Ql: RawField<number>;
+    // [ ] STRATEGY (Qa):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qa: RawField<number>;
 
+    // [ ] STRATEGY (constructor):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     constructor(lens: Lens<SealedLossesJson>) {
         // A `Lens` already IS a `RawField` — same two methods, same meaning — so each loss factor
         // is simply its own lens, with no wrapper in between.
@@ -260,11 +478,21 @@ class SealedLossesWindow implements SealedLosses {
 
 /** A standalone vented chamber's three loss factors, over its stored `VentedLossesJson` — has a
  *  port (`Qp`), no coupling to another chamber (no `Qicl`). */
+// [ ] STRATEGY (class VentedLossesWindow):
+//     Comprehensive strategy for VentedLossesWindow.
 class VentedLossesWindow implements VentedLosses {
+    // [ ] STRATEGY (Ql):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Ql: RawField<number>;
+    // [ ] STRATEGY (Qa):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qa: RawField<number>;
+    // [ ] STRATEGY (Qp):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qp: RawField<number>;
 
+    // [ ] STRATEGY (constructor):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     constructor(lens: Lens<VentedLossesJson>) {
         this.Ql = focus(lens, 'Ql');
         this.Qa = focus(lens, 'Qa');
@@ -274,11 +502,21 @@ class VentedLossesWindow implements VentedLosses {
 
 /** A sealed chamber coupled to another (bandpass4's rear), over its stored
  *  `CoupledSealedLossesJson` — no port (no `Qp`), coupled to the other chamber (`Qicl`). */
+// [ ] STRATEGY (class CoupledSealedLossesWindow):
+//     Comprehensive strategy for CoupledSealedLossesWindow.
 class CoupledSealedLossesWindow implements CoupledSealedLosses {
+    // [ ] STRATEGY (Ql):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Ql: RawField<number>;
+    // [ ] STRATEGY (Qa):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qa: RawField<number>;
+    // [ ] STRATEGY (Qicl):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qicl: RawField<number>;
 
+    // [ ] STRATEGY (constructor):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     constructor(lens: Lens<CoupledSealedLossesJson>) {
         this.Ql = focus(lens, 'Ql');
         this.Qa = focus(lens, 'Qa');
@@ -288,12 +526,24 @@ class CoupledSealedLossesWindow implements CoupledSealedLosses {
 
 /** A vented chamber coupled to another (bandpass4's front, bandpass6's and ABC's rear/front),
  *  over its stored `CoupledVentedLossesJson` — has a port AND a coupling, all four factors. */
+// [ ] STRATEGY (class CoupledVentedLossesWindow):
+//     Comprehensive strategy for CoupledVentedLossesWindow.
 class CoupledVentedLossesWindow implements CoupledVentedLosses {
+    // [ ] STRATEGY (Ql):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Ql: RawField<number>;
+    // [ ] STRATEGY (Qa):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qa: RawField<number>;
+    // [ ] STRATEGY (Qp):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qp: RawField<number>;
+    // [ ] STRATEGY (Qicl):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qicl: RawField<number>;
 
+    // [ ] STRATEGY (constructor):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     constructor(lens: Lens<CoupledVentedLossesJson>) {
         this.Ql = focus(lens, 'Ql');
         this.Qa = focus(lens, 'Qa');
@@ -305,17 +555,37 @@ class CoupledVentedLossesWindow implements CoupledVentedLosses {
 /** One port. `area_m2()` follows `shape` — a round vent's area comes from its diameter, a
  *  slotted one's from width × height — so switching shape changes the answer without any stored
  *  value having to be recomputed or migrated. */
+// [ ] STRATEGY (class VentWindow):
+//     Comprehensive strategy for VentWindow.
 class VentWindow implements Vent {
+    // [ ] STRATEGY (#lens):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly #lens: Lens<VentJson>;
+    // [ ] STRATEGY (#engine):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly #engine: Engine;
+    // [ ] STRATEGY (shape):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly shape: RawField<VentShape>;
+    // [ ] STRATEGY (endCorrection_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly endCorrection_m: RawField<number>;
 
+    // [ ] STRATEGY (diameter_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly diameter_m: Field<number>;
+    // [ ] STRATEGY (width_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly width_m: Field<number>;
+    // [ ] STRATEGY (height_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly height_m: Field<number>;
+    // [ ] STRATEGY (length_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly length_m: Field<number>;
 
+    // [ ] STRATEGY (constructor):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     constructor(lens: Lens<VentJson>, engine: Engine, ventContext?: { getVb: () => number | null; getTuningHz: () => number | null; clearTuningHz?: () => void }) {
         this.#lens = lens;
         this.#engine = engine;
@@ -341,9 +611,13 @@ class VentWindow implements Vent {
                 const issue = issues.find(i => i.fields.includes('length_m') || i.fields.includes('tuning_hz'));
                 const dq = issue ? issue.formula : null;
 
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (rawL !== null) {
                     return createCell<number>('', rawL, 'entered', dq ? [dq] : undefined);
                 }
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (solved.length_m != null) {
                     return createCell<number>('', solved.length_m, 'calculated', dq ? [dq] : undefined);
                 }
@@ -365,8 +639,12 @@ class VentWindow implements Vent {
      *
      *  Null rather than 0 (a real, if absurd, port area) or NaN — absence is spelled ONE way in
      *  this domain, the same `null` a `Cell` carries. */
+    // [ ] STRATEGY (area_m2):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     area_m2(): number | null {
         const v = this.#lens.get();
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (v.shape === 'round') {
             return v.diameter_m === null ? null : Math.PI * (v.diameter_m / 2) ** 2;
         }
@@ -379,22 +657,34 @@ class VentWindow implements Vent {
      *  The end correction models how air outside the port behaves, so it is ACOUSTICS and the
      *  engine owns it. The domain supplies the port's own geometry — its length and its area, both
      *  of which it legitimately knows — and reports what comes back. */
+    // [ ] STRATEGY (effectiveLength_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     effectiveLength_m(): number | null {
         const length_m = this.length_m.get().value;
         const Sp = this.area_m2();
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (length_m === null || Sp === null) return null;
         return this.#engine.ventEffectiveLength(length_m, Sp, this.#lens.get().endCorrection_m);
     }
 
+    // [ ] STRATEGY (tuningIn_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     tuningIn_hz(volume_m3: number | null): number | null {
         const length_m = this.length_m.get().value;
         const Sp = this.area_m2();
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (volume_m3 === null || !(volume_m3 > 0) || length_m === null || Sp === null) return null;
         return this.#engine.tuningFromLength(volume_m3, length_m, Sp, this.#lens.get().endCorrection_m);
     }
 
+    // [ ] STRATEGY (lengthForTuning_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     lengthForTuning_m(volume_m3: number | null, fb_hz: number): number | null {
         const Sp = this.area_m2();
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (volume_m3 === null || !(volume_m3 > 0) || !(fb_hz > 0) || Sp === null) return null;
         return this.#engine.ventLength(volume_m3, fb_hz, Sp, this.#lens.get().endCorrection_m);
     }
@@ -402,11 +692,21 @@ class VentWindow implements Vent {
 
 /** A chamber with both a volume and a tuning of its own — bandpass6's and ABC's, and the shape
  *  `VentedChamber` names in `box.ts`. */
+// [ ] STRATEGY (class VentedChamberWindow):
+//     Comprehensive strategy for VentedChamberWindow.
 class VentedChamberWindow {
+    // [ ] STRATEGY (volume_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly volume_m3: Field<number>;
+    // [ ] STRATEGY (tuning_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly tuning_hz: Field<number>;
+    // [ ] STRATEGY (losses):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly losses: CoupledVentedLosses;
 
+    // [ ] STRATEGY (constructor):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     constructor(lens: Lens<CoupledVentedChamberJson>) {
         this.volume_m3 = requiredField(lens, 'volume_m3', 'volume_m3');
         this.tuning_hz = nullableField(lens, 'tuning_hz');
@@ -415,6 +715,8 @@ class VentedChamberWindow {
 }
 
 /** One field of an embedded radiator's section. */
+// [ ] STRATEGY (function prSpec):
+//     Comprehensive strategy for prSpec.
 function prSpec(
     lens: Lens<OpenISDDeviceJson>,
     key: PassiveRadiatorFieldName,
@@ -437,6 +739,8 @@ function prSpec(
         () => {
             const json = lens.get();
             const spec = json.specs['passive-radiator'];
+            // [ ] STRATEGY (if):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             if (!spec) return;
             const {[key]: _removed, ...rest} = spec;
             lens.set({
@@ -453,6 +757,8 @@ function prSpec(
  *  refuses to construct without the section, so it is present whenever a component is. */
 
 /** The parameters required to solve passive radiator tuning and mass. */
+// [ ] STRATEGY (interface PrEngineParams):
+//     Comprehensive strategy for PrEngineParams.
 export interface PrEngineParams {
     Vb: number;
     prMmd: number;
@@ -481,23 +787,45 @@ export interface PrEngineParams {
  * The box reaches the driver through its PUBLIC surface (`project.driver.Fs_hz.get()`), never
  * through the record — the privacy rule holds inside the module too.
  */
+// [ ] STRATEGY (class OpenISDBox):
+//     Comprehensive strategy for OpenISDBox.
 class OpenISDBox implements Box {
+    // [ ] STRATEGY (boxType):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly boxType: RawField<BoxType>;
 
+    // [ ] STRATEGY (sealed):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly sealed: SealedBox;
+    // [ ] STRATEGY (vented):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly vented: VentedBox;
+    // [ ] STRATEGY (bandpass4):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly bandpass4: Bandpass4Box;
+    // [ ] STRATEGY (bandpass6):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly bandpass6: Bandpass6Box;
+    // [ ] STRATEGY (abc):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly abc: AbcBox;
+    // [ ] STRATEGY (passiveRadiator):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly passiveRadiator: PassiveRadiatorBox;
 
     /** The driver this box loads, read through its PUBLIC field surface — never its record. A
      *  chamber's resonance depends on the driver, and this is the only thing the box needs it for. */
+    // [ ] STRATEGY (#driver):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly #driver: OpenISDDriverEmbedded;
     /** The one calculation surface. Injected, never constructed here. */
+    // [ ] STRATEGY (#engine):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly #engine: Engine;
     /** The project's own air, resolved at CALL time so a chamber follows the environment the user
      *  states rather than whichever one happened to be current at construction. */
+    // [ ] STRATEGY (#environment):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly #environment: () => OpenISDEnvironmentJson;
 
     private constructor(
@@ -545,9 +873,13 @@ class OpenISDBox implements Box {
                 const issue = issues.find(i => i.fields.includes('tuning_hz') || i.fields.includes('length_m'));
                 const dq = issue ? issue.formula : null;
 
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (rawFb !== null) {
                     return createCell<number>('', rawFb ?? undefined, 'entered', dq ? [dq] : undefined);
                 }
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (solved.tuning_hz != null) {
                     return createCell<number>('', solved.tuning_hz, 'calculated', dq ? [dq] : undefined);
                 }
@@ -583,6 +915,8 @@ class OpenISDBox implements Box {
                     // (= Fs·√(1+Vas/Vr), matched to 13 significant figures). The rear chamber's
                     // damping is already carried by Qlr/Qar in the bandpass circuit.
                     resonance_hz: () => this.#sealedResonance_hz(
+                        // [ ] STRATEGY (focus):
+                        //     Assess if pure read, N-way writable Field, or good as-is.
                         focus(bp4Rear, 'volume_m3').get(), bp4RearLosses, LossMode.Lossless),
                     losses: bp4RearLosses,
                 },
@@ -629,6 +963,8 @@ class OpenISDBox implements Box {
         const prSlot = focus(pr, 'component');
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
             let component = prSlot.get();
+            // [ ] STRATEGY (if):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             if (!component) {
                 component = {
                     uuid: { value: 'blank-pr', origin: 'UI' },
@@ -674,9 +1010,13 @@ class OpenISDBox implements Box {
                 const issue = issues.find(i => i.fields.includes('addedMass_kg') || i.fields.includes('tuning_hz'));
                 const dq = issue ? issue.formula : null;
 
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (rawMass !== null) {
                     return createCell<number>('', rawMass ?? undefined, 'entered', dq ? [dq] : undefined);
                 }
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (solved.addedMass_kg != null) {
                     return createCell<number>('', solved.addedMass_kg, 'calculated', dq ? [dq] : undefined);
                 }
@@ -706,9 +1046,13 @@ class OpenISDBox implements Box {
                 const issue = issues.find(i => i.fields.includes('tuning_hz') || i.fields.includes('addedMass_kg'));
                 const dq = issue ? issue.formula : null;
 
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (rawTuning !== null) {
                     return createCell<number>('', rawTuning ?? undefined, 'entered', dq ? [dq] : undefined);
                 }
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (solved.tuning_hz != null) {
                     return createCell<number>('', solved.tuning_hz, 'calculated', dq ? [dq] : undefined);
                 }
@@ -731,15 +1075,21 @@ class OpenISDBox implements Box {
             configurePR: (chosen: OpenISDPassiveRadiatorStandalone) => {
                 const current = prSlot.get();
                 const cloned = chosen.clonePassiveRadiator();
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (!current) {
                     prSlot.set(cloned);
                 } else {
                     prSlot.set({ ...current, ...cloned });
                 }
             },
+            // [ ] STRATEGY (radiator):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             get radiator() {
                 return getRadiator();
             },
+            // [ ] STRATEGY (systemTuning_hz):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             get systemTuning_hz() {
                 return new ReadOnlyCalculatedField<number>(() => {
                     const Vb = prVolume.get() || this.vented.volume_m3.get().value;
@@ -755,6 +1105,8 @@ class OpenISDBox implements Box {
                     const issues = checkPrConsistency(solved);
                     const issue = issues.find(i => i.fields.includes('tuning_hz'));
                     const dq = issue ? issue.formula : null;
+                    // [ ] STRATEGY (if):
+                    //     Assess if pure read, N-way writable Field, or good as-is.
                     if (solved.systemTuning_hz != null) {
                         return createCell('systemTuning_hz', solved.systemTuning_hz, 'calculated', dq ? [dq] : undefined);
                     }
@@ -776,12 +1128,16 @@ class OpenISDBox implements Box {
                     const issues = checkPrConsistency(solved);
                     const issue = issues.find(i => i.fields.includes('addedMass_kg'));
                     const dq = issue ? issue.formula : null;
+                    // [ ] STRATEGY (if):
+                    //     Assess if pure read, N-way writable Field, or good as-is.
                     if (solved.addedMass_kg != null) {
                         return createCell('addedMassForTuning_kg', solved.addedMass_kg, 'calculated', dq ? [dq] : undefined);
                     }
                     return createCell('addedMassForTuning_kg', null, 'not-available');
                 });
             },
+            // [ ] STRATEGY (resonanceWithAddedMass_hz):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             get resonanceWithAddedMass_hz() {
                 return new ReadOnlyCalculatedField<number>(() => {
                     const r = getRadiator();
@@ -790,6 +1146,8 @@ class OpenISDBox implements Box {
                         prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
                         prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
                     });
+                    // [ ] STRATEGY (if):
+                    //     Assess if pure read, N-way writable Field, or good as-is.
                     if (solved.resonanceWithAddedMass_hz != null) {
                         return createCell('resonanceWithAddedMass_hz', solved.resonanceWithAddedMass_hz, 'calculated');
                     }
@@ -801,6 +1159,8 @@ class OpenISDBox implements Box {
 
     /** Takes the lens onto the project's `box` slot. The project owns that slot and builds the
      *  lens, so the box needs no reference back to the project. */
+    // [ ] STRATEGY (wrap):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static wrap(
         slot: Lens<OpenISDBoxJson>,
         driver: OpenISDDriverEmbedded,
@@ -827,12 +1187,16 @@ class OpenISDBox implements Box {
      * 5.8 Hz for a `Ql` change at fixed volume (`winisd_research` FINDING-007). Matching it needs
      * `Qts` in the driver record, which is a decision about the record, not about this method.
      */
+    // [ ] STRATEGY (#sealedResonance_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #sealedResonance_hz(volume_m3: number | null, losses: SealedLosses,
                         mode: LossMode = LossMode.Default): number | null {
         const spec = this.#driver.spec[this.#driver.section];
         const Fs_hz = spec.Fs_hz.get().value;
         const Sd_m2 = spec.Sd_m2.get().value;
         const Cms = spec.Cms_m_per_N.get().value;
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (volume_m3 === null || Fs_hz === null || Sd_m2 === null || Cms === null) return null;
 
         const env = this.#environment();
@@ -842,6 +1206,8 @@ class OpenISDBox implements Box {
             pressurePa: env.pressure_Pa ?? undefined,
         });
         const Qts = spec.Qts.get().value;
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (Qts === null) return null;
         // `LossMode.Default` IS `WinisdLossy` — John 2026-08-27: "default is winisd = Lossy". WinISD
         // displays and saves the LOSSY figure, and it MOVES with the chamber's losses: measured, `Fr`
@@ -898,49 +1264,121 @@ class OpenISDBox implements Box {
  * 
  * Fields are constructed eagerly to preserve object identity for reactivity.
  */
+// [ ] STRATEGY (class OpenIsdDriverSpec):
+//     Comprehensive strategy for OpenIsdDriverSpec.
 export class OpenIsdDriverSpec {
     // Thiele/Small.
+    // [ ] STRATEGY (Fs_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Fs_hz: Field<number>;
+    // [ ] STRATEGY (Re_ohm):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Re_ohm: Field<number>;
+    // [ ] STRATEGY (Le_H):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Le_H: Field<number>;
+    // [ ] STRATEGY (fLe_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly fLe_hz: Field<number>;
     /** `Le·√(2π·fLe)` — the Vanderkooy lossy-inductance coefficient (`WINISD_PARITY.md:1009`,
      *  `GHIDRA_FINDINGS.md:1039`). Henries times the square root of hertz; not dimensionless. */
+    // [ ] STRATEGY (KLe_H_sqrtHz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly KLe_H_sqrtHz: Field<number>;
+    // [ ] STRATEGY (Znom_ohm):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Znom_ohm: Field<number>;
+    // [ ] STRATEGY (Qts):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qts: Field<number>;
+    // [ ] STRATEGY (Qes):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qes: Field<number>;
+    // [ ] STRATEGY (Qms):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qms: Field<number>;
+    // [ ] STRATEGY (Vas_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Vas_m3: Field<number>;
+    // [ ] STRATEGY (Sd_m2):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Sd_m2: Field<number>;
+    // [ ] STRATEGY (BL_Tm):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly BL_Tm: Field<number>;
+    // [ ] STRATEGY (Mms_kg):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Mms_kg: Field<number>;
+    // [ ] STRATEGY (Cms_m_per_N):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Cms_m_per_N: Field<number>;
+    // [ ] STRATEGY (Rms_kg_per_s):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Rms_kg_per_s: Field<number>;
+    // [ ] STRATEGY (Xmax_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Xmax_m: Field<number>;
+    // [ ] STRATEGY (Xlim_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Xlim_m: Field<number>;
+    // [ ] STRATEGY (SPL_dB):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly SPL_dB: Field<number>;
+    // [ ] STRATEGY (Pe_W):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Pe_W: Field<number>;
+    // [ ] STRATEGY (Dd_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Dd_m: Field<number>;
+    // [ ] STRATEGY (EBP_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly EBP_hz: Field<number>;
+    // [ ] STRATEGY (numVC):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly numVC: Field<number>;
     /** How the coils are wired. A NAME, not WinISD's 1/2 — see `VoiceCoilWiring`. */
+    // [ ] STRATEGY (VCCon):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly VCCon: Field<VoiceCoilWiring>;
     // Ordinarily derived, but WinISD lets a human type any of them, and an entered value is a fact.
+    // [ ] STRATEGY (Dia_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Dia_m: Field<number>;
+    // [ ] STRATEGY (Vd_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Vd_m3: Field<number>;
+    // [ ] STRATEGY (no):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly no: Field<number>;
+    // [ ] STRATEGY (SPLmax_dB):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly SPLmax_dB: Field<number>;
+    // [ ] STRATEGY (SPLmaxLF_dB):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly SPLmaxLF_dB: Field<number>;
+    // [ ] STRATEGY (USPL_dB):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly USPL_dB: Field<number>;
+    // [ ] STRATEGY (alfaVC_per_K):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly alfaVC_per_K: Field<number>;
+    // [ ] STRATEGY (Rt_K_per_W):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Rt_K_per_W: Field<number>;
+    // [ ] STRATEGY (Ct_J_per_K):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Ct_J_per_K: Field<number>;
     /** `Bxl/Mms` — the acceleration factor, acceleration per ampere. NOT dimensionless: WinISD's
      *  own UI prints `N/(A*kg)`, which is the same dimension as cfuttrup's `m/(s²·A)`. */
+    // [ ] STRATEGY (gamma_m_per_s2_A):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly gamma_m_per_s2_A: Field<number>;
+    // [ ] STRATEGY (Rme_kg_per_s):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Rme_kg_per_s: Field<number>;
     /** `Bxl/√Re` — the motor power factor, newtons per square-root watt. */
+    // [ ] STRATEGY (Mpow_N_per_sqrtW):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Mpow_N_per_sqrtW: Field<number>;
     /** `Rme·(1 + Xmax/min(Hc, Hg))` — the motor COST factor: how powerful the motor is, penalised
      *  by how far the coil is overhung or underhung. It IS meant as an indicator of what the driver
@@ -948,28 +1386,68 @@ export class OpenIsdDriverSpec {
      *  carries `Rme`'s kg/s. WinISD's own help: "an indicator on the price of the driver, but
      *  please forget about the unit". (Formula decompiled and reproduced exactly on 10 live WinISD
      *  runs: `winisd_research/GHIDRA_FINDINGS.md` §"Four advanced-panel formulas".) */
+    // [ ] STRATEGY (Mcost_kg_per_s):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Mcost_kg_per_s: Field<number>;
+    // [ ] STRATEGY (Gloss):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Gloss: Field<number>;
     /** The air THIS DRIVER states — the conditions its own figures were measured or computed at.
      *  Not the environment a simulation runs on; `OpenISDEnvironment` on the project is that. */
+    // [ ] STRATEGY (c_m_per_s):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly c_m_per_s: Field<number>;
+    // [ ] STRATEGY (roo_kg_per_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly roo_kg_per_m3: Field<number>;
     // Descriptive and dimensional.
+    // [ ] STRATEGY (Vcd_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Vcd_m: Field<number>;
+    // [ ] STRATEGY (Hg_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Hg_m: Field<number>;
+    // [ ] STRATEGY (Hc_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Hc_m: Field<number>;
+    // [ ] STRATEGY (freq_low_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly freq_low_hz: Field<number>;
+    // [ ] STRATEGY (freq_high_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly freq_high_hz: Field<number>;
+    // [ ] STRATEGY (power_peak_W):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly power_peak_W: Field<number>;
+    // [ ] STRATEGY (weight_kg):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly weight_kg: Field<number>;
+    // [ ] STRATEGY (Thick_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Thick_m: Field<number>;
+    // [ ] STRATEGY (Depth_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Depth_m: Field<number>;
+    // [ ] STRATEGY (MagDepth_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly MagDepth_m: Field<number>;
+    // [ ] STRATEGY (Magnet_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Magnet_m: Field<number>;
+    // [ ] STRATEGY (Basket_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Basket_m: Field<number>;
+    // [ ] STRATEGY (Outer_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Outer_m: Field<number>;
+    // [ ] STRATEGY (OuterX_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly OuterX_m: Field<number>;
+    // [ ] STRATEGY (OuterY_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly OuterY_m: Field<number>;
+    // [ ] STRATEGY (DVol_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly DVol_m3: Field<number>;
 
     constructor(
@@ -1020,6 +1498,8 @@ export class OpenIsdDriverSpec {
         let solved: Readonly<DriverSolverQuantities> = {};
         const solvedNow = (): Readonly<DriverSolverQuantities> => {
             const json = record.get();
+            // [ ] STRATEGY (if):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             if (json === solvedFor) return solved;
             const stated = json.specs[section];
             const statedValue = (k: keyof DriverSpecsSection): number | undefined =>
@@ -1058,6 +1538,8 @@ export class OpenIsdDriverSpec {
             () => {
                 const stated = record.get().specs[section]?.[key];
                 const v = winningValue(stated);
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (v !== null) return createCell<number>('', v, 'entered');
                 const calculated = derived();
                 return calculated === undefined
@@ -1205,6 +1687,8 @@ export class OpenIsdDriverSpec {
  * `wdrToOpenIsdRecord`), which faces the same problem — a record with no source document
  * behind it.
  */
+// [ ] STRATEGY (function blankDeviceRecord):
+//     Comprehensive strategy for blankDeviceRecord.
 function blankDeviceRecord(section: 'woofer' | 'tweeter' | 'passive-radiator'): OpenISDDeviceJson {
     return {
         uuid: {value: newUuid()},
@@ -1248,17 +1732,31 @@ export abstract class OpenISDDevice {
      * asymmetry is the point — a view can render a slot nobody has filled, but nothing can put a
      * value into a device that does not exist.
      */
+    // [ ] STRATEGY (#slot):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #slot: Lens<OpenISDDeviceJson>;
 
     /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a device reports
      *  derived figures, and every one of them comes from here and nowhere else. */
     protected readonly engine: Engine;
 
+    // [ ] STRATEGY (brand):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly brand: Field<string>;
+    // [ ] STRATEGY (model):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly model: Field<string>;
+    // [ ] STRATEGY (manufacturer):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly manufacturer: Field<string>;
+    // [ ] STRATEGY (providedBy):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly providedBy: Field<string>;
+    // [ ] STRATEGY (comment):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly comment: Field<string>;
+    // [ ] STRATEGY (added):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly added: Field<string>;
 
     protected constructor(slot: Lens<OpenISDDeviceJson>, engine: Engine) {
@@ -1272,6 +1770,8 @@ export abstract class OpenISDDevice {
         this.added = this.#buildMeta('added');
     }
 
+    // [ ] STRATEGY (#buildMeta):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #buildMeta(key: MetaFieldName): Field<string> {
         return new Field<string>(
             () => {
@@ -1291,11 +1791,17 @@ export abstract class OpenISDDevice {
 }
 
 export abstract class OpenISDDriver extends OpenISDDevice {
+    // [ ] STRATEGY (fromConformingRecord):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static fromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | string[] {
         const conformed = OpenISDDeviceJson.fromConformingRecord(record);
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if ('problems' in conformed) return conformed.problems;
 
         const sectionProblems = driverSectionProblems(conformed.json);
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (sectionProblems.length > 0) return sectionProblems;
         return OpenISDDriverStandalone.wrap(conformed.json, engine);
     }
@@ -1304,27 +1810,43 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  Every spec field reads `not-available`, so the editor renders it blank and the consistency
      *  solver has nothing to work from until the user types. No conformance check: this record is
      *  minted here, not received from outside, so there is no untrusted input to refuse. */
+    // [ ] STRATEGY (empty):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static empty(engine: Engine): OpenISDDriver {
         return OpenISDDriverStandalone.wrap(blankDeviceRecord('woofer'), engine);
     }
 
     /** `.owdr` text — openisd driver YAML — back to a driver, or the reasons it could not be
      *  read. The inverse of `toOwdrText()`. */
+    // [ ] STRATEGY (fromOwdrText):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static fromOwdrText(text: string, engine: Engine): OpenISDDriver | string[] {
         const parsed = OpenISDDeviceJson.fromOpenisdDriverYml(text);
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if ('problems' in parsed) return parsed.problems;
 
         const sectionProblems = driverSectionProblems(parsed.json);
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (sectionProblems.length > 0) return sectionProblems;
         return OpenISDDriverStandalone.wrap(parsed.json, engine);
     }
 
+    // [ ] STRATEGY (section):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly section: 'woofer' | 'tweeter';
 
     /** The driver's spec sections. A caller that does not care which kind of driver it holds reads
      *  `driver.spec[driver.section]`. */
+    // [ ] STRATEGY (spec):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly spec: {
+        // [ ] STRATEGY (woofer):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly woofer: OpenIsdDriverSpec;
+        // [ ] STRATEGY (tweeter):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         readonly tweeter: OpenIsdDriverSpec;
     };
 
@@ -1342,6 +1864,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  scraper the way `filter/driverType.ts` keeps `DriverType`/`Chip` in parity with
      *  `test_driver_type_enum_parity.py`, this method returns that domain type instead of the raw
      *  string — not `packages/design/filter`'s `DriverType`, which is a UI/search-only concept. */
+    // [ ] STRATEGY (driverType):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     driverType(): string {
         return this.record.get().driver_type.value;
     }
@@ -1357,6 +1881,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     ) {
         super({
             get: () => record.get(), set: (json) => {
+                // [ ] STRATEGY (if):
+                //     Assess if pure read, N-way writable Field, or good as-is.
                 if (json) record.set(json);
             }
         }, engine);
@@ -1376,7 +1902,11 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     /** Which spec section a record carries, or a refusal if it carries neither. */
     protected static sectionOf(json: OpenISDDeviceJson): 'woofer' | 'tweeter' {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (json.specs.woofer) return 'woofer';
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (json.specs.tweeter) return 'tweeter';
         throw new Error('OpenISDDriver: record has neither a woofer nor a tweeter section');
     }
@@ -1385,6 +1915,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     /** Everything this driver's stated values imply, filled in. Does NOT write back — a solved
      *  value is a derivation, and the record holds only what was actually stated. */
+    // [ ] STRATEGY (solveConsistencyGroup):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     solveConsistencyGroup(): Readonly<DriverSolverQuantities> {
         const spec = this.spec[this.section];
         const value = (field: Field<number>): number | undefined => field.get().value ?? undefined;
@@ -1410,18 +1942,24 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         });
     }
 
+    // [ ] STRATEGY (solveDriverConsistencyGroup):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     solveDriverConsistencyGroup(): Readonly<DriverSolverQuantities> {
         return this.solveConsistencyGroup();
     }
 
     /** Everything this driver's stated values disagree about — an over-specified driver whose
      *  numbers cannot all be true at once. Empty when consistent. */
+    // [ ] STRATEGY (checkConsistency):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     checkConsistency(): ConsistencyIssue[] {
         return [];
     }
 
     /** Voice-coil inductance, as the record states it. Not a solver quantity — nothing derives it
      *  — so it travels to `sweep` on its own, for the impedance plot alone. */
+    // [ ] STRATEGY (Le_H):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     Le_H(): number | undefined {
         return winningValue(this.record.get().specs[this.section]?.Le_H ?? undefined) ?? undefined;
     }
@@ -1434,6 +1972,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  "edit a bundle entry" and "fork this entry" possible without any of them reaching into the
      *  storage this window points at. Always STANDALONE — a copy belongs to nothing until
      *  something adopts it (via `OpenISDDriverEmbedded.update()`, or a repo save). */
+    // [ ] STRATEGY (detach):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     detach(): OpenISDDriverStandalone {
         return OpenISDDriverStandalone.wrap(structuredClone(this.record.get()), this.engine);
     }
@@ -1444,6 +1984,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  hand the result elsewhere without aliasing this driver's own live record — a shallow
      *  `{...}` spread is not enough, since every nested field object (`brand`, `driver_type`,
      *  `specs.woofer.Fs`, …) would still be the same reference as the live record. */
+    // [ ] STRATEGY (cloneDriver):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     cloneDriver(): OpenISDDeviceJson {
         return structuredClone(this.record.get());
     }
@@ -1458,6 +2000,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *
      *  Deep-cloned: after this call the two records share no nested object, so neither driver's
      *  later edits reach the other regardless of how the storage layer applies writes. */
+    // [ ] STRATEGY (update):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     update(source: OpenISDDriver): void {
         this.record.set(structuredClone(source.record.get()));
     }
@@ -1465,6 +2009,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** Make this driver a copy: its `model` states so, so `<brand>/<model>` differs from the
      *  driver it was copied from and the two stand side by side rather than one replacing the
      *  other. Called on a detached copy, before it is saved. */
+    // [ ] STRATEGY (renameToCopy):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     renameToCopy(): void {
         this.model.set('Copy of ' + (this.model.get().value ?? ''));
     }
@@ -1472,26 +2018,36 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** The catalogue URL recorded for one source role — datasheet, product page, listing page —
      *  or null when the record carries none. The picker shows these as the preview's links; a
      *  URL is provenance, not a driver parameter, so it is read here rather than off `spec`. */
+    // [ ] STRATEGY (dataSource):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     dataSource(role: 'manufacturer_datasheet' | 'manufacturer_product_page' | 'manufacturer_listing_page'): string | null {
         return this.record.get().data_sources.value[role] ?? null;
     }
 
     /** The product series this driver belongs to (e.g. "Reference Series"), or null. Descriptive
      *  only — the picker's preview text, never a simulated quantity. */
+    // [ ] STRATEGY (series):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get series(): string | null {
         return this.record.get().series?.value ?? null;
     }
 
     /** The manufacturer's own catalogue number, derived by the scraper from brand/model. */
+    // [ ] STRATEGY (sku):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get sku(): string | null {
         return this.record.get().sku.value ?? null;
     }
 
     /** Free-text description from the datasheet, or null. Preview text only. */
+    // [ ] STRATEGY (description):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get description(): string | null {
         return this.record.get().description?.value ?? null;
     }
 
+    // [ ] STRATEGY (toOpenIsdDeviceJson):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     toOpenIsdDeviceJson(): OpenISDDeviceJson {
         return this.record.get();
     }
@@ -1499,6 +2055,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** This driver as `.owdr` text — openisd driver YAML, the form `OpenISDDriver.fromOwdrText` reads
      *  back. The serialisation stays inside the domain so the record type never crosses the
      *  package boundary. */
+    // [ ] STRATEGY (toOwdrText):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     toOwdrText(): string {
         return OpenISDDeviceJson.toOpenisdDriverYml(this.record.get());
     }
@@ -1508,6 +2066,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  `.wdr` states far less than an openisd record does: a field WinISD has no key for is
      *  dropped, so this is a lossy write and the round trip is not an identity. `errors` carries
      *  every such loss the converter reported. */
+    // [ ] STRATEGY (toWdrIniText):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     toWdrIniText(engine: Engine): { value: string | null; errors: DriverError[] } {
         const errors: DriverError[] = [];
         const wdr = openIsdDriverToWinIsdDriver(this, engine, errors);
@@ -1516,6 +2076,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     /** WinISD `.wdr` text back to a driver. The inverse of `toWdrIniText()`, as far as a format
      *  carrying fewer fields allows. */
+    // [ ] STRATEGY (fromWdrIniText):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static fromWdrIniText(text: string, engine: Engine): { value: OpenISDDriver | null; errors: DriverError[] } {
         return winIsdDriverTextToOpenIsdDriver(text, engine);
     }
@@ -1526,10 +2088,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
  *
  *  `export`ed for `openisdTransforms.ts` (`conformingRecordToOpenIsdDriver` calls `wrap()`);
  *  `domain/index.ts` does not re-export it, so no consumer outside `packages/design` sees it. */
+// [ ] STRATEGY (class OpenISDDriverStandalone):
+//     Comprehensive strategy for OpenISDDriverStandalone.
 export class OpenISDDriverStandalone extends OpenISDDriver {
     /** `airProvider` defaults to the reference environment — every existing caller
      *  (`conformingRecordToDriver`, tests, `driverYmlToOpenisdAndWdr.ts`) passes none. A caller
      *  holding an app-level environment (the UI, constructing a My Drivers row) passes its own. */
+    // [ ] STRATEGY (wrap):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static wrap(
         json: OpenISDDeviceJson,
         engine: Engine,
@@ -1549,6 +2115,8 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
 
 /** The driver INSIDE a project — a window onto the project's own `driver` slot. A standalone
  *  driver windows its own record instead, which is the whole difference between the two. */
+// [ ] STRATEGY (class OpenISDDriverEmbedded):
+//     Comprehensive strategy for OpenISDDriverEmbedded.
 class OpenISDDriverEmbedded extends OpenISDDriver {
     private constructor(
         record: Lens<OpenISDDeviceJson>,
@@ -1556,6 +2124,8 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
         engine: Engine,
         airProvider: () => AirConstantProvider,
     ) {
+        // [ ] STRATEGY (super):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         super(record, section, engine, airProvider);
     }
 
@@ -1563,6 +2133,8 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
      *  air this driver falls back to when it states no `c`/`roo` of its own. The project owns
      *  both slots and builds the lens/environment reader, so the driver needs no reference back
      *  to the project itself. */
+    // [ ] STRATEGY (wrap):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static wrap(
         slot: Lens<OpenISDDeviceJson>,
         engine: Engine,
@@ -1612,28 +2184,72 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
  * `Qes`, `Znom`, `Pe` and the thermal parameters are not absent from it, they are meaningless to
  * it, and one shared class would have to model one of the two dishonestly.
  */
+// [ ] STRATEGY (class OpenIsdPassiveRadiatorSpec):
+//     Comprehensive strategy for OpenIsdPassiveRadiatorSpec.
 export class OpenIsdPassiveRadiatorSpec {
+    // [ ] STRATEGY (Fs_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Fs_hz: Field<number>;
+    // [ ] STRATEGY (Qms):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Qms: Field<number>;
+    // [ ] STRATEGY (Cms_m_per_N):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Cms_m_per_N: Field<number>;
+    // [ ] STRATEGY (Mms_kg):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Mms_kg: Field<number>;
+    // [ ] STRATEGY (Rms_kg_per_s):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Rms_kg_per_s: Field<number>;
+    // [ ] STRATEGY (Sd_m2):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Sd_m2: Field<number>;
+    // [ ] STRATEGY (Vas_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Vas_m3: Field<number>;
+    // [ ] STRATEGY (Vd_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Vd_m3: Field<number>;
+    // [ ] STRATEGY (Xmax_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Xmax_m: Field<number>;
+    // [ ] STRATEGY (Xlim_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Xlim_m: Field<number>;
+    // [ ] STRATEGY (Dia_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Dia_m: Field<number>;
+    // [ ] STRATEGY (Dd_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Dd_m: Field<number>;
+    // [ ] STRATEGY (DVol_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly DVol_m3: Field<number>;
+    // [ ] STRATEGY (Thick_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Thick_m: Field<number>;
+    // [ ] STRATEGY (Depth_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Depth_m: Field<number>;
+    // [ ] STRATEGY (Basket_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Basket_m: Field<number>;
+    // [ ] STRATEGY (Outer_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly Outer_m: Field<number>;
+    // [ ] STRATEGY (OuterX_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly OuterX_m: Field<number>;
+    // [ ] STRATEGY (OuterY_m):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly OuterY_m: Field<number>;
+    // [ ] STRATEGY (weight_kg):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly weight_kg: Field<number>;
 
+    // [ ] STRATEGY (constructor):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     constructor(slot: Lens<OpenISDDeviceJson>) {
         this.Fs_hz = prSpec(slot, 'Fs_hz');
         this.Qms = prSpec(slot, 'Qms');
@@ -1663,9 +2279,13 @@ abstract class OpenISDPassiveRadiator extends OpenISDDevice {
 
     /** Which spec section this device's record carries — the radiator's counterpart to the
      *  driver's `'woofer' | 'tweeter'`. */
+    // [ ] STRATEGY (section):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly section = 'passive-radiator' as const;
 
     /** This radiator's spec section, exactly as a driver publishes `spec[section]`. */
+    // [ ] STRATEGY (spec):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly spec: OpenIsdPassiveRadiatorSpec;
 
 
@@ -1675,6 +2295,8 @@ abstract class OpenISDPassiveRadiator extends OpenISDDevice {
     // fields are not here: every device has those, so they live on `OpenISDDevice`.
 
     protected constructor(slot: Lens<OpenISDDeviceJson>, engine: Engine) {
+        // [ ] STRATEGY (super):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         super(slot, engine);
         this.slot = slot;
         this.spec = new OpenIsdPassiveRadiatorSpec(slot);
@@ -1693,9 +2315,15 @@ abstract class OpenISDPassiveRadiator extends OpenISDDevice {
     }
 }
 
+// [ ] STRATEGY (class OpenISDPassiveRadiatorEmbedded):
+//     Comprehensive strategy for OpenISDPassiveRadiatorEmbedded.
 class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
 
+    // [ ] STRATEGY (constructor):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     constructor(slot: Lens<OpenISDDeviceJson>, engine: Engine) {
+        // [ ] STRATEGY (super):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         super(slot, engine);
     }
 
@@ -1710,6 +2338,8 @@ class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
      *  radiator alone, exactly as `OpenISDDriver.detach()` does for a driver.
      *
      *  Throws on an empty slot: a box with no radiator chosen has nothing to save. */
+    // [ ] STRATEGY (detach):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     detach(): OpenISDPassiveRadiatorStandalone {
         const record = this.slot.get();
         return OpenISDPassiveRadiatorStandalone.wrap(structuredClone(record), this.engine);
@@ -1724,19 +2354,29 @@ class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
  *
  *  `export`ed for `openisdTransforms.ts` (`conformingRecordToOpenIsdPassiveRadiatorStandalone`
  *  and the PR builder call `wrap()`); `domain/index.ts` does not re-export it. */
+// [ ] STRATEGY (class OpenISDPassiveRadiatorStandalone):
+//     Comprehensive strategy for OpenISDPassiveRadiatorStandalone.
 export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
     /** A radiator stating nothing — the counterpart of `OpenISDDriver.empty()`, and how a PR
      *  comes into existence before anyone has typed its parameters. `configurePR()` accepts it,
      *  so a box can adopt one and the editor fills it in from there. */
+    // [ ] STRATEGY (empty):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static empty(engine: Engine): OpenISDPassiveRadiatorStandalone {
         return OpenISDPassiveRadiatorStandalone.wrap(blankDeviceRecord('passive-radiator'), engine);
     }
 
+    // [ ] STRATEGY (fromConformingRecord):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static fromConformingRecord(record: unknown, engine: Engine): OpenISDPassiveRadiatorStandalone | string[] {
         const conformed = OpenISDDeviceJson.fromConformingRecord(record);
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if ('problems' in conformed) return conformed.problems;
 
         const sectionProblems = radiatorSectionProblems(conformed.json);
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (sectionProblems.length > 0) return sectionProblems;
         return OpenISDPassiveRadiatorStandalone.wrap(conformed.json, engine);
     }
@@ -1748,22 +2388,30 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
         set: (json: OpenISDDeviceJson) => void,
         engine: Engine,
     ) {
+        // [ ] STRATEGY (super):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         super({get, set: (json) => set(json!)}, engine);
         // The refusal in `prSpec` can never fire here: `window()` rejects a record with no
         // `passive-radiator` section, so a standalone always has one.
     }
 
+    // [ ] STRATEGY (window):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static window(
         get: () => OpenISDDeviceJson,
         set: (json: OpenISDDeviceJson) => void,
         engine: Engine,
     ): OpenISDPassiveRadiatorStandalone {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (!get().specs['passive-radiator']) {
             throw new Error('OpenISDPassiveRadiatorStandalone.window: record has no passive-radiator section');
         }
         return new OpenISDPassiveRadiatorStandalone(get, set, engine);
     }
 
+    // [ ] STRATEGY (wrap):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static wrap(json: OpenISDDeviceJson, engine: Engine): OpenISDPassiveRadiatorStandalone {
         let current = json;
         return OpenISDPassiveRadiatorStandalone.window(() => current, (j) => {
@@ -1779,8 +2427,12 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
      *  On the STANDALONE only: `window()` refuses a record with no `passive-radiator` section,
      *  so a standalone always has one. An embedded radiator's slot can be null (an empty PR
      *  slot), which is a different question with a different answer. */
+    // [ ] STRATEGY (clonePassiveRadiator):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     clonePassiveRadiator(): OpenISDDeviceJson {
         const record = this.slot.get();
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (record === null) throw new Error('OpenISDPassiveRadiatorStandalone: a standalone radiator always has a record');
         return structuredClone(record);
     }
@@ -1818,7 +2470,11 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
  * `driver` and `box` are live WINDOWS over slices of whichever record is current — reads and
  * writes go straight through, never to a disconnected copy.
  */
+// [ ] STRATEGY (class OpenISDProject):
+//     Comprehensive strategy for OpenISDProject.
 export class OpenISDProject {
+    // [ ] STRATEGY (builder):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static builder(driver: OpenISDDriver, engine: Engine): ProjectBuilder {
         return new ProjectBuilder(driver, engine);
     }
@@ -1837,6 +2493,8 @@ export class OpenISDProject {
      * box throw on the first write to a radiator field, which is the box type being unreachable
      * rather than unconfigured.
      */
+    // [ ] STRATEGY (empty):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static empty(engine: Engine): OpenISDProject {
         return OpenISDProject.builder(OpenISDDriver.empty(engine), engine)
             .sealed()
@@ -1852,20 +2510,30 @@ export class OpenISDProject {
      *
      *  It exists so the running app can tell two open projects apart when their names collide,
      *  and so a store — or a focus pointer — can key on something stable. */
+    // [ ] STRATEGY (#uuid):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly #uuid: string;
 
     /** The project as of the last save. Never mutated: every write builds a new record. */
+    // [ ] STRATEGY (#saved):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #saved: OpenISDProjectJson;
 
     /** The project including every change since the last save, or null when no change has been
      *  made. Always a COMPLETE record, never a partial one. */
+    // [ ] STRATEGY (#edited):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #edited: OpenISDProjectJson | null = null;
 
+    // [ ] STRATEGY (#listeners):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly #listeners = new ProjectListeners();
 
     /** The one calculation surface this project uses. INJECTED — never constructed here, never
      *  reached through a module-scoped instance. Every acoustic figure the project reports comes
      *  from this reference and from nowhere else. */
+    // [ ] STRATEGY (#engine):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly #engine: Engine;
 
     private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine) {
@@ -1877,8 +2545,12 @@ export class OpenISDProject {
     /** The embedded driver — built fresh from the current record on every access, never held: the
      *  project has exactly three stored fields (`#saved`/`#edited`/`#engine`, John 2026-09-06),
      *  and every other public member is a getter mirroring the record's own structure. */
+    // [ ] STRATEGY (driver):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get driver(): OpenISDDriverEmbedded {
         return OpenISDDriverEmbedded.wrap(
+            // [ ] STRATEGY (focus):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             focus(this.#slot('driverEmbedding'), 'device'),
             this.#engine,
             () => this.#current().environment,
@@ -1889,6 +2561,8 @@ export class OpenISDProject {
      *  different driver (choosing one from the library, loading a `.wdr`/`.owdr` file).
      *  Array-level facts (`nDrivers`, `wiring`, ...) are untouched; only `driverEmbedding.device`
      *  changes. */
+    // [ ] STRATEGY (setDriver):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     setDriver(source: OpenISDDriver): void {
         this.driver.update(source);
     }
@@ -1897,7 +2571,11 @@ export class OpenISDProject {
      *  file just parsed. Same write as `setDriver`, with a name that says where the driver came
      *  from. Deep-clones — the file's/library's driver and this project's share no nested object
      *  afterward. */
+    // [ ] STRATEGY (loadDriver):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     loadDriver(source: OpenISDDriver): void {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (source instanceof OpenISDDriverEmbedded) {
             throw new Error('loadDriver(): source must be a standalone OpenISDDriver, not an embedded project driver');
         }
@@ -1906,26 +2584,36 @@ export class OpenISDProject {
 
     /** How many units of the embedded driver this project's array uses, and how they're wired
      *  together — array-level facts, not facts about the driver itself (John 2026-09-06). */
+    // [ ] STRATEGY (nDrivers):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get nDrivers(): RawField<number> {
         return focus(this.#slot('driverEmbedding'), 'nDrivers');
     }
 
+    // [ ] STRATEGY (wiring):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get wiring(): RawField<'series' | 'parallel'> {
         return focus(this.#slot('driverEmbedding'), 'wiring');
     }
 
     /** Thermal power compression: coil temperature rise under drive, Kelvin. */
+    // [ ] STRATEGY (vcTempRise_K):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get vcTempRise_K(): RawField<number> {
         return focus(this.#slot('driverEmbedding'), 'vcTempRise_K');
     }
 
     /** The amplifier's own source/output resistance loading this array. */
+    // [ ] STRATEGY (Rs_ohm):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get Rs_ohm(): RawField<number> {
         return focus(this.#slot('driverEmbedding'), 'Rs_ohm');
     }
 
     /** Mass this project's array adds to the driver — its own hardware, not a fact about the
      *  driver itself. */
+    // [ ] STRATEGY (driverAddedMass_kg):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get driverAddedMass_kg(): RawField<number> {
         return focus(this.#slot('driverEmbedding'), 'driverAddedMass_kg');
     }
@@ -1933,11 +2621,15 @@ export class OpenISDProject {
     /** This array's own voice-coil resistance temperature coefficient, SI 1/K — independent of
      *  the driver's own datasheet `driver.alfaVC_per_K` (WinISD stores these separately, and
      *  they can diverge). */
+    // [ ] STRATEGY (alfaVC_per_K):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get alfaVC_per_K(): RawField<number> {
         return focus(this.#slot('driverEmbedding'), 'alfaVC_per_K');
     }
 
     /** WinISD Driver tab "Standard" / "Iso-Barik" radio. */
+    // [ ] STRATEGY (loading):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get loading(): RawField<'standard' | 'isobaric'> {
         return focus(this.#slot('driverEmbedding'), 'loading');
     }
@@ -1945,64 +2637,88 @@ export class OpenISDProject {
     /** The box — handed the DRIVER and the ENGINE: a chamber's resonance depends on the driver it
      *  loads, and the box reads the driver through its PUBLIC field surface, never its record.
      *  Built fresh on every access, same reasoning as `driver`. */
+    // [ ] STRATEGY (box):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get box(): Box {
         return OpenISDBox.wrap(this.#slot('box'), this.driver, this.#engine, () => this.#current().environment);
     }
 
     /** What the user calls this project. A LABEL, not an identity — two projects may share one,
      *  which is exactly why `uuid()` exists. */
+    // [ ] STRATEGY (name):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get name(): RawField<string> {
         return focus(this.#slot('meta'), 'name');
     }
 
     /** WinISD Project tab: who made this project, and when. */
+    // [ ] STRATEGY (creator):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get creator(): RawField<string> {
         return focus(this.#slot('meta'), 'creator');
     }
 
+    // [ ] STRATEGY (created):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get created(): RawField<string> {
         return focus(this.#slot('meta'), 'created');
     }
 
+    // [ ] STRATEGY (modified):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get modified(): RawField<string> {
         return focus(this.#slot('meta'), 'modified');
     }
 
     /** WinISD Project tab: the user's own note about this project. Stored, never interpreted. */
+    // [ ] STRATEGY (description):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get description(): RawField<string> {
         return focus(this.#slot('meta'), 'description');
     }
 
     /** The signal-chain filter list. */
+    // [ ] STRATEGY (filters):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get filters(): RawField<readonly Filter[]> {
         return focus(this.#slot('filters'), 'filters');
     }
 
     /** Force-flat auto-EQ — WinISD Advanced "Force flat response". */
+    // [ ] STRATEGY (forceFlatResponse):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get forceFlatResponse(): RawField<boolean> {
         return focus(this.#slot('advanced'), 'forceFlatResponse');
     }
 
     /** Model ports as a lossy transmission line instead of a lumped mass — WinISD Advanced
      *  "Use transmission line-model for port simulation". */
+    // [ ] STRATEGY (useTransmissionLinePortModel):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get useTransmissionLinePortModel(): RawField<boolean> {
         return focus(this.#slot('advanced'), 'useTransmissionLinePortModel');
     }
 
     /** WinISD Advanced "Rg is at driver side" — whether the amplifier's source resistance
      *  (`Rs_ohm`) is applied per driver or once across the whole array. */
+    // [ ] STRATEGY (rgAtDriverSide):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get rgAtDriverSide(): RawField<boolean> {
         return focus(this.#slot('advanced'), 'rgAtDriverSide');
     }
 
     /** WinISD Advanced "Simulate voice coil inductance" — includes Le in the acoustic circuit
      *  model (gyrator) rather than just the impedance plot (winisd). */
+    // [ ] STRATEGY (circuitModel):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get circuitModel(): RawField<'winisd' | 'gyrator'> {
         return focus(this.#slot('advanced'), 'circuitModel');
     }
 
     /** WinISD Advanced "SPL graph is Xmax limited" — whether the SPL chart shows the
      *  Xmax-backed-off curve instead of the unclamped one. Display only. */
+    // [ ] STRATEGY (splGraphIsXmaxLimited):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get splGraphIsXmaxLimited(): RawField<boolean> {
         return focus(this.#slot('advanced'), 'splGraphIsXmaxLimited');
     }
@@ -2010,14 +2726,20 @@ export class OpenISDProject {
     /** The frequency range every chart panel sweeps and is plotted over — shared across all
      *  panels (John 2026-09-07), unlike each panel's own Y-axis zoom (`yRangeForChart`/
      *  `setYRangeForChart` below). Absent means the engine's own sweep defaults. */
+    // [ ] STRATEGY (sweepFmin_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get sweepFmin_hz(): RawField<number | undefined> {
         return focus(this.#slot('charts'), 'fmin_hz');
     }
 
+    // [ ] STRATEGY (sweepFmax_hz):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get sweepFmax_hz(): RawField<number | undefined> {
         return focus(this.#slot('charts'), 'fmax_hz');
     }
 
+    // [ ] STRATEGY (sweepN):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     get sweepN(): RawField<number | undefined> {
         return focus(this.#slot('charts'), 'N');
     }
@@ -2025,21 +2747,29 @@ export class OpenISDProject {
     /** This project's saved Y-axis zoom for one chart (`chartId` is the UI's `ChartTabId`,
      *  carried here as a plain string per `domain/index.ts`'s "no packages/ui types" rule) —
      *  null when that panel is on auto-scale. */
+    // [ ] STRATEGY (yRangeForChart):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     yRangeForChart(chartId: string): {ymin: number; ymax: number} | null {
         return this.#current().charts.perTab[chartId] ?? null;
     }
 
     /** Sets (or, passing null, clears back to auto-scale) the saved Y-axis zoom for one
      *  chart. */
+    // [ ] STRATEGY (setYRangeForChart):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     setYRangeForChart(chartId: string, range: {ymin: number; ymax: number} | null): void {
         const charts = this.#current().charts;
         const perTab = {...charts.perTab};
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (range) perTab[chartId] = range; else delete perTab[chartId];
         this.#slot('charts').set({...charts, perTab});
     }
 
     /** Clears the shared sweep range and every chart's Y-axis zoom back to auto/engine
      *  defaults — the chart top bar's Reset button. */
+    // [ ] STRATEGY (resetCharts):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     resetCharts(): void {
         this.#slot('charts').set({perTab: {}});
     }
@@ -2047,6 +2777,8 @@ export class OpenISDProject {
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
      *  wraps of one record are two independently editable projects, which is what opening a FILE
      *  twice should give. */
+    // [ ] STRATEGY (wrap):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static wrap(json: OpenISDProjectJson, engine: Engine): OpenISDProject {
         return this.wrapWithIdentity(json, newUuid(), engine);
     }
@@ -2061,13 +2793,19 @@ export class OpenISDProject {
      * NOT for a file: a file's id was minted by another process and is provenance, never a key
      * (the driver precedent, QO81).
      */
+    // [ ] STRATEGY (wrapWithIdentity):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static wrapWithIdentity(json: OpenISDProjectJson, uuid: string, engine: Engine): OpenISDProject {
         return new OpenISDProject(json, uuid, engine);
     }
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
+    // [ ] STRATEGY (wrapSession):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static wrapSession(session: OpenISDProjectSessionJson, uuid: string, engine: Engine): OpenISDProject {
         const project = new OpenISDProject(session.saved, uuid, engine);
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (session.edited) {
             project.#edited = session.edited;
         }
@@ -2076,18 +2814,26 @@ export class OpenISDProject {
 
 
     /** This project's in-memory identity. */
+    // [ ] STRATEGY (uuid):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     uuid(): string {
         return this.#uuid;
     }
 
     /** The record every read goes to. */
+    // [ ] STRATEGY (#current):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #current(): OpenISDProjectJson {
         return this.#edited ?? this.#saved;
     }
 
     /** Enter the edited state if not already in it, and answer the record a write must build on.
      *  The first call copies `#saved`; later calls answer the existing `#edited`. */
+    // [ ] STRATEGY (#ensureEditing):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #ensureEditing(): OpenISDProjectJson {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (!this.#edited) this.#edited = {...this.#saved};
         return this.#edited;
     }
@@ -2098,6 +2844,8 @@ export class OpenISDProject {
      *  The write REPLACES the record rather than mutating one, so a caller holding an earlier
      *  record sees no change through it — copy-on-write, with the copy being the spread that a
      *  write performs anyway. */
+    // [ ] STRATEGY (#slot<K extends keyof OpenISDProjectJson>):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #slot<K extends keyof OpenISDProjectJson>(key: K): Lens<OpenISDProjectJson[K]> {
         return {
             get: () => this.#current()[key],
@@ -2118,6 +2866,8 @@ export class OpenISDProject {
      *  cannot drift when this project is edited afterward — a shallow `{...}` spread is not
      *  enough, since every nested field object (`box`, `driver`, `environment`, …) would still be
      *  the same reference as the live record. No code outside `packages/design` may call this. */
+    // [ ] STRATEGY (cloneSavedProject):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     cloneSavedProject(): OpenISDProjectJson {
         return structuredClone(this.#saved);
     }
@@ -2130,6 +2880,8 @@ export class OpenISDProject {
      *  `.wpr` models fewer box types and fewer fields than openisd does, so this is a lossy
      *  write and `value` is null when the box cannot be expressed at all (a `bandpass6`, say).
      *  `errors` carries the reason and every field dropped along the way. */
+    // [ ] STRATEGY (toWprText):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     toWprText(engine: Engine): { value: string | null; errors: DriverError[] } {
         const {value: wpr, errors} = openIsdProjectToWinIsdProject(this, engine);
         return {value: wpr ? wpr.toWpr() : null, errors};
@@ -2137,6 +2889,8 @@ export class OpenISDProject {
 
     /** WinISD `.wpr` text back to a project. The inverse of `toWprText()`, as far as a format
      *  carrying fewer box types and fields allows. */
+    // [ ] STRATEGY (fromWprText):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static fromWprText(text: string, engine: Engine): { value: OpenISDProject | null; errors: DriverError[] } {
         return winIsdProjectToOpenIsdProject(text, engine);
     }
@@ -2147,6 +2901,8 @@ export class OpenISDProject {
      *
      *  Lossless, unlike `toWprText()`: this is openisd's own format, so there is nothing to drop
      *  and no error to report. */
+    // [ ] STRATEGY (toOwprText):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     toOwprText(): string {
         return JSON.stringify(this.cloneSession(), null, 2);
     }
@@ -2156,6 +2912,8 @@ export class OpenISDProject {
      *
      *  The project takes a FRESH identity: a file's contents are provenance, not a store key
      *  (QO81), so opening the same file twice yields two independently addressable projects. */
+    // [ ] STRATEGY (fromOwprText):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     static fromOwprText(text: string, engine: Engine): OpenISDProject | string[] {
         let parsed: unknown;
         try {
@@ -2164,6 +2922,8 @@ export class OpenISDProject {
             return ['not valid JSON'];
         }
         const result = openISDProjectSessionJsonSchema.safeParse(parsed);
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (!result.success) {
             return result.error.issues.map(issue => issue.path.length === 0
                 ? issue.message
@@ -2173,6 +2933,8 @@ export class OpenISDProject {
     }
 
     /** Serialises both saved and edited states for persistence. */
+    // [ ] STRATEGY (cloneSession):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     cloneSession(): OpenISDProjectSessionJson {
         return {
             label: this.name.get(),
@@ -2186,7 +2948,11 @@ export class OpenISDProject {
      *  chart axis writes through the same `#slot().set()` path as every other field, but it is
      *  view state, not a change the user should be asked to save — see BACKLOG.md "Round-trip
      *  chart view state". Every other field still counts. */
+    // [ ] STRATEGY (isModified):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     isModified(): boolean {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (!this.#edited) return false;
         const {charts: _editedCharts, ...editedRest} = this.#edited;
         const {charts: _savedCharts, ...savedRest} = this.#saved;
@@ -2202,6 +2968,8 @@ export class OpenISDProject {
      * Null when no power is stated or the driver has no usable `Re`. Never a substituted default:
      * a project that has not been told its drive level does not have one.
      */
+    // [ ] STRATEGY (driveVoltage_V):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     driveVoltage_V(): number | null {
         const power_W = this.#current().signal.power_W;
         const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
@@ -2210,12 +2978,16 @@ export class OpenISDProject {
 
     /** This project's stated reference power — WinISD's Signal-tab "Input Power". Null until
      *  stated: 1 W is a measurement convention, not a fact about this design. */
+    // [ ] STRATEGY (powerDrive_W):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     powerDrive_W(): number | null {
         return this.#current().signal.power_W;
     }
 
     /** This project's stated drive voltage, WHEN IT WAS THE VOLTAGE THAT WAS STATED rather than
      *  derived from power — WinISD's Signal-tab "Input Voltage". Null until stated. */
+    // [ ] STRATEGY (statedVoltage_V):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     statedVoltage_V(): number | null {
         return this.#current().signal.voltage_V;
     }
@@ -2224,8 +2996,12 @@ export class OpenISDProject {
      *  (`√(Pin·Re)`), so `driveVoltage_V()`/`statedVoltage_V()` never disagree with what was just
      *  set. Requires the driver to have a usable `Re`; a caller with an incomplete driver cannot
      *  state a drive level in these terms yet. */
+    // [ ] STRATEGY (setPowerDrive_W):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     setPowerDrive_W(power_W: number): void {
         const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (Re_ohm === undefined) {
             throw new Error('setPowerDrive_W cannot solve a voltage: the driver has no usable Re_ohm yet.');
         }
@@ -2235,8 +3011,12 @@ export class OpenISDProject {
 
     /** State the drive level as a voltage — solves and stores the matching power too
      *  (`V²/Re`), the inverse of `setPowerDrive_W`. Same `Re` requirement. */
+    // [ ] STRATEGY (setDriveVoltage_V):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     setDriveVoltage_V(voltage_V: number): void {
         const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (Re_ohm === undefined) {
             throw new Error('setDriveVoltage_V cannot solve a power: the driver has no usable Re_ohm yet.');
         }
@@ -2248,29 +3028,41 @@ export class OpenISDProject {
 
     /** This project's stated air temperature, WinISD Advanced "Temperature". Null until stated —
      *  the reference value lives in `@openisd/engine` (`air.ts`), never duplicated here. */
+    // [ ] STRATEGY (envTempK):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     envTempK(): number | null {
         return this.#current().environment.temperature_K;
     }
 
+    // [ ] STRATEGY (setEnvTempK):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     setEnvTempK(tempK: number): void {
         this.#slot('environment').set({...this.#current().environment, temperature_K: tempK});
     }
 
     /** This project's stated relative humidity, WinISD Advanced "Humidity". Null until stated. */
+    // [ ] STRATEGY (envHumidityPct):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     envHumidityPct(): number | null {
         return this.#current().environment.humidity_pct;
     }
 
+    // [ ] STRATEGY (setEnvHumidityPct):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     setEnvHumidityPct(humidityPct: number): void {
         this.#slot('environment').set({...this.#current().environment, humidity_pct: humidityPct});
     }
 
     /** This project's stated atmospheric pressure, WinISD Advanced "Pressure". Null until
      *  stated. */
+    // [ ] STRATEGY (envPressurePa):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     envPressurePa(): number | null {
         return this.#current().environment.pressure_Pa;
     }
 
+    // [ ] STRATEGY (setEnvPressurePa):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     setEnvPressurePa(pressurePa: number): void {
         this.#slot('environment').set({...this.#current().environment, pressure_Pa: pressurePa});
     }
@@ -2278,10 +3070,14 @@ export class OpenISDProject {
     /** Which air formula this project's sweeps use — WinISD's parity model when true, OpenISD's
      *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
      *  WinISD out of the box. See `engine/air.ts` for the two models. */
+    // [ ] STRATEGY (envUseWinisdAirModel):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     envUseWinisdAirModel(): boolean {
         return this.#current().environment.useWinisdAirModel ?? true;
     }
 
+    // [ ] STRATEGY (setEnvUseWinisdAirModel):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     setEnvUseWinisdAirModel(useWinisdAirModel: boolean): void {
         this.#slot('environment').set({...this.#current().environment, useWinisdAirModel});
     }
@@ -2295,8 +3091,12 @@ export class OpenISDProject {
      *
      * Null when the driver's Q group is too incomplete to resolve.
      */
+    // [ ] STRATEGY (sourceLoadedQts):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     sourceLoadedQts(Rs: number): number | null {
         const {Qms, Qes, Re_ohm, Qts} = this.driver.solveConsistencyGroup();
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (Qms === undefined || Qes === undefined || Re_ohm === undefined || Qts === undefined) return null;
         return this.#engine.sourceLoadedQts(Qms, Qes, Re_ohm, Rs, Qts);
     }
@@ -2323,15 +3123,21 @@ export class OpenISDProject {
      *
      *  An unstated volume is passed through as-is rather than short-circuiting to "no issues":
      *  "you have not sized the box" is the complaint, not a reason to stay quiet. */
+    // [ ] STRATEGY (#enclosureParams):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #enclosureParams(): EnclosureParams {
         const boxType = this.box.boxType.get();
         const {Vf, Sp, prSd, prCms, prMmd} = this.#boxSpecificParams(boxType);
         return {Vb: this.#boxVolume_m3() ?? undefined, Vf, Sp, prSd, prCms, prMmd};
     }
 
+    // [ ] STRATEGY (#sweepParams):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #sweepParams(P: FrequencyGrid): SweepParams | null {
         const Vb = this.#boxVolume_m3();
         const eg = this.driveVoltage_V();
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (Vb === null || eg === null) return null;
 
         const box = this.box;
@@ -2369,6 +3175,8 @@ export class OpenISDProject {
 
     /** This project's box volume, WHICHEVER topology is active — `Vb` in `SweepParams` is always
      *  the driver-side chamber's own volume, sealed or the equivalent for every other topology. */
+    // [ ] STRATEGY (#boxVolume_m3):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #boxVolume_m3(): number | null {
         const box = this.box;
         switch (box.boxType.get()) {
@@ -2383,6 +3191,8 @@ export class OpenISDProject {
     /** The fields only one box topology reads — the vent's `Sp`/`Leff` for `vented`/`bandpass4`,
      *  the passive radiator's five for `box-passive-radiator`. Geometry only (`area_m2()`,
      *  `effectiveLength_m()`), never acoustics, per this file's header ruling. */
+    // [ ] STRATEGY (#boxSpecificParams):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #boxSpecificParams(boxType: BoxType): Partial<SweepParams> {
         const box = this.box;
         switch (boxType) {
@@ -2419,6 +3229,8 @@ export class OpenISDProject {
      * and that null is the reason every simulation method below can return null: not a failure, a
      * topology the engine does not yet cover.
      */
+    // [ ] STRATEGY (#engineBoxType):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #engineBoxType(): SimulatableBoxType | null {
         return this.#engine.simulatableBoxType(this.box.boxType.get());
     }
@@ -2428,17 +3240,25 @@ export class OpenISDProject {
      *  "cannot simulate", which is what a caller cannot act on. `value` is null with an empty
      *  `errors` when the active topology is one the engine has no model for, or a field this
      *  project itself needs to sweep (its box volume, its drive voltage) is not yet stated. */
+    // [ ] STRATEGY (sweep):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     sweep(P: FrequencyGrid): Result<SweepResult> {
         const box = this.#engineBoxType();
         const params = box ? this.#sweepParams(P) : null;
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (!box || !params) return {value: null, errors: []};
         return this.#engine.sweep(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`. */
+    // [ ] STRATEGY (maxCurves):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     maxCurves(P: FrequencyGrid): Result<MaxCurvesResult> {
         const box = this.#engineBoxType();
         const params = box ? this.#sweepParams(P) : null;
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (!box || !params) return {value: null, errors: []};
         return this.#engine.maxCurves(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
@@ -2446,6 +3266,8 @@ export class OpenISDProject {
     /** What is wrong with these sweep parameters for this project's topology — checked BEFORE a
      *  sweep, so a caller can refuse rather than plot nonsense. Empty when nothing is wrong, and
      *  also empty (rather than a false accusation) when the topology cannot be simulated at all. */
+    // [ ] STRATEGY (validateParams):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     validateParams(_P: FrequencyGrid): DriverError[] {
         const box = this.#engineBoxType();
         return box ? this.#engine.validateParams(box, this.#enclosureParams()) : [];
@@ -2453,29 +3275,39 @@ export class OpenISDProject {
 
     /** The passband level a response is measured against — the reference every dB figure below is
      *  relative to. */
+    // [ ] STRATEGY (passbandRef):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     passbandRef(spl: number[]): number {
         return this.#engine.passbandRef(spl);
     }
 
     /** The frequency where the response has fallen `dropDb` below its passband — F3 at 3 dB, F6 at
      *  6, and so on. Null when the response never falls that far inside the swept range. */
+    // [ ] STRATEGY (rolloffFreq):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     rolloffFreq(sw: SweepResult, dropDb: number): number | null {
         return this.#engine.rolloffFreq(sw, dropDb);
     }
 
     /** A non-finite value anywhere in the response, or null. A sweep that produced NaN is a fault
      *  to report, never a curve to draw. */
+    // [ ] STRATEGY (classifyFinite):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     classifyFinite(sw: SweepResult): DriverError | null {
         return this.#engine.classifyFinite(sw);
     }
 
     /** A response clamped flat against a limit, or null — a shape that looks like a valid answer
      *  and is not. */
+    // [ ] STRATEGY (classifyFlatClamp):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     classifyFlatClamp(sw: SweepResult): DriverError | null {
         return this.#engine.classifyFlatClamp(sw);
     }
 
     /** The same finiteness check for the max-SPL curves. */
+    // [ ] STRATEGY (classifyMaxFinite):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
         return this.#engine.classifyMaxFinite(mx);
     }
@@ -2487,13 +3319,19 @@ export class OpenISDProject {
      * Reads `Re` off this project's own driver, which is why it lives here and not on the caller.
      * Null when the driver has no usable `Re`, or the curve has no peak.
      */
+    // [ ] STRATEGY (impedancePeak):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     impedancePeak(sw: SweepResult | null): { Fsc: number; Qtc: number } | null {
         const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
         return Re_ohm === undefined ? null : this.#engine.findImpedancePeak(sw, Re_ohm);
     }
 
     /** Promote the edited record. A no-op when nothing has been edited. */
+    // [ ] STRATEGY (save):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     save(): void {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (!this.#edited) return;
         this.#saved = this.#edited;
         this.#edited = null;
@@ -2511,7 +3349,11 @@ export class OpenISDProject {
      * user declined.
      */
     async cancel(confirm: DiscardChallenge): Promise<boolean> {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (!this.#edited) return false;
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (!await confirm()) return false;
         this.#edited = null;
         this.#notify();
@@ -2534,35 +3376,55 @@ export class OpenISDProject {
     // a new one, and the feature is ruled and scoped in QO126.
 
     /** Derives whichever of the vented box's tuning/vent-length the user did not state. */
+    // [ ] STRATEGY (notifyVentChanged):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     notifyVentChanged(): void {
         this.#notify();
     }
 
 
     /** The tuning the vent as built actually produces. */
+    // [ ] STRATEGY (ventAchievedFb):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     ventAchievedFb(): number | null {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (this.box.boxType.get() !== 'vented') return null;
         const Vb = this.box.vented.volume_m3.get().value;
         return this.box.vented.vent.tuningIn_hz(Vb);
     }
 
     /** The highest tuning this vent can reach in this volume. */
+    // [ ] STRATEGY (ventMaxReachableFb):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     ventMaxReachableFb(): number | null {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (this.box.boxType.get() !== 'vented') return null;
         const Vb = this.box.vented.volume_m3.get().value;
         const Sp = this.box.vented.vent.area_m2();
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (Vb === null || !(Vb > 0) || Sp === null) return null;
         return this.#engine.tuningFromLength(Vb ?? undefined, 0, Sp, this.box.vented.vent.endCorrection_m.get());
     }
 
     /** Whether the stated tuning is beyond what this vent can reach. */
+    // [ ] STRATEGY (ventTargetUnreachable):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     ventTargetUnreachable(): boolean {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (this.box.boxType.get() !== 'vented') return false;
         const fbCell = this.box.vented.tuning_hz.get();
         const lenCell = this.box.vented.vent.length_m.get();
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (fbCell.state === 'entered' && lenCell.state !== 'entered') {
             const Vb = this.box.vented.volume_m3.get().value;
             const targetFb = fbCell.value;
+            // [ ] STRATEGY (if):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             if (Vb !== null && Vb > 0 && targetFb !== null && targetFb > 0) {
                 const l = this.box.vented.vent.lengthForTuning_m(Vb ?? undefined, targetFb);
                 return l !== null && l < 0;
@@ -2572,32 +3434,46 @@ export class OpenISDProject {
     }
 
     /** Derives whichever of the passive-radiator box's tuning/added-mass the user did not state. */
+    // [ ] STRATEGY (notifyPrChanged):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     notifyPrChanged(): void {
         this.#notify();
     }
 
 
+    // [ ] STRATEGY (solveDriverConsistencyGroup):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     solveDriverConsistencyGroup(): Readonly<DriverSolverQuantities> {
         return this.driver.solveDriverConsistencyGroup();
     }
 
     /** Whether the stated tuning is beyond what this radiator can reach. False on the same terms
      *  as `ventTargetUnreachable()`. */
+    // [ ] STRATEGY (prTargetUnreachable):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     prTargetUnreachable(): boolean {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (this.box.boxType.get() !== 'box-passive-radiator') return false;
         const fp = this.box.passiveRadiator.tuning_hz.get().value;
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (fp === null || !(fp > 0)) return false;
         const m = this.box.passiveRadiator.addedMassForTuning_kg(fp);
         return m !== null && m < 0;
     }
 
     /** Batch multiple mutations into a single subscriber notification. */
+    // [ ] STRATEGY (batch<T>):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     batch<T>(fn: () => T): T {
         return this.#listeners.batch(fn);
     }
 
     /** Register a listener, fired on every change to the current record and on entering or
      *  leaving the edited state. Returns an unsubscribe function. */
+    // [ ] STRATEGY (subscribe):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     subscribe(fn: () => void): () => void {
         this.#listeners.add(fn);
         return () => {
@@ -2605,30 +3481,48 @@ export class OpenISDProject {
         };
     }
 
+    // [ ] STRATEGY (#notify):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #notify(): void {
         this.#listeners.notify();
     }
 }
 
+// [ ] STRATEGY (class ProjectListeners):
+//     Comprehensive strategy for ProjectListeners.
 class ProjectListeners {
+    // [ ] STRATEGY (#set):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     readonly #set = new Set<() => void>();
+    // [ ] STRATEGY (#depth):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #depth = 0;
+    // [ ] STRATEGY (#pending):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     #pending = false;
 
+    // [ ] STRATEGY (add):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     add(fn: () => void): void {
         this.#set.add(fn);
     }
 
+    // [ ] STRATEGY (delete):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     delete(fn: () => void): void {
         this.#set.delete(fn);
     }
 
+    // [ ] STRATEGY (batch<T>):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     batch<T>(fn: () => T): T {
         this.#depth++;
         try {
             return fn();
         } finally {
             this.#depth--;
+            // [ ] STRATEGY (if):
+            //     Assess if pure read, N-way writable Field, or good as-is.
             if (this.#depth === 0 && this.#pending) {
                 this.#pending = false;
                 this.notify();
@@ -2636,7 +3530,11 @@ class ProjectListeners {
         }
     }
 
+    // [ ] STRATEGY (notify):
+    //     Assess if pure read, N-way writable Field, or good as-is.
     notify(): void {
+        // [ ] STRATEGY (if):
+        //     Assess if pure read, N-way writable Field, or good as-is.
         if (this.#depth > 0) {
             this.#pending = true;
             return;
@@ -2649,4 +3547,7 @@ class ProjectListeners {
  * The app's warning before unsaved changes are destroyed, as `cancel()` sees it: answers whether
  * to go ahead. Async because a dialog is — the domain waits for a person.
  */
+// [ ] STRATEGY (type DiscardChallenge):
+//     Comprehensive strategy for DiscardChallenge.
 export type DiscardChallenge = () => Promise<boolean>;
+```

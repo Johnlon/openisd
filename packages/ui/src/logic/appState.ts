@@ -43,9 +43,9 @@ import { parseChartTabId } from './series.js';
 import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
 import { getOrInit, hmrSlots } from './hmrSingleton.js';
 import {
-  solveVentGroup, ventSolveSuspended,
+  notifyVentChanged, ventSolveSuspended,
 } from './useVentGroup.js';
-import { solvePrGroup } from './usePrGroup.js';
+import { notifyPrChanged } from './usePrGroup.js';
 // appState.ts does not persist — it initialises to defaults, and App.vue applies whatever a
 // load door hands over (a share link, or an opened file).
 
@@ -210,7 +210,7 @@ const live: ShallowRef<OpenISDProject | null> = getOrInit(slots, 'live', () => {
 // included — so it is the one reactive dependency this needs; the group itself decides,
 // field by field, whether there is anything to solve (`ventDerivable`). Two guards:
 //   solvingVent  — the solver's own write must not re-enter the watcher: `live` firing
-//                   again from inside `solveVentGroup`'s own mutation would otherwise recurse.
+//                   again from inside `notifyVentChanged`'s own mutation would otherwise recurse.
 //   ventSolveSuspended() — a restore assigns a whole persisted snapshot and must be adopted
 //                   verbatim (docs/design/STATE_MODEL.md rule 3, "Cancel means byte-identical").
 // `live` is a shallow ref whose `.value` is the SAME focused-project reference on every
@@ -228,7 +228,7 @@ watch(
     const p = live.value;
     if (!p) return;
     solvingVent = true;
-    try { solveVentGroup(p); } finally { solvingVent = false; }
+    try { notifyVentChanged(p); } finally { solvingVent = false; }
   },
   // flush:'sync' is REQUIRED, not a preference. Vue's default 'pre' defers the callback to
   // the next tick, by which time suspendVentSolve() has already returned and cleared its
@@ -247,7 +247,7 @@ watch(
     const p = live.value;
     if (!p) return;
     solvingVent = true;
-    try { solvePrGroup(p); } finally { solvingVent = false; }
+    try { notifyPrChanged(p); } finally { solvingVent = false; }
   },
   { flush: 'sync', immediate: true },
 );
