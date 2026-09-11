@@ -1,6 +1,36 @@
 # Master Architectural Strategy & Implementation Blueprint: `openisdDomain.ts`
 
 > **Architectural Invariant**: `.get()` NEVER does a calculation. All fields are computable if mathematically possible via N-way directed graph solvers. State updates fire eagerly on human stimulus (`.set()`), write both `E` and `C` into the JSON backing store/browser store, and `C` is omitted only when exporting to `openisd.yml`.
+## Master Work Task Queue
+
+### Prerequisite / Fixup Tasks
+- [ ] **Task 0: Fixture Key Suffix Repair (`packages/design/test/winisd/`)**
+  - Repair test fixtures in `openisdToWdr.test.ts` and `wdr-model-coverage.test.ts` to use schema-compliant suffixed keys (`Fs_hz`, `Re_ohm`, `Le_H`, `Vas_m3`, etc.) rather than un-suffixed keys (`Fs`, `Re`, etc.).
+  - Target test run: `npx vitest run packages/design/test/winisd/openisdToWdr.test.ts`
+
+### Phase 2 Implementation Steps (Targeted TDD Loop)
+- [ ] **Task 1: Bidirectional Vent Consistency Group (`packages/design/engine/solver.ts`)**
+  - Add algebraic inversion for `area_m2` when `length_m` and `tuning_hz` are provided.
+  - Test: `npx vitest run packages/design/test/solver-group-pr-vent.test.ts`
+- [ ] **Task 2: QO126 Cyclic Tuning <-> Paired Quantity Solve**
+  - Implement bidirectional solve between `VentedBox.tuning_hz` <-> `vent.length_m` and `PassiveRadiatorBox.tuning_hz` <-> `addedMass_kg`.
+  - Fix `BUG_20260908_addedMassForTuning_returns_total_mass_not_added_mass.md` (return delta mass `Mms - Mmd`).
+  - Wire the 6 `OpenISDProject` methods previously stubbed (`BUG_20260908_six_vent_and_pr_group_solve_methods_are_throwing_stubs.md`).
+  - Remove FIXMEs at lines 216 & 2523 in `openisdDomain.ts` and line 28 in `vent.ts`.
+- [ ] **Task 3: Vent Geometry N-Way Upgrades (`packages/design/domain/vent.ts`, `openisdDomain.ts`)**
+  - Upgrade `area_m2` and `effectiveLength_m` to `Field<number>`.
+  - Upgrade `tuningIn_hz` and `lengthForTuning_m` to Field factories.
+- [ ] **Task 4: Sealed Box & Readout Upgrades**
+  - Upgrade `SealedBox.resonance_hz` to `ReadOnlyCalculatedField<number>`.
+- [ ] **Task 5: Project Signal & Axiomatic Environment Properties**
+  - Upgrade `driveVoltage_V`, `powerDrive_W`, `statedVoltage_V` to `Field<number>`.
+  - Upgrade `envTempK`, `envHumidityPct`, `envPressurePa` to pure `Field<number>`.
+  - Implement `recalc(): void` force-solve safety net.
+- [ ] **Task 6: Final Full Gate Verification**
+  - Only when all targeted tests pass, run: `bash scripts/health-check.sh`
+
+---
+
 
 ```typescript
 
