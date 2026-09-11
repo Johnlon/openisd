@@ -3,31 +3,64 @@
 > **Architectural Invariant**: `.get()` NEVER does a calculation. All fields are computable if mathematically possible via N-way directed graph solvers. State updates fire eagerly on human stimulus (`.set()`), write both `E` and `C` into the JSON backing store/browser store, and `C` is omitted only when exporting to `openisd.yml`.
 ## Master Work Task Queue
 
-### Prerequisite / Fixup Tasks
+### Prerequisite Task
 - [ ] **Task 0: Fixture Key Suffix Repair (`packages/design/test/winisd/`)**
-  - Repair test fixtures in `openisdToWdr.test.ts` and `wdr-model-coverage.test.ts` to use schema-compliant suffixed keys (`Fs_hz`, `Re_ohm`, `Le_H`, `Vas_m3`, etc.) rather than un-suffixed keys (`Fs`, `Re`, etc.).
-  - Target test run: `npx vitest run packages/design/test/winisd/openisdToWdr.test.ts`
+  - Repair test fixtures in `openisdToWdr.test.ts` and `wdr-model-coverage.test.ts` to use schema-compliant suffixed keys (`Fs_hz`, `Re_ohm`, `Le_H`, etc.).
+  - Targeted test: `npx vitest run packages/design/test/winisd/openisdToWdr.test.ts`
 
-### Phase 2 Implementation Steps (Targeted TDD Loop)
-- [ ] **Task 1: Bidirectional Vent Consistency Group (`packages/design/engine/solver.ts`)**
-  - Add algebraic inversion for `area_m2` when `length_m` and `tuning_hz` are provided.
-  - Test: `npx vitest run packages/design/test/solver-group-pr-vent.test.ts`
-- [ ] **Task 2: QO126 Cyclic Tuning <-> Paired Quantity Solve**
-  - Implement bidirectional solve between `VentedBox.tuning_hz` <-> `vent.length_m` and `PassiveRadiatorBox.tuning_hz` <-> `addedMass_kg`.
-  - Fix `BUG_20260908_addedMassForTuning_returns_total_mass_not_added_mass.md` (return delta mass `Mms - Mmd`).
-  - Wire the 6 `OpenISDProject` methods previously stubbed (`BUG_20260908_six_vent_and_pr_group_solve_methods_are_throwing_stubs.md`).
-  - Remove FIXMEs at lines 216 & 2523 in `openisdDomain.ts` and line 28 in `vent.ts`.
-- [ ] **Task 3: Vent Geometry N-Way Upgrades (`packages/design/domain/vent.ts`, `openisdDomain.ts`)**
-  - Upgrade `area_m2` and `effectiveLength_m` to `Field<number>`.
-  - Upgrade `tuningIn_hz` and `lengthForTuning_m` to Field factories.
-- [ ] **Task 4: Sealed Box & Readout Upgrades**
-  - Upgrade `SealedBox.resonance_hz` to `ReadOnlyCalculatedField<number>`.
-- [ ] **Task 5: Project Signal & Axiomatic Environment Properties**
-  - Upgrade `driveVoltage_V`, `powerDrive_W`, `statedVoltage_V` to `Field<number>`.
-  - Upgrade `envTempK`, `envHumidityPct`, `envPressurePa` to pure `Field<number>`.
-  - Implement `recalc(): void` force-solve safety net.
-- [ ] **Task 6: Final Full Gate Verification**
-  - Only when all targeted tests pass, run: `bash scripts/health-check.sh`
+### Exact Domain Symbol Task Queue (38 Pending Symbols)
+
+#### 1. Enclosure Box Interfaces
+- [ ] **1. `interface SealedBox`**: Upgrade contract to support precomputed `resonance_hz` readout.
+- [ ] **2. `SealedBox.volume_m3`**: Retain as `RawField<number>` (axiomatic input) per architectural review.
+- [ ] **3. `SealedBox.resonance_hz`**: Upgrade from method to `ReadOnlyCalculatedField<number>` (pure precomputed read).
+- [ ] **4. `interface Bandpass4Box`**: Upgrade contract for rear resonance and front chamber volume.
+- [ ] **5. `Bandpass4Box.chambers.rear.resonance_hz`**: Upgrade from method to `ReadOnlyCalculatedField<number>`.
+- [ ] **6. `Bandpass4Box.chambers.front.volume_m3`**: Upgrade to `Field<number>` for consistent chamber solving.
+- [ ] **7. `interface PassiveRadiatorBox`**: Upgrade contract for QO126 cyclic solve and precomputed readouts.
+- [ ] **8. `PassiveRadiatorBox.volume_m3`**: Upgrade to `Field<number>` so target tuning can back-calculate chamber volume.
+- [ ] **9. `PassiveRadiatorBox.addedMassForTuning_kg`**: Upgrade from `ReadOnlyCalculatedField` factory to N-way `Field` factory.
+- [ ] **10. `PassiveRadiatorBox.resonanceWithAddedMass_hz`**: Revise to eliminate lazy closure calculation; read precomputed solver state directly.
+
+#### 2. Vent Geometry & Inversions (`Vent` / `VentWindow`)
+- [ ] **11. `VentWindow.area_m2`**: Upgrade from method to N-way `Field<number>` (derives round diameter or solves slotted rectangular dimensions).
+- [ ] **12. `VentWindow.effectiveLength_m`**: Upgrade from method to N-way `Field<number>` (`.set(leff)` sets physical `length_m = leff - endCorrection`).
+- [ ] **13. `VentWindow.tuningIn_hz`**: Upgrade to N-way `Field` factory (`.set(fb)` solves and sets `length_m` in captured `volume_m3`).
+- [ ] **14. `VentWindow.lengthForTuning_m`**: Upgrade to N-way `Field` factory (`.set(len)` solves and sets `area_m2` in captured `volume_m3, fb_hz`).
+
+#### 3. PR Implementation Window (`OpenISDBox`)
+- [ ] **15. `OpenISDBox.passiveRadiator.systemTuning_hz`**: Revise implementation to eliminate lazy getter closure; pure read of precomputed solver graph.
+- [ ] **16. `OpenISDBox.passiveRadiator.resonanceWithAddedMass_hz`**: Revise implementation to eliminate lazy closure; pure read of precomputed state.
+
+#### 4. Device Metadata (`OpenISDDriver`)
+- [ ] **17. `OpenISDDriver.series`**: Upgrade from raw getter to `ReadOnlyCalculatedField<string>` carrying Cell provenance.
+- [ ] **18. `OpenISDDriver.sku`**: Upgrade from raw getter to `ReadOnlyCalculatedField<string>` carrying Cell provenance.
+- [ ] **19. `OpenISDDriver.description`**: Upgrade from raw getter to `ReadOnlyCalculatedField<string>` carrying Cell provenance.
+- [ ] **20. `OpenISDProject.description`**: Upgrade to `Field<string>` on project metadata.
+
+#### 5. Signal & Drive Level (`OpenISDProject`)
+- [ ] **21. `OpenISDProject.driveVoltage_V`**: Upgrade from method to N-way `Field<number>` (`.set(v)` derives and updates `power_W`).
+- [ ] **22. `OpenISDProject.powerDrive_W`**: Upgrade from method to N-way `Field<number>` (`.set(w)` derives and updates `driveVoltage_V`).
+- [ ] **23. `OpenISDProject.statedVoltage_V`**: Upgrade from method to `Field<number>` backed by `signal.voltage_V`.
+- [ ] **24. `OpenISDProject.setPowerDrive_W`**: Deprecate / alias to forward directly to `powerDrive_W.set(w)`.
+- [ ] **25. `OpenISDProject.setDriveVoltage_V`**: Deprecate / alias to forward directly to `driveVoltage_V.set(v)`.
+
+#### 6. Environmental Axioms (`OpenISDProject`)
+- [ ] **26. `OpenISDProject.envTempK`**: Upgrade from getter to pure state `Field<number>`.
+- [ ] **27. `OpenISDProject.setEnvTempK`**: Deprecate / alias to forward directly to `envTempK.set()`.
+- [ ] **28. `OpenISDProject.envHumidityPct`**: Upgrade from getter to pure state `Field<number>`.
+- [ ] **29. `OpenISDProject.setEnvHumidityPct`**: Deprecate / alias to forward directly to `envHumidityPct.set()`.
+- [ ] **30. `OpenISDProject.envPressurePa`**: Upgrade from getter to pure state `Field<number>`.
+- [ ] **31. `OpenISDProject.setEnvPressurePa`**: Deprecate / alias to forward directly to `envPressurePa.set()`.
+- [ ] **32. `OpenISDProject.envUseWinisdAirModel`**: Upgrade from getter to `RawField<boolean>`.
+- [ ] **33. `OpenISDProject.setEnvUseWinisdAirModel`**: Deprecate / alias to forward directly to `envUseWinisdAirModel.set()`.
+
+#### 7. Vent & PR Boundary Readouts / Solvers (`OpenISDProject`)
+- [ ] **34. `OpenISDProject.notifyVentChanged`**: Upgrade / expand into `recalc(): void` global force-solve diagnostic safety net.
+- [ ] **35. `OpenISDProject.ventAchievedFb`**: Upgrade from method to `ReadOnlyCalculatedField<number>` backed by precomputed solver state.
+- [ ] **36. `OpenISDProject.ventMaxReachableFb`**: Upgrade from method to `ReadOnlyCalculatedField<number>` backed by precomputed solver state.
+- [ ] **37. `OpenISDProject.ventTargetUnreachable`**: Upgrade from method to `ReadOnlyCalculatedField<boolean>` backed by precomputed solver state.
+- [ ] **38. `OpenISDProject.prTargetUnreachable`**: Upgrade from method to `ReadOnlyCalculatedField<boolean>` backed by precomputed solver state.
 
 ---
 
