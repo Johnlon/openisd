@@ -18,7 +18,7 @@ import { GAMMA, DEFAULT_P_REF_PA, airFor } from './air.js';
 import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
 import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp } from './boxDesign.js';
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
-import type { SolverQuantities, DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, QuantityName } from './solverQuantities.js';
+import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
 import type { ConsistencyIssue } from './consistency.js';
 
 
@@ -29,7 +29,7 @@ import type { ConsistencyIssue } from './consistency.js';
  * stated `roo` via `c = √(γ·p/roo)`; else the live physical model at the reference
  * environment. Never a stored constant — WinISD has none either.
  */
-export function driverC(r: Readonly<SolverQuantities>): number {
+export function driverC(r: Readonly<DriverSolverQuantities>): number {
   if (r.c_m_per_s != null && r.c_m_per_s > 0) return r.c_m_per_s;
   if (r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0) return Math.sqrt(GAMMA * DEFAULT_P_REF_PA / r.roo_kg_per_m3);
   return airFor({}).c;
@@ -39,7 +39,7 @@ export function driverC(r: Readonly<SolverQuantities>): number {
  * A driver record's own air density — its stated `roo`, else the live physical model at the
  * reference environment. WinISD never recomputes a missing `roo` from `c` — matched here.
  */
-export function driverRho(r: Readonly<SolverQuantities>): number {
+export function driverRho(r: Readonly<DriverSolverQuantities>): number {
   return r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0 ? r.roo_kg_per_m3 : airFor({}).rho;
 }
 
@@ -107,12 +107,12 @@ export function nominalImpedance(Re: number): number {
  * the air in use (`driverC`/`driverRho`). η₀ is a FRACTION throughout; the percent lives in
  * the display layer only.
  */
-export function solveConsistencyGroup(p: SolverQuantities): SolverQuantities {
+export function solveConsistencyGroup(p: DriverSolverQuantities): DriverSolverQuantities {
   // The result is a SUPERSET of the input: every quantity handed in comes back out, plus what
   // the solver derived. `numVC` and `wiring` ride along untouched — the solver READS them, to
   // finish the terminal values below, and never consumes them; dropping them would make
   // re-solving a result lossy.
-  const r: SolverQuantities = { ...p };
+  const r: DriverSolverQuantities = { ...p };
 
 
   const TAU = 2 * Math.PI;
@@ -124,8 +124,8 @@ export function solveConsistencyGroup(p: SolverQuantities): SolverQuantities {
   while (changed && iterations < 10) {
     changed = false;
 
-    const setVal = (key: QuantityName, val: number) => {
-      if (r[key] == null && isFinite(val) && val > 0) {
+    const setVal = <K extends keyof DriverSolverQuantities>(key: K, val: DriverSolverQuantities[K]) => {
+      if (r[key] == null && typeof val === 'number' && isFinite(val) && val > 0) {
         r[key] = val;
         changed = true;
       }
@@ -271,6 +271,7 @@ export function solveConsistencyGroup(p: SolverQuantities): SolverQuantities {
     if (r.SPLref_dB == null && r.no != null && r.no > 0) {
       setVal('SPLref_dB', splFromEfficiency(r.no, driverRho(r), driverC(r)));
     }
+    if (r.no == null && r.SPL_dB != null) setVal("no", efficiencyFromSpl(r.SPL_dB, driverRho(r), driverC(r)));
     if (r.no == null && r.SPLref_dB != null) {
       setVal('no', efficiencyFromSpl(r.SPLref_dB, driverRho(r), driverC(r)));
     }
@@ -461,8 +462,8 @@ export function hotRe(Re: number, alfaVC: number, dT: number): number {
  *   Qms' = ωs'·Mms'/Rms,  Qes' = ωs'·Mms'·Re/Bl²,  Qts' = Qes'·Qms'/(Qes'+Qms').
  * `MaddKg ≤ 0` returns an equivalent driver (exact no-op) so existing goldens never move.
  */
-export function withAddedMass(drv: Readonly<SolverQuantities>, MaddKg: number): SolverQuantities {
-  const out: SolverQuantities = Object.assign({}, drv);
+export function withAddedMass(drv: Readonly<DriverSolverQuantities>, MaddKg: number): DriverSolverQuantities {
+  const out: DriverSolverQuantities = Object.assign({}, drv);
   if (!(MaddKg > 0)) return out;
   const { Cms_m_per_N, Rms_kg_per_s, Re_ohm, BL_Tm } = drv;
   if (drv.Mms_kg == null || Cms_m_per_N == null || Rms_kg_per_s == null
@@ -588,3 +589,4 @@ export function checkVentConsistency(p: VentSolverQuantities): ConsistencyIssue[
   }
   return issues;
 }
+

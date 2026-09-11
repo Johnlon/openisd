@@ -154,7 +154,7 @@ describe('persistence — provenance survives a file-save round trip', () => {
     const back = Array.isArray(backOrErr) ? null : backOrErr;
     if (!back) throw new Error('Bad back driver');
 
-    const CHECKED_FIELDS = ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Cms', 'Mms', 'BL'] as const;
+    const CHECKED_FIELDS = ['Fs_hz', 'Qts', 'Qes', 'Qms', 'Vas_m3', 'Sd_m2', 'Re_ohm', 'Cms_m_per_N', 'Mms_kg', 'BL_Tm'] as const;
     /** Dispatch a fixed field name to its flat accessor's `.state` — `SpecField` never
      *  appears as a public parameter (human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md);
      *  this test needs the same field checked on two driver instances, so the dispatch lives
@@ -162,16 +162,16 @@ describe('persistence — provenance survives a file-save round trip', () => {
     // `field` is one of the names listed above.
     function stateOf(d: OpenISDDriver, field: typeof CHECKED_FIELDS[number]) {
       switch (field) {
-        case 'Fs': return d.spec[d.section].Fs_hz.get().state;
+        case 'Fs_hz': return d.spec[d.section].Fs_hz.get().state;
         case 'Qts': return d.spec[d.section].Qts.get().state;
         case 'Qes': return d.spec[d.section].Qes.get().state;
         case 'Qms': return d.spec[d.section].Qms.get().state;
-        case 'Vas': return d.spec[d.section].Vas_m3.get().state;
-        case 'Sd': return d.spec[d.section].Sd_m2.get().state;
-        case 'Re': return d.spec[d.section].Re_ohm.get().state;
-        case 'Cms': return d.spec[d.section].Cms_m_per_N.get().state;
-        case 'Mms': return d.spec[d.section].Mms_kg.get().state;
-        case 'BL': return d.spec[d.section].BL_Tm.get().state;
+        case 'Vas_m3': return d.spec[d.section].Vas_m3.get().state;
+        case 'Sd_m2': return d.spec[d.section].Sd_m2.get().state;
+        case 'Re_ohm': return d.spec[d.section].Re_ohm.get().state;
+        case 'Cms_m_per_N': return d.spec[d.section].Cms_m_per_N.get().state;
+        case 'Mms_kg': return d.spec[d.section].Mms_kg.get().state;
+        case 'BL_Tm': return d.spec[d.section].BL_Tm.get().state;
       }
     }
     for (const f of CHECKED_FIELDS) {

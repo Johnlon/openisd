@@ -1,12 +1,9 @@
-// THE COMPOSITION ROOT — it belongs to the APP, not to the package.
-//
-//     domain/    pure, platform-free: the private record, the domain objects, the repo
-//     browser/   platform-bound: the stores
-//     app/       THIS and `workspace.ts` — the application, which decides what exists
-//
-// ONE function assembles everything and hands back a context. Nothing here is module-scoped, so
-// there is no global to install, no order to get right, and no second instance to be impossible:
-// a caller that wants two independent apps calls `assemble` twice.
+/**
+ * The Composition Root.
+ *
+ * Assembles the application dependencies and returns a context.
+ * A caller that wants two independent apps calls `assemble` twice.
+ */
 
 import { projectRepo, type ProjectRepo, type RecordStoreFactory } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';

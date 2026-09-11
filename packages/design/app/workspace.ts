@@ -1,12 +1,10 @@
-// THE PROTOTYPE APP — the proxy consumer.
-//
-// It stands in for the real UI and is bound by the same rule: it imports ONLY the package's
-// published surface (`@openisd/design` and `@openisd/design/browser`), never a relative path into
-// `domain/`. That constraint is the point. Anything this file cannot express is a gap in the
-// public API, not a gap in the app — and it will show up here as code that does not compile
-// rather than as a discovery made months later while wiring Vue.
-//
-// It is a WORKSPACE: the set of projects a user has open, and which one is focused.
+/**
+ * The Prototype App / Workspace.
+ *
+ * Stands in for the real UI. Imports only the package's published surface
+ * (`@openisd/design` and `@openisd/design/browser`).
+ * Manages the set of projects a user has open, and which one is focused.
+ */
 
 import {
   OpenISDProject, OpenISDDriver,

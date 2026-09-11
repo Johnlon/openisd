@@ -1,3 +1,4 @@
+import { solveConsistencyGroup } from './testSolver.js';
 /**
  * Moist-air properties — the ONE model of ρ and c from temperature, relative humidity and
  * static pressure, and the WinISD-parity mode that swaps in WinISD's air equation set
@@ -16,7 +17,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SweepParams, SolverQuantities } from '../../engine/index.js';
+import type { SweepParams, DriverSolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -114,8 +115,7 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
     // constants at 273.15 K instead of its ICE set is out by 23 ppb.
     for (const m of MEASURED) {
       const air = engine.airFor({
-        useWinisdAirModel: true, tempK: m.T, humidityPct: m.RH, pressurePa: m.P,
-      });
+        useWinisdAirModel: true, tempK: m.T, humidityPct: m.RH, pressurePa: m.P});
       assert.ok(ppm(air.c, m.c) < 1e-6,
         `c at T=${m.T} RH=${m.RH} P=${m.P} is ${air.c} — ${ppm(air.c, m.c).toFixed(4)} ppm from the measured ${m.c}`);
       assert.ok(ppm(air.rho, m.rho) < 1e-6,
@@ -156,12 +156,12 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
 });
 
 describe('the sweep actually consumes humidity and pressure', () => {
-  const RAW: SolverQuantities = {
+  const RAW: DriverSolverQuantities = {
     Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133,
     Re_ohm: 5.6, Xmax_m: 0.005, Pe_W: 60,
   };
   const BASE: SweepParams = { Vb: 0.020, Ql: 7, eg: 2.83, fmin: 20, fmax: 200, N: 40 };
-  const drv = engine.solveConsistencyGroup(RAW);
+  const drv = solveConsistencyGroup(RAW);
   const splAt = (P: SweepParams) => engine.sweep(drv, LE_H, 'sealed', P).value!.spl;
   const maxAbsDelta = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i]!)));
 

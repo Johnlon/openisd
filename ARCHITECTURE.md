@@ -25,6 +25,7 @@ points at it.
 | Engine formulas, parameter units, API shapes, solver rules                          | [`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md)                 |
 | UI presentation rules, tooltips, panel layout, control conventions, chart behaviour | [`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md)                         |
 | What the app remembers, and when an edit commits                                    | [`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md)             |
+| Concrete API vs Dynamic Field Set domain architecture trade-offs                    | [`docs/design/DYNAMIC_FIELD_SET_VS_CONCRETE_API.md`](docs/design/DYNAMIC_FIELD_SET_VS_CONCRETE_API.md) |
 | WinISD's `.wdr`/`.wpr` byte format, reverse-engineered                              | [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md)         |
 | Work items and gaps                                                                 | [`BACKLOG.md`](BACKLOG.md), [`docs/plans/`](docs/plans/)               |
 | Dev workflow, ports, testing strategy                                               | [`AGENTS.md`](AGENTS.md), [`openspec/project.md`](openspec/project.md) |

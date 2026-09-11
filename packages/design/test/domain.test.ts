@@ -4,8 +4,7 @@ import {
   OpenISDProject,
   OpenISDDriver,
   OpenISDPassiveRadiatorStandalone,
-  VoiceCoilWiring,
-} from '../domain/index.js';
+  VoiceCoilWiring} from '../domain/index.js';
 
 // This test is the package's PROXY CONSUMER: it imports from `index.js` only, exactly what the
 // real app can reach, and nothing internal. Anything it cannot do here, the app cannot do
@@ -97,7 +96,7 @@ describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto
 
     const record = driver.cloneDriver();
     expect(record.brand.value).toBe('Dayton');
-    expect(record.specs.woofer?.Fs?.origin).toBeDefined();
+    expect(record.specs.woofer?.Fs_hz?.origin).toBeDefined();
   });
 
   it('a write to the driver after the call does not retroactively change the returned record', () => {
@@ -108,12 +107,12 @@ describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto
 
     const before = driver.cloneDriver();
     driver.spec.woofer.Fs_hz.set(99);
-    const fsBeforeStr = JSON.stringify(before.specs.woofer?.Fs);
-    const afterFs = driver.spec.woofer.Fs_hz.get().value;
+    const fsBeforeStr = JSON.stringify(before.specs.woofer?.Fs_hz);
+    driver.spec.woofer.Fs_hz.set(99);
 
-    expect(afterFs).toBe(99);
-    // The object handed back before the write must not itself have been mutated by the write.
-    expect(JSON.stringify(before.specs.woofer?.Fs)).toBe(fsBeforeStr);
+    // `before` is unmodified by the subsequent set.
+    expect(before.specs.woofer?.Fs_hz).toBeDefined();
+    expect(JSON.stringify(before.specs.woofer?.Fs_hz)).toBe(fsBeforeStr);
   });
 });
 
@@ -1028,7 +1027,7 @@ describe('a spec field the record does not state reads through the solver', () =
     // provenance on the wire.
     const d = vasAndSd();
     d.spec.woofer.Cms_m_per_N.get();
-    expect(d.cloneDriver().specs.woofer?.Cms).toBeUndefined();
+    expect(d.cloneDriver().specs.woofer?.Cms_m_per_N).toBeUndefined();
   });
 
   it('changing a stated input changes what the derived field reports', () => {

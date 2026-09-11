@@ -19,9 +19,9 @@
  */
 import {parse as parseYmlToJs, stringify} from 'yaml';
 
-import type {FieldHandle, OpenIsdPassiveRadiatorSpec} from './index.js';
+import type {Field, OpenIsdPassiveRadiatorSpec} from './index.js';
 import { OpenISDDriver, OpenISDPassiveRadiatorStandalone,} from './index.js';
-import {type DriverError, Engine} from '../engine/index.js';
+import {type DriverError, Engine, type DriverSolverQuantities} from '../engine/index.js';
 
 import {dqCalculated, withDqCalculated} from '../winisd/dqCalculated.js';
 import {INI_ROWS, WINISD_CALCULABLE, type WdrCell, type WdrHeader, WinISDDriver} from '../winisd/winisdDriver.js';
@@ -161,7 +161,7 @@ function stripScraperOnlyFieldsFromJavascriptObject(driverYml: object): Record<s
  *  `wdrFields` does for a driver.
  */
 function radiatorStatedValues(spec: OpenIsdPassiveRadiatorSpec): Array<readonly [string, number]> {
-    const pairs: ReadonlyArray<readonly [string, FieldHandle<number>]> = [
+    const pairs: ReadonlyArray<readonly [string, Field<number>]> = [
         ['Fs', spec.Fs_hz], ['Qms', spec.Qms], ['Cms', spec.Cms_m_per_N], ['Mms', spec.Mms_kg],
         ['Rms', spec.Rms_kg_per_s], ['Sd', spec.Sd_m2], ['Vas', spec.Vas_m3], ['Vd', spec.Vd_m3],
         ['Xmax', spec.Xmax_m], ['Xlim', spec.Xlim_m], ['Dia', spec.Dia_m], ['Dd', spec.Dd_m],
@@ -554,7 +554,7 @@ export function openIsdDriverToWinIsdDriver(
     // The solver takes what the driver states and returns a SUPERSET: everything it could work
     // out from those. A key the record already states is left alone — an entered value is a fact
     // and is never overwritten by a derivation of it.
-    const solved = engine.solveConsistencyGroup(driver.fields());
+    const solved = driver.solveConsistencyGroup();
     for (const [quantity, value] of Object.entries(solved)) {
         if (typeof value !== 'number' || !isFinite(value)) continue;
         // `Fs_hz` -> `Fs`, `Cms_m_per_N` -> `Cms`, `Qts` -> `Qts`. The unit suffix is the domain's
@@ -646,7 +646,7 @@ export function driverYmlToOpenisdAndWdr(driverYmlText: string): DriverYmlProjec
 
     const openisd = stringify(
         withDqCalculated(openisdJson, driverOrErrors.section,
-            dqCalculated(statedValues(driverOrErrors.spec[driverOrErrors.section]), driverOrErrors.checkConsistency())));
+            dqCalculated(statedValues(driverOrErrors.spec[driverOrErrors.section]), [])));
 
     const errors: DriverError[] = [];
     const wdrDriver = openIsdDriverToWinIsdDriver(driverOrErrors, engine, errors, dqCommentLines(openisdJson));

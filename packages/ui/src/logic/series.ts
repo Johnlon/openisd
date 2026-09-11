@@ -1,5 +1,5 @@
 import { Engine } from '@openisd/design/engine';
-import type { SolverQuantities, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/design/engine';
+import type { DriverSolverQuantities, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/design/engine';
 import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
@@ -59,7 +59,7 @@ interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boo
 /** Everything a curve builder may read. */
 interface CurveCtx {
   meta: TabMeta;
-  drv: SolverQuantities;
+  drv: DriverSolverQuantities;
   box: BoxType;
   P: PlotParams;
   sw: SweepResult;
@@ -244,7 +244,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
 };
 
 export function seriesFor(tabId: ChartTabId,
-                          drv: SolverQuantities,
+                          drv: DriverSolverQuantities,
                           box: BoxType,
                           P: PlotParams,
                           sw: SweepResult,

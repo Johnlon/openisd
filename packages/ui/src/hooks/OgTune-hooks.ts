@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useFocusedProject } from '../logic/focusedProjectContext.js';
 import { ebpOf } from '../logic/environment.js';
 import { cellClassFor, consistencyNote } from '../logic/useDriverCells.js';
-import type { Cell, FieldHandle } from '@openisd/design';
+import type { Cell, Field } from '@openisd/design';
 import { createCell } from '@openisd/design';
 import type { NumSpecField } from '../logic/appState.js';
 import { specFieldHandle } from '../logic/driverSpecFields.js';
@@ -14,7 +14,7 @@ export type { NumSpecField };
 export interface OgTuneAPI {
   readonly ebp: Readonly<Ref<number | null>>;
 
-  specField(key: NumSpecField): FieldHandle<number>;
+  specField(key: NumSpecField): Field<number>;
   fieldCell(key: NumSpecField): Cell<number>;
   cellClass(key: NumSpecField): string;
   cellVal(key: NumSpecField): number | null;
@@ -29,7 +29,7 @@ export const OgTuneKey: InjectionKey<OgTuneAPI> = Symbol('OgTuneAPI');
 export function useOgTune(): OgTuneAPI {
   const project = useFocusedProject();
 
-  function specField(key: NumSpecField): FieldHandle<number> {
+  function specField(key: NumSpecField): Field<number> {
     const handle = specFieldHandle(project.value.driver, key);
     if (!handle) {
       throw new Error(`specFieldHandle returned null for numeric field ${key}`);
@@ -81,15 +81,15 @@ export function useOgTune(): OgTuneAPI {
 }
 
 export function createMockOgTuneAPI(overrides?: Partial<OgTuneAPI>): OgTuneAPI {
-  const dummyHandle: FieldHandle<number> = {
-    get: () => createCell(30, 'entered'),
+  const dummyHandle = {
+    get: () => createCell<number>('', 30, 'entered'),
     set: () => {},
     clear: () => {},
-  };
+  } as unknown as Field<number>;
   return {
     ebp: ref(50),
     specField: () => dummyHandle,
-    fieldCell: () => createCell(30, 'entered'),
+    fieldCell: () => createCell<number>('', 30, 'entered'),
     cellClass: () => 'cell-ok',
     cellVal: () => 30,
     dqNote: () => null,

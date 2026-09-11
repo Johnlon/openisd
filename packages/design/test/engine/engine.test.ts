@@ -1,3 +1,4 @@
+import { solveConsistencyGroup } from './testSolver.js';
 /**
  * OpenISD — engine physics tests
  *
@@ -11,7 +12,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SweepParams, SolverQuantities } from '../../engine/index.js';
+import type { SweepParams, DriverSolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -30,7 +31,7 @@ const refC = (): number => engine.airFor({}).c;
 // Values chosen to be representative of a real driver without depending on
 // any specific commercial product.  All parameters are in SI units.
 // ---------------------------------------------------------------------------
-const REF_DRIVER: SolverQuantities = {
+const REF_DRIVER: DriverSolverQuantities = {
   Fs_hz:   37,      // Hz  — free-air resonance
   Qts:  0.38,    // —   — total Q at Fs
   Qes:  0.40,    // —   — electrical Q at Fs
@@ -94,14 +95,13 @@ describe('Sealed box simulation', () => {
     // We set Le = 0 to isolate the acoustic response from voice-coil inductance.
     // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
     const Vb_m3 = 0.020; // 20 L enclosure volume in m³
-    const d = engine.solveConsistencyGroup({ ...REF_DRIVER});
+    const d = solveConsistencyGroup({ ...REF_DRIVER});
     assert.ok(d);
     const fc  = d.Fs_hz!  * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
     const Qtc = d.Qts! * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
     const { fs, spl } = engine.sweep(d, LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6, // Ql -> ∞ = lossless box (isolates acoustic response)
-      eg: 2.83, fmin: 10, fmax: 1000, N: 300,
-    }).value!;
+      eg: 2.83, fmin: 10, fmax: 1000, N: 300}).value!;
     const passbandRef = spl.at(-1)!; // HF asymptote — reference level
     let maxError = 0;
     for (let i = 0; i < fs.length; i++) {
@@ -126,7 +126,7 @@ describe('Sealed box simulation', () => {
     // in engine.sweep().value! against the closed form, not one copy of a constant against another.
     const Vb_m3 = 0.020;
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
-    const d = engine.solveConsistencyGroup({ ...REF_DRIVER});
+    const d = solveConsistencyGroup({ ...REF_DRIVER});
     assert.ok(d);
     const eta0  = engine.referenceEfficiency(d.Fs_hz!, d.Vas_m3!, d.Qes!, engine.airFor({}));
     const predicted = engine.splFromEfficiency(eta0, engine.airFor({})) + 10 * Math.log10(EG ** 2 / d.Re_ohm!);
@@ -152,7 +152,7 @@ describe('Sealed box simulation', () => {
     const F3_QSPEAKERS_HZ = 70.72; // Hz — f3 from QSpeakers formula, REF_DRIVER, 20 L, lossless
 
     const Vb_m3 = 0.020;
-    const d = engine.solveConsistencyGroup({ ...REF_DRIVER});
+    const d = solveConsistencyGroup({ ...REF_DRIVER});
     assert.ok(d);
     const { fs, spl } = engine.sweep(d, LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)
@@ -196,7 +196,7 @@ describe('Vented (bass-reflex) box simulation', () => {
   const wb     = 2 * Math.PI * Fb_Hz;
   const Map    = 1 / (wb * wb * Cab); // acoustic mass for Fb
   const Leff   = Map * Sp_m2 / refRho();  // effective duct length (including end correction)
-  const d = engine.solveConsistencyGroup(REF_DRIVER);
+  const d = solveConsistencyGroup(REF_DRIVER);
   const { fs, spl, zmag } = engine.sweep(d, LE_H, 'vented', {
     Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
   }).value!;
@@ -253,7 +253,7 @@ describe('Passive radiator box simulation', () => {
     prXmax: 0.012,  // m  — PR linear excursion limit (12 mm)
     fmin: 10, fmax: 1000, N: 300,
   };
-  const d = engine.solveConsistencyGroup(REF_DRIVER);
+  const d = solveConsistencyGroup(REF_DRIVER);
   const sw = engine.sweep(d, LE_H, 'box-passive-radiator', PR_PARAMS).value!;
 
   it('produces a non-zero excursion curve for the PR cone alongside the main driver curve', () => {

@@ -14,7 +14,7 @@ import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistr
 import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
-import type { Cell, FieldHandle } from '@openisd/design';
+import type { Cell, Field } from '@openisd/design';
 import { inputValue, listeningElement } from '../../../logic/domEvents.js';
 
 const project = useFocusedProject();
@@ -26,7 +26,7 @@ type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax'
 
 /** The field handle for one of this panel's keys, on the FOCUSED project's driver — the write
  *  goes straight onto the project, the same slot the Box/Driver panels write. */
-function specField(key: NumKey): FieldHandle<number> {
+function specField(key: NumKey): Field<number> {
   const s = project.value.driver.spec[project.value.driver.section];
   switch (key) {
     case 'Fs':   return s.Fs_hz;

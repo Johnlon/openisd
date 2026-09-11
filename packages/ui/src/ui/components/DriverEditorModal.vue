@@ -10,10 +10,10 @@ import { openDriverDraft } from '../../logic/driverDraft.js';
 import { specFieldHandle } from '../../logic/driverSpecFields.js';
 import { readDriverFileText } from '../../logic/driverFileText.js';
 import { driverToWdrBytes, driverToOwdrBytes, wdrTextToDriver, owdrTextToDriver } from '../../logic/fileImportExport.js';
-import type { Cell, FieldHandle } from '@openisd/design';
+import { createCell, type Cell, type Field } from '@openisd/design';
 
 function cellOf(field: string): Cell<number> {
-  return fieldOf(field)?.get() ?? { value: null, state: 'not-available', dq: () => null };
+  return fieldOf(field)?.get() ?? createCell<number>('', null, 'not-available');
 }
 import type { SpecField } from '../../logic/appState.js';
 import NumInput from './NumInput.vue';
@@ -186,7 +186,7 @@ function setWiring(e: Event) {
  *  than a number, so it cannot be read as a numeric cell and the template binds it through
  *  `driverRaw.VCCon` instead. Returning null rather than asserting a type keeps the compiler
  *  proving the numeric reads, which is what a cast here would have switched off. */
-function fieldOf(field: string): FieldHandle<number> | null {
+function fieldOf(field: string): Field<number> | null {
   const _ = trigger.value;
   return specFieldHandle(draftDriver.value, field);
 }

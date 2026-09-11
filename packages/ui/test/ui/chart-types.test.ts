@@ -19,6 +19,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '@openisd/design/engine';
+import { solveConsistencyGroup } from '@openisd/design/engine';
 import type { SweepParams } from '@openisd/design/engine';
 import { TABS, TAB_META, parseChartTabId, seriesFor } from '../../src/logic/series.js';
 import type { ChartTabId, PlotParams } from '../../src/types.js';
@@ -29,7 +30,7 @@ const RAW: Record<string, number> = {
 };
 // The solver derives what the stated values imply, terminal Re/BL included — there is no
 // separate derive-and-validate step, and `sweep` is what reports a driver it cannot use.
-const DRV = new Engine().solveConsistencyGroup({
+const DRV = solveConsistencyGroup({
   Fs_hz: RAW.Fs, Qts: RAW.Qts, Qes: RAW.Qes, Qms: RAW.Qms, Vas_m3: RAW.Vas,
   Sd_m2: RAW.Sd, Re_ohm: RAW.Re, Xmax_m: RAW.Xmax, Pe_W: RAW.Pe, Znom_ohm: RAW.Znom,
 });

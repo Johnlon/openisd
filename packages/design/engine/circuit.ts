@@ -31,7 +31,7 @@ import { airFor } from './air.js';
 import { hotRe } from './solver.js';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cScale, cPar, cTanh } from './complex.js';
 import type { Complex, BoxType, SweepParams, Solution } from './types.js';
-import type { SolverQuantities } from './solverQuantities.js';
+import type { DriverSolverQuantities } from './solverQuantities.js';
 
 export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): number {
   return w * Map / (P.Qp || 100);
@@ -89,15 +89,13 @@ export function portImpedance(w: number, P: SweepParams): Complex {
  */
 /** The quantities the circuit CANNOT run without, every one required — measured, not declared:
  *  each is read unguarded below. `Le_H` is the only optional one, and absent means 0 H (no
- *  inductor specified), never unknown. Built from `SolverQuantities` so the two cannot drift. */
-export type CircuitQuantities =
-  Required<Pick<SolverQuantities, 'Sd_m2' | 'Re_terminal_ohm' | 'BL_terminal_Tm' | 'Cms_m_per_N' | 'Mms_kg' | 'Rms_kg_per_s'>>
-  & {
+ *  inductor specified), never unknown. Built from `DriverSolverQuantities` so the two cannot drift. */
+export interface CircuitQuantities extends Required<Pick<DriverSolverQuantities, 'Sd_m2' | 'Re_terminal_ohm' | 'BL_terminal_Tm' | 'Cms_m_per_N' | 'Mms_kg' | 'Rms_kg_per_s'>> {
     /** Voice-coil inductance. The ONLY optional member, and the only quantity here that is not a
      *  solver quantity — absent means no inductor specified, i.e. 0 H, never unknown. It affects
      *  the impedance plot alone (`Zcoil` below), which is why a driver without it still sweeps. */
     Le_H?: number;
-  };
+}
 
 export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepParams): Solution {
   const w      = 2 * Math.PI * f;

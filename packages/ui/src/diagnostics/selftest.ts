@@ -26,7 +26,8 @@
  * See ARCHITECTURE.md AD-5 for the full rationale.
  */
 import { Engine } from '@openisd/design/engine';
-import type { AirEnvironment, SweepParams, SolverQuantities } from '@openisd/design/engine';
+import { solveConsistencyGroup } from '@openisd/design/engine';
+import type { AirEnvironment, SweepParams, DriverSolverQuantities } from '@openisd/design/engine';
 
 // No environment reaches this diagnostic's own closed-form reference, so it states the empty
 // environment: every field of `AirEnvironment` is optional and falls back to the reference
@@ -115,14 +116,14 @@ export function createDiagnostics(deps: DiagnosticsDeps): Diagnostics {
 function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
   const engine = new Engine();
   const refAir = engine.airFor(REF_ENV);
-  const q: SolverQuantities = {
+  const q: DriverSolverQuantities = {
     Fs_hz: REF_FS_HZ, Re_ohm: REF_RE_OHM, Znom_ohm: REF_ZNOM_OHM,
     Qts: REF_QTS, Qes: REF_QES, Qms: REF_QMS,
     Vas_m3: REF_VAS_M3, Sd_m2: REF_SD_M2,
     Xmax_m: REF_XMAX_M, Pe_W: REF_PE_W,
   };
-  const solved = engine.solveConsistencyGroup(q);
-  const d: SolverQuantities = {
+  const solved = solveConsistencyGroup(q);
+  const d: DriverSolverQuantities = {
     ...solved,
     Re_terminal_ohm: solved.Re_ohm === undefined ? undefined
       : engine.terminalRe_ohm(solved.Re_ohm, solved.numVC, solved.wiring),

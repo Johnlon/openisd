@@ -65,6 +65,8 @@
   "dependencies": {
     "@openisd/engine": "*",
     "@openisd/winisd": "*",
+    "chatgpt": "^5.2.5",
+    "glob": "^13.0.6",
     "vue": "^3.5.38"
   }
 }

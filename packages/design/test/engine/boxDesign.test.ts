@@ -23,7 +23,7 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
 import type { SweepParams } from '../../engine/index.js';
-import type { SolverQuantities } from '../../engine/index.js';
+import type { DriverSolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -375,7 +375,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
     // Stated in full, so no relation has to run — but the TERMINAL Re and BL still have to be
     // derived beside the stated per-coil values, because that pair is what `sweep` reads. One
     // coil here, so terminal equals per-coil.
-    const drv: SolverQuantities = {
+    const drv: DriverSolverQuantities = {
       Fs_hz: 40,
       Vas_m3: 0.010,
       Qts: 0.4,

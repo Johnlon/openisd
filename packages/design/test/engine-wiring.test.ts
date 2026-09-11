@@ -117,7 +117,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const mine = project.sweep(P).value;
     expect(mine).not.toBeNull();
     const theirs = engine.sweep(
-      project.driver.solveConsistencyGroup(), project.driver.Le_H()!, 'sealed',
+      project.driver.solveConsistencyGroup() as any, project.driver.Le_H()!, 'sealed',
       {
         Vb: 0.03, eg: project.driveVoltage_V()!, fmin: 10, fmax: 1000, N: 100,
         Ql: project.box.sealed.losses.Ql.get(), Qa: project.box.sealed.losses.Qa.get(),
@@ -337,6 +337,6 @@ describe('E — the signal', () => {
 
 // The voice-coil block is GONE. It tested `terminalRe_ohm`/`terminalBL_Tm` as driver methods.
 // They are now engine functions, and the terminal values are their OWN fields on
-// `SolverQuantities` rather than a rewrite of `Re_ohm`/`BL_Tm` — so what needs covering is that
+// `DriverSolverQuantities` rather than a rewrite of `Re_ohm`/`BL_Tm` — so what needs covering is that
 // the stated per-coil value SURVIVES, which is a different assertion from the one this block made.
 

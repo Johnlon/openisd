@@ -6,7 +6,7 @@
 // domain/index.ts").
 
 export { createCell } from './cell.js';
-export type { Cell, FieldHandle, RawField } from './cell.js';
+export type { Cell, Field, RawField } from './cell.js';
 export type { VentShape, Vent } from './vent.js';
 // A VALUE export, not a type-only one: `VoiceCoilWiring.Series` must be usable at runtime, which
 // is the whole point of it being an enum rather than a bare string literal.
@@ -29,19 +29,11 @@ export type {
   VentedChamber,
   FrequencyGrid,
 } from './openisdDomain.js';
-// `export type`, not `export` — DELIBERATE, and the general rule here: a consumer gets the TYPE
-// to annotate with, never the class VALUE. `export type` omits the runtime binding entirely, so
-// there is no constructor to call and no static to reach; `OpenISDDriver.sectionOf(...)` and
-// friends are simply not there.
-//
-// That an API is worth exposing never implies its construction is: `project.driver` should be a
-// visible, usable `OpenISDDriver`, while MAKING one stays the project's business. Creating any
-// of these is a factory's job — a function, exported as a value, speaking in public types — and
-// no such factory exists yet (see the note below).
+// We export these strictly as types to ensure encapsulation. Consumers can annotate variables with these types, but must construct them via factory functions instead of calling the class constructors directly.
 export { OpenISDDriver, OpenISDDriverStandalone } from './openisdDomain.js';
 
 // Also NOT exported (consumers cannot construct these directly):
-//   `Field` — use `FieldHandle`/`RawField` interface.
+//   `Field` — use `Field`/`RawField` interface.
 //   `OpenISDBox` class — use `Box` interface.
 //   `OpenISDPassiveRadiator` — requires private JSON to build.
 //   `OpenISDDriverEmbedded`/`OpenISDDriverStandalone` — use `OpenISDDriver` base.

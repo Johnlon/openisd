@@ -1,3 +1,4 @@
+import { solveConsistencyGroup } from './testSolver.js';
 /**
  * WinISD's Advanced-pane figures of merit — Rme, Mpow, gamma, SPLmax, USPL, Gloss, SPLmaxLF,
  * Mcost.
@@ -39,13 +40,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Engine } from '../../engine/index.js';
-import type { SolverQuantities } from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
 
 /** Beyma 10BR60/V2, the real fixture whose stored Bl disagrees with its own Fs/Mms/Re/Qes. */
-const BEYMA: SolverQuantities = {
+const BEYMA: any = {
   Fs_hz: 29.0, Mms_kg: 0.044, Cms_m_per_N: 0.000693, Rms_kg_per_s: 2.4,
   BL_Tm: 10.9, Re_ohm: 6.5, Qes: 0.44, Qms: 3.3, Sd_m2: 0.038,
 };
@@ -53,8 +53,8 @@ const BEYMA: SolverQuantities = {
 // TYPED, not `Record<string, number>` with a cast on each end. The cast this replaces made every
 // name in this file invisible to the compiler: stale keys went in, matched nothing, and every
 // derived figure came back `undefined` while the suite still built.
-const solve = (d: SolverQuantities): Readonly<SolverQuantities> =>
-  engine.solveConsistencyGroup(d);
+const solve = (d: any): Readonly<any> =>
+  solveConsistencyGroup(d);
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
@@ -75,13 +75,13 @@ function wdrNumbers(name: string): Record<string, number> {
 const ORACLE = wdrNumbers('john-all-noncalc-fields-manually-entered.wdr');
 // The left of each pair is the solver's unit-suffixed name; the right is the `.wdr` key, which is
 // WinISD's own spelling and is not ours to rename. This IS the mapping between the two vocabularies.
-const ORACLE_INPUTS: SolverQuantities = {
+const ORACLE_INPUTS: any = {
   Fs_hz: ORACLE.Fs, Mms_kg: ORACLE.Mms, Xmax_m: ORACLE.Xmax, Qes: ORACLE.Qes, Qms: ORACLE.Qms,
   Re_ohm: ORACLE.Re, Sd_m2: ORACLE.Sd, Vd_m3: ORACLE.Vd, Hc_m: ORACLE.Hc, Hg_m: ORACLE.Hg,
   c_m_per_s: ORACLE.c, roo_kg_per_m3: ORACLE.roo,
 };
 
-/** A figure the solver was expected to derive. Every `SolverQuantities` member is optional —
+/** A figure the solver was expected to derive. Every `any` member is optional —
  *  absent means "not derived" — so reading one for an assertion has to say which it is. A missing
  *  derivation then fails as `Rme_kg_per_s was not derived`, where bare arithmetic on `undefined`
  *  yielded a NaN comparison and a message that named no cause. */
@@ -322,12 +322,12 @@ describe('Xmax route precedence is on the RESULT, not the route (QO39 probe case
   it('an equal overhang is not an excursion limit — it falls through to Vd/Sd', () => {
     // Hc === Hg makes abs(Hc-Hg)/2 zero. WinISD does not accept that as Xmax; it uses the
     // other route. Expected value is independent of the code: 140e-6 / 0.0095.
-    const r = engine.solveConsistencyGroup({ Hc_m: 0.012, Hg_m: 0.012, Vd_m3: 140e-6, Sd_m2: 0.0095 }) as Record<string, number>;
+    const r = solveConsistencyGroup({ Hc_m: 0.012, Hg_m: 0.012, Vd_m3: 140e-6, Sd_m2: 0.0095 }) as Record<string, number>;
     assert.ok(Math.abs(r.Xmax_m - 140e-6 / 0.0095) < 1e-15, `Xmax was ${r.Xmax_m}`);
   });
 
   it('an unequal overhang wins over Vd/Sd', () => {
-    const r = engine.solveConsistencyGroup({ Hc_m: 0.0176, Hg_m: 0.006, Vd_m3: 140e-6, Sd_m2: 0.0095 }) as Record<string, number>;
+    const r = solveConsistencyGroup({ Hc_m: 0.0176, Hg_m: 0.006, Vd_m3: 140e-6, Sd_m2: 0.0095 }) as Record<string, number>;
     assert.ok(Math.abs(r.Xmax_m - 0.0058) < 1e-15, `Xmax was ${r.Xmax_m}`);
   });
 });

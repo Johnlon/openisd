@@ -1,3 +1,4 @@
+import { solveConsistencyGroup } from './testSolver.js';
 /**
  * Unit tests for src/core/sweep.js — targeting the branch coverage gaps
  * not covered by engine.test.mjs:
@@ -29,7 +30,7 @@ const engine = new Engine();
 // Reference driver: same synthetic 6.5" mid-woofer as engine.test.mjs
 
 
-const DRV = engine.solveConsistencyGroup({
+const DRV = solveConsistencyGroup({
   Fs_hz:   37,      // Hz
   Qts:  0.38,
   Qes:  0.40,
@@ -128,7 +129,7 @@ describe('sweep — fmin=fmax produces constant-frequency sweep where dw=0', () 
 describe('maxCurves — one limit absent falls back to the other (never poisons the curve)', () => {
   it('driver without Pe → curve is Xmax-limited and finite (no thermal limit, no fabricated default)', () => {
     // Pe absent → vPe = Infinity; the excursion (Xmax) limit alone bounds the curve.
-    const drvNoPe = engine.solveConsistencyGroup({
+    const drvNoPe = solveConsistencyGroup({
       Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
       Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.005,
     });
@@ -151,7 +152,7 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
     // Regression: Xmax=0 used to make vXmax=0 → vUse=0 → maxspl=-Infinity, maxpwr=0
     // (blank Max-SPL/Max-power charts). Xmax=0 must be treated as "no excursion limit"
     // so the Pe (thermal) limit alone bounds the curve.
-    const drvXmax0 = engine.solveConsistencyGroup({
+    const drvXmax0 = solveConsistencyGroup({
       Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
       Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Pe_W: 60, Xmax_m: 0,
     });

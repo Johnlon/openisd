@@ -1,26 +1,28 @@
-import type {CellState} from "../winisd/index.js";
+import type { FieldState, SolverField } from '../engine/solverTypes.js';
 
-/** A field's value AND its provenance together, in one call — never split into a separate
- *  value getter and a separate provenance getter (they could drift out of sync in a caller). */
 export interface Cell<T> {
+  readonly name: string;
+
   readonly value: T | null;
-  readonly state: CellState;
-  dq(): string | null;
+  readonly state: FieldState;
+  dq(): readonly string[];
 }
 
 export function createCell<T>(
+  name: string,
   value: T | null,
-  state: CellState,
-  dq?: string | null | (() => string | null),
+  state: FieldState,
+  dq?: readonly string[],
 ): Cell<T> {
-  const getDq = typeof dq === 'function' ? dq : () => dq ?? null;
+  const dqArray = dq ?? [];
   const cell: Cell<T> = {
+    name,
     value,
     state,
-    dq: getDq,
+    dq: () => dqArray,
   };
   Object.defineProperty(cell, 'dq', {
-    value: getDq,
+    value: () => dqArray,
     writable: true,
     configurable: true,
     enumerable: false,
@@ -28,65 +30,74 @@ export function createCell<T>(
   return cell;
 }
 
-/** A stored field that IS part of a solve relation, so it carries provenance.
- *
- *  Same VERBS as `RawField` — `get`/`set` mean the same thing on both, so a client never has to
- *  learn a second vocabulary for reading and writing depending on which kind of field it holds.
- *  What differs is what `get()` can tell you (value AND provenance, not just the value) and the
- *  extra `clear()`, which is a real additional capability rather than a rename of an existing
- *  one: only a solved field has an Entered mark to remove. */
-export interface FieldHandle<T> {
-  get(): Cell<T>;
-  set(v: T): void;
-  clear(): void;
-}
-
-/** A stored field with NO solve relation and no provenance to track — a loss factor, a box
- *  type, a count. Still a HANDLE, not a bare `X()`/`setX()` method pair on its parent: every
- *  stored field in this domain is reached the same way, with the same verbs, so a caller never
- *  has to remember which kind a given field is. `FieldHandle` and `RawField` differ in what they
- *  can DO — one is part of a solve relation and carries provenance, the other is not and does
- *  not — never in shape or vocabulary.
- *
- *  A derived, read-only CALCULATION (`resonance_hz()`, `area_m2()`) is deliberately NOT a
- *  handle: it is not a stored field, has nothing to set, and stays a plain method. */
 export interface RawField<T> {
   get(): T;
   set(v: T): void;
 }
 
-/** The one concrete `FieldHandle` implementation — consistent get/enter/clear logic in ONE
- *  place, driven by three small callbacks the owning class supplies, instead of every field
- *  hand-writing its own copy of the same three-method shape. */
-export class Field<T> implements FieldHandle<T> {
+export class Field<T> implements SolverField<T> {
+  private isCalculated = false;
+  private derivedValue: T | null = null;
+  private dqList: string[] = [];
+
   constructor(
     private readonly readCell: () => Cell<T>,
     private readonly writeValue: (v: T) => void,
     private readonly clearValue: () => void,
   ) {}
 
-  get(): Cell<T> { return this.readCell(); }
-  set(v: T): void { this.writeValue(v); }
-  clear(): void { this.clearValue(); }
+  private getEffectiveCell(): Cell<T> {
+    const cell = this.readCell();
+    if (cell.state === 'entered') {
+      if (this.dqList.length > 0) {
+        return createCell(cell.name, cell.value, 'entered', this.dqList);
+      }
+      return cell;
+    }
+    if (this.isCalculated && this.derivedValue !== null) {
+      return createCell(cell.name, this.derivedValue, 'calculated', this.dqList.length > 0 ? this.dqList : undefined);
+    }
+    return createCell<T>(cell.name, null, 'not-available');
+  }
+
+  get name(): string { return this.readCell().name; }
+    get value(): T | null { return this.getEffectiveCell().value; }
+  get state(): FieldState { return this.getEffectiveCell().state; }
+  get entered(): boolean { return this.state === 'entered'; }
+  get calculated(): boolean { return this.state === 'calculated'; }
+  get notAvailable(): boolean { return this.state === 'not-available'; }
+  get dq(): readonly string[] { return this.dqList; }
+
+  get(): Cell<T> { return this.getEffectiveCell(); }
+
+  clear(): void { this.setNotAvailable(); }
+  set(v: T): void {
+    this.writeValue(v);
+  }
+
+  setNotAvailable(): void {
+    this.clearValue();
+    this.isCalculated = false;
+    this.derivedValue = null;
+    this.dqList = [];
+  }
+
+  setCalculated(value: T, dq?: string[]): void {
+    this.isCalculated = true;
+    this.derivedValue = value;
+    this.dqList = dq ?? [];
+  }
+
+  setDq(dq?: string[]): void {
+    this.dqList = dq ?? [];
+  }
 }
 
-// ---------------------------------------------------------------------------------------------
-// LENSES, and the field constructors built on them. Generic plumbing: nothing here knows any
-// domain type, which is why it lives beside `Field` rather than in the domain file that happens
-// to use it.
-// ---------------------------------------------------------------------------------------------
-
-/** A get/set pair onto one slice of somebody else's storage. Composable: `focus()` derives a
- *  lens on a property from a lens on its parent, so a chamber's losses lens is the box lens
- *  narrowed twice — every write still lands as one copy-on-write update of the whole box
- *  record, because each level rebuilds its parent through the level above it. */
 export interface Lens<T> {
   get(): T;
   set(v: T): void;
 }
 
-/** `key` must name a real property of the parent, and the lens you get back is over
- *  whatever that property holds. */
 export function focus<P, K extends keyof P>(parent: Lens<P>, key: K): Lens<P[K]> {
   return {
     get: () => parent.get()[key],
@@ -94,8 +105,6 @@ export function focus<P, K extends keyof P>(parent: Lens<P>, key: K): Lens<P[K]>
   };
 }
 
-/** A `FieldHandle` over a nullable numeric slot — absent reads as `not-available`, and `clear()`
- *  returns it to absent rather than to a fabricated zero. */
 export function nullableField<K extends PropertyKey, T extends Record<K, number | null>>(
   lens: Lens<T>,
   key: K,
@@ -104,10 +113,16 @@ export function nullableField<K extends PropertyKey, T extends Record<K, number 
   return new Field<number>(
     () => {
       const v = lens.get()[key];
+      let dqList: string[] | undefined = undefined;
+      if (getDq) {
+        const d = getDq(v);
+        if (d) dqList = [d];
+      }
       return createCell<number>(
+        String(key),
         v,
         v === null ? 'not-available' : 'entered',
-        getDq ? () => getDq(v) : undefined,
+        dqList,
       );
     },
     (v) => lens.set({ ...lens.get(), [key]: v }),
@@ -115,8 +130,6 @@ export function nullableField<K extends PropertyKey, T extends Record<K, number 
   );
 }
 
-/** A `FieldHandle` over a non-nullable numeric slot — always present, so always `entered`, and
- *  `clear()` is a real error rather than a silent no-op: there is no absent state to return to. */
 export function requiredField<K extends PropertyKey, T extends Record<K, number>>(
   lens: Lens<T>,
   key: K,
@@ -126,10 +139,16 @@ export function requiredField<K extends PropertyKey, T extends Record<K, number>
   return new Field<number>(
     () => {
       const v = lens.get()[key];
+      let dqList: string[] | undefined = undefined;
+      if (getDq) {
+        const d = getDq(v);
+        if (d) dqList = [d];
+      }
       return createCell<number>(
+        String(key),
         v,
         'entered',
-        getDq ? () => getDq(v) : undefined,
+        dqList,
       );
     },
     (v) => lens.set({ ...lens.get(), [key]: v }),

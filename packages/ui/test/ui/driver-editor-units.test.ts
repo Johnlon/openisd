@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WinISDDriver } from '@openisd/design/winisd';
 import { OpenISDDriver } from '@openisd/design';
-import type { FieldHandle } from '@openisd/design';
+import type { Field } from '@openisd/design';
 import type { CellState } from '@openisd/design/winisd';
 import { Engine } from '@openisd/design/engine';
 import { precision, fieldById } from '../../src/logic/fields/fieldRegistry.js';
@@ -135,9 +135,9 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
  *
  *  A name the numeric table does not own reads as not-available, which is what the editor
  *  renders for it. */
-function driverCellOf(d: OpenISDDriver, field: string): FieldHandle<number> {
+function driverCellOf(d: OpenISDDriver, field: string): Field<number> {
   return specFieldHandle(d, field)
-    ?? { get: () => ({ value: null, state: 'not-available' as CellState }) } as FieldHandle<number>;
+    ?? { get: () => ({ value: null, state: 'not-available' as CellState }) } as Field<number>;
 }
 
 const _engine = new Engine();
@@ -450,6 +450,6 @@ describe('driver editor — every bound cell is one the driver model answers', (
     const cell = driverCellOf(d, f.field as string);
     assert.equal(cell.get().state, 'calculated' as CellState, `Voicecoils cell is ${cell.get().state} — an unstated coil count reads as the default, derived`);
     assert.equal(cell.get().value, 1, 'and the default is WinISD\'s 1');
-    assert.equal(d.fields().numVC ?? 1, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');
+    assert.equal(d.spec[d.section].numVC.get().value ?? 1, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');
   });
 });

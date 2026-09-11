@@ -1,22 +1,7 @@
-// THE ENGINE — one instantiable class, and the only calculation surface the rest of the system
-// sees.
-//
-// John's ruling, 2026-08-27: "I want one instantiable Engine class that provides the calcs used
-// by the system - everything else becomes a private method inside the class - surface of engine
-// is the few methods needed by the project".
-//
-// WHY A CLASS RATHER THAN THE FREE FUNCTIONS NEXT DOOR: a calculation the system wants and this
-// class does not offer shows up as a MISSING METHOD. With free functions it shows up as nothing
-// at all, and the formula gets written inline in the caller instead — which is exactly how
-// `#sealedResonance` came to duplicate the engine's own sealed-resonance calc over frozen air
-// constants (deleted 2026-08-27, the origin of the geometry-in/acoustics-out ruling).
-//
-// THE SURFACE IS WHAT CALLERS ACTUALLY USE, and nothing else: the 21 behaviours the old
-// `packages/engine` barrel hands out today, measured from every `import ... from
-// '@openisd/engine'` in the tree. It grows when a caller needs something, never in anticipation.
-//
-// The sibling modules in this directory are the implementation. They are being folded in as
-// private methods; until that is finished these methods delegate to them.
+/**
+ * The Engine provides all calculations used by the system.
+ * The surface of the engine is the set of methods needed by the project.
+ */
 
 import { airFor } from './air.js';
 import type { Air, AirEnvironment } from './air.js';
@@ -26,9 +11,9 @@ import {
 import {
   prCmsFromVas, prFsWithMass, prMmdFromFs, prQms, prRmsFromQms, prVas,
 } from './formulas.js';
-import { checkConsistency, isQGroupField, qGroupIsIncomplete } from './consistency.js';
+import { isQGroupField, qGroupIsIncomplete } from './consistency.js';
 import {
-  solveConsistencyGroup, solveDriverConsistencyGroup,
+  solveDriverConsistencyGroup,
   solvePrConsistencyGroup, checkPrConsistency,
   solveVentConsistencyGroup, checkVentConsistency,
   terminalRe_ohm, terminalBL_Tm,
@@ -41,9 +26,9 @@ import {
   classifyFinite, classifyFlatClamp, classifyMaxFinite,
   maxCurves, passbandRef, rolloffFreq, sweep,
 } from './sweep.js';
-import type { ConsistencyIssue } from './consistency.js';
+
 import type { Result, Wiring } from './types.js';
-import type { SolverQuantities, DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
+import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, EnclosureParams, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
@@ -64,7 +49,6 @@ export class Engine {
 
   // ── THE DRIVER ────────────────────────────────────────────────────────────────────────────
 
-  /** Fill in whatever the entered driver values imply, leaving what they do not. */
   /** Re as the amplifier sees it: N coils of resistance r are r/N in parallel, N·r in series.
    *  A separate answer from `Re_ohm`, never a replacement for it. */
   terminalRe_ohm(Re_ohm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
@@ -76,38 +60,7 @@ export class Engine {
     return terminalBL_Tm(BL_Tm, numVC, wiring);
   }
 
-  /** Everything the stated quantities imply, filled in. The answer is READONLY: a caller wanting
-   *  different numbers asks again, and nothing can overwrite a stated value with a derived one. */
-  solveConsistencyGroup(d: Readonly<SolverQuantities>): Readonly<SolverQuantities> {
-    return solveConsistencyGroup(d);
-  }
-
-  solveDriverConsistencyGroup(d: Readonly<DriverSolverQuantities>): Readonly<DriverSolverQuantities> {
-    return solveDriverConsistencyGroup(d);
-  }
-
-  solvePrConsistencyGroup(p: Readonly<PrSolverQuantities>): Readonly<PrSolverQuantities> {
-    return solvePrConsistencyGroup(p);
-  }
-
-  checkPrConsistency(p: Readonly<PrSolverQuantities>): ConsistencyIssue[] {
-    return checkPrConsistency(p);
-  }
-
-  solveVentConsistencyGroup(p: Readonly<VentSolverQuantities>): Readonly<VentSolverQuantities> {
-    return solveVentConsistencyGroup(p);
-  }
-
-  checkVentConsistency(p: Readonly<VentSolverQuantities>): ConsistencyIssue[] {
-    return checkVentConsistency(p);
-  }
-
-  /** Everything the entered values disagree about.
-   *  The argument type is taken from the function being called, so the two cannot drift apart —
-   *  the same trick appears on several methods below. */
-  checkConsistency(entered: Parameters<typeof checkConsistency>[0]): ConsistencyIssue[] {
-    return checkConsistency(entered);
-  }
+  
 
   /** Whether `field` is one of the interdependent Q values. */
   isQGroupField(field: string): boolean {
@@ -268,12 +221,12 @@ export class Engine {
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
 
   /** The response, one complex value per frequency. */
-  sweep(drv: SolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
+  sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
     return sweep(drv, Le_H, box, P);
   }
 
   /** The limit curves — how loud before excursion or port velocity gives out. */
-  maxCurves(drv: SolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
+  maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
     return maxCurves(drv, Le_H, box, P);
   }
 

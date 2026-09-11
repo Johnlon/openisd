@@ -20,8 +20,7 @@ import { withAddedMass, solveConsistencyGroup } from './solver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { applyFilters } from './filters.js';
 import type { BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError, Result } from './types.js';
-import { QUANTITY_NAMES } from './solverQuantities.js';
-import type { SolverQuantities, QuantityName } from './solverQuantities.js';
+import type { DriverSolverQuantities } from './solverQuantities.js';
 import type { CircuitQuantities } from './circuit.js';
 
 /** SPL below this is the "no output" sentinel sweep() writes where |p| = 0, not a real level. */
@@ -145,7 +144,7 @@ function usableQuantity(v: number | undefined): v is number {
  * and finite, which is what the solver's own `setVal` requires before it will write a derived
  * field; the ANSWER this produces is structural — which relations can close — not numeric.
  */
-function plausibleValue(name: QuantityName): number {
+function plausibleValue(name: keyof DriverSolverQuantities): number {
   switch (name) {
     case 'Fs_hz': return 37;            case 'Re_ohm': return 5.6;
     case 'Znom_ohm': return 8;          case 'Qes': return 0.40;
@@ -172,7 +171,7 @@ function plausibleValue(name: QuantityName): number {
     // stated on its own, let the driver simulate", so the magnitude has to be plausible and
     // nothing more. KLe is Le·√(2π·fLe) at these two, so the three agree with each other.
     case 'Le_H': return 5.0e-4;         case 'fLe_hz': return 1000;
-    case 'KLe_H_sqrtHz': return 5.0e-4 * Math.sqrt(2 * Math.PI * 1000);
+    case 'KLe_H_sqrtHz': return 5.0e-4 * Math.sqrt(2 * Math.PI * 1000); case 'wiring': return 0; case 'numVC': return 0;
   }
   const unhandled: never = name;
   return unhandled;
@@ -188,8 +187,16 @@ function plausibleValue(name: QuantityName): number {
  *
  * Empty means no single field is enough: more than one thing is missing.
  */
-function singleFieldUnblockers(q: SolverQuantities): (QuantityName)[] {
-  const out: (QuantityName)[] = [];
+function singleFieldUnblockers(q: DriverSolverQuantities): (keyof DriverSolverQuantities)[] {
+  const out: (keyof DriverSolverQuantities)[] = [];
+  const QUANTITY_NAMES: (keyof DriverSolverQuantities)[] = [
+    'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms',
+    'Qts', 'Vas_m3', 'Sd_m2', 'Dd_m', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s',
+    'EBP_hz', 'Xmax_m', 'Vd_m3', 'Hc_m', 'Hg_m', 'Pe_W', 'no', 'SPLref_dB', 'SPL_dB',
+    'USPL_dB', 'SPLmax_dB', 'SPLmaxLF_dB', 'Rme_kg_per_s', 'Mpow_N_per_sqrtW',
+    'Mcost_kg_per_s', 'gamma_m_per_s2_A', 'Gloss', 'Vcd_m', 'Depth_m', 'MagDepth_m',
+    'Magnet_m', 'DVol_m3', 'c_m_per_s', 'roo_kg_per_m3'
+  ];
   for (const name of QUANTITY_NAMES) {
     // A terminal value cannot be STATED — it is derived from the per-coil value and the wiring —
     // so offering it as a way to unblock the sweep would be advice a user cannot act on.
@@ -204,13 +211,13 @@ function singleFieldUnblockers(q: SolverQuantities): (QuantityName)[] {
   return out;
 }
 
-function circuitQuantities(q: SolverQuantities, Le_H: number | undefined): Result<CircuitQuantities> {
+function circuitQuantities(q: DriverSolverQuantities, Le_H: number | undefined): Result<CircuitQuantities> {
   const bad: string[] = [];
   const errors: DriverError[] = [];
   // Returns the VALUE, not a verdict: a boolean stored in a const narrows nothing, so the object
   // built below would still see `number | undefined`. Handing back the number lets one
   // `=== undefined` check per name do the narrowing, with no assertion anywhere.
-  const need = (field: QuantityName, v: number | undefined): number | undefined => {
+  const need = (field: keyof DriverSolverQuantities, v: number | undefined): number | undefined => {
     if (v == null) { bad.push(field); return undefined; }
     if (!Number.isFinite(v) || v <= 0) {
       // A stated-but-impossible value is its own fault and its own message: naming an
@@ -255,7 +262,7 @@ function circuitQuantities(q: SolverQuantities, Le_H: number | undefined): Resul
   };
 }
 
-export function sweep(drv: SolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
+export function sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
   // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
   // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
   const d = withAddedMass(drv, P.driverAddedMass ?? 0);
@@ -381,7 +388,7 @@ export function classifyFlatClamp(sw: SweepResult): DriverError | null {
  * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
  *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function maxCurves(drv: SolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
+export function maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
   const swept = sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83 }));
   if (swept.value === null) return { value: null, errors: swept.errors };
   const base = swept.value;

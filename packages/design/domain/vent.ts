@@ -1,13 +1,13 @@
-import type { FieldHandle, RawField } from './cell.js';
+import type { Field, RawField } from './cell.js';
 
 export type VentShape = 'round' | 'slotted';
 
 export interface Vent {
   readonly shape: RawField<VentShape>;
-  readonly diameter_m: FieldHandle<number>;
-  readonly width_m: FieldHandle<number>;
-  readonly height_m: FieldHandle<number>;
-  readonly length_m: FieldHandle<number>;
+  readonly diameter_m: Field<number>;
+  readonly width_m: Field<number>;
+  readonly height_m: Field<number>;
+  readonly length_m: Field<number>;
   readonly endCorrection_m: RawField<number>;
   /** Cross-sectional area, or null when the dimensions this vent's own shape needs are not
    *  set. Null, not 0 and not NaN: 0 is a real (if absurd) port area, and absence is spelled

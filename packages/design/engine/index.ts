@@ -1,5 +1,4 @@
-// THE ENGINE'S ENTIRE PUBLIC SURFACE.
-//
+// Public API surface for the engine
 // One class, and the types its own method signatures name. Nothing else — no loose functions, no
 // constants, no lookup tables (John Lonergan, 2026-08-27: "you will export from engine nothing
 // but a single class Engine and the things that are required to be public on its api so that the
@@ -24,8 +23,9 @@ export type {
   EnclosureParams, Result, SweepParams, SweepResult,
 } from './types.js';
 // What the solver is GIVEN and what it RETURNS, which are one shape. A TYPE export: nothing
-// constructs a `SolverQuantities` — a caller writes an object literal and the solver hands one
+// constructs a `DriverSolverQuantities` — a caller writes an object literal and the solver hands one
 // back — so exporting the class as a VALUE would put a constructor on the engine's surface that
 // no consumer has ever called. The quantity-name list stays inside the engine: it exists for the
 // two internal loops, not for consumers.
-export type { SolverQuantities } from './solverQuantities.js';
+export type { DriverSolverQuantities } from './solverQuantities.js';
+export { solveConsistencyGroup } from './solver.js';

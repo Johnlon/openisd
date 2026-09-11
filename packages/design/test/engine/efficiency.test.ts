@@ -1,3 +1,4 @@
+import { solveConsistencyGroup } from './testSolver.js';
 /**
  * Reference efficiency η₀ and the 1 W/1 m sensitivity derived from it — the ONE
  * implementation, behind the engine's door.
@@ -83,7 +84,7 @@ describe('reference efficiency η₀ — WinISD oracle', () => {
 
 describe('the SOLVER fills SPL_dB from no — not just the raw formula', () => {
   it('solveConsistencyGroup derives SPL_dB when only no (and no SPL) is given', () => {
-    const filled = engine.solveConsistencyGroup({ no: W.no!, roo_kg_per_m3: W.roo!, c_m_per_s: W.c! });
+    const filled = solveConsistencyGroup({ no: W.no!, roo_kg_per_m3: W.roo!, c_m_per_s: W.c! });
     assert.ok(filled, 'the group must solve');
     assert.ok(filled!.SPL_dB != null, 'SPL_dB must be filled from no — the solver has no route to it');
     assert.ok(Math.abs(filled!.SPL_dB! - W.SPL!) < 1e-9,

@@ -1,3 +1,4 @@
+import { solvePrConsistencyGroup, solveVentConsistencyGroup, solveConsistencyGroup } from './engine/testSolver.js';
 import { describe, it, expect } from 'vitest';
 import { OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '../domain/openisdDomain.js';
 import { Engine } from '../engine/index.js';
@@ -114,9 +115,8 @@ describe('PR and Vent Solver Groups', () => {
     expect(tuningCell.dq()).toBeNull();
   });
 
-  it('Engine exposes pure solveDriverConsistencyGroup, solvePrConsistencyGroup, and solveVentConsistencyGroup', () => {
-    const engine = new Engine();
-    const prSolved = engine.solvePrConsistencyGroup({
+  it('Engine exposes pure solveDriverConsistencyGroup, and solveVentConsistencyGroup', () => {
+    const prSolved = solvePrConsistencyGroup({
       tuning_hz: 50,
       Vb_m3: 0.03,
       prMmd_kg: 0.09,
@@ -126,7 +126,7 @@ describe('PR and Vent Solver Groups', () => {
     });
     expect(prSolved.addedMass_kg).toBeDefined();
 
-    const ventSolved = engine.solveVentConsistencyGroup({
+    const ventSolved = solveVentConsistencyGroup({
       tuning_hz: 35,
       Vb_m3: 0.03,
       area_m2: 0.002,
@@ -134,4 +134,47 @@ describe('PR and Vent Solver Groups', () => {
     });
     expect(ventSolved.length_m).toBeGreaterThan(0);
   });
+
+  it('preserves Entered (E) fields while allowing solver write-backs on C/N fields', () => {
+    const p = project();
+    p.box.boxType.set('vented');
+    p.box.vented.volume_m3.set(0.03);
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
+
+    // Human enters length (E)
+    p.box.vented.vent.length_m.set(0.15);
+    p.box.vented.tuning_hz.clear();
+
+    p.solveVentConsistencyGroup();
+
+    // length_m must remain entered (E) and untouched by solver
+    expect(p.box.vented.vent.length_m.get().state).toBe('entered');
+    expect(p.box.vented.vent.length_m.get().value).toBe(0.15);
+
+    // tuning_hz must be calculated (C) by solver
+    expect(p.box.vented.tuning_hz.get().state).toBe('calculated');
+    expect(p.box.vented.tuning_hz.get().value).toBeGreaterThan(0);
+  });
+
+  it('transitions C -> N when required inputs are cleared', () => {
+    const p = project();
+    p.box.boxType.set('vented');
+    p.box.vented.volume_m3.set(0.03);
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
+    p.box.vented.tuning_hz.set(35);
+
+    p.solveVentConsistencyGroup();
+    expect(p.box.vented.vent.length_m.get().state).toBe('calculated');
+
+    // Clear required input (tuning_hz)
+    p.box.vented.tuning_hz.clear();
+    p.solveVentConsistencyGroup();
+
+    // length_m should transition from C -> N (not-available)
+    expect(p.box.vented.vent.length_m.get().state).toBe('not-available');
+    expect(p.box.vented.vent.length_m.get().value).toBeNull();
+  });
 });
+

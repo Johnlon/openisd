@@ -24,7 +24,7 @@
 import {z} from 'zod';
 import {WinISDDriver, INI_ROWS} from '../winisd/index.js';
 import {newUuid} from './newUuid.js';
-import type {FieldHandle} from './cell.js';
+import type {Field} from './cell.js';
 import type {OpenISDDriver} from './openisdDomain.js';
 import type {DriverError, BoxType, Filter, FilterType} from '../engine/index.js';
 import type {VentShape} from './vent.js';
@@ -96,77 +96,71 @@ export interface SpecEntryJson {
  *  invented zeros, and `OpenISDDriver.sectionOf()` is satisfied, which is what lets a project be
  *  constructed before its driver is written in.
  *
- *  KEYS HERE ARE THE RECORD'S OWN, UNSUFFIXED — `openisd.yml` states `Fs`, `Sd`, `Cms`, `Xmax`,
- *  so this type states them too. Spelling the stored keys differently would make the reader hold
- *  a translation table to check a record against the type that declares it.
- *
- *  THE UNIT LIVES ON THE PUBLIC API, NOT HERE (John 2026-08-27: "please put the unit back on
- *  api"). `OpenISDDriver.spec.woofer` publishes `Fs_hz`, `Sd_m2`, `Cms_m_per_N` — a caller
- *  reading a number is the one who can get the unit wrong, and the name is where they will look.
- *  The record is already SI throughout (`Sd: {actual_reading: '1217 cm2', read_value: 0.1217}`),
- *  so the suffix reports what the value IS; it never converts. */
+ *  Keys are the canonical application names, including their SI units. The same name is used by
+ *  storage, domain, engine and UI. WinISD's unsuffixed keys are translated only while parsing or
+ *  serialising its external file formats. */
 export interface DriverSpecsSection {
     // Thiele/Small.
-    readonly Fs?: SpecEntryJson;
-    readonly Re?: SpecEntryJson;
-    readonly Le?: SpecEntryJson;
-    readonly fLe?: SpecEntryJson;
-    readonly KLe?: SpecEntryJson;
-    readonly Znom?: SpecEntryJson;
+    readonly Fs_hz?: SpecEntryJson;
+    readonly Re_ohm?: SpecEntryJson;
+    readonly Le_H?: SpecEntryJson;
+    readonly fLe_hz?: SpecEntryJson;
+    readonly KLe_H_sqrtHz?: SpecEntryJson;
+    readonly Znom_ohm?: SpecEntryJson;
     readonly Qts?: SpecEntryJson;
     readonly Qes?: SpecEntryJson;
     readonly Qms?: SpecEntryJson;
-    readonly Vas?: SpecEntryJson;
-    readonly Sd?: SpecEntryJson;
-    readonly BL?: SpecEntryJson;
-    readonly Mms?: SpecEntryJson;
-    readonly Cms?: SpecEntryJson;
-    readonly Rms?: SpecEntryJson;
-    readonly Xmax?: SpecEntryJson;
-    readonly Xlim?: SpecEntryJson;
-    readonly SPL?: SpecEntryJson;
-    readonly Pe?: SpecEntryJson;
-    readonly Dd?: SpecEntryJson;
-    readonly EBP?: SpecEntryJson;
+    readonly Vas_m3?: SpecEntryJson;
+    readonly Sd_m2?: SpecEntryJson;
+    readonly BL_Tm?: SpecEntryJson;
+    readonly Mms_kg?: SpecEntryJson;
+    readonly Cms_m_per_N?: SpecEntryJson;
+    readonly Rms_kg_per_s?: SpecEntryJson;
+    readonly Xmax_m?: SpecEntryJson;
+    readonly Xlim_m?: SpecEntryJson;
+    readonly SPL_dB?: SpecEntryJson;
+    readonly Pe_W?: SpecEntryJson;
+    readonly Dd_m?: SpecEntryJson;
+    readonly EBP_hz?: SpecEntryJson;
     readonly numVC?: SpecEntryJson;
     readonly VCCon?: SpecEntryJson;
     // Ordinarily derived, but WinISD lets a human TYPE any of them, and an entered value is a fact.
-    readonly Dia?: SpecEntryJson;
-    readonly Vd?: SpecEntryJson;
+    readonly Dia_m?: SpecEntryJson;
+    readonly Vd_m3?: SpecEntryJson;
     readonly no?: SpecEntryJson;
-    readonly SPLmax?: SpecEntryJson;
-    readonly SPLmaxLF?: SpecEntryJson;
-    readonly USPL?: SpecEntryJson;
-    readonly alfaVC?: SpecEntryJson;
-    readonly Rt?: SpecEntryJson;
-    readonly Ct?: SpecEntryJson;
-    readonly gamma?: SpecEntryJson;
-    readonly Rme?: SpecEntryJson;
-    readonly Mpow?: SpecEntryJson;
-    readonly Mcost?: SpecEntryJson;
+    readonly SPLmax_dB?: SpecEntryJson;
+    readonly SPLmaxLF_dB?: SpecEntryJson;
+    readonly USPL_dB?: SpecEntryJson;
+    readonly alfaVC_per_K?: SpecEntryJson;
+    readonly Rt_K_per_W?: SpecEntryJson;
+    readonly Ct_J_per_K?: SpecEntryJson;
+    readonly gamma_m_per_s2_A?: SpecEntryJson;
+    readonly Rme_kg_per_s?: SpecEntryJson;
+    readonly Mpow_N_per_sqrtW?: SpecEntryJson;
+    readonly Mcost_kg_per_s?: SpecEntryJson;
     readonly Gloss?: SpecEntryJson;
     // `c` and `roo` are the air the DRIVER states — the conditions its own figures were measured
     // or computed at. `OpenISDEnvironment` on the project is what a simulation runs on; these two
     // are not that, and the record keeps them per driver because WinISD does.
-    readonly c?: SpecEntryJson;
-    readonly roo?: SpecEntryJson;
+    readonly c_m_per_s?: SpecEntryJson;
+    readonly roo_kg_per_m3?: SpecEntryJson;
     // Descriptive and dimensional.
-    readonly Vcd?: SpecEntryJson;
-    readonly Hg?: SpecEntryJson;
-    readonly Hc?: SpecEntryJson;
+    readonly Vcd_m?: SpecEntryJson;
+    readonly Hg_m?: SpecEntryJson;
+    readonly Hc_m?: SpecEntryJson;
     readonly freq_low_hz?: SpecEntryJson;
     readonly freq_high_hz?: SpecEntryJson;
     readonly power_peak_W?: SpecEntryJson;
     readonly weight_kg?: SpecEntryJson;
-    readonly Thick?: SpecEntryJson;
-    readonly Depth?: SpecEntryJson;
-    readonly MagDepth?: SpecEntryJson;
-    readonly Magnet?: SpecEntryJson;
-    readonly Basket?: SpecEntryJson;
-    readonly Outer?: SpecEntryJson;
-    readonly OuterX?: SpecEntryJson;
-    readonly OuterY?: SpecEntryJson;
-    readonly DVol?: SpecEntryJson;
+    readonly Thick_m?: SpecEntryJson;
+    readonly Depth_m?: SpecEntryJson;
+    readonly MagDepth_m?: SpecEntryJson;
+    readonly Magnet_m?: SpecEntryJson;
+    readonly Basket_m?: SpecEntryJson;
+    readonly Outer_m?: SpecEntryJson;
+    readonly OuterX_m?: SpecEntryJson;
+    readonly OuterY_m?: SpecEntryJson;
+    readonly DVol_m3?: SpecEntryJson;
 }
 
 /** `VCCon` as the CORPUS stores it, and back.
@@ -252,26 +246,26 @@ export type VoiceCoilWiring = typeof VoiceCoilWiring[keyof typeof VoiceCoilWirin
  *  `Znom`, `Qes`, `BL`, `numVC` and the thermal parameters describe nothing on one. Typing it as
  *  `DriverSpecsSection` would publish every one of them as a readable field. */
 export interface PassiveRadiatorSpecsSection {
-    readonly Fs?: SpecEntryJson;
+    readonly Fs_hz?: SpecEntryJson;
     readonly Qms?: SpecEntryJson;
-    readonly Cms?: SpecEntryJson;
-    readonly Mms?: SpecEntryJson;
-    readonly Rms?: SpecEntryJson;
-    readonly Sd?: SpecEntryJson;
-    readonly Vas?: SpecEntryJson;
-    readonly Vd?: SpecEntryJson;
-    readonly Xmax?: SpecEntryJson;
-    readonly Xlim?: SpecEntryJson;
-    readonly Dia?: SpecEntryJson;
-    readonly Dd?: SpecEntryJson;
-    readonly DVol?: SpecEntryJson;
+    readonly Cms_m_per_N?: SpecEntryJson;
+    readonly Mms_kg?: SpecEntryJson;
+    readonly Rms_kg_per_s?: SpecEntryJson;
+    readonly Sd_m2?: SpecEntryJson;
+    readonly Vas_m3?: SpecEntryJson;
+    readonly Vd_m3?: SpecEntryJson;
+    readonly Xmax_m?: SpecEntryJson;
+    readonly Xlim_m?: SpecEntryJson;
+    readonly Dia_m?: SpecEntryJson;
+    readonly Dd_m?: SpecEntryJson;
+    readonly DVol_m3?: SpecEntryJson;
     // Mounting dimensions — a radiator sits on a baffle exactly as a driver does (John 2026-08-27).
-    readonly Thick?: SpecEntryJson;
-    readonly Depth?: SpecEntryJson;
-    readonly Basket?: SpecEntryJson;
-    readonly Outer?: SpecEntryJson;
-    readonly OuterX?: SpecEntryJson;
-    readonly OuterY?: SpecEntryJson;
+    readonly Thick_m?: SpecEntryJson;
+    readonly Depth_m?: SpecEntryJson;
+    readonly Basket_m?: SpecEntryJson;
+    readonly Outer_m?: SpecEntryJson;
+    readonly OuterX_m?: SpecEntryJson;
+    readonly OuterY_m?: SpecEntryJson;
     readonly weight_kg?: SpecEntryJson;
 }
 
@@ -369,25 +363,25 @@ const textField = scrapedFieldOf(z.string());
 // A FUNCTION, not a shared object: a module-scoped literal would be state, and each schema gets
 // its own (`test/architecture-no-globals.test.ts`).
 const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strictObject({
-    Fs: e, Re: e, Le: e, fLe: e, KLe: e, Znom: e,
-    Qts: e, Qes: e, Qms: e, Vas: e, Sd: e, BL: e,
-    Mms: e, Cms: e, Rms: e, Xmax: e, Xlim: e, SPL: e,
-    Pe: e, Dd: e, EBP: e, numVC: e, VCCon: e, Dia: e,
-    Vd: e, no: e, SPLmax: e, SPLmaxLF: e, USPL: e, alfaVC: e,
-    Rt: e, Ct: e, gamma: e, Rme: e, Mpow: e, Mcost: e,
-    Gloss: e, c: e, roo: e, Vcd: e, Hg: e, Hc: e,
-    freq_low_hz: e, freq_high_hz: e, power_peak_W: e, weight_kg: e, Thick: e, Depth: e,
-    MagDepth: e, Magnet: e, Basket: e, Outer: e, OuterX: e, OuterY: e,
-    DVol: e,
+    Fs_hz: e, Re_ohm: e, Le_H: e, fLe_hz: e, KLe_H_sqrtHz: e, Znom_ohm: e,
+    Qts: e, Qes: e, Qms: e, Vas_m3: e, Sd_m2: e, BL_Tm: e,
+    Mms_kg: e, Cms_m_per_N: e, Rms_kg_per_s: e, Xmax_m: e, Xlim_m: e, SPL_dB: e,
+    Pe_W: e, Dd_m: e, EBP_hz: e, numVC: e, VCCon: e, Dia_m: e,
+    Vd_m3: e, no: e, SPLmax_dB: e, SPLmaxLF_dB: e, USPL_dB: e, alfaVC_per_K: e,
+    Rt_K_per_W: e, Ct_J_per_K: e, gamma_m_per_s2_A: e, Rme_kg_per_s: e, Mpow_N_per_sqrtW: e, Mcost_kg_per_s: e,
+    Gloss: e, c_m_per_s: e, roo_kg_per_m3: e, Vcd_m: e, Hg_m: e, Hc_m: e,
+    freq_low_hz: e, freq_high_hz: e, power_peak_W: e, weight_kg: e, Thick_m: e, Depth_m: e,
+    MagDepth_m: e, Magnet_m: e, Basket_m: e, Outer_m: e, OuterX_m: e, OuterY_m: e,
+    DVol_m3: e,
 }).partial();
 
 /** A radiator has no motor and no voice coil, so `Re`, `Le`, `Znom`, `Qes`, `BL`, `numVC` and the
  *  thermal parameters describe nothing on one — a DIFFERENT schema, not a narrowed driver's. */
 const passiveRadiatorSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strictObject({
-    Fs: e, Qms: e, Cms: e, Mms: e, Rms: e, Sd: e,
-    Vas: e, Vd: e, Xmax: e, Xlim: e, Dia: e, Dd: e,
-    DVol: e, Thick: e, Depth: e, Basket: e, Outer: e, OuterX: e,
-    OuterY: e, weight_kg: e,
+    Fs_hz: e, Qms: e, Cms_m_per_N: e, Mms_kg: e, Rms_kg_per_s: e, Sd_m2: e,
+    Vas_m3: e, Vd_m3: e, Xmax_m: e, Xlim_m: e, Dia_m: e, Dd_m: e,
+    DVol_m3: e, Thick_m: e, Depth_m: e, Basket_m: e, Outer_m: e, OuterX_m: e,
+    OuterY_m: e, weight_kg: e,
 }).partial();
 
 const specsJsonSchema = z.strictObject({
@@ -517,6 +511,7 @@ const ventedChamberJsonSchema = chamberJsonSchemaOf(ventedLossesJsonSchema);
 export type ChamberJson = z.infer<typeof ventedChamberJsonSchema>;
 const coupledSealedChamberJsonSchema = chamberJsonSchemaOf(coupledSealedLossesJsonSchema);
 const coupledVentedChamberJsonSchema = chamberJsonSchemaOf(coupledVentedLossesJsonSchema);
+export type CoupledVentedChamberJson = z.infer<typeof coupledVentedChamberJsonSchema>;
 
 /** The project schema, nested throughout (QO116, John: "box and environment as nested
  *  strictObjects... Validate the whole project in a single .parse() at the load boundary. Not
@@ -900,7 +895,7 @@ export type DriverSpec = OpenISDDriver['spec']['woofer'];
  * `VCCon` is not here because it is not numeric — it is `Field<VoiceCoilWiring>`, a wiring NAME.
  * `wdrVCCon()` below projects it, and it is MANDATORY in the file (John, 2026-08-31).
  */
-export function wdrFields(spec: DriverSpec): ReadonlyArray<readonly [string, FieldHandle<number>]> {
+export function wdrFields(spec: DriverSpec): ReadonlyArray<readonly [string, Field<number>]> {
     return [
         ['Qts', spec.Qts], ['Znom', spec.Znom_ohm], ['Fs', spec.Fs_hz], ['Pe', spec.Pe_W],
         ['SPL', spec.SPL_dB], ['Re', spec.Re_ohm], ['Le', spec.Le_H], ['fLe', spec.fLe_hz],

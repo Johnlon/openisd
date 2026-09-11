@@ -1,5 +1,56 @@
 @../_agent_files/_AGENTS.md
 
+# Concrete types over flexi-shit
+
+Creating collections of field like the one below and then using this to build sets to pass into other api's 
+is not accetpable. The dependencies become incomprehensible even if this is valid syntax.
+Use concrete interfaces by preference and populate those interfaces long form. 
+
+   const QUANTITY_NAMES: (keyof DriverSo0lverQuantities)[] = [
+    'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms',
+    'Qts', 'Vas_m3', 'Sd_m2', 'Dd_m', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s',
+    'EBP_hz', 'Xmax_m', 'Vd_m3', 'Hc_m', 'Hg_m', 'Pe_W', 'no', 'SPLref_dB', 'SPL_dB',
+    'USPL_dB', 'SPLmax_dB', 'SPLmaxLF_dB', 'Rme_kg_per_s', 'Mpow_N_per_sqrtW',
+    'Mcost_kg_per_s', 'gamma_m_per_s2_A', 'Gloss', 'Vcd_m', 'Depth_m', 'MagDepth_m',
+    'Magnet_m', 'DVol_m3', 'c_m_per_s', 'roo_kg_per_m3'
+    ];
+
+
+    export type DriverSolverQuantities = {
+      Fs_hz?: number; Re_ohm?: number; Znom_ohm?: number; Le_H?: number; fLe_hz?: number;
+      KLe_H_sqrtHz?: number; Qes?: number; Qms?: number; Qts?: number; Vas_m3?: number;
+      Sd_m2?: number; Dd_m?: number; BL_Tm?: number; Mms_kg?: number; Cms_m_per_N?: number;
+      Rms_kg_per_s?: number; EBP_hz?: number; Xmax_m?: number; Vd_m3?: number; Hc_m?: number;
+      Hg_m?: number; Pe_W?: number; no?: number; SPLref_dB?: number; SPL_dB?: number;
+      USPL_dB?: number; SPLmax_dB?: number; SPLmaxLF_dB?: number; Rme_kg_per_s?: number;
+      Mpow_N_per_sqrtW?: number; Mcost_kg_per_s?: number; gamma_m_per_s2_A?: number;
+      Gloss?: number; Vcd_m?: number; Depth_m?: number; MagDepth_m?: number;
+      Magnet_m?: number; DVol_m3?: number; c_m_per_s?: number; roo_kg_per_m3?: number;
+      Re_terminal_ohm?: number; BL_terminal_Tm?: number; numVC?: number;
+      wiring?: import('./types.js').Wiring;
+    };
+
+    type NumericQuantity = {
+        [K in keyof DriverSolverQuantities]-?: NonNullable<DriverSolverQuantities[K]> extends number ? K : never;
+    }[keyof DriverSolverQuantities];
+    
+    const SOLVED_BY_PAIRS: readonly (readonly [SpecFieldName, NumericQuantity])[] = Object.freeze([
+        ['Fs', 'Fs_hz'], ['Re', 'Re_ohm'], ['Znom', 'Znom_ohm'], ['Le', 'Le_H'], ['fLe', 'fLe_hz'],
+        ['KLe', 'KLe_H_sqrtHz'], ['Qes', 'Qes'], ['Qms', 'Qms'], ['Qts', 'Qts'], ['Vas', 'Vas_m3'],
+        ['Sd', 'Sd_m2'], ['Dd', 'Dd_m'], ['BL', 'BL_Tm'], ['Mms', 'Mms_kg'], ['Cms', 'Cms_m_per_N'],
+        ['Rms', 'Rms_kg_per_s'], ['EBP', 'EBP_hz'], ['Xmax', 'Xmax_m'], ['Vd', 'Vd_m3'],
+        ['Hc', 'Hc_m'], ['Hg', 'Hg_m'], ['Pe', 'Pe_W'], ['no', 'no'], ['SPL', 'SPL_dB'],
+        ['USPL', 'USPL_dB'], ['SPLmax', 'SPLmax_dB'], ['SPLmaxLF', 'SPLmaxLF_dB'],
+        ['Rme', 'Rme_kg_per_s'], ['Mpow', 'Mpow_N_per_sqrtW'], ['Mcost', 'Mcost_kg_per_s'],
+        ['gamma', 'gamma_m_per_s2_A'], ['Gloss', 'Gloss'], ['Vcd', 'Vcd_m'], ['Depth', 'Depth_m'],
+        ['MagDepth', 'MagDepth_m'], ['Magnet', 'Magnet_m'], ['DVol', 'DVol_m3'],
+    ] as const);
+    
+
+# Temp files create by agent 
+
+Hacky and exploratory agent scripts go into scratch/ and are not committed to git.
+
 # openisd
 
 Workspace-wide rules are in `../_agent_files/_AGENTS.md`, imported above. Anything here that

@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
  *
  * TypeScript checks an object literal for unknown keys only where the literal is written
  * directly against a type. Assign it to a bare `const` first and that check never runs — and
- * because every `SolverQuantities` member is optional, an object sharing NONE of its keys is a
- * perfectly valid `SolverQuantities`. So a fixture written with stale names compiles, matches
+ * because every `DriverSolverQuantities` member is optional, an object sharing NONE of its keys is a
+ * perfectly valid `DriverSolverQuantities`. So a fixture written with stale names compiles, matches
  * nothing, and the engine reports an empty result rather than an error.
  *
  * That is not a hypothetical: it is how six engine suites came to assert against values the
@@ -68,7 +68,7 @@ function unannotatedFixtures(): string[] {
         // the receiver gives confident, wrong advice.
         const onEngine = /(^|\.)engine$/.test(callee.slice(0, callee.lastIndexOf('.')));
         const wanted = !onEngine ? 'SweepParams'
-          : index === 0 ? 'SolverQuantities'
+          : index === 0 ? 'DriverSolverQuantities'
           : index === 3 ? 'SweepParams'
           : 'its declared type';
         offenders.push(
@@ -93,7 +93,7 @@ describe('a fixture handed to the engine says what it is', () => {
   // 30s, not the 5s default: resolving each argument to its DECLARATION is a real type-checker
   // query, and that is exactly what makes this a gate rather than a name-matching heuristic —
   // it follows the identifier to the `const` that defines it, wherever that is.
-  it('every quantity bag passed to the engine is a declared SolverQuantities', { timeout: 30_000 }, () => {
+  it('every quantity bag passed to the engine is a declared DriverSolverQuantities', { timeout: 30_000 }, () => {
     expect(unannotatedFixtures(), [
       'Each of these is an object literal in an un-annotated `const`, handed to the engine.',
       'TypeScript will not check its keys, and every field it is meant to have is optional, so',

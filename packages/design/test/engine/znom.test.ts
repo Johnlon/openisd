@@ -1,3 +1,4 @@
+import { solveConsistencyGroup } from './testSolver.js';
 /**
  * `Znom` — WinISD's nominal impedance is CALCULATED from `Re`, not a stored label.
  *
@@ -30,13 +31,11 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SolverQuantities } from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
 
 // TYPED, so a name the solver does not have is a build error rather than a silent `undefined`.
-const solve = (d: SolverQuantities): Readonly<SolverQuantities> => engine.solveConsistencyGroup(d);
+const solve = (d: any): Readonly<any> => solveConsistencyGroup(d);
 
 /**
  * The probe's Re-swept cases, transcribed from `runs/znom_state.jsonl` by label: the `Re` typed
@@ -65,7 +64,7 @@ const PROBE: ReadonlyArray<readonly [label: string, Re: number, Znom: number]> =
  * A driver complete enough for the full solver, minus `Re` and `Znom` — the probe's own entered
  * set for `Z_absent_re*` with those two removed.
  */
-const BASE: SolverQuantities = {
+const BASE: Record<string, number> = {
   Fs_hz: 40.0, Mms_kg: 0.00194848430081419, Cms_m_per_N: 0.008124999999999992,
   Sd_m2: 0.022, Qms: 2.1, BL_Tm: 6.0, Xmax_m: 0.0067, Pe_W: 100,
 };

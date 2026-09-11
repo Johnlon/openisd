@@ -256,64 +256,6 @@ export function numVCCoercedMark(value: number): DqMarkJson {
 
 // ── THE CONSISTENCY FINDINGS ──────────────────────────────────────────────────────────────────
 
-/**
- * The record's own name for one engine quantity — `Fs_hz` → `Fs`, `Cms_m_per_N` → `Cms`.
- *
- * WRITTEN OUT rather than derived by stripping a suffix: `no`, `Qts` and `Gloss` carry no suffix
- * to strip, and a quantity renamed in the engine would silently stop matching a record key instead
- * of failing to compile. The switch is exhaustive over `ConsistencyIssue['target']`, so a new
- * quantity is a build error here.
- *
- * `undefined` names a quantity no record stores: the two TERMINAL values, which are derived from
- * `Re`, `numVC` and the wiring, and `SPLref_dB`, a solver intermediate.
- */
-function recordKey(quantity: ConsistencyIssue['target']): string | undefined {
-  switch (quantity) {
-    case 'Fs_hz': return 'Fs';
-    case 'Re_ohm': return 'Re';
-    case 'Znom_ohm': return 'Znom';
-    case 'Le_H': return 'Le';
-    case 'fLe_hz': return 'fLe';
-    case 'KLe_H_sqrtHz': return 'KLe';
-    case 'Qes': return 'Qes';
-    case 'Qms': return 'Qms';
-    case 'Qts': return 'Qts';
-    case 'Vas_m3': return 'Vas';
-    case 'Sd_m2': return 'Sd';
-    case 'Dd_m': return 'Dd';
-    case 'BL_Tm': return 'BL';
-    case 'Mms_kg': return 'Mms';
-    case 'Cms_m_per_N': return 'Cms';
-    case 'Rms_kg_per_s': return 'Rms';
-    case 'EBP_hz': return 'EBP';
-    case 'Xmax_m': return 'Xmax';
-    case 'Vd_m3': return 'Vd';
-    case 'Hc_m': return 'Hc';
-    case 'Hg_m': return 'Hg';
-    case 'Pe_W': return 'Pe';
-    case 'no': return 'no';
-    case 'SPL_dB': return 'SPL';
-    case 'USPL_dB': return 'USPL';
-    case 'SPLmax_dB': return 'SPLmax';
-    case 'SPLmaxLF_dB': return 'SPLmaxLF';
-    case 'Rme_kg_per_s': return 'Rme';
-    case 'Mpow_N_per_sqrtW': return 'Mpow';
-    case 'Mcost_kg_per_s': return 'Mcost';
-    case 'gamma_m_per_s2_A': return 'gamma';
-    case 'Gloss': return 'Gloss';
-    case 'Vcd_m': return 'Vcd';
-    case 'Depth_m': return 'Depth';
-    case 'MagDepth_m': return 'MagDepth';
-    case 'Magnet_m': return 'Magnet';
-    case 'DVol_m3': return 'DVol';
-    case 'c_m_per_s': return 'c';
-    case 'roo_kg_per_m3': return 'roo';
-    case 'Re_terminal_ohm': return undefined;
-    case 'BL_terminal_Tm': return undefined;
-    case 'SPLref_dB': return undefined;
-  }
-}
-
 /** The relation's right-hand side — `Rms = 2π·Fs·Mms/Qms` → `2π·Fs·Mms/Qms`. `calc-consistency`
  *  states the field and its formula separately, so the target's name is not repeated inside it. */
 function rightHandSide(formula: string): string {
@@ -329,44 +271,36 @@ function rightHandSide(formula: string): string {
  * as params.
  */
 export function calcMark(issue: ConsistencyIssue): CalcFinding {
-  const target = recordKey(issue.target);
-  const members: string[] = [];
-  for (const field of issue.fields) {
-    const key = recordKey(field);
-    if (key !== undefined) members.push(key);
-  }
+  const target = issue.target;
+  const members = [...issue.fields];
 
   const computed = issue.expected;
   const stored = issue.actual;
   const off_pct = offPct(computed, stored);
   const numbers = `${formatG(computed, 4)} vs stored ${formatG(stored, 4)} — ${formatG(off_pct, 6)}% apart`;
 
-  if (target === 'Vas') {
+  if (target === 'Vas_m3') {
     return { target, members, mark: {
-      kind: 'calc', severity: 'error', rule: 'vas-consistency',
-      params: { computed, stored, off_pct },
-      detail: `Vas from ρ·c²·Sd²·Cms = ${numbers}`,
-    } };
+        kind: 'calc', severity: 'error', rule: 'vas-consistency',
+        params: { computed, stored, off_pct },
+        detail: `Vas_m3 from ρ·c²·Sd_m2²·Cms_m_per_N = ${numbers}`,
+      } };
   }
   if (target === 'Qts') {
     return { target, members, mark: {
-      kind: 'calc', severity: 'error', rule: 'qts-consistency',
-      params: { computed, stored, off_pct },
-      detail: `Qts from Qes·Qms/(Qes+Qms) = ${numbers}`,
-    } };
+        kind: 'calc', severity: 'error', rule: 'qts-consistency',
+        params: { computed, stored, off_pct },
+        detail: `Qts from Qes·Qms/(Qes+Qms) = ${numbers}`,
+      } };
   }
 
-  // A relation whose TARGET no record stores still describes a real disagreement between the
-  // members that do. `calc-consistency` needs a field name for its params and its template, so the
-  // quantity's engine name is used where there is no record name — it is the only name the finding
-  // has, and inventing a record key that does not exist would be worse.
-  const field = target ?? issue.target;
-  return { target: field, members, mark: {
-    kind: 'calc', severity: 'error', rule: 'calc-consistency',
-    params: { field, formula: rightHandSide(issue.formula), computed, stored, off_pct },
-    detail: `${field} from ${rightHandSide(issue.formula)} = ${numbers}`,
-  } };
+  return { target, members, mark: {
+      kind: 'calc', severity: 'error', rule: 'calc-consistency',
+      params: { field: target, formula: rightHandSide(issue.formula), computed, stored, off_pct },
+      detail: `${target} from ${rightHandSide(issue.formula)} = ${numbers}`,
+    } };
 }
+
 
 /**
  * Every calculated mark for one device, by the record field it belongs on.
@@ -410,7 +344,6 @@ export function dqCalculated(
   }
   return byField;
 }
-
 // ── ATTACHING THE MARKS ───────────────────────────────────────────────────────────────────────
 
 function isRecord(value: unknown): value is Record<string, unknown> {

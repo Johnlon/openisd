@@ -88,7 +88,7 @@ describe('save and load', () => {
     // id. This drives that case by wiring `projectRepo()` over a factory whose FIRST call is
     // captured, then writing a value missing a whole required section through that same store —
     // `projectRepo()` itself calls `make('meta.name')` once and reuses the store it gets back.
-    const engine = new Engine();
+    
     const baseFactory = memoryStore(() => '2026-01-01T00:00:00.000Z');
     // `projectRepo()` calls `make('meta.name')` exactly once, at its own private record type —
     // a corrupt value has to enter through THAT SAME store, which this factory wrapper captures.
@@ -100,6 +100,7 @@ describe('save and load', () => {
       corruptWrite = (id, record) => store.put(id, record as R);
       return store;
     }
+    const engine = new Engine();
     const corruptRepo = projectRepo(spyingFactory, engine);
     corruptWrite!('corrupt-id', { label: 'corrupt', saved: { meta: { name: 'Half a project' } }, edited: null });
 

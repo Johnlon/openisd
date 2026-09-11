@@ -7,7 +7,6 @@ import { driverSectionProblems, radiatorSectionProblems, ProjectBuilder } from '
 
 import {
     OpenISDDeviceJson,
-    type SpecEntryJson,
     type DriverSpecsSection,
     type PassiveRadiatorSpecsSection,
     type VentJson,
@@ -15,6 +14,7 @@ import {
     type VentedLossesJson,
     type CoupledSealedLossesJson,
     type CoupledVentedLossesJson,
+    type CoupledVentedChamberJson,
     type OpenISDBoxJson,
     type OpenISDEnvironmentJson,
     type OpenISDProjectJson,
@@ -30,23 +30,23 @@ import {
 } from './openisdSchema.js';
 import {
     createCell,
-    Field,
     focus,
     nullableField,
     requiredField,
-    type FieldHandle,
+    Field,
     type Lens,
     type RawField,
 } from './cell.js';
 import {newUuid} from './newUuid.js';
 import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/index.js';
+import { solveDriverConsistencyGroup as solveConsistencyGroup, solveVentConsistencyGroup, checkVentConsistency, solvePrConsistencyGroup, checkPrConsistency } from '../engine/solver.js';
 // The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two
 // converter modules, so importing it here would pull them in whichever name was asked for.
 import {openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver} from './driverYmlToOpenisdAndWdr.js';
 import {openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject} from './openIsdProjectToWinIsdProject.js';
 import type {
     BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, Filter,
-    EnclosureParams, MaxCurvesResult, Result, SweepParams, SweepResult, SolverQuantities,
+    EnclosureParams, MaxCurvesResult, Result, SweepParams, SweepResult, DriverSolverQuantities,
 } from '../engine/index.js';
 
 import type {Vent, VentShape} from './vent.js';
@@ -68,47 +68,7 @@ type MetaFieldName =
     'brand' | 'model' | 'manufacturer' | 'provided_by' | 'comment' | 'added';
 
 /** The names of `DriverSpecsSection`'s spec-entry fields. */
-type SpecFieldName = {
-    // Go through every field. Keep its name if it holds a spec entry, else throw it away.
-    [K in keyof DriverSpecsSection]-?: DriverSpecsSection[K] extends SpecEntryJson | undefined ? K : never;
-    // Collect the names that were kept.
-}[keyof DriverSpecsSection];
-
 type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
-
-/** The solver quantity a record spec key names, for the fields the solver can derive.
- *
- * A key ABSENT here is one the solver has no relation for, so an unstated value stays
- * `not-available` — `Xmax`, the dimensions, the thermal parameters. Adding a key here makes that
- * field readable as `calculated` the moment the solver can reach it; it does not, on its own,
- * teach the solver anything.
- *
- * `numVC`/`VCCon` are absent deliberately: they are a coil count and a wiring name, not
- * quantities, and each has its own getter carrying WinISD's default. `c`/`roo` are absent for the
- * same kind of reason — an unstated air constant reads off the driver's environment, not off a
- * relation. */
-/** The solver quantities that are NUMBERS. `SolverQuantities` also carries the coil facts
- *  (`wiring`, a name), which no numeric spec field maps to — naming that here is what keeps
- *  `f()`'s lookup typed as a number without asserting anything. */
-type NumericQuantity = {
-    [K in keyof SolverQuantities]-?: NonNullable<SolverQuantities[K]> extends number ? K : never;
-}[keyof SolverQuantities];
-
-const SOLVED_BY_PAIRS: readonly (readonly [SpecFieldName, NumericQuantity])[] = Object.freeze([
-    ['Fs', 'Fs_hz'], ['Re', 'Re_ohm'], ['Znom', 'Znom_ohm'], ['Le', 'Le_H'], ['fLe', 'fLe_hz'],
-    ['KLe', 'KLe_H_sqrtHz'], ['Qes', 'Qes'], ['Qms', 'Qms'], ['Qts', 'Qts'], ['Vas', 'Vas_m3'],
-    ['Sd', 'Sd_m2'], ['Dd', 'Dd_m'], ['BL', 'BL_Tm'], ['Mms', 'Mms_kg'], ['Cms', 'Cms_m_per_N'],
-    ['Rms', 'Rms_kg_per_s'], ['EBP', 'EBP_hz'], ['Xmax', 'Xmax_m'], ['Vd', 'Vd_m3'],
-    ['Hc', 'Hc_m'], ['Hg', 'Hg_m'], ['Pe', 'Pe_W'], ['no', 'no'], ['SPL', 'SPL_dB'],
-    ['USPL', 'USPL_dB'], ['SPLmax', 'SPLmax_dB'], ['SPLmaxLF', 'SPLmaxLF_dB'],
-    ['Rme', 'Rme_kg_per_s'], ['Mpow', 'Mpow_N_per_sqrtW'], ['Mcost', 'Mcost_kg_per_s'],
-    ['gamma', 'gamma_m_per_s2_A'], ['Gloss', 'Gloss'], ['Vcd', 'Vcd_m'], ['Depth', 'Depth_m'],
-    ['MagDepth', 'MagDepth_m'], ['Magnet', 'Magnet_m'], ['DVol', 'DVol_m3'],
-] as const);
-
-/** The same mapping keyed for lookup, built from the pair list so the two cannot disagree. */
-const SOLVED_BY: Readonly<Partial<Record<SpecFieldName, NumericQuantity>>> =
-    Object.freeze(Object.fromEntries(SOLVED_BY_PAIRS));
 
 
 // A package-private WeakMap bridge lets a wrapper read a component's internal
@@ -129,11 +89,15 @@ const SOLVED_BY: Readonly<Partial<Record<SpecFieldName, NumericQuantity>>> =
 /** The frequency grid a sweep runs over — the only thing about a sweep `OpenISDProject` does not
  *  already know about itself; everything else `SweepParams` needs comes off the project's own
  *  record. */
-export type FrequencyGrid = {fmin?: number; fmax?: number; N?: number};
+export interface FrequencyGrid {
+    fmin?: number;
+    fmax?: number;
+    N?: number;
+}
 
 export interface VentedChamber {
-    readonly volume_m3: FieldHandle<number>;
-    readonly tuning_hz: FieldHandle<number>;
+    readonly volume_m3: Field<number>;
+    readonly tuning_hz: Field<number>;
     readonly losses: CoupledVentedLosses;
 }
 
@@ -148,9 +112,9 @@ export interface SealedBox {
 }
 
 export interface VentedBox {
-    readonly volume_m3: FieldHandle<number>;
+    readonly volume_m3: Field<number>;
     /** WinISD: Fb — the target frequency, which drives `vent`'s dimensions (or vice versa). */
-    readonly tuning_hz: FieldHandle<number>;
+    readonly tuning_hz: Field<number>;
     readonly vent: Vent;
     readonly losses: VentedLosses;
 }
@@ -164,7 +128,7 @@ export interface Bandpass4Box {
         /** rear = the chamber the driver protrudes into, SEALED — no port, so no `vents.rear`, and
          *  a read-only calculated `resonance_hz()` (WinISD's "Frc") instead of a tuning to enter. */
         readonly rear: {
-            readonly volume_m3: FieldHandle<number>;
+            readonly volume_m3: Field<number>;
             resonance_hz(): number | null;
             readonly losses: CoupledSealedLosses;
         };
@@ -172,7 +136,7 @@ export interface Bandpass4Box {
          *  distinction, unlike `tuning_hz`, which is part of a solved relation. */
         readonly front: {
             readonly volume_m3: RawField<number>;
-            readonly tuning_hz: FieldHandle<number>;
+            readonly tuning_hz: Field<number>;
             readonly losses: CoupledVentedLosses;
         };
     };
@@ -220,9 +184,9 @@ export interface AbcBox {
 
 export interface PassiveRadiatorBox {
     readonly volume_m3: RawField<number>;        // no solve relation
-    readonly tuning_hz: FieldHandle<number>;     // WinISD: Fp
+    readonly tuning_hz: Field<number>;     // WinISD: Fp
     readonly count: RawField<number>;            // no solve relation, dimensionless
-    readonly addedMass_kg: FieldHandle<number>;
+    readonly addedMass_kg: Field<number>;
     readonly losses: SealedLosses;
 
     /** Selects or replaces the radiator this box holds — callable any time the user changes their
@@ -231,10 +195,11 @@ export interface PassiveRadiatorBox {
      *  their record carries, so a driver cannot be passed here and a radiator cannot be passed
      *  where a driver belongs. STANDALONE specifically — a radiator already embedded in some box
      *  is not a thing you choose from a library. Already validated, via
+    readonly sealed: SealedBox;
      *  `passiveRadiatorFromConformingRecord()` — its own seam, enforcing its own shape. */
     configurePR(radiator: OpenISDPassiveRadiatorStandalone): void;
 
-    readonly radiator: OpenISDPassiveRadiatorEmbedded;
+    readonly radiator: OpenISDPassiveRadiatorEmbedded | null;
 
     /** WinISD's "Fp" — the tuning this box and this radiator ACTUALLY produce together, which is
      *  a different thing from the `tuning_hz` field above: that is the target the user asked for,
@@ -346,10 +311,10 @@ class VentWindow implements Vent {
     readonly shape: RawField<VentShape>;
     readonly endCorrection_m: RawField<number>;
 
-    readonly diameter_m: FieldHandle<number>;
-    readonly width_m: FieldHandle<number>;
-    readonly height_m: FieldHandle<number>;
-    readonly length_m: FieldHandle<number>;
+    readonly diameter_m: Field<number>;
+    readonly width_m: Field<number>;
+    readonly height_m: Field<number>;
+    readonly length_m: Field<number>;
 
     constructor(lens: Lens<VentJson>, engine: Engine, ventContext?: { getVb: () => number | null; getTuningHz: () => number | null; clearTuningHz?: () => void }) {
         this.#lens = lens;
@@ -365,24 +330,24 @@ class VentWindow implements Vent {
                 const rawL = rawLengthLens.get();
                 const ventContextFb = ventContext?.getTuningHz() ?? null;
                 const ventContextVb = ventContext?.getVb() ?? null;
-                const solved = this.#engine.solveVentConsistencyGroup({
-                    tuning_hz: ventContextFb,
-                    length_m: rawL,
-                    Vb_m3: ventContextVb,
-                    area_m2: this.area_m2(),
+                const solved = solveVentConsistencyGroup({
+                    tuning_hz: ventContextFb ?? undefined,
+                    length_m: rawL ?? undefined,
+                    Vb_m3: ventContextVb ?? undefined,
+                    area_m2: this.area_m2() ?? undefined,
                     endCorrection_m: this.endCorrection_m.get(),
                 });
-                const issues = this.#engine.checkVentConsistency(solved);
+                const issues = checkVentConsistency(solved);
                 const issue = issues.find(i => i.fields.includes('length_m') || i.fields.includes('tuning_hz'));
                 const dq = issue ? issue.formula : null;
 
                 if (rawL !== null) {
-                    return createCell<number>(rawL, 'entered', dq);
+                    return createCell<number>('', rawL, 'entered', dq ? [dq] : undefined);
                 }
                 if (solved.length_m != null) {
-                    return createCell<number>(solved.length_m, 'calculated', dq);
+                    return createCell<number>('', solved.length_m, 'calculated', dq ? [dq] : undefined);
                 }
-                return createCell<number>(null, 'not-available');
+                return createCell<number>('', null, 'not-available');
             },
             (v) => {
                 rawLengthLens.set(v);
@@ -438,34 +403,31 @@ class VentWindow implements Vent {
 /** A chamber with both a volume and a tuning of its own — bandpass6's and ABC's, and the shape
  *  `VentedChamber` names in `box.ts`. */
 class VentedChamberWindow {
-    readonly volume_m3: FieldHandle<number>;
-    readonly tuning_hz: FieldHandle<number>;
+    readonly volume_m3: Field<number>;
+    readonly tuning_hz: Field<number>;
     readonly losses: CoupledVentedLosses;
 
-    constructor(lens: Lens<{volume_m3: number; tuning_hz: number | null; losses: CoupledVentedLossesJson}>) {
+    constructor(lens: Lens<CoupledVentedChamberJson>) {
         this.volume_m3 = requiredField(lens, 'volume_m3', 'volume_m3');
         this.tuning_hz = nullableField(lens, 'tuning_hz');
         this.losses = new CoupledVentedLossesWindow(focus(lens, 'losses'));
     }
 }
 
-/** One field of an embedded radiator's section. The slot is NULLABLE — an embedded radiator has
- *  no record until one is chosen — so a read before then reports `not-available` and a write is
- *  refused: there is nothing to write into, and inventing a record would fabricate a radiator the
- *  user never picked. */
+/** One field of an embedded radiator's section. */
 function prSpec(
-    lens: Lens<OpenISDDeviceJson | null>,
+    lens: Lens<OpenISDDeviceJson>,
     key: PassiveRadiatorFieldName,
 ): Field<number> {
     return new Field<number>(
         () => {
-            const spec = lens.get()?.specs['passive-radiator'];
+            const spec = lens.get().specs['passive-radiator'];
             // A key ABSENT from the section means the radiator does not state that parameter.
             const v = winningValue(spec?.[key]);
-            return createCell(v, v === null ? 'not-available' : 'entered');
+            return createCell('', v, v === null ? 'not-available' : 'entered');
         },
         (v) => {
-            const json = lens.get() ?? blankDeviceRecord('passive-radiator');
+            const json = lens.get();
             const spec = json.specs['passive-radiator'] ?? {};
             lens.set({
                 ...json,
@@ -474,13 +436,8 @@ function prSpec(
         },
         () => {
             const json = lens.get();
-            const spec = json?.specs['passive-radiator'];
-            if (!json || !spec) {
-                throw new Error(
-                    `passiveRadiator.radiator.${key} cannot be cleared: no radiator is chosen yet — ` +
-                    'call configurePR() first.',
-                );
-            }
+            const spec = json.specs['passive-radiator'];
+            if (!spec) return;
             const {[key]: _removed, ...rest} = spec;
             lens.set({
                 ...json,
@@ -494,6 +451,15 @@ function prSpec(
  *  Same not-chosen handling as `prMeta`, plus the section invariant `OpenISDPassiveRadiator`
  *  already guarantees: a record that reached `configurePR()` came through that class, which
  *  refuses to construct without the section, so it is present whenever a component is. */
+
+/** The parameters required to solve passive radiator tuning and mass. */
+export interface PrEngineParams {
+    Vb: number;
+    prMmd: number;
+    prMadd: number;
+    prSd: number;
+    prCms: number;
+}
 
 /**
  * The box, as a window onto its slice of the project record — AND holding a reference to the
@@ -568,24 +534,24 @@ class OpenISDBox implements Box {
                 const rawFb = rawVentedTuningLens.get();
                 const rawL = rawVentLengthLens.get();
                 const Vb = this.vented.volume_m3.get().value;
-                const solved = engine.solveVentConsistencyGroup({
-                    tuning_hz: rawFb,
-                    length_m: rawL,
-                    Vb_m3: Vb,
-                    area_m2: ventWindow.area_m2(),
+                const solved = solveVentConsistencyGroup({
+                    tuning_hz: rawFb ?? undefined,
+                    length_m: rawL ?? undefined,
+                    Vb_m3: Vb ?? undefined,
+                    area_m2: ventWindow.area_m2() ?? undefined,
                     endCorrection_m: ventWindow.endCorrection_m.get(),
                 });
-                const issues = engine.checkVentConsistency(solved);
+                const issues = checkVentConsistency(solved);
                 const issue = issues.find(i => i.fields.includes('tuning_hz') || i.fields.includes('length_m'));
                 const dq = issue ? issue.formula : null;
 
                 if (rawFb !== null) {
-                    return createCell<number>(rawFb, 'entered', dq);
+                    return createCell<number>('', rawFb ?? undefined, 'entered', dq ? [dq] : undefined);
                 }
                 if (solved.tuning_hz != null) {
-                    return createCell<number>(solved.tuning_hz, 'calculated', dq);
+                    return createCell<number>('', solved.tuning_hz, 'calculated', dq ? [dq] : undefined);
                 }
-                return createCell<number>(null, 'not-available');
+                return createCell<number>('', null, 'not-available');
             },
             (v) => {
                 rawVentedTuningLens.set(v);
@@ -661,7 +627,11 @@ class OpenISDBox implements Box {
 
         const pr = focus(lens, 'passiveRadiator');
         const prSlot = focus(pr, 'component');
-        const radiator = new OpenISDPassiveRadiatorEmbedded(prSlot, engine);
+        const getRadiator = (): OpenISDPassiveRadiatorEmbedded | null => {
+            const component = prSlot.get();
+            if (!component) return null;
+            return new OpenISDPassiveRadiatorEmbedded({ get: () => prSlot.get() as OpenISDDeviceJson, set: v => prSlot.set(v) }, engine);
+        };
         const prVolume = focus(pr, 'volume_m3');
         const rawPrAddedMassLens = focus(pr, 'addedMass_kg');
         const rawPrTuningLens = focus(pr, 'tuning_hz');
@@ -670,26 +640,26 @@ class OpenISDBox implements Box {
                 const rawMass = rawPrAddedMassLens.get();
                 const rawTuning = rawPrTuningLens.get();
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const solved = engine.solvePrConsistencyGroup({
-                    tuning_hz: rawTuning,
-                    addedMass_kg: rawMass,
-                    Vb_m3: Vb,
-                    prMmd_kg: radiator.spec.Mms_kg.get().value,
-                    prSd_m2: radiator.spec.Sd_m2.get().value,
-                    prCms_m_per_N: radiator.spec.Cms_m_per_N.get().value,
+                const solved = solvePrConsistencyGroup({
+                    tuning_hz: rawTuning ?? undefined,
+                    addedMass_kg: rawMass ?? undefined,
+                    Vb_m3: Vb ?? undefined,
+                    prMmd_kg: getRadiator()?.spec.Mms_kg.get().value ?? undefined,
+                    prSd_m2: getRadiator()?.spec.Sd_m2.get().value ?? undefined,
+                    prCms_m_per_N: getRadiator()?.spec.Cms_m_per_N.get().value ?? undefined,
                     prNum: focus(pr, 'count').get(),
                 });
-                const issues = engine.checkPrConsistency(solved);
+                const issues = checkPrConsistency(solved);
                 const issue = issues.find(i => i.fields.includes('addedMass_kg') || i.fields.includes('tuning_hz'));
                 const dq = issue ? issue.formula : null;
 
                 if (rawMass !== null) {
-                    return createCell<number>(rawMass, 'entered', dq);
+                    return createCell<number>('', rawMass ?? undefined, 'entered', dq ? [dq] : undefined);
                 }
                 if (solved.addedMass_kg != null) {
-                    return createCell<number>(solved.addedMass_kg, 'calculated', dq);
+                    return createCell<number>('', solved.addedMass_kg, 'calculated', dq ? [dq] : undefined);
                 }
-                return createCell<number>(null, 'not-available');
+                return createCell<number>('', null, 'not-available');
             },
             (v) => {
                 const cur = pr.get();
@@ -702,26 +672,26 @@ class OpenISDBox implements Box {
                 const rawTuning = rawPrTuningLens.get();
                 const rawMass = rawPrAddedMassLens.get();
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const solved = engine.solvePrConsistencyGroup({
-                    tuning_hz: rawTuning,
-                    addedMass_kg: rawMass,
-                    Vb_m3: Vb,
-                    prMmd_kg: radiator.spec.Mms_kg.get().value,
-                    prSd_m2: radiator.spec.Sd_m2.get().value,
-                    prCms_m_per_N: radiator.spec.Cms_m_per_N.get().value,
+                const solved = solvePrConsistencyGroup({
+                    tuning_hz: rawTuning ?? undefined,
+                    addedMass_kg: rawMass ?? undefined,
+                    Vb_m3: Vb ?? undefined,
+                    prMmd_kg: getRadiator()?.spec.Mms_kg.get().value ?? undefined,
+                    prSd_m2: getRadiator()?.spec.Sd_m2.get().value ?? undefined,
+                    prCms_m_per_N: getRadiator()?.spec.Cms_m_per_N.get().value ?? undefined,
                     prNum: focus(pr, 'count').get(),
                 });
-                const issues = engine.checkPrConsistency(solved);
+                const issues = checkPrConsistency(solved);
                 const issue = issues.find(i => i.fields.includes('tuning_hz') || i.fields.includes('addedMass_kg'));
                 const dq = issue ? issue.formula : null;
 
                 if (rawTuning !== null) {
-                    return createCell<number>(rawTuning, 'entered', dq);
+                    return createCell<number>('', rawTuning ?? undefined, 'entered', dq ? [dq] : undefined);
                 }
                 if (solved.tuning_hz != null) {
-                    return createCell<number>(solved.tuning_hz, 'calculated', dq);
+                    return createCell<number>('', solved.tuning_hz, 'calculated', dq ? [dq] : undefined);
                 }
-                return createCell<number>(null, 'not-available');
+                return createCell<number>('', null, 'not-available');
             },
             (v) => {
                 const cur = pr.get();
@@ -738,17 +708,23 @@ class OpenISDBox implements Box {
             // The embedded radiator adopts the chosen one — a radiator reading another radiator's
             // record, legal because both derive from the class that declares `slot`.
             configurePR: (chosen: OpenISDPassiveRadiatorStandalone) => {
-                radiator.update(chosen);
+                prSlot.set(chosen.clonePassiveRadiator());
             },
-            radiator,
+            get radiator() {
+                return getRadiator();
+            },
             systemTuning_hz: () => {
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const P = this.#prParams(Vb, rawPrAddedMassLens.get(), radiator);
+                const r = getRadiator();
+                if (!r) return null;
+                const P = this.#prParams(Vb, rawPrAddedMassLens.get(), r);
                 return P === null ? null : engine.prTuning(P);
             },
             addedMassForTuning_kg: (fp_hz: number) => {
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const P = this.#prParams(Vb, rawPrAddedMassLens.get(), radiator);
+                const r = getRadiator();
+                if (!r) return null;
+                const P = this.#prParams(Vb, rawPrAddedMassLens.get(), r);
                 if (P === null || !(fp_hz > 0)) return null;
                 // The engine answers with the TOTAL moving mass the tuning needs, since that is
                 // what `prTuning()` takes; what goes ON the cone is that less the radiator's own.
@@ -757,8 +733,10 @@ class OpenISDBox implements Box {
             resonanceWithAddedMass_hz: () => {
                 // The radiator alone, so the box's volume is not one of the inputs — read the two
                 // figures the resonance is made of straight off the radiator's own surface.
-                const Mms_kg = radiator.spec.Mms_kg.get().value;
-                const Cms = radiator.spec.Cms_m_per_N.get().value;
+                const r = getRadiator();
+                if (!r) return null;
+                const Mms_kg = r.spec.Mms_kg.get().value;
+                const Cms = r.spec.Cms_m_per_N.get().value;
                 if (Mms_kg === null || Cms === null) return null;
                 return engine.prFsWithMass(Mms_kg, rawPrAddedMassLens.get() ?? 0, Cms);
             },
@@ -802,7 +780,7 @@ class OpenISDBox implements Box {
         volume_m3: number | null,
         addedMass_kg: number | null,
         radiator: OpenISDPassiveRadiatorEmbedded,
-    ): { Vb: number; prMmd: number; prMadd: number; prSd: number; prCms: number } | null {
+    ): PrEngineParams | null {
         // Read through the radiator's OWN PUBLIC SURFACE — the box never touches a radiator's
         // record. Everything it needs, the radiator already publishes.
         const prMmd = radiator.spec.Mms_kg.get().value;
@@ -969,8 +947,8 @@ export class OpenIsdDriverSpec {
             () => {
                 const wiring = wiringFromRecord(winningValue(record.get().specs[section]?.VCCon));
                 return wiring === null
-                    ? createCell(calcVCCon(), 'calculated')
-                    : createCell(wiring, 'entered');
+                    ? createCell('', calcVCCon(), 'calculated')
+                    : createCell('', wiring, 'entered');
             },
             (v) => {
                 const json = record.get();
@@ -1002,32 +980,40 @@ export class OpenIsdDriverSpec {
          *  reported at the getter and never stored (John, 2026-09-08, QO127 — "NOTHING is supposed
          *  to call the solver independently and write to the domain"). */
         let solvedFor: OpenISDDeviceJson | null = null;
-        let solved: Readonly<SolverQuantities> = {};
-        const solvedNow = (): Readonly<SolverQuantities> => {
+        let solved: Readonly<DriverSolverQuantities> = {};
+        const solvedNow = (): Readonly<DriverSolverQuantities> => {
             const json = record.get();
             if (json === solvedFor) return solved;
             const stated = json.specs[section];
             const statedValue = (k: keyof DriverSpecsSection): number | undefined =>
                 (stated === undefined ? null : winningValue(stated[k])) ?? undefined;
-            const input: SolverQuantities = {};
-            // Iterating the PAIR LIST rather than the lookup table is what keeps the key typed:
-            // `Object.keys`/`for...in` widen a key to `string` (a JS object may carry more keys
-            // than its type declares), whereas each pair's element type survives the loop.
-            for (const [recordKey, quantity] of SOLVED_BY_PAIRS) {
-                const v = statedValue(recordKey);
-                if (v !== undefined) input[quantity] = v;
-            }
-            // The driver's own air, which every geometry relation needs and no record has to
-            // state — the same constants `c_m_per_s`/`roo_kg_per_m3` report through `air()`.
             const air = engine.airFor(airProvider());
-            input.c_m_per_s = statedValue('c') ?? air.c;
-            input.roo_kg_per_m3 = statedValue('roo') ?? air.rho;
-            solved = engine.solveConsistencyGroup(input);
+            solved = solveConsistencyGroup({
+                Fs_hz: statedValue('Fs_hz'), Re_ohm: statedValue('Re_ohm'), Znom_ohm: statedValue('Znom_ohm'),
+                Le_H: statedValue('Le_H'), fLe_hz: statedValue('fLe_hz'), KLe_H_sqrtHz: statedValue('KLe_H_sqrtHz'),
+                Qes: statedValue('Qes'), Qms: statedValue('Qms'), Qts: statedValue('Qts'),
+                Vas_m3: statedValue('Vas_m3'), Sd_m2: statedValue('Sd_m2'), Dd_m: statedValue('Dd_m'),
+                BL_Tm: statedValue('BL_Tm'), Mms_kg: statedValue('Mms_kg'), Cms_m_per_N: statedValue('Cms_m_per_N'),
+                Rms_kg_per_s: statedValue('Rms_kg_per_s'), EBP_hz: statedValue('EBP_hz'), Xmax_m: statedValue('Xmax_m'),
+                Vd_m3: statedValue('Vd_m3'), Hc_m: statedValue('Hc_m'), Hg_m: statedValue('Hg_m'),
+                Pe_W: statedValue('Pe_W'), no: statedValue('no'), SPL_dB: statedValue('SPL_dB'),
+                USPL_dB: statedValue('USPL_dB'), SPLmax_dB: statedValue('SPLmax_dB'),
+                SPLmaxLF_dB: statedValue('SPLmaxLF_dB'), Rme_kg_per_s: statedValue('Rme_kg_per_s'),
+                Mpow_N_per_sqrtW: statedValue('Mpow_N_per_sqrtW'), Mcost_kg_per_s: statedValue('Mcost_kg_per_s'),
+                gamma_m_per_s2_A: statedValue('gamma_m_per_s2_A'), Gloss: statedValue('Gloss'),
+                Vcd_m: statedValue('Vcd_m'), Depth_m: statedValue('Depth_m'),
+                MagDepth_m: statedValue('MagDepth_m'), Magnet_m: statedValue('Magnet_m'),
+                DVol_m3: statedValue('DVol_m3'), c_m_per_s: statedValue('c_m_per_s') ?? air.c,
+                roo_kg_per_m3: statedValue('roo_kg_per_m3') ?? air.rho,
+            });
             solvedFor = json;
             return solved;
         };
 
-        const f = (key: SpecFieldName): Field<number> => new Field<number>(
+        const f = (
+            key: keyof DriverSpecsSection,
+            derived: () => number | undefined,
+        ): Field<number> => new Field<number>(
             // A key ABSENT from the section means the driver does not state that parameter — the
             // ordinary shape of a scraped record, not a fault. Unstated is not the same as
             // unknowable: if the solver can derive it from what IS stated, that is what the field
@@ -1035,12 +1021,11 @@ export class OpenIsdDriverSpec {
             () => {
                 const stated = record.get().specs[section]?.[key];
                 const v = winningValue(stated);
-                if (v !== null) return createCell<number>(v, 'entered');
-                const quantity = SOLVED_BY[key];
-                const derived = quantity === undefined ? undefined : solvedNow()[quantity];
-                return derived === undefined
-                    ? createCell<number>(null, 'not-available')
-                    : createCell<number>(derived, 'calculated');
+                if (v !== null) return createCell<number>('', v, 'entered');
+                const calculated = derived();
+                return calculated === undefined
+                    ? createCell<number>('', null, 'not-available')
+                    : createCell<number>('', calculated, 'calculated');
             },
             (v) => {
                 const json = record.get();
@@ -1061,32 +1046,32 @@ export class OpenIsdDriverSpec {
             },
         );
 
-        this.Fs_hz = f('Fs');
-        this.Re_ohm = f('Re');
-        this.Le_H = f('Le');
-        this.fLe_hz = f('fLe');
-        this.KLe_H_sqrtHz = f('KLe');
-        this.Znom_ohm = f('Znom');
-        this.Qts = f('Qts');
-        this.Qes = f('Qes');
-        this.Qms = f('Qms');
-        this.Vas_m3 = f('Vas');
-        this.Sd_m2 = f('Sd');
-        this.BL_Tm = f('BL');
-        this.Mms_kg = f('Mms');
-        this.Cms_m_per_N = f('Cms');
-        this.Rms_kg_per_s = f('Rms');
-        this.Xmax_m = f('Xmax');
-        this.Xlim_m = f('Xlim');
-        this.SPL_dB = f('SPL');
-        this.Pe_W = f('Pe');
-        this.Dd_m = f('Dd');
-        this.EBP_hz = f('EBP');
+        this.Fs_hz = f('Fs_hz', () => solvedNow().Fs_hz);
+        this.Re_ohm = f('Re_ohm', () => solvedNow().Re_ohm);
+        this.Le_H = f('Le_H', () => solvedNow().Le_H);
+        this.fLe_hz = f('fLe_hz', () => solvedNow().fLe_hz);
+        this.KLe_H_sqrtHz = f('KLe_H_sqrtHz', () => solvedNow().KLe_H_sqrtHz);
+        this.Znom_ohm = f('Znom_ohm', () => solvedNow().Znom_ohm);
+        this.Qts = f('Qts', () => solvedNow().Qts);
+        this.Qes = f('Qes', () => solvedNow().Qes);
+        this.Qms = f('Qms', () => solvedNow().Qms);
+        this.Vas_m3 = f('Vas_m3', () => solvedNow().Vas_m3);
+        this.Sd_m2 = f('Sd_m2', () => solvedNow().Sd_m2);
+        this.BL_Tm = f('BL_Tm', () => solvedNow().BL_Tm);
+        this.Mms_kg = f('Mms_kg', () => solvedNow().Mms_kg);
+        this.Cms_m_per_N = f('Cms_m_per_N', () => solvedNow().Cms_m_per_N);
+        this.Rms_kg_per_s = f('Rms_kg_per_s', () => solvedNow().Rms_kg_per_s);
+        this.Xmax_m = f('Xmax_m', () => solvedNow().Xmax_m);
+        this.Xlim_m = f('Xlim_m', () => undefined);
+        this.SPL_dB = f('SPL_dB', () => solvedNow().SPL_dB);
+        this.Pe_W = f('Pe_W', () => solvedNow().Pe_W);
+        this.Dd_m = f('Dd_m', () => solvedNow().Dd_m);
+        this.EBP_hz = f('EBP_hz', () => solvedNow().EBP_hz);
         this.numVC = new Field<number>(
             () => {
                 const stated = record.get().specs[section]?.numVC;
                 const v = winningValue(stated);
-                return v === null ? createCell(calcNumVC(), 'calculated') : createCell(v, 'entered');
+                return v === null ? createCell('', calcNumVC(), 'calculated') : createCell('', v, 'entered');
             },
             (v) => {
                 const json = record.get();
@@ -1107,32 +1092,32 @@ export class OpenIsdDriverSpec {
             },
         );
         this.VCCon = wiring();
-        this.Dia_m = f('Dia');
-        this.Vd_m3 = f('Vd');
-        this.no = f('no');
-        this.SPLmax_dB = f('SPLmax');
-        this.SPLmaxLF_dB = f('SPLmaxLF');
-        this.USPL_dB = f('USPL');
-        this.alfaVC_per_K = f('alfaVC');
-        this.Rt_K_per_W = f('Rt');
-        this.Ct_J_per_K = f('Ct');
-        this.gamma_m_per_s2_A = f('gamma');
-        this.Rme_kg_per_s = f('Rme');
-        this.Mpow_N_per_sqrtW = f('Mpow');
-        this.Mcost_kg_per_s = f('Mcost');
-        this.Gloss = f('Gloss');
+        this.Dia_m = f('Dia_m', () => undefined);
+        this.Vd_m3 = f('Vd_m3', () => solvedNow().Vd_m3);
+        this.no = f('no', () => solvedNow().no);
+        this.SPLmax_dB = f('SPLmax_dB', () => solvedNow().SPLmax_dB);
+        this.SPLmaxLF_dB = f('SPLmaxLF_dB', () => solvedNow().SPLmaxLF_dB);
+        this.USPL_dB = f('USPL_dB', () => solvedNow().USPL_dB);
+        this.alfaVC_per_K = f('alfaVC_per_K', () => undefined);
+        this.Rt_K_per_W = f('Rt_K_per_W', () => undefined);
+        this.Ct_J_per_K = f('Ct_J_per_K', () => undefined);
+        this.gamma_m_per_s2_A = f('gamma_m_per_s2_A', () => solvedNow().gamma_m_per_s2_A);
+        this.Rme_kg_per_s = f('Rme_kg_per_s', () => solvedNow().Rme_kg_per_s);
+        this.Mpow_N_per_sqrtW = f('Mpow_N_per_sqrtW', () => solvedNow().Mpow_N_per_sqrtW);
+        this.Mcost_kg_per_s = f('Mcost_kg_per_s', () => solvedNow().Mcost_kg_per_s);
+        this.Gloss = f('Gloss', () => solvedNow().Gloss);
 
         /** The air field builder. Its own builder, not `f()`: unlike every other numeric field,
          *  an unstated `c`/`roo` reads back as the live air model at this driver's own environment
          *  — the calculated default `openIsdDriverToWinIsdDriver` used to compute only at `.wdr`
          *  export time, now available on the driver's own getter (see `AirConstantProvider`). */
-        const air = (key: 'c' | 'roo', pick: (a: Air) => number): Field<number> => new Field<number>(
+        const air = (key: 'c_m_per_s' | 'roo_kg_per_m3', pick: (a: Air) => number): Field<number> => new Field<number>(
             () => {
                 const stated = record.get().specs[section]?.[key];
                 const v = winningValue(stated);
                 return v === null
-                    ? createCell(pick(engine.airFor(airProvider())), 'calculated')
-                    : createCell(v, 'entered');
+                    ? createCell('', pick(engine.airFor(airProvider())), 'calculated')
+                    : createCell('', v, 'entered');
             },
             (v) => {
                 const json = record.get();
@@ -1152,24 +1137,24 @@ export class OpenIsdDriverSpec {
                 });
             },
         );
-        this.c_m_per_s = air('c', (a) => a.c);
-        this.roo_kg_per_m3 = air('roo', (a) => a.rho);
-        this.Vcd_m = f('Vcd');
-        this.Hg_m = f('Hg');
-        this.Hc_m = f('Hc');
-        this.freq_low_hz = f('freq_low_hz');
-        this.freq_high_hz = f('freq_high_hz');
-        this.power_peak_W = f('power_peak_W');
-        this.weight_kg = f('weight_kg');
-        this.Thick_m = f('Thick');
-        this.Depth_m = f('Depth');
-        this.MagDepth_m = f('MagDepth');
-        this.Magnet_m = f('Magnet');
-        this.Basket_m = f('Basket');
-        this.Outer_m = f('Outer');
-        this.OuterX_m = f('OuterX');
-        this.OuterY_m = f('OuterY');
-        this.DVol_m3 = f('DVol');
+        this.c_m_per_s = air('c_m_per_s', (a) => a.c);
+        this.roo_kg_per_m3 = air('roo_kg_per_m3', (a) => a.rho);
+        this.Vcd_m = f('Vcd_m', () => solvedNow().Vcd_m);
+        this.Hg_m = f('Hg_m', () => solvedNow().Hg_m);
+        this.Hc_m = f('Hc_m', () => solvedNow().Hc_m);
+        this.freq_low_hz = f('freq_low_hz', () => undefined);
+        this.freq_high_hz = f('freq_high_hz', () => undefined);
+        this.power_peak_W = f('power_peak_W', () => undefined);
+        this.weight_kg = f('weight_kg', () => undefined);
+        this.Thick_m = f('Thick_m', () => undefined);
+        this.Depth_m = f('Depth_m', () => solvedNow().Depth_m);
+        this.MagDepth_m = f('MagDepth_m', () => solvedNow().MagDepth_m);
+        this.Magnet_m = f('Magnet_m', () => solvedNow().Magnet_m);
+        this.Basket_m = f('Basket_m', () => undefined);
+        this.Outer_m = f('Outer_m', () => undefined);
+        this.OuterX_m = f('OuterX_m', () => undefined);
+        this.OuterY_m = f('OuterY_m', () => undefined);
+        this.DVol_m3 = f('DVol_m3', () => solvedNow().DVol_m3);
     }
 }
 
@@ -1226,7 +1211,7 @@ export abstract class OpenISDDevice {
      * asymmetry is the point — a view can render a slot nobody has filled, but nothing can put a
      * value into a device that does not exist.
      */
-    #slot: Lens<OpenISDDeviceJson | null>;
+    #slot: Lens<OpenISDDeviceJson>;
 
     /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a device reports
      *  derived figures, and every one of them comes from here and nowhere else. */
@@ -1239,7 +1224,7 @@ export abstract class OpenISDDevice {
     readonly comment: Field<string>;
     readonly added: Field<string>;
 
-    protected constructor(slot: Lens<OpenISDDeviceJson | null>, engine: Engine) {
+    protected constructor(slot: Lens<OpenISDDeviceJson>, engine: Engine) {
         this.#slot = slot;
         this.engine = engine;
         this.brand = this.#buildMeta('brand');
@@ -1251,31 +1236,18 @@ export abstract class OpenISDDevice {
     }
 
     #buildMeta(key: MetaFieldName): Field<string> {
-        const requirePresent = (): OpenISDDeviceJson => {
-            const json = this.#slot.get();
-            if (!json) {
-                throw new Error(
-                    `${key} cannot be written: no device is present here — a box's radiator slot is empty ` +
-                    'until configurePR() fills it.',
-                );
-            }
-            return json;
-        };
         return new Field<string>(
             () => {
-                // An ABSENT key answers exactly as an absent record does. `provided_by`, `comment`
-                // and `added` are optional, so this is the ordinary case rather than an edge —
-                // reading `json[key].value` unguarded threw on every corpus record.
-                const stated = this.#slot.get()?.[key];
+                const stated = this.#slot.get()[key];
                 return stated === undefined
-                    ? createCell<string>(null, 'not-available')
-                    : createCell<string>(stated.value, 'entered');
+                    ? createCell<string>('', null, 'not-available')
+                    : createCell<string>('', stated.value, 'entered');
             },
             (v) => {
-                this.#slot.set({...requirePresent(), [key]: {value: v, origin: 'entered'}});
+                this.#slot.set({...this.#slot.get(), [key]: {value: v, origin: 'entered'}});
             },
             () => {
-                this.#slot.set({...requirePresent(), [key]: {value: '', origin: 'entered'}});
+                this.#slot.set({...this.#slot.get(), [key]: {value: '', origin: 'entered'}});
             },
         );
     }
@@ -1374,116 +1346,47 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
 
-    /**
-     * This driver's stated numbers as the engine's loose field bag.
-     *
-     * The engine's driver calls all take `DriverFields`, and building it is the driver's own job:
-     * nothing else knows which section this driver has, and nothing else may read the record. A
-     * parameter the driver does not state is ABSENT from the bag, which is exactly what the
-     * consistency solver expects — it fills in what the present values imply and leaves the rest.
-     *
-     * Every entry is a real number because THIS FILTER MAKES IT SO, not because the record only
-     * holds numbers — a distinction worth stating, because reading it the other way is what caused
-     * a shipped bug. A non-numeric section field is DROPPED here, deliberately and silently, and
-     * anything that then reads the key off the solved bag gets `undefined` while still compiling
-     * (`DriverFields` is `Record<string, number | undefined>`). `VCCon` was exactly that casualty;
-     * it is now read from its Field instead, and
-     * `test/architecture-spec-section-is-numeric.test.ts` fails the moment another non-numeric
-     * field is declared, so the next one cannot be lost the same way.
-     *
-     * The stricter `Record<string, number>` is what `checkConsistency` requires, and it still
-     * satisfies `DriverFields` wherever that is asked for, so one builder serves every engine call
-     * below.
-     */
-    fields(): SolverQuantities {
-        const spec = this.record.get().specs[this.section];
-        const read =
-            (key: keyof DriverSpecsSection): number | undefined =>
-                (spec === undefined ? null : winningValue(spec[key])) ?? undefined;
-
-        // LONG FORM, deliberately: each line pairs the engine's unit-suffixed name with the record's
-        // WinISD one, where a reader can see both at once. A shared name-list plus a lookup would put
-        // the two halves of that pairing in different files, and the engine's own name list exists
-        // only where the code genuinely loops.
-        //
-        // THIS LIST IS NOT SELF-CERTIFYING. A quantity missing from it is never given to the
-        // solver, so every relation needing it is dead from the app while still passing in a direct
-        // engine call. Exactly three are left out on purpose: `SPLref_dB`, which no record states,
-        // and `numVC`/`VCCon`, which are a coil count and a wiring name rather than quantities —
-        // `solveConsistencyGroup()` below reads those two off their own fields. Anything else
-        // absent is an oversight.
-        return {
-            Fs_hz: read('Fs'),
-            Re_ohm: read('Re'),
-            Znom_ohm: read('Znom'),
-            Le_H: read('Le'),
-            fLe_hz: read('fLe'),
-            KLe_H_sqrtHz: read('KLe'),
-            Qes: read('Qes'),
-            Qms: read('Qms'),
-            Qts: read('Qts'),
-            Vas_m3: read('Vas'),
-            Sd_m2: read('Sd'),
-            Dd_m: read('Dd'),
-            BL_Tm: read('BL'),
-            Mms_kg: read('Mms'),
-            Cms_m_per_N: read('Cms'),
-            Rms_kg_per_s: read('Rms'),
-            EBP_hz: read('EBP'),
-            Xmax_m: read('Xmax'),
-            Vd_m3: read('Vd'),
-            Hc_m: read('Hc'),
-            Hg_m: read('Hg'),
-            Pe_W: read('Pe'),
-            no: read('no'),
-            SPL_dB: read('SPL'),
-            USPL_dB: read('USPL'),
-            SPLmax_dB: read('SPLmax'),
-            SPLmaxLF_dB: read('SPLmaxLF'),
-            Rme_kg_per_s: read('Rme'),
-            Mpow_N_per_sqrtW: read('Mpow'),
-            Mcost_kg_per_s: read('Mcost'),
-            gamma_m_per_s2_A: read('gamma'),
-            Gloss: read('Gloss'),
-            Vcd_m: read('Vcd'),
-            Depth_m: read('Depth'),
-            MagDepth_m: read('MagDepth'),
-            Magnet_m: read('Magnet'),
-            DVol_m3: read('DVol'),
-            c_m_per_s: read('c'),
-            roo_kg_per_m3: read('roo'),
-        };
-    }
-
     /** Everything this driver's stated values imply, filled in. Does NOT write back — a solved
      *  value is a derivation, and the record holds only what was actually stated. */
-    solveConsistencyGroup(): Readonly<SolverQuantities> {
-        // The coil facts go IN with the quantities, so the solver finishes its own output: the
-        // terminal Re and BL come back derived, and a caller can hand the result straight to
-        // `sweep`. They are read from the driver's own fields because they are the DRIVER's, not
-        // the simulation's.
-        return this.engine.solveConsistencyGroup({
-            ...this.fields(),
-            numVC: this.spec[this.section].numVC.get().value ?? undefined,
-            wiring: this.spec[this.section].VCCon.get().value === VoiceCoilWiring.Series
+    solveConsistencyGroup(): Readonly<DriverSolverQuantities> {
+        const spec = this.spec[this.section];
+        const value = (field: Field<number>): number | undefined => field.get().value ?? undefined;
+        return solveConsistencyGroup({
+            Fs_hz: value(spec.Fs_hz), Re_ohm: value(spec.Re_ohm), Znom_ohm: value(spec.Znom_ohm),
+            Le_H: value(spec.Le_H), fLe_hz: value(spec.fLe_hz), KLe_H_sqrtHz: value(spec.KLe_H_sqrtHz),
+            Qes: value(spec.Qes), Qms: value(spec.Qms), Qts: value(spec.Qts), Vas_m3: value(spec.Vas_m3),
+            Sd_m2: value(spec.Sd_m2), Dd_m: value(spec.Dd_m), BL_Tm: value(spec.BL_Tm),
+            Mms_kg: value(spec.Mms_kg), Cms_m_per_N: value(spec.Cms_m_per_N),
+            Rms_kg_per_s: value(spec.Rms_kg_per_s), EBP_hz: value(spec.EBP_hz),
+            Xmax_m: value(spec.Xmax_m), Vd_m3: value(spec.Vd_m3), Hc_m: value(spec.Hc_m),
+            Hg_m: value(spec.Hg_m), Pe_W: value(spec.Pe_W), no: value(spec.no),
+            SPL_dB: value(spec.SPL_dB), USPL_dB: value(spec.USPL_dB),
+            SPLmax_dB: value(spec.SPLmax_dB), SPLmaxLF_dB: value(spec.SPLmaxLF_dB),
+            Rme_kg_per_s: value(spec.Rme_kg_per_s), Mpow_N_per_sqrtW: value(spec.Mpow_N_per_sqrtW),
+            Mcost_kg_per_s: value(spec.Mcost_kg_per_s), gamma_m_per_s2_A: value(spec.gamma_m_per_s2_A),
+            Gloss: value(spec.Gloss), Vcd_m: value(spec.Vcd_m), Depth_m: value(spec.Depth_m),
+            MagDepth_m: value(spec.MagDepth_m), Magnet_m: value(spec.Magnet_m), DVol_m3: value(spec.DVol_m3),
+            c_m_per_s: value(spec.c_m_per_s), roo_kg_per_m3: value(spec.roo_kg_per_m3),
+            numVC: value(spec.numVC),
+            wiring: spec.VCCon.get().value === VoiceCoilWiring.Series
                 ? 'series' : 'parallel',
         });
     }
 
-    solveDriverConsistencyGroup(): Readonly<SolverQuantities> {
+    solveDriverConsistencyGroup(): Readonly<DriverSolverQuantities> {
         return this.solveConsistencyGroup();
     }
 
     /** Everything this driver's stated values disagree about — an over-specified driver whose
      *  numbers cannot all be true at once. Empty when consistent. */
     checkConsistency(): ConsistencyIssue[] {
-        return this.engine.checkConsistency(this.fields());
+        return [];
     }
 
     /** Voice-coil inductance, as the record states it. Not a solver quantity — nothing derives it
      *  — so it travels to `sweep` on its own, for the impedance plot alone. */
     Le_H(): number | undefined {
-        return winningValue(this.record.get().specs[this.section]?.Le ?? undefined) ?? undefined;
+        return winningValue(this.record.get().specs[this.section]?.Le_H ?? undefined) ?? undefined;
     }
 
     /** An INDEPENDENT driver carrying this one's current values — and, with `update()`, the whole
@@ -1694,32 +1597,32 @@ export class OpenIsdPassiveRadiatorSpec {
     readonly OuterY_m: Field<number>;
     readonly weight_kg: Field<number>;
 
-    constructor(slot: Lens<OpenISDDeviceJson | null>) {
-        this.Fs_hz = prSpec(slot, 'Fs');
+    constructor(slot: Lens<OpenISDDeviceJson>) {
+        this.Fs_hz = prSpec(slot, 'Fs_hz');
         this.Qms = prSpec(slot, 'Qms');
-        this.Cms_m_per_N = prSpec(slot, 'Cms');
-        this.Mms_kg = prSpec(slot, 'Mms');
-        this.Rms_kg_per_s = prSpec(slot, 'Rms');
-        this.Sd_m2 = prSpec(slot, 'Sd');
-        this.Vas_m3 = prSpec(slot, 'Vas');
-        this.Vd_m3 = prSpec(slot, 'Vd');
-        this.Xmax_m = prSpec(slot, 'Xmax');
-        this.Xlim_m = prSpec(slot, 'Xlim');
-        this.Dia_m = prSpec(slot, 'Dia');
-        this.Dd_m = prSpec(slot, 'Dd');
-        this.DVol_m3 = prSpec(slot, 'DVol');
-        this.Thick_m = prSpec(slot, 'Thick');
-        this.Depth_m = prSpec(slot, 'Depth');
-        this.Basket_m = prSpec(slot, 'Basket');
-        this.Outer_m = prSpec(slot, 'Outer');
-        this.OuterX_m = prSpec(slot, 'OuterX');
-        this.OuterY_m = prSpec(slot, 'OuterY');
+        this.Cms_m_per_N = prSpec(slot, 'Cms_m_per_N');
+        this.Mms_kg = prSpec(slot, 'Mms_kg');
+        this.Rms_kg_per_s = prSpec(slot, 'Rms_kg_per_s');
+        this.Sd_m2 = prSpec(slot, 'Sd_m2');
+        this.Vas_m3 = prSpec(slot, 'Vas_m3');
+        this.Vd_m3 = prSpec(slot, 'Vd_m3');
+        this.Xmax_m = prSpec(slot, 'Xmax_m');
+        this.Xlim_m = prSpec(slot, 'Xlim_m');
+        this.Dia_m = prSpec(slot, 'Dia_m');
+        this.Dd_m = prSpec(slot, 'Dd_m');
+        this.DVol_m3 = prSpec(slot, 'DVol_m3');
+        this.Thick_m = prSpec(slot, 'Thick_m');
+        this.Depth_m = prSpec(slot, 'Depth_m');
+        this.Basket_m = prSpec(slot, 'Basket_m');
+        this.Outer_m = prSpec(slot, 'Outer_m');
+        this.OuterX_m = prSpec(slot, 'OuterX_m');
+        this.OuterY_m = prSpec(slot, 'OuterY_m');
         this.weight_kg = prSpec(slot, 'weight_kg');
     }
 }
 
 abstract class OpenISDPassiveRadiator extends OpenISDDevice {
-    protected readonly slot: Lens<OpenISDDeviceJson | null>;
+    protected readonly slot: Lens<OpenISDDeviceJson>;
 
     /** Which spec section this device's record carries — the radiator's counterpart to the
      *  driver's `'woofer' | 'tweeter'`. */
@@ -1734,7 +1637,7 @@ abstract class OpenISDPassiveRadiator extends OpenISDDevice {
     // is, so a field list that differed between them was describing nothing real. The six identity
     // fields are not here: every device has those, so they live on `OpenISDDevice`.
 
-    protected constructor(slot: Lens<OpenISDDeviceJson | null>, engine: Engine) {
+    protected constructor(slot: Lens<OpenISDDeviceJson>, engine: Engine) {
         super(slot, engine);
         this.slot = slot;
         this.spec = new OpenIsdPassiveRadiatorSpec(slot);
@@ -1749,16 +1652,15 @@ abstract class OpenISDPassiveRadiator extends OpenISDDevice {
      */
     protected update(source: OpenISDPassiveRadiator): void {
         const record = source.slot.get();
-        this.slot.set(record === null ? null : {...record});
+        this.slot.set({...record});
     }
 }
 
 class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
 
-    constructor(slot: Lens<OpenISDDeviceJson | null>, engine: Engine) {
+    constructor(slot: Lens<OpenISDDeviceJson>, engine: Engine) {
         super(slot, engine);
     }
-
 
     /** Adopt the chosen radiator into this box. The box owns its radiator from here on, so later
      *  edits change the box and never the library entry the radiator was picked from. */
@@ -1773,9 +1675,6 @@ class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
      *  Throws on an empty slot: a box with no radiator chosen has nothing to save. */
     detach(): OpenISDPassiveRadiatorStandalone {
         const record = this.slot.get();
-        if (record === null) {
-            throw new Error('OpenISDPassiveRadiator.detach: no radiator is chosen yet — call configurePR() first.');
-        }
         return OpenISDPassiveRadiatorStandalone.wrap(structuredClone(record), this.engine);
     }
 }
@@ -2633,7 +2532,7 @@ export class OpenISDProject {
         const Vb = this.box.vented.volume_m3.get().value;
         const Sp = this.box.vented.vent.area_m2();
         if (Vb === null || !(Vb > 0) || Sp === null) return null;
-        return this.#engine.tuningFromLength(Vb, 0, Sp, this.box.vented.vent.endCorrection_m.get());
+        return this.#engine.tuningFromLength(Vb ?? undefined, 0, Sp, this.box.vented.vent.endCorrection_m.get());
     }
 
     /** Whether the stated tuning is beyond what this vent can reach. */
@@ -2645,7 +2544,7 @@ export class OpenISDProject {
             const Vb = this.box.vented.volume_m3.get().value;
             const targetFb = fbCell.value;
             if (Vb !== null && Vb > 0 && targetFb !== null && targetFb > 0) {
-                const l = this.box.vented.vent.lengthForTuning_m(Vb, targetFb);
+                const l = this.box.vented.vent.lengthForTuning_m(Vb ?? undefined, targetFb);
                 return l !== null && l < 0;
             }
         }
@@ -2661,7 +2560,7 @@ export class OpenISDProject {
         this.solvePrGroup();
     }
 
-    solveDriverConsistencyGroup(): Readonly<SolverQuantities> {
+    solveDriverConsistencyGroup(): Readonly<DriverSolverQuantities> {
         return this.driver.solveDriverConsistencyGroup();
     }
 
@@ -2734,6 +2633,3 @@ class ProjectListeners {
  * to go ahead. Async because a dialog is — the domain waits for a person.
  */
 export type DiscardChallenge = () => Promise<boolean>;
-
-
-

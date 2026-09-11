@@ -1,3 +1,4 @@
+import { solveConsistencyGroup } from './testSolver.js';
 /**
  * Unit tests for the EQ/filter chain's OWN response — the three arrays behind WinISD's
  * "Transfer function magnitude (EQ/Filter)", "Transfer function phase (EQ/Filter)" and
@@ -16,7 +17,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SweepParams, Filter, SolverQuantities } from '../../engine/index.js';
+import type { SweepParams, Filter, DriverSolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -27,11 +28,10 @@ const engine = new Engine();
 
 // Same reference driver as the other engine tests, so a failure here is about the filter
 // chain and not about the driver.
-const RAW: SolverQuantities = {
+const RAW: DriverSolverQuantities = {
   Fs_hz: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas_m3: 0.0300,
-  Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.70e-3, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8,
-};
-const DRV = engine.solveConsistencyGroup(RAW);
+  Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.70e-3, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8};
+const DRV = solveConsistencyGroup(RAW);
 
 const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 400 };
 const SP     = Math.PI * (0.05 / 2) ** 2;
@@ -110,7 +110,7 @@ describe('EQ/filter chain charts — the chain is electrical, so driver and box 
 
   it('a different driver leaves the chain response untouched', () => {
     // Vary only params that are free of the Q identity 1/Qts = 1/Qes + 1/Qms — changing
-    const other = engine.solveConsistencyGroup({ ...RAW, Fs_hz: 55, Vas_m3: 0.012, Sd_m2: 0.0090 });
+    const other = solveConsistencyGroup({ ...RAW, Fs_hz: 55, Vas_m3: 0.012, Sd_m2: 0.0090 });
     assert.ok(other, 'comparison driver failed to derive');
     const a = engine.sweep(DRV, LE_H,   'sealed', { ...SEALED, filters }).value!;
     const b = engine.sweep(other, LE_H, 'sealed', { ...SEALED, filters }).value!;

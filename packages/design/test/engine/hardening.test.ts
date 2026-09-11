@@ -1,3 +1,4 @@
+import { solveConsistencyGroup } from './testSolver.js';
 /**
  * Engine hardening — acceptance tests for CODE_REVIEW/ENGINE_HARDENING.md.
  *
@@ -16,7 +17,6 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SolverQuantities } from '../../engine/index.js';
 import type { SimulatableBoxType, SweepParams } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
@@ -40,7 +40,7 @@ const P_BP4: SweepParams = { ...P_VENTED, Vf: 0.020 };
 
 
 
-const validDriver = () => engine.solveConsistencyGroup({
+const validDriver = () => solveConsistencyGroup({
   Fs_hz: RAW_COMPLETE.Fs, Qts: RAW_COMPLETE.Qts, Qes: RAW_COMPLETE.Qes, Qms: RAW_COMPLETE.Qms,
   Vas_m3: RAW_COMPLETE.Vas, Sd_m2: RAW_COMPLETE.Sd, Re_ohm: RAW_COMPLETE.Re,
   Xmax_m: RAW_COMPLETE.Xmax, Pe_W: RAW_COMPLETE.Pe, Znom_ohm: RAW_COMPLETE.Znom,
@@ -54,9 +54,9 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   // One Q is not enough to resolve the T/S group, so `Cms`/`Mms`/`Rms`/`BL` never derive and the
   // circuit has nothing to run on. The REFUSAL now lives in `sweep`, not in a separate derive
   // step: it checks the six the circuit reads unguarded, and reports what a user could state.
-  const VAS_AND_QTS_ONLY: SolverQuantities = { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 };
+  const VAS_AND_QTS_ONLY: any = { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 };
   const refused = () => engine.sweep(
-    engine.solveConsistencyGroup(VAS_AND_QTS_ONLY), undefined, 'sealed', P_SEALED);
+    solveConsistencyGroup(VAS_AND_QTS_ONLY), undefined, 'sealed', P_SEALED);
 
   it('is refused before any arithmetic, so nothing non-finite is ever produced', () => {
     assert.equal(refused().value, null, 'one Q cannot solve the group; the sweep must refuse');
@@ -243,7 +243,7 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
     // A driver with neither Pe nor Xmax has no limit to apply, so maxCurves is Infinity
     // everywhere — while the sweep it derives from is entirely finite. classifyFinite
     // cannot see this; it is a separate output with its own postcondition.
-    const noLimits = engine.solveConsistencyGroup({ Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 });
+    const noLimits = solveConsistencyGroup({ Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 });
     assert.ok(noLimits, 'a driver without Pe/Xmax is valid — those are warns, not errors');
     const sw = engine.sweep(noLimits, LE_H, 'sealed', P_SEALED).value!;
     const mx = engine.maxCurves(noLimits, LE_H, 'sealed', P_SEALED).value!;

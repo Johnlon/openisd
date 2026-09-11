@@ -1,3 +1,4 @@
+import { solveConsistencyGroup } from './testSolver.js';
 /**
  * Voice-coil thermal power compression (WinISD parity, docs/research/WINISD_PARITY.md).
  * As the coil heats, Re rises: Re_hot = Re·(1 + alfaVC·ΔT). The same drive voltage then
@@ -18,7 +19,7 @@ const LE_H = 0.5e-3;
 const engine = new Engine();
 
 function drv() {
-  const q = engine.solveConsistencyGroup({ Fs_hz: 40, Qes: 0.45, Qms: 4, Vas_m3: 0.03, Sd_m2: 0.0133, Re_ohm: 6 });
+  const q = solveConsistencyGroup({ Fs_hz: 40, Qes: 0.45, Qms: 4, Vas_m3: 0.03, Sd_m2: 0.0133, Re_ohm: 6 });
   // `sweep` refuses a driver missing any of these. The terminal pair is never stated: the solver
   // derives it from the `Re_ohm`/`BL_Tm` it settles on, so a fixture proves them by checking.
   for (const q_name of ['Sd_m2', 'Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s', 'Re_terminal_ohm', 'BL_terminal_Tm'] as const) {

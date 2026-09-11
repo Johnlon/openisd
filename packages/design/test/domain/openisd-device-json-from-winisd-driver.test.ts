@@ -36,7 +36,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
-    const fs = record.specs.woofer?.Fs;
+    const fs = record.specs.woofer?.Fs_hz;
     assert.ok(fs, 'expected a Fs spec entry');
     assert.equal(fs.origin, 'manual');
     assert.equal(fs.readings.manual?.read_value, 37.5);
@@ -48,7 +48,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
-    assert.equal(record.specs.woofer?.Vas, undefined);
+    assert.equal(record.specs.woofer?.Vas_m3, undefined);
   });
 
   it('a NOT-AVAILABLE cell with value 0 produces no spec entry', () => {
@@ -68,7 +68,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
-    const fs = record.specs.woofer?.Fs;
+    const fs = record.specs.woofer?.Fs_hz;
     assert.ok(fs, 'N+nonzero must produce a spec entry — the mark is unreliable, the value is real');
     assert.equal(fs.readings.manual?.read_value, 37.5);
   });
@@ -79,7 +79,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
-    assert.equal(record.specs.woofer?.Xlim, undefined);
+    assert.equal(record.specs.woofer?.Xlim_m, undefined);
   });
 
   it('header text crosses verbatim; brand/manufacturer/model fall back to n/a when blank', () => {
