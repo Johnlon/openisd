@@ -27,8 +27,8 @@ test.beforeEach(async ({ page }) => {
   }, [MY_DRIVERS_KEY, myDriversJson([{
     brand: 'Summary', model: 'Fixture',
     specs: {
-      Fs: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas: 0.028, Sd: 0.0132,
-      Re: 5.4, Le: 0.5e-3, Xmax: 0.0055, Pe: 70, Znom: 8,
+      Fs_hz: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas_m3: 0.028, Sd_m2: 0.0132,
+      Re_ohm: 5.4, Le_H: 0.5e-3, Xmax_m: 0.0055, Pe_W: 70, Znom_ohm: 8,
     },
   }])] as const);
   await page.goto('/');

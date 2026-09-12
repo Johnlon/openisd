@@ -26,7 +26,8 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { INI_ROWS } from '../../winisd/winisdDriver.js';
-import { OpenISDDriver } from '@openisd/design';
+import { OpenISDDriver } from '../../domain/openisdDomain.js';
+import { WDR_TO_SCHEMA_KEY } from '../../domain/openisdSchema.js';
 import { Engine } from '@openisd/design/engine';
 import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
 
@@ -45,7 +46,8 @@ function recordWithEveryKeyEntered(): { record: object; expected: Map<string, st
   for (const key of INI_ROWS) {
     if (NON_NUMERIC_KEYS.includes(key)) continue;
     const value = 100 + i;
-    woofer[key] = spec(value);
+    const schemaKey = WDR_TO_SCHEMA_KEY[key] ?? key;
+    woofer[schemaKey] = spec(value);
     expected.set(key, String(value));
     i += 1;
   }
@@ -117,7 +119,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
         confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
         parse_errors: [], cross_source_only: [],
       },
-      specs: { woofer: { c: spec(111111), roo: spec(222222) } },
+      specs: { woofer: { c_m_per_s: spec(111111), roo_kg_per_m3: spec(222222) } },
     };
     const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
     if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);

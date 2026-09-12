@@ -27,5 +27,8 @@ export type {
 // back — so exporting the class as a VALUE would put a constructor on the engine's surface that
 // no consumer has ever called. The quantity-name list stays inside the engine: it exists for the
 // two internal loops, not for consumers.
-export type { DriverSolverQuantities } from './solverQuantities.js';
-export { solveConsistencyGroup } from './solver.js';
+export type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
+// The field-provenance vocabulary `Cell`/`Field` state in the domain: `SolverField` is the
+// interface a domain field implements for the solver, and `FieldState` is what `Cell.state`
+// reports. The domain imports these through the door, never a solverTypes subpath.
+export type { FieldState, SolverField } from './solverTypes.js';

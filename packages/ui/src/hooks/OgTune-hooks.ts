@@ -1,10 +1,9 @@
 import type { InjectionKey, Ref } from 'vue';
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useFocusedProject } from '../logic/focusedProjectContext.js';
 import { ebpOf } from '../logic/environment.js';
 import { cellClassFor, consistencyNote } from '../logic/useDriverCells.js';
 import type { Cell, Field } from '@openisd/design';
-import { createCell } from '@openisd/design';
 import type { NumSpecField } from '../logic/appState.js';
 import { specFieldHandle } from '../logic/driverSpecFields.js';
 
@@ -77,24 +76,5 @@ export function useOgTune(): OgTuneAPI {
     dqNote,
     enterField,
     clearField,
-  };
-}
-
-export function createMockOgTuneAPI(overrides?: Partial<OgTuneAPI>): OgTuneAPI {
-  const dummyHandle = {
-    get: () => createCell<number>('', 30, 'entered'),
-    set: () => {},
-    clear: () => {},
-  } as unknown as Field<number>;
-  return {
-    ebp: ref(50),
-    specField: () => dummyHandle,
-    fieldCell: () => createCell<number>('', 30, 'entered'),
-    cellClass: () => 'cell-ok',
-    cellVal: () => 30,
-    dqNote: () => null,
-    enterField: () => {},
-    clearField: () => {},
-    ...overrides,
   };
 }

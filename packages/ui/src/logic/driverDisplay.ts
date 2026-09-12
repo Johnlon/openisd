@@ -85,12 +85,12 @@ export function previewTextOf(driver: OpenISDDriver): {
   return {
     brand: s(driver.brand.get().value),
     model: s(driver.model.get().value),
-    series: s(driver.series),
-    sku: s(driver.sku),
+    series: s(driver.series.value),
+    sku: s(driver.sku.value),
     manufacturer: s(driver.manufacturer.get().value),
     providedBy: s(driver.providedBy.get().value),
     added: s(driver.added.get().value),
-    description: s(driver.description),
+    description: s(driver.description.value),
     comment: s(driver.comment.get().value),
   };
 }

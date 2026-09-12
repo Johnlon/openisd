@@ -29,10 +29,11 @@ function specSection(p: {
   Mmd_kg: number; Rms_Ns_per_m: number; Xmax_m: number;
 }) {
   // A test names the parameter with its unit, the way the public API does; the RECORD's keys are
-  // the unsuffixed ones `openisd.yml` states, which is what this literal has to produce.
+  // the suffixed ones the schema's `DriverSpecsSection` states, which is what this literal
+  // has to produce.
   return {
-    Fs: spec(p.Fs_hz), Qts: spec(p.Qts), Sd: spec(p.Sd_m2), Cms: spec(p.Cms_m_per_N),
-    Mms: spec(p.Mmd_kg), Rms: spec(p.Rms_Ns_per_m), Xmax: spec(p.Xmax_m),
+    Fs_hz: spec(p.Fs_hz), Qts: spec(p.Qts), Sd_m2: spec(p.Sd_m2), Cms_m_per_N: spec(p.Cms_m_per_N),
+    Mms_kg: spec(p.Mmd_kg), Rms_kg_per_s: spec(p.Rms_Ns_per_m), Xmax_m: spec(p.Xmax_m),
   };
 }
 
@@ -44,8 +45,8 @@ function prSpecSection(p: {
   Mmd_kg: number; Rms_Ns_per_m: number; Xmax_m: number;
 }) {
   return {
-    Fs: spec(p.Fs_hz), Sd: spec(p.Sd_m2), Cms: spec(p.Cms_m_per_N),
-    Mms: spec(p.Mmd_kg), Rms: spec(p.Rms_Ns_per_m), Xmax: spec(p.Xmax_m),
+    Fs_hz: spec(p.Fs_hz), Sd_m2: spec(p.Sd_m2), Cms_m_per_N: spec(p.Cms_m_per_N),
+    Mms_kg: spec(p.Mmd_kg), Rms_kg_per_s: spec(p.Rms_Ns_per_m), Xmax_m: spec(p.Xmax_m),
   };
 }
 
@@ -234,21 +235,21 @@ describe('the driver — a window, not a copy', () => {
     // datasheet reading and stops, so the picker shows a reader one problem, they fix it, and
     // are then shown the next — which is what "every problem at once" is supposed to prevent.
     const record = {
-      brand: { value: 'Dayton', origin: 'scraped' },
-      model: { value: 'RS225', origin: 'scraped' },
-      manufacturer: { value: 'Dayton', origin: 'scraped' },
-      uuid: { value: '00000000-0000-4000-8000-000000000000', origin: 'scraped' },
-      sku: { value: 'TEST-SKU', origin: 'scraped' },
-      driver_type: { value: 'woofer', origin: 'scraped' },
-      data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' }, origin: 'scraped' },
-      authoritative: { value: 'manufacturer_datasheet', origin: 'scraped' },
+      brand: { value: 'Dayton' },
+      model: { value: 'RS225' },
+      manufacturer: { value: 'Dayton' },
+      uuid: { value: '00000000-0000-4000-8000-000000000000' },
+      sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
+      driver_type: { value: 'woofer' },
+      data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
+      authoritative: { value: 'manufacturer_datasheet' },
       quality: {
         confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
         parse_errors: [], cross_source_only: [],
       },
       specs: {
         woofer: {
-          Fs: {
+          Fs_hz: {
             origin: 'datasheet',
             readings: {
               datasheet: { read_value: 'thirty' },
@@ -262,8 +263,8 @@ describe('the driver — a window, not a copy', () => {
     const result = OpenISDDriver.fromConformingRecord(record, new Engine());
 
     expect(result).toEqual(expect.arrayContaining([
-      expect.stringContaining('specs.woofer.Fs.readings.datasheet.read_value'),
-      expect.stringContaining('specs.woofer.Fs.readings.measured.read_value'),
+      expect.stringContaining('specs.woofer.Fs_hz.readings.datasheet.read_value'),
+      expect.stringContaining('specs.woofer.Fs_hz.readings.measured.read_value'),
     ]));
   });
 
@@ -300,7 +301,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     const p = project();
     p.box.sealed.volume_m3.set(0.03);
 
-    const fc = p.box.sealed.resonance_hz();
+    const fc = p.box.sealed.resonance_hz.value;
     // A sealed box always raises resonance above the driver's free-air Fs of 30 Hz.
     expect(fc).not.toBeNull();
     expect(fc!).toBeGreaterThan(30);
@@ -311,14 +312,28 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     // is not a very small box; it is no box.
     const p = project();
     p.box.sealed.volume_m3.set(0);
-    expect(p.box.sealed.resonance_hz()).toBeNull();
+    expect(p.box.sealed.resonance_hz.value).toBeNull();
+  });
+
+  it('exposes sealed resonance as a precomputed field whose cell state follows the data', () => {
+    // The upgrade contract (Task 1/3): a ReadOnlyCalculatedField, not a method — its cell state
+    // reports not-available until the volume is known, calculated once it is.
+    const p = project();
+    expect(p.box.sealed.resonance_hz.state).toBe('calculated');
+    expect(p.box.sealed.resonance_hz.value).not.toBeNull();
+    const ventedOnly = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).vented().volume_m3(0.05).tuning_hz(40).build();
+    expect(ventedOnly.box.sealed.resonance_hz.state).toBe('not-available');
+    expect(ventedOnly.box.sealed.resonance_hz.value).toBeNull();
   });
 
   it('a smaller box raises the resonance further — the engine is really being consulted', () => {
     // Non-vacuity: a hardcoded or stubbed value would not move with the volume.
     const big = project();  big.box.sealed.volume_m3.set(0.060);
     const small = project(); small.box.sealed.volume_m3.set(0.015);
-    expect(small.box.sealed.resonance_hz()!).toBeGreaterThan(big.box.sealed.resonance_hz()!);
+    expect(small.box.sealed.resonance_hz.value!).toBeGreaterThan(big.box.sealed.resonance_hz.value!);
   });
 
   it('the sealed resonance is the LOSSY one — it moves when only the leakage changes', () => {
@@ -338,7 +353,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     leaky.box.sealed.losses.Ql.set(5);
     tight.box.sealed.losses.Ql.set(10000);
 
-    expect(leaky.box.sealed.resonance_hz()).not.toBeCloseTo(tight.box.sealed.resonance_hz()!, 3);
+    expect(leaky.box.sealed.resonance_hz.value).not.toBeCloseTo(tight.box.sealed.resonance_hz.value!, 3);
   });
 
   it('STILL computes plain geometry — a port area is πr², which no model can disagree about', () => {
@@ -414,6 +429,32 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
 
     expect(p.box.bandpass4.chambers.rear.losses.Ql.get()).toBe(5);
     expect(p.box.bandpass4.chambers.front.losses.Ql.get()).toBe(9);
+  });
+
+  it('exposes bandpass4 rear resonance as a precomputed field, null until the rear volume is known', () => {
+    // Task 4/5: the rear chamber is sealed, so its resonance (WinISD's "Frc") is a
+    // ReadOnlyCalculatedField — read as precomputed state, never a method.
+    const p = project(); // a sealed project — bandpass4 is dormant, so its rear volume is unset
+    expect(p.box.bandpass4.chambers.rear.resonance_hz.state).toBe('not-available');
+    expect(p.box.bandpass4.chambers.rear.resonance_hz.value).toBeNull();
+
+    const bp4 = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(40).build();
+    expect(bp4.box.bandpass4.chambers.rear.resonance_hz.state).toBe('calculated');
+    expect(bp4.box.bandpass4.chambers.rear.resonance_hz.value).not.toBeNull();
+  });
+
+  it('gives the bandpass4 front volume a Field readout like every other chamber', () => {
+    // Task 6: the front chamber volume is a Field<number> — .get() returns a cell with a state,
+    // consistent with the rear chamber, instead of a bare RawField.
+    const bp4 = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(40).build();
+    expect(bp4.box.bandpass4.chambers.front.volume_m3.get().value).toBe(0.03);
+    expect(bp4.box.bandpass4.chambers.front.volume_m3.get().state).toBe('entered');
   });
 });
 
@@ -508,8 +549,8 @@ describe('the passive radiator a box holds', () => {
 
     // Applying the answer must actually produce the target — the property that makes it the
     // right quantity, checked through the box's own forward calculation rather than a literal.
-    p.box.passiveRadiator.addedMass_kg.set(added!);
-    expect(p.box.passiveRadiator.systemTuning_hz()).toBeCloseTo(15, 6);
+    p.box.passiveRadiator.addedMass_kg.set(added.value!);
+    expect(p.box.passiveRadiator.systemTuning_hz.value).toBeCloseTo(15, 6);
   });
 
   it('reports impossible calculated mass for an unreachable tuning target and shows dq on the related fields', () => {
@@ -522,28 +563,52 @@ describe('the passive radiator a box holds', () => {
     p.box.passiveRadiator.volume_m3.set(0.03);
     p.box.passiveRadiator.addedMass_kg.set(0);
 
-    const ceiling = p.box.passiveRadiator.systemTuning_hz()!;
+    const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
 
-    expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling * 1.5)).toBeLessThan(0);
+    expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling * 1.5).value).toBeLessThan(0);
     // At the ceiling itself the answer is zero added mass, not null — reachable, just barely.
-    expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling)).toBeCloseTo(0, 9);
+    expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling).value).toBeCloseTo(0, 9);
 
     p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
     p.notifyPrChanged();
 
     expect(p.box.passiveRadiator.addedMass_kg.get().value).toBeLessThan(0);
-    expect(p.prTargetUnreachable()).toBe(true);
+    expect(p.prTargetUnreachable.value).toBe(true);
 
     p.box.passiveRadiator.tuning_hz.set(ceiling);
     p.notifyPrChanged();
 
     expect(p.box.passiveRadiator.addedMass_kg.get().value).toBeCloseTo(0, 9);
-    expect(p.prTargetUnreachable()).toBe(false);
+    expect(p.prTargetUnreachable.value).toBe(false);
+  });
+
+  it('carries the dq on EVERY passive-radiator input and output when the target is unreachable', () => {
+    // The unreachable-target DQ is not a property of the bad calculated mass alone — the user
+    // sees the ⚠ on the target they typed AND on every derived output, so the field that is the
+    // real problem (the entered tuning) and the fields that merely show its consequence all flag.
+    const p = project();
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
+    if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
+    p.box.passiveRadiator.radiator.update(library);
+    p.box.passiveRadiator.volume_m3.set(0.03);
+    p.box.passiveRadiator.addedMass_kg.set(0);
+
+    const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
+    p.box.boxType.set('box-passive-radiator');
+    p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
+    p.notifyPrChanged();
+
+    const DQ = ['Target tuning is above maximum passive radiator tuning'];
+    expect(p.box.passiveRadiator.tuning_hz.get().state).toBe('entered');                 // the input
+    expect(p.box.passiveRadiator.tuning_hz.get().dq()).toEqual(DQ);
+    expect(p.box.passiveRadiator.addedMass_kg.get().dq()).toEqual(DQ);
+    expect(p.box.passiveRadiator.systemTuning_hz.dq).toEqual(DQ);
+    expect(p.box.passiveRadiator.resonanceWithAddedMass_hz.dq).toEqual(DQ);
   });
 
   it('reports no resonance-with-added-mass until a radiator is chosen', () => {
-    expect(project().box.passiveRadiator.resonanceWithAddedMass_hz()).toBeNull();
+    expect(project().box.passiveRadiator.resonanceWithAddedMass_hz.value).toBeNull();
   });
 
   it('resonates at the radiator own Fs when no mass has been added', () => {
@@ -554,7 +619,7 @@ describe('the passive radiator a box holds', () => {
     p.box.passiveRadiator.addedMass_kg.set(0);
 
     // Mms 0.09 kg on Cms 0.0009 m/N: 1/(2π·√(0.09·0.0009)) = 17.6838… Hz.
-    expect(p.box.passiveRadiator.resonanceWithAddedMass_hz()).toBeCloseTo(17.6838, 3);
+    expect(p.box.passiveRadiator.resonanceWithAddedMass_hz.value).toBeCloseTo(17.6838, 3);
   });
 
   it('falls as tuning mass goes onto the cone', () => {
@@ -565,7 +630,7 @@ describe('the passive radiator a box holds', () => {
     p.box.passiveRadiator.addedMass_kg.set(0.111111);
 
     // (0.09 + 0.111111) kg on the same compliance: 1/(2π·√(0.201111·0.0009)) = 11.8298… Hz.
-    expect(p.box.passiveRadiator.resonanceWithAddedMass_hz()).toBeCloseTo(11.8299, 3);
+    expect(p.box.passiveRadiator.resonanceWithAddedMass_hz.value).toBeCloseTo(11.8299, 3);
   });
 });
 
@@ -819,7 +884,7 @@ describe('editing a driver — copy, then update or drop', () => {
     const back = OpenISDProject.fromOwprText(text, new Engine());
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
     expect(back.name.get()).toBe('Kitchen sub');
-    expect(back.description.get()).toBe('111111');
+    expect(back.description.get().value).toBe('111111');
     expect(back.box.boxType.get()).toBe('sealed');
   });
 
@@ -844,7 +909,7 @@ describe('editing a driver — copy, then update or drop', () => {
 
     project.toWprText(new Engine());
 
-    expect(project.description.get()).toBe('before');
+    expect(project.description.get().value).toBe('before');
     expect(project.box.boxType.get()).toBe('sealed');
   });
 
@@ -877,20 +942,25 @@ describe('OpenISDDriver — provenance the driver picker reads', () => {
     expect(driver.dataSource('manufacturer_listing_page')).toBeNull();
   });
 
-  it('series / description / sku read straight off the record', () => {
+  it('series / description / sku read straight off the record as cells with provenance', () => {
     const driver = driverWithProvenance();
-    expect(driver.series).toBe('Reference Series');
-    expect(driver.description).toBe('an 8 inch reference woofer');
-    expect(driver.sku).toBe('TEST-SKU');
+    // Task 17-19: metadata getters are ReadOnlyCalculatedField<string> — value plus cell state.
+    expect(driver.series.value).toBe('Reference Series');
+    expect(driver.series.state).toBe('entered');
+    expect(driver.description.value).toBe('an 8 inch reference woofer');
+    expect(driver.description.state).toBe('entered');
+    expect(driver.sku.value).toBe('TEST-SKU');
   });
 
-  it('series and description are null when the record omits them', () => {
+  it('series and description are not-available when the record omits them', () => {
     const driver = driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     });
-    expect(driver.series).toBeNull();
-    expect(driver.description).toBeNull();
+    expect(driver.series.value).toBeNull();
+    expect(driver.series.state).toBe('not-available');
+    expect(driver.description.value).toBeNull();
+    expect(driver.description.state).toBe('not-available');
   });
 });
 
@@ -925,7 +995,7 @@ describe('a new project, every section present and nothing stated', () => {
   it('states no radiator parameters of its own', () => {
     const p = OpenISDProject.empty(new Engine());
     expect(p.box.passiveRadiator.radiator.spec.Fs_hz.get().state).toBe('not-available');
-    expect(p.box.passiveRadiator.systemTuning_hz()).toBeNull();
+    expect(p.box.passiveRadiator.systemTuning_hz.value).toBeNull();
   });
 
   it('gives each new project its own records, so editing one leaves the next untouched', () => {

@@ -25,7 +25,7 @@ export function usePREditModal(emit: (event: 'close') => void): PREditModalAPI {
   const project = useFocusedProject();
 
   const radiator = computed(() => project.value.box.passiveRadiator.radiator);
-  const prFsWithMassShown = computed(() => project.value.box.passiveRadiator.resonanceWithAddedMass_hz());
+  const prFsWithMassShown = computed(() => project.value.box.passiveRadiator.resonanceWithAddedMass_hz.value);
 
   const libRows = () => passiveRadiatorRows(
     myPassiveRadiators.list().map(e => ({ id: e.uuid, radiator: e.passiveRadiator })));

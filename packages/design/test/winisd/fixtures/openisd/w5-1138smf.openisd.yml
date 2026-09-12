@@ -46,7 +46,7 @@ added:
   origin: openisd
 specs:
   woofer:
-    Fs:
+    Fs_hz:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -75,7 +75,7 @@ specs:
             stored: 45
             off_pct: 7.8
           detail: Fs from 1/(2π·√(Mms·Cms)) = 48.83 vs stored 45 — 7.8% apart
-    Re:
+    Re_ohm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -104,7 +104,7 @@ specs:
             stored: 14.290939634198201
             off_pct: 5.5
           detail: Rme from Bl²/Re = 15.12 vs stored 14.29 — 5.5% apart
-    Le:
+    Le_H:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -112,7 +112,7 @@ specs:
           read_value: 0.00034
           read_precision: 0.000005
       corroboration: UNMATCHED
-    Znom:
+    Znom_ohm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -155,7 +155,7 @@ specs:
           read_value: 3.56
           read_precision: 0.005
       corroboration: UNMATCHED
-    Vas:
+    Vas_m3:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -172,7 +172,7 @@ specs:
             stored: 0.00485
             off_pct: 4.9
           detail: Vas from ρ·c²·Sd²·Cms = 0.004622 vs stored 0.00485 — 4.9% apart
-    Sd:
+    Sd_m2:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -189,7 +189,7 @@ specs:
             stored: 0.00485
             off_pct: 4.9
           detail: Vas from ρ·c²·Sd²·Cms = 0.004622 vs stored 0.00485 — 4.9% apart
-    BL:
+    BL_Tm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -218,7 +218,7 @@ specs:
             stored: 14.290939634198201
             off_pct: 5.5
           detail: Rme from Bl²/Re = 15.12 vs stored 14.29 — 5.5% apart
-    Mms:
+    Mms_kg:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -247,7 +247,7 @@ specs:
             stored: 45
             off_pct: 7.8
           detail: Fs from 1/(2π·√(Mms·Cms)) = 48.83 vs stored 45 — 7.8% apart
-    Cms:
+    Cms_m_per_N:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -274,7 +274,7 @@ specs:
             stored: 45
             off_pct: 7.8
           detail: Fs from 1/(2π·√(Mms·Cms)) = 48.83 vs stored 45 — 7.8% apart
-    Xmax:
+    Xmax_m:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -282,7 +282,7 @@ specs:
           read_value: 0.00925
           read_precision: 0.000005
       corroboration: UNMATCHED
-    Pe:
+    Pe_W:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -290,7 +290,7 @@ specs:
           read_value: 40
           read_precision: 0.5
       corroboration: UNMATCHED
-    Vcd:
+    Vcd_m:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -298,7 +298,7 @@ specs:
           read_value: 0.032
           read_precision: 0.0005
       corroboration: UNMATCHED
-    Hg:
+    Hg_m:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -314,3 +314,4 @@ specs:
           read_value: 80
           read_precision: 0.5
       corroboration: UNMATCHED
+

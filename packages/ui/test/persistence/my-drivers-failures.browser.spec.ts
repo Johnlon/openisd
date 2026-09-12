@@ -11,7 +11,7 @@ function slot(uuid: string, brand: string, model: string): { uuid: string; recor
   return {
     uuid,
     record: deviceRecord(
-      { brand, model, specs: { Fs: 41, Re: 5.4, Sd: 0.0132, Qts: 0.35, Qes: 0.38 } },
+      { brand, model, specs: { Fs_hz: 41, Re_ohm: 5.4, Sd_m2: 0.0132, Qts: 0.35, Qes: 0.38 } },
       uuid,
     ),
   };

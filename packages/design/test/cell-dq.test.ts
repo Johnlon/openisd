@@ -10,8 +10,8 @@ function specSection(p: {
   Mmd_kg: number; Rms_Ns_per_m: number; Xmax_m: number;
 }) {
   return {
-    Fs: spec(p.Fs_hz), Qts: spec(p.Qts), Sd: spec(p.Sd_m2), Cms: spec(p.Cms_m_per_N),
-    Mms: spec(p.Mmd_kg), Rms: spec(p.Rms_Ns_per_m), Xmax: spec(p.Xmax_m),
+    Fs_hz: spec(p.Fs_hz), Qts: spec(p.Qts), Sd_m2: spec(p.Sd_m2), Cms_m_per_N: spec(p.Cms_m_per_N),
+    Mms_kg: spec(p.Mmd_kg), Rms_kg_per_s: spec(p.Rms_Ns_per_m), Xmax_m: spec(p.Xmax_m),
   };
 }
 
@@ -20,8 +20,8 @@ function prSpecSection(p: {
   Mmd_kg: number; Rms_Ns_per_m: number; Xmax_m: number;
 }) {
   return {
-    Fs: spec(p.Fs_hz), Sd: spec(p.Sd_m2), Cms: spec(p.Cms_m_per_N),
-    Mms: spec(p.Mmd_kg), Rms: spec(p.Rms_Ns_per_m), Xmax: spec(p.Xmax_m),
+    Fs_hz: spec(p.Fs_hz), Sd_m2: spec(p.Sd_m2), Cms_m_per_N: spec(p.Cms_m_per_N),
+    Mms_kg: spec(p.Mmd_kg), Rms_kg_per_s: spec(p.Rms_Ns_per_m), Xmax_m: spec(p.Xmax_m),
   };
 }
 
@@ -68,11 +68,11 @@ function prJson() {
 }
 
 describe('structural DQ on Cell<T>', () => {
-  it('exposes dq() on Cell<T> returning null for valid fields', () => {
+  it('exposes dq() on Cell<T> returning an empty array for valid fields', () => {
     const p = project();
     const cell = p.box.vented.volume_m3.get();
     expect(typeof cell.dq).toBe('function');
-    expect(cell.dq()).toBeNull();
+    expect(cell.dq()).toEqual([]);
   });
 
   it('exposes dq() on PR addedMass_kg and tuning_hz for unreachable tuning target', () => {
@@ -83,7 +83,7 @@ describe('structural DQ on Cell<T>', () => {
     p.box.passiveRadiator.volume_m3.set(0.03);
     p.box.passiveRadiator.addedMass_kg.set(0);
 
-    const ceiling = p.box.passiveRadiator.systemTuning_hz()!;
+    const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
 
     p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.addedMass_kg.clear();
@@ -94,15 +94,15 @@ describe('structural DQ on Cell<T>', () => {
     const tuningCell = p.box.passiveRadiator.tuning_hz.get();
 
     expect(massCell.value).toBeLessThan(0);
-    expect(massCell.dq()).not.toBeNull();
-    expect(tuningCell.dq()).not.toBeNull();
-    expect(massCell.dq()).toBe(tuningCell.dq());
+    expect(massCell.dq()).not.toEqual([]);
+    expect(tuningCell.dq()).not.toEqual([]);
+    expect(massCell.dq()).toEqual(tuningCell.dq());
 
     // Reset to reachable tuning
     p.box.passiveRadiator.tuning_hz.set(ceiling);
     p.notifyPrChanged();
 
-    expect(p.box.passiveRadiator.addedMass_kg.get().dq()).toBeNull();
-    expect(p.box.passiveRadiator.tuning_hz.get().dq()).toBeNull();
+    expect(p.box.passiveRadiator.addedMass_kg.get().dq()).toEqual([]);
+    expect(p.box.passiveRadiator.tuning_hz.get().dq()).toEqual([]);
   });
 });

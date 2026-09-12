@@ -7,7 +7,7 @@ export interface ConsistencyIssue {
   readonly relative: number;
 }
 
-export const Q_GROUP_FIELDS: readonly string[] = ['Qts', 'Qes', 'Qms'];
+export const Q_GROUP_FIELDS: readonly string[] = ['Qts', 'Qes', 'Qms'] as const;
 
 export function isQGroupField(field: string): boolean {
   return Q_GROUP_FIELDS.includes(field);

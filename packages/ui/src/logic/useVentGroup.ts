@@ -144,17 +144,17 @@ export function ventFieldState(p: OpenISDProject, field: VentField): 'E' | 'C' |
 
 /** The tuning the CURRENT vent length actually delivers. */
 export function ventAchievedFb(p: OpenISDProject): number | null {
-  return p.ventAchievedFb();
+  return p.ventAchievedFb.value;
 }
 
 /** The highest tuning this volume and port area can reach with ANY vent (L = 0). */
 export function ventMaxReachableFb(p: OpenISDProject): number | null {
-  return p.ventMaxReachableFb();
+  return p.ventMaxReachableFb.value;
 }
 
 /** True when the solver cannot deliver the entered target tuning — see the domain method. */
 export function ventTargetUnreachable(p: OpenISDProject): boolean {
-  return p.ventTargetUnreachable();
+  return p.ventTargetUnreachable.value ?? false;
 }
 
 // ---- Restore suspension (docs/design/STATE_MODEL.md rule 3: "Cancel means byte-identical") -----------

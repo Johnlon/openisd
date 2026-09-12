@@ -172,6 +172,11 @@ const FIELDS: FieldSpec[] = [
     description: 'Mass added to the passive radiator to tune its Fp. WinISD 1 dp (g).',
   },
   {
+    id: 'Fp', label: 'Target tuning freq (Fp)', pane: 'PassiveRadiator', kind: 'number', unit: 'Hz', precision: 2, min: 1, max: 1000,
+    provenance: 'entered', appliesTo: ['box-passive-radiator'],
+    description: 'The PR target system tuning (WinISD Fp). Setting it solves the required added mass on the radiator cone; a target above the bare-cone ceiling derives a negative mass and flags every field with a data-quality warning.',
+  },
+  {
     id: 'prVas', label: 'Vas', pane: 'PassiveRadiator', kind: 'number', unit: 'l', unitGroup: 'volume', precision: 2, min: 0.00001, max: 100,
     provenance: 'calculated', appliesTo: ['box-passive-radiator'],
     formula: 'Vas = Cms·Sd²·ρ·c²·1000', dependsOn: ['prCms', 'prSd'],

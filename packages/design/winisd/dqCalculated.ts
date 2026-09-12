@@ -373,7 +373,11 @@ export function withDqCalculated(
 
   const markedEntries: Record<string, unknown> = {};
   for (const [field, entry] of Object.entries(sectionEntries)) {
-    const found = marks.get(field);
+    const direct = marks.get(field);
+    const bare = field.includes('_') ? marks.get(field.split('_')[0]) : undefined;
+    const found = direct !== undefined && direct.length > 0
+      ? (bare !== undefined && bare.length > 0 ? [...direct, ...bare] : direct)
+      : (bare !== undefined && bare.length > 0 ? bare : direct);
     markedEntries[field] = found === undefined || found.length === 0 || !isRecord(entry)
       ? entry
       : { ...entry, dq_calculated: found };

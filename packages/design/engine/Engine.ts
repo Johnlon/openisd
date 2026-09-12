@@ -29,6 +29,7 @@ import {
 
 import type { Result, Wiring } from './types.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
+import type { ConsistencyIssue } from './consistency.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, EnclosureParams, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
@@ -70,6 +71,36 @@ export class Engine {
   /** Whether too few of the Q group are stated for the rest to follow. */
   qGroupIsIncomplete(usable: (field: string) => boolean): boolean {
     return qGroupIsIncomplete(usable);
+  }
+
+  // ── CONSISTENCY GROUP SOLVERS ──────────────────────────────────────────────────────────────
+
+  /** Solve a driver's stated quantities against each other — the values its T/S group implies.
+   *  Never writes back: a derived value is reported, not stored. */
+  solveConsistencyGroup(p: DriverSolverQuantities): DriverSolverQuantities {
+    return solveDriverConsistencyGroup(p);
+  }
+
+  /** Solve the passive-radiator group: whichever of tuning/added-mass the caller did not state,
+   *  plus the system tuning and free-air resonance the chosen mass produces. */
+  solvePrConsistencyGroup(p: PrSolverQuantities): PrSolverQuantities {
+    return solvePrConsistencyGroup(p);
+  }
+
+  /** The stated PR quantities that disagree with each other — over-specified, or a target no
+   *  radiator can reach. Empty when consistent. */
+  checkPrConsistency(p: PrSolverQuantities): ConsistencyIssue[] {
+    return checkPrConsistency(p);
+  }
+
+  /** Solve the vent group: whichever of tuning/length the caller did not state. */
+  solveVentConsistencyGroup(p: VentSolverQuantities): VentSolverQuantities {
+    return solveVentConsistencyGroup(p);
+  }
+
+  /** The stated vent quantities that disagree with each other. Empty when consistent. */
+  checkVentConsistency(p: VentSolverQuantities): ConsistencyIssue[] {
+    return checkVentConsistency(p);
   }
 
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */

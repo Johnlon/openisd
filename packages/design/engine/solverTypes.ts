@@ -25,8 +25,6 @@ export interface SolverField<T = number> {
   setNotAvailable(): void;
 }
 
-import type { Wiring } from './types.js';
-
 /** A `SolverField` handle for every driver T/S quantity. Pass this directly to
  *  `solveDriverConsistencyGroup` — no positional args, no intermediate dict. */
 export interface DriverSolverParams {

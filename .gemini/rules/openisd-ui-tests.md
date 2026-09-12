@@ -1,0 +1,1 @@
+../.claude/rules/openisd-ui-tests.md

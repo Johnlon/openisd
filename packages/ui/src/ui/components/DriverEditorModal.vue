@@ -10,10 +10,11 @@ import { openDriverDraft } from '../../logic/driverDraft.js';
 import { specFieldHandle } from '../../logic/driverSpecFields.js';
 import { readDriverFileText } from '../../logic/driverFileText.js';
 import { driverToWdrBytes, driverToOwdrBytes, wdrTextToDriver, owdrTextToDriver } from '../../logic/fileImportExport.js';
-import { createCell, type Cell, type Field } from '@openisd/design';
+import { notAvailableCell } from '../../logic/useDriverCells.js';
+import type { Cell, Field } from '@openisd/design';
 
 function cellOf(field: string): Cell<number> {
-  return fieldOf(field)?.get() ?? createCell<number>('', null, 'not-available');
+  return fieldOf(field)?.get() ?? notAvailableCell;
 }
 import type { SpecField } from '../../logic/appState.js';
 import NumInput from './NumInput.vue';
@@ -128,7 +129,7 @@ const driverRaw = computed(() => {
     providedBy: d.providedBy.get().value,
     comment: d.comment.get().value,
     added: d.added.get().value,
-    sku: d.sku,
+    sku: d.sku.value,
     VCCon: d.spec[d.section].VCCon.get().value,
   };
 });

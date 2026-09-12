@@ -32,7 +32,7 @@ function openFileFromEmptyState(e: Event) {
   input.value = '';
 }
 
-// App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash / self-test)
+// App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash)
 // and the global overlays, AND is the app's ONE top-level null gate (PROMPT_RELEASE_
 // HARDENING plan) — it reads `focusedProject()` once, renders the explicit empty state when
 // it is null, and otherwise provides the guaranteed-non-null project to everything below via
@@ -80,7 +80,6 @@ onMounted(async () => {
   }
   markProjectSaved();   // the just-loaded design is the ground state (clean, not modified)
   saveReady = true;
-  diagnostics.run();
   window.addEventListener('hashchange', handleHashChange);
 });
 

@@ -90,7 +90,7 @@ export function useDriverEditorModal(onClose?: () => void): DriverEditorModalAPI
       providedBy: d.providedBy.get().value,
       comment: d.comment.get().value,
       added: d.added.get().value,
-      sku: d.sku,
+      sku: d.sku.value,
       VCCon: d.spec[d.section].VCCon.get().value,
     };
   });

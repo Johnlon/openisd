@@ -16,7 +16,7 @@ import { solveConsistencyGroup } from './testSolver.js';
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SweepParams } from '../../engine/index.js';
+import type { SweepParams, DriverSolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -33,7 +33,7 @@ const RAW: Record<string, number> = {
 };
 /** The solver never refuses — an underdetermined driver simply has fewer known values, and
  *  `sweep` is what reports that it cannot be simulated. */
-const derive = (raw: Record<string, number>): any => solveConsistencyGroup({
+const derive = (raw: Record<string, number>): Readonly<DriverSolverQuantities> => solveConsistencyGroup({
   Fs_hz: raw.Fs, Qts: raw.Qts, Qes: raw.Qes, Qms: raw.Qms, Vas_m3: raw.Vas,
   Sd_m2: raw.Sd, Re_ohm: raw.Re, Xmax_m: raw.Xmax, Pe_W: raw.Pe, Znom_ohm: raw.Znom,
 });

@@ -129,6 +129,17 @@ export function prMassForFp(P: PRParams, fp: number): number {
 }
 
 /**
+ * Passive radiator free-air resonance with added mass.
+ * Analogous to a driver's Fs but for the PR cone with mass loading:
+ *   Fs_pr = 1 / (2π · √((Mmd + Madd) · Cms))
+ * This is a mechanical resonance of the radiator alone — no box, no air compliance —
+ * used to display the PR's effective resonant frequency as a function of added weight.
+ */
+export function prFsWithMass(Mmd_kg: number, Madd_kg: number, Cms_m_per_N: number): number {
+  return 1 / (2 * Math.PI * Math.sqrt((Mmd_kg + Madd_kg) * Cms_m_per_N));
+}
+
+/**
  * Finds the actual system resonance (Fsc) and Q (Qtc) from the simulated impedance curve
  * of a sealed/closed box, taking box leakage/absorption losses into account (TS method).
  */

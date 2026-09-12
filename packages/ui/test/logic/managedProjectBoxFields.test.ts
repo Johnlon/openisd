@@ -56,7 +56,7 @@ describe('OpenISDProject — bandpass4 front chamber (Vf)', () => {
   it('bandpass4.chambers.front.volume_m3 is reachable regardless of active box type', () => {
     const p = sealedProject();   // Vf must stay reachable while dormant
     p.box.bandpass4.chambers.front.volume_m3.set(0.017);
-    assert.equal(p.box.bandpass4.chambers.front.volume_m3.get(), 0.017);
+    assert.equal(p.box.bandpass4.chambers.front.volume_m3.get().value, 0.017);
   });
 });
 

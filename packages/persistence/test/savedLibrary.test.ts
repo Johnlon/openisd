@@ -49,8 +49,8 @@ function driverRecord() {
     },
     specs: {
       woofer: {
-        Fs: spec(30), Qts: spec(0.4), Sd: spec(0.02), Cms: spec(0.0005),
-        Mms: spec(0.05), Rms: spec(2), Xmax: spec(0.008),
+        Fs_hz: spec(30), Qts: spec(0.4), Sd_m2: spec(0.02), Cms_m_per_N: spec(0.0005),
+        Mms_kg: spec(0.05), Rms_kg_per_s: spec(2), Xmax_m: spec(0.008),
       },
     },
   };
@@ -71,8 +71,8 @@ function passiveRadiatorRecord() {
     },
     specs: {
       'passive-radiator': {
-        Fs: spec(20), Sd: spec(0.014), Cms: spec(0.0011),
-        Mms: spec(0.06), Rms: spec(1.5), Xmax: spec(0.012),
+        Fs_hz: spec(20), Sd_m2: spec(0.014), Cms_m_per_N: spec(0.0011),
+        Mms_kg: spec(0.06), Rms_kg_per_s: spec(1.5), Xmax_m: spec(0.012),
       },
     },
   };

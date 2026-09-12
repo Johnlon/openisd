@@ -21,12 +21,13 @@ import {parse as parseYmlToJs, stringify} from 'yaml';
 
 import type {Field, OpenIsdPassiveRadiatorSpec} from './index.js';
 import { OpenISDDriver, OpenISDPassiveRadiatorStandalone,} from './index.js';
-import {type DriverError, Engine, type DriverSolverQuantities} from '../engine/index.js';
+import {type DriverError, Engine} from '../engine/index.js';
 
 import {dqCalculated, withDqCalculated} from '../winisd/dqCalculated.js';
 import {INI_ROWS, WINISD_CALCULABLE, type WdrCell, type WdrHeader, WinISDDriver} from '../winisd/winisdDriver.js';
 import {
     type DriverSpec, type SpecEntryJson, specEntryJsonSchema, wdrFields, winISDDriverToOpenISDDeviceJson,
+    WDR_TO_SCHEMA_KEY,
 } from './openisdSchema.js';
 
 /** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
@@ -133,6 +134,24 @@ function stripRejectedReadings(specs: unknown): unknown {
     return sections;
 }
 
+function canonicalizeSpecKeys(specs: unknown): unknown {
+    if (!isKeyedObject(specs)) return specs;
+    const sections: Record<string, unknown> = {};
+    for (const [sectionKey, section] of Object.entries(specs)) {
+        if (!isKeyedObject(section)) {
+            sections[sectionKey] = section;
+            continue;
+        }
+        const fields: Record<string, unknown> = {};
+        for (const [field, entry] of Object.entries(section)) {
+            const canonicalField = WDR_TO_SCHEMA_KEY[field] ?? field;
+            fields[canonicalField] = entry;
+        }
+        sections[sectionKey] = fields;
+    }
+    return sections;
+}
+
 /** `.wdr` provenance marks, from the domain's own three-state provenance. WinISD's format has
  *  exactly these three, so the mapping is total and needs no fallback. */
 
@@ -147,7 +166,7 @@ function stripScraperOnlyFieldsFromJavascriptObject(driverYml: object): Record<s
     for (const [key, value] of Object.entries(driverYml)) {
         if (key === SCRAPER_ONLY_KEY) continue;
         out[key] = key === 'specs'
-            ? stripRejectedReadings(stripDefinitionField(value))
+            ? canonicalizeSpecKeys(stripRejectedReadings(stripDefinitionField(value)))
             : stripDefinitionField(value);
     }
     return stripMetadataOrigin(out);

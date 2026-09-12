@@ -1,4 +1,4 @@
-import { notifyPrChanged, notifyVentChanged, solveConsistencyGroup } from './engine/testSolver.js';
+import { solvePrConsistencyGroup, solveVentConsistencyGroup } from './engine/testSolver.js';
 import { describe, it, expect } from 'vitest';
 import { OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '../domain/openisdDomain.js';
 import { Engine } from '../engine/index.js';
@@ -12,8 +12,8 @@ function specSection(p: {
   Mmd_kg: number; Rms_Ns_per_m: number; Xmax_m: number;
 }) {
   return {
-    Fs: spec(p.Fs_hz), Qts: spec(p.Qts), Sd: spec(p.Sd_m2), Cms: spec(p.Cms_m_per_N),
-    Mms: spec(p.Mmd_kg), Rms: spec(p.Rms_Ns_per_m), Xmax: spec(p.Xmax_m),
+    Fs_hz: spec(p.Fs_hz), Qts: spec(p.Qts), Sd_m2: spec(p.Sd_m2), Cms_m_per_N: spec(p.Cms_m_per_N),
+    Mms_kg: spec(p.Mmd_kg), Rms_kg_per_s: spec(p.Rms_Ns_per_m), Xmax_m: spec(p.Xmax_m),
   };
 }
 
@@ -22,8 +22,8 @@ function prSpecSection(p: {
   Mmd_kg: number; Rms_Ns_per_m: number; Xmax_m: number;
 }) {
   return {
-    Fs: spec(p.Fs_hz), Sd: spec(p.Sd_m2), Cms: spec(p.Cms_m_per_N),
-    Mms: spec(p.Mmd_kg), Rms: spec(p.Rms_Ns_per_m), Xmax: spec(p.Xmax_m),
+    Fs_hz: spec(p.Fs_hz), Sd_m2: spec(p.Sd_m2), Cms_m_per_N: spec(p.Cms_m_per_N),
+    Mms_kg: spec(p.Mmd_kg), Rms_kg_per_s: spec(p.Rms_Ns_per_m), Xmax_m: spec(p.Xmax_m),
   };
 }
 
@@ -77,7 +77,7 @@ describe('PR and Vent Solver Groups', () => {
     p.box.passiveRadiator.radiator.update(library);
     p.box.passiveRadiator.volume_m3.set(0.03);
 
-    const ceiling = p.box.passiveRadiator.systemTuning_hz()!;
+    const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
 
     p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.addedMass_kg.clear();
@@ -90,8 +90,8 @@ describe('PR and Vent Solver Groups', () => {
     expect(massCell.state).toBe('calculated');
     expect(tuningCell.state).toBe('entered');
     expect(massCell.value).toBeLessThan(0);
-    expect(massCell.dq()).toBe('Target tuning is above maximum passive radiator tuning');
-    expect(tuningCell.dq()).toBe('Target tuning is above maximum passive radiator tuning');
+    expect(massCell.dq()).toEqual(['Target tuning is above maximum passive radiator tuning']);
+    expect(tuningCell.dq()).toEqual(['Target tuning is above maximum passive radiator tuning']);
   });
 
   it('Vent solver group derives C/N/E state, value and structural DQ atomically', () => {
@@ -111,12 +111,12 @@ describe('PR and Vent Solver Groups', () => {
     expect(tuningCell.state).toBe('entered');
     expect(lenCell.state).toBe('calculated');
     expect(lenCell.value).toBeGreaterThan(0);
-    expect(lenCell.dq()).toBeNull();
-    expect(tuningCell.dq()).toBeNull();
+    expect(lenCell.dq()).toEqual([]);
+    expect(tuningCell.dq()).toEqual([]);
   });
 
   it('Engine exposes pure solveDriverConsistencyGroup, and notifyVentChanged', () => {
-    const prSolved = notifyPrChanged({
+    const prSolved = solvePrConsistencyGroup({
       tuning_hz: 50,
       Vb_m3: 0.03,
       prMmd_kg: 0.09,
@@ -126,7 +126,7 @@ describe('PR and Vent Solver Groups', () => {
     });
     expect(prSolved.addedMass_kg).toBeDefined();
 
-    const ventSolved = notifyVentChanged({
+    const ventSolved = solveVentConsistencyGroup({
       tuning_hz: 35,
       Vb_m3: 0.03,
       area_m2: 0.002,

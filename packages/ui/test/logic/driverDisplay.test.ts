@@ -15,7 +15,7 @@ const spec = (read_value: number) => ({ origin: 'manual', readings: { manual: { 
 
 function driverOf(p: {
   brand: string; model: string; driverType?: string;
-  Fs?: number; Sd?: number;
+  Fs_hz?: number; Sd_m2?: number;
 }) {
   const record = {
     uuid: { value: '00000000-0000-4000-8000-000000000000' },
@@ -31,8 +31,8 @@ function driverOf(p: {
     },
     specs: {
       woofer: {
-        ...(p.Fs != null ? { Fs: spec(p.Fs) } : {}),
-        ...(p.Sd != null ? { Sd: spec(p.Sd) } : {}),
+        ...(p.Fs_hz != null ? { Fs_hz: spec(p.Fs_hz) } : {}),
+        ...(p.Sd_m2 != null ? { Sd_m2: spec(p.Sd_m2) } : {}),
       },
     },
   };
@@ -72,7 +72,7 @@ describe('chipsOf — classification chips for one driver', () => {
   });
 
   it('falls back to T/S parameters when neither driver_type nor the name resolves it', () => {
-    const driver = driverOf({ brand: 'Acme', model: 'X1', Fs: 30, Sd: 0.001 });
+    const driver = driverOf({ brand: 'Acme', model: 'X1', Fs_hz: 30, Sd_m2: 0.001 });
     const { canonical } = chipsOf(driver);
     // Sd in cm² < 12 resolves to Tweeter by the T/S fallback (Sd = 0.001 m² = 10 cm²).
     assert.equal(canonical, 'Tweeter');
@@ -80,7 +80,7 @@ describe('chipsOf — classification chips for one driver', () => {
 });
 
 describe('passiveRadiatorRows — the PR browser row view model', () => {
-  const prRecord = (p: { brand: string; model: string; Sd?: number; Mms?: number; Cms?: number }) => ({
+  const prRecord = (p: { brand: string; model: string; Sd_m2?: number; Mms_kg?: number; Cms_m_per_N?: number }) => ({
     uuid: { value: '00000000-0000-4000-8000-00000000000a' },
     manufacturer: scraped(p.brand), brand: scraped(p.brand), model: scraped(p.model),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
@@ -94,14 +94,14 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
     },
     specs: {
       'passive-radiator': {
-        ...(p.Sd != null ? { Sd: spec(p.Sd) } : {}),
-        ...(p.Mms != null ? { Mms: spec(p.Mms) } : {}),
-        ...(p.Cms != null ? { Cms: spec(p.Cms) } : {}),
+        ...(p.Sd_m2 != null ? { Sd_m2: spec(p.Sd_m2) } : {}),
+        ...(p.Mms_kg != null ? { Mms_kg: spec(p.Mms_kg) } : {}),
+        ...(p.Cms_m_per_N != null ? { Cms_m_per_N: spec(p.Cms_m_per_N) } : {}),
       },
     },
   });
 
-  const radiatorOf = (p: { brand: string; model: string; Sd?: number; Mms?: number; Cms?: number }) => {
+  const radiatorOf = (p: { brand: string; model: string; Sd_m2?: number; Mms_kg?: number; Cms_m_per_N?: number }) => {
     const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prRecord(p), new Engine());
     if (Array.isArray(pr)) throw new Error(`fixture is not a valid radiator: ${pr.join(', ')}`);
     return pr;
@@ -119,7 +119,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
 
   it('formats the three summary numbers the row tooltip quotes', () => {
     const rows = passiveRadiatorRows([
-      { id: 'aaaa-1', radiator: radiatorOf({ brand: 'SB', model: 'PR', Sd: 0.025, Mms: 0.06, Cms: 0.0011 }) },
+      { id: 'aaaa-1', radiator: radiatorOf({ brand: 'SB', model: 'PR', Sd_m2: 0.025, Mms_kg: 0.06, Cms_m_per_N: 0.0011 }) },
     ]);
 
     assert.equal(rows[0].sd, '250cm²');
@@ -130,7 +130,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
   it('shows an em dash for a number the radiator does not state', () => {
     // A datasheet routinely publishes Sd/Cms and leaves Mms blank.
     const rows = passiveRadiatorRows([
-      { id: 'aaaa-1', radiator: radiatorOf({ brand: 'SB', model: 'PR', Sd: 0.025 }) },
+      { id: 'aaaa-1', radiator: radiatorOf({ brand: 'SB', model: 'PR', Sd_m2: 0.025 }) },
     ]);
 
     assert.equal(rows[0].sd, '250cm²');

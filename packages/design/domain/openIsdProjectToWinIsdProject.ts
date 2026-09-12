@@ -57,7 +57,7 @@ export function openIsdProjectToWinIsdProject(
 
   const values: WprValues = {
     ProjectInfo: {
-      Description: project.description.get(),
+      Description: project.description.get().value ?? '',
       Creator: project.creator.get(),
       CreateDate: project.created.get() || dateStamp,
       ModifyDate: project.modified.get() || dateStamp,
@@ -65,7 +65,7 @@ export function openIsdProjectToWinIsdProject(
     Box: boxValues,
     SignalSource: {
       Rg: project.Rs_ohm.get(),
-      P: project.powerDrive_W() ?? 0,
+      P: project.powerDrive_W.value ?? 0,
     },
   };
 
@@ -102,7 +102,7 @@ function boxSectionValues(
   switch (boxType) {
     case 'sealed': {
       const v: Record<string, string | number> = {BType: 0, Vr: box.sealed.volume_m3.get()};
-      const fr = box.sealed.resonance_hz();
+      const fr = box.sealed.resonance_hz.value;
       if (fr != null) v.Fr = fr;
       v.Qlr = box.sealed.losses.Ql.get();
       v.Qar = box.sealed.losses.Qa.get();
@@ -125,10 +125,10 @@ function boxSectionValues(
       const v: Record<string, string | number> = {
         BType: 2,
         Vr: box.bandpass4.chambers.rear.volume_m3.get().value ?? 0,
-        Vf: box.bandpass4.chambers.front.volume_m3.get(),
+        Vf: box.bandpass4.chambers.front.volume_m3.get().value ?? 0,
         Ff: box.bandpass4.chambers.front.tuning_hz.get().value ?? 0,
       };
-      const frc = box.bandpass4.chambers.rear.resonance_hz();
+      const frc = box.bandpass4.chambers.rear.resonance_hz.value;
       if (frc != null) v.Fr = frc;
       v.Qlr = box.bandpass4.chambers.rear.losses.Ql.get();
       v.Qar = box.bandpass4.chambers.rear.losses.Qa.get();
@@ -146,7 +146,7 @@ function boxSectionValues(
         Vr: box.passiveRadiator.volume_m3.get(),
         Npr: box.passiveRadiator.count.get(),
       };
-      const fr = box.passiveRadiator.systemTuning_hz();
+      const fr = box.passiveRadiator.systemTuning_hz.value;
       if (fr != null) v.Fr = fr;
       v.Qlr = box.passiveRadiator.losses.Ql.get();
       v.Qar = box.passiveRadiator.losses.Qa.get();

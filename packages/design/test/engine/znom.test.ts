@@ -30,12 +30,12 @@ import { solveConsistencyGroup } from './testSolver.js';
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
+import type { DriverSolverQuantities } from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 
 // TYPED, so a name the solver does not have is a build error rather than a silent `undefined`.
-const solve = (d: any): Readonly<any> => solveConsistencyGroup(d);
+const solve = (d: DriverSolverQuantities): Readonly<DriverSolverQuantities> => solveConsistencyGroup(d);
 
 /**
  * The probe's Re-swept cases, transcribed from `runs/znom_state.jsonl` by label: the `Re` typed

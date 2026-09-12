@@ -1,4 +1,4 @@
-import type { FieldState, SolverField } from '../engine/solverTypes.js';
+import type { FieldState, SolverField } from '@openisd/design/engine';
 
 export interface Cell<T> {
   readonly name: string;

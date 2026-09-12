@@ -1,6 +1,6 @@
 # Six vent/PR group-solve methods on OpenISDProject throw, so no project can be opened
 
-Status: OPEN — interim applied, real fix is QO126
+Status: DECIDED (John, 2026-09-12) — implement fully as precomputed domain fields / methods.
 
 ## Symptom
 

@@ -30,7 +30,7 @@ function aDriver(brand: string, model: string): OpenISDDriver {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
       parse_errors: [], cross_source_only: [],
     },
-    specs: { woofer: { Fs: spec(30), Qts: spec(0.4), Sd: spec(0.02) } },
+    specs: { woofer: { Fs_hz: spec(30), Qts: spec(0.4), Sd_m2: spec(0.02) } },
   };
   const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);

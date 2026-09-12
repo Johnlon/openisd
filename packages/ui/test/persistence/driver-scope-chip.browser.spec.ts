@@ -22,8 +22,8 @@ const SCOPE_LABELS = ['Bundled', 'My Drivers', 'All'];
 // Two saved drivers, so "My Drivers" can be narrowed to one by a star and the difference
 // between "the section is filtered" and "the section is hidden" is visible.
 const MY_DRIVERS = [
-  { brand: 'Scope Test', model: 'Alpha', specs: { Fs: 40, Re: 6.2, Sd: 0.02, Qts: 0.4, Qes: 0.5, Qms: 3 } },
-  { brand: 'Scope Test', model: 'Beta', specs: { Fs: 55, Re: 6.4, Sd: 0.015, Qts: 0.42, Qes: 0.52, Qms: 3.2 } },
+  { brand: 'Scope Test', model: 'Alpha', specs: { Fs_hz: 40, Re_ohm: 6.2, Sd_m2: 0.02, Qts: 0.4, Qes: 0.5, Qms: 3 } },
+  { brand: 'Scope Test', model: 'Beta', specs: { Fs_hz: 55, Re_ohm: 6.4, Sd_m2: 0.015, Qts: 0.42, Qes: 0.52, Qms: 3.2 } },
 ];
 
 // Clicks needed to reach each scope from the chip's starting position, `All`. Declaring the

@@ -17,7 +17,7 @@ export function useOgFilters(): OgFiltersAPI {
   const filters = computed<readonly Filter[]>(() => project.value.filters.get());
 
   function addFilter(type: FilterType): void {
-    const defaults: Record<FilterType, Record<string, number>> = {
+    const defaults: Record<FilterType, Partial<Filter>> = {
       highpass: { fc: 80, Q: 0.7071 },
       lowpass: { fc: 200, Q: 0.7071 },
       linkwitz: { f0: 50, Q0: 0.7, fp: 20, Qp: 0.5 },
@@ -29,9 +29,8 @@ export function useOgFilters(): OgFiltersAPI {
       id: String(Date.now()),
       type,
       enabled: true,
-      order: 2,
       ...defaults[type],
-    } as Filter;
+    };
     project.value.filters.set([...filters.value, filter]);
   }
 
@@ -41,7 +40,7 @@ export function useOgFilters(): OgFiltersAPI {
 
   function patchFilter(id: string, patch: Partial<Filter>): void {
     project.value.filters.set(
-      filters.value.map(f => (f.id === id ? { ...f, ...patch } as Filter : f)),
+      filters.value.map(f => (f.id === id ? { ...f, ...patch } : f)),
     );
   }
 

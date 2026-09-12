@@ -65,9 +65,9 @@ function aDriver(engine: Engine, brand: string, model: string): OpenISDDriver {
     },
     specs: {
       woofer: {
-        Fs: num(37.2), Sd: num(0.0132), Cms: num(0.00118092600256716),
-        Mms: num(0.0155), Rms: num(0.953390696873618), Xmax: num(0.006),
-        Re: num(6.4), Le: num(0.0005), BL: num(7.5), Qms: num(3.8),
+        Fs_hz: num(37.2), Sd_m2: num(0.0132), Cms_m_per_N: num(0.00118092600256716),
+        Mms_kg: num(0.0155), Rms_kg_per_s: num(0.953390696873618), Xmax_m: num(0.006),
+        Re_ohm: num(6.4), Le_H: num(0.0005), BL_Tm: num(7.5), Qms: num(3.8),
         Qes: num(0.412203764408292), Qts: num(0.371865748278097),
       },
     },
@@ -192,11 +192,11 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
       specs: {
         'passive-radiator': {
           // Read out of passive-radiator.wpr's own [PassiveRadiator] block, not transcribed.
-          Vas: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Vas'))),
+          Vas_m3: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Vas'))),
           Qms: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Qms'))),
-          Fs: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Fs'))),
-          Sd: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Sd'))),
-          Xmax: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Xmax'))),
+          Fs_hz: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Fs'))),
+          Sd_m2: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Sd'))),
+          Xmax_m: num(Number(goldenField(PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Xmax'))),
         },
       },
     };

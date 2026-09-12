@@ -22,8 +22,8 @@ function ventedProject() {
     },
     specs: {
       woofer: {
-        Fs: spec(30), Qts: spec(0.4), Sd: spec(0.02), Cms: spec(0.0005),
-        Mms: spec(0.05), Rms: spec(2), Xmax: spec(0.008),
+        Fs_hz: spec(30), Qts: spec(0.4), Sd_m2: spec(0.02), Cms_m_per_N: spec(0.0005),
+        Mms_kg: spec(0.05), Rms_kg_per_s: spec(2), Xmax_m: spec(0.008),
       },
     },
   };
@@ -67,30 +67,32 @@ describe('vent-group solve/reachability — Helmholtz solver implementations', (
     expect(len!).toBeGreaterThan(0);
   });
 
-  it('ventAchievedFb() reports the actual tuning frequency', () => {
+  it('ventAchievedFb is a ReadOnlyCalculatedField reporting the actual tuning frequency', () => {
     const p = ventedProject();
     p.box.vented.vent.shape.set('round');
     p.box.vented.vent.diameter_m.set(0.05);
     p.box.vented.vent.endCorrection_m.set(0.6);
     p.notifyVentChanged();
 
-    const fb = p.ventAchievedFb();
+    expect(p.ventAchievedFb.state).toBe('calculated');
+    const fb = p.ventAchievedFb.value;
     expect(fb).not.toBeNull();
     expect(Math.round(fb!)).toBe(35);
   });
 
-  it('ventMaxReachableFb() reports the L=0 tuning ceiling', () => {
+  it('ventMaxReachableFb is a ReadOnlyCalculatedField reporting the L=0 tuning ceiling', () => {
     const p = ventedProject();
     p.box.vented.vent.shape.set('round');
     p.box.vented.vent.diameter_m.set(0.05);
     p.box.vented.vent.endCorrection_m.set(0.6);
 
-    const maxFb = p.ventMaxReachableFb();
+    expect(p.ventMaxReachableFb.state).toBe('calculated');
+    const maxFb = p.ventMaxReachableFb.value;
     expect(maxFb).not.toBeNull();
     expect(maxFb!).toBeGreaterThan(35);
   });
 
-  it('ventTargetUnreachable() returns true for unachievable tuning targets', () => {
+  it('ventTargetUnreachable is a ReadOnlyCalculatedField, true for unachievable targets', () => {
     const p = ventedProject();
     p.box.vented.vent.shape.set('round');
     p.box.vented.vent.diameter_m.set(0.05);
@@ -98,7 +100,7 @@ describe('vent-group solve/reachability — Helmholtz solver implementations', (
     p.box.vented.tuning_hz.set(500); // impossible high target
     p.notifyVentChanged();
 
-    expect(p.ventTargetUnreachable()).toBe(true);
+    expect(p.ventTargetUnreachable.value).toBe(true);
   });
 });
 
@@ -107,7 +109,8 @@ describe('PR-group solve/reachability — nothing wired, so nothing solved', () 
     expect(() => ventedProject().notifyPrChanged()).not.toThrow();
   });
 
-  it('prTargetUnreachable() claims nothing is unreachable', () => {
-    expect(ventedProject().prTargetUnreachable()).toBe(false);
+  it('prTargetUnreachable is a ReadOnlyCalculatedField, false for a vented project', () => {
+    expect(ventedProject().prTargetUnreachable.value).toBe(false);
+    expect(ventedProject().prTargetUnreachable.state).toBe('calculated');
   });
 });

@@ -4,23 +4,23 @@
 ## Master Work Task Queue
 
 ### Prerequisite Task
-- [ ] **Task 0: Fixture Key Suffix Repair (`packages/design/test/winisd/`)**
-  - Repair test fixtures in `openisdToWdr.test.ts` and `wdr-model-coverage.test.ts` to use schema-compliant suffixed keys (`Fs_hz`, `Re_ohm`, `Le_H`, etc.).
-  - Targeted test: `npx vitest run packages/design/test/winisd/openisdToWdr.test.ts`
+- [x] **Task 0: Fixture Key Suffix Repair (`packages/design/test/winisd/`)**
+  - Repair test fixtures in `openisdToWdr.test.ts`, `wdr-model-coverage.test.ts`, `openIsdProjectToWinIsdProject.test.ts`, and canonicalize spec keys in `driverYmlToOpenisdAndWdr.ts` and `openisdSchema.ts`.
+  - Targeted test: `npx vitest run packages/design/test/winisd/` (1418/1418 passing).
 
 ### Exact Domain Symbol Task Queue (38 Pending Symbols)
 
 #### 1. Enclosure Box Interfaces
-- [ ] **1. `interface SealedBox`**: Upgrade contract to support precomputed `resonance_hz` readout.
-- [ ] **2. `SealedBox.volume_m3`**: Retain as `RawField<number>` (axiomatic input) per architectural review.
-- [ ] **3. `SealedBox.resonance_hz`**: Upgrade from method to `ReadOnlyCalculatedField<number>` (pure precomputed read).
-- [ ] **4. `interface Bandpass4Box`**: Upgrade contract for rear resonance and front chamber volume.
-- [ ] **5. `Bandpass4Box.chambers.rear.resonance_hz`**: Upgrade from method to `ReadOnlyCalculatedField<number>`.
-- [ ] **6. `Bandpass4Box.chambers.front.volume_m3`**: Upgrade to `Field<number>` for consistent chamber solving.
-- [ ] **7. `interface PassiveRadiatorBox`**: Upgrade contract for QO126 cyclic solve and precomputed readouts.
-- [ ] **8. `PassiveRadiatorBox.volume_m3`**: Upgrade to `Field<number>` so target tuning can back-calculate chamber volume.
-- [ ] **9. `PassiveRadiatorBox.addedMassForTuning_kg`**: Upgrade from `ReadOnlyCalculatedField` factory to N-way `Field` factory.
-- [ ] **10. `PassiveRadiatorBox.resonanceWithAddedMass_hz`**: Revise to eliminate lazy closure calculation; read precomputed solver state directly.
+- [x] **1. `interface SealedBox`**: Upgrade contract to support precomputed `resonance_hz` readout.
+- [x] **2. `SealedBox.volume_m3`**: Retain as `RawField<number>` (axiomatic input) per architectural review.
+- [x] **3. `SealedBox.resonance_hz`**: Upgrade from method to `ReadOnlyCalculatedField<number>` (pure precomputed read).
+- [x] **4. `interface Bandpass4Box`**: Upgrade contract for rear resonance and front chamber volume.
+- [x] **5. `Bandpass4Box.chambers.rear.resonance_hz`**: Upgrade from method to `ReadOnlyCalculatedField<number>`.
+- [x] **6. `Bandpass4Box.chambers.front.volume_m3`**: Upgrade to `Field<number>` for consistent chamber solving.
+- [x] **7. `interface PassiveRadiatorBox`**: Upgrade contract for QO126 cyclic solve and precomputed readouts.
+- [x] **8. `PassiveRadiatorBox.volume_m3`**: **RESOLVED — stays `RawField<number>`.** The pair solves within the volume; the volume is the axiomatic input, never a solved output (no back-calc).
+- [x] **9. `PassiveRadiatorBox.addedMassForTuning_kg`**: **SUPERSEDED as an entry point by the solved pair** (`tuning_hz.set(fp)` → `addedMass_kg`); kept as a read-only what-if factory.
+- [x] **10. `PassiveRadiatorBox.resonanceWithAddedMass_hz`**: Revise to eliminate lazy closure calculation; read precomputed solver state directly.
 
 #### 2. Vent Geometry & Inversions (`Vent` / `VentWindow`)
 - [ ] **11. `VentWindow.area_m2`**: Upgrade from method to N-way `Field<number>` (derives round diameter or solves slotted rectangular dimensions).
@@ -29,38 +29,38 @@
 - [ ] **14. `VentWindow.lengthForTuning_m`**: Upgrade to N-way `Field` factory (`.set(len)` solves and sets `area_m2` in captured `volume_m3, fb_hz`).
 
 #### 3. PR Implementation Window (`OpenISDBox`)
-- [ ] **15. `OpenISDBox.passiveRadiator.systemTuning_hz`**: Revise implementation to eliminate lazy getter closure; pure read of precomputed solver graph.
-- [ ] **16. `OpenISDBox.passiveRadiator.resonanceWithAddedMass_hz`**: Revise implementation to eliminate lazy closure; pure read of precomputed state.
+- [x] **15. `OpenISDBox.passiveRadiator.systemTuning_hz`**: Revise implementation to eliminate lazy getter closure; pure read of precomputed solver graph.
+- [x] **16. `OpenISDBox.passiveRadiator.resonanceWithAddedMass_hz`**: Revise implementation to eliminate lazy closure; pure read of precomputed state.
 
 #### 4. Device Metadata (`OpenISDDriver`)
-- [ ] **17. `OpenISDDriver.series`**: Upgrade from raw getter to `ReadOnlyCalculatedField<string>` carrying Cell provenance.
-- [ ] **18. `OpenISDDriver.sku`**: Upgrade from raw getter to `ReadOnlyCalculatedField<string>` carrying Cell provenance.
-- [ ] **19. `OpenISDDriver.description`**: Upgrade from raw getter to `ReadOnlyCalculatedField<string>` carrying Cell provenance.
-- [ ] **20. `OpenISDProject.description`**: Upgrade to `Field<string>` on project metadata.
+- [x] **17. `OpenISDDriver.series`**: Upgrade from raw getter to `ReadOnlyCalculatedField<string>` carrying Cell provenance.
+- [x] **18. `OpenISDDriver.sku`**: Upgrade from raw getter to `ReadOnlyCalculatedField<string>` carrying Cell provenance.
+- [x] **19. `OpenISDDriver.description`**: Upgrade from raw getter to `ReadOnlyCalculatedField<string>` carrying Cell provenance.
+- [x] **20. `OpenISDProject.description`**: Upgrade to `Field<string>` on project metadata.
 
 #### 5. Signal & Drive Level (`OpenISDProject`)
-- [ ] **21. `OpenISDProject.driveVoltage_V`**: Upgrade from method to N-way `Field<number>` (`.set(v)` derives and updates `power_W`).
-- [ ] **22. `OpenISDProject.powerDrive_W`**: Upgrade from method to N-way `Field<number>` (`.set(w)` derives and updates `driveVoltage_V`).
-- [ ] **23. `OpenISDProject.statedVoltage_V`**: Upgrade from method to `Field<number>` backed by `signal.voltage_V`.
-- [ ] **24. `OpenISDProject.setPowerDrive_W`**: Deprecate / alias to forward directly to `powerDrive_W.set(w)`.
-- [ ] **25. `OpenISDProject.setDriveVoltage_V`**: Deprecate / alias to forward directly to `driveVoltage_V.set(v)`.
+- [x] **21. `OpenISDProject.driveVoltage_V`**: Upgrade from method to N-way `Field<number>` (`.set(v)` derives and updates `power_W`).
+- [x] **22. `OpenISDProject.powerDrive_W`**: Upgrade from method to N-way `Field<number>` (`.set(w)` derives and updates `driveVoltage_V`).
+- [x] **23. `OpenISDProject.statedVoltage_V`**: Upgrade from method to `Field<number>` backed by `signal.voltage_V`.
+- [x] **24. `OpenISDProject.setPowerDrive_W`**: Deprecate / alias to forward directly to `powerDrive_W.set(w)`.
+- [x] **25. `OpenISDProject.setDriveVoltage_V`**: Deprecate / alias to forward directly to `driveVoltage_V.set(v)`.
 
 #### 6. Environmental Axioms (`OpenISDProject`)
-- [ ] **26. `OpenISDProject.envTempK`**: Upgrade from getter to pure state `Field<number>`.
-- [ ] **27. `OpenISDProject.setEnvTempK`**: Deprecate / alias to forward directly to `envTempK.set()`.
-- [ ] **28. `OpenISDProject.envHumidityPct`**: Upgrade from getter to pure state `Field<number>`.
-- [ ] **29. `OpenISDProject.setEnvHumidityPct`**: Deprecate / alias to forward directly to `envHumidityPct.set()`.
-- [ ] **30. `OpenISDProject.envPressurePa`**: Upgrade from getter to pure state `Field<number>`.
-- [ ] **31. `OpenISDProject.setEnvPressurePa`**: Deprecate / alias to forward directly to `envPressurePa.set()`.
-- [ ] **32. `OpenISDProject.envUseWinisdAirModel`**: Upgrade from getter to `RawField<boolean>`.
-- [ ] **33. `OpenISDProject.setEnvUseWinisdAirModel`**: Deprecate / alias to forward directly to `envUseWinisdAirModel.set()`.
+- [x] **26. `OpenISDProject.envTempK`**: Upgrade from getter to pure state `Field<number>`.
+- [x] **27. `OpenISDProject.setEnvTempK`**: Deprecate / alias to forward directly to `envTempK.set()`.
+- [x] **28. `OpenISDProject.envHumidityPct`**: Upgrade from getter to pure state `Field<number>`.
+- [x] **29. `OpenISDProject.setEnvHumidityPct`**: Deprecate / alias to forward directly to `envHumidityPct.set()`.
+- [x] **30. `OpenISDProject.envPressurePa`**: Upgrade from getter to pure state `Field<number>`.
+- [x] **31. `OpenISDProject.setEnvPressurePa`**: Deprecate / alias to forward directly to `envPressurePa.set()`.
+- [x] **32. `OpenISDProject.envUseWinisdAirModel`**: Upgrade from getter to `RawField<boolean>`.
+- [x] **33. `OpenISDProject.setEnvUseWinisdAirModel`**: Deprecate / alias to forward directly to `envUseWinisdAirModel.set()`.
 
 #### 7. Vent & PR Boundary Readouts / Solvers (`OpenISDProject`)
-- [ ] **34. `OpenISDProject.notifyVentChanged`**: Upgrade / expand into `recalc(): void` global force-solve diagnostic safety net.
-- [ ] **35. `OpenISDProject.ventAchievedFb`**: Upgrade from method to `ReadOnlyCalculatedField<number>` backed by precomputed solver state.
-- [ ] **36. `OpenISDProject.ventMaxReachableFb`**: Upgrade from method to `ReadOnlyCalculatedField<number>` backed by precomputed solver state.
-- [ ] **37. `OpenISDProject.ventTargetUnreachable`**: Upgrade from method to `ReadOnlyCalculatedField<boolean>` backed by precomputed solver state.
-- [ ] **38. `OpenISDProject.prTargetUnreachable`**: Upgrade from method to `ReadOnlyCalculatedField<boolean>` backed by precomputed solver state.
+- [x] **34. `OpenISDProject.notifyVentChanged`**: Upgrade / expand into `recalc(): void` global force-solve diagnostic safety net.
+- [x] **35. `OpenISDProject.ventAchievedFb`**: Upgrade from method to `ReadOnlyCalculatedField<number>` backed by precomputed solver state.
+- [x] **36. `OpenISDProject.ventMaxReachableFb`**: Upgrade from method to `ReadOnlyCalculatedField<number>` backed by precomputed solver state.
+- [x] **37. `OpenISDProject.ventTargetUnreachable`**: Upgrade from method to `ReadOnlyCalculatedField<boolean>` — derived from the tuning cell's DQ.
+- [x] **38. `OpenISDProject.prTargetUnreachable`**: Upgrade from method to `ReadOnlyCalculatedField<boolean>` — derived from the Fp cell's DQ.
 
 ---
 
@@ -232,25 +232,25 @@ export interface VentedChamber {
     readonly losses: CoupledVentedLosses;
 }
 
-// [ ] TASK 1 (interface SealedBox):
+// [x] TASK 1 (interface SealedBox):
 //     ROLE: Sealed enclosure topology contract.
-//     STATUS: UPGRADE.
-//     DECISION: volume_m3 upgraded to Field<number>; resonance_hz upgraded from method to N-way Field<number>.
-//     MECHANICS: Setting resonance_hz solves required volume_m3 via sealedVolumeForResonance(). Pure read on .get().
+//     STATUS: DONE — contract now declares the precomputed resonance_hz readout.
+//     DECISION (queue Task 2): volume_m3 RETAINS RawField<number> — an axiomatic input, not a solvable node.
 export interface SealedBox {
-    // [ ] STRATEGY (volume_m3):
+    // [x] STRATEGY (volume_m3):
     //     ROLE: Chamber acoustic net air volume in cubic meters.
-    //     STATUS: UPGRADE from RawField<number> to Field<number>.
-    //     MECHANICS: Becomes an N-way solvable node in the graph so target resonance/tuning can back-calculate chamber volume.
+    //     STATUS: GOOD AS-IS. Axiomatic input per architectural review — retained as RawField<number>.
     readonly volume_m3: RawField<number>;
 
     /** The resulting system Fc, calculated from the volume and the driver — null when either is
-     *  not yet known. A CALCULATION, not a stored field, so a plain method, not a handle. */
-    // [ ] TASK 3 (SealedBox.resonance_hz):
+     *  not yet known. A CALCULATION, not a stored field, so a `ReadOnlyCalculatedField`, not a
+     *  handle. */
+    // [x] TASK 3 (SealedBox.resonance_hz):
     //     UPGRADE from method to ReadOnlyCalculatedField<number> (pure precomputed read). (Fc / Frc) in Hz.
-    //     STATUS: UPGRADE from method to N-way Field<number>.
-    //     MECHANICS: .get() reads precomputed Fc from graph. .set(fc) calculates required chamber volume_m3 and updates it.
-    resonance_hz(): number | null;
+    //     STATUS: DONE.
+    //     MECHANICS: .get() reads precomputed Fc from the engine; cell state is not-available until the
+    //               volume is known. No .set(fc) back-calc — volume_m3 is an axiomatic input (queue Task 2).
+    readonly resonance_hz: ReadOnlyCalculatedField<number>;
 
     // [x] STRATEGY (losses):
     //     ROLE: Internal member of enclosure/device/project.
@@ -286,17 +286,19 @@ export interface VentedBox {
 // other. `chambers.rear`/`chambers.front` carry ONLY volume/tuning/losses, never a vent; every
 // port is a flat sibling under `vents` instead, matching the Vents tab's own three-column
 // layout ("Rear chamber"/"Front chamber"/"Intrachamber").
-// [ ] TASK 4 (interface Bandpass4Box):
+// [x] TASK 4 (interface Bandpass4Box):
 //     ROLE: 4th-order bandpass topology contract.
-//     STATUS: UPGRADE.
-//     DECISION: chambers.rear.resonance_hz upgraded to Field<number> (solves rear volume_m3); chambers.front.volume_m3 upgraded to Field<number>.
+//     STATUS: DONE.
+//     DECISION (queue Task 6): chambers.rear.resonance_hz upgraded to ReadOnlyCalculatedField<number>
+//     (pure precomputed read); chambers.front.volume_m3 upgraded to Field<number> for consistent
+//     chamber readout. No .set(fc)/.set(vf) back-calc — both volumes remain axiomatic inputs.
 export interface Bandpass4Box {
     // [x] STRATEGY (chambers):
     //     ROLE: Internal member of enclosure/device/project.
     //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
     readonly chambers: {
         /** rear = the chamber the driver protrudes into, SEALED — no port, so no `vents.rear`, and
-         *  a read-only calculated `resonance_hz()` (WinISD's "Frc") instead of a tuning to enter. */
+         *  a read-only calculated `resonance_hz` (WinISD's "Frc") instead of a tuning to enter. */
         // [x] STRATEGY (rear):
         //     ROLE: Internal member of enclosure/device/project.
         //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
@@ -305,25 +307,28 @@ export interface Bandpass4Box {
             //     ROLE: Internal member of enclosure/device/project.
             //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
             readonly volume_m3: Field<number>;
-            // [ ] TASK 5 (Bandpass4Box.chambers.rear.resonance_hz):
+            // [x] TASK 5 (Bandpass4Box.chambers.rear.resonance_hz):
             //     UPGRADE from method to ReadOnlyCalculatedField<number>.
-            //     MECHANICS: .get() reads precomputed Fc from graph. .set(fc) calculates required chamber volume_m3 and updates it.
-            resonance_hz(): number | null;
+            //     STATUS: DONE.
+            //     MECHANICS: .get() reads precomputed Fc from the engine; cell state is not-available
+            //               until the rear volume is known. No .set(fc) back-calc — volume is axiomatic.
+            readonly resonance_hz: ReadOnlyCalculatedField<number>;
             // [x] STRATEGY (losses):
             //     ROLE: Internal member of enclosure/device/project.
             //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
             readonly losses: CoupledSealedLosses;
         };
-        /** front = vented; its volume (`Vf`) has exactly one home — RAW, no Entered/Calculated
-         *  distinction, unlike `tuning_hz`, which is part of a solved relation. */
+        /** front = vented; its volume (`Vf`) has a Field readout like every other chamber. */
         // [x] STRATEGY (front):
         //     ROLE: Internal member of enclosure/device/project.
         //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
         readonly front: {
-            // [ ] TASK 6 (Bandpass4Box.chambers.front.volume_m3):
+            // [x] TASK 6 (Bandpass4Box.chambers.front.volume_m3):
             //     UPGRADE to Field<number> for consistent chamber solving.
-            //     MECHANICS: Becomes an N-way solvable node in the graph so target resonance/tuning can back-calculate chamber volume.
-            readonly volume_m3: RawField<number>;
+            //     STATUS: DONE.
+            //     MECHANICS: requiredField over the stored volume — .get() returns a cell with a state,
+            //               consistent with the rear chamber. No back-calc; the volume is axiomatic.
+            readonly volume_m3: Field<number>;
             // [x] STRATEGY (tuning_hz):
             //     ROLE: Internal member of enclosure/device/project.
             //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
@@ -427,27 +432,37 @@ export interface AbcBox {
     };
 }
 
-// [ ] TASK 7 (interface PassiveRadiatorBox):
+// [x] TASK 7 (interface PassiveRadiatorBox):
 //     ROLE: Passive radiator enclosure topology contract.
-//     STATUS: UPGRADE.
-//     DECISION: volume_m3 upgraded to Field<number>; systemTuning_hz and addedMassForTuning_kg upgraded to precomputed Field models, eradicating lazy getter closures.
+//     STATUS: DONE.
+//     DECISION: the tuning↔mass relation is a SOLVED PAIR — set either end, read the other
+//             (tuning_hz.set(fp) → addedMass_kg reads the required mass; addedMass_kg.set(mass) →
+//             tuning_hz reads the achieved tuning). Both ends are Field<number>; the readouts
+//             (systemTuning_hz, resonanceWithAddedMass_hz) are eager ReadOnlyCalculatedField that
+//             carry the relation's DQ when the pair is unreachable (negative mass). No volume
+//             back-calc: volume_m3 stays the axiomatic RawField input.
 export interface PassiveRadiatorBox {
-    // [ ] STRATEGY (volume_m3):
+    // [x] STRATEGY (volume_m3):
     //     ROLE: Chamber acoustic net air volume in cubic meters.
-    //     STATUS: UPGRADE from RawField<number> to Field<number>.
-    //     MECHANICS: Becomes an N-way solvable node in the graph so target resonance/tuning can back-calculate chamber volume.
+    //     STATUS: GOOD AS-IS. Axiomatic input, RawField<number>, no solve relation — the box volume
+    //             is a design choice the pair solves WITH, never a solved output.
     readonly volume_m3: RawField<number>;        // no solve relation
     // [x] STRATEGY (tuning_hz):
-    //     ROLE: Internal member of enclosure/device/project.
-    //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
+    //     ROLE: The PR TARGET tuning (WinISD Fp) — the user's dial.
+    //     STATUS: DONE. One end of the solved pair. Field<number>, entered: .set(fp) stores the
+    //             target and the other end (addedMass_kg) reads back the required cone mass —
+    //             negative, with DQ, when fp exceeds the bare-cone ceiling. Exposed in the UI
+    //             as the editable "Target tuning freq (Fp)" (#og-pr-fp).
     readonly tuning_hz: Field<number>;     // WinISD: Fp
     // [x] STRATEGY (count):
     //     ROLE: Internal member of enclosure/device/project.
     //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
     readonly count: RawField<number>;            // no solve relation, dimensionless
     // [x] STRATEGY (addedMass_kg):
-    //     ROLE: Internal member of enclosure/device/project.
-    //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
+    //     ROLE: The cone mass currently on the radiator (WinISD Madd) — the pair's other end.
+    //     STATUS: DONE. Field<number>, entered: .set(mass) stores the mass and tuning_hz reads
+    //             back the achieved tuning. A negative mass (an unreachable target committed) is
+    //             kept as entered and flagged with the relation's DQ.
     readonly addedMass_kg: Field<number>;
     // [x] STRATEGY (losses):
     //     ROLE: Internal member of enclosure/device/project.
@@ -460,10 +475,6 @@ export interface PassiveRadiatorBox {
      *  their record carries, so a driver cannot be passed here and a radiator cannot be passed
      *  where a driver belongs. STANDALONE specifically — a radiator already embedded in some box
      *  is not a thing you choose from a library. Already validated, via
-    // [x] STRATEGY (sealed):
-    //     ROLE: Internal member of enclosure/device/project.
-    //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
-    readonly sealed: SealedBox;
      *  `passiveRadiatorFromConformingRecord()` — its own seam, enforcing its own shape. */
     // [x] STRATEGY (configurePR):
     //     ROLE: Internal member of enclosure/device/project.
@@ -478,39 +489,43 @@ export interface PassiveRadiatorBox {
     /** WinISD's "Fp" — the tuning this box and this radiator ACTUALLY produce together, which is
      *  a different thing from the `tuning_hz` field above: that is the target the user asked for,
      *  this is what the chosen radiator delivers in this volume. Null until a radiator is chosen
-     *  and the volume is set. A CALCULATION, so a method, not a handle. */
+     *  and the volume is set. A precomputed readout — a `ReadOnlyCalculatedField`, not a handle. */
     // [x] STRATEGY (systemTuning_hz):
     //     ROLE: Actual delivered passive radiator system tuning (Fp) in Hz for the chosen radiator and volume.
-    //     STATUS: GOOD AS-IS on interface.
-    //     TYPE: ReadOnlyCalculatedField<number>. Read-only by nature because it reflects what the chosen radiator
-    //           physically delivers, as opposed to tuning_hz which is the target dialled in by the user.
+    //     STATUS: DONE. ReadOnlyCalculatedField<number>, eager read of the solver. Carries the
+    //             relation's DQ when the target is unreachable (the mass would be negative) — the
+    //             readout is redlined as an output, never the cause. Read-only by nature: it
+    //             reflects what the chosen radiator physically delivers, unlike tuning_hz, the dial.
     readonly systemTuning_hz: ReadOnlyCalculatedField<number>;
 
-    /** The tuning mass this radiator needs to hit `fp_hz` in this box — the inverse of
-     *  `systemTuning_hz()`, and the number a PR design is actually dialled in with. Null on the
-     *  same terms, and null when `fp_hz` is above the tuning a bare cone already reaches, since
-     *  that asks for mass to be taken off a cone carrying none. */
-    // [ ] TASK 9 (PassiveRadiatorBox.addedMassForTuning_kg):
-    //     ROLE: Parameterized query for cone mass required to hit target fp in current box.
-    //     STATUS: UPGRADE from ReadOnlyCalculatedField factory to N-way Field factory.
-    //     MECHANICS: Captured closure over fp. .get() reads mass. .set(mass) solves and updates radiator addedMass_kg.
+    /** The tuning mass this radiator needs to hit `fp_hz` in this box. Read-only WHAT-IF query —
+     *  SUPERSEDED as a design entry point by the solved pair: committing a target is
+     *  `tuning_hz.set(fp)` and reading `addedMass_kg`. This stays as a non-committing read of the
+     *  same relation (the mass for a proposed fp), negative — with DQ — above the bare-cone ceiling. */
+    // [ ] STRATEGY (addedMassForTuning_kg):
+    //     ROLE: Parameterized read-only query for cone mass required to hit target fp in current box.
+    //     STATUS: LEGACY / SUPERSEDED. The pair (tuning_hz.set(fp) → addedMass_kg) is the intended
+    //             API; this read-only factory remains as a non-committing what-if. Read side stays
+    //             a ReadOnlyCalculatedField factory.
+    //     MECHANICS: Captured closure over fp. .get() reads mass (calculated; DQ when unreachable).
     addedMassForTuning_kg(fp_hz: number): ReadOnlyCalculatedField<number>;
 
-    // FIXME(QO126): `tuning_hz` above is a stored value NOTHING consumes, and neither this method
-    // nor `systemTuning_hz()` is called by anything — so typing a target changes no design.
-    // `tuning_hz` and `addedMass_kg` are one relation seen from two ends and must become a solved
-    // pair, both read/write/calculated, stating either deriving the other. Ruled and scoped in
-    // bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md; deferred until
-    // the packages/model → packages/design migration lands.
+    // RESOLVED (QO126): `tuning_hz` was "a stored value NOTHING consumes" — it is now the writable
+    // target end of the solved pair (set fp → addedMass_kg reads the mass; the UI exposes it as the
+    // editable "Target tuning freq (Fp)"). `tuning_hz` and `addedMass_kg` are one relation seen from
+    // two ends; stating either derives the other. The volume is not part of the write-back — it is
+    // the axiomatic input the pair solves within.
 
     /** WinISD's "Fs (with added mass)" — the RADIATOR'S OWN resonance carrying whatever tuning
-     *  mass is on its cone, with no box in it. A different quantity from `systemTuning_hz()`,
+     *  mass is on its cone, with no box in it. A different quantity from `systemTuning_hz`,
      *  which is this radiator loaded by this box's air. Null until a radiator is chosen and
      *  states the mass and compliance the resonance is made of. */
-    // [ ] TASK 10 (PassiveRadiatorBox.resonanceWithAddedMass_hz):
+    // [x] TASK 10 (PassiveRadiatorBox.resonanceWithAddedMass_hz):
     //     ROLE: Radiator free-air resonance carrying current added cone mass in Hz.
-    //     STATUS: REVISE.
-    //     MECHANICS: Eradicate lazy evaluation closure. Directly read precomputed value pushed by PR solver.
+    //     STATUS: DONE.
+    //     MECHANICS: Interface declares ReadOnlyCalculatedField<number>; implementation (openisdDomain.ts:768)
+    //               is an eager field property reading precomputed solver state — no lazy getter closure.
+    //               Carries the relation's DQ when the pair is inconsistent (an unreachable target).
     readonly resonanceWithAddedMass_hz: ReadOnlyCalculatedField<number>;
 }
 
@@ -1025,7 +1040,7 @@ class OpenISDBox implements Box {
         this.bandpass4 = {
             chambers: {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
-                // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
+                // `resonance_hz` (WinISD's "Frc") stands in for the tuning it cannot be given.
                 rear: {
                     volume_m3: requiredField(bp4Rear, 'volume_m3', 'bandpass4.rear.volume_m3'),
                     // LOSSLESS here, unlike the plain sealed box above, because that is what
@@ -1199,31 +1214,28 @@ class OpenISDBox implements Box {
             get radiator() {
                 return getRadiator();
             },
-            // [ ] TASK 15 (OpenISDBox.passiveRadiator.systemTuning_hz):
+            // [x] TASK 15 (OpenISDBox.passiveRadiator.systemTuning_hz):
             //     ROLE: Actual delivered PR system tuning (Fp) in Hz.
-            //     STATUS: REVISE.
-            //     MECHANICS: Eradicate lazy getter closure. Pure read of precomputed solver graph. .set(fp) updates target tuning_hz.
-            get systemTuning_hz() {
-                return new ReadOnlyCalculatedField<number>(() => {
-                    const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                    const r = getRadiator();
-                    const solved = solvePrConsistencyGroup({
-                        addedMass_kg: rawPrAddedMassLens.get() ?? undefined,
-                        Vb_m3: Vb ?? undefined,
-                        prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
-                        prSd_m2: r.spec.Sd_m2.get().value ?? undefined,
-                        prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
-                        prNum: focus(pr, 'count').get(),
-                    });
-                    const issues = checkPrConsistency(solved);
-                    const issue = issues.find(i => i.fields.includes('tuning_hz'));
-                    const dq = issue ? issue.formula : null;
-                    if (solved.systemTuning_hz != null) {
-                        return createCell('systemTuning_hz', solved.systemTuning_hz, 'calculated', dq ? [dq] : undefined);
-                    }
-                    return createCell('systemTuning_hz', null, 'not-available');
+            //     STATUS: DONE.
+            //     MECHANICS: Eager ReadOnlyCalculatedField property (openisdDomain.ts:726) reading precomputed
+            //               solver state — no lazy getter closure. The .set(fp) write-back lives on
+            //               the pair's target end (`tuning_hz`), not on this readout.
+            systemTuning_hz: new ReadOnlyCalculatedField<number>(() => {
+                const Vb = prVolume.get() || this.vented.volume_m3.get().value;
+                const r = getRadiator();
+                const solved = this.#engine.solvePrConsistencyGroup({
+                    addedMass_kg: rawPrAddedMassLens.get() ?? 0,
+                    Vb_m3: Vb ?? undefined,
+                    prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
+                    prSd_m2: r.spec.Sd_m2.get().value ?? undefined,
+                    prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
+                    prNum: focus(pr, 'count').get(),
                 });
-            },
+                if (solved.systemTuning_hz != null) {
+                    return createCell<number>('systemTuning_hz', solved.systemTuning_hz, 'calculated');
+                }
+                return createCell<number>('systemTuning_hz', null, 'not-available');
+            }),
             addedMassForTuning_kg: (fp_hz: number) => {
                 return new ReadOnlyCalculatedField<number>(() => {
                     const Vb = prVolume.get() || this.vented.volume_m3.get().value;
@@ -1245,24 +1257,23 @@ class OpenISDBox implements Box {
                     return createCell('addedMassForTuning_kg', null, 'not-available');
                 });
             },
-            // [ ] TASK 16 (OpenISDBox.passiveRadiator.resonanceWithAddedMass_hz):
-            //     REVISE implementation to pure read of precomputed state. carrying current added cone mass in Hz.
-            //     STATUS: REVISE.
-            //     MECHANICS: Eradicate lazy evaluation closure. Directly read precomputed value pushed by PR solver.
-            get resonanceWithAddedMass_hz() {
-                return new ReadOnlyCalculatedField<number>(() => {
-                    const r = getRadiator();
-                    const solved = solvePrConsistencyGroup({
-                        addedMass_kg: rawPrAddedMassLens.get() ?? undefined,
-                        prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
-                        prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
-                    });
-                    if (solved.resonanceWithAddedMass_hz != null) {
-                        return createCell('resonanceWithAddedMass_hz', solved.resonanceWithAddedMass_hz, 'calculated');
-                    }
-                    return createCell('resonanceWithAddedMass_hz', null, 'not-available');
+            // [x] TASK 16 (OpenISDBox.passiveRadiator.resonanceWithAddedMass_hz):
+            //     ROLE: Radiator free-air resonance carrying current added cone mass in Hz.
+            //     STATUS: DONE.
+            //     MECHANICS: Eager ReadOnlyCalculatedField property (openisdDomain.ts:768) reading precomputed
+            //               solver state — no lazy getter closure.
+            resonanceWithAddedMass_hz: new ReadOnlyCalculatedField<number>(() => {
+                const r = getRadiator();
+                const solved = this.#engine.solvePrConsistencyGroup({
+                    addedMass_kg: rawPrAddedMassLens.get() ?? undefined,
+                    prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
+                    prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
                 });
-            },
+                if (solved.resonanceWithAddedMass_hz != null) {
+                    return createCell<number>('resonanceWithAddedMass_hz', solved.resonanceWithAddedMass_hz, 'calculated');
+                }
+                return createCell<number>('resonanceWithAddedMass_hz', null, 'not-available');
+            }),
         };
     }
 
@@ -2197,29 +2208,39 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     /** The product series this driver belongs to (e.g. "Reference Series"), or null. Descriptive
      *  only — the picker's preview text, never a simulated quantity. */
-    // [ ] TASK 17 (OpenISDDriver.series):
+    // [x] TASK 17 (OpenISDDriver.series):
     //     ROLE: Descriptive metadata attribute on driver record.
-    //     STATUS: UPGRADE from raw getter to ReadOnlyCalculatedField<string>.
-    //     MECHANICS: Wraps string in Cell shape carrying name and entered/calculated provenance across package boundaries.
-    get series(): string | null {
-        return this.record.get().series?.value ?? null;
+    //     STATUS: DONE.
+    //     MECHANICS: ReadOnlyCalculatedField<string> whose cell carries name and state (entered when
+    //               the record states it, not-available when omitted) across package boundaries.
+    get series(): ReadOnlyCalculatedField<string> {
+        return new ReadOnlyCalculatedField<string>(() => {
+            const v = this.record.get().series?.value ?? null;
+            return createCell('series', v, v === null ? 'not-available' : 'entered');
+        });
     }
 
     /** The manufacturer's own catalogue number, derived by the scraper from brand/model. */
-    // [ ] TASK 18 (OpenISDDriver.sku):
+    // [x] TASK 18 (OpenISDDriver.sku):
     //     ROLE: Descriptive metadata attribute on driver record.
-    //     STATUS: UPGRADE from raw getter to ReadOnlyCalculatedField<string>.
-    //     MECHANICS: Wraps string in Cell shape carrying name and entered/calculated provenance across package boundaries.
-    get sku(): string | null {
-        return this.record.get().sku.value ?? null;
+    //     STATUS: DONE.
+    //     MECHANICS: ReadOnlyCalculatedField<string> — same cell provenance as series.
+    get sku(): ReadOnlyCalculatedField<string> {
+        return new ReadOnlyCalculatedField<string>(() => {
+            const v = this.record.get().sku.value ?? null;
+            return createCell('sku', v, v === null ? 'not-available' : 'entered');
+        });
     }
 
     /** Free-text description from the datasheet, or null. Preview text only. */
-    // [ ] TASK 19 (OpenISDDriver.description):
-    //     STATUS: UPGRADE from raw getter to ReadOnlyCalculatedField<string>.
-    //     MECHANICS: Wraps string in Cell shape carrying name and entered/calculated provenance across package boundaries.
-    get description(): string | null {
-        return this.record.get().description?.value ?? null;
+    // [x] TASK 19 (OpenISDDriver.description):
+    //     STATUS: DONE.
+    //     MECHANICS: ReadOnlyCalculatedField<string> — same cell provenance as series.
+    get description(): ReadOnlyCalculatedField<string> {
+        return new ReadOnlyCalculatedField<string>(() => {
+            const v = this.record.get().description?.value ?? null;
+            return createCell('description', v, v === null ? 'not-available' : 'entered');
+        });
     }
 
     // [x] STRATEGY (toOpenIsdDeviceJson):
@@ -2899,13 +2920,20 @@ export class OpenISDProject {
         return focus(this.#slot('meta'), 'modified');
     }
 
-    /** WinISD Project tab: the user's own note about this project. Stored, never interpreted. */
-    // [ ] STRATEGY (description):
-    //     ROLE: Descriptive metadata attribute on driver record.
-    //     STATUS: UPGRADE from raw getter to ReadOnlyCalculatedField<string>.
-    //     MECHANICS: Wraps string in Cell shape carrying name and entered/calculated provenance across package boundaries.
-    get description(): RawField<string> {
-        return focus(this.#slot('meta'), 'description');
+    /** WinISD Project tab: the user's own note about this project. Stored, never interpreted. The
+     *  meta schema requires `description`, so the cell is always entered with a string. */
+    // [x] TASK 20 (OpenISDProject.description):
+    //     ROLE: Project metadata note.
+    //     STATUS: DONE.
+    //     MECHANICS: Field<string> over meta.description — .get() returns a cell with value+state,
+    //               .set(v) writes, .clear() empties (schema requires the key, so clear sets '').
+    get description(): Field<string> {
+        const lens = this.#slot('meta');
+        return new Field<string>(
+            () => createCell('description', lens.get().description, 'entered'),
+            (v) => lens.set({...lens.get(), description: v}),
+            () => lens.set({...lens.get(), description: ''}),
+        );
     }
 
     /** The signal-chain filter list. */
@@ -3215,134 +3243,172 @@ export class OpenISDProject {
      * Null when no power is stated or the driver has no usable `Re`. Never a substituted default:
      * a project that has not been told its drive level does not have one.
      */
-    // [ ] TASK 21 (OpenISDProject.driveVoltage_V):
+    // [x] TASK 21 (OpenISDProject.driveVoltage_V):
     //     ROLE: Applied generator drive level voltage (eg) in Volts.
-    //     STATUS: UPGRADE from method to N-way Field<number>.
-    //     MECHANICS: .get() reads precomputed voltage. .set(v) calculates power_W = v^2 / Re and updates signal state.
-    driveVoltage_V(): number | null {
-        const power_W = this.#current().signal.power_W;
-        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-        return power_W === null || Re_ohm === undefined ? null : this.#engine.driveVoltage(power_W, Re_ohm);
+    //     STATUS: DONE.
+    //     MECHANICS: N-way Field<number>. .get() derives √(Pin·Re) from stated power (the pair is
+    //               kept identical by every write); .set(v) computes power_W = v²/Re and updates signal.
+    get driveVoltage_V(): Field<number> {
+        const slot = this.#slot('signal');
+        return new Field<number>(
+            () => {
+                const power_W = slot.get().power_W;
+                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                const v = power_W === null || Re_ohm === undefined ? null : this.#engine.driveVoltage(power_W, Re_ohm);
+                return createCell('voltage_V', v, v === null ? 'not-available' : 'calculated');
+            },
+            (v) => {
+                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                if (Re_ohm === undefined) {
+                    throw new Error('setDriveVoltage_V cannot solve a power: the driver has no usable Re_ohm yet.');
+                }
+                const power_W = this.#engine.driveFromVoltage(v, Re_ohm);
+                slot.set({power_W, voltage_V: v});
+            },
+            () => slot.set({power_W: null, voltage_V: null}),
+        );
     }
 
     /** This project's stated reference power — WinISD's Signal-tab "Input Power". Null until
      *  stated: 1 W is a measurement convention, not a fact about this design. */
-    // [ ] TASK 22 (OpenISDProject.powerDrive_W):
+    // [x] TASK 22 (OpenISDProject.powerDrive_W):
     //     ROLE: Stated generator reference power (Pin) in Watts.
-    //     STATUS: UPGRADE from method to N-way Field<number>.
-    //     MECHANICS: .get() reads power. .set(w) calculates driveVoltage_V = sqrt(w * Re) and updates signal state.
-    powerDrive_W(): number | null {
-        return this.#current().signal.power_W;
+    //     STATUS: DONE.
+    //     MECHANICS: N-way Field<number>. .get() reads power; .set(w) calculates voltage = √(w·Re) and updates signal.
+    get powerDrive_W(): Field<number> {
+        const slot = this.#slot('signal');
+        return new Field<number>(
+            () => {
+                const w = slot.get().power_W;
+                return createCell('power_W', w, w === null ? 'not-available' : 'entered');
+            },
+            (w) => {
+                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                if (Re_ohm === undefined) {
+                    throw new Error('setPowerDrive_W cannot solve a voltage: the driver has no usable Re_ohm yet.');
+                }
+                const voltage_V = this.#engine.driveVoltage(w, Re_ohm);
+                slot.set({power_W: w, voltage_V});
+            },
+            () => slot.set({power_W: null, voltage_V: null}),
+        );
     }
 
     /** This project's stated drive voltage, WHEN IT WAS THE VOLTAGE THAT WAS STATED rather than
      *  derived from power — WinISD's Signal-tab "Input Voltage". Null until stated. */
-    // [ ] TASK 23 (OpenISDProject.statedVoltage_V):
+    // [x] TASK 23 (OpenISDProject.statedVoltage_V):
     //     ROLE: Stated drive voltage recorded when voltage was the primary entered quantity.
-    //     STATUS: UPGRADE from method to Field<number> backed by signal.voltage_V.
-    statedVoltage_V(): number | null {
-        return this.#current().signal.voltage_V;
+    //     STATUS: DONE.
+    //     MECHANICS: Field<number> backed by signal.voltage_V. .set(v) forwards to driveVoltage_V.set(v)
+    //               so the pair stays consistent (voltage was never writable alone).
+    get statedVoltage_V(): Field<number> {
+        const slot = this.#slot('signal');
+        return new Field<number>(
+            () => {
+                const v = slot.get().voltage_V;
+                return createCell('voltage_V', v, v === null ? 'not-available' : 'entered');
+            },
+            (v) => this.driveVoltage_V.set(v),
+            () => slot.set({power_W: null, voltage_V: null}),
+        );
     }
 
     /** State the drive level as a power, in watts — solves and stores the matching voltage too
-     *  (`√(Pin·Re)`), so `driveVoltage_V()`/`statedVoltage_V()` never disagree with what was just
+     *  (`√(Pin·Re)`), so `driveVoltage_V`/`statedVoltage_V` never disagree with what was just
      *  set. Requires the driver to have a usable `Re`; a caller with an incomplete driver cannot
-     *  state a drive level in these terms yet. */
-    // [ ] TASK 24 (OpenISDProject.setPowerDrive_W):
+     *  state a drive level in these terms yet.
+     *  @deprecated Use `project.powerDrive_W.set(power_W)` instead. */
+    // [x] TASK 24 (OpenISDProject.setPowerDrive_W):
     //     ROLE: Legacy mutation method for drive level.
-    //     STATUS: DEPRECATE / ALIAS.
-    //     DECISION: Forward directly to new Field.set() method to preserve backward compatibility.
+    //     STATUS: DONE — @deprecated alias forwarding to powerDrive_W.set().
     setPowerDrive_W(power_W: number): void {
-        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-        if (Re_ohm === undefined) {
-            throw new Error('setPowerDrive_W cannot solve a voltage: the driver has no usable Re_ohm yet.');
-        }
-        const voltage_V = this.#engine.driveVoltage(power_W, Re_ohm);
-        this.#slot('signal').set({power_W, voltage_V});
+        this.powerDrive_W.set(power_W);
     }
 
     /** State the drive level as a voltage — solves and stores the matching power too
-     *  (`V²/Re`), the inverse of `setPowerDrive_W`. Same `Re` requirement. */
-    // [ ] TASK 25 (OpenISDProject.setDriveVoltage_V):
+     *  (`V²/Re`), the inverse of `setPowerDrive_W`. Same `Re` requirement.
+     *  @deprecated Use `project.driveVoltage_V.set(voltage_V)` instead. */
+    // [x] TASK 25 (OpenISDProject.setDriveVoltage_V):
     //     ROLE: Legacy mutation method for drive level.
-    //     STATUS: DEPRECATE / ALIAS.
-    //     DECISION: Forward directly to new Field.set() method to preserve backward compatibility.
+    //     STATUS: DONE — @deprecated alias forwarding to driveVoltage_V.set().
     setDriveVoltage_V(voltage_V: number): void {
-        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-        if (Re_ohm === undefined) {
-            throw new Error('setDriveVoltage_V cannot solve a power: the driver has no usable Re_ohm yet.');
-        }
-        const power_W = this.#engine.driveFromVoltage(voltage_V, Re_ohm);
-        this.#slot('signal').set({power_W, voltage_V});
+        this.driveVoltage_V.set(voltage_V);
     }
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
 
     /** This project's stated air temperature, WinISD Advanced "Temperature". Null until stated —
      *  the reference value lives in `@openisd/engine` (`air.ts`), never duplicated here. */
-    // [ ] TASK 26 (OpenISDProject.envTempK):
+    // [x] TASK 26 (OpenISDProject.envTempK):
     //     ROLE: Environmental atmospheric condition parameter.
-    //     STATUS: UPGRADE from getter/setter pair to pure state Field<number>.
-    //     MECHANICS: Pure axiomatic input. Direct read/write to environment JSON slice; triggers recalc on .set().
-    envTempK(): number | null {
-        return this.#current().environment.temperature_K;
+    //     STATUS: DONE.
+    //     MECHANICS: Pure state Field<number> — nullableField over environment.temperature_K. Direct write triggers recalc.
+    get envTempK(): Field<number> {
+        return nullableField(this.#slot('environment'), 'temperature_K');
     }
 
-    // [ ] TASK 27 (OpenISDProject.setEnvTempK):
+    // [x] TASK 27 (OpenISDProject.setEnvTempK):
     //     ROLE: Legacy environment setter.
-    //     STATUS: DEPRECATE / ALIAS. Forward directly to field.set().
+    //     STATUS: DONE — @deprecated alias forwarding to envTempK.set().
     setEnvTempK(tempK: number): void {
-        this.#slot('environment').set({...this.#current().environment, temperature_K: tempK});
+        this.envTempK.set(tempK);
     }
 
     /** This project's stated relative humidity, WinISD Advanced "Humidity". Null until stated. */
-    // [ ] TASK 28 (OpenISDProject.envHumidityPct):
+    // [x] TASK 28 (OpenISDProject.envHumidityPct):
     //     ROLE: Environmental atmospheric condition parameter.
-    //     STATUS: UPGRADE from getter/setter pair to pure state Field<number>.
-    //     MECHANICS: Pure axiomatic input. Direct read/write to environment JSON slice; triggers recalc on .set().
-    envHumidityPct(): number | null {
-        return this.#current().environment.humidity_pct;
+    //     STATUS: DONE.
+    //     MECHANICS: Pure state Field<number> — nullableField over environment.humidity_pct. Direct write triggers recalc.
+    get envHumidityPct(): Field<number> {
+        return nullableField(this.#slot('environment'), 'humidity_pct');
     }
 
-    // [ ] TASK 29 (OpenISDProject.setEnvHumidityPct):
+    // [x] TASK 29 (OpenISDProject.setEnvHumidityPct):
     //     ROLE: Legacy environment setter.
-    //     STATUS: DEPRECATE / ALIAS. Forward directly to field.set().
+    //     STATUS: DONE — @deprecated alias forwarding to envHumidityPct.set().
     setEnvHumidityPct(humidityPct: number): void {
-        this.#slot('environment').set({...this.#current().environment, humidity_pct: humidityPct});
+        this.envHumidityPct.set(humidityPct);
     }
 
     /** This project's stated atmospheric pressure, WinISD Advanced "Pressure". Null until
      *  stated. */
-    // [ ] TASK 30 (OpenISDProject.envPressurePa):
+    // [x] TASK 30 (OpenISDProject.envPressurePa):
     //     ROLE: Environmental atmospheric condition parameter.
-    //     STATUS: UPGRADE from getter/setter pair to pure state Field<number>.
-    //     MECHANICS: Pure axiomatic input. Direct read/write to environment JSON slice; triggers recalc on .set().
-    envPressurePa(): number | null {
-        return this.#current().environment.pressure_Pa;
+    //     STATUS: DONE.
+    //     MECHANICS: Pure state Field<number> — nullableField over environment.pressure_Pa. Direct write triggers recalc.
+    get envPressurePa(): Field<number> {
+        return nullableField(this.#slot('environment'), 'pressure_Pa');
     }
 
-    // [ ] TASK 31 (OpenISDProject.setEnvPressurePa):
+    // [x] TASK 31 (OpenISDProject.setEnvPressurePa):
     //     ROLE: Legacy environment setter.
-    //     STATUS: DEPRECATE / ALIAS. Forward directly to field.set().
+    //     STATUS: DONE — @deprecated alias forwarding to envPressurePa.set().
     setEnvPressurePa(pressurePa: number): void {
-        this.#slot('environment').set({...this.#current().environment, pressure_Pa: pressurePa});
+        this.envPressurePa.set(pressurePa);
     }
 
     /** Which air formula this project's sweeps use — WinISD's parity model when true, OpenISD's
      *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
      *  WinISD out of the box. See `engine/air.ts` for the two models. */
-    // [ ] TASK 32 (OpenISDProject.envUseWinisdAirModel):
+    // [x] TASK 32 (OpenISDProject.envUseWinisdAirModel):
     //     ROLE: Air model selector (WinISD parity vs CIPM-2007).
-    //     STATUS: UPGRADE from getter/setter pair to RawField<boolean> backed by environment.useWinisdAirModel.
-    envUseWinisdAirModel(): boolean {
-        return this.#current().environment.useWinisdAirModel ?? true;
+    //     STATUS: DONE.
+    //     MECHANICS: RawField<boolean> backed by environment.useWinisdAirModel; null reads as true.
+    get envUseWinisdAirModel(): RawField<boolean> {
+        const slot = this.#slot('environment');
+        return {
+            get: () => slot.get().useWinisdAirModel ?? true,
+            set: (useWinisdAirModel: boolean) => {
+                slot.set({ ...slot.get(), useWinisdAirModel });
+            },
+        };
     }
 
-    // [ ] TASK 33 (OpenISDProject.setEnvUseWinisdAirModel):
+    // [x] TASK 33 (OpenISDProject.setEnvUseWinisdAirModel):
     //     ROLE: Legacy air model setter.
-    //     STATUS: DEPRECATE / ALIAS. Forward to envUseWinisdAirModel.set().
+    //     STATUS: DONE — @deprecated alias forwarding to envUseWinisdAirModel.set().
     setEnvUseWinisdAirModel(useWinisdAirModel: boolean): void {
-        this.#slot('environment').set({...this.#current().environment, useWinisdAirModel});
+        this.envUseWinisdAirModel.set(useWinisdAirModel);
     }
 
     /**
@@ -3399,7 +3465,7 @@ export class OpenISDProject {
     //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
     #sweepParams(P: FrequencyGrid): SweepParams | null {
         const Vb = this.#boxVolume_m3();
-        const eg = this.driveVoltage_V();
+        const eg = this.driveVoltage_V.value;
         if (Vb === null || eg === null) return null;
 
         const box = this.box;
@@ -3627,77 +3693,77 @@ export class OpenISDProject {
 
     // ── vent-group / PR-group solve ───────────────────────────────────────────────────────────
     //
-    // FIXME(QO126, bugs/BUG_20260908_six_vent_and_pr_group_solve_methods_are_throwing_stubs.md):
-    // these six answer the tuning ↔ paired-quantity relation — vent length on a vented box, added
-    // cone mass on a passive-radiator one — which is NOT WIRED. `tuning_hz` is a stored value no
-    // calculation consumes, and the forward/inverse methods that would close the loop
-    // (`Vent.tuningIn_hz`/`lengthForTuning_m`, `PassiveRadiatorBox.systemTuning_hz`/
-    // `addedMassForTuning_kg`) have no callers.
-    //
-    // Until that relation exists, these report "nothing solved, nothing known" rather than
-    // throwing: `notifyVentChanged` runs on EVERY project change (`appState.ts`), so a throw here
-    // means no project can be opened at all. Doing nothing is what the app did before the
-    // migration, when neither direction had a caller — this is the pre-existing behaviour, not
-    // a new one, and the feature is ruled and scoped in QO126.
+    // RESOLVED (QO126): the tuning ↔ paired-quantity relation IS wired — vent length ↔ tuning
+    // through solveVentConsistencyGroup, cone mass ↔ tuning through solvePrConsistencyGroup, and
+    // the unreachable condition is exactly the consistency check's DQ on the entered tuning field
+    // (see Tasks 37/38). The boundary readouts below are precomputed ReadOnlyCalculatedField; the
+    // two `notify*Changed` stubs are @deprecated aliases of the global recalc() diagnostic net.
 
-    /** Derives whichever of the vented box's tuning/vent-length the user did not state. */
-    // [ ] TASK 34 (OpenISDProject.notifyVentChanged):
-    //     ROLE: Vent mutation listener trigger.
-    //     STATUS: UPGRADE / EXPAND into recalc(): void.
-    //     MECHANICS: Serves as the manual Recalc diagnostic safety net that triggers force-solve across the entire graph.
+    /** Manual "Recalc" diagnostic safety net — force-recalculates the whole graph and notifies
+     *  subscribers. Every field reads lazily, so the subscriber notification IS the force-solve:
+     *  it makes every consumer re-read, which recomputes any derived cell whose sources moved. */
+    // [x] TASK 34 (OpenISDProject.recalc):
+    //     ROLE: Manual global force-solve diagnostic safety net.
+    //     STATUS: DONE. recalc(): void calls #notify() — the force-solve. notifyVentChanged and
+    //             notifyPrChanged are @deprecated aliases of it.
+    recalc(): void {
+        this.#notify();
+    }
+
+    /** @deprecated Use `recalc()` instead. */
     notifyVentChanged(): void {
         this.#notify();
     }
 
 
-    /** The tuning the vent as built actually produces. */
-    // [ ] TASK 35 (OpenISDProject.ventAchievedFb):
+    /** The tuning the vent as built actually produces. A precomputed readout — not-available when
+     *  the box is not vented or the geometry is incomplete. */
+    // [x] TASK 35 (OpenISDProject.ventAchievedFb):
     //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
-    //     STATUS: UPGRADE from method to ReadOnlyCalculatedField.
-    //     MECHANICS: Precomputed by vent/PR consistency solver; pure synchronous read on .get().
-    ventAchievedFb(): number | null {
-        if (this.box.boxType.get() !== 'vented') return null;
-        const Vb = this.box.vented.volume_m3.get().value;
-        return this.box.vented.vent.tuningIn_hz(Vb);
-    }
-
-    /** The highest tuning this vent can reach in this volume. */
-    // [ ] TASK 36 (OpenISDProject.ventMaxReachableFb):
-    //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
-    //     STATUS: UPGRADE from method to ReadOnlyCalculatedField.
-    //     MECHANICS: Precomputed by vent/PR consistency solver; pure synchronous read on .get().
-    ventMaxReachableFb(): number | null {
-        if (this.box.boxType.get() !== 'vented') return null;
-        const Vb = this.box.vented.volume_m3.get().value;
-        const Sp = this.box.vented.vent.area_m2();
-        if (Vb === null || !(Vb > 0) || Sp === null) return null;
-        return this.#engine.tuningFromLength(Vb ?? undefined, 0, Sp, this.box.vented.vent.endCorrection_m.get());
-    }
-
-    /** Whether the stated tuning is beyond what this vent can reach. */
-    // [ ] TASK 37 (OpenISDProject.ventTargetUnreachable):
-    //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
-    //     STATUS: UPGRADE from method to ReadOnlyCalculatedField.
-    //     MECHANICS: Precomputed by vent/PR consistency solver; pure synchronous read on .get().
-    ventTargetUnreachable(): boolean {
-        if (this.box.boxType.get() !== 'vented') return false;
-        const fbCell = this.box.vented.tuning_hz.get();
-        const lenCell = this.box.vented.vent.length_m.get();
-        if (fbCell.state === 'entered' && lenCell.state !== 'entered') {
+    //     STATUS: DONE. ReadOnlyCalculatedField<number>, pure read on .get().
+    get ventAchievedFb(): ReadOnlyCalculatedField<number> {
+        return new ReadOnlyCalculatedField<number>(() => {
+            if (this.box.boxType.get() !== 'vented') return createCell<number>('ventAchievedFb', null, 'not-available');
             const Vb = this.box.vented.volume_m3.get().value;
-            const targetFb = fbCell.value;
-            if (Vb !== null && Vb > 0 && targetFb !== null && targetFb > 0) {
-                const l = this.box.vented.vent.lengthForTuning_m(Vb ?? undefined, targetFb);
-                return l !== null && l < 0;
-            }
-        }
-        return false;
+            const v = this.box.vented.vent.tuningIn_hz(Vb);
+            return v === null
+                ? createCell<number>('ventAchievedFb', null, 'not-available')
+                : createCell<number>('ventAchievedFb', v, 'calculated');
+        });
     }
 
-    /** Derives whichever of the passive-radiator box's tuning/added-mass the user did not state. */
-    // [x] STRATEGY (notifyPrChanged):
-    //     ROLE: Internal member of enclosure/device/project.
-    //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
+    /** The highest tuning this vent can reach in this volume (its L=0 ceiling). */
+    // [x] TASK 36 (OpenISDProject.ventMaxReachableFb):
+    //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
+    //     STATUS: DONE. ReadOnlyCalculatedField<number>, same not-available/calculated shape.
+    get ventMaxReachableFb(): ReadOnlyCalculatedField<number> {
+        return new ReadOnlyCalculatedField<number>(() => {
+            if (this.box.boxType.get() !== 'vented') return createCell<number>('ventMaxReachableFb', null, 'not-available');
+            const Vb = this.box.vented.volume_m3.get().value;
+            const Sp = this.box.vented.vent.area_m2();
+            if (Vb === null || !(Vb > 0) || Sp === null) return createCell<number>('ventMaxReachableFb', null, 'not-available');
+            const v = this.#engine.tuningFromLength(Vb ?? undefined, 0, Sp, this.box.vented.vent.endCorrection_m.get());
+            return v === null
+                ? createCell<number>('ventMaxReachableFb', null, 'not-available')
+                : createCell<number>('ventMaxReachableFb', v, 'calculated');
+        });
+    }
+
+    /** Whether the stated tuning is beyond what this vent can reach. Derived from the tuning cell's
+     *  DQ — the consistency check is the single source of truth; never a second copy of the
+     *  negative-length arithmetic. False (calculated) when the box is not vented. */
+    // [x] TASK 37 (OpenISDProject.ventTargetUnreachable):
+    //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
+    //     STATUS: DONE. ReadOnlyCalculatedField<boolean> aggregating the DQ on the entered tuning.
+    get ventTargetUnreachable(): ReadOnlyCalculatedField<boolean> {
+        return new ReadOnlyCalculatedField<boolean>(() => {
+            if (this.box.boxType.get() !== 'vented') return createCell<boolean>('ventTargetUnreachable', false, 'calculated');
+            const fbCell = this.box.vented.tuning_hz.get();
+            return createCell<boolean>('ventTargetUnreachable', fbCell.state === 'entered' && fbCell.dq().length > 0, 'calculated');
+        });
+    }
+
+    /** @deprecated Use `recalc()` instead. */
     notifyPrChanged(): void {
         this.#notify();
     }
@@ -3710,18 +3776,18 @@ export class OpenISDProject {
         return this.driver.solveDriverConsistencyGroup();
     }
 
-    /** Whether the stated tuning is beyond what this radiator can reach. False on the same terms
-     *  as `ventTargetUnreachable()`. */
-    // [ ] TASK 38 (OpenISDProject.prTargetUnreachable):
+    /** Whether the stated tuning is beyond what this radiator can reach. Derived from the Fp cell's
+     *  DQ — the same flag that redlines the entered target as the cause and its derived outputs as
+     *  symptoms. False on the same terms as `ventTargetUnreachable`. */
+    // [x] TASK 38 (OpenISDProject.prTargetUnreachable):
     //     ROLE: Boundary indicator / diagnostic readout for enclosure tuning limits.
-    //     STATUS: UPGRADE from method to ReadOnlyCalculatedField.
-    //     MECHANICS: Precomputed by vent/PR consistency solver; pure synchronous read on .get().
-    prTargetUnreachable(): boolean {
-        if (this.box.boxType.get() !== 'box-passive-radiator') return false;
-        const fp = this.box.passiveRadiator.tuning_hz.get().value;
-        if (fp === null || !(fp > 0)) return false;
-        const m = this.box.passiveRadiator.addedMassForTuning_kg(fp);
-        return m !== null && m < 0;
+    //     STATUS: DONE. ReadOnlyCalculatedField<boolean> aggregating the DQ on the entered Fp cell.
+    get prTargetUnreachable(): ReadOnlyCalculatedField<boolean> {
+        return new ReadOnlyCalculatedField<boolean>(() => {
+            if (this.box.boxType.get() !== 'box-passive-radiator') return createCell<boolean>('prTargetUnreachable', false, 'calculated');
+            const fpCell = this.box.passiveRadiator.tuning_hz.get();
+            return createCell<boolean>('prTargetUnreachable', fpCell.state === 'entered' && fpCell.dq().length > 0, 'calculated');
+        });
     }
 
     /** Batch multiple mutations into a single subscriber notification. */

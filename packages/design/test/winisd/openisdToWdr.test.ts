@@ -179,8 +179,8 @@ describe('openisd.yml → winisd.wdr — format conformance (oracle: drivers/sam
     // the app no longer produces. `Vcd` is the voice coil diameter — 38 mm, stored SI as 0.038 m,
     // and NOT to be confused with `Dia` or `Dd` (WINISD_SCHEMA.md §3.6).
     const rawYaml = readFileSync(join(FIXTURES, 'e150he-44.openisd.yml'), 'utf8');
-    const record = parse(rawYaml) as { specs: { woofer: { Vcd: { readings: { manufacturer_datasheet: { read_value: number } } } } } };
-    assert.equal(record.specs.woofer.Vcd.readings.manufacturer_datasheet.read_value, 0.038);
+    const record = parse(rawYaml) as { specs: { woofer: { Vcd_m: { readings: { manufacturer_datasheet: { read_value: number } } } } } };
+    assert.equal(record.specs.woofer.Vcd_m.readings.manufacturer_datasheet.read_value, 0.038);
 
     const { value, errors } = wdrOf(rawYaml);
     assert.deepEqual(errors.filter((e: DriverError) => e.level === 'error'), []);
@@ -296,7 +296,7 @@ describe('openisd.yml → winisd.wdr — Xlim is a ParState mark, never a key', 
 });
 
 const WITH_XLIM = recordWith(`  woofer:
-    Xlim:
+    Xlim_m:
       origin: entered
       readings: {entered: {read_value: 12.5}}
 `);
@@ -314,7 +314,7 @@ describe('openisd.yml → winisd.wdr — DQ marks travel into Comment= (ARCHITEC
       readings: {entered: {read_value: 1.5}}
       dq_scraper:
         - {kind: range, severity: error, rule: range-above-max, params: {field: Qts, value: 1.5, limit: 0.8, unit: ''}, detail: 'Qts=1.5 above max 0.8'}
-    Vas:
+    Vas_m3:
       origin: entered
       readings: {entered: {read_value: 140}}
       dq_scraper:
@@ -323,6 +323,6 @@ describe('openisd.yml → winisd.wdr — DQ marks travel into Comment= (ARCHITEC
     const { value } = wdrOf(withDq);
     const comment = commentBlockOf(value!);
     assert.equal(comment,
-      "a driver\n[DQ] Qts=1.5: Qts=1.5 above max 0.8\n[DQ] Vas=140: Vas=140 above max 60 L");
+      "a driver\n[DQ] Qts=1.5: Qts=1.5 above max 0.8\n[DQ] Vas_m3=140: Vas=140 above max 60 L");
   });
 });

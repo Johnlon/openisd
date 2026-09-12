@@ -5,6 +5,10 @@ import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from '../../
 import { fieldById, fieldHelp } from '../../logic/fields/fieldRegistry.js';
 import { inputFrom } from '../../logic/domEvents.js';
 
+// The DQ note makes this a fragment root, so attrs (id, class, …) are not auto-inherited —
+// bind them to the INPUT explicitly (never the ⚠ note).
+defineOptions({ inheritAttrs: false });
+
 const props = withDefaults(defineProps<{
   modelValue: number | null | undefined;
   precision?: number;
@@ -24,6 +28,12 @@ const props = withDefaults(defineProps<{
   field?: string;
   base?: string;        // the field's default unit token
   mandatory?: boolean;
+  // Data-quality flags. `dq` is the field's cell DQ messages (`cell.dq()`); `dqState` the cell's
+  // state. The DQ rule (generic): a CALCULATED value that carries DQ is a symptom, not the cause —
+  // the ENTERED field(s) carrying the same DQ are the real problem, and get the strong "root"
+  // treatment. Both are redlined; only the entered one is called out as the cause.
+  dq?: readonly string[];
+  dqState?: 'entered' | 'calculated' | 'not-available';
 }>(), {
   modelValue: null,
   precision: 2,   // decimal places (fixed); WinISD's most common field width
@@ -215,8 +225,28 @@ const classes = computed(() => {
     'inp-bad': invalid.value,
     'de-input-mandatory': props.mandatory,
     'de-input-empty': props.mandatory && isEmp,
+    'dq-flag': hasDq.value,
+    'dq-root': isRootCause.value,
+    'dq-symptom': isSymptom.value,
   };
 });
+
+// ── DQ — the generic "flagged field" rule ────────────────────────────────────────────────────
+// A field that carries a data-quality flag is redlined. But a CALCULATED value with DQ is not the
+// real problem — it is the symptom of an ENTERED field carrying the same DQ (the relation's
+// input). So: dq-root = entered (draw attention, this is the cause); dq-symptom = calculated
+// (flagged consequence, with a note that the cause is an entered field). Both are red.
+const hasDq = computed(() => props.dq != null && props.dq.length > 0);
+const isRootCause = computed(() => hasDq.value && props.dqState === 'entered');
+const isSymptom = computed(() => hasDq.value && props.dqState === 'calculated');
+const dqTooltip = computed(() => {
+  if (!hasDq.value) return props.dq ?? [];
+  const dq = props.dq!.join('; ');
+  if (isRootCause.value) return `This entered value is the problem: ${dq}`;
+  if (isSymptom.value) return `This calculated value is bad because of the flagged input — fix the entered field: ${dq}`;
+  return dq;
+});
+const dqNoteTitle = computed(() => hasDq.value ? `⚠ ${dqTooltip.value}` : '');
 
 // Spinner step ≈ one decade below the value's magnitude (a power of ten), so it feels
 // proportional across scales (~10–100 steps per decade) WITHOUT the two bugs of a raw
@@ -238,9 +268,10 @@ const stepAttr = computed<string | number>(() => {
 </script>
 
 <template>
-  <input type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
-    :class="classes" :title="helpText"
+  <input v-bind="$attrs" type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
+    :class="classes" :title="hasDq ? `${helpText}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
     @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
+  <span v-if="hasDq" class="dq-note" :class="{ 'dq-note-root': isRootCause, 'dq-note-symptom': isSymptom }" :title="dqNoteTitle">⚠</span>
 </template>
 
 <style scoped>
@@ -252,4 +283,22 @@ input.de-input-empty {
   border-color: var(--bad) !important;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--bad) 25%, transparent) !important;
 }
+/* DQ — the generic "flagged field" rule. Both root (entered, the cause) and symptom
+   (calculated, the consequence) are redlined; only the root gets the extra attention ring. */
+input.dq-flag { border-color: var(--bad); }
+input.dq-root {
+  border-color: var(--bad);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--bad) 60%, transparent);
+  background: color-mix(in srgb, var(--bad) 12%, transparent);
+}
+input.dq-symptom {
+  border-color: color-mix(in srgb, var(--bad) 65%, orange);
+}
+span.dq-note {
+  margin-left: 4px;
+  font-size: 12px;
+  cursor: help;
+}
+span.dq-note-root { color: var(--bad); }
+span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
 </style>

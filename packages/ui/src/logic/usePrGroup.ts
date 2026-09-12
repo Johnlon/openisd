@@ -55,5 +55,5 @@ export function prFieldState(p: OpenISDProject, field: PrField): 'E' | 'C' | 'N'
 /** True when the entered target tuning cannot be reached by ADDING mass — see the domain
  *  method: the honest answer is "this PR cannot tune that high in this box". */
 export function prTargetUnreachable(p: OpenISDProject): boolean {
-  return p.prTargetUnreachable();
+  return p.prTargetUnreachable.value ?? false;
 }

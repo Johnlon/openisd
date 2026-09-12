@@ -889,7 +889,6 @@ test('Original skin: Options → General → Environment default seeds a fresh m
   await page.locator('.opt-modal .opt-ok').click();
 
   await page.reload();
-  await page.waitForFunction(() => window.selfTestDone === true, { timeout: 5000 }).catch(() => {});
   await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
   const advTemp = page.locator('.tab-section.active .field', { hasText: 'Temperature' }).locator('input');
   await expect(advTemp).toHaveValue('300.00');

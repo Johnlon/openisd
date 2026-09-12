@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createMockOgTuneAPI } from '../../src/hooks/OgTune-hooks.js';
+import { createMockOgTuneAPI } from './mockOgTune.js';
 
 describe('OgTune Hook API', () => {
   it('creates mock OgTune API', () => {

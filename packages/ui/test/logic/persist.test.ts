@@ -122,9 +122,9 @@ function sampleDriverRecord(): unknown {
     data_sources: {value: {}},
     authoritative: {value: 'openisd'},
     specs: { woofer: {
-      Fs:  { origin: 'entered', readings: { entered: { read_value: 30 } } },
-      Vas: { origin: 'entered', readings: { entered: { read_value: 0.05 } } },
-      Sd:  { origin: 'entered', readings: { entered: { read_value: 0.02 } } },
+      Fs_hz:  { origin: 'entered', readings: { entered: { read_value: 30 } } },
+      Vas_m3: { origin: 'entered', readings: { entered: { read_value: 0.05 } } },
+      Sd_m2:  { origin: 'entered', readings: { entered: { read_value: 0.02 } } },
     } }
   };
 }
@@ -186,7 +186,7 @@ describe('persistence — provenance survives a file-save round trip', () => {
     const record = ser.driverEmbedding?.device;
     assert.ok(record, 'the driver payload travels');
     assert.ok(record.specs, 'the driver payload is the openisd.yml record');
-    assert.ok(record.specs.woofer?.Fs?.readings,
+    assert.ok(record.specs.woofer?.Fs_hz?.readings,
       'each field carries its readings, not a bare number — that is what makes E/C survivable');
   });
 

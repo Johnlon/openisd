@@ -51,8 +51,8 @@ function driverJson() {
     },
     specs: {
       woofer: {
-        Fs: spec(30), Qts: spec(0.4), Sd: spec(0.02), Cms: spec(0.0005),
-        Mms: spec(0.05), Rms: spec(2), Xmax: spec(0.008),
+        Fs_hz: spec(30), Qts: spec(0.4), Sd_m2: spec(0.02), Cms_m_per_N: spec(0.0005),
+        Mms_kg: spec(0.05), Rms_kg_per_s: spec(2), Xmax_m: spec(0.008),
       },
     },
   };

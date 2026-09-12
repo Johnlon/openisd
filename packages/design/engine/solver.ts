@@ -16,7 +16,7 @@ import { P0, G_STANDARD } from './constants.js';
 import type { Wiring } from './types.js';
 import { GAMMA, DEFAULT_P_REF_PA, airFor } from './air.js';
 import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
-import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp } from './boxDesign.js';
+import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp, prFsWithMass } from './boxDesign.js';
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
 import type { ConsistencyIssue } from './consistency.js';
@@ -524,8 +524,6 @@ export function solvePrConsistencyGroup(p: PrSolverQuantities): PrSolverQuantiti
   
   const resolvedMass = out.addedMass_kg ?? p.addedMass_kg;
   if (resolvedMass != null && prMmd_kg != null && prCms_m_per_N != null) {
-      // prMmd_kg + added mass is Mms for PRs? No, prFsWithMass takes (Mms_kg, addedMass_kg, Cms_m_per_N)
-      // Actually, prFsWithMass signature is (Mms: number, Madd: number, Cms: number)
       out.resonanceWithAddedMass_hz = prFsWithMass(prMmd_kg, resolvedMass, prCms_m_per_N);
   }
   

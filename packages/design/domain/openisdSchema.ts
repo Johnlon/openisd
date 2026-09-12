@@ -797,27 +797,31 @@ function wdrNumVCEntry(
 
 /** Maps each WinISD INI row name to the schema key in `DriverSpecsSection`/`PassiveRadiatorSpecsSection`.
  *  Derived from the SAME pairings as `wdrFields()` — `Fs` → `Fs_hz`, `Re` → `Re_ohm` — so a
- *  rename to either side is caught at compile time in `wdrFields()` and must be reflected here. */
-const WDR_TO_SCHEMA_KEY: ReadonlyMap<string, string> = new Map([
-    ['Fs', 'Fs_hz'], ['Re', 'Re_ohm'], ['Le', 'Le_H'], ['fLe', 'fLe_hz'],
-    ['KLe', 'KLe_H_sqrtHz'], ['Znom', 'Znom_ohm'], ['BL', 'BL_Tm'],
-    ['Xmax', 'Xmax_m'], ['Xlim', 'Xlim_m'], ['Cms', 'Cms_m_per_N'],
-    ['Rms', 'Rms_kg_per_s'], ['Mms', 'Mms_kg'], ['Sd', 'Sd_m2'],
-    ['Vas', 'Vas_m3'], ['Dia', 'Dia_m'], ['Vd', 'Vd_m3'],
-    ['Dd', 'Dd_m'], ['EBP', 'EBP_hz'], ['Hc', 'Hc_m'], ['Hg', 'Hg_m'],
-    ['Pe', 'Pe_W'], ['SPL', 'SPL_dB'], ['SPLmax', 'SPLmax_dB'],
-    ['SPLmaxLF', 'SPLmaxLF_dB'], ['USPL', 'USPL_dB'],
-    ['alfaVC', 'alfaVC_per_K'], ['Rt', 'Rt_K_per_W'], ['Ct', 'Ct_J_per_K'],
-    ['gamma', 'gamma_m_per_s2_A'], ['Rme', 'Rme_kg_per_s'],
-    ['Mpow', 'Mpow_N_per_sqrtW'], ['Mcost', 'Mcost_kg_per_s'],
-    ['c', 'c_m_per_s'], ['roo', 'roo_kg_per_m3'],
-    ['Thick', 'Thick_m'], ['Depth', 'Depth_m'], ['MagDepth', 'MagDepth_m'],
-    ['Magnet', 'Magnet_m'], ['Basket', 'Basket_m'], ['Outer', 'Outer_m'],
-    ['Vcd', 'Vcd_m'], ['DVol', 'DVol_m3'],
+ *  rename to either side is caught at compile time in `wdrFields()` and must be reflected here.
+ *
+ *  A frozen object, not a `Map`: a `Map` stays mutable behind a `ReadonlyMap` type, which the
+ *  module-scope immutability gate forbids. Frozen, every value is a primitive, so it is truly
+ *  immutable. */
+export const WDR_TO_SCHEMA_KEY: Readonly<Record<string, string>> = Object.freeze({
+    Fs: 'Fs_hz', Re: 'Re_ohm', Le: 'Le_H', fLe: 'fLe_hz',
+    KLe: 'KLe_H_sqrtHz', Znom: 'Znom_ohm', BL: 'BL_Tm',
+    Xmax: 'Xmax_m', Xlim: 'Xlim_m', Cms: 'Cms_m_per_N',
+    Rms: 'Rms_kg_per_s', Mms: 'Mms_kg', Sd: 'Sd_m2',
+    Vas: 'Vas_m3', Dia: 'Dia_m', Vd: 'Vd_m3',
+    Dd: 'Dd_m', EBP: 'EBP_hz', Hc: 'Hc_m', Hg: 'Hg_m',
+    Pe: 'Pe_W', SPL: 'SPL_dB', SPLmax: 'SPLmax_dB',
+    SPLmaxLF: 'SPLmaxLF_dB', USPL: 'USPL_dB',
+    alfaVC: 'alfaVC_per_K', Rt: 'Rt_K_per_W', Ct: 'Ct_J_per_K',
+    gamma: 'gamma_m_per_s2_A', Rme: 'Rme_kg_per_s',
+    Mpow: 'Mpow_N_per_sqrtW', Mcost: 'Mcost_kg_per_s',
+    c: 'c_m_per_s', roo: 'roo_kg_per_m3',
+    Thick: 'Thick_m', Depth: 'Depth_m', MagDepth: 'MagDepth_m',
+    Magnet: 'Magnet_m', Basket: 'Basket_m', Outer: 'Outer_m',
+    Vcd: 'Vcd_m', DVol: 'DVol_m3',
     // Keys already matching the schema name (no unit suffix needed):
-    ['Qts', 'Qts'], ['Qes', 'Qes'], ['Qms', 'Qms'], ['no', 'no'],
-    ['Gloss', 'Gloss'], ['numVC', 'numVC'], ['VCCon', 'VCCon'],
-]);
+    Qts: 'Qts', Qes: 'Qes', Qms: 'Qms', no: 'no',
+    Gloss: 'Gloss', numVC: 'numVC', VCCon: 'VCCon',
+});
 
 export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     { record: OpenISDDeviceJson; warnings: DriverError[] } {
@@ -859,7 +863,7 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
             // Translate from WinISD INI key to the new unit-suffixed schema key. Keys not in the
             // map are passed through unchanged (e.g. OuterX, OuterY, Xlim — rare rows the driver
             // schema accepts under their own name).
-            const schemaKey = WDR_TO_SCHEMA_KEY.get(key) ?? key;
+            const schemaKey = WDR_TO_SCHEMA_KEY[key] ?? key;
             specEntries[schemaKey] = entry;
         }
     }
@@ -1031,6 +1035,23 @@ function stripDriverYmlOnlyFields(value: unknown): unknown {
     const out: Record<string, unknown> = {};
     for (const [key, v] of Object.entries(value)) {
         if (DRIVER_YML_ONLY_KEYS.includes(key)) continue;
+        if (key === 'specs' && typeof v === 'object' && v !== null && !Array.isArray(v)) {
+            const sections: Record<string, unknown> = {};
+            for (const [sKey, sVal] of Object.entries(v)) {
+                if (typeof sVal === 'object' && sVal !== null && !Array.isArray(sVal)) {
+                    const fields: Record<string, unknown> = {};
+                    for (const [fKey, fVal] of Object.entries(sVal)) {
+                        const canonical = WDR_TO_SCHEMA_KEY[fKey] ?? fKey;
+                        fields[canonical] = stripDriverYmlOnlyFields(fVal);
+                    }
+                    sections[sKey] = fields;
+                } else {
+                    sections[sKey] = stripDriverYmlOnlyFields(sVal);
+                }
+            }
+            out[key] = sections;
+            continue;
+        }
         out[key] = stripDriverYmlOnlyFields(v);
     }
     return out;

@@ -73,7 +73,7 @@ added:
   origin: openisd
 specs:
   woofer:
-    Fs:
+    Fs_hz:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -81,7 +81,7 @@ specs:
           read_value: 40
           read_precision: 0.5
       corroboration: UNMATCHED
-    Re:
+    Re_ohm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -89,7 +89,7 @@ specs:
           read_value: 6.6
           read_precision: 0.05
       corroboration: UNMATCHED
-    Le:
+    Le_H:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -97,7 +97,7 @@ specs:
           read_value: 0.0016
           read_precision: 0.00005
       corroboration: UNMATCHED
-    Znom:
+    Znom_ohm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -129,7 +129,7 @@ specs:
           read_value: 2.94
           read_precision: 0.005
       corroboration: UNMATCHED
-    Vas:
+    Vas_m3:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -137,7 +137,7 @@ specs:
           read_value: 0.007645536
           read_precision: 0.000141584
       corroboration: UNMATCHED
-    Sd:
+    Sd_m2:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -145,7 +145,7 @@ specs:
           read_value: 0.009503
           read_precision: 5e-7
       corroboration: UNMATCHED
-    BL:
+    BL_Tm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -153,7 +153,7 @@ specs:
           read_value: 9.8
           read_precision: 0.05
       corroboration: UNMATCHED
-    Mms:
+    Mms_kg:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -161,7 +161,7 @@ specs:
           read_value: 0.0266
           read_precision: 0.00005
       corroboration: UNMATCHED
-    Cms:
+    Cms_m_per_N:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -169,7 +169,7 @@ specs:
           read_value: 0.0006
           read_precision: 0.000005
       corroboration: UNMATCHED
-    Xmax:
+    Xmax_m:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -177,7 +177,7 @@ specs:
           read_value: 0.0147
           read_precision: 0.00005
       corroboration: UNMATCHED
-    SPL:
+    SPL_dB:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -186,7 +186,7 @@ specs:
           read_value: 83.3
           read_precision: 0.05
       corroboration: UNMATCHED
-    Pe:
+    Pe_W:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -202,7 +202,7 @@ specs:
           read_value: 2
           read_precision: 0.5
       corroboration: UNMATCHED
-    Vcd:
+    Vcd_m:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:

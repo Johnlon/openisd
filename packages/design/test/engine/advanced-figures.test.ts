@@ -40,12 +40,13 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Engine } from '../../engine/index.js';
+import type { DriverSolverQuantities } from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
 
 /** Beyma 10BR60/V2, the real fixture whose stored Bl disagrees with its own Fs/Mms/Re/Qes. */
-const BEYMA: any = {
+const BEYMA: DriverSolverQuantities = {
   Fs_hz: 29.0, Mms_kg: 0.044, Cms_m_per_N: 0.000693, Rms_kg_per_s: 2.4,
   BL_Tm: 10.9, Re_ohm: 6.5, Qes: 0.44, Qms: 3.3, Sd_m2: 0.038,
 };
@@ -53,7 +54,7 @@ const BEYMA: any = {
 // TYPED, not `Record<string, number>` with a cast on each end. The cast this replaces made every
 // name in this file invisible to the compiler: stale keys went in, matched nothing, and every
 // derived figure came back `undefined` while the suite still built.
-const solve = (d: any): Readonly<any> =>
+const solve = (d: DriverSolverQuantities): Readonly<DriverSolverQuantities> =>
   solveConsistencyGroup(d);
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -75,7 +76,7 @@ function wdrNumbers(name: string): Record<string, number> {
 const ORACLE = wdrNumbers('john-all-noncalc-fields-manually-entered.wdr');
 // The left of each pair is the solver's unit-suffixed name; the right is the `.wdr` key, which is
 // WinISD's own spelling and is not ours to rename. This IS the mapping between the two vocabularies.
-const ORACLE_INPUTS: any = {
+const ORACLE_INPUTS: DriverSolverQuantities = {
   Fs_hz: ORACLE.Fs, Mms_kg: ORACLE.Mms, Xmax_m: ORACLE.Xmax, Qes: ORACLE.Qes, Qms: ORACLE.Qms,
   Re_ohm: ORACLE.Re, Sd_m2: ORACLE.Sd, Vd_m3: ORACLE.Vd, Hc_m: ORACLE.Hc, Hg_m: ORACLE.Hg,
   c_m_per_s: ORACLE.c, roo_kg_per_m3: ORACLE.roo,

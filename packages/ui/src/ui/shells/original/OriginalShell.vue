@@ -140,8 +140,8 @@ const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 // high-frequency voice-coil-inductance rise (≈20 kHz) as the GLOBAL |Z| maximum for any driver
 // with Le, which is not the system resonance (and yields Qtc=0). See openspec core-engine
 // "Sealed-Box Resonance Loss Models" and winisd_research/SEALED_FSC_MODEL.md.
-const rearResonance = computed<number | null>(() => { void project.value; return project.value.box.sealed.resonance_hz(); });
-// box.sealed.resonance_hz() returns the lossless Fsc only (Engine.sealedResonanceFromCompliance
+const rearResonance = computed<number | null>(() => { void project.value; return project.value.box.sealed.resonance_hz.value; });
+// box.sealed.resonance_hz.value returns the lossless Fsc only (Engine.sealedResonanceFromCompliance
 // drops Qtc internally). There is no public OpenISDProject/Box accessor for a sealed-box Qtc
 // under the selected loss mode — Engine.sealedResonance(mode, SealedParams) still returns
 // {Fsc, Qtc} together, but SealedParams needs a pre-computed Vas, and deriving Vas from
@@ -154,13 +154,15 @@ const rearQtc = computed<number | null>(() => null);
 // matching it exactly, where the sealed formula gives 194.87. winisd_research/GAPS.md §A3.
 /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
 const boxResonance = computed<number | null>(() => {
+  void projectChanged.value;
   void project.value;
-  return selectedBox.value === 'box-passive-radiator' ? project.value.box.passiveRadiator.systemTuning_hz() : rearResonance.value;
+  return selectedBox.value === 'box-passive-radiator' ? project.value.box.passiveRadiator.systemTuning_hz.value : rearResonance.value;
 });
 // Box-type-generic rear-chamber volume (WinISD "Vb") — every box type keeps its own volume field
 // under its own `box.<type>` slice (OpenISDProject has no flat cross-type accessor for it), so
 // the Box tab's single "Volume" field dispatches on the active type to reach the right one.
 const boxVolume_m3 = computed<number | null>(() => {
+  void projectChanged.value;
   void project.value;
   const box = project.value.box;
   switch (selectedBox.value) {
@@ -186,10 +188,11 @@ function setBoxVolume_m3(v: number): void {
 }
 // Front-chamber volume (WinISD "Vf") — dual-chamber types only (bandpass4/6, abc).
 const frontVolume_m3 = computed<number | null>(() => {
+  void projectChanged.value;
   void project.value;
   const box = project.value.box;
   switch (selectedBox.value) {
-    case 'bandpass4': return box.bandpass4.chambers.front.volume_m3.get();
+    case 'bandpass4': return box.bandpass4.chambers.front.volume_m3.get().value;
     case 'bandpass6': return box.bandpass6.chambers.front.volume_m3.get().value;
     case 'abc': return box.abc.chambers.front.volume_m3.get().value;
     default: return null;
@@ -300,8 +303,19 @@ const portPipeResonance_hz = computed<number | null>(() => {
 });
 const prFsMass_hz = computed<number | null>(() => {
   void projectChanged.value;
-  return project.value.box.passiveRadiator.resonanceWithAddedMass_hz();
+  return project.value.box.passiveRadiator.resonanceWithAddedMass_hz.value;
 });
+// PR solved-pair cells, live: the editable added mass and target tuning (Fp), and the two read-only
+// outputs (system tuning, free-air resonance with mass). Each carries its cell's DQ + state so the
+// generic flagged-field rule applies: the ENTERED member with DQ is the cause; the CALCULATED ones
+// are the symptom.
+const prAddedMassCell = computed(() => { void projectChanged.value; return project.value.box.passiveRadiator.addedMass_kg.get(); });
+const prTuningCell = computed(() => { void projectChanged.value; return project.value.box.passiveRadiator.tuning_hz.get(); });
+const prSystemTuning = computed(() => { void projectChanged.value; return project.value.box.passiveRadiator.systemTuning_hz; });
+const prResonanceMass = computed(() => { void projectChanged.value; return project.value.box.passiveRadiator.resonanceWithAddedMass_hz; });
+function dqOfCell(cell: { dq(): readonly string[]; state: 'entered' | 'calculated' | 'not-available' }): { dq: readonly string[]; dqState: 'entered' | 'calculated' | 'not-available' } {
+  return { dq: cell.dq(), dqState: cell.state };
+}
 // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber
 // tunes on its own front volume Vf. Same closed form the engine's circuit uses.
 //
@@ -672,7 +686,7 @@ const projectName = metaField(() => project.value.name.get(), (v) => project.val
 const projectCreator = metaField(() => project.value.creator.get(), (v) => project.value.creator.set(v));
 const projectCreated = metaField(() => project.value.created.get(), (v) => project.value.created.set(v));
 const projectModified = metaField(() => project.value.modified.get(), (v) => project.value.modified.set(v));
-const projectDescription = metaField(() => project.value.description.get(), (v) => project.value.description.set(v));
+const projectDescription = metaField(() => project.value.description.get().value ?? '', (v) => project.value.description.set(v));
 
 // ---- Signal Generator (real audio-out tone) ------------------------------------
 const genOn = ref(false);
@@ -686,7 +700,7 @@ onUnmounted(() => tone?.stop());
 // Drive voltage ↔ system power are two views of the same energy: V = √(P·Re), P = V²/Re.
 // WinISD lets you edit EITHER (each recomputes the other); Pin is the stored source of truth.
 const driveV = computed<number>({
-  get: () => { void project.value; return driveVoltageFor(project.value.powerDrive_W() ?? 1, project.value.driver.solveConsistencyGroup().Re_ohm || DEFAULT_RE_OHM); },
+  get: () => { void project.value; return driveVoltageFor(project.value.powerDrive_W.value ?? 1, project.value.driver.solveConsistencyGroup().Re_ohm || DEFAULT_RE_OHM); },
   set: (v) => { project.value.setPowerDrive_W((v * v) / (project.value.driver.solveConsistencyGroup().Re_ohm || DEFAULT_RE_OHM)); },
 });
 
@@ -698,23 +712,23 @@ const driveV = computed<number>({
 // read and write straight through to project.value, so a loaded project's own values show
 // immediately rather than being overwritten by the Options → General defaults on mount.
 const advTemp = computed<number | null>({
-  get: () => { void project.value; return project.value.envTempK(); },
-  set: (v) => { if (v !== null) project.value.setEnvTempK(v); },
+  get: () => { void project.value; return project.value.envTempK.value; },
+  set: (v) => { if (v !== null) project.value.envTempK.set(v); },
 });
 const advHumidity = computed<number | null>({
-  get: () => { void project.value; return project.value.envHumidityPct(); },
-  set: (v) => { if (v !== null) project.value.setEnvHumidityPct(v); },
+  get: () => { void project.value; return project.value.envHumidityPct.value; },
+  set: (v) => { if (v !== null) project.value.envHumidityPct.set(v); },
 });
 const advPressure = computed<number | null>({
-  get: () => { void project.value; return project.value.envPressurePa(); },
-  set: (v) => { if (v !== null) project.value.setEnvPressurePa(v); },
+  get: () => { void project.value; return project.value.envPressurePa.value; },
+  set: (v) => { if (v !== null) project.value.envPressurePa.set(v); },
 });
 /** The air the sweep is actually running in — one call, both readouts. */
 const advAir = computed(() => {
   void project.value;
   return airForEnvironment({
     tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
-    useWinisdAirModel: project.value.envUseWinisdAirModel(),
+    useWinisdAirModel: project.value.envUseWinisdAirModel.get(),
   });
 });
 
@@ -1003,7 +1017,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
                   <div class="field"><label>Fsc</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
                   <div class="field" style="margin-left: 4px; gap: 4px;"><label style="width: auto; margin-right: 4px;">Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
                 </template>
-                <div v-else class="field"><label>Fh</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                <div v-else :class="['field', { 'dq-flag': selectedBox === 'box-passive-radiator' && prSystemTuning.dq.length > 0 }]" :title="selectedBox === 'box-passive-radiator' && prSystemTuning.dq.length > 0 ? prSystemTuning.dq.join('; ') : ''"><label>Fh</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
               </div>
               <p v-if="selectedBox === 'vented' && fbUnreachable" id="og-fb-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
               <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
@@ -1257,8 +1271,13 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
                 <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="project.box.passiveRadiator.count.get()" @update:model-value="v => project.box.passiveRadiator.count.set(v ?? 0)" field="prNum" :precision="fieldDp('prNum')" /></div></div>
-                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.box.passiveRadiator.addedMass_kg.get().value" @update:model-value="v => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
-                <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(prFsMass_hz, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
+                <div class="field-row">
+                  <div :class="['field', 'entered', { 'dq-flag': prAddedMassCell.dq().length > 0 }]"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.box.passiveRadiator.addedMass_kg.get().value" @update:model-value="v => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" v-bind="dqOfCell(prAddedMassCell)" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div>
+                </div>
+                <div class="field-row">
+                  <div :class="['field', 'entered', { 'dq-flag': prTuningCell.dq().length > 0 }]"><label>Target tuning freq (Fp):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_hz.get().value" @update:model-value="v => project.box.passiveRadiator.tuning_hz.set(v ?? 0)" field="Fp" group="freq" base="Hz" :precision="fieldDp('Fp')" v-bind="dqOfCell(prTuningCell)" /><UnitToggle field="Fp" group="freq" base="Hz" unit-class="unit" /></div>
+                </div>
+                <div class="field-row"><div :class="['field', { 'dq-flag': prResonanceMass.dq.length > 0 }]" :title="prResonanceMass.dq.length > 0 ? prResonanceMass.dq.join('; ') : ''"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(prFsMass_hz, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
             </div>
           </div>
@@ -1316,7 +1335,7 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
             </div>
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
-              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput :model-value="project.powerDrive_W()" @update:model-value="v => project.setPowerDrive_W(v ?? 0)" :precision="fieldDp('Pin')" /><span class="unit">W</span></div></div>
+              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput :model-value="project.powerDrive_W.value" @update:model-value="v => project.setPowerDrive_W(v ?? 0)" :precision="fieldDp('Pin')" /><span class="unit">W</span></div></div>
               <div class="field-row"><div class="field entered"><label>Driver input voltage (each)</label><NumInput v-model="driveV" :precision="fieldDp('driveV')" /><span class="unit">V</span></div></div>
               <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput :model-value="project.Rs_ohm.get()" @update:model-value="v => project.Rs_ohm.set(v ?? 0)" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
             </div>
@@ -1688,6 +1707,15 @@ watch(() => presentationState.ui.originalEditorOpen, (open) => {
    is, matching the red unreachable notice below the pane rather than looking like a dimension. */
 .field input.calculated.impossible { color:#a11; border-color:#a11; }
 .field.entered :deep(input), .field.entered input { color:#1b7d1b; border-color:#1b7d1b; }
+/* DQ — the generic "flagged field" rule: redline every field whose cell carries a data-quality
+   flag. The entered one (the cause) gets the attention ring; the calculated ones (the symptom)
+   are redlined too but stay calmer. Overrides the entered/calculated green/blue borders. */
+.field.dq-flag input, .field.dq-flag :deep(input) {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+.field.dq-flag { border-color: var(--bad); }
+.field.dq-flag :deep(.dq-note) { margin-left: 2px; }
 .field .unit { color:#555; min-width:3.5em; }
 textarea.comment, textarea.description { width:100%; border:1px solid #999; border-radius:2px; padding:6px; resize:vertical; }
 .radio-group { display:flex; align-items:center; gap:14px; }

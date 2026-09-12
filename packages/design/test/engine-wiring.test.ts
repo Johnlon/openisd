@@ -20,6 +20,7 @@ import {
   VoiceCoilWiring,
    type FrequencyGrid,
 } from '../domain/index.js';
+import { WDR_TO_SCHEMA_KEY } from '../domain/openisdSchema.js';
 
 const scraped = <T,>(value: T) => ({ value });
 
@@ -38,7 +39,8 @@ function aDriver(engine: Engine, spec: Record<string, number | VoiceCoilWiring>)
   const woofer: Record<string, { origin: string; readings: Record<string, { read_value: number }> }> = {};
   for (const [k, v] of Object.entries(spec)) {
     const read_value = typeof v === 'number' ? v : (v === VoiceCoilWiring.Series ? 2 : 1);
-    woofer[k] = { origin: 'scraped', readings: { scraped: { read_value } } };
+    const key = WDR_TO_SCHEMA_KEY[k] ?? k;
+    woofer[key] = { origin: 'scraped', readings: { scraped: { read_value } } };
   }
   const result = OpenISDDriver.fromConformingRecord({
     brand: scraped('Dayton'), model: scraped('RS225'), manufacturer: scraped('Dayton'),
@@ -67,7 +69,8 @@ function aDriver(engine: Engine, spec: Record<string, number | VoiceCoilWiring>)
 function aRadiator(engine: Engine, spec: Record<string, number>) {
   const pr: Record<string, { origin: string; readings: Record<string, { read_value: number }> }> = {};
   for (const [k, v] of Object.entries(spec)) {
-    pr[k] = { origin: 'scraped', readings: { scraped: { read_value: v } } };
+    const key = WDR_TO_SCHEMA_KEY[k] ?? k;
+    pr[key] = { origin: 'scraped', readings: { scraped: { read_value: v } } };
   }
   const result = OpenISDPassiveRadiatorStandalone.fromConformingRecord({
     brand: scraped('SB Acoustics'), model: scraped('SB23PACS'), manufacturer: scraped('SB Acoustics'),
@@ -117,11 +120,11 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const mine = project.sweep(P).value;
     expect(mine).not.toBeNull();
     const theirs = engine.sweep(
-      project.driver.solveConsistencyGroup() as any, project.driver.Le_H()!, 'sealed',
+      project.driver.solveConsistencyGroup(), project.driver.Le_H()!, 'sealed',
       {
-        Vb: 0.03, eg: project.driveVoltage_V()!, fmin: 10, fmax: 1000, N: 100,
+        Vb: 0.03, eg: project.driveVoltage_V.value!, fmin: 10, fmax: 1000, N: 100,
         Ql: project.box.sealed.losses.Ql.get(), Qa: project.box.sealed.losses.Qa.get(),
-        useWinisdAirModel: project.envUseWinisdAirModel(),
+        useWinisdAirModel: project.envUseWinisdAirModel.get(),
       },
     ).value!;
     expect(mine!.spl).toEqual(theirs.spl);
@@ -309,11 +312,46 @@ describe('E — the signal', () => {
     Sd: 0.02, Cms: 0.0005, Vas: 0.05, BL: 8, Mms: 0.05,
   });
 
-  it('driveVoltage_V() is null until a drive power is stated — no invented default', () => {
+  it('the signal fields are precomputed Fields — null until a drive level is stated, no invented default', () => {
     const engine = new Engine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
 
-    expect(project.driveVoltage_V()).toBeNull();
+    expect(project.driveVoltage_V.value).toBeNull();
+    expect(project.driveVoltage_V.state).toBe('not-available');
+    expect(project.powerDrive_W.value).toBeNull();
+    expect(project.powerDrive_W.state).toBe('not-available');
+    expect(project.statedVoltage_V.value).toBeNull();
+    expect(project.statedVoltage_V.state).toBe('not-available');
+  });
+
+  it('powerDrive_W is an N-way Field — .set(w) solves and stores the matching voltage too', () => {
+    const engine = new Engine();
+    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
+
+    project.powerDrive_W.set(1);
+
+    expect(project.powerDrive_W.value).toBe(1);
+    expect(project.powerDrive_W.state).toBe('entered');
+    expect(project.statedVoltage_V.value).toBeCloseTo(Math.sqrt(6.4), 12);
+    expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.4), 12);
+  });
+
+  it('driveVoltage_V is an N-way Field — .set(v) solves and stores the matching power too', () => {
+    const engine = new Engine();
+    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
+
+    project.driveVoltage_V.set(10);
+
+    expect(project.driveVoltage_V.value).toBe(10);
+    expect(project.powerDrive_W.value).toBeCloseTo(100 / 6.4, 12);
+  });
+
+  it('stating a drive level still refuses to solve without a usable Re', () => {
+    const engine = new Engine();
+    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+
+    expect(() => project.powerDrive_W.set(1)).toThrow(/no usable Re_ohm/);
+    expect(() => project.driveVoltage_V.set(1)).toThrow(/no usable Re_ohm/);
   });
 
   it('sourceLoadedQts() RAISES Qts as the source impedance grows, and matches the engine', () => {

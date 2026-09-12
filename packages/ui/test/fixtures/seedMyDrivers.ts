@@ -18,13 +18,14 @@
  *
  *     await page.addInitScript((json) => {
  *       localStorage.setItem('openisd_my_drivers', json);
- *     }, myDriversJson([{ brand: 'Scope Test', model: 'Alpha', specs: { Fs: 40, Re: 6.2, Sd: 0.02 } }]));
+ *     }, myDriversJson([{ brand: 'Scope Test', model: 'Alpha', specs: { Fs_hz: 40, Re_ohm: 6.2, Sd_m2: 0.02 } }]));
  */
 
 export const MY_DRIVERS_KEY = 'openisd_my_drivers';
 
-/** A driver a test wants in the My Drivers list. `specs` keys are the WinISD short names the
- *  record uses (`Fs`, `Qts`, `Vas`, `Sd`, `Re`, `Le`, `Xmax`, `Pe`, `Znom`, `Qes`, `Qms`, …). */
+/** A driver a test wants in the My Drivers list. `specs` keys are the schema's unit-suffixed
+ *  names the record uses (`Fs_hz`, `Qts`, `Vas_m3`, `Sd_m2`, `Re_ohm`, `Le_H`, `Xmax_m`,
+ *  `Pe_W`, `Znom_ohm`, `Qes`, `Qms`, …). */
 export interface SeedDriver {
   brand: string;
   model: string;

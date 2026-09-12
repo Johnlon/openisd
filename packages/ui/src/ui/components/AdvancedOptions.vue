@@ -47,7 +47,7 @@ const hasVent = computed(() => {
       <input type="checkbox" :checked="project.splGraphIsXmaxLimited.get()" @change="e => project.splGraphIsXmaxLimited.set(inputChecked(e))"> SPL graph is Xmax limited
     </label>
     <label data-field-key="useWinisdAirModel" :title="fieldHelp('useWinisdAirModel')">
-      <input type="checkbox" :checked="project.envUseWinisdAirModel()" @change="e => project.setEnvUseWinisdAirModel(inputChecked(e))"> Use WinISD air model
+      <input type="checkbox" :checked="project.envUseWinisdAirModel.get()" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> Use WinISD air model
     </label>
   </div>
 </template>

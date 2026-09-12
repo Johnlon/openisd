@@ -46,7 +46,7 @@ authoritative:
   value: openisd
 specs:
   woofer:
-    Fs:
+    Fs_hz:
       origin: manufacturer_product_page
       readings:
         manufacturer_product_page:
@@ -126,7 +126,7 @@ driver_type:
   value: full-range
 specs:
   woofer:
-    Fs:
+    Fs_hz:
       origin: manufacturer_product_page
       readings:
         manufacturer_product_page:
@@ -166,7 +166,7 @@ authoritative:
   value: openisd
 specs:
   woofer:
-    Fs:
+    Fs_hz:
       origin: manufacturer_product_page
       readings:
         manufacturer_product_page:

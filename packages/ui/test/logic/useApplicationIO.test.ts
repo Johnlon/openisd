@@ -82,7 +82,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       // `projectNameFromFilename` strips only OpenISD's own extensions (.owpr/.json) — a
       // foreign `.wpr` keeps its extension in the derived name.
       assert.equal(requireFocusedProject().name.get(), 'imported-design.wpr', 'name comes from the FILE NAME');
-      assert.equal(requireFocusedProject().description.get(), 'probe-description-123456');
+      assert.equal(requireFocusedProject().description.get().value, 'probe-description-123456');
       assert.equal(requireFocusedProject().creator.get(), 'winisd_research overnight harness');
       assert.equal(requireFocusedProject().created.get(), '20260813');
 

@@ -28,6 +28,7 @@ import { dirname, join } from 'node:path';
 import { parse, stringify as stringifyYaml } from 'yaml';
 
 import { driverYmlToOpenisdAndWdr } from '../../domain/driverYmlToOpenisdAndWdr.js';
+import { WDR_TO_SCHEMA_KEY } from '../../domain/openisdSchema.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
@@ -88,8 +89,8 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       'the rejected reading\'s own entry must be dropped entirely, not just its `rejected` key');
 
     const reEntry = (parse(openisd) as {
-      specs: { woofer: { Re: { readings: Record<string, unknown> } } }
-    }).specs.woofer.Re;
+      specs: { woofer: { Re_ohm: { readings: Record<string, unknown> } } }
+    }).specs.woofer.Re_ohm;
     assert.deepEqual(Object.keys(reEntry.readings).sort(),
       ['manufacturer_listing_page', 'manufacturer_product_page'],
       'the two USABLE readings survive; only the rejected one is removed');
@@ -318,9 +319,28 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
         return [k, rest];
       }));
 
+    const canonicalizeSourceSpecs = (record: Record<string, unknown>): Record<string, unknown> => {
+      const specs = record.specs;
+      if (typeof specs !== 'object' || specs === null) return record;
+      const sections: Record<string, unknown> = {};
+      for (const [secKey, sec] of Object.entries(specs)) {
+        if (typeof sec !== 'object' || sec === null) {
+          sections[secKey] = sec;
+          continue;
+        }
+        const fields: Record<string, unknown> = {};
+        for (const [fKey, fVal] of Object.entries(sec)) {
+          const canonical = WDR_TO_SCHEMA_KEY[fKey] ?? fKey;
+          fields[canonical] = fVal;
+        }
+        sections[secKey] = fields;
+      }
+      return { ...record, specs: sections };
+    };
+
     const openisdRecord = stripDeep(parse(openisd)) as Record<string, unknown>;
-    const sourceRecord = stripMetadataOriginForTest(
-      stripDeep(parse(source)) as Record<string, unknown>);
+    const sourceRecord = canonicalizeSourceSpecs(stripMetadataOriginForTest(
+      stripDeep(parse(source)) as Record<string, unknown>));
 
     assert.deepEqual(openisdRecord, sourceRecord,
       'openisd.yml differs from driver.yml by something other than the documented drops');

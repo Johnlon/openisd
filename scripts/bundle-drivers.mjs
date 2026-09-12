@@ -41,11 +41,44 @@ import { fileURLToPath } from 'url';
 import { parse as parseYaml } from 'yaml';
 import { project, isBundlable } from './bundleProjection.mjs';
 import { checkOpenisdRoundTrip, checkWdrRoundTrip } from './roundTripGate.mjs';
+import { WDR_TO_SCHEMA_KEY } from '../packages/design/domain/openisdSchema.js';
 
 const RECORD_FILE = 'openisd.yml';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const WORKSPACE = join(ROOT, '..');
+
+/**
+ * Canonicalise a record's spec-section keys to the schema's unit-suffixed names.
+ *
+ * The corpus's `openisd.yml` files are emitted with the WinISD short names (`Fs`, `Re`, `Sd`, …),
+ * while `DriverSpecsSection`/`PassiveRadiatorSpecsSection` are declared with the suffixed names
+ * (`Fs_hz`, `Re_ohm`, `Sd_m2`, …) and the strict schema refuses the short ones. The same mapping
+ * every other boundary applies — `driverYmlToOpenisdAndWdr.ts` and the `.wdr` import — is applied
+ * here so the bundled record conforms to the schema the app reads it back with.
+ */
+function canonicalizeSpecKeys(specs) {
+  const sections = {};
+  for (const [section, sectionValue] of Object.entries(specs)) {
+    if (sectionValue === null || typeof sectionValue !== 'object' || Array.isArray(sectionValue)) {
+      sections[section] = sectionValue;
+      continue;
+    }
+    const fields = {};
+    for (const [field, entry] of Object.entries(sectionValue)) {
+      fields[WDR_TO_SCHEMA_KEY[field] ?? field] = entry;
+    }
+    sections[section] = fields;
+  }
+  return sections;
+}
+
+function canonicalizeRecord(record) {
+  if (record === null || typeof record !== 'object' || typeof record.specs !== 'object' || record.specs === null) {
+    return record;
+  }
+  return { ...record, specs: canonicalizeSpecKeys(record.specs) };
+}
 
 /**
  * Where a local source's records live. `path` is relative to this repo, so a sibling
@@ -133,7 +166,8 @@ function main() {
       const group = rel.split('/')[0];
       const record = parseYaml(readFileSync(p, 'utf8'));
       if (record == null) throw new Error(`${rel}: empty or unparseable record`);
-      const projected = project(record);
+      const canonicalRecord = canonicalizeRecord(record);
+      const projected = project(canonicalRecord);
       const { driverType, name } = projected;
 
       if (!isBundlable(projected)) {
@@ -143,7 +177,7 @@ function main() {
         // (packages/model/src/openisdDriver.ts:291,534) — no reimplemented parse/serialise.
         // Runs only on records that are actually bundled; a record already excluded by
         // isBundlable is not a round-trip concern here.
-        const gate = checkOpenisdRoundTrip(record, rel);
+        const gate = checkOpenisdRoundTrip(canonicalRecord, rel);
         if (!gate.ok) roundTripFailures.push(gate.message);
 
         // SAME row shape for both collections — a radiator record is a record. They are
@@ -155,7 +189,7 @@ function main() {
           path: rel,
           name: name || rel,
           ...(driverType ? { driverType } : {}),
-          record,
+          record: canonicalRecord,
         };
         if (driverType === 'passive-radiator') bundle.passiveRadiators.push(row);
         else files.push(row);

@@ -5,6 +5,22 @@ import type { ConsistencyIssue } from '@openisd/design/engine';
 import type { SpecField } from './appState.js';
 
 /**
+ * A sentinel `Cell<number>` with state `'not-available'` and a null value — the presentation
+ * layer's "field not present" fallback. Lives here (logic) so that components never need to
+ * import the domain's `createCell` constructor: that import is a runtime dependency on the
+ * domain from the view, which the layering gate forbids.
+ *
+ * The object is frozen to make it safely shareable — all reads return the same singleton.
+ */
+const notAvailableCellSource = {
+  name: '',
+  value: null,
+  state: 'not-available' as const,
+  dq: (): readonly string[] => [],
+};
+export const notAvailableCell: FieldCell<number> = Object.freeze(notAvailableCellSource);
+
+/**
  * Driver provenance PRESENTATION — how a field's `CellState` becomes a CSS class, and how a
  * consistency issue becomes tooltip text. The driver editor and Tune both read it, so Tune
  * cannot style the same driver differently from the dialog.

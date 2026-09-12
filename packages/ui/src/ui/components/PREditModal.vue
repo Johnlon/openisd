@@ -29,7 +29,7 @@ const project = useFocusedProject();
 const radiator = computed(() => project.value.box.passiveRadiator.radiator);
 
 /** Fs with the tuning mass on the cone — read-only, and the domain's own figure. */
-const prFsWithMassShown = computed(() => project.value.box.passiveRadiator.resonanceWithAddedMass_hz());
+const prFsWithMassShown = computed(() => project.value.box.passiveRadiator.resonanceWithAddedMass_hz.value);
 
 // The list holds ROWS of strings, never radiators: a row's `uuid` is the handle, and the
 // radiator is looked up again when one is chosen (A9 — no domain value in view state).

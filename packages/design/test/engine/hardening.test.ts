@@ -17,7 +17,7 @@ import { solveConsistencyGroup } from './testSolver.js';
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
-import type { SimulatableBoxType, SweepParams } from '../../engine/index.js';
+import type { SimulatableBoxType, SweepParams, DriverSolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -54,7 +54,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   // One Q is not enough to resolve the T/S group, so `Cms`/`Mms`/`Rms`/`BL` never derive and the
   // circuit has nothing to run on. The REFUSAL now lives in `sweep`, not in a separate derive
   // step: it checks the six the circuit reads unguarded, and reports what a user could state.
-  const VAS_AND_QTS_ONLY: any = { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 };
+  const VAS_AND_QTS_ONLY: DriverSolverQuantities = { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 };
   const refused = () => engine.sweep(
     solveConsistencyGroup(VAS_AND_QTS_ONLY), undefined, 'sealed', P_SEALED);
 

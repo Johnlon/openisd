@@ -40,8 +40,8 @@ function aDriver(brand: string, model: string): OpenISDDriver {
     },
     specs: {
       woofer: {
-        Fs: num(30), Sd: num(0.02), Cms: num(0.0005),
-        Mms: num(0.05), Rms: num(2), Xmax: num(0.008),
+        Fs_hz: num(30), Sd_m2: num(0.02), Cms_m_per_N: num(0.0005),
+        Mms_kg: num(0.05), Rms_kg_per_s: num(2), Xmax_m: num(0.008),
       },
     },
   };

@@ -84,7 +84,7 @@ describe('a spec section carries numbers, or says why not', () => {
     // Non-vacuity: an empty or tiny read means the parse broke, and every assertion below would
     // pass on nothing. The real section carries the whole openisd.yml parameter set.
     expect(members.length).toBeGreaterThan(30);
-    expect(members.map((m) => m.name)).toContain('Fs');
+    expect(members.map((m) => m.name)).toContain('Fs_hz');
   });
 
   it('every member is a SpecEntry unless it is named as something else by design', () => {

@@ -7,9 +7,16 @@
 //
 // `crypto.randomUUID()` is a global in browsers and in Node 19+, so this resolves at runtime on
 // both without a polyfill or an import.
-declare const crypto: { randomUUID(): string };
+declare const crypto: { randomUUID(): string } | undefined;
 
 /** A fresh project identity. See `OpenISDProject`'s `#uuid` for why it never leaves the process. */
 export function newUuid(): string {
-  return crypto.randomUUID();
+  if (typeof crypto !== 'undefined' && typeof crypto?.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }

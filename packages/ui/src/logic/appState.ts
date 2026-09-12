@@ -72,6 +72,7 @@ interface AppStateSingletons {
   live: ShallowRef<OpenISDProject | null>;
   curves: Ref<SweepResult | null>;
   max: Ref<MaxCurvesResult | null>;
+  sweepErrors: Ref<DriverError[]>;
 }
 declare global {
   var __openisd_appState: Partial<AppStateSingletons> | undefined;
@@ -300,10 +301,28 @@ export const syncedP = computed<PlotParams>(() => {
 
 const curves = getOrInit(slots, 'curves', () => ref<SweepResult | null>(null));
 const max    = getOrInit(slots, 'max', () => ref<MaxCurvesResult | null>(null));
+// The value-only refs above DISCARD the sweep's own errors. A driver that cannot be simulated
+// (no Qms/BL/Rms to split the Q group) makes `curves` null with an error in `sweep().errors` that
+// `allIssues` would otherwise never see — a silently blank chart. Captured here for the issue
+// channel so GraphPanel's "Can't plot / Fix the driver parameters" state actually fires.
+const sweepErrors = getOrInit(slots, 'sweepErrors', () => ref<DriverError[]>([]));
 const doSweep = () => {
   const p = live.value;
-  curves.value = p ? p.sweep(GRID).value : null;
-  max.value    = p ? p.maxCurves(GRID).value : null;
+  if (!p) {
+    curves.value = null;
+    max.value = null;
+    sweepErrors.value = [];
+    return;
+  }
+  const sw = p.sweep(GRID);
+  const mx = p.maxCurves(GRID);
+  curves.value = sw.value;
+  max.value    = mx.value;
+  // Dedupe by field+message: `sweep` and `maxCurves` report the same driver-completeness error
+  // (both run the same circuitQuantities), so a naive concat shows every issue twice.
+  sweepErrors.value = [...new Map(
+    [...sw.errors, ...mx.errors].map(e => [`${e.field ?? ''}|${e.message}`, e]),
+  ).values()];
 };
 doSweep();
 // Leading-edge throttle (was a pure trailing debounce): the chart curves must
@@ -369,7 +388,7 @@ export const paramIssues = computed<DriverError[]>(() => {
 // the same `validateParams` call inside the project's own sweep/maxCurves), so this reads only
 // the postcondition classifications on top of it.
 export const allIssues = computed<DriverError[]>(
-  () => [...paramIssues.value, ...curveIssues.value]);
+  () => [...sweepErrors.value, ...paramIssues.value, ...curveIssues.value]);
 
 /** True when the focused project has unsaved changes (`OpenISDProject.isModified()`). False
  *  when no project is focused — nothing is "modified" if nothing is open. */
