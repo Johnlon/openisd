@@ -15,7 +15,7 @@
 import { P0, G_STANDARD } from './constants.js';
 import type { Wiring } from './types.js';
 import { GAMMA, DEFAULT_P_REF_PA, airFor } from './air.js';
-import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
+import { efficiencyConstant, referenceEfficiency, motorEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
 import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp, prFsWithMass } from './boxDesign.js';
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
@@ -179,8 +179,12 @@ export function solveConsistencyGroup(p: DriverSolverQuantities): DriverSolverQu
     // 3b. Mms from Fs and Cms — the reverse direction, unaffected by which Fs route fired.
     if (r.Mms_kg == null && r.Fs_hz != null && r.Cms_m_per_N != null) setVal('Mms_kg', 1 / ((TAU * r.Fs_hz) ** 2 * r.Cms_m_per_N));
 
-    // 4. Vas, Cms, Sd
-    if (r.Vas_m3 == null && r.Cms_m_per_N != null && r.Sd_m2 != null) setVal('Vas_m3', driverRho(r) * driverC(r) * driverC(r) * r.Sd_m2 * r.Sd_m2 * r.Cms_m_per_N);
+    // 4. Vas, Cms, Sd, no — evaluation order per WinISD's relation sites
+    //    (winisd_research/scripts/relation_routes.py): the Cms/Sd reversals (0x45f6f7, 0x45f74f)
+    //    run before the `no` sites (0x45fb67 rel 14, 0x45fc3b rel 15, 0x45fce6 rel 18), and Vas
+    //    rel 14 (0x45fdd8) before Vas rel 10 (0x45fe70). Proven live by
+    //    probe_vas_route_precedence.py (FINDING-027/028): a cleared Vas refills through the
+    //    efficiency group first and only falls to the compliance group when `no` is underivable.
 
     // 🔒 Cms has TWO routes, and the ORDER matters — the same shape as the Rme precedence below.
     // The GEOMETRY route wins: Cms from Vas and Sd, not from Fs and Mms. John tested this against
@@ -194,6 +198,32 @@ export function solveConsistencyGroup(p: DriverSolverQuantities): DriverSolverQu
     if (r.Cms_m_per_N == null && r.Vas_m3 != null && r.Sd_m2 != null && r.Sd_m2 > 0) setVal('Cms_m_per_N', r.Vas_m3 / (driverRho(r) * driverC(r) * driverC(r) * r.Sd_m2 * r.Sd_m2));
     if (r.Cms_m_per_N == null && r.Fs_hz != null && r.Mms_kg != null) setVal('Cms_m_per_N', 1 / ((TAU * r.Fs_hz) ** 2 * r.Mms_kg));
     if (r.Sd_m2 == null && r.Vas_m3 != null && r.Cms_m_per_N != null && r.Cms_m_per_N > 0) setVal('Sd_m2', Math.sqrt(r.Vas_m3 / (driverRho(r) * driverC(r) * driverC(r) * r.Cms_m_per_N)));
+
+    // `no` — every route precedes the Vas sites: rel 14 via Fs/Vas/Qes, rel 15 via the driver's
+    // own motor (BL/Sd/Mms/Re), rel 18 via a stated SPL. Moved here from blocks 10/11 so a
+    // cleared Vas still fills from efficiency when the motor route or SPL can reach η₀ — WinISD
+    // evaluates ALL `no` sites before the first Vas site (FINDING-028).
+    if (r.no == null && r.Fs_hz != null && r.Vas_m3 != null && r.Qes != null) {
+      setVal('no', referenceEfficiency(r.Fs_hz, r.Vas_m3, r.Qes, driverC(r)));                                  // rel 14
+    }
+    if (r.no == null && r.BL_Tm != null && r.Sd_m2 != null && r.Mms_kg != null && r.Re_ohm != null
+        && r.Mms_kg > 0 && r.Re_ohm > 0 && r.Sd_m2 > 0) {
+      setVal('no', motorEfficiency(driverRho(r), driverC(r), r.BL_Tm, r.Sd_m2, r.Mms_kg, r.Re_ohm));           // rel 15
+    }
+    if (r.no == null && r.SPL_dB != null) {
+      setVal('no', efficiencyFromSpl(r.SPL_dB, driverRho(r), driverC(r)));                                     // rel 18
+    }
+    if (r.no == null && r.SPLref_dB != null) {
+      setVal('no', efficiencyFromSpl(r.SPLref_dB, driverRho(r), driverC(r)));                                  // rel 18
+    }
+
+    // Vas — rel 14 (efficiency) first, rel 10 (compliance) LAST.
+    if (r.Vas_m3 == null && r.no != null && r.Qes != null && r.Fs_hz != null && r.Fs_hz > 0) {
+      setVal('Vas_m3', r.no * r.Qes / (efficiencyConstant(driverC(r)) * (r.Fs_hz ** 3)));                      // rel 14
+    }
+    if (r.Vas_m3 == null && r.Cms_m_per_N != null && r.Sd_m2 != null) {
+      setVal('Vas_m3', driverRho(r) * driverC(r) * driverC(r) * r.Sd_m2 * r.Sd_m2 * r.Cms_m_per_N);            // rel 10
+    }
 
     // 5. Rms, Fs, Mms, Qms — WinISD has no route deriving Fs from this triple (see block 3).
     if (r.Rms_kg_per_s == null && r.Fs_hz != null && r.Mms_kg != null && r.Qms != null) setVal('Rms_kg_per_s', TAU * r.Fs_hz * r.Mms_kg / r.Qms);
@@ -256,24 +286,15 @@ export function solveConsistencyGroup(p: DriverSolverQuantities): DriverSolverQu
       if (v != null) setVal('Magnet_m', v);
     }
 
-    // 10. no, Fs, Qes, Vas — Fs-from-this-triple is rel 14, tried in block 3 above.
-    if (r.no == null && r.Fs_hz != null && r.Vas_m3 != null && r.Qes != null) {
-      setVal('no', referenceEfficiency(r.Fs_hz, r.Vas_m3, r.Qes, driverC(r)));
-    }
-    if (r.Vas_m3 == null && r.no != null && r.Qes != null && r.Fs_hz != null && r.Fs_hz > 0) {
-      setVal('Vas_m3', r.no * r.Qes / (efficiencyConstant(driverC(r)) * (r.Fs_hz ** 3)));
-    }
+    // 10. Qes from η₀ — the `no` and Vas rel-14 routes of this block now live in block 4,
+    //     ahead of the compliance group, per WinISD's site order (FINDING-027/028).
     if (r.Qes == null && r.no != null && r.Fs_hz != null && r.Vas_m3 != null && r.no > 0) {
       setVal('Qes', efficiencyConstant(driverC(r)) * (r.Fs_hz ** 3) * r.Vas_m3 / r.no);
     }
 
-    // 11. SPLref <-> no
+    // 11. SPLref <-> no — the no-from-SPL routes (rel 18) run with the `no` cluster in block 4.
     if (r.SPLref_dB == null && r.no != null && r.no > 0) {
       setVal('SPLref_dB', splFromEfficiency(r.no, driverRho(r), driverC(r)));
-    }
-    if (r.no == null && r.SPL_dB != null) setVal("no", efficiencyFromSpl(r.SPL_dB, driverRho(r), driverC(r)));
-    if (r.no == null && r.SPLref_dB != null) {
-      setVal('no', efficiencyFromSpl(r.SPLref_dB, driverRho(r), driverC(r)));
     }
     if (r.SPL_dB == null && r.no != null && r.no > 0) {
       setVal('SPL_dB', splFromEfficiency(r.no, driverRho(r), driverC(r)));

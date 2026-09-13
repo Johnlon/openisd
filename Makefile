@@ -1,4 +1,4 @@
-.PHONY: help start start-fast fast drivers stop preview check \
+.PHONY: help start start-fast fast build build-only drivers stop preview check \
         electron electron-deps electron-build electron-run electron-clean
 
 # Default target is help
@@ -7,6 +7,8 @@ help:
 	@echo "  make start      - Start dev server on port 4000 (runs lint, typecheck, unit tests)"
 	@echo "  make start-fast - Start dev server on port 4000 bypassing health checks"
 	@echo "  make fast       - Rebuild driver bundle + start dev server on port 4000 (fastest)"
+	@echo "  make build      - Run lint, typecheck, unit tests, then build the app"
+	@echo "  make build-only - Build the app without tests"
 	@echo "  make drivers    - Rebuild the driver bundle only"
 	@echo "  make stop       - Stop the running dev server on port 4000"
 	@echo "  make preview    - Build the app and serve it via Vite preview on port 4000"
@@ -35,11 +37,21 @@ drivers:
 start-4000:
 	SKIP_HEALTH_CHECKS=1 npm_config_ignore_scripts=true bash scripts/start-http.sh 4000
 
-# FASTEST: rebuild the driver bundle + serve it on 4000.
-# No lint, no typecheck, no unit tests, no DQ check.
-# npm_config_ignore_scripts stops `npm run dev` firing the predev hook (bundle + lint),
-# so the bundle above is the only pre-step.
-fast: drivers start-4000
+# FAST: build the app without tests, then serve the built assets on 4000.
+# This deliberately avoids start-http.sh: that helper is restricted to Git Bash/WSL,
+# while this target must also work from the native Linux development environment.
+fast: build-only
+	bash scripts/kill-http.sh 4000
+	npm run preview -- --port 4000 --strictPort
+
+# Full application build gate: checks first, then emits packages/ui/dist.
+build:
+	npm run check
+	npm run build
+
+# Build-only: npm's prebuild still refreshes the driver bundle and runs lint, but no tests run.
+build-only:
+	npm run build
 
 # Stop the dev server on port 4000
 stop:

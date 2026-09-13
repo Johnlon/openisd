@@ -3,7 +3,7 @@ import { test, expect, openAProject } from '../fixtures.js';
 import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // ui-todo.md "Single click opens a driver summary, not the editor" — the picker
-// (DriverBrowserWinisd.vue) previews before it selects.
+// (DriverBrowser.vue) previews before it selects.
 //
 // docs/design/STATE_MODEL.md rule 1 governs what a selection DOES, and it changed under this spec: a
 // choice now EMBEDS the driver in the project and closes the picker — no editor in the way.

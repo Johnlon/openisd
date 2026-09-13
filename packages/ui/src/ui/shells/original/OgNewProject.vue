@@ -9,14 +9,18 @@
  * can't simulate.
  */
 import { ref, computed } from 'vue';
-import { isModified, newProject } from '../../../logic/appState.js';
+import { isModified, newProject, defaultPassiveRadiator, newProjectDriver } from '../../../logic/appState.js';
 import { fromDisplay } from '../../../logic/fields/units.js';
 import { useApp } from '../../../logic/app.js';
+import type { OpenISDDriver } from '@openisd/design';
 import type { BoxType } from '@openisd/design/engine';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 
 const emit = defineEmits<{ close: [] }>();
-useEscToClose(() => true, () => emit('close'));
+// Cancelling the wizard must also drop any pre-loaded `.wdr`/`.owdr` driver, or it would leak
+// into the next wizard session.
+function close() { newProjectDriver.value = null; emit('close'); }
+useEscToClose(() => true, close);
 
 const { driverBrowsing } = useApp();
 
@@ -56,22 +60,39 @@ function pickDriver() {
   const volume_m3 = fromDisplay(vol.value, 'volume', 'L');
   const frontVolume_m3 = fromDisplay(frontVol.value, 'volume', 'L');
   emit('close');
-  driverBrowsing.openPickerFor((driver) => {
+  const create = (driver: OpenISDDriver) => {
     const p = newProject();
     p.setDriver(driver);
-    p.name.set(name);
+    p.name.set(name || 'Unnamed project');
     p.box.boxType.set(box);
     // Each box type owns its own volume, so the wizard's number goes to the one it chose.
+    // Every chart-required parameter is ALSO defaulted to a reasonable value so a fresh
+    // project draws a curve immediately (BUG_20260912 — charts must work out of the box).
     switch (box) {
       case 'sealed': p.box.sealed.volume_m3.set(volume_m3); break;
-      case 'vented': p.box.vented.volume_m3.set(volume_m3); break;
-      case 'box-passive-radiator': p.box.passiveRadiator.volume_m3.set(volume_m3); break;
+      case 'vented':
+        p.box.vented.volume_m3.set(volume_m3);
+        p.box.vented.vent.diameter_m.set(0.05);       // 5 cm round port
+        p.box.vented.tuning_hz.set(35);               // Fb target → the port length solves
+        break;
+      case 'box-passive-radiator':
+        p.box.passiveRadiator.volume_m3.set(volume_m3);
+        defaultPassiveRadiator(p);                    // sane Mms/Sd/Cms so Fp/Fh resolve
+        p.box.passiveRadiator.tuning_hz.set(35);      // Fp target → the cone mass solves
+        break;
       case 'bandpass4':
         p.box.bandpass4.chambers.rear.volume_m3.set(volume_m3);
         p.box.bandpass4.chambers.front.volume_m3.set(frontVolume_m3);
+        p.box.bandpass4.vents.front.diameter_m.set(0.05);
+        p.box.bandpass4.chambers.front.tuning_hz.set(35);
         break;
     }
-  });
+  };
+  // A `.wdr`/`.owdr` opened from disk pre-loaded a driver: use it directly instead of the picker.
+  const pre = newProjectDriver.value;
+  newProjectDriver.value = null;
+  if (pre) { create(pre); return; }
+  driverBrowsing.openPickerFor(create);
 }
 </script>
 
@@ -80,7 +101,7 @@ function pickDriver() {
     <div class="modal">
       <div class="modal-titlebar">
         <div class="tb-left"><span class="app-icon"></span><span>New Project</span></div>
-        <div class="win-controls"><span class="close-btn" role="button" tabindex="0" title="Cancel" @click="emit('close')" @keydown.enter="emit('close')">✕</span></div>
+        <div class="win-controls"><span class="close-btn" role="button" tabindex="0" title="Cancel" @click="close" @keydown.enter="close">✕</span></div>
       </div>
 
       <div class="modal-body">
@@ -124,7 +145,7 @@ function pickDriver() {
           <button v-if="step > 1" class="cancel-btn" title="Back to the previous step" @click="back">&lt; Back</button>
           <button v-if="step < 3" class="ok-btn" title="Next step" @click="next">Next &gt;</button>
           <button v-else class="ok-btn" title="Choose the driver for this project" @click="pickDriver">Pick Driver &gt;</button>
-          <button class="cancel-btn" title="Cancel" @click="emit('close')">Cancel</button>
+          <button class="cancel-btn" title="Cancel" @click="close">Cancel</button>
         </div>
       </div>
     </div>

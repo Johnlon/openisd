@@ -45,15 +45,14 @@
 //             chart's own drag-to-zoom already uses (GraphPanel.vue) — so editing a row here is
 //             literally "set this chart's persisted default view", not a parallel concept, and
 //             an untouched row still auto-scales exactly as it does today. WinISD's own
-//             "Transfer func. magn." and "EQ transfer func mag" rows are omitted: OpenISD has no
-//             separate normalized-transfer-function or EQ/filter-only chart tab to bind them to
-//             (same gap as the two disabled Colors rows above); WinISD's "SPL" row already
-//             covers OpenISD's one 'SPL' tab (absolute dB SPL).
+//             "Transfer func. magn." and "EQ transfer func mag" retain WinISD's defaults in the
+//             same table order even though OpenISD does not currently render those separate chart
+//             tabs. Their values are presentation defaults, not fabricated chart data.
 import { computed, reactive, ref } from 'vue';
 import { airForEnvironment } from '../../logic/environment.js';
-import { useFocusedProject } from '../../logic/focusedProjectContext.js';
+import { focusedProject } from '../../logic/appState.js';
 import { presentationState, resetUnitTokens, airConstantsAppDefaults, AIR_CONSTANTS_APP_DEFAULT } from '../../logic/presentationState.js';
-import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.js';
+import { precision as fieldDp } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
@@ -64,7 +63,7 @@ function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
 useEscToClose(() => true, close);
 
-const project = useFocusedProject();
+const project = computed(() => focusedProject());
 
 type Tab = 'General' | 'Plot Window';
 const tab = reactive<{ v: Tab }>({ v: 'General' });
@@ -75,7 +74,10 @@ const draft = reactive({
   chartColors: JSON.parse(JSON.stringify(presentationState.ui.chartColors ?? {})),
   unitTokens: JSON.parse(JSON.stringify(presentationState.ui.unitTokens ?? {})),
   yRanges: JSON.parse(JSON.stringify(presentationState.yRanges)),
-  P: { fmin: project.value.sweepFmin_hz.get() ?? 10, fmax: project.value.sweepFmax_hz.get() ?? 1000 }
+  P: {
+    fmin: project.value?.sweepFmin_hz.get() ?? 10,
+    fmax: project.value?.sweepFmax_hz.get() ?? 20000,
+  }
 });
 
 const unitsResetPending = ref(false);
@@ -89,6 +91,18 @@ function resetEnvDraft() {
   draft.envDefaults = airConstantsAppDefaults();
 }
 
+function setDraftTemperature(value: number | null): void {
+  draft.envDefaults.tempK = value ?? AIR_CONSTANTS_APP_DEFAULT.tempK;
+}
+
+function setDraftHumidity(value: number | null): void {
+  draft.envDefaults.humidityPct = value ?? AIR_CONSTANTS_APP_DEFAULT.humidityPct;
+}
+
+function setDraftPressure(value: number | null): void {
+  draft.envDefaults.pressurePa = value ?? AIR_CONSTANTS_APP_DEFAULT.pressurePa;
+}
+
 const envResetTitle = computed(() =>
   `Reset to factory settings: ${AIR_CONSTANTS_APP_DEFAULT.tempK.toFixed(2)} K, ` +
   `${AIR_CONSTANTS_APP_DEFAULT.pressurePa.toFixed(0)} Pa, ${AIR_CONSTANTS_APP_DEFAULT.humidityPct.toFixed(0)}%. ` +
@@ -100,7 +114,7 @@ function restoreDefaults() {
   draft.chartColors = {};
   draft.unitTokens = {};
   draft.yRanges = {};
-  draft.P = { fmin: 1, fmax: 20000 };
+  draft.P = { fmin: 10, fmax: 20000 };
   unitsResetPending.value = true;
 }
 
@@ -110,8 +124,11 @@ function saveAndClose() {
   presentationState.ui.chartColors = { ...draft.chartColors };
   presentationState.ui.unitTokens = { ...draft.unitTokens };
   presentationState.yRanges = { ...draft.yRanges };
-  project.value.sweepFmin_hz.set(draft.P.fmin);
-  project.value.sweepFmax_hz.set(draft.P.fmax);
+  const p = project.value;
+  if (p) {
+    p.sweepFmin_hz.set(draft.P.fmin);
+    p.sweepFmax_hz.set(draft.P.fmax);
+  }
   if (unitsResetPending.value) {
     resetUnitTokens();
   }
@@ -152,10 +169,12 @@ function clearColor(key: ColorKey) {
 // WinISD's default Start/End shown as this row's placeholder until the user sets an override;
 // an untouched row keeps auto-scaling (no default is ever silently written to presentationState.yRanges).
 const LIMIT_ROWS: { tab: string; label: string; start: number; end: number; unit: string }[] = [
-  { tab: 'SPL',       label: 'SPL',                   start: 40,   end: 105,  unit: 'dB' },
+  { tab: 'TFmag',     label: 'Transfer func. magn.',  start: -30,  end: 6,    unit: 'dB' },
+  { tab: 'EQTFmag',   label: 'EQ transfer func mag',  start: -40,  end: 20,   unit: 'dB' },
   { tab: 'Phase',     label: 'Transfer func. phase',  start: -180, end: 180,  unit: 'deg' },
+  { tab: 'SPL',       label: 'SPL',                   start: 40,   end: 115,  unit: 'dB' },
   { tab: 'Excursion', label: 'Cone excursion',        start: 0.0,  end: 30.0, unit: 'mm peak' },
-  { tab: 'Zmag',      label: 'Impedance',             start: 0,    end: 50,   unit: 'ohm' },
+  { tab: 'Zmag',      label: 'Impedance',             start: 0,    end: 150,  unit: 'ohm' },
   { tab: 'Zph',       label: 'Impedance phase',       start: -90,  end: 90,   unit: 'deg' },
   { tab: 'GD',        label: 'Group delay',           start: 0,    end: 40,   unit: 'ms' },
   { tab: 'MaxPwr',    label: 'Maximum power',         start: 0,    end: 500,  unit: 'W' },
@@ -201,17 +220,17 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
             <div class="opt-env-grid">
               <div class="opt-fld">
                 <label>Temperature</label>
-                <NumInput class="opt-num" v-model="draft.envDefaults.tempK" field="advTemp" group="temp" base="K" :precision="2" />
+                <NumInput class="opt-num" :model-value="draft.envDefaults.tempK" @update:model-value="setDraftTemperature" field="advTemp" group="temp" base="K" :precision="2" />
                 <UnitToggle field="advTemp" group="temp" base="K" unit-class="opt-unit" />
               </div>
               <div class="opt-fld">
                 <label>Air pressure</label>
-                <NumInput class="opt-num" v-model="draft.envDefaults.pressurePa" field="advPressure" group="pressure" base="Pa" :precision="1" />
+                <NumInput class="opt-num" :model-value="draft.envDefaults.pressurePa" @update:model-value="setDraftPressure" field="advPressure" group="pressure" base="Pa" :precision="1" />
                 <UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="opt-unit" />
               </div>
               <div class="opt-fld">
                 <label>Relative humidity</label>
-                <input class="opt-num" type="number" v-limits="limits('advHumidity')" v-model.number="draft.envDefaults.humidityPct" />
+                <NumInput class="opt-num" :model-value="draft.envDefaults.humidityPct" @update:model-value="setDraftHumidity" field="advHumidity" :precision="2" />
                 <span class="opt-unit">%</span>
               </div>
               <div class="opt-fld">
@@ -260,7 +279,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
             <table class="opt-limits">
               <thead><tr><th></th><th>Start</th><th>End</th><th>Unit</th><th></th></tr></thead>
               <tbody>
-                <tr>
+                <tr v-if="project">
                   <td>Frequency range</td>
                   <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 20000 }" v-model.number="draft.P.fmin" /></td>
                   <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 40000 }" v-model.number="draft.P.fmax" /></td>
@@ -269,8 +288,8 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
                 </tr>
                 <tr v-for="row in LIMIT_ROWS" :key="row.tab">
                   <td>{{ row.label }}</td>
-                  <td><input class="opt-num" type="number" v-limits="{ min: -10000, max: 100000 }" :placeholder="String(row.start)" :value="limitVal(row.tab, 'min')" @change="setLimit(row.tab, 'min', $event)" /></td>
-                  <td><input class="opt-num" type="number" v-limits="{ min: -10000, max: 100000 }" :placeholder="String(row.end)" :value="limitVal(row.tab, 'max')" @change="setLimit(row.tab, 'max', $event)" /></td>
+                  <td><input class="opt-num" type="number" v-limits="{ min: -10000, max: 100000 }" :value="limitVal(row.tab, 'min') ?? row.start" @change="setLimit(row.tab, 'min', $event)" /></td>
+                  <td><input class="opt-num" type="number" v-limits="{ min: -10000, max: 100000 }" :value="limitVal(row.tab, 'max') ?? row.end" @change="setLimit(row.tab, 'max', $event)" /></td>
                   <td>{{ row.unit }}</td>
                   <td><button class="opt-clear-btn" title="Reset to auto-scale" @click="resetLimit(row.tab)">↺</button></td>
                 </tr>

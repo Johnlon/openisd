@@ -34,7 +34,7 @@ export { type SaveResult, type FileStorage, createFileStorage } from './storage/
 
 export {
   type ViewSnapshot,
-  type ProjectRepo, type FileNaming,
+  type ProjectRepo, type StoredProjectListing, type OpenProjectSession, type FileNaming,
   createProjectRepo,
   PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,
 } from './repos/projectRepo.js';

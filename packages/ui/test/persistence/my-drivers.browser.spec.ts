@@ -7,7 +7,7 @@ import { myDriversJson } from '../fixtures/seedMyDrivers.js';
 // then loading it back. Each is asserted against browser storage, which is where a saved
 // driver actually lives — a row on screen proves rendering, not persistence.
 //
-// WinISD picker only (DriverBrowserWinisd.vue), per the agreed scope.
+// WinISD picker only (DriverBrowser.vue), per the agreed scope.
 
 const SEEDED_BRAND = 'Spec';
 const SEEDED_MODEL = 'Fixture';

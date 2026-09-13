@@ -3,7 +3,8 @@ import {
   wdrTextToDriver, owdrTextToDriver, wprTextToProject, owprTextToProject,
 } from './fileImportExport.js';
 /**
- * Design file I/O orchestration — Save/Save As the project (.owpr) to the filesystem,
+ * Design I/O orchestration — Save the committed project to browser storage, Save As the project
+ * (.owpr) to the filesystem,
  * export a WinISD .wpr project or a .wdr driver, copy a share link, import a .wdr/.wpr/.owdr/
  * .owpr file, and the About text. Lives in a composable, not in the shell, so the toolbar and
  * the export menu reuse ONE implementation — no duplication.
@@ -15,8 +16,8 @@ import {
  * It holds no driver value in any form — the driver crosses this file only as the managed
  * layer's serialised text (`persistedDriver`, QO73) or as opaque export bytes.
  *
- * Save/Save As write to a file the user picked via the File System Access API (Chromium),
- * retaining the handle so Save overwrites the SAME file; browsers without the API
+ * Save As writes to a file the user picked via the File System Access API (Chromium),
+ * retaining the handle so Save As overwrites the SAME file; browsers without the API
  * (Firefox/Safari) fall back to a plain download. WPR/driver export and Share stay
  * one-way downloads/links — there is nothing to "overwrite" for those.
  *
@@ -28,7 +29,7 @@ import { watch } from 'vue';
 import {
   driverName, focusedProject, requireFocusedProject,
   markProjectSaved, addProject, currentProject, currentViewSnapshot,
-  openProjectFromDriver,
+  newProjectDriver,
 } from './appState.js';
 import { presentationState } from './presentationState.js';
 import { createFileSave, projectNameFromFilename, projectFilename, copyOfName, type FileStorage, type ProjectRepo, type FileNaming } from '@openisd/persistence';
@@ -91,25 +92,13 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
     requireFocusedProject().name.set(projectNameFromFilename(fileName || fallbackFilename));
   }
 
-  /** Save — overwrites the previously-picked file in place; first save behaves like Save As. */
-  /** Returns true when the project was written, false when the user cancelled the file
-   *  dialog — a caller doing "save, then close" must not close on a cancelled save. */
+  /** Save — commit the edited project and refresh the browser-storage copy. */
   async function saveProject(): Promise<boolean> {
     closeTunePanelAfterIO();
-    const suggested = projectFilename(currentProject().name.get());
-    const result = await deps.projectRepo.saveToFile(currentProject(), owprNaming(suggested));
-    if (result.cancelled) return false;
-    adoptFileName(result.name, suggested);
-    // SAVED means written to disk. Only a write that completed and closed proves that, so
-    // only that clears the unsaved state. The download fallback (Firefox/Safari) hands the
-    // bytes to the browser and hears nothing back — claiming "saved" there would be a guess
-    // presented as a fact, and the user would lose work believing it was safe.
-    if (!result.written) {
-      flash('Project downloaded — the browser cannot confirm it was written, so it is still marked unsaved');
-      return false;
-    }
+    const project = currentProject();
+    project.save();
+    deps.projectRepo.saveToStorage(project);
     markProjectSaved();
-    flash('Project saved');
     return true;
   }
 
@@ -180,11 +169,16 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
           const { value: driver, errors } = format === DriverFileFormat.Wdr
             ? wdrTextToDriver(text) : owdrTextToDriver(text);
           if (!driver) throw new Error(errors[0]?.message ?? `could not read ${format.value}`);
-          // A driver file with a project open SWAPS the driver in place; with none open it
-          // opens as a project of its own (a default sealed box the user then refines).
+          // A driver file with a project open SWAPS the driver in place; with none open it is
+          // recognised as a DRIVER (not a project) and starts the New Project wizard with it
+          // pre-loaded — the user then chooses the box type and volume (BUG_20260912).
           const open = focusedProject();
-          if (open) open.loadDriver(driver);
-          else openProjectFromDriver(driver, projectNameFromFilename(f.name));
+          if (open) {
+            open.loadDriver(driver);
+          } else {
+            newProjectDriver.value = driver;
+            presentationState.newProjectOpen = true;
+          }
         } else if (format === ProjectFileFormat.Wpr) {
           const { value: project, errors } = wprTextToProject(text);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');

@@ -33,6 +33,16 @@ export function referenceEfficiency(Fs: number, Vas: number, Qes: number, c: num
 }
 
 /**
+ * Reference efficiency η₀ from the driver's own motor and geometry — the route WinISD takes
+ * (rel 15, site 0x45fc3b, winisd_research/scripts/relation_routes.py) when Fs/Vas/Qes cannot
+ * reach η₀ because Vas is still blank: ρ/(2πc)·BL²·Sd²/(Re·Mms²). Same η₀ as
+ * `referenceEfficiency` — reached independently, with no Vas.
+ */
+export function motorEfficiency(rho: number, c: number, BL: number, Sd: number, Mms: number, Re: number): number {
+  return (rho / (2 * Math.PI * c)) * (BL ** 2 * Sd ** 2) / (Re * Mms ** 2);
+}
+
+/**
  * K, the additive constant of `SPL = K + 10·log₁₀(η₀)`, for the air in use:
  * 10·log₁₀(ρ·c / (2π·p_ref²)). Half-space radiation of one acoustic watt, referred to 1 m
  * and to p_ref = 20 µPa.

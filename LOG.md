@@ -8,6 +8,10 @@
 
 ---
 
+## 2026-09-13 — Sealed reference baseline
+
+- **The sealed comparison reference is fixed.** Use the exact Tang Band W5-1138SMF driver in a 6 L sealed enclosure at 1 W input for sealed readout, chart, and golden comparisons; do not substitute another driver, enclosure volume, or drive level.
+
 ## 2026-08-12 — Options modal draft isolation, wider input boxes, dynamic colors, and scrollbar optimizations
 
 - **Options modal edits are drafted and only applied when clicking 'OK'.** Implemented draft settings reactive state in `OptionsModal.vue` so that edits are discarded when closing the dialog via "Cancel" or "✕" and only committed on clicking "OK".

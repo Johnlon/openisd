@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { OpenISDDriver, OpenISDProject } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { createProjectRepo, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
+import { createProjectRepo, createMemoryStorage, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
 import { currentViewSnapshot } from '../../src/logic/appState.js';
 
 import type { BoxType } from '@openisd/design/engine';
@@ -27,7 +27,7 @@ const noFilePicker: FileStorage = {
   openFileName: () => null,
   forget: () => {},
 };
-const repo = createProjectRepo(new Engine(), noFilePicker);
+const repo = createProjectRepo(new Engine(), noFilePicker, createMemoryStorage());
 
 /** A picker that KEEPS what was written, so a test can decode the file door's own bytes. */
 let written: string | null = null;
@@ -37,7 +37,7 @@ const capturingPicker: FileStorage = {
   openFileName: () => 'p.owpr',
   forget: () => {},
 };
-const fileRepo = createProjectRepo(new Engine(), capturingPicker);
+const fileRepo = createProjectRepo(new Engine(), capturingPicker, createMemoryStorage());
 const owprNaming = { suggestedName: 'p.owpr', mime: 'application/json', label: 'OpenISD project', ext: '.owpr' };
 
 /** The bytes the FILE door writes, decoded independently. */
@@ -386,3 +386,80 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
   });
 });
 
+describe('browser storage project door', () => {
+  it('saves and restores the committed project without view state', () => {
+    const storage = createMemoryStorage();
+    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+    const project = projectOf('sealed', {
+      name: 'Browser storage fixture', creator: 'Synthetic', created: '2026-01-01',
+      modified: '2026-01-02', description: '',
+    }, sampleDriverRecord());
+
+    storageRepo.saveToStorage(project);
+    const loaded = storageRepo.loadFromStorage();
+
+    assert.ok(!Array.isArray(loaded) && loaded, 'saved project must restore');
+    assert.equal(loaded.name.get(), 'Browser storage fixture');
+    assert.equal(loaded.box.boxType.get(), 'sealed');
+  });
+
+  it('lists every saved project newest first and loads the selected project', () => {
+    const storage = createMemoryStorage();
+    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+    const older = projectOf('sealed', {
+      name: 'Older browser project', creator: 'Synthetic', created: '2026-01-01',
+      modified: '2026-01-02', description: '',
+    }, sampleDriverRecord());
+    const newer = projectOf('sealed', {
+      name: 'Newer browser project', creator: 'Synthetic', created: '2026-01-03',
+      modified: '2026-01-04', description: '',
+    }, sampleDriverRecord());
+
+    storageRepo.saveToStorage(older);
+    storageRepo.saveToStorage(newer);
+
+    const listings = storageRepo.listStoredProjects();
+    assert.deepEqual(listings.map(entry => entry.name), ['Newer browser project', 'Older browser project']);
+    const loaded = storageRepo.loadStoredProject(listings[1].id);
+    assert.ok(!Array.isArray(loaded) && loaded);
+    assert.equal(loaded.name.get(), 'Older browser project');
+  });
+
+  it('saving a project opened from browser storage updates its entry', () => {
+    const storage = createMemoryStorage();
+    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+    const original = projectOf('sealed', {
+      name: 'Stored project to reopen', creator: 'Synthetic', created: '2026-01-05',
+      modified: '2026-01-06', description: '',
+    }, sampleDriverRecord());
+    storageRepo.saveToStorage(original);
+    const listing = storageRepo.listStoredProjects()[0];
+    const reopened = storageRepo.loadStoredProject(listing.id);
+    assert.ok(!Array.isArray(reopened) && reopened);
+
+    reopened.name.set('Stored project after edit');
+    storageRepo.saveToStorage(reopened);
+
+    assert.deepEqual(storageRepo.listStoredProjects().map(entry => entry.name), ['Stored project after edit']);
+  });
+
+  it('restores every open project and the focused project after refresh', () => {
+    const storage = createMemoryStorage();
+    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+    const first = projectOf('sealed', {
+      name: 'Open project one', creator: 'Synthetic', created: '2026-01-07',
+      modified: '2026-01-08', description: '',
+    }, sampleDriverRecord());
+    const second = projectOf('sealed', {
+      name: 'Open project two', creator: 'Synthetic', created: '2026-01-09',
+      modified: '2026-01-10', description: '',
+    }, sampleDriverRecord());
+
+    storageRepo.saveOpenProjects([first, second], second);
+
+    const restored = storageRepo.loadOpenProjects();
+    assert.ok(restored && !Array.isArray(restored));
+    assert.deepEqual(restored.projects.map(project => project.name.get()), ['Open project one', 'Open project two']);
+    assert.equal(restored.focusedIndex, 1);
+  });
+});

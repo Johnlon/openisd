@@ -205,13 +205,13 @@ const FIELDS: FieldSpec[] = [
   {
     id: 'Pin', label: 'System input power', pane: 'Signal', kind: 'number', unit: 'W', precision: 2, min: 0, max: 100000,
     provenance: 'entered', appliesTo: 'all',
-    description: 'Primary drive level (power). Voltage is derived from it (P = V²/Re). OpenISD 2 dp.',
+    description: 'Primary drive level. At project creation OpenISD stores the WinISD 1 W reference and calculates matching voltage with V = √(P · Re). Editing power recalculates voltage; deleting power recalculates it from the remaining voltage with P = V² / Re. Both values are stored as project inputs. OpenISD 2 dp.',
   },
   {
     id: 'driveV', label: 'Driver input voltage (each)', pane: 'Signal', kind: 'number', unit: 'V', precision: 2, min: 0, max: 1000,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'driveV = √(Pin · Re)', dependsOn: ['Pin', 'Re'],
-    description: 'Per-driver drive voltage; editable and bidirectional with Pin via P = V²/Re. WinISD 1 dp (15.2 V).',
+    description: 'Per-driver drive voltage. At project creation OpenISD calculates it from the 1 W reference with V = √(P · Re). Editing voltage recalculates power; deleting voltage recalculates it from the remaining power with V = √(P · Re). Both values are stored as project inputs. WinISD 1 dp.',
   },
   {
     id: 'Rs', label: 'Series resistance', pane: 'Signal', kind: 'number', unit: 'ohm', precision: 3, min: 0, max: 1000,

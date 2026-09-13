@@ -130,10 +130,16 @@ Anthropic, never a "Generated with Claude Code" line, never override `--author`/
 | Port | Purpose | Started by |
 | --- | --- | --- |
 | 4000 | The app — every build, preview and check | `scripts/preview-4000.sh` |
-| 4100 | Playwright's own vite | the test runner |
+| 4100-4107 | Playwright's own vite | the test runner |
+
+4100-4107, not a single fixed 4100: concurrent `npm test` runs (e.g. more than one agent running
+the UI suite at once) each get assigned a free port from this pool by
+`scripts/test-concurrency.sh`, so they don't collide on one server — see
+`bugs/BUG_20260913_oom_kills_wsl_vm_during_ui_tests.md`. A single run still only ever uses one
+port from the pool at a time.
 
 Start no server on any other port. Kill a stray one with `bash scripts/kill-http.sh <port>`.
-Clear a stale 4100 the same way, only when no run is in flight.
+Clear a stale port in 4100-4107 the same way, only when no run is in flight.
 
 4000 serves `packages/ui/dist`, not the working tree — a source edit is invisible until
 `npm run build`. "The fix isn't showing" is a stale bundle until the served asset hash is compared

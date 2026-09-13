@@ -122,7 +122,6 @@ const brandInputOf = (page: import('@playwright/test').Page) => page.locator('.d
 
 test('a missing Brand pops a message instead of a dead button, and lands the caret on it', async ({ page }) => {
   await openParameters(page);
-  await page.getByRole('button', { name: 'General', exact: true }).click();
   await brandInputOf(page).fill('');
 
   await expect(okBtn(page)).toBeEnabled();          // never disabled — it answers the click

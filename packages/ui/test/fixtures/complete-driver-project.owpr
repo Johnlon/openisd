@@ -169,7 +169,7 @@
           "width_m": null,
           "height_m": null,
           "length_m": null,
-          "endCorrection_m": 0.6
+          "endCorrection_m": 0.613
         }
       },
       "bandpass4": {
@@ -198,7 +198,7 @@
           "width_m": null,
           "height_m": null,
           "length_m": null,
-          "endCorrection_m": 0.6
+          "endCorrection_m": 0.613
         }
       },
       "bandpass6": {
@@ -228,7 +228,7 @@
           "width_m": null,
           "height_m": null,
           "length_m": null,
-          "endCorrection_m": 0.6
+          "endCorrection_m": 0.613
         },
         "frontVent": {
           "shape": "round",
@@ -236,7 +236,7 @@
           "width_m": null,
           "height_m": null,
           "length_m": null,
-          "endCorrection_m": 0.6
+          "endCorrection_m": 0.613
         }
       },
       "abc": {
@@ -266,7 +266,7 @@
           "width_m": null,
           "height_m": null,
           "length_m": null,
-          "endCorrection_m": 0.6
+          "endCorrection_m": 0.613
         },
         "frontVent": {
           "shape": "round",
@@ -274,7 +274,7 @@
           "width_m": null,
           "height_m": null,
           "length_m": null,
-          "endCorrection_m": 0.6
+          "endCorrection_m": 0.613
         },
         "intraVent": {
           "shape": "round",
@@ -282,7 +282,7 @@
           "width_m": null,
           "height_m": null,
           "length_m": null,
-          "endCorrection_m": 0.6
+          "endCorrection_m": 0.613
         }
       },
       "passiveRadiator": {
@@ -304,8 +304,8 @@
       "useWinisdAirModel": null
     },
     "signal": {
-      "power_W": null,
-      "voltage_V": null
+      "power_W": 1,
+      "voltage_V": 2.569046515733026
     },
     "meta": {
       "name": "Fixture Project",

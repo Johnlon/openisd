@@ -1,7 +1,7 @@
 import { test, expect, openAProject } from '../fixtures.js';
 
 // ui-todo.md "Remove UI Elements" — four controls come out of the driver picker
-// (DriverBrowserWinisd.vue).
+// (DriverBrowser.vue).
 
 const CONTROLS = {
   'Reset Demo Drivers button': '.reset-demo-btn',

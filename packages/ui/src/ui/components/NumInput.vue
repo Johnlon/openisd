@@ -269,7 +269,7 @@ const stepAttr = computed<string | number>(() => {
 
 <template>
   <input v-bind="$attrs" type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
-    :class="classes" :title="hasDq ? `${helpText}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
+    :class="classes" :title="hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
     @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
   <span v-if="hasDq" class="dq-note" :class="{ 'dq-note-root': isRootCause, 'dq-note-symptom': isSymptom }" :title="dqNoteTitle">⚠</span>
 </template>

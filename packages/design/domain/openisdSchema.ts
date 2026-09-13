@@ -966,7 +966,9 @@ const NO_VENT: VentJson = Object.freeze({
     width_m: null,
     height_m: null,
     length_m: null,
-    endCorrection_m: 0.6,
+    // WinISD's default port end correction: TWO FREE ENDS (0.613). The earlier 0.6 matched none
+    // of the UI's END_CORRECTION_OPTIONS, so the select rendered blank (BUG_20260912 #10).
+    endCorrection_m: 0.613,
 });
 const NO_VENTED_CHAMBER: ChamberJson =
     Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_VENTED_LOSSES});

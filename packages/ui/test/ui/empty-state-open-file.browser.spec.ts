@@ -1,10 +1,7 @@
 /**
- * The no-project empty state can open a saved project from disk.
+ * The no-project shell can open a saved project from disk.
  *
- * A cold start with no autosave and no share link renders App.vue's empty state. Before this,
- * its only action was the New Project wizard, and every file input in the app lived inside
- * `v-if="project"` — so a user holding a `.owpr` had no way to open it, and the ordinary
- * "carry on with yesterday's work" path did not exist.
+ * The shell remains mounted without a project, including its hidden file input.
  * bugs/BUG_20260909_no_project_can_be_opened_from_a_file_when_none_is_open.md
  */
 import { readFileSync } from 'node:fs';
@@ -14,15 +11,14 @@ import { test, expect } from '../fixtures.js';
 
 const OWPR = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'sample-project.owpr');
 
-test('the empty state opens a saved .owpr and the shell appears', async ({ page }) => {
+test('the no-project shell opens a saved .owpr', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
 
-  // A cold start shows the empty state, and it offers a way to open a file.
-  await expect(page.locator('.no-project-open')).toBeVisible();
+  await expect(page.locator('.original-root')).toBeVisible();
 
-  await page.locator('.no-project-open input[type=file]').setInputFiles({
+  await page.locator('.original-root input[type=file]').setInputFiles({
     name: 'sample-project.owpr',
     mimeType: 'application/json',
     buffer: readFileSync(OWPR),
@@ -32,4 +28,31 @@ test('the empty state opens a saved .owpr and the shell appears', async ({ page 
   // (the row is named for the file it came from, not the `label` inside it).
   await expect(page.locator('.original-root')).toBeVisible();
   await expect(page.locator('.projects-list')).toContainText('sample-project');
+});
+
+test('Open shows saved browser projects with Import from disk first', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/');
+
+  await page.getByTitle('Open project').click();
+  const dialog = page.locator('.open-project-dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('button').first()).toHaveText('Import from disk');
+  await expect(dialog.locator('.open-project-list')).toContainText('No saved project yet');
+});
+
+test('no-project chart empty state offers icon links for New, Open, and Import', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/');
+
+  const emptyState = page.locator('.graph-empty');
+  await expect(emptyState).toContainText('Open or Create a project for charts');
+  await expect(emptyState.getByRole('button', { name: 'New project' })).toBeVisible();
+  await expect(emptyState.getByRole('button', { name: 'Open project' })).toBeVisible();
+  await expect(emptyState.getByRole('button', { name: 'Import project' })).toBeVisible();
+
+  await emptyState.getByRole('button', { name: 'Open project' }).click();
+  await expect(page.locator('.open-project-dialog')).toBeVisible();
 });

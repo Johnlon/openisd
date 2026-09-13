@@ -87,6 +87,14 @@ export class Field<T> implements SolverField<T> {
     this.writeValue(v);
   }
 
+  /** Store a solver-established project value while exposing it as an entered project fact. */
+  setProjectEstablished(value: T, dq?: string[]): void {
+    this.writeValue(value);
+    this.isCalculated = false;
+    this.derivedValue = null;
+    this.dqList = dq ?? [];
+  }
+
   setNotAvailable(): void {
     this.clearValue();
     this.isCalculated = false;

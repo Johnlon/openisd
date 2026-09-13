@@ -10,7 +10,7 @@
  * addition), so the ribbon/tag motif is reused for it rather than invented from nothing.
  */
 defineProps<{
-  name: 'open' | 'new' | 'save' | 'saveAs' | 'export' | 'drivers' | 'options' | 'info' | 'chart' | 'revert';
+  name: 'open' | 'new' | 'import' | 'save' | 'saveAs' | 'export' | 'drivers' | 'options' | 'info' | 'chart' | 'revert';
 }>();
 </script>
 
@@ -23,6 +23,11 @@ defineProps<{
     <path d="M3 2 h11 l5 5 v17 H3 Z" fill="#fff" stroke="#9aa4ad"/>
     <path d="M14 2 v5 h5" fill="#e8edf2" stroke="#9aa4ad"/>
     <circle cx="16" cy="6" r="3.4" fill="#ffe14d" stroke="#d4b800"/>
+  </svg>
+  <svg v-else-if="name === 'import'" width="22" height="19" viewBox="0 0 30 26">
+    <path d="M2 6 h9 l2 3 h14 a2 2 0 0 1 2 2 v11 a2 2 0 0 1-2 2 H4 a2 2 0 0 1-2-2 Z" fill="#f4b23e" stroke="#c8871a"/>
+    <path d="M5 12 h20 l-3 10 H8 Z" fill="#ffd980" stroke="#c8871a"/>
+    <path d="M15 2 v12 M10.5 9.5 15 14 l4.5-4.5" fill="none" stroke="#2f6fae" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
   <svg v-else-if="name === 'save'" width="18" height="19" viewBox="0 0 24 26">
     <path d="M3 3 h15 l3 3 v17 H3 Z" fill="#5b7fb0" stroke="#3c5a86"/>

@@ -109,6 +109,10 @@ export interface SealedBox {
      *  handle. */
     readonly resonance_hz: ReadOnlyCalculatedField<number>;
 
+    /** The resulting system Q (Qtc), under the same loss mode as `resonance_hz` — null on the
+     *  same terms. A precomputed readout. */
+    readonly q_tc: ReadOnlyCalculatedField<number>;
+
     readonly losses: SealedLosses;
 }
 
@@ -502,19 +506,21 @@ class OpenISDBox implements Box {
     readonly #driver: OpenISDDriverEmbedded;
     /** The one calculation surface. Injected, never constructed here. */
     readonly #engine: Engine;
-    /** The project's own air, resolved at CALL time so a chamber follows the environment the user
-     *  states rather than whichever one happened to be current at construction. */
-    readonly #environment: () => OpenISDEnvironmentJson;
+    /** The project's amplifier source impedance, resolved at CALL time — the `Rg` that loads the
+     *  driver's Qts the way WinISD's readout does. A PARAMETER rather than a record field for the
+     *  same reason `OpenISDProject.sourceLoadedQts` treats `Rs` as one: the record hear has no
+     *  home for it (it lives on the project's driverEmbedding, which the box does not own). */
+    readonly #rs: () => number;
 
     private constructor(
         lens: Lens<OpenISDBoxJson>,
         driver: OpenISDDriverEmbedded,
         engine: Engine,
-        environment: () => OpenISDEnvironmentJson,
+        rs: () => number,
     ) {
         this.#driver = driver;
         this.#engine = engine;
-        this.#environment = environment;
+        this.#rs = rs;
         this.boxType = focus(lens, 'boxType');
 
         const sealedLens = focus(lens, 'sealed');
@@ -527,6 +533,12 @@ class OpenISDBox implements Box {
                 return v === null
                     ? createCell<number>('resonance_hz', null, 'not-available')
                     : createCell<number>('resonance_hz', v, 'calculated');
+            }),
+            q_tc: new ReadOnlyCalculatedField<number>(() => {
+                const v = this.#sealedQtc(sealedVolume.get(), sealedLosses);
+                return v === null
+                    ? createCell<number>('q_tc', null, 'not-available')
+                    : createCell<number>('q_tc', v, 'calculated');
             }),
             losses: sealedLosses,
         };
@@ -819,52 +831,61 @@ class OpenISDBox implements Box {
         slot: Lens<OpenISDBoxJson>,
         driver: OpenISDDriverEmbedded,
         engine: Engine,
-        environment: () => OpenISDEnvironmentJson,
+        rs: () => number,
     ): OpenISDBox {
-        return new OpenISDBox(slot, driver, engine, environment);
+        return new OpenISDBox(slot, driver, engine, rs);
     }
 
     /**
-     * A sealed chamber's resonance, through the INJECTED engine and in the PROJECT'S OWN air.
+     * A sealed chamber's resonance, through the INJECTED engine.
      *
-     * Null whenever the driver has not stated what the calculation needs, or the volume is not
-     * set — absence is `null` here as everywhere, never 0 and never a throw.
+     * Null whenever the driver has not stated what the feed needs, or the volume is not
+     * positive — absence is `null` here as everywhere, never 0 and never a throw.
      *
-     * The domain does none of the physics: it hands over the driver's stored values, the volume,
-     * the chamber's losses and the environment, and the engine derives Vas and the resonance.
+     * The domain does none of the physics: it hands over the driver's SOLVED values (Fs, Vas and
+     * the Q group), the volume, the chamber's losses and the project's source impedance, and the
+     * engine computes the resonance.
      *
-     * LOSSLESS, and NOT by preference — `DriverSpecsSection` stores no `Qts`, and both lossy models need
-     * it (the lossless `Fsc` is the one figure that does not). So this is the only resonance the
-     * domain's own driver record can express today.
-     *
-     * That matters for parity: WinISD displays and saves the LOSSY figure — measured, `Fr` moves
-     * 5.8 Hz for a `Ql` change at fixed volume (`winisd_research` FINDING-007). Matching it needs
-     * `Qts` in the driver record, which is a decision about the record, not about this method.
+     * The FEED is parity-proven, not guessed: the engine test that matches WinISD's own sealed
+     * `Box.Fr` readout bit-for-bit (`winisd-parity-functional.test.ts` "Box.Fr") passes exactly
+     * the driver's stored Vas and `sourceLoadedQts(Qms, Qes, Re, Rg, Qts)` — never the inline
+     * compliance reconstruction `Cms·Sd²·ρc²` and never bare `Qts` (Rg alone moves Fsc by 0.040 Hz
+     * on the golden scene; `SEALED_FSC_MODEL.md` §5).
      */
     #sealedResonance_hz(volume_m3: number | null, losses: SealedLosses,
                         mode: LossMode = LossMode.Default): number | null {
-        const spec = this.#driver.spec[this.#driver.section];
-        const Fs_hz = spec.Fs_hz.get().value;
-        const Sd_m2 = spec.Sd_m2.get().value;
-        const Cms = spec.Cms_m_per_N.get().value;
-        if (volume_m3 === null || Fs_hz === null || Sd_m2 === null || Cms === null) return null;
-
-        const env = this.#environment();
-        const air = this.#engine.airFor({
-            tempK: env.temperature_K ?? undefined,
-            humidityPct: env.humidity_pct ?? undefined,
-            pressurePa: env.pressure_Pa ?? undefined,
-        });
-        const Qts = spec.Qts.get().value;
-        if (Qts === null) return null;
+        if (volume_m3 === null || !(volume_m3 > 0)) return null;
+        const solved = this.#driver.solveConsistencyGroup();
+        const Fs_hz = solved.Fs_hz;
+        const Vas = solved.Vas_m3;
+        const Qts = solved.Qts;
+        if (Fs_hz === undefined || Vas === undefined || Qts === undefined) return null;
+        const QtsLoaded = this.#engine.sourceLoadedQts(
+            solved.Qms ?? NaN, solved.Qes ?? NaN, solved.Re_ohm ?? NaN, this.#rs(), Qts);
         // `LossMode.Default` IS `WinisdLossy` — John 2026-08-27: "default is winisd = Lossy". WinISD
         // displays and saves the LOSSY figure, and it MOVES with the chamber's losses: measured, `Fr`
         // shifts 5.8 Hz for a `Ql` change at fixed volume (winisd_research FINDING-007).
-        return this.#engine.sealedResonanceFromCompliance(
-            mode,
-            {Fs_hz, Qts, Sd_m2, Cms_m_per_N: Cms, volume_m3, Ql: losses.Ql.get(), Qa: losses.Qa.get()},
-            air,
-        );
+        return this.#engine.sealedResonance(mode, {
+            Fs: Fs_hz, Vas, Qts: QtsLoaded, Vb: volume_m3, Ql: losses.Ql.get(), Qa: losses.Qa.get(),
+        }).Fsc;
+    }
+
+    /** The sealed system Q (Qtc) under the same loss mode as `#sealedResonance_hz` — the engine's
+     *  `sealedResonance` returns {Fsc, Qtc} together, so the two readouts share one computation and
+     *  one feed. */
+    #sealedQtc(volume_m3: number | null, losses: SealedLosses,
+               mode: LossMode = LossMode.Default): number | null {
+        if (volume_m3 === null || !(volume_m3 > 0)) return null;
+        const solved = this.#driver.solveConsistencyGroup();
+        const Fs_hz = solved.Fs_hz;
+        const Vas = solved.Vas_m3;
+        const Qts = solved.Qts;
+        if (Fs_hz === undefined || Vas === undefined || Qts === undefined) return null;
+        const QtsLoaded = this.#engine.sourceLoadedQts(
+            solved.Qms ?? NaN, solved.Qes ?? NaN, solved.Re_ohm ?? NaN, this.#rs(), Qts);
+        return this.#engine.sealedResonance(mode, {
+            Fs: Fs_hz, Vas, Qts: QtsLoaded, Vb: volume_m3, Ql: losses.Ql.get(), Qa: losses.Qa.get(),
+        }).Qtc;
     }
 
 
@@ -1925,6 +1946,7 @@ export class OpenISDProject {
      *  changes. */
     setDriver(source: OpenISDDriver): void {
         this.driver.update(source);
+        this.#resynchronizeSignalVoltage();
     }
 
     /** Adopt a driver that came from outside this project — a library pick, or a `.wdr`/`.owdr`
@@ -1936,6 +1958,15 @@ export class OpenISDProject {
             throw new Error('loadDriver(): source must be a standalone OpenISDDriver, not an embedded project driver');
         }
         this.driver.update(source);
+        this.#resynchronizeSignalVoltage();
+    }
+
+    /** Keep the project's established power when its driver changes; voltage follows the new Re. */
+    #resynchronizeSignalVoltage(): void {
+        const power_W = this.#slot('signal').get().power_W;
+        if (power_W !== null && this.driver.solveConsistencyGroup().Re_ohm !== undefined) {
+            this.powerDrive_W.setProjectEstablished(power_W);
+        }
     }
 
     /** How many units of the embedded driver this project's array uses, and how they're wired
@@ -1980,7 +2011,12 @@ export class OpenISDProject {
      *  loads, and the box reads the driver through its PUBLIC field surface, never its record.
      *  Built fresh on every access, same reasoning as `driver`. */
     get box(): Box {
-        return OpenISDBox.wrap(this.#slot('box'), this.driver, this.#engine, () => this.#current().environment);
+        return OpenISDBox.wrap(
+            this.#slot('box'), this.driver, this.#engine,
+            // The amplifier's source impedance loading this array — the `Rg` WinISD folds into
+            // its sealed Fsc/Qtc readouts (winisd_research SEALED_FSC_MODEL.md §5).
+            () => this.Rs_ohm.get(),
+        );
     }
 
     /** What the user calls this project. A LABEL, not an identity — two projects may share one,
@@ -2235,18 +2271,38 @@ export class OpenISDProject {
 
     // ── THE SIGNAL ────────────────────────────────────────────────────────────────────────────
 
+    /** A DQ is reserved for a persisted pair that disagrees; absence alone is not a defect. */
+    #signalConsistencyDq(): readonly string[] {
+        const {power_W, voltage_V} = this.#slot('signal').get();
+        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+        if (power_W === null || voltage_V === null || Re_ohm === undefined) return [];
+        const expectedVoltage_V = this.#engine.driveVoltage(power_W, Re_ohm);
+        const tolerance = Math.max(1e-9, Math.abs(expectedVoltage_V) * 1e-9);
+        return Math.abs(voltage_V - expectedVoltage_V) <= tolerance
+            ? []
+            : [`Signal inputs are inconsistent: ${power_W} W requires ${expectedVoltage_V} V at Re=${Re_ohm} ohm, not ${voltage_V} V.`];
+    }
+
     /**
-     * N-way Field over the drive power — WinISD's Signal-tab "Input Power". `.get()` reads the
-     * stated power; `.set(w)` derives `√(w·Re)` and stores the matching voltage too, so the pair
-     * never disagrees. Requires a usable `Re`; a caller with an incomplete driver cannot state a
-     * drive level in these terms yet (throws, as `setPowerDrive_W` always did).
+     * N-way Field over the drive power — WinISD's Signal-tab "Input Power". One end of the
+     * power↔voltage pair: `.get()` reads the stated power, or derives `V²/Re` from the stated
+     * voltage when power is the end left blank; `.set(w)` derives `√(w·Re)` and stores the
+     * matching voltage too, so the pair never disagrees. `.clear()` blanks POWER only — the
+     * stated voltage survives and power re-derives from it. Requires a usable `Re` for a write
+     * (throws, as `setPowerDrive_W` always did).
      */
     get powerDrive_W(): Field<number> {
         const slot = this.#slot('signal');
         return new Field<number>(
             () => {
                 const w = slot.get().power_W;
-                return createCell('power_W', w, w === null ? 'not-available' : 'entered');
+                if (w !== null) return createCell('power_W', w, 'entered', this.#signalConsistencyDq());
+                const voltage_V = slot.get().voltage_V;
+                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                const derived = voltage_V === null || Re_ohm === undefined ? null : this.#engine.driveFromVoltage(voltage_V, Re_ohm);
+                return derived === null
+                    ? createCell<number>('power_W', null, 'not-available')
+                    : createCell<number>('power_W', derived, 'calculated');
             },
             (w) => {
                 const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
@@ -2256,23 +2312,36 @@ export class OpenISDProject {
                 const voltage_V = this.#engine.driveVoltage(w, Re_ohm);
                 slot.set({power_W: w, voltage_V});
             },
-            () => slot.set({power_W: null, voltage_V: null}),
+            () => {
+                const voltage_V = slot.get().voltage_V;
+                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                if (voltage_V !== null && Re_ohm !== undefined) {
+                    this.powerDrive_W.setProjectEstablished(this.#engine.driveFromVoltage(voltage_V, Re_ohm));
+                } else {
+                    slot.set({...slot.get(), power_W: null});
+                }
+            },
         );
     }
 
     /**
-     * N-way Field over the effective drive voltage — the `eg` every sweep runs at. `.get()` derives
-     * `√(Pin·Re)` from the stated power (the two are kept identical by every write); `.set(v)`
-     * derives `v²/Re` and stores both. Same `Re` requirement as `powerDrive_W`.
+     * N-way Field over the effective drive voltage — the `eg` every sweep runs at. `.get()` reads
+     * the stated voltage, or derives `√(Pin·Re)` from the stated power when voltage is the end
+     * left blank; `.set(v)` derives `v²/Re` and stores both. `.clear()` blanks VOLTAGE only — the
+     * stated power survives and voltage re-derives from it. Same `Re` requirement as `powerDrive_W`.
      */
     get driveVoltage_V(): Field<number> {
         const slot = this.#slot('signal');
         return new Field<number>(
             () => {
+                const stored = slot.get().voltage_V;
+                if (stored !== null) return createCell('voltage_V', stored, 'entered', this.#signalConsistencyDq());
                 const power_W = slot.get().power_W;
                 const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                const v = power_W === null || Re_ohm === undefined ? null : this.#engine.driveVoltage(power_W, Re_ohm);
-                return createCell('voltage_V', v, v === null ? 'not-available' : 'calculated');
+                const derived = power_W === null || Re_ohm === undefined ? null : this.#engine.driveVoltage(power_W, Re_ohm);
+                return derived === null
+                    ? createCell<number>('voltage_V', null, 'not-available')
+                    : createCell<number>('voltage_V', derived, 'calculated');
             },
             (v) => {
                 const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
@@ -2282,22 +2351,44 @@ export class OpenISDProject {
                 const power_W = this.#engine.driveFromVoltage(v, Re_ohm);
                 slot.set({power_W, voltage_V: v});
             },
-            () => slot.set({power_W: null, voltage_V: null}),
+            () => {
+                const power_W = slot.get().power_W;
+                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                if (power_W !== null && Re_ohm !== undefined) {
+                    this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
+                } else {
+                    slot.set({...slot.get(), voltage_V: null});
+                }
+            },
         );
     }
 
     /** Field over the stated drive voltage — `signal.voltage_V`, the value stored when a drive
      *  level was entered. `.set(v)` forwards to `driveVoltage_V.set(v)` so the pair stays
-     *  consistent (voltage was never writable alone). */
+     *  consistent (voltage was never writable alone). `.clear()` re-stores the pair from power. */
     get statedVoltage_V(): Field<number> {
         const slot = this.#slot('signal');
         return new Field<number>(
             () => {
                 const v = slot.get().voltage_V;
-                return createCell('voltage_V', v, v === null ? 'not-available' : 'entered');
+                if (v !== null) return createCell('voltage_V', v, 'entered', this.#signalConsistencyDq());
+                const power_W = slot.get().power_W;
+                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                const derived = power_W === null || Re_ohm === undefined ? null : this.#engine.driveVoltage(power_W, Re_ohm);
+                return derived === null
+                    ? createCell<number>('voltage_V', null, 'not-available')
+                    : createCell<number>('voltage_V', derived, 'calculated');
             },
             (v) => this.driveVoltage_V.set(v),
-            () => slot.set({power_W: null, voltage_V: null}),
+            () => {
+                const power_W = slot.get().power_W;
+                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                if (power_W !== null && Re_ohm !== undefined) {
+                    this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
+                } else {
+                    slot.set({...slot.get(), voltage_V: null});
+                }
+            },
         );
     }
 
@@ -2414,7 +2505,12 @@ export class OpenISDProject {
 
     #sweepParams(P: FrequencyGrid): SweepParams | null {
         const Vb = this.#boxVolume_m3();
-        const eg = this.driveVoltage_V.value;
+        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+        // WinISD sweeps at a 1 W reference until a drive level is stated — the chart always draws
+        // for a simulatable driver. The stored signal stays null ("not told", and flagged with a
+        // DQ on the unset input fields); only the sweep falls back. Still refuses when there is no
+        // usable Re to derive the reference from.
+        const eg = this.driveVoltage_V.value ?? (Re_ohm === undefined ? null : this.#engine.driveVoltage(1, Re_ohm));
         if (Vb === null || eg === null) return null;
 
         const box = this.box;

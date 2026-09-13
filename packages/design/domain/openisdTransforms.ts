@@ -136,6 +136,9 @@ export abstract class BoxProjectBuilder {
             this.engine,
         );
         if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
+        // WinISD starts a usable project at its 1 W reference. Store the matching voltage too so
+        // the chart and Signal tab read the same project state rather than separate fallbacks.
+        if (project.driver.solveConsistencyGroup().Re_ohm !== undefined) project.powerDrive_W.setProjectEstablished(1);
         // Those writes land in `#edited`, because every write does. A project the user has just
         // created has no UNSAVED changes, though — so the assembled state IS its saved baseline.
         // Without this a new project is born modified, and Cancel would discard its own driver.
@@ -165,9 +168,10 @@ export abstract class BoxProjectBuilder {
                 nDrivers: 1,
                 wiring: 'parallel',
                 vcTempRise_K: 0,
-                Rs_ohm: 0,
+                // WinISD's Advanced-tab default amplifier source resistance: 0.1 Ω.
+                Rs_ohm: 0.1,
                 driverAddedMass_kg: 0,
-                alfaVC_per_K: 0,
+                alfaVC_per_K: 0.0039001,
                 loading: 'standard',
             },
             box: emptyBoxJson(),

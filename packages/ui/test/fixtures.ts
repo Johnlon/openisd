@@ -132,7 +132,7 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
 const DEFAULT_SAMPLE_OWPR = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'sample-project.owpr');
 
 export async function openAProject(page: Page, owprPath: string = DEFAULT_SAMPLE_OWPR): Promise<void> {
-  await page.locator('.no-project-open input[type=file]').setInputFiles({
+  await page.locator('.original-root input[type=file]').setInputFiles({
     name: 'sample-project.owpr',
     mimeType: 'application/json',
     buffer: readFileSync(owprPath),

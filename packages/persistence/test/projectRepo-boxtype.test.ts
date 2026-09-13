@@ -16,6 +16,7 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { createProjectRepo } from '../src/repos/projectRepo.js';
 import type { FileStorage } from '../src/storage/fileStorage.js';
+import { createMemoryStorage } from '../src/storage/keyValueStorage.js';
 import { OpenISDProject, OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 
@@ -30,7 +31,7 @@ const noFiles: FileStorage = {
 };
 
 function repo() {
-  return createProjectRepo(engine, noFiles);
+  return createProjectRepo(engine, noFiles, createMemoryStorage());
 }
 
 const scraped = <T,>(value: T) => ({ value });

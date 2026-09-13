@@ -140,6 +140,12 @@ export function addProject(project: OpenISDProject): void {
   focusedIndex.value = projects.value.length - 1;
 }
 
+/** Replace the open-project registry with a refresh-restored session. */
+export function restoreProjects(restored: OpenISDProject[], requestedFocus: number): void {
+  projects.value = restored.slice();
+  focusedIndex.value = restored.length === 0 ? 0 : Math.min(Math.max(requestedFocus, 0), restored.length - 1);
+}
+
 /** Thrown by `requireFocusedProject()` when no project is open. A small, deliberate,
  *  named exception — not a wrapper/Null Object of any kind (human ruling, PROMPT_RELEASE_
  *  HARDENING plan) — so a caller asserting "a project must be focused right now" gets a
@@ -273,27 +279,26 @@ export function openDriverPicker(): void {
   presentationState.browseOpen = true;
 }
 
-// A single, empty grid — sweep()/maxCurves()/validateParams() fall back to the FOCUSED
-// PROJECT's own stored fmin/fmax/N (`OpenISDProject.sweepFmin_hz` etc.), or the engine's
-// defaults when the project has none either (sweep.ts: `P.fmin || 10, P.fmax || 1000,
-// P.N || 400`) — so this file never re-states or overrides either set of defaults itself.
-const GRID: FrequencyGrid = {};
+// WinISD's Plot Window defaults. A project's stored fmin/fmax override these; a project with no
+// stored chart range must still sweep the same 10 Hz–20 kHz window the Options dialog displays.
+const GRID: FrequencyGrid = { fmin: 10, fmax: 20000 };
 
 /** The chart panels' shared X-axis range plus the display-only flags `series.ts` reads —
  *  everything a `Design.P` needs, resolved from the FOCUSED project. `fmin`/`fmax` are the
  *  project's own saved range (`sweepFmin_hz`/`sweepFmax_hz`) rather than the engine's internal
  *  defaults, so the Options dialog and the axis-drag zoom (`GraphPanel.vue`) have a real value
- *  to read and write — `undefined` here means "use the engine default", not "no project". */
+ *  to read and write — `undefined` here means "use WinISD's 10–20000 Hz Plot Window defaults",
+ *  not "no project". */
 export const syncedP = computed<PlotParams>(() => {
   const p = live.value;
-  if (!p) return {fmin: 10, fmax: 1000};
+  if (!p) return {fmin: 10, fmax: 20000};
   const box = p.box.boxType.get();
   const prXmax = box === 'box-passive-radiator'
     ? (p.box.passiveRadiator.radiator.spec.Xmax_m.get().value ?? undefined)
     : undefined;
   return {
     fmin: p.sweepFmin_hz.get() ?? 10,
-    fmax: p.sweepFmax_hz.get() ?? 1000,
+    fmax: p.sweepFmax_hz.get() ?? 20000,
     splXmaxLimited: p.splGraphIsXmaxLimited.get(),
     prXmax,
   };
@@ -463,6 +468,16 @@ export function definePassiveRadiator(): void {
     OpenISDPassiveRadiatorStandalone.empty(engine));
 }
 
+/** Give `p` a default passive radiator with sane Mms/Sd/Cms — the New-Project wizard's chart-ready
+ *  PR (BUG_20260912: Fh must resolve instead of "--"). Lives here, not in a component, so the
+ *  view keeps its layering. */
+export function defaultPassiveRadiator(p: OpenISDProject): void {
+  p.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty(engine));
+  p.box.passiveRadiator.radiator.spec.Sd_m2.set(0.02);
+  p.box.passiveRadiator.radiator.spec.Cms_m_per_N.set(0.0005);
+  p.box.passiveRadiator.radiator.spec.Mms_kg.set(0.05);
+}
+
 /** Open a driver file (`.wdr`/`.owdr`) as a project of its own — a default sealed box around
  *  `driver`, focused, with `name` for the tab. Used by File → Open when no project is focused;
  *  when one IS focused the caller swaps the driver in place instead (`loadDriver`). */
@@ -472,6 +487,12 @@ export function openProjectFromDriver(driver: OpenISDDriver, name: string): void
   p.box.sealed.volume_m3.set(fromDisplay(DEFAULT_SEALED_VOLUME_L, 'volume', 'L'));
   p.name.set(name);
 }
+
+// A driver pre-loaded into the New Project wizard — a `.wdr`/`.owdr` opened from disk when no
+// project is open. The wizard builds the project from it instead of the driver picker, and clears
+// it on completion (BUG_20260912: a driver file must start the wizard, not a default sealed box).
+const wizardDriver = shallowRef<OpenISDDriver | null>(null);
+export const newProjectDriver = wizardDriver;
 
 /** The name for a copy of the open project — "Copy of <name>", made unique among `taken`.
  *  Falls back to the driver's name when the project has none, same as the project list rows. */
@@ -614,6 +635,3 @@ export const simVcInductance = computed<boolean>({
   get: () => { void live.value; return live.value?.circuitModel.get() === 'gyrator'; },
   set: (on) => { focusedProject()?.circuitModel.set(on ? 'gyrator' : 'winisd'); },
 });
-
-
-

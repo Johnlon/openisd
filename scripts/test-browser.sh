@@ -1,17 +1,14 @@
 #!/usr/bin/env bash
-# Browser tests. Frees port 4100, then runs Playwright. Any extra args pass through:
+# Browser tests. Frees its assigned port, then runs Playwright. Any extra args pass through:
 #   bash scripts/test-browser.sh
 #   bash scripts/test-browser.sh packages/ui/test/visual.browser.spec.js
 #
 # The kill CANNOT live in playwright.config.js's `webServer.command`: with
 # `reuseExistingServer: false` Playwright probes the url BEFORE running that command and
-# aborts with "http://localhost:4100 is already used" the moment anything answers — the
+# aborts with "http://localhost:PORT is already used" the moment anything answers — the
 # command would never run and a kill inside it would never fire, so an orphaned server
 # would fail the whole suite instead of being replaced. Freeing the port has to happen
 # before Playwright is invoked at all, which is here.
-#
-# Taking the port is always correct: 4100 is Playwright's own (AGENTS.md "Port assignments"),
-# never the human's 4000, and a server left on it serves stale code.
 set -euo pipefail
 # Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
 # PowerShell/cmd have no /proc, so they are still rejected.
@@ -19,14 +16,34 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-cleanup_chrome() {
-  pkill -9 -f 'ms-playwright/chromium' 2>/dev/null || true
-  pkill -9 -f 'chrome_crashpad_handler' 2>/dev/null || true
-}
-trap cleanup_chrome EXIT
-cleanup_chrome
+# Re-exec into our own process group/session. This is what makes the cleanup trap below able to
+# kill EXACTLY this run's descendants (playwright, vite, chromium and its zygote/GPU/renderer
+# children) via `kill -- -$$`, and nothing else — no other run's processes, no other agent's.
+# Without this, `$$` may be a process group shared with (or a subset of) whatever invoked this
+# script, and a group-kill would either miss descendants or hit unrelated processes.
+if [ -z "${OPENISD_IN_OWN_GROUP:-}" ]; then
+  export OPENISD_IN_OWN_GROUP=1
+  exec setsid --fork --wait bash "$0" "$@"
+fi
 
-bash "$SCRIPT_DIR/kill-http.sh" 4100
+# shellcheck source=./test-concurrency.sh
+source "$SCRIPT_DIR/test-concurrency.sh"
+reserve_test_slot   # sets OPENISD_TEST_WORKERS, OPENISD_TEST_PORT — see that file for why this
+                     # is a locked critical section rather than each run reading memory alone.
+
+cleanup() {
+  release_test_slot
+  # Ignore TERM in THIS shell so the group-wide signal below doesn't cut this trap off before
+  # the follow-up KILL runs; SIGKILL can't be ignored, so that one still ends this shell too,
+  # but only as the very last thing this trap does.
+  trap '' TERM
+  kill -TERM -- -$$ 2>/dev/null || true
+  sleep 0.3
+  kill -KILL -- -$$ 2>/dev/null || true
+}
+trap cleanup EXIT
+
+bash "$SCRIPT_DIR/kill-http.sh" "$OPENISD_TEST_PORT"
 
 # A run that EXECUTES NOTHING must never report success. Playwright's own default is to fail
 # on an empty suite (the opt-out is `--pass-with-no-tests`; there is no `--fail-on-empty`),
@@ -44,7 +61,7 @@ if ! printf '%s' "$LIST_OUT" | grep -qE '^Total: [1-9][0-9]* test'; then
   exit 1
 fi
 
-# Run tests using the worker configuration from playwright.config.js
+# Run tests using the worker count and port reserved above.
 set +e
 npx playwright test "$@"
 STATUS=$?
@@ -53,7 +70,7 @@ set -e
 if [ $STATUS -ne 0 ]; then
   echo ""
   echo "⚠️ Playwright suite interrupted/failed (exit code $STATUS). Retrying remaining/failed tests with --last-failed..." >&2
-  bash "$SCRIPT_DIR/kill-http.sh" 4100
+  bash "$SCRIPT_DIR/kill-http.sh" "$OPENISD_TEST_PORT"
   set +e
   npx playwright test --last-failed "$@"
   STATUS=$?
@@ -63,7 +80,7 @@ fi
 if [ $STATUS -ne 0 ]; then
   echo ""
   echo "⚠️ Secondary retry failed (exit code $STATUS). Final fallback with --last-failed (workers=1)..." >&2
-  bash "$SCRIPT_DIR/kill-http.sh" 4100
+  bash "$SCRIPT_DIR/kill-http.sh" "$OPENISD_TEST_PORT"
   npx playwright test --last-failed --workers=1 "$@"
   STATUS=$?
 fi

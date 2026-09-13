@@ -6,8 +6,16 @@ async function cell(page: Page, field: string): Promise<{ value: unknown; state:
   return page.evaluate(async (f) => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    const c = s.driverCell(f);
-    return { value: c.value, state: c.state };
+    const fieldsPath = '/src/logic/driverSpecFields.ts';
+    const fields = await import(/* @vite-ignore */ fieldsPath);
+    const project = s.focusedProject();
+    if (!project) throw new Error('expected a focused project');
+    const key = f === 'Bl' ? 'BL' : f;
+    const handle = fields.specFieldHandle(project.driver, key);
+    if (!handle) throw new Error(`no spec field handle for ${key}`);
+    const c = handle.get();
+    const state = c.state === 'entered' ? 'E' : c.state === 'calculated' ? 'C' : 'N';
+    return { value: c.value, state };
   }, field);
 }
 

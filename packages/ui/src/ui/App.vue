@@ -1,46 +1,32 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { inputFrom } from '../logic/domEvents.js';
+import { computed, onMounted, onUnmounted, watch } from 'vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
 import OgNewProject from './shells/original/OgNewProject.vue';
 import OgTune from './shells/original/OgTune.vue';
-import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
+import DriverBrowser from './components/DriverBrowser.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import {
-  focusedProject, requireFocusedProject, projectChanged,
-  applyState, applyViewSnapshot,
+  requireFocusedProject, projectChanged, openProjects, focusedProject, restoreProjects,
+  applyState, applyLoadedProject, applyViewSnapshot,
   markProjectSaved,
 } from '../logic/appState.js';
 import { presentationState } from '../logic/presentationState.js';
 import { provideFocusedProject } from '../logic/focusedProjectContext.js';
 import { useApp } from '../logic/app.js';
 
-const { projectRepo, viewStateRepo, logging, designIO } = useApp();
+const { projectRepo, viewStateRepo, logging } = useApp();
 
-// Opening a saved project when none is open. Every other file input in the app lives inside the
-// shell, which only renders once a project exists, so without this a cold start could not open
-// a `.owpr` at all — the ordinary "carry on with yesterday's work" path.
-// bugs/BUG_20260909_no_project_can_be_opened_from_a_file_when_none_is_open.md
-const emptyStateFileInput = ref<HTMLInputElement | null>(null);
-function openFileFromEmptyState(e: Event) {
-  const input = inputFrom(e);
-  if (input === null) return;
-  const f = input.files?.[0];
-  if (f) designIO.importFile(f);
-  input.value = '';
-}
-
-// App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash)
-// and the global overlays, AND is the app's ONE top-level null gate (PROMPT_RELEASE_
-// HARDENING plan) — it reads `focusedProject()` once, renders the explicit empty state when
-// it is null, and otherwise provides the guaranteed-non-null project to everything below via
-// `provideFocusedProject()`. The shell only arranges the shared components — no lifecycle or
-// gating logic lives here twice.
-const project = computed(() => focusedProject());
-// Only ever `.value`d by a descendant mounted under `v-if="project"` below, so
-// `requireFocusedProject()` never actually throws here in practice.
+// App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash) and the global
+// overlays. The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus
+// the empty placeholders, and the toolbar's global actions (New / Open / Options / Drivers /
+// Info) stay reachable. The shell's own `projectOpen` gate keeps every project-bound panel out
+// of the DOM until a project exists.
+//
+// The focused project is provided NON-NULL `computed(() => requireFocusedProject())`, exactly
+// as the gate version did: only a descendant mounted inside the shell's `projectOpen` gate may
+// read it — that gate guarantees a project exists, so the throw can never fire there.
 provideFocusedProject(computed(() => requireFocusedProject()));
 
 async function handleHashChange() {
@@ -50,36 +36,47 @@ async function handleHashChange() {
 }
 
 let saveReady = false;
-// THE AUTOSAVE HOOK — deliberately EMPTY (QO92, John 2026-08-26: "rip out autosave 100% as I
-// never designed that"). The trigger point is kept, and so are its integration tests, because
-// where persistence plugs in is agreed; WHAT it does is not, and the version that stood here
-// was never designed. It persisted committed state on every reactive tick, which is what forced
-// `ManagedProject` to hand a whole `OpenISDProject` out to the app purely so the repo could
-// serialise it — the one thing the layering doctrine forbids.
-//
-// A design has to settle which layer is persisted, on what trigger, and whether the domain
-// hands over bytes rather than the project object. Until then this fires and does nothing.
 watch(projectChanged, () => {
   if (!saveReady) return;
-  // no persistence — see above
+  projectRepo.saveOpenProjects(openProjects(), focusedProject());
 });
+watch(
+  () => [openProjects().length, focusedProject()?.uuid() ?? null],
+  () => { if (saveReady) projectRepo.saveOpenProjects(openProjects(), focusedProject()); },
+);
 
 onMounted(async () => {
   const fromUrl = await projectRepo.loadFromHash();
   if (Array.isArray(fromUrl)) {
     logging.flash('Could not load shared link: ' + fromUrl.join('; '));
-  } else if (!fromUrl) {
-    // No project is restored: autosave is gone, so nothing was written for a reload to find.
-    // View/UI preferences are a SEPARATE feature under their own storage key (QO90) and are
-    // unaffected.
-    const view = viewStateRepo.load();
-    if (view) applyViewSnapshot(view);
-  } else {
+  } else if (fromUrl) {
     // A share link still carries the WHOLE session (human ruling 2026-08-14).
     applyState(fromUrl);
+  } else {
+    // No share link: restore every project that was open at refresh, preserving focus. Fall back
+    // to the last project SAVED to browser storage for older sessions.
+    const session = projectRepo.loadOpenProjects();
+    if (Array.isArray(session)) {
+      logging.flash('Could not restore open projects: ' + session.join('; '));
+    } else if (session) {
+      restoreProjects(session.projects, session.focusedIndex);
+    } else {
+    // Fall back to the last project saved to browser storage for older sessions, else boot with
+    // no-project placeholders. View/UI preferences are a SEPARATE feature under their own
+    // storage key (QO90) and are restored either way.
+    const stored = projectRepo.loadFromStorage();
+    if (Array.isArray(stored)) {
+      logging.flash('Could not restore the saved project: ' + stored.join('; '));
+    } else if (stored) {
+      applyLoadedProject(stored);
+    }
+    }
+    const view = viewStateRepo.load();
+    if (view) applyViewSnapshot(view);
   }
   markProjectSaved();   // the just-loaded design is the ground state (clean, not modified)
   saveReady = true;
+  projectRepo.saveOpenProjects(openProjects(), focusedProject());
   window.addEventListener('hashchange', handleHashChange);
 });
 
@@ -89,46 +86,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <template v-if="project">
-    <OriginalShell />
-    <DriverBrowserWinisd />
-    <!-- The driver editor is global, so a driver picked from the library is always
-         reviewed before it reaches the design. -->
-    <DriverEditorModal v-if="presentationState.editDriverInfo" @close="presentationState.editDriverInfo = false" />
-    <!-- The Tune panel is a child of the app, not of the box view it is opened from (QO134):
-         changing the box type re-renders the enclosure pane, and the panel must not go with it. -->
-    <OgTune v-if="presentationState.editDriver" />
-  </template>
-  <!-- The top-level null gate's empty state (PROMPT_RELEASE_HARDENING plan): no project is
-       open, so neither the chart views nor the tab section render with empty/default data —
-       this message replaces both. Its one recovery action opens the New Project wizard, which
-       is rendered below OUTSIDE the gate so it is reachable both here and from the shell's own
-       toolbar (which is inside the gate). -->
-  <div v-else class="no-project-open">
-    <p>No project is open.</p>
-    <button type="button" @click="presentationState.newProjectOpen = true">Start a new project</button>
-    <button type="button" title="Open a saved project or driver file."
-            @click="emptyStateFileInput?.click()">Open a project file…</button>
-    <input ref="emptyStateFileInput" type="file" accept=".owpr,.wpr,.owdr,.wdr,.json"
-           style="display:none" @change="openFileFromEmptyState">
-  </div>
+  <!-- The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus the
+       empty placeholders, and the toolbar's global actions stay reachable. All overlays
+       self-gate on their own presentationState booleans. -->
+  <OriginalShell />
+  <!-- Global overlays — each self-gates internally and is safe with no project open. -->
+  <DriverBrowser />
+  <DriverEditorModal v-if="presentationState.editDriverInfo" @close="presentationState.editDriverInfo = false" />
+  <OgTune v-if="presentationState.editDriver" />
   <OgNewProject v-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
-  <DriverBrowserWinisd v-if="!project && presentationState.browseOpen" />
   <Flash />
   <!-- Raises itself on the first uncaught error, rejection or console.error. -->
   <DiagnosticsModal />
 </template>
 
 <style scoped>
-.no-project-open {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  height: 100vh;
-  color: var(--fg, #ccc);
-  background: var(--bg, #1e1e1e);
-  font-size: 14px;
-}
+/* No-project-open styles removed — the shell renders the placeholders itself now. */
 </style>

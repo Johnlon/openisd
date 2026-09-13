@@ -357,8 +357,16 @@ const chartBlockingReasons = computed<string[]>(() => {
   // domain no longer separates "blocks the chart" from "is inconsistent" — `errors()` is gone and
   // `checkConsistency()` is what remains, so every inconsistency reads as chart-blocking here.
   // Whether any of them should actually block a chart is a product question, not a rename.
-  return draftDriver.value.checkConsistency()
+  const reasons = draftDriver.value.checkConsistency()
     .map(i => `${i.formula}: ${i.target} is ${i.actual}, the others imply ${i.expected}`);
+  const mandatoryFields = ['Fs', 'Vas', 'Re', 'Sd'];
+  for (const field of mandatoryFields) {
+    if (cellOf(field).state === 'not-available') reasons.push(`${field} is not set`);
+  }
+  if (fieldIsMandatoryAndUnsatisfied(cellOf, 'Qts')) {
+    reasons.push('Qts, Qes and Qms do not form a solvable group');
+  }
+  return reasons;
 });
 
 // The domain object already answers this — see OgTune.vue.
@@ -1393,4 +1401,3 @@ input.value-n, .de-fld.value-n input { color: var(--mut); }
 .de-incomplete-hd   { color: #d9381e; font-weight: 600; flex: 0 0 auto; }
 .de-incomplete-list { color: var(--mut); min-width: 0; }
 </style>
-

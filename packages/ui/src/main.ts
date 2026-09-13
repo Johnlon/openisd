@@ -66,7 +66,7 @@ const driverBrowsing = createDriverBrowsingState({
   driverRepo, myDriverRepo, prefs, logging, selection,
   confirmReset: (question) => confirm(question),
 });
-const projectRepo = createProjectRepo(engine, fileStorage);
+const projectRepo = createProjectRepo(engine, fileStorage, storage);
 const viewStateRepo = createViewStateRepo(storage);
 const designIO = createApplicationIO({ logging, fileStorage, projectRepo });
 

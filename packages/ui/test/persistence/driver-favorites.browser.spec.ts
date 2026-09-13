@@ -5,7 +5,7 @@ import { test, expect, openAProject } from '../fixtures.js';
 // the All Sources dropdown vacated, behaving as an on/off filter over the same list exactly
 // as the type chips do.
 //
-// WinISD picker only (DriverBrowserWinisd.vue), per the agreed scope.
+// WinISD picker only (DriverBrowser.vue), per the agreed scope.
 
 async function openPicker(page: Page): Promise<void> {
   await page.goto('/');

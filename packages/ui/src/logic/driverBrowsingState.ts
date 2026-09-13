@@ -15,6 +15,7 @@ import {
 } from './driverDisplay.js';
 import { type DriverSelection, driverFromFileText } from './driverSelection.js';
 import { inputFrom } from './domEvents.js';
+import { focusedProject, newProjectDriver } from './appState.js';
 
 /** A My Drivers row: the storage uuid this repo minted (the delete/edit handle) plus the driver
  *  itself. The uuid is NOT on the driver — it is the key into the saved-driver map, assigned only
@@ -379,6 +380,13 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       statusMsg.value = '';
       presentationState.browseOpen = false;
       cb(d.detach());
+      return;
+    }
+    if (!focusedProject()) {
+      newProjectDriver.value = d.detach();
+      presentationState.browseOpen = false;
+      presentationState.newProjectOpen = true;
+      statusMsg.value = '';
       return;
     }
     const res = await selection.selectDriver(d);

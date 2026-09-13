@@ -10,9 +10,11 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useApp } from '../../logic/app.js';
 
+const props = defineProps<{ disabled?: boolean }>();
+
 const { saveProjectAs, exportWpr, exportWdr, exportOwdr, shareLink } = useApp().designIO;
 const open = ref(false);
-function toggle(): void { open.value = !open.value; }
+function toggle(): void { if (props.disabled) return; open.value = !open.value; }
 function close(): void { open.value = false; }
 onMounted(() => document.addEventListener('click', close));
 onUnmounted(() => document.removeEventListener('click', close));
@@ -20,8 +22,11 @@ onUnmounted(() => document.removeEventListener('click', close));
 
 <template>
   <div class="export-menu" @click.stop>
-    <button type="button" id="btnExportMenu" class="export-menu-trigger" @click="toggle"
-            title="Save As / Export — OpenISD project, WinISD project, driver files, or a share link">
+    <button type="button" id="btnExportMenu" class="export-menu-trigger" :disabled="disabled"
+            :title="disabled
+              ? 'Save As / Export — open or create a project first.'
+              : 'Save As / Export — OpenISD project, WinISD project, driver files, or a share link'"
+            @click="toggle">
       <slot>Save As / Export ▾</slot>
     </button>
     <div v-if="open" class="export-menu-list">
@@ -40,6 +45,7 @@ onUnmounted(() => document.removeEventListener('click', close));
    passing an icon via the default slot sizes/positions its own SVG —
    this rule only supplies layout, never overrides a slotted icon's own look. */
 .export-menu-trigger { display: inline-flex; align-items: center; }
+.export-menu-trigger:disabled { opacity: .4; cursor: default; }
 .export-menu-list {
   position: absolute; top: 100%; left: 0; z-index: 50; margin-top: 2px;
   background: var(--panel); border: 1px solid var(--line); box-shadow: 2px 3px 8px rgba(0,0,0,.25);

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createLogging } from '../../src/logging/flash.js';
 import { createApplicationIO } from '../../src/logic/useApplicationIO.js';
-import { createFileStorage, createProjectRepo } from '@openisd/persistence';
+import { createFileStorage, createMemoryStorage, createProjectRepo, type FileStorage } from '@openisd/persistence';
 import { requireFocusedProject, newProject } from '../../src/logic/appState.js';
 import { Engine } from '@openisd/design/engine';
 
@@ -63,7 +63,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       }
     });
     try {
-      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage()) });
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage(), createMemoryStorage()) });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone
       // after. The app starts with NO project (QO121), so this opens the one it then dirties.
@@ -103,5 +103,26 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       vi.stubGlobal('history', { replaceState: () => {} });
       vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
     }
+  });
+
+  it('Save commits the project to browser storage without opening a file picker', async () => {
+    const storage = createMemoryStorage();
+    const fileStorage: FileStorage = {
+      save: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      saveAs: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      openFileName: () => null,
+      forget: () => {},
+    };
+    const repo = createProjectRepo(new Engine(), fileStorage, storage);
+    const io = createApplicationIO({ logging: createLogging(), fileStorage, projectRepo: repo });
+
+    newProject();
+    requireFocusedProject().name.set('Saved from toolbar');
+    const saved = await io.saveProject();
+
+    assert.equal(saved, true);
+    const restored = repo.loadFromStorage();
+    assert.ok(!Array.isArray(restored) && restored);
+    assert.equal(restored.name.get(), 'Saved from toolbar');
   });
 });

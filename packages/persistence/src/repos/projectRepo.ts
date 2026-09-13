@@ -7,6 +7,7 @@
 import { OpenISDProject } from '@openisd/design';
 import type { Engine } from '@openisd/design/engine';
 import type { FileStorage, SaveResult } from '../storage/fileStorage.js';
+import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 import { createProjectSchemaUpgrade } from './projectSchemaUpgrade.js';
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
@@ -43,6 +44,75 @@ export interface ProjectRepo {
   saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
   /** Always prompt for a new location. */
   saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
+  /** Save the committed project to browser storage. View state has its own repository/key. */
+  saveToStorage(project: OpenISDProject): void;
+  /** Restore the committed project from browser storage, or return null when none exists. */
+  loadFromStorage(): OpenISDProject | string[] | null;
+  /** List all projects saved in browser storage, newest save first. */
+  listStoredProjects(): StoredProjectListing[];
+  /** Load one project selected from the browser-storage picker. */
+  loadStoredProject(id: string): OpenISDProject | string[];
+  /** Persist the current open-project session for refresh recovery. */
+  saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null): void;
+  /** Restore the open-project session, or null when no refresh session exists. */
+  loadOpenProjects(): OpenProjectSession | string[] | null;
+}
+
+export interface StoredProjectListing {
+  readonly id: string;
+  readonly name: string;
+  readonly modified: string;
+}
+
+export interface OpenProjectSession {
+  readonly projects: OpenISDProject[];
+  readonly focusedIndex: number;
+}
+
+const PROJECT_STORAGE_KEY = 'openisd.project';
+const PROJECTS_STORAGE_KEY = 'openisd.projects';
+const OPEN_SESSION_STORAGE_KEY = 'openisd.open-session';
+
+interface StoredProjectEntry {
+  id: string;
+  text: string;
+  modified: string;
+}
+
+interface StoredProjectsPayload {
+  version: 1;
+  entries: StoredProjectEntry[];
+}
+
+interface OpenSessionPayload {
+  entries: StoredProjectEntry[];
+  focusedId: string | null;
+}
+
+function storedProjectsPayload(value: unknown): StoredProjectsPayload | null {
+  if (!value || typeof value !== 'object' || !('entries' in value) || !Array.isArray(value.entries)) return null;
+  const entries: StoredProjectEntry[] = [];
+  for (const entry of value.entries) {
+    if (!entry || typeof entry !== 'object') return null;
+    if (!('id' in entry) || typeof entry.id !== 'string') return null;
+    if (!('text' in entry) || typeof entry.text !== 'string') return null;
+    if (!('modified' in entry) || typeof entry.modified !== 'string') return null;
+    entries.push({ id: entry.id, text: entry.text, modified: entry.modified });
+  }
+  return { version: 1, entries };
+}
+
+function openSessionPayload(value: unknown): OpenSessionPayload | null {
+  if (!value || typeof value !== 'object' || !('entries' in value) || !Array.isArray(value.entries)) return null;
+  if (!('focusedId' in value) || (value.focusedId !== null && typeof value.focusedId !== 'string')) return null;
+  const entries: StoredProjectEntry[] = [];
+  for (const entry of value.entries) {
+    if (!entry || typeof entry !== 'object') return null;
+    if (!('id' in entry) || typeof entry.id !== 'string') return null;
+    if (!('text' in entry) || typeof entry.text !== 'string') return null;
+    entries.push({ id: entry.id, text: entry.text, modified: '' });
+  }
+  return { entries, focusedId: value.focusedId };
 }
 
 // Share-link payload: gzip (native CompressionStream — Baseline widely available since May
@@ -69,8 +139,30 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 
 export function createProjectRepo(
   engine: Engine, fileStorage: FileStorage,
+  storage: KeyValueStorage,
 ): ProjectRepo {
   const upgrade = createProjectSchemaUpgrade(engine);
+  let lastSavedAt = 0;
+  const storedIdentity = new WeakMap<OpenISDProject, string>();
+
+  function readStoredEntries(): StoredProjectEntry[] {
+    const collectionText = storage.get(PROJECTS_STORAGE_KEY);
+    if (collectionText !== null) {
+      try {
+        const parsed: unknown = JSON.parse(collectionText);
+        const payload = storedProjectsPayload(parsed);
+        if (payload) return payload.entries;
+      } catch { /* fall through to the legacy single-project key */ }
+    }
+    const legacyText = storage.get(PROJECT_STORAGE_KEY);
+    return legacyText === null ? [] : [{ id: 'legacy', text: legacyText, modified: new Date(0).toISOString() }];
+  }
+
+  function writeStoredEntries(entries: StoredProjectEntry[]): void {
+    const payload: StoredProjectsPayload = { version: 1, entries };
+    storage.set(PROJECTS_STORAGE_KEY, JSON.stringify(payload));
+  }
+
   return {
     async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {
       // The project travels as `.owpr` TEXT, exactly as it does to a file — one serialised form
@@ -116,6 +208,68 @@ export function createProjectRepo(
     saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
       return fileStorage.saveAs(project.toOwprText(),
         naming.suggestedName, naming.mime, naming.label, naming.ext);
+    },
+
+    saveToStorage(project: OpenISDProject): void {
+      const entries = readStoredEntries();
+      const id = storedIdentity.get(project) ?? project.uuid();
+      const now = Math.max(Date.now(), lastSavedAt + 1);
+      lastSavedAt = now;
+      const entry: StoredProjectEntry = { id, text: project.toOwprText(), modified: new Date(now).toISOString() };
+      writeStoredEntries([entry, ...entries.filter(existing => existing.id !== id)]);
+      storage.set(PROJECT_STORAGE_KEY, entry.text);
+      storedIdentity.set(project, id);
+    },
+
+    loadFromStorage(): OpenISDProject | string[] | null {
+      const text = storage.get(PROJECT_STORAGE_KEY);
+      if (text === null) return null;
+      const project = this.readProjectText(text);
+      if (Array.isArray(project)) return project;
+      const entry = readStoredEntries().find(candidate => candidate.text === text);
+      storedIdentity.set(project, entry?.id ?? 'legacy');
+      return project;
+    },
+    listStoredProjects(): StoredProjectListing[] {
+      return readStoredEntries().map(entry => {
+        const project = this.readProjectText(entry.text);
+        return Array.isArray(project)
+          ? { id: entry.id, name: 'Unreadable project', modified: entry.modified }
+          : { id: entry.id, name: project.name.get(), modified: entry.modified };
+      }).sort((a, b) => b.modified.localeCompare(a.modified));
+    },
+    loadStoredProject(id: string): OpenISDProject | string[] {
+      const entry = readStoredEntries().find(candidate => candidate.id === id);
+      if (entry === undefined) return ['saved project not found'];
+      const project = this.readProjectText(entry.text);
+      if (!Array.isArray(project)) storedIdentity.set(project, id);
+      return project;
+    },
+    saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null): void {
+      const entries = projects.map(project => {
+        const id = storedIdentity.get(project) ?? project.uuid();
+        storedIdentity.set(project, id);
+        return { id, text: project.toOwprText(), modified: '' };
+      });
+      const focusedId = focused === null ? null : storedIdentity.get(focused) ?? focused.uuid();
+      storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries, focusedId } satisfies OpenSessionPayload));
+    },
+    loadOpenProjects(): OpenProjectSession | string[] | null {
+      const text = storage.get(OPEN_SESSION_STORAGE_KEY);
+      if (text === null) return null;
+      let parsed: unknown;
+      try { parsed = JSON.parse(text); } catch { return ['open project session is not valid JSON']; }
+      const payload = openSessionPayload(parsed);
+      if (!payload) return ['open project session has an invalid shape'];
+      const projects: OpenISDProject[] = [];
+      for (const entry of payload.entries) {
+        const project = this.readProjectText(entry.text);
+        if (Array.isArray(project)) return project;
+        storedIdentity.set(project, entry.id);
+        projects.push(project);
+      }
+      const focusedIndex = payload.focusedId === null ? 0 : payload.entries.findIndex(entry => entry.id === payload.focusedId);
+      return { projects, focusedIndex: focusedIndex < 0 ? 0 : focusedIndex };
     },
   };
 }

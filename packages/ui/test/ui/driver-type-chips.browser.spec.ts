@@ -9,7 +9,7 @@ import { Chip } from '@openisd/design/filter';
 // keyed by `t.value`. A chip whose id and label came apart would render blank buttons or
 // a filter that never matches — neither is visible to a unit test.
 
-// The picker draws the chips in `.type-row` (DriverBrowserWinisd.vue).
+// The picker draws the chips in `.type-row` (DriverBrowser.vue).
 // `.type-row` also holds non-chip siblings — the conditional "✕ clear" button
 // (`.type-clear`), the "?" help toggle (`.help-btn`), and the Favorites filter
 // (`.fav-filter`). The chips

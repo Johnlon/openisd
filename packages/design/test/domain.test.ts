@@ -37,6 +37,17 @@ function specSection(p: {
   };
 }
 
+/** A driver the Tune panel might have produced: Thiele/Small values only, NO `Sd`/`Cms`/`Mms`/
+ *  `Rms`/`Xmax`, and no stored `Qts` — the pair `Qes`+`Qms` implies it. This is the golden
+ *  scene's shape (`sealed-fsc-winisd-golden.browser.spec.ts`), and a shape the old compliance
+ *  feed could not answer at all: `Cms·Sd²·ρc²` needs the fields this record deliberately lacks. */
+function tuneSpec(p: {Fs_hz: number; Vas_m3: number; Qes: number; Qms: number; Re_ohm: number}) {
+  return {
+    Fs_hz: spec(p.Fs_hz), Vas_m3: spec(p.Vas_m3),
+    Qes: spec(p.Qes), Qms: spec(p.Qms), Re_ohm: spec(p.Re_ohm),
+  };
+}
+
 /** A RADIATOR's spec section. Not a narrowed driver's: a radiator has no motor and no voice coil,
  *  so `Qts` describes nothing on one — there is no `Qes` for it to combine with. The strict schema
  *  refuses a `Qts` here, which is how this builder came to exist. */
@@ -64,7 +75,7 @@ function driverJson(p: {
   brand: string; model: string; section: 'woofer' | 'tweeter' | 'passive-radiator';
   // A driver's own section (`specSection`) or a radiator's (`prSpecSection`, no `Qts`) —
   // whichever matches `section` above.
-  spec: ReturnType<typeof specSection> | ReturnType<typeof prSpecSection>;
+  spec: ReturnType<typeof specSection> | ReturnType<typeof prSpecSection> | ReturnType<typeof tuneSpec>;
 }) {
   const meta = {
     brand: scraped(p.brand), model: scraped(p.model), manufacturer: scraped(p.brand),
@@ -288,6 +299,10 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), new Engine()).sealed().volume_m3(0.03).build();
 
+  it('new projects use the copper voice-coil temperature coefficient default', () => {
+    expect(project().alfaVC_per_K.get()).toBe(0.0039001);
+  });
+
   it('writes the sealed volume through to the project', () => {
     const p = project();
     p.box.sealed.volume_m3.set(0.03);
@@ -356,10 +371,62 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     expect(leaky.box.sealed.resonance_hz.value).not.toBeCloseTo(tight.box.sealed.resonance_hz.value!, 3);
   });
 
+  it('feeds the engine the driver\'s SOLVED Vas and the Rg-loaded Qts, not compliance-route Vas and bare Qts (golden Fsc 63.1762 Hz / Qtc 0.5995)', () => {
+    // The user-verified golden scene (sealed-fsc-winisd-golden.browser.spec.ts): Fs=40 Vas=7.65 L
+    // Qes=0.450 Qms=2.940 Re=6.6 Rg=0.1 Vb=6 L Ql=10 Qa=100 → Fsc 63.1762 Hz, Qtc 0.5995.
+    //
+    // This is WinISD SEALED, and the engine already reproduces it: the parity feed
+    // (winisd-parity-functional.test.ts "Box.Fr") passes exactly the driver's stored Vas and
+    // `sourceLoadedQts(Qms, Qes, Re, Rg, Qts)`. The domain must hand the engine the same two
+    // facts — THE SOLVED Vas_m3 (entered, not `Cms·Sd²·ρc²`, which this record does not even
+    // carry) and Qts as the amplifier's source impedance loads it — instead of the compliance
+    // reconstruction and the bare stored Qts the current feed passes.
+    //
+    // The bare-Qts feed alone is wrong by 0.040 Hz here, and the compliance feed cannot answer
+    // this record at all (Sd/Cms are null), so today the cell reads not-available:
+    const p = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'E150HE', section: 'woofer',
+      spec: tuneSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6}),
+    }), new Engine()).sealed().volume_m3(0.006).build();
+    p.Rs_ohm.set(0.1);
+    p.box.sealed.losses.Ql.set(10);
+    p.box.sealed.losses.Qa.set(100);
+
+    // The engine-level numbers, matching the golden to the two display decimals:
+    expect(p.box.sealed.resonance_hz.state).toBe('calculated');
+    expect(p.box.sealed.resonance_hz.value!).toBeCloseTo(63.1762, 2);
+    expect(p.box.sealed.q_tc.value!).toBeCloseTo(0.5995, 2);
+  });
+
+  it('computes the sealed system Q (Qtc) — a closed box raises Q above the driver\'s Qts', () => {
+    const p = project();   // driver Qts 0.4, sealed volume 0.03
+    const q = p.box.sealed.q_tc.value;
+    expect(q).not.toBeNull();
+    expect(q!).toBeGreaterThan(0.4);
+    expect(p.box.sealed.q_tc.state).toBe('calculated');
+  });
+
+  it('answers null for sealed Qtc when the enclosure is not set', () => {
+    // The sealed box is dormant in a vented project — no volume, so no Q.
+    const ventedOnly = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).vented().volume_m3(0.05).tuning_hz(40).build();
+    expect(ventedOnly.box.sealed.q_tc.value).toBeNull();
+    expect(ventedOnly.box.sealed.q_tc.state).toBe('not-available');
+  });
+
   it('STILL computes plain geometry — a port area is πr², which no model can disagree about', () => {
     const p = project();
     p.box.vented.vent.diameter_m.set(0.1);
     expect(p.box.vented.vent.area_m2()).toBeCloseTo(Math.PI * 0.05 ** 2, 12);
+  });
+
+  it('a vent defaults to TWO FREE ENDS end correction (0.613), not a value no option matches', () => {
+    // BUG_20260912 #10: the old 0.6 default matched none of the UI's END_CORRECTION_OPTIONS, so
+    // the end-correction select rendered blank. The default is WinISD's "two free ends", 0.613.
+    const p = project();
+    expect(p.box.vented.vent.endCorrection_m.get()).toBe(0.613);
   });
 
   it('gets the port\'s ACOUSTIC length from the engine, end correction and all', () => {

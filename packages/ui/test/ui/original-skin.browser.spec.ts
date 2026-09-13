@@ -1133,23 +1133,20 @@ test('opening a second project: edits land on the correct one, and the Project t
   await expect(nameInput).toHaveValue('Edited Copy');
 });
 
-test('closing the last open project shows the explicit empty state, with a working recovery action', async ({ page }) => {
+test('closing the last open project keeps the shell and exposes recovery actions', async ({ page }) => {
   // The default single open project is unmodified at fresh load (onMounted's own
   // markProjectSaved()), so Close needs no confirmation.
   await page.locator('.quad-projects-wrap .close-btn').click();
 
-  await expect(page.locator('.no-project-open')).toBeVisible();
-  await expect(page.locator('.no-project-open')).toContainText('No project is open');
-  // Both the chart views and the tab section are gone — not silently rendered with
-  // empty/default data.
-  await expect(page.locator('.quad-projects-wrap')).toHaveCount(0);
-  await expect(page.locator('.project-nav')).toHaveCount(0);
+  await expect(page.locator('.original-root')).toBeVisible();
+  await expect(page.locator('.projects-list')).toContainText('No projects open');
+  await expect(page.locator('.content-panel')).toContainText('No projects open');
+  await expect(page.locator('.graph-empty-h')).toHaveText('Open or Create a project for charts');
   await expect(page.locator('canvas')).toHaveCount(0);
 
-  // The empty state's own recovery action reopens a working shell.
-  await page.locator('.no-project-open button', { hasText: 'Start a new project' }).click();
-  await expect(page.locator('.quad-projects-wrap')).toBeVisible();
-  await expect(page.locator('.projects-list .project-row')).toHaveCount(1);
+  // The shell's New action remains reachable.
+  await page.locator('.tb-btn[title^="New project"]').click();
+  await expect(page.locator('.modal-titlebar', { hasText: 'New Project' })).toBeVisible();
 });
 
 test('switching focus between two open projects preserves an edit in progress on the originally focused one', async ({ page }) => {

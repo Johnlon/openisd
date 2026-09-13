@@ -15,6 +15,7 @@ import { describe, it } from 'vitest';
 import { solveConsistencyGroup } from './testSolver.js';
 import assert from 'node:assert/strict';
 import { Engine } from "../../engine/index.js";
+import type { DriverSolverQuantities } from "../../engine/index.js";
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
@@ -203,6 +204,81 @@ describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)',
     const res = solveConsistencyGroup({ Mms_kg: Mms, Re_ohm: Re, Qes, Sd_m2: Sd, BL_Tm: BL, Vas_m3: Vas }) as Record<string, number>;
     assert.ok(Math.abs(res.Fs_hz - fs2) < 1e-6, `rel 2 must lock Fs at ${fs2} before rel 11's Cms is ready, got ${res.Fs_hz}`);
     assert.notEqual(Math.round(res.Fs_hz), fs11, 'rel 11 must NOT win merely because it has the higher static priority');
+  });
+});
+
+
+// ── Vas route parity with WinISD — FINDING-027/028 ─────────────────────────
+// Live probe, winisd_research/toys/probe_vas_route_precedence.py (2026-09-13): when Vas is
+// cleared, WinISD refills it through the EFFICIENCY group first (rel 14, no/Qes/Fs at
+// 0x45fdd8) and only falls back to the compliance group (rel 10, Cms/Sd at 0x45fe70) when
+// `no` is underivable. And `no` itself is derivable from BL/Sd/Mms/Re (rel 15, 0x45fc3b)
+// BEFORE the Vas sites run, so a `no`-less record with full mechanical data still resolves
+// its Vas from efficiency.
+//
+// The three probe scenes, reproduced with the genuine W5-1138SMF field values. Expected
+// values are the WinISD-saved literals at the engine's own reference air (c=343.6826980479399,
+// rho=1.20096212152557 — exactly what the genuine /tmp/w5-oid-vas_calculated-Fb_refreshed.wpr
+// stores): maybe `no` entered (FINDING-027), `no` absent so rel 15 fills it then rel 14 wins
+// (FINDING-028 no_absent_full), `no` underivable so rel 10 is the last resort (compliance_only).
+describe('solveConsistencyGroup — Vas route parity with WinISD (FINDING-027/028)', () => {
+  // Tang Band W5-1138SMF, datasheet-verbatim values (2026-09-13 pdftotext).
+  const W5 = {
+    Fs_hz: 45, Qes: 0.57, Qms: 3.56, Cms_m_per_N: 0.00036872, Sd_m2: 0.0094,
+    Mms_kg: 0.02881, BL_Tm: 7.17, Re_ohm: 3.4, Znom: 4, Le_H: 0.00034, Xmax_m: 0.00925,
+  } as const;
+  // WinISD's own stored efficiency value for this record (the W5 save), as a FRACTION.
+  const NO_WINISD = 0.000895200585183395;
+
+  // Oracle literals at the engine's default air (airFor({}) = c 343.6826980479.../rho 1.2009621215):
+  //   rel 14 (entered no): V = no·Qes/(K(c)·Fs³)        = 0.005757990477296902 m³ (WinISD saved 5.7579904772969 L)
+  //   rel 15 (BL/Sd/Mms/Re): no = ρ/(2πc)·BL²·Sd²/(Re·Mms²) = 0.0008952005851833956
+  //   rel 14 (from rel-15 no):                          = 0.005757990477296906
+  //   rel 10 (Cms/Sd):        V = ρ·c²·Sd²·Cms           = 0.004621649972016005
+  const VAS_EFF_ENTERED = 0.005757990477296902;
+  const VAS_EFF_RE15    = 0.005757990477296906;
+  const NO_RE15         = 0.0008952005851833956;
+  const VAS_COMPLIANCE  = 0.004621649972016005;
+
+  it('a cleared Vas refills via rel 14 (no/Qes/Fs), beating rel 10 (Cms/Sd) when `no` is entered — FINDING-027', () => {
+    const res = solveConsistencyGroup({ ...W5, no: NO_WINISD }) as Record<string, number>;
+    assert.ok(Math.abs(res.Vas_m3 - VAS_EFF_ENTERED) <= VAS_EFF_ENTERED * 1e-12,
+      `Vas must solve to rel 14 ${VAS_EFF_ENTERED}, got ${res.Vas_m3}`);
+    assert.notEqual(Math.round(res.Vas_m3 * 1e3), Math.round(VAS_COMPLIANCE * 1e3),
+      'the compliance route 4.62 L must NOT win while rel 14 can fire');
+  });
+
+  it('a `no`-less driver with BL/Sd/Mms/Re present derives `no` via rel 15, THEN Vas via rel 14 — FINDING-028 no_absent_full', () => {
+    const res = solveConsistencyGroup({ ...W5 }) as Record<string, number>;
+    assert.ok(res.no != null, 'no must be derivable from BL/Sd/Mms/Re even when absent (rel 15)');
+    assert.ok(Math.abs(res.no - NO_RE15) <= NO_RE15 * 1e-12,
+      `no must come from rel 15 (BL/Sd/Mms/Re) = ${NO_RE15}, got ${res.no}`);
+    assert.ok(Math.abs(res.Vas_m3 - VAS_EFF_RE15) <= VAS_EFF_RE15 * 1e-12,
+      `Vas must then be rel 14 from that no = ${VAS_EFF_RE15}, got ${res.Vas_m3}`);
+  });
+
+  it('falls back to rel 10 (Cms/Sd) only when `no` is underivable — FINDING-028 compliance_only', () => {
+    // Exactly the probe's compliance_only scene: Cms/Sd/Fs/Qes/Qms but no BL, Mms, Re, no, SPL.
+    const complianceOnly: DriverSolverQuantities = {
+      Fs_hz: W5.Fs_hz, Qes: W5.Qes, Qms: W5.Qms,
+      Cms_m_per_N: W5.Cms_m_per_N, Sd_m2: W5.Sd_m2,
+    };
+    const res = solveConsistencyGroup(complianceOnly) as Record<string, number>;
+    assert.ok(Math.abs(res.Vas_m3 - VAS_COMPLIANCE) <= VAS_COMPLIANCE * 1e-12,
+      `Vas must fall back to rel 10 ${VAS_COMPLIANCE}, got ${res.Vas_m3}`);
+    // WinISD then derives `no` from Fs/Qes/Vas off the compliance Vas — the probe's saved no
+    // 0.000718523656549444. Spot-check the same happens here.
+    assert.ok(res.no != null, 'no still derives from Fs/Qes/Vas once the compliance Vas exists');
+    const noFromCompliance = engine.referenceEfficiency(
+      W5.Fs_hz, VAS_COMPLIANCE, W5.Qes, engine.airFor({}));
+    assert.ok(Math.abs(res.no - noFromCompliance) <= noFromCompliance * 1e-12,
+      `no must be η₀ of the compliance Vas, got ${res.no}`);
+  });
+
+  it('an ENTERED Vas is never overwritten, even when the efficiency group disagrees', () => {
+    const entered = 0.00485; // the datasheet's own stated Vas
+    const res = solveConsistencyGroup({ ...W5, no: NO_WINISD, Vas_m3: entered }) as Record<string, number>;
+    assert.equal(res.Vas_m3, entered, 'a stated Vas is pinned; the solver fills only absent members');
   });
 });
 
