@@ -6,41 +6,14 @@ Related docs:
 [`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules ·
 [`VENDOR-APIS.md`](VENDOR-APIS.md) — vendor API research
 
-OpenISD's driver data is an open commons. Two ways drivers reach the tool:
-
-1. **Bundled** — driver records in subfolders here. A record is `<driver>/openisd.yml`,
-   written by winisd_tools; it carries the T/S values, provenance and quality together.
-2. **Federated** — links to other people's driver libraries in [`sources.json`](sources.json).
-   The in-app driver browser reads those sources and fetches `.wdr` files on demand —
-   no re-hosting, no staleness, the original maintainer stays in control.
+OpenISD's driver data is an open commons. The app consumes one bundled corpus from the sibling
+`winisd_drivers/db/datasheets` checkout. A record is `<driver>/openisd.yml`, written by
+winisd_tools; it carries the T/S values, provenance and quality together.
 
 You can also paste any GitHub repo of `.wdr` files into the browser ad hoc.
 
-**Only a directory listed in `sources.json` is loaded by the bundler/app.** A subfolder can
-exist here without being an active source — `matt/` and `winisd/` (2026-07-31, human
-decision) are reference material, not currently in `sources.json`; see their own READMEs.
-Adding a subfolder here does nothing on its own until it's also added to `sources.json`.
-
-## Add a federated source
-
-Open a PR appending an entry to [`sources.json`](sources.json):
-
-```json
-{
-  "name": "Your Library Name",
-  "type": "github",
-  "repo": "owner/repo",
-  "branch": "main",
-  "path": "subfolder-or-empty-string",
-  "fileExtension": ".wdr",
-  "url": "https://github.com/owner/repo",
-  "description": "What's in it.",
-  "license": "the source's license"
-}
-```
-
-`path` — `""` for repo root, or a subfolder like `"drivers"`. Only metadata lives here —
-driver files stay in the source repo.
+The bundler reads that corpus directly. Other directories under `drivers/` are reference material
+unless a later product decision gives them an explicit consumer.
 
 ## No scratch space here
 

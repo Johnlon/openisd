@@ -407,6 +407,16 @@ describe('E — the signal', () => {
     expect(project.driveVoltage_V.get().dq()).toEqual([]);
   });
 
+  it('rejects a persisted signal with voltage but no power', () => {
+    const engine = new Engine();
+    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const malformed = project.toOwprText().replace('"power_W": 1', '"power_W": null');
+
+    const loaded = OpenISDProject.fromOwprText(malformed, engine);
+
+    expect(loaded).toEqual(expect.arrayContaining([expect.stringContaining("'saved.signal':")]));
+  });
+
   it('sourceLoadedQts() RAISES Qts as the source impedance grows, and matches the engine', () => {
     const engine = new Engine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();

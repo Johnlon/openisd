@@ -16,6 +16,7 @@ import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { Cell, Field } from '@openisd/design';
 import { inputValue, listeningElement } from '../../../logic/domEvents.js';
+import { useEscToClose } from '../../../logic/useEscToClose.js';
 
 const project = useFocusedProject();
 
@@ -78,6 +79,7 @@ const DERIVED: TuneField[] = [
 // While a field is focused, echo the RAW typed string (so mid-typing values like
 // "4" → "42" aren't reformatted out from under the caret); reformat on blur.
 const rawVals = reactive<Record<string, string>>({});
+const resetRevision = ref(0);
 // The CELL, not the entered bag: raw() holds entered fields only, so a Q the app solved from
 // the other two read as blank here. cell() carries the solved value with its C mark, which is
 // what makes the third Q fill itself in as the other two change.
@@ -90,6 +92,7 @@ function disp(key: NumKey, group: UnitGroup | undefined, token: string | undefin
   return d.toFixed(fieldDp(key));
 }
 function fieldVal(key: NumKey, group: UnitGroup | undefined, token: string | undefined): string {
+  void resetRevision.value;
   return key in rawVals ? rawVals[key] : disp(key, group, token);
 }
 function onField(key: NumKey, group: UnitGroup | undefined, token: string | undefined, e: Event) {
@@ -225,14 +228,15 @@ function setVb_m3(v: number): void {
 }
 function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 
-// Tune edits the project directly — a write here is the same write the Box/driver panels make,
-// through the same OpenISDProject. Cancel/Reset both discard everything edited since the last
-// save (OpenISDProject.cancel()); Tune asks no confirmation of its own, since nothing it holds
-// is ever a decision the user has not already made by typing it.
-const discardWithoutAsking = async () => true;
-
-function cancel() { void project.value.cancel(discardWithoutAsking); presentationState.editDriver = false; }
-function reset()  { void project.value.cancel(discardWithoutAsking); }
+// Tune writes to the project's transient what-if layer. It never promotes those values into the
+// ordinary edit or saved layer.
+function cancel() { project.value.cancelWhatIf(); presentationState.editDriver = false; }
+async function reset(): Promise<void> {
+  project.value.resetWhatIf();
+  for (const key of Object.keys(rawVals)) delete rawVals[key];
+  resetRevision.value++;
+}
+useEscToClose(() => presentationState.editDriver, cancel);
 </script>
 
 <template>
@@ -344,7 +348,7 @@ function reset()  { void project.value.cancel(discardWithoutAsking); }
    fields shows ("30.0000" at the registry's 4 dp) with room to spare; stretching to 100% of
    a 190px grid column made every field three times wider than the number in it, which is
    what WinISD's own narrow, natural-width fields (docs/winisd_screenshots/*.png) never do. */
-.tune-unit input, .tune-roval { width: 78px; padding: 3px 5px; border: 1px solid #999; border-radius: 3px; background: #fff; font: inherit; }
+.tune-unit :deep(input), .tune-roval { width: 78px; padding: 3px 5px; border: 1px solid #999; border-radius: 3px; background: #fff; font: inherit; }
 .tune-roval { text-align: right; color: var(--acc); font-style: italic; display: inline-block; }
 .tune-unit span { font-size: 11px; color: #666; white-space: nowrap; }
 .tune-ro label { opacity: .8; }

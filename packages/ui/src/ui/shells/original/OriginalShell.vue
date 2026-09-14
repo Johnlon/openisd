@@ -28,7 +28,7 @@ const {
   startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue,
   WINISD_TRACE, cycleColor, resetChartView, chartMax,
   mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
-  projectList, isRowVisible, setRowVisible, rowName, selectProject, project, focused, projectOpen,
+  projectList, isRowVisible, setRowVisible, rowName, selectProject, project, focused, projectOpen, whatIfActive,
   copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
   genOn, toggleGenerate, genHz, limits,
   boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
@@ -344,7 +344,6 @@ const {
             <div class="field tight"><label>Model</label><input type="text" style="width:140px" :value="model" readonly></div>
             <button class="edit-btn" title="Swap in a different driver for this project." @click="presentationState.browseOpen = true">Select Driver</button>
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
-            <button class="edit-btn" title="Reactive minimal editor: tweak headline T/S params and watch the graph." @click="startTune">&#9835; Tune</button>
           </div>
           <div class="two-col" style="margin-top:10px;">
             <div style="--label-w:150px;">
@@ -618,7 +617,6 @@ const {
             <div class="checkbox-col">
               <AdvancedOptions />
             </div>
-            <p class="hint side-hint">Temperature, humidity and pressure set the sound velocity and air density the simulation runs on. WinISD stores all three and uses none — tick the box to match it.</p>
           </div>
         </section>
 
@@ -647,6 +645,7 @@ const {
             <span><i class="legend-swatch legend-calculated"></i>App level / calculated</span>
             <span><i class="legend-swatch legend-normal"></i>Normal</span>
           </div>
+          <button v-if="projectOpen" class="edit-btn tune-btn" :title="whatIfActive ? 'What-if is active — reopen the transient tuning layer.' : 'Open a transient what-if tuning layer.'" @click="startTune">&#9835; {{ whatIfActive ? 'What-if' : 'Tune' }}</button>
         </div>
         </template>
         <!-- No project open: the tab pane says so plainly. -->
@@ -997,7 +996,14 @@ const {
 .driver-id-row { align-items:center; gap:10px; }
 .field input.greyed { background:#e9e9e9; color:#777; }
 .field input.calculated { color:#1868d1; border-color:#1868d1; }
-.adv-air-field :deep(input) { width:82px; }
+ .adv-air-field :deep(input) { width:94px; }
+.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:18px; align-items:start; }
+.adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
+.adv-air-fields .field-row:nth-child(4),
+.adv-air-fields .field-row:nth-child(5) { grid-column:2; }
+.adv-air-fields .field-row:nth-child(4) { grid-row:1; }
+.adv-air-fields .field-row:nth-child(5) { grid-row:2; }
+ .adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; }
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
 .reset-air-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it

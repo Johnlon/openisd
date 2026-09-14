@@ -55,3 +55,11 @@ friends rather than us guessing.
 
 N/A — open. Afterwards: a design with 2 drivers, a filter, and a non-zero VC temperature rise
 exports a `.wpr` carrying all three, and a round trip through WinISD returns them unchanged.
+
+## Audit Recheck 2026-09-14
+
+This remains open and is now directly reproduced against the current bridge. A temporary red
+probe set `nDrivers=2`, `loading=isobaric`, `alfaVC_per_K=0.01`, `vcTempRise_K=20`, and one
+low-pass filter. The generated WPR still contained `Nd=1`, `Isobarik=0`, `alfaVC=0.0039`,
+`dTVC=0`, and `[Filters] Count=0`. The existing 96 bridge/domain tests pass because they do not
+exercise these omitted fields; they do not disprove this bug.

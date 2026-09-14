@@ -1,9 +1,9 @@
 # Matt (mtg90) driver collection
 
-**Not loaded into the app (2026-07-31, human decision).** Removed from `drivers/sources.json`
+**Not loaded into the app (2026-07-31, human decision).**
 — interesting reference material, not an active driver source for the app. Browse the files
-directly if you need one — do not re-add this entry to `sources.json` without checking with
-the human first.
+directly if you need one — do not add it to the bundled corpus without checking with the human
+first.
 
 Contributor: Matt, known as mtg90 on AVS Forum
 Source: https://www.avsforum.com/threads/common-sub-driver-winisd-files.2928258/

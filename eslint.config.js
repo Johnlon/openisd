@@ -91,6 +91,10 @@ export default [
       'no-console': 'warn',
     },
   },
+  {
+    files: ['packages/ui/src/logic/domEvents.ts', 'packages/ui/src/main.ts'],
+    rules: { 'no-console': ['warn', { allow: ['error'] }] },
+  },
 
   // ── The console IS the diagnostics channel, in exactly these files ───────
   // `faultLog.install()` REPLACES `console.error` — capturing the throw Vue swallows out of a

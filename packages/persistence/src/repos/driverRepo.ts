@@ -25,7 +25,7 @@ import type { Engine } from '@openisd/design/engine';
  * drivers are always current, they ship with the dist").
  */
 export interface BundleRecord {
-  /** Path within its source, forward-slashed — half of the driver's identity. */
+  /** Path within the bundled corpus, forward-slashed — the driver's identity. */
   path: string;
   /** Display name, taken from the record's own brand + model. */
   name: string;
@@ -38,7 +38,7 @@ export interface BundleRecord {
 
 /** The whole artifact `scripts/bundle-drivers.mjs` writes to `packages/ui/src/drivers-bundle.json`. */
 export interface DriverBundle {
-  readonly sources: ReadonlyArray<{ readonly key: string; readonly files: readonly BundleRecord[] }>;
+  readonly files: readonly BundleRecord[];
   readonly passiveRadiators: readonly BundleRecord[];
 }
 
@@ -92,24 +92,15 @@ export function readBundle(json: unknown): { bundle: DriverBundle } | { problems
   if (typeof json !== 'object' || json === null) {
     return { problems: [`the bundle: expected an object, got ${json === null ? 'null' : typeof json}`] };
   }
-  const top: { sources?: unknown; passiveRadiators?: unknown } = json;
+  const top: { files?: unknown; passiveRadiators?: unknown } = json;
 
-  const sources: Array<{ key: string; files: BundleRecord[] }> = [];
-  if (top.sources !== undefined) {
-    if (!Array.isArray(top.sources)) problems.push('sources: expected an array when present');
-    else top.sources.forEach((s, i) => {
-      if (typeof s !== 'object' || s === null) { problems.push(`sources[${i}]: expected an object`); return; }
-      const src: { key?: unknown; files?: unknown } = s;
-      if (typeof src.key !== 'string') { problems.push(`sources[${i}].key: expected a string`); return; }
-      sources.push({ key: src.key, files: rows(src.files, `sources[${i}].files`) });
-    });
-  }
+  const files = rows(top.files, 'files');
 
   const passiveRadiators = top.passiveRadiators === undefined
     ? []
     : rows(top.passiveRadiators, 'passiveRadiators');
 
-  return problems.length > 0 ? { problems } : { bundle: { sources, passiveRadiators } };
+  return problems.length > 0 ? { problems } : { bundle: { files, passiveRadiators } };
 }
 
 export interface DriverRepo {
@@ -118,9 +109,6 @@ export interface DriverRepo {
 }
 
 export interface DriverRepoDeps {
-  /** The declared sources, keyed by their short stable id (`drivers/sources.json` v2). Only the
-   *  keys are read — a source's name/url is no longer shown anywhere. */
-  sources: Record<string, unknown>;
   /** The pre-built driver bundle, already checked by `readBundle` — the only way to obtain one. */
   bundle: DriverBundle;
   /** Handed to the domain seam that validates each bundled record — injected, never constructed
@@ -129,15 +117,6 @@ export interface DriverRepoDeps {
 }
 
 export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
-  const sourceKeys = Object.keys(deps.sources);
-
-  // The sources this repo ships inside its own build output, by key. Each file is an
-  // `openisd.yml` record (ARCHITECTURE.md AD-8) — the app's own driver shape, already parsed
-  // by the bundler, so nothing here parses a file format.
-  const bundledByKey: Record<string, readonly BundleRecord[]> = Object.fromEntries(
-    deps.bundle.sources.map(s => [s.key, s.files]),
-  );
-
   /**
    * A bundled openisd record as a domain object. THE composition-root seam
    * (SERIALIZATION_DOCTRINE.md edge 2): the bundle's raw JSON is passed through the domain
@@ -162,11 +141,7 @@ export function createDriverRepo(deps: DriverRepoDeps): DriverRepo {
   return {
     bundledDrivers() {
       const out: OpenISDDriver[] = [];
-      for (const key of sourceKeys) {
-        const files = bundledByKey[key];
-        if (!files) continue;
-        for (const f of files) out.push(bundledDriver(f));
-      }
+      for (const f of deps.bundle.files) out.push(bundledDriver(f));
       return out;
     },
   };

@@ -45,3 +45,12 @@ describe('.gitignore', () => {
     );
   });
 });
+
+describe('composition root', () => {
+  const MAIN_PATH = join(ROOT, 'packages', 'ui', 'src', 'main.ts');
+  const mainSource = readFileSync(MAIN_PATH, 'utf8');
+
+  it('does not import the deleted source registry', () => {
+    assert.equal(mainSource.includes('sources.json'), false);
+  });
+});

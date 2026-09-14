@@ -50,6 +50,11 @@ describe('the store unions every hardening layer into one issue list', () => {
     const vb = allIssues.value.find(e => e.field === 'Vb' && e.level === 'error');
     assert.ok(vb, `allIssues must carry the Vb error; got: ${allIssues.value.map(e => e.field).join(', ')}`);
     assert.match(vb.message, /greater than zero/, 'the message must state the requirement');
+    assert.equal(
+      allIssues.value.some(e => e.field === 'sweep' && e.level === 'error'),
+      false,
+      'the downstream no-values consequence must not hide the Vb cause',
+    );
   });
 
   it('the box-parameter layer is reachable independently as paramIssues', () => {
@@ -87,5 +92,34 @@ describe('the store unions every hardening layer into one issue list', () => {
 
     requireFocusedProject().box.vented.volume_m3.set(0.030);
     assert.deepEqual(paramIssues.value, [], 'fixing the input must retract the issue');
+  });
+
+  it('carries the sweep circuit failure with every missing driver value', () => {
+    newProject();
+    const driver = requireFocusedProject().driver.spec.woofer;
+    driver.Fs_hz.clear();
+    driver.Re_ohm.clear();
+    driver.Qts.clear();
+    driver.Qes.clear();
+    driver.Qms.clear();
+    driver.Vas_m3.clear();
+    driver.Sd_m2.clear();
+    driver.Dd_m.clear();
+    driver.BL_Tm.clear();
+    driver.Mms_kg.clear();
+    driver.Cms_m_per_N.clear();
+    driver.Rms_kg_per_s.clear();
+    driver.EBP_hz.clear();
+    driver.no.clear();
+    driver.Rme_kg_per_s.clear();
+
+    const failure = allIssues.value.find(issue => issue.field === 'Sd_m2');
+    assert.ok(failure, 'the sweep failure must reach allIssues');
+    assert.match(failure.message, /Sd_m2/);
+    assert.match(failure.message, /Re_terminal_ohm/);
+    assert.match(failure.message, /BL_terminal_Tm/);
+    assert.match(failure.message, /Cms_m_per_N/);
+    assert.match(failure.message, /Mms_kg/);
+    assert.match(failure.message, /Rms_kg_per_s/);
   });
 });

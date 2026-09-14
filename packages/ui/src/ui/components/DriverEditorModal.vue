@@ -52,7 +52,7 @@ const TABS: Tab[] = ['General', 'Parameters', 'Advanced parameters', 'Dimensions
 // What subject is open, fixed for the dialog's whole lifetime (selection is not consulted
 // again until this dialog closes).
 const subject = selection.editSubject();
-const tab = ref<Tab>('General');
+const tab = ref<Tab>('Parameters');
 const project = useFocusedProject();
 
 // The title names WHICH driver is on screen, because this one dialog edits two subjects with

@@ -13,14 +13,14 @@ test('app shell renders — project nav and graph are populated', async ({ page 
 });
 
 test('box type change to sealed re-renders enclosure panel', async ({ page }) => {
-  await page.locator('#boxtype').selectOption('sealed');
-  await expect(page.locator('#side')).toContainText('Qtc');
+  await page.locator('#og-box-type').selectOption('sealed');
+  await expect(page.locator('.content-panel')).toContainText('Qtc');
 });
 
 test('box type change to vented shows vent controls', async ({ page }) => {
-  await page.locator('#boxtype').selectOption('vented');
-  await expect(page.locator('#side')).toContainText('Vent diameter');
-  await expect(page.locator('#side')).toContainText('Fb');
+  await page.locator('#og-box-type').selectOption('vented');
+  await expect(page.locator('.content-panel')).toContainText('Vent diameter');
+  await expect(page.locator('.content-panel')).toContainText('Fb');
 });
 
 test('share link encodes state in URL hash', async ({ page }) => {
@@ -99,6 +99,7 @@ function numInputByLabel(page: Page, labelText: string) {
 
 test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.611 and fc=61.4Hz in stat bar (WinISD-lossy default)', async ({ page }) => {
   // Set driver parameters — Qts and Vas drive the Qtc formula; Fs drives fc
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
   await numInputByLabel(page, 'Fs').fill(String(DRV_FS_HZ));
   await numInputByLabel(page, 'Fs').press('Tab');
@@ -110,7 +111,7 @@ test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.611 a
   await vasInput.press('Tab');
 
   // Set sealed box and volume
-  await page.locator('#boxtype').selectOption('sealed');
+  await page.locator('#og-box-type').selectOption('sealed');
   const vbInput = numInputByLabel(page, 'Box volume Vb');
   await vbInput.fill(String(SEALED_VB_L));  // scale=1000: 20 → stores 0.020 m³
   await vbInput.press('Tab');
@@ -125,6 +126,7 @@ test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.611 a
 test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so stat bar shows Qtc=0.708 and fc=72.2Hz (WinISD-lossy default)', async ({ page }) => {
   // Set all driver params that the stat bar assertions depend on:
   // Qts + Vas → sealedFromQtc() → Vb → Qtc;  Fs + Vb → fc
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
   await numInputByLabel(page, 'Fs').fill(String(DRV_FS_HZ));
   await numInputByLabel(page, 'Fs').press('Tab');
@@ -136,7 +138,7 @@ test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so sta
   await vasInput.press('Tab');
 
   // Switch to sealed — the "Set Vb for Qtc=0.707" button only appears for sealed
-  await page.locator('#boxtype').selectOption('sealed');
+  await page.locator('#og-box-type').selectOption('sealed');
   // Clicking calls sealedFromQtc(driver, 0.707) → Vb = Vas/((0.707/Qts)²−1) ≈ 12.2L
   // Vb is written to state, triggering a full reactive recompute through engine → stat bar
   await page.locator('button', { hasText: 'Set Vb for Qtc=0.707' }).click();
@@ -149,7 +151,7 @@ test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so sta
 
 test('vented box: 30L box with 5cm bore, 10cm port tunes to Fb=37.9Hz (Helmholtz resonator)', async ({ page }) => {
   // Fb depends only on box geometry (Vb, port Sp, port Leff) — driver T/S play no role
-  await page.locator('#boxtype').selectOption('vented');
+  await page.locator('#og-box-type').selectOption('vented');
 
   const vbInput = numInputByLabel(page, 'Box volume Vb');
   await vbInput.fill(String(VENTED_VB_L));  // scale=1000: 30 → stores 0.030 m³
@@ -187,6 +189,7 @@ const BP4_STAT_VB      = '15.0'; // (0.015 m³ × 1000).toFixed(1)
 
 test('bandpass4 box: 15L rear + 20L front + ø5cm×10cm port — stat bar shows box:bandpass4, Vb:15.0L and peak port velocity', async ({ page }) => {
   // Set driver — peak port velocity depends on driver T/S
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
   await numInputByLabel(page, 'Fs').fill(String(BP4_DRV_FS_HZ));
   await numInputByLabel(page, 'Fs').press('Tab');
@@ -198,7 +201,7 @@ test('bandpass4 box: 15L rear + 20L front + ø5cm×10cm port — stat bar shows 
   await vasInput.press('Tab');
 
   // Switch to bandpass4 and set box geometry
-  await page.locator('#boxtype').selectOption('bandpass4');
+  await page.locator('#og-box-type').selectOption('bandpass4');
 
   const vbInput = numInputByLabel(page, 'Box volume Vb');
   await vbInput.fill(String(BP4_REAR_VB_L));  // scale=1000: 15 → 0.015 m³ (rear chamber)
@@ -243,7 +246,7 @@ const PR_FP_HZ    = '37.9'; // Fp.toFixed(1) in stat bar
 
 test('passive radiator: 30L box, 50g PR, 0.5mm/N Cms — stat bar shows Fp=37.9Hz', async ({ page }) => {
   // Switch to PR box type and set box volume (always visible, not in PR edit panel)
-  await page.locator('#boxtype').selectOption('pr');
+  await page.locator('#og-box-type').selectOption('box-passive-radiator');
 
   const vbInput = numInputByLabel(page, 'Box volume Vb');
   await vbInput.fill(String(PR_VB_L));  // scale=1000: 30 → 0.030 m³

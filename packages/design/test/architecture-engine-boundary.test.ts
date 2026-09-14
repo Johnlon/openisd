@@ -124,12 +124,16 @@ describe('the engine is reachable only through its door', () => {
     // anyway (QO86).
     expect(door).not.toMatch(/export\s*\*/);
 
-    // Every VALUE export must be Engine or LossMode (a class whose statics ARE the modes, so a
-    // caller cannot pass one without it). Anything else is a loose function escaping.
+    // Value exports are the Engine door, its LossMode class, and the named air constants that
+    // define the engine's supported reference/validation range. Loose calculation functions still
+    // do not escape.
     const valueExports = [...door.matchAll(/^export \{([^}]*)\}/gm)]
       .flatMap(m => m[1]!.split(',').map(s => s.trim()))
       .filter(Boolean);
-    expect(valueExports.sort()).toEqual(['Engine', 'LossMode']);
+    expect(valueExports.sort()).toEqual([
+      'DEFAULT_P_REF_PA', 'DEFAULT_RH_REF_PCT', 'DEFAULT_T_REF_K',
+      'Engine', 'LossMode', 'MAX_SUPPORTED_TEMP_K', 'MIN_SUPPORTED_TEMP_K',
+    ]);
   });
 
   it('can actually see the repo it is meant to guard', () => {

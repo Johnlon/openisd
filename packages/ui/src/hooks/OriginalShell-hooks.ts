@@ -772,9 +772,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const boxLossesOpen = ref(false);
   const optionsOpen = ref(false);
 
-  // Tune (inline What-If) and Edit (full editor modal) both need the driver-source snapshot
-  // seeded first.
-  function startTune() { presentationState.editDriver = true; }
+  // Tune owns a project-level transient what-if. Ordinary edits remain underneath it and are not
+  // affected when the Tune panel is cancelled.
+  function startTune() {
+    project.value.beginWhatIf();
+    presentationState.editDriver = true;
+  }
 
   // ---- PR selection header (Enclosure tab, PR box type) --------------------------
   const prBrowseOpen = ref(false);
@@ -826,6 +829,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
    *  buttons and the placeholders to stand in for the chart, tab pane and project list. */
   const focused = computed(() => focusedProject());
   const projectOpen = computed(() => focusedProject() != null);
+  const whatIfActive = computed(() => {
+    void projectChanged.value;
+    return project.value.isWhatIfActive();
+  });
 
   return {
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
@@ -836,7 +843,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue,
     WINISD_TRACE, cycleColor, resetChartView, chartMax,
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
-    projectList, isRowVisible, setRowVisible, rowName, selectProject, project, focused, projectOpen,
+    projectList, isRowVisible, setRowVisible, rowName, selectProject, project, focused, projectOpen, whatIfActive,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz, limits,
     boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,

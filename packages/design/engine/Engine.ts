@@ -23,7 +23,7 @@ import { driveVoltage, driveFromVoltage } from './formulas.js';
 import { sealedResonance, sourceLoadedQts } from './lossMode.js';
 import { validateParams } from './params.js';
 import {
-  classifyFinite, classifyFlatClamp, classifyMaxFinite,
+  classifyFinite, classifyFiniteIssues, classifyFlatClamp, classifyMaxFinite,
   maxCurves, passbandRef, rolloffFreq, sweep,
 } from './sweep.js';
 
@@ -279,6 +279,11 @@ export class Engine {
   /** A response carrying a non-finite value — a fault, not a curve. */
   classifyFinite(sw: SweepResult): DriverError | null {
     return classifyFinite(sw);
+  }
+
+  /** Finiteness issues split by plotted output, for a chart that needs one specific cause. */
+  classifyFiniteIssues(sw: SweepResult): DriverError[] {
+    return classifyFiniteIssues(sw);
   }
 
   /** A response the flat-clamp produced rather than the physics. */

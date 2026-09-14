@@ -165,6 +165,39 @@ describe('the driver — a window, not a copy', () => {
     expect(driver.spec.woofer.Fs_hz.get().value).toBe(35);
   });
 
+  it('what-if edits are transient and cancel preserves ordinary edits', () => {
+    const project = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).sealed().volume_m3(0.03).build();
+
+    project.driver.spec.woofer.Fs_hz.set(35);
+    project.beginWhatIf();
+    expect(project.isWhatIfActive()).toBe(true);
+    project.driver.spec.woofer.Fs_hz.set(40);
+    expect(project.driver.spec.woofer.Fs_hz.get().value).toBe(40);
+
+    project.cancelWhatIf();
+    expect(project.isWhatIfActive()).toBe(false);
+    expect(project.driver.spec.woofer.Fs_hz.get().value).toBe(35);
+  });
+
+  it('what-if values are absent from the persisted session', () => {
+    const project = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).sealed().volume_m3(0.03).build();
+
+    project.driver.spec.woofer.Fs_hz.set(35);
+    project.beginWhatIf();
+    project.driver.spec.woofer.Fs_hz.set(40);
+
+    const session = project.cloneSession();
+    const serialized = JSON.stringify(session);
+    expect(serialized).toContain('35');
+    expect(serialized).not.toContain('40');
+  });
+
   it('gives every field a STABLE identity across accesses', () => {
     const driver = OpenISDProject.builder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',

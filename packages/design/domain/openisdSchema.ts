@@ -576,10 +576,10 @@ export type OpenISDEnvironmentJson = z.infer<typeof openISDEnvironmentJsonSchema
 
 /** What drives the system, as the USER stated it. Null where nothing is stated — 1 W is a
  *  measurement convention, not a fact about this design, so the domain does not assert it. */
-const openISDSignalJsonSchema = z.strictObject({
-    power_W: z.number().nullable(),
-    voltage_V: z.number().nullable(),
-});
+const openISDSignalJsonSchema = z.union([
+    z.strictObject({power_W: z.null(), voltage_V: z.null()}),
+    z.strictObject({power_W: z.number(), voltage_V: z.number()}),
+]);
 export type OpenISDSignalJson = z.infer<typeof openISDSignalJsonSchema>;
 
 /** WinISD Project tab: Creator/Created/Modified/Description, plus the project's own name. */

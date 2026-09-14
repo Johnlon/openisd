@@ -40,7 +40,7 @@ woofer-only because the datasheet itself never published HF specs (`quality.issu
 coax:hf-specs-not-published` on e.g. `tang-band/w6-2313/openisd.yml`), which is a data-source gap,
 not a model limitation.
 
-`drivers/sources.json:8` wires `winisd_drivers/db/datasheets` in as the app's bundled driver
+the bundler wires the sibling `winisd_drivers/db/datasheets` corpus in as the app's bundled driver
 catalogue (`"winisd-drivers": { "path": "../winisd_drivers/db/datasheets", ... }`), so
 `cx120-8` and the other 14 dual-section coax records are real, user-reachable catalogue entries,
 not synthetic test fixtures.
@@ -139,7 +139,7 @@ concluded was necessary (*"the class's whole field-access surface... assumes one
 - `packages/ui/src/driverType.ts` — no change needed; `DriverType.Coaxial` is already a distinct,
   correctly-labelled enum member (`driverType.ts:78`) used only for catalogue chips/labels.
 - Catalogue/browse/filter code — not investigated as part of this task beyond confirming
-  `drivers/sources.json` wires in the 36 coax records; a full audit of every consumer that reads
+  the bundled corpus wires in the 36 coax records; a full audit of every consumer that reads
   `driver.section`/`cell()` across the UI package is out of scope for this proposal and should be
   done at implementation time.
 - `packages/winisd/*` — no change; `.wdr`'s one-T/S-slot format is unaffected, `toWinISDDriver()`

@@ -1878,16 +1878,13 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
 /**
  * THE PROJECT — the one type the app holds.
  *
- * Wraps an `OpenISDProjectJson` directly and holds TWO records: `#saved` is the project as of the
- * last save, `#edited` is the project including every change since. `#edited` is null until the
- * first write, so an untouched project costs one record, not two.
+ * Wraps an `OpenISDProjectJson` directly and holds three records: `#saved` is the project as of the
+ * last save, `#edited` is ordinary work since that save, and `#whatif` is a transient tuning copy.
+ * `#edited` and `#whatif` are null until their first write/session, so an untouched project costs
+ * one record.
  *
- * There is no separate what-if. A what-if and an unsaved edit were the same mechanism differing
- * only in the user's intention (John 2026-08-27), so a what-if is now: edit, look at the curves,
- * press Cancel.
- *
- * `driver` and `box` are live WINDOWS over slices of whichever record is current — reads and
- * writes go straight through, never to a disconnected copy.
+ * `driver` and `box` are live WINDOWS over slices of whichever record is current. The what-if
+ * layer is never included in persistence and can only be discarded or reset to its opening copy.
  */
 function freshEmbeddedDriver(json: OpenISDProjectJson): OpenISDProjectJson {
     const copy = structuredClone(json);
@@ -1937,6 +1934,9 @@ export class OpenISDProject {
     /** The project including every change since the last save, or null when no change has been
      *  made. Always a COMPLETE record, never a partial one. */
     #edited: OpenISDProjectJson | null = null;
+
+    /** The transient tuning session. It is never promoted or serialized. */
+    #whatif: OpenISDProjectJson | null = null;
 
     readonly #listeners = new ProjectListeners();
 
@@ -2178,20 +2178,30 @@ export class OpenISDProject {
         return this.#uuid;
     }
 
-    /** The record every read goes to. */
-    #current(): OpenISDProjectJson {
+    /** The committed/ordinary-edit record. What-if never becomes the persistence source. */
+    #committed(): OpenISDProjectJson {
         return this.#edited ?? this.#saved;
     }
 
-    /** Enter the edited state if not already in it, and answer the record a write must build on.
-     *  The first call copies `#saved`; later calls answer the existing `#edited`. */
+    /** The record every live project read goes to. */
+    #current(): OpenISDProjectJson {
+        return this.#whatif ?? this.#committed();
+    }
+
+    /** Enter the edited state if not already in it, and answer the record a write must build on. */
     #ensureEditing(): OpenISDProjectJson {
-        if (!this.#edited) this.#edited = {...this.#saved};
+        if (!this.#edited) this.#edited = structuredClone(this.#saved);
         return this.#edited;
     }
 
+    /** Enter the transient what-if state from the currently committed design. */
+    #ensureWhatIf(): OpenISDProjectJson {
+        if (!this.#whatif) this.#whatif = structuredClone(this.#committed());
+        return this.#whatif;
+    }
+
     /** A get/set pair addressing ONE top-level field of the record. Reads whichever record is
-     *  current; every write lands in `#edited`.
+     *  current; every write lands in the active what-if, otherwise in `#edited`.
      *
      *  The write REPLACES the record rather than mutating one, so a caller holding an earlier
      *  record sees no change through it — copy-on-write, with the copy being the spread that a
@@ -2200,8 +2210,9 @@ export class OpenISDProject {
         return {
             get: () => this.#current()[key],
             set: (value) => {
-                const base = this.#ensureEditing();
-                this.#edited = {...base, [key]: value};
+                const base = this.#whatif ? this.#ensureWhatIf() : this.#ensureEditing();
+                if (this.#whatif) this.#whatif = {...base, [key]: value};
+                else this.#edited = {...base, [key]: value};
                 this.#notify();
             },
         };
@@ -2229,7 +2240,8 @@ export class OpenISDProject {
      *  write and `value` is null when the box cannot be expressed at all (a `bandpass6`, say).
      *  `errors` carries the reason and every field dropped along the way. */
     toWprText(engine: Engine): { value: string | null; errors: DriverError[] } {
-        const {value: wpr, errors} = openIsdProjectToWinIsdProject(this, engine);
+        const committed = OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine);
+        const {value: wpr, errors} = openIsdProjectToWinIsdProject(committed, engine);
         return {value: wpr ? wpr.toWpr() : null, errors};
     }
 
@@ -2270,10 +2282,10 @@ export class OpenISDProject {
         return OpenISDProject.wrapSession(result.data, newUuid(), engine);
     }
 
-    /** Serialises both saved and edited states for persistence. */
+    /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
     cloneSession(): OpenISDProjectSessionJson {
         return {
-            label: this.name.get(),
+            label: this.#committed().meta.name,
             saved: structuredClone(this.#saved),
             edited: this.#edited ? structuredClone(this.#edited) : null,
         };
@@ -2340,7 +2352,7 @@ export class OpenISDProject {
                 if (voltage_V !== null && Re_ohm !== undefined) {
                     this.powerDrive_W.setProjectEstablished(this.#engine.driveFromVoltage(voltage_V, Re_ohm));
                 } else {
-                    slot.set({...slot.get(), power_W: null});
+                    slot.set({power_W: null, voltage_V: null});
                 }
             },
         );
@@ -2379,7 +2391,7 @@ export class OpenISDProject {
                 if (power_W !== null && Re_ohm !== undefined) {
                     this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
                 } else {
-                    slot.set({...slot.get(), voltage_V: null});
+                    slot.set({power_W: null, voltage_V: null});
                 }
             },
         );
@@ -2408,7 +2420,7 @@ export class OpenISDProject {
                 if (power_W !== null && Re_ohm !== undefined) {
                     this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
                 } else {
-                    slot.set({...slot.get(), voltage_V: null});
+                    slot.set({power_W: null, voltage_V: null});
                 }
             },
         );
@@ -2515,7 +2527,8 @@ export class OpenISDProject {
      *  drive voltage, which needs the driver's `Re`; checking that a box volume is a usable number
      *  does not. Building the validation input through the sweep's guard made an absent `Re`
      *  silence every enclosure complaint on exactly the half-finished projects that most need
-     *  them.
+     *  them. A zero drive is used only when the circuit must report its missing driver inputs;
+     *  it is never returned as a simulation result.
      *
      *  An unstated volume is passed through as-is rather than short-circuiting to "no issues":
      *  "you have not sized the box" is the complaint, not a reason to stay quiet. */
@@ -2528,12 +2541,14 @@ export class OpenISDProject {
     #sweepParams(P: FrequencyGrid): SweepParams | null {
         const Vb = this.#boxVolume_m3();
         const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+        const {power_W, voltage_V} = this.#slot('signal').get();
+        if ((power_W === null) !== (voltage_V === null)) return null;
         // WinISD sweeps at a 1 W reference until a drive level is stated — the chart always draws
         // for a simulatable driver. The stored signal stays null ("not told", and flagged with a
         // DQ on the unset input fields); only the sweep falls back. Still refuses when there is no
         // usable Re to derive the reference from.
         const eg = this.driveVoltage_V.value ?? (Re_ohm === undefined ? null : this.#engine.driveVoltage(1, Re_ohm));
-        if (Vb === null || eg === null) return null;
+         if (Vb === null) return null;
 
         const box = this.box;
         const boxType = box.boxType.get();
@@ -2546,7 +2561,7 @@ export class OpenISDProject {
         }
 
         return {
-            Vb, eg,
+             Vb, eg: eg ?? 0,
             fmin: P.fmin ?? this.sweepFmin_hz.get(), fmax: P.fmax ?? this.sweepFmax_hz.get(), N: P.N ?? this.sweepN.get(),
             nDrivers: this.nDrivers.get(),
             wiring: this.wiring.get(),
@@ -2632,7 +2647,8 @@ export class OpenISDProject {
     sweep(P: FrequencyGrid): Result<SweepResult> {
         const box = this.#engineBoxType();
         const params = box ? this.#sweepParams(P) : null;
-        if (!box || !params) return {value: null, errors: []};
+        if (!box) return {value: null, errors: []};
+        if (!params) return {value: null, errors: this.validateParams(P)};
         return this.#engine.sweep(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
 
@@ -2691,6 +2707,32 @@ export class OpenISDProject {
     impedancePeak(sw: SweepResult | null): { Fsc: number; Qtc: number } | null {
         const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
         return Re_ohm === undefined ? null : this.#engine.findImpedancePeak(sw, Re_ohm);
+    }
+
+    /** Start a transient what-if session from the current committed design. */
+    beginWhatIf(): void {
+        if (this.#whatif) return;
+        this.#whatif = structuredClone(this.#committed());
+        this.#notify();
+    }
+
+    /** Whether this project currently has a transient what-if layer. */
+    isWhatIfActive(): boolean {
+        return this.#whatif !== null;
+    }
+
+    /** Discard the what-if layer without touching saved or ordinary edited state. */
+    cancelWhatIf(): void {
+        if (!this.#whatif) return;
+        this.#whatif = null;
+        this.#notify();
+    }
+
+    /** Reset the what-if to the committed design while keeping the session open. */
+    resetWhatIf(): void {
+        if (!this.#whatif) return;
+        this.#whatif = structuredClone(this.#committed());
+        this.#notify();
     }
 
     /** Promote the edited record. A no-op when nothing has been edited. */

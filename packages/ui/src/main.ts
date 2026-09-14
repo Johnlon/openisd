@@ -12,7 +12,6 @@ import { createDriverBrowsingState } from './logic/driverBrowsingState.js';
 import { createApplicationIO } from './logic/useApplicationIO.js';
 import { provideApp } from './logic/app.js';
 import { NoFocusedProjectError } from './logic/appState.js';
-import sourcesJson from '../../../drivers/sources.json';
 import bundleJson from './drivers-bundle.json';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
@@ -49,7 +48,7 @@ const engine = new Engine();
 // STORAGE (port): the browser's own key-value storage.
 const storage = createLocalStorage();
 const logging = createLogging();
-const driverRepo = createDriverRepo({ sources: sourcesJson.sources, bundle, engine });
+const driverRepo = createDriverRepo({ bundle, engine });
 const myDriverRepo = createMyDriverRepo(storage, engine);
 const prefs = createPrefsRepo(storage);
 const myPassiveRadiators = createMyPassiveRadiatorRepo(storage, engine);

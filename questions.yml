@@ -1,5 +1,5 @@
 prefix: QO
-next: 141
+next: 142
 questions:
 - id: QO1
   title: UI TODO List
@@ -9052,3 +9052,12 @@ questions:
       relation. Which should the sealed 6 L / 1 W chart comparison use: the authoritative bundled manufacturer
       record (4.85 L), or a separate WinISD-parity comparison fixture carrying the recalculated 5.758061995
       L? The driver record itself will not be overwritten without this ruling.'
+- id: QO141
+  title: Verify WinISD behavior behind unverified tooltips
+  status: open
+  raised: '2026-09-14'
+  body: ''
+  notes:
+  - at: '2026-09-14'
+    text: 'Clarification: the tooltip text is verified application text. The unverified part is only the
+      claim about WinISD''s own behavior; verify that external behavior before removing the warning.'

@@ -6,6 +6,19 @@ test.beforeEach(async ({ page }) => {
   await openAProject(page);
 });
 
+test('Tune is below the right-edge legend, not in the Driver row', async ({ page }) => {
+  const legend = page.locator('.value-legend');
+  const tune = page.locator('.save-rail .tune-btn');
+
+  await expect(legend).toBeVisible();
+  await expect(tune).toHaveCount(1);
+  await expect(page.locator('.driver-id-row .tune-btn')).toHaveCount(0);
+
+  const legendBottom = await legend.evaluate(element => element.getBoundingClientRect().bottom);
+  const tuneTop = await tune.evaluate(element => element.getBoundingClientRect().top);
+  expect(tuneTop).toBeGreaterThanOrEqual(legendBottom);
+});
+
 // Count horizontal dark line clusters on the graph canvas (the level lines are drawn in
 // the dark translucent cursor/band colours; the light grid and the yellow-green trace do
 // not match the predicate). A "cluster" is a run of adjacent qualifying pixel rows.

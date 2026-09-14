@@ -31,7 +31,7 @@ const clearSwInDev = {
     if (!ctx.server) return html; // prod build — leave SW alone
     return html.replace(
       '<head>',
-      `<head><script>navigator.serviceWorker?.getRegistrations().then(rs=>{if(rs.length)console.info('[dev] unregistered',rs.length,'stale SW(s)');rs.forEach(r=>r.unregister())})</script>`,
+      `<head><script>navigator.serviceWorker?.getRegistrations().then(async rs=>{if(!rs.length)return;console.info('[dev] unregistered',rs.length,'stale SW(s)');await Promise.all(rs.map(r=>r.unregister()));location.reload()})</script>`,
     );
   },
 };
@@ -43,12 +43,19 @@ export default defineConfig(({ command }) => ({
     __BUILD_DATETIME__: JSON.stringify(new Date().toISOString().replace('T', ' ').substring(0, 19)),
   },
   server: {
+    // WSL/Windows filesystem events are not reliable for every editor and mount. Polling keeps
+    // the canonical 4000 dev server live when inotify misses a source edit.
     watch: {
+      usePolling: true,
+      interval: 100,
       // build/ is the repo's scratch space — throwaway scripts, probe output, logs.
       // Writing there must never reload the dev server. Driver collections may also
       // arrive carrying `_`-prefixed cache dirs from the pipeline that produced them.
       ignored: ['**/build/**', '**/drivers/**/_*/**'],
     },
+    // Do not add an `hmr` block with `port: 4000` here. Vite's dev HTTP server already owns
+    // 4000 and multiplexes HMR on it; overriding the port makes ordinary `/` requests return
+    // `426 Upgrade Required` instead of the app document.
   },
   build: {
     // Explicit, so the desktop build lands beside the web build rather than replacing it.

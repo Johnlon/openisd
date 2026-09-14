@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { allIssues, syncedP, curvesData, maxData } from '../../logic/appState.js';
+import { syncedP } from '../../logic/appState.js';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { presentationState } from '../../logic/presentationState.js';
-import { TAB_META, buildPlotData, DPAL, rangeStatsOf } from '../../logic/series.js';
+import { rangeStatsOf } from '../../logic/series.js';
 import type { ChartTabId } from '../../types.js';
 import { drawOne } from '../canvas.js';
 import type { Geo, Design } from '../../types.js';
+import { useGraphPanel } from '../../hooks/GraphPanel-hooks.js';
 
 // `bare`/`primaryColor` are the WinISD chart mode: a clean single trace with no
 // F3/F6/F10 reference lines or legend, coloured to match the shell's Color swatch.
@@ -17,48 +18,16 @@ import type { Geo, Design } from '../../types.js';
 const props = defineProps<{ tabId: ChartTabId; bare?: boolean; primaryColor?: string; overlays?: Design[] }>();
 
 const project = useFocusedProject();
-
-const overlayDesigns = computed(() => props.overlays ?? []);
+const graph = useGraphPanel(props);
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 const readEl   = ref<HTMLElement | null>(null);
-const meta     = computed(() => TAB_META[props.tabId]);
-
-const currentDesign = computed(() => ({
-  driver: project.value.driver.solveConsistencyGroup(), box: project.value.box.boxType.get(), P: syncedP.value,
-  curves: curvesData.value, maxCurves: maxData.value ?? undefined,
-  name: 'Current', color: props.primaryColor || DPAL[0],
-}));
-
-// buildPlotData returns { value, errors }: value is the drawable bundle (null when the
-// driver is invalid OR the sweep is mid-recompute), errors are the issues to explain it.
-// `allIssues` rather than `driverErrors` alone: a box parameter the engine rejects (Vb = 0)
-// and a sweep that produced no finite point are both reasons a chart cannot be drawn, and
-// this panel is the only place the app can say so.
-const plot        = computed(() =>
-  buildPlotData(props.tabId, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlayDesigns.value, allIssues.value,
-    { bare: props.bare, primaryColor: props.primaryColor })
-);
-const plotData    = computed(() => plot.value.value);
-const blockErrors = computed(() => plot.value.errors.filter(e => e.level === 'error'));
-// An error-level issue blocks the chart, FULL STOP — the Result contract says an error means
-// the value is unusable for the purpose, so a curve drawn from it is a lie whether or not the
-// arrays exist. Both cases below reach here, but a bare `!plotData` check would only catch one:
-//   • a missing required T/S param — no driver, so no plot object at all;
-//   • a degenerate design like Vb = 0 — a VALID driver whose sweep is NaN at every frequency.
-//     `curves` is non-null there, so `!plotData` alone would read it as "fine" and the panel
-//     would show a blank canvas with no explanation. There is no separate issue list; the chart
-//     is the only place they can say anything.
-// A transient null during sweep recompute carries NO errors, so it still shows nothing —
-// that case is covered by the errors array being empty, not by the plot being null.
-const blocked     = computed(() => blockErrors.value.length > 0);
-// Warnings never block: the curve is drawn and the canvas already gaps the bad points, so
-// the chart is usable and the note explains the gap. Suppressed while `blocked`, where the
-// error message is the whole story.
-const warnings    = computed(() =>
-  blocked.value ? [] : plot.value.errors.filter(e => e.level === 'warn'));
-const warningsDismissed = ref(false);
-watch(warnings, () => { warningsDismissed.value = false; });
+const meta = graph.meta;
+const plotData = graph.plotData;
+const blockErrors = graph.blockErrors;
+const blocked = graph.blocked;
+const warnings = graph.warnings;
+const warningsDismissed = graph.warningsDismissed;
 
 // Per-chart Y-axis (level) override — the vertical half of "zoom out/in". Absent =
 // auto-scale to fit the data. When set, it replaces the auto ymin/ymax on the drawn
@@ -401,7 +370,7 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
     <div v-if="blocked" class="gmsg">
       <div class="gmsg-title">Can’t plot {{ meta.name }}</div>
       <div v-for="e in blockErrors" :key="e.field" class="gmsg-line">{{ e.message }}</div>
-      <div class="gmsg-foot">Fix the driver parameters to restore this chart.</div>
+       <div class="gmsg-foot">Fix the listed inputs to restore this chart.</div>
     </div>
   </div>
 

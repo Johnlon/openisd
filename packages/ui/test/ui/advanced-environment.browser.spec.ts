@@ -30,6 +30,28 @@ test('calculated air readouts stay with the three editable air constants', async
   await expect(airFields.locator('input[readonly]')).toHaveCount(2);
 });
 
+test('air constants and calculated readouts use two columns', async ({ page }) => {
+  const positions = await page.locator('.adv-air-fields .field').evaluateAll(fields =>
+    fields.map(field => ({
+      label: field.querySelector('label')?.textContent?.trim(),
+      left: Math.round(field.getBoundingClientRect().left),
+      top: Math.round(field.getBoundingClientRect().top),
+    })),
+  );
+
+  const left = positions.filter(field => ['Temperature', 'Relative humidity', 'Air pressure'].includes(field.label ?? ''));
+  const right = positions.filter(field => ['Sound velocity', 'Air density'].includes(field.label ?? ''));
+
+  expect(new Set(left.map(field => field.left)).size).toBe(1);
+  expect(new Set(right.map(field => field.left)).size).toBe(1);
+  expect(right[0]!.left).toBeGreaterThan(left[0]!.left);
+  expect(right.find(field => field.label === 'Sound velocity')!.top)
+    .toBe(left.find(field => field.label === 'Temperature')!.top);
+  expect(right.find(field => field.label === 'Air density')!.top)
+    .toBe(left.find(field => field.label === 'Relative humidity')!.top);
+  expect(Math.max(...positions.map(field => field.top)) - Math.min(...positions.map(field => field.top))).toBeLessThan(180);
+});
+
 test('relative humidity moves both readouts — the input is not inert', async ({ page }) => {
   await humidity(page).fill('100');
   await humidity(page).blur();

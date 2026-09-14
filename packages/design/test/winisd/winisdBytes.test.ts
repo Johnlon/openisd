@@ -8,7 +8,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { winisdBytesToText, winisdTextToBytes, WINISD_NEWLINE_SENTINEL, WinisdEncoding } from '../../winisd/winisdBytes.js';
@@ -16,11 +16,11 @@ import { WinISDDriver, INI_ROWS } from '../../winisd/winisdDriver.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const UNICODE_WDR = join(ROOT, 'drivers', 'sample', 'winisd', 'driver-with-unicode-text.wdr');
-const BUNDLED_WINISD_DIR = join(ROOT, 'drivers', 'winisd');
-const SELENIUM_SW108_WDR = join(BUNDLED_WINISD_DIR, 'Selenium SW108 .wdr');
-const AUDIOPIPE_TS_A10_WDR = join(BUNDLED_WINISD_DIR, 'Audiopipe TS-A10.wdr');
-const DAI_ICHI_SIS8000_WDR = join(BUNDLED_WINISD_DIR, 'Dai-Ichi SIS8000.wdr');
-const DAI_ICHI_SP65_40_WDR = join(BUNDLED_WINISD_DIR, 'Dai-Ichi SP65-40.wdr');
+const REFERENCE_WINISD_DIR = join(ROOT, 'drivers', 'winisd');   // reference material — named files only, never enumerated
+const SELENIUM_SW108_WDR = join(REFERENCE_WINISD_DIR, 'Selenium SW108 .wdr');
+const AUDIOPIPE_TS_A10_WDR = join(REFERENCE_WINISD_DIR, 'Audiopipe TS-A10.wdr');
+const DAI_ICHI_SIS8000_WDR = join(REFERENCE_WINISD_DIR, 'Dai-Ichi SIS8000.wdr');
+const DAI_ICHI_SP65_40_WDR = join(REFERENCE_WINISD_DIR, 'Dai-Ichi SP65-40.wdr');
 
 describe('the 0xA4 newline sentinel in a .wdr string field', () => {
   it("decodes WinISD's own unicode sample — Euro, Kanji and two embedded newlines", () => {
@@ -99,6 +99,7 @@ describe('CP1252 fallback for a .wdr that is not valid UTF-8 (QO62)', () => {
 
     assert.equal(encoding, WinisdEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
     assert.ok(text.includes('Kapton®'), "'Kapton(R)' survives with the (R) intact");
+    assert.ok(!text.includes('\ufffd'), 'the CP1252 decode produced no replacement character anywhere in the file');
     // The file's FF FF / E6 run is source damage — spliced mid-word into "reproduction" in
     // every encoding — and is deliberately NOT asserted on here (QO62: not an encoding oracle).
   });
@@ -107,18 +108,21 @@ describe('CP1252 fallback for a .wdr that is not valid UTF-8 (QO62)', () => {
     const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(AUDIOPIPE_TS_A10_WDR)));
     assert.equal(encoding, WinisdEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
     assert.ok(text.includes('•'), "0x95 decodes to the CP1252 bullet, not a C1 control or U+FFFD");
+    assert.ok(!text.includes('\ufffd'), 'the CP1252 decode produced no replacement character anywhere in the file');
   });
 
   it('the bundled Dai-Ichi SIS8000 fixture (0xB1) reads back with +/- intact', () => {
     const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(DAI_ICHI_SIS8000_WDR)));
     assert.equal(encoding, WinisdEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
     assert.ok(text.includes('±'), '0xB1 decodes to the CP1252 plus-minus sign');
+    assert.ok(!text.includes('\ufffd'), 'the CP1252 decode produced no replacement character anywhere in the file');
   });
 
   it('the bundled Dai-Ichi SP65-40 fixture (0xBD) reads back with 1/2 intact', () => {
     const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(DAI_ICHI_SP65_40_WDR)));
     assert.equal(encoding, WinisdEncoding.Cp1252, 'the fixture fails a strict UTF-8 decode');
     assert.ok(text.includes('½'), '0xBD decodes to the CP1252 one-half sign');
+    assert.ok(!text.includes('\ufffd'), 'the CP1252 decode produced no replacement character anywhere in the file');
   });
 
   it('a genuine CP1252 currency sign (0xA4) is accepted loss: it reads back as the newline sentinel', () => {
@@ -132,21 +136,5 @@ describe('CP1252 fallback for a .wdr that is not valid UTF-8 (QO62)', () => {
 
     assert.equal(encoding, WinisdEncoding.Cp1252);
     assert.equal(text, `Price: ${WINISD_NEWLINE_SENTINEL}10®`);
-  });
-
-  it('every non-UTF-8 bundled .wdr decodes as CP1252 with no replacement character', () => {
-    const wdrFiles = readdirSync(BUNDLED_WINISD_DIR).filter(f => f.endsWith('.wdr'));
-    assert.ok(wdrFiles.length > 0, 'sanity: the bundled directory is not empty');
-
-    const nonUtf8: string[] = [];
-    for (const f of wdrFiles) {
-      const { text, encoding } = winisdBytesToText(new Uint8Array(readFileSync(join(BUNDLED_WINISD_DIR, f))));
-      if (encoding === WinisdEncoding.Cp1252) {
-        nonUtf8.push(f);
-        assert.ok(!text.includes('�'), `${f}: CP1252 decode produced a replacement character`);
-      }
-    }
-
-    assert.ok(nonUtf8.length > 0, 'the CP1252 path is still exercised by real bundled data');
   });
 });

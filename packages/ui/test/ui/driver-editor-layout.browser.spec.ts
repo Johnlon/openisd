@@ -12,6 +12,14 @@ async function openEditor(page: import('@playwright/test').Page, tab: string) {
   await page.getByRole('button', { name: tab, exact: true }).click();
 }
 
+test('driver editor opens on the Parameters tab', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
+
+  await expect(page.locator('.de-tab').filter({ hasText: /^Parameters$/ })).toHaveClass(/on/);
+  await expect(page.locator('.de-params')).toBeVisible();
+});
+
 /**
  * Given one section's row widths in visual order, the rows that are full width DESPITE a
  * shorter row already appearing above them.

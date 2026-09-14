@@ -258,6 +258,29 @@ export function seriesFor(tabId: ChartTabId,
   return { series: built.series, ymin: built.ymin, ymax: built.ymax, logy: built.logy ?? false, unit: meta.unit };
 }
 
+/** Keep only failures in data this chart actually paints; shared input failures stay visible. */
+export function errorsForChart(tabId: ChartTabId, errors: DriverError[]): DriverError[] {
+  const output = (() => {
+    switch (tabId) {
+      case 'SPL': return 'SPL';
+      case 'TFMag': return 'transfer magnitude';
+      case 'Excursion': return 'cone excursion';
+      case 'Port': return 'port velocity';
+      case 'GD': return 'group delay';
+      case 'Zmag': return 'impedance magnitude';
+      case 'Zph': return 'impedance phase';
+      case 'Phase': return 'phase';
+      case 'MaxSPL': return 'maximum SPL';
+      case 'MaxPwr': return 'maximum power';
+      case 'FltMag': return 'filter magnitude';
+      case 'FltPhase': return 'filter phase';
+      case 'FltGD': return 'filter group delay';
+    }
+  })();
+  return errors.filter(error => !error.field.startsWith('sweep:') && !error.field.startsWith('maxCurves:')
+    || error.field === `sweep:${output}` || error.field === `maxCurves:${output}`);
+}
+
 // Returns { value, errors } per the project's Go-inspired contract
 // (.claude/rules/openisd-result-contract.md).
 //   value:  the plot-ready series bundle, or null when there is nothing to draw.
@@ -276,8 +299,9 @@ export function buildPlotData(
   errors: DriverError[] = [],
   opts: { bare?: boolean; primaryColor?: string } = {},
 ): { value: PlotData | null; errors: DriverError[] } {
+  const chartErrors = errorsForChart(tabId, errors);
   if (!currentDesign.driver || !currentDesign.curves || !currentDesign.maxCurves)
-    return { value: null, errors };
+    return { value: null, errors: chartErrors };
 
   // Compare overlays may be hidden (visible === false) without being removed. Additive:
   // the current design is always drawn, and any overlay lacking the flag stays visible —
@@ -300,7 +324,7 @@ export function buildPlotData(
     out.ymin = Math.min(out.ymin, pd.ymin); out.ymax = Math.max(out.ymax, pd.ymax);
     out.logy = out.logy || pd.logy;
   });
-  return { value: out, errors };
+  return { value: out, errors: chartErrors };
 }
 
 export interface RangeStats { peak: number; peakF: number | null; trough: number; ripple: number; avg: number }

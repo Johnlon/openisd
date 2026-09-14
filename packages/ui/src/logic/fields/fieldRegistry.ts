@@ -4,6 +4,7 @@ import type { CellState } from '@openisd/design/winisd';
 // simulate, so using it here made `bandpass6`/`abc` inexpressible — which is what stopped [Frc]
 // from being able to say where it applies.
 import type { BoxType } from '@openisd/design/engine';
+import { MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K } from '@openisd/design/engine';
 import type { UnitGroup } from './units.js';
 
 /**
@@ -253,7 +254,7 @@ const FIELDS: FieldSpec[] = [
 
   // ============================ ADVANCED (ENVIRONMENT) ============================
   {
-    id: 'advTemp', label: 'Temperature', pane: 'Advanced', kind: 'number', unit: 'K', precision: 2, min: 0, max: 400,
+    id: 'advTemp', label: 'Temperature', pane: 'Advanced', kind: 'number', unit: 'K', precision: 2, min: MIN_SUPPORTED_TEMP_K, max: MAX_SUPPORTED_TEMP_K,
     provenance: 'entered', appliesTo: 'all',
     description: 'Ambient temperature; feeds sound velocity + air density. WinISD 2 dp (293.15 K).',
   },
@@ -317,7 +318,7 @@ const FIELDS: FieldSpec[] = [
   {
     id: 'useWinisdAirModel', label: 'Use WinISD air model', pane: 'Advanced', kind: 'toggle', unit: '',
     provenance: 'entered', appliesTo: 'all',
-    description: 'Choose the air equation set. ON: WinISD parity model, matching WinISD’s own air calculations for the same environment. OFF: OpenISD’s standard CIPM-based physical model, which uses the project’s own temperature, humidity and pressure values. Both read the environment from this project’s own Advanced-pane T/RH/p — there is no app-level substitute. The difference is small but measurable, and the choice is kept per project so the design can match WinISD or the standard physical model. The model lives in engine air.ts.',
+    description: 'These three air fields affect every simulation curve. ON selects the classic WinISD air equations; OFF selects the international-standard CIPM air model.',
   },
 
   // ============================ DRIVER EDITOR — T/S (Parameters tab) ============================

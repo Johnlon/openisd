@@ -199,8 +199,56 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
     for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
     const r = engine.classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'no finite spl point at all → blocking error');
-    assert.match(r!.message, /driver values.*Sd.*Re.*BL.*Cms.*Mms.*Rms/i,
-      'the blocking message must identify the driver quantities needed by the circuit');
+    assert.match(r!.message, /no finite values in/i,
+      'the blocking message must identify the failed sweep outputs');
+  });
+
+  it('names the plotted outputs that failed instead of guessing at an input cause', () => {
+    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
+    for (let i = 0; i < sw.fs.length; i++) {
+      sw.exc[i] = NaN;
+      sw.zmag[i] = NaN;
+    }
+    const r = engine.classifyFinite(sw);
+    assert.ok(r);
+    assert.match(r.message, /excursion/i);
+    assert.match(r.message, /impedance magnitude/i);
+    assert.doesNotMatch(r.message, /6 L box alone/i);
+  });
+
+  it('reports a broken transfer-magnitude series for the TFM chart', () => {
+    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
+    for (let i = 0; i < sw.tfMag.length; i++) sw.tfMag[i] = NaN;
+    const issue = engine.classifyFiniteIssues(sw).find(error => error.field === 'sweep:transfer magnitude');
+    assert.ok(issue, 'TFM output failure must be reported to the chart');
+    assert.match(issue.message, /transfer magnitude/i);
+  });
+
+  it('returns an air-model error when the environment produces non-finite air constants', () => {
+    const result = engine.sweep(DRV, LE_H, BOX, { ...P, tempK: 5000 });
+    assert.equal(result.value, null);
+    assert.equal(result.errors[0].field, 'tempK');
+    assert.match(result.errors[0].message, /temperature|humidity|pressure/i);
+  });
+
+  it('attributes an invalid air result to the entered temperature', () => {
+    const result = engine.sweep(DRV, LE_H, BOX, { ...P, tempK: 500 });
+    assert.equal(result.value, null);
+    assert.equal(result.errors[0].field, 'tempK');
+    assert.match(result.errors[0].message, /tempK.*500|500.*tempK/);
+  });
+
+  it('rejects a temperature beyond the supported range even if the formula stays finite', () => {
+    const result = engine.sweep(DRV, LE_H, BOX, { ...P, tempK: 5000 });
+    assert.equal(result.value, null);
+    assert.equal(result.errors[0].field, 'tempK');
+    assert.match(result.errors[0].message, /173\.15.*373\.15/);
+  });
+
+  it('rejects absolute zero with an exclusive lower-bound message', () => {
+    const result = engine.sweep(DRV, LE_H, BOX, { ...P, tempK: 1 });
+    assert.equal(result.value, null);
+    assert.match(result.errors[0].message, /173\.15/);
   });
 
   it('flags pervasive breakdown even when spl is the finite −200 sentinel (the Vb=0 shape)', () => {

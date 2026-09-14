@@ -257,7 +257,8 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
 
 test('the Tune panel edits live and Cancel discards everything since the last save', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
+  await page.locator('.save-rail .tune-btn').click();
+  await expect(page.locator('.save-rail .tune-btn')).toContainText('What-if');
   const tune = page.locator('.tune-panel');
   await expect(tune).toBeVisible();
   await expect(tune.locator('button', { hasText: 'Keep' })).toHaveCount(0);
@@ -266,7 +267,9 @@ test('the Tune panel edits live and Cancel discards everything since the last sa
   const readFs = () => page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.driverRaw.value.Fs;
+    const project = s.focusedProject();
+    if (!project) throw new Error('expected a focused project');
+    return project.driver.spec.woofer.Fs_hz.get().value;
   });
   const before = await readFs();
 
@@ -280,19 +283,47 @@ test('the Tune panel edits live and Cancel discards everything since the last sa
   expect(await readFs()).toBeCloseTo(before, 1); // Cancel discarded it
 });
 
+test('the Tune panel Reset discards edits and stays open', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.save-rail .tune-btn').click();
+  const tune = page.locator('.tune-panel');
+  const readFs = () => page.evaluate(async () => {
+    const modPath = '/src/logic/appState.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    const project = s.focusedProject();
+    if (!project) throw new Error('expected a focused project');
+    return project.driver.spec.woofer.Fs_hz.get().value;
+  });
+  const before = await readFs();
+
+  const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
+  const beforeText = await fsInput.inputValue();
+  await fsInput.fill(String(before + 6));
+  await fsInput.dispatchEvent('input');
+  expect(await readFs()).toBeCloseTo(before + 6, 1);
+
+  await tune.locator('button', { hasText: 'Reset' }).click();
+  await expect(tune).toBeVisible();
+  expect(await readFs()).toBeCloseTo(before, 1);
+  await expect(fsInput).toHaveValue(beforeText);
+});
+
 test('closing Tune via the titlebar ✕ also discards the edit, same as Cancel', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
+  await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
 
   const readFs = () => page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.driverRaw.value.Fs;
+    const project = s.focusedProject();
+    if (!project) throw new Error('expected a focused project');
+    return project.driver.spec.woofer.Fs_hz.get().value;
   });
   const before = await readFs();
 
-  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
+  await page.locator('.save-rail .tune-btn').click();
   const tune = page.locator('.tune-panel');
   const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
   await fsInput.fill(String(before + 6));
@@ -306,9 +337,41 @@ test('closing Tune via the titlebar ✕ also discards the edit, same as Cancel',
   expect(await readFs()).toBeCloseTo(before, 1);
 });
 
+test('closing Tune does not corrupt the saved Mms value', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.save-rail .tune-btn').click();
+  const tune = page.locator('.tune-panel');
+  const readMms = () => page.evaluate(async () => {
+    const modPath = '/src/logic/appState.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    const project = s.focusedProject();
+    if (!project) throw new Error('expected a focused project');
+    return project.driver.spec.woofer.Mms_kg.get().value;
+  });
+  const before = await readMms();
+  const mmsInput = tune.locator('.tune-fld', { hasText: 'Mms' }).locator('input');
+  await mmsInput.fill(String((before * 1000) + 6));
+  await mmsInput.dispatchEvent('input');
+  expect(await readMms()).toBeCloseTo(before + 0.006, 6);
+
+  await tune.locator('.tune-titlebar .close-btn').click();
+  await expect(tune).toBeHidden();
+  await expect(page.locator('.save-rail .tune-btn')).toContainText('Tune');
+  expect(await readMms()).toBeCloseTo(before, 9);
+});
+
+test('Escape cancels the active Tune what-if', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.save-rail .tune-btn').click();
+  await expect(page.locator('.tune-panel')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.tune-panel')).toBeHidden();
+  await expect(page.locator('.save-rail .tune-btn')).toContainText('Tune');
+});
+
 test('the Tune fields accept multi-character typing (no reformat-while-typing clobber)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
+  await page.locator('.save-rail .tune-btn').click();
   const fsInput = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).locator('input');
   await fsInput.click();
   await fsInput.press('Control+a');
@@ -317,7 +380,9 @@ test('the Tune fields accept multi-character typing (no reformat-while-typing cl
   const fs = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.driverRaw.value.Fs;
+    const project = s.focusedProject();
+    if (!project) throw new Error('expected a focused project');
+    return project.driver.spec.woofer.Fs_hz.get().value;
   });
   expect(fs).toBeCloseTo(42, 1);
 });
@@ -376,7 +441,7 @@ test('class-level: NO Original-skin spinner gains decimal places while spinning 
   }
   // The docked Tune panel (v-expo-step T/S fields) — the highest-risk fractional-value spinners.
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
+  await page.locator('.save-rail .tune-btn').click();
   const tuneInputs = await page.locator('.tune-panel input[type="number"]').all();
   for (let i = 0; i < tuneInputs.length; i++) checked += await assertSpinnerHoldsDp(tuneInputs[i], `Tune #${i}`);
 
@@ -415,7 +480,7 @@ test('field constraints: negative/out-of-range entry is rejected or clamped ever
   await expect(rh).toHaveValue('100');     // ceiling too, not just the floor
   // 3. Tune panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor.
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
+  await page.locator('.save-rail .tune-btn').click();
   const fs = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).first().locator('input');
   await fs.fill('-40');
   await expect(fs).toHaveValue('1');
@@ -662,6 +727,7 @@ test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async 
 test('R1: an open Driver Editor is reopened after a reload', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
+  await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.overlay.on')).toContainText("Edit Project's Driver");
@@ -675,10 +741,11 @@ test('R1: an open Driver Editor is reopened after a reload', async ({ page }) =>
 test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
+  await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
+  await page.locator('.save-rail .tune-btn').click();
 
-  await page.waitForFunction(() => (localStorage.getItem('openisd_state') || '').includes('originalTuneOpen'),
+  await page.waitForFunction(() => (localStorage.getItem('openisd_view') || '').includes('originalTuneOpen'),
     undefined, { timeout: 5000 }); // the open-panel flag is persisted
   await page.reload();
 
@@ -861,7 +928,7 @@ test('Original skin: Options dialog → "Reset to Metric" reverts a toggled unit
   // this field, so while the unit reads `kg` the input IS the stored number — no backdoor needed,
   // and the assertion goes through the same surface a user does.
   const readMaddSi = async () => {
-    if (await unit.textContent() !== 'kg') await unit.click();
+    await expect(unit).toHaveText('kg');
     await expect(unit).toHaveText('kg');
     return Number(await amc.inputValue());
   };
@@ -1163,7 +1230,7 @@ test('switching focus between two open projects preserves an edit in progress on
   // rule) — checking the value immediately after typing (no blur) would assert against
   // that raw, unformatted string instead of the field's real, settled value.
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
+  await page.locator('.save-rail .tune-btn').click();
   const tune = page.locator('.tune-panel');
   const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
   await fsInput.fill('61');

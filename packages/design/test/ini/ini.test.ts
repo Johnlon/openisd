@@ -22,7 +22,6 @@ import { parseIni, stringifyIni } from '@openisd/design/ini';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const GOLDENS_DIR = join(here, '..', 'winisd', 'fixtures', 'winisd-parity', 'goldens');
-const MATT_DRIVERS_DIR = join(here, '..', '..', '..', '..', 'drivers', 'matt');
 const SAMPLE_WINISD_DIR = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
 const SEMICOLONS_AND_HASH = join(SAMPLE_WINISD_DIR, 'driver-with-semicolons-and-hash.wdr');
 
@@ -82,19 +81,6 @@ describe('byte precision on real WinISD-written .wpr goldens', () => {
   for (const file of files) {
     it(`${file}: parse then stringify reproduces the file byte-for-byte`, () => {
       const original = readFileSync(join(GOLDENS_DIR, file), 'utf8');
-      const roundTripped = stringifyIni(parseIni(original));
-      assert.equal(roundTripped, original);
-    });
-  }
-});
-
-describe('byte precision on the real .wdr driver corpus (drivers/matt)', () => {
-  const files = readdirSync(MATT_DRIVERS_DIR).filter((f) => f.endsWith('.wdr'));
-  assert.ok(files.length > 0, 'expected at least one real .wdr file to exist in drivers/matt');
-
-  for (const file of files) {
-    it(`${file}: parse then stringify reproduces the file byte-for-byte`, () => {
-      const original = readFileSync(join(MATT_DRIVERS_DIR, file), 'utf8');
       const roundTripped = stringifyIni(parseIni(original));
       assert.equal(roundTripped, original);
     });

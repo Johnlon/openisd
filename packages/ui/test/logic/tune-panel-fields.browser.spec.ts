@@ -1,5 +1,9 @@
 import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const COMPLETE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'complete-driver-project.owpr');
 
 /** appState's own verdict for one field — the model, not the pixels. */
 async function cell(page: Page, field: string): Promise<{ value: unknown; state: string }> {
@@ -23,14 +27,16 @@ async function readVb(page: Page): Promise<number> {
   return page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.state.P.Vb;
+    const project = s.focusedProject();
+    if (!project) throw new Error('expected a focused project');
+    return project.box.sealed.volume_m3.get();
   });
 }
 
 /** Open the Original skin's docked Tune panel on a clean slate. */
 async function openTune(page: Page) {
   await page.goto('/');
-  await openAProject(page);
+  await openAProject(page, COMPLETE);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
   const tune = page.locator('.tune-panel');
@@ -123,16 +129,16 @@ test('QO11.3 Tune: a blank Q autocalculates from the other two, with the editor 
   await qes.pressSequentially('0.55');
   await expect(qms).not.toHaveValue(before);
 
-  // Now clear a second one. Fewer than two are usable, so no member can be solved and ALL
-  // THREE are flagged together — the trio is the unit, not any one field.
+  // Clear Qes again: the solver does not use a calculated Qms as a new stated input, so both
+  // dependent fields become unavailable while the entered Qts remains visible.
   await qes.press('Control+a');
   await qes.press('Delete');
   await qes.blur();
-  for (const q of [qts, qes, qms]) await expect(q).toHaveClass(/de-input-mandatory/);
-  for (const q of [qes, qms]) await expect(q).toHaveClass(/de-input-empty/);
-  // The red comes from the reserved alert token, exactly as in the driver editor.
-  const border = await qms.evaluate(e => getComputedStyle(e).borderTopColor);
-  expect(border).toBe('rgb(176, 42, 42)');   // --bad in the Original skin
+  await expect(qes).toHaveClass(/value-n/);
+  await expect(qes).toHaveValue('');
+  await expect(qts).toHaveClass(/value-e/);
+  await expect(qms).toHaveClass(/value-n/);
+  await expect(qms).toHaveValue('');
   await expect(tune).toBeVisible();
 });
 

@@ -9,14 +9,11 @@ Any manual edits to drivers-bundle.json will be silently overwritten on the next
 
 WHAT IT HOLDS
 -------------
-Every driver record of every bundled source, so the app loads them with the page and
-never calls the GitHub API for them. A source is bundled when its `path` in
-drivers/sources.json resolves to a directory checked out inside this workspace
-(`scripts/bundle-drivers.mjs::localPathOf`); any other source is federated and fetched
-live from GitHub at runtime. The two are mutually exclusive.
+Every driver record from the bundled `winisd_drivers/db/datasheets` corpus, so the app loads them
+with the page. The bundler reads only that corpus and does not fetch or discover other sources.
 
-Each entry is `{ path, name, driverType, record }` — `path` (relative to the source
-folder, forward-slashed) plus the source key is the driver's identity; `driverType` is
+Each entry is `{ path, name, driverType, record }` — `path` (relative to the single bundled
+corpus, forward-slashed) is the driver's identity; `driverType` is
 the record's own `driver_type` when it states one; `record` is the parsed openisd
 record itself, the canonical `_OpenISDDriverJson` shape, unmodified.
 
@@ -42,7 +39,7 @@ verbatim canonical record (John's ruling,
 
 SOURCE DATA
 -----------
-  drivers/**/<driver>/openisd.yml    — the driver record (ARCHITECTURE.md AD-8)
+  ../winisd_drivers/db/datasheets/**/<driver>/openisd.yml — the driver record (ARCHITECTURE.md AD-8)
 
 That file, and nothing else. `.owdr` is purely a UI concern — what the app writes and
 reads when a user saves a driver to their own disk — and never appears in a collection.

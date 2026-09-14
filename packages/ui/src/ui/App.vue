@@ -10,7 +10,7 @@ import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import {
   requireFocusedProject, projectChanged, openProjects, focusedProject, restoreProjects,
   applyState, applyLoadedProject, applyViewSnapshot,
-  markProjectSaved,
+  markProjectSaved, currentViewSnapshot,
 } from '../logic/appState.js';
 import { presentationState } from '../logic/presentationState.js';
 import { provideFocusedProject } from '../logic/focusedProjectContext.js';
@@ -36,6 +36,7 @@ async function handleHashChange() {
 }
 
 let saveReady = false;
+let viewSaveReady = false;
 watch(projectChanged, () => {
   if (!saveReady) return;
   projectRepo.saveOpenProjects(openProjects(), focusedProject());
@@ -44,6 +45,9 @@ watch(
   () => [openProjects().length, focusedProject()?.uuid() ?? null],
   () => { if (saveReady) projectRepo.saveOpenProjects(openProjects(), focusedProject()); },
 );
+watch(currentViewSnapshot, snapshot => {
+  if (viewSaveReady) viewStateRepo.save(snapshot);
+}, { deep: true });
 
 onMounted(async () => {
   const fromUrl = await projectRepo.loadFromHash();
@@ -74,6 +78,8 @@ onMounted(async () => {
     const view = viewStateRepo.load();
     if (view) applyViewSnapshot(view);
   }
+  viewSaveReady = true;
+  viewStateRepo.save(currentViewSnapshot());
   markProjectSaved();   // the just-loaded design is the ground state (clean, not modified)
   saveReady = true;
   projectRepo.saveOpenProjects(openProjects(), focusedProject());

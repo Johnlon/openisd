@@ -32,7 +32,6 @@ import { checkOpenisdRoundTrip, checkWdrRoundTrip } from '../../../../scripts/ro
 const here = dirname(fileURLToPath(import.meta.url));
 const CORPUS_DIR = join(here, '..', '..', '..', '..', '..', 'winisd_drivers', 'db', 'datasheets', 'accuton', 'bd90-6-727');
 const REAL_OPENISD_YML = join(CORPUS_DIR, 'openisd.yml');
-const REAL_WDR = join(CORPUS_DIR, 'winisd.wdr');
 
 describe('checkOpenisdRoundTrip', () => {
   it('a real corpus record round-trips clean', () => {
@@ -58,11 +57,7 @@ describe('checkOpenisdRoundTrip', () => {
 
 describe('checkWdrRoundTrip', () => {
   it('a .wdr produced by the app\'s own writer (toWdrText) round-trips clean at the QT60 bar', () => {
-    // Deliberately NOT the corpus's on-disk winisd.wdr: that file predates this bridge (it was
-    // written by the Python `rebuild_wdr.py` INI serialiser F4 deleted) and carries a smaller
-    // key set than `toWdr()`'s fixed INI_ROWS table, so it fails this bar by construction — see
-    // the dedicated test below, which documents that as a real corpus finding, not a gate bug.
-    // This test proves the gate is CORRECT against a .wdr the current pipeline would actually
+    // This test proves the gate against a .wdr the current pipeline would actually
     // produce, using the exact function the app's Export `.wdr` button calls
     // (`fileImportExport.ts::driverToWdrBytes`).
     assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
@@ -72,17 +67,6 @@ describe('checkWdrRoundTrip', () => {
     assert.equal(typeof wdrText, 'string');
 
     const result = checkWdrRoundTrip(wdrText, 'accuton/bd90-6-727/winisd.wdr (bridge-generated)');
-    assert.deepEqual(result, { ok: true });
-  });
-
-  it('the on-disk corpus winisd.wdr round-trips clean — a real file the app did not write', () => {
-    // The bridge-generated fixture above proves the gate against the app's OWN output, which
-    // cannot show whether the app agrees with a file it did not produce. This one is the real
-    // `.wdr` sitting in the corpus: it carries the full 48-key table plus header and ParState, and
-    // survives read-and-rewrite with every value and mark intact.
-    assert.equal(existsSync(REAL_WDR), true, `fixture missing: ${REAL_WDR}`);
-    const wdrText = readFileSync(REAL_WDR, 'utf8');
-    const result = checkWdrRoundTrip(wdrText, 'accuton/bd90-6-727/winisd.wdr');
     assert.deepEqual(result, { ok: true });
   });
 

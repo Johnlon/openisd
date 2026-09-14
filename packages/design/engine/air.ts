@@ -68,6 +68,8 @@ export const END_CORRECTION = 0.732;
 export const DEFAULT_T_REF_K   = 293.15;
 export const DEFAULT_RH_REF_PCT = 30;
 export const DEFAULT_P_REF_PA  = 101325;
+export const MIN_SUPPORTED_TEMP_K = 173.15;
+export const MAX_SUPPORTED_TEMP_K = 373.15;
 export const ZERO_C_IN_K = 273.15;
 
 /** Molar gas constant, J/(mol·K) — CIPM-2007. */

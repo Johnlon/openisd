@@ -44,9 +44,10 @@ function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
 }
 
-// Closing the Tune panel after a save/export/share is UI cleanup, not state — the design itself
-// is already whatever the panel last wrote, so there is nothing else to settle here.
+// Save/export/share operate on committed project state. An active Tune session is transient, so
+// these boundaries cancel it before reading or promoting anything.
 function closeTunePanelAfterIO(): void {
+  focusedProject()?.cancelWhatIf();
   presentationState.editDriver = false;
 }
 

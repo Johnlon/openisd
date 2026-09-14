@@ -14,15 +14,15 @@
 // not known to test anything. See AGENTS.md "Every architecture test exists to catch the AI".
 
 /**
- * `OpenISDProject` holds ONLY three fields — `#saved`, `#edited` (each an `OpenISDProjectJson`
- * record) and `#engine`. John, 2026-09-06: "OpenISDProject should have ONLY three fields the
- * json saved and the json edited and then engine." Every other public member (`driver`, `box`,
+ * `OpenISDProject` holds ONLY four state fields — `#saved`, `#edited`, `#whatif` (each an
+ * `OpenISDProjectJson` record) and `#engine`. The what-if layer is transient and never serialized.
+ * Every other public member (`driver`, `box`,
  * `name`, `comment`, and anything added later) is a getter that builds its accessor fresh from
- * `#saved`/`#edited` on each read — never a fourth stored field assigned once in the
+ * `#saved`/`#edited`/`#whatif` layers on each read — never a separate service-owned copy assigned in the
  * constructor and held for the object's life.
  *
  * `#uuid` is a deliberate, separately-documented exception (QO92: identity that must never
- * enter the record) and is not counted against the three.
+ * enter the record) and is not counted against the four.
  */
 import { describe, it, expect } from 'vitest';
 import { Project } from 'ts-morph';
@@ -31,9 +31,9 @@ import * as url from 'node:url';
 
 const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
 
-const ALLOWED_FIELDS = new Set(['#saved', '#edited', '#engine', '#uuid', '#listeners']);
+const ALLOWED_FIELDS = new Set(['#saved', '#edited', '#whatif', '#engine', '#uuid', '#listeners']);
 
-describe('OpenISDProject holds only #saved/#edited/#engine as stored fields', () => {
+describe('OpenISDProject holds only #saved/#edited/#whatif/#engine as stored fields', () => {
   it('declares no property beyond the allowed set', () => {
     // `skipAddingFilesFromTsConfig` — this gate reads ONE class out of ONE file, so adding and
     // type-checking every file the tsconfig names costs the whole program's parse for nothing,
@@ -51,6 +51,6 @@ describe('OpenISDProject holds only #saved/#edited/#engine as stored fields', ()
 
     const disallowed = propertyNames.filter((name) => !ALLOWED_FIELDS.has(name));
 
-    expect(disallowed, `OpenISDProject declares stored field(s) beyond #saved/#edited/#engine: ${disallowed.join(', ')} — these must become getters built from #saved/#edited instead`).toEqual([]);
+    expect(disallowed, `OpenISDProject declares stored field(s) beyond the project layers: ${disallowed.join(', ')} — these must become getters built from the layers instead`).toEqual([]);
   });
 });

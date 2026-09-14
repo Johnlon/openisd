@@ -1,8 +1,8 @@
 /**
  * roundTripGate.mjs — the bundle-time round-trip gate (plan `shiny-noodling-kahan.md`
- * "Round-trip gate in the openisd bundler"): every `openisd.yml` the bundler bundles, and
- * separately every tools-generated `.wdr` reachable from the same corpus root, must survive a
- * round trip through the app's OWN load/serialise code with no divergence.
+ * "Round-trip gate in the openisd bundler"): every `openisd.yml` the bundler bundles must survive
+ * a round trip through the app's OWN load/serialise code with no divergence. A WDR round-trip is
+ * checked only for WDR text produced by this bridge, never by scanning unrelated corpus files.
  *
  * Pure, side-effect-free (no filesystem read here — callers hand in text/records already
  * read), so `bundle-drivers.mjs`'s own per-record loop can call `checkOpenisdRoundTrip`

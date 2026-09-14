@@ -16,6 +16,10 @@ export { Engine } from './Engine.js';
 // (`LossMode.WinisdLossy`, `LossMode.Default`), so a caller cannot pass one without it.
 export { LossMode } from './lossMode.js';
 export type { SealedParams } from './lossMode.js';
+export {
+  DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA,
+  MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K,
+} from './air.js';
 export type { Air, AirEnvironment, AirConstantProvider } from './air.js';
 export type { ConsistencyIssue } from './consistency.js';
 export type {

@@ -76,9 +76,8 @@ proven by another tool.
   baked into the app JS; no GitHub API calls, no rate limits, no spinners. The library
   loads in the same round-trip as the page itself. `.wdr` is not a bundleable record —
   a collection stored as `.wdr` has to be converted first.
-- ✅ **Federated driver sources** — `drivers/sources.json` links external `.wdr`
-  repos so the community can grow the library without forking OpenISD; _no other
-  surveyed tool federates its driver data_
+- ✅ **Single bundled driver corpus** — the bridge-produced `openisd.yml` corpus ships with the
+  app; `.wdr` inputs are converted at the bridge boundary before entering the corpus.
 - ✅ **In-app driver browser** — token-based multi-word search (case-insensitive,
   every word must match), pure alphabetical list, source tags with clickable links
 - ✅ **Newer-version highlighting** — when the same driver exists in multiple
@@ -149,11 +148,11 @@ _The clearest gap vs SoundForm and SpeakerDesign.dev — builders love this._
 ## 8. Data, sharing & community
 
 - ✅ JSON project save / load
-- ✅ **Federated driver data** — `drivers/sources.json` links external `.wdr`
-  repos; add one via PR, no re-hosting
+- ✅ **Bridge-produced driver data** — the canonical corpus is generated from scraper output and
+  carries provenance and quality alongside each record.
 - ✅ **URL-encoded shareable designs** — paste a design as a link
-- ✅ **Community contribution flow** — PR a `.wdr` file or a new source URL;
-  WDR schema + meta standard documented so contributors know exactly what's expected
+- ✅ **Community contribution flow** — contribute scraper input or a bridge-produced canonical
+  record; WDR schema + metadata standards document the conversion boundary.
 - ✅ Static hosting on GitHub Pages (<https://openisd.app/>)
 
 ## 9. Learning & docs
@@ -197,9 +196,9 @@ OpenISD’s defensible edges:
   quality grades, datasheet provenance, and timestamps so you know exactly
   where every number came from. No closed tool opens its aggregated driver data at
   all, let alone federates it.
-- **Federated, not hoarded.** Any `.wdr` repo on GitHub can be linked into
-  OpenISD’s browser with one PR to `sources.json` — no re-hosting, no import
-  queue. The commons grows without a central gatekeeper.
+- **Bridge-produced, not hand-maintained.** Scraper output is converted through the bridge into
+  canonical records; the app consumes that one reviewed corpus rather than maintaining a second
+  source registry.
 - **Provable physics.** Validated against closed-form Thiele/Small solutions,
   re-verified on every push in CI. No competitor surveyed makes this claim.
 - **Truly ownerless longevity.** MIT + on disk in every clone = it cannot die,

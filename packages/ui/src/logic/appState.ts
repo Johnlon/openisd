@@ -114,6 +114,7 @@ export function focusedProject(): OpenISDProject | null {
  *  changing action closes what was open" pattern as `openDriverPicker()` above. */
 export function focusProject(index: number): void {
   if (index < 0 || index >= projects.value.length || index === focusedIndex.value) return;
+  projects.value[focusedIndex.value]?.cancelWhatIf();
   presentationState.editDriver = false;
   presentationState.editDriverInfo = false;
   focusedIndex.value = index;
@@ -124,6 +125,7 @@ export function focusProject(index: number): void {
  *  `focusedProject()` already answers null for an out-of-range index, nothing to noop around. */
 export function removeProject(index: number): void {
   if (index < 0 || index >= projects.value.length) return;
+  projects.value[index]?.cancelWhatIf();
   // shallowRef: reassign a new array rather than splice in place, or the removal wouldn't
   // trigger reactivity — shallowRef only tracks .value replacement, not in-place mutation.
   const next = projects.value.slice();
@@ -375,7 +377,7 @@ const curveIssues = computed<DriverError[]>(() => {
   // allowed boost, so the "flat" response is not flat below some frequency — a truncated
   // inverse filter must never look like a design that flattens for free.
   const eng = new Engine();
-  return [eng.classifyFinite(sw), mx ? eng.classifyMaxFinite(mx) : null, eng.classifyFlatClamp(sw)]
+  return [...eng.classifyFiniteIssues(sw), mx ? eng.classifyMaxFinite(mx) : null, eng.classifyFlatClamp(sw)]
     .filter((e): e is DriverError => e !== null);
 });
 
@@ -393,7 +395,14 @@ export const paramIssues = computed<DriverError[]>(() => {
 // the same `validateParams` call inside the project's own sweep/maxCurves), so this reads only
 // the postcondition classifications on top of it.
 export const allIssues = computed<DriverError[]>(
-  () => [...sweepErrors.value, ...paramIssues.value, ...curveIssues.value]);
+  () => {
+    const params = paramIssues.value;
+    const hasBlockingParam = params.some(issue => issue.level === 'error');
+    const outputIssues = hasBlockingParam
+      ? curveIssues.value.filter(issue => issue.field !== 'sweep' && issue.field !== 'maxCurves')
+      : curveIssues.value;
+    return [...sweepErrors.value, ...params, ...outputIssues];
+  });
 
 /** True when the focused project has unsaved changes (`OpenISDProject.isModified()`). False
  *  when no project is focused — nothing is "modified" if nothing is open. */

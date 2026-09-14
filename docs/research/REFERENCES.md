@@ -138,7 +138,8 @@ reference index.
   **Search tip:** Google `site:loudspeakerdatabase.com <model name>` to find a driver's
   page directly, e.g. `site:loudspeakerdatabase.com RS180-8`. The database has no
   programmatic search but Google indexes it well.
-- Federated repos via `drivers/sources.json` (e.g. MWisBest/WinISDDrivers).
+- External driver repositories are reference material only; the app consumes the bridge-produced
+  `winisd_drivers/db/datasheets` corpus.
 - **Parts Express product search API** (undocumented internal NetSuite SCA API,
   discovered 2026-06-24 by inspecting browser network requests on a product page):
 

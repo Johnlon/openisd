@@ -13,7 +13,7 @@
  */
 
 import { P0, FLAT_MAX_BOOST_DB } from './constants.js';
-import { airFor } from './air.js';
+import { airFor, MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K } from './air.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
 import { withAddedMass, solveConsistencyGroup } from './solver.js';
@@ -267,7 +267,22 @@ export function sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box
   const circuit = circuitQuantities(d, Le_H);
   if (circuit.value === null) return { value: null, errors: circuit.errors };
   const cq = circuit.value;
+  const tempK = P.tempK ?? 293.15;
+  if (!Number.isFinite(tempK) || tempK < MIN_SUPPORTED_TEMP_K || tempK > MAX_SUPPORTED_TEMP_K) {
+    return {
+      value: null,
+      errors: [{ level: 'error', field: 'tempK',
+        message: `Temperature field tempK is ${tempK} K; it must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K.`, }],
+    };
+  }
   const { rho, c } = airFor(P);
+  if (!Number.isFinite(rho) || rho <= 0 || !Number.isFinite(c) || c <= 0) {
+    return {
+      value: null,
+      errors: [{ level: 'error', field: 'tempK',
+        message: `Temperature field tempK is ${tempK} K and produces invalid air constants.`, }],
+    };
+  }
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
   // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
@@ -419,11 +434,38 @@ export function maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined,
 export function classifyFinite(sw: SweepResult): DriverError | null {
   // Every array that reaches a chart. The filter-chain trio is included for the same
   // reason as the rest: it is plotted, so a non-finite point in it must not be silent.
-  const arrays = [sw.spl, sw.phase, sw.exc, sw.excPR, sw.pv, sw.zmag, sw.zph, sw.gd,
-                  sw.fltMag, sw.fltPhase, sw.fltGd];
-  return classifyArrays(sw.fs, arrays, 'sweep',
-    'Simulation produced no usable values — check the box volume and driver values derived from '
-    + 'Sd, Re, BL, Cms, Mms, and Rms. A 6 L box alone does not guarantee a usable circuit.');
+  const arrays: readonly PlottedArray[] = [
+    { label: 'SPL', values: sw.spl }, { label: 'phase', values: sw.phase },
+    { label: 'transfer magnitude', values: sw.tfMag },
+    { label: 'cone excursion', values: sw.exc }, { label: 'PR excursion', values: sw.excPR },
+    { label: 'port velocity', values: sw.pv }, { label: 'impedance magnitude', values: sw.zmag },
+    { label: 'impedance phase', values: sw.zph }, { label: 'group delay', values: sw.gd },
+    { label: 'filter magnitude', values: sw.fltMag }, { label: 'filter phase', values: sw.fltPhase },
+    { label: 'filter group delay', values: sw.fltGd },
+  ];
+  return classifyArrays(sw.fs, arrays, 'sweep');
+}
+
+/** Per-output finiteness issues for callers that render only one chart at a time. */
+export function classifyFiniteIssues(sw: SweepResult): DriverError[] {
+  const arrays: readonly PlottedArray[] = [
+    { label: 'SPL', values: sw.spl }, { label: 'phase', values: sw.phase },
+    { label: 'transfer magnitude', values: sw.tfMag },
+    { label: 'cone excursion', values: sw.exc }, { label: 'PR excursion', values: sw.excPR },
+    { label: 'port velocity', values: sw.pv }, { label: 'impedance magnitude', values: sw.zmag },
+    { label: 'impedance phase', values: sw.zph }, { label: 'group delay', values: sw.gd },
+    { label: 'filter magnitude', values: sw.fltMag }, { label: 'filter phase', values: sw.fltPhase },
+    { label: 'filter group delay', values: sw.fltGd },
+  ];
+  return arrays.flatMap((array): DriverError[] => {
+    const bad = array.values.filter(value => !Number.isFinite(value)).length;
+    if (bad === 0) return [];
+    const field = `sweep:${array.label}`;
+    if (bad === array.values.length) {
+      return [{ level: 'error', field, message: `Sweep returned no finite values for ${array.label}.` }];
+    }
+    return [{ level: 'warn', field, message: `Sweep has ${bad} non-finite ${array.label} value${bad === 1 ? '' : 's'}; the chart has a gap.` }];
+  });
 }
 
 /**
@@ -438,9 +480,10 @@ export function classifyFinite(sw: SweepResult): DriverError | null {
  * different statement from "these two charts have no drawable value at all".
  */
 export function classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
-  return classifyArrays(mx.fs, [mx.maxspl, mx.maxpwr], 'maxCurves',
-    'Max-SPL and Max-power are undefined at every frequency — with neither a rated power (Pe) '
-    + 'nor a peak excursion (Xmax) there is no limit to plot. Set Pe or Xmax on the driver.');
+  return classifyArrays(mx.fs, [
+    { label: 'maximum SPL', values: mx.maxspl },
+    { label: 'maximum power', values: mx.maxpwr },
+  ], 'maxCurves');
 }
 
 /**
@@ -450,19 +493,27 @@ export function classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
  *   - error — EVERY grid point has at least one non-finite observable: nothing usable
  *   - warn  — otherwise; the curve still draws with a gap, so name the frequency
  */
-function classifyArrays(fs: number[], arrays: number[][], field: string,
-                        pervasiveMessage: string): DriverError | null {
+interface PlottedArray { readonly label: string; readonly values: number[] }
+
+function classifyArrays(fs: number[], arrays: readonly PlottedArray[], field: string): DriverError | null {
   const badIdx = new Set<number>();
   for (const arr of arrays)
-    for (let i = 0; i < arr.length; i++)
-      if (!Number.isFinite(arr[i])) badIdx.add(i);
+    for (let i = 0; i < arr.values.length; i++)
+      if (!Number.isFinite(arr.values[i])) badIdx.add(i);
   if (badIdx.size === 0) return null;
 
   // Test on the whole grid, not on the headline series alone: `spl` carries a finite
   // −200 dB silence sentinel that would mask a pervasive breakdown (Vb=0 → exc/zmag all
   // NaN but spl=−200), so "the primary series has a finite point" is not enough to call
   // the result usable.
-  if (badIdx.size === fs.length) return { level: 'error', field, message: pervasiveMessage };
+  if (badIdx.size === fs.length) {
+    const failed = arrays.filter(arr => arr.values.every(value => !Number.isFinite(value))).map(arr => arr.label);
+    return {
+      level: 'error',
+      field,
+      message: `Sweep returned no finite values in: ${failed.join(', ')}. Maximum curves require finite Pe or Xmax bounds.`,
+    };
+  }
 
   // Otherwise an isolated singularity: the curve still draws (the renderer gaps
   // non-finite points); name the affected frequency so the gap isn't a mystery.
