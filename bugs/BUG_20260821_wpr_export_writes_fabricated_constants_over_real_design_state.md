@@ -1,4 +1,5 @@
-Status: OPEN
+Status: PARTIAL — project-owned signal, losses, voice-coil and enclosure state now map through
+the domain bridge, but filters and some remaining WPR fields are still not serialized.
 
 # `.wpr` export writes fabricated constants over design state the project actually holds
 

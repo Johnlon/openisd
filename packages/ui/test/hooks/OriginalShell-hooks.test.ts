@@ -107,6 +107,6 @@ describe('Advanced air fields', () => {
     expect(airFieldDataQuality('temperature', -1)).not.toEqual([]);
     expect(airFieldDataQuality('humidity', 101)).not.toEqual([]);
     expect(airFieldDataQuality('pressure', 999999)).not.toEqual([]);
-    expect(airFieldDataQuality('temperature', 111111)).toEqual([]);
+    expect(airFieldDataQuality('temperature', 293.15)).toEqual([]);
   });
 });

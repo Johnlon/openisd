@@ -1,7 +1,8 @@
 # The app-state module carries a file-scope `no-explicit-any` disable
 
 ## Status
-OPEN
+RESOLVED — the file-level suppression and the cited store-side calculation path no longer exist;
+the current app state delegates calculation to the design domain.
 
 ## Symptom
 

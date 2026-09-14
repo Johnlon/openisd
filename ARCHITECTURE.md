@@ -862,6 +862,27 @@ against the `openisd.yml` shape — **not one uniform envelope, but four, by fie
 | `DerivedField<T>`     | pipeline-computed — `sku`, `name`                        | `value: T` + `definition` + `grounds` (evidence list). No `origin`/`readings` — built, not read                                                                                                                                    |
 | `BookkeepingField<T>` | pure pipeline fact — `uuid`                              | `value: T` + `definition`                                                                                                                                                                                                          |
 
+### Driver identity and ownership
+
+The UUID in a canonical driver record identifies the record in the collection that owns it. It is
+not a universal identity shared by every window onto that record.
+
+- A bundled standalone driver preserves the UUID carried by its `openisd.yml` record. The driver
+  commons and the favourites repository use that UUID.
+- A driver imported from `.owdr` or `.wdr` receives a fresh UUID. File formats are transport
+  boundaries, not collection identities.
+- An explicit standalone copy receives a fresh UUID.
+- A driver embedded in an `OpenISDProject` receives a fresh project-owned UUID. It is record
+  bookkeeping inside that project and is never a catalogue/favourite identity.
+- Editing uses an independent working copy. Writing the edit back preserves the owning record's
+  UUID; cancelling drops the copy.
+- Opening or cloning a project gives its embedded driver a fresh UUID, even when the serialized
+  project came from another project.
+
+`OpenISDDriver.copyAsNew()` is the explicit fresh-identity operation. `detach()` is the existing
+working-copy operation and preserves identity because it is also used for editor drafts. The
+project adoption boundary calls `copyAsNew()` before writing the embedded record.
+
 ### Provenance, and how it displays
 
 **Any real reading displays as `E`. Only a solver result is `C`. Absent is `N`.** `E` means STATED, not

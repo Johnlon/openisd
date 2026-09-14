@@ -39,11 +39,10 @@ export interface PreviewVM {
   comment: string | null;
 }
 
-/** A driver's identity for the favourites set and the list `v-for` key: `<brand>/<model>`,
- *  lower-cased. Editing brand or model produces a DIFFERENT driver by design — Clone
- *  ("Copy of …") is the deliberate fork — so a star follows this identity, not the row. */
+/** A driver's canonical record UUID for the favourites set and the list `v-for` key. Editing a
+ *  driver keeps its identity; an explicit copy or a file import mints a new one. */
 function driverId(d: OpenISDDriver): string {
-  return displayNameOf(d).toLowerCase();
+  return d.uuid();
 }
 
 function previewVMOf(d: OpenISDDriver): PreviewVM {

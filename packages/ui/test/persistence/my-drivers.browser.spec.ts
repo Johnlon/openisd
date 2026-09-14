@@ -216,6 +216,23 @@ test('Load File… puts the driver in My Drivers, not in the project', async ({ 
   await expect(page.locator('.wb-modal h2')).toContainText('From Disk');
 });
 
+test('a loaded driver comment stays in the General tab comment field', async ({ page }) => {
+  await seed(page);
+  await openPicker(page);
+  const withComment = DISK_WDR.replace('ProvidedBy=OpenISD', 'ProvidedBy=OpenISD\nComment=imported-comment-123456');
+  await page.locator('.wb-modal input[type=file]').setInputFiles({
+    name: 'commented.wdr', mimeType: 'application/x-winisd-driver', buffer: Buffer.from(withComment),
+  });
+
+  await expect(page.locator('.wb-modal .preview')).toBeVisible();
+  await expect(page.locator('.wb-modal .prev-notes')).toContainText('imported-comment-123456');
+  await page.locator('.wb-modal .edit-btn').click();
+  await expect(page.locator(EDITOR)).toBeVisible();
+  await expect(page.locator('.de-general .de-comment')).toHaveCount(1);
+  await expect(page.locator('.de-general .de-comment textarea')).toHaveValue('imported-comment-123456');
+  await expect(page.locator(`${EDITOR} > .de-comment`)).toHaveCount(0);
+});
+
 test('a file that names no brand or model takes its identity from the file name', async ({ page }) => {
   await seed(page);
   await openPicker(page);

@@ -1,6 +1,7 @@
 # The Original-skin test asserts a titlebar string the app no longer renders
 
-Status: OPEN
+Status: OBSOLETE/SUPERSEDED — the titlebar string was deliberately retired by the current shell
+identity decision; the test expectation is no longer a product requirement.
 
 ## Symptom
 

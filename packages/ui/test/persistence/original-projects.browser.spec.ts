@@ -68,7 +68,7 @@ test('open projects are never written into the active design (nothing to leak in
 
   // What gets persisted IS what gets saved and shared. It must describe one project: no
   // list of other designs, and no trace of the other open projects' names.
-  const persisted = await page.evaluate(() => localStorage.getItem('openisd.state') ?? '');
+  const persisted = await page.evaluate(() => localStorage.getItem('openisd_state') ?? '');
   expect(persisted).not.toBe('');
   expect(Object.keys(JSON.parse(persisted))).not.toContain('compare');
   expect(persisted).not.toContain('Copy of');

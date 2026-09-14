@@ -1,6 +1,8 @@
 # `_Specs`' passive-radiator key was spelled with an underscore while the driver_type vocabulary and the real data corpus use a hyphen
 
-Status: FIXED — John changed `_Specs`' key from `passive_radiator` to `'passive-radiator'` at
+Status: PARTIAL — the underscore spelling was removed, but the broader driver-type/section
+vocabulary distinction remains unresolved. John changed `_Specs`' key from `passive_radiator` to
+`'passive-radiator'` at
 `packages/model/src/openisdDriver.ts:237`. `npm run typecheck:model` now exits 0.
 
 ## Symptom (as found)

@@ -28,6 +28,8 @@ const props = withDefaults(defineProps<{
   field?: string;
   base?: string;        // the field's default unit token
   mandatory?: boolean;
+  /** Allow values outside the registry's sanity range so the caller can show a DQ warning. */
+  allowOutOfRange?: boolean;
   // Data-quality flags. `dq` is the field's cell DQ messages (`cell.dq()`); `dqState` the cell's
   // state. The DQ rule (generic): a CALCULATED value that carries DQ is a symptom, not the cause —
   // the ENTERED field(s) carrying the same DQ are the real problem, and get the strong "root"
@@ -39,9 +41,10 @@ const props = withDefaults(defineProps<{
   precision: 2,   // decimal places (fixed); WinISD's most common field width
   step: 'any',
   mandatory: false,
+  allowOutOfRange: false,
 });
 
-const emit = defineEmits<{ 'update:modelValue': [value: number | null] }>();
+const emit = defineEmits<{ 'update:modelValue': [value: number | null]; blur: [] }>();
 
 // Unit-bound mode is active only when the caller supplies the full triple.
 const unitized = computed(() => props.group != null && props.field != null && props.base != null);
@@ -141,6 +144,7 @@ const effMax = computed<number | undefined>(() => props.max ?? regSpec.value?.ma
 // temperature 0 K is the floor). Validation therefore always tests the SI value, NOT the display
 // value: −10 °C is a valid positive Kelvin, so a display-space check would wrongly reject it.
 function valid(si: number): boolean {
+  if (props.allowOutOfRange) return isFinite(si);
   return isFinite(si) && si >= effMin.value && (effMax.value === undefined || si <= effMax.value);
 }
 // The native <input min>/<input max> are DISPLAY-space bounds, so each is the SI bound converted
@@ -208,6 +212,7 @@ function onBlur(e: Event) {
   const t = inputFrom(e);
   if (t === null) return;
   if (t.value !== display.value) t.value = display.value;
+  emit('blur');
 }
 
 // Red-flag an in-progress invalid entry, on the keystroke that makes it invalid rather than on

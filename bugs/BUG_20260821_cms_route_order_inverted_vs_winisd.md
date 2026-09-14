@@ -1,7 +1,8 @@
 # The engine's `Cms` route order is inverted against WinISD's address order
 
 # Status
-OPEN 2026-08-21
+RESOLVED — the current solver evaluates the `Vas/Sd` route before the `Fs/Mms` route, matching
+the WinISD relation order.
 
 ## Symptom
 
@@ -71,3 +72,8 @@ disagree, asserting the `Vas`/`Sd` route (row 10) wins — the same "prefers X o
 ready" pattern used for the `Fs`-route priority tests in
 `packages/engine/test/driver.test.ts`'s `solveConsistencyGroup — Fs route parity with WinISD
 (BUG_20260817)` describe block.
+
+## Audit Recheck
+
+The historical fix section predates the current solver. `packages/design/engine/solver.ts` now
+places the geometry route before the Fs/Mms route, and the current solver tests pass.

@@ -147,7 +147,7 @@ const defaultAir = computed(() => airForEnvironment({
   pressurePa: draft.envDefaults.pressurePa,
 }));
 
-type ColorKey = 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor';
+type ColorKey = 'zeroDb' | 'minus3Db' | 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor';
 const COLOR_ROWS: { key: ColorKey; label: string }[] = [
   { key: 'background', label: 'Background' },
   { key: 'otherLines',  label: 'Other lines' },
@@ -156,7 +156,18 @@ const COLOR_ROWS: { key: ColorKey; label: string }[] = [
   { key: 'cursor',      label: 'Cursor lines' },
 ];
 function colorValue(key: ColorKey): string {
-  return draft.chartColors?.[key] ?? '#888888';
+  return draft.chartColors?.[key] ?? defaultColor(key);
+}
+function defaultColor(key: ColorKey): string {
+  switch (key) {
+    case 'zeroDb': return '#000000';
+    case 'minus3Db': return '#808080';
+    case 'background': return '#ffffff';
+    case 'otherLines': return '#3a7bd5';
+    case 'labels': return '#000000';
+    case 'xmaxLimit': return '#ff0000';
+    case 'cursor': return '#2e8b57';
+  }
 }
 function setColor(key: ColorKey, e: Event) {
   const v = inputValue(e);
@@ -214,34 +225,36 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 
           <fieldset class="opt-group">
             <legend>Environment</legend>
-            <button class="opt-reset-btn" :title="envResetTitle" @click="resetEnvDraft">
-              Reset
-            </button>
             <div class="opt-env-grid">
-              <div class="opt-fld">
-                <label>Temperature</label>
-                <NumInput class="opt-num" :model-value="draft.envDefaults.tempK" @update:model-value="setDraftTemperature" field="advTemp" group="temp" base="K" :precision="2" />
-                <UnitToggle field="advTemp" group="temp" base="K" unit-class="opt-unit" />
+              <div class="opt-env-col">
+                <div class="opt-fld">
+                  <label>Temperature</label>
+                  <NumInput class="opt-num" :model-value="draft.envDefaults.tempK" @update:model-value="setDraftTemperature" field="advTemp" group="temp" base="K" :precision="2" />
+                  <UnitToggle field="advTemp" group="temp" base="K" unit-class="opt-unit" />
+                </div>
+                <div class="opt-fld">
+                  <label>Relative humidity</label>
+                  <NumInput class="opt-num" :model-value="draft.envDefaults.humidityPct" @update:model-value="setDraftHumidity" field="advHumidity" :precision="2" />
+                  <span class="opt-unit">%</span>
+                </div>
+                <div class="opt-fld">
+                  <label>Air pressure</label>
+                  <NumInput class="opt-num" :model-value="draft.envDefaults.pressurePa" @update:model-value="setDraftPressure" field="advPressure" group="pressure" base="Pa" :precision="1" />
+                  <UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="opt-unit" />
+                </div>
               </div>
-              <div class="opt-fld">
-                <label>Air pressure</label>
-                <NumInput class="opt-num" :model-value="draft.envDefaults.pressurePa" @update:model-value="setDraftPressure" field="advPressure" group="pressure" base="Pa" :precision="1" />
-                <UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="opt-unit" />
-              </div>
-              <div class="opt-fld">
-                <label>Relative humidity</label>
-                <NumInput class="opt-num" :model-value="draft.envDefaults.humidityPct" @update:model-value="setDraftHumidity" field="advHumidity" :precision="2" />
-                <span class="opt-unit">%</span>
-              </div>
-              <div class="opt-fld">
-                <label>Sound velocity</label>
-                <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.c, fieldDp('advSoundVelocity'))" readonly />
-                <span class="opt-unit">m/s</span>
-              </div>
-              <div class="opt-fld">
-                <label>Air density</label>
-                <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.rho, fieldDp('advAirDensity'))" readonly />
-                <span class="opt-unit">kg/m³</span>
+              <div class="opt-env-col opt-env-calculated-col">
+                <div class="opt-fld">
+                  <label>Sound velocity</label>
+                  <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.c, fieldDp('advSoundVelocity'))" readonly disabled aria-label="Sound velocity, calculated" />
+                  <span class="opt-unit">m/s</span>
+                </div>
+                <div class="opt-fld">
+                  <label>Air density</label>
+                  <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.rho, fieldDp('advAirDensity'))" readonly disabled aria-label="Air density, calculated" />
+                  <span class="opt-unit">kg/m³</span>
+                </div>
+                <button class="opt-reset-btn" :title="envResetTitle" @click="resetEnvDraft">Reset to defaults</button>
               </div>
             </div>
           </fieldset>
@@ -258,18 +271,29 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
           <fieldset class="opt-group">
             <legend>Colors</legend>
             <div class="opt-color-grid">
-              <div class="opt-color-row" v-for="row in COLOR_ROWS" :key="row.key">
-                <label>{{ row.label }}</label>
-                <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
-                <button class="opt-clear-btn" title="Revert to the app's own color" @click="clearColor(row.key)">↺</button>
+              <div class="opt-color-col">
+                <div class="opt-color-row" title="WinISD's normalized transfer-function zero line; OpenISD has no separate normalized transfer-function chart yet.">
+                  <label>0 dB line</label>
+                  <input type="color" :value="colorValue('zeroDb')" @input="setColor('zeroDb', $event)" />
+                  <button class="opt-clear-btn" title="Reset to black" @click="clearColor('zeroDb')">↺</button>
+                </div>
+                <div class="opt-color-row" title="WinISD's normalized transfer-function -3 dB line; OpenISD has no separate normalized transfer-function chart yet.">
+                  <label>-3dB line</label>
+                  <input type="color" :value="colorValue('minus3Db')" @input="setColor('minus3Db', $event)" />
+                  <button class="opt-clear-btn" title="Reset to grey" @click="clearColor('minus3Db')">↺</button>
+                </div>
+                <div class="opt-color-row" v-for="row in COLOR_ROWS.filter(row => row.key === 'background')" :key="row.key">
+                  <label>{{ row.label }}</label>
+                  <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
+                  <button class="opt-clear-btn" title="Revert to the app's own color" @click="clearColor(row.key)">↺</button>
+                </div>
               </div>
-              <div class="opt-color-row opt-disabled" title="WinISD draws this on its 0 dB-normalized &quot;Transfer function magnitude&quot; chart — OpenISD's SPL chart plots absolute dB SPL, not a normalized transfer function, so there is no chart to draw this reference line on yet.">
-                <label>0 dB line</label>
-                <input type="color" value="#000000" disabled />
-              </div>
-              <div class="opt-color-row opt-disabled" title="Same gap as 0 dB line above — no normalized transfer-function chart to draw an F3 reference line on yet.">
-                <label>-3dB line</label>
-                <input type="color" value="#808080" disabled />
+              <div class="opt-color-col">
+                <div class="opt-color-row" v-for="row in COLOR_ROWS.filter(row => row.key !== 'background')" :key="row.key">
+                  <label>{{ row.label }}</label>
+                  <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
+                  <button class="opt-clear-btn" title="Revert to the app's own color" @click="clearColor(row.key)">↺</button>
+                </div>
               </div>
             </div>
           </fieldset>
@@ -316,7 +340,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
    those same class names here would leak the shell's positioning/sizing onto this modal. */
 .opt-overlay { position: fixed; inset: 0; background: rgba(4, 8, 14, 0.66); display: flex;
   align-items: center; justify-content: center; z-index: 200; }
-.opt-modal { width: min(460px, 92vw); max-height: 86vh; display: flex; flex-direction: column;
+ .opt-modal { width: min(470px, 92vw); max-height: 94vh; display: flex; flex-direction: column;
   background: var(--panel); border: 1px solid var(--line); border-radius: 9px; overflow: hidden;
   color: var(--fg); }
 .opt-h2 { margin: 0; font-size: 14px; padding: 11px 14px; border-bottom: 1px solid var(--line);
@@ -339,7 +363,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
   display: flex; flex-direction: column; gap: 10px; }
 .opt-group { border: 1px solid var(--line); border-radius: 5px; padding: 10px 12px; margin: 0; }
 .opt-group legend { padding: 0 6px; font-size: 11px; color: var(--mut); }
-.opt-reset-btn { width: 100%; padding: 6px 0; cursor: pointer; margin-bottom: 8px; }
+.opt-reset-btn { width: max-content; padding: 4px 12px; cursor: pointer; margin-top: 2px; }
 .opt-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
 .opt-ok { font-weight: 600; }
 .opt-defaults-btn { margin-right: auto; cursor: pointer; }
@@ -348,17 +372,24 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 .opt-row label { flex: 0 0 90px; color: var(--mut); }
 .opt-input { flex: 1; padding: 4px 6px; }
 
-/* Single column, not a 2-up grid: a 1fr grid track defaults to min-width:auto, so it can never
-   shrink below its content's intrinsic width (label + fixed-width input + unit) — with labels
-   like "Relative humidity" that overflowed the modal's fixed width and got clipped by its
-   `overflow: hidden`. Stacking avoids the whole class of bug and matches .opt-row above. */
-.opt-env-grid { display: flex; flex-direction: column; gap: 8px; }
-.opt-fld { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-.opt-fld label { flex: 0 0 120px; color: var(--mut); }
+/* Keep the three editable constants on the left and the two calculated readouts on the right. */
+.opt-env-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 14px; }
+.opt-env-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.opt-fld { display: flex; align-items: center; gap: 3px; font-size: 12px; min-width: 0; }
+.opt-fld label { flex: 0 0 90px; color: var(--mut); white-space: nowrap; }
 .opt-checkbox-row { grid-column: 1 / -1; }
 .opt-check-label { display: flex; align-items: center; gap: 6px; color: var(--mut); }
 .opt-num,
 .opt-body :deep(.opt-num) { width: 150px; padding: 3px 5px; }
+.opt-env-grid .opt-num,
+.opt-env-grid :deep(.opt-num) { width: 96px; }
+.opt-env-col:first-child .opt-num,
+.opt-env-col:first-child :deep(.opt-num) { width: 82px; flex: 0 0 82px; }
+.opt-env-calculated-col .opt-fld { gap: 3px; }
+.opt-env-calculated-col .opt-fld label { flex-basis: 86px; }
+.opt-env-calculated-col .opt-num,
+.opt-env-calculated-col :deep(.opt-num) { width: 64px; }
+.opt-env-calculated-col .opt-reset-btn { align-self: flex-end; margin-top: 2px; }
 .opt-greyed { color: var(--mut); }
 .opt-unit { font-size: 11px; color: var(--mut); min-width: 2.2em; }
 
@@ -374,17 +405,18 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
   appearance: none;
 }
 
-.opt-color-grid { display: grid; gap: 6px; }
-.opt-color-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-.opt-color-row label { flex: 1; color: var(--mut); }
+.opt-color-grid { display: grid; grid-template-columns: max-content max-content; gap: 14px 30px; }
+.opt-color-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.opt-color-row { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.opt-color-row label { flex: 0 0 88px; color: var(--mut); }
 .opt-color-row input[type="color"] { width: 32px; height: 22px; padding: 0; border: 1px solid var(--line); cursor: pointer; }
 .opt-color-row.opt-disabled input[type="color"] { cursor: not-allowed; opacity: 0.5; }
 .opt-clear-btn { border: 1px solid var(--line); background: var(--panel2); color: var(--mut);
   cursor: pointer; font-size: 12px; width: 22px; height: 22px; line-height: 1; }
 
-.opt-limits { width: 100%; border-collapse: collapse; font-size: 11px; }
+.opt-limits { width: auto; border-collapse: collapse; font-size: 11px; }
 .opt-limits th, .opt-limits td { padding: 3px 4px; text-align: left; }
 .opt-limits th { color: var(--mut); font-weight: 500; border-bottom: 1px solid var(--line); }
 .opt-limits .opt-num,
-.opt-limits :deep(.opt-num) { width: 90px; }
+.opt-limits :deep(.opt-num) { width: 70px; }
 </style>

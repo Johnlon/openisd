@@ -462,4 +462,18 @@ describe('browser storage project door', () => {
     assert.deepEqual(restored.projects.map(project => project.name.get()), ['Open project one', 'Open project two']);
     assert.equal(restored.focusedIndex, 1);
   });
+
+  it('reads projects saved under the previous browser-storage keys', () => {
+    const project = projectOf('sealed', {
+      name: 'Legacy saved project', creator: 'Synthetic', created: '2026-01-11',
+      modified: '2026-01-12', description: '',
+    }, sampleDriverRecord());
+    const storage = createMemoryStorage({ 'openisd.project': project.toOwprText() });
+    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+
+    const restored = storageRepo.loadFromStorage();
+
+    assert.ok(!Array.isArray(restored) && restored);
+    assert.equal(restored.name.get(), 'Legacy saved project');
+  });
 });

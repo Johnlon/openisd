@@ -1,6 +1,7 @@
 # My Drivers specs seed the pre-migration localStorage shape, so no saved driver ever loads
 
-Status: OPEN
+Status: RESOLVED — affected browser fixtures now seed the versioned UUID envelope used by the
+current My Drivers repository.
 
 ## Symptom
 

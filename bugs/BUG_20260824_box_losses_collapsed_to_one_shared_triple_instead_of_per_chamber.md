@@ -1,6 +1,8 @@
 # BUG_20260824 — box losses (Ql/Qa/Qp) are one shared triple, not per-chamber like WinISD
 
-Status: SUPERSEDED by the `packages/design` rebuild (2026-08-26) — not fixed in place, and
+Status: PARTIAL — the `packages/design` rebuild stores chamber-specific loss variants, but the
+connecting port's own loss shape remains unverified. The old shared-triple implementation was
+superseded by the rebuild.
 deliberately so. `packages/model` is being REPLACED by `packages/design`, not repaired, so
 patching this defect in the old model would be work thrown away. The replacement does not carry
 the defect: `packages/design` stores a `LossesJson` PER CHAMBER, and each chamber exposes only the

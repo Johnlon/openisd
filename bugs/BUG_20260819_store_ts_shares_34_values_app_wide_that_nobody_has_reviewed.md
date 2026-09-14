@@ -1,7 +1,9 @@
 # store.ts shares 34 values with the whole app, and nobody has reviewed whether they should be
 
 # Status
-OPEN — the ten dead exports are removed from `store.ts` (task A1, 2026-08-21: eight deleted,
+OBSOLETE/SUPERSEDED — the cited `store.ts` global-state architecture was replaced by
+`appState` and project-owned state. The ten dead exports are removed from `store.ts` (task A1,
+2026-08-21: eight deleted,
 `curveIssues`/`restoreProblems` un-exported but kept internal); the gate's offence list now
 reads 34, and the review of those remaining 34 is what stays open for the human.
 

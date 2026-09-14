@@ -1,6 +1,7 @@
 # Bundled passive radiators have no producer, so that browser section is always empty
 
-Status: OPEN
+Status: RESOLVED — the bundle now emits passive-radiator records and the browser repository
+constructs its bundled passive-radiator entries from that collection.
 
 ## Symptom
 
@@ -64,3 +65,8 @@ must not read the same, or the next such failure is equally silent.
 Not yet verified — no fix applied. When applied: if (1), the bundle JSON must contain a
 non-empty `passiveRadiators` array and the browser must list them; if (2), no reference to
 `BundledPR` remains and the PR browser shows only saved radiators.
+
+## Audit Recheck
+
+The historical verification note predates the current bundle producer. The bundle now emits
+`passiveRadiators`, and the browser repository consumes that collection. The report is resolved.

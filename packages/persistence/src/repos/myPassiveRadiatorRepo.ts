@@ -8,8 +8,9 @@ import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import type { Engine } from '@openisd/design/engine';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 import { createSavedEntries, type BrokenEntry, type SavedEntries } from './savedEntries.js';
+import { OPENISD_MY_PASSIVE_RADIATORS_KEY } from './storageKeys.js';
 
-export const MY_PASSIVE_RADIATORS_KEY = 'openisd_my_passive_radiators';
+export const MY_PASSIVE_RADIATORS_KEY = OPENISD_MY_PASSIVE_RADIATORS_KEY;
 
 export type MyPassiveRadiatorsRead =
   /** Bucket readable. `broken` entries are preserved in storage and surfaced, never hidden. */

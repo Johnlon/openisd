@@ -90,3 +90,8 @@ packages/ui/test/db/bundle-drivers-disposition.test.ts` — 9/9 pass. `npx vue-t
 It blocks the catalogue-index work (QO60 objective 4): the index is to be built at runtime from
 records via the real `OpenISDDriver`, which cannot happen while the shipped records are
 unreadable by it.
+
+## Audit Recheck
+
+The historical "Not fixed yet" note above predates the current implementation. The current
+bundle carries canonical records, and the cited bundle tests pass. This report is resolved.

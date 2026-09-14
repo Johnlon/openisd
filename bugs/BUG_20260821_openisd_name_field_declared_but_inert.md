@@ -1,6 +1,7 @@
 # `name?: _DerivedField<string>` is declared on the record but has no producer and no consumer
 
-Status: OPEN
+Status: OBSOLETE/SUPERSEDED — the old driver-record `name` field was removed by the current
+domain schema; project naming is now owned by the project domain object.
 
 ## Symptom
 

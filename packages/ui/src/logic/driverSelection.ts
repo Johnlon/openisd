@@ -1,12 +1,7 @@
 import { OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
 import { requireFocusedProject } from './appState.js';
 import { presentationState } from './presentationState.js';
-
-// A driver-file/YAML parse needs an `Engine` to build the resulting `OpenISDDriver` against
-// (`driverFromOpenIsdYml`'s own signature) — cheap and stateless (`Engine.ts`: no constructor
-// args, no I/O), so a fresh instance per module is the same pattern `appState.ts` uses.
-const engine = new Engine();
+import { owdrTextToDriver, wdrTextToDriver } from './fileImportExport.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
 //
@@ -65,19 +60,15 @@ export type FileReadResult =
  * invented value.
  */
 export function driverFromFileText(text: string, format: 'wdr' | 'owdr', fileName: string): FileReadResult {
-  // GAP (fork investigation 2026-09-07, PLAN_DELETE_PACKAGES_MODEL.md §4b/§4c/§4e): `.wdr` has
-  // no conversion to an `OpenISDDeviceJson`/`OpenISDDriver` yet — same blocker as `modelOf()`
-  // above. Only `.owdr` (OpenISD YAML) can be read here until that mapper exists.
-  if (format === 'wdr') {
-    return { ok: false, error: `${fileName}: reading a .wdr file is not supported yet (no WDR-to-OpenISD conversion exists)` };
-  }
-
-  const driver = OpenISDDriver.fromOwdrText(text, engine);
-  if (Array.isArray(driver)) return { ok: false, error: driver[0] ?? `${fileName} could not be read` };
+  const parsed = format === 'wdr' ? wdrTextToDriver(text) : owdrTextToDriver(text);
+  if (!parsed.value) return { ok: false, error: parsed.errors[0]?.message ?? `${fileName} could not be read` };
+  const driver = parsed.value;
 
   // A driver IS its <brand>/<model>, so one with neither cannot be filed. The file name is the
   // last thing that can name it; if that is empty too, say so rather than saving it nameless.
-  if (!driver.brand.get().value && !driver.model.get().value) {
+  const brand = driver.brand.get().value?.trim().toLowerCase();
+  const model = driver.model.get().value?.trim().toLowerCase();
+  if ((!brand || brand === 'n/a') && (!model || model === 'n/a')) {
     const base = fileName.replace(/\.[^.]*$/, '').trim();
     if (!base) return { ok: false, error: `${fileName} carries no brand or model, and its name gives none` };
     driver.model.set(base);

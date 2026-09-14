@@ -1,6 +1,7 @@
 # Six architecture gates name deleted files, so four error out and two guard nothing
 
-Status: OPEN
+Status: RESOLVED — the architecture gates now target current package paths and execute their
+intended checks.
 
 ## Symptom
 

@@ -7,8 +7,9 @@
  *  repo only ever needs local persistence. */
 import type { ViewSnapshot } from './projectRepo.js';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
+import { OPENISD_VIEW_KEY } from './storageKeys.js';
 
-export const VIEW_STATE_KEY = 'openisd.view';
+export const VIEW_STATE_KEY = OPENISD_VIEW_KEY;
 
 export interface ViewStateRepo {
   /** Autosave to browser storage. Quota/disabled storage is non-fatal, same as

@@ -1,7 +1,8 @@
 # A browser test finds two Fsc boxes on screen and refuses to pick one, so the test errors
 
 ## Status
-OPEN 2026-08-18 — found while verifying an unrelated change (local-alias computed removal);
+RESOLVED — the selector is now scoped to the intended sealed readout. Found while verifying an
+unrelated change (local-alias computed removal);
 confirmed pre-existing by re-running against the stashed-out (pre-change) versions of
 `OriginalShell.vue`/`DiagnosticsModal.vue` — identical failure, so not caused by that change.
 

@@ -1,6 +1,7 @@
 # The Tune what-if panel's open/closed state is a single global flag — switching focus to another project while Tune is open edits that OTHER project directly, with no what-if protection
 
-Status: OPEN — not fixed. Found while writing a multi-project browser-spec regression test for
+Status: RESOLVED — Tune closes before focus changes, so a what-if cannot silently follow another
+project. Found while writing a multi-project browser-spec regression test for
 the `PROMPT_RELEASE_HARDENING` plan (item 1, the tab UI wired onto the real registry).
 
 ## Symptom

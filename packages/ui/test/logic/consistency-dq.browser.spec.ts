@@ -163,3 +163,41 @@ test('Tune what-if: hovering or clicking the alert icon displays the custom form
   await expect(tooltip).toBeHidden();
 });
 
+test('chart failure lists the missing circuit values returned by the sweep', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/');
+  await openAProject(page, COMPLETE_OWPR);
+
+  await page.evaluate(async () => {
+    const modPath = '/src/logic/appState.ts';
+    const appState = await import(/* @vite-ignore */ modPath);
+    const project = appState.requireFocusedProject();
+    const spec = project.driver.spec[project.driver.section];
+    spec.Fs_hz.set(null);
+    spec.Re_ohm.set(null);
+    spec.Qts.set(null);
+    spec.Qes.set(null);
+    spec.Qms.set(null);
+    spec.Vas_m3.set(null);
+    spec.Sd_m2.set(null);
+    spec.Dd_m.set(null);
+    spec.BL_Tm.set(null);
+    spec.Mms_kg.set(null);
+    spec.Cms_m_per_N.set(null);
+    spec.Rms_kg_per_s.set(null);
+    spec.EBP_hz.set(null);
+    spec.no.set(null);
+    spec.Rme_kg_per_s.set(null);
+  });
+
+  const chartMessage = page.locator('.gmsg');
+  await expect(chartMessage).toBeVisible();
+  await expect(chartMessage).toContainText('Sd_m2');
+  await expect(chartMessage).toContainText('Re_terminal_ohm');
+  await expect(chartMessage).toContainText('BL_terminal_Tm');
+  await expect(chartMessage).toContainText('Cms_m_per_N');
+  await expect(chartMessage).toContainText('Mms_kg');
+  await expect(chartMessage).toContainText('Rms_kg_per_s');
+  await expect(chartMessage).not.toContainText('Simulation produced no usable values');
+});

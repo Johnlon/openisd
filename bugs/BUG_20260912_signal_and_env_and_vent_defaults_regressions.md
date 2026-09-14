@@ -1,7 +1,8 @@
 # BUG — signal, environment and vent defaults/regressions: blank fields, values that reset, and a broken chart
 
 Date: 2026-09-12. Reported by the human after the domain-refactor commit (`a470c9e`).
-Status: FIXED (all items) — TDD (failing test first) + UI functional test per item; 14 new
+Status: PARTIAL — the signal and vent items are fixed, but the environment defaults still have a
+browser regression. TDD (failing test first) + UI functional test per item; 14 new
 browser tests green, unit 2610/2610, lint 0, typecheck clean.
 
 ## Signal tab

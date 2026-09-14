@@ -14,9 +14,9 @@ import type { Engine } from '@openisd/design/engine';
  * One driver record in the pre-built bundle, as `scripts/bundle-drivers.mjs` emits it.
  *
  * `record` is typed `OpenISDDriverJson` — the honest name for what the bundler actually
- * wrote. `scripts/bundle-drivers.mjs` copies each driver's canonical record into the artifact
- * verbatim, so this field IS one; calling it anything wider or opaquer would hide that fact
- * from the reader without changing a single byte that crosses.
+ * wrote. `scripts/bundle-drivers.mjs` copies each driver's canonical record, including its
+ * UUID, into the artifact verbatim, so this field IS one; calling it anything wider or opaquer
+ * would hide that fact from the reader without changing a single byte that crosses.
  *
  * The value is still only ever OPENED once, at `bundledEntry()`, via
  * `OpenISDDriver.fromJsonRecord()` — bundled drivers ship inside this build's own dist and

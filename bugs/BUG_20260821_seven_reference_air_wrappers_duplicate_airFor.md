@@ -1,4 +1,5 @@
-Status: OPEN
+Status: PARTIAL — most duplicate wrappers were removed, but the UI still exposes reference-air
+wrappers in `logic/environment.ts`.
 
 # Seven local reference-air wrappers duplicate `airFor({})`
 

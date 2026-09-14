@@ -1,6 +1,7 @@
 # BUG_20260825 — an open what-if is cancelled by the autosave watcher on the very next tick
 
-Status: OPEN — not yet fixed. Found while investigating persistence timing for a `packages/design` architecture discussion.
+Status: RESOLVED — autosave serializes the project session without replacing the edit layer. Found
+while investigating persistence timing for a `packages/design` architecture discussion.
 
 ## Symptom
 

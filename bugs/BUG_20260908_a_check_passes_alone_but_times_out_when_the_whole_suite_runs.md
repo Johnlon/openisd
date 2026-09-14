@@ -1,6 +1,7 @@
 # A check passes on its own but times out when the whole suite runs, so it reports a false failure
 
-Status: OPEN
+Status: RESOLVED — the architecture check now uses a restricted TypeScript project and completes
+within the suite without the prior whole-program timeout.
 
 ## Symptom
 

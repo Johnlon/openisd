@@ -80,7 +80,7 @@ changes which layer resolves; there is no third state.
 
 ## What persists
 
-`localStorage` (`openisd.state`) and the share link carry the **committed design** only —
+`localStorage` (`openisd_state`) and the share link carry the **committed design** only —
 box, params, the driver with its marks, project metadata, and local presentation prefs.
 Drafts and active what-ifs are deliberately excluded: an uncommitted value must never come
 back after a refresh looking like a decision the user made.

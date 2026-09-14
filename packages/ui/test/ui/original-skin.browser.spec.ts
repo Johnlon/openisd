@@ -666,7 +666,7 @@ test('R1: an open Driver Editor is reopened after a reload', async ({ page }) =>
   await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.overlay.on')).toContainText("Edit Project's Driver");
 
-  await page.waitForFunction(() => (localStorage.getItem('openisd.state') || '').includes('originalEditorOpen'),
+  await page.waitForFunction(() => (localStorage.getItem('openisd_state') || '').includes('originalEditorOpen'),
     undefined, { timeout: 5000 });
   await page.reload();
   await expect(page.locator('.overlay.on')).toContainText("Edit Project's Driver"); // reopened after refresh
@@ -678,7 +678,7 @@ test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
 
-  await page.waitForFunction(() => (localStorage.getItem('openisd.state') || '').includes('originalTuneOpen'),
+  await page.waitForFunction(() => (localStorage.getItem('openisd_state') || '').includes('originalTuneOpen'),
     undefined, { timeout: 5000 }); // the open-panel flag is persisted
   await page.reload();
 
@@ -695,7 +695,7 @@ test('R1 refresh fidelity: box type, active tab, and selected chart survive a re
   await page.locator('.chart-select').click();
   await page.locator('.chart-select .menu-item', { hasText: /^Cone excursion$/ }).click();
 
-  await page.waitForFunction(() => (localStorage.getItem('openisd.state') || '').includes('Cone excursion')); // persist flushed
+  await page.waitForFunction(() => (localStorage.getItem('openisd_state') || '').includes('Cone excursion')); // persist flushed
   await page.reload();
 
   await expect(page.locator('.original-root')).toBeVisible();
@@ -923,11 +923,11 @@ test('Original skin: Options modal input boxes are 50% wider and do not show spi
   const appearance = await envInput.evaluate(el => window.getComputedStyle(el).webkitAppearance);
   expect(appearance).toBe('none');
 
-  // Plot Window tab: Limit input boxes should be 90px wide
+  // Plot Window tab: Limit input boxes stay compact at 70px wide
   await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
   const limitInput = page.locator('.opt-limits .opt-num').first();
   const limitInputWidth = await limitInput.evaluate(el => window.getComputedStyle(el).width);
-  expect(limitInputWidth).toBe('90px');
+  expect(limitInputWidth).toBe('70px');
 });
 
 test('Original skin: Options dialog edits are draft-only and discard on Cancel, apply on OK, and reset on Defaults', async ({ page }) => {
@@ -1065,6 +1065,7 @@ test('Original skin: Project Modified styling (yellow highlight/is-unsaved class
   // 5. Swap to "Copy of Generic 6.5\" Woofer"
   await wooferRow.click();
   await expect(wooferRow).toHaveClass(/selected/);
+  await expect(tweeterRow).toHaveClass(/is-unsaved/);
 
   // 6. Swap back to "Modified Tweeter"
   await tweeterRow.click();

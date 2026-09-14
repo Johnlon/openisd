@@ -1481,6 +1481,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return OpenISDDriverStandalone.wrap(structuredClone(this.record.get()), this.engine);
     }
 
+    /** An independent standalone copy with a new record identity. Used when a driver crosses into
+     * a new owner, such as a project embedding or an explicit user copy. */
+    copyAsNew(): OpenISDDriver {
+        const copy = this.cloneDriver();
+        copy.uuid = { value: newUuid() };
+        return OpenISDDriverStandalone.wrap(copy, this.engine);
+    }
+
     /** @internal The record a save writes, deep-cloned. Same seam as
      *  `OpenISDProject.cloneProject()` — the persistence layer's one way to reach the raw record
      *  it stores, never field by field. Clones before handing it out, so the caller can store or
@@ -1507,9 +1515,17 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     /** Make this driver a copy: its `model` states so, so `<brand>/<model>` differs from the
      *  driver it was copied from and the two stand side by side rather than one replacing the
-     *  other. Called on a detached copy, before it is saved. */
+     *  other. Called on a detached copy, before it is saved; a copy is a new record identity. */
     renameToCopy(): void {
         this.model.set('Copy of ' + (this.model.get().value ?? ''));
+        const copy = this.cloneDriver();
+        copy.uuid = { value: newUuid() };
+        this.record.set(copy);
+    }
+
+    /** The stable identity carried by the canonical driver record. */
+    uuid(): string {
+        return this.record.get().uuid.value;
     }
 
     /** The catalogue URL recorded for one source role — datasheet, product page, listing page —
@@ -1873,6 +1889,12 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
  * `driver` and `box` are live WINDOWS over slices of whichever record is current — reads and
  * writes go straight through, never to a disconnected copy.
  */
+function freshEmbeddedDriver(json: OpenISDProjectJson): OpenISDProjectJson {
+    const copy = structuredClone(json);
+    copy.driverEmbedding.device.uuid = {value: newUuid()};
+    return copy;
+}
+
 export class OpenISDProject {
     static builder(driver: OpenISDDriver, engine: Engine): ProjectBuilder {
         return new ProjectBuilder(driver, engine);
@@ -1945,7 +1967,7 @@ export class OpenISDProject {
      *  Array-level facts (`nDrivers`, `wiring`, ...) are untouched; only `driverEmbedding.device`
      *  changes. */
     setDriver(source: OpenISDDriver): void {
-        this.driver.update(source);
+        this.driver.update(source.copyAsNew());
         this.#resynchronizeSignalVoltage();
     }
 
@@ -1957,7 +1979,7 @@ export class OpenISDProject {
         if (source instanceof OpenISDDriverEmbedded) {
             throw new Error('loadDriver(): source must be a standalone OpenISDDriver, not an embedded project driver');
         }
-        this.driver.update(source);
+        this.driver.update(source.copyAsNew());
         this.#resynchronizeSignalVoltage();
     }
 
@@ -2124,7 +2146,7 @@ export class OpenISDProject {
      *  wraps of one record are two independently editable projects, which is what opening a FILE
      *  twice should give. */
     static wrap(json: OpenISDProjectJson, engine: Engine): OpenISDProject {
-        return this.wrapWithIdentity(json, newUuid(), engine);
+        return this.wrapWithIdentity(freshEmbeddedDriver(json), newUuid(), engine);
     }
 
     /**
@@ -2143,9 +2165,9 @@ export class OpenISDProject {
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
     static wrapSession(session: OpenISDProjectSessionJson, uuid: string, engine: Engine): OpenISDProject {
-        const project = new OpenISDProject(session.saved, uuid, engine);
+        const project = new OpenISDProject(freshEmbeddedDriver(session.saved), uuid, engine);
         if (session.edited) {
-            project.#edited = session.edited;
+            project.#edited = freshEmbeddedDriver(session.edited);
         }
         return project;
     }

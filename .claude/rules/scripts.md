@@ -23,7 +23,7 @@ first.
 | `start-http.sh` | Vite dev on 4000: health-check, kill port, start in bg, PID to `.server-4000.pid` |
 | `stop-http.sh` | Stop the server on 4000 |
 | `kill-http.sh [port …]` | Kill processes on ports. Never call ad-hoc |
-| `preview-4000.sh` | Kill 4000–4005, start `vite preview` on 4000 |
+| `preview-4000.sh` | Restart the Vite development server with HMR on 4000; serves live source, not `dist/` |
 | `build-release.sh` | Production dist build (`GITHUB_PAGES=true`). Release workflow only |
 | `health-check.sh` | Lint, typecheck, unit tests, browser tests |
 | `archive-bugs.py` | Move closed bugs to `bugs/archive/` and stage them |

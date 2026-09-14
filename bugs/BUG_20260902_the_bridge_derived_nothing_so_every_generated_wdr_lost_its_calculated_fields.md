@@ -1,6 +1,6 @@
 # The bridge derived nothing, so every generated .wdr lost its calculated fields
 
-**Status:** FIXED (derivation), one field outstanding (`Dia`)
+**Status:** PARTIAL (derivation fixed), one field remains outstanding (`Dia`)
 **Found:** 2026-09-02 by John, on seeing a regenerated ParState row with no `C` marks.
 
 ## Symptom

@@ -1,3 +1,5 @@
+Status: RESOLVED
+
 # c/roo/VCCon read as `not-available` on the driver itself; their calculated default only shows up at `.wdr` export
 
 **Found:** 2026-09-05, reviewing `packages/design/domain/project.ts`'s spec-field `clear()`
@@ -52,7 +54,7 @@ a hole instead of the real, always-defined value — e.g. the UI showing "not av
 conditions or coil wiring on a driver that has never been exported, when WinISD itself always
 shows a value for both.
 
-## Not fixed here
+## Historical Not-fixed Note
 
 Needs a decision on where the calculated default is computed (the field's own getter needs an
 `Engine` reference it does not currently hold — every other derivable field's `not-available`
@@ -64,3 +66,8 @@ having one always). Flagged rather than fixed pending that design call.
 A test asserting `driver.spec[section].c_m_per_s.get()` (no export step) returns
 `{value: <engine.airFor({}).c>, state: 'calculated'}` on a fresh, unentered driver, and the same
 for `roo_kg_per_m3` and `VCCon` (`{value: 'parallel', state: 'calculated'}`).
+
+## Audit Recheck
+
+The current getter and `wdr-model-coverage.test.ts` now satisfy those assertions directly; the
+historical pending note is closed.

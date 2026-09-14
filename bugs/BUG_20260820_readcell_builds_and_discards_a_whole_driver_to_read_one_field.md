@@ -1,4 +1,5 @@
-Status: OPEN
+Status: OBSOLETE/SUPERSEDED — the cited `packages/model` `readCell` implementation no longer
+exists after the domain rebuild.
 
 # `readCell` builds an entire `OpenISDDriver` to read ONE field, then throws it away
 

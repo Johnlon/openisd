@@ -69,6 +69,21 @@ test('no project does not wall off the toolbar’s global actions', async ({ pag
   const eqTransferMagnitude = opt.locator('tr', { hasText: 'EQ transfer func mag' });
   await expect(eqTransferMagnitude.locator('input').nth(0)).toHaveValue('-40');
   await expect(eqTransferMagnitude.locator('input').nth(1)).toHaveValue('20');
+  const colorColumns = opt.locator('.opt-color-col');
+  await expect(colorColumns).toHaveCount(2);
+  await expect(colorColumns.nth(0)).toContainText('0 dB line');
+  await expect(colorColumns.nth(0)).toContainText('-3dB line');
+  await expect(colorColumns.nth(0)).toContainText('Background');
+  await expect(colorColumns.nth(1)).toContainText('Other lines');
+  await expect(colorColumns.nth(1)).toContainText('Labels');
+  await expect(colorColumns.nth(1)).toContainText('Xmax limit');
+  await expect(colorColumns.nth(0).locator('input[type="color"]').nth(0)).toHaveValue('#000000');
+  await expect(colorColumns.nth(0).locator('input[type="color"]').nth(1)).toHaveValue('#808080');
+  await expect(colorColumns.nth(0).locator('input[type="color"]').nth(2)).toHaveValue('#ffffff');
+  await expect(colorColumns.nth(1).locator('input[type="color"]').nth(0)).toHaveValue('#3a7bd5');
+  await expect(colorColumns.nth(1).locator('input[type="color"]').nth(1)).toHaveValue('#000000');
+  await expect(colorColumns.nth(1).locator('input[type="color"]').nth(2)).toHaveValue('#ff0000');
+  await expect(colorColumns.nth(1).locator('input[type="color"]').nth(3)).toHaveValue('#2e8b57');
   await page.keyboard.press('Escape');
   await expect(opt).toBeHidden();
 

@@ -1,4 +1,5 @@
-Status: OPEN
+Status: RESOLVED — current UI/domain paths pass live project and driver objects; record
+serialization is confined to persistence/format boundaries.
 
 # The driver RECORD is passed between functions as currency, not written to a file
 

@@ -9,7 +9,7 @@
 **Where:** `packages/model/src/openisdProject.ts:734`, used at `:780` (sealed) and `:789`
 (bandpass4 rear).
 
-**Status:** CONFIRMED — cause known, fix known, NOT YET APPLIED.
+**Status:** RESOLVED — current WPR export uses the domain's loss-aware sealed resonance value.
 
 Reported by John ("seems a bug if not used anywhere except creating wpr"). The question that was
 open when this file was first written — what WinISD itself writes into `[Box] Fr` — is now
@@ -98,3 +98,9 @@ construction, which is the principle the vented branch already states thirty lin
 
 **Still open:** how often the fallback fires. `peak` is null when there is no driver or no curve —
 the state before a sweep has run — so the practical blast radius is unmeasured.
+
+## Audit Recheck
+
+The current domain bridge takes `box.sealed.resonance_hz`, which is loss-aware, rather than the
+old lossless fallback described above. The historical fix section is retained as evidence of the
+original defect; the implementation is resolved.

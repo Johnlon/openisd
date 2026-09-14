@@ -17,10 +17,10 @@
  *     work, and throwing it away to clear an error destroys the evidence too.
  */
 
-const STATE_KEY = 'openisd.state';
+const STATE_KEY = 'openisd_state';
 /** Where `applyState` sets a refused record aside, so a one-field repair stays possible
  *  after the autosave has overwritten the live state. */
-const QUARANTINE_KEY = 'openisd.quarantine.driver';
+const QUARANTINE_KEY = 'openisd_quarantine_driver';
 
 export interface Fault {
   /** Monotonic id so the UI can key a list without an index. */
@@ -174,11 +174,11 @@ export const QUICK_FIXES: readonly QuickFix[] = [
     // Last resort, and it says so. Offered only when something is actually stored, so it is
     // never the sole option on a machine with nothing to clear.
     probe: () => {
-      try { return Object.keys(localStorage).some(k => k.startsWith('openisd.')); }
+      try { return Object.keys(localStorage).some(k => k.startsWith('openisd_')); }
       catch { return false; }
     },
     apply: () => {
-      const keys = Object.keys(localStorage).filter(k => k.startsWith('openisd.'));
+      const keys = Object.keys(localStorage).filter(k => k.startsWith('openisd_'));
       for (const k of keys) localStorage.removeItem(k);
       return `Removed ${keys.length} key(s): ${keys.join(', ')}.`;
     },
@@ -221,7 +221,7 @@ export function createFaultLog(): FaultLog {
     report: () => {
       const stored = (() => {
         try {
-          return Object.keys(localStorage).filter(k => k.startsWith('openisd.'))
+          return Object.keys(localStorage).filter(k => k.startsWith('openisd_'))
             .map(k => `${k}: ${(localStorage.getItem(k) ?? '').length} bytes`).join('\n  ');
         } catch { return '(localStorage unavailable)'; }
       })();

@@ -20,6 +20,16 @@ test('air density is shown beside sound velocity, both at WinISD\'s own values',
   await expect(airDensity(page)).toHaveValue('1.20096');
 });
 
+test('calculated air readouts stay with the three editable air constants', async ({ page }) => {
+  const airFields = page.locator('.adv-air-fields');
+  await expect(airFields.locator('label', { hasText: 'Temperature' })).toBeVisible();
+  await expect(airFields.locator('label', { hasText: 'Relative humidity' })).toBeVisible();
+  await expect(airFields.locator('label', { hasText: 'Air pressure' })).toBeVisible();
+  await expect(airFields.locator('label', { hasText: 'Sound velocity' })).toBeVisible();
+  await expect(airFields.locator('label', { hasText: 'Air density' })).toBeVisible();
+  await expect(airFields.locator('input[readonly]')).toHaveCount(2);
+});
+
 test('relative humidity moves both readouts — the input is not inert', async ({ page }) => {
   await humidity(page).fill('100');
   await humidity(page).blur();
@@ -55,7 +65,7 @@ test('a project\'s stored humidity survives a reload — not reset to the Option
   await humidity(page).blur();
 
   await expect.poll(async () => {
-    const raw = await page.evaluate(() => localStorage.getItem('openisd.state'));
+    const raw = await page.evaluate(() => localStorage.getItem('openisd_state'));
     return raw ? JSON.parse(raw).P?.humidityPct : null;
   }).toBe(55);
 

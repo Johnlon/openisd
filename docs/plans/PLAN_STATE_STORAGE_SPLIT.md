@@ -59,17 +59,18 @@ dialog is not stored either, so restoring the flag alone reopens an empty dialog
 
 ## Storage keys
 
-`openisd_my_drivers`, `openisd_pr_lib`, `openisd_favorite_drivers` and `openisd.view` use two
-different separators and three naming styles. One convention across all of them: lower case,
-words separated by underscores, `openisd_` prefix.
+All browser keys use one convention: lower case, words separated by underscores, and the
+`openisd_` prefix.
 
 | Current | Becomes |
 |---|---|
 | `openisd_my_drivers` | `openisd_my_drivers` — unchanged |
 | `openisd_pr_lib` | `openisd_my_passive_radiators` |
-| `openisd_favorite_drivers` | `openisd_my_favourite_drivers` |
-| *(none — see the bug below)* | `openisd_my_favourite_passive_radiators` |
-| `openisd.view` | `openisd_app` |
+| `openisd_favorite_drivers` | `openisd_favourite_drivers` |
+| `openisd.project` | `openisd_state` |
+| `openisd.projects` | `openisd_projects` |
+| `openisd.open-session` | `openisd_open_sessions` |
+| `openisd.view` | `openisd_view` |
 
 **No migration** (John: "no migration - as there is no user"). Renaming a key orphans whatever
 sits in a developer's browser.

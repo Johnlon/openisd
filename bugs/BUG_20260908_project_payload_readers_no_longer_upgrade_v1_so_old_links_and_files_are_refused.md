@@ -1,6 +1,7 @@
 # Project payload readers no longer upgrade V1, so every old share link and saved file is refused
 
-Status: CRITICAL — OPEN
+Status: RESOLVED — both file and share-link readers apply the project schema upgrade before
+validation.
 
 CRITICAL because it silently breaks data users already hold: a share link sent before the session
 wrapper landed, and any `.owpr` saved before it, now fail to open. The user's own saved work

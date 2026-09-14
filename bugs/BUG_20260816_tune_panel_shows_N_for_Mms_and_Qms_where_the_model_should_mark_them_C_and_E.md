@@ -1,7 +1,7 @@
 # Tune panel test asserts C/E marks against a page with no driver loaded
 
 ## Status
-OPEN — test-fixture defect, not an app defect. Owner: the `packages/ui` test suite.
+OBSOLETE/SUPERSEDED — the cited test and the replaced Tune-panel architecture no longer exist.
 
 ## Symptom
 

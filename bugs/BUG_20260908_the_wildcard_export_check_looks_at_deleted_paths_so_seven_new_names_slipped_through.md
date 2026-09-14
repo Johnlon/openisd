@@ -1,6 +1,6 @@
 # The wildcard-export check looks at deleted paths, so seven new names slipped through unreviewed
 
-Status: OPEN
+Status: RESOLVED — the export-ratchet check now targets the current design paths and baseline.
 
 ## Symptom
 
@@ -70,4 +70,5 @@ Two honest routes, John's call:
 
 ## Verification
 
-None yet — recorded, not fixed.
+The current export-ratchet test targets the `packages/design` paths and its current baseline;
+the historical verification note is stale. The targeted architecture tests pass.

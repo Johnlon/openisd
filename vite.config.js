@@ -36,7 +36,7 @@ const clearSwInDev = {
   },
 };
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   root: UI_ROOT,
   base,
   define: {
@@ -58,7 +58,7 @@ export default defineConfig({
   plugins: [
     clearSwInDev,
     vue(),
-    ...(ELECTRON ? [] : [VitePWA({
+    ...(ELECTRON || command === 'serve' ? [] : [VitePWA({
       registerType: 'autoUpdate',
       base,
       manifest: {
@@ -79,4 +79,4 @@ export default defineConfig({
       },
     })]),
   ],
-});
+}));

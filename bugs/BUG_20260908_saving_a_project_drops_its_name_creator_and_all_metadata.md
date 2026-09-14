@@ -1,6 +1,7 @@
 # Saving a project writes empty metadata, losing its name, creator, description and dates
 
-Status: CRITICAL — OPEN
+Status: RESOLVED — project save now serializes the current domain session, including edited
+metadata.
 
 CRITICAL because it is silent USER DATA LOSS in the primary save path: every `.owpr` the app
 writes loses the project's name and every other metadata field, and the user is told the save

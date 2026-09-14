@@ -1,6 +1,6 @@
 # `Rme` marked `calculable: false` in `INI_ROWS_META` — every derived `Rme` exports as `E`, never `C`
 
-**Status:** OPEN.
+**Status:** RESOLVED — `Rme` is now marked calculable in the INI metadata.
 
 ## Symptom
 

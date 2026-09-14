@@ -1,6 +1,7 @@
 # The Playwright vite server dies mid-run and fakes hundreds of failures
 
-Status: OPEN
+Status: PARTIAL — the server guard and worker throttling are fixed, but mid-run resource
+pressure and cross-process coordination remain unresolved.
 
 ## Symptom
 

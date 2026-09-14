@@ -4,9 +4,9 @@
 # Default target is help
 help:
 	@echo "Available make targets:"
-	@echo "  make start      - Start dev server on port 4000 (runs lint, typecheck, unit tests)"
-	@echo "  make start-fast - Start dev server on port 4000 bypassing health checks"
-	@echo "  make fast       - Rebuild driver bundle + start dev server on port 4000 (fastest)"
+	@echo "  make start      - Start the live HMR dev server on port 4000"
+	@echo "  make start-fast - Alias for make start"
+	@echo "  make fast       - Alias for make start"
 	@echo "  make build      - Run lint, typecheck, unit tests, then build the app"
 	@echo "  make build-only - Build the app without tests"
 	@echo "  make drivers    - Rebuild the driver bundle only"
@@ -21,13 +21,13 @@ help:
 	@echo "  make electron-run   - Launch the desktop app from the last electron build"
 	@echo "  make electron-clean - Remove dist-electron/ and electron/node_modules/"
 
-# Start the dev server on port 4000 with health checks
+# Start the live HMR dev server on port 4000. The current driver bundle is reused; Vite watches
+# Vue/TypeScript/CSS changes and updates the browser without a rebuild.
 start:
-	bash scripts/start-http.sh 4000
+	npm_config_ignore_scripts=true npm run dev -- --host --port 4000 --strictPort
 
-# Start the dev server on port 4000 bypassing health checks
-start-fast:
-	SKIP_HEALTH_CHECKS=1 bash scripts/start-http.sh 4000
+# Compatibility aliases: the default workflow is already the fast HMR workflow.
+start-fast: start
 
 # Rebuild the driver bundle only (packages/ui/src/drivers-bundle.json), ~0.6s
 drivers:
@@ -37,21 +37,19 @@ drivers:
 start-4000:
 	SKIP_HEALTH_CHECKS=1 npm_config_ignore_scripts=true bash scripts/start-http.sh 4000
 
-# FAST: build the app without tests, then serve the built assets on 4000.
-# This deliberately avoids start-http.sh: that helper is restricted to Git Bash/WSL,
-# while this target must also work from the native Linux development environment.
-fast: build-only
-	bash scripts/kill-http.sh 4000
-	npm run preview -- --port 4000 --strictPort
+fast: start
 
 # Full application build gate: checks first, then emits packages/ui/dist.
 build:
 	npm run check
 	npm run build
 
-# Build-only: npm's prebuild still refreshes the driver bundle and runs lint, but no tests run.
+# Build-only: reuse the checked-in driver bundle and skip lifecycle checks. This is the fast
+# application/UI build; regenerate drivers explicitly with `make drivers` when upstream data
+# changes, then use `make build`.
 build-only:
-	npm run build
+	node scripts/version-info.mjs
+	npm_config_ignore_scripts=true npm run build
 
 # Stop the dev server on port 4000
 stop:

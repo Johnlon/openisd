@@ -1,6 +1,7 @@
 # Three tests check a deleted file, so they crash instead of checking anything
 
-Status: OPEN
+Status: RESOLVED — the affected architecture tests now target current files and complete without
+deleted-path crashes.
 
 ## Symptom
 

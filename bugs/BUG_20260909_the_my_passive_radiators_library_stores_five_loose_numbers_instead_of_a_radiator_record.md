@@ -1,6 +1,6 @@
 # The My Passive Radiators library stores five loose numbers instead of a radiator record
 
-Status: OPEN
+Status: RESOLVED — saved passive radiators now use the common record/envelope repository path.
 
 ## Symptom
 

@@ -1,9 +1,10 @@
 import type { InjectionKey, Ref } from 'vue';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { allIssues, syncedP, curvesData, maxData } from '../logic/appState.js';
 import { useFocusedProject } from '../logic/focusedProjectContext.js';
 import { TAB_META, buildPlotData, DPAL } from '../logic/series.js';
-import type { ChartTabId, Design } from '../types.js';
+import type { ChartTabId, Design, PlotData } from '../types.js';
+import type { DriverError } from '@openisd/design/engine';
 
 export interface GraphPanelProps {
   tabId: ChartTabId;
@@ -15,10 +16,10 @@ export interface GraphPanelProps {
 export interface GraphPanelAPI {
   readonly meta: Readonly<Ref<(typeof TAB_META)[ChartTabId]>>;
   readonly currentDesign: Readonly<Ref<Design>>;
-  readonly plotData: Readonly<Ref<unknown>>;
-  readonly blockErrors: Readonly<Ref<unknown[]>>;
+  readonly plotData: Readonly<Ref<PlotData | null>>;
+  readonly blockErrors: Readonly<Ref<DriverError[]>>;
   readonly blocked: Readonly<Ref<boolean>>;
-  readonly warnings: Readonly<Ref<unknown[]>>;
+  readonly warnings: Readonly<Ref<DriverError[]>>;
   readonly warningsDismissed: Readonly<Ref<boolean>>;
 
   dismissWarnings(): void;
@@ -62,6 +63,7 @@ export function useGraphPanel(props: GraphPanelProps): GraphPanelAPI {
   );
 
   const warningsDismissed = ref(false);
+  watch(warnings, () => { warningsDismissed.value = false; });
 
   function dismissWarnings() {
     warningsDismissed.value = true;

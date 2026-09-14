@@ -1,5 +1,5 @@
 prefix: QO
-next: 140
+next: 141
 questions:
 - id: QO1
   title: UI TODO List
@@ -9040,3 +9040,15 @@ questions:
       an old version makes it the focused project; editing and saving it may make that revised version
       the head. No delete controls for history entries. Example: Project A expands to dated selectable
       entries; Project B has no history.'
+- id: QO140
+  title: Choose the W5 sealed comparison Vas source
+  status: open
+  raised: '2026-09-13'
+  body: ''
+  notes:
+  - at: '2026-09-13'
+    text: 'The Tang Band W5-1138SMF bundled record carries manufacturer Vas 4.85 L. Current WinISD evidence
+      shows a recalculated saved-project Vas of 5.758061995 L when Vas is cleared, using the efficiency
+      relation. Which should the sealed 6 L / 1 W chart comparison use: the authoritative bundled manufacturer
+      record (4.85 L), or a separate WinISD-parity comparison fixture carrying the recalculated 5.758061995
+      L? The driver record itself will not be overwritten without this ruling.'

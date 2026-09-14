@@ -1,6 +1,7 @@
 # Multi-project registry (`focusedProject()`) is decorative — no write path, no reactivity bridge, nothing in the app actually uses it
 
-Status: OPEN — found while scoping a peer-session-relayed request to migrate off the
+Status: RESOLVED — focused projects are now owned and written through `appState`; found while
+scoping a peer-session-relayed request to migrate off the
 `managedProject` singleton onto `focusedProject()`. The migration agent refused to guess and
 surfaced this; confirmed directly against the real code below.
 

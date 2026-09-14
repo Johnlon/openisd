@@ -1,6 +1,7 @@
 # No project can be opened from a file when none is open
 
-Status: OPEN
+Status: RESOLVED — the empty state exposes the same file-open/import path without requiring an
+existing project.
 
 ## Symptom
 
@@ -63,4 +64,6 @@ new tab and handles the driver-file cases, so nothing about the import logic cha
 
 ## Verification
 
-Pending.
+The historical verification note is stale. The current empty state renders the shell without a
+project, and its global Open/import controls route through the same file-import path. The current
+empty-state browser coverage verifies the route.

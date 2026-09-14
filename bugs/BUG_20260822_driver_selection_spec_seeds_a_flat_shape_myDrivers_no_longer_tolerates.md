@@ -1,4 +1,5 @@
-Status: OPEN
+Status: OBSOLETE/SUPERSEDED — the cited driver-selection test and flat storage seam were replaced
+by the current persistence/domain model.
 
 # `driver-selection.browser.spec.ts` seeds a flat legacy shape `myDrivers.ts` explicitly refuses to tolerate
 

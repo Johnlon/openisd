@@ -1059,6 +1059,11 @@ function stripDriverYmlOnlyFields(value: unknown): unknown {
     return out;
 }
 
+function freshDriverRecord(value: unknown): unknown {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
+    return { ...value, uuid: { value: newUuid() } };
+}
+
 export const OpenISDDeviceJson = Object.freeze({
     fromOpenisdDriverYml(ymlText: string): { json: OpenISDDeviceJson } | { problems: string[] } {
         let parsed: unknown;
@@ -1071,7 +1076,9 @@ export const OpenISDDeviceJson = Object.freeze({
     },
 
     toOpenisdDriverYml(json: OpenISDDeviceJson): string {
-        return stringifyYaml(json);
+        const { uuid, ...withoutUuid } = json;
+        void uuid;
+        return stringifyYaml(withoutUuid);
     },
 
     fromConformingRecord(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
@@ -1093,6 +1100,6 @@ export const OpenISDDeviceJson = Object.freeze({
      *  the alternative it looks like — zod 4's loose mode PASSES unknown keys through rather than
      *  removing them. */
     fromDriverYmlRecord(value: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
-        return OpenISDDeviceJson.fromConformingRecord(stripDriverYmlOnlyFields(value));
+        return OpenISDDeviceJson.fromConformingRecord(freshDriverRecord(stripDriverYmlOnlyFields(value)));
     }
 });

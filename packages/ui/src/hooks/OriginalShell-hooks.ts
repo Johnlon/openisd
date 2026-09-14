@@ -24,7 +24,7 @@ import {
   syncedP, projectChanged, definePassiveRadiator, boxTypeIsSimulatable,
   focusedProject,
 } from '../logic/appState.js';
-import { presentationState, AIR_CONSTANTS_APP_DEFAULT } from '../logic/presentationState.js';
+import { presentationState } from '../logic/presentationState.js';
 import { useFocusedProject } from '../logic/focusedProjectContext.js';
 import {
   enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
@@ -55,6 +55,26 @@ export interface SealedReadoutsDeps {
   project: ComputedRef<OpenISDProject>;
   selectedBox: Ref<BoxType>;
   projectChanged: Ref<number>;
+}
+
+export type AirField = 'temperature' | 'humidity' | 'pressure';
+
+const AIR_FIELD_LIMITS: Readonly<Record<AirField, { min: number; max: number; label: string }>> = {
+  temperature: { min: 0, max: 400, label: 'Temperature' },
+  humidity: { min: 0, max: 100, label: 'Relative humidity' },
+  pressure: { min: 1000, max: 200000, label: 'Air pressure' },
+};
+
+export function airFieldValueOnBlur(value: number | null, appValue: number): number {
+  return value ?? appValue;
+}
+
+export function airFieldDataQuality(field: AirField, value: number | null): readonly string[] {
+  if (value == null) return [];
+  const limit = AIR_FIELD_LIMITS[field];
+  return Number.isFinite(value) && value >= limit.min && value <= limit.max
+    ? []
+    : [`${limit.label} is outside the sane range (${limit.min}–${limit.max})`];
 }
 
 export function createSealedReadouts({ project, selectedBox, projectChanged: changed }: SealedReadoutsDeps) {
@@ -703,20 +723,40 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const envTempStored = computed(() => { void projectChanged.value; void project.value; return project.value.envTempK.value != null; });
   const envHumidityStored = computed(() => { void projectChanged.value; void project.value; return project.value.envHumidityPct.value != null; });
   const envPressureStored = computed(() => { void projectChanged.value; void project.value; return project.value.envPressurePa.value != null; });
+  const envTempDq = computed(() => { void projectChanged.value; return airFieldDataQuality('temperature', project.value.envTempK.value); });
+  const envHumidityDq = computed(() => { void projectChanged.value; return airFieldDataQuality('humidity', project.value.envHumidityPct.value); });
+  const envPressureDq = computed(() => { void projectChanged.value; return airFieldDataQuality('pressure', project.value.envPressurePa.value); });
   const advTemp = computed<number>({
-    get: () => { void projectChanged.value; void project.value; return project.value.envTempK.value ?? AIR_CONSTANTS_APP_DEFAULT.tempK; },
+    get: () => { void projectChanged.value; void project.value; return project.value.envTempK.value ?? presentationState.ui.envDefaults.tempK; },
     set: (v: number | null) => { if (typeof v === 'number' && Number.isFinite(v)) project.value.envTempK.set(v); else project.value.envTempK.clear(); },
   });
   const advHumidity = computed<number>({
-    get: () => { void projectChanged.value; void project.value; return project.value.envHumidityPct.value ?? AIR_CONSTANTS_APP_DEFAULT.humidityPct; },
+    get: () => { void projectChanged.value; void project.value; return project.value.envHumidityPct.value ?? presentationState.ui.envDefaults.humidityPct; },
     set: (v: number | null) => {
       if (typeof v === 'number' && Number.isFinite(v)) project.value.envHumidityPct.set(v); else project.value.envHumidityPct.clear();
     },
   });
   const advPressure = computed<number>({
-    get: () => { void projectChanged.value; void project.value; return project.value.envPressurePa.value ?? AIR_CONSTANTS_APP_DEFAULT.pressurePa; },
+    get: () => { void projectChanged.value; void project.value; return project.value.envPressurePa.value ?? presentationState.ui.envDefaults.pressurePa; },
     set: (v: number | null) => { if (typeof v === 'number' && Number.isFinite(v)) project.value.envPressurePa.set(v); else project.value.envPressurePa.clear(); },
   });
+  function commitAirTemp(): void {
+    const value = airFieldValueOnBlur(project.value.envTempK.value, presentationState.ui.envDefaults.tempK);
+    project.value.envTempK.set(value);
+  }
+  function commitAirHumidity(): void {
+    const value = airFieldValueOnBlur(project.value.envHumidityPct.value, presentationState.ui.envDefaults.humidityPct);
+    project.value.envHumidityPct.set(value);
+  }
+  function commitAirPressure(): void {
+    const value = airFieldValueOnBlur(project.value.envPressurePa.value, presentationState.ui.envDefaults.pressurePa);
+    project.value.envPressurePa.set(value);
+  }
+  function resetAirToAppDefaults(): void {
+    project.value.envTempK.set(presentationState.ui.envDefaults.tempK);
+    project.value.envHumidityPct.set(presentationState.ui.envDefaults.humidityPct);
+    project.value.envPressurePa.set(presentationState.ui.envDefaults.pressurePa);
+  }
   /** The air the sweep is actually running in — one call, both readouts. */
   const advAir = computed(() => {
     void project.value;
@@ -812,6 +852,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prAddedMassCell, prTuningCell, prResonanceMass, prFsMass_hz, dqOfCell, fmt,
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
+    envTempDq, envHumidityDq, envPressureDq, commitAirTemp, commitAirHumidity, commitAirPressure, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
     projectName, projectCreator, projectCreated, projectModified, projectDescription,
     boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp,

@@ -236,20 +236,18 @@ function circuitQuantities(q: DriverSolverQuantities, Le_H: number | undefined):
   const Rms_kg_per_s = need('Rms_kg_per_s', q.Rms_kg_per_s);
   if (Sd_m2 === undefined || Re_terminal_ohm === undefined || BL_terminal_Tm === undefined
       || Cms_m_per_N === undefined || Mms_kg === undefined || Rms_kg_per_s === undefined) {
-    const first = bad[0];
-    if (first !== undefined) {
+    if (bad.length > 0) {
       // The six above are what the CIRCUIT reads, and four of them are ordinarily derived — a
       // datasheet prints none of `Cms`, `Mms`, `Rms`, `BL`. Naming them tells the reader to
-      // enter numbers they do not have. What they can act on is a field that, stated on its own,
-      // would close the gap — so that is what the message carries.
+      // enter numbers they do not have. List the actual missing circuit values here rather than
+      // replacing them with a generic suggestion; the project chart is the consumer of this
+      // result, not the driver editor.
       const options = singleFieldUnblockers(q);
       errors.push({
         level: 'error',
-        field: first,
-        message: options.length
-          ? `This driver cannot be simulated yet. State any ONE of: ${options.join(', ')}.`
-          : 'This driver cannot be simulated: more than one parameter is missing, and no single '
-            + 'value completes it.',
+        field: bad[0],
+        message: `Missing usable circuit values: ${bad.join(', ')}.`
+          + (options.length ? ` State any ONE of these to let the solver derive the rest: ${options.join(', ')}.` : ''),
       });
     }
     return { value: null, errors };
@@ -424,7 +422,8 @@ export function classifyFinite(sw: SweepResult): DriverError | null {
   const arrays = [sw.spl, sw.phase, sw.exc, sw.excPR, sw.pv, sw.zmag, sw.zph, sw.gd,
                   sw.fltMag, sw.fltPhase, sw.fltGd];
   return classifyArrays(sw.fs, arrays, 'sweep',
-    'Simulation produced no usable values — check the box volume and driver parameters.');
+    'Simulation produced no usable values — check the box volume and driver values derived from '
+    + 'Sd, Re, BL, Cms, Mms, and Rms. A 6 L box alone does not guarantee a usable circuit.');
 }
 
 /**

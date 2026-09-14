@@ -1,7 +1,8 @@
 # PR formulas are free functions, not getters on a domain class
 
 ## Status
-OPEN — awaiting a human ruling. The ruling asked for a getter; what exists is a free function.
+OBSOLETE/SUPERSEDED — the cited `packages/model`/UI architecture was replaced by the current
+`packages/design` domain and engine ownership model.
 
 ## Symptom
 

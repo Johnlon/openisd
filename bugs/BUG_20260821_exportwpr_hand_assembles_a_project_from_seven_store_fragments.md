@@ -1,4 +1,5 @@
-Status: OPEN
+Status: RESOLVED — WPR serialization now receives the domain project through the persistence
+boundary instead of assembling seven UI/store fragments.
 
 # `exportWpr()` hand-assembles a project from seven scattered fragments
 
@@ -73,3 +74,9 @@ Related, separately recorded:
 
 N/A — open. Afterwards: exporting a `.wpr` takes a project and a timestamp and nothing else, and
 the same project with the same timestamp produces byte-identical output every run.
+
+## Audit Recheck
+
+The current project exposes `toWprText()` and the application calls it. The old seven-fragment
+assembly path described above is no longer the active path; remaining WPR field omissions are
+tracked separately in the fabricated-constants report.

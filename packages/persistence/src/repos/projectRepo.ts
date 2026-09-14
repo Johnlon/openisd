@@ -8,6 +8,9 @@ import { OpenISDProject } from '@openisd/design';
 import type { Engine } from '@openisd/design/engine';
 import type { FileStorage, SaveResult } from '../storage/fileStorage.js';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
+import {
+  OPENISD_PROJECTS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_STATE_KEY,
+} from './storageKeys.js';
 import { createProjectSchemaUpgrade } from './projectSchemaUpgrade.js';
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
@@ -69,9 +72,11 @@ export interface OpenProjectSession {
   readonly focusedIndex: number;
 }
 
-const PROJECT_STORAGE_KEY = 'openisd.project';
-const PROJECTS_STORAGE_KEY = 'openisd.projects';
-const OPEN_SESSION_STORAGE_KEY = 'openisd.open-session';
+const PROJECT_STORAGE_KEY = OPENISD_STATE_KEY;
+const PROJECTS_STORAGE_KEY = OPENISD_PROJECTS_KEY;
+const OPEN_SESSION_STORAGE_KEY = OPENISD_OPEN_SESSIONS_KEY;
+const LEGACY_PROJECT_STORAGE_KEY = 'openisd.project';
+const LEGACY_PROJECTS_STORAGE_KEY = 'openisd.projects';
 
 interface StoredProjectEntry {
   id: string;
@@ -146,16 +151,20 @@ export function createProjectRepo(
   const storedIdentity = new WeakMap<OpenISDProject, string>();
 
   function readStoredEntries(): StoredProjectEntry[] {
-    const collectionText = storage.get(PROJECTS_STORAGE_KEY);
-    if (collectionText !== null) {
+    for (const key of [PROJECTS_STORAGE_KEY, LEGACY_PROJECTS_STORAGE_KEY]) {
+      const collectionText = storage.get(key);
+      if (collectionText === null) continue;
       try {
         const parsed: unknown = JSON.parse(collectionText);
         const payload = storedProjectsPayload(parsed);
-        if (payload) return payload.entries;
+        if (payload && payload.entries.length > 0) return payload.entries;
       } catch { /* fall through to the legacy single-project key */ }
     }
-    const legacyText = storage.get(PROJECT_STORAGE_KEY);
-    return legacyText === null ? [] : [{ id: 'legacy', text: legacyText, modified: new Date(0).toISOString() }];
+    for (const key of [PROJECT_STORAGE_KEY, LEGACY_PROJECT_STORAGE_KEY]) {
+      const text = storage.get(key);
+      if (text !== null) return [{ id: 'legacy', text, modified: new Date(0).toISOString() }];
+    }
+    return [];
   }
 
   function writeStoredEntries(entries: StoredProjectEntry[]): void {
@@ -222,7 +231,7 @@ export function createProjectRepo(
     },
 
     loadFromStorage(): OpenISDProject | string[] | null {
-      const text = storage.get(PROJECT_STORAGE_KEY);
+      const text = storage.get(PROJECT_STORAGE_KEY) ?? storage.get(LEGACY_PROJECT_STORAGE_KEY);
       if (text === null) return null;
       const project = this.readProjectText(text);
       if (Array.isArray(project)) return project;

@@ -3,6 +3,7 @@ import { OpenISDDriver } from '@openisd/design';
 import type { Engine } from '@openisd/design/engine';
 import type { KeyValueStorage } from '../storage/keyValueStorage.js';
 import { createSavedEntries, type BrokenEntry, type SavedEntries } from './savedEntries.js';
+import { OPENISD_MY_DRIVERS_KEY } from './storageKeys.js';
 
 // "My Drivers" — the user's own saved-driver collection, in browser storage.
 // THE one place that knows the storage key, and THE one write path: every route that creates a
@@ -16,7 +17,7 @@ import { createSavedEntries, type BrokenEntry, type SavedEntries } from './saved
 // SAME envelope the passive-radiator library uses. This file supplies only the two things that
 // are specific to a driver: which storage key, and which domain seam validates a record.
 
-export const MY_DRIVERS_KEY = 'openisd_my_drivers';
+export const MY_DRIVERS_KEY = OPENISD_MY_DRIVERS_KEY;
 
 export type MyDriversRead =
   /** Bucket readable. `broken` entries are preserved in storage and surfaced, never hidden. */

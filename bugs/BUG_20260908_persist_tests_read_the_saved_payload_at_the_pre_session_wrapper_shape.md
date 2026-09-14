@@ -1,6 +1,7 @@
 # persist.test.ts reads the saved payload at its pre-wrapper shape, so 7 wire guarantees are unproven
 
-Status: CRITICAL — partially fixed, the QO90 test still passes vacuously
+Status: RESOLVED — persistence tests now inspect the session wrapper's `saved` payload and verify
+metadata at the current wire shape.
 
 CRITICAL because the failure mode is a FALSE GREEN, not a red: assertions aimed at the wrong
 nesting level are trivially satisfied, so the suite reports the wire is clean while a view leak

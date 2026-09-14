@@ -1,7 +1,7 @@
 # The provenance panel's declared paths diverge from the engine's actual routes
 
 ## Status
-OPEN — `Fs` fixed and guarded 2026-08-22; the same divergence stands on other fields.
+PARTIAL — `Fs` is fixed and guarded 2026-08-22; the same divergence stands on other fields.
 
 ## Symptom
 

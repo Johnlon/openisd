@@ -1,6 +1,6 @@
 # A starred bundled driver loses its favourite mark on reload
 
-Status: OPEN
+Status: RESOLVED — bundled-driver favourite identity is restored correctly after reload.
 
 ## Symptom
 

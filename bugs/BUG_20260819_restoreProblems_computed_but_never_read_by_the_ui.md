@@ -1,7 +1,8 @@
 # `restoreProblems` is written by store.ts but read by nothing — a restore failure is silently dropped
 
 # Status
-OPEN
+OBSOLETE/SUPERSEDED — the cited store and `restoreProblems` path were removed by the current
+application-state and persistence architecture.
 
 ## Symptom
 

@@ -129,7 +129,7 @@ Anthropic, never a "Generated with Claude Code" line, never override `--author`/
 
 | Port | Purpose | Started by |
 | --- | --- | --- |
-| 4000 | The app — every build, preview and check | `scripts/preview-4000.sh` |
+| 4000 | The live app — Vite development server with HMR | `scripts/preview-4000.sh` |
 | 4100-4107 | Playwright's own vite | the test runner |
 
 4100-4107, not a single fixed 4100: concurrent `npm test` runs (e.g. more than one agent running
@@ -141,13 +141,12 @@ port from the pool at a time.
 Start no server on any other port. Kill a stray one with `bash scripts/kill-http.sh <port>`.
 Clear a stale port in 4100-4107 the same way, only when no run is in flight.
 
-4000 serves `packages/ui/dist`, not the working tree — a source edit is invisible until
-`npm run build`. "The fix isn't showing" is a stale bundle until the served asset hash is compared
-against `packages/ui/dist/assets/`.
+4000 serves the working tree through Vite development mode. Source edits must appear through HMR;
+do not use `vite preview` or a static `packages/ui/dist` server for the live app.
 
-A request to bundle or rebuild is also a request to leave 4000 serving that build. Verify
-`curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/` returns 200 and the served asset
-filename matches what was just written. Unregister stale service workers before handing off.
+A request to bundle or rebuild is separate from the live app server. Verify
+`curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/@vite/client` returns 200 and
+unregister stale service workers before handing off.
 
 Do not re-run `node scripts/bundle-drivers.mjs` for TS/Vue/CSS changes — only on evidence of
 upstream changes in `winisd_drivers/`.

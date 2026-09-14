@@ -199,6 +199,8 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
     for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
     const r = engine.classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'no finite spl point at all → blocking error');
+    assert.match(r!.message, /driver values.*Sd.*Re.*BL.*Cms.*Mms.*Rms/i,
+      'the blocking message must identify the driver quantities needed by the circuit');
   });
 
   it('flags pervasive breakdown even when spl is the finite −200 sentinel (the Vb=0 shape)', () => {
@@ -209,6 +211,23 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
     for (let i = 0; i < sw.exc.length; i++) sw.exc[i] = NaN;
     const r = engine.classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'every-frequency breakdown → error, not warn, despite finite spl');
+  });
+});
+
+describe('sweep circuit diagnostics', () => {
+  it('lists every missing circuit quantity instead of naming only a generic driver failure', () => {
+    const result = engine.sweep({ Fs_hz: 111111 }, LE_H, BOX, {
+      Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
+    });
+
+    assert.equal(result.value, null);
+    assert.equal(result.errors.length, 1);
+    assert.match(result.errors[0].message, /Sd_m2/);
+    assert.match(result.errors[0].message, /Re_terminal_ohm/);
+    assert.match(result.errors[0].message, /BL_terminal_Tm/);
+    assert.match(result.errors[0].message, /Cms_m_per_N/);
+    assert.match(result.errors[0].message, /Mms_kg/);
+    assert.match(result.errors[0].message, /Rms_kg_per_s/);
   });
 });
 

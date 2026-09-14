@@ -30,9 +30,9 @@ test('§A3 — a CLOSED box never reports a passive-radiator tuning', async ({ p
   await page.locator('select#og-box-type').selectOption('vented');
   await page.locator('.project-nav li', { hasText: 'Vented' }).click();
   await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem('openisd.state') ?? '{}');
+    const s = JSON.parse(localStorage.getItem('openisd_state') ?? '{}');
     s.box = 'sealed';
-    localStorage.setItem('openisd.state', JSON.stringify(s));
+    localStorage.setItem('openisd_state', JSON.stringify(s));
   });
   await page.reload();
 

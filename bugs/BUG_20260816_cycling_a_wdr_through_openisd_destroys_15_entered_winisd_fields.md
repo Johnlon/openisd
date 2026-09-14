@@ -1,7 +1,7 @@
 # `KLe` is never computed
 
 ## Status
-OPEN
+RESOLVED
 
 ## Symptom
 
@@ -30,3 +30,6 @@ than zeroed.
 `packages/winisd/test/wdr-openisd-round-trip.test.ts`'s C-parity assertion covers `KLe` for
 `John-all-manu-populated*.wdr`: the cycled value agrees with WinISD's stated
 `49.6287078253544` within the file's own float precision.
+
+Verified in the current tree: `wdr-openisd-round-trip.test.ts` and `engine/driver.test.ts`
+pass, 276 tests total. The report's original claim that `KLe` is lost is no longer true.

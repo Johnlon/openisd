@@ -44,7 +44,8 @@ const {
   prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prAddedMassCell, prTuningCell, prResonanceMass, prFsMass_hz, dqOfCell, fmt,
   driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
-  envTempStored, envHumidityStored, envPressureStored,
+  envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
+  commitAirTemp, commitAirHumidity, commitAirPressure, resetAirToAppDefaults,
   projectName, projectCreator, projectCreated, projectModified, projectDescription,
   boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp,
   onFile, fileInput,
@@ -98,8 +99,11 @@ const {
           </div>
         </div>
       </div>
-      <!-- The build version — see scripts/version-info.mjs — centred between the two clusters. -->
-      <span v-if="version" class="version-chip" title="Build version — the timestamp scripts/version-info.mjs stamped at build time (packages/ui/public/build-info.json)">{{ version }}</span>
+      <div class="app-brand" title="OpenISD">
+        <img class="brand-icon" src="/icon.svg" alt="" aria-hidden="true">
+        <span>OpenISD</span>
+        <span v-if="version" class="version-chip">({{ version }})</span>
+      </div>
       <div class="cursor-readout">
         <span class="ro-hz">
           <button class="nudge-btn"
@@ -603,15 +607,13 @@ const {
         <!-- ===== Advanced tab ===== -->
         <section v-show="activeTab === 'advanced'" class="tab-section" :class="{ active: activeTab === 'advanced' }">
           <div class="two-col adv-two-col">
-            <div style="--label-w:118px;">
-              <div class="field-row"><div :class="['field', envTempStored ? 'entered' : '']"><label>Temperature</label><NumInput v-model="advTemp" :class="{ calculated: !envTempStored }" field="advTemp" group="temp" base="K" :precision="2" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
-              <div class="field-row"><div :class="['field', envHumidityStored ? 'entered' : '']"><label>Relative humidity</label><input v-expo-step type="number" :class="{ calculated: !envHumidityStored }" v-limits="limits('advHumidity')" v-model.number="advHumidity"><span class="unit">%</span></div></div>
-              <div class="field-row"><div :class="['field', envPressureStored ? 'entered' : '']"><label>Air pressure</label><NumInput v-model="advPressure" :class="{ calculated: !envPressureStored }" field="advPressure" group="pressure" base="Pa" :precision="1" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
-            </div>
-            <p class="env-arrow">&#8594;</p>
-            <div style="--label-w:96px;">
+            <div class="adv-air-fields" style="--label-w:118px;">
+              <div class="field-row"><div :class="['field', 'adv-air-field', envTempStored ? 'entered' : '', { 'dq-flag': envTempDq.length > 0 }]" :title="envTempDq.join('; ')"><label>Temperature</label><NumInput v-model="advTemp" :class="{ calculated: !envTempStored }" field="advTemp" group="temp" base="K" :precision="2" :allow-out-of-range="true" :dq="envTempDq" dq-state="entered" @blur="commitAirTemp" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
+              <div class="field-row"><div :class="['field', 'adv-air-field', envHumidityStored ? 'entered' : '', { 'dq-flag': envHumidityDq.length > 0 }]" :title="envHumidityDq.join('; ')"><label>Relative humidity</label><NumInput v-model="advHumidity" field="advHumidity" :precision="2" :allow-out-of-range="true" :dq="envHumidityDq" dq-state="entered" @blur="commitAirHumidity" /><span class="unit">%</span></div></div>
+              <div class="field-row"><div :class="['field', 'adv-air-field', envPressureStored ? 'entered' : '', { 'dq-flag': envPressureDq.length > 0 }]" :title="envPressureDq.join('; ')"><label>Air pressure</label><NumInput v-model="advPressure" :class="{ calculated: !envPressureStored }" field="advPressure" group="pressure" base="Pa" :precision="1" :allow-out-of-range="true" :dq="envPressureDq" dq-state="entered" @blur="commitAirPressure" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
               <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advAir.c, fieldDp('advSoundVelocity'))" readonly><span class="unit">m/s</span></div></div>
               <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="advAir.rho.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
+              <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
             </div>
             <div class="checkbox-col">
               <AdvancedOptions />
@@ -637,10 +639,14 @@ const {
         </section>
         </div>
 
-        <!-- Save rail — stacked on the right edge so the buttons consume no vertical space.
-             (The Entered/Calculated swatch legend was removed: not a WinISD element.) -->
+        <!-- Save rail — stacked on the right edge so the buttons consume no vertical space. -->
         <div class="save-rail">
           <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
+          <div class="value-legend" title="Field colours used throughout the application">
+            <span><i class="legend-swatch legend-entered"></i>Entered</span>
+            <span><i class="legend-swatch legend-calculated"></i>App level / calculated</span>
+            <span><i class="legend-swatch legend-normal"></i>Normal</span>
+          </div>
         </div>
         </template>
         <!-- No project open: the tab pane says so plainly. -->
@@ -739,6 +745,8 @@ const {
 .original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
 
 .app-icon { width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #888, #333 70%); display:inline-block; }
+.app-brand { display:flex; align-items:center; gap:6px; flex:none; white-space:nowrap; font-weight:600; }
+.brand-icon { width:20px; height:20px; display:block; }
 
 /* ---------- Toolbar ---------- */
 .toolbar { display:flex; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
@@ -756,13 +764,7 @@ const {
 .chart-select:hover { border-color:#7fb3ff; }
 .chart-select .chart-name { font-weight:600; }
 .cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; min-width:0; flex:1 1 0; }
-.version-chip {
-  /* John 2026-09-13: the version owns the MIDDLE of the header toolbar, at 2× the normal
-     label size. The flanking clusters each flex 1:1 0 (left content stays left, right content
-     stays right), so the chip box — sized by its own text — is born exactly centred, and any
-     extra window width is absorbed equally by the two flanks instead of skewing the chip. */
-  flex:0 0 auto; font-size:22px; color:#2a2a2a; line-height:1.1; white-space:nowrap;
-}
+.version-chip { font-size:12px; color:#555; line-height:1.1; font-weight:400; }
 .cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }
 .ro-hz-input {
   width: 82px;
@@ -940,7 +942,7 @@ const {
 /* ---------- Content panel ---------- */
 .content-panel { grid-area:content; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-height:0; min-width:0; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
-.save-rail { flex:none; display:flex; flex-direction:column; align-items:stretch; gap:6px; align-self:flex-start; }
+.save-rail { flex:none; display:flex; flex-direction:column; align-items:flex-start; gap:6px; align-self:flex-start; }
 .tab-section { display:none; }
 /* Real WinISD is a Win32 window: child controls sit at fixed offsets and the client area
    CLIPS when the window shrinks — nothing reflows, nothing overlaps. The pane reproduces
@@ -995,6 +997,9 @@ const {
 .driver-id-row { align-items:center; gap:10px; }
 .field input.greyed { background:#e9e9e9; color:#777; }
 .field input.calculated { color:#1868d1; border-color:#1868d1; }
+.adv-air-field :deep(input) { width:82px; }
+.reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
+.reset-air-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
    is, matching the red unreachable notice below the pane rather than looking like a dimension. */
 .field input.calculated.impossible { color:#a11; border-color:#a11; }
@@ -1051,8 +1056,14 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .save-btn:disabled { opacity:.45; cursor:default; }
 .save-btn.dirty { border-color:#d9a441; background:#fff3e0; color:#8a5a00; font-weight:600; }
 .save-btn.dirty:hover:not(:disabled) { background:#ffe4b0; }
-.unsaved-label { display:flex; align-items:center; justify-content:center; gap:6px; color:#8a5a00; font-weight:600; font-size:11px; }
+.unsaved-label { display:flex; align-items:center; justify-content:flex-start; gap:6px; color:#8a5a00; font-weight:600; font-size:11px; }
 .unsaved-dot { width:8px; height:8px; border-radius:50%; background:#e0a800; display:inline-block; animation:unsaved-pulse 1.6s ease-in-out infinite; }
+.value-legend { display:flex; flex-direction:column; gap:4px; color:#555; font-size:10px; white-space:nowrap; }
+.value-legend span { display:flex; align-items:center; gap:4px; }
+.legend-swatch { width:9px; height:9px; border:1px solid #777; display:inline-block; }
+.legend-entered { background:#1b7d1b; border-color:#1b7d1b; }
+.legend-calculated { background:#1868d1; border-color:#1868d1; }
+.legend-normal { background:#333; border-color:#333; }
 @keyframes unsaved-pulse { 0%, 100% { opacity:1; } 50% { opacity:.35; } }
 
 /* ---------- Modal overlay ---------- */

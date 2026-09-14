@@ -1,7 +1,7 @@
 # `SPL` and `SPLref` are two names for one quantity
 
 ## Status
-OPEN — blocked on the engine-wide rename, `docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md` Step 7.
+RESOLVED — current import-fidelity tests preserve stated `SPL` separately from computed `SPLref`.
 
 ## Symptom
 

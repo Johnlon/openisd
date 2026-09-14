@@ -1,6 +1,6 @@
 # The empty state renders a driver picker no user can open
 
-Status: OPEN
+Status: RESOLVED — the global shell exposes Manage Drivers while no project is open.
 
 ## Symptom
 

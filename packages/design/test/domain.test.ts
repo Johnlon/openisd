@@ -853,6 +853,15 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(project.driver.spec.woofer.Fs_hz.get().value).toBe(333333);
   });
 
+  it('adopting a standalone driver gives the embedded project record a fresh UUID', () => {
+    const project = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    const source = wooferDriver();
+
+    project.loadDriver(source);
+
+    expect(project.driver.uuid()).not.toBe(source.uuid());
+  });
+
   it('discards an edit by dropping the copy — nothing to roll back', () => {
     const original = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
 
@@ -877,6 +886,16 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(() => project.loadDriver(project.driver)).toThrow(/standalone/i);
   });
 
+  it('loading a project file gives its embedded driver a fresh project-owned UUID', () => {
+    const original = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    const originalDriverUuid = original.driver.uuid();
+
+    const loaded = OpenISDProject.fromOwprText(original.toOwprText(), new Engine());
+    if (Array.isArray(loaded)) throw new Error(loaded.join(', '));
+
+    expect(loaded.driver.uuid()).not.toBe(originalDriverUuid);
+  });
+
   it('renameToCopy() prefixes the model so the copy is a distinct brand/model', () => {
     const driver = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build().driver.detach();
     expect(driver.model.get().value).toBe('RS225');
@@ -896,6 +915,28 @@ describe('editing a driver — copy, then update or drop', () => {
     if (Array.isArray(back)) throw new Error('fromOwdrText returned problems: ' + back.join(', '));
     expect(back.spec.woofer.Fs_hz.get().value).toBe(41.5);
     expect(back.model.get().value).toBe('RS225');
+  });
+
+  it('drops the record UUID on .owdr export and mints a new one on import', () => {
+    const driver = wooferDriver();
+    const originalUuid = driver.cloneDriver().uuid.value;
+
+    const text = driver.toOwdrText();
+
+    expect(text).not.toContain('uuid:');
+    const imported = OpenISDDriver.fromOwdrText(text, new Engine());
+    if (Array.isArray(imported)) throw new Error(imported.join(', '));
+    expect(imported.cloneDriver().uuid.value).not.toBe(originalUuid);
+  });
+
+  it('mints a new record UUID when making a named copy', () => {
+    const driver = wooferDriver();
+    const originalUuid = driver.cloneDriver().uuid.value;
+
+    driver.renameToCopy();
+
+    expect(driver.cloneDriver().uuid.value).not.toBe(originalUuid);
+    expect(driver.model.get().value).toBe('Copy of RS225');
   });
 
   it('toWdrIniText() then OpenISDDriver.fromWdrIniText() round-trips a driver through WinISD .wdr text', () => {

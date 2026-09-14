@@ -1,6 +1,8 @@
 # BUG_20260825 — no bundle-time or driver-selector validation for a record missing both T/S sections
 
-Status: OPEN — not yet fixed. Found while designing `packages/design/domain`'s `OpenISDDriver`.
+Status: RESOLVED — current bundle and saved-driver boundaries reject records that contain neither
+a supported woofer nor tweeter section. Found while designing `packages/design/domain`'s
+`OpenISDDriver`.
 
 ## Symptom
 

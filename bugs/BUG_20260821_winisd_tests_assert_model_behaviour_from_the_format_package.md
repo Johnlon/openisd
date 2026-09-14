@@ -1,4 +1,5 @@
-Status: OPEN
+Status: OBSOLETE/SUPERSEDED — the cited package layout was replaced by the current integrated
+`packages/design` domain/format boundary.
 
 # Two `packages/winisd/test` files assert `@openisd/model` behaviour, mixing both objects per file
 

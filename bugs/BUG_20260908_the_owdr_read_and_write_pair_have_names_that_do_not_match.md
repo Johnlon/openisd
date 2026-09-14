@@ -1,6 +1,7 @@
 # The .owdr read and write methods have names that do not match, and one implies any YAML
 
-Status: OPEN
+Status: RESOLVED — the OWDR read/write API now uses the matching `fromOwdrText`/`toOwdrText`
+names at the domain and import boundaries.
 
 ## Symptom
 
@@ -51,4 +52,5 @@ Callers to update (searched 2026-09-08):
 
 ## Verification
 
-None yet — recorded, not fixed.
+The current domain and import path use `fromOwdrText`/`toOwdrText`; the targeted domain/file
+round-trip tests pass. The historical verification note is stale.

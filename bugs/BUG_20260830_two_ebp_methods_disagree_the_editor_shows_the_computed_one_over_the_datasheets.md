@@ -1,6 +1,7 @@
 # Two EBP methods disagree; the driver editor shows the computed one over the datasheet's
 
-Status: OPEN
+Status: RESOLVED — the current common field path preserves a stated EBP and only derives EBP
+when it is absent.
 
 ## Symptom
 

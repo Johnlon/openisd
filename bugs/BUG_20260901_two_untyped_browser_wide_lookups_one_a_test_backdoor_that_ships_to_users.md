@@ -1,6 +1,7 @@
 # Two untyped browser-wide lookups: one hidden by switching lint off for the file, one a test backdoor that ships to users
 
-Status: OPEN
+Status: PARTIAL — the test backdoor was removed and HMR access was typed, but application state
+still uses a browser-wide HMR binding.
 
 ## Symptom
 

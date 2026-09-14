@@ -2,7 +2,8 @@
 
 **Where:** `packages/persistence/src/repos/projectRepo.ts`, `boxTypeOfWireBox()`.
 
-**Status:** OPEN — found 2026-08-28 by the api-design session reviewing my BoxType collapse.
+**Status:** RESOLVED — persisted box types are parsed and rejected at the project load boundary.
+Found 2026-08-28 by the api-design session reviewing the BoxType collapse.
 Introduced by me in the same collapse. Fix below.
 
 ## Symptom

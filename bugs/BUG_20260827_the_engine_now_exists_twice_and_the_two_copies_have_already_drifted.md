@@ -2,7 +2,9 @@
 
 **Where:** `packages/engine/src/*.ts` and `packages/design/engine/*.ts`.
 
-**Status:** OPEN. The duplication is deliberate and was ordered (copy, explicitly NOT a move). The
+**Status:** RESOLVED — the duplicate `packages/engine` tree no longer exists; the current engine
+is owned under `packages/design/engine`. The duplication was deliberate and was ordered (copy,
+explicitly NOT a move). The
 DRIFT is not, and it happened the same day the copy was made.
 
 ## The duplication

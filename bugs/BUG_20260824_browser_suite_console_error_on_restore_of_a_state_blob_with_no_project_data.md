@@ -1,6 +1,7 @@
 # Browser suite: dozens of specs fail on a console.error logged for a state blob that never had project data
 
-Status: RESOLVED — found incidentally during the duplicate-accessor cleanup task; NOT caused by
+Status: OPEN — current closure evidence is insufficient; the original report explicitly recorded
+that the restore-path error was not diagnosed. Found incidentally during the duplicate-accessor cleanup task; NOT caused by
 that task's changes (bisected below).
 
 ## Symptom
