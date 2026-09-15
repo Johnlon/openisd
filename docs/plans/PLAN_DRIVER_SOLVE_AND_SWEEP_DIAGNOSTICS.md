@@ -842,37 +842,51 @@ reversible bet than the strip/freeze rules above. Worth a decision, not a defaul
    answer at a non-reference air pair, and are byte-for-byte unchanged at the reference one
    (regression safety) — full design+ui typecheck and unit suite green throughout, with the
    pre-existing 11-failure baseline (unrelated missing `.wdr` fixtures) unchanged.
-3. Add the driver issue and route types; restore the engine relation table and return solved
-   values plus driver issues.
-4. Add the `Engine` façade method for the unified driver solve result.
-5. Replace the domain `checkConsistency()` stub with an entered-only adapter.
-6. Add `SignalSolverQuantities` and the Signal Resolver, returning `SignalSolveResult`.
-7. Add `environmentIssues()` for out-of-range entered air inputs.
-8. Add missing-dependency reporting to the sealed-alignment, vent, and passive-radiator solvers,
-   returning `SealedAlignmentSolveResult`/`VentSolveResult`/`PrSolveResult`/`BoxParamsSolveResult`,
-   each over its own already-declared quantities interface (`SealedAlignmentQuantityName`/
-   `VentQuantityName`/`PrQuantityName`/`BoxParamsQuantityName` — no shared `BoxQuantityName`).
-9. Remove duplicate dependency discovery from `sweep.ts` (`singleFieldUnblockers`,
-   `circuitQuantities`'s own missing-field logic) once the solver result supplies the same answer.
-10. Add the eight prerequisite channels to `SweepCalculationResult` and preserve sweep-only failures
-    as `SweepIssue`s. Type-only slice **done 2026-09-15** — `CalculationPrerequisite<Q>` generic,
-    `SweepOutputName`, and all 8 named instantiations exist (`consistency.ts`). The REAL wiring
-    (sweep() actually returning `SweepCalculationResult`, populated) needs two separate open
-    decisions, not one:
-    (a) `sweep()` (`sweep.ts:263`) returns `Result<SweepResult>`, the same shared shape flagged
-    under `validateParams` (item 13, Convergence) — changing it touches every caller.
-    (b) **Found 2026-09-15, changes the shape of this work**: the per-output "what blocks this
-    curve" mapping is NOT uniform. `maxCurves()` (`sweep.ts:424`) does not treat a missing `Pe`/
-    `Xmax` as "curve unavailable" — it sets `peAbsent: true` and lets `maxspl`/`maxpwr` go to
-    **Infinity** (`vUse = min(Infinity, Infinity)`), a materially different semantic from
-    `circuitQuantities`'s six REQUIRED fields (`sweep.ts:190-260`), whose absence blocks every main
-    curve outright. A `DriverPrerequisite` naming `Pe_W`/`Xmax_m` would need to say "unbounded",
-    not "missing" — the existing `CalculationPrerequisite<Q>` shape (`missing: readonly Q[]`) does
-    not distinguish these two cases, and inventing that distinction without confirming it first
-    risks a design that quietly gets the "blocked vs. unbounded" question wrong. Not attempted
-    without that confirmation.
-11. Project driver/sealed-alignment/vent/PR/box-params/signal/environment channels to domain cells
-    identically — no channel gets a different projection rule than another without a stated reason.
+3. **Completed 2026-09-15** (commit `8baba7a`). Add the driver issue and route types; restore the
+   engine relation table and return solved values plus driver issues.
+4. **Completed 2026-09-15** (`8baba7a`). Add the `Engine` façade method for the unified driver
+   solve result.
+5. **Completed 2026-09-15** (`8baba7a`). Replace the domain `checkConsistency()` stub with an
+   entered-only adapter.
+6. **Completed 2026-09-15** (`8baba7a`), **but see the Appendix's Signal section**: `solveSignal()`
+   exists and is exported through `Engine`, but has NO production caller — the domain's
+   `powerDrive_W`/`driveVoltage_V` use `driveVoltage`/`driveFromVoltage` directly — and its
+   `inconsistent-inputs` branch models a power/voltage conflict John has since ruled cannot exist
+   (Appendix task **T5**).
+7. **Completed 2026-09-15** (`8baba7a`). Add `environmentIssues()` for out-of-range entered air
+   inputs.
+8. **Completed 2026-09-15** (`8baba7a`). Add missing-dependency reporting to the sealed-alignment,
+   vent, and passive-radiator solvers, returning `SealedAlignmentSolveResult`/`VentSolveResult`/
+   `PrSolveResult`/`BoxParamsSolveResult`, each over its own already-declared quantities interface
+   (`SealedAlignmentQuantityName`/`VentQuantityName`/`PrQuantityName`/`BoxParamsQuantityName` — no
+   shared `BoxQuantityName`). NOTE for item 10: the vent and PR checks are wired into the domain's
+   per-field DQ getters (`openisdDomain.ts` `VentWindow`/passive-radiator `Field`s), but
+   `checkSealedAlignment()`/`solveSealedAlignmentGroup()` are **not called anywhere in the domain
+   yet** — engine-only.
+9. **Completed 2026-09-15** (commit `42fcf0b`, rulings QO142 + QO144). `sweep()`/`maxCurves()`
+   converted from `Result<T>` to `SweepSolveResult`/`MaxCurvesSolveResult` (`{values, issues:
+   readonly SweepIssue[]}`); `circuitQuantities()` emits one `missing-dependencies` `DriverIssue`
+   per absent circuit field; `singleFieldUnblockers`/`plausibleValue`/`usableQuantity` deleted
+   (QO144: no cross-field substitution suggestions — the user wants to know exactly what to
+   state). tempK/air validation now reuses `environmentIssues()`. UI seam:
+   `packages/ui/src/logic/sweepIssueMessage.ts` projects `SweepIssue` → `DriverError` for the
+   unchanged `allIssues` render channel.
+10. **Partially completed 2026-09-15.** Both open decisions resolved: (a) → QO142 (convert, done
+    in item 9); (b) → QO143 (unbounded is a correct answer, reported as a separate advisory, never
+    a blocking issue). **Done** (commit `88c5d28`): `MaxCurvesSolveResult.driverPrerequisites`
+    populated with `{output:'maxspl'|'maxpwr', missing:['Pe_W','Xmax_m']}` when BOTH are absent;
+    `classifyMaxFinite()` now exempts `+Infinity` (was wrongly classifying the unbounded case as a
+    blocking error); `driverPrerequisiteMessage()` surfaces it as a `warn` in `allIssues`.
+    **Remaining** — the other seven channels — is specified in the **Appendix** below, as tasks
+    **T1–T7**. Superseding the original sketch: the blocking/advisory split means most channels
+    widen `SweepIssue` rather than adding a prerequisite array (Appendix, "The blocking/advisory
+    split").
+11. **Not separately tracked — needs an audit before it can be called done.** Project driver/
+    sealed-alignment/vent/PR/box-params/signal/environment channels to domain cells identically —
+    no channel gets a different projection rule than another without a stated reason. Driver
+    (`OpenISDDriver.checkConsistency()` → cells, item 5) and vent/PR (per-field `Field` getters,
+    item 8) are wired; sealed-alignment is not (item 8 note); signal/environment cell projection
+    was never explicitly verified. Appendix task **T8**.
 12. Convert `dqCalculated.ts#calcMark` to take the `inconsistent-inputs` variant of
     `CalculationIssue<Q>` instead of `ConsistencyIssue` (**Convergence**, above). **Reversed
     2026-09-15 — no new mark**: found `dqCalculated.test.ts`'s own docstring documents a Python-side
@@ -883,17 +897,23 @@ reversible bet than the strip/freeze rules above. Worth a decision, not a defaul
     byte-for-byte unchanged from today.
 13. **Implemented 2026-09-15, additively (revised from "convert now"):** `checkBoxParams(box, P):
     BoxParamsIssue[]` added beside `validateParams()` in `engine/params.ts`, sharing the same
-    `requiredParamsFor()` table; `Engine.checkBoxParams()` exposes it. `validateParams()` and
-    `Result<SweepResult>.errors` are UNCHANGED — converting those is a larger, separate decision
-    (**Convergence**, above).
-14. Delete `packages/design/engine/consistency.ts`'s now-orphaned `ConsistencyIssue` type,
-    `Q_GROUP_FIELDS`, `isQGroupField`, `qGroupIsIncomplete` once nothing references them — they are
-    superseded by `CalculationIssue<DriverQuantityName>` and a driver solve result that names a
-    missing `Qts` route directly, not by a separately-maintained field-name list.
-15. Audit `packages/ui/src/logic/useDriverCells.ts` (`consistencyNote`,
-    `fieldIsMandatoryAndUnsatisfied`) and `DriverEditorModal.vue`'s `chartBlockingReasons` against
-    the now-real `DriverSolveResult.issues` (**Convergence**, above) and replace each hand-rolled
-    per-field check with the generic projection the six unified solve results now make possible.
+    `requiredParamsFor()` table; `Engine.checkBoxParams()` exposes it. `validateParams()` is
+    UNCHANGED (still `DriverError[]`, still what `appState.ts`'s `paramIssues` reads).
+    **Superseded in part, later the same day (item 9, QO142):** `Result<SweepResult>` no longer
+    exists for `sweep()`/`maxCurves()` — `OpenISDProject.sweep()`'s "box params unstated" branch
+    now returns `checkBoxParams()`'s `BoxParamsIssue[]` inside `SweepSolveResult.issues`, and
+    `BoxParamsIssue` is a member of the `SweepIssue` union. Whether `validateParams()` itself is
+    retired (and `paramIssues` re-pointed at `checkBoxParams()`) is still open — Appendix **T9**.
+14. **Completed 2026-09-15** (`8baba7a`). Delete `packages/design/engine/consistency.ts`'s
+    now-orphaned `ConsistencyIssue` type, `Q_GROUP_FIELDS`, `isQGroupField`, `qGroupIsIncomplete`
+    once nothing references them — they are superseded by `CalculationIssue<DriverQuantityName>`
+    and a driver solve result that names a missing `Qts` route directly, not by a
+    separately-maintained field-name list.
+15. **Completed 2026-09-15** (`8baba7a`). Audit `packages/ui/src/logic/useDriverCells.ts`
+    (`consistencyNote`, `fieldIsMandatoryAndUnsatisfied`) and `DriverEditorModal.vue`'s
+    `chartBlockingReasons` against the now-real `DriverSolveResult.issues` (**Convergence**, above)
+    and replace each hand-rolled per-field check with the generic projection the six unified solve
+    results now make possible.
 
 ## Tests
 
@@ -1126,27 +1146,144 @@ Not attempted in this appendix — a real code change to the `.owpr` schema/sess
 `openisdDomain.ts`'s `powerDrive_W`/`driveVoltage_V`/`statedVoltage_V` plumbing, not a doc-only
 decision, and outside what was asked for here.
 
-### Revised Implementation Order (continuing from item 10)
+### Task list for the next session (replaces "Revised Implementation Order", 2026-09-15)
 
-10a. Widen `SweepIssue` to `DriverIssue | EnvironmentIssue | BoxParamsIssue |
-     SealedAlignmentIssue | VentIssue | PrIssue`. Add the box-specific check to
-     `OpenISDProject.sweep()`/`maxCurves()`, gated on the active box type, run before the engine
-     call — same early-return pattern as the existing `checkBoxParams()` call.
-10b. Get John's ruling on Configuration (the two options above), implement whichever is chosen.
-10c. Do NOT build `signalPrerequisites` (twice-corrected 2026-09-15 — see Signal section above):
-     `power_W`/`voltage_V` cannot disagree once the data model is right, so there is no reachable
-     inconsistent-signal case for it to name. Delete `SignalPrerequisite` from `consistency.ts`'s
-     type list (never populated, never will be). Separately (not part of task #10, a real code
-     change to the persisted schema/import-export, raised for its own decision): drop
-     `voltage_V` from `openisdSchema.ts`'s stored signal record entirely, and delete
-     `engine/signal.ts#solveSignal()`'s `inconsistent-inputs` branch, which models exactly the
-     conflict John's ruling says cannot exist.
-10d. Delete `SealedAlignmentPrerequisite`/`VentPrerequisite`/`PrPrerequisite` from
-     `consistency.ts` once 10a lands — they become as dead as the driver-level
-     `DriverPrerequisite` array that was never built, superseded by the embedded-issue shape.
-     (`DriverPrerequisite` itself stays: it is the one channel that DOES need the array shape,
-     for `maxCurves`'s `Pe`/`Xmax` case — see the Sweep output vocabulary section above.)
-10e. Tests: for each of Sealed Alignment/Vent/PR, a fixture missing the topology's required
-     solve input produces the RIGHT issue (not a generic `classifyFinite` "no finite values"
-     postcondition) — the exact regression the `Leff = null` finding above describes. One test
-     per topology, mirroring `hardening.test.ts`'s existing driver-blocking tests.
+Written to be executed cold, by a session that has not read this conversation. Every task
+follows the repo's TDD rule (`CLAUDE.md`, `packages/design/AGENTS.md`): failing test first,
+watch it fail for the right reason, minimal implementation, watch it pass, then run
+`npm run typecheck:design`, `npm run typecheck:ui`, the five `packages/design/test/architecture-*.test.ts`
+files, and `npm run test:unit`. Commit each task on its own with the repo's `(auto)` prefix,
+staging only the files that task touched (the working tree carries a large amount of unrelated
+uncommitted work from other sessions — never `git add -A`).
+
+Ground truth the tasks rely on (verified 2026-09-15):
+
+- `engine/sweep.ts:37` — `export type SweepIssue = DriverIssue | EnvironmentIssue | BoxParamsIssue;`
+- `engine/sweep.ts:40` `SweepSolveResult {values, issues}`; `:50` `MaxCurvesSolveResult {values,
+  issues, driverPrerequisites}`.
+- `domain/openisdDomain.ts:2751` `OpenISDProject.sweep(P)`, `:2760` `maxCurves(P)`, `:2742`
+  `#engineBoxType()`. Their `!params` branch already returns
+  `this.#engine.checkBoxParams(box, this.#enclosureParams())` — the early-return pattern to copy.
+- `engine/Engine.ts:113/125/137` — `checkPrConsistency(p: PrSolverQuantities): PrIssue[]`,
+  `checkVentConsistency(p: VentSolverQuantities): VentIssue[]`,
+  `checkSealedAlignment(p: SealedAlignmentSolverQuantities): SealedAlignmentIssue[]`.
+- `domain/openisdDomain.ts:~583` shows how the domain already assembles a
+  `VentSolverQuantities` (`{tuning_hz, length_m, Vb_m3, area_m2, endCorrection_m}` + `air()`) for a
+  per-field DQ — the same assembly is what the sweep-level check needs. PR has the equivalent
+  at `~699`. **Sealed alignment has no domain call site at all yet** — `checkSealedAlignment`
+  is engine-only today.
+- `engine/consistency.ts:268-279` declares all 8 `*Prerequisite` types. Only `DriverPrerequisite`
+  is populated anywhere (`maxCurves`). The other seven have zero producers and zero consumers
+  (grep-verified) — deleting them breaks nothing but `test/engine/prerequisite.test.ts`, which
+  must be trimmed to match.
+- `engine/signal.ts#solveSignal()` has no production caller (grep-verified); only
+  `Engine.solveSignal()` wraps it and only `test/engine/signal.test.ts` exercises it.
+- `packages/ui/test/logic/store-issue-channel.test.ts` is the integration seam for "does a sweep
+  issue reach `allIssues`". Its `awaitSweepThrottle()` helper is REQUIRED before reading
+  `allIssues.value` after a burst of `.set()`/`.clear()` calls (`appState.ts:349-368`
+  `scheduleSweep` throttle) — a test without it can pass vacuously.
+
+**T1 — Widen `SweepIssue`; wire vent + PR checks into `OpenISDProject.sweep()`/`maxCurves()`.**
+Files: `engine/sweep.ts` (the union), `domain/openisdDomain.ts` (`sweep`/`maxCurves`),
+`packages/ui/src/logic/sweepIssueMessage.ts` (no change expected — `sweepIssueMessage()` is generic
+over `CalculationIssue<Q>`'s two variants, confirm it compiles against the wider union).
+Change: `SweepIssue = DriverIssue | EnvironmentIssue | BoxParamsIssue | VentIssue | PrIssue`
+(sealed is T2). In `OpenISDProject.sweep()`, after the existing `!params` early return and before
+`this.#engine.sweep(...)`: if `box === 'vented' || box === 'bandpass4'`, build the
+`VentSolverQuantities` for the active vent exactly as the per-field getter at `~583` does, run
+`solveVentConsistencyGroup` then `checkVentConsistency`; if any issue, `return {values: null,
+issues}`. If `box === 'box-passive-radiator'`, same with `PrSolverQuantities` and
+`checkPrConsistency`. Mirror in `maxCurves()` (add `driverPrerequisites: []` to its early return).
+RED test first, in `packages/design/test/domain.test.ts` (builder API, no UI): a vented project
+with volume and vent diameter but **no `tuning_hz` and no `length_m`** — today this yields
+`sweep().issues === []` and NaN `zmag` (the `Leff = null` finding above); after T1 it must yield
+`values: null` and a `VentIssue` naming `tuning_hz`/`length_m`. Second test: same for a
+passive-radiator project missing PR mass. Then the integration test in `store-issue-channel.test.ts`
+(with `awaitSweepThrottle()`): the same vented fixture surfaces a `field: 'tuning_hz'` (or
+`length_m`) `error` in `allIssues` — not the generic `sweep:impedance magnitude` postcondition.
+Acceptance: the two existing "clean" fixtures in `store-issue-channel.test.ts` (which state
+`tuning_hz`) still pass unchanged.
+
+**T2 — Sealed alignment check in `OpenISDProject.sweep()` — verify, probably close as
+unreachable.** Verified 2026-09-15: the persisted sealed box is `{volume_m3, losses}` only
+(`openisdSchema.ts:525`); `Qtc` is a DERIVED readout (`openisdDomain.ts` `#sealedQtc()`, `~898`),
+never a stored user target. A sealed project therefore always has a `Vb` (or lacks one — which
+`checkBoxParams()` already reports as a `BoxParamsIssue`) and never a `Qtc` that could contradict
+it. The only place a `Qtc` is chosen is the New Project wizard's alignment picker
+(`sealedFromQtc`), which returns `null` for an unreachable `Qtc` BEFORE any project exists —
+already covered by the wizard, not a sweep concern. So `SealedAlignmentIssue` has **no reachable
+case at sweep time** and should NOT be added to `SweepIssue`. Do: confirm the above by reading
+those two sites, then record "closed — unreachable at sweep time" in this task and in
+Implementation Order item 8's note; delete `SealedAlignmentPrerequisite` in T3 as planned. If the
+reading contradicts this (a stored `Qtc` exists somewhere), stop and raise a `QO` instead.
+
+**T3 — Delete the six dead `*Prerequisite` types.** After T1/T2 land. Remove
+`SealedAlignmentPrerequisite`, `VentPrerequisite`, `PrPrerequisite`, `BoxParamsPrerequisite`,
+`SignalPrerequisite`, `EnvironmentPrerequisite` from `engine/consistency.ts` and
+`engine/index.ts`; trim `test/engine/prerequisite.test.ts` to what remains. **Keep**
+`CalculationPrerequisite<Q>`, `SweepOutputName`, `DriverPrerequisite` (populated by `maxCurves`) and
+`ConfigurationPrerequisite` (T4 decides its fate — do not delete ahead of the ruling). The
+architecture test `architecture-no-record-types-in-barrel.test.ts` and `index.ts`'s own header rule
+("a type that stops appearing in a signature comes off this list") are the acceptance check.
+
+**T4 — Configuration channel. BLOCKED on `QO145` (deferred by John 2026-09-15).** Do not start.
+When ruled: option 1 = add `ConfigurationIssue {kind:'unsupported-topology', boxType}`, widen
+`SweepIssue`, delete `ConfigurationPrerequisite`; option 2 = keep `ConfigurationPrerequisite`, give
+`OpenISDProject.sweep()`'s `!box` branch a `DriverError`-shaped refusal. Either way the RED test is:
+a `bandpass6` or `abc` project's `allIssues` is no longer empty — it names the unsupported topology.
+Today it is silently empty (`{values: null, issues: []}`).
+
+**T5 — Signal data model: `voltage_V` is derived, never persisted** (John's rulings, Appendix
+"Signal" section — all decided, none blocked).
+(a) `domain/openisdSchema.ts:580-581` — replace the paired signal record with `{power_W: number |
+null}` only. This is the `.owpr` (OpenISD native session JSON) schema; `.wpr` export/import already
+carries only `P` and needs no change; `.wdr` is unrelated.
+(b) `domain/openisdDomain.ts` `powerDrive_W` (`~2432`): `.set(w)` must **stop requiring `Re_ohm`**
+— just store `power_W: w`. `.get()` reads the stored power. `.clear()` stores `null`.
+(c) `driveVoltage_V` (`~2471`) and `statedVoltage_V` (`~2507`): `.get()` is a pure derivation
+`√(power_W · Re_ohm)`, `'calculated'` when both known; when `Re_ohm` is unknown return a
+`'not-available'` cell **carrying a DQ that says why** (e.g. "Re is not known yet — voltage
+cannot be derived"), using the same `createCell(..., dq)` mechanism the other derived fields use.
+`.set(v)` KEEPS the `Re_ohm` guard (nothing else to convert a typed voltage into) — it converts and
+stores `power_W = v²/Re`, never `voltage_V`. Collapse `statedVoltage_V` into `driveVoltage_V` if
+they become identical. `.clear()` on voltage clears the stored power (it is the same fact).
+(d) `engine/signal.ts#solveSignal()`: delete the `inconsistent-inputs` branch and `voltage_V` from
+`SignalSolverQuantities` as an *entered* input (it has no production caller — consider whether the
+function survives at all; if `Engine.solveSignal()` keeps it, its docstring must stop describing a
+power/voltage conflict). Update `test/engine/signal.test.ts` accordingly.
+(e) Migration: an existing `.owpr` with `voltage_V` in its signal record must still load —
+`fromOwprText()` uses a zod schema; either accept-and-drop the legacy key or add a one-line
+migration, with a test using a literal old-shape JSON string.
+RED tests first for each of (a)-(e); the browser spec that drives the Signal tab
+(`packages/ui/test/logic/*signal*` or the Original-shell specs — grep `powerDrive_W`) must still
+pass, and the Signal panel's V field must show the DQ from (c) when the driver has no `Re`.
+
+**T6 — `classifyFiniteIssues`/`classifyFinite` message for the vent/PR case.** After T1 lands,
+the generic "Sweep returned no finite values for impedance magnitude" should no longer be
+reachable for an unstated vent tuning (T1 catches it first). Add a regression test in
+`hardening.test.ts` asserting that; if it IS still reachable through some other path, that path
+is a bug to record in `bugs/`, not to paper over.
+
+**T7 — Doc sync.** After T1–T3 land, update this document: the "Diagnostic Channels" table's
+Sweep row, the `SweepCalculationResult` sketch (it is now `SweepSolveResult`/
+`MaxCurvesSolveResult` — the `curves` field is `values`, and only `driverPrerequisites` exists as an
+array), and the "Tests" section's "Sweep: ... via `driverPrerequisites`/`sealedAlignmentPrerequisites`/
+…" bullet, which lists channels that will no longer exist. Annotate, do not rewrite history —
+this doc's convention is dated "Completed/Reversed/Superseded" notes.
+
+**T8 — Audit item 11 (cell projection parity).** For each of driver / sealed-alignment / vent /
+PR / box-params / signal / environment: name the ONE domain getter that projects that channel's
+issues onto its cells' DQ, or record that there is none. Expected gaps from the ground truth above:
+sealed-alignment (no domain call site), signal (after T5 the V-field DQ is the only one),
+environment (`environmentIssues()` — is any Advanced-tab cell reading it?). Output: a short table
+appended to this appendix, plus a task per gap found. No code change in T8 itself.
+
+**T9 — Decide `validateParams()`'s fate.** `appState.ts`'s `paramIssues` still reads
+`live.value.validateParams(GRID)` (`DriverError[]`) while `OpenISDProject.sweep()` now uses
+`checkBoxParams()` (`BoxParamsIssue[]`) for the same check. Two parallel implementations of one
+rule, sharing `requiredParamsFor()` — not wrong, but exactly the "permanent parallel old-style
+path" QO142 ruled against for `sweep()`. Raise as a `QO` for John; if "converge", re-point
+`paramIssues` through `sweepIssueMessage()` and delete `validateParams()`. Not blocked, but do
+not do it unasked.
+
+Suggested order: T1 → T2 → T3 → T6 → T5 → T7 → T8 → T9, with T4 slotted in whenever QO145 is ruled.
