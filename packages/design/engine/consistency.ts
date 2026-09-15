@@ -256,9 +256,15 @@ export type SweepOutputName =
   | keyof Pick<MaxCurvesResult, 'maxspl' | 'maxpwr'>;
 
 /**
- * A reference to an upstream blocker — NOT a duplicated DQ. The sweep uses this to say which
- * curve is blocked and by what, while the actual issue (and its route/formula detail) is owned
- * and displayed by the domain that produced it (`CalculationIssue<Q>`, above), never copied here.
+ * An ADVISORY about one sweep output that was computed — `values` is present — but is degraded
+ * or unbounded because the named upstream quantities are unstated; NOT a blocker, and NOT a
+ * duplicated DQ. The one reachable case (QO143, 2026-09-15): `maxspl`/`maxpwr` are `+Infinity`
+ * when neither `Pe_W` nor `Xmax_m` is stated — a correct answer, not a gap, so it must never be
+ * reported as an error. Anything that actually BLOCKS a sweep (`values: null`) is never
+ * represented here: it is the real `CalculationIssue<Q>` itself, embedded in `SweepIssue` —
+ * which is why this shape needs no "blocked vs. unbounded" discriminator: blocked never flows
+ * through it. The projection to a message is `packages/ui/src/logic/sweepIssueMessage.ts#driverPrerequisiteMessage`
+ * (`level: 'warn'`), distinct from `sweepIssueMessage` (`level: 'error'`).
  */
 export interface CalculationPrerequisite<Q extends string> {
   readonly output: SweepOutputName;
