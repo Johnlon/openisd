@@ -930,3 +930,167 @@ reversible bet than the strip/freeze rules above. Worth a decision, not a defaul
   above) marks the same fields the current hand-rolled `consistencyNote`/
   `fieldIsMandatoryAndUnsatisfied`/`chartBlockingReasons` mark today, for every existing case those
   functions handle — a refactor, not a behavior change, until John asks for one.
+
+## Appendix — Design for the Remaining Seven Prerequisite Channels (2026-09-15)
+
+Everything above this heading is the original design document, unchanged. This appendix is a
+proposal for the part of Implementation Order item 10 not yet built: `driverPrerequisites` (the
+`maxspl`/`maxpwr`/`Pe`/`Xmax` case) is done, decided by QO143 and implemented in commit
+`88c5d28`. The other seven — `sealedAlignmentPrerequisites`, `ventPrerequisites`,
+`prPrerequisites`, `boxParamsPrerequisites`, `signalPrerequisites`,
+`environmentPrerequisites`, `configurationPrerequisites` — are not built. This section proposes
+how, so John can rule on it the way he ruled on QO142/143/144, rather than each channel being
+implemented ad hoc as it comes up.
+
+### The blocking/advisory split — what actually decides the shape
+
+Building `driverPrerequisites` surfaced the organizing question the original document didn't
+have to answer yet, because Driver, `BoxParams`, and `Environment` all turned out to need the
+SAME answer: **when a channel's issue makes `values` entirely `null` (nothing in the sweep can be
+computed at all), the issue is embedded directly in `SweepIssue` — never a separate reference.**
+`SweepIssue = DriverIssue | EnvironmentIssue | BoxParamsIssue` today (`sweep.ts`) does exactly
+this: `circuitQuantities()` returning `null` hands back the actual `DriverIssue` objects, not a
+`{output, missing}` pointer at them, because every `SweepOutputName` is equally blocked and a
+per-output reference list would just repeat the same six field names ten times over.
+
+The `CalculationPrerequisite<Q>` array shape (`driverPrerequisites`, etc.) earns its keep only in
+the OTHER case: **`values` is NOT `null` — the sweep genuinely produced a curve — but ONE
+specific output is degraded, unbounded, or otherwise worth flagging without being wrong.**
+`maxspl`/`maxpwr` going to `+Infinity` when neither `Pe` nor `Xmax` is stated is the only case
+like this found so far: the curve is real and correct, just unlimited, and saying so needs to
+name the ONE output affected (not `spl`/`phase`/`exc`/etc., which are unaffected).
+
+So the seven remaining channels split into two groups, not seven uniform cases:
+
+| Group | Channels | Shape |
+|---|---|---|
+| Blocks the whole sweep | Sealed Alignment, Vent, PR, Configuration | Embed the real issue in `SweepIssue` (widen the union), like Driver/BoxParams/Environment already do — no prerequisite array |
+| Degrades one output, sweep still runs | Signal | Advisory prerequisite array, like `driverPrerequisites` |
+| Neither (see below) | Box-Params | Already done (task #9) — listed here only to close the set |
+
+### Sealed Alignment, Vent, PR — widen `SweepIssue`, do not add prerequisite arrays
+
+`solveVentConsistencyGroup`/`solvePrConsistencyGroup`/`solveSealedAlignmentGroup` resolve `Vb`
+(sealed) or `Sp`/`length_m` (vent) or PR mass/tuning — and the circuit CANNOT run at all without
+whichever of these the active box type needs. This is structurally identical to the driver's six
+required fields: one topology-specific set of quantities, entirely blocking when missing, no
+partial curve possible. The evidence for this while building `driverPrerequisites`: a test fixture
+that never stated `vent.tuning_hz` produced `Leff = null`, and `sweep()`'s own `.issues` came back
+**empty** — the circuit silently went to `NaN` in `zmag`/`zph`/`exc`/`pv`/`gd`, and the ONLY thing
+that caught it was the UI's generic `classifyFinite()` postcondition, reporting "Sweep returned no
+finite values for impedance magnitude" — true, but naming the wrong layer: the actual cause was
+an unstated vent tuning target, not a numerical singularity in the sweep. This is precisely the
+silent gap this whole document exists to close, still open for vent/PR/sealed-alignment today.
+
+Proposed shape:
+
+```ts
+export type SweepIssue =
+  | DriverIssue | EnvironmentIssue | BoxParamsIssue
+  | SealedAlignmentIssue | VentIssue | PrIssue;
+```
+
+`sweep()` would call the box type's own `checkSealedAlignment()`/`checkVentConsistency()`/
+`checkPrConsistency()` (all three already exist and are exercised elsewhere, per Implementation
+Order item 8) BEFORE running `circuitQuantities()`, gated on the active `box: BoxType` — a sealed
+project only ever runs the sealed check, a vented one only the vent check, and so on, so the
+three never fire for the same sweep. On any issue, return `{values: null, issues}` immediately,
+the same early-exit pattern `circuitQuantities()` already uses. This requires `sweep()` to take
+the box-specific solved quantities (`SealedAlignmentSolverQuantities`/`VentSolverQuantities`/
+`PrSolverQuantities`) alongside the driver's, which today only the DOMAIN layer
+(`OpenISDProject`) assembles — `sweep()` itself does not currently see raw `Vb`/`Qtc`/vent
+geometry as a solve INPUT, only as an already-resolved `SweepParams.Vb`/`Sp`/`Leff` number. This
+is the one real design question: does this check move into the ENGINE's `sweep()` (requiring a
+wider parameter list), or does it stay a DOMAIN-level precondition
+(`OpenISDProject.sweep()`, alongside the existing `checkBoxParams()` call), returning the SAME
+`SweepIssue`-shaped result the engine's own circuit check already produces? The `BoxParamsIssue`
+precedent (task #9) argues for the domain-level answer — `checkBoxParams()` already lives at
+`OpenISDProject.sweep()`, not inside `engine/sweep.ts#sweep()`, for exactly this reason (the
+engine's `sweep()` never reads box params directly, only the already-resolved `Sp`/`Leff`/`Vb`
+numbers). Sealed-alignment/vent/PR would follow the identical pattern: `OpenISDProject.sweep()`
+runs the box-specific check first (using values it already has — `this.box.vented...`,
+`this.driver.solveConsistencyGroup()`), and only calls into `engine/sweep.ts#sweep()` once that
+passes, exactly as it already does for `checkBoxParams()`.
+
+### Configuration — the one channel with no existing check to call
+
+Unlike the other six, there is no `checkConfiguration()` anywhere — Implementation Order's own
+note explains why: "Configuration has no Issue type or values bag of its own... an unsupported
+topology is a whole-design refusal, not a field-level DQ." Today, `OpenISDProject.sweep()`'s
+`!box` branch (`this.#engineBoxType()` returning `null` for `bandpass6`/`abc`) returns
+`{values: null, issues: []}` — an EMPTY issues array. A user with a `bandpass6` or `abc` project
+sees a blank chart and no explanation at all; this is a real, currently-live gap, not a
+hypothetical one.
+
+`ConfigurationPrerequisite`'s existing type (`CalculationPrerequisite<'boxType' |
+'circuitModel' | 'simulationOption'>`) does not fit here either — it is the "one output
+degraded" shape, and an unsimulated topology is "every output blocked," the SAME shape as
+Sealed Alignment/Vent/PR above. Two options, not yet decided:
+
+1. Add a minimal `ConfigurationIssue` (NOT `CalculationIssue<Q>` — there is no quantity to name,
+   only a topology): `{ kind: 'unsupported-topology'; boxType: BoxType }`, widen `SweepIssue` to
+   include it, and drop `ConfigurationPrerequisite` from the type list entirely (nothing would
+   ever populate it, since every configuration failure blocks completely).
+2. Keep `ConfigurationPrerequisite` for a narrower, real future case — e.g. "this circuit model
+   doesn't support transmission-line ports" — and separately give `!box` a plain, non-generic
+   `DriverError`-shaped refusal (`{level: 'error', field: 'boxType', message: 'bandpass6/abc are
+   not yet simulated.'}`), matching how `sweep()`'s postconditions (`classifyFinite`, etc.)
+   already report by returning a `DriverError` rather than a `CalculationIssue<Q>`.
+
+Not decided here — flagged for John, the same way QO143 settled the analogous driver question.
+
+### Signal — a blocking input to spl/deflection, corrected 2026-09-15
+
+**Reversed.** The paragraph originally here argued signal issues never need a channel of their
+own, reasoning that `#sweepParams()`'s 1 W fallback (`eg = this.#engine.driveVoltage(1, Re_ohm)`)
+makes a missing signal value harmless. John's correction: the signal (drive level) is a
+**blocking input to the SPL calculation and to deflection (excursion) — not merely something a
+default papers over.** `eg` feeds directly into `spl`, `exc`, `excPR`, `pv`, and (through the
+sweep it derives from) `maxspl`/`maxpwr` — every one of those is a function of drive level, so a
+signal value that is stated-but-inconsistent (`voltage_V` disagreeing with `power_W`+`Re_ohm`)
+does not fail loudly with a null sweep the way a missing circuit field does — it silently feeds
+a WRONG `eg` into a sweep that still runs and still looks plausible, which is arguably worse than
+a blocked chart: the curve draws, at the wrong level, with no indication anything is off.
+
+This makes Signal the SAME shape as Driver's `Pe`/`Xmax` case, not the "no reachable case" this
+section previously concluded: `values` is not `null`, but specific outputs are drawn from a
+`SignalIssue`-tainted `eg`. Proposed:
+
+```ts
+type SignalPrerequisite = CalculationPrerequisite<SignalQuantityName>;
+```
+
+populated on `sw`/`mx` whenever `solveSignal()` (or however the domain resolves drive level for
+this sweep) reports an `inconsistent-inputs` `SignalIssue`, naming every `eg`-derived output:
+`{ output: 'spl', missing: ['power_W', 'voltage_V', 'Re_ohm'] }` and the same for `exc`, `excPR`,
+`pv`, `maxspl`, `maxpwr` — one entry per affected output, mirroring `driverPrerequisites`'s
+one-entry-per-output pattern rather than one combined entry. A merely-ABSENT signal (nothing
+stated at all) stays non-blocking exactly as today — the 1 W reference is the intended default
+behavior, not a gap — so this fires only on `inconsistent-inputs`, never on the empty/default
+case. Needs a test proving the reachable case: state `power_W` and `voltage_V` together at
+values that disagree given `Re_ohm`, and confirm `spl` still draws (not null) while
+`signalPrerequisites` names it.
+
+### Revised Implementation Order (continuing from item 10)
+
+10a. Widen `SweepIssue` to `DriverIssue | EnvironmentIssue | BoxParamsIssue |
+     SealedAlignmentIssue | VentIssue | PrIssue`. Add the box-specific check to
+     `OpenISDProject.sweep()`/`maxCurves()`, gated on the active box type, run before the engine
+     call — same early-return pattern as the existing `checkBoxParams()` call.
+10b. Get John's ruling on Configuration (the two options above), implement whichever is chosen.
+10c. Build `signalPrerequisites` (reversed 2026-09-15 — see Signal section above): populate one
+     entry per `eg`-derived output (`spl`, `exc`, `excPR`, `pv`, `maxspl`, `maxpwr`) whenever the
+     resolved signal is `inconsistent-inputs`, never on a merely-absent one (the 1 W reference
+     default is intended behavior, not a gap).
+10d. Delete `SealedAlignmentPrerequisite`/`VentPrerequisite`/`PrPrerequisite` from
+     `consistency.ts` once 10a lands — they become as dead as the driver-level
+     `DriverPrerequisite` array that was never built, superseded by the embedded-issue shape.
+     (`DriverPrerequisite` itself stays: it is the one channel that DOES need the array shape,
+     for `maxCurves`'s `Pe`/`Xmax` case — see the Sweep output vocabulary section above.)
+10e. Tests: for each of Sealed Alignment/Vent/PR, a fixture missing the topology's required
+     solve input produces the RIGHT issue (not a generic `classifyFinite` "no finite values"
+     postcondition) — the exact regression the `Leff = null` finding above describes. One test
+     per topology, mirroring `hardening.test.ts`'s existing driver-blocking tests. Plus: a signal
+     stated inconsistently (`voltage_V` disagreeing with `power_W`+`Re_ohm`) still produces a
+     drawable `spl` (`values` not `null`) while `signalPrerequisites` names every affected output —
+     proving Signal is advisory, not blocking, unlike the other three.

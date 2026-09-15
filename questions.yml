@@ -1,5 +1,5 @@
 prefix: QO
-next: 142
+next: 146
 questions:
 - id: QO1
   title: UI TODO List
@@ -1956,21 +1956,21 @@ questions:
       === .wdr WRITE FIDELITY — four fixes landed (unit gates green) ===
 
       WHY THE DELETION HAPPENED. Human, verbatim: "(re samples/other - I msitakeenly thought
-      sloudspeakcer db was a reliabel source of wdr files - it is not". And: "`drivers/sample/other/`
+      sloudspeakcer db was a reliabel source of wdr files - it is not". And: "`drivers/mysamples/other/`
       - these files are evil - delete them entirely and use oracles created from winisd directly if
       needed". Those files were a third-party loudspeaker database's export of driver data into
       `.wdr` shape — one program's guess at WinISD's format, not WinISD's output. EVERY writer bug
       below was MASKED by them: a third-party file agrees with our bug because neither side is
       WinISD. That is the argument for the oracle rule, not a footnote to it.
 
-      1. DELETED `drivers/sample/other/` (untracked; 3 files: SEAS_Prestige_L19RNX1.wdr, Tang Band
+      1. DELETED `drivers/mysamples/other/` (untracked; 3 files: SEAS_Prestige_L19RNX1.wdr, Tang Band
          W5-1138SMF.wdr, beyma-8BR40N-cms-vas-inconsistency.wdr). Both dependent tests repointed at
-         `drivers/sample/winisd/`. The oracle rule is restated so it stands without naming the dead
-         directory — an oracle `.wdr` is one WinISD ITSELF wrote — in `drivers/sample/README.md`,
+         `drivers/mysamples/winisd/`. The oracle rule is restated so it stands without naming the dead
+         directory — an oracle `.wdr` is one WinISD ITSELF wrote — in `drivers/mysamples/README.md`,
          `packages/winisd/src/native/openisdToWdr.ts`, and the headers of `openisdToWdr.test.ts`,
          `driver-json.test.ts`, `driver-projection.test.ts`, `efficiency.test.ts`.
          ⚠ ONE REFERENCE LEFT, IN A FILE THIS AGENT WAS BARRED FROM: `docs/spec/SPEC_ENGINE.md:368`
-         still has a bullet "`drivers/sample/other/` — third-party/vendor-distributed files…".
+         still has a bullet "`drivers/mysamples/other/` — third-party/vendor-distributed files…".
          It needs the same restatement. Whoever owns SPEC_ENGINE.md must do it.
 
       2. FULL PRECISION. Both writers rounded to 6 s.f.: `driver.ts fmtNum` (`String(+x.toPrecision(6))`)
@@ -1984,7 +1984,7 @@ questions:
          tolerance) on every carried field of `John-all-manu-populated.wdr`; `roundtrip.test.ts`
          asserts exact equality on the derived driver across export→import.
 
-      3. CARRIED-KEY MISMATCHES — all seven claims VERIFIED against `drivers/sample/winisd/` and
+      3. CARRIED-KEY MISMATCHES — all seven claims VERIFIED against `drivers/mysamples/winisd/` and
          FIXED. Evidence: the complete key set across all 84 oracle files, plus the single-parameter
          probes (`s-*.wdr`, one field set → one new E in ParState). The app-field↔label pairing is
          the app's own, from `DriverEditorModal.vue:116-118` and its tooltips. Verdicts (app field →
@@ -2601,7 +2601,7 @@ questions:
       selftest.ts keeps NO copy: it now calls the same engine functions, so the gate tests the
       sweep's circuit solution against the closed form rather than one constant against another.
 
-      ORACLE, in-repo and exact: drivers/sample/winisd/John-all-manu-populated.wdr carries its own
+      ORACLE, in-repo and exact: drivers/mysamples/winisd/John-all-manu-populated.wdr carries its own
       c=343.684120962152, roo=1.20095217714682, no=8.81202645607949E-6, SPL=61.605211136107.
       referenceEfficiency reproduces `no` at relative error 0, and cross-checks against the
       independent motor-side route roo/(2pi c)*BL^2 Sd^2/(Re Mms^2) to 3.8e-16. splFromEfficiency
@@ -2717,7 +2717,7 @@ questions:
       HOW IT SURFACED: `packages/winisd/test/driver-roundtrip.test.ts` previously ran against a
       third-party `.wdr` (now deleted) whose Znom was ENTERED, so slot 0 read `E` on both sides and
       the divergence was invisible. Pointing the test at a genuine WinISD save
-      (`drivers/sample/winisd/John-all-manu-populated.wdr`) exposed it immediately.
+      (`drivers/mysamples/winisd/John-all-manu-populated.wdr`) exposed it immediately.
 
       WHAT EACH SIDE EMITS, on that file:
         - WinISD writes `Znom=8` with ParState[0] = `C` — it considers Znom CALCULATED.
@@ -2731,7 +2731,7 @@ questions:
 
       WHAT THE PROBE MUST ESTABLISH: whether WinISD marks Znom C unconditionally, or only when it
       derived it from something (Re? a dropdown default?), and what it writes on the Znom line in
-      each case. `drivers/sample/winisd/s-znom.wdr` covers only the ENTERED case (slot 0 = E).
+      each case. `drivers/mysamples/winisd/s-znom.wdr` covers only the ENTERED case (slot 0 = E).
       The blank file `john-all-defaults.wdr` has `Znom=0` with slot 0 = `N`, so C is NOT
       unconditional — something about a populated driver turns it on. That is the case to probe.
 
@@ -2792,7 +2792,7 @@ questions:
       For Re=6 that is 6 vs 8; for Re=8, 8 vs 12.
 
       NOT PROBED, and not inferred: Re entered with NOTHING else -- the shape of
-      drivers/sample/winisd/s-re.wdr (Re=123, Znom=0, slot 0 = N), which the Re rule alone does not
+      drivers/mysamples/winisd/s-re.wdr (Re=123, Znom=0, slot 0 = N), which the Re rule alone does not
       explain. Both attempts (Z_re_only, Z_re_minimal) killed WinISD under wine with c000008e
       (FLT_DIVIDE_BY_ZERO) before any value could be read -- the BUG-003 degenerate-driver crash
       class. Recorded as a crash, NOT as a result. Whether a driver too sparse to solve suppresses
@@ -2890,7 +2890,7 @@ questions:
           explains why; asserts all 49 ParState slots including slot 0.
 
       THREE-WAY CROSS-CHECK (was the original divergence): now converged, not divergent.
-        - WinISD ground truth (drivers/sample/winisd/John-all-manu-populated.wdr): Znom=8 marked C
+        - WinISD ground truth (drivers/mysamples/winisd/John-all-manu-populated.wdr): Znom=8 marked C
           for Re=6 (2*round(4.5)=8, half-to-even).
         - openisd engine (nominalImpedance in driver.ts): computes the same 2*round_half_to_even
           formula, block 14 of solveConsistencyGroup.
@@ -3366,7 +3366,7 @@ questions:
       strictly a narrowing onto genuine violations.
 
       ALSO LANDED THIS TURN: docs/spec/SPEC_ENGINE.md:368 - the last stale reference to the deleted
-      drivers/sample/other/ - restated as a standalone oracle rule matching drivers/sample/README.md and
+      drivers/mysamples/other/ - restated as a standalone oracle rule matching drivers/mysamples/README.md and
       packages/winisd/src/native/openisdToWdr.ts, naming no dead file. `command grep -rn "sample/other"` over
       the workspace now returns ONLY this ledger's own prose (openisd/questions.yml), which is the sanctioned
       record of the ruling. NOTE FOR ANY AGENT VERIFYING THAT: a bare `grep` in this shell is a ugrep shell
@@ -3878,7 +3878,7 @@ questions:
       TASK 4 — air constants: IMPLEMENTED. RHO/C corrected from 6/5-sig-fig truncations
       (1.20095/343.68) to WinISD's full-precision values (1.20095217714682/343.684120962153),
       verified against all 8 winisd-parity goldens' c/roo (identical across humidity legs) and
-      drivers/sample/winisd/john-all-defaults.wdr (ParState C on c/roo). Golden rebaseline: max delta
+      drivers/mysamples/winisd/john-all-defaults.wdr (ParState C on c/roo). Golden rebaseline: max delta
       3.6e-3 relative on ONE near-zero impedance-phase (zph) bin (absolute delta 3.7e-3 degrees —
       relative blow-up is a near-zero-crossing artifact, not a real magnitude); max delta on SPL
       itself 3.2e-6 relative. All deltas consistent with the ~1.2e-5-relative constant correction
@@ -3933,7 +3933,7 @@ questions:
          the offdencing value and the offence"
 
       Verified against the real writer before adding: .wdr Comment= is a single-line free-text field
-      (confirmed on drivers/sample/winisd/*.wdr, the WinISD oracle set), currently sourced from
+      (confirmed on drivers/mysamples/winisd/*.wdr, the WinISD oracle set), currently sourced from
       record.description (packages/winisd/src/native/openisdToWdr.ts:199) or raw.comment
       (packages/winisd/src/classic/wdr.ts:28).
 
@@ -4249,7 +4249,7 @@ questions:
       cases (E-match, E-mismatch, N-not-compared) still pass unchanged.
 
       Test: packages/winisd/test/wdr-to-openisd-record.test.ts, 6 new it(), oracle
-      drivers/sample/winisd/inconsistency-test-qts-C.wdr (genuine WinISD save, Qts=0.500 stored but
+      drivers/mysamples/winisd/inconsistency-test-qts-C.wdr (genuine WinISD save, Qts=0.500 stored but
       ParState marks it C; file's own comment: correct value ~0.358). Round-trip: .wdr text ->
       fromWdr() -> toOpenISDRecord() -> OpenISDDriver.fromRecord() -> .cell() asserts Fs/Re/Qes/Qms
       E-state values match the file, Qts/fLe correctly absent from the record, and OpenISDDriver
@@ -4807,7 +4807,7 @@ questions:
 
       CHANNEL (new, reusable): a `ParState=` line written into a project's [Driver] block IS
       honoured by a CLI load and round-trips byte-for-byte - verified against openisd's own
-      drivers/sample/winisd/John-all-manu-populated.wdr, 49/49 characters
+      drivers/mysamples/winisd/John-all-manu-populated.wdr, 49/49 characters
       (winisd_research/toys/bringup_parstate_in_wpr.py). Without it a CLI-loaded project marks EVERY
       field E, absent-and-zero ones included, so "unset" cannot be expressed at all. Full write-up:
       winisd_research/SOLVER_GAPS.md 2.5/2.6.
@@ -5307,7 +5307,7 @@ questions:
 
       IMPLEMENTED. All 16 fields given a home on SpecSection (Dia, Vd, no, SPLmax, SPLmaxLF, USPL,
       alfaVC, Rt, Ct, gamma, Rme, Mpow, Mcost, Gloss, c, roo) and mapped in SPEC_TO_WDR, which carries
-      them both ways. Measured loss across drivers/sample/winisd is now ZERO — NOT_CARRIED in
+      them both ways. Measured loss across drivers/mysamples/winisd is now ZERO — NOT_CARRIED in
       wdr-openisd-round-trip.test.ts is empty and a corpus-level test asserts the measured loss set
       equals it, so the suite fails if anything starts being lost again.
 
@@ -5323,7 +5323,7 @@ questions:
 
       STILL OPEN, raised separately: what c/roo MEAN per-driver. The plausible reading is the
       conditions that driver was measured at, but nothing in docs/winisd_screenshots/ states it. Recorded in
-      drivers/sample/PARSTATE-FINDINGS.md as a hypothesis, explicitly not resolved.
+      drivers/mysamples/PARSTATE-FINDINGS.md as a hypothesis, explicitly not resolved.
 - id: QO49
   title: 'Gloss import provenance: a ParState-less .wdr imports a carried Gloss=0 as ENTERED, blocking
     derivation'
@@ -5357,11 +5357,11 @@ questions:
         is not evaluable for them at all -- a 0 there blocks nothing.
 
       THE 5, and what each already does:
-        drivers/sample/winisd/inconsistency-test.wdr           slot 37 = C  -> already dropped
-        drivers/sample/winisd/inconsistency-test-saved.wdr     slot 37 = C  -> already dropped
-        drivers/sample/winisd/inconsistency-test-qts-C.wdr     slot 37 = C  -> already dropped
-        drivers/sample/winisd/inconsistency-test-qts-N.wdr     slot 37 = C  -> already dropped
-        drivers/winisd/TangBand W4-639SA.wdr                   NO ParState -> imported as ENTERED 0
+        drivers/mysamples/winisd/inconsistency-test.wdr           slot 37 = C  -> already dropped
+        drivers/mysamples/winisd/inconsistency-test-saved.wdr     slot 37 = C  -> already dropped
+        drivers/mysamples/winisd/inconsistency-test-qts-C.wdr     slot 37 = C  -> already dropped
+        drivers/mysamples/winisd/inconsistency-test-qts-N.wdr     slot 37 = C  -> already dropped
+        drivers/winisd/winisdpro/TangBand W4-639SA.wdr                   NO ParState -> imported as ENTERED 0
 
       So the live defect is ONE library file, not 245. The 245-of-1622 figure in QO24's note does
       not reproduce against this tree.
@@ -5377,7 +5377,7 @@ questions:
   answer:
     at: '2026-08-21'
     text: |-
-      HUMAN RULING, verbatim: "drivers/winisd/TangBand W4-639SA.wdr -> drivers/winisd is someone elses
+      HUMAN RULING, verbatim: "drivers/winisd/winisdpro/TangBand W4-639SA.wdr -> drivers/winisd is someone elses
       realsl data - if it doesn contain ParStat then we have to live with that and do something sensible
       like assume everything is 'E'"
 
@@ -5385,20 +5385,20 @@ questions:
       uniformly, including a carried Gloss=0. No Gloss special case, and no generalised
       "a zero means absent" rule.
 
-      THE REASONING, which is stronger than the defect count: drivers/winisd/ is a THIRD-PARTY export —
+      THE REASONING, which is stronger than the defect count: drivers/winisd/winisdpro/ is a THIRD-PARTY export —
       someone else's real data, not something OpenISD produced or controls. A file that carries no
       ParState has told us nothing about which of its values were entered and which were computed, so
       there is no evidence to act on. Treating its 0 as "probably not meant" would be OpenISD inventing
       provenance the source never stated, which is the same class of fabrication as inventing a value.
       Uniform "presence => E" is the sensible reading of a file that omits the marks.
 
-      CONSEQUENCE, accepted: drivers/winisd/TangBand W4-639SA.wdr displays Gloss = 0 where the engine
+      CONSEQUENCE, accepted: drivers/winisd/winisdpro/TangBand W4-639SA.wdr displays Gloss = 0 where the engine
       would otherwise derive 0.0196 from Fs=65 and Xmax=0.003 (Gloss = g / ((2π x Fs)^2 x Xmax)). One
       library driver, one field.
 
       SCOPE MEASURED 2026-08-21, so the decision is on real numbers: 1626 .wdr files, 1102 with no
       ParState, 1378 carrying Gloss, 224 with Gloss==0, and only 5 where Gloss==0 with Fs>0 and Xmax>0.
-      Four of those five are drivers/sample/winisd/inconsistency-test*.wdr, which DO carry a ParState
+      Four of those five are drivers/mysamples/winisd/inconsistency-test*.wdr, which DO carry a ParState
       marking slot 37 as C and are therefore already dropped on import. The live case is one file.
 
       The mechanism is unchanged and correct as it stands: WinISDDriver.fromWdrIni defaults a cell's
@@ -6069,8 +6069,8 @@ questions:
   notes:
   - at: '2026-08-21'
     text: |-
-      29 of 1626 bundled `.wdr` files (all in `drivers/winisd/`, the third-party set — NOT the
-      WinISD-written oracles in `drivers/sample/winisd/`) are not valid UTF-8 even once the 0xA4
+      29 of 1626 bundled `.wdr` files (all in `drivers/winisd/winisdpro/`, the third-party set — NOT the
+      WinISD-written oracles in `drivers/mysamples/winisd/`) are not valid UTF-8 even once the 0xA4
       newline sentinels are removed. `wdrBytesToText` decodes UTF-8, so those files' non-ASCII
       characters become replacement characters on import.
 
@@ -6091,7 +6091,7 @@ questions:
       WHAT IS ESTABLISHED: the bytes are single-byte high-Latin and are definitely not UTF-8.
 
       WHAT IS NOT KNOWN, and is the more important half: what encoding does WinISD ITSELF write?
-      `drivers/sample/winisd/driver-with-unicode-text.wdr` (WinISD-written) holds € as UTF-8
+      `drivers/mysamples/winisd/driver-with-unicode-text.wdr` (WinISD-written) holds € as UTF-8
       E2 82 AC and 漢字 as UTF-8 — so WinISD writes UTF-8 there. The 29 files are a third-party
       database export and say nothing about WinISD's own behaviour.
 
@@ -6129,7 +6129,7 @@ questions:
         - WinISD WRITES UTF-8. Typed characters came back as C2 A4 (¤), D0 A4 (Ф), E0 A4 84 (ऄ), and an
           Enter keystroke as a bare A4. So the newline sentinel is distinguishable by UTF-8 LEAD
           POSITION, which packages/winisd/src/wdrBytes.ts already implements.
-        - WinISD does NOT decode CP1252. Loading the CP1252 file drivers/winisd/Selenium SW108 .wdr
+        - WinISD does NOT decode CP1252. Loading the CP1252 file drivers/winisd/winisdpro/Selenium SW108 .wdr
           displays literal '?' glyphs, and a no-edit re-save is DESTRUCTIVE: FF FF -> ??, E6 -> ?,
           AE -> ?, so "Kapton®" silently becomes "Kapton?".
       So current WinISD writes UTF-8 while OLDER files in circulation are CP1252 — the two facts are
@@ -6147,7 +6147,7 @@ questions:
         - WRITE stays UTF-8, which is what WinISD itself writes today, so our output is compatible with
           current WinISD. Where a character cannot survive a consumer that expects the legacy codepage,
           compatibility is best-effort — we do not degrade our own records to match a lossy reader.
-        - Tests: drivers/winisd/Selenium SW108 .wdr must read back with '•' (0x95), '®' (0xAE), '±',
+        - Tests: drivers/winisd/winisdpro/Selenium SW108 .wdr must read back with '•' (0x95), '®' (0xAE), '±',
           '½' intact. Its FF FF / E6 run is garbage in EVERY encoding (spliced mid-word into
           "reproduction") and is source damage to fix separately — it must not be used as an
           encoding-correctness oracle.
@@ -7713,7 +7713,7 @@ questions:
 
     Two facts that make the build cheap once ruled, both measured 2026-08-31:
       - .wdr stores SI directly (Xmax=0.009 m, Vas=0.1416 m3, Sd=0.00178 m2 in
-        drivers/sample/winisd/John-all-manu-populated.wdr) — same units as the record's read_value, so
+        drivers/mysamples/winisd/John-all-manu-populated.wdr) — same units as the record's read_value, so
         the projection needs no unit conversion.
       - Engine.solveConsistencyGroup (packages/design/engine/Engine.ts:76) is on the engine's public
         door, so the computed-value half of the .wdr needs no new export. A real WinISD ParState is
@@ -9061,3 +9061,140 @@ questions:
   - at: '2026-09-14'
     text: 'Clarification: the tooltip text is verified application text. The unverified part is only the
       claim about WinISD''s own behavior; verify that external behavior before removing the warning.'
+- id: QO142
+  title: 'sweep.ts: change Result<SweepResult> to unified CalculationIssue<Q>, or keep it and add checkBoxParams-style
+    parallel methods?'
+  status: decided
+  raised: '2026-09-15'
+  body: ''
+  notes:
+  - at: '2026-09-15'
+    text: |-
+      Blocked task (PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md task #9, session 2026-09-15):
+      sweep.ts's dependency discovery is duplicated: once in the old Result<SweepResult>.errors
+      path (DriverError[]), once in the new CalculationIssue<Q> shape now used everywhere else
+      (driver/sealed-alignment/vent/PR/box-params/signal/environment).
+
+      Result<SweepResult> is NOT local to sweep.ts — it's the same shared type validateParams()
+      returns, and validateParams() was deliberately left unconverted this session (checkBoxParams()
+      added as a NEW additive method beside it instead) because converting it is a materially larger,
+      riskier change than everything else done: sweep() is a wide, load-bearing seam.
+
+      Two options:
+      1. Convert sweep()'s return type to the new shape too (matches everything else, but touches
+         every sweep() caller — UI chart code, tests, anything reading .errors).
+      2. Leave Result<SweepResult> as-is permanently and just delete the now-duplicate discovery
+         logic that the old path does, keeping two parallel diagnostic paths on this one function.
+
+      Needs your call — not something to guess at per packages/design/AGENTS.md "when the specified
+      shape leaves a genuine gap, say so and stop for John's decision."
+  answer:
+    at: '2026-09-15'
+    text: Convert sweep()'s return type to CalculationIssue<Q>, matching everything else. That's the whole
+      point of the unification — do not leave a permanent parallel old-style path.
+- id: QO143
+  title: 'CalculationPrerequisite<Q>: how should maxspl/maxpwr going to Infinity (missing Pe/Xmax) be
+    represented — same ''blocked'' shape as circuitQuantities''s hard-required fields, or something else?'
+  status: decided
+  raised: '2026-09-15'
+  body: ''
+  notes:
+  - at: '2026-09-15'
+    text: |-
+      Blocked task (PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md task #10, session 2026-09-15):
+      Adding the 8 named prerequisite channels (DriverPrerequisite...ConfigurationPrerequisite) to
+      SweepCalculationResult requires deciding how maxCurves() semantics map onto
+      CalculationPrerequisite<Q> = {output: SweepOutputName, missing: readonly Q[]}.
+
+      Discovered two genuinely different "can't compute" cases in maxCurves():
+      - circuitQuantities's six hard-required fields missing -> every main curve is blocked outright
+        (no value at all).
+      - Pe/Xmax missing -> maxspl/maxpwr don't block, they go to Infinity (mathematically correct:
+        unbounded because nothing limits them).
+
+      CalculationPrerequisite<Q>'s current shape (just "missing: Q[]") can't distinguish these two
+      without risking encoding wrong physics if I guess. Options I can see:
+      1. Two variants (blocked vs unbounded) in CalculationPrerequisite<Q>, like CalculationIssue<Q>'s
+         discriminated union.
+      2. Treat "unbounded" as not a prerequisite gap at all -- it IS a valid answer (Infinity), so
+         maybe maxspl/maxpwr just don't get a prerequisite channel for Pe/Xmax at all.
+      3. Something else you have in mind for how this should read in the UI.
+
+      Needs your call before I touch SweepCalculationResult — not something to guess at per
+      packages/design/AGENTS.md "when the specified shape leaves a genuine gap, say so and stop for
+      John's decision."
+  answer:
+    at: '2026-09-15'
+    text: |-
+      A — separate label from "blocked", e.g. "state Pe or Xmax to bound this curve" — matches the
+      "tell the user clearly what they need to do" principle from QO144.
+- id: QO144
+  title: 'sweep.ts circuitQuantities: singleFieldUnblockers()''s whole-circuit suggestion list has no
+    home in CalculationIssue<Q>''s per-target missing-dependencies shape — how should it be represented?'
+  status: decided
+  raised: '2026-09-15'
+  body: ''
+  notes:
+  - at: '2026-09-15'
+    text: |-
+      Implementing QO142's decision (convert sweep()'s Result<SweepResult> to CalculationIssue<Q>)
+      surfaced a real design gap while converting circuitQuantities()'s missing-field detection.
+
+      circuitQuantities() currently reports TWO different things through one DriverError:
+      1. Which of the 6 circuit-required fields (Sd_m2, Re_terminal_ohm, BL_terminal_Tm,
+         Cms_m_per_N, Mms_kg, Rms_kg_per_s) are absent — this maps cleanly onto
+         DriverIssue's missing-dependencies shape, one issue per missing field, each with a
+         trivial one-route "state <field> directly" route.
+      2. singleFieldUnblockers()'s suggestion: "state ANY ONE of these other fields
+         (Vas, Cms, Mms, BL, no, SPL, ...) to let the solver derive the whole circuit" — this is
+         a WHOLE-CIRCUIT question (does the circuit become solvable), not a per-target route.
+         CalculationIssue<Q>'s missing-dependencies shape is `{target: Q, routes: SolveRoute<Q>[]}`
+         — inherently about routes TO one target. Forcing the suggestion list under an arbitrary
+         target would misrepresent what those routes actually mean (they don't derive that target,
+         they derive the missing ones some other way).
+
+      Options I can see:
+      1. Drop the single-field-suggestion feature — sweep just reports which of the 6 fields are
+         missing (via 6 separate missing-dependencies issues), no more "try stating X instead."
+      2. Keep singleFieldUnblockers()'s suggestion logic exactly as-is, still producing a
+         DriverError-shaped message — i.e. sweep()'s issues become
+         readonly (DriverIssue | EnvironmentIssue | DriverError)[], a genuine mixed channel for
+         this one case, clearly commented why.
+      3. Something else — e.g. a new issue shape for "whole-group blocked, here are N standalone
+         unblockers" distinct from missing-dependencies.
+
+      The rest of the conversion (per-field missing-dependencies for the 6 circuit fields,
+      EnvironmentIssue reuse for tempK/air-out-of-range) has no such gap and I can proceed with it
+      once you rule here — not guessing at this one per packages/design/AGENTS.md "when the
+      specified shape leaves a genuine gap, say so and stop for John's decision."
+  answer:
+    at: '2026-09-15'
+    text: a) I want the user to clearly know what they need to do to get charts working
+- id: QO145
+  title: 'Configuration channel (bandpass6/abc unsimulated box types): add a minimal ConfigurationIssue
+    widening SweepIssue, or keep ConfigurationPrerequisite for a narrower future case and give !box a
+    plain DriverError refusal instead?'
+  status: deferred
+  raised: '2026-09-15'
+  body: ''
+  notes:
+  - at: '2026-09-15'
+    text: |-
+      Appendix to docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md, "Configuration" section
+      (2026-09-15): today OpenISDProject.sweep()'s !box branch (bandpass6/abc, unsimulated topologies)
+      returns {values: null, issues: []} — completely silent, no explanation for the blank chart.
+
+      Two options:
+      1. Add a minimal ConfigurationIssue ({kind: 'unsupported-topology', boxType}), widen SweepIssue
+         to include it, drop ConfigurationPrerequisite entirely (an unsimulated topology always blocks
+         fully, so the "one output degraded" prerequisite shape never applies).
+      2. Keep ConfigurationPrerequisite for a narrower future case (e.g. "this circuit model doesn't
+         support transmission-line ports"), and give !box a plain DriverError refusal instead
+         (matching how classifyFinite/etc. already report via DriverError, not CalculationIssue<Q>).
+
+      Deferred by John 2026-09-15 (mid-review of the same appendix) — not a "not now" on the whole
+      appendix, just this one sub-decision. The rest of the appendix (Sealed Alignment/Vent/PR widening
+      SweepIssue, Signal reversed to a blocking-input advisory) stands as proposed.
+  answer:
+    at: '2026-09-15'
+    text: Deferred — flagged for later, not ruling now.
