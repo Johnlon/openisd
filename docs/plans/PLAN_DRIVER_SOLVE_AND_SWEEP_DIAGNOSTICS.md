@@ -965,7 +965,7 @@ So the seven remaining channels split into two groups, not seven uniform cases:
 | Group | Channels | Shape |
 |---|---|---|
 | Blocks the whole sweep | Sealed Alignment, Vent, PR, Configuration | Embed the real issue in `SweepIssue` (widen the union), like Driver/BoxParams/Environment already do — no prerequisite array |
-| Degrades one output, sweep still runs | Signal | Advisory prerequisite array, like `driverPrerequisites` |
+| Not needed (see Signal section below — twice-corrected) | Signal | No channel — `power_W`/`voltage_V` cannot disagree by construction, so the one case that would have needed this cannot occur |
 | Neither (see below) | Box-Params | Already done (task #9) — listed here only to close the set |
 
 ### Sealed Alignment, Vent, PR — widen `SweepIssue`, do not add prerequisite arrays
@@ -1039,37 +1039,65 @@ Sealed Alignment/Vent/PR above. Two options, not yet decided:
 
 Not decided here — flagged for John, the same way QO143 settled the analogous driver question.
 
-### Signal — a blocking input to spl/deflection, corrected 2026-09-15
+### Signal — a blocking input to spl/deflection, twice-corrected 2026-09-15
 
-**Reversed.** The paragraph originally here argued signal issues never need a channel of their
-own, reasoning that `#sweepParams()`'s 1 W fallback (`eg = this.#engine.driveVoltage(1, Re_ohm)`)
-makes a missing signal value harmless. John's correction: the signal (drive level) is a
-**blocking input to the SPL calculation and to deflection (excursion) — not merely something a
-default papers over.** `eg` feeds directly into `spl`, `exc`, `excPR`, `pv`, and (through the
-sweep it derives from) `maxspl`/`maxpwr` — every one of those is a function of drive level, so a
-signal value that is stated-but-inconsistent (`voltage_V` disagreeing with `power_W`+`Re_ohm`)
-does not fail loudly with a null sweep the way a missing circuit field does — it silently feeds
-a WRONG `eg` into a sweep that still runs and still looks plausible, which is arguably worse than
-a blocked chart: the curve draws, at the wrong level, with no indication anything is off.
+**First correction (superseded by the second, below — kept for the record).** The paragraph
+originally here argued signal issues never need a channel of their own, reasoning that
+`#sweepParams()`'s 1 W fallback makes a missing signal value harmless. John's first correction:
+the signal (drive level) is a **blocking input to the SPL calculation and to deflection
+(excursion), not merely something a default papers over** — `eg` feeds directly into `spl`,
+`exc`, `excPR`, `pv`, `maxspl`, `maxpwr`. That much stands. The DRAFT proposal that followed —
+a `signalPrerequisites` channel firing on `power_W` disagreeing with `voltage_V`+`Re_ohm` — does
+not, per the second correction:
 
-This makes Signal the SAME shape as Driver's `Pe`/`Xmax` case, not the "no reachable case" this
-section previously concluded: `values` is not `null`, but specific outputs are drawn from a
-`SignalIssue`-tainted `eg`. Proposed:
+**Second correction — the actual data model.** `power_W` and `voltage_V` **cannot ever
+disagree, by construction**, because only ONE of them is ever real, persisted data. John: *"W
+and V cannot conflict — EVER — if they are misaligned then move V to meet W. They should be
+seen as two different ends of the same pendulum... the only value the model should store is the
+one that is actually pulled into the calcs. The other is just a second means to adjust the
+other."* Confirmed against WinISD's own `.wpr` format: `[SignalSource]` holds `Rg` and `P` —
+**never `V`**. Typing a voltage into the Signal tab is a real, legitimate way to STATE a drive
+level, but the act of typing it immediately converts to and stores `power_W`; the typed voltage
+itself is never independently persisted, so there is no second stored fact it could ever
+disagree with.
+
+This is bigger than the prerequisite question — it means the ENGINE's own `solveSignal()`
+(`engine/signal.ts`) is modeling something that cannot happen. Its `inconsistent-inputs` branch:
 
 ```ts
-type SignalPrerequisite = CalculationPrerequisite<SignalQuantityName>;
+if (usable(power_W) && usable(voltage_V) && usable(Re_ohm)) {
+  const expected = driveVoltage(power_W, Re_ohm);
+  const relative = Math.abs(expected - voltage_V) / Math.abs(voltage_V);
+  if (relative > 1e-9) { issues.push({ kind: 'inconsistent-inputs', ... }); }
+}
 ```
 
-populated on `sw`/`mx` whenever `solveSignal()` (or however the domain resolves drive level for
-this sweep) reports an `inconsistent-inputs` `SignalIssue`, naming every `eg`-derived output:
-`{ output: 'spl', missing: ['power_W', 'voltage_V', 'Re_ohm'] }` and the same for `exc`, `excPR`,
-`pv`, `maxspl`, `maxpwr` — one entry per affected output, mirroring `driverPrerequisites`'s
-one-entry-per-output pattern rather than one combined entry. A merely-ABSENT signal (nothing
-stated at all) stays non-blocking exactly as today — the 1 W reference is the intended default
-behavior, not a gap — so this fires only on `inconsistent-inputs`, never on the empty/default
-case. Needs a test proving the reachable case: state `power_W` and `voltage_V` together at
-values that disagree given `Re_ohm`, and confirm `spl` still draws (not null) while
-`signalPrerequisites` names it.
+treats `power_W` and `voltage_V` as two independently-`entered` quantities that might disagree —
+exactly the shape John's correction rules out. The DOMAIN layer (`OpenISDProject.powerDrive_W`/
+`driveVoltage_V`, `openisdDomain.ts:2432-2502`) already stores them as a matched pair today
+(`.set()` on either one derives and writes both, so the RECORD never disagrees) — closer to
+correct than the engine, but still stores `voltage_V` at all, where John's ruling says it
+should not be persisted, period: `voltage_V` should be a **pure derived read** (`√(power_W ·
+Re_ohm)`), never a field the schema carries, matching `.wpr`'s own `P=`-only shape.
+
+**Consequence for this channel:** `SignalPrerequisite`/`signalPrerequisites` is **not needed**
+for a power/voltage disagreement — that case cannot exist once the model is fixed. The reachable
+signal gap, if any, is a plain `missing-dependencies` one: `Re_ohm` absent when only a voltage
+was typed (nothing to convert it to a storable power with), which is `Re_terminal_ohm` — a
+DRIVER field already blocking the whole sweep via the driver channel, same reasoning as the
+original (pre-reversal) conclusion. **Revert to: do not build `signalPrerequisites`.**
+
+**Follow-up implied, not yet scoped as a task:** `engine/signal.ts#solveSignal()`'s
+`inconsistent-inputs` branch should be deleted (dead by construction once the domain never hands
+it both as independently entered), and `openisdSchema.ts`'s signal record
+(`z.strictObject({power_W: z.number(), voltage_V: z.number()})` / `{power_W: z.null(),
+voltage_V: z.null()}`) should drop `voltage_V` from PERSISTED storage entirely — `powerDrive_W`/
+`driveVoltage_V`/`statedVoltage_V`'s `.set()`/`.get()` plumbing in `openisdDomain.ts` already
+treats voltage as a derived view in spirit; this would make it true in the stored record too,
+matching `.wpr`'s own `[SignalSource]` shape. Not attempted in this appendix — a real code
+change to the `.wpr` schema/import-export (signal/drive level is a PROJECT concept, not a driver
+one — `.wdr` carries no `[SignalSource]` section and is untouched by this) and the Signal panel,
+not a doc-only decision, and outside what was asked for here.
 
 ### Revised Implementation Order (continuing from item 10)
 
@@ -1078,10 +1106,14 @@ values that disagree given `Re_ohm`, and confirm `spl` still draws (not null) wh
      `OpenISDProject.sweep()`/`maxCurves()`, gated on the active box type, run before the engine
      call — same early-return pattern as the existing `checkBoxParams()` call.
 10b. Get John's ruling on Configuration (the two options above), implement whichever is chosen.
-10c. Build `signalPrerequisites` (reversed 2026-09-15 — see Signal section above): populate one
-     entry per `eg`-derived output (`spl`, `exc`, `excPR`, `pv`, `maxspl`, `maxpwr`) whenever the
-     resolved signal is `inconsistent-inputs`, never on a merely-absent one (the 1 W reference
-     default is intended behavior, not a gap).
+10c. Do NOT build `signalPrerequisites` (twice-corrected 2026-09-15 — see Signal section above):
+     `power_W`/`voltage_V` cannot disagree once the data model is right, so there is no reachable
+     inconsistent-signal case for it to name. Delete `SignalPrerequisite` from `consistency.ts`'s
+     type list (never populated, never will be). Separately (not part of task #10, a real code
+     change to the persisted schema/import-export, raised for its own decision): drop
+     `voltage_V` from `openisdSchema.ts`'s stored signal record entirely, and delete
+     `engine/signal.ts#solveSignal()`'s `inconsistent-inputs` branch, which models exactly the
+     conflict John's ruling says cannot exist.
 10d. Delete `SealedAlignmentPrerequisite`/`VentPrerequisite`/`PrPrerequisite` from
      `consistency.ts` once 10a lands — they become as dead as the driver-level
      `DriverPrerequisite` array that was never built, superseded by the embedded-issue shape.
@@ -1090,7 +1122,4 @@ values that disagree given `Re_ohm`, and confirm `spl` still draws (not null) wh
 10e. Tests: for each of Sealed Alignment/Vent/PR, a fixture missing the topology's required
      solve input produces the RIGHT issue (not a generic `classifyFinite` "no finite values"
      postcondition) — the exact regression the `Leff = null` finding above describes. One test
-     per topology, mirroring `hardening.test.ts`'s existing driver-blocking tests. Plus: a signal
-     stated inconsistently (`voltage_V` disagreeing with `power_W`+`Re_ohm`) still produces a
-     drawable `spl` (`values` not `null`) while `signalPrerequisites` names every affected output —
-     proving Signal is advisory, not blocking, unlike the other three.
+     per topology, mirroring `hardening.test.ts`'s existing driver-blocking tests.
