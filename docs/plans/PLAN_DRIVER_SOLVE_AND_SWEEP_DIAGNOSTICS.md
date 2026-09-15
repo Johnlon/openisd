@@ -1087,17 +1087,40 @@ was typed (nothing to convert it to a storable power with), which is `Re_termina
 DRIVER field already blocking the whole sweep via the driver channel, same reasoning as the
 original (pre-reversal) conclusion. **Revert to: do not build `signalPrerequisites`.**
 
-**Follow-up implied, not yet scoped as a task:** `engine/signal.ts#solveSignal()`'s
-`inconsistent-inputs` branch should be deleted (dead by construction once the domain never hands
-it both as independently entered), and `openisdSchema.ts`'s signal record
-(`z.strictObject({power_W: z.number(), voltage_V: z.number()})` / `{power_W: z.null(),
-voltage_V: z.null()}`) should drop `voltage_V` from PERSISTED storage entirely — `powerDrive_W`/
-`driveVoltage_V`/`statedVoltage_V`'s `.set()`/`.get()` plumbing in `openisdDomain.ts` already
-treats voltage as a derived view in spirit; this would make it true in the stored record too,
-matching `.wpr`'s own `[SignalSource]` shape. Not attempted in this appendix — a real code
-change to the `.wpr` schema/import-export (signal/drive level is a PROJECT concept, not a driver
-one — `.wdr` carries no `[SignalSource]` section and is untouched by this) and the Signal panel,
-not a doc-only decision, and outside what was asked for here.
+**Follow-up implied, not yet scoped as a task — corrected 2026-09-15 on where this actually
+lives.** `.wpr` (WinISD's format) is NOT where `voltage_V` gets persisted, and needs no change:
+`openIsdProjectToWinIsdProject.ts`'s `[SignalSource]` export already writes only `Rg`/`P`, never
+`V` (confirmed against `docs/samples/sample_project_sealed.wpr`, which has no `V=` line), and the
+`.wpr` IMPORT side already only reads `P`. The actual persistence is `.owpr` — OpenISD's OWN
+native project-session JSON (`openisdDomain.ts`'s `toOwprText()`/`fromOwprText()`,
+`openisdSchema.ts`'s signal record: `z.strictObject({power_W: z.number(), voltage_V:
+z.number()})` / `{power_W: z.null(), voltage_V: z.null()}`) — THAT schema should drop
+`voltage_V` from persisted storage, not `.wpr`'s.
+
+Two further corrections to how the derived setters should behave, once only `power_W` is real
+data (both from John, 2026-09-15):
+
+- **Setting a voltage should be BLOCKED when `Re_ohm` is unknown**, with a concrete refusal
+  ("Cannot set drive voltage — Re is not yet known") — because converting a typed voltage into
+  the power that would actually get stored needs `Re`, and there is nothing else to store it as.
+  `driveVoltage_V.set(v)` in `openisdDomain.ts` ALREADY does this today (throws when `Re_ohm` is
+  undefined) — this part needs no change, just confirmation it stays once `voltage_V` stops being
+  persisted.
+- **Setting a power should NOT be blocked the same way.** Power is the value actually stored, so
+  entering it never needs `Re` — only DISPLAYING the corresponding voltage does, and that can
+  simply read as unavailable until `Re` is known. This is a real, present INCONSISTENCY to fix:
+  `powerDrive_W.set(w)` in `openisdDomain.ts` currently ALSO throws when `Re_ohm` is undefined
+  (`'setPowerDrive_W cannot solve a voltage: the driver has no usable Re_ohm yet.'`) — symmetric
+  with the voltage setter today only because both currently compute and store the OTHER value
+  eagerly. Once only `power_W` is stored, `powerDrive_W.set(w)` should drop that `Re_ohm` check
+  entirely and just store `power_W: w`; the DERIVED voltage read (`driveVoltage_V.get()`) already
+  correctly reports 'not-available' when `Re_ohm` is missing, and refreshes/auto-corrects on its
+  own the moment `Re_ohm` becomes known — no separate recomputation step needed, since it is
+  already read-time-derived, not stored.
+
+Not attempted in this appendix — a real code change to the `.owpr` schema/session format and
+`openisdDomain.ts`'s `powerDrive_W`/`driveVoltage_V`/`statedVoltage_V` plumbing, not a doc-only
+decision, and outside what was asked for here.
 
 ### Revised Implementation Order (continuing from item 10)
 
