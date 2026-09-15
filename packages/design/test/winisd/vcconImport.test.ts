@@ -3,7 +3,7 @@
  *
  * `VCCon` is read on PRESENCE, not on its ParState mark. WinISD writes no instruction to slot 46,
  * so 520 of the 524 corpus files carry `N` there while still stating a wiring on the `VCCon=` line
- * (`drivers/sample/PARSTATE-FINDINGS.md`). Dropping the row on its mark loses every Series in the
+ * (`drivers/mysamples/PARSTATE-FINDINGS.md`). Dropping the row on its mark loses every Series in the
  * corpus.
  *
  * `1` and `2` are the whole encoding (`WINISD_SCHEMA.md` §3.2) — the only two positions WinISD's

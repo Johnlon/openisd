@@ -38,7 +38,10 @@ describe('checkOpenisdRoundTrip', () => {
     assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
     const record = parseYaml(readFileSync(REAL_OPENISD_YML, 'utf8'), { logLevel: 'error' });
     const result = checkOpenisdRoundTrip(record, 'accuton/bd90-6-727/openisd.yml');
-    assert.deepEqual(result, { ok: true });
+    assert.equal(result.ok, true, 'message' in result ? result.message : '');
+    // The opened device travels back so the bundler writes the index row from the object the
+    // gate proved — one open per record.
+    assert.ok('device' in result && result.device instanceof OpenISDDriver);
   });
 
   it('a value JSON cannot represent losslessly (YAML .nan) fails the gate, naming the divergence', () => {

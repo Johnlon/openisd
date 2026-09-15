@@ -14,8 +14,6 @@ dq_report.txt
 # Scraper cache dirs — all start with _ and are never committed
 drivers/**/_*/
 
-# Generated at build time by scripts/bundle-drivers.mjs
-src/drivers-bundle.json
 
 # OS / editor cruft
 .DS_Store

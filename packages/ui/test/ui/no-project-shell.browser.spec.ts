@@ -17,8 +17,6 @@ const OWPR = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'sa
 
 async function coldStart(page: import('playwright').Page) {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
 }
 
 test('a cold start renders the full shell with the three no-project placeholders', async ({ page }) => {

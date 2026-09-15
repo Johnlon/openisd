@@ -26,6 +26,7 @@ OPENISD_PORT_POOL_SIZE=8
 # that's a Node config, and duplicating two numbers is cheaper than a cross-language config load.
 OPENISD_MEM_PER_WORKER_GB="0.7"
 OPENISD_RESERVE_GB="2"
+OPENISD_MAX_WORKERS=2
 
 mkdir -p "$OPENISD_RESERVATION_DIR"
 
@@ -64,7 +65,7 @@ reserve_test_slot() {
 
   nproc_val="$(nproc)"
   cpu_cap=$(( (nproc_val + 1) / 2 ))   # ceiling division, matches playwright.config.js's Math.ceil(cpus/2)
-  [ "$cpu_cap" -gt 8 ] && cpu_cap=8
+  [ "$cpu_cap" -gt "$OPENISD_MAX_WORKERS" ] && cpu_cap="$OPENISD_MAX_WORKERS"
   [ "$cpu_cap" -lt 1 ] && cpu_cap=1
 
   my_workers="$(awk -v avail="$mem_avail_gb" -v reserved="$reserved_gb" -v reserve="$OPENISD_RESERVE_GB" -v perw="$OPENISD_MEM_PER_WORKER_GB" 'BEGIN {

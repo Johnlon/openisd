@@ -10,7 +10,7 @@ and the fresh-authored writer puts the wrong number on the `Znom=` line.
 
 ## Symptom
 
-Load `drivers/sample/winisd/John-all-manu-populated.wdr` (a genuine WinISD save, `Re=6`,
+Load `drivers/mysamples/winisd/John-all-manu-populated.wdr` (a genuine WinISD save, `Re=6`,
 `Znom=8`, ParState slot 0 = `C`) and write it back:
 
 - `Driver.toWdr()` emits ParState slot 0 = `N` — "not in play" — where WinISD wrote `C`.

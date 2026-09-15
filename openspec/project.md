@@ -74,6 +74,6 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 ## Important Constraints
 
 - Calculation logic cannot be changed without explicit user permission
-- 4000 is the only application port allowed for live previews and builds
+- Port 4000 = the human's live dev server (Vite + HMR, `scripts/preview-4000.sh`) — auto-refreshes on source edits. Agents never start/stop/kill it, only read it (e.g. `curl`, Playwright checks). Agents needing their own server use port 4200 (`scripts/dev-4200.sh`)
 - Avoid any mathematical or acoustic calculation logic in `@ui` or `@logic`
 - Global variables are prohibited to guarantee testability and maintainability

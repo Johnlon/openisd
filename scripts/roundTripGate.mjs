@@ -88,14 +88,16 @@ export function checkOpenisdRoundTrip(record, relPath) {
   // the record was accepted by the radiator seam, which is the same strict schema, but the
   // key-by-key comparison below cannot run. Adding that one method to the radiator would close
   // the gap; it is an API addition to packages/design and needs John's approval.
-  if (typeof read.toOpenIsdDeviceJson !== 'function') return { ok: true };
+  if (typeof read.toOpenIsdDeviceJson !== 'function') return { ok: true, device: read };
 
   const reserialisedRecord = read.toOpenIsdDeviceJson();
   const divergence = firstDivergence(record, reserialisedRecord);
   if (divergence) {
     return { ok: false, message: `${relPath}: round-trip mismatch at ${divergence}` };
   }
-  return { ok: true };
+  // The opened device travels back so the bundler can write its index row from the same object
+  // the gate proved — one open per record, no second parse.
+  return { ok: true, device: read };
 }
 
 /**

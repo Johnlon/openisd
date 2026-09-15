@@ -10,8 +10,6 @@ declare global {
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
   await openAProject(page);
 });
 

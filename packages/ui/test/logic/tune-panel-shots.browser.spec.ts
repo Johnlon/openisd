@@ -5,8 +5,6 @@ const SHOTS = 'docs/winisd';
 
 async function original(page: Page) {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
   await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();

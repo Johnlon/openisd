@@ -53,8 +53,8 @@ Three WinISD-authored files, read directly:
 
 | file | what it is | ParState |
 | --- | --- | --- |
-| `drivers/sample/winisd/john-all-defaults.wdr` | every key present, all 0, nothing entered | all `N` except slot 23 `E` and slots 47/48 `C` |
-| `drivers/sample/winisd/s-gloss.wdr` | `Gloss=1.23` typed, rest 0 | slot 37 `E`, rest `N`/`C` as above |
+| `drivers/mysamples/winisd/john-all-defaults.wdr` | every key present, all 0, nothing entered | all `N` except slot 23 `E` and slots 47/48 `C` |
+| `drivers/mysamples/winisd/s-gloss.wdr` | `Gloss=1.23` typed, rest 0 | slot 37 `E`, rest `N`/`C` as above |
 | the eight parity goldens | 22 keys supplied, WinISD then calculated | `C` at the 11 derived slots, `E` everywhere else |
 
 So WinISD's mark is a property of the VALUE — calculated ⇒ `C`, stated ⇒ `E`, absent ⇒ `N` —

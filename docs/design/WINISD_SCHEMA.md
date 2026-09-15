@@ -49,7 +49,7 @@
 WDR files contain only WinISD-native fields. Provenance and quality metadata is not
 carried in a WDR at all — it lives in the driver record (`openisd.yml`).
 
-Source for structural claims: direct analysis of 423 `drivers/matt/` files plus 53 WinISD-generated single-field probe files from `drivers/sample/` (2026-06-28).
+Source for structural claims: direct analysis of 423 `drivers/matt/` files plus 53 WinISD-generated single-field probe files from `drivers/mysamples/` (2026-06-28).
 
 ## 2. Canonical field order
 
@@ -513,7 +513,7 @@ The last two rows are the ones that need rule 2.
 openisd's `nominalImpedance()` does both, and returns WinISD's answer on every row here.
 
 **Not probed:** an `Re` entered with nothing else, which is the shape of
-`drivers/sample/winisd/s-re.wdr` (`Re=123`, `Znom=0`, mark `N`) and which this rule alone does
+`drivers/mysamples/winisd/s-re.wdr` (`Re=123`, `Znom=0`, mark `N`) and which this rule alone does
 not explain. Both attempts killed WinISD with `c000008e` (FLT_DIVIDE_BY_ZERO) before any value
 could be read — the BUG-003 degenerate-driver crash. Whether a driver too sparse to solve
 switches the `Znom` calculation off is UNTESTED.
@@ -1111,7 +1111,7 @@ _Read directly from WinISD's calculation engine._
 `Qts = (Qms × Qes) / (Qms + Qes)`
 
 WinISD manages Qts via the C/E mode system — empirically verified 2026-06-28 using
-`drivers/sample/inconsistency-test*.wdr`:
+`drivers/mysamples/winisd/inconsistency-test*.wdr`:
 
 | Qts ParState         | Behaviour                                                                                    |
 | -------------------- | -------------------------------------------------------------------------------------------- |
@@ -1207,11 +1207,11 @@ the strongest possible statement, pinning all 49 fields against recalculation.
 
 ### 8.2 Observed ParState values
 
-**Source of truth:** `drivers/sample/` (single-parameter probe experiments, real WinISD
+**Source of truth:** `drivers/mysamples/` (single-parameter probe experiments, real WinISD
 0.7.0.950) and `drivers/matt/` (real WinISD files from human data entry). See §8.4 for the
-confirmed position map and `drivers/sample/README.md` for probe methodology.
+confirmed position map and `drivers/mysamples/README.md` for probe methodology.
 
-**Blank driver** — nothing entered (`drivers/sample/john-all-defaults.wdr`):
+**Blank driver** — nothing entered (`drivers/mysamples/john-all-defaults.wdr`):
 
 ```
 NNNNNNNNNNNNNNNNNNNNNNNENNNNNNNNNNNNNNNNNNNNNNNCC
@@ -1226,13 +1226,13 @@ Qms, Pe, Re, Le, BL, Xmax, Cms, Mms, Sd and WinISD computes the rest:
 CCECEENNEENEECCCEECCNCCENNCCCNNNCCCCNCNNNNNNNNNCC
 ```
 
-**All T/S params entered** (`drivers/sample/john-all-noncalc-fields-manually-entered.wdr`):
+**All T/S params entered** (`drivers/mysamples/john-all-noncalc-fields-manually-entered.wdr`):
 
 ```
 CEECEEECCEECEEECECCENCCEECCCCNNNCCCCCCNNNNNNNNNCC
 ```
 
-**Minimum entry — only Qms and Qes** (`drivers/sample/inconsistency-test-saved-q.wdr`,
+**Minimum entry — only Qms and Qes** (`drivers/mysamples/inconsistency-test-saved-q.wdr`,
 empirically produced 2026-06-28):
 
 ```
@@ -1253,7 +1253,7 @@ value with no state marking; every text field on the panel is wired to both.
 
 So pos 47 carries the `N` a blank driver starts with, or verbatim whatever the loaded file
 said. A hand-authored `E` there survives a load-and-save untouched, which is what
-`drivers/sample/winisd/inconsistency-test-saved.wdr` records.
+`drivers/mysamples/winisd/inconsistency-test-saved.wdr` records.
 
 `numVC` (pos 24) is the same species. It is an integer spin control, likewise wired without
 state marking, so its only assignment anywhere is the hardcoded `E` that WinISD stamps when it
@@ -1269,7 +1269,7 @@ the source file said, and use `E` at 24 / `N` at 47 when there is no source.
 probe file that established each position is the column beside it; `—` marks the two positions
 no probe can reach, which came from `winisd.exe` instead (see §8.3).
 
-`drivers/sample/README.md` uses **0-indexed** positions (0–48); §3 uses **1-indexed** (1–49).
+`drivers/mysamples/README.md` uses **0-indexed** positions (0–48); §3 uses **1-indexed** (1–49).
 Subtract 1 to get the README index.
 
 **All 49 positions are confirmed.** Three orderings exist in this format and none can be derived
@@ -1280,7 +1280,7 @@ the last of the run beginning at `Thick` (39), leaving 48 and 49 for `c` and `ro
 position 39 onward ParState order stops tracking WinISD's internal storage order, so no
 position past 38 can be extrapolated.
 
-Source: `drivers/sample/README.md` (single-parameter probe methodology, WinISD 0.7.0.950,
+Source: `drivers/mysamples/README.md` (single-parameter probe methodology, WinISD 0.7.0.950,
 2026-06-26) and the engine itself. Method and per-position evidence:
 `winisd_research/RE_GHIDRA_FINDINGS.md` §"ParState decompiled".
 

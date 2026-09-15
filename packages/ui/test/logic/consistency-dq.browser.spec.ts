@@ -23,8 +23,6 @@ const IMPOSSIBLE_MMS_G = '30';
 
 async function openTune(page: Page) {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
   await openAProject(page, COMPLETE_OWPR);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
@@ -35,8 +33,6 @@ const tuneField = (page: Page, label: string) =>
   page.locator('.tune-panel .tune-fld').filter({ has: page.locator('label', { hasText: new RegExp(`^${label}$`) }) });
 
 async function openEditorParameters(page: Page) {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
   await page.goto('/');
   await openAProject(page, COMPLETE_OWPR);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
@@ -164,8 +160,6 @@ test('Tune what-if: hovering or clicking the alert icon displays the custom form
 });
 
 test('chart failure lists the missing circuit values returned by the sweep', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
   await page.goto('/');
   await openAProject(page, COMPLETE_OWPR);
 

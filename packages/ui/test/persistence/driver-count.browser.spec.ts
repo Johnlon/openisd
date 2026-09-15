@@ -19,8 +19,9 @@ test('the count matches the number of rows listed, and follows a filter', async 
   const status = page.locator('.statusrow .status');
 
   // Narrow hard with the search box so the list is small enough to count exactly — the
-  // unfiltered list is capped at DISPLAY_LIMIT rows, which is a different number again.
-  await page.locator('.filter').fill('as168-9-470');
+  // unfiltered list is capped at DISPLAY_LIMIT rows, which is a different number again. The
+  // model is one of the suite's six reference devices (fixtures/test-bundle-paths.json).
+  await page.locator('.filter').fill('W5-1138SMF');
   await expect(rows).not.toHaveCount(0);
 
   const listed = await rows.count();

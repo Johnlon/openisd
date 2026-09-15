@@ -1,61 +1,64 @@
 #!/usr/bin/env node
 /**
- * bundle-drivers.mjs
+ * bundle-drivers.mjs — writes the bundled driver catalogue the app serves and fetches.
  *
- * Pre-bundles the driver records of every bundled collection into
- * packages/ui/src/drivers-bundle.json, so the app loads them instantly without hitting
- * the GitHub API.
+ *   npx vite-node scripts/bundle-drivers.mjs [--force]
  *
- * The one bundled corpus is the sibling `winisd_drivers/db/datasheets` checkout.
- * The scraper produces the input records; the bridge produces the canonical OpenISD/WDR
- * representations. No source registry or alternate corpus is consulted here.
+ * Design: docs/design/BUNDLED_CATALOGUE_API.md. The corpus is the sibling
+ * `winisd_drivers/db/datasheets` checkout; each `<brand>/<sku>/openisd.yml` is the canonical
+ * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read.
  *
- * FORMAT — `openisd.yml` EXCLUSIVELY, at <collection>/<brand>/<sku>/openisd.yml. It is
- * the canonical driver record (ARCHITECTURE.md AD-8), written by winisd_tools.
+ * Outputs, all under packages/ui/public/ and all tracked in git (CI has no corpus checkout):
  *
- * Nothing else is read. `.owdr` is purely a UI concern — the extension the app writes
- * and reads when a user saves a driver to their own disk — and never appears in a
- * collection. `.wdr` is WinISD's file format, which the app reads and writes in memory
- * from a driver record: an import/export concern, not a library record.
+ *   drivers-index.json               BundledDriverIndexRow[]          — what the driver picker lists
+ *   passive-radiators-index.json     BundledPassiveRadiatorIndexRow[] — what the PR browser lists
+ *   drivers/<brand>/<sku>.json       the canonical record, verbatim   — fetched when a device is picked
  *
- * SHAPE — the bundle carries the canonical `_OpenISDDriverJson` record verbatim (John's
- * ruling, `bugs/BUG_20260820_drivers_bundle_ships_a_shape_openisddriver_cannot_read.md`):
- * `OpenISDDriver.fromJsonRecord()` reads a bundled record with no adaptation and no second
- * shape. Row metadata (`path`, `name`, `driverType`) sits beside `record`, computed once by
- * `bundleProjection.mjs`'s `project()` so the app is not re-deriving a display name or a
- * classification hint on every render.
+ * Each record is opened through the domain's own seam (`OpenISDDriver.fromConformingRecord` /
+ * `OpenISDPassiveRadiatorStandalone.fromConformingRecord`, inside the round-trip gate) and its
+ * index row is written from that domain object by the app's own row functions
+ * (packages/ui/src/logic/bundledIndexRows.ts). A record the seam refuses fails the build.
  *
- * This file is the CLI entry only — `project()`/`isBundlable()` live in
- * `scripts/bundleProjection.mjs`, which a test imports directly with no filesystem write.
- * `main()` below runs unconditionally: nothing but this CLI invocation ever imports this file.
+ * Bundling gate: structural readability only (`isBundlable`, John's QO79/QO81 ruling — no record
+ * is excluded for missing spec params). A record with no `specs` container is skipped and listed.
  *
- * Run automatically via `npm run dev` / `npm run build` (predev/prebuild hook, `vite-node`
- * because `@openisd/model`'s package `exports` point at TypeScript source plain `node`
- * cannot load). Can also be run manually: npx vite-node scripts/bundle-drivers.mjs
+ * Skips the walk when nothing has changed: the fingerprint of every corpus record plus every
+ * source file that shapes a row or record is kept in build/drivers-bundle.stamp and compared
+ * first (scripts/bundleStamp.mjs; scripts/bundle-drivers-if-changed.mjs does the same check
+ * under plain node, which is what predev/prebuild call). `--force` rebuilds regardless.
+ *
+ * Runs under vite-node (predev/prebuild) because the packages export TypeScript source.
  */
 
-import { readFileSync, readdirSync, writeFileSync } from 'fs';
-import { join, relative } from 'path';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, statSync } from 'fs';
+import { join, relative, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { parse as parseYaml } from 'yaml';
 import { project, isBundlable } from './bundleProjection.mjs';
 import { checkOpenisdRoundTrip } from './roundTripGate.mjs';
+import { CORPUS_RELATIVE, STAMP, walkFiles, bundleFingerprintOnDisk, bundleOutputsPresent, readStamp } from './bundleStamp.mjs';
 import { WDR_TO_SCHEMA_KEY } from '../packages/design/domain/openisdSchema.js';
+import { bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf } from '../packages/ui/src/logic/bundledIndexRows.js';
+import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 
 const RECORD_FILE = 'openisd.yml';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
-const DRIVER_SOURCE_NAME = 'OpenISD';
-const DRIVER_SOURCE_PATH = join(ROOT, '..', 'winisd_drivers', 'db', 'datasheets');
+const CORPUS = join(ROOT, ...CORPUS_RELATIVE);
+const PUBLIC = join(ROOT, 'packages', 'ui', 'public');
+const DRIVER_INDEX = join(PUBLIC, 'drivers-index.json');
+const RADIATOR_INDEX = join(PUBLIC, 'passive-radiators-index.json');
+const RECORDS_DIR = join(PUBLIC, 'drivers');
+const STAMP_FILE = join(ROOT, STAMP);
 
 /**
  * Canonicalise a record's spec-section keys to the schema's unit-suffixed names.
  *
  * The corpus's `openisd.yml` files are emitted with the WinISD short names (`Fs`, `Re`, `Sd`, …),
- * while `DriverSpecsSection`/`PassiveRadiatorSpecsSection` are declared with the suffixed names
- * (`Fs_hz`, `Re_ohm`, `Sd_m2`, …) and the strict schema refuses the short ones. The same mapping
- * every other boundary applies — `driverYmlToOpenisdAndWdr.ts` and the `.wdr` import — is applied
- * here so the bundled record conforms to the schema the app reads it back with.
+ * while the spec sections are declared with the suffixed names (`Fs_hz`, `Re_ohm`, `Sd_m2`, …)
+ * and the strict schema refuses the short ones. The same mapping every other boundary applies —
+ * `driverYmlToOpenisdAndWdr.ts` and the `.wdr` import — is applied here so the written record
+ * conforms to the schema the app reads it back with.
  */
 function canonicalizeSpecKeys(specs) {
   const sections = {};
@@ -81,110 +84,104 @@ function canonicalizeRecord(record) {
 }
 
 function walkRecords(dir) {
-  const files = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (entry.name.startsWith('_')) continue;   // _ dirs are cache/scratch — never bundled
-      files.push(...walkRecords(join(dir, entry.name)));
-    } else if (entry.name.toLowerCase() === RECORD_FILE) {
-      files.push(join(dir, entry.name));
-    }
-  }
-  return files;
+  return walkFiles(dir, name => name.toLowerCase() === RECORD_FILE);
+}
+
+/** The record's identity and locator: `<brand>/<sku>` — the directory holding its openisd.yml. */
+function recordPathOf(corpusRoot, file) {
+  return relative(corpusRoot, dirname(file)).replace(/\\/g, '/');
 }
 
 function main() {
-  const bundle = {
-    _generated: 'AUTO-GENERATED by scripts/bundle-drivers.mjs — DO NOT EDIT MANUALLY. ' +
-      'See packages/ui/src/drivers-bundle.README.md for full details.',
-    files: [],
-    // Passive radiators as their OWN collection, not rows inside `files`: the two
-    // browsers are separate and neither should scan the other's records.
-    passiveRadiators: [],
-  };
+  const force = process.argv.includes('--force');
 
-  const localPath = DRIVER_SOURCE_PATH;
-  console.log(`\n${DRIVER_SOURCE_NAME}\n  reading ${localPath}`);
+  console.log(`\nOpenISD\n  reading ${CORPUS}`);
+  let recordFiles;
+  try { recordFiles = walkRecords(CORPUS); }
+  catch { throw new Error(`driver source path is not checked out: ${CORPUS}`); }
+  console.log(`  found ${recordFiles.length} ${RECORD_FILE} files`);
 
-    let recordPaths;
-    try { recordPaths = walkRecords(localPath); }
-    catch { throw new Error(`driver source path is not checked out: ${localPath}`); }
-    console.log(`  found ${recordPaths.length} ${RECORD_FILE} files`);
+  const fingerprint = bundleFingerprintOnDisk(ROOT);
+  if (!force && bundleOutputsPresent(ROOT) && readStamp(ROOT) === fingerprint) {
+    console.log(`  unchanged since the last run (build/drivers-bundle.stamp) — nothing rewritten; --force to rebuild`);
+    return;
+  }
 
-    const files = [];
-    const skipped = [];
-    const perGroup = new Map();          // top path segment (the brand) → kept count
-    const roundTripFailures = [];        // Round-trip gate (shiny-noodling-kahan.md): every
-    // BUNDLED record must survive OpenISDDriver.fromJsonRecord(record).toOwdrJson() unaltered.
-    let done = 0;
+  const driverRows = [];
+  const radiatorRows = [];
+  const records = [];                  // { path, record } to write under drivers/
+  const skipped = [];
+  const perGroup = new Map();          // top path segment (the brand) → kept count
+  const roundTripFailures = [];        // every written record must survive the app's own open/serialise unaltered
+  let done = 0;
 
-    for (const p of recordPaths) {
-      const rel = relative(localPath, p).replace(/\\/g, '/');
-      const group = rel.split('/')[0];
-      const record = parseYaml(readFileSync(p, 'utf8'));
-      if (record == null) throw new Error(`${rel}: empty or unparseable record`);
-      const canonicalRecord = canonicalizeRecord(record);
-      const projected = project(canonicalRecord);
-      const { driverType, name } = projected;
+  for (const file of recordFiles) {
+    const path = recordPathOf(CORPUS, file);
+    const group = path.split('/')[0];
+    const parsed = parseYaml(readFileSync(file, 'utf8'));
+    if (parsed == null) throw new Error(`${path}: empty or unparseable record`);
+    const record = canonicalizeRecord(parsed);
+    const projected = project(record);
 
-      if (!isBundlable(projected)) {
-        skipped.push(rel);
+    if (!isBundlable(projected)) {
+      skipped.push(path);
+    } else {
+      const gate = checkOpenisdRoundTrip(record, path);
+      if (!gate.ok) {
+        roundTripFailures.push(gate.message);
       } else {
-        // Round-trip gate: the SAME real functions the app's own loader/export path uses
-        // (packages/model/src/openisdDriver.ts:291,534) — no reimplemented parse/serialise.
-        // Runs only on records that are actually bundled; a record already excluded by
-        // isBundlable is not a round-trip concern here.
-        const gate = checkOpenisdRoundTrip(canonicalRecord, rel);
-        if (!gate.ok) roundTripFailures.push(gate.message);
-
-        // SAME row shape for both collections — a radiator record is a record. They are
-        // separate COLLECTIONS so neither browser scans the other's rows; that is the only
-        // difference, and it is not a difference in shape.
-        const row = {
-          // path within the source (forward-slashed) — the unique id together with the
-          // corpus-relative path; never rely on the display name, which can repeat.
-          path: rel,
-          name: name || rel,
-          ...(driverType ? { driverType } : {}),
-          record: canonicalRecord,
-        };
-        if (driverType === 'passive-radiator') bundle.passiveRadiators.push(row);
-        else files.push(row);
+        const device = gate.device;
+        if (device instanceof OpenISDPassiveRadiatorStandalone) {
+          radiatorRows.push(bundledPassiveRadiatorIndexRowOf(device, path));
+        } else {
+          driverRows.push(bundledDriverIndexRowOf(device, path));
+        }
+        records.push({ path, record });
         perGroup.set(group, (perGroup.get(group) ?? 0) + 1);
       }
-
-      if (++done % 250 === 0 || done === recordPaths.length) {
-        console.log(`  ${String(done).padStart(5)}/${recordPaths.length} projected — ${files.length} usable, ${skipped.length} unusable`);
-      }
     }
 
-    if (roundTripFailures.length > 0) {
-      throw new Error(
-        `${DRIVER_SOURCE_NAME}: ${roundTripFailures.length} openisd.yml round-trip failure(s) — ` +
-        `the app's own loader/export path does not reproduce these records:\n` +
-        roundTripFailures.map(m => `  - ${m}`).join('\n'),
-      );
+    if (++done % 250 === 0 || done === recordFiles.length) {
+      console.log(`  ${String(done).padStart(5)}/${recordFiles.length} opened — ${records.length} usable, ${skipped.length} unusable`);
     }
-    console.log(`  round-trip gate: ${files.length}/${files.length} bundled records clean`);
+  }
 
-    for (const [group, n] of [...perGroup].sort((a, b) => b[1] - a[1])) {
-      console.log(`    ${group.padEnd(24)} ${String(n).padStart(4)}`);
-    }
-    if (skipped.length) {
-      console.log(`  ${skipped.length} records are NOT bundled (structurally unreadable — no \`specs\` container), first 5:`);
-      for (const rel of skipped.slice(0, 5)) console.log(`    - ${rel}`);
-    }
+  if (roundTripFailures.length > 0) {
+    throw new Error(
+      `${roundTripFailures.length} openisd.yml round-trip failure(s) — ` +
+      `the app's own loader/export path does not reproduce these records:\n` +
+      roundTripFailures.map(m => `  - ${m}`).join('\n'),
+    );
+  }
+  console.log(`  round-trip gate: ${records.length}/${records.length} records clean`);
 
-    bundle.files.push(...files);
-    console.log(`  → ${files.length} drivers + ${bundle.passiveRadiators.length} passive radiators bundled`);
+  for (const [group, n] of [...perGroup].sort((a, b) => b[1] - a[1])) {
+    console.log(`    ${group.padEnd(24)} ${String(n).padStart(4)}`);
+  }
+  if (skipped.length) {
+    console.log(`  ${skipped.length} records are NOT bundled (structurally unreadable — no \`specs\` container), first 5:`);
+    for (const p of skipped.slice(0, 5)) console.log(`    - ${p}`);
+  }
 
-  const total = bundle.files.length;
-  const outPath = join(ROOT, 'packages', 'ui', 'src', 'drivers-bundle.json');
-  writeFileSync(outPath, JSON.stringify(bundle));
+  // Records: the directory is rebuilt from scratch so a record that left the corpus leaves the app.
+  rmSync(RECORDS_DIR, { recursive: true, force: true });
+  for (const { path, record } of records) {
+    const out = join(RECORDS_DIR, `${path}.json`);
+    mkdirSync(dirname(out), { recursive: true });
+    writeFileSync(out, JSON.stringify(record));
+  }
+  writeFileSync(DRIVER_INDEX, JSON.stringify(driverRows));
+  writeFileSync(RADIATOR_INDEX, JSON.stringify(radiatorRows));
+  mkdirSync(dirname(STAMP_FILE), { recursive: true });
+  writeFileSync(STAMP_FILE, `${fingerprint}\n`);
 
-  const kb = Math.round(JSON.stringify(bundle).length / 1024);
-  console.log(`\nBundled ${total} driver records → packages/ui/src/drivers-bundle.json (${kb} KB raw)`);
-  if (total === 0) console.warn('WARNING: the bundle is EMPTY — the app will show no bundled drivers.');
+  const kb = n => Math.round(n / 1024);
+  console.log(
+    `\n  → ${driverRows.length} drivers (drivers-index.json ${kb(statSync(DRIVER_INDEX).size)} KB), ` +
+    `${radiatorRows.length} passive radiators (passive-radiators-index.json ${kb(statSync(RADIATOR_INDEX).size)} KB), ` +
+    `${records.length} records under packages/ui/public/drivers/`,
+  );
+  if (records.length === 0) console.warn('WARNING: the catalogue is EMPTY — the app will list no bundled drivers.');
 }
 
 main();

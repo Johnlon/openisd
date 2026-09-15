@@ -15,7 +15,7 @@ way to tell which the app means.
 WinISD carries a STATED reference sensitivity beside an INDEPENDENTLY calculated η₀
 (`no`, ParState slot 22, marked `C`), and the two need not agree — that is how a real driver's
 datasheet SPL sits beside its T/S-derived efficiency. `s-spl.wdr`
-(`drivers/sample/winisd/s-spl.wdr`) is a WinISD-authored probe with `SPL=123` and every other
+(`drivers/mysamples/winisd/s-spl.wdr`) is a WinISD-authored probe with `SPL=123` and every other
 parameter `0`; its ParState is `NNNENNN…`, slot 3 `E` and every derived slot `N`. WinISD never
 computed a sensitivity there — it recorded one that was typed.
 

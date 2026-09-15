@@ -8,7 +8,8 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { displayNameOf, chipsOf, passiveRadiatorRows } from '../../src/logic/driverDisplay.js';
+import { displayNameOf, chipsOf, passiveRadiatorRows, bundledPassiveRadiatorRows } from '../../src/logic/driverDisplay.js';
+import type { BundledPassiveRadiatorIndexRow } from '@openisd/persistence';
 
 const scraped = <T,>(value: T) => ({ value });
 const spec = (read_value: number) => ({ origin: 'manual', readings: { manual: { read_value } } });
@@ -117,6 +118,20 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
     assert.equal(rows[0].name, 'SB Acoustics SB23PACS');
   });
 
+  it('a bundled index row renders the same row a domain object does, keyed by the record uuid', () => {
+    const radiator = radiatorOf({ brand: 'Dayton Audio', model: 'ND140-PR', Sd_m2: 0.00866, Mms_kg: 0.0164 });
+    const indexRow: BundledPassiveRadiatorIndexRow = {
+      uuid: '00000000-0000-4000-8000-00000000000a', path: 'dayton-audio/nd140-pr', name: 'Dayton Audio ND140-PR',
+      dq: true, datasheet: null, productPage: null, listingPage: null,
+      Fs_hz: null, Sd_m2: 0.00866, Xmax_m: null, Vd_m3: null, Mms_kg: 0.0164, Cms_m_per_N: null, Vas_m3: null, Qms: null,
+    };
+    const fromObject = passiveRadiatorRows([{ id: '00000000-0000-4000-8000-00000000000a', radiator }]);
+    const fromIndex = bundledPassiveRadiatorRows([indexRow]);
+    assert.deepEqual(fromIndex, fromObject);
+    assert.equal(fromIndex[0].id, indexRow.uuid);
+    assert.equal(fromIndex[0].dq, true);
+  });
+
   it('formats the three summary numbers the row tooltip quotes', () => {
     const rows = passiveRadiatorRows([
       { id: 'aaaa-1', radiator: radiatorOf({ brand: 'SB', model: 'PR', Sd_m2: 0.025, Mms_kg: 0.06, Cms_m_per_N: 0.0011 }) },
@@ -142,8 +157,10 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
       { id: 'aaaa-1', radiator: radiatorOf({ brand: 'SB', model: 'PR' }) },
     ]);
 
+    // Primitives only — a string or the dq boolean. An object or a function on the row would be
+    // the radiator (or a window onto it) leaking across the component boundary.
     for (const value of Object.values(rows[0])) {
-      assert.equal(typeof value, 'string', 'every field of a row is a string');
+      assert.ok(typeof value === 'string' || typeof value === 'boolean', `row field is a ${typeof value}, not a primitive`);
     }
   });
 });

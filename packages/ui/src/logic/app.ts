@@ -2,10 +2,10 @@ import { inject, type App, type InjectionKey } from 'vue';
 import type { DriverBrowsingState } from './driverBrowsingState.js';
 import type { DriverSelection } from './driverSelection.js';
 import type { DesignIO } from './useApplicationIO.js';
-import type { MyPassiveRadiatorRepo, MyDriverRepo, FileStorage, ProjectRepo, ViewStateRepo } from '@openisd/persistence';
-import type { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
+import type { MyPassiveRadiatorRepo, MyDriverRepo, FileStorage, ProjectRepo, ViewStateRepo, BundledPassiveRadiatorRepo } from '@openisd/persistence';
 import type { Logging } from '../logging/flash.js';
 import type { FaultLog } from '../diagnostics/faultLog.js';
+import type { Engine } from '@openisd/design/engine';
 
 /**
  * What the presentation layer is given.
@@ -24,12 +24,13 @@ import type { FaultLog } from '../diagnostics/faultLog.js';
  * Save button's retained file handle.
  */
 export interface AppLogic {
+  engine: Engine;
   logging: Logging;
   driverBrowsing: DriverBrowsingState;
   selection: DriverSelection;
   designIO: DesignIO;
   myPassiveRadiators: MyPassiveRadiatorRepo;
-  bundledPassiveRadiators: OpenISDPassiveRadiatorStandalone[];
+  bundledPassiveRadiators: BundledPassiveRadiatorRepo;
   myDrivers: MyDriverRepo;
   driverFileStorage: FileStorage;
   projectRepo: ProjectRepo;

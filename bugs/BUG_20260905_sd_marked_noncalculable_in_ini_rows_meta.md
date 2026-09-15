@@ -10,11 +10,11 @@ transition (per the test's own stated design intent) is `N -> C`.
 
 ## Evidence
 
-`drivers/sample/winisd/s-dd.wdr` — a real WinISD-written file — states only `Dd=123`; every
+`drivers/mysamples/winisd/s-dd.wdr` — a real WinISD-written file — states only `Dd=123`; every
 other numeric field including `Sd` is `N` (`ParState` slot 17 is `N`), confirming real WinISD
 does not derive `Sd` from `Dd` at all.
 
-`drivers/sample/winisd/s-sd.wdr` — the mirror case — states only `Sd=0.0123`; `Dd` (slot 21) is
+`drivers/mysamples/winisd/s-sd.wdr` — the mirror case — states only `Sd=0.0123`; `Dd` (slot 21) is
 also `N` there, confirming the relationship is symmetric in WinISD: neither field is derived
 from the other.
 

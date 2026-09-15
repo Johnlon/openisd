@@ -735,7 +735,7 @@ export type OpenISDProjectSessionJson = z.infer<typeof openISDProjectSessionJson
  * `VCCon` as a record entry, read on PRESENCE rather than on its ParState mark.
  *
  * WinISD writes no instruction to slot 46, so it leaves `N` there while the `VCCon=` row still
- * states a wiring — 520 of the 524 corpus files (`drivers/sample/PARSTATE-FINDINGS.md`). Reading
+ * states a wiring — 520 of the 524 corpus files (`drivers/mysamples/PARSTATE-FINDINGS.md`). Reading
  * this row on its mark, as every other row is read, loses every series wiring in the corpus.
  *
  * `1` and `2` are the whole encoding. Anything else is read as `1`, parallel, with the number the

@@ -5,7 +5,8 @@
  * the driver itself (John, 2026-09-05: "this facade... it's not domain logic it's display and
  * search logic").
  */
-import type { OpenISDDriver } from '@openisd/design';
+import type { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
+import type { BundledDriverIndexRow, BundledPassiveRadiatorIndexRow } from '@openisd/persistence';
 import { DriverType, Chip } from '@openisd/design/filter';
 import { toDisplay } from './fields/units.js';
 
@@ -25,11 +26,31 @@ export interface SearchCriteria {
   sdMin: string; sdMax: string;
   /** Nominal impedances to admit, as strings: '4', '8', '16'. */
   selZ: string[];
-  /** When true only drivers whose id is in `favorites` are admitted. */
+  /** When true only subjects whose id is in `favorites` are admitted. */
   favoritesOnly: boolean;
   favorites: readonly string[];
-  /** How a driver's identity is minted, so a favourite can be recognised. */
-  idOf: (d: OpenISDDriver) => string;
+}
+
+/** What the filter bar reads about one candidate — named once, built two ways: from a bundled
+ *  index row (the picker lists rows, no domain object) and from a My Drivers domain object. */
+export interface SearchSubject {
+  /** The record uuid — what a favourite is recognised by. */
+  readonly id: string;
+  readonly name: string;
+  /** `chipsOf(...).types` — the type-chip vocabulary. */
+  readonly chips: readonly string[];
+  readonly Fs_hz: number | null;
+  readonly Sd_m2: number | null;
+  readonly Znom_ohm: number | null;
+}
+
+export function searchSubjectOfDriver(driver: OpenISDDriver): SearchSubject {
+  const s = specSummaryOf(driver);
+  return { id: driver.uuid(), name: displayNameOf(driver), chips: chipsOf(driver).types, Fs_hz: s.Fs, Sd_m2: s.Sd, Znom_ohm: s.Znom };
+}
+
+export function searchSubjectOfIndexRow(row: BundledDriverIndexRow): SearchSubject {
+  return { id: row.uuid, name: row.name, chips: row.chips, Fs_hz: row.Fs_hz, Sd_m2: row.Sd_m2, Znom_ohm: row.Znom_ohm };
 }
 
 /** The stated T/S numbers of one driver's active section, plus its derived inductance — the
@@ -96,16 +117,16 @@ export function previewTextOf(driver: OpenISDDriver): {
 }
 
 /**
- * The filter bar as ONE predicate over a driver — every control at the top of the browser, in
- * one place. Shared by the bundled pool and by My Drivers because a filter that skips a section
+ * The filter bar as a single predicate over a subject — every control at the top of the browser,
+ * in one place. Shared by the bundled pool and by My Drivers because a filter that skips a section
  * is not a filter (`openisd-ui-design.md` §"Filters apply to every list").
  */
-export function matchesCriteria(driver: OpenISDDriver, c: SearchCriteria): boolean {
-  const name = displayNameOf(driver).toLowerCase();
+export function matchesCriteria(subject: SearchSubject, c: SearchCriteria): boolean {
+  const name = subject.name.toLowerCase();
   const tokens = c.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
   if (tokens.length && !tokens.every(t => name.includes(t))) return false;
 
-  const types = chipsOf(driver).types;
+  const types = subject.chips;
   const included = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'include');
   const excluded = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'exclude');
   const UNCLASSIFIED = Chip.Unclassified.value;
@@ -116,7 +137,7 @@ export function matchesCriteria(driver: OpenISDDriver, c: SearchCriteria): boole
   if (excluded.includes(UNCLASSIFIED) && isUnclassified) return false;
   if (excluded.filter(t => t !== UNCLASSIFIED).some(t => types.includes(t))) return false;
 
-  const { Fs, Sd, Znom } = specSummaryOf(driver);
+  const { Fs_hz: Fs, Sd_m2: Sd, Znom_ohm: Znom } = subject;
   const fsMinV = parseFloat(c.fsMin), fsMaxV = parseFloat(c.fsMax);
   const sdMinV = parseFloat(c.sdMin), sdMaxV = parseFloat(c.sdMax);
   if (isFinite(fsMinV) && !(Fs != null && Fs >= fsMinV)) return false;
@@ -126,7 +147,7 @@ export function matchesCriteria(driver: OpenISDDriver, c: SearchCriteria): boole
   if (c.selZ.length &&
       !c.selZ.some(oz => Znom != null && Math.abs(Znom - parseFloat(oz)) < 1.5)) return false;
 
-  if (c.favoritesOnly && !c.favorites.includes(c.idOf(driver))) return false;
+  if (c.favoritesOnly && !c.favorites.includes(subject.id)) return false;
   return true;
 }
 
@@ -134,6 +155,17 @@ export function matchesCriteria(driver: OpenISDDriver, c: SearchCriteria): boole
 export function driverHasDqIssues(driver: OpenISDDriver): boolean {
   const s = specSummaryOf(driver);
   return s.Fs === null || s.Fs <= 0 || s.Qts === null || s.Qts <= 0 || s.Vas === null || s.Vas <= 0;
+}
+
+/** The radiator's counterpart to `driverHasDqIssues` — the ⚠ on a bundled radiator row.
+ *  What tuning one needs: Fs and Sd stated and positive, and a moving mass or a compliance
+ *  usable. Proposed rule, 2026-09-14; John owns the physics call. */
+export function radiatorHasDqIssues(radiator: OpenISDPassiveRadiatorStandalone): boolean {
+  const s = radiator.spec;
+  const Fs = s.Fs_hz.get().value, Sd = s.Sd_m2.get().value;
+  const Mms = s.Mms_kg.get().value, Cms = s.Cms_m_per_N.get().value;
+  const usable = (v: number | null): boolean => v !== null && v > 0;
+  return !usable(Fs) || !usable(Sd) || !(usable(Mms) || usable(Cms));
 }
 
 /** A device that states a brand and a model — what naming one on screen needs, and all it
@@ -159,10 +191,12 @@ export function displayNameOf(driver: NameableDevice): string {
  *  shape and could not be mounted over a substitute (A9), so the row carries the `id` the
  *  component emits back and this layer looks the radiator up again. */
 export interface PassiveRadiatorRow {
-  /** What the caller identifies this radiator by, and what a click emits: a storage uuid for a
-   *  saved radiator, the list position for a bundled one. */
+  /** What the caller identifies this radiator by, and what a click emits: the storage uuid for a
+   *  saved radiator, the record uuid for a bundled one. */
   id: string;
   name: string;
+  /** `radiatorHasDqIssues` — the ⚠ on the row. */
+  dq: boolean;
   /** The three numbers the row's tooltip quotes, formatted with their unit. `'—'` when the
    *  radiator states nothing — a datasheet publishes Sd/Cms and routinely leaves Mms blank. */
   sd: string;
@@ -170,31 +204,38 @@ export interface PassiveRadiatorRow {
   cms: string;
 }
 
-interface SummarisableRadiator extends NameableDevice {
-  readonly spec: {
-    readonly Sd_m2: { get(): { value: number | null } };
-    readonly Mms_kg: { get(): { value: number | null } };
-    readonly Cms_m_per_N: { get(): { value: number | null } };
+/** A radiator the caller knows by an id — a My PRs entry. */
+export interface PassiveRadiatorEntry {
+  readonly id: string;
+  readonly radiator: OpenISDPassiveRadiatorStandalone;
+}
+
+/** The three figures a row's tooltip quotes, formatted with their unit; `'—'` when the radiator
+ *  states nothing — a datasheet publishes Sd/Cms and routinely leaves Mms blank. */
+function radiatorRow(id: string, name: string, dq: boolean, sd: number | null, mms: number | null, cms: number | null): PassiveRadiatorRow {
+  return {
+    id,
+    name,
+    dq,
+    sd: sd === null ? '—' : toDisplay(sd, 'area', 'cm2').toFixed(0) + 'cm²',
+    mms: mms === null ? '—' : toDisplay(mms, 'mass', 'g').toFixed(1) + 'g',
+    cms: cms === null ? '—' : toDisplay(cms, 'compliance', 'mmPerN').toFixed(2) + 'mm/N',
   };
 }
 
-/** The PR browser's rows. Takes each radiator with the id its caller knows it by, and returns
- *  what the list renders — no radiator on the way out. */
-export function passiveRadiatorRows(
-  entries: readonly { id: string; radiator: SummarisableRadiator }[],
-): PassiveRadiatorRow[] {
-  return entries.map(({ id, radiator }) => {
-    const sd = radiator.spec.Sd_m2.get().value;
-    const mms = radiator.spec.Mms_kg.get().value;
-    const cms = radiator.spec.Cms_m_per_N.get().value;
-    return {
-      id,
-      name: displayNameOf(radiator),
-      sd: sd === null ? '—' : toDisplay(sd, 'area', 'cm2').toFixed(0) + 'cm²',
-      mms: mms === null ? '—' : toDisplay(mms, 'mass', 'g').toFixed(1) + 'g',
-      cms: cms === null ? '—' : toDisplay(cms, 'compliance', 'mmPerN').toFixed(2) + 'mm/N',
-    };
-  });
+/** The PR browser's My PRs rows. Takes each radiator with the id its caller knows it by, and
+ *  returns what the list renders — no radiator on the way out. */
+export function passiveRadiatorRows(entries: readonly PassiveRadiatorEntry[]): PassiveRadiatorRow[] {
+  return entries.map(({ id, radiator }) => radiatorRow(
+    id, displayNameOf(radiator), radiatorHasDqIssues(radiator),
+    radiator.spec.Sd_m2.get().value, radiator.spec.Mms_kg.get().value, radiator.spec.Cms_m_per_N.get().value,
+  ));
+}
+
+/** The PR browser's bundled rows, straight off the index — the id is the record uuid, which is
+ *  what `BundledPassiveRadiatorRepo.load()` takes. */
+export function bundledPassiveRadiatorRows(rows: readonly BundledPassiveRadiatorIndexRow[]): PassiveRadiatorRow[] {
+  return rows.map(r => radiatorRow(r.uuid, r.name, r.dq, r.Sd_m2, r.Mms_kg, r.Cms_m_per_N));
 }
 
 // Name-based matching takes priority over T/S params.

@@ -16,7 +16,7 @@ AssertionError: the parser must not scale — the model holds the file's fractio
 
 ## Evidence
 
-Fixture: `drivers/sample/winisd/john-all-noncalc-fields-manually-entered.wdr`.
+Fixture: `drivers/mysamples/winisd/john-all-noncalc-fields-manually-entered.wdr`.
 
 - Line 45: `Gloss=1.72503712771898` — the raw text IS in the file, as the test's first
   assertion (`stored === '1.72503712771898'`) already confirms.

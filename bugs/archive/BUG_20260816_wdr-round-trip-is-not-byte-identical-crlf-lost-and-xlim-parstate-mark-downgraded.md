@@ -4,7 +4,7 @@
 RESOLVED — `WinISDDriver.toWdr()` joins with `\r\n` (`winisdDriver.ts:232`), writes no `Xlim=`
 line, and carries slot 10's mark via the dedicated `Xlim` cell (`winisdDriver.ts:188-189,244`).
 Covered by `packages/winisd/test/wdr-round-trip.test.ts`'s byte-for-byte assertion over every
-`drivers/sample/winisd/*.wdr` file — verified 2026-08-21,
+`drivers/mysamples/winisd/*.wdr` file — verified 2026-08-21,
 `npx vitest run packages/winisd/test/wdr-round-trip.test.ts` → 85/85.
 
 ## Symptom
@@ -13,14 +13,14 @@ Covered by `packages/winisd/test/wdr-round-trip.test.ts`'s byte-for-byte asserti
 WinISDDriver.fromWdr(text).toWdr() !== text
 ```
 
-for every file in `drivers/sample/winisd/` — files WinISD itself wrote.
+for every file in `drivers/mysamples/winisd/` — files WinISD itself wrote.
 
 Found by running the obvious assertion the human proposed, after an earlier version of
 `wdr-carried-keys.test.ts` compared only a hand-listed subset of keys and passed.
 
 ## Evidence
 
-`drivers/sample/winisd/John-all-manu-populated.wdr`, read then written:
+`drivers/mysamples/winisd/John-all-manu-populated.wdr`, read then written:
 
 - 58 lines in, 58 lines out. **Key order identical. Key set identical** — nothing added, nothing
   dropped.
@@ -76,7 +76,7 @@ The test that found it, and the one that must pass:
 assert.equal(WinISDDriver.fromWdr(text).toWdr(), text);
 ```
 
-over every `.wdr` in `drivers/sample/winisd/`. Not a subset of keys — the whole file, byte for
+over every `.wdr` in `drivers/mysamples/winisd/`. Not a subset of keys — the whole file, byte for
 byte. A subset test passed while both of these were broken.
 
 ## Note on the test this replaces
@@ -107,9 +107,9 @@ if (xlim) lines.push(`Xlim=${xlim.value}`);
 
 **Evidence that this is wrong:**
 
-- `grep -l "^Xlim=" drivers/sample/winisd/*.wdr` → **0 files**. Not one file WinISD wrote
+- `grep -l "^Xlim=" drivers/mysamples/winisd/*.wdr` → **0 files**. Not one file WinISD wrote
   contains an `Xlim=` line.
-- `drivers/sample/winisd/s-xlim.wdr` — a single-parameter probe, Xlim typed into WinISD and
+- `drivers/mysamples/winisd/s-xlim.wdr` — a single-parameter probe, Xlim typed into WinISD and
   saved — carries `ParState=NNNNNNNNNNE…`, i.e. **slot 10 = `E`**, and still no `Xlim=` line.
 
 So WinISD tracks Xlim's MARK in ParState and does not persist its VALUE to the file at all.

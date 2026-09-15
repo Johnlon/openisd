@@ -844,8 +844,8 @@ ignored by WinISD. OpenISD's provenance metadata lives in the driver record (`op
 
 `ParState` is a 49-character string: each position is `E` (user-Entered), `C` (Calculated
 by WinISD from other entered values), or `N` (Not set). The mapping of positions to
-parameter names has been reverse-engineered via single-parameter probes in `drivers/sample/`
-and is documented in `drivers/sample/README.md`.
+parameter names has been reverse-engineered via single-parameter probes in `drivers/mysamples/`
+and is documented in `drivers/mysamples/README.md`.
 
 **A ParState builder** constructs ParState from which fields were actually sourced from the
 datasheet, rather than writing a fixed template:
@@ -1006,7 +1006,7 @@ connection. Subsequent saves **preserve** the `VCCon=2` value — the bug only a
 Once `VCCon=2` is in the file, WinISD keeps it.
 
 **ParState:** VCCon has **no ParState position** — confirmed by exhaustive single-param probe methodology (
-drivers/sample/README.md). Even with all T/S params present and VCCon=1 in the file, no ParState position changes. VCCon
+drivers/mysamples/README.md). Even with all T/S params present and VCCon=1 in the file, no ParState position changes. VCCon
 is pure WDR metadata, not part of WinISD's 49-position internal state machine.
 
 **Implication for scraper:** Always write `VCCon=1`. Correct for all single-VC drivers and matches what WinISD writes.
@@ -1288,6 +1288,61 @@ manufacturer.
 professional-quality WDR files; understanding these levels helps validate data quality (files
 missing multiple core fields may be incomplete); the entry order + minimal levels help
 interpret ParState patterns in real WinISD files.
+
+## 20. WinISD Pro Alpha — Plot-tab environment writes into the Driver record, not a project slot
+
+**Build:** WinISD Pro ALPHA ©1996-2004 — the original commercial predecessor to the
+Linearteam 0.7.0.950 build the rest of this document targets (see the version note in the
+footer below). This section is a different, older program, not an alternate state of
+0.7.0.950. Confirmed 2026-09-15 by direct observation plus a saved project file: evidence in
+`docs/samples/legacy_winisd_pro_alpha/`.
+
+### Confirmed bug
+
+This build has no global "Options" environment dialog. Instead the live environment control
+(Temperature/RH/Pressure → computed Sound velocity/Air density) lives on a **"Plot" tab**,
+scoped to an individual chart window, and directly drives the SPL curve —
+`docs/samples/legacy_winisd_pro_alpha/plot-tab-environment.png` shows `20.00°C` / `30.0000%` /
+`101325.0 Pa` → `343.68 m/s` / `1.20095 kg/m³` on the `[2]Closed : TangBand W5-1138SA` Plot tab.
+
+On save, that Plot-tab-computed pair is written verbatim into the **`[Driver]`** section of the
+`.wpr`, not into any project-level slot:
+`docs/samples/legacy_winisd_pro_alpha/w5-1138sa-legacy-winisd-alpha.wpr:53-54`:
+```
+c=343.68
+roo=1.20095
+```
+The `[Box]` (project-level) section of the same file carries its own environment —
+`T=293.15`, `p=101325`, `phi=0.3` (lines 85-87) — but **no `c=`/`roo=` fields at all**. A
+live, per-window control's output ends up frozen into the driver's own record; the
+project's own environment fields are written but never populated with a resolved `c`/`roo`
+of their own.
+
+### Relationship to §12 (`WINISD_SCHEMA.md`) and the 0.7.0.950 behaviour
+
+0.7.0.950's machine-verified rule (`docs/design/WINISD_SCHEMA.md` §12) is architecturally
+different — a global app-level Options dialog supplies a driver's blank `c`/`roo`, and the
+project's own `[Box]` T/RH/AP is separately confirmed inert — but the *shape* is the same one
+seen here: the driver record ends up holding a frozen snapshot of whichever live environment
+control the user last touched, while the project-level environment field is never wired to
+anything. What differs is where that live control lives: a per-plot-window "Plot" tab in this
+Alpha build, a global "Options" dialog in 0.7.0.950. That the live control's location moved
+across versions, while the project-level field was carried forward unchanged and still never
+wired up in either one, is consistent with an incomplete migration — a "half transition" —
+rather than two independently-designed, deliberate behaviours.
+
+Confidence note: this finding rests on one screenshot and one saved project file, not the
+12-cell methodology used to confirm §12. Treat it as confirmed-but-single-sample; a follow-up
+multi-cell probe (as in §12) would be needed before treating every branch of this build's
+resolution rule as settled.
+
+### Secondary anomaly (same file, not fully investigated)
+
+The same project has `[Box].BType=0` (sealed) yet also carries fully populated
+`[VentFront]`/`[VentRear]` sections with real, non-zero tuning data (`VentRear: Fb=65.1016510548328`,
+`dia1=0.102`) that doesn't even agree with the `[Box]` section's own `Fr=45`. This looks like
+stale state left over from having switched box types during editing, rather than a deliberate
+value — flagged here for follow-up, not yet understood.
 
 ---
 

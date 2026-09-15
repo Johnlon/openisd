@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { useApp } from '../../logic/app.js';
-import { passiveRadiatorRows } from '../../logic/driverDisplay.js';
+import { passiveRadiatorRows, bundledPassiveRadiatorRows, type PassiveRadiatorRow } from '../../logic/driverDisplay.js';
 
 const { myPassiveRadiators, bundledPassiveRadiators } = useApp();
 
@@ -22,15 +22,21 @@ const emit = defineEmits<{
 
 const savedRows = ref(passiveRadiatorRows(
   myPassiveRadiators.list().map(e => ({ id: e.uuid, radiator: e.passiveRadiator }))));
-const bundledRows = passiveRadiatorRows(
-  bundledPassiveRadiators.map((radiator, i) => ({ id: String(i), radiator })));
+// The bundled section lists the catalogue index — rows keyed by record uuid, fetched when this
+// browser opens (the repo holds them after the first time). A fetch that fails is shown in the
+// section instead of an empty list.
+const bundledRows = ref<readonly PassiveRadiatorRow[]>([]);
+const bundledStatus = ref('');
+void bundledPassiveRadiators.index().then(
+  rows => { bundledRows.value = bundledPassiveRadiatorRows(rows); },
+  (err: Error) => { bundledStatus.value = err.message; });
 const filter = ref('');
 
 const matching = <T extends { name: string }>(rows: readonly T[], q: string): readonly T[] =>
   q ? rows.filter(r => r.name.toLowerCase().includes(q)) : rows;
 
 const fSaved = computed(() => matching(savedRows.value, filter.value.trim().toLowerCase()));
-const fBundled = computed(() => matching(bundledRows, filter.value.trim().toLowerCase()));
+const fBundled = computed(() => matching(bundledRows.value, filter.value.trim().toLowerCase()));
 
 function remove(uuid: string) {
   myPassiveRadiators.remove(uuid);
@@ -63,12 +69,14 @@ useEscToClose(() => true, close);
 
           <div class="pr-lib-hdr"
             title="Passive radiators bundled from the driver collections. Datasheets publish Sd/Cms/Vas only — Fs/Mms/Rms/Xmax are left blank for you to supply.">Bundled</div>
-          <div v-if="!fBundled.length" style="color:var(--mut);font-size:11px;padding:4px 8px">
+          <div v-if="bundledStatus" class="pr-lib-status" style="color:var(--bad);font-size:11px;padding:4px 8px">{{ bundledStatus }}</div>
+          <div v-else-if="!fBundled.length" style="color:var(--mut);font-size:11px;padding:4px 8px">
             {{ filter ? 'No bundled PRs match.' : 'No bundled passive radiators in the current collection.' }}
           </div>
           <div v-for="p in fBundled" :key="p.id" class="pr-lib-item">
             <span class="pr-lib-name" @click="emit('loadBundled', p.id)"
-              :title="'Load ' + p.name + ' — Sd/Cms/Vas from the datasheet; Fs/Mms/Rms/Xmax not published, left blank'">{{ p.name }}</span>
+              :title="'Load ' + p.name + ' — Sd=' + p.sd + ' Mms=' + p.mms + ' Cms=' + p.cms">{{ p.name }}</span>
+            <span v-if="p.dq" class="dq-flag" title="Data quality issues detected — Fs, Sd, or a moving mass / compliance is missing or not positive. Open to review.">⚠</span>
           </div>
         </div>
 

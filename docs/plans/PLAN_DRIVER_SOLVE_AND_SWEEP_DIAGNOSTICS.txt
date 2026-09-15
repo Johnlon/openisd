@@ -1,0 +1,1719 @@
+
++ Thought: Evaluating Git Workflow · 4.0s
+$ git show 3bc919f:packages/model/src/openisdDriver.ts | rg -n -A35 -B5 'checkConsistency\(\)'
+(no output)
+Thought · 454ms
+$ git show 3bc919f:packages/model/src/openisdDriver.ts | rg -n 'Consistency|consistency'
+35:  DriverError, EngineDriver, ConsistencyIssue, Result,
+281:  /** Memoized consistency verdict; dropped alongside #cache. */
+282:  #issues: ConsistencyIssue[] | null = null;
+390:    // COMPUTED branch already resolves all three via `solveConsistencyGroup`'s own fill
+594:  /** autoCalculate off: no consistency-group solve at all — only what is stated, validated
+699:   * The consistency groups (WINISD_SCHEMA §4) whose STATED members contradict each other
+700:   * beyond their own precision — the same `checkConsistency` the engine exposes, run over
+703:  consistencyIssues(): ConsistencyIssue[] {
+704:    return this.#issues ??= new Engine().checkConsistency(this.#stated());
+$ git show 3bc919f:packages/engine/src/engine.ts | rg -n -A25 -B10 'checkConsistency'
+fatal: path 'packages/engine/src/engine.ts' does not exist in '3bc919f'
++ Thought: Using git ls-tree · 3.4s
+$ git ls-tree -r --name-only 3bc919f | rg 'engine.*(driver|consistency)|Engine' | head -30
+bugs/BUG_20260823_compare_overlays_pass_persisted_driver_text_where_an_engine_driver_object_is_required.md
+packages/design/engine/Engine.ts
+packages/design/engine/consistency.ts
+packages/design/engine/driver.ts
+packages/design/test/engine/consistency.test.ts
+packages/design/test/engine/driver.test.ts
+$ git show 3bc919f:packages/design/engine/Engine.ts | rg -n -A25 -B8 'checkConsistency'
+21-import { airFor } from './air.js';
+22-import type { Air, AirEnvironment } from './air.js';
+23-import {
+24-  ebp, prTuning, findImpedancePeak, prMassForFp, sealedFromQtc, tuningFromLength, ventLength,
+25-} from './alignments.js';
+26-import {
+27-  prCmsFromVas, prFsWithMass, prMmdFromFs, prQms, prRmsFromQms, prVas,
+28-} from './formulas.js';
+29:import { checkConsistency, isQGroupField, qGroupIsIncomplete } from './consistency.js';
+30-import { deriveEngineDriver, solveConsistencyGroup } from './driver.js';
+…
+Click to expand
+Thought · 3.0s
+$ git show 3bc919f:packages/design/engine/consistency.ts | sed -n '1,220p'
+/**
+ * Consistency-group detection — DETECTION ONLY, no value this module produces ever reaches a
+ * chart, a saved record, or a derived field. It reads the driver's own fields and reports the
+ * groups whose members contradict each other.
+ *
+ * The groups and their relations are WINISD_SCHEMA.md §4 verbatim; nothing here is a new formula.
+ * §4 rows NOT covered, and why:
+ *   7,21,22      Mcost, Gloss, SPLmaxLF — `solveConsistencyGroup` derives all three, one route
+ *                each (winisd_research/SOLVER_GAPS.md §2.4). Of the three only Gloss has a
+ *                carried `.wdr` value that could contradict its derivation; whether a stale
+…
+Click to expand
++ Thought: Clarifying implementation expectations · 2.5s
+It should be a thin domain adapter, not the consistency engine itself.
+OpenISDDriver.checkConsistency() should:
+Read the driver’s entered fields only.
+Build the engine’s driver-quantity input bag.
+Call Engine.checkConsistency(entered).
+Return the engine’s ConsistencyIssue[].
+The engine method should own:
+The relation table, such as:
+Qts = Qes·Qms/(Qes+Qms)
+Fs = 1/(2π√(Mms·Cms))
+Cms = Vas/(ρc²Sd²)
+Rms = 2πFsMms/Qms
+EBP = Fs/Qes
+Vd = Sd·Xmax
+Route precedence.
+Precision/rounding tolerance.
+Issue details:
+formula
+all involved fields
+target
+expected
+actual
+relative disagreement.
+The current checkConsistency(): ConsistencyIssue[] { return []; } is therefore a missing adapter plus the engine API has been removed/incomplete. The UI already expects the correct result shape and marks every field in issue.fields.
+The implementation should restore the old engine consistency implementation, expose it through Engine.checkConsistency(), and make the domain pass entered-only values into it.
+▣  Build · GPT-5.6 Luna
+Hmm I'm not convinced - why doesn't solveConsistencyGroup() return all the results including DQ's - I've be wondering why all this is split. On the project I've tried to unify in a similar way by makingh the sweep return curves and DQ's 
++ Thought: Analyzing solver types · 1.4s
+Your instinct is sound. I’ll inspect the current solver/result contracts and map where values, provenance, DQ, and sweep issues are currently split, then I’ll propose a unified result shape and the compatibility boundaries it would affect.
+Read packages/design/engine/solverQuantities.ts [offset=1, limit=120]
+Read packages/design/engine/solver.ts [offset=1, limit=130]
+Read packages/design/engine/types.ts [offset=1, limit=110]
+Grep "classifyFinite|classifyMaxFinite|DriverError|ConsistencyIssue|solveConsistencyGroup|checkConsistency" in packages/design (100 matches)
+Read packages/design/domain/openisdDomain.ts [offset=1415, limit=65]
+Read packages/design/domain/cell.ts [offset=1, limit=110]
+Thought · 5.9s
+Thought · 1.7s
+I agree with you. The split is currently over-engineered and has already produced a dead method: OpenISDDriver.checkConsistency() (http://localhost:8000/packages/design/domain/openisdDomain.ts#L1470-L1474) returns [], while solveConsistencyGroup() (http://localhost:8000/packages/design/domain/openisdDomain.ts#L1439-L1463) returns only values.
+Better contract
+The engine should expose one driver solve operation:
+type DriverSolveResult = {
+  values: DriverSolverQuantities;
+  consistencyIssues: readonly ConsistencyIssue[];
+};
+It should:
+Accept the driver’s entered values.
+Solve all derivable quantities.
+Preserve entered values.
+Return the complete solved value set.
+Detect inconsistencies against the entered values.
+Return structured DQ issues in the same result.
+Then:
+sweep() already follows this pattern by returning curves plus diagnostics.
+maxCurves() should continue returning curves plus diagnostics.
+PR and vent solving should converge on the same shape.
+The domain should call the unified result once.
+OpenISDDriver should expose the solved cells and returned issues, but not reimplement consistency logic.
+CellState (entered, calculated, not-available) stays domain-owned because it describes record provenance; the engine should not own E/C/N.
+Why not put DQ directly inside DriverSolverQuantities?
+Because quantities and diagnostics are different data:
+DriverSolverQuantities answers: “What values can the physics derive?”
+ConsistencyIssue answers: “Which stated values contradict, by how much, and why?”
+Provenance answers: “Was this value entered, calculated, or unavailable?”
+Those should be siblings in one result, not fields mixed into the numeric bag.
+Recommended change
+Replace the current public split:
+solveConsistencyGroup(...)
+checkConsistency(...)
+with:
+solveDriver(...)
+returning the values and consistency issues together. Keep a private/internal value-only helper if the circuit solver needs raw quantities, but make the public driver calculation a unified result.
+The current browser failure is therefore exposing an architectural gap, not merely a missing method body. Recommendation: redesign the driver solver result first, then wire DQ rendering to that result instead of restoring a second standalone consistency path.
+▣  Plan · GPT-5.6 Luna · 2m 0s
+no just wich contractic tho - for the solver and sweep we need to know whic missing values are causin ggaps in the solution and for which fields in the soliution.  
+▣  Plan · GPT-5.6 Luna · interrupted
+if we are looking at cojtractiopncw then who would do that and where?
+if we are looking at cojtractiopncw then who would do that and where?
+Thought · 6.3s
+Thought · 4.0s
+The engine should identify missing values and the fields they block. Not the domain and not the UI.
+Where
+packages/design/engine/solver.ts
+Owns relation dependencies.
+Knows that Fs needs Mms + Cms, Qts needs Qes + Qms, etc.
+Returns solved values plus structured missing/inconsistent diagnostics.
+packages/design/engine/sweep.ts
+Owns sweep/curve dependencies.
+Knows which missing quantities prevent SPL, excursion, impedance, max-SPL, or max-power.
+Returns curves plus per-series/per-frequency gap diagnostics.
+packages/design/engine/Engine.ts
+Exposes the public façade only.
+packages/design/domain
+Converts engine diagnostics into Cell DQ/provenance for fields.
+Does not calculate or rediscover missing dependencies.
+UI hooks
+Format the diagnostics for tooltips, warnings, and chart messages.
+Contract
+Use one discriminated diagnostic union, not plain strings:
+type CalculationIssue =
+  | {
+      kind: 'missing-input';
+      target: DriverQuantityName | SweepSeriesName;
+      missing: readonly DriverQuantityName[];
+      formula: string;
+    }
+  | {
+      kind: 'inconsistent-input';
+      target: DriverQuantityName;
+      fields: readonly DriverQuantityName[];
+      expected: number;
+      actual: number;
+      formula: string;
+      relative: number;
+    }
+  | {
+      kind: 'non-finite-output';
+      target: SweepSeriesName;
+      frequencyHz?: number;
+      missing: readonly DriverQuantityName[];
+      message: string;
+    };
+Then:
+interface DriverSolveResult {
+  values: DriverSolverQuantities;
+  issues: readonly CalculationIssue[];
+}
+
+interface SweepCalculationResult {
+  curves: SweepResult;
+  issues: readonly CalculationIssue[];
+}
+The crucial rule is:
+values tells us what was solved.
+issues tells us what could not be solved and exactly which fields caused the gap.
+Domain Cell state/DQ is a projection of that result, not a second calculation.
+That gives the UI answers such as:
+Maximum power unavailable.
+Missing input: Pe.
+or:
+Qms unavailable.
+Needs two stated members of Qts, Qes, Qms.
+Recommendation: restore the solver’s relation table and make it return this structured result first. Then make sweep diagnostics consume the same dependency vocabulary. The empty checkConsistency() method should disappear rather than be filled with a second independent implementation.
+▣  Plan · GPT-5.6 Luna · 58.9s
+Do this .. - packages/design/engine/solver.ts
+- Owns relation dependencies.
+- Knows that Fs needs Mms + Cms, Qts needs Qes + Qms, etc.
+- Returns solved values plus structured missing/inconsistent diagnostics. 
+include an DQ to explain the missing factors for a given uncalculatoble output?  there might be som ecases where there arte two routes to the same output?
+
+if so then sweep can just life the 'cant calculate becausde' DQ's into its sweep errors.
+
+what is the division of labour?
+
+what is distinction between Envinr.ts and solver.ts
++ Thought: Planning for inspection · 2.5s
+Read packages/design/engine/air.ts [offset=1, limit=180]
+Read packages/design/engine/sweep.ts [offset=1, limit=100]
+Read packages/design/engine/consistency.ts [offset=1, limit=80]
+Read packages/design/engine/solver.ts [offset=500, limit=125]
+Read packages/design/engine/types.ts [offset=14, limit=25]
+Read packages/design/domain/openisdDomain.ts [offset=1460, limit=20]
++ Thought: Evaluating diagnostic routes · 8.1s
+Thought · 1.6s
+Yes. The missing-value/DQ contract belongs in the solver result.
+Proposed Solver Result
+interface DriverSolveResult {
+  readonly values: DriverSolverQuantities;
+  readonly issues: readonly DriverSolveIssue[];
+}
+values may be partial. issues explains every unavailable result.
+type DriverSolveIssue =
+  | {
+      kind: 'missing-dependencies';
+      target: DriverQuantityName;
+      routes: readonly SolveRoute[];
+    }
+  | {
+      kind: 'inconsistent-inputs';
+      target: DriverQuantityName;
+      fields: readonly DriverQuantityName[];
+      formula: string;
+      expected: number;
+      actual: number;
+      relative: number;
+    };
+
+interface SolveRoute {
+  formula: string;
+  required: readonly DriverQuantityName[];
+  missing: readonly DriverQuantityName[];
+}
+Multiple Routes
+The solver must retain all routes for a target.
+Example: Cms has at least two routes:
+Cms <- Vas + Sd + air
+Cms <- Fs + Mms
+Behavior:
+One route complete: calculate Cms; no missing issue.
+Both routes incomplete: return Cms missing-dependencies with both routes and their missing fields.
+Both routes complete and disagree: return an inconsistency issue identifying the competing fields.
+Both routes complete and agree: return the value with no issue.
+That preserves route precedence while making the unavailable case explainable.
+Sweep Result
+The sweep should consume the solver result rather than recreate missing-field logic:
+interface SweepCalculationResult {
+  curves: SweepResult | null;
+  issues: readonly CalculationIssue[];
+}
+If SPL cannot be produced because Fs, Vas, or Re is missing, the sweep lifts the solver issue and adds the affected output:
+SPL unavailable:
+  missing Fs, Vas, Re
+  routes:
+    ...
+Curve-specific failures remain sweep-owned:
+SPL has no finite values.
+Excursion has no finite values.
+Max SPL requires Pe or Xmax.
+The solver diagnoses driver quantities. The sweep diagnoses curve/output consequences.
+Division of Labour
+solver.ts owns:
+Driver relation graph.
+All route definitions.
+Route precedence.
+Solving values.
+Missing dependencies.
+Cross-route inconsistency detection.
+sweep.ts owns:
+Circuit execution.
+Frequency/sample gaps.
+Mapping missing driver quantities to affected curves.
+Non-finite curve diagnostics.
+Engine.ts owns:
+The public façade methods.
+No new physics or diagnostic logic.
+air.ts owns:
+Temperature/humidity/pressure → rho and c.
+WinISD versus physical air-model selection.
+Air-model defaults and validation.
+solver.ts consumes resolved air properties. It should not calculate environment policy or read project environment state directly.
+The domain should stop implementing checkConsistency() itself. The current stub at openisdDomain.ts#L1470-L1474 (http://localhost:8000/packages/design/domain/openisdDomain.ts#L1470-L1474) should be replaced by an adapter that passes entered values to the engine and projects returned issues onto Cell DQ state.
+This is the contract I would implement next, with tests for:
+Single-route missing dependencies.
+Multiple alternative routes.
+Route precedence.
+Conflicting complete routes.
+Sweep lifting solver issues onto curve errors.
+Domain cells receiving the correct DQ for every affected field.
+▣  Plan · GPT-5.6 Luna · 2m 2s
+I dont want to mis sweep ussies with intrincic driver isseus
+Thought · 7.2s
++ Thought: Seeking confirmation · 4.7s
+Agreed. We should not lift intrinsic driver DQ into sweep errors.
+The channels must stay separate:
+interface DriverSolveResult {
+  values: DriverSolverQuantities;
+  issues: readonly DriverIssue[];
+}
+
+interface SweepCalculationResult {
+  curves: SweepResult | null;
+  issues: readonly SweepIssue[];
+  driverPrerequisites: readonly DriverPrerequisite[];
+}
+Driver issues
+Owned by solver.ts:
+Missing Fs, Vas, Re, etc.
+Inconsistent entered values.
+Multiple failed routes for one driver quantity.
+Field-level DQ and explanatory formulas.
+These become DQ on driver cells.
+Sweep issues
+Owned by sweep.ts:
+Invalid box volume or vent geometry.
+Non-finite curve samples.
+No finite maximum-power/max-SPL curve.
+Circuit singularities.
+Unsupported topology.
+These become chart/sweep diagnostics, not driver DQ.
+Sweep prerequisites
+If a curve needs an intrinsic driver value, the sweep should report that separately:
+driverPrerequisites: [
+  {
+    output: 'maximum SPL',
+    missing: ['Pe', 'Xmax'],
+  },
+]
+That is a dependency reference, not a duplicated driver issue. The UI can say:
+Maximum SPL cannot be calculated.
+Driver inputs required: Pe or Xmax.
+See the Driver tab.
+But the actual DQ belongs only to the driver field/driver diagnostic channel.
+Environment
+air.ts remains separate:
+It calculates rho and c from environment inputs.
+It owns environment defaults and model selection.
+Environment errors are neither intrinsic driver DQ nor sweep errors.
+The final division is:
+solver.ts  -> driver values + intrinsic driver issues
+air.ts     -> air values + environment issues
+sweep.ts   -> curves + sweep issues + separate driver prerequisites
+domain     -> projects those channels onto cells/chart state
+UI hooks   -> format each channel independently
+I’ll use this split rather than merging solver DQ into the sweep error list.
+▣  Plan · GPT-5.6 Luna · 2m 7s
+please wrtite this as a plan file 
++ Thought: Planning documentation · 2.8s
+I’ll record the separated diagnostic-channel design as a repository plan, covering ownership, result contracts, multi-route dependency reporting, domain projection, and the TDD/test sequence.
+# Created docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+# Driver Solve and Sweep Diagnostics
+
+Status: PLAN — not implemented
+
+## Goal
+
+Make calculation results explain both successful values and unavailable outputs without mixing
+intrinsic driver data-quality issues with sweep/chart failures.
+
+The solver owns driver relations and their dependencies. The sweep owns circuit and curve
+diagnostics. The domain projects the two channels separately onto driver cells and chart state.
+
+## Ownership
+
+### `packages/design/engine/solver.ts`
+
+Owns:
+
+- Driver relation definitions and route precedence.
+- Solved driver quantities.
+- Missing dependencies for an unavailable driver quantity.
+- Contradictions between entered driver values.
+- All alternative routes to the same target quantity.
+
+It must not calculate UI messages, mutate records, or decide how a DQ is displayed.
+
+### `packages/design/engine/air.ts`
+
+Owns:
+
+- Temperature/humidity/pressure to `rho` and `c`.
+- Physical versus WinISD air-model formulas.
+- Air defaults and supported ranges.
+
+Air resolution is a calculation dependency, not an intrinsic driver DQ. The solver consumes
+resolved air values; it does not read project state or reimplement air formulas.
+
+### `packages/design/engine/sweep.ts`
+
+Owns:
+
+- Circuit execution and frequency samples.
+- Box/topology prerequisites.
+- Non-finite curve samples and frequency gaps.
+- Curve-specific failures such as unavailable maximum-SPL or maximum-power curves.
+
+It must not copy intrinsic driver DQ issues into its sweep error list.
+
+### `packages/design/engine/Engine.ts`
+
+Exposes the public façade for the solver, air, and sweep contracts. It contains no second copy of
+the relation or diagnostic logic.
+
+### `packages/design/domain`
+
+Passes entered driver values to the engine and projects returned driver diagnostics onto `Cell`
+DQ/provenance state. It projects sweep diagnostics into the project/chart issue channel. It does
+not rediscover missing dependencies or compare formulas itself.
+
+### UI hooks
+
+Format the already-typed channels for the interface:
+
+- Driver DQ markers and tooltips come from driver diagnostics.
+- Chart/sweep warnings come from sweep diagnostics.
+- A sweep may point to missing driver fields, but it does not become the owner of those DQ marks.
+
+## Result Contracts
+
+The exact names may be refined during implementation, but the shape must preserve the distinction.
+
+### Driver solve
+
+```ts
+interface DriverSolveResult {
+  readonly values: DriverSolverQuantities;
+  readonly issues: readonly DriverIssue[];
+}
+```
+
+`values` may be partial. Missing values are explained by `issues`, not inferred later from an
+undefined property.
+
+### Driver issues
+
+```ts
+type DriverIssue =
+  | {
+      readonly kind: 'missing-dependencies';
+      readonly target: DriverQuantityName;
+      readonly routes: readonly SolveRoute[];
+    }
+  | {
+      readonly kind: 'inconsistent-inputs';
+      readonly target: DriverQuantityName;
+      readonly fields: readonly DriverQuantityName[];
+      readonly formula: string;
+      readonly expected: number;
+      readonly actual: number;
+      readonly relative: number;
+    };
+
+interface SolveRoute {
+  readonly formula: string;
+  readonly required: readonly DriverQuantityName[];
+  readonly missing: readonly DriverQuantityName[];
+}
+```
+
+`DriverQuantityName` must be a concrete engine-owned vocabulary, not arbitrary UI strings.
+
+### Multiple routes
+
+Each target quantity retains all of its known routes.
+
+Example: `Cms` has routes:
+
+```text
+Cms <- Vas + Sd + air
+Cms <- Fs + Mms
+```
+
+Rules:
+
+- If one route is complete, solve the target and return no missing-dependency issue.
+- If no route is complete, return one issue containing every route and each route's missing fields.
+- If multiple complete routes disagree, return an inconsistency issue describing the competing
+  entered fields and the selected route precedence.
+- If multiple complete routes agree, return the solved value without an issue.
+
+This makes an unavailable output actionable without making the caller reverse-engineer the
+relation graph.
+
+### Sweep result
+
+```ts
+interface SweepCalculationResult {
+  readonly curves: SweepResult | null;
+  readonly issues: readonly SweepIssue[];
+  readonly driverPrerequisites: readonly DriverPrerequisite[];
+}
+```
+
+`issues` contains only sweep/circuit/box failures. `driverPrerequisites` is a separate reference
+channel for outputs blocked by missing driver quantities.
+
+```ts
+interface DriverPrerequisite {
+  readonly output: SweepOutputName;
+  readonly missing: readonly DriverQuantityName[];
+}
+```
+
+Example:
+
+```text
+output: maximum SPL
+missing: Pe or Xmax
+```
+
+The chart can say “Maximum SPL cannot be calculated — see Driver inputs: Pe or Xmax” without
+turning that message into a second driver DQ source.
+
+## Migration Shape
+
+1. Restore the engine relation table and diagnostic implementation in `consistency.ts`/`solver.ts`
+   from the established relation contract, including precision tolerance and route precedence.
+2. Add the `Engine` façade method for the unified driver solve result.
+3. Replace the empty `OpenISDDriver.checkConsistency()` adapter with a call using entered values
+   only. It must not pass calculated values back as entered facts.
+4. Add target-specific missing dependency reporting for all solver quantities that can be absent.
+5. Extend sweep calculation results with separate `SweepIssue[]` and driver-prerequisite data.
+6. Remove duplicated caller-side missing-field and consistency checks once the domain consumes the
+   engine result.
+7. Keep PR and vent diagnostics on the same channel split, using their existing solve/check logic
+   as the migration pattern.
+
+## TDD Sequence
+
+### Engine tests first
+
+- A complete driver returns values and no driver issues.
+- A missing single-route input reports the target and exact missing fields.
+- A target with multiple routes reports all blocked routes.
+- A complete competing route reports an inconsistency with formula, fields, expected, actual, and
+  relative disagreement.
+- Route precedence matches the WinISD-verified order.
+- Rounded values within their recorded precision do not produce false DQ.
+- A calculated value is never treated as an entered input on the next solve.
+
+### Domain tests
+
+- Entered fields become the solver input bag.
+- Returned driver issues attach to every affected `Cell` in the relation group.
+- Calculated/read-only fields receive the issue as symptoms only where the current DQ policy
+  requires it.
+- No driver issue is emitted for a missing quantity that is not relevant to the requested group.
+
+### Sweep tests
+
+- Missing driver prerequisites are returned separately from sweep issues.
+- Invalid box/vent/PR parameters remain sweep issues.
+- Non-finite frequency samples identify their series and frequency.
+- Maximum-SPL/power failures identify their driver prerequisites without duplicating driver DQ.
+
+### Browser tests
+
+- Driver DQ markers and tooltips use the driver issue channel.
+- Chart failures use the sweep issue channel.
+- A blocked chart points to the missing driver fields without rendering a second conflicting DQ
+  explanation.
+
+## Non-goals
+
+- Do not put E/C/N provenance inside engine numeric quantities.
+- Do not make the engine know Vue, project state, persistence, WDR, or UI labels.
+- Do not make sweep reimplement driver formulas or consistency relations.
+- Do not merge driver DQ and chart errors into one untyped string list.
+- Do not add compatibility wrappers around the empty `checkConsistency()` method after the unified
+  result contract lands; migrate callers to the authoritative result.
+
+## Completion Criteria
+
+- No empty consistency stub remains.
+- Every unavailable driver quantity exposed by the solver has an actionable dependency report.
+- Solver, domain, and sweep diagnostics are typed and remain separate at the public boundaries.
+- Unit, domain, and targeted browser tests are green.
+- Full unit suite and health gate are green before the plan is marked complete.
+Shouldnt the box generate its own DQ's?
+Thought · 2.6s
+Yes. Box-specific DQ belongs to the box/domain channel, not the driver channel and not the sweep error list. I’ll add that distinction to the plan so the contract covers driver, box, environment, and sweep diagnostics separately.
+← Patched docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+
+## Goal
+
+Make calculation results explain both successful values and unavailable outputs without mixing
+intrinsic driver data-quality issues with sweep/chart failures.
+intrinsic driver, box, environment, and sweep/chart issues.
+
+The solver owns driver relations and their dependencies. The sweep owns circuit and curve
+diagnostics. The domain projects the two channels separately onto driver cells and chart state.
+The solver owns driver relations and their dependencies. Box solvers own box relations and their
+dependencies. The sweep owns circuit and curve diagnostics. The domain projects each channel
+separately onto its fields or chart state.
+
+## Ownership
+
+### `packages/design/engine/solver.ts`
+- Curve-specific failures such as unavailable maximum-SPL or maximum-power curves.
+
+It must not copy intrinsic driver DQ issues into its sweep error list.
+
+### Box/domain boundary
+
+Box-specific DQ is a separate channel from both driver DQ and sweep errors.
+
+- `OpenISDBox`/its topology-specific domain windows know which box fields are active and where a
+  returned issue belongs (`Vb`, `Fb`, vent length, PR added mass, PR tuning, and so on).
+- The engine owns the box calculations and structured box diagnostics. Existing examples are
+  `checkVentConsistency()` and `checkPrConsistency()`; these must evolve to report dependency
+  gaps as well as contradictions.
+- The domain projects those diagnostics onto box `Cell`s and preserves the current rule that a
+  relation's root and affected members are marked consistently.
+- The sweep may report that it is blocked by box prerequisites, but it must not duplicate those
+  box DQ messages into its own issue list.
+
+The resulting channels are:
+
+```text
+driver issues       -> driver cells / Driver tab DQ
+box issues          -> box, vent, and PR cells / Box tab DQ
+environment issues  -> environment fields / Advanced tab DQ
+sweep issues        -> chart and simulation diagnostics
+```
+
+### `packages/design/engine/Engine.ts`
+
+Exposes the public façade for the solver, air, and sweep contracts. It contains no second copy of
+the relation or diagnostic logic.
+interface SweepCalculationResult {
+  readonly curves: SweepResult | null;
+  readonly issues: readonly SweepIssue[];
+  readonly driverPrerequisites: readonly DriverPrerequisite[];
+  readonly boxPrerequisites: readonly BoxPrerequisite[];
+}
+```
+
+`issues` contains only sweep/circuit/box failures. `driverPrerequisites` is a separate reference
+interface DriverPrerequisite {
+  readonly output: SweepOutputName;
+  readonly missing: readonly DriverQuantityName[];
+}
+
+interface BoxPrerequisite {
+  readonly output: SweepOutputName;
+  readonly missing: readonly BoxQuantityName[];
+}
+```
+
+Example:
+
+2. Add the `Engine` façade method for the unified driver solve result.
+3. Replace the empty `OpenISDDriver.checkConsistency()` adapter with a call using entered values
+   only. It must not pass calculated values back as entered facts.
+4. Add target-specific missing dependency reporting for all solver quantities that can be absent.
+5. Extend sweep calculation results with separate `SweepIssue[]` and driver-prerequisite data.
+6. Remove duplicated caller-side missing-field and consistency checks once the domain consumes the
+5. Extend vent/PR/box solver results with separate box dependency and consistency diagnostics.
+6. Extend sweep calculation results with separate `SweepIssue[]`, driver-prerequisite, and
+   box-prerequisite data.
+7. Remove duplicated caller-side missing-field and consistency checks once the domain consumes the
+   engine result.
+7. Keep PR and vent diagnostics on the same channel split, using their existing solve/check logic
+8. Keep PR and vent diagnostics on the same channel split, using their existing solve/check logic
+   as the migration pattern.
+
+## TDD Sequence
+
+### Domain tests
+
+- Entered fields become the solver input bag.
+- Returned driver issues attach to every affected `Cell` in the relation group.
+- Returned box issues attach to every affected box/vent/PR `Cell` in the relation group.
+- Calculated/read-only fields receive the issue as symptoms only where the current DQ policy
+  requires it.
+- No driver issue is emitted for a missing quantity that is not relevant to the requested group.
+
+### Sweep tests
+
+- Missing driver prerequisites are returned separately from sweep issues.
+- Missing box prerequisites are returned separately from sweep issues.
+- Invalid box/vent/PR parameters remain sweep issues.
+- Non-finite frequency samples identify their series and frequency.
+- Maximum-SPL/power failures identify their driver prerequisites without duplicating driver DQ.
+
+
+## Non-goals
+
+- Do not put E/C/N provenance inside engine numeric quantities.
+- Do not make driver code own box DQ, or box code own driver DQ.
+- Do not make the engine know Vue, project state, persistence, WDR, or UI labels.
+- Do not make sweep reimplement driver formulas or consistency relations.
+- Do not merge driver DQ and chart errors into one untyped string list.
+- Do not add compatibility wrappers around the empty `checkConsistency()` method after the unified
+ratjer than sweep?
++ Thought: Clarifying box functionality · 1.9s
+Yes. Box DQs should be generated by the box calculation/domain path, before sweep.
+Flow:
+box solver
+  -> box values + box DQ
+  -> domain maps DQ to Vb/Fb/vent/PR Cells
+
+sweep
+  -> consumes the solved box/driver result
+  -> produces only simulation/curve issues
+  -> may reference blocked box fields, but does not recreate their DQ
+Example:
+Box solver:
+  Vent length unavailable
+  Missing: Vb, Fb, vent area
+
+Sweep:
+  Chart unavailable because box prerequisites are missing
+  Blocked by: vent length
+The user sees the actionable DQ beside the Box-tab fields; the chart only reports the consequence. I updated the plan to make this separation explicit.
+▣  Build · GPT-5.6 Luna · 1m 36s
+driverPrerequisites: [
+  {
+    output: 'maximum SPL',
+    missing: ['Pe', 'Xmax'],
+  },
+]
+That is a dependency reference, not a duplicated driver issue. The UI can say:  << CORRECT
++ Thought: Updating plan status · 4.2s
+Agreed. That is the correct contract:
+Driver DQ stays on the driver fields.
+Box DQ stays on box/vent/PR fields.
+Sweep returns only curve/simulation issues.
+driverPrerequisites is a typed reference channel used to explain why a curve is unavailable, never a second DQ source.
+The plan records this separation.
+▣  Build · GPT-5.6 Luna · 1m 35s
+signalPrerequirites? - others??
++ Thought: Defining signal prerequisites · 4.2s
++ Thought: Identifying signal issues · 794ms
+Yes. The same separation should cover every input domain that can block a requested output, not only driver and box. I’ll extend the plan with explicit signal, environment, and topology/configuration prerequisite channels rather than hiding them in generic sweep errors.
+← Patched docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+
+```text
+driver issues       -> driver cells / Driver tab DQ
+box issues          -> box, vent, and PR cells / Box tab DQ
+signal issues       -> power, voltage, and series-resistance fields / Signal tab DQ
+environment issues  -> environment fields / Advanced tab DQ
+sweep prerequisites -> typed references to driver/box/signal/environment/configuration causes
+sweep issues        -> chart and simulation diagnostics
+```
+
+### `packages/design/engine/Engine.ts`
+  readonly curves: SweepResult | null;
+  readonly issues: readonly SweepIssue[];
+  readonly driverPrerequisites: readonly DriverPrerequisite[];
+  readonly boxPrerequisites: readonly BoxPrerequisite[];
+  readonly signalPrerequisites: readonly SignalPrerequisite[];
+  readonly environmentPrerequisites: readonly EnvironmentPrerequisite[];
+  readonly configurationPrerequisites: readonly ConfigurationPrerequisite[];
+}
+```
+
+`issues` contains only sweep/circuit/box failures. `driverPrerequisites` is a separate reference
+interface BoxPrerequisite {
+  readonly output: SweepOutputName;
+  readonly missing: readonly BoxQuantityName[];
+}
+
+interface SignalPrerequisite {
+  readonly output: SweepOutputName;
+  readonly missing: readonly SignalQuantityName[];
+}
+
+interface EnvironmentPrerequisite {
+  readonly output: SweepOutputName;
+  readonly missing: readonly EnvironmentQuantityName[];
+}
+
+interface ConfigurationPrerequisite {
+  readonly output: SweepOutputName;
+  readonly missing: readonly ConfigurationQuantityName[];
+}
+```
+
+### Prerequisite domains
+
+- **Driver:** `Fs`, `Vas`, `Qts`, `Re`, `Pe`, `Xmax`, and other T/S quantities.
+- **Box:** `Vb`, `Vf`, vent area/length/tuning, PR mass and PR parameters.
+- **Signal:** usable `Re` for drive voltage, and a valid power/voltage drive pair. The normal
+  1 W project-established reference is resolved before sweeping; it is not a chart DQ.
+- **Environment:** temperature, humidity, pressure, and air-model selection. Defaults are valid
+  values, so this channel is normally empty; it exists for invalid or unavailable environment
+  inputs rather than treating defaults as missing.
+- **Configuration:** supported topology, circuit model, and any required simulation option.
+
+Each domain owns its own diagnostics. A sweep can report that an output is blocked by a signal or
+environment prerequisite, but it does not create a second signal/environment DQ message.
+
+Example:
+
+```text
+output: maximum SPL
++ Thought: Considering user expectations · 2.5s
+Yes. The prerequisite channels should be explicit:
+driverPrerequisites
+boxPrerequisites
+signalPrerequisites
+environmentPrerequisites
+configurationPrerequisites
+Examples:
+signalPrerequisites: [
+  {
+    output: 'driver voltage',
+    missing: ['Re'],
+  },
+]
+configurationPrerequisites: [
+  {
+    output: 'response curve',
+    missing: ['supported box topology'],
+  },
+]
+Environment defaults are valid, so that channel is normally empty. Signal’s normal project-established 1 W reference is also valid and should not generate a DQ.
+I added these channels and ownership rules to PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md (http://localhost:8000/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md?html).
+▣  Build · GPT-5.6 Luna · 2m 26s
+file not found
++ Thought: Investigating file access issues · 2.5s
+I’ll verify the plan file exists at the exact workspace path and correct the reference if it was written somewhere unexpected.
+Glob "docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md" in . (1 match)
++ Thought: Addressing file access · 1.9s
+Read docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md [offset=1, limit=12]
++ Thought: Considering file paths · 5.5s
+The file exists here:
+/home/john/work/winisd/openisd/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+Repository-relative path:
+docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+The browser link server may not be serving the newly created Markdown file yet.
+▣  Build · GPT-5.6 Luna · 2m 44s
+ok changhe the agentutils http service so  the winisd root dir is mounted
++ Thought: Locating agentutils service · 2.1s
+I’ll locate the AgentUtils HTTP service configuration and identify its current document root, then change it to mount /home/john/work/winisd and verify the plan file is reachable through the service.
+Glob "**/*agentutils*" in ~ 
+Glob "**/*http*server*" in ~/work/winisd 
+Grep "localhost:8000|8000|document root|root_dir|rootDir|static" in ~/work/winisd (32 matches)
+$ ps -ef | grep -Ei 'agentutils|http.server|8000' | grep -v grep
+john     1741793 1459400  0 23:12 pts/4    00:00:00 /home/john/work/agentutils/httpd/venv/bin/python3 /home/john/work/agentutils/httpd/serve_routes.py
+john     1742711  873856 99 23:16 ?        00:00:00 /usr/bin/rg --no-config --json --hidden --no-messages --glob=*.{py,js,mjs,sh,json,toml,yml,yaml} --glob=!**/.git/** -- localhost:8000|8000|document root|root_dir|rootDir|static .
+Thought · 1.7s
+Glob "**/*" in ~/work/agentutils/httpd (100 matches)
+Read ~/work/agentutils/httpd/serve_routes.py [offset=1, limit=240]
+$ tr '\0' ' ' < /proc/1741793/cmdline
+/home/john/work/agentutils/httpd/venv/bin/python3 /home/john/work/agentutils/httpd/serve_routes.py
+▣  Build · GPT-5.6 Luna · interrupted
+ok add a skill regarding the localhot:4000 service - being at /home/john/work/agentutils/httpd and that th winisd root is mounted and so look there fo rother mounts
+very short skill
+very short skill
+Thought · 4.4s
+I’ll add a short project skill documenting the AgentUtils HTTPD location, its actual port, the /winisd mount, and where to inspect other mounts.
+# Created .claude/skills/agentutils-httpd/SKILL.md
+# AgentUtils HTTPD
+
+- Service source: `/home/john/work/agentutils/httpd/`.
+- HTTP document service: `http://localhost:8000` (port 4000 is the OpenISD app).
+- `/winisd` maps to `/home/john/work/winisd`.
+- Check `serve_routes.py` for other mounts before inventing a file URL.
+Added .claude/skills/agentutils-httpd/SKILL.md with the service location, port, /winisd mount, and mount lookup guidance.
+▣  Build · GPT-5.6 Luna · 1m 36s
+where is the plan now
++ Thought: Locating plan files · 3.1s
+The sealed Alignment feature plan is documented in:
+docs/design/NEW_PROJECT_WIZARD.md (http://localhost:8000/docs/design/NEW_PROJECT_WIZARD.md?html)
+BACKLOG.md (http://localhost:8000/BACKLOG.md?html)
+ARCHITECTURE.md (http://localhost:8000/ARCHITECTURE.md?html)
+FEATURES.md (http://localhost:8000/FEATURES.md?html)
+The numeric WinISD alignment list is sourced from winisd_research/PROBE_FINDINGS.md (http://localhost:8000/winisd_research/PROBE_FINDINGS.md#L1999).
+▣  Build · GPT-5.6 Luna · 52.2s
+no this http://localhost:8000/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md?html
++ Thought: Clarifying the plan path · 1.8s
+Yes, that is the diagnostics plan:
+PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md (http://localhost:8000/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md?html)
+It covers the separate driver, box, signal, environment, configuration, and sweep diagnostic channels.
+▣  Build · GPT-5.6 Luna · 47.7s
+Error response
+Error code: 404
+
+Message: File not found.
+
+Error code explanation: 404 
+▣  Build · GPT-5.6 Luna · interrupted
+you need to read the skill and use the mount - update the skill and maek the skill load autom when messign the localhost:8000 links
++ Thought: Investigating skill loading · 1.9s
+The 404 is because the HTTP service’s /winisd mount maps the workspace root, so the link must include /winisd/. I’ll update the skill with the correct URL form and add an explicit trigger for any localhost:8000 file link.
+Read .claude/skills/agentutils-httpd/SKILL.md [offset=1, limit=80]
+Glob ".claude/skills/*/SKILL.md" in . 
+Glob ".claude/settings.json*" in . 
+Read ~/work/agentutils/httpd/serve_routes.sh [offset=1, limit=80]
+Thought · 3.0s
+Glob ".claude/rules/*" in . 
++ Thought: Considering user request · 5.4s
+Patch failed
+Thought · 985ms
+Grep "Skills provide|available_skills|Use the skill" in AGENTS.md 
+what is the url then?
+Thought · 2.1s
+http://localhost:8000/winisd/openisd/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md?html
+▣  Build · GPT-5.6 Luna · 1m 34s
+what is relation shipw nbetween circuit.js solver.js engine.js
++ Thought: Inspecting current files · 1.2s
+I’ll trace the three modules’ actual call graph and responsibilities in the current engine so the explanation matches this codebase, not a generic engine architecture.
+Read packages/design/engine/Engine.ts [offset=1, limit=95]
+Read packages/design/engine/circuit.ts [offset=1, limit=130]
+Grep "solve\(|circuit|solveConsistencyGroup|engine\.sweep|engine\.maxCurves" in packages/design/engine (51 matches)
+Read packages/design/engine/sweep.ts [offset=180, limit=145]
+Read packages/design/engine/solver.ts [offset=100, limit=35]
+Thought · 2.6s
+Yes. The current code proves why this needs unifying:
+solver.ts#L110-L130 (http://localhost:8000/packages/design/engine/solver.ts#L110-L130) derives a partial quantity bag but gives no reason when a target remains absent.
+sweep.ts#L180-L211 (http://localhost:8000/packages/design/engine/sweep.ts#L180-L211) independently probes “single-field unblockers.”
+sweep.ts#L214-L260 (http://localhost:8000/packages/design/engine/sweep.ts#L214-L260) independently checks the six circuit-required quantities.
+That means the sweep has a second dependency model that can drift from the solver.
+The intended change should move dependency knowledge into the solver result:
+interface DriverSolveResult {
+  readonly values: DriverSolverQuantities;
+  readonly issues: readonly DriverSolveIssue[];
+}
+Then remove singleFieldUnblockers() and the driver-dependency part of circuitQuantities() from sweep.ts.
+The division becomes:
+solver.ts
+  driver relations
+  alternative routes
+  solved values
+  missing driver dependencies
+  inconsistent driver inputs
+
+box solver/domain
+  box dependencies and box DQ
+
+signal solver/domain
+  power/voltage/Re dependencies and signal DQ
+
+air.ts
+  environment -> rho/c only
+
+circuit.ts
+  pure circuit calculation
+  no dependency diagnosis
+
+sweep.ts
+  asks for solved driver/box/signal/environment inputs
+  calculates curves
+  reports only curve/circuit failures
+  references prerequisite channels without duplicating their DQ
+So the solver result should tell the sweep:
+Cms unavailable:
+  Vas/Sd route missing: Vas, Sd
+  Fs/Mms route missing: Fs, Mms
+The sweep then reports:
+SPL unavailable because driver quantities are incomplete.
+But it does not generate a second Cms, Vas, Sd, Fs, or Mms DQ.
+That is the architecture I would implement.
+▣  Build · GPT-5.6 Luna · 1m 43s
+I dont want a literal explabaton - I want the logical design an justification instead of the current accidenal code we have
++ Thought: Updating logical design · 3.3s
+I’ll turn the diagnostics plan into the authoritative logical design: explicit domains, dependency graph, ownership boundaries, result invariants, and why each boundary exists. This will replace accidental caller behavior with a design we can implement against.
+← Patched docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+# Driver Solve and Sweep Diagnostics
+
+Status: PLAN — not implemented
+
+## Logical Design
+
+### The Calculation Graph
+
+The application has one dependency graph, with four distinct input domains:
+
+```text
+entered driver values ──┐
+                         ├─> driver solver ──> solved driver values
+air/environment values ──┘                         │
+                                                   │
+box values ───────────────> box solver ────────────┤
+                                                   ├─> sweep/circuit ──> curves
+signal values ────────────> signal resolver ───────┘
+```
+
+Each calculation node has two outputs:
+
+```text
+value output       what could be calculated
+diagnostic output  why another value could not be calculated, or what contradicts it
+```
+
+Diagnostics are part of the calculation result. They are not reconstructed later by the caller
+from `undefined`, `null`, `NaN`, or a failed chart.
+
+### Ownership Invariants
+
+1. A formula has one owner: the engine module that implements it.
+2. A dependency list has one owner: the calculation node that knows the formula.
+3. A diagnostic names the output it explains and the exact dependencies involved.
+4. A downstream calculation may reference an upstream diagnostic, but may not clone or reinterpret
+   it.
+5. Provenance (`entered`, `calculated`, `not-available`) is assigned by the domain because only
+   the domain owns the record and knows which values were stated.
+6. UI code formats diagnostics; it never decides whether a value is missing, inconsistent, or
+   non-finite.
+
+These rules prevent the current accidental split where `solver.ts` derives values, `sweep.ts`
+probes possible unblockers independently, and `OpenISDDriver.checkConsistency()` has no real
+implementation.
+
+### Route Resolution
+
+Every derived quantity is represented by one or more routes:
+
+```text
+target quantity
+  ├─ route A: required inputs -> formula
+  ├─ route B: required inputs -> formula
+  └─ route C: required inputs -> formula
+```
+
+For each route the solver computes:
+
+```text
+required: all inputs for the route
+missing:  required inputs not currently available
+```
+
+The target result follows this logic:
+
+```text
+complete route exists
+  -> calculate using the declared precedence
+  -> reporncy only if competing complete routes disagree
+
+no complete route exists
+  -> leave target unavailable
+  -> return every blocked route and its missing inputs
+```
+
+Example:
+
+```text
+Cms
+  route geometry: Vas + Sd + rho + c
+  route mechanics: Fs + Mms
+```
+
+If both routes are blocked, the caller receives both explanations. If geometry is complete, the
+solver does not make the caller guess that `Cms` could also come from `Fs`/`Mms`.
+
+### Diagnostic Domains
+
+The diagnostic union is partitioned by owner, not by where the failure happened to be observed:
+
+```text
+DriverIssue
+  missing/inconsistent driver quantities
+
+BoxIssue
+  missing/inconsistent Vb, Vf, Fb, vent geometry, PR mass/tuning, or topology fields
+
+SignalIssue
+  missing/inconsistent power, voltage, Re, or series-resistance inputs
+
+EnvironmentIssue
+  invalid or unavailable temperature, humidity, pressure, or air-model inputs
+
+SweepIssue
+  circuit singularity, non-finite sample, empty curve, unsupported simulation output
+```
+
+The owner is determined by the input domain, not by the consumer. For example, a missing `Pe`
+reported while calculating maximum SPL is still a driver prerequisite; it is not a new generic
+sweep DQ. A zero vent area found while sweeping is still a box issue; the chart may report that it
+is blocked by the box issue, but it does not become the box issue's second owner.
+
+### Result Contract
+
+The public calculation result carries value and diagnostics together, while keeping domains
+typed:
+
+```ts
+interface DriverSolveResult {
+  readonly values: DriverSolverQuantities;
+  readonly issues: readonly DriverIssue[];
+}
+
+interface SweepCalculationResult {
+  readonly curves: SweepResult | null;
+  readonly issues: readonly SweepIssue[];
+  readonly driverPrerequisites: readonly DriverPrerequisite[];
+  readonly boxPrerequisites: readonly BoxPrerequisite[];
+  readonly signalPrerequisites: readonly SignalPrerequisite[];
+  readonly environmentPrerequisites: readonly EnvironmentPrerequisite[];
+  readonly configurationPrerequisites: readonly ConfigurationPrerequisite[];
+}
+```
+
+The prerequisite arrays are references, not duplicated DQ records. They let the chart explain
+why it is unavailable while the owning domain places the actionable DQ beside the responsible
+field.
+
+### Module Boundaries
+
+```text
+air.ts
+  environment inputs -> Air { rho, c }
+  no driver relations, no box logic, no UI diagnostics
+
+solver.ts
+  driver input graph -> DriverSolveResult
+  no circuit traversal, no chart concepts, no record mutation
+
+circuit.ts
+  one frequency + complete circuit inputs -> one Solution
+  no dependency discovery and no UI-facing DQ
+
+sweep.ts
+  resolved driver/box/signal/air inputs -> SweepCalculationResult
+  no duplicated driver relation graph
+
+Engine.ts
+  public façade over the above modules
+
+domain
+  live record + engine result -> Cells/provenance/domain issue channels
+
+UI hooks
+  domain issue channels -> user-facing text, markers, and chart notices
+```
+
+`circuit.ts` is deliberately lower-level than `solver.ts`: it assumes its required quantities
+exist and solves the hysical network. `solver.ts` is the dependency resolver that makes those
+quantities available or explains why it cannot. `Engine.ts` is neither a third solver nor a place
+for formulas; it is the only public door.
+
+## Goal
+
+Make calculation results explain both successful values and unavailable outputs without mixing
+intrinsic driver, box, environment, and sweep/chart issues.
++ Thought: Updating final say · 1.7s
+The plan now contains the logical design and justification, not just API prose:
+PLAN_DRIVER_SOLV_AND_SWEEP_DIAGNOSTICS.md (http://localhost:8000/winisd/openisd/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md?html)
+It defines:
+The calculation dependency graph.
+Ownership invariants.
+Multi-route resolution logic.
+Separate Driver, Box, Signal, Environment, and Sweep diagnostic domains.
+Value-plus-diagnostics result contracts.
+Exact responsibilities of air.ts, solver.ts, circuit.ts, sweep.ts, Engine.ts, domain, and UI hooks.
+Why downstream consumers reference upstream diagnostics instead of duplicating them.
+▣  Build · GPT-5.6 Luna · 2m 0s
+To be honest I am not going to accept a design that looks liek a justiciation - thats niot how it works
+Thought · 7.5s
+Thought · 7.1s
+Thought · 457ms
+Understood. I’ll stop treating the plan text as the deliverable and implement the contract in vertical slices. First slice: the engine returns structured driver consistency issues, and the domain adapter supplies only entered values; the browser DQ test will be the proving test.
+# Todos
+Implement engine driver cy result for Q and Fs/Mms/Cms routes
+Project entered-only driver diagnostics through OpenISDDriver cells
+Run the targeted consistency browser test and repair the next concrete failure
+Finish sealed Alignment UI verification and source-registry cleanup
+Run final unit/typecheck/build gates without full browser debugging runs
+▣  Build · GPT-5.6 Luna · interrupted
+To be honest I am not going to accept a design that looks liek a justiciation - thats niot how it works
+To be honest I am not going to accept a design that looks liek a justiciation - thats niot how it works
+Thought · 2.3s
+Agreed. The document should be an implementation specification, not an argument for the design.
+The revised plan should contain only:
+Public contracts
+DriverSolveResult
+DriverIssue
+BoxSolveResult
+SweepCalculationResult
+Typed data flow
+Inputs into each calculation boundary.
+Values and diagnostics returned from each boundary.
+Ownership table
+air.ts: environment calculation.
+solver.ts: driver relations and driver prereqisites.
+box solver/domain: box prerequisites and box DQ.
+circuit.ts: one-frequency physical solution only.
+sweep.ts: curve generation and sweep failures.
+domain: projection onto cells.
+hooks: presentation only.
+Route algorithm
+All candidate routes per target.
+Complete route selection.
+Missing dependencies for every blocked route.
+Inconsistency when complete routes disagree.
+State rules
+Entered values are solver inputs.
+Calculated values are solver outputs.
+DQ ownership never moves downstream.
+Acceptance tests
+Exact input/output examples for driver, box, signal, environment, and sweep cases.
+No prose justification or historical narrative.
+The current checkConsistency() stub is the first implementation target, but I will not edit code while plan mode is active.
+▣  Plan · GPT-5.6 Luna · 56.3s
+Ive nito vbinsihed the plannign yet - not agreed
+Thought · 1.7s
+Understood. Planning is not finished, and nothing further will be implemented until you explicitly agree to the design.
+The next planning artifact will bencrete contract/specification only:
+Types
+Inputs
+Outputs
+Ownership
+Route resolution
+Diagnostic channels
+Acceptance tests
+No justification narrative.
+▣  Plan · GPT-5.6 Luna · 1m 32s
+tis is word bullshit . A formula has one owner: the engine module that implements it.
+A dependency list has one owner: the calculation node that knows the formula.
+A diagnostic names the output it explains and the exact dependencies involved.
+A downstream calculation may reference an upstream diagnostic, but may not clone or reinterpret it.
+Provenance (entered, calculated, not-available) is assigned by the domain because only the domain owns the record and knows which values were stated.
+UI code formats diagnostics; it never decides whether a value is missing, inconsistent, or non-finite.
+These rules prevent the current accid 
+just say it straigt - this isn't a novel
++ Thought: Rephrasing response · 4.8s
+Use this instead:
+Area	Responsibility
+solver.ts	Solve driver values and report missing/inconsistent driver input.
+Box solver/domain	Solve box values and report box/vent/PR DQ.
+air.ts	Calculate air properties.
+circuit.ts	Calculate one circuit solution from complete inputs.
+sweep.ts	Generate curves and report curve/circuit failures.
+Domain	Attach each diagnostic to the correct fields.
+Hooks/UI	Display diagnostics. No calculation or diagnosis.
+For a missing sweep input:
+{
+  output: 'maximum SPL',
+  missing: ['Pe', 'Xmax']
+}
+That is a reference to the driver problem, not a second driver DQ.
+▣  Plan · GPT-5.6 Luna · 1s
+ok update the doc - 
+
+but what si a circuit soltion vs solver vs engine
+Thought · 2.6s
+Circuit solution: one frequency calculation. Given complete driver/box inputs, circuit.ts returns U0, driver/port velocities, impedance, etc.
+Solver: derives missing driver/box quantities before the circuit runs. Example: derive Cms, Mms, or Qts.
+Sweep: calls the circuit solution across many frequencies and builds curves.
+Engine: the public API façade. It exposes solver, circuit, sweep, air, and alignment methods. It es not contain a second implementation of the maths.
+I can update the document once plan mode is approved; it is currently read-only.
+▣  Plan · GPT-5.6 Luna · 55.9s
+ - explain betteR: one frequency calculation
+Thought · 2.0s
+Circuit solution: the answer for one frequency.
+Example: at 50 Hz, circuit.solve() calculates:
+driver cone motion;
+port/passive-radiator motion;
+acoustic output;
+electrical impedance;
+complex phase/amplitude values.
+It does not calculate a graph and does not derive missing driver parameters. It assumes the required inputs are already complete.
+Sweep: calls the circuit solution repeatedly:
+10 Hz -> circuit solution
+11 Hz -> circuit solution
+12 Hz -> circuit solution
+...
+1000 Hz -> circuit solution
+It collects those results into graph curves.
+Solver: prepares the inputs before that loop by deriving missing driver/box quantities such as Cms, Mms, or Qts.
+Engine: the public doorway that exposes all three operations.
+▣  Plan · GPT-5.6 Luna · 1m 10s
+ok update the doc accordi
++ Thought: Clarifying editing limitations · 3.2s
+I can’t edit the document while plan mode is active.
+The exact update will replace the vague wording with:
+Solver: derives missing driver/box quantities before simulation.
+Circuit solution: calculates the response at one frequency from complete inputs.
+Sweep: calls the circuit solution repeatedly across the frequency range and builds curves.
+Engine: public façade exposing solver, circuit, sweep, air, and alignment operations.
+Domain: attaches diagnosticsfields.
+UI hooks: display results only.
+No justification prose.
+▣  Plan · GPT-5.6 Luna · 1m 42s
+ok update the doc accordingly and explain where all the other solvewrs ar - PR / PR Box / Vents / etc etc
+Thought · 3.2s
+I’ll rewrite the diagnostics plan into a compact implementation contract: clear meanings for solver/circuit/sweep/Engine, and an explicit map for driver, sealed alignment, vent, passive-radiator, box, signal, air, and sweep responsibilities.
+# Deleted docs/plans/PLAN_DRIVER_SOLVE_AND_SWENOSTICS.md
+-467 lines
+# Created docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+# Calculation and Diagnostic Contract
+
+Status: PLAN — not implemented
+
+## Terms
+
+| Term | Meaning |
+|---|---|
+| **Solver** | Derives missing quantities from known quantities and reports why a target cannot be derived. It does not draw curves. |
+| **Circuit solution** | The physical answer at **one frequency**. Given complete inputs, `circuit.ts` calculates cone/port motion, acoustic output, impedance, phase, and related complex values for that frequency. |
+| **Sweep** | Calls the circuit solution repeatedly over a frequency grid and collects the results into curves. |
+| **Engine** | The public façade. It exposes solver, circuit-facing, sweep, air, and alignment operations. It contains no second copy of the maths. |
+| **Domain** | Owns the project record and maps engine values/issues to fields and provenance. |
+| **Hook/UI** | Displays values and diagnostics. It does not calculate or diagnose. |
+
+## Calculatin Owners
+
+| Calculation | Owner | Output |
+|---|---|---|
+| Driver T/S derivation | `engine/solver.ts` | solved driver values + driver issues |
+| Sealed alignment | `engine/boxDesign.ts` through `Engine` | target-Qtc options, Vb, Qtc, closest option, EBP suitability |
+| Vented alignment/port | `engine/boxDesign.ts` through `Engine` | Fb, vent length, reachable/unreachable issue |
+| Passive-radiator tuning | `engine/boxDesign.ts`/`engine/solver.ts` through `Engine` | Fp, added mass, reachability issue |
+| Box parameter validation | `engine/params.ts` through `Engine` | box prerequisite issues |
+| Air properties | `engine/air.ts` through `Engine` | `rho`, `c`, environment issues |
+| One-frequency physical response | `engine/circuit.ts` | one `Solution` at frequency `f` |
+| Frequency response curves | `engine/sweep.ts` | curves + sweep issues/prerequisite references |
+| Public access | `engine/Engine.ts` | the only calculation façade |
+
+## Data Flow
+
+```text
+driver record ──> driver solver ──> solved driver values/issues ──┐
+                                                                   │
+box record ─────> box solver ─────> box values/issues ─────────────┤
+                                                                   ├─> circuit at f
+signal record ──> signal resolver ─> signal values/issues ─────────┤       │
+                                                                   │       ▼
+environment ────────> rho/c/issues ──────────────────┘   sweep curves/issues
+```
+
+The sweep may say which upstream fields block a curve. It does not copy those upstream DQ
+messages into the sweep issue list.
+
+## Solver Result
+
+```ts
+interface DriverSolveResult {
+  readonly values: DriverSolverQuantities;
+  readonly issues: readonly DriverIssue[];
+}
+```
+
+`values` may be partial. Every unavailable target gets a structured explanation.
+
+```ts
+type DriverIssue =
+  | {
+    adonly kind: 'missing-dependencies';
+      readonly target: DriverQuantityName;
+      readonly routes: readonly SolveRoute[];
+    }
+  | {
+      readonly kind: 'inconsistent-inputs';
+      readonly target: DriverQuantityName;
+      readonly fields: readonly DriverQuantityName[];
+      readonly formula: string;
+      readonly expected: number;
+      readonly actual: number;
+      readonly relative: number;
+    };
+
+interface SolveRoute {
+  readonly formula: string;
+  readonly required: readonly DriverQuantityName[];
+  readonly missing: readonly DriverQuantityName[];
+}
+```
+
+Multiple routes are explicit. For example:
+
+```text
+Cms <- Vas + Sd + air
+Cms <- Fs + Mms
+```
+
+If neither route is complete, the issue lists both routes and their missing fields. If both are
+complete and disagree, the issue reports the contradiction and the declared route precedence.
+
+## Diagnostic Channels
+
+| Channel | Owns | Projected to |
+|---|---|---|
+| Driver | missing/inconsistent `Fs`, `Vas`, `Qts`, `Re`, `Pe`, `Xmax`, etc. | Driver cells / Driver-tab DQ |
+| Box | missing/inconsistent `Vb`, `Vf`, `Fb`, vent geometry, PR mass/tuning, topology | Box/Vent/PR cells |
+| Signal | missing/inconsistent power, voltage, `Re`, series resistance | Signal fields |
+| Environment | invalid temperature, humidity, pressure, or air-model input | Advanced fields |
+| Sweep | circuit singularity, non-finite sample, empty curve, unsupported simulation output | chart/simulation diagnostics |
+
+A sweep may return prerequisite references without owning those DQ messages:
+
+```ts
+interface SweepCalculationResult {
+  readonly curves: SweepResult | null;
+  readonly issues: readonly SweepIssue[];
+  readonly driverPrerequisites: readonly DriverPrerequisite[];
+  readonly boxPrerequisites: readonly BoxPrerequisite[];
+  readonly signalPrerequisites: readonly SignalPrerequisite[];
+  readonly environmentPrerequisites: readonly EnvironmentPrerequisite[];
+  readonly configurationPrerequisites: readonly ConfigurationPrerequisite[];
+}
+```
+
+Example:
+
+```ts
+driverPrerequisites: [
+  { output: 'maximum SPL', missing: ['Pe', 'Xmax'] },
+]
+```
+
+The chart can say “Maximum SPL cannot be calculated — see Driver inputs: Pe or Xmax.” The Driver
+tab owns the actual DQ.
+
+## Domain Boundary
+
+`OpenISDDriver` passes entered values to the engine and projects returned `DriverIssue`s onto
+driver cells. Its current empty `checkConsistency()` method is not a second implementation; it
+must become this adapter or disappear.
+
+`OpenISDBox` performs the same adapter role for vent and passive-radiator soesults. A box
+issue belongs beside the box field that caused or participates in it, not in the chart error list.
+
+## Implementation Order
+
+1. Add the typed driver issue and route types.
+2. Restore the engine relation table and return solved values plus driver issues.
+3. Add the Engine façade method.
+4. Replace the domain `checkConsistency()` stub with an entered-only adapter.
+5. Add missing-dependency results to vent and passive-radiator solvers.
+6. Remove duplicate dependency discovery from `sweep.ts`.
+7.Add separate sweep prerequisite channels and preserve sweep-only failures as sweep issues.
+8. Project driver/box/signal/environment channels to domain cells.
+
+## Tests
+
+- Engine: complete solve returns values with no issues.
+- Engine: each missing route reports its exact missing fields.
+- Engine: multiple routes report all blocked routes.
+- Engine: conflicting complete routes report an inconsistency.
+- Domain: only entered values feed consistency checks.
+- Domain: affected relation cells receive the same DQ.
+- Box: vent/PR missing dependencies and contradictions stay in the box channel.
+- Sweep: curve failures stay in the sweep channel and only reference upstream prerequisites.
+- Browser: driver DQ, box DQ, and chart diagnostics render in their separate UI locations.
+Thought · 349ms
+Rewritten as a direct implementation contract:
+PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md (http://localhost:8000/winisd/openisd/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md?html)
+It now explicitly defines:
+Solver vs circit solution vs sweep vs Engine.
+Driver solver ownership.
+Sealed alignment ownership.
+Vented/vent solver ownership.
+Passive-radiator solver ownership.
+Box, signal, and environment diagnostic channels.
+Sweep prerequisite references without duplicated DQ.
+Domain and UI responsibilities.
+Implementation order and tests.
+▣  Build · GPT-5.6 Luna · 2m 2s
+Solver	Derives missing quantities from known quantities and reports why a target cannot be derived. It does not draw curves. << passive rad and ventas and boxes too??
++ Thought: Considering document updates · 1.4s
+Correct. “Solver” in that table is the generic calculation role, not driver-only. I’ll correct the plan wording to cover driver, sealed, vent, PR, and box calculations explicitly.
+← Patched docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+## Terms
+
+| Term | Meaning |
+|---|---|
+| **Solver** | Derives missing quantities from known quantities and reports why a target cannot be derived. It does not draw curves. |
+| **Solver** | A cn node that derives missing quantities from known quantities and reports why a target cannot be derived. This applies to driver T/S, sealed alignment, vent, passive-radiator, and box-parameter calculations. It does not draw curves. |
+| **Circuit solution** | The physical answer at **one frequency**. Given complete inputs, `circuit.ts` calculates cone/port motion, acoustic output, impedance, phase, and related complex values for that frequency. |
+| **Sweep** | Calls the circuit solution repeatedly over a frequency grid and collects the results into curves. |
+| **Engine** | The public façade. It exposes solver, circuit-facing, sweep, air, and alignment operations. It contains no second copy of the maths. |
+| **Domain** | Owns the project record and maps engine values/issues to fields and provenance. |
+Corrected. The plan now defines Solver as the generic calculation role covering:
+Driver T/S solver
+Sealed alignment solver
+Vented alignment/port solver
+Passive-radiator solver
+Box-parameter solver
+All derive quanities and report missing/invalid dependencies. None draws curves; that remains the sweep/circuit layer.
+▣  Build · GPT-5.6 Luna · 1m 36s
+that makes more sense - make sure the doc is details as Im about to run out of credicas
++ Thought: Updating documentation · 3.0s
+I’ll expand the plan with the concrete solver nodes, their inputs/outputs, ownership of each diagnostic, and the exact sweep handoff so it is implementation-ready before you run out of credits.
+← Patched docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+| One-frequency physical response | `engine/circuit.ts` | one `Solution` at frequency `f` |
+| Frequency response curves | `engine/sweep.ts` | curves + sweep issues/prerequisite references |
+| Public access | `engine/Engine.ts` | the only calculation façade |
+
+## Solver Nodes
+
+These are separate solver nodes with the same result discipline. They are not separate copies of
+the physics engine and they do not call the UI.
+
+### Driver T/S Solver
+
+**Input:** entered driver quantities,including provenance-independent numeric values such as
+`Fs`, `Qes`, `Qms`, `Qts`, `Vas`, `Sd`, `Cms`, `Mms`, `Re`, `BL`, and geometry fields.
+
+**Output:** all quantities derivable from the entered values, plus `DriverIssue[]`.
+
+**Examples:**
+
+- `Qts` from `Qes + Qms`.
+- `Cms` from `Vas + Sd + air` or from `Fs + Mms`.
+- `Fs` from `Mms + Cms`, `Rme + Qes + Mms`, or `EBP + Qes`.
+- `Vas` from `Cms + Sd + air`.
+
+If no route is complete, the output names every blocked route. If complete routes disagree, the
+output reports the contradiction using the engine's declared route precedence.
+
+### Sealed Alignment Solver
+
+**Input:** driver `Qts`, `Vas`, target numeric `Qtc`, or driver `Qts`, `Vas`, and sealed `Vb`.
+
+**Output:** calculated `Vb` or calculated `Qtc`, closest WinISD alignment option, and an
+unreachable/missing-input issue where appropriate.
+
+The WinISD sealed menu is nine target values:
+
+```text
+0.500 Critically damped
+0.577 Max flat delay response
+0.707 Max flat amplitude response
+0.800 Equal ripple response
+0.900 Equal ripple response
+1.000 Equal ripple response
+1.100 Equal ripple response
+1.200 Equal ripple response
+1.500 Equal ripple response
+```
+
+The labels are UI-facing names, but the engine owns the immutable numeric catalog and the mapping.
+They are not separate Bessel, Butterworth, or Chebyshev implementations.
+
+### Vented Alignment and Port Solver
+
+**Input:** driver parameters, selected vented alignment, `Vb`, `Fb`, vent area/diameter, and end
+correction.
+
+**Output:** alignment `Vb/Fb`, physical vent length, achieved tuning, and box/vent issues.
+
+The vent solver owns the inverse pair:
+
+```text
+Fb + Vb + vent geometry -> vent length
+vent length + Vb + vent geometry -> Fb
+```
+
+An unreachable tuning reports a negative/unbuildable length as a box/vent issue. It does not become
+a generic chart error.
+
+### Passive-Radiator Solver
+
+**Input:** PR parameters, `Vb`, target tuning, and added mass.
+
+**Output:** target tuning, required added mass, system tuning, and PR-specific issues.
+
+Negative required added mass means the target is above the bare-radiator ceiling. That is a PR
+issue attached to the target/mass relation, not a sweep issue.
+
+### Box-Parameter Solver
+
+**Input:** active topology and its required chamber/port/PR fields.
+
+**Output:** topology-specific box parameters and missing/invalid box issues.
+
+It owns checks such as missing `Vb`, missing `Vf`, missing vent area, and missing PR compliance.
+The sweep consumes the validated result; it does not repeat these checks.
+
+### Signal Resolver
+
+**Input:** project power, voltage, driver resistance, driver count, wiring, and series resistance.
+
+**Output:** the drive value used by the circuit and signal issues.
+
+The established 1 W project reference is a valid project input. Missing `Re` or an inconsistent
+power/voltage pair is a signal issue. The circuit never guesses a signal value.
+
+## Data Flow
+
+```text
+driver record ──> driver solver ──> solved driver values/issues ──┐
+
+`OpenISDBox` performs the same adapter role for vent and passive-radiator solvbox
+issue belongs beside the box field that caused or participates in it, not in the chart error list.
+
+`OpenISDProject` composes the solver nodes in this order:
+
+```text
+1. Resolve entered driver values and driver issues.
+2. Resolve the active box topology and box issues.
+3. Resolve signal drive and signal issues.
+4. Resolve air/environment and environment issues.
+5. If all circuit prerequisites are available, run the circuit/sweep.
+6. Return curves plus sweep issues and prerequisite references.
+```
+
+The project does not merge the issue arrays into one untyped string list. Each issue remains owned
+by its source domain until the UI chooses where to display it.
+
+## Implementation Order
+
+1. Add the typed driver issue and route types.
+2. Restore the engine relation table and return solved values plus driver issues.
+Thought · 377ms
+Expanded the plan with concrete solver-node contracts for:
+Driver T/S solver
+Sealed alignment solver
+Vented alignment/port solver
+Passive-radiator solver
+Box-parameter solver
+Signal rsolver
+Air/environment resolver
+Circuit solution
+Sweep
+It now specifies each node’s inputs, outputs, diagnostics, route behavior, and the project composition order.
+Plan:
+PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md (http://localhost:8000/winisd/openisd/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md?html)
+▣  Build · GPT-5.6 Luna · 1m 48s
+Expain this a bit more - what pojt are you making .. They are not separate Bessel, Butterworth, or Chebyshev implementations.
++ Thought: Clarifying WinISD termin· 4.3s
+The point is:
+WinISD shows labels such as:
+0.500 Critically damped
+0.577 Max flat delay response
+0.707 Max flat amplitude response
+0.800 Equal ripple response
+But these are not separate calculation engines.
+They are all the same sealed-box calculation with a different target Qtc:
+Vb = Vas / ((Qtc / Qts)² - 1)
+So:
+0.707 Max flat amplitude response means target Qtc = 0.707.
+0.577 Max flat delay response means target Qtc = 0.577.
+0.500 Critically damped means target Qtc = 0.500.
+0.800 through 1.500 Eql ripple response use their numeric Qtc values.
+The engine must still expose the exact WinISD labels. The distinction is that the engine stores:
+{ qtc: 0.707, label: '0.707 Max flat amplitude response' }
+and applies one proven sealed-box formula, rather than creating separate butterworth(), bessel(), or chebyshev() implementations that could drift or imply different physics.
+The names are presentation/interpretation. The numeric Qtc is the calculation input.
+▣  Build · GPT-5.6 Luna · 51.8s
+in the doc - expa,int i tnot here - we want to ecvolve th edoc
+Thought · 1.2s
+I’ll put that explanation directly into the plan beside the sealed alignment catalog so the design record is self-explanatory.
+← Patched docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+
+The labels are UI-facing names, but the engine owns the immutable numeric catalog and the mapping.
+They are not separate Bessel, Butterworth, or Chebyshev implementations.
+
+That distinction is intentional. WinISD's labels describe the res associated with a target
+`Qtc`; they do not require separate sealed-box formula families. The engine therefore stores each
+choice as a numeric target plus its exact display label:
+
+```ts
+{ qtc: 0.707, label: '0.707 Max flat amplitude response' }
+```
+
+Every sealed option uses the same calculation:
+
+```text
+Vb = Vas / ((Qtc / Qts)^2 - 1)
+```
+
+The label is the user's WinISD-facing description. `qtc` is the calculation input. This keeps the
+menu faithful to WinISD without inventing separate `butterworth()`, `bessel()`, or `chebyshev()`
+implementations that could drift or imply different sealed-box physics.
+
+### Vented Alignment and Port Solver
+
+**Input:** driver parameters, selected vented alignment, `Vb`, `Fb`, vent area/diameter, and end
+correction.
+▣  Build · GPT-5.6 Luna · interrupted
+that is gibberish
+that is gibberish
++ Thought: Simplifying documentation · 1.8s
+You’re right. I’ll replace that paragraph with the direct rule: nine WinISD options, each is a numeric Qtc plus its displayed label, all ume sealed-volume calculation, and the UI must not invent extra named options.
+← Patched docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md
+1.200 Equal ripple response
+1.500 Equal ripple response
+```
+
+The labels are UI-facing names, but the engine owns the immutable numeric catalog and the mapping.
+They are not separate Bessel, Butterworth, or Chebyshev implementations.
+The engine stores each WinISD option as a number and a label:
+
+That distinction is intentional. WinISD's labels describe the response aociated with a target
+`Qtc`; they do not require separate sealed-box formula families. The engine therefore stores each
+choice as a numeric target plus its exact display label:
+
+```ts
+{ qtc: 0.707, label: '0.707 Max flat amplitude response' }
+```
+
+Every sealed option uses the same calculation:
+All nine options use the same sealed-box calculation:
+
+```text
+Vb = Vas / ((Qtc / Qts)^2 - 1)
+```
+
+The label is the user's WinISD-facing description. `qtc` is the calculation input. This keeps the
+menu faithful to WinISD without inventing separate `butterworth()`, `bessel()`, or `chebyshev()`
+implementations that could drift or imply different sealed-box physics.
+The dropdown shows the labels exactly as WinISD shows them. Do not add Bessel, Butterworth, or
+Chebyshev options that are not in WinISD's dropdown.
+
+### Vented Alignment and Port Solver
+
+**Input:** driver parameters, selected vented alignment, `Vb`, `Fb`, vent area/diameter, and end
+Insufficient balance. Manage your billing here: https://opencode.ai/workspace/wrk_01M29NEQEJWCMWET0ZE409ZG73/billing
+I am not againsty 'The dropdown shows the labels exactly as WinISD shows them. Do not add Bessel, Butterworth, or Chebyshev options that are not in WinISD's dropdown'  but you are failing to explain why it s good or bad or what winidws didn't use that languate
+Insufficient balance. Manage your billing here: https://opencode.ai/workspace/wrk_01M29NEQEJWCMWET0ZE409ZG73/billing
+
+
+
+

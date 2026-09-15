@@ -1,11 +1,10 @@
-export {
-  type BundleRecord,
-  type DriverRepo, type DriverRepoDeps, createDriverRepo,
-  type DriverBundle, readBundle,
-} from './repos/driverRepo.js';
+export type {
+  BundledIndexRow, BundledDriverIndexRow, BundledPassiveRadiatorIndexRow, IndexRead, IndexRows, IndexProblems,
+} from './repos/bundledIndex.js';
+export { type BundledDriverRepo, type BundledDriverRepoDeps, createBundledDriverRepo, readBundledDriverIndex } from './repos/bundledDriverRepo.js';
 
 export {
-  type BundledPassiveRadiatorRepo, createBundledPassiveRadiatorRepo,
+  type BundledPassiveRadiatorRepo, type BundledPassiveRadiatorRepoDeps, createBundledPassiveRadiatorRepo, readBundledPassiveRadiatorIndex,
 } from './repos/bundledPassiveRadiatorRepo.js';
 
 // The envelope both saved libraries share. A consumer names `BrokenEntry` (the unreadable-entry

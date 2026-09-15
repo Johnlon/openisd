@@ -5,7 +5,7 @@
 
 ## Symptom
 
-`drivers/sample/winisd/driver-with-semicolons-and-hash.wdr` (a real WinISD-authored `.wdr`) stores
+`drivers/mysamples/winisd/driver-with-semicolons-and-hash.wdr` (a real WinISD-authored `.wdr`) stores
 `c=337.499069083998` and `roo=1.98282575313586`. `test/winisd/wdr-openisd-round-trip.test.ts`
 recomputes `c`/`roo` independently and asserts agreement with the file's stored values — for this
 file it disagrees (recomputed `c=343.6826980479399`, `roo=1.2009621215255684`), because the
@@ -40,7 +40,7 @@ record whose environment is not the app default, append the `[ENV ...]` tag the 
 `commentWithDq()` appends `[DQ]` lines, so a round trip through our own writer stays verifiable
 without a human doing this by hand.
 
-`drivers/sample/winisd/driver-with-semicolons-and-hash.wdr`'s `Comment=` has been hand-annotated
+`drivers/mysamples/winisd/driver-with-semicolons-and-hash.wdr`'s `Comment=` has been hand-annotated
 with `[ENV T=283.15 p=161325 RH=35]` recording the real environment John supplied, ahead of the
 parser existing — this lets the round-trip test be fixed once the reader honours the tag.
 

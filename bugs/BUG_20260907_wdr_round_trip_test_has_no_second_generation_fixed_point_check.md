@@ -44,7 +44,7 @@ stable. The `.wdr` test has no equivalent of the `WPR2`/`OIDP_3` legs at all.
 ## Cause
 
 The `.wdr` round-trip test was written to prove fidelity against a real WinISD-written oracle
-corpus (`drivers/sample/winisd/`) — a different and valuable property — but was never extended to
+corpus (`drivers/mysamples/winisd/`) — a different and valuable property — but was never extended to
 also prove the OpenISD-side pipeline is idempotent after its first lossy hop. The two properties
 were conflated as "the round-trip test" when they are separate claims requiring separate
 assertions.
@@ -61,5 +61,5 @@ field-for-field, matching the `OIDP_2 == OIDP_3` leg of the `.wpr` spec.
 
 Not yet run — no fix attempted. To verify: add the WDR2→WDR3 assertion, run
 `npx vitest run packages/design/test/winisd/wdr-openisd-round-trip.test.ts`, and confirm it is
-green against the same `drivers/sample/winisd/` corpus already in use. A failure here, if one
+green against the same `drivers/mysamples/winisd/` corpus already in use. A failure here, if one
 occurs, is real second-hop drift in the existing `.wdr` bridge, not a test-authoring defect.

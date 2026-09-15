@@ -29,7 +29,7 @@ start:
 # Compatibility aliases: the default workflow is already the fast HMR workflow.
 start-fast: start
 
-# Rebuild the driver bundle only (packages/ui/src/drivers-bundle.json), ~0.6s
+# Rebuild the driver bundle only (packages/ui/public/drivers-bundle.json), ~0.6s
 drivers:
 	node scripts/bundle-drivers.mjs
 

@@ -8,7 +8,7 @@ source ParState slot (`parState[pos]`), never inventing `E` from presence.
 
 **Found** 2026-08-14, implementing Step 8 (`WinISDDriver`) and its comprehensive ParState fix —
 surfaced by `driver-roundtrip.test.ts`'s "ParState must round-trip identically" test going red
-against `drivers/sample/winisd/John-all-manu-populated.wdr` once `Driver.toWdr()` started
+against `drivers/mysamples/winisd/John-all-manu-populated.wdr` once `Driver.toWdr()` started
 reading every slot's mark live from `cell().state` instead of echoing the source's own
 ParState for the 34 slots `MODELED_SLOTS` never covered.
 

@@ -28,9 +28,10 @@ function availableMemGB() {
 // being the straw that triggers the VM's OOM killer.
 const MEM_PER_WORKER_GB = 0.7;
 const RESERVE_GB = 2;
+const MAX_SAFE_WORKERS = 2;
 
 function computeWorkerCount() {
-  const cpuCapped = Math.min(8, Math.ceil(os.cpus().length / 2));
+  const cpuCapped = Math.min(MAX_SAFE_WORKERS, Math.ceil(os.cpus().length / 2));
   const memCapped = Math.floor((availableMemGB() - RESERVE_GB) / MEM_PER_WORKER_GB);
   return Math.max(1, Math.min(cpuCapped, memCapped));
 }
@@ -104,7 +105,9 @@ export default defineConfig({
     // version-info.mjs stamps packages/ui/public/build-info.json, which this vite serves at
     // /build-info.json — the toolbar's version chip (toolbar-version browser spec) reads it.
     // PORT varies per run (see WORKERS/PORT above) so concurrent runs don't collide on 4100.
-    command: `bash scripts/kill-http.sh ${PORT} && node scripts/version-info.mjs && npx vite --port ${PORT}`,
+    // The suite's vite serves the small test catalogue (six reference devices, cut from the
+    // tracked one by scripts/test-bundle.mjs — no corpus needed) and runs no file watcher.
+    command: `bash scripts/kill-http.sh ${PORT} && node scripts/version-info.mjs && node scripts/test-bundle.mjs build/test-bundle && OPENISD_DRIVERS_BUNDLE_DIR=build/test-bundle OPENISD_TEST_SERVER=1 npx vite --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: true,
     timeout: 120000,

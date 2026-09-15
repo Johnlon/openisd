@@ -52,7 +52,7 @@
     {
       "scenario": "*",
       "field": "ParState[6]",
-      "cause": "fLe has no route from a scenario's 22-key .wdr: openisd never computes it (no formula takes fLe from the T/S set) and no scenario ever enters it, so cell() reads N. Every golden marks the slot E with fLe=0 regardless — WinISD's own 'declined-but-defaulted' convention for a field it opened from a foreign file rather than its own New dialog (contrast drivers/sample/winisd/john-all-defaults.wdr, a real New->Save, which marks the same class of field N). Confirmed on every golden with a ParState (all but solve-from-mms-cms, which has none) — see bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md 'Reverified 2026-08-14'.",
+      "cause": "fLe has no route from a scenario's 22-key .wdr: openisd never computes it (no formula takes fLe from the T/S set) and no scenario ever enters it, so cell() reads N. Every golden marks the slot E with fLe=0 regardless — WinISD's own 'declined-but-defaulted' convention for a field it opened from a foreign file rather than its own New dialog (contrast drivers/mysamples/winisd/john-all-defaults.wdr, a real New->Save, which marks the same class of field N). Confirmed on every golden with a ParState (all but solve-from-mms-cms, which has none) — see bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md 'Reverified 2026-08-14'.",
       "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
     },
     {
@@ -154,7 +154,7 @@
     {
       "scenario": "*",
       "field": "ParState[47]",
-      "cause": "c (speed of sound) — drivers/sample/winisd/john-all-defaults.wdr (a real New->Save with nothing typed) marks this slot C, matching openisd's own autofill-to-the-engine-constant. Every parity golden instead marks it E: these goldens were produced by opening a foreign 22-key .wdr with no ParState line and letting WinISD solve+save, not New->Save, and WinISD's declined-but-defaulted convention treats the frozen air pair as 'entered' on that path. The VALUE agrees exactly (compared separately as air.c); only the mark differs.",
+      "cause": "c (speed of sound) — drivers/mysamples/winisd/john-all-defaults.wdr (a real New->Save with nothing typed) marks this slot C, matching openisd's own autofill-to-the-engine-constant. Every parity golden instead marks it E: these goldens were produced by opening a foreign 22-key .wdr with no ParState line and letting WinISD solve+save, not New->Save, and WinISD's declined-but-defaulted convention treats the frozen air pair as 'entered' on that path. The VALUE agrees exactly (compared separately as air.c); only the mark differs.",
       "reference": "bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"
     },
     {

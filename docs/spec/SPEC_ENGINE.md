@@ -196,7 +196,7 @@ both by the live `SweepParams.tempK` when present (§4.3).
 
 **Full precision, corrected 2026-08-14.** Previously `1.20095`/`343.68` (6/5 significant
 figures) — a truncation, not a different value: `winisd-parity` goldens (all eight, across
-every humidity leg) and `drivers/sample/winisd/john-all-defaults.wdr` (a WinISD-authored blank
+every humidity leg) and `drivers/mysamples/winisd/john-all-defaults.wdr` (a WinISD-authored blank
 driver, ParState `C` on `c`/`roo`) directly carry `1.20095217714682`/`343.684120962153`. The
 truncation cost 1.8e-6 (ρ) / 1.2e-5 (c) relative, propagating into `no` (∝ 1/c³, 3.6e-5) and
 `SPLmaxLF` (2e-7) — see
@@ -346,7 +346,7 @@ after them is derived detail, and where the two ever disagree, these win.
 > file.
 >
 > **R1.** `winisd.wdr` is defined from the independent WinISD data-model research we created
-> AND exemplified by the `sample/winisd` files.
+> AND exemplified by the `drivers/mysamples/winisd` files.
 >
 > **R2.** The `winisd.wdr` must be solely created from the `openisd.yml` file by mechanical
 > transformation.
@@ -395,7 +395,7 @@ rule is unreadable if they blur):
 
 `C` marks a **calculated value**, not a calculatable field. So a calculatable field whose inputs
 are absent has not been calculated, and is `N` carrying its default — which is exactly what
-`drivers/sample/winisd/john-all-defaults.wdr` shows: nothing entered, so every calculatable
+`drivers/mysamples/winisd/john-all-defaults.wdr` shows: nothing entered, so every calculatable
 field is `N`; only `numVC` (`E`) and `c`/`roo` (`C`, they always have a value) differ.
 
 A legitimately-calculated `0` is still a calculated value and stays **C**, never demoted to N:
@@ -441,7 +441,7 @@ or the conventional-lossy variant. See the scope note under the requirements: no
 projection is box-dependent today, so this constrains future additions rather than current
 output.
 
-> ### 🔒 THE ONLY ORACLE IS `drivers/sample/winisd/`
+> ### 🔒 THE ONLY ORACLE IS `drivers/mysamples/winisd/`
 >
 > Every file in that directory was prepared by `johnl` **out of WinISD itself** — typed into
 > the real UI and saved by it. That provenance is the entire reason it is authoritative, and
@@ -462,9 +462,9 @@ output.
 >
 > A test that takes its expected value from either source is asserting a known-wrong answer.
 
-**Format authority** — [`drivers/sample/winisd/john-all-defaults.wdr`](../../drivers/sample/winisd/john-all-defaults.wdr):
+**Format authority** — [`drivers/mysamples/winisd/john-all-defaults.wdr`](../../drivers/mysamples/winisd/john-all-defaults.wdr):
 driver editor → New → Save with nothing typed. It fixes the field set, the order and every
-default. [`John-all-manu-populated.wdr`](../../drivers/sample/winisd/John-all-manu-populated.wdr)
+default. [`John-all-manu-populated.wdr`](../../drivers/mysamples/winisd/John-all-manu-populated.wdr)
 is its fully-populated counterpart.
 
 **Per-field behaviour authority** — the `s-*.wdr` probes in the same directory each isolate ONE

@@ -2,8 +2,7 @@ import { createApp } from 'vue';
 import App from './ui/App.vue';
 import { vExpoStep } from './ui/directives/expoStep.js';
 import { vLimits } from './ui/directives/limits.js';
-import { createLocalStorage, createDriverRepo, createMyDriverRepo, createPrefsRepo, createMyPassiveRadiatorRepo, createBundledPassiveRadiatorRepo, createFileStorage, createProjectRepo, createViewStateRepo } from '@openisd/persistence';
-import { readBundle } from '@openisd/persistence';
+import { createLocalStorage, createBundledDriverRepo, createMyDriverRepo, createPrefsRepo, createMyPassiveRadiatorRepo, createBundledPassiveRadiatorRepo, createFileStorage, createProjectRepo, createViewStateRepo } from '@openisd/persistence';
 import { Engine } from '@openisd/design/engine';
 import { createLogging } from './logging/flash.js';
 import { createFaultLog } from './diagnostics/faultLog.js';
@@ -12,7 +11,6 @@ import { createDriverBrowsingState } from './logic/driverBrowsingState.js';
 import { createApplicationIO } from './logic/useApplicationIO.js';
 import { provideApp } from './logic/app.js';
 import { NoFocusedProjectError } from './logic/appState.js';
-import bundleJson from './drivers-bundle.json';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
@@ -31,28 +29,21 @@ import './style.css';
 const faultLog = createFaultLog();
 faultLog.install();
 
-// The bundle is a BUILD ARTIFACT, so its contents are not knowable when this file is compiled.
-// `readBundle` looks at the value instead of asserting a shape over it, and it runs AFTER
-// `faultLog.install()` so a bundle that fails is a reported fault rather than a blank page with
-// nothing in the log.
-const loaded = readBundle(bundleJson);
-if ('problems' in loaded) {
-  throw new Error(
-    `drivers-bundle.json is not a usable bundle — rebuild it with scripts/bundle-drivers.mjs:\n` +
-    loaded.problems.map(m => `  - ${m}`).join('\n'),
-  );
-}
-const bundle = loaded.bundle;
 const engine = new Engine();
 
 // STORAGE (port): the browser's own key-value storage.
 const storage = createLocalStorage();
 const logging = createLogging();
-const driverRepo = createDriverRepo({ bundle, engine });
+// The bundled catalogue — docs/design/BUNDLED_CATALOGUE_API.md. Two repos over the same
+// mechanism: an index fetched when a picker opens, one record fetched when a device is picked,
+// both held for CATALOGUE_MAX_AGE_MS and then fetched again, so a long-lived tab picks up a
+// republished catalogue without a reload. Nothing is awaited here — the app mounts first.
+const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
+const driverRepo = createBundledDriverRepo({ fetch, baseUrl: import.meta.env.BASE_URL, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
 const myDriverRepo = createMyDriverRepo(storage, engine);
 const prefs = createPrefsRepo(storage);
 const myPassiveRadiators = createMyPassiveRadiatorRepo(storage, engine);
-const bundledPRs = createBundledPassiveRadiatorRepo(bundle, engine).list();
+const bundledPRs = createBundledPassiveRadiatorRepo({ fetch, baseUrl: import.meta.env.BASE_URL, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
 // STORAGE (port): the interactive file-save destination. Two SEPARATE instances — one for
 // the project (retains the open project's file handle), one for the driver editor's one-shot
 // .wdr/.owdr export — so exporting a driver cannot silently retarget the project Save button.
@@ -74,7 +65,7 @@ const app = createApp(App)
   .directive('limits', vLimits);
 
 provideApp(app, {
-  logging, driverBrowsing, selection, designIO, myPassiveRadiators,
+  engine, logging, driverBrowsing, selection, designIO, myPassiveRadiators,
   bundledPassiveRadiators: bundledPRs, myDrivers: myDriverRepo,
   driverFileStorage, faultLog, projectRepo, viewStateRepo,
 });

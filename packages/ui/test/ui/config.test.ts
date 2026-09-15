@@ -8,7 +8,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
@@ -52,5 +52,29 @@ describe('composition root', () => {
 
   it('does not import the deleted source registry', () => {
     assert.equal(mainSource.includes('sources.json'), false);
+  });
+
+  // The catalogue is fetched from public/ (docs/design/BUNDLED_CATALOGUE_API.md), never imported
+  // as a module: a module import of a 10 MB JSON was served by vite as a 49 MB script (data +
+  // inline source map) on every page load, typed in full by vue-tsc, and pulled into every
+  // ts-morph program the architecture tests build.
+  it('imports no JSON module and builds the two bundled repos', () => {
+    assert.equal(/^import\b[^;]*\.json['"]/m.test(mainSource), false,
+      'main.ts must not import a JSON module — the catalogue is fetched through the bundled repos');
+    assert.ok(mainSource.includes('createBundledDriverRepo('), 'main.ts must build the bundled driver repo');
+    assert.ok(mainSource.includes('createBundledPassiveRadiatorRepo('), 'main.ts must build the bundled passive-radiator repo');
+  });
+});
+
+describe('the bundled catalogue artifacts', () => {
+  it('are written under packages/ui/public/ so vite serves them as static files, and nothing under src/', () => {
+    const bundler = readFileSync(join(ROOT, 'scripts', 'bundle-drivers.mjs'), 'utf8');
+    assert.ok(bundler.includes("join(PUBLIC, 'drivers-index.json')"), 'bundle-drivers.mjs must write packages/ui/public/drivers-index.json');
+    assert.ok(bundler.includes("join(PUBLIC, 'passive-radiators-index.json')"), 'bundle-drivers.mjs must write packages/ui/public/passive-radiators-index.json');
+    assert.ok(bundler.includes("join(PUBLIC, 'drivers')"), 'bundle-drivers.mjs must write records under packages/ui/public/drivers/');
+    assert.equal(existsSync(join(ROOT, 'packages', 'ui', 'src', 'drivers-bundle.json')), false,
+      'packages/ui/src/drivers-bundle.json must not exist — the catalogue lives in public/');
+    assert.equal(existsSync(join(ROOT, 'packages', 'ui', 'public', 'drivers-bundle.json')), false,
+      'packages/ui/public/drivers-bundle.json must not exist — the catalogue is an index plus one file per record');
   });
 });

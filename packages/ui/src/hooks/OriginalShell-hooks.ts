@@ -39,6 +39,7 @@ import { useEscToClose } from '../logic/useEscToClose.js';
 import { steppedFrequency, clampedFrequency, interpolatedY } from '../logic/cursorFrequency.js';
 import { precision as fieldDp, limits, END_CORRECTION_OPTIONS } from '../logic/fields/fieldRegistry.js';
 import { inputChecked, inputFrom, inputValue, listeningElement, selectValue } from '../logic/domEvents.js';
+import { createSealedAlignmentEditor } from './SealedAlignment-hooks.js';
 import type { OpenISDProject } from '@openisd/design';
 import type { StoredProjectListing } from '@openisd/persistence';
 import type { BoxType } from '@openisd/design/engine';
@@ -132,7 +133,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // sourced from `appState.ts`'s own focus-aware `live` bridge.
   const project = useFocusedProject();
 
-  const { designIO, selection, myPassiveRadiators, bundledPassiveRadiators } = useApp();
+  const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators } = useApp();
   const { saveProject, importFile, about } = designIO;
   const { projectRepo } = useApp();
   const { editProjectDriver } = selection;
@@ -198,6 +199,14 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     rearResonance, rearQtc, boxResonance,
     prAddedMassCell, prTuningCell, prSystemTuning, prResonanceMass, prFsMass_hz,
   } = sealedReadouts({ project, selectedBox, projectChanged });
+  const sealedAlignmentEditor = createSealedAlignmentEditor({ project, changed: projectChanged, engine });
+  const sealedAlignmentOpen = sealedAlignmentEditor.open;
+  const sealedAlignmentOptions = sealedAlignmentEditor.options;
+  const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
+  const sealedAlignmentVolume_L = sealedAlignmentEditor.volume_L;
+  const sealedAlignmentEbp = sealedAlignmentEditor.ebp;
+  const sealedAlignmentSuitability = sealedAlignmentEditor.ebpSuitability;
+  const sealedAlignmentSuitabilityLabel = sealedAlignmentEditor.ebpSuitabilityLabel;
 
   // Box-type-generic rear-chamber volume (WinISD "Vb") — every box type keeps its own volume
   // field under its own `box.<type>` slice, so the Box tab's single "Volume" field dispatches.
@@ -790,9 +799,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
   // Bundled PRs publish only Sd/Cms — the rest of the record states nothing, so the editor
   // opens for the user to supply them.
-  function loadBundledPassiveRadiatorEntry(id: string) {
-    const pr = bundledPassiveRadiators[Number(id)];
-    if (!pr) return;
+  async function loadBundledPassiveRadiatorEntry(uuid: string): Promise<void> {
+    // The row's id is the record uuid; the repo fetches the record (cached after the first time).
+    const pr = await bundledPassiveRadiators.load(uuid);
     project.value.box.passiveRadiator.configurePR(pr);
     prBrowseOpen.value = false;
     prEditOpen.value = true;
@@ -849,7 +858,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_OPTIONS, LOSS_MODE_OPTIONS,
-    boxVolume_m3, setBoxVolume_m3, fieldDp,
+     boxVolume_m3, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
+     sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
+     sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
     fbState, FB_TARGET_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
     boxResonance, rearQtc, prSystemTuning,
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,

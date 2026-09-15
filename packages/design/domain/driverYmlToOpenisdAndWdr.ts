@@ -13,7 +13,7 @@
  *
  * Every value crossing into the `.wdr` is already SI, in both directions — the record stores
  * `Vas` in m³ and `Sd` in m², and a WinISD-written `.wdr` holds the same
- * (`drivers/sample/winisd/John-all-manu-populated.wdr`: `Vas=0.141584099539285`,
+ * (`drivers/mysamples/winisd/John-all-manu-populated.wdr`: `Vas=0.141584099539285`,
  * `Sd=0.00177545544983551`). So this file converts no units, and a unit conversion appearing here
  * later would be a bug, not a missing feature.
  */
@@ -514,17 +514,28 @@ export function openIsdDriverToWinIsdDriver(
 
     // THE AIR THE FIGURES ASSUME. `c` and `roo` are the only two `.wdr` keys WinISD itself never
     // leaves at zero: its own New → Save writes 343.684120962152 and 1.20095217714682, marked
-    // COMPUTED (`drivers/sample/winisd/john-all-defaults.wdr`). A driver that states neither is
+    // COMPUTED (`drivers/mysamples/winisd/john-all-defaults.wdr`). A driver that states neither is
     // not a driver measured in a vacuum — it is one measured in ordinary air — so writing 0 would
-    // publish a claim no record makes and no physics allows.
+    // publish a claim no record makes and no physics allows. This holds even for an embedded
+    // driver, whose own `c`/`roo` fields are always blank by design going forward (the project is
+    // their sole source while embedded, `OpenISDDriverEmbedded.update()`) — the file still needs
+    // a concrete pair for WinISD compatibility.
     //
-    // Read from the driver's own getter, which already reports the live air model at reference
-    // conditions when unstated — the exporter asks the driver, it does not decide this fact
-    // itself. A record stating its own `c`/`roo` reads back `entered` from the same getter.
-    const c = driver.spec[driver.section].c_m_per_s.get();
-    const roo = driver.spec[driver.section].roo_kg_per_m3.get();
-    cells.set('c', {value: String(c.value), state: c.state === 'entered' ? 'entered' : 'calculated'});
-    cells.set('roo', {value: String(roo.value), state: roo.state === 'entered' ? 'entered' : 'calculated'});
+    // THE WRITTEN VALUE comes from `solveConsistencyGroup()`, not the raw field getter: for a
+    // standalone driver it resolves to the same bare-reference default the field itself would
+    // report, but for an embedded driver it goes through `OpenISDDriverEmbedded`'s override of
+    // that method, which always reflects the project's CURRENT environment — including for a
+    // driver embedded before this rule existed and still carrying a stale entered value in its
+    // raw record (every project's `.owpr`/browser-storage load bypasses `update()`, so nothing
+    // retroactively clears that stale value; reading the raw field here would silently export it).
+    // The ENTERED/CALCULATED mark still comes from the plain field's own state, unchanged — the
+    // driver's record is the one source of truth for whether a human stated a value, the exporter
+    // does not decide that itself.
+    const solvedAir = driver.solveConsistencyGroup();
+    const cState = driver.spec[driver.section].c_m_per_s.get().state;
+    const rooState = driver.spec[driver.section].roo_kg_per_m3.get().state;
+    cells.set('c', {value: String(solvedAir.c_m_per_s), state: cState === 'entered' ? 'entered' : 'calculated'});
+    cells.set('roo', {value: String(solvedAir.roo_kg_per_m3), state: rooState === 'entered' ? 'entered' : 'calculated'});
 
     // `cell.value` is never null: an unstated coil count reads back as the driver's own
     // calculated default (`calcNumVC()`), not absence — the exporter asks the driver, it does
@@ -539,6 +550,13 @@ export function openIsdDriverToWinIsdDriver(
     });
 
     for (const [key, field] of wdrFields(driver.spec[driver.section])) {
+        // `c`/`roo` (and, harmlessly, `numVC`) are already in `cells` from the special-cased
+        // blocks above, which for `c`/`roo` deliberately read a RESOLVED value that can now
+        // differ from this raw field getter (an embedded driver's own field stays whatever was
+        // last written to the record; `solveConsistencyGroup()` always reflects the project's
+        // current air instead). Skipping an already-set key here is what keeps that resolved
+        // value from being silently overwritten back to the raw one a moment later.
+        if (cells.has(key)) continue;
         const cell = field.get();
         if (cell.value == null) continue;
 

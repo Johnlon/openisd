@@ -8,6 +8,15 @@
 
 ---
 
+## 2026-09-14 — Bundled catalogue: index + on-demand records
+
+- The app no longer ships or parses a 10 MB driver bundle on every page load: the bundler writes a search index per kind (`drivers-index.json` 811 KB, `passive-radiators-index.json` 34 KB) plus one record file per device, and the pickers list rows off the index and fetch a record only when a device is picked (`createBundledDriverRepo` / `createBundledPassiveRadiatorRepo`, `docs/design/BUNDLED_CATALOGUE_API.md`). Per-page-load transfer in dev: 49 MB → 0; the JS bundle drops the 9.5 MB of inlined JSON.
+- Nothing is cached indefinitely: a fetched index or device is trusted for an hour, then fetched again; the service worker caches catalogue files stale-while-revalidate with a 7-day expiry, and `autoUpdate` reloads open pages onto a new build.
+- The passive-radiator browser flags data quality like the driver picker (`radiatorHasDqIssues`, row `dq`), and identifies a bundled radiator by its record uuid rather than its list position.
+- The browser suite runs against six reference devices (`packages/ui/test/fixtures/test-bundle-paths.json`, cut from the tracked catalogue by `scripts/test-bundle.mjs` — no corpus needed, so CI can do it) and its vite runs no file watcher; 17 redundant clear-and-reload page loads were removed from the specs.
+- Gates run faster: `npm run lint` 17 s → 4 s (eslint cache), `npm run typecheck` 40 s → 26 s (the three packages in parallel), vue-tsc no longer types a 10 MB literal, `predev`/`prebuild` skip the bundler when the corpus and its sources are unchanged (0.4 s instead of 14 s).
+- New TypeScript rule (`.claude/rules/typescript.md`): no inline object types in new code — every object type is declared once, by name.
+
 ## 2026-09-13 — Sealed reference baseline
 
 - **The sealed comparison reference is fixed.** Use the exact Tang Band W5-1138SMF driver in a 6 L sealed enclosure at 1 W input for sealed readout, chart, and golden comparisons; do not substitute another driver, enclosure volume, or drive level.

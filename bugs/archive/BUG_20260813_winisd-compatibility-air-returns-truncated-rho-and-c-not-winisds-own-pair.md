@@ -29,7 +29,7 @@ WinISD's values are directly observed, twice over and independently:
   carry `c=343.684120962153`, `roo=1.20095217714682` — identical across the humidity legs
   `env-rh-00` (RH 0 %) and `env-rh-30` (RH 30 %), which is also the direct measurement that
   WinISD ignores humidity;
-- `drivers/sample/winisd/john-all-defaults.wdr`, a WinISD-authored blank driver, carries
+- `drivers/mysamples/winisd/john-all-defaults.wdr`, a WinISD-authored blank driver, carries
   `c=343.684120962152`, `roo=1.20095217714682` at ParState slots 47/48 = `C` — i.e. WinISD's
   own calculation, not something a human typed.
 

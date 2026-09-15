@@ -7,7 +7,7 @@
  * Not `npm/ini`: that library strips everything after an unquoted `;` or `#` INSIDE a value, but
  * `GetPrivateProfileString`'s dialect only treats `;`/`#` as a comment marker when it is the
  * FIRST character of a whole line — never inside a value. Proven empirically: JL wrote and loaded
- * `drivers/sample/winisd/driver-with-semicolons-and-hash.wdr` — every header field's value
+ * `drivers/mysamples/winisd/driver-with-semicolons-and-hash.wdr` — every header field's value
  * contains `hello;there#again` or a `Comment=` body with inline `;` and `#` throughout — and real
  * WinISD (confirmed by loading the file back) leaves every character untouched. WinISD itself
  * never writes a whole-line comment, so this reader drops a standalone comment line rather than

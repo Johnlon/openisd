@@ -33,8 +33,8 @@ Five files emit one `it()` per fixture file and account for 1659 of 2646 unit te
 | `packages/design/test/winisd/winisd-parity-functional.test.ts` | 451   | scenario × field against WinISD-written goldens                      |
 | `packages/design/test/ini/ini.test.ts`                         | 448   | `drivers/matt/*.wdr` byte round-trip at the INI layer                |
 | `packages/design/test/winisd/wdr-round-trip-matt.test.ts`      | 424   | `drivers/matt/*.wdr` byte round-trip at the `WinISDDriver` layer     |
-| `packages/design/test/winisd/wdr-openisd-round-trip.test.ts`   | 250   | `drivers/sample/winisd/*.wdr` × 3 assertions through `OpenISDDriver` |
-| `packages/design/test/winisd/wdr-round-trip.test.ts`           | 86    | `drivers/sample/winisd/*.wdr` byte round-trip at `WinISDDriver`      |
+| `packages/design/test/winisd/wdr-openisd-round-trip.test.ts`   | 250   | `drivers/mysamples/winisd/*.wdr` × 3 assertions through `OpenISDDriver` |
+| `packages/design/test/winisd/wdr-round-trip.test.ts`           | 86    | `drivers/mysamples/winisd/*.wdr` byte round-trip at `WinISDDriver`      |
 
 Hand-written tests: ~987 unit + 301 browser ≈ 1290.
 

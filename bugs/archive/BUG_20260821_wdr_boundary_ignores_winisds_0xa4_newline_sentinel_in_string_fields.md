@@ -48,9 +48,9 @@ for line in data.split(b"\n"):
 **WinISD's own files use it — 134 of them** in this repo:
 
 ```
-drivers/sample/winisd/driver-with-latin-text.wdr
+drivers/mysamples/winisd/driver-with-latin-text.wdr
   b'Comment=multi line \xa4comment \xa4in plain ascii'
-drivers/sample/winisd/john-all-entered-driver-dim123s.wdr
+drivers/mysamples/winisd/john-all-entered-driver-dim123s.wdr
   b'Comment=I just typed 1..n on all fields and ignored the fact that the app then mayu have recalculated some\xa4I had previously omitted…'
 files containing 0xA4: 134
 ```
@@ -118,7 +118,7 @@ it writes?). Not addressed by this fix.
 ## Verification
 
 `packages/winisd/test/wdrBytes.test.ts` — 5 tests, all passing, oracle
-`drivers/sample/winisd/driver-with-unicode-text.wdr` (WinISD-written; its `Comment=` holds a
+`drivers/mysamples/winisd/driver-with-unicode-text.wdr` (WinISD-written; its `Comment=` holds a
 Euro sign, Kanji and two sentinels on one physical line):
 
 - the sample decodes with both sentinels intact and the multi-byte characters around them whole

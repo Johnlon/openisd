@@ -1,6 +1,6 @@
 Status: OPEN
 
-# BUG: `drivers/sample/winisd/s-roo.wdr` contradicts the researched c-from-roo recompute rule
+# BUG: `drivers/mysamples/winisd/s-roo.wdr` contradicts the researched c-from-roo recompute rule
 
 ## Symptom
 
@@ -12,7 +12,7 @@ c: WinISD 343.684120962152, ours 33.96016317579804
 
 ## Evidence
 
-`drivers/sample/winisd/s-roo.wdr`:
+`drivers/mysamples/winisd/s-roo.wdr`:
 ```
 c=343.684120962152      (ParState slot 47 = C — WinISD's own computed value)
 roo=123                 (ParState slot 48 = E — user-entered)

@@ -2,8 +2,6 @@ import { test, expect, openAProject } from '../fixtures.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
   await openAProject(page);
 });
 

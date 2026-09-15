@@ -34,7 +34,9 @@ const {
   boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
   showEnclosureTab, enclosureNavLabel,
   selectedBox, BOX_OPTIONS, LOSS_MODE_OPTIONS,
-  boxVolume_m3, setBoxVolume_m3, fieldDp,
+  boxVolume_m3, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
+  sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
+  sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
   fbState, FB_TARGET_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
   boxResonance, rearQtc, prSystemTuning,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
@@ -256,6 +258,7 @@ const {
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
                 <div class="field entered"><label>Volume</label><NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+                <button v-if="selectedBox === 'sealed'" class="link-btn" title="Choose a sealed-box alignment and calculate its volume" @click="sealedAlignmentEditor.openEditor">Alignment</button>
               </div>
               <div class="field-row" style="flex-wrap: nowrap;">
                 <!-- A vented chamber's tuning is a real design choice (the port is an extra
@@ -698,6 +701,30 @@ const {
     <!-- The Tune panel (`<OgTune>`) is rendered by App.vue, not here, so it survives a box-type
          change that re-renders this shell's enclosure pane (QO134). Its open/close state and
          refresh persistence stay on `presentationState.editDriver`, watched below. -->
+    <div v-if="sealedAlignmentOpen" class="overlay on alignment-overlay">
+      <div class="modal alignment-modal">
+        <div class="modal-titlebar">
+          <div class="tb-left"><span class="app-icon"></span><span>Choose Sealed Alignment</span></div>
+          <div class="win-controls"><span class="close-btn" @click="sealedAlignmentEditor.cancel">&#10005;</span></div>
+        </div>
+        <div class="modal-body">
+          <p class="hint">WinISD uses numeric target Qtc choices. Select one to calculate the sealed box volume for the current driver.</p>
+          <div class="field-row"><div class="field alignment-field"><label>Alignment</label>
+            <select class="alignment-select" :value="sealedAlignmentSelected?.qtc ?? ''" @change="sealedAlignmentEditor.selectQtc(Number(($event.target as HTMLSelectElement).value))">
+              <option v-for="option in sealedAlignmentOptions" :key="option.qtc" :value="option.qtc">{{ option.label }}</option>
+            </select>
+          </div></div>
+          <div class="field-row"><div class="field"><label>Volume</label><input type="number" min="0" step="0.01" :value="sealedAlignmentVolume_L == null ? '' : sealedAlignmentVolume_L.toFixed(2)" @input="sealedAlignmentVolume_L = Number(($event.target as HTMLInputElement).value)"><span class="unit">L</span></div></div>
+          <div class="alignment-readout"><span class="alignment-icon" :class="sealedAlignmentSuitability ?? 'unknown'">●</span>
+            <span>EBP {{ sealedAlignmentEbp == null ? '—' : sealedAlignmentEbp.toFixed(1) }} Hz — {{ sealedAlignmentSuitabilityLabel }}</span>
+          </div>
+          <p class="hint">EBP is Fs ÷ Qes. It is a rule-of-thumb suitability guide: below 50 generally favors sealed, above 100 generally favors vented, and the middle range can use either.</p>
+          <p class="hint">The volume uses the driver's Qts and Vas. Editing Volume changes the resulting Qtc and selects the closest numeric alignment.</p>
+        </div>
+        <div class="modal-footer"><div></div><div class="footer-buttons"><button class="cancel-btn" @click="sealedAlignmentEditor.cancel">Cancel</button><button class="ok-btn" @click="sealedAlignmentEditor.accept">Accept</button></div></div>
+      </div>
+    </div>
+
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
 
     <div v-if="openDialogOpen" class="overlay on open-project-dialog" @click.self="openDialogOpen = false">
@@ -1030,6 +1057,16 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 /* The tab pane's no-project placeholder — the lower-right quadrant stays in the grid and
    the tab RAIL keeps its place, only the panel content swaps to this message. */
 .no-project-tabmsg { flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:center; color:#777; font-style:italic; font-size:13px; }
+.alignment-modal { width:520px; max-width:92vw; }
+.alignment-modal .field-row { width:100%; }
+.alignment-field { width:100%; }
+.alignment-modal .alignment-select { flex:1; min-width:0; width:100%; }
+.alignment-readout { display:flex; align-items:center; gap:7px; margin:10px 0 4px; font-weight:600; color:#444; }
+.alignment-icon { font-size:18px; line-height:1; }
+.alignment-icon.sealed { color:#2f9e44; }
+.alignment-icon.either { color:#d08a00; }
+.alignment-icon.vented { color:#2878c8; }
+.alignment-icon.unknown { color:#888; }
 .hint { color:#888; font-size:12px; font-style:italic; }
 /* Hints beside (not below) their fields keep the pane shallow so the chart stays tall. */
 .beside-hint { display:flex; gap:16px; align-items:flex-start; }

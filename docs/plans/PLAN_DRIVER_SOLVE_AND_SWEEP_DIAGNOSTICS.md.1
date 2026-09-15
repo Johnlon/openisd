@@ -1,0 +1,319 @@
+# Calculation and Diagnostic Contract
+
+Status: PLAN — not implemented
+
+## Terms
+
+| Term | Meaning |
+|---|---|
+| **Solver** | A calculation node that derives missing quantities from known quantities and reports why a target cannot be derived. This applies to driver T/S, sealed alignment, vent, passive-radiator, and box-parameter calculations. It does not draw curves. |
+| **Circuit solution** | The physical answer at **one frequency**. Given complete inputs, `circuit.ts` calculates cone/port motion, acoustic output, impedance, phase, and related complex values for that frequency. |
+| **Sweep** | Calls the circuit solution repeatedly over a frequency grid and collects the results into curves. |
+| **Engine** | The public façade. It exposes solver, circuit-facing, sweep, air, and alignment operations. It contains no second copy of the maths. |
+| **Domain** | Owns the project record and maps engine values/issues to fields and provenance. |
+| **Hook/UI** | Displays values and diagnostics. It does not calculate or diagnose. |
+
+## Calculation Owners
+
+| Calculation | Owner | Output |
+|---|---|---|
+| Driver T/S derivation | `engine/solver.ts` | solved driver values + driver issues |
+| Sealed alignment | `engine/boxDesign.ts` through `Engine` | target-Qtc options, Vb, Qtc, closest option, EBP suitability |
+| Vented alignment/port | `engine/boxDesign.ts` through `Engine` | Fb, vent length, reachable/unreachable issue |
+| Passive-radiator tuning | `engine/boxDesign.ts`/`engine/solver.ts` through `Engine` | Fp, added mass, reachability issue |
+| Box parameter validation | `engine/params.ts` through `Engine` | box prerequisite issues |
+| Air properties | `engine/air.ts` through `Engine` | `rho`, `c`, environment issues |
+| One-frequency physical response | `engine/circuit.ts` | one `Solution` at frequency `f` |
+| Frequency response curves | `engine/sweep.ts` | curves + sweep issues/prerequisite references |
+| Public access | `engine/Engine.ts` | the only calculation façade |
+
+## Solver Nodes
+
+These are separate solver nodes with the same result discipline. They are not separate copies of
+the physics engine and they do not call the UI.
+
+### Driver T/S Solver
+
+**Input:** entered driver quantities, including provenance-independent numeric values such as
+`Fs`, `Qes`, `Qms`, `Qts`, `Vas`, `Sd`, `Cms`, `Mms`, `Re`, `BL`, and geometry fields.
+
+**Output:** all quantities derivable from the entered values, plus `DriverIssue[]`.
+
+**Examples:**
+
+- `Qts` from `Qes + Qms`.
+- `Cms` from `Vas + Sd + air` or from `Fs + Mms`.
+- `Fs` from `Mms + Cms`, `Rme + Qes + Mms`, or `EBP + Qes`.
+- `Vas` from `Cms + Sd + air`.
+
+If no route is complete, the output names every blocked route. If complete routes disagree, the
+output reports the contradiction using the engine's declared route precedence.
+
+### Sealed Alignment Solver
+
+**Input:** driver `Qts`, `Vas`, target numeric `Qtc`, or driver `Qts`, `Vas`, and sealed `Vb`.
+
+**Output:** calculated `Vb` or calculated `Qtc`, closest WinISD alignment option, and an
+unreachable/missing-input issue where appropriate.
+
+The WinISD sealed menu is nine target values:
+
+```text
+0.500 Critically damped
+0.577 Max flat delay response
+0.707 Max flat amplitude response
+0.800 Equal ripple response
+0.900 Equal ripple response
+1.000 Equal ripple response
+1.100 Equal ripple response
+1.200 Equal ripple response
+1.500 Equal ripple response
+```
+
+The engine stores each WinISD option as a number and a label:
+
+```ts
+{ qtc: 0.707, label: '0.707 Max flat amplitude response' }
+```
+
+All nine options use the same sealed-box calculation:
+
+```text
+Vb = Vas / ((Qtc / Qts)^2 - 1)
+```
+
+The dropdown shows the labels exactly as WinISD shows them. Do not add Bessel, Butterworth, or
+Chebyshev options that are not in WinISD's dropdown.
+
+#### Why sealed and vented name alignments differently
+
+⚠ Sourced web research (verified live, not a WinISD-source confirmation of developer intent) —
+see citations below.
+
+Sealed is a 2nd-order, single-parameter system: given a driver's Qts, `Vb` is the only design
+variable, and Qtc moves as a direct function of it. The 9 dropdown entries are waypoints on ONE
+continuum, not separate formula families — confirmed in-repo by `winisd_research/PROBE_FINDINGS.md`'s
+closed-alignment probe: all 9 fit the same lossless `Vb = Vas / ((Qtc/Qts_eff)^2 - 1)` at one
+effective Qts.
+
+Butterworth/Bessel/Chebyshev and "max flat amplitude"/"max flat delay"/"equal ripple" are not an
+electrical-vs-acoustical split. Both halves of each pair are standard electrical-filter-theory
+vocabulary — an eponym and a descriptive name for the same filter object. "Alignment" as a
+loudspeaker-design concept was imported from electrical filter theory wholesale by Thiele and
+Small, including both naming conventions already paired there.
+
+The two box types' menus each kept the vocabulary of the different original paper that defined
+that alignment table. Thiele's 1971 AES paper "Loudspeakers in Vented Boxes: Part 1" coined
+QB3/B4/C4/SC4 directly — QB3 relaxes the Butterworth (B4) point-solution to cover a range of Qts
+below it, and SC4 does the same past C4 — because vented is a genuinely two-parameter system (`Vb`
+AND `Fb`), so distinct named alignments are separate point-solutions, not waypoints on a line.
+Small's closed-box papers describe the sealed case purely by Qtc value with descriptive labels,
+because there is only one parameter to describe — a compact code buys nothing a plain description
+does not already give.
+
+So the "do not add Bessel/Butterworth/Chebyshev" rule above is not an arbitrary UI restriction: it
+reflects which paper's terminology each box type's alignment table comes from, and a real
+structural difference — one continuum versus several point-solutions — not a UI author's whim.
+
+Sources:
+- Thiele, "Loudspeakers in Vented Boxes: Part 1" (1971) — https://scispace.com/papers/loudspeakers-in-vented-boxes-part-1-2u24ym2wrg
+- "Computation of Bass Reflex Alignments", audioXpress — https://audioxpress.com/article/focus-computation-of-bass-reflex-alignments
+- Small, "Vented-Box Loudspeaker Systems Part 1: Small-Signal Analysis" — https://sdlabo.jp/archives/Vented_Box_Loudspeaker%20Systems_Part_1-4.pdf
+- "DIY Loudspeaker Design - Alignments for boxes" — https://sites.google.com/site/diyloudspeakerdesign/home/box-design/alignments
+- "Voice Coil Focus: Quasi-Alignment Families", audioXpress — https://audioxpress.com/article/voice-coil-focus-quasi-alignment-families
+- ScienceDirect, "Bessel Filter" overview (eponym vs. descriptive-name pairing) — https://www.sciencedirect.com/topics/engineering/bessel-filter
+
+Quick-reference table (electrical eponym paired with the acoustic/WinISD descriptive label —
+"Critically Damped" has no separate eponym; it is the one row where both terminologies coincide):
+
+| Electrical Terminology | Acoustic Terminology (WinISD label) | Qtc | System Behaviour |
+| --- | --- | --- | --- |
+| Critically Damped | Critically damped response (same term — no distinct eponym) | 0.500 | No overshoot, perfect transient response, but bass rolls off early. |
+| Bessel Alignment | Max flat delay response | 0.577 | Best time-domain response for a speaker; tight, accurate bass. |
+| Butterworth Alignment | Max flat amplitude response | 0.707 | The "ideal" compromise — flat response down to the cutoff point, standard for most hi-fi systems. |
+| Chebyshev Alignment | Equal ripple response | > 0.707 (WinISD offers 0.800, 0.900, 1.000, 1.100, 1.200, 1.500) | Produces a volume "bump" or boominess in the bass before dropping off. |
+
+### Vented Alignment and Port Solver
+
+**Input:** driver parameters, selected vented alignment, `Vb`, `Fb`, vent area/diameter, and end
+correction.
+
+**Output:** alignment `Vb/Fb`, physical vent length, achieved tuning, and box/vent issues.
+
+The vent solver owns the inverse pair:
+
+```text
+Fb + Vb + vent geometry -> vent length
+vent length + Vb + vent geometry -> Fb
+```
+
+An unreachable tuning reports a negative/unbuildable length as a box/vent issue. It does not become
+a generic chart error.
+
+### Passive-Radiator Solver
+
+**Input:** PR parameters, `Vb`, target tuning, and added mass.
+
+**Output:** target tuning, required added mass, system tuning, and PR-specific issues.
+
+Negative required added mass means the target is above the bare-radiator ceiling. That is a PR
+issue attached to the target/mass relation, not a sweep issue.
+
+### Box-Parameter Solver
+
+**Input:** active topology and its required chamber/port/PR fields.
+
+**Output:** topology-specific box parameters and missing/invalid box issues.
+
+It owns checks such as missing `Vb`, missing `Vf`, missing vent area, and missing PR compliance.
+The sweep consumes the validated result; it does not repeat these checks.
+
+### Signal Resolver
+
+**Input:** project power, voltage, driver resistance, driver count, wiring, and series resistance.
+
+**Output:** the drive value used by the circuit and signal issues.
+
+The established 1 W project reference is a valid project input. Missing `Re` or an inconsistent
+power/voltage pair is a signal issue. The circuit never guesses a signal value.
+
+## Data Flow
+
+```text
+driver record ──> driver solver ──> solved driver values/issues ──┐
+                                                                   │
+box record ─────> box solver ─────> box values/issues ─────────────┤
+                                                                   ├─> circuit at f
+signal record ──> signal resolver ─> signal values/issues ─────────┤       │
+                                                                   │       ▼
+environment ────> air.ts ─────────> rho/c/issues ──────────────────┘   sweep curves/issues
+```
+
+The sweep may say which upstream fields block a curve. It does not copy those upstream DQ
+messages into the sweep issue list.
+
+## Solver Result
+
+```ts
+interface DriverSolveResult {
+  readonly values: DriverSolverQuantities;
+  readonly issues: readonly DriverIssue[];
+}
+```
+
+`values` may be partial. Every unavailable target gets a structured explanation.
+
+```ts
+type DriverIssue =
+  | {
+      readonly kind: 'missing-dependencies';
+      readonly target: DriverQuantityName;
+      readonly routes: readonly SolveRoute[];
+    }
+  | {
+      readonly kind: 'inconsistent-inputs';
+      readonly target: DriverQuantityName;
+      readonly fields: readonly DriverQuantityName[];
+      readonly formula: string;
+      readonly expected: number;
+      readonly actual: number;
+      readonly relative: number;
+    };
+
+interface SolveRoute {
+  readonly formula: string;
+  readonly required: readonly DriverQuantityName[];
+  readonly missing: readonly DriverQuantityName[];
+}
+```
+
+Multiple routes are explicit. For example:
+
+```text
+Cms <- Vas + Sd + air
+Cms <- Fs + Mms
+```
+
+If neither route is complete, the issue lists both routes and their missing fields. If both are
+complete and disagree, the issue reports the contradiction and the declared route precedence.
+
+## Diagnostic Channels
+
+| Channel | Owns | Projected to |
+|---|---|---|
+| Driver | missing/inconsistent `Fs`, `Vas`, `Qts`, `Re`, `Pe`, `Xmax`, etc. | Driver cells / Driver-tab DQ |
+| Box | missing/inconsistent `Vb`, `Vf`, `Fb`, vent geometry, PR mass/tuning, topology | Box/Vent/PR cells |
+| Signal | missing/inconsistent power, voltage, `Re`, series resistance | Signal fields |
+| Environment | invalid temperature, humidity, pressure, or air-model input | Advanced fields |
+| Sweep | circuit singularity, non-finite sample, empty curve, unsupported simulation output | chart/simulation diagnostics |
+
+A sweep may return prerequisite references without owning those DQ messages:
+
+```ts
+interface SweepCalculationResult {
+  readonly curves: SweepResult | null;
+  readonly issues: readonly SweepIssue[];
+  readonly driverPrerequisites: readonly DriverPrerequisite[];
+  readonly boxPrerequisites: readonly BoxPrerequisite[];
+  readonly signalPrerequisites: readonly SignalPrerequisite[];
+  readonly environmentPrerequisites: readonly EnvironmentPrerequisite[];
+  readonly configurationPrerequisites: readonly ConfigurationPrerequisite[];
+}
+```
+
+Example:
+
+```ts
+driverPrerequisites: [
+  { output: 'maximum SPL', missing: ['Pe', 'Xmax'] },
+]
+```
+
+The chart can say “Maximum SPL cannot be calculated — see Driver inputs: Pe or Xmax.” The Driver
+tab owns the actual DQ.
+
+## Domain Boundary
+
+`OpenISDDriver` passes entered values to the engine and projects returned `DriverIssue`s onto
+driver cells. Its current empty `checkConsistency()` method is not a second implementation; it
+must become this adapter or disappear.
+
+`OpenISDBox` performs the same adapter role for vent and passive-radiator solver results. A box
+issue belongs beside the box field that caused or participates in it, not in the chart error list.
+
+`OpenISDProject` composes the solver nodes in this order:
+
+```text
+1. Resolve entered driver values and driver issues.
+2. Resolve the active box topology and box issues.
+3. Resolve signal drive and signal issues.
+4. Resolve air/environment and environment issues.
+5. If all circuit prerequisites are available, run the circuit/sweep.
+6. Return curves plus sweep issues and prerequisite references.
+```
+
+The project does not merge the issue arrays into one untyped string list. Each issue remains owned
+by its source domain until the UI chooses where to display it.
+
+## Implementation Order
+
+1. Add the typed driver issue and route types.
+2. Restore the engine relation table and return solved values plus driver issues.
+3. Add the Engine façade method.
+4. Replace the domain `checkConsistency()` stub with an entered-only adapter.
+5. Add missing-dependency results to vent and passive-radiator solvers.
+6. Remove duplicate dependency discovery from `sweep.ts`.
+7. Add separate sweep prerequisite channels and preserve sweep-only failures as sweep issues.
+8. Project driver/box/signal/environment channels to domain cells.
+
+## Tests
+
+- Engine: complete solve returns values with no issues.
+- Engine: each missing route reports its exact missing fields.
+- Engine: multiple routes report all blocked routes.
+- Engine: conflicting complete routes report an inconsistency.
+- Domain: only entered values feed consistency checks.
+- Domain: affected relation cells receive the same DQ.
+- Box: vent/PR missing dependencies and contradictions stay in the box channel.
+- Sweep: curve failures stay in the sweep channel and only reference upstream prerequisites.
+- Browser: driver DQ, box DQ, and chart diagnostics render in their separate UI locations.

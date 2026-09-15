@@ -64,7 +64,8 @@ many concurrent chromium instances.
 `playwright.config.js` — `computeWorkerCount()` now caps workers by **both** CPU count and
 current available memory (`/proc/meminfo`'s `MemAvailable`, not `os.freemem()`, which reports
 raw `MemFree` and undercounts reclaimable cache). Budget: 0.7 GB/worker (measured, see
-Verification), 2 GB reserved for the OS/vite/anything else running.
+Verification), 2 GB reserved for the OS/vite/anything else running, and a hard two-worker
+ceiling for this WSL environment.
 
 This throttles the *starting* worker count to what the machine can currently afford. It does
 not react to memory pressure that appears after workers are already launched (Playwright has no

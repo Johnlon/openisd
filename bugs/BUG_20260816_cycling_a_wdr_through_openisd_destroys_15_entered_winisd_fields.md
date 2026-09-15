@@ -7,7 +7,7 @@ RESOLVED
 
 WinISD derives `KLe`; openisd does not, so the value is lost on any cycle through the model.
 
-`drivers/sample/winisd/John-all-manu-populated*.wdr` states:
+`drivers/mysamples/winisd/John-all-manu-populated*.wdr` states:
 
     KLe = 49.6287078253544    (marked C — WinISD computed it)
 

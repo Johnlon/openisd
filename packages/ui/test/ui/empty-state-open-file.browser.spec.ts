@@ -13,8 +13,6 @@ const OWPR = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'sa
 
 test('the no-project shell opens a saved .owpr', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
 
   await expect(page.locator('.original-root')).toBeVisible();
 
@@ -32,8 +30,6 @@ test('the no-project shell opens a saved .owpr', async ({ page }) => {
 
 test('Open shows saved browser projects with Import from disk first', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
 
   await page.getByTitle('Open project').click();
   const dialog = page.locator('.open-project-dialog');
@@ -43,8 +39,6 @@ test('Open shows saved browser projects with Import from disk first', async ({ p
 });
 
 test('no-project chart empty state offers icon links for New, Open, and Import', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
   await page.goto('/');
 
   const emptyState = page.locator('.graph-empty');

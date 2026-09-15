@@ -29,7 +29,7 @@ const {
   filteredMyDrivers, displayNameOf, driverId, editMyDriver, editOverviewDriver, deleteMyDriver,
   favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly,
   driverScope, cycleDriverScope,
-  previewDriver, previewData, pickDriver, chooseDriver, loadFromDisk, cloneDriver,
+  previewDriver, previewData, pickDriver, pickBundledDriver, chooseDriver, loadFromDisk, cloneDriver,
   openedLibrary, closeLibrary,
   driverHasDqIssues,
   myDriversRead, exportedThisSession, exportMyDriversRaw, exportBrokenEntry,
@@ -55,9 +55,11 @@ function requestRemoveBroken(key: number): void {
 const fileInputEl = ref<HTMLInputElement | null>(null);
 function triggerFileLoad() { fileInputEl.value?.click(); }
 
-// A row click SUMMARISES; "Use" is what chooses. The summary is a reading step in front of the
-// choice, so the user can check a driver before it lands in their project.
+// A row click summarises; "Use" is what chooses. The summary is a reading step in front of the
+// choice, so the user can check a driver before it lands in their project. A My Drivers row
+// holds its driver; a bundled row is an index row, and its driver is loaded on the click.
 function handleItemClick(d: Parameters<typeof pickDriver>[0]) { pickDriver(d); }
+function handleBundledClick(row: Parameters<typeof pickBundledDriver>[0]) { void pickBundledDriver(row); }
 
 function close() { closeLibrary(); }
 useEscToClose(() => presentationState.browseOpen, close);
@@ -231,9 +233,9 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
                  @click="handleItemClick(row.driver)">
               <b>{{ displayNameOf(row.driver) }}</b>
               <span v-if="driverHasDqIssues(row.driver)" class="dq-flag" title="Data quality issues detected on this driver — some fields may be missing or have suspicious values">⚠</span>
-              <button class="fav-btn" :class="{ on: isFavorite(row.driver) }"
-                      :title="isFavorite(row.driver) ? 'Remove from favourites' : 'Add to favourites'"
-                      @click.stop="toggleFavorite(row.driver)">★</button>
+              <button class="fav-btn" :class="{ on: isFavorite(driverId(row.driver)) }"
+                      :title="isFavorite(driverId(row.driver)) ? 'Remove from favourites' : 'Add to favourites'"
+                      @click.stop="toggleFavorite(driverId(row.driver))">★</button>
               <button class="my-edit" @click.stop="editMyDriver(row.driver)"
                       title="Edit this saved driver — changes the My Drivers entry, not the project">&#9998;</button>
               <button class="my-del" @click.stop="deleteMyDriver(row.uuid)" title="Remove from My Drivers">✕</button>
@@ -241,24 +243,24 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
             <div class="dlist-sep"></div>
           </template>
 
-          <div v-for="d in displayedDrivers" :key="driverId(d)"
+          <div v-for="d in displayedDrivers" :key="d.uuid"
                class="ditem"
-               @click="handleItemClick(d)">
-            <b>{{ displayNameOf(d) }}</b>
-            <span v-if="driverHasDqIssues(d)" class="dq-flag" title="Data quality issues detected — some core fields may be missing or have suspicious values (e.g. Fs=0). Open to review.">⚠</span>
+               @click="handleBundledClick(d)">
+            <b>{{ d.name }}</b>
+            <span v-if="d.dq" class="dq-flag" title="Data quality issues detected — some core fields may be missing or have suspicious values (e.g. Fs=0). Open to review.">⚠</span>
             <span class="dmeta">
-              <a v-if="d.dataSource('manufacturer_datasheet')" class="dpdf"
-                 :href="d.dataSource('manufacturer_datasheet')!" target="_blank" rel="noopener"
+              <a v-if="d.datasheet" class="dpdf"
+                 :href="d.datasheet" target="_blank" rel="noopener"
                  title="Open manufacturer datasheet (PDF)" @click.stop>PDF</a>
-              <a v-if="d.dataSource('manufacturer_product_page')" class="dpdf"
-                 :href="d.dataSource('manufacturer_product_page')!" target="_blank" rel="noopener"
+              <a v-if="d.productPage" class="dpdf"
+                 :href="d.productPage" target="_blank" rel="noopener"
                  title="Open manufacturer product page" @click.stop>Manu ↗</a>
-              <a v-if="d.dataSource('manufacturer_listing_page') && d.dataSource('manufacturer_listing_page') !== d.dataSource('manufacturer_product_page')" class="dpdf"
-                 :href="d.dataSource('manufacturer_listing_page')!" target="_blank" rel="noopener"
+              <a v-if="d.listingPage && d.listingPage !== d.productPage" class="dpdf"
+                 :href="d.listingPage" target="_blank" rel="noopener"
                  title="Open retailer product listing" @click.stop>Listing ↗</a>
-              <button class="fav-btn" :class="{ on: isFavorite(d) }"
-                      :title="isFavorite(d) ? 'Remove from favourites' : 'Add to favourites'"
-                      @click.stop="toggleFavorite(d)">★</button>
+              <button class="fav-btn" :class="{ on: isFavorite(d.uuid) }"
+                      :title="isFavorite(d.uuid) ? 'Remove from favourites' : 'Add to favourites'"
+                      @click.stop="toggleFavorite(d.uuid)">★</button>
             </span>
           </div>
 
@@ -285,9 +287,9 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
           <div class="prev-nav">
             <button class="cancel-btn" @click="pickDriver(null)"
                     title="Back to the driver list — nothing is changed">Cancel</button>
-            <button class="fav-btn" :class="{ on: isFavorite(previewDriver) }"
-                    :title="isFavorite(previewDriver) ? 'Remove from favourites' : 'Add to favourites'"
-                    @click="toggleFavorite(previewDriver)">★</button>
+            <button class="fav-btn" :class="{ on: isFavorite(driverId(previewDriver)) }"
+                    :title="isFavorite(driverId(previewDriver)) ? 'Remove from favourites' : 'Add to favourites'"
+                    @click="toggleFavorite(driverId(previewDriver))">★</button>
             <button class="clone-btn" @click="cloneDriver(previewDriver)"
                     title="Copy this driver into My Drivers as &quot;Copy of …&quot; — an independent driver you can then edit">Clone driver</button>
             <button class="edit-btn" @click="editOverviewDriver(previewDriver)"

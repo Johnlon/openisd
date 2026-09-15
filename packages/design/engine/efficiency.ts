@@ -14,7 +14,7 @@
  * from temperature, pressure and humidity (ledger QO7), K moves with the air — about
  * 0.07 dB from 20 °C to 30 °C — so it is computed from the ρ and c actually in use.
  *
- * Oracle: `drivers/sample/winisd/John-all-manu-populated.wdr`, a genuine WinISD save whose
+ * Oracle: `drivers/mysamples/winisd/John-all-manu-populated.wdr`, a genuine WinISD save whose
  * stored `c`/`roo`/`no`/`SPL` these formulas reproduce to floating-point identity — proved by
  * `packages/engine/test/efficiency.test.ts`, which cross-checks against the independent
  * motor-side route ρ/(2πc)·BL²Sd²/(Re·Mms²).

@@ -15,8 +15,6 @@ import { test, expect, openAProject } from '../fixtures.js';
 test.describe('Driver Editor — solver wiring', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(() => localStorage.clear());
-    await page.goto('/');
     await openAProject(page);
 
     // Open the Driver Editor the way a user does. Services are constructed by the composition

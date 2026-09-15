@@ -54,6 +54,14 @@ export type BoxType =
 /** The box types the circuit solver actually models. */
 export type SimulatableBoxType = 'sealed' | 'vented' | 'bandpass4' | 'box-passive-radiator';
 
+/** One of WinISD's sealed-box target-Q choices from the New Project wizard. */
+export interface SealedAlignmentOption {
+  readonly qtc: number;
+  readonly label: string;
+}
+
+export type EbpSuitability = 'sealed' | 'either' | 'vented';
+
 /**
  * Narrow a box type to one the circuit models, or null when it has none. The ONE place that
  * distinction is made, so a caller gets either a simulatable type or an explicit refusal — never

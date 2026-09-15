@@ -48,7 +48,7 @@ graph LR
     PROJ_PKG["<b>@openisd/projection</b><br/>a SEPARATE package — no DOM, no browser<br/>one bundled file, loadable by embedded V8<br/>driver.yml to openisd.yml · openisd.yml to .wdr"]
     PAGES["GitHub Pages<br/>openisd.app<br/>static host + PWA cache"]
     LS[("localStorage<br/>committed design · My Drivers<br/>favourites · session · URL-hash share")]
-    BUNDLE[("drivers-bundle.json<br/>driver commons, bundled at build")]
+    BUNDLE[("bundled catalogue<br/>drivers-index.json · passive-radiators-index.json<br/>drivers/&lt;path&gt;.json · built at bundle time")]
     WDR[("WinISD files<br/>.wdr driver · .wpr project")]
     OWDR[("Native files<br/>.owdr driver · .owpr project")]
     DRIVERS[("winisd_drivers repo · db/<br/>driver.yml · openisd.yml · .wdr<br/><i>every file written by winisd_tools</i>")]
@@ -109,8 +109,12 @@ degrades gracefully to the no-cloud path.
 
 ### The driver commons is a build-time artifact
 
-`drivers-bundle.json` is compiled from the `winisd_drivers` repository's `openisd.yml` records and imported at build
-time. It is not a live API. A driver added to the commons reaches users on the next deploy.
+The bundled catalogue is compiled from the `winisd_drivers` repository's `openisd.yml` records by
+`scripts/bundle-drivers.mjs` into static files under `packages/ui/public/`: one search index per
+kind (`drivers-index.json`, `passive-radiators-index.json`) and one record file per device
+(`drivers/<brand>/<sku>.json`). The app fetches an index when a picker opens and a record when a
+device is picked; nothing is imported as a module. It is not a live API. A driver added to the
+commons reaches users on the next deploy. Design: `docs/design/BUNDLED_CATALOGUE_API.md`.
 
 ### `openisd.yml` and `.wdr` are PRODUCED exclusively by JS/TS owned by OpenISD
 
@@ -531,6 +535,19 @@ knows what ParState is.
 | `diagnostics`         | `packages/ui/src/diagnostics/` | Runtime self-test, solver troubleshooting, diagnostic assertions                                                                     | App state                                                             |
 | `logging`             | `packages/ui/src/logging/`     | Application event/alert surface (flash messages)                                                                                     | Any other module — it is a leaf                                       |
 | `ui`                  | `packages/ui/src/ui/`          | Vue components, canvas drawing, directives, static presets                                                                           | App state, anything a service owns                                    |
+
+### Alignment Ownership
+
+Alignment calculations are engine-owned. `@openisd/design/engine` will expose the sealed
+alignment catalog and the pure operations needed by both project creation and the open Box view:
+numeric target `Qtc` options with their WinISD display labels, `Vb` from driver `Qts`/`Vas` and
+target `Qtc`, resultant `Qtc` from an edited `Vb`, closest-option selection, and EBP suitability.
+
+The UI hook layer owns draft state and workflow only: opening the alignment editor, selecting an
+option, editing a draft volume, reporting the closest target, and applying or cancelling the
+draft. Vue components render the hook API and contain no alignment math. The New Project wizard
+and Box-tab Alignment editor consume the same engine API and the same hook-level contract; no
+second alignment table is permitted in either UI surface.
 
 ### Dependency rules, and what enforces them
 

@@ -10,8 +10,6 @@ import { test, expect, openAProject } from '../fixtures.js';
 
 test('the Tune panel stays open when the box type changes underneath it', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
   await openAProject(page);
 
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
@@ -27,8 +25,6 @@ test('the Tune panel stays open when the box type changes underneath it', async 
 });
 
 test('the Tune panel stays open across project tab changes', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
   await page.goto('/');
   await openAProject(page);
 

@@ -65,7 +65,7 @@ const XLIM_PARSTATE_SLOT = 10;
 
 /**
  * The 48 numeric/text `.wdr` keys in WinISD's OWN file order, each with the value WinISD
- * writes when nothing is set. Source of truth: `drivers/sample/winisd/john-all-defaults.wdr`
+ * writes when nothing is set. Source of truth: `drivers/mysamples/winisd/john-all-defaults.wdr`
  * (New → Save, nothing typed).
  */
 export const INI_ROWS_META = [
@@ -86,7 +86,7 @@ export const INI_ROWS_META = [
     {key: 'Rms', calculable: true},
     {key: 'Mms', calculable: true},
     // Deliberately `false`, unlike Dd (below) which derives it back: real WinISD never derives
-    // either of Sd/Dd from the other (`drivers/sample/winisd/s-dd.wdr` states only Dd, leaves Sd
+    // either of Sd/Dd from the other (`drivers/mysamples/winisd/s-dd.wdr` states only Dd, leaves Sd
     // at N; `s-sd.wdr` states only Sd, leaves Dd at N) — openisd derives Sd from Dd anyway,
     // going beyond WinISD, and that derived value is written marked E, never C (John, 2026-09-05:
     // "use E for Sd when E or C in openisd"). Whether WinISD's own file loader trusts a C-marked
@@ -131,7 +131,7 @@ export const WINISD_CALCULABLE: ReadonlyArray<string> = INI_ROWS_META.filter(m =
 
 /**
  * The value WinISD writes for a key nothing has set — read off the oracle
- * `drivers/sample/winisd/john-all-defaults.wdr` (driver editor → New → Save, nothing typed).
+ * `drivers/mysamples/winisd/john-all-defaults.wdr` (driver editor → New → Save, nothing typed).
  *
  * ALMOST every key defaults to `0`, and the three that do not are the point of this table:
  * `numVC` and `VCCon` default to `1`, because a driver has at least one voice coil and a single

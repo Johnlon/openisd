@@ -6,8 +6,6 @@ test.beforeEach(async ({ page }) => {
   // while the chart shrinks.
   await page.setViewportSize({ width: 1600, height: 400 });
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/');
   await openAProject(page);
 });
 

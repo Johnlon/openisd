@@ -448,7 +448,11 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
       reverse-engineering campaign in
       `bugs/BUG_20260821_new_project_invents_box_and_vent_values_instead_of_asking_the_user.md`
       FIRST — never implemented from textbook tables on the assumption WinISD agrees.
-      WinISD's new-project wizard asks for an alignment (sealed: Butterworth/Bessel/Chebyshev/critically-damped by target Qtc; vented: QB3/SBB4/SC4/B4/…) and seeds Vb/Fb from it. OpenISD's
+      WinISD's new-project wizard asks for an alignment and seeds Vb/Fb from it. For sealed boxes,
+      the menu is nine numeric Qtc targets with WinISD labels: 0.500 Critically damped, 0.577 Max
+      flat delay response, 0.707 Max flat amplitude response, then 0.800/0.900/1.000/1.100/1.200/
+      1.500 Equal ripple response. These are target values, not separate Bessel/Chebyshev formula
+      families. OpenISD's
       `OgNewProject.vue` has no alignment step at all, and the Box tab exposes only one-shot
       suggest buttons (QB3-or-B4 via `ventedAlignment()`, B2 via `sealedFromQtc()` in
       `BoxPanel.vue`). Required: an alignment picker in the New Project wizard that seeds the

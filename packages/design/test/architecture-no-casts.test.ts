@@ -160,7 +160,7 @@ describe('no casts — the compiler is the only thing trusted', () => {
     // One file from each package the scan must reach — a scan that loaded only its own package
     // would pass the count and still miss most of the source.
     expect(files).toContain('packages/design/domain/openisdDomain.ts');
-    expect(files).toContain('packages/persistence/src/repos/driverRepo.ts');
+    expect(files).toContain('packages/persistence/src/repos/bundledDriverRepo.ts');
     expect(files).toContain('packages/ui/src/logic/appState.ts');
   });
 

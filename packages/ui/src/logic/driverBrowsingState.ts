@@ -7,11 +7,11 @@ import { DriverFileFormat, sniff } from '../fileFormat.js';
 import { DriverScope } from '../driverScope.js';
 import type { Logging } from '../logging/flash.js';
 import type {
-  DriverRepo, MyDriverRepo, MyDriversRead, BrokenEntry, PrefsRepo,
+  BundledDriverRepo, BundledDriverIndexRow, MyDriverRepo, MyDriversRead, BrokenEntry, PrefsRepo,
 } from '@openisd/persistence';
 import {
-  displayNameOf, matchesCriteria, previewSpecsOf, previewTextOf, driverHasDqIssues,
-  type PreviewSpec, type SearchCriteria,
+  displayNameOf, matchesCriteria, searchSubjectOfDriver, searchSubjectOfIndexRow, previewSpecsOf, previewTextOf,
+  driverHasDqIssues, type PreviewSpec, type SearchCriteria,
 } from './driverDisplay.js';
 import { type DriverSelection, driverFromFileText } from './driverSelection.js';
 import { inputFrom } from './domEvents.js';
@@ -69,8 +69,9 @@ function previewVMOf(d: OpenISDDriver): PreviewVM {
 //
 // APPLICATION state, so it lives in `logic`: the search box, the chips, the scope, which row
 // is being summarised and what a click does are all decisions about what the app is showing
-// and what happens next. The DRIVERS come from `driverRepo`, which answers questions and
-// hands back domain objects; it is never asked what is on screen.
+// and what happens next. The bundled pool is `driverRepo`'s index — rows, not domain objects
+// (docs/design/BUNDLED_CATALOGUE_API.md): a driver is loaded through `driverRepo.load()` only
+// when it is picked. The repo is never asked what is on screen.
 
 export const DISPLAY_LIMIT = 200;   // rows shown before "search to filter" kicks in
 
@@ -87,7 +88,8 @@ export interface DriverBrowsingState {
   DRIVER_TYPES: typeof DRIVER_TYPES;
   DRIVER_SCOPES: typeof DRIVER_SCOPES;
   DISPLAY_LIMIT: number;
-  allDrivers: Ref<OpenISDDriver[]>;
+  /** The bundled pool: the catalogue index, fetched when the picker first opens. */
+  allDrivers: Ref<readonly BundledDriverIndexRow[]>;
   statusMsg: Ref<string>;
   statusErr: Ref<boolean>;
   initialized: Ref<boolean>;
@@ -103,14 +105,16 @@ export interface DriverBrowsingState {
   clearParamFilters(): void;
   favorites: Ref<string[]>;
   favoritesOnly: Ref<boolean>;
-  isFavorite(d: OpenISDDriver): boolean;
-  toggleFavorite(d: OpenISDDriver): void;
+  /** Favourites key on the record uuid — `row.uuid` for a bundled row, `driverId(d)` for a
+   *  domain object. */
+  isFavorite(uuid: string): boolean;
+  toggleFavorite(uuid: string): void;
   toggleFavoritesOnly(): void;
   driverId(d: OpenISDDriver): string;
   driverScope: ComputedRef<DriverScope>;
   cycleDriverScope(): void;
-  filteredDrivers: ComputedRef<OpenISDDriver[]>;
-  displayedDrivers: ComputedRef<OpenISDDriver[]>;
+  filteredDrivers: ComputedRef<readonly BundledDriverIndexRow[]>;
+  displayedDrivers: ComputedRef<readonly BundledDriverIndexRow[]>;
   listTruncated: ComputedRef<boolean>;
   listedCount: ComputedRef<number>;
   myDrivers: Ref<MyDriverRow[]>;
@@ -129,7 +133,11 @@ export interface DriverBrowsingState {
   clearMyDrivers(): void;
   previewDriver: Ref<OpenISDDriver | null>;
   previewData: ComputedRef<PreviewVM | null>;
+  /** Preview a domain object — a My Drivers row — or clear the preview with null. */
   pickDriver(d: OpenISDDriver | null): void;
+  /** Preview a bundled row: its record is loaded through the repo (cached after the first
+   *  time), then previewed. A load that fails lands in `statusMsg`. */
+  pickBundledDriver(row: BundledDriverIndexRow): Promise<void>;
   chooseDriver(d: OpenISDDriver): Promise<void>;
   /** Open the picker as the New Project wizard's driver step — the next "Use" hands the driver
    *  to `cb` instead of embedding it in a project. */
@@ -142,7 +150,7 @@ export interface DriverBrowsingState {
 }
 
 export interface DriverBrowsingStateDeps {
-  driverRepo: DriverRepo;
+  driverRepo: BundledDriverRepo;
   myDriverRepo: MyDriverRepo;
   prefs: PrefsRepo;
   logging: Logging;
@@ -154,11 +162,11 @@ export interface DriverBrowsingStateDeps {
 export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): DriverBrowsingState {
   const { driverRepo, myDriverRepo, prefs, logging, selection } = deps;
 
-  // `shallowRef`, not `ref`: the arrays hold `OpenISDDriver` — a class with `#private` fields —
+  // `shallowRef`, not `ref`: `myDrivers` holds `OpenISDDriver` — a class with `#private` fields —
   // and Vue's deep `UnwrapRef` mapped type loses that field's nominal branding while unwrapping.
-  // Every write here replaces the WHOLE array (never mutates a nested field in place), so shallow
-  // reactivity loses nothing.
-  const allDrivers = shallowRef<OpenISDDriver[]>([]);
+  // Every write here replaces the whole array (never mutates a nested field in place), so shallow
+  // reactivity loses nothing; the index rows get the same treatment for the same reason.
+  const allDrivers = shallowRef<readonly BundledDriverIndexRow[]>([]);
   const filterQ = ref('');
   const statusMsg = ref('');
   const statusErr = ref(false);
@@ -215,12 +223,12 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     displayLimit.value = DISPLAY_LIMIT;
   }
 
-  function isFavorite(d: OpenISDDriver): boolean { return favorites.value.includes(driverId(d)); }
+  function isFavorite(uuid: string): boolean { return favorites.value.includes(uuid); }
 
   /** Star or un-star one driver. Written straight through to storage — a star that lived only
    *  in memory would vanish on the next reload, which reads as the button not having worked. */
-  function toggleFavorite(d: OpenISDDriver): void {
-    const key = driverId(d);
+  function toggleFavorite(uuid: string): void {
+    const key = uuid;
     const next = favorites.value.includes(key)
       ? favorites.value.filter(k => k !== key)
       : [...favorites.value, key];
@@ -255,31 +263,28 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       selZ: selZ.value,
       favoritesOnly: favoritesOnly.value,
       favorites: favorites.value,
-      idOf: driverId,
     };
   }
 
-  function matchesFilters(d: OpenISDDriver): boolean {
-    return matchesCriteria(d, criteria());
-  }
-
-  const filteredDrivers = computed<OpenISDDriver[]>(() => {
+  const filteredDrivers = computed<readonly BundledDriverIndexRow[]>(() => {
     // The scope chip gates the whole pool: outside `Bundled`/`All` the library is not a
     // candidate at all.
-    const pool: OpenISDDriver[] = driverScope.value.includesBundled ? allDrivers.value : [];
-    return [...pool.filter(matchesFilters)].sort((a, b) =>
-      displayNameOf(a).localeCompare(displayNameOf(b), undefined, { sensitivity: 'base' }),
+    const pool: readonly BundledDriverIndexRow[] = driverScope.value.includesBundled ? allDrivers.value : [];
+    const c = criteria();
+    return [...pool.filter(row => matchesCriteria(searchSubjectOfIndexRow(row), c))].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
     );
   });
 
-  const displayedDrivers = computed<OpenISDDriver[]>(() => filteredDrivers.value.slice(0, displayLimit.value));
+  const displayedDrivers = computed<readonly BundledDriverIndexRow[]>(() => filteredDrivers.value.slice(0, displayLimit.value));
   const listTruncated = computed<boolean>(() => filteredDrivers.value.length > displayLimit.value);
 
   // My Drivers answer EVERY control in the filter bar, through the same predicate the pool
   // uses. A section that ignores half the filters is the bug this shape exists to prevent.
   const filteredMyDrivers = computed<MyDriverRow[]>(() => {
     const list: MyDriverRow[] = driverScope.value.includesMine ? myDrivers.value : [];
-    return list.filter(row => matchesFilters(row.driver));
+    const c = criteria();
+    return list.filter(row => matchesCriteria(searchSubjectOfDriver(row.driver), c));
   });
 
   /**
@@ -350,11 +355,16 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     initialized.value = true;
     statusErr.value = false;
 
-    // Bundled drivers load instantly from the pre-built JSON (no network). Every entry is an
-    // `openisd.yml` record, already constructed into an `OpenISDDriver` by the repo.
-    allDrivers.value = [...allDrivers.value, ...driverRepo.bundledDrivers()];
-
-    statusMsg.value = '';   // a count is not a message — the pickers render `listedCount`
+    // The bundled pool is the catalogue index — rows, fetched once (the repo holds them). A
+    // fetch that fails is shown where the count would be, and the next open tries again.
+    try {
+      allDrivers.value = await driverRepo.index();
+      statusMsg.value = '';   // a count is not a message — the pickers render `listedCount`
+    } catch (err) {
+      initialized.value = false;
+      statusErr.value = true;
+      statusMsg.value = err instanceof Error ? err.message : String(err);
+    }
   }
 
   // ---- preview ---------------------------------------------------------------------------
@@ -363,6 +373,17 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     previewDriver.value ? previewVMOf(previewDriver.value) : null);
 
   function pickDriver(d: OpenISDDriver | null): void { previewDriver.value = d; }
+
+  async function pickBundledDriver(row: BundledDriverIndexRow): Promise<void> {
+    try {
+      previewDriver.value = await driverRepo.load(row.uuid);
+      statusErr.value = false;
+      statusMsg.value = '';
+    } catch (err) {
+      statusErr.value = true;
+      statusMsg.value = err instanceof Error ? err.message : String(err);
+    }
+  }
 
   // ---- selection --------------------------------------------------------------------------
   // Choosing a driver COPIES it into the project and closes the picker (docs/design/STATE_MODEL.md) —
@@ -499,7 +520,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     editOverviewDriver: selection.editOverviewDriver,
     reloadMyDrivers, deleteMyDriver, clearMyDrivers,
     // preview + selection
-    previewDriver, previewData, pickDriver, chooseDriver, openPickerFor, loadFromDisk, cloneDriver,
+    previewDriver, previewData, pickDriver, pickBundledDriver, chooseDriver, openPickerFor, loadFromDisk, cloneDriver,
     // lifecycle
     openedLibrary, closeLibrary,
     // DQ

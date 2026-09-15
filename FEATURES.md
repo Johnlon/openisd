@@ -139,7 +139,10 @@ _The clearest gap vs SoundForm and SpeakerDesign.dev — builders love this._
 - ✅ Runs anywhere with a browser (desktop, tablet, phone), no install, no login
 - ✅ Dark theme
 - ✅ Hover crosshair + value readout on every graph
-- ✅ Alignment helpers (Qtc target, QB3/B4 vent, PR mass auto-tune, vent↔tuning)
+- ✅ Alignment helpers (sealed Qtc target, QB3/B4 vent, PR mass auto-tune, vent↔tuning)
+- ⬜ WinISD sealed alignment picker (nine numeric Qtc targets with WinISD labels), available in
+  New Project and the Box view with draft volume editing, closest-target feedback, and EBP
+  suitability iconography
 - ⬜ More vented alignment presets (SBB4, EBS, Bessel, Chebyshev) — _seen in SpeakerDesign.dev wizard_
 - ⬜ Guided design wizard (driver → count → box type → params) — _seen in SpeakerDesign.dev_
 - ⬜ Draggable / resizable graphs, pin/hide panels — _seen in 00 Simulator_

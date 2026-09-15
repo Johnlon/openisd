@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
+import { existsSync, createReadStream } from 'fs';
 
 // Optional desktop target, built by `make electron`. It shares the entire UI and engine
 // with the web app and differs only in how the assets are addressed and cached:
@@ -36,6 +37,34 @@ const clearSwInDev = {
   },
 };
 
+// The bundled catalogue (docs/design/BUNDLED_CATALOGUE_API.md) is served as static files from
+// packages/ui/public/: /drivers-index.json, /passive-radiators-index.json, /drivers/<path>.json.
+// The browser suite runs against a small catalogue cut from the tracked one
+// (scripts/test-bundle.mjs): with OPENISD_DRIVERS_BUNDLE_DIR set, those paths are answered from
+// that directory instead of public/, so every spec boots against six reference devices rather
+// than two thousand. Dev-server only — a production build serves public/ and nothing else.
+const CATALOGUE_DIR = process.env.OPENISD_DRIVERS_BUNDLE_DIR;
+const CATALOGUE_PATH = /^\/(drivers-index\.json|passive-radiators-index\.json|drivers\/.+\.json)$/;
+const serveCatalogue = {
+  name: 'serve-catalogue',
+  configureServer(server) {
+    if (!CATALOGUE_DIR) return;
+    server.middlewares.use((req, res, next) => {
+      const url = (req.url ?? '').split('?')[0];
+      const m = CATALOGUE_PATH.exec(url);
+      if (!m) return next();
+      const file = join(CATALOGUE_DIR, m[1]);
+      if (!existsSync(file)) { res.statusCode = 404; res.end(`${url}: not in ${CATALOGUE_DIR}`); return; }
+      res.setHeader('Content-Type', 'application/json');
+      createReadStream(file).pipe(res);
+    });
+  },
+};
+
+// The browser suite's vite serves a fixed tree for one run: it needs no file watcher, and the
+// polling watcher below is steady CPU it would otherwise spend for nothing.
+const TEST_SERVER = process.env.OPENISD_TEST_SERVER === '1';
+
 export default defineConfig(({ command }) => ({
   root: UI_ROOT,
   base,
@@ -45,7 +74,7 @@ export default defineConfig(({ command }) => ({
   server: {
     // WSL/Windows filesystem events are not reliable for every editor and mount. Polling keeps
     // the canonical 4000 dev server live when inotify misses a source edit.
-    watch: {
+    watch: TEST_SERVER ? null : {
       usePolling: true,
       interval: 100,
       // build/ is the repo's scratch space — throwaway scripts, probe output, logs.
@@ -64,6 +93,7 @@ export default defineConfig(({ command }) => ({
   },
   plugins: [
     clearSwInDev,
+    serveCatalogue,
     vue(),
     ...(ELECTRON || command === 'serve' ? [] : [VitePWA({
       registerType: 'autoUpdate',
@@ -81,8 +111,20 @@ export default defineConfig(({ command }) => ({
         ],
       },
       workbox: {
+        // The catalogue indexes and record files are NOT precached (2000 files, 14 MB): they are
+        // cached as they are used, and re-validated in the background on every use, so a
+        // republished catalogue reaches an installed app without a reinstall and nothing is
+        // held longer than maxAgeSeconds. The app shell itself is precached and revision-hashed;
+        // registerType 'autoUpdate' reloads open pages onto a new build.
         globPatterns: ['**/*.{js,css,html,svg,ico}'],
-        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+        globIgnores: ['drivers/**', 'drivers-index.json', 'passive-radiators-index.json'],
+        // A RegExp, not a function: workbox serialises this into sw.js, where a closure over
+        // this file's variables would not exist.
+        runtimeCaching: [{
+          urlPattern: /\/(drivers-index\.json|passive-radiators-index\.json|drivers\/.+\.json)$/,
+          handler: 'StaleWhileRevalidate',
+          options: { cacheName: 'openisd-catalogue', expiration: { maxAgeSeconds: 7 * 24 * 3600 } },
+        }],
       },
     })]),
   ],

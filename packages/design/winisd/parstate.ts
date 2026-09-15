@@ -8,7 +8,7 @@ import type {CellState} from "./cellState.js";
  * ParState is always exactly 49 chars mapped to WinISD's internal parameter list, which
  * is NOT the WDR file's key order (e.g. Qts is slot 14 though the WDR writes it first).
  * Every position except 20 and 46 is probe-confirmed via single-parameter files in
- * drivers/sample/ — see drivers/sample/README.md "Confirmed ParState position map" and
+ * drivers/mysamples/ — see drivers/mysamples/README.md "Confirmed ParState position map" and
  * scripts/scraper_lib.py. Those two are covered by the note on POS_TO_WDRKEY below.
  *
  * E = the human/source entered the value · C = WinISD computed it · N = not in play.
@@ -61,14 +61,14 @@ export function provenanceOf(letter: string): CellState {
  *    Because the slot pairing cannot be proven, we must never rely on ParState for `VCCon`.
  *
  * Which is why a hand-authored `E` in either slot round-trips through WinISD untouched —
- * `drivers/sample/winisd/inconsistency-test-saved.wdr` carries `E` in both and WinISD
+ * `drivers/mysamples/winisd/inconsistency-test-saved.wdr` carries `E` in both and WinISD
  * reproduced them exactly.
  */
 export const POS_TO_WDRKEY: readonly (string | null)[] = [
   'Znom',   // 0
   'Fs',     // 1
   'Pe',     // 2
-  'SPL',    // 3  written as a key — drivers/sample/winisd/john-all-defaults.wdr emits SPL=0
+  'SPL',    // 3  written as a key — drivers/mysamples/winisd/john-all-defaults.wdr emits SPL=0
   'Re',     // 4
   'Le',     // 5
   'fLe',    // 6

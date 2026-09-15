@@ -739,7 +739,7 @@ never improvise around it.
       surfacing of the encoding recorded as outstanding in QO62; QO67 raised for format-model
       unification). QO62 ruling: `wdrBytesToText` decodes strict UTF-8 (fatal); on failure decodes the
       WHOLE file as CP1252; the caller learns which encoding was used and the UI can say so.
-      Write stays UTF-8. Tests: `drivers/winisd/Selenium SW108 .wdr` reads back with `•`/`®`/
+      Write stays UTF-8. Tests: `drivers/winisd/winisdpro/Selenium SW108 .wdr` reads back with `•`/`®`/
       `±`/`½` intact; the unicode goldens still byte-round-trip. Done: tests green; the
       FF FF/E6 splice is NOT used as an oracle.
 - [x] **C3** DONE 2026-08-21, review PASS after one fix cycle (whole-block golden assertions;
