@@ -22,6 +22,10 @@
 
 import type { BoxType, SimulatableBoxType, EnclosureParams, DriverError } from './types.js';
 import { simulatableBoxType } from './types.js';
+import type { CalculationIssue, SolveRoute } from './consistency.js';
+
+export type BoxParamsQuantityName = keyof EnclosureParams;
+export type BoxParamsIssue = CalculationIssue<BoxParamsQuantityName>;
 
 /** One enclosure parameter `solve()` divides by, with the human wording for its message. */
 interface RequiredParam {
@@ -35,20 +39,19 @@ interface RequiredParam {
 
 
 /**
- * Validate the enclosure parameters for `box`. Returns one blocking `error` per unmet
- * requirement, or an empty array when every value the circuit divides by is a finite
- * positive number. Never throws.
+ * Which parameters `simulatable` actually divides by, and why — the one table both
+ * `validateParams()` and `checkBoxParams()` read, so the two channels can never name a
+ * different set of required fields for the same topology. Lives INSIDE the function that
+ * builds it, not at module scope: a module-scoped `const` object is shared mutable state
+ * however it is declared, because `const` freezes the binding and not the contents
+ * (packages/design/AGENTS.md).
  *
- * Deliberately NOT exhaustive over everything that could go non-finite: `Leff`, the loss
- * Q's and the filter chain can each produce a singularity at one frequency without being
- * invalid inputs. Those are the postcondition's job (`classifyFinite`) — this layer only
- * rejects values that break the solve at EVERY frequency, which is the class a precondition
- * can decide from the inputs alone.
+ * A TOTAL map over `SimulatableBoxType` (../AGENTS.md §"A CLOSED SET IS AN ENUM"): giving the
+ * circuit a new topology is a compile error here rather than a silent hole in the precondition.
+ * `Sp` is required for `bandpass4` as well as `vented` — the bandpass front chamber calls the
+ * same `portImpedance()` (circuit.ts), so it divides by `Sp` identically.
  */
-export function validateParams(box: BoxType, P: EnclosureParams): DriverError[] {
-  // The tables live INSIDE the function that reads them: a module-scoped `const` object is
-  // shared mutable state however it is declared, because `const` freezes the binding and not
-  // the contents (packages/design/AGENTS.md).
+function requiredParamsFor(simulatable: SimulatableBoxType): readonly RequiredParam[] {
   const VB: RequiredParam = {
     field: 'Vb',
     label: 'Box volume (Vb)',
@@ -85,6 +88,28 @@ export function validateParams(box: BoxType, P: EnclosureParams): DriverError[] 
     consequence: 'a massless radiator has no resonance, so there is nothing for the box to tune against',
   };
 
+  const REQUIRED_BY_BOX: Record<SimulatableBoxType, readonly RequiredParam[]> = {
+    sealed:                 [VB],
+    vented:                 [VB, SP],
+    'box-passive-radiator': [VB, PR_SD, PR_CMS, PR_MMD],
+    bandpass4:              [VB, VF, SP],
+  };
+
+  return REQUIRED_BY_BOX[simulatable];
+}
+
+/**
+ * Validate the enclosure parameters for `box`. Returns one blocking `error` per unmet
+ * requirement, or an empty array when every value the circuit divides by is a finite
+ * positive number. Never throws.
+ *
+ * Deliberately NOT exhaustive over everything that could go non-finite: `Leff`, the loss
+ * Q's and the filter chain can each produce a singularity at one frequency without being
+ * invalid inputs. Those are the postcondition's job (`classifyFinite`) — this layer only
+ * rejects values that break the solve at EVERY frequency, which is the class a precondition
+ * can decide from the inputs alone.
+ */
+export function validateParams(box: BoxType, P: EnclosureParams): DriverError[] {
   // A box type the circuit has no model for is refused BY NAME, here, rather than being
   // inexpressible in the type. The domain can hold such a design; the engine simply declines to
   // simulate it, and says which one it declined.
@@ -97,23 +122,8 @@ export function validateParams(box: BoxType, P: EnclosureParams): DriverError[] 
     }];
   }
 
-  /**
-   * Which parameters each enclosure actually divides by. A TOTAL map over
-   * `SimulatableBoxType` (../AGENTS.md §"A CLOSED SET IS AN ENUM"): giving the circuit a new
-   * topology is a compile error here rather than a silent hole in the precondition.
-   *
-   * `Sp` is required for `bandpass4` as well as `vented` — the bandpass front chamber calls
-   * the same `portImpedance()` (circuit.ts), so it divides by `Sp` identically.
-   */
-  const REQUIRED_BY_BOX: Record<SimulatableBoxType, readonly RequiredParam[]> = {
-    sealed:                 [VB],
-    vented:                 [VB, SP],
-    'box-passive-radiator': [VB, PR_SD, PR_CMS, PR_MMD],
-    bandpass4:              [VB, VF, SP],
-  };
-
   const errors: DriverError[] = [];
-  for (const p of REQUIRED_BY_BOX[simulatable]) {
+  for (const p of requiredParamsFor(simulatable)) {
     const v = P[p.field];
     // Finite as well as positive: `Infinity > 0` is true, so a bare `> 0` would admit a
     // value that is itself already the poison this guard exists to stop.
@@ -125,4 +135,35 @@ export function validateParams(box: BoxType, P: EnclosureParams): DriverError[] 
     });
   }
   return errors;
+}
+
+/**
+ * `validateParams()`'s own diagnostic, re-shaped as `BoxParamsIssue` — the unified
+ * `CalculationIssue<Q>` contract (**Convergence**, `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`)
+ * — instead of `DriverError`.
+ *
+ * A NEW function, not a converted `validateParams()`: `validateParams()`'s `DriverError[]`
+ * return feeds directly into `OpenISDProject.sweep()`'s `Result<SweepResult>.errors`
+ * (`domain/openisdDomain.ts`), which is `DriverError[]` for every OTHER precondition too
+ * (`circuitQuantities`, `classifyFinite`, …) — changing that shared shape is a far larger
+ * change than this one enclosure check, and is not made here. Each missing field has exactly
+ * one requirement and no alternative, so every issue is `missing-dependencies` with a single,
+ * self-naming route; there is no `inconsistent-inputs` case here (nothing about an enclosure
+ * parameter contradicts another one — a box either states a value or it does not).
+ */
+export function checkBoxParams(box: BoxType, P: EnclosureParams): BoxParamsIssue[] {
+  const simulatable = simulatableBoxType(box);
+  if (simulatable === null) return [];
+
+  const issues: BoxParamsIssue[] = [];
+  for (const p of requiredParamsFor(simulatable)) {
+    const v = P[p.field];
+    if (typeof v === 'number' && Number.isFinite(v) && v > 0) continue;
+    const route: SolveRoute<BoxParamsQuantityName> = {
+      formula: `${p.label} must be greater than zero — ${p.consequence}.`,
+      required: [p.field], missing: [p.field],
+    };
+    issues.push({ kind: 'missing-dependencies', target: p.field, routes: [route] });
+  }
+  return issues;
 }

@@ -56,6 +56,8 @@
  */
 
 /** Ratio of specific heats for air. */
+import type { CalculationIssue } from './consistency.js';
+
 export const GAMMA = 1.4;
 
 // Port end correction for a vent flanged at one end (baffle) and free at the other
@@ -111,6 +113,30 @@ export interface AirEnvironment {
   pressurePa?: number;
   /** Use WinISD's parity air model instead of the physical model. Absent/false → the physical model. */
   useWinisdAirModel?: boolean;
+}
+
+export type EnvironmentQuantityName = keyof AirEnvironment;
+export type EnvironmentIssue = CalculationIssue<EnvironmentQuantityName>;
+
+/**
+ * An entered environment value outside the range the physical model supports — normally
+ * empty. Every `AirEnvironment` field defaults when absent (`airFor` always returns a usable
+ * `Air`), so using the default is never a missing value; this channel exists only for an
+ * explicitly entered `tempK` outside `MIN_SUPPORTED_TEMP_K`/`MAX_SUPPORTED_TEMP_K`. Reported
+ * separately from `Air`, not bundled with it, so a caller that only wants `{ rho, c }` is not
+ * forced to also destructure an issues array that is empty in the overwhelming common case.
+ */
+export function environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
+  const { tempK } = env;
+  if (tempK == null || (tempK >= MIN_SUPPORTED_TEMP_K && tempK <= MAX_SUPPORTED_TEMP_K)) return [];
+  return [{
+    kind: 'missing-dependencies',
+    target: 'tempK',
+    routes: [{
+      formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
+      required: ['tempK'], missing: ['tempK'],
+    }],
+  }];
 }
 
 /**

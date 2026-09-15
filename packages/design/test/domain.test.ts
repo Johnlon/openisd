@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Engine, type DriverError } from '@openisd/design/engine';
+import { Engine, type DriverError, type DriverIssue } from '@openisd/design/engine';
 import {
   OpenISDProject,
   OpenISDDriver,
@@ -125,6 +125,48 @@ describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto
     // `before` is unmodified by the subsequent set.
     expect(before.specs.woofer?.Fs_hz).toBeDefined();
     expect(JSON.stringify(before.specs.woofer?.Fs_hz)).toBe(fsBeforeStr);
+  });
+});
+
+describe('OpenISDDriver.checkConsistency() — an entered-only adapter onto the engine', () => {
+  it('reports no issues for a driver whose stated Qes/Qms are mutually consistent', () => {
+    const driver = driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: tuneSpec({ Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6 }),
+    });
+    const issues: readonly DriverIssue[] = driver.checkConsistency();
+    expect(issues).toEqual([]);
+  });
+
+  it('reports an inconsistent-inputs issue when a stated Qts contradicts stated Qes/Qms', () => {
+    // A driver stating ONLY Qts/Qes/Qms — deliberately minimal, so no OTHER relation (Fs/Mms/Cms,
+    // Rms/Fs/Mms/Qms, ...) can also fire and make this test's one contradiction hard to isolate.
+    const driver = OpenISDDriver.empty(new Engine());
+    driver.spec.woofer.Qts.set(0.4);
+    driver.spec.woofer.Qes.set(0.45);
+    driver.spec.woofer.Qms.set(2.94);
+    // Qts=0.4 was stated directly; Qes/Qms imply ~0.390 — a real contradiction.
+
+    const issues = driver.checkConsistency();
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ kind: 'inconsistent-inputs', target: 'Qts', actual: 0.4 });
+  });
+
+  it("solving the group first does not make checkConsistency() treat the SOLVED Qts as entered " +
+    '— an entered-only adapter must feed the engine only what the record actually states', () => {
+    const driver = driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: tuneSpec({ Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6 }),
+    });
+    // Solving fills in a derived Qts on the RETURNED bag, but writes nothing back to the record.
+    const solved = driver.solveConsistencyGroup();
+    expect(solved.Qts).toBeCloseTo((0.45 * 2.94) / (0.45 + 2.94), 6);
+    // The record itself was never written to — the field reads back CALCULATED, not entered.
+    expect(driver.spec.woofer.Qts.get().state).toBe('calculated');
+
+    // So a second call still reads the record, not the previous solve's output, and still
+    // agrees with itself rather than reporting the solved Qts as a contradiction of Qes/Qms.
+    expect(driver.checkConsistency()).toEqual([]);
   });
 });
 
@@ -619,6 +661,29 @@ describe('the passive radiator a box holds', () => {
     expect(() => p.box.passiveRadiator.radiator.detach()).toThrow(/no radiator is chosen/);
   });
 
+  it('a radiator states its record identity, the way a driver does — the bundled index and favourites key on it', () => {
+    const blank = OpenISDPassiveRadiatorStandalone.empty(new Engine());
+    expect(blank.uuid()).toBe(blank.clonePassiveRadiator().uuid.value);
+    expect(blank.uuid()).toMatch(/^[0-9a-f-]{36}$/);
+
+    const p = project();
+    p.box.passiveRadiator.configurePR(blank);
+    expect(p.box.passiveRadiator.radiator.uuid()).toBe(blank.uuid());
+  });
+
+  it('a radiator answers its catalogue links by role, the way a driver does — null when the record carries none', () => {
+    const blank = OpenISDPassiveRadiatorStandalone.empty(new Engine());
+    expect(blank.dataSource('manufacturer_datasheet')).toBeNull();
+    expect(blank.dataSource('manufacturer_product_page')).toBeNull();
+    expect(blank.dataSource('manufacturer_listing_page')).toBeNull();
+
+    const json = blank.clonePassiveRadiator();
+    json.data_sources = { value: { manufacturer_product_page: 'https://example.test/pr' } };
+    const withLink = OpenISDPassiveRadiatorStandalone.wrap(json, new Engine());
+    expect(withLink.dataSource('manufacturer_product_page')).toBe('https://example.test/pr');
+    expect(withLink.dataSource('manufacturer_datasheet')).toBeNull();
+  });
+
   it('makes a blank radiator an editor can fill in, and a box can adopt', () => {
     const blank = OpenISDPassiveRadiatorStandalone.empty(new Engine());
 
@@ -917,6 +982,57 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(project.driver.spec.woofer.Fs_hz.get().value).toBe(555555);
 
     expect(() => project.loadDriver(project.driver)).toThrow(/standalone/i);
+  });
+
+  it('embedding a driver that states its own c/roo strips them — the project is the sole source', () => {
+    const project = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    project.envTempK.set(250);   // far from the reference default, so a leaked driver value is obvious
+    project.envHumidityPct.set(80);
+    project.envPressurePa.set(90000);
+
+    const source = wooferDriver();
+    source.spec.woofer.c_m_per_s.set(999);
+    source.spec.woofer.roo_kg_per_m3.set(5);
+
+    project.setDriver(source);
+
+    expect(project.driver.spec.woofer.c_m_per_s.get().state).toBe('calculated');
+    expect(project.driver.spec.woofer.roo_kg_per_m3.get().state).toBe('calculated');
+    const projectAir = new Engine().airFor({ tempK: 250, humidityPct: 80, pressurePa: 90000 });
+    expect(project.driver.spec.woofer.c_m_per_s.get().value).toBeCloseTo(projectAir.c, 6);
+    expect(project.driver.spec.woofer.roo_kg_per_m3.get().value).toBeCloseTo(projectAir.rho, 6);
+    // Never 999/5 — the driver's own stated pair must not survive embedding.
+    expect(project.driver.spec.woofer.c_m_per_s.get().value).not.toBeCloseTo(999, 0);
+  });
+
+  it("a stale c/roo already sitting in an embedded driver's record (pre-existing data, or any " +
+    'write that bypasses setDriver/loadDriver) is still ignored by both the solver and .wdr export ' +
+    "— the project's environment wins regardless of how the stale value got there", () => {
+    const project = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    project.envTempK.set(250);
+    project.envHumidityPct.set(80);
+    project.envPressurePa.set(90000);
+
+    // Simulate data saved by a version of openisd before the strip existed (`fromOwprText` loads
+    // a record directly, bypassing `setDriver`/`loadDriver` entirely, so nothing retroactively
+    // clears a value written under the old rules) by writing straight onto the embedded driver's
+    // own field — the one other way a stale value could end up here.
+    project.driver.spec.woofer.c_m_per_s.set(999);
+    project.driver.spec.woofer.roo_kg_per_m3.set(5);
+    expect(project.driver.spec.woofer.c_m_per_s.get().state).toBe('entered');   // the stale write really landed
+
+    const projectAir = new Engine().airFor({ tempK: 250, humidityPct: 80, pressurePa: 90000 });
+    const solved = project.driver.solveConsistencyGroup();
+    expect(solved.c_m_per_s).toBeCloseTo(projectAir.c, 6);
+    expect(solved.roo_kg_per_m3).toBeCloseTo(projectAir.rho, 6);
+
+    const { value: wdrText, errors } = project.driver.toWdrIniText(new Engine());
+    expect(errors).toEqual([]);
+    expect(wdrText).not.toBeNull();
+    expect(wdrText).toContain(`c=${projectAir.c}`);
+    expect(wdrText).toContain(`roo=${projectAir.rho}`);
+    expect(wdrText).not.toContain('c=999');
+    expect(wdrText).not.toContain('roo=5\n');
   });
 
   it('loading a project file gives its embedded driver a fresh project-owned UUID', () => {

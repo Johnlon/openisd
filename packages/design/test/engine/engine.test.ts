@@ -275,7 +275,7 @@ describe('Passive radiator box simulation', () => {
         peaks.push(sw.fs[i]);
       }
     }
-    const Fp = engine.prTuning(PR_PARAMS);
+    const Fp = engine.prTuning(PR_PARAMS, engine.airFor({}));
     assert.equal(peaks.length, 2,
       `expected 2 impedance peaks, found ${peaks.length}`);
     assert.ok(Fp > peaks[0] && Fp < peaks[1],
@@ -285,9 +285,9 @@ describe('Passive radiator box simulation', () => {
   it('auto-tune computes added mass that achieves the target Fp to within 0.5 Hz', () => {
     // engine.prMassForFp() inverts the Fp formula.  We verify the inversion is accurate.
     const TARGET_FP_HZ = 42; // Hz — a typical low bass tuning
-    const totalMass    = engine.prMassForFp(PR_PARAMS, TARGET_FP_HZ);
+    const totalMass    = engine.prMassForFp(PR_PARAMS, TARGET_FP_HZ, engine.airFor({}));
     const addedMass    = totalMass - PR_PARAMS.prMmd!;
-    const achievedFp   = engine.prTuning({ ...PR_PARAMS, prMadd: addedMass });
+    const achievedFp   = engine.prTuning({ ...PR_PARAMS, prMadd: addedMass }, engine.airFor({}));
     assert.ok(Math.abs(achievedFp - TARGET_FP_HZ) < TUNING_FREQ_TOLERANCE_HZ,
       `target ${TARGET_FP_HZ} Hz → added ${(addedMass * 1000).toFixed(1)} g → Fp ${achievedFp.toFixed(2)} Hz ` +
       `(limit ±${TUNING_FREQ_TOLERANCE_HZ} Hz)`);

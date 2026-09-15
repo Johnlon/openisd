@@ -14,7 +14,7 @@
  *
  * This file is the authority for `dq_calculated`: adding or changing a rule is a change here.
  */
-import type { ConsistencyIssue } from '../engine/index.js';
+import type { DriverIssue } from '../engine/index.js';
 
 /** One data-quality mark, in the shape a record stores. `severity` is `'error'` for every rule
  *  this file can produce: severity is fixed per rule, and both `calc` and `range` policies are
@@ -263,6 +263,14 @@ function rightHandSide(formula: string): string {
   return split < 0 ? formula : formula.slice(split + 3);
 }
 
+/** The one `DriverIssue` variant `calcMark` can render — a contradiction between stated values.
+ *  `missing-dependencies` has no `expected`/`actual`/`relative` to report as a DQ mark, and
+ *  produces none (see this file's header and `dqCalculated()` below): the Python-side mark
+ *  registry (`scrapers/lib/record_registries.py`, not present in this checkout) rejects any
+ *  `detail` string it has no matching template for, so a new mark kind is not invented here
+ *  without a corresponding Python-side change. */
+type InconsistentInputsIssue = Extract<DriverIssue, { kind: 'inconsistent-inputs' }>;
+
 /**
  * One engine consistency finding as a record-side mark.
  *
@@ -270,7 +278,7 @@ function rightHandSide(formula: string): string {
  * other relation goes through the generic `calc-consistency`, which carries the field and formula
  * as params.
  */
-export function calcMark(issue: ConsistencyIssue): CalcFinding {
+export function calcMark(issue: InconsistentInputsIssue): CalcFinding {
   const target = issue.target;
   const members = [...issue.fields];
 
@@ -318,7 +326,7 @@ export function calcMark(issue: ConsistencyIssue): CalcFinding {
  */
 export function dqCalculated(
   stated: ReadonlyArray<readonly [string, number]>,
-  issues: readonly ConsistencyIssue[],
+  issues: readonly DriverIssue[],
 ): ReadonlyMap<string, readonly DqMarkJson[]> {
   const byField = new Map<string, DqMarkJson[]>();
   const add = (field: string, found: DqMarkJson): void => {
@@ -333,6 +341,8 @@ export function dqCalculated(
     if (outOfRange !== undefined) add(field, outOfRange);
   }
   for (const issue of issues) {
+    // `missing-dependencies` produces no mark here — see `calcMark`'s own doc comment.
+    if (issue.kind !== 'inconsistent-inputs') continue;
     const finding = calcMark(issue);
     // A COPY PER MEMBER, so every entry states the finding in full. Handing the same object to
     // three entries makes the YAML writer emit it once with an anchor and refer to it by alias

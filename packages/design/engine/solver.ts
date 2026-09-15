@@ -15,11 +15,19 @@
 import { P0, G_STANDARD } from './constants.js';
 import type { Wiring } from './types.js';
 import { GAMMA, DEFAULT_P_REF_PA, airFor } from './air.js';
+import type { Air } from './air.js';
 import { efficiencyConstant, referenceEfficiency, motorEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
-import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp, prFsWithMass } from './boxDesign.js';
+import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp, prFsWithMass, sealedFromQtc, sealedQtcFromVolume } from './boxDesign.js';
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
-import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
-import type { ConsistencyIssue } from './consistency.js';
+import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
+import type { CalculationIssue, SolveRoute } from './consistency.js';
+
+export type VentQuantityName = keyof VentSolverQuantities;
+export type VentIssue = CalculationIssue<VentQuantityName>;
+export type PrQuantityName = keyof PrSolverQuantities;
+export type PrIssue = CalculationIssue<PrQuantityName>;
+export type SealedAlignmentQuantityName = keyof SealedAlignmentSolverQuantities;
+export type SealedAlignmentIssue = CalculationIssue<SealedAlignmentQuantityName>;
 
 
 
@@ -526,40 +534,47 @@ export function solveDriverConsistencyGroup(p: DriverSolverQuantities): DriverSo
   return solveConsistencyGroup(p);
 }
 
-export function solvePrConsistencyGroup(p: PrSolverQuantities): PrSolverQuantities {
+/** `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
+ *  comment for why this is a parameter here, never a reference-condition default. */
+export function solvePrConsistencyGroup(p: PrSolverQuantities, air: Air): PrSolverQuantities {
   const out: PrSolverQuantities = { ...p };
   const { addedMass_kg, tuning_hz, Vb_m3, prMmd_kg, prSd_m2, prCms_m_per_N } = p;
-  
+
   if (addedMass_kg != null && tuning_hz == null) {
     if (Vb_m3 != null && Vb_m3 > 0 && prMmd_kg != null && prSd_m2 != null && prCms_m_per_N != null) {
       const prParams = { Vb: Vb_m3, prMmd: prMmd_kg, prMadd: addedMass_kg, prSd: prSd_m2, prCms: prCms_m_per_N };
-      out.tuning_hz = prTuning(prParams);
+      out.tuning_hz = prTuning(prParams, air);
     }
   } else if (tuning_hz != null && addedMass_kg == null) {
     if (Vb_m3 != null && Vb_m3 > 0 && prMmd_kg != null && prSd_m2 != null && prCms_m_per_N != null && tuning_hz > 0) {
       const prParams = { Vb: Vb_m3, prMmd: prMmd_kg, prMadd: 0, prSd: prSd_m2, prCms: prCms_m_per_N };
-      const totalMass = prMassForFp(prParams, tuning_hz);
+      const totalMass = prMassForFp(prParams, tuning_hz, air);
       out.addedMass_kg = totalMass - prMmd_kg;
     }
   }
-  
+
   const resolvedMass = out.addedMass_kg ?? p.addedMass_kg;
   if (resolvedMass != null && prMmd_kg != null && prCms_m_per_N != null) {
       out.resonanceWithAddedMass_hz = prFsWithMass(prMmd_kg, resolvedMass, prCms_m_per_N);
   }
-  
+
   if (resolvedMass != null && Vb_m3 != null && Vb_m3 > 0 && prMmd_kg != null && prSd_m2 != null && prCms_m_per_N != null) {
       const prParams = { Vb: Vb_m3, prMmd: prMmd_kg, prMadd: resolvedMass, prSd: prSd_m2, prCms: prCms_m_per_N };
-      out.systemTuning_hz = prTuning(prParams);
+      out.systemTuning_hz = prTuning(prParams, air);
   }
-  
+
   return out;
 }
 
-export function checkPrConsistency(p: PrSolverQuantities): ConsistencyIssue[] {
-  const issues: ConsistencyIssue[] = [];
+/** The PR geometry every route below needs, beside `tuning_hz`/`addedMass_kg` themselves —
+ *  named once so both routes report the identical missing set. */
+const PR_GEOMETRY: readonly PrQuantityName[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
+
+export function checkPrConsistency(p: PrSolverQuantities): PrIssue[] {
+  const issues: PrIssue[] = [];
   if (p.tuning_hz != null && p.tuning_hz <= 0) {
     issues.push({
+      kind: 'inconsistent-inputs',
       formula: 'Tuning frequency must be greater than zero',
       fields: ['tuning_hz'],
       target: 'tuning_hz',
@@ -570,6 +585,7 @@ export function checkPrConsistency(p: PrSolverQuantities): ConsistencyIssue[] {
   }
   if (p.addedMass_kg != null && p.addedMass_kg < 0) {
     issues.push({
+      kind: 'inconsistent-inputs',
       formula: 'Target tuning is above maximum passive radiator tuning',
       fields: ['addedMass_kg', 'tuning_hz'],
       target: 'addedMass_kg',
@@ -578,29 +594,55 @@ export function checkPrConsistency(p: PrSolverQuantities): ConsistencyIssue[] {
       relative: 1,
     });
   }
+
+  // A target was stated (tuning_hz or addedMass_kg) but the PR geometry needed to solve for
+  // the OTHER one is incomplete — mirrors solvePrConsistencyGroup's own route conditions.
+  const missingGeometry = PR_GEOMETRY.filter(f => { const v = p[f]; return !(typeof v === 'number' && v > 0); });
+  if (missingGeometry.length > 0) {
+    if (p.tuning_hz != null && p.addedMass_kg == null) {
+      issues.push({
+        kind: 'missing-dependencies', target: 'addedMass_kg',
+        routes: [{ formula: 'addedMass_kg from tuning_hz + Vb_m3 + prMmd_kg + prSd_m2 + prCms_m_per_N',
+          required: ['tuning_hz', ...PR_GEOMETRY], missing: missingGeometry }],
+      });
+    } else if (p.addedMass_kg != null && p.tuning_hz == null) {
+      issues.push({
+        kind: 'missing-dependencies', target: 'tuning_hz',
+        routes: [{ formula: 'tuning_hz from addedMass_kg + Vb_m3 + prMmd_kg + prSd_m2 + prCms_m_per_N',
+          required: ['addedMass_kg', ...PR_GEOMETRY], missing: missingGeometry }],
+      });
+    }
+  }
+
   return issues;
 }
 
-export function solveVentConsistencyGroup(p: VentSolverQuantities): VentSolverQuantities {
+/** `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
+ *  comment for why this is a parameter here, never a reference-condition default. */
+export function solveVentConsistencyGroup(p: VentSolverQuantities, air: Air): VentSolverQuantities {
   const out: VentSolverQuantities = { ...p };
   const { tuning_hz, length_m, Vb_m3, area_m2, endCorrection_m } = p;
 
   if (tuning_hz != null && length_m == null) {
     if (Vb_m3 != null && Vb_m3 > 0 && area_m2 != null && area_m2 > 0 && tuning_hz > 0) {
-      out.length_m = ventLength(Vb_m3, tuning_hz, area_m2, endCorrection_m ?? 0.732);
+      out.length_m = ventLength(Vb_m3, tuning_hz, area_m2, air, endCorrection_m ?? 0.732);
     }
   } else if (length_m != null && tuning_hz == null) {
     if (Vb_m3 != null && Vb_m3 > 0 && area_m2 != null && area_m2 > 0) {
-      out.tuning_hz = tuningFromLength(Vb_m3, length_m, area_m2, endCorrection_m ?? 0.732);
+      out.tuning_hz = tuningFromLength(Vb_m3, length_m, area_m2, air, endCorrection_m ?? 0.732);
     }
   }
   return out;
 }
 
-export function checkVentConsistency(p: VentSolverQuantities): ConsistencyIssue[] {
-  const issues: ConsistencyIssue[] = [];
+/** The vent geometry every route below needs, beside `tuning_hz`/`length_m` themselves. */
+const VENT_GEOMETRY: readonly VentQuantityName[] = Object.freeze(['Vb_m3', 'area_m2']);
+
+export function checkVentConsistency(p: VentSolverQuantities): VentIssue[] {
+  const issues: VentIssue[] = [];
   if (p.tuning_hz != null && p.tuning_hz <= 0) {
     issues.push({
+      kind: 'inconsistent-inputs',
       formula: 'Tuning frequency must be greater than zero',
       fields: ['tuning_hz'],
       target: 'tuning_hz',
@@ -611,6 +653,7 @@ export function checkVentConsistency(p: VentSolverQuantities): ConsistencyIssue[
   }
   if (p.length_m != null && p.length_m < 0) {
     issues.push({
+      kind: 'inconsistent-inputs',
       formula: 'Target tuning is unreachable for vent geometry',
       fields: ['length_m', 'tuning_hz'],
       target: 'length_m',
@@ -619,6 +662,83 @@ export function checkVentConsistency(p: VentSolverQuantities): ConsistencyIssue[
       relative: 1,
     });
   }
+
+  // A target was stated (tuning_hz or length_m) but the vent geometry needed to solve for the
+  // OTHER one is incomplete — mirrors solveVentConsistencyGroup's own route conditions.
+  const missingGeometry = VENT_GEOMETRY.filter(f => { const v = p[f]; return !(typeof v === 'number' && v > 0); });
+  if (missingGeometry.length > 0) {
+    if (p.tuning_hz != null && p.length_m == null) {
+      issues.push({
+        kind: 'missing-dependencies', target: 'length_m',
+        routes: [{ formula: 'length_m from tuning_hz + Vb_m3 + area_m2 (Helmholtz)',
+          required: ['tuning_hz', ...VENT_GEOMETRY], missing: missingGeometry }],
+      });
+    } else if (p.length_m != null && p.tuning_hz == null) {
+      issues.push({
+        kind: 'missing-dependencies', target: 'tuning_hz',
+        routes: [{ formula: 'tuning_hz from length_m + Vb_m3 + area_m2 (Helmholtz)',
+          required: ['length_m', ...VENT_GEOMETRY], missing: missingGeometry }],
+      });
+    }
+  }
+
   return issues;
 }
 
+
+/**
+ * Solve the sealed-alignment group: whichever of `Qtc`/`Vb_m3` the caller did not state, from
+ * the driver's own `Qts`/`Vas_m3` — the same target-Qtc calculation `boxDesign.ts`'s
+ * `sealedFromQtc`/`sealedQtcFromVolume` implement, given a name matching the other group
+ * solvers (`solveVentConsistencyGroup`/`solvePrConsistencyGroup`).
+ */
+export function solveSealedAlignmentGroup(p: SealedAlignmentSolverQuantities): SealedAlignmentSolverQuantities {
+  const out: SealedAlignmentSolverQuantities = { ...p };
+  const { Qts, Vas_m3, Qtc, Vb_m3 } = p;
+
+  if (Qtc != null && Vb_m3 == null) {
+    if (Qts != null && Vas_m3 != null) {
+      const v = sealedFromQtc(Qts, Vas_m3, Qtc);
+      if (v != null) out.Vb_m3 = v;
+    }
+  } else if (Vb_m3 != null && Qtc == null) {
+    if (Qts != null && Vas_m3 != null) {
+      const v = sealedQtcFromVolume(Qts, Vas_m3, Vb_m3);
+      if (v != null) out.Qtc = v;
+    }
+  }
+
+  return out;
+}
+
+/** The driver quantities every sealed-alignment route needs, beside `Qtc`/`Vb_m3` themselves. */
+const SEALED_ALIGNMENT_DRIVER_QUANTITIES: readonly SealedAlignmentQuantityName[] = Object.freeze(['Qts', 'Vas_m3']);
+
+/** The stated sealed-alignment quantities that cannot yet solve because `Qts`/`Vas_m3` are
+ *  incomplete — mirrors `solveSealedAlignmentGroup`'s own route conditions. There is no
+ *  inconsistent-inputs case here: a sealed box has no THIRD input to `Qtc`/`Vb_m3` that could
+ *  disagree with the pair, unlike the driver's Qts/Qes/Qms triple. */
+export function checkSealedAlignment(p: SealedAlignmentSolverQuantities): SealedAlignmentIssue[] {
+  const issues: SealedAlignmentIssue[] = [];
+  const missingDriverQuantities = SEALED_ALIGNMENT_DRIVER_QUANTITIES.filter(f => {
+    const v = p[f];
+    return !(typeof v === 'number' && v > 0);
+  });
+  if (missingDriverQuantities.length === 0) return issues;
+
+  if (p.Qtc != null && p.Vb_m3 == null) {
+    issues.push({
+      kind: 'missing-dependencies', target: 'Vb_m3',
+      routes: [{ formula: 'Vb_m3 = Vas_m3 / ((Qtc/Qts)² − 1)',
+        required: ['Qtc', ...SEALED_ALIGNMENT_DRIVER_QUANTITIES], missing: missingDriverQuantities }],
+    });
+  } else if (p.Vb_m3 != null && p.Qtc == null) {
+    issues.push({
+      kind: 'missing-dependencies', target: 'Qtc',
+      routes: [{ formula: 'Qtc = Qts · √(1 + Vas_m3/Vb_m3)',
+        required: ['Vb_m3', ...SEALED_ALIGNMENT_DRIVER_QUANTITIES], missing: missingDriverQuantities }],
+    });
+  }
+
+  return issues;
+}

@@ -22,14 +22,9 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2223
  */
 
-import { END_CORRECTION, airFor } from './air.js';
-import type { SweepParams, SweepResult } from './types.js';
-
-// None of the box/vent/PR geometry callers below carry a project environment (T/RH/AP) --
-// computed live at the reference environment, same basis `solver.ts`'s fallback uses. Never
-// a stored constant.
-const refRho = (): number => airFor({}).rho;
-const refC = (): number => airFor({}).c;
+import { END_CORRECTION } from './air.js';
+import type { Air } from './air.js';
+import type { EbpSuitability, SealedAlignmentOption, SweepParams, SweepResult } from './types.js';
 
 // JL: FIXME - suspect - why not the params from the DS or why specicla pr params needed for this
 /** The subset of params the PR helpers read — lets callers pass any params object
@@ -56,6 +51,39 @@ export function sealedFromQtc(Qts: number, Vas_m3: number, Qtc: number): number 
   return ratio <= 0 ? null : Vas_m3 / ratio;
 }
 
+const SEALED_ALIGNMENT_OPTIONS: readonly SealedAlignmentOption[] = Object.freeze([
+  Object.freeze({qtc: 0.5, label: '0.500 Critically damped'}),
+  Object.freeze({qtc: 0.577, label: '0.577 Max flat delay response'}),
+  Object.freeze({qtc: 0.707, label: '0.707 Max flat amplitude response'}),
+  Object.freeze({qtc: 0.8, label: '0.800 Equal ripple response'}),
+  Object.freeze({qtc: 0.9, label: '0.900 Equal ripple response'}),
+  Object.freeze({qtc: 1, label: '1.000 Equal ripple response'}),
+  Object.freeze({qtc: 1.1, label: '1.100 Equal ripple response'}),
+  Object.freeze({qtc: 1.2, label: '1.200 Equal ripple response'}),
+  Object.freeze({qtc: 1.5, label: '1.500 Equal ripple response'}),
+]);
+
+export function sealedAlignmentOptions(): readonly SealedAlignmentOption[] {
+  return SEALED_ALIGNMENT_OPTIONS;
+}
+
+export function sealedQtcFromVolume(Qts: number, Vas_m3: number, Vb_m3: number): number | null {
+  if (!(Qts > 0) || !(Vas_m3 > 0) || !(Vb_m3 > 0)) return null;
+  return Qts * Math.sqrt(1 + Vas_m3 / Vb_m3);
+}
+
+export function closestSealedAlignment(Qtc: number): SealedAlignmentOption {
+  return SEALED_ALIGNMENT_OPTIONS.reduce((closest, option) =>
+    Math.abs(option.qtc - Qtc) < Math.abs(closest.qtc - Qtc) ? option : closest,
+  );
+}
+
+export function ebpSuitability(EBP_hz: number): EbpSuitability {
+  if (EBP_hz < 50) return 'sealed';
+  if (EBP_hz > 100) return 'vented';
+  return 'either';
+}
+
 /**
  * QB3 vented alignment — polynomial fit to Thiele's alignment tables.
  * Vb = 15 · Vas · Qts^2.87
@@ -79,25 +107,33 @@ export function ventedAlignment(Fs_hz: number, Qts: number, Vas_m3: number): { V
  * target is unreachable and by how much, it round-trips exactly through `tuningFromLength()`,
  * and callers guard on `> 0`. Flooring it instead would return a buildable-looking vent that
  * tunes somewhere else entirely, which is a wrong number wearing a right one's clothes.
+ *
+ * `air` is the PROJECT's own resolved `{ rho, c }` — never a reference-condition default computed
+ * inside this module. The caller (ultimately `OpenISDBox`, via its embedded driver's already-
+ * resolved air — Driver Air Constants, `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`)
+ * decides what air a design runs in; this function only computes the physics for whatever air it
+ * is handed.
  */
-export function ventLength(Vb: number, fb: number, Sp: number, endCorrection: number = END_CORRECTION): number {
-  const Cab = Vb / (refRho() * refC() * refC());
+export function ventLength(Vb: number, fb: number, Sp: number, air: Air, endCorrection: number = END_CORRECTION): number {
+  const Cab = Vb / (air.rho * air.c * air.c);
   const wb  = 2 * Math.PI * fb;
   const Map = 1 / (wb * wb * Cab);
   const d   = 2 * Math.sqrt(Sp / Math.PI);
-  return Map * Sp / refRho() - endCorrection * d;
+  return Map * Sp / air.rho - endCorrection * d;
 }
 
 /**
  * Port tuning frequency from physical dimensions.
  * f = (c/2π) · √(Sp / (Vb · L_eq))  where L_eq = L + END_CORRECTION·d
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
+ *
+ * `air` — see `ventLength`'s doc comment above; the same rule applies here.
  */
-export function tuningFromLength(Vb: number, L: number, Sp: number, endCorrection: number = END_CORRECTION): number {
+export function tuningFromLength(Vb: number, L: number, Sp: number, air: Air, endCorrection: number = END_CORRECTION): number {
   const d    = 2 * Math.sqrt(Sp / Math.PI);
   const Leff = L + endCorrection * d;
-  const Cab  = Vb / (refRho() * refC() * refC());
-  const Map  = refRho() * Leff / Sp;
+  const Cab  = Vb / (air.rho * air.c * air.c);
+  const Map  = air.rho * Leff / Sp;
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
 }
 
@@ -106,9 +142,11 @@ export function tuningFromLength(Vb: number, L: number, Sp: number, endCorrectio
  * PR compliance Cap = prCms·prSd² combines with box compliance Cab in series:
  * Cpar = Cab·Cap/(Cab+Cap);  fp = 1/(2π·√(Map·Cpar))
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
+ *
+ * `air` — see `ventLength`'s doc comment above; the same rule applies here.
  */
-export function prTuning(P: PRParams): number {
-  const Cab  = P.Vb / (refRho() * refC() * refC());
+export function prTuning(P: PRParams, air: Air): number {
+  const Cab  = P.Vb / (air.rho * air.c * air.c);
   const Map  = (P.prMmd! + P.prMadd!) / (P.prSd! * P.prSd!);
   const Cap  = P.prCms! * P.prSd! * P.prSd!;
   const Cpar = (Cab * Cap) / (Cab + Cap);
@@ -119,9 +157,11 @@ export function prTuning(P: PRParams): number {
  * PR moving mass required to achieve a target fp.
  * Inverts prTuning(): Map = 1/((2π·fp)²·Cpar),  Mmp = Map·prSd²
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
+ *
+ * `air` — see `ventLength`'s doc comment above; the same rule applies here.
  */
-export function prMassForFp(P: PRParams, fp: number): number {
-  const Cab  = P.Vb / (refRho() * refC() * refC());
+export function prMassForFp(P: PRParams, fp: number, air: Air): number {
+  const Cab  = P.Vb / (air.rho * air.c * air.c);
   const Cap  = P.prCms! * P.prSd! * P.prSd!;
   const Cpar = (Cab * Cap) / (Cab + Cap);
   const Map  = 1 / ((2 * Math.PI * fp) ** 2 * Cpar);
@@ -205,4 +245,3 @@ export function findImpedancePeak(result: SweepResult | null, Re: number): { Fsc
 
   return { Fsc: peakFreq, Qtc };
 }
-

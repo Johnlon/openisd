@@ -3,35 +3,41 @@
  * The surface of the engine is the set of methods needed by the project.
  */
 
-import { airFor } from './air.js';
-import type { Air, AirEnvironment } from './air.js';
+import { airFor, environmentIssues } from './air.js';
+import type { Air, AirEnvironment, EnvironmentIssue } from './air.js';
 import {
-  ebp, prTuning, findImpedancePeak, prMassForFp, sealedFromQtc, tuningFromLength, ventLength,
+  ebp, ebpSuitability, closestSealedAlignment, prTuning, findImpedancePeak, prMassForFp,
+  sealedAlignmentOptions, sealedFromQtc, sealedQtcFromVolume, tuningFromLength, ventLength,
 } from './boxDesign.js';
 import {
   prCmsFromVas, prFsWithMass, prMmdFromFs, prQms, prRmsFromQms, prVas,
 } from './formulas.js';
-import { isQGroupField, qGroupIsIncomplete } from './consistency.js';
+import { checkConsistency, solveDriver, issueFields, issueFormula } from './consistency.js';
 import {
   solveDriverConsistencyGroup,
   solvePrConsistencyGroup, checkPrConsistency,
   solveVentConsistencyGroup, checkVentConsistency,
+  solveSealedAlignmentGroup, checkSealedAlignment,
   terminalRe_ohm, terminalBL_Tm,
 } from './solver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { driveVoltage, driveFromVoltage } from './formulas.js';
+import { solveSignal } from './signal.js';
+import type { SignalSolverQuantities, SignalSolveResult } from './signal.js';
 import { sealedResonance, sourceLoadedQts } from './lossMode.js';
-import { validateParams } from './params.js';
+import { validateParams, checkBoxParams } from './params.js';
+import type { BoxParamsIssue } from './params.js';
 import {
   classifyFinite, classifyFiniteIssues, classifyFlatClamp, classifyMaxFinite,
   maxCurves, passbandRef, rolloffFreq, sweep,
 } from './sweep.js';
 
 import type { Result, Wiring } from './types.js';
-import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
-import type { ConsistencyIssue } from './consistency.js';
+import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
+import type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
+import type { DriverIssue, DriverSolveResult, CalculationIssue } from './consistency.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
-import type { BoxType, SimulatableBoxType, DriverError, EnclosureParams, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
+import type { BoxType, SimulatableBoxType, DriverError, EbpSuitability, EnclosureParams, MaxCurvesResult, SealedAlignmentOption, SweepParams, SweepResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
 
 export class Engine {
@@ -48,6 +54,13 @@ export class Engine {
     return airFor(env);
   }
 
+  /** An entered environment value outside the supported range — normally empty, since every
+   *  `AirEnvironment` field defaults when absent. Reported separately from `airFor()`'s result
+   *  so a caller wanting just `{ rho, c }` is not forced to also read an issues array. */
+  environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
+    return environmentIssues(env);
+  }
+
   // ── THE DRIVER ────────────────────────────────────────────────────────────────────────────
 
   /** Re as the amplifier sees it: N coils of resistance r are r/N in parallel, N·r in series.
@@ -61,18 +74,6 @@ export class Engine {
     return terminalBL_Tm(BL_Tm, numVC, wiring);
   }
 
-  
-
-  /** Whether `field` is one of the interdependent Q values. */
-  isQGroupField(field: string): boolean {
-    return isQGroupField(field);
-  }
-
-  /** Whether too few of the Q group are stated for the rest to follow. */
-  qGroupIsIncomplete(usable: (field: string) => boolean): boolean {
-    return qGroupIsIncomplete(usable);
-  }
-
   // ── CONSISTENCY GROUP SOLVERS ──────────────────────────────────────────────────────────────
 
   /** Solve a driver's stated quantities against each other — the values its T/S group implies.
@@ -81,26 +82,59 @@ export class Engine {
     return solveDriverConsistencyGroup(p);
   }
 
+  /** Everything `p`'s stated values disagree about, or cannot yet solve — an over-specified
+   *  driver whose numbers cannot all be true at once, or an under-specified one missing a
+   *  named dependency. Empty when consistent and fully solvable. `p` is entered values only:
+   *  never feed a value THIS method (or `solveConsistencyGroup`) produced back in as if it had
+   *  been typed, or a computed figure would be compared against itself. */
+  checkConsistency(p: DriverSolverQuantities): DriverIssue[] {
+    return checkConsistency(p);
+  }
+
+  /** The one driver calculation callers should reach for: solved values and their issues,
+   *  from a single call over the same entered input — replaces separately calling
+   *  `solveConsistencyGroup` and `checkConsistency`, which could be handed different
+   *  arguments and so describe two different drivers. */
+  solveDriver(p: DriverSolverQuantities): DriverSolveResult {
+    return solveDriver(p);
+  }
+
   /** Solve the passive-radiator group: whichever of tuning/added-mass the caller did not state,
-   *  plus the system tuning and free-air resonance the chosen mass produces. */
-  solvePrConsistencyGroup(p: PrSolverQuantities): PrSolverQuantities {
-    return solvePrConsistencyGroup(p);
+   *  plus the system tuning and free-air resonance the chosen mass produces. `air` is the
+   *  project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
+  solvePrConsistencyGroup(p: PrSolverQuantities, air: Air): PrSolverQuantities {
+    return solvePrConsistencyGroup(p, air);
   }
 
   /** The stated PR quantities that disagree with each other — over-specified, or a target no
-   *  radiator can reach. Empty when consistent. */
-  checkPrConsistency(p: PrSolverQuantities): ConsistencyIssue[] {
+   *  radiator can reach — or that cannot yet solve because the PR geometry is incomplete.
+   *  Empty when consistent and fully solvable. */
+  checkPrConsistency(p: PrSolverQuantities): PrIssue[] {
     return checkPrConsistency(p);
   }
 
-  /** Solve the vent group: whichever of tuning/length the caller did not state. */
-  solveVentConsistencyGroup(p: VentSolverQuantities): VentSolverQuantities {
-    return solveVentConsistencyGroup(p);
+  /** Solve the vent group: whichever of tuning/length the caller did not state. `air` is the
+   *  project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
+  solveVentConsistencyGroup(p: VentSolverQuantities, air: Air): VentSolverQuantities {
+    return solveVentConsistencyGroup(p, air);
   }
 
-  /** The stated vent quantities that disagree with each other. Empty when consistent. */
-  checkVentConsistency(p: VentSolverQuantities): ConsistencyIssue[] {
+  /** The stated vent quantities that disagree with each other, or that cannot yet solve
+   *  because the vent geometry is incomplete. Empty when consistent and fully solvable. */
+  checkVentConsistency(p: VentSolverQuantities): VentIssue[] {
     return checkVentConsistency(p);
+  }
+
+  /** Solve the sealed-alignment group: whichever of target-`Qtc`/`Vb_m3` the caller did not
+   *  state, from the driver's own `Qts`/`Vas_m3`. */
+  solveSealedAlignmentGroup(p: SealedAlignmentSolverQuantities): SealedAlignmentSolverQuantities {
+    return solveSealedAlignmentGroup(p);
+  }
+
+  /** The stated sealed-alignment quantities that cannot yet solve because `Qts`/`Vas_m3` are
+   *  incomplete. Empty when consistent and fully solvable. */
+  checkSealedAlignment(p: SealedAlignmentSolverQuantities): SealedAlignmentIssue[] {
+    return checkSealedAlignment(p);
   }
 
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
@@ -142,6 +176,28 @@ export class Engine {
     return driveFromVoltage(eg, re);
   }
 
+  /** The drive value the circuit uses, and its issues, from whatever the project states about
+   *  power/voltage/Re/driver count/wiring/series resistance — the unified `{ values, issues }`
+   *  shape, same discipline as `solveDriver()`. The established 1 W reference is a valid,
+   *  complete input, not a missing value. */
+  solveSignal(p: SignalSolverQuantities): SignalSolveResult {
+    return solveSignal(p);
+  }
+
+  /** Every field one `CalculationIssue` names, whichever domain it comes from — the target,
+   *  plus (for `missing-dependencies`) every field any of its routes requires or is still
+   *  missing. One generic answer so a caller never re-derives "does this issue name that
+   *  field" per channel. */
+  issueFields<Q extends string>(issue: CalculationIssue<Q>): readonly Q[] {
+    return issueFields(issue);
+  }
+
+  /** The formula text for one issue — the single formula for `inconsistent-inputs`, or every
+   *  blocked route's formula joined for `missing-dependencies`. */
+  issueFormula<Q extends string>(issue: CalculationIssue<Q>): string {
+    return issueFormula(issue);
+  }
+
   // ── THE BOX ───────────────────────────────────────────────────────────────────────────────
 
   /** Sealed resonance and Qtc under a chosen loss model. Takes `Vas` directly. */
@@ -173,22 +229,24 @@ export class Engine {
     }).Fsc;
   }
 
-  /** A passive radiator's tuning from its own mass and compliance. */
-  prTuning(p: Parameters<typeof prTuning>[0]): number {
-    return prTuning(p);
+  /** A passive radiator's tuning from its own mass and compliance. `air` is the project's own
+   *  resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
+  prTuning(p: Parameters<typeof prTuning>[0], air: Air): number {
+    return prTuning(p, air);
   }
 
   // ── THE BOX: vents ────────────────────────────────────────────────────────────────────────
 
-  /** Port length for a target tuning, from the chamber volume and the port's area. */
-  ventLength(Vb: number, fb: number, Sp: number, endCorrection?: number): number {
-    return ventLength(Vb, fb, Sp, endCorrection);
+  /** Port length for a target tuning, from the chamber volume and the port's area. `air` is the
+   *  project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
+  ventLength(Vb: number, fb: number, Sp: number, air: Air, endCorrection?: number): number {
+    return ventLength(Vb, fb, Sp, air, endCorrection);
   }
 
   /** The tuning a port of that length actually produces — the inverse of `ventLength`. Both
    *  directions exist because the user may enter either, and the other is then solved. */
-  tuningFromLength(Vb: number, L: number, Sp: number, endCorrection?: number): number {
-    return tuningFromLength(Vb, L, Sp, endCorrection);
+  tuningFromLength(Vb: number, L: number, Sp: number, air: Air, endCorrection?: number): number {
+    return tuningFromLength(Vb, L, Sp, air, endCorrection);
   }
 
   /**
@@ -209,6 +267,22 @@ export class Engine {
     return sealedFromQtc(Qts, Vas_m3, Qtc);
   }
 
+  sealedAlignmentOptions(): readonly SealedAlignmentOption[] {
+    return sealedAlignmentOptions();
+  }
+
+  sealedQtcFromVolume(Qts: number, Vas_m3: number, Vb_m3: number): number | null {
+    return sealedQtcFromVolume(Qts, Vas_m3, Vb_m3);
+  }
+
+  closestSealedAlignment(Qtc: number): SealedAlignmentOption {
+    return closestSealedAlignment(Qtc);
+  }
+
+  ebpSuitability(EBP_hz: number): EbpSuitability {
+    return ebpSuitability(EBP_hz);
+  }
+
   /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
   findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null {
     return findImpedancePeak(result, Re);
@@ -216,9 +290,10 @@ export class Engine {
 
   // ── THE PASSIVE RADIATOR ──────────────────────────────────────────────────────────────────
 
-  /** Added cone mass that tunes a radiator to `fp`. */
-  prMassForFp(P: Parameters<typeof prMassForFp>[0], fp: number): number {
-    return prMassForFp(P, fp);
+  /** Added cone mass that tunes a radiator to `fp`. `air` is the project's own resolved
+   *  `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
+  prMassForFp(P: Parameters<typeof prMassForFp>[0], fp: number, air: Air): number {
+    return prMassForFp(P, fp, air);
   }
 
   /** Which of this engine's topologies a box type is, or null when it has no circuit for it —
@@ -264,6 +339,14 @@ export class Engine {
   /** Whether the parameters can be swept at all, and what is wrong if not. */
   validateParams(box: BoxType, P: EnclosureParams): DriverError[] {
     return validateParams(box, P);
+  }
+
+  /** `validateParams()`'s own check, `BoxParamsIssue`-shaped — the unified `CalculationIssue<Q>`
+   *  contract. A separate method, not a replacement: `validateParams()` stays `DriverError[]`
+   *  because `OpenISDProject.sweep()`'s `Result<SweepResult>.errors` needs that shape for every
+   *  OTHER precondition too, not because this one is less real. */
+  checkBoxParams(box: BoxType, P: EnclosureParams): BoxParamsIssue[] {
+    return checkBoxParams(box, P);
   }
 
   /** The passband reference level a response is measured against. */

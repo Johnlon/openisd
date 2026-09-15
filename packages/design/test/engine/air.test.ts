@@ -16,7 +16,7 @@ import { solveConsistencyGroup } from './testSolver.js';
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
+import { Engine, MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K } from '../../engine/index.js';
 import type { SweepParams, DriverSolverQuantities } from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
@@ -186,5 +186,38 @@ describe('the sweep actually consumes humidity and pressure', () => {
     const hot  = { ...BASE, tempK: 303.15 };
     const d = maxAbsDelta(splAt(hot), splAt({ ...hot, useWinisdAirModel: true }));
     assert.ok(d < 0.15, `physical vs WinISD air differ by ${d} dB at 30 °C — far more than the predicted 0.073 dB`);
+  });
+});
+
+describe('environmentIssues — out-of-range entered air inputs', () => {
+  it('returns no issues for a default-only environment', () => {
+    const engine = new Engine();
+    assert.deepEqual(engine.environmentIssues({}), []);
+  });
+
+  it('returns no issues for an entered temperature inside the supported range', () => {
+    const engine = new Engine();
+    assert.deepEqual(engine.environmentIssues({ tempK: 293.15 }), []);
+  });
+
+  it('reports a missing-dependencies issue for an entered temperature below the supported range', () => {
+    const engine = new Engine();
+    const issues = engine.environmentIssues({ tempK: 100 });
+    assert.equal(issues.length, 1);
+    assert.deepEqual(issues[0], {
+      kind: 'missing-dependencies',
+      target: 'tempK',
+      routes: [{
+        formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
+        required: ['tempK'], missing: ['tempK'],
+      }],
+    });
+  });
+
+  it('reports the same shape for an entered temperature above the supported range', () => {
+    const engine = new Engine();
+    const issues = engine.environmentIssues({ tempK: 500 });
+    assert.equal(issues.length, 1);
+    assert.equal(issues[0].target, 'tempK');
   });
 });

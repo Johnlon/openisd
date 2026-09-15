@@ -125,7 +125,7 @@ function isNumKey(f: string): f is NumKey {
 function fieldClasses(key: NumKey, group: UnitGroup | undefined, token: string | undefined): Record<string, boolean> {
   void project.value;
   const cellOf = (f: SpecField): Cell<number> => fieldCell(isNumKey(f) ? f : 'Fs');
-  const mandatory = fieldIsMandatoryAndUnsatisfied(cellOf, key);
+  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.checkConsistency(), key);
   return {
     [cellClassFor(cellOf, key)]: true,
     'de-input-mandatory': mandatory,

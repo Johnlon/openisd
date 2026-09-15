@@ -41,6 +41,11 @@ const END_CORRECTION = 0.732;
 // are computed live at the reference environment — matching production (no stored constant).
 const refRho = (): number => engine.airFor({}).rho;
 const refC = (): number => engine.airFor({}).c;
+// The reference air pair, passed explicitly to every ventLength/tuningFromLength/prTuning/
+// prMassForFp call below — these tests are about the Helmholtz/PR formulas, not air-sensitivity
+// (see boxDesign-air.test.ts for that), so every one of them runs at the same reference
+// condition `refRho()`/`refC()` above already assume.
+const AIR = engine.airFor({});
 
 // ---------------------------------------------------------------------------
 // Test driver: a typical 6.5" mid-woofer — same parameters used throughout
@@ -110,6 +115,28 @@ describe('Efficiency Bandwidth Product (EBP = Fs / Qes)', () => {
 
 describe('Sealed box volume for a target system Q (sealedFromQtc)', () => {
 
+  it('exposes the nine WinISD numeric sealed alignment options with exact labels', () => {
+    assert.deepEqual(engine.sealedAlignmentOptions(), [
+      { qtc: 0.5, label: '0.500 Critically damped' },
+      { qtc: 0.577, label: '0.577 Max flat delay response' },
+      { qtc: 0.707, label: '0.707 Max flat amplitude response' },
+      { qtc: 0.8, label: '0.800 Equal ripple response' },
+      { qtc: 0.9, label: '0.900 Equal ripple response' },
+      { qtc: 1, label: '1.000 Equal ripple response' },
+      { qtc: 1.1, label: '1.100 Equal ripple response' },
+      { qtc: 1.2, label: '1.200 Equal ripple response' },
+      { qtc: 1.5, label: '1.500 Equal ripple response' },
+    ]);
+  });
+
+  it('calculates the closest alignment and EBP suitability through Engine', () => {
+    const volume = engine.sealedFromQtc(DRIVER.Qts, DRIVER.Vas, 0.707);
+    assert.ok(volume !== null);
+    assert.equal(engine.sealedQtcFromVolume(DRIVER.Qts, DRIVER.Vas, volume), 0.707);
+    assert.equal(engine.closestSealedAlignment(0.707).qtc, 0.707);
+    assert.equal(engine.ebpSuitability(engine.ebp(40, 0.45)), 'either');
+  });
+
   // Formula: Qtc = Qts·√(1 + Vas/Vb)  →  Vb = Vas / ((Qtc/Qts)² − 1)
   // Ref: [S72a], [Wiki-TS]
 
@@ -173,7 +200,7 @@ describe('Port / vent length calculation (ventLength)', () => {
   const Sp_m2  = Math.PI * (PORT_D_M / 2) ** 2; // circular port area
 
   it('returns the exact closed form L = Map·Sp/ρ − k·d, with nothing clamped', () => {
-    const L = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2);
+    const L = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2, AIR);
     const Cab = Vb_m3 / (refRho() * refC() * refC());
     const Map = 1 / ((2 * Math.PI * Fb_Hz) ** 2 * Cab);
     const d   = 2 * Math.sqrt(Sp_m2 / Math.PI);
@@ -189,36 +216,36 @@ describe('Port / vent length calculation (ventLength)', () => {
   const CEIL_K  = 0.6;
 
   it('an impossible target returns a NEGATIVE length, not a floored one', () => {
-    const L = engine.ventLength(CEIL_Vb, 90, CEIL_Sp, CEIL_K);
+    const L = engine.ventLength(CEIL_Vb, 90, CEIL_Sp, AIR, CEIL_K);
     assert.ok(L < 0,
       `90 Hz in 30 L through a 5 cm vent needs L = ${(L * 1000).toFixed(2)} mm — must stay negative`);
-    assert.ok(Math.abs(engine.tuningFromLength(CEIL_Vb, L, CEIL_Sp, CEIL_K) - 90) < 1e-9,
+    assert.ok(Math.abs(engine.tuningFromLength(CEIL_Vb, L, CEIL_Sp, AIR, CEIL_K) - 90) < 1e-9,
       'the negative root is still an exact root: tuningFromLength must invert it');
   });
 
   it('the reachable boundary is L = 0 — just below it positive, just above it negative', () => {
-    const ceiling = engine.tuningFromLength(CEIL_Vb, 0, CEIL_Sp, CEIL_K); // 80.79 Hz for this geometry
+    const ceiling = engine.tuningFromLength(CEIL_Vb, 0, CEIL_Sp, AIR, CEIL_K); // 80.79 Hz for this geometry
     assert.ok(Math.abs(ceiling - 80.79) < 0.01, `ceiling ${ceiling.toFixed(4)} Hz`);
-    assert.ok(engine.ventLength(CEIL_Vb, ceiling * 0.999, CEIL_Sp, CEIL_K) > 0,
+    assert.ok(engine.ventLength(CEIL_Vb, ceiling * 0.999, CEIL_Sp, AIR, CEIL_K) > 0,
       'a target just BELOW the ceiling is reachable with a positive length');
-    assert.ok(engine.ventLength(CEIL_Vb, ceiling * 1.001, CEIL_Sp, CEIL_K) < 0,
+    assert.ok(engine.ventLength(CEIL_Vb, ceiling * 1.001, CEIL_Sp, AIR, CEIL_K) < 0,
       'a target just ABOVE the ceiling has no non-negative length');
-    assert.ok(Math.abs(engine.ventLength(CEIL_Vb, ceiling, CEIL_Sp, CEIL_K)) < 1e-12,
+    assert.ok(Math.abs(engine.ventLength(CEIL_Vb, ceiling, CEIL_Sp, AIR, CEIL_K)) < 1e-12,
       'at the ceiling exactly the length is zero');
   });
 
   it('a longer vent results in a lower tuning frequency (Fb ∝ 1/√Leff)', () => {
     // More duct length → more acoustic mass Map → lower resonance frequency.
-    const L_short = engine.ventLength(Vb_m3, 40, Sp_m2); // 40 Hz tuning
-    const L_long  = engine.ventLength(Vb_m3, 25, Sp_m2); // 25 Hz tuning (lower → longer vent)
+    const L_short = engine.ventLength(Vb_m3, 40, Sp_m2, AIR); // 40 Hz tuning
+    const L_long  = engine.ventLength(Vb_m3, 25, Sp_m2, AIR); // 25 Hz tuning (lower → longer vent)
     assert.ok(L_long > L_short,
       `Vent for 25 Hz (${(L_long * 1000).toFixed(0)} mm) should be longer than for 40 Hz (${(L_short * 1000).toFixed(0)} mm)`);
   });
 
   it('the computed vent length, fed back into tuningFromLength, reproduces the target Fb', () => {
     // This is the round-trip test: engine.ventLength() and engine.tuningFromLength() are inverses.
-    const L       = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2);
-    const Fb_back = engine.tuningFromLength(Vb_m3, L, Sp_m2);
+    const L       = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2, AIR);
+    const Fb_back = engine.tuningFromLength(Vb_m3, L, Sp_m2, AIR);
     assert.ok(Math.abs(Fb_back - Fb_Hz) < FREQ_TOLERANCE_HZ,
       `engine.ventLength(${Fb_Hz} Hz) → ${(L * 1000).toFixed(1)} mm → tuningFromLength → ${Fb_back.toFixed(3)} Hz`);
   });
@@ -240,16 +267,16 @@ describe('Port tuning frequency from vent dimensions (tuningFromLength)', () => 
   const Sp_m2   = Math.PI * (PORT_D_M / 2) ** 2;
 
   it('a shorter vent gives a higher tuning frequency', () => {
-    const Fb_short = engine.tuningFromLength(Vb_m3, 0.05, Sp_m2); // 50 mm vent
-    const Fb_long  = engine.tuningFromLength(Vb_m3, 0.20, Sp_m2); // 200 mm vent
+    const Fb_short = engine.tuningFromLength(Vb_m3, 0.05, Sp_m2, AIR); // 50 mm vent
+    const Fb_long  = engine.tuningFromLength(Vb_m3, 0.20, Sp_m2, AIR); // 200 mm vent
     assert.ok(Fb_short > Fb_long,
       `50 mm vent Fb=${Fb_short.toFixed(1)} Hz should be higher than 200 mm vent Fb=${Fb_long.toFixed(1)} Hz`);
   });
 
   it('a larger box with the same vent gives a lower tuning frequency', () => {
     // Larger box → more compliance → lower resonance.
-    const Fb_small = engine.tuningFromLength(0.010, 0.10, Sp_m2); // 10 L box
-    const Fb_large = engine.tuningFromLength(0.040, 0.10, Sp_m2); // 40 L box
+    const Fb_small = engine.tuningFromLength(0.010, 0.10, Sp_m2, AIR); // 10 L box
+    const Fb_large = engine.tuningFromLength(0.040, 0.10, Sp_m2, AIR); // 40 L box
     assert.ok(Fb_small > Fb_large,
       `10 L box Fb=${Fb_small.toFixed(1)} Hz should be higher than 40 L box Fb=${Fb_large.toFixed(1)} Hz`);
   });
@@ -262,7 +289,7 @@ describe('Port tuning frequency from vent dimensions (tuningFromLength)', () => 
     const Cab  = Vb_m3 / (refRho() * refC() * refC());
     const Map  = refRho() * Leff / Sp_m2;
     const EXPECTED_Fb = 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
-    const actual = engine.tuningFromLength(Vb_m3, L_m, Sp_m2);
+    const actual = engine.tuningFromLength(Vb_m3, L_m, Sp_m2, AIR);
     assert.ok(Math.abs(actual - EXPECTED_Fb) < EXACT,
       `actual ${actual.toFixed(6)} Hz vs expected ${EXPECTED_Fb.toFixed(6)} Hz`);
   });
@@ -297,7 +324,7 @@ describe('Passive radiator tuning frequency (prTuning)', () => {
     // 1000 m³ is many orders of magnitude above any real enclosure.
     const VERY_LARGE_BOX = { ...BASE_PR, Vb: 1000 }; // 1000 m³ ≈ acoustically infinite
     const Fs_pr = 1 / (2 * Math.PI * Math.sqrt(BASE_PR.prMmd * BASE_PR.prCms));
-    const Fp    = engine.prTuning(VERY_LARGE_BOX);
+    const Fp    = engine.prTuning(VERY_LARGE_BOX, AIR);
     assert.ok(Fp > Fs_pr,
       `Even in a huge box, Fp=${Fp.toFixed(4)} Hz should still be ≥ Fs_pr=${Fs_pr.toFixed(4)} Hz`);
     assert.ok(Math.abs(Fp - Fs_pr) < FREQ_TOLERANCE_HZ,
@@ -310,7 +337,7 @@ describe('Passive radiator tuning frequency (prTuning)', () => {
     // Less total compliance → higher stiffness → higher resonance frequency.
     // So Fp > Fs_pr for any finite enclosure.
     const Fs_pr = 1 / (2 * Math.PI * Math.sqrt(BASE_PR.prMmd * BASE_PR.prCms));
-    const Fp    = engine.prTuning(BASE_PR);
+    const Fp    = engine.prTuning(BASE_PR, AIR);
     assert.ok(Fp > Fs_pr,
       `In-box Fp=${Fp.toFixed(1)} Hz should be above free-air Fs=${Fs_pr.toFixed(1)} Hz ` +
       `(box stiffness raises resonance)`);
@@ -318,8 +345,8 @@ describe('Passive radiator tuning frequency (prTuning)', () => {
 
   it('adding mass to the PR reduces Fp (more mass → lower resonance)', () => {
     // Map = (Mmd + Madd) / Sd²; more mass → higher Map → lower Fp.
-    const Fp_no_mass  = engine.prTuning({ ...BASE_PR, prMadd: 0 });
-    const Fp_20g_mass = engine.prTuning({ ...BASE_PR, prMadd: 0.020 }); // add 20 g
+    const Fp_no_mass  = engine.prTuning({ ...BASE_PR, prMadd: 0 }, AIR);
+    const Fp_20g_mass = engine.prTuning({ ...BASE_PR, prMadd: 0.020 }, AIR); // add 20 g
     assert.ok(Fp_20g_mass < Fp_no_mass,
       `Adding 20 g lowers Fp from ${Fp_no_mass.toFixed(1)} Hz to ${Fp_20g_mass.toFixed(1)} Hz`);
   });
@@ -343,23 +370,23 @@ describe('PR added-mass auto-tune (prMassForFp)', () => {
 
   it('prMassForFp and prTuning are exact inverses — hitting 30 Hz target', () => {
     const TARGET_FP = 30; // Hz
-    const total     = engine.prMassForFp(PR_PARAMS, TARGET_FP);
-    const achieved  = engine.prTuning({ ...PR_PARAMS, prMadd: total - PR_PARAMS.prMmd });
+    const total     = engine.prMassForFp(PR_PARAMS, TARGET_FP, AIR);
+    const achieved  = engine.prTuning({ ...PR_PARAMS, prMadd: total - PR_PARAMS.prMmd }, AIR);
     assert.ok(Math.abs(achieved - TARGET_FP) < 1e-6,
       `engine.prMassForFp(30 Hz) → Madd=${((total - PR_PARAMS.prMmd) * 1000).toFixed(2)} g → prTuning → ${achieved.toFixed(6)} Hz`);
   });
 
   it('prMassForFp and prTuning are exact inverses — hitting 50 Hz target', () => {
     const TARGET_FP = 50; // Hz — higher target → less mass needed
-    const total     = engine.prMassForFp(PR_PARAMS, TARGET_FP);
-    const achieved  = engine.prTuning({ ...PR_PARAMS, prMadd: total - PR_PARAMS.prMmd });
+    const total     = engine.prMassForFp(PR_PARAMS, TARGET_FP, AIR);
+    const achieved  = engine.prTuning({ ...PR_PARAMS, prMadd: total - PR_PARAMS.prMmd }, AIR);
     assert.ok(Math.abs(achieved - TARGET_FP) < 1e-6,
       `engine.prMassForFp(50 Hz) → prTuning → ${achieved.toFixed(6)} Hz`);
   });
 
   it('a higher target Fp requires less added mass (less mass → higher resonance)', () => {
-    const mass_30Hz = engine.prMassForFp(PR_PARAMS, 30) - PR_PARAMS.prMmd;
-    const mass_50Hz = engine.prMassForFp(PR_PARAMS, 50) - PR_PARAMS.prMmd;
+    const mass_30Hz = engine.prMassForFp(PR_PARAMS, 30, AIR) - PR_PARAMS.prMmd;
+    const mass_50Hz = engine.prMassForFp(PR_PARAMS, 50, AIR) - PR_PARAMS.prMmd;
     assert.ok(mass_30Hz > mass_50Hz,
       `30 Hz needs ${(mass_30Hz * 1000).toFixed(1)} g > 50 Hz needs ${(mass_50Hz * 1000).toFixed(1)} g`);
   });
@@ -413,4 +440,3 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
     assert.ok(Math.abs(peak.Qtc - 0.481) < 0.01, `Expected Qtc near 0.481, got ${peak.Qtc}`);
   });
 });
-

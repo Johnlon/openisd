@@ -5,7 +5,6 @@ import { formatInUnit } from '../../logic/appState.js';
 import { useFocusedProject } from '../../logic/focusedProjectContext.js';
 import { presentationState } from '../../logic/presentationState.js';
 import { useApp } from '../../logic/app.js';
-import { referenceRho, referenceC } from '../../logic/environment.js';
 import { openDriverDraft } from '../../logic/driverDraft.js';
 import { specFieldHandle } from '../../logic/driverSpecFields.js';
 import { readDriverFileText } from '../../logic/driverFileText.js';
@@ -357,20 +356,24 @@ const chartBlockingReasons = computed<string[]>(() => {
   // domain no longer separates "blocks the chart" from "is inconsistent" — `errors()` is gone and
   // `checkConsistency()` is what remains, so every inconsistency reads as chart-blocking here.
   // Whether any of them should actually block a chart is a product question, not a rename.
-  const reasons = draftDriver.value.checkConsistency()
-    .map(i => `${i.formula}: ${i.target} is ${i.actual}, the others imply ${i.expected}`);
+  //
+  // `issues.value` (above) is the SAME solve result `dqNote`/`mandatory` read — a
+  // `missing-dependencies` issue (e.g. Qts needing Qes/Qms) already appears here without a
+  // separate `fieldIsMandatoryAndUnsatisfied(...)` call; that check now exists only to mark
+  // the individual FIELD, not to decide whether the group blocks the chart.
+  const reasons = issues.value.map(i => i.kind === 'inconsistent-inputs'
+    ? `${i.formula}: ${i.target} is ${i.actual}, the others imply ${i.expected}`
+    : `${i.target} cannot be calculated yet — needs ${i.routes.map(r => r.missing.join(', ')).join(' or ')}`);
   const mandatoryFields = ['Fs', 'Vas', 'Re', 'Sd'];
   for (const field of mandatoryFields) {
     if (cellOf(field).state === 'not-available') reasons.push(`${field} is not set`);
   }
-  if (fieldIsMandatoryAndUnsatisfied(cellOf, 'Qts')) {
-    reasons.push('Qts, Qes and Qms do not form a solvable group');
-  }
   return reasons;
 });
 
-// The domain object already answers this — see OgTune.vue.
-const mandatory = (field: string) => fieldIsMandatoryAndUnsatisfied(cellOf, field);
+// The domain object already answers this, through the same `issues` this component reads
+// everywhere else — see OgTune.vue.
+const mandatory = (field: string) => fieldIsMandatoryAndUnsatisfied(issues.value, field);
 
 function ebpVal(): number | null {
   const _ = trigger.value;
@@ -870,11 +873,11 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-cols">
               <div class="de-fld value-c" data-field-key="c" :title="fieldHelp('c')">
                 <label>c</label>
-                <input type="text" readonly :value="formatInUnit(referenceC(), 'c', 'velocity', 'mps', 2)"><UnitToggle field="c" group="velocity" base="mps" unit-class="u" />
+                <input type="text" readonly :value="formatInUnit(cellVal('c'), 'c', 'velocity', 'mps', 2)"><UnitToggle field="c" group="velocity" base="mps" unit-class="u" />
               </div>
               <div class="de-fld value-c" data-field-key="roo" :title="fieldHelp('roo')">
                 <label>roo</label>
-                <input type="text" readonly :value="formatInUnit(referenceRho(), 'roo', 'density', 'kgPerM3', 5)"><UnitToggle field="roo" group="density" base="kgPerM3" unit-class="u" />
+                <input type="text" readonly :value="formatInUnit(cellVal('roo'), 'roo', 'density', 'kgPerM3', 5)"><UnitToggle field="roo" group="density" base="kgPerM3" unit-class="u" />
               </div>
             </div>
           </div>

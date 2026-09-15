@@ -20,12 +20,22 @@ export {
   DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA,
   MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K,
 } from './air.js';
-export type { Air, AirEnvironment, AirConstantProvider } from './air.js';
-export type { ConsistencyIssue } from './consistency.js';
+export type { Air, AirEnvironment, AirConstantProvider, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
+export type { CalculationIssue, SolveRoute, DriverQuantityName, DriverIssue, DriverSolveResult } from './consistency.js';
 export type {
-  BoxType, SimulatableBoxType, DriverError, Filter, FilterType, MaxCurvesResult, Wiring,
+  SweepOutputName, CalculationPrerequisite, DriverPrerequisite, SealedAlignmentPrerequisite,
+  VentPrerequisite, PrPrerequisite, BoxParamsPrerequisite, SignalPrerequisite,
+  EnvironmentPrerequisite, ConfigurationPrerequisite,
+} from './consistency.js';
+export type {
+  BoxType, SimulatableBoxType, DriverError, EbpSuitability, Filter, FilterType, MaxCurvesResult,
+  SealedAlignmentOption, Wiring,
   EnclosureParams, Result, SweepParams, SweepResult,
 } from './types.js';
+export type { BoxParamsQuantityName, BoxParamsIssue } from './params.js';
+export type { SignalSolverQuantities, SignalQuantityName, SignalIssue, SignalSolveResult } from './signal.js';
+export type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
+export type { SealedAlignmentSolverQuantities } from './solverQuantities.js';
 // What the solver is GIVEN and what it RETURNS, which are one shape. A TYPE export: nothing
 // constructs a `DriverSolverQuantities` — a caller writes an object literal and the solver hands one
 // back — so exporting the class as a VALUE would put a constructor on the engine's surface that

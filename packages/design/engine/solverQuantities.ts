@@ -31,3 +31,10 @@ export interface VentSolverQuantities {
     area_m2?: number;
     endCorrection_m?: number;
 }
+
+export interface SealedAlignmentSolverQuantities {
+    Qts?: number;
+    Vas_m3?: number;
+    Qtc?: number;
+    Vb_m3?: number;
+}
