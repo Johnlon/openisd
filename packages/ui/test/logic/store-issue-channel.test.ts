@@ -122,4 +122,39 @@ describe('the store unions every hardening layer into one issue list', () => {
       assert.match(failure.message, new RegExp(field));
     }
   });
+
+  it('a driver with neither Pe nor Xmax reports maxSPL/maxPower as unbounded advisories, '
+   + 'never as blocking errors (QO143)', async () => {
+    newProject();
+    requireFocusedProject().box.boxType.set('vented');
+    requireFocusedProject().driver.spec.woofer.Fs_hz.set(37);
+    requireFocusedProject().driver.spec.woofer.Qts.set(0.378);
+    requireFocusedProject().driver.spec.woofer.Qes.set(0.40);
+    requireFocusedProject().driver.spec.woofer.Qms.set(7.0);
+    requireFocusedProject().driver.spec.woofer.Vas_m3.set(0.0300);
+    requireFocusedProject().driver.spec.woofer.Sd_m2.set(0.0133);
+    requireFocusedProject().driver.spec.woofer.Re_ohm.set(5.6);
+    requireFocusedProject().driver.spec.woofer.Le_H.set(0.70e-3);
+    requireFocusedProject().driver.spec.woofer.Znom_ohm.set(8);
+    // Pe_W and Xmax_m deliberately left unstated.
+    requireFocusedProject().box.vented.volume_m3.set(0.030);
+    requireFocusedProject().box.vented.tuning_hz.set(37);
+    requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
+
+    // `sweepErrors`'s re-sweep is throttled (`scheduleSweep`, `SWEEP_MS` — docs/design/
+    // REACTIVITY.md): this test's burst of synchronous `.set()` calls lands well inside one
+    // throttle window, so it must wait past it before `allIssues` reflects the final state —
+    // exactly as a real user's edits, spread over multiple frames, naturally would.
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const debugSw = requireFocusedProject().sweep({fmin:10, fmax:20000});
+    assert.deepEqual(allIssues.value.filter(e => e.level === 'error'), [],
+      'unbounded is a valid answer, not a blocking error');
+    const maxsplWarn = allIssues.value.find(e => e.field === 'maxspl' && e.level === 'warn');
+    const maxpwrWarn = allIssues.value.find(e => e.field === 'maxpwr' && e.level === 'warn');
+    assert.ok(maxsplWarn, 'maxspl must carry an unbounded advisory');
+    assert.ok(maxpwrWarn, 'maxpwr must carry an unbounded advisory');
+    assert.match(maxsplWarn.message, /Pe_W/);
+    assert.match(maxsplWarn.message, /Xmax_m/);
+  });
 });

@@ -2760,7 +2760,7 @@ export class OpenISDProject {
     maxCurves(P: FrequencyGrid): MaxCurvesSolveResult {
         const box = this.#engineBoxType();
         const params = box ? this.#sweepParams(P) : null;
-        if (!box || !params) return {values: null, issues: []};
+        if (!box || !params) return {values: null, issues: [], driverPrerequisites: []};
         return this.#engine.maxCurves(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
 

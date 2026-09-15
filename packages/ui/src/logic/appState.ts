@@ -16,7 +16,7 @@
 import { computed, ref, shallowRef, triggerRef, watch, type Ref, type ShallowRef } from 'vue';
 import { Engine } from '@openisd/design/engine';
 import type { DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
-import { sweepIssueMessage } from './sweepIssueMessage.js';
+import { sweepIssueMessage, driverPrerequisiteMessage } from './sweepIssueMessage.js';
 import {
   OpenISDPassiveRadiatorStandalone,
   OpenISDProject, type DiscardChallenge,
@@ -331,7 +331,10 @@ const doSweep = () => {
   // twice. Projected through `sweepIssueMessage` first — the engine's `SweepIssue` (QO142) is
   // structured (`CalculationIssue<Q>`), not the `DriverError` shape this channel already renders.
   sweepErrors.value = [...new Map(
-    [...sw.issues, ...mx.issues].map(sweepIssueMessage).map(e => [`${e.field ?? ''}|${e.message}`, e]),
+    [
+      ...[...sw.issues, ...mx.issues].map(sweepIssueMessage),
+      ...mx.driverPrerequisites.map(driverPrerequisiteMessage),
+    ].map(e => [`${e.field ?? ''}|${e.message}`, e]),
   ).values()];
 };
 doSweep();

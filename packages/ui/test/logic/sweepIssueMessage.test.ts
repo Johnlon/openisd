@@ -7,8 +7,8 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { sweepIssueMessage } from '../../src/logic/sweepIssueMessage.js';
-import type { SweepIssue } from '@openisd/design/engine';
+import { sweepIssueMessage, driverPrerequisiteMessage } from '../../src/logic/sweepIssueMessage.js';
+import type { SweepIssue, DriverPrerequisite } from '@openisd/design/engine';
 
 describe('sweepIssueMessage — SweepIssue projected to a DriverError for the existing UI channel', () => {
   it('a missing-dependencies issue names its target field and what would unblock it', () => {
@@ -39,5 +39,16 @@ describe('sweepIssueMessage — SweepIssue projected to a DriverError for the ex
     assert.match(error.message, /Qes/);
     assert.match(error.message, /Qms/);
     assert.match(error.message, /32/);
+  });
+});
+
+describe('driverPrerequisiteMessage — DriverPrerequisite projected to a non-blocking DriverError', () => {
+  it('names the output and what would bound it, at warn level — not a blocking error (QO143)', () => {
+    const prereq: DriverPrerequisite = { output: 'maxspl', missing: ['Pe_W', 'Xmax_m'] };
+    const error = driverPrerequisiteMessage(prereq);
+    assert.equal(error.level, 'warn');
+    assert.equal(error.field, 'maxspl');
+    assert.match(error.message, /Pe_W/);
+    assert.match(error.message, /Xmax_m/);
   });
 });

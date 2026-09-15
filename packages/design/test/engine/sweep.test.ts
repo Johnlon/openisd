@@ -166,6 +166,40 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
     assert(maxpwr.every(v => Number.isFinite(v) && v > 0),
       'Max-power must be finite and positive (Pe-limited), not 0');
   });
+
+  it('neither Pe nor Xmax stated → maxspl/maxpwr are genuinely unbounded, reported as a '
+   + "driverPrerequisites advisory naming both fields — never as a blocking issue (QO143: "
+   + "Infinity here is a correct answer, not a gap)", () => {
+    const drvNeither = solveConsistencyGroup({
+      Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
+      Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6,
+    });
+
+    const result = engine.maxCurves(drvNeither, LE_H, BOX, {
+      Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
+    });
+
+    assert.equal(result.issues.length, 0, 'unbounded is a valid answer, not a blocking issue');
+    assert(result.values!.maxspl.every(v => v === Infinity), 'maxspl is genuinely unbounded');
+    assert(result.values!.maxpwr.every(v => v === Infinity), 'maxpwr is genuinely unbounded');
+    assert.deepEqual(result.driverPrerequisites, [
+      { output: 'maxspl', missing: ['Pe_W', 'Xmax_m'] },
+      { output: 'maxpwr', missing: ['Pe_W', 'Xmax_m'] },
+    ]);
+  });
+
+  it('Xmax stated but Pe absent → bounded by Xmax alone, no driverPrerequisites advisory', () => {
+    const drvXmaxOnly = solveConsistencyGroup({
+      Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
+      Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.005,
+    });
+
+    const result = engine.maxCurves(drvXmaxOnly, LE_H, BOX, {
+      Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
+    });
+
+    assert.deepEqual(result.driverPrerequisites, []);
+  });
 });
 
 // ── classifyFinite — the sweep-finiteness postcondition (hardening) ──────────

@@ -1,4 +1,4 @@
-import type { DriverError, SweepIssue } from '@openisd/design/engine';
+import type { DriverError, SweepIssue, DriverPrerequisite } from '@openisd/design/engine';
 
 /** A near-miss needs its decimal to be readable; a gross one is quoted whole. */
 function pct(relative: number): string {
@@ -26,5 +26,20 @@ export function sweepIssueMessage(issue: SweepIssue): DriverError {
     level: 'error',
     field: issue.target,
     message: `${issue.target} cannot be calculated yet — state ${routes}.`,
+  };
+}
+
+/**
+ * Project one `DriverPrerequisite` — a curve that drew a genuinely correct but UNBOUNDED
+ * answer (e.g. maxSPL/maxPower with neither `Pe` nor `Xmax` stated) — onto the same
+ * `DriverError` shape, at `warn` rather than `error`: nothing is broken, so nothing should
+ * block the chart, but the user should still be told what would give the curve a limit
+ * (QO143, 2026-09-15).
+ */
+export function driverPrerequisiteMessage(prereq: DriverPrerequisite): DriverError {
+  return {
+    level: 'warn',
+    field: prereq.output,
+    message: `${prereq.output} is unbounded — state ${prereq.missing.join(' or ')} to give it a limit.`,
   };
 }

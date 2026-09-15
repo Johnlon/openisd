@@ -247,22 +247,32 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
     assert.equal(issue.level, 'error', 'nothing usable came out, so no chart should be drawn');
   });
 
-  it('the Max-SPL / Max-power pair is classified too, not only the sweep', () => {
-    // A driver with neither Pe nor Xmax has no limit to apply, so maxCurves is Infinity
-    // everywhere — while the sweep it derives from is entirely finite. classifyFinite
-    // cannot see this; it is a separate output with its own postcondition.
+  it('the Max-SPL / Max-power pair going to +Infinity (no Pe, no Xmax) is NOT flagged by '
+   + 'classifyMaxFinite — QO143 (2026-09-15): unbounded is a correct answer, not a breakdown; '
+   + 'the engine\'s own driverPrerequisites advisory covers this case instead (sweep.test.ts)', () => {
+    // A driver with neither Pe nor Xmax has no limit to apply, so maxCurves is +Infinity
+    // everywhere — while the sweep it derives from is entirely finite. This used to be
+    // classified as an unusable-chart error; QO143 reversed that: +Infinity here means
+    // "nothing limits it yet", a real answer, so classifyMaxFinite must stay quiet and let
+    // `maxCurves()`'s own `driverPrerequisites` name what would bound it instead.
     const noLimits = solveConsistencyGroup({ Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 });
-    assert.ok(noLimits, 'a driver without Pe/Xmax is valid — those are warns, not errors');
+    assert.ok(noLimits, 'a driver without Pe/Xmax is valid — those are advisories, not errors');
     const sw = engine.sweep(noLimits, LE_H, 'sealed', P_SEALED).values!;
     const mx = engine.maxCurves(noLimits, LE_H, 'sealed', P_SEALED).values!;
 
     assert.equal(engine.classifyFinite(sw), null, 'the sweep itself is fine — this is why a second check is needed');
-    assert.ok(mx.maxspl.every(v => !Number.isFinite(v)), 'precondition of this test: maxspl is unbounded');
+    assert.ok(mx.maxspl.every(v => v === Infinity), 'precondition of this test: maxspl is genuinely unbounded, not NaN');
 
+    assert.equal(engine.classifyMaxFinite(mx), null,
+      'a genuinely unbounded (not broken) curve must not be classified as a postcondition failure');
+  });
+
+  it('classifyMaxFinite still reports a genuine NaN breakdown as an error — only +Infinity is exempt', () => {
+    const mx = engine.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!;
+    for (let i = 0; i < mx.maxspl.length; i++) { mx.maxspl[i] = NaN; mx.maxpwr[i] = NaN; }
     const issue = engine.classifyMaxFinite(mx);
-    assert.ok(issue, 'unbounded max curves must not reach a chart silently');
-    assert.equal(issue.level, 'error', 'no finite point at any frequency means nothing to draw');
-    assert.match(issue.message, /Pe|Xmax/, 'the message must name the parameters that would bound the curve');
+    assert.ok(issue, 'NaN everywhere is still a genuine breakdown, unlike a deliberate +Infinity');
+    assert.equal(issue.level, 'error');
   });
 
   it('max curves of a driver with both limits are clean', () => {

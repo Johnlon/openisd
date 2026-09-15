@@ -22,7 +22,7 @@ import { applyFilters } from './filters.js';
 import type { BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
 import type { DriverSolverQuantities } from './solverQuantities.js';
 import type { CircuitQuantities } from './circuit.js';
-import type { DriverQuantityName, DriverIssue } from './consistency.js';
+import type { DriverQuantityName, DriverIssue, DriverPrerequisite } from './consistency.js';
 import type { EnvironmentIssue } from './air.js';
 import type { BoxParamsIssue } from './params.js';
 
@@ -42,10 +42,15 @@ export interface SweepSolveResult {
   readonly issues: readonly SweepIssue[];
 }
 
-/** The unified max-curves result — same shape as `SweepSolveResult`, over `MaxCurvesResult`. */
+/** The unified max-curves result — same shape as `SweepSolveResult`, over `MaxCurvesResult`, plus
+ *  `driverPrerequisites`: neither `Pe_W` nor `Xmax_m` stated is NOT a blocking issue — `maxspl`/
+ *  `maxpwr` going to `Infinity` is the mathematically correct answer (nothing limits them), not a
+ *  gap. QO143 (2026-09-15): report it as its own advisory, separate from `issues`, naming exactly
+ *  what would bound the curve — never silently, and never as a false "cannot be calculated". */
 export interface MaxCurvesSolveResult {
   readonly values: MaxCurvesResult | null;
   readonly issues: readonly SweepIssue[];
+  readonly driverPrerequisites: readonly DriverPrerequisite[];
 }
 
 /** SPL below this is the "no output" sentinel sweep() writes where |p| = 0, not a real level. */
@@ -326,25 +331,35 @@ export function classifyFlatClamp(sw: SweepResult): DriverError | null {
  */
 export function maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
   const swept = sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83 }));
-  if (swept.values === null) return { values: null, issues: swept.issues };
+  if (swept.values === null) return { values: null, issues: swept.issues, driverPrerequisites: [] };
   const base = swept.values;
   const Pe   = (drv.Pe_W != null && drv.Pe_W > 0) ? drv.Pe_W * (P.nDrivers || 1) : null;
   // The power reference is Re, not Znom — and the TERMINAL Re, because the amplifier drives the
   // coils as they are wired. `sweep` above already refused a driver without it, so this is a
   // narrowing, not an assumption.
   const Re   = drv.Re_terminal_ohm;
-  if (Re === undefined) return { values: null, issues: swept.issues };
+  if (Re === undefined) return { values: null, issues: swept.issues, driverPrerequisites: [] };
+  const xmaxUsable = drv.Xmax_m != null && drv.Xmax_m > 0;
   const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];
   for (let i = 0; i < base.fs.length; i++) {
     const excAt283 = base.exc[i] / 1000;
-    const vXmax = (excAt283 > 0 && drv.Xmax_m != null && drv.Xmax_m > 0) ? 2.83 * (drv.Xmax_m / excAt283) : Infinity;
+    const vXmax = (excAt283 > 0 && xmaxUsable) ? 2.83 * (drv.Xmax_m! / excAt283) : Infinity;
     const vPe   = Pe != null ? Math.sqrt(Pe * Re) : Infinity;
     const vUse  = Math.min(vXmax, vPe);
     maxspl.push(base.spl[i] + 20 * Math.log10(vUse / 2.83));
     maxpwr.push(vUse * vUse / Re);
     xlim.push(vXmax < vPe);
   }
-  return { values: { fs: base.fs, maxspl, maxpwr, xlim, peAbsent: Pe == null }, issues: [] };
+  // Neither limit stated → vUse is Infinity at every point: a correct answer (unbounded), not a
+  // gap, so it is never reported through `issues` — only as this advisory (QO143).
+  const unbounded = Pe == null && !xmaxUsable;
+  const driverPrerequisites: DriverPrerequisite[] = unbounded
+    ? [
+        { output: 'maxspl', missing: ['Pe_W', 'Xmax_m'] },
+        { output: 'maxpwr', missing: ['Pe_W', 'Xmax_m'] },
+      ]
+    : [];
+  return { values: { fs: base.fs, maxspl, maxpwr, xlim, peAbsent: Pe == null }, issues: [], driverPrerequisites };
 }
 
 /**
@@ -397,16 +412,17 @@ export function classifyFiniteIssues(sw: SweepResult): DriverError[] {
  * `classifyFinite` cannot cover it: `MaxCurvesResult` is computed AFTER the sweep it is
  * derived from, and can be non-finite while every sweep array is perfectly finite. The
  * reachable case is a driver with NEITHER `Pe` NOR `Xmax`: `maxCurves` then has no limit
- * to apply, `vUse = min(Infinity, Infinity)`, and `maxspl`/`maxpwr` are `Infinity` at
- * every frequency — which propagates into the chart's own `ymax` scaling and takes the
- * axis with it. `maxCurves` reports `peAbsent` when the power line alone is missing; that is a
- * different statement from "these two charts have no drawable value at all".
+ * to apply, `vUse = min(Infinity, Infinity)`, and `maxspl`/`maxpwr` are `+Infinity` at every
+ * frequency. QO143 (2026-09-15): that is a CORRECT answer — nothing limits the curve yet —
+ * not a breakdown, so it is deliberately exempted here (`allowPositiveInfinity`) and reported
+ * instead as `maxCurves()`'s own `driverPrerequisites` advisory, never as this postcondition's
+ * error. A genuine breakdown (NaN, or `-Infinity`) is still reported exactly as before.
  */
 export function classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
   return classifyArrays(mx.fs, [
     { label: 'maximum SPL', values: mx.maxspl },
     { label: 'maximum power', values: mx.maxpwr },
-  ], 'maxCurves');
+  ], 'maxCurves', { allowPositiveInfinity: true });
 }
 
 /**
@@ -418,11 +434,15 @@ export function classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
  */
 interface PlottedArray { readonly label: string; readonly values: number[] }
 
-function classifyArrays(fs: number[], arrays: readonly PlottedArray[], field: string): DriverError | null {
+function classifyArrays(
+  fs: number[], arrays: readonly PlottedArray[], field: string,
+  opts: { allowPositiveInfinity: boolean } = { allowPositiveInfinity: false },
+): DriverError | null {
+  const isBad = (v: number): boolean => opts.allowPositiveInfinity ? (Number.isNaN(v) || v === -Infinity) : !Number.isFinite(v);
   const badIdx = new Set<number>();
   for (const arr of arrays)
     for (let i = 0; i < arr.values.length; i++)
-      if (!Number.isFinite(arr.values[i])) badIdx.add(i);
+      if (isBad(arr.values[i])) badIdx.add(i);
   if (badIdx.size === 0) return null;
 
   // Test on the whole grid, not on the headline series alone: `spl` carries a finite
@@ -430,7 +450,7 @@ function classifyArrays(fs: number[], arrays: readonly PlottedArray[], field: st
   // NaN but spl=−200), so "the primary series has a finite point" is not enough to call
   // the result usable.
   if (badIdx.size === fs.length) {
-    const failed = arrays.filter(arr => arr.values.every(value => !Number.isFinite(value))).map(arr => arr.label);
+    const failed = arrays.filter(arr => arr.values.every(isBad)).map(arr => arr.label);
     return {
       level: 'error',
       field,
