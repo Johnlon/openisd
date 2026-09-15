@@ -14,10 +14,20 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { allIssues, paramIssues, requireFocusedProject, newProject } from '../../src/logic/appState.js';
+import { allIssues, paramIssues, curvesData, requireFocusedProject, newProject } from '../../src/logic/appState.js';
+
+/** `sweepErrors`'s re-sweep is throttled (`scheduleSweep`, `SWEEP_MS` — docs/design/
+ *  REACTIVITY.md): a burst of synchronous `.set()`/`.clear()` calls lands well inside one
+ *  throttle window, so a test that needs `allIssues` to reflect them must wait past it —
+ *  exactly as a real user's edits, spread over multiple frames, naturally would. Reading
+ *  `allIssues.value` synchronously right after a change proves nothing either way: a
+ *  test that never awaits this can pass whether or not the channel ever actually recomputed. */
+async function awaitSweepThrottle(): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, 50));
+}
 
 describe('the store unions every hardening layer into one issue list', () => {
-  it('a fully specified design is clean — no layer reports a false positive', () => {
+  it('a fully specified design is clean — no layer reports a false positive', async () => {
     newProject();
     requireFocusedProject().box.boxType.set('vented');
     requireFocusedProject().driver.spec.woofer.Fs_hz.set(37);
@@ -32,8 +42,13 @@ describe('the store unions every hardening layer into one issue list', () => {
     requireFocusedProject().driver.spec.woofer.Pe_W.set(60);
     requireFocusedProject().driver.spec.woofer.Znom_ohm.set(8);
     requireFocusedProject().box.vented.volume_m3.set(0.030);
+    requireFocusedProject().box.vented.tuning_hz.set(37);
     requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
+    await awaitSweepThrottle();
 
+    // Proves this reflects a genuinely fresh, successful sweep — not a vacuously-empty
+    // channel that was never recomputed at all (an empty array passes either way).
+    assert.ok(curvesData.value, 'a valid design must have actually produced curves');
     assert.deepEqual(allIssues.value.filter(e => e.level === 'error'), [],
       'a complete driver must derive without a blocking error');
     assert.deepEqual(paramIssues.value, [], 'a sized box must raise no parameter issue');
@@ -94,12 +109,32 @@ describe('the store unions every hardening layer into one issue list', () => {
     assert.deepEqual(paramIssues.value, [], 'fixing the input must retract the issue');
   });
 
-  it('carries one sweep circuit failure per missing driver value, not one combined message', () => {
+  it('carries one sweep circuit failure per missing driver value, not one combined message', async () => {
     // QO144 (2026-09-15): the sweep no longer combines every missing circuit field into one
     // message with a cross-field substitution suggestion — each missing field is its own issue,
     // naming exactly that field, so the user knows precisely what to state.
+    //
+    // Proven as a LIVE TRANSITION (valid → broken), not by clearing fields on a brand-new blank
+    // project: a blank project already has every circuit field missing before any `.clear()`
+    // call runs, so asserting on the post-clear state alone cannot tell a genuinely reactive
+    // channel apart from one that never recomputed at all — both would show the same
+    // "everything missing" result. Starting from a project already proven clean makes the
+    // failure this test asserts on only reachable if the sweep actually re-ran.
     newProject();
+    requireFocusedProject().box.boxType.set('sealed');
     const driver = requireFocusedProject().driver.spec.woofer;
+    driver.Fs_hz.set(37);
+    driver.Re_ohm.set(5.6);
+    driver.Qts.set(0.378);
+    driver.Qes.set(0.40);
+    driver.Qms.set(7.0);
+    driver.Vas_m3.set(0.0300);
+    driver.Sd_m2.set(0.0133);
+    requireFocusedProject().box.sealed.volume_m3.set(0.030);
+    await awaitSweepThrottle();
+    assert.deepEqual(allIssues.value.filter(e => e.level === 'error'), [],
+      'precondition: the circuit must be genuinely valid before this test breaks it');
+
     driver.Fs_hz.clear();
     driver.Re_ohm.clear();
     driver.Qts.clear();
@@ -107,18 +142,11 @@ describe('the store unions every hardening layer into one issue list', () => {
     driver.Qms.clear();
     driver.Vas_m3.clear();
     driver.Sd_m2.clear();
-    driver.Dd_m.clear();
-    driver.BL_Tm.clear();
-    driver.Mms_kg.clear();
-    driver.Cms_m_per_N.clear();
-    driver.Rms_kg_per_s.clear();
-    driver.EBP_hz.clear();
-    driver.no.clear();
-    driver.Rme_kg_per_s.clear();
+    await awaitSweepThrottle();
 
     for (const field of ['Sd_m2', 'Re_terminal_ohm', 'BL_terminal_Tm', 'Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s']) {
       const failure = allIssues.value.find(issue => issue.field === field);
-      assert.ok(failure, `the sweep failure for ${field} must reach allIssues`);
+      assert.ok(failure, `the sweep failure for ${field} must reach allIssues; got: ${allIssues.value.map(e => e.field).join(', ')}`);
       assert.match(failure.message, new RegExp(field));
     }
   });
@@ -141,13 +169,8 @@ describe('the store unions every hardening layer into one issue list', () => {
     requireFocusedProject().box.vented.tuning_hz.set(37);
     requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
 
-    // `sweepErrors`'s re-sweep is throttled (`scheduleSweep`, `SWEEP_MS` — docs/design/
-    // REACTIVITY.md): this test's burst of synchronous `.set()` calls lands well inside one
-    // throttle window, so it must wait past it before `allIssues` reflects the final state —
-    // exactly as a real user's edits, spread over multiple frames, naturally would.
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await awaitSweepThrottle();
 
-    const debugSw = requireFocusedProject().sweep({fmin:10, fmax:20000});
     assert.deepEqual(allIssues.value.filter(e => e.level === 'error'), [],
       'unbounded is a valid answer, not a blocking error');
     const maxsplWarn = allIssues.value.find(e => e.field === 'maxspl' && e.level === 'warn');
