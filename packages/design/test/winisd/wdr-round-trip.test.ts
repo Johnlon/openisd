@@ -7,20 +7,24 @@
  *
  * Byte equality needs no list of which fields to check, and so cannot be wrong about one.
  *
- * 🔒 ORACLE: `drivers/sample/winisd/` — every file there was written by WinISD.
+ * 🔒 ORACLE: `drivers/myprobes/` — every file there was written by WinISD.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, sep } from 'node:path';
 import { WinISDDriver } from '@openisd/design/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
+const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'myprobes');
 
-const files = readdirSync(SAMPLES)
+const files = readdirSync(SAMPLES, { recursive: true })
+  .map(f => f.toString())
   .filter(f => f.endsWith('.wdr'))
+  // `inconsistencies/` is deliberately-authored probe data, not written by WinISD — outside
+  // this suite's oracle claim even though it happens to be valid, round-trippable .wdr text.
+  .filter(f => !f.startsWith('inconsistencies' + sep))
   .filter(f => /\[Driver\]/.test(readFileSync(join(SAMPLES, f), 'utf8')));
 
 describe('a .wdr survives fromWdrIni → toWdr byte for byte', () => {
@@ -63,7 +67,7 @@ describe('a .wdr survives fromWdrIni → toWdr byte for byte', () => {
  * the file, while slot 10 went on claiming a value was entered — and it would break the byte
  * comparison against WinISD's own output that the projection work depends on.
  *
- * Recorded in `drivers/sample/PARSTATE-FINDINGS.md` §"WinISD save bugs".
+ * Recorded in `drivers/mysamples/PARSTATE-FINDINGS.md` §"WinISD save bugs".
  */
 describe('an Xlim= line is not part of the format', () => {
   it('no file WinISD wrote contains one', () => {
@@ -73,7 +77,7 @@ describe('an Xlim= line is not part of the format', () => {
   });
 
   it('the slot-10 mark survives, which is all there is to survive', () => {
-    const src = readFileSync(join(SAMPLES, 's-xlim-123.wdr'), 'utf8');
+    const src = readFileSync(join(SAMPLES, 'per_field_and_misc', 's-xlim-123.wdr'), 'utf8');
     const parState = (t: string): string =>
       t.split(/\r?\n/).find(l => l.startsWith('ParState='))!.slice('ParState='.length);
 

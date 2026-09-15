@@ -10,7 +10,7 @@
  * Seam: `WinISDDriver.fromWdrIni(text)` → `winISDDriverToOpenISDDeviceJson(wdr)` →
  * `conformingRecordToDriver(record, engine)`.
  *
- * 🔒 ORACLE: `drivers/sample/winisd/inconsistency-test-qts-C.wdr` is a genuine WinISD save
+ * 🔒 ORACLE: `drivers/mysamples/winisd/inconsistency-test-qts-C.wdr` is a genuine WinISD save
  * (WINISD_SCHEMA.md consistency-check experiment 2026-06-28) that states `Qts=0.500` but marks
  * ParState slot 14 `C` (WinISD computed it, not the human) — its own comment records the
  * correct value as "~0.358", i.e. Qes·Qms/(Qes+Qms) = 0.38·6.2/(0.38+6.2) = 0.3580547...
@@ -29,7 +29,7 @@ import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndW
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WDR_TEXT = readFileSync(
-  join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'inconsistency-test-qts-C.wdr'),
+  join(here, '..', '..', '..', '..', 'drivers', 'myprobes', 'inconsistencies', 'inconsistency-test-qts-C.wdr'),
   'utf8',
 );
 

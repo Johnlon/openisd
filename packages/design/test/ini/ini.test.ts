@@ -22,7 +22,7 @@ import { parseIni, stringifyIni } from '@openisd/design/ini';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const GOLDENS_DIR = join(here, '..', 'winisd', 'fixtures', 'winisd-parity', 'goldens');
-const SAMPLE_WINISD_DIR = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
+const SAMPLE_WINISD_DIR = join(here, '..', '..', '..', '..', 'drivers', 'myprobes', 'text');
 const SEMICOLONS_AND_HASH = join(SAMPLE_WINISD_DIR, 'driver-with-semicolons-and-hash.wdr');
 
 describe('parseIni — section and key order', () => {

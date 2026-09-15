@@ -18,26 +18,27 @@
  *   - an N slot stays N. `N` means "not in play"; inventing a value there is a claim the
  *     source contradicts.
  *
- * 🔒 ORACLE: `drivers/sample/winisd/` — every file there was written by WinISD, so every C
+ * 🔒 ORACLE: `drivers/myprobes/` — every file there was written by WinISD, so every C
  * value in it is WinISD's own answer to the same arithmetic.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { WinISDDriver } from '@openisd/design/winisd';
+import { dirname, join, sep } from 'node:path';
 import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
-import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from '../../winisd/parstate.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
+const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'myprobes');
 
-const files = readdirSync(SAMPLES)
+const files = readdirSync(SAMPLES, { recursive: true })
+  .map(f => f.toString())
   .filter(f => f.endsWith('.wdr'))
+  // `inconsistencies/` is deliberately-wrong probe data (proves our detector fires), not a
+  // WinISD-written oracle file — it must not be asserted to agree with WinISD's own arithmetic.
+  .filter(f => !f.startsWith('inconsistencies' + sep))
   .filter(f => /\[Driver\]/.test(readFileSync(join(SAMPLES, f), 'utf8')));
 
 /**
@@ -149,14 +150,16 @@ function lostEntered(file: string, src: string): string[] {
 
 /** text → WinISDDriver → OpenISDDriver → WinISDDriver → text. */
 function cycle(src: string): string {
-  const asRead = WinISDDriver.fromWdrIni(src);
-  const { record } = winISDDriverToOpenISDDeviceJson(asRead);
-  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
-  if (Array.isArray(driver)) {
-    assert.fail(`record rejected: ${driver.join('; ')}`);
+  const engine = new Engine();
+  const imported = OpenISDDriver.fromWdrIniText(src, engine);
+  if (imported.value === null) {
+    assert.fail(`driver text rejected: ${imported.errors.map(error => error.message).join('; ')}`);
   }
-  const rebuilt = openIsdDriverToWinIsdDriver(driver, new Engine(), []);
-  return rebuilt.toWdrIni();
+  const exported = imported.value.toWdrIniText(engine);
+  if (exported.value === null) {
+    assert.fail(`driver text could not be exported: ${exported.errors.map(error => error.message).join('; ')}`);
+  }
+  return exported.value;
 }
 
 describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {

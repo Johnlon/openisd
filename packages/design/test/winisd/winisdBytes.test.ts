@@ -1,7 +1,7 @@
 /**
  * The `.wdr` byte boundary — WinISD's `0xA4` newline sentinel inside a string field.
  *
- * Oracle: `drivers/sample/winisd/driver-with-unicode-text.wdr`, written by WinISD itself, whose
+ * Oracle: `drivers/myprobes/text/driver-with-unicode-text.wdr`, written by WinISD itself, whose
  * `Comment=` carries a Euro sign, Kanji, and two sentinels on ONE physical line. It is the case
  * that separates a correct decoder from a byte-for-byte substitution: the file is UTF-8, so a
  * naive replace would have to reason about `0xA4` appearing inside a multi-byte sequence.
@@ -15,8 +15,8 @@ import { winisdBytesToText, winisdTextToBytes, WINISD_NEWLINE_SENTINEL, WinisdEn
 import { WinISDDriver, INI_ROWS } from '../../winisd/winisdDriver.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
-const UNICODE_WDR = join(ROOT, 'drivers', 'sample', 'winisd', 'driver-with-unicode-text.wdr');
-const REFERENCE_WINISD_DIR = join(ROOT, 'drivers', 'winisd');   // reference material — named files only, never enumerated
+const UNICODE_WDR = join(ROOT, 'drivers', 'myprobes', 'text', 'driver-with-unicode-text.wdr');
+const REFERENCE_WINISD_DIR = join(ROOT, 'drivers', 'winisdpro');   // reference material — named files only, never enumerated
 const SELENIUM_SW108_WDR = join(REFERENCE_WINISD_DIR, 'Selenium SW108 .wdr');
 const AUDIOPIPE_TS_A10_WDR = join(REFERENCE_WINISD_DIR, 'Audiopipe TS-A10.wdr');
 const DAI_ICHI_SIS8000_WDR = join(REFERENCE_WINISD_DIR, 'Dai-Ichi SIS8000.wdr');

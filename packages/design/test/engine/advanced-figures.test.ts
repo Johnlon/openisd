@@ -26,7 +26,7 @@ import { solveConsistencyGroup } from './testSolver.js';
  * `2π·Fs·Mms/Qes` gives 18.22124 and `Bl²/Re` gives 18.27846. The first wins. `Mcost` consumes
  * whichever Rme that precedence produced; it never recomputes one of its own.
  *
- * 🔒 ORACLE for the last three: `drivers/sample/winisd/john-all-noncalc-fields-manually-entered.wdr`
+ * 🔒 ORACLE for the last three: `drivers/mysamples/winisd/john-all-noncalc-fields-manually-entered.wdr`
  * — a file WinISD itself wrote, carrying all of Fs/Xmax/Vd/roo/Hc/Hg alongside WinISD's own
  * Rme/Gloss/SPLmaxLF/Mcost, with ParState slots 27/34/36/37 all `C` (WinISD computed them).
  * The discriminator drivers, which separate each recovered formula from a rival that fits every
@@ -58,7 +58,7 @@ const solve = (d: DriverSolverQuantities): Readonly<DriverSolverQuantities> =>
   solveConsistencyGroup(d);
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
+const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc');
 
 /** Every `key=value` line of a `.wdr`, as numbers. */
 function wdrNumbers(name: string): Record<string, number> {

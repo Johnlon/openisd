@@ -8,7 +8,7 @@
  * `WinISDDriver` (docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md Step 8, ARCHITECTURE.md §3
  * "WinISDDriver is solely a serialisation device") stays internal to that composition.
  *
- * 🔒 ORACLE RULE (SPEC_ENGINE §4.7): the ONLY oracle is `drivers/sample/winisd/`, prepared by
+ * 🔒 ORACLE RULE (SPEC_ENGINE §4.7): the ONLY oracle is `drivers/mysamples/winisd/`, prepared by
  * johnl out of WinISD itself. An oracle `.wdr` is one WinISD ITSELF wrote; a third-party
  * database's export of driver data into `.wdr` shape is NOT an oracle however plausible it
  * looks, because its key set, precision and ParState are one program's guess at the format
@@ -32,7 +32,7 @@ import { WINISD_NEWLINE_SENTINEL } from '../../winisd/index.js';
 import { driverYmlToOpenisdAndWdr } from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
-const ORACLE = join(ROOT, 'drivers', 'sample', 'winisd', 'john-all-defaults.wdr');
+const ORACLE = join(ROOT, 'drivers', 'myprobes', 'per_field_and_misc', 'john-all-defaults.wdr');
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'openisd');
 
 /** Ordered `.wdr` keys of a file — the format fingerprint. */
@@ -112,7 +112,7 @@ const wdrOf = (text: string) => {
   return { value: wdr, errors };
 };
 
-describe('openisd.yml → winisd.wdr — format conformance (oracle: drivers/sample/winisd/)', () => {
+describe('openisd.yml → winisd.wdr — format conformance (oracle: drivers/mysamples/winisd/)', () => {
   it('emits exactly the oracle field set, in the oracle order', () => {
     const { value, errors } = wdrOf(EMPTY_RECORD);
     assert.deepEqual(errors.filter((e: DriverError) => e.level === 'error'), []);

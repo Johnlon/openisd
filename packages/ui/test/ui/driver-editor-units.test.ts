@@ -339,7 +339,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     // ~14 significant figures (independent-implementation float noise), never byte-identical.
     // A tolerance far tighter than that noise, but nowhere near 100x, is what actually proves
     // no scaling: this test's real purpose per its own docstring above.
-    const text = readFileSync(join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'john-all-noncalc-fields-manually-entered.wdr'), 'utf8');
+    const text = readFileSync(join(here, '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc', 'john-all-noncalc-fields-manually-entered.wdr'), 'utf8');
     const stored = /^Gloss=(.*)$/m.exec(text)?.[1];
     assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
     const wd = WinISDDriver.fromWdrIni(text);

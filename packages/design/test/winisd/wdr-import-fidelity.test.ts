@@ -15,7 +15,7 @@
  *    `bugs/BUG_20260813_wdr-spl-is-discarded-on-import-and-openisd-substitutes-its-own-computed-sensitivity.md`
  *
  * 🔒 ORACLE. Every expected value comes from WinISD 0.7.0.0, not from this codebase:
- * `drivers/sample/winisd/s-spl.wdr` and `s-gloss.wdr` are single-parameter probes WinISD itself
+ * `drivers/mysamples/winisd/s-spl.wdr` and `s-gloss.wdr` are single-parameter probes WinISD itself
  * wrote (one field typed, one new `E` in ParState), and `Gloss` is checked against the value
  * WinISD computed for this exact driver in
  * `test/fixtures/winisd-parity/goldens/sealed-small.wpr`.
@@ -42,7 +42,7 @@ function driverOf(wdr: string): OpenISDDriver {
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd');
+const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc');
 
 /**
  * The `sealed-small` parity scenario as `.wdr` text — 22 keys and no `ParState`, which is the

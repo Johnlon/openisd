@@ -3,7 +3,7 @@ import { solveConsistencyGroup } from './testSolver.js';
  * Reference efficiency η₀ and the 1 W/1 m sensitivity derived from it — the ONE
  * implementation, behind the engine's door.
  *
- * 🔒 ORACLE (SPEC_ENGINE §4.7 oracle rule): `drivers/sample/winisd/John-all-manu-populated.wdr`,
+ * 🔒 ORACLE (SPEC_ENGINE §4.7 oracle rule): `drivers/mysamples/winisd/John-all-manu-populated.wdr`,
  * a genuine WinISD save by johnl. It carries its OWN air properties (`c`, `roo`) alongside the
  * `no` and `SPL` WinISD computed from them, so it pins the formula AND the constant together.
  * A third-party database's export of driver data into `.wdr` shape may never be an oracle.
@@ -31,7 +31,7 @@ const P0 = 20e-6;
 
 const here = dirname(fileURLToPath(import.meta.url));
 const REPO = join(here, '..', '..', '..', '..');
-const ORACLE = join(REPO, 'drivers', 'sample', 'winisd', 'John-all-manu-populated.wdr');
+const ORACLE = join(REPO, 'drivers', 'myprobes', 'per_field_and_misc', 'John-all-manu-populated.wdr');
 
 /** `key=value` lines of a `.wdr`, as numbers. */
 function wdrNumbers(text: string): Record<string, number> {
