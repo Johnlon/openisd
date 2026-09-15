@@ -101,7 +101,7 @@ describe('Sealed box simulation', () => {
     const Qtc = d.Qts! * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
     const { fs, spl } = engine.sweep(d, LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6, // Ql -> ∞ = lossless box (isolates acoustic response)
-      eg: 2.83, fmin: 10, fmax: 1000, N: 300}).value!;
+      eg: 2.83, fmin: 10, fmax: 1000, N: 300}).values!;
     const passbandRef = spl.at(-1)!; // HF asymptote — reference level
     let maxError = 0;
     for (let i = 0; i < fs.length; i++) {
@@ -130,7 +130,7 @@ describe('Sealed box simulation', () => {
     assert.ok(d);
     const eta0  = engine.referenceEfficiency(d.Fs_hz!, d.Vas_m3!, d.Qes!, engine.airFor({}));
     const predicted = engine.splFromEfficiency(eta0, engine.airFor({})) + 10 * Math.log10(EG ** 2 / d.Re_ohm!);
-    const { fs, spl } = engine.sweep(d, LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 }).value!;
+    const { fs, spl } = engine.sweep(d, LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 }).values!;
     const passbandSPL = spl[idxGe(fs, 300)]; // 300 Hz — well above Fs, in the flat passband
     assert.ok(Math.abs(passbandSPL - predicted) < SPL_FORMULA_TOLERANCE_DB,
       `passband ${passbandSPL.toFixed(2)} dB vs predicted ${predicted.toFixed(2)} dB ` +
@@ -157,7 +157,7 @@ describe('Sealed box simulation', () => {
     const { fs, spl } = engine.sweep(d, LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300,
-    }).value!;
+    }).values!;
     // Use the high-frequency SPL as the passband reference (same method as QSpeakers normalises to 0 dB)
     const passbandRef = spl.at(-1)!;
     // Scan high→low for the first point below -3 dB, then linearly interpolate
@@ -199,7 +199,7 @@ describe('Vented (bass-reflex) box simulation', () => {
   const d = solveConsistencyGroup(REF_DRIVER);
   const { fs, spl, zmag } = engine.sweep(d, LE_H, 'vented', {
     Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
-  }).value!;
+  }).values!;
 
   it('rolls off at approximately 24 dB/octave below tuning — the 4th-order Butterworth slope', () => {
     // Theory: below Fb, a vented box is a 4th-order high-pass with 24 dB/oct rolloff.
@@ -254,7 +254,7 @@ describe('Passive radiator box simulation', () => {
     fmin: 10, fmax: 1000, N: 300,
   };
   const d = solveConsistencyGroup(REF_DRIVER);
-  const sw = engine.sweep(d, LE_H, 'box-passive-radiator', PR_PARAMS).value!;
+  const sw = engine.sweep(d, LE_H, 'box-passive-radiator', PR_PARAMS).values!;
 
   it('produces a non-zero excursion curve for the PR cone alongside the main driver curve', () => {
     // The PR is acoustically coupled to the box; at resonance it moves significantly.

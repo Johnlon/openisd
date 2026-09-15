@@ -63,7 +63,7 @@ describe('sweep — parameter defaults when fmin / fmax / N are absent', () => {
    + 'verifies P.fmin||10, P.fmax||1000, P.N||400 fallbacks', () => {
     // Call sweep without fmin, fmax, or N.  The returned fs array must span 10–1000 Hz
     // with 401 points (steps 0…400 inclusive).
-    const { fs } = engine.sweep(DRV, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD }).value!;
+    const { fs } = engine.sweep(DRV, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD }).values!;
 
     // N+1 = 401 points
     assert.equal(fs.length, DEFAULT_N + 1,
@@ -86,7 +86,7 @@ describe('sweep — zero-excitation (eg=0) produces -200 dB SPL for all frequenc
     // With eg=0: pg = cx(0·Bl, 0) = cx(0,0) → UD = 0 → U0 = 0 → pm = |Hc| = 0.
     // The guard `pm > 0 ? 20·log10(pm/P0) : -200` takes the -200 branch.
     const SPL_SILENCE_DB = -200;  // sentinel value for zero-excitation, defined in sweep.js
-    const { spl } = engine.sweep(DRV, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).value!;
+    const { spl } = engine.sweep(DRV, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).values!;
     assert(spl.length > 0, 'spl array must be non-empty');
     for (let i = 0; i < spl.length; i++) {
       assert.equal(spl[i], SPL_SILENCE_DB,
@@ -110,7 +110,7 @@ describe('sweep — fmin=fmax produces constant-frequency sweep where dw=0', () 
     const { fs, gd } = engine.sweep(DRV, LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
       fmin: FREQ_HZ, fmax: FREQ_HZ, N: N_STEPS,
-    }).value!;
+    }).values!;
 
     // All frequencies must be identical (fmin = fmax collapse to one point)
     assert(fs.every(f => f === FREQ_HZ),
@@ -136,7 +136,7 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
 
     const { fs, maxspl } = engine.maxCurves(drvNoPe, LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
-    }).value!;
+    }).values!;
 
     assert(fs.length > 0, 'maxCurves must return non-empty fs array');
     assert(maxspl.every(v => isFinite(v)),
@@ -159,7 +159,7 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
 
     const { maxspl, maxpwr } = engine.maxCurves(drvXmax0, LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
-    }).value!;
+    }).values!;
 
     assert(maxspl.every(Number.isFinite),
       'Xmax=0 must not poison Max-SPL with -Infinity — Pe limit must apply');
@@ -177,17 +177,17 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   const P: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
 
   it('returns null for an all-finite sweep', () => {
-    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
+    const sw = engine.sweep(DRV, LE_H, BOX, P).values!;
     assert.equal(engine.classifyFinite(sw), null, 'a healthy sweep has no finiteness issue');
   });
 
   it('an all-finite sweep with -200 dB silence sentinels is still null (sentinels are finite)', () => {
-    const sw = engine.sweep(DRV, LE_H, BOX, { ...P, eg: 0 }).value!; // eg=0 → spl all -200 (finite sentinel)
+    const sw = engine.sweep(DRV, LE_H, BOX, { ...P, eg: 0 }).values!; // eg=0 → spl all -200 (finite sentinel)
     assert.equal(engine.classifyFinite(sw), null, '-200 dB sentinels must not be flagged as non-finite');
   });
 
   it('flags an isolated non-finite point as a warn that names the frequency', () => {
-    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
+    const sw = engine.sweep(DRV, LE_H, BOX, P).values!;
     sw.spl[10] = NaN; // inject a lone singularity
     const r = engine.classifyFinite(sw);
     assert.ok(r && r.level === 'warn', 'an isolated NaN is a warn, not a block');
@@ -195,7 +195,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('flags an entirely non-finite primary curve as a blocking error', () => {
-    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
+    const sw = engine.sweep(DRV, LE_H, BOX, P).values!;
     for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
     const r = engine.classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'no finite spl point at all → blocking error');
@@ -204,7 +204,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('names the plotted outputs that failed instead of guessing at an input cause', () => {
-    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
+    const sw = engine.sweep(DRV, LE_H, BOX, P).values!;
     for (let i = 0; i < sw.fs.length; i++) {
       sw.exc[i] = NaN;
       sw.zmag[i] = NaN;
@@ -217,45 +217,48 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('reports a broken transfer-magnitude series for the TFM chart', () => {
-    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
+    const sw = engine.sweep(DRV, LE_H, BOX, P).values!;
     for (let i = 0; i < sw.tfMag.length; i++) sw.tfMag[i] = NaN;
     const issue = engine.classifyFiniteIssues(sw).find(error => error.field === 'sweep:transfer magnitude');
     assert.ok(issue, 'TFM output failure must be reported to the chart');
     assert.match(issue.message, /transfer magnitude/i);
   });
 
-  it('returns an air-model error when the environment produces non-finite air constants', () => {
+  it('reports a tempK missing-dependencies issue for a temperature beyond the supported range', () => {
     const result = engine.sweep(DRV, LE_H, BOX, { ...P, tempK: 5000 });
-    assert.equal(result.value, null);
-    assert.equal(result.errors[0].field, 'tempK');
-    assert.match(result.errors[0].message, /temperature|humidity|pressure/i);
-  });
-
-  it('attributes an invalid air result to the entered temperature', () => {
-    const result = engine.sweep(DRV, LE_H, BOX, { ...P, tempK: 500 });
-    assert.equal(result.value, null);
-    assert.equal(result.errors[0].field, 'tempK');
-    assert.match(result.errors[0].message, /tempK.*500|500.*tempK/);
+    assert.equal(result.values, null);
+    assert.equal(result.issues.length, 1);
+    const [issue] = result.issues;
+    assert.equal(issue.kind, 'missing-dependencies');
+    if (issue.kind !== 'missing-dependencies') return;
+    assert.equal(issue.target, 'tempK');
+    assert.match(issue.routes[0].formula, /173\.15.*373\.15/);
   });
 
   it('rejects a temperature beyond the supported range even if the formula stays finite', () => {
-    const result = engine.sweep(DRV, LE_H, BOX, { ...P, tempK: 5000 });
-    assert.equal(result.value, null);
-    assert.equal(result.errors[0].field, 'tempK');
-    assert.match(result.errors[0].message, /173\.15.*373\.15/);
+    const result = engine.sweep(DRV, LE_H, BOX, { ...P, tempK: 500 });
+    assert.equal(result.values, null);
+    assert.equal(result.issues.length, 1);
+    const [issue] = result.issues;
+    assert.equal(issue.kind, 'missing-dependencies');
+    if (issue.kind !== 'missing-dependencies') return;
+    assert.equal(issue.target, 'tempK');
   });
 
-  it('rejects absolute zero with an exclusive lower-bound message', () => {
+  it('rejects absolute zero with an exclusive lower-bound formula', () => {
     const result = engine.sweep(DRV, LE_H, BOX, { ...P, tempK: 1 });
-    assert.equal(result.value, null);
-    assert.match(result.errors[0].message, /173\.15/);
+    assert.equal(result.values, null);
+    const [issue] = result.issues;
+    assert.equal(issue.kind, 'missing-dependencies');
+    if (issue.kind !== 'missing-dependencies') return;
+    assert.match(issue.routes[0].formula, /173\.15/);
   });
 
   it('flags pervasive breakdown even when spl is the finite −200 sentinel (the Vb=0 shape)', () => {
     // Vb=0 makes cInv(0) poison exc/zmag with NaN, but spl stays −200 (finite) via
     // the pm>0 guard. Classifying on spl alone would call this a "warn"; it is total
     // garbage → error. Every frequency is affected, so it must be a blocking error.
-    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
+    const sw = engine.sweep(DRV, LE_H, BOX, P).values!;
     for (let i = 0; i < sw.exc.length; i++) sw.exc[i] = NaN;
     const r = engine.classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'every-frequency breakdown → error, not warn, despite finite spl');
@@ -263,19 +266,23 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
 });
 
 describe('sweep circuit diagnostics', () => {
-  it('lists every missing circuit quantity instead of naming only a generic driver failure', () => {
+  it('reports one missing-dependencies issue per missing circuit quantity, each naming exactly '
+   + 'that field — never a combined message or a cross-field substitution suggestion', () => {
     const result = engine.sweep({ Fs_hz: 111111 }, LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
     });
 
-    assert.equal(result.value, null);
-    assert.equal(result.errors.length, 1);
-    assert.match(result.errors[0].message, /Sd_m2/);
-    assert.match(result.errors[0].message, /Re_terminal_ohm/);
-    assert.match(result.errors[0].message, /BL_terminal_Tm/);
-    assert.match(result.errors[0].message, /Cms_m_per_N/);
-    assert.match(result.errors[0].message, /Mms_kg/);
-    assert.match(result.errors[0].message, /Rms_kg_per_s/);
+    assert.equal(result.values, null);
+    const targets = result.issues.map(i => i.kind === 'missing-dependencies' ? i.target : null).sort();
+    assert.deepEqual(targets, [
+      'BL_terminal_Tm', 'Cms_m_per_N', 'Mms_kg', 'Re_terminal_ohm', 'Rms_kg_per_s', 'Sd_m2',
+    ].sort());
+    for (const issue of result.issues) {
+      assert.equal(issue.kind, 'missing-dependencies');
+      if (issue.kind !== 'missing-dependencies') continue;
+      assert.equal(issue.routes.length, 1, `${issue.target} must name exactly one route — itself`);
+      assert.deepEqual(issue.routes[0].missing, [issue.target]);
+    }
   });
 });
 
@@ -294,7 +301,7 @@ describe('rolloffFreq — Encapsulated Engine Physics Calculations', () => {
    * Spec Link: docs/spec/SPEC_ENGINE.md §3.2 "Cutoff Frequency Readouts (F3, F6, F10)"
    */
   it('rolloffFreq derives F3 (-3 dB), F6 (-6 dB), and F10 (-10 dB) cutoff frequencies inside engine', () => {
-    const sw = engine.sweep(DRV, LE_H, BOX, P).value!;
+    const sw = engine.sweep(DRV, LE_H, BOX, P).values!;
     const f3 = engine.rolloffFreq(sw, 3);
     const f6 = engine.rolloffFreq(sw, 6);
     const f10 = engine.rolloffFreq(sw, 10);

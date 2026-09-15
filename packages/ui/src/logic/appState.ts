@@ -16,6 +16,7 @@
 import { computed, ref, shallowRef, triggerRef, watch, type Ref, type ShallowRef } from 'vue';
 import { Engine } from '@openisd/design/engine';
 import type { DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
+import { sweepIssueMessage } from './sweepIssueMessage.js';
 import {
   OpenISDPassiveRadiatorStandalone,
   OpenISDProject, type DiscardChallenge,
@@ -323,12 +324,14 @@ const doSweep = () => {
   }
   const sw = p.sweep(GRID);
   const mx = p.maxCurves(GRID);
-  curves.value = sw.value;
-  max.value    = mx.value;
-  // Dedupe by field+message: `sweep` and `maxCurves` report the same driver-completeness error
-  // (both run the same circuitQuantities), so a naive concat shows every issue twice.
+  curves.value = sw.values;
+  max.value    = mx.values;
+  // Dedupe by field+message: `sweep` and `maxCurves` report the same driver-completeness issue
+  // (`maxCurves` forwards whatever `sweep` itself returned), so a naive concat shows every issue
+  // twice. Projected through `sweepIssueMessage` first — the engine's `SweepIssue` (QO142) is
+  // structured (`CalculationIssue<Q>`), not the `DriverError` shape this channel already renders.
   sweepErrors.value = [...new Map(
-    [...sw.errors, ...mx.errors].map(e => [`${e.field ?? ''}|${e.message}`, e]),
+    [...sw.issues, ...mx.issues].map(sweepIssueMessage).map(e => [`${e.field ?? ''}|${e.message}`, e]),
   ).values()];
 };
 doSweep();

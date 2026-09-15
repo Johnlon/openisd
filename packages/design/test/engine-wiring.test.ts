@@ -117,7 +117,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const project = drivenSealed(engine, 0.03);
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
 
-    const mine = project.sweep(P).value;
+    const mine = project.sweep(P).values;
     expect(mine).not.toBeNull();
     const theirs = engine.sweep(
       project.driver.solveConsistencyGroup(), project.driver.Le_H()!, 'sealed',
@@ -127,7 +127,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
         Rs: project.Rs_ohm.get(),
         useWinisdAirModel: project.envUseWinisdAirModel.get(),
       },
-    ).value!;
+    ).values!;
     expect(mine!.spl).toEqual(theirs.spl);
   });
 
@@ -137,14 +137,14 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const big = drivenSealed(engine, 0.100);
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
 
-    expect(small.sweep(P).value!.spl).not.toEqual(big.sweep(P).value!.spl);
+    expect(small.sweep(P).values!.spl).not.toEqual(big.sweep(P).values!.spl);
   });
 
   it('sweep() is null when the driver is too incomplete to simulate', () => {
     const engine = new Engine();
     const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
 
-    expect(project.sweep({}).value).toBeNull();
+    expect(project.sweep({}).values).toBeNull();
   });
 
   it('sweep() is null for a topology the engine has no model for, and NOT for one it has', () => {
@@ -152,11 +152,11 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const project = drivenSealed(engine, 0.03);
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
 
-    expect(project.sweep(P).value).not.toBeNull();
+    expect(project.sweep(P).values).not.toBeNull();
 
     // bandpass6 is a topology the domain names and the engine does not simulate.
     project.box.boxType.set('bandpass6');
-    expect(project.sweep(P).value).toBeNull();
+    expect(project.sweep(P).values).toBeNull();
   });
 
   it('a passive-radiator box simulates, under the ONE box vocabulary', () => {
@@ -175,7 +175,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     project.box.passiveRadiator.losses.Qa.set(30);
 
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
-    const mine = project.sweep(P).value;
+    const mine = project.sweep(P).values;
     expect(mine).not.toBeNull();
   });
 
@@ -184,7 +184,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const project = drivenSealed(engine, 0.03);
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
 
-    const mx = project.maxCurves(P).value;
+    const mx = project.maxCurves(P).values;
     expect(mx).not.toBeNull();
     expect(project.classifyMaxFinite(mx!)).toBe(engine.classifyMaxFinite(mx!));
   });
@@ -192,7 +192,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   it('rolloffFreq() finds F3 below the passband, and F6 below F3', () => {
     const engine = new Engine();
     const project = drivenSealed(engine, 0.03);
-    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 400 }).value!;
+    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 400 }).values!;
 
     const f3 = project.rolloffFreq(sw, 3);
     const f6 = project.rolloffFreq(sw, 6);
@@ -204,7 +204,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   it('passbandRef() and the response classifiers agree with the engine', () => {
     const engine = new Engine();
     const project = drivenSealed(engine, 0.03);
-    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 200 }).value!;
+    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 200 }).values!;
 
     expect(project.passbandRef(sw.spl)).toBe(engine.passbandRef(sw.spl));
     expect(project.classifyFinite(sw)).toBe(engine.classifyFinite(sw));
@@ -224,7 +224,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   it('impedancePeak() reads the resonance off the CURVE, near the sealed prediction', () => {
     const engine = new Engine();
     const project = drivenSealed(engine, 0.03);
-    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 800 }).value!;
+    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 800 }).values!;
 
     const peak = project.impedancePeak(sw);
     expect(peak).not.toBeNull();

@@ -431,7 +431,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       fmax: 200,
       N: 2000,
     };
-    const result = engine.sweep(drv, LE_H, 'sealed', P).value!;
+    const result = engine.sweep(drv, LE_H, 'sealed', P).values!;
     const peak = engine.findImpedancePeak(result, drv.Re_ohm!);
     assert.ok(peak !== null);
     // Assert peak frequency is near 54.81 Hz

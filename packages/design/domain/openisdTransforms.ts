@@ -14,6 +14,7 @@ import {
     OpenISDProject,
 } from './openisdDomain.js';
 import {Engine} from '../engine/index.js';
+import {realAppContext, type AppContext} from './appContext.js';
 
 // ── VALIDATION HELPERS — private to this file ──────────────────────────────────────────────
 
@@ -52,34 +53,36 @@ export function radiatorSectionProblems(json: OpenISDDeviceJson): string[] {
 export class ProjectBuilder {
     readonly #driver: OpenISDDriver;
     readonly #engine: Engine;
+    readonly #appContext: AppContext;
 
-    constructor(driver: OpenISDDriver, engine: Engine) {
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext = realAppContext) {
         this.#driver = driver;
         this.#engine = engine;
+        this.#appContext = appContext;
     }
 
     sealed(): SealedProjectBuilder {
-        return new SealedProjectBuilder(this.#driver, this.#engine);
+        return new SealedProjectBuilder(this.#driver, this.#engine, this.#appContext);
     }
 
     vented(): VentedProjectBuilder {
-        return new VentedProjectBuilder(this.#driver, this.#engine);
+        return new VentedProjectBuilder(this.#driver, this.#engine, this.#appContext);
     }
 
     bandpass4(): Bandpass4ProjectBuilder {
-        return new Bandpass4ProjectBuilder(this.#driver, this.#engine);
+        return new Bandpass4ProjectBuilder(this.#driver, this.#engine, this.#appContext);
     }
 
     bandpass6(): TwoChamberProjectBuilder {
-        return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'bandpass6');
+        return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'bandpass6', this.#appContext);
     }
 
     abc(): TwoChamberProjectBuilder {
-        return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'abc');
+        return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'abc', this.#appContext);
     }
 
     passiveRadiator(): PassiveRadiatorProjectBuilder {
-        return new PassiveRadiatorProjectBuilder(this.#driver, this.#engine);
+        return new PassiveRadiatorProjectBuilder(this.#driver, this.#engine, this.#appContext);
     }
 }
 
@@ -92,10 +95,14 @@ export abstract class BoxProjectBuilder {
     protected readonly driver: OpenISDDriver;
     /** The one calculation surface, on its way to the project this builder will assemble. */
     protected readonly engine: Engine;
+    /** The project's fresh identity comes from here, not from a direct `newUuid()` call — see
+     *  `appContext.ts`. */
+    protected readonly appContext: AppContext;
 
-    protected constructor(driver: OpenISDDriver, engine: Engine) {
+    protected constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
         this.driver = driver;
         this.engine = engine;
+        this.appContext = appContext;
     }
 
     /** The chosen radiator. */
@@ -134,6 +141,7 @@ export abstract class BoxProjectBuilder {
         const project = OpenISDProject.wrap(
             {...this.prototypeProjectJson(this.driver.toOpenIsdDeviceJson()), box: this.boxRecord()},
             this.engine,
+            this.appContext,
         );
         if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
         // WinISD starts a usable project at its 1 W reference. Store the matching voltage too so
@@ -194,8 +202,8 @@ export abstract class BoxProjectBuilder {
 class SealedProjectBuilder extends BoxProjectBuilder {
     #volume: number | null = null;
 
-    constructor(driver: OpenISDDriver, engine: Engine) {
-        super(driver, engine);
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+        super(driver, engine, appContext);
     }
 
     volume_m3(v: number): this {
@@ -217,8 +225,8 @@ class VentedProjectBuilder extends BoxProjectBuilder {
     #volume: number | null = null;
     #tuning: number | null = null;
 
-    constructor(driver: OpenISDDriver, engine: Engine) {
-        super(driver, engine);
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+        super(driver, engine, appContext);
     }
 
     volume_m3(v: number): this {
@@ -255,8 +263,8 @@ class Bandpass4ProjectBuilder extends BoxProjectBuilder {
     #frontVolume: number | null = null;
     #frontTuning: number | null = null;
 
-    constructor(driver: OpenISDDriver, engine: Engine) {
-        super(driver, engine);
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+        super(driver, engine, appContext);
     }
 
     rearVolume_m3(v: number): this {
@@ -303,8 +311,8 @@ class TwoChamberProjectBuilder extends BoxProjectBuilder {
     #frontVolume: number | null = null;
     #frontTuning: number | null = null;
 
-    constructor(driver: OpenISDDriver, engine: Engine, kind: 'bandpass6' | 'abc') {
-        super(driver, engine);
+    constructor(driver: OpenISDDriver, engine: Engine, kind: 'bandpass6' | 'abc', appContext: AppContext) {
+        super(driver, engine, appContext);
         this.#kind = kind;
     }
 
@@ -355,8 +363,8 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
     #tuning: number | null = null;
     #count = 1;
 
-    constructor(driver: OpenISDDriver, engine: Engine) {
-        super(driver, engine);
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+        super(driver, engine, appContext);
     }
 
     volume_m3(v: number): this {

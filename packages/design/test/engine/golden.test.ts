@@ -75,8 +75,8 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
         BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
           : engine.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
       };
-      const sw = engine.sweep(drv, driverRaw.Le, box, P).value;
-      const mx = engine.maxCurves(drv, driverRaw.Le, box, P).value;
+      const sw = engine.sweep(drv, driverRaw.Le, box, P).values;
+      const mx = engine.maxCurves(drv, driverRaw.Le, box, P).values;
       assert.ok(sw && mx, `${name}: the engine refused this fixture`);
 
       for (const k of ['fs', 'spl', 'phase', 'exc', 'excPR', 'pv', 'zmag', 'zph', 'gd'] as const)

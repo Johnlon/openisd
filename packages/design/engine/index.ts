@@ -30,10 +30,11 @@ export type {
 export type {
   BoxType, SimulatableBoxType, DriverError, EbpSuitability, Filter, FilterType, MaxCurvesResult,
   SealedAlignmentOption, Wiring,
-  EnclosureParams, Result, SweepParams, SweepResult,
+  EnclosureParams, SweepParams, SweepResult,
 } from './types.js';
 export type { BoxParamsQuantityName, BoxParamsIssue } from './params.js';
 export type { SignalSolverQuantities, SignalQuantityName, SignalIssue, SignalSolveResult } from './signal.js';
+export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 export type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
 export type { SealedAlignmentSolverQuantities } from './solverQuantities.js';
 // What the solver is GIVEN and what it RETURNS, which are one shape. A TYPE export: nothing

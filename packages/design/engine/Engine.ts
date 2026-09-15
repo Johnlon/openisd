@@ -31,8 +31,9 @@ import {
   classifyFinite, classifyFiniteIssues, classifyFlatClamp, classifyMaxFinite,
   maxCurves, passbandRef, rolloffFreq, sweep,
 } from './sweep.js';
+import type { SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 
-import type { Result, Wiring } from './types.js';
+import type { Wiring } from './types.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
 import type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
 import type { DriverIssue, DriverSolveResult, CalculationIssue } from './consistency.js';
@@ -327,12 +328,12 @@ export class Engine {
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
 
   /** The response, one complex value per frequency. */
-  sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
+  sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
     return sweep(drv, Le_H, box, P);
   }
 
   /** The limit curves — how loud before excursion or port velocity gives out. */
-  maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
+  maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
     return maxCurves(drv, Le_H, box, P);
   }
 
@@ -342,9 +343,10 @@ export class Engine {
   }
 
   /** `validateParams()`'s own check, `BoxParamsIssue`-shaped — the unified `CalculationIssue<Q>`
-   *  contract. A separate method, not a replacement: `validateParams()` stays `DriverError[]`
-   *  because `OpenISDProject.sweep()`'s `Result<SweepResult>.errors` needs that shape for every
-   *  OTHER precondition too, not because this one is less real. */
+   *  contract. A separate method, not a replacement: `validateParams()` stays `DriverError[]`,
+   *  matching `Engine.checkConsistency()` alongside `checkBoxParams()` for the same reason —
+   *  not because this one is less real, but because `validateParams()` has its own existing
+   *  callers this method does not replace. */
   checkBoxParams(box: BoxType, P: EnclosureParams): BoxParamsIssue[] {
     return checkBoxParams(box, P);
   }

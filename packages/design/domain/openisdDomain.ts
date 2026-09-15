@@ -39,6 +39,7 @@ import {
     type RawField,
 } from './cell.js';
 import {newUuid} from './newUuid.js';
+import {realAppContext, type AppContext} from './appContext.js';
 import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/index.js';
 // The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two
 // converter modules, so importing it here would pull them in whichever name was asked for.
@@ -46,7 +47,8 @@ import {openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver} from './dr
 import {openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject} from './openIsdProjectToWinIsdProject.js';
 import type {
     BoxType, SimulatableBoxType, DriverError, DriverIssue, Filter,
-    EnclosureParams, MaxCurvesResult, Result, SweepParams, SweepResult, DriverSolverQuantities,
+    EnclosureParams, MaxCurvesResult, SweepParams, SweepResult, DriverSolverQuantities,
+    SweepSolveResult, MaxCurvesSolveResult,
 } from '../engine/index.js';
 
 import type {Vent, VentShape} from './vent.js';
@@ -1988,15 +1990,15 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
  * `driver` and `box` are live WINDOWS over slices of whichever record is current. The what-if
  * layer is never included in persistence and can only be discarded or reset to its opening copy.
  */
-function freshEmbeddedDriver(json: OpenISDProjectJson): OpenISDProjectJson {
+function freshEmbeddedDriver(json: OpenISDProjectJson, appContext: AppContext = realAppContext): OpenISDProjectJson {
     const copy = structuredClone(json);
-    copy.driverEmbedding.device.uuid = {value: newUuid()};
+    copy.driverEmbedding.device.uuid = {value: appContext.newId()};
     return copy;
 }
 
 export class OpenISDProject {
-    static builder(driver: OpenISDDriver, engine: Engine): ProjectBuilder {
-        return new ProjectBuilder(driver, engine);
+    static builder(driver: OpenISDDriver, engine: Engine, appContext: AppContext = realAppContext): ProjectBuilder {
+        return new ProjectBuilder(driver, engine, appContext);
     }
 
     /**
@@ -2247,8 +2249,8 @@ export class OpenISDProject {
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
      *  wraps of one record are two independently editable projects, which is what opening a FILE
      *  twice should give. */
-    static wrap(json: OpenISDProjectJson, engine: Engine): OpenISDProject {
-        return this.wrapWithIdentity(freshEmbeddedDriver(json), newUuid(), engine);
+    static wrap(json: OpenISDProjectJson, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+        return this.wrapWithIdentity(freshEmbeddedDriver(json, appContext), appContext.newId(), engine);
     }
 
     /**
@@ -2266,10 +2268,10 @@ export class OpenISDProject {
     }
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
-    static wrapSession(session: OpenISDProjectSessionJson, uuid: string, engine: Engine): OpenISDProject {
-        const project = new OpenISDProject(freshEmbeddedDriver(session.saved), uuid, engine);
+    static wrapSession(session: OpenISDProjectSessionJson, uuid: string, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+        const project = new OpenISDProject(freshEmbeddedDriver(session.saved, appContext), uuid, engine);
         if (session.edited) {
-            project.#edited = freshEmbeddedDriver(session.edited);
+            project.#edited = freshEmbeddedDriver(session.edited, appContext);
         }
         return project;
     }
@@ -2746,19 +2748,19 @@ export class OpenISDProject {
      *  "cannot simulate", which is what a caller cannot act on. `value` is null with an empty
      *  `errors` when the active topology is one the engine has no model for, or a field this
      *  project itself needs to sweep (its box volume, its drive voltage) is not yet stated. */
-    sweep(P: FrequencyGrid): Result<SweepResult> {
+    sweep(P: FrequencyGrid): SweepSolveResult {
         const box = this.#engineBoxType();
         const params = box ? this.#sweepParams(P) : null;
-        if (!box) return {value: null, errors: []};
-        if (!params) return {value: null, errors: this.validateParams(P)};
+        if (!box) return {values: null, issues: []};
+        if (!params) return {values: null, issues: this.#engine.checkBoxParams(box, this.#enclosureParams())};
         return this.#engine.sweep(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`. */
-    maxCurves(P: FrequencyGrid): Result<MaxCurvesResult> {
+    maxCurves(P: FrequencyGrid): MaxCurvesSolveResult {
         const box = this.#engineBoxType();
         const params = box ? this.#sweepParams(P) : null;
-        if (!box || !params) return {value: null, errors: []};
+        if (!box || !params) return {values: null, issues: []};
         return this.#engine.maxCurves(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
 

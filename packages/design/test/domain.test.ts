@@ -4,7 +4,15 @@ import {
   OpenISDProject,
   OpenISDDriver,
   OpenISDPassiveRadiatorStandalone,
-  VoiceCoilWiring} from '../domain/index.js';
+  VoiceCoilWiring,
+  type AppContext} from '../domain/index.js';
+
+/** A deterministic `AppContext` for tests that would otherwise depend on a random id or the
+ *  real clock — e.g. a test asserting on serialized JSON content, where a random UUID could by
+ *  chance contain the very digits the test is checking for. */
+function fixedAppContext(id: string, isoDate = '2026-01-01T00:00:00.000Z'): AppContext {
+  return { newId: () => id, now: () => new Date(isoDate) };
+}
 
 // This test is the package's PROXY CONSUMER: it imports from `index.js` only, exactly what the
 // real app can reach, and nothing internal. Anything it cannot do here, the app cannot do
@@ -225,19 +233,29 @@ describe('the driver — a window, not a copy', () => {
   });
 
   it('what-if values are absent from the persisted session', () => {
+    // A deterministic id — never randomly generated — removes the one way this test could fail
+    // for a reason that has nothing to do with what it is testing: a random UUID happening to
+    // contain the digits '40' inside it (the flake this fixture replaces, 2026-09-15).
+    const appContext = fixedAppContext('11111111-1111-4111-8111-111111111111');
     const project = OpenISDProject.builder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-    }), new Engine()).sealed().volume_m3(0.03).build();
+    }), new Engine(), appContext).sealed().volume_m3(0.03).build();
 
     project.driver.spec.woofer.Fs_hz.set(35);
     project.beginWhatIf();
     project.driver.spec.woofer.Fs_hz.set(40);
 
     const session = project.cloneSession();
+    // Proves the injected AppContext is actually wired in, not merely accepted and ignored —
+    // the real `newUuid()` would never produce this exact string.
+    expect(session.edited?.driverEmbedding.device.uuid.value).toBe('11111111-1111-4111-8111-111111111111');
+
     const serialized = JSON.stringify(session);
-    expect(serialized).toContain('35');
-    expect(serialized).not.toContain('40');
+    // Enough surrounding structure that only the actual Fs_hz value can match — not merely the
+    // bare digits, which a coincidental id substring could satisfy.
+    expect(serialized).toContain('"Fs_hz":{"origin":"entered","readings":{"entered":{"read_value":35}}}');
+    expect(serialized).not.toContain('"read_value":40');
   });
 
   it('gives every field a STABLE identity across accesses', () => {

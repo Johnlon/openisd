@@ -41,9 +41,9 @@ const SP: SweepParams = {
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
 const PP = SP as unknown as PlotParams;
-const SW = new Engine().sweep(DRV, LE_H, 'vented', SP).value;
+const SW = new Engine().sweep(DRV, LE_H, 'vented', SP).values;
 assert.ok(SW, 'reference sweep produced nothing');
-const MX = new Engine().maxCurves(DRV, LE_H, 'vented', SP).value;
+const MX = new Engine().maxCurves(DRV, LE_H, 'vented', SP).values;
 assert.ok(MX, 'reference max curves produced nothing');
 const build = (id: ChartTabId) => seriesFor(id, DRV, 'vented', PP, SW, MX);
 
@@ -149,9 +149,9 @@ describe('EQ/filter charts — units, datum and axis', () => {
     const noFlt = { ...SP, filters: [] };
     const noFltP = noFlt as unknown as PlotParams;
     const engine = new Engine();
-    const sw = engine.sweep(DRV, LE_H, 'vented', noFlt).value;
+    const sw = engine.sweep(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(sw, 'sweep produced nothing');
-    const mx = engine.maxCurves(DRV, LE_H, 'vented', noFlt).value;
+    const mx = engine.maxCurves(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(mx, 'maxCurves produced nothing');
     for (const id of ['FltMag', 'FltPhase', 'FltGD'] as const) {
       const b = seriesFor(id, DRV, 'vented', noFltP, sw, mx);

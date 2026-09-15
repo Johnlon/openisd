@@ -13,15 +13,40 @@
  */
 
 import { P0, FLAT_MAX_BOOST_DB } from './constants.js';
-import { airFor, MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K } from './air.js';
+import { airFor, environmentIssues } from './air.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
-import { withAddedMass, solveConsistencyGroup } from './solver.js';
+import { withAddedMass } from './solver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { applyFilters } from './filters.js';
-import type { BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError, Result } from './types.js';
+import type { BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
 import type { DriverSolverQuantities } from './solverQuantities.js';
 import type { CircuitQuantities } from './circuit.js';
+import type { DriverQuantityName, DriverIssue } from './consistency.js';
+import type { EnvironmentIssue } from './air.js';
+import type { BoxParamsIssue } from './params.js';
+
+/** Every issue channel a sweep can surface: the driver's own missing circuit fields (a
+ *  `missing-dependencies` issue per absent field, never a combined message or a cross-field
+ *  substitution suggestion — packages/design/AGENTS.md ruling QO144), the environment's entered
+ *  air constants being out of range, or an unstated enclosure parameter (`OpenISDProject.sweep()`
+ *  reports this channel when the box has no `Vb`/`Vf`/`Sp`/etc. to sweep with at all — the engine
+ *  `sweep()` function itself never produces this variant, since it never reads box params
+ *  before the domain has already confirmed they exist). Never a sweep-own quantity: `sweep()`
+ *  computes nothing a caller enters, so it has no target of its own to report an issue about. */
+export type SweepIssue = DriverIssue | EnvironmentIssue | BoxParamsIssue;
+
+/** The unified sweep result: the curves (or null if nothing could be derived), and why. */
+export interface SweepSolveResult {
+  readonly values: SweepResult | null;
+  readonly issues: readonly SweepIssue[];
+}
+
+/** The unified max-curves result — same shape as `SweepSolveResult`, over `MaxCurvesResult`. */
+export interface MaxCurvesSolveResult {
+  readonly values: MaxCurvesResult | null;
+  readonly issues: readonly SweepIssue[];
+}
 
 /** SPL below this is the "no output" sentinel sweep() writes where |p| = 0, not a real level. */
 const SILENCE_DB = -190;
@@ -132,157 +157,55 @@ export function groupDelayMs(fs: number[], phaseUnwrapped: number[]): number[] {
  * and each chart decides for itself what it can still draw. `Number.isFinite` is part of the
  * check: a subnormal `Sd_m2` yields an infinite `Cms_m_per_N`, which is not a driver.
  */
-function usableQuantity(v: number | undefined): v is number {
-  return v != null && Number.isFinite(v) && v > 0;
-}
+/** The six quantities `circuit.ts` reads unguarded — every OTHER quantity a curve wants is
+ *  optional and gated at its own use below, because a driver states what its datasheet printed
+ *  and each chart decides for itself what it can still draw. */
+const CIRCUIT_REQUIRED_FIELDS: readonly DriverQuantityName[] = Object.freeze([
+  'Sd_m2', 'Re_terminal_ohm', 'BL_terminal_Tm', 'Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s',
+]);
 
 /**
- * A physically plausible value for a quantity, used ONLY to ask "would stating this one let the
- * sweep run?" — never in a result. A `switch` rather than a table, per packages/design/AGENTS.md.
+ * The circuit's required quantities, or the issues naming which are absent.
  *
- * The magnitudes are a mid-range 6.5" mid-woofer's. They matter only in that they are positive
- * and finite, which is what the solver's own `setVal` requires before it will write a derived
- * field; the ANSWER this produces is structural — which relations can close — not numeric.
+ * One `missing-dependencies` issue per absent field, each naming itself as the (trivial,
+ * one-field) route that would unblock it — never a combined message, and never a suggestion to
+ * state a DIFFERENT field instead. QO144 (2026-09-15): the user wants to know exactly what to
+ * do to get the chart working, not weigh a menu of cross-field substitutions. A stated-but-
+ * non-physical value (≤0, non-finite — `Number.isFinite` matters here: a subnormal `Sd_m2`
+ * yields an infinite `Cms_m_per_N`, which is not a driver) is reported the same way as absent:
+ * either way the user's actual next step is "state a valid `<field>`".
  */
-function plausibleValue(name: keyof DriverSolverQuantities): number {
-  switch (name) {
-    case 'Fs_hz': return 37;            case 'Re_ohm': return 5.6;
-    case 'Znom_ohm': return 8;          case 'Qes': return 0.40;
-    case 'Qms': return 7.0;             case 'Qts': return 0.38;
-    case 'Vas_m3': return 0.030;        case 'Sd_m2': return 0.0133;
-    case 'Dd_m': return 0.13;           case 'BL_Tm': return 8.87;
-    case 'Re_terminal_ohm': return 5.6; case 'BL_terminal_Tm': return 8.87;
-    case 'Mms_kg': return 0.0234;       case 'Cms_m_per_N': return 7.4e-4;
-    case 'Rms_kg_per_s': return 0.80;   case 'EBP_hz': return 92;
-    case 'Xmax_m': return 0.005;        case 'Vd_m3': return 6.65e-5;
-    case 'Hc_m': return 0.012;          case 'Hg_m': return 0.006;
-    case 'Pe_W': return 60;             case 'no': return 0.0035;
-    case 'SPLref_dB': return 88;        case 'SPL_dB': return 88;
-    case 'USPL_dB': return 89;          case 'SPLmax_dB': return 105;
-    case 'SPLmaxLF_dB': return 95;      case 'Rme_kg_per_s': return 14;
-    case 'Mpow_N_per_sqrtW': return 3.7; case 'Mcost_kg_per_s': return 20;
-    case 'gamma_m_per_s2_A': return 379; case 'Gloss': return 0.02;
-    case 'Vcd_m': return 0.038;         case 'Depth_m': return 0.075;
-    case 'MagDepth_m': return 0.020;    case 'Magnet_m': return 0.090;
-    case 'DVol_m3': return 4.0e-4;      case 'c_m_per_s': return 344;
-    case 'roo_kg_per_m3': return 1.2;
-    // Voice-coil inductance and its two semi-inductance partners (relation 24). Representative
-    // of the corpus, and only ever used as a PROBE — this function asks "would this quantity,
-    // stated on its own, let the driver simulate", so the magnitude has to be plausible and
-    // nothing more. KLe is Le·√(2π·fLe) at these two, so the three agree with each other.
-    case 'Le_H': return 5.0e-4;         case 'fLe_hz': return 1000;
-    case 'KLe_H_sqrtHz': return 5.0e-4 * Math.sqrt(2 * Math.PI * 1000); case 'wiring': return 0; case 'numVC': return 0;
+function circuitQuantities(q: DriverSolverQuantities, Le_H: number | undefined): { value: CircuitQuantities | null; issues: DriverIssue[] } {
+  const issues: DriverIssue[] = [];
+  for (const field of CIRCUIT_REQUIRED_FIELDS) {
+    const v = q[field];
+    if (typeof v === 'number' && Number.isFinite(v) && v > 0) continue;
+    issues.push({
+      kind: 'missing-dependencies',
+      target: field,
+      routes: [{ formula: `${field} is a directly entered or derived driver quantity`, required: [field], missing: [field] }],
+    });
   }
-  const unhandled: never = name;
-  return unhandled;
-}
-
-/**
- * Every quantity that, stated ON ITS OWN, would let this driver simulate.
- *
- * Asked by handing each candidate to the REAL solver and re-testing the circuit's six, so the
- * answer can never disagree with what the engine actually does and no second copy of the
- * relation table exists. A driver missing only `Vas` gets back
- * `Vas, Cms, Mms, Rms, BL, no, SPL` — seven ways to unblock it, all of them true.
- *
- * Empty means no single field is enough: more than one thing is missing.
- */
-function singleFieldUnblockers(q: DriverSolverQuantities): (keyof DriverSolverQuantities)[] {
-  const out: (keyof DriverSolverQuantities)[] = [];
-  const QUANTITY_NAMES: (keyof DriverSolverQuantities)[] = [
-    'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms',
-    'Qts', 'Vas_m3', 'Sd_m2', 'Dd_m', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s',
-    'EBP_hz', 'Xmax_m', 'Vd_m3', 'Hc_m', 'Hg_m', 'Pe_W', 'no', 'SPLref_dB', 'SPL_dB',
-    'USPL_dB', 'SPLmax_dB', 'SPLmaxLF_dB', 'Rme_kg_per_s', 'Mpow_N_per_sqrtW',
-    'Mcost_kg_per_s', 'gamma_m_per_s2_A', 'Gloss', 'Vcd_m', 'Depth_m', 'MagDepth_m',
-    'Magnet_m', 'DVol_m3', 'c_m_per_s', 'roo_kg_per_m3'
-  ];
-  for (const name of QUANTITY_NAMES) {
-    // A terminal value cannot be STATED — it is derived from the per-coil value and the wiring —
-    // so offering it as a way to unblock the sweep would be advice a user cannot act on.
-    if (name === 'Re_terminal_ohm' || name === 'BL_terminal_Tm') continue;
-    if (q[name] !== undefined) continue;
-    const solved = solveConsistencyGroup(
-      Object.assign({}, q, { [name]: plausibleValue(name) }));
-    if (usableQuantity(solved.Sd_m2) && usableQuantity(solved.Re_terminal_ohm) && usableQuantity(solved.BL_terminal_Tm)
-        && usableQuantity(solved.Cms_m_per_N) && usableQuantity(solved.Mms_kg)
-        && usableQuantity(solved.Rms_kg_per_s)) out.push(name);
-  }
-  return out;
-}
-
-function circuitQuantities(q: DriverSolverQuantities, Le_H: number | undefined): Result<CircuitQuantities> {
-  const bad: string[] = [];
-  const errors: DriverError[] = [];
-  // Returns the VALUE, not a verdict: a boolean stored in a const narrows nothing, so the object
-  // built below would still see `number | undefined`. Handing back the number lets one
-  // `=== undefined` check per name do the narrowing, with no assertion anywhere.
-  const need = (field: keyof DriverSolverQuantities, v: number | undefined): number | undefined => {
-    if (v == null) { bad.push(field); return undefined; }
-    if (!Number.isFinite(v) || v <= 0) {
-      // A stated-but-impossible value is its own fault and its own message: naming an
-      // alternative field would be wrong, because nothing is missing.
-      errors.push({ level: 'error', field, message: `${field} is ${v}, which is not a physical value.` });
-      return undefined;
-    }
-    return v;
-  };
-  // Every check runs before the bail-out, so nothing is reported one field at a time.
-  const Sd_m2 = need('Sd_m2', q.Sd_m2);
-  const Re_terminal_ohm = need('Re_terminal_ohm', q.Re_terminal_ohm);
-  const BL_terminal_Tm = need('BL_terminal_Tm', q.BL_terminal_Tm);
-  const Cms_m_per_N = need('Cms_m_per_N', q.Cms_m_per_N);
-  const Mms_kg = need('Mms_kg', q.Mms_kg);
-  const Rms_kg_per_s = need('Rms_kg_per_s', q.Rms_kg_per_s);
-  if (Sd_m2 === undefined || Re_terminal_ohm === undefined || BL_terminal_Tm === undefined
-      || Cms_m_per_N === undefined || Mms_kg === undefined || Rms_kg_per_s === undefined) {
-    if (bad.length > 0) {
-      // The six above are what the CIRCUIT reads, and four of them are ordinarily derived — a
-      // datasheet prints none of `Cms`, `Mms`, `Rms`, `BL`. Naming them tells the reader to
-      // enter numbers they do not have. List the actual missing circuit values here rather than
-      // replacing them with a generic suggestion; the project chart is the consumer of this
-      // result, not the driver editor.
-      const options = singleFieldUnblockers(q);
-      errors.push({
-        level: 'error',
-        field: bad[0],
-        message: `Missing usable circuit values: ${bad.join(', ')}.`
-          + (options.length ? ` State any ONE of these to let the solver derive the rest: ${options.join(', ')}.` : ''),
-      });
-    }
-    return { value: null, errors };
-  }
+  if (issues.length > 0) return { value: null, issues };
   return {
     value: {
-      Sd_m2, Re_terminal_ohm, BL_terminal_Tm, Cms_m_per_N, Mms_kg, Rms_kg_per_s, Le_H,
+      Sd_m2: q.Sd_m2!, Re_terminal_ohm: q.Re_terminal_ohm!, BL_terminal_Tm: q.BL_terminal_Tm!,
+      Cms_m_per_N: q.Cms_m_per_N!, Mms_kg: q.Mms_kg!, Rms_kg_per_s: q.Rms_kg_per_s!, Le_H,
     },
-    errors,
+    issues: [],
   };
 }
 
-export function sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<SweepResult> {
+export function sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
   // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
   // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
   const d = withAddedMass(drv, P.driverAddedMass ?? 0);
   const circuit = circuitQuantities(d, Le_H);
-  if (circuit.value === null) return { value: null, errors: circuit.errors };
+  if (circuit.value === null) return { values: null, issues: circuit.issues };
   const cq = circuit.value;
-  const tempK = P.tempK ?? 293.15;
-  if (!Number.isFinite(tempK) || tempK < MIN_SUPPORTED_TEMP_K || tempK > MAX_SUPPORTED_TEMP_K) {
-    return {
-      value: null,
-      errors: [{ level: 'error', field: 'tempK',
-        message: `Temperature field tempK is ${tempK} K; it must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K.`, }],
-    };
-  }
+  const envIssues = environmentIssues(P);
+  if (envIssues.length > 0) return { values: null, issues: envIssues };
   const { rho, c } = airFor(P);
-  if (!Number.isFinite(rho) || rho <= 0 || !Number.isFinite(c) || c <= 0) {
-    return {
-      value: null,
-      errors: [{ level: 'error', field: 'tempK',
-        message: `Temperature field tempK is ${tempK} K and produces invalid air constants.`, }],
-    };
-  }
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
   // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
@@ -374,8 +297,8 @@ export function sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box
                 + 20 * Math.log10(np);
   }
 
-  return { value: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlimCurve, xlimited, flatClamped,
-                    fltMag, fltPhase, fltGd }, errors: [] };
+  return { values: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlimCurve, xlimited, flatClamped,
+                    fltMag, fltPhase, fltGd }, issues: [] };
 }
 
 /**
@@ -401,16 +324,16 @@ export function classifyFlatClamp(sw: SweepResult): DriverError | null {
  * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
  *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): Result<MaxCurvesResult> {
+export function maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
   const swept = sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83 }));
-  if (swept.value === null) return { value: null, errors: swept.errors };
-  const base = swept.value;
+  if (swept.values === null) return { values: null, issues: swept.issues };
+  const base = swept.values;
   const Pe   = (drv.Pe_W != null && drv.Pe_W > 0) ? drv.Pe_W * (P.nDrivers || 1) : null;
   // The power reference is Re, not Znom — and the TERMINAL Re, because the amplifier drives the
   // coils as they are wired. `sweep` above already refused a driver without it, so this is a
   // narrowing, not an assumption.
   const Re   = drv.Re_terminal_ohm;
-  if (Re === undefined) return { value: null, errors: swept.errors };
+  if (Re === undefined) return { values: null, issues: swept.issues };
   const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];
   for (let i = 0; i < base.fs.length; i++) {
     const excAt283 = base.exc[i] / 1000;
@@ -421,7 +344,7 @@ export function maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined,
     maxpwr.push(vUse * vUse / Re);
     xlim.push(vXmax < vPe);
   }
-  return { value: { fs: base.fs, maxspl, maxpwr, xlim, peAbsent: Pe == null }, errors: [] };
+  return { values: { fs: base.fs, maxspl, maxpwr, xlim, peAbsent: Pe == null }, issues: [] };
 }
 
 /**

@@ -43,7 +43,7 @@ const nearest = (fs: number[], f: number) =>
 
 describe('EQ/filter chain charts — no filters means unity, exactly', () => {
   it('an empty chain is 0 dB, 0 rad and 0 ms at every frequency', () => {
-    const sw = engine.sweep(DRV, LE_H, 'sealed', SEALED).value!;
+    const sw = engine.sweep(DRV, LE_H, 'sealed', SEALED).values!;
     assert.equal(sw.fltMag.length, sw.fs.length);
     for (let i = 0; i < sw.fs.length; i++) {
       assert.equal(sw.fltMag[i], 0, `fltMag[${i}] at ${sw.fs[i]} Hz`);
@@ -56,7 +56,7 @@ describe('EQ/filter chain charts — no filters means unity, exactly', () => {
 
   it('a chain whose only filter is DISABLED is also unity — enabled is what counts', () => {
     const filters: Filter[] = [{ type: 'peaking', fc: 60, Q: 2, gain: 9, enabled: false }];
-    const sw = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).value!;
+    const sw = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).values!;
     assert.ok(sw.fltMag.every(v => v === 0), 'a disabled filter still moved the chain');
   });
 });
@@ -65,7 +65,7 @@ describe('EQ/filter chain charts — the magnitude is the chain\'s own gain in d
   it('a 2nd-order Butterworth low-pass is −3.01 dB at its own fc', () => {
     // |H(fc)| = 1/√2 for Q = 1/√2, independent of everything else in the model.
     const filters: Filter[] = [{ type: 'lowpass', fc: 100, Q: Math.SQRT1_2, enabled: true }];
-    const sw = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).value!;
+    const sw = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 100);
     assert.ok(Math.abs(sw.fltMag[i] - 20 * Math.log10(Math.SQRT1_2)) < 0.05,
       `expected ≈ −3.01 dB at ${sw.fs[i].toFixed(2)} Hz, got ${sw.fltMag[i].toFixed(3)} dB`);
@@ -73,7 +73,7 @@ describe('EQ/filter chain charts — the magnitude is the chain\'s own gain in d
 
   it('a +6 dB parametric EQ peaks at +6 dB on its centre frequency', () => {
     const filters: Filter[] = [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }];
-    const sw = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).value!;
+    const sw = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 60);
     assert.ok(Math.abs(sw.fltMag[i] - 6) < 0.1,
       `expected ≈ +6 dB at ${sw.fs[i].toFixed(2)} Hz, got ${sw.fltMag[i].toFixed(3)} dB`);
@@ -83,9 +83,9 @@ describe('EQ/filter chain charts — the magnitude is the chain\'s own gain in d
   it('cascaded filters multiply, i.e. their dB gains add', () => {
     const a: Filter = { type: 'peaking', fc: 40, Q: 4, gain: 4, enabled: true };
     const b: Filter = { type: 'peaking', fc: 400, Q: 4, gain: 3, enabled: true };
-    const swA  = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters: [a] }).value!;
-    const swB  = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters: [b] }).value!;
-    const swAB = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters: [a, b] }).value!;
+    const swA  = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters: [a] }).values!;
+    const swB  = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters: [b] }).values!;
+    const swAB = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters: [a, b] }).values!;
     for (let i = 0; i < swAB.fs.length; i++)
       assert.ok(Math.abs(swAB.fltMag[i] - (swA.fltMag[i] + swB.fltMag[i])) < 1e-9,
         `cascade ≠ sum of dB at ${swAB.fs[i].toFixed(2)} Hz`);
@@ -96,8 +96,8 @@ describe('EQ/filter chain charts — the chain is electrical, so driver and box 
   const filters: Filter[] = [{ type: 'highpass', fc: 30, Q: Math.SQRT1_2, enabled: true }];
 
   it('the same filters give the same chain response in a sealed and a vented box', () => {
-    const s = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).value!;
-    const v = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, filters }).value!;
+    const s = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const v = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, filters }).values!;
     for (let i = 0; i < s.fs.length; i++) {
       assert.equal(s.fltMag[i], v.fltMag[i],   `fltMag differs at ${s.fs[i].toFixed(2)} Hz`);
       assert.equal(s.fltPhase[i], v.fltPhase[i], `fltPhase differs at ${s.fs[i].toFixed(2)} Hz`);
@@ -112,15 +112,15 @@ describe('EQ/filter chain charts — the chain is electrical, so driver and box 
     // Vary only params that are free of the Q identity 1/Qts = 1/Qes + 1/Qms — changing
     const other = solveConsistencyGroup({ ...RAW, Fs_hz: 55, Vas_m3: 0.012, Sd_m2: 0.0090 });
     assert.ok(other, 'comparison driver failed to derive');
-    const a = engine.sweep(DRV, LE_H,   'sealed', { ...SEALED, filters }).value!;
-    const b = engine.sweep(other, LE_H, 'sealed', { ...SEALED, filters }).value!;
+    const a = engine.sweep(DRV, LE_H,   'sealed', { ...SEALED, filters }).values!;
+    const b = engine.sweep(other, LE_H, 'sealed', { ...SEALED, filters }).values!;
     for (let i = 0; i < a.fs.length; i++)
       assert.equal(a.fltMag[i], b.fltMag[i], `fltMag differs at ${a.fs[i].toFixed(2)} Hz`);
   });
 
   it('force-flat does not appear in the chain — it is a real gain applied downstream', () => {
-    const off = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).value!;
-    const on  = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters, forceFlatResponse: true }).value!;
+    const off = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const on  = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters, forceFlatResponse: true }).values!;
     for (let i = 0; i < off.fs.length; i++)
       assert.equal(off.fltMag[i], on.fltMag[i], `force-flat leaked into the chain at ${off.fs[i].toFixed(2)} Hz`);
     // Guard the guard: force-flat must actually have done something to the output curve.
@@ -131,7 +131,7 @@ describe('EQ/filter chain charts — the chain is electrical, so driver and box 
 describe('EQ/filter chain charts — phase and group delay', () => {
   it('a 2nd-order high-pass leads in phase (positive) below its corner', () => {
     const filters: Filter[] = [{ type: 'highpass', fc: 40, Q: Math.SQRT1_2, enabled: true }];
-    const sw = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).value!;
+    const sw = engine.sweep(DRV, LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 12);
     const deg = sw.fltPhase[i] * 180 / Math.PI;
     assert.ok(deg > 90, `expected a large phase lead well below fc, got ${deg.toFixed(1)}° at ${sw.fs[i].toFixed(2)} Hz`);

@@ -32,12 +32,12 @@ describe('power compression through sweep()', () => {
   it('a temp rise lifts the impedance floor and lowers SPL; ΔT=0 is byte-identical', () => {
     const d = drv();
     const P: SweepParams = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 500, N: 400 };
-    const cold = engine.sweep(d, LE_H, 'sealed', P).value!;
-    const hot  = engine.sweep(d, LE_H, 'sealed', { ...P, vcTempRise: 100, alfaVC: 0.0039 }).value!;
+    const cold = engine.sweep(d, LE_H, 'sealed', P).values!;
+    const hot  = engine.sweep(d, LE_H, 'sealed', { ...P, vcTempRise: 100, alfaVC: 0.0039 }).values!;
     assert.ok(Math.min(...hot.zmag) > Math.min(...cold.zmag), 'impedance floor rises with hot Re');
     const iRef = cold.fs.length - 1; // a high, above-resonance reference point
     assert.ok(hot.spl[iRef] < cold.spl[iRef], `SPL drops with hot Re (${hot.spl[iRef]} < ${cold.spl[iRef]})`);
-    const zeroT: SweepResult = engine.sweep(d, LE_H, 'sealed', { ...P, vcTempRise: 0, alfaVC: 0.0039 }).value!;
+    const zeroT: SweepResult = engine.sweep(d, LE_H, 'sealed', { ...P, vcTempRise: 0, alfaVC: 0.0039 }).values!;
     assert.deepEqual(zeroT.zmag, cold.zmag, 'vcTempRise=0 must be byte-identical to absent');
   });
 });

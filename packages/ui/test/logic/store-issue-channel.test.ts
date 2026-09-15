@@ -94,7 +94,10 @@ describe('the store unions every hardening layer into one issue list', () => {
     assert.deepEqual(paramIssues.value, [], 'fixing the input must retract the issue');
   });
 
-  it('carries the sweep circuit failure with every missing driver value', () => {
+  it('carries one sweep circuit failure per missing driver value, not one combined message', () => {
+    // QO144 (2026-09-15): the sweep no longer combines every missing circuit field into one
+    // message with a cross-field substitution suggestion — each missing field is its own issue,
+    // naming exactly that field, so the user knows precisely what to state.
     newProject();
     const driver = requireFocusedProject().driver.spec.woofer;
     driver.Fs_hz.clear();
@@ -113,13 +116,10 @@ describe('the store unions every hardening layer into one issue list', () => {
     driver.no.clear();
     driver.Rme_kg_per_s.clear();
 
-    const failure = allIssues.value.find(issue => issue.field === 'Sd_m2');
-    assert.ok(failure, 'the sweep failure must reach allIssues');
-    assert.match(failure.message, /Sd_m2/);
-    assert.match(failure.message, /Re_terminal_ohm/);
-    assert.match(failure.message, /BL_terminal_Tm/);
-    assert.match(failure.message, /Cms_m_per_N/);
-    assert.match(failure.message, /Mms_kg/);
-    assert.match(failure.message, /Rms_kg_per_s/);
+    for (const field of ['Sd_m2', 'Re_terminal_ohm', 'BL_terminal_Tm', 'Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s']) {
+      const failure = allIssues.value.find(issue => issue.field === field);
+      assert.ok(failure, `the sweep failure for ${field} must reach allIssues`);
+      assert.match(failure.message, new RegExp(field));
+    }
   });
 });
