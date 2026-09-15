@@ -1116,7 +1116,11 @@ data (both from John, 2026-09-15):
   entirely and just store `power_W: w`; the DERIVED voltage read (`driveVoltage_V.get()`) already
   correctly reports 'not-available' when `Re_ohm` is missing, and refreshes/auto-corrects on its
   own the moment `Re_ohm` becomes known — no separate recomputation step needed, since it is
-  already read-time-derived, not stored.
+  already read-time-derived, not stored. That 'not-available' state should carry a DQ on the V
+  field itself (John, 2026-09-15) — not a blank/greyed field with no explanation, but a marker
+  saying WHY it can't show a number ("Re is not known yet"), the same DQ vocabulary
+  `not-available`/`Cell` already carries for every other derived-but-currently-unreachable field
+  in the driver editor.
 
 Not attempted in this appendix — a real code change to the `.owpr` schema/session format and
 `openisdDomain.ts`'s `powerDrive_W`/`driveVoltage_V`/`statedVoltage_V` plumbing, not a doc-only
