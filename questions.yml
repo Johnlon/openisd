@@ -9174,7 +9174,7 @@ questions:
   title: 'Configuration channel (bandpass6/abc unsimulated box types): add a minimal ConfigurationIssue
     widening SweepIssue, or keep ConfigurationPrerequisite for a narrower future case and give !box a
     plain DriverError refusal instead?'
-  status: deferred
+  status: decided
   raised: '2026-09-15'
   body: ''
   notes:
@@ -9197,4 +9197,5 @@ questions:
       SweepIssue, Signal reversed to a blocking-input advisory) stands as proposed.
   answer:
     at: '2026-09-15'
-    text: Deferred — flagged for later, not ruling now.
+    text: For now - just make the chart areas "Not yet implemented" - there are many higher priorities
+      like finishing the charts for the supported box types

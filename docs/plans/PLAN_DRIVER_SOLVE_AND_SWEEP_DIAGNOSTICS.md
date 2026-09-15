@@ -1057,7 +1057,13 @@ Sealed Alignment/Vent/PR above. Two options, not yet decided:
    not yet simulated.'}`), matching how `sweep()`'s postconditions (`classifyFinite`, etc.)
    already report by returning a `DriverError` rather than a `CalculationIssue<Q>`.
 
-Not decided here — flagged for John, the same way QO143 settled the analogous driver question.
+**Ruled 2026-09-15 (QO145), neither option:** *"For now — just make the chart areas 'Not yet
+implemented' — there are many higher priorities like finishing the charts for the supported box
+types."* So: no `ConfigurationIssue`, no widening of `SweepIssue`, and `ConfigurationPrerequisite`
+is deleted with the other unused prerequisite types (T3). The `!box` case becomes a plain
+`DriverError` in the existing `allIssues` channel whose message is "Not yet implemented", raised
+at the store (`appState.ts`, where `boxTypeIsSimulatable()` already lives) — the engine and
+domain are untouched. Task T4 below, explicitly deprioritised.
 
 ### Signal — a blocking input to spl/deflection, twice-corrected 2026-09-15
 
@@ -1217,21 +1223,25 @@ those two sites, then record "closed — unreachable at sweep time" in this task
 Implementation Order item 8's note; delete `SealedAlignmentPrerequisite` in T3 as planned. If the
 reading contradicts this (a stored `Qtc` exists somewhere), stop and raise a `QO` instead.
 
-**T3 — Delete the six dead `*Prerequisite` types.** After T1/T2 land. Remove
+**T3 — Delete the seven dead `*Prerequisite` types.** After T1/T2 land. Remove
 `SealedAlignmentPrerequisite`, `VentPrerequisite`, `PrPrerequisite`, `BoxParamsPrerequisite`,
-`SignalPrerequisite`, `EnvironmentPrerequisite` from `engine/consistency.ts` and
+`SignalPrerequisite`, `EnvironmentPrerequisite`, and `ConfigurationPrerequisite` (QO145 ruled
+2026-09-15 — no configuration type will be built) from `engine/consistency.ts` and
 `engine/index.ts`; trim `test/engine/prerequisite.test.ts` to what remains. **Keep**
-`CalculationPrerequisite<Q>`, `SweepOutputName`, `DriverPrerequisite` (populated by `maxCurves`) and
-`ConfigurationPrerequisite` (T4 decides its fate — do not delete ahead of the ruling). The
+`CalculationPrerequisite<Q>`, `SweepOutputName`, `DriverPrerequisite` (populated by `maxCurves`). The
 architecture test `architecture-no-record-types-in-barrel.test.ts` and `index.ts`'s own header rule
 ("a type that stops appearing in a signature comes off this list") are the acceptance check.
 
-**T4 — Configuration channel. BLOCKED on `QO145` (deferred by John 2026-09-15).** Do not start.
-When ruled: option 1 = add `ConfigurationIssue {kind:'unsupported-topology', boxType}`, widen
-`SweepIssue`, delete `ConfigurationPrerequisite`; option 2 = keep `ConfigurationPrerequisite`, give
-`OpenISDProject.sweep()`'s `!box` branch a `DriverError`-shaped refusal. Either way the RED test is:
-a `bandpass6` or `abc` project's `allIssues` is no longer empty — it names the unsupported topology.
-Today it is silently empty (`{values: null, issues: []}`).
+**T4 — `bandpass6`/`abc`: chart shows "Not yet implemented". Ruled by QO145 (2026-09-15) —
+minimal, deprioritised.** No new type, no `SweepIssue` change, engine/domain untouched. In
+`packages/ui/src/logic/appState.ts` `doSweep()`: when `!boxTypeIsSimulatable(p.box.boxType.get())`
+(`boxTypeIsSimulatable` already exported there, `~467`), push `{level: 'error', field: 'boxType',
+message: 'Not yet implemented — <boxType> boxes are not simulated yet.'}` into `sweepErrors` so
+GraphPanel's existing `blockErrors`/"Can't plot" state shows it. (`OpenISDProject.sweep()` cannot
+carry it — `issues` is `SweepIssue[]`, and QO145 declined a new issue type.) RED test first in
+`store-issue-channel.test.ts` (with `awaitSweepThrottle()`): a `bandpass6` project's `allIssues`
+has an `error` matching `/not yet implemented/i` — today it is silently empty. Then one browser
+spec asserting the chart-area text. `ConfigurationPrerequisite` is deleted in T3.
 
 **T5 — Signal data model: `voltage_V` is derived, never persisted** (John's rulings, Appendix
 "Signal" section — all decided, none blocked).
