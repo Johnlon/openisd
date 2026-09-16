@@ -1,5 +1,6 @@
 import { solveConsistencyGroup } from './solver.js';
 import type { DriverSolverQuantities } from './solverQuantities.js';
+import type { DriverSolverParams, SolverField } from './solverTypes.js';
 import type { SweepResult, MaxCurvesResult } from './types.js';
 
 /** One route to a derivable quantity: the formula, everything it needs, and whatever of that
@@ -33,14 +34,6 @@ export type CalculationIssue<Q extends string> =
 
 export type DriverQuantityName = keyof DriverSolverQuantities;
 export type DriverIssue = CalculationIssue<DriverQuantityName>;
-
-/** The driver solver's one public result: what could be derived, and what could not be (or
- *  disagrees), together — a caller reads `values`, then `issues` to explain any gap in it,
- *  rather than making two calls that could disagree with each other. */
-export interface DriverSolveResult {
-  readonly values: DriverSolverQuantities;
-  readonly issues: readonly DriverIssue[];
-}
 
 /** Every field this module's relations read or predict is numeric — `wiring` is the one
  *  non-numeric driver quantity, and no relation below names it. */
@@ -217,11 +210,70 @@ export function checkConsistency(entered: DriverSolverQuantities): DriverIssue[]
   return issues;
 }
 
-/** The unified driver calculation: solved values and their issues, from one call over the
- *  same entered input — never two calls a caller could pass different arguments to and get
- *  values and issues that no longer describe the same driver. */
-export function solveDriver(entered: DriverSolverQuantities): DriverSolveResult {
-  return { values: solveConsistencyGroup(entered), issues: checkConsistency(entered) };
+/** A handle's own value, entered-only — a value the solver itself derived is never fed back in
+ *  as if it had been typed (matches `checkConsistency`'s own contract). */
+function enteredValue(field: SolverField): number | undefined {
+  return field.entered ? field.value ?? undefined : undefined;
+}
+
+/** Write `value` onto a non-entered handle: derived when present, `not-available` when not. An
+ *  entered handle is never touched. */
+function writeBack(field: SolverField, value: number | undefined): void {
+  if (field.entered) return;
+  if (value != null) field.setCalculated(value); else field.setNotAvailable();
+}
+
+/** The driver handle solve (T10/T11): build a private, entered-only `DriverSolverQuantities`
+ *  working set from the handles, run the existing `solveConsistencyGroup`/`checkConsistency`
+ *  pair on it unchanged, write every derived (non-entered) value back via `setCalculated` (or
+ *  `setNotAvailable` when it cannot solve), and return the issues. `wiring` is a discrete
+ *  entered input, never derived, so it is read but never written back. */
+export function solveDriver(params: DriverSolverParams): DriverIssue[] {
+  const working: DriverSolverQuantities = {
+    Fs_hz: enteredValue(params.Fs_hz), Re_ohm: enteredValue(params.Re_ohm),
+    Znom_ohm: enteredValue(params.Znom_ohm), Le_H: enteredValue(params.Le_H),
+    fLe_hz: enteredValue(params.fLe_hz), KLe_H_sqrtHz: enteredValue(params.KLe_H_sqrtHz),
+    Qes: enteredValue(params.Qes), Qms: enteredValue(params.Qms), Qts: enteredValue(params.Qts),
+    Vas_m3: enteredValue(params.Vas_m3), Sd_m2: enteredValue(params.Sd_m2), Dd_m: enteredValue(params.Dd_m),
+    BL_Tm: enteredValue(params.BL_Tm), Mms_kg: enteredValue(params.Mms_kg),
+    Cms_m_per_N: enteredValue(params.Cms_m_per_N), Rms_kg_per_s: enteredValue(params.Rms_kg_per_s),
+    EBP_hz: enteredValue(params.EBP_hz), Xmax_m: enteredValue(params.Xmax_m), Vd_m3: enteredValue(params.Vd_m3),
+    Hc_m: enteredValue(params.Hc_m), Hg_m: enteredValue(params.Hg_m), Pe_W: enteredValue(params.Pe_W),
+    no: enteredValue(params.no), SPLref_dB: enteredValue(params.SPLref_dB), SPL_dB: enteredValue(params.SPL_dB),
+    USPL_dB: enteredValue(params.USPL_dB), SPLmax_dB: enteredValue(params.SPLmax_dB),
+    SPLmaxLF_dB: enteredValue(params.SPLmaxLF_dB), Rme_kg_per_s: enteredValue(params.Rme_kg_per_s),
+    Mpow_N_per_sqrtW: enteredValue(params.Mpow_N_per_sqrtW), Mcost_kg_per_s: enteredValue(params.Mcost_kg_per_s),
+    gamma_m_per_s2_A: enteredValue(params.gamma_m_per_s2_A), Gloss: enteredValue(params.Gloss),
+    Vcd_m: enteredValue(params.Vcd_m), Depth_m: enteredValue(params.Depth_m), MagDepth_m: enteredValue(params.MagDepth_m),
+    Magnet_m: enteredValue(params.Magnet_m), DVol_m3: enteredValue(params.DVol_m3), c_m_per_s: enteredValue(params.c_m_per_s),
+    roo_kg_per_m3: enteredValue(params.roo_kg_per_m3), Re_terminal_ohm: enteredValue(params.Re_terminal_ohm),
+    BL_terminal_Tm: enteredValue(params.BL_terminal_Tm), numVC: enteredValue(params.numVC),
+    wiring: params.wiring.value ?? undefined,
+  };
+
+  const solved = solveConsistencyGroup(working);
+  const issues = checkConsistency(working);
+
+  writeBack(params.Fs_hz, solved.Fs_hz); writeBack(params.Re_ohm, solved.Re_ohm);
+  writeBack(params.Znom_ohm, solved.Znom_ohm); writeBack(params.Le_H, solved.Le_H);
+  writeBack(params.fLe_hz, solved.fLe_hz); writeBack(params.KLe_H_sqrtHz, solved.KLe_H_sqrtHz);
+  writeBack(params.Qes, solved.Qes); writeBack(params.Qms, solved.Qms); writeBack(params.Qts, solved.Qts);
+  writeBack(params.Vas_m3, solved.Vas_m3); writeBack(params.Sd_m2, solved.Sd_m2); writeBack(params.Dd_m, solved.Dd_m);
+  writeBack(params.BL_Tm, solved.BL_Tm); writeBack(params.Mms_kg, solved.Mms_kg);
+  writeBack(params.Cms_m_per_N, solved.Cms_m_per_N); writeBack(params.Rms_kg_per_s, solved.Rms_kg_per_s);
+  writeBack(params.EBP_hz, solved.EBP_hz); writeBack(params.Xmax_m, solved.Xmax_m); writeBack(params.Vd_m3, solved.Vd_m3);
+  writeBack(params.Hc_m, solved.Hc_m); writeBack(params.Hg_m, solved.Hg_m); writeBack(params.Pe_W, solved.Pe_W);
+  writeBack(params.no, solved.no); writeBack(params.SPLref_dB, solved.SPLref_dB); writeBack(params.SPL_dB, solved.SPL_dB);
+  writeBack(params.USPL_dB, solved.USPL_dB); writeBack(params.SPLmax_dB, solved.SPLmax_dB);
+  writeBack(params.SPLmaxLF_dB, solved.SPLmaxLF_dB); writeBack(params.Rme_kg_per_s, solved.Rme_kg_per_s);
+  writeBack(params.Mpow_N_per_sqrtW, solved.Mpow_N_per_sqrtW); writeBack(params.Mcost_kg_per_s, solved.Mcost_kg_per_s);
+  writeBack(params.gamma_m_per_s2_A, solved.gamma_m_per_s2_A); writeBack(params.Gloss, solved.Gloss);
+  writeBack(params.Vcd_m, solved.Vcd_m); writeBack(params.Depth_m, solved.Depth_m); writeBack(params.MagDepth_m, solved.MagDepth_m);
+  writeBack(params.Magnet_m, solved.Magnet_m); writeBack(params.DVol_m3, solved.DVol_m3); writeBack(params.c_m_per_s, solved.c_m_per_s);
+  writeBack(params.roo_kg_per_m3, solved.roo_kg_per_m3); writeBack(params.Re_terminal_ohm, solved.Re_terminal_ohm);
+  writeBack(params.BL_terminal_Tm, solved.BL_terminal_Tm); writeBack(params.numVC, solved.numVC);
+
+  return issues;
 }
 
 /** Every field one `CalculationIssue` names — the target, plus (for `missing-dependencies`)

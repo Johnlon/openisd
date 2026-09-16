@@ -35,9 +35,9 @@ import type { SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 
 import type { Wiring } from './types.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
-import type { VentSolverParams, PrSolverParams, SealedAlignmentSolverParams } from './solverTypes.js';
+import type { VentSolverParams, PrSolverParams, SealedAlignmentSolverParams, DriverSolverParams } from './solverTypes.js';
 import type { VentIssue, PrIssue, SealedAlignmentIssue } from './solver.js';
-import type { DriverIssue, DriverSolveResult, CalculationIssue } from './consistency.js';
+import type { DriverIssue, CalculationIssue } from './consistency.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, EbpSuitability, EnclosureParams, MaxCurvesResult, SealedAlignmentOption, SweepParams, SweepResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
@@ -101,12 +101,13 @@ export class Engine {
     return checkConsistency(p);
   }
 
-  /** The one driver calculation callers should reach for: solved values and their issues,
-   *  from a single call over the same entered input — replaces separately calling
-   *  `solveConsistencyGroup` and `checkConsistency`, which could be handed different
-   *  arguments and so describe two different drivers. */
-  solveDriver(p: DriverSolverQuantities): DriverSolveResult {
-    return solveDriver(p);
+  /** The one driver call to reach for (T10/T11): every entered T/S value's own handle, read
+   *  into a private working set, solved and checked by the existing
+   *  `solveConsistencyGroup`/`checkConsistency` pair, with every derived value written back
+   *  onto its handle via `setCalculated` (or `setNotAvailable`). Entered values — including
+   *  `wiring` — are never overwritten. */
+  solveDriver(params: DriverSolverParams): DriverIssue[] {
+    return solveDriver(params);
   }
 
   /** Solve the passive-radiator group: whichever of tuning/added-mass the caller did not state,

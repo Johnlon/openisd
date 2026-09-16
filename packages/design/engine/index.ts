@@ -21,7 +21,7 @@ export {
   MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K,
 } from './air.js';
 export type { Air, AirEnvironment, AirConstantProvider, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
-export type { CalculationIssue, SolveRoute, DriverQuantityName, DriverIssue, DriverSolveResult } from './consistency.js';
+export type { CalculationIssue, SolveRoute, DriverQuantityName, DriverIssue } from './consistency.js';
 export type {
   SweepOutputName, CalculationPrerequisite, DriverPrerequisite,
 } from './consistency.js';
@@ -48,3 +48,4 @@ export type { FieldState, SolverField } from './solverTypes.js';
 export type { VentSolverParams } from './solverTypes.js';
 export type { PrSolverParams } from './solverTypes.js';
 export type { SealedAlignmentSolverParams } from './solverTypes.js';
+export type { DriverSolverParams } from './solverTypes.js';
