@@ -43,25 +43,42 @@ node scripts/telemetry-sampler.mjs "$OUT_DIR/memory.jsonl" 5 &
 SAMPLER_PID=$!
 echo "$SAMPLER_PID" > "$OUT_DIR/sampler.pid"
 
+# Built by python, not by shell interpolation: hand-written JSON produced
+# `"endedAt": "..."...,` — two expansions of the same variable emitting both the quoted value
+# AND the bare fallback — and a malformed run.json makes every downstream analysis start with
+# a parse error. python json.dumps quotes and escapes correctly, and an absent value is a
+# genuine null rather than an empty string.
 write_run_json() {
   local status="$1" exit_code="$2" ended_at="$3" elapsed="$4"
-  cat > "$OUT_DIR/run.json" <<JSON
-{
-  "status": "$status",
-  "exitCode": $exit_code,
-  "head": "$HEAD_SHA",
-  "headSubject": $(printf '%s' "$HEAD_SUBJECT" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'),
-  "workers": 1,
-  "retries": 0,
-  "port": "$PORT",
-  "startedAt": "$STARTED_AT",
-  "endedAt": ${ended_at:+\"$ended_at\"}${ended_at:-null},
-  "elapsedSeconds": ${elapsed:-null},
-  "runLog": "$OUT_DIR/run.log",
-  "events": "$OUT_DIR/events.jsonl",
-  "memory": "$OUT_DIR/memory.jsonl"
+  OUT_DIR="$OUT_DIR" STATUS="$status" EXIT_CODE="$exit_code" ENDED_AT="$ended_at" \
+  ELAPSED="$elapsed" HEAD_SHA="$HEAD_SHA" HEAD_SUBJECT="$HEAD_SUBJECT" \
+  STARTED_AT="$STARTED_AT" PORT="$PORT" python3 - <<'PYJSON'
+import json, os
+
+out = os.environ["OUT_DIR"]
+def maybe(name, cast=str):
+    raw = os.environ.get(name, "")
+    return cast(raw) if raw else None
+
+record = {
+    "status": os.environ["STATUS"],
+    "exitCode": maybe("EXIT_CODE", int),
+    "head": os.environ["HEAD_SHA"],
+    "headSubject": os.environ["HEAD_SUBJECT"],
+    "workers": 1,
+    "retries": 0,
+    "port": os.environ["PORT"],
+    "startedAt": os.environ["STARTED_AT"],
+    "endedAt": maybe("ENDED_AT"),
+    "elapsedSeconds": maybe("ELAPSED", int),
+    "runLog": f"{out}/run.log",
+    "events": f"{out}/events.jsonl",
+    "memory": f"{out}/memory.jsonl",
 }
-JSON
+with open(f"{out}/run.json", "w", encoding="utf-8") as handle:
+    json.dump(record, handle, indent=2)
+    handle.write("\n")
+PYJSON
 }
 
 stop_sampler() {
