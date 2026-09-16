@@ -638,6 +638,20 @@ export function solveVentConsistencyGroup(p: VentSolverQuantities, air: Air): Ve
 /** The vent geometry every route below needs, beside `tuning_hz`/`length_m` themselves. */
 const VENT_GEOMETRY: readonly VentQuantityName[] = Object.freeze(['Vb_m3', 'area_m2']);
 
+export interface VentSolveResult {
+  readonly values: VentSolverQuantities;
+  readonly issues: readonly VentIssue[];
+}
+
+/** The unified vent solve (C5): solved values and the issues they carry, from one call over the
+ *  same entered input — replaces separately calling `solveVentConsistencyGroup` and
+ *  `checkVentConsistency`. Issues are computed against the SOLVED set, matching the domain's
+ *  and this suite's existing call pattern (`checkVentConsistency(solved)`). */
+export function solveVent(p: VentSolverQuantities, air: Air): VentSolveResult {
+  const values = solveVentConsistencyGroup(p, air);
+  return { values, issues: checkVentConsistency(values) };
+}
+
 export function checkVentConsistency(p: VentSolverQuantities): VentIssue[] {
   const issues: VentIssue[] = [];
   if (p.tuning_hz != null && p.tuning_hz <= 0) {

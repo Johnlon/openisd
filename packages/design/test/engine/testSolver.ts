@@ -17,5 +17,5 @@ export function solvePrConsistencyGroup(d: PrSolverQuantities, air: Air = engine
 }
 
 export function solveVentConsistencyGroup(d: VentSolverQuantities, air: Air = engine.airFor({})): VentSolverQuantities {
-    return engine.solveVentConsistencyGroup(d, air);
+    return engine.solveVent(d, air).values;
 }

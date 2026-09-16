@@ -39,6 +39,27 @@ describe('Engine.checkVentConsistency — missing-dependencies', () => {
   });
 });
 
+describe('Engine.solveVent — the unified { values, issues } bundle (C5)', () => {
+  it('solves the missing vent member and reports the issues in one call', () => {
+    const result = engine.solveVent({ tuning_hz: 35, Vb_m3: 0.03, area_m2: 0.002 }, AIR);
+    expect(result.values.length_m).toBeGreaterThan(0);
+    expect(result.issues).toEqual([]);
+  });
+
+  it('solves tuning_hz when length_m is stated and the geometry is complete', () => {
+    const result = engine.solveVent({ length_m: 0.1, Vb_m3: 0.03, area_m2: 0.002 }, AIR);
+    expect(result.values.tuning_hz).toBeGreaterThan(0);
+    expect(result.issues).toEqual([]);
+  });
+
+  it('reports the blocked member as a missing dependency when the geometry is not yet stated', () => {
+    const result = engine.solveVent({ tuning_hz: 35 }, AIR);
+    expect(result.values.length_m).toBeUndefined();
+    expect(result.issues).toHaveLength(1);
+    expect(result.issues[0]).toMatchObject({ kind: 'missing-dependencies', target: 'length_m' });
+  });
+});
+
 describe('Engine.checkPrConsistency — missing-dependencies', () => {
   it('returns no issues once tuning_hz solves from a complete PR geometry', () => {
     const solved = engine.solvePrConsistencyGroup({

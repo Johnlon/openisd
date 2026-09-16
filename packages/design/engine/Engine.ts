@@ -16,7 +16,7 @@ import { checkConsistency, solveDriver, issueFields, issueFormula } from './cons
 import {
   solveDriverConsistencyGroup,
   solvePrConsistencyGroup, checkPrConsistency,
-  solveVentConsistencyGroup, checkVentConsistency,
+  solveVentConsistencyGroup, checkVentConsistency, solveVent,
   solveSealedAlignmentGroup, checkSealedAlignment,
   terminalRe_ohm, terminalBL_Tm,
 } from './solver.js';
@@ -35,7 +35,7 @@ import type { SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 
 import type { Wiring } from './types.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
-import type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
+import type { VentQuantityName, VentIssue, VentSolveResult, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
 import type { DriverIssue, DriverSolveResult, CalculationIssue } from './consistency.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, EbpSuitability, EnclosureParams, MaxCurvesResult, SealedAlignmentOption, SweepParams, SweepResult } from './types.js';
@@ -124,6 +124,16 @@ export class Engine {
    *  because the vent geometry is incomplete. Empty when consistent and fully solvable. */
   checkVentConsistency(p: VentSolverQuantities): VentIssue[] {
     return checkVentConsistency(p);
+  }
+
+  /** The one vent call to reach for: whichever of tuning/length the caller did not state,
+   *  solved, and the issues its stated values carry — one `{ values, issues }` bundle (C5).
+   *  `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
+   *  comment. Replaces separately calling `solveVentConsistencyGroup` and
+   *  `checkVentConsistency`, which could be handed different arguments and so describe two
+   *  different vents. */
+  solveVent(p: VentSolverQuantities, air: Air): VentSolveResult {
+    return solveVent(p, air);
   }
 
   /** Solve the sealed-alignment group: whichever of target-`Qtc`/`Vb_m3` the caller did not

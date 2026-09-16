@@ -347,14 +347,13 @@ class VentWindow implements Vent {
                 const rawL = rawLengthLens.get();
                 const ventContextFb = ventContext?.getTuningHz() ?? null;
                 const ventContextVb = ventContext?.getVb() ?? null;
-                const solved = this.#engine.solveVentConsistencyGroup({
+                const { values: solved, issues } = this.#engine.solveVent({
                     tuning_hz: ventContextFb ?? undefined,
                     length_m: rawL ?? undefined,
                     Vb_m3: ventContextVb ?? undefined,
                     area_m2: this.area_m2() ?? undefined,
                     endCorrection_m: this.endCorrection_m.get(),
                 }, this.#air());
-                const issues = this.#engine.checkVentConsistency(solved);
                 const issue = issues.find(i => this.#engine.issueFields(i).includes('length_m') || this.#engine.issueFields(i).includes('tuning_hz'));
                 const dq = issue ? this.#engine.issueFormula(issue) : null;
 
@@ -580,14 +579,13 @@ class OpenISDBox implements Box {
                 const rawFb = rawVentedTuningLens.get();
                 const rawL = rawVentLengthLens.get();
                 const Vb = this.vented.volume_m3.get().value;
-                const solved = this.#engine.solveVentConsistencyGroup({
+                const { values: solved, issues } = this.#engine.solveVent({
                     tuning_hz: rawFb ?? undefined,
                     length_m: rawL ?? undefined,
                     Vb_m3: Vb ?? undefined,
                     area_m2: ventWindow.area_m2() ?? undefined,
                     endCorrection_m: ventWindow.endCorrection_m.get(),
                 }, air());
-                const issues = this.#engine.checkVentConsistency(solved);
                 const issue = issues.find(i => this.#engine.issueFields(i).includes('tuning_hz') || this.#engine.issueFields(i).includes('length_m'));
                 const dq = issue ? this.#engine.issueFormula(issue) : null;
 
@@ -2786,8 +2784,8 @@ export class OpenISDProject {
     }
 
     /** Assembled exactly as the per-field vent getters do (~582), for the ACTIVE vent — `vented`'s
-     *  or `bandpass4`'s front — so the sweep reports the same VentIssue a cell would. `checkVentConsistency`
-     *  deliberately stays silent when NO target is stated at all (pinned by
+     *  or `bandpass4`'s front — so the sweep reports the same VentIssue a cell would. `solveVent`'s
+     *  issues deliberately stay empty when NO target is stated at all (pinned by
      *  `engine/vent-pr-consistency.test.ts`: "no target chosen yet" is not a per-field error), so
      *  this guard adds the no-resonance case on top: a port that still has neither `tuning_hz` nor
      *  `length_m` after solving blocks the whole sweep, in the terms the sweep's `Leff` actually
@@ -2802,14 +2800,13 @@ export class OpenISDProject {
             ? b.vented.volume_m3.get().value
             : b.bandpass4.chambers.front.volume_m3.get().value;
         const lengthCell = vent.length_m.get();
-        const solved = this.#engine.solveVentConsistencyGroup({
+        const { values: solved, issues } = this.#engine.solveVent({
             tuning_hz: tuningCell.state === 'entered' ? tuningCell.value ?? undefined : undefined,
             length_m: lengthCell.state === 'entered' ? lengthCell.value ?? undefined : undefined,
             Vb_m3: Vb ?? undefined,
             area_m2: vent.area_m2() ?? undefined,
             endCorrection_m: vent.endCorrection_m.get(),
         }, this.#sweepAir());
-        const issues = this.#engine.checkVentConsistency(solved);
         if (issues.length) return issues;
         if (solved.tuning_hz == null && solved.length_m == null) {
             const required = ['tuning_hz', 'Vb_m3', 'area_m2'] as const;
