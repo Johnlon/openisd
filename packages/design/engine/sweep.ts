@@ -13,7 +13,7 @@
  */
 
 import { P0, FLAT_MAX_BOOST_DB } from './constants.js';
-import { airFor, environmentIssues } from './air.js';
+import { solveEnvironment } from './air.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
 import { withAddedMass } from './solver.js';
@@ -216,9 +216,9 @@ export function sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box
   const circuit = circuitQuantities(d, Le_H);
   if (circuit.value === null) return { values: null, issues: circuit.issues };
   const cq = circuit.value;
-  const envIssues = environmentIssues(P);
-  if (envIssues.length > 0) return { values: null, issues: envIssues };
-  const { rho, c } = airFor(P);
+  const env = solveEnvironment(P);
+  if (env.issues.length > 0) return { values: null, issues: env.issues };
+  const { rho, c } = env.values;
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
   // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
