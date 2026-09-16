@@ -22,6 +22,7 @@ import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from '.
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
 import type { VentSolverParams } from './solverTypes.js';
 import type { PrSolverParams } from './solverTypes.js';
+import type { SealedAlignmentSolverParams } from './solverTypes.js';
 import type { CalculationIssue } from './consistency.js';
 
 export type VentQuantityName = keyof VentSolverQuantities;
@@ -834,4 +835,47 @@ export function checkSealedAlignment(p: SealedAlignmentSolverQuantities): Sealed
   }
 
   return issues;
+}
+
+/** The sealed-alignment handle solve (T10/T11): derive whichever of `Qtc`/`Vb_m3` is not
+ *  entered from the driver's own `Qts`/`Vas_m3`, write it onto its `SolverField` via
+ *  `setCalculated`, and return the issues the stated values carry. An entered value is never
+ *  overwritten; an underivable member becomes `not-available`. */
+export function solveSealedAlignment(params: SealedAlignmentSolverParams): SealedAlignmentIssue[] {
+  const Qts = params.Qts.value;
+  const Vas = params.Vas_m3.value;
+  const Qtc = params.Qtc.value;
+  const Vb = params.Vb_m3.value;
+
+  if (Qtc != null && !params.Vb_m3.entered) {
+    if (Qts != null && Vas != null) {
+      const v = sealedFromQtc(Qts, Vas, Qtc);
+      if (v != null) {
+        params.Vb_m3.setCalculated(v);
+      } else {
+        params.Vb_m3.setNotAvailable();
+      }
+    } else {
+      params.Vb_m3.setNotAvailable();
+    }
+  } else if (Vb != null && !params.Qtc.entered) {
+    if (Qts != null && Vas != null) {
+      const v = sealedQtcFromVolume(Qts, Vas, Vb);
+      if (v != null) {
+        params.Qtc.setCalculated(v);
+      } else {
+        params.Qtc.setNotAvailable();
+      }
+    } else {
+      params.Qtc.setNotAvailable();
+    }
+  }
+
+  const solved: SealedAlignmentSolverQuantities = {
+    Qts: Qts ?? undefined,
+    Vas_m3: Vas ?? undefined,
+    Qtc: params.Qtc.value ?? undefined,
+    Vb_m3: params.Vb_m3.value ?? undefined,
+  };
+  return checkSealedAlignment(solved);
 }

@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Engine } from '../../engine/index.js';
+import type { SolverField } from '../../engine/index.js';
+import { fakeSolverField } from './testSolver.js';
 
 const engine = new Engine();
 
@@ -48,5 +50,59 @@ describe('Engine.checkSealedAlignment', () => {
   it('reports no issue when neither Qtc nor Vb is stated — no target chosen yet', () => {
     const solved = engine.solveSealedAlignmentGroup({});
     expect(engine.checkSealedAlignment(solved)).toEqual([]);
+  });
+});
+
+describe('Engine.solveSealedAlignment — handle solve, values written onto the params (T10/T11)', () => {
+  function params(p: { Qts?: number; Vas_m3?: number; Qtc?: number; Vb_m3?: number }): {
+    Qts: SolverField; Vas_m3: SolverField; Qtc: SolverField; Vb_m3: SolverField;
+  } {
+    return {
+      Qts: fakeSolverField(p.Qts ?? null),
+      Vas_m3: fakeSolverField(p.Vas_m3 ?? null),
+      Qtc: fakeSolverField(p.Qtc ?? null),
+      Vb_m3: fakeSolverField(p.Vb_m3 ?? null),
+    };
+  }
+
+  it('writes the derived Vb onto its handle when Qtc is stated and Qts/Vas are complete', () => {
+    const p = params({ Qts: 0.4, Vas_m3: 0.03, Qtc: 0.707 });
+    const issues = engine.solveSealedAlignment(p);
+    expect(p.Vb_m3.value).toBeGreaterThan(0);
+    expect(p.Vb_m3.calculated).toBe(true);
+    expect(issues).toEqual([]);
+  });
+
+  it('writes the derived Qtc onto its handle when Vb is stated', () => {
+    const p = params({ Qts: 0.4, Vas_m3: 0.03, Vb_m3: 0.02 });
+    const issues = engine.solveSealedAlignment(p);
+    expect(p.Qtc.value).toBeGreaterThan(0.4);
+    expect(p.Qtc.calculated).toBe(true);
+    expect(issues).toEqual([]);
+  });
+
+  it('never overwrites a stated value, even when the other member is also stated', () => {
+    const p = params({ Qts: 0.4, Vas_m3: 0.03, Qtc: 0.707, Vb_m3: 0.099 });
+    const issues = engine.solveSealedAlignment(p);
+    expect(p.Vb_m3.value).toBe(0.099);
+    expect(p.Vb_m3.entered).toBe(true);
+    expect(issues).toEqual([]);
+  });
+
+  it('leaves the blocked target not-available and reports the missing driver quantities', () => {
+    const p = params({ Qtc: 0.707 });
+    const issues = engine.solveSealedAlignment(p);
+    expect(p.Vb_m3.value).toBeNull();
+    expect(p.Vb_m3.notAvailable).toBe(true);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ kind: 'missing-dependencies', target: 'Vb_m3' });
+  });
+
+  it('reports no issue when no target is stated — no target chosen yet', () => {
+    const p = params({ Qts: 0.4, Vas_m3: 0.03 });
+    const issues = engine.solveSealedAlignment(p);
+    expect(p.Qtc.value).toBeNull();
+    expect(p.Vb_m3.value).toBeNull();
+    expect(issues).toEqual([]);
   });
 });

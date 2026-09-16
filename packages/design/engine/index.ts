@@ -47,3 +47,4 @@ export type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities }
 export type { FieldState, SolverField } from './solverTypes.js';
 export type { VentSolverParams } from './solverTypes.js';
 export type { PrSolverParams } from './solverTypes.js';
+export type { SealedAlignmentSolverParams } from './solverTypes.js';

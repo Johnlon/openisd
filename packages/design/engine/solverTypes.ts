@@ -51,6 +51,17 @@ export interface VentSolverParams {
   endCorrection_m: SolverField;
 }
 
+/** A `SolverField` handle for every sealed-alignment quantity. Pass this to
+ *  `solveSealedAlignment` — the solve derives whichever of `Qtc`/`Vb_m3` is not entered from
+ *  the driver's own `Qts`/`Vas_m3` and writes it back via `setCalculated`, never overwriting an
+ *  entered value. */
+export interface SealedAlignmentSolverParams {
+  Qts: SolverField;
+  Vas_m3: SolverField;
+  Qtc: SolverField;
+  Vb_m3: SolverField;
+}
+
 /** A `SolverField` handle for every driver T/S quantity. Pass this directly to
  *  `solveDriverConsistencyGroup` — no positional args, no intermediate dict. */
 export interface DriverSolverParams {

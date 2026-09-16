@@ -17,7 +17,7 @@ import {
   solveDriverConsistencyGroup,
   solvePrConsistencyGroup, checkPrConsistency, solvePr,
   solveVentConsistencyGroup, checkVentConsistency, solveVent,
-  solveSealedAlignmentGroup, checkSealedAlignment,
+  solveSealedAlignmentGroup, checkSealedAlignment, solveSealedAlignment,
   terminalRe_ohm, terminalBL_Tm,
 } from './solver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
@@ -35,7 +35,7 @@ import type { SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 
 import type { Wiring } from './types.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
-import type { VentSolverParams, PrSolverParams } from './solverTypes.js';
+import type { VentSolverParams, PrSolverParams, SealedAlignmentSolverParams } from './solverTypes.js';
 import type { VentIssue, PrIssue, SealedAlignmentIssue } from './solver.js';
 import type { DriverIssue, DriverSolveResult, CalculationIssue } from './consistency.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
@@ -161,6 +161,14 @@ export class Engine {
    *  incomplete. Empty when consistent and fully solvable. */
   checkSealedAlignment(p: SealedAlignmentSolverQuantities): SealedAlignmentIssue[] {
     return checkSealedAlignment(p);
+  }
+
+  /** The one sealed-alignment call to reach for (T10/T11): whichever of target-`Qtc`/`Vb_m3`
+   *  is not entered is derived from the driver's own `Qts`/`Vas_m3` and written onto its
+   *  `SolverField` handle, and the issues follow right back. Entered values are never
+   *  overwritten. */
+  solveSealedAlignment(params: SealedAlignmentSolverParams): SealedAlignmentIssue[] {
+    return solveSealedAlignment(params);
   }
 
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
