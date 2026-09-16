@@ -380,10 +380,13 @@ names + `solverQuantities.ts` + the `.values` result types (T3/T10 style trim).
 | S2-2 | RED `solvePr(p: PrSolverParams, air): PrIssue[]` — handle solve; rewire | same |
 | S2-2 note | **Done (2026-09-16, `5236d18`)** — engine seam handle-style; domain PR getters + `#prSweepIssues` re-pointed to the bag `solvePrConsistencyGroup`+`checkPrConsistency` until S2-7 (same deferral as S2-1). `solveEnvironment {values, issues}` landed in the same commit (S2-6 seam; `sweep.ts` re-point still open). | — |
 | S2-3 | RED `solveDriver(p: DriverSolverParams): DriverIssue[]` — `DriverSolverQuantities` + `DriverSolveResult` deleted; `checkConsistency` runs on a private numeric working set | driver tests |
+| S2-3 note | **Done (2026-09-16, `7dcd6f1`)** — handle seam; `DriverSolveResult` deleted; `DriverSolverQuantities` stays private until S2-10. Domain deferred to S2-7. | — |
 | S2-4 | RED `solveSealedAlignment(p: SealedAlignmentSolverParams): SealedAlignmentIssue[]` | sealed-alignment tests |
 | S2-4 note | **Done (2026-09-16, `d9a95ae`)** — engine seam handle-style, 5 pinning tests; domain deferred to S2-7. | — |
 | S2-5 | `solveBoxParams(box, P)` absorbs `checkBoxParams`+`validateParams` (T9); re-point `paramIssues` (`appState.ts:394`) | `params.test.ts`, store tests |
+| S2-5 note | **Done (2026-09-16, `bc3785a`)** — `validateParams`/`checkBoxParams` deleted; domain `validateParams(P)` → `boxParamsIssues()`; `paramIssues` maps through `sweepIssueMessage`. | — |
 | S2-6 | `solveEnvironment(env): EnvironmentSolveResult` — kept (Air is not a bag); re-point `sweep.ts:219-221` | sweep tests |
+| S2-6 note | **Done (2026-09-16, `d3232a4`)** — `sweep.ts` reads one `solveEnvironment`. | — |
 | S2-7 | **T11 storage**: `setCalculated` writes value+`'C'` into the record; `get()` = one record read (`getEffectiveCell` + private store die); **every write re-triggers the node solve** (RED: edit Fs → Qts/Rms `'C'` entries refreshed) | cell/domain tests |
 | S2-8 | **T11 import**: scraped `readings`/`origin` collapse to `value + 'E'` at the runtime boundary; origin machinery stays import-layer | schema/migration tests |
 | S2-9 | **T11 DQ**: projection `setDq([text])` writes into `dq_calculated` (a `DqMark`, `detail` = `issueToText`); `.wdr` `calcMark` parity holds | cell-DQ + `.wdr` tests |
@@ -392,6 +395,59 @@ names + `solverQuantities.ts` + the `.values` result types (T3/T10 style trim).
 | S2-12 | Driver editor: reads `cell.dq()`; `OpenISDDriver.checkConsistency()` (`openisdDomain.ts:1517`) + the live call (`DriverEditorModal.vue:325`) die | driver-editor tests / e2e spec |
 | S2-13 | Fold `fieldsNamedBy` (`useDriverCells.ts:65-67`) → `issueFields` | existing cell-DQ tests |
 | S2-14 | Update this doc (S2 Done, §4 AFTER + contract verified) + commit | — |
+
+### Step S2-7 design (leader, 2026-09-16 — implements rulings S7-a..d)
+
+**Storage shape** (`openisdSchema.ts`) — one entry type for every solvable quantity:
+
+```ts
+export type SpecEntryJson =
+  | { state: 'E'; value: number; origin?: string; readings?: Record<string, Reading>;
+      corroboration?: string; dq_scraper?: DqMark[]; dq_calculated?: DqMark[] }   // entered; provenance rides beside
+  | { state: 'C'; value: number; dq_calculated?: DqMark[] };                      // calculated
+// absent key = 'N'
+```
+
+- `winningValue(entry)` → `entry.value` (one read path). `enteredEntry(v)` → `{state:'E', value:v}`
+  (hand entry = no provenance). New `calculatedEntry(v)`.
+- Zod: legacy `{origin, readings}` (the catalogue `.owdr` shape) is **transformed at load** to
+  `{state:'E', value: readings[origin].read_value, …provenance}` — this is the import channel
+  (obligation 2). Serialisers to `.wdr`/`.wpr` read `entry.value`.
+- Box fields join: `vent.tuning_hz`/`vent.length_m`/`passiveRadiator.tuning_hz`/`addedMass_kg`
+  → `SpecEntryJson | absent` (was `number | null`); sealed gains `Qtc?: SpecEntryJson` so the
+  alignment solve has a slot to write. `volume_m3` stays a required input for now.
+
+**`Field` (`cell.ts`)** — a pure lens, no private store. Constructor gains two write callbacks;
+`getEffectiveCell` + `isCalculated`/`derivedValue`/`dqList` die:
+
+```ts
+new Field<T>(readCell, writeEntered, clear, writeCalculated, writeDq)
+  get()             → readCell()                   // entry flag IS the cell state
+  set(v)            → writeEntered(v)              // record + 'E'; cascade fires via root lens
+  clear()           → clear()
+  setCalculated(v)  → writeCalculated(v)           // record + 'C'
+  setNotAvailable() → if !entered: clear()         // never touches 'E'
+  setDq(dq)         → writeDq(dq)                  // → dq_calculated DqMark[] (detail = text)
+```
+
+`entryField(lens: Lens<SpecEntryJson|undefined>, name)` builds the five callbacks once for every
+entry-shaped slot (driver spec, vent, PR, sealed Qtc) — one factory, no per-node lens code.
+
+**Cascade (S7-c)** — the aggregate root wraps its root record lens: every `set` outside a
+resolve schedules `#resolve()`; a reentrancy flag makes the solves' own `setCalculated` writes
+not re-trigger. `OpenISDProject.#resolve()` = `solveEnvironment → solveDriver → solveVent →
+solvePr → solveSealedAlignment` over the live `Field` handles; a standalone `OpenISDDriver`
+(editor) resolves `solveDriver` only. Constructor runs one resolve (S7-d: `'C'` is a cache).
+`solvedNow`/memoised bag solves and every `createCell(..., dq)` compute-at-get body die.
+
+**Chunks (worker-sized, serial):**
+
+| Chunk | Files | RED |
+|---|---|---|
+| S2-7a `Field` lens rewrite + `entryField` | `cell.ts`, cell tests | setCalculated/set/clear/setDq each land in the lens; setNotAvailable leaves 'E' alone |
+| S2-7b schema + loader transform + serialisers | `openisdSchema.ts`, `driverYmlToOpenisdAndWdr.ts`, `projectRepo.ts`, schema tests | legacy readings JSON string loads as `{state:'E', value}`; `winningValue` reads `.value`; box entries |
+| S2-7c driver resolve | `openisdDomain.ts` driver section | edit `Fs` → `Qts`/`Rms` `'C'` entries in the record refreshed; `solvedNow` gone |
+| S2-7d project cascade + vent/PR/sealed rewire | `openisdDomain.ts` project/box sections | edit vent tuning → `length_m` `'C'` in record; PR mass ↔ tuning; sealed Qtc; getters are plain reads |
 
 ### Step S5 detail (T5 — signal)
 
