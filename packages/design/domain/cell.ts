@@ -1,4 +1,5 @@
 import type { FieldState, SolverField } from '@openisd/design/engine';
+import type { DqMark } from './openisdSchema.js';
 
 export interface Cell<T> {
   readonly name: string;
@@ -44,72 +45,55 @@ export interface RawField<T> {
   set(v: T): void;
 }
 
-export class Field<T> implements SolverField<T> {
-  private isCalculated = false;
-  private derivedValue: T | null = null;
-  private dqList: string[] = [];
+/** The four ways a `Field`'s owner can be written to. `entered`/`clear` are the project's own
+ *  facts; `calculated`/`dq` are the solver's — a `Field` is a pure lens over whatever storage
+ *  implements these, never a store of its own (T11: `get()` is one record read, no private
+ *  shadow state to fall out of step with it). */
+export interface FieldWrites<T> {
+  entered(v: T): void;
+  clear(): void;
+  calculated(v: T): void;
+  dq(dq: readonly string[]): void;
+}
 
+export class Field<T> implements SolverField<T> {
   constructor(
     private readonly readCell: () => Cell<T>,
-    private readonly writeValue: (v: T) => void,
-    private readonly clearValue: () => void,
+    private readonly writes: FieldWrites<T>,
   ) {}
 
-  private getEffectiveCell(): Cell<T> {
-    const cell = this.readCell();
-    if (cell.state === 'entered') {
-      if (this.dqList.length > 0) {
-        return createCell(cell.name, cell.value, 'entered', this.dqList);
-      }
-      return cell;
-    }
-    if (this.isCalculated && this.derivedValue !== null) {
-      return createCell(cell.name, this.derivedValue, 'calculated', this.dqList.length > 0 ? this.dqList : undefined);
-    }
-    // Fall back to the readCell() result (which may already be 'calculated' or 'not-available').
-    // This preserves the original Field behaviour for fields that compute their calculated value
-    // directly inside their readCell callback (e.g. the air-constant fields).
-    return cell;
-  }
-
   get name(): string { return this.readCell().name; }
-    get value(): T | null { return this.getEffectiveCell().value; }
-  get state(): FieldState { return this.getEffectiveCell().state; }
+  get value(): T | null { return this.readCell().value; }
+  get state(): FieldState { return this.readCell().state; }
   get entered(): boolean { return this.state === 'entered'; }
   get calculated(): boolean { return this.state === 'calculated'; }
   get notAvailable(): boolean { return this.state === 'not-available'; }
-  get dq(): readonly string[] { return this.dqList; }
+  get dq(): readonly string[] { return this.readCell().dq(); }
 
-  get(): Cell<T> { return this.getEffectiveCell(); }
+  get(): Cell<T> { return this.readCell(); }
 
-  clear(): void { this.setNotAvailable(); }
-  set(v: T): void {
-    this.writeValue(v);
-  }
+  set(v: T): void { this.writes.entered(v); }
+  clear(): void { this.writes.clear(); }
 
   /** Store a solver-established project value while exposing it as an entered project fact. */
   setProjectEstablished(value: T, dq?: string[]): void {
-    this.writeValue(value);
-    this.isCalculated = false;
-    this.derivedValue = null;
-    this.dqList = dq ?? [];
+    this.writes.entered(value);
+    this.writes.dq(dq ?? []);
   }
 
+  /** Never removes an entered value — only the project itself retracts a stated fact; the
+   *  solver merely reports that IT could not derive one. */
   setNotAvailable(): void {
-    this.clearValue();
-    this.isCalculated = false;
-    this.derivedValue = null;
-    this.dqList = [];
+    if (!this.entered) this.writes.clear();
   }
 
   setCalculated(value: T, dq?: string[]): void {
-    this.isCalculated = true;
-    this.derivedValue = value;
-    this.dqList = dq ?? [];
+    this.writes.calculated(value);
+    if (dq !== undefined) this.writes.dq(dq);
   }
 
   setDq(dq?: string[]): void {
-    this.dqList = dq ?? [];
+    this.writes.dq(dq ?? []);
   }
 }
 
@@ -125,12 +109,32 @@ export function focus<P, K extends keyof P>(parent: Lens<P>, key: K): Lens<P[K]>
   };
 }
 
+/** A flag-less input slot — `get()/value/state/entered/set(v)/clear()` only, deliberately NOT a
+ *  `SolverField`: a slot with no C/E flag has nothing for a solver to write `'calculated'` or
+ *  `'not-available'` onto, so the type simply does not offer `setCalculated`/`setNotAvailable`
+ *  (S2-7a — `nullableField`/`requiredField` hand this back, never a `Field`). */
+export class InputField<T> {
+  constructor(
+    private readonly readCell: () => Cell<T>,
+    private readonly writes: { entered(v: T): void; clear(): void },
+  ) {}
+
+  get name(): string { return this.readCell().name; }
+  get value(): T | null { return this.readCell().value; }
+  get state(): FieldState { return this.readCell().state; }
+  get entered(): boolean { return this.state === 'entered'; }
+
+  get(): Cell<T> { return this.readCell(); }
+  set(v: T): void { this.writes.entered(v); }
+  clear(): void { this.writes.clear(); }
+}
+
 export function nullableField<K extends PropertyKey, T extends Record<K, number | null>>(
   lens: Lens<T>,
   key: K,
   getDq?: (value: number | null) => string | null,
-): Field<number> {
-  return new Field<number>(
+): InputField<number> {
+  return new InputField<number>(
     () => {
       const v = lens.get()[key];
       let dqList: string[] | undefined = undefined;
@@ -145,8 +149,10 @@ export function nullableField<K extends PropertyKey, T extends Record<K, number 
         dqList,
       );
     },
-    (v) => lens.set({ ...lens.get(), [key]: v }),
-    () => lens.set({ ...lens.get(), [key]: null }),
+    {
+      entered: (v) => lens.set({ ...lens.get(), [key]: v }),
+      clear: () => lens.set({ ...lens.get(), [key]: null }),
+    },
   );
 }
 
@@ -155,8 +161,8 @@ export function requiredField<K extends PropertyKey, T extends Record<K, number>
   key: K,
   label: string,
   getDq?: (value: number) => string | null,
-): Field<number> {
-  return new Field<number>(
+): InputField<number> {
+  return new InputField<number>(
     () => {
       const v = lens.get()[key];
       let dqList: string[] | undefined = undefined;
@@ -171,14 +177,52 @@ export function requiredField<K extends PropertyKey, T extends Record<K, number>
         dqList,
       );
     },
-    (v) => lens.set({ ...lens.get(), [key]: v }),
-    () => {
-      throw new Error(
-        `${label} cannot be cleared: it always has a value in this design — there is no ` +
-        '"not entered" state for it to return to.',
-      );
+    {
+      entered: (v) => lens.set({ ...lens.get(), [key]: v }),
+      clear: () => {
+        throw new Error(
+          `${label} cannot be cleared: it always has a value in this design — there is no ` +
+          '"not entered" state for it to return to.',
+        );
+      },
     },
   );
+}
+
+/** The entry shape `entryField` reads/writes — PROVISIONAL, defined locally here rather than in
+ *  `openisdSchema.ts`: the real `SpecEntryJson` sum type (S2-7b) unifies this with the driver
+ *  spec/vent/PR/sealed-Qtc slots project-wide. Until then this is exactly what `entryField`
+ *  needs and nothing more. */
+export type SolvableEntry = {
+  readonly state: 'E' | 'C';
+  readonly value: number;
+  readonly dq_calculated?: readonly DqMark[];
+};
+
+/** Builds a `Field<number>` over one C/E-flagged entry slot — the one factory every entry-shaped
+ *  quantity (driver spec, vent, PR, sealed `Qtc`, …) shares once `S2-7b`'s schema lands: absent
+ *  reads `not-available`; `state:'E'` reads `entered`; `state:'C'` reads `calculated`; each
+ *  `dq_calculated` mark's `detail` is the field's own dq text. */
+export function entryField(lens: Lens<SolvableEntry | undefined>, name: string): Field<number> {
+  const readCell = (): Cell<number> => {
+    const entry = lens.get();
+    if (entry === undefined) return createCell<number>(name, null, 'not-available');
+    const dq = entry.dq_calculated?.map(m => m.detail) ?? [];
+    return createCell<number>(name, entry.value, entry.state === 'E' ? 'entered' : 'calculated', dq);
+  };
+  return new Field<number>(readCell, {
+    entered: (v) => lens.set({ state: 'E', value: v }),
+    clear: () => lens.set(undefined),
+    calculated: (v) => lens.set({ state: 'C', value: v }),
+    dq: (list) => {
+      const current = lens.get();
+      if (current === undefined) return;
+      lens.set({
+        ...current,
+        dq_calculated: list.map(detail => ({ kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail })),
+      });
+    },
+  });
 }
 
 export class ReadOnlyCalculatedField<T> {

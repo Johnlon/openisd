@@ -34,6 +34,7 @@ import {
     nullableField,
     requiredField,
     Field,
+    InputField,
     ReadOnlyCalculatedField,
     type Lens,
     type RawField,
@@ -99,8 +100,8 @@ export interface FrequencyGrid {
 }
 
 export interface VentedChamber {
-    readonly volume_m3: Field<number>;
-    readonly tuning_hz: Field<number>;
+    readonly volume_m3: InputField<number>;
+    readonly tuning_hz: InputField<number>;
     readonly losses: CoupledVentedLosses;
 }
 
@@ -120,7 +121,7 @@ export interface SealedBox {
 }
 
 export interface VentedBox {
-    readonly volume_m3: Field<number>;
+    readonly volume_m3: InputField<number>;
     /** WinISD: Fb — the target frequency, which drives `vent`'s dimensions (or vice versa). */
     readonly tuning_hz: Field<number>;
     readonly vent: Vent;
@@ -136,14 +137,14 @@ export interface Bandpass4Box {
         /** rear = the chamber the driver protrudes into, SEALED — no port, so no `vents.rear`, and
          *  a read-only calculated `resonance_hz` (WinISD's "Frc") instead of a tuning to enter. */
         readonly rear: {
-            readonly volume_m3: Field<number>;
+            readonly volume_m3: InputField<number>;
             readonly resonance_hz: ReadOnlyCalculatedField<number>;
             readonly losses: CoupledSealedLosses;
         };
         /** front = vented; its volume (`Vf`) has a Field readout like every other chamber. */
         readonly front: {
-            readonly volume_m3: Field<number>;
-            readonly tuning_hz: Field<number>;
+            readonly volume_m3: InputField<number>;
+            readonly tuning_hz: InputField<number>;
             readonly losses: CoupledVentedLosses;
         };
     };
@@ -324,9 +325,9 @@ class VentWindow implements Vent {
     readonly shape: RawField<VentShape>;
     readonly endCorrection_m: RawField<number>;
 
-    readonly diameter_m: Field<number>;
-    readonly width_m: Field<number>;
-    readonly height_m: Field<number>;
+    readonly diameter_m: InputField<number>;
+    readonly width_m: InputField<number>;
+    readonly height_m: InputField<number>;
     readonly length_m: Field<number>;
 
     constructor(
@@ -366,10 +367,15 @@ class VentWindow implements Vent {
                 }
                 return createCell<number>('', null, 'not-available');
             },
-            (v) => {
-                rawLengthLens.set(v);
+            {
+                entered: (v: number) => rawLengthLens.set(v),
+                clear: () => rawLengthLens.set(null),
+                // S2-7c/d: entry-backed — length_m is a solver-set target (vent tuning/length),
+                // so `calculated` reuses the same write until the record itself carries a C/E
+                // flag for this slot.
+                calculated: (v: number) => rawLengthLens.set(v),
+                dq: () => {},
             },
-            () => rawLengthLens.set(null),
         );
     }
 
@@ -420,8 +426,8 @@ class VentWindow implements Vent {
 /** A chamber with both a volume and a tuning of its own — bandpass6's and ABC's, and the shape
  *  `VentedChamber` names in `box.ts`. */
 class VentedChamberWindow {
-    readonly volume_m3: Field<number>;
-    readonly tuning_hz: Field<number>;
+    readonly volume_m3: InputField<number>;
+    readonly tuning_hz: InputField<number>;
     readonly losses: CoupledVentedLosses;
 
     constructor(lens: Lens<CoupledVentedChamberJson>) {
@@ -447,25 +453,31 @@ function prSpec(
             const v = winningValue(spec?.[key]);
             return createCell('', v, v === null ? 'not-available' : 'entered');
         },
-        (v) => {
-            const json = lens.get();
-            if (json === null) throw new Error('radiator slot is empty');
-            const spec = json.specs['passive-radiator'] ?? {};
-            lens.set({
-                ...json,
-                specs: {...json.specs, 'passive-radiator': {...spec, [key]: enteredEntry(v)}},
-            });
-        },
-        () => {
-            const json = lens.get();
-            if (json === null) throw new Error('radiator slot is empty');
-            const spec = json.specs['passive-radiator'];
-            if (!spec) return;
-            const {[key]: _removed, ...rest} = spec;
-            lens.set({
-                ...json,
-                specs: {...json.specs, 'passive-radiator': rest},
-            });
+        {
+            entered: (v: number) => {
+                const json = lens.get();
+                if (json === null) throw new Error('radiator slot is empty');
+                const spec = json.specs['passive-radiator'] ?? {};
+                lens.set({
+                    ...json,
+                    specs: {...json.specs, 'passive-radiator': {...spec, [key]: enteredEntry(v)}},
+                });
+            },
+            clear: () => {
+                const json = lens.get();
+                if (json === null) throw new Error('radiator slot is empty');
+                const spec = json.specs['passive-radiator'];
+                if (!spec) return;
+                const {[key]: _removed, ...rest} = spec;
+                lens.set({
+                    ...json,
+                    specs: {...json.specs, 'passive-radiator': rest},
+                });
+            },
+            // S2-7c/d: entry-backed — a radiator's own T/S spec is never solver-derived, only
+            // entered or absent, so `calculated` has nothing real to do yet.
+            calculated: () => {},
+            dq: () => {},
         },
     );
 }
@@ -599,10 +611,13 @@ class OpenISDBox implements Box {
                 }
                 return createCell<number>('', null, 'not-available');
             },
-            (v) => {
-                rawVentedTuningLens.set(v);
+            {
+                entered: (v: number) => rawVentedTuningLens.set(v),
+                clear: () => rawVentedTuningLens.set(null),
+                // S2-7c/d: entry-backed — tuning_hz is a solver-set target (vent tuning/length).
+                calculated: (v: number) => rawVentedTuningLens.set(v),
+                dq: () => {},
             },
-            () => rawVentedTuningLens.set(null),
         );
         this.vented = {
             volume_m3: requiredField(ventedChamber, 'volume_m3', 'vented.volume_m3'),
@@ -709,11 +724,19 @@ class OpenISDBox implements Box {
                 }
                 return createCell<number>('', null, 'not-available');
             },
-            (v) => {
-                const cur = pr.get();
-                pr.set({ ...cur, addedMass_kg: v, tuning_hz: null });
+            {
+                entered: (v: number) => {
+                    const cur = pr.get();
+                    pr.set({ ...cur, addedMass_kg: v, tuning_hz: null });
+                },
+                clear: () => rawPrAddedMassLens.set(null),
+                // S2-7c/d: entry-backed — addedMass_kg is a solver-set target (PR mass/tuning).
+                calculated: (v: number) => {
+                    const cur = pr.get();
+                    pr.set({ ...cur, addedMass_kg: v, tuning_hz: null });
+                },
+                dq: () => {},
             },
-            () => rawPrAddedMassLens.set(null),
         );
         const prTuning = new Field<number>(
             () => {
@@ -741,11 +764,19 @@ class OpenISDBox implements Box {
                 }
                 return createCell<number>('', null, 'not-available');
             },
-            (v) => {
-                const cur = pr.get();
-                pr.set({ ...cur, tuning_hz: v, addedMass_kg: null });
+            {
+                entered: (v: number) => {
+                    const cur = pr.get();
+                    pr.set({ ...cur, tuning_hz: v, addedMass_kg: null });
+                },
+                clear: () => rawPrTuningLens.set(null),
+                // S2-7c/d: entry-backed — tuning_hz is a solver-set target (PR mass/tuning).
+                calculated: (v: number) => {
+                    const cur = pr.get();
+                    pr.set({ ...cur, tuning_hz: v, addedMass_kg: null });
+                },
+                dq: () => {},
             },
-            () => rawPrTuningLens.set(null),
         );
         this.passiveRadiator = {
             volume_m3: prVolume,
@@ -1044,22 +1075,29 @@ export class OpenIsdDriverSpec {
                     ? createCell('', calcVCCon(), 'calculated')
                     : createCell('', wiring, 'entered');
             },
-            (v) => {
-                const json = record.get();
-                const spec = json.specs[section] ?? {};
-                record.set({
-                    ...json,
-                    specs: {...json.specs, [section]: {...spec, VCCon: enteredWiring(v)}},
-                });
-            },
-            () => {
-                const json = record.get();
-                const spec = json.specs[section] ?? {};
-                const {VCCon: _removed, ...rest} = spec;
-                record.set({
-                    ...json,
-                    specs: {...json.specs, [section]: rest},
-                });
+            {
+                entered: (v: VoiceCoilWiring) => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: {...spec, VCCon: enteredWiring(v)}},
+                    });
+                },
+                clear: () => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    const {VCCon: _removed, ...rest} = spec;
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: rest},
+                    });
+                },
+                // S2-7c/d: wiring is a discrete entered input, never solver-derived (S2-3
+                // ruling) — its own live `calcVCCon()` fallback inside `readCell` above is
+                // independent of the solver's write path, so `calculated` has nothing to do.
+                calculated: () => {},
+                dq: () => {},
             },
         );
 
@@ -1121,22 +1159,36 @@ export class OpenIsdDriverSpec {
                     ? createCell<number>('', null, 'not-available')
                     : createCell<number>('', calculated, 'calculated');
             },
-            (v) => {
-                const json = record.get();
-                const spec = json.specs[section] ?? {};
-                record.set({
-                    ...json,
-                    specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
-                });
-            },
-            () => {
-                const json = record.get();
-                const spec = json.specs[section] ?? {};
-                const {[key]: _removed, ...rest} = spec;
-                record.set({
-                    ...json,
-                    specs: {...json.specs, [section]: rest},
-                });
+            {
+                entered: (v: number) => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
+                    });
+                },
+                clear: () => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    const {[key]: _removed, ...rest} = spec;
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: rest},
+                    });
+                },
+                // S2-7c/d: entry-backed — every driver T/S quantity `solveDriver` may write
+                // back (S2-3) reuses the same entered write until the record itself carries a
+                // C/E flag for this slot.
+                calculated: (v: number) => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
+                    });
+                },
+                dq: () => {},
             },
         );
 
@@ -1167,22 +1219,34 @@ export class OpenIsdDriverSpec {
                 const v = winningValue(stated);
                 return v === null ? createCell('', calcNumVC(), 'calculated') : createCell('', v, 'entered');
             },
-            (v) => {
-                const json = record.get();
-                const spec = json.specs[section] ?? {};
-                record.set({
-                    ...json,
-                    specs: {...json.specs, [section]: {...spec, numVC: enteredEntry(v)}},
-                });
-            },
-            () => {
-                const json = record.get();
-                const spec = json.specs[section] ?? {};
-                const {numVC: _removed, ...rest} = spec;
-                record.set({
-                    ...json,
-                    specs: {...json.specs, [section]: rest},
-                });
+            {
+                entered: (v: number) => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: {...spec, numVC: enteredEntry(v)}},
+                    });
+                },
+                clear: () => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    const {numVC: _removed, ...rest} = spec;
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: rest},
+                    });
+                },
+                // S2-7c/d: entry-backed — solveDriver writes numVC back too (S2-3).
+                calculated: (v: number) => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: {...spec, numVC: enteredEntry(v)}},
+                    });
+                },
+                dq: () => {},
             },
         );
         this.VCCon = wiring();
@@ -1220,22 +1284,34 @@ export class OpenIsdDriverSpec {
                     ? createCell('', pick(engine.airFor(airProvider())), 'calculated')
                     : createCell('', v, 'entered');
             },
-            (v) => {
-                const json = record.get();
-                const spec = json.specs[section] ?? {};
-                record.set({
-                    ...json,
-                    specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
-                });
-            },
-            () => {
-                const json = record.get();
-                const spec = json.specs[section] ?? {};
-                const {[key]: _removed, ...rest} = spec;
-                record.set({
-                    ...json,
-                    specs: {...json.specs, [section]: rest},
-                });
+            {
+                entered: (v: number) => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
+                    });
+                },
+                clear: () => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    const {[key]: _removed, ...rest} = spec;
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: rest},
+                    });
+                },
+                // S2-7c/d: entry-backed — solveDriver writes c_m_per_s/roo_kg_per_m3 back too (S2-3).
+                calculated: (v: number) => {
+                    const json = record.get();
+                    const spec = json.specs[section] ?? {};
+                    record.set({
+                        ...json,
+                        specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
+                    });
+                },
+                dq: () => {},
             },
         );
         this.c_m_per_s = air('c_m_per_s', (a) => a.c);
@@ -1358,15 +1434,20 @@ export abstract class OpenISDDevice {
                     ? createCell<string>('', null, 'not-available')
                     : createCell<string>('', stated.value, 'entered');
             },
-            (v) => {
-                const record = this.#slot.get();
-                if (record === null) throw new Error('radiator slot is empty');
-                this.#slot.set({...record, [key]: {value: v, origin: 'entered'}});
-            },
-            () => {
-                const record = this.#slot.get();
-                if (record === null) throw new Error('radiator slot is empty');
-                this.#slot.set({...record, [key]: {value: '', origin: 'entered'}});
+            {
+                entered: (v: string) => {
+                    const record = this.#slot.get();
+                    if (record === null) throw new Error('radiator slot is empty');
+                    this.#slot.set({...record, [key]: {value: v, origin: 'entered'}});
+                },
+                clear: () => {
+                    const record = this.#slot.get();
+                    if (record === null) throw new Error('radiator slot is empty');
+                    this.#slot.set({...record, [key]: {value: '', origin: 'entered'}});
+                },
+                // S2-7c/d: metadata (brand, model, …) is never solver-derived.
+                calculated: () => {},
+                dq: () => {},
             },
         );
     }
@@ -2170,8 +2251,13 @@ export class OpenISDProject {
         const lens = this.#slot('meta');
         return new Field<string>(
             () => createCell('description', lens.get().description, 'entered'),
-            (v) => lens.set({...lens.get(), description: v}),
-            () => lens.set({...lens.get(), description: ''}),
+            {
+                entered: (v: string) => lens.set({...lens.get(), description: v}),
+                clear: () => lens.set({...lens.get(), description: ''}),
+                // S2-7c/d: a project note is never solver-derived.
+                calculated: () => {},
+                dq: () => {},
+            },
         );
     }
 
@@ -2442,22 +2528,28 @@ export class OpenISDProject {
                     ? createCell<number>('power_W', null, 'not-available')
                     : createCell<number>('power_W', derived, 'calculated');
             },
-            (w) => {
-                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                if (Re_ohm === undefined) {
-                    throw new Error('setPowerDrive_W cannot solve a voltage: the driver has no usable Re_ohm yet.');
-                }
-                const voltage_V = this.#engine.driveVoltage(w, Re_ohm);
-                slot.set({power_W: w, voltage_V});
-            },
-            () => {
-                const voltage_V = slot.get().voltage_V;
-                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                if (voltage_V !== null && Re_ohm !== undefined) {
-                    this.powerDrive_W.setProjectEstablished(this.#engine.driveFromVoltage(voltage_V, Re_ohm));
-                } else {
-                    slot.set({power_W: null, voltage_V: null});
-                }
+            {
+                entered: (w: number) => {
+                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                    if (Re_ohm === undefined) {
+                        throw new Error('setPowerDrive_W cannot solve a voltage: the driver has no usable Re_ohm yet.');
+                    }
+                    const voltage_V = this.#engine.driveVoltage(w, Re_ohm);
+                    slot.set({power_W: w, voltage_V});
+                },
+                clear: () => {
+                    const voltage_V = slot.get().voltage_V;
+                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                    if (voltage_V !== null && Re_ohm !== undefined) {
+                        this.powerDrive_W.setProjectEstablished(this.#engine.driveFromVoltage(voltage_V, Re_ohm));
+                    } else {
+                        slot.set({power_W: null, voltage_V: null});
+                    }
+                },
+                // S2-7c/d: the signal chain (T5) is out of scope for the driver/vent/PR/sealed
+                // solves this step wires — never solver-derived here.
+                calculated: () => {},
+                dq: () => {},
             },
         );
     }
@@ -2481,22 +2573,28 @@ export class OpenISDProject {
                     ? createCell<number>('voltage_V', null, 'not-available')
                     : createCell<number>('voltage_V', derived, 'calculated');
             },
-            (v) => {
-                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                if (Re_ohm === undefined) {
-                    throw new Error('setDriveVoltage_V cannot solve a power: the driver has no usable Re_ohm yet.');
-                }
-                const power_W = this.#engine.driveFromVoltage(v, Re_ohm);
-                slot.set({power_W, voltage_V: v});
-            },
-            () => {
-                const power_W = slot.get().power_W;
-                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                if (power_W !== null && Re_ohm !== undefined) {
-                    this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
-                } else {
-                    slot.set({power_W: null, voltage_V: null});
-                }
+            {
+                entered: (v: number) => {
+                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                    if (Re_ohm === undefined) {
+                        throw new Error('setDriveVoltage_V cannot solve a power: the driver has no usable Re_ohm yet.');
+                    }
+                    const power_W = this.#engine.driveFromVoltage(v, Re_ohm);
+                    slot.set({power_W, voltage_V: v});
+                },
+                clear: () => {
+                    const power_W = slot.get().power_W;
+                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                    if (power_W !== null && Re_ohm !== undefined) {
+                        this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
+                    } else {
+                        slot.set({power_W: null, voltage_V: null});
+                    }
+                },
+                // S2-7c/d: the signal chain (T5) is out of scope for this step — never
+                // solver-derived here.
+                calculated: () => {},
+                dq: () => {},
             },
         );
     }
@@ -2517,15 +2615,21 @@ export class OpenISDProject {
                     ? createCell<number>('voltage_V', null, 'not-available')
                     : createCell<number>('voltage_V', derived, 'calculated');
             },
-            (v) => this.driveVoltage_V.set(v),
-            () => {
-                const power_W = slot.get().power_W;
-                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                if (power_W !== null && Re_ohm !== undefined) {
-                    this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
-                } else {
-                    slot.set({power_W: null, voltage_V: null});
-                }
+            {
+                entered: (v: number) => this.driveVoltage_V.set(v),
+                clear: () => {
+                    const power_W = slot.get().power_W;
+                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+                    if (power_W !== null && Re_ohm !== undefined) {
+                        this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
+                    } else {
+                        slot.set({power_W: null, voltage_V: null});
+                    }
+                },
+                // S2-7c/d: the signal chain (T5) is out of scope for this step — never
+                // solver-derived here.
+                calculated: () => {},
+                dq: () => {},
             },
         );
     }
@@ -2550,7 +2654,7 @@ export class OpenISDProject {
 
     /** This project's stated air temperature, WinISD Advanced "Temperature". Null until stated —
      *  the reference value lives in `@openisd/engine` (`air.ts`), never duplicated here. */
-    get envTempK(): Field<number> {
+    get envTempK(): InputField<number> {
         return nullableField(this.#slot('environment'), 'temperature_K');
     }
 
@@ -2560,7 +2664,7 @@ export class OpenISDProject {
     }
 
     /** This project's stated relative humidity, WinISD Advanced "Humidity". Null until stated. */
-    get envHumidityPct(): Field<number> {
+    get envHumidityPct(): InputField<number> {
         return nullableField(this.#slot('environment'), 'humidity_pct');
     }
 
@@ -2571,7 +2675,7 @@ export class OpenISDProject {
 
     /** This project's stated atmospheric pressure, WinISD Advanced "Pressure". Null until
      *  stated. */
-    get envPressurePa(): Field<number> {
+    get envPressurePa(): InputField<number> {
         return nullableField(this.#slot('environment'), 'pressure_Pa');
     }
 
