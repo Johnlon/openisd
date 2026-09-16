@@ -374,8 +374,10 @@ names + `solverQuantities.ts` + the `.values` result types (T3/T10 style trim).
 | S2-1 | RED `solveVent(p: VentSolverParams, air): VentIssue[]` — handle solve, writes `'C'` onto the params; rewire Engine + domain vent getters + pinning tests | `vent-pr-consistency.test.ts`, domain suite |
 | S2-1 note | **Done (2026-09-16)** — engine seam landed handle-style (engine tests pin the writes). Domain rewire deferred to S2-7: the getters keep calling the bag `solveVentConsistencyGroup` + `checkVentConsistency` because record-backed `Field` handles (the only legal `SolverField` impls) and the re-solve trigger do not exist until the T11 storage step; S2-10 deletes those bag internals. | — |
 | S2-2 | RED `solvePr(p: PrSolverParams, air): PrIssue[]` — handle solve; rewire | same |
+| S2-2 note | **Done (2026-09-16, `5236d18`)** — engine seam handle-style; domain PR getters + `#prSweepIssues` re-pointed to the bag `solvePrConsistencyGroup`+`checkPrConsistency` until S2-7 (same deferral as S2-1). `solveEnvironment {values, issues}` landed in the same commit (S2-6 seam; `sweep.ts` re-point still open). | — |
 | S2-3 | RED `solveDriver(p: DriverSolverParams): DriverIssue[]` — `DriverSolverQuantities` + `DriverSolveResult` deleted; `checkConsistency` runs on a private numeric working set | driver tests |
 | S2-4 | RED `solveSealedAlignment(p: SealedAlignmentSolverParams): SealedAlignmentIssue[]` | sealed-alignment tests |
+| S2-4 note | **Done (2026-09-16, `d9a95ae`)** — engine seam handle-style, 5 pinning tests; domain deferred to S2-7. | — |
 | S2-5 | `solveBoxParams(box, P)` absorbs `checkBoxParams`+`validateParams` (T9); re-point `paramIssues` (`appState.ts:394`) | `params.test.ts`, store tests |
 | S2-6 | `solveEnvironment(env): EnvironmentSolveResult` — kept (Air is not a bag); re-point `sweep.ts:219-221` | sweep tests |
 | S2-7 | **T11 storage**: `setCalculated` writes value+`'C'` into the record; `get()` = one record read (`getEffectiveCell` + private store die); **every write re-triggers the node solve** (RED: edit Fs → Qts/Rms `'C'` entries refreshed) | cell/domain tests |
