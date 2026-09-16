@@ -1,5 +1,5 @@
 prefix: QO
-next: 152
+next: 153
 questions:
 - id: QO1
   title: UI TODO List
@@ -9288,3 +9288,17 @@ questions:
   answer:
     at: '2026-09-16'
     text: Keep - one solve, redline all fields (John, 2026-09-17).
+- id: QO152
+  title: 'Project files saved before 2026-09-17 no longer open: unset box fields were written as null'
+  status: decided
+  raised: '2026-09-16'
+  body: 'The new storage (plan step S2-7b) writes an unset box field (vent tuning, vent length, radiator
+    added mass, radiator tuning) by leaving the key out, and a set one as {state, value}. Every project
+    file saved before that change wrote null for an unset field. The loader now rejects that shape, so
+    those projects, and the two browser-test fixture projects, do not open. The app reports the rejection
+    in a browser alert; the browser tests dismiss alerts automatically, so to them the failure looked
+    silent. Question: accept the old shape at load, or reject it and rewrite the fixtures?'
+  answer:
+    at: '2026-09-16'
+    text: 'Reject; rewrite the fixtures (John, 2026-09-17). Also: yes, show the parse error - the file-open
+      path surfaces the schema error text to the user and to the browser console so tests see it.'
