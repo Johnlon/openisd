@@ -1,6 +1,6 @@
 # PLAN — DRIVER SOLVE AND SWEEP DIAGNOSTICS
 
-**Status: COMPLETE 2026-09-17 — every step S1–S7 landed (`6161b6c`..`713dbf3`); open items are John's rulings J1–J6 (§6) and the browser-suite re-run.** 2026-09-16 rewrite: dropped the accreted
+**Status: S1–S7 landed 2026-09-17 (`6161b6c`..`713dbf3`). J1–J6 ruled → two follow-up steps S8 (strip `'C'` on save) and S10 (sealed joins the cascade). Browser-suite re-run pending.** 2026-09-16 rewrite: dropped the accreted
 design-history layers (original sketches, corrections, convergence essays — preserved in git
 history) and replaced them with the current components, the APIs the plan references by name,
 the built state, and the remaining steps. Review that prompted this:
@@ -474,7 +474,14 @@ solvePr → solveSealedAlignment` over the live `Field` handles; a standalone `O
 
 **Progress:** S2-7a `f229856` · S2-7b `8dfaba0` · S2-7c `c9b08de` · S2-7d1 `a113c1b` · S2-7d2 `97fb4c2` — **S2-7 DONE (2026-09-17)** except sealed (J4). S2-8 (import transform) and S2-9 (DQ → `dq_calculated`, formula text) landed inside S2-7b/S2-7d2.
 
-**Open for John (raised by S2-7 implementation, 2026-09-17):**
+**Ruled 2026-09-17 (ledger QO147–QO151, QO126 done):** J1 strip `'C'` on save → **step S8**; J2 `#issues` allowed; J3 as-is; J4 alignment solve takes losses as inputs, matches WinISD, then sealed joins the cascade → **step S10**; J5 keep; J6 QO126 done.
+
+| # | Step | Work |
+|---|---|---|
+| S8 | Strip `'C'` entries on save (J1) | persistence: project save / catalogue bundle / browser store drop every `state:'C'` entry (and their `dq_calculated`); revert the three `scripts/roundTripGate.mjs` patches; RED: saved JSON contains no `'C'`. |
+| S10 | Sealed joins the cascade (J4) | `solveSealedAlignment` takes `Ql`/`Qa` (losses) as `SolverInput`s and reproduces `#sealedQtc`; WinISD parity confirmed by probe (`winisd-wine-probing`); sealed `volume_m3`/`Qtc` in `#resolve`; `q_tc` readout becomes an entry read. |
+
+**Original questions (kept for the record):**
 
 | # | Question | Leader's interim call |
 |---|---|---|

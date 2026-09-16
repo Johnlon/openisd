@@ -1,5 +1,5 @@
 prefix: QO
-next: 147
+next: 152
 questions:
 - id: QO1
   title: UI TODO List
@@ -8617,7 +8617,7 @@ questions:
       radiator from the user's library picks.
 - id: QO126
   title: 'PR/vented tuning <-> paired quantity: one solved pair, unreachable target marks the input'
-  status: decided
+  status: done
   raised: '2026-09-08'
   body: ''
   answer:
@@ -8656,6 +8656,10 @@ questions:
 
       Only case 2 gets the group treatment. Case 1 outranks it: check each input's own validity first,
       and only fall through to the group mark when they all pass.
+  - at: '2026-09-16'
+    text: 'Implemented and verified 2026-09-17 by the S2-7 project cascade (commits a113c1b, 97fb4c2):
+      the vent and passive-radiator pairs are solved bidirectionally by the project on every write. The
+      UI''s manual Helmholtz workaround in useVentGroup.ts is retired. John acked 2026-09-17.'
 - id: QO127
   title: 'DECIDED: a spec field with no stated value reads THROUGH the solver — nothing calls the solver
     independently and writes back -'
@@ -9217,3 +9221,70 @@ questions:
     WHO I COORDINATED WITH, AND WHAT WAS DECIDED. The leader session approved the work, ruled on the undo, and later told me you had made three decisions: no separate working directories for each agent, the rule should be commit-before-undo rather than ask-first, and the git guard should actually block the commands it names. That contradicted what you had told me directly, so I checked with you before acting, and you confirmed it. Commits 531fbf5 and 6de691f carry the resulting rules; the guard now blocks seven forms of destructive command instead of three, and lets read-only ones through. The worker2 session was asked for its view on the rule and never replied.
 
     WHAT IS STILL OPEN FOR YOU, not part of this record but the reason the night ended early: the test suite has 98 failing tests at HEAD out of 284, and its 50 minute running time is almost entirely those failures timing out. Measuring speed further is close to pointless until that is dealt with, and it needs a quiet machine.
+- id: QO147
+  title: 'Saved files: keep or strip the calculated values the solver now writes into the record'
+  status: decided
+  raised: '2026-09-16'
+  body: 'Since the storage change (plan step S2-7, 2026-09-17) every value the solver derives is written
+    into the project or driver record with a ''C'' flag, next to the values the user entered (''E'').
+    Saving a project, bundling the driver catalogue, or storing to the browser would carry all of those
+    calculated values too. They are always recomputed on load, so storing them only makes files larger
+    (about 13 extra keys per driver section) and forced three patches to the release gate script (scripts/roundTripGate.mjs)
+    that checks nothing is lost on a round trip. Question: strip calculated values when saving, or keep
+    them in the file?'
+  answer:
+    at: '2026-09-16'
+    text: Strip on save (John, 2026-09-17). Files hold only what was entered; load recomputes everything.
+      The three release-gate patches can be reverted once stripping is in place.
+- id: QO148
+  title: Project object keeps a small cache of the last solve's problems - a fourth private field
+  status: decided
+  raised: '2026-09-16'
+  body: 'The project object was ruled (2026-09-06) to hold exactly three private fields: the saved record,
+    the edited record and the engine. The new auto-solve (plan step S2-7d1) adds a fourth: a cache of
+    the problems found by the last solve, rebuilt on every write and never saved. It exists because reading
+    a value must not trigger a fresh solve - doing so caused an infinite update loop in the UI. The architecture
+    test that guards the field count has been updated to name it. Question: allow this one documented
+    exception?'
+  answer:
+    at: '2026-09-16'
+    text: Allow, documented (John, 2026-09-17).
+- id: QO149
+  title: Three solver quantities have no place in the driver record
+  status: decided
+  raised: '2026-09-16'
+  body: 'The driver solver knows three quantities (reference SPL, terminal Re, terminal BL) that have
+    no slot in the driver record, so they are computed fresh whenever needed and never stored. Terminal
+    Re and BL are pure functions of Re, BL and the coil wiring; reference SPL has no source. Question:
+    leave as-is, or give them record slots for uniformity?'
+  answer:
+    at: '2026-09-16'
+    text: Fine as-is (John, 2026-09-17). Nothing to store.
+- id: QO150
+  title: 'Sealed box Qtc: the app''s lossy readout and the engine''s lossless alignment solve disagree'
+  status: decided
+  raised: '2026-09-16'
+  body: 'The sealed-box Qtc the app shows includes box losses (Ql and Qa). The engine''s sealed ''alignment''
+    solve, added for the one-solve-per-node design, uses the lossless textbook formula. For the same driver
+    and volume they differ (0.597 shown vs 0.593 solved). The sealed box was therefore left out of the
+    automatic solve so no displayed number changed. Question: which model is right, and should the alignment
+    solve take losses as inputs?'
+  answer:
+    at: '2026-09-16'
+    text: 'Do what WinISD does - make that the default. If the loss model is an input to the alignment
+      solve then it is just another input like anything else. (John, 2026-09-17.) Leader reading: the
+      alignment solve takes the losses as inputs and produces the same lossy figure the app already shows;
+      then the sealed box joins the automatic solve. WinISD behaviour to be confirmed by probe before
+      the change lands.'
+- id: QO151
+  title: Passive radiator system tuning now follows the one PR solve, no special case for unstated mass
+  status: decided
+  raised: '2026-09-16'
+  body: 'Before 2026-09-17 the passive radiator''s ''system tuning'' cell was solved as if no mass were
+    on the cone whenever the mass was unstated, so an unreachable tuning target could never drag its value.
+    It now comes from the single PR solve like every other field, so an unreachable target shows the derived
+    (negative-mass) tuning with the same red mark as the mass and tuning cells. Question: keep the new
+    behaviour?'
+  answer:
+    at: '2026-09-16'
+    text: Keep - one solve, redline all fields (John, 2026-09-17).
