@@ -49,6 +49,7 @@ import type {
     BoxType, SimulatableBoxType, DriverError, DriverIssue, Filter,
     EnclosureParams, MaxCurvesResult, SweepParams, SweepResult, DriverSolverQuantities,
     SweepSolveResult, MaxCurvesSolveResult,
+    SweepIssue, VentIssue, PrIssue,
 } from '../engine/index.js';
 
 import type {Vent, VentShape} from './vent.js';
@@ -2753,6 +2754,8 @@ export class OpenISDProject {
         const params = box ? this.#sweepParams(P) : null;
         if (!box) return {values: null, issues: []};
         if (!params) return {values: null, issues: this.#engine.checkBoxParams(box, this.#enclosureParams())};
+        const boxIssues = this.#boxSweepIssues(box);
+        if (boxIssues.length) return {values: null, issues: boxIssues};
         return this.#engine.sweep(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
 
@@ -2761,7 +2764,92 @@ export class OpenISDProject {
         const box = this.#engineBoxType();
         const params = box ? this.#sweepParams(P) : null;
         if (!box || !params) return {values: null, issues: [], driverPrerequisites: []};
+        const boxIssues = this.#boxSweepIssues(box);
+        if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
         return this.#engine.maxCurves(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
+    }
+
+    /** The active box's own sweep-level blockers, beyond what `checkBoxParams()` already reports:
+     *  a vented/bandpass4 port with neither a stated tuning nor a stated port length, or a
+     *  passive-radiator mismatch target with neither a stated added mass nor a stated tuning. */
+    #boxSweepIssues(box: SimulatableBoxType): readonly SweepIssue[] {
+        if (box === 'vented' || box === 'bandpass4') return this.#ventSweepIssues(box);
+        if (box === 'box-passive-radiator') return this.#prSweepIssues();
+        return [];
+    }
+
+    /** The one air pair the vent/PR solvers need — the project's OWN resolved air, read from the
+     *  embedded driver exactly the way the box's windows derive theirs (`openisdDomain.ts` ~543). */
+    #sweepAir(): Air {
+        const d = this.driver.solveConsistencyGroup();
+        return {rho: d.roo_kg_per_m3!, c: d.c_m_per_s!};
+    }
+
+    /** Assembled exactly as the per-field vent getters do (~582), for the ACTIVE vent — `vented`'s
+     *  or `bandpass4`'s front — so the sweep reports the same VentIssue a cell would. `checkVentConsistency`
+     *  deliberately stays silent when NO target is stated at all (pinned by
+     *  `engine/vent-pr-consistency.test.ts`: "no target chosen yet" is not a per-field error), so
+     *  this guard adds the no-resonance case on top: a port that still has neither `tuning_hz` nor
+     *  `length_m` after solving blocks the whole sweep, in the terms the sweep's `Leff` actually
+     *  runs by. */
+    #ventSweepIssues(box: 'vented' | 'bandpass4'): readonly VentIssue[] {
+        const b = this.box;
+        const tuningCell = box === 'vented'
+            ? b.vented.tuning_hz.get()
+            : b.bandpass4.chambers.front.tuning_hz.get();
+        const vent = box === 'vented' ? b.vented.vent : b.bandpass4.vents.front;
+        const Vb = box === 'vented'
+            ? b.vented.volume_m3.get().value
+            : b.bandpass4.chambers.front.volume_m3.get().value;
+        const lengthCell = vent.length_m.get();
+        const solved = this.#engine.solveVentConsistencyGroup({
+            tuning_hz: tuningCell.state === 'entered' ? tuningCell.value ?? undefined : undefined,
+            length_m: lengthCell.state === 'entered' ? lengthCell.value ?? undefined : undefined,
+            Vb_m3: Vb ?? undefined,
+            area_m2: vent.area_m2() ?? undefined,
+            endCorrection_m: vent.endCorrection_m.get(),
+        }, this.#sweepAir());
+        const issues = this.#engine.checkVentConsistency(solved);
+        if (issues.length) return issues;
+        if (solved.tuning_hz == null && solved.length_m == null) {
+            const required = ['tuning_hz', 'Vb_m3', 'area_m2'] as const;
+            const missing = required.filter((f) => {
+                const v = solved[f];
+                return !(typeof v === 'number' && v > 0);
+            });
+            return [{
+                kind: 'missing-dependencies', target: 'length_m',
+                routes: [{formula: 'length_m from tuning_hz + Vb_m3 + area_m2 (Helmholtz)', required, missing}],
+            }];
+        }
+        return [];
+    }
+
+    /** The PR equivalent of `#ventSweepIssues` — assembled as the per-field PR getters do (~700).
+     *  `checkPrConsistency` fires exactly when a tuning/mass target is stated and one target is
+     *  stated but the resonator geometry (the radiator's own `prMmd_kg`/`prSd_m2`/`prCms_m_per_N`,
+     *  or `Vb_m3`) needed to derive the other is incomplete. A configured radiator with NEITHER
+     *  target stated still sweeps — that un-tuned state is simulable (pinned by
+     *  `test/engine-wiring.test.ts` "a passive-radiator box simulates"), so there is deliberately
+     *  no both-missing gate here, unlike `#ventSweepIssues`. */
+    #prSweepIssues(): readonly PrIssue[] {
+        const pr = this.box.passiveRadiator;
+        const r = pr.radiator;
+        const tuningCell = pr.tuning_hz.get();
+        const massCell = pr.addedMass_kg.get();
+        const Vb = pr.volume_m3.get() || this.box.vented.volume_m3.get().value;
+        const solved = this.#engine.solvePrConsistencyGroup({
+            tuning_hz: tuningCell.state === 'entered' ? tuningCell.value ?? undefined : undefined,
+            addedMass_kg: massCell.state === 'entered' ? massCell.value ?? undefined : undefined,
+            Vb_m3: Vb ?? undefined,
+            prMmd_kg: r?.spec.Mms_kg.get().value ?? undefined,
+            prSd_m2: r?.spec.Sd_m2.get().value ?? undefined,
+            prCms_m_per_N: r?.spec.Cms_m_per_N.get().value ?? undefined,
+            prNum: pr.count.get(),
+        }, this.#sweepAir());
+        const issues = this.#engine.checkPrConsistency(solved);
+        if (issues.length) return issues;
+        return [];
     }
 
     /** What is wrong with these sweep parameters for this project's topology — checked BEFORE a

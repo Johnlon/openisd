@@ -1383,3 +1383,94 @@ describe('a spec field the record does not state reads through the solver', () =
     expect(d.spec.woofer.Cms_m_per_N.get().value!).toBeCloseTo(before * 2, 12);
   });
 });
+
+describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS)', () => {
+  // A CIRCUIT-COMPLETE driver (the store's `store-issue-channel.test.ts` clean-fixture field
+  // set): Qts derived from stated Qes/Qms so nothing can contradict, Mms/Rms/Bl/Cms derived by
+  // the solver, and Re stated — sweeping is possible at all, so the vent/PR guards below are
+  // the ONLY expected blockers.
+  const project = (box: 'vented' | 'bp4' | 'pr') => {
+    let p: OpenISDProject;
+    if (box === 'pr') {
+      p = OpenISDProject.builder(driverFrom({
+        brand: 'Dayton', model: 'RS225', section: 'woofer',
+        spec: tuneSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
+      }), new Engine())
+        .passiveRadiator().volume_m3(0.05).tuning_hz(45)
+        .radiator(radiator())
+        .build();
+    } else {
+      p = OpenISDProject.builder(driverFrom({
+        brand: 'Dayton', model: 'RS225', section: 'woofer',
+        spec: tuneSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
+      }), new Engine()).vented().volume_m3(0.05).tuning_hz(40).build();
+    }
+    const w = p.driver.spec.woofer;
+    w.Sd_m2.set(0.0133);
+    w.Le_H.set(0.70e-3);
+    w.Xmax_m.set(0.0050);
+    w.Pe_W.set(60);
+    return p;
+  };
+  const radiatorJson = () => driverJson({
+    brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
+    spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+  });
+  const radiator = () => {
+    const r = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorJson(), new Engine());
+    if (Array.isArray(r)) throw new Error(`fixture radiator is invalid: ${r.join(', ')}`);
+    return r;
+  };
+
+  it('a vented project with no tuning_hz and no length_m reports a blocking VentIssue, not NaN curves', () => {
+    // The silent-gap finding this closes: an unsized vent port produced `sweep().issues === []`
+    // while zmag/zph/exc went NaN, and only the UI's generic classifyFinite postcondition ever
+    // complained. The sweep must name the unstated vent target itself.
+    const p = project('vented');
+    p.box.vented.tuning_hz.clear();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.1);
+
+    const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });
+    expect(result.values).toBeNull();
+    const issue = result.issues[0];
+    expect(issue).toBeDefined();
+    expect(issue).toMatchObject({ kind: 'missing-dependencies' });
+    if (issue.kind === 'missing-dependencies') {
+      expect(issue.target).toBe('length_m');
+      expect([...issue.routes[0].required].sort()).toEqual(['Vb_m3', 'area_m2', 'tuning_hz']);
+      expect(issue.routes[0].missing).toContain('tuning_hz');
+    }
+  });
+
+  it('a passive-radiator project missing PR mass reports a blocking PrIssue, not NaN curves', () => {
+    // The radiator is configured and the resonance TARGET (tuning_hz) is stated, but the
+    // radiator's own mass (`Mms` → `prMmd_kg`) is missing — the geometry the addedMass route
+    // needs. `checkPrConsistency` fires because a target WAS stated; this is the "missing PR
+    // mass" case of the plan. (A radiator with no target at all still sweeps un-tuned — pinned
+    // by engine-wiring.test.ts — so that case must stay silent.)
+    const p = project('pr');
+    p.box.passiveRadiator.radiator.spec.Mms_kg.clear();
+
+    const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });
+    expect(result.values).toBeNull();
+    const issue = result.issues[0];
+    expect(issue).toBeDefined();
+    expect(issue).toMatchObject({ kind: 'missing-dependencies' });
+    if (issue.kind === 'missing-dependencies') {
+      expect(issue.target).toBe('addedMass_kg');
+      expect([...issue.routes[0].required].sort().join(',')).toBe('Vb_m3,prCms_m_per_N,prMmd_kg,prSd_m2,tuning_hz');
+      expect(issue.routes[0].missing).toEqual(['prMmd_kg']);
+    }
+  });
+
+  it('stating the tuning clears the vent guard — the sweep runs', () => {
+    const p = project('vented');
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.1);
+
+    const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });
+    expect(result.values).not.toBeNull();
+    expect(result.issues).toEqual([]);
+  });
+});

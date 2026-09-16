@@ -25,16 +25,24 @@ import type { CircuitQuantities } from './circuit.js';
 import type { DriverQuantityName, DriverIssue, DriverPrerequisite } from './consistency.js';
 import type { EnvironmentIssue } from './air.js';
 import type { BoxParamsIssue } from './params.js';
+import type { VentIssue, PrIssue } from './solver.js';
 
 /** Every issue channel a sweep can surface: the driver's own missing circuit fields (a
  *  `missing-dependencies` issue per absent field, never a combined message or a cross-field
  *  substitution suggestion — packages/design/AGENTS.md ruling QO144), the environment's entered
- *  air constants being out of range, or an unstated enclosure parameter (`OpenISDProject.sweep()`
+ *  air constants being out of range, an unstated enclosure parameter (`OpenISDProject.sweep()`
  *  reports this channel when the box has no `Vb`/`Vf`/`Sp`/etc. to sweep with at all — the engine
  *  `sweep()` function itself never produces this variant, since it never reads box params
- *  before the domain has already confirmed they exist). Never a sweep-own quantity: `sweep()`
- *  computes nothing a caller enters, so it has no target of its own to report an issue about. */
-export type SweepIssue = DriverIssue | EnvironmentIssue | BoxParamsIssue;
+ *  before the domain has already confirmed they exist), or the active box's own vent/PR
+ *  resonance being unstated (`OpenISDProject.sweep()` — a vented/bandpass4 project whose port
+ *  has neither a tuning nor a port length, or a passive-radiator project whose radiator has
+ *  neither an added mass nor a tuning, would otherwise sweep silently to NaN because
+ *  `SweepParams.Leff`/`prMadd` come back undefined; the domain guard names the missing target
+ *  instead). Never a sweep-own quantity: `sweep()` computes nothing a caller enters, so it has
+ *  no target of its own to report an issue about. */
+export type SweepIssue =
+  | DriverIssue | EnvironmentIssue | BoxParamsIssue
+  | VentIssue | PrIssue;
 
 /** The unified sweep result: the curves (or null if nothing could be derived), and why. */
 export interface SweepSolveResult {

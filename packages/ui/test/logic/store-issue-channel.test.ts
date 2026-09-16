@@ -180,4 +180,42 @@ describe('the store unions every hardening layer into one issue list', () => {
     assert.match(maxsplWarn.message, /Pe_W/);
     assert.match(maxsplWarn.message, /Xmax_m/);
   });
+
+it('an unsized vent port surfaces a tuning_hz/length_m error through allIssues, '
+   + 'not the generic no-values postcondition (T1)', async () => {
+    newProject();
+    requireFocusedProject().box.boxType.set('vented');
+    const driver = requireFocusedProject().driver.spec.woofer;
+    driver.Fs_hz.set(37);
+    driver.Qts.set(0.378);
+    driver.Qes.set(0.40);
+    driver.Qms.set(7.0);
+    driver.Vas_m3.set(0.0300);
+    driver.Sd_m2.set(0.0133);
+    driver.Re_ohm.set(5.6);
+    driver.Le_H.set(0.70e-3);
+    driver.Xmax_m.set(0.0050);
+    driver.Pe_W.set(60);
+    driver.Znom_ohm.set(8);
+    // Sized box, but NEITHER tuning nor port length ever stated — the no-target sweep
+    // state T1 adds a specific error for, instead of the generic no-values consequence.
+    requireFocusedProject().box.vented.volume_m3.set(0.030);
+    requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
+    await awaitSweepThrottle();
+
+    const vent = allIssues.value.find(e => e.field === 'tuning_hz' || e.field === 'length_m');
+    assert.ok(vent, `the unsized vent must surface through allIssues; got: ${allIssues.value.map(e => e.field).join(', ')}`);
+    assert.equal(vent.level, 'error');
+    assert.match(vent.message, /cannot be calculated yet/);
+    assert.equal(allIssues.value.some(e => e.field === 'sweep' && e.level === 'error'), false,
+      'the generic downstream no-values consequence must not be the one reporting the cause');
+
+    // The live recovery half of the transition: stating a tuning must clear the guard
+    // and put curves back.
+    requireFocusedProject().box.vented.tuning_hz.set(37);
+    await awaitSweepThrottle();
+    assert.deepEqual(allIssues.value.filter(e => e.level === 'error'), [],
+      'stating a tuning must clear the vent sweep guard');
+    assert.ok(curvesData.value, 'stating a tuning must yield a sweep again');
+  });
 });
