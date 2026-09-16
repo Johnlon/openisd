@@ -14,18 +14,25 @@
  * — it cannot know WHICH field caused it. Validating the inputs here names the field, so
  * the message points at the box volume the user actually has to change.
  *
- * Communicated through the same `DriverError` channel as every other engine precondition — no
- * throw (.claude/rules/openisd-result-contract.md).
+ * Communicated through the `{ values, issues }` result every other node solve now uses (T9) —
+ * no throw (.claude/rules/openisd-result-contract.md).
  *
  * This is input validation only: it changes no formula and no computed number.
  */
 
-import type { BoxType, SimulatableBoxType, EnclosureParams, DriverError } from './types.js';
+import type { BoxType, SimulatableBoxType, EnclosureParams } from './types.js';
 import { simulatableBoxType } from './types.js';
 import type { CalculationIssue, SolveRoute } from './consistency.js';
 
 export type BoxParamsQuantityName = keyof EnclosureParams;
 export type BoxParamsIssue = CalculationIssue<BoxParamsQuantityName>;
+
+/** `solveBoxParams`'s one result: the enclosure parameters unchanged (`values`) when every
+ *  field the circuit divides by is present, or `null` with `issues` naming what is missing. */
+export interface BoxParamsSolveResult {
+  readonly values: EnclosureParams | null;
+  readonly issues: readonly BoxParamsIssue[];
+}
 
 /** One enclosure parameter `solve()` divides by, with the human wording for its message. */
 interface RequiredParam {
@@ -39,9 +46,8 @@ interface RequiredParam {
 
 
 /**
- * Which parameters `simulatable` actually divides by, and why — the one table both
- * `validateParams()` and `checkBoxParams()` read, so the two channels can never name a
- * different set of required fields for the same topology. Lives INSIDE the function that
+ * Which parameters `simulatable` actually divides by, and why — the one table `solveBoxParams()`
+ * reads. Lives INSIDE the function that
  * builds it, not at module scope: a module-scoped `const` object is shared mutable state
  * however it is declared, because `const` freezes the binding and not the contents
  * (packages/design/AGENTS.md).
@@ -98,66 +104,27 @@ function requiredParamsFor(simulatable: SimulatableBoxType): readonly RequiredPa
   return REQUIRED_BY_BOX[simulatable];
 }
 
-/**
- * Validate the enclosure parameters for `box`. Returns one blocking `error` per unmet
- * requirement, or an empty array when every value the circuit divides by is a finite
- * positive number. Never throws.
+/** The one enclosure-parameter result: `values` is `P` unchanged when every field the circuit
+ *  divides by is a finite positive number AND `box` is a topology the circuit has a model for;
+ *  otherwise `null`, with `issues` naming what is missing (T9 — one solve per component). A box
+ *  the circuit has no model for reports no issue here — it is not a missing FIELD, and naming it
+ *  to the user is a presentation concern the store layer owns (step S3), not this precondition.
  *
- * Deliberately NOT exhaustive over everything that could go non-finite: `Leff`, the loss
- * Q's and the filter chain can each produce a singularity at one frequency without being
- * invalid inputs. Those are the postcondition's job (`classifyFinite`) — this layer only
- * rejects values that break the solve at EVERY frequency, which is the class a precondition
- * can decide from the inputs alone.
+ * Deliberately NOT exhaustive over everything that could go non-finite: `Leff`, the loss Q's
+ * and the filter chain can each produce a singularity at one frequency without being invalid
+ * inputs. Those are the postcondition's job (`classifyFinite`) — this layer only rejects values
+ * that break the solve at EVERY frequency, which is the class a precondition can decide from the
+ * inputs alone.
  */
-export function validateParams(box: BoxType, P: EnclosureParams): DriverError[] {
-  // A box type the circuit has no model for is refused BY NAME, here, rather than being
-  // inexpressible in the type. The domain can hold such a design; the engine simply declines to
-  // simulate it, and says which one it declined.
+export function solveBoxParams(box: BoxType, P: EnclosureParams): BoxParamsSolveResult {
   const simulatable = simulatableBoxType(box);
-  if (simulatable === null) {
-    return [{
-      level: 'error',
-      field: 'Vb',
-      message: `The engine has no circuit model for a ${box} enclosure, so this design cannot be simulated.`,
-    }];
-  }
-
-  const errors: DriverError[] = [];
-  for (const p of requiredParamsFor(simulatable)) {
-    const v = P[p.field];
-    // Finite as well as positive: `Infinity > 0` is true, so a bare `> 0` would admit a
-    // value that is itself already the poison this guard exists to stop.
-    if (typeof v === 'number' && Number.isFinite(v) && v > 0) continue;
-    errors.push({
-      level: 'error',
-      field: p.field,
-      message: `${p.label} must be greater than zero — ${p.consequence}.`,
-    });
-  }
-  return errors;
-}
-
-/**
- * `validateParams()`'s own diagnostic, re-shaped as `BoxParamsIssue` — the unified
- * `CalculationIssue<Q>` contract (**Convergence**, `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`)
- * — instead of `DriverError`.
- *
- * A NEW function, not a converted `validateParams()`: `validateParams()`'s `DriverError[]`
- * return feeds directly into `OpenISDProject.sweep()`'s `Result<SweepResult>.errors`
- * (`domain/openisdDomain.ts`), which is `DriverError[]` for every OTHER precondition too
- * (`circuitQuantities`, `classifyFinite`, …) — changing that shared shape is a far larger
- * change than this one enclosure check, and is not made here. Each missing field has exactly
- * one requirement and no alternative, so every issue is `missing-dependencies` with a single,
- * self-naming route; there is no `inconsistent-inputs` case here (nothing about an enclosure
- * parameter contradicts another one — a box either states a value or it does not).
- */
-export function checkBoxParams(box: BoxType, P: EnclosureParams): BoxParamsIssue[] {
-  const simulatable = simulatableBoxType(box);
-  if (simulatable === null) return [];
+  if (simulatable === null) return { values: null, issues: [] };
 
   const issues: BoxParamsIssue[] = [];
   for (const p of requiredParamsFor(simulatable)) {
     const v = P[p.field];
+    // Finite as well as positive: `Infinity > 0` is true, so a bare `> 0` would admit a
+    // value that is itself already the poison this guard exists to stop.
     if (typeof v === 'number' && Number.isFinite(v) && v > 0) continue;
     const route: SolveRoute<BoxParamsQuantityName> = {
       formula: `${p.label} must be greater than zero — ${p.consequence}.`,
@@ -165,5 +132,5 @@ export function checkBoxParams(box: BoxType, P: EnclosureParams): BoxParamsIssue
     };
     issues.push({ kind: 'missing-dependencies', target: p.field, routes: [route] });
   }
-  return issues;
+  return { values: issues.length === 0 ? P : null, issues };
 }

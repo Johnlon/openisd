@@ -211,14 +211,14 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     expect(project.classifyFlatClamp(sw)).toBe(engine.classifyFlatClamp(sw));
   });
 
-  it('validateParams() reports a bad parameter set BEFORE a sweep is attempted', () => {
+  it('boxParamsIssues() reports a bad parameter set BEFORE a sweep is attempted', () => {
     const engine = new Engine();
     const project = drivenSealed(engine, 0.03);
 
-    expect(project.validateParams({ fmin: 10, fmax: 1000 })).toEqual([]);
+    expect(project.boxParamsIssues()).toEqual([]);
     // A zero-volume box is not a very small box; it is no box.
     const zeroVolume = drivenSealed(engine, 0);
-    expect(zeroVolume.validateParams({ fmin: 10, fmax: 1000 }).length).toBeGreaterThan(0);
+    expect(zeroVolume.boxParamsIssues().length).toBeGreaterThan(0);
   });
 
   it('impedancePeak() reads the resonance off the CURVE, near the sealed prediction', () => {

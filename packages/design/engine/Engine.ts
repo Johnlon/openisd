@@ -25,8 +25,8 @@ import { driveVoltage, driveFromVoltage } from './formulas.js';
 import { solveSignal } from './signal.js';
 import type { SignalSolverQuantities, SignalSolveResult } from './signal.js';
 import { sealedResonance, sourceLoadedQts } from './lossMode.js';
-import { validateParams, checkBoxParams } from './params.js';
-import type { BoxParamsIssue } from './params.js';
+import { solveBoxParams } from './params.js';
+import type { BoxParamsIssue, BoxParamsSolveResult } from './params.js';
 import {
   classifyFinite, classifyFiniteIssues, classifyFlatClamp, classifyMaxFinite,
   maxCurves, passbandRef, rolloffFreq, sweep,
@@ -371,18 +371,12 @@ export class Engine {
     return maxCurves(drv, Le_H, box, P);
   }
 
-  /** Whether the parameters can be swept at all, and what is wrong if not. */
-  validateParams(box: BoxType, P: EnclosureParams): DriverError[] {
-    return validateParams(box, P);
-  }
-
-  /** `validateParams()`'s own check, `BoxParamsIssue`-shaped — the unified `CalculationIssue<Q>`
-   *  contract. A separate method, not a replacement: `validateParams()` stays `DriverError[]`,
-   *  matching `Engine.checkConsistency()` alongside `checkBoxParams()` for the same reason —
-   *  not because this one is less real, but because `validateParams()` has its own existing
-   *  callers this method does not replace. */
-  checkBoxParams(box: BoxType, P: EnclosureParams): BoxParamsIssue[] {
-    return checkBoxParams(box, P);
+  /** The one enclosure-parameter call to reach for (T9): `values` is `P` unchanged when every
+   *  field the circuit divides by is present for `box`'s topology, else `null`, with `issues`
+   *  naming what is missing. A topology the circuit has no model for reports `{values: null,
+   *  issues: []}` — naming the enclosure itself is the store's presentation concern (S3). */
+  solveBoxParams(box: BoxType, P: EnclosureParams): BoxParamsSolveResult {
+    return solveBoxParams(box, P);
   }
 
   /** The passband reference level a response is measured against. */

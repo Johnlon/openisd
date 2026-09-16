@@ -393,12 +393,12 @@ const curveIssues = computed<DriverError[]>(() => {
 // Validated at the same boundary, on the same project the sweep is actually run on.
 export const paramIssues = computed<DriverError[]>(() => {
   void live.value;
-  return live.value ? live.value.validateParams(GRID) : [];
+  return live.value ? live.value.boxParamsIssues().map(sweepIssueMessage) : [];
 });
 
 // The full issue list the UI shows: box-parameter issues + sweep/max-curve finiteness issues.
 // `sweep(GRID).errors`/`maxCurves(GRID).errors` would duplicate `paramIssues` (both come from
-// the same `validateParams` call inside the project's own sweep/maxCurves), so this reads only
+// the same `solveBoxParams` call inside the project's own sweep/maxCurves), so this reads only
 // the postcondition classifications on top of it.
 export const allIssues = computed<DriverError[]>(
   () => {

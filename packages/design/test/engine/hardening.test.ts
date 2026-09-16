@@ -6,7 +6,7 @@ import { solveConsistencyGroup } from './testSolver.js';
  * channel (`{ level, field, message }`), never by throwing and never by handing a chart a
  * non-finite number in silence. Two layers:
  *
- *   precondition  — `deriveEngineDriver` (driver params) and `validateParams` (box params) reject
+ *   precondition  — `deriveEngineDriver` (driver params) and `solveBoxParams` (box params) reject
  *                   input that would be undefined at EVERY frequency, naming the field.
  *   postcondition — `classifyFinite` / `classifyMaxFinite` classify what actually came out,
  *                   because a frequency-dependent singularity cannot be foreseen from the
@@ -46,8 +46,7 @@ const validDriver = () => solveConsistencyGroup({
   Xmax_m: RAW_COMPLETE.Xmax, Pe_W: RAW_COMPLETE.Pe, Znom_ohm: RAW_COMPLETE.Znom,
 });
 
-const errorFields = (issues: { level: string; field: string }[]): string[] =>
-  issues.filter(e => e.level === 'error').map(e => e.field);
+const targets = (issues: readonly { target: string }[]): string[] => issues.map(i => i.target);
 
 // ── Criterion 1 ──────────────────────────────────────────────────────────────
 describe('a driver with Vas and Qts but no Qms gets a message naming what is missing, not a blank graph', () => {
@@ -88,46 +87,55 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
 
 // ── Criterion 2 ──────────────────────────────────────────────────────────────
 describe('a zero box volume is a named error, not Infinity-poisoned curves', () => {
-  it('Vb = 0 is rejected by the box-parameter precondition, naming Vb', () => {
-    const issues = engine.validateParams('sealed', { ...P_SEALED, Vb: 0 });
-    assert.equal(issues.length, 1, 'exactly the one broken field should be reported');
-    assert.equal(issues[0].level, 'error', 'a zero-volume box is unsimulatable, so this blocks');
-    assert.equal(issues[0].field, 'Vb', 'the issue must name the field the user has to change');
-    assert.match(issues[0].message, /Box volume \(Vb\)/, 'the message must use the UI label for the field');
+  it('Vb = 0 is rejected by the box-parameter precondition, naming Vb, with null values', () => {
+    const result = engine.solveBoxParams('sealed', { ...P_SEALED, Vb: 0 });
+    assert.equal(result.values, null, 'a zero-volume box cannot be simulated');
+    assert.equal(result.issues.length, 1, 'exactly the one broken field should be reported');
+    assert.equal(result.issues[0].kind, 'missing-dependencies');
+    assert.equal(result.issues[0].target, 'Vb', 'the issue must name the field the user has to change');
+    if (result.issues[0].kind === 'missing-dependencies') {
+      assert.match(result.issues[0].routes[0].formula, /Box volume \(Vb\)/, 'the route must use the UI label for the field');
+    }
   });
 
-  it('the message explains the consequence, so the user is not told merely that a number is wrong', () => {
-    const [issue] = engine.validateParams('sealed', { ...P_SEALED, Vb: 0 });
-    assert.match(issue.message, /compliance/i, 'the message must say what breaks in the model');
+  it('the route formula explains the consequence, so the user is not told merely that a number is wrong', () => {
+    const [issue] = engine.solveBoxParams('sealed', { ...P_SEALED, Vb: 0 }).issues;
+    assert.equal(issue.kind, 'missing-dependencies');
+    if (issue.kind === 'missing-dependencies') {
+      assert.match(issue.routes[0].formula, /compliance/i, 'the message must say what breaks in the model');
+    }
   });
 
   it('Vb absent and Vb negative are rejected the same as zero', () => {
     for (const Vb of [undefined as unknown as number, -0.01, NaN, Infinity])
-      assert.ok(errorFields(engine.validateParams('sealed', { ...P_SEALED, Vb })).includes('Vb'),
+      assert.ok(targets(engine.solveBoxParams('sealed', { ...P_SEALED, Vb }).issues).includes('Vb'),
         `Vb = ${Vb} must be rejected — only a finite positive volume is simulatable`);
   });
 
-  it('a healthy design of every SIMULATABLE box type raises no parameter issue at all', () => {
+  it('a healthy design of every SIMULATABLE box type raises no parameter issue and returns its own params as values', () => {
     // Total over `SimulatableBoxType`, so giving the circuit a new topology fails to compile
     // here until this table names it.
     const healthy: Record<SimulatableBoxType, SweepParams> = {
       sealed: P_SEALED, vented: P_VENTED, 'box-passive-radiator': P_PR, bandpass4: P_BP4,
     };
-    for (const box of Object.keys(healthy) as SimulatableBoxType[])
-      assert.deepEqual(engine.validateParams(box, healthy[box]), [],
+    for (const box of Object.keys(healthy) as SimulatableBoxType[]) {
+      const result = engine.solveBoxParams(box, healthy[box]);
+      assert.deepEqual(result.issues, [],
         `${box}: a valid design must produce no parameter issue (a false positive would block a good design)`);
+      assert.equal(result.values, healthy[box], `${box}: a valid design's values must be its own params`);
+    }
   });
 
-  it('a box type the circuit has no model for is refused BY NAME, not silently mis-simulated', () => {
-    // `BoxType` names six enclosures and the circuit models four. The other two must come back
-    // as a stated refusal naming the enclosure — never fall through to another topology's
-    // maths, which would produce a plausible-looking curve for a box that was never simulated.
+  it('a box type the circuit has no model for reports no issue and null values — naming it is the store\'s job (S3)', () => {
+    // `BoxType` names six enclosures and the circuit models four. The other two are simply
+    // unsimulatable here — never falling through to another topology's maths, which would
+    // produce a plausible-looking curve for a box that was never simulated — but the engine's
+    // precondition layer does not itself narrate WHICH box was declined; that presentation is
+    // the store's concern, not this one.
     for (const box of ['bandpass6', 'abc'] as const) {
-      const issues = engine.validateParams(box, P_SEALED);
-      assert.equal(issues.length, 1, `${box}: expected exactly one refusal`);
-      assert.equal(issues[0].level, 'error', `${box}: a topology with no model is a blocking error`);
-      assert.ok(issues[0].message.includes(box),
-        `${box}: the refusal must name the enclosure it declined — got "${issues[0].message}"`);
+      const result = engine.solveBoxParams(box, P_SEALED);
+      assert.equal(result.values, null, `${box}: has no circuit model, so there is nothing to sweep`);
+      assert.deepEqual(result.issues, [], `${box}: expected no field-level issue for an unmodelled topology`);
     }
   });
 
@@ -141,30 +149,33 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
   });
 
   it('a vented box with no vent area is rejected, naming Sp', () => {
-    assert.deepEqual(errorFields(engine.validateParams('vented', { ...P_VENTED, Sp: 0 })), ['Sp'],
+    assert.deepEqual(targets(engine.solveBoxParams('vented', { ...P_VENTED, Sp: 0 }).issues), ['Sp'],
       'the port mass Map = ρ·Leff/Sp is infinite at Sp = 0');
   });
 
   it('a 4th-order bandpass with no front chamber is rejected, naming Vf', () => {
-    assert.deepEqual(errorFields(engine.validateParams('bandpass4', { ...P_BP4, Vf: 0 })), ['Vf'],
+    assert.deepEqual(targets(engine.solveBoxParams('bandpass4', { ...P_BP4, Vf: 0 }).issues), ['Vf'],
       'a bandpass needs both chambers; the front compliance is Vf/(ρc²)');
   });
 
   it('a passive-radiator box with no PR parameters reports every missing one, not just the first', () => {
-    assert.deepEqual(errorFields(engine.validateParams('box-passive-radiator', P_SEALED)), ['prSd', 'prCms', 'prMmd'],
+    assert.deepEqual(targets(engine.solveBoxParams('box-passive-radiator', P_SEALED).issues), ['prSd', 'prCms', 'prMmd'],
       'the user should see the whole list, not fix one field and be told about the next');
   });
 
   it('the sealed box does not demand vent or PR parameters it never uses', () => {
-    assert.deepEqual(engine.validateParams('sealed', P_SEALED), [],
-      'requiring an unused field would block a perfectly valid sealed design');
+    const result = engine.solveBoxParams('sealed', P_SEALED);
+    assert.deepEqual(result.issues, [], 'requiring an unused field would block a perfectly valid sealed design');
+    assert.equal(result.values, P_SEALED);
   });
 
-  it('every parameter issue carries a level, a field and a non-empty human-readable message', () => {
-    for (const issue of engine.validateParams('box-passive-radiator', { ...P_SEALED, Vb: 0 })) {
-      assert.ok(issue.level === 'error' || issue.level === 'warn', 'level must be a declared IssueLevel');
-      assert.ok(issue.field.length > 0, 'field must identify an input');
-      assert.ok(issue.message.trim().length > 10, 'message must be readable prose, not a code');
+  it('every parameter issue is missing-dependencies, naming a field with a non-empty human-readable route', () => {
+    for (const issue of engine.solveBoxParams('box-passive-radiator', { ...P_SEALED, Vb: 0 }).issues) {
+      assert.equal(issue.kind, 'missing-dependencies', 'no enclosure parameter contradicts another');
+      assert.ok(issue.target.length > 0, 'target must identify an input');
+      if (issue.kind === 'missing-dependencies') {
+        assert.ok(issue.routes[0].formula.trim().length > 10, 'route formula must be readable prose, not a code');
+      }
     }
   });
 });
@@ -293,6 +304,6 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
     for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
     assert.doesNotThrow(() => engine.classifyFinite(sw), 'the engine communicates by Result, never by exception');
     assert.doesNotThrow(() => engine.classifyMaxFinite(engine.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!));
-    assert.doesNotThrow(() => engine.validateParams('box-passive-radiator', {} as SweepParams));
+    assert.doesNotThrow(() => engine.solveBoxParams('box-passive-radiator', {} as SweepParams));
   });
 });

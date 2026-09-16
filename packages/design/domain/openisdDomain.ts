@@ -49,7 +49,7 @@ import type {
     BoxType, SimulatableBoxType, DriverError, DriverIssue, Filter,
     EnclosureParams, MaxCurvesResult, SweepParams, SweepResult, DriverSolverQuantities,
     SweepSolveResult, MaxCurvesSolveResult,
-    SweepIssue, VentIssue, PrIssue,
+    SweepIssue, VentIssue, PrIssue, BoxParamsIssue,
 } from '../engine/index.js';
 
 import type {Vent, VentShape} from './vent.js';
@@ -2624,7 +2624,7 @@ export class OpenISDProject {
 
     /** The frequency grid a sweep runs over — the only thing about a sweep this project does not
      *  already know about itself. */
-    /** The ENCLOSURE parameters alone — what `validateParams` reads (`engine/params.ts`: `Vb`,
+    /** The ENCLOSURE parameters alone — what `solveBoxParams` reads (`engine/params.ts`: `Vb`,
      *  `Vf`, `Sp`, `prSd`, `prCms`, `prMmd`), with no drive level and no sweep settings.
      *
      *  Separate from `#sweepParams` because the two answer different questions. Sweeping needs a
@@ -2752,7 +2752,7 @@ export class OpenISDProject {
         const box = this.#engineBoxType();
         const params = box ? this.#sweepParams(P) : null;
         if (!box) return {values: null, issues: []};
-        if (!params) return {values: null, issues: this.#engine.checkBoxParams(box, this.#enclosureParams())};
+        if (!params) return {values: null, issues: this.#engine.solveBoxParams(box, this.#enclosureParams()).issues};
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues};
         return this.#engine.sweep(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
@@ -2768,7 +2768,7 @@ export class OpenISDProject {
         return this.#engine.maxCurves(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
     }
 
-    /** The active box's own sweep-level blockers, beyond what `checkBoxParams()` already reports:
+    /** The active box's own sweep-level blockers, beyond what `solveBoxParams()` already reports:
      *  a vented/bandpass4 port with neither a stated tuning nor a stated port length, or a
      *  passive-radiator mismatch target with neither a stated added mass nor a stated tuning. */
     #boxSweepIssues(box: SimulatableBoxType): readonly SweepIssue[] {
@@ -2850,12 +2850,12 @@ export class OpenISDProject {
         return [];
     }
 
-    /** What is wrong with these sweep parameters for this project's topology — checked BEFORE a
-     *  sweep, so a caller can refuse rather than plot nonsense. Empty when nothing is wrong, and
-     *  also empty (rather than a false accusation) when the topology cannot be simulated at all. */
-    validateParams(_P: FrequencyGrid): DriverError[] {
+    /** What is wrong with this project's enclosure parameters — checked BEFORE a sweep, so a
+     *  caller can refuse rather than plot nonsense. Empty when nothing is wrong, and also empty
+     *  (rather than a false accusation) when the topology cannot be simulated at all. */
+    boxParamsIssues(): readonly BoxParamsIssue[] {
         const box = this.#engineBoxType();
-        return box ? this.#engine.validateParams(box, this.#enclosureParams()) : [];
+        return box ? this.#engine.solveBoxParams(box, this.#enclosureParams()).issues : [];
     }
 
     /** The passband level a response is measured against — the reference every dB figure below is

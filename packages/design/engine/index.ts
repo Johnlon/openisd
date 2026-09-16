@@ -30,7 +30,7 @@ export type {
   SealedAlignmentOption, Wiring,
   EnclosureParams, SweepParams, SweepResult,
 } from './types.js';
-export type { BoxParamsQuantityName, BoxParamsIssue } from './params.js';
+export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
 export type { SignalSolverQuantities, SignalQuantityName, SignalIssue, SignalSolveResult } from './signal.js';
 export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 export type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
