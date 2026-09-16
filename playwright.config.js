@@ -62,7 +62,11 @@ export default defineConfig({
   // wall clock to a terminal that scrolls away, so every speed claim about this suite has so far
   // been unbacked. This persists per-test and per-run durations to build/pw-report.json on EVERY
   // run, so the next comparison reads two files instead of re-running a benchmark.
-  reporter: [['list'], ['json', { outputFile: 'build/pw-report.json' }], ['./scripts/test-reporters/no-skips-playwright.js']],
+  // telemetry-reporter appends one json line per test event as the run goes, so a long run can
+  // be analysed (and a dead run post-mortemed) without waiting for a summary that only exists
+  // at the end. Cheap enough to leave on for every run; scripts/run-ui-telemetry.sh relies on
+  // it being here rather than passing --reporter, which would drop the no-skips gate below.
+  reporter: [['list'], ['json', { outputFile: 'build/pw-report.json' }], ['./scripts/telemetry-reporter.mjs'], ['./scripts/test-reporters/no-skips-playwright.js']],
   // A stray `test.only` must not silently narrow the suite either.
   forbidOnly: true,
   // Baselines use the bundled Inter font (see canvas.ts), which renders identically on
