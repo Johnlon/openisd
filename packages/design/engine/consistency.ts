@@ -1,9 +1,5 @@
 import { solveConsistencyGroup } from './solver.js';
 import type { DriverSolverQuantities } from './solverQuantities.js';
-import type { VentQuantityName, PrQuantityName, SealedAlignmentQuantityName } from './solver.js';
-import type { BoxParamsQuantityName } from './params.js';
-import type { SignalQuantityName } from './signal.js';
-import type { EnvironmentQuantityName } from './air.js';
 import type { SweepResult, MaxCurvesResult } from './types.js';
 
 /** One route to a derivable quantity: the formula, everything it needs, and whatever of that
@@ -272,14 +268,3 @@ export interface CalculationPrerequisite<Q extends string> {
 }
 
 export type DriverPrerequisite = CalculationPrerequisite<DriverQuantityName>;
-export type SealedAlignmentPrerequisite = CalculationPrerequisite<SealedAlignmentQuantityName>;
-export type VentPrerequisite = CalculationPrerequisite<VentQuantityName>;
-export type PrPrerequisite = CalculationPrerequisite<PrQuantityName>;
-export type BoxParamsPrerequisite = CalculationPrerequisite<BoxParamsQuantityName>;
-export type SignalPrerequisite = CalculationPrerequisite<SignalQuantityName>;
-export type EnvironmentPrerequisite = CalculationPrerequisite<EnvironmentQuantityName>;
-/** Configuration (box topology support, circuit model, required simulation option) has no
- *  `CalculationIssue`/values bag of its own (an unsupported topology is a whole-design refusal,
- *  `params.ts#validateParams`, not a field-level DQ) — so there is nothing to derive `keyof`
- *  from, and this is a closed string-literal union instead. */
-export type ConfigurationPrerequisite = CalculationPrerequisite<'boxType' | 'circuitModel' | 'simulationOption'>;

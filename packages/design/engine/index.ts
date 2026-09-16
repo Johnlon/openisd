@@ -23,9 +23,7 @@ export {
 export type { Air, AirEnvironment, AirConstantProvider, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
 export type { CalculationIssue, SolveRoute, DriverQuantityName, DriverIssue, DriverSolveResult } from './consistency.js';
 export type {
-  SweepOutputName, CalculationPrerequisite, DriverPrerequisite, SealedAlignmentPrerequisite,
-  VentPrerequisite, PrPrerequisite, BoxParamsPrerequisite, SignalPrerequisite,
-  EnvironmentPrerequisite, ConfigurationPrerequisite,
+  SweepOutputName, CalculationPrerequisite, DriverPrerequisite,
 } from './consistency.js';
 export type {
   BoxType, SimulatableBoxType, DriverError, EbpSuitability, Filter, FilterType, MaxCurvesResult,
