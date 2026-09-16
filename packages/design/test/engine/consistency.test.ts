@@ -87,6 +87,20 @@ describe('Engine.checkConsistency', () => {
       ]);
     }
   });
+
+  it('reports a missing-dependencies issue for the trio even when Qts ITSELF is entered — the group has no route with fewer than two of three stated (S9a Cluster 6)', () => {
+    const issues = checkConsistency({ Qts: 0.38 });
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({
+      kind: 'missing-dependencies',
+      target: 'Qts',
+    });
+    if (issues[0].kind === 'missing-dependencies') {
+      expect(issues[0].routes).toEqual([
+        { formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing: ['Qes', 'Qms'] },
+      ]);
+    }
+  });
 });
 
 describe('Engine.solveDriver — handle solve, values written onto the params (T10/T11)', () => {

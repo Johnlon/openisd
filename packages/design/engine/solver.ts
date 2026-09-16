@@ -1093,8 +1093,13 @@ function checkConsistency(entered: DriverWorkingSet): DriverIssue[] {
 
   // Qts has no route besides Qes+Qms (WinISD has no third input to this triple) — a driver
   // stating fewer than two of the three cannot solve it, and the caller needs to know exactly
-  // which field is missing to unblock it, not just that Qts came back undefined.
-  if (typeof resolvedValues.Qts !== 'number') {
+  // which field is missing to unblock it. Checked on ENTERED COUNT, not on whether Qts resolved
+  // to a number: an entered Qts always "resolves" to its own stated value regardless of whether
+  // the group is otherwise solvable, so checking `resolvedValues.Qts` alone let a driver stating
+  // Qts ALONE pass as consistent — the group structurally still has no independent route to
+  // confirm it (S9a Cluster 6).
+  const enteredTrioCount = (['Qts', 'Qes', 'Qms'] as const).filter(f => entered[f] != null).length;
+  if (enteredTrioCount < 2) {
     const missing: NumericDriverQuantityName[] = (['Qes', 'Qms'] as const).filter(f => entered[f] == null);
     issues.push({
       kind: 'missing-dependencies',
