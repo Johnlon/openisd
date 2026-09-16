@@ -1,3 +1,5 @@
+/* JL to AGENT - ALL THESE CLASSES MUST DIE*/
+
 export interface DriverSolverQuantities {
     Fs_hz?: number; Re_ohm?: number; Znom_ohm?: number; Le_H?: number; fLe_hz?: number;
     KLe_H_sqrtHz?: number; Qes?: number; Qms?: number; Qts?: number; Vas_m3?: number;

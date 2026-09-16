@@ -189,6 +189,24 @@ describe('the sweep actually consumes humidity and pressure', () => {
   });
 });
 
+describe('Engine.solveEnvironment — the unified { value, issues } bundle (C5)', () => {
+  it('resolves the air and reports no issues in one call', () => {
+    const engine = new Engine();
+    const { values, issues } = engine.solveEnvironment({});
+    assert.ok(values.rho > 0);
+    assert.ok(values.c > 0);
+    assert.deepEqual(issues, []);
+  });
+
+  it('resolves the air and reports the issues together, honouring an entered out-of-range temperature', () => {
+    const engine = new Engine();
+    const { values, issues } = engine.solveEnvironment({ tempK: 100 });
+    assert.ok(values.rho > 0);
+    assert.equal(issues.length, 1);
+    assert.deepEqual(issues[0].target, 'tempK');
+  });
+});
+
 describe('environmentIssues — out-of-range entered air inputs', () => {
   it('returns no issues for a default-only environment', () => {
     const engine = new Engine();

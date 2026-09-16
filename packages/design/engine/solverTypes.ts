@@ -25,6 +25,21 @@ export interface SolverField<T = number> {
   setNotAvailable(): void;
 }
 
+/** A `SolverField` handle for every passive-radiator quantity. Pass to `solvePr` — it derives
+ *  whichever of `tuning_hz`/`addedMass_kg` is not entered plus `resonanceWithAddedMass_hz`/
+ *  `systemTuning_hz`, writing back via `setCalculated` and never overwriting entered values. */
+export interface PrSolverParams {
+  addedMass_kg: SolverField;
+  tuning_hz: SolverField;
+  Vb_m3: SolverField;
+  prMmd_kg: SolverField;
+  prSd_m2: SolverField;
+  prCms_m_per_N: SolverField;
+  prNum: SolverField;
+  resonanceWithAddedMass_hz: SolverField;
+  systemTuning_hz: SolverField;
+}
+
 /** A `SolverField` handle for every vent quantity. Pass this to `solveVent` — the solve
  *  derives whichever of `tuning_hz`/`length_m` is not entered and writes it back via
  *  `setCalculated`, never overwriting an entered value. */

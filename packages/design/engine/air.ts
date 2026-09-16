@@ -139,6 +139,19 @@ export function environmentIssues(env: AirEnvironment): readonly EnvironmentIssu
   }];
 }
 
+export interface EnvironmentSolveResult {
+  readonly values: Air;
+  readonly issues: readonly EnvironmentIssue[];
+}
+
+/** The unified environment solve (C5): the resolved `{ rho, c }` and the issues its stated
+ *  conditions carry, from one call over the same entered environment — replaces separately
+ *  calling `airFor` and `environmentIssues`, which could be handed different arguments and so
+ *  describe two different environments. */
+export function solveEnvironment(env: AirEnvironment): EnvironmentSolveResult {
+  return { values: airFor(env), issues: environmentIssues(env) };
+}
+
 /**
  * Saturation vapour pressure of water over liquid, Pa, from absolute temperature —
  * CIPM-2007 `p_sv = exp(A·T² + B·T + C + D/T)`. ~2339 Pa at 20 °C.

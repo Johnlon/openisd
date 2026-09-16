@@ -33,7 +33,7 @@ export type {
 export type { BoxParamsQuantityName, BoxParamsIssue } from './params.js';
 export type { SignalSolverQuantities, SignalQuantityName, SignalIssue, SignalSolveResult } from './signal.js';
 export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
-export type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, PrSolveResult, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
+export type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
 export type { SealedAlignmentSolverQuantities } from './solverQuantities.js';
 // What the solver is GIVEN and what it RETURNS, which are one shape. A TYPE export: nothing
 // constructs a `DriverSolverQuantities` — a caller writes an object literal and the solver hands one
@@ -46,3 +46,4 @@ export type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities }
 // reports. The domain imports these through the door, never a solverTypes subpath.
 export type { FieldState, SolverField } from './solverTypes.js';
 export type { VentSolverParams } from './solverTypes.js';
+export type { PrSolverParams } from './solverTypes.js';

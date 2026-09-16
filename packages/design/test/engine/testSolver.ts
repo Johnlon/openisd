@@ -31,7 +31,7 @@ export function solveConsistencyGroup(d: DriverSolverQuantities): DriverSolverQu
  *  predates air being a parameter at all, so preserving that default here (test-only) keeps
  *  every one of them unchanged; a test specifically proving air-sensitivity passes its own. */
 export function solvePrConsistencyGroup(d: PrSolverQuantities, air: Air = engine.airFor({})): PrSolverQuantities {
-    return engine.solvePr(d, air).values;
+    return engine.solvePrConsistencyGroup(d, air);
 }
 
 export function solveVentConsistencyGroup(d: VentSolverQuantities, air: Air = engine.airFor({})): VentSolverQuantities {

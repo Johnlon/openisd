@@ -21,7 +21,8 @@ import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp, prFsWithMass,
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
 import type { VentSolverParams } from './solverTypes.js';
-import type { CalculationIssue, SolveRoute } from './consistency.js';
+import type { PrSolverParams } from './solverTypes.js';
+import type { CalculationIssue } from './consistency.js';
 
 export type VentQuantityName = keyof VentSolverQuantities;
 export type VentIssue = CalculationIssue<VentQuantityName>;
@@ -571,18 +572,58 @@ export function solvePrConsistencyGroup(p: PrSolverQuantities, air: Air): PrSolv
  *  named once so both routes report the identical missing set. */
 const PR_GEOMETRY: readonly PrQuantityName[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
 
-export interface PrSolveResult {
-  readonly values: PrSolverQuantities;
-  readonly issues: readonly PrIssue[];
-}
+/** The PR handle solve (T10/T11): derive whichever of `tuning_hz`/`addedMass_kg` is not entered
+ *  plus `resonanceWithAddedMass_hz`/`systemTuning_hz`, write each onto its `SolverField` via
+ *  `setCalculated`, and return the issues the stated values carry. An entered value is never
+ *  overwritten; an underivable member becomes `not-available`. `air` is the project's own
+ *  resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
+export function solvePr(params: PrSolverParams, air: Air): PrIssue[] {
+  const addedMass = params.addedMass_kg.value;
+  const tuning = params.tuning_hz.value;
+  const Vb = params.Vb_m3.value;
+  const prMmd = params.prMmd_kg.value;
+  const prSd = params.prSd_m2.value;
+  const prCms = params.prCms_m_per_N.value;
 
-/** The unified PR solve (C5): solved values and the issues they carry, from one call over the
- *  same entered input — replaces separately calling `solvePrConsistencyGroup` and
- *  `checkPrConsistency`. Issues are computed against the SOLVED set, matching the domain's and
- *  this suite's existing call pattern (`checkPrConsistency(solved)`). */
-export function solvePr(p: PrSolverQuantities, air: Air): PrSolveResult {
-  const values = solvePrConsistencyGroup(p, air);
-  return { values, issues: checkPrConsistency(values) };
+  if (addedMass != null && !params.tuning_hz.entered) {
+    if (Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null) {
+      params.tuning_hz.setCalculated(prTuning({ Vb, prMmd, prMadd: addedMass, prSd, prCms }, air));
+    } else {
+      params.tuning_hz.setNotAvailable();
+    }
+  } else if (tuning != null && !params.addedMass_kg.entered) {
+    if (Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && tuning > 0) {
+      const totalMass = prMassForFp({ Vb, prMmd, prMadd: 0, prSd, prCms }, tuning, air);
+      params.addedMass_kg.setCalculated(totalMass - prMmd);
+    } else {
+      params.addedMass_kg.setNotAvailable();
+    }
+  }
+
+  const resolvedMass = params.addedMass_kg.value;
+  if (resolvedMass != null && prMmd != null && prCms != null) {
+    params.resonanceWithAddedMass_hz.setCalculated(prFsWithMass(prMmd, resolvedMass, prCms));
+  } else {
+    params.resonanceWithAddedMass_hz.setNotAvailable();
+  }
+  if (resolvedMass != null && Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null) {
+    params.systemTuning_hz.setCalculated(prTuning({ Vb, prMmd, prMadd: resolvedMass, prSd, prCms }, air));
+  } else {
+    params.systemTuning_hz.setNotAvailable();
+  }
+
+  const solved: PrSolverQuantities = {
+    addedMass_kg: params.addedMass_kg.value ?? undefined,
+    tuning_hz: params.tuning_hz.value ?? undefined,
+    Vb_m3: Vb ?? undefined,
+    prMmd_kg: prMmd ?? undefined,
+    prSd_m2: prSd ?? undefined,
+    prCms_m_per_N: prCms ?? undefined,
+    prNum: params.prNum.value ?? undefined,
+    resonanceWithAddedMass_hz: params.resonanceWithAddedMass_hz.value ?? undefined,
+    systemTuning_hz: params.systemTuning_hz.value ?? undefined,
+  };
+  return checkPrConsistency(solved);
 }
 
 export function checkPrConsistency(p: PrSolverQuantities): PrIssue[] {

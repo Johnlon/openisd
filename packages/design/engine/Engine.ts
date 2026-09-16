@@ -35,8 +35,8 @@ import type { SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 
 import type { Wiring } from './types.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
-import type { VentSolverParams } from './solverTypes.js';
-import type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, PrSolveResult, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
+import type { VentSolverParams, PrSolverParams } from './solverTypes.js';
+import type { VentIssue, PrIssue, SealedAlignmentIssue } from './solver.js';
 import type { DriverIssue, DriverSolveResult, CalculationIssue } from './consistency.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, EbpSuitability, EnclosureParams, MaxCurvesResult, SealedAlignmentOption, SweepParams, SweepResult } from './types.js';
@@ -123,14 +123,12 @@ export class Engine {
     return checkPrConsistency(p);
   }
 
-  /** The one radiator call to reach for: whichever of tuning/added-mass the caller did not
-   *  state, solved, and the issues its stated values carry — one `{ values, issues }` bundle
-   *  (C5). `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s
-   *  doc comment. Replaces separately calling `solvePrConsistencyGroup` and
-   *  `checkPrConsistency`, which could be handed different arguments and so describe two
-   *  different radiators. */
-  solvePr(p: PrSolverQuantities, air: Air): PrSolveResult {
-    return solvePr(p, air);
+  /** The one radiator call to reach for (T10/T11): whichever of tuning/added-mass is not
+   *  entered is derived and written onto its `SolverField` handle, and the issues follow right
+   *  back. `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s
+   *  doc comment. Entered values are never overwritten. */
+  solvePr(params: PrSolverParams, air: Air): PrIssue[] {
+    return solvePr(params, air);
   }
 
   /** Solve the vent group: whichever of tuning/length the caller did not state. `air` is the

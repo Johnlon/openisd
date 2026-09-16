@@ -688,7 +688,7 @@ class OpenISDBox implements Box {
                 const rawMass = rawPrAddedMassLens.get();
                 const rawTuning = rawPrTuningLens.get();
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const { values: solved, issues } = this.#engine.solvePr({
+                const solved = this.#engine.solvePrConsistencyGroup({
                     tuning_hz: rawTuning ?? undefined,
                     addedMass_kg: rawMass ?? undefined,
                     Vb_m3: Vb ?? undefined,
@@ -697,6 +697,7 @@ class OpenISDBox implements Box {
                     prCms_m_per_N: getRadiator()?.spec.Cms_m_per_N.get().value ?? undefined,
                     prNum: focus(pr, 'count').get(),
                 }, air());
+                const issues = this.#engine.checkPrConsistency(solved);
                 const issue = issues.find(i => this.#engine.issueFields(i).includes('addedMass_kg') || this.#engine.issueFields(i).includes('tuning_hz'));
                 const dq = issue ? this.#engine.issueFormula(issue) : null;
 
@@ -719,7 +720,7 @@ class OpenISDBox implements Box {
                 const rawTuning = rawPrTuningLens.get();
                 const rawMass = rawPrAddedMassLens.get();
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const { values: solved, issues } = this.#engine.solvePr({
+                const solved = this.#engine.solvePrConsistencyGroup({
                     tuning_hz: rawTuning ?? undefined,
                     addedMass_kg: rawMass ?? undefined,
                     Vb_m3: Vb ?? undefined,
@@ -728,6 +729,7 @@ class OpenISDBox implements Box {
                     prCms_m_per_N: getRadiator()?.spec.Cms_m_per_N.get().value ?? undefined,
                     prNum: focus(pr, 'count').get(),
                 }, air());
+                const issues = this.#engine.checkPrConsistency(solved);
                 const issue = issues.find(i => this.#engine.issueFields(i).includes('tuning_hz') || this.#engine.issueFields(i).includes('addedMass_kg'));
                 const dq = issue ? this.#engine.issueFormula(issue) : null;
 
@@ -773,7 +775,7 @@ class OpenISDBox implements Box {
                 // together is a real figure with no mass on the cone, and `systemTuning_hz` is null
                 // only when no radiator is chosen or no volume is set — the interface's own doc.
                 // Solved WITHOUT the stored target, so an unreachable request never drags the value.
-                const { values: solved } = this.#engine.solvePr({
+                const solved = this.#engine.solvePrConsistencyGroup({
                     addedMass_kg: rawPrAddedMassLens.get() ?? 0,
                     Vb_m3: Vb ?? undefined,
                     prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
@@ -784,7 +786,7 @@ class OpenISDBox implements Box {
                 // DQ: the relation is ALSO solved with the stored target (mass left to derive), so
                 // an unreachable request shows up as a negative derived mass and flags — the same
                 // DQ every other field in the relation carries.
-                const { issues } = this.#engine.solvePr({
+                const issues = this.#engine.checkPrConsistency(this.#engine.solvePrConsistencyGroup({
                     addedMass_kg: rawPrAddedMassLens.get() ?? undefined,
                     tuning_hz: rawPrTuningLens.get() ?? undefined,
                     Vb_m3: Vb ?? undefined,
@@ -792,7 +794,7 @@ class OpenISDBox implements Box {
                     prSd_m2: r.spec.Sd_m2.get().value ?? undefined,
                     prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
                     prNum: focus(pr, 'count').get(),
-                }, air());
+                }, air()));
                 const issue = issues.find(i => this.#engine.issueFields(i).includes('addedMass_kg') || this.#engine.issueFields(i).includes('tuning_hz'));
                 const dq = issue ? this.#engine.issueFormula(issue) : null;
                 if (solved.systemTuning_hz != null) {
@@ -803,7 +805,7 @@ class OpenISDBox implements Box {
             addedMassForTuning_kg: (fp_hz: number) => new ReadOnlyCalculatedField<number>(() => {
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
                 const r = getRadiator();
-                const { values: solved, issues } = this.#engine.solvePr({
+                const solved = this.#engine.solvePrConsistencyGroup({
                     tuning_hz: fp_hz > 0 ? fp_hz : undefined,
                     Vb_m3: Vb ?? undefined,
                     prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
@@ -811,6 +813,7 @@ class OpenISDBox implements Box {
                     prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
                     prNum: focus(pr, 'count').get(),
                 }, air());
+                const issues = this.#engine.checkPrConsistency(solved);
                 const issue = issues.find(i => this.#engine.issueFields(i).includes('addedMass_kg'));
                 const dq = issue ? this.#engine.issueFormula(issue) : null;
                 if (solved.addedMass_kg != null) {
@@ -821,7 +824,7 @@ class OpenISDBox implements Box {
             resonanceWithAddedMass_hz: new ReadOnlyCalculatedField<number>(() => {
                 const r = getRadiator();
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const { values: solved, issues } = this.#engine.solvePr({
+                const solved = this.#engine.solvePrConsistencyGroup({
                     addedMass_kg: rawPrAddedMassLens.get() ?? undefined,
                     tuning_hz: rawPrTuningLens.get() ?? undefined,
                     Vb_m3: Vb ?? undefined,
@@ -830,6 +833,7 @@ class OpenISDBox implements Box {
                     prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
                     prNum: focus(pr, 'count').get(),
                 }, air());
+                const issues = this.#engine.checkPrConsistency(solved);
                 // Free-air resonance is one of the relation's OUTPUTS: when the pair is
                 // inconsistent (an unreachable target deriving negative mass) it flags with the
                 // same DQ as the input, per the "redline all the fields" ruling.
@@ -2833,7 +2837,7 @@ export class OpenISDProject {
         const tuningCell = pr.tuning_hz.get();
         const massCell = pr.addedMass_kg.get();
         const Vb = pr.volume_m3.get() || this.box.vented.volume_m3.get().value;
-        const { issues } = this.#engine.solvePr({
+        const issues = this.#engine.checkPrConsistency(this.#engine.solvePrConsistencyGroup({
             tuning_hz: tuningCell.state === 'entered' ? tuningCell.value ?? undefined : undefined,
             addedMass_kg: massCell.state === 'entered' ? massCell.value ?? undefined : undefined,
             Vb_m3: Vb ?? undefined,
@@ -2841,7 +2845,7 @@ export class OpenISDProject {
             prSd_m2: r?.spec.Sd_m2.get().value ?? undefined,
             prCms_m_per_N: r?.spec.Cms_m_per_N.get().value ?? undefined,
             prNum: pr.count.get(),
-        }, this.#sweepAir());
+        }, this.#sweepAir()));
         if (issues.length) return issues;
         return [];
     }
