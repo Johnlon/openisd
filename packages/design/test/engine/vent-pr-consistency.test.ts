@@ -60,6 +60,31 @@ describe('Engine.solveVent — the unified { values, issues } bundle (C5)', () =
   });
 });
 
+describe('Engine.solvePr — the unified { values, issues } bundle (C5)', () => {
+  it('solves the missing PR member and reports the issues in one call', () => {
+    const result = engine.solvePr({
+      tuning_hz: 30, Vb_m3: 0.03, prMmd_kg: 0.02, prSd_m2: 0.02, prCms_m_per_N: 0.0008,
+    }, AIR);
+    expect(result.values.addedMass_kg).toBeGreaterThan(0);
+    expect(result.issues).toEqual([]);
+  });
+
+  it('solves tuning_hz when addedMass_kg is stated and the geometry is complete', () => {
+    const result = engine.solvePr({
+      addedMass_kg: 0.01, Vb_m3: 0.03, prMmd_kg: 0.02, prSd_m2: 0.02, prCms_m_per_N: 0.0008,
+    }, AIR);
+    expect(result.values.tuning_hz).toBeGreaterThan(0);
+    expect(result.issues).toEqual([]);
+  });
+
+  it('reports a missing dependency for addedMass_kg when tuning_hz is stated but the geometry is not', () => {
+    const result = engine.solvePr({ tuning_hz: 30 }, AIR);
+    expect(result.values.addedMass_kg).toBeUndefined();
+    expect(result.issues).toHaveLength(1);
+    expect(result.issues[0]).toMatchObject({ kind: 'missing-dependencies', target: 'addedMass_kg' });
+  });
+});
+
 describe('Engine.checkPrConsistency — missing-dependencies', () => {
   it('returns no issues once tuning_hz solves from a complete PR geometry', () => {
     const solved = engine.solvePrConsistencyGroup({

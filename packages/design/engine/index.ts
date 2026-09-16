@@ -33,7 +33,7 @@ export type {
 export type { BoxParamsQuantityName, BoxParamsIssue } from './params.js';
 export type { SignalSolverQuantities, SignalQuantityName, SignalIssue, SignalSolveResult } from './signal.js';
 export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
-export type { VentQuantityName, VentIssue, VentSolveResult, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
+export type { VentQuantityName, VentIssue, VentSolveResult, PrQuantityName, PrIssue, PrSolveResult, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
 export type { SealedAlignmentSolverQuantities } from './solverQuantities.js';
 // What the solver is GIVEN and what it RETURNS, which are one shape. A TYPE export: nothing
 // constructs a `DriverSolverQuantities` — a caller writes an object literal and the solver hands one

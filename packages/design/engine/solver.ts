@@ -570,6 +570,20 @@ export function solvePrConsistencyGroup(p: PrSolverQuantities, air: Air): PrSolv
  *  named once so both routes report the identical missing set. */
 const PR_GEOMETRY: readonly PrQuantityName[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
 
+export interface PrSolveResult {
+  readonly values: PrSolverQuantities;
+  readonly issues: readonly PrIssue[];
+}
+
+/** The unified PR solve (C5): solved values and the issues they carry, from one call over the
+ *  same entered input — replaces separately calling `solvePrConsistencyGroup` and
+ *  `checkPrConsistency`. Issues are computed against the SOLVED set, matching the domain's and
+ *  this suite's existing call pattern (`checkPrConsistency(solved)`). */
+export function solvePr(p: PrSolverQuantities, air: Air): PrSolveResult {
+  const values = solvePrConsistencyGroup(p, air);
+  return { values, issues: checkPrConsistency(values) };
+}
+
 export function checkPrConsistency(p: PrSolverQuantities): PrIssue[] {
   const issues: PrIssue[] = [];
   if (p.tuning_hz != null && p.tuning_hz <= 0) {
