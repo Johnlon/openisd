@@ -19,6 +19,7 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
 import type { SimulatableBoxType, SweepParams } from '../../engine/index.js';
+import { OpenISDDriver, OpenISDProject } from '../../domain/openisdDomain.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -306,5 +307,76 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
     assert.doesNotThrow(() => engine.classifyFinite(sw), 'the engine communicates by Result, never by exception');
     assert.doesNotThrow(() => engine.classifyMaxFinite(engine.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!));
     assert.doesNotThrow(() => engine.solveBoxParams('box-passive-radiator', {} as SweepParams));
+  });
+});
+
+// ── Criterion 5 (S4/T6) ──────────────────────────────────────────────────────
+describe('T1\'s domain guard fires before classifyFinite ever sees the sweep', () => {
+  // (a) DOMAIN-level. `values: null`, `issue.target === 'length_m'` and the routes shape are
+  // already pinned at packages/design/test/domain.test.ts:1568 ("a vented project with no
+  // tuning_hz and no length_m reports a blocking VentIssue, not NaN curves") — not duplicated
+  // here. What that test does NOT check, and this adds: the MESSAGE a user actually sees is the
+  // guard's own sentence (`engine.issueToText`), never classifyFinite's generic postcondition
+  // text — which cannot even have run, since `values` is null before any array exists to
+  // classify (`curveIssues` in packages/ui/src/logic/appState.ts short-circuits on `!sw`).
+  const scraped = <T,>(value: T) => ({ value });
+  const spec = (read_value: number) => ({ origin: 'scraped', readings: { scraped: { read_value } } });
+  function driverJson() {
+    const meta = {
+      brand: scraped('Dayton'), model: scraped('RS225'), manufacturer: scraped('Dayton'),
+      provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+      uuid: { value: '00000000-0000-4000-8000-000000000000' },
+      sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
+      driver_type: scraped('woofer'),
+      data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
+      authoritative: { value: 'manufacturer_datasheet' },
+      quality: {
+        confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+        parse_errors: [], cross_source_only: [],
+      },
+    };
+    return {
+      ...meta,
+      specs: {
+        woofer: {
+          Fs_hz: spec(30), Qts: spec(0.4), Sd_m2: spec(0.02), Cms_m_per_N: spec(0.0005),
+          Mms_kg: spec(0.05), Rms_kg_per_s: spec(2), Xmax_m: spec(0.008),
+        },
+      },
+    };
+  }
+
+  it('the message the user sees is the guard\'s own sentence, not classifyFinite\'s generic text', () => {
+    const drv = OpenISDDriver.fromConformingRecord(driverJson(), engine);
+    if (Array.isArray(drv)) throw new Error(`fixture driver is invalid: ${drv.join(', ')}`);
+    const p = OpenISDProject.builder(drv, engine).vented().volume_m3(0.03).tuning_hz(40).build();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.05);
+    // The builder requires an initial tuning_hz to construct at all — cleared right back off so
+    // NEITHER tuning_hz nor vent.length_m is stated, same as domain.test.ts:1568's fixture.
+    p.box.vented.tuning_hz.clear();
+
+    const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });
+    assert.equal(result.values, null, 'precondition: nothing to classify — the guard must have blocked it');
+    const issue = result.issues[0];
+    assert.ok(issue, 'expected the vent guard\'s own issue');
+    assert.ok(engine.issueFields(issue).includes('length_m'),
+      `issueFields must name length_m; got: ${engine.issueFields(issue).join(', ')}`);
+
+    const message = engine.issueToText(issue);
+    assert.match(message, /cannot be calculated yet/, 'the guard\'s own sentence names the unstated target');
+    assert.doesNotMatch(message, /no finite values|no usable/i,
+      'this must not be classifyFinite\'s generic postcondition text — that check never ran');
+  });
+
+  // (b) ENGINE-level net. The domain guard above only exists in `OpenISDProject.sweep()` — the
+  // bare engine has no such guard, so calling `engine.sweep()` directly with `Leff` undefined
+  // (P_SEALED carries none) must still reach `classifyFinite` and be classified there, proving
+  // the engine keeps its OWN net regardless of whether a domain guard runs in front of it.
+  it('the engine\'s own net still classifies a vented sweep given directly with Leff undefined', () => {
+    const sw = engine.sweep(validDriver(), undefined, 'vented', P_SEALED).values!;
+    assert.equal(P_SEALED.Leff, undefined, 'precondition: this call bypasses the domain guard entirely');
+    const issue = engine.classifyFinite(sw);
+    assert.ok(issue, 'an undefined Leff must poison the vent-dependent arrays, and the engine\'s own postcondition must catch it');
   });
 });
