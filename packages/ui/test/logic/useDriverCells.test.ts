@@ -31,4 +31,20 @@ describe('fieldIsMandatoryAndUnsatisfied', () => {
     }];
     expect(fieldIsMandatoryAndUnsatisfied(issues, 'Qts')).toBe(false);
   });
+
+  it('is true for a short WinISD key ("Fs") whose SI-suffixed field ("Fs_hz") the issue actually names (S2-12b)', () => {
+    const issues: readonly DriverIssue[] = [{
+      kind: 'missing-dependencies', target: 'Fs_hz',
+      routes: [{ formula: 'Fs = 1/(2π·√(Mms·Cms))', required: ['Mms_kg', 'Cms_m_per_N'], missing: ['Cms_m_per_N'] }],
+    }];
+    expect(fieldIsMandatoryAndUnsatisfied(issues, 'Fs')).toBe(true);
+  });
+
+  it('a key already spelled the same in both vocabularies ("Qts") still works after the mapping', () => {
+    const issues: readonly DriverIssue[] = [{
+      kind: 'missing-dependencies', target: 'Qts',
+      routes: [{ formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing: ['Qms'] }],
+    }];
+    expect(fieldIsMandatoryAndUnsatisfied(issues, 'Qts')).toBe(true);
+  });
 });

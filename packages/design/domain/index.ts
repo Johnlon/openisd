@@ -17,6 +17,11 @@ export type { VentShape, Vent } from './vent.js';
 // A VALUE export, not a type-only one: `VoiceCoilWiring.Series` must be usable at runtime, which
 // is the whole point of it being an enum rather than a bare string literal.
 export { VoiceCoilWiring } from './openisdSchema.js';
+// The ONE table mapping a short WinISD spec key ('Fs', 'Vas', …) to its SI-suffixed schema key
+// ('Fs_hz', 'Vas_m3', …) — a consumer translating between the two vocabularies (e.g. the UI's
+// `fieldIsMandatoryAndUnsatisfied`, matching a short editor field against an engine issue's
+// SI-suffixed name) uses THIS table rather than keeping a second copy to drift.
+export { WDR_TO_SCHEMA_KEY } from './openisdSchema.js';
 export type {
   SealedLosses,
   VentedLosses,

@@ -1,3 +1,4 @@
+import { WDR_TO_SCHEMA_KEY } from '@openisd/design';
 import type { Cell as FieldCell } from '@openisd/design';
 import type { CellState } from '@openisd/design/winisd';
 import { Engine } from '@openisd/design/engine';
@@ -62,12 +63,18 @@ export function cellClassFor<K extends string = SpecField>(cellOf: (field: K) =>
  * notion of which fields form a group, which the engine already decided when it returned this
  * issue (`engine.issueFields`, S2-13). A component asks THIS rather than re-deriving group
  * membership itself, so the composition is unit-testable without mounting anything.
+ *
+ * `field` arrives spelled the SHORT WinISD way ('Fs', 'Vas', …), but an issue's own fields are
+ * SI-suffixed ('Fs_hz', 'Vas_m3', …) — `WDR_TO_SCHEMA_KEY` is the one table translating between
+ * the two vocabularies (S2-12b); a key already spelled the same in both (Qts, Qes, …) maps to
+ * itself, since it is absent from the table.
  */
 export function fieldIsMandatoryAndUnsatisfied(issues: readonly DriverIssue[], field: string): boolean {
   const engine = new Engine();
+  const schemaField = WDR_TO_SCHEMA_KEY[field] ?? field;
   return issues.some(i => {
     if (i.kind !== 'missing-dependencies') return false;
     const named: readonly string[] = engine.issueFields(i);
-    return named.includes(field);
+    return named.includes(schemaField);
   });
 }
