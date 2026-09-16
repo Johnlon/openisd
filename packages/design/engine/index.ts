@@ -44,7 +44,7 @@ export type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities }
 // The field-provenance vocabulary `Cell`/`Field` state in the domain: `SolverField` is the
 // interface a domain field implements for the solver, and `FieldState` is what `Cell.state`
 // reports. The domain imports these through the door, never a solverTypes subpath.
-export type { FieldState, SolverField } from './solverTypes.js';
+export type { FieldState, SolverField, SolverInput } from './solverTypes.js';
 export type { VentSolverParams } from './solverTypes.js';
 export type { PrSolverParams } from './solverTypes.js';
 export type { SealedAlignmentSolverParams } from './solverTypes.js';

@@ -1,4 +1,4 @@
-import type { FieldState, SolverField } from '@openisd/design/engine';
+import type { FieldState, SolverField, SolverInput } from '@openisd/design/engine';
 import type { SpecEntryJson } from './openisdSchema.js';
 
 export interface Cell<T> {
@@ -233,6 +233,62 @@ export function entryField(lens: Lens<SpecEntryJson | undefined>, name: string):
         dq_calculated: list.map(detail => ({ kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail })),
       });
     },
+  });
+}
+
+/** A `SolverInput` over a plain "no flag" read — a box volume, a vent's geometry, a radiator's
+ *  own T/S spec: a number a solve needs but never writes back to, so it never had a C/E state to
+ *  report. `entered` is simply "a value is present" (`read() !== null`), matching how every one
+ *  of these solve inputs is treated today (`Vb_m3 != null`, never `Vb_m3.entered`). Wraps a
+ *  `RawField`/`InputField`/plain-lens read, whichever the caller already has. */
+export function inputOf<T>(read: () => T | null): SolverInput<T> {
+  return {
+    get value() { return read(); },
+    get entered() { return read() !== null; },
+  };
+}
+
+/** Builds one HALF of a solved pair (vent `tuning_hz` ↔ `length_m`, PR `addedMass_kg` ↔
+ *  `tuning_hz`) — entering or explicitly clearing THIS member ATOMICALLY clears the sibling too,
+ *  in the SAME write (S2-7d2). One write, not two: writing this member then separately clearing
+ *  the sibling would let a resolve run in between on the intermediate state — this member's new
+ *  fact, the sibling's still-stale one — and re-derive the sibling right back from a value the
+ *  caller is in the middle of retracting. `commitPair(entry)` must replace THIS member's own
+ *  slot with `entry` and the sibling's with `undefined`, in one call to whatever lens (or lenses)
+ *  they share — the caller already knows both concrete field names and, when the pair spans two
+ *  different parent records (a vent's own `length_m` vs. its chamber's `tuning_hz`), which
+ *  ancestor lens reaches both, so it writes the literal itself; no computed-key indexing here to
+ *  lose type safety over.
+ *
+ *  `clear()` is overridden as a METHOD, not via `FieldWrites`, specifically so
+ *  `setNotAvailable()` — the SOLVER's own "could not derive this" signal, called on every
+ *  resolve where the pair is incomplete, entered or not — stays SELF-ONLY: `Field`'s
+ *  `setNotAvailable()` also ends up calling the constructor's `clear` write when this member
+ *  isn't entered, and routing THAT through the atomic pair-clear would wipe a just-entered
+ *  sibling on every routine "can't derive this today," not only on a real user retraction.
+ *  `ownEntry` is this member's own plain `entryField` — reused for the read, and for
+ *  `calculated`/`dq`/the solver's own `clear`, none of which ever touch the sibling.
+ *
+ *  The EXTERNAL `.clear()` override only cascades when THIS member is currently the pair's
+ *  stated fact (`this.entered`): clearing a merely `'calculated'` field — the sibling's own
+ *  derived echo, not a fact anyone stated — must not reach across and erase the OTHER member's
+ *  real entered value. Only retracting the actual target resets the pair. */
+export function pairedField(
+  read: () => Cell<number>,
+  commitPair: (entry: SpecEntryJson | undefined) => void,
+  ownEntry: Field<number>,
+): Field<number> {
+  class PairedField extends Field<number> {
+    override clear(): void {
+      if (this.entered) commitPair(undefined);
+      else ownEntry.clear();
+    }
+  }
+  return new PairedField(read, {
+    entered: (v: number) => commitPair({ state: 'E', value: v }),
+    clear: () => ownEntry.clear(),
+    calculated: (v: number) => ownEntry.setCalculated(v),
+    dq: (list) => ownEntry.setDq([...list]),
   });
 }
 

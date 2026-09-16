@@ -75,11 +75,16 @@ describe('PR and Vent Solver Groups', () => {
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
+    // S2-7d2: the project cascade only solves the ACTIVE box type's vent/PR pair, and
+    // `systemTuning_hz` is now one of `solvePr`'s own outputs — it needs a stated `addedMass_kg`
+    // (0 = bare cone) to have anything to derive FROM, unlike the old bespoke getter, which
+    // defaulted an unstated mass to 0 internally.
+    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.volume_m3.set(0.03);
+    p.box.passiveRadiator.addedMass_kg.set(0);
 
     const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
 
-    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.addedMass_kg.clear();
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
     p.notifyPrChanged();

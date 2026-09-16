@@ -27,33 +27,17 @@ const LETTER: Record<CellState, 'E' | 'C' | 'N'> = {
   entered: 'E', calculated: 'C', 'not-available': 'N',
 };
 
-/** Re-solve every CALCULATED member from the ENTERED ones — the domain's own solver. */
+/** A thin passthrough onto the domain's own reactivity ping (`usePrGroup.ts`'s
+ *  `notifyPrChanged` already took this shape). S2-7d2 wires the tuning ↔ vent-length relation
+ *  into `OpenISDProject#resolve()` itself, run synchronously by every `.set()`/`.clear()` this
+ *  module's own `enterVentField`/`clearVentField` already make — so the manual Helmholtz solve
+ *  this function used to perform (QO126's stub workaround, while the relation was unwired) is
+ *  gone: it is now REDUNDANT with `#resolve()`, and worse, actively conflicting with it — calling
+ *  `.set()` here on the "achieved" side re-entered it as a fresh fact, which (correctly) cleared
+ *  its just-entered sibling and re-derived it a second time through the SAME formula, landing on
+ *  a float a few ULPs off the value the user actually typed. */
 export function notifyVentChanged(p: OpenISDProject): void {
-  if (userEnteredPair === 'both') return;
-
-  const Vb = p.box.vented.volume_m3.get().value;
-  if (userEnteredPair === 'none') {
-    if (p.box.vented.tuning_hz.get().value === null && p.box.vented.vent.length_m.get().value === null) {
-      return;
-    }
-  }
-
-  if (userEnteredPair === 'Fb' || userEnteredPair === 'none') {
-    const targetFb = p.box.vented.tuning_hz.get().value;
-    if (targetFb !== null && targetFb > 0 && Vb !== null && Vb > 0) {
-      const l = p.box.vented.vent.lengthForTuning_m(Vb, targetFb);
-      if (l !== null && l >= 0) {
-        p.box.vented.vent.length_m.set(l);
-      }
-    }
-  } else if (userEnteredPair === 'ventL') {
-    if (Vb !== null && Vb > 0) {
-      const fb = p.box.vented.vent.tuningIn_hz(Vb);
-      if (fb !== null) {
-        p.box.vented.tuning_hz.set(fb);
-      }
-    }
-  }
+  p.notifyVentChanged();
 }
 
 /** Enter a vent-group field — held until an explicit `clearVentField`. One user action, one

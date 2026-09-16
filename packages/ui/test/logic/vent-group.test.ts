@@ -6,11 +6,10 @@
  * unknown is solvable, and WHICH one is a property of the entered set, not of the schema.
  *
  * `enterVentField`/`clearVentField`/`ventFieldState` (`useVentGroup.ts`) exercise the
- * provenance directly through `box.vented.*`'s `FieldHandle`s — real, working code. The actual
- * Helmholtz solve that would recompute the calculated member (`notifyVentChanged()` on
- * `OpenISDProject`, `packages/design/domain/openisdDomain.ts`) rewrites nothing, because the
- * tuning ↔ vent-length relation is not wired; every test needing a field to read CALCULATED is
- * skipped below under QO126 rather than forced to pass.
+ * provenance directly through `box.vented.*`'s `FieldHandle`s — real, working code. The Helmholtz
+ * solve that recomputes the calculated member lives on `OpenISDProject#resolve()`
+ * (`packages/design/domain/openisdDomain.ts`, S2-7d2), run synchronously by every `.set()`/
+ * `.clear()` these helpers make.
  *
  * Numbers come from WinISD 0.7.0.950 itself, Vents tab, Vb=0.02 m³ / Fb=40 Hz / k=0.6:
  * 0.154 m at d=5 cm and 0.318 m at d=7 cm (winisd_research/CALC_FINDINGS_FOR_REVIEW.md).
@@ -62,16 +61,14 @@ describe('vent group — the entered set decides the direction', () => {
   });
 });
 
-// The following behaviour needs `OpenISDProject.notifyVentChanged()` to actually solve. It does not:
-// the tuning ↔ vent-length relation is not wired, so the method runs and rewrites nothing
-// (`packages/design/test/vent-pr-group-stubs.test.ts` pins that interim contract). Until it is,
-// nothing ever reports a vent field as CALCULATED — which is what every test here asserts.
-//
-// Ruled and scoped in QO126, deferred by John 2026-09-08 ("Log as a inbox / bug and carry on with
-// migration"): bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md. Skipped
-// rather than weakened, because an assertion loosened to match a stub would go green and stop
-// describing the behaviour the app is supposed to have.
-describe('vent group — notifyVentChanged() re-derives the calculated member (BLOCKED: QO126)', () => {
+// QO126 RESOLVED (S2-7d2, bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md):
+// the tuning ↔ vent-length relation is now wired into `OpenISDProject#resolve()`, run
+// synchronously by every `.set()`/`.clear()` `enterVentField`/`clearVentField` make. The record
+// can hold only ONE stated target per pair at a time — entering either member atomically clears
+// the other's entered fact and lets the solver re-derive it — so an "over-determined" pair
+// (both members simultaneously 'entered' and contradictory) can no longer occur BY DESIGN; the
+// old test asserting that state persisted is gone, replaced below.
+describe('vent group — notifyVentChanged() re-derives the calculated member', () => {
   let p: ReturnType<typeof ventedProject>;
   beforeEach(() => { resetVentGroupState(); p = ventedProject(); });
 
@@ -107,11 +104,14 @@ describe('vent group — notifyVentChanged() re-derives the calculated member (B
     assert.notEqual(p.box.vented.tuning_hz.get().value, 40, 'now the TUNING absorbs the diameter change');
   });
 
-  it('an over-determined set solves nothing and rewrites nothing', () => {
+  it('entering a new length target retires the old tuning target, not just adds to it', () => {
+    // Same relation the reverse-direction test above proves — entering ventL always displaces
+    // whatever was previously the pair's stated target, even one as far off as 0.999 m.
     enterVentFieldOn(p, 'ventL', 0.999);
     p.box.vented.vent.diameter_m.set(0.07);
     notifyVentChanged(p);
-    assert.equal(p.box.vented.tuning_hz.get().value, 40, 'entered values are held even when they contradict');
-    assert.equal(p.box.vented.vent.length_m.get().value, 0.999);
+    assert.equal(p.box.vented.vent.length_m.get().value, 0.999, 'the entered length is held exactly');
+    assert.equal(p.box.vented.tuning_hz.get().state, 'calculated', 'the domain re-derives tuning, not the UI');
+    assert.notEqual(p.box.vented.tuning_hz.get().value, 40, 'the old entered tuning target is gone, not held alongside it');
   });
 });

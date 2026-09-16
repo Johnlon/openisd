@@ -253,11 +253,11 @@ describe('the driver — a window, not a copy', () => {
     // the real `newUuid()` would never produce this exact string.
     expect(session.edited?.driverEmbedding.device.uuid.value).toBe('11111111-1111-4111-8111-111111111111');
 
-    const serialized = JSON.stringify(session);
-    // Enough surrounding structure that only the actual Fs_hz value can match — not merely the
-    // bare digits, which a coincidental id substring could satisfy.
-    expect(serialized).toContain('"Fs_hz":{"state":"E","value":35}');
-    expect(serialized).not.toContain('"Fs_hz":{"state":"E","value":40}');
+    // Structural, not raw string containment (S2-7d2: the fixture's Fs/Mms/Cms are jointly
+    // over-determined, so the cascade now also attaches a formula dq to Fs_hz — a real, separate
+    // fact this test is not about; asserting on `state`/`value` alone keeps it that way).
+    expect(session.edited?.driverEmbedding.device.specs.woofer?.Fs_hz).toMatchObject({ state: 'E', value: 35 });
+    expect(session.saved.driverEmbedding.device.specs.woofer?.Fs_hz).toMatchObject({ state: 'E', value: 30 });
   });
 
   it('gives every field a STABLE identity across accesses', () => {
@@ -726,7 +726,9 @@ describe('the passive radiator a box holds', () => {
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
     // The fixture project is sealed-built, so the PR box's own volume starts at 0 and every
-    // passive-radiator calculation reports null until it is set.
+    // passive-radiator calculation reports null until it is set. `systemTuning_hz` is an output
+    // the project cascade only solves for the ACTIVE box type (S2-7d2).
+    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.volume_m3.set(0.03);
     p.box.passiveRadiator.addedMass_kg.set(0);
 
@@ -745,6 +747,7 @@ describe('the passive radiator a box holds', () => {
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
+    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.volume_m3.set(0.03);
     p.box.passiveRadiator.addedMass_kg.set(0);
 
@@ -754,7 +757,6 @@ describe('the passive radiator a box holds', () => {
     // At the ceiling itself the answer is zero added mass, not null — reachable, just barely.
     expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling).value).toBeCloseTo(0, 9);
 
-    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
     p.notifyPrChanged();
 
@@ -776,11 +778,11 @@ describe('the passive radiator a box holds', () => {
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
+    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.volume_m3.set(0.03);
     p.box.passiveRadiator.addedMass_kg.set(0);
 
     const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
-    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
     p.notifyPrChanged();
 
@@ -801,6 +803,7 @@ describe('the passive radiator a box holds', () => {
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
+    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.addedMass_kg.set(0);
 
     // Mms 0.09 kg on Cms 0.0009 m/N: 1/(2π·√(0.09·0.0009)) = 17.6838… Hz.
@@ -812,6 +815,7 @@ describe('the passive radiator a box holds', () => {
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
+    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.addedMass_kg.set(0.111111);
 
     // (0.09 + 0.111111) kg on the same compliance: 1/(2π·√(0.201111·0.0009)) = 11.8298… Hz.
@@ -1415,7 +1419,9 @@ describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
     const d = qesQms();
     d.spec.woofer.Qts.set(111111);
     const entry = d.cloneDriver().specs.woofer?.Qts;
-    expect(entry).toEqual({ state: 'E', value: 111111 });
+    // Not `toEqual`: S2-7d2 also projects the group's formula dq onto every disagreeing field —
+    // a real, separate fact from what this test is pinning (the VALUE is never overwritten).
+    expect(entry).toMatchObject({ state: 'E', value: 111111 });
   });
 
   it('clearing a field the resolve depended on removes the now-underivable calculated entry', () => {
@@ -1608,6 +1614,101 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
   });
 });
 
+describe('S2-7d2 — vent + PR join the cascade', () => {
+  const ventedProjectWithArea = () => {
+    const p = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).vented().volume_m3(0.05).tuning_hz(40).build();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.1);
+    return p;
+  };
+
+  it('(a) a vented project with tuning entered gets its port length solved into the record', () => {
+    const p = ventedProjectWithArea();
+    const cell = p.box.vented.vent.length_m.get();
+    expect(cell.state).toBe('calculated');
+    expect(cell.value).not.toBeNull();
+  });
+
+  it('(b) entering the length instead re-derives the tuning and drops the old entered target', () => {
+    const p = ventedProjectWithArea();
+    p.box.vented.vent.length_m.set(0.3);
+    const lengthCell = p.box.vented.vent.length_m.get();
+    const tuningCell = p.box.vented.tuning_hz.get();
+    expect(lengthCell.state).toBe('entered');
+    expect(lengthCell.value).toBe(0.3);
+    expect(tuningCell.state).toBe('calculated');
+    expect(tuningCell.value).not.toBeCloseTo(40, 0);
+  });
+
+  const prProject = () => {
+    const p = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).sealed().volume_m3(0.03).build();
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverJson({
+      brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
+      spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+    }), new Engine());
+    if (Array.isArray(library)) throw new Error('fixture radiator invalid');
+    p.box.passiveRadiator.radiator.update(library);
+    p.box.passiveRadiator.volume_m3.set(0.03);
+    p.box.boxType.set('box-passive-radiator');
+    return p;
+  };
+
+  it('(c) PR: entering the added mass solves tuning into the record, and systemTuning_hz reads it', () => {
+    const p = prProject();
+    p.box.passiveRadiator.addedMass_kg.set(0.05);
+
+    const tuningCell = p.box.passiveRadiator.tuning_hz.get();
+    expect(tuningCell.state).toBe('calculated');
+    expect(tuningCell.value).not.toBeNull();
+    expect(p.box.passiveRadiator.systemTuning_hz.value).toBeCloseTo(tuningCell.value!, 6);
+  });
+
+  it('(d) an unreachable PR target DQs every field in the pair, and clearing it clears them all', () => {
+    const p = prProject();
+    p.box.passiveRadiator.addedMass_kg.set(0);
+    const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
+
+    p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
+
+    const DQ = ['Target tuning is above maximum passive radiator tuning'];
+    expect(p.box.passiveRadiator.tuning_hz.get().dq()).toEqual(DQ);
+    expect(p.box.passiveRadiator.addedMass_kg.get().dq()).toEqual(DQ);
+    expect(p.box.passiveRadiator.systemTuning_hz.dq).toEqual(DQ);
+    expect(p.box.passiveRadiator.resonanceWithAddedMass_hz.dq).toEqual(DQ);
+
+    p.box.passiveRadiator.tuning_hz.clear();
+
+    expect(p.box.passiveRadiator.tuning_hz.get().dq()).toEqual([]);
+    expect(p.box.passiveRadiator.addedMass_kg.get().dq()).toEqual([]);
+  });
+
+  it('(e) exactly one engine.solveVent call per field set(), and zero for a bare project.box read', () => {
+    const engine = new Engine();
+    const p = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), engine).vented().volume_m3(0.05).tuning_hz(40).build();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.1);
+
+    const readSpy = vi.spyOn(engine, 'solveVent');
+    void p.box;
+    void p.box.vented.vent.length_m.get();
+    expect(readSpy).toHaveBeenCalledTimes(0);
+    readSpy.mockRestore();
+
+    const writeSpy = vi.spyOn(engine, 'solveVent');
+    p.box.vented.vent.endCorrection_m.set(0.6);
+    expect(writeSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('box tuning/length/mass slots load as entries (S2-7b)', () => {
   function ventedProject() {
     return OpenISDProject.builder(driverFrom({
@@ -1627,7 +1728,11 @@ describe('box tuning/length/mass slots load as entries (S2-7b)', () => {
   }
 
   it('a vent length_m entry with state "C" loads as a calculated cell', () => {
+    // boxType stays 'sealed' in this fixture's mutation (S2-7d2: the project cascade only
+    // re-solves the ACTIVE box type's vent pair) — this test is about JSON round-trip fidelity
+    // for the entry SHAPE, not about whether a resolve leaves an inactive pair alone.
     const back = reloadWith(ventedProject(), (box) => {
+      (box as { boxType: unknown }).boxType = 'sealed';
       (box as { vented: { vent: { length_m: unknown } } }).vented.vent.length_m = { state: 'C', value: 0.2 };
     });
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));

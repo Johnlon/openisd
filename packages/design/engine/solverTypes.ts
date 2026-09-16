@@ -25,39 +25,51 @@ export interface SolverField<T = number> {
   setNotAvailable(): void;
 }
 
+/** A slot a solve only ever READS — `.value`/`.entered`, never `.setCalculated`/`.setDq`/
+ *  `.setNotAvailable`. Every `*SolverParams` member below that a solve never writes back to is
+ *  typed `SolverInput`, not the full `SolverField`: a slot that only ever reports a plain
+ *  number/null (a `RawField`, an `InputField`, a lens read via `inputOf`) can be handed to a
+ *  solve without pretending it is a C/E-flagged handle it never had to be — narrower input,
+ *  narrower type, the compiler proving which members a solve actually derives. */
+export type SolverInput<T = number> = Pick<SolverField<T>, 'value' | 'entered'>;
+
 /** A `SolverField` handle for every passive-radiator quantity. Pass to `solvePr` — it derives
  *  whichever of `tuning_hz`/`addedMass_kg` is not entered plus `resonanceWithAddedMass_hz`/
- *  `systemTuning_hz`, writing back via `setCalculated` and never overwriting entered values. */
+ *  `systemTuning_hz`, writing back via `setCalculated` and never overwriting entered values.
+ *  `Vb_m3`/`prMmd_kg`/`prSd_m2`/`prCms_m_per_N`/`prNum` are read-only inputs to the solve —
+ *  nothing here ever writes back to the box volume or the radiator's own T/S spec. */
 export interface PrSolverParams {
   addedMass_kg: SolverField;
   tuning_hz: SolverField;
-  Vb_m3: SolverField;
-  prMmd_kg: SolverField;
-  prSd_m2: SolverField;
-  prCms_m_per_N: SolverField;
-  prNum: SolverField;
+  Vb_m3: SolverInput;
+  prMmd_kg: SolverInput;
+  prSd_m2: SolverInput;
+  prCms_m_per_N: SolverInput;
+  prNum: SolverInput;
   resonanceWithAddedMass_hz: SolverField;
   systemTuning_hz: SolverField;
 }
 
 /** A `SolverField` handle for every vent quantity. Pass this to `solveVent` — the solve
  *  derives whichever of `tuning_hz`/`length_m` is not entered and writes it back via
- *  `setCalculated`, never overwriting an entered value. */
+ *  `setCalculated`, never overwriting an entered value. `Vb_m3`/`area_m2`/`endCorrection_m` are
+ *  read-only inputs — nothing here ever writes back to the box volume or the vent geometry. */
 export interface VentSolverParams {
   tuning_hz: SolverField;
   length_m: SolverField;
-  Vb_m3: SolverField;
-  area_m2: SolverField;
-  endCorrection_m: SolverField;
+  Vb_m3: SolverInput;
+  area_m2: SolverInput;
+  endCorrection_m: SolverInput;
 }
 
 /** A `SolverField` handle for every sealed-alignment quantity. Pass this to
  *  `solveSealedAlignment` — the solve derives whichever of `Qtc`/`Vb_m3` is not entered from
  *  the driver's own `Qts`/`Vas_m3` and writes it back via `setCalculated`, never overwriting an
- *  entered value. */
+ *  entered value. `Qts`/`Vas_m3` are read-only inputs — nothing here ever writes back to the
+ *  driver's own T/S spec. */
 export interface SealedAlignmentSolverParams {
-  Qts: SolverField;
-  Vas_m3: SolverField;
+  Qts: SolverInput;
+  Vas_m3: SolverInput;
   Qtc: SolverField;
   Vb_m3: SolverField;
 }

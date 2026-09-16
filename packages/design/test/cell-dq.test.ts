@@ -80,12 +80,13 @@ describe('structural DQ on Cell<T>', () => {
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
+    // S2-7d2: the project cascade only solves the ACTIVE box type's vent/PR pair.
+    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.volume_m3.set(0.03);
     p.box.passiveRadiator.addedMass_kg.set(0);
 
     const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
 
-    p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.addedMass_kg.clear();
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
     p.notifyPrChanged();

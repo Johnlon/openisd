@@ -595,6 +595,11 @@ const openISDBoxJsonSchema = z.strictObject({
         tuning_hz: specEntryJsonSchema.optional(),
         count: z.number(),
         addedMass_kg: specEntryJsonSchema.optional(),
+        // The two PR OUTPUTS (S2-7d2): always calculated, never entered — but still a solver-set
+        // slot, not a `ReadOnlyCalculatedField` computed fresh at every read, so the project
+        // cascade has somewhere to write them and a reader never re-solves on read.
+        resonanceWithAddedMass_hz: specEntryJsonSchema.optional(),
+        systemTuning_hz: specEntryJsonSchema.optional(),
         losses: sealedLossesJsonSchema,
         // The chosen PR, stored as a full driver record (a PR IS a purchasable component, same as
         // a driver) — null until `configurePR()` picks one. Reuses `openISDDeviceJsonSchema`

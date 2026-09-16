@@ -27,7 +27,6 @@ import {
     calcNumVC,
     enteredWiring,
     enteredEntry,
-    calculatedEntry,
     winningValue,
 } from './openisdSchema.js';
 import {
@@ -36,10 +35,13 @@ import {
     nullableField,
     requiredField,
     entryField,
+    pairedField,
+    inputOf,
     resolvingLens,
     Field,
     InputField,
     ReadOnlyCalculatedField,
+    type Cell,
     type Lens,
     type RawField,
 } from './cell.js';
@@ -54,7 +56,7 @@ import type {
     BoxType, SimulatableBoxType, DriverError, DriverIssue, Filter,
     EnclosureParams, MaxCurvesResult, SweepParams, SweepResult, DriverSolverQuantities,
     SweepSolveResult, MaxCurvesSolveResult,
-    SweepIssue, VentIssue, PrIssue, BoxParamsIssue,
+    SweepIssue, VentIssue, PrIssue, BoxParamsIssue, CalculationIssue, DriverQuantityName,
 } from '../engine/index.js';
 
 import type {Vent, VentShape} from './vent.js';
@@ -216,9 +218,10 @@ export interface PassiveRadiatorBox {
     /** WinISD's "Fp" — the tuning this box and this radiator ACTUALLY produce together, which is
      *  a different thing from the `tuning_hz` field above: that is the target the user asked for,
      *  this is what the chosen radiator delivers in this volume. Null until a radiator is chosen
-     *  and the volume is set. A precomputed readout — a `ReadOnlyCalculatedField`, not a handle.
+     *  and the volume is set. An OUTPUT of the solved pair (S2-7d2) — entry-backed like every
+     *  other C/E slot, written by the project cascade, never entered by a user.
      *  Carries the relation's DQ when the target is unreachable (an unattainable `tuning_hz`). */
-    readonly systemTuning_hz: ReadOnlyCalculatedField<number>;
+    readonly systemTuning_hz: Field<number>;
 
     /** The tuning mass this radiator needs to hit `fp_hz` in this box. Read-only WHAT-IF query —
      *  SUPERSEDED as a design entry point by the solved pair: committing a target is
@@ -234,9 +237,10 @@ export interface PassiveRadiatorBox {
     /** WinISD's "Fs (with added mass)" — the RADIATOR'S OWN resonance carrying whatever tuning
      *  mass is on its cone, with no box in it. A different quantity from `systemTuning_hz`,
      *  which is this radiator loaded by this box's air. Null until a radiator is chosen and
-     *  states the mass and compliance the resonance is made of. Carries the relation's DQ when
-     *  the pair is inconsistent (an unreachable target). */
-    readonly resonanceWithAddedMass_hz: ReadOnlyCalculatedField<number>;
+     *  states the mass and compliance the resonance is made of. An OUTPUT of the solved pair
+     *  (S2-7d2), entry-backed like `systemTuning_hz`. Carries the relation's DQ when the pair is
+     *  inconsistent (an unreachable target). */
+    readonly resonanceWithAddedMass_hz: Field<number>;
 }
 
 /** The enclosure: which box type is active, and every box type's own fields. All six are
@@ -336,7 +340,15 @@ class VentWindow implements Vent {
 
     constructor(
         lens: Lens<VentJson>, engine: Engine, air: () => Air,
-        ventContext?: { getVb: () => number | null; getTuningHz: () => number | null; clearTuningHz?: () => void },
+        /** A pre-built `length_m`, ATOMICALLY paired with a tuning target living OUTSIDE this
+         *  vent's own record (a chamber's `tuning_hz` — `vented`'s and `bandpass4.front`'s own
+         *  vents have one; bandpass6/ABC's do not, so they pass none). Only the OWNER
+         *  (`OpenISDBox`) can build this: it is the one place that can see both parent lenses at
+         *  once, needed to write BOTH sides in a single call — two separate writes would let a
+         *  resolve run in between and re-derive the sibling from a value the caller is in the
+         *  middle of retracting (S2-7d2 — replaces the earlier `ventContext` bag, which fed a
+         *  live read-time solve `#resolve()` now owns). */
+        lengthField?: Field<number>,
     ) {
         this.#lens = lens;
         this.#engine = engine;
@@ -346,44 +358,7 @@ class VentWindow implements Vent {
         this.diameter_m = nullableField(lens, 'diameter_m');
         this.width_m = nullableField(lens, 'width_m');
         this.height_m = nullableField(lens, 'height_m');
-        const lengthEntry = entryField(focus(lens, 'length_m'), 'length_m');
-        this.length_m = new Field<number>(
-            () => {
-                const rawL = lengthEntry.entered ? lengthEntry.value : null;
-                const ventContextFb = ventContext?.getTuningHz() ?? null;
-                const ventContextVb = ventContext?.getVb() ?? null;
-                const solved = this.#engine.solveVentConsistencyGroup({
-                    tuning_hz: ventContextFb ?? undefined,
-                    length_m: rawL ?? undefined,
-                    Vb_m3: ventContextVb ?? undefined,
-                    area_m2: this.area_m2() ?? undefined,
-                    endCorrection_m: this.endCorrection_m.get(),
-                }, this.#air());
-                const issues = this.#engine.checkVentConsistency(solved);
-                const issue = issues.find(i => this.#engine.issueFields(i).includes('length_m') || this.#engine.issueFields(i).includes('tuning_hz'));
-                const dq = issue ? this.#engine.issueFormula(issue) : null;
-
-                if (rawL !== null) {
-                    return createCell<number>('', rawL, 'entered', dq ? [dq] : undefined);
-                }
-                // A persisted 'C' entry (S2-7d writes one; nothing does yet) is trusted as-is —
-                // never re-derived out from under a value the solver itself already settled on.
-                if (lengthEntry.calculated && lengthEntry.value != null) {
-                    return createCell<number>('', lengthEntry.value, 'calculated', dq ? [dq] : undefined);
-                }
-                if (solved.length_m != null) {
-                    return createCell<number>('', solved.length_m, 'calculated', dq ? [dq] : undefined);
-                }
-                return createCell<number>('', null, 'not-available');
-            },
-            {
-                entered: (v: number) => lengthEntry.set(v),
-                clear: () => lengthEntry.clear(),
-                // S2-7d rewires solveVent to call this for real; today nothing does.
-                calculated: (v: number) => lengthEntry.setCalculated(v),
-                dq: (list) => lengthEntry.setDq([...list]),
-            },
-        );
+        this.length_m = lengthField ?? entryField(focus(lens, 'length_m'), 'length_m');
     }
 
     /** Cross-sectional area of the port opening.
@@ -587,52 +562,25 @@ class OpenISDBox implements Box {
 
         const ventedLens = focus(lens, 'vented');
         const ventedChamber = focus(ventedLens, 'chamber');
+        const ventedVentLens = focus(ventedLens, 'vent');
         const ventedTuningEntry = entryField(focus(ventedChamber, 'tuning_hz'), 'tuning_hz');
-        const ventLengthEntry = entryField(focus(focus(ventedLens, 'vent'), 'length_m'), 'length_m');
-        const ventWindow = new VentWindow(focus(ventedLens, 'vent'), engine, air, {
-            getVb: () => this.vented.volume_m3.get().value,
-            getTuningHz: () => ventedTuningEntry.entered ? ventedTuningEntry.value : null,
-            clearTuningHz: () => ventedTuningEntry.clear(),
-        });
-        const ventedTuning = new Field<number>(
-            () => {
-                const rawFb = ventedTuningEntry.entered ? ventedTuningEntry.value : null;
-                const rawL = ventLengthEntry.entered ? ventLengthEntry.value : null;
-                const Vb = this.vented.volume_m3.get().value;
-                const solved = this.#engine.solveVentConsistencyGroup({
-                    tuning_hz: rawFb ?? undefined,
-                    length_m: rawL ?? undefined,
-                    Vb_m3: Vb ?? undefined,
-                    area_m2: ventWindow.area_m2() ?? undefined,
-                    endCorrection_m: ventWindow.endCorrection_m.get(),
-                }, air());
-                const issues = this.#engine.checkVentConsistency(solved);
-                const issue = issues.find(i => this.#engine.issueFields(i).includes('tuning_hz') || this.#engine.issueFields(i).includes('length_m'));
-                const dq = issue ? this.#engine.issueFormula(issue) : null;
-
-                if (rawFb !== null) {
-                    return createCell<number>('', rawFb ?? undefined, 'entered', dq ? [dq] : undefined);
-                }
-                // A persisted 'C' entry (S2-7d writes one; nothing does yet) is trusted as-is.
-                if (ventedTuningEntry.calculated && ventedTuningEntry.value != null) {
-                    return createCell<number>('', ventedTuningEntry.value, 'calculated', dq ? [dq] : undefined);
-                }
-                if (solved.tuning_hz != null) {
-                    return createCell<number>('', solved.tuning_hz, 'calculated', dq ? [dq] : undefined);
-                }
-                return createCell<number>('', null, 'not-available');
-            },
-            {
-                entered: (v: number) => ventedTuningEntry.set(v),
-                clear: () => ventedTuningEntry.clear(),
-                // S2-7d rewires solveVent to call this for real; today nothing does.
-                calculated: (v: number) => ventedTuningEntry.setCalculated(v),
-                dq: (list) => ventedTuningEntry.setDq([...list]),
-            },
-        );
+        const ventedLengthEntry = entryField(focus(ventedVentLens, 'length_m'), 'length_m');
+        const commitVentedPair = (tuning: SpecEntryJson | undefined, length: SpecEntryJson | undefined): void => {
+            const cur = ventedLens.get();
+            ventedLens.set({
+                ...cur,
+                chamber: { ...cur.chamber, tuning_hz: tuning },
+                vent: { ...cur.vent, length_m: length },
+            });
+        };
+        const ventedTuningField = pairedField(
+            () => ventedTuningEntry.get(), (entry) => commitVentedPair(entry, undefined), ventedTuningEntry);
+        const ventedLengthField = pairedField(
+            () => ventedLengthEntry.get(), (entry) => commitVentedPair(undefined, entry), ventedLengthEntry);
+        const ventWindow = new VentWindow(ventedVentLens, engine, air, ventedLengthField);
         this.vented = {
             volume_m3: requiredField(ventedChamber, 'volume_m3', 'vented.volume_m3'),
-            tuning_hz: ventedTuning,
+            tuning_hz: ventedTuningField,
             vent: ventWindow,
             losses: new VentedLossesWindow(focus(ventedChamber, 'losses')),
         };
@@ -641,6 +589,22 @@ class OpenISDBox implements Box {
         const bp4Rear = focus(bp4, 'rear');
         const bp4RearLosses = new CoupledSealedLossesWindow(focus(bp4Rear, 'losses'));
         const bp4Front = focus(bp4, 'front');
+        const bp4FrontTuningEntry = entryField(focus(bp4Front, 'tuning_hz'), 'tuning_hz');
+        const bp4FrontVentLens = focus(bp4, 'frontVent');
+        const bp4FrontLengthEntry = entryField(focus(bp4FrontVentLens, 'length_m'), 'length_m');
+        const commitBp4FrontPair = (tuning: SpecEntryJson | undefined, length: SpecEntryJson | undefined): void => {
+            const cur = bp4.get();
+            bp4.set({
+                ...cur,
+                front: { ...cur.front, tuning_hz: tuning },
+                frontVent: { ...cur.frontVent, length_m: length },
+            });
+        };
+        const bp4FrontTuningField = pairedField(
+            () => bp4FrontTuningEntry.get(), (entry) => commitBp4FrontPair(entry, undefined), bp4FrontTuningEntry);
+        const bp4FrontLengthField = pairedField(
+            () => bp4FrontLengthEntry.get(), (entry) => commitBp4FrontPair(undefined, entry), bp4FrontLengthEntry);
+        const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine, air, bp4FrontLengthField);
         this.bandpass4 = {
             chambers: {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
@@ -666,11 +630,11 @@ class OpenISDBox implements Box {
                 // front's volume is a Field, consistent with the rear chamber.
                 front: {
                     volume_m3: requiredField(bp4Front, 'volume_m3', 'bandpass4.front.volume_m3'),
-                    tuning_hz: entryField(focus(bp4Front, 'tuning_hz'), 'tuning_hz'),
+                    tuning_hz: bp4FrontTuningField,
                     losses: new CoupledVentedLossesWindow(focus(bp4Front, 'losses')),
                 },
             },
-            vents: {front: new VentWindow(focus(bp4, 'frontVent'), engine, air)},
+            vents: {front: bp4FrontVent},
         };
 
         const bp6 = focus(lens, 'bandpass6');
@@ -709,99 +673,21 @@ class OpenISDBox implements Box {
         const prVolume = focus(pr, 'volume_m3');
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg');
         const prTuningEntry = entryField(focus(pr, 'tuning_hz'), 'tuning_hz');
-        const prAddedMass = new Field<number>(
-            () => {
-                const rawMass = prAddedMassEntry.entered ? prAddedMassEntry.value : null;
-                const rawTuning = prTuningEntry.entered ? prTuningEntry.value : null;
-                const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const solved = this.#engine.solvePrConsistencyGroup({
-                    tuning_hz: rawTuning ?? undefined,
-                    addedMass_kg: rawMass ?? undefined,
-                    Vb_m3: Vb ?? undefined,
-                    prMmd_kg: getRadiator()?.spec.Mms_kg.get().value ?? undefined,
-                    prSd_m2: getRadiator()?.spec.Sd_m2.get().value ?? undefined,
-                    prCms_m_per_N: getRadiator()?.spec.Cms_m_per_N.get().value ?? undefined,
-                    prNum: focus(pr, 'count').get(),
-                }, air());
-                const issues = this.#engine.checkPrConsistency(solved);
-                const issue = issues.find(i => this.#engine.issueFields(i).includes('addedMass_kg') || this.#engine.issueFields(i).includes('tuning_hz'));
-                const dq = issue ? this.#engine.issueFormula(issue) : null;
-
-                if (rawMass !== null) {
-                    return createCell<number>('', rawMass ?? undefined, 'entered', dq ? [dq] : undefined);
-                }
-                // A persisted 'C' entry (S2-7d writes one; nothing does yet) is trusted as-is.
-                if (prAddedMassEntry.calculated && prAddedMassEntry.value != null) {
-                    return createCell<number>('', prAddedMassEntry.value, 'calculated', dq ? [dq] : undefined);
-                }
-                if (solved.addedMass_kg != null) {
-                    return createCell<number>('', solved.addedMass_kg, 'calculated', dq ? [dq] : undefined);
-                }
-                return createCell<number>('', null, 'not-available');
-            },
-            {
-                entered: (v: number) => {
-                    const cur = pr.get();
-                    pr.set({ ...cur, addedMass_kg: enteredEntry(v), tuning_hz: undefined });
-                },
-                clear: () => prAddedMassEntry.clear(),
-                // S2-7d rewires solvePr to call this for real; today nothing does.
-                calculated: (v: number) => {
-                    const cur = pr.get();
-                    pr.set({ ...cur, addedMass_kg: calculatedEntry(v), tuning_hz: undefined });
-                },
-                dq: (list) => prAddedMassEntry.setDq([...list]),
-            },
+        const prTuningField = pairedField(
+            () => prTuningEntry.get(),
+            (entry) => pr.set({ ...pr.get(), tuning_hz: entry, addedMass_kg: undefined }),
+            prTuningEntry,
         );
-        const prTuning = new Field<number>(
-            () => {
-                const rawTuning = prTuningEntry.entered ? prTuningEntry.value : null;
-                const rawMass = prAddedMassEntry.entered ? prAddedMassEntry.value : null;
-                const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const solved = this.#engine.solvePrConsistencyGroup({
-                    tuning_hz: rawTuning ?? undefined,
-                    addedMass_kg: rawMass ?? undefined,
-                    Vb_m3: Vb ?? undefined,
-                    prMmd_kg: getRadiator()?.spec.Mms_kg.get().value ?? undefined,
-                    prSd_m2: getRadiator()?.spec.Sd_m2.get().value ?? undefined,
-                    prCms_m_per_N: getRadiator()?.spec.Cms_m_per_N.get().value ?? undefined,
-                    prNum: focus(pr, 'count').get(),
-                }, air());
-                const issues = this.#engine.checkPrConsistency(solved);
-                const issue = issues.find(i => this.#engine.issueFields(i).includes('tuning_hz') || this.#engine.issueFields(i).includes('addedMass_kg'));
-                const dq = issue ? this.#engine.issueFormula(issue) : null;
-
-                if (rawTuning !== null) {
-                    return createCell<number>('', rawTuning ?? undefined, 'entered', dq ? [dq] : undefined);
-                }
-                // A persisted 'C' entry (S2-7d writes one; nothing does yet) is trusted as-is.
-                if (prTuningEntry.calculated && prTuningEntry.value != null) {
-                    return createCell<number>('', prTuningEntry.value, 'calculated', dq ? [dq] : undefined);
-                }
-                if (solved.tuning_hz != null) {
-                    return createCell<number>('', solved.tuning_hz, 'calculated', dq ? [dq] : undefined);
-                }
-                return createCell<number>('', null, 'not-available');
-            },
-            {
-                entered: (v: number) => {
-                    const cur = pr.get();
-                    pr.set({ ...cur, tuning_hz: enteredEntry(v), addedMass_kg: undefined });
-                },
-                clear: () => prTuningEntry.clear(),
-                // S2-7d rewires solvePr to call this for real; today nothing does.
-                calculated: (v: number) => {
-                    const cur = pr.get();
-                    pr.set({ ...cur, tuning_hz: calculatedEntry(v), addedMass_kg: undefined });
-                },
-                dq: (list) => prTuningEntry.setDq([...list]),
-            },
+        const prAddedMassField = pairedField(
+            () => prAddedMassEntry.get(),
+            (entry) => pr.set({ ...pr.get(), addedMass_kg: entry, tuning_hz: undefined }),
+            prAddedMassEntry,
         );
         this.passiveRadiator = {
             volume_m3: prVolume,
-            tuning_hz: prTuning,
+            tuning_hz: prTuningField,
             count: focus(pr, 'count'),
-            addedMass_kg: prAddedMass,
+            addedMass_kg: prAddedMassField,
             losses: new SealedLossesWindow(focus(pr, 'losses')),
             // The embedded radiator adopts the chosen one — a radiator reading another radiator's
             // record, legal because both derive from the class that declares `slot`.
@@ -817,82 +703,30 @@ class OpenISDBox implements Box {
             get radiator() {
                 return getRadiator();
             },
-            systemTuning_hz: new ReadOnlyCalculatedField<number>(() => {
-                const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const r = getRadiator();
-                // VALUE: what this box delivers with the mass currently on the cone — an unstated
-                // added mass reads as a bare cone (0): the tuning this box and radiator produce
-                // together is a real figure with no mass on the cone, and `systemTuning_hz` is null
-                // only when no radiator is chosen or no volume is set — the interface's own doc.
-                // Solved WITHOUT the stored target, so an unreachable request never drags the value.
-                const solved = this.#engine.solvePrConsistencyGroup({
-                    addedMass_kg: (prAddedMassEntry.entered ? prAddedMassEntry.value : null) ?? 0,
-                    Vb_m3: Vb ?? undefined,
-                    prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
-                    prSd_m2: r.spec.Sd_m2.get().value ?? undefined,
-                    prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
-                    prNum: focus(pr, 'count').get(),
-                }, air());
-                // DQ: the relation is ALSO solved with the stored target (mass left to derive), so
-                // an unreachable request shows up as a negative derived mass and flags — the same
-                // DQ every other field in the relation carries.
-                const issues = this.#engine.checkPrConsistency(this.#engine.solvePrConsistencyGroup({
-                    addedMass_kg: (prAddedMassEntry.entered ? prAddedMassEntry.value : null) ?? undefined,
-                    tuning_hz: (prTuningEntry.entered ? prTuningEntry.value : null) ?? undefined,
-                    Vb_m3: Vb ?? undefined,
-                    prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
-                    prSd_m2: r.spec.Sd_m2.get().value ?? undefined,
-                    prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
-                    prNum: focus(pr, 'count').get(),
-                }, air()));
-                const issue = issues.find(i => this.#engine.issueFields(i).includes('addedMass_kg') || this.#engine.issueFields(i).includes('tuning_hz'));
-                const dq = issue ? this.#engine.issueFormula(issue) : null;
-                if (solved.systemTuning_hz != null) {
-                    return createCell<number>('systemTuning_hz', solved.systemTuning_hz, 'calculated', dq ? [dq] : undefined);
-                }
-                return createCell<number>('systemTuning_hz', null, 'not-available');
-            }),
+            // OUTPUTS of the solved pair (S2-7d2): plain entry-backed slots the `solvePr` cascade
+            // in `OpenISDProject#resolve()` writes as 'C' entries — never entered by a user, never
+            // recomputed at read time here.
+            systemTuning_hz: entryField(focus(pr, 'systemTuning_hz'), 'systemTuning_hz'),
+            resonanceWithAddedMass_hz: entryField(focus(pr, 'resonanceWithAddedMass_hz'), 'resonanceWithAddedMass_hz'),
+            /** A read-only WHAT-IF query, independent of the stored pair and its cascade — never
+             *  writes back, so it stays a pure computation over `Engine.prMassForFp` rather than a
+             *  route through the (now-deleted) bag solver. The DQ text matches
+             *  `checkPrConsistency`'s own negative-mass case exactly: the only DQ this cell could
+             *  ever have carried in practice (the missing-dependencies branch always paired with a
+             *  null answer, which the not-available branch below already reports with no DQ to lose). */
             addedMassForTuning_kg: (fp_hz: number) => new ReadOnlyCalculatedField<number>(() => {
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
                 const r = getRadiator();
-                const solved = this.#engine.solvePrConsistencyGroup({
-                    tuning_hz: fp_hz > 0 ? fp_hz : undefined,
-                    Vb_m3: Vb ?? undefined,
-                    prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
-                    prSd_m2: r.spec.Sd_m2.get().value ?? undefined,
-                    prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
-                    prNum: focus(pr, 'count').get(),
-                }, air());
-                const issues = this.#engine.checkPrConsistency(solved);
-                const issue = issues.find(i => this.#engine.issueFields(i).includes('addedMass_kg'));
-                const dq = issue ? this.#engine.issueFormula(issue) : null;
-                if (solved.addedMass_kg != null) {
-                    return createCell<number>('addedMassForTuning_kg', solved.addedMass_kg, 'calculated', dq ? [dq] : undefined);
+                const prMmd = r.spec.Mms_kg.get().value;
+                const prSd = r.spec.Sd_m2.get().value;
+                const prCms = r.spec.Cms_m_per_N.get().value;
+                if (!(Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
+                    return createCell<number>('addedMassForTuning_kg', null, 'not-available');
                 }
-                return createCell<number>('addedMassForTuning_kg', null, 'not-available');
-            }),
-            resonanceWithAddedMass_hz: new ReadOnlyCalculatedField<number>(() => {
-                const r = getRadiator();
-                const Vb = prVolume.get() || this.vented.volume_m3.get().value;
-                const solved = this.#engine.solvePrConsistencyGroup({
-                    addedMass_kg: (prAddedMassEntry.entered ? prAddedMassEntry.value : null) ?? undefined,
-                    tuning_hz: (prTuningEntry.entered ? prTuningEntry.value : null) ?? undefined,
-                    Vb_m3: Vb ?? undefined,
-                    prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
-                    prSd_m2: r.spec.Sd_m2.get().value ?? undefined,
-                    prCms_m_per_N: r.spec.Cms_m_per_N.get().value ?? undefined,
-                    prNum: focus(pr, 'count').get(),
-                }, air());
-                const issues = this.#engine.checkPrConsistency(solved);
-                // Free-air resonance is one of the relation's OUTPUTS: when the pair is
-                // inconsistent (an unreachable target deriving negative mass) it flags with the
-                // same DQ as the input, per the "redline all the fields" ruling.
-                const issue = issues.find(i => this.#engine.issueFields(i).includes('addedMass_kg') || this.#engine.issueFields(i).includes('tuning_hz'));
-                const dq = issue ? this.#engine.issueFormula(issue) : null;
-                if (solved.resonanceWithAddedMass_hz != null) {
-                    return createCell<number>('resonanceWithAddedMass_hz', solved.resonanceWithAddedMass_hz, 'calculated', dq ? [dq] : undefined);
-                }
-                return createCell<number>('resonanceWithAddedMass_hz', null, 'not-available');
+                const totalMass = this.#engine.prMassForFp({ Vb, prMmd, prMadd: 0, prSd, prCms }, fp_hz, air());
+                const addedMass = totalMass - prMmd;
+                const dq = addedMass < 0 ? ['Target tuning is above maximum passive radiator tuning'] : undefined;
+                return createCell<number>('addedMassForTuning_kg', addedMass, 'calculated', dq);
             }),
         };
     }
@@ -1013,6 +847,26 @@ const NO_SLOT: SolverField = Object.freeze({
     setDq: () => {},
     setNotAvailable: () => {},
 });
+
+/** Every `DriverQuantityName`, exactly once — the field list `projectFormulaDq` clears before
+ *  applying `resolve()`'s own issues (S2-7d2). Named here, once, in a form the compiler checks
+ *  (`satisfies`, not a cast) rather than read back off `params` via `Object.keys`, which answers
+ *  `string[]` regardless of what the object's own type declares. */
+const DRIVER_QUANTITY_NAMES = [
+    'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms', 'Qts', 'Vas_m3',
+    'Sd_m2', 'Dd_m', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s', 'EBP_hz', 'Xmax_m', 'Vd_m3',
+    'Hc_m', 'Hg_m', 'Pe_W', 'no', 'SPLref_dB', 'SPL_dB', 'USPL_dB', 'SPLmax_dB', 'SPLmaxLF_dB',
+    'Rme_kg_per_s', 'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'gamma_m_per_s2_A', 'Gloss', 'Vcd_m',
+    'Depth_m', 'MagDepth_m', 'Magnet_m', 'DVol_m3', 'c_m_per_s', 'roo_kg_per_m3',
+    'Re_terminal_ohm', 'BL_terminal_Tm', 'numVC', 'wiring',
+] as const satisfies readonly DriverQuantityName[];
+// Completeness, not merely validity: a `DriverQuantityName` missing from the list above fails to
+// compile here and the error NAMES it, rather than `projectFormulaDq` silently never clearing it.
+type _MissingFromDriverQuantityNames = Exclude<DriverQuantityName, typeof DRIVER_QUANTITY_NAMES[number]>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertDriverQuantityNamesComplete = _MissingFromDriverQuantityNames extends never ? true : never;
+const _assertDriverQuantityNamesComplete: _AssertDriverQuantityNamesComplete = true;
+void _assertDriverQuantityNamesComplete;
 
 /**
  * Window onto a single `DriverSpecsSection` of a driver record.
@@ -1216,6 +1070,7 @@ export class OpenIsdDriverSpec {
             wiring: this.VCCon,
         };
         this.#issues = this.#engine.solveDriver(params, air);
+        projectFormulaDq<DriverQuantityName>(DRIVER_QUANTITY_NAMES, params, this.#issues, this.#engine);
         return this.#issues;
     }
 
@@ -2011,6 +1866,45 @@ function freshEmbeddedDriver(json: OpenISDProjectJson, appContext: AppContext = 
  *  `driver` is this step (S2-7d1); vent/PR/sealed/environment join it in S2-7d2. */
 interface ProjectIssues {
     readonly driver: readonly DriverIssue[];
+    readonly vent: readonly VentIssue[];
+    readonly pr: readonly PrIssue[];
+}
+
+/** Clears `dq` on every named handle, then applies each issue's OWN formula only to the handles
+ *  `engine.issueFields()` names for it — the driver's 44 independent quantities, where one
+ *  relation's DQ has nothing to do with an unrelated field (S2-7d2). `handles` is a PARTIAL map:
+ *  a `SolverInput`-typed member (no `setDq`) is simply absent, and `?.` skips it safely. */
+function projectFormulaDq<Q extends string>(
+    /** Every handle's own name, exactly once — `Object.keys(handles)` would answer `string[]`,
+     *  not `Q[]` (TS never trusts an object's key list to match its declared type, since nothing
+     *  stops one carrying extra enumerable properties at runtime), so the caller states its own
+     *  field list where the compiler CAN check it: `as const satisfies readonly Q[]`. */
+    fields: readonly Q[],
+    handles: Partial<Readonly<Record<Q, { setDq(dq?: string[]): void }>>>,
+    issues: readonly CalculationIssue<Q>[],
+    engine: Engine,
+): void {
+    fields.forEach(key => handles[key]?.setDq([]));
+    issues.forEach(issue => {
+        const formula = engine.issueFormula(issue);
+        engine.issueFields(issue).forEach(field => handles[field]?.setDq([formula]));
+    });
+}
+
+/** The vent tuning↔length pair and the PR addedMass↔tuning quad each carry ONE relation between
+ *  a small, tightly-coupled group of handles — unlike the driver's 44 largely-independent
+ *  quantities, an issue anywhere in the group redlines EVERY handle in it, not just the ones
+ *  `issueFields()` happens to name (the established "redline all the fields" ruling PR's own
+ *  handles already carried before S2-7d2 — see the type's own doc comment). Takes the FIRST
+ *  issue only, matching what every hand-wrapped predecessor field did (`issues.find(...)`) —
+ *  these groups practically never carry more than one live issue at once. */
+function projectGroupDq<Q extends string>(
+    handles: readonly { setDq(dq?: string[]): void }[],
+    issues: readonly CalculationIssue<Q>[],
+    engine: Engine,
+): void {
+    const dq = issues.length > 0 ? [engine.issueFormula(issues[0])] : [];
+    handles.forEach(h => h.setDq(dq));
 }
 
 export class OpenISDProject {
@@ -2067,7 +1961,7 @@ export class OpenISDProject {
     readonly #engine: Engine;
 
     /** The current layer's cached issues — see the class doc comment's "ONE EXCEPTION". */
-    #issues: ProjectIssues = { driver: [] };
+    #issues: ProjectIssues = { driver: [], vent: [], pr: [] };
 
     /** Reentrancy guard for `#resolve()`. Nothing inside a resolve reaches `#slot`/`#root` today
      *  — the driver window it builds is over the DIRECT layer, never through the notifying
@@ -2100,6 +1994,16 @@ export class OpenISDProject {
      *  own structure. */
     get driver(): OpenISDDriverEmbedded {
         return this.#driverOver(this.#root());
+    }
+
+    /** A window onto the box embedded in `root`'s whole record — `get box()` below is
+     *  `#boxOver(this.#root())`; `#resolve()` calls it with a DIRECT (non-notifying) root of its
+     *  own instead. Mirrors `#driverOver` exactly (S2-7d2). */
+    #boxOver(root: Lens<OpenISDProjectJson>): OpenISDBox {
+        return OpenISDBox.wrap(
+            focus(root, 'box'), this.#driverOver(root), this.#engine,
+            () => root.get().driverEmbedding.Rs_ohm,
+        );
     }
 
     /** Replace the embedded driver's whole record with `source`'s — the project adopting a
@@ -2173,12 +2077,7 @@ export class OpenISDProject {
      *  loads, and the box reads the driver through its PUBLIC field surface, never its record.
      *  Built fresh on every access, same reasoning as `driver`. */
     get box(): Box {
-        return OpenISDBox.wrap(
-            this.#slot('box'), this.driver, this.#engine,
-            // The amplifier's source impedance loading this array — the `Rg` WinISD folds into
-            // its sealed Fsc/Qtc readouts (winisd_research SEALED_FSC_MODEL.md §5).
-            () => this.Rs_ohm.get(),
-        );
+        return this.#boxOver(this.#root());
     }
 
     /** What the user calls this project. A LABEL, not an identity — two projects may share one,
@@ -2409,7 +2308,65 @@ export class OpenISDProject {
                     else this.#saved = json;
                 },
             };
-            this.#issues = { driver: this.#driverOver(directRoot).resolve() };
+            const driver = this.#driverOver(directRoot);
+            const driverIssues = driver.resolve();
+
+            // The vent/PR solves' own air — the driver's just-resolved `c_m_per_s`/
+            // `roo_kg_per_m3` (always non-null once `resolve()` above has run: `solveDriver`
+            // defaults them from the environment and writes the default back), falling back to
+            // the project's own environment directly on the same terms `#sweepAir()` does.
+            const spec = driver.spec[driver.section];
+            const air: Air = spec.c_m_per_s.value !== null && spec.roo_kg_per_m3.value !== null
+                ? { rho: spec.roo_kg_per_m3.value, c: spec.c_m_per_s.value }
+                : this.#engine.solveEnvironment({
+                    tempK: directRoot.get().environment.temperature_K ?? undefined,
+                    humidityPct: directRoot.get().environment.humidity_pct ?? undefined,
+                    pressurePa: directRoot.get().environment.pressure_Pa ?? undefined,
+                }).values;
+
+            const box = this.#boxOver(directRoot);
+            const boxType = directRoot.get().box.boxType;
+            let vent: readonly VentIssue[] = [];
+            let pr: readonly PrIssue[] = [];
+
+            if (boxType === 'vented') {
+                vent = this.#engine.solveVent({
+                    tuning_hz: box.vented.tuning_hz,
+                    length_m: box.vented.vent.length_m,
+                    Vb_m3: inputOf(() => box.vented.volume_m3.get().value),
+                    area_m2: inputOf(() => box.vented.vent.area_m2()),
+                    endCorrection_m: inputOf(() => box.vented.vent.endCorrection_m.get()),
+                }, air);
+                projectGroupDq([box.vented.tuning_hz, box.vented.vent.length_m], vent, this.#engine);
+            } else if (boxType === 'bandpass4') {
+                vent = this.#engine.solveVent({
+                    tuning_hz: box.bandpass4.chambers.front.tuning_hz,
+                    length_m: box.bandpass4.vents.front.length_m,
+                    Vb_m3: inputOf(() => box.bandpass4.chambers.front.volume_m3.get().value),
+                    area_m2: inputOf(() => box.bandpass4.vents.front.area_m2()),
+                    endCorrection_m: inputOf(() => box.bandpass4.vents.front.endCorrection_m.get()),
+                }, air);
+                projectGroupDq(
+                    [box.bandpass4.chambers.front.tuning_hz, box.bandpass4.vents.front.length_m], vent, this.#engine);
+            } else if (boxType === 'box-passive-radiator' && directRoot.get().box.passiveRadiator.component !== null) {
+                const p = box.passiveRadiator;
+                const r = p.radiator;
+                pr = this.#engine.solvePr({
+                    addedMass_kg: p.addedMass_kg,
+                    tuning_hz: p.tuning_hz,
+                    resonanceWithAddedMass_hz: p.resonanceWithAddedMass_hz,
+                    systemTuning_hz: p.systemTuning_hz,
+                    Vb_m3: inputOf(() => p.volume_m3.get() || box.vented.volume_m3.get().value),
+                    prMmd_kg: inputOf(() => r.spec.Mms_kg.get().value),
+                    prSd_m2: inputOf(() => r.spec.Sd_m2.get().value),
+                    prCms_m_per_N: inputOf(() => r.spec.Cms_m_per_N.get().value),
+                    prNum: inputOf(() => p.count.get()),
+                }, air);
+                projectGroupDq(
+                    [p.addedMass_kg, p.tuning_hz, p.resonanceWithAddedMass_hz, p.systemTuning_hz], pr, this.#engine);
+            }
+
+            this.#issues = { driver: driverIssues, vent, pr };
         } finally {
             this.#resolving = false;
         }
@@ -2907,14 +2864,15 @@ export class OpenISDProject {
         }).values;
     }
 
-    /** Assembled exactly as the per-field vent getters do (~582), for the ACTIVE vent — `vented`'s
-     *  or `bandpass4`'s front — so the sweep reports the same VentIssue a cell would. `solveVent`'s
-     *  issues deliberately stay empty when NO target is stated at all (pinned by
-     *  `engine/vent-pr-consistency.test.ts`: "no target chosen yet" is not a per-field error), so
-     *  this guard adds the no-resonance case on top: a port that still has neither `tuning_hz` nor
-     *  `length_m` after solving blocks the whole sweep, in the terms the sweep's `Leff` actually
-     *  runs by. */
+    /** The ACTIVE vent's cached issues (`vented`'s or `bandpass4`'s front — S2-7d2:
+     *  `#resolve()` already ran `solveVent` for whichever is active, so this is a thin read, not
+     *  a second solve). `solveVent`'s issues deliberately stay empty when NO target is stated at
+     *  all (pinned by `engine/vent-pr-consistency.test.ts`: "no target chosen yet" is not a
+     *  per-field error), so this guard adds the no-resonance case on top: a port that still has
+     *  neither `tuning_hz` nor `length_m` blocks the whole sweep, in the terms the sweep's `Leff`
+     *  actually runs by. */
     #ventSweepIssues(box: 'vented' | 'bandpass4'): readonly VentIssue[] {
+        if (this.#issues.vent.length) return this.#issues.vent;
         const b = this.box;
         const tuningCell = box === 'vented'
             ? b.vented.tuning_hz.get()
@@ -2924,21 +2882,12 @@ export class OpenISDProject {
             ? b.vented.volume_m3.get().value
             : b.bandpass4.chambers.front.volume_m3.get().value;
         const lengthCell = vent.length_m.get();
-        const solved = this.#engine.solveVentConsistencyGroup({
-            tuning_hz: tuningCell.state === 'entered' ? tuningCell.value ?? undefined : undefined,
-            length_m: lengthCell.state === 'entered' ? lengthCell.value ?? undefined : undefined,
-            Vb_m3: Vb ?? undefined,
-            area_m2: vent.area_m2() ?? undefined,
-            endCorrection_m: vent.endCorrection_m.get(),
-        }, this.#sweepAir());
-        const issues = this.#engine.checkVentConsistency(solved);
-        if (issues.length) return issues;
-        if (solved.tuning_hz == null && solved.length_m == null) {
+        if (tuningCell.value == null && lengthCell.value == null) {
+            const area = vent.area_m2();
             const required = ['tuning_hz', 'Vb_m3', 'area_m2'] as const;
-            const missing = required.filter((f) => {
-                const v = solved[f];
-                return !(typeof v === 'number' && v > 0);
-            });
+            const values: Readonly<Record<typeof required[number], number | null>> =
+                { tuning_hz: null, Vb_m3: Vb, area_m2: area };
+            const missing = required.filter((f) => !(typeof values[f] === 'number' && values[f]! > 0));
             return [{
                 kind: 'missing-dependencies', target: 'length_m',
                 routes: [{formula: 'length_m from tuning_hz + Vb_m3 + area_m2 (Helmholtz)', required, missing}],
@@ -2947,30 +2896,13 @@ export class OpenISDProject {
         return [];
     }
 
-    /** The PR equivalent of `#ventSweepIssues` — assembled as the per-field PR getters do (~700).
-     *  `solvePr`'s issues fire exactly when a tuning/mass target is stated and one target is
-     *  stated but the resonator geometry (the radiator's own `prMmd_kg`/`prSd_m2`/`prCms_m_per_N`,
-     *  or `Vb_m3`) needed to derive the other is incomplete. A configured radiator with NEITHER
-     *  target stated still sweeps — that un-tuned state is simulable (pinned by
-     *  `test/engine-wiring.test.ts` "a passive-radiator box simulates"), so there is deliberately
-     *  no both-missing gate here, unlike `#ventSweepIssues`. */
+    /** The PR equivalent of `#ventSweepIssues` — the cached issues from `#resolve()`'s own
+     *  `solvePr` call. A configured radiator with NEITHER target stated still sweeps — that
+     *  un-tuned state is simulable (pinned by `test/engine-wiring.test.ts` "a passive-radiator
+     *  box simulates"), and `solvePr`'s own issues already stay empty on that terms, so there is
+     *  deliberately no extra gate here, unlike `#ventSweepIssues`. */
     #prSweepIssues(): readonly PrIssue[] {
-        const pr = this.box.passiveRadiator;
-        const r = pr.radiator;
-        const tuningCell = pr.tuning_hz.get();
-        const massCell = pr.addedMass_kg.get();
-        const Vb = pr.volume_m3.get() || this.box.vented.volume_m3.get().value;
-        const issues = this.#engine.checkPrConsistency(this.#engine.solvePrConsistencyGroup({
-            tuning_hz: tuningCell.state === 'entered' ? tuningCell.value ?? undefined : undefined,
-            addedMass_kg: massCell.state === 'entered' ? massCell.value ?? undefined : undefined,
-            Vb_m3: Vb ?? undefined,
-            prMmd_kg: r?.spec.Mms_kg.get().value ?? undefined,
-            prSd_m2: r?.spec.Sd_m2.get().value ?? undefined,
-            prCms_m_per_N: r?.spec.Cms_m_per_N.get().value ?? undefined,
-            prNum: pr.count.get(),
-        }, this.#sweepAir()));
-        if (issues.length) return issues;
-        return [];
+        return this.#issues.pr;
     }
 
     /** What is wrong with this project's enclosure parameters — checked BEFORE a sweep, so a

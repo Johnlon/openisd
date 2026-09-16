@@ -37,6 +37,24 @@ function isExpectedSpecEntryUpgrade(a, b) {
   return b.state === 'E' && b.value === expectedValue;
 }
 
+/**
+ * Whether `b` carries a `dq_calculated` key `a` does not — S2-7d2's driver DQ projection: every
+ * `resolve()` now also writes the group's own formula onto whichever ENTERED fields its OWN
+ * consistency check flags (an over-determined group, e.g. a stated `Fs`/`Mms`/`Cms` triple that
+ * cannot all be true at once), something no earlier task did. A THIRD instance of the same
+ * one-time-gain class the two checks above already carve out: the entry's `state`/`value` (or
+ * its whole self, for a brand-new calculated key) is unchanged, it has simply gained a warning
+ * the source file predates. Checked generically, not only inside the legacy-upgrade branch below,
+ * since a field's OWN shape needing no upgrade does not mean its group has no inconsistency to
+ * flag.
+ */
+function isExpectedDqGain(a, b) {
+  if (typeof a !== 'object' || a === null || Array.isArray(a)) return false;
+  if (typeof b !== 'object' || b === null || Array.isArray(b)) return false;
+  if ('dq_calculated' in a) return false;
+  return 'dq_calculated' in b && Array.isArray(b.dq_calculated);
+}
+
 /** Whether `v` is a `state:'C'` `SpecEntryJson` — a quantity the driver's own `resolve()`
  *  (S2-7c) derived, never a fact materialising from nowhere. `{state, value}` is a shape
  *  nothing else in an openisd record uses (metadata is `{value, origin}`; `sku` is
@@ -72,6 +90,10 @@ export function firstDivergence(a, b, path = '$') {
   // `readings`, `corroboration`, `dq_scraper`, `dq_calculated`) is still compared, unchanged.
   if (isExpectedSpecEntryUpgrade(a, b)) {
     const { state: _state, value: _value, ...bRest } = b;
+    return firstDivergence(a, bRest, path);
+  }
+  if (isExpectedDqGain(a, b)) {
+    const { dq_calculated: _dq, ...bRest } = b;
     return firstDivergence(a, bRest, path);
   }
   // S2-7c (T11 "the record is a cache the solver keeps current"): loading now RESOLVES the
