@@ -599,8 +599,8 @@ const {
             </div>
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
-              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.powerDrive_W.get().dq().length > 0 }]"><label>System input power</label><NumInput field="Pin" :model-value="project.powerDrive_W.value" @update:model-value="(v: number | null) => v == null ? project.powerDrive_W.clear() : project.setPowerDrive_W(v)" :precision="fieldDp('Pin')" v-bind="dqOfCell(project.powerDrive_W.get())" /><span class="unit">W</span></div></div>
-              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.statedVoltage_V.get().dq().length > 0 }]"><label>Driver input voltage (each)</label><NumInput field="driveV" v-model="driveV" :precision="fieldDp('driveV')" v-bind="dqOfCell(project.statedVoltage_V.get())" /><span class="unit">V</span></div></div>
+              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.powerDrive_W.get().dq().length > 0 }]"><label>System input power</label><NumInput field="Pin" :model-value="project.powerDrive_W.value" @update:model-value="(v: number | null) => v == null ? project.powerDrive_W.clear() : project.powerDrive_W.set(v)" :precision="fieldDp('Pin')" v-bind="dqOfCell(project.powerDrive_W.get())" /><span class="unit">W</span></div></div>
+              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.driveVoltage_V.get().dq().length > 0 }]"><label>Driver input voltage (each)</label><NumInput field="driveV" v-model="driveV" :precision="fieldDp('driveV')" v-bind="dqOfCell(project.driveVoltage_V.get())" /><span class="unit">V</span></div></div>
               <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="rsOhm" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
             </div>
           </div>

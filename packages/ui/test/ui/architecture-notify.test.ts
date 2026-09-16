@@ -64,22 +64,26 @@ function memberNameOf(nameNode: Node): string {
 
 const instanceMethods = classDecl.getMethods().filter(m => !m.isStatic());
 
-/** Every getter whose body returns a window built over `this.#slot(...)` — `driver`, `box`,
- *  `nDrivers` and their siblings. Writing through such a window runs `#slot()`'s own setter,
- *  which calls `#notify()`, so a mutator whose only write is `this.driver.update(...)` DOES
- *  notify even though the call leaves the class. Detected from the getter's own body, not from
- *  a hand-kept list, so a getter that stops going through `#slot` stops conferring the edge. */
+/** Every getter whose body returns a window built over `this.#slot(...)` OR `this.#root(...)` —
+ *  `driver`, `box`, `nDrivers` and their siblings (`#slot`), and `driver`/`box` themselves, which
+ *  are actually built over `#root()` (S2-7d1: the driver's own fields nest many levels below any
+ *  single top-level key, so its window is the WHOLE record, not one `#slot`). Both lenses carry
+ *  the identical notify-on-write contract — `#root()`'s own setter calls `#resolve()` then
+ *  `#notify()`, exactly like `#slot()`'s (openisdDomain.ts `#root()`/`#slot()`, side by side) — so
+ *  a mutator whose only write is `this.driver.update(...)` DOES notify even though the call
+ *  leaves the class. Detected from the getter's own body, not from a hand-kept list, so a getter
+ *  that stops going through either lens stops conferring the edge. */
 const lensGetters = new Set(
   classDecl.getGetAccessors()
-    .filter(g => /this\.#slot\(/.test(g.getText()))
+    .filter(g => /this\.#(slot|root)\(/.test(g.getText()))
     .map(g => memberNameOf(g.getNameNode())),
 );
 
 /** `this.foo(...)` / `this.#foo(...)` call sites inside one method's body, as the called
  *  member's name — the edges of the same-class call graph — plus `this.<lensGetter>.foo(...)`,
- *  which reaches `#notify()` through `#slot()`'s setter (see `lensGetters`). A call on anything
- *  else (e.g. a call on a value handed in as a parameter) is deliberately not an edge: it leaves
- *  this class's own call graph, which is exactly the gap this gate exists to catch. */
+ *  which reaches `#notify()` through `#slot()`'s or `#root()`'s setter (see `lensGetters`). A
+ *  call on anything else (e.g. a call on a value handed in as a parameter) is deliberately not an
+ *  edge: it leaves this class's own call graph, which is exactly the gap this gate exists to catch. */
 function sameClassCalleesOf(method: Node): Set<string> {
   const callees = new Set<string>();
   method.forEachDescendant(node => {
@@ -91,7 +95,8 @@ function sameClassCalleesOf(method: Node): Set<string> {
       callees.add(memberNameOf(callee.getNameNode()));
       return;
     }
-    // `this.driver.update(...)` — a call on a lens window. The write runs #slot()'s setter.
+    // `this.driver.update(...)` — a call on a lens window. The write runs #slot()'s or
+    // #root()'s setter, either of which calls #notify().
     if (!Node.isPropertyAccessExpression(target)) return;
     if (target.getExpression().getKind() !== SyntaxKind.ThisKeyword) return;
     if (lensGetters.has(memberNameOf(target.getNameNode()))) callees.add('notify');

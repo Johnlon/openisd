@@ -15,15 +15,15 @@ export const OgSignalKey: InjectionKey<OgSignalAPI> = Symbol('OgSignalAPI');
 
 export function useOgSignal(): OgSignalAPI {
   const project = useFocusedProject();
-  const voltage_V = computed(() => project.value.statedVoltage_V.value);
+  const voltage_V = computed(() => project.value.driveVoltage_V.value);
   const power_W = computed(() => project.value.powerDrive_W.value);
 
   function setVoltage(v: number): void {
-    project.value.setDriveVoltage_V(v);
+    project.value.driveVoltage_V.set(v);
   }
 
   function setPower(p: number): void {
-    project.value.setPowerDrive_W(p);
+    project.value.powerDrive_W.set(p);
   }
 
   return {

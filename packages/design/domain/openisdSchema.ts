@@ -622,12 +622,30 @@ const openISDEnvironmentJsonSchema = z.strictObject({
 });
 export type OpenISDEnvironmentJson = z.infer<typeof openISDEnvironmentJsonSchema>;
 
-/** What drives the system, as the USER stated it. Null where nothing is stated — 1 W is a
- *  measurement convention, not a fact about this design, so the domain does not assert it. */
-const openISDSignalJsonSchema = z.union([
-    z.strictObject({power_W: z.null(), voltage_V: z.null()}),
-    z.strictObject({power_W: z.number(), voltage_V: z.number()}),
-]);
+/**
+ * What drives the system, as the USER stated it — power ONLY (T5, S5: voltage is not part of the
+ * data model; 1 W is a measurement convention, not a fact about this design, so the domain does
+ * not assert it. Drive voltage is always DERIVED, never stored — see `OpenISDProject.driveVoltage_V`).
+ * `power_W` is a `Field` like every other entry, so absence (no key) reads as not-available ('N'),
+ * matching `length_m`/`tuning_hz`/etc.
+ *
+ * Migration: the pre-T5 shape (`{power_W: number|null, voltage_V: number|null}`, always both or
+ * neither) is preprocessed into the new shape — an entered `power_W` becomes `{state:'E', value}`;
+ * a null `power_W` becomes an absent key; `voltage_V` is dropped whatever it held, since there is
+ * nowhere left to put it. A record already in the new shape (no bare `power_W`/`voltage_V`
+ * number/null pair at the top level) passes through untouched.
+ */
+function legacySignalToEntryEnvelope(raw: unknown): unknown {
+    if (!isRecord(raw) || !('power_W' in raw)) return raw;
+    const {power_W} = raw;
+    if (typeof power_W === 'number') return {power_W: {state: 'E', value: power_W}};
+    if (power_W === null) return {};
+    return raw;
+}
+const openISDSignalJsonSchema = z.preprocess(
+    legacySignalToEntryEnvelope,
+    z.strictObject({power_W: specEntryJsonSchema.optional()}),
+);
 export type OpenISDSignalJson = z.infer<typeof openISDSignalJsonSchema>;
 
 /** WinISD Project tab: Creator/Created/Modified/Description, plus the project's own name. */

@@ -2030,7 +2030,6 @@ export class OpenISDProject {
      *  changes. */
     setDriver(source: OpenISDDriver): void {
         this.driver.update(source.copyAsNew());
-        this.#resynchronizeSignalVoltage();
     }
 
     /** Adopt a driver that came from outside this project — a library pick, or a `.wdr`/`.owdr`
@@ -2042,15 +2041,6 @@ export class OpenISDProject {
             throw new Error('loadDriver(): source must be a standalone OpenISDDriver, not an embedded project driver');
         }
         this.driver.update(source.copyAsNew());
-        this.#resynchronizeSignalVoltage();
-    }
-
-    /** Keep the project's established power when its driver changes; voltage follows the new Re. */
-    #resynchronizeSignalVoltage(): void {
-        const power_W = this.#slot('signal').get().power_W;
-        if (power_W !== null && this.driver.ts.Re_ohm.value !== null) {
-            this.powerDrive_W.setProjectEstablished(power_W);
-        }
     }
 
     /** How many units of the embedded driver this project's array uses, and how they're wired
@@ -2477,159 +2467,53 @@ export class OpenISDProject {
 
     // ── THE SIGNAL ────────────────────────────────────────────────────────────────────────────
 
-    /** A DQ is reserved for a persisted pair that disagrees; absence alone is not a defect. */
-    #signalConsistencyDq(): readonly string[] {
-        const {power_W, voltage_V} = this.#slot('signal').get();
-        const Re_ohm = this.driver.ts.Re_ohm.value;
-        if (power_W === null || voltage_V === null || Re_ohm === null) return [];
-        const expectedVoltage_V = this.#engine.driveVoltage(power_W, Re_ohm);
-        const tolerance = Math.max(1e-9, Math.abs(expectedVoltage_V) * 1e-9);
-        return Math.abs(voltage_V - expectedVoltage_V) <= tolerance
-            ? []
-            : [`Signal inputs are inconsistent: ${power_W} W requires ${expectedVoltage_V} V at Re=${Re_ohm} ohm, not ${voltage_V} V.`];
-    }
-
-    /**
-     * N-way Field over the drive power — WinISD's Signal-tab "Input Power". One end of the
-     * power↔voltage pair: `.get()` reads the stated power, or derives `V²/Re` from the stated
-     * voltage when power is the end left blank; `.set(w)` derives `√(w·Re)` and stores the
-     * matching voltage too, so the pair never disagrees. `.clear()` blanks POWER only — the
-     * stated voltage survives and power re-derives from it. Requires a usable `Re` for a write
-     * (throws, as `setPowerDrive_W` always did).
-     */
+    /** Field over the drive power — WinISD's Signal-tab "Input Power". A plain entered fact like
+     *  any other `Field` (T5, S5: voltage is not part of the data model) — no `Re` guard on
+     *  write, `.clear()` simply removes the key. `driveVoltage_V` is what derives from this. */
     get powerDrive_W(): Field<number> {
-        const slot = this.#slot('signal');
-        return new Field<number>(
-            () => {
-                const w = slot.get().power_W;
-                if (w !== null) return createCell('power_W', w, 'entered', this.#signalConsistencyDq());
-                const voltage_V = slot.get().voltage_V;
-                const Re_ohm = this.driver.ts.Re_ohm.value;
-                const derived = voltage_V === null || Re_ohm === null ? null : this.#engine.driveFromVoltage(voltage_V, Re_ohm);
-                return derived === null
-                    ? createCell<number>('power_W', null, 'not-available')
-                    : createCell<number>('power_W', derived, 'calculated');
-            },
-            {
-                entered: (w: number) => {
-                    const Re_ohm = this.driver.ts.Re_ohm.value;
-                    if (Re_ohm === null) {
-                        throw new Error('setPowerDrive_W cannot solve a voltage: the driver has no usable Re_ohm yet.');
-                    }
-                    const voltage_V = this.#engine.driveVoltage(w, Re_ohm);
-                    slot.set({power_W: w, voltage_V});
-                },
-                clear: () => {
-                    const voltage_V = slot.get().voltage_V;
-                    const Re_ohm = this.driver.ts.Re_ohm.value;
-                    if (voltage_V !== null && Re_ohm !== null) {
-                        this.powerDrive_W.setProjectEstablished(this.#engine.driveFromVoltage(voltage_V, Re_ohm));
-                    } else {
-                        slot.set({power_W: null, voltage_V: null});
-                    }
-                },
-                // S2-7c/d: the signal chain (T5) is out of scope for the driver/vent/PR/sealed
-                // solves this step wires — never solver-derived here.
-                calculated: () => {},
-                dq: () => {},
-            },
-        );
+        return entryField(focus(this.#slot('signal'), 'power_W'), 'power_W');
     }
 
     /**
-     * N-way Field over the effective drive voltage — the `eg` every sweep runs at. `.get()` reads
-     * the stated voltage, or derives `√(Pin·Re)` from the stated power when voltage is the end
-     * left blank; `.set(v)` derives `v²/Re` and stores both. `.clear()` blanks VOLTAGE only — the
-     * stated power survives and voltage re-derives from it. Same `Re` requirement as `powerDrive_W`.
+     * A DERIVED Field over the effective drive voltage — the `eg` every sweep runs at — with NO
+     * record slot of its own (T5): `.get()` calls `engine.solveSignal({power_W, Re_ohm, …})` and
+     * reports `calculated` from the result when `Re_ohm` is known (power defaults to the 1 W
+     * reference), or `not-available` with the solve's own `missing-dependencies` sentence as DQ
+     * when it is not. `.set(v)` still requires a usable `Re` (throws otherwise, as before) —
+     * converts `v` to `power_W = v²/Re` and stores THAT via `powerDrive_W.set`; nothing is ever
+     * stored under voltage. `.clear()` forwards to `powerDrive_W.clear()`.
      */
     get driveVoltage_V(): Field<number> {
-        const slot = this.#slot('signal');
         return new Field<number>(
             () => {
-                const stored = slot.get().voltage_V;
-                if (stored !== null) return createCell('voltage_V', stored, 'entered', this.#signalConsistencyDq());
-                const power_W = slot.get().power_W;
+                const power_W = this.powerDrive_W.value;
                 const Re_ohm = this.driver.ts.Re_ohm.value;
-                const derived = power_W === null || Re_ohm === null ? null : this.#engine.driveVoltage(power_W, Re_ohm);
-                return derived === null
-                    ? createCell<number>('voltage_V', null, 'not-available')
-                    : createCell<number>('voltage_V', derived, 'calculated');
+                const {values, issues} = this.#engine.solveSignal({
+                    power_W: power_W ?? undefined,
+                    Re_ohm: Re_ohm ?? undefined,
+                });
+                if (values.drive_V !== undefined) {
+                    return createCell<number>('driveVoltage_V', values.drive_V, 'calculated');
+                }
+                const issue = issues[0];
+                return createCell<number>('driveVoltage_V', null, 'not-available',
+                    issue ? [this.#engine.issueToText(issue)] : []);
             },
             {
                 entered: (v: number) => {
                     const Re_ohm = this.driver.ts.Re_ohm.value;
                     if (Re_ohm === null) {
-                        throw new Error('setDriveVoltage_V cannot solve a power: the driver has no usable Re_ohm yet.');
+                        throw new Error('driveVoltage_V cannot solve a power: the driver has no usable Re_ohm yet.');
                     }
-                    const power_W = this.#engine.driveFromVoltage(v, Re_ohm);
-                    slot.set({power_W, voltage_V: v});
+                    this.powerDrive_W.set(this.#engine.driveFromVoltage(v, Re_ohm));
                 },
-                clear: () => {
-                    const power_W = slot.get().power_W;
-                    const Re_ohm = this.driver.ts.Re_ohm.value;
-                    if (power_W !== null && Re_ohm !== null) {
-                        this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
-                    } else {
-                        slot.set({power_W: null, voltage_V: null});
-                    }
-                },
-                // S2-7c/d: the signal chain (T5) is out of scope for this step — never
-                // solver-derived here.
+                clear: () => this.powerDrive_W.clear(),
+                // T5: driveVoltage_V has no record slot — it is ALWAYS derived, never stored, so
+                // a solver write here would have nothing to persist.
                 calculated: () => {},
                 dq: () => {},
             },
         );
-    }
-
-    /** Field over the stated drive voltage — `signal.voltage_V`, the value stored when a drive
-     *  level was entered. `.set(v)` forwards to `driveVoltage_V.set(v)` so the pair stays
-     *  consistent (voltage was never writable alone). `.clear()` re-stores the pair from power. */
-    get statedVoltage_V(): Field<number> {
-        const slot = this.#slot('signal');
-        return new Field<number>(
-            () => {
-                const v = slot.get().voltage_V;
-                if (v !== null) return createCell('voltage_V', v, 'entered', this.#signalConsistencyDq());
-                const power_W = slot.get().power_W;
-                const Re_ohm = this.driver.ts.Re_ohm.value;
-                const derived = power_W === null || Re_ohm === null ? null : this.#engine.driveVoltage(power_W, Re_ohm);
-                return derived === null
-                    ? createCell<number>('voltage_V', null, 'not-available')
-                    : createCell<number>('voltage_V', derived, 'calculated');
-            },
-            {
-                entered: (v: number) => this.driveVoltage_V.set(v),
-                clear: () => {
-                    const power_W = slot.get().power_W;
-                    const Re_ohm = this.driver.ts.Re_ohm.value;
-                    if (power_W !== null && Re_ohm !== null) {
-                        this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
-                    } else {
-                        slot.set({power_W: null, voltage_V: null});
-                    }
-                },
-                // S2-7c/d: the signal chain (T5) is out of scope for this step — never
-                // solver-derived here.
-                calculated: () => {},
-                dq: () => {},
-            },
-        );
-    }
-
-    /** State the drive level as a power, in watts — solves and stores the matching voltage too
-     *  (`√(Pin·Re)`), so `driveVoltage_V`/`statedVoltage_V` never disagree with what was just
-     *  set. Requires the driver to have a usable `Re`; a caller with an incomplete driver cannot
-     *  state a drive level in these terms yet.
-     *  @deprecated Use `project.powerDrive_W.set(power_W)` instead. */
-    setPowerDrive_W(power_W: number): void {
-        this.powerDrive_W.set(power_W);
-    }
-
-    /** State the drive level as a voltage — solves and stores the matching power too
-     *  (`V²/Re`), the inverse of `setPowerDrive_W`. Same `Re` requirement.
-     *  @deprecated Use `project.driveVoltage_V.set(voltage_V)` instead. */
-    setDriveVoltage_V(voltage_V: number): void {
-        this.driveVoltage_V.set(voltage_V);
     }
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
@@ -2731,14 +2615,11 @@ export class OpenISDProject {
 
     #sweepParams(P: FrequencyGrid): SweepParams | null {
         const Vb = this.#boxVolume_m3();
-        const Re_ohm = this.driver.ts.Re_ohm.value;
-        const {power_W, voltage_V} = this.#slot('signal').get();
-        if ((power_W === null) !== (voltage_V === null)) return null;
         // WinISD sweeps at a 1 W reference until a drive level is stated — the chart always draws
-        // for a simulatable driver. The stored signal stays null ("not told", and flagged with a
-        // DQ on the unset input fields); only the sweep falls back. Still refuses when there is no
-        // usable Re to derive the reference from.
-        const eg = this.driveVoltage_V.value ?? (Re_ohm === null ? null : this.#engine.driveVoltage(1, Re_ohm));
+        // for a simulatable driver (T5: `driveVoltage_V`'s own solve already defaults power to
+        // the 1 W reference internally whenever `Re_ohm` is known). Null only when Re itself is
+        // unknown, which `eg ?? 0` below still degrades to the same "nothing usable" 0 it always did.
+        const eg = this.driveVoltage_V.value;
          if (Vb === null) return null;
 
         const box = this.box;

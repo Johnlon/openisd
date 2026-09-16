@@ -108,7 +108,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
    *  itself, so the assembled `Vb`/`eg` are never stubbed. */
   const drivenSealed = (engine: Engine, volume_m3: number) => {
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(volume_m3).build();
-    project.setPowerDrive_W(1);
+    project.powerDrive_W.set(1);
     return project;
   };
 
@@ -313,20 +313,20 @@ describe('E — the signal', () => {
     Sd: 0.02, Cms: 0.0005, Vas: 0.05, BL: 8, Mms: 0.05,
   });
 
-  it('a new project stores the 1 W reference and matching voltage as project inputs', () => {
+  it('a new project stores the 1 W reference as a project input; drive voltage derives from it (S5/T5)', () => {
     const engine = new Engine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
 
     expect(project.powerDrive_W.value).toBe(1);
     expect(project.powerDrive_W.state).toBe('entered');
     expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.4), 12);
-    expect(project.driveVoltage_V.state).toBe('entered');
-    expect(project.statedVoltage_V.state).toBe('entered');
+    // T5: voltage has no record slot at all — it is ALWAYS derived, never entered.
+    expect(project.driveVoltage_V.state).toBe('calculated');
     expect(project.powerDrive_W.get().dq()).toEqual([]);
     expect(project.driveVoltage_V.get().dq()).toEqual([]);
   });
 
-  it('powerDrive_W is an N-way Field — .set(w) solves and stores the matching voltage too', () => {
+  it('powerDrive_W.set(w) stores only power — driveVoltage_V derives from it, nothing is stored under voltage (S5/T5)', () => {
     const engine = new Engine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
 
@@ -334,8 +334,8 @@ describe('E — the signal', () => {
 
     expect(project.powerDrive_W.value).toBe(1);
     expect(project.powerDrive_W.state).toBe('entered');
-    expect(project.statedVoltage_V.value).toBeCloseTo(Math.sqrt(6.4), 12);
     expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.4), 12);
+    expect(project.driveVoltage_V.state).toBe('calculated');
   });
 
   it('project-established values write through as entered without confusing them with lazy calculation', () => {
@@ -349,7 +349,7 @@ describe('E — the signal', () => {
     expect(project.powerDrive_W.get().dq()).toEqual([]);
   });
 
-  it('driveVoltage_V is an N-way Field — .set(v) solves and stores the matching power too', () => {
+  it('driveVoltage_V.set(v) converts and stores it AS POWER — nothing is stored under voltage (S5/T5)', () => {
     const engine = new Engine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
 
@@ -357,40 +357,65 @@ describe('E — the signal', () => {
 
     expect(project.driveVoltage_V.value).toBe(10);
     expect(project.powerDrive_W.value).toBeCloseTo(100 / 6.4, 12);
+    expect(project.powerDrive_W.state).toBe('entered');
   });
 
-  it('stating a drive level still refuses to solve without a usable Re', () => {
+  it('powerDrive_W.set(w) requires no Re at all — power is a plain entered fact, never guarded (S5/T5)', () => {
     const engine = new Engine();
     const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
 
-    expect(() => project.powerDrive_W.set(1)).toThrow(/no usable Re_ohm/);
+    expect(() => project.powerDrive_W.set(5)).not.toThrow();
+    expect(project.powerDrive_W.value).toBe(5);
+    expect(project.powerDrive_W.state).toBe('entered');
+  });
+
+  it('driveVoltage_V.set(v) still refuses to solve without a usable Re — powerDrive_W.set(w) does not (S5/T5)', () => {
+    const engine = new Engine();
+    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+
     expect(() => project.driveVoltage_V.set(1)).toThrow(/no usable Re_ohm/);
+    expect(() => project.powerDrive_W.set(1)).not.toThrow();
   });
 
-  it('clearing the power re-derives it from the stated voltage — the voltage survives', () => {
+  it('driveVoltage_V carries the solve\'s own DQ when Re is unknown, and is calculated with no DQ once it is (S5/T5)', () => {
+    const engine = new Engine();
+    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+    project.powerDrive_W.set(4);
+
+    const blocked = project.driveVoltage_V.get();
+    expect(blocked.state).toBe('not-available');
+    expect(blocked.value).toBeNull();
+    expect(blocked.dq().length).toBeGreaterThan(0);
+    expect(blocked.dq()[0]).toMatch(/cannot be calculated yet/);
+
+    project.driver.spec.woofer.Re_ohm.set(6.4);
+    const resolved = project.driveVoltage_V.get();
+    expect(resolved.state).toBe('calculated');
+    expect(resolved.value).toBeCloseTo(Math.sqrt(4 * 6.4), 12);
+    expect(resolved.dq()).toEqual([]);
+  });
+
+  it('clearing the power falls back to the 1 W reference for driveVoltage_V — nothing else is stored (S5/T5)', () => {
     const engine = new Engine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
 
-    project.statedVoltage_V.set(10);                       // V = 10 → P = V²/Re = 100/6.4
-    expect(project.powerDrive_W.value).toBeCloseTo(100 / 6.4, 12);
-
+    project.powerDrive_W.set(4);
     project.powerDrive_W.clear();
-    expect(project.statedVoltage_V.value).toBe(10);        // the voltage was NOT cleared
-    expect(project.powerDrive_W.state).toBe('entered');    // the pair is stored again
-    expect(project.powerDrive_W.value).toBeCloseTo(100 / 6.4, 12);
+
+    expect(project.powerDrive_W.state).toBe('not-available');
+    expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.4), 12); // the 1 W reference
+    expect(project.driveVoltage_V.state).toBe('calculated');
   });
 
-  it('clearing the voltage re-derives it from the stated power — the power survives', () => {
+  it('clearing driveVoltage_V clears the underlying power — there is no separate voltage to fall back to (S5/T5)', () => {
     const engine = new Engine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
 
-    project.powerDrive_W.set(4);                           // P = 4 → V = √(P·Re) = √25.6
-    expect(project.statedVoltage_V.value).toBeCloseTo(Math.sqrt(4 * 6.4), 12);
+    project.powerDrive_W.set(4);
+    project.driveVoltage_V.clear();
 
-    project.statedVoltage_V.clear();
-    expect(project.powerDrive_W.value).toBe(4);            // the power was NOT cleared
-    expect(project.statedVoltage_V.state).toBe('entered'); // the pair is stored again
-    expect(project.statedVoltage_V.value).toBeCloseTo(Math.sqrt(4 * 6.4), 12);
+    expect(project.powerDrive_W.state).toBe('not-available');
+    expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.4), 12); // the 1 W reference
   });
 
   it('changing the driver preserves the established power and recalculates voltage', () => {
@@ -407,15 +432,11 @@ describe('E — the signal', () => {
     expect(project.driveVoltage_V.get().dq()).toEqual([]);
   });
 
-  it('rejects a persisted signal with voltage but no power', () => {
-    const engine = new Engine();
-    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
-    const malformed = project.toOwprText().replace('"power_W": 1', '"power_W": null');
-
-    const loaded = OpenISDProject.fromOwprText(malformed, engine);
-
-    expect(loaded).toEqual(expect.arrayContaining([expect.stringContaining("'saved.signal':")]));
-  });
+  // "rejects a persisted signal with voltage but no power" is GONE (S5/T5): that constraint
+  // pinned the OLD paired schema (`{power_W, voltage_V}` both-or-neither). `voltage_V` is no
+  // longer part of the schema at all — it is silently dropped by the migration preprocess
+  // whatever it holds — so there is no longer an invalid "voltage without power" shape to
+  // reject. See domain.test.ts's legacy-signal migration tests for the shape that replaces it.
 
   it('sourceLoadedQts() RAISES Qts as the source impedance grows, and matches the engine', () => {
     const engine = new Engine();

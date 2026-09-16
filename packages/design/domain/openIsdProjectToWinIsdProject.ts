@@ -321,11 +321,8 @@ export function winIsdProjectToOpenIsdProject(
 
   const P = wpr.number('SignalSource', 'P');
   if (P != null) {
-    try {
-      project.setPowerDrive_W(P);
-    } catch {
-      // Driver has no usable Re yet — leave the project's drive level unstated rather than throw.
-    }
+    // T5: power is a plain entered fact with no Re guard — this can no longer throw.
+    project.powerDrive_W.set(P);
   }
   const description = wpr.value('ProjectInfo', 'Description');
   const creator = wpr.value('ProjectInfo', 'Creator');

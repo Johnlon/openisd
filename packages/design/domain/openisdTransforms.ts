@@ -145,9 +145,9 @@ export abstract class BoxProjectBuilder {
             this.appContext,
         );
         if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
-        // WinISD starts a usable project at its 1 W reference. Store the matching voltage too so
-        // the chart and Signal tab read the same project state rather than separate fallbacks.
-        if (project.driver.ts.Re_ohm.get().value !== null) project.powerDrive_W.setProjectEstablished(1);
+        // WinISD starts a usable project at its 1 W reference (T5: voltage derives from this, it
+        // is never itself stored).
+        if (project.driver.ts.Re_ohm.get().value !== null) project.powerDrive_W.set(1);
         // Those writes land in `#edited`, because every write does. A project the user has just
         // created has no UNSAVED changes, though — so the assembled state IS its saved baseline.
         // Without this a new project is born modified, and Cancel would discard its own driver.
@@ -185,7 +185,7 @@ export abstract class BoxProjectBuilder {
             },
             box: emptyBoxJson(),
             environment: {temperature_K: null, humidity_pct: null, pressure_Pa: null, useWinisdAirModel: null},
-            signal: {power_W: null, voltage_V: null},
+            signal: {},
             meta: {name: '', creator: '', created: '', modified: '', description: ''},
             filters: {filters: []},
             advanced: {

@@ -1179,6 +1179,34 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(back.length).toBeGreaterThan(0);
   });
 
+  it('a legacy signal record with an entered power loads it and drops voltage_V (S5/T5)', () => {
+    const project = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    // `toOwprText()`'s root is a SESSION envelope (`{label, saved, edited}` — openisdSchema.ts's
+    // `openISDProjectSessionJsonSchema`); `signal` lives under `saved` (and `edited`, when not
+    // null — a freshly built, never-wrapped project's `edited` is null).
+    const parsed = JSON.parse(project.toOwprText());
+    parsed.saved.signal = { power_W: 2.5, voltage_V: 4.47 };
+
+    const back = OpenISDProject.fromOwprText(JSON.stringify(parsed), new Engine());
+    if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
+    expect(back.powerDrive_W.value).toBe(2.5);
+    expect(back.powerDrive_W.state).toBe('entered');
+
+    const reparsed = JSON.parse(back.toOwprText());
+    expect(reparsed.saved.signal).not.toHaveProperty('voltage_V');
+  });
+
+  it('a legacy signal record with nothing stated (power_W: null, voltage_V: null) loads with power not-available (S5/T5)', () => {
+    const project = OpenISDProject.builder(wooferDriver(), new Engine()).sealed().volume_m3(0.03).build();
+    const parsed = JSON.parse(project.toOwprText());
+    parsed.saved.signal = { power_W: null, voltage_V: null };
+
+    const back = OpenISDProject.fromOwprText(JSON.stringify(parsed), new Engine());
+    if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
+    expect(back.powerDrive_W.state).toBe('not-available');
+    expect(back.powerDrive_W.value).toBeNull();
+  });
+
   it('OpenISDProject.fromOwprText() answers with problems rather than throwing on text that is not JSON', () => {
     const back = OpenISDProject.fromOwprText('not json at all', new Engine());
     if (!Array.isArray(back)) throw new Error('expected problems, got a project');

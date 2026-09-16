@@ -90,7 +90,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     const SEALED_VOLUME_M3 = 0.02;
     const project = aProject((p) => p.sealed().volume_m3(SEALED_VOLUME_M3).build());
     project.Rs_ohm.set(0.1); // golden's [SignalSource] Rg=0.1
-    project.setPowerDrive_W(1); // golden's [SignalSource] P=1
+    project.powerDrive_W.set(1); // golden's [SignalSource] P=1
 
     const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
@@ -126,7 +126,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     const VENTED_VOLUME_M3 = Number(goldenField(VENTED_SMALL_WPR, 'Box', 'Vr'));
     const VENTED_TUNING_HZ = Number(goldenField(VENTED_SMALL_WPR, 'Box', 'Fr'));
     const project = aProject((p) => p.vented().volume_m3(VENTED_VOLUME_M3).tuning_hz(VENTED_TUNING_HZ).build());
-    project.setPowerDrive_W(1);
+    project.powerDrive_W.set(1);
 
     const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
@@ -146,7 +146,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     const FRONT_TUNING_HZ = Number(goldenField(BANDPASS4_WPR, 'Box', 'Ff'));
     const project = aProject((p) => p.bandpass4()
       .rearVolume_m3(REAR_VOLUME_M3).frontVolume_m3(FRONT_VOLUME_M3).frontTuning_hz(FRONT_TUNING_HZ).build());
-    project.setPowerDrive_W(1);
+    project.powerDrive_W.set(1);
 
     const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
@@ -206,7 +206,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     const driver = aDriver(engine, 'QO8', 'test');
     const project = OpenISDProject.builder(driver, engine).passiveRadiator()
       .volume_m3(PR_VOLUME_M3).tuning_hz(PR_TUNING_HZ).count(1).radiator(radiator).build();
-    project.setPowerDrive_W(1);
+    project.powerDrive_W.set(1);
 
     const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
