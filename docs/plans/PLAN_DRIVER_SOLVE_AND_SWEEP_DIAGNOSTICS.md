@@ -30,10 +30,12 @@ the UI's generic postcondition caught it. Rules driving the shape:
 - **One solve per component (C5, decided 2026-09-16).** Every node answers ONE question —
   `solveX(inputs) → { values, issues }`. There is no public `check*`/resolver split: issues are a
   product of the solve, not a separate discipline (John: "it's all about solving not checking").
-- **DQ lives in the Cell (2026-09-16).** The domain getter attaches the issue text to the Cell it
-  returns (`createCell(..., dq)`), and cells, charts and the driver editor read **one** message
-  template. Today the wording drifts three ways (formula-only in cells, two variants on charts and
-  in the editor) — that is the drift to kill, not to keep.
+- **DQ lives in the Cell (2026-09-16).** The domain writes a derived value and its issues back
+  through the field's OWN write-back primitive — `Field.setCalculated(value, dq[])`
+  (`cell.ts:105`, the `SolverField` contract) — never a fourth channel. Cells, charts and the
+  driver editor read **one** message template. Today the wording drifts three ways (formula-only
+  in cells, two variants on charts and in the editor) and `setCalculated` is never called in
+  production — the orphan this step retires, not keeps.
 
 ## 2. Decisions already made (rulings)
 
@@ -47,6 +49,9 @@ the UI's generic postcondition caught it. Rules driving the shape:
 | C5 | 2026-09-16 | One approach everywhere — bundle every node into `solveX → {values, issues}` (solve-only). Driver/Signal keep existing bundles; vent/PR/sealed/box-params/environment get one. No `check*`/resolver on the public surface. ***This supersedes §4's "before" columns below.*** |
 | T9 | 2026-09-16 | `validateParams()` is retired; `paramIssues` re-points through `solveBoxParams(...).issues` via the shared projection. `checkBoxParams` folds into `solveBoxParams`. |
 | Text | 2026-09-16 | One `issueToText(issue)` full sentence everywhere: `"<target> cannot be calculated yet — state <formula> (needs <missing>)."` for `missing-dependencies`; `"<fields> disagree by <pct>%: <formula>. Every field in the group is marked — correct one of them, or clear one to let it be calculated."` for `inconsistent-inputs`. Cells, charts, editor read the same string. `.wdr` marks unaffected — `calcMark` renders typed issues via registry templates, not cell DQ text. |
+| T5 | 2026-09-16 | `voltage_V` is **not part of the OpenISD data model** — a calculated value where needed, like anything else (John). `.owpr` signal record stays `{power_W}`; the V field derives `√(power_W·Re_ohm)` → `'calculated'`, `'not-available'`+DQ when `Re_ohm` is unstated; `.set(v)` keeps the Re guard and stores `power_W = v²/Re`. **No one shares a voltage**: whoever needs it either computes `√(power_W·Re_ohm)` themselves or is passed it (e.g. `solveSignal`'s bundle) — it is never a stored/globally-reachable value. Details = step S5; the write-back contract (§4 apply step) governs the V field's `setCalculated(value, dq)`. |
+| T10 | 2026-09-16 | **ALL `*SolverQuantities` numeric bags are DEAD** (John: "I want it dead"): `DriverSolverQuantities`, `VentSolverQuantities`, `PrSolverQuantities`, `SealedAlignmentSolverQuantities` — `solverQuantities.ts` is deleted; a numeric bag never appears at a public engine boundary. Each node's solve consumes its `*SolverParams` handle map (the `SolverField`s the solver defines, implemented by things like the driver — `Field<T>`, `cell.ts:47`) and writes derived values onto them via `setCalculated(value)` / clears with `setNotAvailable()`. Raw numbers survive only as a **private working set inside the engine** (the tolerance/perturbation machinery operates on copies, never on live handles). `*QuantityName = keyof <Node>SolverParams`. The C5 `.values` result types retract — node solves return their `issues` only. Box/signal/environment never had a `*SolverQuantities` bag — unaffected. |
+| T11 | 2026-09-16 | **One value, one flag — flat in the OpenIsdJson** (John: "it gets written into the Json simple as that… do not muddle semantics"). A spec field stores THE value plus a state flag `'C'` (calculated) or `'E'` (entered); **absence = `'N'`** (not-available). `setCalculated(value)` writes value + `'C'`; an edit writes value + `'E'`; there is **no separate value channel** for calculated values. Dead with it: the `Field`'s private `isCalculated`/`derivedValue` store (`cell.ts:48-50`) and the "record holds only what was stated" framing (QO127 comment, `openisdDomain.ts:1060-1069`). |
 
 ## 3. Components
 
@@ -55,7 +60,7 @@ the UI's generic postcondition caught it. Rules driving the shape:
 | Issue/route/prereq types + driver solve | generic `CalculationIssue<Q>`/`SolveRoute<Q>`/prerequisite shapes; **target**: `solveDriver` only | `packages/design/engine/consistency.ts` |
 | Group solvers + checks | vent/PR/sealed-alignment consistency groups and their `check*` — **target**: folded into one `solveVent`/`solvePr`/`solveSealedAlignment` each; group structures stay as private internals | `packages/design/engine/solver.ts` |
 | Box params | `requiredParamsFor` + `validateParams` + `checkBoxParams` — **target**: `solveBoxParams` only | `packages/design/engine/params.ts` |
-| Signal | `solveSignal` (pending T5) | `packages/design/engine/signal.ts` |
+| Signal | `solveSignal` (T5 ruled 2026-09-16; step S5) | `packages/design/engine/signal.ts` |
 | Air | air constants, reference env — **target**: folded into `solveEnvironment` | `packages/design/engine/air.ts` |
 | Sweep | `SweepIssue` union; `engine.sweep`/`maxCurves`; `classifyFinite*` postconditions | `packages/design/engine/sweep.ts` |
 | Engine facade | **target**: 7 solves + sweep/maxCurves + classify* + issue fields/formula — nothing else | `packages/design/engine/Engine.ts` |
@@ -68,10 +73,46 @@ the UI's generic postcondition caught it. Rules driving the shape:
 ### Types — engine
 
 | Symbol | Definition / location |
-|---|---|
+|---|---|---|
 | `SolveRoute<Q>` | `{formula, required: readonly Q[], missing: readonly Q[]}` — `consistency.ts:7-11` |
 | `CalculationIssue<Q>` | `missing-dependencies` \| `inconsistent-inputs` — `consistency.ts:18-32` |
 | `DriverQuantityName`/`DriverIssue`/`DriverSolveResult` | `keyof DriverSolverQuantities`; `{values, issues}` — `consistency.ts:34,35,40-43` |
+
+**The driver's solve surface — `DriverSolverParams`, verbatim** (`solverTypes.ts:30-75`). The
+numeric `DriverSolverQuantities` bag is **DEAD** (T10, §2) — no public boundary ever touches it.
+
+```ts
+export interface DriverSolverParams {
+  Fs_hz: SolverField; Re_ohm: SolverField; Znom_ohm: SolverField; Le_H: SolverField;
+  fLe_hz: SolverField; KLe_H_sqrtHz: SolverField; Qes: SolverField; Qms: SolverField;
+  Qts: SolverField; Vas_m3: SolverField; Sd_m2: SolverField; Dd_m: SolverField;
+  BL_Tm: SolverField; Mms_kg: SolverField; Cms_m_per_N: SolverField; Rms_kg_per_s: SolverField;
+  EBP_hz: SolverField; Xmax_m: SolverField; Vd_m3: SolverField; Hc_m: SolverField;
+  Hg_m: SolverField; Pe_W: SolverField; no: SolverField; SPLref_dB: SolverField;
+  SPL_dB: SolverField; USPL_dB: SolverField; SPLmax_dB: SolverField; SPLmaxLF_dB: SolverField;
+  Rme_kg_per_s: SolverField; Mpow_N_per_sqrtW: SolverField; Mcost_kg_per_s: SolverField;
+  gamma_m_per_s2_A: SolverField; Gloss: SolverField; Vcd_m: SolverField; Depth_m: SolverField;
+  MagDepth_m: SolverField; Magnet_m: SolverField; DVol_m3: SolverField; c_m_per_s: SolverField;
+  roo_kg_per_m3: SolverField; Re_terminal_ohm: SolverField; BL_terminal_Tm: SolverField;
+  numVC: SolverField; wiring: SolverField<'series' | 'parallel'>;
+};
+```
+
+Reading this definition:
+
+- **Every member is a `SolverField` handle** — the engine touches nothing else. The solve reads
+  `.value`/`.entered`, writes back `setCalculated(value, dq)`, and returns only `issues`.
+- The domain supplies these handles: `Field<T>` implements `SolverField` (`cell.ts:47`), and the
+  driver exposes one per T/S quantity (`openisdDomain.ts:1101-1135`).
+- **Raw numbers still exist, privately**: the engine's working set and the tolerance/perturbation
+  analysis (`checkConsistency`'s `halfUlp` re-solves, `consistency.ts:157-176`) can only operate
+  on copies of numbers, never on live handles — that numeric map is an internal detail, not the
+  API.
+- **`DriverQuantityName = keyof DriverSolverParams`** — the same closed 44-quantity universe the
+  `wiring`: type inclusion … judges the dead bag used to name, so issues/`issueFields`/
+  `issueToText` keep addressing fields unchanged.
+- The dead bag held members no relation names (`Hc_m`, `Gloss`, `Magnet_m`, `numVC`, …) so the
+  closed quantity vocabulary stays complete — those keys live on in `DriverSolverParams`.
 | `VentQuantityName`/`VentIssue`, `PrQuantityName`/`PrIssue`, `SealedAlignmentQuantityName`/`SealedAlignmentIssue` | instantiated at `solver.ts:25-30` |
 | `BoxParamsQuantityName`/`BoxParamsIssue` | `params.ts:27-28` |
 | `EnvironmentQuantityName`/`EnvironmentIssue` | `air.ts:118-119` |
@@ -96,21 +137,114 @@ the UI's generic postcondition caught it. Rules driving the shape:
 | `validateParams(box, P): DriverError[]` (legacy) / `checkBoxParams(box, P): BoxParamsIssue[]` | 341 / 350 |
 | `classifyFinite(s)` / `classifyFiniteIssues(s)` / `classifyFlatClamp` / `classifyMaxFinite` | 365 / 370 / 375 / 380 |
 
-### Engine facade — AFTER the C5 collapse (the target this plan builds, step S2)
+### Engine facade — AFTER the T10/T11 collapse (the target this plan builds, step S2)
 
-| Method | `values` | `issues` | absorbs |
+| Method | writes onto | `issues` | absorbs |
 |---|---|---|---|
-| `solveDriver(p): DriverSolveResult` | resolved relations, live air | missing routes, contradictions | ✓ exists |
-| `solveVent(p, air): VentSolveResult` | `VentSolverQuantities` | `VentIssue[]` | `solveVentConsistencyGroup` + `checkVentConsistency` |
-| `solvePr(p, air): PrSolveResult` | `PrSolverQuantities` | `PrIssue[]` | `solvePrConsistencyGroup` + `checkPrConsistency` |
-| `solveSealedAlignment(p): SealedAlignmentSolveResult` | `SealedAlignmentSolverQuantities` | `SealedAlignmentIssue[]` | `solveSealedAlignmentGroup` + `checkSealedAlignment` |
+| `solveDriver(params: DriverSolverParams): DriverIssue[]` | its 44 `SolverField`s via `setCalculated`/`setNotAvailable`; `'E'` never touched | missing routes, contradictions | `solveConsistencyGroup` + `checkConsistency` (`DriverSolverQuantities`/`DriverSolveResult` deleted) |
+| `solveVent(params: VentSolverParams, air): VentIssue[]` | its 5 `SolverField`s | `VentIssue[]` | `solveVentConsistencyGroup` + `checkVentConsistency` (bag deleted) |
+| `solvePr(params: PrSolverParams, air): PrIssue[]` | its 9 `SolverField`s | `PrIssue[]` | `solvePrConsistencyGroup` + `checkPrConsistency` (bag deleted) |
+| `solveSealedAlignment(params: SealedAlignmentSolverParams): SealedAlignmentIssue[]` | its 4 `SolverField`s | `SealedAlignmentIssue[]` | `solveSealedAlignmentGroup` + `checkSealedAlignment` (bag deleted) |
 | `solveBoxParams(box, P): BoxParamsSolveResult` | the validated `EnclosureParams`, or null | `BoxParamsIssue[]` | `checkBoxParams` + `validateParams` (T9) |
 | `solveSignal(p): SignalSolveResult` | drive V/W | `SignalIssue[]` | ✓ exists |
 | `solveEnvironment(env): EnvironmentSolveResult` | `{rho, c}` (`Air`) | `EnvironmentIssue[]` | `airFor` + `environmentIssues` |
 
 Kept unchanged: `sweep`, `maxCurves`, `classifyFinite`/`classifyFiniteIssues`/`classifyFlatClamp`/
 `classifyMaxFinite`, `issueFields`, `issueFormula`. The raw `*ConsistencyGroup`/`check*` pairs
-become module-private internals; the public `check*`/resolver names are deleted (T3-style).
+become module-private internals; the public `check*`/resolver names are deleted (T3-style). The
+numeric `*SolverQuantities` bags and the `.values` result types die with them (T10); box/signal/
+environment keep their value results because no bag ever existed there.
+
+### Write-back contract — how cells receive solve results (the fundamental)
+
+The engine defines **`SolverField`** (the solver's only notion of a domain quantity;
+`solverTypes.ts:3-26`, verbatim below). Domain quantity surfaces — the driver, and so on —
+**implement** it: in this codebase `Field<T>` is that implementation (`cell.ts:47`), and the
+driver exposes one `Field<T>` handle per T/S quantity (`openisdDomain.ts:1101-1135`). The
+engine never sees anything else — no cells, no records, no `createCell`.
+
+```ts
+export type FieldState = 'entered' | 'calculated' | 'not-available';
+
+export interface SolverField<T = number> {
+  readonly value: T | null;
+  /** True if the user explicitly entered this value ('E'). The solver must NEVER overwrite an entered value. */
+  readonly entered: boolean;
+  /** True if the value was derived by the physics engine ('C'). */
+  readonly calculated: boolean;
+  /** True if the value cannot be derived from current inputs ('N'). */
+  readonly notAvailable: boolean;
+  /** The current DQ messages on this field. */
+  readonly dq: readonly string[];
+  /** Write a derived value, marking the field as 'calculated' ('C'), and optionally attach DQ. */
+  setCalculated(value: T, dq?: string[]): void;
+  /** Attach a Data Quality (DQ) issue to an *entered* field. */
+  setDq(dq?: string[]): void;
+  /** Mark a field as un-derivable ('N' / not-available). */
+  setNotAvailable(): void;
+}
+```
+
+The `Field` is a lens onto the `OpenIsdJson` object: every write puts **one value** into the
+record, and the record is the only storage. Write semantics (T11 — no separate calculated
+channel, no muddled value):
+
+| Write | Storage in the OpenIsdJson | `get()` outcome |
+|---|---|---|
+| `field.setCalculated(value, dq?)` | writes **value + flag `'C'`** | cell `'calculated'` |
+| `field.set(v)` (user edit) | writes **value + flag `'E'`** | cell `'entered'` |
+| `field.setDq(dq?)` | attaches the DQ text to the entry | `'C'`/`'E'` as stored, plus the text |
+| `field.setNotAvailable()` / `clear()` | removes the entry | `'not-available'` — **absence = N** |
+
+`get()` precedence — ONE implementation, never re-implemented per node. With T11 it collapses to
+a **plain record read**: the entry's flag (`'C'`/`'E'`) or its absence (`'N'`) IS the cell state.
+The three-branch `Field.getEffectiveCell` (`cell.ts:58-73`) and the private
+`isCalculated`/`derivedValue`/`dqList` store die — everything is written to the JSON and
+everything is read from it the same way:
+
+1. entry says `'E'` → cell `'entered'`.
+2. entry says `'C'` → cell `'calculated'`.
+3. entry absent → cell `'not-available'` (N).
+
+**Apply step** — one shape per node; `solveX(handles…)` is the writer, the record is the store:
+
+```
+solveX(params: <Node>SolverParams, …) : <Node>Issue[]        // engine
+  reads  params.K.value + params.K.entered                   // the record
+  derives → params.K.setCalculated(value);                   // writes value + flag 'C'
+  stale/unresolved → params.K.setNotAvailable();             // removes the entry → N
+  returns its issues
+projection (domain/UI, S2g):
+  for issue of issues, for K of issueFields(issue): params.K.setDq([issueToText(issue)])
+```
+
+- One value per field in the record; calculated values are stored, flagged `'C'` — never as a
+  second value (T11). "do not muddle semantics": at no point can the record hold two values for
+  one field.
+- **Entered cannot be overwritten**: the engine reads `params.K.entered` and leaves an `'E'`
+  value alone; only the DQ projection may touch it.
+- Engine stays projection-free: it writes numbers + the flag, never message text; DQ strings are
+  the projection's `setDq` and land on `'C'` and `'E'` entries alike.
+- **QO127 revised**: the record now stores derived values (as `'C'`); the "nothing writes to the
+  domain / stated-only" comment at `openisdDomain.ts:1060-1069` is re-written, and the
+  `SpecEntryJson` "states no value of its own" reading-path comment (`openisdSchema.ts:62-69`)
+  is superseded for the runtime channel — the schema shape that carries value+flag is settled
+  inside step S2 (the scraper's `readings`/`origin` import channel is untouched).
+- `issueFields` exists (`consistency.ts:231`); `issueToText` is S2g. The **driver** is the first
+  full application (S2h): `solveDriver(p: DriverSolverParams)` replaces the
+  `solveConsistencyGroup`+`checkConsistency` split.
+
+**Three obligations (T11 — the make-or-break for "read everything the same"):**
+
+1. **Every write re-triggers the node solve.** `set(v)` → re-solve → rewrite all of the node's
+   `'C'` entries. Freshness is the trigger's job: with flags-only reads there is no way to tell a
+   stale `'C'` from a fresh one, and the old pull model (compute-at-`get()`) is gone.
+2. **Import collapses to the same channel.** Scraped `readings[origin].read_value` becomes
+   `value + 'E'` at the runtime boundary; `origin`/`readings` survive only in the import layer.
+   One value notion ever in the live record — no muddled semantics.
+3. **DQ text lives where `dq_calculated` lives.** Projection `setDq([text])` writes into the
+   existing `dq_calculated` channel (a `DqMark`, `detail` rendered by `issueToText`), so `.wdr`
+   `calcMark` keeps its source of truth.
 
 ### Domain (`openisdDomain.ts`)
 
@@ -163,6 +297,10 @@ become module-private internals; the public `check*`/resolver names are deleted 
 Overall: **126 test files / 1875 tests green; three-package typecheck clean** (2026-09-16), after
 the three commits above and the C5/T9/Text rulings.
 
+**Superseded by T10 (2026-09-16):** the bag-style `solveVent` (`890b981`) and `solvePr`
+(`d5e3750`) shipped before the handle-model ruling. They are reworked handle-style as S2-1/S2-2 —
+the numeric `*SolverQuantities` bags never appear at a public engine boundary.
+
 ### Open work from the old doc maps onto the steps below
 
 The original "Tests" bullet that names 8 prerequisite arrays (`driverPrerequisites`/…/
@@ -174,10 +312,11 @@ this rewrite; see §1 rule "never a duplicated DQ" for the surviving intent.
 | # | Step | Component / APIs | RED test | Acceptance |
 |---|---|---|---|---|
 | S1 | **Commit T1/T2/T3 + plan rewrite** | — | — | **DONE (2026-09-16)** — commits `4ef4327`, `9dbc54c`, `f424776`; one commit per task, `[auto]` prefix, never `git add -A` (appendix rule). |
-| S2 | **C5+T9 — solve-only unification (builds the "AFTER" table above)** | `solver.ts`, `consistency.ts`, `params.ts`, `air.ts`, `Engine.ts`, `openisdDomain.ts` | per node, RED first | one `solveX → {values, issues}` per node; text via one `issueToText`. Detail below. |
+| S2 | **solve-only unification, handle-style (C5+T9+T10+T11 — the "AFTER" table above)** | `solver.ts`, `consistency.ts`, `params.ts`, `air.ts`, `Engine.ts`, `openisdDomain.ts`, `cell.ts`, `openisdSchema.ts` | per node, RED first | one `solveX(params: <Node>SolverParams, …) → <Node>Issue[]` per node — values written onto the handles into the record (`'C'`), `*SolverQuantities` bags + `.values` result types deleted; one value + C/E flag storage (T11). Detail below. |
 | S3 | **T4 — unsimulated topology message** | `appState.ts` `doSweep` (317): when `!boxTypeIsSimulatable(box)` (473) push `{level:'error', field:'boxType', message:'Not yet implemented — <boxType>'}` into `sweepErrors`. Engine/domain untouched. | `store-issue-channel.test.ts`: a `bandpass6` project's `allIssues` has an `/not yet implemented/i` error (today silently empty); one browser spec asserting chart-area text. | QO145 wording shown; `allIssues` non-empty for `bandpass6`/`abc`. |
 | S4 | **T6 — hardening regression** | tests only (`hardening.test.ts`) | Assert an unsized vent no longer reaches `classifyFinite`'s generic message (T1 catches it first); keep an engine-level net test: `Leff: undefined` still classified. | Both regressions green. |
-| S5 | **T5 — signal data model** | `openisdSchema.ts:~580`; `openisdDomain.ts` `powerDrive_W` (~2432), `driveVoltage_V`/`statedVoltage_V` (~2471/~2507); `signal.ts#solveSignal` | One RED per (a)–(e), below | Signal-tab browser spec + store signal tests pass unchanged; V field shows the DQ when the driver has no Re. |
+| S5 | **T5 — signal data model** (ruled 2026-09-16: `voltage_V` is not part of the data model — see §2) | `openisdSchema.ts:~580`; `openisdDomain.ts` `powerDrive_W` (~2432), `driveVoltage_V`/`statedVoltage_V` (~2471/~2507); `signal.ts#solveSignal` — the V field applies the §4 write-back contract (`setCalculated(value)`
+  writes `'C'`; DQ attaches via `setDq`) | One RED per (a)–(e), below | Signal-tab browser spec + store signal tests pass unchanged; V field shows the DQ when the driver has no Re. |
 | S7 | **T8 — projection parity audit** | read-only | none | A parity table appended to this doc: per channel the ONE domain getter that projects its issues onto cell DQ via `issueToText`, or "none". Expected gaps: sealed (none), signal (V-field DQ only, after T5), environment (no Advanced cell reads it). |
 | S9 | **Keep this doc current** | `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md` | — | annotate each step `Done (date)` with a one-line "why/what", as S1–S5 land. |
 
@@ -187,44 +326,66 @@ live-`checkConsistency` call — is **absorbed into S2's text work**.)
 
 ### Step S2 detail (C5+T9 — the solve-only unification)
 
-Per node, TDD: pin the bundled solve, watch it go RED, build, rewiring consumers in the same
-commit, watch GREEN. Node order: `solveVent` → `solvePr` → `solveEnvironment` → `solveBoxParams`
-(`validateParams`/`checkBoxParams` die) → `solveSealedAlignment` → wholesale delete of the public
-`check*`/`solve*ConsistencyGroup`/`airFor`/`environmentIssues` names (T3-style trim).
+Per node, TDD: pin the handle-form solve, watch it go RED, build, rewiring consumers in the same
+commit, watch GREEN. **T10 ruling** — the S2a/S2b solveVent/solvePr already shipped bag-style
+(`890b981`, `d5e3750`) are **reworked handle-style here, not extended**. Node order:
+`solveVent` → `solvePr` → `solveDriver` → `solveSealedAlignment` → `solveBoxParams`
+(`validateParams`/`checkBoxParams` die) → `solveEnvironment` (kept — `Air` is not a bag) →
+wholesale delete of the public `check*`/`solve*ConsistencyGroup`/`airFor`/`environmentIssues`
+names + `solverQuantities.ts` + the `.values` result types (T3/T10 style trim).
 
-- **Engine**: add seven-row "AFTER" facade (§4). Existing `solveDriver`/`solveSignal` untouched.
-  `solver.ts` group solvers + paired checks become private internals of each `solveX`; sweep's
-  `environmentIssues`/`airFor` reads (`sweep.ts:219-221`) re-point at `solveEnvironment`.
-- **Domain getters**: vent/PR/box/sealed getters read `issues` from the one solve of their node
-  (no `check*` call). Driver unchanged.
+- **Engine**: build the §4 AFTER facade — `solveDriver`/`solveVent`/`solvePr`/
+  `solveSealedAlignment` become `(params: <Node>SolverParams, …) → <Node>Issue[]`, writing
+  derived values onto the handles (`setCalculated`/`setNotAvailable`); `solverQuantities.ts`
+  deleted, the numeric working set made private in `solver.ts`/`consistency.ts` (tolerance/
+  perturbation still works on copies). Box/signal/environment keep their shapes (no bag ever
+  existed there). Sweep's `environmentIssues`/`airFor` reads (`sweep.ts:219-221`) re-point at
+  `solveEnvironment`.
+- **Domain getters**: each node's getter hands its own `Field` handles to the one
+  `solveX(params)`; values are written into the record; getters are plain record reads.
+  The vent/PR `createCell(..., dq)` inline pattern and every "compute at get()" callback
+  (`solvedNow`, the air-constant special case) die — one write path, one read path (T11).
 - **`issueToText`**: one function in the projection layer; deletes the bodies of both
   `sweepIssueMessage` (`sweepIssueMessage.ts:16`) and `consistencyNote` (`useDriverCells.ts:76`),
   which re-implement the same template today. Cell DQ, chart blocks and editor tooltips all run it.
   Vent/PR/box cells switch from formula-only DQ to the full sentence (pinning tests update).
   `inconsistent-inputs` unifies on the editor's longer, actionable form (Text ruling, §2).
 - **Driver editor (the one flagged wrinkle)**: `DriverEditorModal.vue:325` and
-  `OgTune-hooks.ts:54` stop calling `OpenISDDriver.checkConsistency()`; the spec-cell builder
-  (`openisdDomain.ts:1108-1142`) starts attaching DQ so the editor reads `cell.dq()`. Kept-in:
-  the `missing-dependencies` *kind* still answers "mandatory-but-unsatisfied" internally — that is
-  a private detail of the edited-vs-calculated state, not a public `check`.
+  `OgTune-hooks.ts:54` stop calling `OpenISDDriver.checkConsistency()`; the driver is the first
+  full application of the §4 contract — `solveDriver(model.entered…)` writes each spec field
+  (value + `'C'`), the projection attaches `dq_calculated` text, and the editor reads
+  `cell.dq()`. The QO127 "stated-only" framing is re-written (T11). Kept-in: the
+  `missing-dependencies` *kind* still answers "mandatory-but-unsatisfied" internally — that is a
+  private detail of the edited-vs-calculated state, not a public `check`.
 - **`.wdr` marks**: untouched. `calcMark` renders *typed* `inconsistent-inputs` issues via the
-  Python registry templates (`dqCalculated.ts:266-281`); it never reads `cell.dq()` text, so the
-  Text ruling cannot break export parity (verified 2026-09-16).
+  Python registry templates (`dqCalculated.ts:266-281`); obligation 3 keeps that source intact, so
+  the Text ruling and T11 cannot break export parity (verified 2026-09-16).
+- **Storage (T11)**: `Field`-private `isCalculated`/`derivedValue`/`dqList` and
+  `getEffectiveCell`'s three-branch precedence die — `get()` is one record read; `setCalculated`
+  writes value+`'C'`, edits write `'E'`, absence is N. SpecEntryJson's "states no value of its
+  own" comment is superseded for the runtime channel.
 
-**Task checklist (mirrors the opencode tracker; each `(auto)` commit on completion):**
+**Task checklist (mirrors the opencode tracker; each `(auto)` commit on completion).**
+**T10 note** — tasks 1-2 REWORK the already-shipped bag-style `solveVent`/`solvePr`
+(`890b981`, `d5e3750`), not extend them.
 
 | Task | Work | Green check |
 |---|---|---|
-| S2a | RED `solveVent` bundle; rewire Engine + domain getters + pinning tests | `vent-pr-consistency.test.ts`, domain suite |
-| S2b | RED `solvePr` bundle; rewire | same |
-| S2c | `solveEnvironment` bundle; re-point `sweep.ts:219-221` | sweep tests |
-| S2d | `solveBoxParams` bundle absorbs `checkBoxParams`+`validateParams` (T9); re-point `paramIssues` (`appState.ts:394`) | `params.test.ts`, store tests |
-| S2e | `solveSealedAlignment` bundle | sealed-alignment tests |
-| S2f | Delete public `check*`/`solve*ConsistencyGroup`/`airFor`/`environmentIssues` (T3-style trim); typecheck + full suite | 1875+ tests, 3-package typecheck |
-| S2g | `issueToText` single source; cells/charts/editor read one sentence; formula-only cell DQ updated | cell-DQ + store-issue-channel tests |
-| S2h | Driver spec cells attach DQ; editor reads `cell.dq()`; `checkConsistency()` public call gone | driver-editor tests, e2e spec |
-| S2i | Fold `fieldsNamedBy` → `issueFields` | existing cell-DQ tests |
-| S2j | Update this doc (S2 Done, §4 AFTER verified) + commit | — |
+| S2-1 | RED `solveVent(p: VentSolverParams, air): VentIssue[]` — handle solve, writes `'C'` onto the params; rewire Engine + domain vent getters + pinning tests | `vent-pr-consistency.test.ts`, domain suite |
+| S2-1 note | **Done (2026-09-16)** — engine seam landed handle-style (engine tests pin the writes). Domain rewire deferred to S2-7: the getters keep calling the bag `solveVentConsistencyGroup` + `checkVentConsistency` because record-backed `Field` handles (the only legal `SolverField` impls) and the re-solve trigger do not exist until the T11 storage step; S2-10 deletes those bag internals. | — |
+| S2-2 | RED `solvePr(p: PrSolverParams, air): PrIssue[]` — handle solve; rewire | same |
+| S2-3 | RED `solveDriver(p: DriverSolverParams): DriverIssue[]` — `DriverSolverQuantities` + `DriverSolveResult` deleted; `checkConsistency` runs on a private numeric working set | driver tests |
+| S2-4 | RED `solveSealedAlignment(p: SealedAlignmentSolverParams): SealedAlignmentIssue[]` | sealed-alignment tests |
+| S2-5 | `solveBoxParams(box, P)` absorbs `checkBoxParams`+`validateParams` (T9); re-point `paramIssues` (`appState.ts:394`) | `params.test.ts`, store tests |
+| S2-6 | `solveEnvironment(env): EnvironmentSolveResult` — kept (Air is not a bag); re-point `sweep.ts:219-221` | sweep tests |
+| S2-7 | **T11 storage**: `setCalculated` writes value+`'C'` into the record; `get()` = one record read (`getEffectiveCell` + private store die); **every write re-triggers the node solve** (RED: edit Fs → Qts/Rms `'C'` entries refreshed) | cell/domain tests |
+| S2-8 | **T11 import**: scraped `readings`/`origin` collapse to `value + 'E'` at the runtime boundary; origin machinery stays import-layer | schema/migration tests |
+| S2-9 | **T11 DQ**: projection `setDq([text])` writes into `dq_calculated` (a `DqMark`, `detail` = `issueToText`); `.wdr` `calcMark` parity holds | cell-DQ + `.wdr` tests |
+| S2-10 | Delete public `check*`/`solve*ConsistencyGroup`/`airFor`/`environmentIssues` + `solverQuantities.ts` + the `.values` result types (T3/T10 trim); typecheck + full suite | 1875+ tests, 3-package typecheck |
+| S2-11 | `issueToText` single source; cells/charts/editor read one sentence; formula-only cell DQ updated | cell-DQ + store-issue-channel tests |
+| S2-12 | Driver editor: reads `cell.dq()`; `OpenISDDriver.checkConsistency()` (`openisdDomain.ts:1517`) + the live call (`DriverEditorModal.vue:325`) die | driver-editor tests / e2e spec |
+| S2-13 | Fold `fieldsNamedBy` (`useDriverCells.ts:65-67`) → `issueFields` | existing cell-DQ tests |
+| S2-14 | Update this doc (S2 Done, §4 AFTER + contract verified) + commit | — |
 
 ### Step S5 detail (T5 — signal)
 
@@ -233,10 +394,12 @@ carries only `P` already; `.wdr` unrelated).
 (b) `powerDrive_W.set(w)` stops requiring `Re_ohm` — stores `power_W: w`; `.get()` reads it;
 `.clear()` stores `null`.
 (c) `driveVoltage_V`/`statedVoltage_V`: `.get()` is a pure derivation `√(power_W · Re_ohm)`,
-`'calculated'` when both known; when `Re_ohm` is unknown return a `'not-available'` cell carrying
-a DQ ("Re is not known yet — voltage cannot be derived") via the same `createCell(..., dq)`
-mechanism other derived fields use. `.set(v)` KEEPS the Re guard — converts and stores
+`'calculated'` when both known; when `Re_ohm` is unknown it carries a DQ
+("Re is not known yet — voltage cannot be derived") via the same write-back channel every other
+derived field uses. `.set(v)` KEEPS the Re guard — converts and stores
 `power_W = v²/Re`, never a voltage. Collapse `statedVoltage_V` into `driveVoltage_V` if identical.
+**Voltage is never shared**: every consumer derives `√(power_W·Re_ohm)` itself or is passed it
+(signal bundle) — no stored/global voltage value to reach for (T5 ruling, §2).
 (d) `signal.ts#solveSignal()`: delete the `inconsistent-inputs` branch and `voltage_V` as an
 entered input; update `signal.test.ts`.
 (e) Migration: an old `.owpr` with `voltage_V` in its signal record still loads — accept-and-drop
@@ -246,10 +409,11 @@ the legacy key in the zod schema, with a test against a literal old-shape JSON s
 
 | # | Question | Status |
 |---|---|---|
-| T5 (S5) | Sign-off the `.owpr` schema migration (drop `voltage_V`) and the DQ on the V field. | Needs ruling; own session. |
+| T5 (S5) | ~~Sign-off the `.owpr` schema migration (drop `voltage_V`) and the DQ on the V field.~~ **RULED 2026-09-16** (§2): `voltage_V` is not part of the OpenISD data model — a calculated value where needed. S5 is a scheduled step (post-S2, own session). | Ruled. |
 | T4 (S3) | Deprioritised per QO145 — slot after S2 or now? | Needs priority call. |
 
-(C5, T9 and the Text ruling were decided 2026-09-16 — §2 — and fold into S2.)
+(C5, T9, the Text ruling, T5, T10 and T11 were decided 2026-09-16 — §2. T5 folds into the S5
+step (post-S2); C5/T9/Text/T10/T11 fold into S2.)
 
 ## 8. Was "remove junk" and what died with it
 
@@ -262,5 +426,6 @@ the legacy key in the zod schema, with a test against a literal old-shape JSON s
 - Item 8's claim that `SealedAlignmentSolveResult`/`VentSolveResult`/`PrSolveResult`/
   `BoxParamsSolveResult` exist → corrected: they do not; the split
   `solve*ConsistencyGroup`/`check*Consistency` pair is what ships (C5). The 2026-09-16 ruling now
-  BUILDS those result types and collapses the split (§4 AFTER, step S2).
+  BUILDS handle-based solves and collapses the split (§4 AFTER, step S2); the T10 ruling retracts
+  the `.values` numeric bags from that build.
 - The seven dead `*Prerequisite` types → deleted (T3).
