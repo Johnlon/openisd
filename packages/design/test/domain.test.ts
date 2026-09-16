@@ -1444,6 +1444,79 @@ describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
   });
 });
 
+describe('OpenISDProject — the driver cascade resolves on every write (S2-7d1)', () => {
+  /** A saved project whose embedded driver states ONLY Qes+Qms — Qts is the one relation it can
+   *  derive. Built via the ordinary `.builder().build()` path (which itself calls `save()`), then
+   *  re-wrapped through `OpenISDProject.wrap()` — the entry point this task adds a resolve to —
+   *  so these tests exercise `wrap()` itself, not merely the builder's own already-passing path. */
+  function qesQmsProject(engine: Engine): OpenISDProject {
+    const driver = OpenISDDriver.empty(engine);
+    driver.spec.woofer.Qes.set(0.4);
+    driver.spec.woofer.Qms.set(3.0);
+    const built = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+    return OpenISDProject.wrap(built.cloneSession().saved, engine);
+  }
+
+  it('wrap() resolves the driver once, and the project is not modified by it', () => {
+    const engine = new Engine();
+    const project = qesQmsProject(engine);
+    const qts = project.driver.spec.woofer.Qts.get();
+    expect(qts.state).toBe('calculated');
+    expect(qts.value).toBeCloseTo((0.4 * 3.0) / (0.4 + 3.0), 12);
+    expect(project.isModified()).toBe(false);
+  });
+
+  it('setting a driver field the project resolved from changes the dependent calculated entry, and modifies the project', () => {
+    const engine = new Engine();
+    const project = qesQmsProject(engine);
+    project.driver.spec.woofer.Qms.set(6.0);
+    const qts = project.driver.spec.woofer.Qts.get();
+    expect(qts.value).toBeCloseTo((0.4 * 6.0) / (0.4 + 6.0), 12);
+    expect(project.isModified()).toBe(true);
+  });
+
+  it('exactly one engine.solveDriver call per field set(), and zero for a bare project.driver read', () => {
+    const engine = new Engine();
+    const project = qesQmsProject(engine);
+    const readSpy = vi.spyOn(engine, 'solveDriver');
+    void project.driver;
+    void project.driver.spec.woofer.Fs_hz.get();
+    expect(readSpy).toHaveBeenCalledTimes(0);
+    readSpy.mockRestore();
+
+    const writeSpy = vi.spyOn(engine, 'solveDriver');
+    project.driver.spec.woofer.Qms.set(6.0);
+    expect(writeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('a what-if edit lands its own calculated values in the what-if layer; resetWhatIf returns to the committed ones', () => {
+    const engine = new Engine();
+    const project = qesQmsProject(engine);
+    const committedQts = project.driver.spec.woofer.Qts.get().value;
+
+    project.beginWhatIf();
+    project.driver.spec.woofer.Qms.set(6.0);
+    const whatIfQts = project.driver.spec.woofer.Qts.get().value;
+    expect(whatIfQts).toBeCloseTo((0.4 * 6.0) / (0.4 + 6.0), 12);
+    expect(whatIfQts).not.toBeCloseTo(committedQts!, 6);
+
+    project.resetWhatIf();
+    expect(project.driver.spec.woofer.Qts.get().value).toBeCloseTo(committedQts!, 12);
+  });
+
+  it('save() does not disturb the already-resolved derived values', () => {
+    const engine = new Engine();
+    const project = qesQmsProject(engine);
+    project.driver.spec.woofer.Qms.set(6.0);
+    const beforeSave = project.driver.spec.woofer.Qts.get().value;
+
+    project.save();
+
+    expect(project.driver.spec.woofer.Qts.get().value).toBeCloseTo(beforeSave!, 12);
+    expect(project.isModified()).toBe(false);
+  });
+});
+
 describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS)', () => {
   // A CIRCUIT-COMPLETE driver (the store's `store-issue-channel.test.ts` clean-fixture field
   // set): Qts derived from stated Qes/Qms so nothing can contradict, Mms/Rms/Bl/Cms derived by

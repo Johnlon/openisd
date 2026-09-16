@@ -1994,11 +1994,23 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
  *
  * `driver` and `box` are live WINDOWS over slices of whichever record is current. The what-if
  * layer is never included in persistence and can only be discarded or reset to its opening copy.
+ *
+ * ONE EXCEPTION to "the record is the only state" (S2-7d, leader ruling 2026-09-16 — John to
+ * confirm): `#issues` is a DERIVED CACHE of whichever layer is current, rebuilt by every
+ * `#resolve()` and never itself persisted or read back from a record. It exists because a sweep
+ * guard or a getter must be able to answer "what's wrong" WITHOUT re-solving on every read — a
+ * read that solved would be the write-on-read loop `#resolve()`'s own design note explains.
  */
 function freshEmbeddedDriver(json: OpenISDProjectJson, appContext: AppContext = realAppContext): OpenISDProjectJson {
     const copy = structuredClone(json);
     copy.driverEmbedding.device.uuid = {value: appContext.newId()};
     return copy;
+}
+
+/** `OpenISDProject#resolve()`'s cached result — the current layer's own issues, by channel.
+ *  `driver` is this step (S2-7d1); vent/PR/sealed/environment join it in S2-7d2. */
+interface ProjectIssues {
+    readonly driver: readonly DriverIssue[];
 }
 
 export class OpenISDProject {
@@ -2054,21 +2066,40 @@ export class OpenISDProject {
      *  from this reference and from nowhere else. */
     readonly #engine: Engine;
 
+    /** The current layer's cached issues — see the class doc comment's "ONE EXCEPTION". */
+    #issues: ProjectIssues = { driver: [] };
+
+    /** Reentrancy guard for `#resolve()`. Nothing inside a resolve reaches `#slot`/`#root` today
+     *  — the driver window it builds is over the DIRECT layer, never through the notifying
+     *  lenses — so nothing should ever re-enter. Kept anyway: it costs nothing, and it is the
+     *  same defensive shape `resolvingLens` (S2-7c, `cell.ts`) uses for the driver's own cascade. */
+    #resolving = false;
+
     private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine) {
         this.#saved = saved;
         this.#uuid = uuid;
         this.#engine = engine;
+        this.#resolve();
+    }
+
+    /** A window onto a driver embedded in `root`'s whole record — `get driver()` below is
+     *  `#driverOver(this.#root())`; `#resolve()` calls it with a DIRECT (non-notifying) root of
+     *  its own instead. One construction, parameterised by which lens backs it. */
+    #driverOver(root: Lens<OpenISDProjectJson>): OpenISDDriverEmbedded {
+        return OpenISDDriverEmbedded.wrap(
+            focus(focus(root, 'driverEmbedding'), 'device'),
+            this.#engine,
+            () => root.get().environment,
+        );
     }
 
     /** The embedded driver — built fresh from the current record on every access, never held: the
-     *  project has exactly three stored fields (`#saved`/`#edited`/`#engine`, John 2026-09-06),
-     *  and every other public member is a getter mirroring the record's own structure. */
+     *  project has exactly three stored fields (`#saved`/`#edited`/`#engine`, John 2026-09-06;
+     *  `#issues`/`#resolving` are a derived cache and a reentrancy flag, not project state — see
+     *  the class doc comment), and every other public member is a getter mirroring the record's
+     *  own structure. */
     get driver(): OpenISDDriverEmbedded {
-        return OpenISDDriverEmbedded.wrap(
-            focus(this.#slot('driverEmbedding'), 'device'),
-            this.#engine,
-            () => this.#current().environment,
-        );
+        return this.#driverOver(this.#root());
     }
 
     /** Replace the embedded driver's whole record with `source`'s — the project adopting a
@@ -2282,6 +2313,9 @@ export class OpenISDProject {
         const project = new OpenISDProject(freshEmbeddedDriver(session.saved, appContext), uuid, engine);
         if (session.edited) {
             project.#edited = freshEmbeddedDriver(session.edited, appContext);
+            // The constructor's own resolve() only reached `#saved`, set just above — the
+            // edited layer just assigned needs its own (S7-d: recompute on load).
+            project.#resolve();
         }
         return project;
     }
@@ -2327,9 +2361,58 @@ export class OpenISDProject {
                 const base = this.#whatif ? this.#ensureWhatIf() : this.#ensureEditing();
                 if (this.#whatif) this.#whatif = {...base, [key]: value};
                 else this.#edited = {...base, [key]: value};
+                this.#resolve();
                 this.#notify();
             },
         };
+    }
+
+    /** A get/set pair over the WHOLE current record — what `get driver()` builds its embedded
+     *  driver window on, since a driver's own fields nest many levels below any single top-level
+     *  `OpenISDProjectJson` key and `#slot` only ever addresses one. Promotes/notifies exactly
+     *  like `#slot` (S2-7d1: also resolves before it notifies), for the same reason: a nested
+     *  `focus()` write always reads the whole object a lens is over, then replaces it whole —
+     *  here that whole object is the entire project record. */
+    #root(): Lens<OpenISDProjectJson> {
+        return {
+            get: () => this.#current(),
+            set: (json) => {
+                if (this.#whatif) { this.#ensureWhatIf(); this.#whatif = json; }
+                else { this.#ensureEditing(); this.#edited = json; }
+                this.#resolve();
+                this.#notify();
+            },
+        };
+    }
+
+    /**
+     * T11/S2-7d: resolve the CURRENT layer's driver — write every quantity `solveDriver` can
+     * derive back into THAT layer as a `'C'` entry, and cache the result in `#issues`.
+     *
+     * Reads and writes go DIRECTLY to the layer object below, never through `#slot`/`#root`:
+     * those always promote to `#edited` and notify, which would make simply LOADING a project
+     * (`wrap()`) register as "modified", and would make a solve's OWN writes notify a SECOND
+     * time for one user action — the exact write-on-read/write-on-solve loop that broke
+     * `OpenISDDriverEmbedded` in S2-7c before its own auto-resolve was pulled out of the shared
+     * driver constructor (see that class's own note). `#resolving` guards against a future
+     * caller re-entering; nothing today can.
+     */
+    #resolve(): void {
+        if (this.#resolving) return;
+        this.#resolving = true;
+        try {
+            const directRoot: Lens<OpenISDProjectJson> = {
+                get: () => this.#whatif ?? this.#edited ?? this.#saved,
+                set: (json) => {
+                    if (this.#whatif) this.#whatif = json;
+                    else if (this.#edited) this.#edited = json;
+                    else this.#saved = json;
+                },
+            };
+            this.#issues = { driver: this.#driverOver(directRoot).resolve() };
+        } finally {
+            this.#resolving = false;
+        }
     }
 
     /** @internal The record a save writes, deep-cloned — `projectRepo()`'s one way to reach it,
@@ -2805,11 +2888,23 @@ export class OpenISDProject {
         return [];
     }
 
-    /** The one air pair the vent/PR solvers need — the project's OWN resolved air, read from the
-     *  embedded driver exactly the way the box's windows derive theirs (`openisdDomain.ts` ~543). */
+    /** The one air pair the vent/PR solvers need — the project's OWN resolved air. Plain record
+     *  reads now (S2-7d1): after a resolve, `c_m_per_s`/`roo_kg_per_m3` are `'C'` entries in the
+     *  driver's own section, the same figures `solveConsistencyGroup()` used to recompute here on
+     *  every call. Null (not yet resolved, or genuinely neither entered nor derivable) falls back
+     *  to the project's own environment air directly — the same air a resolve would have written. */
     #sweepAir(): Air {
-        const d = this.driver.solveConsistencyGroup();
-        return {rho: d.roo_kg_per_m3!, c: d.c_m_per_s!};
+        const driver = this.driver;
+        const spec = driver.spec[driver.section];
+        const c = spec.c_m_per_s.value;
+        const rho = spec.roo_kg_per_m3.value;
+        if (c !== null && rho !== null) return {rho, c};
+        const env = this.#current().environment;
+        return this.#engine.solveEnvironment({
+            tempK: env.temperature_K ?? undefined,
+            humidityPct: env.humidity_pct ?? undefined,
+            pressurePa: env.pressure_Pa ?? undefined,
+        }).values;
     }
 
     /** Assembled exactly as the per-field vent getters do (~582), for the ACTIVE vent — `vented`'s
@@ -2939,25 +3034,34 @@ export class OpenISDProject {
         return this.#whatif !== null;
     }
 
-    /** Discard the what-if layer without touching saved or ordinary edited state. */
+    /** Discard the what-if layer without touching saved or ordinary edited state. The current
+     *  layer changes (back to committed) — its 'C' entries are already right, but `#resolve()`
+     *  rebuilds `#issues` to match: while the what-if was active every resolve targeted IT, not
+     *  the committed layer this reverts to. */
     cancelWhatIf(): void {
         if (!this.#whatif) return;
         this.#whatif = null;
+        this.#resolve();
         this.#notify();
     }
 
-    /** Reset the what-if to the committed design while keeping the session open. */
+    /** Reset the what-if to the committed design while keeping the session open. The current
+     *  layer's CONTENT changes (a fresh clone), so `#issues` is rebuilt the same way. */
     resetWhatIf(): void {
         if (!this.#whatif) return;
         this.#whatif = structuredClone(this.#committed());
+        this.#resolve();
         this.#notify();
     }
 
-    /** Promote the edited record. A no-op when nothing has been edited. */
+    /** Promote the edited record. A no-op when nothing has been edited. The layer swap itself
+     *  changes nothing a resolve would derive differently, but rebuilding `#issues` here keeps
+     *  the "always current" invariant simple to trust rather than relying on that observation. */
     save(): void {
         if (!this.#edited) return;
         this.#saved = this.#edited;
         this.#edited = null;
+        this.#resolve();
         this.#notify();
     }
 
@@ -2975,6 +3079,7 @@ export class OpenISDProject {
         if (!this.#edited) return false;
         if (!await confirm()) return false;
         this.#edited = null;
+        this.#resolve();
         this.#notify();
         return true;
     }

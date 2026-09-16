@@ -23,6 +23,14 @@
  *
  * `#uuid` is a deliberate, separately-documented exception (QO92: identity that must never
  * enter the record) and is not counted against the four.
+ *
+ * `#issues` and `#resolving` are a second, narrower exception (S2-7d, leader ruling
+ * 2026-09-16 — John to confirm): `#issues` is a DERIVED CACHE of the current layer, rebuilt by
+ * every `#resolve()` and never itself read back from or written into a record — it exists so a
+ * sweep guard or a getter can answer "what's wrong" without re-solving on every read, which
+ * would be a write-on-read loop. `#resolving` is `#resolve()`'s own reentrancy flag. Neither
+ * holds a fact about the DESIGN the way `#saved`/`#edited`/`#whatif` do; both are cheaply
+ * rebuildable from the record and hold no information a fresh resolve would not reproduce.
  */
 import { describe, it, expect } from 'vitest';
 import { Project } from 'ts-morph';
@@ -31,7 +39,9 @@ import * as url from 'node:url';
 
 const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
 
-const ALLOWED_FIELDS = new Set(['#saved', '#edited', '#whatif', '#engine', '#uuid', '#listeners']);
+const ALLOWED_FIELDS = new Set([
+  '#saved', '#edited', '#whatif', '#engine', '#uuid', '#listeners', '#issues', '#resolving',
+]);
 
 describe('OpenISDProject holds only #saved/#edited/#whatif/#engine as stored fields', () => {
   it('declares no property beyond the allowed set', () => {
