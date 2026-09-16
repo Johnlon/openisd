@@ -246,8 +246,11 @@ function dqCommentLines(record: Record<string, unknown>): string[] {
             if (!parsed.success) continue;
             const entry: SpecEntryJson = parsed.data;
 
-            const value = entry.readings[entry.origin]?.read_value;
-            for (const mark of [...(entry.dq_scraper ?? []), ...(entry.dq_calculated ?? [])]) {
+            const value = entry.value;
+            // `dq_scraper` only ever rides on an entered value — nothing was scraped for one the
+            // engine derived.
+            const dqScraper = entry.state === 'E' ? entry.dq_scraper ?? [] : [];
+            for (const mark of [...dqScraper, ...(entry.dq_calculated ?? [])]) {
                 lines.push(`[DQ] ${field}=${String(value)}: ${mark.detail}`);
             }
         }

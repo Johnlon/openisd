@@ -19,6 +19,14 @@ import assert from 'node:assert/strict';
 
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
+import type { SpecEntryJson } from '../../domain/openisdSchema.js';
+
+/** Every entry this file imports is entered — narrows the `SpecEntryJson` union so a test can
+ *  read `.readings` without repeating the guard at each call site. */
+function asEntered(entry: SpecEntryJson | undefined): Extract<SpecEntryJson, { state: 'E' }> {
+  if (entry?.state !== 'E') throw new Error('expected an entered entry');
+  return entry;
+}
 
 /** A `.wdr` whose only stated field is `VCCon`, with the ParState mark under test on slot 46. */
 function wdrStating(vccon: string, mark: 'E' | 'C' | 'N'): WinISDDriver {
@@ -34,18 +42,18 @@ describe('.wdr VCCon import', () => {
   it('VCCon=2 marked N still imports as series — the mark is not the value', () => {
     const entry = vcconOf(wdrStating('2', 'N'));
     assert.notEqual(entry, undefined);
-    assert.equal(entry!.readings.manual!.read_value, 2);
+    assert.equal(asEntered(entry).readings?.manual?.read_value, 2);
     assert.equal(entry!.dq_calculated, undefined);
   });
 
   it('VCCon=1 marked N imports as parallel', () => {
     const entry = vcconOf(wdrStating('1', 'N'));
-    assert.equal(entry!.readings.manual!.read_value, 1);
+    assert.equal(asEntered(entry).readings?.manual?.read_value, 1);
     assert.equal(entry!.dq_calculated, undefined);
   });
 
   it('VCCon=2 marked E imports as series', () => {
-    assert.equal(vcconOf(wdrStating('2', 'E'))!.readings.manual!.read_value, 2);
+    assert.equal(asEntered(vcconOf(wdrStating('2', 'E'))).readings?.manual?.read_value, 2);
   });
 
   it('VCCon=3 is out of range for the dropdown — omitted, warning emitted, reads as the calculated default', () => {
@@ -88,13 +96,13 @@ describe('.wdr numVC import', () => {
 
   it('numVC=2 imports untouched', () => {
     const entry = numVCOf(wdrStatingNumVC('2'));
-    assert.equal(entry!.readings.manual!.read_value, 2);
+    assert.equal(asEntered(entry).readings?.manual?.read_value, 2);
     assert.equal(entry!.dq_calculated, undefined);
   });
 
   it('numVC=4 imports untouched — four coils is a real driver', () => {
     const entry = numVCOf(wdrStatingNumVC('4'));
-    assert.equal(entry!.readings.manual!.read_value, 4);
+    assert.equal(asEntered(entry).readings?.manual?.read_value, 4);
     assert.equal(entry!.dq_calculated, undefined);
   });
 
@@ -102,8 +110,8 @@ describe('.wdr numVC import', () => {
     const wdr = wdrStatingNumVC('123');
     const entry = numVCOf(wdr);
     const warnings = numVCWarningsOf(wdr);
-    assert.equal(entry!.readings.manual!.read_value, 1);
-    assert.equal(entry!.readings.manual!.actual_reading, '123');
+    assert.equal(asEntered(entry).readings?.manual?.read_value, 1);
+    assert.equal(asEntered(entry).readings?.manual?.actual_reading, '123');
     assert.equal(entry!.dq_calculated, undefined);
     assert.equal(warnings.length, 1);
     assert.equal(warnings[0]!.level, 'warn');
@@ -115,8 +123,8 @@ describe('.wdr numVC import', () => {
     const wdr = wdrStatingNumVC('0');
     const entry = numVCOf(wdr);
     const warnings = numVCWarningsOf(wdr);
-    assert.equal(entry!.readings.manual!.read_value, 1);
-    assert.equal(entry!.readings.manual!.actual_reading, '0');
+    assert.equal(asEntered(entry).readings?.manual?.read_value, 1);
+    assert.equal(asEntered(entry).readings?.manual?.actual_reading, '0');
     assert.equal(entry!.dq_calculated, undefined);
     assert.equal(warnings.length, 1);
     assert.equal(warnings[0]!.field, 'numVC');

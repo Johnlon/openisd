@@ -1,5 +1,5 @@
 import type { FieldState, SolverField } from '@openisd/design/engine';
-import type { DqMark } from './openisdSchema.js';
+import type { SpecEntryJson } from './openisdSchema.js';
 
 export interface Cell<T> {
   readonly name: string;
@@ -189,21 +189,11 @@ export function requiredField<K extends PropertyKey, T extends Record<K, number>
   );
 }
 
-/** The entry shape `entryField` reads/writes — PROVISIONAL, defined locally here rather than in
- *  `openisdSchema.ts`: the real `SpecEntryJson` sum type (S2-7b) unifies this with the driver
- *  spec/vent/PR/sealed-Qtc slots project-wide. Until then this is exactly what `entryField`
- *  needs and nothing more. */
-export type SolvableEntry = {
-  readonly state: 'E' | 'C';
-  readonly value: number;
-  readonly dq_calculated?: readonly DqMark[];
-};
-
 /** Builds a `Field<number>` over one C/E-flagged entry slot — the one factory every entry-shaped
- *  quantity (driver spec, vent, PR, sealed `Qtc`, …) shares once `S2-7b`'s schema lands: absent
- *  reads `not-available`; `state:'E'` reads `entered`; `state:'C'` reads `calculated`; each
- *  `dq_calculated` mark's `detail` is the field's own dq text. */
-export function entryField(lens: Lens<SolvableEntry | undefined>, name: string): Field<number> {
+ *  quantity (driver spec, vent, PR, sealed `Qtc`, …) shares (S2-7b): absent reads `not-available`;
+ *  `state:'E'` reads `entered`; `state:'C'` reads `calculated`; each `dq_calculated` mark's
+ *  `detail` is the field's own dq text. */
+export function entryField(lens: Lens<SpecEntryJson | undefined>, name: string): Field<number> {
   const readCell = (): Cell<number> => {
     const entry = lens.get();
     if (entry === undefined) return createCell<number>(name, null, 'not-available');

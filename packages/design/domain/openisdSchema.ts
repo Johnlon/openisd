@@ -59,29 +59,11 @@ export interface Reading {
     readonly read_precision?: number;
 }
 
-/**
- * One SPEC field — a T/S parameter, and every source's reading of it.
- *
- * IT STATES NO VALUE OF ITS OWN. The number is `readings[origin].read_value`, and `origin` names
- * which source won. That decision is made upstream by `crosscheck.py` — impossible readings
- * excluded, then majority, then document precedence — and nothing downstream re-takes it. A
- * top-level `value` here would store one fact twice and need a validator to keep the copies in
- * step (Q31).
- *
- * TWO DQ FIELDS, SPLIT BY PRODUCER (John 2026-08-29). `dq_scraper` holds what only a scraper can
- * find — structural, parse and source problems. `dq_calculated` holds what only the calculation
- * can find, and is written by the bridge, never trusted from a file it did not produce. One
- * field would make "who says so" unanswerable, and the two age differently: a calculated mark is
- * only as current as the engine that produced it.
- */
-export interface SpecEntryJson {
-    readonly origin: string;
-    readonly readings: Readonly<Record<string, Reading>>;
-    /** The scraper's cross-source verdict: MATCH, MISMATCH, NOT_MATCHABLE, UNMATCHED. */
-    readonly corroboration?: string;
-    readonly dq_scraper?: readonly DqMark[];
-    readonly dq_calculated?: readonly DqMark[];
-}
+// `SpecEntryJson` — one SPEC field, ONE VALUE, ONE FLAG (T11) — is declared further down as
+// `z.infer<typeof specEntryJsonSchema>` (see that schema's own doc comment), not here: the type
+// alias forward-references the schema (legal — TS resolves type-level bindings for the whole
+// module in one pass, unlike a `const`), so every field below sees the real shape and the two
+// can never drift apart the way a hand-duplicated interface could.
 
 /** The parameters a driver states, in one section.
  *  Not just TS parameters, but any parameter we collect off the datasheets.
@@ -192,30 +174,25 @@ export function calcNumVC(): number {
 }
 
 export function enteredWiring(value: VoiceCoilWiring): SpecEntryJson {
-    return {
-        origin: 'entered',
-        readings: {entered: {read_value: value === VoiceCoilWiring.Series ? 2 : 1}},
-    };
+    return {state: 'E', value: value === VoiceCoilWiring.Series ? 2 : 1};
 }
 
-/** A hand-entered value as a `SpecEntryJson`.
- *
- *  ONE reading, under the `entered` role, carrying the number alone: there was no printed
- *  literal to echo and nothing stated a precision, so writing `actual_reading` or
- *  `read_precision` would fabricate provenance. One entry shape for scraped and typed values —
- *  not a second envelope for hand entry. */
+/** A hand-entered value as a `SpecEntryJson` (T11 — no provenance for a value nothing was read
+ *  from: no `origin`, no `readings`, just the number and the 'E' flag). */
 export function enteredEntry(value: number): SpecEntryJson {
-    return {origin: 'entered', readings: {entered: {read_value: value}}};
+    return {state: 'E', value};
 }
 
-/** The ONE legal way to read a spec entry's number: the reading `origin` names.
- *
- *  Null when the entry names an origin it has no reading for — a broken record, reported as
- *  absence rather than guessed at from some other source's reading. */
+/** A solver-derived value as a `SpecEntryJson` (T11 — the 'C' flag; no `origin`/`readings`,
+ *  nothing was read). */
+export function calculatedEntry(value: number): SpecEntryJson {
+    return {state: 'C', value};
+}
+
+/** The ONE legal way to read a spec entry's number: `.value` (T11 — one value, one flag; there
+ *  is no second channel to fall back to). Null when the entry itself is absent ('N'). */
 export function winningValue(entry: SpecEntryJson | undefined): number | null {
-    if (!entry) return null;
-    const reading = entry.readings?.[entry.origin];
-    return typeof reading?.read_value === 'number' ? reading.read_value : null;
+    return entry?.value ?? null;
 }
 
 /**
@@ -292,20 +269,77 @@ const readingJsonSchema = z.strictObject({
     // the same driver at 1 W/1 m on 4 ohms (`model_driver.py`).
     note: z.string().optional(),
 });
-/** A spec field: which source won, and every source's reading. It states no value of its own.
- *  `readings` carries AT LEAST ONE — `SpecEntry.readings` is `Field(min_length=1)`, because an
- *  entry naming a winning origin with nothing under it is a field with no value.
- *  `dq_scraper` and `dq_calculated` are split BY PRODUCER: a scraper finds structural, parse and
- *  source problems; only the calculation finds T/S parameters that disagree with each other. */
-export const specEntryJsonSchema = z.strictObject({
+/** An entered spec entry: a `value` plus `state:'E'`, with `origin`/`readings` riding beside it
+ *  as information only — which source won, and every source's reading. `readings` carries AT
+ *  LEAST ONE when present — `SpecEntry.readings` is `Field(min_length=1)` upstream, because an
+ *  entry naming a winning origin with nothing under it is a field with no value — but a
+ *  hand-typed value (`enteredEntry`) has neither `origin` nor `readings` at all. */
+const enteredEntrySchema = z.strictObject({
+    state: z.literal('E'),
+    value: z.number(),
     // `_KEY_PRIORITY_LIST` order (`model_driver.py:1509`) — see the note on the record schema below.
-    origin: z.string(),
+    origin: z.string().optional(),
     readings: z.record(z.string(), readingJsonSchema).refine(
-        r => Object.keys(r).length > 0, 'expected at least one reading'),
+        r => Object.keys(r).length > 0, 'expected at least one reading').optional(),
     corroboration: z.string().optional(),
     dq_scraper: dqMarks(),
     dq_calculated: dqMarks(),
 });
+
+/** A calculated spec entry: a `value` plus `state:'C'` and nothing else but its own dq — nothing
+ *  was read, so no `origin`/`readings`/`dq_scraper` (only a scraper produces those). */
+const calculatedEntrySchema = z.strictObject({
+    state: z.literal('C'),
+    value: z.number(),
+    dq_calculated: dqMarks(),
+});
+
+/**
+ * `SpecEntryJson`'s import channel (obligation 2): the catalogue's `.owdr` records — and every
+ * fixture written before T11 — state `{origin, readings, ...}` with no `state` key at all.
+ * Transformed into `{state:'E', value: readings[origin].read_value, ...}` before the union ever
+ * sees it, so every legacy record loads unchanged. A value that already carries `state` (T11's
+ * own shape) passes through untouched. `readings[origin]` naming no reading is left AS-IS — the
+ * union then reports the real parse error (this is not a legal entry of either shape) rather
+ * than this preprocess inventing a `value`.
+ */
+function isRecord(v: unknown): v is Record<string, unknown> {
+    return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+function legacyToEntry(raw: unknown): unknown {
+    if (!isRecord(raw)) return raw;
+    if ('state' in raw) return raw;
+    const {origin, readings} = raw;
+    if (typeof origin !== 'string' || !isRecord(readings)) return raw;
+    const reading = readings[origin];
+    // The reading itself may still be malformed (a non-numeric `read_value`, say) — that is left
+    // for `readings`' own sub-schema to report, at its own path, alongside every other source's
+    // reading. Only a MISSING reading (`readings[origin]` absent) is left entirely untransformed.
+    if (!isRecord(reading) || !('read_value' in reading)) return raw;
+    return {state: 'E', value: reading.read_value, ...raw};
+}
+
+/**
+ * A spec field: `value` + `state` (T11), `origin`/`readings` riding beside an entered value as
+ * provenance only. `dq_scraper` and `dq_calculated` are split BY PRODUCER: a scraper finds
+ * structural, parse and source problems (entered values only); only the calculation finds T/S
+ * parameters that disagree with each other (either state).
+ *
+ * ONE VALUE, ONE FLAG (T11, John: "it gets written into the Json simple as that… do not muddle
+ * semantics"): `value` is the number, `state` says whether it was TYPED ('E') or DERIVED ('C') —
+ * absence of the whole entry means 'N', not-available. There is no separate value channel for a
+ * calculated figure: a `'C'` entry writes the SAME `value` field an `'E'` entry does, so a reader
+ * never juggles two numbers wondering which one is live.
+ *
+ * `origin`/`readings` ride BESIDE an `'E'` entry as INFORMATION ONLY — which source's reading
+ * won, and what every source said. A hand-typed value has neither: there was no source to name.
+ * A `'C'` entry has no `origin`/`readings` at all — nothing was read, `crosscheck.py` never ran.
+ */
+export const specEntryJsonSchema = z.preprocess(
+    legacyToEntry,
+    z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema]),
+);
+export type SpecEntryJson = z.infer<typeof specEntryJsonSchema>;
 
 // ── THE THREE FIELD ENVELOPES ─────────────────────────────────────────────────────────────────
 //
@@ -461,7 +495,9 @@ const ventJsonSchema = z.strictObject({
     diameter_m: z.number().nullable(),
     width_m: z.number().nullable(),
     height_m: z.number().nullable(),
-    length_m: z.number().nullable(),
+    // A solver-set slot (S7-a): absent = not-available, `state:'E'` = entered, `state:'C'` =
+    // derived — not a plain nullable number.
+    length_m: specEntryJsonSchema.optional(),
     endCorrection_m: z.number(),
 });
 export type VentJson = z.infer<typeof ventJsonSchema>;
@@ -504,7 +540,8 @@ export type CoupledVentedLossesJson = z.infer<typeof coupledVentedLossesJsonSche
  *  rear (sealed, coupled) and front (vented, coupled) need different shapes from the same box. */
 const chamberJsonSchemaOf = <L extends z.ZodType>(losses: L) => z.strictObject({
     volume_m3: z.number(),
-    tuning_hz: z.number().nullable(),
+    // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note.
+    tuning_hz: specEntryJsonSchema.optional(),
     losses,
 });
 const ventedChamberJsonSchema = chamberJsonSchemaOf(ventedLossesJsonSchema);
@@ -522,7 +559,12 @@ const openISDBoxJsonSchema = z.strictObject({
     boxType: z.enum([
         'sealed', 'vented', 'bandpass4', 'bandpass6', 'box-passive-radiator', 'abc',
     ] satisfies readonly BoxType[]),
-    sealed: z.strictObject({ volume_m3: z.number(), losses: sealedLossesJsonSchema }),
+    sealed: z.strictObject({
+        volume_m3: z.number(), losses: sealedLossesJsonSchema,
+        // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note; a slot for the
+        // sealed-alignment solve to write, wired up in S2-7d.
+        Qtc: specEntryJsonSchema.optional(),
+    }),
     vented: z.strictObject({ chamber: ventedChamberJsonSchema, vent: ventJsonSchema }),
     bandpass4: z.strictObject({
         // rear is sealed but coupled to front through the shared wall — Qicl, no Qp.
@@ -549,9 +591,10 @@ const openISDBoxJsonSchema = z.strictObject({
     }),
     passiveRadiator: z.strictObject({
         volume_m3: z.number(),
-        tuning_hz: z.number().nullable(),
+        // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note.
+        tuning_hz: specEntryJsonSchema.optional(),
         count: z.number(),
-        addedMass_kg: z.number().nullable(),
+        addedMass_kg: specEntryJsonSchema.optional(),
         losses: sealedLossesJsonSchema,
         // The chosen PR, stored as a full driver record (a PR IS a purchasable component, same as
         // a driver) — null until `configurePR()` picks one. Reuses `openISDDeviceJsonSchema`
@@ -753,6 +796,7 @@ function wdrVCConEntry(
 
     if (stated === 1 || stated === 2) {
         return {
+            state: 'E', value: stated,
             origin: 'manual',
             readings: {manual: {actual_reading: raw, read_value: stated}},
         };
@@ -781,6 +825,7 @@ function wdrNumVCEntry(
     const stated = Number(cell.value);
     if (Number.isInteger(stated) && stated >= 1 && stated <= 4) {
         return {
+            state: 'E', value: stated,
             origin: 'manual',
             readings: {manual: {actual_reading: cell.value, read_value: stated}},
         };
@@ -790,6 +835,7 @@ function wdrNumVCEntry(
         message: `numVC=${stated} is not a coil count between 1 and 4 — read as 1`,
     });
     return {
+        state: 'E', value: 1,
         origin: 'manual',
         readings: {manual: {actual_reading: cell.value, read_value: 1}},
     };
@@ -853,6 +899,7 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
                 entry = wdrNumVCEntry(cell, warnings);
             } else {
                 entry = {
+                    state: 'E', value: numValue,
                     origin: 'manual',
                     readings: {manual: {actual_reading: cell.value, read_value: numValue}},
                 };
@@ -965,17 +1012,17 @@ const NO_VENT: VentJson = Object.freeze({
     diameter_m: null,
     width_m: null,
     height_m: null,
-    length_m: null,
+    // Absent, not null (S7-a): a `SpecEntryJson` slot's "not-available" is the key missing.
     // WinISD's default port end correction: TWO FREE ENDS (0.613). The earlier 0.6 matched none
     // of the UI's END_CORRECTION_OPTIONS, so the select rendered blank (BUG_20260912 #10).
     endCorrection_m: 0.613,
 });
 const NO_VENTED_CHAMBER: ChamberJson =
-    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_VENTED_LOSSES});
+    Object.freeze({volume_m3: 0, losses: NO_VENTED_LOSSES});
 const NO_COUPLED_SEALED_CHAMBER =
-    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_COUPLED_SEALED_LOSSES});
+    Object.freeze({volume_m3: 0, losses: NO_COUPLED_SEALED_LOSSES});
 const NO_COUPLED_VENTED_CHAMBER =
-    Object.freeze({volume_m3: 0, tuning_hz: null, losses: NO_COUPLED_VENTED_LOSSES});
+    Object.freeze({volume_m3: 0, losses: NO_COUPLED_VENTED_LOSSES});
 
 /** A box with nothing designed yet — every box type present and inert, matching the
  *  dormant-data rule (the box holds EVERY box type at once and names which is active, rather
@@ -1001,9 +1048,9 @@ export function emptyBoxJson(): OpenISDBoxJson {
         },
         passiveRadiator: {
             volume_m3: 0,
-            tuning_hz: null,
+            // tuning_hz/addedMass_kg absent, not null (S7-a): a `SpecEntryJson` slot's
+            // "not-available" is the key missing.
             count: 1,
-            addedMass_kg: null,
             losses: NO_SEALED_LOSSES,
             component: null,
         },

@@ -22,6 +22,22 @@ import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design
 import { Engine } from '@openisd/design/engine';
 
 /**
+ * Whether `a` is a legacy `SpecEntryJson` — `{origin, readings, ...}`, no `state` key — and `b`
+ * is its loaded shape gaining exactly `state`/`value` (S2-7b, T11: "one value, one flag"). The
+ * gain is checked against the winning reading before this counts as expected, so an ACTUAL
+ * mismatch (wrong value, wrong flag) still falls through to the ordinary key-set/value report.
+ */
+function isExpectedSpecEntryUpgrade(a, b) {
+  if (typeof a !== 'object' || a === null || Array.isArray(a)) return false;
+  if (typeof b !== 'object' || b === null || Array.isArray(b)) return false;
+  if (typeof a.origin !== 'string' || typeof a.readings !== 'object' || a.readings === null) return false;
+  if (!('state' in b) || !('value' in b)) return false;
+  const winning = a.readings[a.origin];
+  const expectedValue = winning && typeof winning === 'object' ? winning.read_value : undefined;
+  return b.state === 'E' && b.value === expectedValue;
+}
+
+/**
  * Deep-compares two JSON-shaped values and returns a slash-separated path string naming the
  * FIRST point they diverge, or `null` if they are identical. Used to report exactly where an
  * openisd.yml round trip went wrong, not merely that it did.
@@ -39,6 +55,15 @@ export function firstDivergence(a, b, path = '$') {
       if (d) return d;
     }
     return null;
+  }
+  // A legacy spec entry gaining `state`/`value` on load (S2-7b) is a documented ONE-TIME GAIN of
+  // information, the same class of exception `maskVCCon` below already makes for `.wdr`'s VCCon
+  // slot — never re-checked past this call, since `read.toOpenIsdDeviceJson()` always re-emits an
+  // entered entry the same way from here on. Everything else about the entry (`origin`,
+  // `readings`, `corroboration`, `dq_scraper`, `dq_calculated`) is still compared, unchanged.
+  if (isExpectedSpecEntryUpgrade(a, b)) {
+    const { state: _state, value: _value, ...bRest } = b;
+    return firstDivergence(a, bRest, path);
   }
   // KEY SET, not key order. Order is the EMITTER's contract — `canonical_yaml`'s
   // `_KEY_PRIORITY_LIST` decides it, and the schema is declared to match — so a record written

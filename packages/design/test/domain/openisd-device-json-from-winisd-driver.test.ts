@@ -38,8 +38,9 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const fs = record.specs.woofer?.Fs_hz;
     assert.ok(fs, 'expected a Fs spec entry');
+    if (fs.state !== 'E') throw new Error('expected an entered entry');
     assert.equal(fs.origin, 'manual');
-    assert.equal(fs.readings.manual?.read_value, 37.5);
+    assert.equal(fs.readings?.manual?.read_value, 37.5);
   });
 
   it('a CALCULATED cell produces no spec entry — a calculated value is never stored', () => {
@@ -70,7 +71,8 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const fs = record.specs.woofer?.Fs_hz;
     assert.ok(fs, 'N+nonzero must produce a spec entry — the mark is unreliable, the value is real');
-    assert.equal(fs.readings.manual?.read_value, 37.5);
+    if (fs.state !== 'E') throw new Error('expected an entered entry');
+    assert.equal(fs.readings?.manual?.read_value, 37.5);
   });
 
   it('Xlim never becomes a spec entry — its cell carries a mark and no real value', () => {

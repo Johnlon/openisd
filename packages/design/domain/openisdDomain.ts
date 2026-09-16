@@ -26,6 +26,7 @@ import {
     calcNumVC,
     enteredWiring,
     enteredEntry,
+    calculatedEntry,
     winningValue,
 } from './openisdSchema.js';
 import {
@@ -33,6 +34,7 @@ import {
     focus,
     nullableField,
     requiredField,
+    entryField,
     Field,
     InputField,
     ReadOnlyCalculatedField,
@@ -101,7 +103,7 @@ export interface FrequencyGrid {
 
 export interface VentedChamber {
     readonly volume_m3: InputField<number>;
-    readonly tuning_hz: InputField<number>;
+    readonly tuning_hz: Field<number>;
     readonly losses: CoupledVentedLosses;
 }
 
@@ -144,7 +146,7 @@ export interface Bandpass4Box {
         /** front = vented; its volume (`Vf`) has a Field readout like every other chamber. */
         readonly front: {
             readonly volume_m3: InputField<number>;
-            readonly tuning_hz: InputField<number>;
+            readonly tuning_hz: Field<number>;
             readonly losses: CoupledVentedLosses;
         };
     };
@@ -342,10 +344,10 @@ class VentWindow implements Vent {
         this.diameter_m = nullableField(lens, 'diameter_m');
         this.width_m = nullableField(lens, 'width_m');
         this.height_m = nullableField(lens, 'height_m');
-        const rawLengthLens = focus(lens, 'length_m');
+        const lengthEntry = entryField(focus(lens, 'length_m'), 'length_m');
         this.length_m = new Field<number>(
             () => {
-                const rawL = rawLengthLens.get();
+                const rawL = lengthEntry.entered ? lengthEntry.value : null;
                 const ventContextFb = ventContext?.getTuningHz() ?? null;
                 const ventContextVb = ventContext?.getVb() ?? null;
                 const solved = this.#engine.solveVentConsistencyGroup({
@@ -362,19 +364,22 @@ class VentWindow implements Vent {
                 if (rawL !== null) {
                     return createCell<number>('', rawL, 'entered', dq ? [dq] : undefined);
                 }
+                // A persisted 'C' entry (S2-7d writes one; nothing does yet) is trusted as-is —
+                // never re-derived out from under a value the solver itself already settled on.
+                if (lengthEntry.calculated && lengthEntry.value != null) {
+                    return createCell<number>('', lengthEntry.value, 'calculated', dq ? [dq] : undefined);
+                }
                 if (solved.length_m != null) {
                     return createCell<number>('', solved.length_m, 'calculated', dq ? [dq] : undefined);
                 }
                 return createCell<number>('', null, 'not-available');
             },
             {
-                entered: (v: number) => rawLengthLens.set(v),
-                clear: () => rawLengthLens.set(null),
-                // S2-7c/d: entry-backed — length_m is a solver-set target (vent tuning/length),
-                // so `calculated` reuses the same write until the record itself carries a C/E
-                // flag for this slot.
-                calculated: (v: number) => rawLengthLens.set(v),
-                dq: () => {},
+                entered: (v: number) => lengthEntry.set(v),
+                clear: () => lengthEntry.clear(),
+                // S2-7d rewires solveVent to call this for real; today nothing does.
+                calculated: (v: number) => lengthEntry.setCalculated(v),
+                dq: (list) => lengthEntry.setDq([...list]),
             },
         );
     }
@@ -427,12 +432,12 @@ class VentWindow implements Vent {
  *  `VentedChamber` names in `box.ts`. */
 class VentedChamberWindow {
     readonly volume_m3: InputField<number>;
-    readonly tuning_hz: InputField<number>;
+    readonly tuning_hz: Field<number>;
     readonly losses: CoupledVentedLosses;
 
     constructor(lens: Lens<CoupledVentedChamberJson>) {
         this.volume_m3 = requiredField(lens, 'volume_m3', 'volume_m3');
-        this.tuning_hz = nullableField(lens, 'tuning_hz');
+        this.tuning_hz = entryField(focus(lens, 'tuning_hz'), 'tuning_hz');
         this.losses = new CoupledVentedLossesWindow(focus(lens, 'losses'));
     }
 }
@@ -580,17 +585,17 @@ class OpenISDBox implements Box {
 
         const ventedLens = focus(lens, 'vented');
         const ventedChamber = focus(ventedLens, 'chamber');
-        const rawVentedTuningLens = focus(ventedChamber, 'tuning_hz');
-        const rawVentLengthLens = focus(focus(ventedLens, 'vent'), 'length_m');
+        const ventedTuningEntry = entryField(focus(ventedChamber, 'tuning_hz'), 'tuning_hz');
+        const ventLengthEntry = entryField(focus(focus(ventedLens, 'vent'), 'length_m'), 'length_m');
         const ventWindow = new VentWindow(focus(ventedLens, 'vent'), engine, air, {
             getVb: () => this.vented.volume_m3.get().value,
-            getTuningHz: () => rawVentedTuningLens.get(),
-            clearTuningHz: () => rawVentedTuningLens.set(null),
+            getTuningHz: () => ventedTuningEntry.entered ? ventedTuningEntry.value : null,
+            clearTuningHz: () => ventedTuningEntry.clear(),
         });
         const ventedTuning = new Field<number>(
             () => {
-                const rawFb = rawVentedTuningLens.get();
-                const rawL = rawVentLengthLens.get();
+                const rawFb = ventedTuningEntry.entered ? ventedTuningEntry.value : null;
+                const rawL = ventLengthEntry.entered ? ventLengthEntry.value : null;
                 const Vb = this.vented.volume_m3.get().value;
                 const solved = this.#engine.solveVentConsistencyGroup({
                     tuning_hz: rawFb ?? undefined,
@@ -606,17 +611,21 @@ class OpenISDBox implements Box {
                 if (rawFb !== null) {
                     return createCell<number>('', rawFb ?? undefined, 'entered', dq ? [dq] : undefined);
                 }
+                // A persisted 'C' entry (S2-7d writes one; nothing does yet) is trusted as-is.
+                if (ventedTuningEntry.calculated && ventedTuningEntry.value != null) {
+                    return createCell<number>('', ventedTuningEntry.value, 'calculated', dq ? [dq] : undefined);
+                }
                 if (solved.tuning_hz != null) {
                     return createCell<number>('', solved.tuning_hz, 'calculated', dq ? [dq] : undefined);
                 }
                 return createCell<number>('', null, 'not-available');
             },
             {
-                entered: (v: number) => rawVentedTuningLens.set(v),
-                clear: () => rawVentedTuningLens.set(null),
-                // S2-7c/d: entry-backed — tuning_hz is a solver-set target (vent tuning/length).
-                calculated: (v: number) => rawVentedTuningLens.set(v),
-                dq: () => {},
+                entered: (v: number) => ventedTuningEntry.set(v),
+                clear: () => ventedTuningEntry.clear(),
+                // S2-7d rewires solveVent to call this for real; today nothing does.
+                calculated: (v: number) => ventedTuningEntry.setCalculated(v),
+                dq: (list) => ventedTuningEntry.setDq([...list]),
             },
         );
         this.vented = {
@@ -655,7 +664,7 @@ class OpenISDBox implements Box {
                 // front's volume is a Field, consistent with the rear chamber.
                 front: {
                     volume_m3: requiredField(bp4Front, 'volume_m3', 'bandpass4.front.volume_m3'),
-                    tuning_hz: nullableField(bp4Front, 'tuning_hz'),
+                    tuning_hz: entryField(focus(bp4Front, 'tuning_hz'), 'tuning_hz'),
                     losses: new CoupledVentedLossesWindow(focus(bp4Front, 'losses')),
                 },
             },
@@ -696,12 +705,12 @@ class OpenISDBox implements Box {
             return new OpenISDPassiveRadiatorEmbedded(prSlot, engine);
         };
         const prVolume = focus(pr, 'volume_m3');
-        const rawPrAddedMassLens = focus(pr, 'addedMass_kg');
-        const rawPrTuningLens = focus(pr, 'tuning_hz');
+        const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg');
+        const prTuningEntry = entryField(focus(pr, 'tuning_hz'), 'tuning_hz');
         const prAddedMass = new Field<number>(
             () => {
-                const rawMass = rawPrAddedMassLens.get();
-                const rawTuning = rawPrTuningLens.get();
+                const rawMass = prAddedMassEntry.entered ? prAddedMassEntry.value : null;
+                const rawTuning = prTuningEntry.entered ? prTuningEntry.value : null;
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
                 const solved = this.#engine.solvePrConsistencyGroup({
                     tuning_hz: rawTuning ?? undefined,
@@ -719,6 +728,10 @@ class OpenISDBox implements Box {
                 if (rawMass !== null) {
                     return createCell<number>('', rawMass ?? undefined, 'entered', dq ? [dq] : undefined);
                 }
+                // A persisted 'C' entry (S2-7d writes one; nothing does yet) is trusted as-is.
+                if (prAddedMassEntry.calculated && prAddedMassEntry.value != null) {
+                    return createCell<number>('', prAddedMassEntry.value, 'calculated', dq ? [dq] : undefined);
+                }
                 if (solved.addedMass_kg != null) {
                     return createCell<number>('', solved.addedMass_kg, 'calculated', dq ? [dq] : undefined);
                 }
@@ -727,21 +740,21 @@ class OpenISDBox implements Box {
             {
                 entered: (v: number) => {
                     const cur = pr.get();
-                    pr.set({ ...cur, addedMass_kg: v, tuning_hz: null });
+                    pr.set({ ...cur, addedMass_kg: enteredEntry(v), tuning_hz: undefined });
                 },
-                clear: () => rawPrAddedMassLens.set(null),
-                // S2-7c/d: entry-backed — addedMass_kg is a solver-set target (PR mass/tuning).
+                clear: () => prAddedMassEntry.clear(),
+                // S2-7d rewires solvePr to call this for real; today nothing does.
                 calculated: (v: number) => {
                     const cur = pr.get();
-                    pr.set({ ...cur, addedMass_kg: v, tuning_hz: null });
+                    pr.set({ ...cur, addedMass_kg: calculatedEntry(v), tuning_hz: undefined });
                 },
-                dq: () => {},
+                dq: (list) => prAddedMassEntry.setDq([...list]),
             },
         );
         const prTuning = new Field<number>(
             () => {
-                const rawTuning = rawPrTuningLens.get();
-                const rawMass = rawPrAddedMassLens.get();
+                const rawTuning = prTuningEntry.entered ? prTuningEntry.value : null;
+                const rawMass = prAddedMassEntry.entered ? prAddedMassEntry.value : null;
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
                 const solved = this.#engine.solvePrConsistencyGroup({
                     tuning_hz: rawTuning ?? undefined,
@@ -759,6 +772,10 @@ class OpenISDBox implements Box {
                 if (rawTuning !== null) {
                     return createCell<number>('', rawTuning ?? undefined, 'entered', dq ? [dq] : undefined);
                 }
+                // A persisted 'C' entry (S2-7d writes one; nothing does yet) is trusted as-is.
+                if (prTuningEntry.calculated && prTuningEntry.value != null) {
+                    return createCell<number>('', prTuningEntry.value, 'calculated', dq ? [dq] : undefined);
+                }
                 if (solved.tuning_hz != null) {
                     return createCell<number>('', solved.tuning_hz, 'calculated', dq ? [dq] : undefined);
                 }
@@ -767,15 +784,15 @@ class OpenISDBox implements Box {
             {
                 entered: (v: number) => {
                     const cur = pr.get();
-                    pr.set({ ...cur, tuning_hz: v, addedMass_kg: null });
+                    pr.set({ ...cur, tuning_hz: enteredEntry(v), addedMass_kg: undefined });
                 },
-                clear: () => rawPrTuningLens.set(null),
-                // S2-7c/d: entry-backed — tuning_hz is a solver-set target (PR mass/tuning).
+                clear: () => prTuningEntry.clear(),
+                // S2-7d rewires solvePr to call this for real; today nothing does.
                 calculated: (v: number) => {
                     const cur = pr.get();
-                    pr.set({ ...cur, tuning_hz: v, addedMass_kg: null });
+                    pr.set({ ...cur, tuning_hz: calculatedEntry(v), addedMass_kg: undefined });
                 },
-                dq: () => {},
+                dq: (list) => prTuningEntry.setDq([...list]),
             },
         );
         this.passiveRadiator = {
@@ -807,7 +824,7 @@ class OpenISDBox implements Box {
                 // only when no radiator is chosen or no volume is set — the interface's own doc.
                 // Solved WITHOUT the stored target, so an unreachable request never drags the value.
                 const solved = this.#engine.solvePrConsistencyGroup({
-                    addedMass_kg: rawPrAddedMassLens.get() ?? 0,
+                    addedMass_kg: (prAddedMassEntry.entered ? prAddedMassEntry.value : null) ?? 0,
                     Vb_m3: Vb ?? undefined,
                     prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
                     prSd_m2: r.spec.Sd_m2.get().value ?? undefined,
@@ -818,8 +835,8 @@ class OpenISDBox implements Box {
                 // an unreachable request shows up as a negative derived mass and flags — the same
                 // DQ every other field in the relation carries.
                 const issues = this.#engine.checkPrConsistency(this.#engine.solvePrConsistencyGroup({
-                    addedMass_kg: rawPrAddedMassLens.get() ?? undefined,
-                    tuning_hz: rawPrTuningLens.get() ?? undefined,
+                    addedMass_kg: (prAddedMassEntry.entered ? prAddedMassEntry.value : null) ?? undefined,
+                    tuning_hz: (prTuningEntry.entered ? prTuningEntry.value : null) ?? undefined,
                     Vb_m3: Vb ?? undefined,
                     prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
                     prSd_m2: r.spec.Sd_m2.get().value ?? undefined,
@@ -856,8 +873,8 @@ class OpenISDBox implements Box {
                 const r = getRadiator();
                 const Vb = prVolume.get() || this.vented.volume_m3.get().value;
                 const solved = this.#engine.solvePrConsistencyGroup({
-                    addedMass_kg: rawPrAddedMassLens.get() ?? undefined,
-                    tuning_hz: rawPrTuningLens.get() ?? undefined,
+                    addedMass_kg: (prAddedMassEntry.entered ? prAddedMassEntry.value : null) ?? undefined,
+                    tuning_hz: (prTuningEntry.entered ? prTuningEntry.value : null) ?? undefined,
                     Vb_m3: Vb ?? undefined,
                     prMmd_kg: r.spec.Mms_kg.get().value ?? undefined,
                     prSd_m2: r.spec.Sd_m2.get().value ?? undefined,

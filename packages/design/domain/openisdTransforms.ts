@@ -4,6 +4,7 @@
 
 import {
     emptyBoxJson,
+    enteredEntry,
     type OpenISDDeviceJson,
     type OpenISDBoxJson,
     type OpenISDProjectJson,
@@ -249,7 +250,7 @@ class VentedProjectBuilder extends BoxProjectBuilder {
                 chamber: {
                     ...box.vented.chamber,
                     volume_m3: BoxProjectBuilder.required(this.#volume, 'vented volume_m3'),
-                    tuning_hz: BoxProjectBuilder.required(this.#tuning, 'vented tuning_hz'),
+                    tuning_hz: enteredEntry(BoxProjectBuilder.required(this.#tuning, 'vented tuning_hz')),
                 },
             },
         };
@@ -294,7 +295,7 @@ class Bandpass4ProjectBuilder extends BoxProjectBuilder {
                 front: {
                     ...box.bandpass4.front,
                     volume_m3: R(this.#frontVolume, 'bandpass4 frontVolume_m3'),
-                    tuning_hz: R(this.#frontTuning, 'bandpass4 frontTuning_hz'),
+                    tuning_hz: enteredEntry(R(this.#frontTuning, 'bandpass4 frontTuning_hz')),
                 },
             },
         };
@@ -344,12 +345,12 @@ class TwoChamberProjectBuilder extends BoxProjectBuilder {
             rear: {
                 ...box[k].rear,
                 volume_m3: R(this.#rearVolume, `${k} rearVolume_m3`),
-                tuning_hz: R(this.#rearTuning, `${k} rearTuning_hz`),
+                tuning_hz: enteredEntry(R(this.#rearTuning, `${k} rearTuning_hz`)),
             },
             front: {
                 ...box[k].front,
                 volume_m3: R(this.#frontVolume, `${k} frontVolume_m3`),
-                tuning_hz: R(this.#frontTuning, `${k} frontTuning_hz`),
+                tuning_hz: enteredEntry(R(this.#frontTuning, `${k} frontTuning_hz`)),
             },
         };
         return {...box, boxType: k, [k]: {...box[k], ...chambers}};
@@ -395,7 +396,7 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
             passiveRadiator: {
                 ...box.passiveRadiator,
                 volume_m3: R(this.#volume, 'passive-radiator volume_m3'),
-                tuning_hz: R(this.#tuning, 'passive-radiator tuning_hz'),
+                tuning_hz: enteredEntry(R(this.#tuning, 'passive-radiator tuning_hz')),
                 count: this.#count,
             },
         };

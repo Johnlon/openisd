@@ -116,7 +116,9 @@ describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto
 
     const record = driver.cloneDriver();
     expect(record.brand.value).toBe('Dayton');
-    expect(record.specs.woofer?.Fs_hz?.origin).toBeDefined();
+    const fs = record.specs.woofer?.Fs_hz;
+    if (fs?.state !== 'E') throw new Error('expected an entered Fs_hz entry');
+    expect(fs.origin).toBeDefined();
   });
 
   it('a write to the driver after the call does not retroactively change the returned record', () => {
@@ -254,8 +256,8 @@ describe('the driver — a window, not a copy', () => {
     const serialized = JSON.stringify(session);
     // Enough surrounding structure that only the actual Fs_hz value can match — not merely the
     // bare digits, which a coincidental id substring could satisfy.
-    expect(serialized).toContain('"Fs_hz":{"origin":"entered","readings":{"entered":{"read_value":35}}}');
-    expect(serialized).not.toContain('"read_value":40');
+    expect(serialized).toContain('"Fs_hz":{"state":"E","value":35}');
+    expect(serialized).not.toContain('"Fs_hz":{"state":"E","value":40}');
   });
 
   it('gives every field a STABLE identity across accesses', () => {
@@ -1472,5 +1474,42 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
     const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });
     expect(result.values).not.toBeNull();
     expect(result.issues).toEqual([]);
+  });
+});
+
+describe('box tuning/length/mass slots load as entries (S2-7b)', () => {
+  function ventedProject() {
+    return OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), new Engine()).vented().volume_m3(0.05).tuning_hz(40).build();
+  }
+
+  /** Round-trips `project` through `.owpr` text with `mutate` applied to the parsed JSON's
+   *  `saved` (and `edited`, when present) sections first — the seam every box-slot-entry test
+   *  below drives a stored JSON shape through. */
+  function reloadWith(project: OpenISDProject, mutate: (box: unknown) => void): OpenISDProject | string[] {
+    const parsed = JSON.parse(project.toOwprText());
+    mutate(parsed.saved.box);
+    if (parsed.edited) mutate(parsed.edited.box);
+    return OpenISDProject.fromOwprText(JSON.stringify(parsed), new Engine());
+  }
+
+  it('a vent length_m entry with state "C" loads as a calculated cell', () => {
+    const back = reloadWith(ventedProject(), (box) => {
+      (box as { vented: { vent: { length_m: unknown } } }).vented.vent.length_m = { state: 'C', value: 0.2 };
+    });
+    if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
+    const cell = back.box.vented.vent.length_m.get();
+    expect(cell.value).toBe(0.2);
+    expect(cell.state).toBe('calculated');
+  });
+
+  it('the legacy null shape for a box entry slot is rejected, not silently accepted', () => {
+    const back = reloadWith(ventedProject(), (box) => {
+      (box as { vented: { vent: { length_m: unknown } } }).vented.vent.length_m = null;
+    });
+    if (!Array.isArray(back)) throw new Error('expected problems, got a project');
+    expect(back.length).toBeGreaterThan(0);
   });
 });
