@@ -317,16 +317,34 @@ this rewrite; see §1 rule "never a duplicated DQ" for the surviving intent.
 |---|---|---|---|---|
 | S1 | **Commit T1/T2/T3 + plan rewrite** | — | — | **DONE (2026-09-16)** — commits `4ef4327`, `9dbc54c`, `f424776`; one commit per task, `[auto]` prefix, never `git add -A` (appendix rule). |
 | S2 | **DONE 2026-09-17** (S2-1..S2-13 in commits `6161b6c`..`4ad463b`; S2-12b pending; sealed cascade deferred — J4). **solve-only unification, handle-style (C5+T9+T10+T11 — the "AFTER" table above)** | `solver.ts`, `consistency.ts`, `params.ts`, `air.ts`, `Engine.ts`, `openisdDomain.ts`, `cell.ts`, `openisdSchema.ts` | per node, RED first | one `solveX(params: <Node>SolverParams, …) → <Node>Issue[]` per node — values written onto the handles into the record (`'C'`), `*SolverQuantities` bags + `.values` result types deleted; one value + C/E flag storage (T11). Detail below. |
-| S3 | **T4 — unsimulated topology message** | `appState.ts` `doSweep` (317): when `!boxTypeIsSimulatable(box)` (473) push `{level:'error', field:'boxType', message:'Not yet implemented — <boxType>'}` into `sweepErrors`. Engine/domain untouched. | `store-issue-channel.test.ts`: a `bandpass6` project's `allIssues` has an `/not yet implemented/i` error (today silently empty); one browser spec asserting chart-area text. | QO145 wording shown; `allIssues` non-empty for `bandpass6`/`abc`. |
-| S4 | **T6 — hardening regression** | tests only (`hardening.test.ts`) | Assert an unsized vent no longer reaches `classifyFinite`'s generic message (T1 catches it first); keep an engine-level net test: `Leff: undefined` still classified. | Both regressions green. |
+| S3 | **Done (2026-09-17, `b56c3e6`)** — `doSweep` reports `Not yet implemented — <boxType>` for bandpass6/abc; store test only (no browser spec — John to decide). **T4 — unsimulated topology message** | `appState.ts` `doSweep` (317): when `!boxTypeIsSimulatable(box)` (473) push `{level:'error', field:'boxType', message:'Not yet implemented — <boxType>'}` into `sweepErrors`. Engine/domain untouched. | `store-issue-channel.test.ts`: a `bandpass6` project's `allIssues` has an `/not yet implemented/i` error (today silently empty); one browser spec asserting chart-area text. | QO145 wording shown; `allIssues` non-empty for `bandpass6`/`abc`. |
+| S4 | **Done (2026-09-17, `e269197`)** — domain guard sentence pinned (not classifyFinite's), engine net pinned with `Leff` absent. **T6 — hardening regression** | tests only (`hardening.test.ts`) | Assert an unsized vent no longer reaches `classifyFinite`'s generic message (T1 catches it first); keep an engine-level net test: `Leff: undefined` still classified. | Both regressions green. |
 | S5 | **T5 — signal data model** (ruled 2026-09-16: `voltage_V` is not part of the data model — see §2) | `openisdSchema.ts:~580`; `openisdDomain.ts` `powerDrive_W` (~2432), `driveVoltage_V`/`statedVoltage_V` (~2471/~2507); `signal.ts#solveSignal` — the V field applies the §4 write-back contract (`setCalculated(value)`
   writes `'C'`; DQ attaches via `setDq`) | One RED per (a)–(e), below | Signal-tab browser spec + store signal tests pass unchanged; V field shows the DQ when the driver has no Re. |
-| S7 | **T8 — projection parity audit** | read-only | none | A parity table appended to this doc: per channel the ONE domain getter that projects its issues onto cell DQ via `issueToText`, or "none". Expected gaps: sealed (none), signal (V-field DQ only, after T5), environment (no Advanced cell reads it). |
+| S7 | **Done (2026-09-17)** — table below. **T8 — projection parity audit** | read-only | none | A parity table appended to this doc: per channel the ONE domain getter that projects its issues onto cell DQ via `issueToText`, or "none". Expected gaps: sealed (none), signal (V-field DQ only, after T5), environment (no Advanced cell reads it). |
 | S9 | **Keep this doc current** | `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md` | — | annotate each step `Done (date)` with a one-line "why/what", as S1–S5 land. |
 
 (S6 — `validateParams()` fate — is **absorbed into S2**: T9 ruling made it part of `solveBoxParams`,
 so there is no separate step. S8 — folding `fieldsNamedBy` into `issueFields` and the editor's
 live-`checkConsistency` call — is **absorbed into S2's text work**.)
+
+### S7 — projection parity table (audited on `a397468`, 2026-09-17)
+
+Per channel: the ONE place its issues become cell DQ text, always through `Engine.issueToText`.
+
+| Channel | Solve | Projection onto cell DQ | Where |
+|---|---|---|---|
+| Driver | `OpenIsdDriverSpec.resolve()` → `solveDriver` | `projectFormulaDq` over the 44 handles (`issueFields` → `setDq([issueToText])`) | `openisdDomain.ts:1072-1073`, helper `:1901-1908` |
+| Vent (vented / bandpass4 front) | project `#resolve` → `solveVent` | `projectGroupDq` — the group's handles share the first issue's sentence | `openisdDomain.ts:~2387`, helper `:1920-1925` |
+| PR | project `#resolve` → `solvePr` | `projectGroupDq` (same) | same |
+| Box params | `solveBoxParams` at sweep time | **none on cells** — store `paramIssues` → `sweepIssueMessage` → `issueToText` (chart area) | `appState.ts` |
+| Environment | `solveEnvironment` at sweep time | **none** — no Advanced cell reads it; issues reach the chart via `SweepIssue` → `sweepIssueMessage` | `sweep.ts` |
+| Sealed alignment | `solveSealedAlignment` (engine only, not in the cascade — J4) | **none** — `q_tc`/`resonance_hz` are lossy readouts | `openisdDomain.ts:~580` |
+| Signal | `solveSignal` at `driveVoltage_V.get()` | V cell only: not-available + `issueToText` when `Re` unknown | S5 (in flight) |
+| Sweep-level (unsized port, PR geometry) | domain guards read `#issues.vent/.pr` | chart area via `sweepErrors` → `sweepIssueMessage` → `issueToText` | `appState.ts:~335` |
+
+Gaps, all expected: sealed (J4), environment (no cell), box params (no cell — the chart message names the field).
+One mechanism everywhere: `issueFields` decides which cells, `issueToText` decides the sentence.
 
 ### Step S2 detail (C5+T9 — the solve-only unification)
 
