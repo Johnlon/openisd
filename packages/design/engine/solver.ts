@@ -20,6 +20,7 @@ import { efficiencyConstant, referenceEfficiency, motorEfficiency, splFromEffici
 import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp, prFsWithMass, sealedFromQtc, sealedQtcFromVolume } from './boxDesign.js';
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
+import type { VentSolverParams } from './solverTypes.js';
 import type { CalculationIssue, SolveRoute } from './consistency.js';
 
 export type VentQuantityName = keyof VentSolverQuantities;
@@ -652,18 +653,41 @@ export function solveVentConsistencyGroup(p: VentSolverQuantities, air: Air): Ve
 /** The vent geometry every route below needs, beside `tuning_hz`/`length_m` themselves. */
 const VENT_GEOMETRY: readonly VentQuantityName[] = Object.freeze(['Vb_m3', 'area_m2']);
 
-export interface VentSolveResult {
-  readonly values: VentSolverQuantities;
-  readonly issues: readonly VentIssue[];
-}
+/** The vent handle solve (T10/T11): derive whichever of `tuning_hz`/`length_m` is not entered,
+ *  write it onto its `SolverField` via `setCalculated`, and return the issues the stated
+ *  values carry. An entered value is never overwritten; an underivable member becomes
+ *  `not-available`. `air` is the project's own resolved `{ rho, c }` — see
+ *  `boxDesign.ts#ventLength`'s doc comment for why that is a parameter here, never a
+ *  reference-condition default. */
+export function solveVent(params: VentSolverParams, air: Air): VentIssue[] {
+  const tuning = params.tuning_hz.value;
+  const length = params.length_m.value;
+  const Vb = params.Vb_m3.value;
+  const area = params.area_m2.value;
+  const endCorrection = params.endCorrection_m.value ?? 0.732;
 
-/** The unified vent solve (C5): solved values and the issues they carry, from one call over the
- *  same entered input — replaces separately calling `solveVentConsistencyGroup` and
- *  `checkVentConsistency`. Issues are computed against the SOLVED set, matching the domain's
- *  and this suite's existing call pattern (`checkVentConsistency(solved)`). */
-export function solveVent(p: VentSolverQuantities, air: Air): VentSolveResult {
-  const values = solveVentConsistencyGroup(p, air);
-  return { values, issues: checkVentConsistency(values) };
+  if (tuning != null && !params.length_m.entered) {
+    if (Vb != null && Vb > 0 && area != null && area > 0 && tuning > 0) {
+      params.length_m.setCalculated(ventLength(Vb, tuning, area, air, endCorrection));
+    } else {
+      params.length_m.setNotAvailable();
+    }
+  } else if (length != null && !params.tuning_hz.entered) {
+    if (Vb != null && Vb > 0 && area != null && area > 0) {
+      params.tuning_hz.setCalculated(tuningFromLength(Vb, length, area, air, endCorrection));
+    } else {
+      params.tuning_hz.setNotAvailable();
+    }
+  }
+
+  const solved: VentSolverQuantities = {
+    tuning_hz: params.tuning_hz.value ?? undefined,
+    length_m: params.length_m.value ?? undefined,
+    Vb_m3: Vb ?? undefined,
+    area_m2: area ?? undefined,
+    endCorrection_m: endCorrection,
+  };
+  return checkVentConsistency(solved);
 }
 
 export function checkVentConsistency(p: VentSolverQuantities): VentIssue[] {

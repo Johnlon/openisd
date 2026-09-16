@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Engine } from '../../engine/index.js';
-import type { VentSolverQuantities, PrSolverQuantities } from '../../engine/index.js';
+import type { VentSolverQuantities, PrSolverQuantities, SolverField } from '../../engine/index.js';
+import { fakeSolverField } from './testSolver.js';
 
 const engine = new Engine();
 const AIR = engine.airFor({});
@@ -39,24 +40,58 @@ describe('Engine.checkVentConsistency — missing-dependencies', () => {
   });
 });
 
-describe('Engine.solveVent — the unified { values, issues } bundle (C5)', () => {
-  it('solves the missing vent member and reports the issues in one call', () => {
-    const result = engine.solveVent({ tuning_hz: 35, Vb_m3: 0.03, area_m2: 0.002 }, AIR);
-    expect(result.values.length_m).toBeGreaterThan(0);
-    expect(result.issues).toEqual([]);
+describe('Engine.solveVent — handle solve, values written onto the params (T10/T11)', () => {
+  function params(p: {
+    tuning_hz?: number; length_m?: number; Vb_m3?: number; area_m2?: number; endCorrection_m?: number;
+  }): { tuning_hz: SolverField; length_m: SolverField; Vb_m3: SolverField; area_m2: SolverField; endCorrection_m: SolverField } {
+    return {
+      tuning_hz: fakeSolverField(p.tuning_hz ?? null),
+      length_m: fakeSolverField(p.length_m ?? null),
+      Vb_m3: fakeSolverField(p.Vb_m3 ?? null),
+      area_m2: fakeSolverField(p.area_m2 ?? null),
+      endCorrection_m: fakeSolverField(p.endCorrection_m ?? null),
+    };
+  }
+
+  it('writes the derived length onto its handle when tuning is stated and the geometry is complete', () => {
+    const p = params({ tuning_hz: 35, Vb_m3: 0.03, area_m2: 0.002 });
+    const issues = engine.solveVent(p, AIR);
+    expect(p.length_m.value).toBeGreaterThan(0);
+    expect(p.length_m.calculated).toBe(true);
+    expect(issues).toEqual([]);
   });
 
-  it('solves tuning_hz when length_m is stated and the geometry is complete', () => {
-    const result = engine.solveVent({ length_m: 0.1, Vb_m3: 0.03, area_m2: 0.002 }, AIR);
-    expect(result.values.tuning_hz).toBeGreaterThan(0);
-    expect(result.issues).toEqual([]);
+  it('writes the derived tuning onto its handle when length is stated', () => {
+    const p = params({ length_m: 0.1, Vb_m3: 0.03, area_m2: 0.002 });
+    const issues = engine.solveVent(p, AIR);
+    expect(p.tuning_hz.value).toBeGreaterThan(0);
+    expect(p.tuning_hz.calculated).toBe(true);
+    expect(issues).toEqual([]);
   });
 
-  it('reports the blocked member as a missing dependency when the geometry is not yet stated', () => {
-    const result = engine.solveVent({ tuning_hz: 35 }, AIR);
-    expect(result.values.length_m).toBeUndefined();
-    expect(result.issues).toHaveLength(1);
-    expect(result.issues[0]).toMatchObject({ kind: 'missing-dependencies', target: 'length_m' });
+  it('never overwrites a stated value, even when the other member is also stated', () => {
+    const p = params({ tuning_hz: 35, length_m: 111111, Vb_m3: 0.03, area_m2: 0.002 });
+    const issues = engine.solveVent(p, AIR);
+    expect(p.length_m.value).toBe(111111);
+    expect(p.length_m.entered).toBe(true);
+    expect(issues).toEqual([]);
+  });
+
+  it('leaves the blocked target not-available and reports the missing geometry', () => {
+    const p = params({ tuning_hz: 35 });
+    const issues = engine.solveVent(p, AIR);
+    expect(p.length_m.value).toBeNull();
+    expect(p.length_m.notAvailable).toBe(true);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ kind: 'missing-dependencies', target: 'length_m' });
+  });
+
+  it('reports no issue when no target is stated — no target chosen yet', () => {
+    const p = params({ Vb_m3: 0.03, area_m2: 0.002 });
+    const issues = engine.solveVent(p, AIR);
+    expect(p.length_m.value).toBeNull();
+    expect(p.tuning_hz.value).toBeNull();
+    expect(issues).toEqual([]);
   });
 });
 

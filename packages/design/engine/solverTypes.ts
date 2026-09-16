@@ -25,6 +25,17 @@ export interface SolverField<T = number> {
   setNotAvailable(): void;
 }
 
+/** A `SolverField` handle for every vent quantity. Pass this to `solveVent` — the solve
+ *  derives whichever of `tuning_hz`/`length_m` is not entered and writes it back via
+ *  `setCalculated`, never overwriting an entered value. */
+export interface VentSolverParams {
+  tuning_hz: SolverField;
+  length_m: SolverField;
+  Vb_m3: SolverField;
+  area_m2: SolverField;
+  endCorrection_m: SolverField;
+}
+
 /** A `SolverField` handle for every driver T/S quantity. Pass this directly to
  *  `solveDriverConsistencyGroup` — no positional args, no intermediate dict. */
 export interface DriverSolverParams {

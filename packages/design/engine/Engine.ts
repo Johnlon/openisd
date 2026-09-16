@@ -3,8 +3,8 @@
  * The surface of the engine is the set of methods needed by the project.
  */
 
-import { airFor, environmentIssues } from './air.js';
-import type { Air, AirEnvironment, EnvironmentIssue } from './air.js';
+import { airFor, environmentIssues, solveEnvironment } from './air.js';
+import type { Air, AirEnvironment, EnvironmentIssue, EnvironmentSolveResult } from './air.js';
 import {
   ebp, ebpSuitability, closestSealedAlignment, prTuning, findImpedancePeak, prMassForFp,
   sealedAlignmentOptions, sealedFromQtc, sealedQtcFromVolume, tuningFromLength, ventLength,
@@ -35,7 +35,8 @@ import type { SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 
 import type { Wiring } from './types.js';
 import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
-import type { VentQuantityName, VentIssue, VentSolveResult, PrQuantityName, PrIssue, PrSolveResult, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
+import type { VentSolverParams } from './solverTypes.js';
+import type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, PrSolveResult, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
 import type { DriverIssue, DriverSolveResult, CalculationIssue } from './consistency.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, EbpSuitability, EnclosureParams, MaxCurvesResult, SealedAlignmentOption, SweepParams, SweepResult } from './types.js';
@@ -60,6 +61,14 @@ export class Engine {
    *  so a caller wanting just `{ rho, c }` is not forced to also read an issues array. */
   environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
     return environmentIssues(env);
+  }
+
+  /** The one environment call to reach for: the resolved `{ rho, c }` and any issue its stated
+   *  conditions carry — one `{ values, issues }` bundle (C5). Replaces separately calling
+   *  `airFor` and `environmentIssues`, which could be handed different arguments and so describe
+   *  two different environments. */
+  solveEnvironment(env: AirEnvironment): EnvironmentSolveResult {
+    return solveEnvironment(env);
   }
 
   // ── THE DRIVER ────────────────────────────────────────────────────────────────────────────
@@ -136,14 +145,12 @@ export class Engine {
     return checkVentConsistency(p);
   }
 
-  /** The one vent call to reach for: whichever of tuning/length the caller did not state,
-   *  solved, and the issues its stated values carry — one `{ values, issues }` bundle (C5).
+  /** The one vent call to reach for (T10/T11): whichever of tuning/length is not entered is
+   *  derived and written onto its `SolverField` handle, and the issues follow right back.
    *  `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
-   *  comment. Replaces separately calling `solveVentConsistencyGroup` and
-   *  `checkVentConsistency`, which could be handed different arguments and so describe two
-   *  different vents. */
-  solveVent(p: VentSolverQuantities, air: Air): VentSolveResult {
-    return solveVent(p, air);
+   *  comment. Entered values are never overwritten. */
+  solveVent(params: VentSolverParams, air: Air): VentIssue[] {
+    return solveVent(params, air);
   }
 
   /** Solve the sealed-alignment group: whichever of target-`Qtc`/`Vb_m3` the caller did not
