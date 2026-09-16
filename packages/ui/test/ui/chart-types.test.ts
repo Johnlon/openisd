@@ -19,7 +19,7 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '@openisd/design/engine';
-import type { SweepParams } from '@openisd/design/engine';
+import type { SweepParams, DriverSolverParams, SolverField } from '@openisd/design/engine';
 import { TABS, TAB_META, parseChartTabId, seriesFor } from '../../src/logic/series.js';
 import type { ChartTabId, PlotParams } from '../../src/types.js';
 
@@ -27,12 +27,50 @@ const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
   Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
 };
+
+/** A writable `SolverField` test double (mirrors `packages/design/test/engine/testSolver.ts`'s
+ *  own `fakeSolverField`, not importable here — that lives under `packages/design/test/`, not
+ *  the published package). `entered` for a stated value, so `Engine.solveDriver()` leaves it
+ *  alone; absent starts `not-available` and the solve fills it via `setCalculated`. */
+function fakeField<T>(value: T | null): SolverField<T> {
+  let current: T | null = value;
+  let state: 'entered' | 'calculated' | 'not-available' = value === null ? 'not-available' : 'entered';
+  return {
+    get value() { return current; },
+    get entered() { return state === 'entered'; },
+    get calculated() { return state === 'calculated'; },
+    get notAvailable() { return state === 'not-available'; },
+    get dq() { return [] as string[]; },
+    setCalculated(v: T) { current = v; state = 'calculated'; },
+    setDq() {},
+    setNotAvailable() { current = null; state = 'not-available'; },
+  };
+}
+
 // The solver derives what the stated values imply, terminal Re/BL included — there is no
 // separate derive-and-validate step, and `sweep` is what reports a driver it cannot use.
-const DRV = new Engine().solveConsistencyGroup({
-  Fs_hz: RAW.Fs, Qts: RAW.Qts, Qes: RAW.Qes, Qms: RAW.Qms, Vas_m3: RAW.Vas,
-  Sd_m2: RAW.Sd, Re_ohm: RAW.Re, Xmax_m: RAW.Xmax, Pe_W: RAW.Pe, Znom_ohm: RAW.Znom,
-});
+// S2-10: `Engine.sweep()`/`maxCurves()` now take handles (`DriverSolverParams`), so the stated
+// RAW values are seeded as entered fields, `solveDriver()` fills in everything it can derive
+// (writing back via `setCalculated`), and the same handle set is then handed to `sweep()` — no
+// intermediate bag anywhere.
+const driverParams: DriverSolverParams = {
+  Fs_hz: fakeField(RAW.Fs), Re_ohm: fakeField(RAW.Re), Znom_ohm: fakeField(RAW.Znom),
+  Le_H: fakeField(RAW.Le), fLe_hz: fakeField<number>(null), KLe_H_sqrtHz: fakeField<number>(null),
+  Qes: fakeField(RAW.Qes), Qms: fakeField(RAW.Qms), Qts: fakeField(RAW.Qts), Vas_m3: fakeField(RAW.Vas),
+  Sd_m2: fakeField(RAW.Sd), Dd_m: fakeField<number>(null), BL_Tm: fakeField<number>(null), Mms_kg: fakeField<number>(null),
+  Cms_m_per_N: fakeField<number>(null), Rms_kg_per_s: fakeField<number>(null), EBP_hz: fakeField<number>(null),
+  Xmax_m: fakeField(RAW.Xmax), Vd_m3: fakeField<number>(null), Hc_m: fakeField<number>(null), Hg_m: fakeField<number>(null),
+  Pe_W: fakeField(RAW.Pe), no: fakeField<number>(null), SPLref_dB: fakeField<number>(null), SPL_dB: fakeField<number>(null),
+  USPL_dB: fakeField<number>(null), SPLmax_dB: fakeField<number>(null), SPLmaxLF_dB: fakeField<number>(null),
+  Rme_kg_per_s: fakeField<number>(null), Mpow_N_per_sqrtW: fakeField<number>(null), Mcost_kg_per_s: fakeField<number>(null),
+  gamma_m_per_s2_A: fakeField<number>(null), Gloss: fakeField<number>(null), Vcd_m: fakeField<number>(null), Depth_m: fakeField<number>(null),
+  MagDepth_m: fakeField<number>(null), Magnet_m: fakeField<number>(null), DVol_m3: fakeField<number>(null),
+  c_m_per_s: fakeField<number>(null), roo_kg_per_m3: fakeField<number>(null),
+  Re_terminal_ohm: fakeField<number>(null), BL_terminal_Tm: fakeField<number>(null), numVC: fakeField<number>(null),
+  wiring: fakeField('parallel'),
+};
+new Engine().solveDriver(driverParams, new Engine().solveEnvironment({}).values);
+const DRV = driverParams;
 const LE_H = 0.70e-3;
 
 const SP: SweepParams = {

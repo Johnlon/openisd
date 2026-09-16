@@ -566,7 +566,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   onUnmounted(stopNudge);
 
   const currentDesign = computed(() => ({
-    driver: project.value.driver.solveConsistencyGroup(), box: project.value.box.boxType.get(), P: syncedP.value,
+    driver: project.value.driver.solverParams, box: project.value.box.boxType.get(), P: syncedP.value,
     curves: curvesData.value, maxCurves: maxData.value ?? undefined, name: 'Current', color: WINISD_TRACE.value,
     visible: isRowVisible(project.value),
   }));
@@ -712,10 +712,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Signal tab: drive voltage = √(Pin × Re) per driver ------------------------
   const driveV = computed<number>({
-    get: () => { void projectChanged.value; void project.value; return driveVoltageFor(project.value.powerDrive_W.value ?? 1, project.value.driver.solveConsistencyGroup().Re_ohm || DEFAULT_RE_OHM); },
+    get: () => { void projectChanged.value; void project.value; return driveVoltageFor(project.value.powerDrive_W.value ?? 1, project.value.driver.ts.Re_ohm.value || DEFAULT_RE_OHM); },
     set: (v) => {
       if (v == null) { project.value.statedVoltage_V.clear(); return; }
-      project.value.setPowerDrive_W((v * v) / (project.value.driver.solveConsistencyGroup().Re_ohm || DEFAULT_RE_OHM));
+      project.value.setPowerDrive_W((v * v) / (project.value.driver.ts.Re_ohm.value || DEFAULT_RE_OHM));
     },
   });
   // Series resistance — read through `projectChanged` so a typed value sticks.

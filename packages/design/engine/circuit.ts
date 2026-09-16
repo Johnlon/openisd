@@ -27,11 +27,10 @@
  */
 
 
-import { airFor } from './air.js';
+import { solveEnvironment } from './air.js';
 import { hotRe } from './solver.js';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cScale, cPar, cTanh } from './complex.js';
 import type { Complex, BoxType, SweepParams, Solution } from './types.js';
-import type { DriverSolverQuantities } from './solverQuantities.js';
 
 export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): number {
   return w * Map / (P.Qp || 100);
@@ -63,7 +62,7 @@ export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): nu
  */
 export function portImpedance(w: number, P: SweepParams): Complex {
   const Sp = P.Sp!, Leff = P.Leff!;
-  const { rho, c } = airFor(P);
+  const { rho, c } = solveEnvironment(P).values;
 
   const Map = rho * Leff / Sp, Rap = portLoss(w, Map, P);
   if (!P.tlPortModel) return cAdd(cx(Rap, 0), cx(0, w * Map));
@@ -89,11 +88,18 @@ export function portImpedance(w: number, P: SweepParams): Complex {
  */
 /** The quantities the circuit CANNOT run without, every one required — measured, not declared:
  *  each is read unguarded below. `Le_H` is the only optional one, and absent means 0 H (no
- *  inductor specified), never unknown. Built from `DriverSolverQuantities` so the two cannot drift. */
-export interface CircuitQuantities extends Required<Pick<DriverSolverQuantities, 'Sd_m2' | 'Re_terminal_ohm' | 'BL_terminal_Tm' | 'Cms_m_per_N' | 'Mms_kg' | 'Rms_kg_per_s'>> {
-    /** Voice-coil inductance. The ONLY optional member, and the only quantity here that is not a
-     *  solver quantity — absent means no inductor specified, i.e. 0 H, never unknown. It affects
-     *  the impedance plot alone (`Zcoil` below), which is why a driver without it still sweeps. */
+ *  inductor specified), never unknown. Six named members, not a `Pick` over the driver's own bag
+ *  (S2-10 — that bag is gone; a circuit is not a driver and does not need its whole shape). */
+export interface CircuitQuantities {
+    Sd_m2: number;
+    Re_terminal_ohm: number;
+    BL_terminal_Tm: number;
+    Cms_m_per_N: number;
+    Mms_kg: number;
+    Rms_kg_per_s: number;
+    /** Voice-coil inductance. The ONLY optional member — absent means no inductor specified,
+     *  i.e. 0 H, never unknown. It affects the impedance plot alone (`Zcoil` below), which is
+     *  why a driver without it still sweeps. */
     Le_H?: number;
 }
 
@@ -104,7 +110,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const eg     = P.eg;
   const Sdt    = drv.Sd_m2 * n;
 
-  const { rho, c } = airFor(P);
+  const { rho, c } = solveEnvironment(P).values;
 
   // Voice coil impedance — two variants matching WinISD's model split:
   //   ZcoilAC: resistive only (Le excluded) — used for acoustic circuit (SPL, GD, excursion)

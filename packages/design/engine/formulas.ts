@@ -4,9 +4,9 @@
  * voltage).
  *
  * Air properties (ρ, c) are NOT here: they belong to `air.ts`, which the UI, the sweep and
- * the circuit all call through `airFor`.
+ * the circuit all call through `solveEnvironment`.
  */
-import { airFor } from './air.js';
+import { solveEnvironment } from './air.js';
 
 /**
  * Passive-radiator compliance-equivalent volume Vas, in CUBIC METRES.
@@ -14,7 +14,7 @@ import { airFor } from './air.js';
  * the reference environment — never a stored constant.
  */
 export function prVas(prCms: number, prSd: number): number {
-  const {rho, c} = airFor({});
+  const {rho, c} = solveEnvironment({}).values;
   return prCms * prSd * prSd * rho * c * c;
 }
 
@@ -64,7 +64,7 @@ export function driveFromVoltage(eg: number, re: number): number {
  */
 export function prCmsFromVas(prVas_m3: number, prSd: number): number {
   if (!(prSd > 0)) return 0;
-  const {rho, c} = airFor({});
+  const {rho, c} = solveEnvironment({}).values;
   return prVas_m3 / (prSd * prSd * rho * c * c);
 }
 

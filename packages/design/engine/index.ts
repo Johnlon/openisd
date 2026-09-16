@@ -21,10 +21,8 @@ export {
   MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K,
 } from './air.js';
 export type { Air, AirEnvironment, AirConstantProvider, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
-export type { CalculationIssue, SolveRoute, DriverQuantityName, DriverIssue } from './consistency.js';
-export type {
-  SweepOutputName, CalculationPrerequisite, DriverPrerequisite,
-} from './consistency.js';
+export type { CalculationIssue, SolveRoute } from './consistency.js';
+export type { SweepOutputName, CalculationPrerequisite } from './consistency.js';
 export type {
   BoxType, SimulatableBoxType, DriverError, EbpSuitability, Filter, FilterType, MaxCurvesResult,
   SealedAlignmentOption, Wiring,
@@ -33,14 +31,10 @@ export type {
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
 export type { SignalSolverQuantities, SignalQuantityName, SignalIssue, SignalSolveResult } from './signal.js';
 export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
-export type { VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue } from './solver.js';
-export type { SealedAlignmentSolverQuantities } from './solverQuantities.js';
-// What the solver is GIVEN and what it RETURNS, which are one shape. A TYPE export: nothing
-// constructs a `DriverSolverQuantities` — a caller writes an object literal and the solver hands one
-// back — so exporting the class as a VALUE would put a constructor on the engine's surface that
-// no consumer has ever called. The quantity-name list stays inside the engine: it exists for the
-// two internal loops, not for consumers.
-export type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities } from './solverQuantities.js';
+export type {
+  DriverQuantityName, DriverIssue, DriverPrerequisite,
+  VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue,
+} from './solver.js';
 // The field-provenance vocabulary `Cell`/`Field` state in the domain: `SolverField` is the
 // interface a domain field implements for the solver, and `FieldState` is what `Cell.state`
 // reports. The domain imports these through the door, never a solverTypes subpath.

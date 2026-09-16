@@ -1,5 +1,5 @@
 import { Engine } from '@openisd/design/engine';
-import type { DriverSolverQuantities, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/design/engine';
+import type { DriverSolverParams, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/design/engine';
 import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
@@ -59,7 +59,7 @@ interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boo
 /** Everything a curve builder may read. */
 interface CurveCtx {
   meta: TabMeta;
-  drv: DriverSolverQuantities;
+  drv: DriverSolverParams;
   box: BoxType;
   P: PlotParams;
   sw: SweepResult;
@@ -124,7 +124,8 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     const series: Series[] = [{ ...pick(sw.exc), color: meta.color, name: 'Cone' }];
     // Xmax limit line — omitted when Xmax is absent (the cone curve stays reliable;
     // the missing line is surfaced to the user as a dismissable issue elsewhere).
-    const xm = drv.Xmax_m! > 0 ? drv.Xmax_m! * 1000 : null;
+    const drvXmax_m = drv.Xmax_m.value;
+    const xm = drvXmax_m != null && drvXmax_m > 0 ? drvXmax_m * 1000 : null;
     if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
     let top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
     if (box === 'box-passive-radiator') {
@@ -140,7 +141,8 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     if (box !== 'vented' && box !== 'bandpass4')
       return { series: [{ xs: sw.fs, ys: sw.fs.map(() => 0), color: meta.color, name: 'n/a' }], ymin: 0, ymax: 1 };
     const series: Series[] = [{ ...pick(sw.pv), color: meta.color, name: 'Port vel' }];
-    const machLimit = 0.05 * new Engine().airFor({}).c;
+    // FIXME - magic number - what is 0.05 representing?
+    const machLimit = 0.05 * new Engine().solveEnvironment({}).values.c;
     series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
     return { series, ymin: 0, ymax: Math.max(20, Math.max(...sw.pv) * 1.1) };
   },
@@ -154,7 +156,9 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
   Zmag: ({ meta, sw, pick }) => ({
     series: [{ ...pick(sw.zmag), color: meta.color, name: '|Z|' }],
     logy: true,
+    // FIXME - Magic number
     ymin: Math.max(1, Math.min(...sw.zmag) * 0.9),
+    // FIXME - Magic number
     ymax: Math.max(...sw.zmag) * 1.15,
   }),
 
@@ -179,8 +183,10 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     const real = realDb(mx.maxspl);
     const mx2 = real.length ? Math.max(...real) : 0;
     const lo  = real.length ? Math.min(...real) : mx2 - 40;
+    // FIXME - Magic number
     const ymax = Math.ceil(mx2 / 5) * 5;
     // Fit the bottom of the curve fully into frame, keeping at least a 40 dB window.
+    // FIXME - Magic number
     const ymin = Math.min(ymax - 40, Math.floor((lo - 3) / 5) * 5);
     if (mx.xlim && !mx.peAbsent) {
       // Phantom legend entries replace the generic "Max SPL" label when both limits apply.
@@ -244,7 +250,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
 };
 
 export function seriesFor(tabId: ChartTabId,
-                          drv: DriverSolverQuantities,
+                          drv: DriverSolverParams,
                           box: BoxType,
                           P: PlotParams,
                           sw: SweepResult,

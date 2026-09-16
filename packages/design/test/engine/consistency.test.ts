@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { Engine } from '../../engine/index.js';
-import type { DriverSolverQuantities, DriverSolverParams, SolverField } from '../../engine/index.js';
-import { fakeSolverField } from './testSolver.js';
+import type { DriverSolverParams, SolverField } from '../../engine/index.js';
+import { fakeSolverField, checkConsistency } from './testSolver.js';
+import type { TestSolverQuantities } from './testSolver.js';
 
 const engine = new Engine();
-// Deliberately NOT the reference condition (`engine.airFor({})`): `solveConsistencyGroup`'s own
+// Deliberately NOT the reference condition (`engine.solveEnvironment({}).values`): `solveConsistencyGroup`'s own
 // internal driverC/driverRho fallback already defaults to reference air on its own, so a test
 // using reference air here would pass even if `solveDriver` never threaded `air` through at all.
-const AIR = engine.airFor({ tempK: 350 });
+const AIR = engine.solveEnvironment({ tempK: 350 }).values;
 
 function fakeWiringField(value: 'series' | 'parallel' | null): SolverField<'series' | 'parallel'> {
   let current = value;
@@ -57,13 +58,13 @@ describe('Engine.checkConsistency', () => {
   it('returns no issues for a self-consistent driver', () => {
     const Qes = 0.4, Qms = 3.0;
     const Qts = (Qes * Qms) / (Qes + Qms);
-    const issues = engine.checkConsistency({ Qts, Qes, Qms });
+    const issues = checkConsistency({ Qts, Qes, Qms });
     expect(issues).toEqual([]);
   });
 
   it('reports an inconsistent-inputs issue when Qts contradicts Qes/Qms', () => {
     const Qes = 0.4, Qms = 3.0;
-    const issues = engine.checkConsistency({ Qts: 7.5, Qes, Qms });
+    const issues = checkConsistency({ Qts: 7.5, Qes, Qms });
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({
       kind: 'inconsistent-inputs',
@@ -74,7 +75,7 @@ describe('Engine.checkConsistency', () => {
   });
 
   it('reports a missing-dependencies issue for Qts when fewer than two of Qts/Qes/Qms are stated', () => {
-    const issues = engine.checkConsistency({ Qes: 0.4 });
+    const issues = checkConsistency({ Qes: 0.4 });
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({
       kind: 'missing-dependencies',
@@ -104,7 +105,7 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
     const issues = engine.solveDriver(p, AIR);
     expect(p.Qts.value).toBe(7.5);
     expect(p.Qts.entered).toBe(true);
-    expect(issues).toEqual(engine.checkConsistency({ Qts: 7.5, Qes, Qms }));
+    expect(issues).toEqual(checkConsistency({ Qts: 7.5, Qes, Qms }));
   });
 
   it('leaves an underivable non-entered field not-available', () => {
@@ -115,10 +116,10 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
   });
 
   it('returns the same issues checkConsistency would for the same entered numbers', () => {
-    const input: DriverSolverQuantities = { Qes: 0.4 };
+    const input: TestSolverQuantities = { Qes: 0.4 };
     const p = driverParams({ Qes: 0.4 });
     const issues = engine.solveDriver(p, AIR);
-    expect(issues).toEqual(engine.checkConsistency(input));
+    expect(issues).toEqual(checkConsistency(input));
   });
 
   it('a not-entered c_m_per_s defaults to the given air and is written back as calculated', () => {

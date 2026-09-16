@@ -6,8 +6,8 @@ const engine = new Engine();
 // Two genuinely different air conditions — reference (20 °C) vs. a hot, humid one — so any
 // function reading `air` must give a DIFFERENT answer for the two, and the reference case must
 // match what the function gave before it took `air` explicitly (regression safety).
-const REFERENCE_AIR = engine.airFor({});
-const HOT_AIR = engine.airFor({ tempK: 313.15, humidityPct: 90, pressurePa: 95000 });
+const REFERENCE_AIR = engine.solveEnvironment({}).values;
+const HOT_AIR = engine.solveEnvironment({ tempK: 313.15, humidityPct: 90, pressurePa: 95000 }).values;
 
 describe('boxDesign air-sensitivity — ventLength/tuningFromLength/prTuning/prMassForFp', () => {
   it('ventLength gives a different length at a non-reference air pair', () => {

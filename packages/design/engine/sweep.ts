@@ -20,9 +20,9 @@ import { withAddedMass } from './solver.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { applyFilters } from './filters.js';
 import type { BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
-import type { DriverSolverQuantities } from './solverQuantities.js';
+import type { DriverSolverParams } from './solverTypes.js';
 import type { CircuitQuantities } from './circuit.js';
-import type { DriverQuantityName, DriverIssue, DriverPrerequisite } from './consistency.js';
+import type { DriverQuantityName, DriverIssue, DriverPrerequisite } from './solver.js';
 import type { EnvironmentIssue } from './air.js';
 import type { BoxParamsIssue } from './params.js';
 import type { VentIssue, PrIssue } from './solver.js';
@@ -188,7 +188,36 @@ const CIRCUIT_REQUIRED_FIELDS: readonly DriverQuantityName[] = Object.freeze([
  * yields an infinite `Cms_m_per_N`, which is not a driver) is reported the same way as absent:
  * either way the user's actual next step is "state a valid `<field>`".
  */
-function circuitQuantities(q: DriverSolverQuantities, Le_H: number | undefined): { value: CircuitQuantities | null; issues: DriverIssue[] } {
+/** `drv`'s 44 handles, read into a plain bag once — the one conversion point `sweep()` needs:
+ *  `withAddedMass` (a pure mass-shift transform) and `circuitQuantities` both work over plain
+ *  numbers, never over the `SolverField` handle machinery itself. No type name crosses this
+ *  boundary — `withAddedMass`'s own working-set type is private to `solver.ts` (S2-10), and
+ *  this object's shape is checked structurally against it at the call site below. */
+function driverValues(drv: DriverSolverParams) {
+  return {
+    Fs_hz: drv.Fs_hz.value ?? undefined, Re_ohm: drv.Re_ohm.value ?? undefined,
+    Znom_ohm: drv.Znom_ohm.value ?? undefined, Le_H: drv.Le_H.value ?? undefined,
+    fLe_hz: drv.fLe_hz.value ?? undefined, KLe_H_sqrtHz: drv.KLe_H_sqrtHz.value ?? undefined,
+    Qes: drv.Qes.value ?? undefined, Qms: drv.Qms.value ?? undefined, Qts: drv.Qts.value ?? undefined,
+    Vas_m3: drv.Vas_m3.value ?? undefined, Sd_m2: drv.Sd_m2.value ?? undefined, Dd_m: drv.Dd_m.value ?? undefined,
+    BL_Tm: drv.BL_Tm.value ?? undefined, Mms_kg: drv.Mms_kg.value ?? undefined,
+    Cms_m_per_N: drv.Cms_m_per_N.value ?? undefined, Rms_kg_per_s: drv.Rms_kg_per_s.value ?? undefined,
+    EBP_hz: drv.EBP_hz.value ?? undefined, Xmax_m: drv.Xmax_m.value ?? undefined, Vd_m3: drv.Vd_m3.value ?? undefined,
+    Hc_m: drv.Hc_m.value ?? undefined, Hg_m: drv.Hg_m.value ?? undefined, Pe_W: drv.Pe_W.value ?? undefined,
+    no: drv.no.value ?? undefined, SPLref_dB: drv.SPLref_dB.value ?? undefined, SPL_dB: drv.SPL_dB.value ?? undefined,
+    USPL_dB: drv.USPL_dB.value ?? undefined, SPLmax_dB: drv.SPLmax_dB.value ?? undefined,
+    SPLmaxLF_dB: drv.SPLmaxLF_dB.value ?? undefined, Rme_kg_per_s: drv.Rme_kg_per_s.value ?? undefined,
+    Mpow_N_per_sqrtW: drv.Mpow_N_per_sqrtW.value ?? undefined, Mcost_kg_per_s: drv.Mcost_kg_per_s.value ?? undefined,
+    gamma_m_per_s2_A: drv.gamma_m_per_s2_A.value ?? undefined, Gloss: drv.Gloss.value ?? undefined,
+    Vcd_m: drv.Vcd_m.value ?? undefined, Depth_m: drv.Depth_m.value ?? undefined, MagDepth_m: drv.MagDepth_m.value ?? undefined,
+    Magnet_m: drv.Magnet_m.value ?? undefined, DVol_m3: drv.DVol_m3.value ?? undefined,
+    c_m_per_s: drv.c_m_per_s.value ?? undefined, roo_kg_per_m3: drv.roo_kg_per_m3.value ?? undefined,
+    Re_terminal_ohm: drv.Re_terminal_ohm.value ?? undefined, BL_terminal_Tm: drv.BL_terminal_Tm.value ?? undefined,
+    numVC: drv.numVC.value ?? undefined, wiring: drv.wiring.value ?? undefined,
+  };
+}
+
+function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined): { value: CircuitQuantities | null; issues: DriverIssue[] } {
   const issues: DriverIssue[] = [];
   for (const field of CIRCUIT_REQUIRED_FIELDS) {
     const v = q[field];
@@ -209,10 +238,10 @@ function circuitQuantities(q: DriverSolverQuantities, Le_H: number | undefined):
   };
 }
 
-export function sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
+export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
   // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
   // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
-  const d = withAddedMass(drv, P.driverAddedMass ?? 0);
+  const d = withAddedMass(driverValues(drv), P.driverAddedMass ?? 0);
   const circuit = circuitQuantities(d, Le_H);
   if (circuit.value === null) return { values: null, issues: circuit.issues };
   const cq = circuit.value;
@@ -287,7 +316,8 @@ export function sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box
   // frequency before the cone runs out of linear travel. Computed unconditionally as its
   // OWN curve: `spl` still feeds the transfer-function chart, the F3/F6/F10 read-outs and
   // every compare trace, so it must never be clamped in place.
-  const Xmax = (drv.Xmax_m != null && Number.isFinite(drv.Xmax_m) && drv.Xmax_m > 0) ? drv.Xmax_m : null;
+  const drvXmax_m = drv.Xmax_m.value;
+  const Xmax = (drvXmax_m != null && Number.isFinite(drvXmax_m) && drvXmax_m > 0) ? drvXmax_m : null;
   const splXlimCurve: number[] = [], xlimited: boolean[] = [];
   for (let i = 0; i < fs.length; i++) {
     const xPeak = exc[i] / 1000;                                  // exc is mm; Xmax is metres
@@ -337,21 +367,23 @@ export function classifyFlatClamp(sw: SweepResult): DriverError | null {
  * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
  *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
+export function maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
   const swept = sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83 }));
   if (swept.values === null) return { values: null, issues: swept.issues, driverPrerequisites: [] };
   const base = swept.values;
-  const Pe   = (drv.Pe_W != null && drv.Pe_W > 0) ? drv.Pe_W * (P.nDrivers || 1) : null;
+  const drvPe_W = drv.Pe_W.value;
+  const Pe   = (drvPe_W != null && drvPe_W > 0) ? drvPe_W * (P.nDrivers || 1) : null;
   // The power reference is Re, not Znom — and the TERMINAL Re, because the amplifier drives the
   // coils as they are wired. `sweep` above already refused a driver without it, so this is a
   // narrowing, not an assumption.
-  const Re   = drv.Re_terminal_ohm;
+  const Re   = drv.Re_terminal_ohm.value ?? undefined;
   if (Re === undefined) return { values: null, issues: swept.issues, driverPrerequisites: [] };
-  const xmaxUsable = drv.Xmax_m != null && drv.Xmax_m > 0;
+  const drvXmax_m = drv.Xmax_m.value;
+  const xmaxUsable = drvXmax_m != null && drvXmax_m > 0;
   const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];
   for (let i = 0; i < base.fs.length; i++) {
     const excAt283 = base.exc[i] / 1000;
-    const vXmax = (excAt283 > 0 && xmaxUsable) ? 2.83 * (drv.Xmax_m! / excAt283) : Infinity;
+    const vXmax = (excAt283 > 0 && xmaxUsable) ? 2.83 * (drvXmax_m! / excAt283) : Infinity;
     const vPe   = Pe != null ? Math.sqrt(Pe * Re) : Infinity;
     const vUse  = Math.min(vXmax, vPe);
     maxspl.push(base.spl[i] + 20 * Math.log10(vUse / 2.83));

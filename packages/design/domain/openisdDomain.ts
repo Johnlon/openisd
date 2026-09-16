@@ -47,14 +47,14 @@ import {
 } from './cell.js';
 import {newUuid} from './newUuid.js';
 import {realAppContext, type AppContext} from './appContext.js';
-import {type Air, type AirConstantProvider, type DriverSolverParams, type SolverField, Engine, LossMode} from '../engine/index.js';
+import {type Air, type AirConstantProvider, type DriverSolverParams, type SolverField, type Wiring, Engine, LossMode} from '../engine/index.js';
 // The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two
 // converter modules, so importing it here would pull them in whichever name was asked for.
 import {openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver} from './driverYmlToOpenisdAndWdr.js';
 import {openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject} from './openIsdProjectToWinIsdProject.js';
 import type {
     BoxType, SimulatableBoxType, DriverError, DriverIssue, Filter,
-    EnclosureParams, MaxCurvesResult, SweepParams, SweepResult, DriverSolverQuantities,
+    EnclosureParams, MaxCurvesResult, SweepParams, SweepResult,
     SweepSolveResult, MaxCurvesSolveResult,
     SweepIssue, VentIssue, PrIssue, BoxParamsIssue, CalculationIssue, DriverQuantityName,
 } from '../engine/index.js';
@@ -536,8 +536,8 @@ class OpenISDBox implements Box {
         // No second air-provider plumbing needed: every vent/PR window below reads this same
         // closure rather than each computing its own reference-condition fallback.
         const air = (): Air => {
-            const d = driver.solveConsistencyGroup();
-            return { rho: d.roo_kg_per_m3!, c: d.c_m_per_s! };
+            const ts = driver.ts;
+            return { rho: ts.roo_kg_per_m3.value!, c: ts.c_m_per_s.value! };
         };
 
         const sealedLens = focus(lens, 'sealed');
@@ -761,13 +761,13 @@ class OpenISDBox implements Box {
     #sealedResonance_hz(volume_m3: number | null, losses: SealedLosses,
                         mode: LossMode = LossMode.Default): number | null {
         if (volume_m3 === null || !(volume_m3 > 0)) return null;
-        const solved = this.#driver.solveConsistencyGroup();
-        const Fs_hz = solved.Fs_hz;
-        const Vas = solved.Vas_m3;
-        const Qts = solved.Qts;
-        if (Fs_hz === undefined || Vas === undefined || Qts === undefined) return null;
+        const ts = this.#driver.ts;
+        const Fs_hz = ts.Fs_hz.value;
+        const Vas = ts.Vas_m3.value;
+        const Qts = ts.Qts.value;
+        if (Fs_hz === null || Vas === null || Qts === null) return null;
         const QtsLoaded = this.#engine.sourceLoadedQts(
-            solved.Qms ?? NaN, solved.Qes ?? NaN, solved.Re_ohm ?? NaN, this.#rs(), Qts);
+            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, this.#rs(), Qts);
         // `LossMode.Default` IS `WinisdLossy` — John 2026-08-27: "default is winisd = Lossy". WinISD
         // displays and saves the LOSSY figure, and it MOVES with the chamber's losses: measured, `Fr`
         // shifts 5.8 Hz for a `Ql` change at fixed volume (winisd_research FINDING-007).
@@ -782,13 +782,13 @@ class OpenISDBox implements Box {
     #sealedQtc(volume_m3: number | null, losses: SealedLosses,
                mode: LossMode = LossMode.Default): number | null {
         if (volume_m3 === null || !(volume_m3 > 0)) return null;
-        const solved = this.#driver.solveConsistencyGroup();
-        const Fs_hz = solved.Fs_hz;
-        const Vas = solved.Vas_m3;
-        const Qts = solved.Qts;
-        if (Fs_hz === undefined || Vas === undefined || Qts === undefined) return null;
+        const ts = this.#driver.ts;
+        const Fs_hz = ts.Fs_hz.value;
+        const Vas = ts.Vas_m3.value;
+        const Qts = ts.Qts.value;
+        if (Fs_hz === null || Vas === null || Qts === null) return null;
         const QtsLoaded = this.#engine.sourceLoadedQts(
-            solved.Qms ?? NaN, solved.Qes ?? NaN, solved.Re_ohm ?? NaN, this.#rs(), Qts);
+            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, this.#rs(), Qts);
         return this.#engine.sealedResonance(mode, {
             Fs: Fs_hz, Vas, Qts: QtsLoaded, Vb: volume_m3, Ql: losses.Ql.get(), Qa: losses.Qa.get(),
         }).Qtc;
@@ -1080,6 +1080,40 @@ export class OpenIsdDriverSpec {
     }
 }
 
+/** A `SolverField` reporting a freshly COMPUTED value with no storage behind it — sibling to
+ *  `NO_SLOT`, but for a quantity `sweep()` genuinely needs a real number for (the terminal
+ *  Re/BL), unlike `SPLref_dB`, which stays permanently not-available. Any write is silently
+ *  discarded: nothing persists a value neither `solveDriver()`'s own resolve nor the domain has
+ *  a slot for (S2-10) — `driverSolverParamsOf` below recomputes it fresh on every call, the same
+ *  as the bag `solveConsistencyGroup()` used to. */
+function computedSlot<T>(value: T | null): SolverField<T> {
+    return {
+        value, entered: false, calculated: value != null, notAvailable: value == null,
+        dq: [],
+        setCalculated: () => {}, setDq: () => {}, setNotAvailable: () => {},
+    };
+}
+
+/** `spec`'s 44 handles, shaped as `DriverSolverParams` for `Engine.sweep()`/`maxCurves()`
+ *  (S2-10 ruling: "`OpenIsdDriverSpec` structurally satisfies `DriverSolverParams`") — true for
+ *  40 of the 44 by name; the other four are ADAPTED, not merely reused: `SPLref_dB`/
+ *  `Re_terminal_ohm`/`BL_terminal_Tm` have no domain storage slot (matching `NO_SLOT`'s own doc
+ *  above), and `wiring` is spelled `VCCon` here and carries a `VoiceCoilWiring` enum member, not
+ *  the bare `'series'|'parallel'` union `DriverSolverParams` names. */
+function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine): DriverSolverParams {
+    const wiring: Wiring = spec.VCCon.get().value === VoiceCoilWiring.Series ? 'series' : 'parallel';
+    const Re_ohm = spec.Re_ohm.get().value;
+    const BL_Tm = spec.BL_Tm.get().value;
+    const numVC = spec.numVC.get().value ?? undefined;
+    return {
+        ...spec,
+        SPLref_dB: NO_SLOT,
+        Re_terminal_ohm: computedSlot(Re_ohm == null ? null : engine.terminalRe_ohm(Re_ohm, numVC, wiring)),
+        BL_terminal_Tm: computedSlot(BL_Tm == null ? null : engine.terminalBL_Tm(BL_Tm, numVC, wiring)),
+        wiring: computedSlot<'series' | 'parallel'>(wiring),
+    };
+}
+
 /**
  * A device record stating NOTHING but its own bookkeeping — what `empty()` hands an editor.
  *
@@ -1315,44 +1349,21 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
 
-    /** Every quantity `solveConsistencyGroup()`/`checkConsistency()` feed the engine, read
-     *  through `extract` — the one difference between them is which values `extract` is
-     *  willing to see, not which fields exist. */
-    private statedDriverQuantities(
-        extract: (field: Field<number>) => number | undefined,
-    ): DriverSolverQuantities {
-        const spec = this.spec[this.section];
-        return {
-            Fs_hz: extract(spec.Fs_hz), Re_ohm: extract(spec.Re_ohm), Znom_ohm: extract(spec.Znom_ohm),
-            Le_H: extract(spec.Le_H), fLe_hz: extract(spec.fLe_hz), KLe_H_sqrtHz: extract(spec.KLe_H_sqrtHz),
-            Qes: extract(spec.Qes), Qms: extract(spec.Qms), Qts: extract(spec.Qts), Vas_m3: extract(spec.Vas_m3),
-            Sd_m2: extract(spec.Sd_m2), Dd_m: extract(spec.Dd_m), BL_Tm: extract(spec.BL_Tm),
-            Mms_kg: extract(spec.Mms_kg), Cms_m_per_N: extract(spec.Cms_m_per_N),
-            Rms_kg_per_s: extract(spec.Rms_kg_per_s), EBP_hz: extract(spec.EBP_hz),
-            Xmax_m: extract(spec.Xmax_m), Vd_m3: extract(spec.Vd_m3), Hc_m: extract(spec.Hc_m),
-            Hg_m: extract(spec.Hg_m), Pe_W: extract(spec.Pe_W), no: extract(spec.no),
-            SPL_dB: extract(spec.SPL_dB), USPL_dB: extract(spec.USPL_dB),
-            SPLmax_dB: extract(spec.SPLmax_dB), SPLmaxLF_dB: extract(spec.SPLmaxLF_dB),
-            Rme_kg_per_s: extract(spec.Rme_kg_per_s), Mpow_N_per_sqrtW: extract(spec.Mpow_N_per_sqrtW),
-            Mcost_kg_per_s: extract(spec.Mcost_kg_per_s), gamma_m_per_s2_A: extract(spec.gamma_m_per_s2_A),
-            Gloss: extract(spec.Gloss), Vcd_m: extract(spec.Vcd_m), Depth_m: extract(spec.Depth_m),
-            MagDepth_m: extract(spec.MagDepth_m), Magnet_m: extract(spec.Magnet_m), DVol_m3: extract(spec.DVol_m3),
-            c_m_per_s: extract(spec.c_m_per_s), roo_kg_per_m3: extract(spec.roo_kg_per_m3),
-            numVC: extract(spec.numVC),
-            wiring: spec.VCCon.get().value === VoiceCoilWiring.Series
-                ? 'series' : 'parallel',
-        };
+    /** This driver's ACTIVE spec section, selected by `section` — the one window every caller
+     *  needing "this driver's own T/S handles" reaches through (S2-10), rather than each
+     *  building its own `spec[this.section]` or a throwaway snapshot bag. `OpenIsdDriverSpec`
+     *  structurally satisfies `DriverSolverParams` (44 `Field`s + `wiring`), so it is the handle
+     *  set `Engine.sweep()`/`maxCurves()` take directly — no snapshot bag anywhere. */
+    get ts(): OpenIsdDriverSpec {
+        return this.spec[this.section];
     }
 
-    /** Everything this driver's stated values imply, filled in. Does NOT write back — a solved
-     *  value is a derivation, and the record holds only what was actually stated. */
-    solveConsistencyGroup(): Readonly<DriverSolverQuantities> {
-        const value = (field: Field<number>): number | undefined => field.get().value ?? undefined;
-        return this.engine.solveConsistencyGroup(this.statedDriverQuantities(value));
-    }
-
-    solveDriverConsistencyGroup(): Readonly<DriverSolverQuantities> {
-        return this.solveConsistencyGroup();
+    /** `ts`, shaped as `DriverSolverParams` — for a caller (the UI's chart layer, `Design.driver`)
+     *  that needs the full 44-handle surface `Engine.sweep()`/`maxCurves()` take, not just the
+     *  live spec window. See `driverSolverParamsOf`'s own doc for which four members are adapted
+     *  rather than reused. */
+    get solverParams(): DriverSolverParams {
+        return driverSolverParamsOf(this.ts, this.engine);
     }
 
     /** Everything this driver's stated values disagree about — an over-specified driver whose
@@ -1363,7 +1374,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  since `resolve()`'s own working set feeds the engine only entered values (never a
      *  calculated one fed back as if it had been typed, or the group could never be reported as
      *  inconsistent no matter how wrong the user's OWN numbers are). */
-    checkConsistency(): readonly DriverIssue[] {
+    issues(): readonly DriverIssue[] {
         return this.spec[this.section].issues();
     }
 
@@ -1536,8 +1547,6 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
  *  `detach()` freezes the resolved pair back in as entered so the driver leaves with a concrete
  *  value instead of reverting to the bare reference default. */
 class OpenISDDriverEmbedded extends OpenISDDriver {
-    readonly #airProvider: () => AirConstantProvider;
-
     private constructor(
         record: Lens<OpenISDDeviceJson>,
         section: 'woofer' | 'tweeter',
@@ -1545,7 +1554,6 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
         airProvider: () => AirConstantProvider,
     ) {
         super(record, section, engine, airProvider);
-        this.#airProvider = airProvider;
     }
 
     /** Takes the lens onto the project's `driver` slot and the project's own environment — the
@@ -1568,20 +1576,6 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
         return new OpenISDDriverEmbedded(slot, OpenISDDriver.sectionOf(slot.get()), engine, airProvider);
     }
 
-    /** Everything this driver's stated values imply — with `c`/`roo` always replaced by the
-     *  project's own live environment, unconditionally. An embedded driver's own `c`/`roo` are
-     *  never consulted for this, not even as a first preference: the project is the SOLE source
-     *  while a driver is embedded (human ruling 2026-09-15), so there is nothing to check —
-     *  `update()` below keeps the fields themselves stripped, and this method does not bother
-     *  asking them regardless. `super()` would otherwise fill a blank `c`/`roo` with the bare
-     *  reference default (`solver.ts`'s own `driverC`/`driverRho` fallback); that default is
-     *  overwritten here the same as an entered one would be. */
-    override solveConsistencyGroup(): Readonly<DriverSolverQuantities> {
-        const base = super.solveConsistencyGroup();
-        const air = this.engine.airFor(this.#airProvider());
-        return { ...base, c_m_per_s: air.c, roo_kg_per_m3: air.rho };
-    }
-
     /** Adopt `source`'s whole record, then strip its `c`/`roo` — an embedded driver never keeps
      *  an imported/entered value of its own, regardless of where the write came from (a project
      *  choosing a different driver, loading a `.wdr`/`.owdr`, or the generic editor's commit path,
@@ -1592,14 +1586,38 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
         this.spec[this.section].roo_kg_per_m3.clear();
     }
 
+    /** S2-10: `solveConsistencyGroup()` — the what-if bag query this class used to override to
+     *  force `c`/`roo` to the project's live air regardless of the stored pair — is gone; the
+     *  record is read directly everywhere now (`driver.ts.c_m_per_s.value`), so masking a stale
+     *  value at READ time is no longer possible. Clearing it here, on every `resolve()` (not just
+     *  on `update()`), is what keeps the "project environment is the SOLE source while embedded"
+     *  guarantee self-healing: a write that bypasses `setDriver()`/`loadDriver()` entirely (a
+     *  project record saved before this rule existed, `fromOwprText` loading it back, or a
+     *  direct field write) can still leave `c_m_per_s`/`roo_kg_per_m3` 'entered' in the raw
+     *  record, and `resolve()` never overwrites an entered value on its own — so without this,
+     *  such a record's stale pair would surface again (test/domain.test.ts "a stale c/roo
+     *  already sitting in an embedded driver's record… is still ignored"). */
+    override resolve(): readonly DriverIssue[] {
+        this.spec[this.section].c_m_per_s.clear();
+        this.spec[this.section].roo_kg_per_m3.clear();
+        return super.resolve();
+    }
+
     /** Leaving the project: freeze the currently-resolved `c`/`roo` in as entered on the detached
      *  copy, so the driver's behaviour does not jump the instant it is no longer bound to a
      *  project's environment. */
     override detach(): OpenISDDriverStandalone {
-        const resolved = this.solveConsistencyGroup();
+        // The record's own resolve() cascade (S2-7c/d1) already derives `c_m_per_s`/
+        // `roo_kg_per_m3` from the base class's own `airProvider` — this embedded driver's OWN
+        // stored pair is always stripped (`update()` above), so the cascade never has an entered
+        // value of its own to prefer and always falls through to the project's live environment.
+        // Reading the record directly is therefore already "the project's resolved air" — no
+        // bag override needed (S2-10).
+        const resolvedC = this.ts.c_m_per_s.value;
+        const resolvedRho = this.ts.roo_kg_per_m3.value;
         const copy = super.detach();
-        if (resolved.c_m_per_s !== undefined) copy.spec[copy.section].c_m_per_s.set(resolved.c_m_per_s);
-        if (resolved.roo_kg_per_m3 !== undefined) copy.spec[copy.section].roo_kg_per_m3.set(resolved.roo_kg_per_m3);
+        if (resolvedC !== null) copy.spec[copy.section].c_m_per_s.set(resolvedC);
+        if (resolvedRho !== null) copy.spec[copy.section].roo_kg_per_m3.set(resolvedRho);
         return copy;
     }
 }
@@ -2030,7 +2048,7 @@ export class OpenISDProject {
     /** Keep the project's established power when its driver changes; voltage follows the new Re. */
     #resynchronizeSignalVoltage(): void {
         const power_W = this.#slot('signal').get().power_W;
-        if (power_W !== null && this.driver.solveConsistencyGroup().Re_ohm !== undefined) {
+        if (power_W !== null && this.driver.ts.Re_ohm.value !== null) {
             this.powerDrive_W.setProjectEstablished(power_W);
         }
     }
@@ -2462,8 +2480,8 @@ export class OpenISDProject {
     /** A DQ is reserved for a persisted pair that disagrees; absence alone is not a defect. */
     #signalConsistencyDq(): readonly string[] {
         const {power_W, voltage_V} = this.#slot('signal').get();
-        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-        if (power_W === null || voltage_V === null || Re_ohm === undefined) return [];
+        const Re_ohm = this.driver.ts.Re_ohm.value;
+        if (power_W === null || voltage_V === null || Re_ohm === null) return [];
         const expectedVoltage_V = this.#engine.driveVoltage(power_W, Re_ohm);
         const tolerance = Math.max(1e-9, Math.abs(expectedVoltage_V) * 1e-9);
         return Math.abs(voltage_V - expectedVoltage_V) <= tolerance
@@ -2486,16 +2504,16 @@ export class OpenISDProject {
                 const w = slot.get().power_W;
                 if (w !== null) return createCell('power_W', w, 'entered', this.#signalConsistencyDq());
                 const voltage_V = slot.get().voltage_V;
-                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                const derived = voltage_V === null || Re_ohm === undefined ? null : this.#engine.driveFromVoltage(voltage_V, Re_ohm);
+                const Re_ohm = this.driver.ts.Re_ohm.value;
+                const derived = voltage_V === null || Re_ohm === null ? null : this.#engine.driveFromVoltage(voltage_V, Re_ohm);
                 return derived === null
                     ? createCell<number>('power_W', null, 'not-available')
                     : createCell<number>('power_W', derived, 'calculated');
             },
             {
                 entered: (w: number) => {
-                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                    if (Re_ohm === undefined) {
+                    const Re_ohm = this.driver.ts.Re_ohm.value;
+                    if (Re_ohm === null) {
                         throw new Error('setPowerDrive_W cannot solve a voltage: the driver has no usable Re_ohm yet.');
                     }
                     const voltage_V = this.#engine.driveVoltage(w, Re_ohm);
@@ -2503,8 +2521,8 @@ export class OpenISDProject {
                 },
                 clear: () => {
                     const voltage_V = slot.get().voltage_V;
-                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                    if (voltage_V !== null && Re_ohm !== undefined) {
+                    const Re_ohm = this.driver.ts.Re_ohm.value;
+                    if (voltage_V !== null && Re_ohm !== null) {
                         this.powerDrive_W.setProjectEstablished(this.#engine.driveFromVoltage(voltage_V, Re_ohm));
                     } else {
                         slot.set({power_W: null, voltage_V: null});
@@ -2531,16 +2549,16 @@ export class OpenISDProject {
                 const stored = slot.get().voltage_V;
                 if (stored !== null) return createCell('voltage_V', stored, 'entered', this.#signalConsistencyDq());
                 const power_W = slot.get().power_W;
-                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                const derived = power_W === null || Re_ohm === undefined ? null : this.#engine.driveVoltage(power_W, Re_ohm);
+                const Re_ohm = this.driver.ts.Re_ohm.value;
+                const derived = power_W === null || Re_ohm === null ? null : this.#engine.driveVoltage(power_W, Re_ohm);
                 return derived === null
                     ? createCell<number>('voltage_V', null, 'not-available')
                     : createCell<number>('voltage_V', derived, 'calculated');
             },
             {
                 entered: (v: number) => {
-                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                    if (Re_ohm === undefined) {
+                    const Re_ohm = this.driver.ts.Re_ohm.value;
+                    if (Re_ohm === null) {
                         throw new Error('setDriveVoltage_V cannot solve a power: the driver has no usable Re_ohm yet.');
                     }
                     const power_W = this.#engine.driveFromVoltage(v, Re_ohm);
@@ -2548,8 +2566,8 @@ export class OpenISDProject {
                 },
                 clear: () => {
                     const power_W = slot.get().power_W;
-                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                    if (power_W !== null && Re_ohm !== undefined) {
+                    const Re_ohm = this.driver.ts.Re_ohm.value;
+                    if (power_W !== null && Re_ohm !== null) {
                         this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
                     } else {
                         slot.set({power_W: null, voltage_V: null});
@@ -2573,8 +2591,8 @@ export class OpenISDProject {
                 const v = slot.get().voltage_V;
                 if (v !== null) return createCell('voltage_V', v, 'entered', this.#signalConsistencyDq());
                 const power_W = slot.get().power_W;
-                const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                const derived = power_W === null || Re_ohm === undefined ? null : this.#engine.driveVoltage(power_W, Re_ohm);
+                const Re_ohm = this.driver.ts.Re_ohm.value;
+                const derived = power_W === null || Re_ohm === null ? null : this.#engine.driveVoltage(power_W, Re_ohm);
                 return derived === null
                     ? createCell<number>('voltage_V', null, 'not-available')
                     : createCell<number>('voltage_V', derived, 'calculated');
@@ -2583,8 +2601,8 @@ export class OpenISDProject {
                 entered: (v: number) => this.driveVoltage_V.set(v),
                 clear: () => {
                     const power_W = slot.get().power_W;
-                    const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-                    if (power_W !== null && Re_ohm !== undefined) {
+                    const Re_ohm = this.driver.ts.Re_ohm.value;
+                    if (power_W !== null && Re_ohm !== null) {
                         this.driveVoltage_V.setProjectEstablished(this.#engine.driveVoltage(power_W, Re_ohm));
                     } else {
                         slot.set({power_W: null, voltage_V: null});
@@ -2676,8 +2694,9 @@ export class OpenISDProject {
      * Null when the driver's Q group is too incomplete to resolve.
      */
     sourceLoadedQts(Rs: number): number | null {
-        const {Qms, Qes, Re_ohm, Qts} = this.driver.solveConsistencyGroup();
-        if (Qms === undefined || Qes === undefined || Re_ohm === undefined || Qts === undefined) return null;
+        const ts = this.driver.ts;
+        const Qms = ts.Qms.value, Qes = ts.Qes.value, Re_ohm = ts.Re_ohm.value, Qts = ts.Qts.value;
+        if (Qms === null || Qes === null || Re_ohm === null || Qts === null) return null;
         return this.#engine.sourceLoadedQts(Qms, Qes, Re_ohm, Rs, Qts);
     }
 
@@ -2712,14 +2731,14 @@ export class OpenISDProject {
 
     #sweepParams(P: FrequencyGrid): SweepParams | null {
         const Vb = this.#boxVolume_m3();
-        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
+        const Re_ohm = this.driver.ts.Re_ohm.value;
         const {power_W, voltage_V} = this.#slot('signal').get();
         if ((power_W === null) !== (voltage_V === null)) return null;
         // WinISD sweeps at a 1 W reference until a drive level is stated — the chart always draws
         // for a simulatable driver. The stored signal stays null ("not told", and flagged with a
         // DQ on the unset input fields); only the sweep falls back. Still refuses when there is no
         // usable Re to derive the reference from.
-        const eg = this.driveVoltage_V.value ?? (Re_ohm === undefined ? null : this.#engine.driveVoltage(1, Re_ohm));
+        const eg = this.driveVoltage_V.value ?? (Re_ohm === null ? null : this.#engine.driveVoltage(1, Re_ohm));
          if (Vb === null) return null;
 
         const box = this.box;
@@ -2823,7 +2842,7 @@ export class OpenISDProject {
         if (!params) return {values: null, issues: this.#engine.solveBoxParams(box, this.#enclosureParams()).issues};
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues};
-        return this.#engine.sweep(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
+        return this.#engine.sweep(driverSolverParamsOf(this.driver.ts, this.#engine), this.driver.Le_H(), box, params);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`. */
@@ -2833,7 +2852,7 @@ export class OpenISDProject {
         if (!box || !params) return {values: null, issues: [], driverPrerequisites: []};
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-        return this.#engine.maxCurves(this.driver.solveConsistencyGroup(), this.driver.Le_H(), box, params);
+        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.ts, this.#engine), this.driver.Le_H(), box, params);
     }
 
     /** The active box's own sweep-level blockers, beyond what `solveBoxParams()` already reports:
@@ -2950,8 +2969,8 @@ export class OpenISDProject {
      * Null when the driver has no usable `Re`, or the curve has no peak.
      */
     impedancePeak(sw: SweepResult | null): { Fsc: number; Qtc: number } | null {
-        const Re_ohm = this.driver.solveConsistencyGroup().Re_ohm;
-        return Re_ohm === undefined ? null : this.#engine.findImpedancePeak(sw, Re_ohm);
+        const Re_ohm = this.driver.ts.Re_ohm.value;
+        return Re_ohm === null ? null : this.#engine.findImpedancePeak(sw, Re_ohm);
     }
 
     /** Start a transient what-if session from the current committed design. */
@@ -3071,9 +3090,9 @@ export class OpenISDProject {
             if (Vb === null || !(Vb > 0) || Sp === null) {
                 return createCell<number>('ventMaxReachableFb', null, 'not-available');
             }
-            const resolvedAir = this.driver.solveConsistencyGroup();
+            const ts = this.driver.ts;
             const v = this.#engine.tuningFromLength(Vb ?? undefined, 0, Sp,
-                { rho: resolvedAir.roo_kg_per_m3!, c: resolvedAir.c_m_per_s! },
+                { rho: ts.roo_kg_per_m3.value!, c: ts.c_m_per_s.value! },
                 this.box.vented.vent.endCorrection_m.get());
             return v === null
                 ? createCell<number>('ventMaxReachableFb', null, 'not-available')
@@ -3100,10 +3119,6 @@ export class OpenISDProject {
         this.#notify();
     }
 
-
-    solveDriverConsistencyGroup(): Readonly<DriverSolverQuantities> {
-        return this.driver.solveDriverConsistencyGroup();
-    }
 
     /** Whether the stated tuning is beyond what this radiator can reach. Derived from the tuning
      *  cell's DQ — the consistency check is the single source of truth (the same flag that

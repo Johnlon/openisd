@@ -51,7 +51,7 @@ export function useOgTune(): OgTuneAPI {
   }
 
   function dqNote(key: NumSpecField): string | null {
-    return consistencyNote(project.value.driver.checkConsistency(), key);
+    return consistencyNote(project.value.driver.issues(), key);
   }
 
   function cellVal(key: NumSpecField): number | null {

@@ -1,4 +1,4 @@
-import { solveConsistencyGroup } from './testSolver.js';
+import { solveConsistencyGroup, driverParams } from './testSolver.js';
 /* Golden-master regression test.  Runs under Vitest (npm run test:unit).
  * Reads committed fixtures from test/fixtures/golden/*.json and asserts the
  * engine reproduces every number exactly.  Exact === is intentional: the engine
@@ -10,7 +10,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Engine } from '../../engine/index.js';
-import type { SweepResult, MaxCurvesResult, DriverSolverQuantities } from '../../engine/index.js';
+import type { SweepResult, MaxCurvesResult } from '../../engine/index.js';
+import type { TestSolverQuantities } from './testSolver.js';
 
 
 const here        = dirname(fileURLToPath(import.meta.url));
@@ -58,7 +59,7 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
       // unit-suffixed ones. `Le` is not a solver quantity, so it travels to `sweep` separately —
       // and it must come from THIS fixture, not a shared constant, or the impedance curve is
       // computed for a driver the fixture does not describe.
-      const q: DriverSolverQuantities = {
+      const q: TestSolverQuantities = {
         Fs_hz: driverRaw.Fs, Re_ohm: driverRaw.Re, Znom_ohm: driverRaw.Znom,
         Qts: driverRaw.Qts, Qes: driverRaw.Qes, Qms: driverRaw.Qms,
         Vas_m3: driverRaw.Vas, Sd_m2: driverRaw.Sd, Dd_m: driverRaw.Dd,
@@ -68,15 +69,15 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
       // The terminal pair is the CALLER's, and it is derived AFTER the solve: `Re_ohm`/`BL_Tm`
       // are themselves derivable, so a fixture stating neither still has both by now. The solver
       // no longer does this, so that a stated per-coil value can never be overwritten.
-      const drv: DriverSolverQuantities = {
+      const drv: TestSolverQuantities = {
         ...solved,
         Re_terminal_ohm: solved.Re_ohm === undefined ? undefined
           : engine.terminalRe_ohm(solved.Re_ohm!, solved.numVC, solved.wiring),
         BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
           : engine.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
       };
-      const sw = engine.sweep(drv, driverRaw.Le, box, P).values;
-      const mx = engine.maxCurves(drv, driverRaw.Le, box, P).values;
+      const sw = engine.sweep(driverParams(drv), driverRaw.Le, box, P).values;
+      const mx = engine.maxCurves(driverParams(drv), driverRaw.Le, box, P).values;
       assert.ok(sw && mx, `${name}: the engine refused this fixture`);
 
       for (const k of ['fs', 'spl', 'phase', 'exc', 'excPR', 'pv', 'zmag', 'zph', 'gd'] as const)

@@ -29,8 +29,8 @@ export function createSealedAlignmentEditor({project, changed, engine}: SealedAl
 
   const driverValues = computed(() => {
     void changed.value;
-    const solved = project.value.driver.solveConsistencyGroup();
-    return {Qts: solved.Qts ?? null, Vas_m3: solved.Vas_m3 ?? null, Fs_hz: solved.Fs_hz ?? null, Qes: solved.Qes ?? null};
+    const ts = project.value.driver.ts;
+    return {Qts: ts.Qts.value, Vas_m3: ts.Vas_m3.value, Fs_hz: ts.Fs_hz.value, Qes: ts.Qes.value};
   });
 
   const options = computed(() => engine.sealedAlignmentOptions());

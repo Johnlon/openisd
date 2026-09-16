@@ -23,7 +23,8 @@ import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { Engine } from '../../engine/index.js';
 import type { SweepParams } from '../../engine/index.js';
-import type { DriverSolverQuantities } from '../../engine/index.js';
+import { driverParams } from './testSolver.js';
+import type { TestSolverQuantities } from './testSolver.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -39,13 +40,13 @@ const END_CORRECTION = 0.732;
 
 // No environment reaches these test's own reimplementation of the formula under test, so ρ/c
 // are computed live at the reference environment — matching production (no stored constant).
-const refRho = (): number => engine.airFor({}).rho;
-const refC = (): number => engine.airFor({}).c;
+const refRho = (): number => engine.solveEnvironment({}).values.rho;
+const refC = (): number => engine.solveEnvironment({}).values.c;
 // The reference air pair, passed explicitly to every ventLength/tuningFromLength/prTuning/
 // prMassForFp call below — these tests are about the Helmholtz/PR formulas, not air-sensitivity
 // (see boxDesign-air.test.ts for that), so every one of them runs at the same reference
 // condition `refRho()`/`refC()` above already assume.
-const AIR = engine.airFor({});
+const AIR = engine.solveEnvironment({}).values;
 
 // ---------------------------------------------------------------------------
 // Test driver: a typical 6.5" mid-woofer — same parameters used throughout
@@ -402,7 +403,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
     // Stated in full, so no relation has to run — but the TERMINAL Re and BL still have to be
     // derived beside the stated per-coil values, because that pair is what `sweep` reads. One
     // coil here, so terminal equals per-coil.
-    const drv: DriverSolverQuantities = {
+    const drv: TestSolverQuantities = {
       Fs_hz: 40,
       Vas_m3: 0.010,
       Qts: 0.4,
@@ -431,7 +432,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       fmax: 200,
       N: 2000,
     };
-    const result = engine.sweep(drv, LE_H, 'sealed', P).values!;
+    const result = engine.sweep(driverParams(drv), LE_H, 'sealed', P).values!;
     const peak = engine.findImpedancePeak(result, drv.Re_ohm!);
     assert.ok(peak !== null);
     // Assert peak frequency is near 54.81 Hz

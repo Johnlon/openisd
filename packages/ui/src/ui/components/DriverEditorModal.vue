@@ -322,7 +322,7 @@ const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It 
 // contradict each other beyond their own precision. The ADT decides; every member of the
 // group is marked, because none of them is more wrong than the others. Like every other DQ
 // state here it blocks nothing: the driver still simulates, saves and exports.
-const issues = computed(() => { const _ = trigger.value; return draftDriver.value.checkConsistency(); });
+const issues = computed(() => { const _ = trigger.value; return draftDriver.value.issues(); });
 
 /** The one DQ mark per field: its reason, or '' when there is nothing to say. */
 function dqNote(field: string): string {

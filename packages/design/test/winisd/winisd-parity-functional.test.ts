@@ -183,37 +183,40 @@ function driverFieldCell(d: OpenISDDriver, field: string): Cell<number> | undefi
   }
 }
 
-/** Dispatch one of the same `.wdr`-spelled names to its own field on the solved engine bag
- *  `OpenISDDriver.solveConsistencyGroup()` returns — the route for a field the spec itself
- *  cannot state, or one the driver left not-available. Same dispatch shape and the same
- *  independent-arbiter reasoning as `driverFieldCell` above. */
-function solvedFieldValue(solved: ReturnType<OpenISDDriver['solveConsistencyGroup']>, field: string): number | undefined {
+/** Dispatch one of the same `.wdr`-spelled names to its own field on the driver's live spec
+ *  window — the route for a field the spec itself cannot state, or one the driver left
+ *  not-available (S2-10: `OpenISDDriver.solveConsistencyGroup()`'s bag is gone; every driver
+ *  here is constructed via `fromConformingRecord`/`.wrap()`, which always `resolve()`s once
+ *  immediately, T11/S2-7c — so `.ts.X.value` already carries whatever that bag used to
+ *  (re)compute fresh). Same dispatch shape and the same independent-arbiter reasoning as
+ *  `driverFieldCell` above. */
+function solvedFieldValue(solved: OpenISDDriver['ts'], field: string): number | undefined {
   switch (field) {
-    case 'Fs': return solved.Fs_hz;
-    case 'Re': return solved.Re_ohm;
-    case 'Qts': return solved.Qts;
-    case 'Qes': return solved.Qes;
-    case 'Qms': return solved.Qms;
-    case 'Cms': return solved.Cms_m_per_N;
-    case 'Mms': return solved.Mms_kg;
-    case 'Rms': return solved.Rms_kg_per_s;
-    case 'BL': return solved.BL_Tm;
-    case 'Sd': return solved.Sd_m2;
-    case 'Vas': return solved.Vas_m3;
-    case 'Dd': return solved.Dd_m;
-    case 'Vd': return solved.Vd_m3;
-    case 'no': return solved.no;
-    case 'SPL': return solved.SPL_dB;
-    case 'USPL': return solved.USPL_dB;
-    case 'SPLmax': return solved.SPLmax_dB;
-    case 'SPLmaxLF': return solved.SPLmaxLF_dB;
-    case 'gamma': return solved.gamma_m_per_s2_A;
-    case 'Rme': return solved.Rme_kg_per_s;
-    case 'Mpow': return solved.Mpow_N_per_sqrtW;
-    case 'Mcost': return solved.Mcost_kg_per_s;
-    case 'Gloss': return solved.Gloss;
-    case 'c': return solved.c_m_per_s;
-    case 'roo': return solved.roo_kg_per_m3;
+    case 'Fs': return solved.Fs_hz.value ?? undefined;
+    case 'Re': return solved.Re_ohm.value ?? undefined;
+    case 'Qts': return solved.Qts.value ?? undefined;
+    case 'Qes': return solved.Qes.value ?? undefined;
+    case 'Qms': return solved.Qms.value ?? undefined;
+    case 'Cms': return solved.Cms_m_per_N.value ?? undefined;
+    case 'Mms': return solved.Mms_kg.value ?? undefined;
+    case 'Rms': return solved.Rms_kg_per_s.value ?? undefined;
+    case 'BL': return solved.BL_Tm.value ?? undefined;
+    case 'Sd': return solved.Sd_m2.value ?? undefined;
+    case 'Vas': return solved.Vas_m3.value ?? undefined;
+    case 'Dd': return solved.Dd_m.value ?? undefined;
+    case 'Vd': return solved.Vd_m3.value ?? undefined;
+    case 'no': return solved.no.value ?? undefined;
+    case 'SPL': return solved.SPL_dB.value ?? undefined;
+    case 'USPL': return solved.USPL_dB.value ?? undefined;
+    case 'SPLmax': return solved.SPLmax_dB.value ?? undefined;
+    case 'SPLmaxLF': return solved.SPLmaxLF_dB.value ?? undefined;
+    case 'gamma': return solved.gamma_m_per_s2_A.value ?? undefined;
+    case 'Rme': return solved.Rme_kg_per_s.value ?? undefined;
+    case 'Mpow': return solved.Mpow_N_per_sqrtW.value ?? undefined;
+    case 'Mcost': return solved.Mcost_kg_per_s.value ?? undefined;
+    case 'Gloss': return solved.Gloss.value ?? undefined;
+    case 'c': return solved.c_m_per_s.value ?? undefined;
+    case 'roo': return solved.roo_kg_per_m3.value ?? undefined;
     default: return undefined;
   }
 }
@@ -230,7 +233,7 @@ function num(drv: OpenISDDriver, field: string): number | null {
   if (cell && cell.state !== 'not-available') {
     return typeof cell.value === 'number' && Number.isFinite(cell.value) ? cell.value : null;
   }
-  const v = solvedFieldValue(drv.solveConsistencyGroup(), field);
+  const v = solvedFieldValue(drv.ts, field);
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
@@ -407,10 +410,10 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         // The goldens were captured with the environment at factory defaults, so the harness
         // feeds the reference values directly into the engine. The project's temperature stays
         // its own — the env-t-303 divergence entry bounds that leg.
-        const air = new Engine().airFor({
+        const air = new Engine().solveEnvironment({
           tempK: s.environment.T,
           useWinisdAirModel: true,
-        });
+        }).values;
         for (const [key, got] of [['c', air.c], ['roo', air.rho]] as const) {
           compare(s.id, `air.${key}`, parseFloat(golden.Driver[key]), got);
         }

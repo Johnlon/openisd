@@ -137,7 +137,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     // the CIPM-2007 moist-air model at the reference environment when unset, marked
     // `calculated` — there is no stored constant anywhere (AGENTS.md 'Calculation logic —
     // permission gate' sign-off 2026-08-19). WinISD itself supplies neither value.
-    const { c: refC, rho: refRho } = new Engine().airFor({});
+    const { c: refC, rho: refRho } = new Engine().solveEnvironment({}).values;
     const record = {
       uuid: { value: '00000000-0000-4000-8000-000000000000' },
       manufacturer: scraped('Acme'), brand: scraped('Acme'), model: scraped('Widget'),
@@ -163,7 +163,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
   });
 
   it('entering then clearing c/roo on the SAME driver: entered value reads back, cleared reverts to the live reference-environment value on the driver itself', () => {
-    const { c: refC, rho: refRho } = new Engine().airFor({});
+    const { c: refC, rho: refRho } = new Engine().solveEnvironment({}).values;
     const record = {
       uuid: { value: '00000000-0000-4000-8000-000000000000' },
       manufacturer: scraped(''), brand: scraped(''), model: scraped(''),
@@ -299,7 +299,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
 
   it('c_m_per_s: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
     const section = freshSection();
-    const referenceC = new Engine().airFor({}).c;
+    const referenceC = new Engine().solveEnvironment({}).values.c;
 
     assert.deepEqual(section.c_m_per_s.get(), { value: referenceC, state: 'calculated' },
       'c_m_per_s must start at the live reference-air speed of sound on a fresh section, not absent');
@@ -315,7 +315,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
 
   it('roo_kg_per_m3: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
     const section = freshSection();
-    const referenceRho = new Engine().airFor({}).rho;
+    const referenceRho = new Engine().solveEnvironment({}).values.rho;
 
     assert.deepEqual(section.roo_kg_per_m3.get(), { value: referenceRho, state: 'calculated' },
       'roo_kg_per_m3 must start at the live reference-air density on a fresh section, not absent');

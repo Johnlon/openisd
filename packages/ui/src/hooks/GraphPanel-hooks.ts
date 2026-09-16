@@ -34,7 +34,7 @@ export function useGraphPanel(props: GraphPanelProps): GraphPanelAPI {
   const meta = computed(() => TAB_META[props.tabId]);
 
   const currentDesign = computed<Design>(() => ({
-    driver: project.value.driver.solveConsistencyGroup(),
+    driver: project.value.driver.solverParams,
     box: project.value.box.boxType.get(),
     P: syncedP.value,
     curves: curvesData.value,

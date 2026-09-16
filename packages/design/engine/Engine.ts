@@ -3,8 +3,8 @@
  * The surface of the engine is the set of methods needed by the project.
  */
 
-import { airFor, environmentIssues, solveEnvironment } from './air.js';
-import type { Air, AirEnvironment, EnvironmentIssue, EnvironmentSolveResult } from './air.js';
+import { solveEnvironment } from './air.js';
+import type { Air, AirEnvironment, EnvironmentSolveResult } from './air.js';
 import {
   ebp, ebpSuitability, closestSealedAlignment, prTuning, findImpedancePeak, prMassForFp,
   sealedAlignmentOptions, sealedFromQtc, sealedQtcFromVolume, tuningFromLength, ventLength,
@@ -12,14 +12,11 @@ import {
 import {
   prCmsFromVas, prFsWithMass, prMmdFromFs, prQms, prRmsFromQms, prVas,
 } from './formulas.js';
-import { checkConsistency, solveDriver, issueFields, issueFormula } from './consistency.js';
 import {
-  solveDriverConsistencyGroup,
-  solvePrConsistencyGroup, checkPrConsistency, solvePr,
-  solveVentConsistencyGroup, checkVentConsistency, solveVent,
-  solveSealedAlignmentGroup, checkSealedAlignment, solveSealedAlignment,
+  solveDriver, solvePr, solveVent, solveSealedAlignment,
   terminalRe_ohm, terminalBL_Tm,
 } from './solver.js';
+import { issueFields, issueFormula } from './consistency.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { driveVoltage, driveFromVoltage } from './formulas.js';
 import { solveSignal } from './signal.js';
@@ -34,34 +31,15 @@ import {
 import type { SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 
 import type { Wiring } from './types.js';
-import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
 import type { VentSolverParams, PrSolverParams, SealedAlignmentSolverParams, DriverSolverParams } from './solverTypes.js';
-import type { VentIssue, PrIssue, SealedAlignmentIssue } from './solver.js';
-import type { DriverIssue, CalculationIssue } from './consistency.js';
+import type { VentIssue, PrIssue, SealedAlignmentIssue, DriverIssue } from './solver.js';
+import type { CalculationIssue } from './consistency.js';
 import { simulatableBoxType as narrowBoxType } from './types.js';
 import type { BoxType, SimulatableBoxType, DriverError, EbpSuitability, EnclosureParams, MaxCurvesResult, SealedAlignmentOption, SweepParams, SweepResult } from './types.js';
 import type { LossMode, SealedParams } from './lossMode.js';
 
 export class Engine {
   // ── AIR ───────────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Density and sound speed for stated conditions.
-   *
-   * EVERY field of `AirEnvironment` is optional, and an absent one falls back to the reference
-   * condition inside this call. So a project passes what the USER typed and nothing else: there
-   * is no null to handle at the call site, and the domain never restates the reference values.
-   */
-  airFor(env: AirEnvironment): Air {
-    return airFor(env);
-  }
-
-  /** An entered environment value outside the supported range — normally empty, since every
-   *  `AirEnvironment` field defaults when absent. Reported separately from `airFor()`'s result
-   *  so a caller wanting just `{ rho, c }` is not forced to also read an issues array. */
-  environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
-    return environmentIssues(env);
-  }
 
   /** The one environment call to reach for: the resolved `{ rho, c }` and any issue its stated
    *  conditions carry — one `{ values, issues }` bundle (C5). Replaces separately calling
@@ -86,43 +64,14 @@ export class Engine {
 
   // ── CONSISTENCY GROUP SOLVERS ──────────────────────────────────────────────────────────────
 
-  /** Solve a driver's stated quantities against each other — the values its T/S group implies.
-   *  Never writes back: a derived value is reported, not stored. */
-  solveConsistencyGroup(p: DriverSolverQuantities): DriverSolverQuantities {
-    return solveDriverConsistencyGroup(p);
-  }
-
-  /** Everything `p`'s stated values disagree about, or cannot yet solve — an over-specified
-   *  driver whose numbers cannot all be true at once, or an under-specified one missing a
-   *  named dependency. Empty when consistent and fully solvable. `p` is entered values only:
-   *  never feed a value THIS method (or `solveConsistencyGroup`) produced back in as if it had
-   *  been typed, or a computed figure would be compared against itself. */
-  checkConsistency(p: DriverSolverQuantities): DriverIssue[] {
-    return checkConsistency(p);
-  }
-
   /** The one driver call to reach for (T10/T11): every entered T/S value's own handle, read
-   *  into a private working set, solved and checked by the existing
-   *  `solveConsistencyGroup`/`checkConsistency` pair, with every derived value written back
-   *  onto its handle via `setCalculated` (or `setNotAvailable`). Entered values — including
-   *  `wiring` — are never overwritten. `air` is the project's own resolved `{ rho, c }`; a
-   *  not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it and writes back as `'C'`. */
+   *  into a private working set, solved and checked by the engine's own internal consistency
+   *  group, with every derived value written back onto its handle via `setCalculated` (or
+   *  `setNotAvailable`). Entered values — including `wiring` — are never overwritten. `air` is
+   *  the project's own resolved `{ rho, c }`; a not-entered `c_m_per_s`/`roo_kg_per_m3` defaults
+   *  to it and writes back as `'C'`. */
   solveDriver(params: DriverSolverParams, air: Air): DriverIssue[] {
     return solveDriver(params, air);
-  }
-
-  /** Solve the passive-radiator group: whichever of tuning/added-mass the caller did not state,
-   *  plus the system tuning and free-air resonance the chosen mass produces. `air` is the
-   *  project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
-  solvePrConsistencyGroup(p: PrSolverQuantities, air: Air): PrSolverQuantities {
-    return solvePrConsistencyGroup(p, air);
-  }
-
-  /** The stated PR quantities that disagree with each other — over-specified, or a target no
-   *  radiator can reach — or that cannot yet solve because the PR geometry is incomplete.
-   *  Empty when consistent and fully solvable. */
-  checkPrConsistency(p: PrSolverQuantities): PrIssue[] {
-    return checkPrConsistency(p);
   }
 
   /** The one radiator call to reach for (T10/T11): whichever of tuning/added-mass is not
@@ -133,36 +82,12 @@ export class Engine {
     return solvePr(params, air);
   }
 
-  /** Solve the vent group: whichever of tuning/length the caller did not state. `air` is the
-   *  project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
-  solveVentConsistencyGroup(p: VentSolverQuantities, air: Air): VentSolverQuantities {
-    return solveVentConsistencyGroup(p, air);
-  }
-
-  /** The stated vent quantities that disagree with each other, or that cannot yet solve
-   *  because the vent geometry is incomplete. Empty when consistent and fully solvable. */
-  checkVentConsistency(p: VentSolverQuantities): VentIssue[] {
-    return checkVentConsistency(p);
-  }
-
   /** The one vent call to reach for (T10/T11): whichever of tuning/length is not entered is
    *  derived and written onto its `SolverField` handle, and the issues follow right back.
    *  `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
    *  comment. Entered values are never overwritten. */
   solveVent(params: VentSolverParams, air: Air): VentIssue[] {
     return solveVent(params, air);
-  }
-
-  /** Solve the sealed-alignment group: whichever of target-`Qtc`/`Vb_m3` the caller did not
-   *  state, from the driver's own `Qts`/`Vas_m3`. */
-  solveSealedAlignmentGroup(p: SealedAlignmentSolverQuantities): SealedAlignmentSolverQuantities {
-    return solveSealedAlignmentGroup(p);
-  }
-
-  /** The stated sealed-alignment quantities that cannot yet solve because `Qts`/`Vas_m3` are
-   *  incomplete. Empty when consistent and fully solvable. */
-  checkSealedAlignment(p: SealedAlignmentSolverQuantities): SealedAlignmentIssue[] {
-    return checkSealedAlignment(p);
   }
 
   /** The one sealed-alignment call to reach for (T10/T11): whichever of target-`Qtc`/`Vb_m3`
@@ -363,12 +288,12 @@ export class Engine {
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
 
   /** The response, one complex value per frequency. */
-  sweep(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
+  sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
     return sweep(drv, Le_H, box, P);
   }
 
   /** The limit curves — how loud before excursion or port velocity gives out. */
-  maxCurves(drv: DriverSolverQuantities, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
+  maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
     return maxCurves(drv, Le_H, box, P);
   }
 

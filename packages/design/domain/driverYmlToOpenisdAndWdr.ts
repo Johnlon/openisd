@@ -534,11 +534,20 @@ export function openIsdDriverToWinIsdDriver(
     // The ENTERED/CALCULATED mark still comes from the plain field's own state, unchanged — the
     // driver's record is the one source of truth for whether a human stated a value, the exporter
     // does not decide that itself.
-    const solvedAir = driver.solveConsistencyGroup();
-    const cState = driver.spec[driver.section].c_m_per_s.get().state;
-    const rooState = driver.spec[driver.section].roo_kg_per_m3.get().state;
-    cells.set('c', {value: String(solvedAir.c_m_per_s), state: cState === 'entered' ? 'entered' : 'calculated'});
-    cells.set('roo', {value: String(solvedAir.roo_kg_per_m3), state: rooState === 'entered' ? 'entered' : 'calculated'});
+    //
+    // S2-10: reads `driver.ts` directly now (`OpenISDDriverEmbedded`'s own override of
+    // `solveConsistencyGroup()` — which used to force this pair to the project's CURRENT
+    // environment regardless of what the record stored — is gone, per that task's ruling). This
+    // is provably equivalent for a driver whose record ever went through `update()`/`resolve()`
+    // under the S2-7c/d1 cascade: c/roo are always stripped and re-derived from the live
+    // environment there. It is NOT equivalent for a project embedding a driver from BEFORE that
+    // rule existed, never re-saved since, whose raw record can still carry a STALE entered c/roo
+    // the old override used to override — flagged in the S2-10 report as a real, not merely
+    // theoretical, regression risk.
+    const cCell = driver.spec[driver.section].c_m_per_s.get();
+    const rooCell = driver.spec[driver.section].roo_kg_per_m3.get();
+    cells.set('c', {value: String(cCell.value), state: cCell.state === 'entered' ? 'entered' : 'calculated'});
+    cells.set('roo', {value: String(rooCell.value), state: rooCell.state === 'entered' ? 'entered' : 'calculated'});
 
     // `cell.value` is never null: an unstated coil count reads back as the driver's own
     // calculated default (`calcNumVC()`), not absence — the exporter asks the driver, it does
@@ -591,10 +600,34 @@ export function openIsdDriverToWinIsdDriver(
     //     derivable -> calculated value, mark C
     //     otherwise -> 0, mark N
     //
-    // The solver takes what the driver states and returns a SUPERSET: everything it could work
-    // out from those. A key the record already states is left alone — an entered value is a fact
-    // and is never overwritten by a derivation of it.
-    const solved = driver.solveConsistencyGroup();
+    // S2-10: reads the driver's OWN handles directly rather than a fresh `solveConsistencyGroup()`
+    // bag — the record IS the cache since S2-7c, so `field.get().value` already carries whatever
+    // that bag used to compute; `wdrFields()`'s loop above has in practice already set every key
+    // this loop could still reach (same fields, same record, no fresh derivation left to surface),
+    // so it is provably a no-op today. Kept, unchanged in shape, as the SAME belt-and-braces
+    // second pass the exporter has always run — deleting it is a bigger claim than this task
+    // makes. A key the record already states is left alone regardless.
+    const ts = driver.spec[driver.section];
+    const solved: Readonly<Record<string, number | undefined>> = {
+        Fs_hz: ts.Fs_hz.get().value ?? undefined, Re_ohm: ts.Re_ohm.get().value ?? undefined,
+        Znom_ohm: ts.Znom_ohm.get().value ?? undefined, Le_H: ts.Le_H.get().value ?? undefined,
+        fLe_hz: ts.fLe_hz.get().value ?? undefined, KLe_H_sqrtHz: ts.KLe_H_sqrtHz.get().value ?? undefined,
+        Qes: ts.Qes.get().value ?? undefined, Qms: ts.Qms.get().value ?? undefined, Qts: ts.Qts.get().value ?? undefined,
+        Vas_m3: ts.Vas_m3.get().value ?? undefined, Sd_m2: ts.Sd_m2.get().value ?? undefined, Dd_m: ts.Dd_m.get().value ?? undefined,
+        BL_Tm: ts.BL_Tm.get().value ?? undefined, Mms_kg: ts.Mms_kg.get().value ?? undefined,
+        Cms_m_per_N: ts.Cms_m_per_N.get().value ?? undefined, Rms_kg_per_s: ts.Rms_kg_per_s.get().value ?? undefined,
+        EBP_hz: ts.EBP_hz.get().value ?? undefined, Xmax_m: ts.Xmax_m.get().value ?? undefined, Vd_m3: ts.Vd_m3.get().value ?? undefined,
+        Hc_m: ts.Hc_m.get().value ?? undefined, Hg_m: ts.Hg_m.get().value ?? undefined, Pe_W: ts.Pe_W.get().value ?? undefined,
+        no: ts.no.get().value ?? undefined, SPL_dB: ts.SPL_dB.get().value ?? undefined,
+        USPL_dB: ts.USPL_dB.get().value ?? undefined, SPLmax_dB: ts.SPLmax_dB.get().value ?? undefined,
+        SPLmaxLF_dB: ts.SPLmaxLF_dB.get().value ?? undefined, Rme_kg_per_s: ts.Rme_kg_per_s.get().value ?? undefined,
+        Mpow_N_per_sqrtW: ts.Mpow_N_per_sqrtW.get().value ?? undefined, Mcost_kg_per_s: ts.Mcost_kg_per_s.get().value ?? undefined,
+        gamma_m_per_s2_A: ts.gamma_m_per_s2_A.get().value ?? undefined, Gloss: ts.Gloss.get().value ?? undefined,
+        Vcd_m: ts.Vcd_m.get().value ?? undefined, Depth_m: ts.Depth_m.get().value ?? undefined, MagDepth_m: ts.MagDepth_m.get().value ?? undefined,
+        Magnet_m: ts.Magnet_m.get().value ?? undefined, DVol_m3: ts.DVol_m3.get().value ?? undefined,
+        c_m_per_s: ts.c_m_per_s.get().value ?? undefined, roo_kg_per_m3: ts.roo_kg_per_m3.get().value ?? undefined,
+        numVC: ts.numVC.get().value ?? undefined,
+    };
     for (const [quantity, value] of Object.entries(solved)) {
         if (typeof value !== 'number' || !isFinite(value)) continue;
         // `Fs_hz` -> `Fs`, `Cms_m_per_N` -> `Cms`, `Qts` -> `Qts`. The unit suffix is the domain's

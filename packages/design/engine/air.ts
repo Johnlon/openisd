@@ -126,7 +126,7 @@ export type EnvironmentIssue = CalculationIssue<EnvironmentQuantityName>;
  * separately from `Air`, not bundled with it, so a caller that only wants `{ rho, c }` is not
  * forced to also destructure an issues array that is empty in the overwhelming common case.
  */
-export function environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
+function environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
   const { tempK } = env;
   if (tempK == null || (tempK >= MIN_SUPPORTED_TEMP_K && tempK <= MAX_SUPPORTED_TEMP_K)) return [];
   return [{
@@ -273,7 +273,7 @@ function winisdAir(tempK: number, humidityPct: number, pressurePa: number): Air 
  * The air for an environment — the single dispatch. Absent fields take the reference
  * conditions; `useWinisdAirModel` selects WinISD's behaviour instead of the physics.
  */
-export function airFor(env: AirEnvironment): Air {
+function airFor(env: AirEnvironment): Air {
   const tempK = env.tempK ?? DEFAULT_T_REF_K;
   const humidityPct = env.humidityPct ?? DEFAULT_RH_REF_PCT;
   const pressurePa  = env.pressurePa  ?? DEFAULT_P_REF_PA;

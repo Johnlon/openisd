@@ -138,13 +138,13 @@ describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto
   });
 });
 
-describe('OpenISDDriver.checkConsistency() — an entered-only adapter onto the engine', () => {
+describe('OpenISDDriver.issues() — the last resolve()\'s own diagnostic (S2-10: renamed from checkConsistency())', () => {
   it('reports no issues for a driver whose stated Qes/Qms are mutually consistent', () => {
     const driver = driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: tuneSpec({ Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6 }),
     });
-    const issues: readonly DriverIssue[] = driver.checkConsistency();
+    const issues: readonly DriverIssue[] = driver.issues();
     expect(issues).toEqual([]);
   });
 
@@ -157,26 +157,22 @@ describe('OpenISDDriver.checkConsistency() — an entered-only adapter onto the 
     driver.spec.woofer.Qms.set(2.94);
     // Qts=0.4 was stated directly; Qes/Qms imply ~0.390 — a real contradiction.
 
-    const issues = driver.checkConsistency();
+    const issues = driver.issues();
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({ kind: 'inconsistent-inputs', target: 'Qts', actual: 0.4 });
   });
 
-  it("solving the group first does not make checkConsistency() treat the SOLVED Qts as entered " +
-    '— an entered-only adapter must feed the engine only what the record actually states', () => {
+  it('a derived Qts (T11: resolve() writes it back on load) reads back calculated, and issues() ' +
+    'still agrees with itself rather than reporting the solved Qts as a contradiction of Qes/Qms', () => {
     const driver = driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: tuneSpec({ Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6 }),
     });
-    // Solving fills in a derived Qts on the RETURNED bag, but writes nothing back to the record.
-    const solved = driver.solveConsistencyGroup();
-    expect(solved.Qts).toBeCloseTo((0.45 * 2.94) / (0.45 + 2.94), 6);
-    // The record itself was never written to — the field reads back CALCULATED, not entered.
+    // S2-10: there is no longer a separate what-if `solveConsistencyGroup()` — `driverFrom()`'s
+    // own `resolve()` (S2-7c, run once on load) already wrote the derived Qts back as 'C'.
     expect(driver.spec.woofer.Qts.get().state).toBe('calculated');
-
-    // So a second call still reads the record, not the previous solve's output, and still
-    // agrees with itself rather than reporting the solved Qts as a contradiction of Qes/Qms.
-    expect(driver.checkConsistency()).toEqual([]);
+    expect(driver.spec.woofer.Qts.get().value).toBeCloseTo((0.45 * 2.94) / (0.45 + 2.94), 6);
+    expect(driver.issues()).toEqual([]);
   });
 });
 
@@ -1022,7 +1018,7 @@ describe('editing a driver — copy, then update or drop', () => {
 
     expect(project.driver.spec.woofer.c_m_per_s.get().state).toBe('calculated');
     expect(project.driver.spec.woofer.roo_kg_per_m3.get().state).toBe('calculated');
-    const projectAir = new Engine().airFor({ tempK: 250, humidityPct: 80, pressurePa: 90000 });
+    const projectAir = new Engine().solveEnvironment({ tempK: 250, humidityPct: 80, pressurePa: 90000 }).values;
     expect(project.driver.spec.woofer.c_m_per_s.get().value).toBeCloseTo(projectAir.c, 6);
     expect(project.driver.spec.woofer.roo_kg_per_m3.get().value).toBeCloseTo(projectAir.rho, 6);
     // Never 999/5 — the driver's own stated pair must not survive embedding.
@@ -1041,14 +1037,19 @@ describe('editing a driver — copy, then update or drop', () => {
     // a record directly, bypassing `setDriver`/`loadDriver` entirely, so nothing retroactively
     // clears a value written under the old rules) by writing straight onto the embedded driver's
     // own field — the one other way a stale value could end up here.
+    //
+    // S2-10: `OpenISDDriverEmbedded.resolve()` now clears `c_m_per_s`/`roo_kg_per_m3` on EVERY
+    // resolve (not just on `update()`), so the write below is undone by the SAME synchronous
+    // cascade it triggers — there is no longer an intermediate tick where this record
+    // observably holds an 'entered' stale pair to assert on; the guarantee is stronger than
+    // before, not merely preserved, so that checkpoint is gone rather than weakened.
     project.driver.spec.woofer.c_m_per_s.set(999);
     project.driver.spec.woofer.roo_kg_per_m3.set(5);
-    expect(project.driver.spec.woofer.c_m_per_s.get().state).toBe('entered');   // the stale write really landed
 
-    const projectAir = new Engine().airFor({ tempK: 250, humidityPct: 80, pressurePa: 90000 });
-    const solved = project.driver.solveConsistencyGroup();
-    expect(solved.c_m_per_s).toBeCloseTo(projectAir.c, 6);
-    expect(solved.roo_kg_per_m3).toBeCloseTo(projectAir.rho, 6);
+    const projectAir = new Engine().solveEnvironment({ tempK: 250, humidityPct: 80, pressurePa: 90000 }).values;
+    const ts = project.driver.ts;
+    expect(ts.c_m_per_s.get().value).toBeCloseTo(projectAir.c, 6);
+    expect(ts.roo_kg_per_m3.get().value).toBeCloseTo(projectAir.rho, 6);
 
     const { value: wdrText, errors } = project.driver.toWdrIniText(new Engine());
     expect(errors).toEqual([]);
@@ -1444,7 +1445,7 @@ describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
   it('a not-entered c_m_per_s lands in the record as a calculated entry equal to the driver\'s own air', () => {
     const engine = new Engine();
     const d = OpenISDDriver.empty(engine);
-    const air = engine.airFor({});
+    const air = engine.solveEnvironment({}).values;
     const entry = d.cloneDriver().specs.woofer?.c_m_per_s;
     expect(entry).toMatchObject({ state: 'C', value: air.c });
   });

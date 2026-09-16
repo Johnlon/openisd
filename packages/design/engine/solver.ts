@@ -14,24 +14,72 @@
 
 import { P0, G_STANDARD } from './constants.js';
 import type { Wiring } from './types.js';
-import { GAMMA, DEFAULT_P_REF_PA, airFor } from './air.js';
+import { GAMMA, DEFAULT_P_REF_PA, solveEnvironment } from './air.js';
 import type { Air } from './air.js';
 import { efficiencyConstant, referenceEfficiency, motorEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
 import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp, prFsWithMass, sealedFromQtc, sealedQtcFromVolume } from './boxDesign.js';
 import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
-import type { DriverSolverQuantities, PrSolverQuantities, VentSolverQuantities, SealedAlignmentSolverQuantities } from './solverQuantities.js';
 import type { VentSolverParams } from './solverTypes.js';
 import type { PrSolverParams } from './solverTypes.js';
 import type { SealedAlignmentSolverParams } from './solverTypes.js';
-import type { CalculationIssue } from './consistency.js';
+import type { DriverSolverParams, SolverField } from './solverTypes.js';
+import type { CalculationIssue, CalculationPrerequisite } from './consistency.js';
 
-export type VentQuantityName = keyof VentSolverQuantities;
+// S2-10 (T10/T3-style trim): the bag types every solve used to take/return, PRIVATE now — a
+// caller reaches every one of these quantities through a `SolverField` handle
+// (`solveDriver`/`solvePr`/`solveVent`/`solveSealedAlignment`), never through a snapshot bag.
+// Kept as a plain WORKING SET only where the arithmetic genuinely needs one (an iterative
+// fixpoint, a group of relations feeding each other) — never exported past this file.
+interface DriverWorkingSet {
+    Fs_hz?: number; Re_ohm?: number; Znom_ohm?: number; Le_H?: number; fLe_hz?: number;
+    KLe_H_sqrtHz?: number; Qes?: number; Qms?: number; Qts?: number; Vas_m3?: number;
+    Sd_m2?: number; Dd_m?: number; BL_Tm?: number; Mms_kg?: number; Cms_m_per_N?: number;
+    Rms_kg_per_s?: number; EBP_hz?: number; Xmax_m?: number; Vd_m3?: number; Hc_m?: number;
+    Hg_m?: number; Pe_W?: number; no?: number; SPLref_dB?: number; SPL_dB?: number;
+    USPL_dB?: number; SPLmax_dB?: number; SPLmaxLF_dB?: number; Rme_kg_per_s?: number;
+    Mpow_N_per_sqrtW?: number; Mcost_kg_per_s?: number; gamma_m_per_s2_A?: number;
+    Gloss?: number; Vcd_m?: number; Depth_m?: number; MagDepth_m?: number;
+    Magnet_m?: number; DVol_m3?: number; c_m_per_s?: number; roo_kg_per_m3?: number;
+    Re_terminal_ohm?: number; BL_terminal_Tm?: number; numVC?: number;
+    wiring?: Wiring;
+}
+
+interface PrWorkingSet {
+    addedMass_kg?: number;
+    tuning_hz?: number;
+    Vb_m3?: number;
+    prMmd_kg?: number;
+    prSd_m2?: number;
+    prCms_m_per_N?: number;
+    prNum?: number;
+    resonanceWithAddedMass_hz?: number;
+    systemTuning_hz?: number;
+}
+
+interface VentWorkingSet {
+    tuning_hz?: number;
+    length_m?: number;
+    Vb_m3?: number;
+    area_m2?: number;
+    endCorrection_m?: number;
+}
+
+interface SealedAlignmentWorkingSet {
+    Qts?: number;
+    Vas_m3?: number;
+    Qtc?: number;
+    Vb_m3?: number;
+}
+
+export type DriverQuantityName = keyof DriverSolverParams;
+export type DriverIssue = CalculationIssue<DriverQuantityName>;
+export type DriverPrerequisite = CalculationPrerequisite<DriverQuantityName>;
+export type VentQuantityName = keyof VentSolverParams;
 export type VentIssue = CalculationIssue<VentQuantityName>;
-export type PrQuantityName = keyof PrSolverQuantities;
+export type PrQuantityName = keyof PrSolverParams;
 export type PrIssue = CalculationIssue<PrQuantityName>;
-export type SealedAlignmentQuantityName = keyof SealedAlignmentSolverQuantities;
+export type SealedAlignmentQuantityName = keyof SealedAlignmentSolverParams;
 export type SealedAlignmentIssue = CalculationIssue<SealedAlignmentQuantityName>;
-
 
 
 /**
@@ -40,18 +88,18 @@ export type SealedAlignmentIssue = CalculationIssue<SealedAlignmentQuantityName>
  * stated `roo` via `c = √(γ·p/roo)`; else the live physical model at the reference
  * environment. Never a stored constant — WinISD has none either.
  */
-export function driverC(r: Readonly<DriverSolverQuantities>): number {
+function driverC(r: Readonly<DriverWorkingSet>): number {
   if (r.c_m_per_s != null && r.c_m_per_s > 0) return r.c_m_per_s;
   if (r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0) return Math.sqrt(GAMMA * DEFAULT_P_REF_PA / r.roo_kg_per_m3);
-  return airFor({}).c;
+  return solveEnvironment({}).values.c;
 }
 
 /**
  * A driver record's own air density — its stated `roo`, else the live physical model at the
  * reference environment. WinISD never recomputes a missing `roo` from `c` — matched here.
  */
-export function driverRho(r: Readonly<DriverSolverQuantities>): number {
-  return r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0 ? r.roo_kg_per_m3 : airFor({}).rho;
+function driverRho(r: Readonly<DriverWorkingSet>): number {
+  return r.roo_kg_per_m3 != null && r.roo_kg_per_m3 > 0 ? r.roo_kg_per_m3 : solveEnvironment({}).values.rho;
 }
 
 /**
@@ -118,12 +166,12 @@ export function nominalImpedance(Re: number): number {
  * the air in use (`driverC`/`driverRho`). η₀ is a FRACTION throughout; the percent lives in
  * the display layer only.
  */
-export function solveConsistencyGroup(p: DriverSolverQuantities): DriverSolverQuantities {
+function solveConsistencyGroup(p: DriverWorkingSet): DriverWorkingSet {
   // The result is a SUPERSET of the input: every quantity handed in comes back out, plus what
   // the solver derived. `numVC` and `wiring` ride along untouched — the solver READS them, to
   // finish the terminal values below, and never consumes them; dropping them would make
   // re-solving a result lossy.
-  const r: DriverSolverQuantities = { ...p };
+  const r: DriverWorkingSet = { ...p };
 
 
   const TAU = 2 * Math.PI;
@@ -135,7 +183,7 @@ export function solveConsistencyGroup(p: DriverSolverQuantities): DriverSolverQu
   while (changed && iterations < 10) {
     changed = false;
 
-    const setVal = <K extends keyof DriverSolverQuantities>(key: K, val: DriverSolverQuantities[K]) => {
+    const setVal = <K extends keyof DriverWorkingSet>(key: K, val: DriverWorkingSet[K]) => {
       if (r[key] == null && typeof val === 'number' && isFinite(val) && val > 0) {
         r[key] = val;
         changed = true;
@@ -494,8 +542,8 @@ export function hotRe(Re: number, alfaVC: number, dT: number): number {
  *   Qms' = ωs'·Mms'/Rms,  Qes' = ωs'·Mms'·Re/Bl²,  Qts' = Qes'·Qms'/(Qes'+Qms').
  * `MaddKg ≤ 0` returns an equivalent driver (exact no-op) so existing goldens never move.
  */
-export function withAddedMass(drv: Readonly<DriverSolverQuantities>, MaddKg: number): DriverSolverQuantities {
-  const out: DriverSolverQuantities = Object.assign({}, drv);
+export function withAddedMass(drv: Readonly<DriverWorkingSet>, MaddKg: number): DriverWorkingSet {
+  const out: DriverWorkingSet = Object.assign({}, drv);
   if (!(MaddKg > 0)) return out;
   const { Cms_m_per_N, Rms_kg_per_s, Re_ohm, BL_Tm } = drv;
   if (drv.Mms_kg == null || Cms_m_per_N == null || Rms_kg_per_s == null
@@ -533,14 +581,10 @@ export function terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: 
   return wiring === 'series' ? BL_Tm * coils : BL_Tm;
 }
 
-export function solveDriverConsistencyGroup(p: DriverSolverQuantities): DriverSolverQuantities {
-  return solveConsistencyGroup(p);
-}
-
 /** `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
  *  comment for why this is a parameter here, never a reference-condition default. */
-export function solvePrConsistencyGroup(p: PrSolverQuantities, air: Air): PrSolverQuantities {
-  const out: PrSolverQuantities = { ...p };
+function solvePrConsistencyGroup(p: PrWorkingSet, air: Air): PrWorkingSet {
+  const out: PrWorkingSet = { ...p };
   const { addedMass_kg, tuning_hz, Vb_m3, prMmd_kg, prSd_m2, prCms_m_per_N } = p;
 
   if (addedMass_kg != null && tuning_hz == null) {
@@ -613,7 +657,7 @@ export function solvePr(params: PrSolverParams, air: Air): PrIssue[] {
     params.systemTuning_hz.setNotAvailable();
   }
 
-  const solved: PrSolverQuantities = {
+  const solved: PrWorkingSet = {
     addedMass_kg: params.addedMass_kg.value ?? undefined,
     tuning_hz: params.tuning_hz.value ?? undefined,
     Vb_m3: Vb ?? undefined,
@@ -627,7 +671,7 @@ export function solvePr(params: PrSolverParams, air: Air): PrIssue[] {
   return checkPrConsistency(solved);
 }
 
-export function checkPrConsistency(p: PrSolverQuantities): PrIssue[] {
+function checkPrConsistency(p: PrWorkingSet): PrIssue[] {
   const issues: PrIssue[] = [];
   if (p.tuning_hz != null && p.tuning_hz <= 0) {
     issues.push({
@@ -676,8 +720,8 @@ export function checkPrConsistency(p: PrSolverQuantities): PrIssue[] {
 
 /** `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
  *  comment for why this is a parameter here, never a reference-condition default. */
-export function solveVentConsistencyGroup(p: VentSolverQuantities, air: Air): VentSolverQuantities {
-  const out: VentSolverQuantities = { ...p };
+function solveVentConsistencyGroup(p: VentWorkingSet, air: Air): VentWorkingSet {
+  const out: VentWorkingSet = { ...p };
   const { tuning_hz, length_m, Vb_m3, area_m2, endCorrection_m } = p;
 
   if (tuning_hz != null && length_m == null) {
@@ -722,7 +766,7 @@ export function solveVent(params: VentSolverParams, air: Air): VentIssue[] {
     }
   }
 
-  const solved: VentSolverQuantities = {
+  const solved: VentWorkingSet = {
     tuning_hz: params.tuning_hz.value ?? undefined,
     length_m: params.length_m.value ?? undefined,
     Vb_m3: Vb ?? undefined,
@@ -732,7 +776,7 @@ export function solveVent(params: VentSolverParams, air: Air): VentIssue[] {
   return checkVentConsistency(solved);
 }
 
-export function checkVentConsistency(p: VentSolverQuantities): VentIssue[] {
+function checkVentConsistency(p: VentWorkingSet): VentIssue[] {
   const issues: VentIssue[] = [];
   if (p.tuning_hz != null && p.tuning_hz <= 0) {
     issues.push({
@@ -786,8 +830,8 @@ export function checkVentConsistency(p: VentSolverQuantities): VentIssue[] {
  * `sealedFromQtc`/`sealedQtcFromVolume` implement, given a name matching the other group
  * solvers (`solveVentConsistencyGroup`/`solvePrConsistencyGroup`).
  */
-export function solveSealedAlignmentGroup(p: SealedAlignmentSolverQuantities): SealedAlignmentSolverQuantities {
-  const out: SealedAlignmentSolverQuantities = { ...p };
+function solveSealedAlignmentGroup(p: SealedAlignmentWorkingSet): SealedAlignmentWorkingSet {
+  const out: SealedAlignmentWorkingSet = { ...p };
   const { Qts, Vas_m3, Qtc, Vb_m3 } = p;
 
   if (Qtc != null && Vb_m3 == null) {
@@ -812,7 +856,7 @@ const SEALED_ALIGNMENT_DRIVER_QUANTITIES: readonly SealedAlignmentQuantityName[]
  *  incomplete — mirrors `solveSealedAlignmentGroup`'s own route conditions. There is no
  *  inconsistent-inputs case here: a sealed box has no THIRD input to `Qtc`/`Vb_m3` that could
  *  disagree with the pair, unlike the driver's Qts/Qes/Qms triple. */
-export function checkSealedAlignment(p: SealedAlignmentSolverQuantities): SealedAlignmentIssue[] {
+function checkSealedAlignment(p: SealedAlignmentWorkingSet): SealedAlignmentIssue[] {
   const issues: SealedAlignmentIssue[] = [];
   const missingDriverQuantities = SEALED_ALIGNMENT_DRIVER_QUANTITIES.filter(f => {
     const v = p[f];
@@ -871,11 +915,263 @@ export function solveSealedAlignment(params: SealedAlignmentSolverParams): Seale
     }
   }
 
-  const solved: SealedAlignmentSolverQuantities = {
+  const solved: SealedAlignmentWorkingSet = {
     Qts: Qts ?? undefined,
     Vas_m3: Vas ?? undefined,
     Qtc: params.Qtc.value ?? undefined,
     Vb_m3: params.Vb_m3.value ?? undefined,
   };
   return checkSealedAlignment(solved);
+}
+
+// ---------------------------------------------------------------------------------------------
+// DRIVER CONSISTENCY — moved from consistency.ts (S2-10): `checkConsistency` needs
+// `solveConsistencyGroup`, which became private to this file, so the two live together, same as
+// every other node's solve+check pair above. `consistency.ts` keeps only the generic
+// CalculationIssue/SolveRoute vocabulary every node's issues share.
+// ---------------------------------------------------------------------------------------------
+
+/** Every field this module's relations read or predict is numeric — `wiring` is the one
+ *  non-numeric driver quantity, and no relation below names it. */
+type NumericDriverQuantityName = Exclude<DriverQuantityName, 'wiring'>;
+
+/** Field values by name, SI, as the solver produces them — a concrete, closed dictionary over
+ *  the driver's own numeric quantities, never a bare `Record<string, unknown>`. */
+type Values = Readonly<Partial<Record<NumericDriverQuantityName, number>>>;
+
+/** One inconsistent-inputs group: every member, and the relation that predicts `target` from
+ *  the others. WINISD_SCHEMA.md §4 verbatim; nothing here is a new formula. */
+interface Relation {
+  readonly formula: string;
+  readonly target: NumericDriverQuantityName;
+  readonly fields: readonly NumericDriverQuantityName[];
+  readonly predict: (v: Values) => number;
+}
+
+const CONSISTENCY_TAU = 2 * Math.PI;
+
+const RELATIONS: readonly Readonly<Relation>[] = Object.freeze([
+  Object.freeze({ formula: 'Qts = Qes·Qms/(Qes+Qms)', target: 'Qts', fields: Object.freeze(['Qts', 'Qes', 'Qms'] as const),
+    predict: (v: Values) => v.Qes! * v.Qms! / (v.Qes! + v.Qms!) }),
+  Object.freeze({ formula: 'Fs = 1/(2π·√(Mms·Cms))', target: 'Fs_hz', fields: Object.freeze(['Fs_hz', 'Mms_kg', 'Cms_m_per_N'] as const),
+    predict: (v: Values) => 1 / (CONSISTENCY_TAU * Math.sqrt(v.Mms_kg! * v.Cms_m_per_N!)) }),
+  Object.freeze({ formula: 'Rms = 2π·Fs·Mms/Qms', target: 'Rms_kg_per_s', fields: Object.freeze(['Rms_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qms'] as const),
+    predict: (v: Values) => CONSISTENCY_TAU * v.Fs_hz! * v.Mms_kg! / v.Qms! }),
+  Object.freeze({ formula: 'Qes = 2π·Fs·Mms·Re/Bl²', target: 'Qes', fields: Object.freeze(['Qes', 'Fs_hz', 'Mms_kg', 'Re_ohm', 'BL_Tm'] as const),
+    predict: (v: Values) => CONSISTENCY_TAU * v.Fs_hz! * v.Mms_kg! * v.Re_ohm! / (v.BL_Tm! * v.BL_Tm!) }),
+  Object.freeze({ formula: 'Rme = Bl²/Re', target: 'Rme_kg_per_s', fields: Object.freeze(['Rme_kg_per_s', 'BL_Tm', 'Re_ohm'] as const),
+    predict: (v: Values) => v.BL_Tm! * v.BL_Tm! / v.Re_ohm! }),
+  Object.freeze({ formula: 'Rme = 2π·Fs·Mms/Qes', target: 'Rme_kg_per_s', fields: Object.freeze(['Rme_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qes'] as const),
+    predict: (v: Values) => CONSISTENCY_TAU * v.Fs_hz! * v.Mms_kg! / v.Qes! }),
+  Object.freeze({ formula: 'Dd = 2·√(Sd/π)', target: 'Dd_m', fields: Object.freeze(['Dd_m', 'Sd_m2'] as const),
+    predict: (v: Values) => 2 * Math.sqrt(v.Sd_m2! / Math.PI) }),
+  Object.freeze({ formula: 'Mpow = Bl/√Re', target: 'Mpow_N_per_sqrtW', fields: Object.freeze(['Mpow_N_per_sqrtW', 'BL_Tm', 'Re_ohm'] as const),
+    predict: (v: Values) => v.BL_Tm! / Math.sqrt(v.Re_ohm!) }),
+  Object.freeze({ formula: 'Mpow = √Rme', target: 'Mpow_N_per_sqrtW', fields: Object.freeze(['Mpow_N_per_sqrtW', 'Rme_kg_per_s'] as const),
+    predict: (v: Values) => Math.sqrt(v.Rme_kg_per_s!) }),
+  Object.freeze({ formula: 'gamma = Bl/Mms', target: 'gamma_m_per_s2_A', fields: Object.freeze(['gamma_m_per_s2_A', 'BL_Tm', 'Mms_kg'] as const),
+    predict: (v: Values) => v.BL_Tm! / v.Mms_kg! }),
+  Object.freeze({ formula: 'Vd = Sd·Xmax', target: 'Vd_m3', fields: Object.freeze(['Vd_m3', 'Sd_m2', 'Xmax_m'] as const),
+    predict: (v: Values) => v.Sd_m2! * v.Xmax_m! }),
+  // ρ/c are the driver's OWN resolved air (`solveConsistencyGroup` always fills `c_m_per_s`/
+  // `roo_kg_per_m3` in, per solver.ts above), never a fixed reference constant — matching the
+  // same air the solve itself used for this exact conversion.
+  Object.freeze({ formula: 'Vas = ρ·c²·Sd²·Cms', target: 'Vas_m3', fields: Object.freeze(['Vas_m3', 'Cms_m_per_N', 'Sd_m2', 'roo_kg_per_m3', 'c_m_per_s'] as const),
+    predict: (v: Values) => v.roo_kg_per_m3! * v.c_m_per_s! * v.c_m_per_s! * v.Sd_m2! * v.Sd_m2! * v.Cms_m_per_N! }),
+]);
+
+/** Every field name any relation above reads, deduplicated — the closed set `Values` covers. */
+const RELATION_FIELDS: readonly NumericDriverQuantityName[] = Object.freeze(
+  Array.from(new Set(RELATIONS.flatMap(rel => rel.fields))),
+);
+
+/**
+ * Half the last significant decimal of `v`, taken to 12 significant digits: `0.0355` ⇒
+ * 0.00005, `37` ⇒ 0.5. `toExponential(11)` (12 significant digits: one before the point, 11
+ * after) is read directly — never round-tripped through `Number(v.toPrecision(12))`, which
+ * re-shortens to whatever `toExponential()` with NO argument considers the minimal
+ * round-trippable representation of the resulting double (`(0.4).toExponential()` is `"4e-1"`,
+ * one significant digit, not twelve) and silently produces a tolerance 11 orders of magnitude
+ * too loose for any round-ish stated value. Caught by
+ * `test/domain.test.ts`'s "reports an inconsistent-inputs issue when a stated Qts contradicts
+ * stated Qes/Qms" once real driver-shaped fixtures (not just already-irrational probe numbers)
+ * exercised it.
+ */
+function halfUlp(v: number): number {
+  if (!isFinite(v) || v === 0) return 0;
+  const s = v.toExponential(11);
+  const [mantissa, exponent] = s.split('e');
+  const decimals = (mantissa.split('.')[1] ?? '').length;
+  return 0.5 * Math.pow(10, Number(exponent) - decimals);
+}
+
+/** A computed field's uncertainty can collapse to zero when the solve is insensitive to every
+ *  entered value; this is a representation floor, not a tolerance. */
+const FLOAT_NOISE = 1e-9;
+
+/** Only the fields any relation reads, as a closed `Values` bag — never the full solved record
+ *  (which also carries `wiring` and everything else no relation names). */
+function valuesFrom(r: DriverWorkingSet): Values {
+  const out: Partial<Record<NumericDriverQuantityName, number>> = {};
+  for (const field of RELATION_FIELDS) {
+    const v = r[field];
+    if (typeof v === 'number') out[field] = v;
+  }
+  return out;
+}
+
+/** `base` with `field` set to `value` — the one place a `NumericDriverQuantityName` is written
+ *  into a fresh `DriverWorkingSet`, so every caller shares the same, single assignment the
+ *  compiler checks once. */
+function withNumericField(
+  base: DriverWorkingSet, field: NumericDriverQuantityName, value: number,
+): DriverWorkingSet {
+  const next: DriverWorkingSet = { ...base };
+  next[field] = value;
+  return next;
+}
+
+/**
+ * Every entered value's disagreement with what the OTHER entered values imply for it, beyond
+ * their own combined rounding precision — plus, for `Qts`, whether the group can even be
+ * solved at all. `entered` is the driver's own stated numerics; a value the solver itself
+ * derived is never fed back in as if the human had typed it.
+ */
+function checkConsistency(entered: DriverWorkingSet): DriverIssue[] {
+  const resolved = solveConsistencyGroup(entered);
+
+  // Each field's own uncertainty: an ENTERED field carries its literal's own rounding
+  // (`halfUlp`); a COMPUTED one starts at the float-representation floor and accumulates
+  // however far each entered field's own rounding can move it (below).
+  const delta: Partial<Record<NumericDriverQuantityName, number>> = {};
+  for (const field of RELATION_FIELDS) {
+    const value = resolved[field];
+    if (typeof value !== 'number') continue;
+    delta[field] = entered[field] != null ? halfUlp(value) : Math.abs(value) * FLOAT_NOISE;
+  }
+  for (const field of RELATION_FIELDS) {
+    const enteredValue = entered[field];
+    const ownDelta = delta[field];
+    if (typeof enteredValue !== 'number' || !(ownDelta! > 0)) continue;
+    const bumped = solveConsistencyGroup(withNumericField(entered, field, enteredValue + ownDelta!));
+    for (const other of RELATION_FIELDS) {
+      if (entered[other] != null) continue; // only computed fields accumulate movement
+      const moved = bumped[other];
+      const base = resolved[other];
+      if (typeof moved === 'number' && typeof base === 'number') {
+        delta[other] = (delta[other] ?? 0) + Math.abs(moved - base);
+      }
+    }
+  }
+
+  const resolvedValues = valuesFrom(resolved);
+  const issues: DriverIssue[] = [];
+  for (const rel of RELATIONS) {
+    if (!rel.fields.every(f => typeof resolvedValues[f] === 'number')) continue;
+    const expected = rel.predict(resolvedValues);
+    if (!isFinite(expected)) continue;
+
+    let tolerance = delta[rel.target] ?? 0;
+    for (const f of rel.fields) {
+      const fieldDelta = delta[f];
+      if (f === rel.target || !(fieldDelta! > 0)) continue;
+      const bumpedValues: Partial<Record<NumericDriverQuantityName, number>> = { ...resolvedValues };
+      bumpedValues[f] = resolvedValues[f]! + fieldDelta!;
+      const moved = rel.predict(bumpedValues);
+      if (isFinite(moved)) tolerance += Math.abs(moved - expected);
+    }
+
+    const actual = resolvedValues[rel.target]!;
+    const residual = Math.abs(expected - actual);
+    if (residual > tolerance) {
+      issues.push({
+        kind: 'inconsistent-inputs', formula: rel.formula, fields: rel.fields,
+        target: rel.target, expected, actual, relative: residual / Math.abs(actual),
+      });
+    }
+  }
+
+  // Qts has no route besides Qes+Qms (WinISD has no third input to this triple) — a driver
+  // stating fewer than two of the three cannot solve it, and the caller needs to know exactly
+  // which field is missing to unblock it, not just that Qts came back undefined.
+  if (typeof resolvedValues.Qts !== 'number') {
+    const missing: NumericDriverQuantityName[] = (['Qes', 'Qms'] as const).filter(f => entered[f] == null);
+    issues.push({
+      kind: 'missing-dependencies',
+      target: 'Qts',
+      routes: [{ formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing }],
+    });
+  }
+
+  return issues;
+}
+
+/** A handle's own value, entered-only — a value the solver itself derived is never fed back in
+ *  as if it had been typed (matches `checkConsistency`'s own contract). */
+function enteredDriverValue(field: SolverField): number | undefined {
+  return field.entered ? field.value ?? undefined : undefined;
+}
+
+/** Write `value` onto a non-entered handle: derived when present, `not-available` when not. An
+ *  entered handle is never touched. */
+function writeDriverBack(field: SolverField, value: number | undefined): void {
+  if (field.entered) return;
+  if (value != null) field.setCalculated(value); else field.setNotAvailable();
+}
+
+/** The driver handle solve (T10/T11): build a private, entered-only `DriverWorkingSet` working
+ *  set from the handles, run `solveConsistencyGroup`/`checkConsistency` on it unchanged, write
+ *  every derived (non-entered) value back via `setCalculated` (or `setNotAvailable` when it
+ *  cannot solve), and return the issues. `wiring` is a discrete entered input, never derived, so
+ *  it is read but never written back. `air` is the project's own resolved `{ rho, c }` — a
+ *  not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it (matching `solveVent`/`solvePr`'s own
+ *  `air` parameter), and the default then writes back as `'C'`. */
+export function solveDriver(params: DriverSolverParams, air: Air): DriverIssue[] {
+  const working: DriverWorkingSet = {
+    Fs_hz: enteredDriverValue(params.Fs_hz), Re_ohm: enteredDriverValue(params.Re_ohm),
+    Znom_ohm: enteredDriverValue(params.Znom_ohm), Le_H: enteredDriverValue(params.Le_H),
+    fLe_hz: enteredDriverValue(params.fLe_hz), KLe_H_sqrtHz: enteredDriverValue(params.KLe_H_sqrtHz),
+    Qes: enteredDriverValue(params.Qes), Qms: enteredDriverValue(params.Qms), Qts: enteredDriverValue(params.Qts),
+    Vas_m3: enteredDriverValue(params.Vas_m3), Sd_m2: enteredDriverValue(params.Sd_m2), Dd_m: enteredDriverValue(params.Dd_m),
+    BL_Tm: enteredDriverValue(params.BL_Tm), Mms_kg: enteredDriverValue(params.Mms_kg),
+    Cms_m_per_N: enteredDriverValue(params.Cms_m_per_N), Rms_kg_per_s: enteredDriverValue(params.Rms_kg_per_s),
+    EBP_hz: enteredDriverValue(params.EBP_hz), Xmax_m: enteredDriverValue(params.Xmax_m), Vd_m3: enteredDriverValue(params.Vd_m3),
+    Hc_m: enteredDriverValue(params.Hc_m), Hg_m: enteredDriverValue(params.Hg_m), Pe_W: enteredDriverValue(params.Pe_W),
+    no: enteredDriverValue(params.no), SPLref_dB: enteredDriverValue(params.SPLref_dB), SPL_dB: enteredDriverValue(params.SPL_dB),
+    USPL_dB: enteredDriverValue(params.USPL_dB), SPLmax_dB: enteredDriverValue(params.SPLmax_dB),
+    SPLmaxLF_dB: enteredDriverValue(params.SPLmaxLF_dB), Rme_kg_per_s: enteredDriverValue(params.Rme_kg_per_s),
+    Mpow_N_per_sqrtW: enteredDriverValue(params.Mpow_N_per_sqrtW), Mcost_kg_per_s: enteredDriverValue(params.Mcost_kg_per_s),
+    gamma_m_per_s2_A: enteredDriverValue(params.gamma_m_per_s2_A), Gloss: enteredDriverValue(params.Gloss),
+    Vcd_m: enteredDriverValue(params.Vcd_m), Depth_m: enteredDriverValue(params.Depth_m), MagDepth_m: enteredDriverValue(params.MagDepth_m),
+    Magnet_m: enteredDriverValue(params.Magnet_m), DVol_m3: enteredDriverValue(params.DVol_m3),
+    c_m_per_s: enteredDriverValue(params.c_m_per_s) ?? air.c,
+    roo_kg_per_m3: enteredDriverValue(params.roo_kg_per_m3) ?? air.rho,
+    Re_terminal_ohm: enteredDriverValue(params.Re_terminal_ohm),
+    BL_terminal_Tm: enteredDriverValue(params.BL_terminal_Tm), numVC: enteredDriverValue(params.numVC),
+    wiring: params.wiring.value ?? undefined,
+  };
+
+  const solved = solveConsistencyGroup(working);
+  const issues = checkConsistency(working);
+
+  writeDriverBack(params.Fs_hz, solved.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm);
+  writeDriverBack(params.Znom_ohm, solved.Znom_ohm); writeDriverBack(params.Le_H, solved.Le_H);
+  writeDriverBack(params.fLe_hz, solved.fLe_hz); writeDriverBack(params.KLe_H_sqrtHz, solved.KLe_H_sqrtHz);
+  writeDriverBack(params.Qes, solved.Qes); writeDriverBack(params.Qms, solved.Qms); writeDriverBack(params.Qts, solved.Qts);
+  writeDriverBack(params.Vas_m3, solved.Vas_m3); writeDriverBack(params.Sd_m2, solved.Sd_m2); writeDriverBack(params.Dd_m, solved.Dd_m);
+  writeDriverBack(params.BL_Tm, solved.BL_Tm); writeDriverBack(params.Mms_kg, solved.Mms_kg);
+  writeDriverBack(params.Cms_m_per_N, solved.Cms_m_per_N); writeDriverBack(params.Rms_kg_per_s, solved.Rms_kg_per_s);
+  writeDriverBack(params.EBP_hz, solved.EBP_hz); writeDriverBack(params.Xmax_m, solved.Xmax_m); writeDriverBack(params.Vd_m3, solved.Vd_m3);
+  writeDriverBack(params.Hc_m, solved.Hc_m); writeDriverBack(params.Hg_m, solved.Hg_m); writeDriverBack(params.Pe_W, solved.Pe_W);
+  writeDriverBack(params.no, solved.no); writeDriverBack(params.SPLref_dB, solved.SPLref_dB); writeDriverBack(params.SPL_dB, solved.SPL_dB);
+  writeDriverBack(params.USPL_dB, solved.USPL_dB); writeDriverBack(params.SPLmax_dB, solved.SPLmax_dB);
+  writeDriverBack(params.SPLmaxLF_dB, solved.SPLmaxLF_dB); writeDriverBack(params.Rme_kg_per_s, solved.Rme_kg_per_s);
+  writeDriverBack(params.Mpow_N_per_sqrtW, solved.Mpow_N_per_sqrtW); writeDriverBack(params.Mcost_kg_per_s, solved.Mcost_kg_per_s);
+  writeDriverBack(params.gamma_m_per_s2_A, solved.gamma_m_per_s2_A); writeDriverBack(params.Gloss, solved.Gloss);
+  writeDriverBack(params.Vcd_m, solved.Vcd_m); writeDriverBack(params.Depth_m, solved.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m);
+  writeDriverBack(params.Magnet_m, solved.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3); writeDriverBack(params.c_m_per_s, solved.c_m_per_s);
+  writeDriverBack(params.roo_kg_per_m3, solved.roo_kg_per_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm);
+  writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm); writeDriverBack(params.numVC, solved.numVC);
+
+  return issues;
 }

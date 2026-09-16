@@ -125,7 +125,7 @@ function isNumKey(f: string): f is NumKey {
 function fieldClasses(key: NumKey, group: UnitGroup | undefined, token: string | undefined): Record<string, boolean> {
   void project.value;
   const cellOf = (f: SpecField): Cell<number> => fieldCell(isNumKey(f) ? f : 'Fs');
-  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.checkConsistency(), key);
+  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), key);
   return {
     [cellClassFor(cellOf, key)]: true,
     'de-input-mandatory': mandatory,
@@ -190,12 +190,13 @@ const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It 
 const dqNote = (key: NumKey): string => {
   if (isBadValue(key)) return BAD_VALUE_NOTE;
   void project.value;
-  return consistencyNote(project.value.driver.checkConsistency(), key);
+  return consistencyNote(project.value.driver.issues(), key);
 };
 
 const ebpVal = computed(() => {
   void project.value;
-  const { Fs_hz, Qes } = project.value.driver.solveConsistencyGroup();
+  const ts = project.value.driver.ts;
+  const Fs_hz = ts.Fs_hz.value, Qes = ts.Qes.value;
   return Fs_hz != null && Qes != null && Qes !== 0 ? ebpOf(Fs_hz, Qes) : null;
 });
 

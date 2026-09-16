@@ -120,7 +120,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const mine = project.sweep(P).values;
     expect(mine).not.toBeNull();
     const theirs = engine.sweep(
-      project.driver.solveConsistencyGroup(), project.driver.Le_H()!, 'sealed',
+      project.driver.solverParams, project.driver.Le_H()!, 'sealed',
       {
         Vb: 0.03, eg: project.driveVoltage_V.value!, fmin: 10, fmax: 1000, N: 100,
         Ql: project.box.sealed.losses.Ql.get(), Qa: project.box.sealed.losses.Qa.get(),

@@ -15,15 +15,15 @@ import { describe, it } from 'vitest';
 import { solveConsistencyGroup } from './testSolver.js';
 import assert from 'node:assert/strict';
 import { Engine } from "../../engine/index.js";
-import type { DriverSolverQuantities } from "../../engine/index.js";
+import type { TestSolverQuantities } from './testSolver.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();
 
 // A driver record stating no `c`/`roo` of its own takes the live physical model at the
 // reference environment — the same air `airFor({})` reports.
-const driverC   = (): number => engine.airFor({}).c;
-const driverRho = (): number => engine.airFor({}).rho;
+const driverC   = (): number => engine.solveEnvironment({}).values.c;
+const driverRho = (): number => engine.solveEnvironment({}).values.rho;
 
 describe('solveConsistencyGroup — full fixpoint solver mode', () => {
   // The DVol/Depth/MagDepth/Magnet geometry lock (WINISD_SCHEMA.md §3.10.1): any one member
@@ -126,7 +126,7 @@ describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)',
     const Qes = 0.4;
     const Vas = 0.045;
     const fs14 = 40;                       // the value rel 14 must produce
-    const no = engine.referenceEfficiency(fs14, Vas, Qes, engine.airFor({}));
+    const no = engine.referenceEfficiency(fs14, Vas, Qes, engine.solveEnvironment({}).values);
 
     // rel 2 inputs engineered to disagree with rel 14's answer (50 Hz instead of 40 Hz).
     const fs2 = 50;
@@ -147,7 +147,7 @@ describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)',
     const Qes = 0.4;
     const Vas = 0.045;
     const fs14 = fs11 * 1.5;
-    const no = engine.referenceEfficiency(fs14, Vas, Qes, engine.airFor({}));
+    const no = engine.referenceEfficiency(fs14, Vas, Qes, engine.solveEnvironment({}).values);
 
     const res = solveConsistencyGroup({ Mms_kg: Mms, Cms_m_per_N: Cms, Qes, Vas_m3: Vas, no }) as Record<string, number>;
     assert.ok(Math.abs(res.Fs_hz - fs11) < 1e-6, `rel 11 must win over rel 14, expected ${fs11}, got ${res.Fs_hz}`);
@@ -259,7 +259,7 @@ describe('solveConsistencyGroup — Vas route parity with WinISD (FINDING-027/02
 
   it('falls back to rel 10 (Cms/Sd) only when `no` is underivable — FINDING-028 compliance_only', () => {
     // Exactly the probe's compliance_only scene: Cms/Sd/Fs/Qes/Qms but no BL, Mms, Re, no, SPL.
-    const complianceOnly: DriverSolverQuantities = {
+    const complianceOnly: TestSolverQuantities = {
       Fs_hz: W5.Fs_hz, Qes: W5.Qes, Qms: W5.Qms,
       Cms_m_per_N: W5.Cms_m_per_N, Sd_m2: W5.Sd_m2,
     };
@@ -270,7 +270,7 @@ describe('solveConsistencyGroup — Vas route parity with WinISD (FINDING-027/02
     // 0.000718523656549444. Spot-check the same happens here.
     assert.ok(res.no != null, 'no still derives from Fs/Qes/Vas once the compliance Vas exists');
     const noFromCompliance = engine.referenceEfficiency(
-      W5.Fs_hz, VAS_COMPLIANCE, W5.Qes, engine.airFor({}));
+      W5.Fs_hz, VAS_COMPLIANCE, W5.Qes, engine.solveEnvironment({}).values);
     assert.ok(Math.abs(res.no - noFromCompliance) <= noFromCompliance * 1e-12,
       `no must be η₀ of the compliance Vas, got ${res.no}`);
   });

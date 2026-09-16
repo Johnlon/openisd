@@ -195,7 +195,7 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
         // the app default environment (nothing in a driver-only `.wdr` carries the real one), so
         // compare against WinISD's OWN air model at the recorded environment instead of `after`.
         const ours = (env && (key === 'c' || key === 'roo'))
-          ? new Engine().airFor({ ...env, useWinisdAirModel: true })[key === 'c' ? 'c' : 'rho']
+          ? new Engine().solveEnvironment({ ...env, useWinisdAirModel: true }).values[key === 'c' ? 'c' : 'rho']
           : Number(after.get(key));
         if (!isFinite(theirs) || theirs === 0) continue;   // 0 pins no arithmetic
         if (!isFinite(ours) || !agrees(ours, theirs)) {

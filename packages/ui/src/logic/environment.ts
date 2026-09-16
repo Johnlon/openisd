@@ -8,7 +8,7 @@ import { Engine, LossMode } from '@openisd/design/engine';
 import type { Air, AirEnvironment } from '@openisd/design/engine';
 
 export function airForEnvironment(env: AirEnvironment): Air {
-    return new Engine().airFor(env);
+    return new Engine().solveEnvironment(env).values;
 }
 
 /** EBP = Fs/Qes — the vented-box suitability figure OgTune.vue's Vents pane shows. */
@@ -32,11 +32,11 @@ export const DEFAULT_RE_OHM = 8;
  *  (`docs/design/WINISD_SCHEMA.md` §12). Functions, not values, so the driver editor's
  *  read-only Environment readout never caches a number that could go stale. */
 export function referenceC(): number {
-    return new Engine().airFor({}).c;
+    return new Engine().solveEnvironment({}).values.c;
 }
 
 export function referenceRho(): number {
-    return new Engine().airFor({}).rho;
+    return new Engine().solveEnvironment({}).values.rho;
 }
 
 /** The string→member boundary for the sealed-box loss model, and the picker's option list —
