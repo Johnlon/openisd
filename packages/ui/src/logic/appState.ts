@@ -322,6 +322,18 @@ const doSweep = () => {
     sweepErrors.value = [];
     return;
   }
+  const boxType = p.box.boxType.get();
+  if (!boxTypeIsSimulatable(boxType)) {
+    // `sweep()`/`maxCurves()` answer `{values: null, issues: []}` for a topology the engine has
+    // no circuit for (bandpass6, abc) — an empty issue list, so nothing downstream ever named
+    // the reason the chart is blank (S3/T4, QO145). Named here instead of in the domain: the
+    // domain's null already IS the correct "not yet implemented" answer for those types: it is
+    // this presentation-layer channel that was dropping it on the floor.
+    curves.value = null;
+    max.value = null;
+    sweepErrors.value = [{level: 'error', field: 'boxType', message: `Not yet implemented — ${boxType}`}];
+    return;
+  }
   const sw = p.sweep(GRID);
   const mx = p.maxCurves(GRID);
   curves.value = sw.values;

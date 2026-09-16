@@ -237,4 +237,28 @@ it('an unsized vent port surfaces a tuning_hz/length_m error through allIssues, 
     assert.deepEqual(tuningCell.dq(), [swept.message],
       'the vent cell DQ and the sweep channel message must be the identical sentence');
   });
+
+  it('an unsimulated topology (bandpass6) reports "Not yet implemented", not a silent blank chart (S3/T4)', async () => {
+    newProject();
+    requireFocusedProject().box.boxType.set('bandpass6');
+    await awaitSweepThrottle();
+
+    const notImpl = allIssues.value.find(e => /not yet implemented/i.test(e.message));
+    assert.ok(notImpl, `allIssues must carry a "not yet implemented" error; got: ${allIssues.value.map(e => e.message).join(', ')}`);
+    assert.equal(notImpl.level, 'error');
+    assert.equal(notImpl.field, 'boxType');
+    assert.match(notImpl.message, /bandpass6/);
+  });
+
+  it('an unsimulated topology (abc) reports "Not yet implemented", not a silent blank chart (S3/T4)', async () => {
+    newProject();
+    requireFocusedProject().box.boxType.set('abc');
+    await awaitSweepThrottle();
+
+    const notImpl = allIssues.value.find(e => /not yet implemented/i.test(e.message));
+    assert.ok(notImpl, `allIssues must carry a "not yet implemented" error; got: ${allIssues.value.map(e => e.message).join(', ')}`);
+    assert.equal(notImpl.level, 'error');
+    assert.equal(notImpl.field, 'boxType');
+    assert.match(notImpl.message, /abc/);
+  });
 });
