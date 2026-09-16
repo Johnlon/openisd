@@ -189,7 +189,14 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
           addProject(project);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
           const { value: project, errors } = owprTextToProject(deps.projectRepo, text);
-          if (!project) throw new Error(errors[0]?.message ?? 'could not read the project file');
+          if (!project) {
+            // `errors[0]` alone is what the alert shows — one line is all a modal has room for —
+            // but a schema mismatch commonly raises several field-level issues at once (QO152),
+            // and the FIRST one is rarely the most informative. Logging every one to the console
+            // is what turns "the browser suite times out for 60s" into a diagnosable failure.
+            console.error(`Could not read "${f.name}":`, errors.map(e => e.message).join('\n'));
+            throw new Error(errors[0]?.message ?? 'could not read the project file');
+          }
           project.name.set(projectNameFromFilename(f.name));
           addProject(project);
         } else {

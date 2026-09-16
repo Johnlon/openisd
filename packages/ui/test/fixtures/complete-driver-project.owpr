@@ -156,7 +156,6 @@
       "vented": {
         "chamber": {
           "volume_m3": 0,
-          "tuning_hz": null,
           "losses": {
             "Ql": 10,
             "Qa": 100,
@@ -168,14 +167,12 @@
           "diameter_m": null,
           "width_m": null,
           "height_m": null,
-          "length_m": null,
           "endCorrection_m": 0.613
         }
       },
       "bandpass4": {
         "rear": {
           "volume_m3": 0,
-          "tuning_hz": null,
           "losses": {
             "Ql": 10,
             "Qa": 100,
@@ -184,7 +181,6 @@
         },
         "front": {
           "volume_m3": 0,
-          "tuning_hz": null,
           "losses": {
             "Ql": 10,
             "Qa": 100,
@@ -197,14 +193,12 @@
           "diameter_m": null,
           "width_m": null,
           "height_m": null,
-          "length_m": null,
           "endCorrection_m": 0.613
         }
       },
       "bandpass6": {
         "rear": {
           "volume_m3": 0,
-          "tuning_hz": null,
           "losses": {
             "Ql": 10,
             "Qa": 100,
@@ -214,7 +208,6 @@
         },
         "front": {
           "volume_m3": 0,
-          "tuning_hz": null,
           "losses": {
             "Ql": 10,
             "Qa": 100,
@@ -227,7 +220,6 @@
           "diameter_m": null,
           "width_m": null,
           "height_m": null,
-          "length_m": null,
           "endCorrection_m": 0.613
         },
         "frontVent": {
@@ -235,14 +227,12 @@
           "diameter_m": null,
           "width_m": null,
           "height_m": null,
-          "length_m": null,
           "endCorrection_m": 0.613
         }
       },
       "abc": {
         "rear": {
           "volume_m3": 0,
-          "tuning_hz": null,
           "losses": {
             "Ql": 10,
             "Qa": 100,
@@ -252,7 +242,6 @@
         },
         "front": {
           "volume_m3": 0,
-          "tuning_hz": null,
           "losses": {
             "Ql": 10,
             "Qa": 100,
@@ -265,7 +254,6 @@
           "diameter_m": null,
           "width_m": null,
           "height_m": null,
-          "length_m": null,
           "endCorrection_m": 0.613
         },
         "frontVent": {
@@ -273,7 +261,6 @@
           "diameter_m": null,
           "width_m": null,
           "height_m": null,
-          "length_m": null,
           "endCorrection_m": 0.613
         },
         "intraVent": {
@@ -281,15 +268,12 @@
           "diameter_m": null,
           "width_m": null,
           "height_m": null,
-          "length_m": null,
           "endCorrection_m": 0.613
         }
       },
       "passiveRadiator": {
         "volume_m3": 0,
-        "tuning_hz": null,
         "count": 1,
-        "addedMass_kg": null,
         "losses": {
           "Ql": 10,
           "Qa": 100
@@ -304,8 +288,10 @@
       "useWinisdAirModel": null
     },
     "signal": {
-      "power_W": 1,
-      "voltage_V": 2.569046515733026
+      "power_W": {
+        "state": "E",
+        "value": 1
+      }
     },
     "meta": {
       "name": "Fixture Project",

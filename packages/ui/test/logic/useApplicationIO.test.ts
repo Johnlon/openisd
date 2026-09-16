@@ -105,6 +105,51 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     }
   });
 
+  it('a malformed .owpr logs the FULL parse error list to the console, before the alert (QO152)', async () => {
+    const alerts: string[] = [];
+    const consoleErrors: unknown[][] = [];
+    vi.stubGlobal('alert', (msg: string) => { alerts.push(msg); });
+    vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => { consoleErrors.push(args); });
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => {
+          this.result = buf;
+          queueMicrotask(() => this.onload?.());
+        });
+      }
+    });
+    try {
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage(), createMemoryStorage()) });
+
+      // A genuinely valid project, corrupted back to the pre-S9a shape (a solver-slot entry
+      // stated as a bare `null`) at TWO distinct fields, so a fix that only logs `errors[0]` is
+      // distinguishable from one that logs all of them.
+      const FIXTURE = join(here, '..', 'fixtures', 'sample-project.owpr');
+      const parsed = JSON.parse(readFileSync(FIXTURE, 'utf8'));
+      parsed.saved.box.vented.chamber.tuning_hz = null;
+      parsed.saved.box.vented.vent.length_m = null;
+      const fakeFile = new File([new TextEncoder().encode(JSON.stringify(parsed))], 'broken.owpr');
+      io.importFile(fakeFile);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      assert.equal(alerts.length, 1, 'the malformed file must still alert the user');
+      assert.equal(consoleErrors.length, 1, 'the malformed file must log to the console exactly once');
+      const [, logged] = consoleErrors[0] as [string, string];
+      assert.match(logged, /tuning_hz/);
+      assert.match(logged, /length_m/, 'the full error list must name BOTH bad fields, not just the first');
+    } finally {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+      vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+      vi.stubGlobal('history', { replaceState: () => {} });
+      vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+    }
+  });
+
   it('Save commits the project to browser storage without opening a file picker', async () => {
     const storage = createMemoryStorage();
     const fileStorage: FileStorage = {
