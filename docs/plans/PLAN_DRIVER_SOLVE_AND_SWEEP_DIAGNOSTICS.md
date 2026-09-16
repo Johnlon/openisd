@@ -447,7 +447,18 @@ solvePr → solveSealedAlignment` over the live `Field` handles; a standalone `O
 | S2-7a `Field` lens rewrite + `entryField` | `cell.ts`, cell tests | setCalculated/set/clear/setDq each land in the lens; setNotAvailable leaves 'E' alone |
 | S2-7b schema + loader transform + serialisers | `openisdSchema.ts`, `driverYmlToOpenisdAndWdr.ts`, `projectRepo.ts`, schema tests | legacy readings JSON string loads as `{state:'E', value}`; `winningValue` reads `.value`; box entries |
 | S2-7c driver resolve | `openisdDomain.ts` driver section | edit `Fs` → `Qts`/`Rms` `'C'` entries in the record refreshed; `solvedNow` gone |
-| S2-7d project cascade + vent/PR/sealed rewire | `openisdDomain.ts` project/box sections | edit vent tuning → `length_m` `'C'` in record; PR mass ↔ tuning; sealed Qtc; getters are plain reads |
+| S2-7d1 project cascade root (driver) | `openisdDomain.ts` OpenISDProject | `#resolve` over the current layer, no notify; wrap → `isModified()` false; `#issues` cache |
+| S2-7d2 vent/PR/sealed rewire | `solverTypes.ts` (`SolverInput` split), `openisdSchema.ts` (sealed `volume_m3` entry), `openisdDomain.ts` box sections | edit vent tuning → `length_m` `'C'` in record; PR mass ↔ tuning; sealed Qtc/Vb; getters are plain reads |
+
+**Progress:** S2-7a `f229856` · S2-7b `8dfaba0` · S2-7c `c9b08de` (2026-09-16/17, worker2).
+
+**Open for John (raised by S2-7 implementation, 2026-09-17):**
+
+| # | Question | Leader's interim call |
+|---|---|---|
+| J1 | Should persistence (disk / catalogue bundle / browser store) **strip `'C'` entries on save**? They are recomputed on load (S7-d), so storing them only bloats every catalogue file (13+ new keys per driver section) and forced two patches to the release gate `scripts/roundTripGate.mjs` (S2-7b, S2-7c). | Strip on save = cleanest; would let both gate patches be reverted. Not done yet. |
+| J2 | `#issues` cache on `OpenISDProject` — a 4th private field beside `#saved/#edited/#engine` (rule of 2026-09-06). Derived, never persisted; needed because sweep guards must not re-solve on read (write-on-read = infinite reactive loop, found in S2-7c). | Allowed as the one documented exception. |
+| J3 | Three `DriverSolverParams` members have no record slot (`SPLref_dB`, `Re_terminal_ohm`, `BL_terminal_Tm`) — S2-7c stubs them with a frozen not-available handle. | Either add the three spec keys to the schema or drop them from `DriverSolverParams` at S2-10. |
 
 ### Step S5 detail (T5 — signal)
 
