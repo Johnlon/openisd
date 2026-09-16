@@ -2,7 +2,7 @@ import type { InjectionKey, Ref } from 'vue';
 import { computed } from 'vue';
 import { useFocusedProject } from '../logic/focusedProjectContext.js';
 import { ebpOf } from '../logic/environment.js';
-import { cellClassFor, consistencyNote } from '../logic/useDriverCells.js';
+import { cellClassFor } from '../logic/useDriverCells.js';
 import type { Cell, Field } from '@openisd/design';
 import type { NumSpecField } from '../logic/appState.js';
 import { specFieldHandle } from '../logic/driverSpecFields.js';
@@ -51,7 +51,7 @@ export function useOgTune(): OgTuneAPI {
   }
 
   function dqNote(key: NumSpecField): string | null {
-    return consistencyNote(project.value.driver.issues(), key);
+    return fieldCell(key).dq().join('\n');
   }
 
   function cellVal(key: NumSpecField): number | null {

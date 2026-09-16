@@ -11,7 +11,7 @@ import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
 import { ebpOf } from '../../../logic/environment.js';
 import { toDisplay, fromDisplay, type UnitGroup } from '../../../logic/fields/units.js';
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
-import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
+import { cellClassFor, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { Cell, Field } from '@openisd/design';
@@ -190,7 +190,7 @@ const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It 
 const dqNote = (key: NumKey): string => {
   if (isBadValue(key)) return BAD_VALUE_NOTE;
   void project.value;
-  return consistencyNote(project.value.driver.issues(), key);
+  return fieldCell(key).dq().join('\n');
 };
 
 const ebpVal = computed(() => {

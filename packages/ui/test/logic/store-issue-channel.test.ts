@@ -218,4 +218,23 @@ it('an unsized vent port surfaces a tuning_hz/length_m error through allIssues, 
       'stating a tuning must clear the vent sweep guard');
     assert.ok(curvesData.value, 'stating a tuning must yield a sweep again');
   });
+
+  it('a vent sweep error reads the identical sentence the cell itself carries as DQ (S2-11)', async () => {
+    newProject();
+    requireFocusedProject().box.boxType.set('vented');
+    requireFocusedProject().box.vented.volume_m3.set(0.030);
+    requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
+    // A stated but non-physical tuning — a genuine per-field vent issue (not the "nothing
+    // chosen yet" sweep-only guard `#ventSweepIssues` adds on top of an empty cascade result),
+    // so the SAME issue instance reaches both the sweep channel and the cell's own DQ.
+    requireFocusedProject().box.vented.tuning_hz.set(0);
+    await awaitSweepThrottle();
+
+    const tuningCell = requireFocusedProject().box.vented.tuning_hz.get();
+    assert.ok(tuningCell.dq().length > 0, 'precondition: the cell must actually carry a DQ');
+    const swept = allIssues.value.find(e => e.field === 'tuning_hz' && e.level === 'error');
+    assert.ok(swept, `allIssues must carry the tuning_hz error; got: ${allIssues.value.map(e => e.field).join(', ')}`);
+    assert.deepEqual(tuningCell.dq(), [swept.message],
+      'the vent cell DQ and the sweep channel message must be the identical sentence');
+  });
 });

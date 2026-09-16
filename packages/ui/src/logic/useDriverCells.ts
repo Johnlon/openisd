@@ -1,5 +1,6 @@
 import type { Cell as FieldCell } from '@openisd/design';
 import type { CellState } from '@openisd/design/winisd';
+import { Engine } from '@openisd/design/engine';
 import type { DriverIssue } from '@openisd/design/engine';
 import type { SpecField } from './appState.js';
 
@@ -53,48 +54,20 @@ export function cellClassFor<K extends string = SpecField>(cellOf: (field: K) =>
   return CELL_CLASS[cellOf(field).state];
 }
 
-/** A near-miss needs its decimal to be readable; a gross one is quoted whole. */
-function pct(relative: number): string {
-  const p = relative * 100;
-  return p >= 100 ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
-}
-
-/** Every field one `DriverIssue` names — the target, plus (for a `missing-dependencies` issue)
- *  every field any of its routes requires or is still missing. One place decides "does this
- *  issue name that field", so every reader of an issue list asks it the same way. */
-function fieldsNamedBy(issue: DriverIssue): readonly string[] {
-  if (issue.kind === 'inconsistent-inputs') return issue.fields;
-  return [issue.target, ...issue.routes.flatMap(r => [...r.required, ...r.missing])];
-}
-
-/**
- * The DQ tooltip for one field, or '' when nothing about it disagrees or blocks it. An
- * `inconsistent-inputs` issue marks EVERY member of the group, so the text names the whole
- * group and says which way and by how much it is out — "inconsistent" on its own tells the
- * human nothing to act on. A `missing-dependencies` issue names which fields would unblock it.
- */
-export function consistencyNote(issues: readonly DriverIssue[], field: string): string {
-  const mine = issues.filter(i => fieldsNamedBy(i).includes(field));
-  if (mine.length === 0) return '';
-  return mine.map(i => {
-    if (i.kind === 'inconsistent-inputs') {
-      return `${i.fields.join(', ')} disagree by ${pct(i.relative)}: ${i.formula}. `
-        + `Every field in the group is marked — correct one of them, or clear one to let it be calculated.`;
-    }
-    const routes = i.routes.map(r => `${r.formula} (needs ${r.missing.join(', ')})`).join('; or ');
-    return `${i.target} cannot be calculated yet — state ${routes}.`;
-  }).join('\n');
-}
-
 /**
  * Is this field REQUIRED-BUT-UNSATISFIED — named by a `missing-dependencies` issue, either as
  * the target that could not be solved or as one of the fields a blocked route still needs?
  *
  * One question, one answer, over the driver's OWN solve result — not a locally re-derived
  * notion of which fields form a group, which the engine already decided when it returned this
- * issue. A component asks THIS rather than re-deriving group membership itself, so the
- * composition is unit-testable without mounting anything, and no component imports the engine.
+ * issue (`engine.issueFields`, S2-13). A component asks THIS rather than re-deriving group
+ * membership itself, so the composition is unit-testable without mounting anything.
  */
 export function fieldIsMandatoryAndUnsatisfied(issues: readonly DriverIssue[], field: string): boolean {
-  return issues.some(i => i.kind === 'missing-dependencies' && fieldsNamedBy(i).includes(field));
+  const engine = new Engine();
+  return issues.some(i => {
+    if (i.kind !== 'missing-dependencies') return false;
+    const named: readonly string[] = engine.issueFields(i);
+    return named.includes(field);
+  });
 }

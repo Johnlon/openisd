@@ -1904,8 +1904,8 @@ function projectFormulaDq<Q extends string>(
 ): void {
     fields.forEach(key => handles[key]?.setDq([]));
     issues.forEach(issue => {
-        const formula = engine.issueFormula(issue);
-        engine.issueFields(issue).forEach(field => handles[field]?.setDq([formula]));
+        const text = engine.issueToText(issue);
+        engine.issueFields(issue).forEach(field => handles[field]?.setDq([text]));
     });
 }
 
@@ -1921,7 +1921,7 @@ function projectGroupDq<Q extends string>(
     issues: readonly CalculationIssue<Q>[],
     engine: Engine,
 ): void {
-    const dq = issues.length > 0 ? [engine.issueFormula(issues[0])] : [];
+    const dq = issues.length > 0 ? [engine.issueToText(issues[0])] : [];
     handles.forEach(h => h.setDq(dq));
 }
 

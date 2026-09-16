@@ -46,6 +46,24 @@ export function issueFormula<Q extends string>(issue: CalculationIssue<Q>): stri
   return issue.routes.map(r => r.formula).join('; or ');
 }
 
+/** A near-miss needs its decimal to be readable; a gross one is quoted whole. */
+function pct(relative: number): string {
+  const p = relative * 100;
+  return p >= 100 ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
+}
+
+/** One sentence for one issue, whichever domain it comes from — the single place that turns a
+ *  `CalculationIssue` into human-facing text, so the cascade DQ, the sweep error channel and the
+ *  driver editor tooltip all say the same thing (S2-11). */
+export function issueToText<Q extends string>(issue: CalculationIssue<Q>): string {
+  if (issue.kind === 'inconsistent-inputs') {
+    return `${issue.fields.join(', ')} disagree by ${pct(issue.relative)}: ${issue.formula}. `
+      + `Every field in the group is marked — correct one of them, or clear one to let it be calculated.`;
+  }
+  const routes = issue.routes.map(r => `${r.formula} (needs ${r.missing.join(', ')})`).join('; or ');
+  return `${issue.target} cannot be calculated yet — state ${routes}.`;
+}
+
 /**
  * Every named sweep output a prerequisite reference can point at — reused from
  * `SweepResult`/`MaxCurvesResult`'s own field names (never a parallel prose vocabulary such as

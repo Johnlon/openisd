@@ -95,8 +95,12 @@ describe('PR and Vent Solver Groups', () => {
     expect(massCell.state).toBe('calculated');
     expect(tuningCell.state).toBe('entered');
     expect(massCell.value).toBeLessThan(0);
-    expect(massCell.dq()).toEqual(['Target tuning is above maximum passive radiator tuning']);
-    expect(tuningCell.dq()).toEqual(['Target tuning is above maximum passive radiator tuning']);
+    const DQ = [
+      'addedMass_kg, tuning_hz disagree by 100%: Target tuning is above maximum passive radiator tuning. '
+      + 'Every field in the group is marked — correct one of them, or clear one to let it be calculated.',
+    ];
+    expect(massCell.dq()).toEqual(DQ);
+    expect(tuningCell.dq()).toEqual(DQ);
   });
 
   it('Vent solver group derives C/N/E state, value and structural DQ atomically', () => {

@@ -16,7 +16,7 @@ import {
   solveDriver, solvePr, solveVent, solveSealedAlignment,
   terminalRe_ohm, terminalBL_Tm,
 } from './solver.js';
-import { issueFields, issueFormula } from './consistency.js';
+import { issueFields, issueFormula, issueToText } from './consistency.js';
 import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { driveVoltage, driveFromVoltage } from './formulas.js';
 import { solveSignal } from './signal.js';
@@ -157,6 +157,12 @@ export class Engine {
    *  blocked route's formula joined for `missing-dependencies`. */
   issueFormula<Q extends string>(issue: CalculationIssue<Q>): string {
     return issueFormula(issue);
+  }
+
+  /** One sentence for one issue — the same text the cascade DQ, the sweep error channel and the
+   *  driver editor tooltip all show, so a user reads one story regardless of where it surfaced. */
+  issueToText<Q extends string>(issue: CalculationIssue<Q>): string {
+    return issueToText(issue);
   }
 
   // ── THE BOX ───────────────────────────────────────────────────────────────────────────────

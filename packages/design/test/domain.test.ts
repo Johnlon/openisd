@@ -782,7 +782,10 @@ describe('the passive radiator a box holds', () => {
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
     p.notifyPrChanged();
 
-    const DQ = ['Target tuning is above maximum passive radiator tuning'];
+    const DQ = [
+      'addedMass_kg, tuning_hz disagree by 100%: Target tuning is above maximum passive radiator tuning. '
+      + 'Every field in the group is marked — correct one of them, or clear one to let it be calculated.',
+    ];
     expect(p.box.passiveRadiator.tuning_hz.get().state).toBe('entered');                 // the input
     expect(p.box.passiveRadiator.tuning_hz.get().dq()).toEqual(DQ);
     expect(p.box.passiveRadiator.addedMass_kg.get().dq()).toEqual(DQ);
@@ -1677,7 +1680,10 @@ describe('S2-7d2 — vent + PR join the cascade', () => {
 
     p.box.passiveRadiator.tuning_hz.set(ceiling * 1.5);
 
-    const DQ = ['Target tuning is above maximum passive radiator tuning'];
+    const DQ = [
+      'addedMass_kg, tuning_hz disagree by 100%: Target tuning is above maximum passive radiator tuning. '
+      + 'Every field in the group is marked — correct one of them, or clear one to let it be calculated.',
+    ];
     expect(p.box.passiveRadiator.tuning_hz.get().dq()).toEqual(DQ);
     expect(p.box.passiveRadiator.addedMass_kg.get().dq()).toEqual(DQ);
     expect(p.box.passiveRadiator.systemTuning_hz.dq).toEqual(DQ);

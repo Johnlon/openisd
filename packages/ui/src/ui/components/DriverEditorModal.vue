@@ -20,7 +20,7 @@ import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import { precision, fieldHelp } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
-import { cellClassFor, consistencyNote, fieldIsMandatoryAndUnsatisfied } from '../../logic/useDriverCells.js';
+import { cellClassFor, fieldIsMandatoryAndUnsatisfied } from '../../logic/useDriverCells.js';
 import { DriverFileFormat } from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
 import { getProvenanceInfo, LABEL_TO_FIELD_KEY } from '../../logic/provenance.js';
@@ -324,10 +324,12 @@ const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It 
 // state here it blocks nothing: the driver still simulates, saves and exports.
 const issues = computed(() => { const _ = trigger.value; return draftDriver.value.issues(); });
 
-/** The one DQ mark per field: its reason, or '' when there is nothing to say. */
+/** The one DQ mark per field: its reason, or '' when there is nothing to say. Reads the CELL's
+ *  own DQ (S2-12) — the cascade already projected `engine.issueToText(issue)` onto it, so this
+ *  is a thin read, not a second derivation of which issue names this field. */
 function dqNote(field: string): string {
   if (isBadValue(field)) return BAD_VALUE_NOTE;
-  return consistencyNote(issues.value, field);
+  return cellOf(field).dq().join('\n');
 }
 
 // Two lists, never merged: a missing Brand does not blank a chart, and a missing Fs does not
@@ -357,10 +359,12 @@ const chartBlockingReasons = computed<string[]>(() => {
   // `checkConsistency()` is what remains, so every inconsistency reads as chart-blocking here.
   // Whether any of them should actually block a chart is a product question, not a rename.
   //
-  // `issues.value` (above) is the SAME solve result `dqNote`/`mandatory` read — a
-  // `missing-dependencies` issue (e.g. Qts needing Qes/Qms) already appears here without a
-  // separate `fieldIsMandatoryAndUnsatisfied(...)` call; that check now exists only to mark
-  // the individual FIELD, not to decide whether the group blocks the chart.
+  // `issues.value` (above) is the SAME solve result `mandatory` reads — a `missing-dependencies`
+  // issue (e.g. Qts needing Qes/Qms) already appears here without a separate
+  // `fieldIsMandatoryAndUnsatisfied(...)` call; that check now exists only to mark the
+  // individual FIELD, not to decide whether the group blocks the chart. `dqNote` (S2-12) no
+  // longer reads `issues.value` at all — it reads the cell's own DQ, already projected by the
+  // domain cascade.
   const reasons = issues.value.map(i => i.kind === 'inconsistent-inputs'
     ? `${i.formula}: ${i.target} is ${i.actual}, the others imply ${i.expected}`
     : `${i.target} cannot be calculated yet — needs ${i.routes.map(r => r.missing.join(', ')).join(' or ')}`);
