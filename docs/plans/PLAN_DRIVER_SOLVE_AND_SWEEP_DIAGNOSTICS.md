@@ -391,7 +391,9 @@ names + `solverQuantities.ts` + the `.values` result types (T3/T10 style trim).
 | S2-8 | **T11 import**: scraped `readings`/`origin` collapse to `value + 'E'` at the runtime boundary; origin machinery stays import-layer | schema/migration tests |
 | S2-9 | **T11 DQ**: projection `setDq([text])` writes into `dq_calculated` (a `DqMark`, `detail` = `issueToText`); `.wdr` `calcMark` parity holds | cell-DQ + `.wdr` tests |
 | S2-10 | Delete public `check*`/`solve*ConsistencyGroup`/`airFor`/`environmentIssues` + `solverQuantities.ts` + the `.values` result types (T3/T10 trim); typecheck + full suite | 1875+ tests, 3-package typecheck |
+| S2-10 note | **Done (2026-09-17, `eb44f70`)** — `solverQuantities.ts` deleted, `*WorkingSet` private in `solver.ts`; `sweep`/`maxCurves` take `DriverSolverParams`; domain reads `driver.ts.X.value`; `checkConsistency()` → `issues()`; `driver.solverParams` adapter covers the 3 slot-less members (J3) + `VCCon`→`wiring`. | — |
 | S2-11 | `issueToText` single source; cells/charts/editor read one sentence; formula-only cell DQ updated | cell-DQ + store-issue-channel tests |
+| S2-11 note | Placement ruling (leader 2026-09-17): `issueToText` lives in the ENGINE beside `issueFields`/`issueFormula` (pure function of the issue); the domain cascade and the UI both call it. Supersedes §3's "Projection: `packages/ui/src/logic/`" row. | — |
 | S2-12 | Driver editor: reads `cell.dq()`; `OpenISDDriver.checkConsistency()` (`openisdDomain.ts:1517`) + the live call (`DriverEditorModal.vue:325`) die | driver-editor tests / e2e spec |
 | S2-13 | Fold `fieldsNamedBy` (`useDriverCells.ts:65-67`) → `issueFields` | existing cell-DQ tests |
 | S2-14 | Update this doc (S2 Done, §4 AFTER + contract verified) + commit | — |
