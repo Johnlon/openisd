@@ -140,4 +140,28 @@ export async function openAProject(page: Page, owprPath: string = DEFAULT_SAMPLE
   await page.locator('.original-root').waitFor({ state: 'visible' });
 }
 
+/**
+ * The driver editor's tab, ENSURED rather than assumed.
+ *
+ * The editor opens on Parameters by design, and each pane is behind `v-if="tab === ..."`, so a
+ * General-tab cell (`.de-fld` — Brand, Model, comment) NEVER MOUNTS until something switches
+ * tabs. A test that waits on one without switching does not fail, it hangs for the full 60 s
+ * timeout: ~36 of the 100 failures in the 2026-09-16 sequential run were this one mistake.
+ *
+ * Hence the creed (human's rule, ui-bugfix.md): only the test that wants to know the default tab
+ * may assert it; every other test switches to the tab it intends, whatever tab is showing.
+ *
+ * Scoped to `.de-modal` and matched by exact accessible name, because "Parameters" is a prefix
+ * of "Advanced parameters". Already-active is left alone: clicking a tab that is already on is
+ * a no-op the modal does not need, and it can be intercepted when the picker sits behind.
+ */
+export async function editorTab(page: Page, tab: EditorTab): Promise<void> {
+  const button = page.locator('.de-modal').getByRole('button', { name: tab, exact: true });
+  await button.waitFor({ state: 'visible' });
+  if (!(await button.evaluate(el => el.classList.contains('on')))) await button.click();
+  await expect(button).toHaveClass(/\bon\b/);
+}
+
+export type EditorTab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
+
 export { expect };

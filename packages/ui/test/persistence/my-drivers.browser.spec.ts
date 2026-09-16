@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { test, expect, openAProject } from '../fixtures.js';
+import { test, expect, openAProject, editorTab } from '../fixtures.js';
 import { myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // My Drivers is the ONE destination for every user-created driver. Four routes reach it and
@@ -113,8 +113,14 @@ async function projectDriver(page: Page): Promise<string> {
 }
 
 /** A driver-editor field, addressed by the WinISD name its tooltip ends with. */
-function field(page: Page, winisdName: string) {
-  return page.locator(`.de-fld[title$="WinISD: ${winisdName}"] input`);
+/**
+ * An editor cell by its `data-field-key` — the stable, human-meaningful key every `.de-fld`
+ * carries (`brand`, `model`, `Fs`, `Vas`, `Re`, `Sd`, …). The old locator matched the tail of
+ * the hover `title`, which is help text and moved out from under it; a key is a contract.
+ * The General identity keys are lower-case, the parameter keys are WinISD's own names.
+ */
+function field(page: Page, key: string) {
+  return page.locator(`.de-fld[data-field-key="${key}"] input`);
 }
 
 const SEEDED_ID = `${SEEDED_BRAND}/${SEEDED_MODEL}`;
@@ -128,8 +134,9 @@ test('Add new Driver opens a completely blank driver; OK asks for an identity in
 
   await expect(page.locator(EDITOR)).toBeVisible();
   await expect(page.locator(EDITOR), 'a new driver is a MY driver, not the project\'s').toContainText('Edit My Driver');
-  await expect(field(page, 'Brand'), 'the new driver was pre-seeded with a brand').toHaveValue('');
-  await expect(field(page, 'Model'), 'the new driver was pre-seeded with a model').toHaveValue('');
+  await editorTab(page, 'General');          // Brand and Model live here; the editor opens on Parameters
+  await expect(field(page, 'brand'), 'the new driver was pre-seeded with a brand').toHaveValue('');
+  await expect(field(page, 'model'), 'the new driver was pre-seeded with a model').toHaveValue('');
   // Human ruling 2026-08-05: every button works regardless of the driver's state. Brand +
   // Model is the index key, so OK still declines to FILE a driver without one — but it says
   // so and puts the caret in the field, instead of going dead and explaining nothing.
@@ -146,8 +153,9 @@ test('Add new Driver saves the new driver into My Drivers and leaves the project
   await openPicker(page);
   await page.getByRole('button', { name: 'Add new Driver' }).click();
 
-  await field(page, 'Brand').fill('Bench');
-  await field(page, 'Model').fill('Hand Built');
+  await editorTab(page, 'General');          // Brand and Model live here
+  await field(page, 'brand').fill('Bench');
+  await field(page, 'model').fill('Hand Built');
   await page.locator(`${EDITOR} .de-tab`).filter({ hasText: /^Parameters$/ }).click();
   await field(page, 'Fs').fill('42');
   await field(page, 'Vas').fill('30');      // litres — the field's display scale
@@ -228,6 +236,7 @@ test('a loaded driver comment stays in the General tab comment field', async ({ 
   await expect(page.locator('.wb-modal .prev-notes')).toContainText('imported-comment-123456');
   await page.locator('.wb-modal .edit-btn').click();
   await expect(page.locator(EDITOR)).toBeVisible();
+  await editorTab(page, 'General');          // .de-general only exists on the General pane
   await expect(page.locator('.de-general .de-comment')).toHaveCount(1);
   await expect(page.locator('.de-general .de-comment textarea')).toHaveValue('imported-comment-123456');
   await expect(page.locator(`${EDITOR} > .de-comment`)).toHaveCount(0);

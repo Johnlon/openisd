@@ -104,7 +104,9 @@ test('a name-changing save asks the ONE question; Save as a copy keeps the origi
   await openPicker(page);
 
   await page.locator('.my-ditem .my-edit').click();
-  await expect(page.locator('.de-root, [aria-label*="driver" i]').first()).toBeVisible();
+  // .de-root has never existed in DriverEditorModal.vue — the editor's root class is .de-modal,
+  // so this waited on nothing and the aria fallback matched the first driver-ish thing on the page.
+  await expect(page.locator('.de-modal')).toBeVisible();
   // change the model, then Save through the save dialog
   const model = page.locator('input.save-model-input');
   await page.locator('button', { hasText: /^Save/ }).first().click();

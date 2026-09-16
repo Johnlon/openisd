@@ -1,4 +1,4 @@
-import { test, expect, openAProject } from '../fixtures.js';
+import { test, expect, openAProject, editorTab } from '../fixtures.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -10,6 +10,10 @@ test('brand and model fields are mandatory, have bold borders, and turn red when
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.de-modal')).toBeVisible();
+
+  // Brand and Model live on the General pane, and the editor opens on Parameters by design, so
+  // the cells do not exist until this switch (ui-bugfix.md testing creed).
+  await editorTab(page, 'General');
 
   // 2. Locate the brand and model input elements
   const brandInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Brand' }) }).locator('input');
@@ -91,7 +95,7 @@ async function openParameters(page: import('@playwright/test').Page) {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.de-modal')).toBeVisible();
-  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+  await editorTab(page, 'Parameters');
 }
 function field(page: import('@playwright/test').Page, label: string) {
   return page.locator('.de-fld', { has: page.locator('label', { hasText: new RegExp(`^${label}\\b`) }) })
@@ -120,6 +124,7 @@ const brandInputOf = (page: import('@playwright/test').Page) => page.locator('.d
 
 test('a missing Brand pops a message instead of a dead button, and lands the caret on it', async ({ page }) => {
   await openParameters(page);
+  await editorTab(page, 'General');          // Brand only exists on this pane
   await brandInputOf(page).fill('');
 
   await expect(okBtn(page)).toBeEnabled();          // never disabled — it answers the click
@@ -137,7 +142,7 @@ test('a missing Brand pops a message instead of a dead button, and lands the car
 
 test('Copy to My Drivers and Save are gated the same way', async ({ page }) => {
   await openParameters(page);
-  await page.getByRole('button', { name: 'General', exact: true }).click();
+  await editorTab(page, 'General');
   await brandInputOf(page).fill('');
 
   await copyBtn(page).click();
@@ -159,7 +164,7 @@ test('Copy to My Drivers and Save are gated the same way', async ({ page }) => {
  */
 test('a missing Brand raises the IDENTITY strip only, and blanks no chart', async ({ page }) => {
   await openParameters(page);
-  await page.getByRole('button', { name: 'General', exact: true }).click();
+  await editorTab(page, 'General');
   await brandInputOf(page).fill('');
   await brandInputOf(page).blur();
 
@@ -195,8 +200,9 @@ test('a missing Fs raises the CHART strip only, and the driver can still be file
  */
 test('each strip says BECAUSE, matching the present-tense facts it lists', async ({ page }) => {
   await openParameters(page);
-  await page.getByRole('button', { name: 'General', exact: true }).click();
+  await editorTab(page, 'General');
   await brandInputOf(page).fill('');
+  await editorTab(page, 'Parameters');       // Fs is a Parameters cell, Brand was a General one
   await field(page, 'Fs').fill('');
   await field(page, 'Fs').blur();
 

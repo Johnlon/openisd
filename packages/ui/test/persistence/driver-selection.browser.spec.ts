@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { test, expect, openAProject } from '../fixtures.js';
+import { test, expect, openAProject, editorTab } from '../fixtures.js';
 import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // docs/design/STATE_MODEL.md rule 1: choosing a driver EMBEDS it in the project. The pick copies the
@@ -62,6 +62,17 @@ async function projectDriverName(page: Page): Promise<string> {
   return `${(await ids.nth(0).inputValue()).trim()} ${(await ids.nth(1).inputValue()).trim()}`.trim();
 }
 
+/**
+ * The editor's Model cell. Model lives on the GENERAL pane and the editor opens on Parameters,
+ * so the pane is ensured on every use rather than assumed: reaching for this cell on the
+ * Parameters pane waits on an element that never mounts, which is a 60 s timeout, not a failure
+ * (ui-bugfix.md testing creed).
+ */
+async function modelCell(page: Page) {
+  await editorTab(page, 'General');
+  return page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
+}
+
 /** Open the full driver editor on the PROJECT's driver, from the Driver panel's Edit button. */
 async function openProjectDriverEditor(page: Page) {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
@@ -103,7 +114,7 @@ test('the embedded driver is a copy — editing it does not touch the saved driv
   // Edit the project's driver, changing its model.
   await openProjectDriverEditor(page);
 
-  const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
+  const modelInput = await modelCell(page);
   await modelInput.fill('Fixture Edited');
   await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
   await expect(page.locator(EDITOR)).toBeHidden();
@@ -119,7 +130,7 @@ test('Copy to My Drivers writes the edited driver into the saved list', async ({
 
   await openProjectDriverEditor(page);
 
-  const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
+  const modelInput = await modelCell(page);
   await modelInput.fill('Fixture Copy');
   await page.locator('.de-copy-my').click();
   await page.locator('.save-confirm-btn').click();
@@ -138,7 +149,7 @@ test('Escape closes the editor and leaves the project driver as it was', async (
   const projectModel = page.locator('.driver-id-row input').nth(1);
   const before = await projectModel.inputValue();
 
-  const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
+  const modelInput = await modelCell(page);
   await modelInput.fill('Discarded');
   await page.keyboard.press('Escape');
 
@@ -157,7 +168,7 @@ test('the ✎ on a My Drivers row opens the editor on that saved driver', async 
 
   await expect(page.locator(EDITOR)).toBeVisible();
   await expect(page.locator(EDITOR)).toContainText('Edit My Driver');
-  const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
+  const modelInput = await modelCell(page);
   await expect(modelInput).toHaveValue('Fixture');
 });
 
@@ -167,7 +178,7 @@ test('editing a saved driver rewrites its entry and leaves the project alone', a
   await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
 
-  const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
+  const modelInput = await modelCell(page);
   await modelInput.fill('Fixture Mk2');
   await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
   await page.locator('.save-confirm-btn').click();
@@ -185,7 +196,7 @@ test('the picker shows the new name as soon as the editor closes', async ({ page
   await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
 
-  const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
+  const modelInput = await modelCell(page);
   await modelInput.fill('Renamed Live');
   await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
   await page.locator('.save-confirm-btn').click();
@@ -199,7 +210,7 @@ test('Cancel on a saved driver writes nothing', async ({ page }) => {
   await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
 
-  const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
+  const modelInput = await modelCell(page);
   await modelInput.fill('Never Saved');
   await page.locator(`${EDITOR} .de-footer button:has-text("Cancel")`).click();
   await expect(page.locator(EDITOR)).toBeHidden();
