@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { entryField, nullableField } from '../domain/cell.js';
+import { entryField, nullableField, resolvingLens } from '../domain/cell.js';
 import type { Lens } from '../domain/cell.js';
 import type { SpecEntryJson } from '../domain/openisdSchema.js';
 
@@ -74,5 +74,38 @@ describe('InputField — the flag-less slot nullableField/requiredField hand bac
     // @ts-expect-error InputField has no setCalculated — only Field (SolverField) exposes it.
     const missing = field.setCalculated;
     expect(missing).toBeUndefined();
+  });
+});
+
+describe('resolvingLens — a lens that resolves after every outside write (S2-7c)', () => {
+  it('runs onWrite once after an ordinary set()', () => {
+    const base = fakeLens(0);
+    let calls = 0;
+    const lens = resolvingLens(base, () => { calls++; });
+    lens.set(5);
+    expect(base.get()).toBe(5);
+    expect(calls).toBe(1);
+  });
+
+  it('a write made BY onWrite itself does not re-trigger onWrite (reentrancy guard)', () => {
+    const base = fakeLens(0);
+    let calls = 0;
+    let lens!: Lens<number>;
+    lens = resolvingLens(base, () => {
+      calls++;
+      lens.set(base.get() + 1);
+    });
+    lens.set(5);
+    expect(calls).toBe(1);
+    expect(base.get()).toBe(6);
+  });
+
+  it('a write from OUTSIDE onWrite after it has finished triggers onWrite again', () => {
+    const base = fakeLens(0);
+    let calls = 0;
+    const lens = resolvingLens(base, () => { calls++; });
+    lens.set(1);
+    lens.set(2);
+    expect(calls).toBe(2);
   });
 });

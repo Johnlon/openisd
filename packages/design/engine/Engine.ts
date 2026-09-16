@@ -105,9 +105,10 @@ export class Engine {
    *  into a private working set, solved and checked by the existing
    *  `solveConsistencyGroup`/`checkConsistency` pair, with every derived value written back
    *  onto its handle via `setCalculated` (or `setNotAvailable`). Entered values — including
-   *  `wiring` — are never overwritten. */
-  solveDriver(params: DriverSolverParams): DriverIssue[] {
-    return solveDriver(params);
+   *  `wiring` — are never overwritten. `air` is the project's own resolved `{ rho, c }`; a
+   *  not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it and writes back as `'C'`. */
+  solveDriver(params: DriverSolverParams, air: Air): DriverIssue[] {
+    return solveDriver(params, air);
   }
 
   /** Solve the passive-radiator group: whichever of tuning/added-mass the caller did not state,

@@ -1,6 +1,7 @@
 import { solveConsistencyGroup } from './solver.js';
 import type { DriverSolverQuantities } from './solverQuantities.js';
 import type { DriverSolverParams, SolverField } from './solverTypes.js';
+import type { Air } from './air.js';
 import type { SweepResult, MaxCurvesResult } from './types.js';
 
 /** One route to a derivable quantity: the formula, everything it needs, and whatever of that
@@ -227,8 +228,10 @@ function writeBack(field: SolverField, value: number | undefined): void {
  *  working set from the handles, run the existing `solveConsistencyGroup`/`checkConsistency`
  *  pair on it unchanged, write every derived (non-entered) value back via `setCalculated` (or
  *  `setNotAvailable` when it cannot solve), and return the issues. `wiring` is a discrete
- *  entered input, never derived, so it is read but never written back. */
-export function solveDriver(params: DriverSolverParams): DriverIssue[] {
+ *  entered input, never derived, so it is read but never written back. `air` is the project's
+ *  own resolved `{ rho, c }` — a not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it (matching
+ *  `solveVent`/`solvePr`'s own `air` parameter), and the default then writes back as `'C'`. */
+export function solveDriver(params: DriverSolverParams, air: Air): DriverIssue[] {
   const working: DriverSolverQuantities = {
     Fs_hz: enteredValue(params.Fs_hz), Re_ohm: enteredValue(params.Re_ohm),
     Znom_ohm: enteredValue(params.Znom_ohm), Le_H: enteredValue(params.Le_H),
@@ -245,8 +248,10 @@ export function solveDriver(params: DriverSolverParams): DriverIssue[] {
     Mpow_N_per_sqrtW: enteredValue(params.Mpow_N_per_sqrtW), Mcost_kg_per_s: enteredValue(params.Mcost_kg_per_s),
     gamma_m_per_s2_A: enteredValue(params.gamma_m_per_s2_A), Gloss: enteredValue(params.Gloss),
     Vcd_m: enteredValue(params.Vcd_m), Depth_m: enteredValue(params.Depth_m), MagDepth_m: enteredValue(params.MagDepth_m),
-    Magnet_m: enteredValue(params.Magnet_m), DVol_m3: enteredValue(params.DVol_m3), c_m_per_s: enteredValue(params.c_m_per_s),
-    roo_kg_per_m3: enteredValue(params.roo_kg_per_m3), Re_terminal_ohm: enteredValue(params.Re_terminal_ohm),
+    Magnet_m: enteredValue(params.Magnet_m), DVol_m3: enteredValue(params.DVol_m3),
+    c_m_per_s: enteredValue(params.c_m_per_s) ?? air.c,
+    roo_kg_per_m3: enteredValue(params.roo_kg_per_m3) ?? air.rho,
+    Re_terminal_ohm: enteredValue(params.Re_terminal_ohm),
     BL_terminal_Tm: enteredValue(params.BL_terminal_Tm), numVC: enteredValue(params.numVC),
     wiring: params.wiring.value ?? undefined,
   };

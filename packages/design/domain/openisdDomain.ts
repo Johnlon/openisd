@@ -9,6 +9,7 @@ import {
     OpenISDDeviceJson,
     type DriverSpecsSection,
     type PassiveRadiatorSpecsSection,
+    type SpecEntryJson,
     type VentJson,
     type SealedLossesJson,
     type VentedLossesJson,
@@ -35,6 +36,7 @@ import {
     nullableField,
     requiredField,
     entryField,
+    resolvingLens,
     Field,
     InputField,
     ReadOnlyCalculatedField,
@@ -43,7 +45,7 @@ import {
 } from './cell.js';
 import {newUuid} from './newUuid.js';
 import {realAppContext, type AppContext} from './appContext.js';
-import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/index.js';
+import {type Air, type AirConstantProvider, type DriverSolverParams, type SolverField, Engine, LossMode} from '../engine/index.js';
 // The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two
 // converter modules, so importing it here would pull them in whichever name was asked for.
 import {openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver} from './driverYmlToOpenisdAndWdr.js';
@@ -996,11 +998,28 @@ class OpenISDBox implements Box {
  * `write()` REASSIGNS the record.
  */
 /**
+ * A `SolverField` for a `DriverSolverParams` quantity the domain has no storage slot for
+ * (`SPLref_dB`, `Re_terminal_ohm`, `BL_terminal_Tm` — none of the three ever appeared in the
+ * bag `solvedNow()` built either, before S2-7c; this carries the same gap forward honestly
+ * rather than inventing storage for it here). Always not-available; any write is silently
+ * discarded — frozen and shared, since it holds no per-call state. */
+const NO_SLOT: SolverField = Object.freeze({
+    value: null,
+    entered: false,
+    calculated: false,
+    notAvailable: true,
+    dq: Object.freeze([]),
+    setCalculated: () => {},
+    setDq: () => {},
+    setNotAvailable: () => {},
+});
+
+/**
  * Window onto a single `DriverSpecsSection` of a driver record.
- * 
+ *
  * Field names carry their unit suffix (e.g. `Fs_hz`, `Rms_kg_per_s`) to report the stored SI unit.
  * Dimensionless parameters (`Qts`, `Qes`, etc.) have no suffix.
- * 
+ *
  * Fields are constructed eagerly to preserve object identity for reactivity.
  */
 export class OpenIsdDriverSpec {
@@ -1077,278 +1096,132 @@ export class OpenIsdDriverSpec {
     readonly OuterY_m: Field<number>;
     readonly DVol_m3: Field<number>;
 
+    readonly #engine: Engine;
+    #issues: readonly DriverIssue[] = [];
+
     constructor(
         record: Lens<OpenISDDeviceJson>,
         section: 'woofer' | 'tweeter',
         engine: Engine,
-        airProvider: () => AirConstantProvider,
     ) {
-        /** The wiring field. Its own builder because it carries a NAME, not a number, so it is not
-         *  one of `SpecFieldName`'s numeric keys and cannot go through `f()`. */
-        const wiring = (): Field<VoiceCoilWiring> => new Field<VoiceCoilWiring>(
+        this.#engine = engine;
+
+        /** One `SpecEntryJson` slot inside this section — creates the section object on write,
+         *  deletes the key when set to `undefined` (T11: absence is 'N', not a stored null). */
+        const sectionSlot = (key: keyof DriverSpecsSection): Lens<SpecEntryJson | undefined> => ({
+            get: () => record.get().specs[section]?.[key],
+            set: (v) => {
+                const json = record.get();
+                const spec = json.specs[section] ?? {};
+                if (v === undefined) {
+                    const {[key]: _removed, ...rest} = spec;
+                    record.set({...json, specs: {...json.specs, [section]: rest}});
+                } else {
+                    record.set({...json, specs: {...json.specs, [section]: {...spec, [key]: v}}});
+                }
+            },
+        });
+
+        /** Every numeric spec field, entry-backed (T11/S2-7c): the record itself holds the
+         *  derived value once `resolve()` has run — no live recompute at read time, no
+         *  `solvedNow` bag kept beside the record. `entryField` alone reports absent/entered/
+         *  calculated straight off what is actually stored. */
+        const f = (key: keyof DriverSpecsSection): Field<number> => entryField(sectionSlot(key), key);
+
+        /** The wiring field. Its own builder because it carries a NAME, not a number, so it is
+         *  not one of `DriverSpecsSection`'s numeric keys and cannot go through `f()`. Never
+         *  solver-derived (S2-3 ruling) — `calcVCCon()` is a live read-time fallback, never a
+         *  written-back default, so `calculated` has nothing to do. */
+        const wiringSlot = sectionSlot('VCCon');
+        this.VCCon = new Field<VoiceCoilWiring>(
             () => {
-                const wiring = wiringFromRecord(winningValue(record.get().specs[section]?.VCCon));
+                const wiring = wiringFromRecord(winningValue(wiringSlot.get()));
                 return wiring === null
                     ? createCell('', calcVCCon(), 'calculated')
                     : createCell('', wiring, 'entered');
             },
             {
-                entered: (v: VoiceCoilWiring) => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: {...spec, VCCon: enteredWiring(v)}},
-                    });
-                },
-                clear: () => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    const {VCCon: _removed, ...rest} = spec;
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: rest},
-                    });
-                },
-                // S2-7c/d: wiring is a discrete entered input, never solver-derived (S2-3
-                // ruling) — its own live `calcVCCon()` fallback inside `readCell` above is
-                // independent of the solver's write path, so `calculated` has nothing to do.
+                entered: (v: VoiceCoilWiring) => wiringSlot.set(enteredWiring(v)),
+                clear: () => wiringSlot.set(undefined),
                 calculated: () => {},
                 dq: () => {},
             },
         );
 
-        /** Everything this section's STATED values imply, and nothing it does not.
-         *
-         *  Memoised against the record's current value, because a solve is a full fixpoint over
-         *  every relation and `get()` is called per field, per render. The cache is a pure
-         *  function of the record, so a `record.set` anywhere — including one from another window
-         *  onto the same driver — invalidates it by identity, and nothing has to remember to.
-         *
-         *  Nothing here writes back: the record holds what was stated, and a derived value is
-         *  reported at the getter and never stored (John, 2026-09-08, QO127 — "NOTHING is supposed
-         *  to call the solver independently and write to the domain"). */
-        let solvedFor: OpenISDDeviceJson | null = null;
-        let solved: Readonly<DriverSolverQuantities> = {};
-        const solvedNow = (): Readonly<DriverSolverQuantities> => {
-            const json = record.get();
-            if (json === solvedFor) return solved;
-            const stated = json.specs[section];
-            const statedValue = (k: keyof DriverSpecsSection): number | undefined =>
-                (stated === undefined ? null : winningValue(stated[k])) ?? undefined;
-            const air = engine.airFor(airProvider());
-            solved = engine.solveConsistencyGroup({
-                Fs_hz: statedValue('Fs_hz'), Re_ohm: statedValue('Re_ohm'), Znom_ohm: statedValue('Znom_ohm'),
-                Le_H: statedValue('Le_H'), fLe_hz: statedValue('fLe_hz'), KLe_H_sqrtHz: statedValue('KLe_H_sqrtHz'),
-                Qes: statedValue('Qes'), Qms: statedValue('Qms'), Qts: statedValue('Qts'),
-                Vas_m3: statedValue('Vas_m3'), Sd_m2: statedValue('Sd_m2'), Dd_m: statedValue('Dd_m'),
-                BL_Tm: statedValue('BL_Tm'), Mms_kg: statedValue('Mms_kg'), Cms_m_per_N: statedValue('Cms_m_per_N'),
-                Rms_kg_per_s: statedValue('Rms_kg_per_s'), EBP_hz: statedValue('EBP_hz'), Xmax_m: statedValue('Xmax_m'),
-                Vd_m3: statedValue('Vd_m3'), Hc_m: statedValue('Hc_m'), Hg_m: statedValue('Hg_m'),
-                Pe_W: statedValue('Pe_W'), no: statedValue('no'), SPL_dB: statedValue('SPL_dB'),
-                USPL_dB: statedValue('USPL_dB'), SPLmax_dB: statedValue('SPLmax_dB'),
-                SPLmaxLF_dB: statedValue('SPLmaxLF_dB'), Rme_kg_per_s: statedValue('Rme_kg_per_s'),
-                Mpow_N_per_sqrtW: statedValue('Mpow_N_per_sqrtW'), Mcost_kg_per_s: statedValue('Mcost_kg_per_s'),
-                gamma_m_per_s2_A: statedValue('gamma_m_per_s2_A'), Gloss: statedValue('Gloss'),
-                Vcd_m: statedValue('Vcd_m'), Depth_m: statedValue('Depth_m'),
-                MagDepth_m: statedValue('MagDepth_m'), Magnet_m: statedValue('Magnet_m'),
-                DVol_m3: statedValue('DVol_m3'), c_m_per_s: statedValue('c_m_per_s') ?? air.c,
-                roo_kg_per_m3: statedValue('roo_kg_per_m3') ?? air.rho,
-            });
-            solvedFor = json;
-            return solved;
-        };
-
-        const f = (
-            key: keyof DriverSpecsSection,
-            derived: () => number | undefined,
-        ): Field<number> => new Field<number>(
-            // A key ABSENT from the section means the driver does not state that parameter — the
-            // ordinary shape of a scraped record, not a fault. Unstated is not the same as
-            // unknowable: if the solver can derive it from what IS stated, that is what the field
-            // reports, marked `calculated` so a reader can still tell derived from entered.
-            () => {
-                const stated = record.get().specs[section]?.[key];
-                const v = winningValue(stated);
-                if (v !== null) return createCell<number>('', v, 'entered');
-                const calculated = derived();
-                return calculated === undefined
-                    ? createCell<number>('', null, 'not-available')
-                    : createCell<number>('', calculated, 'calculated');
-            },
-            {
-                entered: (v: number) => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
-                    });
-                },
-                clear: () => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    const {[key]: _removed, ...rest} = spec;
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: rest},
-                    });
-                },
-                // S2-7c/d: entry-backed — every driver T/S quantity `solveDriver` may write
-                // back (S2-3) reuses the same entered write until the record itself carries a
-                // C/E flag for this slot.
-                calculated: (v: number) => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
-                    });
-                },
-                dq: () => {},
-            },
-        );
-
-        this.Fs_hz = f('Fs_hz', () => solvedNow().Fs_hz);
-        this.Re_ohm = f('Re_ohm', () => solvedNow().Re_ohm);
-        this.Le_H = f('Le_H', () => solvedNow().Le_H);
-        this.fLe_hz = f('fLe_hz', () => solvedNow().fLe_hz);
-        this.KLe_H_sqrtHz = f('KLe_H_sqrtHz', () => solvedNow().KLe_H_sqrtHz);
-        this.Znom_ohm = f('Znom_ohm', () => solvedNow().Znom_ohm);
-        this.Qts = f('Qts', () => solvedNow().Qts);
-        this.Qes = f('Qes', () => solvedNow().Qes);
-        this.Qms = f('Qms', () => solvedNow().Qms);
-        this.Vas_m3 = f('Vas_m3', () => solvedNow().Vas_m3);
-        this.Sd_m2 = f('Sd_m2', () => solvedNow().Sd_m2);
-        this.BL_Tm = f('BL_Tm', () => solvedNow().BL_Tm);
-        this.Mms_kg = f('Mms_kg', () => solvedNow().Mms_kg);
-        this.Cms_m_per_N = f('Cms_m_per_N', () => solvedNow().Cms_m_per_N);
-        this.Rms_kg_per_s = f('Rms_kg_per_s', () => solvedNow().Rms_kg_per_s);
-        this.Xmax_m = f('Xmax_m', () => solvedNow().Xmax_m);
-        this.Xlim_m = f('Xlim_m', () => undefined);
-        this.SPL_dB = f('SPL_dB', () => solvedNow().SPL_dB);
-        this.Pe_W = f('Pe_W', () => solvedNow().Pe_W);
-        this.Dd_m = f('Dd_m', () => solvedNow().Dd_m);
-        this.EBP_hz = f('EBP_hz', () => solvedNow().EBP_hz);
+        /** `numVC` keeps its own live `calcNumVC()` read-time fallback (default 1), for the same
+         *  reason `VCCon` does: nothing in `solveDriver`'s relations ever DERIVES a numVC value
+         *  when it is absent — `terminalRe_ohm`/`terminalBL_Tm` default it internally
+         *  (`solver.ts` "numVC and wiring ride along untouched") but never write one back — so a
+         *  bare `f('numVC')` would report not-available for every driver that never states a
+         *  coil count, losing the default every driver has always shown. */
+        const numVCSlot = entryField(sectionSlot('numVC'), 'numVC');
         this.numVC = new Field<number>(
             () => {
-                const stated = record.get().specs[section]?.numVC;
-                const v = winningValue(stated);
-                return v === null ? createCell('', calcNumVC(), 'calculated') : createCell('', v, 'entered');
+                const cell = numVCSlot.get();
+                return cell.state === 'not-available' ? createCell('numVC', calcNumVC(), 'calculated') : cell;
             },
             {
-                entered: (v: number) => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: {...spec, numVC: enteredEntry(v)}},
-                    });
-                },
-                clear: () => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    const {numVC: _removed, ...rest} = spec;
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: rest},
-                    });
-                },
-                // S2-7c/d: entry-backed — solveDriver writes numVC back too (S2-3).
-                calculated: (v: number) => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: {...spec, numVC: enteredEntry(v)}},
-                    });
-                },
-                dq: () => {},
+                entered: (v: number) => numVCSlot.set(v),
+                clear: () => numVCSlot.clear(),
+                calculated: (v: number) => numVCSlot.setCalculated(v),
+                dq: (list) => numVCSlot.setDq([...list]),
             },
         );
-        this.VCCon = wiring();
-        this.Dia_m = f('Dia_m', () => undefined);
-        this.Vd_m3 = f('Vd_m3', () => solvedNow().Vd_m3);
-        this.no = f('no', () => solvedNow().no);
-        this.SPLmax_dB = f('SPLmax_dB', () => solvedNow().SPLmax_dB);
-        this.SPLmaxLF_dB = f('SPLmaxLF_dB', () => solvedNow().SPLmaxLF_dB);
-        this.USPL_dB = f('USPL_dB', () => solvedNow().USPL_dB);
-        this.alfaVC_per_K = f('alfaVC_per_K', () => undefined);
-        this.Rt_K_per_W = f('Rt_K_per_W', () => undefined);
-        this.Ct_J_per_K = f('Ct_J_per_K', () => undefined);
-        this.gamma_m_per_s2_A = f('gamma_m_per_s2_A', () => solvedNow().gamma_m_per_s2_A);
-        this.Rme_kg_per_s = f('Rme_kg_per_s', () => solvedNow().Rme_kg_per_s);
-        this.Mpow_N_per_sqrtW = f('Mpow_N_per_sqrtW', () => solvedNow().Mpow_N_per_sqrtW);
-        this.Mcost_kg_per_s = f('Mcost_kg_per_s', () => solvedNow().Mcost_kg_per_s);
-        this.Gloss = f('Gloss', () => solvedNow().Gloss);
 
-        /** The air field builder. Its own builder, not `f()`: unlike every other numeric field,
-         *  an unstated `c`/`roo` reads back as the live air model at this driver's own environment
-         *  — the calculated default `openIsdDriverToWinIsdDriver` used to compute only at `.wdr`
-         *  export time, now available on the driver's own getter (see `AirConstantProvider`).
-         *
-         *  For an EMBEDDED driver this `airProvider` is the project's own live environment
-         *  (`OpenISDDriverEmbedded.wrap()`), and `OpenISDDriverEmbedded.update()` strips both
-         *  fields on every write, so an embedded driver's blank `c`/`roo` always resolves here to
-         *  the project's air — never a value it once imported. `solveConsistencyGroup()` is
-         *  overridden on `OpenISDDriverEmbedded` too, to make that the same guarantee explicit
-         *  rather than an emergent property of this fallback alone. */
-        const air = (key: 'c_m_per_s' | 'roo_kg_per_m3', pick: (a: Air) => number): Field<number> => new Field<number>(
-            () => {
-                const stated = record.get().specs[section]?.[key];
-                const v = winningValue(stated);
-                return v === null
-                    ? createCell('', pick(engine.airFor(airProvider())), 'calculated')
-                    : createCell('', v, 'entered');
-            },
-            {
-                entered: (v: number) => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
-                    });
-                },
-                clear: () => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    const {[key]: _removed, ...rest} = spec;
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: rest},
-                    });
-                },
-                // S2-7c/d: entry-backed — solveDriver writes c_m_per_s/roo_kg_per_m3 back too (S2-3).
-                calculated: (v: number) => {
-                    const json = record.get();
-                    const spec = json.specs[section] ?? {};
-                    record.set({
-                        ...json,
-                        specs: {...json.specs, [section]: {...spec, [key]: enteredEntry(v)}},
-                    });
-                },
-                dq: () => {},
-            },
-        );
-        this.c_m_per_s = air('c_m_per_s', (a) => a.c);
-        this.roo_kg_per_m3 = air('roo_kg_per_m3', (a) => a.rho);
-        this.Vcd_m = f('Vcd_m', () => solvedNow().Vcd_m);
-        this.Hg_m = f('Hg_m', () => solvedNow().Hg_m);
-        this.Hc_m = f('Hc_m', () => solvedNow().Hc_m);
-        this.freq_low_hz = f('freq_low_hz', () => undefined);
-        this.freq_high_hz = f('freq_high_hz', () => undefined);
-        this.power_peak_W = f('power_peak_W', () => undefined);
-        this.weight_kg = f('weight_kg', () => undefined);
-        this.Thick_m = f('Thick_m', () => undefined);
-        this.Depth_m = f('Depth_m', () => solvedNow().Depth_m);
-        this.MagDepth_m = f('MagDepth_m', () => solvedNow().MagDepth_m);
-        this.Magnet_m = f('Magnet_m', () => solvedNow().Magnet_m);
-        this.Basket_m = f('Basket_m', () => undefined);
-        this.Outer_m = f('Outer_m', () => undefined);
-        this.OuterX_m = f('OuterX_m', () => undefined);
-        this.OuterY_m = f('OuterY_m', () => undefined);
-        this.DVol_m3 = f('DVol_m3', () => solvedNow().DVol_m3);
+        this.Fs_hz = f('Fs_hz'); this.Re_ohm = f('Re_ohm'); this.Le_H = f('Le_H'); this.fLe_hz = f('fLe_hz');
+        this.KLe_H_sqrtHz = f('KLe_H_sqrtHz'); this.Znom_ohm = f('Znom_ohm'); this.Qts = f('Qts');
+        this.Qes = f('Qes'); this.Qms = f('Qms'); this.Vas_m3 = f('Vas_m3'); this.Sd_m2 = f('Sd_m2');
+        this.BL_Tm = f('BL_Tm'); this.Mms_kg = f('Mms_kg'); this.Cms_m_per_N = f('Cms_m_per_N');
+        this.Rms_kg_per_s = f('Rms_kg_per_s'); this.Xmax_m = f('Xmax_m'); this.Xlim_m = f('Xlim_m');
+        this.SPL_dB = f('SPL_dB'); this.Pe_W = f('Pe_W'); this.Dd_m = f('Dd_m'); this.EBP_hz = f('EBP_hz');
+        this.Dia_m = f('Dia_m'); this.Vd_m3 = f('Vd_m3'); this.no = f('no'); this.SPLmax_dB = f('SPLmax_dB');
+        this.SPLmaxLF_dB = f('SPLmaxLF_dB'); this.USPL_dB = f('USPL_dB'); this.alfaVC_per_K = f('alfaVC_per_K');
+        this.Rt_K_per_W = f('Rt_K_per_W'); this.Ct_J_per_K = f('Ct_J_per_K');
+        this.gamma_m_per_s2_A = f('gamma_m_per_s2_A'); this.Rme_kg_per_s = f('Rme_kg_per_s');
+        this.Mpow_N_per_sqrtW = f('Mpow_N_per_sqrtW'); this.Mcost_kg_per_s = f('Mcost_kg_per_s');
+        this.Gloss = f('Gloss');
+        // The air THIS DRIVER states, entry-backed like every other quantity: a not-entered
+        // c_m_per_s/roo_kg_per_m3 no longer needs a live read-time fallback — `resolve()`'s own
+        // working set defaults it to the driver's `air` and writes the default back as `'C'`
+        // (engine `consistency.ts#solveDriver`), so the record always carries a real value by
+        // the time anything outside this constructor can read it.
+        this.c_m_per_s = f('c_m_per_s'); this.roo_kg_per_m3 = f('roo_kg_per_m3');
+        this.Vcd_m = f('Vcd_m'); this.Hg_m = f('Hg_m'); this.Hc_m = f('Hc_m');
+        this.freq_low_hz = f('freq_low_hz'); this.freq_high_hz = f('freq_high_hz');
+        this.power_peak_W = f('power_peak_W'); this.weight_kg = f('weight_kg'); this.Thick_m = f('Thick_m');
+        this.Depth_m = f('Depth_m'); this.MagDepth_m = f('MagDepth_m'); this.Magnet_m = f('Magnet_m');
+        this.Basket_m = f('Basket_m'); this.Outer_m = f('Outer_m'); this.OuterX_m = f('OuterX_m');
+        this.OuterY_m = f('OuterY_m'); this.DVol_m3 = f('DVol_m3');
+    }
+
+    /** T11: every driver quantity `solveDriver` can derive is written back into the record as a
+     *  `'C'` entry — the record is a CACHE the solver keeps current, never a value computed
+     *  fresh at read time and left unstored (supersedes the earlier QO127 "stated-only, nothing
+     *  writes back" framing). Runs the engine over this window's own 44 handles, caches the
+     *  issues, and returns them; `air` is the driver's own resolved `{ rho, c }`. */
+    resolve(air: Air): readonly DriverIssue[] {
+        const params: DriverSolverParams = {
+            Fs_hz: this.Fs_hz, Re_ohm: this.Re_ohm, Znom_ohm: this.Znom_ohm, Le_H: this.Le_H,
+            fLe_hz: this.fLe_hz, KLe_H_sqrtHz: this.KLe_H_sqrtHz, Qes: this.Qes, Qms: this.Qms,
+            Qts: this.Qts, Vas_m3: this.Vas_m3, Sd_m2: this.Sd_m2, Dd_m: this.Dd_m, BL_Tm: this.BL_Tm,
+            Mms_kg: this.Mms_kg, Cms_m_per_N: this.Cms_m_per_N, Rms_kg_per_s: this.Rms_kg_per_s,
+            EBP_hz: this.EBP_hz, Xmax_m: this.Xmax_m, Vd_m3: this.Vd_m3, Hc_m: this.Hc_m, Hg_m: this.Hg_m,
+            Pe_W: this.Pe_W, no: this.no, SPLref_dB: NO_SLOT, SPL_dB: this.SPL_dB,
+            USPL_dB: this.USPL_dB, SPLmax_dB: this.SPLmax_dB, SPLmaxLF_dB: this.SPLmaxLF_dB,
+            Rme_kg_per_s: this.Rme_kg_per_s, Mpow_N_per_sqrtW: this.Mpow_N_per_sqrtW,
+            Mcost_kg_per_s: this.Mcost_kg_per_s, gamma_m_per_s2_A: this.gamma_m_per_s2_A, Gloss: this.Gloss,
+            Vcd_m: this.Vcd_m, Depth_m: this.Depth_m, MagDepth_m: this.MagDepth_m, Magnet_m: this.Magnet_m,
+            DVol_m3: this.DVol_m3, c_m_per_s: this.c_m_per_s, roo_kg_per_m3: this.roo_kg_per_m3,
+            Re_terminal_ohm: NO_SLOT, BL_terminal_Tm: NO_SLOT, numVC: this.numVC,
+            wiring: this.VCCon,
+        };
+        this.#issues = this.#engine.solveDriver(params, air);
+        return this.#issues;
+    }
+
+    /** The issues the last `resolve()` produced — empty before the first one has run. */
+    issues(): readonly DriverIssue[] {
+        return this.#issues;
     }
 }
 
@@ -1529,6 +1402,12 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** A driver's record is never absent, so this stays non-null for everything below. */
     protected readonly record: Lens<OpenISDDeviceJson>;
 
+    /** The air THIS driver falls back to when it states no `c`/`roo` of its own — an embedded
+     *  driver's is the project's own live environment (`OpenISDDriverEmbedded.wrap()`); a
+     *  standalone driver's defaults to the reference condition. `resolve()` reads it fresh on
+     *  every call, so a project's environment changing is picked up the next time it runs. */
+    protected readonly airProvider: () => AirConstantProvider;
+
     protected constructor(
         record: Lens<OpenISDDeviceJson>,
         section: 'woofer' | 'tweeter',
@@ -1542,6 +1421,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         }, engine);
         this.record = record;
         this.section = section;
+        this.airProvider = airProvider;
         // Both are built unconditionally, and NEITHER reads the record here. A `DriverSpec` is a
         // WINDOW: it dereferences at call time, so a section the record does not carry reads
         // `not-available` on every field and starts carrying values the moment one is set. Deciding
@@ -1549,9 +1429,26 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         // REPLACES it, so a driver updated from a tweeter record would keep reporting no tweeter.
         // `section` already answers "which kind of driver is this"; presence is not a second answer.
         this.spec = {
-            woofer: new OpenIsdDriverSpec(record, 'woofer', engine, airProvider),
-            tweeter: new OpenIsdDriverSpec(record, 'tweeter', engine, airProvider),
+            woofer: new OpenIsdDriverSpec(record, 'woofer', engine),
+            tweeter: new OpenIsdDriverSpec(record, 'tweeter', engine),
         };
+        // DELIBERATELY no `this.resolve()` here, despite S7-d's "'C' is a cache, recomputed on
+        // load": `OpenISDDriverEmbedded` shares this constructor and is rebuilt FRESH on every
+        // `project.driver` access (never held — see that class's own doc), so an unconditional
+        // resolve here would turn every mere READ into a WRITE. A project's own reactive layer
+        // reads `project.driver` from inside watchers that also react to the project's write
+        // notifications, so that write-on-read became an infinite reactive loop the moment this
+        // was tried (`packages/ui` "Maximum recursive updates exceeded", found running the full
+        // suite for S2-7c). `OpenISDDriverStandalone.wrap()` below calls `resolve()` once, itself,
+        // right after construction, for the one-shot cache-on-load S7-d actually asks for — a
+        // standalone driver is a genuine single long-lived instance, not a per-access window. An
+        // embedded driver gets no resolve at all until S2-7d wraps the project's own root lens.
+    }
+
+    /** T11/S2-7c: resolve this driver's active section — write every derivable quantity back
+     *  into the record as a `'C'` entry, cache the issues, and return them. */
+    resolve(): readonly DriverIssue[] {
+        return this.spec[this.section].resolve(this.engine.solveEnvironment(this.airProvider()).values);
     }
 
     /** Which spec section a record carries, or a refusal if it carries neither. */
@@ -1607,16 +1504,12 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  numbers cannot all be true at once — or cannot yet derive, because too few of a group
      *  (e.g. Qts's Qes/Qms pair) are stated. Empty when consistent and fully solvable.
      *
-     *  ENTERED ONLY: unlike `solveConsistencyGroup()` above, `extract` here refuses a
-     *  `'calculated'` cell. A calculated field always agrees with whatever produced it — feeding
-     *  one back in as if it had been typed could never disagree with itself, so the group could
-     *  never be reported as inconsistent no matter how wrong the user's OWN numbers are. */
-    checkConsistency(): DriverIssue[] {
-        const entered = (field: Field<number>): number | undefined => {
-            const cell = field.get();
-            return cell.state === 'entered' ? cell.value ?? undefined : undefined;
-        };
-        return this.engine.checkConsistency(this.statedDriverQuantities(entered));
+     *  T11/S2-7c: the cached result of the last `resolve()` — entered-only by construction,
+     *  since `resolve()`'s own working set feeds the engine only entered values (never a
+     *  calculated one fed back as if it had been typed, or the group could never be reported as
+     *  inconsistent no matter how wrong the user's OWN numbers are). */
+    checkConsistency(): readonly DriverIssue[] {
+        return this.spec[this.section].issues();
     }
 
     /** Voice-coil inductance, as the record states it. Not a solver quantity — nothing derives it
@@ -1754,13 +1647,27 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         airProvider: () => AirConstantProvider = () => ({}),
     ): OpenISDDriverStandalone {
         let current = json;
-        const record: Lens<OpenISDDeviceJson> = {
+        const raw: Lens<OpenISDDeviceJson> = {
             get: () => current,
             set: (j) => {
                 current = j;
             },
         };
-        return new OpenISDDriverStandalone(record, OpenISDDriver.sectionOf(json), engine, airProvider);
+        // S2-7c: every write resolves from here on — a solve's own `setCalculated` writes
+        // travel through this same lens and must not re-trigger (`resolvingLens`'s reentrancy
+        // guard). `driver` is assigned before `onWrite` can ever run: the guarded callback only
+        // fires from a `.set()` call, and construction itself performs none (see the base
+        // constructor's own note on why it does not resolve itself).
+        let driver!: OpenISDDriverStandalone;
+        const record = resolvingLens(raw, () => driver.resolve());
+        driver = new OpenISDDriverStandalone(record, OpenISDDriver.sectionOf(json), engine, airProvider);
+        // The one-shot cache-on-load (S7-d): a standalone driver is a genuine single long-lived
+        // instance, so — unlike an embedded one, rebuilt fresh on every access — resolving once
+        // here is exactly the "'C' is a cache, recomputed on load" contract, not a write-on-read
+        // hazard. Goes through the wrapped lens like any other write, so it is guarded the same
+        // way and reachable from `driver.resolve()` above without recursing.
+        driver.resolve();
+        return driver;
     }
 
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Engine, type DriverError, type DriverIssue } from '@openisd/design/engine';
 import {
   OpenISDProject,
@@ -1327,11 +1327,11 @@ describe("a blank device reports WinISD's own defaults without stating them", ()
   });
 });
 
-describe('a spec field the record does not state reads through the solver', () => {
-  // John, 2026-09-08 (QO127): "a field whose value is not provided in the domain is obviously
-  // not-available BUT if any such field is calculable then reading it should hit the solver
-  // automatically - NOTHING is supposed to call the solver independently and write to the
-  // domain THAT WOULD BE A BUG".
+describe('a spec field the record does not state resolves on write (T11/S2-7c)', () => {
+  // T11 (2026-09-16) supersedes the earlier QO127 "stated-only" ruling: a driver's own writes
+  // now trigger a resolve that writes every derivable field back into the record as `'C'` —
+  // the record itself is a cache the solver keeps current, not a value computed fresh at read
+  // time and never stored.
 
   /** A driver stating Vas and Sd and nothing else derivable — the solver's geometry route to
    *  Cms (`solver.ts` block 4) needs exactly those two plus the air constants, which a driver
@@ -1368,13 +1368,14 @@ describe('a spec field the record does not state reads through the solver', () =
     expect(vasAndSd().spec.woofer.Xmax_m.get().state).toBe('not-available');
   });
 
-  it('the solved value is NOT written into the record, so only stated values are saved', () => {
-    // The whole point of the ruling: reading a derived field must not turn it into something
-    // the driver claims to state. A save writes the record, so a write-back here would forge
-    // provenance on the wire.
+  it('the solved value IS written into the record, as a calculated entry (T11)', () => {
+    // The whole point of T11: a resolve runs on every write, and a derivable field's cell is
+    // backed by a real `'C'` entry in the record — not recomputed fresh at every read with
+    // nothing persisted.
     const d = vasAndSd();
-    d.spec.woofer.Cms_m_per_N.get();
-    expect(d.cloneDriver().specs.woofer?.Cms_m_per_N).toBeUndefined();
+    const entry = d.cloneDriver().specs.woofer?.Cms_m_per_N;
+    expect(entry).toMatchObject({ state: 'C' });
+    expect(entry?.value).toBeCloseTo(d.spec.woofer.Cms_m_per_N.get().value!, 12);
   });
 
   it('changing a stated input changes what the derived field reports', () => {
@@ -1383,6 +1384,63 @@ describe('a spec field the record does not state reads through the solver', () =
     const before = d.spec.woofer.Cms_m_per_N.get().value!;
     d.spec.woofer.Vas_m3.set(0.10);
     expect(d.spec.woofer.Cms_m_per_N.get().value!).toBeCloseTo(before * 2, 12);
+  });
+});
+
+describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
+  /** Qes+Qms entered, nothing else — Qts = Qes·Qms/(Qes+Qms) is the one relation this can
+   *  derive; every OTHER relation needs at least one field this driver never states. */
+  function qesQms(): OpenISDDriver {
+    const d = OpenISDDriver.empty(new Engine());
+    d.spec.woofer.Qes.set(0.4);
+    d.spec.woofer.Qms.set(3.0);
+    return d;
+  }
+
+  it('a derivable field is written into the record as a calculated entry right after construction', () => {
+    const d = qesQms();
+    const entry = d.cloneDriver().specs.woofer?.Qts;
+    expect(entry).toMatchObject({ state: 'C' });
+    expect(entry?.value).toBeCloseTo((0.4 * 3.0) / (0.4 + 3.0), 12);
+  });
+
+  it('setting a field the record already resolved from changes the dependent calculated entry', () => {
+    const d = qesQms();
+    d.spec.woofer.Qms.set(6.0);
+    const entry = d.cloneDriver().specs.woofer?.Qts;
+    expect(entry?.value).toBeCloseTo((0.4 * 6.0) / (0.4 + 6.0), 12);
+  });
+
+  it('an entered Qts survives a resolve untouched, even though it disagrees with Qes/Qms', () => {
+    const d = qesQms();
+    d.spec.woofer.Qts.set(111111);
+    const entry = d.cloneDriver().specs.woofer?.Qts;
+    expect(entry).toEqual({ state: 'E', value: 111111 });
+  });
+
+  it('clearing a field the resolve depended on removes the now-underivable calculated entry', () => {
+    const d = qesQms();
+    expect(d.cloneDriver().specs.woofer?.Qts).toMatchObject({ state: 'C' });
+    d.spec.woofer.Qes.clear();
+    expect(d.cloneDriver().specs.woofer?.Qts).toBeUndefined();
+    expect(d.spec.woofer.Qts.get().state).toBe('not-available');
+  });
+
+  it('exactly one engine.solveDriver call happens per field set()', () => {
+    const engine = new Engine();
+    const d = OpenISDDriver.empty(engine);
+    d.spec.woofer.Qes.set(0.4);
+    const spy = vi.spyOn(engine, 'solveDriver');
+    d.spec.woofer.Qms.set(3.0);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('a not-entered c_m_per_s lands in the record as a calculated entry equal to the driver\'s own air', () => {
+    const engine = new Engine();
+    const d = OpenISDDriver.empty(engine);
+    const air = engine.airFor({});
+    const entry = d.cloneDriver().specs.woofer?.c_m_per_s;
+    expect(entry).toMatchObject({ state: 'C', value: air.c });
   });
 });
 

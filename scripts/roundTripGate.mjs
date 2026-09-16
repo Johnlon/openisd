@@ -37,6 +37,15 @@ function isExpectedSpecEntryUpgrade(a, b) {
   return b.state === 'E' && b.value === expectedValue;
 }
 
+/** Whether `v` is a `state:'C'` `SpecEntryJson` — a quantity the driver's own `resolve()`
+ *  (S2-7c) derived, never a fact materialising from nowhere. `{state, value}` is a shape
+ *  nothing else in an openisd record uses (metadata is `{value, origin}`; `sku` is
+ *  `{value, grounds}`), so matching it is a safe, narrow test. */
+function isCalculatedEntry(v) {
+  return typeof v === 'object' && v !== null && !Array.isArray(v)
+    && v.state === 'C' && typeof v.value === 'number';
+}
+
 /**
  * Deep-compares two JSON-shaped values and returns a slash-separated path string naming the
  * FIRST point they diverge, or `null` if they are identical. Used to report exactly where an
@@ -64,6 +73,22 @@ export function firstDivergence(a, b, path = '$') {
   if (isExpectedSpecEntryUpgrade(a, b)) {
     const { state: _state, value: _value, ...bRest } = b;
     return firstDivergence(a, bRest, path);
+  }
+  // S2-7c (T11 "the record is a cache the solver keeps current"): loading now RESOLVES the
+  // driver once, writing every quantity the engine can derive from the stated ones back into
+  // `specs.<section>` as a brand-new `state:'C'` key the source file never had at all — a
+  // SECOND, larger instance of the same one-time-gain class as the upgrade above, not loss:
+  // every key the source DID state is still required below, byte-for-byte. A new key is
+  // tolerated ONLY when it is a genuine calculated entry; an 'E' fact appearing from nowhere is
+  // not this case and still fails the gate.
+  if (!Array.isArray(a)) {
+    const aKeySet = new Set(Object.keys(a));
+    const gainedCalculatedKeys = Object.keys(b).filter(k => !aKeySet.has(k) && isCalculatedEntry(b[k]));
+    if (gainedCalculatedKeys.length > 0) {
+      const bWithoutGained = { ...b };
+      for (const k of gainedCalculatedKeys) delete bWithoutGained[k];
+      return firstDivergence(a, bWithoutGained, path);
+    }
   }
   // KEY SET, not key order. Order is the EMITTER's contract — `canonical_yaml`'s
   // `_KEY_PRIORITY_LIST` decides it, and the schema is declared to match — so a record written

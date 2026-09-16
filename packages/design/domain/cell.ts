@@ -109,6 +109,27 @@ export function focus<P, K extends keyof P>(parent: Lens<P>, key: K): Lens<P[K]>
   };
 }
 
+/** A lens that resolves after every write from OUTSIDE `onWrite` itself (S2-7c cascade): `set(v)`
+ *  writes through to `lens`, then runs `onWrite()` — unless the write came FROM `onWrite`, guarded
+ *  by a reentrancy flag. Without the guard, a solve's own `setCalculated` writes (which travel
+ *  through this same lens) would trigger another resolve, which writes again, forever. */
+export function resolvingLens<T>(lens: Lens<T>, onWrite: () => void): Lens<T> {
+  let resolving = false;
+  return {
+    get: () => lens.get(),
+    set: (v) => {
+      lens.set(v);
+      if (resolving) return;
+      resolving = true;
+      try {
+        onWrite();
+      } finally {
+        resolving = false;
+      }
+    },
+  };
+}
+
 /** A flag-less input slot — `get()/value/state/entered/set(v)/clear()` only, deliberately NOT a
  *  `SolverField`: a slot with no C/E flag has nothing for a solver to write `'calculated'` or
  *  `'not-available'` onto, so the type simply does not offer `setCalculated`/`setNotAvailable`

@@ -4,6 +4,10 @@ import type { DriverSolverQuantities, DriverSolverParams, SolverField } from '..
 import { fakeSolverField } from './testSolver.js';
 
 const engine = new Engine();
+// Deliberately NOT the reference condition (`engine.airFor({})`): `solveConsistencyGroup`'s own
+// internal driverC/driverRho fallback already defaults to reference air on its own, so a test
+// using reference air here would pass even if `solveDriver` never threaded `air` through at all.
+const AIR = engine.airFor({ tempK: 350 });
 
 function fakeWiringField(value: 'series' | 'parallel' | null): SolverField<'series' | 'parallel'> {
   let current = value;
@@ -88,7 +92,7 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
   it('writes the derived Qts onto its handle when Qes and Qms are entered', () => {
     const Qes = 0.4, Qms = 3.0;
     const p = driverParams({ Qes, Qms });
-    const issues = engine.solveDriver(p);
+    const issues = engine.solveDriver(p, AIR);
     expect(p.Qts.value).toBeCloseTo((Qes * Qms) / (Qes + Qms), 12);
     expect(p.Qts.calculated).toBe(true);
     expect(issues).toEqual([]);
@@ -97,7 +101,7 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
   it('never overwrites an entered value even when it disagrees with the derived value', () => {
     const Qes = 0.4, Qms = 3.0;
     const p = driverParams({ Qes, Qms, Qts: 7.5 });
-    const issues = engine.solveDriver(p);
+    const issues = engine.solveDriver(p, AIR);
     expect(p.Qts.value).toBe(7.5);
     expect(p.Qts.entered).toBe(true);
     expect(issues).toEqual(engine.checkConsistency({ Qts: 7.5, Qes, Qms }));
@@ -105,7 +109,7 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
 
   it('leaves an underivable non-entered field not-available', () => {
     const p = driverParams({ Qes: 0.4 });
-    engine.solveDriver(p);
+    engine.solveDriver(p, AIR);
     expect(p.Qts.value).toBeNull();
     expect(p.Qts.notAvailable).toBe(true);
   });
@@ -113,7 +117,28 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
   it('returns the same issues checkConsistency would for the same entered numbers', () => {
     const input: DriverSolverQuantities = { Qes: 0.4 };
     const p = driverParams({ Qes: 0.4 });
-    const issues = engine.solveDriver(p);
+    const issues = engine.solveDriver(p, AIR);
     expect(issues).toEqual(engine.checkConsistency(input));
+  });
+
+  it('a not-entered c_m_per_s defaults to the given air and is written back as calculated', () => {
+    const p = driverParams({});
+    engine.solveDriver(p, AIR);
+    expect(p.c_m_per_s.value).toBe(AIR.c);
+    expect(p.c_m_per_s.calculated).toBe(true);
+  });
+
+  it('a not-entered roo_kg_per_m3 defaults to the given air and is written back as calculated', () => {
+    const p = driverParams({});
+    engine.solveDriver(p, AIR);
+    expect(p.roo_kg_per_m3.value).toBe(AIR.rho);
+    expect(p.roo_kg_per_m3.calculated).toBe(true);
+  });
+
+  it('an entered c_m_per_s is never overwritten by the given air', () => {
+    const p = driverParams({ c_m_per_s: 111111 });
+    engine.solveDriver(p, AIR);
+    expect(p.c_m_per_s.value).toBe(111111);
+    expect(p.c_m_per_s.entered).toBe(true);
   });
 });
