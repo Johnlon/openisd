@@ -58,7 +58,11 @@ export default defineConfig({
   testIgnore: process.env.OPENISD_EXTERNAL === '1' ? [] : EXTERNAL_NETWORK_SPECS,
   timeout: 60000,
   // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-playwright.js.
-  reporter: [['list'], ['./scripts/test-reporters/no-skips-playwright.js']],
+  // The json reporter is what makes "is the suite faster?" answerable at all: `list` prints a
+  // wall clock to a terminal that scrolls away, so every speed claim about this suite has so far
+  // been unbacked. This persists per-test and per-run durations to build/pw-report.json on EVERY
+  // run, so the next comparison reads two files instead of re-running a benchmark.
+  reporter: [['list'], ['json', { outputFile: 'build/pw-report.json' }], ['./scripts/test-reporters/no-skips-playwright.js']],
   // A stray `test.only` must not silently narrow the suite either.
   forbidOnly: true,
   // Baselines use the bundled Inter font (see canvas.ts), which renders identically on
