@@ -1,265 +1,345 @@
 {
-  "label": "Fixture Project",
-  "saved": {
-    "driverEmbedding": {
-      "device": {
-        "uuid": {
-          "value": "02bf7364-1f65-41e4-9357-03c47fb52181"
+    "label": "W5-1138SMF Fixture",
+    "saved": {
+        "driverEmbedding": {
+            "device": {
+                "uuid": {
+                    "value": "73fe4969-1119-44fa-935b-3bce51f75e5d"
+                },
+                "quality": {
+                    "confirmed_fields": [],
+                    "fields_with_issues": [],
+                    "missing": [],
+                    "invalid": [],
+                    "parse_errors": [],
+                    "cross_source_only": []
+                },
+                "manufacturer": {
+                    "value": "Tang Band"
+                },
+                "brand": {
+                    "value": "Tang Band"
+                },
+                "model": {
+                    "value": "W5-1138SMF"
+                },
+                "sku": {
+                    "value": "w5-1138smf",
+                    "grounds": [
+                        {
+                            "origin": "manufacturer_product_page",
+                            "reading": "W5-1138SMF"
+                        }
+                    ]
+                },
+                "driver_type": {
+                    "value": "subwoofer"
+                },
+                "data_sources": {
+                    "value": {
+                        "manufacturer_datasheet": "https://www.tb-speaker.com/uploads/files/cadcecac0ea8af7e07014e520d4ea00d.pdf"
+                    }
+                },
+                "authoritative": {
+                    "value": "manufacturer_datasheet"
+                },
+                "specs": {
+                    "woofer": {
+                        "Fs_hz": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 45
+                                }
+                            }
+                        },
+                        "Re_ohm": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 3.4
+                                }
+                            }
+                        },
+                        "Le_H": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 0.00034
+                                }
+                            }
+                        },
+                        "Znom_ohm": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 4
+                                }
+                            }
+                        },
+                        "Qts": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 0.49
+                                }
+                            }
+                        },
+                        "Qes": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 0.57
+                                }
+                            }
+                        },
+                        "Qms": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 3.56
+                                }
+                            }
+                        },
+                        "Vas_m3": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 0.00485
+                                }
+                            }
+                        },
+                        "Sd_m2": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 0.0094
+                                }
+                            }
+                        },
+                        "BL_Tm": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 7.17
+                                }
+                            }
+                        },
+                        "Mms_kg": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 0.02881
+                                }
+                            }
+                        },
+                        "Cms_m_per_N": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 0.00036872
+                                }
+                            }
+                        },
+                        "Xmax_m": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 0.00925
+                                }
+                            }
+                        },
+                        "Pe_W": {
+                            "origin": "entered",
+                            "readings": {
+                                "entered": {
+                                    "read_value": 40
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "nDrivers": 1,
+            "wiring": "parallel",
+            "vcTempRise_K": 0,
+            "Rs_ohm": 0,
+            "driverAddedMass_kg": 0,
+            "alfaVC_per_K": 0.0039,
+            "loading": "standard"
         },
-        "quality": {
-          "confirmed_fields": [],
-          "fields_with_issues": [],
-          "missing": [],
-          "invalid": [],
-          "parse_errors": [],
-          "cross_source_only": []
-        },
-        "manufacturer": {
-          "value": ""
-        },
-        "brand": {
-          "value": "Fixture",
-          "origin": "entered"
-        },
-        "model": {
-          "value": "Test Driver",
-          "origin": "entered"
-        },
-        "sku": {
-          "value": "",
-          "grounds": [
-            {
-              "origin": "manual",
-              "reading": ""
+        "box": {
+            "boxType": "vented",
+            "sealed": {
+                "volume_m3": 0.00485,
+                "losses": {
+                    "Ql": 10,
+                    "Qa": 100
+                }
+            },
+            "vented": {
+                "chamber": {
+                    "volume_m3": 0.007,
+                    "losses": {
+                        "Ql": 10,
+                        "Qa": 100,
+                        "Qp": 100
+                    },
+                    "tuning_hz": {
+                        "origin": "entered",
+                        "readings": {
+                            "entered": {
+                                "read_value": 35
+                            }
+                        }
+                    }
+                },
+                "vent": {
+                    "shape": "round",
+                    "diameter_m": 0.05,
+                    "width_m": null,
+                    "height_m": null,
+                    "endCorrection_m": 0.613
+                }
+            },
+            "bandpass4": {
+                "rear": {
+                    "volume_m3": 0,
+                    "losses": {
+                        "Ql": 10,
+                        "Qa": 100,
+                        "Qicl": 100
+                    }
+                },
+                "front": {
+                    "volume_m3": 0,
+                    "losses": {
+                        "Ql": 10,
+                        "Qa": 100,
+                        "Qp": 100,
+                        "Qicl": 100
+                    }
+                },
+                "frontVent": {
+                    "shape": "round",
+                    "diameter_m": null,
+                    "width_m": null,
+                    "height_m": null,
+                    "endCorrection_m": 0.613
+                }
+            },
+            "bandpass6": {
+                "rear": {
+                    "volume_m3": 0,
+                    "losses": {
+                        "Ql": 10,
+                        "Qa": 100,
+                        "Qp": 100,
+                        "Qicl": 100
+                    }
+                },
+                "front": {
+                    "volume_m3": 0,
+                    "losses": {
+                        "Ql": 10,
+                        "Qa": 100,
+                        "Qp": 100,
+                        "Qicl": 100
+                    }
+                },
+                "rearVent": {
+                    "shape": "round",
+                    "diameter_m": null,
+                    "width_m": null,
+                    "height_m": null,
+                    "endCorrection_m": 0.613
+                },
+                "frontVent": {
+                    "shape": "round",
+                    "diameter_m": null,
+                    "width_m": null,
+                    "height_m": null,
+                    "endCorrection_m": 0.613
+                }
+            },
+            "abc": {
+                "rear": {
+                    "volume_m3": 0,
+                    "losses": {
+                        "Ql": 10,
+                        "Qa": 100,
+                        "Qp": 100,
+                        "Qicl": 100
+                    }
+                },
+                "front": {
+                    "volume_m3": 0,
+                    "losses": {
+                        "Ql": 10,
+                        "Qa": 100,
+                        "Qp": 100,
+                        "Qicl": 100
+                    }
+                },
+                "rearVent": {
+                    "shape": "round",
+                    "diameter_m": null,
+                    "width_m": null,
+                    "height_m": null,
+                    "endCorrection_m": 0.613
+                },
+                "frontVent": {
+                    "shape": "round",
+                    "diameter_m": null,
+                    "width_m": null,
+                    "height_m": null,
+                    "endCorrection_m": 0.613
+                },
+                "intraVent": {
+                    "shape": "round",
+                    "diameter_m": null,
+                    "width_m": null,
+                    "height_m": null,
+                    "endCorrection_m": 0.613
+                }
+            },
+            "passiveRadiator": {
+                "volume_m3": 0,
+                "count": 1,
+                "losses": {
+                    "Ql": 10,
+                    "Qa": 100
+                },
+                "component": null
             }
-          ]
         },
-        "driver_type": {
-          "value": "woofer"
+        "environment": {
+            "temperature_K": null,
+            "humidity_pct": null,
+            "pressure_Pa": null,
+            "useWinisdAirModel": null
         },
-        "data_sources": {
-          "value": {}
+        "signal": {},
+        "meta": {
+            "name": "W5-1138SMF Fixture",
+            "creator": "",
+            "created": "",
+            "modified": "",
+            "description": ""
         },
-        "authoritative": {
-          "value": "openisd"
+        "filters": {
+            "filters": []
         },
-        "specs": {
-          "woofer": {
-            "Fs_hz": {
-              "origin": "entered",
-              "readings": {
-                "entered": {
-                  "read_value": 37
-                }
-              }
-            },
-            "Qts": {
-              "origin": "entered",
-              "readings": {
-                "entered": {
-                  "read_value": 0.38
-                }
-              }
-            },
-            "Vas_m3": {
-              "origin": "entered",
-              "readings": {
-                "entered": {
-                  "read_value": 0.03
-                }
-              }
-            },
-            "Re_ohm": {
-              "origin": "entered",
-              "readings": {
-                "entered": {
-                  "read_value": 6.6
-                }
-              }
-            },
-            "Sd_m2": {
-              "origin": "entered",
-              "readings": {
-                "entered": {
-                  "read_value": 0.0212
-                }
-              }
-            }
-          }
+        "advanced": {
+            "forceFlatResponse": false,
+            "useTransmissionLinePortModel": false,
+            "rgAtDriverSide": false,
+            "circuitModel": "winisd",
+            "splGraphIsXmaxLimited": false
+        },
+        "charts": {
+            "perTab": {}
         }
-      },
-      "nDrivers": 1,
-      "wiring": "parallel",
-      "vcTempRise_K": 0,
-      "Rs_ohm": 0,
-      "driverAddedMass_kg": 0,
-      "alfaVC_per_K": 0,
-      "loading": "standard"
     },
-    "box": {
-      "boxType": "sealed",
-      "sealed": {
-        "volume_m3": 0.03,
-        "losses": {
-          "Ql": 10,
-          "Qa": 100
-        }
-      },
-      "vented": {
-        "chamber": {
-          "volume_m3": 0,
-          "losses": {
-            "Ql": 10,
-            "Qa": 100,
-            "Qp": 100
-          }
-        },
-        "vent": {
-          "shape": "round",
-          "diameter_m": null,
-          "width_m": null,
-          "height_m": null,
-          "endCorrection_m": 0.613
-        }
-      },
-      "bandpass4": {
-        "rear": {
-          "volume_m3": 0,
-          "losses": {
-            "Ql": 10,
-            "Qa": 100,
-            "Qicl": 100
-          }
-        },
-        "front": {
-          "volume_m3": 0,
-          "losses": {
-            "Ql": 10,
-            "Qa": 100,
-            "Qp": 100,
-            "Qicl": 100
-          }
-        },
-        "frontVent": {
-          "shape": "round",
-          "diameter_m": null,
-          "width_m": null,
-          "height_m": null,
-          "endCorrection_m": 0.613
-        }
-      },
-      "bandpass6": {
-        "rear": {
-          "volume_m3": 0,
-          "losses": {
-            "Ql": 10,
-            "Qa": 100,
-            "Qp": 100,
-            "Qicl": 100
-          }
-        },
-        "front": {
-          "volume_m3": 0,
-          "losses": {
-            "Ql": 10,
-            "Qa": 100,
-            "Qp": 100,
-            "Qicl": 100
-          }
-        },
-        "rearVent": {
-          "shape": "round",
-          "diameter_m": null,
-          "width_m": null,
-          "height_m": null,
-          "endCorrection_m": 0.613
-        },
-        "frontVent": {
-          "shape": "round",
-          "diameter_m": null,
-          "width_m": null,
-          "height_m": null,
-          "endCorrection_m": 0.613
-        }
-      },
-      "abc": {
-        "rear": {
-          "volume_m3": 0,
-          "losses": {
-            "Ql": 10,
-            "Qa": 100,
-            "Qp": 100,
-            "Qicl": 100
-          }
-        },
-        "front": {
-          "volume_m3": 0,
-          "losses": {
-            "Ql": 10,
-            "Qa": 100,
-            "Qp": 100,
-            "Qicl": 100
-          }
-        },
-        "rearVent": {
-          "shape": "round",
-          "diameter_m": null,
-          "width_m": null,
-          "height_m": null,
-          "endCorrection_m": 0.613
-        },
-        "frontVent": {
-          "shape": "round",
-          "diameter_m": null,
-          "width_m": null,
-          "height_m": null,
-          "endCorrection_m": 0.613
-        },
-        "intraVent": {
-          "shape": "round",
-          "diameter_m": null,
-          "width_m": null,
-          "height_m": null,
-          "endCorrection_m": 0.613
-        }
-      },
-      "passiveRadiator": {
-        "volume_m3": 0,
-        "count": 1,
-        "losses": {
-          "Ql": 10,
-          "Qa": 100
-        },
-        "component": null
-      }
-    },
-    "environment": {
-      "temperature_K": null,
-      "humidity_pct": null,
-      "pressure_Pa": null,
-      "useWinisdAirModel": null
-    },
-    "signal": {},
-    "meta": {
-      "name": "Fixture Project",
-      "creator": "",
-      "created": "",
-      "modified": "",
-      "description": ""
-    },
-    "filters": {
-      "filters": []
-    },
-    "advanced": {
-      "forceFlatResponse": false,
-      "useTransmissionLinePortModel": false,
-      "rgAtDriverSide": false,
-      "circuitModel": "winisd",
-      "splGraphIsXmaxLimited": false
-    },
-    "charts": {
-      "perTab": {}
-    }
-  },
-  "edited": null
+    "edited": null
 }

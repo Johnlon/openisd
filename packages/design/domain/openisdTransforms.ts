@@ -180,7 +180,7 @@ export abstract class BoxProjectBuilder {
                 // WinISD's Advanced-tab default amplifier source resistance: 0.1 Ω.
                 Rs_ohm: 0.1,
                 driverAddedMass_kg: 0,
-                alfaVC_per_K: 0.0039001,
+                alfaVC_per_K: 0.0039,
                 loading: 'standard',
             },
             box: emptyBoxJson(),

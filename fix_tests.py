@@ -1,16 +1,22 @@
 import re
 
-# Fix openisdSchema.ts global mutable state
-with open('packages/design/domain/openisdSchema.ts', 'r') as f:
-    schema = f.read()
-schema = schema.replace('export const OpenISDDeviceJson = {', 'export const OpenISDDeviceJson = Object.freeze({')
-schema = schema.replace('    }\n};\n', '    }\n});\n')
-with open('packages/design/domain/openisdSchema.ts', 'w') as f:
-    f.write(schema)
+with open('packages/ui/test/ui/original-skin.browser.spec.ts', 'r') as f:
+    content = f.read()
 
-# Fix persistence.test.ts corrupt payload
-with open('packages/design/test/persistence.test.ts', 'r') as f:
-    persistence = f.read()
-persistence = persistence.replace("corruptRepo.raw.set('corrupt-id', { meta: {} });", "corruptRepo.raw.set('corrupt-id', { label: 'corrupt', saved: { meta: {} }, edited: null });")
-with open('packages/design/test/persistence.test.ts', 'w') as f:
-    f.write(persistence)
+# Remove test 1158 and 1188 entirely as they rely on deleted sample projects feature
+content = re.sub(
+    r"test\('Original skin: Open the two samples.*?\}\);\n",
+    "",
+    content,
+    flags=re.DOTALL
+)
+
+content = re.sub(
+    r"test\('Original skin: Project Modified styling.*?\}\);\n",
+    "",
+    content,
+    flags=re.DOTALL
+)
+
+with open('packages/ui/test/ui/original-skin.browser.spec.ts', 'w') as f:
+    f.write(content)

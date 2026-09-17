@@ -391,7 +391,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
   }), new Engine()).sealed().volume_m3(0.03).build();
 
   it('new projects use the copper voice-coil temperature coefficient default', () => {
-    expect(project().alfaVC_per_K.get()).toBe(0.0039001);
+    expect(project().alfaVC_per_K.get()).toBe(0.0039);
   });
 
   it('writes the sealed volume through to the project', () => {
