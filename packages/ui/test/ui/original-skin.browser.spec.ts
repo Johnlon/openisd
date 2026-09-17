@@ -21,12 +21,32 @@ async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<numb
   if (!/^-?\d+(\.\d+)?$/.test(before)) return 0; // skip empty / non-numeric fields
   const dpBefore = decimalsOf(before);
   await input.focus();
-  await input.evaluate(el => { if (!(el instanceof HTMLInputElement)) return; for(let i=0; i<6; i++) { el.stepUp(); el.dispatchEvent(new Event('input', { bubbles: true })); } }); // compounding up-steps
-  const up = (await input.inputValue()).trim();
-  await input.evaluate(el => { if (!(el instanceof HTMLInputElement)) return; for(let i=0; i<12; i++) { el.stepDown(); el.dispatchEvent(new Event('input', { bubbles: true })); } }); // back down through the base
-  const down = (await input.inputValue()).trim();
-  expect(decimalsOf(up), `${label}: gained decimals spinning UP  "${before}" → "${up}"`).toBeLessThanOrEqual(dpBefore);
-  expect(decimalsOf(down), `${label}: gained decimals spinning DOWN "${before}" → "${down}"`).toBeLessThanOrEqual(dpBefore);
+  // A number input whose current step attr has no ALLOWED value step (dynamic stepAttr — a power
+  // of ten off the value's magnitude, clamped at the field precision → 'any' near zero, see
+  // NumInput.vue) throws InvalidStateError from stepUp()/stepDown(). Such a field cannot gain
+  // decimals by native stepping, so there is nothing to check: run the whole up/down sequence
+  // as one probe and skip the field if the DOM rejects any step.
+  const spun = await input.evaluate(el => {
+    if (!(el instanceof HTMLInputElement)) return null;
+    const step = (goingUp: boolean, n: number) => {
+      for (let i = 0; i < n; i++) {
+        goingUp ? el.stepUp() : el.stepDown();
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    };
+    try {
+      step(true, 6);
+      const up = el.value;
+      step(false, 12);
+      return { up, down: el.value };
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'InvalidStateError') return null;
+      throw e;
+    }
+  });
+  if (!spun) return 0;
+  expect(decimalsOf(spun.up), `${label}: gained decimals spinning UP  "${before}" → "${spun.up}"`).toBeLessThanOrEqual(dpBefore);
+  expect(decimalsOf(spun.down), `${label}: gained decimals spinning DOWN "${before}" → "${spun.down}"`).toBeLessThanOrEqual(dpBefore);
   return 1;
 }
 
