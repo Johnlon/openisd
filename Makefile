@@ -29,9 +29,9 @@ start:
 # Compatibility aliases: the default workflow is already the fast HMR workflow.
 start-fast: start
 
-# Rebuild the driver bundle only (packages/ui/public/drivers-bundle.json), ~0.6s
+# Rebuild the driver bundle only (~5s, skip --force to skip the stamp check).
 drivers:
-	node scripts/bundle-drivers.mjs
+	npx tsx scripts/bundle-drivers.mjs --force
 
 .PHONY: start-4000
 start-4000:

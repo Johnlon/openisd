@@ -9058,13 +9058,35 @@ questions:
       L? The driver record itself will not be overwritten without this ruling.'
 - id: QO141
   title: Verify WinISD behavior behind unverified tooltips
-  status: open
+  status: decided
   raised: '2026-09-14'
-  body: ''
+  body: 'Tooltip text is verified OpenISD application text. The ⚠ warning applies only to the claim about
+    WinISD''s own behavior, not to the tooltip. Bug-reporting policy: app UI text is not the same as an
+    external product claim — verify the external claim against primary sources before flagging it.'
   notes:
   - at: '2026-09-14'
     text: 'Clarification: the tooltip text is verified application text. The unverified part is only the
       claim about WinISD''s own behavior; verify that external behavior before removing the warning.'
+  - at: '2026-09-17'
+    text: 'Clarification: the tooltip text itself is verified OpenISD application text. Only the claim
+      about WinISD''s own behavior is unverified — verify that external WinISD behavior before removing
+      the ⚠ warning. This is a bug-reporting policy distinction: app UI text is not the same as an external
+      product claim.'
+  - at: '2026-09-17'
+    text: 'Tooltip text is verified OpenISD application text. The ⚠ warning applies only to the claim
+      about WinISD''s own behavior, not to the tooltip. Bug-reporting policy: app UI text is not the same
+      as an external product claim — verify the external claim against primary sources before flagging
+      it.'
+  items:
+  - text: Tooltip text is verified OpenISD application text. Only the WinISD-behavior claim within it
+      is unverified — verify that external behavior before removing the ⚠ warning.
+    done: false
+  answer:
+    at: '2026-09-17'
+    text: 'Tooltip text is verified OpenISD application text. The ⚠ warning applies only to the claim
+      about WinISD''s own behavior, not to the tooltip text itself. Bug-reporting policy: app UI text
+      is not the same as an external product claim — verify the external claim against primary sources
+      before flagging it.'
 - id: QO142
   title: 'sweep.ts: change Result<SweepResult> to unified CalculationIssue<Q>, or keep it and add checkBoxParams-style
     parallel methods?'

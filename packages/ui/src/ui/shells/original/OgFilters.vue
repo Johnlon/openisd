@@ -22,12 +22,19 @@
  */
 import { computed, ref } from 'vue';
 import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
+import { projectChanged } from '../../../logic/appState.js';
 import { limits } from '../../../logic/fields/fieldRegistry.js';
 import type { Filter, FilterType } from '@openisd/design/engine';
 import { inputValue, inputChecked } from '../../../logic/domEvents.js';
 
 const project = useFocusedProject();
-const filters = computed<readonly Filter[]>(() => project.value.filters.get());
+// Raw reads (`filters.get()`) are not Vue-tracked; `project` re-fires only on focus swap, so
+// the change signal must be read too, or a quick-add never re-renders the list (same pump as
+// the hooks' readout computeds).
+const filters = computed<readonly Filter[]>(() => {
+  void projectChanged.value; void project.value;
+  return project.value.filters.get();
+});
 
 // Order: LP, HP, …, LT, …, PEQ, with the four engine-unsupported types (AP, Peak, DLP,
 // Gain) omitted — see honesty note above.

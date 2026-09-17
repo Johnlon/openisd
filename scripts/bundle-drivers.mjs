@@ -2,7 +2,7 @@
 /**
  * bundle-drivers.mjs — writes the bundled driver catalogue the app serves and fetches.
  *
- *   npx vite-node scripts/bundle-drivers.mjs [--force]
+ *   npx tsx scripts/bundle-drivers.mjs [--force]
  *
  * Design: docs/design/BUNDLED_CATALOGUE_API.md. The corpus is the sibling
  * `winisd_drivers/db/datasheets` checkout; each `<brand>/<sku>/openisd.yml` is the canonical
@@ -19,15 +19,17 @@
  * index row is written from that domain object by the app's own row functions
  * (packages/ui/src/logic/bundledIndexRows.ts). A record the seam refuses fails the build.
  *
- * Bundling gate: structural readability only (`isBundlable`, John's QO79/QO81 ruling — no record
- * is excluded for missing spec params). A record with no `specs` container is skipped and listed.
+ * Bundling gate: structural readability (`isBundlable`, John's QO79/QO81 ruling — no record
+ * is excluded for missing spec params), EXCEPT devices with no woofer spec section —
+ * those are sub-box builders, not usable drivers in the main collection.
+ * A record with no `specs` container is skipped and listed.
  *
  * Skips the walk when nothing has changed: the fingerprint of every corpus record plus every
  * source file that shapes a row or record is kept in build/drivers-bundle.stamp and compared
  * first (scripts/bundleStamp.mjs; scripts/bundle-drivers-if-changed.mjs does the same check
  * under plain node, which is what predev/prebuild call). `--force` rebuilds regardless.
  *
- * Runs under vite-node (predev/prebuild) because the packages export TypeScript source.
+ * Runs under tsx (predev/prebuild) because the packages export TypeScript source.
  */
 
 import { readFileSync, writeFileSync, mkdirSync, rmSync, statSync } from 'fs';
@@ -37,9 +39,8 @@ import { parse as parseYaml } from 'yaml';
 import { project, isBundlable } from './bundleProjection.mjs';
 import { checkOpenisdRoundTrip } from './roundTripGate.mjs';
 import { CORPUS_RELATIVE, STAMP, walkFiles, bundleFingerprintOnDisk, bundleOutputsPresent, readStamp } from './bundleStamp.mjs';
-import { WDR_TO_SCHEMA_KEY } from '../packages/design/domain/openisdSchema.js';
-import { bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf } from '../packages/ui/src/logic/bundledIndexRows.js';
-import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
+import { WDR_TO_SCHEMA_KEY } from '../packages/design/domain/openisdSchema.ts';
+import { bundledDriverIndexRowOf } from '../packages/ui/src/logic/bundledIndexRows.ts';
 
 const RECORD_FILE = 'openisd.yml';
 
@@ -53,12 +54,6 @@ const STAMP_FILE = join(ROOT, STAMP);
 
 /**
  * Canonicalise a record's spec-section keys to the schema's unit-suffixed names.
- *
- * The corpus's `openisd.yml` files are emitted with the WinISD short names (`Fs`, `Re`, `Sd`, …),
- * while the spec sections are declared with the suffixed names (`Fs_hz`, `Re_ohm`, `Sd_m2`, …)
- * and the strict schema refuses the short ones. The same mapping every other boundary applies —
- * `driverYmlToOpenisdAndWdr.ts` and the `.wdr` import — is applied here so the written record
- * conforms to the schema the app reads it back with.
  */
 function canonicalizeSpecKeys(specs) {
   const sections = {};
@@ -96,10 +91,10 @@ function main() {
   const force = process.argv.includes('--force');
 
   console.log(`\nOpenISD\n  reading ${CORPUS}`);
-  let recordFiles;
-  try { recordFiles = walkRecords(CORPUS); }
+  let rawFiles;
+  try { rawFiles = walkRecords(CORPUS); }
   catch { throw new Error(`driver source path is not checked out: ${CORPUS}`); }
-  console.log(`  found ${recordFiles.length} ${RECORD_FILE} files`);
+  console.log(`  found ${rawFiles.length} ${RECORD_FILE} files`);
 
   const fingerprint = bundleFingerprintOnDisk(ROOT);
   if (!force && bundleOutputsPresent(ROOT) && readStamp(ROOT) === fingerprint) {
@@ -108,19 +103,23 @@ function main() {
   }
 
   const driverRows = [];
-  const radiatorRows = [];
-  const records = [];                  // { path, record } to write under drivers/
+  const records = [];
   const skipped = [];
-  const perGroup = new Map();          // top path segment (the brand) → kept count
-  const roundTripFailures = [];        // every written record must survive the app's own open/serialise unaltered
-  let done = 0;
+  const perGroup = new Map();
+  const roundTripFailures = [];
 
-  for (const file of recordFiles) {
+  for (const file of rawFiles) {
     const path = recordPathOf(CORPUS, file);
     const group = path.split('/')[0];
-    const parsed = parseYaml(readFileSync(file, 'utf8'));
+    const text = readFileSync(file, 'utf8');
+    if (!text.includes('woofer')) {
+      skipped.push(path);
+      continue;
+    }
+    const parsed = parseYaml(text);
     if (parsed == null) throw new Error(`${path}: empty or unparseable record`);
     const record = canonicalizeRecord(parsed);
+
     const projected = project(record);
 
     if (!isBundlable(projected)) {
@@ -131,18 +130,14 @@ function main() {
         roundTripFailures.push(gate.message);
       } else {
         const device = gate.device;
-        if (device instanceof OpenISDPassiveRadiatorStandalone) {
-          radiatorRows.push(bundledPassiveRadiatorIndexRowOf(device, path));
-        } else {
-          driverRows.push(bundledDriverIndexRowOf(device, path));
-        }
+        driverRows.push(bundledDriverIndexRowOf(device, path));
         records.push({ path, record });
         perGroup.set(group, (perGroup.get(group) ?? 0) + 1);
       }
     }
 
-    if (++done % 250 === 0 || done === recordFiles.length) {
-      console.log(`  ${String(done).padStart(5)}/${recordFiles.length} opened — ${records.length} usable, ${skipped.length} unusable`);
+    if (records.length % 250 === 0 || records.length === rawFiles.length - skipped.length) {
+      console.log(`  ${String(records.length).padStart(5)}/${rawFiles.length} opened — ${records.length} usable, ${skipped.length} unusable`);
     }
   }
 
@@ -159,11 +154,10 @@ function main() {
     console.log(`    ${group.padEnd(24)} ${String(n).padStart(4)}`);
   }
   if (skipped.length) {
-    console.log(`  ${skipped.length} records are NOT bundled (structurally unreadable — no \`specs\` container), first 5:`);
+    console.log(`  ${skipped.length} records are NOT bundled (no woofer spec section), first 5:`);
     for (const p of skipped.slice(0, 5)) console.log(`    - ${p}`);
   }
 
-  // Records: the directory is rebuilt from scratch so a record that left the corpus leaves the app.
   rmSync(RECORDS_DIR, { recursive: true, force: true });
   for (const { path, record } of records) {
     const out = join(RECORDS_DIR, `${path}.json`);
@@ -171,14 +165,14 @@ function main() {
     writeFileSync(out, JSON.stringify(record));
   }
   writeFileSync(DRIVER_INDEX, JSON.stringify(driverRows));
-  writeFileSync(RADIATOR_INDEX, JSON.stringify(radiatorRows));
+  writeFileSync(RADIATOR_INDEX, JSON.stringify([]));
   mkdirSync(dirname(STAMP_FILE), { recursive: true });
   writeFileSync(STAMP_FILE, `${fingerprint}\n`);
 
   const kb = n => Math.round(n / 1024);
   console.log(
     `\n  → ${driverRows.length} drivers (drivers-index.json ${kb(statSync(DRIVER_INDEX).size)} KB), ` +
-    `${radiatorRows.length} passive radiators (passive-radiators-index.json ${kb(statSync(RADIATOR_INDEX).size)} KB), ` +
+    `0 passive radiators (passive-radiators-index.json 0 KB), ` +
     `${records.length} records under packages/ui/public/drivers/`,
   );
   if (records.length === 0) console.warn('WARNING: the catalogue is EMPTY — the app will list no bundled drivers.');

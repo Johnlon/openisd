@@ -252,7 +252,9 @@ test('every Parameters input reports its E/C/N state', async ({ page }) => {
     const out: string[] = [];
     document.querySelectorAll('.de-params .de-fld').forEach(f => {
       const i = f.querySelector('input');
-      if (i && !/\bst-[ecn]\b/.test(i.className)) out.push(f.querySelector('label')?.textContent?.trim() ?? '?');
+      // The provenance classes are value-e / value-c / value-n (DriverEditorModal.vue's styles);
+      // st-[ecn] was their old name and matched nothing, so every input read as unstyled.
+      if (i && !/\bvalue-[ecn]\b/.test(i.className)) out.push(f.querySelector('label')?.textContent?.trim() ?? '?');
     });
     return out;
   });

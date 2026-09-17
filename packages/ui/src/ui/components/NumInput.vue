@@ -44,7 +44,17 @@ const props = withDefaults(defineProps<{
   allowOutOfRange: false,
 });
 
-const emit = defineEmits<{ 'update:modelValue': [value: number | null]; blur: [] }>();
+const emit = defineEmits<{
+  'update:modelValue': [value: number | null];
+  blur: [];
+  /**
+   * Blur left a cell whose value changed since the cell was entered (focused). The component owns
+   * ONLY that fact — it has no Re, so it cannot compute P from V (or vice versa). The parent
+   * (the drive-row binding) consumes this to re-derive the derived sibling from the entered one.
+   * Carries the committed model value so the consumer has the ground truth that ended the edit.
+   */
+  'blur-notify': [value: number | null];
+}>();
 
 // Unit-bound mode is active only when the caller supplies the full triple.
 const unitized = computed(() => props.group != null && props.field != null && props.base != null);
@@ -64,14 +74,18 @@ const eprec = computed(() =>
 );
 
 const focused = ref(false);
-// Distinguish keyboard TYPING (echo the raw keystrokes so we don't fight the caret) from
-// a SPINNER/arrow/wheel STEP (reformat to `precision` so the field never shows a long
+// Distinguish keyboard TYPING (echo the raw keystrokes so we don't fight the caret) from a
+// SPINNER/arrow/wheel STEP (reformat to `precision` so the field never shows a long
 // compounding float like 7.98600001). Typing sets this true; focus / Arrow-Up-Down / wheel
 // reset it, so a step always reformats.
 const typing = ref(false);
 // The field holds characters that are not a number (`validity.badInput`). Tracked separately
 // from `display` because such an entry is deliberately NOT copied into `display` — see onInput.
 const badEntry = ref(false);
+// The committed value at the moment the cell was entered (focused). A blur whose model changed
+// since then is a NOTIFICATION (`blur-notify`): the parent derives the sibling member from it.
+// The component owns only this fact — it has no Re, so it never computes P from V itself.
+const entryValue = ref<number | null | undefined>(null);
 
 // Fixed-decimal display (WinISD convention): `precision` is the number of DECIMAL
 // places, so the field width doesn't jump as the value changes (e.g. Vb always
@@ -100,6 +114,7 @@ function onFocus() {
   focused.value = true;
   typing.value = false;   // a step done right after focusing must still reformat
   badEntry.value = false;
+  entryValue.value = props.modelValue;
   // Switch to unformatted string so toPrecision doesn't fight the user's keystrokes
   display.value = fmt(props.modelValue);
 }
@@ -213,6 +228,10 @@ function onBlur(e: Event) {
   if (t === null) return;
   if (t.value !== display.value) t.value = display.value;
   emit('blur');
+  // A blur that ended with a model different from the one the cell was entered with is a
+  // notification the parent can act on (re-derive the sibling member). Never fire for a
+  // focus→blur that changed nothing.
+  if (props.modelValue !== entryValue.value) emit('blur-notify', props.modelValue);
 }
 
 // Red-flag an in-progress invalid entry, on the keystroke that makes it invalid rather than on

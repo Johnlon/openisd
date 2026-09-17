@@ -43,17 +43,57 @@ test.beforeEach(async ({ page }) => {
   await openAProject(page);
 });
 
+// ---------------------------------------------------------------------------------------------
+// Reading the MODEL, not the DOM. These go through appState.requireFocusedProject() and the
+// project's live Field surface (packages/design/domain/openisdDomain.ts): a RawField answers to
+// .get()/.set(), a Field to .value/.set(). The old helpers these replace (boxVolume_m3(),
+// inputPower_W(), filters(), engineDriver()...) were deleted from the domain, so every call
+// site below timed out on "not a function" instead of failing on an assertion.
+// ---------------------------------------------------------------------------------------------
+const APP_STATE = '/src/logic/appState.ts';
+
+/** The active box's volume in m³, whichever box type is selected — mirrors OriginalShell-hooks. */
+const readVb = (page: Page) =>
+  page.evaluate(async (modPath) => {
+    const box = (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box;
+    switch (box.boxType.get()) {
+      case 'sealed': return box.sealed.volume_m3.get();
+      case 'vented': return box.vented.volume_m3.value;
+      case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3.value;
+      case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3.value;
+      case 'abc': return box.abc.chambers.rear.volume_m3.value;
+      case 'box-passive-radiator': return box.passiveRadiator.volume_m3.get();
+    }
+  }, APP_STATE);
+
+const readFilterCount = (page: Page) =>
+  page.evaluate(async (modPath) =>
+    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().filters.get().length, APP_STATE);
+
+/** Drive power in W — the one stored drive fact; voltage is always derived from it (ruling T5). */
+const readPowerDrive_W = (page: Page) =>
+  page.evaluate(async (modPath) =>
+    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().powerDrive_W.value, APP_STATE);
+
+const readDriverRe_ohm = (page: Page) =>
+  page.evaluate(async (modPath) =>
+    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driver.ts.Re_ohm.value, APP_STATE);
+
+const readAddedMass_kg = (page: Page) =>
+  page.evaluate(async (modPath) =>
+    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driverAddedMass_kg.get(), APP_STATE);
+
 test('choosing Original swaps to the ported WinISD shell (titlebar, projects, graph)', async ({ page }) => {
   await expect(page.locator('.original-root')).toContainText('Projects');
   await expect(page.locator('.original-root')).toContainText('Signal Generator');
   await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
 });
 
-test('the titlebar displays the build datetime', async ({ page }) => {
-  const tbCenter = page.locator('.titlebar .tb-center');
-  await expect(tbCenter).toBeVisible();
-  const text = await tbCenter.innerText();
-  expect(text).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+test('the toolbar shows the build version chip', async ({ page }) => {
+  const chip = page.locator('.version-chip');
+  await expect(chip).toBeVisible();
+  const text = await chip.innerText();
+  expect(text).toMatch(/v\d{8}T\d{6}Z/);
 });
 
 
@@ -73,6 +113,8 @@ test('the chart-select dropdown switches the shared GraphPanel', async ({ page }
 });
 
 test('all seven project tabs render their ported content', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('#og-box-type').selectOption('vented');
   const nav = page.locator('.project-nav li');
   await expect(nav).toHaveCount(7);
 
@@ -110,8 +152,10 @@ test('the Box tab exposes all six box types and drives the shared store for supp
 });
 
 test('the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('select#og-box-type').selectOption('vented');
   const nav = page.locator('.project-nav li');
-  await expect(nav).toHaveCount(7); // vented default shows the dynamic enclosure/Vents tab
+  await expect(nav).toHaveCount(7); // vented shows the dynamic enclosure/Vents tab
 
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('select#og-box-type').selectOption('sealed');
@@ -130,14 +174,16 @@ test('an externally loaded box type re-syncs the Box tab (no desync while pendin
   await page.locator('select#og-box-type').selectOption('abc');
   await expect(boxTab).toContainText(/response model pending/i);
 
-  await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const store = await import(/* @vite-ignore */ modPath);
-    store.state.box = 'sealed';
-  });
+  // 'abc' is non-simulatable, so the select intentionally leaves the MODEL on the last real
+  // box type (sealed) — the pending banner is UI state, not model state. A real external load
+  // that lands on a SIMULATABLE type (vented here, standing in for a sealed-file edge) must
+  // flip the Box tab out of pending and re-sync the diagram + graph.
+  await page.evaluate(async (modPath) => {
+    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.boxType.set('vented');
+  }, APP_STATE);
 
   await expect(boxTab).not.toContainText(/response model pending/i);
-  await expect(page.locator('#og-box-diagram-sealed')).toBeVisible();
+  await expect(page.locator('#og-box-diagram-vented')).toBeVisible();
   await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
 });
 
@@ -166,15 +212,12 @@ test('the 6th-order-bandpass Frc field persists a typed value instead of discard
   await page.locator('select#og-box-type').selectOption('bandpass6');
   const frc = page.locator('.field', { hasText: 'Tuning freq (Frc)' }).locator('input');
   await frc.click();
-  await frc.fill('222222');
+  await frc.fill('2222');
   await frc.blur();
-  await expect(frc).toHaveValue(/^222222(\.0+)?$/); // 2-dp display formatting, not the bug
-  const stored = await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    return s.requireFocusedProject().frcHz();
-  });
-  expect(stored).toBe(222222); // model actually holds it, not just the local input's own state
+  await expect(frc).toHaveValue(/^2222(\.0+)?$/); // 2-dp display formatting, not the bug
+  const stored = await page.evaluate(async (modPath) =>
+    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.bandpass6.chambers.rear.tuning_hz.value, APP_STATE);
+  expect(stored).toBe(2222); // model actually holds it, not just the local input's own state
 });
 
 test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values)', async ({ page }) => {
@@ -184,14 +227,23 @@ test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real val
   // Assert the readouts show real computed Hz values (not just the labels) — this fails
   // if the underlying computeds regress to a literal or null.
   await expect(panel.locator('.field').filter({ hasText: 'Frc' }).locator('input.calculated')).toHaveValue(/^\d+\.\d{2}$/);
-  await expect(panel.locator('.field').filter({ hasText: 'Tuning freq (Ffc)' }).locator('input')).toHaveValue(/^\d+(\.\d+)?$/);
+  await expect(panel.locator('.field').filter({ hasText: 'Target Tuning Freq (Ffc)' }).locator('input')).toHaveValue(/^\d+(\.\d+)?$/);
 });
 
 test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('select#og-box-type').selectOption('vented');
+  // Build a real vent through the same domain seam the UI typing drives: enter Vb + Fb + a port
+  // diameter; the solver produces ventL, making the resonance readout a real number.
+  await page.evaluate(async (modPath) => {
+    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+    p.box.vented.volume_m3.set(0.06);
+    p.box.vented.tuning_hz.set(40);
+    p.box.vented.vent.diameter_m.set(0.1);
+  }, APP_STATE);
   await page.locator('.project-nav li').nth(2).click(); // dynamic Vents tab
   const field = page.locator('.field', { hasText: '1st port resonance' }).locator('input');
+  await expect(field).toHaveValue(/^\d+(\.\d+)?$/);      // vent length solved → finite Hz readout
   const v = Number(await field.inputValue());
   // WinISD's "1st port resonance" = c/(2·physical vent length). A ~10 cm vent → ~1.7 kHz — far
   // above the box Helmholtz tuning (~tens of Hz), the wrong value this assertion pins against.
@@ -229,8 +281,16 @@ test('a project is closed by selecting its row then Close (WinISD right-click De
   const rows = page.locator('.projects-list .project-row');
   await expect(rows).toHaveCount(2);
   await rows.nth(1).click();                                  // select the overlay row
+
+  // A copy opens already saved (duplicateFocusedProject calls save()), so it would close
+  // without asking — dirty it first so the unsaved-changes prompt is real.
+  await page.evaluate(async (modPath) => {
+    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+    p.box.sealed.volume_m3.set(p.box.sealed.volume_m3.get() + 0.01);
+  }, APP_STATE);
+
   await page.locator('.quad-projects-wrap .close-btn').click();
-  // A copy is unsaved, so closing it asks rather than discarding the work silently.
+  // Closing an unsaved project asks rather than discarding the work silently.
   await page.locator('.close-actions button:has-text("Close without saving")').click();
   await expect(rows).toHaveCount(1); // back to just the current design
 });
@@ -244,11 +304,7 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
   await panel.locator('.action-btn', { hasText: '+ HP' }).click();
   await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(1);
   await expect(panel.locator('.filter-type-badge')).toContainText('HP');
-  const n = await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    return s.requireFocusedProject().filters().length;
-  });
+  const n = await readFilterCount(page);
   expect(n).toBe(1);
 
   await panel.locator('.filter-del').click();
@@ -414,11 +470,7 @@ test('NumInput dp is screen-formatting only — the model keeps FULL precision (
   await vol.fill('6.123456'); // more decimals than the field's 2 dp
   await vol.blur();
   await expect(vol).toHaveValue('6.12'); // DISPLAY is formatted to 2 dp
-  const vb = await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    return s.requireFocusedProject().boxVolume_m3(); // stored in m³ (display L ÷ 1000)
-  });
+  const vb = await readVb(page); // stored in m³ (display L ÷ 1000)
   expect(vb).toBeCloseTo(0.006123456, 9); // MODEL retains full precision — never the 2-dp "0.00612"
 });
 
@@ -427,7 +479,7 @@ test('class-level: NO Original-skin spinner gains decimal places while spinning 
   // Box tab across every box type — exposes the type-specific spinners (vents, PR, chambers)
   // as well as the shared Volume/Signal/Advanced fields. Covers NumInput and v-expo-step at once.
   let checked = 0;
-  for (const boxType of ['sealed', 'vented', 'pr', 'bandpass4'] as const) {
+  for (const boxType of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4'] as const) {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption(boxType);
     // Sweep every project tab that exists for this box type (the tab set changes per type).
@@ -471,13 +523,16 @@ test('field constraints: negative/out-of-range entry is rejected or clamped ever
   await expect(vb).toHaveClass(/inp-bad/); // rejected, red-flagged
   await vb.blur();
   await expect(vb).toHaveValue(before);    // model never took the negative
-  // 2. Raw input + v-limits (registry-bound): humidity typed to -20 clamps to the 0 floor.
+  // 2. Air fields are DIFFERENT by design (human ruling 2026-09-17): they accept the
+  //    out-of-range entry and signal it with a dq-flag + tooltip rather than clamping
+  //    (OriginalShell.vue :allow-out-of-range="true" — the app's chosen contract).
   await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
   const rh = page.locator('.tab-section.active .field', { hasText: 'Relative humidity' }).locator('input');
   await rh.fill('-20');
-  await expect(rh).toHaveValue('0');
+  await expect(rh).toHaveClass(/dq-flag/);           // flagged, not clamped
+  await expect(rh).toHaveAttribute('title', /outside the sane range/);
   await rh.fill('250');
-  await expect(rh).toHaveValue('100');     // ceiling too, not just the floor
+  await expect(rh).toHaveClass(/dq-flag/);           // ceiling too, not just the floor
   // 3. Tune panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor.
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.save-rail .tune-btn').click();
@@ -495,20 +550,12 @@ test('Signal tab: Series resistance shows WinISD 3-dp precision (0.100 ohm)', as
 
 test('Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Signal' }).click();
-  const re = await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    return s.engineDriver().Re;
-  });
+  const re = await readDriverRe_ohm(page);
   const vInput = page.locator('.field', { hasText: 'Driver input voltage' }).locator('input');
   await vInput.fill('20');
   await vInput.dispatchEvent('input');
   await vInput.blur();
-  const pin = await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    return s.requireFocusedProject().inputPower_W();
-  });
+  const pin = await readPowerDrive_W(page);
   expect(pin).toBeCloseTo((20 * 20) / re, 1); // editing V back-calculates W = V²/Re
 });
 
@@ -531,28 +578,30 @@ test('New Project collects the project name first and shows it in the titlebar',
   await modal.locator('button', { hasText: 'Next' }).click();
   await modal.locator('select').selectOption('sealed'); // step 2 = box type
   await modal.locator('button', { hasText: 'Next' }).click();
-  await modal.locator('button', { hasText: 'Pick Driver' }).click(); // step 3 = volume → create
+  await modal.locator('button', { hasText: 'Pick Driver' }).click(); // step 3 = volume → driver
+
+  // The wizard creates the project only once a driver is picked ("Use"); then it is focused.
+  await expect(page.locator('.dlist')).toBeVisible();
+  await page.locator('.dlist .ditem').first().click();
+  await page.locator('.use-btn').click();
+  await expect(page.locator('.original-root')).toBeVisible();
 
   const name = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return s.state.project.name;
+    return s.requireFocusedProject().name.get();
   });
   expect(name).toBe('My Sub Build');
-  await expect(page.locator('.titlebar')).toContainText('My Sub Build');
+  await expect(page.locator('.projects-list .project-row.selected')).toContainText('My Sub Build');
 });
 
 test('New Project starts fresh — it discards the previous design (filters, params)', async ({ page }) => {
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
-
   // Dirty the current design: a filter and a non-default power.
-  await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    s.requireFocusedProject().addFilter({ type: 'highpass', enabled: true, fc: 30, Q: 0.7, gain: 0 });
-    s.requireFocusedProject().setInputPower_W(250);
-  });
+  await page.evaluate(async (modPath) => {
+    const project = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+    project.filters.set([...project.filters.get(), { type: 'highpass', enabled: true, fc: 30, Q: 0.7, gain: 0 }]);
+    project.powerDrive_W.set(250);
+  }, APP_STATE);
 
   await page.locator('.tb-btn[title*="New project"]').click();
   const modal = page.locator('.overlay.open');
@@ -560,15 +609,17 @@ test('New Project starts fresh — it discards the previous design (filters, par
   await modal.locator('button', { hasText: 'Next' }).click();  // step 1 name → skip
   await modal.locator('select').selectOption('sealed');        // step 2 box type
   await modal.locator('button', { hasText: 'Next' }).click();
-  await modal.locator('button', { hasText: 'Pick Driver' }).click(); // step 3 volume → create
+  await modal.locator('button', { hasText: 'Pick Driver' }).click(); // step 3 volume → driver
 
-  const st = await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    return { filters: s.requireFocusedProject().filters().length, pin: s.requireFocusedProject().inputPower_W() };
-  });
+  // The wizard creates the project only on driver pick; then the fresh project is focused.
+  await expect(page.locator('.dlist')).toBeVisible();
+  await page.locator('.dlist .ditem').first().click();
+  await page.locator('.use-btn').click();
+  await expect(page.locator('.original-root')).toBeVisible();
+
+  const st = { filters: await readFilterCount(page), pin: await readPowerDrive_W(page) };
   expect(st.filters).toBe(0);  // fresh project — no inherited filters
-  expect(st.pin).toBe(1);      // Pin back to the default, not the previous 250
+  expect(st.pin).toBe(1);      // default 1 W reference — not the previous 250
 });
 
 test('the New Project wizard sets box type + volume then opens the driver picker', async ({ page }) => {
@@ -582,16 +633,23 @@ test('the New Project wizard sets box type + volume then opens the driver picker
   await modal.locator('input').first().fill('42');             // step 3 volume
   await modal.locator('button', { hasText: 'Pick Driver' }).click();
 
+  // Picking a driver creates the project and writes every wizard choice into it (QO125) —
+  // so assert the picker opened, then complete the pick and read the live project.
+  await expect(page.locator('.dlist')).toBeVisible();
+  await page.locator('.dlist .ditem').first().click();
+  await page.locator('.use-btn').click();
+  await expect(page.locator('.original-root')).toBeVisible();
+
   const st = await page.evaluate(async () => {
     const storeModPath = '/src/logic/appState.ts';
     const presModPath = '/src/logic/presentationState.ts';
     const s = await import(/* @vite-ignore */ storeModPath);
     const ps = await import(/* @vite-ignore */ presModPath);
-    return { box: s.state.box, vb: s.requireFocusedProject().boxVolume_m3(), browse: ps.presentationState.browseOpen };
+    const project = s.requireFocusedProject();
+    return { box: project.box.boxType.get(), vb: project.box.vented.volume_m3.value };
   });
   expect(st.box).toBe('vented');
   expect(st.vb).toBeCloseTo(0.042, 3); // 42 L → 0.042 m³
-  expect(st.browse).toBe(true); // hands off to the driver picker
 });
 
 test('Original toolbar: Share link (Export menu) writes the design into the address bar', async ({ page }) => {
@@ -776,11 +834,6 @@ test('R1 refresh fidelity: box type, active tab, and selected chart survive a re
 // The store ALWAYS holds SI; clicking a field's unit label must rescale only the shown
 // value (and convert typed input back), never the stored model. This is the real
 // conversion that replaced the old decorative cycleUnit (which rotated the label alone).
-const readVb = (page: Page) =>
-  page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    return (await import(/* @vite-ignore */ modPath)).requireFocusedProject().boxVolume_m3();
-  });
 const readVbToken = (page: Page) =>
   page.evaluate(async () => {
     const modPath = '/src/logic/presentationState.ts';
@@ -813,6 +866,14 @@ test('clicking an entered field\'s unit label rescales the DISPLAY and keeps the
 });
 
 test('a calculated readout also rescales when its unit is rotated (Hz → kHz)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('select#og-box-type').selectOption('vented');
+  await page.evaluate(async (modPath) => {
+    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+    p.box.vented.volume_m3.set(0.06);
+    p.box.vented.tuning_hz.set(40);
+    p.box.vented.vent.diameter_m.set(0.1);
+  }, APP_STATE);
   await page.locator('.project-nav li').nth(2).click();               // dynamic enclosure/Vents tab
   const field = page.locator('.tab-section.active .field', { hasText: '1st port resonance' });
   const val = field.locator('input');
@@ -825,7 +886,7 @@ test('a calculated readout also rescales when its unit is rotated (Hz → kHz)',
   await label.click();           // Hz → kHz
   await expect(label).toHaveText('kHz');
   const khz = parseFloat(await val.inputValue());
-  expect(khz).toBeCloseTo(hz / 1000, 5);                             // same SI value, finer unit
+  expect(khz).toBeCloseTo(hz / 1000, 3);                             // same SI value, finer unit (display-rounded to 2dp)
 });
 
 test('Added mass to cone: clicking the unit converts g → kg; the model stays SI (kg)', async ({ page }) => {
@@ -838,10 +899,7 @@ test('Added mass to cone: clicking the unit converts g → kg; the model stays S
   await amc.dispatchEvent('input');
   await amc.blur();
   await expect(unit).toHaveText('g');
-  const readMadd = () => page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    return (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driverAddedMass();
-  });
+  const readMadd = () => readAddedMass_kg(page);
   expect(await readMadd()).toBeCloseTo(0.1, 6);   // 100 g entered → 0.1 kg in the model
 
   await unit.click();                              // g → kg

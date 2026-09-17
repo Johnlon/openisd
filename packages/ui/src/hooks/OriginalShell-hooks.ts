@@ -258,6 +258,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
   // Rear-chamber tuning (WinISD "Frc") — bandpass6/abc only.
   const frcHz = computed<number | null>(() => {
+    void projectChanged.value; void project.value;
     const p = focusedProject();
     if (!p) return null;
     const box = p.box;
@@ -711,13 +712,34 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   onUnmounted(() => tone?.stop());
 
   // ---- Signal tab: drive voltage = √(Pin × Re) per driver ------------------------
-  const driveV = computed<number>({
-    get: () => { void projectChanged.value; void project.value; return driveVoltageFor(project.value.powerDrive_W.value ?? 1, project.value.driver.ts.Re_ohm.value || DEFAULT_RE_OHM); },
+  // The drive trio's binding (P entered, V derived — WinISD's reference-power law, which lives
+  // in the domain, not here). V is NEVER stored as a phantom by itself: when P is genuinely
+  // unknown V cannot exist, so the getter yields null instead of a hidden √(1·Re).
+  const driveV = computed<number | null>({
+    get: () => {
+      void projectChanged.value; void project.value;
+      const pin = project.value.powerDrive_W.value;
+      if (pin == null) return null;
+      return driveVoltageFor(pin, project.value.driver.ts.Re_ohm.value || DEFAULT_RE_OHM);
+    },
+    // Typing a voltage commits P = V²/Re (the derived sibling follows the entered member). A
+    // CLEARED voltage is NOT a clear of the pair: deleting the derived V keeps the entered P and
+    // V re-derives from it on the next read — never both blank.
     set: (v) => {
-      if (v == null) { project.value.powerDrive_W.clear(); return; }
+      if (v == null) return;
       project.value.powerDrive_W.set((v * v) / (project.value.driver.ts.Re_ohm.value || DEFAULT_RE_OHM));
     },
   });
+  /**
+   * The blur-notify consumer for the drive trio (V cell). NumInput only reports "the cell was
+   * modified since entry"; the binding holds the entered-vs-derived rule + Re, so it owns the
+   * re-derivation: an entered V commits P = V²/Re; a deleted V keeps the entered P (V re-derives
+   * from P and Re via the getter above).
+   */
+  function reconcileDriveV(committed: number | null): void {
+    if (committed == null) return;
+    project.value.powerDrive_W.set((committed * committed) / (project.value.driver.ts.Re_ohm.value || DEFAULT_RE_OHM));
+  }
   // Series resistance — read through `projectChanged` so a typed value sticks.
   const rsOhm = computed<number>({
     get: () => { void projectChanged.value; void project.value; return project.value.Rs_ohm.get(); },
@@ -872,6 +894,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
     envTempDq, envHumidityDq, envPressureDq, commitAirTemp, commitAirHumidity, commitAirPressure, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
+    reconcileDriveV,
     projectName, projectCreator, projectCreated, projectModified, projectDescription,
     boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp,
     onFile, fileInput,
