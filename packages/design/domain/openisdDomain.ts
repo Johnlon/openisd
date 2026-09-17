@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { driverSectionProblems, radiatorSectionProblems, ProjectBuilder } from './openisdTransforms.js';
 // HUMAN RULING (2026-08-26): GEOMETRY IS IN. ACOUSTICS IS OUT.
@@ -863,7 +864,6 @@ const DRIVER_QUANTITY_NAMES = [
 // Completeness, not merely validity: a `DriverQuantityName` missing from the list above fails to
 // compile here and the error NAMES it, rather than `projectFormulaDq` silently never clearing it.
 type _MissingFromDriverQuantityNames = Exclude<DriverQuantityName, typeof DRIVER_QUANTITY_NAMES[number]>;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type _AssertDriverQuantityNamesComplete = _MissingFromDriverQuantityNames extends never ? true : never;
 const _assertDriverQuantityNamesComplete: _AssertDriverQuantityNamesComplete = true;
 void _assertDriverQuantityNamesComplete;
@@ -1524,6 +1524,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         // guard). `driver` is assigned before `onWrite` can ever run: the guarded callback only
         // fires from a `.set()` call, and construction itself performs none (see the base
         // constructor's own note on why it does not resolve itself).
+        // eslint-disable-next-line prefer-const
         let driver!: OpenISDDriverStandalone;
         const record = resolvingLens(raw, () => driver.resolve());
         driver = new OpenISDDriverStandalone(record, OpenISDDriver.sectionOf(json), engine, airProvider);

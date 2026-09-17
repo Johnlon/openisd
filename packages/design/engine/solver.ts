@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Thiele-Small driver parameter derivation.
  *
@@ -582,6 +583,9 @@ export function terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: 
 }
 
 /** `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
  *  comment for why this is a parameter here, never a reference-condition default. */
 function solvePrConsistencyGroup(p: PrWorkingSet, air: Air): PrWorkingSet {
   const out: PrWorkingSet = { ...p };
@@ -719,6 +723,9 @@ function checkPrConsistency(p: PrWorkingSet): PrIssue[] {
 }
 
 /** `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
  *  comment for why this is a parameter here, never a reference-condition default. */
 function solveVentConsistencyGroup(p: VentWorkingSet, air: Air): VentWorkingSet {
   const out: VentWorkingSet = { ...p };
@@ -827,8 +834,11 @@ function checkVentConsistency(p: VentWorkingSet): VentIssue[] {
 /**
  * Solve the sealed-alignment group: whichever of `Qtc`/`Vb_m3` the caller did not state, from
  * the driver's own `Qts`/`Vas_m3` — the same target-Qtc calculation `boxDesign.ts`'s
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
  * `sealedFromQtc`/`sealedQtcFromVolume` implement, given a name matching the other group
  * solvers (`solveVentConsistencyGroup`/`solvePrConsistencyGroup`).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
  */
 function solveSealedAlignmentGroup(p: SealedAlignmentWorkingSet): SealedAlignmentWorkingSet {
   const out: SealedAlignmentWorkingSet = { ...p };

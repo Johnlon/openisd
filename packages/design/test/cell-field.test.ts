@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { describe, it, expect } from 'vitest';
 import { entryField, nullableField, resolvingLens } from '../domain/cell.js';
 import type { Lens } from '../domain/cell.js';

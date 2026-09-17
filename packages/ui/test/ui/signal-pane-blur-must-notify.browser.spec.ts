@@ -59,7 +59,7 @@ test('entering P on a new w5-1138smf project then blurring does not blank the P 
   await expect(pow).toHaveValue(/\d/);
   // The derived V must land (√(P·Re) at the pane's precision) and stay.
   await expect(vol).toHaveValue(/\d/);
-  expect(await vol.inputValue()).not.toBe('');
+  await expect(vol).not.toHaveValue('');
 
   // And the committed pair must agree with the live domain law V = √(P·Re).
   const live = await driveGroup(page);
@@ -133,6 +133,6 @@ test('clearing P then blurring leaves no phantom voltage — V cannot exist when
   // P is genuinely gone — and V, a pure output of P and Re, must go with it. No phantom
   // √(1·Re) from a hidden reference power may keep V alive while its entered base is blank.
   expect((await driveGroup(page)).P, 'clearing P must clear the entered power').toBe(null);
-  expect(await vol.inputValue(), 'V must not show the reference-power phantom when P is blank').toBe('');
-  expect(await pow.inputValue(), 'P must show blank').toBe('');
+  await expect(vol, 'V must not show the reference-power phantom when P is blank').toHaveValue('');
+  await expect(pow, 'P must show blank').toHaveValue('');
 });

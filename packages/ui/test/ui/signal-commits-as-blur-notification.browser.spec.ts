@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures.js';
 
 const EDITOR = '.de-modal';
-const GENERAL = '.de-tab General';
+// const GENERAL = '.de-tab General';
 const PW_ROW = '.de-fld__row--power';
 const V_ROW = '.de-fld__row--voltage';
 

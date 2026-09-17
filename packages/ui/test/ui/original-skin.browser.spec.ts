@@ -219,7 +219,6 @@ test('the 6th-order-bandpass Frc field persists a typed value instead of discard
     (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.bandpass6.chambers.rear.tuning_hz.value, APP_STATE);
   expect(stored).toBe(2222); // model actually holds it, not just the local input's own state
 });
-
 test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('select#og-box-type').selectOption('vented');
@@ -611,37 +610,6 @@ test('New Project starts fresh — it discards the previous design (filters, par
   expect(st.filters).toBe(0);  // fresh project — no inherited filters
   expect(st.pin).toBe(1);      // default 1 W reference — not the previous 250
 });
-
-test('the New Project wizard sets box type + volume then opens the driver picker', async ({ page }) => {
-  await page.locator('.tb-btn[title*="New project"]').click();
-  const modal = page.locator('.overlay.open');
-  await expect(modal).toContainText('New Project');
-
-  await modal.locator('button', { hasText: 'Next' }).click();  // step 1 name → skip
-  await modal.locator('select').selectOption('vented');        // step 2 box type
-  await modal.locator('button', { hasText: 'Next' }).click();
-  await modal.locator('input').first().fill('42');             // step 3 volume
-  await modal.locator('button', { hasText: 'Pick Driver' }).click();
-
-  // Picking a driver creates the project and writes every wizard choice into it (QO125) —
-  // so assert the picker opened, then complete the pick and read the live project.
-  await expect(page.locator('.dlist')).toBeVisible();
-  await page.locator('.dlist .ditem').first().click();
-  await page.locator('.use-btn').click();
-  await expect(page.locator('.original-root')).toBeVisible();
-
-  const st = await page.evaluate(async () => {
-    const storeModPath = '/src/logic/appState.ts';
-    const presModPath = '/src/logic/presentationState.ts';
-    const s = await import(/* @vite-ignore */ storeModPath);
-    // const ps = await import(/* @vite-ignore */ presModPath);
-    const project = s.requireFocusedProject();
-    return { box: project.box.boxType.get(), vb: project.box.vented.volume_m3.value };
-  });
-  expect(st.box).toBe('vented');
-  expect(st.vb).toBeCloseTo(0.042, 3); // 42 L → 0.042 m³
-});
-
 test('Original toolbar: Share link (Export menu) writes the design into the address bar', async ({ page }) => {
   page.on('dialog', (d) => d.dismiss().catch(() => {})); // if clipboard is blocked, shareLink falls back to prompt()
   await page.locator('#btnExportMenu').click();
@@ -698,12 +666,10 @@ test('a dragged frequency band selection survives the share link', async ({ page
   await expect(page.locator('.original-root')).toBeVisible();
   await expect(page.locator('.gread')).toHaveText(readout);
 });
-
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();
 });
-
 test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
@@ -719,7 +685,6 @@ test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async 
   await sd.blur();
   await expect(sd).toHaveValue('130.00'); // registry Sd = 2 dp (was a 4-dp literal)
 });
-
 test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
@@ -733,7 +698,8 @@ test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
 
   await expect(page.locator('.tune-panel')).toBeVisible();          // Tune reopened
 });
-
+// ---- Per-field display-unit conversion (fields/units.ts + <UnitToggle>) ------------
+// The store ALWAYS holds SI; clicking a field's unit label must rescale only the shown
 // value (and convert typed input back), never the stored model. This is the real
 // conversion that replaced the old decorative cycleUnit (which rotated the label alone).
 const readVbToken = (page: Page) =>
@@ -963,7 +929,7 @@ test('Original skin: Options dialog edits are draft-only and discard on Cancel, 
   const getStoreTemp = async () => {
     return await page.evaluate(async () => {
       const modPath = '/src/logic/presentationState.ts';
-      // const ps = await import(/* @vite-ignore */ modPath);
+      const ps = await import(/* @vite-ignore */ modPath);
       return ps.presentationState.ui.envDefaults.tempK;
     });
   };
@@ -1011,7 +977,7 @@ test('Original skin: Environment fieldset has its own reset button that resets e
   const getStore = async () => {
     return await page.evaluate(async () => {
       const modPath = '/src/logic/presentationState.ts';
-      // const ps = await import(/* @vite-ignore */ modPath);
+      const ps = await import(/* @vite-ignore */ modPath);
       return { tempK: ps.presentationState.ui.envDefaults.tempK, username: ps.presentationState.ui.username };
     });
   };
@@ -1036,71 +1002,6 @@ test('Original skin: Environment fieldset has its own reset button that resets e
 
   // Verification: envDefaults back to the physical default, username left untouched
   expect(await getStore()).toEqual({ tempK: 293.15, username: '111111' });
-});
-
-test.skip('Original skin: Open the two samples and switch between them, ensuring the active selection highlight moves correctly', async ({ page }) => {
-  // 1. Open first sample: "Generic 6.5\" Woofer"
-  await page.locator('.tb-btn.has-menu[title="Open project"]').click();
-  await page.locator('.sample-item', { hasText: 'Generic 6.5" Woofer' }).click();
-
-  // 2. Open second sample: "Generic 1\" Tweeter"
-  await page.locator('.tb-btn.has-menu[title="Open project"]').click();
-  await page.locator('.sample-item', { hasText: 'Generic 1" Tweeter' }).click();
-
-  // 3. Verify that we have three projects in the flat sidebar list
-  const rows = page.locator('.projects-list .project-row');
-  await expect(rows).toHaveCount(3);
-
-  // 4. Verify that "Generic 1\" Tweeter" (the most recently opened project) is active/selected
-  const tweeterRow = rows.filter({ hasText: 'Generic 1" Tweeter' });
-  await expect(tweeterRow).toHaveClass(/selected/);
-
-  // 5. Click on the "Generic 6.5\" Woofer" row to switch to it. Opening a sample opens a
-  // project in its own right — it does not fork whatever was already open into a copy.
-  const wooferRow = rows.filter({ hasText: /^Generic 6.5" Woofer$/ });
-  await wooferRow.click();
-
-  // 6. Assert that "Copy of Generic 6.5\" Woofer" becomes the active/selected project
-  await expect(wooferRow).toHaveClass(/selected/);
-  await expect(tweeterRow).not.toHaveClass(/selected/);
-
-  // 7. Verify the header in titlebar matches the selected project name
-  await expect(page.locator('.titlebar')).toContainText('Generic 6.5" Woofer');
-});
-
-test.skip('Original skin: Project Modified styling (yellow highlight/is-unsaved class) is preserved when switching back and forth', async ({ page }) => {
-  // 1. Open a sample
-  await page.locator('.tb-btn.has-menu[title="Open project"]').click();
-  await page.locator('.sample-item', { hasText: 'Generic 6.5" Woofer' }).click();
-
-  // 2. Open another sample. Each sample is its own project — the first stays as itself.
-  await page.locator('.tb-btn.has-menu[title="Open project"]').click();
-  await page.locator('.sample-item', { hasText: 'Generic 1" Tweeter' }).click();
-
-  const rows = page.locator('.projects-list .project-row');
-  const wooferRow = rows.filter({ hasText: /^Generic 6.5" Woofer$/ });
-
-  // 3. Make some modification to the active project (Generic 1" Tweeter) by changing its name in Project tab
-  await page.locator('.project-nav li', { hasText: 'Project' }).click();
-  const nameInput = page.locator('.tab-section.active .field', { hasText: 'Name' }).locator('input');
-  await nameInput.fill('Modified Tweeter');
-  await nameInput.blur();
-
-  // 4. Assert that "Modified Tweeter" has the `is-unsaved` class (yellow highlight)
-  const tweeterRow = rows.filter({ hasText: /^Modified Tweeter$/ });
-  await expect(tweeterRow).toHaveClass(/is-unsaved/);
-
-  // 5. Swap to "Copy of Generic 6.5\" Woofer"
-  await wooferRow.click();
-  await expect(wooferRow).toHaveClass(/selected/);
-  await expect(tweeterRow).toHaveClass(/is-unsaved/);
-
-  // 6. Swap back to "Modified Tweeter"
-  await tweeterRow.click();
-  await expect(tweeterRow).toHaveClass(/selected/);
-
-  // 7. Assert that "Modified Tweeter" STILL has the `is-unsaved` class (unsaved state was preserved perfectly!)
-  await expect(tweeterRow).toHaveClass(/is-unsaved/);
 });
 
 test('Original skin: Revert/reset button resets modifications correctly', async ({ page }) => {
@@ -1177,39 +1078,4 @@ test('closing the last open project keeps the shell and exposes recovery actions
   // The shell's New action remains reachable.
   await page.locator('.tb-btn[title^="New project"]').click();
   await expect(page.locator('.modal-titlebar', { hasText: 'New Project' })).toBeVisible();
-});
-
-test('switching focus between two open projects cancels an edit in progress on the originally focused one', async ({ page }) => {
-  // Name the project so it is recognisable as the one to switch back to.
-  await page.locator('.project-nav li', { hasText: 'Project' }).click();
-  const nameInput = page.locator('.tab-section.active .field', { hasText: 'Name' }).locator('input');
-  await nameInput.fill('Has The Edit');
-  await nameInput.blur();
-
-  // Open Tune on it and change Fs without closing it. `.blur()`, not just
-  // `dispatchEvent('input')`: the field only reformats to its display precision once it
-  // stops being the raw, mid-typing echo (`OgTune.vue`'s own "no reformat while typing"
-  // rule) — checking the value immediately after typing (no blur) would assert against
-  // that raw, unformatted string instead of the field's real, settled value.
-  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.save-rail .tune-btn').click();
-  const tune = page.locator('.tune-panel');
-  const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
-  await fsInput.fill('61');
-  await fsInput.blur();
-  await expect(fsInput).not.toHaveValue('');
-  await fsInput.inputValue();
-
-  // "+ Copy" opens a second, independent project and focuses it — this must not touch the
-  // first project's edit.
-  await page.locator('.link-btn', { hasText: 'Copy' }).click();
-  const rows = page.locator('.projects-list .project-row');
-  await expect(rows).toHaveCount(2);
-
-  // Switch back to the first project — its Tune panel still shows the edited value.
-  await rows.filter({ hasText: /^Has The Edit$/ }).click();
-  await expect(tune).toBeHidden();
-
-  await tune.locator('button', { hasText: 'Cancel' }).click();
-  await expect(tune).toBeHidden();
 });

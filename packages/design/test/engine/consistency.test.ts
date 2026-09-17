@@ -25,6 +25,7 @@ function fakeWiringField(value: 'series' | 'parallel' | null): SolverField<'seri
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const NUMERIC_DRIVER_FIELDS = [
   'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms', 'Qts', 'Vas_m3',
   'Sd_m2', 'Dd_m', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s', 'EBP_hz', 'Xmax_m', 'Vd_m3',

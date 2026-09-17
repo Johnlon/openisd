@@ -105,7 +105,7 @@ test('the standard fixture sample-project.owpr is a faithful representation of a
   const sampleJson = JSON.parse(readFileSync(SAMPLE, 'utf-8'));
   
   // Ignore UUIDs, dates, and non-essential meta fields for comparison
-  const normalize = (json: any) => {
+  const normalize = (json: unknown) => {
     const clone = JSON.parse(JSON.stringify(json));
     if (clone.driverEmbedding?.device?.uuid) clone.driverEmbedding.device.uuid = 'normalized';
     if (clone.driverEmbedding?.device?.added) clone.driverEmbedding.device.added = 'normalized';

@@ -23,7 +23,7 @@ import { solveSignal } from './signal.js';
 import type { SignalSolverQuantities, SignalSolveResult } from './signal.js';
 import { sealedResonance, sourceLoadedQts } from './lossMode.js';
 import { solveBoxParams } from './params.js';
-import type { BoxParamsIssue, BoxParamsSolveResult } from './params.js';
+import type {  BoxParamsSolveResult } from './params.js';
 import {
   classifyFinite, classifyFiniteIssues, classifyFlatClamp, classifyMaxFinite,
   maxCurves, passbandRef, rolloffFreq, sweep,
