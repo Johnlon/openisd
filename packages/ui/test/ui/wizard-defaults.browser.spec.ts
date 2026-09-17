@@ -4,6 +4,10 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
+// The app's store, reached in-browser at runtime — passed as an evaluate ARGUMENT (never as a
+// literal import), the same pattern original-skin.browser.spec.ts uses, so vue-tsc resolves nothing.
+const APP_STATE = '/src/logic/appState.ts';
+
 const SAMPLE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'sample-project.owpr');
 
 // A complete driver so the wizard-built project can sweep.
@@ -96,11 +100,11 @@ test('the standard fixture sample-project.owpr is a faithful representation of a
   await expect(page.locator('.original-root')).toBeVisible();
 
   // Export the created project and compare its core structure to the fixture
-  const wizardJson = await page.evaluate(async () => {
-    const { requireFocusedProject } = await import(/* @vite-ignore */ '/src/logic/appState.ts');
+  const wizardJson = await page.evaluate(async (modPath) => {
+    const { requireFocusedProject } = await import(/* @vite-ignore */ modPath);
     const p = requireFocusedProject();
     return p.serialize();
-  });
+  }, APP_STATE);
   
   const sampleJson = JSON.parse(readFileSync(SAMPLE, 'utf-8'));
   

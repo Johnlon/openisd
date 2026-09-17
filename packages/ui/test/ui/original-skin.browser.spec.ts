@@ -21,9 +21,9 @@ async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<numb
   if (!/^-?\d+(\.\d+)?$/.test(before)) return 0; // skip empty / non-numeric fields
   const dpBefore = decimalsOf(before);
   await input.focus();
-  await input.evaluate(el => { for(let i=0; i<6; i++) { el.stepUp(); el.dispatchEvent(new Event('input', { bubbles: true })); } }); // compounding up-steps
+  await input.evaluate(el => { if (!(el instanceof HTMLInputElement)) return; for(let i=0; i<6; i++) { el.stepUp(); el.dispatchEvent(new Event('input', { bubbles: true })); } }); // compounding up-steps
   const up = (await input.inputValue()).trim();
-  await input.evaluate(el => { for(let i=0; i<12; i++) { el.stepDown(); el.dispatchEvent(new Event('input', { bubbles: true })); } }); // back down through the base
+  await input.evaluate(el => { if (!(el instanceof HTMLInputElement)) return; for(let i=0; i<12; i++) { el.stepDown(); el.dispatchEvent(new Event('input', { bubbles: true })); } }); // back down through the base
   const down = (await input.inputValue()).trim();
   expect(decimalsOf(up), `${label}: gained decimals spinning UP  "${before}" → "${up}"`).toBeLessThanOrEqual(dpBefore);
   expect(decimalsOf(down), `${label}: gained decimals spinning DOWN "${before}" → "${down}"`).toBeLessThanOrEqual(dpBefore);
@@ -468,7 +468,7 @@ test('class-level: NO Original-skin spinner gains decimal places while spinning 
   // Box tab across every box type — exposes the type-specific spinners (vents, PR, chambers)
   // as well as the shared Volume/Signal/Advanced fields. Covers NumInput and v-expo-step at once.
   let checked = 0;
-  for (const boxType of ['sealed', 'vented'] as const) {
+  for (const boxType of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4'] as const) {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption(boxType);
     // Sweep every project tab that exists for this box type (the tab set changes per type).

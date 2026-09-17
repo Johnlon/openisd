@@ -1,6 +1,10 @@
 import { test, expect } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
+// The app's store, reached in-browser at runtime — passed as an evaluate ARGUMENT (never as a
+// literal import), the same pattern original-skin.browser.spec.ts uses, so vue-tsc resolves nothing.
+const APP_STATE = '/src/logic/appState.ts';
+
 /**
  * The Signal-pane drive trio on the Original shell: P (System input power) and V (Driver
  * input voltage) are one coupled pair under WinISD's reference-power law, V = √(P·Re),
@@ -37,11 +41,11 @@ function signalInput(page: Page, label: string) {
 
 /** The drive group's committed state, read live from the domain. */
 async function driveGroup(page: Page) {
-  return page.evaluate(async () => {
-    const s = await import(/* @vite-ignore */ '/src/logic/appState.ts');
+  return page.evaluate(async (modPath) => {
+    const s = await import(/* @vite-ignore */ modPath);
     const p = s.requireFocusedProject();
     return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.ts.Re_ohm.value };
-  });
+  }, APP_STATE);
 }
 
 test('entering P on a new w5-1138smf project then blurring does not blank the P cell — the derived V lands and stays', async ({ page }) => {
