@@ -9,10 +9,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 /** The harness-generated PR golden — WinISD Pro wrote it under the wine harness from a scenario
  *  stated in explicit values (test/fixtures/winisd-parity/scenarios.json, `passive-radiator`),
  *  so every value in it is traceable to an input this repo controls and can regenerate. */
-const SAMPLE_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
-const VENTED_SMALL_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'vented-small.wpr');
-const BANDPASS4_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'bandpass4.wpr');
-const VENTED_B4_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'vented-b4.wpr');
+const GOLDEN_PR_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
+const GOLDEN_VENTED_SMALL_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'vented-small.wpr');
+const GOLDEN_BANDPASS4_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'bandpass4.wpr');
+const GOLDEN_VENTED_B4_WPR_PATH = join(here, 'fixtures', 'winisd-parity', 'goldens', 'vented-b4.wpr');
 
 /** Substring assertions carry the needle in the message, so a failure names the missing line. */
 function contains(haystack: string, needle: string, label: string) {
@@ -179,7 +179,7 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     // [ProjectInfo] (Description/Creator/dates are per-project), but every OTHER value here is
     // either a WinISD constant/default our serializer must reproduce exactly, or the scenario's
     // own [Box]/[PassiveRadiator] physics values, read straight out of the golden.
-    const sample = readFileSync(SAMPLE_WPR_PATH, 'utf8');
+    const sample = readFileSync(GOLDEN_PR_WPR_PATH, 'utf8');
     assert.ok(sample.includes('\r\n'), 'ground truth confirms the CRLF assumption');
 
     const s = WinISDProject.build(DRIVER_SECTION, {
@@ -224,7 +224,7 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     // Scenario `vented-small` (test/fixtures/winisd-parity/scenarios.json): 20 L rear chamber
     // tuned to 45 Hz through a 60 mm round port. [Box].Vr/Fr and [VentRear].Fb/Vb carry the
     // SAME tuning — this is the redundant-copy case the bug asked to establish.
-    const sample = readFileSync(VENTED_SMALL_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
+    const sample = readFileSync(GOLDEN_VENTED_SMALL_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
     const s = WinISDProject.build(DRIVER_SECTION, {
           ProjectInfo: { Creator: 'johnl', CreateDate: '20260101', ModifyDate: '20260101' },
           Box: { BType: 1, Vr: 0.02, Fr: 45, Sdrport: 0.00282743338823081 },
@@ -240,7 +240,7 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     + '(Fb/Vb/carea, not just dia1/len)', () => {
     // Scenario `bandpass4`: front chamber (35 L) is the vented one, tuned to 60 Hz through a
     // 75 mm round port. [Box].Vf/Ff and [VentFront].Fb/Vb carry the SAME tuning.
-    const sample = readFileSync(BANDPASS4_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
+    const sample = readFileSync(GOLDEN_BANDPASS4_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
     const s = WinISDProject.build(DRIVER_SECTION, {
           ProjectInfo: { Creator: 'johnl', CreateDate: '20260101', ModifyDate: '20260101' },
           Box: { BType: 2, Vr: 0.02, Fr: 58.3392371416399, Vf: 0.035, Ff: 60, Sdfport: 0.00441786466911065 },
@@ -257,7 +257,7 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     // Scenario `vented-b4`: 35 L rear chamber tuned to 36 Hz through a 75 mm round port —
     // same port diameter as bandpass4 but a different tuning, so no row can be right by
     // coincidence of one scenario's numbers.
-    const sample = readFileSync(VENTED_B4_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
+    const sample = readFileSync(GOLDEN_VENTED_B4_WPR_PATH, 'utf8').replace(/\r\n/g, '\n');
     const s = WinISDProject.build(DRIVER_SECTION, {
           ProjectInfo: { Creator: 'johnl', CreateDate: '20260101', ModifyDate: '20260101' },
           Box: { BType: 1, Vr: 0.035, Fr: 36, Sdrport: 0.00441786466911065 },
