@@ -168,6 +168,58 @@ export function requireFocusedProject(): OpenISDProject {
   return p;
 }
 
+/** Box-type-generic rear-chamber volume ("Vb") write — every box type keeps its own volume
+ *  field under its own `box.<type>` slice (mirrors `OriginalShell-hooks.ts`'s own
+ *  `setBoxVolume_m3`, which is closed over that hook's own project ref and so cannot be
+ *  reused here). Used only by the debug handle below. */
+function setFocusedBoxVolume_m3(v: number): void {
+  const box = requireFocusedProject().box;
+  switch (box.boxType.get()) {
+    case 'sealed': box.sealed.volume_m3.set(v); break;
+    case 'vented': box.vented.volume_m3.set(v); break;
+    case 'bandpass4': box.bandpass4.chambers.rear.volume_m3.set(v); break;
+    case 'bandpass6': box.bandpass6.chambers.rear.volume_m3.set(v); break;
+    case 'abc': box.abc.chambers.rear.volume_m3.set(v); break;
+    case 'box-passive-radiator': box.passiveRadiator.volume_m3.set(v); break;
+  }
+}
+
+function focusedBoxVolume_m3(): number {
+  const box = requireFocusedProject().box;
+  switch (box.boxType.get()) {
+    case 'sealed': return box.sealed.volume_m3.get();
+    case 'vented': return box.vented.volume_m3.get().value ?? 0;
+    case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3.get().value ?? 0;
+    case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3.get().value ?? 0;
+    case 'abc': return box.abc.chambers.rear.volume_m3.get().value ?? 0;
+    case 'box-passive-radiator': return box.passiveRadiator.volume_m3.get();
+  }
+}
+
+/** A debug handle for browser specs that need to simulate "an unrelated design edit" without
+ *  going through the DOM (`persistence/original-projects.browser.spec.ts`). Mirrors the
+ *  `globalThis.__openisd_appState` pattern above — always on, no build-flag gate, since this
+ *  codebase has none for this kind of hook. `state.P.Vb` is the ONE writable path: assigning it
+ *  routes through the focused project's own box-volume write (`setFocusedBoxVolume_m3`), so the
+ *  write is real — it resolves and notifies, exactly as the Box tab's own field does — rather
+ *  than a mutation on a dead, disconnected object. */
+export interface StoreDebugContext {
+  readonly state: {
+    readonly P: { Vb: number };
+  };
+}
+declare global {
+  var __store_context: StoreDebugContext | undefined;
+}
+globalThis.__store_context = {
+  state: {
+    P: {
+      get Vb(): number { return focusedBoxVolume_m3(); },
+      set Vb(v: number) { setFocusedBoxVolume_m3(v); },
+    },
+  },
+};
+
 /** Duplicate the FOCUSED project's own design into a brand-new, independent tab under
  *  `newName`, and focus it. Round-trips through the project's own `.owpr` text — the same
  *  serialised form every persistence door carries — so the copy is a genuinely separate
