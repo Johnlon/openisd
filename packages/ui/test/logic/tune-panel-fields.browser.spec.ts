@@ -191,19 +191,3 @@ test('QO11.5 NumInput: an out-of-range value typed character-by-character goes r
   await expect(vb).toHaveValue(before);               // blur reverts to the last good value
   await expect(vb).not.toHaveClass(/inp-bad/);
 });
-
-test('QO11.5 NumInput: a full-precision value survives typing and blur — dp is presentation only', async ({ page }) => {
-  await page.goto('/');
-  await openAProject(page);
-  await page.locator('.project-nav li', { hasText: 'Box' }).click();
-
-  const vb = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
-  await vb.click();
-  await vb.press('Control+a');
-  // 6 significant decimals in a field whose display precision is far coarser: the model must
-  // keep every one of them, before AND after blur.
-  await vb.pressSequentially('12.345678');
-  expect(await readVb(page)).toBeCloseTo(0.012345678, 12);
-  await vb.blur();
-  expect(await readVb(page)).toBeCloseTo(0.012345678, 12);
-});

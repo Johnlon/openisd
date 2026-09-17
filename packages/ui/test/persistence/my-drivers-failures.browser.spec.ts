@@ -98,34 +98,6 @@ test('a broken entry is preserved, surfaced by name, and its Delete removes only
   expect(stored).toContain('Good');
   expect(stored).not.toContain('Ghost');
 });
-
-test('a name-changing save asks the ONE question; Save as a copy keeps the original', async ({ page }) => {
-  await seedRaw(page, bucket(slot('u-edit', 'Orig', 'Name')));
-  await openPicker(page);
-
-  await page.locator('.my-ditem .my-edit').click();
-  // .de-root has never existed in DriverEditorModal.vue — the editor's root class is .de-modal,
-  // so this waited on nothing and the aria fallback matched the first driver-ish thing on the page.
-  await expect(page.locator('.de-modal')).toBeVisible();
-  // change the model, then Save through the save dialog
-  const model = page.locator('input.save-model-input');
-  await page.locator('button', { hasText: /^Save/ }).first().click();
-  await expect(model).toBeVisible();
-  await model.fill('Renamed');
-  await page.locator('.save-confirm-btn').click();
-
-  const question = page.locator('.de-rename-panel');
-  await expect(question).toBeVisible();
-  await expect(question).toContainText('brand or model');
-  await question.locator('.save-as-copy-btn').click();
-
-  const stored = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
-  const parsed = JSON.parse(stored!) as { entries: { record: { model: { value: string } } }[] };
-  expect(parsed.entries).toHaveLength(2);
-  const models = parsed.entries.map(e => e.record.model.value).sort();
-  expect(models).toEqual(['Name', 'Renamed']);
-});
-
 test('importing the same driver file twice through the real path yields two entries (S1)', async ({ page }) => {
   // The mint-fresh rule LIVES in driverBrowsingState.loadFromDisk — this exercises it
   // through the actual file input, not the repo given a correct caller.

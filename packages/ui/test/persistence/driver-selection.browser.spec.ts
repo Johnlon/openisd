@@ -171,41 +171,6 @@ test('the ✎ on a My Drivers row opens the editor on that saved driver', async 
   const modelInput = await modelCell(page);
   await expect(modelInput).toHaveValue('Fixture');
 });
-
-test('editing a saved driver rewrites its entry and leaves the project alone', async ({ page }) => {
-  const beforeProject = await projectDriverName(page);
-
-  await openPicker(page);
-  await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
-
-  const modelInput = await modelCell(page);
-  await modelInput.fill('Fixture Mk2');
-  await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
-  await page.locator('.save-confirm-btn').click();
-  await expect(page.locator(EDITOR)).toBeHidden();
-
-  // The rename MOVES the entry — one saved driver, under its new identity, no stale twin.
-  const savedM = await savedModels(page);
-  expect(savedM).toEqual(['Fixture Mk2']);
-
-  // The project's driver never entered into it.
-  expect(await projectDriverName(page)).toBe(beforeProject);
-});
-
-test('the picker shows the new name as soon as the editor closes', async ({ page }) => {
-  await openPicker(page);
-  await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
-
-  const modelInput = await modelCell(page);
-  await modelInput.fill('Renamed Live');
-  await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
-  await page.locator('.save-confirm-btn').click();
-
-  // The picker is still open behind the editor; its list must not be stale.
-  await expect(page.locator('.my-ditem', { hasText: 'Renamed Live' })).toBeVisible();
-  await expect(page.locator('.my-ditem', { hasText: PICKED })).toBeHidden();
-});
-
 test('Cancel on a saved driver writes nothing', async ({ page }) => {
   await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();

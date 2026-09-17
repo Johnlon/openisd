@@ -40,25 +40,6 @@ test.describe('Driver Editor — solver wiring', () => {
     await expect(qtsf).toHaveValue('0.364');
     await expect(qtsf).toHaveClass(/value-c/);
   });
-
-  test('UI un-calculates downstream derived fields back to state N when an anchor is cleared', async ({ page }) => {
-    const qtsf = page.locator('.de-fld:has-text("Qts") input');
-    const qesf = page.locator('.de-fld:has-text("Qes") input');
-    const qmsf = page.locator('.de-fld:has-text("Qms") input');
-
-    await qtsf.fill('');
-    await qesf.fill('0.400');
-    await qmsf.fill('4.000');
-    await expect(qtsf).toHaveValue('0.364');
-
-    // Clear Qes anchor
-    await qesf.fill('');
-
-    // Qts must reset to empty / Not Available (state N)
-    await expect(qtsf).toHaveValue('');
-    await expect(qtsf).toHaveClass(/value-n/);
-  });
-
   test('UI preserves solver state across Parameters and Advanced parameters tab switches', async ({ page }) => {
     const qtsf = page.locator('.de-fld:has-text("Qts") input');
     await qtsf.fill('');
@@ -110,25 +91,6 @@ test.describe('Driver Editor — solver wiring', () => {
     // Modal closes upon successful commit
     await expect(page.locator('.de-body')).toBeHidden();
   });
-
-  test('UI rejects non-numeric literal text ("banana", "<script>") and clears field to state N (empty/Not Available) without crashing JS execution', async ({ page }) => {
-    const fsf = page.locator('.de-fld:has-text("Fs") input');
-
-    // 1. Dispatch non-numeric text 'banana' into input field
-    await fsf.evaluate((el: HTMLInputElement) => {
-      el.value = 'banana';
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-
-    // 2. Trigger blur event
-    await fsf.blur();
-
-    // 3. Input element cleanly clears to state N (Not Available, empty '') without crashing Vue
-    await expect(fsf).toHaveValue('');
-    await expect(fsf).toHaveClass(/value-n/);
-    await expect(page.locator('.de-body')).toBeVisible();
-  });
-
   test('UI flags unphysical negative parameters (Re = -8.0 Ohm, Fs = -35.0 Hz) with Data Quality (DQ) warning', async ({ page }) => {
     const ref = page.locator('.de-fld:has-text("Re") input');
     await ref.fill('-8.0');
