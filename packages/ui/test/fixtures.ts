@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { test as base, expect, type Page } from '@playwright/test';
 
 /**
@@ -132,6 +134,9 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
 const DEFAULT_SAMPLE_OWPR = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'sample-project.owpr');
 
 export async function openAProject(page: Page, owprPath: string = DEFAULT_SAMPLE_OWPR): Promise<void> {
+  if (owprPath === DEFAULT_SAMPLE_OWPR && !existsSync(owprPath)) {
+    execSync('node ' + join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'generateSample.cjs'), { stdio: 'inherit' });
+  }
   await page.locator('.original-root input[type=file]').setInputFiles({
     name: 'sample-project.owpr',
     mimeType: 'application/json',
