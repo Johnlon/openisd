@@ -6,7 +6,7 @@ import { test, expect, openAProject } from '../fixtures.js';
 test('Escape dismisses the driver library modal', async ({ page }) => {
   await page.goto('/');
   await openAProject(page);
-  await page.getByRole('button', { name: /Browse \/ Select/ }).click();
+  await page.getByRole('button', { name: 'Select Driver' }).click();
   await expect(page.locator('.modal')).toBeVisible();
 
   await page.keyboard.press('Escape');

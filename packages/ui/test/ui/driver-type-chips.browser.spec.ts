@@ -20,7 +20,7 @@ const CHIPS = '.type-row .type-chip:not(.type-clear):not(.fav-filter)';
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await openAProject(page);
-  await page.getByRole('button', { name: /Browse \/ Select/ }).click();
+  await page.getByRole('button', { name: 'Select Driver' }).click();
 });
 
 test('every Chip enum member renders as a labelled filter button', async ({ page }) => {
@@ -43,7 +43,11 @@ test('clicking a chip toggles include -> off, keyed by its value', async ({ page
 
 test('the chip bar renders exactly the enum, in enum order', async ({ page }) => {
   const chips = page.locator(CHIPS);
-  await expect(chips.first(), 'no chips rendered in the picker').toBeVisible();
+  const count = await chips.count();
+  console.log('CHIPS COUNT:', count);
+  const firstVisible = await chips.first().isVisible();
+  console.log('FIRST VISIBLE?', firstVisible);
+  await expect(chips.first(), 'no chips rendered in the picker').toBeVisible({ timeout: 1000 });
   const labels = await chips.allTextContents();
   expect(labels.map(s => s.trim())).toEqual(Chip.ALL.map(c => c.label));
 });
