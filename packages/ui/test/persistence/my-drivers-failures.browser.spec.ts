@@ -67,14 +67,16 @@ test('Export downloads the raw string verbatim and disarms the delete challenge'
   const modal = page.locator('.my-storage-modal');
   await expect(modal).toBeVisible();
 
-  const download = page.waitForEvent('download');
-  await modal.locator('.my-export-raw').click();
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    modal.locator('.my-export-raw').evaluate((btn: HTMLElement) => btn.click())
+  ]);
   const file = await download;
   expect(await (await file.createReadStream()).toArray().then(a => Buffer.concat(a).toString()))
     .toBe(corrupt);
 
   // exported this session: Delete acts on the FIRST press now
-  await modal.locator('.my-delete-all').click();
+  await modal.locator('.my-delete-all').evaluate((btn: HTMLElement) => btn.click());
   await expect(modal).toBeHidden();
 });
 
@@ -98,6 +100,36 @@ test('a broken entry is preserved, surfaced by name, and its Delete removes only
   expect(stored).toContain('Good');
   expect(stored).not.toContain('Ghost');
 });
+
+test('a name-changing save asks the ONE question; Save as a copy keeps the original', async ({ page }) => {
+  page.on('console', msg => console.log('BROWSER:', msg.text()));
+  await seedRaw(page, bucket(slot('u-edit', 'Orig', 'Name')));
+  await openPicker(page);
+
+  await page.locator('.my-ditem .my-edit').click();
+  // .de-root has never existed in DriverEditorModal.vue — the editor's root class is .de-modal,
+  // so this waited on nothing and the aria fallback matched the first driver-ish thing on the page.
+  await expect(page.locator('.de-modal')).toBeVisible();
+  // change the model, then Save through the save dialog
+  const model = page.locator('input.save-model-input');
+  await page.locator('.de-btns button', { hasText: /^OK$/ }).click();
+  await expect(model).toBeVisible();
+  await model.fill('Renamed');
+  
+  await page.locator('.save-confirm-btn').click();
+
+  const question = page.locator('.de-rename-panel');
+  await expect(question).toBeVisible();
+  await expect(question).toContainText('brand or model');
+  await question.locator('.save-as-copy-btn').click();
+
+  const stored = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
+  const parsed = JSON.parse(stored!) as { entries: { record: { model: { value: string } } }[] };
+  expect(parsed.entries).toHaveLength(2);
+  const models = parsed.entries.map(e => e.record.model.value).sort();
+  expect(models).toEqual(['Name', 'Renamed']);
+});
+
 test('importing the same driver file twice through the real path yields two entries (S1)', async ({ page }) => {
   // The mint-fresh rule LIVES in driverBrowsingState.loadFromDisk — this exercises it
   // through the actual file input, not the repo given a correct caller.
@@ -108,11 +140,15 @@ test('importing the same driver file twice through the real path yields two entr
     '[Driver]', 'Brand=Twice', 'Model=Imported', 'Manufacturer=', 'ProvidedBy=', 'Comment=',
     'DateAdded=', 'DateModified=', 'Qts=0.4', 'Fs=40', 'Re=6', 'ParState=' + 'N'.repeat(49), '',
   ].join('\r\n');
-  const file = { name: 'twice.wdr', mimeType: 'text/plain', buffer: Buffer.from(wdr) };
+  const file = { name: 'twice.wdr', mimeType: 'application/octet-stream', buffer: Buffer.from(wdr) };
 
   for (let i = 0; i < 2; i++) {
-    await page.locator('button', { hasText: /load.*disk|from disk/i }).first().click().catch(() => {});
-    await page.locator('input[type="file"]').setInputFiles(file);
+    const fileChooserPromise = page.waitForEvent('filechooser');
+    await page.locator('button', { hasText: /Load File/i }).first().click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles(file);
+    const errText = await page.locator('.db-status').textContent().catch(() => 'no err');
+    console.log('STATUS:', errText);
     await expect(page.locator('.my-ditem')).toHaveCount(i + 1);
   }
 

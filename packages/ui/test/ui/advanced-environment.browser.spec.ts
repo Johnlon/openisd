@@ -87,12 +87,20 @@ test('a project\'s stored humidity survives a reload — not reset to the Option
   await humidity(page).blur();
 
   await expect.poll(async () => {
-    const raw = await page.evaluate(() => localStorage.getItem('openisd_state'));
-    return raw ? JSON.parse(raw).P?.humidityPct : null;
+    const raw = await page.evaluate(() => localStorage.getItem('openisd_open_sessions'));
+    if (!raw) return null;
+    try {
+      const session = JSON.parse(raw);
+      const text = session.entries[0]?.text;
+      if (!text) return null;
+      const parsedProject = JSON.parse(text);
+      const activeState = parsedProject.edited || parsedProject.saved;
+      return activeState?.environment?.humidity_pct ?? null;
+    } catch { return null; }
   }).toBe(55);
 
   await page.reload();
   await page.locator('li', { hasText: /^Advanced$/ }).click();
 
-  await expect(humidity(page)).toHaveValue('55');
+  await expect(humidity(page)).toHaveValue('55.00');
 });
