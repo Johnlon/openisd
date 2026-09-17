@@ -30,3 +30,9 @@ Rule — COMMIT FIRST: never discard uncommitted work, yours or anyone else's, u
 
 - The leader assigns each task a disjoint set of files. Work only inside your assignment; never touch a file outside it, and never another session's package.
 - The leader dispatches serially for tricky or cross-package work, or when a worker is making mistakes, and in parallel only for disjoint mechanical tasks.
+
+## UI Tests & Fixtures
+- The standard fixture `sample-project.owpr` is required by the UI test suite.
+- If you change the underlying domain model (e.g. adding new validation rules), do **not** edit the JSON inside `sample-project.owpr` manually. Instead, update `packages/ui/test/fixtures/generateSample.ts` and run it via `npx vite-node packages/ui/test/fixtures/generateSample.ts` to regenerate the fixture using the real domain logic.
+- After generating, you **must** force add it to git: `git add -f packages/ui/test/fixtures/sample-project.owpr`. The file is deliberately ignored in `.gitignore` to prevent casual/accidental updates, but it is tracked in git.
+- **Deleted features mean deleted tests**: If a UI feature is structurally removed (e.g., project autosave was removed in QO92), simply **delete** the UI tests asserting on it. Do **not** use `.skip()`; the Playwright suite forbids skipping tests and will fail the build ("a skip is a fail").
