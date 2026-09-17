@@ -19,6 +19,7 @@ import {
   OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone,
   VoiceCoilWiring,
    type FrequencyGrid,
+  Engine as RootEngine,
 } from '../domain/index.js';
 import { WDR_TO_SCHEMA_KEY } from '../domain/openisdSchema.js';
 
@@ -454,6 +455,17 @@ describe('E — the signal', () => {
     const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.sourceLoadedQts(2)).toBeNull();
+  });
+});
+
+describe('K — the root surface names the engine door', () => {
+  it('@openisd/design (the root barrel) re-exports Engine — the same class the engine door exports', () => {
+    // `.` in the design package exports map resolves to `domain/index.ts`, so a consumer that
+    // wants to build a project that runs the engine gets ONE import specifier — no need to reach
+    // into `@openisd/design/engine` for the class the domain already takes as a collaborator.
+    expect(RootEngine).toBe(Engine);
+    expect(typeof RootEngine).toBe('function');
+    expect(new RootEngine().sweep).toBe(Engine.prototype.sweep);
   });
 });
 

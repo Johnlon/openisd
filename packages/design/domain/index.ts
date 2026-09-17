@@ -65,6 +65,17 @@ export { OpenISDDriver, OpenISDDriverStandalone } from './openisdDomain.js';
 //
 // `projectJson` is NOT exported: it takes and returns package-private record types.
 export { OpenISDProject, OpenISDPassiveRadiatorStandalone } from './openisdDomain.js';
+// The engine class, named here as well as at its own door (`@openisd/design/engine`): the domain
+// takes an `Engine` as the collaborator that does the physics, so a consumer assembling a project
+// that RUNS the engine reaches for ONE import specifier (`@openisd/design`) instead of crossing
+// into a second one for the class the project already depends on. The engine's other symbols
+// keep their dedicated door; only `Engine` appears on both.
+export { Engine } from '../engine/index.js';
+// The engine class, named here as well as at its own door (`@openisd/design/engine`): the domain
+// takes an `Engine` as the collaborator that does the physics, so a consumer assembling a project
+// that RUNS the engine reaches for ONE import specifier (`@openisd/design`) instead of crossing
+// into a second one for the class the project already depends on. The engine's other symbols
+// keep their dedicated door; only `Engine` appears on both.
 
 // ── PERSISTENCE ────────────────────────────────────────────────────────────────────────────
 //
