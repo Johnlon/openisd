@@ -1,4 +1,4 @@
-# openisd
+# ALL AGENTS !!!! — read this first
 
 ## HARD NON-NEGOTIABLE — commit EVERYTHING, never leave work vulnerable
 
