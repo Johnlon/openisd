@@ -14,6 +14,7 @@
  * stale-readout bug is exactly what that untestable seam concealed.
  */
 import { test, expect, openAProject } from '../fixtures.js';
+import { numInputByLabel, fillAndCommit } from '../fixtures/numField.js';
 import type { Page } from '@playwright/test';
 
 interface LiveReadouts {
@@ -34,27 +35,29 @@ async function liveReadouts(page: Page): Promise<LiveReadouts> {
   });
 }
 
-function numInputByLabel(page: Page, labelText: string) {
-  return page.locator('label').filter({ hasText: labelText }).locator('..').locator('input[type="number"]');
-}
-
-async function setField(page: Page, label: string, value: number) {
-  const input = numInputByLabel(page, label).first();
-  await input.fill(String(value));
-  await input.press('Tab');
-}
-
 async function renderedValues(page: Page) {
-  const fsc = parseFloat(await page.locator('#og-box-resonance').inputValue());
-  const qtc = parseFloat(await page.locator('.box-layout .field', { hasText: 'Qtc' }).locator('input').inputValue());
+  const fscVal = await page.locator('#og-box-resonance').inputValue();
+  const qtcVal = await page.locator('.box-layout .field', { hasText: 'Qtc' }).locator('input').inputValue();
+  const fsc = (fscVal === '' || fscVal === '—') ? null : parseFloat(fscVal);
+  const qtc = (qtcVal === '' || qtcVal === '—') ? null : parseFloat(qtcVal);
   return { fsc, qtc };
 }
 
 async function expectReadoutTracks(page: Page, message: string) {
   const rendered = await renderedValues(page);
   const live = await liveReadouts(page);
-  expect(Math.abs(rendered.fsc - (live.fsc ?? NaN)), `${message}: rendered Fsc ${rendered.fsc} vs live ${live.fsc}`).toBeLessThan(0.005);
-  expect(Math.abs(rendered.qtc - (live.qtc ?? NaN)), `${message}: rendered Qtc ${rendered.qtc} vs live ${live.qtc}`).toBeLessThan(0.0005);
+  if (live.fsc === null) {
+    expect(rendered.fsc, `${message}: fsc should be null when live is null`).toBeNull();
+  } else {
+    expect(rendered.fsc, `${message}: rendered.fsc`).not.toBeNull();
+    expect(Math.abs(rendered.fsc! - live.fsc), `${message}: rendered Fsc ${rendered.fsc} vs live ${live.fsc}`).toBeLessThan(0.005);
+  }
+  if (live.qtc === null) {
+    expect(rendered.qtc, `${message}: qtc should be null when live is null`).toBeNull();
+  } else {
+    expect(rendered.qtc, `${message}: rendered.qtc`).not.toBeNull();
+    expect(Math.abs(rendered.qtc! - live.qtc), `${message}: rendered Qtc ${rendered.qtc} vs live ${live.qtc}`).toBeLessThan(0.0005);
+  }
 }
 
 test('sealed Fsc/Qtc readouts re-render after volume, losses and driver swap', async ({ page }) => {
@@ -69,18 +72,16 @@ test('sealed Fsc/Qtc readouts re-render after volume, losses and driver swap', a
 
   // 1. Volume edit must move the readout.
   const vbInput = numInputByLabel(page, 'Volume').first();
-  await vbInput.fill('6');
-  await vbInput.press('Tab');
+  await fillAndCommit(vbInput, '6');
   await expectReadoutTracks(page, 'after volume = 6L');
 
-  await vbInput.fill('40');
-  await vbInput.press('Tab');
+  await fillAndCommit(vbInput, '40');
   await expectReadoutTracks(page, 'after volume = 40L');
 
   // 2. Chamber losses (Ql/Qa) must move the readout.
   await page.locator('button.link-btn', { hasText: 'Advanced' }).first().click();
-  await setField(page, 'Leakage Ql', 10);
-  await setField(page, 'Absorption Qa', 100);
+  await fillAndCommit(numInputByLabel(page, 'Leakage Ql').first(), '10');
+  await fillAndCommit(numInputByLabel(page, 'Absorption Qa').first(), '100');
   await page.locator('button.ok-btn', { hasText: 'OK' }).click();
   await expectReadoutTracks(page, 'after losses Ql=10 Qa=100');
 

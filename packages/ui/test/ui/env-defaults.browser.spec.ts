@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures.js';
+import { fillAndCommit } from '../fixtures/numField.js';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -195,12 +196,9 @@ test('BUG (human, 2026-09-13): deleting any environment field drops the stored v
   await expect(temp.evaluate((el: Element) => el.closest('.field')?.className)).resolves.not.toMatch(/entered/);
 
   // Type values — they stick and turn green "entered".
-  await temp.fill('301');
-  await temp.press('Tab');
-  await hum.fill('45');
-  await hum.press('Tab');
-  await pres.fill('99000');
-  await pres.press('Tab');
+  await fillAndCommit(temp, '301');
+  await fillAndCommit(hum, '45');
+  await fillAndCommit(pres, '99000');
   await expect(temp).toHaveValue(/301/);
   await expect(hum).toHaveValue(/45/);
   await expect(pres).toHaveValue(/99000/);
@@ -208,12 +206,9 @@ test('BUG (human, 2026-09-13): deleting any environment field drops the stored v
 
   // DELETE each — the stored value must drop, the app default must flow through, and the
   // field must present as CALCULATED again.
-  await temp.fill('');
-  await temp.press('Tab');
-  await hum.fill('');
-  await hum.press('Tab');
-  await pres.fill('');
-  await pres.press('Tab');
+  await fillAndCommit(temp, '');
+  await fillAndCommit(hum, '');
+  await fillAndCommit(pres, '');
 
   await expect(temp).toHaveValue(/293\.15/);
   await expect(hum).toHaveValue(/30/);

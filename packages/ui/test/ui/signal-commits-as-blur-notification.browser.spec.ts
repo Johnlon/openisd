@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures.js';
+import { fillAndCommit } from '../fixtures/numField.js';
 
 const EDITOR = '.de-modal';
 // const GENERAL = '.de-tab General';
@@ -28,8 +29,7 @@ test('entering a voltage makes the power derive to V²/Re on blur — the 1 W is
 
   // enter a 1 W test voltage (the industry-standard 1 W into 8 Ω ≈ 2.83 V, but with a
   // DIFFERENT Re the voltage is the UNIQUE value that delivers 1 W into Re).
-  await vol.fill('1.84');           // 1.84² / Re(=3.4) = 1.000…  W  →  the background 1 W
-  await vol.press('Tab');           // blur = the notification commit point.
+  await fillAndCommit(vol, '1.84');     // 1.84² / Re(=3.4) = 1.000… W → the background 1 W; blur = commit point
 
   const pW = Number(await pow.inputValue());
   expect(pW, 'P must derive to 1 W from V²/Re on blur').toBeCloseTo(1.0, 1);
@@ -53,8 +53,7 @@ test('deleting the voltage re-derives it from P and Re on blur — never leaves 
   expect(re, 'precondition: an Re must be entered').toBeGreaterThan(0);
 
   // DELETING V is a MODIFICATION since commit — so this blur is a notification event.
-  await vol.fill('');
-  await vol.press('Tab');           // blur with a changed-since-commit cell = notify + re-derive
+  await fillAndCommit(vol, '');     // blur with a changed-since-commit cell = notify + re-derive
 
   const vAfter = Number(await vol.inputValue());
   expect(vAfter, 'V = √(P·Re) must be re-derived from the still-entered P and Re').toBeCloseTo(Math.sqrt(pBefore * re), 1)
