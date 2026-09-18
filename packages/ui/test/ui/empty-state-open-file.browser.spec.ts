@@ -5,11 +5,10 @@
  * bugs/BUG_20260909_no_project_can_be_opened_from_a_file_when_none_is_open.md
  */
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
 import { test, expect } from '../fixtures.js';
 
-const OWPR = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'sample-project.owpr');
+const OWPR = SAMPLE_PROJECT_OWPR;
 
 test('the no-project shell opens a saved .owpr', async ({ page }) => {
   await page.goto('/');

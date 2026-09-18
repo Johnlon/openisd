@@ -1,5 +1,6 @@
 import { test, expect, openAProject } from '../fixtures.js';
 import type { Locator, Page } from '@playwright/test';
+import { fillAndBlur } from '../fixtures/numField.js';
 
 // Decimal places shown in a numeric-input string ("6.10" → 2, "55" → 0, "" → 0).
 function decimalsOf(s: string): number {
@@ -232,8 +233,7 @@ test('the 6th-order-bandpass Frc field persists a typed value instead of discard
   await page.locator('select#og-box-type').selectOption('bandpass6');
   const frc = page.locator('.field', { hasText: 'Tuning freq (Frc)' }).locator('input');
   await frc.click();
-  await frc.fill('2222');
-  await frc.blur();
+  await fillAndBlur(frc, '2222');
   await expect(frc).toHaveValue(/^2222(\.0+)?$/); // 2-dp display formatting, not the bug
   const stored = await page.evaluate(async (modPath) =>
     (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.bandpass6.chambers.rear.tuning_hz.value, APP_STATE);
@@ -476,8 +476,7 @@ test('NumInput dp is screen-formatting only — the model keeps FULL precision (
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   const vol = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
   await vol.click();
-  await vol.fill('6.123456'); // more decimals than the field's 2 dp
-  await vol.blur();
+  await fillAndBlur(vol, '6.123456'); // more decimals than the field's 2 dp
   await expect(vol).toHaveValue('6.12'); // DISPLAY is formatted to 2 dp
   const vb = await readVb(page); // stored in m³ (display L ÷ 1000)
   expect(vb).toBeCloseTo(0.006123456, 9); // MODEL retains full precision — never the 2-dp "0.00612"
@@ -697,12 +696,10 @@ test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async 
   await expect(modal).toContainText("Edit Project's Driver");
   await modal.locator('.de-tab', { hasText: 'Parameters' }).first().click(); // Vas/Sd live on the Parameters tab
   const vas = modal.locator('.de-fld', { hasText: 'Vas' }).locator('input').first();
-  await vas.fill('20');
-  await vas.blur();
+  await fillAndBlur(vas, '20');
   await expect(vas).toHaveValue('20.00'); // registry Vas = 2 dp (was a 3-dp literal)
   const sd = modal.locator('.de-fld', { hasText: 'Sd' }).locator('input').first();
-  await sd.fill('130');
-  await sd.blur();
+  await fillAndBlur(sd, '130');
   await expect(sd).toHaveValue('130.00'); // registry Sd = 2 dp (was a 4-dp literal)
 });
 test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
@@ -735,8 +732,7 @@ test('clicking an entered field\'s unit label rescales the DISPLAY and keeps the
   const label = field.locator('.unit-cyc');
 
   await vol.click();
-  await vol.fill('6');            // 6 L
-  await vol.blur();
+  await fillAndBlur(vol, '6');            // 6 L
   await expect(vol).toHaveValue('6.00');
   await expect(label).toHaveText('L');
   expect(await readVb(page)).toBeCloseTo(0.006, 9);   // stored in SI m³
@@ -748,8 +744,7 @@ test('clicking an entered field\'s unit label rescales the DISPLAY and keeps the
   expect(await readVbToken(page)).toBe('cuft');       // token persisted (survives refresh)
 
   await vol.click();
-  await vol.fill('0.3');         // now typing in cu ft
-  await vol.blur();
+  await fillAndBlur(vol, '0.3');         // now typing in cu ft
   expect(await readVb(page)).toBeCloseTo(0.3 / 35.3147, 6); // converted back to SI
 });
 
@@ -894,6 +889,16 @@ test('Original skin: Options dialog → "Reset to Metric" reverts a toggled unit
 });
 
 test('Original skin: Options → General → Environment default seeds a fresh mount\'s Advanced-pane Temperature (not a hardcoded literal)', async ({ page }) => {
+  // The sample fixture now STORES its own env (tempK=293.15, humidity 50) — a stored project
+  // value legitimately overrides the app default, so a genuine "fresh mount" is one with no
+  // stored env. Drop them first so the field truly falls back to the app default.
+  await page.evaluate(async (modPath) => {
+    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+    p.envTempK.clear();
+    p.envHumidityPct.clear();
+    p.envPressurePa.clear();
+  }, APP_STATE);
+
   await page.locator('.tb-btn[title="Options"]').click();
   await expect(page.locator('.opt-modal')).toBeVisible();
   const envTemp = page.locator('.opt-modal .opt-fld', { hasText: 'Temperature' }).locator('input[type="number"]');
@@ -1034,8 +1039,7 @@ test('Original skin: Revert/reset button resets modifications correctly', async 
   await page.locator('.project-nav li', { hasText: 'Project' }).click();
   const nameInput = page.locator('.tab-section.active .field', { hasText: 'Name' }).locator('input');
   const originalName = await nameInput.inputValue();
-  await nameInput.fill('Temp Modified Name');
-  await nameInput.blur();
+  await fillAndBlur(nameInput, 'Temp Modified Name');
 
   // 3. Revert button should be enabled, click it!
   await expect(revertBtn).not.toHaveClass(/disabled/);
@@ -1056,8 +1060,7 @@ test('opening a second project: edits land on the correct one, and the Project t
   // Name the original project so the two open tabs are distinguishable from the start.
   await page.locator('.project-nav li', { hasText: 'Project' }).click();
   const nameInput = page.locator('.tab-section.active .field', { hasText: 'Name' }).locator('input');
-  await nameInput.fill('Original');
-  await nameInput.blur();
+  await fillAndBlur(nameInput, 'Original');
 
   // "+ Copy" opens a second, genuinely independent project and focuses it.
   await page.locator('.link-btn', { hasText: 'Copy' }).click();
@@ -1065,8 +1068,7 @@ test('opening a second project: edits land on the correct one, and the Project t
   await expect(rows).toHaveCount(2);
 
   // The copy is focused — rename IT. This must not touch the original's own name.
-  await nameInput.fill('Edited Copy');
-  await nameInput.blur();
+  await fillAndBlur(nameInput, 'Edited Copy');
   await expect(rows.filter({ hasText: 'Edited Copy' })).toHaveCount(1);
   const originalRow = rows.filter({ hasText: /^Original$/ });
   await expect(originalRow).toHaveCount(1);

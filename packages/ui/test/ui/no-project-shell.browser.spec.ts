@@ -9,11 +9,11 @@
  * project list.
  */
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
 import { test, expect } from '../fixtures.js';
+import { fillAndBlur } from '../fixtures/numField.js';
 
-const OWPR = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'sample-project.owpr');
+const OWPR = SAMPLE_PROJECT_OWPR;
 
 async function coldStart(page: import('playwright').Page) {
   await page.goto('/');
@@ -55,8 +55,7 @@ test('no project does not wall off the toolbar’s global actions', async ({ pag
   for (const index of [0, 1, 2]) {
     const input = environmentInputs.nth(index);
     const before = await input.inputValue();
-    await input.fill('');
-    await input.blur();
+    await fillAndBlur(input, '');
     await expect(input).toHaveValue(before);
   }
   await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();

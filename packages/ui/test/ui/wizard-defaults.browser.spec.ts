@@ -1,14 +1,13 @@
 import { test, expect } from '../fixtures.js';
 import { readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
 import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 // The app's store, reached in-browser at runtime — passed as an evaluate ARGUMENT (never as a
 // literal import), the same pattern original-skin.browser.spec.ts uses, so vue-tsc resolves nothing.
 const APP_STATE = '/src/logic/appState.ts';
 
-const SAMPLE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'sample-project.owpr');
+const SAMPLE = SAMPLE_PROJECT_OWPR;
 
 // A complete driver so the wizard-built project can sweep.
 const DRIVER = {

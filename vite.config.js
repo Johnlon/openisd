@@ -65,6 +65,16 @@ const serveCatalogue = {
 // polling watcher below is steady CPU it would otherwise spend for nothing.
 const TEST_SERVER = process.env.OPENISD_TEST_SERVER === '1';
 
+// Paths the dev watcher never needs to track: generated/scratch output and the static driver
+// catalogue. Kept in one list so the inotify and polling paths share it.
+const WATCH_IGNORED = [
+  '**/build/**',
+  '**/dist/**',
+  '**/test-results/**',
+  '**/drivers/**/_*/**',
+  '**/packages/ui/public/**',
+];
+
 export default defineConfig(({ command }) => ({
   root: UI_ROOT,
   base,
@@ -72,16 +82,24 @@ export default defineConfig(({ command }) => ({
     __BUILD_DATETIME__: JSON.stringify(new Date().toISOString().replace('T', ' ').substring(0, 19)),
   },
   server: {
-    // WSL/Windows filesystem events are not reliable for every editor and mount. Polling keeps
-    // the canonical 4000 dev server live when inotify misses a source edit.
-    watch: TEST_SERVER ? null : {
-      usePolling: true,
-      interval: 100,
-      // build/ is the repo's scratch space — throwaway scripts, probe output, logs.
-      // Writing there must never reload the dev server. Driver collections may also
-      // arrive carrying `_`-prefixed cache dirs from the pipeline that produced them.
-      ignored: ['**/build/**', '**/drivers/**/_*/**'],
-    },
+    // Native inotify is reliable on this WSL2 (native ext4, kernel 6.18) and costs ~0% CPU
+    // idle — polling the ~2,000-file catalogue at 100ms burned ~29% CPU for nothing. The
+    // polling path stays reachable via OPENISD_POLL_WATCH=1 for any mount where inotify is
+    // unreliable (e.g. a drvfs/9p Windows mount).
+    //
+    // The ignored set stays on BOTH paths: build/ is the repo's scratch space (throwaway
+    // scripts, probe output, logs — writing there must never reload the dev server), the
+    // driver catalogue in public/ and drivers/ is static (it never changes in dev), and
+    // dist/test-results are generated. Watching them is wasted work.
+    watch: TEST_SERVER
+      ? null
+      : process.env.OPENISD_POLL_WATCH === '1'
+        ? {
+            usePolling: true,
+            interval: 100,
+            ignored: WATCH_IGNORED,
+          }
+        : { ignored: WATCH_IGNORED },
     // Do not add an `hmr` block with `port: 4000` here. Vite's dev HTTP server already owns
     // 4000 and multiplexes HMR on it; overriding the port makes ordinary `/` requests return
     // `426 Upgrade Required` instead of the app document.

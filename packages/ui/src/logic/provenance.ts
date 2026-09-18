@@ -12,13 +12,19 @@ export interface ProvenanceInfo {
   paths: ProvenancePath[];
 }
 
+// Field keys come from the ONE vocabulary (openIsdFieldKeys.ts); a rename happens there, never
+// here. LABEL_TO_FIELD_KEY is derived from the field table there — re-exported so existing
+// readers (the editor's click detection, the drift test) keep the same import path.
+import { OPENISD_FIELD_KEY, LABEL_TO_FIELD_KEY, type OpenIsdFieldKey } from './openIsdFieldKeys.js';
+export { LABEL_TO_FIELD_KEY } from './openIsdFieldKeys.js';
+
 export const PATH_COLORS = [
   { color: '#3b82f6', name: 'Primary Formula (Blue)' },
   { color: '#ec4899', name: 'Alternative Formula (Pink)' },
   { color: '#10b981', name: 'Acoustic/Geometry Formula (Emerald)' },
 ];
 
-export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string; inputs: string[] }> }> = {
+export const PROVENANCE_MAP: Partial<Record<OpenIsdFieldKey, { paths: Array<{ formulaText: string; inputs: string[] }> }>> = {
   Qts: {
     paths: [
       { formulaText: 'Qts = (Qes × Qms) / (Qes + Qms)', inputs: ['Qes', 'Qms'] }
@@ -207,29 +213,30 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
     paths: [
       { formulaText: 'Mcost = Rme × (1 + Xmax / min(Hc, Hg))', inputs: ['Rme', 'Xmax', 'Hc', 'Hg'] }
     ]
+  },
+  numVC: {
+    paths: [
+      { formulaText: 'numVC = 1 — the default single voice coil, applied when no count is entered', inputs: [] }
+    ]
   }
 };
 
 /**
  * Rendered `<label>` text → the field key everything else in this module speaks. The editor
- * identifies a clicked field by reading its label, so a label edit that misses this table
- * silently kills provenance inspection for that field. Full names are WinISD's own
+ * identifies a clicked field by reading its label, so a label edit that misses the table
+ * silently kills provenance inspection for that field. Lives on the FIELDS table in
+ * fieldKeys.ts (derived from it), never maintained here. Full names are WinISD's own
  * (docs/winisd_helpfiles/help/thielesmall.html).
  */
-export const LABEL_TO_FIELD_KEY: Record<string, string> = {
-  Qes: 'Qes', Qms: 'Qms', Qts: 'Qts', Fs: 'Fs', Vas: 'Vas', Mms: 'Mms', Cms: 'Cms', Rms: 'Rms', Re: 'Re', BL: 'BL',
-  Dd: 'Dd', Le: 'Le', Sd: 'Sd', fLe: 'fLe', KLe: 'Le2', Xmax: 'Xmax', Hc: 'Hc', Hg: 'Hg', Vd: 'Vd', Xlim: 'Xlim',
-  Pe: 'Pe', no: 'no', Znom: 'Znom', USPL: 'USPL', SPL: 'SPL', Voicecoils: 'numVC',
-  AlfaVC: 'tc', 'R(t)': 'Rth', 'C(t)': 'Cth', SPLmaxLF: 'SPLmaxLF', SPLmax: 'SPLmax', Rme: 'Rme',
-  gamma: 'gamma', Mpow: 'Mpow', Mcost: 'Mcost', EBP: 'EBP', Gloss: 'Gloss',
-  'Basket Plate Thickness (Thick)': 'Thick', 'Driver Depth (Depth)': 'Depth',
-  'Magnet Depth (MagDepth)': 'MagDepth', 'Magnet Diameter (Magnet)': 'Magnet',
-  'Basket Diameter (Basket)': 'Basket', 'Outer Diameter (Outer)': 'Outer',
-  'Voice Coil Dia (Vcd)': 'Vcd', 'Driver Displacement Volume (DVol)': 'DVol',
-};
+
+/** Narrow a runtime key string to a declared `OpenIsdFieldKey` — the boundary check for any key that
+ *  arrives from the DOM/template (the editor's `data-field-key` ground truth). */
+export function isFieldKey(v: string): v is OpenIsdFieldKey {
+  return Object.values(OPENISD_FIELD_KEY).includes(v as OpenIsdFieldKey);
+}
 
 export function getProvenanceInfo(targetField: string, currentValues?: Record<string, number | null>): ProvenanceInfo | null {
-  const spec = PROVENANCE_MAP[targetField];
+  const spec = isFieldKey(targetField) ? PROVENANCE_MAP[targetField] : undefined;
   if (!spec) return null;
 
   const paths: ProvenancePath[] = spec.paths.map((p, idx) => {

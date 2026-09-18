@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { test, expect, openAProject } from '../fixtures.js';
+import { PageOps } from '../fixtures/numField.js';
 
 // The generic DQ rule, driven through the PR solved pair: an unreachable target tuning flags
 // EVERY field in the relation — but the ENTERED one (the Fp the user typed) is the real problem
@@ -59,20 +60,22 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('an unreachable PR target flags the entered Fp as the cause and the derived outputs as symptoms', async ({ page }) => {
+  const pageOps = new PageOps(page);
   await page.locator('select#og-box-type').selectOption('box-passive-radiator');
-  await page.locator(VOLUME_INPUT).fill('30');
-  await page.locator(VOLUME_INPUT).blur();
+  await pageOps.setNum(VOLUME_INPUT, '30');
   await expect(page.locator(VOLUME_INPUT)).toHaveValue(/30/);
   await configureRadiator(page);
 
-  // The bare-cone ceiling: with no added mass the radiator tunes as high as it ever can.
+  // The bare-cone ceiling: with no added mass the radiator tunes as high as it ever can. The
+  // Fh readout only solves once the mass is stated — so enter ZERO added mass, the bare cone.
+  await pageOps.setNum('#og-pr-madd', '0');
+
   await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
   const ceiling = Number(await page.locator('#og-box-resonance').inputValue());
   expect(ceiling).toBeGreaterThan(0);
 
   await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
-  await page.locator('#og-pr-fp').fill((ceiling * 1.5).toFixed(2));
-  await page.locator('#og-pr-fp').blur();
+  await pageOps.setNum('#og-pr-fp', (ceiling * 1.5).toFixed(2));
 
   // The INPUT (entered Fp) is the real problem: dq-root + the ⚠ note.
   const fpInput = page.locator('#og-pr-fp');
@@ -95,17 +98,20 @@ test('an unreachable PR target flags the entered Fp as the cause and the derived
 });
 
 test('a reachable target shows no DQ anywhere', async ({ page }) => {
+  const pageOps = new PageOps(page);
   await page.locator('select#og-box-type').selectOption('box-passive-radiator');
-  await page.locator(VOLUME_INPUT).fill('30');
-  await page.locator(VOLUME_INPUT).blur();
+  await pageOps.setNum(VOLUME_INPUT, '30');
   await configureRadiator(page);
+
+  // The Fh readout only solves once the mass is stated — enter ZERO added mass (bare cone)
+  // so the ceiling is a real number before choosing a reachable target below it.
+  await pageOps.setNum('#og-pr-madd', '0');
 
   await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
   const ceiling = Number(await page.locator('#og-box-resonance').inputValue());
 
   await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
-  await page.locator('#og-pr-fp').fill((ceiling * 0.9).toFixed(2));
-  await page.locator('#og-pr-fp').blur();
+  await pageOps.setNum('#og-pr-fp', (ceiling * 0.9).toFixed(2));
 
   await expect(page.locator('#og-pr-fp')).not.toHaveClass(/dq-/);
   await expect(page.locator('#og-pr-madd')).not.toHaveClass(/dq-/);

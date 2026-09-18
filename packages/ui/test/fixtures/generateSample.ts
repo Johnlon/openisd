@@ -1,7 +1,8 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone, Engine } from '@openisd/design';
+import { SAMPLE_PROJECT_OWPR } from './sampleProject.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,5 +28,6 @@ project.envHumidityPct.set(50);
 
 project.save();
 const owprText = project.toOwprText();
-writeFileSync(join(__dirname, 'sample-project.owpr'), owprText);
-console.log("Generated sample-project.owpr");
+mkdirSync(dirname(SAMPLE_PROJECT_OWPR), { recursive: true });
+writeFileSync(SAMPLE_PROJECT_OWPR, owprText);
+console.log(`Generated ${SAMPLE_PROJECT_OWPR}`);

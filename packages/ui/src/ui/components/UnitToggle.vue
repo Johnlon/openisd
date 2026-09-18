@@ -6,7 +6,7 @@
 // Pass the caller's own unit-span class via `unitClass`.
 import { computed } from 'vue';
 import { unitToken, cycleUnitToken } from '../../logic/presentationState.js';
-import { unitDef, type UnitGroup } from '../../logic/fields/units.js';
+import { unitDef, UNIT_GROUPS, type UnitGroup } from '../../logic/fields/units.js';
 
 const props = defineProps<{
   /** Field id — the shared key for this field's selected unit. */
@@ -20,12 +20,16 @@ const props = defineProps<{
 }>();
 
 const label = computed(() => unitDef(props.group, unitToken(props.field, props.base)).label);
+// A group with ONE unit (e.g. `percent` — a stored fraction shown as %) has nowhere to rotate:
+// render it as a plain label, never a clickable toggle with nothing to cycle.
+const hasChoice = computed(() => UNIT_GROUPS[props.group].length > 1);
 </script>
 
 <template>
-  <span :class="unitClass ?? 'u'" role="button" tabindex="0"
+  <span v-if="hasChoice" :class="unitClass ?? 'u'" role="button" tabindex="0"
     :title="`Click to change units (${label})`"
     @click="cycleUnitToken(field, group, base)"
     @keydown.enter.prevent="cycleUnitToken(field, group, base)"
     @keydown.space.prevent="cycleUnitToken(field, group, base)">{{ label }}</span>
+  <span v-else :class="unitClass ?? 'u'">{{ label }}</span>
 </template>

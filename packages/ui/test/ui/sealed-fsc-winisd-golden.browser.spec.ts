@@ -56,21 +56,17 @@ test('sealed box WinISD golden: Fs=40 Vas=7.65L Qes=0.45 Qms=2.94 Re=6.6 Rg=0.1 
   await page.locator('li', { hasText: 'Signal' }).click();
   await setNumField(page, 'Series resistance', 0.1);
 
-  // Back to Box tab: read the live Fsc/Qtc readout. Two "Fsc" fields now exist — the Box tab's
-  // own `#og-box-resonance` and the Box section view's `#og-sealed-enclosure-resonance` — so the
-  // selector must address the Box tab's field by id, never by the ambiguous `.field/Fsc` pair.
+  // Back to Box tab: read the live Fsc/Qtc readout from the Box tab itself (its sealed branch
+  // — there is no separate Closed enclosure pane). Address it by id, never by the ambiguous
+  // `.field/Fsc` pair (the PR rear-chamber row also carries a "Volume" label).
   const fscText = await page.locator('#og-box-resonance').inputValue();
   const qtcText = await page.locator('.box-layout .field', { hasText: 'Qtc' }).locator('input').inputValue();
-  const fscSectionText = await page.locator('#og-sealed-enclosure-resonance').inputValue();
 
   const fsc = parseFloat(fscText);
   const qtc = parseFloat(qtcText);
-  const fscSection = parseFloat(fscSectionText);
 
   // Tolerances sized to the field's OWN display precision (Fsc 2dp, Qtc 3dp) — tight enough to
   // fail on the un-fixed (no-Rg, stale-Qts) value (~63.32 Hz / ~0.575), which this test must catch.
   expect(fsc).toBeCloseTo(63.1762, 1);
   expect(qtc).toBeCloseTo(0.5995, 2);
-  // The Box section's Fsc readout must carry the SAME WinISD physics as the Box tab.
-  expect(fscSection).toBeCloseTo(63.1762, 1);
 });

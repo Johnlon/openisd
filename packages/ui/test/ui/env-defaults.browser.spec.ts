@@ -1,13 +1,14 @@
 import { test, expect } from '../fixtures.js';
-import { fillAndCommit } from '../fixtures/numField.js';
+import { fillAndBlur, fillAndCommit } from '../fixtures/numField.js';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
 const COMPLETE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'complete-driver-project.owpr');
-const SAMPLE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'sample-project.owpr');
+const SAMPLE = SAMPLE_PROJECT_OWPR;
 
 const DRIVER = {
   brand: 'Wizard Air', model: 'WOOF', specs: {
@@ -37,20 +38,17 @@ test('BUG 6: temperature/humidity/pressure show the app defaults, not blank', as
 
 test('BUG 7: typing an environment value sticks — it no longer resets to blank on blur', async ({ page }) => {
   const temp = page.locator('.field', { hasText: 'Temperature' }).locator('input');
-  await temp.fill('301');
-  await temp.blur();
+  await fillAndBlur(temp, '301');
   await expect(temp).toHaveValue(/301/);
 
   const hum = page.locator('.field', { hasText: 'Relative humidity' }).locator('input');
-  await hum.fill('45');
-  await hum.blur();
+  await fillAndBlur(hum, '45');
   await expect(hum).toHaveValue(/45/);
 });
 
 test('BUG 8: clearing an environment field cannot blank it — the app default flows through', async ({ page }) => {
   const temp = page.locator('.field', { hasText: 'Temperature' }).locator('input');
-  await temp.fill('');
-  await temp.blur();
+  await fillAndBlur(temp, '');
   await expect(temp).toHaveValue(/293\.15/);   // back to the app default, never blank
 });
 
@@ -83,8 +81,7 @@ test('BUG: a project built from the wizard shows the air constants, and they rec
   await expect(vel).toHaveValue(/343\.68/);
   await expect(density).toHaveValue(/1\.20\d/);
 
-  await temp.fill('301');
-  await temp.blur();
+  await fillAndBlur(temp, '301');
   await expect(vel).toHaveValue(/348\.5\d/);
   await expect(density).toHaveValue(/1\.16\d/);
 
@@ -93,8 +90,7 @@ test('BUG: a project built from the wizard shows the air constants, and they rec
   // (348.53 → 349.76) and ρ drops, ON TOP of the temperature effect.
   const velAt301_30 = parseFloat(await vel.inputValue());
   const rhoAt301_30 = parseFloat(await density.inputValue());
-  await hum.fill('80');
-  await hum.blur();
+  await fillAndBlur(hum, '80');
   await expect(hum).toHaveValue(/80/);
   await expect(vel).toHaveValue(/349\.7\d/);            // c = √(γ·p/ρ) at 301 K, 80 %
   const velAt301_80 = parseFloat(await vel.inputValue());
@@ -102,10 +98,12 @@ test('BUG: a project built from the wizard shows the air constants, and they rec
   expect(velAt301_80).toBeGreaterThan(velAt301_30);     // moisture raises c
   expect(rhoAt301_80).toBeLessThan(rhoAt301_30);        // moisture lowers ρ
 
-  // And it must honour the physical limits of 0–100 % (no negative or >100 % humidity).
-  await hum.fill('153');
-  await hum.blur();
-  await expect(hum).toHaveValue(/100/);
+  // Out-of-range entry is DATA now, not an error to clamp away (QO11.5 rework): 153 %
+  // stays readable but raises the field's DQ flag — same contract the field-constraints
+  // test pins for the -20 %/250 % extremes.
+  await fillAndBlur(hum, '153');
+  await expect(hum).toHaveValue(/153/);
+  await expect(page.locator('.adv-air-fields .field', { hasText: 'Relative humidity' })).toHaveClass(/dq-flag/);
 });
 
 async function buildWizardProject(page: Page): Promise<void> {
@@ -139,36 +137,35 @@ test('wizard-built project: air constants move with pressure and the WinISD-mode
 
   // Pressure is the one air input the wizard test never exercised: ρ·c² = γ·p holds in BOTH
   // models, so ρ scales with p while c stays flat.
-  await pres.fill('110000');
-  await pres.blur();
+  await fillAndBlur(pres, '110000');
   await expect(pres).toHaveValue(/110000/);
   await expect(density).toHaveValue(/1\.30404/);      // ρ = 1.30404 kg/m³ at 110 kPa
   await expect(vel).toHaveValue(/343\.65/);           // c ≈ √(γRT) — pressure leaves it ~flat
 
-  await pres.fill('101325');
-  await pres.blur();
+  await fillAndBlur(pres, '101325');
   await expect(density).toHaveValue(/1\.20095/);
 
   // Unchecking switches to openisd's CIPM-2007 physical model: at RH 100 the density drops to
   // 1.19358 and c rises to 344.74 — clearly different physics from the parity pair.
   await useWinisd.uncheck();
-  await hum.fill('100');
-  await hum.blur();
+  await fillAndBlur(hum, '100');
   await expect(density).toHaveValue(/1\.19358/);
   await expect(vel).toHaveValue(/344\.74/);
 });
 
 test('BUG: the sample project (minimal driver record) also shows the air constants', async ({ page }) => {
-  // sample-project.owpr carries no environment and a skeleton driver — the previous blank
-  // disease showed here too. A fresh load starts at the empty state, so import it directly.
+  // sample-project.owpr carries its OWN environment (293.15 K / RH 50 / 101325 Pa — see
+  // generateSample.ts) and a skeleton driver — the previous blank disease showed here too.
+  // A fresh load starts at the empty state, so import it directly.
   await page.goto('/');
   await page.locator('.original-root input[type=file]').setInputFiles({ name: 'sample.owpr', mimeType: 'application/json', buffer: readFileSync(SAMPLE) });
   await page.locator('.original-root').waitFor({ state: 'visible' });
   await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
   await expect(page.locator('.field', { hasText: 'Temperature' }).locator('input')).toHaveValue(/293\.15/);
   await expect(page.locator('.field', { hasText: 'Air pressure' }).locator('input')).toHaveValue(/101325/);
-  await expect(page.locator('.field', { hasText: 'Sound velocity' }).locator('input')).toHaveValue(/343\.68/);
-  await expect(page.locator('.field', { hasText: 'Air density' }).locator('input')).toHaveValue(/1\.20\d/);
+  // At the stored environment the WinISD parity model gives c = 343.99, ρ = 1.19885.
+  await expect(page.locator('.field', { hasText: 'Sound velocity' }).locator('input')).toHaveValue(/343\.99/);
+  await expect(page.locator('.field', { hasText: 'Air density' }).locator('input')).toHaveValue(/1\.19\d/);
 });
 
 function envField(page: Page, label: string) {

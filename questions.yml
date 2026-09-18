@@ -1,6 +1,36 @@
 prefix: QO
-next: 153
+next: 162
 questions:
+- id: QO157
+  title: Driver Editor is truly modal — focus-switch cannot close it by clicking another row
+  status: decided
+  raised: '2026-09-18'
+  body: |
+    ## The design question
+
+    The rule (appState.ts, focusProject doc): "any focus-changing action closes what was
+    open" — switching projects should close the Driver Editor modal. The browser test
+    panel-auto-close-on-focus-switch.browser.spec.ts pins exactly that.
+
+    But the editor's overlay is position:fixed inset:0 (DriverEditorModal.vue ~line 1046,
+    z-index 1100) — the project rows are NOT clickable while the modal is open, for a real
+    user either. The test times out clicking the row: the overlay intercepts pointer events.
+    (The Tune-panel variant of the same test passes — Tune is a docked panel, not modal.)
+
+    Options: (a) the test is stale — with a truly modal editor, focus switch while editing
+    is impossible by design, so delete/rewrite the test's premise; (b) the app should allow
+    clicking through to project rows (e.g. overlay excludes the projects panel) and the rule
+    stays enforceable; (c) Escape-then-switch is the intended flow and the modal should close
+    on any click outside the dialog (common modal UX), which restores the rule indirectly.
+
+    Needs a human ruling because it decides UI behaviour, not just a test.
+  notes: []
+  answer:
+    at: '2026-09-18'
+    text: '(a) — the test is stale. With a truly modal Driver Editor, focus-switch while editing is impossible
+      by design (a full-screen overlay covers the project rows for a real user too). Rewrite the test
+      to pin the corrected design: the editor''s overlay makes the project rows unclickable while open;
+      closing the editor restores them.'
 - id: QO1
   title: UI TODO List
   status: done
@@ -9324,3 +9354,156 @@ questions:
     at: '2026-09-16'
     text: 'Reject; rewrite the fixtures (John, 2026-09-17). Also: yes, show the parse error - the file-open
       path surfaces the schema error text to the user and to the browser console so tests see it.'
+- id: QO153
+  title: Review ASSESSMENT.md and rule on findings
+  status: open
+  raised: '2026-09-17'
+  body: |-
+    Architectural and quality assessment of the full openisd codebase has been
+    written to ASSESSMENT.md at repo root.
+
+    It covers: architecture, type safety, testing, domain model, error handling,
+    process/tooling, and code quality — with specific file:line references for
+    every finding.
+
+    The assessment identifies issues in three severity tiers:
+
+    HIGH:
+    - A1: Module-level Engine singleton in appState.ts:87
+    - T1: Persistence storage layer has zero direct unit tests
+    - Q1: openisdDomain.ts is 3077 lines
+    - P1: Root AGENTS.md deleted but still referenced from 4+ files
+
+    MEDIUM:
+    - A2-A4: Multiple Engine sites, direct appState imports, prototype code shipped
+    - T2-T3: 16/17 hooks untested, UI statement coverage 8-16%
+    - Q2-Q3: Magic numbers, ~40 stray scripts at repo root
+    - P2-P3: Broken hook paths (hookspath + pre-push self-attribution gate)
+
+    LOW:
+    - A5-A7: Dead file, stale comment, deprecated-but-active method
+    - T4-T5: Committed probe files, thin tests
+    - Q4-Q5: Throwing stubs, raw window.alert in logic
+    - P4-P7: No formatter, no lint-staged, empty repo URL, no version tags
+
+    NEEDS FROM YOU: review the findings and rule on each — which to fix, which to
+    defer, which to wontfix. You can ack individual items, fix them, or defer.
+- id: QO154
+  title: Fixture regeneration needs a ruling — keep new bytes or restore committed sample-project.owpr?
+  status: decided
+  raised: '2026-09-17'
+  body: |-
+    While fixing the engine-boundary violation in packages/ui/test/fixtures/generateSample.ts (deep relative imports -> @openisd/design module imports), I ran the documented regeneration (npx vite-node generateSample.ts) to prove the generator still runs.
+
+    It runs fine and produces a valid sample-project.owpr, but the output DIFFERS from the committed fixture in two ways:
+    1. The embedded device uuid is freshly random (expected on every regeneration).
+    2. The engine-cached air and SPL values drifted slightly (c_m_per_s 343.68 -> 343.99, SPL values by ~0.015 dB) because env values are now set through the current envTempK/envPressurePa/envHumidityPct API whereas the committed fixture was baked by a generator using an old builder argument (username/tempK/pressurePa/humidityPct passed to OpenISDProject.builder) that no longer exists.
+
+    I attempted to restore the committed sample-project.owpr (leaving only the .ts generator change), but the repo guard blocked git checkout as a data-loss command. I have not touched any session's in-flight work — the fixture was clean before my regeneration; the uncommitted change is purely my own generated artifact.
+
+    Options:
+    A) Keep the regenerated fixture: commit it (git add -f, as the workflow prescribes) as the truthful output of the current generator/domain. Risk: shared fixture bytes change for all UI tests; unlikely but possible hardcoded number expectations.
+    B) Restore the committed fixture: the user (human) performs the revert, since the guard blocks agents. Then only generateSample.ts is modified.
+
+    No domain model was changed in this session — the .ts edits are import style + generator API usage.
+  answer:
+    at: '2026-09-17'
+    text: Keep the regenerated fixture — sample-project.owpr is deliberately regenerated and force-added
+      by the workflow; restoring committed bytes would have undone the deliberate regeneration.
+- id: QO155
+  title: Options ambient temperature does not seed a project's Advanced-pane Temperature
+  status: decided
+  raised: '2026-09-17'
+  body: |-
+    Restored test packages/ui/test/ui/original-skin.browser.spec.ts:876 ("Options → General → Environment default seeds a fresh mount's Advanced-pane Temperature") fails on the live app:
+
+    Set Ambient Temperature to 300 K in Options → General → Environment, OK, reload. The project's Advanced pane still shows the 293.15 K reference; the test asserts it shows 300.00.
+
+    Evidence: expect(locator).toHaveValue("300.00") received "293.15"; the Advanced-pane Temperature input resolves to <input step="10" min="173.15" max="373.15" value="293.15">.
+
+    Either the ambient option wires to the project environment as the deleted test was written to pin, and that wiring regressed, or the design changed and the restored test is simply stale. No human rule found in the ledger saying the seeding was dropped. Decide: fix the wiring (regression) or bless the test's expectation as obsolete.
+  answer:
+    at: '2026-09-17'
+    text: "RULING: The App-level air constants get calculated (C) into the project. Entering a value in\
+      \ the project overrides the C with a local E, unless deleted, in which case the C from the app comes\
+      \ through (losing focus or deleting the local value triggers a recalc). \n\nSERIALIZATION ARCHITECTURE:\
+      \ When exporting the project to WPR, the air constants must be written into the project file. Unless\
+      \ the ParState covers it, on reading the project WPR back, what was originally a 'C' in the project\
+      \ becomes an 'E' through necessity."
+  notes:
+  - at: '2026-09-18'
+    text: |-
+      Restored test packages/ui/test/ui/original-skin.browser.spec.ts:876 ("Options → General → Environment default seeds a fresh mount's Advanced-pane Temperature") fails on the live app:
+
+      Set Ambient Temperature to 300 K in Options → General → Environment, OK, reload. The project's Advanced pane still shows the 293.15 K reference; the test asserts it shows 300.00.
+
+      Evidence: expect(locator).toHaveValue("300.00") received "293.15"; the Advanced-pane Temperature input resolves to <input step="10" min="173.15" max="373.15" value="293.15">.
+
+      Either the ambient option wires to the project environment as the deleted test was written to pin, and that wiring regressed, or the design changed and the restored test is simply stale. No human rule found in the ledger saying the seeding was dropped. Decide: fix the wiring (regression) or bless the test's expectation as obsolete.
+
+      ADDITIONAL EVIDENCE from env-defaults.browser.spec.ts (restored-spec sweep, fails on the live app, independent of fixture changes):
+      - :160 "BUG: sample project shows air constants" — Advanced-pane Temperature/Pressure show the STORED 293.15/101325 correctly, but the DERIVED Sound velocity shows 343.99 (computed from the app-default reference) instead of 343.68 (the value for 293.15). Stored-vs-app-default C/E mixing in the DERIVED air constant.
+      - :177 "BUG (human, 2026-09-13): deleting any environment field drops the stored value and shows the app default as CALCULATED" — fails on the live app; the delete-to-C semantics described in the ruling are not currently working for at least one of temp/humidity/pressure.
+
+      Note: the ruling now references the intended model "app-level C → project C unless locally entered; delete/clear re-derives from app level; WPR export writes the air constants; without ParState a round-trip C becomes an E". None of the three failing env tests pass until that wiring exists.
+- id: QO156
+  title: Builder path and New-Project wizard solve the same entered box to different derived floats
+  status: open
+  raised: '2026-09-18'
+  body: |-
+    While making the standard fixture faithful to wizard output (wizard-defaults.browser.spec.ts :76), the fixture builder (.vented().volume_m3(0.007).tuning_hz(35).build() then vent.diameter_m.set(0.05)) and the New-Project wizard (OpenISDProject.empty then live writes volume->dia->tuning, OgNewProject.vue pickDriver) produce projects with IDENTICAL entered values (5 cm dia but volume 7L / 35Hz / W5 driver) but slightly different SOLVED values:
+
+    - Solved port length: 0.6556 m vs 0.6544 m (~0.2%)
+    - All other derived box physics drift ~0.02% (impedance curve peaks, port velocity, etc.)
+
+    The wizard-defaults fixture-fidelity test now masks every state-C (calculated) value before deep-comparing and closeTo(2)-checks the port length, because strict equality can never pass between the two construction paths. Is that intended (two independent solve orderings, both valid), or should identical entered values always solve bit-identically regardless of construction path? If the latter, it is a vents/box solver ordering bug to fix.
+- id: QO158
+  title: Approve the component test reorganisation plan
+  status: open
+  raised: '2026-09-18'
+  body: |-
+    A plan for reorganising the browser-test files and the testing docs lives at plan_component_test_reorg.md. It proposes:
+
+    1. Rename test files after the object under test (the tab or popup: box-tab, tune-panel, alignment-popup, options-dialog, ...) and drop the "original" prefix, which names the skin rather than what is tested.
+    2. Split the grab-bag files (original-skin, app, original-layout) into per-object files.
+    3. Decouple features at the test level: a test of one component never drives another component's UI as setup (e.g. no opening the Tune panel just to enter driver params for a Box test). Setup goes through the app's state module instead. The only exception is a test whose whole purpose is to verify app-level coupling.
+    4. Add missing sealed-box coverage: loss-model switching actually changing Fsc/Qtc, alignment OK writing the computed volume, alignment Cancel leaving state untouched.
+    5. Write one consolidated TESTING_STRATEGY.md (strategy, not historic minutes) and wire it into ARCHITECTURE.md and the README index, fixing two dangling AGENTS.md references.
+    6. Keep the Tune panel a popup for now (later it may become a "What-if?" tab under Project); fix its sync bugs first.
+
+    NEEDS FROM YOU: approve the scope — do the full reorg now, or apply the naming/decoupling conventions to new tests only and do the big rename after the failing-tests mission.
+  tag: test reorg
+  notes:
+  - at: '2026-09-18'
+    text: MARKED HIGH IMPORTANCE by the human (2026-09-18).
+- id: QO159
+  title: Consolidate driver field naming into one enum — plan written
+  status: open
+  raised: '2026-09-18'
+  body: |-
+    A plan is written at plan_field_key_consolidation.md. The driver-field identity is spread across parallel collections that speak different names: the domain uses name_unit (Fs_hz, Vas_m3), the UI's SpecField/data-field-key/provenance strip the suffix (Fs, Vas), and the .wdr/.wpr writers have their own literal key pools. They drift (the provenance map had stale Le2/tc/Rth/Cth entries the tests caught).
+
+    The plan: one enum in packages/design carrying the domain field name, label, and WDR/WPR identity; the UI derives SpecField + data-field-key + provenance keys from it; the writers read it. A python transform script can do the mechanical bare→name_unit rename given a mapping table; the design enum + writer rewiring is structural.
+
+    NEEDS FROM YOU: proceed with the consolidation now (it is the proper fix for the failing provenance tests), or park it and land a minimal fix so the failing suite goes green this pass.
+- id: QO160
+  title: 'improvement: fill+blur on a locator should be one intent-named helper'
+  status: open
+  raised: '2026-09-18'
+  body: |-
+    Improvement note (human, 2026-09-18): a construct like
+
+        await page.locator('#og-pr-madd').fill('0');
+        await page.locator('#og-pr-madd').blur();
+
+    — "type a value into a field and commit it by blurring" — should be ONE function whose name says the intent, e.g.
+
+        page = new PageOps(page);
+        await page.setNum('#og-pr-madd', 0);
+
+    so a reader follows the intent ("set this field to 0") instead of the mechanics (fill, then blur, re-resolving the same selector). Sweep the browser specs for the fill-then-blur idiom and route it through a shared intent-named helper (the label-based `numInputByLabel`/`fillAndCommit`/`setNumField` already exist in packages/ui/test/fixtures/numField.ts; the id/selector-based case is still raw).
+- id: QO161
+  title: Attempted git restore --staged on another session's staged deletions
+  status: open
+  raised: '2026-09-18'
+  body: ''

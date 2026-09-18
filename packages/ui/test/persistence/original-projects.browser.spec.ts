@@ -19,6 +19,15 @@ const rowStates = (page: Page) =>
     checked: (e.querySelector('input') as HTMLInputElement | null)?.checked ?? false,
   })));
 
+/** Count distinct opaque colours drawn on the canvas: a second trace is a second colour. */
+const inkColours = (page: Page) => page.evaluate(() => {
+  const c = document.querySelector('.graph-wrap canvas') as HTMLCanvasElement;
+  const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
+  const seen = new Set<string>();
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200) seen.add(`${d[i]},${d[i + 1]},${d[i + 2]}`);
+  return seen.size;
+});
+
 async function addCopies(page: Page, n: number) {
   for (let i = 0; i < n; i++) {
     await page.locator('.proj-actions button:has-text("Copy")').click();
@@ -43,20 +52,15 @@ test('every project row keeps its own show/hide state, including the active one'
 test('hiding a project removes its trace from the chart, and showing it brings it back', async ({ page }) => {
   await addCopies(page, 1);
 
-  // Count distinct opaque colours drawn on the canvas: a second trace is a second colour.
-  const inkColours = () => page.evaluate(() => {
-    const c = document.querySelector('.graph-wrap canvas') as HTMLCanvasElement;
-    const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
-    const seen = new Set<string>();
-    for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200) seen.add(`${d[i]},${d[i + 1]},${d[i + 2]}`);
-    return seen.size;
-  });
+  // After +Copy the COPY becomes the focused (selected) project; the ORIGINAL stays open as the
+  // non-selected comparison overlay, and its trace is what this row's show/hide checkbox controls.
+  const overlayCheckbox = page.locator('.project-row:not(.selected) input');
 
-  const shown = await inkColours();
-  await page.locator('.project-row input').nth(1).click();
-  await expect.poll(inkColours).toBeLessThan(shown);
-  await page.locator('.project-row input').nth(1).click();
-  await expect.poll(inkColours).toBe(shown);
+  const shown = await inkColours(page);
+  await overlayCheckbox.click();
+  await expect.poll(() => inkColours(page)).toBeLessThan(shown);
+  await overlayCheckbox.click();
+  await expect.poll(() => inkColours(page)).toBe(shown);
 });
 
 test('open projects are never written into the active design (nothing to leak into its file)', async ({ page }) => {
@@ -66,10 +70,12 @@ test('open projects are never written into the active design (nothing to leak in
 
   // What gets persisted IS what gets saved and shared. It must describe one project: no
   // list of other designs, and no trace of the other open projects' names.
-  const persisted = await page.evaluate(() => localStorage.getItem('openisd_state') ?? '');
+  const persisted = await page.evaluate(() => localStorage.getItem('openisd_open_sessions') ?? '');
   expect(persisted).not.toBe('');
-  expect(Object.keys(JSON.parse(persisted))).not.toContain('compare');
-  expect(persisted).not.toContain('Copy of');
+  const session = JSON.parse(persisted);
+  const activeDesignText = session.entries[0].text;
+  expect(Object.keys(JSON.parse(activeDesignText))).not.toContain('compare');
+  expect(activeDesignText).not.toContain('Copy of');
 });
 
 test('closing an unsaved project asks first, and offers all three outcomes by name', async ({ page }) => {
@@ -91,7 +97,7 @@ test('closing an unsaved project asks first, and offers all three outcomes by na
   await expect(page.locator('.project-row')).toHaveCount(1);
 });
 
-test('the last project can be closed too — the app lands on a fresh one, still drawing', async ({ page }) => {
+test('the last project can be closed too — the app lands on an empty workspace', async ({ page }) => {
   // Dirty it first, so the challenge is CERTAIN to appear and the close path under test is the
   // same one every other close goes through.
   await page.evaluate(() => { window.__store_context.state.P.Vb = 0.037; });
@@ -100,6 +106,6 @@ test('the last project can be closed too — the app lands on a fresh one, still
   await expect(page.locator('.close-actions')).toBeVisible();
   await page.locator('.close-actions button:has-text("Close without saving")').click();
 
-  await expect(page.locator('.project-row')).toHaveCount(1);
-  await expect(page.locator('.graph-wrap canvas')).toBeVisible();
+  await expect(page.locator('.project-row')).toHaveCount(0);
+  await expect(page.locator('.project-empty-row')).toBeVisible();
 });

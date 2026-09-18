@@ -1,16 +1,11 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, W5_1138SMF } from '../fixtures.js';
 import { readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
 import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
 
-const SAMPLE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'sample-project.owpr');
+const SAMPLE = SAMPLE_PROJECT_OWPR;
 
-const DRIVER = {
-  brand: 'Tang Band', model: 'W5-1138SMF', specs: {
-    Fs_hz: 45, Qts: 0.49, Qms: 3.56, Vas_m3: 0.00485, Re_ohm: 3.4, Sd_m2: 0.0094, Xmax_m: 0.00925,
-  },
-};
+const DRIVER = W5_1138SMF.toSeedDriver();
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(([key, json]) => {

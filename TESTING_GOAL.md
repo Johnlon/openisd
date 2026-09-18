@@ -11,6 +11,23 @@
 
 ---
 
+## 0. Naming & Decoupling (rules for every test file)
+
+- **Name and organise tests around human-recognisable features/components** of the app — the
+  tab or popup under test (`box-tab`, `tune-panel`, `options-dialog`, `alignment-popup`, …).
+  Never name a file after the skin it renders in ("original"/"classic" are anachronisms).
+- **Features must not depend on each other at the test level.** A test of one component never
+  drives another component's UI to reach its assertion (e.g. no "open the Tune panel just to
+  enter driver params, then assert the Box pane"). Each feature file is self-sufficient —
+  reach setup state through the **domain seam** (`appState`), not through a sibling feature's
+  UI.
+- **The only exception:** coupling is allowed when the test's **intent is to verify the
+  coupling in the app itself** (e.g. "Tune↔Box sync" deliberately exercises both panels'
+  wiring and lives in the file that owns that contract).
+- See `plan_component_test_reorg.md` for the rename map and the sealed/tune coverage plan.
+
+---
+
 ## 1. Multi-Tier Testing Architecture
 
 To balance developer velocity with 100% release confidence, the test suite is structured into three clear tiers:

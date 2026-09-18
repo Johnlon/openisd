@@ -13,13 +13,17 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { OpenISDProject } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
+import { SAMPLE_PROJECT_OWPR } from './sampleProject.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
 describe('browser-spec .owpr fixtures parse under the current schema (QO152)', () => {
   for (const name of ['complete-driver-project.owpr', 'sample-project.owpr']) {
     it(`${name} loads`, () => {
-      const text = readFileSync(join(here, name), 'utf8');
+      // The sample project is runtime-generated into the git-ignored build/ dir; the other
+      // fixtures live in this directory.
+      const path = name === 'sample-project.owpr' ? SAMPLE_PROJECT_OWPR : join(here, name);
+      const text = readFileSync(path, 'utf8');
       const result = OpenISDProject.fromOwprText(text, new Engine());
       if (Array.isArray(result)) {
         throw new Error(`${name} failed to parse: ${result.join('; ')}`);

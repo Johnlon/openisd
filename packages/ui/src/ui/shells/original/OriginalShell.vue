@@ -498,7 +498,9 @@ const {
                 </div>
               </div>
             </div>
-            <p class="hint" style="margin-top: 8px;">The vent length is calculated to meet the target tuning frequency ({{ selectedBox === 'bandpass4' ? 'Ffc' : 'Fb' }}) above — the same value the Box tab shows, editable in either place.</p>
+            <!-- No trailing hint here: the pane must fit the fixed bottom panel without
+                 scrolling (bottom-scroll.browser.spec.ts), and the target-tuning guidance already
+                 lives in the field's own tooltip (FB_TARGET_TIP). -->
             <p v-if="fbUnreachable" id="og-vent-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
           </div>
 
@@ -548,22 +550,9 @@ const {
           </div>
 
 
-          <!-- closed box: no vents -->
-          <div v-else-if="selectedBox === 'sealed'">
-            <div class="section-header">Rear chamber</div>
-            <div class="field-row">
-              <div class="field entered"><label>Volume</label><NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
-              <!-- A closed box has no passive radiator, so the PR system tuning is not a
-                   quantity it HAS. Its resonance is the sealed Fsc the Box tab already
-                   reports, from the same `boxResonance`. Never put a number from another
-                   model under this label. -->
-              <div class="field"><label>Fsc</label><input id="og-sealed-enclosure-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit" /></div>
-            </div>
-            <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
-          </div>
-
-          <!-- bandpass6 / abc: vents shown, pending (no engine model) -->
-          <div v-else>
+<!-- Closed (sealed) has NO enclosure pane: the Box tab is the single home of
+               Volume + Fsc, and showEnclosureTab drops the nav entry for sealed. -->
+          <div v-else-if="selectedBox === 'bandpass6' || selectedBox === 'abc'">
             <div class="section-header">Vents</div>
             <p class="hint" style="margin-bottom:8px; color:#7a5b1a;"><b>Response model pending.</b> These vent fields are shown for parity but are not yet wired to the engine for this enclosure type.</p>
             <div class="vent-groups">
@@ -612,7 +601,7 @@ const {
           <div class="two-col adv-two-col">
             <div class="adv-air-fields" style="--label-w:118px;">
               <div class="field-row"><div :class="['field', 'adv-air-field', envTempStored ? 'entered' : '', { 'dq-flag': envTempDq.length > 0 }]" :title="envTempDq.join('; ')"><label>Temperature</label><NumInput v-model="advTemp" :class="{ calculated: !envTempStored }" field="advTemp" group="temp" base="K" :precision="2" :allow-out-of-range="true" :dq="envTempDq" dq-state="entered" @blur="commitAirTemp" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
-              <div class="field-row"><div :class="['field', 'adv-air-field', envHumidityStored ? 'entered' : '', { 'dq-flag': envHumidityDq.length > 0 }]" :title="envHumidityDq.join('; ')"><label>Relative humidity</label><NumInput v-model="advHumidity" field="advHumidity" :precision="2" :allow-out-of-range="true" :dq="envHumidityDq" dq-state="entered" @blur="commitAirHumidity" /><span class="unit">%</span></div></div>
+              <div class="field-row"><div :class="['field', 'adv-air-field', envHumidityStored ? 'entered' : '', { 'dq-flag': envHumidityDq.length > 0 }]" :title="envHumidityDq.join('; ')"><label>Relative humidity</label><NumInput v-model="advHumidity" :class="{ calculated: !envHumidityStored }" field="advHumidity" :precision="2" :allow-out-of-range="true" :dq="envHumidityDq" dq-state="entered" @blur="commitAirHumidity" /><span class="unit">%</span></div></div>
               <div class="field-row"><div :class="['field', 'adv-air-field', envPressureStored ? 'entered' : '', { 'dq-flag': envPressureDq.length > 0 }]" :title="envPressureDq.join('; ')"><label>Air pressure</label><NumInput v-model="advPressure" :class="{ calculated: !envPressureStored }" field="advPressure" group="pressure" base="Pa" :precision="1" :allow-out-of-range="true" :dq="envPressureDq" dq-state="entered" @blur="commitAirPressure" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
               <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advAir.c, fieldDp('advSoundVelocity'))" readonly><span class="unit">m/s</span></div></div>
               <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="advAir.rho.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>

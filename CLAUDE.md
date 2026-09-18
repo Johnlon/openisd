@@ -1,16 +1,20 @@
 # openisd
 
-## TDD — mandatory for every code change
+## Testing — the strategy is in TESTING_STRATEGY.md
 
-Say you are doing TDD when you start. Never begin by editing a source file.
+**Read [`TESTING_STRATEGY.md`](TESTING_STRATEGY.md) before touching any code.** It is the single
+authority: TDD (red→green first, never edit source first), the skip-is-a-fail rule, naming
+files by the object under test, feature decoupling at the test level, and the tier structure.
 
-1. Write a test that reproduces the bug or specifies the feature.
-2. Watch it fail, for the right reason.
-3. Implement.
-4. Watch it pass.
-5. Run the domain suite.
+Emphasised here because it governs every change:
 
-Reference: the `/test-driven-development` skill.
+> **TDD is mandatory.** Say you are doing TDD when you start. Never begin by editing a source
+> file: write the failing test, watch it fail for the right reason, implement, watch it pass,
+> run the domain suite. Reference: the `/test-driven-development` skill.
+
+> **A skip is a fail.** Never delete, skip, weaken or corrupt a test to make the suite green.
+> A failing test is information — fix the test to match the current UI, or raise an inbox
+> item; do not delete it. The full removal rules are in `TESTING_STRATEGY.md`.
 
 ## Work in progress is never discarded
 
@@ -31,8 +35,27 @@ Rule — COMMIT FIRST: never discard uncommitted work, yours or anyone else's, u
 - The leader assigns each task a disjoint set of files. Work only inside your assignment; never touch a file outside it, and never another session's package.
 - The leader dispatches serially for tricky or cross-package work, or when a worker is making mistakes, and in parallel only for disjoint mechanical tasks.
 
+## Task lists are granular
+
+- Maintain the running task list (`todowrite`) at the FINEST granularity the work has — one line per distinct action, not one line per file or feature. A reader with no context must be able to see exactly what is being worked on, in what order, and what each item means.
+- Break each feature/bug into its concrete steps (implement X, verify Y, run Z, remove the temporary debug log, run the regression) so "what are we working on?" is answerable from the list alone.
+- **Every task line MUST follow the mandatory format in [`docs/TASK_LIST_FORMAT.md`](docs/TASK_LIST_FORMAT.md):** `The <human-recognisable object> MUST <visible behaviour> when <condition>, except <exception>`. Run the format's self-audit before writing any list — read each line as a person who has never seen the codebase, and rewrite any line that names an internal mechanism (a computed, a ref, a file, a function) instead of a user-visible object and outcome. If you cannot name the subject and behaviour in plain English, you do not understand the task — stop.
+- Keep one item `in_progress` at a time; tick items only when actually verified done, never on intent.
+- Distinguish BLOCKING work from DEFERRED/background items (e.g. pending human rulings, another session's files), and say so in the list.
+- Keep one item `in_progress` at a time; tick items only when actually verified done, never on intent.
+- Distinguish BLOCKING work from DEFERRED/background items (e.g. pending human rulings, another session's files), and say so in the list.
+
 ## UI Tests & Fixtures
-- The standard fixture `sample-project.owpr` is required by the UI test suite.
-- If you change the underlying domain model (e.g. adding new validation rules), do **not** edit the JSON inside `sample-project.owpr` manually. Instead, update `packages/ui/test/fixtures/generateSample.ts` and run it via `npx vite-node packages/ui/test/fixtures/generateSample.ts` to regenerate the fixture using the real domain logic.
-- After generating, you **must** force add it to git: `git add -f packages/ui/test/fixtures/sample-project.owpr`. The file is deliberately ignored in `.gitignore` to prevent casual/accidental updates, but it is tracked in git.
-- **Deleted features mean deleted tests**: If a UI feature is structurally removed (e.g., project autosave was removed in QO92), simply **delete** the UI tests asserting on it. Do **not** use `.skip()`; the Playwright suite forbids skipping tests and will fail the build ("a skip is a fail").
+- **Scratch/probe specs NEVER live in the tree.** A throwaway probe (`zz-*`) goes in
+  `build/tmp/` — git-ignored, so it cannot be committed and can be deleted safely. Run it via
+  the probe config: `npx playwright test -c build/tmp/playwright.config.mjs build/tmp/<spec>`. If
+  you are about to create a probe spec under `packages/ui/test/`, you are putting scratch in
+  the tree — stop and use `build/tmp/` instead.
+- The standard fixture `sample-project.owpr` is a **runtime-generated temporary file** created by the test fixture code. It is **NOT** to be committed to git, nor should it be manipulated or force-added.
+- If you change the underlying domain model (e.g. adding new validation rules), do **not** edit the JSON manually. Instead, update `packages/ui/test/fixtures/generateSample.ts`. The fixture will be generated at runtime.
+- **Strict Anti-Deletion Rule (A skip is a fail):** Never delete or skip a failing test to make the suite pass. A failing test is information — it tells you the code and the spec disagree. Deleting it hides the disagreement; fixing it resolves it. Skipping or deleting tests because they fail is never "progress" — the goal is catching specification gaps and bugs through good, stable, clean, easy-to-understand coverage. The only legitimate reasons to remove a test are:
+  - (a) A human ruling in `questions.yml` (status `decided`) or an authoritative design document (`ARCHITECTURE.md`, `BACKLOG.md` with a checked box, `docs/spec/`) explicitly states the feature is dropped — grep absence alone is never proof (the code may have been deleted by a prior AI, or the feature may simply be unbuilt work that belongs in the backlog).
+  - (b) It is a duplicate of another test that covers the same behaviour.
+  - (c) It tests behaviour the project has deliberately decided not to have, confirmed by a human ruling in `questions.yml`.
+  If a test fails because the UI changed, **fix the test** to match the current UI. If you cannot fix it, raise an inbox item explaining what broke and why — do not delete it.
+

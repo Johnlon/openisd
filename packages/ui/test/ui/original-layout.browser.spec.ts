@@ -69,11 +69,17 @@ test('project rows are [checkbox] Name only; the Close button under the list rem
   // no inline remove control in the rows (WinISD look: checkbox + name only)
   await expect(page.locator('.projects-list .row-remove')).toHaveCount(0);
   // Close acts on the selected row, and every project can be closed — including the first
-  // and the last. Unsaved work is not discarded silently, so a copy asks first.
+  // and the last. Unsaved work is not discarded silently, so a dirty copy asks first.
   const closeBtn = page.locator('.quad-projects-wrap .close-btn');
   await expect(closeBtn).toBeEnabled();
   await rows.nth(1).click();
   await expect(rows.nth(1)).toHaveClass(/selected/);
+  // A copy opens already saved, so it would close without asking — dirty it so the
+  // unsaved-changes prompt is real.
+  await page.evaluate(async (modPath) => {
+    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+    p.box.vented.volume_m3.set(p.box.vented.volume_m3.get().value + 0.01);
+  }, '/src/logic/appState.ts');
   await closeBtn.click();
   await page.locator('.close-actions button:has-text("Close without saving")').click();
   await expect(rows).toHaveCount(1);
@@ -123,14 +129,17 @@ test('the bottom section resizes by dragging the horizontal splitter', async ({ 
 });
 
 test('chart maximise fills the main area, keeps the toolbar, and restores', async ({ page }) => {
-  await page.locator('.chart-max-btn').click();
+  // Two toolbar buttons share `.chart-max-btn` (⟲ reset-all-charts and this ⛶ maximise
+  // toggle) — address the maximise one by its role-bearing title.
+  const maxBtn = page.locator('.chart-max-btn[title*="Maximise the chart"], .chart-max-btn[title*="Restore the normal layout"]');
+  await maxBtn.click();
   await expect(page.locator('.quad-topleft')).toBeHidden();
   await expect(page.locator('.content-panel')).toBeHidden();
   await expect(page.locator('.toolbar')).toBeVisible();       // chart type still switchable
   const graph = (await page.locator('.graph-area').boundingBox())!;
   const main = (await page.locator('.original-root .main').boundingBox())!;
   expect(graph.width).toBeGreaterThan(main.width * 0.95);
-  await page.locator('.chart-max-btn').click();
+  await maxBtn.click();
   await expect(page.locator('.quad-topleft')).toBeVisible();
   await expect(page.locator('.content-panel')).toBeVisible();
 });
@@ -146,9 +155,12 @@ test('hovering the chart draws ONE horizontal level line where the cursor crosse
 test('a drag-select draws a horizontal level line for BOTH selection cursors', async ({ page }) => {
   const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
   const y = box.y + box.height * 0.5;
-  await page.mouse.move(box.x + box.width * 0.25, y);
+  // Drag across the bass rolloff (≈10.7–53.2 Hz) — in a flat region of the response both
+  // level lines land on the same pixels and read as ONE line, which would not prove the
+  // second cursor's line exists at all.
+  await page.mouse.move(box.x + box.width * 0.05, y);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.45, y, { steps: 6 });
+  await page.mouse.move(box.x + box.width * 0.25, y, { steps: 6 });
   await page.mouse.up();
   await expect.poll(() => levelLineClusters(page)).toBe(2);
 });

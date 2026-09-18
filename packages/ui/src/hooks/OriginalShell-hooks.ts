@@ -43,7 +43,7 @@ import { createSealedAlignmentEditor } from './SealedAlignment-hooks.js';
 import type { OpenISDProject } from '@openisd/design';
 import type { StoredProjectListing } from '@openisd/persistence';
 import type { BoxType } from '@openisd/design/engine';
-import type { Design } from '../types.js';
+import type { Design, PlotParams } from '../types.js';
 import type { ChartTabId } from '../types.js';
 
 // ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
@@ -65,10 +65,6 @@ const AIR_FIELD_LIMITS: Readonly<Record<AirField, { min: number; max: number; la
   humidity: { min: 0, max: 100, label: 'Relative humidity' },
   pressure: { min: 1000, max: 200000, label: 'Air pressure' },
 };
-
-export function airFieldValueOnBlur(value: number | null, appValue: number): number {
-  return value ?? appValue;
-}
 
 export function airFieldDataQuality(field: AirField, value: number | null): readonly string[] {
   if (value == null) return [];
@@ -165,7 +161,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     { id: 'box-passive-radiator', label: 'Passive Radiator' },
     { id: 'bandpass4', label: '4th Order Bandpass' },
     { id: 'bandpass6', label: '6th Order Bandpass' },
-    { id: 'abc',       label: 'ABC (Aperiodic Bi-Chamber)' },
+    { id: 'abc',       label: 'ABC' },
   ];
   // Whether the circuit models this type is the DOMAIN's answer, asked through logic/.
   const isSimulatable = boxTypeIsSimulatable;
@@ -360,16 +356,18 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber tunes on
   // its own front volume Vf. The four below are READ-ONLY derived values shown in more than one
   // place (E/C/N badges, warning banners) — genuinely DERIVED state.
-  const fbState    = computed<'E' | 'C' | 'N'>(() => { void project.value; return ventFieldStateOn(project.value, 'Fb'); });
-  const ventLState = computed<'E' | 'C' | 'N'>(() => { void project.value; return ventFieldStateOn(project.value, 'ventL'); });
-  const fbUnreachable = computed(() => { void project.value; return ventTargetUnreachableOn(project.value); });
-  const fbCeiling     = computed(() => { void project.value; return ventMaxReachableFbOn(project.value); });
+  const fbState    = computed<'E' | 'C' | 'N'>(() => { void projectChanged.value; void project.value; return ventFieldStateOn(project.value, 'Fb'); });
+  const ventLState = computed<'E' | 'C' | 'N'>(() => { void projectChanged.value; void project.value; return ventFieldStateOn(project.value, 'ventL'); });
+  const fbUnreachable = computed(() => { void projectChanged.value; void project.value; return ventTargetUnreachableOn(project.value); });
+  const fbCeiling     = computed(() => { void projectChanged.value; void project.value; return ventMaxReachableFbOn(project.value); });
   /** Explains the miss in the user's own terms, on both the Box tab and the Vents tab. */
-  const fbUnreachableMsg = computed(() =>
-    `Target not reachable: no vent of this diameter in this volume tunes above `
+  const fbUnreachableMsg = computed(() => {
+    void projectChanged.value; void project.value;
+    return `Target not reachable: no vent of this diameter in this volume tunes above `
     + `${fbCeiling.value != null ? fbCeiling.value.toFixed(2) : '—'} Hz — the solved length is `
     + `negative, which is not a port you can build. Use a smaller vent diameter, or a larger `
-    + `volume, to reach ${(project.value.box.vented.tuning_hz.get().value ?? 0).toFixed(2)} Hz.`);
+    + `volume, to reach ${(project.value.box.vented.tuning_hz.get().value ?? 0).toFixed(2)} Hz.`;
+  });
   /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
   const frontChamberTuningLabel = computed(() =>
     DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
@@ -600,12 +598,15 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const projectList = computed(() => openProjects());
 
   // Graph visibility is UI-only per-project state — a WeakMap here, the same pattern
-  // `appState.ts` itself uses for `groundByProject`. `reactive()`, not a bare `WeakMap`: Vue
-  // instruments Map/Set/WeakMap operations through `reactive()`, so `.set()` correctly
-  // invalidates every `isRowVisible(p)` read in the template.
+  // `appState.ts` itself uses for `groundByProject`. `reactive()` so the template's row
+  // class/checkbox bindings invalidate on `.set()`. `visibleRevision` is the DEPENDABLE
+  // dependency for the compare-overlay computed: a `reactive()` WeakMap's key operations are
+  // not reliably trackable inside a computed (Vue treats WeakMap as a COMMON target, so the
+  // computed does not re-evaluate on a `.set()`), while a plain ref always fires.
   const visibleOf = reactive(new WeakMap<OpenISDProject, boolean>());
+  const visibleRevision = ref(0);
   function isRowVisible(p: OpenISDProject): boolean { return visibleOf.get(p) ?? true; }
-  function setRowVisible(p: OpenISDProject, v: boolean): void { visibleOf.set(p, v); }
+  function setRowVisible(p: OpenISDProject, v: boolean): void { visibleOf.set(p, v); visibleRevision.value++; }
 
   /** Each row's display name — the project's own `name` field, falling back to the driver name. */
   function rowName(p: OpenISDProject): string {
@@ -622,9 +623,44 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (idx >= 0) focusProject(idx);
   }
 
-  // Compare-overlay curves for OTHER open projects are NOT computed in this pass: the app's one
-  // sweep pipeline only ever sweeps the FOCUSED project (BUG_20260823_compare_overlays...).
-  const overlays = computed<Design[]>(() => []);
+// Compare-overlay curves: a Design per OTHER open project, swept on its own frequency range,
+// following each row's show/hide checkbox. The focused project is the primary design; every
+// other open project contributes a trace (BUG_20260917_nonfocused-project-traces-never-drawn).
+// A project the engine cannot sweep (bandpass6/abc, or an incomplete driver) contributes
+// nothing — `buildPlotData` would crash on an overlay without curves.
+const overlays = computed<Design[]>(() => {
+  void projectChanged.value;
+  void visibleRevision.value;
+  const focused = project.value;
+  const out: Design[] = [];
+  for (const p of openProjects()) {
+    if (p === focused) continue;
+    const box = p.box.boxType.get();
+    if (!boxTypeIsSimulatable(box)) continue;
+    const prXmax = box === 'box-passive-radiator'
+      ? (p.box.passiveRadiator.radiator.spec.Xmax_m.get().value ?? undefined)
+      : undefined;
+    const P: PlotParams = {
+      fmin: p.sweepFmin_hz.get() ?? 10,
+      fmax: p.sweepFmax_hz.get() ?? 20000,
+      splXmaxLimited: p.splGraphIsXmaxLimited.get(),
+      prXmax,
+    };
+    const sw = p.sweep({ fmin: P.fmin, fmax: P.fmax });
+    const mx = p.maxCurves({ fmin: P.fmin, fmax: P.fmax });
+    if (!sw.values || !mx.values) continue;
+    out.push({
+      driver: p.driver.solverParams,
+      box,
+      P,
+      curves: sw.values,
+      maxCurves: mx.values,
+      name: rowName(p),
+      visible: isRowVisible(p),
+    });
+  }
+  return out;
+});
 
   /** "+ Copy" — duplicate the focused project's committed design into a new, independent tab. */
   function copyCurrentProject() {
@@ -771,17 +807,18 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     get: () => { void projectChanged.value; void project.value; return project.value.envPressurePa.value ?? presentationState.ui.envDefaults.pressurePa; },
     set: (v: number | null) => { if (typeof v === 'number' && Number.isFinite(v)) project.value.envPressurePa.set(v); else project.value.envPressurePa.clear(); },
   });
+  // A cleared cell DROPS its stored value (human ruling 2026-09-13, BUG human): deletion must
+  // not re-seed the app default as an entered value. The default flows through for DISPLAY via
+  // the advTemp/advHumidity/advPressure getters (`?? presentationState.ui.envDefaults.…`), and
+  // the field presents as CALCULATED again — never blank, never falsely "entered".
   function commitAirTemp(): void {
-    const value = airFieldValueOnBlur(project.value.envTempK.value, presentationState.ui.envDefaults.tempK);
-    project.value.envTempK.set(value);
+    if (project.value.envTempK.value == null) project.value.envTempK.clear();
   }
   function commitAirHumidity(): void {
-    const value = airFieldValueOnBlur(project.value.envHumidityPct.value, presentationState.ui.envDefaults.humidityPct);
-    project.value.envHumidityPct.set(value);
+    if (project.value.envHumidityPct.value == null) project.value.envHumidityPct.clear();
   }
   function commitAirPressure(): void {
-    const value = airFieldValueOnBlur(project.value.envPressurePa.value, presentationState.ui.envDefaults.pressurePa);
-    project.value.envPressurePa.set(value);
+    if (project.value.envPressurePa.value == null) project.value.envPressurePa.clear();
   }
   function resetAirToAppDefaults(): void {
     project.value.envTempK.set(presentationState.ui.envDefaults.tempK);
@@ -791,6 +828,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   /** The air the sweep is actually running in — one call, both readouts. */
   const advAir = computed(() => {
     void project.value;
+    void projectChanged.value;
     return airForEnvironment({
       tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
       useWinisdAirModel: project.value.envUseWinisdAirModel.get(),

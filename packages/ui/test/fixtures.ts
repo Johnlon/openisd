@@ -1,9 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { execSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { test as base, expect, type Page } from '@playwright/test';
+import { SAMPLE_PROJECT_OWPR, ensureSampleProject } from './fixtures/sampleProject.js';
 
 /**
  * Shared Playwright fixtures for all UI/browser tests.
@@ -131,12 +128,8 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
   }, { auto: true }],
 });
 
-const DEFAULT_SAMPLE_OWPR = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'sample-project.owpr');
-
-export async function openAProject(page: Page, owprPath: string = DEFAULT_SAMPLE_OWPR): Promise<void> {
-  if (owprPath === DEFAULT_SAMPLE_OWPR && !existsSync(owprPath)) {
-    execSync('node ' + join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'generateSample.cjs'), { stdio: 'inherit' });
-  }
+export async function openAProject(page: Page, owprPath: string = SAMPLE_PROJECT_OWPR): Promise<void> {
+  if (owprPath === SAMPLE_PROJECT_OWPR) ensureSampleProject();
   await page.locator('.original-root input[type=file]').setInputFiles({
     name: 'sample-project.owpr',
     mimeType: 'application/json',
@@ -170,3 +163,4 @@ export async function editorTab(page: Page, tab: EditorTab): Promise<void> {
 export type EditorTab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
 
 export { expect };
+export * from './fixtures/reference-drivers.js';

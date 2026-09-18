@@ -8,6 +8,7 @@ import { createApplicationIO } from '../../src/logic/useApplicationIO.js';
 import { createFileStorage, createMemoryStorage, createProjectRepo, type FileStorage } from '@openisd/persistence';
 import { requireFocusedProject, newProject } from '../../src/logic/appState.js';
 import { Engine } from '@openisd/design/engine';
+import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
 
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
@@ -32,10 +33,10 @@ beforeAll(() => {
  */
 describe('.wpr import syncs state.project from the file, and export round-trips it', () => {
   const here = dirname(fileURLToPath(import.meta.url));
-  const GOLDEN = join(here, '..', '..', '..', 'design', 'test', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+  const GOLDEN_SEALED = join(here, '..', '..', '..', 'design', 'test', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
 
   it('meta flows file → state.project on import, and state → [ProjectInfo] on export', async () => {
-    const wprText = readFileSync(GOLDEN, 'utf8')
+    const wprText = readFileSync(GOLDEN_SEALED, 'utf8')
       .replace(/^Description=$/m, 'Description=probe-description-123456');
 
     // Node has no FileReader/download DOM; stub the minimum importFile/exportWpr touch.
@@ -127,7 +128,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       // A genuinely valid project, corrupted back to the pre-S9a shape (a solver-slot entry
       // stated as a bare `null`) at TWO distinct fields, so a fix that only logs `errors[0]` is
       // distinguishable from one that logs all of them.
-      const FIXTURE = join(here, '..', 'fixtures', 'sample-project.owpr');
+      const FIXTURE = SAMPLE_PROJECT_OWPR;
       const parsed = JSON.parse(readFileSync(FIXTURE, 'utf8'));
       parsed.saved.box.vented.chamber.tuning_hz = null;
       parsed.saved.box.vented.vent.length_m = null;
