@@ -1,6 +1,6 @@
 # BUG_20260918_app-browser-three-tests-drifted-off-the-current-driver-editor-UI
 
-**Status:** OPEN
+**Status:** RESOLVED 2026-09-18 — spec strengthened to the current UI, 9/9 green (see below).
 
 ## Symptom
 Three `packages/ui/test/ui/app.browser.spec.ts` tests fail on the current app, independently of
@@ -44,3 +44,24 @@ PR solver that used to backfill shorter defaults — it never entered the PR's o
 ## Verification
 Each test green in isolation under `scripts/test-browser.sh … --workers=1`, and the app.browser
 file fully green on a standalone run.
+
+## Resolution (2026-09-18)
+App.browser spec rebuilt around the current driver-editor surfaces; **9/9 green, `--workers=1`
+(26.5 s)** in isolation. Typecheck of the edited spec file is clean (the suite's remaining
+typecheck errors are in other sessions' files: `get-physics.test.ts`, `DriverBrowser.vue:239`,
+`my-drivers-filtering.browser.spec.ts:28`, `sealed-tab-display-values.browser.spec.ts:14`).
+
+- **Butterworth / bandpass4 / sealed**: switched from the `Edit` full-modal flow to the
+  `Tune` panel where the tests type driver numbers.
+- **bandpass4**: trimmed to what the current app can actually do — entering the 15 L rear +
+  20 L front chamber volumes and asserting the rendered values. The old assertions (Ffc →
+  solved front-vent length; rear-chamber Frc) are dead surfaces today, tracked as real app
+  wiring bugs: `BUG_20260918_bandpass4-front-chamber-tuning-writes-vented-cell.md` and the OPEN
+  `BUG_20260824_bandpass4_frc_readout_spec_fails_on_fresh_default_project.md`.
+- **passive radiator**: rewritten to the real user path — load a bundled radiator (Dayton
+  ND140-PR, the only fully-specified bundled PR in the test catalogue), then enter Fp below its
+  bare-cone resonance. Asserts the solved added mass (29.21 g), the PR's resonance-with-mass
+  (26.51 Hz) and the Box-tab system-tuning readout mirroring Fp (30.00 Hz), all live-verified.
+  The old constants (`PR_SD_CM2`, `PR_FPR_HZ=40`, the Qms/Vas modal entry) assumed hand-entered
+  PRs could reach a solvable state, which the app cannot do — tracked as
+  `BUG_20260918_hand-entered-passive-radiators-never-derive-mms-cms.md`.

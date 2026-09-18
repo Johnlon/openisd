@@ -56,3 +56,19 @@ Not fixed — out of scope for the frcHz persistence task this was found during.
 - `npx playwright test packages/ui/test/ui/original-skin.browser.spec.ts -g "shows calculated Frc" --workers=1`
   fails both on `dev` HEAD (`0db966a`) unmodified and with BUG_20260823's frcHz fix applied —
   confirming the fix is not the cause.
+
+## Addendum (2026-09-18, confirmed root cause on a loaded project)
+
+Independent of the empty-fresh-project case, the bandpass4 rear-chamber Frc readout (and the
+front-chamber readouts) can never show a real value because the app wires them to the **vented
+box's** cells:
+
+- `rearResonance` reads `box.sealed.resonance_hz` (`packages/ui/src/hooks/OriginalShell-hooks.ts:89-92`)
+  instead of `box.bandpass4.chambers.rear.resonance_hz` (the cell
+  `openIsdProjectToWinIsdProject.ts` reads for the rear chamber at `:131`).
+- The front-chamber target wires to `box.vented.tuning_hz` — see the front-vent wiring bug
+  `BUG_20260918_bandpass4-front-chamber-tuning-writes-vented-cell.md`.
+
+So even with a real driver and real chamber volumes, bandpass4's chamber readouts show `—`. This
+underlies both why the original-skin test can't pass and why the app.browser bandpass4 vent-length
+assertions had to be trimmed.
