@@ -77,31 +77,6 @@ export { Engine } from '../engine/index.js';
 // into a second one for the class the project already depends on. The engine's other symbols
 // keep their dedicated door; only `Engine` appears on both.
 
-// ── PERSISTENCE ────────────────────────────────────────────────────────────────────────────
-//
-// `OpenISDProjectJson` is ABSENT here, as it is absent from every signature below — that is the
-// whole design. `projectRepo()` takes a GENERIC store factory, so a store implementation is
-// parametric in the record and can neither name nor inspect it; the domain instantiates the
-// factory at its own private type. Parametricity enforces the boundary, so no cast is needed and
-// no architecture test has to guard a naming convention.
-//
-// `ProjectRepo` is exported as a TYPE only, like every other class here — `projectRepo()` is the
-// function that hands one back, and it reads the installed store at call time.
 export type {
   DiscardChallenge,
 } from './openisdDomain.js';
-
-export type {
-  ProjectRepo,
-  ProjectListing,
-  RecordStore,
-  RecordStoreFactory,
-  DeleteChallenge,
-  DeleteOutcome,
-} from './openisdRepo.js';
-
-// `projectRepo()` IS exported: this package publishes parts, and the APP assembles them. A
-// composition root belongs to the application — it is the thing that decides what exists — so a
-// pre-baked assembly here would be the package making that decision on the app's behalf, and
-// would leave an app outside this package unable to assemble anything at all.
-export { projectRepo } from './openisdRepo.js';

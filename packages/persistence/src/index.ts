@@ -45,11 +45,6 @@ export {
   PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,
 } from './repos/projectRepo.js';
 
-// Declared in `@openisd/design`, not here: a consumer of this package gets them from this
-// barrel — the one sanctioned re-export site — rather than through a second hop inside
-// `projectRepo.ts`, which would relabel them across a module boundary (QO80).
-export type { ProjectListing, DeleteChallenge, DeleteOutcome } from '@openisd/design';
-
 export {
   type ViewStateRepo, VIEW_STATE_KEY, createViewStateRepo,
 } from './repos/viewStateRepo.js';

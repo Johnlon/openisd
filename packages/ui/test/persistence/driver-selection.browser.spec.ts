@@ -125,6 +125,21 @@ test('the embedded driver is a copy — editing it does not touch the saved driv
   expect(saved).not.toContain('Fixture Edited');
 });
 
+test('OK on the project driver updates the project — it is left edited, nothing is saved', async ({ page }) => {
+  await openProjectDriverEditor(page);
+
+  await (await modelCell(page)).fill('Fixture Edited');
+  await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
+  await expect(page.locator(EDITOR)).toBeHidden();
+
+  // OK routed the change into the PROJECT (editor → project.update): the project is now
+  // EDITED — Save arms and Revert offers to discard. It did NOT head for My Drivers.
+  await expect(page.locator('.tb-btn.dirty')).toBeVisible();
+  await expect(page.locator('[title^="Revert — discard all unsaved"]')).toBeVisible();
+  const saved = await page.evaluate(() => localStorage.getItem('openisd_my_drivers'));
+  expect(saved).not.toContain('Fixture Edited');
+});
+
 test('Copy to My Drivers writes the edited driver into the saved list', async ({ page }) => {
   await pickSeededDriver(page);
 
@@ -159,8 +174,13 @@ test('Escape closes the editor and leaves the project driver as it was', async (
 
 // ---- editing a SAVED driver ------------------------------------------------------------
 // The same dialog serves two subjects. The ✎ on a My Drivers row opens it on that SAVED
-// driver: OK rewrites the My Drivers entry and the project is not involved. The title says
+// driver: OK commits through the save dialog and the project is not involved. The title says
 // which, so the user is never guessing what OK will change.
+//
+// Identity is (brand, model) and it is immutable once saved: a name-changing OK does not
+// REWRITE the entry, it writes a NEW entry under the new identity and keeps the original —
+// exactly the "Save as a copy keeps the original" outcome the name-changing-rename question
+// offers on the Save path (my-drivers-failures spec). The project is a bystander throughout.
 
 test('the ✎ on a My Drivers row opens the editor on that saved driver', async ({ page }) => {
   await openPicker(page);
@@ -171,6 +191,45 @@ test('the ✎ on a My Drivers row opens the editor on that saved driver', async 
   const modelInput = await modelCell(page);
   await expect(modelInput).toHaveValue('Fixture');
 });
+
+test('editing a saved driver writes a new entry under the new identity and leaves the project alone', async ({ page }) => {
+  const beforeProject = await projectDriverName(page);
+
+  await openPicker(page);
+  await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
+
+  const modelInput = await modelCell(page);
+  await modelInput.fill('Fixture Mk2');
+  await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
+  await page.locator('.save-confirm-btn').click();
+  await page.locator('.save-as-copy-btn').click();
+  await expect(page.locator(EDITOR)).toBeHidden();
+
+  // A changed identity can't rewrite the saved entry (identity is the storage key) — the save
+  // ADDS the driver under its new name and keeps the original (the copy outcome, not a move).
+  const savedM = await savedModels(page);
+  expect(savedM.sort()).toEqual(['Fixture', 'Fixture Mk2']);
+
+  // The project's driver never entered into it.
+  expect(await projectDriverName(page)).toBe(beforeProject);
+});
+
+test('the picker shows a driver under its new name as soon as the editor closes', async ({ page }) => {
+  await openPicker(page);
+  await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
+
+  const modelInput = await modelCell(page);
+  await modelInput.fill('Renamed Live');
+  await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
+  await page.locator('.save-confirm-btn').click();
+  await page.locator('.save-as-copy-btn').click();
+
+  // The picker is still open behind the editor; its list must not be stale — the renamed save
+  // is listed at once, next to the preserved original.
+  await expect(page.locator('.my-ditem', { hasText: 'Renamed Live' })).toBeVisible();
+  await expect(page.locator('.my-ditem', { hasText: PICKED })).toBeVisible();
+});
+
 test('Cancel on a saved driver writes nothing', async ({ page }) => {
   await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();

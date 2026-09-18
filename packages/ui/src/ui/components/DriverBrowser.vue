@@ -236,7 +236,7 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
               <button class="fav-btn" :class="{ on: isFavorite(driverId(row.driver)) }"
                       :title="isFavorite(driverId(row.driver)) ? 'Remove from favourites' : 'Add to favourites'"
                       @click.stop="toggleFavorite(driverId(row.driver))">★</button>
-              <button class="my-edit" @click.stop="editMyDriver(row.driver)"
+              <button class="my-edit" @click.stop="editMyDriver(row.driver, row.uuid)"
                       title="Edit this saved driver — changes the My Drivers entry, not the project">&#9998;</button>
               <button class="my-del" @click.stop="deleteMyDriver(row.uuid)" title="Remove from My Drivers">✕</button>
             </div>
@@ -355,6 +355,17 @@ watch(() => presentationState.browseOpen, val => { if (val) openedLibrary(); els
 </template>
 
 <style scoped>
+.fmt-scrim {
+  position: absolute; inset: 0; z-index: 105;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, .35);
+}
+.fmt-panel {
+  background: var(--panel, #fff); border: 1px solid var(--line, #ccc); box-shadow: 0 6px 22px rgba(0,0,0,.35);
+  width: 460px; max-width: 92%; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+}
+.fmt-panel h3 { margin: 0 0 2px 0; font-size: 14px; font-weight: 600; color: var(--fg, #000); }
+.fmt-note { margin: 0; font-size: 13px; line-height: 1.4; color: var(--fg, #000); }
 .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.18); z-index:100; align-items:center; justify-content:center; }
 .overlay.on { display:flex; }
 

@@ -1,5 +1,14 @@
 # openisd
 
+## HARD NON-NEGOTIABLE — commit EVERYTHING, never leave work vulnerable
+
+If you commit, you commit **everything** — including other agents' work you do not recognise,
+their staged changes, their uncommitted files, and untracked files. A "pure" or "scoped"
+commit that deliberately excludes someone else's uncommitted work is a FAILURE: that work
+stays vulnerable to loss. Once something is committed it is cheap to undo or rewrite; work
+that was never committed can be destroyed for free. When in doubt, commit. When you have
+committed everything, THEN (and only then) is it safe to revert or clean up.
+
 ## Testing — the strategy is in TESTING_STRATEGY.md
 
 **Read [`TESTING_STRATEGY.md`](TESTING_STRATEGY.md) before touching any code.** It is the single

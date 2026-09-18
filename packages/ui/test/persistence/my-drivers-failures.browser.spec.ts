@@ -147,8 +147,10 @@ test('importing the same driver file twice through the real path yields two entr
     await page.locator('button', { hasText: /Load File/i }).first().click();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(file);
-    const errText = await page.locator('.db-status').textContent().catch(() => 'no err');
-    console.log('STATUS:', errText);
+    // Wait for the import to finish and the preview to appear
+    await expect(page.locator('.cancel-btn')).toBeVisible();
+    // Click Cancel to close the preview and return to the list
+    await page.locator('.cancel-btn').click();
     await expect(page.locator('.my-ditem')).toHaveCount(i + 1);
   }
 

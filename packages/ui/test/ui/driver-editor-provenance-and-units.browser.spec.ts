@@ -1,5 +1,6 @@
 import { test, expect, openAProject } from '../fixtures.js';
 import type { Page } from '@playwright/test';
+import { fillAndBlur } from '../fixtures/numField.js';
 
 /**
  * Driver editor — provenance highlighting and per-field display units, over EVERY field on
@@ -55,14 +56,12 @@ async function seedDriver(page: Page) {
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();
   for (const [label, value] of SEED) {
     const input = fieldByLabel(page, label).locator('input').first();
-    await input.fill(value);
-    await input.blur();
+    await fillAndBlur(input, value);
   }
   await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
   for (const [label, value] of SEED_DIMENSIONS) {
     const input = fieldByLabel(page, label).locator('input').first();
-    await input.fill(value);
-    await input.blur();
+    await fillAndBlur(input, value);
   }
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();
 }
@@ -292,8 +291,7 @@ test('rotating a unit changes the display only — the stored value round-trips'
   const input = fld.locator('input').first();
   const unit = fld.locator('.u').first();
 
-  await input.fill('165');            // 165 mm
-  await input.blur();
+  await fillAndBlur(input, '165');            // 165 mm
   await unit.click();                 // mm → in
   await expect(unit).toHaveText('in');
   expect(parseFloat(await input.inputValue())).toBeCloseTo(165 * 39.3701 / 1000, 2);

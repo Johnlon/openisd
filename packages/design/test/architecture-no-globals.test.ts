@@ -170,8 +170,6 @@ function shippedSource(): Project {
   project.addSourceFilesAtPaths([
     path.join(packageRoot, 'domain', '**', '*.ts'),
     path.join(packageRoot, 'engine', '**', '*.ts'),
-    path.join(packageRoot, 'browser', '**', '*.ts'),
-    path.join(packageRoot, 'app', '**', '*.ts'),
   ]);
   return project;
 }

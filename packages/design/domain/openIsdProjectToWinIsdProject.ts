@@ -156,9 +156,7 @@ function boxSectionValues(
     case 'abc':
       errors.push({
         level: 'error', field: 'boxType',
-        message: `${boxType}: no .wpr golden covers this box type — this bridge produces only `
-          + 'sealed/vented/bandpass4/box-passive-radiator (SimulatableBoxType). Genuine gap, not '
-          + 'guessed.',
+        message: `Unsupported box type "${boxType}": WinISD export supports sealed, vented, 4th-order bandpass, and passive radiator box types.`,
       });
       return null;
   }
@@ -312,8 +310,7 @@ export function winIsdProjectToOpenIsdProject(
     default: {
       errors.push({
         level: 'error', field: 'BType',
-        message: `BType=${String(bTypeRaw)}: no .wpr golden covers this box type — this bridge reads only `
-          + 'sealed(0)/vented(1)/bandpass4(2)/box-passive-radiator(4). Genuine gap, not guessed.',
+        message: `Unsupported or missing box type (BType=${String(bTypeRaw)}): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), and passive radiator (4) boxes.`,
       });
       return {value: null, errors};
     }

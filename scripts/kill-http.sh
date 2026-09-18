@@ -39,7 +39,7 @@ if [ -z "${MSYSTEM:-}" ]; then
       sleep 1
     done
     if [ -n "$(lsof -ti :"$port" 2>/dev/null || true)" ]; then
-      echo "port $port: WARNING — still occupied after 10 attempts, proceeding anyway"
+      echo "port $port: ERROR — still occupied after 10 attempts, aborting" >&2; exit 1
     fi
   done
   echo "done"
@@ -129,7 +129,7 @@ for port in "${ports[@]}"; do
 
     if [ "$attempt" = "10" ]; then
       _diagnose_port "$port"
-      echo "port $port: WARNING — still occupied, proceeding anyway"
+      echo "port $port: ERROR — still occupied, aborting" >&2; exit 1
     fi
   done
 done

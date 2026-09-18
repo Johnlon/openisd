@@ -29,6 +29,14 @@ async function readVb(page: Page): Promise<number> {
     const s = await import(/* @vite-ignore */ modPath);
     const project = s.focusedProject();
     if (!project) throw new Error('expected a focused project');
+    // The sample fixture is VENTED, the complete-driver one is sealed, so read whichever box
+    // type the project actually is. Sealed's volume is a RawField (get() → number); vented's is
+    // an InputField (get() → a {state,value} cell), so the two need different readouts.
+    if (project.box.boxType.get() === 'vented') {
+      const v = project.box.vented.volume_m3.value;
+      if (v === null) throw new Error('vented volume is not available');
+      return v;
+    }
     return project.box.sealed.volume_m3.get();
   });
 }
@@ -190,4 +198,20 @@ test('QO11.5 NumInput: an out-of-range value typed character-by-character goes r
   await vb.blur();
   await expect(vb).toHaveValue(before);               // blur reverts to the last good value
   await expect(vb).not.toHaveClass(/inp-bad/);
+});
+
+test('QO11.5 NumInput: a full-precision value survives typing and blur — dp is presentation only', async ({ page }) => {
+  await page.goto('/');
+  await openAProject(page);
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+
+  const vb = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
+  await vb.click();
+  await vb.press('Control+a');
+  // 6 significant decimals in a field whose display precision is far coarser: the model must
+  // keep every one of them, before AND after blur.
+  await vb.pressSequentially('12.345678');
+  expect(await readVb(page)).toBeCloseTo(0.012345678, 12);
+  await vb.blur();
+  expect(await readVb(page)).toBeCloseTo(0.012345678, 12);
 });

@@ -3,9 +3,9 @@
  *
  * `box.boxType` reaches this package as a raw string off disk, out of localStorage, or out of
  * a share link. `openISDProjectJsonSchema.safeParse()` — the one validator every door goes
- * through (`@openisd/design`'s `projectRepo().load()`) — refuses an unknown value rather than
- * letting an arbitrary string reach a switch whose cases are exhaustive only over the declared
- * `BoxType` members.
+ * through (the session wrapper's `saved` record, validated at `readProjectText`) — refuses an
+ * unknown value rather than letting an arbitrary string reach a switch whose cases are
+ * exhaustive only over the declared `BoxType` members.
  *
  * bugs/BUG_20260828_stored_box_type_is_cast_not_parsed_so_an_unknown_string_reaches_the_simulation.md
  *

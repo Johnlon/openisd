@@ -75,12 +75,12 @@ describe('stringifyIni — round trip of what parseIni produced', () => {
 });
 
 describe('byte precision on real WinISD-written .wpr goldens', () => {
-  const files = readdirSync(GOLDENS_DIR).filter((f) => f.endsWith('.wpr'));
-  assert.ok(files.length > 0, 'expected at least one .wpr golden fixture to exist');
+  const allGoldens = readdirSync(GOLDENS_DIR).filter((f) => f.endsWith('.wpr'));
+  assert.ok(allGoldens.length > 0, 'expected at least one .wpr golden fixture to exist');
 
-  for (const file of files) {
-    it(`${file}: parse then stringify reproduces the file byte-for-byte`, () => {
-      const original = readFileSync(join(GOLDENS_DIR, file), 'utf8');
+  for (const goldenFile of allGoldens) {
+    it(`${goldenFile}: parse then stringify reproduces the file byte-for-byte`, () => {
+      const original = readFileSync(join(GOLDENS_DIR, goldenFile), 'utf8');
       const roundTripped = stringifyIni(parseIni(original));
       assert.equal(roundTripped, original);
     });

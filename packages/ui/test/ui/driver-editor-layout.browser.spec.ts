@@ -1,4 +1,5 @@
 import { test, expect, openAProject } from '../fixtures.js';
+import { fillAndBlur } from '../fixtures/numField.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -422,8 +423,7 @@ for (const { tab, label, defaultUnit, otherUnit } of RESISTANCE_FIELDS) {
     const input = fld.locator('input').first();
 
     await expect(unit).toHaveText(defaultUnit);
-    await input.fill('12.5');
-    await input.blur();
+    await fillAndBlur(input, '12.5');
     const before = await input.inputValue();
 
     await unit.click();

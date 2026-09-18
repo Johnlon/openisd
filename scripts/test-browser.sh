@@ -61,27 +61,70 @@ if ! printf '%s' "$LIST_OUT" | grep -qE '^Total: [1-9][0-9]* test'; then
   exit 1
 fi
 
-# Run tests using the worker count and port reserved above.
-set +e
-npx playwright test "$@"
+run_with_watchdog() {
+  local port="$1"
+  shift
+
+  # Run playwright in the background to capture its exact PID
+  set +e
+  npx playwright test "$@" &
+  local test_pid=$!
+  set -e
+
+  # Start the watchdog in the background
+  (
+    sleep 15
+    local failures=0
+    while true; do
+      if ! curl -s -f -m 2 -o /dev/null "http://localhost:$port"; then
+        failures=$((failures + 1))
+        if [ "$failures" -ge 3 ]; then
+          echo "" >&2
+          echo "🚨 WATCHDOG: Vite server on port $port is unreachable. Aborting Playwright run early!" >&2
+          kill -TERM "$test_pid" 2>/dev/null || true
+          break
+        fi
+      else
+        failures=0
+      fi
+      sleep 5
+      # Exit if playwright is no longer running
+      if ! kill -0 "$test_pid" 2>/dev/null; then
+        break
+      fi
+    done
+  ) &
+  local watchdog_pid=$!
+
+  # Wait for playwright to finish (or be killed by watchdog)
+  set +e
+  wait "$test_pid"
+  local status=$?
+  set -e
+
+  # Kill the watchdog now that the run is over
+  kill "$watchdog_pid" 2>/dev/null || true
+  wait "$watchdog_pid" 2>/dev/null || true
+
+  return $status
+}
+
+run_with_watchdog "$OPENISD_TEST_PORT" "$@"
 STATUS=$?
-set -e
 
 if [ $STATUS -ne 0 ]; then
   echo ""
   echo "⚠️ Playwright suite interrupted/failed (exit code $STATUS). Retrying remaining/failed tests with --last-failed..." >&2
   bash "$SCRIPT_DIR/kill-http.sh" "$OPENISD_TEST_PORT"
-  set +e
-  npx playwright test --last-failed "$@"
+  run_with_watchdog "$OPENISD_TEST_PORT" --last-failed "$@"
   STATUS=$?
-  set -e
 fi
 
 if [ $STATUS -ne 0 ]; then
   echo ""
   echo "⚠️ Secondary retry failed (exit code $STATUS). Final fallback with --last-failed (workers=1)..." >&2
   bash "$SCRIPT_DIR/kill-http.sh" "$OPENISD_TEST_PORT"
-  npx playwright test --last-failed --workers=1 "$@"
+  run_with_watchdog "$OPENISD_TEST_PORT" --last-failed --workers=1 "$@"
   STATUS=$?
 fi
 

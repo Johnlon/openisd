@@ -2,7 +2,7 @@
   "name": "@openisd/ui",
   "version": "0.1.0",
   "type": "module",
-  "description": "OpenISD loudspeaker enclosure simulator \u2014 Vue 3 UI",
+  "description": "OpenISD Interactive Speaker Designer",
   "license": "MIT",
   "private": true,
   "dependencies": {

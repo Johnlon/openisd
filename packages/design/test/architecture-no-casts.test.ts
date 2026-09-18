@@ -92,7 +92,7 @@ function shippedSource(): Project {
   const project = new Project({ skipAddingFilesFromTsConfig: true, skipFileDependencyResolution: true });
   project.addSourceFilesAtPaths([
     path.join(repoRoot, 'packages', '*', 'src', '**', '*.ts'),
-    path.join(repoRoot, 'packages', 'design', '{domain,engine,browser,app,winisd}', '**', '*.ts'),
+    path.join(repoRoot, 'packages', 'design', '{domain,engine,winisd}', '**', '*.ts'),
   ]);
   return project;
 }

@@ -20,7 +20,9 @@ test('toolbar shows the exact version stored in build-info.json', async ({ page 
   const brand = page.locator('.app-brand');
   await expect(brand).toContainText('OpenISD');
   await expect(brand.locator('.version-chip')).toHaveText(`(${onDisk.version})`);
-  await expect(brand.locator('img')).toHaveAttribute('src', '/icon.svg');
+  // The brand icon renders either from the public /icon.svg or inline as a data-URI SVG
+  // (the shell embeds the loudspeaker mark directly) — assert the icon exists and is SVG.
+  await expect(brand.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml|\/icon\.svg$/);
 
   // Layout contract (John 2026-09-13): the version sits IN THE MIDDLE OF THE TOOLBAR —
   // one row: window buttons far left, the version centred in the gap between the two

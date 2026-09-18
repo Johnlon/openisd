@@ -1,10 +1,14 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, openAProject } from '../fixtures.js';
 import { fillAndCommit } from '../fixtures/numField.js';
 
-const EDITOR = '.de-modal';
-// const GENERAL = '.de-tab General';
-const PW_ROW = '.de-fld__row--power';
-const V_ROW = '.de-fld__row--voltage';
+const PW_ROW = '.field:has(label:text-is("System input power"))';
+const V_ROW = '.field:has(label:text-is("Driver input voltage (each)"))';
+const APP_STATE = '/src/logic/appState.ts';
+
+/** The focused project driver's Re, read from the app's own state (no tab switch). */
+const readRe_ohm = (page: import('@playwright/test').Page) =>
+  page.evaluate(async (modPath) =>
+    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driver.ts.Re_ohm.value, APP_STATE);
 
 /**
  * WinISD Signal-pane coupling law, as a blur-COMMIT rule (not an animation):
@@ -18,12 +22,17 @@ const V_ROW = '.de-fld__row--voltage';
  *   - deleting V  ⇒ V = √(P·Re) is re-derived from the still-entered P and Re (NEVER
  *     left blank together)
  *
- * See docs/debugging/vue-runtime-debugging.md — "the 1 W in the background" case.
+ * The drive group lives on the shell's Signal tab (OriginalShell.vue, `reconcileDriveV`),
+ * NOT in the driver editor — the old `.de-modal` power/voltage rows moved out with the
+ * tab-rail rework. See docs/debugging/vue-runtime-debugging.md — "the 1 W in the
+ * background" case.
  */
 
 test('entering a voltage makes the power derive to V²/Re on blur — the 1 W is shown, not blank', async ({ page }) => {
-  // ARRANGE the precondition explicitly — never assume the editor opened on this pane.
-  await page.locator(EDITOR).waitFor();
+  await page.goto('/');
+  await openAProject(page);
+  await page.locator('.project-nav li', { hasText: 'Signal' }).click();
+
   const vol = page.locator(V_ROW).locator('input');
   const pow = page.locator(PW_ROW).locator('input');
 
@@ -34,21 +43,21 @@ test('entering a voltage makes the power derive to V²/Re on blur — the 1 W is
   const pW = Number(await pow.inputValue());
   expect(pW, 'P must derive to 1 W from V²/Re on blur').toBeCloseTo(1.0, 1);
 
-  // And Re is recomposed from the same pair — the group is never left partially derived.
-  const reCell = page.locator('.de-fld').filter({ has: page.locator('label', { hasText: 'Re' }) }).locator('input');
-  const re = Number(await reCell.inputValue());
-  expect(re, 'Re must be the entered (not double-derived) member').toBeCloseTo(3.4, 1);
-});
+  // And the pair never drifts: the sample driver's Re is the entered member (3.4 Ω).
+  const re = await readRe_ohm(page);
+  expect(re, 'Re must be the entered (not double-derived) member').toBeCloseTo(3.4, 1);});
 
 test('deleting the voltage re-derives it from P and Re on blur — never leaves both blank', async ({ page }) => {
-  await page.locator(EDITOR).waitFor();
+  await page.goto('/');
+  await openAProject(page);
+  await page.locator('.project-nav li', { hasText: 'Signal' }).click();
+
   const vol = page.locator(V_ROW).locator('input');
   const pow = page.locator(PW_ROW).locator('input');
 
   // The group starts with P and Re entered; V is the derived output.
   const pBefore = Number(await pow.inputValue());
-  const reCell = page.locator('.de-fld').filter({ has: page.locator('label', { hasText: 'Re' }) }).locator('input');
-  const re = Number(await reCell.inputValue());
+  const re = await readRe_ohm(page);
   expect(pBefore, 'precondition: a power must be entered').toBeGreaterThan(0);
   expect(re, 'precondition: an Re must be entered').toBeGreaterThan(0);
 

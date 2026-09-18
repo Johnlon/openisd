@@ -2381,13 +2381,13 @@ export class OpenISDProject {
         }
     }
 
-    /** @internal The record a save writes, deep-cloned — `projectRepo()`'s one way to reach it,
-     *  never field by field. Reads `#saved`, NEVER `#edited`: a file/share write must never
-     *  persist unsaved changes on its own — `save()` is a distinct, explicit user action (the
-     *  Save button), and this method must not promote `#edited` to `#saved` as a side effect of
-     *  being called. A caller writing out an edited project calls `save()` first, itself, in
-     *  response to the user's own action. Clones before handing it out, so the stored copy
-     *  cannot drift when this project is edited afterward — a shallow `{...}` spread is not
+    /** @internal The record a save writes, deep-cloned — the persisted payload's one route to
+     *  this project's state, never field by field. Reads `#saved`, NEVER `#edited`: a file/share
+     *  write must never persist unsaved changes on its own — `save()` is a distinct, explicit
+     *  user action (the Save button), and this method must not promote `#edited` to `#saved` as a
+     *  side effect of being called. A caller writing out an edited project calls `save()` first,
+     *  itself, in response to the user's own action. Clones before handing it out, so the stored
+     *  copy cannot drift when this project is edited afterward — a shallow `{...}` spread is not
      *  enough, since every nested field object (`box`, `driver`, `environment`, …) would still be
      *  the same reference as the live record. No code outside `packages/design` may call this. */
     cloneSavedProject(): OpenISDProjectJson {

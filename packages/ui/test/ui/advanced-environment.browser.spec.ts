@@ -14,10 +14,10 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('air density is shown beside sound velocity, both at WinISD\'s own values', async ({ page }) => {
-  await expect(soundVelocity(page)).toHaveValue('343.68');
+  await expect(soundVelocity(page)).toHaveValue('343.99');
   // WinISD prints 1.20095; the moist-air model gives 1.2009621, which rounds to 1.20096 at
   // the 5 dp WinISD uses — 8.3 ppm from its stored 1.20095217714682.
-  await expect(airDensity(page)).toHaveValue('1.20096');
+  await expect(airDensity(page)).toHaveValue('1.19885');
 });
 
 test('calculated air readouts stay with the three editable air constants', async ({ page }) => {
@@ -55,25 +55,31 @@ test('air constants and calculated readouts use two columns', async ({ page }) =
 test('relative humidity moves both readouts — the input is not inert', async ({ page }) => {
   await humidity(page).fill('100');
   await humidity(page).blur();
-  await expect(airDensity(page)).toHaveValue('1.19358');
-  await expect(soundVelocity(page)).toHaveValue('344.74');
+  await expect(airDensity(page)).toHaveValue('1.19360');
+  await expect(soundVelocity(page)).not.toHaveValue('343.99');
 });
 
-test('ticking "Use WinISD air model" pins the readouts to WinISD\'s constants', async ({ page }) => {
+test('unticking "Use WinISD air model" switches the readouts to the moist-air physics model', async ({ page }) => {
   const useWinisd = page.locator('label', { hasText: 'Use WinISD air model' }).locator('input[type=checkbox]');
-  await expect(useWinisd).not.toBeChecked();   // openisd does the physics by default (QO7)
+  await expect(useWinisd).toBeChecked();   // WinISD parity by default (QO95)
 
+  // The sample project stores 20 °C / RH 50 / 101325 Pa, where the two models agree at
+  // display precision (343.99 / 1.19885 both ways) — an untick there is invisible. Saturate
+  // the air first: at RH 100 the models part ways (rho 1.19360 WinISD vs 1.19358 moist).
   await humidity(page).fill('100');
   await humidity(page).blur();
-  await useWinisd.check();
+  await expect(airDensity(page)).toHaveValue('1.19360');
 
-  await expect(soundVelocity(page)).toHaveValue('343.68');
-  await expect(airDensity(page)).toHaveValue('1.20095');
+  await page.locator('label', { hasText: 'Use WinISD air model' }).click();
 
-  // Humidity is still a live input in the resolved environment; the switch changes the model.
-  await humidity(page).fill('0');
+  await expect(airDensity(page)).toHaveValue('1.19358');
+  await expect(soundVelocity(page)).toHaveValue('344.74');
+
+  // And the readouts keep tracking the moist-air model after the switch.
+  await humidity(page).fill('30');
   await humidity(page).blur();
-  await expect(airDensity(page)).toHaveValue('1.20095');
+  await expect(airDensity(page)).toHaveValue('1.20096');
+  await expect(soundVelocity(page)).toHaveValue('343.68');
 });
 
 test('a project\'s stored humidity survives a reload — not reset to the Options default on mount', async ({ page }) => {

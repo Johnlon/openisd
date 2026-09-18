@@ -9,10 +9,6 @@
       "types": "./domain/index.ts",
       "default": "./domain/index.ts"
     },
-    "./browser": {
-      "types": "./browser/index.ts",
-      "default": "./browser/index.ts"
-    },
     "./engine": {
       "types": "./engine/index.ts",
       "default": "./engine/index.ts"

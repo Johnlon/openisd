@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures.js';
+import { fillAndBlur } from '../fixtures/numField.js';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,7 +28,6 @@ test('BUG 11: the vent shape offers slotted, and slotted inputs are reachable', 
   const height = page.locator('.field', { hasText: 'Slot height' }).locator('input');
   await expect(width).toBeVisible();
   await expect(height).toBeVisible();
-  await width.fill('5');
-  await width.blur();
+  await fillAndBlur(width, '5');
   await expect(width).toHaveValue(/5/);
 });

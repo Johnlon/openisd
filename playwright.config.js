@@ -56,7 +56,10 @@ export default defineConfig({
   testDir: './packages/ui/test',
   testMatch: '**/*.browser.spec.ts',
   testIgnore: process.env.OPENISD_EXTERNAL === '1' ? [] : EXTERNAL_NETWORK_SPECS,
-  timeout: 60000,
+  timeout: 10000,
+  expect: {
+    timeout: 2000,
+  },
   // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-playwright.js.
   // The json reporter is what makes "is the suite faster?" answerable at all: `list` prints a
   // wall clock to a terminal that scrolls away, so every speed claim about this suite has so far
@@ -72,10 +75,7 @@ export default defineConfig({
   // Baselines use the bundled Inter font (see canvas.ts), which renders identically on
   // every OS — so drop the {platform} segment and keep one snapshot set for all platforms.
   snapshotPathTemplate: '{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',
-  // A launch that dies is not a failing test, and reporting it as one has cost whole sessions
-  // here: every such run showed a transport or launch error and ZERO assertion mismatches.
-  // One retry absorbs it; a test that genuinely fails still fails on the retry.
-  retries: 1,
+  retries: 0,
   // STOP a collapsed run rather than let it manufacture a total. `reuseExistingServer` means a
   // vite that dies mid-run is never restarted, so every remaining test fails identically on
   // ERR_CONNECTION_REFUSED — once turning one server death into "210 failed", an hour spent
@@ -92,6 +92,8 @@ export default defineConfig({
   // memory so the suite backs off instead of OOM-killing the WSL VM under memory pressure.
   workers: WORKERS,
   use: {
+    actionTimeout: 2000,
+    navigationTimeout: 5000,
     browserName: 'chromium',
     // `channel: 'chromium'` selects the full browser. WITHOUT it Playwright launches
     // `chrome-headless-shell`, and on this machine that binary is SIGKILLed (exit 137) the

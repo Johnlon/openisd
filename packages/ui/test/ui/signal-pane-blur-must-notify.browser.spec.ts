@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures.js';
 import type { Page } from '@playwright/test';
+import { fillAndBlur } from '../fixtures/numField.js';
 
 // The app's store, reached in-browser at runtime — passed as an evaluate ARGUMENT (never as a
 // literal import), the same pattern original-skin.browser.spec.ts uses, so vue-tsc resolves nothing.
@@ -56,8 +57,7 @@ test('entering P on a new w5-1138smf project then blurring does not blank the P 
   const pow = signalInput(page, 'System input power');
   const vol = signalInput(page, 'Driver input voltage');
 
-  await pow.fill('10');
-  await pow.blur();
+  await fillAndBlur(pow, '10');
 
   // The entered P must survive its own blur — never blank.
   await expect(pow).toHaveValue(/\d/);
@@ -81,8 +81,7 @@ test('entering V on a new w5-1138smf project then blurring derives a consistent 
   const pow = signalInput(page, 'System input power');
   const vol = signalInput(page, 'Driver input voltage');
 
-  await vol.fill('4');
-  await vol.blur();
+  await fillAndBlur(vol, '4');
 
   // The derived P must be present — never blank — and equal V²/Re at the pane's precision.
   const renderedP = Number(await pow.inputValue());
@@ -103,13 +102,11 @@ test('clearing V then blurring keeps the entered P and recomputes V from P and R
   const vol = signalInput(page, 'Driver input voltage');
 
   // Enter P first, so V is derived from it and visible.
-  await pow.fill('10');
-  await pow.blur();
+  await fillAndBlur(pow, '10');
   await expect(vol).toHaveValue(/\d/);
 
   // Delete V (empty the cell) and blur.
-  await vol.fill('');
-  await vol.blur();
+  await fillAndBlur(vol, '');
 
   // The still-entered P must survive the delete — never cleared by its derived sibling.
   const live = await driveGroup(page);
@@ -126,13 +123,11 @@ test('clearing P then blurring leaves no phantom voltage — V cannot exist when
   const pow = signalInput(page, 'System input power');
   const vol = signalInput(page, 'Driver input voltage');
 
-  await pow.fill('10');
-  await pow.blur();
+  await fillAndBlur(pow, '10');
   await expect(vol).toHaveValue(/\d/);
 
   // Delete P (empty the cell) and blur.
-  await pow.fill('');
-  await pow.blur();
+  await fillAndBlur(pow, '');
 
   // P is genuinely gone — and V, a pure output of P and Re, must go with it. No phantom
   // √(1·Re) from a hidden reference power may keep V alive while its entered base is blank.

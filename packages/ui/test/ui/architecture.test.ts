@@ -726,3 +726,47 @@ describe('export * is banned outright — QO86 ratchet (baseline now, zero event
       'exports) but never grow.');
   });
 });
+
+/**
+ * Test-count floor gate.
+ *
+ * Prevents bulk deletion of browser tests. The count must not drop below the floor without a
+ * human-signed ruling in questions.yml explaining why. If an AI deletes tests to make a red
+ * suite go green, this gate catches the deletion and goes red instead.
+ *
+ * To raise the floor after new tests are added, count the current `test(` calls and update the
+ * minimum accordingly.
+ */
+describe('browser test suite must not shrink without a ruling', () => {
+  const UI_TEST_DIR = join(__dirname, '..');
+  const BROWSER_SPECS: string[] = [];
+
+  function collectBrowserSpecs(dir: string) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        collectBrowserSpecs(join(dir, entry.name));
+      } else if (entry.name.endsWith('.browser.spec.ts')) {
+        BROWSER_SPECS.push(join(dir, entry.name));
+      }
+    }
+  }
+  collectBrowserSpecs(UI_TEST_DIR);
+
+  it('has at least 40 browser spec files (current: 49)', () => {
+    assert.ok(BROWSER_SPECS.length >= 40,
+      `only ${BROWSER_SPECS.length} browser spec files found — floor is 40. ` +
+      'If tests were legitimately removed, update this floor with a human ruling in questions.yml.');
+  });
+
+  it('has at least 200 test() calls across browser specs', () => {
+    let testCount = 0;
+    for (const file of BROWSER_SPECS) {
+      const src = readFileSync(file, 'utf8');
+      // Match test('... and test.describe('...' — both register a test. test.beforeEach is not counted.
+      testCount += (src.match(/^\s*test\((?!\.beforeEach|\.afterEach)/gm) ?? []).length;
+    }
+    assert.ok(testCount >= 200,
+      `only ${testCount} test() calls found across browser specs — floor is 200. ` +
+      'If tests were legitimately removed, update this floor with a human ruling in questions.yml.');
+  });
+});

@@ -308,8 +308,10 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
     a.download = 'my-drivers-export.json';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     exportedThisSession.value = true;
   }
 
@@ -317,8 +319,10 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([entry.raw], { type: 'application/json' }));
     a.download = `my-driver-${entry.key}.json`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     exportedThisSession.value = true;
   }
 

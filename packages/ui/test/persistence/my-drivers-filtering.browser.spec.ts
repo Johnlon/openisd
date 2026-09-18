@@ -18,7 +18,7 @@ const MY_ROWS = '.dlist .my-ditem';
 const SAVED = [
   { brand: 'Bench', model: 'Deep Subwoofer', specs: { Fs_hz: 22, Qts: 0.4, Qes: 0.44, Qms: 5,
     Vas_m3: 0.09, Sd_m2: 0.052, Re_ohm: 3.4, Xmax_m: 0.012, Pe_W: 300, Znom_ohm: 4 } },
-  { brand: 'Bench', model: 'Silk Dome Tweeter', specs: { Fs_hz: 900, Qts: 0.5, Qes: 0.6, Qms: 3,
+  { brand: 'Bench', model: 'Silk Dome Tweeter', driverType: 'tweeter', specs: { Fs_hz: 900, Qts: 0.5, Qes: 0.6, Qms: 3,
     Vas_m3: 0.0002, Sd_m2: 0.0009, Re_ohm: 5.6, Xmax_m: 0.0005, Pe_W: 40, Znom_ohm: 8 } },
 ];
 

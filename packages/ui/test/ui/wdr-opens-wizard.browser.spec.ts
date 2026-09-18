@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const WDR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'drivers', 'mysamples', 'winisd', 's-re.wdr');
+const WDR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc', 's-re.wdr');
 
 test('BUG: opening a .wdr with no project starts the wizard, not a default sealed project', async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());

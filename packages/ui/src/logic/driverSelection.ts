@@ -101,7 +101,7 @@ export type EditorDraftSeed =
 
 export interface DriverSelection {
   selectDriver(d: OpenISDDriver): Promise<SelectionResult>;
-  editMyDriver(d: OpenISDDriver): void;
+  editMyDriver(d: OpenISDDriver, uuid?: string): void;
   editOverviewDriver(d: OpenISDDriver): Promise<SelectionResult>;
   editProjectDriver(): void;
   openNewDriver(): void;
@@ -157,8 +157,8 @@ export function createDriverSelection(): DriverSelection {
     // hash, a brand/model key, ...); until John rules on what identifies a My Drivers row, OK
     // on this editor files every save as a NEW entry rather than replacing the one opened.
     /** Open the editor on a saved driver. Its OK writes to My Drivers, never to the project. */
-    editMyDriver(d) {
-      subject = { kind: 'myDriver', openedAs: '' };
+    editMyDriver(d, uuid = '') {
+      subject = { kind: 'myDriver', openedAs: uuid };
       editSeed = d.detach();
       presentationState.editDriverInfo = true;
     },

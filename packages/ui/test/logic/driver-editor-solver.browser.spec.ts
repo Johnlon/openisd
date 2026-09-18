@@ -1,4 +1,12 @@
 import { test, expect, openAProject } from '../fixtures.js';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// The clean synthetic driver (no Mms/Cms/BL, consistent T/S, no sku) is the fixture these
+// wire-level assertions are written for. On the scraped W5 sample there are alternate
+// derivation routes (Mms/Re/BL → Qes) and endless cross-relation inconsistencies, which would
+// make clearing an anchor re-derive instead of un-calculate, and would litter the chart strip.
+const COMPLETE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'complete-driver-project.owpr');
 
 /**
  * The Driver Editor is WIRED to the driver solver — the seam, not the maths.
@@ -15,7 +23,7 @@ import { test, expect, openAProject } from '../fixtures.js';
 test.describe('Driver Editor — solver wiring', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await openAProject(page);
+    await openAProject(page, COMPLETE);
 
     // Open the Driver Editor the way a user does. Services are constructed by the composition
     // root and injected, so there is no module-level instance to import and call — the button
@@ -40,6 +48,31 @@ test.describe('Driver Editor — solver wiring', () => {
     await expect(qtsf).toHaveValue('0.364');
     await expect(qtsf).toHaveClass(/value-c/);
   });
+
+  test('UI un-calculates downstream derived fields back to state N when an anchor is cleared', async ({ page }) => {
+    const qtsf = page.locator('.de-fld:has-text("Qts") input');
+    const qesf = page.locator('.de-fld:has-text("Qes") input');
+    const qmsf = page.locator('.de-fld:has-text("Qms") input');
+
+    await qtsf.fill('');
+    await qesf.fill('0.400');
+    await qmsf.fill('4.000');
+    await expect(qtsf).toHaveValue('0.364');
+
+    // Clear Qes anchor the caret-safe way (QO11.3's Control+A + Delete — the same gesture
+    // pressSequentially and press(Control+a)+press(Delete) exercise; a bare fill('') is a
+    // different, script-only path).
+    await qesf.click();
+    await qesf.press('Control+a');
+    await qesf.press('Delete');
+    await qesf.blur();
+
+    // Qts must reset to empty / Not Available (state N) — the solver does not use a
+    // previously-calculated value as a new stated input.
+    await expect(qtsf).toHaveValue('');
+    await expect(qtsf).toHaveClass(/value-n/);
+  });
+
   test('UI preserves solver state across Parameters and Advanced parameters tab switches', async ({ page }) => {
     const qtsf = page.locator('.de-fld:has-text("Qts") input');
     await qtsf.fill('');
@@ -91,6 +124,29 @@ test.describe('Driver Editor — solver wiring', () => {
     // Modal closes upon successful commit
     await expect(page.locator('.de-body')).toBeHidden();
   });
+
+  test('UI rejects non-numeric literal text ("banana", "<script>") and clears field to state N (empty/Not Available) without crashing JS execution', async ({ page }) => {
+    const fsf = page.locator('.de-fld:has-text("Fs") input');
+
+    // 1. Dispatch non-numeric text 'banana' into input field. Numbers are `<input type="number">`,
+    // so the browser itself refuses the literal — it sanitises to '' rather than holding text —
+    // and the model is cleared to Not Available.
+    await fsf.evaluate((el: HTMLInputElement) => {
+      el.value = 'banana';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    // 2. Trigger blur event
+    await fsf.blur();
+
+    // 3. Input element cleanly clears to state N (Not Available, empty '') without crashing Vue.
+    //    (On the scraped W5 sample this same step lands on a re-derived number because alternate
+    //    relations exist — the clean COMPLETE fixture is what makes the N outcome deterministic.)
+    await expect(fsf).toHaveValue('');
+    await expect(fsf).toHaveClass(/value-n/);
+    await expect(page.locator('.de-body')).toBeVisible();
+  });
+
   test('UI flags unphysical negative parameters (Re = -8.0 Ohm, Fs = -35.0 Hz) with Data Quality (DQ) warning', async ({ page }) => {
     const ref = page.locator('.de-fld:has-text("Re") input');
     await ref.fill('-8.0');

@@ -31,7 +31,7 @@ import { POS_TO_WDRKEY } from '../../winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixtures = join(here, 'fixtures', 'winisd-parity');
-const goldensDir = join(fixtures, 'goldens');
+const GOLDENS_DIR = join(fixtures, 'goldens');
 
 /**
  * Agreement required of every compared field: 1e-9 relative, with a 1e-12 absolute floor
@@ -302,14 +302,14 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
   it('every scenario has a golden, and every golden names the scenario it came from', () => {
     const missing = scenarios
       .filter(s => !uncapturableIds.has(s.id))
-      .filter(s => !existsSync(join(goldensDir, `${s.id}.wpr`)));
+      .filter(s => !existsSync(join(GOLDENS_DIR, `${s.id}.wpr`)));
     assert.equal(missing.length, 0,
       `no WinISD golden for ${missing.map(s => s.id).join(', ')} — regenerate with the command in ` +
       'test/fixtures/winisd-parity/README.md. A missing golden is a missing measurement, never a skip.');
   });
 
   it('every UNCAPTURABLE entry is still actually missing its golden', () => {
-    const stale = UNCAPTURABLE.filter(u => existsSync(join(goldensDir, `${u.id}.wpr`)));
+    const stale = UNCAPTURABLE.filter(u => existsSync(join(GOLDENS_DIR, `${u.id}.wpr`)));
     assert.deepEqual(stale, [],
       `${stale.map(u => u.id).join(', ')} now HAS a golden on disk — remove it from UNCAPTURABLE ` +
       'in this file and let it run as a normal scenario.');
@@ -341,7 +341,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
     if (uncapturable) {
       describe(s.id, () => {
         it(`has no golden and none is obtainable — ${uncapturable.reference}`, () => {
-          assert.ok(!existsSync(join(goldensDir, `${s.id}.wpr`)),
+          assert.ok(!existsSync(join(GOLDENS_DIR, `${s.id}.wpr`)),
             `${s.id} now has a golden on disk — remove it from UNCAPTURABLE, this assertion is stale`);
           assert.ok(existsSync(join(here, '..', '..', '..', '..', uncapturable.reference)),
             `${uncapturable.reference} does not exist — UNCAPTURABLE cites a bug record that is gone`);
@@ -352,7 +352,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
     describe(s.id, () => {
       // Read lazily: a missing golden must be reported by the guard test above, with the
       // regenerate command, not as a collection crash that hides every other scenario.
-      const path = join(goldensDir, `${s.id}.wpr`);
+      const path = join(GOLDENS_DIR, `${s.id}.wpr`);
       const golden = existsSync(path)
         ? parseIni(readFileSync(path, 'utf8'))
         : ({} as Record<string, Record<string, string>>);

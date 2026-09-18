@@ -13,11 +13,11 @@ import { dirname, join } from 'node:path';
 import { WinISDProject } from '@openisd/design/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SEALED_SMALL = join(here, 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
-const PASSIVE_RADIATOR = join(here, 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
+const GOLDEN_SEALED_SMALL = join(here, 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+const GOLDEN_PASSIVE_RADIATOR = join(here, 'fixtures', 'winisd-parity', 'goldens', 'passive-radiator.wpr');
 
 describe('fromWprIni — sealed-small.wpr golden', () => {
-  const wpr = WinISDProject.fromWprIni(readFileSync(SEALED_SMALL, 'utf8'));
+  const wpr = WinISDProject.fromWprIni(readFileSync(GOLDEN_SEALED_SMALL, 'utf8'));
 
   it('reads the raw, un-mapped BType', () => assert.equal(wpr.number('Box', 'BType'), 0));
   it('reads [Box] Vr as a number', () => assert.equal(wpr.number('Box', 'Vr'), 0.02));
@@ -30,12 +30,12 @@ describe('fromWprIni — sealed-small.wpr golden', () => {
     assert.match(wpr.driverWdrText(), /Fs=37\.2/);
   });
   it('returns the file unchanged from toWpr() — reading is not a rewrite', () => {
-    assert.equal(wpr.toWpr(), readFileSync(SEALED_SMALL, 'utf8'));
+    assert.equal(wpr.toWpr(), readFileSync(GOLDEN_SEALED_SMALL, 'utf8'));
   });
 });
 
 describe('fromWprIni — passive-radiator.wpr golden', () => {
-  const wpr = WinISDProject.fromWprIni(readFileSync(PASSIVE_RADIATOR, 'utf8'));
+  const wpr = WinISDProject.fromWprIni(readFileSync(GOLDEN_PASSIVE_RADIATOR, 'utf8'));
   it('reads the raw PassiveRadiator section', () => {
     assert.equal(wpr.number('Box', 'BType'), 4);
     assert.ok((wpr.number('PassiveRadiator', 'Sd') ?? 0) > 0);

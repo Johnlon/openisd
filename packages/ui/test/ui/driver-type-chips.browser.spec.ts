@@ -20,6 +20,8 @@ const CHIPS = '.type-row .type-chip:not(.type-clear):not(.fav-filter)';
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await openAProject(page);
+  // "Select Driver" lives on the Driver tab; the rail is persisted UI state defaulting to Box.
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.getByRole('button', { name: 'Select Driver' }).click();
 });
 

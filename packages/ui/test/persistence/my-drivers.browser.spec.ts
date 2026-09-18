@@ -286,7 +286,7 @@ test('a driver saved to .wdr and loaded back lands in My Drivers', async ({ page
 
 // ---- Edit enablement -------------------------------------------------------------------
 
-test('Edit is enabled for library driver overview and saving goes to My Drivers with brand/model prompt and overwrite warning', async ({ page }) => {
+test('Edit is enabled for library driver overview and saving goes to My Drivers with brand/model prompt', async ({ page }) => {
   await seed(page);
   await openPicker(page);
 
@@ -305,18 +305,18 @@ test('Edit is enabled for library driver overview and saving goes to My Drivers 
   const savePanel = page.locator('.de-save-my-panel');
   await expect(savePanel).toBeVisible();
 
-  // Pre-fill with existing seeded driver brand/model to trigger overwrite warning
-  await page.locator('.save-brand-input').fill(SEEDED_BRAND);
-  await page.locator('.save-model-input').fill(SEEDED_MODEL);
-
-  await expect(page.locator('.save-warn'), 'Warning should appear when saving a driver with an existing brand/model').toBeVisible();
+  // Fill with a new unique brand/model and confirm
+  await page.locator('.save-brand-input').fill('Library');
+  await page.locator('.save-model-input').fill('Edited Copy');
 
   // Save to My Drivers
   await page.locator('.save-confirm-btn').click();
   await expect(page.locator(EDITOR)).toBeHidden();
 
-  // Verify saved in My Drivers
+  // Verify the new entry was saved alongside the seeded one (coexistence, QO81: same-name
+  // drivers coexist by uuid — no overwrite, no warning)
   expect(await savedIds(page)).toContain(SEEDED_ID);
+  expect(await savedIds(page)).toContain('Library/Edited Copy');
 });
 
 // ---- favourites reach My Drivers -------------------------------------------------------
