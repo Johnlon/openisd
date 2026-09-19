@@ -1,5 +1,5 @@
 import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 // QO157 (human ruling 2026-09-18): the editor/library overlays are TRUE full-screen modals
 // (position:fixed inset:0), so while one is open the project rows sit UNDER it — a real user
@@ -10,7 +10,7 @@ import type { Page } from '@playwright/test';
 /** Assert the true-modal contract for one overlay: while it is open a click aimed at a project
  *  row is SWALLOWED by the overlay (the row never receives it, focus cannot change); after the
  *  modal is dismissed the same click lands on the row and focus switches. */
-async function assertTrueModal(page: Page, open: () => Promise<void>, close: () => Promise<void>): Promise<void> {
+async function assertTrueModal(page: Page, modal: Locator, open: () => Promise<void>, close: () => Promise<void>): Promise<void> {
   await page.locator('button.link-btn', { hasText: '＋ Copy' }).click();
   const rows = page.locator('.project-row');
   await expect(rows).toHaveCount(2);
@@ -18,9 +18,9 @@ async function assertTrueModal(page: Page, open: () => Promise<void>, close: () 
   await open();
   // `force` skips actionability so the click actually fires at the row's coordinates — where
   // the overlay is. If the overlay did NOT intercept, this would switch focus and close the
-  // modal; a true modal must stay open.
+  // modal; a true modal must stay open (the row never receives the click).
   await rows.nth(0).click({ force: true });
-  await page.waitForTimeout(100);
+  await expect(modal).toBeVisible();
 
   await close();
   await rows.nth(0).click();
@@ -52,6 +52,7 @@ test('the Driver Editor is a true modal — the project rows are unclickable whi
 
   await assertTrueModal(
     page,
+    page.locator('.de-modal'),
     async () => {
       await page.locator('li', { hasText: 'Driver' }).click();
       await page.locator('button.edit-btn', { hasText: 'Edit' }).click();
@@ -70,6 +71,7 @@ test('the PR editor is a true modal — the project rows are unclickable while i
 
   await assertTrueModal(
     page,
+    page.locator('.overlay.on'),
     async () => {
       await page.locator('li', { hasText: 'Box' }).click();
       await page.locator('#og-box-type').selectOption('box-passive-radiator');
@@ -90,6 +92,7 @@ test('the driver library is a true modal — the project rows are unclickable wh
 
   await assertTrueModal(
     page,
+    page.locator('.wb-modal'),
     async () => {
       await page.locator('li', { hasText: 'Driver' }).click();
       await page.locator('button.edit-btn', { hasText: 'Select Driver' }).click();

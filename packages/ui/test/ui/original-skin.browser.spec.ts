@@ -31,7 +31,7 @@ async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<numb
     if (!(el instanceof HTMLInputElement)) return null;
     const step = (goingUp: boolean, n: number) => {
       for (let i = 0; i < n; i++) {
-        goingUp ? el.stepUp() : el.stepDown();
+        if (goingUp) el.stepUp(); else el.stepDown();
         el.dispatchEvent(new Event('input', { bubbles: true }));
       }
     };

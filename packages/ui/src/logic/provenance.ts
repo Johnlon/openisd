@@ -15,7 +15,7 @@ export interface ProvenanceInfo {
 // Field keys come from the ONE vocabulary (openIsdFieldKeys.ts); a rename happens there, never
 // here. LABEL_TO_FIELD_KEY is derived from the field table there — re-exported so existing
 // readers (the editor's click detection, the drift test) keep the same import path.
-import { OPENISD_FIELD_KEY, LABEL_TO_FIELD_KEY, type OpenIsdFieldKey } from './openIsdFieldKeys.js';
+import { isFieldKey, type OpenIsdFieldKey } from './openIsdFieldKeys.js';
 export { LABEL_TO_FIELD_KEY } from './openIsdFieldKeys.js';
 
 export const PATH_COLORS = [
@@ -228,12 +228,6 @@ export const PROVENANCE_MAP: Partial<Record<OpenIsdFieldKey, { paths: Array<{ fo
  * fieldKeys.ts (derived from it), never maintained here. Full names are WinISD's own
  * (docs/winisd_helpfiles/help/thielesmall.html).
  */
-
-/** Narrow a runtime key string to a declared `OpenIsdFieldKey` — the boundary check for any key that
- *  arrives from the DOM/template (the editor's `data-field-key` ground truth). */
-export function isFieldKey(v: string): v is OpenIsdFieldKey {
-  return Object.values(OPENISD_FIELD_KEY).includes(v as OpenIsdFieldKey);
-}
 
 export function getProvenanceInfo(targetField: string, currentValues?: Record<string, number | null>): ProvenanceInfo | null {
   const spec = isFieldKey(targetField) ? PROVENANCE_MAP[targetField] : undefined;

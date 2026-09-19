@@ -714,3 +714,4 @@ export const simVcInductance = computed<boolean>({
   get: () => { void live.value; return live.value?.circuitModel.get() === 'gyrator'; },
   set: (on) => { focusedProject()?.circuitModel.set(on ? 'gyrator' : 'winisd'); },
 });
+

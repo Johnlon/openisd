@@ -7,13 +7,19 @@
 # (npm run ci) and via scripts/health-check.sh, which you MUST run before claiming
 # a change "done". A green pre-commit is necessary, not sufficient.
 #
-# Exception: a commit that touches ONLY *.md files changes no runtime behaviour,
-# so lint/typecheck/test add no signal — skip them. Any commit that touches even
-# one non-.md file runs the full gate as normal.
+# Exception: a commit that touches ONLY *.md files cannot change runtime behaviour,
+# so the unit/browser suites add no diff-level signal — skip them. But typecheck and
+# lint are whole-project checks, so they STILL run: a doc-only commit on a branch
+# that is already red (pre-existing type/lint failures) must not ride those failures
+# along commit-to-commit. Any commit that touches even one non-.md file runs the
+# full gate as normal.
 set -e
 changed=$(git diff --cached --name-only --diff-filter=ACMR)
 if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '\.md$'; then
-  echo "[pre-commit] doc-only commit (*.md) — skipping lint/typecheck/test"
+  echo "[pre-commit] doc-only commit (*.md) — skipping unit; typecheck + lint still run to block a red branch…"
+  npm run typecheck
+  npm run lint
+  echo "[pre-commit] doc-only + typecheck/lint green ✓"
   exit 0
 fi
 echo "[pre-commit] lint + typecheck + unit (incl. golden) — blocking commit on any red…"

@@ -6,6 +6,8 @@
  * so tests do not scatter hardcoded numbers inline.
  */
 
+import type { SeedDriver } from './seedMyDrivers.js';
+
 export interface DriverCharacteristics {
   brand: string;
   model: string;
@@ -70,20 +72,17 @@ export class ReferenceDriverFixture {
     return this.characteristics.Sd_cm2 != null ? this.characteristics.Sd_cm2 / 10000 : undefined;
   }
 
-  toSeedDriver() {
-    return {
-      brand: this.brand,
-      model: this.model,
-      specs: {
-        Fs_hz: this.Fs,
-        Qts: this.Qts,
-        Qms: this.Qms,
-        Vas_m3: this.Vas_m3,
-        Re_ohm: this.Re,
-        Sd_m2: this.Sd_m2,
-        Xmax_m: this.characteristics.Xmax_mm != null ? this.characteristics.Xmax_mm / 1000 : undefined,
-      },
-    };
+  toSeedDriver(): SeedDriver {
+    const specs: Record<string, number> = {};
+    if (this.Fs != null) specs.Fs_hz = this.Fs;
+    if (this.Qts != null) specs.Qts = this.Qts;
+    if (this.Qms != null) specs.Qms = this.Qms;
+    if (this.Vas_m3 != null) specs.Vas_m3 = this.Vas_m3;
+    if (this.Re != null) specs.Re_ohm = this.Re;
+    if (this.Sd_m2 != null) specs.Sd_m2 = this.Sd_m2;
+    const xmax = this.characteristics.Xmax_mm != null ? this.characteristics.Xmax_mm / 1000 : undefined;
+    if (xmax != null) specs.Xmax_m = xmax;
+    return { brand: this.brand, model: this.model, specs };
   }
 }
 

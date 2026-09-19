@@ -60,14 +60,14 @@ const SEALED_VB_L  = 20;                                       // box volume, li
 // formula. Typing a fresh Qts also completes the Q-group against the default driver's own
 // pre-entered Qes=0.40/Qms=7.0 (QO13's auto-clear), which recomputes Qes; that Qes then loads
 // via the Signal tab's default Rg=0.1 (sourceLoadedQts). Both effects are live-verified against
-// the running app, not hand-derived — SEALED_FC_HZ is unaffected, SEALED_QTC (0.601 lossless)
-// shifts twice: once for WinISD-lossy, again for the Q-group/Rg interaction.
-const SEALED_QTC   = '0.611';
-const SEALED_FC_HZ = '61.4';
+// the running app, not hand-derived — the fc is unaffected, the Qtc (0.601 lossless)
+  // shifts twice: once for WinISD-lossy, again for the Q-group/Rg interaction.
+  // (Expected numbers now come from W5_1138SMF.expected below; these named constants were
+  // superseded by that table.)
 
 // Scenario B — same driver, Butterworth (maximally-flat) alignment
 // sealedFromQtc(driver, 0.707) → Vb = Vas / ((0.707/Qts)² − 1) → Vb ≈ 12.2 L for
-// Qts=0.38, Vas=30L. The Q-group/Rg interaction (see SEALED_QTC above) shifts the
+// Qts=0.38, Vas=30L. The Q-group/Rg interaction (see the sealed Qtc shift above) shifts the
 // loaded Qts to 0.386, so the lossless readouts live-verify as Qtc=0.719 and fc=67.2.
 const QTC_BUTTERWORTH    = '0.719';
 const BUTTERWORTH_FC_HZ  = '67.2';

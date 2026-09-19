@@ -126,7 +126,7 @@ export interface DriverBrowsingState {
   removeBrokenEntry(key: number): void;
   filteredMyDrivers: ComputedRef<MyDriverRow[]>;
   displayNameOf(d: OpenISDDriver): string;
-  editMyDriver(d: OpenISDDriver): void;
+  editMyDriver(d: OpenISDDriver, uuid?: string): void;
   editOverviewDriver(d: OpenISDDriver): Promise<{ ok: boolean; error?: string }>;
   reloadMyDrivers(): void;
   deleteMyDriver(uuid: string): void;

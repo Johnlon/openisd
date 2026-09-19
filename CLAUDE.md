@@ -25,6 +25,11 @@ Emphasised here because it governs every change:
 > A failing test is information — fix the test to match the current UI, or raise an inbox
 > item; do not delete it. The full removal rules are in `TESTING_STRATEGY.md`.
 
+> **ALWAYS run the fast gates.** Type checking and the unit tests are quick (seconds) — run
+> `npm run typecheck` and the unit suite after any code change and before claiming anything
+> done or committing. They catch what the runtime suite cannot, and a red gate is the whole
+> point (the pre-commit hook enforces it too).
+
 ## Work in progress is never discarded
 
 Several agent sessions work this tree at once, so uncommitted changes you did not make are another session's live work.
