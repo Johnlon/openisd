@@ -41,7 +41,7 @@ export function useOgTune(): OgTuneAPI {
   }
 
   const ebp = computed(() => {
-    const fs = fieldCell('Fs').value;
+    const fs = fieldCell('Fs_hz').value;
     const qes = fieldCell('Qes').value;
     return fs != null && qes != null ? ebpOf(fs, qes) : null;
   });

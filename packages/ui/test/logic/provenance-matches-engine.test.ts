@@ -64,20 +64,20 @@ let cached: Map<string, Set<string>> | null = null;
  * formula implemented in two passes carries the same guard, so it collapses to one entry, which
  * is what the panel should declare.
  */
+/** The record's name for an engine quantity: `Fs_hz` → `Fs`, `Cms_m_per_N` → `Cms`.
+ *
+ *  The engine carries the SI unit in the identifier and the provenance panel names its fields
+ *  as the record does, so the two sides are not comparable until one is translated. The suffix
+ *  is everything from the first `_`, which is unambiguous because no record spec key contains
+ *  one — verified below by the assertion that the walk finds the expected route set. */
+const recordName = (quantity: string): string => quantity.split('_')[0];
+
 function engineRoutes(): Map<string, Set<string>> {
   if (cached) return cached;
 
   const project = new TsProject({ skipAddingFilesFromTsConfig: true });
   const source = project.addSourceFileAtPath(SOLVER_TS);
   const routes = new Map<string, Set<string>>();
-
-  /** The record's name for an engine quantity: `Fs_hz` → `Fs`, `Cms_m_per_N` → `Cms`.
-   *
-   *  The engine carries the SI unit in the identifier and the provenance panel names its fields
-   *  as the record does, so the two sides are not comparable until one is translated. The suffix
-   *  is everything from the first `_`, which is unambiguous because no record spec key contains
-   *  one — verified below by the assertion that the walk finds the expected route set. */
-  const recordName = (quantity: string): string => quantity.split('_')[0];
 
   /** The `r.X != null` names in the `if` guard enclosing this assignment, minus the target. */
   function guardInputs(node: Node, field: string): string | null {
@@ -131,7 +131,8 @@ describe('the provenance panel declares the routes the engine actually has', () 
 
   it('declares exactly the Fs routes the engine derives, with the inputs the engine requires', () => {
     const declared = [...new Set(
-      (PROVENANCE_MAP.Fs_hz?.paths ?? []).map(p => [...p.inputs].sort().join('+')))].sort();
+      (PROVENANCE_MAP.Fs_hz?.paths ?? []).map(p => [...p.inputs].map(recordName).sort().join('+')))]
+      .sort();
 
     const expected = [
       'BL+Mms+Qes+Re',   // Fs = (Qes × BL²) / (2π × Mms × Re)

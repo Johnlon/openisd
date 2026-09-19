@@ -122,13 +122,13 @@ export function useDriverEditorModal(onClose?: () => void): DriverEditorModalAPI
     }
   }
 
-  function fieldOf(field: string): Field<number> | null {
+  function fieldOf(field: SpecField): Field<number> | null {
     const _ = trigger.value;
     if (!draftDriver.value) return null;
     return specFieldHandle(draftDriver.value, field);
   }
 
-  function cellOf(field: string): Cell<number> {
+  function cellOf(field: SpecField): Cell<number> {
     return fieldOf(field)?.get() ?? createCell<number>('', null, 'not-available');
   }
 

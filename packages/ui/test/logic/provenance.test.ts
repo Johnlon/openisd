@@ -34,12 +34,12 @@ describe('Driver Field Provenance Inspector Engine', () => {
    * preference to Bl²/Re (engine driver.ts block 13), and Mpow is √Rme so that it cannot
    * print a number contradicting the Rme beside it. */
   it('the Advanced figures of merit name the inputs the engine really uses', () => {
-    assert.deepEqual(getProvenanceInfo('Rme_kg_per_s')?.paths[0].inputs, ['Fs', 'Mms', 'Qes']);
-    assert.deepEqual(getProvenanceInfo('gamma_m_per_s2_A')?.paths[0].inputs, ['BL', 'Mms']);
-    assert.deepEqual(getProvenanceInfo('Mpow_N_per_sqrtW')?.paths[0].inputs, ['Rme'],
+    assert.deepEqual(getProvenanceInfo('Rme_kg_per_s')?.paths[0].inputs, ['Fs_hz', 'Mms_kg', 'Qes']);
+    assert.deepEqual(getProvenanceInfo('gamma_m_per_s2_A')?.paths[0].inputs, ['BL_Tm', 'Mms_kg']);
+    assert.deepEqual(getProvenanceInfo('Mpow_N_per_sqrtW')?.paths[0].inputs, ['Rme_kg_per_s'],
       'Mpow is derived from Rme, not independently from Bl and Re');
-    assert.deepEqual(getProvenanceInfo('SPLmax_dB')?.paths[0].inputs, ['SPL', 'Pe']);
-    assert.match(getProvenanceInfo('SPLmax_dB')?.paths[0].formulaText ?? '', /Pe/);
+    assert.deepEqual(getProvenanceInfo('SPLmax_dB')?.paths[0].inputs, ['SPL_dB', 'Pe_W']);
+    assert.match(getProvenanceInfo('SPLmax_dB')?.paths[0].formulaText ?? '', /Pe_W/);
   });
 
   it('substitutes live values into formula text', () => {

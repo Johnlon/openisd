@@ -23,44 +23,12 @@ const project = useFocusedProject();
 // WinISD's own field names — the registry keys by these; the driver's spec section carries the
 // SI-suffixed name (`Fs_hz`, `Vas_m3`), so `SPEC` maps the twelve this panel edits to their
 // `Field` on the focused project's driver.
-type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe' | 'BL' | 'Mms';
+type NumKey = 'Fs_hz' | 'Qts' | 'Qes' | 'Qms' | 'Vas_m3' | 'Sd_m2' | 'Re_ohm' | 'Le_H' | 'Xmax_m' | 'Pe_W' | 'BL_Tm' | 'Mms_kg';
 
 /** The field handle for one of this panel's keys, on the FOCUSED project's driver — the write
  *  goes straight onto the project, the same slot the Box/Driver panels write. */
 function specField(key: NumKey): Field<number> {
-  const s = project.value.driver.spec[project.value.driver.section];
-  switch (key) {
-    case 'Fs':   return s.Fs_hz;
-    case 'Qts':  return s.Qts;
-    case 'Qes':  return s.Qes;
-    case 'Qms':  return s.Qms;
-    case 'Vas':  return s.Vas_m3;
-    case 'Sd':   return s.Sd_m2;
-    case 'Re':   return s.Re_ohm;
-    case 'Le':   return s.Le_H;
-    case 'Xmax': return s.Xmax_m;
-    case 'Pe':   return s.Pe_W;
-    case 'BL':   return s.BL_Tm;
-    case 'Mms':  return s.Mms_kg;
-  }
-}
-/** The schema name for a display key — the vocabulary an engine issue names its fields in
- *  ('Fs_hz', 'Vas_m3', …). Kept next to `specField`'s switch so the two pairings stay in step. */
-function schemaOf(key: NumKey): string {
-  switch (key) {
-    case 'Fs':   return 'Fs_hz';
-    case 'Qts':  return 'Qts';
-    case 'Qes':  return 'Qes';
-    case 'Qms':  return 'Qms';
-    case 'Vas':  return 'Vas_m3';
-    case 'Sd':   return 'Sd_m2';
-    case 'Re':   return 'Re_ohm';
-    case 'Le':   return 'Le_H';
-    case 'Xmax': return 'Xmax_m';
-    case 'Pe':   return 'Pe_W';
-    case 'BL':   return 'BL_Tm';
-    case 'Mms':  return 'Mms_kg';
-  }
+  return project.value.driver.spec[project.value.driver.section][key];
 }
 function fieldCell(key: NumKey): Cell<number> { return specField(key).get(); }
 function enterField(key: NumKey, v: number): void { specField(key).set(v); }
@@ -72,26 +40,26 @@ function clearField(key: NumKey): void { specField(key).clear(); }
 // the units here MUST match the registry's unit.
 interface TuneField { key: NumKey; label: string; group?: UnitGroup; token?: string; unit: string }
 const MAIN: TuneField[] = [
-  { key: 'Fs',  label: 'Fs',  unit: 'Hz' },
+  { key: 'Fs_hz',  label: 'Fs',  unit: 'Hz' },
   { key: 'Qts', label: 'Qts', unit: '' },
   { key: 'Qes', label: 'Qes', unit: '' },
   { key: 'Qms', label: 'Qms', unit: '' },
-  { key: 'Vas', label: 'Vas', group: 'volume', token: 'L',   unit: 'l' },
-  { key: 'Sd',  label: 'Sd',  group: 'area',   token: 'cm2', unit: 'cm²' },
-  { key: 'Re',  label: 'Re',  unit: 'Ω' },
+  { key: 'Vas_m3', label: 'Vas', group: 'volume', token: 'L',   unit: 'l' },
+  { key: 'Sd_m2',  label: 'Sd',  group: 'area',   token: 'cm2', unit: 'cm²' },
+  { key: 'Re_ohm',  label: 'Re',  unit: 'Ω' },
 ];
 const OPTIONAL: TuneField[] = [
-  { key: 'Le',   label: 'Le',   group: 'inductance', token: 'mH', unit: 'mH' },
-  { key: 'Xmax', label: 'Xmax', group: 'length',      token: 'mm', unit: 'mm' },
-  { key: 'Pe',   label: 'Pe',   unit: 'W' },
+  { key: 'Le_H',   label: 'Le',   group: 'inductance', token: 'mH', unit: 'mH' },
+  { key: 'Xmax_m', label: 'Xmax', group: 'length',      token: 'mm', unit: 'mm' },
+  { key: 'Pe_W',   label: 'Pe',   unit: 'W' },
 ];
 // Bl and Mms are ordinary driver fields, not outputs: the ADT derives them when they are not
 // entered and honours them when they are (Driver.enter → state E → fixed-E override), exactly
 // as the driver editor already treats them. So they are edited here like any other field, and
 // the E/C colour says which of the two is happening.
 const DERIVED: TuneField[] = [
-  { key: 'BL',  label: 'Bl',  unit: 'T·m' },
-  { key: 'Mms', label: 'Mms', group: 'mass', token: 'g', unit: 'g' },
+  { key: 'BL_Tm',  label: 'Bl',  unit: 'T·m' },
+  { key: 'Mms_kg', label: 'Mms', group: 'mass', token: 'g', unit: 'g' },
 ];
 
 // While a field is focused, echo the RAW typed string (so mid-typing values like
@@ -137,13 +105,13 @@ function scaledLimits(key: NumKey, group: UnitGroup | undefined, token: string |
 // two are usable. The rule itself lives in useDriverCells — the driver editor reads the same
 // one, against its own draft model.
 function isNumKey(f: string): f is NumKey {
-  return ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Le', 'Xmax', 'Pe', 'BL', 'Mms'].includes(f);
+  return ['Fs_hz', 'Qts', 'Qes', 'Qms', 'Vas_m3', 'Sd_m2', 'Re_ohm', 'Le_H', 'Xmax_m', 'Pe_W', 'BL_Tm', 'Mms_kg'].includes(f);
 }
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
 function fieldClasses(key: NumKey, group: UnitGroup | undefined, token: string | undefined): Record<string, boolean> {
   void project.value;
-  const cellOf = (f: SpecField): Cell<number> => fieldCell(isNumKey(f) ? f : 'Fs');
-  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), schemaOf(key));
+  const cellOf = (f: SpecField): Cell<number> => fieldCell(isNumKey(f) ? f : 'Fs_hz');
+  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), key);
   return {
     [cellClassFor(cellOf, key)]: true,
     'de-input-mandatory': mandatory,

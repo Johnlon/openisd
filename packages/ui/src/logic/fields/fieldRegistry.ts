@@ -325,7 +325,7 @@ const FIELDS: FieldSpec[] = [
   // Modeled T/S params. Where OpenISD shows a different unit than WinISD, the dp is unit-adjusted
   // to keep WinISD's resolution (noted per field).
   {
-    id: 'Fs', label: 'Fs', pane: 'Driver: Parameters', kind: 'number', unit: 'Hz', precision: 2, min: 1, max: 5000,
+    id: 'Fs_hz', label: 'Fs', pane: 'Driver: Parameters', kind: 'number', unit: 'Hz', precision: 2, min: 1, max: 5000,
     provenance: 'entered', appliesTo: 'all',
     description: 'Driver free-air resonance. WinISD 2 dp (Hz).',
   },
@@ -346,60 +346,55 @@ const FIELDS: FieldSpec[] = [
     description: 'Mechanical Q. WinISD 3 dp.',
   },
   {
-    id: 'Vas', label: 'Vas', pane: 'Driver: Parameters', kind: 'number', unit: 'l', precision: 2, min: 0, max: 100,
+    id: 'Vas_m3', label: 'Vas', pane: 'Driver: Parameters', kind: 'number', unit: 'l', precision: 2, min: 0, max: 100,
     provenance: 'entered', appliesTo: 'all',
     description: 'Compliance-equivalent volume. OpenISD shows litres at 2 dp (WinISD editor shows imperial in³; its native metric resolution is ~2 dp l).',
   },
   {
-    id: 'Re', label: 'Re', pane: 'Driver: Parameters', kind: 'number', unit: 'ohm', precision: 3, min: 0.01, max: 1000,
+    id: 'Re_ohm', label: 'Re', pane: 'Driver: Parameters', kind: 'number', unit: 'ohm', precision: 3, min: 0.01, max: 1000,
     provenance: 'entered', appliesTo: 'all',
     description: 'DC voice-coil resistance. WinISD 3 dp (ohm).',
   },
   {
-    id: 'Le', label: 'Le', pane: 'Driver: Parameters', kind: 'number', unit: 'mH', precision: 3, min: 0, max: 0.1,
+    id: 'Le_H', label: 'Le', pane: 'Driver: Parameters', kind: 'number', unit: 'mH', precision: 3, min: 0, max: 0.1,
     provenance: 'entered', appliesTo: 'all',
     description: 'Voice-coil inductance. OpenISD shows mH at 3 dp — equivalent to WinISD\'s 6 dp in H (×1000).',
   },
   {
-    id: 'Mms', label: 'Mms', pane: 'Driver: Parameters', kind: 'number', unit: 'g', precision: 2, min: 0, max: 10,
+    id: 'Mms_kg', label: 'Mms', pane: 'Driver: Parameters', kind: 'number', unit: 'g', precision: 2, min: 0, max: 10,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'Mms = 1/((2π·Fs)²·Cms)', dependsOn: ['Fs', 'Cms'],
     description: 'Moving mass. OpenISD shows grams at 2 dp — equivalent to WinISD\'s 5 dp in kg (×1000).',
   },
   {
-    id: 'Sd', label: 'Sd', pane: 'Driver: Parameters', kind: 'number', unit: 'cm²', precision: 2, min: 0.0001, max: 10,
+    id: 'Sd_m2', label: 'Sd', pane: 'Driver: Parameters', kind: 'number', unit: 'cm²', precision: 2, min: 0.0001, max: 10,
     provenance: 'entered', appliesTo: 'all',
     description: 'Effective piston area. OpenISD shows cm² at 2 dp. WinISD: Sd.',
   },
   {
-    id: 'Xmax', label: 'Xmax', pane: 'Driver: Parameters', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 0.5,
+    id: 'Xmax_m', label: 'Xmax', pane: 'Driver: Parameters', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 0.5,
     provenance: 'entered', appliesTo: 'all',
     description: 'Peak linear excursion. OpenISD shows mm at 2 dp. WinISD: Xmax.',
   },
   {
-    id: 'Pe', label: 'Pe', pane: 'Driver: Parameters', kind: 'number', unit: 'W', precision: 2, min: 0, max: 100000,
+    id: 'Pe_W', label: 'Pe', pane: 'Driver: Parameters', kind: 'number', unit: 'W', precision: 2, min: 0, max: 100000,
     provenance: 'entered', appliesTo: 'all',
     description: 'Thermal power handling. WinISD 1 dp (W).',
   },
   {
-    id: 'Z', label: 'Znom', pane: 'Driver: Parameters', kind: 'number', unit: 'ohm', precision: 3, min: 0, max: 1000,
-    provenance: 'entered', appliesTo: 'all',
-    description: 'Nominal impedance. WinISD 3 dp (ohm).',
-  },
-  {
-    id: 'BL', label: 'BL', pane: 'Driver: Parameters', kind: 'number', unit: 'Tm', precision: 3, min: 0, max: 1000,
+    id: 'BL_Tm', label: 'BL', pane: 'Driver: Parameters', kind: 'number', unit: 'Tm', precision: 3, min: 0, max: 1000,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'Bl = √(2π·Fs·Mms·Re/Qes)', dependsOn: ['Fs', 'Mms', 'Re', 'Qes'],
     description: 'Force factor. OpenISD shows 3 dp; WinISD shows 5 dp — 3 dp is ample for a Tm value.',
   },
   {
-    id: 'Cms', label: 'Cms', pane: 'Driver: Parameters', kind: 'number', unit: 'mm/N', precision: 4, min: 0, max: 0.1,
+    id: 'Cms_m_per_N', label: 'Cms', pane: 'Driver: Parameters', kind: 'number', unit: 'mm/N', precision: 4, min: 0, max: 0.1,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'Cms = Vas/(ρ·c²·Sd²)', dependsOn: ['Vas', 'Sd'],
     description: 'Mechanical compliance. OpenISD shows mm/N at 4 dp (WinISD µm/N, 1 dp).',
   },
   {
-    id: 'Rms', label: 'Rms', pane: 'Driver: Parameters', kind: 'number', unit: 'Ns/m', unitGroup: 'resistance', precision: 4, min: 0, max: 1000,
+    id: 'Rms_kg_per_s', label: 'Rms', pane: 'Driver: Parameters', kind: 'number', unit: 'Ns/m', unitGroup: 'resistance', precision: 4, min: 0, max: 1000,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'Rms = 2π·Fs·Mms/Qms', dependsOn: ['Fs', 'Mms', 'Qms'],
     description: 'Mechanical loss resistance. WinISD 5 dp (Ns/m); OpenISD 4 dp.',
@@ -407,28 +402,28 @@ const FIELDS: FieldSpec[] = [
 
   // ============================ DRIVER EDITOR — reference-only (Parameters/Advanced/Dimensions) ============================
   // WinISD fields OpenISD does not model. Recorded for parity/DQ/roadmap; precision/unit are WinISD's.
-  { id: 'Dd', label: 'Dd', pane: 'Driver: Parameters', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 2, provenance: 'entered', appliesTo: 'all', description: 'Effective piston diameter, interchangeable with Sd (Sd = π·(Dd/2)²). Rendered on the driver editor in mm at 2 dp — 0.01 mm, finer than WinISD\'s 3 dp of a metre; WinISD offers the same m/mm/cm/in cycle on this field. Stored in metres.' },
-  { id: 'fLe', label: 'fLe', pane: 'Driver: Parameters', kind: 'number', unit: 'kHz', precision: 5, min: 0, max: 100000, provenance: 'entered', appliesTo: 'all', description: 'Semi-inductance reference frequency — the frequency at which Le and KLe were measured; 0 = standard Le model only. Raw passthrough (not simulated). STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and rendered in kHz at 5 dp, as WinISD does, the editor binds the freq unit group with a kHz base.' },
-  { id: 'KLe', label: 'KLe', pane: 'Driver: Parameters', kind: 'number', unit: 'H·√Hz', precision: 6, min: 0, max: 10, provenance: 'entered', appliesTo: 'all', description: 'Semi-inductance coefficient (WinISD 6 dp). Raw passthrough only.' },
-  { id: 'Hc', label: 'Hc', pane: 'Driver: Parameters', kind: 'number', unit: 'm', precision: 3, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Voice-coil height (WinISD 3 dp). Not modelled.' },
-  { id: 'Hg', label: 'Hg', pane: 'Driver: Parameters', kind: 'number', unit: 'm', precision: 3, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Magnetic gap height (WinISD 3 dp). Not modelled.' },
-  { id: 'Vd', label: 'Vd', pane: 'Driver: Parameters', kind: 'number', unit: 'cm³', precision: 0, min: 0, max: 100000, provenance: 'calculated', appliesTo: 'all', description: 'Peak displacement volume = Sd·Xmax (WinISD 0 dp). Not surfaced.' },
-  { id: 'Xlim', label: 'Xlim', pane: 'Driver: Parameters', kind: 'number', unit: 'm', precision: 3, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Mechanical excursion limit, distinct from Xmax (WinISD 3 dp). Not modelled.' },
+  { id: 'Dd_m', label: 'Dd', pane: 'Driver: Parameters', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 2, provenance: 'entered', appliesTo: 'all', description: 'Effective piston diameter, interchangeable with Sd (Sd = π·(Dd/2)²). Rendered on the driver editor in mm at 2 dp — 0.01 mm, finer than WinISD\'s 3 dp of a metre; WinISD offers the same m/mm/cm/in cycle on this field. Stored in metres.' },
+  { id: 'fLe_hz', label: 'fLe', pane: 'Driver: Parameters', kind: 'number', unit: 'kHz', precision: 5, min: 0, max: 100000, provenance: 'entered', appliesTo: 'all', description: 'Semi-inductance reference frequency — the frequency at which Le and KLe were measured; 0 = standard Le model only. Raw passthrough (not simulated). STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and rendered in kHz at 5 dp, as WinISD does, the editor binds the freq unit group with a kHz base.' },
+  { id: 'KLe_H_sqrtHz', label: 'KLe', pane: 'Driver: Parameters', kind: 'number', unit: 'H·√Hz', precision: 6, min: 0, max: 10, provenance: 'entered', appliesTo: 'all', description: 'Semi-inductance coefficient (WinISD 6 dp). Raw passthrough only.' },
+  { id: 'Hc_m', label: 'Hc', pane: 'Driver: Parameters', kind: 'number', unit: 'm', precision: 3, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Voice-coil height (WinISD 3 dp). Not modelled.' },
+  { id: 'Hg_m', label: 'Hg', pane: 'Driver: Parameters', kind: 'number', unit: 'm', precision: 3, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Magnetic gap height (WinISD 3 dp). Not modelled.' },
+  { id: 'Vd_m3', label: 'Vd', pane: 'Driver: Parameters', kind: 'number', unit: 'cm³', precision: 0, min: 0, max: 100000, provenance: 'calculated', appliesTo: 'all', description: 'Peak displacement volume = Sd·Xmax (WinISD 0 dp). Not surfaced.' },
+  { id: 'Xlim_m', label: 'Xlim', pane: 'Driver: Parameters', kind: 'number', unit: 'm', precision: 3, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Mechanical excursion limit, distinct from Xmax (WinISD 3 dp). Not modelled.' },
   { id: 'no', label: 'no (η₀)', pane: 'Driver: Parameters', kind: 'number', unit: '%', unitGroup: 'percent', precision: 4, min: 0, max: 100, provenance: 'calculated', appliesTo: 'all', description: 'Reference efficiency (WinISD 4 dp).' },
-  { id: 'USPL', label: 'USPL', pane: 'Driver: Parameters', kind: 'number', unit: 'dB', precision: 2, min: 0, max: 200, provenance: 'calculated', appliesTo: 'all', formula: 'USPL = SPL + 10·log₁₀(8/Re)', dependsOn: ['SPL', 'Re'], description: 'Sensitivity referred to a 2.83 V drive rather than 1 W — the 8 is 2.83². An offset from the ONE reference sensitivity (engine efficiency.ts splFromEfficiency), not a second SPL formula. WinISD 2 dp.' },
-  { id: 'SPL', label: 'SPL', pane: 'Driver: Parameters', kind: 'number', unit: 'dB', precision: 2, min: 0, max: 200, provenance: 'calculated', appliesTo: 'all', description: 'Reference sensitivity SPL (WinISD 2 dp).' },
+  { id: 'USPL_dB', label: 'USPL', pane: 'Driver: Parameters', kind: 'number', unit: 'dB', precision: 2, min: 0, max: 200, provenance: 'calculated', appliesTo: 'all', formula: 'USPL = SPL + 10·log₁₀(8/Re)', dependsOn: ['SPL', 'Re'], description: 'Sensitivity referred to a 2.83 V drive rather than 1 W — the 8 is 2.83². An offset from the ONE reference sensitivity (engine efficiency.ts splFromEfficiency), not a second SPL formula. WinISD 2 dp.' },
+  { id: 'SPL_dB', label: 'SPL', pane: 'Driver: Parameters', kind: 'number', unit: 'dB', precision: 2, min: 0, max: 200, provenance: 'calculated', appliesTo: 'all', description: 'Reference sensitivity SPL (WinISD 2 dp).' },
   { id: 'numVC', label: 'Voicecoils', pane: 'Driver: Parameters', kind: 'number', unit: '', precision: 0, min: 1, max: 4, provenance: 'entered', appliesTo: 'all', description: 'Number of voice coils on the driver — 1 for an ordinary driver, 2 for a dual-voice-coil one. NOT a simulation input on its own: it is the multiplier the wiring conversion uses. With [VCCon] it sets the driver\'s terminal resistance and force factor, shown read-only on the Placement panel. WinISD: numVC.' },
   { id: 'VCCon', label: 'Connection', pane: 'Driver: Parameters', kind: 'enum', unit: '', provenance: 'entered', appliesTo: 'all', options: ['Parallel', 'Series'], description: 'How the voice coils are wired, series or parallel. NOT a simulation input: it selects how the per-coil Re and BL you entered become the driver\'s TERMINAL values — parallel gives Re/numVC, series gives Re*numVC, with BL unchanged and BL*numVC respectively. OpenISD keeps your typed per-coil values and derives the terminal pair; WinISD instead overwrites the stored Re and BL in place and still marks them as entered by you (see docs/research/WINISD_PARITY.md section 11b). WinISD: VCCon / Connection. NOTE when this driver has more than one coil: the per-coil Re shown in the editor is only as reliable as the wiring recorded in the file it came from, and WinISD saves that wiring wrongly (it always writes parallel). The SIMULATION is unaffected either way -- the resistance the amplifier sees is taken from the file unchanged -- so only the per-coil label can be off. If you know how your coils are actually wired, set it here. Ledger QO97.' },
-  { id: 'alfaVC', label: 'AlfaVC', pane: 'Driver: Advanced', kind: 'number', unit: '1000/K', precision: 4, min: 0, max: 0.1, provenance: 'entered', appliesTo: 'all', description: 'Voice-coil resistance temperature coefficient — how fast Re grows as the coil heats (copper ≈ 3.9000 = 0.0039/K; also labelled "Voice coil resistance TC" on the Driver placement pane). One HALF of the power-compression pair: it acts ONLY as the product alfaVC·ΔT together with [vcTempRise] — with temp rise 0 it does nothing. Model: Re_hot = Re·(1 + alfaVC·ΔT) (engine hotRe, applied in circuit.ts). Units: UI shows 1000/K; stored/engine SI value = display ÷ 1000 (the tempCoeff unit group). WinISD parity, docs/research/WINISD_PARITY.md.' },
-  { id: 'Rt', label: 'R(t)', pane: 'Driver: Advanced', kind: 'number', unit: 'K/W', precision: 5, min: 0, max: 1000, provenance: 'entered', appliesTo: 'all', description: 'Thermal resistance (WinISD 5 dp). Not simulated.' },
-  { id: 'Ct', label: 'C(t)', pane: 'Driver: Advanced', kind: 'number', unit: 'J/K', precision: 5, min: 0, max: 10000, provenance: 'entered', appliesTo: 'all', description: 'Thermal capacitance (WinISD 5 dp). Not simulated.' },
-  { id: 'EBP', label: 'EBP', pane: 'Driver: Advanced', kind: 'number', unit: 'Hz', precision: 2, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', formula: 'EBP = Fs/Qes', dependsOn: ['Fs', 'Qes'], description: 'Efficiency bandwidth product (WinISD 2 dp). OpenISD shows it as a gauge.' },
-  { id: 'SPLmaxLF', label: 'SPLmaxLF', pane: 'Driver: Advanced', kind: 'number', unit: 'dB', precision: 2, min: 0, max: 200, provenance: 'calculated', appliesTo: 'all', formula: 'SPLmaxLF = 20·log₁₀(ρ₀·(2π·20)²·Vd / (2π√2) / P0)', dependsOn: ['Vd'], description: 'Excursion-limited max SPL at 20 Hz, closed box (WinISD 2 dp). ρ₀ is the air density in force, so this follows temperature, humidity and pressure unless the WinISD-compatibility toggle is on. Recovered from live WinISD probes to 6.8e-16 (ledger QO32).' },
-  { id: 'SPLmax', label: 'SPLmax', pane: 'Driver: Advanced', kind: 'number', unit: 'dB', precision: 2, min: 0, max: 200, provenance: 'calculated', appliesTo: 'all', formula: 'SPLmax = SPL + 10·log₁₀(Pe) − 3', dependsOn: ['SPL', 'Pe'], description: 'Thermally-limited max SPL: the reference sensitivity driven at the rated power. An offset from the ONE reference sensitivity (engine efficiency.ts splFromEfficiency), not a second SPL formula. Blank without a Pe. WinISD 2 dp.' },
-  { id: 'Rme', label: 'Rme', pane: 'Driver: Advanced', kind: 'number', unit: 'Ns/m', unitGroup: 'resistance', precision: 5, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', formula: 'Rme = 2π·Fs·Mms/Qes (= Bl²/Re)', dependsOn: ['Fs', 'Mms', 'Qes'], description: 'Motional resistance at resonance (WinISD 5 dp). TWO routes, and the order is settled: 2π·Fs·Mms/Qes WINS, Bl²/Re is only the fallback when that one cannot be evaluated. They agree unless the record\'s stored Bl disagrees with its own Fs/Mms/Re/Qes — on Beyma 10BR60/V2 the motional route gives 18.22124 and Bl²/Re gives 18.27846, and WinISD prints the first.' },
-  { id: 'gamma', label: 'gamma', pane: 'Driver: Advanced', kind: 'number', unit: 'N/(A·kg)', precision: 5, min: 0, max: 100000, provenance: 'calculated', appliesTo: 'all', formula: 'gamma = Bl/Mms', dependsOn: ['Bl', 'Mms'], description: 'Motor force per unit moving mass — the acceleration one amp buys (WinISD 5 dp).' },
-  { id: 'Mpow', label: 'Mpow', pane: 'Driver: Advanced', kind: 'number', unit: 'N/√W', precision: 5, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', formula: 'Mpow = √Rme (= Bl/√Re)', dependsOn: ['Rme'], description: 'Motor force per square root of input power (WinISD 5 dp). Taken as √Rme so it cannot contradict the [Rme] beside it; Bl/√Re is the same quantity only on a self-consistent record. ⚠ WinISD\'s own choice between the two routes is unverified.' },
-  { id: 'Mcost', label: 'Mcost', pane: 'Driver: Advanced', kind: 'number', unit: 'kg/s', unitGroup: 'resistance', precision: 5, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', formula: 'Mcost = Rme·(1 + Xmax/min(Hc, Hg))', dependsOn: ['Rme', 'Xmax', 'Hc', 'Hg'], description: 'Motor figure of merit (WinISD 5 dp). Blank when Hc or Hg is absent or zero, since they are the divisor — which is why it reads 0 across most of the library. Reduces to [Rme] exactly at Xmax = 0. Recovered from live WinISD probes to 1.5e-15 (ledger QO32).' },
+  { id: 'alfaVC_per_K', label: 'AlfaVC', pane: 'Driver: Advanced', kind: 'number', unit: '1000/K', precision: 4, min: 0, max: 0.1, provenance: 'entered', appliesTo: 'all', description: 'Voice-coil resistance temperature coefficient — how fast Re grows as the coil heats (copper ≈ 3.9000 = 0.0039/K; also labelled "Voice coil resistance TC" on the Driver placement pane). One HALF of the power-compression pair: it acts ONLY as the product alfaVC·ΔT together with [vcTempRise] — with temp rise 0 it does nothing. Model: Re_hot = Re·(1 + alfaVC·ΔT) (engine hotRe, applied in circuit.ts). Units: UI shows 1000/K; stored/engine SI value = display ÷ 1000 (the tempCoeff unit group). WinISD parity, docs/research/WINISD_PARITY.md.' },
+  { id: 'Rt_K_per_W', label: 'R(t)', pane: 'Driver: Advanced', kind: 'number', unit: 'K/W', precision: 5, min: 0, max: 1000, provenance: 'entered', appliesTo: 'all', description: 'Thermal resistance (WinISD 5 dp). Not simulated.' },
+  { id: 'Ct_J_per_K', label: 'C(t)', pane: 'Driver: Advanced', kind: 'number', unit: 'J/K', precision: 5, min: 0, max: 10000, provenance: 'entered', appliesTo: 'all', description: 'Thermal capacitance (WinISD 5 dp). Not simulated.' },
+  { id: 'EBP_hz', label: 'EBP', pane: 'Driver: Advanced', kind: 'number', unit: 'Hz', precision: 2, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', formula: 'EBP = Fs/Qes', dependsOn: ['Fs', 'Qes'], description: 'Efficiency bandwidth product (WinISD 2 dp). OpenISD shows it as a gauge.' },
+  { id: 'SPLmaxLF_dB', label: 'SPLmaxLF', pane: 'Driver: Advanced', kind: 'number', unit: 'dB', precision: 2, min: 0, max: 200, provenance: 'calculated', appliesTo: 'all', formula: 'SPLmaxLF = 20·log₁₀(ρ₀·(2π·20)²·Vd / (2π√2) / P0)', dependsOn: ['Vd'], description: 'Excursion-limited max SPL at 20 Hz, closed box (WinISD 2 dp). ρ₀ is the air density in force, so this follows temperature, humidity and pressure unless the WinISD-compatibility toggle is on. Recovered from live WinISD probes to 6.8e-16 (ledger QO32).' },
+  { id: 'SPLmax_dB', label: 'SPLmax', pane: 'Driver: Advanced', kind: 'number', unit: 'dB', precision: 2, min: 0, max: 200, provenance: 'calculated', appliesTo: 'all', formula: 'SPLmax = SPL + 10·log₁₀(Pe) − 3', dependsOn: ['SPL', 'Pe'], description: 'Thermally-limited max SPL: the reference sensitivity driven at the rated power. An offset from the ONE reference sensitivity (engine efficiency.ts splFromEfficiency), not a second SPL formula. Blank without a Pe. WinISD 2 dp.' },
+  { id: 'Rme_kg_per_s', label: 'Rme', pane: 'Driver: Advanced', kind: 'number', unit: 'Ns/m', unitGroup: 'resistance', precision: 5, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', formula: 'Rme = 2π·Fs·Mms/Qes (= Bl²/Re)', dependsOn: ['Fs', 'Mms', 'Qes'], description: 'Motional resistance at resonance (WinISD 5 dp). TWO routes, and the order is settled: 2π·Fs·Mms/Qes WINS, Bl²/Re is only the fallback when that one cannot be evaluated. They agree unless the record\'s stored Bl disagrees with its own Fs/Mms/Re/Qes — on Beyma 10BR60/V2 the motional route gives 18.22124 and Bl²/Re gives 18.27846, and WinISD prints the first.' },
+  { id: 'gamma_m_per_s2_A', label: 'gamma', pane: 'Driver: Advanced', kind: 'number', unit: 'N/(A·kg)', precision: 5, min: 0, max: 100000, provenance: 'calculated', appliesTo: 'all', formula: 'gamma = Bl/Mms', dependsOn: ['Bl', 'Mms'], description: 'Motor force per unit moving mass — the acceleration one amp buys (WinISD 5 dp).' },
+  { id: 'Mpow_N_per_sqrtW', label: 'Mpow', pane: 'Driver: Advanced', kind: 'number', unit: 'N/√W', precision: 5, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', formula: 'Mpow = √Rme (= Bl/√Re)', dependsOn: ['Rme'], description: 'Motor force per square root of input power (WinISD 5 dp). Taken as √Rme so it cannot contradict the [Rme] beside it; Bl/√Re is the same quantity only on a self-consistent record. ⚠ WinISD\'s own choice between the two routes is unverified.' },
+  { id: 'Mcost_kg_per_s', label: 'Mcost', pane: 'Driver: Advanced', kind: 'number', unit: 'kg/s', unitGroup: 'resistance', precision: 5, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', formula: 'Mcost = Rme·(1 + Xmax/min(Hc, Hg))', dependsOn: ['Rme', 'Xmax', 'Hc', 'Hg'], description: 'Motor figure of merit (WinISD 5 dp). Blank when Hc or Hg is absent or zero, since they are the divisor — which is why it reads 0 across most of the library. Reduces to [Rme] exactly at Xmax = 0. Recovered from live WinISD probes to 1.5e-15 (ledger QO32).' },
   { id: 'Gloss', label: 'Gloss', pane: 'Driver: Advanced', kind: 'number', unit: '%', unitGroup: 'percent', precision: 4, min: 0, max: 100, provenance: 'calculated', appliesTo: 'all', formula: 'Gloss = g/((2π·Fs)²·Xmax), g = 9.80665', dependsOn: ['Fs', 'Xmax'], description: 'Cone sag under gravity when the driver is mounted horizontally, as a fraction of Xmax (WinISD 4 dp). The record and the .wdr carry the FRACTION; this pane shows the percent, and the ×100 lives only in the input\'s scale. Recovered from live WinISD probes to 3.6e-15 (ledger QO32).' },
   // The Dimensions tab. Every length here is STORED IN METRES and RENDERED IN MILLIMETRES at
   // 2 dp — 0.01 mm, finer than WinISD's 3 dp of a metre, and the same unit the Parameters tab
@@ -436,14 +431,14 @@ const FIELDS: FieldSpec[] = [
   // these fields (its unit label cycles m/mm/cm/in/ft/yd — docs/research/WINISD_PARITY.md),
   // so this is a choice of default within WinISD's own set, not a divergence from it.
   // `min`/`max` are in the MODEL's unit (metres, m³) because these fields are rendered.
-  { id: 'Thick', label: 'Basket Plate Thickness (Thick)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 0.3, provenance: 'entered', appliesTo: 'all', description: 'Frame flange thickness. Carried through .wdr export; not simulated.' },
-  { id: 'Depth', label: 'Driver Depth (Depth)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Overall driver depth. Carried through .wdr export; not simulated.' },
-  { id: 'MagDepth', label: 'Magnet Depth', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Magnet assembly depth. Carried through .wdr export; not simulated.' },
-  { id: 'Magnet', label: 'Magnet Diameter (Magnet)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Magnet diameter. Not simulated.' },
-  { id: 'Basket', label: 'Basket Diameter (Basket)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Basket/frame diameter. Not simulated.' },
-  { id: 'Outer', label: 'Outer Diameter (Outer)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Outer mounting diameter. Not simulated.' },
-  { id: 'Vcd', label: 'Voice Coil Dia (Vcd)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Voice-coil diameter. Not simulated.' },
-  { id: 'DVol', label: 'Driver Displacement Volume (DVol)', pane: 'Driver: Dimensions', kind: 'number', unit: 'cm³', precision: 2, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Basket displacement volume — the box volume the driver itself takes up. Stored in m³, rendered in cm³ (WinISD shows in³ by default and cycles to cm³). Not simulated.' },
+  { id: 'Thick_m', label: 'Basket Plate Thickness (Thick)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 0.3, provenance: 'entered', appliesTo: 'all', description: 'Frame flange thickness. Carried through .wdr export; not simulated.' },
+  { id: 'Depth_m', label: 'Driver Depth (Depth)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Overall driver depth. Carried through .wdr export; not simulated.' },
+  { id: 'MagDepth_m', label: 'Magnet Depth', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Magnet assembly depth. Carried through .wdr export; not simulated.' },
+  { id: 'Magnet_m', label: 'Magnet Diameter (Magnet)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Magnet diameter. Not simulated.' },
+  { id: 'Basket_m', label: 'Basket Diameter (Basket)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Basket/frame diameter. Not simulated.' },
+  { id: 'Outer_m', label: 'Outer Diameter (Outer)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 5, provenance: 'entered', appliesTo: 'all', description: 'Outer mounting diameter. Not simulated.' },
+  { id: 'Vcd_m', label: 'Voice Coil Dia (Vcd)', pane: 'Driver: Dimensions', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Voice-coil diameter. Not simulated.' },
+  { id: 'DVol_m3', label: 'Driver Displacement Volume (DVol)', pane: 'Driver: Dimensions', kind: 'number', unit: 'cm³', precision: 2, min: 0, max: 1, provenance: 'entered', appliesTo: 'all', description: 'Basket displacement volume — the box volume the driver itself takes up. Stored in m³, rendered in cm³ (WinISD shows in³ by default and cycles to cm³). Not simulated.' },
 
   // ── Driver: General — the record's identity and provenance. Not simulation inputs, but
   // they are fields the user edits and the .wdr carries, so they belong in the one registry.
@@ -454,14 +449,14 @@ const FIELDS: FieldSpec[] = [
   { id: 'added', label: 'Date added', pane: 'Driver: General', kind: 'date', unit: '', provenance: 'entered', appliesTo: 'all', description: 'When the record was added. WinISD: DateAdded.' },
   { id: 'comment', label: 'Comment', pane: 'Driver: General', kind: 'text', unit: '', provenance: 'entered', appliesTo: 'all', description: 'Free-text note saved with the driver. WinISD: Comment.' },
 
-  { id: 'Znom', label: 'Znom', pane: 'Driver: Parameters', kind: 'number', unit: 'ohm', precision: 0, min: 0, max: 64, provenance: 'entered', appliesTo: 'all', description: 'Nominal impedance — the number on the box (4, 8, 16 …), NOT used in any simulation (WinISD says so itself: "not used in simulation"). Derived from Re when not entered, as Znom = 2 × round-half-to-even(0.75 × Re), and that derivation is not fed back into Re. WinISD: Znom.' },
+  { id: 'Znom_ohm', label: 'Znom', pane: 'Driver: Parameters', kind: 'number', unit: 'ohm', precision: 0, min: 0, max: 64, provenance: 'entered', appliesTo: 'all', description: 'Nominal impedance — the number on the box (4, 8, 16 …), NOT used in any simulation (WinISD says so itself: "not used in simulation"). Derived from Re when not entered, as Znom = 2 × round-half-to-even(0.75 × Re), and that derivation is not fed back into Re. WinISD: Znom.' },
 
   // The driver editor's own c/roo readouts. DISTINCT from [advSoundVelocity]/[advAirDensity],
   // which are the project's Advanced pane: these show the REFERENCE environment, and the
   // editor cannot change them. A driver record CAN carry its own stated c/roo (WinISD stores
   // both per driver) — these readouts are not those either, which is what the help says.
-  { id: 'c', label: 'c', pane: 'Driver: Advanced', kind: 'number', unit: 'm/s', unitGroup: 'velocity', precision: 2, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', description: 'Speed of sound at OpenISD\'s reference environment (engine air.ts) — read-only here, and NOT the driver\'s own stated value. WinISD: c.' },
-  { id: 'roo', label: 'roo', pane: 'Driver: Advanced', kind: 'number', unit: 'kg/m³', unitGroup: 'density', precision: 5, min: 0, max: 10, provenance: 'calculated', appliesTo: 'all', description: 'Air density at OpenISD\'s reference environment (engine air.ts) — read-only here, and NOT the driver\'s own stated value. WinISD: roo.' },
+  { id: 'c_m_per_s', label: 'c', pane: 'Driver: Advanced', kind: 'number', unit: 'm/s', unitGroup: 'velocity', precision: 2, min: 0, max: 1000, provenance: 'calculated', appliesTo: 'all', description: 'Speed of sound at OpenISD\'s reference environment (engine air.ts) — read-only here, and NOT the driver\'s own stated value. WinISD: c.' },
+  { id: 'roo_kg_per_m3', label: 'roo', pane: 'Driver: Advanced', kind: 'number', unit: 'kg/m³', unitGroup: 'density', precision: 5, min: 0, max: 10, provenance: 'calculated', appliesTo: 'all', description: 'Air density at OpenISD\'s reference environment (engine air.ts) — read-only here, and NOT the driver\'s own stated value. WinISD: roo.' },
 
   // ── Box readouts the shell binds but the registry did not describe ──────────────────────
   // All three are CALCULATED and rendered read-only; they carry a registry entry so the shell's

@@ -26,6 +26,7 @@ import {
 } from '@openisd/design';
 import type {PlotParams} from '../types.js';
 import {copyOfName, uniqueName, type ViewSnapshot} from '@openisd/persistence';
+import type {OpenIsdFieldKey} from '@openisd/design/fields';
 import {presentationState, unitToken} from './presentationState.js';
 import {parseChartTabId} from './series.js';
 import {displayPrecision, fromDisplay, toDisplay, type UnitGroup} from './fields/units.js';
@@ -33,15 +34,11 @@ import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
 import {notifyPrChanged} from './usePrGroup.js';
 
-/** The 53 driver spec fields the app's UI reads/writes by name — the driver editor's own field
- *  table. Matches `DriverSpec`'s field names in `@openisd/design`, without their unit suffixes. */
-export type SpecField =
-  | 'Fs' | 'Re' | 'Le' | 'fLe' | 'KLe' | 'Znom' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'BL'
-  | 'Mms' | 'Cms' | 'Rms' | 'Xmax' | 'Xlim' | 'SPL' | 'Pe' | 'Dd' | 'EBP' | 'numVC' | 'VCCon'
-  | 'Dia' | 'Vd' | 'no' | 'SPLmax' | 'SPLmaxLF' | 'USPL' | 'alfaVC' | 'Rt' | 'Ct' | 'gamma'
-  | 'Rme' | 'Mpow' | 'Mcost' | 'Gloss' | 'c' | 'roo' | 'Vcd' | 'Hg' | 'Hc' | 'freq_low_hz'
-  | 'freq_high_hz' | 'power_peak_W' | 'weight_kg' | 'Thick' | 'Depth' | 'MagDepth' | 'Magnet'
-  | 'Basket' | 'Outer' | 'OuterX' | 'OuterY' | 'DVol';
+/** The driver spec fields the app's UI reads/writes by name — the vocabulary's keys (schema
+ *  names), minus the identity/attribution metadata the editor renders outside the spec table.
+ *  Derived, never a hand-maintained copy. */
+export type SpecField = Exclude<OpenIsdFieldKey,
+  | 'manufacturer' | 'brand' | 'model' | 'providedBy' | 'added' | 'comment'>;
 
 /** The subset of SpecField that represent numeric quantities (all except non-numeric VCCon). */
 export type NumSpecField = Exclude<SpecField, 'VCCon'>;
