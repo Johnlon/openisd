@@ -51,45 +51,43 @@ This plan covers:
   `Fb`, `Fsc`, `Fh`, `Frc`, `Ql`, `Qa`, `Qp`, `Pin`, `Rs`) remain the **codec's** names for the
   `.wpr`/`.wdr` format, never the UI key.
 - The dead registry `options` prop (a UI-held list) is deleted. Enum/dropdown fields reference
-  a **domain-owned option list** by name (`options: 'voiceCoilWiring'`, `'ventShape'`,
-  `'endCorrection'`, `'boxType'`); the hook resolves the values + labels from the domain.
+  a **domain-owned options function** (`options: voiceCoilWiringOptions`, `ventShapeOptions`,
+  `endCorrectionOptions`, `boxTypeOptions`) — an imported function reference, so a renamed or
+  removed options provider is a compile error and the call is clickable, never a string that can
+  silently drift.
 
 ---
 
 ## 2. Field taxonomy: Target / Result / Entered
 
-Three kinds — a row must say which it is, and its description must read like it. **Choice/enum
-fields are an Entered kind** (a stated selection), not a fourth category.
+Three kinds — a row must say which it is. **Choice/enum fields are an Entered kind** (a stated
+selection), not a fourth category.
 
 ### Target (a design goal — entered by the user, possibly unobtainable)
 The value is what the design **aims at**. The model is free to report that the target cannot be
-reached. Description phrasing: *"…you aim the design at; the enclosure may not reach it."*
+reached. Phrasing stays natural — goal/aim language (e.g. *"design goal"*) — never boilerplate.
 
 | Field | Proposed user-facing description |
 | :--- | :--- |
-| `ventTuning_hz` (Fb) | `Fb – Box Tuning Frequency: the Helmholtz tuning frequency the design aims at for the vented enclosure, set by port dimensions and box volume. A target, not a result — the enclosure may not reach it; the resonance it actually produces is boxResonance.` |
-| `prTuning_hz` (Fp) | `Fp – Passive Radiator System Tuning: the Helmholtz tuning frequency the design aims at for the passive radiator and the enclosure volume. A target, not a result — it may be unreachable, because adding mass can only lower PR tuning, never raise it.` |
-| `rearTuning_hz` (Frc, entered) | `Frc – Rear Chamber Tuning Frequency: the Helmholtz tuning frequency the design aims at for the vented rear chamber of a 6th-order bandpass or ABC enclosure. A target, not a result.` |
-| `filterFc_hz` (Fc) | `Fc – Cutoff / Center Frequency: the cutoff or centre frequency the active signal filter is aimed at. A target, not a result.` |
-
-The UI already flags unattainable targets (`prTargetUnreachable`, the `FB_TARGET_TIP` note).
-A description that calls `Fb` "the Helmholtz resonance of the box" is wrong — that is the
-**result** (`boxResonance`), not the target.
+| `ventTuning_hz` (Fb) | `The design goal for the Helmholtz tuning frequency of the vented enclosure. Given one of either port length or box volume, the model solves for the other. The goal may not be achievable — then the output field (length or volume) is left blank and marked as unsolvable.` |
+| `prTuning_hz` (Fp) | `The design goal for the tuning frequency of the passive-radiator system. Adding mass to the PR cone can only lower it — a goal above the radiator's own free-air resonance can't be reached.` |
+| `rearTuning_hz` (Frc, entered) | `The design goal for the tuning frequency of the sealed rear chamber (bandpass6/ABC).` |
+| `filterFc_hz` (Fc) | `The filter's cutoff or centre frequency.` |
 
 ### Result (calculated by the model — read-only)
 The value is derived from the entered quantities and the solve. It is displayed, never edited.
-Description phrasing: *"calculated from …"*.
+Phrasing stays natural — *"actually produces"*, *"calculated"*.
 
 | Field | Proposed user-facing description |
 | :--- | :--- |
-| `boxResonance_hz` (Fsc / Fh) | `Fsc / Fh – System Resonance Frequency: the effective total resonance frequency of the driver coupled to the enclosure, calculated. Labelled Fsc for a sealed box, Fh for a passive-radiator box.` |
-| `rearResonance_hz` (Frc, calculated) | `Frc (Calculated) – Rear Chamber Resonance: the sealed rear-chamber resonance frequency in a 4th-order bandpass enclosure (Frc = Fs × √(1 + Vas/Vb)), calculated.` |
-| `portResonance_hz` (f_pipe) | `f_pipe – First Vent Pipe Resonance: the lowest organ-pipe standing-wave resonance inside the port tube (f = c / 2L), calculated.` |
-| `ventCrossArea_m2` (Av) | `Av – Vent Cross-Sectional Area: the total internal cross-sectional area of the port, calculated from its dimensions.` |
-| `prResonanceWithMass_hz` (Fpr loaded) | `Fpr (loaded) – Mass-Loaded PR Resonance: the PR's free-air resonance frequency including the added mass Madd, calculated.` |
-| `EBP_hz` (EBP) | `EBP – Efficiency Bandwidth Product: the ratio of Fs to Qes (Fs / Qes), an enclosure-suitability indicator (EBP < 50 favours sealed, > 90 favours vented), calculated.` |
-| `soundVelocity_mps` (c) | `c – Speed of Sound: velocity of acoustic wave propagation through air under ambient conditions, calculated.` |
-| `airDensity_kg_m3` (ρ₀) | `ρ₀ (Rho) – Air Density: mass density of air derived from temperature, humidity, and barometric pressure, calculated.` |
+| `boxResonance_hz` (Fsc / Fh) | `The resonance frequency the finished box actually produces — the built result of the tuning goal.` |
+| `rearResonance_hz` (Frc, calculated) | `The sealed rear chamber's actual resonance (Frc = Fs × √(1 + Vas/Vb)).` |
+| `portResonance_hz` (f_pipe) | `The port tube's own organ-pipe resonance (f = c/2L).` |
+| `ventCrossArea_m2` (Av) | `The port's cross-sectional area.` |
+| `prResonanceWithMass_hz` (Fpr loaded) | `The PR's free-air resonance including the added mass.` |
+| `EBP_hz` | `Fs/Qes — an enclosure-suitability indicator (EBP < 50 favours sealed, > 90 favours vented).` |
+| `soundVelocity_mps` (c) | `Speed of sound in the ambient air.` |
+| `airDensity_kg_m3` (ρ₀) | `Air density at the ambient temperature, humidity and pressure.` |
 
 ### Entered / measured (a physical input, or a stated choice)
 A quantity the user states (from a datasheet or measurement) — neither aimed-at nor derived.
@@ -99,7 +97,8 @@ This covers the Thiele/Small set, the PR's own spec, vent/box geometry, signal p
 the ambient environment, the model toggles, and the choices.
 
 > **Rule:** a row's kind is decided by **who owns the value**: entered→physical input or choice;
-> aimed-at→target; solved/read-out→result. Never mix them in one description.
+> aimed-at→target; solved/read-out→result. The description reads the kind naturally — it does
+> not restate the field's symbol or title (those come from the label).
 
 ---
 
@@ -115,11 +114,11 @@ One definition per field, holding everything **shared**:
 Fs_hz: {
   wdr: 'Fs',
   label: 'Fs',                        // DEFAULT display label
-  description: '… free-air resonance …',
+  description: 'Free-air resonance of the driver's moving assembly + suspension.',
   unit: 'Hz', unitGroup: 'freq', base: 'Hz',
   precision: 2,
   min: 1, max: 5000,                  // ONE bound set — no per-screen limits
-  options: undefined,                 // enum fields reference a DOMAIN list by name
+  options: undefined,                 // enum fields reference a DOMAIN OPTIONS FUNCTION
 }
 ```
 
@@ -174,11 +173,12 @@ types `'sealed' | 'vented' | 'bandpass4' | 'bandpass6' | 'abc' | 'box-passive-ra
 
 1. No decimal-place notes (`WinISD X dp`), no codebase paths (`logic/useVentGroup.ts`), no
    ledger references (`QO32`), no dev rants.
-2. Format: `[Symbol / short name] – [Title]: [acoustic function & physical meaning].`
-3. State the **kind** in the wording: targets say *aim at / may not reach*; results say
-   *calculated from*; entered say *the driver's/PR's stated …*.
-4. A target and its result must not read like the same thing: `ventTuning_hz` (aim) and
-   `boxResonance_hz` (achieved) are a pair and each says so.
+2. **Plain, specific, human** — one or two short sentences. Never restate the field's symbol or
+   display title (they come from the label). No boilerplate like *"a target, not a result"* or
+   *"calculated from"* — the kind column says that; the wording reads it naturally
+   (goal/aim phrasing for targets, *"actually produces"* for results).
+3. A target and its result must not read like the same thing: `ventTuning_hz` (aim) and
+   `boxResonance_hz` (achieved) are a pair and each reads differently.
 
 ---
 
@@ -201,130 +201,130 @@ Columns: **planned key** (post-rename), **screen(s)**, **kind** (Target / Result
 
 | planned key | screen | kind | shared? | description |
 | :--- | :--- | :--- | :--- | :--- |
-| `boxVolume_m3` (Vb) | Box, wizard | Entered | — | `Vb – Net Enclosure Volume: internal net air volume of the enclosure acting as the acoustic spring for the driver.` |
-| `frontVolume_m3` (Vf) | Box (bandpass) | Entered | — | `Vf – Front Chamber Volume: net air volume of the front (vented) chamber in a bandpass enclosure.` |
-| `ventTuning_hz` (Fb) | Vents | **Target** | — | `Fb – Box Tuning Frequency: the Helmholtz tuning frequency the design aims at for the vented enclosure, set by port dimensions and box volume. A target, not a result — the box may not reach it; the resonance it actually produces is boxResonance.` |
-| `boxResonance_hz` (Fsc/Fh) | Box | **Result** | label by box type (sealed `Fsc`, PR `Fh`) | `Fsc / Fh – System Resonance Frequency: the effective total resonance frequency of the driver coupled to the enclosure, calculated. Labelled Fsc for sealed, Fh for a passive-radiator box.` |
-| `rearTuning_hz` (Frc entered) | Box (bandpass6/ABC) | **Target** | — | `Frc – Rear Chamber Tuning Frequency: target Helmholtz tuning frequency for the vented rear chamber in 6th-order bandpass and ABC enclosures. A target, not a result.` |
-| `rearResonance_hz` (Frc calc) | Box (bandpass4) | **Result** | — | `Frc (Calculated) – Rear Chamber Resonance: sealed rear-chamber resonance frequency in a 4th-order bandpass enclosure (Frc = Fs × √(1 + Vas/Vb)), calculated.` |
+| `boxVolume_m3` (Vb) | Box, wizard | Entered | — | Net internal enclosure volume — the air spring on the driver. |
+| `frontVolume_m3` (Vf) | Box (bandpass) | Entered | — | Net air volume of the front chamber in a bandpass. |
+| `ventTuning_hz` (Fb) | Vents | **Target** | — | The design goal for the Helmholtz tuning frequency of the vented enclosure. Given one of either port length or box volume, the model solves for the other. The goal may not be achievable — then the output field (length or volume) is left blank and marked as unsolvable. |
+| `boxResonance_hz` (Fsc/Fh) | Box | **Result** | label by box type (sealed `Fsc`, PR `Fh`) | The resonance frequency the finished box actually produces — the built result of the tuning goal. |
+| `rearTuning_hz` (Frc entered) | Box (bandpass6/ABC) | **Target** | — | The design goal for the tuning frequency of the sealed rear chamber. |
+| `rearResonance_hz` (Frc calc) | Box (bandpass4) | **Result** | — | The sealed rear chamber's actual resonance (Frc = Fs × √(1 + Vas/Vb)). |
 
 ### 6.2 Vents
 
 | planned key | screen | kind | shared? | description |
 | :--- | :--- | :--- | :--- | :--- |
-| `ventShape` | Vents | Entered (choice) | domain `VentShape` | `Vent Shape – Geometry: selects between a circular tube (round) or rectangular duct (slotted) port.` |
-| `ventDiameter_m` (ventD) | Vents | Entered | — | `Dv – Port Diameter: internal diameter of a round port tube. Larger diameters reduce port air turbulence (choking) but require longer tubes.` |
-| `ventWidth_m` (ventW) | Vents | Entered | — | `Wv – Slot Port Width: internal width of a rectangular slotted port.` |
-| `ventHeight_m` (ventH) | Vents | Entered | — | `Hv – Slot Port Height: internal height of a rectangular slotted port.` |
-| `ventLength_m` (ventL) | Vents | Entered | — | `Lv – Vent Length: physical length of the port tube/duct. Longer ports lower the tuning frequency for a fixed volume.` |
-| `endCorrection` | Vents | Entered (choice) | domain list | `k – End Correction Factor: acoustic mass loading coefficient for tube ends (0.613 free ends, 0.732 one flanged end, 0.849 two flanged ends).` |
-| `ventCrossArea_m2` (Av) | Vents | **Result** | — | `Av – Vent Cross-Sectional Area: total internal cross-sectional area of the port, calculated from its dimensions.` |
-| `portResonance_hz` (f_pipe) | Vents | **Result** | — | `f_pipe – First Vent Pipe Resonance: lowest organ-pipe standing-wave resonance inside the port tube (f = c / 2L), calculated.` |
+| `ventShape` | Vents | Entered (choice) | domain `ventShapeOptions` | Round tube or slotted duct. |
+| `ventDiameter_m` (ventD) | Vents | Entered | — | Internal diameter of a round port. Larger diameters cut port turbulence but need longer tubes. |
+| `ventWidth_m` (ventW) | Vents | Entered | — | Internal width of a slotted port. |
+| `ventHeight_m` (ventH) | Vents | Entered | — | Internal height of a slotted port. |
+| `ventLength_m` (ventL) | Vents | Entered | — | Physical port length. Longer ports lower the tuning for a fixed volume. |
+| `endCorrection` | Vents | Entered (choice) | domain `endCorrectionOptions` | End-correction coefficient: 0.613 free ends, 0.732 one flanged end, 0.849 two flanged ends. |
+| `ventCrossArea_m2` (Av) | Vents | **Result** | — | The port's cross-sectional area. |
+| `portResonance_hz` (f_pipe) | Vents | **Result** | — | The port tube's own organ-pipe resonance (f = c/2L). |
 
 ### 6.3 Passive Radiator
 
 | planned key | screen | kind | shared? | description |
 | :--- | :--- | :--- | :--- | :--- |
-| `passiveRadiatorCount` (prNum) | PR | Entered | — | `N_PR – Passive Radiator Count: number of identical passive radiators installed in the enclosure.` |
-| `addedMass_kg` (Madd PR) | PR | Entered | the **driver** concept is separate (`driverAddedMass_kg`) | `Madd (PR) – PR Added Mass: additional ballast mass attached to the passive radiator cone to lower its tuning frequency.` |
-| `prTuning_hz` (Fp) | PR | **Target** | — | `Fp – Passive Radiator System Tuning: the Helmholtz tuning frequency the design aims at for the passive radiator and enclosure volume. A target, not a result — it may be unreachable (adding mass only lowers PR tuning, never raises it).` |
-| `Fs_hz` (Fpr) | PR | Entered | **shared with the driver**, label overridden to `Fpr` | `Fpr – Unloaded PR Resonance: fundamental free-air resonance frequency of the passive radiator without added mass or box coupling.` |
-| `prResonanceWithMass_hz` (Fpr loaded) | PR | **Result** | — | `Fpr (loaded) – Mass-Loaded PR Resonance: free-air resonance frequency of the passive radiator including added mass Madd, calculated.` |
-| `Sd_m2` | PR | Entered | driver editor, same label `Sd` | `Sd (PR) – Passive Radiator Area: effective radiating piston surface area of the passive radiator.` |
-| `Xmax_m` | PR | Entered | driver editor | `Xmax (PR) – Passive Radiator Excursion Limit: maximum peak linear cone displacement of the passive radiator diaphragm.` |
-| `Qms` | PR | Entered | driver editor | `Qms (PR) – PR Mechanical Quality Factor: quality factor representing mechanical suspension friction losses in the passive radiator.` |
-| `Vas_m3` | PR | Entered | driver editor | `Vas (PR) – PR Equivalent Compliance Volume: volume of air having the same acoustic compliance as the passive radiator suspension.` |
+| `passiveRadiatorCount` (prNum) | PR | Entered | — | Number of identical passive radiators. |
+| `addedMass_kg` (Madd PR) | PR | Entered | the **driver** concept is separate (`driverAddedMass_kg`) | Ballast mass on the PR cone to lower its tuning. |
+| `prTuning_hz` (Fp) | PR | **Target** | — | The design goal for the tuning frequency of the passive-radiator system. Adding mass to the PR cone can only lower it — a goal above the radiator's own free-air resonance can't be reached. |
+| `Fs_hz` (Fpr) | PR | Entered | **shared with the driver**, label overridden to `Fpr` | The radiator's own free-air resonance — no box in it. |
+| `prResonanceWithMass_hz` (Fpr loaded) | PR | **Result** | — | The PR's free-air resonance including the added mass. |
+| `Sd_m2` | PR | Entered | driver editor, same label `Sd` | The PR's effective radiating piston area. |
+| `Xmax_m` | PR | Entered | driver editor | The PR's peak linear excursion. |
+| `Qms` | PR | Entered | driver editor | The PR's mechanical quality factor. |
+| `Vas_m3` | PR | Entered | driver editor | The PR's compliance-equivalent volume. |
 
 ### 6.4 Signal
 
 | planned key | screen | kind | shared? | description |
 | :--- | :--- | :--- | :--- | :--- |
-| `inputPower_W` (Pin) | Signal | Entered | — | `Pin – System Input Power: total electrical power supplied to the loudspeaker system (Pin = V² / Re).` |
-| `driveVoltage_V` (driveV) | Signal | Entered | — | `Vin – Driver Terminal Voltage: RMS input voltage applied across the driver voice coil terminals.` |
-| `seriesResistance_ohm` (Rs) | Signal | Entered | — | `Rg – Series Resistance: combined amplifier output impedance, wiring, and crossover component resistance in series with the driver.` |
-| `listenDistance_m` | Signal | Entered | — | `d – Listening Distance: on-axis distance from the loudspeaker to the listener for SPL calculations.` |
-| `listenAngle_rad` | Signal | Entered | — | `θ – Off-Axis Angle: angular offset from the main acoustic axis in radians.` |
-| `signalGenerator_hz` (genHz) | Signal | Entered | — | `f_gen – Test Tone Frequency: target frequency evaluated by the single-tone signal generator.` |
+| `inputPower_W` (Pin) | Signal | Entered | — | Total electrical power into the system (Pin = V²/Re). |
+| `driveVoltage_V` (driveV) | Signal | Entered | — | RMS voltage across each driver's terminals. |
+| `seriesResistance_ohm` (Rs) | Signal | Entered | — | Amplifier output + wiring + crossover resistance in series. |
+| `listenDistance_m` | Signal | Entered | — | On-axis distance to the listener. |
+| `listenAngle_rad` | Signal | Entered | — | Off-axis listening angle. |
+| `signalGenerator_hz` (genHz) | Signal | Entered | — | Single-tone generator frequency. |
 
 ### 6.5 Box losses
 
 | planned key | screen | kind | shared? | description |
 | :--- | :--- | :--- | :--- | :--- |
-| `leakageQ` (Ql) | Box losses | Entered | — | `Ql – Enclosure Leakage Loss Q: quality factor accounting for acoustic energy losses through cabinet seams and gaskets.` |
-| `absorptionQ` (Qa) | Box losses | Entered | — | `Qa – Enclosure Damping Loss Q: quality factor accounting for acoustic energy absorption by internal damping fill.` |
-| `portQ` (Qp) | Box losses | Entered | — | `Qp – Port Friction Loss Q: quality factor representing air friction and viscous boundary losses inside the vent.` |
+| `leakageQ` (Ql) | Box losses | Entered | — | Enclosure leakage-loss Q (seams and gaskets). |
+| `absorptionQ` (Qa) | Box losses | Entered | — | Enclosure damping/absorption-loss Q (fill). |
+| `portQ` (Qp) | Box losses | Entered | — | Port friction-loss Q. |
 
 ### 6.6 Advanced (environment + model toggles)
 
 | planned key | screen | kind | shared? | description |
 | :--- | :--- | :--- | :--- | :--- |
-| `temperature_K` (advTemp) | Advanced | Entered | — | `T – Ambient Temperature: atmospheric temperature used to calculate speed of sound and air density.` |
-| `humidity_pct` (advHumidity) | Advanced | Entered | — | `RH – Relative Humidity: atmospheric humidity percentage affecting sound speed and medium density.` |
-| `pressure_Pa` (advPressure) | Advanced | Entered | — | `p₀ – Air Pressure: atmospheric barometric pressure influencing medium density and acoustic impedance.` |
-| `soundVelocity_mps` (advSoundVelocity) | Advanced | **Result** | — | `c – Speed of Sound: velocity of acoustic wave propagation through air under ambient conditions, calculated.` |
-| `airDensity_kg_m3` (advAirDensity) | Advanced | **Result** | — | `ρ₀ (Rho) – Air Density: mass density of air derived from temperature, humidity, and barometric pressure, calculated.` |
-| `simVcInductance` | Advanced | Entered (choice) | — | `Simulate Voice Coil Inductance: includes voice coil inductance (Le) in acoustic output calculations instead of impedance plots alone.` |
-| `forceFlatResponse` | Advanced | Entered (choice) | — | `Force Flat Response: applies auto-equalization to reveal excursion and port velocity demands required for a flat passband response.` |
-| `tlPortModel` | Advanced | Entered (choice) | — | `Transmission Line Port Model: models the vent as a distributed transmission line, incorporating internal organ-pipe resonances into response curves.` |
-| `rgAtDriverSide` | Advanced | Entered (choice) | — | `Rg Placement: applies series resistance Rg individually to each driver rather than globally at the main amplifier output.` |
-| `splXmaxLimited` | Advanced | Entered (choice) | — | `Xmax Limited SPL: clamps the SPL frequency response graph whenever cone displacement exceeds maximum linear excursion Xmax.` |
-| `airModel` | Advanced | Entered (choice) | — | `Air Model Selection: toggles between legacy WinISD air equations and standardized CIPM moist air calculations.` |
+| `temperature_K` (advTemp) | Advanced | Entered | — | Ambient temperature (drives speed of sound and air density). |
+| `humidity_pct` (advHumidity) | Advanced | Entered | — | Ambient relative humidity. |
+| `pressure_Pa` (advPressure) | Advanced | Entered | — | Ambient barometric pressure. |
+| `soundVelocity_mps` (advSoundVelocity) | Advanced | **Result** | — | Speed of sound in the ambient air. |
+| `airDensity_kg_m3` (advAirDensity) | Advanced | **Result** | — | Air density at the ambient conditions. |
+| `simVcInductance` | Advanced | Entered (choice) | — | Include voice-coil inductance in the output. |
+| `forceFlatResponse` | Advanced | Entered (choice) | — | Auto-EQ the system flat. |
+| `tlPortModel` | Advanced | Entered (choice) | — | Model the port as a transmission line. |
+| `rgAtDriverSide` | Advanced | Entered (choice) | — | Apply Rg per driver, not at the amplifier output. |
+| `splXmaxLimited` | Advanced | Entered (choice) | — | Clamp the SPL graph at Xmax. |
+| `airModel` | Advanced | Entered (choice) | domain `airModelOptions` | WinISD air vs CIPM moist air. |
 
 ### 6.7 Driver: Parameters — all **Entered** unless noted
 
 | key | kind | shared? | description |
 | :--- | :--- | :--- | :--- |
-| `Fs_hz` | Entered | PR editor as `Fpr` | `Fs – Driver Resonant Frequency: free-air fundamental resonance frequency of the driver moving assembly and suspension.` |
-| `Qts` | Entered | — | `Qts – Total Quality Factor: total damping factor of the driver at Fs, combining electrical (Qes) and mechanical (Qms) damping.` |
-| `Qes` | Entered | — | `Qes – Electrical Quality Factor: quality factor measuring electrical damping generated by back-EMF in the voice coil at Fs.` |
-| `Qms` | Entered | PR editor | `Qms – Mechanical Quality Factor: quality factor measuring mechanical friction damping losses in the surround and spider at Fs.` |
-| `Vas_m3` | Entered | PR editor | `Vas – Equivalent Compliance Volume: volume of air whose acoustic compliance equals the mechanical compliance of the driver suspension.` |
-| `Re_ohm` | Entered | — | `Re – DC Voice Coil Resistance: direct-current electrical resistance measured across the driver voice coil terminals.` |
-| `Le_H` | Entered | — | `Le – Voice Coil Inductance: self-inductance of the voice coil causing high-frequency electrical impedance rise.` |
-| `Mms_kg` | Entered | — | `Mms – Moving Mass: total mass of the driver diaphragm, voice coil, former, and air mass loading.` |
-| `Sd_m2` | Entered | PR editor | `Sd – Effective Diaphragm Area: effective radiating piston area of the driver cone and inner surround.` |
-| `Xmax_m` | Entered | PR editor | `Xmax – Peak Linear Excursion: peak one-way linear cone displacement where voice coil coverage remains inside the magnetic gap.` |
-| `Pe_W` | Entered | — | `Pe – Thermal Power Handling: maximum continuous electrical power input the voice coil can dissipate without thermal failure.` |
-| `BL_Tm` | Entered | — | `BL – Motor Force Factor: product of magnetic gap flux density B and voice coil wire length L, measuring motor coupling strength.` |
-| `Cms_m_per_N` | Entered | — | `Cms – Mechanical Compliance: mechanical flexibility (spring rate inverse) of the suspension system.` |
-| `Rms_kg_per_s` | Entered | — | `Rms – Mechanical Resistance: mechanical friction loss resistance of the driver suspension system.` |
-| `Znom_ohm` | Entered | — | `Znom – Nominal Impedance: rated speaker impedance classification (e.g. 4, 8, or 16 ohms) for amplifier matching.` |
-| `Dd_m` | Entered | — | `Dd – Effective Piston Diameter: effective piston diameter, interchangeable with Sd (Sd = π·(Dd/2)²).` |
-| `fLe_hz` | Entered | — | `fLe – Semi-Inductance Reference Frequency: the frequency at which Le and KLe were measured; 0 = standard Le model only.` |
-| `KLe_H_sqrtHz` | Entered | — | `KLe – Semi-Inductance Coefficient: semi-inductance coefficient of the voice coil.` |
-| `numVC` | Entered | — | `N_vc – Voice Coil Count: number of independent voice coil windings on the driver motor assembly.` |
-| `VCCon` | Entered (choice) | domain `VoiceCoilWiring` | `Voice Coil Wiring: wiring configuration (series or parallel) for multi-voice-coil drivers determining total terminal resistance Re and BL.` |
-| `USPL_dB` | **Result** | — | `USPL – Voltage Sensitivity: sound pressure level at 1 meter produced by a standard 2.83 V RMS input voltage, calculated.` |
-| `SPL_dB` | **Result** | — | `SPL – Power Sensitivity: sound pressure level at 1 meter produced by a 1 Watt electrical power input, calculated.` |
+| `Fs_hz` | Entered | PR editor as `Fpr` | Free-air resonance of the driver's moving assembly + suspension. |
+| `Qts` | Entered | — | Total quality factor at Fs (electrical + mechanical damping). |
+| `Qes` | Entered | — | Electrical quality factor (back-EMF damping). |
+| `Qms` | Entered | PR editor | Mechanical quality factor (suspension friction). |
+| `Vas_m3` | Entered | PR editor | Volume of air with the same compliance as the suspension. |
+| `Re_ohm` | Entered | — | DC voice-coil resistance. |
+| `Le_H` | Entered | — | Voice-coil inductance. |
+| `Mms_kg` | Entered | — | Moving mass (diaphragm + coil + former + air load). |
+| `Sd_m2` | Entered | PR editor | Effective radiating piston area. |
+| `Xmax_m` | Entered | PR editor | Peak linear one-way excursion. |
+| `Pe_W` | Entered | — | Thermal power handling. |
+| `BL_Tm` | Entered | — | Motor force factor. |
+| `Cms_m_per_N` | Entered | — | Mechanical compliance of the suspension. |
+| `Rms_kg_per_s` | Entered | — | Mechanical loss resistance. |
+| `Znom_ohm` | Entered | — | Nominal impedance class (4/8/16 Ω). |
+| `Dd_m` | Entered | — | Effective piston diameter (Sd ↔ Dd pair). |
+| `fLe_hz` | Entered | — | Semi-inductance reference frequency. |
+| `KLe_H_sqrtHz` | Entered | — | Semi-inductance coefficient. |
+| `numVC` | Entered | — | Number of voice coils. |
+| `VCCon` | Entered (choice) | domain `voiceCoilWiringOptions` | Series/parallel wiring of multi-coil drivers. |
+| `USPL_dB` | **Result** | — | SPL at 1 m from 2.83 V. |
+| `SPL_dB` | **Result** | — | SPL at 1 m from 1 W. |
 
 ### 6.8 Driver: Advanced
 
 | key | kind | description |
 | :--- | :--- | :--- |
-| `EBP_hz` | **Result** | `EBP – Efficiency Bandwidth Product: ratio of Fs to Qes (Fs / Qes); indicates enclosure suitability (EBP < 50 favours sealed, > 90 favours vented), calculated.` |
-| `SPLmaxLF_dB` | **Result** | `SPLmaxLF – Low Frequency Excursion Limit SPL: theoretical maximum sound pressure level at 20 Hz limited strictly by peak diaphragm excursion Xmax, calculated.` |
-| `SPLmax_dB` | **Result** | `SPLmax – Thermally Limited Max SPL: maximum acoustic sound pressure level when driven at full thermal power rating Pe, calculated.` |
-| `Rme_kg_per_s` | **Result** | `Rme – Motional Resistance at Resonance: electromagnetic damping resistance generated by back-EMF at resonance, calculated.` |
-| `gamma_m_per_s2_A` | **Result** | `γ (Gamma) – Acceleration Factor: ratio of motor force BL to moving mass Mms, measuring initial cone acceleration per ampere, calculated.` |
-| `Mpow_N_per_sqrtW` | **Result** | `Mpow – Power-Normalized Motor Force: motor force produced per square root of input power (BL / √Re), calculated.` |
-| `Mcost_kg_per_s` | **Result** | `Mcost – Motor Figure of Merit: dynamic electromagnetic coupling efficiency accounting for gap geometry and displacement, calculated.` |
-| `Gloss` | **Result** | `Gloss – Gravity Sag Percentage: percentage of peak excursion Xmax consumed by cone displacement under gravity when mounted horizontally, calculated.` |
-| `η₀` (key `no`) | **Result** | `η₀ (Eta Zero) – Reference Efficiency: how effectively a speaker converts electrical power into acoustic sound power in its passband (η₀ = P_acc / P_elec × 100%), calculated. Benchmarks: ≥4% Very High (compression/horn), 3–4% High (PA woofer), 2–3% Good (studio monitor), 1.5–2% Average (hi-fi), 0.75–1.5% Low, <0.75% Very Low (infra-sub). Higher η₀ raises SPL; Hoffman's Iron Law dictates deep sub bass extension requires lower η₀.` — label is **η₀**, `refUrl` = <https://speakerwizard.co.uk/%CE%B7%E2%82%80-eta-zero-reference-efficiency-how-effectively-a-speaker-converts-power-into-sound/> |
-| `alfaVC_per_K` | Entered | `α_VC – Voice Coil Temp Coefficient: thermal resistance coefficient of voice coil wire, determining resistance rise per degree of heating.` |
+| `EBP_hz` | **Result** | Fs/Qes — enclosure-suitability indicator. |
+| `SPLmaxLF_dB` | **Result** | Max SPL at 20 Hz limited by Xmax. |
+| `SPLmax_dB` | **Result** | Max SPL at full thermal power. |
+| `Rme_kg_per_s` | **Result** | Motional resistance at resonance. |
+| `gamma_m_per_s2_A` | **Result** | BL/Mms — acceleration per ampere. |
+| `Mpow_N_per_sqrtW` | **Result** | BL/√Re — motor force per √W. |
+| `Mcost_kg_per_s` | **Result** | Motor figure of merit. |
+| `Gloss` | **Result** | Gravity sag as % of Xmax. |
+| `η₀` (key `no`) | **Result** | `How effectively a speaker converts electrical power into acoustic sound power in its passband (η₀ = P_acc / P_elec × 100%). Benchmarks: ≥4% Very High (compression/horn), 3–4% High (PA woofer), 2–3% Good (studio monitor), 1.5–2% Average (hi-fi), 0.75–1.5% Low, <0.75% Very Low (infra-sub). Higher η₀ raises SPL; Hoffman's Iron Law dictates deep sub bass extension requires lower η₀.` — label is **η₀**, `refUrl` = <https://speakerwizard.co.uk/%CE%B7%E2%82%80-eta-zero-reference-efficiency-how-effectively-a-speaker-converts-power-into-sound/> |
+| `alfaVC_per_K` | Entered | Voice-coil temperature coefficient. |
 
 ### 6.9 Driver: Dimensions — all Entered
 
 | key | description |
 | :--- | :--- |
-| `Thick_m` | `Thick – Basket Plate Thickness: thickness of the basket mounting plate.` |
-| `Depth_m` | `Depth – Driver Depth: overall mounting depth of the driver.` |
-| `MagDepth_m` | `MagDepth – Magnet Depth: depth of the magnet structure (labelled Magnet Depth).` |
-| `Magnet_m` | `Magnet – Magnet Diameter: diameter of the magnet structure.` |
-| `Basket_m` | `Basket – Basket Diameter: outer diameter of the frame/basket.` |
-| `Outer_m` | `Outer – Outer Mounting Diameter: outer mounting diameter of the driver.` |
-| `Vcd_m` | `Vcd – Voice Coil Diameter: diameter of the voice coil former.` |
-| `DVol_m3` | `DVol – Driver Displacement Volume: driver displacement volume, locked to Depth/MagDepth/Magnet (DVol = (π/4)·[S·(Depth−MagDepth)/3 + Magnet²·MagDepth]).` |
-| `OuterX_m` / `OuterY_m` | `OuterX / OuterY – Outer X / Y dimensions: mounting footprint extents.` |
+| `Thick_m` | Basket plate thickness. |
+| `Depth_m` | Driver mounting depth. |
+| `MagDepth_m` | Magnet depth (labelled Magnet Depth). |
+| `Magnet_m` | Magnet diameter. |
+| `Basket_m` | Basket diameter. |
+| `Outer_m` | Outer mounting diameter. |
+| `Vcd_m` | Voice-coil diameter. |
+| `DVol_m3` | Driver displacement volume, derived from the depth and magnet dimensions. |
+| `OuterX_m` / `OuterY_m` | Outer X / Y mounting footprint. |
 
 ### 6.10 Driver: General (metadata)
 
@@ -335,18 +335,18 @@ no limits, no options.
 
 | key | screen | kind | description |
 | :--- | :--- | :--- | :--- |
-| `numDrivers` (nDrivers) | Driver | Entered | `N_drv – Number of Drivers: number of drivers wired in parallel.` |
-| `vcTempRise_K` (vcTempRise) | Driver | Entered | `ΔT_VC – Voice Coil Temp Rise: temperature rise of the voice coil above ambient, causing thermal power compression.` |
-| `driverAddedMass_kg` (driverAddedMass) | Driver | Entered | `Madd – Driver Cone Added Mass: calibration mass added to the DRIVER's cone during testing to measure suspension compliance — distinct from the PR's addedMass_kg.` |
+| `numDrivers` (nDrivers) | Driver | Entered | Number of drivers wired in parallel. |
+| `vcTempRise_K` (vcTempRise) | Driver | Entered | Voice-coil temperature rise above ambient. |
+| `driverAddedMass_kg` (driverAddedMass) | Driver | Entered | Calibration mass on the driver's cone — distinct from the passive radiator's added mass. |
 
 ### 6.12 Filters
 
 | planned key | kind | description |
 | :--- | :--- | :--- |
-| `filterFc_hz` (Fc) | **Target** | `Fc – Cutoff / Center Frequency: cutoff or center frequency the active signal filter is aimed at.` |
-| `filterQ` (Q_filter) | Entered | `Q_filter – Filter Quality Factor: quality factor determining resonance peak sharpness or damping of the filter.` |
-| `filterGain_dB` (Gain) | Entered | `Gain – Filter Gain: boost or attenuation gain applied by the equalizer or filter in dB.` |
-| `filterOrder` (Order) | Entered | `Order – Filter Order: filter steepness order (e.g. 1st order 6 dB/oct, 2nd order 12 dB/oct, 4th order 24 dB/oct).` |
+| `filterFc_hz` (Fc) | **Target** | The filter's cutoff or centre frequency. |
+| `filterQ` (Q_filter) | Entered | Filter quality factor. |
+| `filterGain_dB` (Gain) | Entered | Filter gain (dB). |
+| `filterOrder` (Order) | Entered | Filter order (6/12/24 dB/oct). |
 
 ---
 
@@ -370,7 +370,7 @@ no limits, no options.
    PR/driver `Qms` 100-vs-50 and `Fs_hz` 1000-vs-5000 differences).
 3. Rename errant keys to `<name>_<unit>` (dimensionless fields keep bare keys); update
    `data-field-key`, `field=`, tests, and the provenance/label-drift browser specs.
-4. Move option lists to the domain/engine; rewire dropdowns through the hooks.
+4. Move option lists to the domain/engine as **functions**; rewire dropdowns through the hooks.
 5. Replace `title` tooltips with `FieldHelpPopover.vue`; add `refUrl` where a reference exists.
 6. **Corpus DQ regeneration (risk, from the S2-11/12/13 refactor — `4ad463b`).** The domain
    driver's `projectFormulaDq` now writes `engine.issueToText` **prose** into `dq_calculated`
