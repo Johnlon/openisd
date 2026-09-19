@@ -30,5 +30,5 @@ npm run typecheck
 # ci/health-check and A10's byte-identical allow-list check, not per commit. Every
 # behavioural test still blocks. See the checklistDescribe guards in
 # packages/ui/test/ui/architecture.test.ts and architecture-no-reexports.test.ts.
-PRECOMMIT=1 npx vitest run packages/design packages/persistence
+PRECOMMIT=1 npx vitest run packages/design packages/persistence packages/ui
 echo "[pre-commit] all green ✓ (checklist gates deferred to ci/A10)"

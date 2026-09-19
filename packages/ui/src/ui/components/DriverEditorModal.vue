@@ -23,7 +23,8 @@ import { useEscToClose } from '../../logic/useEscToClose.js';
 import { cellClassFor, fieldIsMandatoryAndUnsatisfied } from '../../logic/useDriverCells.js';
 import { DriverFileFormat } from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
-import { getProvenanceInfo, LABEL_TO_FIELD_KEY } from '../../logic/provenance.js';
+import { getProvenanceInfo } from '../../logic/provenance.js';
+import { LABEL_TO_FIELD_KEY } from '../../logic/openIsdFieldKeys.js';
 import { editableFrom, elementFrom, inputFrom, selectValue } from '../../logic/domEvents.js';
 
 const { selection, myDrivers, logging, driverFileStorage } = useApp();
