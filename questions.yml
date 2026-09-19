@@ -1,5 +1,5 @@
 prefix: QO
-next: 162
+next: 165
 questions:
 - id: QO157
   title: Driver Editor is truly modal — focus-switch cannot close it by clicking another row
@@ -9507,3 +9507,38 @@ questions:
   status: open
   raised: '2026-09-18'
   body: ''
+- id: QO162
+  title: optional port air-velocity (chuffing) limit as a vent constraint, later
+  status: open
+  raised: '2026-09-19'
+  body: |-
+    Idea (not decided, marked later). In the Vents page, let the designer optionally enter a maximum port air speed (the chuffing limit, conventionally ~17 m/s peak, ~10 m/s for clean, ~5% of Mach). When set, the vent solve is required to keep the computed peak port velocity at the current Signal-tab input level under that limit; when no physically realisable port (area + length that still fits the volume) can do it, the vent tuning target is marked unsolvable / blanked like the existing negative-length unreachable case.
+
+    Constraints from discussion: (1) port velocity has no meaning without a reference drive level — it scales with input voltage, so the constraint is "peak port velocity at the current design power <= limit"; (2) this is a feasibility CONSTRAINT, not a target or a result — it only makes target outputs go blank, never appears as an output; plan doc section 2 taxonomy may need a fourth "Constraint (optional)" kind; (3) one direction to explore is velocity falling as port area grows, so the infeasible case is when the required area forces a negative/absurd port length — the solver already knows that failure mode. Related companion idea in QO163 (PR excursion/Xlim). WinISD has no such constraint (parity note). Suggested UX: the constraint solver opens as a popup off the main page, like the existing alignment editor (see QO164).
+- id: QO163
+  title: PR excursion/Xlim as a tuning constraint or redline, later
+  status: open
+  raised: '2026-09-19'
+  body: 'Idea (not decided, marked later). Whether the passive radiator''s excursion limit (Xmax / mechanical
+    Xlim) should constrain or flag the tuning target the way negative added mass does today. Discussion
+    outcome: tuning reachability and excursion are different axes — the only hard tuning limit is the
+    bare-cone ceiling (target Fp cannot sit above the radiator''s own free-air resonance Fpr, already
+    implemented as the negative-mass DQ); excursion (Xlim) limits how loud the PR can play at a given
+    tuning, not whether that tuning exists. So Xlim as a "target unachievable" flag conflates two axes.
+    Two acceptable futures: (a) keep as result-side — separate values confined to the sweep, engine already
+    computes PR excursion per frequency and the Xmax-limited SPL curves; optionally add a redline when
+    PR excursion exceeds the PR''s Xmax; (b) a genuinely new feature — a joint constraint "target tuning
+    Fp AND >= X dB with excursion <= Xlim", which introduces a minimum achievable tuning at a stated output
+    level, but needs a reference drive level (the Signal-tab input) and is new solver scope beyond WinISD
+    parity. Suggested UX: such a constraint solver opens as a popup off the main page, like the existing
+    alignment editor (see QO164).'
+- id: QO164
+  title: feasibility/constraint solvers open in a popup like the alignment editor, later
+  status: open
+  raised: '2026-09-19'
+  body: 'Idea (not decided, marked later). The feasibility/constraint solvers discussed in QO162 and QO163
+    (optional port air-velocity limit, optional PR excursion/Xlim constraint) should not live inline in
+    the main pages. Instead they open as a separate popup/side-panel off the main page, following the
+    pattern of the existing alignment editor (the sealed-alignment solver popup). Rationale: keeping the
+    constraint machinery out of the main page keeps the primary tuning/geometry fields simple, and a popup
+    is a natural place for an iterative "try a constraint, see if it breaks the design" interaction.'
