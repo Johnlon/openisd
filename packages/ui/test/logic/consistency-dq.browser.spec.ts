@@ -67,9 +67,9 @@ test('driver editor: an inconsistent group marks every one of its members, with 
 
   // The tooltip names the group and how far out it is; "inconsistent" alone is not actionable.
   const note = await editorField(page, 'Fs').locator('.de-dq').getAttribute('title');
-  expect(note).toContain('Fs');
-  expect(note).toContain('Mms');
-  expect(note).toContain('Cms');
+  expect(note).toContain('Fs_hz');
+  expect(note).toContain('Mms_kg');
+  expect(note).toContain('Cms_m_per_N');
   expect(note).toMatch(/disagree by \d/);
   expect(note).toContain('Fs = 1/(2π·√(Mms·Cms))');
 
@@ -100,7 +100,7 @@ test('Tune what-if: the same mark appears on every member of the group as the dr
   await expect(tuneField(page, 'Re').locator('.de-dq')).toHaveCount(0);
 
   const dqIcon = tuneField(page, 'Mms').locator('.de-dq');
-  const tooltip = page.locator('body > .dq-tooltip-box-Mms');
+  const tooltip = page.locator('body > .dq-tooltip-box-Mms_kg');
   await dqIcon.hover();
   await expect(tooltip).toBeVisible();
   const note = await tooltip.textContent();
@@ -128,7 +128,7 @@ test('Tune what-if: hovering or clicking the alert icon displays the custom form
   await expect(dqIcon).toBeVisible();
 
   // Tooltip box should not be visible initially
-  const tooltip = page.locator('body > .dq-tooltip-box-Mms');
+  const tooltip = page.locator('body > .dq-tooltip-box-Mms_kg');
   await expect(tooltip).toBeHidden();
 
   // Hovering should show the tooltip

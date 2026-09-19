@@ -59,7 +59,7 @@ test.describe('Driver Field Provenance Inspector & Equation Inspector', () => {
     expect(pathCount).toBeGreaterThanOrEqual(2);
 
     await expect(pathCards.nth(0)).toContainText('Qes = (Qts × Qms) / (Qms - Qts)');
-    await expect(pathCards.nth(1)).toContainText('Qes = (2π × Fs × Mms × Re) / BL²');
+    await expect(pathCards.nth(1)).toContainText('Qes = (2π × Fs_hz × Mms_kg × Re_ohm) / BL²');
   });
 
   test('Closing Equation Inspector via ✕ button dismisses the non-modal overlay while keeping Driver Editor open', async ({ page }) => {

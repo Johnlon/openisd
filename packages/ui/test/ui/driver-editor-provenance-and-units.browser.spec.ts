@@ -184,7 +184,7 @@ test('inspecting a field also colours the inputs its formula names', async ({ pa
 
 /** Fields that carry the CALCULATED mark with no formula behind them.
  *  `c` and `roo` are the engine's air constants — nothing about the driver derives them. */
-const NO_FORMULA = new Set(['c', 'roo']);
+const NO_FORMULA = new Set(['c_m_per_s', 'roo_kg_per_m3']);
 
 test('every field the solver calculated has a provenance formula', async ({ page }) => {
   await openEditor(page);

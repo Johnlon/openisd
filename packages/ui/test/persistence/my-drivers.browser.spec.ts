@@ -157,11 +157,11 @@ test('Add new Driver saves the new driver into My Drivers and leaves the project
   await field(page, 'brand').fill('Bench');
   await field(page, 'model').fill('Hand Built');
   await page.locator(`${EDITOR} .de-tab`).filter({ hasText: /^Parameters$/ }).click();
-  await field(page, 'Fs').fill('42');
-  await field(page, 'Vas').fill('30');      // litres — the field's display scale
-  await field(page, 'Re').fill('5.5');
-  await field(page, 'Sd').fill('130');      // cm² — the field's display scale
-  await field(page, 'Sd').blur();
+  await field(page, 'Fs_hz').fill('42');
+  await field(page, 'Vas_m3').fill('30');      // litres — the field's display scale
+  await field(page, 'Re_ohm').fill('5.5');
+  await field(page, 'Sd_m2').fill('130');      // cm² — the field's display scale
+  await field(page, 'Sd_m2').blur();
 
   const ok = page.locator(`${EDITOR} .de-footer button:has-text("OK")`);
   await expect(ok, 'OK stayed disabled with brand, model and every required parameter filled').toBeEnabled();

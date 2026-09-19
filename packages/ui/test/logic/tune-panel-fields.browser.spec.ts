@@ -14,7 +14,7 @@ async function cell(page: Page, field: string): Promise<{ value: unknown; state:
     const fields = await import(/* @vite-ignore */ fieldsPath);
     const project = s.focusedProject();
     if (!project) throw new Error('expected a focused project');
-    const key = f === 'Bl' ? 'BL' : f;
+    const key = f === 'BL_Tm' ? 'BL_Tm' : f;
     const handle = fields.specFieldHandle(project.driver, key);
     if (!handle) throw new Error(`no spec field handle for ${key}`);
     const c = handle.get();
@@ -64,14 +64,14 @@ test('QO11.1 Tune: Mms and Bl are editable and override the calculation; clearin
   await expect(mms).toBeEditable();
 
   // Untouched, Mms is derived from the T/S set → Calculated.
-  expect((await cell(page, 'Mms')).state).toBe('C');
+  expect((await cell(page, 'Mms_kg')).state).toBe('C');
   await expect(mms).toHaveClass(/value-c/);
 
   // Typing one makes it Entered, and the model takes the value (g → kg).
   await mms.click();
   await mms.press('Control+a');
   await mms.pressSequentially('12.5');
-  const entered = await cell(page, 'Mms');
+  const entered = await cell(page, 'Mms_kg');
   expect(entered.state).toBe('E');
   expect(entered.value).toBeCloseTo(0.0125, 6);
   await expect(mms).toHaveClass(/value-e/);
@@ -79,7 +79,7 @@ test('QO11.1 Tune: Mms and Bl are editable and override the calculation; clearin
   // Clearing withdraws the override — the field goes back to being calculated.
   await mms.press('Control+a');
   await mms.press('Delete');
-  expect((await cell(page, 'Mms')).state).toBe('C');
+  expect((await cell(page, 'Mms_kg')).state).toBe('C');
 
   // Bl behaves the same way — it is a driver field, not a read-only output.
   const bl = tuneField(page, 'Bl').locator('input');
@@ -87,7 +87,7 @@ test('QO11.1 Tune: Mms and Bl are editable and override the calculation; clearin
   await bl.click();
   await bl.press('Control+a');
   await bl.pressSequentially('9.5');
-  const blCell = await cell(page, 'Bl');
+  const blCell = await cell(page, 'BL_Tm');
   expect(blCell.state).toBe('E');
   expect(blCell.value).toBeCloseTo(9.5, 6);
 });
