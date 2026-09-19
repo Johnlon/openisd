@@ -70,7 +70,7 @@ reached. Phrasing stays natural — goal/aim language (e.g. *"design goal"*) —
 | Field | Proposed user-facing description |
 | :--- | :--- |
 | `ventTuning_hz` (Fb) | `The design goal for the Helmholtz tuning frequency of the vented enclosure. Given one of either port length or box volume, the model solves for the other. The goal may not be achievable — then the output field (length or volume) is left blank and marked as unsolvable.` |
-| `prTuning_hz` (Fp) | `The design goal for the tuning frequency of the passive-radiator system. Adding mass to the PR cone can only lower it — a goal above the radiator's own free-air resonance can't be reached.` |
+| `prTuning_hz` (Fp) | `The design goal for the tuning frequency of the passive-radiator system. Given one of either added mass or tuning, the model solves for the other. Adding mass can only lower the tuning, so a goal above the radiator's own free-air resonance can't be reached — then the output field (added mass or tuning) is left blank and marked as unsolvable.` |
 | `rearTuning_hz` (Frc, entered) | `The design goal for the tuning frequency of the sealed rear chamber (bandpass6/ABC).` |
 | `filterFc_hz` (Fc) | `The filter's cutoff or centre frequency.` |
 
@@ -227,7 +227,7 @@ Columns: **planned key** (post-rename), **screen(s)**, **kind** (Target / Result
 | :--- | :--- | :--- | :--- | :--- |
 | `passiveRadiatorCount` (prNum) | PR | Entered | — | Number of identical passive radiators. |
 | `addedMass_kg` (Madd PR) | PR | Entered | the **driver** concept is separate (`driverAddedMass_kg`) | Ballast mass on the PR cone to lower its tuning. |
-| `prTuning_hz` (Fp) | PR | **Target** | — | The design goal for the tuning frequency of the passive-radiator system. Adding mass to the PR cone can only lower it — a goal above the radiator's own free-air resonance can't be reached. |
+| `prTuning_hz` (Fp) | PR | **Target** | — | The design goal for the tuning frequency of the passive-radiator system. Given one of either added mass or tuning, the model solves for the other. Adding mass can only lower the tuning, so a goal above the radiator's own free-air resonance can't be reached — then the output field (added mass or tuning) is left blank and marked as unsolvable. |
 | `Fs_hz` (Fpr) | PR | Entered | **shared with the driver**, label overridden to `Fpr` | The radiator's own free-air resonance — no box in it. |
 | `prResonanceWithMass_hz` (Fpr loaded) | PR | **Result** | — | The PR's free-air resonance including the added mass. |
 | `Sd_m2` | PR | Entered | driver editor, same label `Sd` | The PR's effective radiating piston area. |
